@@ -64,15 +64,18 @@ ENUM_OPERATORS(eFileDataFlag, FD_FLAGS_IS_MEMFILE)
  */
 struct FileData {
   /** Linked list of BHeadN's. */
-  ListBase bhead_list;
-  enum eFileDataFlag flags;
-  bool is_eof;
+  ListBase bhead_list = {};
+  enum eFileDataFlag flags = eFileDataFlag(0);
+  bool is_eof = false;
 
-  FileReader *file;
+  FileReader *file = nullptr;
 
-  /** Whether we are undoing (< 0) or redoing (> 0), used to choose which 'unchanged' flag to use
-   * to detect unchanged data from memfile. */
-  int undo_direction; /* eUndoStepDir */
+  /**
+   * Whether we are undoing (< 0) or redoing (> 0), used to choose which 'unchanged' flag to use
+   * to detect unchanged data from memfile.
+   * #eUndoStepDir.
+   */
+  int undo_direction = 0;
 
   /** Used for relative paths handling.
    *
@@ -81,26 +84,27 @@ struct FileData {
    * generated the auto-saved one being recovered.
    *
    * NOTE: Currently expected to be the same path as #BlendFileData.filepath. */
-  char relabase[FILE_MAX];
+  char relabase[FILE_MAX] = {};
 
   /** General reading variables. */
-  SDNA *filesdna;
-  const SDNA *memsdna;
+  SDNA *filesdna = nullptr;
+  const SDNA *memsdna = nullptr;
   /** Array of #eSDNA_StructCompare. */
-  const char *compflags;
-  DNA_ReconstructInfo *reconstruct_info;
+  const char *compflags = nullptr;
+  DNA_ReconstructInfo *reconstruct_info = nullptr;
 
-  int fileversion;
+  int fileversion = 0;
   /** Used to retrieve ID names from (bhead+1). */
-  int id_name_offset;
+  int id_name_offset = 0;
   /** Used to retrieve asset data from (bhead+1). NOTE: This may not be available in old files,
    * will be -1 then! */
-  int id_asset_data_offset;
+  int id_asset_data_offset = 0;
   /** For do_versions patching. */
-  int globalf, fileflags;
+  int globalf = 0;
+  int fileflags = 0;
 
   /** Optionally skip some data-blocks when they're not needed. */
-  eBLOReadSkip skip_flags;
+  eBLOReadSkip skip_flags = BLO_READ_SKIP_NONE;
 
   /**
    * Tag to apply to all loaded ID data-blocks.
@@ -108,33 +112,33 @@ struct FileData {
    * \note This is initialized from #LibraryLink_Params.id_tag_extra since passing it as an
    * argument would need an additional argument to be passed around when expanding library data.
    */
-  int id_tag_extra;
+  int id_tag_extra = 0;
 
-  OldNewMap *datamap;
-  OldNewMap *globmap;
+  OldNewMap *datamap = nullptr;
+  OldNewMap *globmap = nullptr;
 
   /**
    * Store mapping from old ID pointers (the values they have in the .blend file) to new ones,
    * typically from value in `bhead->old` to address in memory where the ID was read.
    * Used during library-linking process (see #lib_link_all).
    */
-  OldNewMap *libmap;
+  OldNewMap *libmap = nullptr;
 
-  BLOCacheStorage *cache_storage;
+  BLOCacheStorage *cache_storage = nullptr;
 
-  BHeadSort *bheadmap;
-  int tot_bheadmap;
+  BHeadSort *bheadmap = nullptr;
+  int tot_bheadmap = 0;
 
   /** See: #USE_GHASH_BHEAD. */
-  GHash *bhead_idname_hash;
+  GHash *bhead_idname_hash = nullptr;
 
-  ListBase *mainlist;
+  ListBase *mainlist = nullptr;
   /** Used for undo. */
-  ListBase *old_mainlist;
+  ListBase *old_mainlist = nullptr;
   /**
    * IDMap using UID's as keys of all the old IDs in the old bmain. Used during undo to find a
    * matching old data when reading a new ID. */
-  IDNameLib_Map *old_idmap_uid;
+  IDNameLib_Map *old_idmap_uid = nullptr;
   /**
    * IDMap using uids as keys of the IDs read (or moved) in the new main(s).
    *
@@ -144,12 +148,12 @@ struct FileData {
    *
    * Also used to find current valid pointers (or none) of these 'no undo' IDs existing in
    * read memfile. */
-  IDNameLib_Map *new_idmap_uid;
+  IDNameLib_Map *new_idmap_uid = nullptr;
 
-  BlendFileReadReport *reports;
+  BlendFileReadReport *reports = nullptr;
 
   /** Opaque handle to the storage system used for non-static allocation strings. */
-  void *storage_handle;
+  void *storage_handle = nullptr;
 };
 
 #define SIZEOFBLENDERHEADER 12

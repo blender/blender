@@ -205,18 +205,16 @@ void MeshFromGeometry::create_faces(Mesh *mesh, bool use_vertex_groups)
     dverts = mesh->deform_verts_for_write();
   }
 
+  Span<float3> positions = mesh->vert_positions();
   MutableSpan<int> face_offsets = mesh->face_offsets_for_write();
   MutableSpan<int> corner_verts = mesh->corner_verts_for_write();
   bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
   bke::SpanAttributeWriter<int> material_indices =
       attributes.lookup_or_add_for_write_only_span<int>("material_index", bke::AttrDomain::Face);
 
-  const bool do_sharp = !has_normals();
-  bke::SpanAttributeWriter<bool> sharp_faces;
-  if (do_sharp) {
-    sharp_faces = attributes.lookup_or_add_for_write_span<bool>("sharp_face",
-                                                                bke::AttrDomain::Face);
-  }
+  const bool set_face_sharpness = !has_normals();
+  bke::SpanAttributeWriter<bool> sharp_faces = attributes.lookup_or_add_for_write_span<bool>(
+      "sharp_face", bke::AttrDomain::Face);
 
   int corner_index = 0;
 
@@ -229,9 +227,12 @@ void MeshFromGeometry::create_faces(Mesh *mesh, bool use_vertex_groups)
     }
 
     face_offsets[face_idx] = corner_index;
-    if (do_sharp) {
+    if (set_face_sharpness) {
+      /* If we have no vertex normals, set face sharpness flag based on
+       * whether smooth shading is off. */
       sharp_faces.span[face_idx] = !curr_face.shaded_smooth;
     }
+
     material_indices.span[face_idx] = curr_face.material_index;
     /* Importing obj files without any materials would result in negative indices, which is not
      * supported. */
@@ -257,12 +258,23 @@ void MeshFromGeometry::create_faces(Mesh *mesh, bool use_vertex_groups)
 
       corner_index++;
     }
+
+    if (!set_face_sharpness) {
+      /* If we do have vertex normals, we do not want to set face sharpness.
+       * Exception is, if degenerate faces (zero area, with co-colocated
+       * vertices) are present in the input data; this confuses custom
+       * corner normals calculation in Blender. Set such faces as sharp,
+       * they will be not shared across smooth vertex face fans. */
+      const float area = bke::mesh::face_area_calc(
+          positions, corner_verts.slice(face_offsets[face_idx], curr_face.corner_count_));
+      if (area < 1.0e-12f) {
+        sharp_faces.span[face_idx] = true;
+      }
+    }
   }
 
   material_indices.finish();
-  if (do_sharp) {
-    sharp_faces.finish();
-  }
+  sharp_faces.finish();
 }
 
 void MeshFromGeometry::create_vertex_groups(Object *obj)

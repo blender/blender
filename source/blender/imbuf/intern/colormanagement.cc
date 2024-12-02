@@ -1148,6 +1148,7 @@ void colormanage_imbuf_make_linear(ImBuf *ibuf, const char *from_colorspace)
                                   from_colorspace,
                                   to_colorspace,
                                   predivide);
+    ibuf->float_buffer.colorspace = nullptr;
   }
 }
 

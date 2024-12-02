@@ -92,10 +92,10 @@ class Background : Overlay {
     bg_ps_.draw_procedural(GPU_PRIM_TRIS, 1, 3);
   }
 
-  void draw_output(Framebuffer &framebuffer, Manager &manager, View & /*view*/) final
+  void draw_output(Framebuffer &framebuffer, Manager &manager, View &view) final
   {
     framebuffer_ref_ = framebuffer;
-    manager.submit(bg_ps_);
+    manager.submit(bg_ps_, view);
   }
 };
 

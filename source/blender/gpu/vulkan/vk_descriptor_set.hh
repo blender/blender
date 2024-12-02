@@ -130,6 +130,7 @@ class VKDescriptorSetTracker {
   void bind_texel_buffer(VkBufferView vk_buffer_view, VKDescriptorSet::Location location);
   void bind_buffer(VkDescriptorType vk_descriptor_type,
                    VkBuffer vk_buffer,
+                   VkDeviceSize buffer_offset,
                    VkDeviceSize size_in_bytes,
                    VKDescriptorSet::Location location);
   void bind_image(VkDescriptorType vk_descriptor_type,

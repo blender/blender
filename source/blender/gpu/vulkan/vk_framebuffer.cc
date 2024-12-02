@@ -38,9 +38,9 @@ VKFrameBuffer::VKFrameBuffer(const char *name)
 
 VKFrameBuffer::~VKFrameBuffer()
 {
-  VKContext &context = *VKContext::get();
-  if (context.active_framebuffer_get() == this) {
-    context.deactivate_framebuffer();
+  VKContext *context = VKContext::get();
+  if (context && context->active_framebuffer_get() == this) {
+    context->deactivate_framebuffer();
   }
   render_pass_free();
 }

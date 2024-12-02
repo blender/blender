@@ -218,7 +218,7 @@ def create_package(
         fh.write('''version = "1.0.0"\n''')
         fh.write('''tagline = "This is a tagline"\n''')
         fh.write('''blender_version_min = "{:s}"\n'''.format(blender_version_min or "0.0.0"))
-        if blender_version_min is not None:
+        if blender_version_max is not None:
             fh.write('''blender_version_max = "{:s}"\n'''.format(blender_version_max))
         fh.write('''\n''')
 
@@ -379,6 +379,17 @@ user_dirs: tuple[str, ...] = (
 )
 
 
+# Recursively remove with a fallback, needed for tests that create read-only files.
+def _rmtree_with_chmod(dir_remove: str) -> None:
+    try:
+        shutil.rmtree(dir_remove)
+    except PermissionError:
+        if sys.platform != "win32":
+            for root, _dirs, _files in os.walk(dir_remove):
+                os.chmod(root, 0o777)
+        shutil.rmtree(dir_remove)
+
+
 class TestWithTempBlenderUser_MixIn(unittest.TestCase):
 
     @staticmethod
@@ -392,11 +403,11 @@ class TestWithTempBlenderUser_MixIn(unittest.TestCase):
     @staticmethod
     def _repo_dirs_destroy() -> None:
         for dirname in user_dirs:
-            shutil.rmtree(os.path.join(TEMP_DIR_BLENDER_USER, dirname))
+            _rmtree_with_chmod(os.path.join(TEMP_DIR_BLENDER_USER, dirname))
         if os.path.exists(TEMP_DIR_REMOTE):
-            shutil.rmtree(TEMP_DIR_REMOTE)
+            _rmtree_with_chmod(TEMP_DIR_REMOTE)
         if os.path.exists(TEMP_DIR_LOCAL):
-            shutil.rmtree(TEMP_DIR_LOCAL)
+            _rmtree_with_chmod(TEMP_DIR_LOCAL)
 
     def setUp(self) -> None:
         self._repo_dirs_create()
@@ -404,12 +415,12 @@ class TestWithTempBlenderUser_MixIn(unittest.TestCase):
     def tearDown(self) -> None:
         self._repo_dirs_destroy()
 
-    def repo_add(self, *, repo_id: str, repo_name: str) -> None:
+    def repo_add(self, *, repo_id: str, repo_name: str, use_remote: bool = True) -> None:
         stdout = run_blender_extensions_no_errors((
             "repo-add",
             "--name", repo_name,
             "--directory", TEMP_DIR_LOCAL,
-            "--url", TEMP_DIR_REMOTE_AS_URL,
+            *(("--url", TEMP_DIR_REMOTE_AS_URL) if use_remote else ()),
             # A bit odd, this argument avoids running so many commands to setup a test.
             "--clear-all",
             repo_id,
@@ -429,7 +440,7 @@ class TestWithTempBlenderUser_MixIn(unittest.TestCase):
             blender_version_max: str | None = None,
             python_script: str | None = None,
             file_contents: dict[str, bytes] | None = None,
-    ) -> None:
+    ) -> str:
         if pkg_filename is None:
             pkg_filename = pkg_idname
         pkg_output_filepath = os.path.join(TEMP_DIR_REMOTE, pkg_filename + PKG_EXT)
@@ -459,6 +470,7 @@ class TestWithTempBlenderUser_MixIn(unittest.TestCase):
                     "created: \"{:s}\", {:d}\n"
                 ).format(pkg_filename, PKG_EXT, pkg_output_filepath, os.path.getsize(pkg_output_filepath)),
             )
+        return pkg_output_filepath
 
 
 class TestSimple(TestWithTempBlenderUser_MixIn, unittest.TestCase):
@@ -637,6 +649,55 @@ class TestSimple(TestWithTempBlenderUser_MixIn, unittest.TestCase):
             print(TEMP_DIR_BLENDER_USER)
             pause_until_keyboard_interrupt()
 
+    def test_install_files(self) -> None:
+
+        repo_id = "test_repo_module_name"
+        repo_name = "MyTestRepo"
+
+        self.repo_add(repo_id=repo_id, repo_name=repo_name, use_remote=False)
+
+        wheel_module_name = "my_custom_wheel"
+
+        # Create a package contents.
+        pkg_idname = "my_test_pkg"
+        pkg_filepath = self.build_package(
+            pkg_idname=pkg_idname,
+            wheel_params=(
+                WheelModuleParams(
+                    module_name=wheel_module_name,
+                    module_version="1.0.1",
+                ),
+            ),
+        )
+
+        stdout = run_blender_extensions_no_errors(("install-file", pkg_filepath, "--repo=" + repo_id))
+        self.assertEqual(
+            [line for line in stdout.split("\n") if line.startswith("STATUS ")],
+            ["STATUS Installed \"my_test_pkg\""],
+        )
+
+        stdout = run_blender_extensions_no_errors(("install-file", pkg_filepath, "--repo=" + repo_id))
+        self.assertEqual(
+            [line for line in stdout.split("\n") if line.startswith("STATUS ")],
+            ["STATUS Reinstalled \"my_test_pkg\""],
+        )
+
+        # Permissions are system specific, run this last.
+        if sys.platform != "win32":
+            pkg_dir_local = os.path.join(TEMP_DIR_LOCAL, pkg_idname)
+
+            contents_to_filesystem({"readonly_dir/readonly_file": b"\n"}, pkg_dir_local)
+            os.chmod(os.path.join(pkg_dir_local, "readonly_dir", "readonly_file"), 0o555)
+            os.chmod(os.path.join(pkg_dir_local, "readonly_dir"), 0o555)
+
+            stdout = run_blender_extensions_no_errors(("install-file", pkg_filepath, "--repo=" + repo_id))
+
+            status = [line for line in stdout.split("\n") if line.startswith("STATUS ")]
+
+            # Ignore the actual permission exception as this is system dependent.
+            self.assertRegex(status[0], "^STATUS Relocated directory that could not be removed \"my_test_pkg\": .*")
+            self.assertEqual(status[1], "STATUS Reinstalled \"my_test_pkg\"")
+
 
 class TestPlatform(TestWithTempBlenderUser_MixIn, unittest.TestCase):
     def test_platform_filter(self) -> None:
@@ -770,17 +831,18 @@ class TestPlatform(TestWithTempBlenderUser_MixIn, unittest.TestCase):
             "server-generate",
             "--repo-dir", TEMP_DIR_REMOTE,
         ))
-        self.assertEqual(stdout, (
-            '''WARN: archive found with duplicates for id my_platform_test: '''
-            '''3 duplicate(s) found, conflicting blender versions '''
-            '''my_platform_test-linux_x64_conflict_no_version.zip=[undefined] & '''
-            '''my_platform_test-linux_x64_no_conflict_old.zip=[2.3.0 -> 3.3.0], '''
-            '''my_platform_test-linux_x64_no_conflict_old.zip=[2.3.0 -> 3.3.0] & '''
-            '''my_platform_test-linux_x64_conflict.zip=[2.3.0 -> 4.5.0], '''
-            '''my_platform_test-linux_x64_conflict.zip=[2.3.0 -> 4.5.0] & '''
-            '''my_platform_test-linux_x64.zip=[4.3.0 -> 4.4.0]\n'''
-            '''found 7 packages.\n'''
-        ))
+
+        self.assertEqual(stdout, "".join([
+            '''WARN: archive found with duplicates for id my_platform_test: ''',
+            '''3 duplicate(s) found, conflicting blender versions ''',
+            '''my_platform_test-linux_x64_conflict_no_version.zip=[undefined] & ''',
+            '''my_platform_test-linux_x64_no_conflict_old.zip=[{:s} -> {:s}], '''.format(version_a, version_b),
+            '''my_platform_test-linux_x64_no_conflict_old.zip=[{:s} -> {:s}] & '''.format(version_a, version_b),
+            '''my_platform_test-linux_x64_conflict.zip=[{:s} -> {:s}], '''.format(version_a, version_e),
+            '''my_platform_test-linux_x64_conflict.zip=[{:s} -> {:s}] & '''.format(version_a, version_e),
+            '''my_platform_test-linux_x64.zip=[{:s} -> {:s}]\n'''.format(version_c_this, version_d),
+            '''found 7 packages.\n''',
+        ]))
 
 
 # While other tests use this command, focus on testing specific behaviors work as expected.
@@ -913,6 +975,97 @@ class TestPythonVersions(TestWithTempBlenderUser_MixIn, unittest.TestCase):
         self.assertEqual(returncode, 0)
         self.assertEqual(stderr, "")
         self.assertEqual(stdout, '''found 3 packages.\n''')
+
+    def test_server_generate_version_with_stable_abi(self) -> None:
+        # The different Python versions in the wheels cause the packages not to conflict.
+        repo_id = "test_repo_stable_abi_versions"
+        repo_name = "MyTestRepoVersionStableABI"
+
+        self.repo_add(repo_id=repo_id, repo_name=repo_name)
+
+        this_python_version_major, this_python_version_minor = sys.version_info[:2]
+        # TODO: this test doesn't make sense for the first Python major releases (4.0 for e.g.).
+        if this_python_version_minor == 0:
+            return
+
+        python_abi_current_stable = "abi{:d}".format(this_python_version_major)
+        python_abi_current = "cp{:d}{:d}".format(this_python_version_major, this_python_version_minor)
+        python_abi_outdated = "cp{:d}{:d}".format(this_python_version_major, this_python_version_minor - 1)
+
+        pkg_idnames = (
+            # Python incompatible because it's stable ABI implies gerater-or-equal-to.
+            ("my_test_pkg_a", "my_test_a", [
+                "example_A-1.2.3-{0:s}-{0:s}-any.whl".format(
+                    # Old ABI (making this extension incompatible).
+                    python_abi_outdated,
+                ),
+                "example_B-1.2.3-{0:s}-{0:s}-any.whl".format(python_abi_outdated),
+            ]),
+            # Python compatible.
+            ("my_test_pkg_b", "my_test_b", [
+                "example_A-1.2.3-{:s}-{:s}-any.whl".format(
+                    python_abi_outdated,
+                    # Stable ABI (making this extension compatible).
+                    python_abi_current_stable,
+                ),
+                "example_B-1.2.3-{0:s}-{0:s}-any.whl".format(python_abi_current),
+            ]),
+        )
+
+        # Create a package contents.
+        for pkg_idname, pkg_filename, wheel_filenames in pkg_idnames:
+            wheel_params = []
+            for wheel_filename in wheel_filenames:
+                module_name, module_version = wheel_filename.split("-", 2)[0:2]
+                wheel_params.append(
+                    WheelModuleParams(
+                        module_name=module_name,
+                        module_version=module_version,
+                        filename=wheel_filename,
+                    ),
+                )
+                del module_name, module_version
+
+            self.build_package(
+                pkg_idname=pkg_idname,
+                pkg_filename=pkg_filename,
+                blender_version_min="4.2.0",
+                wheel_params=wheel_params,
+            )
+
+        # Generate the repository.
+        returncode, stdout, stderr = run_blender_extensions((
+            "server-generate",
+            "--repo-dir", TEMP_DIR_REMOTE,
+        ))
+        self.assertEqual(returncode, 0)
+        self.assertEqual(stderr, "")
+        self.assertEqual(stdout, '''found 2 packages.\n''')
+
+        stdout = run_blender_extensions_no_errors((
+            "sync",
+        ))
+        self.assertEqual(
+            stdout.rstrip("\n").split("\n")[-1],
+            "STATUS Extensions list for \"{:s}\" updated".format(repo_name),
+        )
+
+        # This should be filtered out.
+        # NOTE: ideally an error would show an error that the extension is known but not compatible.
+        returncode, stdout, stderr = run_blender_extensions(("install", "my_test_pkg_a", "--enable"))
+
+        self.assertEqual(stdout.rstrip(), "")
+        self.assertEqual(returncode, 1)
+        self.assertEqual(
+            "Package \"my_test_pkg_a\" not found in remote repositories!",
+            stderr.rstrip(),
+        )
+
+        stdout = run_blender_extensions_no_errors(("install", "my_test_pkg_b", "--enable"))
+        self.assertEqual(
+            [line for line in stdout.split("\n") if line.startswith("STATUS ")][0],
+            "STATUS Installed \"my_test_pkg_b\""
+        )
 
 
 class TestModuleViolation(TestWithTempBlenderUser_MixIn, unittest.TestCase):

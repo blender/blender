@@ -399,7 +399,7 @@ struct MSLSharedMemoryBlock {
   std::string type_name;
   std::string varname;
   bool is_array;
-  std::string array_decl; /* String containing array declaration. e.g. [cache_size][cache_size]*/
+  std::string array_decl; /* String containing array declaration. e.g. [cache_size][cache_size]. */
 };
 
 class MSLGeneratorInterface {

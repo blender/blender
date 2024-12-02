@@ -587,12 +587,6 @@ static bNodeTreeInterfaceItem *rna_NodeTreeInterfaceItems_copy_to_parent(
       BKE_report(reports, RPT_ERROR_INVALID_INPUT, "Parent is not part of the interface");
       return nullptr;
     }
-    if (item->item_type == NODE_INTERFACE_PANEL &&
-        !(parent->flag & NODE_INTERFACE_PANEL_ALLOW_CHILD_PANELS))
-    {
-      BKE_report(reports, RPT_WARNING, "Parent panel does not allow child panels");
-      return nullptr;
-    }
   }
 
   if (parent == nullptr) {
@@ -666,18 +660,11 @@ static void rna_NodeTreeInterfaceItems_move(ID *id,
 static void rna_NodeTreeInterfaceItems_move_to_parent(ID *id,
                                                       bNodeTreeInterface *interface,
                                                       Main *bmain,
-                                                      ReportList *reports,
+                                                      ReportList * /*reports*/,
                                                       bNodeTreeInterfaceItem *item,
                                                       bNodeTreeInterfacePanel *parent,
                                                       int to_position)
 {
-  if (item->item_type == NODE_INTERFACE_PANEL && parent &&
-      !(parent->flag & NODE_INTERFACE_PANEL_ALLOW_CHILD_PANELS))
-  {
-    BKE_report(reports, RPT_WARNING, "Parent panel does not allow child panels");
-    return;
-  }
-
   interface->move_item_to_parent(*item, parent, to_position);
 
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(id);

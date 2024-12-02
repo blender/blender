@@ -61,7 +61,7 @@ void main()
 
   /* Compute the contribution of the center pixel to the blur result. */
   float center_value = FUNCTION(texture_load(input_tx, texel).x);
-  accumulated_value += center_value * texture_load(weights_tx, 0).x;
+  accumulated_value += center_value * texture_load(weights_tx, ivec2(0)).x;
 
   /* Start with the center value as the maximum/minimum distance and reassign to the true maximum
    * or minimum in the search loop below. Additionally, the center falloff is always 1.0, so start
@@ -73,9 +73,9 @@ void main()
    * falloffs textures only store the weights and falloffs for the positive half, but since the
    * they are both symmetric, the same weights and falloffs are used for the negative half and we
    * compute both of their contributions. */
-  for (int i = 1; i < texture_size(weights_tx); i++) {
-    float weight = texture_load(weights_tx, i).x;
-    float falloff = texture_load(falloffs_tx, i).x;
+  for (int i = 1; i < texture_size(weights_tx).x; i++) {
+    float weight = texture_load(weights_tx, ivec2(i, 0)).x;
+    float falloff = texture_load(falloffs_tx, ivec2(i, 0)).x;
 
     /* Loop for two iterations, where s takes the value of -1 and 1, which is used as the sign
      * needed to evaluated the positive and negative sides as explain above. */

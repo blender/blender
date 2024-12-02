@@ -490,7 +490,7 @@ static void rna_NlaStrip_action_slot_handle_set(
                                      *ptr->owner_id,
                                      strip->act,
                                      strip->action_slot_handle,
-                                     strip->action_slot_name);
+                                     strip->last_slot_identifier);
 }
 
 static PointerRNA rna_NlaStrip_action_slot_get(PointerRNA *ptr)
@@ -506,15 +506,15 @@ static void rna_NlaStrip_action_slot_set(PointerRNA *ptr, PointerRNA value, Repo
                               *ptr->owner_id,
                               strip->act,
                               strip->action_slot_handle,
-                              strip->action_slot_name,
+                              strip->last_slot_identifier,
                               reports);
 }
 
-static void rna_iterator_nlastrip_action_slots_begin(CollectionPropertyIterator *iter,
-                                                     PointerRNA *ptr)
+static void rna_iterator_nlastrip_action_suitable_slots_begin(CollectionPropertyIterator *iter,
+                                                              PointerRNA *ptr)
 {
   NlaStrip *strip = (NlaStrip *)ptr->data;
-  rna_iterator_generic_action_slots_begin(iter, strip->act);
+  rna_iterator_generic_action_suitable_slots_begin(iter, strip->act);
 }
 
 static void rna_NlaStrip_action_start_frame_set(PointerRNA *ptr, float value)
@@ -916,14 +916,14 @@ static void rna_def_nlastrip(BlenderRNA *brna)
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_update(prop, NC_ANIMATION | ND_NLA_ACTCHANGE, "rna_NlaStrip_dependency_update");
 
-  prop = RNA_def_property(srna, "action_slot_name", PROP_STRING, PROP_NONE);
-  RNA_def_property_string_sdna(prop, nullptr, "action_slot_name");
+  prop = RNA_def_property(srna, "last_slot_identifier", PROP_STRING, PROP_NONE);
+  RNA_def_property_string_sdna(prop, nullptr, "last_slot_identifier");
   RNA_def_property_ui_text(
       prop,
-      "Action Slot Name",
-      "The name of the action slot. The slot identifies which sub-set of the Action "
-      "is considered to be for this strip, and its name is used to find the right slot "
-      "when assigning an Action.");
+      "Last Action Slot Identifier",
+      "The identifier of the most recently assigned action slot. The slot identifies which "
+      "sub-set of the Action is considered to be for this strip, and its identifier is used to "
+      "find the right slot when assigning an Action.");
 
   prop = RNA_def_property(srna, "action_slot", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "ActionSlot");
@@ -948,10 +948,10 @@ static void rna_def_nlastrip(BlenderRNA *brna)
    * and that's enough. */
   RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
 
-  prop = RNA_def_property(srna, "action_slots", PROP_COLLECTION, PROP_NONE);
+  prop = RNA_def_property(srna, "action_suitable_slots", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "ActionSlot");
   RNA_def_property_collection_funcs(prop,
-                                    "rna_iterator_nlastrip_action_slots_begin",
+                                    "rna_iterator_nlastrip_action_suitable_slots_begin",
                                     "rna_iterator_array_next",
                                     "rna_iterator_array_end",
                                     "rna_iterator_array_dereference_get",

@@ -194,7 +194,7 @@ static bool action_to_hide(const VisAction action)
   return action == VisAction::Hide;
 }
 
-/* Calculates whether a face should be hidden based on all of its corner vertices.*/
+/* Calculates whether a face should be hidden based on all of its corner vertices. */
 static void calc_face_hide(const Span<int> node_faces,
                            const OffsetIndices<int> faces,
                            const Span<int> corner_verts,
@@ -314,8 +314,8 @@ static void vert_hide_update(const Depsgraph &depsgraph,
   hide_vert.finish();
   if (any_changed) {
     /* We handle flushing ourselves at the node level instead of delegating to
-     * bke::mesh_hide_vert_flush because we need to tag node visibility changes as well in cases
-     * where the vertices hidden are on a node boundary.*/
+     * #bke::mesh_hide_vert_flush because we need to tag node visibility changes as well in cases
+     * where the vertices hidden are on a node boundary. */
     flush_face_changes_node(mesh, pbvh, node_mask, hide_vert.span);
     flush_edge_changes(mesh, hide_vert.span);
   }
@@ -979,7 +979,7 @@ static void grow_shrink_visibility_mesh(const Depsgraph &depsgraph,
   update_undo_state(depsgraph, object, node_mask, hide_vert.span, last_buffer);
 
   /* We can wait until after all iterations are done to flush edge changes as they are
-   * not used for coarse filtering while iterating.*/
+   * not used for coarse filtering while iterating. */
   flush_edge_changes(mesh, last_buffer);
 
   update_node_visibility_from_face_changes(

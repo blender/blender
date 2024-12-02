@@ -368,13 +368,22 @@ class TestCLI_Build(unittest.TestCase):
         wheels = [
             # Must be included in all packages.
             "my_portable_package-3.0.1-py3-none-any.whl",
+
             # Each package must include only one.
-            "my_platform_package-10.3.0-cp311-cp311-macosx_11_0_arm64.whl",
-            "my_platform_package-10.3.0-cp311-cp311-macosx_11_0_x86_64.whl",
-            "my_platform_package-10.3.0-cp311-cp311-manylinux_2_28_aarch64.whl",
-            "my_platform_package-10.3.0-cp311-cp311-manylinux_2_28_x86_64.whl",
-            "my_platform_package-10.3.0-cp311-cp311-win_amd64.whl",
-            "my_platform_package-10.3.0-cp311-cp311-win_arm64.whl",
+            # Include two versions (B may be a "universal" package) for platforms that support it.
+            "my_platform_package_A-10.3.0-cp311-cp311-macosx_11_0_arm64.whl",
+            "my_platform_package_A-10.3.0-cp311-cp311-macosx_11_0_x86_64.whl",
+            "my_platform_package_B-10.3.0-cp311-cp311-macosx_11_0_universal2.whl",
+
+            "my_platform_package_A-10.3.0-cp311-cp311-manylinux_2_28_aarch64.whl",
+            "my_platform_package_B-10.3.0-cp311-cp311-manylinux_2_28_aarch64.whl",
+            "my_platform_package_A-10.3.0-cp311-cp311-manylinux_2_28_x86_64.whl",
+            "my_platform_package_B-10.3.0-cp311-cp311-manylinux_2_28_x86_64.whl",
+
+            "my_platform_package_A-10.3.0-cp311-cp311-win_amd64.whl",
+            "my_platform_package_B-10.3.0-cp311-cp311-win_amd64.whl",
+            "my_platform_package_A-10.3.0-cp311-cp311-win_arm64.whl",
+            "my_platform_package_B-10.3.0-cp311-cp311-win_arm64.whl",
         ]
 
         pkg_idname = "my_test"
@@ -431,8 +440,8 @@ class TestCLI_Build(unittest.TestCase):
             filename = "{:s}-{:s}{:s}".format(pkg_idname, platform.replace("-", "_"), PKG_EXT)
             value = packages_dict.get(filename)
             assert isinstance(value, list)
-            # A check here that gives a better error would be nice, for now, check there are always 4 files.
-            self.assertEqual(len(value), 4)
+            # A check here that gives a better error would be nice, for now, check there are always 5 files.
+            self.assertEqual(len(value), 5)
 
             manifest_dict = manifest_dict_from_archive(os.path.join(self.dirpath, filename))
 

@@ -21,6 +21,8 @@
 #  endif
 #endif
 
+#include "vulkan/vk_ghost_api.hh"
+
 #include <vector>
 
 #include <cassert>
@@ -44,8 +46,6 @@
 #define SELECT_COMPATIBLE_SURFACES_ONLY false
 
 using namespace std;
-
-uint32_t GHOST_ContextVK::s_currentImage = 0;
 
 static const char *vulkan_error_as_string(VkResult result)
 {
@@ -359,6 +359,9 @@ static GHOST_TSuccess ensure_vulkan_device(VkInstance vk_instance,
     if (!device_vk.has_extensions(required_extensions)) {
       continue;
     }
+    if (!blender::gpu::GPU_vulkan_is_supported_driver(physical_device)) {
+      continue;
+    }
 
     if (vk_surface != VK_NULL_HANDLE) {
       uint32_t format_count;
@@ -550,9 +553,10 @@ GHOST_TSuccess GHOST_ContextVK::swapBuffers()
   /* Some platforms (NVIDIA/Wayland) can receive an out of date swapchain when acquiring the next
    * swapchain image. Other do it when calling vkQueuePresent. */
   VkResult result = VK_ERROR_OUT_OF_DATE_KHR;
+  uint32_t image_index = 0;
   while (result == VK_ERROR_OUT_OF_DATE_KHR) {
     result = vkAcquireNextImageKHR(
-        device, m_swapchain, UINT64_MAX, VK_NULL_HANDLE, m_fence, &s_currentImage);
+        device, m_swapchain, UINT64_MAX, VK_NULL_HANDLE, m_fence, &image_index);
     if (result == VK_ERROR_OUT_OF_DATE_KHR) {
       destroySwapchain();
       createSwapchain();
@@ -562,8 +566,7 @@ GHOST_TSuccess GHOST_ContextVK::swapBuffers()
   VK_CHECK(vkResetFences(device, 1, &m_fence));
 
   GHOST_VulkanSwapChainData swap_chain_data;
-  swap_chain_data.swap_chain_index = s_currentImage;
-  swap_chain_data.image = m_swapchain_images[s_currentImage];
+  swap_chain_data.image = m_swapchain_images[image_index];
   swap_chain_data.format = m_surface_format.format;
   swap_chain_data.extent = m_render_extent;
 
@@ -577,7 +580,7 @@ GHOST_TSuccess GHOST_ContextVK::swapBuffers()
   present_info.pWaitSemaphores = nullptr;
   present_info.swapchainCount = 1;
   present_info.pSwapchains = &m_swapchain;
-  present_info.pImageIndices = &s_currentImage;
+  present_info.pImageIndices = &image_index;
   present_info.pResults = nullptr;
 
   result = VK_SUCCESS;
@@ -604,8 +607,6 @@ GHOST_TSuccess GHOST_ContextVK::swapBuffers()
     return GHOST_kFailure;
   }
 
-  s_currentImage = (s_currentImage + 1) % m_swapchain_images.size();
-
   if (swap_buffers_post_callback_) {
     swap_buffers_post_callback_();
   }
@@ -616,7 +617,6 @@ GHOST_TSuccess GHOST_ContextVK::swapBuffers()
 GHOST_TSuccess GHOST_ContextVK::getVulkanSwapChainFormat(
     GHOST_VulkanSwapChainData *r_swap_chain_data)
 {
-  r_swap_chain_data->swap_chain_index = s_currentImage;
   r_swap_chain_data->image = VK_NULL_HANDLE;
   r_swap_chain_data->format = m_surface_format.format;
   r_swap_chain_data->extent = m_render_extent;

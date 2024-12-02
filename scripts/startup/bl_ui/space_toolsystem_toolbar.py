@@ -3147,6 +3147,7 @@ class IMAGE_PT_tools_active(ToolSelectPanelHelper, Panel):
             _brush_tool,
             _defs_texture_paint.blur,
             _defs_texture_paint.smear,
+            _defs_texture_paint.clone,
             _defs_texture_paint.fill,
             _defs_texture_paint.mask,
             None,

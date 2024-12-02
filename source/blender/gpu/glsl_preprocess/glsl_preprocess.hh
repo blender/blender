@@ -486,7 +486,7 @@ class Preprocessor {
 
   /* Assume formatted source with our code style. Cannot be applied to python shaders. */
   template<typename ReportErrorF>
-  void global_scope_constant_linting(std::string str, const ReportErrorF &report_error)
+  void global_scope_constant_linting(const std::string &str, const ReportErrorF &report_error)
   {
     /* Example: `const uint global_var = 1u;`. Matches if not indented (i.e. inside a scope). */
     std::regex regex(R"(const \w+ \w+ =)");

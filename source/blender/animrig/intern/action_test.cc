@@ -278,7 +278,7 @@ TEST_F(ActionLayersTest, add_slot)
     EXPECT_EQ(1, action->last_slot_handle);
     EXPECT_EQ(1, slot.handle);
 
-    EXPECT_STREQ("XXSlot", slot.name);
+    EXPECT_STREQ("XXSlot", slot.identifier);
     EXPECT_EQ(0, slot.idtype);
   }
 
@@ -287,7 +287,7 @@ TEST_F(ActionLayersTest, add_slot)
     EXPECT_EQ(2, action->last_slot_handle);
     EXPECT_EQ(2, slot.handle);
 
-    EXPECT_STREQ(cube->id.name, slot.name);
+    EXPECT_STREQ(cube->id.name, slot.identifier);
     EXPECT_EQ(ID_OB, slot.idtype);
   }
 }
@@ -425,13 +425,13 @@ TEST_F(ActionLayersTest, action_assign_id)
   /* Assign to the only, 'virgin' Slot, should always work. */
   Slot &slot_cube = action->slot_add();
   ASSERT_NE(nullptr, slot_cube.runtime);
-  ASSERT_STREQ(slot_cube.name, "XXSlot");
+  ASSERT_STREQ(slot_cube.identifier, "XXSlot");
   ASSERT_EQ(assign_action_and_slot(action, &slot_cube, cube->id), ActionSlotAssignmentResult::OK);
 
   EXPECT_EQ(slot_cube.handle, cube->adt->slot_handle);
-  EXPECT_STREQ(slot_cube.name, "OBSlot");
-  EXPECT_STREQ(slot_cube.name, cube->adt->slot_name)
-      << "The slot name should be copied to the adt";
+  EXPECT_STREQ(slot_cube.identifier, "OBSlot");
+  EXPECT_STREQ(slot_cube.identifier, cube->adt->last_slot_identifier)
+      << "The slot identifier should be copied to the adt";
 
   EXPECT_TRUE(slot_cube.users(*bmain).contains(&cube->id))
       << "Expecting Cube to be registered as animated by its slot.";
@@ -439,9 +439,9 @@ TEST_F(ActionLayersTest, action_assign_id)
   /* Assign another ID to the same Slot. */
   ASSERT_EQ(assign_action_and_slot(action, &slot_cube, suzanne->id),
             ActionSlotAssignmentResult::OK);
-  EXPECT_STREQ(slot_cube.name, "OBSlot");
-  EXPECT_STREQ(slot_cube.name, cube->adt->slot_name)
-      << "The slot name should be copied to the adt";
+  EXPECT_STREQ(slot_cube.identifier, "OBSlot");
+  EXPECT_STREQ(slot_cube.identifier, cube->adt->last_slot_identifier)
+      << "The slot identifier should be copied to the adt";
 
   EXPECT_TRUE(slot_cube.users(*bmain).contains(&cube->id))
       << "Expecting Suzanne to be registered as animated by the Cube slot.";
@@ -492,8 +492,9 @@ TEST_F(ActionLayersTest, action_assign_id)
   ASSERT_EQ(assign_action_and_slot(action, &another_slot_cube, cube->id),
             ActionSlotAssignmentResult::OK);
   EXPECT_EQ(another_slot_cube.handle, cube->adt->slot_handle);
-  EXPECT_STREQ("OBSlot.002", another_slot_cube.name) << "The slot should be uniquely named";
-  EXPECT_STREQ("OBSlot.002", cube->adt->slot_name) << "The slot name should be copied to the adt";
+  EXPECT_STREQ("OBSlot.002", another_slot_cube.identifier) << "The slot should be uniquely named";
+  EXPECT_STREQ("OBSlot.002", cube->adt->last_slot_identifier)
+      << "The slot identifier should be copied to the adt";
   EXPECT_TRUE(another_slot_cube.users(*bmain).contains(&cube->id))
       << "Expecting Cube to be registered as animated by the 'another_slot_cube' slot.";
 
@@ -512,82 +513,82 @@ TEST_F(ActionLayersTest, rename_slot)
   Slot &slot_cube = action->slot_add();
   ASSERT_EQ(assign_action_and_slot(action, &slot_cube, cube->id), ActionSlotAssignmentResult::OK);
   EXPECT_EQ(slot_cube.handle, cube->adt->slot_handle);
-  EXPECT_STREQ("OBSlot", slot_cube.name);
-  EXPECT_STREQ(slot_cube.name, cube->adt->slot_name)
-      << "The slot name should be copied to the adt";
+  EXPECT_STREQ("OBSlot", slot_cube.identifier);
+  EXPECT_STREQ(slot_cube.identifier, cube->adt->last_slot_identifier)
+      << "The slot identifier should be copied to the adt";
 
-  action->slot_name_define(slot_cube, "New Slot Name");
-  EXPECT_STREQ("New Slot Name", slot_cube.name);
-  /* At this point the slot name will not have been copied to the cube
+  action->slot_identifier_define(slot_cube, "New Slot Name");
+  EXPECT_STREQ("New Slot Name", slot_cube.identifier);
+  /* At this point the slot identifier will not have been copied to the cube
    * AnimData. However, I don't want to test for that here, as it's not exactly
    * desirable behavior, but more of a side-effect of the current
    * implementation. */
 
-  action->slot_name_propagate(*bmain, slot_cube);
-  EXPECT_STREQ("New Slot Name", cube->adt->slot_name);
+  action->slot_identifier_propagate(*bmain, slot_cube);
+  EXPECT_STREQ("New Slot Name", cube->adt->last_slot_identifier);
 
   /* Finally, do another rename, do NOT call the propagate function, then
    * unassign. This should still result in the correct slot name being stored
    * on the ADT. */
-  action->slot_name_define(slot_cube, "Even Newer Name");
+  action->slot_identifier_define(slot_cube, "Even Newer Name");
   EXPECT_TRUE(unassign_action(cube->id));
-  EXPECT_STREQ("Even Newer Name", cube->adt->slot_name);
+  EXPECT_STREQ("Even Newer Name", cube->adt->last_slot_identifier);
 }
 
-TEST_F(ActionLayersTest, slot_name_ensure_prefix)
+TEST_F(ActionLayersTest, slot_identifier_ensure_prefix)
 {
   class AccessibleSlot : public Slot {
    public:
-    void name_ensure_prefix()
+    void identifier_ensure_prefix()
     {
-      Slot::name_ensure_prefix();
+      Slot::identifier_ensure_prefix();
     }
   };
 
   Slot &raw_slot = action->slot_add();
   AccessibleSlot &slot = static_cast<AccessibleSlot &>(raw_slot);
-  ASSERT_STREQ("XXSlot", slot.name);
+  ASSERT_STREQ("XXSlot", slot.identifier);
   ASSERT_EQ(0, slot.idtype);
 
   /* Check defaults, idtype zeroed. */
-  slot.name_ensure_prefix();
-  EXPECT_STREQ("XXSlot", slot.name);
+  slot.identifier_ensure_prefix();
+  EXPECT_STREQ("XXSlot", slot.identifier);
 
   /* idtype CA, default name.  */
   slot.idtype = ID_CA;
-  slot.name_ensure_prefix();
-  EXPECT_STREQ("CASlot", slot.name);
+  slot.identifier_ensure_prefix();
+  EXPECT_STREQ("CASlot", slot.identifier);
 
   /* idtype ME, explicit name of other idtype. */
-  action->slot_name_define(slot, "CANewName");
+  action->slot_identifier_define(slot, "CANewName");
   slot.idtype = ID_ME;
-  slot.name_ensure_prefix();
-  EXPECT_STREQ("MENewName", slot.name);
+  slot.identifier_ensure_prefix();
+  EXPECT_STREQ("MENewName", slot.identifier);
 
   /* Zeroing out idtype. */
   slot.idtype = 0;
-  slot.name_ensure_prefix();
-  EXPECT_STREQ("XXNewName", slot.name);
+  slot.identifier_ensure_prefix();
+  EXPECT_STREQ("XXNewName", slot.identifier);
 }
 
-TEST_F(ActionLayersTest, slot_name_prefix)
+TEST_F(ActionLayersTest, slot_identifier_prefix)
 {
   Slot &slot = action->slot_add();
-  EXPECT_EQ("XX", slot.name_prefix_for_idtype());
+  EXPECT_EQ("XX", slot.identifier_prefix_for_idtype());
 
   slot.idtype = ID_CA;
-  EXPECT_EQ("CA", slot.name_prefix_for_idtype());
+  EXPECT_EQ("CA", slot.identifier_prefix_for_idtype());
 }
 
-TEST_F(ActionLayersTest, rename_slot_name_collision)
+TEST_F(ActionLayersTest, rename_slot_identifier_collision)
 {
   Slot &slot1 = action->slot_add();
   Slot &slot2 = action->slot_add();
 
-  action->slot_name_define(slot1, "New Slot Name");
-  action->slot_name_define(slot2, "New Slot Name");
-  EXPECT_STREQ("New Slot Name", slot1.name);
-  EXPECT_STREQ("New Slot Name.001", slot2.name);
+  action->slot_identifier_define(slot1, "New Slot Name");
+  action->slot_identifier_define(slot2, "New Slot Name");
+  EXPECT_STREQ("New Slot Name", slot1.identifier);
+  EXPECT_STREQ("New Slot Name.001", slot2.identifier);
 }
 
 TEST_F(ActionLayersTest, find_suitable_slot)
@@ -601,29 +602,29 @@ TEST_F(ActionLayersTest, find_suitable_slot)
    * These should nevertheless be matched up. */
   Slot &slot = action->slot_add();
   slot.handle = 327;
-  STRNCPY_UTF8(slot.name, "OBKüüübus");
+  STRNCPY_UTF8(slot.identifier, "OBKüüübus");
   slot.idtype = GS(cube->id.name);
   EXPECT_EQ(&slot, action->find_suitable_slot_for(cube->id));
 
   /* ===
    * Slot exists with the same name & type as the ID, and the ID has an AnimData with the same
-   * slot name, but a different slot_handle. Since the Action has not yet been
-   * assigned to this ID, the slot_handle should be ignored, and the slot name used for
+   * slot identifier, but a different slot_handle. Since the Action has not yet been
+   * assigned to this ID, the slot_handle should be ignored, and the slot identifier used for
    * matching. */
 
-  /* Create a slot with a handle that should be ignored.*/
+  /* Create a slot with a handle that should be ignored. */
   Slot &other_slot = action->slot_add();
   other_slot.handle = 47;
 
   AnimData *adt = BKE_animdata_ensure_id(&cube->id);
   adt->action = nullptr;
-  /* Configure adt to use the handle of one slot, and the name of the other. */
+  /* Configure adt to use the handle of one slot, and the identifier of the other. */
   adt->slot_handle = other_slot.handle;
-  STRNCPY_UTF8(adt->slot_name, slot.name);
+  STRNCPY_UTF8(adt->last_slot_identifier, slot.identifier);
   EXPECT_EQ(&slot, action->find_suitable_slot_for(cube->id));
 
   /* ===
-   * Same situation as above (AnimData has name of one slot, but the handle of another),
+   * Same situation as above (AnimData has identifier of one slot, but the handle of another),
    * except that the Action has already been assigned. In this case the handle should take
    * precedence. */
   adt->action = action;
@@ -634,7 +635,7 @@ TEST_F(ActionLayersTest, find_suitable_slot)
    * A slot exists, but doesn't match anything in the action data of the cube. This should fall
    * back to using the ID name. */
   adt->slot_handle = 161;
-  STRNCPY_UTF8(adt->slot_name, "¿¿What's this??");
+  STRNCPY_UTF8(adt->last_slot_identifier, "¿¿What's this??");
   EXPECT_EQ(&slot, action->find_suitable_slot_for(cube->id));
 }
 

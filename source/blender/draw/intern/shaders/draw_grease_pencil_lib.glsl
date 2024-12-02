@@ -4,8 +4,14 @@
 
 #pragma once
 
-#include "common_math_lib.glsl"
-#include "common_view_lib.glsl"
+#include "draw_object_infos_info.hh"
+
+SHADER_LIBRARY_CREATE_INFO(draw_gpencil_new)
+
+#include "draw_model_lib.glsl"
+#include "draw_view_lib.glsl"
+#include "gpu_shader_math_matrix_lib.glsl"
+#include "gpu_shader_utildefines_lib.glsl"
 
 #ifndef DRW_GPENCIL_INFO
 #  error Missing additional info draw_gpencil
@@ -68,8 +74,18 @@ vec2 gpencil_project_to_screenspace(vec4 v, vec4 viewport_size)
 
 float gpencil_stroke_thickness_modulate(float thickness, vec4 ndc_pos, vec4 viewport_size)
 {
-  /* World space point size. */
-  thickness *= gpThicknessScale * ProjectionMatrix[1][1] * viewport_size.y;
+  /* Modify stroke thickness by object and layer factors. */
+  thickness = max(1.0, thickness * gpThicknessScale + gpThicknessOffset);
+
+  if (gpThicknessIsScreenSpace) {
+    /* Multiply offset by view Z so that offset is constant in screen-space.
+     * (e.i: does not change with the distance to camera) */
+    thickness *= ndc_pos.w;
+  }
+  else {
+    /* World space point size. */
+    thickness *= gpThicknessWorldScale * drw_view.winmat[1][1] * viewport_size.y;
+  }
   return thickness;
 }
 
@@ -77,7 +93,7 @@ float gpencil_clamp_small_stroke_thickness(float thickness, vec4 ndc_pos)
 {
   /* To avoid aliasing artifacts, we clamp the line thickness and
    * reduce its opacity in the fragment shader. */
-  float min_thickness = ndc_pos.w * 0.00065;
+  float min_thickness = ndc_pos.w * 1.3;
   thickness = max(min_thickness, thickness);
 
   return thickness;
@@ -173,13 +189,6 @@ vec4 gpencil_vertex(vec4 viewport_size,
   vec4 out_ndc;
 
   if (gpencil_is_stroke_vertex()) {
-    bool show_stroke = flag_test(material_flags, GP_SHOW_STROKE);
-    if (!show_stroke) {
-      /* We set the vertex at the camera origin to generate 0 fragments. */
-      out_ndc = vec4(0.0, 0.0, -3e36, 0.0);
-      return out_ndc;
-    }
-
     bool is_dot = flag_test(material_flags, GP_STROKE_ALIGNMENT);
     bool is_squares = !flag_test(material_flags, GP_STROKE_DOTS);
 
@@ -209,7 +218,7 @@ vec4 gpencil_vertex(vec4 viewport_size,
     vec3 T;
     if (is_dot) {
       /* Shade as facing billboards. */
-      T = ViewMatrixInverse[0].xyz;
+      T = drw_view.viewinv[0].xyz;
     }
     else if (use_curr && ma.x != -1) {
       T = wpos1 - wpos_adj;
@@ -219,12 +228,12 @@ vec4 gpencil_vertex(vec4 viewport_size,
     }
     T = safe_normalize(T);
 
-    vec3 B = cross(T, ViewMatrixInverse[2].xyz);
+    vec3 B = cross(T, drw_view.viewinv[2].xyz);
     out_N = normalize(cross(B, T));
 
-    vec4 ndc_adj = point_world_to_ndc(wpos_adj);
-    vec4 ndc1 = point_world_to_ndc(wpos1);
-    vec4 ndc2 = point_world_to_ndc(wpos2);
+    vec4 ndc_adj = drw_point_world_to_homogenous(wpos_adj);
+    vec4 ndc1 = drw_point_world_to_homogenous(wpos1);
+    vec4 ndc2 = drw_point_world_to_homogenous(wpos2);
 
     out_ndc = (use_curr) ? ndc1 : ndc2;
     out_P = (use_curr) ? wpos1 : wpos2;
@@ -235,7 +244,7 @@ vec4 gpencil_vertex(vec4 viewport_size,
     vec2 ss2 = gpencil_project_to_screenspace(ndc2, viewport_size);
     /* Screen-space Lines tangents. */
     float line_len;
-    vec2 line = safe_normalize_len(ss2 - ss1, line_len);
+    vec2 line = safe_normalize_and_get_length(ss2 - ss1, line_len);
     vec2 line_adj = safe_normalize((use_curr) ? (ss1 - ss_adj) : (ss_adj - ss2));
 
     float thickness = abs((use_curr) ? thickness1 : thickness2);
@@ -262,7 +271,7 @@ vec4 gpencil_vertex(vec4 viewport_size,
         x_axis = vec2(1.0, 0.0);
       }
       else { /* GP_STROKE_ALIGNMENT_OBJECT */
-        vec4 ndc_x = point_world_to_ndc(wpos1 + ModelMatrix[0].xyz);
+        vec4 ndc_x = drw_point_world_to_homogenous(wpos1 + ModelMatrix[0].xyz);
         vec2 ss_x = gpencil_project_to_screenspace(ndc_x, viewport_size);
         x_axis = safe_normalize(ss_x - ss1);
       }
@@ -331,17 +340,8 @@ vec4 gpencil_vertex(vec4 viewport_size,
     out_color = (use_curr) ? col1 : col2;
   }
   else {
-    /* Fill vertex. */
-
-    bool show_fill = flag_test(material_flags, GP_SHOW_FILL);
-    if (!show_fill) {
-      /* We set the vertex at the camera origin to generate 0 fragments. */
-      out_ndc = vec4(0.0, 0.0, -3e36, 0.0);
-      return out_ndc;
-    }
-
     out_P = transform_point(ModelMatrix, pos1.xyz);
-    out_ndc = point_world_to_ndc(out_P);
+    out_ndc = drw_point_world_to_homogenous(out_P);
     out_uv = uv1.xy;
     out_thickness.x = 1e18;
     out_thickness.y = 1e20;
@@ -350,10 +350,10 @@ vec4 gpencil_vertex(vec4 viewport_size,
     out_sspos = vec4(0.0);
 
     /* Flat normal following camera and object bounds. */
-    vec3 V = cameraVec(ModelMatrix[3].xyz);
-    vec3 N = normal_world_to_object(V);
+    vec3 V = drw_world_incident_vector(ModelMatrix[3].xyz);
+    vec3 N = drw_normal_world_to_object(V);
     N *= OrcoTexCoFactors[1].xyz;
-    N = normal_object_to_world(N);
+    N = drw_normal_world_to_object(N);
     out_N = safe_normalize(N);
 
     /* Decode fill opacity. */

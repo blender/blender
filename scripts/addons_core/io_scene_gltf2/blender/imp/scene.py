@@ -27,7 +27,11 @@ class BlenderScene():
         if gltf.data.scene is not None:
             import_user_extensions('gather_import_scene_before_hook', gltf, gltf.data.scenes[gltf.data.scene], scene)
             pyscene = gltf.data.scenes[gltf.data.scene]
-            set_extras(scene, pyscene.extras)
+            # Special case for scene extras:
+            # As the scene may already exists in Blender, custom properties can be overwritten
+            # So, there is an option to know if the user want to set extras or not
+            if gltf.import_settings['import_scene_extras']:
+                set_extras(scene, pyscene.extras)
 
         compute_vnodes(gltf)
 
@@ -50,8 +54,9 @@ class BlenderScene():
 
         if bpy.context.mode != 'OBJECT':
             bpy.ops.object.mode_set(mode='OBJECT')
-        BlenderScene.select_imported_objects(gltf)
-        BlenderScene.set_active_object(gltf)
+        if gltf.import_settings['import_select_created_objects']:
+            BlenderScene.select_imported_objects(gltf)
+            BlenderScene.set_active_object(gltf)
 
     @staticmethod
     def create_animations(gltf):

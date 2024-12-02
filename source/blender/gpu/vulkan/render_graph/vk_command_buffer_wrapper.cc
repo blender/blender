@@ -47,7 +47,7 @@ VKCommandBufferWrapper::VKCommandBufferWrapper(const VKWorkarounds &workarounds)
 VKCommandBufferWrapper::~VKCommandBufferWrapper()
 {
   VKDevice &device = VKBackend::get().device;
-
+  device.free_command_pool_buffers(vk_command_pool_);
   if (vk_command_pool_ != VK_NULL_HANDLE) {
     vkDestroyCommandPool(device.vk_handle(), vk_command_pool_, nullptr);
     vk_command_pool_ = VK_NULL_HANDLE;
@@ -94,6 +94,8 @@ void VKCommandBufferWrapper::submit_with_cpu_synchronization(VkFence vk_fence)
     std::scoped_lock lock(device.queue_mutex_get());
     vkQueueSubmit(device.queue_get(), 1, &vk_submit_info_, vk_fence);
   }
+  device.discard_pool_for_current_thread(true).discard_command_buffer(vk_command_buffer_,
+                                                                      vk_command_pool_);
   vk_command_buffer_ = nullptr;
 }
 

@@ -6,50 +6,24 @@
  * \ingroup draw_engine
  */
 
-#include "DRW_render.hh"
+#include "image_shader.hh"
 
-#include "BLI_dynstr.h"
+namespace blender::image_engine {
 
-#include "GPU_batch.hh"
+ShaderModule *ShaderModule::g_shader_module = nullptr;
 
-#include "image_engine.h"
-#include "image_private.hh"
-
-namespace blender::draw::image_engine {
-
-struct IMAGE_Shaders {
-  GPUShader *image_sh;
-  GPUShader *depth_sh;
-};
-
-static struct {
-  IMAGE_Shaders shaders;
-} e_data = {{nullptr}}; /* Engine data */
-
-GPUShader *IMAGE_shader_image_get()
+ShaderModule &ShaderModule::module_get()
 {
-  IMAGE_Shaders *sh_data = &e_data.shaders;
-  if (sh_data->image_sh == nullptr) {
-    sh_data->image_sh = GPU_shader_create_from_info_name("image_engine_color_shader");
+  if (g_shader_module == nullptr) {
+    g_shader_module = new ShaderModule();
   }
-  return sh_data->image_sh;
+  return *g_shader_module;
 }
 
-GPUShader *IMAGE_shader_depth_get()
+void ShaderModule::module_free()
 {
-  IMAGE_Shaders *sh_data = &e_data.shaders;
-  if (sh_data->depth_sh == nullptr) {
-    sh_data->depth_sh = GPU_shader_create_from_info_name("image_engine_depth_shader");
-  }
-  return sh_data->depth_sh;
+  delete g_shader_module;
+  g_shader_module = nullptr;
 }
 
-void IMAGE_shader_free()
-{
-  GPUShader **sh_data_as_array = (GPUShader **)&e_data.shaders;
-  for (int i = 0; i < (sizeof(IMAGE_Shaders) / sizeof(GPUShader *)); i++) {
-    DRW_SHADER_FREE_SAFE(sh_data_as_array[i]);
-  }
-}
-
-}  // namespace blender::draw::image_engine
+}  // namespace blender::image_engine

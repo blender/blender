@@ -49,8 +49,13 @@ struct bGPDstroke;
 #define GP_MAX_MASKBITS 256
 
 struct GPENCIL_tVfx;
+struct GPENCIL_tLayer;
 
+using PassSimple = blender::draw::PassSimple;
+/* NOTE: These do not preserve the PassSimple memory across frames.
+ * If that becomes a bottleneck, these containers can be improved. */
 using GPENCIL_tVfx_Pool = blender::draw::detail::SubPassVector<GPENCIL_tVfx>;
+using GPENCIL_tLayer_Pool = blender::draw::detail::SubPassVector<GPENCIL_tLayer>;
 
 /* *********** Draw Data *********** */
 typedef struct GPENCIL_MaterialPool {
@@ -80,7 +85,7 @@ struct GPENCIL_ViewLayerData {
   /* GPENCIL_tObject */
   struct BLI_memblock *gp_object_pool;
   /* GPENCIL_tLayer */
-  struct BLI_memblock *gp_layer_pool;
+  GPENCIL_tLayer_Pool *gp_layer_pool;
   /* GPENCIL_tVfx */
   GPENCIL_tVfx_Pool *gp_vfx_pool;
   /* GPENCIL_MaterialPool */
@@ -94,7 +99,6 @@ struct GPENCIL_ViewLayerData {
 /* *********** GPencil  *********** */
 
 struct GPENCIL_tVfx {
-  using PassSimple = blender::draw::PassSimple;
   /** Single linked-list. */
   struct GPENCIL_tVfx *next = nullptr;
   std::unique_ptr<PassSimple> vfx_ps = std::make_unique<PassSimple>("vfx");
@@ -106,11 +110,9 @@ typedef struct GPENCIL_tLayer {
   /** Single linked-list. */
   struct GPENCIL_tLayer *next;
   /** Geometry pass (draw all strokes). */
-  DRWPass *geom_ps;
+  std::unique_ptr<PassSimple> geom_ps;
   /** Blend pass to composite onto the target buffer (blends modes). NULL if not needed. */
-  DRWPass *blend_ps;
-  /** First shading group created for this layer. Contains all uniforms. */
-  DRWShadingGroup *base_shgrp;
+  std::unique_ptr<PassSimple> blend_ps;
   /** Layer id of the mask. */
   BLI_bitmap *mask_bits;
   BLI_bitmap *mask_invert_bits;
@@ -137,7 +139,7 @@ typedef struct GPENCIL_tObject {
   /* Used for stroke thickness scaling. */
   float object_scale;
   /* Normal used for shading. Based on view angle. */
-  float plane_normal[3];
+  float3 plane_normal;
   /* Used for drawing depth merge pass. */
   float plane_mat[4][4];
 
@@ -171,6 +173,7 @@ typedef struct GPENCIL_FramebufferList {
 typedef struct GPENCIL_TextureList {
   /* Dummy texture to avoid errors cause by empty sampler. */
   struct GPUTexture *dummy_texture;
+  struct GPUTexture *dummy_depth;
   /* Snapshot for smoother drawing. */
   struct GPUTexture *snapshot_depth_tx;
   struct GPUTexture *snapshot_color_tx;
@@ -184,13 +187,17 @@ typedef struct GPENCIL_TextureList {
 } GPENCIL_TextureList;
 
 struct GPENCIL_Instance {
-  blender::draw::PassSimple smaa_edge_ps = {"smaa_edge"};
-  blender::draw::PassSimple smaa_weight_ps = {"smaa_weight"};
-  blender::draw::PassSimple smaa_resolve_ps = {"smaa_resolve"};
+  PassSimple smaa_edge_ps = {"smaa_edge"};
+  PassSimple smaa_weight_ps = {"smaa_weight"};
+  PassSimple smaa_resolve_ps = {"smaa_resolve"};
   /* Composite the object depth to the default depth buffer to occlude overlays. */
-  blender::draw::PassSimple merge_depth_ps = {"merge_depth_ps"};
+  PassSimple merge_depth_ps = {"merge_depth_ps"};
   /* Invert mask buffer content. */
-  blender::draw::PassSimple mask_invert_ps = {"mask_invert_ps"};
+  PassSimple mask_invert_ps = {"mask_invert_ps"};
+
+  blender::draw::View view = {"GPView"};
+
+  float4x4 object_bound_mat;
 };
 
 struct GPENCIL_Data {
@@ -208,7 +215,7 @@ struct GPENCIL_Data {
 typedef struct GPENCIL_PrivateData {
   /* Pointers copied from GPENCIL_ViewLayerData. */
   struct BLI_memblock *gp_object_pool;
-  struct BLI_memblock *gp_layer_pool;
+  GPENCIL_tLayer_Pool *gp_layer_pool;
   GPENCIL_tVfx_Pool *gp_vfx_pool;
   struct BLI_memblock *gp_material_pool;
   struct BLI_memblock *gp_light_pool;
@@ -244,6 +251,7 @@ typedef struct GPENCIL_PrivateData {
   GPUFrameBuffer *scene_fb;
   /* Copy of txl->dummy_tx */
   GPUTexture *dummy_tx;
+  GPUTexture *dummy_depth;
   /* Copy of v3d->shading.single_color. */
   float v3d_single_color[3];
   /* Copy of v3d->shading.color_type or -1 to ignore. */
@@ -262,7 +270,6 @@ typedef struct GPENCIL_PrivateData {
   bool draw_wireframe;
   /* Used by the depth merge step. */
   int is_stroke_order_3d;
-  float object_bound_mat[4][4];
   /* Used for computing object distance to camera. */
   float camera_z_axis[3], camera_z_offset;
   float camera_pos[3];

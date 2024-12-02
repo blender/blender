@@ -879,18 +879,17 @@ static void draw_dividers(FileLayout *layout, View2D *v2d)
 
   if (vertex_len > 0) {
     int v1[2], v2[2];
-    uchar col_hi[3], col_lo[3];
+    float col_hi[3], col_lo[3];
 
-    UI_GetThemeColorShade3ubv(TH_BACK, 30, col_hi);
-    UI_GetThemeColorShade3ubv(TH_BACK, -30, col_lo);
+    UI_GetThemeColorShade3fv(TH_BACK, 30, col_hi);
+    UI_GetThemeColorShade3fv(TH_BACK, -30, col_lo);
 
     v1[1] = v2d->cur.ymax - layout->tile_border_y;
     v2[1] = v2d->cur.ymin;
 
     GPUVertFormat *format = immVertexFormat();
     uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
-    uint color = GPU_vertformat_attr_add(
-        format, "color", GPU_COMP_U8, 3, GPU_FETCH_INT_TO_FLOAT_UNIT);
+    uint color = GPU_vertformat_attr_add(format, "color", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
 
     immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
     immBegin(GPU_PRIM_LINES, vertex_len);
@@ -902,13 +901,13 @@ static void draw_dividers(FileLayout *layout, View2D *v2d)
       v1[0] = v2[0] = sx;
       immAttrSkip(color);
       immVertex2iv(pos, v1);
-      immAttr3ubv(color, col_lo);
+      immAttr3fv(color, col_lo);
       immVertex2iv(pos, v2);
 
       v1[0] = v2[0] = sx + 1;
       immAttrSkip(color);
       immVertex2iv(pos, v1);
-      immAttr3ubv(color, col_hi);
+      immAttr3fv(color, col_hi);
       immVertex2iv(pos, v2);
     }
 

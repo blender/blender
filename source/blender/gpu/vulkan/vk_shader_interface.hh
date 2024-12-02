@@ -26,8 +26,9 @@ namespace blender::gpu {
  * Keep in sync with #gpu::shader::ShaderCreateInfo::Resource::BindType.
  * We add the term `INPUT_ATTACHMENT` as it is stored as a sub-pass
  * input in the shader create info.
+ *
+ * TODO: Investigate if `TEXEL_BUFFER` can be added as well.
  */
-/* TODO: Investigate if `TEXEL_BUFFER` can be added as well.*/
 enum VKBindType {
   UNIFORM_BUFFER = 0,
   STORAGE_BUFFER,

@@ -19,7 +19,7 @@ namespace blender::animrig::nla {
 bool assign_action(NlaStrip &strip, Action &action, ID &animated_id)
 {
   if (!generic_assign_action(
-          animated_id, &action, strip.act, strip.action_slot_handle, strip.action_slot_name))
+          animated_id, &action, strip.act, strip.action_slot_handle, strip.last_slot_identifier))
   {
     return false;
   }
@@ -56,7 +56,7 @@ bool assign_action(NlaStrip &strip, Action &action, ID &animated_id)
 void unassign_action(NlaStrip &strip, ID &animated_id)
 {
   const bool ok = generic_assign_action(
-      animated_id, nullptr, strip.act, strip.action_slot_handle, strip.action_slot_name);
+      animated_id, nullptr, strip.act, strip.action_slot_handle, strip.last_slot_identifier);
   BLI_assert_msg(ok, "Un-assigning an Action from an NLA strip should always work.");
   UNUSED_VARS_NDEBUG(ok);
 }
@@ -67,8 +67,11 @@ ActionSlotAssignmentResult assign_action_slot(NlaStrip &strip,
 {
   BLI_assert(strip.act);
 
-  return generic_assign_action_slot(
-      slot_to_assign, animated_id, strip.act, strip.action_slot_handle, strip.action_slot_name);
+  return generic_assign_action_slot(slot_to_assign,
+                                    animated_id,
+                                    strip.act,
+                                    strip.action_slot_handle,
+                                    strip.last_slot_identifier);
 }
 
 ActionSlotAssignmentResult assign_action_slot_handle(NlaStrip &strip,

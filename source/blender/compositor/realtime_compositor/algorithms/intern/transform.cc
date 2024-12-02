@@ -26,7 +26,7 @@ namespace blender::realtime_compositor {
  * size to account for the bounding box of the domain after rotation. The size of the returned
  * domain is bound and clipped by the maximum possible GPU texture size to avoid allocations that
  * surpass hardware limits, which is typically 16k. */
-static Domain compute_realized_transformation_domain(const Domain &domain)
+static Domain compute_realized_transformation_domain(Context &context, const Domain &domain)
 {
   math::AngleRadian rotation;
   float2 translation, scale;
@@ -46,8 +46,8 @@ static Domain compute_realized_transformation_domain(const Domain &domain)
 
   const float3x3 transformation = math::from_loc_rot_scale<float3x3>(translation, rotation, scale);
 
-  const int2 domain_size = math::clamp(
-      int2(math::round(size)), int2(1), int2(GPU_max_texture_size()));
+  const int max_size = context.use_gpu() ? GPU_max_texture_size() : 65536;
+  const int2 domain_size = math::clamp(int2(math::round(size)), int2(1), int2(max_size));
 
   return Domain(domain_size, transformation);
 }
@@ -71,7 +71,7 @@ void transform(Context &context,
   input_domain.transform(domain_transformation);
 
   /* Realize the input on the target domain using the full transformation. */
-  const Domain target_domain = compute_realized_transformation_domain(input_domain);
+  const Domain target_domain = compute_realized_transformation_domain(context, input_domain);
   realize_on_domain(context,
                     input,
                     output,

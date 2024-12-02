@@ -32,15 +32,18 @@ class ModuleInfo:
 # Label names and IDs are taken from https://projects.blender.org/blender/blender/labels.
 modules = {
     "Module/Animation & Rigging": ModuleInfo(name="Animation & Rigging", labelid="268"),
+    "Module/Asset System": ModuleInfo(name="Asset System", labelid="1708"),
     "Module/Core": ModuleInfo(name="Core", labelid="269"),
+    "Module/Development Management": ModuleInfo(name="Development Management", labelid="270"),
     "Module/Grease Pencil": ModuleInfo(name="Grease Pencil", labelid="273"),
     "Module/Modeling": ModuleInfo(name="Modeling", labelid="274"),
     "Module/Nodes & Physics": ModuleInfo(name="Nodes & Physics", labelid="275"),
-    "Module/Pipeline, Assets & IO": ModuleInfo(name="Pipeline, Assets & I/O", labelid="276"),
+    "Module/Pipeline & IO": ModuleInfo(name="Pipeline & I/O", labelid="276"),
     "Module/Platforms, Builds & Tests": ModuleInfo(name="Platforms, Builds, Test & Devices", labelid="278"),
     "Module/Python API": ModuleInfo(name="Python API", labelid="279"),
     "Module/Render & Cycles": ModuleInfo(name="Render & Cycles", labelid="280"),
     "Module/Sculpt, Paint & Texture": ModuleInfo(name="Sculpt, Paint & Texture", labelid="281"),
+    "Module/Triaging": ModuleInfo(name="Triaging", labelid="282"),
     "Module/User Interface": ModuleInfo(name="User Interface", labelid="283"),
     "Module/VFX & Video": ModuleInfo(name="VFX & Video", labelid="284"),
     "Module/Viewport & EEVEE": ModuleInfo(name="Viewport & EEVEE", labelid="272"),
@@ -116,12 +119,13 @@ def compile_list(severity: str) -> None:
     for module in modules.values():
         buglist_str = (", ".join(module.buglist))
         buglist_len = len(module.buglist)
-        total += buglist_len
-        full_url = base_url + severity_labelid[severity] + "%2c" + module.labelid
-        if not module.buglist or severity != "High":
-            print(f"- [{module.name}]({full_url}): *{buglist_len}*")
-        else:
-            print(f"- [{module.name}]({full_url}): *{buglist_len}* _{buglist_str}_")
+        if buglist_len > 0:
+            total += buglist_len
+            full_url = base_url + severity_labelid[severity] + "%2c" + module.labelid
+            if not module.buglist or severity != "High":
+                print(f"- [{module.name}]({full_url}): *{buglist_len}*")
+            else:
+                print(f"- [{module.name}]({full_url}): *{buglist_len}* _{buglist_str}_")
 
     print()
     print(f"[Total]({total_url}): {total}")

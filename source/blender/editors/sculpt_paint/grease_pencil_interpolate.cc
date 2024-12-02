@@ -5,6 +5,7 @@
 #include "BKE_colortools.hh"
 #include "BKE_context.hh"
 #include "BKE_curves.hh"
+#include "BKE_deform.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_material.h"
 #include "BKE_paint.hh"
@@ -514,6 +515,10 @@ static bke::CurvesGeometry interpolate_between_curves(const GreasePencil &grease
   if (dst_curve_num > 0) {
     dst_curves.offsets_for_write().copy_from(dst_curve_offsets);
   }
+
+  /* Copy vertex group names since we still have other parts of the code depends on vertex group
+   * names to be available. */
+  BKE_defgroup_copy_list(&dst_curves.vertex_group_names, &grease_pencil.vertex_group_names);
 
   /* Sorted map arrays that can be passed to the interpolation function directly.
    * These index maps have the same order as the sorted indices, so slices of indices can be used

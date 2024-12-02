@@ -73,6 +73,11 @@ struct VKWorkarounds {
    * enabled.
    */
   bool dynamic_rendering_unused_attachments = false;
+
+  /**
+   * Is the workarounds for devices that don't support Logic Ops enabled.
+   */
+  bool logic_ops = false;
 };
 
 /**
@@ -323,8 +328,10 @@ class VKDevice : public NonCopyable {
    * graph update. A dependency graph update from the viewport during playback or editing;
    * or a dependency graph update when rendering.
    * These can happen from a different thread which will don't have a context at all.
+   * \param thread_safe: Caller thread already owns the resources mutex and is safe to run this
+   * function without trying to reacquire resources mutex making a deadlock.
    */
-  VKDiscardPool &discard_pool_for_current_thread();
+  VKDiscardPool &discard_pool_for_current_thread(bool thread_safe = false);
 
   void context_register(VKContext &context);
   void context_unregister(VKContext &context);
@@ -333,6 +340,8 @@ class VKDevice : public NonCopyable {
   void memory_statistics_get(int *r_total_mem_kb, int *r_free_mem_kb) const;
   static void debug_print(std::ostream &os, const VKDiscardPool &discard_pool);
   void debug_print();
+
+  void free_command_pool_buffers(VkCommandPool vk_command_pool);
 
   /** \} */
 

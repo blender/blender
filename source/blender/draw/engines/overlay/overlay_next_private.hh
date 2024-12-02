@@ -48,7 +48,6 @@ struct State {
   const SpaceLink *space_data;
   const ARegion *region;
   const RegionView3D *rv3d;
-  const Base *active_base;
   DRWTextStore *dt;
   View3DOverlay overlay;
   float pixelsize;
@@ -516,8 +515,12 @@ struct Resources : public select::SelectMap {
 
   Vector<MovieClip *> bg_movie_clips;
 
-  Resources(const SelectionType selection_type_, ShaderModule &shader_module)
-      : select::SelectMap(selection_type_), shaders(shader_module){};
+  const ShapeCache &shapes;
+
+  Resources(const SelectionType selection_type_,
+            ShaderModule &shader_module,
+            const ShapeCache &shapes_)
+      : select::SelectMap(selection_type_), shaders(shader_module), shapes(shapes_){};
 
   ~Resources()
   {
@@ -530,14 +533,101 @@ struct Resources : public select::SelectMap {
     free_movieclips_textures();
   }
 
+  void acquire(const State &state, DefaultTextureList &viewport_textures)
+  {
+    this->depth_tx.wrap(viewport_textures.depth);
+    this->depth_in_front_tx.wrap(viewport_textures.depth_in_front);
+    this->color_overlay_tx.wrap(viewport_textures.color_overlay);
+    this->color_render_tx.wrap(viewport_textures.color);
+
+    this->render_fb = DRW_viewport_framebuffer_list_get()->default_fb;
+    this->render_in_front_fb = DRW_viewport_framebuffer_list_get()->in_front_fb;
+
+    int2 render_size = int2(this->depth_tx.size());
+
+    if (state.xray_enabled) {
+      /* For X-ray we render the scene to a separate depth buffer. */
+      this->xray_depth_tx.acquire(render_size, GPU_DEPTH24_STENCIL8);
+      this->depth_target_tx.wrap(this->xray_depth_tx);
+      /* TODO(fclem): Remove mandatory allocation. */
+      this->xray_depth_in_front_tx.acquire(render_size, GPU_DEPTH24_STENCIL8);
+      this->depth_target_in_front_tx.wrap(this->xray_depth_in_front_tx);
+    }
+    else {
+      /* TODO(fclem): Remove mandatory allocation. */
+      if (!this->depth_in_front_tx.is_valid()) {
+        this->depth_in_front_alloc_tx.acquire(render_size, GPU_DEPTH24_STENCIL8);
+        this->depth_in_front_tx.wrap(this->depth_in_front_alloc_tx);
+      }
+      this->depth_target_tx.wrap(this->depth_tx);
+      this->depth_target_in_front_tx.wrap(this->depth_in_front_tx);
+    }
+
+    /* TODO: Better semantics using a switch? */
+    if (!this->color_overlay_tx.is_valid()) {
+      /* Likely to be the selection case. Allocate dummy texture and bind only depth buffer. */
+      this->color_overlay_alloc_tx.acquire(int2(1, 1), GPU_SRGB8_A8);
+      this->color_render_alloc_tx.acquire(int2(1, 1), GPU_SRGB8_A8);
+
+      this->color_overlay_tx.wrap(this->color_overlay_alloc_tx);
+      this->color_render_tx.wrap(this->color_render_alloc_tx);
+
+      this->line_tx.acquire(int2(1, 1), GPU_RGBA8);
+      this->overlay_tx.acquire(int2(1, 1), GPU_SRGB8_A8);
+
+      this->overlay_fb.ensure(GPU_ATTACHMENT_TEXTURE(this->depth_target_tx));
+      this->overlay_line_fb.ensure(GPU_ATTACHMENT_TEXTURE(this->depth_target_tx));
+      this->overlay_in_front_fb.ensure(GPU_ATTACHMENT_TEXTURE(this->depth_target_tx));
+      this->overlay_line_in_front_fb.ensure(GPU_ATTACHMENT_TEXTURE(this->depth_target_tx));
+    }
+    else {
+      eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_SHADER_WRITE |
+                               GPU_TEXTURE_USAGE_ATTACHMENT;
+      this->line_tx.acquire(render_size, GPU_RGBA8, usage);
+      this->overlay_tx.acquire(render_size, GPU_SRGB8_A8, usage);
+
+      this->overlay_fb.ensure(GPU_ATTACHMENT_TEXTURE(this->depth_target_tx),
+                              GPU_ATTACHMENT_TEXTURE(this->overlay_tx));
+      this->overlay_line_fb.ensure(GPU_ATTACHMENT_TEXTURE(this->depth_target_tx),
+                                   GPU_ATTACHMENT_TEXTURE(this->overlay_tx),
+                                   GPU_ATTACHMENT_TEXTURE(this->line_tx));
+      this->overlay_in_front_fb.ensure(GPU_ATTACHMENT_TEXTURE(this->depth_target_in_front_tx),
+                                       GPU_ATTACHMENT_TEXTURE(this->overlay_tx));
+      this->overlay_line_in_front_fb.ensure(GPU_ATTACHMENT_TEXTURE(this->depth_target_in_front_tx),
+                                            GPU_ATTACHMENT_TEXTURE(this->overlay_tx),
+                                            GPU_ATTACHMENT_TEXTURE(this->line_tx));
+    }
+
+    this->overlay_line_only_fb.ensure(GPU_ATTACHMENT_NONE,
+                                      GPU_ATTACHMENT_TEXTURE(this->overlay_tx),
+                                      GPU_ATTACHMENT_TEXTURE(this->line_tx));
+    this->overlay_color_only_fb.ensure(GPU_ATTACHMENT_NONE,
+                                       GPU_ATTACHMENT_TEXTURE(this->overlay_tx));
+    /* The v2d path writes to the overlay output directly, but it needs a depth attachment. */
+    this->overlay_output_fb.ensure(state.is_space_image() ?
+                                       GPUAttachment GPU_ATTACHMENT_TEXTURE(this->depth_tx) :
+                                       GPUAttachment GPU_ATTACHMENT_NONE,
+                                   GPU_ATTACHMENT_TEXTURE(this->color_overlay_tx));
+  }
+
+  void release()
+  {
+    this->line_tx.release();
+    this->overlay_tx.release();
+    this->xray_depth_tx.release();
+    this->xray_depth_in_front_tx.release();
+    this->depth_in_front_alloc_tx.release();
+    this->color_overlay_alloc_tx.release();
+    this->color_render_alloc_tx.release();
+  }
+
   ThemeColorID object_wire_theme_id(const ObjectRef &ob_ref, const State &state) const
   {
     const bool is_edit = (state.object_mode & OB_MODE_EDIT) &&
                          (ob_ref.object->mode & OB_MODE_EDIT);
-    const bool active = (state.active_base != nullptr) &&
-                        ((ob_ref.dupli_parent != nullptr) ?
-                             (state.active_base->object == ob_ref.dupli_parent) :
-                             (state.active_base->object == ob_ref.object));
+    const bool active = ((ob_ref.dupli_parent != nullptr) ?
+                             (state.object_active == ob_ref.dupli_parent) :
+                             (state.object_active == ob_ref.object));
     const bool is_selected = ((ob_ref.object->base_flag & BASE_SELECTED) != 0);
 
     /* Object in edit mode. */

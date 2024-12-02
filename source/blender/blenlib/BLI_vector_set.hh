@@ -597,7 +597,7 @@ class VectorSet {
     data.capacity = usable_slots_;
 
     /* Reset some values so that the destructor does not free the data that is moved to the
-     * #Vector.*/
+     * #Vector. */
     keys_ = nullptr;
     occupied_and_removed_slots_ = 0;
     removed_slots_ = 0;

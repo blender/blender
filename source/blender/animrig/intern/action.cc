@@ -59,8 +59,8 @@ namespace blender::animrig {
 
 namespace {
 /**
- * Default name for action slots. The first two characters in the name indicate the ID type
- * of whatever is animated by it.
+ * Default identifier for action slots. The first two characters in the identifier indicate the ID
+ * type of whatever is animated by it.
  *
  * Since the ID type may not be determined when the slot is created, the prefix starts out at
  * XX. Note that no code should use this XX value; use Slot::has_idtype() instead.
@@ -371,7 +371,7 @@ const Slot *Action::slot_for_handle(const slot_handle_t handle) const
   return nullptr;
 }
 
-static void slot_name_ensure_unique(Action &action, Slot &slot)
+static void slot_identifier_ensure_unique(Action &action, Slot &slot)
 {
   /* Cannot capture parameters by reference in the lambda, as that would change its signature
    * and no longer be compatible with BLI_uniquename_cb(). That's why this struct is necessary. */
@@ -388,36 +388,38 @@ static void slot_name_ensure_unique(Action &action, Slot &slot)
         /* Don't compare against the slot that's being renamed. */
         continue;
       }
-      if (STREQ(slot->name, name)) {
+      if (STREQ(slot->identifier, name)) {
         return true;
       }
     }
     return false;
   };
 
-  BLI_uniquename_cb(check_name_is_used, &check_data, "", '.', slot.name, sizeof(slot.name));
+  BLI_uniquename_cb(
+      check_name_is_used, &check_data, "", '.', slot.identifier, sizeof(slot.identifier));
 }
 
-void Action::slot_name_set(Main &bmain, Slot &slot, const StringRefNull new_name)
+void Action::slot_identifier_set(Main &bmain, Slot &slot, const StringRefNull new_identifier)
 {
-  /* TODO: maybe this function should only set the 'name without prefix' aka the 'display name'.
-   * That way only `this->id_type` is responsible for the prefix. I (Sybren) think that's easier to
-   * determine when the code is a bit more mature, and we can see what the majority of the calls to
-   * this function actually do/need. */
+  /* TODO: maybe this function should only set the 'identifier without prefix' aka the 'display
+   * name'. That way only `this->id_type` is responsible for the prefix. I (Sybren) think that's
+   * easier to determine when the code is a bit more mature, and we can see what the majority of
+   * the calls to this function actually do/need. */
 
-  this->slot_name_define(slot, new_name);
-  this->slot_name_propagate(bmain, slot);
+  this->slot_identifier_define(slot, new_identifier);
+  this->slot_identifier_propagate(bmain, slot);
 }
 
-void Action::slot_name_define(Slot &slot, const StringRefNull new_name)
+void Action::slot_identifier_define(Slot &slot, const StringRefNull new_identifier)
 {
-  BLI_assert_msg(StringRef(new_name).size() >= Slot::name_length_min,
-                 "Action Slots must be large enough for a 2-letter ID code + the display name");
-  STRNCPY_UTF8(slot.name, new_name.c_str());
-  slot_name_ensure_unique(*this, slot);
+  BLI_assert_msg(
+      StringRef(new_identifier).size() >= Slot::identifier_length_min,
+      "Action Slot identifiers must be large enough for a 2-letter ID code + the display name");
+  STRNCPY_UTF8(slot.identifier, new_identifier.c_str());
+  slot_identifier_ensure_unique(*this, slot);
 }
 
-void Action::slot_name_propagate(Main &bmain, const Slot &slot)
+void Action::slot_identifier_propagate(Main &bmain, const Slot &slot)
 {
   /* Just loop over all animatable IDs in the main database. */
   ListBase *lb;
@@ -440,18 +442,18 @@ void Action::slot_name_propagate(Main &bmain, const Slot &slot)
         continue;
       }
 
-      /* Ensure the Slot name on the AnimData is correct. */
-      STRNCPY_UTF8(adt->slot_name, slot.name);
+      /* Ensure the Slot identifier on the AnimData is correct. */
+      STRNCPY_UTF8(adt->last_slot_identifier, slot.identifier);
     }
     FOREACH_MAIN_LISTBASE_ID_END;
   }
   FOREACH_MAIN_LISTBASE_END;
 }
 
-Slot *Action::slot_find_by_name(const StringRefNull slot_name)
+Slot *Action::slot_find_by_identifier(const StringRefNull slot_identifier)
 {
   for (Slot *slot : slots()) {
-    if (STREQ(slot->name, slot_name.c_str())) {
+    if (STREQ(slot->identifier, slot_identifier.c_str())) {
       return slot;
     }
   }
@@ -476,14 +478,14 @@ Slot &Action::slot_add()
 {
   Slot &slot = this->slot_allocate();
 
-  /* Assign the default name and the 'unbound' name prefix. */
-  STRNCPY_UTF8(slot.name, slot_unbound_prefix);
-  BLI_strncpy_utf8(slot.name + 2, DATA_(slot_default_name), ARRAY_SIZE(slot.name) - 2);
+  /* Assign the default name and the 'unbound' identifier prefix. */
+  STRNCPY_UTF8(slot.identifier, slot_unbound_prefix);
+  BLI_strncpy_utf8(slot.identifier + 2, DATA_(slot_default_name), ARRAY_SIZE(slot.identifier) - 2);
 
   /* Append the Slot to the Action. */
   grow_array_and_append<::ActionSlot *>(&this->slot_array, &this->slot_array_num, &slot);
 
-  slot_name_ensure_unique(*this, slot);
+  slot_identifier_ensure_unique(*this, slot);
 
   /* If this is the first slot in this Action, it means that it could have
    * been used as a legacy Action before. As a result, this->idroot may be
@@ -501,9 +503,9 @@ Slot &Action::slot_add_for_id(const ID &animated_id)
   Slot &slot = this->slot_add();
 
   slot.idtype = GS(animated_id.name);
-  this->slot_name_define(slot, animated_id.name);
+  this->slot_identifier_define(slot, animated_id.name);
 
-  /* No need to call anim.slot_name_propagate() as nothing will be using
+  /* No need to call anim.slot_identifier_propagate() as nothing will be using
    * this brand new Slot yet. */
 
   return slot;
@@ -571,9 +573,9 @@ Slot *Action::find_suitable_slot_for(const ID &animated_id)
     }
   }
 
-  /* Try the slot name from the AnimData, if it is set. */
-  if (adt && adt->slot_name[0]) {
-    Slot *slot = this->slot_find_by_name(adt->slot_name);
+  /* Try the slot identifier from the AnimData, if it is set. */
+  if (adt && adt->last_slot_identifier[0]) {
+    Slot *slot = this->slot_find_by_identifier(adt->last_slot_identifier);
     if (slot && slot->is_suitable_for(animated_id)) {
       return slot;
     }
@@ -581,7 +583,7 @@ Slot *Action::find_suitable_slot_for(const ID &animated_id)
 
   /* Search for the ID name (which includes the ID type). */
   {
-    Slot *slot = this->slot_find_by_name(animated_id.name);
+    Slot *slot = this->slot_find_by_identifier(animated_id.name);
     if (slot && slot->is_suitable_for(animated_id)) {
       return slot;
     }
@@ -684,10 +686,10 @@ Layer *Action::get_layer_for_keyframing()
   return this->layer(0);
 }
 
-void Action::slot_name_ensure_prefix(Slot &slot)
+void Action::slot_identifier_ensure_prefix(Slot &slot)
 {
-  slot.name_ensure_prefix();
-  slot_name_ensure_unique(*this, slot);
+  slot.identifier_ensure_prefix();
+  slot_identifier_ensure_unique(*this, slot);
 }
 
 void Action::slot_setup_for_id(Slot &slot, const ID &animated_id)
@@ -698,7 +700,7 @@ void Action::slot_setup_for_id(Slot &slot, const ID &animated_id)
   }
 
   slot.idtype = GS(animated_id.name);
-  this->slot_name_ensure_prefix(slot);
+  this->slot_identifier_ensure_prefix(slot);
 }
 
 bool Action::has_keyframes(const slot_handle_t action_slot_handle) const
@@ -1112,7 +1114,7 @@ void Slot::users_invalidate(Main &bmain)
   bmain.is_action_slot_to_id_map_dirty = true;
 }
 
-std::string Slot::name_prefix_for_idtype() const
+std::string Slot::identifier_prefix_for_idtype() const
 {
   if (!this->has_idtype()) {
     return slot_unbound_prefix;
@@ -1123,35 +1125,35 @@ std::string Slot::name_prefix_for_idtype() const
   return name;
 }
 
-StringRefNull Slot::name_without_prefix() const
+StringRefNull Slot::identifier_without_prefix() const
 {
-  BLI_assert(StringRef(this->name).size() >= name_length_min);
+  BLI_assert(StringRef(this->identifier).size() >= identifier_length_min);
 
   /* Avoid accessing an uninitialized part of the string accidentally. */
-  if (this->name[0] == '\0' || this->name[1] == '\0') {
+  if (this->identifier[0] == '\0' || this->identifier[1] == '\0') {
     return "";
   }
-  return this->name + 2;
+  return this->identifier + 2;
 }
 
-void Slot::name_ensure_prefix()
+void Slot::identifier_ensure_prefix()
 {
-  BLI_assert(StringRef(this->name).size() >= name_length_min);
+  BLI_assert(StringRef(this->identifier).size() >= identifier_length_min);
 
-  if (StringRef(this->name).size() < 2) {
+  if (StringRef(this->identifier).size() < 2) {
     /* The code below would overwrite the trailing 0-byte. */
-    this->name[2] = '\0';
+    this->identifier[2] = '\0';
   }
 
   if (!this->has_idtype()) {
     /* A zero idtype is not going to convert to a two-character string, so we
      * need to explicitly assign the default prefix. */
-    this->name[0] = slot_unbound_prefix[0];
-    this->name[1] = slot_unbound_prefix[1];
+    this->identifier[0] = slot_unbound_prefix[0];
+    this->identifier[1] = slot_unbound_prefix[1];
     return;
   }
 
-  *reinterpret_cast<short *>(this->name) = this->idtype;
+  *reinterpret_cast<short *>(this->identifier) = this->idtype;
 }
 
 /* ----- Functions  ----------- */
@@ -1184,7 +1186,7 @@ bool assign_action(bAction *action, const OwnedAnimData owned_adt)
                                action,
                                owned_adt.adt.action,
                                owned_adt.adt.slot_handle,
-                               owned_adt.adt.slot_name);
+                               owned_adt.adt.last_slot_identifier);
 }
 
 bool assign_tmpaction(bAction *action, const OwnedAnimData owned_adt)
@@ -1193,7 +1195,7 @@ bool assign_tmpaction(bAction *action, const OwnedAnimData owned_adt)
                                action,
                                owned_adt.adt.tmpact,
                                owned_adt.adt.tmp_slot_handle,
-                               owned_adt.adt.tmp_slot_name);
+                               owned_adt.adt.tmp_last_slot_identifier);
 }
 
 bool unassign_action(ID &animated_id)
@@ -1223,13 +1225,13 @@ Slot *assign_action_ensure_slot_for_keying(Action &action, ID &animated_id)
        * re-assign an intentionally-unassigned slot. */
     }
     else {
-      /* Try the slot name from the AnimData, if it is set. */
-      if (adt && adt->slot_name[0]) {
-        slot = action.slot_find_by_name(adt->slot_name);
+      /* Try the slot identifier from the AnimData, if it is set. */
+      if (adt && adt->last_slot_identifier[0]) {
+        slot = action.slot_find_by_identifier(adt->last_slot_identifier);
       }
       else {
         /* Search for the ID name (which includes the ID type). */
-        slot = action.slot_find_by_name(animated_id.name);
+        slot = action.slot_find_by_identifier(animated_id.name);
       }
     }
   }
@@ -1286,9 +1288,9 @@ bool generic_assign_action(ID &animated_id,
                            bAction *action_to_assign,
                            bAction *&action_ptr_ref,
                            slot_handle_t &slot_handle_ref,
-                           char *slot_name)
+                           char *slot_identifier)
 {
-  BLI_assert(slot_name);
+  BLI_assert(slot_identifier);
 
   if (action_to_assign && legacy::action_treat_as_legacy(*action_to_assign)) {
     /* Check that the Action is suitable for this ID type.
@@ -1310,7 +1312,7 @@ bool generic_assign_action(ID &animated_id,
     /* Un-assign the slot. This will always succeed, so no need to check the result. */
     if (slot_handle_ref != Slot::unassigned) {
       const ActionSlotAssignmentResult result = generic_assign_action_slot(
-          nullptr, animated_id, action_ptr_ref, slot_handle_ref, slot_name);
+          nullptr, animated_id, action_ptr_ref, slot_handle_ref, slot_identifier);
       BLI_assert(result == ActionSlotAssignmentResult::OK);
       UNUSED_VARS_NDEBUG(result);
     }
@@ -1333,7 +1335,7 @@ bool generic_assign_action(ID &animated_id,
    * `nullptr`, which is perfectly acceptable for generic_assign_action_slot(). */
   Slot *slot = action_to_assign->wrap().find_suitable_slot_for(animated_id);
   const ActionSlotAssignmentResult result = generic_assign_action_slot(
-      slot, animated_id, action_ptr_ref, slot_handle_ref, slot_name);
+      slot, animated_id, action_ptr_ref, slot_handle_ref, slot_identifier);
   BLI_assert(result == ActionSlotAssignmentResult::OK);
   UNUSED_VARS_NDEBUG(result);
 
@@ -1344,9 +1346,9 @@ ActionSlotAssignmentResult generic_assign_action_slot(Slot *slot_to_assign,
                                                       ID &animated_id,
                                                       bAction *&action_ptr_ref,
                                                       slot_handle_t &slot_handle_ref,
-                                                      char *slot_name)
+                                                      char *slot_identifier)
 {
-  BLI_assert(slot_name);
+  BLI_assert(slot_identifier);
   if (!action_ptr_ref) {
     /* No action assigned yet, so no way to assign a slot. */
     return ActionSlotAssignmentResult::MissingAction;
@@ -1370,14 +1372,14 @@ ActionSlotAssignmentResult generic_assign_action_slot(Slot *slot_to_assign,
   /* If there was a previously-assigned slot, unassign it first. */
   slot_handle_ref = Slot::unassigned;
   if (slot_to_unassign) {
-    /* Make sure that the stored Slot name is up to date. The slot name might have
+    /* Make sure that the stored Slot identifier is up to date. The slot identifier might have
      * changed in a way that wasn't copied into the ADT yet (for example when the
-     * Action is linked from another file), so better copy the name to be sure
+     * Action is linked from another file), so better copy the identifier to be sure
      * that it can be transparently reassigned later.
      *
-     * TODO: Replace this with a BLI_assert() that the name is as expected, and "simply" ensure
-     * this name is always correct. */
-    BLI_strncpy_utf8(slot_name, slot_to_unassign->name, Slot::name_length_max);
+     * TODO: Replace this with a BLI_assert() that the identifier is as expected, and "simply"
+     * ensure this identifier is always correct. */
+    BLI_strncpy_utf8(slot_identifier, slot_to_unassign->identifier, Slot::identifier_length_max);
 
     /* If this was the last use of this slot, remove this ID from its users. */
     if (!is_id_using_action_slot(animated_id, action, slot_to_unassign->handle)) {
@@ -1391,7 +1393,7 @@ ActionSlotAssignmentResult generic_assign_action_slot(Slot *slot_to_assign,
 
   action.slot_setup_for_id(*slot_to_assign, animated_id);
   slot_handle_ref = slot_to_assign->handle;
-  BLI_strncpy_utf8(slot_name, slot_to_assign->name, Slot::name_length_max);
+  BLI_strncpy_utf8(slot_identifier, slot_to_assign->identifier, Slot::identifier_length_max);
   slot_to_assign->users_add(animated_id);
 
   return ActionSlotAssignmentResult::OK;
@@ -1401,7 +1403,7 @@ ActionSlotAssignmentResult generic_assign_action_slot_handle(slot_handle_t slot_
                                                              ID &animated_id,
                                                              bAction *&action_ptr_ref,
                                                              slot_handle_t &slot_handle_ref,
-                                                             char *slot_name)
+                                                             char *slot_identifier)
 {
   if (slot_handle_to_assign == Slot::unassigned && !action_ptr_ref) {
     /* No Action assigned, so no slot was used anyway. Just blindly assign the
@@ -1418,7 +1420,8 @@ ActionSlotAssignmentResult generic_assign_action_slot_handle(slot_handle_t slot_
   }
 
   Slot *slot = action_ptr_ref->wrap().slot_for_handle(slot_handle_to_assign);
-  return generic_assign_action_slot(slot, animated_id, action_ptr_ref, slot_handle_ref, slot_name);
+  return generic_assign_action_slot(
+      slot, animated_id, action_ptr_ref, slot_handle_ref, slot_identifier);
 }
 
 bool is_action_assignable_to(const bAction *dna_action, const ID_Type id_code)
@@ -1453,7 +1456,7 @@ ActionSlotAssignmentResult assign_action_slot(Slot *slot_to_assign, ID &animated
   }
 
   return generic_assign_action_slot(
-      slot_to_assign, animated_id, adt->action, adt->slot_handle, adt->slot_name);
+      slot_to_assign, animated_id, adt->action, adt->slot_handle, adt->last_slot_identifier);
 }
 
 ActionSlotAssignmentResult assign_action_and_slot(Action *action,
@@ -1477,7 +1480,7 @@ ActionSlotAssignmentResult assign_tmpaction_and_slot_handle(bAction *action,
                                            owned_adt.owner_id,
                                            owned_adt.adt.tmpact,
                                            owned_adt.adt.tmp_slot_handle,
-                                           owned_adt.adt.tmp_slot_name);
+                                           owned_adt.adt.tmp_last_slot_identifier);
 }
 
 Action *get_action(ID &animated_id)
@@ -1957,7 +1960,7 @@ SingleKeyingResult StripKeyframeData::keyframe_insert(Main *bmain,
                  "Available setting or Replace keyframing mode.\n",
                  fcurve_descriptor.rna_path.c_str(),
                  fcurve_descriptor.array_index,
-                 slot.name);
+                 slot.identifier);
     return SingleKeyingResult::CANNOT_CREATE_FCURVE;
   }
 
@@ -1967,7 +1970,7 @@ SingleKeyingResult StripKeyframeData::keyframe_insert(Main *bmain,
                  "FCurve %s[%d] for slot %s doesn't allow inserting keys.\n",
                  fcurve_descriptor.rna_path.c_str(),
                  fcurve_descriptor.array_index,
-                 slot.name);
+                 slot.identifier);
     return SingleKeyingResult::FCURVE_NOT_KEYFRAMEABLE;
   }
 
@@ -1994,7 +1997,7 @@ SingleKeyingResult StripKeyframeData::keyframe_insert(Main *bmain,
                  "Could not insert key into FCurve %s[%d] for slot %s.\n",
                  fcurve_descriptor.rna_path.c_str(),
                  fcurve_descriptor.array_index,
-                 slot.name);
+                 slot.identifier);
     return insert_vert_result;
   }
 
@@ -2142,7 +2145,7 @@ bActionGroup &ChannelBag::channel_group_create(StringRefNull name)
    * Note that this only happens here (upon creation). The user can later rename
    * groups to have duplicate names. This is stupid, but it's how the legacy
    * system worked, and at the time of writing this code we're just trying to
-   * match that system's behavior, even when it's goofy.*/
+   * match that system's behavior, even when it's goofy. */
   std::string unique_name = BLI_uniquename_cb(
       [&](const StringRef name) {
         for (const bActionGroup *group : this->channel_groups()) {
@@ -2924,8 +2927,8 @@ Action *convert_to_layered_action(Main &bmain, const Action &legacy_action)
 
 /**
  * Clone information from the given slot into this slot while retaining important info like the
- * slot handle and runtime data. This copies the name which might clash with other names on the
- * action. Call `slot_name_ensure_unique` after.
+ * slot handle and runtime data. This copies the identifier which might clash with other
+ * identifiers on the action. Call `slot_name_ensure_unique` after.
  */
 static void clone_slot(Slot &from, Slot &to)
 {
@@ -2952,7 +2955,7 @@ void move_slot(Main &bmain, Slot &source_slot, Action &from_action, Action &to_a
 
   Slot &target_slot = to_action.slot_add();
   clone_slot(source_slot, target_slot);
-  slot_name_ensure_unique(to_action, target_slot);
+  slot_identifier_ensure_unique(to_action, target_slot);
 
   ChannelBag *channel_bag = from_strip_data.channelbag_for_slot(source_slot.handle);
   BLI_assert(channel_bag != nullptr);
@@ -2968,7 +2971,7 @@ void move_slot(Main &bmain, Slot &source_slot, Action &from_action, Action &to_a
     const auto assign_other_action = [&](ID & /* animated_id */,
                                          bAction *&action_ptr_ref,
                                          slot_handle_t &slot_handle_ref,
-                                         char *slot_name) -> bool {
+                                         char *slot_identifier) -> bool {
       /* Only reassign if the reference is actually from the same action. Could be from a different
        * action when using the NLA or action constraints. */
       if (action_ptr_ref != &from_action) {
@@ -2977,13 +2980,13 @@ void move_slot(Main &bmain, Slot &source_slot, Action &from_action, Action &to_a
 
       { /* Assign the Action. */
         const bool assign_ok = generic_assign_action(
-            *user, &to_action, action_ptr_ref, slot_handle_ref, slot_name);
+            *user, &to_action, action_ptr_ref, slot_handle_ref, slot_identifier);
         BLI_assert_msg(assign_ok, "Expecting slotted Actions to always be assignable");
         UNUSED_VARS_NDEBUG(assign_ok);
       }
       { /* Assign the Slot. */
         const ActionSlotAssignmentResult result = generic_assign_action_slot(
-            &target_slot, *user, action_ptr_ref, slot_handle_ref, slot_name);
+            &target_slot, *user, action_ptr_ref, slot_handle_ref, slot_identifier);
         BLI_assert(result == ActionSlotAssignmentResult::OK);
         UNUSED_VARS_NDEBUG(result);
       }

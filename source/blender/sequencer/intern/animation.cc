@@ -177,7 +177,7 @@ static void seq_animation_duplicate(Sequence *seq,
      * Note that when legacy actions are deprecated, then we can handle channel
      * groups way more easily because we know they're stored in the
      * already-duplicated channelbag in `src`, and we therefore don't have to
-     * worry that they might have already been freed.*/
+     * worry that they might have already been freed. */
     fcu_copy->grp = nullptr;
 
     animrig::action_fcurve_attach(dst, dst_slot_handle, *fcu_copy, std::nullopt);

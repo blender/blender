@@ -111,7 +111,8 @@ class Wireframe : Overlay {
                       const ObjectRef &ob_ref,
                       Resources &res,
                       const State &state,
-                      const bool in_edit_paint_mode)
+                      const bool in_edit_paint_mode,
+                      const bool in_edit_mode)
   {
     if (!enabled_) {
       return;
@@ -157,7 +158,9 @@ class Wireframe : Overlay {
         }
         break;
       }
-      case OB_MESH:
+      case OB_MESH: {
+        bool has_edit_cage = Meshes::mesh_has_edit_cage(ob_ref.object);
+
         if (show_surface_wire) {
           if (BKE_sculptsession_use_pbvh_draw(ob_ref.object, state.rv3d)) {
             ResourceHandle handle = manager.unique_handle(ob_ref);
@@ -166,7 +169,10 @@ class Wireframe : Overlay {
               coloring.mesh_all_edges_ps_->draw(batch.batch, handle);
             }
           }
-          else {
+          else if (!in_edit_mode || has_edit_cage) {
+            /* Only draw the wireframe in edit mode if object has edit cage.
+             * Otherwise the wireframe will conflict with the edit cage drawing and produce
+             * unpleasant aliasing. */
             gpu::Batch *geom = DRW_cache_mesh_face_wireframe_get(ob_ref.object);
             (all_edges ? coloring.mesh_all_edges_ps_ : coloring.mesh_ps_)
                 ->draw(geom, manager.unique_handle(ob_ref), res.select_id(ob_ref).get());
@@ -174,7 +180,7 @@ class Wireframe : Overlay {
         }
 
         /* Draw loose geometry. */
-        if (!in_edit_paint_mode || Meshes::mesh_has_edit_cage(ob_ref.object)) {
+        if (!in_edit_paint_mode || has_edit_cage) {
           const Mesh *mesh = static_cast<const Mesh *>(ob_ref.object->data);
           gpu::Batch *geom;
           if ((mesh->edges_num == 0) && (mesh->verts_num > 0)) {
@@ -188,6 +194,7 @@ class Wireframe : Overlay {
           }
         }
         break;
+      }
       case OB_POINTCLOUD: {
         if (show_surface_wire) {
           gpu::Batch *geom = DRW_pointcloud_batch_cache_get_dots(ob_ref.object);
@@ -198,6 +205,9 @@ class Wireframe : Overlay {
       }
       case OB_VOLUME: {
         gpu::Batch *geom = DRW_cache_volume_face_wireframe_get(ob_ref.object);
+        if (geom == nullptr) {
+          break;
+        }
         if (static_cast<Volume *>(ob_ref.object->data)->display.wireframe_type ==
             VOLUME_WIREFRAME_POINTS)
         {
@@ -226,29 +236,31 @@ class Wireframe : Overlay {
     manager.generate_commands(wireframe_ps_, view);
   }
 
-  /* TODO(fclem): Remove dependency on Resources. */
-  void draw_line_ex(Framebuffer &framebuffer, Resources &res, Manager &manager, View &view)
+  void copy_depth(TextureRef &depth_tx)
+  {
+    if (!enabled_ || !do_depth_copy_workaround_) {
+      return;
+    }
+
+    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT;
+    int2 render_size = int2(depth_tx.size());
+    tmp_depth_tx_.acquire(render_size, GPU_DEPTH24_STENCIL8, usage);
+
+    /* WORKAROUND: Nasty framebuffer copy.
+     * We should find a way to have nice wireframe without this. */
+    GPU_texture_copy(tmp_depth_tx_, depth_tx);
+  }
+
+  void draw_line(Framebuffer &framebuffer, Manager &manager, View &view) final
   {
     if (!enabled_) {
       return;
     }
 
-    if (do_depth_copy_workaround_) {
-      eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT;
-      int2 render_size = int2(res.depth_tx.size());
-      tmp_depth_tx_.acquire(render_size, GPU_DEPTH24_STENCIL8, usage);
-
-      /* WORKAROUND: Nasty framebuffer copy.
-       * We should find a way to have nice wireframe without this. */
-      GPU_texture_copy(tmp_depth_tx_, res.depth_tx);
-    }
-
     GPU_framebuffer_bind(framebuffer);
     manager.submit_only(wireframe_ps_, view);
 
-    if (do_depth_copy_workaround_) {
-      tmp_depth_tx_.release();
-    }
+    tmp_depth_tx_.release();
   }
 
  private:

@@ -361,6 +361,14 @@ int IMB_anim_get_image_width(ImBufAnim *anim);
 int IMB_anim_get_image_height(ImBufAnim *anim);
 bool IMB_get_gop_decode_time(ImBufAnim *anim);
 
+/**
+ * Fetches a frame from a movie at given frame position.
+ *
+ * Movies that are <= 8 bits/color channel are returned as byte images;
+ * higher bit depth movies are returned as float images. Note that the
+ * color space is returned as-is, i.e. a float image might not be in
+ * linear space.
+ */
 ImBuf *IMB_anim_absolute(ImBufAnim *anim,
                          int position,
                          IMB_Timecode_Type tc /* = 1 = IMB_TC_RECORD_RUN */,

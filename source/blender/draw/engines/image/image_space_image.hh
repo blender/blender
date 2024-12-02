@@ -8,9 +8,11 @@
 
 #pragma once
 
+#include "ED_image.hh"
+
 #include "image_private.hh"
 
-namespace blender::draw::image_engine {
+namespace blender::image_engine {
 
 class SpaceImageAccessor : public AbstractSpaceAccessor {
   SpaceImage *sima;
@@ -18,7 +20,7 @@ class SpaceImageAccessor : public AbstractSpaceAccessor {
  public:
   SpaceImageAccessor(SpaceImage *sima) : sima(sima) {}
 
-  Image *get_image(Main * /*bmain*/) override
+  ::Image *get_image(Main * /*bmain*/) override
   {
     return ED_space_image(sima);
   }
@@ -28,12 +30,12 @@ class SpaceImageAccessor : public AbstractSpaceAccessor {
     return &sima->iuser;
   }
 
-  ImBuf *acquire_image_buffer(Image * /*image*/, void **lock) override
+  ImBuf *acquire_image_buffer(::Image * /*image*/, void **lock) override
   {
     return ED_space_image_acquire_buffer(sima, lock, 0);
   }
 
-  void release_buffer(Image * /*image*/, ImBuf *image_buffer, void *lock) override
+  void release_buffer(::Image * /*image*/, ImBuf *image_buffer, void *lock) override
   {
     ED_space_image_release_buffer(sima, image_buffer, lock);
   }
@@ -43,40 +45,40 @@ class SpaceImageAccessor : public AbstractSpaceAccessor {
     const int sima_flag = sima->flag & ED_space_image_get_display_channel_mask(image_buffer);
     if ((sima_flag & SI_USE_ALPHA) != 0) {
       /* Show RGBA */
-      r_shader_parameters.flags |= ImageDrawFlags::ShowAlpha | ImageDrawFlags::ApplyAlpha;
+      r_shader_parameters.flags |= ImageDrawFlags::SHOW_ALPHA | ImageDrawFlags::APPLY_ALPHA;
     }
     else if ((sima_flag & SI_SHOW_ALPHA) != 0) {
-      r_shader_parameters.flags |= ImageDrawFlags::Shuffling;
+      r_shader_parameters.flags |= ImageDrawFlags::SHUFFLING;
       copy_v4_fl4(r_shader_parameters.shuffle, 0.0f, 0.0f, 0.0f, 1.0f);
     }
     else if ((sima_flag & SI_SHOW_ZBUF) != 0) {
-      r_shader_parameters.flags |= ImageDrawFlags::Depth | ImageDrawFlags::Shuffling;
+      r_shader_parameters.flags |= ImageDrawFlags::DEPTH | ImageDrawFlags::SHUFFLING;
       copy_v4_fl4(r_shader_parameters.shuffle, 1.0f, 0.0f, 0.0f, 0.0f);
     }
     else if ((sima_flag & SI_SHOW_R) != 0) {
-      r_shader_parameters.flags |= ImageDrawFlags::Shuffling;
+      r_shader_parameters.flags |= ImageDrawFlags::SHUFFLING;
       if (IMB_alpha_affects_rgb(image_buffer)) {
-        r_shader_parameters.flags |= ImageDrawFlags::ApplyAlpha;
+        r_shader_parameters.flags |= ImageDrawFlags::APPLY_ALPHA;
       }
       copy_v4_fl4(r_shader_parameters.shuffle, 1.0f, 0.0f, 0.0f, 0.0f);
     }
     else if ((sima_flag & SI_SHOW_G) != 0) {
-      r_shader_parameters.flags |= ImageDrawFlags::Shuffling;
+      r_shader_parameters.flags |= ImageDrawFlags::SHUFFLING;
       if (IMB_alpha_affects_rgb(image_buffer)) {
-        r_shader_parameters.flags |= ImageDrawFlags::ApplyAlpha;
+        r_shader_parameters.flags |= ImageDrawFlags::APPLY_ALPHA;
       }
       copy_v4_fl4(r_shader_parameters.shuffle, 0.0f, 1.0f, 0.0f, 0.0f);
     }
     else if ((sima_flag & SI_SHOW_B) != 0) {
-      r_shader_parameters.flags |= ImageDrawFlags::Shuffling;
+      r_shader_parameters.flags |= ImageDrawFlags::SHUFFLING;
       if (IMB_alpha_affects_rgb(image_buffer)) {
-        r_shader_parameters.flags |= ImageDrawFlags::ApplyAlpha;
+        r_shader_parameters.flags |= ImageDrawFlags::APPLY_ALPHA;
       }
       copy_v4_fl4(r_shader_parameters.shuffle, 0.0f, 0.0f, 1.0f, 0.0f);
     }
     else /* RGB */ {
       if (IMB_alpha_affects_rgb(image_buffer)) {
-        r_shader_parameters.flags |= ImageDrawFlags::ApplyAlpha;
+        r_shader_parameters.flags |= ImageDrawFlags::APPLY_ALPHA;
       }
     }
   }
@@ -108,4 +110,4 @@ class SpaceImageAccessor : public AbstractSpaceAccessor {
   }
 };
 
-}  // namespace blender::draw::image_engine
+}  // namespace blender::image_engine

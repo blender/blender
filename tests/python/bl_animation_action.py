@@ -64,9 +64,9 @@ class ActionSlotAssignmentTest(unittest.TestCase):
         camera_adt.action = action
         self.assertEqual(camera_adt.action_slot_handle, slot_camera.handle)
 
-        # Unassigning should keep the slot name.
+        # Unassigning should keep the slot identifier.
         cube_adt.action = None
-        self.assertEqual(cube_adt.action_slot_name, slot_cube.name)
+        self.assertEqual(cube_adt.last_slot_identifier, slot_cube.identifier)
 
         # It should not be possible to set the slot handle while the Action is unassigned.
         slot_extra = action.slots.new()
@@ -248,7 +248,7 @@ class ChannelBagsTest(unittest.TestCase):
         self.action = bpy.data.actions.new('TestAction')
 
         self.slot = self.action.slots.new()
-        self.slot.name = 'OBTest'
+        self.slot.identifier = 'OBTest'
 
         self.layer = self.action.layers.new(name="Layer")
         self.strip = self.layer.strips.new(type='KEYFRAME')
@@ -379,7 +379,7 @@ class DataPathTest(unittest.TestCase):
         action = bpy.data.actions.new('TestAction')
 
         slot = action.slots.new()
-        slot.name = 'OBTest'
+        slot.identifier = 'OBTest'
         self.assertEqual("bpy.data.actions['TestAction'].slots[\"OBTest\"]", repr(slot))
 
         layer = action.layers.new(name="Layer")
@@ -436,7 +436,7 @@ class VersioningTest(unittest.TestCase):
         self.assertEqual(len(strip.channelbags[0].groups[0].channels), 9)
 
         # Multi user slots do not get named after their users.
-        self.assertEqual(action.slots[0].name, "OBSlot")
+        self.assertEqual(action.slots[0].identifier, "OBSlot")
 
     def test_action_constraint(self):
         constrained_object = bpy.data.objects["action_constraint_constrained"]
@@ -469,7 +469,7 @@ class VersioningTest(unittest.TestCase):
         self.assertEqual(len(strip.channelbags[0].groups[1].channels), 10)
 
         # Slots with a single user are named after their user.
-        self.assertEqual(action.slots[0].name, "OBarmature_object")
+        self.assertEqual(action.slots[0].identifier, "OBarmature_object")
 
         for fcurve in strip.channelbags[0].groups[0].channels:
             self.assertEqual(fcurve.group.name, "Bone")

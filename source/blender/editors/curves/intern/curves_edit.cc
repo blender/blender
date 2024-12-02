@@ -273,7 +273,7 @@ void resize_curves(bke::CurvesGeometry &curves,
   /* Accumulate the sizes written from `new_sizes` into offsets. */
   offset_indices::accumulate_counts_to_offsets(dst_curves.offsets_for_write());
 
-  /* Resize the points domain.*/
+  /* Resize the points domain. */
   dst_curves.resize(dst_curves.offsets().last(), dst_curves.curves_num());
 
   /* Copy point attributes and default initialize newly added point ranges. */

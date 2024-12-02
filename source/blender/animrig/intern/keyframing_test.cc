@@ -205,8 +205,8 @@ TEST_F(KeyframingTest, insert_keyframes__layered_action__non_array_property)
    * to the object. */
   ASSERT_EQ(1, action.slots().size());
   Slot *slot = action.slot(0);
-  EXPECT_STREQ(object->id.name, slot->name);
-  EXPECT_STREQ(object->adt->slot_name, slot->name);
+  EXPECT_STREQ(object->id.name, slot->identifier);
+  EXPECT_STREQ(object->adt->last_slot_identifier, slot->identifier);
   EXPECT_EQ(object->adt->slot_handle, slot->handle);
 
   /* We have the default layer and strip. */
@@ -615,8 +615,8 @@ TEST_F(KeyframingTest, insert_keyframes__layered_action__multiple_ids)
   ASSERT_EQ(1, action.slots().size());
   Slot *slot_1 = action.slot_for_handle(object->adt->slot_handle);
   ASSERT_NE(nullptr, slot_1);
-  EXPECT_STREQ(object->id.name, slot_1->name);
-  EXPECT_STREQ(object->adt->slot_name, slot_1->name);
+  EXPECT_STREQ(object->id.name, slot_1->identifier);
+  EXPECT_STREQ(object->adt->last_slot_identifier, slot_1->identifier);
 
   /* Get the keyframe strip. */
   ASSERT_TRUE(action.is_action_layered());
@@ -648,8 +648,8 @@ TEST_F(KeyframingTest, insert_keyframes__layered_action__multiple_ids)
   ASSERT_EQ(2, action.slots().size());
   Slot *slot_2 = action.slot_for_handle(armature_object->adt->slot_handle);
   ASSERT_NE(nullptr, slot_2);
-  EXPECT_STREQ(armature_object->id.name, slot_2->name);
-  EXPECT_STREQ(armature_object->adt->slot_name, slot_2->name);
+  EXPECT_STREQ(armature_object->id.name, slot_2->identifier);
+  EXPECT_STREQ(armature_object->adt->last_slot_identifier, slot_2->identifier);
 
   ASSERT_EQ(2, strip_data->channelbags().size());
   ChannelBag *channel_bag_2 = strip_data->channelbag_for_slot(*slot_2);
@@ -1562,7 +1562,7 @@ TEST_F(KeyframingTest, insert_keyframes__legacy_action__quaternion_on_nla__only_
   /* Third time should succeed and key all elements, since we're inserting on a
    * frame where one of the elements already has a key.
    * NOTE: because of NLA time remapping, this 1.0 is the same as the 11.0 we
-   * used above when inserting directly into the fcurve.*/
+   * used above when inserting directly into the fcurve. */
   const CombinedKeyingResult result_3 = insert_keyframes(
       bmain,
       &object_with_nla_rna_pointer,

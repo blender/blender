@@ -145,6 +145,10 @@ def check_constraints(self, input_arm, expected_arm, bone, exp_bone):
                 msg = "Mismatching constraint value in pose.bones[%s].constraints[%s].%s" % (
                     bone.name, const_name, var)
                 self.assertEqual(value, exp_value, msg=msg)
+            elif isinstance(value, bpy.types.ActionSlot):
+                msg = "Mismatching constraint ActionSlot in pose.bones[%s].constraints[%s].%s" % (
+                    bone.name, const_name, var)
+                self.assertEqual(value, exp_value, msg=msg)
             elif value is None:
                 # Since above the types were compared already, if value is none, so is exp_value.
                 pass

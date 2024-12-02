@@ -1189,13 +1189,19 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
         # FBX SDK documentation says that normals should use IndexToDirect.
         elem_data_single_string(lay_nor, b"ReferenceInformationType", b"IndexToDirect")
 
-        # Tuple of unique sorted normals and then the index in the unique sorted normals of each normal in t_normal.
-        # Since we don't care about how the normals are sorted, only that they're unique, we can use the fast unique
-        # helper function.
-        t_normal, t_normal_idx = fast_first_axis_unique(t_normal.reshape(-1, 3), return_inverse=True)
+        # Workaround for Unity FBX import issue where the normals are considered invalid if any normals are
+        # deduplicated. See #123088.
+        if normal_mapping == b"ByVertice":
+            # Write every normal without any deduplication, so the indices array will be [0, 1, 2, ..., n].
+            t_normal_idx = np.arange(len(t_normal.reshape(-1, 3)), dtype=normal_idx_fbx_dtype)
+        else:
+            # Tuple of unique sorted normals and then the index in the unique sorted normals of each normal in t_normal.
+            # Since we don't care about how the normals are sorted, only that they're unique, we can use the fast unique
+            # helper function.
+            t_normal, t_normal_idx = fast_first_axis_unique(t_normal.reshape(-1, 3), return_inverse=True)
 
-        # Convert to the type for fbx
-        t_normal_idx = astype_view_signedness(t_normal_idx, normal_idx_fbx_dtype)
+            # Convert to the type for fbx
+            t_normal_idx = astype_view_signedness(t_normal_idx, normal_idx_fbx_dtype)
 
         elem_data_single_float64_array(lay_nor, b"Normals", t_normal)
         # Normal weights, no idea what it is.
@@ -2675,17 +2681,23 @@ def fbx_data_from_scene(scene, depsgraph, settings):
             # NOTE: The dependency graph might be re-evaluating multiple times, which could
             # potentially free the mesh created early on. So we put those meshes to bmain and
             # free them afterwards. Not ideal but ensures correct ownership.
+            # This also converts non-mesh Objects to Mesh data.
             tmp_me = bpy.data.meshes.new_from_object(
                 ob_to_convert, preserve_all_data_layers=True, depsgraph=depsgraph)
 
-            # Usually the materials of the evaluated object will be the same, but modifiers, such as Geometry Nodes,
-            # can change the materials.
-            orig_mats = tuple(slot.material for slot in ob.material_slots)
-            eval_mats = tuple(slot.material.original if slot.material else None
-                              for slot in ob_to_convert.material_slots)
+            # Usually the materials of the evaluated Object converted to a Mesh will be the same as the original
+            # Object, but modifiers, such as Geometry Nodes, can change the materials.
+            orig_mats = [slot.material for slot in ob.material_slots]
+            eval_mats = list(tmp_me.materials)
             if orig_mats != eval_mats:
+                # An object-linked material slot replaces the material on the data at the slot's index. If applying
+                # modifiers changes the materials on the data, the object-linked material slot will replace the new
+                # material at the same index as before.
+                for i, slot in zip(range(len(eval_mats)), ob.material_slots):
+                    if slot.link == 'OBJECT':
+                        eval_mats[i] = slot.material
                 # Override the default behavior of getting materials from `ob_obj.bdata.material_slots`.
-                ob_obj.override_materials = eval_mats
+                ob_obj.override_materials = tuple(eval_mats)
         elif do_convert:
             tmp_me = bpy.data.meshes.new_from_object(ob, preserve_all_data_layers=True, depsgraph=depsgraph)
         elif do_copy:

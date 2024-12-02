@@ -145,42 +145,42 @@ class Action : public ::bAction {
   const Slot *slot_for_handle(slot_handle_t handle) const;
 
   /**
-   * Set the slot name, ensure it is unique, and propagate the new name to
+   * Set the slot identifier, ensure it is unique, and propagate the new identifier to
    * all data-blocks that use it.
    *
    * This has to be done on the Action level to ensure each slot has a
-   * unique name within the Action.
+   * unique identifier within the Action.
    *
    * \note This does NOT ensure the first two characters match the ID type of
    * this slot. This is the caller's responsibility.
    *
-   * \see #Action::slot_name_define
-   * \see #Action::slot_name_propagate
+   * \see #Action::slot_identifier_define
+   * \see #Action::slot_identifier_propagate
    */
-  void slot_name_set(Main &bmain, Slot &slot, StringRefNull new_name);
+  void slot_identifier_set(Main &bmain, Slot &slot, StringRefNull new_identifier);
 
   /**
-   * Set the slot name, and ensure it is unique.
+   * Set the slot identifier, and ensure it is unique.
    *
    * \note This does NOT ensure the first two characters match the ID type of
    * this slot. This is the caller's responsibility.
    *
-   * \see #Action::slot_name_set
-   * \see #Action::slot_name_propagate
+   * \see #Action::slot_identifier_set
+   * \see #Action::slot_identifier_propagate
    */
-  void slot_name_define(Slot &slot, StringRefNull new_name);
+  void slot_identifier_define(Slot &slot, StringRefNull new_identifier);
 
   /**
-   * Update the `AnimData::action_slot_name` field of any ID that is animated by
+   * Update the `AnimData::last_slot_identifier` field of any ID that is animated by
    * this Slot.
    *
-   * Should be called after `slot_name_define(slot)`. This is implemented as a separate
+   * Should be called after `slot_identifier_define(slot)`. This is implemented as a separate
    * function due to the need to access `bmain`, which is available in the RNA on-property-update
    * handler, but not in the RNA property setter.
    */
-  void slot_name_propagate(Main &bmain, const Slot &slot);
+  void slot_identifier_propagate(Main &bmain, const Slot &slot);
 
-  Slot *slot_find_by_name(StringRefNull slot_name);
+  Slot *slot_find_by_identifier(StringRefNull slot_identifier);
 
   /**
    * Create a new, unused Slot.
@@ -245,11 +245,11 @@ class Action : public ::bAction {
    * Action's slots with (in order):
    *
    * - `animated_id.adt->slot_handle`,
-   * - `animated_id.adt->slot_name`,
+   * - `animated_id.adt->last_slot_identifier`,
    * - `animated_id.name`.
    *
    * Note that this is different from #slot_for_id, which does not use the
-   * slot name, and only works when this Action is already assigned. */
+   * slot identifier, and only works when this Action is already assigned. */
   Slot *find_suitable_slot_for(const ID &animated_id);
 
   /**
@@ -323,8 +323,8 @@ class Action : public ::bAction {
   float2 get_frame_range_of_keys(bool include_modifiers) const ATTR_WARN_UNUSED_RESULT;
 
   /**
-   * Set the slot's ID type to that of the animated ID, ensure the name
-   * prefix is set accordingly, and that the name is unique within the
+   * Set the slot's ID type to that of the animated ID, ensure the identifier
+   * prefix is set accordingly, and that the identifier is unique within the
    * Action.
    *
    * This is a low-level function, and shouldn't be called directly outside of
@@ -378,14 +378,14 @@ class Action : public ::bAction {
   Slot &slot_allocate();
 
   /**
-   * Ensure the slot name prefix matches its ID type.
+   * Ensure the slot identifier prefix matches its ID type.
    *
    * This ensures that the first two characters match the ID type of
    * this slot.
    *
-   * \see #Action::slot_name_propagate
+   * \see #Action::slot_identifier_propagate
    */
-  void slot_name_ensure_prefix(Slot &slot);
+  void slot_identifier_ensure_prefix(Slot &slot);
 };
 static_assert(sizeof(Action) == sizeof(::bAction),
               "DNA struct and its C++ wrapper must have the same size");
@@ -620,28 +620,28 @@ class Slot : public ::ActionSlot {
   constexpr static slot_handle_t unassigned = 0;
 
   /**
-   * Slot names consist of a two-character ID code, then the display name.
-   * This means that the minimum length of a valid name is 3 characters.
+   * Slot identifiers consist of a two-character ID code, then the display name.
+   * This means that the minimum length of a valid identifier is 3 characters.
    */
-  constexpr static int name_length_min = 3;
+  constexpr static int identifier_length_min = 3;
 
-  constexpr static int name_length_max = MAX_ID_NAME;
-  static_assert(sizeof(AnimData::slot_name) == name_length_max);
-  static_assert(sizeof(NlaStrip::action_slot_name) == name_length_max);
+  constexpr static int identifier_length_max = MAX_ID_NAME;
+  static_assert(sizeof(AnimData::last_slot_identifier) == identifier_length_max);
+  static_assert(sizeof(NlaStrip::last_slot_identifier) == identifier_length_max);
 
   /**
-   * Return the name prefix for the Slot's type.
+   * Return the identifier prefix for the Slot's type.
    *
    * This is the ID name prefix, so "OB" for objects, "CA" for cameras, etc.
    */
-  std::string name_prefix_for_idtype() const;
+  std::string identifier_prefix_for_idtype() const;
 
   /**
-   * Return the name without the prefix, also known as the "display name".
+   * Return the identifier without the prefix, also known as the "display name".
    *
-   * \see name_prefix_for_idtype
+   * \see identifier_prefix_for_idtype
    */
-  StringRefNull name_without_prefix() const;
+  StringRefNull identifier_without_prefix() const;
 
   /** Return whether this Slot is usable by this ID type. */
   bool is_suitable_for(const ID &animated_id) const;
@@ -710,20 +710,20 @@ class Slot : public ::ActionSlot {
   static void users_invalidate(Main &bmain);
 
   /**
-   * Ensure the first two characters of the name match the ID type.
+   * Ensure the first two characters of the identifier match the ID type.
    *
    * This typically should not be called directly. Prefer assigning to an ID to
-   * get the idtype and name prefix properly set. Prefer calling
-   * `Action::slot_name_set()` if you want to set the slot name. Both of those
+   * get the idtype and identifier prefix properly set. Prefer calling
+   * `Action::slot_identifier_set()` if you want to set the slot identifier. Both of those
    * approaches take care of ensuring uniqueness and other invariants.
    *
-   * \note This does NOT ensure name uniqueness within the Action. That is the
+   * \note This does NOT ensure identifier uniqueness within the Action. That is the
    * responsibility of the caller.
    *
    * \see #assign_action_slot
-   * \see #Action::slot_name_set
+   * \see #Action::slot_identifier_set
    */
-  void name_ensure_prefix();
+  void identifier_ensure_prefix();
 
  protected:
   friend Action;
@@ -1154,7 +1154,7 @@ Action &action_add(Main &bmain, StringRefNull name);
 enum class ActionSlotAssignmentResult : int8_t {
   OK = 0,
   SlotNotFromAction = 1, /* Slot does not belong to the assigned Action. */
-  SlotNotSuitable = 2,   /* Slot is not suitable for the given ID type.*/
+  SlotNotSuitable = 2,   /* Slot is not suitable for the given ID type. */
   MissingAction = 3,     /* No Action assigned yet, so cannot assign slot. */
 };
 
@@ -1221,10 +1221,10 @@ ActionSlotAssignmentResult assign_action_and_slot(Action *action,
  * mode (in which case no Action assignments can happen), or when the legacy Action ID type doesn't
  * match the animated ID.
  *
- * \note Contrary to `assign_action()` this skips the search by slot name when the Action is
+ * \note Contrary to `assign_action()` this skips the search by slot identifier when the Action is
  * already assigned. It should be possible for an animator to un-assign a slot, then create a new
- * slot by inserting a new key. This shouldn't auto-assign the old slot (by name) and _then_ insert
- * the key.
+ * slot by inserting a new key. This shouldn't auto-assign the old slot (by identifier) and _then_
+ * insert the key.
  *
  * \see assign_action()
  */
@@ -1267,7 +1267,7 @@ ActionSlotAssignmentResult assign_action_and_slot(Action *action,
                                          bAction *action_to_assign,
                                          bAction *&action_ptr_ref,
                                          slot_handle_t &slot_handle_ref,
-                                         char *slot_name);
+                                         char *slot_identifier);
 
 /**
  * Generic function to build Slot-assignment logic.
@@ -1279,7 +1279,7 @@ ActionSlotAssignmentResult assign_action_and_slot(Action *action,
                                                                     ID &animated_id,
                                                                     bAction *&action_ptr_ref,
                                                                     slot_handle_t &slot_handle_ref,
-                                                                    char *slot_name);
+                                                                    char *slot_identifier);
 
 /**
  * Generic function to build Slot Handle-assignment logic.
@@ -1292,7 +1292,7 @@ ActionSlotAssignmentResult assign_action_and_slot(Action *action,
     ID &animated_id,
     bAction *&action_ptr_ref,
     slot_handle_t &slot_handle_ref,
-    char *slot_name);
+    char *slot_identifier);
 
 /* --------------- Accessors --------------------- */
 
@@ -1622,9 +1622,9 @@ Action *convert_to_layered_action(Main &bmain, const Action &legacy_action);
 
 /**
  * Move the given slot from `from_action` to `to_action`.
- * The slot name might not be exactly the same if the name already exists in the slots of
- * `to_action`. Also the slot handle is likely going to be different on `to_action`.
- * All users of the slot will be reassigned to the moved slot on `to_action`.
+ * The slot identifier might not be exactly the same if the identifier already exists in the slots
+ * of `to_action`. Also the slot handle is likely going to be different on `to_action`. All users
+ * of the slot will be reassigned to the moved slot on `to_action`.
  *
  * \note The `from_action` will not be deleted by this function. But it might leave it without
  * users which means it will not be saved (unless it has a fake user).

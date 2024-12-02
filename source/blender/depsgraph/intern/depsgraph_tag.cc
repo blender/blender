@@ -640,7 +640,6 @@ NodeType geometry_tag_to_component(const ID *id)
         case OB_FONT:
         case OB_LATTICE:
         case OB_MBALL:
-        case OB_GPENCIL_LEGACY:
         case OB_CURVES:
         case OB_POINTCLOUD:
         case OB_VOLUME:

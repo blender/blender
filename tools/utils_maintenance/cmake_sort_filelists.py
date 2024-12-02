@@ -93,9 +93,15 @@ def sort_cmake_file_lists(fn: str, data_src: str) -> str | None:
     return None
 
 
-run(
-    directories=[os.path.join(SOURCE_DIR, d) for d in SOURCE_DIRS],
-    is_text=lambda fn: fn.endswith("CMakeLists.txt"),
-    text_operation=sort_cmake_file_lists,
-    use_multiprocess=True,
-)
+def main() -> int:
+    run(
+        directories=[os.path.join(SOURCE_DIR, d) for d in SOURCE_DIRS],
+        is_text=lambda fn: fn.endswith("CMakeLists.txt"),
+        text_operation=sort_cmake_file_lists,
+        use_multiprocess=True,
+    )
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

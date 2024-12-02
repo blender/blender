@@ -135,9 +135,10 @@ void VKStateManager::texel_buffer_unbind(VKVertexBuffer &vertex_buffer)
 
 void VKStateManager::storage_buffer_bind(BindSpaceStorageBuffers::Type resource_type,
                                          void *resource,
-                                         int binding)
+                                         int binding,
+                                         VkDeviceSize offset)
 {
-  storage_buffers_.bind(resource_type, resource, binding);
+  storage_buffers_.bind(resource_type, resource, binding, offset);
   is_dirty = true;
 }
 

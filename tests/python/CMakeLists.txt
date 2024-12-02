@@ -287,6 +287,14 @@ add_blender_test(
   --run-all-tests
 )
 
+add_blender_test(
+  object_conversion
+  ${TEST_SRC_DIR}/modeling/object_conversion.blend
+  --python ${TEST_PYTHON_DIR}/object_conversion.py
+  --
+  --run-all-tests
+)
+
 # ------------------------------------------------------------------------------
 # MODIFIERS TESTS
 add_blender_test(

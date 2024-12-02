@@ -56,7 +56,7 @@ class Speakers : Overlay {
     speaker_buf_.append({ob_ref.object->object_to_world(), color, 1.0f}, select_id);
   }
 
-  void end_sync(Resources &res, const ShapeCache &shapes, const State &state) final
+  void end_sync(Resources &res, const State &state) final
   {
     if (!enabled_) {
       return;
@@ -69,7 +69,7 @@ class Speakers : Overlay {
     ps_.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
     res.select_bind(ps_);
 
-    speaker_buf_.end_sync(ps_, shapes.speaker.get());
+    speaker_buf_.end_sync(ps_, res.shapes.speaker.get());
   }
 
   void draw_line(Framebuffer &framebuffer, Manager &manager, View &view) final

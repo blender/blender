@@ -339,7 +339,7 @@ static void wm_xr_controller_aim_draw(const XrSessionSettings *settings, wmXrSes
 
   GPUVertFormat *format = immVertexFormat();
   uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
-  uint col = GPU_vertformat_attr_add(format, "color", GPU_COMP_U8, 4, GPU_FETCH_INT_TO_FLOAT_UNIT);
+  uint col = GPU_vertformat_attr_add(format, "color", GPU_COMP_F32, 4, GPU_FETCH_FLOAT);
   immBindBuiltinProgram(GPU_SHADER_3D_POLYLINE_FLAT_COLOR);
 
   float viewport[4];
@@ -349,7 +349,7 @@ static void wm_xr_controller_aim_draw(const XrSessionSettings *settings, wmXrSes
   immUniform1f("lineWidth", 3.0f * U.pixelsize);
 
   if (draw_ray) {
-    const uchar color[4] = {89, 89, 255, 127};
+    const float color[4] = {0.33f, 0.33f, 1.0f, 0.5f};
     const float scale = settings->clip_end;
     float ray[3];
 
@@ -368,16 +368,16 @@ static void wm_xr_controller_aim_draw(const XrSessionSettings *settings, wmXrSes
 
       immAttrSkip(col);
       immVertex3fv(pos, mat[3]);
-      immAttr4ubv(col, color);
+      immAttr4fv(col, color);
       immVertex3fv(pos, ray);
 
       immEnd();
     }
   }
   else {
-    const uchar r[4] = {255, 51, 82, 255};
-    const uchar g[4] = {139, 220, 0, 255};
-    const uchar b[4] = {40, 144, 255, 255};
+    const float r[4] = {255 / 255.0f, 51 / 255.0f, 82 / 255.0f, 255 / 255.0f};
+    const float g[4] = {139 / 255.0f, 220 / 255.0f, 0 / 255.0f, 255 / 255.0f};
+    const float b[4] = {40 / 255.0f, 144 / 255.0f, 255 / 255.0f, 255 / 255.0f};
     const float scale = 0.01f;
     float x_axis[3], y_axis[3], z_axis[3];
 
@@ -398,17 +398,17 @@ static void wm_xr_controller_aim_draw(const XrSessionSettings *settings, wmXrSes
 
       immAttrSkip(col);
       immVertex3fv(pos, mat[3]);
-      immAttr4ubv(col, r);
+      immAttr4fv(col, r);
       immVertex3fv(pos, x_axis);
 
       immAttrSkip(col);
       immVertex3fv(pos, mat[3]);
-      immAttr4ubv(col, g);
+      immAttr4fv(col, g);
       immVertex3fv(pos, y_axis);
 
       immAttrSkip(col);
       immVertex3fv(pos, mat[3]);
-      immAttr4ubv(col, b);
+      immAttr4fv(col, b);
       immVertex3fv(pos, z_axis);
 
       immEnd();

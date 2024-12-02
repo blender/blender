@@ -6695,5 +6695,5 @@ void BKE_constraint_blend_read_data(BlendDataReader *reader, ID *id_owner, ListB
  * inclusion of an DNA_anim_types.h in DNA_constraint_types.h just for this assert. */
 static_assert(
     std::is_same_v<decltype(ActionSlot::handle), decltype(bActionConstraint::action_slot_handle)>);
-static_assert(
-    std::is_same_v<decltype(ActionSlot::name), decltype(bActionConstraint::action_slot_name)>);
+static_assert(std::is_same_v<decltype(ActionSlot::identifier),
+                             decltype(bActionConstraint::last_slot_identifier)>);

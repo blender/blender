@@ -356,6 +356,8 @@ static int startffmpeg(ImBufAnim *anim)
 
   anim->x = pCodecCtx->width;
   anim->y = pCodecCtx->height;
+  anim->video_rotation = ffmpeg_get_video_rotation(video_stream);
+
   /* Decode >8bit videos into floating point image. */
   anim->is_float = calc_pix_fmt_max_component_bits(pCodecCtx->pix_fmt) > 8;
 
@@ -652,6 +654,11 @@ static void ffmpeg_postprocess(ImBufAnim *anim, AVFrame *input, ImBuf *ibuf)
   if (filter_y) {
     IMB_filtery(ibuf);
   }
+
+  /* Rotate video if display matrix is multiple of 90 degrees. */
+  if (ELEM(anim->video_rotation, 90, 180, 270)) {
+    IMB_rotate_orthogonal(ibuf, anim->video_rotation);
+  }
 }
 
 static void final_frame_log(ImBufAnim *anim,
@@ -705,10 +712,11 @@ static void ffmpeg_decode_store_frame_pts(ImBufAnim *anim)
   anim->cur_pts = av_get_pts_from_frame(anim->pFrame);
 
 #  ifdef FFMPEG_OLD_KEY_FRAME_QUERY_METHOD
-  if (anim->pFrame->key_frame) {
+  if (anim->pFrame->key_frame)
 #  else
-  if (anim->pFrame->flags & AV_FRAME_FLAG_KEY) {
+  if (anim->pFrame->flags & AV_FRAME_FLAG_KEY)
 #  endif
+  {
     anim->cur_key_frame_pts = anim->cur_pts;
   }
 
@@ -1354,10 +1362,10 @@ bool IMB_anim_get_fps(const ImBufAnim *anim,
 
 int IMB_anim_get_image_width(ImBufAnim *anim)
 {
-  return anim->x;
+  return ELEM(anim->video_rotation, 90, 270) ? anim->y : anim->x;
 }
 
 int IMB_anim_get_image_height(ImBufAnim *anim)
 {
-  return anim->y;
+  return ELEM(anim->video_rotation, 90, 270) ? anim->x : anim->y;
 }

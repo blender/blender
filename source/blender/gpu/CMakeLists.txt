@@ -279,6 +279,7 @@ set(VULKAN_SRC
   vulkan/vk_drawlist.hh
   vulkan/vk_fence.hh
   vulkan/vk_framebuffer.hh
+  vulkan/vk_ghost_api.hh
   vulkan/vk_image_view.hh
   vulkan/vk_immediate.hh
   vulkan/vk_index_buffer.hh
@@ -504,9 +505,7 @@ set(GLSL_SRC
   shaders/gpu_shader_3D_flat_color_vert.glsl
   shaders/gpu_shader_3D_line_dashed_uniform_color_vert.glsl
   shaders/gpu_shader_3D_polyline_frag.glsl
-  shaders/gpu_shader_3D_polyline_geom.glsl
   shaders/gpu_shader_3D_polyline_vert.glsl
-  shaders/gpu_shader_3D_polyline_vert_no_geom.glsl
   shaders/gpu_shader_3D_smooth_color_vert.glsl
   shaders/gpu_shader_3D_smooth_color_frag.glsl
   shaders/gpu_shader_3D_clipped_uniform_color_vert.glsl
@@ -749,6 +748,10 @@ endif()
 
 if(WITH_GPU_DRAW_TESTS)
   add_definitions(-DWITH_GPU_DRAW_TESTS)
+endif()
+
+if(WITH_GTEST)
+  add_definitions(-DWITH_GTEST)
 endif()
 
 blender_add_lib(bf_gpu "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

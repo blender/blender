@@ -757,8 +757,10 @@ inline float4 Result::sample_bilinear_extended(const float2 &coordinates) const
   return pixel_value;
 }
 
-/* Given a Result as the userdata argument, sample it at the given coordinates using extended
- * boundary condition and write the result to the result argument.*/
+/**
+ * Given a Result as the userdata argument, sample it at the given coordinates using extended
+ * boundary condition and write the result to the result argument.
+ */
 static void sample_ewa_extended_read_callback(void *userdata, int x, int y, float result[4])
 {
   const Result *input = static_cast<const Result *>(userdata);
@@ -792,8 +794,10 @@ inline float4 Result::sample_ewa_extended(const float2 &coordinates,
   return pixel_value;
 }
 
-/* Given a Result as the userdata argument, sample it at the given coordinates using zero boundary
- * condition and write the result to the result argument.*/
+/**
+ * Given a Result as the userdata argument, sample it at the given coordinates using zero boundary
+ * condition and write the result to the result argument.
+ */
 static void sample_ewa_zero_read_callback(void *userdata, int x, int y, float result[4])
 {
   const Result *input = static_cast<const Result *>(userdata);

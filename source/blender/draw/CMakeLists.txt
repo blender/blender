@@ -106,6 +106,7 @@ set(SRC
   engines/basic/basic_shader.cc
   engines/compositor/compositor_engine.cc
   engines/image/image_engine.cc
+  engines/image/image_drawing_mode.cc
   engines/image/image_shader.cc
   engines/eevee_next/eevee_ambient_occlusion.cc
   engines/eevee_next/eevee_camera.cc
@@ -278,9 +279,10 @@ set(SRC
   engines/image/image_drawing_mode.hh
   engines/image/image_engine.h
   engines/image/image_enums.hh
-  engines/image/image_instance_data.hh
+  engines/image/image_state.hh
   engines/image/image_partial_updater.hh
   engines/image/image_private.hh
+  engines/image/image_shader.hh
   engines/image/image_shader_params.hh
   engines/image/image_space.hh
   engines/image/image_space_image.hh
@@ -576,7 +578,6 @@ set(GLSL_SRC
   intern/shaders/common_fullscreen_vert.glsl
   intern/shaders/common_fxaa_lib.glsl
   intern/shaders/common_gpencil_lib.glsl
-  intern/shaders/common_grease_pencil_lib.glsl
   intern/shaders/common_hair_lib.glsl
   intern/shaders/common_hair_refine_comp.glsl
   intern/shaders/common_intersect_lib.glsl
@@ -601,6 +602,7 @@ set(GLSL_SRC
   intern/shaders/draw_command_generate_comp.glsl
   intern/shaders/draw_debug_draw_display_frag.glsl
   intern/shaders/draw_debug_draw_display_vert.glsl
+  intern/shaders/draw_grease_pencil_lib.glsl
   intern/shaders/draw_intersect_lib.glsl
   intern/shaders/draw_math_geom_lib.glsl
   intern/shaders/draw_model_lib.glsl

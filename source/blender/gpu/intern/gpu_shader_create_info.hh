@@ -38,6 +38,9 @@
 
 /* Used for primitive expansion. */
 #define GPU_SSBO_INDEX_BUF_SLOT 7
+/* Used for polylines. */
+#define GPU_SSBO_POLYLINE_POS_BUF_SLOT 0
+#define GPU_SSBO_POLYLINE_COL_BUF_SLOT 1
 
 #if defined(GLSL_CPP_STUBS)
 #  define GPU_SHADER_NAMED_INTERFACE_INFO(_interface, _inst_name) \
@@ -182,16 +185,22 @@
 #  define _INT_1D(T) i##T##1D
 #  define _INT_1D_ARRAY(T) i##T##1DArray
 #  define _INT_2D(T) i##T##2D
+#  define _INT_2D_ATOMIC(T) i##T##2D
 #  define _INT_2D_ARRAY(T) i##T##2DArray
+#  define _INT_2D_ARRAY_ATOMIC(T) i##T##2DArray
 #  define _INT_3D(T) i##T##3D
+#  define _INT_3D_ATOMIC(T) i##T##3D
 #  define _INT_CUBE(T) i##T##Cube
 #  define _INT_CUBE_ARRAY(T) i##T##CubeArray
 #  define _UINT_BUFFER(T) u##T##Buffer
 #  define _UINT_1D(T) u##T##1D
 #  define _UINT_1D_ARRAY(T) u##T##1DArray
 #  define _UINT_2D(T) u##T##2D
+#  define _UINT_2D_ATOMIC(T) u##T##2D
 #  define _UINT_2D_ARRAY(T) u##T##2DArray
+#  define _UINT_2D_ARRAY_ATOMIC(T) u##T##2DArray
 #  define _UINT_3D(T) u##T##3D
+#  define _UINT_3D_ATOMIC(T) u##T##3D
 #  define _UINT_CUBE(T) u##T##Cube
 #  define _UINT_CUBE_ARRAY(T) u##T##CubeArray
 #  define _SHADOW_2D(T) T##2DShadow
@@ -278,8 +287,7 @@
 
 #  define TYPEDEF_SOURCE(filename)
 
-#  define MTL_MAX_TOTAL_THREADS_PER_THREADGROUP(value) \
-    .mtl_max_total_threads_per_threadgroup(value)
+#  define MTL_MAX_TOTAL_THREADS_PER_THREADGROUP(value)
 #endif
 
 #define _INFO_EXPAND2(a, b) ADDITIONAL_INFO(a) ADDITIONAL_INFO(b)

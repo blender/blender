@@ -179,10 +179,12 @@ void Draw::execute(RecordingState &state) const
 
   if (is_primitive_expansion()) {
     /* Expanded drawcall. */
-    IndexRange vert_range = GPU_batch_draw_expanded_parameter_get(
-        batch, GPUPrimType(expand_prim_type), vertex_len, vertex_first);
-    IndexRange expanded_range = {vert_range.start() * expand_prim_len,
-                                 vert_range.size() * expand_prim_len};
+    IndexRange expanded_range = GPU_batch_draw_expanded_parameter_get(
+        batch->prim_type,
+        GPUPrimType(expand_prim_type),
+        vertex_len,
+        vertex_first,
+        expand_prim_len);
 
     if (expanded_range.is_empty()) {
       /* Nothing to draw, and can lead to asserts in GPU_batch_bind_as_resources. */
@@ -803,13 +805,14 @@ void DrawMultiBuf::generate_commands(Vector<Header, 0> & /*headers*/,
     if (group.desc.expand_prim_type != GPU_PRIM_NONE) {
       /* Expanded drawcall. */
       IndexRange vert_range = GPU_batch_draw_expanded_parameter_get(
-          group.desc.gpu_batch,
+          group.desc.gpu_batch->prim_type,
           GPUPrimType(group.desc.expand_prim_type),
           group.vertex_len,
-          group.vertex_first);
+          group.vertex_first,
+          group.desc.expand_prim_len);
 
-      group.vertex_first = vert_range.start() * group.desc.expand_prim_len;
-      group.vertex_len = vert_range.size() * group.desc.expand_prim_len;
+      group.vertex_first = vert_range.start();
+      group.vertex_len = vert_range.size();
       /* Override base index to -1 as the generated drawcall will not use an index buffer and do
        * the indirection manually inside the shader. */
       group.base_index = -1;

@@ -1195,7 +1195,7 @@ void animrecord_check_state(TransInfo *t, ID *id)
         if (frame_range[1] > frame_range[0] + 2.0f) {
           /* TODO: call BKE_nla_action_pushdown() instead?  */
 
-          /* Add a new NLA strip to the track, which references the active action + slot.*/
+          /* Add a new NLA strip to the track, which references the active action + slot. */
           NlaStrip *strip = BKE_nlastack_add_strip({*id, *adt}, ID_IS_OVERRIDE_LIBRARY(id));
           BLI_assert(strip);
           animrig::nla::assign_action_slot_handle(*strip, adt->slot_handle, *id);

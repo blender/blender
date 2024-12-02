@@ -1,20 +1,25 @@
 #!/usr/bin/env python3
+# SPDX-FileCopyrightText: 2024 Blender Authors
+#
+# SPDX-License-Identifier: GPL-2.0-or-later
 
-# Script which cleans up libraries for the bpy module.
-#
-# It scans actual dependencies of the bpy module and its dependencies and removes libraries that
-# are not needed. The libraries that are needed are ensured to be regular files (not a symbolic
-# link).
-#
-# The goal is to prepare the bpy install directory for the use by the wheel packaging tool: since
-# wheels don't support symbolic links leaving them in the install folder will result in big
-# resulting file sizes.
-#
-# Doing cleanup as a dedicated step allows to run all sort of regression tests before the wheel is
-# packed.
-#
-# Usage:
-#   wheel_cleanup.py <path/to/installed/bpy/folder>
+"""
+Script which cleans up libraries for the bpy module.
+
+It scans actual dependencies of the bpy module and its dependencies and removes libraries that
+are not needed. The libraries that are needed are ensured to be regular files (not a symbolic
+link).
+
+The goal is to prepare the bpy install directory for the use by the wheel packaging tool: since
+wheels don't support symbolic links leaving them in the install directory will result in big
+resulting file sizes.
+
+Doing cleanup as a dedicated step allows to run all sort of regression tests before the wheel is
+packed.
+
+Usage:
+  wheel_cleanup.py <path/to/installed/bpy/directory>
+"""
 
 import argparse
 import re
@@ -26,7 +31,7 @@ from string import digits
 from typing import Generator
 
 
-# REGEX matching for libraries that might be seen in the libs folder, not directly referenced,
+# REGEX matching for libraries that might be seen in the libs directory, not directly referenced,
 # but yet are still required for the proper operation of the `bpy` module.
 KEEP_MATCHERS = (
     # libOpenImageDenoise.so loads core, device_cuda, etc libraries at runtime.
@@ -189,14 +194,15 @@ def cleanup_linux(bpy_dir: Path) -> None:
 def main() -> None:
     print_banner("BPY module libraries cleaner")
 
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.RawTextHelpFormatter,
+    )
     parser.add_argument("bpy_dir", type=Path, help="Path to the bpy directory to cleanup")
     args = parser.parse_args()
 
-    bpy_dir = Path(sys.argv[1])
-
     if sys.platform == "linux":
-        cleanup_linux(bpy_dir)
+        cleanup_linux(args.bpy_dir)
         return
 
     # Windows and macOS do not use symlinks for libraries, so no need to figure out which copies of

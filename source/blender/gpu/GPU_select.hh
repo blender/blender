@@ -16,6 +16,7 @@ struct rcti;
 
 /** Flags for mode of operation. */
 enum eGPUSelectMode {
+  GPU_SELECT_INVALID = 0,
   GPU_SELECT_ALL = 1,
   /* gpu_select_query */
   GPU_SELECT_NEAREST_FIRST_PASS = 2,

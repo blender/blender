@@ -424,6 +424,11 @@ static void toolsystem_brush_activate_from_toolref(const bContext *C,
       toolsystem_brush_activate_from_toolref_for_object_paint(C, workspace, tref);
     }
   }
+  else if (tref->space_type == SPACE_IMAGE) {
+    if (tref->mode == SI_MODE_PAINT) {
+      toolsystem_brush_activate_from_toolref_for_object_paint(C, workspace, tref);
+    }
+  }
 }
 
 /** \} */

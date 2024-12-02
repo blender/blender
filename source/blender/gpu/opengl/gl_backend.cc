@@ -583,6 +583,9 @@ void GLBackend::capabilities_init()
   int64_t max_ssbo_size;
   glGetInteger64v(GL_MAX_SHADER_STORAGE_BLOCK_SIZE, &max_ssbo_size);
   GCaps.max_storage_buffer_size = size_t(max_ssbo_size);
+  GLint ssbo_alignment;
+  glGetIntegerv(GL_SHADER_STORAGE_BUFFER_OFFSET_ALIGNMENT, &ssbo_alignment);
+  GCaps.storage_buffer_alignment = size_t(ssbo_alignment);
 
   GCaps.transform_feedback_support = true;
   GCaps.texture_view_support = epoxy_gl_version() >= 43 ||

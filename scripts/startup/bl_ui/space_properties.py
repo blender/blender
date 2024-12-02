@@ -133,7 +133,7 @@ class PropertiesAnimationMixin:
             layout.context_pointer_set("animated_id", animated_id)
             layout.template_search(
                 adt, "action_slot",
-                adt, "action_slots",
+                adt, "action_suitable_slots",
                 new="anim.slot_new_for_id",
                 unlink="anim.slot_unassign_from_id",
             )

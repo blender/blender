@@ -21,7 +21,6 @@ struct CustomDataAccessInfo {
   using CustomDataGetter = CustomData *(*)(void *owner);
   using ConstCustomDataGetter = const CustomData *(*)(const void *owner);
   using GetElementNum = int (*)(const void *owner);
-  using UpdateCustomDataPointers = void (*)(void *owner);
 
   CustomDataGetter get_custom_data;
   ConstCustomDataGetter get_const_custom_data;

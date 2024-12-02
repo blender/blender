@@ -958,7 +958,7 @@ static int parent_set_invoke_menu(bContext *C, wmOperatorType *ot)
     if (child->type == OB_MESH) {
       has_children_of_type.mesh = true;
     }
-    if (ELEM(child->type, OB_GPENCIL_LEGACY, OB_GREASE_PENCIL)) {
+    if (ELEM(child->type, OB_GREASE_PENCIL)) {
       has_children_of_type.gpencil = true;
     }
     if (child->type == OB_CURVES) {
@@ -1915,13 +1915,6 @@ static void single_obdata_users(
                                                  LIB_ID_COPY_DEFAULT | LIB_ID_COPY_ACTIONS));
             break;
           case OB_LIGHTPROBE:
-            ob->data = ID_NEW_SET(ob->data,
-                                  BKE_id_copy_ex(bmain,
-                                                 static_cast<const ID *>(ob->data),
-                                                 nullptr,
-                                                 LIB_ID_COPY_DEFAULT | LIB_ID_COPY_ACTIONS));
-            break;
-          case OB_GPENCIL_LEGACY:
             ob->data = ID_NEW_SET(ob->data,
                                   BKE_id_copy_ex(bmain,
                                                  static_cast<const ID *>(ob->data),

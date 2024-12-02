@@ -41,6 +41,7 @@
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
 
+#include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_build.hh"
 
 #include "UI_interface_icons.hh"
@@ -2305,6 +2306,8 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
   }
 
   BKE_scene_frame_set(scene, closest_frame);
+  ED_areas_do_frame_follow(C, true);
+  DEG_id_tag_update(&scene->id, ID_RECALC_FRAME_CHANGE);
 
   /* Set notifier that things have changed. */
   WM_event_add_notifier(C, NC_SCENE | ND_FRAME, ac.scene);

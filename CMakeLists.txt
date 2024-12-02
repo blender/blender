@@ -1237,13 +1237,6 @@ set_and_warn_dependency(WITH_PYTHON WITH_CYCLES        OFF)
 set_and_warn_dependency(WITH_PYTHON WITH_DRACO         OFF)
 set_and_warn_dependency(WITH_PYTHON WITH_MOD_FLUID     OFF)
 
-if(NOT WITH_PYTHON_MODULE)
-  if(WITH_DRACO AND NOT WITH_PYTHON_INSTALL)
-    message(STATUS "WITH_DRACO requires WITH_PYTHON_INSTALL to be ON, disabling WITH_DRACO for now")
-    set(WITH_DRACO OFF)
-  endif()
-endif()
-
 # enable boost for cycles, audaspace or i18n
 # otherwise if the user disabled
 

@@ -73,7 +73,7 @@ void ED_add_action_group_channel(ChannelDrawList *draw_list,
                                  float ypos,
                                  float yscale_fac,
                                  int saction_flag);
-/* Layered Action Summary.*/
+/* Layered Action Summary. */
 void ED_add_action_layered_channel(ChannelDrawList *channel_list,
                                    bAnimListElem *ale,
                                    bAction *action,

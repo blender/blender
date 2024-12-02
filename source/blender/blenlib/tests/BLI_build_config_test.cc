@@ -13,7 +13,7 @@ namespace blender::tests {
  * build_config implementation. */
 TEST(BLI_build_config, Basic)
 {
-  static_assert(ARCH_CPU_31_BITS || ARCH_CPU_32_BITS || ARCH_CPU_64_BITS);
+  static_assert(ARCH_CPU_31_BITS || ARCH_CPU_32_BITS || ARCH_CPU_64_BITS || ARCH_CPU_128_BITS);
 }
 
 TEST(BLI_build_config, Endian)

@@ -668,8 +668,6 @@ static int acf_object_icon(bAnimListElem *ale)
       return ICON_OUTLINER_OB_VOLUME;
     case OB_EMPTY:
       return ICON_OUTLINER_OB_EMPTY;
-    case OB_GPENCIL_LEGACY:
-      return ICON_OUTLINER_OB_GREASEPENCIL;
     case OB_GREASE_PENCIL:
       return ICON_OUTLINER_OB_GREASEPENCIL;
     default:
@@ -1416,7 +1414,7 @@ static void acf_action_slot_name(bAnimListElem *ale, char *r_name)
 
   BLI_assert(ale->bmain);
   const int num_users = slot->users(*ale->bmain).size();
-  const char *display_name = slot->name_without_prefix().c_str();
+  const char *display_name = slot->identifier_without_prefix().c_str();
 
   BLI_assert(num_users >= 0);
   switch (num_users) {

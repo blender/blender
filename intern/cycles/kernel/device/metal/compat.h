@@ -58,7 +58,6 @@ using namespace metal::raytracing;
 #endif
 #define ccl_may_alias
 #define ccl_restrict __restrict
-#define ccl_loop_no_unroll
 #define ccl_align(n) alignas(n)
 #define ccl_optional_struct_init
 

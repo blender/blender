@@ -19,17 +19,21 @@
 #include "image_usage.hh"
 
 #include "DRW_render.hh"
+#include "draw_command.hh"
+#include "draw_manager.hh"
+#include "draw_pass.hh"
 
-namespace blender::draw::image_engine {
+namespace blender::image_engine {
+using namespace blender::draw;
 
-struct IMAGE_InstanceData {
-  Image *image;
+struct State {
+  ::Image *image = nullptr;
   /** Usage data of the previous time, to identify changes that require a full update. */
   ImageUsage last_usage;
 
-  PartialImageUpdater partial_update;
+  PartialImageUpdater partial_update = {};
 
-  DRWView *view;
+  View view = {"Image.View"};
   ShaderParameters sh_params;
   struct {
     /**
@@ -41,10 +45,11 @@ struct IMAGE_InstanceData {
     bool do_tile_drawing : 1;
   } flags;
 
-  struct {
-    DRWPass *image_pass;
-    DRWPass *depth_pass;
-  } passes;
+  Framebuffer depth_fb = {"Image.Depth"};
+  Framebuffer color_fb = {"Image.Color"};
+
+  PassSimple depth_ps = {"Image.Depth"};
+  PassSimple image_ps = {"Image.Color"};
 
   /**
    * Cache containing the float buffers when drawing byte images.
@@ -57,7 +62,7 @@ struct IMAGE_InstanceData {
   Vector<TextureInfo> texture_infos;
 
  public:
-  virtual ~IMAGE_InstanceData() = default;
+  virtual ~State() = default;
 
   void clear_need_full_update_flag()
   {
@@ -96,4 +101,4 @@ struct IMAGE_InstanceData {
   }
 };
 
-}  // namespace blender::draw::image_engine
+}  // namespace blender::image_engine

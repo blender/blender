@@ -3230,8 +3230,8 @@ blender::gpu::Batch *DRW_cache_cursor_get(bool crosshair_lines)
     const int vert_len = segments + 8;
     const int index_len = vert_len + 5;
 
-    const uchar red[3] = {255, 0, 0};
-    const uchar white[3] = {255, 255, 255};
+    const float red[3] = {1.0f, 0.0f, 0.0f};
+    const float white[3] = {1.0f, 1.0f, 1.0f};
 
     static GPUVertFormat format = {0};
     static struct {
@@ -3239,8 +3239,7 @@ blender::gpu::Batch *DRW_cache_cursor_get(bool crosshair_lines)
     } attr_id;
     if (format.attr_len == 0) {
       attr_id.pos = GPU_vertformat_attr_add(&format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
-      attr_id.color = GPU_vertformat_attr_add(
-          &format, "color", GPU_COMP_U8, 3, GPU_FETCH_INT_TO_FLOAT_UNIT);
+      attr_id.color = GPU_vertformat_attr_add(&format, "color", GPU_COMP_F32, 3, GPU_FETCH_FLOAT);
     }
 
     GPUIndexBufBuilder elb;
@@ -3263,9 +3262,10 @@ blender::gpu::Batch *DRW_cache_cursor_get(bool crosshair_lines)
     GPU_indexbuf_add_generic_vert(&elb, 0);
 
     if (crosshair_lines) {
-      uchar crosshair_color[3];
-      UI_GetThemeColor3ubv(TH_VIEW_OVERLAY, crosshair_color);
+      float crosshair_color[3];
+      UI_GetThemeColor3fv(TH_VIEW_OVERLAY, crosshair_color);
 
+      /* TODO(fclem): Remove primitive restart. Incompatible with wide lines. */
       GPU_indexbuf_add_primitive_restart(&elb);
 
       GPU_vertbuf_attr_set(vbo, attr_id.pos, v, blender::float2{-f20, 0});

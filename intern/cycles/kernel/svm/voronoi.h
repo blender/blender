@@ -660,8 +660,7 @@ ccl_device VoronoiOutput voronoi_f1(ccl_private const VoronoiParams &params, con
   float4 targetPosition = zero_float4();
   for (int u = -1; u <= 1; u++) {
     for (int k = -1; k <= 1; k++) {
-      ccl_loop_no_unroll for (int j = -1; j <= 1; j++)
-      {
+      for (int j = -1; j <= 1; j++) {
         for (int i = -1; i <= 1; i++) {
           float4 cellOffset = make_float4(i, j, k, u);
           float4 pointPosition = cellOffset + hash_float4_to_float4(cellPosition + cellOffset) *
@@ -696,8 +695,7 @@ ccl_device VoronoiOutput voronoi_smooth_f1(ccl_private const VoronoiParams &para
   float h = -1.0f;
   for (int u = -2; u <= 2; u++) {
     for (int k = -2; k <= 2; k++) {
-      ccl_loop_no_unroll for (int j = -2; j <= 2; j++)
-      {
+      for (int j = -2; j <= 2; j++) {
         for (int i = -2; i <= 2; i++) {
           float4 cellOffset = make_float4(i, j, k, u);
           float4 pointPosition = cellOffset + hash_float4_to_float4(cellPosition + cellOffset) *
@@ -739,8 +737,7 @@ ccl_device VoronoiOutput voronoi_f2(ccl_private const VoronoiParams &params, con
   float4 positionF2 = zero_float4();
   for (int u = -1; u <= 1; u++) {
     for (int k = -1; k <= 1; k++) {
-      ccl_loop_no_unroll for (int j = -1; j <= 1; j++)
-      {
+      for (int j = -1; j <= 1; j++) {
         for (int i = -1; i <= 1; i++) {
           float4 cellOffset = make_float4(i, j, k, u);
           float4 pointPosition = cellOffset + hash_float4_to_float4(cellPosition + cellOffset) *
@@ -781,8 +778,7 @@ ccl_device float voronoi_distance_to_edge(ccl_private const VoronoiParams &param
   float minDistance = FLT_MAX;
   for (int u = -1; u <= 1; u++) {
     for (int k = -1; k <= 1; k++) {
-      ccl_loop_no_unroll for (int j = -1; j <= 1; j++)
-      {
+      for (int j = -1; j <= 1; j++) {
         for (int i = -1; i <= 1; i++) {
           float4 cellOffset = make_float4(i, j, k, u);
           float4 vectorToPoint = cellOffset +
@@ -802,8 +798,7 @@ ccl_device float voronoi_distance_to_edge(ccl_private const VoronoiParams &param
   minDistance = FLT_MAX;
   for (int u = -1; u <= 1; u++) {
     for (int k = -1; k <= 1; k++) {
-      ccl_loop_no_unroll for (int j = -1; j <= 1; j++)
-      {
+      for (int j = -1; j <= 1; j++) {
         for (int i = -1; i <= 1; i++) {
           float4 cellOffset = make_float4(i, j, k, u);
           float4 vectorToPoint = cellOffset +
@@ -835,8 +830,7 @@ ccl_device float voronoi_n_sphere_radius(ccl_private const VoronoiParams &params
   float minDistance = FLT_MAX;
   for (int u = -1; u <= 1; u++) {
     for (int k = -1; k <= 1; k++) {
-      ccl_loop_no_unroll for (int j = -1; j <= 1; j++)
-      {
+      for (int j = -1; j <= 1; j++) {
         for (int i = -1; i <= 1; i++) {
           float4 cellOffset = make_float4(i, j, k, u);
           float4 pointPosition = cellOffset + hash_float4_to_float4(cellPosition + cellOffset) *
@@ -856,8 +850,7 @@ ccl_device float voronoi_n_sphere_radius(ccl_private const VoronoiParams &params
   float4 closestPointToClosestPoint = zero_float4();
   for (int u = -1; u <= 1; u++) {
     for (int k = -1; k <= 1; k++) {
-      ccl_loop_no_unroll for (int j = -1; j <= 1; j++)
-      {
+      for (int j = -1; j <= 1; j++) {
         for (int i = -1; i <= 1; i++) {
           if (i == 0 && j == 0 && k == 0 && u == 0) {
             continue;

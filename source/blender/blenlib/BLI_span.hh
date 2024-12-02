@@ -710,6 +710,20 @@ template<typename T> class MutableSpan {
   }
 
   /**
+   * Does a linear search to see of the value is in the array.
+   * Returns true if it is, otherwise false.
+   */
+  constexpr bool contains(const T &value) const
+  {
+    for (const T &element : *this) {
+      if (element == value) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
    * Does a constant time check to see if the pointer points to a value in the referenced array.
    * Return true if it is, otherwise false.
    */

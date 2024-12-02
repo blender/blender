@@ -106,18 +106,6 @@
 
 #include "BLO_read_write.hh"
 
-using blender::Array;
-using blender::Map;
-using blender::MutableSpan;
-using blender::Set;
-using blender::Span;
-using blender::Stack;
-using blender::StringRef;
-using blender::Vector;
-using blender::VectorSet;
-using blender::bke::bNodeRuntime;
-using blender::bke::bNodeSocketRuntime;
-using blender::bke::bNodeTreeRuntime;
 using blender::nodes::FieldInferencingInterface;
 using blender::nodes::InputSocketFieldType;
 using blender::nodes::NodeDeclaration;

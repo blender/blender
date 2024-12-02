@@ -7,6 +7,7 @@
  * physiology." IEEE transactions on visualization and computer graphics 11.1 (2005): 13-24. */
 
 #include "gpu_shader_compositor_texture_utilities.glsl"
+#include "gpu_shader_math_vector_lib.glsl"
 
 void main()
 {
@@ -21,7 +22,7 @@ void main()
 
   /* Equation (1) from Reinhard's 2005 paper, assuming Vmax is 1. */
   vec4 semi_saturation = pow(intensity * adaptation_level, vec4(contrast));
-  vec4 tone_mapped_color = input_color / (input_color + semi_saturation);
+  vec4 tone_mapped_color = safe_divide(input_color, input_color + semi_saturation);
 
   imageStore(output_img, texel, vec4(tone_mapped_color.rgb, input_color.a));
 }

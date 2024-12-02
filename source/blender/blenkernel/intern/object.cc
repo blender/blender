@@ -242,7 +242,7 @@ static void object_copy_data(Main *bmain,
 
   BKE_constraints_copy_ex(&ob_dst->constraints, &ob_src->constraints, flag_subdata, true);
 
-  ob_dst->mode = ob_dst->type != OB_GPENCIL_LEGACY ? OB_MODE_OBJECT : ob_dst->mode;
+  ob_dst->mode = OB_MODE_OBJECT;
   ob_dst->sculpt = nullptr;
 
   if (ob_src->pd) {
@@ -1342,8 +1342,6 @@ bool BKE_object_copy_modifier(Main *bmain,
                               const Object *ob_src,
                               const ModifierData *md_src)
 {
-  BLI_assert(ob_dst->type != OB_GPENCIL_LEGACY);
-
   const ModifierTypeInfo *mti = BKE_modifier_get_info((ModifierType)md_src->type);
   if (!object_modifier_type_copy_check((ModifierType)md_src->type)) {
     /* We never allow copying those modifiers here. */
@@ -1453,12 +1451,6 @@ bool BKE_object_modifier_stack_copy(Object *ob_dst,
                                     const bool do_copy_all,
                                     const int flag_subdata)
 {
-  if ((ob_dst->type == OB_GPENCIL_LEGACY) != (ob_src->type == OB_GPENCIL_LEGACY)) {
-    BLI_assert_msg(false,
-                   "Trying to copy a modifier stack between a GPencil object and another type.");
-    return false;
-  }
-
   if (!BLI_listbase_is_empty(&ob_dst->modifiers) ||
       !BLI_listbase_is_empty(&ob_dst->greasepencil_modifiers))
   {
@@ -1967,8 +1959,6 @@ static const char *get_obdata_defname(int type)
       return CTX_DATA_(BLT_I18NCONTEXT_ID_ID, "Volume");
     case OB_EMPTY:
       return CTX_DATA_(BLT_I18NCONTEXT_ID_ID, "Empty");
-    case OB_GPENCIL_LEGACY:
-      return DATA_("GPencil");
     case OB_LIGHTPROBE:
       return DATA_("LightProbe");
     case OB_GREASE_PENCIL:
@@ -2034,8 +2024,6 @@ void *BKE_object_obdata_add_from_type(Main *bmain, int type, const char *name)
       return BKE_speaker_add(bmain, name);
     case OB_LIGHTPROBE:
       return BKE_lightprobe_add(bmain, name);
-    case OB_GPENCIL_LEGACY:
-      return BKE_gpencil_data_addnew(bmain, name);
     case OB_CURVES:
       return BKE_curves_add(bmain, name);
     case OB_POINTCLOUD:
@@ -2070,8 +2058,6 @@ int BKE_object_obdata_to_type(const ID *id)
       return OB_CAMERA;
     case ID_LT:
       return OB_LATTICE;
-    case ID_GD_LEGACY:
-      return OB_GPENCIL_LEGACY;
     case ID_AR:
       return OB_ARMATURE;
     case ID_LP:
@@ -2623,7 +2609,6 @@ Object *BKE_object_duplicate(Main *bmain,
         id_new = BKE_id_copy_for_duplicate(bmain, id_old, dupflag, copy_flags);
       }
       break;
-    case OB_GPENCIL_LEGACY:
     case OB_GREASE_PENCIL:
       if (dupflag & USER_DUP_GPENCIL) {
         id_new = BKE_id_copy_for_duplicate(bmain, id_old, dupflag, copy_flags);
@@ -4819,7 +4804,6 @@ bool BKE_object_supports_material_slots(Object *ob)
               OB_CURVES,
               OB_POINTCLOUD,
               OB_VOLUME,
-              OB_GPENCIL_LEGACY,
               OB_GREASE_PENCIL);
 }
 

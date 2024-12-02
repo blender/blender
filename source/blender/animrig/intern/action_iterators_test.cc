@@ -152,7 +152,8 @@ TEST_F(ActionIteratorsTest, foreach_action_slot_use_with_references)
       << "Expected Action " << other_action.id.name << " but found "
       << action_and_slot->first->id.name;
   EXPECT_EQ(&another_slot, action_and_slot->second)
-      << "Expected Slot " << another_slot.name << " but found " << action_and_slot->second->name;
+      << "Expected Slot " << another_slot.identifier << " but found "
+      << action_and_slot->second->identifier;
 }
 
 }  // namespace blender::animrig::tests

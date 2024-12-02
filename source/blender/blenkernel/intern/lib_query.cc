@@ -364,8 +364,6 @@ static bool library_foreach_ID_link(Main *bmain,
     if (id->override_library != nullptr) {
       CALLBACK_INVOKE_ID(id->override_library->reference,
                          IDWALK_CB_USER | IDWALK_CB_OVERRIDE_LIBRARY_REFERENCE);
-      CALLBACK_INVOKE_ID(id->override_library->storage,
-                         IDWALK_CB_USER | IDWALK_CB_OVERRIDE_LIBRARY_REFERENCE);
 
       CALLBACK_INVOKE_ID(id->override_library->hierarchy_root, IDWALK_CB_LOOPBACK);
       LISTBASE_FOREACH (IDOverrideLibraryProperty *, op, &id->override_library->properties) {

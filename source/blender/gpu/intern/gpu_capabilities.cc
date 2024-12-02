@@ -227,6 +227,11 @@ size_t GPU_max_storage_buffer_size()
   return GCaps.max_storage_buffer_size;
 }
 
+size_t GPU_storage_buffer_alignment()
+{
+  return GCaps.storage_buffer_alignment;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

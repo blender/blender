@@ -201,6 +201,10 @@ class Prepass : Overlay {
         }
         geom_single = DRW_cache_volume_selection_surface_get(ob_ref.object);
         pass = mesh_ps_;
+        /* TODO(fclem): Get rid of these check and enforce correct API on the batch cache. */
+        if (geom_single == nullptr) {
+          return;
+        }
         break;
       case OB_POINTCLOUD:
         geom_single = point_cloud_sub_pass_setup(*point_cloud_ps_, ob_ref.object);

@@ -392,7 +392,7 @@ static bool pass_left_to_right(const bNodeTree &tree,
         const int dst_index = to_socket.index_in_tree();
         r_potential_reference_by_socket[dst_index] |= r_potential_reference_by_socket[src_index];
       }
-      /* Propagate data.*/
+      /* Propagate data. */
       for (const aal::PropagateRelation &relation : relations->propagate_relations) {
         const bNodeSocket &from_socket = node->input_socket(relation.from_geometry_input);
         const bNodeSocket &to_socket = node->output_socket(relation.to_geometry_output);
@@ -443,7 +443,7 @@ static bool pass_left_to_right(const bNodeTree &tree,
         const BitVector<> outside_references = get_references_coming_from_outside_zone(
             *zone, r_potential_data_by_socket, r_potential_reference_by_socket);
 
-        /* Propagate within output node.*/
+        /* Propagate within output node. */
         for (const int i : IndexRange(items_num)) {
           const int src_index = output_node.input_socket(i).index_in_tree();
           const int dst_index = output_node.output_socket(i).index_in_tree();

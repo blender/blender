@@ -370,6 +370,7 @@ static bke::CurvesGeometry build_sequential(bke::greasepencil::Drawing &drawing,
       dst_to_src_point[next_point] = point;
       next_point++;
     }
+    dst_to_src_curve[next_curve - 1] = stroke;
     dst_offsets[next_curve] = next_point;
     next_curve++;
   });
@@ -707,13 +708,14 @@ static void modify_geometry_set(ModifierData *md,
   threading::parallel_for_each(
       drawing_infos, [&](modifier::greasepencil::LayerDrawingInfo drawing_info) {
         const bke::greasepencil::Layer &layer = *layers[drawing_info.layer_index];
-        const bke::greasepencil::Drawing *prev_drawing = grease_pencil.get_drawing_at(
-            layer, eval_frame - 1);
 
         /* This will always return a valid start frame because we're iterating over the valid
          * drawings on `eval_frame`. Each drawing will have a start frame. */
         const int start_frame = *layer.start_frame_at(eval_frame);
         BLI_assert(start_frame <= eval_frame);
+
+        const bke::greasepencil::Drawing *prev_drawing = grease_pencil.get_drawing_at(
+            layer, start_frame - 1);
 
         const int relative_start_frame = eval_frame - start_frame;
 

@@ -80,9 +80,7 @@ struct Overlay {
    * Finalize passes or buffers used for object sync.
    * Runs once at the start of the sync cycle.
    */
-  virtual void end_sync(Resources & /*res*/,
-                        const ShapeCache & /*shapes*/,
-                        const State & /*state*/){};
+  virtual void end_sync(Resources & /*res*/, const State & /*state*/){};
 
   /**
    * Warms #PassMain and #PassSortable to avoid overhead of pipeline switching.

@@ -13,7 +13,7 @@
 
 struct PartialImageUpdater {
   PartialUpdateUser *user;
-  const Image *image;
+  const ::Image *image;
 
   /**
    * \brief Ensure that there is a partial update user for the given image.

@@ -17,15 +17,24 @@
 #include "mtl_context.hh"
 #include "mtl_debug.hh"
 #include "mtl_index_buffer.hh"
+#include "mtl_memory.hh"
 #include "mtl_storage_buffer.hh"
 #include "mtl_uniform_buffer.hh"
 #include "mtl_vertex_buffer.hh"
+#include <cstdio>
 
 namespace blender::gpu {
 
 /* -------------------------------------------------------------------- */
 /** \name Creation & Deletion
  * \{ */
+
+MTLStorageBuf::MTLStorageBuf(size_t size) : StorageBuf(size, "Immediate")
+{
+  usage_ = GPU_USAGE_STREAM;
+  storage_source_ = MTL_STORAGE_BUF_TYPE_DEFAULT;
+  metal_buffer_ = MTLContext::get_global_memory_manager()->allocate_aligned(size, 256, true);
+}
 
 MTLStorageBuf::MTLStorageBuf(size_t size, GPUUsageType usage, const char *name)
     : StorageBuf(size, name)
@@ -249,10 +258,11 @@ void MTLStorageBuf::unbind()
    * Otherwise, only perform a full unbind upon destruction
    * to ensure no lingering references. */
 #ifndef NDEBUG
-  if (true) {
+  if (true)
 #else
-  if (G.debug & G_DEBUG_GPU) {
+  if (G.debug & G_DEBUG_GPU)
 #endif
+  {
     if (bound_ctx_ != nullptr && bind_slot_ > -1) {
       MTLStorageBufferBinding &ctx_ssbo_bind_slot =
           bound_ctx_->pipeline_state.ssbo_bindings[bind_slot_];

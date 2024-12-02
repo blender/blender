@@ -4404,16 +4404,18 @@ static int click_select_channel_grease_pencil_datablock(bAnimListElem *ale)
   return (ND_ANIMCHAN | NA_EDITED);
 }
 
-static int click_select_channel_grease_pencil_layer_group(bAnimListElem *ale)
+static int click_select_channel_grease_pencil_layer_group(bContext *C, bAnimListElem *ale)
 {
-  GreasePencilLayerTreeGroup *layer_group = static_cast<GreasePencilLayerTreeGroup *>(ale->data);
+  using namespace blender::bke::greasepencil;
+  LayerGroup &layer_group = static_cast<GreasePencilLayerTreeGroup *>(ale->data)->wrap();
 
   /* Toggle expand:
    * - Although the triangle widget already allows this,
    *   the whole channel can also be used for this purpose.
    */
-  layer_group->base.flag ^= GP_LAYER_TREE_NODE_EXPANDED;
-
+  layer_group.set_expanded(!layer_group.is_expanded());
+  WM_event_add_notifier(C, NC_SPACE | ND_SPACE_PROPERTIES | NA_EDITED, nullptr);
+  WM_event_add_notifier(C, NC_GPENCIL | ND_DATA | NA_EDITED, nullptr);
   return (ND_ANIMCHAN | NA_EDITED);
 }
 
@@ -4593,7 +4595,7 @@ static int mouse_anim_channels(bContext *C,
       notifierFlags |= click_select_channel_grease_pencil_datablock(ale);
       break;
     case ANIMTYPE_GREASE_PENCIL_LAYER_GROUP:
-      notifierFlags |= click_select_channel_grease_pencil_layer_group(ale);
+      notifierFlags |= click_select_channel_grease_pencil_layer_group(C, ale);
       break;
     case ANIMTYPE_GREASE_PENCIL_LAYER:
       notifierFlags |= click_select_channel_grease_pencil_layer(C, ac, ale, selectmode, filter);
@@ -5244,7 +5246,7 @@ static int slot_channels_move_to_new_action_exec(bContext *C, wmOperator * /* op
   Main *bmain = CTX_data_main(C);
   if (slots.size() == 1) {
     char actname[MAX_ID_NAME - 2];
-    SNPRINTF(actname, DATA_("%sAction"), slots[0].first->name + 2);
+    SNPRINTF(actname, DATA_("%sAction"), slots[0].first->identifier + 2);
     target_action = &action_add(*bmain, actname);
   }
   else {
@@ -5311,7 +5313,7 @@ static int separate_slots_exec(bContext *C, wmOperator * /* op */)
   while (action->slot_array_num) {
     Slot *slot = action->slot(action->slot_array_num - 1);
     char actname[MAX_ID_NAME - 2];
-    SNPRINTF(actname, DATA_("%sAction"), slot->name + 2);
+    SNPRINTF(actname, DATA_("%sAction"), slot->identifier + 2);
     Action &target_action = action_add(*bmain, actname);
     Layer &layer = target_action.layer_add(std::nullopt);
     layer.strip_add(target_action, Strip::Type::Keyframe);

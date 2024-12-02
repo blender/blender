@@ -31,8 +31,9 @@ include(cmake/versions.cmake)
 include(cmake/boost_build_options.cmake)
 include(cmake/download.cmake)
 include(cmake/macros.cmake)
-# setup_msys2.cmake install perl, which HIP needs to function for the compiler detection to work
-# properly, hence needs to be included before check_compilers.cmake
+# `setup_msys2.cmake` to install `perl`,
+# which HIP needs to function for the compiler detection to work properly,
+# hence needs to be included before `check_compilers.cmake`.
 if(ENABLE_MSYS2)
   include(cmake/setup_msys2.cmake)
 else()
@@ -94,7 +95,7 @@ if(NOT APPLE)
   if(NOT BLENDER_PLATFORM_ARM)
     if(HIP_FOUND)
       include(cmake/hiprt.cmake)
-    else()  
+    else()
       message(STATUS "Missing HIP compiler, skipping HIPRT build")
     endif()
     include(cmake/dpcpp.cmake)

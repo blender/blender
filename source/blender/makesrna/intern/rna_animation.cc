@@ -264,7 +264,7 @@ static void rna_AnimData_action_slot_handle_set(
   AnimData *adt = BKE_animdata_from_id(&animated_id);
 
   rna_generic_action_slot_handle_set(
-      new_slot_handle, animated_id, adt->action, adt->slot_handle, adt->slot_name);
+      new_slot_handle, animated_id, adt->action, adt->slot_handle, adt->last_slot_identifier);
 }
 
 static AnimData &rna_animdata(const PointerRNA *ptr)
@@ -314,14 +314,16 @@ void rna_generic_action_slot_set(PointerRNA rna_slot_to_assign,
     case ActionSlotAssignmentResult::OK:
       break;
     case ActionSlotAssignmentResult::SlotNotFromAction:
-      BKE_reportf(
-          reports, RPT_ERROR, "This slot (%s) does not belong to the assigned Action", slot->name);
+      BKE_reportf(reports,
+                  RPT_ERROR,
+                  "This slot (%s) does not belong to the assigned Action",
+                  slot->identifier);
       break;
     case ActionSlotAssignmentResult::SlotNotSuitable:
       BKE_reportf(reports,
                   RPT_ERROR,
                   "This slot (%s) is not suitable for this data-block type (%c%c)",
-                  slot->name,
+                  slot->identifier,
                   animated_id.name[0],
                   animated_id.name[1]);
       break;
@@ -341,7 +343,7 @@ static void rna_AnimData_action_slot_set(PointerRNA *ptr, PointerRNA value, Repo
   }
 
   rna_generic_action_slot_set(
-      value, *animated_id, adt->action, adt->slot_handle, adt->slot_name, reports);
+      value, *animated_id, adt->action, adt->slot_handle, adt->last_slot_identifier, reports);
 }
 
 static void rna_AnimData_action_slot_update(Main *bmain, Scene *scene, PointerRNA *ptr)
@@ -358,7 +360,7 @@ static void rna_AnimData_action_slot_update(Main *bmain, Scene *scene, PointerRN
  * to refer to this from any other file, though, which is why it's not declared in
  * rna_action_tools.hh.
  */
-bool rna_iterator_generic_action_slots_skip(CollectionPropertyIterator *iter, void *data)
+bool rna_iterator_generic_action_suitable_slots_skip(CollectionPropertyIterator *iter, void *data)
 {
   using animrig::Slot;
 
@@ -376,8 +378,8 @@ bool rna_iterator_generic_action_slots_skip(CollectionPropertyIterator *iter, vo
   return !slot.is_suitable_for(*animated_id);
 }
 
-void rna_iterator_generic_action_slots_begin(CollectionPropertyIterator *iter,
-                                             bAction *assigned_action)
+void rna_iterator_generic_action_suitable_slots_begin(CollectionPropertyIterator *iter,
+                                                      bAction *assigned_action)
 {
   if (!assigned_action) {
     /* No action means no slots. */
@@ -392,13 +394,13 @@ void rna_iterator_generic_action_slots_begin(CollectionPropertyIterator *iter,
                            sizeof(animrig::Slot *),
                            slots.size(),
                            0,
-                           rna_iterator_generic_action_slots_skip);
+                           rna_iterator_generic_action_suitable_slots_skip);
 }
 
-static void rna_iterator_animdata_action_slots_begin(CollectionPropertyIterator *iter,
-                                                     PointerRNA *ptr)
+static void rna_iterator_animdata_action_suitable_slots_begin(CollectionPropertyIterator *iter,
+                                                              PointerRNA *ptr)
 {
-  rna_iterator_generic_action_slots_begin(iter, rna_animdata(ptr).action);
+  rna_iterator_generic_action_suitable_slots_begin(iter, rna_animdata(ptr).action);
 }
 
 /* ****************************** */
@@ -995,8 +997,8 @@ bool rna_AnimaData_override_apply(Main *bmain, RNAPropertyOverrideApplyContext &
 
     adt_dst->slot_handle = adt_src->slot_handle;
     adt_dst->tmp_slot_handle = adt_src->tmp_slot_handle;
-    STRNCPY(adt_dst->slot_name, adt_src->slot_name);
-    STRNCPY(adt_dst->tmp_slot_name, adt_src->tmp_slot_name);
+    STRNCPY(adt_dst->last_slot_identifier, adt_src->last_slot_identifier);
+    STRNCPY(adt_dst->tmp_last_slot_identifier, adt_src->tmp_last_slot_identifier);
     adt_dst->tmpact = adt_src->tmpact;
     id_us_plus(reinterpret_cast<ID *>(adt_dst->tmpact));
     adt_dst->act_blendmode = adt_src->act_blendmode;
@@ -1691,14 +1693,14 @@ static void rna_def_animdata(BlenderRNA *brna)
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_update(prop, NC_ANIMATION | ND_NLA_ACTCHANGE, "rna_AnimData_dependency_update");
 
-  prop = RNA_def_property(srna, "action_slot_name", PROP_STRING, PROP_NONE);
-  RNA_def_property_string_sdna(prop, nullptr, "slot_name");
+  prop = RNA_def_property(srna, "last_slot_identifier", PROP_STRING, PROP_NONE);
+  RNA_def_property_string_sdna(prop, nullptr, "last_slot_identifier");
   RNA_def_property_ui_text(
       prop,
-      "Action Slot Name",
-      "The name of the action slot. The slot identifies which sub-set of the Action "
-      "is considered to be for this data-block, and its name is used to find the right slot "
-      "when assigning an Action.");
+      "Last Action Slot Identifier",
+      "The identifier of the most recently assigned action slot. The slot identifies which "
+      "sub-set of the Action is considered to be for this data-block, and its identifier is used "
+      "to find the right slot when assigning an Action.");
 
   prop = RNA_def_property(srna, "action_slot", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "ActionSlot");
@@ -1724,10 +1726,10 @@ static void rna_def_animdata(BlenderRNA *brna)
    * and that's enough. */
   RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
 
-  prop = RNA_def_property(srna, "action_slots", PROP_COLLECTION, PROP_NONE);
+  prop = RNA_def_property(srna, "action_suitable_slots", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "ActionSlot");
   RNA_def_property_collection_funcs(prop,
-                                    "rna_iterator_animdata_action_slots_begin",
+                                    "rna_iterator_animdata_action_suitable_slots_begin",
                                     "rna_iterator_array_next",
                                     "rna_iterator_array_end",
                                     "rna_iterator_array_dereference_get",

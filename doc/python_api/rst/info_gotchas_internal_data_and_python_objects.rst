@@ -209,4 +209,3 @@ there is also no guaranteed compatibility in future releases.
 .. code-block:: python
 
    bpy.ops.wm.redraw_timer(type='DRAW_WIN_SWAP', iterations=1)
-

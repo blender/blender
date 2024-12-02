@@ -5343,6 +5343,7 @@ static void rna_def_userdef_view(BlenderRNA *brna)
                            "Only show brushes applicable for the currently active tool in the "
                            "asset shelf. Stored in the Preferences, which may have to be saved "
                            "manually if Auto-Save Preferences is disabled");
+  RNA_def_property_update(prop, 0, "rna_userdef_update");
 
   static const EnumPropertyItem header_align_items[] = {
       {0, "NONE", 0, "Keep Existing", "Keep existing header alignment"},

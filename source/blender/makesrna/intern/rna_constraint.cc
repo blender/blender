@@ -724,14 +724,14 @@ static void rna_ActionConstraint_action_set(PointerRNA *ptr, PointerRNA value, R
 
   if (!action) {
     const bool ok = generic_assign_action(
-        animated_id, nullptr, acon->act, acon->action_slot_handle, acon->action_slot_name);
+        animated_id, nullptr, acon->act, acon->action_slot_handle, acon->last_slot_identifier);
     BLI_assert_msg(ok, "Un-assigning an Action from an Action Constraint should always work.");
     UNUSED_VARS_NDEBUG(ok);
     return;
   }
 
   const bool ok = generic_assign_action(
-      animated_id, action, acon->act, acon->action_slot_handle, acon->action_slot_name);
+      animated_id, action, acon->act, acon->action_slot_handle, acon->last_slot_identifier);
   if (!ok) {
     BKE_reportf(reports,
                 RPT_ERROR,
@@ -764,7 +764,11 @@ static void rna_ActionConstraint_action_set(PointerRNA *ptr, PointerRNA value, R
     Slot *first_slot = action->slot(0);
     if (first_slot->is_suitable_for(animated_id)) {
       const ActionSlotAssignmentResult result = generic_assign_action_slot(
-          first_slot, animated_id, acon->act, acon->action_slot_handle, acon->action_slot_name);
+          first_slot,
+          animated_id,
+          acon->act,
+          acon->action_slot_handle,
+          acon->last_slot_identifier);
       BLI_assert(result == ActionSlotAssignmentResult::OK);
       UNUSED_VARS_NDEBUG(result);
     }
@@ -781,7 +785,7 @@ static void rna_ActionConstraint_action_slot_handle_set(
                                      *ptr->owner_id,
                                      acon->act,
                                      acon->action_slot_handle,
-                                     acon->action_slot_name);
+                                     acon->last_slot_identifier);
 }
 
 static PointerRNA rna_ActionConstraint_action_slot_get(PointerRNA *ptr)
@@ -799,17 +803,21 @@ static void rna_ActionConstraint_action_slot_set(PointerRNA *ptr,
   bConstraint *con = (bConstraint *)ptr->data;
   bActionConstraint *acon = (bActionConstraint *)con->data;
 
-  rna_generic_action_slot_set(
-      value, *ptr->owner_id, acon->act, acon->action_slot_handle, acon->action_slot_name, reports);
+  rna_generic_action_slot_set(value,
+                              *ptr->owner_id,
+                              acon->act,
+                              acon->action_slot_handle,
+                              acon->last_slot_identifier,
+                              reports);
 }
 
-static void rna_iterator_ActionConstraint_action_slots_begin(CollectionPropertyIterator *iter,
-                                                             PointerRNA *ptr)
+static void rna_iterator_ActionConstraint_action_suitable_slots_begin(
+    CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
   bConstraint *con = (bConstraint *)ptr->data;
   bActionConstraint *acon = (bActionConstraint *)con->data;
 
-  rna_iterator_generic_action_slots_begin(iter, acon->act);
+  rna_iterator_generic_action_suitable_slots_begin(iter, acon->act);
 }
 
 static int rna_SplineIKConstraint_joint_bindings_get_length(const PointerRNA *ptr,
@@ -1979,14 +1987,14 @@ static void rna_def_constraint_action(BlenderRNA *brna)
   RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
   RNA_def_property_update(prop, NC_ANIMATION | ND_NLA_ACTCHANGE, "rna_Constraint_update");
 
-  prop = RNA_def_property(srna, "action_slot_name", PROP_STRING, PROP_NONE);
-  RNA_def_property_string_sdna(prop, nullptr, "action_slot_name");
+  prop = RNA_def_property(srna, "last_slot_identifier", PROP_STRING, PROP_NONE);
+  RNA_def_property_string_sdna(prop, nullptr, "last_slot_identifier");
   RNA_def_property_ui_text(
       prop,
-      "Action Slot Name",
-      "The name of the action slot. The slot identifies which sub-set of the Action "
-      "is considered to be for this constraint, and its name is used to find the right slot "
-      "when assigning an Action.");
+      "Last Action Slot Identifier",
+      "The identifier of the most recently assigned action slot. The slot identifies which "
+      "sub-set of the Action is considered to be for this constraint, and its identifier is used "
+      "to find the right slot when assigning an Action.");
 
   prop = RNA_def_property(srna, "action_slot", PROP_POINTER, PROP_NONE);
   RNA_def_property_struct_type(prop, "ActionSlot");
@@ -2014,10 +2022,10 @@ static void rna_def_constraint_action(BlenderRNA *brna)
    * and that's enough. */
   RNA_def_property_override_flag(prop, PROPOVERRIDE_IGNORE);
 
-  prop = RNA_def_property(srna, "action_slots", PROP_COLLECTION, PROP_NONE);
+  prop = RNA_def_property(srna, "action_suitable_slots", PROP_COLLECTION, PROP_NONE);
   RNA_def_property_struct_type(prop, "ActionSlot");
   RNA_def_property_collection_funcs(prop,
-                                    "rna_iterator_ActionConstraint_action_slots_begin",
+                                    "rna_iterator_ActionConstraint_action_suitable_slots_begin",
                                     "rna_iterator_array_next",
                                     "rna_iterator_array_end",
                                     "rna_iterator_array_dereference_get",

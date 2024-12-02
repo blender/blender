@@ -125,7 +125,7 @@ void AssetView::build_items()
         return true;
       },
 
-      /* prefilter_fn=*/
+      /* `prefilter_fn=` */
       [&](asset_system::AssetRepresentation &asset) {
         if (shelf_.type->asset_poll && !shelf_.type->asset_poll(shelf_.type, &asset)) {
           return false;

@@ -451,7 +451,7 @@ static int insert_key_invoke(bContext *C, wmOperator *op, const wmEvent * /*even
   /* The depsgraph needs to be in an evaluated state to ensure the values we get from the
    * properties are actually the values of the current frame. However we cannot do that in the exec
    * function, as that would mean every call to the operator via python has to re-evaluate the
-   * depsgraph, causing performance regressions.*/
+   * depsgraph, causing performance regressions. */
   CTX_data_ensure_evaluated_depsgraph(C);
   return insert_key_exec(C, op);
 }

@@ -625,6 +625,12 @@ static void rna_GreasePencilLayerGroup_name_set(PointerRNA *ptr, const char *val
   grease_pencil->rename_node(*G_MAIN, group->wrap().as_node(), value);
 }
 
+static void rna_GreasePencilLayerGroup_is_expanded_set(PointerRNA *ptr, const bool value)
+{
+  GreasePencilLayerTreeGroup *group = static_cast<GreasePencilLayerTreeGroup *>(ptr->data);
+  group->wrap().set_expanded(value);
+}
+
 static void rna_iterator_grease_pencil_layer_groups_begin(CollectionPropertyIterator *iter,
                                                           PointerRNA *ptr)
 {
@@ -1171,6 +1177,16 @@ static void rna_def_grease_pencil_layer_group(BlenderRNA *brna)
       prop, "GreasePencilLayerTreeNode", "flag", GP_LAYER_TREE_NODE_HIDE_ONION_SKINNING);
   RNA_def_property_ui_text(
       prop, "Onion Skinning", "Display onion skins before and after the current frame");
+  RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_grease_pencil_update");
+
+  /* Expanded */
+  prop = RNA_def_property(srna, "is_expanded", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(
+      prop, "GreasePencilLayerTreeNode", "flag", GP_LAYER_TREE_NODE_EXPANDED);
+  RNA_def_property_ui_text(prop, "Expanded", "The layer groups is expanded in the UI");
+  RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_boolean_funcs(prop, nullptr, "rna_GreasePencilLayerGroup_is_expanded_set");
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_grease_pencil_update");
 
   /* Parent group. */

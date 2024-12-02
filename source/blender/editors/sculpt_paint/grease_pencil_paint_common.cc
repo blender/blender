@@ -186,6 +186,16 @@ IndexMask brush_point_influence_mask(const Scene &scene,
   return influence_mask;
 }
 
+bool brush_using_vertex_color(const GpPaint *gp_paint, const Brush *brush)
+{
+  const int brush_draw_mode = brush->gpencil_settings->brush_draw_mode;
+  const bool brush_use_pinned_mode = (brush_draw_mode != GP_BRUSH_MODE_ACTIVE);
+  if (brush_use_pinned_mode) {
+    return (brush_draw_mode == GP_BRUSH_MODE_VERTEXCOLOR);
+  }
+  return (gp_paint->mode == GPPAINT_FLAG_USE_VERTEXCOLOR);
+}
+
 bool is_brush_inverted(const Brush &brush, const BrushStrokeMode stroke_mode)
 {
   /* The basic setting is the brush's setting. During runtime, the user can hold down the Ctrl key

@@ -12,6 +12,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "GPU_batch.hh"
 #include "GPU_context.hh"
 
 #include "gpu_debug_private.hh"
@@ -63,6 +64,9 @@ class Context {
   /* Used as a stack. Each render_begin/end pair will push pop from the stack. */
   Vector<GPUStorageBuf *> printf_buf;
 
+  /** Dummy triangle batch for polyline workaround. */
+  Batch *polyline_batch = nullptr;
+
  protected:
   /** Thread on which this context is active. */
   pthread_t thread_;
@@ -104,6 +108,8 @@ class Context {
   virtual void debug_unbind_all_ssbo() = 0;
 
   bool is_active_on_thread();
+
+  Batch *polyline_batch_get();
 };
 
 /* Syntactic sugar. */
