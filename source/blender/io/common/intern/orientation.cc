@@ -2,8 +2,6 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BKE_main.hh"
-#include "DNA_scene_types.h"
 #include "RNA_access.hh"
 #include "RNA_types.hh"
 

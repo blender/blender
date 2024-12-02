@@ -8,7 +8,6 @@
 #include "DNA_object_types.h" /* For MAX_DUPLI_RECUR */
 
 #include <array>
-#include <iosfwd>
 #include <string>
 
 namespace blender::io {
@@ -41,7 +40,6 @@ class PersistentID {
 
   friend bool operator==(const PersistentID &persistent_id_a, const PersistentID &persistent_id_b);
   friend bool operator<(const PersistentID &persistent_id_a, const PersistentID &persistent_id_b);
-  friend std::ostream &operator<<(std::ostream &os, const PersistentID &persistent_id);
 
  private:
   void copy_values_from(const PIDArray &persistent_id_values);

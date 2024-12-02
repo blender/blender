@@ -6,8 +6,6 @@
 
 #include "BLI_utildefines.h"
 
-#include <iostream>
-
 namespace blender::io {
 
 void DupliParentFinder::insert(const DupliObject *dupli_ob)

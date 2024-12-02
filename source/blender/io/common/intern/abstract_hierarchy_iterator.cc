@@ -4,11 +4,9 @@
 #include "IO_abstract_hierarchy_iterator.h"
 #include "dupli_parent_finder.hh"
 
-#include <climits>
-#include <cstdio>
-#include <iostream>
-#include <sstream>
 #include <string>
+
+#include <fmt/core.h>
 
 #include "BKE_anim_data.hh"
 #include "BKE_duplilist.hh"
@@ -230,36 +228,37 @@ void AbstractHierarchyIterator::debug_print_export_graph(const ExportGraph &grap
     const Object *const duplicator = parent_info.duplicated_by;
 
     if (duplicator != nullptr) {
-      printf("    DU %s (as dupped by %s):\n",
-             export_parent == nullptr ? "-null-" : (export_parent->id.name + 2),
-             duplicator->id.name + 2);
+      fmt::println("    DU {} (as dupped by {}):",
+                   export_parent == nullptr ? "-null-" : (export_parent->id.name + 2),
+                   duplicator->id.name + 2);
     }
     else {
-      printf("    OB %s:\n", export_parent == nullptr ? "-null-" : (export_parent->id.name + 2));
+      fmt::println("    OB {}:",
+                   export_parent == nullptr ? "-null-" : (export_parent->id.name + 2));
     }
 
     total_graph_size += map_iter.second.size();
     for (HierarchyContext *child_ctx : map_iter.second) {
       if (child_ctx->duplicator == nullptr) {
-        printf("       - %s%s%s\n",
-               child_ctx->export_name.c_str(),
-               child_ctx->weak_export ? " (weak)" : "",
-               child_ctx->original_export_path.empty() ?
-                   "" :
-                   (std::string("ref ") + child_ctx->original_export_path).c_str());
+        fmt::println("       - {}{}{}",
+                     child_ctx->export_name.c_str(),
+                     child_ctx->weak_export ? " (weak)" : "",
+                     child_ctx->original_export_path.empty() ?
+                         "" :
+                         (std::string("ref ") + child_ctx->original_export_path).c_str());
       }
       else {
-        printf("       - %s (dup by %s%s) %s\n",
-               child_ctx->export_name.c_str(),
-               child_ctx->duplicator->id.name + 2,
-               child_ctx->weak_export ? ", weak" : "",
-               child_ctx->original_export_path.empty() ?
-                   "" :
-                   (std::string("ref ") + child_ctx->original_export_path).c_str());
+        fmt::println("       - {} (dup by {}{}) {}",
+                     child_ctx->export_name.c_str(),
+                     child_ctx->duplicator->id.name + 2,
+                     child_ctx->weak_export ? ", weak" : "",
+                     child_ctx->original_export_path.empty() ?
+                         "" :
+                         (std::string("ref ") + child_ctx->original_export_path).c_str());
       }
     }
   }
-  printf("    (Total graph size: %zu objects)\n", total_graph_size);
+  fmt::println("    (Total graph size: {} objects)", total_graph_size);
 }
 
 void AbstractHierarchyIterator::export_graph_construct()
@@ -458,10 +457,9 @@ void AbstractHierarchyIterator::visit_dupli_object(DupliObject *dupli_object,
   copy_m4_m4(context->matrix_world, dupli_object->mat);
 
   /* Construct export name for the dupli-instance. */
-  std::stringstream export_name_stream;
-  export_name_stream << get_object_name(context->object) << "-"
-                     << context->persistent_id.as_object_name_suffix();
-  context->export_name = make_valid_name(export_name_stream.str());
+  std::string export_name = get_object_name(context->object) + "-" +
+                            context->persistent_id.as_object_name_suffix();
+  context->export_name = make_valid_name(export_name);
 
   ExportGraph::key_type graph_index = determine_graph_index_dupli(
       context, dupli_object, dupli_parent_finder);
