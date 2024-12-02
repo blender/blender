@@ -479,6 +479,14 @@ if(WITH_PYTHON)
     endif()
   endif()
   unset(FREESTYLE_EXCLUDE_CONDITIONAL)
+
+  if(WITH_DRACO)
+    install(
+      PROGRAMS $<TARGET_FILE:extern_draco>
+      DESTINATION ${TARGETDIR_VER}/scripts/addons_core/io_scene_gltf2
+    )
+  endif()
+
 endif()
 
 # fonts
@@ -983,19 +991,6 @@ file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libglapi.so.0.0.0)\n
     endif()
   endif()
 
-  if(WITH_DRACO)
-    if(WITH_PYTHON_MODULE)
-      install(
-        PROGRAMS $<TARGET_FILE:extern_draco>
-        DESTINATION ${CMAKE_BINARY_DIR}/bin/bpy/lib
-      )
-    else()
-      install(
-        PROGRAMS $<TARGET_FILE:extern_draco>
-        DESTINATION ${TARGETDIR_VER}/python/lib/python${PYTHON_VERSION}/site-packages
-      )
-    endif()
-  endif()
 elseif(WIN32)
   if(WITH_WINDOWS_EXTERNAL_MANIFEST)
     install(
@@ -1536,20 +1531,6 @@ elseif(WIN32)
     )
   endif()
 
-  if(WITH_DRACO)
-    if(WITH_PYTHON_MODULE)
-      install(
-        PROGRAMS $<TARGET_FILE:extern_draco>
-        DESTINATION ${CMAKE_BINARY_DIR}/bin/bpy/lib
-      )
-    else()
-      install(
-        PROGRAMS $<TARGET_FILE:extern_draco>
-        DESTINATION ${TARGETDIR_VER}/python/lib/site-packages
-      )
-    endif()
-  endif()
-
   if(WITH_PYTHON_MODULE AND TARGETDIR_BPY)
     install(
       TARGETS blender
@@ -1680,19 +1661,6 @@ elseif(APPLE)
     )
   endif()
 
-  if(WITH_DRACO)
-    if(WITH_PYTHON_MODULE)
-      install(
-        PROGRAMS $<TARGET_FILE:extern_draco>
-        DESTINATION ${CMAKE_BINARY_DIR}/bin/bpy/lib
-      )
-    else()
-      install(
-        PROGRAMS $<TARGET_FILE:extern_draco>
-        DESTINATION ${TARGETDIR_VER}/python/lib/python${PYTHON_VERSION}/site-packages
-      )
-    endif()
-  endif()
 endif()
 
 # -----------------------------------------------------------------------------
