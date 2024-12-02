@@ -371,10 +371,6 @@ typedef struct VolumeIntegrateState {
   /* Current active segment. */
   Interval<float> t;
 
-  /* If volume is absorption-only up to this point, and no probabilistic
-   * scattering or termination has been used yet. */
-  bool absorption_only;
-
   /* Random numbers for scattering. */
   float rscatter;
   float rchannel;
@@ -516,7 +512,6 @@ ccl_device_forceinline void volume_integrate_heterogeneous(
   VolumeIntegrateState vstate ccl_optional_struct_init;
   vstate.t.min = ray->tmin;
   vstate.t.max = ray->tmin;
-  vstate.absorption_only = true;
   vstate.rscatter = path_state_rng_1D(kg, rng_state, PRNG_VOLUME_SCATTER_DISTANCE);
   vstate.rchannel = path_state_rng_1D(kg, rng_state, PRNG_VOLUME_COLOR_CHANNEL);
 
@@ -587,7 +582,7 @@ ccl_device_forceinline void volume_integrate_heterogeneous(
       }
 
       if (closure_flag & SD_EXTINCTION) {
-        if ((closure_flag & SD_SCATTER) || !vstate.absorption_only) {
+        if (closure_flag & SD_SCATTER) {
 #  ifdef __DENOISING_FEATURES__
           /* Accumulate albedo for denoising features. */
           if (write_denoising_features && (closure_flag & SD_SCATTER)) {
