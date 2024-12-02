@@ -1748,6 +1748,16 @@ TreeNode *LayerGroup::find_node_by_name(const StringRefNull name)
   return nullptr;
 }
 
+bool LayerGroup::is_expanded() const
+{
+  return (this->base.flag & GP_LAYER_TREE_NODE_EXPANDED) != 0;
+}
+
+void LayerGroup::set_expanded(const bool expanded)
+{
+  SET_FLAG_FROM_TEST(this->base.flag, expanded, GP_LAYER_TREE_NODE_EXPANDED);
+}
+
 void LayerGroup::print_nodes(StringRefNull header) const
 {
   std::cout << header << std::endl;
