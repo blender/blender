@@ -124,14 +124,8 @@ def is_c_any(filename: str) -> bool:
     return is_c(filename) or is_c_header(filename)
 
 
-def is_svn_file(filename: str) -> bool:
-    dn, fn = os.path.split(filename)
-    filename_svn = join(dn, ".svn", "text-base", "%s.svn-base" % fn)
-    return exists(filename_svn)
-
-
 def is_project_file(filename: str) -> bool:
-    return (is_c_any(filename) or is_cmake(filename) or is_glsl(filename))  # and is_svn_file(filename)
+    return (is_c_any(filename) or is_cmake(filename) or is_glsl(filename))
 
 
 def cmake_advanced_info() -> (

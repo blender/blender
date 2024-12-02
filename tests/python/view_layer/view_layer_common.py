@@ -23,11 +23,14 @@ __all__ = (
 # ############################################################
 
 
+# UNUSED.
+"""
 def listbase_iter(data, struct, listbase):
     element = data.get_pointer((struct, listbase, b'first'))
     while element is not None:
         yield element
         element = element.get_pointer(b'next')
+"""
 
 
 def linkdata_iter(collection, data):
