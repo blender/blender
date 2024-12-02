@@ -90,8 +90,12 @@ static void select_engine_init(void *vedata)
   const DRWContextState *draw_ctx = DRW_context_state_get();
   eGPUShaderConfig sh_cfg = draw_ctx->sh_cfg;
 
-  SELECTID_StorageList *stl = ((SELECTID_Data *)vedata)->stl;
+  SELECTID_Data *ved = reinterpret_cast<SELECTID_Data *>(vedata);
   SELECTID_Shaders *sh_data = &e_data.sh_data[sh_cfg];
+
+  if (ved->instance == nullptr) {
+    ved->instance = new SELECTID_Instance();
+  }
 
   /* Prepass */
   if (!sh_data->select_id_flat) {
@@ -102,27 +106,12 @@ static void select_engine_init(void *vedata)
     sh_data->select_id_uniform = GPU_shader_create_from_info_name(
         sh_cfg == GPU_SHADER_CFG_CLIPPED ? "select_id_uniform_clipped" : "select_id_uniform");
   }
-
-  if (!stl->g_data) {
-    /* Alloc transient pointers */
-    stl->g_data = static_cast<SELECTID_PrivateData *>(MEM_mallocN(sizeof(*stl->g_data), __func__));
-  }
-
-  {
-    /* Create view with depth offset */
-    const DRWView *view_default = DRW_view_default_get();
-    stl->g_data->view_faces = (DRWView *)view_default;
-    stl->g_data->view_edges = DRW_view_create_with_zoffset(view_default, draw_ctx->rv3d, 1.0f);
-    stl->g_data->view_verts = DRW_view_create_with_zoffset(view_default, draw_ctx->rv3d, 1.1f);
-  }
 }
 
 static void select_cache_init(void *vedata)
 {
+  SELECTID_Instance &inst = *reinterpret_cast<SELECTID_Data *>(vedata)->instance;
   SelectEngineData &e_data = get_engine_data();
-  SELECTID_PassList *psl = ((SELECTID_Data *)vedata)->psl;
-  SELECTID_StorageList *stl = ((SELECTID_Data *)vedata)->stl;
-  SELECTID_PrivateData *pd = stl->g_data;
 
   const DRWContextState *draw_ctx = DRW_context_state_get();
   SELECTID_Shaders *sh = &e_data.sh_data[draw_ctx->sh_cfg];
@@ -142,40 +131,62 @@ static void select_cache_init(void *vedata)
   float retopology_offset = RETOPOLOGY_OFFSET(draw_ctx->v3d);
 
   {
-    DRW_PASS_CREATE(psl->depth_only_pass, state);
-    pd->shgrp_depth_only = DRW_shgroup_create(sh->select_id_uniform, psl->depth_only_pass);
-    /* Not setting ID because this pass only draws to the depth buffer. */
-    DRW_shgroup_uniform_float_copy(pd->shgrp_depth_only, "retopologyOffset", retopology_offset);
-
+    inst.depth_only_ps.init();
+    inst.depth_only_ps.state_set(state);
+    inst.depth_only = nullptr;
+    inst.depth_occlude = nullptr;
+    {
+      auto &sub = inst.depth_only_ps.sub("DepthOnly");
+      sub.shader_set(sh->select_id_uniform);
+      sub.push_constant("retopologyOffset", retopology_offset);
+      sub.push_constant("select_id", int(0));
+      inst.depth_only = &sub;
+    }
     if (retopology_occlusion) {
-      pd->shgrp_occlude = DRW_shgroup_create(sh->select_id_uniform, psl->depth_only_pass);
-      /* Not setting ID because this pass only draws to the depth buffer. */
-      DRW_shgroup_uniform_float_copy(pd->shgrp_occlude, "retopologyOffset", 0.0f);
+      auto &sub = inst.depth_only_ps.sub("Occlusion");
+      sub.shader_set(sh->select_id_uniform);
+      sub.push_constant("retopologyOffset", 0.0f);
+      sub.push_constant("select_id", int(0));
+      inst.depth_occlude = &sub;
     }
 
-    DRW_PASS_CREATE(psl->select_id_face_pass, state);
+    inst.select_face_ps.init();
+    inst.select_face_ps.state_set(state);
+    inst.select_face_uniform = nullptr;
+    inst.select_face_flat = nullptr;
     if (e_data.context.select_mode & SCE_SELECT_FACE) {
-      pd->shgrp_face_flat = DRW_shgroup_create(sh->select_id_flat, psl->select_id_face_pass);
-      DRW_shgroup_uniform_float_copy(pd->shgrp_face_flat, "retopologyOffset", retopology_offset);
+      auto &sub = inst.select_face_ps.sub("Face");
+      sub.shader_set(sh->select_id_flat);
+      sub.push_constant("retopologyOffset", retopology_offset);
+      inst.select_face_flat = &sub;
     }
     else {
-      pd->shgrp_face_unif = DRW_shgroup_create(sh->select_id_uniform, psl->select_id_face_pass);
-      DRW_shgroup_uniform_int_copy(pd->shgrp_face_unif, "select_id", 0);
-      DRW_shgroup_uniform_float_copy(pd->shgrp_face_unif, "retopologyOffset", retopology_offset);
+      auto &sub = inst.select_face_ps.sub("FaceNoSelect");
+      sub.shader_set(sh->select_id_uniform);
+      sub.push_constant("select_id", int(0));
+      sub.push_constant("retopologyOffset", retopology_offset);
+      inst.select_face_uniform = &sub;
     }
 
+    inst.select_edge_ps.init();
+    inst.select_edge = nullptr;
     if (e_data.context.select_mode & SCE_SELECT_EDGE) {
-      DRW_PASS_CREATE(psl->select_id_edge_pass, state | DRW_STATE_FIRST_VERTEX_CONVENTION);
-
-      pd->shgrp_edge = DRW_shgroup_create(sh->select_id_flat, psl->select_id_edge_pass);
-      DRW_shgroup_uniform_float_copy(pd->shgrp_edge, "retopologyOffset", retopology_offset);
+      auto &sub = inst.select_edge_ps.sub("Sub");
+      sub.state_set(state | DRW_STATE_FIRST_VERTEX_CONVENTION);
+      sub.shader_set(sh->select_id_flat);
+      sub.push_constant("retopologyOffset", retopology_offset);
+      inst.select_edge = &sub;
     }
 
+    inst.select_id_vert_ps.init();
+    inst.select_vert = nullptr;
     if (e_data.context.select_mode & SCE_SELECT_VERTEX) {
-      DRW_PASS_CREATE(psl->select_id_vert_pass, state);
-      pd->shgrp_vert = DRW_shgroup_create(sh->select_id_flat, psl->select_id_vert_pass);
-      DRW_shgroup_uniform_float_copy(pd->shgrp_vert, "sizeVertex", 2 * G_draw.block.size_vertex);
-      DRW_shgroup_uniform_float_copy(pd->shgrp_vert, "retopologyOffset", retopology_offset);
+      auto &sub = inst.select_id_vert_ps.sub("Sub");
+      sub.state_set(state);
+      sub.shader_set(sh->select_id_flat);
+      sub.push_constant("sizeVertex", float(2 * G_draw.block.size_vertex));
+      sub.push_constant("retopologyOffset", retopology_offset);
+      inst.select_vert = &sub;
     }
   }
 
@@ -201,9 +212,10 @@ static void select_cache_init(void *vedata)
 
 static void select_cache_populate(void *vedata, Object *ob)
 {
-  using namespace blender::draw;
+  Manager &manager = *DRW_manager_get();
+  ObjectRef ob_ref = DRW_object_ref_get(ob);
   SelectEngineData &e_data = get_engine_data();
-  SELECTID_StorageList *stl = ((SELECTID_Data *)vedata)->stl;
+  SELECTID_Instance &inst = *reinterpret_cast<SELECTID_Data *>(vedata)->instance;
   SELECTID_ObjectData *sel_data = (SELECTID_ObjectData *)DRW_drawdata_get(
       &ob->id, &draw_engine_select_type);
 
@@ -218,16 +230,19 @@ static void select_cache_populate(void *vedata, Object *ob)
     if (ob->dt >= OB_SOLID) {
       blender::gpu::Batch *geom_faces = DRW_mesh_batch_cache_get_surface(
           *static_cast<Mesh *>(ob->data));
-      DRW_shgroup_call_obmat(stl->g_data->shgrp_occlude, geom_faces, ob->object_to_world().ptr());
+
+      inst.depth_occlude->draw(geom_faces, manager.resource_handle(ob_ref));
     }
   }
   else if (!sel_data->in_pass) {
+    ResourceHandle res_handle = manager.resource_handle(ob_ref);
     const DRWContextState *draw_ctx = DRW_context_state_get();
     ObjectOffsets *ob_offsets = &e_data.context.index_offsets[sel_data->drawn_index];
     uint offset = e_data.context.index_drawn_len;
-    select_id_draw_object(vedata,
+    select_id_draw_object(inst,
                           draw_ctx->v3d,
                           ob,
+                          res_handle,
                           e_data.context.select_mode,
                           offset,
                           &ob_offsets->vert,
@@ -242,32 +257,37 @@ static void select_cache_populate(void *vedata, Object *ob)
 
 static void select_draw_scene(void *vedata)
 {
+  Manager &manager = *DRW_manager_get();
   SelectEngineData &e_data = get_engine_data();
-  SELECTID_StorageList *stl = ((SELECTID_Data *)vedata)->stl;
-  SELECTID_PassList *psl = ((SELECTID_Data *)vedata)->psl;
+  SELECTID_Instance &inst = *reinterpret_cast<SELECTID_Data *>(vedata)->instance;
 
-  DRW_view_set_active(stl->g_data->view_faces);
+  {
+    /* Create view with depth offset */
+    const DRWView *view_default = DRW_view_default_get();
+    const DRWContextState *draw_ctx = DRW_context_state_get();
+    inst.view_faces.sync(view_default);
+    inst.view_edges.sync(DRW_view_create_with_zoffset(view_default, draw_ctx->rv3d, 1.0f));
+    inst.view_verts.sync(DRW_view_create_with_zoffset(view_default, draw_ctx->rv3d, 1.1f));
+  }
 
-  if (!DRW_pass_is_empty(psl->depth_only_pass)) {
+  {
     DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
     GPU_framebuffer_bind(dfbl->depth_only_fb);
     GPU_framebuffer_clear_depth(dfbl->depth_only_fb, 1.0f);
-    DRW_draw_pass(psl->depth_only_pass);
+    manager.submit(inst.depth_only_ps, inst.view_faces);
   }
 
   /* Setup framebuffer */
   GPU_framebuffer_bind(e_data.framebuffer_select_id);
 
-  DRW_draw_pass(psl->select_id_face_pass);
+  manager.submit(inst.select_face_ps, inst.view_faces);
 
   if (e_data.context.select_mode & SCE_SELECT_EDGE) {
-    DRW_view_set_active(stl->g_data->view_edges);
-    DRW_draw_pass(psl->select_id_edge_pass);
+    manager.submit(inst.select_edge_ps, inst.view_edges);
   }
 
   if (e_data.context.select_mode & SCE_SELECT_VERTEX) {
-    DRW_view_set_active(stl->g_data->view_verts);
-    DRW_draw_pass(psl->select_id_vert_pass);
+    manager.submit(inst.select_id_vert_ps, inst.view_verts);
   }
 
   /* Mark objects from the array to later identify which ones are not in the array. */
@@ -292,6 +312,11 @@ static void select_engine_free()
   GPU_FRAMEBUFFER_FREE_SAFE(e_data.framebuffer_select_id);
 }
 
+static void select_instance_free(void *instance)
+{
+  delete reinterpret_cast<SELECTID_Instance *>(instance);
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -307,7 +332,7 @@ DrawEngineType draw_engine_select_type = {
     /*vedata_size*/ &select_data_size,
     /*engine_init*/ &select_engine_init,
     /*engine_free*/ &select_engine_free,
-    /*instance_free*/ nullptr,
+    /*instance_free*/ select_instance_free,
     /*cache_init*/ &select_cache_init,
     /*cache_populate*/ &select_cache_populate,
     /*cache_finish*/ nullptr,

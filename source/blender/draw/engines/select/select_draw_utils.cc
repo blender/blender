@@ -68,8 +68,9 @@ static bool check_ob_drawface_dot(short select_mode, const View3D *v3d, eDrawTyp
   return false;
 }
 
-static void draw_select_id_edit_mesh(SELECTID_StorageList *stl,
+static void draw_select_id_edit_mesh(SELECTID_Instance &inst,
                                      Object *ob,
+                                     ResourceHandle res_handle,
                                      short select_mode,
                                      bool draw_facedot,
                                      uint initial_offset,
@@ -78,42 +79,41 @@ static void draw_select_id_edit_mesh(SELECTID_StorageList *stl,
                                      uint *r_face_offset)
 {
   using namespace blender::draw;
+  using namespace blender;
   Mesh &mesh = *static_cast<Mesh *>(ob->data);
   BMEditMesh *em = mesh.runtime->edit_mesh.get();
 
   BM_mesh_elem_table_ensure(em->bm, BM_VERT | BM_EDGE | BM_FACE);
 
   if (select_mode & SCE_SELECT_FACE) {
-    blender::gpu::Batch *geom_faces = DRW_mesh_batch_cache_get_triangles_with_select_id(mesh);
-    DRWShadingGroup *face_shgrp = DRW_shgroup_create_sub(stl->g_data->shgrp_face_flat);
-    DRW_shgroup_uniform_int_copy(face_shgrp, "offset", *(int *)&initial_offset);
-    DRW_shgroup_call_no_cull(face_shgrp, geom_faces, ob);
+    gpu::Batch *geom_faces = DRW_mesh_batch_cache_get_triangles_with_select_id(mesh);
+    PassSimple::Sub *face_sub = inst.select_face_flat;
+    face_sub->push_constant("offset", int(initial_offset));
+    face_sub->draw(geom_faces, res_handle);
 
     if (draw_facedot) {
-      blender::gpu::Batch *geom_facedots = DRW_mesh_batch_cache_get_facedots_with_select_id(mesh);
-      DRW_shgroup_call_no_cull(face_shgrp, geom_facedots, ob);
+      gpu::Batch *geom_facedots = DRW_mesh_batch_cache_get_facedots_with_select_id(mesh);
+      face_sub->draw(geom_facedots, res_handle);
     }
     *r_face_offset = initial_offset + em->bm->totface;
   }
   else {
     if (ob->dt >= OB_SOLID) {
 #ifdef USE_CAGE_OCCLUSION
-      blender::gpu::Batch *geom_faces = DRW_mesh_batch_cache_get_triangles_with_select_id(mesh);
+      gpu::Batch *geom_faces = DRW_mesh_batch_cache_get_triangles_with_select_id(mesh);
 #else
-      struct blender::gpu::Batch *geom_faces = DRW_mesh_batch_cache_get_surface(mesh);
+      gpu::Batch *geom_faces = DRW_mesh_batch_cache_get_surface(mesh);
 #endif
-      DRWShadingGroup *face_shgrp = stl->g_data->shgrp_face_unif;
-      DRW_shgroup_call_no_cull(face_shgrp, geom_faces, ob);
+      inst.select_face_uniform->draw(geom_faces, res_handle);
     }
     *r_face_offset = initial_offset;
   }
 
   /* Unlike faces, only draw edges if edge select mode. */
   if (select_mode & SCE_SELECT_EDGE) {
-    blender::gpu::Batch *geom_edges = DRW_mesh_batch_cache_get_edges_with_select_id(mesh);
-    DRWShadingGroup *edge_shgrp = DRW_shgroup_create_sub(stl->g_data->shgrp_edge);
-    DRW_shgroup_uniform_int_copy(edge_shgrp, "offset", *(int *)r_face_offset);
-    DRW_shgroup_call_no_cull(edge_shgrp, geom_edges, ob);
+    gpu::Batch *geom_edges = DRW_mesh_batch_cache_get_edges_with_select_id(mesh);
+    inst.select_edge->push_constant("offset", int(*r_face_offset));
+    inst.select_edge->draw(geom_edges, res_handle);
     *r_edge_offset = *r_face_offset + em->bm->totedge;
   }
   else {
@@ -124,10 +124,9 @@ static void draw_select_id_edit_mesh(SELECTID_StorageList *stl,
 
   /* Unlike faces, only verts if vert select mode. */
   if (select_mode & SCE_SELECT_VERTEX) {
-    blender::gpu::Batch *geom_verts = DRW_mesh_batch_cache_get_verts_with_select_id(mesh);
-    DRWShadingGroup *vert_shgrp = DRW_shgroup_create_sub(stl->g_data->shgrp_vert);
-    DRW_shgroup_uniform_int_copy(vert_shgrp, "offset", *(int *)r_edge_offset);
-    DRW_shgroup_call_no_cull(vert_shgrp, geom_verts, ob);
+    gpu::Batch *geom_verts = DRW_mesh_batch_cache_get_verts_with_select_id(mesh);
+    inst.select_vert->push_constant("offset", int(*r_edge_offset));
+    inst.select_vert->draw(geom_verts, res_handle);
     *r_vert_offset = *r_edge_offset + em->bm->totvert;
   }
   else {
@@ -135,8 +134,9 @@ static void draw_select_id_edit_mesh(SELECTID_StorageList *stl,
   }
 }
 
-static void draw_select_id_mesh(SELECTID_StorageList *stl,
+static void draw_select_id_mesh(SELECTID_Instance &inst,
                                 Object *ob,
+                                ResourceHandle res_handle,
                                 short select_mode,
                                 uint initial_offset,
                                 uint *r_vert_offset,
@@ -144,27 +144,25 @@ static void draw_select_id_mesh(SELECTID_StorageList *stl,
                                 uint *r_face_offset)
 {
   using namespace blender::draw;
+  using namespace blender;
   Mesh &mesh = *static_cast<Mesh *>(ob->data);
 
-  blender::gpu::Batch *geom_faces = DRW_mesh_batch_cache_get_triangles_with_select_id(mesh);
-  DRWShadingGroup *face_shgrp;
+  gpu::Batch *geom_faces = DRW_mesh_batch_cache_get_triangles_with_select_id(mesh);
   if (select_mode & SCE_SELECT_FACE) {
-    face_shgrp = DRW_shgroup_create_sub(stl->g_data->shgrp_face_flat);
-    DRW_shgroup_uniform_int_copy(face_shgrp, "offset", *(int *)&initial_offset);
+    inst.select_face_flat->push_constant("offset", int(initial_offset));
+    inst.select_face_flat->draw(geom_faces, res_handle);
     *r_face_offset = initial_offset + mesh.faces_num;
   }
   else {
     /* Only draw faces to mask out verts, we don't want their selection ID's. */
-    face_shgrp = stl->g_data->shgrp_face_unif;
+    inst.select_face_uniform->draw(geom_faces, res_handle);
     *r_face_offset = initial_offset;
   }
-  DRW_shgroup_call_no_cull(face_shgrp, geom_faces, ob);
 
   if (select_mode & SCE_SELECT_EDGE) {
-    blender::gpu::Batch *geom_edges = DRW_mesh_batch_cache_get_edges_with_select_id(mesh);
-    DRWShadingGroup *edge_shgrp = DRW_shgroup_create_sub(stl->g_data->shgrp_edge);
-    DRW_shgroup_uniform_int_copy(edge_shgrp, "offset", *(int *)r_face_offset);
-    DRW_shgroup_call_no_cull(edge_shgrp, geom_edges, ob);
+    gpu::Batch *geom_edges = DRW_mesh_batch_cache_get_edges_with_select_id(mesh);
+    inst.select_edge->push_constant("offset", int(*r_face_offset));
+    inst.select_edge->draw(geom_edges, res_handle);
     *r_edge_offset = *r_face_offset + mesh.edges_num;
   }
   else {
@@ -172,10 +170,9 @@ static void draw_select_id_mesh(SELECTID_StorageList *stl,
   }
 
   if (select_mode & SCE_SELECT_VERTEX) {
-    blender::gpu::Batch *geom_verts = DRW_mesh_batch_cache_get_verts_with_select_id(mesh);
-    DRWShadingGroup *vert_shgrp = DRW_shgroup_create_sub(stl->g_data->shgrp_vert);
-    DRW_shgroup_uniform_int_copy(vert_shgrp, "offset", *r_edge_offset);
-    DRW_shgroup_call_no_cull(vert_shgrp, geom_verts, ob);
+    gpu::Batch *geom_verts = DRW_mesh_batch_cache_get_verts_with_select_id(mesh);
+    inst.select_vert->push_constant("offset", int(*r_edge_offset));
+    inst.select_vert->draw(geom_verts, res_handle);
     *r_vert_offset = *r_edge_offset + mesh.verts_num;
   }
   else {
@@ -183,17 +180,16 @@ static void draw_select_id_mesh(SELECTID_StorageList *stl,
   }
 }
 
-void select_id_draw_object(void *vedata,
+void select_id_draw_object(SELECTID_Instance &inst,
                            View3D *v3d,
                            Object *ob,
+                           ResourceHandle res_handle,
                            short select_mode,
                            uint initial_offset,
                            uint *r_vert_offset,
                            uint *r_edge_offset,
                            uint *r_face_offset)
 {
-  SELECTID_StorageList *stl = ((SELECTID_Data *)vedata)->stl;
-
   BLI_assert(initial_offset > 0);
 
   switch (ob->type) {
@@ -201,8 +197,9 @@ void select_id_draw_object(void *vedata,
       const Mesh &mesh = *static_cast<const Mesh *>(ob->data);
       if (mesh.runtime->edit_mesh) {
         bool draw_facedot = check_ob_drawface_dot(select_mode, v3d, eDrawType(ob->dt));
-        draw_select_id_edit_mesh(stl,
+        draw_select_id_edit_mesh(inst,
                                  ob,
+                                 res_handle,
                                  select_mode,
                                  draw_facedot,
                                  initial_offset,
@@ -211,8 +208,14 @@ void select_id_draw_object(void *vedata,
                                  r_face_offset);
       }
       else {
-        draw_select_id_mesh(
-            stl, ob, select_mode, initial_offset, r_vert_offset, r_edge_offset, r_face_offset);
+        draw_select_id_mesh(inst,
+                            ob,
+                            res_handle,
+                            select_mode,
+                            initial_offset,
+                            r_vert_offset,
+                            r_edge_offset,
+                            r_face_offset);
       }
       break;
     }
