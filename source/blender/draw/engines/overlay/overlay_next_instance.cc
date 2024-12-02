@@ -438,7 +438,7 @@ void Instance::draw_v2d(Manager &manager, View &view)
   GPU_framebuffer_clear_color(resources.overlay_output_fb, float4(0.0));
 
   background.draw_output(resources.overlay_output_fb, manager, view);
-  grid.draw_color_only(resources.overlay_output_fb, manager, view);
+  grid.draw_color_only(resources.overlay_color_only_fb, manager, view);
   regular.mesh_uvs.draw(resources.overlay_output_fb, manager, view);
 }
 
