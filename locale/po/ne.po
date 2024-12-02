@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Release Candidate (b'7dfe47164a63')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'62b2bb48e8bf')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-11-18 11:20+0000\n"
+"POT-Creation-Date: 2024-12-02 16:18+0000\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Yudhir Khanal <yudhir.khanal@gmail.com>\n"
 "Language-Team: Yudhir\n"
@@ -346,10 +346,6 @@ msgid "Select"
 msgstr "छान्ने "
 
 
-msgid "Remove"
-msgstr "हटाउने"
-
-
 msgid "Limit"
 msgstr "हद"
 
@@ -480,6 +476,10 @@ msgstr "रुपान्तरण"
 msgctxt "Operator"
 msgid "Align"
 msgstr "पंक्तिबद्ध पार"
+
+
+msgid "Remove"
+msgstr "हटाउने"
 
 
 msgid "Property Edit"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Release Candidate (b'7dfe47164a63')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'62b2bb48e8bf')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-11-18 11:20+0000\n"
+"POT-Creation-Date: 2024-12-02 16:18+0000\n"
 "PO-Revision-Date: 2024-01-11 03:55+0000\n"
 "Last-Translator: Répási Dávid <hu.repasidavid@protonmail.com>\n"
 "Language-Team: Hungarian <https://translate.blender.org/projects/blender-ui/ui/hu/>\n"
@@ -39,6 +39,10 @@ msgstr "Szín"
 
 msgid "Value"
 msgstr "Érték"
+
+
+msgid "F-Curves"
+msgstr "F-Görbék"
 
 
 msgid "Action F-Curves"
@@ -177,6 +181,212 @@ msgid "Action group is selected"
 msgstr "Akció csoport kijelölve"
 
 
+msgid "Influence"
+msgstr "Befolyás"
+
+
+msgid "Mix Mode"
+msgstr "Keverési mód"
+
+
+msgid "Replace"
+msgstr "Lecserél"
+
+
+msgid "Offset"
+msgstr "Eltolás"
+
+
+msgid "Add"
+msgstr "Hozzáadás"
+
+
+msgid "Subtract"
+msgstr "Különbség"
+
+
+msgid "Multiply"
+msgstr "Többszörözés"
+
+
+msgid "Active"
+msgstr "Aktív"
+
+
+msgctxt "ID"
+msgid "Action"
+msgstr "Akció"
+
+
+msgctxt "ID"
+msgid "Armature"
+msgstr "Csontváz"
+
+
+msgctxt "ID"
+msgid "Brush"
+msgstr "Ecset"
+
+
+msgctxt "ID"
+msgid "Cache File"
+msgstr "Gyorsítótár fájl"
+
+
+msgctxt "ID"
+msgid "Camera"
+msgstr "Kamera"
+
+
+msgctxt "ID"
+msgid "Collection"
+msgstr "Kollekció"
+
+
+msgctxt "ID"
+msgid "Curve"
+msgstr "Görbe"
+
+
+msgctxt "ID"
+msgid "Curves"
+msgstr "Görbék"
+
+
+msgctxt "ID"
+msgid "Font"
+msgstr "Betűkészlet"
+
+
+msgctxt "ID"
+msgid "Grease Pencil"
+msgstr "Zsírkréta"
+
+
+msgctxt "ID"
+msgid "Grease Pencil v3"
+msgstr "Zsírkréta v3"
+
+
+msgctxt "ID"
+msgid "Image"
+msgstr "Kép"
+
+
+msgctxt "ID"
+msgid "Key"
+msgstr "Kulcs"
+
+
+msgctxt "ID"
+msgid "Lattice"
+msgstr "Rács"
+
+
+msgctxt "ID"
+msgid "Library"
+msgstr "Könyvtár"
+
+
+msgctxt "ID"
+msgid "Line Style"
+msgstr "Vonalstílus"
+
+
+msgctxt "ID"
+msgid "Mask"
+msgstr "Maszk"
+
+
+msgctxt "ID"
+msgid "Material"
+msgstr "Anyag"
+
+
+msgctxt "ID"
+msgid "Mesh"
+msgstr "Térháló"
+
+
+msgctxt "ID"
+msgid "Object"
+msgstr "Objektum"
+
+
+msgctxt "ID"
+msgid "Paint Curve"
+msgstr "Festésgörbe"
+
+
+msgctxt "ID"
+msgid "Palette"
+msgstr "Paletta"
+
+
+msgctxt "ID"
+msgid "Particle"
+msgstr "Részecske"
+
+
+msgctxt "ID"
+msgid "Point Cloud"
+msgstr "Pontfelhő"
+
+
+msgctxt "ID"
+msgid "Scene"
+msgstr "Jelenet"
+
+
+msgctxt "ID"
+msgid "Screen"
+msgstr "Képernyő"
+
+
+msgctxt "ID"
+msgid "Sound"
+msgstr "Hang"
+
+
+msgctxt "ID"
+msgid "Speaker"
+msgstr "Hangszóró"
+
+
+msgctxt "ID"
+msgid "Text"
+msgstr "Szöveg"
+
+
+msgctxt "ID"
+msgid "Texture"
+msgstr "Textúra"
+
+
+msgctxt "ID"
+msgid "Volume"
+msgstr "Hangerő"
+
+
+msgctxt "ID"
+msgid "Window Manager"
+msgstr "Ablakkezelő"
+
+
+msgctxt "ID"
+msgid "Workspace"
+msgstr "Munkaterület"
+
+
+msgctxt "ID"
+msgid "World"
+msgstr "Világ"
+
+
+msgid "Keyframe"
+msgstr "Kulcsképkocka"
+
+
 msgid "Add-on"
 msgstr "Kiegészítő"
 
@@ -225,24 +435,8 @@ msgid "Action"
 msgstr "Akció"
 
 
-msgid "Replace"
-msgstr "Lecserél"
-
-
 msgid "Combine"
 msgstr "Kombinálás"
-
-
-msgid "Add"
-msgstr "Hozzáadás"
-
-
-msgid "Subtract"
-msgstr "Különbség"
-
-
-msgid "Multiply"
-msgstr "Többszörözés"
 
 
 msgid "Motion Paths"
@@ -436,176 +630,6 @@ msgstr "Teljes elérési útvonal"
 msgctxt "ID"
 msgid "Data-block Type"
 msgstr "Adatblokk típus"
-
-
-msgctxt "ID"
-msgid "Action"
-msgstr "Akció"
-
-
-msgctxt "ID"
-msgid "Armature"
-msgstr "Csontváz"
-
-
-msgctxt "ID"
-msgid "Brush"
-msgstr "Ecset"
-
-
-msgctxt "ID"
-msgid "Cache File"
-msgstr "Gyorsítótár fájl"
-
-
-msgctxt "ID"
-msgid "Camera"
-msgstr "Kamera"
-
-
-msgctxt "ID"
-msgid "Collection"
-msgstr "Kollekció"
-
-
-msgctxt "ID"
-msgid "Curve"
-msgstr "Görbe"
-
-
-msgctxt "ID"
-msgid "Curves"
-msgstr "Görbék"
-
-
-msgctxt "ID"
-msgid "Font"
-msgstr "Betűkészlet"
-
-
-msgctxt "ID"
-msgid "Grease Pencil"
-msgstr "Zsírkréta"
-
-
-msgctxt "ID"
-msgid "Grease Pencil v3"
-msgstr "Zsírkréta v3"
-
-
-msgctxt "ID"
-msgid "Image"
-msgstr "Kép"
-
-
-msgctxt "ID"
-msgid "Key"
-msgstr "Kulcs"
-
-
-msgctxt "ID"
-msgid "Lattice"
-msgstr "Rács"
-
-
-msgctxt "ID"
-msgid "Library"
-msgstr "Könyvtár"
-
-
-msgctxt "ID"
-msgid "Line Style"
-msgstr "Vonalstílus"
-
-
-msgctxt "ID"
-msgid "Mask"
-msgstr "Maszk"
-
-
-msgctxt "ID"
-msgid "Material"
-msgstr "Anyag"
-
-
-msgctxt "ID"
-msgid "Mesh"
-msgstr "Térháló"
-
-
-msgctxt "ID"
-msgid "Object"
-msgstr "Objektum"
-
-
-msgctxt "ID"
-msgid "Paint Curve"
-msgstr "Festésgörbe"
-
-
-msgctxt "ID"
-msgid "Palette"
-msgstr "Paletta"
-
-
-msgctxt "ID"
-msgid "Particle"
-msgstr "Részecske"
-
-
-msgctxt "ID"
-msgid "Point Cloud"
-msgstr "Pontfelhő"
-
-
-msgctxt "ID"
-msgid "Scene"
-msgstr "Jelenet"
-
-
-msgctxt "ID"
-msgid "Screen"
-msgstr "Képernyő"
-
-
-msgctxt "ID"
-msgid "Sound"
-msgstr "Hang"
-
-
-msgctxt "ID"
-msgid "Speaker"
-msgstr "Hangszóró"
-
-
-msgctxt "ID"
-msgid "Text"
-msgstr "Szöveg"
-
-
-msgctxt "ID"
-msgid "Texture"
-msgstr "Textúra"
-
-
-msgctxt "ID"
-msgid "Volume"
-msgstr "Hangerő"
-
-
-msgctxt "ID"
-msgid "Window Manager"
-msgstr "Ablakkezelő"
-
-
-msgctxt "ID"
-msgid "Workspace"
-msgstr "Munkaterület"
-
-
-msgctxt "ID"
-msgid "World"
-msgstr "Világ"
 
 
 msgid "Current File"
@@ -1214,10 +1238,6 @@ msgid "Mode"
 msgstr "Mód"
 
 
-msgid "Active"
-msgstr "Aktív"
-
-
 msgid "Direction"
 msgstr "Irány"
 
@@ -1292,10 +1312,6 @@ msgstr "Illesztés"
 
 msgid "Crop"
 msgstr "Vágás"
-
-
-msgid "Offset"
-msgstr "Eltolás"
 
 
 msgid "Rotation"
@@ -1505,10 +1521,6 @@ msgstr "Bemenet"
 
 msgid "Error"
 msgstr "Hiba"
-
-
-msgid "Influence"
-msgstr "Befolyás"
 
 
 msgid "Amount of influence constraint will have on the final solution"
@@ -1797,10 +1809,6 @@ msgstr "Minimum"
 
 msgid "Minimum value for target channel range"
 msgstr "A célobjektum csatorna-tartományának minimum értéke"
-
-
-msgid "Mix Mode"
-msgstr "Keverési mód"
 
 
 msgid "Target object"
@@ -3352,16 +3360,16 @@ msgid "MPEG-4"
 msgstr "MPEG-4"
 
 
-msgid "Ogg"
-msgstr "Ogg"
-
-
 msgid "Matroska"
 msgstr "Matroska"
 
 
 msgid "Flash"
 msgstr "Flash"
+
+
+msgid "Ogg"
+msgstr "Ogg"
 
 
 msgid "Max Rate"
@@ -4049,10 +4057,6 @@ msgid "Grease Pencil Frame"
 msgstr "Zsírkréta kép"
 
 
-msgid "Keyframe"
-msgstr "Kulcsképkocka"
-
-
 msgid "Jitter"
 msgstr "Elszórás"
 
@@ -4121,16 +4125,16 @@ msgid "Blue"
 msgstr "Kék"
 
 
-msgid "F-Curves"
-msgstr "F-Görbék"
-
-
 msgid "Frame Range"
 msgstr "Képkockasor"
 
 
 msgid "Groups"
 msgstr "Csoportok"
+
+
+msgid "Layers"
+msgstr "Rétegek"
 
 
 msgid "Wire"
@@ -4703,10 +4707,6 @@ msgstr "Szétválasztásminta használata"
 
 msgid "Enable chain splitting by dashed line patterns"
 msgstr "Összekapcsolások szétválasztásának engedélyezése szaggatott vonal minták átal"
-
-
-msgid "Layers"
-msgstr "Rétegek"
 
 
 msgid "Grease Pencil data-block"
@@ -6657,20 +6657,20 @@ msgid "Use Material Mask"
 msgstr "Anyagmaszk használata"
 
 
-msgid "Mirror"
-msgstr "Tükrözés"
+msgid "Clean Up"
+msgstr "Tisztítás"
+
+
+msgid "Merge"
+msgstr "Összefésülés"
+
+
+msgid "Show/Hide"
+msgstr "Mutat/Rejt"
 
 
 msgid "Local View"
 msgstr "Helyi nézet"
-
-
-msgid "Navigation"
-msgstr "Navigáció"
-
-
-msgid "Align View"
-msgstr "Nézet igazítása"
 
 
 msgid "Relations"
@@ -6689,16 +6689,16 @@ msgid "Track"
 msgstr "Nyom"
 
 
-msgid "Show/Hide"
-msgstr "Mutat/Rejt"
+msgid "Navigation"
+msgstr "Navigáció"
 
 
-msgid "Clean Up"
-msgstr "Tisztítás"
+msgid "Mirror"
+msgstr "Tükrözés"
 
 
-msgid "Merge"
-msgstr "Összefésülés"
+msgid "Align View"
+msgstr "Nézet igazítása"
 
 
 msgctxt "MovieClip"
@@ -10084,10 +10084,6 @@ msgid "Bend"
 msgstr "Hajlítás"
 
 
-msgid "Grease Pencil Shrink/Fatten"
-msgstr "Zsírkréta zsugorítás/hízlalás"
-
-
 msgid "Grease Pencil Opacity"
 msgstr "Zsírkréta átlátszatlanság"
 
@@ -10534,10 +10530,6 @@ msgstr "Alapértelmezett kitöltő szín"
 msgctxt "Operator"
 msgid "Decimate Keyframes"
 msgstr "Kulcs-képkockák tizedelése"
-
-
-msgid "Remove"
-msgstr "Eltávolítás"
 
 
 msgid "Both"
@@ -12733,6 +12725,10 @@ msgstr "Megfelelteti 1:1-ben a kamerát a renderelt képnek"
 msgctxt "Operator"
 msgid "Call Menu"
 msgstr "Menü előhívása"
+
+
+msgid "Remove"
+msgstr "Eltávolítás"
 
 
 msgid "Save a Collada file"
@@ -16492,10 +16488,6 @@ msgstr "kényszer"
 
 msgid "Col"
 msgstr "Szín"
-
-
-msgid "TexturedCol"
-msgstr "Textúrázott szín"
 
 
 msgctxt "Brush"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Release Candidate (b'7dfe47164a63')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'62b2bb48e8bf')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-11-18 11:20+0000\n"
+"POT-Creation-Date: 2024-12-02 16:18+0000\n"
 "PO-Revision-Date: 2024-03-23 04:06+0000\n"
 "Last-Translator: Alexandru Buhnici <in@alexm.ro>\n"
 "Language-Team: Romanian <https://translate.blender.org/projects/blender-ui/ui/ro/>\n"
@@ -243,6 +243,26 @@ msgid "Collection of action groups"
 msgstr "Colecție de grupuri de acțiune"
 
 
+msgid "Replace"
+msgstr "Înlocuire"
+
+
+msgid "Offset"
+msgstr "Decalaj"
+
+
+msgid "Add"
+msgstr "Adăugare"
+
+
+msgid "Subtract"
+msgstr "Scădere"
+
+
+msgid "Multiply"
+msgstr "Înmulțire"
+
+
 msgid "Action Pose Markers"
 msgstr "Marcatori de poziție de acțiune"
 
@@ -265,6 +285,61 @@ msgstr "Indexul Marcatorului De Poziție Activ"
 
 msgid "Index of active pose marker"
 msgstr "Indexul marcatorului de poziție activ"
+
+
+msgctxt "ID"
+msgid "Action"
+msgstr "Acțiune"
+
+
+msgctxt "ID"
+msgid "Grease Pencil"
+msgstr "Creion de Grăsime"
+
+
+msgctxt "ID"
+msgid "Image"
+msgstr "Imagine"
+
+
+msgctxt "ID"
+msgid "Light"
+msgstr "Lumină"
+
+
+msgctxt "ID"
+msgid "Material"
+msgstr "Material"
+
+
+msgctxt "ID"
+msgid "Object"
+msgstr "Obiect"
+
+
+msgctxt "ID"
+msgid "Scene"
+msgstr "Scenă"
+
+
+msgctxt "ID"
+msgid "Texture"
+msgstr "Textură"
+
+
+msgctxt "ID"
+msgid "Window Manager"
+msgstr "Manager Ferestre"
+
+
+msgctxt "ID"
+msgid "Workspace"
+msgstr "Spațiu de lucru"
+
+
+msgctxt "ID"
+msgid "World"
+msgstr "Lume"
 
 
 msgid "Add-on"
@@ -471,10 +546,6 @@ msgid "Method used for combining Active Action's result with result of NLA stack
 msgstr "Metoda folosită pentru combinarea rezultatului Combinării Acțiuni cu rezultatul stack-ului NLA"
 
 
-msgid "Replace"
-msgstr "Înlocuire"
-
-
 msgid "Combine"
 msgstr "Combinare"
 
@@ -483,24 +554,12 @@ msgid "The strip values are combined with accumulated results by appropriately u
 msgstr "Valorile benzii sunt combinate cu rezultatele acumulate utilizând în mod corespunzător adunarea, multiplicarea sau matematica cuaternară, pe baza tipului de canal"
 
 
-msgid "Add"
-msgstr "Adăugare"
-
-
 msgid "Weighted result of strip is added to the accumulated results"
 msgstr "Rezultatul ponderat al benzii se adaugă la rezultatele acumulate"
 
 
-msgid "Subtract"
-msgstr "Scădere"
-
-
 msgid "Weighted result of strip is removed from the accumulated results"
 msgstr "Rezultatul ponderat al benzii este eliminat din rezultate acumulate"
-
-
-msgid "Multiply"
-msgstr "Înmulțire"
 
 
 msgid "Weighted result of strip is multiplied with the accumulated results"
@@ -989,61 +1048,6 @@ msgstr "EditBone Activ"
 
 msgid "Armatures active edit bone"
 msgstr "Osul activ de editare a Armăturii"
-
-
-msgctxt "ID"
-msgid "Action"
-msgstr "Acțiune"
-
-
-msgctxt "ID"
-msgid "Grease Pencil"
-msgstr "Creion de Grăsime"
-
-
-msgctxt "ID"
-msgid "Image"
-msgstr "Imagine"
-
-
-msgctxt "ID"
-msgid "Light"
-msgstr "Lumină"
-
-
-msgctxt "ID"
-msgid "Material"
-msgstr "Material"
-
-
-msgctxt "ID"
-msgid "Object"
-msgstr "Obiect"
-
-
-msgctxt "ID"
-msgid "Scene"
-msgstr "Scenă"
-
-
-msgctxt "ID"
-msgid "Texture"
-msgstr "Textură"
-
-
-msgctxt "ID"
-msgid "Window Manager"
-msgstr "Manager Ferestre"
-
-
-msgctxt "ID"
-msgid "Workspace"
-msgstr "Spațiu de lucru"
-
-
-msgctxt "ID"
-msgid "World"
-msgstr "Lume"
 
 
 msgid "Options"
@@ -1824,10 +1828,6 @@ msgid "Collection of object paths"
 msgstr "Colecție de căi ale obiectelor"
 
 
-msgid "Offset"
-msgstr "Decalaj"
-
-
 msgid "Rotation"
 msgstr "Rotație"
 
@@ -2375,10 +2375,6 @@ msgid "Open"
 msgstr "Deschidere"
 
 
-msgid "Remove"
-msgstr "Eliminare"
-
-
 msgid "Both"
 msgstr "Ambele"
 
@@ -2568,6 +2564,10 @@ msgstr "Mișcați vederea"
 msgctxt "Operator"
 msgid "Rotate View"
 msgstr "Rotiți Vederea"
+
+
+msgid "Remove"
+msgstr "Eliminare"
 
 
 msgctxt "Operator"

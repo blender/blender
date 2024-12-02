@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Release Candidate (b'7dfe47164a63')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'62b2bb48e8bf')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-11-18 11:20+0000\n"
+"POT-Creation-Date: 2024-12-02 16:18+0000\n"
 "PO-Revision-Date: 2015-03-03 16:21+0530\n"
 "Last-Translator: Roshan Lal Gumasta <roshan@anisecrets.com>\n"
 "Language-Team: Hindi <www.anisecrets.com>\n"
@@ -175,6 +175,14 @@ msgid "Expanded"
 msgstr "विस्तृत"
 
 
+msgid "Influence"
+msgstr "प्रभाव"
+
+
+msgid "Add"
+msgstr "जोड़ें"
+
+
 msgid "Off"
 msgstr "बंद"
 
@@ -241,10 +249,6 @@ msgstr "अनुप्राणन सामग्री"
 
 msgid "Action"
 msgstr "कार्य"
-
-
-msgid "Add"
-msgstr "जोड़ें"
 
 
 msgid "Nothing"
@@ -914,10 +918,6 @@ msgid "Error"
 msgstr "त्रुटि"
 
 
-msgid "Influence"
-msgstr "प्रभाव"
-
-
 msgid "Copy Location"
 msgstr "स्थिति की प्रतिलिपि बनाएँ"
 
@@ -1339,12 +1339,12 @@ msgid "Realtime"
 msgstr "ससमय"
 
 
-msgid "Ogg"
-msgstr "ओजीजी"
-
-
 msgid "Flash"
 msgstr "फ्लैश"
+
+
+msgid "Ogg"
+msgstr "ओजीजी"
 
 
 msgid "Lossless Output"
@@ -1655,6 +1655,10 @@ msgid "Users"
 msgstr "प्रयोक्ता"
 
 
+msgid "Layers"
+msgstr "परतें"
+
+
 msgid "Stick"
 msgstr "छड़ी"
 
@@ -1913,10 +1917,6 @@ msgstr "अधिकतम"
 
 msgid "Rounds"
 msgstr "दौर"
-
-
-msgid "Layers"
-msgstr "परतें"
 
 
 msgid "Fade"
@@ -2672,8 +2672,28 @@ msgid "Flip"
 msgstr "पलटें"
 
 
-msgid "Mirror"
-msgstr "दर्पण"
+msgid "Merge"
+msgstr "विलय करें"
+
+
+msgid "Show/Hide"
+msgstr "छुपाएँ / दिखाएँ"
+
+
+msgid "Names"
+msgstr "नाम"
+
+
+msgid "Bone Roll"
+msgstr "हड्डी पंजी"
+
+
+msgid "Toggle Bone Options"
+msgstr "हड्डी विकल्प बंद/बुझ"
+
+
+msgid "Enable Bone Options"
+msgstr "हड्डी विकल्प को सक्षम करें"
 
 
 msgid "Snap"
@@ -2696,10 +2716,6 @@ msgid "Quick Effects"
 msgstr "त्वरित प्रभाव"
 
 
-msgid "Show/Hide"
-msgstr "छुपाएँ / दिखाएँ"
-
-
 msgid "Make Single User"
 msgstr "एकल प्रयोक्ता बनाएँ"
 
@@ -2708,24 +2724,8 @@ msgid "Hooks"
 msgstr "खूँटी"
 
 
-msgid "Names"
-msgstr "नाम"
-
-
-msgid "Toggle Bone Options"
-msgstr "हड्डी विकल्प बंद/बुझ"
-
-
-msgid "Enable Bone Options"
-msgstr "हड्डी विकल्प को सक्षम करें"
-
-
-msgid "Merge"
-msgstr "विलय करें"
-
-
-msgid "Bone Roll"
-msgstr "हड्डी पंजी"
+msgid "Mirror"
+msgstr "दर्पण"
 
 
 msgid "Basic"
@@ -3774,10 +3774,6 @@ msgid "Italic"
 msgstr "तिर्यगक्षर"
 
 
-msgid "Remove"
-msgstr "हटाएँ"
-
-
 msgid "Flatten"
 msgstr "समतल"
 
@@ -4461,6 +4457,10 @@ msgid "Pan Right"
 msgstr "दाएँ पैन करें"
 
 
+msgid "Remove"
+msgstr "हटाएँ"
+
+
 msgid "Open a Blender file"
 msgstr "एक ब्लेंडर संचिका खोलें"
 
@@ -4569,12 +4569,12 @@ msgid "Lock Y"
 msgstr "तालाबंदी y"
 
 
-msgid "Transform Orientations"
-msgstr "दिक् विन्यास संरचनांतरण"
-
-
 msgid "Motion Tracking"
 msgstr "गति मार्गन"
+
+
+msgid "Transform Orientations"
+msgstr "दिक् विन्यास संरचनांतरण"
 
 
 msgid "Predefined tracking camera intrinsics"
@@ -5873,10 +5873,6 @@ msgstr "सतह"
 
 msgid "Key %d"
 msgstr "कुंजी %d"
-
-
-msgid "GPencil"
-msgstr "तैलीय पेंसिल"
 
 
 msgid "No new files have been packed"

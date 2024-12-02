@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Release Candidate (b'7dfe47164a63')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'62b2bb48e8bf')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-11-18 11:20+0000\n"
+"POT-Creation-Date: 2024-12-02 16:18+0000\n"
 "PO-Revision-Date: 2012-09-07 22:32+0100\n"
 "Last-Translator: Nikola Radovanovic <cobisimo@gmail.com>\n"
 "Language-Team: Nikola Radovanovic\n"
@@ -33,6 +33,10 @@ msgstr "Boja"
 
 msgid "Value"
 msgstr "Vrednost"
+
+
+msgid "F-Curves"
+msgstr "F-kriva"
 
 
 msgid "Action Group"
@@ -179,6 +183,50 @@ msgid "Expanded"
 msgstr "Prošireno"
 
 
+msgid "Influence"
+msgstr "Uticaj"
+
+
+msgid "Mix Mode"
+msgstr "Režim mešanja"
+
+
+msgid "Replace"
+msgstr "Zameni"
+
+
+msgid "Offset"
+msgstr "Odstojanje"
+
+
+msgid "Add"
+msgstr "Dodaj"
+
+
+msgid "Subtract"
+msgstr "Oduzimanje"
+
+
+msgid "Multiply"
+msgstr "Umnoženo"
+
+
+msgid "Strips"
+msgstr "Trake"
+
+
+msgid "Active"
+msgstr "Aktivno"
+
+
+msgid "Show Expanded"
+msgstr "Prikaži prošireno"
+
+
+msgid "Keyframe"
+msgstr "Ključni kadar"
+
+
 msgid "Module"
 msgstr "Modul"
 
@@ -249,22 +297,6 @@ msgstr "Trajna putanja do podataka"
 
 msgid "Action"
 msgstr "Akcija"
-
-
-msgid "Replace"
-msgstr "Zameni"
-
-
-msgid "Add"
-msgstr "Dodaj"
-
-
-msgid "Subtract"
-msgstr "Oduzimanje"
-
-
-msgid "Multiply"
-msgstr "Umnoženo"
 
 
 msgid "Nothing"
@@ -1425,10 +1457,6 @@ msgid "Mode"
 msgstr "Režim rada"
 
 
-msgid "Active"
-msgstr "Aktivno"
-
-
 msgid "Vertex Color"
 msgstr "Boja temena"
 
@@ -1529,10 +1557,6 @@ msgid "Crop"
 msgstr "Iseci"
 
 
-msgid "Offset"
-msgstr "Odstojanje"
-
-
 msgid "Rotation"
 msgstr "Rotacija"
 
@@ -1547,10 +1571,6 @@ msgstr "Uvećanje"
 
 msgid "Show Background Image"
 msgstr "Prikaži pozadinsku sliku"
-
-
-msgid "Show Expanded"
-msgstr "Prikaži prošireno"
 
 
 msgid "Show On Foreground"
@@ -2106,10 +2126,6 @@ msgid "Constraint modifying the transformation of objects and bones"
 msgstr "Ograničenje koji menja transformaciju objekata i kostiju"
 
 
-msgid "Influence"
-msgstr "Uticaj"
-
-
 msgid "Amount of influence constraint will have on the final solution"
 msgstr "Nivo koji će uticaj ovog ograničenja imati na krajnji rezultat"
 
@@ -2304,10 +2320,6 @@ msgstr "Minimum"
 
 msgid "Minimum value for target channel range"
 msgstr "Postavlja minimalnu Y vrednost renderovanog okvira"
-
-
-msgid "Mix Mode"
-msgstr "Režim mešanja"
 
 
 msgid "Transform Channel"
@@ -3928,16 +3940,16 @@ msgid "Audio volume"
 msgstr "AVI kodek"
 
 
+msgid "H.264"
+msgstr "H.264"
+
+
 msgid "FFmpeg video codec #1"
 msgstr "FFmpeg video kodek #1"
 
 
 msgid "Flash Video"
 msgstr "Flash video"
-
-
-msgid "H.264"
-msgstr "H.264"
 
 
 msgid "HuffYUV"
@@ -3972,16 +3984,16 @@ msgid "MPEG-4"
 msgstr "MPEG-4"
 
 
-msgid "Ogg"
-msgstr "Ogg"
-
-
 msgid "Matroska"
 msgstr "Matroska"
 
 
 msgid "Flash"
 msgstr "Flash"
+
+
+msgid "Ogg"
+msgstr "Ogg"
 
 
 msgid "Lossless Output"
@@ -4872,10 +4884,6 @@ msgid "Grease Pencil Frame"
 msgstr "Skicirani kadar"
 
 
-msgid "Keyframe"
-msgstr "Ključni kadar"
-
-
 msgid "Extreme"
 msgstr "Ekstrem"
 
@@ -4960,16 +4968,16 @@ msgid "Users"
 msgstr "Korisnici"
 
 
-msgid "F-Curves"
-msgstr "F-kriva"
-
-
 msgid "Frame Range"
 msgstr "Opseg kadrova:"
 
 
 msgid "Groups"
 msgstr "Grupe"
+
+
+msgid "Layers"
+msgstr "Slojevi"
 
 
 msgid "Stick"
@@ -5858,10 +5866,6 @@ msgstr "Koristi podeljenu dužinu"
 
 msgid "Use Textures"
 msgstr "Koristi teksture"
-
-
-msgid "Layers"
-msgstr "Slojevi"
 
 
 msgid "Selected"
@@ -8078,6 +8082,14 @@ msgid "Codec"
 msgstr "Kodek"
 
 
+msgid "No compression"
+msgstr "Kompresija"
+
+
+msgid "DWAA (lossy)"
+msgstr "DWAA (sa gubitkom)"
+
+
 msgid "Pxr24 (lossy)"
 msgstr "Pxr24 (sa gubitkom)"
 
@@ -8088,10 +8100,6 @@ msgstr "B44 (sa gubitkom)"
 
 msgid "B44A (lossy)"
 msgstr "B44A (sa gubitkom)"
-
-
-msgid "DWAA (lossy)"
-msgstr "DWAA (sa gubitkom)"
 
 
 msgid "File format to save the rendered images as"
@@ -8720,32 +8728,52 @@ msgid "Material slot name"
 msgstr "Naziv slota materijala"
 
 
-msgid "Mirror"
-msgstr "Ogledalo"
+msgid "Merge"
+msgstr "Sjedini"
 
 
-msgid "Snap"
-msgstr "Lepljenje"
-
-
-msgid "UV Mapping"
-msgstr "UV Mapiranje"
+msgid "Show/Hide"
+msgstr "Prikaži/sakrij"
 
 
 msgid "Local View"
 msgstr "Lokalni pogled"
 
 
-msgid "Navigation"
-msgstr "Navigacija"
+msgid "Special Characters"
+msgstr "Specijalni znaci"
 
 
-msgid "Align View"
-msgstr "Poravnaj pogled"
+msgid "Names"
+msgstr "Imena"
+
+
+msgid "Bone Roll"
+msgstr "Rolna kostiju"
+
+
+msgid "Toggle Bone Options"
+msgstr "Manje/više informacija"
+
+
+msgid "Enable Bone Options"
+msgstr "Omogući opcije kostiju"
+
+
+msgid "Disable Bone Options"
+msgstr "Onemogući opcije kostiju"
 
 
 msgid "Select Linked"
 msgstr "Izaberi povezano"
+
+
+msgid "Mesh Select Mode"
+msgstr "Mod izbora mreže"
+
+
+msgid "Snap"
+msgstr "Lepljenje"
 
 
 msgid "Relations"
@@ -8764,16 +8792,24 @@ msgid "Track"
 msgstr "Staza"
 
 
+msgid "Navigation"
+msgstr "Navigacija"
+
+
 msgid "Quick Effects"
 msgstr "Brzi efekti"
 
 
-msgid "Show/Hide"
-msgstr "Prikaži/sakrij"
+msgid "UV Mapping"
+msgstr "UV Mapiranje"
 
 
 msgid "Hooks"
 msgstr "Udice"
+
+
+msgid "Mirror"
+msgstr "Ogledalo"
 
 
 msgid "Clear Transform"
@@ -8788,36 +8824,8 @@ msgid "Propagate"
 msgstr "Prenesi"
 
 
-msgid "Names"
-msgstr "Imena"
-
-
-msgid "Toggle Bone Options"
-msgstr "Manje/više informacija"
-
-
-msgid "Enable Bone Options"
-msgstr "Omogući opcije kostiju"
-
-
-msgid "Disable Bone Options"
-msgstr "Onemogući opcije kostiju"
-
-
-msgid "Mesh Select Mode"
-msgstr "Mod izbora mreže"
-
-
-msgid "Merge"
-msgstr "Sjedini"
-
-
-msgid "Special Characters"
-msgstr "Specijalni znaci"
-
-
-msgid "Bone Roll"
-msgstr "Rolna kostiju"
+msgid "Align View"
+msgstr "Poravnaj pogled"
 
 
 msgid "Basic"
@@ -14558,10 +14566,6 @@ msgid "Set Cursor"
 msgstr "Postavi kursor"
 
 
-msgid "Remove"
-msgstr "Ukloni"
-
-
 msgid "Flatten"
 msgstr "Izravnavanje"
 
@@ -15819,6 +15823,14 @@ msgid "Aligned Axis"
 msgstr "Poravnate ose"
 
 
+msgid "Equal To"
+msgstr "Jednako sa"
+
+
+msgid "Not Equal To"
+msgstr "Nije jednako sa"
+
+
 msgctxt "Operator"
 msgid "Select Faces by Sides"
 msgstr "Izaberi stranice po stranama"
@@ -15826,14 +15838,6 @@ msgstr "Izaberi stranice po stranama"
 
 msgid "Number of Vertices"
 msgstr "Broj temena"
-
-
-msgid "Equal To"
-msgstr "Jednako sa"
-
-
-msgid "Not Equal To"
-msgstr "Nije jednako sa"
 
 
 msgctxt "Operator"
@@ -19573,6 +19577,10 @@ msgid "Name of the menu"
 msgstr "Naziv menija"
 
 
+msgid "Remove"
+msgstr "Ukloni"
+
+
 msgid "Save a Collada file"
 msgstr "Sačuvaj kao Collada datoteku"
 
@@ -19974,12 +19982,12 @@ msgid "Restrict"
 msgstr "Ograniči"
 
 
-msgid "Transform Orientations"
-msgstr "Transformacija orijentacija"
-
-
 msgid "Motion Tracking"
 msgstr "Praćenje pokreta"
+
+
+msgid "Transform Orientations"
+msgstr "Transformacija orijentacija"
 
 
 msgid "Bone Constraints"
@@ -20180,10 +20188,6 @@ msgstr "Audio"
 
 msgid "Note"
 msgstr "Beleška"
-
-
-msgid "Strips"
-msgstr "Trake"
 
 
 msgid "Playback"
@@ -20503,10 +20507,6 @@ msgstr "Sistem čestica mete"
 
 
 msgid "Cache Compression"
-msgstr "Kompresija"
-
-
-msgid "No compression"
 msgstr "Kompresija"
 
 
@@ -23233,30 +23233,6 @@ msgstr "Zalepi za najbliži marker"
 
 msgid "Snap Element"
 msgstr "Element lepljenja"
-
-
-msgid "Node X"
-msgstr "Čvor X"
-
-
-msgid "Snap to left/right node border"
-msgstr "Lepi za levu/desnu ivicu čvora"
-
-
-msgid "Node Y"
-msgstr "Čvor Y"
-
-
-msgid "Snap to top/bottom node border"
-msgstr "Lepi za gornju/donju ivicu čvora"
-
-
-msgid "Node X / Y"
-msgstr "Čvor X / Y"
-
-
-msgid "Snap to any node border"
-msgstr "Lepi za bolo koju ivicu svora"
 
 
 msgid "Snap Target"

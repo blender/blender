@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Release Candidate (b'7dfe47164a63')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'62b2bb48e8bf')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-11-18 11:20+0000\n"
+"POT-Creation-Date: 2024-12-02 16:18+0000\n"
 "PO-Revision-Date: 2023-12-21 01:55+0000\n"
 "Last-Translator: Lisa <blendergirl@tutanota.com>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
@@ -231,6 +231,89 @@ msgid "Collection of action groups"
 msgstr "Collectie van actiegroepen"
 
 
+msgid "Influence"
+msgstr "Invloed"
+
+
+msgid "Mix Mode"
+msgstr "Mixmodus"
+
+
+msgid "Replace"
+msgstr "Vervangen"
+
+
+msgid "Add"
+msgstr "Toevoegen"
+
+
+msgid "Subtract"
+msgstr "Aftrekken"
+
+
+msgid "Multiply"
+msgstr "Vermenigvuldigen"
+
+
+msgid "Active"
+msgstr "Actief"
+
+
+msgctxt "ID"
+msgid "Collection"
+msgstr "Collectie"
+
+
+msgctxt "ID"
+msgid "Object"
+msgstr "Object"
+
+
+msgctxt "ID"
+msgid "Palette"
+msgstr "Palet"
+
+
+msgctxt "ID"
+msgid "Particle"
+msgstr "Deeltje"
+
+
+msgctxt "ID"
+msgid "Scene"
+msgstr "Scene"
+
+
+msgctxt "ID"
+msgid "Sound"
+msgstr "Geluid"
+
+
+msgctxt "ID"
+msgid "Speaker"
+msgstr "Luidspreker"
+
+
+msgctxt "ID"
+msgid "Text"
+msgstr "Tekst"
+
+
+msgctxt "ID"
+msgid "Volume"
+msgstr "Volume"
+
+
+msgctxt "ID"
+msgid "Workspace"
+msgstr "Werkomgeving"
+
+
+msgctxt "ID"
+msgid "World"
+msgstr "Wereld"
+
+
 msgid "Module"
 msgstr "Module"
 
@@ -267,24 +350,8 @@ msgid "Action"
 msgstr "Actie"
 
 
-msgid "Replace"
-msgstr "Vervangen"
-
-
 msgid "Combine"
 msgstr "Combineer"
-
-
-msgid "Add"
-msgstr "Toevoegen"
-
-
-msgid "Subtract"
-msgstr "Aftrekken"
-
-
-msgid "Multiply"
-msgstr "Vermenigvuldigen"
 
 
 msgid "Nothing"
@@ -417,61 +484,6 @@ msgstr "Auteur"
 
 msgid "Description"
 msgstr "Beschrijving"
-
-
-msgctxt "ID"
-msgid "Collection"
-msgstr "Collectie"
-
-
-msgctxt "ID"
-msgid "Object"
-msgstr "Object"
-
-
-msgctxt "ID"
-msgid "Palette"
-msgstr "Palet"
-
-
-msgctxt "ID"
-msgid "Particle"
-msgstr "Deeltje"
-
-
-msgctxt "ID"
-msgid "Scene"
-msgstr "Scene"
-
-
-msgctxt "ID"
-msgid "Sound"
-msgstr "Geluid"
-
-
-msgctxt "ID"
-msgid "Speaker"
-msgstr "Luidspreker"
-
-
-msgctxt "ID"
-msgid "Text"
-msgstr "Tekst"
-
-
-msgctxt "ID"
-msgid "Volume"
-msgstr "Volume"
-
-
-msgctxt "ID"
-msgid "Workspace"
-msgstr "Werkomgeving"
-
-
-msgctxt "ID"
-msgid "World"
-msgstr "Wereld"
 
 
 msgid "Custom"
@@ -932,10 +944,6 @@ msgid "Mode"
 msgstr "Modus"
 
 
-msgid "Active"
-msgstr "Actief"
-
-
 msgid "Use current mode"
 msgstr "Gebruik huidige modus"
 
@@ -1137,10 +1145,6 @@ msgid "Rotation error"
 msgstr "Rotatiefout"
 
 
-msgid "Influence"
-msgstr "Invloed"
-
-
 msgid "Disable"
 msgstr "Uitzetten"
 
@@ -1183,10 +1187,6 @@ msgstr "Transformatie"
 
 msgid "Floor"
 msgstr "Vloer"
-
-
-msgid "Mix Mode"
-msgstr "Mixmodus"
 
 
 msgid "Active Clip"
@@ -1873,6 +1873,10 @@ msgid "Users"
 msgstr "Gebruikers"
 
 
+msgid "Layers"
+msgstr "Lagen"
+
+
 msgid "X-Axis Mirror"
 msgstr "X-As Spiegel"
 
@@ -2127,10 +2131,6 @@ msgstr "Rondes"
 
 msgid "Use Nodes"
 msgstr "Gebruik Nodes"
-
-
-msgid "Layers"
-msgstr "Lagen"
 
 
 msgid "Only selected keyframes"
@@ -2674,20 +2674,16 @@ msgid "Active Point"
 msgstr "Actieve Punt"
 
 
-msgid "Mirror"
-msgstr "Spiegel"
+msgid "Show/Hide"
+msgstr "Toon/Verberg"
 
 
 msgid "Local View"
 msgstr "Lokale Scherm"
 
 
-msgid "Navigation"
-msgstr "Navigatie"
-
-
-msgid "Select Similar"
-msgstr "Selecteer Vergelijkbaar"
+msgid "Names"
+msgstr "Namen"
 
 
 msgid "Select Linked"
@@ -2706,12 +2702,16 @@ msgid "Rigid Body"
 msgstr "Star Lichaam"
 
 
+msgid "Navigation"
+msgstr "Navigatie"
+
+
+msgid "Select Similar"
+msgstr "Selecteer Vergelijkbaar"
+
+
 msgid "Quick Effects"
 msgstr "Snelle Effecten"
-
-
-msgid "Show/Hide"
-msgstr "Toon/Verberg"
 
 
 msgid "Convert"
@@ -2722,12 +2722,12 @@ msgid "Hooks"
 msgstr "Haken"
 
 
+msgid "Mirror"
+msgstr "Spiegel"
+
+
 msgid "Clear Transform"
 msgstr "Maak Transformatie Leeg"
-
-
-msgid "Names"
-msgstr "Namen"
 
 
 msgctxt "MovieClip"
@@ -4265,10 +4265,6 @@ msgstr "Verwijder actieve Annotatielaag"
 msgctxt "Operator"
 msgid "Set Cursor"
 msgstr "Zet Cursor"
-
-
-msgid "Remove"
-msgstr "Verwijder"
 
 
 msgctxt "Operator"
@@ -6125,6 +6121,10 @@ msgstr "Naam van het taartmenu"
 
 msgid "Keep Open"
 msgstr "Hou Open"
+
+
+msgid "Remove"
+msgstr "Verwijder"
 
 
 msgid "Key Type"
