@@ -40,7 +40,6 @@ void main()
     imageStoreFast(radiance_img, texel, vec4(radiance, 0.0));
     imageStoreFast(object_id_img, texel, uvec4(gbuf.object_id));
 
-    vec2 center_uv = (vec2(texel) + 0.5) / vec2(textureSize(gbuf_header_tx, 0));
     float depth = texelFetch(depth_tx, texel, 0).r;
     /* TODO(fclem): Check if this simplifies. */
     float vPz = drw_depth_screen_to_view(depth);

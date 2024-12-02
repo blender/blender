@@ -285,8 +285,10 @@ CocTilePrediction dof_coc_tile_prediction_get(CocTile tile)
                          dof_do_fast_gather(-tile.fg_min_coc, -tile.fg_max_coc, true);
   predict.do_background = !fg_fully_opaque &&
                           (tile.bg_max_coc > dof_layer_threshold - dof_layer_offset);
+#if 0 /* Unused. */
   bool bg_fully_opaque = predict.do_background &&
                          dof_do_fast_gather(-tile.bg_max_coc, tile.bg_min_coc, false);
+#endif
   predict.do_hole_fill = !fg_fully_opaque && -tile.fg_min_coc > 0.0;
   predict.do_focus = !fg_fully_opaque;
   predict.do_slight_focus = !fg_fully_opaque;

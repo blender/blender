@@ -243,8 +243,6 @@ void cubeface_sync(int tilemap_id,
       break;
   }
 
-  mat4x4 prev_viewmat = tilemaps_buf[tilemap_id].viewmat;
-
   tilemaps_buf[tilemap_id].viewmat = viewmat;
 
   /* Update corners. */
@@ -275,7 +273,6 @@ void main()
 
   if (is_sun_light(light.type)) {
     /* Distant lights. */
-    vec3 position_on_light = vec3(0.0);
 
     if (light.shadow_jitter && uniform_buf.shadow.use_jitter) {
       /* TODO(fclem): Remove atan here. We only need the cosine of the angle. */

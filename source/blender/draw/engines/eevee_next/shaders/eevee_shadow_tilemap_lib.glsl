@@ -66,7 +66,6 @@ int shadow_tile_offset(uvec2 tile, int tiles_index, int lod)
   const int lod2_size = lod2_width * lod2_width;
   const int lod3_size = lod3_width * lod3_width;
   const int lod4_size = lod4_width * lod4_width;
-  const int lod5_size = lod5_width * lod5_width;
 
   /* TODO(fclem): Convert everything to uint. */
   int offset = tiles_index;

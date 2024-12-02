@@ -91,7 +91,9 @@ HorizonScanResult horizon_scan_eval(vec3 vP,
   }
 
   float weight_accum = 0.0;
+#ifdef HORIZON_OCCLUSION
   float occlusion_accum = 0.0;
+#endif
   SphericalHarmonicL1 sh_accum = spherical_harmonics_L1_new();
 
 #if defined(GPU_METAL) && defined(GPU_APPLE)
@@ -121,7 +123,6 @@ HorizonScanResult horizon_scan_eval(vec3 vP,
     vN_angle += (noise.z - 0.5) * (M_PI / 32.0) * angle_bias;
 
     SphericalHarmonicL1 sh_slice = spherical_harmonics_L1_new();
-    float weight_slice;
 
     /* For both sides of the view vector. */
     for (int side = 0; side < 2; side++) {
@@ -201,10 +202,12 @@ HorizonScanResult horizon_scan_eval(vec3 vP,
       }
     }
 
+#ifdef HORIZON_OCCLUSION
     float occlusion_slice = horizon_scan_bitmask_to_occlusion_cosine(slice_bitmask);
 
     /* Correct normal not on plane (Eq. 8 of GTAO paper). */
     occlusion_accum += occlusion_slice * vN_length;
+#endif
     /* Use uniform visibility since this is what we use for near field lighting. */
     sh_accum = spherical_harmonics_madd(sh_slice, vN_length, sh_accum);
 

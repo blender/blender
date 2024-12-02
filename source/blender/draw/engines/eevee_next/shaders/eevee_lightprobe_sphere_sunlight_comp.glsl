@@ -71,7 +71,6 @@ void main()
 
     /* Auto sun angle. */
     float sun_angle_cos = 2.0 * len - 1.0;
-    float sun_angle = acos(sun_angle_cos);
     /* Compute tangent from cosine.  */
     float sun_angle_tan = sqrt(-1.0 + 1.0 / square(sun_angle_cos));
     /* Clamp value to avoid float imprecision artifacts. */

@@ -152,8 +152,6 @@ void main()
     /* Encode validity of each samples in the grid cell. */
     for (int cell = 0; cell < 4; cell++) {
       for (int i = 0; i < 8; i++) {
-        ivec3 offset = lightprobe_volume_grid_cell_corner(i);
-        ivec3 coord_output = texel_coord + offset + ivec3(0, 0, cell);
         ivec3 coord_input = clamp(texel_coord, ivec3(0), grid_size - 1);
         float validity = texelFetch(validity_tx, coord_input, 0).r;
         bool is_padding_voxel = !all(equal(texel_coord, input_coord));

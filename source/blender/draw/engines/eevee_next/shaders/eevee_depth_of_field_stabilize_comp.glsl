@@ -297,7 +297,6 @@ float dof_history_blend_factor(
 {
   float luma_min = bbox.min.color.x;
   float luma_max = bbox.max.color.x;
-  float luma_incoming = src.color.x;
   float luma_history = dst.color.x;
 
   /* 5% of incoming color by default. */

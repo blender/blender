@@ -24,7 +24,7 @@ float ambient_occlusion_cone_cosine(float r)
 {
   /* Using phong gloss
    * roughness = sqrt(2/(gloss+2)) */
-  float gloss = -2 + 2 / (r * r);
+  // float gloss = -2 + 2 / (r * r);
   /* Drobot 2014 in GPUPro5 */
   // return cos(2.0 * sqrt(2.0 / (gloss + 2)));
   /* Uludag 2014 in GPUPro5 */
@@ -158,10 +158,7 @@ OcclusionData ambient_occlusion_search(vec3 vP,
 {
   vec2 noise = ambient_occlusion_get_noise(texel);
   vec2 dir = ambient_occlusion_get_dir(noise.x);
-  vec2 uv = drw_point_view_to_screen(vP).xy;
   vec3 vI = (drw_view_is_perspective() ? normalize(-vP) : vec3(0.0, 0.0, 1.0));
-  vec3 avg_dir = vec3(0.0);
-  float avg_apperture = 0.0;
 
   OcclusionData data = (inverted != 0.0) ? ambient_occlusion_data(vec4(0, 0, 0, 0), 1.0) :
                                            ambient_occlusion_disabled_data();
@@ -223,7 +220,7 @@ void ambient_occlusion_eval(OcclusionData data,
   visibility_error = 1.0;
 
   bool early_out = (inverted != 0.0) ? (reduce_max(abs(data.horizons)) == 0.0) :
-                                       (reduce_min(abs(data.horizons)) == M_PI);
+                                       (reduce_min(abs(data.horizons)) == float(M_PI));
   if (early_out) {
     visibility = saturate(dot(N, Ng) * 0.5 + 0.5);
     visibility = min(visibility, data.custom_occlusion);

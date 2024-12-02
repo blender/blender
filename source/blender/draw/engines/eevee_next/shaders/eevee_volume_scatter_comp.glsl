@@ -86,12 +86,15 @@ void main()
   /* Emission. */
   vec3 scattering = imageLoadFast(in_emission_img, froxel).rgb;
   vec3 extinction = imageLoadFast(in_extinction_img, froxel).rgb;
+
+#ifdef VOLUME_LIGHTING
   vec3 s_scattering = imageLoadFast(in_scattering_img, froxel).rgb;
 
   float offset = sampling_rng_1D_get(SAMPLING_VOLUME_W);
   float jitter = volume_froxel_jitter(froxel.xy, offset);
   vec3 uvw = (vec3(froxel) + vec3(0.5, 0.5, 0.5 - jitter)) * uniform_buf.volumes.inv_tex_size;
   vec3 vP = volume_jitter_to_view(uvw);
+
   vec3 P = drw_point_view_to_world(vP);
   vec3 V = drw_world_incident_vector(P);
 
@@ -100,7 +103,6 @@ void main()
   /* Divide by phase total weight, to compute the mean anisotropy. */
   float s_anisotropy = phase / max(1.0, phase_weight);
 
-#ifdef VOLUME_LIGHTING
   vec3 direct_radiance = vec3(0.0);
 
   if (reduce_max(s_scattering) > 0.0) {

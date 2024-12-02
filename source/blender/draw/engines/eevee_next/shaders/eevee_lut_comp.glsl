@@ -27,7 +27,6 @@ vec4 ggx_brdf_split_sum(vec3 lut_coord)
    * (https://media.disneyanimation.com/uploads/production/publication_asset/48/asset/s2012_pbs_disney_brdf_notes_v3.pdf)
    * Section 5.4. */
   float roughness = square(lut_coord.x);
-  float roughness_sq = square(roughness);
 
   float NV = clamp(1.0 - square(lut_coord.y), 1e-4, 0.9999);
   vec3 V = vec3(sqrt(1.0 - square(NV)), 0.0, NV);
@@ -90,7 +89,6 @@ vec4 ggx_bsdf_split_sum(vec3 lut_coord)
    * (https://media.disneyanimation.com/uploads/production/publication_asset/48/asset/s2012_pbs_disney_brdf_notes_v3.pdf)
    * Section 5.4. */
   float roughness = square(lut_coord.z);
-  float roughness_sq = square(roughness);
 
   vec3 V = vec3(sqrt(1.0 - square(NV)), 0.0, NV);
   vec3 N = vec3(0.0, 0.0, 1.0);
@@ -161,7 +159,6 @@ vec4 ggx_btdf_gt_one(vec3 lut_coord)
    * (https://media.disneyanimation.com/uploads/production/publication_asset/48/asset/s2012_pbs_disney_brdf_notes_v3.pdf)
    * Section 5.4. */
   float roughness = square(lut_coord.z);
-  float roughness_sq = square(roughness);
 
   /* Integrating BTDF. */
   float transmission_factor = 0.0;

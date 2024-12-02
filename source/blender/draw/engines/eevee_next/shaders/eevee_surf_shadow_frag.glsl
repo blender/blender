@@ -33,10 +33,10 @@ vec4 closure_to_rgba(Closure cl)
 
 void main()
 {
-  float ndc_depth = gl_FragCoord.z;
   float linear_depth = length(shadow_clip.position);
 
 #ifdef SHADOW_UPDATE_TBDR
+  float ndc_depth = gl_FragCoord.z;
 /* We need to write to `gl_FragDepth` un-conditionally. So we cannot early exit or use discard. */
 #  define discard_result \
     linear_depth = FLT_MAX; \

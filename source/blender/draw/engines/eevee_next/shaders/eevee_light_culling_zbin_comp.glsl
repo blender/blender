@@ -25,8 +25,6 @@ void main()
   const uint zbin_iter = CULLING_ZBIN_COUNT / gl_WorkGroupSize.x;
   const uint zbin_local = gl_LocalInvocationID.x * zbin_iter;
 
-  uint src_index = gl_GlobalInvocationID.x;
-
   for (uint i = 0u, l = zbin_local; i < zbin_iter; i++, l++) {
     zbin_max[l] = 0x0u;
     zbin_min[l] = ~0x0u;

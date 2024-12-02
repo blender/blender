@@ -35,8 +35,6 @@ void main()
   base_radius *= 0.5;
   min_intersectable_radius *= 0.5;
 
-  bool do_density_change = dof_do_density_change(base_radius, min_intersectable_radius);
-
   vec4 out_color = vec4(0.0);
   float out_weight = 0.0;
   vec2 unused_occlusion = vec2(0.0, 0.0);

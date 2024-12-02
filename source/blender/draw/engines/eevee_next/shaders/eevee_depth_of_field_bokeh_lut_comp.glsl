@@ -29,7 +29,6 @@ void main()
   if (dof_buf.bokeh_blades > 0.0) {
     /* NOTE: atan(y,x) has output range [-M_PI..M_PI], so add 2pi to avoid negative angles. */
     float theta = atan(gather_uv.y, gather_uv.x) + M_TAU;
-    float r = length(gather_uv);
 
     radius /= circle_to_polygon_radius(dof_buf.bokeh_blades, theta - dof_buf.bokeh_rotation);
 
