@@ -2,6 +2,17 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#ifdef GPU_SHADER
+#  pragma once
+#  include "gpu_glsl_cpp_stubs.hh"
+
+#  include "draw_fullscreen_info.hh"
+#  include "draw_view_info.hh"
+#  include "eevee_common_info.hh"
+#  include "eevee_shader_shared.hh"
+#  include "eevee_velocity_info.hh"
+#endif
+
 #include "eevee_defines.hh"
 #include "gpu_shader_create_info.hh"
 

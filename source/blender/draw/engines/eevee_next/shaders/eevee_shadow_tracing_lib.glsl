@@ -8,6 +8,11 @@
  * Evaluate shadowing using shadow map ray-tracing.
  */
 
+#include "infos/eevee_shadow_info.hh"
+
+SHADER_LIBRARY_CREATE_INFO(eevee_global_ubo)
+SHADER_LIBRARY_CREATE_INFO(eevee_shadow_data)
+
 #include "draw_math_geom_lib.glsl"
 #include "draw_view_lib.glsl"
 #include "eevee_bxdf_sampling_lib.glsl"
@@ -424,6 +429,8 @@ float shadow_eval(LightData light,
   vec2 pixel = floor(gl_FragCoord.xy);
 #  elif defined(GPU_COMPUTE_SHADER)
   vec2 pixel = vec2(gl_GlobalInvocationID.xy);
+#  else
+  vec2 pixel = UTIL_TEXEL;
 #  endif
   vec3 blue_noise_3d = utility_tx_fetch(utility_tx, pixel, UTIL_BLUE_NOISE_LAYER).rgb;
   vec3 random_shadow_3d = fract(blue_noise_3d + sampling_rng_3D_get(SAMPLING_SHADOW_U));

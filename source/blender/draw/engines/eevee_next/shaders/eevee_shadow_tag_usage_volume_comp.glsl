@@ -9,6 +9,10 @@
  * This pass scans all volume froxels and tags tiles needed for shadowing.
  */
 
+#include "infos/eevee_shadow_info.hh"
+
+COMPUTE_SHADER_CREATE_INFO(eevee_shadow_tag_usage_volume)
+
 #include "eevee_sampling_lib.glsl"
 #include "eevee_shadow_tag_usage_lib.glsl"
 #include "eevee_volume_lib.glsl"

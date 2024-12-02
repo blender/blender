@@ -8,6 +8,10 @@
  * pass is not conservative enough).
  */
 
+#include "infos/eevee_light_culling_info.hh"
+
+FRAGMENT_SHADER_CREATE_INFO(eevee_light_culling_debug)
+
 #include "draw_view_lib.glsl"
 #include "eevee_light_iter_lib.glsl"
 #include "eevee_light_lib.glsl"

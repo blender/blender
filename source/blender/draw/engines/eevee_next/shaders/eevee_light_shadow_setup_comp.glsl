@@ -7,6 +7,10 @@
  * Dispatched one thread per light.
  */
 
+#include "infos/eevee_light_culling_info.hh"
+
+COMPUTE_SHADER_CREATE_INFO(eevee_light_shadow_setup)
+
 #include "eevee_sampling_lib.glsl"
 #include "gpu_shader_math_fast_lib.glsl"
 #include "gpu_shader_math_matrix_lib.glsl"

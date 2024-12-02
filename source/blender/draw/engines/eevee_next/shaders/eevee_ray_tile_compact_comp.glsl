@@ -8,6 +8,10 @@
  * Dispatched as one thread for each trace resolution tile.
  */
 
+#include "infos/eevee_tracing_info.hh"
+
+COMPUTE_SHADER_CREATE_INFO(eevee_ray_tile_compact)
+
 #include "gpu_shader_codegen_lib.glsl"
 #include "gpu_shader_math_vector_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"

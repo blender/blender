@@ -15,6 +15,10 @@
  * defined.
  */
 
+#include "infos/eevee_tracing_info.hh"
+
+SHADER_LIBRARY_CREATE_INFO(eevee_horizon_scan)
+
 #include "common_shape_lib.glsl"
 #include "draw_view_lib.glsl"
 #include "eevee_bxdf_lib.glsl"

@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "infos/eevee_ambient_occlusion_info.hh"
+
+COMPUTE_SHADER_CREATE_INFO(eevee_ambient_occlusion_pass)
+
 #include "eevee_horizon_scan_eval_lib.glsl"
 #include "gpu_shader_math_vector_lib.glsl"
 

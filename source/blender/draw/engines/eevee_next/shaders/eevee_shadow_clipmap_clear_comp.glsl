@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "infos/eevee_shadow_info.hh"
+
+COMPUTE_SHADER_CREATE_INFO(eevee_shadow_clipmap_clear)
+
 #include "gpu_shader_utildefines_lib.glsl"
 
 void main()

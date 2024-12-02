@@ -7,6 +7,10 @@
  * This mask is then processed by the compaction phase.
  */
 
+#include "infos/eevee_tracing_info.hh"
+
+COMPUTE_SHADER_CREATE_INFO(eevee_ray_tile_classify)
+
 #include "eevee_closure_lib.glsl"
 #include "eevee_gbuffer_lib.glsl"
 #include "gpu_shader_codegen_lib.glsl"

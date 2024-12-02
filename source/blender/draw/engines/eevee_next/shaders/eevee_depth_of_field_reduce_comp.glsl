@@ -15,6 +15,10 @@
  * - Gather input color (whole mip chain), Scatter rect list, Signed CoC (whole mip chain).
  */
 
+#include "infos/eevee_depth_of_field_info.hh"
+
+COMPUTE_SHADER_CREATE_INFO(eevee_depth_of_field_reduce)
+
 #include "eevee_depth_of_field_lib.glsl"
 #include "gpu_shader_math_vector_lib.glsl"
 

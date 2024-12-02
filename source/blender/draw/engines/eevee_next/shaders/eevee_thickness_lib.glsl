@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "gpu_glsl_cpp_stubs.hh"
+
 struct ThicknessIsect {
   /* Normal at the intersection point on the sphere. */
   vec3 hit_N;

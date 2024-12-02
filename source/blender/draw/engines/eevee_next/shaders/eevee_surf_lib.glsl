@@ -4,6 +4,10 @@
 
 #pragma once
 
+#include "infos/eevee_material_info.hh"
+
+SHADER_LIBRARY_CREATE_INFO(eevee_geom_mesh)
+
 #include "draw_model_lib.glsl"
 #include "eevee_nodetree_lib.glsl"
 #include "eevee_sampling_lib.glsl"

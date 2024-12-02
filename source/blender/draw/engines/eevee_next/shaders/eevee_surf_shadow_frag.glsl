@@ -11,6 +11,15 @@
  * the destination texel.
  */
 
+#include "infos/eevee_material_info.hh"
+
+FRAGMENT_SHADER_CREATE_INFO(eevee_geom_mesh)
+FRAGMENT_SHADER_CREATE_INFO(eevee_surf_shadow_atomic)
+
+#ifdef GLSL_CPP_STUBS
+#  define MAT_SHADOW
+#endif
+
 #include "draw_view_lib.glsl"
 #include "eevee_nodetree_lib.glsl"
 #include "eevee_sampling_lib.glsl"

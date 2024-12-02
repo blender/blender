@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "infos/eevee_lightprobe_sphere_info.hh"
+
+FRAGMENT_SHADER_CREATE_INFO(eevee_display_lightprobe_sphere)
+
 #include "draw_view_lib.glsl"
 #include "eevee_lightprobe_sphere_lib.glsl"
 

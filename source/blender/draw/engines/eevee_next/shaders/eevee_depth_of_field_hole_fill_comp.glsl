@@ -12,6 +12,10 @@
  * rotation to ensure maximum coverage.
  */
 
+#include "infos/eevee_depth_of_field_info.hh"
+
+COMPUTE_SHADER_CREATE_INFO(eevee_depth_of_field_hole_fill)
+
 #include "eevee_depth_of_field_accumulator_lib.glsl"
 
 void main()

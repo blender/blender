@@ -2,6 +2,19 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#ifdef GPU_SHADER
+#  pragma once
+#  include "gpu_glsl_cpp_stubs.hh"
+
+#  include "draw_fullscreen_info.hh"
+#  include "draw_object_infos_info.hh"
+#  include "draw_view_info.hh"
+#  include "eevee_common_info.hh"
+#  include "eevee_shader_shared.hh"
+
+#  define SPHERE_PROBE
+#endif
+
 #include "gpu_shader_create_info.hh"
 
 #pragma once
@@ -13,15 +26,6 @@ ADDITIONAL_INFO(eevee_global_ubo)
 ADDITIONAL_INFO(draw_view)
 SAMPLER(VOLUME_SCATTERING_TEX_SLOT, FLOAT_3D, volume_scattering_tx)
 SAMPLER(VOLUME_TRANSMITTANCE_TEX_SLOT, FLOAT_3D, volume_transmittance_tx)
-GPU_SHADER_CREATE_END()
-
-GPU_SHADER_CREATE_INFO(eevee_volume_properties_data)
-ADDITIONAL_INFO(eevee_global_ubo)
-IMAGE(VOLUME_PROP_SCATTERING_IMG_SLOT, GPU_R11F_G11F_B10F, READ, FLOAT_3D, in_scattering_img)
-IMAGE(VOLUME_PROP_EXTINCTION_IMG_SLOT, GPU_R11F_G11F_B10F, READ, FLOAT_3D, in_extinction_img)
-IMAGE(VOLUME_PROP_EMISSION_IMG_SLOT, GPU_R11F_G11F_B10F, READ, FLOAT_3D, in_emission_img)
-IMAGE(VOLUME_PROP_PHASE_IMG_SLOT, GPU_R16F, READ, FLOAT_3D, in_phase_img)
-IMAGE(VOLUME_PROP_PHASE_WEIGHT_IMG_SLOT, GPU_R16F, READ, FLOAT_3D, in_phase_weight_img)
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(eevee_volume_scatter)

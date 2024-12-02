@@ -17,6 +17,10 @@
  * - Stabilized Color and CoC (half-resolution).
  */
 
+#include "infos/eevee_depth_of_field_info.hh"
+
+COMPUTE_SHADER_CREATE_INFO(eevee_depth_of_field_stabilize)
+
 #include "eevee_colorspace_lib.glsl"
 #include "eevee_depth_of_field_lib.glsl"
 #include "eevee_velocity_lib.glsl"
@@ -25,7 +29,7 @@ struct DofSample {
   vec4 color;
   float coc;
 
-#ifdef GPU_METAL
+#if defined(GPU_METAL) || defined(GLSL_CPP_STUBS)
   /* Explicit constructors -- To support GLSL syntax. */
   inline DofSample() = default;
   inline DofSample(vec4 in_color, float in_coc) : color(in_color), coc(in_coc) {}
@@ -154,7 +158,7 @@ struct DofNeighborhoodMinMax {
   DofSample min;
   DofSample max;
 
-#ifdef GPU_METAL
+#if defined(GPU_METAL) || defined(GLSL_CPP_STUBS)
   /* Explicit constructors -- To support GLSL syntax. */
   inline DofNeighborhoodMinMax() = default;
   inline DofNeighborhoodMinMax(DofSample in_min, DofSample in_max) : min(in_min), max(in_max) {}

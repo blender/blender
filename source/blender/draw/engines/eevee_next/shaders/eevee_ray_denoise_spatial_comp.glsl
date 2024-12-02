@@ -15,6 +15,10 @@
  * https://www.ea.com/seed/news/seed-dd18-presentation-slides-raytracing
  */
 
+#include "infos/eevee_tracing_info.hh"
+
+COMPUTE_SHADER_CREATE_INFO(eevee_ray_denoise_spatial)
+
 #include "draw_view_lib.glsl"
 #include "eevee_bxdf_lib.glsl"
 #include "eevee_bxdf_sampling_lib.glsl"

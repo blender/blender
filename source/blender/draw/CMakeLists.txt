@@ -327,7 +327,12 @@ set(LIB
 set(GLSL_SRC
   engines/eevee_next/shaders/eevee_ambient_occlusion_lib.glsl
   engines/eevee_next/shaders/eevee_ambient_occlusion_pass_comp.glsl
-  engines/eevee_next/shaders/eevee_attributes_lib.glsl
+  engines/eevee_next/shaders/eevee_attributes_curves_lib.glsl
+  engines/eevee_next/shaders/eevee_attributes_gpencil_lib.glsl
+  engines/eevee_next/shaders/eevee_attributes_mesh_lib.glsl
+  engines/eevee_next/shaders/eevee_attributes_point_cloud_lib.glsl
+  engines/eevee_next/shaders/eevee_attributes_volume_lib.glsl
+  engines/eevee_next/shaders/eevee_attributes_world_lib.glsl
   engines/eevee_next/shaders/eevee_bxdf_lib.glsl
   engines/eevee_next/shaders/eevee_bxdf_microfacet_lib.glsl
   engines/eevee_next/shaders/eevee_bxdf_diffuse_lib.glsl

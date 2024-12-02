@@ -7,6 +7,10 @@
  * the blender executable. This is only used for reference or to update them.
  */
 
+#include "infos/eevee_lut_info.hh"
+
+COMPUTE_SHADER_CREATE_INFO(eevee_lut)
+
 #include "eevee_bxdf_sampling_lib.glsl"
 #include "eevee_sampling_lib.glsl"
 #include "gpu_shader_math_base_lib.glsl"

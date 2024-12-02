@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "infos/eevee_common_info.hh"
+
 /**
  * Adapted from :
  * Real-Time Polygonal-Light Shading with Linearly Transformed Cosines.

@@ -18,6 +18,10 @@
  *     `[----xxxxxx------]`
  */
 
+#include "infos/eevee_shadow_info.hh"
+
+COMPUTE_SHADER_CREATE_INFO(eevee_shadow_page_defrag)
+
 #include "eevee_shadow_page_ops_lib.glsl"
 
 #define max_page uint(SHADOW_MAX_PAGE)

@@ -2,6 +2,19 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#ifdef GPU_SHADER
+#  pragma once
+#  include "gpu_glsl_cpp_stubs.hh"
+
+#  include "draw_fullscreen_info.hh"
+#  include "draw_object_infos_info.hh"
+#  include "draw_view_info.hh"
+#  include "eevee_common_info.hh"
+#  include "eevee_shader_shared.hh"
+
+#  define SPHERE_PROBE
+#endif
+
 #include "draw_defines.hh"
 #include "eevee_defines.hh"
 
@@ -303,26 +316,6 @@ COMPUTE_SOURCE("eevee_shadow_visibility_comp.glsl")
 ADDITIONAL_INFO(draw_view)
 ADDITIONAL_INFO(draw_view_culling)
 ADDITIONAL_INFO(draw_object_infos_new)
-GPU_SHADER_CREATE_END()
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Shadow resources
- * \{ */
-
-GPU_SHADER_CREATE_INFO(eevee_shadow_data)
-/* SHADOW_READ_ATOMIC macro indicating shadow functions should use `usampler2DArrayAtomic` as
- * the atlas type. */
-DEFINE("SHADOW_READ_ATOMIC")
-BUILTINS(BuiltinBits::TEXTURE_ATOMIC)
-SAMPLER(SHADOW_ATLAS_TEX_SLOT, UINT_2D_ARRAY_ATOMIC, shadow_atlas_tx)
-SAMPLER(SHADOW_TILEMAPS_TEX_SLOT, UINT_2D, shadow_tilemaps_tx)
-GPU_SHADER_CREATE_END()
-
-GPU_SHADER_CREATE_INFO(eevee_shadow_data_non_atomic)
-SAMPLER(SHADOW_ATLAS_TEX_SLOT, UINT_2D_ARRAY, shadow_atlas_tx)
-SAMPLER(SHADOW_TILEMAPS_TEX_SLOT, UINT_2D, shadow_tilemaps_tx)
 GPU_SHADER_CREATE_END()
 
 /** \} */

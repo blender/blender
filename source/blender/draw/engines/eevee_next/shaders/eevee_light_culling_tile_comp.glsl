@@ -8,6 +8,10 @@
  * Dispatch one thread per word.
  */
 
+#include "infos/eevee_light_culling_info.hh"
+
+COMPUTE_SHADER_CREATE_INFO(eevee_light_culling_tile)
+
 #include "common_intersect_lib.glsl"
 #include "draw_view_lib.glsl"
 #include "eevee_light_iter_lib.glsl"

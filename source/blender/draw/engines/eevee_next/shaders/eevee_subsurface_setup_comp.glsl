@@ -7,6 +7,10 @@
  * processing.
  */
 
+#include "infos/eevee_subsurface_info.hh"
+
+COMPUTE_SHADER_CREATE_INFO(eevee_subsurface_setup)
+
 #include "draw_view_lib.glsl"
 #include "eevee_gbuffer_lib.glsl"
 #include "gpu_shader_math_vector_lib.glsl"

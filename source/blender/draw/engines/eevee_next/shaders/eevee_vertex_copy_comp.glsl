@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "infos/eevee_velocity_info.hh"
+
+COMPUTE_SHADER_CREATE_INFO(eevee_vertex_copy)
+
 #include "gpu_shader_math_base_lib.glsl"
 
 void main()

@@ -6,6 +6,10 @@
  * Select the visible items inside the active view and put them inside the sorting buffer.
  */
 
+#include "infos/eevee_light_culling_info.hh"
+
+COMPUTE_SHADER_CREATE_INFO(eevee_light_culling_select)
+
 #include "draw_intersect_lib.glsl"
 #include "draw_math_geom_lib.glsl"
 #include "draw_view_lib.glsl"

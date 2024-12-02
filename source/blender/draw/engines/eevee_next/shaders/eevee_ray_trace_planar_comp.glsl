@@ -9,6 +9,10 @@
  * are then tagged to avoid re-evaluation by screen trace.
  */
 
+#include "infos/eevee_tracing_info.hh"
+
+COMPUTE_SHADER_CREATE_INFO(eevee_ray_trace_planar)
+
 #include "eevee_bxdf_sampling_lib.glsl"
 #include "eevee_colorspace_lib.glsl"
 #include "eevee_gbuffer_lib.glsl"

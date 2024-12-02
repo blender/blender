@@ -11,6 +11,10 @@
  * in-focus and defocus regions.
  */
 
+#include "infos/eevee_depth_of_field_info.hh"
+
+COMPUTE_SHADER_CREATE_INFO(eevee_depth_of_field_resolve)
+
 #include "eevee_depth_of_field_accumulator_lib.glsl"
 
 /* Workarounds for Metal/AMD issue where atomicMax lead to incorrect results.

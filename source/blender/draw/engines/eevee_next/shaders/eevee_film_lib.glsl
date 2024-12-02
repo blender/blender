@@ -8,6 +8,10 @@
  * Film accumulation utils functions.
  */
 
+#include "infos/eevee_film_info.hh"
+
+SHADER_LIBRARY_CREATE_INFO(eevee_film)
+
 #include "draw_math_geom_lib.glsl"
 #include "draw_view_lib.glsl"
 #include "eevee_colorspace_lib.glsl"

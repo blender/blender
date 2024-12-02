@@ -10,6 +10,10 @@
  * - tilemaps_tx
  */
 
+#include "infos/eevee_deferred_info.hh"
+
+FRAGMENT_SHADER_CREATE_INFO(eevee_deferred_thickness_amend)
+
 #include "draw_view_lib.glsl"
 #include "eevee_gbuffer_lib.glsl"
 #include "eevee_light_iter_lib.glsl"

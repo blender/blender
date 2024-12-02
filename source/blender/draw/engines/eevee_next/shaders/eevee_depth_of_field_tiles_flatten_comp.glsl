@@ -15,6 +15,10 @@
  * - Separated foreground and background CoC. 1/8th of half-res resolution. So 1/16th of full-res.
  */
 
+#include "infos/eevee_depth_of_field_info.hh"
+
+COMPUTE_SHADER_CREATE_INFO(eevee_depth_of_field_tiles_flatten)
+
 #include "eevee_depth_of_field_lib.glsl"
 
 /**

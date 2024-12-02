@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "infos/eevee_tracing_info.hh"
+
+COMPUTE_SHADER_CREATE_INFO(eevee_horizon_resolve)
+
 #include "draw_view_lib.glsl"
 #include "eevee_closure_lib.glsl"
 #include "eevee_filter_lib.glsl"

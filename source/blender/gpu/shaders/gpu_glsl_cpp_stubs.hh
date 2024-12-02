@@ -457,8 +457,8 @@ template<int C, int R> struct MatOp {
 
   MatT operator*(MatT) const RET;
 
-  friend ColT operator*(RowT, MatT) RET;
-  friend RowT operator*(MatT, ColT) RET;
+  friend RowT operator*(ColT, MatT) RET;
+  friend ColT operator*(MatT, RowT) RET;
 };
 
 template<int R> struct MatBase<2, R> : MatOp<2, R> {

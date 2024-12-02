@@ -4,6 +4,10 @@
 
 /* Shader to convert cube-map to octahedral projection. */
 
+#include "infos/eevee_lightprobe_sphere_info.hh"
+
+COMPUTE_SHADER_CREATE_INFO(eevee_lightprobe_sphere_convolve)
+
 #include "eevee_lightprobe_sphere_mapping_lib.glsl"
 #include "eevee_sampling_lib.glsl"
 #include "gpu_shader_math_base_lib.glsl"

@@ -11,6 +11,11 @@
  *
  * Code is duplicated here to ensure that the compiler will pass read/write resource checks.
  */
+
+#include "infos/eevee_film_info.hh"
+
+FRAGMENT_SHADER_CREATE_INFO(eevee_film_copy_frag)
+
 #include "common_math_lib.glsl"
 #include "draw_view_lib.glsl"
 
