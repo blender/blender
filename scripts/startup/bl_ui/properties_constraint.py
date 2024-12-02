@@ -666,10 +666,13 @@ class ConstraintButtonsPanel:
             if con.project_axis_space == 'CUSTOM':
                 col = layout.column()
                 col.prop(con, "space_object")
-                if con.space_object and con.space_object.type == 'ARMATURE':
-                    col.prop_search(con, "space_subtarget", con.space_object.data, "bones", text="Bone")
-                elif con.space_object and con.space_object.type in {'MESH', 'LATTICE'}:
-                    col.prop_search(con, "space_subtarget", con.space_object, "vertex_groups", text="Vertex Group")
+                if space_object := con.space_object:
+                    match space_object.type:
+                        case 'ARMATURE':
+                            col.prop_search(con, "space_subtarget", con.space_object.data, "bones", text="Bone")
+                        case 'MESH', 'LATTICE':
+                            col.prop_search(con, "space_subtarget", con.space_object,
+                                            "vertex_groups", text="Vertex Group")
 
             layout.prop(con, "project_limit", text="Distance")
             layout.prop(con, "use_project_opposite")
