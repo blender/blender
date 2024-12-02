@@ -4634,6 +4634,7 @@ static void def_math(StructRNA *srna)
   RNA_def_property_ui_text(prop, "Operation", "");
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_NODETREE);
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_ShaderNode_socket_update");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 
   prop = RNA_def_property(srna, "use_clamp", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "custom2", SHD_MATH_CLAMP);
@@ -4706,6 +4707,7 @@ static void def_vector_math(StructRNA *srna)
   RNA_def_property_ui_text(prop, "Operation", "");
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_NODETREE);
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_ShaderNode_socket_update");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 }
 
 static void def_rgb_curve(StructRNA *srna)
