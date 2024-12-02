@@ -564,7 +564,8 @@ void Instance::draw_v3d(Manager &manager, View &view)
 
     origins.draw_color_only(resources.overlay_color_only_fb, manager, view);
   }
-  {
+
+  if (state.is_depth_only_drawing == false) {
     /* Output pass. */
     GPU_framebuffer_bind(resources.overlay_output_fb);
     GPU_framebuffer_clear_color(resources.overlay_output_fb, clear_color);

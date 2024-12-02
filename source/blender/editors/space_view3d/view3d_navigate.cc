@@ -207,7 +207,8 @@ static eViewOpsFlag navigate_pivot_get(bContext *C,
     negate_v3_v3(fallback_depth_pt, static_cast<RegionView3D *>(region->regiondata)->ofs);
 
     if (!ED_view3d_has_depth_buffer_updated(depsgraph, v3d)) {
-      ED_view3d_depth_override(depsgraph, region, v3d, nullptr, V3D_DEPTH_NO_GPENCIL, nullptr);
+      ED_view3d_depth_override(
+          depsgraph, region, v3d, nullptr, V3D_DEPTH_NO_GPENCIL, true, nullptr);
     }
 
     const bool is_set = ED_view3d_autodist(region, v3d, event->mval, r_pivot, fallback_depth_pt);

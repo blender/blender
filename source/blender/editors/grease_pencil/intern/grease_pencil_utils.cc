@@ -288,7 +288,7 @@ void DrawingPlacement::cache_viewport_depths(Depsgraph *depsgraph, ARegion *regi
       mode = V3D_DEPTH_NO_GPENCIL;
     }
   }
-  ED_view3d_depth_override(depsgraph, region, view3d, nullptr, mode, &this->depth_cache_);
+  ED_view3d_depth_override(depsgraph, region, view3d, nullptr, mode, false, &this->depth_cache_);
 }
 
 void DrawingPlacement::set_origin_to_nearest_stroke(const float2 co)

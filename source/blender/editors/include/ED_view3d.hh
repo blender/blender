@@ -182,8 +182,8 @@ void ED_view3d_lastview_store(RegionView3D *rv3d);
 
 /* Depth buffer */
 enum eV3DDepthOverrideMode {
-  /** Redraw viewport without overlays. */
-  V3D_DEPTH_NO_OVERLAYS = 0,
+  /** Redraw viewport with all objects. */
+  V3D_DEPTH_ALL = 0,
   /** Redraw viewport without Grease Pencil. */
   V3D_DEPTH_NO_GPENCIL,
   /** Redraw viewport with Grease Pencil only. */
@@ -198,12 +198,21 @@ enum eV3DDepthOverrideMode {
  * Redraw the viewport depth buffer.
  * Call #ED_view3d_has_depth_buffer_updated if you want to check if the viewport already has depth
  * buffer updated.
+ *
+ * \param use_overlay: When enabled and the `v3d` has overlays enabled, show overlays.
+ * A rule of thumb for this value is:
+ * - For viewport navigation the value should be true.
+ *   Since the user may want to inspect non-geometry contents of their scene.
+ * - For painting and other tools, the value should be false.
+ *   Since it's not typically desirable to paint onto the cameras frame or spot-light,
+ *   nor use these depths for object placement.
  */
 void ED_view3d_depth_override(Depsgraph *depsgraph,
                               ARegion *region,
                               View3D *v3d,
                               Object *obact,
                               eV3DDepthOverrideMode mode,
+                              bool use_overlay,
                               ViewDepths **r_depths);
 void ED_view3d_depths_free(ViewDepths *depths);
 bool ED_view3d_depth_read_cached(const ViewDepths *vd,
