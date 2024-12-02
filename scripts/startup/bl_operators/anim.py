@@ -700,7 +700,7 @@ class ANIM_OT_slot_new_for_id(Operator):
         animated_id = context.animated_id
 
         action = animated_id.animation_data.action
-        slot = action.slots.new(for_id=animated_id)
+        slot = action.slots.new(animated_id.id_type, animated_id.name)
         animated_id.animation_data.action_slot = slot
         return {'FINISHED'}
 

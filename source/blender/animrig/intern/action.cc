@@ -399,6 +399,19 @@ static void slot_identifier_ensure_unique(Action &action, Slot &slot)
       check_name_is_used, &check_data, "", '.', slot.identifier, sizeof(slot.identifier));
 }
 
+void Action::slot_display_name_set(Main &bmain, Slot &slot, StringRefNull new_display_name)
+{
+  BLI_assert_msg(StringRef(new_display_name).size() >= 1,
+                 "Action Slot display names must not be empty");
+  BLI_assert_msg(StringRef(slot.identifier).size() >= 2,
+                 "Action Slot's existing identifier lacks the two-character type prefix, which "
+                 "would make the display name copy meaningless due to early null termination.");
+
+  BLI_strncpy_utf8(slot.identifier + 2, new_display_name.c_str(), ARRAY_SIZE(slot.identifier) - 2);
+  slot_identifier_ensure_unique(*this, slot);
+  this->slot_identifier_propagate(bmain, slot);
+}
+
 void Action::slot_identifier_set(Main &bmain, Slot &slot, const StringRefNull new_identifier)
 {
   /* TODO: maybe this function should only set the 'identifier without prefix' aka the 'display
@@ -494,6 +507,21 @@ Slot &Action::slot_add()
    * And since setting this to 0 when it is already supposed to be 0 is fine,
    * there is no check for whether this is actually the first layer. */
   this->idroot = 0;
+
+  return slot;
+}
+
+Slot &Action::slot_add_for_id_type(const ID_Type idtype)
+{
+  Slot &slot = this->slot_add();
+
+  slot.idtype = idtype;
+  slot.identifier_ensure_prefix();
+  BLI_strncpy_utf8(slot.identifier + 2, DATA_(slot_default_name), ARRAY_SIZE(slot.identifier) - 2);
+  slot_identifier_ensure_unique(*this, slot);
+
+  /* No need to call anim.slot_identifier_propagate() as nothing will be using
+   * this brand new Slot yet. */
 
   return slot;
 }

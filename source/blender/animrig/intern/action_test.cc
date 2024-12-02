@@ -517,22 +517,27 @@ TEST_F(ActionLayersTest, rename_slot)
   EXPECT_STREQ(slot_cube.identifier, cube->adt->last_slot_identifier)
       << "The slot identifier should be copied to the adt";
 
-  action->slot_identifier_define(slot_cube, "New Slot Name");
-  EXPECT_STREQ("New Slot Name", slot_cube.identifier);
+  action->slot_identifier_define(slot_cube, "OBNew Slot Name");
+  EXPECT_STREQ("OBNew Slot Name", slot_cube.identifier);
   /* At this point the slot identifier will not have been copied to the cube
    * AnimData. However, I don't want to test for that here, as it's not exactly
    * desirable behavior, but more of a side-effect of the current
    * implementation. */
 
   action->slot_identifier_propagate(*bmain, slot_cube);
-  EXPECT_STREQ("New Slot Name", cube->adt->last_slot_identifier);
+  EXPECT_STREQ("OBNew Slot Name", cube->adt->last_slot_identifier);
+
+  /* Rename via the display name, which should propagate to the ADT. */
+  action->slot_display_name_set(*bmain, slot_cube, "Slot's New Display Name");
+  EXPECT_STREQ("OBSlot's New Display Name", slot_cube.identifier);
+  EXPECT_STREQ("OBSlot's New Display Name", cube->adt->last_slot_identifier);
 
   /* Finally, do another rename, do NOT call the propagate function, then
    * unassign. This should still result in the correct slot name being stored
    * on the ADT. */
-  action->slot_identifier_define(slot_cube, "Even Newer Name");
+  action->slot_identifier_define(slot_cube, "OBEven Newer Name");
   EXPECT_TRUE(unassign_action(cube->id));
-  EXPECT_STREQ("Even Newer Name", cube->adt->last_slot_identifier);
+  EXPECT_STREQ("OBEven Newer Name", cube->adt->last_slot_identifier);
 }
 
 TEST_F(ActionLayersTest, slot_identifier_ensure_prefix)

@@ -386,7 +386,7 @@ def bake_action_iter(
     else:
         # When baking into the current action, a slot needs to be assigned.
         if not atd.action_slot:
-            slot = action.slots.new(for_id=obj)
+            slot = action.slots.new(obj.id_type, obj.name)
             atd.action_slot = slot
 
     # Only leave tweak mode if we actually need to modify the action (#57159)
@@ -397,7 +397,7 @@ def bake_action_iter(
 
         atd.action = action
         if action.is_action_layered:
-            slot = action.slots.new(for_id=obj)
+            slot = action.slots.new(obj.id_type, obj.name)
             atd.action_slot = slot
 
     # Baking the action only makes sense in Replace mode, so force it (#69105)
