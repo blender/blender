@@ -1505,10 +1505,10 @@ void do_simulation_step(const Depsgraph &depsgraph,
   bke::pbvh::flush_bounds_to_parents(pbvh);
 }
 
-static void cloth_brush_apply_brush_foces(const Depsgraph &depsgraph,
-                                          const Sculpt &sd,
-                                          Object &ob,
-                                          const IndexMask &node_mask)
+static void cloth_brush_apply_brush_forces(const Depsgraph &depsgraph,
+                                           const Sculpt &sd,
+                                           Object &ob,
+                                           const IndexMask &node_mask)
 {
   SculptSession &ss = *ob.sculpt;
   StrokeCache &cache = *ss.cache;
@@ -1855,7 +1855,7 @@ void do_cloth_brush(const Depsgraph &depsgraph,
   sim_activate_nodes(ob, *ss.cache->cloth_sim, node_mask);
 
   /* Apply forces to the vertices. */
-  cloth_brush_apply_brush_foces(depsgraph, sd, ob, node_mask);
+  cloth_brush_apply_brush_forces(depsgraph, sd, ob, node_mask);
 
   /* Update and write the simulation to the nodes. */
   do_simulation_step(depsgraph, sd, ob, *ss.cache->cloth_sim, node_mask);
