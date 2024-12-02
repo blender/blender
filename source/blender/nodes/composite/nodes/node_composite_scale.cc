@@ -11,6 +11,7 @@
 #include "BLI_math_base.hh"
 #include "BLI_math_matrix.hh"
 #include "BLI_math_matrix_types.hh"
+#include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_string.h"
 
@@ -112,6 +113,16 @@ class ScaleOperation : public NodeOperation {
 
   void execute_variable_size()
   {
+    if (this->context().use_gpu()) {
+      execute_variable_size_gpu();
+    }
+    else {
+      execute_variable_size_cpu();
+    }
+  }
+
+  void execute_variable_size_gpu()
+  {
     GPUShader *shader = context().get_shader("compositor_scale_variable");
     GPU_shader_bind(shader);
 
@@ -138,6 +149,29 @@ class ScaleOperation : public NodeOperation {
     y_scale.unbind_as_texture();
     output.unbind_as_image();
     GPU_shader_unbind();
+  }
+
+  void execute_variable_size_cpu()
+  {
+    const Result &input = this->get_input("Image");
+    const Result &x_scale = this->get_input("X");
+    const Result &y_scale = this->get_input("Y");
+
+    Result &output = this->get_result("Image");
+    const Domain domain = compute_domain();
+    output.allocate_texture(domain);
+
+    const int2 size = domain.size;
+    parallel_for(size, [&](const int2 texel) {
+      float2 coordinates = (float2(texel) + float2(0.5f)) / float2(size);
+      float2 center = float2(0.5f);
+
+      float2 scale = float2(x_scale.load_pixel(texel).x, y_scale.load_pixel(texel).x);
+      float2 scaled_coordinates = center +
+                                  (coordinates - center) / math::max(scale, float2(0.0001f));
+
+      output.store_pixel(texel, input.sample_bilinear_zero(scaled_coordinates));
+    });
   }
 
   float2 get_scale()
