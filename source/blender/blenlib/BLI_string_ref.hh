@@ -113,6 +113,7 @@ class StringRefNull : public StringRefBase {
  public:
   constexpr StringRefNull();
   constexpr StringRefNull(const char *str, int64_t size);
+  StringRefNull(std::nullptr_t) = delete;
   StringRefNull(const char *str);
   StringRefNull(const std::string &str);
 
