@@ -172,13 +172,16 @@ Vector<mf::Variable *> MultiFunctionProcedureOperation::get_input_variables(DNod
       continue;
     }
 
-    /* Get the output linked to the input. If it is null, that means the input is unlinked and we
-     * generate a constant variable for it. */
-    const DOutputSocket output = get_output_linked_to_input(input);
-    if (!output) {
-      input_variables.append(this->get_constant_input_variable(input));
+    /* The origin socket is an input, that means the input is unlinked and we generate a constant
+     * variable for it. */
+    const DSocket origin = get_input_origin_socket(input);
+    if (origin->is_input()) {
+      input_variables.append(this->get_constant_input_variable(DInputSocket(origin)));
       continue;
     }
+
+    /* Otherwise, the origin socket is an output, which means it is linked. */
+    const DOutputSocket output = DOutputSocket(origin);
 
     /* If the origin node is part of the multi-function procedure operation, then the output has an
      * existing variable for it. */
