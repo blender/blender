@@ -514,9 +514,6 @@ class MeshUVs : Overlay {
   bool show_tiled_image_border_ = false;
   bool show_tiled_image_label_ = false;
 
-  /* Set of original objects that have been drawn. */
-  Set<const Object *> drawn_object_set_;
-
  public:
   void begin_sync(Resources &res, const State &state) final
   {
@@ -709,41 +706,21 @@ class MeshUVs : Overlay {
 
     per_mesh_area_3d_.clear();
     per_mesh_area_2d_.clear();
-
-    drawn_object_set_.clear();
   }
 
   void edit_object_sync(Manager &manager,
                         const ObjectRef &ob_ref,
                         Resources & /*res*/,
-                        const State &state) final
+                        const State & /*state*/) final
   {
     if (!enabled_ || ob_ref.object->type != OB_MESH) {
       return;
     }
 
-    /* When editing objects that share the same mesh we should only draw the
-     * first object to avoid overlapping UVs. Moreover, only the first evaluated object has the
-     * correct batches with the correct selection state.
-     * To this end, we skip duplicates and use the evaluated object returned by the depsgraph.
-     * See #83187. */
-    Object *object_orig = DEG_get_original_object(ob_ref.object);
-    Object *object_eval = DEG_get_evaluated_object(state.depsgraph, object_orig);
-
-    if (!drawn_object_set_.add(object_orig)) {
-      return;
-    }
-
     ResourceHandle res_handle = manager.unique_handle(ob_ref);
 
-    Object &ob = *object_eval;
+    Object &ob = *ob_ref.object;
     Mesh &mesh = *static_cast<Mesh *>(ob.data);
-
-    if (object_eval != ob_ref.object) {
-      /* We are requesting batches on an evaluated ID that is potentially not iterated over.
-       * So we have to manually call these cache validation and extraction method. */
-      DRW_mesh_batch_cache_validate(ob, mesh);
-    }
 
     if (show_uv_edit) {
       gpu::Batch *geom = DRW_mesh_batch_cache_get_edituv_edges(ob, mesh);
@@ -781,11 +758,6 @@ class MeshUVs : Overlay {
     if (show_wireframe_) {
       gpu::Batch *geom = DRW_mesh_batch_cache_get_uv_edges(ob, mesh);
       wireframe_ps_.draw_expand(geom, GPU_PRIM_TRIS, 2, 1, res_handle);
-    }
-
-    if (object_eval != ob_ref.object) {
-      /* TODO(fclem): Refactor. Global access. But as explained above it is a bit complicated. */
-      drw_batch_cache_generate_requested_delayed(&ob);
     }
   }
 
