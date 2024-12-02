@@ -687,7 +687,7 @@ void seq_cache_cleanup_sequence(Scene *scene,
 ImBuf *seq_cache_get(const SeqRenderData *context, Sequence *seq, float timeline_frame, int type)
 {
 
-  if (context->skip_cache || context->is_proxy_render || context->for_render || !seq) {
+  if (context->skip_cache || context->is_proxy_render || !seq) {
     return nullptr;
   }
 
@@ -721,6 +721,10 @@ ImBuf *seq_cache_get(const SeqRenderData *context, Sequence *seq, float timeline
 
   if (ibuf) {
     return ibuf;
+  }
+
+  if (context->for_render) {
+    return nullptr;
   }
 
   /* Try disk cache: */
@@ -776,9 +780,7 @@ bool seq_cache_put_if_possible(
 void seq_cache_put(
     const SeqRenderData *context, Sequence *seq, float timeline_frame, int type, ImBuf *i)
 {
-  if (i == nullptr || context->skip_cache || context->is_proxy_render || context->for_render ||
-      !seq)
-  {
+  if (i == nullptr || context->skip_cache || context->is_proxy_render || !seq) {
     return;
   }
 
@@ -807,6 +809,10 @@ void seq_cache_put(
   SeqCacheKey *key = seq_cache_allocate_key(cache, context, seq, timeline_frame, type);
   seq_cache_put_ex(scene, key, i);
   seq_cache_unlock(scene);
+
+  if (context->for_render) {
+    key->is_temp_cache = true;
+  }
 
   if (!key->is_temp_cache) {
     if (seq_disk_cache_is_enabled(context->bmain)) {
