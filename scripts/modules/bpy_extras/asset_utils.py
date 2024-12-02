@@ -6,13 +6,15 @@
 Helpers for asset management tasks.
 """
 
+__all__ = (
+    "AssetBrowserPanel",
+    "AssetMetaDataPanel",
+    "SpaceAssetInfo",
+)
+
 import bpy
 from bpy.types import (
     Context,
-)
-
-__all__ = (
-    "SpaceAssetInfo",
 )
 
 

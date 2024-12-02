@@ -2,6 +2,13 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+__all__ = (
+    "autocomplete",
+    "banner",
+    "execute",
+    "language_id",
+)
+
 import sys
 import bpy
 

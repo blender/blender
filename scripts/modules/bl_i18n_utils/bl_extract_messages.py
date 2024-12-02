@@ -6,6 +6,10 @@
 # XXX: This script is meant to be used from inside Blender!
 #      You should not directly use this script, rather use update_msg.py!
 
+__all__ = (
+    "dump_addon_messages",
+)
+
 import time
 import os
 import re

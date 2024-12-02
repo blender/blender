@@ -8,6 +8,8 @@ __all__ = (
 
     "bake_action_iter",
     "bake_action_objects_iter",
+
+    "BakeOptions",
 )
 
 import bpy

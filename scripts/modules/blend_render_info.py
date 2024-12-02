@@ -56,7 +56,7 @@ class RawBlendFileReader:
 
         return self._blendfile
 
-    def __exit__(self, exc_type, exc_value, exc_traceback):
+    def __exit__(self, _exc_type, _exc_value, _exc_traceback):
         self._blendfile.close()
         if self._blendfile_base is not None:
             self._blendfile_base.close()

@@ -2,6 +2,11 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+__all__ = (
+    "xml_file_run",
+    "xml_file_write",
+)
+
 import bpy
 
 

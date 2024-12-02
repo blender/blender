@@ -8,6 +8,12 @@ Module to manage overriding various parts of Blender.
 Intended for use with 'app_templates', though it can be used from anywhere.
 """
 
+__all__ = (
+    "class_filter",
+    "ui_draw_filter_register",
+    "ui_draw_filter_unregister",
+)
+
 
 # TODO, how to check these aren't from add-ons.
 # templates might need to un-register while filtering.

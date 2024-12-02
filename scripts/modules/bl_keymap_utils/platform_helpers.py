@@ -2,6 +2,11 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+__all__ = (
+    "keyconfig_data_oskey_from_ctrl",
+    "keyconfig_data_oskey_from_ctrl_for_macos",
+)
+
 
 def keyconfig_data_oskey_from_ctrl(keyconfig_data_src, *, filter_fn=None):
     keyconfig_data_dst = []

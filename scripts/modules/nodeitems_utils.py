@@ -2,6 +2,17 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+__all__ = (
+    "NodeCategory",
+    "NodeItem",
+    "NodeItemCustom",
+    "draw_node_categories_menu",
+    "has_node_categories",
+    "node_items_iter",
+    "register_node_categories",
+    "unregister_node_categories",
+)
+
 import bpy
 
 

@@ -13,6 +13,7 @@ __all__ = (
     "reset_all",
     "module_bl_info",
     "extensions_refresh",
+    "stale_pending_remove_paths",
     "stale_pending_stage_paths",
 )
 

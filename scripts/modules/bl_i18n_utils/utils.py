@@ -4,6 +4,16 @@
 
 # Some misc utilities...
 
+__all__ = (
+    "I18n",
+    "I18nMessage",
+    "I18nMessages",
+    "enable_addons",
+    "find_best_isocode_matches",
+    "get_po_files_from_dir",
+    "list_po_dir",
+)
+
 import collections
 import os
 import platform
@@ -1431,7 +1441,7 @@ class I18n:
         """
         txts = []
         if os.path.isdir(src):
-            for root, dnames, fnames in os.walk(src):
+            for root, _dnames, fnames in os.walk(src):
                 for fname in fnames:
                     if not fname.endswith(".py"):
                         continue

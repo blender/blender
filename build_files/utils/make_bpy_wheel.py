@@ -106,7 +106,7 @@ def cmake_cache_var_iter(filepath_cmake_cache: str) -> Iterator[tuple[str, str, 
 
 
 def cmake_cache_var(filepath_cmake_cache: str, var: str) -> "str | None":
-    for var_iter, type_iter, value_iter in cmake_cache_var_iter(filepath_cmake_cache):
+    for var_iter, _type_iter, value_iter in cmake_cache_var_iter(filepath_cmake_cache):
         if var == var_iter:
             return value_iter
     return None

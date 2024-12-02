@@ -16,6 +16,7 @@ __all__ = (
     "RKS_ITER_selected_bones",
     "RKS_ITER_selected_item",
     "RKS_GEN_available",
+    "RKS_GEN_custom_props",
     "RKS_GEN_location",
     "RKS_GEN_rotation",
     "RKS_GEN_scaling",
