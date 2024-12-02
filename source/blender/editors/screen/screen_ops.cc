@@ -3902,6 +3902,23 @@ static int area_join_cursor(sAreaJoinData *jd, const wmEvent *event)
     return WM_CURSOR_EDIT;
   }
 
+  if (jd->dir != SCREEN_DIR_NONE) {
+    /* Joining */
+    switch (jd->dir) {
+      case SCREEN_DIR_N:
+        return WM_CURSOR_N_ARROW;
+        break;
+      case SCREEN_DIR_S:
+        return WM_CURSOR_S_ARROW;
+        break;
+      case SCREEN_DIR_W:
+        return WM_CURSOR_W_ARROW;
+        break;
+      default:
+        return WM_CURSOR_E_ARROW;
+    }
+  }
+
   if (jd->dir != SCREEN_DIR_NONE || jd->dock_target != AreaDockTarget::None) {
 #if defined(__APPLE__)
     return WM_CURSOR_HAND_CLOSED;
