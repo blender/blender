@@ -42,6 +42,7 @@
 
 /* NOTE: Keep sorted! */
 
+DNA_STRUCT_RENAME(ActionChannelBag, ActionChannelbag)
 DNA_STRUCT_RENAME(Lamp, Light)
 DNA_STRUCT_RENAME(SeqRetimingHandle, SeqRetimingKey)
 DNA_STRUCT_RENAME(SpaceButs, SpaceProperties)
@@ -51,6 +52,7 @@ DNA_STRUCT_RENAME_MEMBER(ActionSlot, name, identifier)
 DNA_STRUCT_RENAME_MEMBER(AnimData, slot_name, last_slot_identifier)
 DNA_STRUCT_RENAME_MEMBER(AnimData, tmp_slot_name, tmp_last_slot_identifier)
 DNA_STRUCT_RENAME_MEMBER(bActionConstraint, action_slot_name, last_slot_identifier)
+DNA_STRUCT_RENAME_MEMBER(bActionGroup, channel_bag, channelbag)
 DNA_STRUCT_RENAME_MEMBER(BPoint, alfa, tilt)
 DNA_STRUCT_RENAME_MEMBER(BezTriple, alfa, tilt)
 DNA_STRUCT_RENAME_MEMBER(Bone, curveInX, curve_in_x)

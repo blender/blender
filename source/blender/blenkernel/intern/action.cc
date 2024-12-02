@@ -310,9 +310,9 @@ static void action_foreach_id(ID *id, LibraryForeachIDData *data)
   }
 }
 
-static void write_channelbag(BlendWriter *writer, animrig::ChannelBag &channelbag)
+static void write_channelbag(BlendWriter *writer, animrig::Channelbag &channelbag)
 {
-  BLO_write_struct(writer, ActionChannelBag, &channelbag);
+  BLO_write_struct(writer, ActionChannelbag, &channelbag);
 
   Span<bActionGroup *> groups = channelbag.channel_groups();
   BLO_write_pointer_array(writer, groups.size(), groups.data());
@@ -336,7 +336,7 @@ static void write_strip_keyframe_data(BlendWriter *writer,
   auto channelbags = strip_keyframe_data.channelbags();
   BLO_write_pointer_array(writer, channelbags.size(), channelbags.data());
 
-  for (animrig::ChannelBag *channelbag : channelbags) {
+  for (animrig::Channelbag *channelbag : channelbags) {
     write_channelbag(writer, *channelbag);
   }
 }
@@ -508,7 +508,7 @@ static void action_blend_write(BlendWriter *writer, ID *id, const void *id_addre
      * forward-compat legacy data is also written, and vice-versa. Both have
      * pointers to each other that won't resolve properly when loaded in older
      * Blender versions if only one is written. */
-    animrig::ChannelBag *bag = channelbag_for_action_slot(action, first_slot.handle);
+    animrig::Channelbag *bag = channelbag_for_action_slot(action, first_slot.handle);
     if (bag) {
       action_blend_write_make_legacy_fcurves_listbase(action.curves, bag->fcurves());
       action_blend_write_make_legacy_channel_groups_listbase(action.groups, bag->channel_groups());
@@ -553,13 +553,13 @@ static void action_blend_write(BlendWriter *writer, ID *id, const void *id_addre
   BKE_previewimg_blend_write(writer, action.preview);
 }
 
-static void read_channelbag(BlendDataReader *reader, animrig::ChannelBag &channelbag)
+static void read_channelbag(BlendDataReader *reader, animrig::Channelbag &channelbag)
 {
   BLO_read_pointer_array(
       reader, channelbag.group_array_num, reinterpret_cast<void **>(&channelbag.group_array));
   for (int i = 0; i < channelbag.group_array_num; i++) {
     BLO_read_struct(reader, bActionGroup, &channelbag.group_array[i]);
-    channelbag.group_array[i]->channel_bag = &channelbag;
+    channelbag.group_array[i]->channelbag = &channelbag;
 
     /* Clear the legacy channels #ListBase, since it will have been set for some
      * groups for forward compatibility.
@@ -590,8 +590,8 @@ static void read_strip_keyframe_data(BlendDataReader *reader,
                          reinterpret_cast<void **>(&strip_keyframe_data.channelbag_array));
 
   for (int i = 0; i < strip_keyframe_data.channelbag_array_num; i++) {
-    BLO_read_struct(reader, ActionChannelBag, &strip_keyframe_data.channelbag_array[i]);
-    ActionChannelBag *channelbag = strip_keyframe_data.channelbag_array[i];
+    BLO_read_struct(reader, ActionChannelbag, &strip_keyframe_data.channelbag_array[i]);
+    ActionChannelbag *channelbag = strip_keyframe_data.channelbag_array[i];
     read_channelbag(reader, channelbag->wrap());
   }
 }
@@ -780,7 +780,7 @@ bAction *BKE_action_add(Main *bmain, const char name[])
 
 bActionGroup *get_active_actiongroup(bAction *act)
 {
-  /* TODO: move this logic to the animrig::ChannelBag struct and unify with code
+  /* TODO: move this logic to the animrig::Channelbag struct and unify with code
    * that uses direct access to the flags. */
   for (bActionGroup *agrp : animrig::legacy::channel_groups_all(act)) {
     if (agrp->flag & AGRP_ACTIVE) {
@@ -792,7 +792,7 @@ bActionGroup *get_active_actiongroup(bAction *act)
 
 void set_active_action_group(bAction *act, bActionGroup *agrp, short select)
 {
-  /* TODO: move this logic to the animrig::ChannelBag struct and unify with code
+  /* TODO: move this logic to the animrig::Channelbag struct and unify with code
    * that uses direct access to the flags. */
   for (bActionGroup *grp : animrig::legacy::channel_groups_all(act)) {
     if ((grp == agrp) && (select)) {
@@ -1913,7 +1913,7 @@ void what_does_obaction(Object *ob,
     /* Find the named channel group. */
     Action &action = act->wrap();
     if (action.is_action_layered()) {
-      ChannelBag *cbag = channelbag_for_action_slot(action, action_slot_handle);
+      Channelbag *cbag = channelbag_for_action_slot(action, action_slot_handle);
       agrp = cbag ? cbag->channel_group_find(groupname) : nullptr;
     }
     else {

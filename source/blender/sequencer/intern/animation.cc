@@ -100,10 +100,10 @@ void SEQ_animation_backup_original(Scene *scene, SeqAnimationBackup *backup)
     if (action.is_action_legacy()) {
       BLI_movelisttolist(&backup->curves, &scene->adt->action->curves);
     }
-    else if (animrig::ChannelBag *channel_bag = animrig::channelbag_for_action_slot(
+    else if (animrig::Channelbag *channelbag = animrig::channelbag_for_action_slot(
                  action, scene->adt->slot_handle))
     {
-      animrig::channelbag_fcurves_move(backup->channel_bag, *channel_bag);
+      animrig::channelbag_fcurves_move(backup->channelbag, *channelbag);
     }
   }
 
@@ -114,7 +114,7 @@ void SEQ_animation_backup_original(Scene *scene, SeqAnimationBackup *backup)
 
 void SEQ_animation_restore_original(Scene *scene, SeqAnimationBackup *backup)
 {
-  if (!BLI_listbase_is_empty(&backup->curves) || !backup->channel_bag.fcurves().is_empty()) {
+  if (!BLI_listbase_is_empty(&backup->curves) || !backup->channelbag.fcurves().is_empty()) {
     BLI_assert(scene->adt != nullptr && scene->adt->action != nullptr);
 
     animrig::Action &action = scene->adt->action->wrap();
@@ -125,13 +125,13 @@ void SEQ_animation_restore_original(Scene *scene, SeqAnimationBackup *backup)
       BLI_movelisttolist(&scene->adt->action->curves, &backup->curves);
     }
     else {
-      animrig::ChannelBag *channel_bag = animrig::channelbag_for_action_slot(
+      animrig::Channelbag *channelbag = animrig::channelbag_for_action_slot(
           action, scene->adt->slot_handle);
       /* The channel bag should exist if we got here, because otherwise the
        * backup channel bag would have been empty. */
-      BLI_assert(channel_bag != nullptr);
+      BLI_assert(channelbag != nullptr);
 
-      animrig::channelbag_fcurves_move(*channel_bag, backup->channel_bag);
+      animrig::channelbag_fcurves_move(*channelbag, backup->channelbag);
     }
   }
 
@@ -156,12 +156,12 @@ static void seq_animation_duplicate(Sequence *seq,
   }
 
   Vector<FCurve *> fcurves = {};
-  BLI_assert_msg(BLI_listbase_is_empty(&src->curves) || src->channel_bag.fcurves().is_empty(),
+  BLI_assert_msg(BLI_listbase_is_empty(&src->curves) || src->channelbag.fcurves().is_empty(),
                  "SeqAnimationBackup has fcurves for both legacy and layered actions, which "
                  "should never happen.");
   if (BLI_listbase_is_empty(&src->curves)) {
     fcurves = animrig::fcurves_in_span_filtered(
-        src->channel_bag.fcurves(),
+        src->channelbag.fcurves(),
         [&](const FCurve &fcurve) { return SEQ_fcurve_matches(*seq, fcurve); });
   }
   else {
@@ -210,7 +210,7 @@ void SEQ_animation_duplicate_backup_to_scene(Scene *scene,
 {
   BLI_assert(scene != nullptr);
 
-  if (!BLI_listbase_is_empty(&backup->curves) || !backup->channel_bag.fcurves().is_empty()) {
+  if (!BLI_listbase_is_empty(&backup->curves) || !backup->channelbag.fcurves().is_empty()) {
     BLI_assert(scene->adt != nullptr);
     BLI_assert(scene->adt->action != nullptr);
     seq_animation_duplicate(seq, scene->adt->action->wrap(), scene->adt->slot_handle, backup);

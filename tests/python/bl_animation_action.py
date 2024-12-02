@@ -208,7 +208,7 @@ class LegacyAPIOnLayeredActionTest(unittest.TestCase):
         strip = layer.strips.new(type='KEYFRAME')
         channelbag = strip.channelbags.new(slot=slot)
 
-        # Create new F-Curves via legacy API, they should be stored on the ChannelBag.
+        # Create new F-Curves via legacy API, they should be stored on the Channelbag.
         fcurve1 = self.action.fcurves.new("scale", index=1)
         fcurve2 = self.action.fcurves.new("scale", index=2)
         self.assertEqual([fcurve1, fcurve2], channelbag.fcurves[:], "Expected two F-Curves after creating them")
@@ -246,7 +246,7 @@ class LegacyAPIOnLayeredActionTest(unittest.TestCase):
         self.assertEqual([], self.action.layers[:])
 
     def test_fcurves_new_on_empty_action(self) -> None:
-        # Create new F-Curves via legacy API, this should create a layer+strip+ChannelBag.
+        # Create new F-Curves via legacy API, this should create a layer+strip+Channelbag.
         fcurve1 = self.action.fcurves.new("scale", index=1)
         fcurve2 = self.action.fcurves.new("scale", index=2)
 
@@ -294,7 +294,7 @@ class LegacyAPIOnLayeredActionTest(unittest.TestCase):
         self.assertNotIn(group, channelbag.groups[:], "A group should be removable via the legacy API")
 
 
-class ChannelBagsTest(unittest.TestCase):
+class ChannelbagsTest(unittest.TestCase):
     def setUp(self):
         anims = bpy.data.actions
         while anims:

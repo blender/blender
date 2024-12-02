@@ -768,42 +768,42 @@ class StripKeyframeData : public ::ActionStripKeyframeData {
   explicit StripKeyframeData(const StripKeyframeData &other);
   ~StripKeyframeData();
 
-  /* ChannelBag array access. */
-  blender::Span<const ChannelBag *> channelbags() const;
-  blender::Span<ChannelBag *> channelbags();
-  const ChannelBag *channelbag(int64_t index) const;
-  ChannelBag *channelbag(int64_t index);
+  /* Channelbag array access. */
+  blender::Span<const Channelbag *> channelbags() const;
+  blender::Span<Channelbag *> channelbags();
+  const Channelbag *channelbag(int64_t index) const;
+  Channelbag *channelbag(int64_t index);
 
   /**
    * Find the animation channels for this slot.
    *
    * \return nullptr if there is none yet for this slot.
    */
-  const ChannelBag *channelbag_for_slot(const Slot &slot) const;
-  ChannelBag *channelbag_for_slot(const Slot &slot);
-  const ChannelBag *channelbag_for_slot(slot_handle_t slot_handle) const;
-  ChannelBag *channelbag_for_slot(slot_handle_t slot_handle);
+  const Channelbag *channelbag_for_slot(const Slot &slot) const;
+  Channelbag *channelbag_for_slot(const Slot &slot);
+  const Channelbag *channelbag_for_slot(slot_handle_t slot_handle) const;
+  Channelbag *channelbag_for_slot(slot_handle_t slot_handle);
 
   /**
    * Add the animation channels for this slot.
    *
-   * Should only be called when there is no `ChannelBag` for this slot yet.
+   * Should only be called when there is no `Channelbag` for this slot yet.
    */
-  ChannelBag &channelbag_for_slot_add(const Slot &slot);
+  Channelbag &channelbag_for_slot_add(const Slot &slot);
 
   /**
-   * Find the ChannelBag for `slot`, or if none exists, create it.
+   * Find the Channelbag for `slot`, or if none exists, create it.
    */
-  ChannelBag &channelbag_for_slot_ensure(const Slot &slot);
+  Channelbag &channelbag_for_slot_ensure(const Slot &slot);
 
   /**
-   * Remove the ChannelBag from this slot.
+   * Remove the Channelbag from this slot.
    *
    * After this call the reference is no longer valid, as the memory will have been freed.
    *
-   * \return true when the ChannelBag was found & removed, false if it wasn't found.
+   * \return true when the Channelbag was found & removed, false if it wasn't found.
    */
-  bool channelbag_remove(ChannelBag &channelbag_to_remove);
+  bool channelbag_remove(Channelbag &channelbag_to_remove);
 
   /**
    * Remove all strip data for the given slot.
@@ -813,7 +813,7 @@ class StripKeyframeData : public ::ActionStripKeyframeData {
   void slot_data_remove(slot_handle_t slot_handle);
 
   /** Return the channelbag's index, or -1 if there is none for this slot handle. */
-  int64_t find_channelbag_index(const ChannelBag &channelbag) const;
+  int64_t find_channelbag_index(const Channelbag &channelbag) const;
 
   SingleKeyingResult keyframe_insert(Main *bmain,
                                      const Slot &slot,
@@ -829,11 +829,11 @@ static_assert(sizeof(StripKeyframeData) == sizeof(::ActionStripKeyframeData),
 /**
  * Collection of F-Curves, intended for a specific Slot handle.
  */
-class ChannelBag : public ::ActionChannelBag {
+class Channelbag : public ::ActionChannelbag {
  public:
-  ChannelBag() = default;
-  explicit ChannelBag(const ChannelBag &other);
-  ~ChannelBag();
+  Channelbag() = default;
+  explicit Channelbag(const Channelbag &other);
+  ~Channelbag();
 
   /* FCurves access. */
   blender::Span<const FCurve *> fcurves() const;
@@ -862,7 +862,7 @@ class ChannelBag : public ::ActionChannelBag {
   FCurve &fcurve_ensure(Main *bmain, FCurveDescriptor fcurve_descriptor);
 
   /**
-   * Create an F-Curve, but only if it doesn't exist yet in this ChannelBag.
+   * Create an F-Curve, but only if it doesn't exist yet in this Channelbag.
    *
    * \return the F-Curve it it was created, or nullptr if it already existed.
    *
@@ -875,9 +875,9 @@ class ChannelBag : public ::ActionChannelBag {
   FCurve *fcurve_create_unique(Main *bmain, FCurveDescriptor fcurve_descriptor);
 
   /**
-   * Append an F-Curve to this ChannelBag.
+   * Append an F-Curve to this Channelbag.
    *
-   * Ownership of the F-Curve is also transferred to the ChannelBag. The F-Curve
+   * Ownership of the F-Curve is also transferred to the Channelbag. The F-Curve
    * will not belong to any channel group after appending.
    *
    * This is considered a low-level function. Things like depsgraph relations
@@ -886,7 +886,7 @@ class ChannelBag : public ::ActionChannelBag {
   void fcurve_append(FCurve &fcurve);
 
   /**
-   * Remove an F-Curve from the ChannelBag.
+   * Remove an F-Curve from the Channelbag.
    *
    * Additionally, if the fcurve was the last fcurve in a channel group, that
    * channel group is also deleted.
@@ -901,7 +901,7 @@ class ChannelBag : public ::ActionChannelBag {
   bool fcurve_remove(FCurve &fcurve_to_remove);
 
   /**
-   * Remove an F-Curve from the ChannelBag, identified by its index in the array.
+   * Remove an F-Curve from the Channelbag, identified by its index in the array.
    *
    * Acts the same as fcurve_remove() except it's a bit more efficient as it
    * doesn't need to find the F-Curve in the array first.
@@ -911,7 +911,7 @@ class ChannelBag : public ::ActionChannelBag {
   void fcurve_remove_by_index(int64_t fcurve_array_index);
 
   /**
-   * Detach an F-Curve from the ChannelBag.
+   * Detach an F-Curve from the Channelbag.
    *
    * Additionally, if the fcurve was the last fcurve in a channel group, that
    * channel group is deleted.
@@ -926,7 +926,7 @@ class ChannelBag : public ::ActionChannelBag {
   bool fcurve_detach(FCurve &fcurve_to_detach);
 
   /**
-   * Detach an F-Curve from the ChannelBag, identified by its index in the array.
+   * Detach an F-Curve from the Channelbag, identified by its index in the array.
    *
    * Acts the same as fcurve_detach() except it's a bit more efficient as it
    * doesn't need to find the F-Curve in the array first.
@@ -947,7 +947,7 @@ class ChannelBag : public ::ActionChannelBag {
   void fcurve_move(FCurve &fcurve, int to_fcurve_index);
 
   /**
-   * Remove all F-Curves from this ChannelBag.
+   * Remove all F-Curves from this Channelbag.
    */
   void fcurves_clear();
 
@@ -981,7 +981,7 @@ class ChannelBag : public ::ActionChannelBag {
    * Create a new empty channel group with the given name.
    *
    * The new group is added to the end of the channel group array of the
-   * ChannelBag.
+   * Channelbag.
    *
    * This function ensures the group has a unique name, and thus the name of the
    * created group may differ from the `name` parameter.
@@ -994,7 +994,7 @@ class ChannelBag : public ::ActionChannelBag {
    * Find a channel group with the given name, or if none exists create one.
    *
    * If a new group is created, it's added to the end of the channel group array
-   * of the ChannelBag.
+   * of the Channelbag.
    *
    * \return A reference to the channel group.
    */
@@ -1051,7 +1051,7 @@ class ChannelBag : public ::ActionChannelBag {
   /**
    * Create an F-Curve.
    *
-   * Assumes that there is no such F-Curve yet on this ChannelBag. If it is
+   * Assumes that there is no such F-Curve yet on this Channelbag. If it is
    * uncertain whether this is the case, use `fcurve_create_unique()` instead.
    *
    * \param bmain: Used to tag the dependency graph(s) for relationship
@@ -1125,13 +1125,13 @@ class ChannelBag : public ::ActionChannelBag {
   void restore_channel_group_invariants();
 };
 
-static_assert(sizeof(ChannelBag) == sizeof(::ActionChannelBag),
+static_assert(sizeof(Channelbag) == sizeof(::ActionChannelbag),
               "DNA struct and its C++ wrapper must have the same size");
 
 /**
- * A group of channels within a ChannelBag.
+ * A group of channels within a Channelbag.
  *
- * This does *not* own the fcurves--the ChannelBag does. This just groups
+ * This does *not* own the fcurves--the Channelbag does. This just groups
  * fcurves for organizational purposes, e.g. for use in the channel list in the
  * animation editors.
  *
@@ -1331,9 +1331,9 @@ Action *get_action(ID &animated_id);
  */
 std::optional<std::pair<Action *, Slot *>> get_action_slot_pair(ID &animated_id);
 
-const animrig::ChannelBag *channelbag_for_action_slot(const Action &action,
+const animrig::Channelbag *channelbag_for_action_slot(const Action &action,
                                                       slot_handle_t slot_handle);
-animrig::ChannelBag *channelbag_for_action_slot(Action &action, slot_handle_t slot_handle);
+animrig::Channelbag *channelbag_for_action_slot(Action &action, slot_handle_t slot_handle);
 
 /**
  * Return the F-Curves for this specific slot handle.
@@ -1525,20 +1525,20 @@ void action_fcurve_move(Action &action_dst,
                         FCurve &fcurve);
 
 /**
- * Moves all F-Curves from one ChannelBag to the other.
+ * Moves all F-Curves from one Channelbag to the other.
  *
- * The ChannelBags do not need to be part of the same action, or even belong to
+ * The Channelbags do not need to be part of the same action, or even belong to
  * an action at all.
  *
  * If the F-Curves belonged to channel groups, the group membership also carries
- * over to the destination ChannelBag. If groups with the same names don't
+ * over to the destination Channelbag. If groups with the same names don't
  * exist, they are created. \see blender::animrig::action_fcurve_detach
  *
- * The order of existing channel groups in the destination ChannelBag are not
+ * The order of existing channel groups in the destination Channelbag are not
  * changed, and any new groups are placed after those in the order they appeared
  * in the src group.
  */
-void channelbag_fcurves_move(ChannelBag &channelbag_dst, ChannelBag &channelbag_src);
+void channelbag_fcurves_move(Channelbag &channelbag_dst, Channelbag &channelbag_src);
 
 /**
  * Find an appropriate user of the given Action + Slot for keyframing purposes.
@@ -1718,11 +1718,11 @@ inline const blender::animrig::StripKeyframeData &ActionStripKeyframeData::wrap(
   return *reinterpret_cast<const blender::animrig::StripKeyframeData *>(this);
 }
 
-inline blender::animrig::ChannelBag &ActionChannelBag::wrap()
+inline blender::animrig::Channelbag &ActionChannelbag::wrap()
 {
-  return *reinterpret_cast<blender::animrig::ChannelBag *>(this);
+  return *reinterpret_cast<blender::animrig::Channelbag *>(this);
 }
-inline const blender::animrig::ChannelBag &ActionChannelBag::wrap() const
+inline const blender::animrig::Channelbag &ActionChannelbag::wrap() const
 {
-  return *reinterpret_cast<const blender::animrig::ChannelBag *>(this);
+  return *reinterpret_cast<const blender::animrig::Channelbag *>(this);
 }

@@ -1624,51 +1624,51 @@ StripKeyframeData::StripKeyframeData(const StripKeyframeData &other)
 {
   memcpy(this, &other, sizeof(*this));
 
-  this->channelbag_array = MEM_cnew_array<ActionChannelBag *>(other.channelbag_array_num,
+  this->channelbag_array = MEM_cnew_array<ActionChannelbag *>(other.channelbag_array_num,
                                                               __func__);
-  Span<const ChannelBag *> channelbags_src = other.channelbags();
+  Span<const Channelbag *> channelbags_src = other.channelbags();
   for (int i : channelbags_src.index_range()) {
-    this->channelbag_array[i] = MEM_new<animrig::ChannelBag>(__func__, *other.channelbag(i));
+    this->channelbag_array[i] = MEM_new<animrig::Channelbag>(__func__, *other.channelbag(i));
   }
 }
 
 StripKeyframeData::~StripKeyframeData()
 {
-  for (ChannelBag *channelbag_for_slot : this->channelbags()) {
+  for (Channelbag *channelbag_for_slot : this->channelbags()) {
     MEM_delete(channelbag_for_slot);
   }
   MEM_SAFE_FREE(this->channelbag_array);
   this->channelbag_array_num = 0;
 }
 
-blender::Span<const ChannelBag *> StripKeyframeData::channelbags() const
+blender::Span<const Channelbag *> StripKeyframeData::channelbags() const
 {
-  return blender::Span<ChannelBag *>{reinterpret_cast<ChannelBag **>(this->channelbag_array),
+  return blender::Span<Channelbag *>{reinterpret_cast<Channelbag **>(this->channelbag_array),
                                      this->channelbag_array_num};
 }
-blender::Span<ChannelBag *> StripKeyframeData::channelbags()
+blender::Span<Channelbag *> StripKeyframeData::channelbags()
 {
-  return blender::Span<ChannelBag *>{reinterpret_cast<ChannelBag **>(this->channelbag_array),
+  return blender::Span<Channelbag *>{reinterpret_cast<Channelbag **>(this->channelbag_array),
                                      this->channelbag_array_num};
 }
-const ChannelBag *StripKeyframeData::channelbag(const int64_t index) const
+const Channelbag *StripKeyframeData::channelbag(const int64_t index) const
 {
   return &this->channelbag_array[index]->wrap();
 }
-ChannelBag *StripKeyframeData::channelbag(const int64_t index)
+Channelbag *StripKeyframeData::channelbag(const int64_t index)
 {
   return &this->channelbag_array[index]->wrap();
 }
-const ChannelBag *StripKeyframeData::channelbag_for_slot(const slot_handle_t slot_handle) const
+const Channelbag *StripKeyframeData::channelbag_for_slot(const slot_handle_t slot_handle) const
 {
-  for (const ChannelBag *channels : this->channelbags()) {
+  for (const Channelbag *channels : this->channelbags()) {
     if (channels->slot_handle == slot_handle) {
       return channels;
     }
   }
   return nullptr;
 }
-int64_t StripKeyframeData::find_channelbag_index(const ChannelBag &channelbag) const
+int64_t StripKeyframeData::find_channelbag_index(const Channelbag &channelbag) const
 {
   for (int64_t index = 0; index < this->channelbag_array_num; index++) {
     if (this->channelbag(index) == &channelbag) {
@@ -1677,51 +1677,51 @@ int64_t StripKeyframeData::find_channelbag_index(const ChannelBag &channelbag) c
   }
   return -1;
 }
-ChannelBag *StripKeyframeData::channelbag_for_slot(const slot_handle_t slot_handle)
+Channelbag *StripKeyframeData::channelbag_for_slot(const slot_handle_t slot_handle)
 {
   const auto *const_this = const_cast<const StripKeyframeData *>(this);
   const auto *const_channels = const_this->channelbag_for_slot(slot_handle);
-  return const_cast<ChannelBag *>(const_channels);
+  return const_cast<Channelbag *>(const_channels);
 }
-const ChannelBag *StripKeyframeData::channelbag_for_slot(const Slot &slot) const
+const Channelbag *StripKeyframeData::channelbag_for_slot(const Slot &slot) const
 {
   return this->channelbag_for_slot(slot.handle);
 }
-ChannelBag *StripKeyframeData::channelbag_for_slot(const Slot &slot)
+Channelbag *StripKeyframeData::channelbag_for_slot(const Slot &slot)
 {
   return this->channelbag_for_slot(slot.handle);
 }
 
-ChannelBag &StripKeyframeData::channelbag_for_slot_add(const Slot &slot)
+Channelbag &StripKeyframeData::channelbag_for_slot_add(const Slot &slot)
 {
   BLI_assert_msg(channelbag_for_slot(slot) == nullptr,
                  "Cannot add chans-for-slot for already-registered slot");
 
-  ChannelBag &channels = MEM_new<ActionChannelBag>(__func__)->wrap();
+  Channelbag &channels = MEM_new<ActionChannelbag>(__func__)->wrap();
   channels.slot_handle = slot.handle;
 
-  grow_array_and_append<ActionChannelBag *>(
+  grow_array_and_append<ActionChannelbag *>(
       &this->channelbag_array, &this->channelbag_array_num, &channels);
 
   return channels;
 }
 
-ChannelBag &StripKeyframeData::channelbag_for_slot_ensure(const Slot &slot)
+Channelbag &StripKeyframeData::channelbag_for_slot_ensure(const Slot &slot)
 {
-  ChannelBag *channel_bag = this->channelbag_for_slot(slot);
-  if (channel_bag != nullptr) {
-    return *channel_bag;
+  Channelbag *channelbag = this->channelbag_for_slot(slot);
+  if (channelbag != nullptr) {
+    return *channelbag;
   }
   return this->channelbag_for_slot_add(slot);
 }
 
-static void channelbag_ptr_destructor(ActionChannelBag **dna_channelbag_ptr)
+static void channelbag_ptr_destructor(ActionChannelbag **dna_channelbag_ptr)
 {
-  ChannelBag &channelbag = (*dna_channelbag_ptr)->wrap();
+  Channelbag &channelbag = (*dna_channelbag_ptr)->wrap();
   MEM_delete(&channelbag);
 };
 
-bool StripKeyframeData::channelbag_remove(ChannelBag &channelbag_to_remove)
+bool StripKeyframeData::channelbag_remove(Channelbag &channelbag_to_remove)
 {
   const int64_t channelbag_index = this->find_channelbag_index(channelbag_to_remove);
   if (channelbag_index < 0) {
@@ -1739,26 +1739,26 @@ bool StripKeyframeData::channelbag_remove(ChannelBag &channelbag_to_remove)
 
 void StripKeyframeData::slot_data_remove(const slot_handle_t slot_handle)
 {
-  ChannelBag *channelbag = this->channelbag_for_slot(slot_handle);
+  Channelbag *channelbag = this->channelbag_for_slot(slot_handle);
   if (!channelbag) {
     return;
   }
   this->channelbag_remove(*channelbag);
 }
 
-const FCurve *ChannelBag::fcurve_find(const FCurveDescriptor fcurve_descriptor) const
+const FCurve *Channelbag::fcurve_find(const FCurveDescriptor fcurve_descriptor) const
 {
   return animrig::fcurve_find(this->fcurves(), fcurve_descriptor);
 }
 
-FCurve *ChannelBag::fcurve_find(const FCurveDescriptor fcurve_descriptor)
+FCurve *Channelbag::fcurve_find(const FCurveDescriptor fcurve_descriptor)
 {
   /* Intermediate variable needed to disambiguate const/non-const overloads. */
   Span<FCurve *> fcurves = this->fcurves();
   return animrig::fcurve_find(fcurves, fcurve_descriptor);
 }
 
-FCurve &ChannelBag::fcurve_ensure(Main *bmain, const FCurveDescriptor fcurve_descriptor)
+FCurve &Channelbag::fcurve_ensure(Main *bmain, const FCurveDescriptor fcurve_descriptor)
 {
   if (FCurve *existing_fcurve = this->fcurve_find(fcurve_descriptor)) {
     return *existing_fcurve;
@@ -1766,7 +1766,7 @@ FCurve &ChannelBag::fcurve_ensure(Main *bmain, const FCurveDescriptor fcurve_des
   return this->fcurve_create(bmain, fcurve_descriptor);
 }
 
-FCurve *ChannelBag::fcurve_create_unique(Main *bmain, FCurveDescriptor fcurve_descriptor)
+FCurve *Channelbag::fcurve_create_unique(Main *bmain, FCurveDescriptor fcurve_descriptor)
 {
   if (this->fcurve_find(fcurve_descriptor)) {
     return nullptr;
@@ -1774,7 +1774,7 @@ FCurve *ChannelBag::fcurve_create_unique(Main *bmain, FCurveDescriptor fcurve_de
   return &this->fcurve_create(bmain, fcurve_descriptor);
 }
 
-FCurve &ChannelBag::fcurve_create(Main *bmain, FCurveDescriptor fcurve_descriptor)
+FCurve &Channelbag::fcurve_create(Main *bmain, FCurveDescriptor fcurve_descriptor)
 {
   FCurve *new_fcurve = create_fcurve_for_channel(fcurve_descriptor);
 
@@ -1802,7 +1802,7 @@ FCurve &ChannelBag::fcurve_create(Main *bmain, FCurveDescriptor fcurve_descripto
   return *new_fcurve;
 }
 
-void ChannelBag::fcurve_append(FCurve &fcurve)
+void Channelbag::fcurve_append(FCurve &fcurve)
 {
   /* Appended F-Curves don't belong to any group yet, so better make sure their
    * group pointer reflects that. */
@@ -1816,7 +1816,7 @@ static void fcurve_ptr_destructor(FCurve **fcurve_ptr)
   BKE_fcurve_free(*fcurve_ptr);
 };
 
-bool ChannelBag::fcurve_remove(FCurve &fcurve_to_remove)
+bool Channelbag::fcurve_remove(FCurve &fcurve_to_remove)
 {
   if (!this->fcurve_detach(fcurve_to_remove)) {
     return false;
@@ -1825,7 +1825,7 @@ bool ChannelBag::fcurve_remove(FCurve &fcurve_to_remove)
   return true;
 }
 
-void ChannelBag::fcurve_remove_by_index(const int64_t fcurve_index)
+void Channelbag::fcurve_remove_by_index(const int64_t fcurve_index)
 {
   /* Grab the pointer before it's detached, so we can free it after. */
   FCurve *fcurve_to_remove = this->fcurve(fcurve_index);
@@ -1837,7 +1837,7 @@ void ChannelBag::fcurve_remove_by_index(const int64_t fcurve_index)
 
 static void fcurve_ptr_noop_destructor(FCurve ** /*fcurve_ptr*/) {}
 
-bool ChannelBag::fcurve_detach(FCurve &fcurve_to_detach)
+bool Channelbag::fcurve_detach(FCurve &fcurve_to_detach)
 {
   const int64_t fcurve_index = this->fcurves().first_index_try(&fcurve_to_detach);
   if (fcurve_index < 0) {
@@ -1847,7 +1847,7 @@ bool ChannelBag::fcurve_detach(FCurve &fcurve_to_detach)
   return true;
 }
 
-void ChannelBag::fcurve_detach_by_index(const int64_t fcurve_index)
+void Channelbag::fcurve_detach_by_index(const int64_t fcurve_index)
 {
   BLI_assert(fcurve_index >= 0);
   BLI_assert(fcurve_index < this->fcurve_array_num);
@@ -1876,7 +1876,7 @@ void ChannelBag::fcurve_detach_by_index(const int64_t fcurve_index)
    * depsgraph evaluation results though. */
 }
 
-void ChannelBag::fcurve_move(FCurve &fcurve, int to_fcurve_index)
+void Channelbag::fcurve_move(FCurve &fcurve, int to_fcurve_index)
 {
   BLI_assert(to_fcurve_index >= 0 && to_fcurve_index < this->fcurves().size());
 
@@ -1889,7 +1889,7 @@ void ChannelBag::fcurve_move(FCurve &fcurve, int to_fcurve_index)
   this->restore_channel_group_invariants();
 }
 
-void ChannelBag::fcurves_clear()
+void Channelbag::fcurves_clear()
 {
   dna::array::clear(&this->fcurve_array, &this->fcurve_array_num, nullptr, fcurve_ptr_destructor);
 
@@ -1976,7 +1976,7 @@ SingleKeyingResult StripKeyframeData::keyframe_insert(Main *bmain,
     fcurve = &this->channelbag_for_slot_ensure(slot).fcurve_ensure(bmain, fcurve_descriptor);
   }
   else {
-    ChannelBag *channels = this->channelbag_for_slot(slot);
+    Channelbag *channels = this->channelbag_for_slot(slot);
     if (channels != nullptr) {
       fcurve = channels->fcurve_find(fcurve_descriptor);
     }
@@ -2032,9 +2032,9 @@ SingleKeyingResult StripKeyframeData::keyframe_insert(Main *bmain,
   return SingleKeyingResult::SUCCESS;
 }
 
-/* ActionChannelBag implementation. */
+/* ActionChannelbag implementation. */
 
-ChannelBag::ChannelBag(const ChannelBag &other)
+Channelbag::Channelbag(const Channelbag &other)
 {
   this->slot_handle = other.slot_handle;
 
@@ -2050,7 +2050,7 @@ ChannelBag::ChannelBag(const ChannelBag &other)
   for (int i = 0; i < other.group_array_num; i++) {
     const bActionGroup *group_src = other.group_array[i];
     this->group_array[i] = static_cast<bActionGroup *>(MEM_dupallocN(group_src));
-    this->group_array[i]->channel_bag = this;
+    this->group_array[i]->channelbag = this;
   }
 
   /* BKE_fcurve_copy() resets the FCurve's group pointer. Which is good, because the groups are
@@ -2058,7 +2058,7 @@ ChannelBag::ChannelBag(const ChannelBag &other)
   this->restore_channel_group_invariants();
 }
 
-ChannelBag::~ChannelBag()
+Channelbag::~Channelbag()
 {
   for (FCurve *fcu : this->fcurves()) {
     BKE_fcurve_free(fcu);
@@ -2073,43 +2073,43 @@ ChannelBag::~ChannelBag()
   this->group_array_num = 0;
 }
 
-blender::Span<const FCurve *> ChannelBag::fcurves() const
+blender::Span<const FCurve *> Channelbag::fcurves() const
 {
   return blender::Span<FCurve *>{this->fcurve_array, this->fcurve_array_num};
 }
-blender::Span<FCurve *> ChannelBag::fcurves()
+blender::Span<FCurve *> Channelbag::fcurves()
 {
   return blender::Span<FCurve *>{this->fcurve_array, this->fcurve_array_num};
 }
-const FCurve *ChannelBag::fcurve(const int64_t index) const
+const FCurve *Channelbag::fcurve(const int64_t index) const
 {
   return this->fcurve_array[index];
 }
-FCurve *ChannelBag::fcurve(const int64_t index)
+FCurve *Channelbag::fcurve(const int64_t index)
 {
   return this->fcurve_array[index];
 }
 
-blender::Span<const bActionGroup *> ChannelBag::channel_groups() const
+blender::Span<const bActionGroup *> Channelbag::channel_groups() const
 {
   return blender::Span<bActionGroup *>{this->group_array, this->group_array_num};
 }
-blender::Span<bActionGroup *> ChannelBag::channel_groups()
+blender::Span<bActionGroup *> Channelbag::channel_groups()
 {
   return blender::Span<bActionGroup *>{this->group_array, this->group_array_num};
 }
-const bActionGroup *ChannelBag::channel_group(const int64_t index) const
+const bActionGroup *Channelbag::channel_group(const int64_t index) const
 {
   BLI_assert(index < this->group_array_num);
   return this->group_array[index];
 }
-bActionGroup *ChannelBag::channel_group(const int64_t index)
+bActionGroup *Channelbag::channel_group(const int64_t index)
 {
   BLI_assert(index < this->group_array_num);
   return this->group_array[index];
 }
 
-const bActionGroup *ChannelBag::channel_group_find(const StringRef name) const
+const bActionGroup *Channelbag::channel_group_find(const StringRef name) const
 {
   for (const bActionGroup *group : this->channel_groups()) {
     if (name == StringRef{group->name}) {
@@ -2120,7 +2120,7 @@ const bActionGroup *ChannelBag::channel_group_find(const StringRef name) const
   return nullptr;
 }
 
-bActionGroup *ChannelBag::channel_group_find(const StringRef name)
+bActionGroup *Channelbag::channel_group_find(const StringRef name)
 {
   /* Intermediate variable needed to disambiguate const/non-const overloads. */
   Span<bActionGroup *> groups = this->channel_groups();
@@ -2133,7 +2133,7 @@ bActionGroup *ChannelBag::channel_group_find(const StringRef name)
   return nullptr;
 }
 
-int ChannelBag::channel_group_containing_index(const int fcurve_array_index)
+int Channelbag::channel_group_containing_index(const int fcurve_array_index)
 {
   int i = 0;
   for (const bActionGroup *group : this->channel_groups()) {
@@ -2148,7 +2148,7 @@ int ChannelBag::channel_group_containing_index(const int fcurve_array_index)
   return -1;
 }
 
-bActionGroup &ChannelBag::channel_group_create(StringRefNull name)
+bActionGroup &Channelbag::channel_group_create(StringRefNull name)
 {
   bActionGroup *new_group = static_cast<bActionGroup *>(
       MEM_callocN(sizeof(bActionGroup), __func__));
@@ -2163,7 +2163,7 @@ bActionGroup &ChannelBag::channel_group_create(StringRefNull name)
   }
   new_group->fcurve_range_start = fcurve_index;
 
-  new_group->channel_bag = this;
+  new_group->channelbag = this;
 
   /* Make it selected. */
   new_group->flag = AGRP_SELECTED;
@@ -2193,7 +2193,7 @@ bActionGroup &ChannelBag::channel_group_create(StringRefNull name)
   return *new_group;
 }
 
-bActionGroup &ChannelBag::channel_group_ensure(StringRefNull name)
+bActionGroup &Channelbag::channel_group_ensure(StringRefNull name)
 {
   bActionGroup *group = this->channel_group_find(name);
   if (group) {
@@ -2203,7 +2203,7 @@ bActionGroup &ChannelBag::channel_group_ensure(StringRefNull name)
   return this->channel_group_create(name);
 }
 
-bool ChannelBag::channel_group_remove(bActionGroup &group)
+bool Channelbag::channel_group_remove(bActionGroup &group)
 {
   const int group_index = this->channel_groups().first_index_try(&group);
   if (group_index == -1) {
@@ -2228,7 +2228,7 @@ bool ChannelBag::channel_group_remove(bActionGroup &group)
   return true;
 }
 
-void ChannelBag::channel_group_move(bActionGroup &group, const int to_group_index)
+void Channelbag::channel_group_move(bActionGroup &group, const int to_group_index)
 {
   BLI_assert(to_group_index >= 0 && to_group_index < this->channel_groups().size());
 
@@ -2257,7 +2257,7 @@ void ChannelBag::channel_group_move(bActionGroup &group, const int to_group_inde
   this->restore_channel_group_invariants();
 }
 
-void ChannelBag::channel_group_remove_raw(const int group_index)
+void Channelbag::channel_group_remove_raw(const int group_index)
 {
   BLI_assert(group_index >= 0 && group_index < this->channel_groups().size());
 
@@ -2265,7 +2265,7 @@ void ChannelBag::channel_group_remove_raw(const int group_index)
   shrink_array_and_remove(&this->group_array, &this->group_array_num, group_index);
 }
 
-void ChannelBag::restore_channel_group_invariants()
+void Channelbag::restore_channel_group_invariants()
 {
   /* Shift channel groups. */
   {
@@ -2295,7 +2295,7 @@ void ChannelBag::restore_channel_group_invariants()
 
 bool ChannelGroup::is_legacy() const
 {
-  return this->channel_bag == nullptr;
+  return this->channelbag == nullptr;
 }
 
 Span<FCurve *> ChannelGroup::fcurves()
@@ -2306,8 +2306,8 @@ Span<FCurve *> ChannelGroup::fcurves()
     return {};
   }
 
-  return this->channel_bag->wrap().fcurves().slice(this->fcurve_range_start,
-                                                   this->fcurve_range_length);
+  return this->channelbag->wrap().fcurves().slice(this->fcurve_range_start,
+                                                  this->fcurve_range_length);
 }
 
 Span<const FCurve *> ChannelGroup::fcurves() const
@@ -2318,13 +2318,13 @@ Span<const FCurve *> ChannelGroup::fcurves() const
     return {};
   }
 
-  return this->channel_bag->wrap().fcurves().slice(this->fcurve_range_start,
-                                                   this->fcurve_range_length);
+  return this->channelbag->wrap().fcurves().slice(this->fcurve_range_start,
+                                                  this->fcurve_range_length);
 }
 
 /* Utility function implementations. */
 
-const animrig::ChannelBag *channelbag_for_action_slot(const Action &action,
+const animrig::Channelbag *channelbag_for_action_slot(const Action &action,
                                                       const slot_handle_t slot_handle)
 {
   assert_baklava_phase_1_invariants(action);
@@ -2339,7 +2339,7 @@ const animrig::ChannelBag *channelbag_for_action_slot(const Action &action,
         case animrig::Strip::Type::Keyframe: {
           const animrig::StripKeyframeData &strip_data = strip->data<animrig::StripKeyframeData>(
               action);
-          const animrig::ChannelBag *bag = strip_data.channelbag_for_slot(slot_handle);
+          const animrig::Channelbag *bag = strip_data.channelbag_for_slot(slot_handle);
           if (bag) {
             return bag;
           }
@@ -2351,18 +2351,18 @@ const animrig::ChannelBag *channelbag_for_action_slot(const Action &action,
   return nullptr;
 }
 
-animrig::ChannelBag *channelbag_for_action_slot(Action &action, const slot_handle_t slot_handle)
+animrig::Channelbag *channelbag_for_action_slot(Action &action, const slot_handle_t slot_handle)
 {
-  const animrig::ChannelBag *const_bag = channelbag_for_action_slot(
+  const animrig::Channelbag *const_bag = channelbag_for_action_slot(
       const_cast<const Action &>(action), slot_handle);
-  return const_cast<animrig::ChannelBag *>(const_bag);
+  return const_cast<animrig::Channelbag *>(const_bag);
 }
 
 Span<FCurve *> fcurves_for_action_slot(Action &action, const slot_handle_t slot_handle)
 {
   BLI_assert(action.is_action_layered());
   assert_baklava_phase_1_invariants(action);
-  animrig::ChannelBag *bag = channelbag_for_action_slot(action, slot_handle);
+  animrig::Channelbag *bag = channelbag_for_action_slot(action, slot_handle);
   if (!bag) {
     return {};
   }
@@ -2373,7 +2373,7 @@ Span<const FCurve *> fcurves_for_action_slot(const Action &action, const slot_ha
 {
   BLI_assert(action.is_action_layered());
   assert_baklava_phase_1_invariants(action);
-  const animrig::ChannelBag *bag = channelbag_for_action_slot(action, slot_handle);
+  const animrig::Channelbag *bag = channelbag_for_action_slot(action, slot_handle);
   if (!bag) {
     return {};
   }
@@ -2404,7 +2404,7 @@ FCurve *fcurve_find_in_action(bAction *act, FCurveDescriptor fcurve_descriptor)
 
   StripKeyframeData &strip_data = strip->data<StripKeyframeData>(action);
 
-  for (ChannelBag *channelbag : strip_data.channelbags()) {
+  for (Channelbag *channelbag : strip_data.channelbags()) {
     FCurve *fcu = channelbag->fcurve_find(fcurve_descriptor);
     if (fcu) {
       return fcu;
@@ -2433,7 +2433,7 @@ FCurve *fcurve_find_in_action_slot(bAction *act,
         &act->curves, fcurve_descriptor.rna_path.c_str(), fcurve_descriptor.array_index);
   }
 
-  ChannelBag *cbag = channelbag_for_action_slot(action, slot_handle);
+  Channelbag *cbag = channelbag_for_action_slot(action, slot_handle);
   if (!cbag) {
     return nullptr;
   }
@@ -2661,7 +2661,7 @@ bool action_fcurve_detach(Action &action, FCurve &fcurve_to_detach)
         continue;
       }
       StripKeyframeData &strip_data = strip->data<StripKeyframeData>(action);
-      for (ChannelBag *bag : strip_data.channelbags()) {
+      for (Channelbag *bag : strip_data.channelbags()) {
         const bool is_detached = bag->fcurve_detach(fcurve_to_detach);
         if (is_detached) {
           return true;
@@ -2695,7 +2695,7 @@ void action_fcurve_attach(Action &action,
 
   action.layer_keystrip_ensure();
   StripKeyframeData &strip_data = action.layer(0)->strip(0)->data<StripKeyframeData>(action);
-  ChannelBag &cbag = strip_data.channelbag_for_slot_ensure(*slot);
+  Channelbag &cbag = strip_data.channelbag_for_slot_ensure(*slot);
   cbag.fcurve_append(fcurve_to_attach);
 
   if (group_name) {
@@ -2723,7 +2723,7 @@ void action_fcurve_move(Action &action_dst,
   action_fcurve_attach(action_dst, action_slot_dst, fcurve, group_name);
 }
 
-void channelbag_fcurves_move(ChannelBag &channelbag_dst, ChannelBag &channelbag_src)
+void channelbag_fcurves_move(Channelbag &channelbag_dst, Channelbag &channelbag_src)
 {
   while (!channelbag_src.fcurves().is_empty()) {
     FCurve &fcurve = *channelbag_src.fcurve(0);
@@ -2748,7 +2748,7 @@ void channelbag_fcurves_move(ChannelBag &channelbag_dst, ChannelBag &channelbag_
   }
 }
 
-bool ChannelBag::fcurve_assign_to_channel_group(FCurve &fcurve, bActionGroup &to_group)
+bool Channelbag::fcurve_assign_to_channel_group(FCurve &fcurve, bActionGroup &to_group)
 {
   if (this->channel_groups().first_index_try(&to_group) == -1) {
     return false;
@@ -2785,7 +2785,7 @@ bool ChannelBag::fcurve_assign_to_channel_group(FCurve &fcurve, bActionGroup &to
   return true;
 }
 
-bool ChannelBag::fcurve_ungroup(FCurve &fcurve)
+bool Channelbag::fcurve_ungroup(FCurve &fcurve)
 {
   const int fcurve_index = this->fcurves().first_index_try(&fcurve);
   if (fcurve_index == -1) {
@@ -2921,7 +2921,7 @@ Action *convert_to_layered_action(Main &bmain, const Action &legacy_action)
   Layer &layer = converted_action.layer_add(legacy_action.id.name);
   Strip &strip = layer.strip_add(converted_action, Strip::Type::Keyframe);
   BLI_assert(strip.data<StripKeyframeData>(converted_action).channelbag_array_num == 0);
-  ChannelBag *bag = &strip.data<StripKeyframeData>(converted_action).channelbag_for_slot_add(slot);
+  Channelbag *bag = &strip.data<StripKeyframeData>(converted_action).channelbag_for_slot_add(slot);
 
   const int fcu_count = BLI_listbase_count(&legacy_action.curves);
   bag->fcurve_array = MEM_cnew_array<FCurve *>(fcu_count, "Convert to layered action");
@@ -2985,13 +2985,13 @@ void move_slot(Main &bmain, Slot &source_slot, Action &from_action, Action &to_a
   clone_slot(source_slot, target_slot);
   slot_identifier_ensure_unique(to_action, target_slot);
 
-  ChannelBag *channel_bag = from_strip_data.channelbag_for_slot(source_slot.handle);
-  BLI_assert(channel_bag != nullptr);
-  channel_bag->slot_handle = target_slot.handle;
-  grow_array_and_append<ActionChannelBag *>(
-      &to_strip_data.channelbag_array, &to_strip_data.channelbag_array_num, channel_bag);
-  int index = from_strip_data.find_channelbag_index(*channel_bag);
-  shrink_array_and_remove<ActionChannelBag *>(
+  Channelbag *channelbag = from_strip_data.channelbag_for_slot(source_slot.handle);
+  BLI_assert(channelbag != nullptr);
+  channelbag->slot_handle = target_slot.handle;
+  grow_array_and_append<ActionChannelbag *>(
+      &to_strip_data.channelbag_array, &to_strip_data.channelbag_array_num, channelbag);
+  int index = from_strip_data.find_channelbag_index(*channelbag);
+  shrink_array_and_remove<ActionChannelbag *>(
       &from_strip_data.channelbag_array, &from_strip_data.channelbag_array_num, index);
 
   /* Reassign all users of `source_slot` to the action `to_action` and the slot `target_slot`. */
