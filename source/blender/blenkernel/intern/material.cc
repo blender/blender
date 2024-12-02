@@ -1777,18 +1777,9 @@ void ramp_blend(int type, float r_col[3], const float fac, const float col[3])
       r_col[2] = min_ff(r_col[2], col[2]) * fac + r_col[2] * facm;
       break;
     case MA_RAMP_LIGHT:
-      tmp = fac * col[0];
-      if (tmp > r_col[0]) {
-        r_col[0] = tmp;
-      }
-      tmp = fac * col[1];
-      if (tmp > r_col[1]) {
-        r_col[1] = tmp;
-      }
-      tmp = fac * col[2];
-      if (tmp > r_col[2]) {
-        r_col[2] = tmp;
-      }
+      r_col[0] = max_ff(r_col[0], col[0]) * fac + r_col[0] * facm;
+      r_col[1] = max_ff(r_col[1], col[1]) * fac + r_col[1] * facm;
+      r_col[2] = max_ff(r_col[2], col[2]) * fac + r_col[2] * facm;
       break;
     case MA_RAMP_DODGE:
       if (r_col[0] != 0.0f) {
