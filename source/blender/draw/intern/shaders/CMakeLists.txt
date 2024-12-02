@@ -4,12 +4,14 @@
 
 # avoid noisy warnings
 if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
-  add_c_flag(
-    "-Wno-unused-result"
-  )
-  remove_cc_flag(
-    "-Wmissing-declarations"
-  )
+  add_c_flag("-Wno-unused-result")
+  remove_cc_flag("-Wmissing-declarations")
+  # Would be nice to enable the warning once we support references.
+  add_cxx_flag("-Wno-uninitialized")
+  # Would be nice to enable the warning once we support nameless parameters.
+  add_cxx_flag("-Wno-unused-parameter")
+  # To compile libraries.
+  add_cxx_flag("-Wno-pragma-once-outside-header")
 endif()
 
 set(INC_GLSL
@@ -21,7 +23,7 @@ set(INC_GLSL
   ../../../gpu/shaders
   ../../../gpu/shaders/common
 
-  /* For grease pencil. */
+  # For grease pencil.
   ../../engines/gpencil
 )
 

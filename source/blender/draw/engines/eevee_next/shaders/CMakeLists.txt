@@ -4,12 +4,14 @@
 
 # avoid noisy warnings
 if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
-  add_c_flag(
-    "-Wno-unused-result"
-  )
-  remove_cc_flag(
-    "-Wmissing-declarations"
-  )
+  add_c_flag("-Wno-unused-result")
+  remove_cc_flag("-Wmissing-declarations")
+  # Would be nice to enable the warning once we support references.
+  add_cxx_flag("-Wno-uninitialized")
+  # Would be nice to enable the warning once we support nameless parameters.
+  add_cxx_flag("-Wno-unused-parameter")
+  # To compile libraries.
+  add_cxx_flag("-Wno-pragma-once-outside-header")
 endif()
 
 set(INC_GLSL
@@ -27,6 +29,9 @@ set(INC_GLSL
   ../../../../gpu/shaders
   ../../../../gpu/shaders/infos
   ../../../../gpu/shaders/common
+
+  # For grease pencil.
+  ../../gpencil
 )
 
 set(SRC_GLSL_VERT
@@ -243,5 +248,7 @@ if (WITH_GPU_SHADER_CPP_COMPILATION)
   compile_sources_as_cpp(eevee_cpp_shaders_vert "${SRC_GLSL_VERT}" "GPU_VERTEX_SHADER")
   compile_sources_as_cpp(eevee_cpp_shaders_frag "${SRC_GLSL_FRAG}" "GPU_FRAGMENT_SHADER")
   compile_sources_as_cpp(eevee_cpp_shaders_comp "${SRC_GLSL_COMP}" "GPU_COMPUTE_SHADER")
-  compile_sources_as_cpp(eevee_cpp_shaders_lib "${SRC_GLSL_LIB}" "GPU_LIBRARY_SHADER")
+  # Only enable to make sure they compile on their own.
+  # Otherwise it creates a warning about `pragma once`.
+  # compile_sources_as_cpp(eevee_cpp_shaders_lib "${SRC_GLSL_LIB}" "GPU_LIBRARY_SHADER")
 endif()
