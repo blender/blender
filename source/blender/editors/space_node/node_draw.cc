@@ -827,7 +827,7 @@ static float get_margin_to_bottom(const Span<FlatNodeItem> items)
   const flat_item::Type last_item_type = last_item.type();
   switch (last_item_type) {
     case flat_item::Type::Socket:
-      return 5 * NODE_ITEM_SPACING_Y;
+      return 2 * NODE_ITEM_SPACING_Y;
     case flat_item::Type::Separator:
       return NODE_ITEM_SPACING_Y;
     case flat_item::Type::Layout:
