@@ -30,18 +30,18 @@ void ScreenSpaceDrawingMode::add_shgroups() const
   DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 
   DRWShadingGroup *shgrp = DRW_shgroup_create(shader, instance_.state.passes.image_pass);
-  DRW_shgroup_uniform_vec2_copy(shgrp, "farNearDistances", sh_params.far_near);
+  DRW_shgroup_uniform_vec2_copy(shgrp, "far_near_distances", sh_params.far_near);
   DRW_shgroup_uniform_vec4_copy(shgrp, "shuffle", sh_params.shuffle);
-  DRW_shgroup_uniform_int_copy(shgrp, "drawFlags", static_cast<int32_t>(sh_params.flags));
-  DRW_shgroup_uniform_bool_copy(shgrp, "imgPremultiplied", sh_params.use_premul_alpha);
-  DRW_shgroup_uniform_texture(shgrp, "depth_texture", dtxl->depth);
+  DRW_shgroup_uniform_int_copy(shgrp, "draw_flags", static_cast<int32_t>(sh_params.flags));
+  DRW_shgroup_uniform_bool_copy(shgrp, "is_image_premultiplied", sh_params.use_premul_alpha);
+  DRW_shgroup_uniform_texture(shgrp, "depth_tx", dtxl->depth);
   float image_mat[4][4];
   unit_m4(image_mat);
   for (const TextureInfo &info : instance_.state.texture_infos) {
     DRWShadingGroup *shgrp_sub = DRW_shgroup_create_sub(shgrp);
     DRW_shgroup_uniform_ivec2_copy(shgrp_sub, "offset", info.offset());
     DRW_shgroup_uniform_texture_ex(
-        shgrp_sub, "imageTexture", info.texture, GPUSamplerState::default_sampler());
+        shgrp_sub, "image_tx", info.texture, GPUSamplerState::default_sampler());
     DRW_shgroup_call_obmat(shgrp_sub, info.batch, image_mat);
   }
 }
