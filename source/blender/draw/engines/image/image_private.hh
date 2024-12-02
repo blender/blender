@@ -39,5 +39,4 @@ class AbstractDrawingMode {
   virtual void draw_finish() const = 0;
 };
 
-
 }  // namespace blender::image_engine
