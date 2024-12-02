@@ -439,7 +439,7 @@ GPENCIL_tLayer *grease_pencil_layer_cache_add(GPENCIL_PrivateData *pd,
 
     PassSimple &pass = *tgp_layer->geom_ps;
 
-    GPUTexture *depth_tex = (is_in_front) ? pd->dummy_tx : pd->scene_depth_tx;
+    GPUTexture *depth_tex = (is_in_front) ? pd->dummy_depth : pd->scene_depth_tx;
     GPUTexture **mask_tex = (is_masked) ? &pd->mask_tx : &pd->dummy_tx;
 
     DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_BLEND_ALPHA_PREMUL;
@@ -459,6 +459,9 @@ GPENCIL_tLayer *grease_pencil_layer_cache_add(GPENCIL_PrivateData *pd,
     pass.push_constant("gpThicknessOffset", 0.0f);
     pass.push_constant("gpThicknessWorldScale", thickness_scale);
     pass.push_constant("gpVertexColorOpacity", vert_col_opacity);
+
+    pass.bind_texture("gpFillTexture", pd->dummy_tx);
+    pass.bind_texture("gpStrokeTexture", pd->dummy_tx);
 
     /* If random color type, need color by layer. */
     float4 gpl_color;

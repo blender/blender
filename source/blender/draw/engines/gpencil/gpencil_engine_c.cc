@@ -74,6 +74,10 @@ void GPENCIL_engine_init(void *ved)
     const float pixels[1][4] = {{1.0f, 0.0f, 1.0f, 1.0f}};
     txl->dummy_texture = DRW_texture_create_2d(1, 1, GPU_RGBA8, DRW_TEX_WRAP, (float *)pixels);
   }
+  if (txl->dummy_depth == nullptr) {
+    const float pixels[1] = {1.0f};
+    txl->dummy_depth = DRW_texture_create_2d(1, 1, GPU_DEPTH_COMPONENT24, DRW_TEX_WRAP, pixels);
+  }
 
   GPENCIL_ViewLayerData *vldata = GPENCIL_view_layer_data_ensure();
 
@@ -103,9 +107,10 @@ void GPENCIL_engine_init(void *ved)
   stl->pd->sbuffer_tobjects.first = nullptr;
   stl->pd->sbuffer_tobjects.last = nullptr;
   stl->pd->dummy_tx = txl->dummy_texture;
+  stl->pd->dummy_depth = txl->dummy_depth;
   stl->pd->draw_depth_only = !DRW_state_is_fbo();
   stl->pd->draw_wireframe = (v3d && v3d->shading.type == OB_WIRE) && !stl->pd->draw_depth_only;
-  stl->pd->scene_depth_tx = stl->pd->draw_depth_only ? txl->dummy_texture : dtxl->depth;
+  stl->pd->scene_depth_tx = stl->pd->draw_depth_only ? txl->dummy_depth : dtxl->depth;
   stl->pd->scene_fb = dfbl->default_fb;
   stl->pd->is_render = txl->render_depth_tx || (v3d && v3d->shading.type == OB_RENDER);
   stl->pd->is_viewport = (v3d != nullptr);

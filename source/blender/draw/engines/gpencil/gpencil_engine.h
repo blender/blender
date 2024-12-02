@@ -173,6 +173,7 @@ typedef struct GPENCIL_FramebufferList {
 typedef struct GPENCIL_TextureList {
   /* Dummy texture to avoid errors cause by empty sampler. */
   struct GPUTexture *dummy_texture;
+  struct GPUTexture *dummy_depth;
   /* Snapshot for smoother drawing. */
   struct GPUTexture *snapshot_depth_tx;
   struct GPUTexture *snapshot_color_tx;
@@ -250,6 +251,7 @@ typedef struct GPENCIL_PrivateData {
   GPUFrameBuffer *scene_fb;
   /* Copy of txl->dummy_tx */
   GPUTexture *dummy_tx;
+  GPUTexture *dummy_depth;
   /* Copy of v3d->shading.single_color. */
   float v3d_single_color[3];
   /* Copy of v3d->shading.color_type or -1 to ignore. */
