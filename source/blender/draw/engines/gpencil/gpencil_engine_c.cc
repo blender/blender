@@ -483,12 +483,14 @@ static GPENCIL_tObject *grease_pencil_object_cache_populate(
       continue;
     }
 
+    if (last_pass) {
+      drawcall_flush(*last_pass);
+    }
+
     GPENCIL_tLayer *tgp_layer = grease_pencil_layer_cache_add(
         pd, ob, layer, info.onion_id, is_layer_used_as_mask, tgp_ob);
     PassSimple &pass = *tgp_layer->geom_ps;
     last_pass = &pass;
-
-    drawcall_flush(pass);
 
     const bool use_lights = pd->use_lighting &&
                             ((layer.base.flag & GP_LAYER_TREE_NODE_USE_LIGHTS) != 0) &&
