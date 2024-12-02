@@ -21,6 +21,8 @@
 #  endif
 #endif
 
+#include "vulkan/vk_ghost_api.hh"
+
 #include <vector>
 
 #include <cassert>
@@ -355,6 +357,9 @@ static GHOST_TSuccess ensure_vulkan_device(VkInstance vk_instance,
     device_index++;
 
     if (!device_vk.has_extensions(required_extensions)) {
+      continue;
+    }
+    if (!blender::gpu::GPU_vulkan_is_supported_driver(physical_device)) {
       continue;
     }
 

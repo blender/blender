@@ -5,6 +5,7 @@
 set(INC
   PUBLIC .
   ../../source/blender/imbuf
+  ../../source/blender/gpu
   ../guardedalloc
 )
 
