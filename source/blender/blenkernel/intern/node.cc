@@ -2019,7 +2019,7 @@ void node_modify_socket_type(bNodeTree *ntree,
   bNodeSocketType *socktype = node_socket_type_find(idname);
 
   if (!socktype) {
-    CLOG_ERROR(&LOG, "node socket type %s undefined", idname);
+    CLOG_ERROR(&LOG, "node socket type %s undefined", idname.c_str());
     return;
   }
 
