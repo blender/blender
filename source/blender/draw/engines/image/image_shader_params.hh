@@ -22,14 +22,14 @@
 namespace blender::image_engine {
 
 struct ShaderParameters {
-  ImageDrawFlags flags = ImageDrawFlags::Default;
+  ImageDrawFlags flags = ImageDrawFlags::DEFAULT;
   float shuffle[4];
   float far_near[2];
   bool use_premul_alpha = false;
 
   void update(AbstractSpaceAccessor *space, const Scene *scene, Image *image, ImBuf *image_buffer)
   {
-    flags = ImageDrawFlags::Default;
+    flags = ImageDrawFlags::DEFAULT;
     copy_v4_fl(shuffle, 1.0f);
     copy_v2_fl2(far_near, 100.0f, 0.0f);
 

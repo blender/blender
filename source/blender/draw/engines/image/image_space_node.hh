@@ -42,36 +42,36 @@ class SpaceNodeAccessor : public AbstractSpaceAccessor {
   {
     if ((snode->flag & SNODE_USE_ALPHA) != 0) {
       /* Show RGBA */
-      r_shader_parameters.flags |= ImageDrawFlags::ShowAlpha | ImageDrawFlags::ApplyAlpha;
+      r_shader_parameters.flags |= ImageDrawFlags::SHOW_ALPHA | ImageDrawFlags::APPLY_ALPHA;
     }
     else if ((snode->flag & SNODE_SHOW_ALPHA) != 0) {
-      r_shader_parameters.flags |= ImageDrawFlags::Shuffling;
+      r_shader_parameters.flags |= ImageDrawFlags::SHUFFLING;
       copy_v4_fl4(r_shader_parameters.shuffle, 0.0f, 0.0f, 0.0f, 1.0f);
     }
     else if ((snode->flag & SNODE_SHOW_R) != 0) {
-      r_shader_parameters.flags |= ImageDrawFlags::Shuffling;
+      r_shader_parameters.flags |= ImageDrawFlags::SHUFFLING;
       if (IMB_alpha_affects_rgb(ibuf)) {
-        r_shader_parameters.flags |= ImageDrawFlags::ApplyAlpha;
+        r_shader_parameters.flags |= ImageDrawFlags::APPLY_ALPHA;
       }
       copy_v4_fl4(r_shader_parameters.shuffle, 1.0f, 0.0f, 0.0f, 0.0f);
     }
     else if ((snode->flag & SNODE_SHOW_G) != 0) {
-      r_shader_parameters.flags |= ImageDrawFlags::Shuffling;
+      r_shader_parameters.flags |= ImageDrawFlags::SHUFFLING;
       if (IMB_alpha_affects_rgb(ibuf)) {
-        r_shader_parameters.flags |= ImageDrawFlags::ApplyAlpha;
+        r_shader_parameters.flags |= ImageDrawFlags::APPLY_ALPHA;
       }
       copy_v4_fl4(r_shader_parameters.shuffle, 0.0f, 1.0f, 0.0f, 0.0f);
     }
     else if ((snode->flag & SNODE_SHOW_B) != 0) {
-      r_shader_parameters.flags |= ImageDrawFlags::Shuffling;
+      r_shader_parameters.flags |= ImageDrawFlags::SHUFFLING;
       if (IMB_alpha_affects_rgb(ibuf)) {
-        r_shader_parameters.flags |= ImageDrawFlags::ApplyAlpha;
+        r_shader_parameters.flags |= ImageDrawFlags::APPLY_ALPHA;
       }
       copy_v4_fl4(r_shader_parameters.shuffle, 0.0f, 0.0f, 1.0f, 0.0f);
     }
     else /* RGB */ {
       if (IMB_alpha_affects_rgb(ibuf)) {
-        r_shader_parameters.flags |= ImageDrawFlags::ApplyAlpha;
+        r_shader_parameters.flags |= ImageDrawFlags::APPLY_ALPHA;
       }
     }
   }
