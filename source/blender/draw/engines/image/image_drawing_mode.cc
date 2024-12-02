@@ -4,6 +4,7 @@
 
 #include "image_drawing_mode.hh"
 #include "image_instance.hh"
+#include "image_shader.hh"
 
 #include "BKE_image.hh"
 #include "BKE_image_partial_update.hh"
@@ -26,7 +27,7 @@ DRWPass *ScreenSpaceDrawingMode::create_depth_pass() const
 void ScreenSpaceDrawingMode::add_shgroups() const
 {
   const ShaderParameters &sh_params = instance_.state.sh_params;
-  GPUShader *shader = IMAGE_shader_image_get();
+  GPUShader *shader = ShaderModule::module_get().color.get();
   DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 
   DRWShadingGroup *shgrp = DRW_shgroup_create(shader, instance_.state.passes.image_pass);
@@ -48,7 +49,7 @@ void ScreenSpaceDrawingMode::add_shgroups() const
 
 void ScreenSpaceDrawingMode::add_depth_shgroups(Image *image, ImageUser *image_user) const
 {
-  GPUShader *shader = IMAGE_shader_depth_get();
+  GPUShader *shader = ShaderModule::module_get().depth.get();
   DRWShadingGroup *shgrp = DRW_shgroup_create(shader, instance_.state.passes.depth_pass);
 
   float image_mat[4][4];

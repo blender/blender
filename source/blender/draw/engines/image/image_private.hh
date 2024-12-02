@@ -39,10 +39,5 @@ class AbstractDrawingMode {
   virtual void draw_finish() const = 0;
 };
 
-/* `image_shader.cc` */
-
-GPUShader *IMAGE_shader_image_get();
-GPUShader *IMAGE_shader_depth_get();
-void IMAGE_shader_free();
 
 }  // namespace blender::image_engine

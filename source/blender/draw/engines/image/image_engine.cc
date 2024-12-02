@@ -31,6 +31,7 @@
 #include "image_engine.h"
 #include "image_instance.hh"
 #include "image_private.hh"
+#include "image_shader.hh"
 #include "image_space_image.hh"
 #include "image_space_node.hh"
 
@@ -83,7 +84,7 @@ static void IMAGE_draw_scene(void *vedata)
 
 static void IMAGE_engine_free()
 {
-  IMAGE_shader_free();
+  ShaderModule::module_free();
 }
 
 static void IMAGE_instance_free(void *instance)
