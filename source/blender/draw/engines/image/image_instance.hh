@@ -12,6 +12,8 @@
 #include "image_space_image.hh"
 #include "image_space_node.hh"
 
+#include "BLI_math_matrix.hh"
+
 #include "DNA_space_types.h"
 
 namespace blender::image_engine {
@@ -41,6 +43,7 @@ class Instance {
  public:
   const ARegion *region;
   State state;
+  Manager *manager = nullptr;
 
  public:
   Instance() : drawing_mode_(*this) {}
@@ -50,6 +53,7 @@ class Instance {
     main_ = main;
     region = _region;
     space_ = space_accessor_from_space(space_link);
+    manager = DRW_manager_get();
   }
 
   virtual ~Instance() = default;
@@ -59,10 +63,10 @@ class Instance {
     drawing_mode_.begin_sync();
 
     /* Setup full screen view matrix. */
-    float winmat[4][4], viewmat[4][4];
-    orthographic_m4(viewmat, 0.0, region->winx, 0.0, region->winy, 0.0, 1.0);
-    unit_m4(winmat);
-    state.view = DRW_view_create(viewmat, winmat, nullptr, nullptr, nullptr);
+    float4x4 viewmat = math::projection::orthographic(
+        0.0f, float(region->winx), 0.0f, float(region->winy), 0.0f, 1.0f);
+    float4x4 winmat = float4x4::identity();
+    state.view.sync(viewmat, winmat);
   }
 
   void image_sync()

@@ -11,49 +11,38 @@
 
 namespace blender::image_engine {
 
-DRWPass *ScreenSpaceDrawingMode::create_image_pass() const
-{
-  DRWState state = static_cast<DRWState>(DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_ALWAYS |
-                                         DRW_STATE_BLEND_ALPHA_PREMUL);
-  return DRW_pass_create("Image", state);
-}
-
-DRWPass *ScreenSpaceDrawingMode::create_depth_pass() const
-{
-  DRWState state = static_cast<DRWState>(DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL);
-  return DRW_pass_create("Depth", state);
-}
-
 void ScreenSpaceDrawingMode::add_shgroups() const
 {
-  const ShaderParameters &sh_params = instance_.state.sh_params;
+  PassSimple &pass = instance_.state.image_ps;
   GPUShader *shader = ShaderModule::module_get().color.get();
+  const ShaderParameters &sh_params = instance_.state.sh_params;
   DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 
-  DRWShadingGroup *shgrp = DRW_shgroup_create(shader, instance_.state.passes.image_pass);
-  DRW_shgroup_uniform_vec2_copy(shgrp, "far_near_distances", sh_params.far_near);
-  DRW_shgroup_uniform_vec4_copy(shgrp, "shuffle", sh_params.shuffle);
-  DRW_shgroup_uniform_int_copy(shgrp, "draw_flags", static_cast<int32_t>(sh_params.flags));
-  DRW_shgroup_uniform_bool_copy(shgrp, "is_image_premultiplied", sh_params.use_premul_alpha);
-  DRW_shgroup_uniform_texture(shgrp, "depth_tx", dtxl->depth);
-  float image_mat[4][4];
-  unit_m4(image_mat);
+  pass.shader_set(shader);
+  pass.push_constant("far_near_distances", sh_params.far_near);
+  pass.push_constant("shuffle", sh_params.shuffle);
+  pass.push_constant("draw_flags", int32_t(sh_params.flags));
+  pass.push_constant("is_image_premultiplied", sh_params.use_premul_alpha);
+  pass.bind_texture("depth_tx", dtxl->depth);
+
+  float4x4 image_mat = float4x4::identity();
+  ResourceHandle handle = instance_.manager->resource_handle(image_mat);
   for (const TextureInfo &info : instance_.state.texture_infos) {
-    DRWShadingGroup *shgrp_sub = DRW_shgroup_create_sub(shgrp);
-    DRW_shgroup_uniform_ivec2_copy(shgrp_sub, "offset", info.offset());
-    DRW_shgroup_uniform_texture_ex(
-        shgrp_sub, "image_tx", info.texture, GPUSamplerState::default_sampler());
-    DRW_shgroup_call_obmat(shgrp_sub, info.batch, image_mat);
+    PassSimple::Sub &sub = pass.sub("Texture");
+    sub.push_constant("offset", info.offset());
+    sub.bind_texture("image_tx", info.texture);
+    sub.draw(info.batch, handle);
   }
 }
 
-void ScreenSpaceDrawingMode::add_depth_shgroups(Image *image, ImageUser *image_user) const
+void ScreenSpaceDrawingMode::add_depth_shgroups(::Image *image, ImageUser *image_user) const
 {
+  PassSimple &pass = instance_.state.depth_ps;
   GPUShader *shader = ShaderModule::module_get().depth.get();
-  DRWShadingGroup *shgrp = DRW_shgroup_create(shader, instance_.state.passes.depth_pass);
+  pass.shader_set(shader);
 
-  float image_mat[4][4];
-  unit_m4(image_mat);
+  float4x4 image_mat = float4x4::identity();
+  ResourceHandle handle = instance_.manager->resource_handle(image_mat);
 
   ImageUser tile_user = {0};
   if (image_user) {
@@ -73,18 +62,17 @@ void ScreenSpaceDrawingMode::add_depth_shgroups(Image *image, ImageUser *image_u
       ImBuf *tile_buffer = BKE_image_acquire_ibuf(image, &tile_user, &lock);
       if (tile_buffer != nullptr) {
         instance_.state.float_buffers.mark_used(tile_buffer);
-
-        DRWShadingGroup *shsub = DRW_shgroup_create_sub(shgrp);
+        PassSimple::Sub &sub = pass.sub("Tile");
         float4 min_max_uv(tile_x, tile_y, tile_x + 1, tile_y + 1);
-        DRW_shgroup_uniform_vec4_copy(shsub, "min_max_uv", min_max_uv);
-        DRW_shgroup_call_obmat(shsub, info.batch, image_mat);
+        sub.push_constant("min_max_uv", min_max_uv);
+        sub.draw(info.batch, handle);
       }
       BKE_image_release_ibuf(image, tile_buffer, lock);
     }
   }
 }
 
-void ScreenSpaceDrawingMode::update_textures(Image *image, ImageUser *image_user) const
+void ScreenSpaceDrawingMode::update_textures(::Image *image, ImageUser *image_user) const
 {
   State &state = instance_.state;
   PartialUpdateChecker<ImageTileData> checker(image, image_user, state.partial_update.user);
@@ -273,7 +261,7 @@ void ScreenSpaceDrawingMode::do_full_update_gpu_texture(TextureInfo &info,
 
   void *lock;
 
-  Image *image = instance_.state.image;
+  ::Image *image = instance_.state.image;
   LISTBASE_FOREACH (ImageTile *, image_tile_ptr, &image->tiles) {
     const ImageTileWrapper image_tile(image_tile_ptr);
     tile_user.tile = image_tile.get_tile_number();
@@ -337,10 +325,24 @@ void ScreenSpaceDrawingMode::do_full_update_texture_slot(const TextureInfo &text
 
 void ScreenSpaceDrawingMode::begin_sync() const
 {
-  instance_.state.passes.image_pass = create_image_pass();
-  instance_.state.passes.depth_pass = create_depth_pass();
+  {
+    DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
+    instance_.state.depth_fb.ensure(GPU_ATTACHMENT_TEXTURE(dtxl->depth));
+    instance_.state.color_fb.ensure(GPU_ATTACHMENT_NONE, GPU_ATTACHMENT_TEXTURE(dtxl->color));
+  }
+  {
+    PassSimple &pass = instance_.state.image_ps;
+    pass.init();
+    pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_ALWAYS | DRW_STATE_BLEND_ALPHA_PREMUL);
+  }
+  {
+    PassSimple &pass = instance_.state.depth_ps;
+    pass.init();
+    pass.state_set(DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL);
+  }
 }
-void ScreenSpaceDrawingMode::image_sync(Image *image, ImageUser *iuser) const
+
+void ScreenSpaceDrawingMode::image_sync(::Image *image, ImageUser *iuser) const
 {
   State &state = instance_.state;
 
@@ -376,21 +378,29 @@ void ScreenSpaceDrawingMode::draw_finish() const
 
 void ScreenSpaceDrawingMode::draw_viewport() const
 {
-  State *instance_data = &instance_.state;
+  float clear_depth = instance_.state.flags.do_tile_drawing ? 0.75 : 1.0f;
+  if (GPU_type_matches_ex(GPU_DEVICE_ANY, GPU_OS_ANY, GPU_DRIVER_ANY, GPU_BACKEND_OPENGL)) {
+    /* OpenGL doesn't support clearing depth stencil via load store actions as the data types
+     * should match. */
+    GPU_framebuffer_bind(instance_.state.depth_fb);
+    instance_.state.depth_fb.clear_depth(clear_depth);
+  }
+  else {
+    GPU_framebuffer_bind_ex(instance_.state.depth_fb,
+                            {
+                                {GPU_LOADACTION_CLEAR, GPU_STOREACTION_STORE, {clear_depth}},
+                            });
+  }
+  instance_.manager->submit(instance_.state.depth_ps, instance_.state.view);
 
-  DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
-  GPU_framebuffer_bind(dfbl->default_fb);
+  GPU_framebuffer_bind_ex(
+      instance_.state.color_fb,
+      {
+          {GPU_LOADACTION_DONT_CARE, GPU_STOREACTION_DONT_CARE, {0.0f}},
+          {GPU_LOADACTION_CLEAR, GPU_STOREACTION_STORE, {0.0f, 0.0f, 0.0f, 0.0f}},
 
-  static float clear_col[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-  float clear_depth = instance_data->flags.do_tile_drawing ? 0.75 : 1.0f;
-  GPU_framebuffer_clear_color_depth(dfbl->default_fb, clear_col, clear_depth);
-
-  DRW_view_set_active(instance_data->view);
-  DRW_draw_pass(instance_data->passes.depth_pass);
-  GPU_framebuffer_bind(dfbl->color_only_fb);
-  DRW_draw_pass(instance_data->passes.image_pass);
-  DRW_view_set_active(nullptr);
-  GPU_framebuffer_bind(dfbl->default_fb);
+      });
+  instance_.manager->submit(instance_.state.image_ps, instance_.state.view);
 }
 
 }  // namespace blender::image_engine

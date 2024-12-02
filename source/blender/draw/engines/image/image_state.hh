@@ -19,17 +19,21 @@
 #include "image_usage.hh"
 
 #include "DRW_render.hh"
+#include "draw_command.hh"
+#include "draw_manager.hh"
+#include "draw_pass.hh"
 
 namespace blender::image_engine {
+using namespace blender::draw;
 
 struct State {
-  Image *image = nullptr;
+  ::Image *image = nullptr;
   /** Usage data of the previous time, to identify changes that require a full update. */
   ImageUsage last_usage;
 
   PartialImageUpdater partial_update = {};
 
-  DRWView *view = nullptr;
+  View view = {"Image.View"};
   ShaderParameters sh_params;
   struct {
     /**
@@ -41,10 +45,11 @@ struct State {
     bool do_tile_drawing : 1;
   } flags;
 
-  struct {
-    DRWPass *image_pass = nullptr;
-    DRWPass *depth_pass = nullptr;
-  } passes;
+  Framebuffer depth_fb = {"Image.Depth"};
+  Framebuffer color_fb = {"Image.Color"};
+
+  PassSimple depth_ps = {"Image.Depth"};
+  PassSimple image_ps = {"Image.Color"};
 
   /**
    * Cache containing the float buffers when drawing byte images.

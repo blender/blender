@@ -29,7 +29,7 @@ class AbstractSpaceAccessor {
    *
    * The return value is optional.
    */
-  virtual Image *get_image(Main *bmain) = 0;
+  virtual ::Image *get_image(Main *bmain) = 0;
 
   /**
    * Return the #ImageUser of the space.
@@ -46,12 +46,12 @@ class AbstractSpaceAccessor {
    * \param lock: pointer to a lock object.
    * \return Image buffer of the given image.
    */
-  virtual ImBuf *acquire_image_buffer(Image *image, void **lock) = 0;
+  virtual ImBuf *acquire_image_buffer(::Image *image, void **lock) = 0;
 
   /**
    * Release a previous locked image from #acquire_image_buffer.
    */
-  virtual void release_buffer(Image *image, ImBuf *image_buffer, void *lock) = 0;
+  virtual void release_buffer(::Image *image, ImBuf *image_buffer, void *lock) = 0;
 
   /**
    * Update the r_shader_parameters with space specific settings.

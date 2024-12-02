@@ -14,11 +14,13 @@
 #include "GPU_batch.hh"
 #include "GPU_texture.hh"
 
+#include "DRW_gpu_wrapper.hh"
 #include "DRW_render.hh"
 
 namespace blender::image_engine {
+using namespace blender::draw;
 
-struct TextureInfo {
+struct TextureInfo : NonCopyable {
   /**
    * \brief does this texture need a full update.
    *
@@ -47,20 +49,18 @@ struct TextureInfo {
   /**
    * \brief GPU Texture for a partial region of the image editor.
    */
-  GPUTexture *texture = nullptr;
+  Texture texture = {"Image.Tile"};
 
   int2 last_texture_size = int2(0);
+
+  TextureInfo() = default;
+  TextureInfo(TextureInfo &&other) = default;
 
   ~TextureInfo()
   {
     if (batch != nullptr) {
       GPU_batch_discard(batch);
       batch = nullptr;
-    }
-
-    if (texture != nullptr) {
-      GPU_texture_free(texture);
-      texture = nullptr;
     }
   }
 
@@ -77,22 +77,17 @@ struct TextureInfo {
 
   void ensure_gpu_texture(int2 texture_size)
   {
-    const bool is_allocated = texture != nullptr;
+    const bool is_allocated = texture.is_valid();
     const bool resolution_changed = assign_if_different(last_texture_size, texture_size);
     const bool should_be_freed = is_allocated && resolution_changed;
     const bool should_be_created = !is_allocated || resolution_changed;
 
     if (should_be_freed) {
-      GPU_texture_free(texture);
-      texture = nullptr;
+      texture.free();
     }
 
     if (should_be_created) {
-      texture = DRW_texture_create_2d_ex(UNPACK2(texture_size),
-                                         GPU_RGBA16F,
-                                         GPU_TEXTURE_USAGE_GENERAL,
-                                         static_cast<DRWTextureFlag>(0),
-                                         nullptr);
+      texture.ensure_2d(GPU_RGBA16F, texture_size, GPU_TEXTURE_USAGE_SHADER_READ);
     }
     need_full_update |= should_be_created;
   }

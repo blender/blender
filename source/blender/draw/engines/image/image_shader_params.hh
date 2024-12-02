@@ -27,7 +27,10 @@ struct ShaderParameters {
   float far_near[2];
   bool use_premul_alpha = false;
 
-  void update(AbstractSpaceAccessor *space, const Scene *scene, Image *image, ImBuf *image_buffer)
+  void update(AbstractSpaceAccessor *space,
+              const Scene *scene,
+              ::Image *image,
+              ImBuf *image_buffer)
   {
     flags = ImageDrawFlags::DEFAULT;
     copy_v4_fl(shuffle, 1.0f);
