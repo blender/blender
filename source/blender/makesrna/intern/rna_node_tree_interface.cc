@@ -30,6 +30,8 @@ static const EnumPropertyItem node_tree_interface_socket_in_out_items[] = {
 
 #  include <fmt/format.h>
 
+#  include "BLI_string_ref.hh"
+
 #  include "BKE_attribute.hh"
 #  include "BKE_node.hh"
 #  include "BKE_node_enum.hh"
@@ -195,7 +197,7 @@ static void rna_NodeTreeInterfaceSocket_init_socket_custom(
     const bNodeTreeInterfaceSocket *interface_socket,
     bNode *node,
     bNodeSocket *socket,
-    const char *data_path)
+    const blender::StringRefNull data_path)
 {
   blender::bke::bNodeSocketType *typeinfo = blender::bke::node_socket_type_find(
       interface_socket->socket_type);

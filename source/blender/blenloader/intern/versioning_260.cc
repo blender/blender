@@ -856,33 +856,33 @@ static const char *node_get_static_idname(int type, int treetype)
   return "";
 }
 
-static const char *node_socket_get_static_idname(bNodeSocket *sock)
+static blender::StringRefNull node_socket_get_static_idname(bNodeSocket *sock)
 {
   switch (sock->type) {
     case SOCK_FLOAT: {
       bNodeSocketValueFloat *dval = sock->default_value_typed<bNodeSocketValueFloat>();
-      return blender::bke::node_static_socket_type(SOCK_FLOAT, dval->subtype);
+      return *blender::bke::node_static_socket_type(SOCK_FLOAT, dval->subtype);
     }
     case SOCK_INT: {
       bNodeSocketValueInt *dval = sock->default_value_typed<bNodeSocketValueInt>();
-      return blender::bke::node_static_socket_type(SOCK_INT, dval->subtype);
+      return *blender::bke::node_static_socket_type(SOCK_INT, dval->subtype);
     }
     case SOCK_BOOLEAN: {
-      return blender::bke::node_static_socket_type(SOCK_BOOLEAN, PROP_NONE);
+      return *blender::bke::node_static_socket_type(SOCK_BOOLEAN, PROP_NONE);
     }
     case SOCK_VECTOR: {
       bNodeSocketValueVector *dval = sock->default_value_typed<bNodeSocketValueVector>();
-      return blender::bke::node_static_socket_type(SOCK_VECTOR, dval->subtype);
+      return *blender::bke::node_static_socket_type(SOCK_VECTOR, dval->subtype);
     }
     case SOCK_RGBA: {
-      return blender::bke::node_static_socket_type(SOCK_RGBA, PROP_NONE);
+      return *blender::bke::node_static_socket_type(SOCK_RGBA, PROP_NONE);
     }
     case SOCK_STRING: {
       bNodeSocketValueString *dval = sock->default_value_typed<bNodeSocketValueString>();
-      return blender::bke::node_static_socket_type(SOCK_STRING, dval->subtype);
+      return *blender::bke::node_static_socket_type(SOCK_STRING, dval->subtype);
     }
     case SOCK_SHADER: {
-      return blender::bke::node_static_socket_type(SOCK_SHADER, PROP_NONE);
+      return *blender::bke::node_static_socket_type(SOCK_SHADER, PROP_NONE);
     }
   }
   return "";
@@ -917,18 +917,18 @@ static void do_versions_nodetree_customnodes(bNodeTree *ntree, int /*is_group*/)
 
       /* sockets idname */
       LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
-        STRNCPY(sock->idname, node_socket_get_static_idname(sock));
+        STRNCPY(sock->idname, node_socket_get_static_idname(sock).c_str());
       }
       LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
-        STRNCPY(sock->idname, node_socket_get_static_idname(sock));
+        STRNCPY(sock->idname, node_socket_get_static_idname(sock).c_str());
       }
     }
     /* tree sockets idname */
     LISTBASE_FOREACH (bNodeSocket *, sock, &ntree->inputs_legacy) {
-      STRNCPY(sock->idname, node_socket_get_static_idname(sock));
+      STRNCPY(sock->idname, node_socket_get_static_idname(sock).c_str());
     }
     LISTBASE_FOREACH (bNodeSocket *, sock, &ntree->outputs_legacy) {
-      STRNCPY(sock->idname, node_socket_get_static_idname(sock));
+      STRNCPY(sock->idname, node_socket_get_static_idname(sock).c_str());
     }
   }
 

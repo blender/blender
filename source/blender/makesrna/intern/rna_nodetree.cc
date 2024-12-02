@@ -795,7 +795,7 @@ const EnumPropertyItem *rna_node_socket_type_itemf(
     tmp.value = i;
     tmp.identifier = stype->idname;
     tmp.icon = RNA_struct_ui_icon(srna);
-    tmp.name = blender::bke::node_socket_type_label(stype);
+    tmp.name = blender::bke::node_socket_type_label(stype).c_str();
     tmp.description = RNA_struct_ui_description(srna);
 
     RNA_enum_item_add(&item, &totitem, &tmp);
@@ -1174,7 +1174,7 @@ static const EnumPropertyItem *rna_NodeTree_color_tag_itemf(bContext * /*C*/,
 static bNode *rna_NodeTree_node_new(bNodeTree *ntree,
                                     bContext *C,
                                     ReportList *reports,
-                                    const char *type)
+                                    blender::StringRefNull type)
 {
   blender::bke::bNodeType *ntype;
   bNode *node;
@@ -1188,7 +1188,7 @@ static bNode *rna_NodeTree_node_new(bNodeTree *ntree,
 
   ntype = blender::bke::node_type_find(type);
   if (!ntype) {
-    BKE_reportf(reports, RPT_ERROR, "Node type %s undefined", type);
+    BKE_reportf(reports, RPT_ERROR, "Node type %s undefined", type.c_str());
     return nullptr;
   }
 
@@ -1198,7 +1198,7 @@ static bNode *rna_NodeTree_node_new(bNodeTree *ntree,
       BKE_reportf(reports,
                   RPT_ERROR,
                   "Cannot add node of type %s to node tree '%s'\n  %s",
-                  type,
+                  type.c_str(),
                   ntree->id.name + 2,
                   disabled_hint);
       return nullptr;
@@ -1207,7 +1207,7 @@ static bNode *rna_NodeTree_node_new(bNodeTree *ntree,
       BKE_reportf(reports,
                   RPT_ERROR,
                   "Cannot add node of type %s to node tree '%s'",
-                  type,
+                  type.c_str(),
                   ntree->id.name + 2);
       return nullptr;
     }
@@ -3696,9 +3696,9 @@ static void rna_Node_ItemArray_item_color_get(PointerRNA *ptr, float *values)
 {
   using ItemT = typename Accessors::ItemT;
   ItemT &item = *static_cast<ItemT *>(ptr->data);
-  const char *socket_type_idname = blender::bke::node_static_socket_type(
+  const blender::StringRefNull socket_type_idname = *blender::bke::node_static_socket_type(
       Accessors::get_socket_type(item), 0);
-  ED_node_type_draw_color(socket_type_idname, values);
+  ED_node_type_draw_color(socket_type_idname.c_str(), values);
 }
 
 template<typename Accessor>
@@ -4191,6 +4191,9 @@ static void rna_reroute_node_socket_type_set(PointerRNA *ptr, const char *value)
 
   bNode &node = *static_cast<bNode *>(ptr->data);
 
+  if (value == nullptr) {
+    return;
+  }
   blender::bke::bNodeSocketType *socket_type = blender::bke::node_socket_type_find(value);
   if (socket_type == nullptr) {
     return;

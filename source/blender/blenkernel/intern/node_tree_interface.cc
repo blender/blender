@@ -49,7 +49,12 @@ static const char *try_get_supported_socket_type(const StringRef socket_type)
   }
   /* For builtin socket types only the base type is supported. */
   if (node_is_static_socket_type(typeinfo)) {
-    return bke::node_static_socket_type(typeinfo->type, PROP_NONE);
+    const std::optional<StringRefNull> type_name = bke::node_static_socket_type(typeinfo->type,
+                                                                                PROP_NONE);
+    if (type_name.has_value()) {
+      return type_name->c_str();
+    }
+    return nullptr;
   }
   return typeinfo->idname;
 }

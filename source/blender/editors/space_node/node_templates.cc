@@ -607,12 +607,12 @@ static void ui_node_menu_column(NodeLinkArg *arg, int nclass, const char *cname)
   }
 }
 
-static void node_menu_column_foreach_cb(void *calldata, int nclass, const char *name)
+static void node_menu_column_foreach_cb(void *calldata, int nclass, const StringRefNull name)
 {
   NodeLinkArg *arg = (NodeLinkArg *)calldata;
 
   if (!ELEM(nclass, NODE_CLASS_GROUP, NODE_CLASS_LAYOUT)) {
-    ui_node_menu_column(arg, nclass, name);
+    ui_node_menu_column(arg, nclass, name.c_str());
   }
 }
 

@@ -62,8 +62,8 @@ static bool basic_types_can_connect(const SocketDeclaration & /*socket_decl*/,
 
 static void modify_subtype_except_for_storage(bNodeSocket &socket, int new_subtype)
 {
-  const char *idname = bke::node_static_socket_type(socket.type, new_subtype);
-  STRNCPY(socket.idname, idname);
+  const StringRefNull idname = *bke::node_static_socket_type(socket.type, new_subtype);
+  STRNCPY(socket.idname, idname.c_str());
   bke::bNodeSocketType *socktype = bke::node_socket_type_find(idname);
   socket.typeinfo = socktype;
 }

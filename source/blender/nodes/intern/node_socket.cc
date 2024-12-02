@@ -825,7 +825,7 @@ static void standard_node_socket_interface_init_socket(
     const bNodeTreeInterfaceSocket *interface_socket,
     bNode * /*node*/,
     bNodeSocket *sock,
-    const char * /*data_path*/)
+    StringRefNull /*data_path*/)
 {
   /* initialize the type value */
   sock->type = sock->typeinfo->type;
@@ -849,28 +849,29 @@ void ED_init_standard_node_socket_type(bke::bNodeSocketType *);
 
 static bke::bNodeSocketType *make_standard_socket_type(int type, int subtype)
 {
-  const char *socket_idname = bke::node_static_socket_type(type, subtype);
-  const char *interface_idname = bke::node_static_socket_interface_type_new(type, subtype);
-  const char *socket_label = bke::node_static_socket_label(type, subtype);
-  const char *socket_subtype_label = blender::bke::node_socket_sub_type_label(subtype);
+  const StringRefNull socket_idname = *bke::node_static_socket_type(type, subtype);
+  const StringRefNull interface_idname = *bke::node_static_socket_interface_type_new(type,
+                                                                                     subtype);
+  const StringRefNull socket_label = *bke::node_static_socket_label(type, subtype);
+  const StringRefNull socket_subtype_label = blender::bke::node_socket_sub_type_label(subtype);
   bke::bNodeSocketType *stype;
   StructRNA *srna;
 
   stype = MEM_cnew<bke::bNodeSocketType>("node socket C type");
   stype->free_self = (void (*)(bke::bNodeSocketType *stype))MEM_freeN;
-  STRNCPY(stype->idname, socket_idname);
-  STRNCPY(stype->label, socket_label);
-  STRNCPY(stype->subtype_label, socket_subtype_label);
+  STRNCPY(stype->idname, socket_idname.c_str());
+  STRNCPY(stype->label, socket_label.c_str());
+  STRNCPY(stype->subtype_label, socket_subtype_label.c_str());
 
   /* set the RNA type
    * uses the exact same identifier as the socket type idname */
-  srna = stype->ext_socket.srna = RNA_struct_find(socket_idname);
+  srna = stype->ext_socket.srna = RNA_struct_find(socket_idname.c_str());
   BLI_assert(srna != nullptr);
   /* associate the RNA type with the socket type */
   RNA_struct_blender_type_set(srna, stype);
 
   /* set the interface RNA type */
-  srna = stype->ext_interface.srna = RNA_struct_find(interface_idname);
+  srna = stype->ext_interface.srna = RNA_struct_find(interface_idname.c_str());
   BLI_assert(srna != nullptr);
   /* associate the RNA type with the socket type */
   RNA_struct_blender_type_set(srna, stype);

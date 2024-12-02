@@ -1497,7 +1497,7 @@ static bNodeSocket *do_version_replace_float_size_with_vector(bNodeTree *ntree,
       ntree,
       node,
       SOCK_IN,
-      blender::bke::node_static_socket_type(SOCK_VECTOR, PROP_TRANSLATION),
+      *blender::bke::node_static_socket_type(SOCK_VECTOR, PROP_TRANSLATION),
       "Size",
       "Size");
   bNodeSocketValueVector *value_vector = (bNodeSocketValueVector *)new_socket->default_value;

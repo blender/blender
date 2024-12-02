@@ -65,7 +65,7 @@ namespace blender::nodes::node_geo_simulation_cc {
 
 static const CPPType &get_simulation_item_cpp_type(const eNodeSocketDatatype socket_type)
 {
-  const char *socket_idname = bke::node_static_socket_type(socket_type, 0);
+  const StringRefNull socket_idname = *bke::node_static_socket_type(socket_type, 0);
   const bke::bNodeSocketType *typeinfo = bke::node_socket_type_find(socket_idname);
   BLI_assert(typeinfo);
   BLI_assert(typeinfo->geometry_nodes_cpp_type);

@@ -83,9 +83,9 @@ static void node_socket_button_label(bContext * /*C*/,
                                      uiLayout *layout,
                                      PointerRNA * /*ptr*/,
                                      PointerRNA * /*node_ptr*/,
-                                     const char *text)
+                                     const StringRefNull text)
 {
-  uiItemL(layout, text, ICON_NONE);
+  uiItemL(layout, text.c_str(), ICON_NONE);
 }
 
 /* ****************** BUTTON CALLBACKS FOR ALL TREES ***************** */
@@ -1027,7 +1027,7 @@ static void node_socket_undefined_draw(bContext * /*C*/,
                                        uiLayout *layout,
                                        PointerRNA * /*ptr*/,
                                        PointerRNA * /*node_ptr*/,
-                                       const char * /*text*/)
+                                       StringRefNull /*text*/)
 {
   uiItemL(layout, IFACE_("Undefined Socket Type"), ICON_ERROR);
 }
@@ -1257,7 +1257,7 @@ static void draw_node_socket_without_value(uiLayout *layout, bNodeSocket *sock, 
 }
 
 static void std_node_socket_draw(
-    bContext *C, uiLayout *layout, PointerRNA *ptr, PointerRNA *node_ptr, const char *text)
+    bContext *C, uiLayout *layout, PointerRNA *ptr, PointerRNA *node_ptr, StringRefNull text)
 {
   bNode *node = (bNode *)node_ptr->data;
   bNodeSocket *sock = (bNodeSocket *)ptr->data;
@@ -1288,13 +1288,13 @@ static void std_node_socket_draw(
       if (node->is_group_input()) {
         uiLayout *row = uiLayoutRow(layout, false);
         uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_RIGHT);
-        node_socket_button_label(C, row, ptr, node_ptr, text);
+        node_socket_button_label(C, row, ptr, node_ptr, text.c_str());
         uiItemL(row, "", ICON_GIZMO);
       }
       else if (nodes::partial_eval::is_supported_value_node(*node)) {
         uiLayout *row = uiLayoutRow(layout, false);
         uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_RIGHT);
-        node_socket_button_label(C, row, ptr, node_ptr, text);
+        node_socket_button_label(C, row, ptr, node_ptr, text.c_str());
         draw_gizmo_pin_icon(row, ptr);
       }
       return;
@@ -1303,7 +1303,7 @@ static void std_node_socket_draw(
         nodes::gizmos::is_builtin_gizmo_node(*node))
     {
       uiLayout *row = uiLayoutRow(layout, false);
-      node_socket_button_label(C, row, ptr, node_ptr, text);
+      node_socket_button_label(C, row, ptr, node_ptr, text.c_str());
       draw_gizmo_pin_icon(row, ptr);
       return;
     }
@@ -1312,11 +1312,11 @@ static void std_node_socket_draw(
   if ((sock->in_out == SOCK_OUT) || (sock->flag & SOCK_HIDE_VALUE) ||
       ((sock->flag & SOCK_IS_LINKED) && !all_links_muted(*sock)))
   {
-    draw_node_socket_without_value(layout, sock, text);
+    draw_node_socket_without_value(layout, sock, text.c_str());
     return;
   }
 
-  const char *label = text;
+  const StringRefNull label = text.c_str();
   text = (sock->flag & SOCK_HIDE_LABEL) ? "" : text;
 
   /* Some socket types draw the gizmo icon in a special way to look better. All others use a
@@ -1327,11 +1327,11 @@ static void std_node_socket_draw(
     case SOCK_FLOAT:
     case SOCK_INT:
     case SOCK_BOOLEAN:
-      uiItemR(layout, ptr, "default_value", DEFAULT_FLAGS, text, ICON_NONE);
+      uiItemR(layout, ptr, "default_value", DEFAULT_FLAGS, text.c_str(), ICON_NONE);
       break;
     case SOCK_VECTOR:
       if (sock->flag & SOCK_COMPACT) {
-        uiTemplateComponentMenu(layout, ptr, "default_value", text);
+        uiTemplateComponentMenu(layout, ptr, "default_value", text.c_str());
       }
       else {
         if (sock->typeinfo->subtype == PROP_DIRECTION) {
@@ -1341,7 +1341,7 @@ static void std_node_socket_draw(
           uiLayout *column = uiLayoutColumn(layout, false);
           {
             uiLayout *row = uiLayoutRow(column, true);
-            draw_node_socket_name_editable(row, sock, text);
+            draw_node_socket_name_editable(row, sock, text.c_str());
             if (has_gizmo) {
               draw_gizmo_pin_icon(row, ptr);
               gizmo_handled = true;
@@ -1355,7 +1355,7 @@ static void std_node_socket_draw(
       uiLayout *column = uiLayoutColumn(layout, false);
       {
         uiLayout *row = uiLayoutRow(column, true);
-        draw_node_socket_name_editable(row, sock, text);
+        draw_node_socket_name_editable(row, sock, text.c_str());
         if (has_gizmo) {
           draw_gizmo_pin_icon(row, ptr);
           gizmo_handled = true;
@@ -1365,7 +1365,7 @@ static void std_node_socket_draw(
       break;
     }
     case SOCK_MATRIX: {
-      draw_node_socket_name_editable(layout, sock, text);
+      draw_node_socket_name_editable(layout, sock, text.c_str());
       break;
     }
     case SOCK_RGBA: {
@@ -1374,7 +1374,7 @@ static void std_node_socket_draw(
       }
       else {
         uiLayout *row = uiLayoutSplit(layout, 0.4f, false);
-        uiItemL(row, text, ICON_NONE);
+        uiItemL(row, text.c_str(), ICON_NONE);
         uiItemR(row, ptr, "default_value", DEFAULT_FLAGS, "", ICON_NONE);
       }
       break;
@@ -1382,11 +1382,11 @@ static void std_node_socket_draw(
     case SOCK_STRING: {
       if (socket_needs_attribute_search(*node, *sock)) {
         if (text[0] == '\0') {
-          node_geometry_add_attribute_search_button(*C, *node, *ptr, *layout, label);
+          node_geometry_add_attribute_search_button(*C, *node, *ptr, *layout, label.c_str());
         }
         else {
           uiLayout *row = uiLayoutSplit(layout, 0.4f, false);
-          uiItemL(row, text, ICON_NONE);
+          uiItemL(row, text.c_str(), ICON_NONE);
           node_geometry_add_attribute_search_button(*C, *node, *ptr, *row);
         }
       }
@@ -1400,11 +1400,11 @@ static void std_node_socket_draw(
                       UI_ITEM_NONE,
                       "",
                       ICON_NONE,
-                      label);
+                      label.c_str());
         }
         else {
           uiLayout *row = uiLayoutSplit(layout, 0.4f, false);
-          uiItemL(row, text, ICON_NONE);
+          uiItemL(row, text.c_str(), ICON_NONE);
           uiItemR(row, ptr, "default_value", DEFAULT_FLAGS, "", ICON_NONE);
         }
       }
@@ -1416,7 +1416,7 @@ static void std_node_socket_draw(
       if (default_value->enum_items) {
         if (default_value->enum_items->items.is_empty()) {
           uiLayout *row = uiLayoutSplit(layout, 0.4f, false);
-          uiItemL(row, text, ICON_NONE);
+          uiItemL(row, text.c_str(), ICON_NONE);
           uiItemL(row, IFACE_("No Items"), ICON_NONE);
         }
         else {
@@ -1432,7 +1432,7 @@ static void std_node_socket_draw(
       break;
     }
     case SOCK_OBJECT: {
-      uiItemR(layout, ptr, "default_value", DEFAULT_FLAGS, text, ICON_NONE);
+      uiItemR(layout, ptr, "default_value", DEFAULT_FLAGS, text.c_str(), ICON_NONE);
       break;
     }
     case SOCK_IMAGE: {
@@ -1444,17 +1444,17 @@ static void std_node_socket_draw(
         else {
           /* 0.3 split ratio is inconsistent, but use it here because the "New" button is large. */
           uiLayout *row = uiLayoutSplit(layout, 0.3f, false);
-          uiItemL(row, text, ICON_NONE);
+          uiItemL(row, text.c_str(), ICON_NONE);
           uiTemplateID(row, C, ptr, "default_value", "image.new", "image.open", nullptr);
         }
       }
       else {
-        uiItemR(layout, ptr, "default_value", DEFAULT_FLAGS, text, ICON_NONE);
+        uiItemR(layout, ptr, "default_value", DEFAULT_FLAGS, text.c_str(), ICON_NONE);
       }
       break;
     }
     case SOCK_COLLECTION: {
-      uiItemR(layout, ptr, "default_value", DEFAULT_FLAGS, text, ICON_NONE);
+      uiItemR(layout, ptr, "default_value", DEFAULT_FLAGS, text.c_str(), ICON_NONE);
       break;
     }
     case SOCK_TEXTURE: {
@@ -1464,18 +1464,18 @@ static void std_node_socket_draw(
       else {
         /* 0.3 split ratio is inconsistent, but use it here because the "New" button is large. */
         uiLayout *row = uiLayoutSplit(layout, 0.3f, false);
-        uiItemL(row, text, ICON_NONE);
+        uiItemL(row, text.c_str(), ICON_NONE);
         uiTemplateID(row, C, ptr, "default_value", "texture.new", nullptr, nullptr);
       }
 
       break;
     }
     case SOCK_MATERIAL: {
-      uiItemR(layout, ptr, "default_value", DEFAULT_FLAGS, text, ICON_NONE);
+      uiItemR(layout, ptr, "default_value", DEFAULT_FLAGS, text.c_str(), ICON_NONE);
       break;
     }
     default:
-      draw_node_socket_without_value(layout, sock, text);
+      draw_node_socket_without_value(layout, sock, text.c_str());
       break;
   }
 

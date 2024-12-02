@@ -45,6 +45,8 @@ const EnumPropertyItem rna_enum_node_socket_type_items[] = {
 
 #  include "DNA_material_types.h"
 
+#  include "BLI_string_ref.hh"
+
 #  include "BKE_node.hh"
 #  include "BKE_node_enum.hh"
 #  include "BKE_node_runtime.hh"
@@ -62,8 +64,11 @@ extern FunctionRNA rna_NodeSocket_draw_color_simple_func;
 
 /* ******** Node Socket ******** */
 
-static void rna_NodeSocket_draw(
-    bContext *C, uiLayout *layout, PointerRNA *ptr, PointerRNA *node_ptr, const char *text)
+static void rna_NodeSocket_draw(bContext *C,
+                                uiLayout *layout,
+                                PointerRNA *ptr,
+                                PointerRNA *node_ptr,
+                                const blender::StringRefNull text)
 {
   bNodeSocket *sock = static_cast<bNodeSocket *>(ptr->data);
   ParameterList list;
