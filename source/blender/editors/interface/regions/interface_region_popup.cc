@@ -706,16 +706,6 @@ uiBlock *ui_popup_block_refresh(bContext *C,
   block->oldblock = nullptr;
 
   if (!block->endblock) {
-    UI_block_end_ex(C,
-                    CTX_data_main(C),
-                    window,
-                    CTX_data_scene(C),
-                    region,
-                    CTX_data_depsgraph_pointer(C),
-                    block,
-                    handle->popup_create_vars.event_xy,
-                    handle->popup_create_vars.event_xy);
-
     /* Use previous position if it has been moved. */
     const bool moved = handle->refresh &&
                        !(handle->grab_xy_prev[0] == 0 && handle->grab_xy_prev[1] == 0);
