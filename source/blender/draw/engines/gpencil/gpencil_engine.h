@@ -264,8 +264,6 @@ typedef struct GPENCIL_PrivateData {
   bool is_render;
   /* If we are in viewport display (used for VFX). */
   bool is_viewport;
-  /* True in selection and auto_depth drawing */
-  bool draw_depth_only;
   /* Is shading set to wire-frame. */
   bool draw_wireframe;
   /* Used by the depth merge step. */
