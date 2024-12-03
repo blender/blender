@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2009-2016 Jörg Müller
+ * Copyright 2009-2024 Jörg Müller
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.

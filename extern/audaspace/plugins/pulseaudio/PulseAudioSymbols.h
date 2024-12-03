@@ -25,7 +25,7 @@ PULSEAUDIO_SYMBOL(pa_stream_begin_write);
 PULSEAUDIO_SYMBOL(pa_stream_connect_playback);
 PULSEAUDIO_SYMBOL(pa_stream_cork);
 PULSEAUDIO_SYMBOL(pa_stream_flush);
-PULSEAUDIO_SYMBOL(pa_stream_get_latency);
+PULSEAUDIO_SYMBOL(pa_stream_get_time);
 PULSEAUDIO_SYMBOL(pa_stream_is_corked);
 PULSEAUDIO_SYMBOL(pa_stream_new);
 PULSEAUDIO_SYMBOL(pa_stream_set_buffer_attr);
