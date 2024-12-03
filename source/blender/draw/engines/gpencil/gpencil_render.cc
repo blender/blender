@@ -43,7 +43,7 @@ void GPENCIL_render_init(GPENCIL_Data *vedata,
 
   invert_m4_m4(viewmat, viewinv);
 
-  DRWView *view = DRW_view_create(viewmat, winmat, nullptr, nullptr, nullptr);
+  DRWView *view = DRW_view_create(viewmat, winmat, nullptr, nullptr);
   DRW_view_default_set(view);
   DRW_view_set_active(view);
 

@@ -585,7 +585,7 @@ static void drw_manager_init(DRWManager *dst, GPUViewport *viewport, const int s
 
   if (rv3d != nullptr) {
     dst->pixsize = rv3d->pixsize;
-    dst->view_default = DRW_view_create(rv3d->viewmat, rv3d->winmat, nullptr, nullptr, nullptr);
+    dst->view_default = DRW_view_create(rv3d->viewmat, rv3d->winmat, nullptr, nullptr);
 
     if (dst->draw_ctx.sh_cfg == GPU_SHADER_CFG_CLIPPED) {
       int plane_len = (RV3D_LOCK_FLAGS(rv3d) & RV3D_BOXCLIP) ? 4 : 6;
@@ -609,7 +609,7 @@ static void drw_manager_init(DRWManager *dst, GPUViewport *viewport, const int s
     winmat[3][0] = -1.0f;
     winmat[3][1] = -1.0f;
 
-    dst->view_default = DRW_view_create(viewmat, winmat, nullptr, nullptr, nullptr);
+    dst->view_default = DRW_view_create(viewmat, winmat, nullptr, nullptr);
     dst->view_active = dst->view_default;
     dst->view_previous = nullptr;
   }
@@ -2377,7 +2377,6 @@ void DRW_render_instance_buffer_finish()
   BLI_assert_msg(!DST.buffer_finish_called, "DRW_render_instance_buffer_finish called twice!");
   DST.buffer_finish_called = true;
   DRW_instance_buffer_finish(DST.vmempool->idatalist);
-  drw_resource_buffer_finish(DST.vmempool);
 }
 
 void DRW_render_set_time(RenderEngine *engine, Depsgraph *depsgraph, int frame, float subframe)
@@ -2816,7 +2815,6 @@ void DRW_draw_select_id(Depsgraph *depsgraph, ARegion *region, View3D *v3d)
 #else
     DST.buffer_finish_called = true;
     // DRW_instance_buffer_finish(DST.vmempool->idatalist);
-    drw_resource_buffer_finish(DST.vmempool);
 #endif
   }
 

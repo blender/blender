@@ -498,10 +498,6 @@ static void draw_compute_culling(DRWView *view)
       }
 #endif
 
-      if (view->visibility_fn) {
-        culled = !view->visibility_fn(!culled, cull->user_data);
-      }
-
       SET_FLAG_FROM_TEST(cull->mask, culled, view->culling_mask);
     }
   }

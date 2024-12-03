@@ -480,7 +480,6 @@ struct DRWView {
   BoundSphere frustum_bsphere;
   float frustum_planes[6][4];
   /** Custom visibility function. */
-  DRWCallVisibilityFn *visibility_fn;
   void *user_data;
 };
 /* Needed to assert that alignment is the same in C++ and C. */
@@ -716,8 +715,6 @@ void drw_batch_cache_generate_requested(Object *ob);
  */
 void drw_batch_cache_generate_requested_delayed(Object *ob);
 void drw_batch_cache_generate_requested_evaluated_mesh_or_curve(Object *ob);
-
-void drw_resource_buffer_finish(DRWData *vmempool);
 
 /* Procedural Drawing */
 blender::gpu::Batch *drw_cache_procedural_points_get();
