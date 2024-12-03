@@ -24,8 +24,13 @@ struct VKCopyImageToBufferData {
   VkBufferImageCopy region;
 };
 
+struct VKCopyImageToBufferCreateInfo {
+  VKCopyImageToBufferData node_data;
+  VkImageAspectFlags vk_image_aspects;
+};
+
 class VKCopyImageToBufferNode : public VKNodeInfo<VKNodeType::COPY_IMAGE_TO_BUFFER,
-                                                  VKCopyImageToBufferData,
+                                                  VKCopyImageToBufferCreateInfo,
                                                   VKCopyImageToBufferData,
                                                   VK_PIPELINE_STAGE_TRANSFER_BIT,
                                                   VKResourceType::IMAGE | VKResourceType::BUFFER> {
@@ -39,7 +44,7 @@ class VKCopyImageToBufferNode : public VKNodeInfo<VKNodeType::COPY_IMAGE_TO_BUFF
    */
   template<typename Node> static void set_node_data(Node &node, const CreateInfo &create_info)
   {
-    node.copy_image_to_buffer = create_info;
+    node.copy_image_to_buffer = create_info.node_data;
   }
 
   /**
@@ -49,13 +54,13 @@ class VKCopyImageToBufferNode : public VKNodeInfo<VKNodeType::COPY_IMAGE_TO_BUFF
                    VKRenderGraphNodeLinks &node_links,
                    const CreateInfo &create_info) override
   {
-    ResourceWithStamp src_resource = resources.get_image(create_info.src_image);
+    ResourceWithStamp src_resource = resources.get_image(create_info.node_data.src_image);
     ResourceWithStamp dst_resource = resources.get_buffer_and_increase_stamp(
-        create_info.dst_buffer);
+        create_info.node_data.dst_buffer);
     node_links.inputs.append({src_resource,
                               VK_ACCESS_TRANSFER_READ_BIT,
                               VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-                              create_info.region.imageSubresource.aspectMask});
+                              create_info.vk_image_aspects});
     node_links.outputs.append(
         {dst_resource, VK_ACCESS_TRANSFER_WRITE_BIT, VK_IMAGE_LAYOUT_UNDEFINED});
   }

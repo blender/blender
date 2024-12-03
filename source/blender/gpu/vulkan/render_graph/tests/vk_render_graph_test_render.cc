@@ -64,9 +64,10 @@ TEST(vk_render_graph, begin_clear_attachments_end_read_back)
 
   {
     VKCopyImageToBufferNode::CreateInfo copy_image_to_buffer = {};
-    copy_image_to_buffer.src_image = image;
-    copy_image_to_buffer.dst_buffer = buffer;
-    copy_image_to_buffer.region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    copy_image_to_buffer.node_data.src_image = image;
+    copy_image_to_buffer.node_data.dst_buffer = buffer;
+    copy_image_to_buffer.node_data.region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    copy_image_to_buffer.vk_image_aspects = VK_IMAGE_ASPECT_COLOR_BIT;
     render_graph.add_node(copy_image_to_buffer);
   }
 

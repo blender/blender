@@ -189,19 +189,22 @@ void VKTexture::read_sub(
   staging_buffer.create(device_memory_size, GPU_USAGE_DYNAMIC, VK_BUFFER_USAGE_TRANSFER_DST_BIT);
 
   render_graph::VKCopyImageToBufferNode::CreateInfo copy_image_to_buffer = {};
-  copy_image_to_buffer.src_image = vk_image_handle();
-  copy_image_to_buffer.dst_buffer = staging_buffer.vk_handle();
-  copy_image_to_buffer.region.imageOffset.x = region[0];
-  copy_image_to_buffer.region.imageOffset.y = region[1];
-  copy_image_to_buffer.region.imageOffset.z = region[2];
-  copy_image_to_buffer.region.imageExtent.width = extent.x;
-  copy_image_to_buffer.region.imageExtent.height = extent.y;
-  copy_image_to_buffer.region.imageExtent.depth = extent.z;
-  copy_image_to_buffer.region.imageSubresource.aspectMask = to_vk_image_aspect_single_bit(
-      to_vk_image_aspect_flag_bits(device_format_), false);
-  copy_image_to_buffer.region.imageSubresource.mipLevel = mip;
-  copy_image_to_buffer.region.imageSubresource.baseArrayLayer = layers.start();
-  copy_image_to_buffer.region.imageSubresource.layerCount = layers.size();
+  render_graph::VKCopyImageToBufferNode::Data &node_data = copy_image_to_buffer.node_data;
+  node_data.src_image = vk_image_handle();
+  node_data.dst_buffer = staging_buffer.vk_handle();
+  node_data.region.imageOffset.x = region[0];
+  node_data.region.imageOffset.y = region[1];
+  node_data.region.imageOffset.z = region[2];
+  node_data.region.imageExtent.width = extent.x;
+  node_data.region.imageExtent.height = extent.y;
+  node_data.region.imageExtent.depth = extent.z;
+  VkImageAspectFlags vk_image_aspects = to_vk_image_aspect_flag_bits(device_format_);
+  copy_image_to_buffer.vk_image_aspects = vk_image_aspects;
+  node_data.region.imageSubresource.aspectMask = to_vk_image_aspect_single_bit(vk_image_aspects,
+                                                                               false);
+  node_data.region.imageSubresource.mipLevel = mip;
+  node_data.region.imageSubresource.baseArrayLayer = layers.start();
+  node_data.region.imageSubresource.layerCount = layers.size();
 
   VKContext &context = *VKContext::get();
   context.rendering_end();
@@ -313,19 +316,22 @@ void VKTexture::update_sub(
   }
 
   render_graph::VKCopyBufferToImageNode::CreateInfo copy_buffer_to_image = {};
-  copy_buffer_to_image.src_buffer = staging_buffer.vk_handle();
-  copy_buffer_to_image.dst_image = vk_image_handle();
-  copy_buffer_to_image.region.imageExtent.width = extent.x;
-  copy_buffer_to_image.region.imageExtent.height = extent.y;
-  copy_buffer_to_image.region.imageExtent.depth = extent.z;
-  copy_buffer_to_image.region.imageOffset.x = offset.x;
-  copy_buffer_to_image.region.imageOffset.y = offset.y;
-  copy_buffer_to_image.region.imageOffset.z = offset.z;
-  copy_buffer_to_image.region.imageSubresource.aspectMask = to_vk_image_aspect_single_bit(
-      to_vk_image_aspect_flag_bits(device_format_), false);
-  copy_buffer_to_image.region.imageSubresource.mipLevel = mip;
-  copy_buffer_to_image.region.imageSubresource.baseArrayLayer = start_layer;
-  copy_buffer_to_image.region.imageSubresource.layerCount = layers;
+  render_graph::VKCopyBufferToImageNode::Data &node_data = copy_buffer_to_image.node_data;
+  node_data.src_buffer = staging_buffer.vk_handle();
+  node_data.dst_image = vk_image_handle();
+  node_data.region.imageExtent.width = extent.x;
+  node_data.region.imageExtent.height = extent.y;
+  node_data.region.imageExtent.depth = extent.z;
+  node_data.region.imageOffset.x = offset.x;
+  node_data.region.imageOffset.y = offset.y;
+  node_data.region.imageOffset.z = offset.z;
+  VkImageAspectFlags vk_image_aspects = to_vk_image_aspect_flag_bits(device_format_);
+  copy_buffer_to_image.vk_image_aspects = vk_image_aspects;
+  node_data.region.imageSubresource.aspectMask = to_vk_image_aspect_single_bit(vk_image_aspects,
+                                                                               false);
+  node_data.region.imageSubresource.mipLevel = mip;
+  node_data.region.imageSubresource.baseArrayLayer = start_layer;
+  node_data.region.imageSubresource.layerCount = layers;
 
   context.render_graph.add_node(copy_buffer_to_image);
 }
