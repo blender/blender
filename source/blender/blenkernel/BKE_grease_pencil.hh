@@ -211,7 +211,7 @@ class Layer;
  * forwarded to #TreeNode. */
 #define TREENODE_COMMON_METHODS \
   StringRefNull name() const; \
-  void set_name(StringRefNull new_name); \
+  void set_name(StringRef new_name); \
   bool is_visible() const; \
   void set_visible(bool visible); \
   bool is_locked() const; \
@@ -230,7 +230,7 @@ class Layer;
   { \
     return this->as_node().name(); \
   } \
-  inline void class_name::set_name(StringRefNull new_name) \
+  inline void class_name::set_name(const StringRef new_name) \
   { \
     return this->as_node().set_name(new_name); \
   } \
@@ -288,7 +288,7 @@ class TreeNode : public ::GreasePencilLayerTreeNode {
  public:
   TreeNode();
   explicit TreeNode(GreasePencilLayerTreeNodeType type);
-  explicit TreeNode(GreasePencilLayerTreeNodeType type, StringRefNull name);
+  explicit TreeNode(GreasePencilLayerTreeNodeType type, StringRef name);
   TreeNode(const TreeNode &other);
   ~TreeNode();
 
@@ -338,7 +338,7 @@ static_assert(sizeof(TreeNode) == sizeof(::GreasePencilLayerTreeNode));
 class LayerMask : public ::GreasePencilLayerMask {
  public:
   LayerMask();
-  explicit LayerMask(StringRefNull name);
+  explicit LayerMask(StringRef name);
   LayerMask(const LayerMask &other);
   ~LayerMask();
 };
@@ -440,7 +440,7 @@ class Layer : public ::GreasePencilLayer {
   using SortedKeysIterator = const int *;
 
   Layer();
-  explicit Layer(StringRefNull name);
+  explicit Layer(StringRef name);
   Layer(const Layer &other);
   ~Layer();
 
@@ -587,14 +587,14 @@ class Layer : public ::GreasePencilLayer {
    * armature.
    */
   StringRefNull parent_bone_name() const;
-  void set_parent_bone_name(const char *new_name);
+  void set_parent_bone_name(const StringRef new_name);
 
   /**
    * Returns the view layer name that this layer should be rendered in or an empty
    * `StringRefNull` if no such name is set.
    */
   StringRefNull view_layer_name() const;
-  void set_view_layer_name(const char *new_name);
+  void set_view_layer_name(const StringRef new_name);
 
  private:
   /**
@@ -649,7 +649,7 @@ class LayerGroup : public ::GreasePencilLayerTreeGroup {
 
  public:
   LayerGroup();
-  explicit LayerGroup(StringRefNull name);
+  explicit LayerGroup(StringRef name);
   LayerGroup(const LayerGroup &other);
   ~LayerGroup();
 
@@ -700,8 +700,8 @@ class LayerGroup : public ::GreasePencilLayerTreeGroup {
   /**
    * Returns a pointer to the node with \a name. If no such node was found, returns nullptr.
    */
-  const TreeNode *find_node_by_name(StringRefNull name) const;
-  TreeNode *find_node_by_name(StringRefNull name);
+  const TreeNode *find_node_by_name(StringRef name) const;
+  TreeNode *find_node_by_name(StringRef name);
 
   /**
    * Returns true if the group is expanded in the UI.
@@ -715,7 +715,7 @@ class LayerGroup : public ::GreasePencilLayerTreeGroup {
   /**
    * Print the nodes. For debugging purposes.
    */
-  void print_nodes(StringRefNull header) const;
+  void print_nodes(StringRef header) const;
 
   /**
    * Prepare the DNA #GreasePencilLayerTreeGroup data before blend-file writing.

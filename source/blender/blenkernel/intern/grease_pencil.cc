@@ -944,15 +944,15 @@ TreeNode::TreeNode()
   this->color[0] = this->color[1] = this->color[2] = 0;
 }
 
-TreeNode::TreeNode(GreasePencilLayerTreeNodeType type) : TreeNode()
+TreeNode::TreeNode(const GreasePencilLayerTreeNodeType type) : TreeNode()
 {
   this->type = type;
 }
 
-TreeNode::TreeNode(GreasePencilLayerTreeNodeType type, StringRefNull name) : TreeNode()
+TreeNode::TreeNode(const GreasePencilLayerTreeNodeType type, const StringRef name) : TreeNode()
 {
   this->type = type;
-  this->GreasePencilLayerTreeNode::name = BLI_strdup(name.c_str());
+  this->GreasePencilLayerTreeNode::name = BLI_strdupn(name.data(), name.size());
 }
 
 TreeNode::TreeNode(const TreeNode &other) : TreeNode(GreasePencilLayerTreeNodeType(other.type))
@@ -967,10 +967,10 @@ TreeNode::~TreeNode()
   MEM_SAFE_FREE(this->GreasePencilLayerTreeNode::name);
 }
 
-void TreeNode::set_name(StringRefNull name)
+void TreeNode::set_name(const StringRef name)
 {
   MEM_SAFE_FREE(this->GreasePencilLayerTreeNode::name);
-  this->GreasePencilLayerTreeNode::name = BLI_strdup(name.c_str());
+  this->GreasePencilLayerTreeNode::name = BLI_strdupn(name.data(), name.size());
 }
 
 const LayerGroup &TreeNode::as_group() const
@@ -1026,9 +1026,9 @@ LayerMask::LayerMask()
   this->flag = 0;
 }
 
-LayerMask::LayerMask(StringRefNull name) : LayerMask()
+LayerMask::LayerMask(const StringRef name) : LayerMask()
 {
-  this->layer_name = BLI_strdup_null(name.c_str());
+  this->layer_name = BLI_strdupn(name.data(), name.size());
 }
 
 LayerMask::LayerMask(const LayerMask &other) : LayerMask()
@@ -1080,7 +1080,7 @@ Layer::Layer()
   this->runtime = MEM_new<LayerRuntime>(__func__);
 }
 
-Layer::Layer(StringRefNull name) : Layer()
+Layer::Layer(const StringRef name) : Layer()
 {
   new (&this->base) TreeNode(GP_LAYER_TREE_LEAF, name);
 }
@@ -1457,12 +1457,12 @@ StringRefNull Layer::parent_bone_name() const
   return (this->parsubstr != nullptr) ? StringRefNull(this->parsubstr) : StringRefNull();
 }
 
-void Layer::set_parent_bone_name(const char *new_name)
+void Layer::set_parent_bone_name(const StringRef new_name)
 {
   if (this->parsubstr != nullptr) {
     MEM_freeN(this->parsubstr);
   }
-  this->parsubstr = BLI_strdup_null(new_name);
+  this->parsubstr = BLI_strdupn(new_name.data(), new_name.size());
 }
 
 float4x4 Layer::parent_to_world(const Object &parent) const
@@ -1502,12 +1502,12 @@ StringRefNull Layer::view_layer_name() const
   return (this->viewlayername != nullptr) ? StringRefNull(this->viewlayername) : StringRefNull();
 }
 
-void Layer::set_view_layer_name(const char *new_name)
+void Layer::set_view_layer_name(const StringRef new_name)
 {
   if (this->viewlayername != nullptr) {
     MEM_freeN(this->viewlayername);
   }
-  this->viewlayername = BLI_strdup_null(new_name);
+  this->viewlayername = BLI_strdupn(new_name.data(), new_name.size());
 }
 
 LayerGroup::LayerGroup()
@@ -1520,7 +1520,7 @@ LayerGroup::LayerGroup()
   this->runtime = MEM_new<LayerGroupRuntime>(__func__);
 }
 
-LayerGroup::LayerGroup(StringRefNull name) : LayerGroup()
+LayerGroup::LayerGroup(StringRef name) : LayerGroup()
 {
   new (&this->base) TreeNode(GP_LAYER_TREE_GROUP, name);
 }
@@ -1728,20 +1728,20 @@ Span<LayerGroup *> LayerGroup::groups_for_write()
   return this->runtime->layer_group_cache_.as_span();
 }
 
-const TreeNode *LayerGroup::find_node_by_name(const StringRefNull name) const
+const TreeNode *LayerGroup::find_node_by_name(const StringRef name) const
 {
   for (const TreeNode *node : this->nodes()) {
-    if (StringRef(node->name()) == StringRef(name)) {
+    if (node->name() == name) {
       return node;
     }
   }
   return nullptr;
 }
 
-TreeNode *LayerGroup::find_node_by_name(const StringRefNull name)
+TreeNode *LayerGroup::find_node_by_name(const StringRef name)
 {
   for (TreeNode *node : this->nodes_for_write()) {
-    if (StringRef(node->name()) == StringRef(name)) {
+    if (node->name() == name) {
       return node;
     }
   }
@@ -1758,7 +1758,7 @@ void LayerGroup::set_expanded(const bool expanded)
   SET_FLAG_FROM_TEST(this->base.flag, expanded, GP_LAYER_TREE_NODE_EXPANDED);
 }
 
-void LayerGroup::print_nodes(StringRefNull header) const
+void LayerGroup::print_nodes(const StringRef header) const
 {
   std::cout << header << std::endl;
   Stack<std::pair<int, TreeNode *>> next_node;
@@ -3376,7 +3376,7 @@ static void unique_node_name_ex(VectorSet<blender::StringRefNull> &names,
 
 static std::string unique_node_name(const GreasePencil &grease_pencil,
                                     const char *default_name,
-                                    blender::StringRef name)
+                                    const blender::StringRef name)
 {
   using namespace blender;
   char unique_name[MAX_NAME];
@@ -3386,22 +3386,22 @@ static std::string unique_node_name(const GreasePencil &grease_pencil,
   return unique_name;
 }
 
-std::string GreasePencil::unique_layer_name(blender::StringRef name)
+std::string GreasePencil::unique_layer_name(const blender::StringRef name)
 {
   return unique_node_name(*this, DATA_("Layer"), name);
 }
 
 static std::string unique_layer_group_name(const GreasePencil &grease_pencil,
-                                           blender::StringRefNull name)
+                                           const blender::StringRef name)
 {
   return unique_node_name(grease_pencil, DATA_("Group"), name);
 }
 
-blender::bke::greasepencil::Layer &GreasePencil::add_layer(const blender::StringRefNull name,
+blender::bke::greasepencil::Layer &GreasePencil::add_layer(const blender::StringRef name,
                                                            const bool check_name_is_unique)
 {
   using namespace blender;
-  std::string unique_name = check_name_is_unique ? unique_layer_name(name) : name.c_str();
+  std::string unique_name = check_name_is_unique ? unique_layer_name(name) : std::string(name);
   const int numLayers = layers().size();
   CustomData_realloc(&layers_data, numLayers, numLayers + 1, CD_SET_DEFAULT);
   bke::greasepencil::Layer *new_layer = MEM_new<bke::greasepencil::Layer>(__func__, unique_name);
@@ -3421,7 +3421,7 @@ blender::bke::greasepencil::Layer &GreasePencil::add_layer(const blender::String
 
 blender::bke::greasepencil::Layer &GreasePencil::add_layer(
     blender::bke::greasepencil::LayerGroup &parent_group,
-    const blender::StringRefNull name,
+    const blender::StringRef name,
     const bool check_name_is_unique)
 {
   using namespace blender;
@@ -3481,11 +3481,11 @@ blender::bke::greasepencil::Layer &GreasePencil::duplicate_layer(
 }
 
 blender::bke::greasepencil::LayerGroup &GreasePencil::add_layer_group(
-    const blender::StringRefNull name, const bool check_name_is_unique)
+    const blender::StringRef name, const bool check_name_is_unique)
 {
   using namespace blender;
   std::string unique_name = check_name_is_unique ? unique_layer_group_name(*this, name) :
-                                                   name.c_str();
+                                                   std::string(name);
   bke::greasepencil::LayerGroup *new_group = MEM_new<bke::greasepencil::LayerGroup>(__func__,
                                                                                     unique_name);
   return root_group().add_node(new_group->as_node()).as_group();
@@ -3493,7 +3493,7 @@ blender::bke::greasepencil::LayerGroup &GreasePencil::add_layer_group(
 
 blender::bke::greasepencil::LayerGroup &GreasePencil::add_layer_group(
     blender::bke::greasepencil::LayerGroup &parent_group,
-    const blender::StringRefNull name,
+    const blender::StringRef name,
     const bool check_name_is_unique)
 {
   using namespace blender;
@@ -3620,18 +3620,18 @@ void GreasePencil::move_node_into(blender::bke::greasepencil::TreeNode &node,
 }
 
 const blender::bke::greasepencil::TreeNode *GreasePencil::find_node_by_name(
-    const blender::StringRefNull name) const
+    const blender::StringRef name) const
 {
   return this->root_group().find_node_by_name(name);
 }
 
 blender::bke::greasepencil::TreeNode *GreasePencil::find_node_by_name(
-    const blender::StringRefNull name)
+    const blender::StringRef name)
 {
   return this->root_group().find_node_by_name(name);
 }
 
-blender::IndexMask GreasePencil::layer_selection_by_name(const blender::StringRefNull name,
+blender::IndexMask GreasePencil::layer_selection_by_name(const blender::StringRef name,
                                                          blender::IndexMaskMemory &memory) const
 {
   using namespace blender::bke::greasepencil;
@@ -3770,7 +3770,7 @@ static GreasePencilModifierInfluenceData *influence_data_from_modifier(ModifierD
 
 void GreasePencil::rename_node(Main &bmain,
                                blender::bke::greasepencil::TreeNode &node,
-                               blender::StringRefNull new_name)
+                               const blender::StringRef new_name)
 {
   using namespace blender;
   if (node.name() == new_name) {
