@@ -31,6 +31,13 @@ struct GlobalVertices {
    * Being shorter than vertices also means the missing vertices had no color.
    */
   Vector<float3> vertex_colors;
+
+  /**
+   * Vertex weight for each vertex.
+   * Being shorter than vertices also means the missing vertices had no weight.
+   */
+  Vector<float> vertex_weights;
+
   /**
    * Block of colors buffered for #MRGB extension.
    * Flushed to vertex_colors when complete (at next vertex or end-of-file).
@@ -43,6 +50,14 @@ struct GlobalVertices {
       vertex_colors.resize(index + 1, float3(-1.0, -1.0, -1.0));
     }
     vertex_colors[index] = color;
+  }
+
+  void set_vertex_weight(size_t index, float weight)
+  {
+    if (index >= vertex_weights.size()) {
+      vertex_weights.resize(index + 1, 1.0);
+    }
+    vertex_weights[index] = weight;
   }
 
   bool has_vertex_color(size_t index) const
