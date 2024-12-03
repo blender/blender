@@ -311,7 +311,7 @@ class BokehBlurOperation : public NodeOperation {
       for (int y = -search_radius; y <= search_radius; y++) {
         for (int x = -search_radius; x <= search_radius; x++) {
           float candidate_size = math::max(
-              0.0f, size_image.load_pixel(texel + int2(x, y)).x * base_size);
+              0.0f, size_image.load_pixel_extended(texel + int2(x, y)).x * base_size);
 
           /* Skip accumulation if either the x or y distances of the candidate pixel are larger
            * than either the center or candidate pixel size. Note that the max and min functions
