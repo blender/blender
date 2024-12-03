@@ -697,8 +697,6 @@ extern DRWManager DST; /* TODO: get rid of this and allow multi-threaded renderi
 
 void drw_texture_set_parameters(GPUTexture *tex, DRWTextureFlag flags);
 
-void *drw_viewport_engine_data_ensure(void *engine_type);
-
 void drw_state_set(DRWState state);
 
 void drw_debug_draw();
@@ -733,13 +731,6 @@ void drw_uniform_attrs_pool_update(GHash *table,
                                    const DupliObject *dupli_source);
 
 GPUUniformBuf *drw_ensure_layer_attribute_buffer();
-
-double *drw_engine_data_cache_time_get(GPUViewport *viewport);
-void *drw_engine_data_engine_data_create(GPUViewport *viewport, void *engine_type);
-void *drw_engine_data_engine_data_get(GPUViewport *viewport, void *engine_handle);
-bool drw_engine_data_engines_data_validate(GPUViewport *viewport, void **engine_handle_array);
-void drw_engine_data_cache_release(GPUViewport *viewport);
-void drw_engine_data_free(GPUViewport *viewport);
 
 namespace blender::draw {
 
