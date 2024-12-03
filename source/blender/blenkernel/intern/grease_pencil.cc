@@ -3350,51 +3350,43 @@ void GreasePencil::set_active_node(blender::bke::greasepencil::TreeNode *node)
   this->active_node = reinterpret_cast<GreasePencilLayerTreeNode *>(node);
 }
 
-static blender::VectorSet<blender::StringRefNull> get_node_names(const GreasePencil &grease_pencil)
+static blender::VectorSet<blender::StringRef> get_node_names(const GreasePencil &grease_pencil)
 {
   using namespace blender;
-  VectorSet<StringRefNull> names;
+  VectorSet<StringRef> names;
   for (const blender::bke::greasepencil::TreeNode *node : grease_pencil.nodes()) {
     names.add(node->name());
   }
   return names;
 }
 
-static bool check_unique_node_cb(void *arg, const char *name)
-{
-  using namespace blender;
-  VectorSet<StringRefNull> &names = *reinterpret_cast<VectorSet<StringRefNull> *>(arg);
-  return names.contains(name);
-}
-
-static void unique_node_name_ex(VectorSet<blender::StringRefNull> &names,
-                                const char *default_name,
-                                char *name)
-{
-  BLI_uniquename_cb(check_unique_node_cb, &names, default_name, '.', name, MAX_NAME);
-}
-
 static std::string unique_node_name(const GreasePencil &grease_pencil,
-                                    const char *default_name,
                                     const blender::StringRef name)
 {
   using namespace blender;
-  char unique_name[MAX_NAME];
-  STRNCPY(unique_name, name.data());
-  VectorSet<StringRefNull> names = get_node_names(grease_pencil);
-  unique_node_name_ex(names, default_name, unique_name);
-  return unique_name;
+  BLI_assert(!name.is_empty());
+  const VectorSet<StringRef> names = get_node_names(grease_pencil);
+  return BLI_uniquename_cb(
+      [&](const StringRef check_name) { return names.contains(check_name); }, '.', name);
 }
 
-std::string GreasePencil::unique_layer_name(const blender::StringRef name)
+std::string GreasePencil::unique_layer_name(blender::StringRef name)
 {
-  return unique_node_name(*this, DATA_("Layer"), name);
+  if (name.is_empty()) {
+    /* Default name is "Layer". */
+    name = DATA_("Layer");
+  }
+  return unique_node_name(*this, name);
 }
 
 static std::string unique_layer_group_name(const GreasePencil &grease_pencil,
-                                           const blender::StringRef name)
+                                           blender::StringRef name)
 {
-  return unique_node_name(grease_pencil, DATA_("Group"), name);
+  if (name.is_empty()) {
+    /* Default name is "Group". */
+    name = DATA_("Group");
+  }
+  return unique_node_name(grease_pencil, name);
 }
 
 blender::bke::greasepencil::Layer &GreasePencil::add_layer(const blender::StringRef name,
