@@ -419,8 +419,9 @@ bool BuiltinCustomDataLayerProvider::try_create(void *owner,
           name_, *custom_data, data_type_, element_num, initializer, default_value_))
   {
     if (initializer.type != AttributeInit::Type::Construct) {
-      /* Avoid calling update function when values are not initialized. In that case
-       * values must be set elsewhere anyway, which will cause a separate update tag. */
+      /* Avoid calling update function when values are not default-initialized. Without default
+       * initialization or otherwise meaningful initial values, they should be set elsewhere
+       * anyway, which will cause a separate update tag. */
       if (update_on_change_ != nullptr) {
         update_on_change_(owner);
       }
