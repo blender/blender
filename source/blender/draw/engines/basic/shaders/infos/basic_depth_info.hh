@@ -37,19 +37,6 @@ VERTEX_SOURCE("basic_depth_curves_vert.glsl")
 ADDITIONAL_INFO(draw_hair)
 GPU_SHADER_CREATE_END()
 
-/* Geometry-shader alternative paths. */
-GPU_SHADER_CREATE_INFO(basic_mesh_conservative_no_geom)
-VERTEX_IN(0, VEC3, pos)
-VERTEX_SOURCE("basic_depth_vert_conservative_no_geom.glsl")
-ADDITIONAL_INFO(draw_mesh)
-GPU_SHADER_CREATE_END()
-
-GPU_SHADER_CREATE_INFO(basic_pointcloud_conservative_no_geom)
-DEFINE("CONSERVATIVE_RASTER")
-VERTEX_SOURCE("basic_depth_pointcloud_vert.glsl")
-ADDITIONAL_INFO(draw_pointcloud)
-GPU_SHADER_CREATE_END()
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -62,7 +49,6 @@ GPU_SHADER_CREATE_END()
 
 #define BASIC_CONSERVATIVE_VARIATIONS(prefix, ...) \
   BASIC_CLIPPING_VARIATIONS(prefix##_conservative, basic_conservative, __VA_ARGS__) \
-  BASIC_CLIPPING_VARIATIONS(prefix##_conservative_no_geom, __VA_ARGS__) \
   BASIC_CLIPPING_VARIATIONS(prefix, __VA_ARGS__)
 
 #define BASIC_OBTYPE_VARIATIONS(prefix, ...) \

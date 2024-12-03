@@ -33,25 +33,6 @@ PUSH_CONSTANT(IVEC4, dataMask)
 ADDITIONAL_INFO(draw_globals)
 GPU_SHADER_CREATE_END()
 
-#ifdef WITH_METAL_BACKEND
-GPU_SHADER_CREATE_INFO(overlay_edit_mesh_common_no_geom)
-METAL_BACKEND_ONLY()
-DEFINE_VALUE("blender_srgb_to_framebuffer_space(a)", "a")
-DEFINE("LINE_OUTPUT")
-SAMPLER(0, DEPTH_2D, depthTex)
-FRAGMENT_OUT(0, VEC4, fragColor)
-FRAGMENT_OUT(1, VEC4, lineOutput)
-PUSH_CONSTANT(BOOL, wireShading)
-PUSH_CONSTANT(BOOL, selectFace)
-PUSH_CONSTANT(BOOL, selectEdge)
-PUSH_CONSTANT(FLOAT, alpha)
-PUSH_CONSTANT(FLOAT, retopologyOffset)
-PUSH_CONSTANT(IVEC4, dataMask)
-VERTEX_SOURCE("overlay_edit_mesh_vert_no_geom.glsl")
-ADDITIONAL_INFO(draw_globals)
-GPU_SHADER_CREATE_END()
-#endif
-
 GPU_SHADER_CREATE_INFO(overlay_edit_mesh_depth)
 DO_STATIC_COMPILATION()
 VERTEX_IN(0, VEC3, pos)
@@ -138,25 +119,6 @@ ADDITIONAL_INFO(draw_modelmat)
 ADDITIONAL_INFO(overlay_edit_mesh_common)
 GPU_SHADER_CREATE_END()
 
-/* The Non-Geometry shader variant passes directly to fragment. */
-#ifdef WITH_METAL_BACKEND
-GPU_SHADER_CREATE_INFO(overlay_edit_mesh_edge_no_geom)
-METAL_BACKEND_ONLY()
-DO_STATIC_COMPILATION()
-DEFINE("EDGE")
-VERTEX_IN(0, VEC3, pos)
-VERTEX_IN(1, UCHAR4, data)
-VERTEX_IN(2, VEC3_101010I2, vnor)
-PUSH_CONSTANT(BOOL, do_smooth_wire)
-VERTEX_OUT(overlay_edit_mesh_edge_geom_iface)
-VERTEX_OUT(overlay_edit_mesh_edge_geom_flat_iface)
-VERTEX_OUT(overlay_edit_mesh_edge_geom_noperspective_iface)
-FRAGMENT_SOURCE("overlay_edit_mesh_frag.glsl")
-ADDITIONAL_INFO(draw_modelmat)
-ADDITIONAL_INFO(overlay_edit_mesh_common_no_geom)
-GPU_SHADER_CREATE_END()
-#endif
-
 /* Vertex Pull version for overlay next. */
 GPU_SHADER_CREATE_INFO(overlay_edit_mesh_edge_next)
 DO_STATIC_COMPILATION()
@@ -186,15 +148,6 @@ DO_STATIC_COMPILATION()
 DEFINE("FLAT")
 ADDITIONAL_INFO(overlay_edit_mesh_edge)
 GPU_SHADER_CREATE_END()
-
-#ifdef WITH_METAL_BACKEND
-GPU_SHADER_CREATE_INFO(overlay_edit_mesh_edge_flat_no_geom)
-METAL_BACKEND_ONLY()
-DO_STATIC_COMPILATION()
-DEFINE("FLAT")
-ADDITIONAL_INFO(overlay_edit_mesh_edge_no_geom)
-GPU_SHADER_CREATE_END()
-#endif
 
 GPU_SHADER_CREATE_INFO(overlay_edit_mesh_face)
 DO_STATIC_COMPILATION()
@@ -318,29 +271,11 @@ ADDITIONAL_INFO(overlay_edit_mesh_edge)
 ADDITIONAL_INFO(drw_clipped)
 GPU_SHADER_CREATE_END()
 
-#ifdef WITH_METAL_BACKEND
-GPU_SHADER_CREATE_INFO(overlay_edit_mesh_edge_clipped_no_geom)
-METAL_BACKEND_ONLY()
-DO_STATIC_COMPILATION()
-ADDITIONAL_INFO(overlay_edit_mesh_edge_no_geom)
-ADDITIONAL_INFO(drw_clipped)
-GPU_SHADER_CREATE_END()
-#endif
-
 GPU_SHADER_CREATE_INFO(overlay_edit_mesh_edge_flat_clipped)
 DO_STATIC_COMPILATION()
 ADDITIONAL_INFO(overlay_edit_mesh_edge_flat)
 ADDITIONAL_INFO(drw_clipped)
 GPU_SHADER_CREATE_END()
-
-#ifdef WITH_METAL_BACKEND
-GPU_SHADER_CREATE_INFO(overlay_edit_mesh_edge_flat_clipped_no_geom)
-METAL_BACKEND_ONLY()
-DO_STATIC_COMPILATION()
-ADDITIONAL_INFO(overlay_edit_mesh_edge_flat_no_geom)
-ADDITIONAL_INFO(drw_clipped)
-GPU_SHADER_CREATE_END()
-#endif
 
 GPU_SHADER_CREATE_INFO(overlay_edit_mesh_face_clipped)
 DO_STATIC_COMPILATION()
@@ -425,18 +360,6 @@ GEOMETRY_OUT(overlay_edit_uv_geom_noperspective_iface)
 VERTEX_SOURCE("overlay_edit_uv_edges_vert.glsl")
 GEOMETRY_SOURCE("overlay_edit_uv_edges_geom.glsl")
 GPU_SHADER_CREATE_END()
-
-#ifdef WITH_METAL_BACKEND
-GPU_SHADER_CREATE_INFO(overlay_edit_uv_edges_no_geom)
-METAL_BACKEND_ONLY()
-ADDITIONAL_INFO(overlay_edit_uv_edges_common)
-DO_STATIC_COMPILATION()
-VERTEX_OUT(overlay_edit_uv_geom_iface)
-VERTEX_OUT(overlay_edit_uv_geom_flat_iface)
-VERTEX_OUT(overlay_edit_uv_geom_noperspective_iface)
-VERTEX_SOURCE("overlay_edit_uv_edges_vert_no_geom.glsl")
-GPU_SHADER_CREATE_END()
-#endif
 
 GPU_SHADER_CREATE_INFO(overlay_edit_uv_edges_select)
 DO_STATIC_COMPILATION()
@@ -625,26 +548,6 @@ ADDITIONAL_INFO(draw_mesh)
 ADDITIONAL_INFO(draw_globals)
 GPU_SHADER_CREATE_END()
 
-#ifdef WITH_METAL_BACKEND
-GPU_SHADER_CREATE_INFO(overlay_edit_curve_handle_no_geom)
-METAL_BACKEND_ONLY()
-DO_STATIC_COMPILATION()
-TYPEDEF_SOURCE("overlay_shader_shared.h")
-/* NOTE: Color already in Linear space. Which is what we want. */
-DEFINE_VALUE("srgbTarget", "false")
-VERTEX_IN(0, VEC3, pos)
-VERTEX_IN(1, UINT, data)
-VERTEX_OUT(overlay_edit_smooth_color_iface)
-PUSH_CONSTANT(BOOL, showCurveHandles)
-PUSH_CONSTANT(INT, curveHandleDisplay)
-FRAGMENT_OUT(0, VEC4, fragColor)
-VERTEX_SOURCE("overlay_edit_curve_handle_vert_no_geom.glsl")
-FRAGMENT_SOURCE("overlay_varying_color.glsl")
-ADDITIONAL_INFO(draw_mesh)
-ADDITIONAL_INFO(draw_globals)
-GPU_SHADER_CREATE_END()
-#endif
-
 GPU_SHADER_CREATE_INFO(overlay_edit_curve_handle_next)
 DO_STATIC_COMPILATION()
 TYPEDEF_SOURCE("overlay_shader_shared.h")
@@ -671,15 +574,6 @@ DO_STATIC_COMPILATION()
 ADDITIONAL_INFO(overlay_edit_curve_handle)
 ADDITIONAL_INFO(drw_clipped)
 GPU_SHADER_CREATE_END()
-
-#ifdef WITH_METAL_BACKEND
-GPU_SHADER_CREATE_INFO(overlay_edit_curve_handle_clipped_no_geom)
-METAL_BACKEND_ONLY()
-DO_STATIC_COMPILATION()
-ADDITIONAL_INFO(overlay_edit_curve_handle_no_geom)
-ADDITIONAL_INFO(drw_clipped)
-GPU_SHADER_CREATE_END()
-#endif
 
 GPU_SHADER_CREATE_INFO(overlay_edit_curve_point)
 DO_STATIC_COMPILATION()
@@ -802,31 +696,6 @@ ADDITIONAL_INFO(draw_resource_handle_new)
 ADDITIONAL_INFO(gpu_index_buffer_load)
 ADDITIONAL_INFO(draw_globals)
 GPU_SHADER_CREATE_END()
-
-#ifdef WITH_METAL_BACKEND
-GPU_SHADER_CREATE_INFO(overlay_edit_curves_handle_no_geom)
-METAL_BACKEND_ONLY()
-DO_STATIC_COMPILATION()
-TYPEDEF_SOURCE("overlay_shader_shared.h")
-VERTEX_IN(0, VEC3, pos)
-VERTEX_IN(1, UINT, data)
-VERTEX_IN(2, FLOAT, selection)
-VERTEX_OUT(overlay_edit_smooth_color_iface)
-PUSH_CONSTANT(INT, curveHandleDisplay)
-FRAGMENT_OUT(0, VEC4, fragColor)
-VERTEX_SOURCE("overlay_edit_curves_handle_vert_no_geom.glsl")
-FRAGMENT_SOURCE("overlay_varying_color.glsl")
-ADDITIONAL_INFO(draw_mesh)
-ADDITIONAL_INFO(draw_globals)
-GPU_SHADER_CREATE_END()
-
-GPU_SHADER_CREATE_INFO(overlay_edit_curves_handle_clipped_no_geom)
-METAL_BACKEND_ONLY()
-DO_STATIC_COMPILATION()
-ADDITIONAL_INFO(overlay_edit_curves_handle_no_geom)
-ADDITIONAL_INFO(drw_clipped)
-GPU_SHADER_CREATE_END()
-#endif
 
 GPU_SHADER_CREATE_INFO(overlay_edit_curves_point)
 DO_STATIC_COMPILATION()

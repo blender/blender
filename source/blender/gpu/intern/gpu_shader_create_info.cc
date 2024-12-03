@@ -491,57 +491,6 @@ void gpu_shader_create_info_init()
         12, Qualifier::READ_WRITE, "uint", "dummy_workaround_buf[]");
   }
 
-#ifdef WITH_METAL_BACKEND
-  /* Metal-specific alternatives for Geometry shaders. */
-  if (GPU_type_matches_ex(GPU_DEVICE_ANY, GPU_OS_MAC, GPU_DRIVER_ANY, GPU_BACKEND_METAL)) {
-    /* Overlay Edit Mesh. */
-    overlay_edit_mesh_edge = overlay_edit_mesh_edge_no_geom;
-    overlay_edit_mesh_edge_flat = overlay_edit_mesh_edge_flat_no_geom;
-    overlay_edit_mesh_edge_clipped = overlay_edit_mesh_edge_clipped_no_geom;
-    overlay_edit_mesh_edge_flat_clipped = overlay_edit_mesh_edge_flat_clipped_no_geom;
-    /* Overlay Edit Curve. */
-    overlay_edit_curve_handle = overlay_edit_curve_handle_no_geom;
-    overlay_edit_curve_handle_clipped = overlay_edit_curve_handle_clipped_no_geom;
-    /* Overlay Edit Curves. */
-    overlay_edit_curves_handle = overlay_edit_curves_handle_no_geom;
-    overlay_edit_curves_handle_clipped = overlay_edit_curves_handle_clipped_no_geom;
-
-    /* Overlay Armature Shape outline. */
-    overlay_armature_shape_outline = overlay_armature_shape_outline_no_geom;
-    overlay_armature_shape_outline_clipped = overlay_armature_shape_outline_clipped_no_geom;
-    overlay_armature_shape_wire = overlay_armature_shape_wire_no_geom;
-
-    /* Overlay Motion Path Line. */
-    overlay_motion_path_line = overlay_motion_path_line_no_geom;
-    overlay_motion_path_line_clipped = overlay_motion_path_line_clipped_no_geom;
-
-    /* Conservative rasterization. */
-    basic_depth_mesh_conservative = basic_depth_mesh_conservative_no_geom;
-    basic_depth_mesh_conservative_clipped = basic_depth_mesh_conservative_no_geom_clipped;
-    basic_depth_pointcloud_conservative = basic_depth_pointcloud_conservative_no_geom;
-    basic_depth_pointcloud_conservative_clipped =
-        basic_depth_pointcloud_conservative_no_geom_clipped;
-
-    /* Overlay pre-pass wire. */
-    overlay_outline_prepass_wire = overlay_outline_prepass_wire_no_geom;
-
-    /* Edit UV Edges. */
-    overlay_edit_uv_edges = overlay_edit_uv_edges_no_geom;
-
-    /* NOTE: As atomic data types can alter shader gen if native atomics are unsupported, we need
-     * to use differing create info's to handle the tile optimized check. This does prevent
-     * the shadow techniques from being dynamically switchable. */
-#  if 0
-    /* Temp: Disable TILE_COPY path while efficient solution for parameter buffer overflow is
-     * identified. This path can be re-enabled in future. */
-    const bool is_tile_based_arch = (GPU_platform_architecture() == GPU_ARCHITECTURE_TBDR);
-    if (is_tile_based_arch) {
-      eevee_shadow_data = eevee_shadow_data_non_atomic;
-    }
-#  endif
-  }
-#endif
-
   for (ShaderCreateInfo *info : g_create_infos->values()) {
     info->builtins_ |= gpu_shader_dependency_get_builtins(info->vertex_source_);
     info->builtins_ |= gpu_shader_dependency_get_builtins(info->fragment_source_);
