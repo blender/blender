@@ -407,11 +407,11 @@ class GreasePencil : Overlay {
     const ToolSettings *ts = scene->toolsettings;
 
     const ::GreasePencil &grease_pencil = *static_cast<::GreasePencil *>(object.data);
-    const blender::bke::greasepencil::Layer &layer = *grease_pencil.get_active_layer();
+    const blender::bke::greasepencil::Layer *active_layer = grease_pencil.get_active_layer();
 
     float4x4 mat = object.object_to_world();
-    if (ts->gp_sculpt.lock_axis != GP_LOCKAXIS_CURSOR) {
-      mat = layer.to_world_space(object);
+    if (active_layer && ts->gp_sculpt.lock_axis != GP_LOCKAXIS_CURSOR) {
+      mat = active_layer->to_world_space(object);
     }
     const View3DCursor *cursor = &scene->cursor;
 
@@ -441,8 +441,11 @@ class GreasePencil : Overlay {
     if (ts->gpencil_v3d_align & GP_PROJECT_CURSOR) {
       mat.location() = cursor->location;
     }
+    else if (active_layer) {
+      mat.location() = active_layer->to_world_space(object).location();
+    }
     else {
-      mat.location() = layer.to_world_space(object).location();
+      mat.location() = object.object_to_world().location();
     }
     return mat;
   }
