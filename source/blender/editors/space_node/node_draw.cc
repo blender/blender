@@ -701,6 +701,9 @@ static void add_flat_items_for_socket(bNode &node,
                                       Vector<FlatNodeItem> &r_items)
 {
   bNodeSocket &socket = node.socket_by_decl(socket_decl);
+  if (!socket.is_visible()) {
+    return;
+  }
   if (!socket_decl.align_with_previous_socket) {
     r_items.append({flat_item::Socket()});
   }
