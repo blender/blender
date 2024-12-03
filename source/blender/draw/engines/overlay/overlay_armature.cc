@@ -201,14 +201,6 @@ class ArmatureBoneDrawStrategy {
  public:
   virtual void update_display_matrix(UnifiedBonePtr bone) const = 0;
 
-  /**
-   * Culling test.
-   * \return true when a part of this bPoseChannel is visible in the viewport.
-   */
-  virtual bool culling_test(const DRWView *view,
-                            const Object *ob,
-                            const bPoseChannel *pchan) const = 0;
-
   virtual void draw_context_setup(Armatures::DrawContext *ctx,
                                   const bool is_filled,
                                   const bool do_envelope_dist) const = 0;
@@ -1560,54 +1552,6 @@ static void draw_bone_name(const Armatures::DrawContext *ctx,
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Pose Bone Culling
- *
- * Used for selection since drawing many bones can be slow, see: #91253.
- *
- * Bounding spheres are used with margins added to ensure bones are included.
- * An added margin is needed because #BKE_pchan_minmax only returns the bounds
- * of the bones head & tail which doesn't account for parts of the bone users may select
- * (octahedral spheres or envelope radius for example).
- * \{ */
-
-static void pchan_culling_calc_bsphere(const Object *ob,
-                                       const bPoseChannel *pchan,
-                                       BoundSphere *r_bsphere)
-{
-  float min[3], max[3];
-  INIT_MINMAX(min, max);
-  BKE_pchan_minmax(ob, pchan, true, min, max);
-  mid_v3_v3v3(r_bsphere->center, min, max);
-  r_bsphere->radius = len_v3v3(min, r_bsphere->center);
-}
-
-/**
- * \return true when bounding sphere from `pchan` intersect the view.
- * (same for other "test" functions defined here).
- */
-static bool pchan_culling_test_simple(const DRWView *view,
-                                      const Object *ob,
-                                      const bPoseChannel *pchan)
-{
-  BoundSphere bsphere;
-  pchan_culling_calc_bsphere(ob, pchan, &bsphere);
-  return DRW_culling_sphere_test(view, &bsphere);
-}
-
-static bool pchan_culling_test_with_radius_scale(const DRWView *view,
-                                                 const Object *ob,
-                                                 const bPoseChannel *pchan,
-                                                 const float scale)
-{
-  BoundSphere bsphere;
-  pchan_culling_calc_bsphere(ob, pchan, &bsphere);
-  bsphere.radius *= scale;
-  return DRW_culling_sphere_test(view, &bsphere);
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Bone Drawing Strategies
  *
  * Bone drawing uses a strategy pattern for the different armature drawing modes.
@@ -1622,13 +1566,6 @@ class ArmatureBoneDrawStrategyEmpty : public ArmatureBoneDrawStrategy {
   void update_display_matrix(UnifiedBonePtr bone) const override
   {
     draw_bone_update_disp_matrix_default(bone);
-  }
-
-  bool culling_test(const DRWView * /*view*/,
-                    const Object * /*ob*/,
-                    const bPoseChannel * /*pchan*/) const override
-  {
-    return false;
   }
 
   void draw_context_setup(Armatures::DrawContext * /*ctx*/,
@@ -1678,14 +1615,6 @@ class ArmatureBoneDrawStrategyCustomShape : public ArmatureBoneDrawStrategy {
     rescale_m4(disp_mat, bone_scale);
     copy_m4_m4(disp_tail_mat, disp_mat);
     translate_m4(disp_tail_mat, 0.0f, 1.0f, 0.0f);
-  }
-
-  bool culling_test(const DRWView *view,
-                    const Object *ob,
-                    const bPoseChannel *pchan) const override
-  {
-    /* For more aggressive culling the bounding box of the custom-object could be used. */
-    return pchan_culling_test_simple(view, ob, pchan);
   }
 
   void draw_context_setup(Armatures::DrawContext * /*ctx*/,
@@ -1742,16 +1671,6 @@ class ArmatureBoneDrawStrategyOcta : public ArmatureBoneDrawStrategy {
     draw_bone_update_disp_matrix_default(bone);
   }
 
-  bool culling_test(const DRWView *view,
-                    const Object *ob,
-                    const bPoseChannel *pchan) const override
-  {
-    /* No type assertion as this is a fallback (files from the future will end up here). */
-    /* Account for spheres on the end-points. */
-    const float scale = 1.2f;
-    return pchan_culling_test_with_radius_scale(view, ob, pchan, scale);
-  }
-
   void draw_context_setup(Armatures::DrawContext * /*ctx*/,
                           const bool /*is_filled*/,
                           const bool /*do_envelope_dist*/) const override
@@ -1787,17 +1706,6 @@ class ArmatureBoneDrawStrategyLine : public ArmatureBoneDrawStrategy {
   void update_display_matrix(UnifiedBonePtr bone) const override
   {
     draw_bone_update_disp_matrix_default(bone);
-  }
-
-  bool culling_test(const DRWView *view,
-                    const Object *ob,
-                    const bPoseChannel *pchan) const override
-  {
-    /* Account for the end-points, as the line end-points size is in pixels, this is a rough
-     * value. Since the end-points are small the difference between having any margin or not is
-     * unlikely to be noticeable. */
-    const float scale = 1.1f;
-    return pchan_culling_test_with_radius_scale(view, ob, pchan, scale);
   }
 
   void draw_context_setup(Armatures::DrawContext * /*ctx*/,
@@ -1882,28 +1790,6 @@ class ArmatureBoneDrawStrategyBBone : public ArmatureBoneDrawStrategy {
     draw_bone_update_disp_matrix_bbone(bone);
   }
 
-  bool culling_test(const DRWView *view,
-                    const Object *ob,
-                    const bPoseChannel *pchan) const override
-  {
-    const bArmature *arm = static_cast<bArmature *>(ob->data);
-    BLI_assert(arm->drawtype == ARM_B_BONE);
-    UNUSED_VARS_NDEBUG(arm);
-    const float ob_scale = mat4_to_size_max_axis(ob->object_to_world().ptr());
-    const Mat4 *bbones_mat = (const Mat4 *)pchan->draw_data->bbone_matrix;
-    for (int i = pchan->bone->segments; i--; bbones_mat++) {
-      BoundSphere bsphere;
-      float size[3];
-      mat4_to_size(size, bbones_mat->mat);
-      mul_v3_m4v3(bsphere.center, ob->object_to_world().ptr(), bbones_mat->mat[3]);
-      bsphere.radius = len_v3(size) * ob_scale;
-      if (DRW_culling_sphere_test(view, &bsphere)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
   void draw_context_setup(Armatures::DrawContext * /*ctx*/,
                           const bool /*is_filled*/,
                           const bool /*do_envelope_dist*/) const override
@@ -1955,21 +1841,6 @@ class ArmatureBoneDrawStrategyEnvelope : public ArmatureBoneDrawStrategy {
   void update_display_matrix(UnifiedBonePtr bone) const override
   {
     draw_bone_update_disp_matrix_default(bone);
-  }
-
-  bool culling_test(const DRWView *view,
-                    const Object *ob,
-                    const bPoseChannel *pchan) const override
-  {
-    const bArmature *arm = static_cast<bArmature *>(ob->data);
-    BLI_assert(arm->drawtype == ARM_ENVELOPE);
-    UNUSED_VARS_NDEBUG(arm);
-    BoundSphere bsphere;
-    pchan_culling_calc_bsphere(ob, pchan, &bsphere);
-    bsphere.radius += max_ff(pchan->bone->rad_head, pchan->bone->rad_tail) *
-                      mat4_to_size_max_axis(ob->object_to_world().ptr()) *
-                      mat4_to_size_max_axis(pchan->disp_mat);
-    return DRW_culling_sphere_test(view, &bsphere);
   }
 
   void draw_context_setup(Armatures::DrawContext * /*ctx*/,
@@ -2029,14 +1900,6 @@ class ArmatureBoneDrawStrategyWire : public ArmatureBoneDrawStrategy {
   void update_display_matrix(UnifiedBonePtr bone) const override
   {
     draw_bone_update_disp_matrix_bbone(bone);
-  }
-
-  bool culling_test(const DRWView *view,
-                    const Object *ob,
-                    const bPoseChannel *pchan) const override
-  {
-    BLI_assert(((const bArmature *)ob->data)->drawtype == ARM_WIRE);
-    return pchan_culling_test_simple(view, ob, pchan);
   }
 
   void draw_context_setup(Armatures::DrawContext *ctx,
@@ -2276,11 +2139,6 @@ void Armatures::draw_armature_pose(Armatures::DrawContext *ctx)
     }
   }
 
-  /* TODO(fclem): Remove global access. This is only used for culling in selection mode.
-   * This is just a workaround for slow selection queries. Selection-next will not have this issue.
-   */
-  const DRWView *view = is_pose_select ? DRW_view_default_get() : nullptr;
-
   const ArmatureBoneDrawStrategy &draw_strat_normal = strategy_for_armature_drawtype(
       eArmature_Drawtype(arm->drawtype));
   const ArmatureBoneDrawStrategyCustomShape draw_strat_custom;
@@ -2328,7 +2186,7 @@ void Armatures::draw_armature_pose(Armatures::DrawContext *ctx)
     }
 
     draw_strat.update_display_matrix(bone_ptr);
-    if (!is_pose_select || draw_strat.culling_test(view, ob, pchan)) {
+    if (!is_pose_select) {
       draw_strat.draw_bone(ctx, bone_ptr, boneflag, select_id);
     }
 
