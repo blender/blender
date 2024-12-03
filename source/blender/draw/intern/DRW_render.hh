@@ -404,19 +404,6 @@ void DRW_shgroup_call_instances_with_attrs(DRWShadingGroup *shgroup,
                                            blender::gpu::Batch *geom,
                                            blender::gpu::Batch *inst_attributes);
 
-void DRW_shgroup_call_sculpt(DRWShadingGroup *shgroup,
-                             Object *ob,
-                             bool use_wire,
-                             bool use_mask,
-                             bool use_fset,
-                             bool use_color,
-                             bool use_uv);
-
-void DRW_shgroup_call_sculpt_with_materials(DRWShadingGroup **shgroups,
-                                            GPUMaterial **gpumats,
-                                            int num_shgroups,
-                                            const Object *ob);
-
 DRWCallBuffer *DRW_shgroup_call_buffer(DRWShadingGroup *shgroup,
                                        GPUVertFormat *format,
                                        GPUPrimType prim_type);
@@ -953,7 +940,5 @@ void DRW_mesh_batch_cache_get_attributes(Object *object,
                                          Mesh *mesh,
                                          blender::draw::DRW_Attributes **r_attrs,
                                          blender::draw::DRW_MeshCDMask **r_cd_needed);
-
-void DRW_sculpt_debug_cb(blender::bke::pbvh::Node *node, void *user_data);
 
 bool DRW_is_viewport_compositor_enabled();
