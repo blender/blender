@@ -671,7 +671,11 @@ static bool region_poll(const bContext *C,
                         const ScrArea *area,
                         const ARegion *region)
 {
-  if (!region->type || !region->type->poll) {
+  if (!region->type) {
+    BLI_assert_unreachable();
+    return false;
+  }
+  if (!region->type->poll) {
     /* Show region by default. */
     return true;
   }
@@ -797,6 +801,14 @@ void ED_screens_init(bContext *C, Main *bmain, wmWindowManager *wm)
     if (BKE_workspace_active_get(win->workspace_hook) == nullptr) {
       BKE_workspace_active_set(win->workspace_hook,
                                static_cast<WorkSpace *>(bmain->workspaces.first));
+    }
+
+    const bScreen *screen = WM_window_get_active_screen(win);
+    ED_screen_areas_iter (win, screen, area) {
+      /* Set area and region types early so areas and regions are in a usable state. This may be
+       * needed by further (re-)initialization logic, specifically region polling needs it early on
+       * (see #130583). */
+      ED_area_and_region_types_init(area);
     }
 
     ED_screen_refresh(C, wm, win);
