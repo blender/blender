@@ -223,9 +223,14 @@ void float4x4Mixer::float4x4Mixer::set(int64_t index, const float4x4 &value, con
 
 void float4x4Mixer::mix_in(int64_t index, const float4x4 &value, float weight)
 {
-  location_buffer_[index] += value.location() * weight;
-  expmap_buffer_[index] += math::to_quaternion(value).expmap() * weight;
-  scale_buffer_[index] += math::to_scale(value) * weight;
+  float3 location;
+  math::Quaternion rotation;
+  float3 scale;
+  math::to_loc_rot_scale_safe<true>(value, location, rotation, scale);
+
+  location_buffer_[index] += location * weight;
+  expmap_buffer_[index] += rotation.expmap() * weight;
+  scale_buffer_[index] += scale * weight;
   total_weights_[index] += weight;
 }
 
