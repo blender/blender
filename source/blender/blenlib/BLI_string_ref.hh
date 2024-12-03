@@ -437,7 +437,7 @@ constexpr StringRefNull::StringRefNull() : StringRefBase("", 0) {}
 constexpr StringRefNull::StringRefNull(const char *str, const int64_t size)
     : StringRefBase(str, size)
 {
-  BLI_assert(int64_t(strlen(str)) == size);
+  BLI_assert(int64_t(std::char_traits<char>::length(str)) == size);
 }
 
 /**
