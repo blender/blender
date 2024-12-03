@@ -32,7 +32,7 @@ BLI_INLINE int wrap_coord(float u, int size, InterpWrapMode wrap)
       break;
     case InterpWrapMode::Border:
       x = int(u);
-      if (x < 0 || x >= size) {
+      if (u < 0.0f || x >= size) {
         x = -1;
       }
       break;
