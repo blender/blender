@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include <functional>
+
 #include "BLI_generic_pointer.hh"
 #include "BLI_map.hh"
 #include "BLI_span.hh"
@@ -21,10 +23,12 @@ struct CustomDataAccessInfo {
   using CustomDataGetter = CustomData *(*)(void *owner);
   using ConstCustomDataGetter = const CustomData *(*)(const void *owner);
   using GetElementNum = int (*)(const void *owner);
+  using GetTagModifiedFunction = std::function<void()> (*)(void *owner, StringRef name);
 
   CustomDataGetter get_custom_data;
   ConstCustomDataGetter get_const_custom_data;
   GetElementNum get_element_num;
+  GetTagModifiedFunction get_tag_modified_function;
 };
 
 /**

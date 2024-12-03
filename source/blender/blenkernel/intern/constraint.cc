@@ -5195,8 +5195,7 @@ static void followtrack_project_to_depth_object_if_needed(FollowTrackContext *co
   sub_v3_v3v3(ray_direction, ray_end, ray_start);
   normalize_v3(ray_direction);
 
-  BVHTreeFromMesh tree_data = NULL_BVHTreeFromMesh;
-  BKE_bvhtree_from_mesh_get(&tree_data, depth_mesh, BVHTREE_FROM_CORNER_TRIS, 4);
+  BVHTreeFromMesh tree_data = depth_mesh->bvh_corner_tris();
 
   BVHTreeRayHit hit;
   hit.dist = BVH_RAYCAST_DIST_MAX;
@@ -5213,8 +5212,6 @@ static void followtrack_project_to_depth_object_if_needed(FollowTrackContext *co
   if (result != -1) {
     mul_v3_m4v3(cob->matrix[3], depth_object->object_to_world().ptr(), hit.co);
   }
-
-  free_bvhtree_from_mesh(&tree_data);
 }
 
 static void followtrack_evaluate_using_2d_position(FollowTrackContext *context, bConstraintOb *cob)

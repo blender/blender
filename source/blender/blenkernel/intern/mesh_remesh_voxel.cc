@@ -520,8 +520,7 @@ void mesh_remesh_reproject_attributes(const Mesh &src, Mesh &dst)
    * the decisions made here, which mainly results in easier refactoring, more generic code, and
    * possibly improved performance from lower cache usage in the "complex" sampling part of the
    * algorithm and the copying itself. */
-  BVHTreeFromMesh bvhtree{};
-  BKE_bvhtree_from_mesh_get(&bvhtree, &src, BVHTREE_FROM_CORNER_TRIS, 2);
+  BVHTreeFromMesh bvhtree = src.bvh_corner_tris();
 
   const Span<float3> dst_positions = dst.vert_positions();
   const OffsetIndices dst_faces = dst.faces();
@@ -586,8 +585,6 @@ void mesh_remesh_reproject_attributes(const Mesh &src, Mesh &dst)
   if (src.default_color_attribute) {
     BKE_id_attributes_default_color_set(&dst.id, src.default_color_attribute);
   }
-
-  free_bvhtree_from_mesh(&bvhtree);
 }
 
 }  // namespace blender::bke

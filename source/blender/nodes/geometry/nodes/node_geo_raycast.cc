@@ -99,15 +99,10 @@ static void raycast_to_mesh(const IndexMask &mask,
                             const MutableSpan<float3> r_hit_normals,
                             const MutableSpan<float> r_hit_distances)
 {
-  BVHTreeFromMesh tree_data;
-  BKE_bvhtree_from_mesh_get(&tree_data, &mesh, BVHTREE_FROM_CORNER_TRIS, 4);
-  BLI_SCOPED_DEFER([&]() { free_bvhtree_from_mesh(&tree_data); });
-
+  BVHTreeFromMesh tree_data = mesh.bvh_corner_tris();
   if (tree_data.tree == nullptr) {
     return;
   }
-  /* We shouldn't be rebuilding the BVH tree when calling this function in parallel. */
-  BLI_assert(tree_data.cached);
 
   mask.foreach_index([&](const int i) {
     const float ray_length = ray_lengths[i];

@@ -197,8 +197,7 @@ struct SlideOperationExecutor {
       report_missing_uv_map_on_evaluated_surface(stroke_extension.reports);
       return;
     }
-    BKE_bvhtree_from_mesh_get(&surface_bvh_eval_, surface_eval_, BVHTREE_FROM_CORNER_TRIS, 2);
-    BLI_SCOPED_DEFER([&]() { free_bvhtree_from_mesh(&surface_bvh_eval_); });
+    surface_bvh_eval_ = surface_eval_->bvh_corner_tris();
 
     if (stroke_extension.is_first) {
       self_->initial_brush_pos_re_ = brush_pos_re_;

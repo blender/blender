@@ -832,6 +832,14 @@ class MeshVertexGroupsAttributeProvider final : public DynamicAttributesProvider
   }
 };
 
+static std::function<void()> get_tag_modified_function(void *owner, const StringRef name)
+{
+  if (name.startswith(".hide")) {
+    return [owner]() { (static_cast<Mesh *>(owner))->tag_visibility_changed(); };
+  }
+  return {};
+}
+
 /**
  * In this function all the attribute providers for a mesh component are created. Most data in this
  * function is statically allocated, because it does not change over time.
@@ -856,16 +864,20 @@ static GeometryAttributeProviders create_attribute_providers_for_mesh()
 
   static CustomDataAccessInfo corner_access = {MAKE_MUTABLE_CUSTOM_DATA_GETTER(corner_data),
                                                MAKE_CONST_CUSTOM_DATA_GETTER(corner_data),
-                                               MAKE_GET_ELEMENT_NUM_GETTER(corners_num)};
+                                               MAKE_GET_ELEMENT_NUM_GETTER(corners_num),
+                                               get_tag_modified_function};
   static CustomDataAccessInfo point_access = {MAKE_MUTABLE_CUSTOM_DATA_GETTER(vert_data),
                                               MAKE_CONST_CUSTOM_DATA_GETTER(vert_data),
-                                              MAKE_GET_ELEMENT_NUM_GETTER(verts_num)};
+                                              MAKE_GET_ELEMENT_NUM_GETTER(verts_num),
+                                              get_tag_modified_function};
   static CustomDataAccessInfo edge_access = {MAKE_MUTABLE_CUSTOM_DATA_GETTER(edge_data),
                                              MAKE_CONST_CUSTOM_DATA_GETTER(edge_data),
-                                             MAKE_GET_ELEMENT_NUM_GETTER(edges_num)};
+                                             MAKE_GET_ELEMENT_NUM_GETTER(edges_num),
+                                             get_tag_modified_function};
   static CustomDataAccessInfo face_access = {MAKE_MUTABLE_CUSTOM_DATA_GETTER(face_data),
                                              MAKE_CONST_CUSTOM_DATA_GETTER(face_data),
-                                             MAKE_GET_ELEMENT_NUM_GETTER(faces_num)};
+                                             MAKE_GET_ELEMENT_NUM_GETTER(faces_num),
+                                             get_tag_modified_function};
 
 #undef MAKE_CONST_CUSTOM_DATA_GETTER
 #undef MAKE_MUTABLE_CUSTOM_DATA_GETTER

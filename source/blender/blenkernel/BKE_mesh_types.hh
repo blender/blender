@@ -22,14 +22,14 @@
 #include "DNA_customdata_types.h"
 
 struct BMEditMesh;
-struct BVHCache;
+struct BVHTree;
 struct Mesh;
 class ShrinkwrapBoundaryData;
 struct SubdivCCG;
 struct SubsurfRuntimeData;
 namespace blender::bke {
 struct EditMeshData;
-}
+}  // namespace blender::bke
 namespace blender::bke::bake {
 struct BakeMaterialsList;
 }
@@ -107,6 +107,12 @@ struct TrianglesCache {
   void tag_dirty();
 };
 
+struct BVHCacheItem {
+  BVHTree *tree = nullptr;
+  BVHCacheItem();
+  ~BVHCacheItem();
+};
+
 struct MeshRuntime {
   /**
    * "Evaluated" mesh owned by this mesh. Used for objects which don't have effective modifiers, so
@@ -158,8 +164,15 @@ struct MeshRuntime {
   /** Cache for triangle to original face index map, accessed with #Mesh::corner_tri_faces(). */
   SharedCache<Array<int>> corner_tri_faces_cache;
 
-  /** Cache for BVH trees generated for the mesh. Defined in 'BKE_bvhutil.c' */
-  BVHCache *bvh_cache = nullptr;
+  SharedCache<BVHCacheItem> bvh_cache_verts;
+  SharedCache<BVHCacheItem> bvh_cache_edges;
+  SharedCache<BVHCacheItem> bvh_cache_faces;
+  SharedCache<BVHCacheItem> bvh_cache_corner_tris;
+  SharedCache<BVHCacheItem> bvh_cache_corner_tris_no_hidden;
+  SharedCache<BVHCacheItem> bvh_cache_loose_verts;
+  SharedCache<BVHCacheItem> bvh_cache_loose_verts_no_hidden;
+  SharedCache<BVHCacheItem> bvh_cache_loose_edges;
+  SharedCache<BVHCacheItem> bvh_cache_loose_edges_no_hidden;
 
   /** Needed in case we need to lazily initialize the mesh. */
   CustomData_MeshMasks cd_mask_extra = {};

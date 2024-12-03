@@ -117,14 +117,13 @@ float BKE_mesh_remap_calc_difference_from_mesh(const SpaceTransform *space_trans
                                                const int numverts_dst,
                                                const Mesh *me_src)
 {
-  BVHTreeFromMesh treedata = {nullptr};
   BVHTreeNearest nearest = {0};
   float hit_dist;
 
   float result = 0.0f;
   int i;
 
-  BKE_bvhtree_from_mesh_get(&treedata, me_src, BVHTREE_FROM_VERTS, 2);
+  BVHTreeFromMesh treedata = me_src->bvh_verts();
   nearest.index = -1;
 
   for (i = 0; i < numverts_dst; i++) {
@@ -471,14 +470,14 @@ void BKE_mesh_remap_calc_verts_from_mesh(const int mode,
     }
   }
   else {
-    BVHTreeFromMesh treedata = {nullptr};
+    BVHTreeFromMesh treedata{};
     BVHTreeNearest nearest = {0};
     BVHTreeRayHit rayhit = {0};
     float hit_dist;
     float tmp_co[3], tmp_no[3];
 
     if (mode == MREMAP_MODE_VERT_NEAREST) {
-      BKE_bvhtree_from_mesh_get(&treedata, me_src, BVHTREE_FROM_VERTS, 2);
+      treedata = me_src->bvh_verts();
       nearest.index = -1;
 
       for (i = 0; i < numverts_dst; i++) {
@@ -503,7 +502,7 @@ void BKE_mesh_remap_calc_verts_from_mesh(const int mode,
       const blender::Span<blender::int2> edges_src = me_src->edges();
       const blender::Span<blender::float3> positions_src = me_src->vert_positions();
 
-      BKE_bvhtree_from_mesh_get(&treedata, me_src, BVHTREE_FROM_EDGES, 2);
+      treedata = me_src->bvh_edges();
       nearest.index = -1;
 
       for (i = 0; i < numverts_dst; i++) {
@@ -565,7 +564,7 @@ void BKE_mesh_remap_calc_verts_from_mesh(const int mode,
       float *weights = static_cast<float *>(
           MEM_mallocN(sizeof(*weights) * tmp_buff_size, __func__));
 
-      BKE_bvhtree_from_mesh_get(&treedata, me_src, BVHTREE_FROM_CORNER_TRIS, 2);
+      treedata = me_src->bvh_corner_tris();
 
       if (mode == MREMAP_MODE_VERT_POLYINTERP_VNORPROJ) {
         for (i = 0; i < numverts_dst; i++) {
@@ -665,8 +664,6 @@ void BKE_mesh_remap_calc_verts_from_mesh(const int mode,
       CLOG_WARN(&LOG, "Unsupported mesh-to-mesh vertex mapping mode (%d)!", mode);
       memset(r_map->items, 0, sizeof(*r_map->items) * size_t(numverts_dst));
     }
-
-    free_bvhtree_from_mesh(&treedata);
   }
 }
 
@@ -698,7 +695,7 @@ void BKE_mesh_remap_calc_edges_from_mesh(const int mode,
     }
   }
   else {
-    BVHTreeFromMesh treedata = {nullptr};
+    BVHTreeFromMesh treedata{};
     BVHTreeNearest nearest = {0};
     BVHTreeRayHit rayhit = {0};
     float hit_dist;
@@ -725,7 +722,7 @@ void BKE_mesh_remap_calc_edges_from_mesh(const int mode,
       const GroupedSpan<int> vert_to_edge_src_map = bke::mesh::build_vert_to_edge_map(
           edges_src, num_verts_src, vert_to_edge_src_offsets, vert_to_edge_src_indices);
 
-      BKE_bvhtree_from_mesh_get(&treedata, me_src, BVHTREE_FROM_VERTS, 2);
+      treedata = me_src->bvh_verts();
       nearest.index = -1;
 
       for (i = 0; i < numedges_dst; i++) {
@@ -828,7 +825,7 @@ void BKE_mesh_remap_calc_edges_from_mesh(const int mode,
       MEM_freeN(v_dst_to_src_map);
     }
     else if (mode == MREMAP_MODE_EDGE_NEAREST) {
-      BKE_bvhtree_from_mesh_get(&treedata, me_src, BVHTREE_FROM_EDGES, 2);
+      treedata = me_src->bvh_edges();
       nearest.index = -1;
 
       for (i = 0; i < numedges_dst; i++) {
@@ -859,7 +856,7 @@ void BKE_mesh_remap_calc_edges_from_mesh(const int mode,
       const blender::Span<blender::float3> positions_src = me_src->vert_positions();
       const blender::Span<int> tri_faces = me_src->corner_tri_faces();
 
-      BKE_bvhtree_from_mesh_get(&treedata, me_src, BVHTREE_FROM_CORNER_TRIS, 2);
+      treedata = me_src->bvh_corner_tris();
 
       for (i = 0; i < numedges_dst; i++) {
         interp_v3_v3v3(tmp_co,
@@ -916,7 +913,7 @@ void BKE_mesh_remap_calc_edges_from_mesh(const int mode,
       float *weights = static_cast<float *>(
           MEM_mallocN(sizeof(*weights) * size_t(numedges_src), __func__));
 
-      BKE_bvhtree_from_mesh_get(&treedata, me_src, BVHTREE_FROM_EDGES, 2);
+      treedata = me_src->bvh_edges();
 
       const blender::Span<blender::float3> vert_normals_dst = me_dst->vert_normals();
 
@@ -1013,8 +1010,6 @@ void BKE_mesh_remap_calc_edges_from_mesh(const int mode,
       CLOG_WARN(&LOG, "Unsupported mesh-to-mesh edge mapping mode (%d)!", mode);
       memset(r_map->items, 0, sizeof(*r_map->items) * size_t(numedges_dst));
     }
-
-    free_bvhtree_from_mesh(&treedata);
   }
 }
 
@@ -1239,7 +1234,7 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
     }
   }
   else {
-    BVHTreeFromMesh *treedata = nullptr;
+    Array<BVHTreeFromMesh> treedata;
     BVHTreeNearest nearest = {0};
     BVHTreeRayHit rayhit = {0};
     int num_trees = 0;
@@ -1374,8 +1369,7 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
                                     &island_store);
 
       num_trees = use_islands ? island_store.islands_num : 1;
-      treedata = static_cast<BVHTreeFromMesh *>(
-          MEM_callocN(sizeof(*treedata) * size_t(num_trees), __func__));
+      treedata.reinitialize(num_trees);
       if (isld_steps_src) {
         as_graphdata = static_cast<BLI_AStarGraph *>(
             MEM_callocN(sizeof(*as_graphdata) * size_t(num_trees), __func__));
@@ -1392,7 +1386,7 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
     }
     else {
       num_trees = 1;
-      treedata = static_cast<BVHTreeFromMesh *>(MEM_callocN(sizeof(*treedata), __func__));
+      treedata.reinitialize(1);
       if (isld_steps_src) {
         as_graphdata = static_cast<BLI_AStarGraph *>(MEM_callocN(sizeof(*as_graphdata), __func__));
       }
@@ -1436,7 +1430,7 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
       }
       else {
         BLI_assert(num_trees == 1);
-        BKE_bvhtree_from_mesh_get(&treedata[0], me_src, BVHTREE_FROM_VERTS, 2);
+        treedata[0] = me_src->bvh_verts();
       }
     }
     else { /* We use faces. */
@@ -1468,7 +1462,7 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
       }
       else {
         BLI_assert(num_trees == 1);
-        BKE_bvhtree_from_mesh_get(&treedata[0], me_src, BVHTREE_FROM_CORNER_TRIS, 2);
+        treedata[0] = me_src->bvh_corner_tris();
       }
     }
 
@@ -1999,14 +1993,12 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
 
     for (tindex = 0; tindex < num_trees; tindex++) {
       MEM_freeN(islands_res[tindex]);
-      free_bvhtree_from_mesh(&treedata[tindex]);
       if (isld_steps_src) {
         BLI_astar_graph_free(&as_graphdata[tindex]);
       }
     }
     MEM_freeN(islands_res);
     BKE_mesh_loop_islands_free(&island_store);
-    MEM_freeN(treedata);
     if (isld_steps_src) {
       MEM_freeN(as_graphdata);
       BLI_astar_solution_free(&as_solution);
@@ -2063,13 +2055,12 @@ void BKE_mesh_remap_calc_faces_from_mesh(const int mode,
     }
   }
   else {
-    BVHTreeFromMesh treedata = {nullptr};
     BVHTreeNearest nearest = {0};
     BVHTreeRayHit rayhit = {0};
     float hit_dist;
     const blender::Span<int> tri_faces = me_src->corner_tri_faces();
 
-    BKE_bvhtree_from_mesh_get(&treedata, me_src, BVHTREE_FROM_CORNER_TRIS, 2);
+    BVHTreeFromMesh treedata = me_src->bvh_corner_tris();
 
     if (mode == MREMAP_MODE_POLY_NEAREST) {
       nearest.index = -1;
@@ -2308,8 +2299,6 @@ void BKE_mesh_remap_calc_faces_from_mesh(const int mode,
       CLOG_WARN(&LOG, "Unsupported mesh-to-mesh face mapping mode (%d)!", mode);
       memset(r_map->items, 0, sizeof(*r_map->items) * size_t(faces_dst.size()));
     }
-
-    free_bvhtree_from_mesh(&treedata);
   }
 }
 

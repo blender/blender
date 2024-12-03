@@ -23,11 +23,19 @@ struct MFace;
 struct Mesh;
 struct PointCloud;
 
+class BVHTreeDeleter {
+ public:
+  void operator()(BVHTree *tree)
+  {
+    BLI_bvhtree_free(tree);
+  }
+};
+
 /**
  * Struct that stores basic information about a #BVHTree built from a mesh.
  */
 struct BVHTreeFromMesh {
-  BVHTree *tree = nullptr;
+  const BVHTree *tree = nullptr;
 
   /** Default callbacks to BVH nearest and ray-cast. */
   BVHTree_NearestPointCallback nearest_callback;
@@ -41,8 +49,7 @@ struct BVHTreeFromMesh {
 
   const MFace *face = nullptr;
 
-  /* Private data */
-  bool cached = false;
+  std::unique_ptr<BVHTree, BVHTreeDeleter> owned_tree;
 };
 
 enum BVHCacheType {
@@ -111,17 +118,6 @@ BVHTree *bvhtree_from_mesh_corner_tris_ex(BVHTreeFromMesh *data,
                                           int axis);
 
 /**
- * Builds or queries a BVH-cache for the cache BVH-tree of the request type.
- *
- * \note This function only fills a cache, and therefore the mesh argument can
- * be considered logically const. Concurrent access is protected by a mutex.
- */
-BVHTree *BKE_bvhtree_from_mesh_get(BVHTreeFromMesh *data,
-                                   const Mesh *mesh,
-                                   BVHCacheType bvh_cache_type,
-                                   int tree_type);
-
-/**
  * Build a bvh tree from the triangles in the mesh that correspond to the faces in the given mask.
  */
 void BKE_bvhtree_from_mesh_tris_init(const Mesh &mesh,
@@ -141,11 +137,6 @@ void BKE_bvhtree_from_mesh_edges_init(const Mesh &mesh,
 void BKE_bvhtree_from_mesh_verts_init(const Mesh &mesh,
                                       const blender::IndexMask &verts_mask,
                                       BVHTreeFromMesh &r_data);
-
-/**
- * Frees data allocated by a call to `bvhtree_from_mesh_*`.
- */
-void free_bvhtree_from_mesh(BVHTreeFromMesh *data);
 
 /**
  * Math functions used by callbacks
@@ -172,16 +163,3 @@ void BKE_bvhtree_from_pointcloud_get(const PointCloud &pointcloud,
                                      BVHTreeFromPointCloud &r_data);
 
 void free_bvhtree_from_pointcloud(BVHTreeFromPointCloud *data);
-
-/**
- * BVHCache
- */
-
-/* Using local coordinates */
-
-bool bvhcache_has_tree(const BVHCache *bvh_cache, const BVHTree *tree);
-BVHCache *bvhcache_init();
-/**
- * Frees a BVH-cache.
- */
-void bvhcache_free(BVHCache *bvh_cache);

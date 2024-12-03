@@ -915,7 +915,7 @@ struct MeshDeformBind {
   /* direct solver */
   int *varidx;
 
-  BVHTree *bvhtree;
+  const BVHTree *bvhtree;
   BVHTreeFromMesh bvhdata;
 
   /* avoid DM function calls during intersections */
@@ -1604,8 +1604,8 @@ static void harmonic_coordinates_bind(MeshDeformModifierData *mmd, MeshDeformBin
   mdb->boundisect = static_cast<MDefBoundIsect *(*)[6]>(
       MEM_callocN(sizeof(*mdb->boundisect) * mdb->size3, "MDefBoundIsect"));
   mdb->semibound = static_cast<int *>(MEM_callocN(sizeof(int) * mdb->size3, "MDefSemiBound"));
-  mdb->bvhtree = BKE_bvhtree_from_mesh_get(
-      &mdb->bvhdata, mdb->cagemesh, BVHTREE_FROM_CORNER_TRIS, 4);
+  mdb->bvhdata = mdb->cagemesh->bvh_corner_tris();
+  mdb->bvhtree = mdb->bvhdata.tree;
   mdb->inside = static_cast<int *>(MEM_callocN(sizeof(int) * mdb->verts_num, "MDefInside"));
 
   if (mmd->flag & MOD_MDEF_DYNAMIC_BIND) {
@@ -1751,7 +1751,6 @@ static void harmonic_coordinates_bind(MeshDeformModifierData *mmd, MeshDeformBin
   MEM_freeN(mdb->boundisect);
   MEM_freeN(mdb->semibound);
   BLI_memarena_free(mdb->memarena);
-  free_bvhtree_from_mesh(&mdb->bvhdata);
 }
 
 void ED_mesh_deform_bind_callback(Object *object,

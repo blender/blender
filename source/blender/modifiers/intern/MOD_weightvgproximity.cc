@@ -154,13 +154,13 @@ static void get_vert2geom_distance(int verts_num,
   Vert2GeomData data{};
   Vert2GeomDataChunk data_chunk = {{{0}}};
 
-  BVHTreeFromMesh treeData_v = {nullptr};
-  BVHTreeFromMesh treeData_e = {nullptr};
-  BVHTreeFromMesh treeData_f = {nullptr};
+  BVHTreeFromMesh treeData_v{};
+  BVHTreeFromMesh treeData_e{};
+  BVHTreeFromMesh treeData_f{};
 
   if (dist_v) {
     /* Create a BVH-tree of the given target's verts. */
-    BKE_bvhtree_from_mesh_get(&treeData_v, target, BVHTREE_FROM_VERTS, 2);
+    treeData_v = target->bvh_verts();
     if (treeData_v.tree == nullptr) {
       OUT_OF_MEMORY();
       return;
@@ -168,7 +168,7 @@ static void get_vert2geom_distance(int verts_num,
   }
   if (dist_e) {
     /* Create a BVH-tree of the given target's edges. */
-    BKE_bvhtree_from_mesh_get(&treeData_e, target, BVHTREE_FROM_EDGES, 2);
+    treeData_e = target->bvh_edges();
     if (treeData_e.tree == nullptr) {
       OUT_OF_MEMORY();
       return;
@@ -176,7 +176,7 @@ static void get_vert2geom_distance(int verts_num,
   }
   if (dist_f) {
     /* Create a BVH-tree of the given target's faces. */
-    BKE_bvhtree_from_mesh_get(&treeData_f, target, BVHTREE_FROM_CORNER_TRIS, 2);
+    treeData_f = target->bvh_corner_tris();
     if (treeData_f.tree == nullptr) {
       OUT_OF_MEMORY();
       return;
@@ -199,16 +199,6 @@ static void get_vert2geom_distance(int verts_num,
   settings.userdata_chunk = &data_chunk;
   settings.userdata_chunk_size = sizeof(data_chunk);
   BLI_task_parallel_range(0, verts_num, &data, vert2geom_task_cb_ex, &settings);
-
-  if (dist_v) {
-    free_bvhtree_from_mesh(&treeData_v);
-  }
-  if (dist_e) {
-    free_bvhtree_from_mesh(&treeData_e);
-  }
-  if (dist_f) {
-    free_bvhtree_from_mesh(&treeData_f);
-  }
 }
 
 /**

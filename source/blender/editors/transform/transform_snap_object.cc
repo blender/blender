@@ -651,7 +651,7 @@ static bool raycastObjects(SnapObjectContext *sctx)
 /** \name Surface Snap Functions
  * \{ */
 
-static void nearest_world_tree_co(BVHTree *tree,
+static void nearest_world_tree_co(const BVHTree *tree,
                                   BVHTree_NearestPointCallback nearest_cb,
                                   void *treedata,
                                   const float3 &co,
@@ -665,7 +665,7 @@ static void nearest_world_tree_co(BVHTree *tree,
 }
 
 bool nearest_world_tree(SnapObjectContext *sctx,
-                        BVHTree *tree,
+                        const BVHTree *tree,
                         BVHTree_NearestPointCallback nearest_cb,
                         const blender::float4x4 &obmat,
                         void *treedata,

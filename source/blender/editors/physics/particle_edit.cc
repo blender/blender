@@ -467,7 +467,7 @@ struct PEData {
   Object *ob;
   Mesh *mesh;
   PTCacheEdit *edit;
-  BVHTreeFromMesh shape_bvh;
+  BVHTreeFromMesh *shape_bvh;
   Depsgraph *depsgraph;
 
   RNG *rng;
@@ -534,19 +534,17 @@ static bool PE_create_shape_tree(PEData *data, Object *shapeob)
   Object *shapeob_eval = DEG_get_evaluated_object(data->depsgraph, shapeob);
   const Mesh *mesh = BKE_object_get_evaluated_mesh(shapeob_eval);
 
-  data->shape_bvh = {};
-
   if (!mesh) {
     return false;
   }
 
-  return (BKE_bvhtree_from_mesh_get(&data->shape_bvh, mesh, BVHTREE_FROM_CORNER_TRIS, 4) !=
-          nullptr);
+  data->shape_bvh = MEM_new<BVHTreeFromMesh>(__func__, mesh->bvh_corner_tris());
+  return data->shape_bvh->tree != nullptr;
 }
 
 static void PE_free_shape_tree(PEData *data)
 {
-  free_bvhtree_from_mesh(&data->shape_bvh);
+  MEM_delete(data->shape_bvh);
 }
 
 static void PE_create_random_generator(PEData *data)
@@ -5114,7 +5112,7 @@ static bool shape_cut_poll(bContext *C)
 }
 
 struct PointInsideBVH {
-  BVHTreeFromMesh bvhdata;
+  BVHTreeFromMesh *bvhdata;
   int num_hits;
 };
 
@@ -5125,7 +5123,7 @@ static void point_inside_bvh_cb(void *userdata,
 {
   PointInsideBVH *data = static_cast<PointInsideBVH *>(userdata);
 
-  data->bvhdata.raycast_callback(&data->bvhdata, index, ray, hit);
+  data->bvhdata->raycast_callback(&data->bvhdata, index, ray, hit);
 
   if (hit->index != -1) {
     ++data->num_hits;
@@ -5135,7 +5133,7 @@ static void point_inside_bvh_cb(void *userdata,
 /* true if the point is inside the shape mesh */
 static bool shape_cut_test_point(PEData *data, ParticleEditSettings *pset, ParticleCacheKey *key)
 {
-  BVHTreeFromMesh *shape_bvh = &data->shape_bvh;
+  BVHTreeFromMesh *shape_bvh = data->shape_bvh;
   const float dir[3] = {1.0f, 0.0f, 0.0f};
   PointInsideBVH userdata;
 
@@ -5193,12 +5191,12 @@ static void shape_cut(PEData *data, int pa_index)
       memset(&hit, 0, sizeof(hit));
       hit.index = -1;
       hit.dist = len_shape;
-      BLI_bvhtree_ray_cast(data->shape_bvh.tree,
+      BLI_bvhtree_ray_cast(data->shape_bvh->tree,
                            co_curr_shape,
                            dir_shape,
                            0.0f,
                            &hit,
-                           data->shape_bvh.raycast_callback,
+                           data->shape_bvh->raycast_callback,
                            &data->shape_bvh);
       if (hit.index >= 0) {
         if (hit.dist < len_shape) {

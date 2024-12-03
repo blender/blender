@@ -153,6 +153,18 @@ static void mesh_copy_data(Main *bmain,
   mesh_dst->runtime->vert_to_face_map_cache = mesh_src->runtime->vert_to_face_map_cache;
   mesh_dst->runtime->vert_to_corner_map_cache = mesh_src->runtime->vert_to_corner_map_cache;
   mesh_dst->runtime->corner_to_face_map_cache = mesh_src->runtime->corner_to_face_map_cache;
+  mesh_dst->runtime->bvh_cache_verts = mesh_src->runtime->bvh_cache_verts;
+  mesh_dst->runtime->bvh_cache_edges = mesh_src->runtime->bvh_cache_edges;
+  mesh_dst->runtime->bvh_cache_faces = mesh_src->runtime->bvh_cache_faces;
+  mesh_dst->runtime->bvh_cache_corner_tris = mesh_src->runtime->bvh_cache_corner_tris;
+  mesh_dst->runtime->bvh_cache_corner_tris_no_hidden =
+      mesh_src->runtime->bvh_cache_corner_tris_no_hidden;
+  mesh_dst->runtime->bvh_cache_loose_verts = mesh_src->runtime->bvh_cache_loose_verts;
+  mesh_dst->runtime->bvh_cache_loose_verts_no_hidden =
+      mesh_src->runtime->bvh_cache_loose_verts_no_hidden;
+  mesh_dst->runtime->bvh_cache_loose_edges = mesh_src->runtime->bvh_cache_loose_edges;
+  mesh_dst->runtime->bvh_cache_loose_edges_no_hidden =
+      mesh_src->runtime->bvh_cache_loose_edges_no_hidden;
   if (mesh_src->runtime->bake_materials) {
     mesh_dst->runtime->bake_materials = std::make_unique<blender::bke::bake::BakeMaterialsList>(
         *mesh_src->runtime->bake_materials);

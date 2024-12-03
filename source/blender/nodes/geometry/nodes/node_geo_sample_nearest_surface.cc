@@ -130,12 +130,7 @@ class SampleNearestSurfaceFunction : public mf::MultiFunction {
             [&](const int group_i) { return group_masks[group_i].size(); }, mesh.faces_num));
   }
 
-  ~SampleNearestSurfaceFunction()
-  {
-    for (BVHTreeFromMesh &tree : bvh_trees_) {
-      free_bvhtree_from_mesh(&tree);
-    }
-  }
+  ~SampleNearestSurfaceFunction() = default;
 
   void call(const IndexMask &mask, mf::Params params, mf::Context /*context*/) const override
   {
