@@ -743,7 +743,7 @@ static void GPENCIL_draw_scene_depth_only(void *ved)
   }
 
   blender::draw::Manager *manager = DRW_manager_get();
-  blender::draw::View view("GPDepthOnlyView", DRW_view_get_active());
+  blender::draw::View view("GPDepthOnlyView", DRW_view_default_get());
 
   LISTBASE_FOREACH (GPENCIL_tObject *, ob, &pd->tobjects) {
     LISTBASE_FOREACH (GPENCIL_tLayer *, layer, &ob->layers) {

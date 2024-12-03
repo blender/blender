@@ -115,7 +115,7 @@ static void external_image_space_matrix_set(const RenderEngine *engine)
   BLI_assert(engine != nullptr);
 
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  const DRWView *view = DRW_view_get_active();
+  const DRWView *view = DRW_view_default_get();
   SpaceImage *space_image = (SpaceImage *)draw_ctx->space_data;
 
   /* Apply current view as transformation matrix.
