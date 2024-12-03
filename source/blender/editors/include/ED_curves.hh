@@ -453,6 +453,12 @@ void add_curves(bke::CurvesGeometry &curves, Span<int> new_sizes);
 void resize_curves(bke::CurvesGeometry &curves,
                    const IndexMask &curves_to_resize,
                    Span<int> new_sizes);
+/**
+ * Reorders the curves in \a curves.
+ * \param old_by_new_indices_map: An index mapping where each value is the target index for the
+ * reorder curves.
+ */
+void reorder_curves(bke::CurvesGeometry &curves, Span<int> old_by_new_indices_map);
 
 /** \} */
 

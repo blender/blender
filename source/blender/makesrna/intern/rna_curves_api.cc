@@ -21,6 +21,7 @@
 #  include "BKE_report.hh"
 
 #  include "BLI_index_mask.hh"
+#  include "BLI_set.hh"
 
 #  include "ED_curves.hh"
 
@@ -122,6 +123,33 @@ bool rna_CurvesGeometry_resize_curves(blender::bke::CurvesGeometry &curves,
   return true;
 }
 
+bool rna_CurvesGeometry_reorder_curves(blender::bke::CurvesGeometry &curves,
+                                       ReportList *reports,
+                                       const int *reorder_indices_ptr,
+                                       const int reorder_indices_num)
+{
+  using namespace blender;
+  const Span<int> new_to_old_indices_map(reorder_indices_ptr, reorder_indices_num);
+  if (curves.curves_num() != reorder_indices_num) {
+    BKE_report(
+        reports, RPT_ERROR, "Length of reorder indices must be the same as the number of curves");
+    return false;
+  }
+  if (std::any_of(new_to_old_indices_map.begin(),
+                  new_to_old_indices_map.end(),
+                  [&](const int index) { return !curves.curves_range().contains(index); }))
+  {
+    BKE_report(reports, RPT_ERROR, "Reorder indices must be valid");
+    return false;
+  }
+  if (Set(new_to_old_indices_map).size() != reorder_indices_num) {
+    BKE_report(reports, RPT_ERROR, "Reorder indices must not have duplicates");
+    return false;
+  }
+  ed::curves::reorder_curves(curves, new_to_old_indices_map);
+  return true;
+}
+
 bool rna_CurvesGeometry_set_types(blender::bke::CurvesGeometry &curves,
                                   ReportList *reports,
                                   const int type,
@@ -187,6 +215,26 @@ static void rna_Curves_resize_curves(Curves *curves_id,
   bke::CurvesGeometry &curves = curves_id->geometry.wrap();
   if (!rna_CurvesGeometry_resize_curves(
           curves, reports, sizes_ptr, sizes_num, indices_ptr, indices_num))
+  {
+    return;
+  }
+
+  /* Avoid updates for importers creating curves. */
+  if (curves_id->id.us > 0) {
+    DEG_id_tag_update(&curves_id->id, ID_RECALC_GEOMETRY);
+    WM_main_add_notifier(NC_GEOM | ND_DATA, curves_id);
+  }
+}
+
+static void rna_Curves_reorder_curves(Curves *curves_id,
+                                      ReportList *reports,
+                                      const int *reorder_indices_ptr,
+                                      const int reorder_indices_num)
+{
+  using namespace blender;
+  bke::CurvesGeometry &curves = curves_id->geometry.wrap();
+  if (!rna_CurvesGeometry_reorder_curves(
+          curves, reports, reorder_indices_ptr, reorder_indices_num))
   {
     return;
   }
@@ -297,6 +345,21 @@ void RNA_api_curves(StructRNA *srna)
                            0,
                            10000);
   RNA_def_parameter_flags(parm, PROP_DYNAMIC, ParameterFlag(0));
+
+  func = RNA_def_function(srna, "reorder_curves", "rna_Curves_reorder_curves");
+  RNA_def_function_ui_description(func, "Reorder the curves by the new indices.");
+  RNA_def_function_flag(func, FUNC_USE_REPORTS);
+  parm = RNA_def_int_array(func,
+                           "new_indices",
+                           1,
+                           nullptr,
+                           0,
+                           INT_MAX,
+                           "New indices",
+                           "The new index for each of the curves",
+                           0,
+                           10000);
+  RNA_def_parameter_flags(parm, PROP_DYNAMIC, PARM_REQUIRED);
 
   func = RNA_def_function(srna, "set_types", "rna_Curves_set_types");
   RNA_def_function_ui_description(func,
