@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # pylint: disable=missing-function-docstring, missing-module-docstring, missing-class-docstring
 
+import datetime
 import itertools
 import json
 import os
@@ -48,12 +49,13 @@ Then run `make license` and commit `license.md`.
 -->
 # Blender Third-Party Licenses
 
-While Blender itself is released under [GPU-GPL 3.0 or later](https://spdx.org/licenses/GPL-3.0-or-later.html),
+While Blender itself is released under [GPU-GPL 3.0 or later](https://spdx.org/licenses/GPL-3.0-or-later.html)
+`© 2011-<THIS-YEAR> Blender Foundation`,
 it contains dependencies which have different licenses.
 
 <SPDX:GPL-3.0-or-later>
 
-"""
+""".replace("<THIS-YEAR>", str(datetime.date.today().year))
 
 INTRODUCTION += r"""
 ## Fonts
