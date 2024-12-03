@@ -39,200 +39,18 @@
 
 #define EXTERNAL_ENGINE "BLENDER_EXTERNAL"
 
-extern "C" char datatoc_basic_depth_frag_glsl[];
-extern "C" char datatoc_basic_depth_vert_glsl[];
-
-extern "C" char datatoc_common_view_lib_glsl[];
-
-/* *********** LISTS *********** */
-
-/* GPUViewport.storage
- * Is freed every time the viewport engine changes. */
-struct EXTERNAL_Storage {
-  int dummy;
-};
-
-struct EXTERNAL_StorageList {
-  EXTERNAL_Storage *storage;
-  struct EXTERNAL_PrivateData *g_data;
-};
-
-struct EXTERNAL_FramebufferList {
-  GPUFrameBuffer *depth_buffer_fb;
-};
-
-struct EXTERNAL_TextureList {
-  /* default */
-  GPUTexture *depth_buffer_tx;
-};
-
-struct EXTERNAL_PassList {
-  DRWPass *depth_pass;
-};
-
 struct EXTERNAL_Data {
   void *engine_type;
-  EXTERNAL_FramebufferList *fbl;
-  EXTERNAL_TextureList *txl;
-  EXTERNAL_PassList *psl;
-  EXTERNAL_StorageList *stl;
+  DRWViewportEmptyList *fbl;
+  DRWViewportEmptyList *txl;
+  DRWViewportEmptyList *psl;
+  DRWViewportEmptyList *stl;
   void *instance_data;
 
   char info[GPU_INFO_SIZE];
 };
 
-/* *********** STATIC *********** */
-
-static struct {
-  /* Depth Pre Pass */
-  GPUShader *depth_sh;
-} e_data = {nullptr}; /* Engine data */
-
-struct EXTERNAL_PrivateData {
-  DRWShadingGroup *depth_shgrp;
-
-  /* Do we need to update the depth or can we reuse the last calculated texture. */
-  bool need_depth;
-  bool update_depth;
-}; /* Transient data */
-
 /* Functions */
-
-static void external_engine_init(void *vedata)
-{
-  EXTERNAL_StorageList *stl = ((EXTERNAL_Data *)vedata)->stl;
-  const DRWContextState *draw_ctx = DRW_context_state_get();
-  ARegion *region = draw_ctx->region;
-
-  /* Depth pre-pass. */
-  if (!e_data.depth_sh) {
-    /* NOTE: Reuse Basic engine depth only shader. */
-    e_data.depth_sh = GPU_shader_create_from_info_name("basic_depth_mesh");
-  }
-
-  if (!stl->g_data) {
-    /* Alloc transient pointers */
-    stl->g_data = MEM_cnew<EXTERNAL_PrivateData>(__func__);
-    stl->g_data->need_depth = true;
-  }
-
-  stl->g_data->update_depth = true;
-
-  /* Progressive render samples are tagged with no rebuild, in that case we
-   * can skip updating the depth buffer */
-  if (region && (region->runtime->do_draw & RGN_DRAW_NO_REBUILD)) {
-    stl->g_data->update_depth = false;
-  }
-}
-
-/* Add shading group call which will take care of writing to the depth buffer, so that the
- * alpha-under overlay will happen for the render buffer. */
-static void external_cache_image_add(DRWShadingGroup *grp)
-{
-  float obmat[4][4];
-  unit_m4(obmat);
-  scale_m4_fl(obmat, 0.5f);
-
-  /* NOTE: Use the same Z-depth value as in the regular image drawing engine. */
-  translate_m4(obmat, 1.0f, 1.0f, 0.75f);
-
-  blender::gpu::Batch *geom = DRW_cache_quad_get();
-
-  DRW_shgroup_call_obmat(grp, geom, obmat);
-}
-
-static void external_cache_init(void *vedata)
-{
-  EXTERNAL_PassList *psl = ((EXTERNAL_Data *)vedata)->psl;
-  EXTERNAL_StorageList *stl = ((EXTERNAL_Data *)vedata)->stl;
-  EXTERNAL_TextureList *txl = ((EXTERNAL_Data *)vedata)->txl;
-  EXTERNAL_FramebufferList *fbl = ((EXTERNAL_Data *)vedata)->fbl;
-  const DRWContextState *draw_ctx = DRW_context_state_get();
-  const View3D *v3d = draw_ctx->v3d;
-
-  {
-    DRW_texture_ensure_fullscreen_2d(
-        &txl->depth_buffer_tx, GPU_DEPTH24_STENCIL8, DRWTextureFlag(0));
-
-    GPU_framebuffer_ensure_config(&fbl->depth_buffer_fb,
-                                  {
-                                      GPU_ATTACHMENT_TEXTURE(txl->depth_buffer_tx),
-                                  });
-  }
-
-  /* Depth Pass */
-  {
-    psl->depth_pass = DRW_pass_create("Depth Pass",
-                                      DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL);
-    stl->g_data->depth_shgrp = DRW_shgroup_create(e_data.depth_sh, psl->depth_pass);
-    DRW_shgroup_uniform_block(stl->g_data->depth_shgrp, "globalsBlock", G_draw.block_ubo);
-  }
-
-  if (v3d != nullptr) {
-    /* Do not draw depth pass when overlays are turned off. */
-    stl->g_data->need_depth = (v3d->flag2 & V3D_HIDE_OVERLAYS) == 0;
-  }
-  else if (draw_ctx->space_data != nullptr) {
-    const eSpace_Type space_type = eSpace_Type(draw_ctx->space_data->spacetype);
-    if (space_type == SPACE_IMAGE) {
-      external_cache_image_add(stl->g_data->depth_shgrp);
-
-      stl->g_data->need_depth = true;
-      stl->g_data->update_depth = true;
-    }
-  }
-}
-
-static void external_cache_populate(void *vedata, Object *ob)
-{
-  const DRWContextState *draw_ctx = DRW_context_state_get();
-  EXTERNAL_StorageList *stl = ((EXTERNAL_Data *)vedata)->stl;
-
-  if (draw_ctx->space_data != nullptr) {
-    const eSpace_Type space_type = eSpace_Type(draw_ctx->space_data->spacetype);
-    if (space_type == SPACE_IMAGE) {
-      return;
-    }
-  }
-
-  if (!(DRW_object_is_renderable(ob) &&
-        DRW_object_visibility_in_active_context(ob) & OB_VISIBLE_SELF))
-  {
-    return;
-  }
-
-  if (ob->type == OB_GPENCIL_LEGACY) {
-    /* Grease Pencil objects need correct depth to do the blending. */
-    stl->g_data->need_depth = true;
-    return;
-  }
-
-  if (ob->type == OB_MESH && ob->modifiers.first != nullptr) {
-    LISTBASE_FOREACH (ModifierData *, md, &ob->modifiers) {
-      if (md->type != eModifierType_ParticleSystem) {
-        continue;
-      }
-      ParticleSystem *psys = ((ParticleSystemModifierData *)md)->psys;
-      if (!DRW_object_is_visible_psys_in_active_context(ob, psys)) {
-        continue;
-      }
-      ParticleSettings *part = psys->part;
-      const int draw_as = (part->draw_as == PART_DRAW_REND) ? part->ren_as : part->draw_as;
-
-      if (draw_as == PART_DRAW_PATH) {
-        blender::gpu::Batch *hairs = DRW_cache_particles_get_hair(ob, psys, nullptr);
-        DRW_shgroup_call(stl->g_data->depth_shgrp, hairs, nullptr);
-      }
-    }
-  }
-  blender::gpu::Batch *geom = DRW_cache_object_surface_get(ob);
-  if (geom) {
-    /* Depth Pre-pass. */
-    DRW_shgroup_call(stl->g_data->depth_shgrp, geom, ob);
-  }
-}
-
-static void external_cache_finish(void * /*vedata*/) {}
 
 static void external_draw_scene_do_v3d(void *vedata)
 {
@@ -406,9 +224,6 @@ static void external_draw_scene_do(void *vedata)
 static void external_draw_scene(void *vedata)
 {
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  EXTERNAL_StorageList *stl = ((EXTERNAL_Data *)vedata)->stl;
-  EXTERNAL_PassList *psl = ((EXTERNAL_Data *)vedata)->psl;
-  EXTERNAL_FramebufferList *fbl = ((EXTERNAL_Data *)vedata)->fbl;
   const DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 
   /* Will be nullptr during OpenGL render.
@@ -423,20 +238,6 @@ static void external_draw_scene(void *vedata)
 
     external_draw_scene_do(vedata);
   }
-
-  if (stl->g_data->update_depth && stl->g_data->need_depth) {
-    DRW_draw_pass(psl->depth_pass);
-    /* Copy main depth buffer to cached framebuffer. */
-    GPU_framebuffer_blit(dfbl->depth_only_fb, 0, fbl->depth_buffer_fb, 0, GPU_DEPTH_BIT);
-  }
-
-  /* Copy cached depth buffer to main framebuffer. */
-  GPU_framebuffer_blit(fbl->depth_buffer_fb, 0, dfbl->depth_only_fb, 0, GPU_DEPTH_BIT);
-}
-
-static void external_engine_free()
-{
-  DRW_SHADER_FREE_SAFE(e_data.depth_sh);
 }
 
 static const DrawEngineDataSize external_data_size = DRW_VIEWPORT_DATA_SIZE(EXTERNAL_Data);
@@ -446,12 +247,12 @@ DrawEngineType draw_engine_external_type = {
     /*prev*/ nullptr,
     /*idname*/ N_("External"),
     /*vedata_size*/ &external_data_size,
-    /*engine_init*/ &external_engine_init,
-    /*engine_free*/ &external_engine_free,
+    /*engine_init*/ nullptr,
+    /*engine_free*/ nullptr,
     /*instance_free*/ nullptr,
-    /*cache_init*/ &external_cache_init,
-    /*cache_populate*/ &external_cache_populate,
-    /*cache_finish*/ &external_cache_finish,
+    /*cache_init*/ nullptr,
+    /*cache_populate*/ nullptr,
+    /*cache_finish*/ nullptr,
     /*draw_scene*/ &external_draw_scene,
     /*view_update*/ nullptr,
     /*id_update*/ nullptr,

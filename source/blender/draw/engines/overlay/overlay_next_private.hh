@@ -256,6 +256,9 @@ class ShapeCache {
 
   BatchPtr ground_line;
 
+  /* Batch drawing a quad with coordinate [0..1] at 0.75 depth. */
+  BatchPtr image_quad;
+
   BatchPtr light_icon_outer_lines;
   BatchPtr light_icon_inner_lines;
   BatchPtr light_icon_sun_rays;
