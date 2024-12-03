@@ -6939,6 +6939,9 @@ void calc_brush_texture_factors(const SculptSession &ss,
   }
 
   for (const int i : verts.index_range()) {
+    if (factors[i] == 0.0f) {
+      continue;
+    }
     float texture_value;
     float4 texture_rgba;
     /* NOTE: This is not a thread-safe call. */
@@ -6963,6 +6966,9 @@ void calc_brush_texture_factors(const SculptSession &ss,
   }
 
   for (const int i : positions.index_range()) {
+    if (factors[i] == 0.0f) {
+      continue;
+    }
     float texture_value;
     float4 texture_rgba;
     /* NOTE: This is not a thread-safe call. */
