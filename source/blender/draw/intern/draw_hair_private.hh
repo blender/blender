@@ -8,6 +8,17 @@
 
 #pragma once
 
+#include "draw_pass.hh"
+
+namespace blender::draw {
+
+class CurveRefinePass : public PassSimple {
+ public:
+  CurveRefinePass(const char *name) : PassSimple(name){};
+};
+
+}  // namespace blender::draw
+
 #define MAX_LAYER_NAME_CT 4 /* `u0123456789, u, au, a0123456789`. */
 #define MAX_LAYER_NAME_LEN (GPU_MAX_SAFE_ATTR_NAME + 2)
 #define MAX_THICKRES 2    /* see eHairType */

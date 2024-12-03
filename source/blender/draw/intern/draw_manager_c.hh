@@ -39,6 +39,7 @@ namespace blender::draw {
 struct CurvesUniformBufPool;
 struct DRW_Attributes;
 struct DRW_MeshCDMask;
+class CurveRefinePass;
 }  // namespace blender::draw
 struct GPUMaterial;
 
@@ -575,6 +576,7 @@ struct DRWData {
   DRWViewData *view_data[2];
   /** Per draw-call curves object data. */
   blender::draw::CurvesUniformBufPool *curves_ubos;
+  blender::draw::CurveRefinePass *curves_refine;
 };
 
 /** \} */

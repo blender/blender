@@ -764,7 +764,7 @@ static void workbench_render_to_image(void *vedata,
 
   /* TODO: Remove old draw manager calls. */
   DRW_render_instance_buffer_finish();
-  DRW_curves_update();
+  DRW_curves_update(manager);
 
   DefaultTextureList &dtxl = *DRW_viewport_texture_list_get();
   ved->instance->draw_image_render(manager, dtxl.depth, dtxl.depth_in_front, dtxl.color, engine);

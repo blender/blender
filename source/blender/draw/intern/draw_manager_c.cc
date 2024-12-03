@@ -490,6 +490,7 @@ void DRW_viewport_data_free(DRWData *drw_data)
   }
   DRW_volume_ubos_pool_free(drw_data->volume_grids_ubos);
   DRW_curves_ubos_pool_free(drw_data->curves_ubos);
+  DRW_curves_refine_pass_free(drw_data->curves_refine);
   MEM_freeN(drw_data);
 }
 
@@ -1755,7 +1756,7 @@ void DRW_draw_render_loop_ex(Depsgraph *depsgraph,
   GPU_framebuffer_bind(DST.default_framebuffer);
   GPU_framebuffer_clear_depth_stencil(DST.default_framebuffer, 1.0f, 0xFF);
 
-  DRW_curves_update();
+  DRW_curves_update(*DRW_manager_get());
 
   DRW_draw_callbacks_pre_scene();
 
@@ -2583,7 +2584,7 @@ void DRW_draw_select_loop(Depsgraph *depsgraph,
   DRW_state_reset();
   DRW_draw_callbacks_pre_scene();
 
-  DRW_curves_update();
+  DRW_curves_update(*DRW_manager_get());
 
   /* Only 1-2 passes. */
   while (true) {
@@ -2719,7 +2720,7 @@ void DRW_draw_depth_loop(Depsgraph *depsgraph,
   /* Start Drawing */
   DRW_state_reset();
 
-  DRW_curves_update();
+  DRW_curves_update(*DRW_manager_get());
 
   drw_engines_draw_scene();
 
