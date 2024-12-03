@@ -19,6 +19,7 @@
 #include "BKE_subdiv_modifier.hh"
 #include "DEG_depsgraph_query.hh"
 #include "DNA_brush_types.h"
+#include "DNA_mask_types.h"
 #include "DNA_mesh_types.h"
 #include "ED_image.hh"
 #include "ED_view3d.hh"
