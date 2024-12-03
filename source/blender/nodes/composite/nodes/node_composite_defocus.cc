@@ -268,7 +268,8 @@ class DefocusOperation : public NodeOperation {
 
   Result compute_defocus_radius_from_scale()
   {
-    if (this->context().use_gpu()) {
+    Result &input_depth = get_input("Z");
+    if (this->context().use_gpu() && !input_depth.is_single_value()) {
       return compute_defocus_radius_from_scale_gpu();
     }
     return compute_defocus_radius_from_scale_cpu();
@@ -282,18 +283,18 @@ class DefocusOperation : public NodeOperation {
     GPU_shader_uniform_1f(shader, "scale", node_storage(bnode()).scale);
     GPU_shader_uniform_1f(shader, "max_radius", node_storage(bnode()).maxblur);
 
-    Result &input_radius = get_input("Z");
-    input_radius.bind_as_texture(shader, "radius_tx");
+    Result &input_depth = get_input("Z");
+    input_depth.bind_as_texture(shader, "radius_tx");
 
     Result output_radius = context().create_result(ResultType::Float);
-    const Domain domain = input_radius.domain();
+    const Domain domain = input_depth.domain();
     output_radius.allocate_texture(domain);
     output_radius.bind_as_image(shader, "radius_img");
 
     compute_dispatch_threads_at_least(shader, domain.size);
 
     GPU_shader_unbind();
-    input_radius.unbind_as_texture();
+    input_depth.unbind_as_texture();
     output_radius.unbind_as_image();
 
     return output_radius;
@@ -304,15 +305,26 @@ class DefocusOperation : public NodeOperation {
     const float scale = node_storage(bnode()).scale;
     const float max_radius = node_storage(bnode()).maxblur;
 
-    Result &input_radius = get_input("Z");
+    Result &input_depth = get_input("Z");
 
     Result output_radius = context().create_result(ResultType::Float);
-    const Domain domain = input_radius.domain();
+
+    auto compute_radius = [&](const float depth) {
+      return math::clamp(depth * scale, 0.0f, max_radius);
+    };
+
+    if (input_depth.is_single_value()) {
+      output_radius.allocate_single_value();
+      output_radius.set_float_value(compute_radius(input_depth.get_float_value()));
+      return output_radius;
+    }
+
+    const Domain domain = input_depth.domain();
     output_radius.allocate_texture(domain);
 
     parallel_for(domain.size, [&](const int2 texel) {
-      float radius = input_radius.load_pixel(texel).x;
-      output_radius.store_pixel(texel, float4(math::clamp(radius * scale, 0.0f, max_radius)));
+      float depth = input_depth.load_pixel(texel).x;
+      output_radius.store_pixel(texel, float4(compute_radius(depth)));
     });
 
     return output_radius;
@@ -320,12 +332,17 @@ class DefocusOperation : public NodeOperation {
 
   Result compute_defocus_radius_from_depth()
   {
+    Result &input_depth = get_input("Z");
     Result output_radius = context().create_result(ResultType::Float);
-    if (this->context().use_gpu()) {
+    if (this->context().use_gpu() && !input_depth.is_single_value()) {
       compute_defocus_radius_from_depth_gpu(output_radius);
     }
     else {
       compute_defocus_radius_from_depth_cpu(output_radius);
+    }
+
+    if (output_radius.is_single_value()) {
+      return output_radius;
     }
 
     /* We apply a dilate morphological operator on the radius computed from depth, the operator
@@ -376,17 +393,12 @@ class DefocusOperation : public NodeOperation {
 
     Result &input_depth = get_input("Z");
 
-    const Domain domain = input_depth.domain();
-    output_radius.allocate_texture(domain);
-
-    /* Given a depth image, compute the radius of the circle of confusion in pixels based on
+    /* Given a depth value, compute the radius of the circle of confusion in pixels based on
      * equation (8) of the paper:
      *
      *   Potmesil, Michael, and Indranil Chakravarty. "A lens and aperture camera model for
      * synthetic image generation." ACM SIGGRAPH Computer Graphics 15.3 (1981): 297-305. */
-    parallel_for(domain.size, [&](const int2 texel) {
-      float depth = input_depth.load_pixel(texel).x;
-
+    auto compute_radius = [&](const float depth) {
       /* Compute `Vu` in equation (7). */
       const float distance_to_image_of_object = (focal_length * depth) / (depth - focal_length);
 
@@ -399,7 +411,21 @@ class DefocusOperation : public NodeOperation {
       /* The diameter is in meters, so multiply by the pixels per meter. */
       float radius = (diameter / 2.0f) * pixels_per_meter;
 
-      output_radius.store_pixel(texel, float4(math::min(max_radius, radius)));
+      return math::min(max_radius, radius);
+    };
+
+    if (input_depth.is_single_value()) {
+      output_radius.allocate_single_value();
+      output_radius.set_float_value(compute_radius(input_depth.get_float_value()));
+      return;
+    }
+
+    const Domain domain = input_depth.domain();
+    output_radius.allocate_texture(domain);
+
+    parallel_for(domain.size, [&](const int2 texel) {
+      float depth = input_depth.load_pixel(texel).x;
+      output_radius.store_pixel(texel, float4(compute_radius(depth)));
     });
   }
 
