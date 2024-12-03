@@ -690,12 +690,6 @@ MINLINE void madd_v2_v2v2fl(float r[2], const float a[2], const float b[2], floa
   r[1] = a[1] + b[1] * f;
 }
 
-MINLINE void madd_v2_v2db_db(double r[2], const double a[2], const double b[2], double f)
-{
-  r[0] = a[0] + b[0] * f;
-  r[1] = a[1] + b[1] * f;
-}
-
 MINLINE void madd_v3_v3v3fl(float r[3], const float a[3], const float b[3], float f)
 {
   r[0] = a[0] + b[0] * f;
@@ -733,14 +727,6 @@ MINLINE void madd_v4_v4fl(float r[4], const float a[4], float f)
   r[1] += a[1] * f;
   r[2] += a[2] * f;
   r[3] += a[3] * f;
-}
-
-MINLINE void madd_v4_v4v4(float r[4], const float a[4], const float b[4])
-{
-  r[0] += a[0] * b[0];
-  r[1] += a[1] * b[1];
-  r[2] += a[2] * b[2];
-  r[3] += a[3] * b[3];
 }
 
 MINLINE void mul_v3_v3v3(float r[3], const float v1[3], const float v2[3])
@@ -798,13 +784,6 @@ MINLINE void negate_v4_v4(float r[4], const float a[4])
   r[3] = -a[3];
 }
 
-MINLINE void negate_v3_short(short r[3])
-{
-  r[0] = (short)-r[0];
-  r[1] = (short)-r[1];
-  r[2] = (short)-r[2];
-}
-
 MINLINE void negate_v3_db(double r[3])
 {
   r[0] = -r[0];
@@ -840,18 +819,6 @@ MINLINE void invert_v3_safe(float r[3])
   }
 }
 
-MINLINE void abs_v2(float r[2])
-{
-  r[0] = fabsf(r[0]);
-  r[1] = fabsf(r[1]);
-}
-
-MINLINE void abs_v2_v2(float r[2], const float a[2])
-{
-  r[0] = fabsf(a[0]);
-  r[1] = fabsf(a[1]);
-}
-
 MINLINE void abs_v3(float r[3])
 {
   r[0] = fabsf(r[0]);
@@ -864,22 +831,6 @@ MINLINE void abs_v3_v3(float r[3], const float a[3])
   r[0] = fabsf(a[0]);
   r[1] = fabsf(a[1]);
   r[2] = fabsf(a[2]);
-}
-
-MINLINE void abs_v4(float r[4])
-{
-  r[0] = fabsf(r[0]);
-  r[1] = fabsf(r[1]);
-  r[2] = fabsf(r[2]);
-  r[3] = fabsf(r[3]);
-}
-
-MINLINE void abs_v4_v4(float r[4], const float a[4])
-{
-  r[0] = fabsf(a[0]);
-  r[1] = fabsf(a[1]);
-  r[2] = fabsf(a[2]);
-  r[3] = fabsf(a[3]);
 }
 
 MINLINE float dot_v2v2(const float a[2], const float b[2])
@@ -963,17 +914,6 @@ MINLINE void add_newell_cross_v3_v3v3(float n[3], const float v_prev[3], const f
   n[0] += (v_prev[1] - v_curr[1]) * (v_prev[2] + v_curr[2]);
   n[1] += (v_prev[2] - v_curr[2]) * (v_prev[0] + v_curr[0]);
   n[2] += (v_prev[0] - v_curr[0]) * (v_prev[1] + v_curr[1]);
-}
-
-MINLINE void star_m3_v3(float rmat[3][3], const float a[3])
-{
-  rmat[0][0] = rmat[1][1] = rmat[2][2] = 0.0;
-  rmat[0][1] = -a[2];
-  rmat[0][2] = a[1];
-  rmat[1][0] = a[2];
-  rmat[1][2] = -a[0];
-  rmat[2][0] = -a[1];
-  rmat[2][1] = a[0];
 }
 
 /*********************************** Length **********************************/
@@ -1063,14 +1003,6 @@ MINLINE float len_squared_v2v2(const float a[2], const float b[2])
   return dot_v2v2(d, d);
 }
 
-MINLINE double len_squared_v2v2_db(const double a[2], const double b[2])
-{
-  double d[2];
-
-  sub_v2_v2v2_db(d, b, a);
-  return dot_v2v2_db(d, d);
-}
-
 MINLINE float len_squared_v3v3(const float a[3], const float b[3])
 {
   float d[3];
@@ -1101,14 +1033,6 @@ MINLINE int len_manhattan_v2v2_int(const int a[2], const int b[2])
 
   sub_v2_v2v2_int(d, b, a);
   return len_manhattan_v2_int(d);
-}
-
-MINLINE float len_manhattan_v3v3(const float a[3], const float b[3])
-{
-  float d[3];
-
-  sub_v3_v3v3(d, b, a);
-  return len_manhattan_v3(d);
 }
 
 MINLINE float len_v3v3(const float a[3], const float b[3])
@@ -1202,10 +1126,6 @@ MINLINE double normalize_v3_v3_length_db(double r[3], const double a[3], double 
 
   return d;
 }
-MINLINE double normalize_v3_v3_db(double r[3], const double a[3])
-{
-  return normalize_v3_v3_length_db(r, a, 1.0);
-}
 
 MINLINE double normalize_v3_length_db(double n[3], const double unit_length)
 {
@@ -1245,12 +1165,6 @@ MINLINE float normalize_v3(float n[3])
   return normalize_v3_v3(n, n);
 }
 
-MINLINE void normal_float_to_short_v2(short out[2], const float in[2])
-{
-  out[0] = (short)(in[0] * 32767.0f);
-  out[1] = (short)(in[1] * 32767.0f);
-}
-
 MINLINE void normal_short_to_float_v3(float out[3], const short in[3])
 {
   out[0] = in[0] * (1.0f / 32767.0f);
@@ -1263,14 +1177,6 @@ MINLINE void normal_float_to_short_v3(short out[3], const float in[3])
   out[0] = (short)(in[0] * 32767.0f);
   out[1] = (short)(in[1] * 32767.0f);
   out[2] = (short)(in[2] * 32767.0f);
-}
-
-MINLINE void normal_float_to_short_v4(short out[4], const float in[4])
-{
-  out[0] = (short)(in[0] * 32767.0f);
-  out[1] = (short)(in[1] * 32767.0f);
-  out[2] = (short)(in[2] * 32767.0f);
-  out[3] = (short)(in[3] * 32767.0f);
 }
 
 /********************************* Comparison ********************************/
@@ -1363,36 +1269,6 @@ MINLINE bool compare_v4v4(const float v1[4], const float v2[4], const float limi
           compare_ff(v1[2], v2[2], limit) && compare_ff(v1[3], v2[3], limit));
 }
 
-MINLINE bool compare_v2v2_relative(const float v1[2],
-                                   const float v2[2],
-                                   const float limit,
-                                   const int max_ulps)
-{
-  return (compare_ff_relative(v1[0], v2[0], limit, max_ulps) &&
-          compare_ff_relative(v1[1], v2[1], limit, max_ulps));
-}
-
-MINLINE bool compare_v3v3_relative(const float v1[3],
-                                   const float v2[3],
-                                   const float limit,
-                                   const int max_ulps)
-{
-  return (compare_ff_relative(v1[0], v2[0], limit, max_ulps) &&
-          compare_ff_relative(v1[1], v2[1], limit, max_ulps) &&
-          compare_ff_relative(v1[2], v2[2], limit, max_ulps));
-}
-
-MINLINE bool compare_v4v4_relative(const float v1[4],
-                                   const float v2[4],
-                                   const float limit,
-                                   const int max_ulps)
-{
-  return (compare_ff_relative(v1[0], v2[0], limit, max_ulps) &&
-          compare_ff_relative(v1[1], v2[1], limit, max_ulps) &&
-          compare_ff_relative(v1[2], v2[2], limit, max_ulps) &&
-          compare_ff_relative(v1[3], v2[3], limit, max_ulps));
-}
-
 MINLINE bool compare_len_v3v3(const float v1[3], const float v2[3], const float limit)
 {
   float d[3];
@@ -1441,27 +1317,6 @@ MINLINE void clamp_v4(float vec[4], const float min, const float max)
   CLAMP(vec[1], min, max);
   CLAMP(vec[2], min, max);
   CLAMP(vec[3], min, max);
-}
-
-MINLINE void clamp_v2_v2v2(float vec[2], const float min[2], const float max[2])
-{
-  CLAMP(vec[0], min[0], max[0]);
-  CLAMP(vec[1], min[1], max[1]);
-}
-
-MINLINE void clamp_v3_v3v3(float vec[3], const float min[3], const float max[3])
-{
-  CLAMP(vec[0], min[0], max[0]);
-  CLAMP(vec[1], min[1], max[1]);
-  CLAMP(vec[2], min[2], max[2]);
-}
-
-MINLINE void clamp_v4_v4v4(float vec[4], const float min[4], const float max[4])
-{
-  CLAMP(vec[0], min[0], max[0]);
-  CLAMP(vec[1], min[1], max[1]);
-  CLAMP(vec[2], min[2], max[2]);
-  CLAMP(vec[3], min[3], max[3]);
 }
 
 /** \} */

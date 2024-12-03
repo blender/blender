@@ -117,27 +117,6 @@ void interp_v3_v3v3_slerp_safe(float target[3], const float a[3], const float b[
     }
   }
 }
-void interp_v2_v2v2_slerp_safe(float target[2], const float a[2], const float b[2], const float t)
-{
-  if (UNLIKELY(!interp_v2_v2v2_slerp(target, a, b, t))) {
-    /* Axis are aligned so any orthogonal vector is acceptable. */
-    float ab_ortho[2];
-    ortho_v2_v2(ab_ortho, a);
-    // normalize_v2(ab_ortho);
-    if (t < 0.5f) {
-      if (UNLIKELY(!interp_v2_v2v2_slerp(target, a, ab_ortho, t * 2.0f))) {
-        BLI_assert(0);
-        copy_v2_v2(target, a);
-      }
-    }
-    else {
-      if (UNLIKELY(!interp_v2_v2v2_slerp(target, ab_ortho, b, (t - 0.5f) * 2.0f))) {
-        BLI_assert(0);
-        copy_v2_v2(target, b);
-      }
-    }
-  }
-}
 
 void interp_v2_v2v2v2v2_cubic(float p[2],
                               const float v1[2],
@@ -216,24 +195,6 @@ void interp_v3_v3v3_uchar(uchar target[3], const uchar a[3], const uchar b[3], c
   target[1] = (char)floorf(s * a[1] + t * b[1]);
   target[2] = (char)floorf(s * a[2] + t * b[2]);
 }
-void interp_v3_v3v3_char(char target[3], const char a[3], const char b[3], const float t)
-{
-  interp_v3_v3v3_uchar((uchar *)target, (const uchar *)a, (const uchar *)b, t);
-}
-
-void interp_v4_v4v4_uchar(uchar target[4], const uchar a[4], const uchar b[4], const float t)
-{
-  const float s = 1.0f - t;
-
-  target[0] = (char)floorf(s * a[0] + t * b[0]);
-  target[1] = (char)floorf(s * a[1] + t * b[1]);
-  target[2] = (char)floorf(s * a[2] + t * b[2]);
-  target[3] = (char)floorf(s * a[3] + t * b[3]);
-}
-void interp_v4_v4v4_char(char target[4], const char a[4], const char b[4], const float t)
-{
-  interp_v4_v4v4_uchar((uchar *)target, (const uchar *)a, (const uchar *)b, t);
-}
 
 void mid_v3_v3v3(float r[3], const float a[3], const float b[3])
 {
@@ -296,48 +257,6 @@ void mid_v3_v3v3_angle_weighted(float r[3], const float a[3], const float b[3])
            2.0f) *
           acosf(normalize_v3(r) / 2.0f);
   mul_v3_fl(r, angle);
-}
-void mid_v3_angle_weighted(float r[3])
-{
-  /* trick, we want the middle of 2 normals as well as the angle between them
-   * avoid multiple calculations by */
-  float angle;
-
-  /* double check they are normalized */
-  BLI_assert(len_squared_v3(r) <= 1.0f + FLT_EPSILON);
-
-  angle = ((float)M_2_PI *
-           /* normally we would only multiply by 2,
-            * but instead of an angle make this 0-1 factor */
-           2.0f) *
-          acosf(normalize_v3(r));
-  mul_v3_fl(r, angle);
-}
-
-/**
- * Equivalent to:
- * interp_v3_v3v3(v, v1, v2, -1.0f);
- */
-
-void flip_v4_v4v4(float v[4], const float v1[4], const float v2[4])
-{
-  v[0] = v1[0] + (v1[0] - v2[0]);
-  v[1] = v1[1] + (v1[1] - v2[1]);
-  v[2] = v1[2] + (v1[2] - v2[2]);
-  v[3] = v1[3] + (v1[3] - v2[3]);
-}
-
-void flip_v3_v3v3(float v[3], const float v1[3], const float v2[3])
-{
-  v[0] = v1[0] + (v1[0] - v2[0]);
-  v[1] = v1[1] + (v1[1] - v2[1]);
-  v[2] = v1[2] + (v1[2] - v2[2]);
-}
-
-void flip_v2_v2v2(float v[2], const float v1[2], const float v2[2])
-{
-  v[0] = v1[0] + (v1[0] - v2[0]);
-  v[1] = v1[1] + (v1[1] - v2[1]);
 }
 
 /** \} */
@@ -621,17 +540,6 @@ void project_v3_v3v3(float out[3], const float p[3], const float v_proj[3])
   mul_v3_v3fl(out, v_proj, mul);
 }
 
-void project_v3_v3v3_db(double out[3], const double p[3], const double v_proj[3])
-{
-  if (UNLIKELY(is_zero_v3_db(v_proj))) {
-    zero_v3_db(out);
-    return;
-  }
-
-  const double mul = dot_v3v3_db(p, v_proj) / dot_v3v3_db(v_proj, v_proj);
-  mul_v3_v3db_db(out, v_proj, mul);
-}
-
 void project_v2_v2v2_normalized(float out[2], const float p[2], const float v_proj[2])
 {
   BLI_ASSERT_UNIT_V2(v_proj);
@@ -655,27 +563,12 @@ void project_plane_v3_v3v3(float out[3], const float p[3], const float v_plane[3
   madd_v3_v3v3fl(out, p, v_plane, -mul);
 }
 
-void project_plane_v2_v2v2(float out[2], const float p[2], const float v_plane[2])
-{
-  const float mul = dot_v2v2(p, v_plane) / dot_v2v2(v_plane, v_plane);
-  /* out[x] = p[x] - (mul * v_plane[x]) */
-  madd_v2_v2v2fl(out, p, v_plane, -mul);
-}
-
 void project_plane_normalized_v3_v3v3(float out[3], const float p[3], const float v_plane[3])
 {
   BLI_ASSERT_UNIT_V3(v_plane);
   const float mul = dot_v3v3(p, v_plane);
   /* out[x] = p[x] - (mul * v_plane[x]) */
   madd_v3_v3v3fl(out, p, v_plane, -mul);
-}
-
-void project_plane_normalized_v2_v2v2(float out[2], const float p[2], const float v_plane[2])
-{
-  BLI_ASSERT_UNIT_V2(v_plane);
-  const float mul = dot_v2v2(p, v_plane);
-  /* out[x] = p[x] - (mul * v_plane[x]) */
-  madd_v2_v2v2fl(out, p, v_plane, -mul);
 }
 
 void project_v3_plane(float out[3], const float plane_no[3], const float plane_co[3])
@@ -707,14 +600,6 @@ void reflect_v3_v3v3(float out[3], const float v[3], const float normal[3])
   const float dot2 = 2.0f * dot_v3v3(v, normal);
   /* out[x] = v[x] - (dot2 * normal[x]) */
   madd_v3_v3v3fl(out, v, normal, -dot2);
-}
-
-void reflect_v3_v3v3_db(double out[3], const double v[3], const double normal[3])
-{
-  BLI_ASSERT_UNIT_V3_DB(normal);
-  const double dot2 = 2.0 * dot_v3v3_db(v, normal);
-  /* out[x] = v[x] - (dot2 * normal[x]) */
-  madd_v3_v3v3db_db(out, v, normal, -dot2);
 }
 
 void ortho_basis_v3v3_v3(float r_n1[3], float r_n2[3], const float n[3])
@@ -1144,31 +1029,6 @@ void add_vn_vnvn(float *array_tar,
   }
 }
 
-void madd_vn_vn(float *array_tar, const float *array_src, const float f, const int size)
-{
-  float *tar = array_tar + (size - 1);
-  const float *src = array_src + (size - 1);
-  int i = size;
-  while (i--) {
-    *(tar--) += *(src--) * f;
-  }
-}
-
-void madd_vn_vnvn(float *array_tar,
-                  const float *array_src_a,
-                  const float *array_src_b,
-                  const float f,
-                  const int size)
-{
-  float *tar = array_tar + (size - 1);
-  const float *src_a = array_src_a + (size - 1);
-  const float *src_b = array_src_b + (size - 1);
-  int i = size;
-  while (i--) {
-    *(tar--) = *(src_a--) + (*(src_b--) * f);
-  }
-}
-
 void sub_vn_vn(float *array_tar, const float *array_src, const int size)
 {
   float *tar = array_tar + (size - 1);
@@ -1190,31 +1050,6 @@ void sub_vn_vnvn(float *array_tar,
   int i = size;
   while (i--) {
     *(tar--) = *(src_a--) - *(src_b--);
-  }
-}
-
-void msub_vn_vn(float *array_tar, const float *array_src, const float f, const int size)
-{
-  float *tar = array_tar + (size - 1);
-  const float *src = array_src + (size - 1);
-  int i = size;
-  while (i--) {
-    *(tar--) -= *(src--) * f;
-  }
-}
-
-void msub_vn_vnvn(float *array_tar,
-                  const float *array_src_a,
-                  const float *array_src_b,
-                  const float f,
-                  const int size)
-{
-  float *tar = array_tar + (size - 1);
-  const float *src_a = array_src_a + (size - 1);
-  const float *src_b = array_src_b + (size - 1);
-  int i = size;
-  while (i--) {
-    *(tar--) = *(src_a--) - (*(src_b--) * f);
   }
 }
 
@@ -1243,24 +1078,6 @@ void copy_vn_i(int *array_tar, const int size, const int val)
 void copy_vn_short(short *array_tar, const int size, const short val)
 {
   short *tar = array_tar + (size - 1);
-  int i = size;
-  while (i--) {
-    *(tar--) = val;
-  }
-}
-
-void copy_vn_ushort(ushort *array_tar, const int size, const ushort val)
-{
-  ushort *tar = array_tar + (size - 1);
-  int i = size;
-  while (i--) {
-    *(tar--) = val;
-  }
-}
-
-void copy_vn_uchar(uchar *array_tar, const int size, const uchar val)
-{
-  uchar *tar = array_tar + (size - 1);
   int i = size;
   while (i--) {
     *(tar--) = val;
