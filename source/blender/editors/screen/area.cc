@@ -2027,6 +2027,23 @@ static void area_init_type_fallback(ScrArea *area, eSpace_Type space_type)
   }
 }
 
+void ED_area_and_region_types_init(ScrArea *area)
+{
+  area->type = BKE_spacetype_from_id(area->spacetype);
+
+  if (area->type == nullptr) {
+    area_init_type_fallback(area, SPACE_VIEW3D);
+    BLI_assert(area->type != nullptr);
+  }
+
+  LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
+    region->runtime->type = BKE_regiontype_from_id(area->type, region->regiontype);
+    /* Invalid region types may be stored in files (e.g. for new files), but they should be handled
+     * on file read already, see #BKE_screen_area_blend_read_lib(). */
+    BLI_assert_msg(region->runtime->type != nullptr, "Region type not valid for this space type");
+  }
+}
+
 void ED_area_init(wmWindowManager *wm, wmWindow *win, ScrArea *area)
 {
   WorkSpace *workspace = WM_window_get_active_workspace(win);
@@ -2041,20 +2058,7 @@ void ED_area_init(wmWindowManager *wm, wmWindow *win, ScrArea *area)
   rcti window_rect;
   WM_window_rect_calc(win, &window_rect);
 
-  /* Set type-definitions. */
-  area->type = BKE_spacetype_from_id(area->spacetype);
-
-  if (area->type == nullptr) {
-    area_init_type_fallback(area, SPACE_VIEW3D);
-    BLI_assert(area->type != nullptr);
-  }
-
-  LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
-    region->runtime->type = BKE_regiontype_from_id(area->type, region->regiontype);
-    /* Invalid region types may be stored in files (e.g. for new files), but they should be handled
-     * on file read already, see #BKE_screen_area_blend_read_lib(). */
-    BLI_assert_msg(region->runtime->type != nullptr, "Region type not valid for this space type");
-  }
+  ED_area_and_region_types_init(area);
 
   /* area sizes */
   area_calc_totrct(area, &window_rect);
