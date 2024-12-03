@@ -117,9 +117,6 @@
 #include "draw_object_infos_info.hh"
 #include "draw_view_info.hh"
 
-/* Basic engine. */
-#include "basic_depth_info.hh"
-
 /* EEVEE engine. */
 #include "eevee_ambient_occlusion_info.hh"
 #include "eevee_common_info.hh"

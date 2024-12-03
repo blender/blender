@@ -2427,20 +2427,20 @@ void ED_view3d_depth_override(Depsgraph *depsgraph,
   if (viewport != nullptr) {
     switch (mode) {
       case V3D_DEPTH_ALL:
-        DRW_draw_depth_loop(depsgraph, region, v3d, viewport, true, true, use_overlay, false);
+        DRW_draw_depth_loop(depsgraph, region, v3d, viewport, true, use_overlay, false);
         break;
       case V3D_DEPTH_NO_GPENCIL:
-        DRW_draw_depth_loop(depsgraph, region, v3d, viewport, false, true, use_overlay, false);
+        DRW_draw_depth_loop(depsgraph, region, v3d, viewport, true, use_overlay, false);
         break;
       case V3D_DEPTH_GPENCIL_ONLY:
-        DRW_draw_depth_loop(depsgraph, region, v3d, viewport, true, false, use_overlay, false);
+        DRW_draw_depth_loop(depsgraph, region, v3d, viewport, false, use_overlay, false);
         break;
       case V3D_DEPTH_OBJECT_ONLY:
         DRW_draw_depth_object(
             scene, region, v3d, viewport, DEG_get_evaluated_object(depsgraph, obact));
         break;
       case V3D_DEPTH_SELECTED_ONLY:
-        DRW_draw_depth_loop(depsgraph, region, v3d, viewport, false, true, use_overlay, true);
+        DRW_draw_depth_loop(depsgraph, region, v3d, viewport, true, use_overlay, true);
         break;
     }
 

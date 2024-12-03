@@ -102,8 +102,6 @@ set(SRC
   intern/draw_view_c.cc
   intern/draw_view_data.cc
   intern/draw_volume.cc
-  engines/basic/basic_engine.cc
-  engines/basic/basic_shader.cc
   engines/compositor/compositor_engine.cc
   engines/image/image_engine.cc
   engines/image/image_drawing_mode.cc
@@ -207,8 +205,6 @@ set(SRC
   intern/draw_view_c.hh
   intern/draw_view_data.hh
   intern/mesh_extractors/extract_mesh.hh
-  engines/basic/basic_engine.h
-  engines/basic/basic_private.h
   engines/compositor/compositor_engine.h
   engines/eevee_next/eevee_ambient_occlusion.hh
   engines/eevee_next/eevee_camera.hh
@@ -614,12 +610,6 @@ set(GLSL_SRC
 
   engines/select/select_shader_shared.hh
 
-  engines/basic/shaders/basic_conservative_depth_geom.glsl
-  engines/basic/shaders/basic_depth_vert.glsl
-  engines/basic/shaders/basic_depth_curves_vert.glsl
-  engines/basic/shaders/basic_depth_pointcloud_vert.glsl
-  engines/basic/shaders/basic_depth_frag.glsl
-
   engines/overlay/shaders/overlay_antialiasing_frag.glsl
   engines/overlay/shaders/overlay_armature_dof_solid_frag.glsl
   engines/overlay/shaders/overlay_armature_dof_vert.glsl
@@ -645,10 +635,12 @@ set(GLSL_SRC
   engines/overlay/shaders/overlay_background_frag.glsl
   engines/overlay/shaders/overlay_clipbound_vert.glsl
   engines/overlay/shaders/overlay_common_lib.glsl
+  engines/overlay/shaders/overlay_depth_only_curves_vert.glsl
   engines/overlay/shaders/overlay_depth_only_frag.glsl
   engines/overlay/shaders/overlay_depth_only_gpencil_frag.glsl
   engines/overlay/shaders/overlay_depth_only_gpencil_vert.glsl
   engines/overlay/shaders/overlay_depth_only_mesh_conservative_vert.glsl
+  engines/overlay/shaders/overlay_depth_only_pointcloud_vert.glsl
   engines/overlay/shaders/overlay_depth_only_vert.glsl
   engines/overlay/shaders/overlay_edit_curve_handle_geom.glsl
   engines/overlay/shaders/overlay_edit_curve_handle_next_vert.glsl

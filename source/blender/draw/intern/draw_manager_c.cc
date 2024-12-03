@@ -88,7 +88,6 @@
 /* only for callbacks */
 #include "draw_cache_impl.hh"
 
-#include "engines/basic/basic_engine.h"
 #include "engines/compositor/compositor_engine.h"
 #include "engines/eevee_next/eevee_engine.h"
 #include "engines/external/external_engine.h"
@@ -1196,13 +1195,6 @@ static void drw_engines_enable_from_engine(const RenderEngineType *engine_type, 
 static void drw_engines_enable_overlays()
 {
   use_drw_engine(&draw_engine_overlay_next_type);
-}
-/**
- * Use for select and depth-drawing.
- */
-static void drw_engines_enable_basic()
-{
-  use_drw_engine(&draw_engine_basic_type);
 }
 
 static void drw_engine_enable_image_editor()
@@ -2626,7 +2618,6 @@ void DRW_draw_depth_loop(Depsgraph *depsgraph,
                          View3D *v3d,
                          GPUViewport *viewport,
                          const bool use_gpencil,
-                         const bool use_basic,
                          const bool use_overlay,
                          const bool use_only_selected)
 {
@@ -2658,9 +2649,6 @@ void DRW_draw_depth_loop(Depsgraph *depsgraph,
 
   if (use_gpencil) {
     use_drw_engine(&draw_engine_gpencil_type);
-  }
-  if (use_basic) {
-    drw_engines_enable_basic();
   }
   if (use_overlay) {
     drw_engines_enable_overlays();
@@ -3057,7 +3045,6 @@ void DRW_engines_register()
   DRW_engine_register(&draw_engine_overlay_next_type);
   DRW_engine_register(&draw_engine_select_next_type);
   DRW_engine_register(&draw_engine_select_type);
-  DRW_engine_register(&draw_engine_basic_type);
   DRW_engine_register(&draw_engine_compositor_type);
 #ifdef WITH_DRAW_DEBUG
   DRW_engine_register(&draw_engine_debug_select_type);
