@@ -20,6 +20,7 @@
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
+#include "DNA_defaults.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
@@ -95,6 +96,15 @@ using namespace blender;
 
 /*********************** Armature Datablock ***********************/
 namespace blender::bke {
+
+static void action_init_data(ID *action_id)
+{
+  BLI_assert(GS(action_id->name) == ID_AC);
+  bAction *action = reinterpret_cast<bAction *>(action_id);
+
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(action, id));
+  MEMCPY_STRUCT_AFTER(action, DNA_struct_default_get(bAction), id);
+}
 
 /**
  * Only copy internal data of Action ID from source
@@ -745,7 +755,7 @@ IDTypeInfo IDType_ID_AC = {
     /*flags*/ IDTYPE_FLAGS_NO_ANIMDATA,
     /*asset_type_info*/ &blender::bke::AssetType_AC,
 
-    /*init_data*/ nullptr,
+    /*init_data*/ blender::bke::action_init_data,
     /*copy_data*/ blender::bke::action_copy_data,
     /*free_data*/ blender::bke::action_free_data,
     /*make_local*/ nullptr,

@@ -12,6 +12,7 @@
 #include "BKE_main.hh"
 #include "BKE_object.hh"
 
+#include "DNA_action_defaults.h"
 #include "DNA_anim_types.h"
 #include "DNA_object_types.h"
 
@@ -27,6 +28,17 @@
 #include "testing/testing.h"
 
 namespace blender::animrig::tests {
+
+TEST(action, low_level_initialisation)
+{
+  bAction *action = static_cast<bAction *>(BKE_id_new_nomain(ID_AC, "ACNewAction"));
+
+  EXPECT_NE(action->last_slot_handle, 0)
+      << "bAction::last_slot_handle should not be initialised to 0";
+
+  BKE_id_free(nullptr, action);
+}
+
 class ActionLayersTest : public testing::Test {
  public:
   Main *bmain;
@@ -275,8 +287,8 @@ TEST_F(ActionLayersTest, add_slot)
 {
   { /* Creating an 'unused' Slot should just be called 'Slot'. */
     Slot &slot = action->slot_add();
-    EXPECT_EQ(1, action->last_slot_handle);
-    EXPECT_EQ(1, slot.handle);
+    EXPECT_EQ(DNA_DEFAULT_ACTION_LAST_SLOT_HANDLE + 1, action->last_slot_handle);
+    EXPECT_EQ(DNA_DEFAULT_ACTION_LAST_SLOT_HANDLE + 1, slot.handle);
 
     EXPECT_STREQ("XXSlot", slot.identifier);
     EXPECT_EQ(0, slot.idtype);
@@ -284,8 +296,8 @@ TEST_F(ActionLayersTest, add_slot)
 
   { /* Creating a Slot for a specific ID should name it after the ID. */
     Slot &slot = action->slot_add_for_id(cube->id);
-    EXPECT_EQ(2, action->last_slot_handle);
-    EXPECT_EQ(2, slot.handle);
+    EXPECT_EQ(DNA_DEFAULT_ACTION_LAST_SLOT_HANDLE + 2, action->last_slot_handle);
+    EXPECT_EQ(DNA_DEFAULT_ACTION_LAST_SLOT_HANDLE + 2, slot.handle);
 
     EXPECT_STREQ(cube->id.name, slot.identifier);
     EXPECT_EQ(ID_OB, slot.idtype);
@@ -315,20 +327,20 @@ TEST_F(ActionLayersTest, add_slot_multiple)
   EXPECT_TRUE(assign_action(action, suzanne->id));
   EXPECT_EQ(assign_action_slot(&slot_suzanne, suzanne->id), ActionSlotAssignmentResult::OK);
 
-  EXPECT_EQ(2, action->last_slot_handle);
-  EXPECT_EQ(1, slot_cube.handle);
-  EXPECT_EQ(2, slot_suzanne.handle);
+  EXPECT_EQ(DNA_DEFAULT_ACTION_LAST_SLOT_HANDLE + 2, action->last_slot_handle);
+  EXPECT_EQ(DNA_DEFAULT_ACTION_LAST_SLOT_HANDLE + 1, slot_cube.handle);
+  EXPECT_EQ(DNA_DEFAULT_ACTION_LAST_SLOT_HANDLE + 2, slot_suzanne.handle);
 }
 
 TEST_F(ActionLayersTest, slot_remove)
 {
   { /* Canary test: removing a just-created slot on an otherwise empty Action should work. */
     Slot &slot = action->slot_add();
-    EXPECT_EQ(1, slot.handle);
-    EXPECT_EQ(1, action->last_slot_handle);
+    EXPECT_EQ(DNA_DEFAULT_ACTION_LAST_SLOT_HANDLE + 1, slot.handle);
+    EXPECT_EQ(DNA_DEFAULT_ACTION_LAST_SLOT_HANDLE + 1, action->last_slot_handle);
 
     EXPECT_TRUE(action->slot_remove(slot));
-    EXPECT_EQ(1, action->last_slot_handle)
+    EXPECT_EQ(DNA_DEFAULT_ACTION_LAST_SLOT_HANDLE + 1, action->last_slot_handle)
         << "Removing a slot should not change the last-used slot handle.";
     EXPECT_EQ(0, action->slot_array_num);
   }
@@ -341,8 +353,8 @@ TEST_F(ActionLayersTest, slot_remove)
   { /* Removing a slot should remove its Channelbag. */
     Slot &slot = action->slot_add();
     const slot_handle_t slot_handle = slot.handle;
-    EXPECT_EQ(2, slot.handle);
-    EXPECT_EQ(2, action->last_slot_handle);
+    EXPECT_EQ(DNA_DEFAULT_ACTION_LAST_SLOT_HANDLE + 2, slot.handle);
+    EXPECT_EQ(DNA_DEFAULT_ACTION_LAST_SLOT_HANDLE + 2, action->last_slot_handle);
 
     /* Create an F-Curve in a Channelbag for the slot. */
     action->layer_keystrip_ensure();
@@ -352,7 +364,7 @@ TEST_F(ActionLayersTest, slot_remove)
 
     /* Remove the slot. */
     EXPECT_TRUE(action->slot_remove(slot));
-    EXPECT_EQ(2, action->last_slot_handle)
+    EXPECT_EQ(DNA_DEFAULT_ACTION_LAST_SLOT_HANDLE + 2, action->last_slot_handle)
         << "Removing a slot should not change the last-used slot handle.";
     EXPECT_EQ(0, action->slot_array_num);
 
@@ -365,10 +377,10 @@ TEST_F(ActionLayersTest, slot_remove)
     Slot &slot1 = action->slot_add();
     Slot &slot2 = action->slot_add();
     Slot &slot3 = action->slot_add();
-    EXPECT_EQ(3, slot1.handle);
-    EXPECT_EQ(4, slot2.handle);
-    EXPECT_EQ(5, slot3.handle);
-    EXPECT_EQ(5, action->last_slot_handle);
+    EXPECT_EQ(DNA_DEFAULT_ACTION_LAST_SLOT_HANDLE + 3, slot1.handle);
+    EXPECT_EQ(DNA_DEFAULT_ACTION_LAST_SLOT_HANDLE + 4, slot2.handle);
+    EXPECT_EQ(DNA_DEFAULT_ACTION_LAST_SLOT_HANDLE + 5, slot3.handle);
+    EXPECT_EQ(DNA_DEFAULT_ACTION_LAST_SLOT_HANDLE + 5, action->last_slot_handle);
 
     /* For referencing the slot handle after the slot is removed. */
     const slot_handle_t slot2_handle = slot2.handle;
@@ -382,7 +394,7 @@ TEST_F(ActionLayersTest, slot_remove)
 
     /* Remove the slot. */
     EXPECT_TRUE(action->slot_remove(slot2));
-    EXPECT_EQ(5, action->last_slot_handle);
+    EXPECT_EQ(DNA_DEFAULT_ACTION_LAST_SLOT_HANDLE + 5, action->last_slot_handle);
 
     /* Check the correct slot + channel-bag are removed. */
     EXPECT_EQ(action->slot_for_handle(slot1.handle), &slot1);
