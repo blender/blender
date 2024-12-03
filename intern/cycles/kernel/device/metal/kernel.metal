@@ -54,11 +54,18 @@ __intersection__local_tri_single_hit(
                extended_limits)]] PrimitiveIntersectionResult
 __intersection__local_tri_single_hit_mblur(
     ray_data MetalKernelContext::MetalRTIntersectionLocalPayload_single_hit &payload [[payload]],
+#  if defined(__METALRT_MOTION__)
+    uint object [[instance_id]],
+#  endif
     uint primitive_id [[primitive_id]])
 {
   PrimitiveIntersectionResult result;
   result.continue_search = true;
+#  if defined(__METALRT_MOTION__)
+  result.accept = (payload.self_prim != primitive_id) && (payload.self_object == object);
+#  else
   result.accept = (payload.self_prim != primitive_id);
+#  endif
   return result;
 }
 
@@ -156,9 +163,21 @@ __intersection__local_tri(ray_data MetalKernelContext::MetalRTIntersectionLocalP
 __intersection__local_tri_mblur(
     ray_data MetalKernelContext::MetalRTIntersectionLocalPayload &payload [[payload]],
     uint primitive_id [[primitive_id]],
+#  if defined(__METALRT_MOTION__)
+    uint object [[instance_id]],
+#  endif
     float2 barycentrics [[barycentric_coord]],
     float ray_tmax [[distance]])
 {
+#  if defined(__METALRT_MOTION__)
+  if (payload.self_object != object) {
+    PrimitiveIntersectionResult result;
+    result.continue_search = true;
+    result.accept = false;
+    return result;
+  }
+#  endif
+
   return metalrt_local_hit<PrimitiveIntersectionResult, METALRT_HIT_TRIANGLE>(
       payload, primitive_id, barycentrics, ray_tmax);
 }
