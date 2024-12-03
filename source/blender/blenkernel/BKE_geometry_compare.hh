@@ -4,20 +4,21 @@
 
 #pragma once
 
+#include "BKE_curves.hh"
 #include "BKE_mesh_types.hh"
 
 /** \file
  * \ingroup bke
  */
 
-namespace blender::bke::compare_meshes {
+namespace blender::bke::compare_geometry {
 
-enum class MeshMismatch : int8_t;
+enum class GeoMismatch : int8_t;
 
 /**
  * Convert the mismatch to a human-readable string for display.
  */
-const char *mismatch_to_string(const MeshMismatch &mismatch);
+const char *mismatch_to_string(const GeoMismatch &mismatch);
 
 /**
  * \brief Checks if the two meshes are different, returning the type of mismatch if any. Changes in
@@ -33,6 +34,16 @@ const char *mismatch_to_string(const MeshMismatch &mismatch);
  *
  * \returns The type of mismatch that was detected, if there is any.
  */
-std::optional<MeshMismatch> compare_meshes(const Mesh &mesh1, const Mesh &mesh2, float threshold);
+std::optional<GeoMismatch> compare_meshes(const Mesh &mesh1, const Mesh &mesh2, float threshold);
 
-}  // namespace blender::bke::compare_meshes
+/**
+ * \brief Checks if the two curves geometries are different, returning the type of mismatch if any.
+ * Changes in index order are detected, but treated as a mismatch.
+ *
+ * \returns The type of mismatch that was detected, if there is any.
+ */
+std::optional<GeoMismatch> compare_curves(const CurvesGeometry &curves1,
+                                          const CurvesGeometry &curves2,
+                                          float threshold);
+
+}  // namespace blender::bke::compare_geometry

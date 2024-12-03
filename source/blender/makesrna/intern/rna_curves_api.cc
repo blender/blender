@@ -17,6 +17,7 @@
 #ifdef RNA_RUNTIME
 
 #  include "BKE_curves.hh"
+#  include "BKE_geometry_compare.hh"
 #  include "BKE_report.hh"
 
 #  include "BLI_index_mask.hh"
@@ -215,6 +216,20 @@ static void rna_Curves_set_types(Curves *curves_id,
   }
 }
 
+static const char *rna_Curves_unit_test_compare(Curves *curves1, Curves *curves2, float threshold)
+{
+  using namespace blender::bke::compare_geometry;
+
+  const std::optional<GeoMismatch> mismatch = compare_curves(
+      curves1->geometry.wrap(), curves2->geometry.wrap(), threshold);
+
+  if (!mismatch) {
+    return "Same";
+  }
+
+  return mismatch_to_string(mismatch.value());
+}
+
 #else
 
 void RNA_api_curves(StructRNA *srna)
@@ -300,6 +315,22 @@ void RNA_api_curves(StructRNA *srna)
                            0,
                            INT_MAX);
   RNA_def_parameter_flags(parm, PROP_DYNAMIC, ParameterFlag(0));
+
+  func = RNA_def_function(srna, "unit_test_compare", "rna_Curves_unit_test_compare");
+  RNA_def_pointer(func, "curves", "Curves", "", "Curves to compare to");
+  RNA_def_float_factor(func,
+                       "threshold",
+                       FLT_EPSILON * 60,
+                       0.0f,
+                       FLT_MAX,
+                       "Threshold",
+                       "Comparison tolerance threshold",
+                       0.0f,
+                       FLT_MAX);
+  /* return value */
+  parm = RNA_def_string(
+      func, "result", "nothing", 64, "Return value", "String description of result of comparison");
+  RNA_def_function_return(func, parm);
 }
 
 #endif

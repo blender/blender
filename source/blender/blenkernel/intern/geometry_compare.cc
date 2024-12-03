@@ -12,55 +12,64 @@
 #include "BKE_mesh.hh"
 #include "BKE_mesh_mapping.hh"
 
-#include "BKE_mesh_compare.hh"
+#include "BKE_geometry_compare.hh"
 
-namespace blender::bke::compare_meshes {
+namespace blender::bke::compare_geometry {
 
-enum class MeshMismatch : int8_t {
-  NumVerts,         /* The number of vertices is different. */
+enum class GeoMismatch : int8_t {
+  NumPoints,        /* The number of points is different. */
   NumEdges,         /* The number of edges is different. */
   NumCorners,       /* The number of corners is different. */
   NumFaces,         /* The number of faces is different. */
-  VertexAttributes, /* Some values of the vertex attributes are different. */
+  NumCurves,        /* The number of curves is different. */
+  PointAttributes,  /* Some values of the point attributes are different. */
   EdgeAttributes,   /* Some values of the edge attributes are different. */
   CornerAttributes, /* Some values of the corner attributes are different. */
   FaceAttributes,   /* Some values of the face attributes are different. */
+  CurveAttributes,  /* Some values of the curve attributes are different. */
   EdgeTopology,     /* The edge topology is different. */
   FaceTopology,     /* The face topology is different. */
+  CurveTopology,    /* The curve topology is different. */
   Attributes,       /* The sets of attribute ids are different. */
   AttributeTypes,   /* Some attributes with the same name have different types. */
-  Indices,          /* The meshes are the same up to a change of indices. */
+  Indices,          /* The geometries are the same up to a change of indices. */
 };
 
-const char *mismatch_to_string(const MeshMismatch &mismatch)
+const char *mismatch_to_string(const GeoMismatch &mismatch)
 {
   switch (mismatch) {
-    case MeshMismatch::NumVerts:
-      return "The number of vertices is different";
-    case MeshMismatch::NumEdges:
+    case GeoMismatch::NumPoints:
+      return "The number of points is different";
+    case GeoMismatch::NumEdges:
       return "The number of edges is different";
-    case MeshMismatch::NumCorners:
+    case GeoMismatch::NumCorners:
       return "The number of corners is different";
-    case MeshMismatch::NumFaces:
+    case GeoMismatch::NumFaces:
       return "The number of faces is different";
-    case MeshMismatch::VertexAttributes:
-      return "Some values of the vertex attributes are different";
-    case MeshMismatch::EdgeAttributes:
+    case GeoMismatch::NumCurves:
+      return "The number of curves is different";
+    case GeoMismatch::PointAttributes:
+      return "Some values of the point attributes are different";
+    case GeoMismatch::EdgeAttributes:
       return "Some values of the edge attributes are different";
-    case MeshMismatch::CornerAttributes:
+    case GeoMismatch::CornerAttributes:
       return "Some values of the corner attributes are different";
-    case MeshMismatch::FaceAttributes:
+    case GeoMismatch::FaceAttributes:
       return "Some values of the face attributes are different";
-    case MeshMismatch::EdgeTopology:
+    case GeoMismatch::CurveAttributes:
+      return "Some values of the curve attributes are different";
+    case GeoMismatch::EdgeTopology:
       return "The edge topology is different";
-    case MeshMismatch::FaceTopology:
+    case GeoMismatch::FaceTopology:
       return "The face topology is different";
-    case MeshMismatch::Attributes:
+    case GeoMismatch::CurveTopology:
+      return "The curve topology is different";
+    case GeoMismatch::Attributes:
       return "The sets of attribute ids are different";
-    case MeshMismatch::AttributeTypes:
+    case GeoMismatch::AttributeTypes:
       return "Some attributes with the same name have different types";
-    case MeshMismatch::Indices:
-      return "The meshes are the same up to a change of indices";
+    case GeoMismatch::Indices:
+      return "The geometries are the same up to a change of indices";
   }
   BLI_assert_unreachable();
   return "";
@@ -502,32 +511,32 @@ static bool ignored_attribute(const StringRef id)
 }
 
 /**
- * Verify that both meshes have the same attributes:
+ * Verify that both geometries have the same attributes:
  * - Same names
  * - Same domains
  * - Same types
  */
-static std::optional<MeshMismatch> verify_attributes_compatible(
-    const AttributeAccessor &mesh1_attributes, const AttributeAccessor &mesh2_attributes)
+static std::optional<GeoMismatch> verify_attributes_compatible(
+    const AttributeAccessor &attributes1, const AttributeAccessor &attributes2)
 {
-  Set<StringRefNull> mesh1_attribute_ids = mesh1_attributes.all_ids();
-  Set<StringRefNull> mesh2_attribute_ids = mesh2_attributes.all_ids();
-  mesh1_attribute_ids.remove_if(ignored_attribute);
-  mesh2_attribute_ids.remove_if(ignored_attribute);
+  Set<StringRefNull> attribute_ids1 = attributes1.all_ids();
+  Set<StringRefNull> attribute_ids2 = attributes2.all_ids();
+  attribute_ids1.remove_if(ignored_attribute);
+  attribute_ids2.remove_if(ignored_attribute);
 
-  if (mesh1_attribute_ids != mesh2_attribute_ids) {
+  if (attribute_ids1 != attribute_ids2) {
     /* Disabled for now due to tests not being up to date. */
-    // return MeshMismatch::Attributes;
+    // return GeoMismatch::Attributes;
   }
-  for (const StringRef id : mesh1_attribute_ids) {
-    GAttributeReader reader1 = mesh1_attributes.lookup(id);
-    GAttributeReader reader2 = mesh2_attributes.lookup(id);
+  for (const StringRef id : attribute_ids1) {
+    GAttributeReader reader1 = attributes1.lookup(id);
+    GAttributeReader reader2 = attributes2.lookup(id);
     if (!reader1 || !reader2) {
       /* Necessary because of previous disabled return. */
       continue;
     }
     if (reader1.domain != reader2.domain || reader1.varray.type() != reader2.varray.type()) {
-      return MeshMismatch::AttributeTypes;
+      return GeoMismatch::AttributeTypes;
     }
   }
   return std::nullopt;
@@ -536,38 +545,38 @@ static std::optional<MeshMismatch> verify_attributes_compatible(
 /**
  * Sort the domain using all the attributes on that domain except the ones in excluded_attributes
  *
- * \returns A mismatch if one of the attributes has different values between the two meshes.
+ * \returns A mismatch if one of the attributes has different values between the two geometries.
  */
-static std::optional<MeshMismatch> sort_domain_using_attributes(
-    const AttributeAccessor &mesh1_attributes,
-    const AttributeAccessor &mesh2_attributes,
+static std::optional<GeoMismatch> sort_domain_using_attributes(
+    const AttributeAccessor &attributes1,
+    const AttributeAccessor &attributes2,
     const AttrDomain domain,
     const Span<StringRef> excluded_attributes,
     IndexMapping &maps,
     const float threshold)
 {
 
-  /* We only need the ids from one mesh, since we know they have the same attributes. */
-  Set<StringRefNull> attribute_ids = mesh1_attributes.all_ids();
+  /* We only need the ids from one geometry, since we know they have the same attributes. */
+  Set<StringRefNull> attribute_ids = attributes1.all_ids();
   for (const StringRef name : excluded_attributes) {
     attribute_ids.remove_as(name);
   }
   attribute_ids.remove_if(ignored_attribute);
 
   for (const StringRef id : attribute_ids) {
-    if (!mesh2_attributes.contains(id)) {
+    if (!attributes2.contains(id)) {
       /* Only needed right now since some test meshes don't have the same attributes. */
-      return MeshMismatch::Attributes;
+      return GeoMismatch::Attributes;
     }
-    GAttributeReader reader1 = mesh1_attributes.lookup(id);
-    GAttributeReader reader2 = mesh2_attributes.lookup(id);
+    GAttributeReader reader1 = attributes1.lookup(id);
+    GAttributeReader reader2 = attributes2.lookup(id);
 
     if (reader1.domain != domain) {
       /* We only look at attributes of the given domain. */
       continue;
     }
 
-    std::optional<MeshMismatch> mismatch = {};
+    std::optional<GeoMismatch> mismatch = {};
 
     attribute_math::convert_to_static_type(reader1.varray.type(), [&](auto dummy) {
       using T = decltype(dummy);
@@ -602,16 +611,19 @@ static std::optional<MeshMismatch> sort_domain_using_attributes(
         if (!attributes_line_up) {
           switch (domain) {
             case AttrDomain::Point:
-              mismatch = MeshMismatch::VertexAttributes;
+              mismatch = GeoMismatch::PointAttributes;
               return;
             case AttrDomain::Edge:
-              mismatch = MeshMismatch::EdgeAttributes;
+              mismatch = GeoMismatch::EdgeAttributes;
               return;
             case AttrDomain::Corner:
-              mismatch = MeshMismatch::CornerAttributes;
+              mismatch = GeoMismatch::CornerAttributes;
               return;
             case AttrDomain::Face:
-              mismatch = MeshMismatch::FaceAttributes;
+              mismatch = GeoMismatch::FaceAttributes;
+              return;
+            case AttrDomain::Curve:
+              mismatch = GeoMismatch::CurveAttributes;
               return;
             default:
               BLI_assert_unreachable();
@@ -685,10 +697,10 @@ static bool all_set_sizes_one(const Span<int> set_sizes)
  *
  * \returns the type of mismatch that occurred if the mapping couldn't be constructed.
  */
-static std::optional<MeshMismatch> construct_vertex_mapping(const Mesh &mesh1,
-                                                            const Mesh &mesh2,
-                                                            IndexMapping &verts,
-                                                            IndexMapping &edges)
+static std::optional<GeoMismatch> construct_vertex_mapping(const Mesh &mesh1,
+                                                           const Mesh &mesh2,
+                                                           IndexMapping &verts,
+                                                           IndexMapping &edges)
 {
   if (all_set_sizes_one(verts.set_sizes)) {
     /* The vertices are already in one-to-one correspondence. */
@@ -739,7 +751,7 @@ static std::optional<MeshMismatch> construct_vertex_mapping(const Mesh &mesh1,
     }
 
     if (matching_verts.is_empty()) {
-      return MeshMismatch::EdgeTopology;
+      return GeoMismatch::EdgeTopology;
     }
 
     /* Update the maps. */
@@ -778,26 +790,26 @@ static std::optional<MeshMismatch> construct_vertex_mapping(const Mesh &mesh1,
   return std::nullopt;
 }
 
-std::optional<MeshMismatch> compare_meshes(const Mesh &mesh1,
-                                           const Mesh &mesh2,
-                                           const float threshold)
+std::optional<GeoMismatch> compare_meshes(const Mesh &mesh1,
+                                          const Mesh &mesh2,
+                                          const float threshold)
 {
 
   /* These will be assumed implicitly later on. */
   if (mesh1.verts_num != mesh2.verts_num) {
-    return MeshMismatch::NumVerts;
+    return GeoMismatch::NumPoints;
   }
   if (mesh1.edges_num != mesh2.edges_num) {
-    return MeshMismatch::NumEdges;
+    return GeoMismatch::NumEdges;
   }
   if (mesh1.corners_num != mesh2.corners_num) {
-    return MeshMismatch::NumCorners;
+    return GeoMismatch::NumCorners;
   }
   if (mesh1.faces_num != mesh2.faces_num) {
-    return MeshMismatch::NumFaces;
+    return GeoMismatch::NumFaces;
   }
 
-  std::optional<MeshMismatch> mismatch = {};
+  std::optional<GeoMismatch> mismatch = {};
 
   const AttributeAccessor mesh1_attributes = mesh1.attributes();
   const AttributeAccessor mesh2_attributes = mesh2.attributes();
@@ -811,14 +823,14 @@ std::optional<MeshMismatch> compare_meshes(const Mesh &mesh1,
       mesh1_attributes, mesh2_attributes, AttrDomain::Point, {}, verts, threshold);
   if (mismatch) {
     return mismatch;
-  };
+  }
 
   /* We need the maps going the other way as well. */
   verts.recalculate_inverse_maps();
 
   IndexMapping edges(mesh1.edges_num);
   if (!sort_edges(mesh1.edges(), mesh2.edges(), verts, edges)) {
-    return MeshMismatch::EdgeTopology;
+    return GeoMismatch::EdgeTopology;
   }
 
   mismatch = sort_domain_using_attributes(
@@ -832,11 +844,11 @@ std::optional<MeshMismatch> compare_meshes(const Mesh &mesh1,
 
   IndexMapping corners(mesh1.corners_num);
   if (!sort_corners_based_on_domain(mesh1.corner_verts(), mesh2.corner_verts(), verts, corners)) {
-    return MeshMismatch::FaceTopology;
+    return GeoMismatch::FaceTopology;
   }
 
   if (!sort_corners_based_on_domain(mesh1.corner_edges(), mesh2.corner_edges(), edges, corners)) {
-    return MeshMismatch::FaceTopology;
+    return GeoMismatch::FaceTopology;
   }
 
   mismatch = sort_domain_using_attributes(mesh1_attributes,
@@ -854,7 +866,7 @@ std::optional<MeshMismatch> compare_meshes(const Mesh &mesh1,
 
   IndexMapping faces(mesh1.faces_num);
   if (!sort_faces_based_on_corners(corners, mesh1.face_offsets(), mesh2.face_offsets(), faces)) {
-    return MeshMismatch::FaceTopology;
+    return GeoMismatch::FaceTopology;
   }
 
   mismatch = sort_domain_using_attributes(
@@ -871,7 +883,7 @@ std::optional<MeshMismatch> compare_meshes(const Mesh &mesh1,
   /* Now we double check that the other topology maps agree with this vertex mapping. */
 
   if (!sort_edges(mesh1.edges(), mesh2.edges(), verts, edges)) {
-    return MeshMismatch::EdgeTopology;
+    return GeoMismatch::EdgeTopology;
   }
 
   make_set_sizes_one(edges);
@@ -879,11 +891,11 @@ std::optional<MeshMismatch> compare_meshes(const Mesh &mesh1,
   edges.recalculate_inverse_maps();
 
   if (!sort_corners_based_on_domain(mesh1.corner_verts(), mesh2.corner_verts(), verts, corners)) {
-    return MeshMismatch::FaceTopology;
+    return GeoMismatch::FaceTopology;
   }
 
   if (!sort_corners_based_on_domain(mesh1.corner_edges(), mesh2.corner_edges(), edges, corners)) {
-    return MeshMismatch::FaceTopology;
+    return GeoMismatch::FaceTopology;
   }
 
   make_set_sizes_one(corners);
@@ -891,7 +903,7 @@ std::optional<MeshMismatch> compare_meshes(const Mesh &mesh1,
   corners.recalculate_inverse_maps();
 
   if (!sort_faces_based_on_corners(corners, mesh1.face_offsets(), mesh2.face_offsets(), faces)) {
-    return MeshMismatch::FaceTopology;
+    return GeoMismatch::FaceTopology;
   }
 
   make_set_sizes_one(faces);
@@ -900,19 +912,19 @@ std::optional<MeshMismatch> compare_meshes(const Mesh &mesh1,
    * are the same. */
   for (const int sorted_i : verts.from_sorted1.index_range()) {
     if (verts.from_sorted1[sorted_i] != verts.from_sorted2[sorted_i]) {
-      return MeshMismatch::Indices;
+      return GeoMismatch::Indices;
     }
   }
   /* Skip the test for edges, since a lot of tests actually have different edge indices.
    *TODO: remove this once those tests have been updated. */
   for (const int sorted_i : corners.from_sorted1.index_range()) {
     if (corners.from_sorted1[sorted_i] != corners.from_sorted2[sorted_i]) {
-      return MeshMismatch::Indices;
+      return GeoMismatch::Indices;
     }
   }
   for (const int sorted_i : faces.from_sorted1.index_range()) {
     if (faces.from_sorted1[sorted_i] != faces.from_sorted2[sorted_i]) {
-      return MeshMismatch::Indices;
+      return GeoMismatch::Indices;
     }
   }
 
@@ -920,4 +932,92 @@ std::optional<MeshMismatch> compare_meshes(const Mesh &mesh1,
   return std::nullopt;
 }
 
-}  // namespace blender::bke::compare_meshes
+/**
+ * Sort curves based on their sizes.
+ */
+static bool sort_curves(const OffsetIndices<int> offset_indices1,
+                        const OffsetIndices<int> offset_indices2,
+                        IndexMapping &curves)
+{
+  Array<int> curve_point_counts1(offset_indices1.size());
+  Array<int> curve_point_counts2(offset_indices2.size());
+  offset_indices::copy_group_sizes(
+      offset_indices1, offset_indices1.index_range(), curve_point_counts1.as_mutable_span());
+  offset_indices::copy_group_sizes(
+      offset_indices2, offset_indices2.index_range(), curve_point_counts2.as_mutable_span());
+  sort_per_set_based_on_attributes(curves.set_sizes,
+                                   curves.from_sorted1,
+                                   curves.from_sorted2,
+                                   curve_point_counts1.as_span(),
+                                   curve_point_counts2.as_span(),
+                                   0);
+  const bool curves_sizes_match = update_set_ids(curves.set_ids,
+                                                 curve_point_counts1.as_span(),
+                                                 curve_point_counts2.as_span(),
+                                                 curves.from_sorted1,
+                                                 curves.from_sorted2,
+                                                 0,
+                                                 0);
+  if (!curves_sizes_match) {
+    return false;
+  }
+  update_set_sizes(curves.set_ids, curves.set_sizes);
+  return true;
+}
+
+std::optional<GeoMismatch> compare_curves(const CurvesGeometry &curves1,
+                                          const CurvesGeometry &curves2,
+                                          const float threshold)
+{
+  /* These will be assumed implicitly later on. */
+  if (curves1.points_num() != curves2.points_num()) {
+    return GeoMismatch::NumPoints;
+  }
+  if (curves1.curves_num() != curves2.curves_num()) {
+    return GeoMismatch::NumCurves;
+  }
+
+  std::optional<GeoMismatch> mismatch = {};
+
+  const AttributeAccessor curves1_attributes = curves1.attributes();
+  const AttributeAccessor curves2_attributes = curves2.attributes();
+  mismatch = verify_attributes_compatible(curves1_attributes, curves2_attributes);
+  if (mismatch) {
+    return mismatch;
+  }
+
+  IndexMapping points(curves1.points_num());
+  mismatch = sort_domain_using_attributes(
+      curves1_attributes, curves2_attributes, AttrDomain::Point, {}, points, threshold);
+  if (mismatch) {
+    return mismatch;
+  }
+
+  IndexMapping curves(curves1.curves_num());
+  if (!sort_curves(curves1.offsets(), curves2.offsets(), curves)) {
+    return GeoMismatch::CurveTopology;
+  }
+
+  mismatch = sort_domain_using_attributes(
+      curves1_attributes, curves2_attributes, AttrDomain::Curve, {}, curves, threshold);
+  if (mismatch) {
+    return mismatch;
+  }
+
+  for (const int sorted_i : points.from_sorted1.index_range()) {
+    if (points.from_sorted1[sorted_i] != points.from_sorted2[sorted_i]) {
+      return GeoMismatch::Indices;
+    }
+  }
+
+  for (const int sorted_i : curves.from_sorted1.index_range()) {
+    if (curves.from_sorted1[sorted_i] != curves.from_sorted2[sorted_i]) {
+      return GeoMismatch::Indices;
+    }
+  }
+
+  /* No mismatches found. */
+  return std::nullopt;
+}
+
+}  // namespace blender::bke::compare_geometry

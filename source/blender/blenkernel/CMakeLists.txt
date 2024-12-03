@@ -200,7 +200,7 @@ set(SRC
   intern/mesh.cc
   intern/mesh_attributes.cc
   intern/mesh_calc_edges.cc
-  intern/mesh_compare.cc
+  intern/geometry_compare.cc
   intern/mesh_convert.cc
   intern/mesh_data_update.cc
   intern/mesh_debug.cc
@@ -449,7 +449,7 @@ set(SRC
   BKE_mball_tessellate.hh
   BKE_mesh.h
   BKE_mesh.hh
-  BKE_mesh_compare.hh
+  BKE_geometry_compare.hh
   BKE_mesh_fair.hh
   BKE_mesh_iterators.hh
   BKE_mesh_legacy_convert.hh

@@ -407,7 +407,7 @@ class MeshTest(ABC):
 
         if result_mesh == "Same":
             result_codes['Mesh Comparison'] = (True, result_mesh)
-        elif allow_index_change and result_mesh == "The meshes are the same up to a change of indices":
+        elif allow_index_change and result_mesh == "The geometries are the same up to a change of indices":
             result_codes['Mesh Comparison'] = (True, result_mesh)
         else:
             result_codes['Mesh Comparison'] = (False, result_mesh)
