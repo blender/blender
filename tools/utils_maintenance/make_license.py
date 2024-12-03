@@ -37,10 +37,11 @@ INTRODUCTION = r"""<!--
 This document is auto-generated with `make license`.
 To update it, edit (paths relative to Blender projects root):
 
- * For external libraries: ./build_files/build_environment/cmake/versions.cmake
- * For internal libraries: ./extern/*/Blender.README
- * For fonts: ./tools/utils_maintenance/make_license.py
- * To add new licenses: ./release/license/licenses.json
+ * Introduction and formatting: ./tools/utils_maintenance/make_license.py
+ * External libraries: ./build_files/build_environment/cmake/versions.cmake
+ * Internal libraries: ./extern/*/Blender.README
+ * Fonts: ./tools/utils_maintenance/make_license.py
+ * New licenses: ./release/license/licenses.json
 
 Then run `make license` and commit `license.md`.
 
