@@ -2076,16 +2076,14 @@ static void add_attribute_search_or_value_buttons(const bContext &C,
                                                   uiLayout *layout,
                                                   const NodesModifierData &nmd,
                                                   PointerRNA *md_ptr,
+                                                  const StringRef socket_id_esc,
+                                                  const StringRefNull rna_path,
                                                   const bNodeTreeInterfaceSocket &socket)
 {
-  const StringRefNull identifier = socket.identifier;
   const bke::bNodeSocketType *typeinfo = socket.socket_typeinfo();
   const eNodeSocketDatatype type = typeinfo ? eNodeSocketDatatype(typeinfo->type) : SOCK_CUSTOM;
-  char socket_id_esc[MAX_NAME * 2];
-  BLI_str_escape(socket_id_esc, identifier.c_str(), sizeof(socket_id_esc));
-  const std::string rna_path = "[\"" + std::string(socket_id_esc) + "\"]";
-  const std::string rna_path_attribute_name = "[\"" + std::string(socket_id_esc) +
-                                              nodes::input_attribute_name_suffix + "\"]";
+  const std::string rna_path_attribute_name = fmt::format(
+      "[\"{}{}\"]", socket_id_esc, nodes::input_attribute_name_suffix);
 
   /* We're handling this manually in this case. */
   uiLayoutSetPropDecorate(layout, false);
@@ -2201,7 +2199,8 @@ static void draw_property_for_socket(const bContext &C,
     }
     default: {
       if (nodes::input_has_attribute_toggle(*nmd->node_group, input_index)) {
-        add_attribute_search_or_value_buttons(C, row, *nmd, md_ptr, socket);
+        add_attribute_search_or_value_buttons(
+            C, row, *nmd, md_ptr, socket_id_esc, rna_path, socket);
       }
       else {
         uiItemR(row, md_ptr, rna_path, UI_ITEM_NONE, name, ICON_NONE);
@@ -2222,8 +2221,8 @@ static void draw_property_for_output_socket(const bContext &C,
   const StringRefNull identifier = socket.identifier;
   char socket_id_esc[MAX_NAME * 2];
   BLI_str_escape(socket_id_esc, identifier.c_str(), sizeof(socket_id_esc));
-  const std::string rna_path_attribute_name = "[\"" + StringRef(socket_id_esc) +
-                                              nodes::input_attribute_name_suffix + "\"]";
+  const std::string rna_path_attribute_name = fmt::format(
+      "[\"{}{}\"]", socket_id_esc, nodes::input_attribute_name_suffix);
 
   uiLayout *split = uiLayoutSplit(layout, 0.4f, false);
   uiLayout *name_row = uiLayoutRow(split, false);
