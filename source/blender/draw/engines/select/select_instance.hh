@@ -226,8 +226,10 @@ struct SelectMap {
       return;
     }
 
-    /* Make it so that we capture unreachable*/
     switch (gpu_select_next_get_mode()) {
+      /* Should not be used anymore for viewport selection. */
+      case GPU_SELECT_NEAREST_FIRST_PASS:
+      case GPU_SELECT_NEAREST_SECOND_PASS:
       case GPU_SELECT_INVALID:
         BLI_assert_unreachable();
         break;
@@ -238,9 +240,6 @@ struct SelectMap {
         /* This mode uses atomicOr and store result as a bitmap. Clear to 0 (no selection). */
         GPU_storagebuf_clear(select_output_buf, 0);
         break;
-      /* Not sure if these 2 NEAREST are mapped to the right algorithm. */
-      case GPU_SELECT_NEAREST_FIRST_PASS:
-      case GPU_SELECT_NEAREST_SECOND_PASS:
       case GPU_SELECT_PICK_ALL:
         info_buf.mode = SelectType::SELECT_PICK_ALL;
         info_buf.cursor = int2(gpu_select_next_get_pick_area_center());
