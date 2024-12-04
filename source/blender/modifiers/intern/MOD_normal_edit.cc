@@ -497,17 +497,16 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
 
   blender::Array<blender::float3> corner_normals;
 
-  CustomData *ldata = &result->corner_data;
-
   bke::MutableAttributeAccessor attributes = result->attributes_for_write();
   bke::SpanAttributeWriter<bool> sharp_edges = attributes.lookup_or_add_for_write_span<bool>(
       "sharp_edge", bke::AttrDomain::Edge);
 
-  blender::short2 *clnors = static_cast<blender::short2 *>(
-      CustomData_get_layer_for_write(ldata, CD_CUSTOMLOOPNORMAL, corner_verts.size()));
+  bke::SpanAttributeWriter custom_nors_dst = attributes.lookup_or_add_for_write_span<short2>(
+      "custom_normal", bke::AttrDomain::Corner);
+  if (!custom_nors_dst) {
+    return result;
+  }
   if (use_current_clnors) {
-    clnors = static_cast<blender::short2 *>(
-        CustomData_get_layer_for_write(ldata, CD_CUSTOMLOOPNORMAL, corner_verts.size()));
     corner_normals.reinitialize(corner_verts.size());
     const VArraySpan sharp_faces = *attributes.lookup<bool>("sharp_face", bke::AttrDomain::Face);
     blender::bke::mesh::normals_calc_corners(positions,
@@ -520,14 +519,9 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
                                              result->face_normals(),
                                              sharp_edges.span,
                                              sharp_faces,
-                                             clnors,
+                                             custom_nors_dst.span,
                                              nullptr,
                                              corner_normals);
-  }
-
-  if (clnors == nullptr) {
-    clnors = static_cast<blender::short2 *>(
-        CustomData_add_layer(ldata, CD_CUSTOMLOOPNORMAL, CD_SET_DEFAULT, corner_verts.size()));
   }
 
   MOD_get_vgroup(ob, result, enmd->defgrp_name, &dvert, &defgrp_index);
@@ -537,7 +531,7 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
                                  ctx,
                                  ob,
                                  result,
-                                 {clnors, result->corners_num},
+                                 custom_nors_dst.span,
                                  corner_normals,
                                  enmd->mix_mode,
                                  enmd->mix_factor,
@@ -557,7 +551,7 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
                                       ctx,
                                       ob,
                                       result,
-                                      {clnors, result->corners_num},
+                                      custom_nors_dst.span,
                                       corner_normals,
                                       enmd->mix_mode,
                                       enmd->mix_factor,
@@ -575,6 +569,7 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd,
 
   result->runtime->is_original_bmesh = false;
 
+  custom_nors_dst.finish();
   sharp_edges.finish();
 
   return result;
@@ -592,8 +587,6 @@ static void init_data(ModifierData *md)
 static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
 {
   NormalEditModifierData *enmd = (NormalEditModifierData *)md;
-
-  r_cddata_masks->lmask |= CD_MASK_CUSTOMLOOPNORMAL;
 
   /* Ask for vertex-groups if we need them. */
   if (enmd->defgrp_name[0] != '\0') {

@@ -68,9 +68,6 @@ void BKE_object_data_transfer_dttypes_to_cdmask(const int dtdata_types,
     else if (cddata_type == CD_FAKE_UV) {
       r_data_masks->lmask |= CD_MASK_PROP_FLOAT2;
     }
-    else if (cddata_type == CD_FAKE_LNOR) {
-      r_data_masks->lmask |= CD_MASK_CUSTOMLOOPNORMAL;
-    }
   }
 }
 
@@ -366,15 +363,13 @@ static void data_transfer_dtdata_type_postprocess(Mesh *me_dst,
 
     blender::float3 *loop_nors_dst = static_cast<blender::float3 *>(
         CustomData_get_layer_for_write(ldata_dst, CD_NORMAL, me_dst->corners_num));
-    blender::short2 *custom_nors_dst = static_cast<blender::short2 *>(
-        CustomData_get_layer_for_write(ldata_dst, CD_CUSTOMLOOPNORMAL, me_dst->corners_num));
-
-    if (!custom_nors_dst) {
-      custom_nors_dst = static_cast<blender::short2 *>(CustomData_add_layer(
-          ldata_dst, CD_CUSTOMLOOPNORMAL, CD_SET_DEFAULT, me_dst->corners_num));
-    }
 
     bke::MutableAttributeAccessor attributes = me_dst->attributes_for_write();
+    bke::SpanAttributeWriter custom_nors_dst = attributes.lookup_or_add_for_write_span<short2>(
+        "custom_normal", bke::AttrDomain::Corner);
+    if (!custom_nors_dst) {
+      return;
+    }
     bke::SpanAttributeWriter<bool> sharp_edges = attributes.lookup_or_add_for_write_span<bool>(
         "sharp_edge", bke::AttrDomain::Edge);
     const VArraySpan sharp_faces = *attributes.lookup<bool>("sharp_face", bke::AttrDomain::Face);
@@ -389,7 +384,8 @@ static void data_transfer_dtdata_type_postprocess(Mesh *me_dst,
                                                   sharp_faces,
                                                   sharp_edges.span,
                                                   {loop_nors_dst, me_dst->corners_num},
-                                                  {custom_nors_dst, me_dst->corners_num});
+                                                  custom_nors_dst.span);
+    custom_nors_dst.finish();
     sharp_edges.finish();
     CustomData_free_layers(ldata_dst, CD_NORMAL, me_dst->corners_num);
   }
@@ -1054,7 +1050,7 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
     else if (cddata_type == CD_FAKE_LNOR) {
       if (r_map) {
         /* Use #CD_NORMAL as a temporary storage for custom normals in 3D vector form.
-         * A post-process step will convert this layer to #CD_CUSTOMLOOPNORMAL. */
+         * A post-process step will convert this layer to "custom_normal". */
         float3 *dst_data = static_cast<float3 *>(
             CustomData_get_layer_for_write(&me_dst->corner_data, CD_NORMAL, me_dst->corners_num));
         if (!dst_data) {
@@ -1064,7 +1060,7 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
         if (mix_factor != 1.0f || mix_weights) {
           MutableSpan(dst_data, me_dst->corners_num).copy_from(me_dst->corner_normals());
         }
-        /* Post-process will convert it back to CD_CUSTOMLOOPNORMAL. */
+        /* Post-process will convert it back to "custom_normal". */
         data_transfer_layersmapping_add_item_cd(r_map,
                                                 CD_NORMAL,
                                                 mix_mode,

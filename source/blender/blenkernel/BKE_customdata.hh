@@ -699,8 +699,7 @@ enum {
       CD_FAKE |
       CD_PROP_FLOAT2, /* UV flag, because we handle both loop's UVs and face's textures. */
 
-  CD_FAKE_LNOR = CD_FAKE |
-                 CD_CUSTOMLOOPNORMAL, /* Because we play with clnor and temp lnor layers here. */
+  CD_FAKE_LNOR = CD_FAKE | 500,
 
   CD_FAKE_SHARP = CD_FAKE | 200, /* Sharp flag for edges, smooth flag for faces. */
 

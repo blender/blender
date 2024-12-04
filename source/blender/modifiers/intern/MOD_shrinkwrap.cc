@@ -102,16 +102,9 @@ static void deform_verts(ModifierData *md,
 static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
   ShrinkwrapModifierData *smd = (ShrinkwrapModifierData *)md;
-  CustomData_MeshMasks mask = {0};
-
-  if (BKE_shrinkwrap_needs_normals(smd->shrinkType, smd->shrinkMode)) {
-    mask.lmask |= CD_MASK_CUSTOMLOOPNORMAL;
-  }
-
   if (smd->target != nullptr) {
     DEG_add_object_relation(ctx->node, smd->target, DEG_OB_COMP_TRANSFORM, "Shrinkwrap Modifier");
     DEG_add_object_relation(ctx->node, smd->target, DEG_OB_COMP_GEOMETRY, "Shrinkwrap Modifier");
-    DEG_add_customdata_mask(ctx->node, smd->target, &mask);
     if (smd->shrinkType == MOD_SHRINKWRAP_TARGET_PROJECT) {
       DEG_add_special_eval_flag(ctx->node, &smd->target->id, DAG_EVAL_NEED_SHRINKWRAP_BOUNDARY);
     }
@@ -121,7 +114,6 @@ static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphCont
         ctx->node, smd->auxTarget, DEG_OB_COMP_TRANSFORM, "Shrinkwrap Modifier");
     DEG_add_object_relation(
         ctx->node, smd->auxTarget, DEG_OB_COMP_GEOMETRY, "Shrinkwrap Modifier");
-    DEG_add_customdata_mask(ctx->node, smd->auxTarget, &mask);
     if (smd->shrinkType == MOD_SHRINKWRAP_TARGET_PROJECT) {
       DEG_add_special_eval_flag(ctx->node, &smd->auxTarget->id, DAG_EVAL_NEED_SHRINKWRAP_BOUNDARY);
     }

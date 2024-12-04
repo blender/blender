@@ -837,6 +837,9 @@ static std::function<void()> get_tag_modified_function(void *owner, const String
   if (name.startswith(".hide")) {
     return [owner]() { (static_cast<Mesh *>(owner))->tag_visibility_changed(); };
   }
+  if (name == "custom_normal") {
+    return [owner]() { (static_cast<Mesh *>(owner))->tag_custom_normals_changed(); };
+  }
   return {};
 }
 

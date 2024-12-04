@@ -20,6 +20,7 @@
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 
+#include "BKE_attribute.hh"
 #include "BKE_customdata.hh"
 #include "BKE_deform.hh"
 #include "BKE_image.hh"
@@ -67,10 +68,6 @@ static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_
   /* ask for UV coordinates if we need them */
   if (dmd->texmapping == MOD_DISP_MAP_UV) {
     r_cddata_masks->fmask |= CD_MASK_MTFACE;
-  }
-
-  if (dmd->direction == MOD_DISP_DIR_CLNOR) {
-    r_cddata_masks->lmask |= CD_MASK_CUSTOMLOOPNORMAL;
   }
 }
 
@@ -296,7 +293,7 @@ static void displaceModifier_do(DisplaceModifierData *dmd,
   }
 
   if (direction == MOD_DISP_DIR_CLNOR) {
-    if (CustomData_has_layer(&mesh->corner_data, CD_CUSTOMLOOPNORMAL)) {
+    if (mesh->attributes().contains("custom_normal")) {
       vert_clnors = static_cast<float(*)[3]>(
           MEM_malloc_arrayN(positions.size(), sizeof(*vert_clnors), __func__));
       BKE_mesh_normals_loop_to_vertex(

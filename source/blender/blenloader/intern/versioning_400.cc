@@ -5187,6 +5187,7 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
    * breaking release. */
   LISTBASE_FOREACH (Mesh *, mesh, &bmain->meshes) {
     blender::bke::mesh_sculpt_mask_to_generic(*mesh);
+    blender::bke::mesh_custom_normals_to_generic(*mesh);
   }
 
   /**

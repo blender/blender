@@ -456,7 +456,7 @@ static bke::MeshNormalDomain bmesh_normals_domain(BMesh *bm)
     return bke::MeshNormalDomain::Point;
   }
 
-  if (CustomData_has_layer(&bm->ldata, CD_CUSTOMLOOPNORMAL)) {
+  if (CustomData_has_layer_named(&bm->ldata, CD_PROP_INT16_2D, "custom_normal")) {
     return bke::MeshNormalDomain::Corner;
   }
 
@@ -492,7 +492,8 @@ void mesh_render_data_update_corner_normals(MeshRenderData &mr)
   }
   else {
     mr.bm_loop_normals.reinitialize(mr.corners_num);
-    const int clnors_offset = CustomData_get_offset(&mr.bm->ldata, CD_CUSTOMLOOPNORMAL);
+    const int clnors_offset = CustomData_get_offset_named(
+        &mr.bm->ldata, CD_PROP_INT16_2D, "custom_normal");
     BM_loops_calc_normal_vcos(mr.bm,
                               mr.bm_vert_coords,
                               mr.bm_vert_normals,

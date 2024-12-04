@@ -2062,7 +2062,7 @@ void MESH_OT_duplicate(wmOperatorType *ot)
 static BMLoopNorEditDataArray *flip_custom_normals_init_data(BMesh *bm)
 {
   BMLoopNorEditDataArray *lnors_ed_arr = nullptr;
-  if (CustomData_has_layer(&bm->ldata, CD_CUSTOMLOOPNORMAL)) {
+  if (CustomData_has_layer_named(&bm->ldata, CD_PROP_INT16_2D, "custom_normal")) {
     /* The mesh has custom normal data, update these too.
      * Otherwise they will be left in a mangled state.
      */
@@ -2155,7 +2155,7 @@ static bool flip_custom_normals(BMesh *bm, BMLoopNorEditDataArray *lnors_ed_arr)
 
 static void edbm_flip_normals_custom_loop_normals(Object *obedit, BMEditMesh *em)
 {
-  if (!CustomData_has_layer(&em->bm->ldata, CD_CUSTOMLOOPNORMAL)) {
+  if (!CustomData_has_layer_named(&em->bm->ldata, CD_PROP_INT16_2D, "custom_normal")) {
     return;
   }
 
@@ -8616,7 +8616,8 @@ static void normals_split(BMesh *bm)
 
   BLI_SMALLSTACK_DECLARE(loop_stack, BMLoop *);
 
-  const int cd_clnors_offset = CustomData_get_offset(&bm->ldata, CD_CUSTOMLOOPNORMAL);
+  const int cd_clnors_offset = CustomData_get_offset_named(
+      &bm->ldata, CD_PROP_INT16_2D, "custom_normal");
   BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
     BLI_assert(BLI_SMALLSTACK_IS_EMPTY(loop_stack));
 
@@ -8830,7 +8831,8 @@ static int edbm_average_normals_exec(bContext *C, wmOperator *op)
     bm->spacearr_dirty |= BM_SPACEARR_DIRTY_ALL;
     BKE_editmesh_lnorspace_update(em);
 
-    const int cd_clnors_offset = CustomData_get_offset(&bm->ldata, CD_CUSTOMLOOPNORMAL);
+    const int cd_clnors_offset = CustomData_get_offset_named(
+        &bm->ldata, CD_PROP_INT16_2D, "custom_normal");
 
     float weight = absweight / 50.0f;
     if (absweight == 100.0f) {
@@ -9310,7 +9312,8 @@ static int edbm_set_normals_from_faces_exec(bContext *C, wmOperator *op)
     }
 
     BLI_bitmap *loop_set = BLI_BITMAP_NEW(bm->totloop, __func__);
-    const int cd_clnors_offset = CustomData_get_offset(&bm->ldata, CD_CUSTOMLOOPNORMAL);
+    const int cd_clnors_offset = CustomData_get_offset_named(
+        &bm->ldata, CD_PROP_INT16_2D, "custom_normal");
 
     BM_ITER_MESH (f, &fiter, bm, BM_FACES_OF_MESH) {
       BM_ITER_ELEM (e, &eiter, f, BM_EDGES_OF_FACE) {

@@ -180,7 +180,7 @@ void normals_calc_corners(Span<float3> vert_positions,
                           Span<float3> face_normals,
                           Span<bool> sharp_edges,
                           Span<bool> sharp_faces,
-                          const short2 *clnors_data,
+                          Span<short2> custom_normals,
                           CornerNormalSpaceArray *r_lnors_spacearr,
                           MutableSpan<float3> r_corner_normals);
 
