@@ -20,7 +20,6 @@ set(INC
 
   # For `*_info.hh` includes.
   ../compositor/realtime_compositor/shaders/infos
-  ../draw/engines/basic/shaders/infos
   ../draw/engines/eevee_next
   ../draw/engines/eevee_next/shaders/infos
   ../draw/engines/gpencil
