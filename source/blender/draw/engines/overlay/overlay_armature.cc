@@ -2186,9 +2186,7 @@ void Armatures::draw_armature_pose(Armatures::DrawContext *ctx)
     }
 
     draw_strat.update_display_matrix(bone_ptr);
-    if (!is_pose_select) {
-      draw_strat.draw_bone(ctx, bone_ptr, boneflag, select_id);
-    }
+    draw_strat.draw_bone(ctx, bone_ptr, boneflag, select_id);
 
     /* Below this point nothing is used for selection queries. */
     if (is_pose_select) {
