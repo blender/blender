@@ -15,7 +15,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_linklist_stack.h"
-#include "BLI_rand.h"
+#include "BLI_rand.hh"
 #include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
@@ -498,6 +498,7 @@ void ED_region_do_layout(bContext *C, ARegion *region)
 
 void ED_region_do_draw(bContext *C, ARegion *region)
 {
+  using namespace blender;
   wmWindow *win = CTX_wm_window(C);
   ScrArea *area = CTX_wm_area(C);
   ARegionType *at = region->runtime->type;
@@ -546,7 +547,8 @@ void ED_region_do_draw(bContext *C, ARegion *region)
     GPUVertFormat *format = immVertexFormat();
     uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
     immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
-    immUniformColor4f(BLI_thread_frand(0), BLI_thread_frand(0), BLI_thread_frand(0), 0.1f);
+    RandomNumberGenerator rng = RandomNumberGenerator::from_random_seed();
+    immUniformColor4f(rng.get_float(), rng.get_float(), rng.get_float(), 0.1f);
     immRectf(pos,
              region->drawrct.xmin - region->winrct.xmin,
              region->drawrct.ymin - region->winrct.ymin,
