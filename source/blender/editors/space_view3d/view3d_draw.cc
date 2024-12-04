@@ -2392,12 +2392,16 @@ void ED_view3d_depth_override(Depsgraph *depsgraph,
   RegionView3D *rv3d = static_cast<RegionView3D *>(region->regiondata);
 
   short flag = v3d->flag;
-  /* temp set drawtype to solid */
+  int flag2 = v3d->flag2;
   /* Setting these temporarily is not nice */
   v3d->flag &= ~V3D_SELECT_OUTLINE;
 
   if (v3d->flag2 & V3D_HIDE_OVERLAYS) {
     use_overlay = false;
+  }
+
+  if (use_overlay) {
+    v3d->flag2 &= ~V3D_HIDE_OVERLAYS;
   }
 
   /* Tools may request depth outside of regular drawing code. */
@@ -2427,20 +2431,20 @@ void ED_view3d_depth_override(Depsgraph *depsgraph,
   if (viewport != nullptr) {
     switch (mode) {
       case V3D_DEPTH_ALL:
-        DRW_draw_depth_loop(depsgraph, region, v3d, viewport, true, use_overlay, false);
+        DRW_draw_depth_loop(depsgraph, region, v3d, viewport, true, false);
         break;
       case V3D_DEPTH_NO_GPENCIL:
-        DRW_draw_depth_loop(depsgraph, region, v3d, viewport, true, use_overlay, false);
+        DRW_draw_depth_loop(depsgraph, region, v3d, viewport, true, false);
         break;
       case V3D_DEPTH_GPENCIL_ONLY:
-        DRW_draw_depth_loop(depsgraph, region, v3d, viewport, false, use_overlay, false);
+        DRW_draw_depth_loop(depsgraph, region, v3d, viewport, false, false);
         break;
       case V3D_DEPTH_OBJECT_ONLY:
         DRW_draw_depth_object(
             scene, region, v3d, viewport, DEG_get_evaluated_object(depsgraph, obact));
         break;
       case V3D_DEPTH_SELECTED_ONLY:
-        DRW_draw_depth_loop(depsgraph, region, v3d, viewport, true, use_overlay, true);
+        DRW_draw_depth_loop(depsgraph, region, v3d, viewport, true, true);
         break;
     }
 
@@ -2456,7 +2460,9 @@ void ED_view3d_depth_override(Depsgraph *depsgraph,
 
   rv3d->rflag &= ~RV3D_ZOFFSET_DISABLED;
 
+  /* Restore. */
   v3d->flag = flag;
+  v3d->flag2 = flag2;
   v3d->runtime.flag |= V3D_RUNTIME_DEPTHBUF_OVERRIDDEN;
 
   UI_Theme_Restore(&theme_state);
