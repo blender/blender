@@ -118,43 +118,60 @@ ccl_device_inline bool volume_shader_sample(KernelGlobals kg,
   return true;
 }
 
+/* Determines the next shading position. */
+struct VolumeStep {
+  /* Shift starting point of all segments by a random amount to avoid banding artifacts due to
+   * biased ray marching with insufficient step size. */
+  float offset;
+
+  /* Step size taken at each marching step. */
+  float size;
+
+  /* Perform shading at this offset within a step, to integrate over the entire step segment. */
+  float shade_offset;
+
+  /* Maximal steps allowed between `ray->tmin` and `ray->tmax`. */
+  int max_steps;
+};
+
+template<const bool shadow>
 ccl_device_forceinline void volume_step_init(KernelGlobals kg,
                                              ccl_private const RNGState *rng_state,
                                              const float object_step_size,
                                              const float tmin,
                                              const float tmax,
-                                             ccl_private float *step_size,
-                                             ccl_private float *step_shade_offset,
-                                             ccl_private float *steps_offset,
-                                             ccl_private int *max_steps)
+                                             ccl_private VolumeStep *vstep)
 {
   if (object_step_size == FLT_MAX) {
     /* Homogeneous volume. */
-    *step_size = tmax - tmin;
-    *step_shade_offset = 0.0f;
-    *steps_offset = 1.0f;
-    *max_steps = 1;
+    vstep->size = tmax - tmin;
+    vstep->shade_offset = 0.0f;
+    vstep->offset = 1.0f;
+    vstep->max_steps = 1;
   }
   else {
     /* Heterogeneous volume. */
-    *max_steps = kernel_data.integrator.volume_max_steps;
+    vstep->max_steps = kernel_data.integrator.volume_max_steps;
     const float t = tmax - tmin;
-    float step = min(object_step_size, t);
+    float step_size = min(object_step_size, t);
 
-    /* compute exact steps in advance for malloc */
-    if (t > *max_steps * step) {
-      step = t / (float)*max_steps;
+    if (t > vstep->max_steps * step_size) {
+      /* Increase step size to cover the whole ray segment. */
+      step_size = t / (float)vstep->max_steps;
     }
 
-    *step_size = step;
+    vstep->size = step_size;
+    vstep->shade_offset = path_state_rng_1D(kg, rng_state, PRNG_VOLUME_SHADE_OFFSET);
 
-    /* Perform shading at this offset within a step, to integrate over
-     * over the entire step segment. */
-    *step_shade_offset = path_state_rng_1D(kg, rng_state, PRNG_VOLUME_SHADE_OFFSET);
-
-    /* Shift starting point of all segment by this random amount to avoid
-     * banding artifacts from the volume bounding shape. */
-    *steps_offset = path_state_rng_1D(kg, rng_state, PRNG_VOLUME_OFFSET);
+    if (shadow) {
+      /* For shadows we do not offset all segments, since the starting point is already a random
+       * distance inside the volume. It also appears to create banding artifacts for unknown
+       * reasons. */
+      vstep->offset = 1.0f;
+    }
+    else {
+      vstep->offset = path_state_rng_1D(kg, rng_state, PRNG_VOLUME_OFFSET);
+    }
   }
 }
 
@@ -194,34 +211,21 @@ ccl_device void volume_shadow_heterogeneous(KernelGlobals kg,
 
   Spectrum tp = *throughput;
 
-  /* Prepare for stepping.
-   * For shadows we do not offset all segments, since the starting point is
-   * already a random distance inside the volume. It also appears to create
-   * banding artifacts for unknown reasons. */
-  int max_steps;
-  float step_size, step_shade_offset, unused;
-  volume_step_init(kg,
-                   &rng_state,
-                   object_step_size,
-                   ray->tmin,
-                   ray->tmax,
-                   &step_size,
-                   &step_shade_offset,
-                   &unused,
-                   &max_steps);
-  const float steps_offset = 1.0f;
+  /* Prepare for stepping. */
+  VolumeStep vstep;
+  volume_step_init<true>(kg, &rng_state, object_step_size, ray->tmin, ray->tmax, &vstep);
 
   /* compute extinction at the start */
   float t = ray->tmin;
 
   Spectrum sum = zero_spectrum();
 
-  for (int i = 0; i < max_steps; i++) {
+  for (int i = 0; i < vstep.max_steps; i++) {
     /* advance to new position */
-    float new_t = min(ray->tmax, ray->tmin + (i + steps_offset) * step_size);
+    float new_t = min(ray->tmax, ray->tmin + (i + vstep.offset) * vstep.size);
     float dt = new_t - t;
 
-    float3 new_P = ray->P + ray->D * (t + dt * step_shade_offset);
+    float3 new_P = ray->P + ray->D * (t + dt * vstep.shade_offset);
     Spectrum sigma_t = zero_spectrum();
 
     /* compute attenuation over segment */
@@ -494,19 +498,9 @@ ccl_device_forceinline void volume_integrate_heterogeneous(
 {
   PROFILING_INIT(kg, PROFILING_SHADE_VOLUME_INTEGRATE);
 
-  /* Prepare for stepping.
-   * Using a different step offset for the first step avoids banding artifacts. */
-  int max_steps;
-  float step_size, step_shade_offset, steps_offset;
-  volume_step_init(kg,
-                   rng_state,
-                   object_step_size,
-                   ray->tmin,
-                   ray->tmax,
-                   &step_size,
-                   &step_shade_offset,
-                   &steps_offset,
-                   &max_steps);
+  /* Prepare for stepping. */
+  VolumeStep vstep;
+  volume_step_init<false>(kg, rng_state, object_step_size, ray->tmin, ray->tmax, &vstep);
 
   /* Initialize volume integration state. */
   VolumeIntegrateState vstate ccl_optional_struct_init;
@@ -552,10 +546,10 @@ ccl_device_forceinline void volume_integrate_heterogeneous(
 #  endif
   Spectrum accum_emission = zero_spectrum();
 
-  for (int i = 0; i < max_steps; i++) {
+  for (int i = 0; i < vstep.max_steps; i++) {
     /* Advance to new position */
-    vstate.t.max = min(ray->tmax, ray->tmin + (i + steps_offset) * step_size);
-    const float shade_t = vstate.t.min + (vstate.t.max - vstate.t.min) * step_shade_offset;
+    vstate.t.max = min(ray->tmax, ray->tmin + (i + vstep.offset) * vstep.size);
+    const float shade_t = vstate.t.min + (vstate.t.max - vstate.t.min) * vstep.shade_offset;
     sd->P = ray->P + ray->D * shade_t;
 
     /* compute segment */
