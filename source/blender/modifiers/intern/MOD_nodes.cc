@@ -2002,9 +2002,9 @@ static void attribute_search_exec_fn(bContext *C, void *data_v, void *item_v)
   }
 
   const std::string attribute_prop_name = data.socket_identifier +
-                                          nodes::input_attribute_name_suffix();
+                                          nodes::input_attribute_name_suffix;
   IDProperty &name_property = *IDP_GetPropertyFromGroup(nmd->settings.properties,
-                                                        attribute_prop_name.c_str());
+                                                        attribute_prop_name);
   IDP_AssignString(&name_property, item.name.c_str());
 
   ED_undo_push(C, "Assign Attribute Name");
@@ -2085,7 +2085,7 @@ static void add_attribute_search_or_value_buttons(const bContext &C,
   BLI_str_escape(socket_id_esc, identifier.c_str(), sizeof(socket_id_esc));
   const std::string rna_path = "[\"" + std::string(socket_id_esc) + "\"]";
   const std::string rna_path_attribute_name = "[\"" + std::string(socket_id_esc) +
-                                              nodes::input_attribute_name_suffix() + "\"]";
+                                              nodes::input_attribute_name_suffix + "\"]";
 
   /* We're handling this manually in this case. */
   uiLayoutSetPropDecorate(layout, false);
@@ -2144,7 +2144,7 @@ static void draw_property_for_socket(const bContext &C,
 {
   const StringRefNull identifier = socket.identifier;
   /* The property should be created in #MOD_nodes_update_interface with the correct type. */
-  IDProperty *property = IDP_GetPropertyFromGroup(nmd->settings.properties, identifier.c_str());
+  IDProperty *property = IDP_GetPropertyFromGroup(nmd->settings.properties, identifier);
 
   /* IDProperties can be removed with python, so there could be a situation where
    * there isn't a property for a socket or it doesn't have the correct type. */
@@ -2223,7 +2223,7 @@ static void draw_property_for_output_socket(const bContext &C,
   char socket_id_esc[MAX_NAME * 2];
   BLI_str_escape(socket_id_esc, identifier.c_str(), sizeof(socket_id_esc));
   const std::string rna_path_attribute_name = "[\"" + StringRef(socket_id_esc) +
-                                              nodes::input_attribute_name_suffix() + "\"]";
+                                              nodes::input_attribute_name_suffix + "\"]";
 
   uiLayout *split = uiLayoutSplit(layout, 0.4f, false);
   uiLayout *name_row = uiLayoutRow(split, false);

@@ -32,8 +32,8 @@ void find_node_tree_dependencies(const bNodeTree &tree,
                                  bool &r_needs_own_transform_relation,
                                  bool &r_needs_scene_camera_relation);
 
-StringRef input_use_attribute_suffix();
-StringRef input_attribute_name_suffix();
+constexpr StringRef input_use_attribute_suffix = "_use_attribute";
+constexpr StringRef input_attribute_name_suffix = "_attribute_name";
 
 std::optional<StringRef> input_attribute_name_get(const IDProperty &props,
                                                   const bNodeTreeInterfaceSocket &io_input);

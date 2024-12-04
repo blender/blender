@@ -671,9 +671,9 @@ static void add_attribute_search_or_value_buttons(uiLayout *layout,
   BLI_str_escape(socket_id_esc, socket.identifier, sizeof(socket_id_esc));
   const std::string rna_path = "[\"" + std::string(socket_id_esc) + "\"]";
   const std::string rna_path_use_attribute = "[\"" + std::string(socket_id_esc) +
-                                             nodes::input_use_attribute_suffix() + "\"]";
+                                             nodes::input_use_attribute_suffix + "\"]";
   const std::string rna_path_attribute_name = "[\"" + std::string(socket_id_esc) +
-                                              nodes::input_attribute_name_suffix() + "\"]";
+                                              nodes::input_attribute_name_suffix + "\"]";
 
   /* We're handling this manually in this case. */
   uiLayoutSetPropDecorate(layout, false);
