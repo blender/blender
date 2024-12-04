@@ -1287,6 +1287,18 @@ static void write_id(WriteData *wd, ID *id)
   mywrite_id_end(wd, id);
 }
 
+static void write_blend_file_header(WriteData *wd)
+{
+  char buf[16];
+  SNPRINTF(buf,
+           "BLENDER%c%c%.3d",
+           (sizeof(void *) == 8) ? '-' : '_',
+           (ENDIAN_ORDER == B_ENDIAN) ? 'V' : 'v',
+           BLENDER_FILE_VERSION);
+
+  mywrite(wd, buf, 12);
+}
+
 /**
  * Gathers all local IDs that should be written to the file.
  */
@@ -1366,7 +1378,6 @@ static bool write_file_handle(Main *mainvar,
                               const BlendThumbnail *thumb)
 {
   ListBase mainlist;
-  char buf[16];
   WriteData *wd;
 
   wd = mywrite_begin(ww, compare, current);
@@ -1419,14 +1430,7 @@ static bool write_file_handle(Main *mainvar,
 
   blo_split_main(&mainlist, mainvar);
 
-  SNPRINTF(buf,
-           "BLENDER%c%c%.3d",
-           (sizeof(void *) == 8) ? '-' : '_',
-           (ENDIAN_ORDER == B_ENDIAN) ? 'V' : 'v',
-           BLENDER_FILE_VERSION);
-
-  mywrite(wd, buf, 12);
-
+  write_blend_file_header(wd);
   write_renderinfo(wd, mainvar);
   write_thumb(wd, thumb);
   write_global(wd, write_flags, mainvar);
