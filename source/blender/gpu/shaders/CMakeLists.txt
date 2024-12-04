@@ -12,6 +12,13 @@ if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
   add_cxx_flag("-Wno-unused-parameter")
   # To compile libraries.
   add_cxx_flag("-Wno-pragma-once-outside-header")
+elseif(MSVC)
+  # Equivalent to "-Wno-uninitialized"
+  add_cxx_flag("/wd4700")
+  # Equivalent to "-Wno-unused-parameter"
+  add_cxx_flag("/wd4100")
+  # Disable "potential divide by 0" warning
+  add_cxx_flag("/wd4723")
 endif()
 
 set(INC_GLSL
