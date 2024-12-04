@@ -262,27 +262,6 @@ void mid_v3_v3v3_angle_weighted(float r[3], const float a[3], const float b[3])
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Comparison
- * \{ */
-
-bool is_finite_v2(const float v[2])
-{
-  return (isfinite(v[0]) && isfinite(v[1]));
-}
-
-bool is_finite_v3(const float v[3])
-{
-  return (isfinite(v[0]) && isfinite(v[1]) && isfinite(v[2]));
-}
-
-bool is_finite_v4(const float v[4])
-{
-  return (isfinite(v[0]) && isfinite(v[1]) && isfinite(v[2]) && isfinite(v[3]));
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Angles
  * \{ */
 

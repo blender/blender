@@ -401,9 +401,9 @@ MINLINE bool is_zero_v2(const float v[2]) ATTR_WARN_UNUSED_RESULT;
 MINLINE bool is_zero_v3(const float v[3]) ATTR_WARN_UNUSED_RESULT;
 MINLINE bool is_zero_v4(const float v[4]) ATTR_WARN_UNUSED_RESULT;
 
-bool is_finite_v2(const float v[2]) ATTR_WARN_UNUSED_RESULT;
-bool is_finite_v3(const float v[3]) ATTR_WARN_UNUSED_RESULT;
-bool is_finite_v4(const float v[4]) ATTR_WARN_UNUSED_RESULT;
+MINLINE bool is_finite_v2(const float v[2]) ATTR_WARN_UNUSED_RESULT;
+MINLINE bool is_finite_v3(const float v[3]) ATTR_WARN_UNUSED_RESULT;
+MINLINE bool is_finite_v4(const float v[4]) ATTR_WARN_UNUSED_RESULT;
 
 MINLINE bool is_one_v3(const float v[3]) ATTR_WARN_UNUSED_RESULT;
 
