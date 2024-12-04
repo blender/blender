@@ -661,7 +661,7 @@ static void sequencer_main_cursor(wmWindow *win, ScrArea *area, ARegion *region)
   int wmcursor = WM_CURSOR_DEFAULT;
 
   const bToolRef *tref = area->runtime.tool;
-  if (!STRPREFIX(tref->idname, "builtin.select")) {
+  if (tref == nullptr || !STRPREFIX(tref->idname, "builtin.select")) {
     WM_cursor_set(win, wmcursor);
     return;
   }
