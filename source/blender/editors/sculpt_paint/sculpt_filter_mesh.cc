@@ -342,7 +342,8 @@ static void calc_smooth_filter(const Depsgraph &depsgraph,
   struct LocalData {
     Vector<float> factors;
     Vector<float3> positions;
-    Vector<Vector<int>> vert_neighbors;
+    Vector<int> neighbor_offsets;
+    Vector<int> neighbor_data;
     Vector<float3> new_positions;
     Vector<float3> translations;
   };
@@ -373,15 +374,15 @@ static void calc_smooth_filter(const Depsgraph &depsgraph,
         scale_factors(factors, strength);
         clamp_factors(factors, -1.0f, 1.0f);
 
-        tls.vert_neighbors.resize(verts.size());
-        MutableSpan<Vector<int>> neighbors = tls.vert_neighbors;
-        calc_vert_neighbors_interior(faces,
-                                     corner_verts,
-                                     vert_to_face_map,
-                                     ss.vertex_info.boundary,
-                                     attribute_data.hide_poly,
-                                     verts,
-                                     neighbors);
+        const GroupedSpan<int> neighbors = calc_vert_neighbors_interior(faces,
+                                                                        corner_verts,
+                                                                        vert_to_face_map,
+                                                                        ss.vertex_info.boundary,
+                                                                        attribute_data.hide_poly,
+                                                                        verts,
+                                                                        tls.neighbor_offsets,
+                                                                        tls.neighbor_data);
+
         tls.new_positions.resize(verts.size());
         const MutableSpan<float3> new_positions = tls.new_positions;
         smooth::neighbor_data_average_mesh_check_loose(
@@ -952,7 +953,6 @@ static void calc_relax_filter(const Depsgraph &depsgraph,
   switch (pbvh.type()) {
     struct LocalData {
       Vector<float> factors;
-      Vector<Vector<int>> vert_neighbors;
       Vector<float3> translations;
     };
     case bke::pbvh::Type::Mesh: {
@@ -991,7 +991,6 @@ static void calc_relax_filter(const Depsgraph &depsgraph,
                                                 false,
                                                 verts,
                                                 factors,
-                                                tls.vert_neighbors,
                                                 translations);
 
         zero_disabled_axis_components(*ss.filter_cache, translations);
@@ -1004,7 +1003,6 @@ static void calc_relax_filter(const Depsgraph &depsgraph,
       struct LocalData {
         Vector<float> factors;
         Vector<float3> positions;
-        Vector<Vector<SubdivCCGCoord>> vert_neighbors;
         Vector<float3> translations;
       };
       const Mesh &base_mesh = *static_cast<const Mesh *>(object.data);
@@ -1041,7 +1039,6 @@ static void calc_relax_filter(const Depsgraph &depsgraph,
                                                 grids,
                                                 false,
                                                 factors,
-                                                tls.vert_neighbors,
                                                 translations);
 
         zero_disabled_axis_components(*ss.filter_cache, translations);
@@ -1054,7 +1051,6 @@ static void calc_relax_filter(const Depsgraph &depsgraph,
       struct LocalData {
         Vector<float> factors;
         Vector<float3> positions;
-        Vector<Vector<BMVert *>> vert_neighbors;
         Vector<float3> translations;
       };
       BMesh &bm = *ss.bm;
@@ -1079,7 +1075,7 @@ static void calc_relax_filter(const Depsgraph &depsgraph,
         tls.translations.resize(verts.size());
         const MutableSpan<float3> translations = tls.translations;
         smooth::calc_relaxed_translations_bmesh(
-            verts, positions, face_set_offset, false, factors, tls.vert_neighbors, translations);
+            verts, positions, face_set_offset, false, factors, translations);
 
         zero_disabled_axis_components(*ss.filter_cache, translations);
         clip_and_lock_translations(sd, ss, positions, translations);
@@ -1110,7 +1106,6 @@ static void calc_relax_face_sets_filter(const Depsgraph &depsgraph,
       struct LocalData {
         Vector<float> factors;
         Vector<float3> positions;
-        Vector<Vector<int>> vert_neighbors;
         Vector<float3> translations;
       };
       Mesh &mesh = *static_cast<Mesh *>(object.data);
@@ -1151,7 +1146,6 @@ static void calc_relax_face_sets_filter(const Depsgraph &depsgraph,
                                                 relax_face_sets,
                                                 verts,
                                                 factors,
-                                                tls.vert_neighbors,
                                                 translations);
 
         zero_disabled_axis_components(*ss.filter_cache, translations);
@@ -1164,7 +1158,6 @@ static void calc_relax_face_sets_filter(const Depsgraph &depsgraph,
       struct LocalData {
         Vector<float> factors;
         Vector<float3> positions;
-        Vector<Vector<SubdivCCGCoord>> vert_neighbors;
         Vector<float3> translations;
       };
       const Mesh &base_mesh = *static_cast<const Mesh *>(object.data);
@@ -1211,7 +1204,6 @@ static void calc_relax_face_sets_filter(const Depsgraph &depsgraph,
                                                 grids,
                                                 relax_face_sets,
                                                 factors,
-                                                tls.vert_neighbors,
                                                 translations);
 
         zero_disabled_axis_components(*ss.filter_cache, translations);
@@ -1224,7 +1216,6 @@ static void calc_relax_face_sets_filter(const Depsgraph &depsgraph,
       struct LocalData {
         Vector<float> factors;
         Vector<float3> positions;
-        Vector<Vector<BMVert *>> vert_neighbors;
         Vector<float3> translations;
       };
       BMesh &bm = *ss.bm;
@@ -1250,13 +1241,8 @@ static void calc_relax_face_sets_filter(const Depsgraph &depsgraph,
 
         tls.translations.resize(verts.size());
         const MutableSpan<float3> translations = tls.translations;
-        smooth::calc_relaxed_translations_bmesh(verts,
-                                                positions,
-                                                face_set_offset,
-                                                relax_face_sets,
-                                                factors,
-                                                tls.vert_neighbors,
-                                                translations);
+        smooth::calc_relaxed_translations_bmesh(
+            verts, positions, face_set_offset, relax_face_sets, factors, translations);
 
         zero_disabled_axis_components(*ss.filter_cache, translations);
         clip_and_lock_translations(sd, ss, positions, translations);
@@ -1276,7 +1262,8 @@ static void calc_surface_smooth_filter(const Depsgraph &depsgraph,
   struct LocalData {
     Vector<float> factors;
     Vector<float3> positions;
-    Vector<Vector<int>> vert_neighbors;
+    Vector<int> neighbor_offsets;
+    Vector<int> neighbor_data;
     Vector<float3> average_positions;
     Vector<float3> laplacian_disp;
     Vector<float3> translations;
@@ -1311,18 +1298,18 @@ static void calc_surface_smooth_filter(const Depsgraph &depsgraph,
         scale_factors(factors, strength);
         clamp_factors(factors, 0.0f, 1.0f);
 
-        tls.vert_neighbors.reinitialize(verts.size());
-        calc_vert_neighbors(faces,
-                            corner_verts,
-                            vert_to_face_map,
-                            attribute_data.hide_poly,
-                            verts,
-                            tls.vert_neighbors);
+        const GroupedSpan<int> neighbors = calc_vert_neighbors(faces,
+                                                               corner_verts,
+                                                               vert_to_face_map,
+                                                               attribute_data.hide_poly,
+                                                               verts,
+                                                               tls.neighbor_offsets,
+                                                               tls.neighbor_data);
 
         tls.average_positions.reinitialize(verts.size());
         const MutableSpan<float3> average_positions = tls.average_positions;
         smooth::neighbor_data_average_mesh_check_loose(
-            position_data.eval, verts, tls.vert_neighbors, average_positions);
+            position_data.eval, verts, neighbors, average_positions);
 
         tls.laplacian_disp.reinitialize(verts.size());
         const MutableSpan<float3> laplacian_disp = tls.laplacian_disp;
@@ -1358,18 +1345,18 @@ static void calc_surface_smooth_filter(const Depsgraph &depsgraph,
         const MutableSpan<float3> laplacian_disp = gather_data_mesh(
             all_laplacian_disp.as_span(), verts, tls.laplacian_disp);
 
-        tls.vert_neighbors.resize(verts.size());
-        calc_vert_neighbors(faces,
-                            corner_verts,
-                            vert_to_face_map,
-                            attribute_data.hide_poly,
-                            verts,
-                            tls.vert_neighbors);
+        const GroupedSpan<int> neighbors = calc_vert_neighbors(faces,
+                                                               corner_verts,
+                                                               vert_to_face_map,
+                                                               attribute_data.hide_poly,
+                                                               verts,
+                                                               tls.neighbor_offsets,
+                                                               tls.neighbor_data);
 
         tls.average_positions.resize(verts.size());
         const MutableSpan<float3> average_laplacian_disps = tls.average_positions;
         smooth::neighbor_data_average_mesh_check_loose(
-            all_laplacian_disp.as_span(), verts, tls.vert_neighbors, average_laplacian_disps);
+            all_laplacian_disp.as_span(), verts, neighbors, average_laplacian_disps);
 
         tls.translations.resize(verts.size());
         const MutableSpan<float3> translations = tls.translations;
@@ -1561,7 +1548,8 @@ static void calc_sharpen_filter(const Depsgraph &depsgraph,
   struct LocalData {
     Vector<float> factors;
     Vector<float3> positions;
-    Vector<Vector<int>> vert_neighbors;
+    Vector<int> neighbor_offsets;
+    Vector<int> neighbor_data;
     Vector<float3> smooth_positions;
     Vector<float> sharpen_factors;
     Vector<float3> detail_directions;
@@ -1601,10 +1589,13 @@ static void calc_sharpen_filter(const Depsgraph &depsgraph,
          * stable state. */
         clamp_factors(factors, 0.0f, 0.5f);
 
-        tls.vert_neighbors.resize(verts.size());
-        const MutableSpan<Vector<int>> neighbors = tls.vert_neighbors;
-        calc_vert_neighbors(
-            faces, corner_verts, vert_to_face_map, attribute_data.hide_poly, verts, neighbors);
+        const GroupedSpan<int> neighbors = calc_vert_neighbors(faces,
+                                                               corner_verts,
+                                                               vert_to_face_map,
+                                                               attribute_data.hide_poly,
+                                                               verts,
+                                                               tls.neighbor_offsets,
+                                                               tls.neighbor_data);
 
         tls.smooth_positions.resize(verts.size());
         const MutableSpan<float3> smooth_positions = tls.smooth_positions;
@@ -1674,8 +1665,6 @@ static void calc_sharpen_filter(const Depsgraph &depsgraph,
         /* This filter can't work at full strength as it needs multiple iterations to reach a
          * stable state. */
         clamp_factors(factors, 0.0f, 0.5f);
-
-        tls.vert_neighbors.resize(positions.size());
 
         tls.smooth_positions.resize(positions.size());
         const MutableSpan<float3> smooth_positions = tls.smooth_positions;
@@ -2025,7 +2014,8 @@ static void mesh_filter_sharpen_init(const Depsgraph &depsgraph,
 
   /* Smooth the calculated factors and directions to remove high frequency detail. */
   struct LocalData {
-    Vector<Vector<int>> vert_neighbors;
+    Vector<int> neighbor_offsets;
+    Vector<int> neighbor_data;
     Vector<float3> smooth_directions;
     Vector<float> smooth_factors;
   };
@@ -2044,10 +2034,13 @@ static void mesh_filter_sharpen_init(const Depsgraph &depsgraph,
           LocalData &tls = all_tls.local();
           const Span<int> verts = nodes[i].verts();
 
-          tls.vert_neighbors.resize(verts.size());
-          const MutableSpan<Vector<int>> neighbors = tls.vert_neighbors;
-          calc_vert_neighbors(
-              faces, corner_verts, vert_to_face_map, attribute_data.hide_poly, verts, neighbors);
+          const GroupedSpan<int> neighbors = calc_vert_neighbors(faces,
+                                                                 corner_verts,
+                                                                 vert_to_face_map,
+                                                                 attribute_data.hide_poly,
+                                                                 verts,
+                                                                 tls.neighbor_offsets,
+                                                                 tls.neighbor_data);
 
           tls.smooth_directions.resize(verts.size());
           smooth::neighbor_data_average_mesh_check_loose(detail_directions.as_span(),

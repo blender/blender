@@ -33,19 +33,16 @@ inline namespace relax_cc {
 struct MeshLocalData {
   Vector<float> factors;
   Vector<float> distances;
-  Vector<Vector<int>> vert_neighbors;
 };
 
 struct GridLocalData {
   Vector<float> factors;
   Vector<float> distances;
-  Vector<Vector<SubdivCCGCoord>> vert_neighbors;
 };
 
 struct BMeshLocalData {
   Vector<float> factors;
   Vector<float> distances;
-  Vector<Vector<BMVert *>> vert_neighbors;
 };
 
 static void apply_positions_faces(const Sculpt &sd,
@@ -189,7 +186,6 @@ static void do_relax_face_sets_brush_mesh(const Depsgraph &depsgraph,
   });
 
   node_mask.foreach_index(GrainSize(1), [&](const int i, const int pos) {
-    MeshLocalData &tls = all_tls.local();
     smooth::calc_relaxed_translations_faces(
         position_data.eval,
         vert_normals,
@@ -202,7 +198,6 @@ static void do_relax_face_sets_brush_mesh(const Depsgraph &depsgraph,
         relax_face_sets,
         nodes[i].verts(),
         factors.as_span().slice(node_vert_offsets[pos]),
-        tls.vert_neighbors,
         translations.as_mutable_span().slice(node_vert_offsets[pos]));
   });
 
@@ -321,7 +316,6 @@ static void do_relax_face_sets_brush_grids(const Depsgraph &depsgraph,
   });
 
   node_mask.foreach_index(GrainSize(1), [&](const int i, const int pos) {
-    GridLocalData &tls = all_tls.local();
     smooth::calc_relaxed_translations_grids(
         subdiv_ccg,
         faces,
@@ -332,7 +326,6 @@ static void do_relax_face_sets_brush_grids(const Depsgraph &depsgraph,
         nodes[i].grids(),
         relax_face_sets,
         factors.as_span().slice(node_vert_offsets[pos]),
-        tls.vert_neighbors,
         translations.as_mutable_span().slice(node_vert_offsets[pos]));
   });
 
@@ -425,14 +418,12 @@ static void do_relax_face_sets_brush_bmesh(const Depsgraph &depsgraph,
   });
 
   node_mask.foreach_index(GrainSize(1), [&](const int i, const int pos) {
-    BMeshLocalData &tls = all_tls.local();
     smooth::calc_relaxed_translations_bmesh(
         BKE_pbvh_bmesh_node_unique_verts(&nodes[i]),
         current_positions.as_mutable_span().slice(node_vert_offsets[pos]),
         face_set_offset,
         relax_face_sets,
         factors.as_span().slice(node_vert_offsets[pos]),
-        tls.vert_neighbors,
         translations.as_mutable_span().slice(node_vert_offsets[pos]));
   });
 
@@ -528,7 +519,6 @@ static void do_topology_relax_brush_mesh(const Depsgraph &depsgraph,
   });
 
   node_mask.foreach_index(GrainSize(1), [&](const int i, const int pos) {
-    MeshLocalData &tls = all_tls.local();
     smooth::calc_relaxed_translations_faces(
         position_data.eval,
         vert_normals,
@@ -541,7 +531,6 @@ static void do_topology_relax_brush_mesh(const Depsgraph &depsgraph,
         false,
         nodes[i].verts(),
         factors.as_span().slice(node_vert_offsets[pos]),
-        tls.vert_neighbors,
         translations.as_mutable_span().slice(node_vert_offsets[pos]));
   });
 
@@ -643,7 +632,6 @@ static void do_topology_relax_brush_grids(const Depsgraph &depsgraph,
   });
 
   node_mask.foreach_index(GrainSize(1), [&](const int i, const int pos) {
-    GridLocalData &tls = all_tls.local();
     smooth::calc_relaxed_translations_grids(
         subdiv_ccg,
         faces,
@@ -654,7 +642,6 @@ static void do_topology_relax_brush_grids(const Depsgraph &depsgraph,
         nodes[i].grids(),
         false,
         factors.as_span().slice(node_vert_offsets[pos]),
-        tls.vert_neighbors,
         translations.as_mutable_span().slice(node_vert_offsets[pos]));
   });
 
@@ -745,14 +732,12 @@ static void do_topology_relax_brush_bmesh(const Depsgraph &depsgraph,
   });
 
   node_mask.foreach_index(GrainSize(1), [&](const int i, const int pos) {
-    BMeshLocalData &tls = all_tls.local();
     smooth::calc_relaxed_translations_bmesh(
         BKE_pbvh_bmesh_node_unique_verts(&nodes[i]),
         current_positions.as_mutable_span().slice(node_vert_offsets[pos]),
         face_set_offset,
         false,
         factors.as_span().slice(node_vert_offsets[pos]),
-        tls.vert_neighbors,
         translations.as_mutable_span().slice(node_vert_offsets[pos]));
   });
 

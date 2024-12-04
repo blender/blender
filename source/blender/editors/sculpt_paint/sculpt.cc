@@ -449,6 +449,37 @@ Span<int> vert_neighbors_get_mesh(const OffsetIndices<int> faces,
   return r_neighbors.as_span();
 }
 
+inline void append_neighbors_to_vector(const OffsetIndices<int> faces,
+                                       const Span<int> corner_verts,
+                                       const GroupedSpan<int> vert_to_face,
+                                       const Span<bool> hide_poly,
+                                       const int vert,
+                                       Vector<int> &r_data)
+{
+  const int vert_start = r_data.size();
+  for (const int face : vert_to_face[vert]) {
+    if (!hide_poly.is_empty() && hide_poly[face]) {
+      continue;
+    }
+    /* In order to support non-manifold topology, both neighboring vertices are added for each
+     * face corner. That results in half being duplicates for any "normal" topology. */
+    const int2 neighbors = bke::mesh::face_find_adjacent_verts(faces[face], corner_verts, vert);
+    for (const int neighbor : {neighbors[0], neighbors[1]}) {
+      bool found = false;
+      for (int i = r_data.size() - 1; i >= vert_start; i--) {
+        if (r_data[i] == neighbor) {
+          found = true;
+          break;
+        }
+      }
+      if (found) {
+        continue;
+      }
+      r_data.append(neighbor);
+    }
+  }
+}
+
 namespace boundary {
 
 bool vert_is_boundary(const GroupedSpan<int> vert_to_face_map,
@@ -7334,88 +7365,112 @@ OffsetIndices<int> create_node_vert_offsets_bmesh(const Span<bke::pbvh::BMeshNod
   return offset_indices::accumulate_counts_to_offsets(node_data);
 }
 
-void calc_vert_neighbors(const OffsetIndices<int> faces,
-                         const Span<int> corner_verts,
-                         const GroupedSpan<int> vert_to_face,
-                         const Span<bool> hide_poly,
-                         const Span<int> verts,
-                         const MutableSpan<Vector<int>> result)
+GroupedSpan<int> calc_vert_neighbors(const OffsetIndices<int> faces,
+                                     const Span<int> corner_verts,
+                                     const GroupedSpan<int> vert_to_face,
+                                     const Span<bool> hide_poly,
+                                     const Span<int> verts,
+                                     Vector<int> &r_offset_data,
+                                     Vector<int> &r_data)
 {
-  BLI_assert(result.size() == verts.size());
   BLI_assert(corner_verts.size() == faces.total_size());
+  r_offset_data.resize(verts.size() + 1);
+  r_data.clear();
   for (const int i : verts.index_range()) {
-    vert_neighbors_get_mesh(faces, corner_verts, vert_to_face, hide_poly, verts[i], result[i]);
+    r_offset_data[i] = r_data.size();
+    append_neighbors_to_vector(faces, corner_verts, vert_to_face, hide_poly, verts[i], r_data);
   }
+  r_offset_data.last() = r_data.size();
+  return GroupedSpan<int>(r_offset_data.as_span(), r_data.as_span());
 }
 
-void calc_vert_neighbors(const SubdivCCG &subdiv_ccg,
-                         const Span<int> grids,
-                         const MutableSpan<Vector<SubdivCCGCoord>> result)
+GroupedSpan<int> calc_vert_neighbors(const SubdivCCG &subdiv_ccg,
+                                     const Span<int> grids,
+                                     Vector<int> &r_offset_data,
+                                     Vector<int> &r_data)
 {
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
   SubdivCCGNeighbors neighbors;
-  BLI_assert(result.size() == grids.size() * key.grid_area);
+
+  r_offset_data.resize(key.grid_area * grids.size() + 1);
+  r_data.clear();
+
   for (const int i : grids.index_range()) {
     const int grid = grids[i];
     const int node_verts_start = i * key.grid_area;
+    r_offset_data[node_verts_start] = r_data.size();
 
-    for (const int y : IndexRange(key.grid_size)) {
-      for (const int x : IndexRange(key.grid_size)) {
-        const int offset = CCG_grid_xy_to_index(key.grid_size, x, y);
-        const int node_vert_index = node_verts_start + offset;
-
+    for (const short y : IndexRange(key.grid_size)) {
+      for (const short x : IndexRange(key.grid_size)) {
         SubdivCCGCoord coord{};
         coord.grid_index = grid;
         coord.x = x;
         coord.y = y;
-
         BKE_subdiv_ccg_neighbor_coords_get(subdiv_ccg, coord, false, neighbors);
-
-        result[node_vert_index] = Vector<SubdivCCGCoord>(neighbors.coords.as_span());
+        for (const SubdivCCGCoord neighbor : neighbors.coords) {
+          r_data.append(neighbor.to_index(key));
+        }
       }
     }
   }
+  return GroupedSpan<int>(r_offset_data.as_span(), r_data.as_span());
 }
-void calc_vert_neighbors(Set<BMVert *, 0> verts, const MutableSpan<Vector<BMVert *>> result)
-{
-  BLI_assert(verts.size() == result.size());
 
-  int i = 0;
+GroupedSpan<BMVert *> calc_vert_neighbors(Set<BMVert *, 0> verts,
+                                          Vector<int> &r_offset_data,
+                                          Vector<BMVert *> &r_data)
+{
+  r_offset_data.resize(verts.size() + 1);
+  r_data.clear();
+
   Vector<BMVert *, 64> neighbor_data;
+  int i = 0;
   for (BMVert *vert : verts) {
-    Span<BMVert *> neighbors = vert_neighbors_get_bmesh(*vert, neighbor_data);
-    result[i] = Vector<BMVert *>(neighbors);
+    r_offset_data[i] = r_data.size();
+    r_data.extend(vert_neighbors_get_bmesh(*vert, neighbor_data));
     i++;
   }
+  r_offset_data.last() = r_data.size();
+  return GroupedSpan<BMVert *>(r_offset_data.as_span(), r_data.as_span());
 }
 
-void calc_vert_neighbors_interior(const OffsetIndices<int> faces,
-                                  const Span<int> corner_verts,
-                                  const GroupedSpan<int> vert_to_face,
-                                  const BitSpan boundary_verts,
-                                  const Span<bool> hide_poly,
-                                  const Span<int> verts,
-                                  const MutableSpan<Vector<int>> result)
+GroupedSpan<int> calc_vert_neighbors_interior(const OffsetIndices<int> faces,
+                                              const Span<int> corner_verts,
+                                              const GroupedSpan<int> vert_to_face,
+                                              const BitSpan boundary_verts,
+                                              const Span<bool> hide_poly,
+                                              const Span<int> verts,
+                                              Vector<int> &r_offset_data,
+                                              Vector<int> &r_data)
 {
-  BLI_assert(result.size() == verts.size());
   BLI_assert(corner_verts.size() == faces.total_size());
+
+  r_offset_data.resize(verts.size() + 1);
+  r_data.clear();
 
   for (const int i : verts.index_range()) {
     const int vert = verts[i];
-    Vector<int> &neighbors = result[i];
-    vert_neighbors_get_mesh(faces, corner_verts, vert_to_face, hide_poly, verts[i], neighbors);
+    const int vert_start = r_data.size();
+    r_offset_data[i] = vert_start;
+    append_neighbors_to_vector(faces, corner_verts, vert_to_face, hide_poly, vert, r_data);
 
     if (boundary_verts[vert]) {
-      if (neighbors.size() == 2) {
-        /* Do not include neighbors of corner vertices. */
-        neighbors.clear();
+      /* Do not include neighbors of corner vertices. */
+      if (r_data.size() == vert_start + 2) {
+        r_data.resize(vert_start);
       }
       else {
         /* Only include other boundary vertices as neighbors of boundary vertices. */
-        neighbors.remove_if([&](const int vert) { return !boundary_verts[vert]; });
+        for (int neighbor_i = r_data.size() - 1; neighbor_i >= vert_start; neighbor_i--) {
+          if (!boundary_verts[r_data[neighbor_i]]) {
+            r_data.remove_and_reorder(neighbor_i);
+          }
+        }
       }
     }
   }
+  r_offset_data.last() = r_data.size();
+  return GroupedSpan<int>(r_offset_data.as_span(), r_data.as_span());
 }
 
 void calc_vert_neighbors_interior(const OffsetIndices<int> faces,

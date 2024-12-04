@@ -81,7 +81,8 @@ static EnumPropertyItem prop_color_filter_types[] = {
 struct LocalData {
   Vector<float> factors;
   Vector<float4> colors;
-  Vector<Vector<int>> vert_neighbors;
+  Vector<int> neighbor_offsets;
+  Vector<int> neighbor_data;
   Vector<float4> average_colors;
   Vector<float4> new_colors;
 };
@@ -250,9 +251,13 @@ static void color_filter_task(const Depsgraph &depsgraph,
                                    verts[i]);
       }
 
-      tls.vert_neighbors.resize(verts.size());
-      calc_vert_neighbors(faces, corner_verts, vert_to_face_map, {}, verts, tls.vert_neighbors);
-      const Span<Vector<int>> neighbors = tls.vert_neighbors;
+      const GroupedSpan<int> neighbors = calc_vert_neighbors(faces,
+                                                             corner_verts,
+                                                             vert_to_face_map,
+                                                             {},
+                                                             verts,
+                                                             tls.neighbor_offsets,
+                                                             tls.neighbor_data);
 
       tls.average_colors.resize(verts.size());
       const MutableSpan<float4> average_colors = tls.average_colors;
@@ -334,7 +339,8 @@ static void sculpt_color_presmooth_init(const Mesh &mesh, Object &object)
   });
 
   struct LocalData {
-    Vector<Vector<int>> vert_neighbors;
+    Vector<int> neighbor_offsets;
+    Vector<int> neighbor_data;
     Vector<float4> averaged_colors;
   };
   threading::EnumerableThreadSpecific<LocalData> all_tls;
@@ -343,14 +349,17 @@ static void sculpt_color_presmooth_init(const Mesh &mesh, Object &object)
       LocalData &tls = all_tls.local();
       const Span<int> verts = nodes[i].verts();
 
-      tls.vert_neighbors.resize(verts.size());
-      calc_vert_neighbors(faces, corner_verts, vert_to_face_map, {}, verts, tls.vert_neighbors);
-      const Span<Vector<int>> vert_neighbors = tls.vert_neighbors;
+      const GroupedSpan<int> neighbors = calc_vert_neighbors(faces,
+                                                             corner_verts,
+                                                             vert_to_face_map,
+                                                             {},
+                                                             verts,
+                                                             tls.neighbor_offsets,
+                                                             tls.neighbor_data);
 
       tls.averaged_colors.resize(verts.size());
       const MutableSpan<float4> averaged_colors = tls.averaged_colors;
-      smooth::neighbor_data_average_mesh(
-          pre_smoothed_color.as_span(), vert_neighbors, averaged_colors);
+      smooth::neighbor_data_average_mesh(pre_smoothed_color.as_span(), neighbors, averaged_colors);
 
       for (const int i : verts.index_range()) {
         pre_smoothed_color[verts[i]] = math::interpolate(

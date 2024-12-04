@@ -1015,7 +1015,8 @@ struct LocalDataMesh {
   Vector<float3> slide_directions;
 
   /* Smooth */
-  Vector<Vector<int>> neighbors;
+  Vector<int> neighbor_offsets;
+  Vector<int> neighbor_data;
   Vector<float3> average_positions;
 
   Vector<float3> new_positions;
@@ -1037,7 +1038,8 @@ struct LocalDataGrids {
   Vector<float3> slide_directions;
 
   /* Smooth */
-  Vector<Vector<SubdivCCGCoord>> neighbors;
+  Vector<int> neighbor_offsets;
+  Vector<int> neighbor_data;
   Vector<float3> average_positions;
 
   Vector<float3> new_positions;
@@ -1059,7 +1061,8 @@ struct LocalDataBMesh {
   Vector<float3> slide_directions;
 
   /* Smooth */
-  Vector<Vector<BMVert *>> neighbors;
+  Vector<int> neighbor_offsets;
+  Vector<BMVert *> neighbor_data;
   Vector<float3> average_positions;
 
   Vector<float3> new_positions;
@@ -2481,7 +2484,7 @@ BLI_NOINLINE static void calc_smooth_position(const Span<float3> positions,
 
 BLI_NOINLINE static void calc_average_position(const Span<float3> vert_positions,
                                                const Span<int> vert_propagation_steps,
-                                               const Span<Vector<int>> neighbors,
+                                               const GroupedSpan<int> neighbors,
                                                const Span<int> propagation_steps,
                                                const MutableSpan<float> factors,
                                                const MutableSpan<float3> average_positions)
@@ -2507,38 +2510,8 @@ BLI_NOINLINE static void calc_average_position(const Span<float3> vert_positions
   }
 }
 
-BLI_NOINLINE static void calc_average_position(const SubdivCCG &subdiv_ccg,
-                                               const Span<int> vert_propagation_steps,
-                                               const Span<Vector<SubdivCCGCoord>> neighbors,
-                                               const Span<int> propagation_steps,
-                                               const MutableSpan<float> factors,
-                                               const MutableSpan<float3> average_positions)
-{
-  const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
-  const Span<float3> positions = subdiv_ccg.positions;
-
-  BLI_assert(neighbors.size() == propagation_steps.size());
-  BLI_assert(neighbors.size() == factors.size());
-  BLI_assert(neighbors.size() == average_positions.size());
-
-  for (const int i : neighbors.index_range()) {
-    average_positions[i] = float3(0.0f);
-    int valid_neighbors = 0;
-    for (const SubdivCCGCoord neighbor : neighbors[i]) {
-      if (propagation_steps[i] == vert_propagation_steps[neighbor.to_index(key)]) {
-        average_positions[i] += positions[neighbor.to_index(key)];
-        valid_neighbors++;
-      }
-    }
-    average_positions[i] *= math::safe_rcp(float(valid_neighbors));
-    if (valid_neighbors == 0) {
-      factors[i] = 0.0f;
-    }
-  }
-}
-
 BLI_NOINLINE static void calc_average_position(const Span<int> vert_propagation_steps,
-                                               const Span<Vector<BMVert *>> neighbors,
+                                               const GroupedSpan<BMVert *> neighbors,
                                                const Span<int> propagation_steps,
                                                const MutableSpan<float> factors,
                                                const MutableSpan<float3> average_positions)
@@ -2597,10 +2570,13 @@ static void calc_smooth_mesh(const Sculpt &sd,
 
   scale_factors(factors, strength);
 
-  tls.neighbors.resize(verts.size());
-  const MutableSpan<Vector<int>> neighbors = tls.neighbors;
-
-  calc_vert_neighbors(faces, corner_verts, vert_to_face, hide_poly, verts, neighbors);
+  const GroupedSpan<int> neighbors = calc_vert_neighbors(faces,
+                                                         corner_verts,
+                                                         vert_to_face,
+                                                         hide_poly,
+                                                         verts,
+                                                         tls.neighbor_offsets,
+                                                         tls.neighbor_data);
   tls.average_positions.resize(verts.size());
 
   const Span<float3> positions = gather_data_mesh(position_data.eval, verts, tls.positions);
@@ -2664,13 +2640,12 @@ static void calc_smooth_grids(const Sculpt &sd,
 
   scale_factors(factors, strength);
 
-  tls.neighbors.resize(grid_verts_num);
-  const MutableSpan<Vector<SubdivCCGCoord>> neighbors = tls.neighbors;
-  calc_vert_neighbors(subdiv_ccg, grids, neighbors);
+  const GroupedSpan<int> neighbors = calc_vert_neighbors(
+      subdiv_ccg, grids, tls.neighbor_offsets, tls.neighbor_data);
 
   tls.average_positions.resize(grid_verts_num);
   const MutableSpan<float3> average_positions = tls.average_positions;
-  calc_average_position(subdiv_ccg,
+  calc_average_position(subdiv_ccg.positions,
                         vert_propagation_steps,
                         neighbors,
                         propagation_steps,
@@ -2733,9 +2708,8 @@ static void calc_smooth_bmesh(const Sculpt &sd,
 
   scale_factors(factors, strength);
 
-  tls.neighbors.resize(verts.size());
-  const MutableSpan<Vector<BMVert *>> neighbors = tls.neighbors;
-  calc_vert_neighbors(verts, neighbors);
+  const GroupedSpan<BMVert *> neighbors = calc_vert_neighbors(
+      verts, tls.neighbor_offsets, tls.neighbor_data);
 
   tls.average_positions.resize(verts.size());
   const MutableSpan<float3> average_positions = tls.average_positions;
