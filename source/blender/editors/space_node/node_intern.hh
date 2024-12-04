@@ -9,7 +9,6 @@
 #pragma once
 
 #include "BLI_compute_context.hh"
-#include "BLI_math_vector.h"
 #include "BLI_math_vector.hh"
 #include "BLI_vector.hh"
 #include "BLI_vector_set.hh"

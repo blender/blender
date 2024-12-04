@@ -15,6 +15,7 @@
 
 #include "BLI_lasso_2d.hh"
 #include "BLI_listbase.h"
+#include "BLI_math_vector.h"
 #include "BLI_rect.h"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
