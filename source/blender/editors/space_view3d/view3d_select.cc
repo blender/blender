@@ -2072,7 +2072,7 @@ static int selectbuffer_ret_hits_5(blender::MutableSpan<GPUSelectResult> hit_res
  * Populate a select buffer with objects and bones, if there are any.
  * Checks three selection levels and compare.
  *
- * \param do_nearest_xray_if_supported: When set, read in hits that don't stop
+ * \param do_nearest_xray: When set, read in hits that don't stop
  * at the nearest surface. The hits must still be ordered by depth.
  * Needed so we can step to the next, non-active object when it's already selected, see: #76445.
  */
@@ -2081,7 +2081,7 @@ static int mixed_bones_object_selectbuffer(const ViewContext *vc,
                                            const int mval[2],
                                            eV3DSelectObjectFilter select_filter,
                                            bool do_nearest,
-                                           bool do_nearest_xray_if_supported,
+                                           bool do_nearest_xray,
                                            const bool do_material_slot_selection)
 {
   rcti rect;
@@ -2091,10 +2091,8 @@ static int mixed_bones_object_selectbuffer(const ViewContext *vc,
   eV3DSelectMode select_mode = (do_nearest ? VIEW3D_SELECT_PICK_NEAREST : VIEW3D_SELECT_PICK_ALL);
   int hits = 0;
 
-  if (do_nearest_xray_if_supported) {
-    if ((U.gpu_flag & USER_GPU_FLAG_NO_DEPT_PICK) == 0) {
-      select_mode = VIEW3D_SELECT_PICK_ALL;
-    }
+  if (do_nearest_xray) {
+    select_mode = VIEW3D_SELECT_PICK_ALL;
   }
 
   /* we _must_ end cache before return, use 'goto finally' */
