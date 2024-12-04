@@ -174,11 +174,11 @@ BLI_INLINE void bicubic_interpolation(const T *src_buffer,
   int iv = int(floor(v));
 
   /* Sample area entirely outside image in border mode? */
-  if (wrap_u == InterpWrapMode::Border && (iu + 1 < 0 || iu > width - 1)) {
+  if (wrap_u == InterpWrapMode::Border && (iu + 2 < 0 || iu > width)) {
     memset(output, 0, size_t(components) * sizeof(T));
     return;
   }
-  if (wrap_v == InterpWrapMode::Border && (iv + 1 < 0 || iv > height - 1)) {
+  if (wrap_v == InterpWrapMode::Border && (iv + 2 < 0 || iv > height)) {
     memset(output, 0, size_t(components) * sizeof(T));
     return;
   }
