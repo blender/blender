@@ -1109,24 +1109,6 @@ MINLINE float normalize_v3_v3(float r[3], const float a[3])
   return normalize_v3_v3_length(r, a, 1.0f);
 }
 
-MINLINE double normalize_v3_v3_length_db(double r[3], const double a[3], double const unit_length)
-{
-  double d = dot_v3v3_db(a, a);
-
-  /* a larger value causes normalize errors in a
-   * scaled down models with camera extreme close */
-  if (d > 1.0e-70) {
-    d = sqrt(d);
-    mul_v3_v3db_db(r, a, unit_length / d);
-  }
-  else {
-    zero_v3_db(r);
-    d = 0.0;
-  }
-
-  return d;
-}
-
 MINLINE double normalize_v3_length_db(double n[3], const double unit_length)
 {
   double d = n[0] * n[0] + n[1] * n[1] + n[2] * n[2];
@@ -1194,21 +1176,6 @@ MINLINE bool is_zero_v3(const float v[3])
 MINLINE bool is_zero_v4(const float v[4])
 {
   return (v[0] == 0.0f && v[1] == 0.0f && v[2] == 0.0f && v[3] == 0.0f);
-}
-
-MINLINE bool is_zero_v2_db(const double v[2])
-{
-  return (v[0] == 0.0 && v[1] == 0.0);
-}
-
-MINLINE bool is_zero_v3_db(const double v[3])
-{
-  return (v[0] == 0.0 && v[1] == 0.0 && v[2] == 0.0);
-}
-
-MINLINE bool is_zero_v4_db(const double v[4])
-{
-  return (v[0] == 0.0 && v[1] == 0.0 && v[2] == 0.0 && v[3] == 0.0);
 }
 
 MINLINE bool is_one_v3(const float v[3])

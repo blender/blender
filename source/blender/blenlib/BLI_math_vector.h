@@ -289,7 +289,6 @@ MINLINE float normalize_v3_length(float n[3], float unit_length);
  */
 MINLINE float normalize_v3_v3_length(float r[3], const float a[3], float unit_length);
 MINLINE double normalize_v3_length_db(double n[3], double unit_length);
-MINLINE double normalize_v3_v3_length_db(double r[3], const double a[3], double unit_length);
 
 MINLINE float normalize_v2(float n[2]);
 MINLINE float normalize_v2_v2(float r[2], const float a[2]);
@@ -401,10 +400,6 @@ void mid_v3_v3v3_angle_weighted(float r[3], const float a[3], const float b[3]);
 MINLINE bool is_zero_v2(const float v[2]) ATTR_WARN_UNUSED_RESULT;
 MINLINE bool is_zero_v3(const float v[3]) ATTR_WARN_UNUSED_RESULT;
 MINLINE bool is_zero_v4(const float v[4]) ATTR_WARN_UNUSED_RESULT;
-
-MINLINE bool is_zero_v2_db(const double v[2]) ATTR_WARN_UNUSED_RESULT;
-MINLINE bool is_zero_v3_db(const double v[3]) ATTR_WARN_UNUSED_RESULT;
-MINLINE bool is_zero_v4_db(const double v[4]) ATTR_WARN_UNUSED_RESULT;
 
 bool is_finite_v2(const float v[2]) ATTR_WARN_UNUSED_RESULT;
 bool is_finite_v3(const float v[3]) ATTR_WARN_UNUSED_RESULT;
