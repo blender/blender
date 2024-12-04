@@ -737,34 +737,31 @@ static bool screen_regions_poll(bContext *C, wmWindow *win, const bScreen *scree
 }
 
 /**
- * \param force_full_refresh: If false, a full refresh will only be performed if the screen is
- * tagged for refresh (#bScreen.do_refresh), or region polling changes require a refresh.
+ * Refreshes the active screen of \a win if #bScreen.do_refresh is set. Region polling is also done
+ * here, which will trigger a refresh on changes.
+ *
+ * Screen refreshes should only be necessary if the screen layout changes in some way.
  */
-static void screen_refresh(bContext *C,
-                           wmWindowManager *wm,
-                           wmWindow *win,
-                           const bool force_full_refresh)
+static void screen_refresh_if_needed(bContext *C, wmWindowManager *wm, wmWindow *win)
 {
   bScreen *screen = WM_window_get_active_screen(win);
-  bool do_refresh = screen->do_refresh;
 
   /* Exception for background mode, we only need the screen context. */
   if (!G.background) {
-    if (do_refresh || force_full_refresh) {
+    if (screen->do_refresh) {
       ED_screen_areas_iter (win, screen, area) {
-        /* Set area and region types early so areas and regions are in a usable state. This may be
-         * needed by further (re-)initialization logic, specifically region polling needs it early
-         * on (see #130583). */
+        /* Ensure all area and region types are set before polling, it depends on it (see #130583).
+         */
         ED_area_and_region_types_init(area);
       }
     }
 
     /* Returns true if a change was done that requires refreshing. */
     if (screen_regions_poll(C, win, screen)) {
-      do_refresh = true;
+      screen->do_refresh = true;
     }
 
-    if (!force_full_refresh && !do_refresh) {
+    if (!screen->do_refresh) {
       return;
     }
 
@@ -802,7 +799,10 @@ static void screen_refresh(bContext *C,
 
 void ED_screen_refresh(bContext *C, wmWindowManager *wm, wmWindow *win)
 {
-  screen_refresh(C, wm, win, /*force_full_refresh=*/true);
+  bScreen *screen = WM_window_get_active_screen(win);
+  /* Enforce full refresh. */
+  screen->do_refresh = true;
+  screen_refresh_if_needed(C, wm, win);
 }
 
 void ED_screens_init(bContext *C, Main *bmain, wmWindowManager *wm)
@@ -828,9 +828,7 @@ void ED_screens_init(bContext *C, Main *bmain, wmWindowManager *wm)
 
 void ED_screen_ensure_updated(bContext *C, wmWindowManager *wm, wmWindow *win)
 {
-  /* Only do a full refresh if required (checks #bScreen.do_refresh tag). */
-  const bool force_full_refresh = false;
-  screen_refresh(C, wm, win, force_full_refresh);
+  screen_refresh_if_needed(C, wm, win);
 }
 
 void ED_region_remove(bContext *C, ScrArea *area, ARegion *region)
