@@ -623,6 +623,11 @@ void film_store_weight(ivec2 texel, float value)
 
 float film_display_depth_amend(ivec2 texel, float depth)
 {
+  if (scaling_factor > 1) {
+    /* The workaround below creates ugly artifacts for overlays relying on depth equal tests.
+     * In this case, it is better to rely on overlay engine to do a depth pass (see #124013). */
+    return 0.0;
+  }
   /* This effectively offsets the depth of the whole 2x2 region to the lowest value of the region
    * twice. One for X and one for Y direction. */
   /* TODO(fclem): This could be improved as it gives flickering result at depth discontinuity.
