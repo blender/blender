@@ -169,9 +169,9 @@ bool input_has_attribute_toggle(const bNodeTree &node_tree, const int socket_ind
   }
 
   BLI_assert(node_tree.runtime->field_inferencing_interface);
-  const nodes::FieldInferencingInterface &field_interface =
+  const FieldInferencingInterface &field_interface =
       *node_tree.runtime->field_inferencing_interface;
-  return field_interface.inputs[socket_index] != nodes::InputSocketFieldType::None;
+  return field_interface.inputs[socket_index] != InputSocketFieldType::None;
 }
 
 static void id_property_int_update_enum_items(const bNodeSocketValueMenu *value,
@@ -936,8 +936,8 @@ bke::GeometrySet execute_geometry_nodes_on_geometry(const bNodeTree &btree,
                                                     GeoNodesCallData &call_data,
                                                     bke::GeometrySet input_geometry)
 {
-  const nodes::GeometryNodesLazyFunctionGraphInfo &lf_graph_info =
-      *nodes::ensure_geometry_nodes_lazy_function_graph(btree);
+  const GeometryNodesLazyFunctionGraphInfo &lf_graph_info =
+      *ensure_geometry_nodes_lazy_function_graph(btree);
   const GeometryNodesGroupFunction &function = lf_graph_info.function;
   const lf::LazyFunction &lazy_function = *function.function;
   const int num_inputs = lazy_function.inputs().size();
@@ -955,7 +955,7 @@ bke::GeometrySet execute_geometry_nodes_on_geometry(const bNodeTree &btree,
       .slice(function.outputs.input_usages)
       .fill(lf::ValueUsage::Unused);
 
-  nodes::GeoNodesLFUserData user_data;
+  GeoNodesLFUserData user_data;
   user_data.call_data = &call_data;
   call_data.root_ntree = &btree;
 
@@ -1006,7 +1006,7 @@ bke::GeometrySet execute_geometry_nodes_on_geometry(const bNodeTree &btree,
     param_outputs[i] = {type, buffer};
   }
 
-  nodes::GeoNodesLFLocalUserData local_user_data(user_data);
+  GeoNodesLFLocalUserData local_user_data(user_data);
 
   lf::Context lf_context(lazy_function.init_storage(allocator), &user_data, &local_user_data);
   lf::BasicParams lf_params{lazy_function,
@@ -1051,8 +1051,7 @@ void update_input_properties_from_node_tree(const bNodeTree &tree,
     const bke::bNodeSocketType *typeinfo = socket.socket_typeinfo();
     const eNodeSocketDatatype socket_type = typeinfo ? eNodeSocketDatatype(typeinfo->type) :
                                                        SOCK_CUSTOM;
-    IDProperty *new_prop =
-        nodes::id_property_create_from_socket(socket, use_name_for_ids).release();
+    IDProperty *new_prop = id_property_create_from_socket(socket, use_name_for_ids).release();
     if (new_prop == nullptr) {
       /* Out of the set of supported input sockets, only
        * geometry sockets aren't added to the modifier. */
@@ -1073,12 +1072,12 @@ void update_input_properties_from_node_tree(const bNodeTree &tree,
       if (old_prop != nullptr) {
         /* Re-use the value (and only the value!) from the old property if possible, handling
          * conversion to new property's type as needed. */
-        nodes::old_id_property_type_matches_socket_convert_to_new(
+        old_id_property_type_matches_socket_convert_to_new(
             socket, *old_prop, new_prop, use_name_for_ids);
       }
     }
 
-    if (nodes::socket_type_has_attribute_toggle(eNodeSocketDatatype(socket_type))) {
+    if (socket_type_has_attribute_toggle(eNodeSocketDatatype(socket_type))) {
       const std::string use_attribute_id = socket_identifier + input_use_attribute_suffix();
       const std::string attribute_name_id = socket_identifier + input_attribute_name_suffix();
 
@@ -1123,7 +1122,7 @@ void update_output_properties_from_node_tree(const bNodeTree &tree,
     const bke::bNodeSocketType *typeinfo = socket.socket_typeinfo();
     const eNodeSocketDatatype socket_type = typeinfo ? eNodeSocketDatatype(typeinfo->type) :
                                                        SOCK_CUSTOM;
-    if (!nodes::socket_type_has_attribute_toggle(socket_type)) {
+    if (!socket_type_has_attribute_toggle(socket_type)) {
       continue;
     }
 
