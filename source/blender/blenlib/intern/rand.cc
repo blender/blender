@@ -50,11 +50,6 @@ RNG *BLI_rng_new_srandom(uint seed)
   return rng;
 }
 
-RNG *BLI_rng_copy(const RNG *rng)
-{
-  return new RNG(*rng);
-}
-
 void BLI_rng_free(RNG *rng)
 {
   delete rng;
@@ -95,26 +90,10 @@ float BLI_rng_get_float(RNG *rng)
   return rng->rng.get_float();
 }
 
-void BLI_rng_get_float_unit_v2(RNG *rng, float v[2])
-{
-  copy_v2_v2(v, rng->rng.get_unit_float2());
-}
-
-void BLI_rng_get_float_unit_v3(RNG *rng, float v[3])
-{
-  copy_v3_v3(v, rng->rng.get_unit_float3());
-}
-
 void BLI_rng_get_tri_sample_float_v2(
     RNG *rng, const float v1[2], const float v2[2], const float v3[2], float r_pt[2])
 {
   copy_v2_v2(r_pt, rng->rng.get_triangle_sample(v1, v2, v3));
-}
-
-void BLI_rng_get_tri_sample_float_v3(
-    RNG *rng, const float v1[3], const float v2[3], const float v3[3], float r_pt[3])
-{
-  copy_v3_v3(r_pt, rng->rng.get_triangle_sample_3d(v1, v2, v3));
 }
 
 void BLI_rng_shuffle_array(RNG *rng, void *data, uint elem_size_i, uint elem_num)
@@ -166,17 +145,6 @@ void BLI_rng_skip(RNG *rng, int n)
 
 /***/
 
-void BLI_array_frand(float *ar, int count, uint seed)
-{
-  RNG rng;
-
-  BLI_rng_srandom(&rng, seed);
-
-  for (int i = 0; i < count; i++) {
-    ar[i] = BLI_rng_get_float(&rng);
-  }
-}
-
 float BLI_hash_frand(uint seed)
 {
   RNG rng;
@@ -202,31 +170,6 @@ void BLI_bitmap_randomize(BLI_bitmap *bitmap, uint bits_num, uint seed)
 }
 
 /* ********* for threaded random ************** */
-
-static RNG rng_tab[BLENDER_MAX_THREADS];
-
-void BLI_thread_srandom(int thread, uint seed)
-{
-  if (thread >= BLENDER_MAX_THREADS) {
-    thread = 0;
-  }
-
-  BLI_rng_seed(&rng_tab[thread], seed + hash[seed & 255]);
-  seed = BLI_rng_get_uint(&rng_tab[thread]);
-  BLI_rng_seed(&rng_tab[thread], seed + hash[seed & 255]);
-  seed = BLI_rng_get_uint(&rng_tab[thread]);
-  BLI_rng_seed(&rng_tab[thread], seed + hash[seed & 255]);
-}
-
-int BLI_thread_rand(int thread)
-{
-  return BLI_rng_get_int(&rng_tab[thread]);
-}
-
-float BLI_thread_frand(int thread)
-{
-  return BLI_rng_get_float(&rng_tab[thread]);
-}
 
 struct RNG_THREAD_ARRAY {
   RNG rng_tab[BLENDER_MAX_THREADS];
@@ -319,17 +262,6 @@ void BLI_halton_3d(const uint prime[3], double offset[3], int n, double *r)
   }
 }
 
-void BLI_halton_2d_sequence(const uint prime[2], double offset[2], int n, double *r)
-{
-  const double invprimes[2] = {1.0 / double(prime[0]), 1.0 / double(prime[1])};
-
-  for (int s = 0; s < n; s++) {
-    for (int i = 0; i < 2; i++) {
-      r[s * 2 + i] = halton_ex(invprimes[i], &offset[i]);
-    }
-  }
-}
-
 /* From "Sampling with Hammersley and Halton Points" TT Wong
  * Appendix: Source Code 1 */
 BLI_INLINE double radical_inverse(uint n)
@@ -350,14 +282,6 @@ BLI_INLINE double radical_inverse(uint n)
 void BLI_hammersley_1d(uint n, double *r)
 {
   *r = radical_inverse(n);
-}
-
-void BLI_hammersley_2d_sequence(uint n, double *r)
-{
-  for (uint s = 0; s < n; s++) {
-    r[s * 2 + 0] = double(s + 0.5) / double(n);
-    r[s * 2 + 1] = radical_inverse(s);
-  }
 }
 
 namespace blender {

@@ -32,7 +32,6 @@ struct RNG *BLI_rng_new(unsigned int seed);
  * A version of #BLI_rng_new that hashes the seed.
  */
 struct RNG *BLI_rng_new_srandom(unsigned int seed);
-struct RNG *BLI_rng_copy(const struct RNG *rng) ATTR_NONNULL(1);
 void BLI_rng_free(struct RNG *rng) ATTR_NONNULL(1);
 
 void BLI_rng_seed(struct RNG *rng, unsigned int seed) ATTR_NONNULL(1);
@@ -51,8 +50,6 @@ double BLI_rng_get_double(struct RNG *rng) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(
  * \return Random value (0..1), but never 1.0.
  */
 float BLI_rng_get_float(struct RNG *rng) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
-void BLI_rng_get_float_unit_v2(struct RNG *rng, float v[2]) ATTR_NONNULL(1, 2);
-void BLI_rng_get_float_unit_v3(struct RNG *rng, float v[3]) ATTR_NONNULL(1, 2);
 /**
  * Generate a random point inside given tri.
  */
@@ -61,11 +58,6 @@ void BLI_rng_get_tri_sample_float_v2(struct RNG *rng,
                                      const float v2[2],
                                      const float v3[2],
                                      float r_pt[2]) ATTR_NONNULL();
-void BLI_rng_get_tri_sample_float_v3(RNG *rng,
-                                     const float v1[3],
-                                     const float v2[3],
-                                     const float v3[3],
-                                     float r_pt[3]) ATTR_NONNULL();
 
 void BLI_rng_shuffle_array(struct RNG *rng,
                            void *data,
@@ -83,11 +75,6 @@ void BLI_rng_shuffle_bitmap(struct RNG *rng, unsigned int *bitmap, unsigned int 
  */
 void BLI_rng_skip(struct RNG *rng, int n) ATTR_NONNULL(1);
 
-/**
- * Fill an array with random numbers.
- */
-void BLI_array_frand(float *ar, int count, unsigned int seed);
-
 /** Return a pseudo-random (hash) float from an integer value */
 float BLI_hash_frand(unsigned int seed) ATTR_WARN_UNUSED_RESULT;
 
@@ -103,18 +90,6 @@ void BLI_array_randomize(void *data,
 void BLI_bitmap_randomize(unsigned int *bitmap, unsigned int bits_num, unsigned int seed)
     ATTR_NONNULL(1);
 
-/** Better seed for the random number generator, using `noise.cc` hash[] */
-/** Allows up to BLENDER_MAX_THREADS threads to address */
-void BLI_thread_srandom(int thread, unsigned int seed);
-
-/** Return a pseudo-random number N where 0<=N<(2^31) */
-/** Allows up to BLENDER_MAX_THREADS threads to address */
-int BLI_thread_rand(int thread) ATTR_WARN_UNUSED_RESULT;
-
-/** Return a pseudo-random number N where 0.0f<=N<1.0f */
-/** Allows up to BLENDER_MAX_THREADS threads to address */
-float BLI_thread_frand(int thread) ATTR_WARN_UNUSED_RESULT;
-
 /** array versions for thread safe random generation */
 RNG_THREAD_ARRAY *BLI_rng_threaded_new(void);
 void BLI_rng_threaded_free(struct RNG_THREAD_ARRAY *rngarr) ATTR_NONNULL(1);
@@ -127,10 +102,6 @@ void BLI_halton_1d(unsigned int prime, double offset, int n, double *r);
 void BLI_halton_2d(const unsigned int prime[2], double offset[2], int n, double *r);
 void BLI_halton_3d(const unsigned int prime[3], double offset[3], int n, double *r);
 void BLI_hammersley_1d(unsigned int n, double *r);
-
-/** Return the whole low-discrepancy sequence up to _n_. */
-void BLI_halton_2d_sequence(const unsigned int prime[2], double offset[2], int n, double *r);
-void BLI_hammersley_2d_sequence(unsigned int n, double *r);
 
 #ifdef __cplusplus
 }
