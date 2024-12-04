@@ -1397,10 +1397,8 @@ static void node_socket_tooltip_set(uiBlock &block,
 {
   /* Ideally sockets themselves should be buttons, but they aren't currently. So add an invisible
    * button on top of them for the tooltip. */
-  const eUIEmbossType old_emboss = UI_block_emboss_get(&block);
-  UI_block_emboss_set(&block, UI_EMBOSS_NONE);
   uiBut *but = uiDefIconBut(&block,
-                            UI_BTYPE_BUT,
+                            UI_BTYPE_LABEL,
                             0,
                             ICON_NONE,
                             location.x - size.x / 2.0f,
@@ -1411,7 +1409,6 @@ static void node_socket_tooltip_set(uiBlock &block,
                             0,
                             0,
                             nullptr);
-
   UI_but_func_tooltip_set(
       but,
       [](bContext *C, void *argN, const char * /*tip*/) {
@@ -1423,9 +1420,6 @@ static void node_socket_tooltip_set(uiBlock &block,
       },
       POINTER_FROM_INT(socket_index_in_tree),
       nullptr);
-  /* Disable the button so that clicks on it are ignored the link operator still works. */
-  UI_but_flag_enable(but, UI_BUT_DISABLED);
-  UI_block_emboss_set(&block, old_emboss);
 }
 
 static const float virtual_node_socket_outline_color[4] = {0.5, 0.5, 0.5, 1.0};
