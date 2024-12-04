@@ -835,6 +835,7 @@ static bool vfont_to_curve(Object *ob,
   float twidth = 0, maxlen = 0;
   int i, slen, j;
   int curbox;
+  /* These values are only set to the selection range when `selboxes` is non-null. */
   int selstart = 0, selend = 0;
   int cnr = 0, lnr = 0, wsnr = 0;
   const char32_t *mem = nullptr;
@@ -1207,7 +1208,7 @@ static bool vfont_to_curve(Object *ob,
     }
   }
 
-  if (ef && ef->selboxes) {
+  if (ef && selboxes) {
     /* Set combined style flags for the selected string. Start with all styles then
      * remove one if ANY characters do not have it. Break out if we've removed them all. */
     ef->select_char_info_flag = CU_CHINFO_STYLE_ALL;
