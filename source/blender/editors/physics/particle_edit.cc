@@ -524,6 +524,7 @@ static void PE_set_view3d_data(bContext *C, PEData *data)
                              data->vc.v3d,
                              data->vc.obact,
                              V3D_DEPTH_OBJECT_ONLY,
+                             false,
                              &data->depths);
   }
 }

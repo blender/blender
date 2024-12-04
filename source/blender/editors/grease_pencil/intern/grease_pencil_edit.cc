@@ -2782,7 +2782,8 @@ static int grease_pencil_reproject_exec(bContext *C, wmOperator *op)
 
   ViewDepths *view_depths = nullptr;
   if (mode == ReprojectMode::Surface) {
-    ED_view3d_depth_override(depsgraph, region, v3d, nullptr, V3D_DEPTH_NO_GPENCIL, &view_depths);
+    ED_view3d_depth_override(
+        depsgraph, region, v3d, nullptr, V3D_DEPTH_NO_GPENCIL, false, &view_depths);
   }
 
   const bke::AttrDomain selection_domain = ED_grease_pencil_edit_selection_domain_get(

@@ -2370,6 +2370,7 @@ void ED_view3d_depth_override(Depsgraph *depsgraph,
                               View3D *v3d,
                               Object *obact,
                               eV3DDepthOverrideMode mode,
+                              bool use_overlay,
                               ViewDepths **r_depths)
 {
   if (v3d->runtime.flag & V3D_RUNTIME_DEPTHBUF_OVERRIDDEN) {
@@ -2386,6 +2387,10 @@ void ED_view3d_depth_override(Depsgraph *depsgraph,
   /* temp set drawtype to solid */
   /* Setting these temporarily is not nice */
   v3d->flag &= ~V3D_SELECT_OUTLINE;
+
+  if (v3d->flag2 & V3D_HIDE_OVERLAYS) {
+    use_overlay = false;
+  }
 
   /* Tools may request depth outside of regular drawing code. */
   UI_Theme_Store(&theme_state);
@@ -2413,21 +2418,21 @@ void ED_view3d_depth_override(Depsgraph *depsgraph,
    * yet available. */
   if (viewport != nullptr) {
     switch (mode) {
-      case V3D_DEPTH_NO_OVERLAYS:
-        DRW_draw_depth_loop(depsgraph, region, v3d, viewport, true, true, false, false);
+      case V3D_DEPTH_ALL:
+        DRW_draw_depth_loop(depsgraph, region, v3d, viewport, true, true, use_overlay, false);
         break;
       case V3D_DEPTH_NO_GPENCIL:
-        DRW_draw_depth_loop(depsgraph, region, v3d, viewport, false, true, false, false);
+        DRW_draw_depth_loop(depsgraph, region, v3d, viewport, false, true, use_overlay, false);
         break;
       case V3D_DEPTH_GPENCIL_ONLY:
-        DRW_draw_depth_loop(depsgraph, region, v3d, viewport, true, false, false, false);
+        DRW_draw_depth_loop(depsgraph, region, v3d, viewport, true, false, use_overlay, false);
         break;
       case V3D_DEPTH_OBJECT_ONLY:
         DRW_draw_depth_object(
             scene, region, v3d, viewport, DEG_get_evaluated_object(depsgraph, obact));
         break;
       case V3D_DEPTH_SELECTED_ONLY:
-        DRW_draw_depth_loop(depsgraph, region, v3d, viewport, false, true, false, true);
+        DRW_draw_depth_loop(depsgraph, region, v3d, viewport, false, true, use_overlay, true);
         break;
     }
 
