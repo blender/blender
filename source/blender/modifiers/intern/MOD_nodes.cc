@@ -2351,6 +2351,10 @@ static void draw_bake_panel(uiLayout *layout, PointerRNA *modifier_ptr)
 
 static void draw_named_attributes_panel(uiLayout *layout, NodesModifierData &nmd)
 {
+  if (G.is_rendering) {
+    /* Avoid accessing this data while baking in a separate thread. */
+    return;
+  }
   geo_log::GeoTreeLog *tree_log = get_root_tree_log(nmd);
   if (tree_log == nullptr) {
     return;
@@ -2437,6 +2441,10 @@ static void draw_warnings(const bContext *C,
                           uiLayout *layout,
                           PointerRNA *md_ptr)
 {
+  if (G.is_rendering) {
+    /* Avoid accessing this data while baking in a separate thread. */
+    return;
+  }
   using namespace geo_log;
   GeoTreeLog *tree_log = get_root_tree_log(nmd);
   if (!tree_log) {
