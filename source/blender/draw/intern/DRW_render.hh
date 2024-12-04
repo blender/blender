@@ -74,12 +74,7 @@ struct rcti;
 struct TaskGraph;
 namespace blender::draw {
 class TextureFromPool;
-struct DRW_Attributes;
-struct DRW_MeshCDMask;
 }  // namespace blender::draw
-namespace blender::bke::pbvh {
-class Node;
-}
 
 typedef struct DRWCallBuffer DRWCallBuffer;
 typedef struct DRWInterface DRWInterface;
@@ -581,7 +576,6 @@ bool DRW_state_draw_background();
 
 /* Avoid too many lookups while drawing */
 struct DRWContextState {
-
   ARegion *region;       /* 'CTX_wm_region(C)' */
   RegionView3D *rv3d;    /* 'CTX_wm_region_view3d(C)' */
   View3D *v3d;           /* 'CTX_wm_view3d(C)' */
@@ -615,10 +609,5 @@ struct DRWContextState {
 };
 
 const DRWContextState *DRW_context_state_get();
-
-void DRW_mesh_batch_cache_get_attributes(Object *object,
-                                         Mesh *mesh,
-                                         blender::draw::DRW_Attributes **r_attrs,
-                                         blender::draw::DRW_MeshCDMask **r_cd_needed);
 
 bool DRW_is_viewport_compositor_enabled();
