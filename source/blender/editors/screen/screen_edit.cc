@@ -748,6 +748,14 @@ static void screen_refresh(bContext *C,
 
   /* Exception for background mode, we only need the screen context. */
   if (!G.background) {
+    if (do_refresh || force_full_refresh) {
+      ED_screen_areas_iter (win, screen, area) {
+        /* Set area and region types early so areas and regions are in a usable state. This may be
+         * needed by further (re-)initialization logic, specifically region polling needs it early
+         * on (see #130583). */
+        ED_area_and_region_types_init(area);
+      }
+    }
 
     /* Returns true if a change was done that requires refreshing. */
     if (screen_regions_poll(C, win, screen)) {
@@ -801,16 +809,6 @@ void ED_screens_init(bContext *C, Main *bmain, wmWindowManager *wm)
     if (BKE_workspace_active_get(win->workspace_hook) == nullptr) {
       BKE_workspace_active_set(win->workspace_hook,
                                static_cast<WorkSpace *>(bmain->workspaces.first));
-    }
-
-    if (!G.background) {
-      const bScreen *screen = WM_window_get_active_screen(win);
-      ED_screen_areas_iter (win, screen, area) {
-        /* Set area and region types early so areas and regions are in a usable state. This may be
-         * needed by further (re-)initialization logic, specifically region polling needs it early
-         * on (see #130583). */
-        ED_area_and_region_types_init(area);
-      }
     }
 
     ED_screen_refresh(C, wm, win);
