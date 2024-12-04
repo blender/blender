@@ -1099,6 +1099,11 @@ template<typename T> struct Interval {
   {
     return value >= min && value <= max;
   }
+
+  ccl_device_inline_method T length() const
+  {
+    return max - min;
+  }
 };
 
 /* Computes the intersection of two intervals. */
