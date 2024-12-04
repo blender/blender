@@ -1035,7 +1035,11 @@ static int ffmpeg_seek_to_key_frame(ImBufAnim *anim,
 
     AVFormatContext *format_ctx = anim->pFormatCtx;
 
-    if (format_ctx->iformat->read_seek2 || format_ctx->iformat->read_seek) {
+    /* This used to check if the codec implemented "read_seek" or "read_seek2". However this is
+     * now hidden from us in ffmpeg 7.0. While not as accurate, usually the AVFMT_TS_DISCONT is
+     * set for formats where we need to apply the seek workaround to (like in mpegts).
+     */
+    if (!(format_ctx->iformat->flags & AVFMT_TS_DISCONT)) {
       ret = av_seek_frame(anim->pFormatCtx, anim->videoStream, seek_pos, AVSEEK_FLAG_BACKWARD);
     }
     else {
