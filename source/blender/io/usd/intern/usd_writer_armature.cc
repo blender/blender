@@ -4,6 +4,9 @@
 
 #include "usd_writer_armature.hh"
 #include "usd_armature_utils.hh"
+#include "usd_utils.hh"
+
+#include "ANIM_action.hh"
 
 #include "BKE_action.hh"
 
@@ -18,10 +21,6 @@
 
 #include "CLG_log.h"
 static CLG_LogRef LOG = {"io.usd"};
-
-namespace usdtokens {
-static const pxr::TfToken Anim("Anim", pxr::TfToken::Immortal);
-}  // namespace usdtokens
 
 /**
  * Get the pose matrix for the given channel.
@@ -110,7 +109,7 @@ static void initialize(const Object *obj,
 
   if (skel_anim) {
     usd_skel_api.CreateAnimationSourceRel().SetTargets(
-        pxr::SdfPathVector({pxr::SdfPath(usdtokens::Anim)}));
+        pxr::SdfPathVector({pxr::SdfPath(skel_anim.GetPath().GetName())}));
     create_pose_joints(skel_anim, *obj, deform_bones, allow_unicode);
   }
 }
@@ -169,9 +168,15 @@ void USDArmatureWriter::do_write(HierarchyContext &context)
 
   pxr::UsdSkelAnimation skel_anim;
 
+  const bool allow_unicode = usd_export_context_.export_params.allow_unicode;
+
   if (usd_export_context_.export_params.export_animation) {
+    /* Use the action name as the animation name. */
+    const animrig::Action *action = animrig::get_action(context.object->id);
+    const pxr::TfToken anim_name(make_safe_name(action->id.name + 2, allow_unicode));
+
     /* Create the skeleton animation primitive as a child of the skeleton. */
-    pxr::SdfPath anim_path = usd_export_context_.usd_path.AppendChild(usdtokens::Anim);
+    pxr::SdfPath anim_path = usd_export_context_.usd_path.AppendChild(anim_name);
     skel_anim = pxr::UsdSkelAnimation::Define(stage, anim_path);
 
     if (!skel_anim) {
@@ -180,7 +185,6 @@ void USDArmatureWriter::do_write(HierarchyContext &context)
     }
   }
 
-  const bool allow_unicode = usd_export_context_.export_params.allow_unicode;
   Map<StringRef, const Bone *> *deform_map = usd_export_context_.export_params.only_deform_bones ?
                                                  &deform_map_ :
                                                  nullptr;

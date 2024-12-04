@@ -27,6 +27,7 @@
 #include "BKE_deform.hh"
 #include "BKE_fcurve.hh"
 #include "BKE_key.hh"
+#include "BKE_lib_id.hh"
 #include "BKE_modifier.hh"
 #include "BKE_object_deform.h"
 #include "BKE_report.hh"
@@ -143,6 +144,7 @@ void import_skeleton_curves(Main *bmain,
 
   /* Create the action on the armature. */
   bAction *act = blender::animrig::id_action_ensure(bmain, &arm_obj->id);
+  BKE_id_rename(*bmain, act->id, anim_query.GetPrim().GetName().GetText());
 
   /* Create the curves. */
 

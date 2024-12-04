@@ -753,6 +753,7 @@ class USDExportTest(AbstractUSDTest):
         self.assertEqual(prim.GetTypeName(), "Skeleton")
         prim_skel = UsdSkel.BindingAPI(prim)
         anim = UsdSkel.Animation(prim_skel.GetAnimationSource())
+        self.assertEqual(anim.GetPrim().GetName(), "ArmatureAction_001")
         self.assertEqual(anim.GetJointsAttr().Get(),
                          ['Bone',
                           'Bone/Bone_001',

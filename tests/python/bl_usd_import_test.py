@@ -533,6 +533,7 @@ class USDImportTest(AbstractUSDTest):
         ob_arm = bpy.data.objects["column_anim_armature"]
         ob_arm2_side_a = bpy.data.objects["side_a"]
         ob_arm2_side_b = bpy.data.objects["side_b"]
+        self.assertEqual(bpy.data.objects["Armature"].animation_data.action.name, "ArmatureAction_001")
 
         bpy.context.scene.frame_set(1)
         self.assertEqual(len(ob_xform.constraints), 1)
@@ -678,7 +679,7 @@ class USDImportTest(AbstractUSDTest):
             self.assertAlmostEqual(mesh_obj.vertex_groups['Elbow'].weight(
                 8 + i), 1.0, 2, "Unexpected weight for Elbow deform vert")
 
-        action = bpy.data.actions['SkelAction']
+        action = bpy.data.actions['Anim1']
 
         # Verify the Elbow joint rotation animation.
         curve_path = 'pose.bones["Elbow"].rotation_quaternion'
