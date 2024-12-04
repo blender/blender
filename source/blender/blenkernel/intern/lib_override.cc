@@ -253,13 +253,14 @@ static ID *lib_override_library_create_from(Main *bmain,
                                             const int lib_id_copy_flags)
 {
   /* NOTE: do not copy possible override data from the reference here. */
-  ID *local_id = BKE_id_copy_in_lib(
-      bmain,
-      owner_library,
-      reference_id,
-      nullptr,
-      nullptr,
-      (LIB_ID_COPY_DEFAULT | LIB_ID_COPY_NO_LIB_OVERRIDE | lib_id_copy_flags));
+  ID *local_id = BKE_id_copy_in_lib(bmain,
+                                    owner_library,
+                                    reference_id,
+                                    nullptr,
+                                    nullptr,
+                                    (LIB_ID_COPY_DEFAULT | LIB_ID_COPY_NO_LIB_OVERRIDE |
+                                     LIB_ID_COPY_NO_LIB_OVERRIDE_LOCAL_DATA_FLAG |
+                                     lib_id_copy_flags));
   if (local_id == nullptr) {
     return nullptr;
   }
