@@ -33,6 +33,7 @@
 #include "RE_engine.h"
 #include "RE_pipeline.h"
 
+#include "draw_command.hh"
 #include "draw_view.hh"
 #include "external_engine.h" /* own include */
 
@@ -59,7 +60,7 @@ static void external_draw_scene_do_v3d(void *vedata)
   RegionView3D *rv3d = draw_ctx->rv3d;
   ARegion *region = draw_ctx->region;
 
-  DRW_state_reset_ex(DRW_STATE_WRITE_COLOR);
+  blender::draw::command::StateSet::set(DRW_STATE_WRITE_COLOR);
 
   /* The external engine can use the OpenGL rendering API directly, so make sure the state is
    * already applied. */
@@ -159,7 +160,7 @@ static void external_draw_scene_do_image(void * /*vedata*/)
   BLI_assert(re != nullptr);
   BLI_assert(engine != nullptr);
 
-  DRW_state_reset_ex(DRW_STATE_WRITE_COLOR);
+  blender::draw::command::StateSet::set(DRW_STATE_WRITE_COLOR);
 
   /* The external engine can use the OpenGL rendering API directly, so make sure the state is
    * already applied. */
@@ -192,7 +193,7 @@ static void external_draw_scene_do_image(void * /*vedata*/)
   GPU_matrix_pop();
   GPU_matrix_pop_projection();
 
-  DRW_state_reset();
+  blender::draw::command::StateSet::set();
   GPU_bgl_end();
 
   RE_engine_draw_release(re);

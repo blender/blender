@@ -437,7 +437,6 @@ static void drw_viewport_data_reset(DRWData *drw_data)
 
   BLI_memblock_clear(drw_data->commands, nullptr);
   BLI_memblock_clear(drw_data->commands_small, nullptr);
-  BLI_memblock_clear(drw_data->callbuffers, nullptr);
   BLI_memblock_clear(drw_data->obmats, nullptr);
   BLI_memblock_clear(drw_data->obinfos, nullptr);
   BLI_memblock_clear(drw_data->cullstates, nullptr);
@@ -458,7 +457,6 @@ void DRW_viewport_data_free(DRWData *drw_data)
 
   BLI_memblock_destroy(drw_data->commands, nullptr);
   BLI_memblock_destroy(drw_data->commands_small, nullptr);
-  BLI_memblock_destroy(drw_data->callbuffers, nullptr);
   BLI_memblock_destroy(drw_data->obmats, nullptr);
   BLI_memblock_destroy(drw_data->obinfos, nullptr);
   BLI_memblock_destroy(drw_data->cullstates, nullptr);
@@ -1120,7 +1118,7 @@ static void drw_engines_draw_scene()
     PROFILE_END_UPDATE(data->render_time, stime);
   }
   /* Reset state after drawing */
-  DRW_state_reset();
+  blender::draw::command::StateSet::set();
 }
 
 static void drw_engines_draw_text()
@@ -1436,7 +1434,7 @@ void DRW_draw_callbacks_pre_scene()
     ED_region_draw_cb_draw(DST.draw_ctx.evil_C, DST.draw_ctx.region, REGION_DRAW_PRE_VIEW);
     /* Callback can be nasty and do whatever they want with the state.
      * Don't trust them! */
-    DRW_state_reset();
+    blender::draw::command::StateSet::set();
   }
 }
 
@@ -1452,7 +1450,7 @@ void DRW_draw_callbacks_post_scene()
   if (DST.draw_ctx.evil_C) {
     DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 
-    DRW_state_reset();
+    blender::draw::command::StateSet::set();
 
     GPU_framebuffer_bind(dfbl->overlay_fb);
 
@@ -1499,7 +1497,7 @@ void DRW_draw_callbacks_post_scene()
 
     /* Callback can be nasty and do whatever they want with the state.
      * Don't trust them! */
-    DRW_state_reset();
+    blender::draw::command::StateSet::set();
 
     /* Needed so gizmo isn't occluded. */
     if ((v3d->gizmo_flag & V3D_GIZMO_HIDE) == 0) {
@@ -1548,7 +1546,7 @@ void DRW_draw_callbacks_post_scene()
     if ((v3d->flag & V3D_XR_SESSION_SURFACE) != 0) {
       DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 
-      DRW_state_reset();
+      blender::draw::command::StateSet::set();
 
       GPU_framebuffer_bind(dfbl->overlay_fb);
 
@@ -1578,7 +1576,7 @@ void DRW_draw_callbacks_post_scene()
           }
         }
 
-        DRW_state_reset();
+        blender::draw::command::StateSet::set();
       }
 
       GPU_depth_test(GPU_DEPTH_LESS_EQUAL);
@@ -1737,7 +1735,7 @@ void DRW_draw_render_loop_ex(Depsgraph *depsgraph,
   GPU_framebuffer_bind(DST.default_framebuffer);
 
   /* Start Drawing */
-  DRW_state_reset();
+  blender::draw::command::StateSet::set();
 
   GPU_framebuffer_bind(DST.default_framebuffer);
   GPU_framebuffer_clear_depth_stencil(DST.default_framebuffer, 1.0f, 0xFF);
@@ -1768,7 +1766,7 @@ void DRW_draw_render_loop_ex(Depsgraph *depsgraph,
     GPU_framebuffer_restore();
   }
 
-  DRW_state_reset();
+  blender::draw::command::StateSet::set();
   drw_engines_disable();
 
   drw_manager_exit(&DST);
@@ -1940,7 +1938,7 @@ void DRW_render_gpencil(RenderEngine *engine, Depsgraph *depsgraph)
     DRW_render_gpencil_to_image(engine, render_layer, &render_rect);
   }
 
-  DRW_state_reset();
+  blender::draw::command::StateSet::set();
 
   GPU_depth_test(GPU_DEPTH_NONE);
 
@@ -2000,7 +1998,7 @@ void DRW_render_to_image(RenderEngine *engine, Depsgraph *depsgraph)
   }
 
   /* Reset state before drawing */
-  DRW_state_reset();
+  blender::draw::command::StateSet::set();
 
   /* set default viewport */
   GPU_viewport(0, 0, size[0], size[1]);
@@ -2038,7 +2036,7 @@ void DRW_render_to_image(RenderEngine *engine, Depsgraph *depsgraph)
   DRW_cache_free_old_subdiv();
 
   /* Reset state after drawing */
-  DRW_state_reset();
+  blender::draw::command::StateSet::set();
 
   /* End GPU workload Boundary */
   GPU_render_end();
@@ -2249,7 +2247,7 @@ void DRW_draw_render_loop_2d_ex(Depsgraph *depsgraph,
   GPU_framebuffer_bind(DST.default_framebuffer);
 
   /* Start Drawing */
-  DRW_state_reset();
+  blender::draw::command::StateSet::set();
 
   if (DST.draw_ctx.evil_C) {
     ED_region_draw_cb_draw(DST.draw_ctx.evil_C, DST.draw_ctx.region, REGION_DRAW_PRE_VIEW);
@@ -2264,7 +2262,7 @@ void DRW_draw_render_loop_2d_ex(Depsgraph *depsgraph,
 
   if (DST.draw_ctx.evil_C) {
     DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
-    DRW_state_reset();
+    blender::draw::command::StateSet::set();
 
     GPU_framebuffer_bind(dfbl->overlay_fb);
 
@@ -2280,7 +2278,7 @@ void DRW_draw_render_loop_2d_ex(Depsgraph *depsgraph,
     GPU_matrix_pop_projection();
     /* Callback can be nasty and do whatever they want with the state.
      * Don't trust them! */
-    DRW_state_reset();
+    blender::draw::command::StateSet::set();
 
     GPU_depth_test(GPU_DEPTH_NONE);
     drw_engines_draw_text();
@@ -2319,7 +2317,7 @@ void DRW_draw_render_loop_2d_ex(Depsgraph *depsgraph,
     GPU_framebuffer_restore();
   }
 
-  DRW_state_reset();
+  blender::draw::command::StateSet::set();
   drw_engines_disable();
 
   drw_manager_exit(&DST);
@@ -2538,7 +2536,6 @@ void DRW_draw_select_loop(Depsgraph *depsgraph,
             }
           }
 
-          DRW_select_load_id(ob->runtime->select_id);
           DST.dupli_parent = data_.dupli_parent;
           DST.dupli_source = data_.dupli_object_current;
           drw_duplidata_load(ob);
@@ -2564,7 +2561,7 @@ void DRW_draw_select_loop(Depsgraph *depsgraph,
   DRW_viewport_texture_list_get()->depth = g_select_buffer.texture_depth;
 
   /* Start Drawing */
-  DRW_state_reset();
+  blender::draw::command::StateSet::set();
   DRW_draw_callbacks_pre_scene();
 
   DRW_curves_update(*DRW_manager_get());
@@ -2587,7 +2584,7 @@ void DRW_draw_select_loop(Depsgraph *depsgraph,
   /* WORKAROUND: Do not leave ownership to the viewport list. */
   DRW_viewport_texture_list_get()->depth = nullptr;
 
-  DRW_state_reset();
+  blender::draw::command::StateSet::set();
   drw_engines_disable();
 
   drw_manager_exit(&DST);
@@ -2698,7 +2695,7 @@ void DRW_draw_depth_loop(Depsgraph *depsgraph,
   }
 
   /* Start Drawing */
-  DRW_state_reset();
+  blender::draw::command::StateSet::set();
 
   DRW_curves_update(*DRW_manager_get());
 
@@ -2706,7 +2703,7 @@ void DRW_draw_depth_loop(Depsgraph *depsgraph,
 
   DRW_smoke_exit(DST.vmempool);
 
-  DRW_state_reset();
+  blender::draw::command::StateSet::set();
 
   /* TODO: Reading depth for operators should be done here. */
 
@@ -2800,9 +2797,9 @@ void DRW_draw_select_id(Depsgraph *depsgraph, ARegion *region, View3D *v3d)
   }
 
   /* Start Drawing */
-  DRW_state_reset();
+  blender::draw::command::StateSet::set();
   drw_engines_draw_scene();
-  DRW_state_reset();
+  blender::draw::command::StateSet::set();
 
   drw_engines_disable();
 

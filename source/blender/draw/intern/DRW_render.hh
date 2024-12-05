@@ -400,23 +400,6 @@ void DRW_draw_pass_subset(DRWPass *pass, DRWShadingGroup *start_group, DRWShadin
 void DRW_draw_callbacks_pre_scene();
 void DRW_draw_callbacks_post_scene();
 
-/**
- * Reset state to not interfere with other UI draw-call.
- */
-void DRW_state_reset_ex(DRWState state);
-void DRW_state_reset();
-/**
- * Use with care, intended so selection code can override passes depth settings,
- * which is important for selection to work properly.
- *
- * Should be set in main draw loop, cleared afterwards
- */
-void DRW_state_lock(DRWState state);
-
-/* Selection. */
-
-void DRW_select_load_id(uint id);
-
 /* Draw State. */
 
 /**

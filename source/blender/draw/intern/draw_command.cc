@@ -344,6 +344,13 @@ void StateSet::execute(RecordingState &recording_state) const
   }
 }
 
+/* Set state of the GPU module manually. */
+void StateSet::set(DRWState state)
+{
+  RecordingState recording_state;
+  StateSet{state, 0}.execute(recording_state);
+}
+
 void StencilSet::execute() const
 {
   GPU_stencil_write_mask_set(write_mask);

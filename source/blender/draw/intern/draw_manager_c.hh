@@ -195,129 +195,6 @@ struct DRWObjectInfos {
 BLI_STATIC_ASSERT_ALIGN(DRWObjectMatrix, 16)
 BLI_STATIC_ASSERT_ALIGN(DRWObjectInfos, 16)
 
-typedef enum {
-  /* Draw Commands */
-  DRW_CMD_DRAW = 0, /* Only sortable type. Must be 0. */
-  DRW_CMD_DRAW_RANGE = 1,
-  DRW_CMD_DRAW_INSTANCE = 2,
-  DRW_CMD_DRAW_INSTANCE_RANGE = 3,
-  DRW_CMD_DRAW_PROCEDURAL = 4,
-  DRW_CMD_DRAW_INDIRECT = 5,
-
-  /* Compute Commands. */
-  DRW_CMD_COMPUTE = 8,
-  DRW_CMD_COMPUTE_REF = 9,
-  DRW_CMD_COMPUTE_INDIRECT = 10,
-
-  /* Other Commands */
-  DRW_CMD_BARRIER = 11,
-  DRW_CMD_CLEAR = 12,
-  DRW_CMD_DRWSTATE = 13,
-  DRW_CMD_STENCIL = 14,
-  DRW_CMD_SELECTID = 15,
-  /* Needs to fit in 4bits */
-} eDRWCommandType;
-
-#define DRW_MAX_DRAW_CMD_TYPE DRW_CMD_DRAW_INDIRECT
-
-struct DRWCommandDraw {
-  blender::gpu::Batch *batch;
-  DRWResourceHandle handle;
-};
-
-/* Assume DRWResourceHandle to be 0. */
-struct DRWCommandDrawRange {
-  blender::gpu::Batch *batch;
-  DRWResourceHandle handle;
-  uint vert_first;
-  uint vert_count;
-};
-
-struct DRWCommandDrawInstance {
-  blender::gpu::Batch *batch;
-  DRWResourceHandle handle;
-  uint inst_count;
-  uint use_attrs; /* bool */
-};
-
-struct DRWCommandDrawInstanceRange {
-  blender::gpu::Batch *batch;
-  DRWResourceHandle handle;
-  uint inst_first;
-  uint inst_count;
-};
-
-struct DRWCommandDrawIndirect {
-  blender::gpu::Batch *batch;
-  DRWResourceHandle handle;
-  GPUStorageBuf *indirect_buf;
-};
-
-struct DRWCommandCompute {
-  int groups_x_len;
-  int groups_y_len;
-  int groups_z_len;
-};
-
-struct DRWCommandComputeRef {
-  int *groups_ref;
-};
-
-struct DRWCommandComputeIndirect {
-  GPUStorageBuf *indirect_buf;
-};
-
-struct DRWCommandBarrier {
-  eGPUBarrier type;
-};
-
-struct DRWCommandDrawProcedural {
-  blender::gpu::Batch *batch;
-  DRWResourceHandle handle;
-  uint vert_count;
-};
-
-struct DRWCommandSetMutableState {
-  /** State changes (or'd or and'd with the pass's state) */
-  DRWState enable;
-  DRWState disable;
-};
-
-struct DRWCommandSetStencil {
-  uint write_mask;
-  uint comp_mask;
-  uint ref;
-};
-
-struct DRWCommandSetSelectID {
-  blender::gpu::VertBuf *select_buf;
-  uint select_id;
-};
-
-struct DRWCommandClear {
-  eGPUFrameBufferBits clear_channels;
-  uchar r, g, b, a; /* [0..1] for each channels. Normalized. */
-  float depth;      /* [0..1] for depth. Normalized. */
-  uchar stencil;    /* Stencil value [0..255] */
-};
-
-union DRWCommand {
-  DRWCommandDraw draw;
-  DRWCommandDrawRange range;
-  DRWCommandDrawInstance instance;
-  DRWCommandDrawInstanceRange instance_range;
-  DRWCommandDrawProcedural procedural;
-  DRWCommandDrawIndirect draw_indirect;
-  DRWCommandCompute compute;
-  DRWCommandComputeRef compute_ref;
-  DRWCommandComputeIndirect compute_indirect;
-  DRWCommandBarrier barrier;
-  DRWCommandSetMutableState state;
-  DRWCommandSetStencil stencil;
-  DRWCommandSetSelectID select_id;
-  DRWCommandClear clear;
-};
-
 /** Used by #DRWUniform.type */
 /* TODO(@jbakker): rename to DRW_RESOURCE/DRWResourceType. */
 typedef enum {
@@ -470,8 +347,6 @@ struct DRWCommandChunk {
   /* 4bits for each command. */
   uint64_t command_type[6];
   /* -- 64 bytes aligned -- */
-  DRWCommand commands[96];
-  /* -- 64 bytes aligned -- */
 };
 
 struct DRWCommandSmallChunk {
@@ -481,7 +356,6 @@ struct DRWCommandSmallChunk {
   /* 4bits for each command. */
   /* TODO: reduce size of command_type. */
   uint64_t command_type[6];
-  DRWCommand commands[6];
 };
 
 /* Only true for 64-bit platforms. */
@@ -502,7 +376,6 @@ struct DRWData {
   /** Memory-pools for draw-calls. */
   BLI_memblock *commands;
   BLI_memblock *commands_small;
-  BLI_memblock *callbuffers;
   BLI_memblock *obmats;
   BLI_memblock *obinfos;
   BLI_memblock *cullstates;
@@ -653,14 +526,10 @@ extern DRWManager DST; /* TODO: get rid of this and allow multi-threaded renderi
 
 void drw_texture_set_parameters(GPUTexture *tex, DRWTextureFlag flags);
 
-void drw_state_set(DRWState state);
-
 void drw_debug_draw();
 void drw_debug_init();
 void drw_debug_module_free(DRWDebugModule *module);
 GPUStorageBuf *drw_debug_gpu_draw_buf_get();
-
-eDRWCommandType command_type_get(const uint64_t *command_type_bits, int index);
 
 void drw_batch_cache_validate(Object *ob);
 void drw_batch_cache_generate_requested(Object *ob);
