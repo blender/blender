@@ -82,7 +82,7 @@ GPENCIL_tObject *gpencil_object_cache_add(GPENCIL_PrivateData *pd,
   rescale_m4(mat, size);
   /* BBox space to World. */
   mul_m4_m4m4(mat, ob->object_to_world().ptr(), mat);
-  if (DRW_view_is_persp_get(nullptr)) {
+  if (blender::draw::View::default_get().is_persp()) {
     /* BBox center to camera vector. */
     sub_v3_v3v3(tgp_ob->plane_normal, pd->camera_pos, mat[3]);
   }

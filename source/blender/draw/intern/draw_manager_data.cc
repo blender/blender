@@ -409,34 +409,4 @@ std::array<float4, 6> DRW_view_frustum_planes_get(const DRWView *view)
   return planes;
 }
 
-bool DRW_view_is_persp_get(const DRWView *view)
-{
-  view = (view) ? view : DST.view_default;
-  return view->storage.winmat[3][3] == 0.0f;
-}
-
-float DRW_view_near_distance_get(const DRWView *view)
-{
-  view = (view) ? view : DST.view_default;
-  const float4x4 &projmat = view->storage.winmat;
-
-  if (DRW_view_is_persp_get(view)) {
-    return -projmat[3][2] / (projmat[2][2] - 1.0f);
-  }
-
-  return -(projmat[3][2] + 1.0f) / projmat[2][2];
-}
-
-float DRW_view_far_distance_get(const DRWView *view)
-{
-  view = (view) ? view : DST.view_default;
-  const float4x4 &projmat = view->storage.winmat;
-
-  if (DRW_view_is_persp_get(view)) {
-    return -projmat[3][2] / (projmat[2][2] + 1.0f);
-  }
-
-  return -(projmat[3][2] - 1.0f) / projmat[2][2];
-}
-
 /** \} */

@@ -182,7 +182,7 @@ static void GPENCIL_render_result_z(RenderLayer *rl,
   int pix_num = BLI_rcti_size_x(rect) * BLI_rcti_size_y(rect);
 
   /* Convert GPU depth [0..1] to view Z [near..far] */
-  if (DRW_view_is_persp_get(nullptr)) {
+  if (blender::draw::View::default_get().is_persp()) {
     for (int i = 0; i < pix_num; i++) {
       if (ro_buffer_data[i] == 1.0f) {
         ro_buffer_data[i] = 1e10f; /* Background */
@@ -195,8 +195,8 @@ static void GPENCIL_render_result_z(RenderLayer *rl,
   }
   else {
     /* Keep in mind, near and far distance are negatives. */
-    float near = DRW_view_near_distance_get(nullptr);
-    float far = DRW_view_far_distance_get(nullptr);
+    float near = blender::draw::View::default_get().near_clip();
+    float far = blender::draw::View::default_get().far_clip();
     float range = fabsf(far - near);
 
     for (int i = 0; i < pix_num; i++) {

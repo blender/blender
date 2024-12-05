@@ -340,14 +340,6 @@ void DRW_view_frustum_corners_get(const DRWView *view, BoundBox *corners);
  */
 std::array<float4, 6> DRW_view_frustum_planes_get(const DRWView *view);
 
-/**
- * These are in view-space, so negative if in perspective.
- * Extract near and far clip distance from the projection matrix.
- */
-float DRW_view_near_distance_get(const DRWView *view);
-float DRW_view_far_distance_get(const DRWView *view);
-bool DRW_view_is_persp_get(const DRWView *view);
-
 /* Culling, return true if object is inside view frustum. */
 
 /**

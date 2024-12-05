@@ -680,7 +680,7 @@ static void write_render_z_output(RenderLayer *layer,
     int pix_num = BLI_rcti_size_x(rect) * BLI_rcti_size_y(rect);
 
     /* Convert GPU depth [0..1] to view Z [near..far] */
-    if (DRW_view_is_persp_get(nullptr)) {
+    if (blender::draw::View::default_get().is_persp()) {
       for (float &z : MutableSpan(rp->ibuf->float_buffer.data, pix_num)) {
         if (z == 1.0f) {
           z = 1e10f; /* Background */
@@ -693,8 +693,8 @@ static void write_render_z_output(RenderLayer *layer,
     }
     else {
       /* Keep in mind, near and far distance are negatives. */
-      float near = DRW_view_near_distance_get(nullptr);
-      float far = DRW_view_far_distance_get(nullptr);
+      float near = blender::draw::View::default_get().near_clip();
+      float far = blender::draw::View::default_get().far_clip();
       float range = fabsf(far - near);
 
       for (float &z : MutableSpan(rp->ibuf->float_buffer.data, pix_num)) {
