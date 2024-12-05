@@ -299,70 +299,6 @@ struct DRWShadingGroup {
   };
 };
 
-#define MAX_PASS_NAME 32
-
-struct DRWPass {
-  /* Linked list */
-  struct {
-    DRWShadingGroup *first;
-    DRWShadingGroup *last;
-  } shgroups;
-
-  /* Draw the shgroups of this pass instead.
-   * This avoid duplicating drawcalls/shgroups
-   * for similar passes. */
-  DRWPass *original;
-  /* Link list of additional passes to render. */
-  DRWPass *next;
-
-  DRWResourceHandle handle;
-  DRWState state;
-  char name[MAX_PASS_NAME];
-};
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Data Chunks
- *
- * In order to keep a cache friendly data structure,
- * we allocate most of our little data into chunks of multiple item.
- * Iteration, allocation and memory usage are better.
- * We lose a bit of memory by allocating more than what we need
- * but it's counterbalanced by not needing the linked-list pointers
- * for each item.
- * \{ */
-
-struct DRWUniformChunk {
-  DRWUniformChunk *next; /* single-linked list */
-  uint32_t uniform_len;
-  uint32_t uniform_used;
-  DRWUniform uniforms[10];
-};
-
-struct DRWCommandChunk {
-  DRWCommandChunk *next;
-  uint32_t command_len;
-  uint32_t command_used;
-  /* 4bits for each command. */
-  uint64_t command_type[6];
-  /* -- 64 bytes aligned -- */
-};
-
-struct DRWCommandSmallChunk {
-  DRWCommandChunk *next;
-  uint32_t command_len;
-  uint32_t command_used;
-  /* 4bits for each command. */
-  /* TODO: reduce size of command_type. */
-  uint64_t command_type[6];
-};
-
-/* Only true for 64-bit platforms. */
-#ifdef __LP64__
-BLI_STATIC_ASSERT_ALIGN(DRWCommandChunk, 16);
-#endif
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -374,17 +310,10 @@ struct DRWData {
   /** Instance data. */
   DRWInstanceDataList *idatalist;
   /** Memory-pools for draw-calls. */
-  BLI_memblock *commands;
-  BLI_memblock *commands_small;
   BLI_memblock *obmats;
   BLI_memblock *obinfos;
   BLI_memblock *cullstates;
-  BLI_memblock *shgroups;
-  BLI_memblock *uniforms;
-  BLI_memblock *passes;
   BLI_memblock *images;
-  GPUUniformBuf **matrices_ubo;
-  GPUUniformBuf **obinfos_ubo;
   GHash *vlattrs_name_cache;
   ListBase vlattrs_name_list;
   LayerAttribute *vlattrs_buf;

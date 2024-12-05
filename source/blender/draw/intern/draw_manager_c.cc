@@ -371,10 +371,6 @@ DRWData *DRW_viewport_data_create()
 
   drw_data->idatalist = DRW_instance_data_list_create();
 
-  drw_data->commands = BLI_memblock_create(sizeof(DRWCommandChunk));
-  drw_data->commands_small = BLI_memblock_create(sizeof(DRWCommandSmallChunk));
-  drw_data->shgroups = BLI_memblock_create(sizeof(DRWShadingGroup));
-  drw_data->uniforms = BLI_memblock_create(sizeof(DRWUniformChunk));
   drw_data->images = BLI_memblock_create(sizeof(GPUTexture *));
   drw_data->vlattrs_name_cache = BLI_ghash_new(
       BLI_ghashutil_inthash_p_simple, BLI_ghashutil_intcmp, "View Layer Attribute names");
@@ -389,10 +385,6 @@ DRWData *DRW_viewport_data_create()
   {
     uint chunk_len = sizeof(DRWCullingState) * DRW_RESOURCE_CHUNK_LEN;
     drw_data->cullstates = BLI_memblock_create_ex(sizeof(DRWCullingState), chunk_len);
-  }
-  {
-    uint chunk_len = sizeof(DRWPass) * DRW_RESOURCE_CHUNK_LEN;
-    drw_data->passes = BLI_memblock_create_ex(sizeof(DRWPass), chunk_len);
   }
 
   drw_data->default_view = new blender::draw::View("DrawDefaultView");
@@ -434,14 +426,9 @@ static void drw_viewport_data_reset(DRWData *drw_data)
   draw_texture_release(drw_data);
   draw_prune_vlattrs(drw_data);
 
-  BLI_memblock_clear(drw_data->commands, nullptr);
-  BLI_memblock_clear(drw_data->commands_small, nullptr);
   BLI_memblock_clear(drw_data->obmats, nullptr);
   BLI_memblock_clear(drw_data->obinfos, nullptr);
   BLI_memblock_clear(drw_data->cullstates, nullptr);
-  BLI_memblock_clear(drw_data->shgroups, nullptr);
-  BLI_memblock_clear(drw_data->uniforms, nullptr);
-  BLI_memblock_clear(drw_data->passes, nullptr);
   BLI_memblock_clear(drw_data->images, nullptr);
   DRW_instance_data_list_free_unused(drw_data->idatalist);
   DRW_instance_data_list_resize(drw_data->idatalist);
@@ -453,14 +440,9 @@ void DRW_viewport_data_free(DRWData *drw_data)
 {
   draw_texture_release(drw_data);
 
-  BLI_memblock_destroy(drw_data->commands, nullptr);
-  BLI_memblock_destroy(drw_data->commands_small, nullptr);
   BLI_memblock_destroy(drw_data->obmats, nullptr);
   BLI_memblock_destroy(drw_data->obinfos, nullptr);
   BLI_memblock_destroy(drw_data->cullstates, nullptr);
-  BLI_memblock_destroy(drw_data->shgroups, nullptr);
-  BLI_memblock_destroy(drw_data->uniforms, nullptr);
-  BLI_memblock_destroy(drw_data->passes, nullptr);
   BLI_memblock_destroy(drw_data->images, nullptr);
   BLI_ghash_free(drw_data->vlattrs_name_cache, nullptr, nullptr);
   BLI_freelistN(&drw_data->vlattrs_name_list);
@@ -472,14 +454,6 @@ void DRW_viewport_data_free(DRWData *drw_data)
   DRW_texture_pool_free(drw_data->texture_pool);
   for (int i = 0; i < 2; i++) {
     DRW_view_data_free(drw_data->view_data[i]);
-  }
-  if (drw_data->matrices_ubo != nullptr) {
-    for (int i = 0; i < drw_data->ubo_len; i++) {
-      GPU_uniformbuf_free(drw_data->matrices_ubo[i]);
-      GPU_uniformbuf_free(drw_data->obinfos_ubo[i]);
-    }
-    MEM_freeN(drw_data->matrices_ubo);
-    MEM_freeN(drw_data->obinfos_ubo);
   }
   DRW_volume_ubos_pool_free(drw_data->volume_grids_ubos);
   DRW_curves_ubos_pool_free(drw_data->curves_ubos);
