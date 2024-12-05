@@ -385,7 +385,6 @@ struct DRWData {
   BLI_memblock *images;
   GPUUniformBuf **matrices_ubo;
   GPUUniformBuf **obinfos_ubo;
-  GHash *obattrs_ubo_pool;
   GHash *vlattrs_name_cache;
   ListBase vlattrs_name_list;
   LayerAttribute *vlattrs_buf;
@@ -533,15 +532,6 @@ blender::gpu::Batch *drw_cache_procedural_points_get();
 blender::gpu::Batch *drw_cache_procedural_lines_get();
 blender::gpu::Batch *drw_cache_procedural_triangles_get();
 blender::gpu::Batch *drw_cache_procedural_triangle_strips_get();
-
-void drw_uniform_attrs_pool_update(GHash *table,
-                                   const GPUUniformAttrList *key,
-                                   DRWResourceHandle *handle,
-                                   const Object *ob,
-                                   const Object *dupli_parent,
-                                   const DupliObject *dupli_source);
-
-GPUUniformBuf *drw_ensure_layer_attribute_buffer();
 
 namespace blender::draw {
 

@@ -376,7 +376,6 @@ DRWData *DRW_viewport_data_create()
   drw_data->shgroups = BLI_memblock_create(sizeof(DRWShadingGroup));
   drw_data->uniforms = BLI_memblock_create(sizeof(DRWUniformChunk));
   drw_data->images = BLI_memblock_create(sizeof(GPUTexture *));
-  drw_data->obattrs_ubo_pool = DRW_uniform_attrs_pool_new();
   drw_data->vlattrs_name_cache = BLI_ghash_new(
       BLI_ghashutil_inthash_p_simple, BLI_ghashutil_intcmp, "View Layer Attribute names");
   {
@@ -444,7 +443,6 @@ static void drw_viewport_data_reset(DRWData *drw_data)
   BLI_memblock_clear(drw_data->uniforms, nullptr);
   BLI_memblock_clear(drw_data->passes, nullptr);
   BLI_memblock_clear(drw_data->images, nullptr);
-  DRW_uniform_attrs_pool_clear_all(drw_data->obattrs_ubo_pool);
   DRW_instance_data_list_free_unused(drw_data->idatalist);
   DRW_instance_data_list_resize(drw_data->idatalist);
   DRW_instance_data_list_reset(drw_data->idatalist);
@@ -464,7 +462,6 @@ void DRW_viewport_data_free(DRWData *drw_data)
   BLI_memblock_destroy(drw_data->uniforms, nullptr);
   BLI_memblock_destroy(drw_data->passes, nullptr);
   BLI_memblock_destroy(drw_data->images, nullptr);
-  DRW_uniform_attrs_pool_free(drw_data->obattrs_ubo_pool);
   BLI_ghash_free(drw_data->vlattrs_name_cache, nullptr, nullptr);
   BLI_freelistN(&drw_data->vlattrs_name_list);
   if (drw_data->vlattrs_ubo) {
