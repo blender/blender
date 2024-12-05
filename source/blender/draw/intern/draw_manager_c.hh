@@ -21,7 +21,6 @@
 
 #include "GPU_batch.hh"
 #include "GPU_context.hh"
-#include "GPU_drawlist.hh"
 #include "GPU_framebuffer.hh"
 #include "GPU_shader.hh"
 #include "GPU_uniform_buffer.hh"

@@ -47,10 +47,6 @@ class DummyBackend : public GPUBackend {
   {
     return new DummyBatch;
   }
-  DrawList *drawlist_alloc(int /*list_length*/) override
-  {
-    return nullptr;
-  }
   Fence *fence_alloc() override
   {
     return nullptr;

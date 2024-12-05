@@ -16,7 +16,6 @@
 namespace blender::gpu {
 
 class Batch;
-class DrawList;
 class FrameBuffer;
 class QueryPool;
 class Shader;
@@ -60,7 +59,6 @@ class MTLBackend : public GPUBackend {
    * due to allocation of Objective-C objects. */
   Context *context_alloc(void *ghost_window, void *ghost_context) override;
   Batch *batch_alloc() override;
-  DrawList *drawlist_alloc(int list_length) override;
   Fence *fence_alloc() override;
   FrameBuffer *framebuffer_alloc(const char *name) override;
   IndexBuf *indexbuf_alloc() override;

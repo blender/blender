@@ -12,7 +12,6 @@
 #include "mtl_backend.hh"
 #include "mtl_batch.hh"
 #include "mtl_context.hh"
-#include "mtl_drawlist.hh"
 #include "mtl_framebuffer.hh"
 #include "mtl_immediate.hh"
 #include "mtl_index_buffer.hh"
@@ -52,11 +51,6 @@ Context *MTLBackend::context_alloc(void *ghost_window, void *ghost_context)
 Batch *MTLBackend::batch_alloc()
 {
   return new MTLBatch();
-};
-
-DrawList *MTLBackend::drawlist_alloc(int list_length)
-{
-  return new MTLDrawList(list_length);
 };
 
 Fence *MTLBackend::fence_alloc()
