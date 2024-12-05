@@ -681,10 +681,7 @@ class USERPREF_PT_system_display_graphics(SystemPanel, CenterAlignMixIn, Panel):
     bl_label = "Display Graphics"
 
     @classmethod
-    def poll(cls, context):
-        if not context.preferences.view.show_developer_ui:
-            return False
-
+    def poll(cls, _context):
         import platform
         return platform.system() != 'Darwin'
 
