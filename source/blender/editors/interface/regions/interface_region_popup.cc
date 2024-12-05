@@ -706,11 +706,6 @@ uiBlock *ui_popup_block_refresh(bContext *C,
   block->oldblock = nullptr;
 
   if (!block->endblock) {
-    /* Use previous position if it has been moved. */
-    const bool moved = handle->refresh &&
-                       !(handle->grab_xy_prev[0] == 0 && handle->grab_xy_prev[1] == 0);
-    const blender::int2 xy(moved ? region->winrct.xmin : handle->popup_create_vars.event_xy[0],
-                           moved ? region->winrct.ymin : handle->popup_create_vars.event_xy[1]);
     UI_block_end_ex(C,
                     CTX_data_main(C),
                     window,
@@ -718,7 +713,7 @@ uiBlock *ui_popup_block_refresh(bContext *C,
                     region,
                     CTX_data_depsgraph_pointer(C),
                     block,
-                    xy,
+                    handle->popup_create_vars.event_xy,
                     handle->popup_create_vars.event_xy);
   }
 

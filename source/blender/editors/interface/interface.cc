@@ -491,8 +491,9 @@ static void ui_block_bounds_calc_centered(wmWindow *window, uiBlock *block)
   ui_block_bounds_calc(block);
 }
 
-static void ui_block_bounds_calc_post_centered(uiBlock *block, const blender::int2 &xy)
+static void ui_block_bounds_calc_post_centered(uiBlock *block)
 {
+  const blender::int2 xy(block->handle->region->winrct.xmin, block->handle->region->winrct.ymin);
   const int margin = int(12.0f * UI_SCALE_FAC);
   ui_block_bounds_calc(block);
   UI_block_translate(block, xy[0] - block->rect.xmin + margin, xy[1] - block->rect.ymin + margin);
@@ -2009,7 +2010,7 @@ void UI_block_end_ex(const bContext *C,
         ui_block_bounds_calc_centered(window, block);
       }
       else {
-        ui_block_bounds_calc_post_centered(block, xy);
+        ui_block_bounds_calc_post_centered(block);
       }
       break;
     case UI_BLOCK_BOUNDS_PIE_CENTER:
