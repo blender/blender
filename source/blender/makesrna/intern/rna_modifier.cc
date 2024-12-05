@@ -273,7 +273,7 @@ const EnumPropertyItem rna_enum_object_modifier_type_items[] = {
      "Simplify stroke reducing number of points"},
     {eModifierType_GreasePencilSubdiv,
      "GREASE_PENCIL_SUBDIV",
-     ICON_MOD_SMOOTH,
+     ICON_MOD_SUBSURF,
      "Subdivide",
      "Grease Pencil subdivide modifier"},
     {eModifierType_GreasePencilEnvelope,
