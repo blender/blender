@@ -109,13 +109,6 @@ static void version_composite_nodetree_null_id(bNodeTree *ntree, Scene *scene)
   }
 }
 
-struct ActionUserInfo {
-  ID *id;
-  blender::animrig::slot_handle_t *slot_handle;
-  bAction **action_ptr_ptr;
-  char *slot_name;
-};
-
 static void convert_action_in_place(blender::animrig::Action &action)
 {
   using namespace blender::animrig;
@@ -179,6 +172,14 @@ static void convert_action_in_place(blender::animrig::Action &action)
 static void version_legacy_actions_to_layered(Main *bmain)
 {
   using namespace blender::animrig;
+
+  struct ActionUserInfo {
+    ID *id;
+    slot_handle_t *slot_handle;
+    bAction **action_ptr_ptr;
+    char *slot_name;
+  };
+
   blender::Map<bAction *, blender::Vector<ActionUserInfo>> action_users;
   LISTBASE_FOREACH (bAction *, dna_action, &bmain->actions) {
     Action &action = dna_action->wrap();
@@ -188,28 +189,27 @@ static void version_legacy_actions_to_layered(Main *bmain)
     action_users.add(dna_action, {});
   }
 
+  auto callback = [&](ID &animated_id,
+                      bAction *&action_ptr_ref,
+                      slot_handle_t &slot_handle_ref,
+                      char *slot_name) -> bool {
+    blender::Vector<ActionUserInfo> *action_user_vector = action_users.lookup_ptr(action_ptr_ref);
+    /* Only actions that need to be converted are in this map. */
+    if (!action_user_vector) {
+      return true;
+    }
+    ActionUserInfo user_info;
+    user_info.id = &animated_id;
+    user_info.action_ptr_ptr = &action_ptr_ref;
+    user_info.slot_handle = &slot_handle_ref;
+    user_info.slot_name = slot_name;
+    action_user_vector->append(user_info);
+    return true;
+  };
+
   ID *id;
   FOREACH_MAIN_ID_BEGIN (bmain, id) {
-    auto callback = [&](ID &animated_id,
-                        bAction *&action_ptr_ref,
-                        slot_handle_t &slot_handle_ref,
-                        char *slot_name) -> bool {
-      blender::Vector<ActionUserInfo> *action_user_vector = action_users.lookup_ptr(
-          action_ptr_ref);
-      /* Only actions that need to be converted are in this map. */
-      if (!action_user_vector) {
-        return true;
-      }
-      ActionUserInfo user_info;
-      user_info.id = &animated_id;
-      user_info.action_ptr_ptr = &action_ptr_ref;
-      user_info.slot_handle = &slot_handle_ref;
-      user_info.slot_name = slot_name;
-      action_user_vector->append(user_info);
-      return true;
-    };
-
-    /* Process the main ID itself. */
+    /* Process the ID itself. */
     foreach_action_slot_use_with_references(*id, callback);
 
     /* Process embedded IDs, as these are not listed in bmain, but still can
