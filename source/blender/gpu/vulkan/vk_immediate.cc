@@ -9,6 +9,7 @@
  */
 
 #include "GPU_capabilities.hh"
+#include "GPU_matrix.hh"
 
 #include "vk_backend.hh"
 #include "vk_context.hh"
@@ -103,6 +104,7 @@ void VKImmediate::end()
     this->polyline_draw_workaround(0);
   }
   else {
+    GPU_matrix_bind(wrap(context.shader));
     render_graph::VKResourceAccessInfo &resource_access_info = context.reset_and_get_access_info();
     vertex_attributes_.update_bindings(*this);
     context.active_framebuffer_get()->rendering_ensure(context);

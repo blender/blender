@@ -940,8 +940,12 @@ void VKFrameBuffer::rendering_ensure_dynamic_rendering(VKContext &context,
 
 void VKFrameBuffer::rendering_ensure(VKContext &context)
 {
-  if (is_rendering_) {
+  if (!dirty_state_ && is_rendering_) {
     return;
+  }
+
+  if (is_rendering_) {
+    rendering_end(context);
   }
 
 #ifndef NDEBUG
