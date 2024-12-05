@@ -108,34 +108,6 @@ typedef struct DRWRegisteredDrawEngine {
   int index;
 } DRWRegisteredDrawEngine;
 
-/**
- * Data structure containing all drawcalls organized by passes and materials.
- * DRWPass > DRWShadingGroup > DRWCall > DRWCallState
- *                           > DRWUniform
- */
-
-/* Minimum max UBO size is 64KiB. We take the largest
- * UBO struct and alloc the max number.
- * `((1 << 16) / sizeof(DRWObjectMatrix)) = 512`
- * Keep in sync with `common_view_lib.glsl`. */
-#define DRW_RESOURCE_CHUNK_LEN 512
-
-/**
- * Identifier used to sort similar drawcalls together.
- * Also used to reference elements inside memory blocks.
- *
- * From MSB to LSB
- * 1 bit for negative scale.
- * 22 bits for chunk id.
- * 9 bits for resource id inside the chunk. (can go up to 511)
- * |-|----------------------|---------|
- *
- * Use manual bit-shift and mask instead of bit-fields to avoid
- * compiler dependent behavior that would mess the ordering of
- * the members thus changing the sorting order.
- */
-typedef uint32_t DRWResourceHandle;
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -179,16 +151,8 @@ struct DRWManager {
   /* Cache generation */
   /* TODO(@fclem): Rename to data. */
   DRWData *vmempool;
-  /** Active view data structure for one of the 2 stereo view. Not related to DRWView. */
+  /** Active view data structure for one of the 2 stereo view. */
   DRWViewData *view_data_active;
-  /* State of the object being evaluated if already allocated. */
-  DRWResourceHandle ob_handle;
-  /** True if current DST.ob_state has its matching DRWObjectInfos init. */
-  bool ob_state_obinfo_init;
-  /** Handle of current object resource in object resource arrays (DRWObjectMatrices/Infos). */
-  DRWResourceHandle resource_handle;
-  /** Handle of next DRWPass to be allocated. */
-  DRWResourceHandle pass_handle;
 
   /** Dupli object that corresponds to the current object. */
   DupliObject *dupli_source;

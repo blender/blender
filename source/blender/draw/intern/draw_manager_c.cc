@@ -423,8 +423,6 @@ static void drw_manager_init(DRWManager *dst, GPUViewport *viewport, const int s
 
   dst->viewport = viewport;
   dst->view_data_active = dst->vmempool->view_data[view];
-  dst->resource_handle = 0;
-  dst->pass_handle = 0;
   dst->primary_view_num = 0;
 
   drw_viewport_data_reset(dst->vmempool);
@@ -936,8 +934,6 @@ static void drw_engines_world_update(Scene *scene)
 
 static void drw_engines_cache_populate(Object *ob)
 {
-  DST.ob_handle = 0;
-
   /* HACK: DrawData is copied by copy-on-eval from the duplicated object.
    * This is valid for IDs that cannot be instantiated but this
    * is not what we want in this case so we clear the pointer
@@ -1941,7 +1937,6 @@ void DRW_render_object_iter(
     if ((object_type_exclude_viewport & (1 << ob->type)) == 0) {
       DST.dupli_parent = data_.dupli_parent;
       DST.dupli_source = data_.dupli_object_current;
-      DST.ob_handle = 0;
       drw_duplidata_load(ob);
 
       if (!DST.dupli_source) {
