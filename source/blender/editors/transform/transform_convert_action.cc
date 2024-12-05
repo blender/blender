@@ -1098,6 +1098,7 @@ static void recalcData_actedit(TransInfo *t)
         }
         grease_pencil_layer_reset_trans_data(
             *static_cast<blender::bke::greasepencil::Layer *>(ale->data));
+        ANIM_id_update(ale->bmain, ale->id);
       }
       ANIM_animdata_freelist(&anim_data);
     }
