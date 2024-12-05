@@ -267,6 +267,8 @@ class VKPipelinePool : public NonCopyable {
   VkPipelineVertexInputStateCreateInfo vk_pipeline_vertex_input_state_create_info_;
 
   VkPipelineRasterizationStateCreateInfo vk_pipeline_rasterization_state_create_info_;
+  VkPipelineRasterizationProvokingVertexStateCreateInfoEXT
+      vk_pipeline_rasterization_provoking_vertex_state_info_;
   VkPipelineViewportStateCreateInfo vk_pipeline_viewport_state_create_info_;
   VkPipelineDepthStencilStateCreateInfo vk_pipeline_depth_stencil_state_create_info_;
 
