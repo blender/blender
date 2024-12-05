@@ -270,7 +270,9 @@ void VKBackend::platform_init()
   vkEnumeratePhysicalDevices(vk_instance, &physical_devices_count, vk_physical_devices.data());
   int index = 0;
   for (VkPhysicalDevice vk_physical_device : vk_physical_devices) {
-    if (missing_capabilities_get(vk_physical_device).is_empty()) {
+    if (missing_capabilities_get(vk_physical_device).is_empty() &&
+        GPU_vulkan_is_supported_driver(vk_physical_device))
+    {
       VkPhysicalDeviceProperties vk_properties = {};
       vkGetPhysicalDeviceProperties(vk_physical_device, &vk_properties);
       std::stringstream identifier;
