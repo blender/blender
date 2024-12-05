@@ -44,7 +44,6 @@ void DRW_globals_free();
 int DRW_object_wire_theme_get(Object *ob, ViewLayer *view_layer, float **r_color);
 float *DRW_color_background_blend_get(int theme_id);
 
-
 /* draw_hair.cc */
 
 /**

@@ -177,5 +177,4 @@ void DRW_viewport_colormanagement_set(GPUViewport *viewport)
   blender::draw::color_management::viewport_color_management_set(*viewport);
 }
 
-
 /** \} */
