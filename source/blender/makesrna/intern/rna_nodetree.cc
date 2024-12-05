@@ -2545,6 +2545,11 @@ static bNodeSocket *rna_Node_outputs_new(ID *id,
     return nullptr;
   }
 
+  if (identifier == nullptr) {
+    /* Use the name as default identifier if no separate identifier is provided. */
+    identifier = name;
+  }
+
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(id);
   bNodeSocket *sock = blender::bke::node_add_socket(ntree, node, SOCK_OUT, type, identifier, name);
 
