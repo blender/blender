@@ -323,19 +323,12 @@ void DRW_view_update(DRWView *view,
  */
 void DRW_view_update_sub(DRWView *view, const float viewmat[4][4], const float winmat[4][4]);
 
-
 /**
  * This only works if DRWPasses have been tagged with DRW_STATE_CLIP_PLANES,
  * and if the shaders have support for it (see usage of gl_ClipDistance).
  * \note planes must be in world space.
  */
 void DRW_view_clip_planes_set(DRWView *view, float (*planes)[4], int plane_len);
-
-/* For all getters, if view is nullptr, default view is assumed. */
-
-void DRW_view_winmat_get(const DRWView *view, float mat[4][4], bool inverse);
-void DRW_view_viewmat_get(const DRWView *view, float mat[4][4], bool inverse);
-void DRW_view_persmat_get(const DRWView *view, float mat[4][4], bool inverse);
 
 /**
  * \return world space frustum corners.

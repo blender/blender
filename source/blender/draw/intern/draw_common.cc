@@ -273,27 +273,6 @@ void DRW_globals_update()
 
 void DRW_globals_free() {}
 
-DRWView *DRW_view_create_with_zoffset(const DRWView *parent_view,
-                                      const RegionView3D *rv3d,
-                                      float offset)
-{
-  /* Create view with depth offset */
-  float viewmat[4][4], winmat[4][4];
-  DRW_view_viewmat_get(parent_view, viewmat, false);
-  DRW_view_winmat_get(parent_view, winmat, false);
-
-  float viewdist = rv3d->dist;
-
-  /* special exception for ortho camera (`viewdist` isn't used for perspective cameras). */
-  if (rv3d->persp == RV3D_CAMOB && rv3d->is_persp == false) {
-    viewdist = 1.0f / max_ff(fabsf(winmat[0][0]), fabsf(winmat[1][1]));
-  }
-
-  winmat[3][2] -= GPU_polygon_offset_calc(winmat, viewdist, offset);
-
-  return DRW_view_create_sub(parent_view, viewmat, winmat);
-}
-
 /* ******************************************** COLOR UTILS ************************************ */
 
 int DRW_object_wire_theme_get(Object *ob, ViewLayer *view_layer, float **r_color)
@@ -430,52 +409,6 @@ float *DRW_color_background_blend_get(int theme_id)
   UI_GetThemeColorBlendShade4fv(theme_id, TH_BACK, 0.5, 0, ret);
 
   return ret;
-}
-
-bool DRW_object_is_flat(Object *ob, int *r_axis)
-{
-  float dim[3];
-
-  if (!ELEM(ob->type,
-            OB_MESH,
-            OB_CURVES_LEGACY,
-            OB_SURF,
-            OB_FONT,
-            OB_CURVES,
-            OB_POINTCLOUD,
-            OB_VOLUME))
-  {
-    /* Non-meshes object cannot be considered as flat. */
-    return false;
-  }
-
-  BKE_object_dimensions_get(ob, dim);
-  if (dim[0] == 0.0f) {
-    *r_axis = 0;
-    return true;
-  }
-  if (dim[1] == 0.0f) {
-    *r_axis = 1;
-    return true;
-  }
-  if (dim[2] == 0.0f) {
-    *r_axis = 2;
-    return true;
-  }
-  return false;
-}
-
-bool DRW_object_axis_orthogonal_to_view(Object *ob, int axis)
-{
-  float ob_rot[3][3], invviewmat[4][4];
-  DRW_view_viewmat_get(nullptr, invviewmat, true);
-  BKE_object_rot_to_mat3(ob, ob_rot, true);
-  float dot = dot_v3v3(ob_rot[axis], invviewmat[2]);
-  if (fabsf(dot) < 1e-3) {
-    return true;
-  }
-
-  return false;
 }
 
 static void DRW_evaluate_weight_to_color(const float weight, float result[4])

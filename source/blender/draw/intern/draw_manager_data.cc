@@ -439,24 +439,4 @@ float DRW_view_far_distance_get(const DRWView *view)
   return -(projmat[3][2] - 1.0f) / projmat[2][2];
 }
 
-void DRW_view_viewmat_get(const DRWView *view, float mat[4][4], bool inverse)
-{
-  view = (view) ? view : DST.view_default;
-  const ViewMatrices *storage = &view->storage;
-  copy_m4_m4(mat, (inverse) ? storage->viewinv.ptr() : storage->viewmat.ptr());
-}
-
-void DRW_view_winmat_get(const DRWView *view, float mat[4][4], bool inverse)
-{
-  view = (view) ? view : DST.view_default;
-  const ViewMatrices *storage = &view->storage;
-  copy_m4_m4(mat, (inverse) ? storage->wininv.ptr() : storage->winmat.ptr());
-}
-
-void DRW_view_persmat_get(const DRWView *view, float mat[4][4], bool inverse)
-{
-  view = (view) ? view : DST.view_default;
-  copy_m4_m4(mat, (inverse) ? view->persinv.ptr() : view->persmat.ptr());
-}
-
 /** \} */

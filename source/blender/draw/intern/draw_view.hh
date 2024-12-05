@@ -74,19 +74,9 @@ class View {
     BLI_assert(view_len <= DRW_VIEW_MAX);
   }
 
-  /* For compatibility with old system. Will be removed at some point. */
-  View(const char *name, const DRWView *view)
-      : visibility_buf_(name), debug_name_(name), view_len_(1)
-  {
-    this->sync(view);
-  }
-
   virtual ~View() = default;
 
   void sync(const float4x4 &view_mat, const float4x4 &win_mat, int view_id = 0);
-
-  /* For compatibility with old system. Will be removed at some point. */
-  void sync(const DRWView *view);
 
   /** Enable or disable every visibility test (frustum culling, HiZ culling). */
   void visibility_test(bool enable)

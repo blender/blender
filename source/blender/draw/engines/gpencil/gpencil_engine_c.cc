@@ -173,8 +173,7 @@ void GPENCIL_engine_init(void *ved)
     gpencil_light_ambient_add(stl->pd->global_light_pool, world_light);
   }
 
-  float viewmatinv[4][4];
-  DRW_view_viewmat_get(nullptr, viewmatinv, true);
+  float4x4 viewmatinv = blender::draw::View::default_get().viewinv();
   copy_v3_v3(stl->pd->camera_z_axis, viewmatinv[2]);
   copy_v3_v3(stl->pd->camera_pos, viewmatinv[3]);
   stl->pd->camera_z_offset = dot_v3v3(viewmatinv[3], viewmatinv[2]);

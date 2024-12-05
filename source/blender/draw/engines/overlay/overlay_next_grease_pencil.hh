@@ -431,7 +431,8 @@ class GreasePencil : Overlay {
       }
       case GP_LOCKAXIS_VIEW:
         /* view aligned */
-        DRW_view_viewmat_get(nullptr, mat.ptr(), true);
+        /* TODO(fclem): Global access. */
+        mat = blender::draw::View::default_get().viewinv();
         break;
     }
 

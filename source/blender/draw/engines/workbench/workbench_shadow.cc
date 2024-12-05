@@ -313,8 +313,7 @@ void ShadowPass::init(const SceneState &scene_state, SceneResources &resources)
   pass_data_.push_update();
 
   /* Shadow direction. */
-  float4x4 view_matrix;
-  DRW_view_viewmat_get(nullptr, view_matrix.ptr(), false);
+  float4x4 view_matrix = blender::draw::View::default_get().viewmat();
   resources.world_buf.shadow_direction_vs = float4(
       math::transform_direction(view_matrix, direction_ws), 0.0f);
 
@@ -395,8 +394,7 @@ void ShadowPass::object_sync(SceneState &scene_state,
 
 #define DEBUG_CULLING 0
 #if DEBUG_CULLING
-  View view = View("View");
-  view.sync(View::default_get().viewmat(), View::default_get().winmat());
+  View view = View("View", DRW_view_default_get());
   ShadowView shadow_view = ShadowView("ShadowView", view, pass_data_.light_direction_ws);
   printf(
       "%s culling : %s\n", ob->id.name, shadow_view.debug_object_culling(ob) ? "true" : "false");

@@ -38,10 +38,6 @@ BLI_STATIC_ASSERT_ALIGN(GlobalsUboStorage, 16)
 void DRW_globals_update();
 void DRW_globals_free();
 
-DRWView *DRW_view_create_with_zoffset(const DRWView *parent_view,
-                                      const RegionView3D *rv3d,
-                                      float offset);
-
 /**
  * Get the wire color theme_id of an object based on its state
  * \a r_color is a way to get a pointer to the static color var associated
@@ -49,8 +45,6 @@ DRWView *DRW_view_create_with_zoffset(const DRWView *parent_view,
 int DRW_object_wire_theme_get(Object *ob, ViewLayer *view_layer, float **r_color);
 float *DRW_color_background_blend_get(int theme_id);
 
-bool DRW_object_is_flat(Object *ob, int *r_axis);
-bool DRW_object_axis_orthogonal_to_view(Object *ob, int axis);
 
 /* draw_hair.cc */
 
