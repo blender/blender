@@ -17,7 +17,7 @@
  * often need high precision, see #44780.
  */
 
-#include <string.h>
+#include <cstring>
 
 #include "BLI_math_base.h"
 #include "BLI_math_matrix.h"

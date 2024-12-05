@@ -33,6 +33,10 @@
 
 #include "BLI_utildefines.h"
 
+#include <cstdlib>
+
+#include "MEM_guardedalloc.h"
+
 #include "BLI_alloca.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_vector.h"
@@ -61,7 +65,7 @@
 #  include "BLI_time_utildefines.h"
 #endif
 
-typedef int8_t eSign;
+using eSign = int8_t;
 
 #ifdef USE_KDTREE
 /**
@@ -83,21 +87,21 @@ typedef int8_t eSign;
  * - the KDTree is only built & used when the polygon is concave.
  */
 
-typedef bool axis_t;
+using axis_t = bool;
 
 /* use for sorting */
-typedef struct KDTreeNode2D_head {
+struct KDTreeNode2D_head {
   uint32_t neg, pos;
   uint32_t index;
-} KDTreeNode2D_head;
+};
 
-typedef struct KDTreeNode2D {
+struct KDTreeNode2D {
   uint32_t neg, pos;
   uint32_t index;
   axis_t axis; /* range is only (0-1) */
   uint16_t flag;
   uint32_t parent;
-} KDTreeNode2D;
+};
 
 struct KDTree2D {
   KDTreeNode2D *nodes;
@@ -118,8 +122,15 @@ enum {
   CONVEX = 1,
 };
 
-typedef struct PolyFill {
-  struct PolyIndex *indices; /* vertex aligned */
+/** Circular double linked-list. */
+struct PolyIndex {
+  PolyIndex *next, *prev;
+  uint32_t index;
+  eSign sign;
+};
+
+struct PolyFill {
+  PolyIndex *indices; /* vertex aligned */
 
   const float (*coords)[2];
   uint32_t coords_num;
@@ -134,14 +145,7 @@ typedef struct PolyFill {
 #ifdef USE_KDTREE
   struct KDTree2D kdtree;
 #endif
-} PolyFill;
-
-/** Circular double linked-list. */
-typedef struct PolyIndex {
-  struct PolyIndex *next, *prev;
-  uint32_t index;
-  eSign sign;
-} PolyIndex;
+};
 
 /* based on libgdx 2013-11-28, apache 2.0 licensed */
 
@@ -198,7 +202,7 @@ enum {
   KDNODE_FLAG_REMOVED = (1 << 0),
 };
 
-static void kdtree2d_new(struct KDTree2D *tree, uint32_t tot, const float (*coords)[2])
+static void kdtree2d_new(KDTree2D *tree, uint32_t tot, const float (*coords)[2])
 {
   /* set by caller */
   // tree->nodes = nodes;
@@ -210,9 +214,7 @@ static void kdtree2d_new(struct KDTree2D *tree, uint32_t tot, const float (*coor
 /**
  * no need for kdtree2d_insert, since we know the coords array.
  */
-static void kdtree2d_init(struct KDTree2D *tree,
-                          const uint32_t coords_num,
-                          const PolyIndex *indices)
+static void kdtree2d_init(KDTree2D *tree, const uint32_t coords_num, const PolyIndex *indices)
 {
   KDTreeNode2D *node;
   uint32_t i;
@@ -288,12 +290,12 @@ static uint32_t kdtree2d_balance_recursive(KDTreeNode2D *nodes,
   return median + ofs;
 }
 
-static void kdtree2d_balance(struct KDTree2D *tree)
+static void kdtree2d_balance(KDTree2D *tree)
 {
   tree->root = kdtree2d_balance_recursive(tree->nodes, tree->node_num, 0, tree->coords, 0);
 }
 
-static void kdtree2d_init_mapping(struct KDTree2D *tree)
+static void kdtree2d_init_mapping(KDTree2D *tree)
 {
   uint32_t i;
   KDTreeNode2D *node;
@@ -314,7 +316,7 @@ static void kdtree2d_init_mapping(struct KDTree2D *tree)
   tree->nodes[tree->root].parent = KDNODE_UNSET;
 }
 
-static void kdtree2d_node_remove(struct KDTree2D *tree, uint32_t index)
+static void kdtree2d_node_remove(KDTree2D *tree, uint32_t index)
 {
   uint32_t node_index = tree->nodes_map[index];
   KDTreeNode2D *node;
@@ -355,11 +357,11 @@ static void kdtree2d_node_remove(struct KDTree2D *tree, uint32_t index)
   }
 }
 
-static bool kdtree2d_isect_tri_recursive(const struct KDTree2D *tree,
+static bool kdtree2d_isect_tri_recursive(const KDTree2D *tree,
                                          const uint32_t tri_index[3],
                                          const float *tri_coords[3],
                                          const float tri_center[2],
-                                         const struct KDRange2D bounds[2],
+                                         const KDRange2D bounds[2],
                                          const KDTreeNode2D *node)
 {
   const float *co = tree->coords[node->index];
@@ -415,11 +417,11 @@ static bool kdtree2d_isect_tri_recursive(const struct KDTree2D *tree,
   return false;
 }
 
-static bool kdtree2d_isect_tri(struct KDTree2D *tree, const uint32_t ind[3])
+static bool kdtree2d_isect_tri(KDTree2D *tree, const uint32_t ind[3])
 {
   const float *vs[3];
   uint32_t i;
-  struct KDRange2D bounds[2] = {
+  KDRange2D bounds[2] = {
       {FLT_MAX, -FLT_MAX},
       {FLT_MAX, -FLT_MAX},
   };
@@ -465,7 +467,7 @@ static void pf_coord_remove(PolyFill *pf, PolyIndex *pi)
   }
 #ifndef NDEBUG
   pi->index = (uint32_t)-1;
-  pi->next = pi->prev = NULL;
+  pi->next = pi->prev = nullptr;
 #endif /* !NDEBUG */
 
   pf->coords_num -= 1;
@@ -870,7 +872,8 @@ void BLI_polyfill_calc_arena(const float (*coords)[2],
                              MemArena *arena)
 {
   PolyFill pf;
-  PolyIndex *indices = BLI_memarena_alloc(arena, sizeof(*indices) * coords_num);
+  PolyIndex *indices = static_cast<PolyIndex *>(
+      BLI_memarena_alloc(arena, sizeof(*indices) * coords_num));
 
 #ifdef DEBUG_TIME
   TIMEIT_START(polyfill2d);
@@ -886,11 +889,12 @@ void BLI_polyfill_calc_arena(const float (*coords)[2],
 
 #ifdef USE_KDTREE
   if (pf.coords_num_concave) {
-    pf.kdtree.nodes = BLI_memarena_alloc(arena, sizeof(*pf.kdtree.nodes) * pf.coords_num_concave);
-    pf.kdtree.nodes_map = memset(
-        BLI_memarena_alloc(arena, sizeof(*pf.kdtree.nodes_map) * coords_num),
-        0xff,
-        sizeof(*pf.kdtree.nodes_map) * coords_num);
+    pf.kdtree.nodes = static_cast<KDTreeNode2D *>(
+        BLI_memarena_alloc(arena, sizeof(*pf.kdtree.nodes) * pf.coords_num_concave));
+    pf.kdtree.nodes_map = static_cast<uint32_t *>(
+        memset(BLI_memarena_alloc(arena, sizeof(*pf.kdtree.nodes_map) * coords_num),
+               0xff,
+               sizeof(*pf.kdtree.nodes_map) * coords_num));
   }
   else {
     pf.kdtree.node_num = 0;
@@ -926,7 +930,7 @@ void BLI_polyfill_calc(const float (*coords)[2],
   }
 
   PolyFill pf;
-  PolyIndex *indices = BLI_array_alloca(indices, coords_num);
+  PolyIndex *indices = static_cast<PolyIndex *>(BLI_array_alloca(indices, coords_num));
 
 #ifdef DEBUG_TIME
   TIMEIT_START(polyfill2d);
@@ -942,10 +946,12 @@ void BLI_polyfill_calc(const float (*coords)[2],
 
 #ifdef USE_KDTREE
   if (pf.coords_num_concave) {
-    pf.kdtree.nodes = BLI_array_alloca(pf.kdtree.nodes, pf.coords_num_concave);
-    pf.kdtree.nodes_map = memset(BLI_array_alloca(pf.kdtree.nodes_map, coords_num),
-                                 0xff,
-                                 sizeof(*pf.kdtree.nodes_map) * coords_num);
+    pf.kdtree.nodes = static_cast<KDTreeNode2D *>(
+        BLI_array_alloca(pf.kdtree.nodes, pf.coords_num_concave));
+    pf.kdtree.nodes_map = static_cast<uint32_t *>(
+        memset(BLI_array_alloca(pf.kdtree.nodes_map, coords_num),
+               0xff,
+               sizeof(*pf.kdtree.nodes_map) * coords_num));
   }
   else {
     pf.kdtree.node_num = 0;

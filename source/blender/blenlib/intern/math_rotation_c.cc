@@ -1601,10 +1601,10 @@ void quat_to_compatible_eul(float eul[3], const float oldrot[3], const float qua
  */
 
 /* Type for rotation order info - see wiki for derivation details */
-typedef struct RotOrderInfo {
+struct RotOrderInfo {
   short axis[3];
   short parity; /* parity of axis permutation (even=0, odd=1) - 'n' in original code */
-} RotOrderInfo;
+};
 
 /* Array of info for Rotation Order calculations
  * WARNING: must be kept in same order as eEulerRotationOrders

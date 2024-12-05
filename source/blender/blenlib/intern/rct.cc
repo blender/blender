@@ -8,12 +8,12 @@
  * A minimalist lib for functions doing stuff with rectangle structs.
  */
 
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-
-#include <float.h>
-#include <limits.h>
+#include <algorithm>
+#include <cfloat>
+#include <climits>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
 
 #include "BLI_math_base.h"
 #include "BLI_rect.h"
@@ -1111,8 +1111,8 @@ void BLI_rctf_rotate_expand(rctf *dst, const rctf *src, const float angle)
 
   corner[1] *= -1;
   ROTATE_SINCOS(corner_rot, mat2, corner);
-  corder_max[0] = MAX2(corder_max[0], fabsf(corner_rot[0]));
-  corder_max[1] = MAX2(corder_max[1], fabsf(corner_rot[1]));
+  corder_max[0] = std::max(corder_max[0], fabsf(corner_rot[0]));
+  corder_max[1] = std::max(corder_max[1], fabsf(corner_rot[1]));
 
   dst->xmin = cent[0] - corder_max[0];
   dst->xmax = cent[0] + corder_max[0];

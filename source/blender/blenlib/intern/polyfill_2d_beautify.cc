@@ -50,7 +50,8 @@ struct HalfEdge {
 
 static int oedge_cmp(const void *a1, const void *a2)
 {
-  const struct OrderEdge *x1 = a1, *x2 = a2;
+  const OrderEdge *x1 = static_cast<const OrderEdge *>(a1);
+  const OrderEdge *x2 = static_cast<const OrderEdge *>(a2);
   if (x1->verts[0] > x2->verts[0]) {
     return 1;
   }
@@ -240,21 +241,21 @@ float BLI_polyfill_edge_calc_rotate_beauty__area(const float v1[3],
      * (when performed iteratively).
      */
     return BLI_polyfill_beautify_quad_rotate_calc_ex(
-        v1_xy, v2_xy, v3_xy, v4_xy, lock_degenerate, NULL);
+        v1_xy, v2_xy, v3_xy, v4_xy, lock_degenerate, nullptr);
   } while (false);
 
   return FLT_MAX;
 }
 
 static float polyedge_rotate_beauty_calc(const float (*coords)[2],
-                                         const struct HalfEdge *edges,
-                                         const struct HalfEdge *e_a,
+                                         const HalfEdge *edges,
+                                         const HalfEdge *e_a,
                                          float *r_area)
 {
-  const struct HalfEdge *e_b = &edges[e_a->e_radial];
+  const HalfEdge *e_b = &edges[e_a->e_radial];
 
-  const struct HalfEdge *e_a_other = &edges[edges[e_a->e_next].e_next];
-  const struct HalfEdge *e_b_other = &edges[edges[e_b->e_next].e_next];
+  const HalfEdge *e_a_other = &edges[edges[e_a->e_next].e_next];
+  const HalfEdge *e_b_other = &edges[edges[e_b->e_next].e_next];
 
   const float *v1, *v2, *v3, *v4;
 
@@ -267,8 +268,8 @@ static float polyedge_rotate_beauty_calc(const float (*coords)[2],
 }
 
 static void polyedge_beauty_cost_update_single(const float (*coords)[2],
-                                               const struct HalfEdge *edges,
-                                               struct HalfEdge *e,
+                                               const HalfEdge *edges,
+                                               HalfEdge *e,
                                                Heap *eheap,
                                                HeapNode **eheap_table)
 {
@@ -291,18 +292,15 @@ static void polyedge_beauty_cost_update_single(const float (*coords)[2],
   else {
     if (eheap_table[i]) {
       BLI_heap_remove(eheap, eheap_table[i]);
-      eheap_table[i] = NULL;
+      eheap_table[i] = nullptr;
     }
   }
 }
 
-static void polyedge_beauty_cost_update(const float (*coords)[2],
-                                        struct HalfEdge *edges,
-                                        struct HalfEdge *e,
-                                        Heap *eheap,
-                                        HeapNode **eheap_table)
+static void polyedge_beauty_cost_update(
+    const float (*coords)[2], HalfEdge *edges, HalfEdge *e, Heap *eheap, HeapNode **eheap_table)
 {
-  struct HalfEdge *e_arr[4];
+  HalfEdge *e_arr[4];
   e_arr[0] = &edges[e->e_next];
   e_arr[1] = &edges[e_arr[0]->e_next];
 
@@ -317,7 +315,7 @@ static void polyedge_beauty_cost_update(const float (*coords)[2],
   }
 }
 
-static void polyedge_rotate(struct HalfEdge *edges, const struct HalfEdge *e)
+static void polyedge_rotate(HalfEdge *edges, const HalfEdge *e)
 {
   /** CCW winding, rotate internal edge to new vertical state.
    *
@@ -334,7 +332,7 @@ static void polyedge_rotate(struct HalfEdge *edges, const struct HalfEdge *e)
    *      X             X
    * \endcode
    */
-  struct HalfEdge *ed[6];
+  HalfEdge *ed[6];
   uint ed_index[6];
 
   ed_index[0] = (uint)(e - edges);
@@ -378,9 +376,10 @@ void BLI_polyfill_beautify(const float (*coords)[2],
   HeapNode **eheap_table;
 
   const uint half_edges_len = 3 * tris_len;
-  struct HalfEdge *half_edges = BLI_memarena_alloc(arena, sizeof(*half_edges) * half_edges_len);
-  struct OrderEdge *order_edges = BLI_memarena_alloc(arena,
-                                                     sizeof(struct OrderEdge) * 2 * edges_len);
+  HalfEdge *half_edges = static_cast<HalfEdge *>(
+      BLI_memarena_alloc(arena, sizeof(*half_edges) * half_edges_len));
+  OrderEdge *order_edges = static_cast<OrderEdge *>(
+      BLI_memarena_alloc(arena, sizeof(OrderEdge) * 2 * edges_len));
   uint order_edges_len = 0;
 
   /* first build edges */
@@ -410,11 +409,11 @@ void BLI_polyfill_beautify(const float (*coords)[2],
   }
   BLI_assert(edges_len * 2 == order_edges_len);
 
-  qsort(order_edges, order_edges_len, sizeof(struct OrderEdge), oedge_cmp);
+  qsort(order_edges, order_edges_len, sizeof(OrderEdge), oedge_cmp);
 
   for (uint i = 0, base_index = 0; i < order_edges_len; base_index++) {
-    const struct OrderEdge *oe_a = &order_edges[i++];
-    const struct OrderEdge *oe_b = &order_edges[i++];
+    const OrderEdge *oe_a = &order_edges[i++];
+    const OrderEdge *oe_b = &order_edges[i++];
     BLI_assert(oe_a->verts[0] == oe_b->verts[0] && oe_a->verts[1] == oe_b->verts[1]);
     half_edges[oe_a->e_half].e_radial = oe_b->e_half;
     half_edges[oe_b->e_half].e_radial = oe_a->e_half;
@@ -428,30 +427,30 @@ void BLI_polyfill_beautify(const float (*coords)[2],
   eheap_table = BLI_memarena_alloc(arena, sizeof(HeapNode *) * (size_t)edges_len);
 #else
   /* We can re-use this since its big enough. */
-  eheap_table = (void *)order_edges;
-  order_edges = NULL;
+  eheap_table = (HeapNode **)order_edges;
+  order_edges = nullptr;
 #endif
 
   /* Build heap. */
   {
-    struct HalfEdge *e = half_edges;
+    HalfEdge *e = half_edges;
     for (uint i = 0; i < half_edges_len; i++, e++) {
       /* Accounts for boundary edged too (UINT_MAX). */
       if (e->e_radial < i) {
-        const float cost = polyedge_rotate_beauty_calc(coords, half_edges, e, NULL);
+        const float cost = polyedge_rotate_beauty_calc(coords, half_edges, e, nullptr);
         if (cost < 0.0f) {
           eheap_table[e->base_index] = BLI_heap_insert(eheap, cost, e);
         }
         else {
-          eheap_table[e->base_index] = NULL;
+          eheap_table[e->base_index] = nullptr;
         }
       }
     }
   }
 
   while (BLI_heap_is_empty(eheap) == false) {
-    struct HalfEdge *e = BLI_heap_pop_min(eheap);
-    eheap_table[e->base_index] = NULL;
+    HalfEdge *e = static_cast<HalfEdge *>(BLI_heap_pop_min(eheap));
+    eheap_table[e->base_index] = nullptr;
 
     polyedge_rotate(half_edges, e);
 
@@ -459,14 +458,14 @@ void BLI_polyfill_beautify(const float (*coords)[2],
     polyedge_beauty_cost_update(coords, half_edges, e, eheap, eheap_table);
   }
 
-  BLI_heap_clear(eheap, NULL);
+  BLI_heap_clear(eheap, nullptr);
 
   // MEM_freeN(eheap_table); /* arena */
 
   /* Get triangles from half edge. */
   uint tri_index = 0;
   for (uint i = 0; i < half_edges_len; i++) {
-    struct HalfEdge *e = &half_edges[i];
+    HalfEdge *e = &half_edges[i];
     if (e->v != UINT_MAX) {
       uint *tri = tris[tri_index++];
 

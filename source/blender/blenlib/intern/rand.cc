@@ -17,6 +17,7 @@
 #include "BLI_bitmap.h"
 #include "BLI_compiler_compat.h"
 #include "BLI_math_vector.h"
+#include "BLI_noise.h"
 #include "BLI_rand.h"
 #include "BLI_rand.hh"
 #include "BLI_sys_types.h"
@@ -24,7 +25,6 @@
 
 #include "BLI_strict_flags.h" /* Keep last. */
 
-extern "C" uchar BLI_noise_hash_uchar_512[512]; /* `noise.cc` */
 #define hash BLI_noise_hash_uchar_512
 
 /**
