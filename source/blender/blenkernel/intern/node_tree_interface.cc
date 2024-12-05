@@ -7,6 +7,7 @@
 #include "BKE_lib_query.hh"
 #include "BKE_node.hh"
 #include "BKE_node_enum.hh"
+#include "BKE_node_runtime.hh"
 #include "BKE_node_tree_interface.hh"
 
 #include "BLI_math_vector.h"
@@ -1073,19 +1074,32 @@ bNodeTreeInterfaceSocket *add_interface_socket_from_node(bNodeTree &ntree,
                                                          const StringRef socket_type,
                                                          const StringRef name)
 {
-  NodeTreeInterfaceSocketFlag flag = NodeTreeInterfaceSocketFlag(0);
-  SET_FLAG_FROM_TEST(flag, from_sock.in_out & SOCK_IN, NODE_INTERFACE_SOCKET_INPUT);
-  SET_FLAG_FROM_TEST(flag, from_sock.in_out & SOCK_OUT, NODE_INTERFACE_SOCKET_OUTPUT);
+  bNodeTreeInterfaceSocket *iosock = nullptr;
+  if (from_node.is_group()) {
+    if (const bNodeTree *group = reinterpret_cast<const bNodeTree *>(from_node.id)) {
+      /* Copy interface socket directly from source group to avoid loosing data in the process. */
+      group->ensure_interface_cache();
+      const bNodeTreeInterfaceSocket &src_io_socket =
+          from_sock.is_input() ? *group->interface_inputs()[from_sock.index()] :
+                                 *group->interface_outputs()[from_sock.index()];
+      iosock = reinterpret_cast<bNodeTreeInterfaceSocket *>(
+          ntree.tree_interface.add_item_copy(src_io_socket.item, nullptr));
+    }
+  }
+  if (!iosock) {
+    NodeTreeInterfaceSocketFlag flag = NodeTreeInterfaceSocketFlag(0);
+    SET_FLAG_FROM_TEST(flag, from_sock.in_out & SOCK_IN, NODE_INTERFACE_SOCKET_INPUT);
+    SET_FLAG_FROM_TEST(flag, from_sock.in_out & SOCK_OUT, NODE_INTERFACE_SOCKET_OUTPUT);
 
-  bNodeTreeInterfaceSocket *iosock = ntree.tree_interface.add_socket(
-      name, from_sock.description, socket_type, flag, nullptr);
+    iosock = ntree.tree_interface.add_socket(
+        name, from_sock.description, socket_type, flag, nullptr);
+  }
   if (iosock == nullptr) {
     return nullptr;
   }
   const blender::bke::bNodeSocketType *typeinfo = iosock->socket_typeinfo();
   if (typeinfo->interface_from_socket) {
     typeinfo->interface_from_socket(&ntree.id, iosock, &from_node, &from_sock);
-    UNUSED_VARS(from_sock);
   }
   return iosock;
 }
@@ -1283,7 +1297,6 @@ bNodeTreeInterfaceItem *bNodeTreeInterface::add_item_copy(const bNodeTreeInterfa
   if (parent == nullptr) {
     parent = &root_panel;
   }
-  BLI_assert(this->find_item(item));
   BLI_assert(this->find_item(parent->item));
 
   bNodeTreeInterfaceItem *citem = static_cast<bNodeTreeInterfaceItem *>(MEM_dupallocN(&item));
