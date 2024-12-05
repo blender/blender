@@ -513,8 +513,8 @@ class VersioningTest(unittest.TestCase):
         self.assertEqual(len(strip.channelbags[0].groups), 1)
         self.assertEqual(len(strip.channelbags[0].groups[0].channels), 9)
 
-        # Multi user slots do not get named after their users.
-        self.assertEqual(action.slots[0].identifier, "OBSlot")
+        # Slots created from legacy Actions are always called "Legacy SLot".
+        self.assertEqual(action.slots[0].identifier, "OBLegacy Slot")
 
     def test_action_constraint(self):
         constrained_object = bpy.data.objects["action_constraint_constrained"]
@@ -546,8 +546,8 @@ class VersioningTest(unittest.TestCase):
         self.assertEqual(len(strip.channelbags[0].groups[0].channels), 10)
         self.assertEqual(len(strip.channelbags[0].groups[1].channels), 10)
 
-        # Slots with a single user are named after their user.
-        self.assertEqual(action.slots[0].identifier, "OBarmature_object")
+        # Slots on converted Actions are always called "Legacy Slot"
+        self.assertEqual(action.slots[0].identifier, "OBLegacy Slot")
 
         for fcurve in strip.channelbags[0].groups[0].channels:
             self.assertEqual(fcurve.group.name, "Bone")

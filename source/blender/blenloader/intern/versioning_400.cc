@@ -139,7 +139,9 @@ static void convert_action_in_place(blender::animrig::Action &action)
 
   Slot &slot = action.slot_add();
   slot.idtype = idtype;
-  slot.identifier_ensure_prefix();
+
+  const std::string slot_identifier{slot.identifier_prefix_for_idtype() + DATA_("Legacy Slot")};
+  action.slot_identifier_define(slot, slot_identifier);
 
   Layer &layer = action.layer_add("Layer");
   blender::animrig::Strip &strip = layer.strip_add(action,
@@ -244,11 +246,6 @@ static void version_legacy_actions_to_layered(Main *bmain)
     blender::Vector<ActionUserInfo> &user_infos = item.value;
     Slot &slot_to_assign = *action.slot(0);
 
-    if (user_infos.size() == 1) {
-      /* Rename the slot after its single user. If there are multiple users, the name is unchanged
-       * because there is no good way to determine a name. */
-      action.slot_identifier_set(*bmain, slot_to_assign, user_infos[0].id->name);
-    }
     for (ActionUserInfo &action_user : user_infos) {
       const ActionSlotAssignmentResult result = generic_assign_action_slot(
           &slot_to_assign,
