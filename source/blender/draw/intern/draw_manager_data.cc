@@ -386,27 +386,4 @@ void DRW_view_update(DRWView *view,
 #endif
 }
 
-void DRW_view_clip_planes_set(DRWView *view, float (*planes)[4], int plane_len)
-{
-  BLI_assert(plane_len <= MAX_CLIP_PLANES);
-  view->clip_planes_len = plane_len;
-  if (plane_len > 0) {
-    memcpy(view->clip_planes, planes, sizeof(float[4]) * plane_len);
-  }
-}
-
-void DRW_view_frustum_corners_get(const DRWView *view, BoundBox *corners)
-{
-  memcpy(corners, &view->frustum_corners, sizeof(view->frustum_corners));
-}
-
-std::array<float4, 6> DRW_view_frustum_planes_get(const DRWView *view)
-{
-  std::array<float4, 6> planes;
-  const blender::Span<float4> view_planes(reinterpret_cast<const float4 *>(&view->frustum_planes),
-                                          6);
-  std::copy(view_planes.begin(), view_planes.end(), planes.begin());
-  return planes;
-}
-
 /** \} */

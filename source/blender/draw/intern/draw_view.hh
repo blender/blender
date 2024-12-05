@@ -211,6 +211,8 @@ class View {
 
   /* Returns frustum planes equations. Available only after sync. */
   std::array<float4, 6> frustum_planes_get(int view_id = 0);
+  /* Returns frustum corners positions in world space. Available only after sync. */
+  std::array<float3, 8> frustum_corners_get(int view_id = 0);
 
  protected:
   /** Called from draw manager. */

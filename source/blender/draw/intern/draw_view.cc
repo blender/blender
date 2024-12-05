@@ -328,4 +328,16 @@ std::array<float4, 6> View::frustum_planes_get(int view_id)
           culling_[view_id].frustum_planes.planes[5]};
 }
 
+std::array<float3, 8> View::frustum_corners_get(int view_id)
+{
+  return {culling_[view_id].frustum_corners.corners[0].xyz(),
+          culling_[view_id].frustum_corners.corners[1].xyz(),
+          culling_[view_id].frustum_corners.corners[2].xyz(),
+          culling_[view_id].frustum_corners.corners[3].xyz(),
+          culling_[view_id].frustum_corners.corners[4].xyz(),
+          culling_[view_id].frustum_corners.corners[5].xyz(),
+          culling_[view_id].frustum_corners.corners[6].xyz(),
+          culling_[view_id].frustum_corners.corners[7].xyz()};
+}
+
 }  // namespace blender::draw
