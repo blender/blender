@@ -243,7 +243,7 @@ static void file_panel_asset_catalog_buttons_draw(const bContext *C, Panel *pane
                       C,
                       "asset.bundle_install",
                       "asset_library_reference",
-                      "Copy Bundle to Asset Library...",
+                      IFACE_("Copy Bundle to Asset Library..."),
                       ICON_IMPORT);
     }
     CTX_free(mutable_ctx);
