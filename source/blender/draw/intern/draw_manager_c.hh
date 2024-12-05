@@ -450,42 +450,6 @@ struct DRWPass {
   char name[MAX_PASS_NAME];
 };
 
-#define MAX_CULLED_VIEWS 32
-
-struct DRWView {
-  /**
-   * These float4x4 (as well as the ViewMatrices) have alignment requirements in C++
-   * (see math::MatBase) that isn't fulfilled in C. So they need to be manually aligned.
-   * Since the DRWView are allocated using BLI_memblock, the chunks are given to be 16 bytes
-   * aligned (equal to the alignment of float4x4). We then assert that the DRWView itself is 16
-   * bytes aligned.
-   */
-  float4x4 persmat;
-  float4x4 persinv;
-  ViewMatrices storage;
-
-  /** Parent view if this is a sub view. nullptr otherwise. */
-  DRWView *parent;
-
-  float4 clip_planes[6];
-
-  /** Number of active clip planes. */
-  int clip_planes_len;
-  /** Does culling result needs to be updated. */
-  bool is_dirty;
-  /** Does facing needs to be reversed? */
-  bool is_inverted;
-  /** Culling */
-  uint32_t culling_mask;
-  BoundBox frustum_corners;
-  BoundSphere frustum_bsphere;
-  float frustum_planes[6][4];
-  /** Custom visibility function. */
-  void *user_data;
-};
-/* Needed to assert that alignment is the same in C++ and C. */
-BLI_STATIC_ASSERT_ALIGN(DRWView, 16);
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -551,7 +515,6 @@ struct DRWData {
   BLI_memblock *cullstates;
   BLI_memblock *shgroups;
   BLI_memblock *uniforms;
-  BLI_memblock *views;
   BLI_memblock *passes;
   BLI_memblock *images;
   GPUUniformBuf **matrices_ubo;
@@ -662,9 +625,6 @@ struct DRWManager {
   /** True, when drawing is in progress, see #DRW_draw_in_progress. */
   bool in_progress;
 
-  DRWView *view_default;
-  DRWView *view_active;
-  DRWView *view_previous;
   uint primary_view_num;
 
 #ifdef USE_GPU_SELECT

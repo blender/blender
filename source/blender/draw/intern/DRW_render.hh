@@ -82,7 +82,6 @@ typedef struct DRWPass DRWPass;
 typedef struct DRWShaderLibrary DRWShaderLibrary;
 typedef struct DRWShadingGroup DRWShadingGroup;
 typedef struct DRWUniform DRWUniform;
-typedef struct DRWView DRWView;
 
 /* TODO: Put it somewhere else? */
 struct BoundSphere {
@@ -293,35 +292,6 @@ enum eDRWAttrType {
   DRW_ATTR_INT,
   DRW_ATTR_FLOAT,
 };
-
-/* Views. */
-
-/**
- * Create a view with culling.
- */
-DRWView *DRW_view_create(const float viewmat[4][4],
-                         const float winmat[4][4],
-                         const float (*culling_viewmat)[4],
-                         const float (*culling_winmat)[4]);
-/**
- * Create a view with culling done by another view.
- */
-DRWView *DRW_view_create_sub(const DRWView *parent_view,
-                             const float viewmat[4][4],
-                             const float winmat[4][4]);
-
-/**
- * Update matrices of a view created with #DRW_view_create.
- */
-void DRW_view_update(DRWView *view,
-                     const float viewmat[4][4],
-                     const float winmat[4][4],
-                     const float (*culling_viewmat)[4],
-                     const float (*culling_winmat)[4]);
-/**
- * Update matrices of a view created with #DRW_view_create_sub.
- */
-void DRW_view_update_sub(DRWView *view, const float viewmat[4][4], const float winmat[4][4]);
 
 /* Viewport. */
 

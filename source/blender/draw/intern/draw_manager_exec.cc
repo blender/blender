@@ -211,14 +211,6 @@ void drw_state_set(DRWState state)
     GPU_shadow_offset(false);
   }
 
-  /* TODO: this should be part of shader state. */
-  if (state & DRW_STATE_CLIP_PLANES) {
-    GPU_clip_distances(DST.view_active->clip_planes_len);
-  }
-  else {
-    GPU_clip_distances(0);
-  }
-
   if (state & DRW_STATE_IN_FRONT_SELECT) {
     /* XXX `GPU_depth_range` is not a perfect solution
      * since very distant geometries can still be occluded.
@@ -328,90 +320,6 @@ void DRW_state_reset()
   GPU_line_smooth(false);
   /* Bypass #U.pixelsize factor by using a factor of 0.0f. Will be clamped to 1.0f. */
   GPU_line_width(0.0f);
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Culling (DRW_culling)
- * \{ */
-
-static bool draw_call_is_culled(const DRWResourceHandle *handle, DRWView *view)
-{
-  DRWCullingState *culling = static_cast<DRWCullingState *>(
-      DRW_memblock_elem_from_handle(DST.vmempool->cullstates, handle));
-  return (culling->mask & view->culling_mask) != 0;
-}
-
-/* Return True if the given BoundSphere intersect the current view frustum */
-static bool draw_culling_sphere_test(const BoundSphere *frustum_bsphere,
-                                     const float (*frustum_planes)[4],
-                                     const BoundSphere *bsphere)
-{
-  /* Bypass test if radius is negative. */
-  if (bsphere->radius < 0.0f) {
-    return true;
-  }
-
-  /* Do a rough test first: Sphere VS Sphere intersect. */
-  float center_dist_sq = len_squared_v3v3(bsphere->center, frustum_bsphere->center);
-  float radius_sum = bsphere->radius + frustum_bsphere->radius;
-  if (center_dist_sq > square_f(radius_sum)) {
-    return false;
-  }
-  /* TODO: we could test against the inscribed sphere of the frustum to early out positively. */
-
-  /* Test against the 6 frustum planes. */
-  /* TODO: order planes with sides first then far then near clip. Should be better culling
-   * heuristic when sculpting. */
-  for (int p = 0; p < 6; p++) {
-    float dist = plane_point_side_v3(frustum_planes[p], bsphere->center);
-    if (dist < -bsphere->radius) {
-      return false;
-    }
-  }
-  return true;
-}
-
-static void draw_compute_culling(DRWView *view)
-{
-  view = view->parent ? view->parent : view;
-
-  /* TODO(fclem): multi-thread this. */
-  /* TODO(fclem): compute all dirty views at once. */
-  if (!view->is_dirty) {
-    return;
-  }
-
-  BLI_memblock_iter iter;
-  BLI_memblock_iternew(DST.vmempool->cullstates, &iter);
-  DRWCullingState *cull;
-  while ((cull = static_cast<DRWCullingState *>(BLI_memblock_iterstep(&iter)))) {
-    if (cull->bsphere.radius < 0.0) {
-      cull->mask = 0;
-    }
-    else {
-      bool culled = !draw_culling_sphere_test(
-          &view->frustum_bsphere, view->frustum_planes, &cull->bsphere);
-
-#ifdef DRW_DEBUG_CULLING
-      if (G.debug_value != 0) {
-        if (culled) {
-          DRW_debug_sphere(
-              cull->bsphere.center, cull->bsphere.radius, blender::float4{1, 0, 0, 1});
-        }
-        else {
-          DRW_debug_sphere(
-              cull->bsphere.center, cull->bsphere.radius, blender::float4{0, 1, 0, 1});
-        }
-      }
-#endif
-
-      SET_FLAG_FROM_TEST(cull->mask, culled, view->culling_mask);
-    }
-  }
-
-  view->is_dirty = false;
 }
 
 /** \} */
@@ -716,7 +624,6 @@ static void draw_call_resource_bind(DRWCommandsState *state, const DRWResourceHa
   bool neg_scale = DRW_handle_negative_scale_get(handle);
   if (neg_scale != state->neg_scale) {
     state->neg_scale = neg_scale;
-    GPU_front_facing(neg_scale != DST.view_active->is_inverted);
   }
 
   int chunk = DRW_handle_chunk_get(handle);
@@ -870,7 +777,6 @@ static void draw_call_batching_finish(DRWShadingGroup *shgroup, DRWCommandsState
 
   /* Reset state */
   if (state->neg_scale) {
-    GPU_front_facing(DST.view_active->is_inverted);
   }
   if (state->obmats_loc != -1) {
     GPU_uniformbuf_unbind(DST.vmempool->matrices_ubo[state->resource_chunk]);
@@ -949,9 +855,6 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
         case DRW_CMD_DRAW:
         case DRW_CMD_DRAW_INDIRECT:
         case DRW_CMD_DRAW_INSTANCE:
-          if (draw_call_is_culled(&cmd->instance.handle, DST.view_active)) {
-            continue;
-          }
           break;
         default:
           break;
@@ -1071,15 +974,6 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
   }
 }
 
-static void drw_update_view()
-{
-  /* TODO(fclem): update a big UBO and only bind ranges here. */
-  GPU_uniformbuf_update(G_draw.view_ubo, &DST.view_active->storage);
-  GPU_uniformbuf_update(G_draw.clipping_ubo, &DST.view_active->clip_planes);
-
-  draw_compute_culling(DST.view_active);
-}
-
 static void drw_draw_pass_ex(DRWPass *pass,
                              DRWShadingGroup *start_group,
                              DRWShadingGroup *end_group)
@@ -1098,22 +992,12 @@ static void drw_draw_pass_ex(DRWPass *pass,
   BLI_assert_msg(DST.buffer_finish_called,
                  "DRW_render_instance_buffer_finish had not been called before drawing");
 
-  if (DST.view_previous != DST.view_active || DST.view_active->is_dirty) {
-    drw_update_view();
-    DST.view_active->is_dirty = false;
-    DST.view_previous = DST.view_active;
-  }
-
   /* GPU_framebuffer_clear calls can change the state outside the DRW module.
    * Force reset the affected states to avoid problems later. */
   drw_state_set(DST.state | DRW_STATE_WRITE_DEPTH | DRW_STATE_WRITE_COLOR);
 
   drw_state_set(pass->state);
   drw_state_validate();
-
-  if (DST.view_active->is_inverted) {
-    GPU_front_facing(true);
-  }
 
   DRW_stats_query_start(pass->name);
 
@@ -1146,11 +1030,6 @@ static void drw_draw_pass_ex(DRWPass *pass,
    * if it has been enabled. */
   if ((DST.state & DRW_STATE_RASTERIZER_ENABLED) == 0) {
     drw_state_set((DST.state & ~DRW_STATE_RASTERIZER_ENABLED) | DRW_STATE_DEFAULT);
-  }
-
-  /* Reset default. */
-  if (DST.view_active->is_inverted) {
-    GPU_front_facing(false);
   }
 
   DRW_stats_query_end();

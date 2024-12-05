@@ -10,7 +10,6 @@
 
 #include "draw_common_shader_shared.hh"
 
-struct DRWView;
 struct FluidModifierData;
 struct GPUMaterial;
 struct GPUTexture;

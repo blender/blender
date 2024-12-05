@@ -184,7 +184,7 @@ void Instance::view_update()
 /** \name Sync
  *
  * Sync will gather data from the scene that can change over a time step (i.e: motion steps).
- * IMPORTANT: xxx.sync() functions area responsible for creating DRW resources (i.e: DRWView) as
+ * IMPORTANT: xxx.sync() functions area responsible for creating DRW resources as
  * well as querying temp texture pool. All DRWPasses should be ready by the end end_sync().
  * \{ */
 

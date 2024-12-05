@@ -376,7 +376,6 @@ DRWData *DRW_viewport_data_create()
   drw_data->callbuffers = BLI_memblock_create(sizeof(DRWCallBuffer));
   drw_data->shgroups = BLI_memblock_create(sizeof(DRWShadingGroup));
   drw_data->uniforms = BLI_memblock_create(sizeof(DRWUniformChunk));
-  drw_data->views = BLI_memblock_create(sizeof(DRWView));
   drw_data->images = BLI_memblock_create(sizeof(GPUTexture *));
   drw_data->obattrs_ubo_pool = DRW_uniform_attrs_pool_new();
   drw_data->vlattrs_name_cache = BLI_ghash_new(
@@ -446,7 +445,6 @@ static void drw_viewport_data_reset(DRWData *drw_data)
   BLI_memblock_clear(drw_data->shgroups, nullptr);
   BLI_memblock_clear(drw_data->uniforms, nullptr);
   BLI_memblock_clear(drw_data->passes, nullptr);
-  BLI_memblock_clear(drw_data->views, nullptr);
   BLI_memblock_clear(drw_data->images, nullptr);
   DRW_uniform_attrs_pool_clear_all(drw_data->obattrs_ubo_pool);
   DRW_instance_data_list_free_unused(drw_data->idatalist);
@@ -467,7 +465,6 @@ void DRW_viewport_data_free(DRWData *drw_data)
   BLI_memblock_destroy(drw_data->cullstates, nullptr);
   BLI_memblock_destroy(drw_data->shgroups, nullptr);
   BLI_memblock_destroy(drw_data->uniforms, nullptr);
-  BLI_memblock_destroy(drw_data->views, nullptr);
   BLI_memblock_destroy(drw_data->passes, nullptr);
   BLI_memblock_destroy(drw_data->images, nullptr);
   DRW_uniform_attrs_pool_free(drw_data->obattrs_ubo_pool);
@@ -588,11 +585,7 @@ static void drw_manager_init(DRWManager *dst, GPUViewport *viewport, const int s
 
   if (rv3d != nullptr) {
     dst->pixsize = rv3d->pixsize;
-    dst->view_default = DRW_view_create(rv3d->viewmat, rv3d->winmat, nullptr, nullptr);
     blender::draw::View::default_set(float4x4(rv3d->viewmat), float4x4(rv3d->winmat));
-
-    dst->view_active = dst->view_default;
-    dst->view_previous = nullptr;
   }
   else if (region) {
     View2D *v2d = &region->v2d;
@@ -608,16 +601,10 @@ static void drw_manager_init(DRWManager *dst, GPUViewport *viewport, const int s
     winmat[3][0] = -1.0f;
     winmat[3][1] = -1.0f;
 
-    dst->view_default = DRW_view_create(viewmat, winmat, nullptr, nullptr);
     blender::draw::View::default_set(float4x4(viewmat), float4x4(winmat));
-    dst->view_active = dst->view_default;
-    dst->view_previous = nullptr;
   }
   else {
     dst->pixsize = 1.0f;
-    dst->view_default = nullptr;
-    dst->view_active = nullptr;
-    dst->view_previous = nullptr;
   }
 
   /* fclem: Is this still needed ? */
