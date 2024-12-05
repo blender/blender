@@ -545,6 +545,13 @@ static void noise_panel_draw(const bContext *C, Panel *panel)
   uiItemR(col, ptr, "offset", UI_ITEM_NONE, nullptr, ICON_NONE);
   uiItemR(col, ptr, "phase", UI_ITEM_NONE, nullptr, ICON_NONE);
   uiItemR(col, ptr, "depth", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "use_legacy_noise", UI_ITEM_NONE, nullptr, ICON_NONE);
+  PropertyRNA *prop = RNA_struct_find_property(ptr, "use_legacy_noise");
+  const bool use_legacy_noise = RNA_property_boolean_get(ptr, prop);
+  if (!use_legacy_noise) {
+    uiItemR(col, ptr, "lacunarity", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "roughness", UI_ITEM_NONE, nullptr, ICON_NONE);
+  }
 
   fmodifier_influence_draw(layout, ptr);
 }

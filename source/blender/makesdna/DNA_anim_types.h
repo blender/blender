@@ -245,9 +245,13 @@ typedef struct FMod_Noise {
   float strength;
   float phase;
   float offset;
+  float roughness;
+  float lacunarity;
 
   short depth;
   short modification;
+  char legacy_noise;
+  char _pad[3];
 } FMod_Noise;
 
 /* modification modes */

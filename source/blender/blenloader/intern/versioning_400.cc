@@ -296,6 +296,19 @@ static void version_legacy_actions_to_layered(Main *bmain)
   }
 }
 
+static void version_fcurve_noise_modifier(FCurve &fcurve)
+{
+  LISTBASE_FOREACH (FModifier *, fcurve_modifier, &fcurve.modifiers) {
+    if (fcurve_modifier->type != FMODIFIER_TYPE_NOISE) {
+      continue;
+    }
+    FMod_Noise *data = static_cast<FMod_Noise *>(fcurve_modifier->data);
+    data->lacunarity = 2.0f;
+    data->roughness = 0.5f;
+    data->legacy_noise = true;
+  }
+}
+
 /* Move bone-group color to the individual bones. */
 static void version_bonegroup_migrate_color(Main *bmain)
 {
@@ -5180,6 +5193,27 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
         remove_triangulate_node_min_size_input(ntree);
       }
     }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 9)) {
+    LISTBASE_FOREACH (bAction *, dna_action, &bmain->actions) {
+      blender::animrig::Action &action = dna_action->wrap();
+      blender::animrig::foreach_fcurve_in_action(
+          action, [&](FCurve &fcurve) { version_fcurve_noise_modifier(fcurve); });
+    }
+
+    ID *id;
+    FOREACH_MAIN_ID_BEGIN (bmain, id) {
+      AnimData *adt = BKE_animdata_from_id(id);
+      if (!adt) {
+        continue;
+      }
+
+      LISTBASE_FOREACH (FCurve *, fcu, &adt->drivers) {
+        version_fcurve_noise_modifier(*fcu);
+      }
+    }
+    FOREACH_MAIN_ID_END;
   }
 
   /* Always run this versioning; meshes are written with the legacy format which always needs to
