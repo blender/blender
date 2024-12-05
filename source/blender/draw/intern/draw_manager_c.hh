@@ -459,10 +459,6 @@ struct DRWManager {
   GPUShader *shader;
   blender::gpu::Batch *batch;
 
-  /* Managed by `DRW_state_set`, `DRW_state_reset` */
-  DRWState state;
-  DRWState state_lock;
-
   /* Per viewport */
   GPUViewport *viewport;
   GPUFrameBuffer *default_framebuffer;
