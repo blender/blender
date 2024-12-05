@@ -86,35 +86,41 @@ int node_group_ui_class(const bNode *node)
   if (!group) {
     return NODE_CLASS_GROUP;
   }
-  switch (blender::bke::NodeGroupColorTag(group->color_tag)) {
-    case blender::bke::NodeGroupColorTag::None:
+  switch (blender::bke::NodeColorTag(group->color_tag)) {
+    case blender::bke::NodeColorTag::None:
       return NODE_CLASS_GROUP;
-    case blender::bke::NodeGroupColorTag::Attribute:
+    case blender::bke::NodeColorTag::Attribute:
       return NODE_CLASS_ATTRIBUTE;
-    case blender::bke::NodeGroupColorTag::Color:
+    case blender::bke::NodeColorTag::Color:
       return NODE_CLASS_OP_COLOR;
-    case blender::bke::NodeGroupColorTag::Converter:
+    case blender::bke::NodeColorTag::Converter:
       return NODE_CLASS_CONVERTER;
-    case blender::bke::NodeGroupColorTag::Distort:
+    case blender::bke::NodeColorTag::Distort:
       return NODE_CLASS_DISTORT;
-    case blender::bke::NodeGroupColorTag::Filter:
+    case blender::bke::NodeColorTag::Filter:
       return NODE_CLASS_OP_FILTER;
-    case blender::bke::NodeGroupColorTag::Geometry:
+    case blender::bke::NodeColorTag::Geometry:
       return NODE_CLASS_GEOMETRY;
-    case blender::bke::NodeGroupColorTag::Input:
+    case blender::bke::NodeColorTag::Input:
       return NODE_CLASS_INPUT;
-    case blender::bke::NodeGroupColorTag::Matte:
+    case blender::bke::NodeColorTag::Matte:
       return NODE_CLASS_MATTE;
-    case blender::bke::NodeGroupColorTag::Output:
+    case blender::bke::NodeColorTag::Output:
       return NODE_CLASS_OUTPUT;
-    case blender::bke::NodeGroupColorTag::Script:
+    case blender::bke::NodeColorTag::Script:
       return NODE_CLASS_SCRIPT;
-    case blender::bke::NodeGroupColorTag::Shader:
+    case blender::bke::NodeColorTag::Shader:
       return NODE_CLASS_SHADER;
-    case blender::bke::NodeGroupColorTag::Texture:
+    case blender::bke::NodeColorTag::Texture:
       return NODE_CLASS_TEXTURE;
-    case blender::bke::NodeGroupColorTag::Vector:
+    case blender::bke::NodeColorTag::Vector:
       return NODE_CLASS_OP_VECTOR;
+    case blender::bke::NodeColorTag::Pattern:
+      return NODE_CLASS_PATTERN;
+    case blender::bke::NodeColorTag::Interface:
+      return NODE_CLASS_INTERFACE;
+    case blender::bke::NodeColorTag::Group:
+      return NODE_CLASS_GROUP;
   }
   return NODE_CLASS_GROUP;
 }

@@ -426,7 +426,7 @@ struct bNodeType {
  * This is separate from the `NODE_CLASS_*` enum, because those have some additional items and are
  * not purely color tags. Some classes also have functional effects (e.g. `NODE_CLASS_INPUT`).
  */
-enum class NodeGroupColorTag {
+enum class NodeColorTag {
   None = 0,
   Attribute = 1,
   Color = 2,
@@ -441,6 +441,9 @@ enum class NodeGroupColorTag {
   Shader = 11,
   Texture = 12,
   Vector = 13,
+  Pattern = 14,
+  Interface = 15,
+  Group = 16,
 };
 
 using bNodeClassCallback = void (*)(void *calldata, int nclass, StringRefNull name);
