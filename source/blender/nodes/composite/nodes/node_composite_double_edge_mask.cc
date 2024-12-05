@@ -162,7 +162,7 @@ class DoubleEdgeMaskOperation : public NodeOperation {
             continue;
           }
 
-          if (inner_mask.load_pixel_extended(texel + offset).x == 0.0f) {
+          if (inner_mask.load_pixel_extended<float>(texel + offset) == 0.0f) {
             has_inner_non_masked_neighbors = true;
           }
 
@@ -170,8 +170,8 @@ class DoubleEdgeMaskOperation : public NodeOperation {
            * is bounded by the image boundary, otherwise, we assume the outer mask is open-ended.
            * This is practically implemented by falling back to 0.0f or 1.0f for out of bound
            * pixels. */
-          float4 boundary_fallback = include_edges_of_image ? float4(0.0f) : float4(1.0f);
-          if (outer_mask.load_pixel_fallback(texel + offset, boundary_fallback).x == 0.0f) {
+          float boundary_fallback = include_edges_of_image ? 0.0f : 1.0f;
+          if (outer_mask.load_pixel_fallback(texel + offset, boundary_fallback) == 0.0f) {
             has_outer_non_masked_neighbors = true;
           }
 
@@ -182,8 +182,8 @@ class DoubleEdgeMaskOperation : public NodeOperation {
         }
       }
 
-      bool is_inner_masked = inner_mask.load_pixel(texel).x > 0.0f;
-      bool is_outer_masked = outer_mask.load_pixel(texel).x > 0.0f;
+      bool is_inner_masked = inner_mask.load_pixel<float>(texel) > 0.0f;
+      bool is_outer_masked = outer_mask.load_pixel<float>(texel) > 0.0f;
 
       /* The pixels at the boundary are those that are masked and have non masked neighbors. The
        * inner boundary has a specialization, if include_all_inner_edges is false, only inner
@@ -198,8 +198,8 @@ class DoubleEdgeMaskOperation : public NodeOperation {
       int2 inner_jump_flooding_value = initialize_jump_flooding_value(texel, is_inner_boundary);
       int2 outer_jump_flooding_value = initialize_jump_flooding_value(texel, is_outer_boundary);
 
-      inner_boundary.store_pixel(texel, int4(inner_jump_flooding_value, int2(0)));
-      outer_boundary.store_pixel(texel, int4(outer_jump_flooding_value, int2(0)));
+      inner_boundary.store_pixel(texel, inner_jump_flooding_value);
+      outer_boundary.store_pixel(texel, outer_jump_flooding_value);
     });
   }
 
@@ -267,28 +267,28 @@ class DoubleEdgeMaskOperation : public NodeOperation {
      */
     parallel_for(domain.size, [&](const int2 texel) {
       /* Pixels inside the inner mask are always 1.0. */
-      float inner_mask = inner_mask_input.load_pixel(texel).x;
+      float inner_mask = inner_mask_input.load_pixel<float>(texel);
       if (inner_mask != 0.0f) {
-        output.store_pixel(texel, float4(1.0f));
+        output.store_pixel(texel, 1.0f);
         return;
       }
 
       /* Pixels outside the outer mask are always 0.0. */
-      float outer_mask = outer_mask_input.load_pixel(texel).x;
+      float outer_mask = outer_mask_input.load_pixel<float>(texel);
       if (outer_mask == 0.0f) {
-        output.store_pixel(texel, float4(0.0f));
+        output.store_pixel(texel, 0.0f);
         return;
       }
 
       /* Compute the distances to the inner and outer boundaries from the jump flooding tables. */
-      int2 inner_boundary_texel = flooded_inner_boundary.load_integer_pixel(texel).xy();
-      int2 outer_boundary_texel = flooded_outer_boundary.load_integer_pixel(texel).xy();
+      int2 inner_boundary_texel = flooded_inner_boundary.load_pixel<int2>(texel);
+      int2 outer_boundary_texel = flooded_outer_boundary.load_pixel<int2>(texel);
       float distance_to_inner = math::distance(float2(texel), float2(inner_boundary_texel));
       float distance_to_outer = math::distance(float2(texel), float2(outer_boundary_texel));
 
       float gradient = distance_to_outer / (distance_to_outer + distance_to_inner);
 
-      output.store_pixel(texel, float4(gradient));
+      output.store_pixel(texel, gradient);
     });
   }
 

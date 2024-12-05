@@ -200,7 +200,7 @@ class BlurOperation : public NodeOperation {
 
       /* First, compute the contribution of the center pixel. */
       float4 center_color = load_input(texel);
-      accumulated_color += center_color * weights.load_pixel(int2(0)).x;
+      accumulated_color += center_color * weights.load_pixel<float>(int2(0));
 
       int2 weights_size = weights.domain().size;
 
@@ -209,7 +209,7 @@ class BlurOperation : public NodeOperation {
        * symmetric, the same weight is used for the negative half and we add both of their
        * contributions. */
       for (int x = 1; x < weights_size.x; x++) {
-        float weight = weights.load_pixel(int2(x, 0)).x;
+        float weight = weights.load_pixel<float>(int2(x, 0));
         accumulated_color += load_input(texel + int2(x, 0)) * weight;
         accumulated_color += load_input(texel + int2(-x, 0)) * weight;
       }
@@ -219,7 +219,7 @@ class BlurOperation : public NodeOperation {
        * symmetric, the same weight is used for the negative half and we add both of their
        * contributions. */
       for (int y = 1; y < weights_size.y; y++) {
-        float weight = weights.load_pixel(int2(0, y)).x;
+        float weight = weights.load_pixel<float>(int2(0, y));
         accumulated_color += load_input(texel + int2(0, y)) * weight;
         accumulated_color += load_input(texel + int2(0, -y)) * weight;
       }
@@ -230,7 +230,7 @@ class BlurOperation : public NodeOperation {
        * we add all four of their contributions. */
       for (int y = 1; y < weights_size.y; y++) {
         for (int x = 1; x < weights_size.x; x++) {
-          float weight = weights.load_pixel(int2(x, y)).x;
+          float weight = weights.load_pixel<float>(int2(x, y));
           accumulated_color += load_input(texel + int2(x, y)) * weight;
           accumulated_color += load_input(texel + int2(-x, y)) * weight;
           accumulated_color += load_input(texel + int2(x, -y)) * weight;
@@ -324,7 +324,7 @@ class BlurOperation : public NodeOperation {
     auto load_size = [&](const int2 texel) {
       int2 blur_radius = weights.domain().size - 1;
       int2 offset = extend_bounds ? blur_radius : int2(0);
-      return math::clamp(size.load_pixel_extended(texel - offset).x, 0.0f, 1.0f);
+      return math::clamp(size.load_pixel_extended<float>(texel - offset), 0.0f, 1.0f);
     };
 
     parallel_for(domain.size, [&](const int2 texel) {
@@ -342,7 +342,7 @@ class BlurOperation : public NodeOperation {
 
       /* First, compute the contribution of the center pixel. */
       float4 center_color = load_input(texel);
-      float center_weight = weights.load_pixel(int2(0)).x;
+      float center_weight = weights.load_pixel<float>(int2(0));
       accumulated_color += center_color * center_weight;
       accumulated_weight += center_weight;
 
@@ -414,10 +414,10 @@ class BlurOperation : public NodeOperation {
       /* Notice that we subtract 1 because the weights result have an extra center weight, see the
        * SymmetricBlurWeights class for more information. */
       int2 blur_radius = weights.domain().size - 1;
-      color = input.load_pixel_fallback(texel - blur_radius, float4(0.0f));
+      color = input.load_pixel_zero<float4>(texel - blur_radius);
     }
     else {
-      color = input.load_pixel_extended(texel);
+      color = input.load_pixel_extended<float4>(texel);
     }
 
     if (gamma_correct) {

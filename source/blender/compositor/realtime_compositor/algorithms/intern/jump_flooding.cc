@@ -64,8 +64,8 @@ static void jump_flooding_pass_cpu(Result &input, Result &output, int step_size)
 
         /* Use #JUMP_FLOODING_NON_FLOODED_VALUE as a fallback value to exempt out of bound pixels
          * from the loop as can be seen in the following continue condition. */
-        int4 fallback = int4(JUMP_FLOODING_NON_FLOODED_VALUE, int2(0));
-        int2 jump_flooding_value = input.load_pixel_fallback(texel + offset, fallback).xy();
+        int2 fallback = JUMP_FLOODING_NON_FLOODED_VALUE;
+        int2 jump_flooding_value = input.load_pixel_fallback(texel + offset, fallback);
 
         /* The pixel is either not flooded yet or is out of bound, so skip it. */
         if (jump_flooding_value == JUMP_FLOODING_NON_FLOODED_VALUE) {
@@ -93,7 +93,7 @@ static void jump_flooding_pass_cpu(Result &input, Result &output, int step_size)
     bool flooding_happened = minimum_squared_distance != std::numeric_limits<float>::max();
     int2 jump_flooding_value = encode_jump_flooding_value(closest_seed_texel, flooding_happened);
 
-    output.store_pixel(texel, int4(jump_flooding_value, int2(0)));
+    output.store_pixel(texel, jump_flooding_value);
   });
 }
 

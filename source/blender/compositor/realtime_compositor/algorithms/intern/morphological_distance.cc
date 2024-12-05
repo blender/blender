@@ -67,13 +67,13 @@ static void morphological_distance_cpu(const Result &input, Result &output, cons
       for (int y = -radius; y <= radius; y++) {
         for (int x = -radius; x <= radius; x++) {
           if (x * x + y * y <= radius * radius) {
-            const float4 fallback = float4(std::numeric_limits<float>::lowest());
-            value = math::max(value, input.load_pixel_fallback(texel + int2(x, y), fallback).x);
+            const float fallback = std::numeric_limits<float>::lowest();
+            value = math::max(value, input.load_pixel_fallback(texel + int2(x, y), fallback));
           }
         }
       }
 
-      output.store_pixel(texel, float4(value));
+      output.store_pixel(texel, value);
     });
   }
   else {
@@ -82,13 +82,13 @@ static void morphological_distance_cpu(const Result &input, Result &output, cons
       for (int y = -radius; y <= radius; y++) {
         for (int x = -radius; x <= radius; x++) {
           if (x * x + y * y <= radius * radius) {
-            const float4 fallback = float4(std::numeric_limits<float>::max());
-            value = math::min(value, input.load_pixel_fallback(texel + int2(x, y), fallback).x);
+            const float fallback = std::numeric_limits<float>::max();
+            value = math::min(value, input.load_pixel_fallback(texel + int2(x, y), fallback));
           }
         }
       }
 
-      output.store_pixel(texel, float4(value));
+      output.store_pixel(texel, value);
     });
   }
 }

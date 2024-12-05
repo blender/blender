@@ -36,7 +36,7 @@ static void extract_alpha_cpu(Result &input, Result &output)
 {
   output.allocate_texture(input.domain());
   parallel_for(input.domain().size, [&](const int2 texel) {
-    output.store_pixel(texel, float4(input.load_pixel(texel).w));
+    output.store_pixel(texel, input.load_pixel<float4>(texel).w);
   });
 }
 

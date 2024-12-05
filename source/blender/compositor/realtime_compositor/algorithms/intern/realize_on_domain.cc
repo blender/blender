@@ -138,7 +138,7 @@ static void realize_on_domain_cpu(Result &input,
             normalized_coordinates, realization_options.wrap_x, realization_options.wrap_y);
         break;
     }
-    output.store_pixel(texel, sample);
+    output.store_pixel_generic_type(texel, sample);
   });
 }
 

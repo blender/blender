@@ -172,10 +172,10 @@ class ZCombineOperation : public NodeOperation {
     if (combined.should_compute()) {
       combined.allocate_texture(domain);
       parallel_for(domain.size, [&](const int2 texel) {
-        float4 first_color = first.load_pixel(texel);
-        float4 second_color = second.load_pixel(texel);
-        float first_z_value = first_z.load_pixel(texel).x;
-        float second_z_value = second_z.load_pixel(texel).x;
+        float4 first_color = first.load_pixel<float4>(texel);
+        float4 second_color = second.load_pixel<float4>(texel);
+        float first_z_value = first_z.load_pixel<float>(texel);
+        float second_z_value = second_z.load_pixel<float>(texel);
 
         /* Choose the closer pixel as the foreground, that is, the pixel with the lower z value. If
          * Use Alpha is disabled, return the foreground, otherwise, mix between the foreground and
@@ -195,10 +195,10 @@ class ZCombineOperation : public NodeOperation {
     if (combined_z_output.should_compute()) {
       combined_z_output.allocate_texture(domain);
       parallel_for(domain.size, [&](const int2 texel) {
-        float first_z_value = first_z.load_pixel(texel).x;
-        float second_z_value = second_z.load_pixel(texel).x;
+        float first_z_value = first_z.load_pixel<float>(texel);
+        float second_z_value = second_z.load_pixel<float>(texel);
         float combined_z = math::min(first_z_value, second_z_value);
-        combined_z_output.store_pixel(texel, float4(combined_z));
+        combined_z_output.store_pixel(texel, combined_z);
       });
     }
   }
@@ -273,9 +273,9 @@ class ZCombineOperation : public NodeOperation {
     if (combined.should_compute()) {
       combined.allocate_texture(domain);
       parallel_for(domain.size, [&](const int2 texel) {
-        float4 first_color = first.load_pixel(texel);
-        float4 second_color = second.load_pixel(texel);
-        float mask_value = mask.load_pixel(texel).x;
+        float4 first_color = first.load_pixel<float4>(texel);
+        float4 second_color = second.load_pixel<float4>(texel);
+        float mask_value = mask.load_pixel<float>(texel);
 
         /* Choose the closer pixel as the foreground, that is, the masked pixel with the lower z
          * value. If Use Alpha is disabled, return the foreground, otherwise, mix between the
@@ -295,10 +295,10 @@ class ZCombineOperation : public NodeOperation {
     if (combined_z_output.should_compute()) {
       combined_z_output.allocate_texture(domain);
       parallel_for(domain.size, [&](const int2 texel) {
-        float first_z_value = first_z.load_pixel(texel).x;
-        float second_z_value = second_z.load_pixel(texel).x;
+        float first_z_value = first_z.load_pixel<float>(texel);
+        float second_z_value = second_z.load_pixel<float>(texel);
         float combined_z = math::min(first_z_value, second_z_value);
-        combined_z_output.store_pixel(texel, float4(combined_z));
+        combined_z_output.store_pixel(texel, combined_z);
       });
     }
   }
@@ -347,10 +347,10 @@ class ZCombineOperation : public NodeOperation {
     mask.allocate_texture(domain);
 
     parallel_for(domain.size, [&](const int2 texel) {
-      float first_z_value = first_z.load_pixel(texel).x;
-      float second_z_value = second_z.load_pixel(texel).x;
+      float first_z_value = first_z.load_pixel<float>(texel);
+      float second_z_value = second_z.load_pixel<float>(texel);
       float z_combine_factor = float(first_z_value < second_z_value);
-      mask.store_pixel(texel, float4(z_combine_factor));
+      mask.store_pixel(texel, z_combine_factor);
     });
 
     return mask;

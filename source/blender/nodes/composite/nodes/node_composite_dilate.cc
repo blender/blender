@@ -229,12 +229,12 @@ class DilateErodeOperation : public NodeOperation {
         const float limit = std::numeric_limits<float>::lowest();
         float value = limit;
         for (int i = -radius; i <= radius; i++) {
-          value = math::max(value, input.load_pixel_fallback(texel + int2(i, 0), float4(limit)).x);
+          value = math::max(value, input.load_pixel_fallback(texel + int2(i, 0), limit));
         }
 
         /* Write the value using the transposed texel. See the horizontal pass method
          * for more information on the rational behind this. */
-        output.store_pixel(int2(texel.y, texel.x), float4(value));
+        output.store_pixel(int2(texel.y, texel.x), value);
       });
     }
     else {
@@ -244,12 +244,12 @@ class DilateErodeOperation : public NodeOperation {
         const float limit = std::numeric_limits<float>::max();
         float value = limit;
         for (int i = -radius; i <= radius; i++) {
-          value = math::min(value, input.load_pixel_fallback(texel + int2(i, 0), float4(limit)).x);
+          value = math::min(value, input.load_pixel_fallback(texel + int2(i, 0), limit));
         }
 
         /* Write the value using the transposed texel. See the horizontal pass method
          * for more information on the rational behind this. */
-        output.store_pixel(int2(texel.y, texel.x), float4(value));
+        output.store_pixel(int2(texel.y, texel.x), value);
       });
     }
   }
@@ -384,14 +384,14 @@ class DilateErodeOperation : public NodeOperation {
       /* Apply a threshold operation on the center pixel, where the threshold is currently
        * hard-coded at 0.5. The pixels with values larger than the threshold are said to be masked.
        */
-      bool is_center_masked = input.load_pixel(texel).x > 0.5f;
+      bool is_center_masked = input.load_pixel<float>(texel) > 0.5f;
 
       /* Since the distance search window will access pixels outside of the bounds of the image, we
        * use a texture loader with a fallback value. And since we don't want those values to affect
        * the result, the fallback value is chosen such that the inner condition fails, which is
        * when the sampled pixel and the center pixel are the same, so choose a fallback that will
        * be considered masked if the center pixel is masked and unmasked otherwise. */
-      float4 fallback = float4(is_center_masked ? 1.0f : 0.0f);
+      float fallback = is_center_masked ? 1.0f : 0.0f;
 
       /* Since the distance search window is limited to the given radius, the maximum possible
        * squared distance to the center is double the squared radius. */
@@ -401,7 +401,7 @@ class DilateErodeOperation : public NodeOperation {
        * radius. */
       for (int y = -radius; y <= radius; y++) {
         for (int x = -radius; x <= radius; x++) {
-          bool is_sample_masked = input.load_pixel_fallback(texel + int2(x, y), fallback).x > 0.5f;
+          bool is_sample_masked = input.load_pixel_fallback(texel + int2(x, y), fallback) > 0.5f;
           if (is_center_masked != is_sample_masked) {
             minimum_squared_distance = math::min(minimum_squared_distance, x * x + y * y);
           }
@@ -417,7 +417,7 @@ class DilateErodeOperation : public NodeOperation {
        * discussion, then clamp to the [0, 1] range. */
       float value = math::clamp((signed_minimum_distance + distance) / inset, 0.0f, 1.0f);
 
-      output.store_pixel(texel, float4(value));
+      output.store_pixel(texel, value);
     });
   }
 

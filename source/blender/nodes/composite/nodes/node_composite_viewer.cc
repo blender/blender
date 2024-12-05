@@ -153,7 +153,7 @@ class ViewerOperation : public NodeOperation {
       if (output_texel.x > bounds.max.x || output_texel.y > bounds.max.y) {
         return;
       }
-      output.store_pixel(texel + bounds.min, float4(image.load_pixel(texel).xyz(), 1.0f));
+      output.store_pixel(texel + bounds.min, float4(image.load_pixel<float4>(texel).xyz(), 1.0f));
     });
   }
 
@@ -207,7 +207,7 @@ class ViewerOperation : public NodeOperation {
       if (output_texel.x > bounds.max.x || output_texel.y > bounds.max.y) {
         return;
       }
-      output.store_pixel(texel + bounds.min, image.load_pixel(texel));
+      output.store_pixel(texel + bounds.min, image.load_pixel<float4>(texel));
     });
   }
 
@@ -265,8 +265,9 @@ class ViewerOperation : public NodeOperation {
       if (output_texel.x > bounds.max.x || output_texel.y > bounds.max.y) {
         return;
       }
-      output.store_pixel(texel + bounds.min,
-                         float4(image.load_pixel(texel).xyz(), alpha.load_pixel(texel).x));
+      output.store_pixel(
+          texel + bounds.min,
+          float4(image.load_pixel<float4>(texel).xyz(), alpha.load_pixel<float>(texel)));
     });
   }
 

@@ -40,7 +40,7 @@ static void compute_preview_cpu(Context &context,
     for (const int64_t y : sub_y_range) {
       for (const int64_t x : IndexRange(preview_size.x)) {
         const int2 coordinates = int2((float2(x, y) / float2(preview_size)) * float2(input_size));
-        float4 color = input_result.load_pixel(coordinates);
+        float4 color = input_result.load_pixel_generic_type(coordinates);
         if (input_result.type() == ResultType::Float) {
           color = float4(float3(color.x), 1.0f);
         }

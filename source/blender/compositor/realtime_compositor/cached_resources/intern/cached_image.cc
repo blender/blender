@@ -235,7 +235,7 @@ CachedImage::CachedImage(Context &context,
     buffer_result.wrap_external(linear_image_buffer->float_buffer.data, size);
     this->result.allocate_texture(size, false);
     parallel_for(size, [&](const int2 texel) {
-      this->result.store_pixel(texel, buffer_result.load_pixel(texel));
+      this->result.store_pixel_generic_type(texel, buffer_result.load_pixel_generic_type(texel));
     });
   }
 

@@ -91,8 +91,8 @@ static void box_mask(const Result &base_mask,
   uv = float2x2(float2(cos_angle, -sin_angle), float2(sin_angle, cos_angle)) * uv;
   bool is_inside = math::abs(uv.x) < size.x && math::abs(uv.y) < size.y;
 
-  float base_mask_value = base_mask.load_pixel(texel).x;
-  float value = value_mask.load_pixel(texel).x;
+  float base_mask_value = base_mask.load_pixel<float>(texel);
+  float value = value_mask.load_pixel<float>(texel);
 
   float output_mask_value = 0.0f;
   if constexpr (MaskType == CMP_NODE_MASKTYPE_ADD) {
@@ -109,7 +109,7 @@ static void box_mask(const Result &base_mask,
     output_mask_value = is_inside ? (base_mask_value > 0.0f ? 0.0f : value) : base_mask_value;
   }
 
-  output_mask.store_pixel(texel, float4(output_mask_value));
+  output_mask.store_pixel(texel, output_mask_value);
 }
 
 class BoxMaskOperation : public NodeOperation {

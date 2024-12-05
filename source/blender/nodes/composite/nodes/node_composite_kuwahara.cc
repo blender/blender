@@ -247,7 +247,7 @@ class ConvertKuwaharaOperation : public NodeOperation {
                        const int2 size)
   {
     parallel_for(size, [&](const int2 texel) {
-      int radius = math::max(0, int(size_input.load_pixel(texel).x));
+      int radius = math::max(0, int(size_input.load_pixel<float>(texel)));
 
       float4 mean_of_squared_color_of_quadrants[4] = {
           float4(0.0f), float4(0.0f), float4(0.0f), float4(0.0f)};
@@ -277,7 +277,7 @@ class ConvertKuwaharaOperation : public NodeOperation {
         else {
           for (int j = 0; j <= radius; j++) {
             for (int i = 0; i <= radius; i++) {
-              float4 color = input->load_pixel_fallback(texel + int2(i, j) * sign, float4(0.0f));
+              float4 color = input->load_pixel_zero<float4>(texel + int2(i, j) * sign);
               mean_of_color_of_quadrants[q] += color;
               mean_of_squared_color_of_quadrants[q] += color * color;
             }
@@ -401,10 +401,11 @@ class ConvertKuwaharaOperation : public NodeOperation {
      *  Kyprianidis, Jan Eric. "Image and video abstraction by multi-scale anisotropic Kuwahara
      *  filtering." 2011.
      */
+
     parallel_for(domain.size, [&](const int2 texel) {
       /* The structure tensor is encoded in a float4 using a column major storage order, as can be
        * seen in the compute_structure_tensor_cpu method. */
-      float4 encoded_structure_tensor = structure_tensor.load_pixel(texel);
+      float4 encoded_structure_tensor = structure_tensor.load_pixel<float4>(texel);
       float dxdx = encoded_structure_tensor.x;
       float dxdy = encoded_structure_tensor.y;
       float dydy = encoded_structure_tensor.w;
@@ -433,9 +434,9 @@ class ConvertKuwaharaOperation : public NodeOperation {
       float eigenvalue_difference = first_eigenvalue - second_eigenvalue;
       float anisotropy = eigenvalue_sum > 0.0f ? eigenvalue_difference / eigenvalue_sum : 0.0f;
 
-      float radius = math::max(0.0f, size.load_pixel(texel).x);
+      float radius = math::max(0.0f, size.load_pixel<float>(texel));
       if (radius == 0.0f) {
-        output.store_pixel(texel, input.load_pixel(texel));
+        output.store_pixel(texel, input.load_pixel<float4>(texel));
         return;
       }
 
@@ -500,7 +501,7 @@ class ConvertKuwaharaOperation : public NodeOperation {
        * and weight separately first. Luckily, the zero coordinates of the center pixel zeros out
        * most of the complex computations below, and it can easily be shown that the weight for the
        * center pixel in all sectors is simply (1 / number_of_sectors). */
-      float4 center_color = input.load_pixel(texel);
+      float4 center_color = input.load_pixel<float4>(texel);
       float4 center_color_squared = center_color * center_color;
       float center_weight = 1.0f / number_of_sectors;
       float4 weighted_center_color = center_color * center_weight;
@@ -590,8 +591,8 @@ class ConvertKuwaharaOperation : public NodeOperation {
                                          sector_weights_sum;
 
           /* Load the color of the pixel and its mirrored pixel and compute their square. */
-          float4 upper_color = input.load_pixel_extended(texel + int2(i, j));
-          float4 lower_color = input.load_pixel_extended(texel - int2(i, j));
+          float4 upper_color = input.load_pixel_extended<float4>(texel + int2(i, j));
+          float4 lower_color = input.load_pixel_extended<float4>(texel - int2(i, j));
           float4 upper_color_squared = upper_color * upper_color;
           float4 lower_color_squared = lower_color * lower_color;
 
@@ -704,20 +705,20 @@ class ConvertKuwaharaOperation : public NodeOperation {
       const float center_weight = 1.0f - 2.0f * corner_weight;
 
       float3 x_partial_derivative =
-          input.load_pixel_extended(texel + int2(-1, 1)).xyz() * -corner_weight +
-          input.load_pixel_extended(texel + int2(-1, 0)).xyz() * -center_weight +
-          input.load_pixel_extended(texel + int2(-1, -1)).xyz() * -corner_weight +
-          input.load_pixel_extended(texel + int2(1, 1)).xyz() * corner_weight +
-          input.load_pixel_extended(texel + int2(1, 0)).xyz() * center_weight +
-          input.load_pixel_extended(texel + int2(1, -1)).xyz() * corner_weight;
+          input.load_pixel_extended<float4>(texel + int2(-1, 1)).xyz() * -corner_weight +
+          input.load_pixel_extended<float4>(texel + int2(-1, 0)).xyz() * -center_weight +
+          input.load_pixel_extended<float4>(texel + int2(-1, -1)).xyz() * -corner_weight +
+          input.load_pixel_extended<float4>(texel + int2(1, 1)).xyz() * corner_weight +
+          input.load_pixel_extended<float4>(texel + int2(1, 0)).xyz() * center_weight +
+          input.load_pixel_extended<float4>(texel + int2(1, -1)).xyz() * corner_weight;
 
       float3 y_partial_derivative =
-          input.load_pixel_extended(texel + int2(-1, 1)).xyz() * corner_weight +
-          input.load_pixel_extended(texel + int2(0, 1)).xyz() * center_weight +
-          input.load_pixel_extended(texel + int2(1, 1)).xyz() * corner_weight +
-          input.load_pixel_extended(texel + int2(-1, -1)).xyz() * -corner_weight +
-          input.load_pixel_extended(texel + int2(0, -1)).xyz() * -center_weight +
-          input.load_pixel_extended(texel + int2(1, -1)).xyz() * -corner_weight;
+          input.load_pixel_extended<float4>(texel + int2(-1, 1)).xyz() * corner_weight +
+          input.load_pixel_extended<float4>(texel + int2(0, 1)).xyz() * center_weight +
+          input.load_pixel_extended<float4>(texel + int2(1, 1)).xyz() * corner_weight +
+          input.load_pixel_extended<float4>(texel + int2(-1, -1)).xyz() * -corner_weight +
+          input.load_pixel_extended<float4>(texel + int2(0, -1)).xyz() * -center_weight +
+          input.load_pixel_extended<float4>(texel + int2(1, -1)).xyz() * -corner_weight;
 
       float dxdx = math::dot(x_partial_derivative, x_partial_derivative);
       float dxdy = math::dot(x_partial_derivative, y_partial_derivative);

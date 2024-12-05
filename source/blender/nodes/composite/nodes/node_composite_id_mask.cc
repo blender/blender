@@ -105,9 +105,9 @@ class IDMaskOperation : public NodeOperation {
     output_mask.allocate_texture(domain);
 
     parallel_for(domain.size, [&](const int2 texel) {
-      float input_mask_value = input_mask.load_pixel(texel).x;
+      float input_mask_value = input_mask.load_pixel<float>(texel);
       float mask = int(math::round(input_mask_value)) == index ? 1.0f : 0.0f;
-      output_mask.store_pixel(texel, float4(mask));
+      output_mask.store_pixel(texel, mask);
     });
   }
 

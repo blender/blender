@@ -93,7 +93,7 @@ void SMAAPrecomputedTextures::compute_cpu()
   parallel_for(search_texture_size, [&](const int2 texel) {
     const float value = searchTexBytes[int64_t(texel.y) * search_texture_size.x + texel.x] /
                         255.0f;
-    search_texture.store_pixel(texel, float4(value));
+    search_texture.store_pixel(texel, value);
   });
 
   const int2 area_texture_size = int2(AREATEX_WIDTH, AREATEX_HEIGHT);
@@ -102,7 +102,7 @@ void SMAAPrecomputedTextures::compute_cpu()
     const float2 value = float2(uchar2(areaTexBytes +
                                        (int64_t(texel.y) * area_texture_size.x + texel.x) * 2)) /
                          255.0f;
-    area_texture.store_pixel(texel, float4(value, 0.0f, 0.0f));
+    area_texture.store_pixel(texel, value);
   });
 }
 

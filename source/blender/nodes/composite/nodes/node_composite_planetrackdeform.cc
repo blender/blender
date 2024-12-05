@@ -293,7 +293,7 @@ class PlaneTrackDeformOperation : public NodeOperation {
       accumulated_color /= homography_matrices.size();
 
       /* Premultiply the mask value as an alpha. */
-      float4 plane_color = accumulated_color * plane_mask.load_pixel(texel).x;
+      float4 plane_color = accumulated_color * plane_mask.load_pixel<float>(texel);
 
       output.store_pixel(texel, plane_color);
     });
@@ -326,7 +326,7 @@ class PlaneTrackDeformOperation : public NodeOperation {
 
       accumulated_mask /= homography_matrices.size();
 
-      plane_mask.store_pixel(texel, float4(accumulated_mask));
+      plane_mask.store_pixel(texel, accumulated_mask);
     });
 
     return plane_mask;

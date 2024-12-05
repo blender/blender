@@ -153,7 +153,7 @@ class MovieDistortionOperation : public NodeOperation {
 
     parallel_for(domain.size, [&](const int2 texel) {
       output.store_pixel(texel,
-                         input.sample_bilinear_zero(distortion_grid.load_pixel(texel).xy()));
+                         input.sample_bilinear_zero(distortion_grid.load_pixel<float2>(texel)));
     });
   }
 

@@ -149,9 +149,9 @@ class BokehBlurOperation : public NodeOperation {
        * So we load the input with an offset by the radius amount and fallback to a transparent
        * color if it is out of bounds. */
       if (extend_bounds) {
-        return input.load_pixel_fallback(texel - radius, float4(0.0f));
+        return input.load_pixel_zero<float4>(texel - radius);
       }
-      return input.load_pixel_extended(texel);
+      return input.load_pixel_extended<float4>(texel);
     };
 
     /* Given the texel in the range [-radius, radius] in both axis, load the appropriate weight
@@ -179,9 +179,9 @@ class BokehBlurOperation : public NodeOperation {
     parallel_for(domain.size, [&](const int2 texel) {
       /* The mask input is treated as a boolean. If it is zero, then no blurring happens for this
        * pixel. Otherwise, the pixel is blurred normally and the mask value is irrelevant. */
-      float mask = mask_image.load_pixel_extended(texel).x;
+      float mask = mask_image.load_pixel_extended<float>(texel);
       if (mask == 0.0f) {
-        output.store_pixel(texel, input.load_pixel_extended(texel));
+        output.store_pixel(texel, input.load_pixel_extended<float4>(texel));
         return;
       }
 
@@ -294,13 +294,13 @@ class BokehBlurOperation : public NodeOperation {
     parallel_for(domain.size, [&](const int2 texel) {
       /* The mask input is treated as a boolean. If it is zero, then no blurring happens for this
        * pixel. Otherwise, the pixel is blurred normally and the mask value is irrelevant. */
-      float mask = mask_image.load_pixel(texel).x;
+      float mask = mask_image.load_pixel<float>(texel);
       if (mask == 0.0f) {
-        output.store_pixel(texel, input.load_pixel(texel));
+        output.store_pixel(texel, input.load_pixel<float4>(texel));
         return;
       }
 
-      float center_size = math::max(0.0f, size_image.load_pixel(texel).x * base_size);
+      float center_size = math::max(0.0f, size_image.load_pixel<float>(texel) * base_size);
 
       /* Go over the window of the given search radius and accumulate the colors multiplied by
        * their respective weights as well as the weights themselves, but only if both the size of
@@ -311,7 +311,7 @@ class BokehBlurOperation : public NodeOperation {
       for (int y = -search_radius; y <= search_radius; y++) {
         for (int x = -search_radius; x <= search_radius; x++) {
           float candidate_size = math::max(
-              0.0f, size_image.load_pixel_extended(texel + int2(x, y)).x * base_size);
+              0.0f, size_image.load_pixel_extended<float>(texel + int2(x, y)) * base_size);
 
           /* Skip accumulation if either the x or y distances of the candidate pixel are larger
            * than either the center or candidate pixel size. Note that the max and min functions
@@ -322,7 +322,7 @@ class BokehBlurOperation : public NodeOperation {
           }
 
           float4 weight = load_weight(int2(x, y), size);
-          accumulated_color += input.load_pixel_extended(texel + int2(x, y)) * weight;
+          accumulated_color += input.load_pixel_extended<float4>(texel + int2(x, y)) * weight;
           accumulated_weight += weight;
         }
       }

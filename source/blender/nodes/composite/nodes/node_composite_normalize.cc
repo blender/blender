@@ -93,10 +93,10 @@ class NormalizeOperation : public NodeOperation {
     output.allocate_texture(domain);
 
     parallel_for(domain.size, [&](const int2 texel) {
-      const float value = image.load_pixel(texel).x;
+      const float value = image.load_pixel<float>(texel);
       const float normalized_value = (value - minimum) * scale;
       const float clamped_value = math::clamp(normalized_value, 0.0f, 1.0f);
-      output.store_pixel(texel, float4(clamped_value));
+      output.store_pixel(texel, clamped_value);
     });
   }
 };

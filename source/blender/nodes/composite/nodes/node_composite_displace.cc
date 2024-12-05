@@ -133,9 +133,9 @@ class DisplaceOperation : public NodeOperation {
 
         /* Note that the input displacement is in pixel space, so divide by the input size to
          * transform it into the normalized sampler space. */
-        float2 scale = float2(x_scale.load_pixel_extended(texel).x,
-                              y_scale.load_pixel_extended(texel).x);
-        float2 displacement = input_displacement.load_pixel_extended(texel).xy() * scale /
+        float2 scale = float2(x_scale.load_pixel_extended<float>(texel),
+                              y_scale.load_pixel_extended<float>(texel));
+        float2 displacement = input_displacement.load_pixel_extended<float4>(texel).xy() * scale /
                               float2(size);
         return coordinates - displacement;
       };

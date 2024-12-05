@@ -117,7 +117,7 @@ static Result compute_max_tile_velocity_cpu(Context &context, const Result &velo
     for (int j = 0; j < tile_size.y; j++) {
       for (int i = 0; i < tile_size.x; i++) {
         int2 sub_texel = texel * tile_size + int2(i, j);
-        const float4 velocity = velocity_image.load_pixel_extended(sub_texel);
+        const float4 velocity = velocity_image.load_pixel_extended<float4>(sub_texel);
         max_previous_velocity = max_velocity(velocity.xy(), max_previous_velocity);
         max_next_velocity = max_velocity(velocity.zw(), max_next_velocity);
       }
@@ -199,7 +199,7 @@ static Result dilate_max_velocity_cpu(Context &context,
     for (const int64_t x : IndexRange(size.x)) {
       const int2 src_tile = int2(x, y);
 
-      float4 max_motion = float4(max_tile_velocity.load_pixel(src_tile)) *
+      float4 max_motion = float4(max_tile_velocity.load_pixel<float4>(src_tile)) *
                           float4(float2(shutter_speed), float2(-shutter_speed));
 
       {
@@ -211,7 +211,7 @@ static Result dilate_max_velocity_cpu(Context &context,
           for (int i = 0; i < motion_rect.extent.x; i++) {
             int2 tile = motion_rect.bottom_left + int2(i, j);
             if (is_inside_motion_line(tile, motion_line)) {
-              const float4 current_max_velocity = output.load_pixel(tile);
+              const float4 current_max_velocity = output.load_pixel<float4>(tile);
               const float2 new_max_previous_velocity = max_velocity_approximate(
                   current_max_velocity.xy(), max_motion.xy(), tile, src_tile);
               const float2 new_max_next_velocity = max_velocity_approximate(
@@ -231,7 +231,7 @@ static Result dilate_max_velocity_cpu(Context &context,
           for (int i = 0; i < motion_rect.extent.x; i++) {
             int2 tile = motion_rect.bottom_left + int2(i, j);
             if (is_inside_motion_line(tile, motion_line)) {
-              const float4 current_max_velocity = output.load_pixel(tile);
+              const float4 current_max_velocity = output.load_pixel<float4>(tile);
               const float2 new_max_previous_velocity = max_velocity_approximate(
                   current_max_velocity.xy(), max_motion.xy(), tile, src_tile);
               const float2 new_max_next_velocity = max_velocity_approximate(
@@ -421,10 +421,10 @@ static void motion_blur_cpu(const Result &input_image,
         float2 uv = (float2(texel) + 0.5f) / float2(size);
 
         /* Data of the center pixel of the gather (target). */
-        float center_depth = input_depth.load_pixel(texel).x;
-        float4 center_motion = float4(input_velocity.load_pixel(texel)) *
+        float center_depth = input_depth.load_pixel<float>(texel);
+        float4 center_motion = float4(input_velocity.load_pixel<float4>(texel)) *
                                float4(float2(shutter_speed), float2(-shutter_speed));
-        float4 center_color = input_image.load_pixel(texel);
+        float4 center_color = input_image.load_pixel<float4>(texel);
 
         /* Randomize tile boundary to avoid ugly discontinuities. Randomize 1/4th of the tile.
          * Note this randomize only in one direction but in practice it's enough. */
@@ -434,7 +434,7 @@ static void motion_blur_cpu(const Result &input_image,
 
         /* No need to multiply by the shutter speed and invert the next velocities since this was
          * already done in dilate_max_velocity. */
-        float4 max_motion = max_velocity.load_pixel(tile);
+        float4 max_motion = max_velocity.load_pixel<float4>(tile);
 
         Accumulator accum;
         accum.weight = float3(0.0f, 0.0f, 1.0f);

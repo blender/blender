@@ -136,7 +136,7 @@ class MapUVOperation : public NodeOperation {
     output_image.allocate_texture(domain);
 
     parallel_for(domain.size, [&](const int2 texel) {
-      float2 uv_coordinates = input_uv.load_pixel(texel).xy();
+      float2 uv_coordinates = input_uv.load_pixel<float4>(texel).xy();
 
       float4 sampled_color = input_image.sample_nearest_zero(uv_coordinates);
 
@@ -146,7 +146,7 @@ class MapUVOperation : public NodeOperation {
        * everywhere else, and alpha pre-multiplication is then performed. This format of having
        * an alpha channel in the UV coordinates is the format used by UV passes in render
        * engines, hence the mentioned logic. */
-      float alpha = input_uv.load_pixel(texel).z;
+      float alpha = input_uv.load_pixel<float4>(texel).z;
 
       float4 result = sampled_color * alpha;
 
@@ -181,10 +181,10 @@ class MapUVOperation : public NodeOperation {
       const int2 upper_left_texel = int2(x, y + 1);
       const int2 upper_right_texel = int2(x + 1, y + 1);
 
-      const float2 lower_left_uv = input_uv.load_pixel(lower_left_texel).xy();
-      const float2 lower_right_uv = input_uv.load_pixel_extended(lower_right_texel).xy();
-      const float2 upper_left_uv = input_uv.load_pixel_extended(upper_left_texel).xy();
-      const float2 upper_right_uv = input_uv.load_pixel_extended(upper_right_texel).xy();
+      const float2 lower_left_uv = input_uv.load_pixel<float4>(lower_left_texel).xy();
+      const float2 lower_right_uv = input_uv.load_pixel_extended<float4>(lower_right_texel).xy();
+      const float2 upper_left_uv = input_uv.load_pixel_extended<float4>(upper_left_texel).xy();
+      const float2 upper_right_uv = input_uv.load_pixel_extended<float4>(upper_right_texel).xy();
 
       /* Compute the partial derivatives using finite difference. Divide by the input size since
        * sample_ewa_zero assumes derivatives with respect to texel coordinates. */
@@ -222,7 +222,7 @@ class MapUVOperation : public NodeOperation {
          * everywhere else, and alpha pre-multiplication is then performed. This format of having
          * an alpha channel in the UV coordinates is the format used by UV passes in render
          * engines, hence the mentioned logic. */
-        float alpha = input_uv.load_pixel(texel).z;
+        float alpha = input_uv.load_pixel<float4>(texel).z;
 
         float4 result = sampled_color * gradient_attenuation * alpha;
 

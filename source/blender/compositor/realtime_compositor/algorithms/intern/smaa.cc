@@ -1488,7 +1488,7 @@ static Result detect_edges_cpu(Context &context,
                                                 threshold,
                                                 luminance_coefficients,
                                                 local_contrast_adaptation_factor);
-    edges.store_pixel(texel, float4(edge, 0.0f, 0.0f));
+    edges.store_pixel(texel, edge);
   });
 
   return edges;
@@ -1642,7 +1642,7 @@ static void blend_neighborhood_cpu(Result &input, Result &weights, Result &outpu
     SMAANeighborhoodBlendingVS(coordinates, size, offset);
 
     const float4 result = SMAANeighborhoodBlendingPS(coordinates, offset, input, weights, size);
-    output.store_pixel(texel, result);
+    output.store_pixel_generic_type(texel, result);
   });
 }
 

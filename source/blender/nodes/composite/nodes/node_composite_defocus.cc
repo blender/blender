@@ -194,7 +194,7 @@ class DefocusOperation : public NodeOperation {
     };
 
     parallel_for(domain.size, [&](const int2 texel) {
-      float center_radius = math::max(0.0f, radius.load_pixel(texel).x);
+      float center_radius = math::max(0.0f, radius.load_pixel<float>(texel));
 
       /* Go over the window of the given search radius and accumulate the colors multiplied by
        * their respective weights as well as the weights themselves, but only if both the radius of
@@ -204,8 +204,8 @@ class DefocusOperation : public NodeOperation {
       float4 accumulated_weight = float4(0.0);
       for (int y = -search_radius; y <= search_radius; y++) {
         for (int x = -search_radius; x <= search_radius; x++) {
-          float candidate_radius = math::max(0.0f,
-                                             radius.load_pixel_extended(texel + int2(x, y)).x);
+          float candidate_radius = math::max(
+              0.0f, radius.load_pixel_extended<float>(texel + int2(x, y)));
 
           /* Skip accumulation if either the x or y distances of the candidate pixel are larger
            * than either the center or candidate pixel radius. Note that the max and min functions
@@ -216,7 +216,7 @@ class DefocusOperation : public NodeOperation {
           }
 
           float4 weight = load_weight(int2(x, y), radius);
-          float4 input_color = input.load_pixel_extended(texel + int2(x, y));
+          float4 input_color = input.load_pixel_extended<float4>(texel + int2(x, y));
 
           if (gamma_correct) {
             input_color = gamma_correct_blur_input(input_color);
@@ -323,8 +323,8 @@ class DefocusOperation : public NodeOperation {
     output_radius.allocate_texture(domain);
 
     parallel_for(domain.size, [&](const int2 texel) {
-      float depth = input_depth.load_pixel(texel).x;
-      output_radius.store_pixel(texel, float4(compute_radius(depth)));
+      float depth = input_depth.load_pixel<float>(texel);
+      output_radius.store_pixel(texel, compute_radius(depth));
     });
 
     return output_radius;
@@ -424,8 +424,8 @@ class DefocusOperation : public NodeOperation {
     output_radius.allocate_texture(domain);
 
     parallel_for(domain.size, [&](const int2 texel) {
-      float depth = input_depth.load_pixel(texel).x;
-      output_radius.store_pixel(texel, float4(compute_radius(depth)));
+      float depth = input_depth.load_pixel<float>(texel);
+      output_radius.store_pixel(texel, compute_radius(depth));
     });
   }
 

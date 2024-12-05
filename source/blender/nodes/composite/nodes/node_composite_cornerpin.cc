@@ -162,7 +162,7 @@ class CornerPinOperation : public NodeOperation {
           projected_coordinates, x_gradient, y_gradient);
 
       /* Premultiply the mask value as an alpha. */
-      float4 plane_color = sampled_color * plane_mask.load_pixel(texel).x;
+      float4 plane_color = sampled_color * plane_mask.load_pixel<float>(texel);
 
       output.store_pixel(texel, plane_color);
     });
@@ -210,7 +210,7 @@ class CornerPinOperation : public NodeOperation {
       float3 transformed_coordinates = float3x3(homography_matrix) * float3(coordinates, 1.0f);
       /* Point is at infinity and will be zero when sampled, so early exit. */
       if (transformed_coordinates.z == 0.0f) {
-        plane_mask.store_pixel(texel, float4(0.0f));
+        plane_mask.store_pixel(texel, 0.0f);
         return;
       }
       float2 projected_coordinates = transformed_coordinates.xy() / transformed_coordinates.z;
@@ -219,7 +219,7 @@ class CornerPinOperation : public NodeOperation {
                              projected_coordinates.x <= 1.0f && projected_coordinates.y <= 1.0f;
       float mask_value = is_inside_plane ? 1.0f : 0.0f;
 
-      plane_mask.store_pixel(texel, float4(mask_value));
+      plane_mask.store_pixel(texel, mask_value);
     });
 
     return plane_mask;

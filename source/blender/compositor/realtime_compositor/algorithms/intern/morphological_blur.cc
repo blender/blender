@@ -58,16 +58,16 @@ static void apply_morphological_operator_cpu(const Result &input,
   switch (operation) {
     case MorphologicalBlurOperation::Dilate:
       parallel_for(domain.size, [&](const int2 texel) {
-        float input_value = input.load_pixel(texel).x;
-        float blurred_value = blurred_input.load_pixel(texel).x;
-        blurred_input.store_pixel(texel, float4(math::max(input_value, blurred_value)));
+        float input_value = input.load_pixel<float>(texel);
+        float blurred_value = blurred_input.load_pixel<float>(texel);
+        blurred_input.store_pixel(texel, math::max(input_value, blurred_value));
       });
       break;
     case MorphologicalBlurOperation::Erode:
       parallel_for(domain.size, [&](const int2 texel) {
-        float input_value = input.load_pixel(texel).x;
-        float blurred_value = blurred_input.load_pixel(texel).x;
-        blurred_input.store_pixel(texel, float4(math::min(input_value, blurred_value)));
+        float input_value = input.load_pixel<float>(texel);
+        float blurred_value = blurred_input.load_pixel<float>(texel);
+        blurred_input.store_pixel(texel, math::min(input_value, blurred_value));
       });
       break;
   }

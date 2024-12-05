@@ -147,7 +147,7 @@ class MovieClipOperation : public NodeOperation {
     else {
       parallel_for(size, [&](const int2 texel) {
         int64_t pixel_index = (int64_t(texel.y) * size.x + texel.x) * 4;
-        result.store_pixel(texel, float4(movie_clip_buffer->float_buffer.data[pixel_index + 3]));
+        result.store_pixel(texel, movie_clip_buffer->float_buffer.data[pixel_index + 3]);
       });
     }
   }

@@ -59,10 +59,10 @@ static void blur_pass(const Result &input,
       /* Notice that we subtract 1 because the weights result have an extra center weight, see the
        * SymmetricBlurWeights class for more information. */
       int2 blur_radius = weights.domain().size - 1;
-      color = input.load_pixel_fallback(texel - blur_radius, float4(0.0f));
+      color = input.load_pixel_zero_generic_type(texel - blur_radius);
     }
     else {
-      color = input.load_pixel_extended(texel);
+      color = input.load_pixel_extended_generic_type(texel);
     }
 
     if (gamma_correct_input) {
@@ -80,14 +80,14 @@ static void blur_pass(const Result &input,
 
     /* First, compute the contribution of the center pixel. */
     float4 center_color = load_input(texel);
-    accumulated_color += center_color * weights.load_pixel(int2(0)).x;
+    accumulated_color += center_color * weights.load_pixel<float>(int2(0));
 
     /* Then, compute the contributions of the pixel to the right and left, noting that the
      * weights texture only stores the weights for the positive half, but since the filter is
      * symmetric, the same weight is used for the negative half and we add both of their
      * contributions. */
     for (int i = 1; i < weights.domain().size.x; i++) {
-      float weight = weights.load_pixel(int2(i, 0)).x;
+      float weight = weights.load_pixel<float>(int2(i, 0));
       accumulated_color += load_input(texel + int2(i, 0)) * weight;
       accumulated_color += load_input(texel + int2(-i, 0)) * weight;
     }
@@ -98,7 +98,7 @@ static void blur_pass(const Result &input,
 
     /* Write the color using the transposed texel. See the horizontal_pass method for more
      * information on the rational behind this. */
-    output.store_pixel(int2(texel.y, texel.x), accumulated_color);
+    output.store_pixel_generic_type(int2(texel.y, texel.x), accumulated_color);
   });
 }
 

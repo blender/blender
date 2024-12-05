@@ -106,7 +106,7 @@ void ConvertFloatToVectorOperation::execute_single(const Result &input, Result &
 void ConvertFloatToVectorOperation::execute_cpu(const Result &input, Result &output)
 {
   parallel_for(input.domain().size, [&](const int2 texel) {
-    output.store_pixel(texel, float4(float3(input.load_pixel(texel).x), 1.0f));
+    output.store_pixel(texel, float4(float3(input.load_pixel<float>(texel)), 1.0f));
   });
 }
 
@@ -136,7 +136,7 @@ void ConvertFloatToColorOperation::execute_single(const Result &input, Result &o
 void ConvertFloatToColorOperation::execute_cpu(const Result &input, Result &output)
 {
   parallel_for(input.domain().size, [&](const int2 texel) {
-    output.store_pixel(texel, float4(float3(input.load_pixel(texel).x), 1.0f));
+    output.store_pixel(texel, float4(float3(input.load_pixel<float>(texel)), 1.0f));
   });
 }
 
@@ -167,8 +167,8 @@ void ConvertColorToFloatOperation::execute_single(const Result &input, Result &o
 void ConvertColorToFloatOperation::execute_cpu(const Result &input, Result &output)
 {
   parallel_for(input.domain().size, [&](const int2 texel) {
-    const float4 color = input.load_pixel(texel);
-    output.store_pixel(texel, float4((color.x + color.y + color.z) / 3.0f));
+    const float4 color = input.load_pixel<float4>(texel);
+    output.store_pixel(texel, (color.x + color.y + color.z) / 3.0f);
   });
 }
 
@@ -198,8 +198,9 @@ void ConvertColorToVectorOperation::execute_single(const Result &input, Result &
 
 void ConvertColorToVectorOperation::execute_cpu(const Result &input, Result &output)
 {
-  parallel_for(input.domain().size,
-               [&](const int2 texel) { output.store_pixel(texel, input.load_pixel(texel)); });
+  parallel_for(input.domain().size, [&](const int2 texel) {
+    output.store_pixel(texel, input.load_pixel<float4>(texel));
+  });
 }
 
 GPUShader *ConvertColorToVectorOperation::get_conversion_shader() const
@@ -229,8 +230,8 @@ void ConvertVectorToFloatOperation::execute_single(const Result &input, Result &
 void ConvertVectorToFloatOperation::execute_cpu(const Result &input, Result &output)
 {
   parallel_for(input.domain().size, [&](const int2 texel) {
-    const float4 vector = input.load_pixel(texel);
-    output.store_pixel(texel, float4((vector.x + vector.y + vector.z) / 3.0f));
+    const float4 vector = input.load_pixel<float4>(texel);
+    output.store_pixel(texel, (vector.x + vector.y + vector.z) / 3.0f);
   });
 }
 
@@ -260,7 +261,7 @@ void ConvertVectorToColorOperation::execute_single(const Result &input, Result &
 void ConvertVectorToColorOperation::execute_cpu(const Result &input, Result &output)
 {
   parallel_for(input.domain().size, [&](const int2 texel) {
-    output.store_pixel(texel, float4(input.load_pixel(texel).xyz(), 1.0f));
+    output.store_pixel(texel, float4(input.load_pixel<float4>(texel).xyz(), 1.0f));
   });
 }
 

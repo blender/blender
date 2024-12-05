@@ -787,12 +787,12 @@ class RenderLayerOperation : public NodeOperation {
     /* Special case for alpha output. */
     if (pass.type() == ResultType::Color && result.type() == ResultType::Float) {
       parallel_for(result.domain().size, [&](const int2 texel) {
-        result.store_pixel(texel, float4(pass.load_pixel(texel + lower_bound).w));
+        result.store_pixel(texel, pass.load_pixel<float4>(texel + lower_bound).w);
       });
     }
     else {
       parallel_for(result.domain().size, [&](const int2 texel) {
-        result.store_pixel(texel, pass.load_pixel(texel + lower_bound));
+        result.store_pixel_generic_type(texel, pass.load_pixel_generic_type(texel + lower_bound));
       });
     }
   }

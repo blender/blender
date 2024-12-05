@@ -62,10 +62,10 @@ static void sum_causal_and_non_causal_results_cpu(const Result &first_causal_inp
   parallel_for(domain.size, [&](const int2 texel) {
     /* The Van Vliet filter is a parallel interconnection filter, meaning its output is the sum of
      * all of its causal and non causal filters. */
-    float4 filter_output = first_causal_input.load_pixel(texel) +
-                           first_non_causal_input.load_pixel(texel) +
-                           second_causal_input.load_pixel(texel) +
-                           second_non_causal_input.load_pixel(texel);
+    float4 filter_output = first_causal_input.load_pixel<float4>(texel) +
+                           first_non_causal_input.load_pixel<float4>(texel) +
+                           second_causal_input.load_pixel<float4>(texel) +
+                           second_non_causal_input.load_pixel<float4>(texel);
 
     /* Write the color using the transposed texel. See the sum_causal_and_non_causal_results method
      * for more information on the rational behind this. */
@@ -269,7 +269,7 @@ static void blur_pass_cpu(Context &context,
      * current input is at index 0 and the oldest input is at index FILTER_ORDER. We assume Neumann
      * boundary condition, so we initialize all inputs by the boundary pixel. */
     int2 boundary_texel = is_causal ? int2(0, y) : int2(width - 1, y);
-    float4 input_boundary = input.load_pixel(boundary_texel);
+    float4 input_boundary = input.load_pixel<float4>(boundary_texel);
     float4 inputs[FILTER_ORDER + 1] = {input_boundary, input_boundary, input_boundary};
 
     /* Create an array that holds the last FILTER_ORDER outputs along with the current output. The
@@ -283,7 +283,7 @@ static void blur_pass_cpu(Context &context,
     for (int x = 0; x < width; x++) {
       /* Run forward across rows for the causal filter and backward for the non causal filter. */
       int2 texel = is_causal ? int2(x, y) : int2(width - 1 - x, y);
-      inputs[0] = input.load_pixel(texel);
+      inputs[0] = input.load_pixel<float4>(texel);
 
       /* Compute the filter based on its difference equation, this is not in the Van Vliet paper
        * because the filter was decomposed, but it is essentially similar to Equation (28) for the

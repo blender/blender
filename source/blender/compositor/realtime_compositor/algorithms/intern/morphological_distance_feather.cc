@@ -74,11 +74,11 @@ static void morphological_distance_feather_pass(const Result &input,
     float accumulated_value = 0.0f;
 
     /* Compute the contribution of the center pixel to the blur result. */
-    float center_value = input.load_pixel(texel).x;
+    float center_value = input.load_pixel<float>(texel);
     if constexpr (IsErode) {
       center_value = 1.0f - center_value;
     }
-    accumulated_value += center_value * weights.weights_result.load_pixel(int2(0)).x;
+    accumulated_value += center_value * weights.weights_result.load_pixel<float>(int2(0));
 
     /* Start with the center value as the maximum/minimum distance and reassign to the true maximum
      * or minimum in the search loop below. Additionally, the center falloff is always 1.0, so
@@ -91,14 +91,14 @@ static void morphological_distance_feather_pass(const Result &input,
      * they are both symmetric, the same weights and falloffs are used for the negative half and we
      * compute both of their contributions. */
     for (int i = 1; i < weights.weights_result.domain().size.x; i++) {
-      float weight = weights.weights_result.load_pixel(int2(i, 0)).x;
-      float falloff = weights.falloffs_result.load_pixel(int2(i, 0)).x;
+      float weight = weights.weights_result.load_pixel<float>(int2(i, 0));
+      float falloff = weights.falloffs_result.load_pixel<float>(int2(i, 0));
 
       /* Loop for two iterations, where s takes the value of -1 and 1, which is used as the sign
        * needed to evaluated the positive and negative sides as explain above. */
       for (int s = -1; s < 2; s += 2) {
         /* Compute the contribution of the pixel to the blur result. */
-        float value = input.load_pixel_extended(texel + int2(s * i, 0)).x;
+        float value = input.load_pixel_extended<float>(texel + int2(s * i, 0));
         if constexpr (IsErode) {
           value = 1.0f - value;
         }
@@ -126,7 +126,7 @@ static void morphological_distance_feather_pass(const Result &input,
 
     /* Write the value using the transposed texel. See the horizontal pass function for more
      * information on the rational behind this. */
-    output.store_pixel(int2(texel.y, texel.x), float4(value));
+    output.store_pixel(int2(texel.y, texel.x), value);
   });
 }
 

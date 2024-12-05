@@ -108,7 +108,7 @@ class FlipOperation : public NodeOperation {
       if (flip_y) {
         flipped_texel.y = size.y - texel.y - 1;
       }
-      output.store_pixel(texel, input.load_pixel(flipped_texel));
+      output.store_pixel(texel, input.load_pixel<float4>(flipped_texel));
     });
   }
 

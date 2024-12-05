@@ -34,15 +34,16 @@ static void blur_pass(const Result &input,
     float4 accumulated_color = float4(0.0f);
 
     /* First, compute the contribution of the center pixel. */
-    float4 center_color = input.load_pixel(texel);
-    float center_weight = weights.load_pixel(int2(0)).x;
+    float4 center_color = input.load_pixel_generic_type(texel);
+    float center_weight = weights.load_pixel<float>(int2(0));
     accumulated_color += center_color * center_weight;
     accumulated_weight += center_weight;
 
     /* The dispatch domain is transposed in the vertical pass, so make sure to reverse transpose
      * the texel coordinates when loading the radius. See the horizontal_pass function for more
      * information. */
-    int radius = int(radius_input.load_pixel(is_vertical_pass ? int2(texel.y, texel.x) : texel).x);
+    int radius = int(
+        radius_input.load_pixel<float>(is_vertical_pass ? int2(texel.y, texel.x) : texel));
 
     /* Then, compute the contributions of the pixel to the right and left, noting that the
      * weights texture only stores the weights for the positive half, but since the filter is
@@ -52,14 +53,15 @@ static void blur_pass(const Result &input,
       /* Add 0.5 to evaluate at the center of the pixels. */
       float weight =
           weights.sample_bilinear_extended(float2((float(i) + 0.5f) / float(radius + 1), 0.0f)).x;
-      accumulated_color += input.load_pixel_extended(texel + int2(i, 0)) * weight;
-      accumulated_color += input.load_pixel_extended(texel + int2(-i, 0)) * weight;
+      accumulated_color += input.load_pixel_extended_generic_type(texel + int2(i, 0)) * weight;
+      accumulated_color += input.load_pixel_extended_generic_type(texel + int2(-i, 0)) * weight;
       accumulated_weight += weight * 2.0f;
     }
 
     /* Write the color using the transposed texel. See the horizontal_pass_cpu function for more
      * information on the rational behind this. */
-    output.store_pixel(int2(texel.y, texel.x), accumulated_color / accumulated_weight);
+    output.store_pixel_generic_type(int2(texel.y, texel.x),
+                                    accumulated_color / accumulated_weight);
   });
 }
 

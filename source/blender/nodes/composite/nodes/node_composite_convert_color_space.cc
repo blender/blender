@@ -136,7 +136,7 @@ class ConvertColorSpaceOperation : public NodeOperation {
     output_image.allocate_texture(domain);
 
     parallel_for(domain.size, [&](const int2 texel) {
-      output_image.store_pixel(texel, input_image.load_pixel(texel));
+      output_image.store_pixel(texel, input_image.load_pixel<float4>(texel));
     });
 
     IMB_colormanagement_processor_apply(color_processor,

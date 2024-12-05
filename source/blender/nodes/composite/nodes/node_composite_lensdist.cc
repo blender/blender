@@ -343,7 +343,7 @@ class LensDistortionOperation : public NodeOperation {
 
       /* Sample the red and blue channels shifted by the dispersion amount. */
       const float red = input.sample_bilinear_zero(normalized_texel + float2(dispersion, 0.0f)).x;
-      const float green = input.load_pixel(texel).y;
+      const float green = input.load_pixel<float4>(texel).y;
       const float blue = input.sample_bilinear_zero(normalized_texel - float2(dispersion, 0.0f)).z;
 
       output.store_pixel(texel, float4(red, green, blue, 1.0f));
