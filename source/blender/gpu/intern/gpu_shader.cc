@@ -699,7 +699,6 @@ int GPU_shader_get_program(GPUShader *shader)
   return unwrap(shader)->program_handle_get();
 }
 
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
