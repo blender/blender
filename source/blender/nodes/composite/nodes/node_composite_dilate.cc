@@ -135,7 +135,7 @@ class DilateErodeOperation : public NodeOperation {
     const Domain domain = compute_domain();
     const int2 transposed_domain = int2(domain.size.y, domain.size.x);
 
-    Result horizontal_pass_result = context().create_result(ResultType::Color);
+    Result horizontal_pass_result = context().create_result(ResultType::Float);
     horizontal_pass_result.allocate_texture(transposed_domain);
     horizontal_pass_result.bind_as_image(shader, "output_img");
 
@@ -163,7 +163,7 @@ class DilateErodeOperation : public NodeOperation {
     const Domain domain = compute_domain();
     const int2 transposed_domain = int2(domain.size.y, domain.size.x);
 
-    Result horizontal_pass_result = context().create_result(ResultType::Color);
+    Result horizontal_pass_result = context().create_result(ResultType::Float);
     horizontal_pass_result.allocate_texture(transposed_domain);
 
     this->execute_step_pass_cpu(input, horizontal_pass_result);
