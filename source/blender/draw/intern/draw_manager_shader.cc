@@ -297,42 +297,6 @@ static void drw_deferred_shader_add(GPUMaterial *mat, bool deferred)
   drw_deferred_queue_append(mat, false);
 }
 
-static void drw_register_shader_vlattrs(GPUMaterial *mat)
-{
-  const ListBase *attrs = GPU_material_layer_attributes(mat);
-
-  if (!attrs) {
-    return;
-  }
-
-  GHash *hash = DST.vmempool->vlattrs_name_cache;
-  ListBase *list = &DST.vmempool->vlattrs_name_list;
-
-  LISTBASE_FOREACH (GPULayerAttr *, attr, attrs) {
-    GPULayerAttr **p_val;
-
-    /* Add to the table and list if newly seen. */
-    if (!BLI_ghash_ensure_p(hash, POINTER_FROM_UINT(attr->hash_code), (void ***)&p_val)) {
-      DST.vmempool->vlattrs_ubo_ready = false;
-
-      GPULayerAttr *new_link = *p_val = static_cast<GPULayerAttr *>(MEM_dupallocN(attr));
-
-      /* Insert into the list ensuring sorted order. */
-      GPULayerAttr *link = static_cast<GPULayerAttr *>(list->first);
-
-      while (link && link->hash_code <= attr->hash_code) {
-        link = link->next;
-      }
-
-      new_link->prev = new_link->next = nullptr;
-      BLI_insertlinkbefore(list, link, new_link);
-    }
-
-    /* Reset the unused frames counter. */
-    (*p_val)->users = 0;
-  }
-}
-
 void DRW_deferred_shader_remove(GPUMaterial *mat)
 {
   if (GPU_use_main_context_workaround()) {
@@ -399,8 +363,6 @@ GPUMaterial *DRW_shader_from_world(World *wo,
                                                 callback,
                                                 thunk);
 
-  drw_register_shader_vlattrs(mat);
-
   if (DRW_state_is_image_render()) {
     /* Do not deferred if doing render. */
     deferred = false;
@@ -434,8 +396,6 @@ GPUMaterial *DRW_shader_from_material(Material *ma,
                                                 callback,
                                                 thunk,
                                                 pass_replacement_cb);
-
-  drw_register_shader_vlattrs(mat);
 
   drw_deferred_shader_add(mat, deferred);
   DRW_shader_queue_optimize_material(mat);

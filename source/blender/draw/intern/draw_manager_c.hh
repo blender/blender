@@ -314,12 +314,6 @@ struct DRWData {
   BLI_memblock *obinfos;
   BLI_memblock *cullstates;
   BLI_memblock *images;
-  GHash *vlattrs_name_cache;
-  ListBase vlattrs_name_list;
-  LayerAttribute *vlattrs_buf;
-  GPUUniformBuf *vlattrs_ubo;
-  bool vlattrs_ubo_ready;
-  uint ubo_len;
   /** Per draw-call volume object data. */
   void *volume_grids_ubos; /* VolumeUniformBufPool */
   /** List of smoke textures to free after drawing. */
