@@ -297,6 +297,7 @@ void USDPointInstancerReader::set_collection(Main *bmain, Collection &coll)
 
   if (socket_data->value != &coll) {
     socket_data->value = &coll;
+    BKE_ntree_update_tag_socket_property(ntree, sock);
     BKE_ntree_update_main_tree(bmain, ntree, nullptr);
   }
 }
