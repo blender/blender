@@ -27,11 +27,6 @@ class GeoModifierLog;
 
 namespace blender::nodes {
 
-void find_node_tree_dependencies(const bNodeTree &tree,
-                                 Set<ID *> &r_ids,
-                                 bool &r_needs_own_transform_relation,
-                                 bool &r_needs_scene_camera_relation);
-
 constexpr StringRef input_use_attribute_suffix = "_use_attribute";
 constexpr StringRef input_attribute_name_suffix = "_attribute_name";
 

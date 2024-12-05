@@ -64,6 +64,7 @@
 
 #include "FN_lazy_function_execute.hh"
 
+#include "NOD_geometry_nodes_dependencies.hh"
 #include "NOD_geometry_nodes_execute.hh"
 #include "NOD_geometry_nodes_lazy_function.hh"
 
@@ -292,11 +293,10 @@ static void store_result_geometry(
 static void gather_node_group_ids(const bNodeTree &node_tree, Set<ID *> &ids)
 {
   const int orig_size = ids.size();
-
-  bool needs_own_transform_relation = false;
-  bool needs_scene_camera_relation = false;
-  nodes::find_node_tree_dependencies(
-      node_tree, ids, needs_own_transform_relation, needs_scene_camera_relation);
+  BLI_assert(node_tree.runtime->geometry_nodes_eval_dependencies);
+  for (ID *id : node_tree.runtime->geometry_nodes_eval_dependencies->ids.values()) {
+    ids.add(id);
+  }
   if (ids.size() != orig_size) {
     /* Only evaluate the node group if it references data-blocks. In that case it needs to be
      * evaluated so that ID pointers are switched to point to evaluated data-blocks. */

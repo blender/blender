@@ -28,11 +28,14 @@
 
 #include "MOD_nodes.hh"
 
+#include "NOD_geometry_nodes_dependencies.hh"
 #include "NOD_geometry_nodes_gizmos.hh"
 #include "NOD_geometry_nodes_lazy_function.hh"
 #include "NOD_node_declaration.hh"
 #include "NOD_socket.hh"
 #include "NOD_texture.h"
+
+#include "DEG_depsgraph_build.hh"
 
 #include "BLT_translation.hh"
 
@@ -302,6 +305,7 @@ class NodeTreeMainUpdater {
   NodeTreeUpdateExtraParams *params_;
   Map<bNodeTree *, TreeUpdateResult> update_result_by_tree_;
   NodeTreeRelations relations_;
+  bool needs_relations_update_ = false;
 
  public:
   NodeTreeMainUpdater(Main *bmain, NodeTreeUpdateExtraParams *params)
@@ -399,6 +403,12 @@ class NodeTreeMainUpdater {
         if (params_->tree_output_changed_fn && result.output_changed) {
           params_->tree_output_changed_fn(id, ntree, params_->user_data);
         }
+      }
+    }
+
+    if (needs_relations_update_) {
+      if (bmain_) {
+        DEG_relations_tag_update(bmain_);
       }
     }
   }
@@ -515,6 +525,7 @@ class NodeTreeMainUpdater {
         result.interface_changed = true;
       }
       this->update_socket_shapes(ntree);
+      this->update_eval_dependencies(ntree);
     }
 
     result.output_changed = this->check_if_output_changed(ntree);
@@ -853,6 +864,22 @@ class NodeTreeMainUpdater {
     ntree.ensure_topology_cache();
     for (bNodeSocket *socket : ntree.all_sockets()) {
       socket->display_shape = this->get_socket_shape(*socket);
+    }
+  }
+
+  void update_eval_dependencies(bNodeTree &ntree)
+  {
+    ntree.ensure_topology_cache();
+    nodes::GeometryNodesEvalDependencies new_deps;
+    nodes::gather_geometry_nodes_eval_dependencies(ntree, new_deps);
+
+    /* Check if the dependencies have changed. */
+    if (!ntree.runtime->geometry_nodes_eval_dependencies ||
+        new_deps != *ntree.runtime->geometry_nodes_eval_dependencies)
+    {
+      needs_relations_update_ = true;
+      ntree.runtime->geometry_nodes_eval_dependencies =
+          std::make_unique<nodes::GeometryNodesEvalDependencies>(std::move(new_deps));
     }
   }
 

@@ -27,6 +27,7 @@ struct bNodeTree;
 
 namespace blender::nodes {
 struct FieldInferencingInterface;
+struct GeometryNodesEvalDependencies;
 class NodeDeclaration;
 struct GeometryNodesLazyFunctionGraphInfo;
 namespace anonymous_attribute_lifetime {
@@ -193,6 +194,14 @@ class bNodeTreeRuntime : NonCopyable, NonMovable {
    * only valid during node editor drawing.
    */
   Set<const bNodeSocket *> sockets_on_active_gizmo_paths;
+
+  /**
+   * Cache of dependencies used by the node tree itself. Does not account for data that's passed
+   * into the node tree from the outside.
+   * NOTE: The node tree may reference additional data-blocks besides the ones included here. But
+   * those are not used when the node tree is evaluated by Geometry Nodes.
+   */
+  std::unique_ptr<nodes::GeometryNodesEvalDependencies> geometry_nodes_eval_dependencies;
 
   /** Only valid when #topology_cache_is_dirty is false. */
   Vector<bNodeLink *> links;
