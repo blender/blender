@@ -85,7 +85,6 @@ set(SRC
   intern/draw_instance_data.cc
   intern/draw_manager.cc
   intern/draw_manager_c.cc
-  intern/draw_manager_data.cc
   intern/draw_manager_exec.cc
   intern/draw_manager_profiling.cc
   intern/draw_manager_shader.cc

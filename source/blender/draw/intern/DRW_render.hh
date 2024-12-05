@@ -76,10 +76,7 @@ namespace blender::draw {
 class TextureFromPool;
 }  // namespace blender::draw
 
-typedef struct DRWCallBuffer DRWCallBuffer;
-typedef struct DRWInterface DRWInterface;
 typedef struct DRWPass DRWPass;
-typedef struct DRWShaderLibrary DRWShaderLibrary;
 typedef struct DRWShadingGroup DRWShadingGroup;
 typedef struct DRWUniform DRWUniform;
 

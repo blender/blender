@@ -373,7 +373,6 @@ DRWData *DRW_viewport_data_create()
 
   drw_data->commands = BLI_memblock_create(sizeof(DRWCommandChunk));
   drw_data->commands_small = BLI_memblock_create(sizeof(DRWCommandSmallChunk));
-  drw_data->callbuffers = BLI_memblock_create(sizeof(DRWCallBuffer));
   drw_data->shgroups = BLI_memblock_create(sizeof(DRWShadingGroup));
   drw_data->uniforms = BLI_memblock_create(sizeof(DRWUniformChunk));
   drw_data->images = BLI_memblock_create(sizeof(GPUTexture *));

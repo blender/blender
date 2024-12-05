@@ -318,13 +318,6 @@ union DRWCommand {
   DRWCommandClear clear;
 };
 
-/** Used for aggregating calls into #blender::gpu::VertBuf's. */
-struct DRWCallBuffer {
-  blender::gpu::VertBuf *buf;
-  blender::gpu::VertBuf *buf_select;
-  int count;
-};
-
 /** Used by #DRWUniform.type */
 /* TODO(@jbakker): rename to DRW_RESOURCE/DRWResourceType. */
 typedef enum {

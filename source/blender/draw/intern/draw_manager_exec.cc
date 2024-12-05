@@ -601,7 +601,7 @@ static void draw_command_iter_begin(DRWCommandIterator *iter, DRWShadingGroup *s
   iter->cmd_index = 0;
 }
 
-static DRWCommand *draw_command_iter_step(DRWCommandIterator *iter, eDRWCommandType *cmd_type)
+static DRWCommand *draw_command_iter_step(DRWCommandIterator *iter, eDRWCommandType * /*cmd_type*/)
 {
   if (iter->curr_chunk) {
     if (iter->cmd_index == iter->curr_chunk->command_len) {
@@ -609,7 +609,6 @@ static DRWCommand *draw_command_iter_step(DRWCommandIterator *iter, eDRWCommandT
       iter->cmd_index = 0;
     }
     if (iter->curr_chunk) {
-      *cmd_type = command_type_get(iter->curr_chunk->command_type, iter->cmd_index);
       if (iter->cmd_index < iter->curr_chunk->command_used) {
         return iter->curr_chunk->commands + iter->cmd_index++;
       }
