@@ -114,15 +114,6 @@ typedef struct DRWRegisteredDrawEngine {
  *                           > DRWUniform
  */
 
-struct DRWCullingState {
-  uint32_t mask;
-  /* Culling: Using Bounding Sphere for now for faster culling.
-   * Not ideal for planes. Could be extended. */
-  BoundSphere bsphere;
-  /* Grrr only used by EEVEE. */
-  void *user_data;
-};
-
 /* Minimum max UBO size is 64KiB. We take the largest
  * UBO struct and alloc the max number.
  * `((1 << 16) / sizeof(DRWObjectMatrix)) = 512`
@@ -309,11 +300,6 @@ struct DRWShadingGroup {
 struct DRWData {
   /** Instance data. */
   DRWInstanceDataList *idatalist;
-  /** Memory-pools for draw-calls. */
-  BLI_memblock *obmats;
-  BLI_memblock *obinfos;
-  BLI_memblock *cullstates;
-  BLI_memblock *images;
   /** Per draw-call volume object data. */
   void *volume_grids_ubos; /* VolumeUniformBufPool */
   /** List of smoke textures to free after drawing. */

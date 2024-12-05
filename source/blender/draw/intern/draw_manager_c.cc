@@ -338,31 +338,6 @@ static void drw_context_state_init()
   }
 }
 
-static void draw_unit_state_create()
-{
-  DRWObjectInfos *infos = static_cast<DRWObjectInfos *>(BLI_memblock_alloc(DST.vmempool->obinfos));
-  DRWObjectMatrix *mats = static_cast<DRWObjectMatrix *>(BLI_memblock_alloc(DST.vmempool->obmats));
-  DRWCullingState *culling = static_cast<DRWCullingState *>(
-      BLI_memblock_alloc(DST.vmempool->cullstates));
-
-  unit_m4(mats->model);
-  unit_m4(mats->modelinverse);
-
-  copy_v3_fl(infos->orcotexfac[0], 0.0f);
-  copy_v3_fl(infos->orcotexfac[1], 1.0f);
-
-  infos->ob_index = 0;
-  infos->ob_random = 0.0f;
-  infos->ob_flag = 1.0f;
-  copy_v3_fl(infos->ob_color, 1.0f);
-
-  /* TODO(fclem): get rid of this. */
-  culling->bsphere.radius = -1.0f;
-  culling->user_data = nullptr;
-
-  DRW_handle_increment(&DST.resource_handle);
-}
-
 DRWData *DRW_viewport_data_create()
 {
   DRWData *drw_data = static_cast<DRWData *>(MEM_callocN(sizeof(DRWData), "DRWData"));
@@ -370,20 +345,6 @@ DRWData *DRW_viewport_data_create()
   drw_data->texture_pool = DRW_texture_pool_create();
 
   drw_data->idatalist = DRW_instance_data_list_create();
-
-  drw_data->images = BLI_memblock_create(sizeof(GPUTexture *));
-  {
-    uint chunk_len = sizeof(DRWObjectMatrix) * DRW_RESOURCE_CHUNK_LEN;
-    drw_data->obmats = BLI_memblock_create_ex(sizeof(DRWObjectMatrix), chunk_len);
-  }
-  {
-    uint chunk_len = sizeof(DRWObjectInfos) * DRW_RESOURCE_CHUNK_LEN;
-    drw_data->obinfos = BLI_memblock_create_ex(sizeof(DRWObjectInfos), chunk_len);
-  }
-  {
-    uint chunk_len = sizeof(DRWCullingState) * DRW_RESOURCE_CHUNK_LEN;
-    drw_data->cullstates = BLI_memblock_create_ex(sizeof(DRWCullingState), chunk_len);
-  }
 
   drw_data->default_view = new blender::draw::View("DrawDefaultView");
 
@@ -393,26 +354,8 @@ DRWData *DRW_viewport_data_create()
   return drw_data;
 }
 
-/* Reduce ref count of the textures used by a viewport. */
-static void draw_texture_release(DRWData *drw_data)
-{
-  /* Release Image textures. */
-  BLI_memblock_iter iter;
-  GPUTexture **tex;
-  BLI_memblock_iternew(drw_data->images, &iter);
-  while ((tex = static_cast<GPUTexture **>(BLI_memblock_iterstep(&iter)))) {
-    GPU_texture_free(*tex);
-  }
-}
-
 static void drw_viewport_data_reset(DRWData *drw_data)
 {
-  draw_texture_release(drw_data);
-
-  BLI_memblock_clear(drw_data->obmats, nullptr);
-  BLI_memblock_clear(drw_data->obinfos, nullptr);
-  BLI_memblock_clear(drw_data->cullstates, nullptr);
-  BLI_memblock_clear(drw_data->images, nullptr);
   DRW_instance_data_list_free_unused(drw_data->idatalist);
   DRW_instance_data_list_resize(drw_data->idatalist);
   DRW_instance_data_list_reset(drw_data->idatalist);
@@ -421,12 +364,6 @@ static void drw_viewport_data_reset(DRWData *drw_data)
 
 void DRW_viewport_data_free(DRWData *drw_data)
 {
-  draw_texture_release(drw_data);
-
-  BLI_memblock_destroy(drw_data->obmats, nullptr);
-  BLI_memblock_destroy(drw_data->obinfos, nullptr);
-  BLI_memblock_destroy(drw_data->cullstates, nullptr);
-  BLI_memblock_destroy(drw_data->images, nullptr);
   DRW_instance_data_list_free(drw_data->idatalist);
   DRW_texture_pool_free(drw_data->texture_pool);
   for (int i = 0; i < 2; i++) {
@@ -525,8 +462,6 @@ static void drw_manager_init(DRWManager *dst, GPUViewport *viewport, const int s
 
   DefaultFramebufferList *dfbl = DRW_view_data_default_framebuffer_list_get(dst->view_data_active);
   dst->default_framebuffer = dfbl->default_fb;
-
-  draw_unit_state_create();
 
   if (rv3d != nullptr) {
     dst->pixsize = rv3d->pixsize;
