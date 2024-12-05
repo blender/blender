@@ -540,6 +540,7 @@ static int node_add_object_exec(bContext *C, wmOperator *op)
   bNodeSocketValueObject *socket_data = (bNodeSocketValueObject *)sock->default_value;
   socket_data->value = object;
   id_us_plus(&object->id);
+  BKE_ntree_update_tag_socket_property(ntree, sock);
 
   bke::node_set_active(ntree, object_node);
   ED_node_tree_propagate_change(C, bmain, ntree);
@@ -626,6 +627,7 @@ static int node_add_collection_exec(bContext *C, wmOperator *op)
   bNodeSocketValueCollection *socket_data = (bNodeSocketValueCollection *)sock->default_value;
   socket_data->value = collection;
   id_us_plus(&collection->id);
+  BKE_ntree_update_tag_socket_property(&ntree, sock);
 
   bke::node_set_active(&ntree, collection_node);
   ED_node_tree_propagate_change(C, bmain, &ntree);
@@ -796,6 +798,7 @@ static int node_add_file_exec(bContext *C, wmOperator *op)
       bNodeSocket *image_socket = (bNodeSocket *)node->inputs.first;
       bNodeSocketValueImage *socket_value = (bNodeSocketValueImage *)image_socket->default_value;
       socket_value->value = image;
+      BKE_ntree_update_tag_socket_property(&node_tree, image_socket);
     }
     else {
       node->id = (ID *)image;
