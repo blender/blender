@@ -2494,6 +2494,7 @@ static int sculpt_mesh_filter_exec(bContext *C, wmOperator *op)
     }
 
     sculpt_mesh_filter_end(C);
+    undo::push_end(*CTX_data_active_object(C));
 
     return OPERATOR_FINISHED;
   }
