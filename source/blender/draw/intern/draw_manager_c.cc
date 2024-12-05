@@ -1722,7 +1722,6 @@ void DRW_draw_render_loop_ex(Depsgraph *depsgraph,
     drw_engines_cache_finish();
 
     drw_task_graph_deinit();
-    DRW_render_instance_buffer_finish();
 
 #ifdef USE_PROFILE
     double *cache_time = DRW_view_data_cache_time_get(DST.view_data_active);
@@ -1906,7 +1905,6 @@ void DRW_render_gpencil(RenderEngine *engine, Depsgraph *depsgraph)
   DST.options.is_image_render = true;
   DST.options.is_scene_render = true;
   DST.options.draw_background = scene->r.alphamode == R_ADDSKY;
-  DST.buffer_finish_called = true;
 
   DST.draw_ctx = {};
   DST.draw_ctx.scene = scene;
@@ -1934,7 +1932,6 @@ void DRW_render_gpencil(RenderEngine *engine, Depsgraph *depsgraph)
        render_view = render_view->next)
   {
     RE_SetActiveRenderView(render, render_view->name);
-    DST.buffer_finish_called = false;
     DRW_render_gpencil_to_image(engine, render_layer, &render_rect);
   }
 
@@ -1948,8 +1945,6 @@ void DRW_render_gpencil(RenderEngine *engine, Depsgraph *depsgraph)
   GPU_framebuffer_restore();
 
   DRW_render_context_disable(render);
-
-  DST.buffer_finish_called = false;
 }
 
 void DRW_render_to_image(RenderEngine *engine, Depsgraph *depsgraph)
@@ -2018,7 +2013,6 @@ void DRW_render_to_image(RenderEngine *engine, Depsgraph *depsgraph)
   {
     RE_SetActiveRenderView(render, render_view->name);
     engine_type->draw_engine->render_to_image(data, engine, render_layer, &render_rect);
-    DST.buffer_finish_called = false;
   }
 
   RE_engine_end_result(engine, render_result, false, false, false);
@@ -2119,7 +2113,6 @@ void DRW_custom_pipeline_begin(DrawEngineType *draw_engine_type, Depsgraph *deps
 
 void DRW_custom_pipeline_end()
 {
-  DST.buffer_finish_called = false;
 
   DRW_smoke_exit(DST.vmempool);
 
@@ -2158,8 +2151,6 @@ void DRW_cache_restart()
   DRW_smoke_exit(DST.vmempool);
 
   drw_manager_init(&DST, DST.viewport, blender::int2{int(DST.size[0]), int(DST.size[1])});
-
-  DST.buffer_finish_called = false;
 
   DRW_pointcloud_init();
   DRW_curves_init(DST.vmempool);
@@ -2232,8 +2223,6 @@ void DRW_draw_render_loop_2d_ex(Depsgraph *depsgraph,
     }
 
     drw_engines_cache_finish();
-
-    DRW_render_instance_buffer_finish();
 
 #ifdef USE_PROFILE
     double *cache_time = DRW_view_data_cache_time_get(DST.view_data_active);
@@ -2352,13 +2341,6 @@ static void draw_select_framebuffer_depth_only_setup(const int size[2])
 
     GPU_framebuffer_check_valid(g_select_buffer.framebuffer_depth_only, nullptr);
   }
-}
-
-void DRW_render_instance_buffer_finish()
-{
-  BLI_assert_msg(!DST.buffer_finish_called, "DRW_render_instance_buffer_finish called twice!");
-  DST.buffer_finish_called = true;
-  DRW_instance_buffer_finish(DST.vmempool->idatalist);
 }
 
 void DRW_render_set_time(RenderEngine *engine, Depsgraph *depsgraph, int frame, float subframe)
@@ -2548,8 +2530,6 @@ void DRW_draw_select_loop(Depsgraph *depsgraph,
     drw_duplidata_free();
     drw_task_graph_deinit();
     drw_engines_cache_finish();
-
-    DRW_render_instance_buffer_finish();
   }
 
   /* Setup frame-buffer. */
@@ -2691,7 +2671,6 @@ void DRW_draw_depth_loop(Depsgraph *depsgraph,
     drw_engines_cache_finish();
 
     drw_task_graph_deinit();
-    DRW_render_instance_buffer_finish();
   }
 
   /* Start Drawing */
@@ -2788,12 +2767,6 @@ void DRW_draw_select_id(Depsgraph *depsgraph, ARegion *region, View3D *v3d)
     drw_engines_cache_finish();
 
     drw_task_graph_deinit();
-#if 0 /* This is a workaround to a nasty bug that seems to be a nasty driver bug (see #69377). */
-    DRW_render_instance_buffer_finish();
-#else
-    DST.buffer_finish_called = true;
-    // DRW_instance_buffer_finish(DST.vmempool->idatalist);
-#endif
   }
 
   /* Start Drawing */

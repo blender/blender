@@ -29,37 +29,6 @@ struct DRWSparseUniformBuf;
 void *DRW_instance_data_next(DRWInstanceData *idata);
 DRWInstanceData *DRW_instance_data_request(DRWInstanceDataList *idatalist, uint attr_size);
 
-/**
- * This manager allows to distribute existing batches for instancing
- * attributes. This reduce the number of batches creation.
- * Querying a batch is done with a vertex format. This format should
- * be static so that its pointer never changes (because we are using
- * this pointer as identifier [we don't want to check the full format
- * that would be too slow]).
- */
-blender::gpu::VertBuf *DRW_temp_buffer_request(DRWInstanceDataList *idatalist,
-                                               GPUVertFormat *format,
-                                               int *vert_len);
-/**
- * \note Does not return a valid drawable batch until DRW_instance_buffer_finish has run.
- * Initialization is delayed because instancer or geom could still not be initialized.
- */
-blender::gpu::Batch *DRW_temp_batch_instance_request(DRWInstanceDataList *idatalist,
-                                                     blender::gpu::VertBuf *buf,
-                                                     blender::gpu::Batch *instancer,
-                                                     blender::gpu::Batch *geom);
-/**
- * \note Use only with buf allocated via DRW_temp_buffer_request.
- */
-blender::gpu::Batch *DRW_temp_batch_request(DRWInstanceDataList *idatalist,
-                                            blender::gpu::VertBuf *buf,
-                                            GPUPrimType type);
-
-/**
- * Upload all instance data to the GPU as soon as possible.
- */
-void DRW_instance_buffer_finish(DRWInstanceDataList *idatalist);
-
 void DRW_instance_data_list_reset(DRWInstanceDataList *idatalist);
 void DRW_instance_data_list_free_unused(DRWInstanceDataList *idatalist);
 void DRW_instance_data_list_resize(DRWInstanceDataList *idatalist);

@@ -310,10 +310,7 @@ void DRW_render_object_iter(
     RenderEngine *engine,
     Depsgraph *depsgraph,
     void (*callback)(void *vedata, Object *ob, RenderEngine *engine, Depsgraph *depsgraph));
-/**
- * Must run after all instance datas have been added.
- */
-void DRW_render_instance_buffer_finish();
+
 /**
  * \warning Changing frame might free the #ViewLayerEngineData.
  */

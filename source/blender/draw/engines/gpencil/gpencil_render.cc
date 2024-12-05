@@ -252,8 +252,6 @@ void GPENCIL_render_to_image(void *ved,
   DRW_render_object_iter(vedata, engine, depsgraph, GPENCIL_render_cache);
   GPENCIL_cache_finish(vedata);
 
-  DRW_render_instance_buffer_finish();
-
   DRW_manager_get()->end_sync();
 
   /* Render the gpencil object and merge the result to the underlying render. */

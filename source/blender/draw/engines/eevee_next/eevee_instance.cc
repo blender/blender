@@ -358,8 +358,6 @@ void Instance::render_sync()
   manager->end_sync();
 
   /* TODO: Remove old draw manager calls. */
-  DRW_render_instance_buffer_finish();
-
   DRW_curves_update(*manager);
 }
 

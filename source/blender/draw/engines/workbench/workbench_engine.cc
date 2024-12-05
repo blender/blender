@@ -760,7 +760,6 @@ static void workbench_render_to_image(void *vedata,
   manager.end_sync();
 
   /* TODO: Remove old draw manager calls. */
-  DRW_render_instance_buffer_finish();
   DRW_curves_update(manager);
 
   DefaultTextureList &dtxl = *DRW_viewport_texture_list_get();

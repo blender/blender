@@ -48,10 +48,6 @@ struct DRWInstanceDataList {
   /* Linked lists for all possible data pool size */
   DRWInstanceData *idata_head[MAX_INSTANCE_DATA_SIZE];
   DRWInstanceData *idata_tail[MAX_INSTANCE_DATA_SIZE];
-
-  BLI_memblock *pool_instancing;
-  BLI_memblock *pool_batching;
-  BLI_memblock *pool_buffers;
 };
 
 struct DRWTempBufferHandle {
@@ -74,183 +70,6 @@ struct DRWTempInstancingHandle {
 };
 
 static ListBase g_idatalists = {nullptr, nullptr};
-
-static void instancing_batch_references_add(blender::gpu::Batch *batch)
-{
-  for (int i = 0; i < GPU_BATCH_VBO_MAX_LEN && batch->verts[i]; i++) {
-    GPU_vertbuf_handle_ref_add(batch->verts[i]);
-  }
-  for (int i = 0; i < GPU_BATCH_INST_VBO_MAX_LEN && batch->inst[i]; i++) {
-    GPU_vertbuf_handle_ref_add(batch->inst[i]);
-  }
-}
-
-static void instancing_batch_references_remove(blender::gpu::Batch *batch)
-{
-  for (int i = 0; i < GPU_BATCH_VBO_MAX_LEN && batch->verts[i]; i++) {
-    GPU_vertbuf_handle_ref_remove(batch->verts[i]);
-  }
-  for (int i = 0; i < GPU_BATCH_INST_VBO_MAX_LEN && batch->inst[i]; i++) {
-    GPU_vertbuf_handle_ref_remove(batch->inst[i]);
-  }
-}
-
-/* -------------------------------------------------------------------- */
-/** \name Instance Buffer Management
- * \{ */
-
-blender::gpu::VertBuf *DRW_temp_buffer_request(DRWInstanceDataList *idatalist,
-                                               GPUVertFormat *format,
-                                               int *vert_len)
-{
-  BLI_assert(format != nullptr);
-  BLI_assert(vert_len != nullptr);
-
-  DRWTempBufferHandle *handle = static_cast<DRWTempBufferHandle *>(
-      BLI_memblock_alloc(idatalist->pool_buffers));
-
-  if (handle->format != format) {
-    handle->format = format;
-    GPU_VERTBUF_DISCARD_SAFE(handle->buf);
-
-    blender::gpu::VertBuf *vert = GPU_vertbuf_calloc();
-    GPU_vertbuf_init_with_format_ex(*vert, *format, GPU_USAGE_DYNAMIC);
-    GPU_vertbuf_data_alloc(*vert, DRW_BUFFER_VERTS_CHUNK);
-
-    handle->buf = vert;
-  }
-  handle->vert_len = vert_len;
-  return handle->buf;
-}
-
-blender::gpu::Batch *DRW_temp_batch_instance_request(DRWInstanceDataList *idatalist,
-                                                     blender::gpu::VertBuf *buf,
-                                                     blender::gpu::Batch *instancer,
-                                                     blender::gpu::Batch *geom)
-{
-  /* Do not call this with a batch that is already an instancing batch. */
-  BLI_assert(geom->inst[0] == nullptr);
-  /* Only call with one of them. */
-  BLI_assert((instancer != nullptr) != (buf != nullptr));
-
-  DRWTempInstancingHandle *handle = static_cast<DRWTempInstancingHandle *>(
-      BLI_memblock_alloc(idatalist->pool_instancing));
-  if (handle->batch == nullptr) {
-    handle->batch = GPU_batch_calloc();
-  }
-
-  blender::gpu::Batch *batch = handle->batch;
-  bool instancer_compat = buf ? ((batch->inst[0] == buf) &&
-                                 (GPU_vertbuf_get_status(buf) & GPU_VERTBUF_DATA_UPLOADED)) :
-                                ((batch->inst[0] == instancer->verts[0]) &&
-                                 (batch->inst[1] == instancer->verts[1]));
-  bool is_compatible = (batch->prim_type == geom->prim_type) && instancer_compat &&
-                       (batch->flag & GPU_BATCH_BUILDING) == 0 && (batch->elem == geom->elem);
-  for (int i = 0; i < GPU_BATCH_VBO_MAX_LEN && is_compatible; i++) {
-    if (batch->verts[i] != geom->verts[i]) {
-      is_compatible = false;
-    }
-  }
-
-  if (!is_compatible) {
-    instancing_batch_references_remove(batch);
-    GPU_batch_clear(batch);
-    /* Save args and init later. */
-    batch->flag = GPU_BATCH_BUILDING;
-    handle->buf = buf;
-    handle->instancer = instancer;
-    handle->geom = geom;
-  }
-  return batch;
-}
-
-blender::gpu::Batch *DRW_temp_batch_request(DRWInstanceDataList *idatalist,
-                                            blender::gpu::VertBuf *buf,
-                                            GPUPrimType prim_type)
-{
-  blender::gpu::Batch **batch_ptr = static_cast<blender::gpu::Batch **>(
-      BLI_memblock_alloc(idatalist->pool_batching));
-  if (*batch_ptr == nullptr) {
-    *batch_ptr = GPU_batch_calloc();
-  }
-
-  blender::gpu::Batch *batch = *batch_ptr;
-  bool is_compatible = (batch->verts[0] == buf) && (batch->prim_type == prim_type) &&
-                       (GPU_vertbuf_get_status(buf) & GPU_VERTBUF_DATA_UPLOADED);
-  if (!is_compatible) {
-    GPU_batch_clear(batch);
-    GPU_batch_init(batch, prim_type, buf, nullptr);
-  }
-  return batch;
-}
-
-static void temp_buffer_handle_free(DRWTempBufferHandle *handle)
-{
-  handle->format = nullptr;
-  GPU_VERTBUF_DISCARD_SAFE(handle->buf);
-}
-
-static void temp_instancing_handle_free(DRWTempInstancingHandle *handle)
-{
-  instancing_batch_references_remove(handle->batch);
-  GPU_BATCH_DISCARD_SAFE(handle->batch);
-}
-
-static void temp_batch_free(blender::gpu::Batch **batch)
-{
-  GPU_BATCH_DISCARD_SAFE(*batch);
-}
-
-void DRW_instance_buffer_finish(DRWInstanceDataList *idatalist)
-{
-  /* Resize down buffers in use and send data to GPU. */
-  BLI_memblock_iter iter;
-  DRWTempBufferHandle *handle;
-  BLI_memblock_iternew(idatalist->pool_buffers, &iter);
-  while ((handle = static_cast<DRWTempBufferHandle *>(BLI_memblock_iterstep(&iter)))) {
-    if (handle->vert_len != nullptr) {
-      uint vert_len = *(handle->vert_len);
-      uint target_buf_size = ((vert_len / DRW_BUFFER_VERTS_CHUNK) + 1) * DRW_BUFFER_VERTS_CHUNK;
-      if (target_buf_size < GPU_vertbuf_get_vertex_alloc(handle->buf)) {
-        GPU_vertbuf_data_resize(*handle->buf, target_buf_size);
-      }
-      GPU_vertbuf_data_len_set(*handle->buf, vert_len);
-      if (vert_len > 0) {
-        GPU_vertbuf_use(handle->buf); /* Send data. */
-      }
-    }
-  }
-  /* Finish pending instancing batches. */
-  DRWTempInstancingHandle *handle_inst;
-  BLI_memblock_iternew(idatalist->pool_instancing, &iter);
-  while ((handle_inst = static_cast<DRWTempInstancingHandle *>(BLI_memblock_iterstep(&iter)))) {
-    blender::gpu::Batch *batch = handle_inst->batch;
-    if (batch && batch->flag == GPU_BATCH_BUILDING) {
-      blender::gpu::VertBuf *inst_buf = handle_inst->buf;
-      blender::gpu::Batch *inst_batch = handle_inst->instancer;
-      blender::gpu::Batch *geom = handle_inst->geom;
-      GPU_batch_copy(batch, geom);
-      if (inst_batch != nullptr) {
-        for (int i = 0; i < GPU_BATCH_INST_VBO_MAX_LEN && inst_batch->verts[i]; i++) {
-          GPU_batch_instbuf_add(batch, inst_batch->verts[i], false);
-        }
-      }
-      else {
-        GPU_batch_instbuf_add(batch, inst_buf, false);
-      }
-      /* Add reference to avoid comparing pointers (in DRW_temp_batch_request) that could
-       * potentially be the same. This will delay the freeing of the blender::gpu::VertBuf itself.
-       */
-      instancing_batch_references_add(batch);
-    }
-  }
-  /* Resize pools and free unused. */
-  BLI_memblock_clear(idatalist->pool_buffers, (MemblockValFreeFP)temp_buffer_handle_free);
-  BLI_memblock_clear(idatalist->pool_instancing, (MemblockValFreeFP)temp_instancing_handle_free);
-  BLI_memblock_clear(idatalist->pool_batching, (MemblockValFreeFP)temp_batch_free);
-}
-
-/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Instance Data (DRWInstanceData)
@@ -317,10 +136,6 @@ DRWInstanceDataList *DRW_instance_data_list_create()
   DRWInstanceDataList *idatalist = static_cast<DRWInstanceDataList *>(
       MEM_callocN(sizeof(DRWInstanceDataList), "DRWInstanceDataList"));
 
-  idatalist->pool_batching = BLI_memblock_create(sizeof(blender::gpu::Batch *));
-  idatalist->pool_instancing = BLI_memblock_create(sizeof(DRWTempInstancingHandle));
-  idatalist->pool_buffers = BLI_memblock_create(sizeof(DRWTempBufferHandle));
-
   BLI_addtail(&g_idatalists, idatalist);
 
   return idatalist;
@@ -339,10 +154,6 @@ void DRW_instance_data_list_free(DRWInstanceDataList *idatalist)
     idatalist->idata_head[i] = nullptr;
     idatalist->idata_tail[i] = nullptr;
   }
-
-  BLI_memblock_destroy(idatalist->pool_buffers, (MemblockValFreeFP)temp_buffer_handle_free);
-  BLI_memblock_destroy(idatalist->pool_instancing, (MemblockValFreeFP)temp_instancing_handle_free);
-  BLI_memblock_destroy(idatalist->pool_batching, (MemblockValFreeFP)temp_batch_free);
 
   BLI_remlink(&g_idatalists, idatalist);
 
