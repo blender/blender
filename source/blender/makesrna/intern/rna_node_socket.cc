@@ -281,6 +281,14 @@ static void rna_NodeSocket_type_set(PointerRNA *ptr, int value)
   blender::bke::node_modify_socket_type_static(ntree, node, sock, value, 0);
 }
 
+static bool rna_NodeSocket_is_linked_get(PointerRNA *ptr)
+{
+  bNodeTree *ntree = reinterpret_cast<bNodeTree *>(ptr->owner_id);
+  bNodeSocket *sock = static_cast<bNodeSocket *>(ptr->data);
+  ntree->ensure_topology_cache();
+  return sock->is_directly_linked();
+}
+
 static void rna_NodeSocket_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
 {
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(ptr->owner_id);
@@ -608,7 +616,7 @@ static void rna_def_node_socket(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, nullptr);
 
   prop = RNA_def_property(srna, "is_linked", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "flag", SOCK_IS_LINKED);
+  RNA_def_property_boolean_funcs(prop, "rna_NodeSocket_is_linked_get", nullptr);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(prop, "Linked", "True if the socket is connected");
 
