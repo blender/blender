@@ -3186,8 +3186,6 @@ void uiItemMenuEnumO(uiLayout *layout,
                      int icon);
 void uiItemMenuEnumR_prop(
     uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, const char *name, int icon);
-void uiItemMenuEnumR(
-    uiLayout *layout, PointerRNA *ptr, const char *propname, const char *name, int icon);
 void uiItemTabsEnumR_prop(uiLayout *layout,
                           bContext *C,
                           PointerRNA *ptr,
