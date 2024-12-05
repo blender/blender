@@ -88,7 +88,7 @@ class Cameras : Overlay {
   bool extras_enabled_ = false;
   bool motion_tracking_enabled_ = false;
 
-  State::ViewOffsetData offset_data_;
+  View::OffsetData offset_data_;
   float4x4 depth_bias_winmat_;
 
  public:
@@ -224,8 +224,7 @@ class Cameras : Overlay {
     manager.generate_commands(background_ps_, view);
     manager.generate_commands(foreground_ps_, view);
 
-    float view_dist = State::view_dist_get(offset_data_, view.winmat());
-    depth_bias_winmat_ = winmat_polygon_offset(view.winmat(), view_dist, -1.0f);
+    depth_bias_winmat_ = offset_data_.winmat_polygon_offset(view.winmat(), -1.0f);
   }
 
   void draw_line(Framebuffer &framebuffer, Manager &manager, View &view) final

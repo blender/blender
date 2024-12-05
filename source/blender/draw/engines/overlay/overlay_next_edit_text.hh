@@ -25,7 +25,6 @@ class EditText : Overlay {
   PassSimple ps_ = {"Selection&Cursor"};
 
   View view_edit_text = {"view_edit_text"};
-  float view_dist = 0.0f;
 
   StorageVectorBuffer<ObjectMatrices> text_selection_buf;
   StorageVectorBuffer<ObjectMatrices> text_cursor_buf;
@@ -131,7 +130,9 @@ class EditText : Overlay {
     if (!enabled_) {
       return;
     }
-    view_edit_text.sync(view.viewmat(), winmat_polygon_offset(view.winmat(), view_dist, -5.0f));
+
+    View::OffsetData offset;
+    view_edit_text.sync(view.viewmat(), offset.winmat_polygon_offset(view.winmat(), -5.0f));
 
     GPU_framebuffer_bind(framebuffer);
     manager.submit(ps_, view_edit_text);

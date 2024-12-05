@@ -17,8 +17,10 @@
  * setting `drw_view_id` accordingly.
  */
 
+#include "DNA_view3d_types.h"
 #include "DRW_gpu_wrapper.hh"
 #include "DRW_render.hh"
+#include "GPU_matrix.hh"
 
 #include "draw_shader_shared.hh"
 #include <atomic>
@@ -180,6 +182,36 @@ class View {
   {
     return data_;
   }
+
+  /* Data to save per overlay to not rely on rv3d for rendering.
+   * TODO(fclem): Compute offset directly from the view. */
+  struct OffsetData {
+    /* Copy of rv3d->dist. */
+    float dist = 0.0f;
+    /* Copy of rv3d->persp. */
+    char persp = 0;
+    /* Copy of rv3d->is_persp. */
+    bool is_persp = false;
+
+    OffsetData() = default;
+    OffsetData(const RegionView3D &rv3d)
+        : dist(rv3d.dist), persp(rv3d.persp), is_persp(rv3d.is_persp != 0)
+    {
+    }
+
+    float4x4 winmat_polygon_offset(float4x4 winmat, float offset)
+    {
+      float view_dist = dist;
+      /* Special exception for orthographic camera:
+       * `view_dist` isn't used as the depth range isn't the same. */
+      if (persp == RV3D_CAMOB && is_persp == false) {
+        view_dist = 1.0f / max_ff(fabsf(winmat[0][0]), fabsf(winmat[1][1]));
+      }
+
+      winmat[3][2] -= GPU_polygon_offset_calc(winmat.ptr(), view_dist, offset);
+      return winmat;
+    }
+  };
 
  protected:
   /** Called from draw manager. */

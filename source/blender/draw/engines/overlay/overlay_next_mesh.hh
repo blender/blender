@@ -77,7 +77,7 @@ class Meshes : Overlay {
   View view_edit_cage_ = {"view_edit_cage"};
   View view_edit_edge_ = {"view_edit_edge"};
   View view_edit_vert_ = {"view_edit_vert"};
-  State::ViewOffsetData offset_data_;
+  View::OffsetData offset_data_;
 
  public:
   void begin_sync(Resources &res, const State &state) final
@@ -371,10 +371,9 @@ class Meshes : Overlay {
       return;
     }
 
-    float view_dist = State::view_dist_get(offset_data_, view.winmat());
-    view_edit_cage_.sync(view.viewmat(), winmat_polygon_offset(view.winmat(), view_dist, 0.5f));
-    view_edit_edge_.sync(view.viewmat(), winmat_polygon_offset(view.winmat(), view_dist, 1.0f));
-    view_edit_vert_.sync(view.viewmat(), winmat_polygon_offset(view.winmat(), view_dist, 1.5f));
+    view_edit_cage_.sync(view.viewmat(), offset_data_.winmat_polygon_offset(view.winmat(), 0.5f));
+    view_edit_edge_.sync(view.viewmat(), offset_data_.winmat_polygon_offset(view.winmat(), 1.0f));
+    view_edit_vert_.sync(view.viewmat(), offset_data_.winmat_polygon_offset(view.winmat(), 1.5f));
 
     manager.submit(edit_mesh_normals_ps_, view);
     manager.submit(edit_mesh_faces_ps_, view);
@@ -399,10 +398,9 @@ class Meshes : Overlay {
 
     GPU_debug_group_begin("Mesh Edit Color Only");
 
-    float view_dist = State::view_dist_get(offset_data_, view.winmat());
-    view_edit_cage_.sync(view.viewmat(), winmat_polygon_offset(view.winmat(), view_dist, 0.5f));
-    view_edit_edge_.sync(view.viewmat(), winmat_polygon_offset(view.winmat(), view_dist, 1.0f));
-    view_edit_vert_.sync(view.viewmat(), winmat_polygon_offset(view.winmat(), view_dist, 1.5f));
+    view_edit_cage_.sync(view.viewmat(), offset_data_.winmat_polygon_offset(view.winmat(), 0.5f));
+    view_edit_edge_.sync(view.viewmat(), offset_data_.winmat_polygon_offset(view.winmat(), 1.0f));
+    view_edit_vert_.sync(view.viewmat(), offset_data_.winmat_polygon_offset(view.winmat(), 1.5f));
 
     GPU_framebuffer_bind(framebuffer);
     manager.submit(edit_mesh_normals_ps_, view);
