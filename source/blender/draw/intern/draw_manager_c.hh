@@ -420,10 +420,6 @@ struct DupliKey {
   ID *ob_data;
 };
 
-#define DST_MAX_SLOTS 64  /* Cannot be changed without modifying RST.bound_tex_slots */
-#define MAX_CLIP_PLANES 6 /* GL_MAX_CLIP_PLANES is at least 6 */
-#define STENCIL_UNDEFINED 256
-#define DRW_DRAWLIST_LEN 256
 struct DRWManager {
   /* TODO: clean up this struct a bit. */
   /* Cache generation */
@@ -504,8 +500,6 @@ struct DRWManager {
   GPUContext *blender_gpu_context;
   /** Mutex to lock the drw manager and avoid concurrent context usage. */
   TicketMutex *system_gpu_context_mutex;
-
-  GPUDrawList *draw_list;
 
   DRWDebugModule *debug;
 };

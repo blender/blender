@@ -618,10 +618,6 @@ static void drw_manager_init(DRWManager *dst, GPUViewport *viewport, const int s
         sizeof(float4) * 6, nullptr, "G_draw.clipping_ubo");
   }
 
-  if (dst->draw_list == nullptr) {
-    dst->draw_list = GPU_draw_list_create(DRW_DRAWLIST_LEN);
-  }
-
   memset(dst->object_instance_data, 0x0, sizeof(dst->object_instance_data));
 }
 
@@ -3087,10 +3083,6 @@ void DRW_engines_free()
   DRW_UBO_FREE_SAFE(G_draw.clipping_ubo);
   DRW_TEXTURE_FREE_SAFE(G_draw.ramp);
   DRW_TEXTURE_FREE_SAFE(G_draw.weight_ramp);
-
-  if (DST.draw_list) {
-    GPU_draw_list_discard(DST.draw_list);
-  }
 
   DRW_gpu_context_disable();
 }
