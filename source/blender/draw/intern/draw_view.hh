@@ -81,6 +81,8 @@ class View {
     this->sync(view);
   }
 
+  virtual ~View() = default;
+
   void sync(const float4x4 &view_mat, const float4x4 &win_mat, int view_id = 0);
 
   /* For compatibility with old system. Will be removed at some point. */
@@ -183,6 +185,10 @@ class View {
     return data_;
   }
 
+  /* TODO(fclem): Remove. Global DST access. */
+  static View &default_get();
+  static void default_set(const float4x4 &view_mat, const float4x4 &win_mat);
+
   /* Data to save per overlay to not rely on rv3d for rendering.
    * TODO(fclem): Compute offset directly from the view. */
   struct OffsetData {
@@ -212,6 +218,9 @@ class View {
       return winmat;
     }
   };
+
+  /* Returns frustum planes equations. Available only after sync. */
+  std::array<float4, 6> frustum_planes_get(int view_id = 0);
 
  protected:
   /** Called from draw manager. */

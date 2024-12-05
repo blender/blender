@@ -195,8 +195,6 @@ struct GPENCIL_Instance {
   /* Invert mask buffer content. */
   PassSimple mask_invert_ps = {"mask_invert_ps"};
 
-  blender::draw::View view = {"GPView"};
-
   float4x4 object_bound_mat;
 };
 

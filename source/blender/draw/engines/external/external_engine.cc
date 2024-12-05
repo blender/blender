@@ -33,6 +33,7 @@
 #include "RE_engine.h"
 #include "RE_pipeline.h"
 
+#include "draw_view.hh"
 #include "external_engine.h" /* own include */
 
 /* Shaders */
@@ -115,20 +116,16 @@ static void external_image_space_matrix_set(const RenderEngine *engine)
   BLI_assert(engine != nullptr);
 
   const DRWContextState *draw_ctx = DRW_context_state_get();
-  const DRWView *view = DRW_view_default_get();
   SpaceImage *space_image = (SpaceImage *)draw_ctx->space_data;
 
   /* Apply current view as transformation matrix.
    * This will configure drawing for normalized space with current zoom and pan applied. */
 
-  float view_matrix[4][4];
-  DRW_view_viewmat_get(view, view_matrix, false);
+  float4x4 view_matrix = blender::draw::View::default_get().viewmat();
+  float4x4 projection_matrix = blender::draw::View::default_get().winmat();
 
-  float projection_matrix[4][4];
-  DRW_view_winmat_get(view, projection_matrix, false);
-
-  GPU_matrix_projection_set(projection_matrix);
-  GPU_matrix_set(view_matrix);
+  GPU_matrix_projection_set(projection_matrix.ptr());
+  GPU_matrix_set(view_matrix.ptr());
 
   /* Switch from normalized space to pixel space. */
   {

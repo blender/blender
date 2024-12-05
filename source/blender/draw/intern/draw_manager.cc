@@ -199,6 +199,13 @@ void Manager::compute_visibility(View &view)
       bounds_buf.current(), infos_buf.current(), resource_len_, freeze_culling);
 }
 
+void Manager::ensure_visibility(View &view)
+{
+  if (view.manager_fingerprint_ != this->fingerprint_get()) {
+    compute_visibility(view);
+  }
+}
+
 void Manager::generate_commands(PassMain &pass, View &view)
 {
   BLI_assert_msg((pass.manager_fingerprint_ != this->fingerprint_get()) ||

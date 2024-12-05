@@ -395,7 +395,8 @@ void ShadowPass::object_sync(SceneState &scene_state,
 
 #define DEBUG_CULLING 0
 #if DEBUG_CULLING
-  View view = View("View", DRW_view_default_get());
+  View view = View("View");
+  view.sync(View::default_get().viewmat(), View::default_get().winmat());
   ShadowView shadow_view = ShadowView("ShadowView", view, pass_data_.light_direction_ws);
   printf(
       "%s culling : %s\n", ob->id.name, shadow_view.debug_object_culling(ob) ? "true" : "false");

@@ -55,7 +55,7 @@ void DRW_globals_update()
     }
     if (plane_len < 6) {
       for (auto i : IndexRange(plane_len, 6 - plane_len)) {
-        /* Fill other planes with same valid planes. Avoid changing. */
+        /* Fill other planes with same valid planes. Avoid changing further logic. */
         gb->clip_planes[i] = gb->clip_planes[plane_len - 1];
       }
     }

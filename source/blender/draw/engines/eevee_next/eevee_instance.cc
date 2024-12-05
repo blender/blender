@@ -51,7 +51,7 @@ void Instance::init(const int2 &output_res,
                     Depsgraph *depsgraph_,
                     Object *camera_object_,
                     const RenderLayer *render_layer_,
-                    const DRWView *drw_view_,
+                    View *drw_view_,
                     const View3D *v3d_,
                     const RegionView3D *rv3d_)
 {

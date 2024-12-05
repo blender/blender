@@ -111,8 +111,8 @@ void Instance::init()
 
 void Instance::begin_sync()
 {
-  const DRWView *view_legacy = DRW_view_default_get();
-  View view("OverlayView", view_legacy);
+  /* TODO(fclem): Against design. Should not sync depending on view. */
+  View &view = View::default_get();
   state.dt = DRW_text_cache_ensure();
   state.camera_position = view.viewinv().location();
   state.camera_forward = view.viewinv().z_axis();
@@ -354,7 +354,7 @@ void Instance::end_sync()
 void Instance::draw(Manager &manager)
 {
   /* TODO(fclem): Remove global access. */
-  view.sync(DRW_view_default_get());
+  View &view = View::default_get();
 
   static gpu::DebugScope select_scope = {"Selection"};
   static gpu::DebugScope draw_scope = {"Overlay"};
@@ -374,7 +374,7 @@ void Instance::draw(Manager &manager)
   /* Pre-Draw: Run the compute steps of all passes up-front
    * to avoid constant GPU compute/raster context switching. */
   {
-    manager.compute_visibility(view);
+    manager.ensure_visibility(view);
 
     auto pre_draw = [&](OverlayLayer &layer) {
       layer.attribute_viewer.pre_draw(manager, view);

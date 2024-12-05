@@ -323,23 +323,6 @@ void DRW_view_update(DRWView *view,
  */
 void DRW_view_update_sub(DRWView *view, const float viewmat[4][4], const float winmat[4][4]);
 
-/**
- * \return default view if it is a viewport render.
- */
-const DRWView *DRW_view_default_get();
-/**
- * MUST only be called once per render and only in render mode. Sets default view.
- */
-void DRW_view_default_set(const DRWView *view);
-/**
- * \warning Only use in render AND only if you are going to set view_default again.
- */
-void DRW_view_reset();
-/**
- * Set active view for rendering.
- */
-void DRW_view_set_active(const DRWView *view);
-const DRWView *DRW_view_get_active();
 
 /**
  * This only works if DRWPasses have been tagged with DRW_STATE_CLIP_PLANES,

@@ -911,8 +911,7 @@ void GPENCIL_draw_scene(void *ved)
     GPU_framebuffer_multi_clear(fbl->gpencil_fb, clear_cols);
   }
 
-  blender::draw::View &view = vedata->instance->view;
-  view.sync(DRW_view_get_active());
+  blender::draw::View &view = blender::draw::View::default_get();
 
   LISTBASE_FOREACH (GPENCIL_tObject *, ob, &pd->tobjects) {
     GPENCIL_draw_object(vedata, view, ob);

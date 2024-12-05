@@ -49,6 +49,8 @@
 
 #include "intern/gpu_codegen.hh"
 
+#include "draw_view.hh"
+
 /* -------------------------------------------------------------------- */
 /** \name Draw Call (DRW_calls)
  * \{ */
@@ -382,24 +384,6 @@ void DRW_view_update(DRWView *view,
     DRW_debug_bbox(&view->frustum_corners, blender::float4{1, 1, 0, 1});
   }
 #endif
-}
-
-const DRWView *DRW_view_default_get()
-{
-  return DST.view_default;
-}
-
-void DRW_view_reset()
-{
-  DST.view_default = nullptr;
-  DST.view_active = nullptr;
-  DST.view_previous = nullptr;
-}
-
-void DRW_view_default_set(const DRWView *view)
-{
-  BLI_assert(DST.view_default == nullptr);
-  DST.view_default = (DRWView *)view;
 }
 
 void DRW_view_clip_planes_set(DRWView *view, float (*planes)[4], int plane_len)

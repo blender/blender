@@ -71,7 +71,7 @@ void Camera::init()
     }
   }
   else if (inst_.drw_view) {
-    data.type = DRW_view_is_persp_get(inst_.drw_view) ? CAMERA_PERSP : CAMERA_ORTHO;
+    data.type = inst_.drw_view->is_persp() ? CAMERA_PERSP : CAMERA_ORTHO;
   }
   else {
     /* Light-probe baking. */
@@ -135,8 +135,8 @@ void Camera::sync()
     data.uv_bias = float2(0.0f);
   }
   else if (inst_.drw_view) {
-    DRW_view_viewmat_get(inst_.drw_view, data.viewmat.ptr(), false);
-    DRW_view_viewmat_get(inst_.drw_view, data.viewinv.ptr(), true);
+    data.viewmat = inst_.drw_view->viewmat();
+    data.viewinv = inst_.drw_view->viewinv();
 
     CameraParams params;
     BKE_camera_params_init(&params);
@@ -163,7 +163,7 @@ void Camera::sync()
     if (params.lens == 0.0f) {
       /* Can happen for the case of XR.
        * In this case the produced winmat is degenerate. So just revert to the input matrix. */
-      DRW_view_winmat_get(inst_.drw_view, data.winmat.ptr(), false);
+      data.winmat = inst_.drw_view->winmat();
     }
   }
   else if (inst_.render) {
@@ -220,8 +220,8 @@ void Camera::sync()
   }
   else if (inst_.drw_view) {
     /* \note Follow camera parameters where distances are positive in front of the camera. */
-    data.clip_near = -DRW_view_near_distance_get(inst_.drw_view);
-    data.clip_far = -DRW_view_far_distance_get(inst_.drw_view);
+    data.clip_near = -inst_.drw_view->near_clip();
+    data.clip_far = -inst_.drw_view->far_clip();
     data.fisheye_fov = data.fisheye_lens = -1.0f;
     data.equirect_bias = float2(0.0f);
     data.equirect_scale = float2(0.0f);

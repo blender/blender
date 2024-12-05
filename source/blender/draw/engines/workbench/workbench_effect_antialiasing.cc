@@ -221,13 +221,10 @@ void AntiAliasingPass::setup_view(View &view, const SceneState &scene_state)
 
   setup_taa_weights(sample_offset, weights_, weights_sum_);
 
-  /* TODO(@pragma37): New API equivalent? */
-  const DRWView *default_view = DRW_view_default_get();
-  float4x4 winmat, viewmat, persmat;
-  /* Construct new matrices from transform delta */
-  DRW_view_winmat_get(default_view, winmat.ptr(), false);
-  DRW_view_viewmat_get(default_view, viewmat.ptr(), false);
-  DRW_view_persmat_get(default_view, persmat.ptr(), false);
+  const View &default_view = View::default_get();
+  const float4x4 &viewmat = default_view.viewmat();
+  float4x4 winmat = default_view.winmat();
+  float4x4 persmat = default_view.persmat();
 
   window_translate_m4(winmat.ptr(),
                       persmat.ptr(),

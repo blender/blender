@@ -409,8 +409,6 @@ class Instance {
             GPUTexture *depth_in_front_tx,
             GPUTexture *color_tx)
   {
-    view_.sync(DRW_view_default_get());
-
     int2 resolution = scene_state_.resolution;
 
     /** Always setup in-front depth, since Overlays can be updated without causing a Workbench
@@ -430,7 +428,8 @@ class Instance {
 
     if (scene_state_.render_finished) {
       /* Just copy back the already rendered result */
-      anti_aliasing_ps_.draw(manager, view_, scene_state_, resources_, depth_in_front_tx);
+      anti_aliasing_ps_.draw(
+          manager, View::default_get(), scene_state_, resources_, depth_in_front_tx);
       return;
     }
 
@@ -743,9 +742,7 @@ static void workbench_render_to_image(void *vedata,
   /* Render */
   /* TODO: Remove old draw manager calls. */
   DRW_cache_restart();
-  DRWView *view = DRW_view_create(viewmat.ptr(), winmat.ptr(), nullptr, nullptr);
-  DRW_view_default_set(view);
-  DRW_view_set_active(view);
+  blender::draw::View::default_set(float4x4(viewmat), float4x4(winmat));
 
   ved->instance->init(camera_ob);
 

@@ -316,4 +316,24 @@ VisibilityBuf &View::get_visibility_buffer()
   return visibility_buf_;
 }
 
+blender::draw::View &View::default_get()
+{
+  return *DST.vmempool->default_view;
+}
+
+void View::default_set(const float4x4 &view_mat, const float4x4 &win_mat)
+{
+  DST.vmempool->default_view->sync(view_mat, win_mat);
+}
+
+std::array<float4, 6> View::frustum_planes_get(int view_id)
+{
+  return {culling_[view_id].frustum_planes.planes[0],
+          culling_[view_id].frustum_planes.planes[1],
+          culling_[view_id].frustum_planes.planes[2],
+          culling_[view_id].frustum_planes.planes[3],
+          culling_[view_id].frustum_planes.planes[4],
+          culling_[view_id].frustum_planes.planes[5]};
+}
+
 }  // namespace blender::draw

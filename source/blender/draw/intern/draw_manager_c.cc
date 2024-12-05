@@ -451,6 +451,7 @@ static void drw_viewport_data_reset(DRWData *drw_data)
   DRW_instance_data_list_resize(drw_data->idatalist);
   DRW_instance_data_list_reset(drw_data->idatalist);
   DRW_texture_pool_reset(drw_data->texture_pool);
+  drw_data->default_view = new blender::draw::View("DrawDefaultView");
 }
 
 void DRW_viewport_data_free(DRWData *drw_data)
@@ -491,6 +492,7 @@ void DRW_viewport_data_free(DRWData *drw_data)
   DRW_volume_ubos_pool_free(drw_data->volume_grids_ubos);
   DRW_curves_ubos_pool_free(drw_data->curves_ubos);
   DRW_curves_refine_pass_free(drw_data->curves_refine);
+  delete drw_data->default_view;
   MEM_freeN(drw_data);
 }
 
@@ -591,6 +593,7 @@ static void drw_manager_init(DRWManager *dst, GPUViewport *viewport, const int s
       int plane_len = (RV3D_LOCK_FLAGS(rv3d) & RV3D_BOXCLIP) ? 4 : 6;
       DRW_view_clip_planes_set(dst->view_default, rv3d->clip, plane_len);
     }
+    blender::draw::View::default_set(float4x4(rv3d->viewmat), float4x4(rv3d->winmat));
 
     dst->view_active = dst->view_default;
     dst->view_previous = nullptr;
@@ -610,6 +613,7 @@ static void drw_manager_init(DRWManager *dst, GPUViewport *viewport, const int s
     winmat[3][1] = -1.0f;
 
     dst->view_default = DRW_view_create(viewmat, winmat, nullptr, nullptr);
+    blender::draw::View::default_set(float4x4(viewmat), float4x4(winmat));
     dst->view_active = dst->view_default;
     dst->view_previous = nullptr;
   }
@@ -1950,7 +1954,6 @@ void DRW_render_gpencil(RenderEngine *engine, Depsgraph *depsgraph)
        render_view = render_view->next)
   {
     RE_SetActiveRenderView(render, render_view->name);
-    DRW_view_reset();
     DST.buffer_finish_called = false;
     DRW_render_gpencil_to_image(engine, render_layer, &render_rect);
   }
@@ -2034,7 +2037,6 @@ void DRW_render_to_image(RenderEngine *engine, Depsgraph *depsgraph)
        render_view = render_view->next)
   {
     RE_SetActiveRenderView(render, render_view->name);
-    DRW_view_reset();
     engine_type->draw_engine->render_to_image(data, engine, render_layer, &render_rect);
     DST.buffer_finish_called = false;
   }
