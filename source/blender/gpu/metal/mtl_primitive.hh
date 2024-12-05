@@ -60,7 +60,7 @@ static inline MTLPrimitiveType gpu_prim_type_to_metal(GPUPrimType prim_type)
 /* Certain primitive types are not supported in Metal, and require emulation.
  * `GPU_PRIM_LINE_LOOP` and  `GPU_PRIM_TRI_FAN` required index buffer patching.
  * Adjacency types do not need emulation as the input structure is the same,
- * and access is controlled from the vertex shader through SSBO vertex fetch.
+ * and access is controlled from the vertex shader through SSBO vertex pulling.
  * -- These Adj cases are only used in geometry shaders in OpenGL. */
 static inline bool mtl_needs_topology_emulation(GPUPrimType prim_type)
 {

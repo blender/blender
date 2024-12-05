@@ -84,10 +84,8 @@ void MTLDrawList::init()
 void MTLDrawList::append(Batch *gpu_batch, int i_first, int i_count)
 {
   /* Fallback when MultiDrawIndirect is not supported/enabled. */
-  MTLShader *shader = static_cast<MTLShader *>(unwrap(gpu_batch->shader));
-  bool requires_ssbo = (shader->get_uses_ssbo_vertex_fetch());
   bool requires_emulation = mtl_needs_topology_emulation(gpu_batch->prim_type);
-  if (MDI_DISABLED || requires_ssbo || requires_emulation) {
+  if (MDI_DISABLED || requires_emulation) {
     GPU_batch_draw_advanced(gpu_batch, 0, 0, i_first, i_count);
     return;
   }
@@ -170,13 +168,6 @@ void MTLDrawList::submit()
   BLI_assert(ctx);
 
   /* Execute indirect draw calls. */
-  MTLShader *shader = static_cast<MTLShader *>(unwrap(batch_->shader));
-  bool SSBO_MODE = (shader->get_uses_ssbo_vertex_fetch());
-  if (SSBO_MODE) {
-    can_use_MDI = false;
-    BLI_assert(false);
-    return;
-  }
 
   /* Heuristic to determine whether using indirect drawing is more efficient. */
   size_t command_size = MDI_INDEXED ? sizeof(MTLDrawIndexedPrimitivesIndirectArguments) :
@@ -186,7 +177,7 @@ void MTLDrawList::submit()
 
   /* Bind Batch to setup render pipeline state. */
   BLI_assert(batch_ != nullptr);
-  id<MTLRenderCommandEncoder> rec = batch_->bind(0);
+  id<MTLRenderCommandEncoder> rec = batch_->bind();
   if (rec == nil) {
     BLI_assert_msg(false, "A RenderCommandEncoder should always be available!\n");
 

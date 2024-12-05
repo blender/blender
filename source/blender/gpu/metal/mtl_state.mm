@@ -407,7 +407,7 @@ void MTLStateManager::set_provoking_vert(const eGPUProvokingVertex /*vert*/)
   /* NOTE(Metal): Provoking vertex is not a feature in the Metal API.
    * Shaders are handled on a case-by-case basis using a modified vertex shader.
    * For example, wireframe rendering and edit-mesh shaders utilize an SSBO-based
-   * vertex fetching mechanism which considers the inverse convention for flat
+   * vertex pulling mechanism which considers the inverse convention for flat
    * shading, to ensure consistent results with OpenGL. */
 }
 
