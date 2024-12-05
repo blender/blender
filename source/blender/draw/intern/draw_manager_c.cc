@@ -398,6 +398,8 @@ DRWData *DRW_viewport_data_create()
     drw_data->passes = BLI_memblock_create_ex(sizeof(DRWPass), chunk_len);
   }
 
+  drw_data->default_view = new blender::draw::View("DrawDefaultView");
+
   for (int i = 0; i < 2; i++) {
     drw_data->view_data[i] = DRW_view_data_create(&g_registered_engines.engines);
   }
@@ -451,7 +453,6 @@ static void drw_viewport_data_reset(DRWData *drw_data)
   DRW_instance_data_list_resize(drw_data->idatalist);
   DRW_instance_data_list_reset(drw_data->idatalist);
   DRW_texture_pool_reset(drw_data->texture_pool);
-  drw_data->default_view = new blender::draw::View("DrawDefaultView");
 }
 
 void DRW_viewport_data_free(DRWData *drw_data)
