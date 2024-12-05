@@ -1848,6 +1848,15 @@ static int grease_pencil_move_to_layer_invoke(bContext *C, wmOperator *op, const
     return WM_operator_props_popup_confirm_ex(
         C, op, event, IFACE_("Move to New Layer"), IFACE_("Create"));
   }
+
+  /* Show the move menu if this operator is invoked from operator search without any property
+   * pre-set. */
+  PropertyRNA *prop = RNA_struct_find_property(op->ptr, "target_layer_name");
+  if (!RNA_property_is_set(op->ptr, prop)) {
+    WM_menu_name_call(C, "GREASE_PENCIL_MT_move_to_layer", 0);
+    return OPERATOR_FINISHED;
+  }
+
   return grease_pencil_move_to_layer_exec(C, op);
 }
 
