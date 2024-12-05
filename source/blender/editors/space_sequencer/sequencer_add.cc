@@ -300,7 +300,7 @@ static bool load_data_init_from_operator(SeqLoadData *load_data, bContext *C, wm
     if (strlen(basename) >= sizeof(StripElem::filename)) {
       BKE_reportf(op->reports,
                   RPT_ERROR,
-                  "Filename '%s' too long (max length %zi, was %zi)",
+                  "Filename '%s' too long (max length %zu, was %zu)",
                   basename,
                   sizeof(StripElem::filename),
                   strlen(basename));
