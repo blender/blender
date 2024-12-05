@@ -60,6 +60,9 @@ static void draw_node_input(bContext *C,
   if (node.is_reroute()) {
     return;
   }
+  if (socket.idname == StringRef("NodeSocketVirtual")) {
+    return;
+  }
 
   PointerRNA socket_ptr = RNA_pointer_create(node_ptr->owner_id, &RNA_NodeSocket, &socket);
   const StringRefNull text(IFACE_(bke::nodeSocketLabel(&socket).c_str()));
