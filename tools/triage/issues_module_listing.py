@@ -116,6 +116,7 @@ def compile_list(severity: str) -> None:
 
     # Module overview with numbers
     total = 0
+    modules_with_no_bugs = []
     for module in modules.values():
         buglist_str = (", ".join(module.buglist))
         buglist_len = len(module.buglist)
@@ -126,7 +127,10 @@ def compile_list(severity: str) -> None:
                 print(f"- [{module.name}]({full_url}): *{buglist_len}*")
             else:
                 print(f"- [{module.name}]({full_url}): *{buglist_len}* _{buglist_str}_")
+        else:
+            modules_with_no_bugs.append(module.name)
 
+    print(f"- {', '.join(modules_with_no_bugs)}: *0*")
     print()
     print(f"[Total]({total_url}): {total}")
     print()
