@@ -513,9 +513,7 @@ class Cameras : Overlay {
         }
 
         if ((v3d->flag2 & V3D_SHOW_BUNDLENAME) && !is_selection) {
-          DRWTextStore *dt = DRW_text_cache_ensure();
-
-          DRW_text_cache_add(dt,
+          DRW_text_cache_add(state.dt,
                              bundle_mat[3],
                              track->name,
                              strlen(track->name),

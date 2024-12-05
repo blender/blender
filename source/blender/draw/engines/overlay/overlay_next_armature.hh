@@ -444,6 +444,7 @@ class Armatures : Overlay {
 
     Armatures::BoneBuffers *bone_buf = nullptr;
     Resources *res = nullptr;
+    DRWTextStore *dt = nullptr;
 
     /* Not a theme, this is an override. */
     const float *const_color = nullptr;
@@ -474,6 +475,7 @@ class Armatures : Overlay {
     ctx.ob = ob_ref.object;
     ctx.ob_ref = &ob_ref;
     ctx.res = &res;
+    ctx.dt = state.dt;
     ctx.draw_mode = draw_mode;
     ctx.drawtype = eArmature_Drawtype(arm->drawtype);
 

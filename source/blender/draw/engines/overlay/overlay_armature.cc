@@ -1516,7 +1516,6 @@ static void draw_bone_name(const Armatures::DrawContext *ctx,
                            const UnifiedBonePtr bone,
                            const eBone_Flag boneflag)
 {
-  DRWTextStore *dt = DRW_text_cache_ensure();
   uchar color[4];
   float vec[3];
 
@@ -1538,7 +1537,7 @@ static void draw_bone_name(const Armatures::DrawContext *ctx,
   mid_v3_v3v3(vec, head, tail);
   mul_m4_v3(ctx->ob->object_to_world().ptr(), vec);
 
-  DRW_text_cache_add(dt,
+  DRW_text_cache_add(ctx->dt,
                      vec,
                      is_pose ? pchan->name : eBone->name,
                      is_pose ? strlen(pchan->name) : strlen(eBone->name),
