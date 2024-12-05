@@ -442,6 +442,7 @@ class SEQUENCER_MT_view(Menu):
         st = context.space_data
         is_preview = st.view_type in {'PREVIEW', 'SEQUENCER_PREVIEW'}
         is_sequencer_view = st.view_type in {'SEQUENCER', 'SEQUENCER_PREVIEW'}
+        is_sequencer_only = st.view_type == 'SEQUENCER'
 
         if st.view_type == 'PREVIEW':
             # Specifying the REGION_PREVIEW context is needed in preview-only
@@ -454,10 +455,11 @@ class SEQUENCER_MT_view(Menu):
         layout.operator_context = 'INVOKE_DEFAULT'
         if is_sequencer_view:
             layout.prop(st, "show_region_hud")
+        if is_sequencer_only:
             layout.prop(st, "show_region_channels")
         layout.separator()
 
-        if st.view_type == 'SEQUENCER':
+        if is_sequencer_only:
             layout.prop(st, "show_backdrop", text="Preview as Backdrop")
         if is_preview or st.show_backdrop:
             layout.prop(st, "show_transform_preview", text="Preview During Transform")
