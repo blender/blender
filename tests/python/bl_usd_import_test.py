@@ -198,6 +198,28 @@ class USDImportTest(AbstractUSDTest):
         coords = list(filter(lambda x: x[0] > 1.0, coords))
         self.assertGreater(len(coords), 16)
 
+    def test_import_mesh_subd(self):
+        """Test importing meshes with subdivision attributes."""
+
+        # Use the existing mesh subd test file to create the USD file
+        # for import. It is validated as part of the bl_usd_export test.
+        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_mesh_subd.blend"))
+        testfile = str(self.tempdir / "usd_mesh_subd.usda")
+        bpy.ops.wm.usd_export(filepath=testfile, export_subdivision='BEST_MATCH', evaluation_mode="RENDER")
+        res = bpy.ops.wm.usd_export(filepath=testfile, export_materials=True)
+        self.assertEqual({'FINISHED'}, res, f"Unable to export to {testfile}")
+
+        # Reload the empty file and import back in
+        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "empty.blend"))
+        res = bpy.ops.wm.usd_import(filepath=testfile)
+        self.assertEqual({'FINISHED'}, res, f"Unable to import USD file {testfile}")
+
+        # Validate crease attributes
+
+        mesh = bpy.data.objects["crease_verts"].data
+        blender_crease_vert_data = [round(d.value, 5) for d in mesh.attributes["crease_vert"].data]
+        self.assertEqual(blender_crease_vert_data, [0.3, 0.0, 0.2, 0.1, 0.8, 0.7, 1.0, 0.9])
+
     def test_import_camera_properties(self):
         """Test importing camera to ensure properties set correctly."""
 
