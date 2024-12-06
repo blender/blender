@@ -7,8 +7,6 @@
 GPU_SHADER_CREATE_INFO(compositor_symmetric_separable_blur_shared)
 LOCAL_GROUP_SIZE(16, 16)
 PUSH_CONSTANT(BOOL, extend_bounds)
-PUSH_CONSTANT(BOOL, gamma_correct_input)
-PUSH_CONSTANT(BOOL, gamma_uncorrect_output)
 SAMPLER(0, FLOAT_2D, input_tx)
 SAMPLER(1, FLOAT_2D, weights_tx)
 COMPUTE_SOURCE("compositor_symmetric_separable_blur.glsl")

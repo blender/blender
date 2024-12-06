@@ -2,7 +2,6 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "gpu_shader_compositor_blur_common.glsl"
 #include "gpu_shader_compositor_texture_utilities.glsl"
 
 vec4 load_input(ivec2 texel)
@@ -18,10 +17,6 @@ vec4 load_input(ivec2 texel)
   }
   else {
     color = texture_load(input_tx, texel);
-  }
-
-  if (gamma_correct_input) {
-    color = gamma_correct_blur_input(color);
   }
 
   return color;
@@ -45,10 +40,6 @@ void main()
     float weight = texture_load(weights_tx, ivec2(i, 0)).x;
     accumulated_color += load_input(texel + ivec2(i, 0)) * weight;
     accumulated_color += load_input(texel + ivec2(-i, 0)) * weight;
-  }
-
-  if (gamma_uncorrect_output) {
-    accumulated_color = gamma_uncorrect_blur_output(accumulated_color);
   }
 
   /* Write the color using the transposed texel. See the execute_separable_blur_horizontal_pass

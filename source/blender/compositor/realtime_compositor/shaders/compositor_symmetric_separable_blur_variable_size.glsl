@@ -2,7 +2,6 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "gpu_shader_compositor_blur_common.glsl"
 #include "gpu_shader_compositor_texture_utilities.glsl"
 
 void main()

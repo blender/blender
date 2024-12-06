@@ -2,7 +2,6 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "gpu_shader_compositor_blur_common.glsl"
 #include "gpu_shader_compositor_texture_utilities.glsl"
 #include "gpu_shader_math_vector_lib.glsl"
 
@@ -54,20 +53,12 @@ void main()
       vec4 weight = load_weight(ivec2(x, y), radius);
       vec4 input_color = texture_load(input_tx, texel + ivec2(x, y));
 
-      if (gamma_correct) {
-        input_color = gamma_correct_blur_input(input_color);
-      }
-
       accumulated_color += input_color * weight;
       accumulated_weight += weight;
     }
   }
 
   accumulated_color = safe_divide(accumulated_color, accumulated_weight);
-
-  if (gamma_correct) {
-    accumulated_color = gamma_uncorrect_blur_output(accumulated_color);
-  }
 
   imageStore(output_img, texel, accumulated_color);
 }

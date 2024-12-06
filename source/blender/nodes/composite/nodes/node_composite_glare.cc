@@ -1143,7 +1143,6 @@ class GlareOperation : public NodeOperation {
                              small_ghost_result,
                              float2(get_small_ghost_radius()),
                              R_FILTER_GAUSS,
-                             false,
                              false);
 
     Result big_ghost_result = context().create_result(ResultType::Color);
@@ -1152,7 +1151,6 @@ class GlareOperation : public NodeOperation {
                              big_ghost_result,
                              float2(get_big_ghost_radius()),
                              R_FILTER_GAUSS,
-                             false,
                              false);
 
     Result base_ghost_result = context().create_result(ResultType::Color);

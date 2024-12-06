@@ -19,6 +19,7 @@
 #include "GPU_shader.hh"
 #include "GPU_texture.hh"
 
+#include "COM_algorithm_gamma_correct.hh"
 #include "COM_algorithm_recursive_gaussian_blur.hh"
 #include "COM_algorithm_symmetric_separable_blur.hh"
 #include "COM_node_operation.hh"
@@ -102,52 +103,69 @@ class BlurOperation : public NodeOperation {
 
   void execute() override
   {
+    Result &input = get_input("Image");
+    Result &output = get_result("Image");
     if (is_identity()) {
-      get_input("Image").pass_through(get_result("Image"));
+      input.pass_through(output);
       return;
     }
 
+    Result *blur_input = &input;
+    Result *blur_output = &output;
+
+    /* Apply gamma correction if needed. */
+    Result gamma_blur_output = this->context().create_result(ResultType::Color);
+    Result gamma_corrected_input = this->context().create_result(ResultType::Color);
+    if (this->should_apply_gamma_correction()) {
+      gamma_correct(this->context(), input, gamma_corrected_input);
+      blur_input = &gamma_corrected_input;
+      blur_output = &gamma_blur_output;
+    }
+
     if (node_storage(bnode()).filtertype == R_FILTER_FAST_GAUSS) {
-      recursive_gaussian_blur(
-          context(), get_input("Image"), get_result("Image"), compute_blur_radius());
+      recursive_gaussian_blur(context(), *blur_input, *blur_output, compute_blur_radius());
     }
     else if (use_variable_size()) {
-      execute_variable_size();
+      execute_variable_size(*blur_input, *blur_output);
     }
     else if (use_separable_filter()) {
       symmetric_separable_blur(context(),
-                               get_input("Image"),
-                               get_result("Image"),
+                               *blur_input,
+                               *blur_output,
                                compute_blur_radius(),
                                node_storage(bnode()).filtertype,
-                               get_extend_bounds(),
-                               node_storage(bnode()).gamma);
+                               get_extend_bounds());
     }
     else {
-      execute_constant_size();
+      execute_constant_size(*blur_input, *blur_output);
+    }
+
+    /* Undo gamma correction. */
+    if (this->should_apply_gamma_correction()) {
+      gamma_corrected_input.release();
+      gamma_uncorrect(this->context(), gamma_blur_output, output);
+      gamma_blur_output.release();
     }
   }
 
-  void execute_constant_size()
+  void execute_constant_size(const Result &input, Result &output)
   {
     if (this->context().use_gpu()) {
-      this->execute_constant_size_gpu();
+      this->execute_constant_size_gpu(input, output);
     }
     else {
-      this->execute_constant_size_cpu();
+      this->execute_constant_size_cpu(input, output);
     }
   }
 
-  void execute_constant_size_gpu()
+  void execute_constant_size_gpu(const Result &input, Result &output)
   {
     GPUShader *shader = context().get_shader("compositor_symmetric_blur");
     GPU_shader_bind(shader);
 
     GPU_shader_uniform_1b(shader, "extend_bounds", get_extend_bounds());
-    GPU_shader_uniform_1b(shader, "gamma_correct", node_storage(bnode()).gamma);
 
-    const Result &input_image = get_input("Image");
-    input_image.bind_as_texture(shader, "input_tx");
+    input.bind_as_texture(shader, "input_tx");
 
     const float2 blur_radius = compute_blur_radius();
 
@@ -161,19 +179,18 @@ class BlurOperation : public NodeOperation {
       domain.size += int2(math::ceil(blur_radius)) * 2;
     }
 
-    Result &output_image = get_result("Image");
-    output_image.allocate_texture(domain);
-    output_image.bind_as_image(shader, "output_img");
+    output.allocate_texture(domain);
+    output.bind_as_image(shader, "output_img");
 
     compute_dispatch_threads_at_least(shader, domain.size);
 
     GPU_shader_unbind();
-    output_image.unbind_as_image();
-    input_image.unbind_as_texture();
+    output.unbind_as_image();
+    input.unbind_as_texture();
     weights.unbind_as_texture();
   }
 
-  void execute_constant_size_cpu()
+  void execute_constant_size_cpu(const Result &input, Result &output)
   {
     const float2 blur_radius = this->compute_blur_radius();
     const Result &weights = this->context().cache_manager().symmetric_blur_weights.get(
@@ -186,13 +203,10 @@ class BlurOperation : public NodeOperation {
       domain.size += int2(math::ceil(blur_radius)) * 2;
     }
 
-    Result &output = get_result("Image");
     output.allocate_texture(domain);
 
-    const Result &input = this->get_input("Image");
-    const bool gamma_correct = node_storage(this->bnode()).gamma;
     auto load_input = [&](const int2 texel) {
-      return this->load_input(input, weights, texel, extend_bounds, gamma_correct);
+      return this->load_input(input, weights, texel, extend_bounds);
     };
 
     parallel_for(domain.size, [&](const int2 texel) {
@@ -238,34 +252,28 @@ class BlurOperation : public NodeOperation {
         }
       }
 
-      if (gamma_correct) {
-        accumulated_color = this->gamma_uncorrect_blur_output(accumulated_color);
-      }
-
       output.store_pixel(texel, accumulated_color);
     });
   }
 
-  void execute_variable_size()
+  void execute_variable_size(const Result &input, Result &output)
   {
     if (this->context().use_gpu()) {
-      this->execute_variable_size_gpu();
+      this->execute_variable_size_gpu(input, output);
     }
     else {
-      this->execute_variable_size_cpu();
+      this->execute_variable_size_cpu(input, output);
     }
   }
 
-  void execute_variable_size_gpu()
+  void execute_variable_size_gpu(const Result &input, Result &output)
   {
     GPUShader *shader = context().get_shader("compositor_symmetric_blur_variable_size");
     GPU_shader_bind(shader);
 
     GPU_shader_uniform_1b(shader, "extend_bounds", get_extend_bounds());
-    GPU_shader_uniform_1b(shader, "gamma_correct", node_storage(bnode()).gamma);
 
-    const Result &input_image = get_input("Image");
-    input_image.bind_as_texture(shader, "input_tx");
+    input.bind_as_texture(shader, "input_tx");
 
     const float2 blur_radius = compute_blur_radius();
 
@@ -282,20 +290,19 @@ class BlurOperation : public NodeOperation {
       domain.size += int2(math::ceil(blur_radius)) * 2;
     }
 
-    Result &output_image = get_result("Image");
-    output_image.allocate_texture(domain);
-    output_image.bind_as_image(shader, "output_img");
+    output.allocate_texture(domain);
+    output.bind_as_image(shader, "output_img");
 
     compute_dispatch_threads_at_least(shader, domain.size);
 
     GPU_shader_unbind();
-    output_image.unbind_as_image();
-    input_image.unbind_as_texture();
+    output.unbind_as_image();
+    input.unbind_as_texture();
     weights.unbind_as_texture();
     input_size.unbind_as_texture();
   }
 
-  void execute_variable_size_cpu()
+  void execute_variable_size_cpu(const Result &input, Result &output)
   {
     const float2 blur_radius = this->compute_blur_radius();
     const Result &weights = this->context().cache_manager().symmetric_blur_weights.get(
@@ -308,19 +315,15 @@ class BlurOperation : public NodeOperation {
       domain.size += int2(math::ceil(blur_radius)) * 2;
     }
 
-    Result &output = get_result("Image");
     output.allocate_texture(domain);
 
-    const Result &input = this->get_input("Image");
-    const bool gamma_correct = node_storage(this->bnode()).gamma;
     auto load_input = [&](const int2 texel) {
-      return this->load_input(input, weights, texel, extend_bounds, gamma_correct);
+      return this->load_input(input, weights, texel, extend_bounds);
     };
 
     const Result &size = get_input("Size");
-    /* Similar to load_input but loads the size instead, has no gamma correction, and clamps to
-     * borders instead of returning zero for out of bound access. See load_input for more
-     * information. */
+    /* Similar to load_input but loads the size instead and clamps to borders instead of returning
+     * zero for out of bound access. See load_input for more information. */
     auto load_size = [&](const int2 texel) {
       int2 blur_radius = weights.domain().size - 1;
       int2 offset = extend_bounds ? blur_radius : int2(0);
@@ -388,26 +391,20 @@ class BlurOperation : public NodeOperation {
 
       accumulated_color = math::safe_divide(accumulated_color, accumulated_weight);
 
-      if (gamma_correct) {
-        accumulated_color = this->gamma_uncorrect_blur_output(accumulated_color);
-      }
-
       output.store_pixel(texel, accumulated_color);
     });
   }
 
-  /* Loads the input color of the pixel at the given texel. If gamma correction is enabled, the
-   * color is gamma corrected. If bounds are extended, then the input is treated as padded by a
-   * blur size amount of pixels of zero color, and the given texel is assumed to be in the space of
-   * the image after padding. So we offset the texel by the blur radius amount and fallback to a
-   * zero color if it is out of bounds. For instance, if the input is padded by 5 pixels to the
-   * left of the image, the first 5 pixels should be out of bounds and thus zero, hence the
-   * introduced offset. */
+  /* Loads the input color of the pixel at the given texel. If bounds are extended, then the input
+   * is treated as padded by a blur size amount of pixels of zero color, and the given texel is
+   * assumed to be in the space of the image after padding. So we offset the texel by the blur
+   * radius amount and fallback to a zero color if it is out of bounds. For instance, if the input
+   * is padded by 5 pixels to the left of the image, the first 5 pixels should be out of bounds and
+   * thus zero, hence the introduced offset. */
   float4 load_input(const Result &input,
                     const Result &weights,
                     const int2 texel,
-                    const bool extend_bounds,
-                    const bool gamma_correct)
+                    const bool extend_bounds)
   {
     float4 color;
     if (extend_bounds) {
@@ -420,30 +417,7 @@ class BlurOperation : public NodeOperation {
       color = input.load_pixel_extended<float4>(texel);
     }
 
-    if (gamma_correct) {
-      color = this->gamma_correct_blur_input(color);
-    }
-
     return color;
-  }
-
-  /* Preprocess the input of the blur filter by squaring it in its alpha straight form, assuming
-   * the given color is alpha pre-multiplied. */
-  float4 gamma_correct_blur_input(const float4 &color)
-  {
-    float alpha = color.w > 0.0f ? color.w : 1.0f;
-    float3 corrected_color = math::square(math::max(color.xyz() / alpha, float3(0.0f))) * alpha;
-    return float4(corrected_color, color.w);
-  }
-
-  /* Postprocess the output of the blur filter by taking its square root it in its alpha straight
-   * form, assuming the given color is alpha pre-multiplied. This essential undoes the processing
-   * done by the gamma_correct_blur_input function. */
-  float4 gamma_uncorrect_blur_output(const float4 &color)
-  {
-    float alpha = color.w > 0.0f ? color.w : 1.0f;
-    float3 uncorrected_color = math::sqrt(math::max(color.xyz() / alpha, float3(0.0f))) * alpha;
-    return float4(uncorrected_color, color.w);
   }
 
   float2 compute_blur_radius()
@@ -518,6 +492,11 @@ class BlurOperation : public NodeOperation {
   float2 get_size_factor()
   {
     return float2(node_storage(bnode()).percentx, node_storage(bnode()).percenty) / 100.0f;
+  }
+
+  bool should_apply_gamma_correction()
+  {
+    return node_storage(this->bnode()).gamma;
   }
 
   bool get_extend_bounds()

@@ -22,6 +22,7 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
+#include "COM_algorithm_gamma_correct.hh"
 #include "COM_algorithm_morphological_blur.hh"
 #include "COM_bokeh_kernel.hh"
 #include "COM_node_operation.hh"
@@ -121,25 +122,48 @@ class DefocusOperation : public NodeOperation {
     const Result &bokeh_kernel = context().cache_manager().bokeh_kernels.get(
         context(), kernel_size, sides, rotation, roundness, 0.0f, 0.0f);
 
+    Result *defocus_input = &input;
+    Result *defocus_output = &output;
+
+    /* Apply gamma correction if needed. */
+    Result gamma_defocus_output = this->context().create_result(ResultType::Color);
+    Result gamma_corrected_input = this->context().create_result(ResultType::Color);
+    if (this->should_apply_gamma_correction()) {
+      gamma_correct(this->context(), input, gamma_corrected_input);
+      defocus_input = &gamma_corrected_input;
+      defocus_output = &gamma_defocus_output;
+    }
+
     if (this->context().use_gpu()) {
-      this->execute_gpu(radius, bokeh_kernel, maximum_defocus_radius);
+      this->execute_gpu(
+          *defocus_input, radius, bokeh_kernel, *defocus_output, maximum_defocus_radius);
     }
     else {
-      this->execute_cpu(radius, bokeh_kernel, maximum_defocus_radius);
+      this->execute_cpu(
+          *defocus_input, radius, bokeh_kernel, *defocus_output, maximum_defocus_radius);
     }
 
     radius.release();
+
+    /* Undo gamma correction. */
+    if (this->should_apply_gamma_correction()) {
+      gamma_corrected_input.release();
+      gamma_uncorrect(this->context(), gamma_defocus_output, output);
+      gamma_defocus_output.release();
+    }
   }
 
-  void execute_gpu(const Result &radius, const Result &bokeh_kernel, const int search_radius)
+  void execute_gpu(const Result &input,
+                   const Result &radius,
+                   const Result &bokeh_kernel,
+                   Result &output,
+                   const int search_radius)
   {
     GPUShader *shader = context().get_shader("compositor_defocus_blur");
     GPU_shader_bind(shader);
 
-    GPU_shader_uniform_1b(shader, "gamma_correct", node_storage(bnode()).gamco);
     GPU_shader_uniform_1i(shader, "search_radius", search_radius);
 
-    Result &input = get_input("Image");
     input.bind_as_texture(shader, "input_tx");
 
     radius.bind_as_texture(shader, "radius_tx");
@@ -148,7 +172,6 @@ class DefocusOperation : public NodeOperation {
     bokeh_kernel.bind_as_texture(shader, "weights_tx");
 
     const Domain domain = compute_domain();
-    Result &output = get_result("Image");
     output.allocate_texture(domain);
     output.bind_as_image(shader, "output_img");
 
@@ -161,14 +184,13 @@ class DefocusOperation : public NodeOperation {
     output.unbind_as_image();
   }
 
-  void execute_cpu(const Result &radius, const Result &bokeh_kernel, const int search_radius)
+  void execute_cpu(const Result &input,
+                   const Result &radius,
+                   const Result &bokeh_kernel,
+                   Result &output,
+                   const int search_radius)
   {
-    const bool gamma_correct = node_storage(bnode()).gamco;
-
-    Result &input = get_input("Image");
-
     const Domain domain = compute_domain();
-    Result &output = get_result("Image");
     output.allocate_texture(domain);
 
     /* Given the texel in the range [-radius, radius] in both axis, load the appropriate weight
@@ -218,10 +240,6 @@ class DefocusOperation : public NodeOperation {
           float4 weight = load_weight(int2(x, y), radius);
           float4 input_color = input.load_pixel_extended<float4>(texel + int2(x, y));
 
-          if (gamma_correct) {
-            input_color = gamma_correct_blur_input(input_color);
-          }
-
           accumulated_color += input_color * weight;
           accumulated_weight += weight;
         }
@@ -229,31 +247,8 @@ class DefocusOperation : public NodeOperation {
 
       accumulated_color = math::safe_divide(accumulated_color, accumulated_weight);
 
-      if (gamma_correct) {
-        accumulated_color = gamma_uncorrect_blur_output(accumulated_color);
-      }
-
       output.store_pixel(texel, accumulated_color);
     });
-  }
-
-  /* Preprocess the input of the blur filter by squaring it in its alpha straight form, assuming
-   * the given color is alpha pre-multiplied. */
-  float4 gamma_correct_blur_input(const float4 &color)
-  {
-    float alpha = color.w > 0.0f ? color.w : 1.0f;
-    float3 corrected_color = math::square(math::max(color.xyz() / alpha, float3(0.0f))) * alpha;
-    return float4(corrected_color, color.w);
-  }
-
-  /* Postprocess the output of the blur filter by taking its square root it in its alpha straight
-   * form, assuming the given color is alpha pre-multiplied. This essential undoes the processing
-   * done by the gamma_correct_blur_input function. */
-  float4 gamma_uncorrect_blur_output(const float4 &color)
-  {
-    float alpha = color.w > 0.0f ? color.w : 1.0f;
-    float3 uncorrected_color = math::sqrt(math::max(color.xyz() / alpha, float3(0.0f))) * alpha;
-    return float4(uncorrected_color, color.w);
   }
 
   Result compute_defocus_radius()
@@ -523,6 +518,11 @@ class DefocusOperation : public NodeOperation {
   const float get_f_stop()
   {
     return math::max(1e-3f, node_storage(bnode()).fstop);
+  }
+
+  bool should_apply_gamma_correction()
+  {
+    return node_storage(this->bnode()).gamco;
   }
 
   const Camera *get_camera()

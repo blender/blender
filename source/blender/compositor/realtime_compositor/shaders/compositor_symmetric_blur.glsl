@@ -2,15 +2,14 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "gpu_shader_compositor_blur_common.glsl"
 #include "gpu_shader_compositor_texture_utilities.glsl"
 
-/* Loads the input color of the pixel at the given texel. If gamma correction is enabled, the color
- * is gamma corrected. If bounds are extended, then the input is treated as padded by a blur size
- * amount of pixels of zero color, and the given texel is assumed to be in the space of the image
- * after padding. So we offset the texel by the blur radius amount and fallback to a zero color if
- * it is out of bounds. For instance, if the input is padded by 5 pixels to the left of the image,
- * the first 5 pixels should be out of bounds and thus zero, hence the introduced offset. */
+/* Loads the input color of the pixel at the given texel. If bounds are extended, then the input is
+ * treated as padded by a blur size amount of pixels of zero color, and the given texel is assumed
+ * to be in the space of the image after padding. So we offset the texel by the blur radius amount
+ * and fallback to a zero color if it is out of bounds. For instance, if the input is padded by 5
+ * pixels to the left of the image, the first 5 pixels should be out of bounds and thus zero, hence
+ * the introduced offset. */
 vec4 load_input(ivec2 texel)
 {
   vec4 color;
@@ -22,10 +21,6 @@ vec4 load_input(ivec2 texel)
   }
   else {
     color = texture_load(input_tx, texel);
-  }
-
-  if (gamma_correct) {
-    color = gamma_correct_blur_input(color);
   }
 
   return color;
@@ -75,10 +70,6 @@ void main()
       accumulated_color += load_input(texel + ivec2(x, -y)) * weight;
       accumulated_color += load_input(texel + ivec2(-x, -y)) * weight;
     }
-  }
-
-  if (gamma_correct) {
-    accumulated_color = gamma_uncorrect_blur_output(accumulated_color);
   }
 
   imageStore(output_img, texel, accumulated_color);

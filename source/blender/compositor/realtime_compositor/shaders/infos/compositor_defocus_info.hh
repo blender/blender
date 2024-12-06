@@ -29,7 +29,6 @@ GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(compositor_defocus_blur)
 LOCAL_GROUP_SIZE(16, 16)
-PUSH_CONSTANT(BOOL, gamma_correct)
 PUSH_CONSTANT(INT, search_radius)
 SAMPLER(0, FLOAT_2D, input_tx)
 SAMPLER(1, FLOAT_2D, weights_tx)

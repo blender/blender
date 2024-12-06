@@ -70,6 +70,7 @@
 #include "compositor_ellipse_mask_info.hh"
 #include "compositor_filter_info.hh"
 #include "compositor_flip_info.hh"
+#include "compositor_gamma_correct_info.hh"
 #include "compositor_glare_info.hh"
 #include "compositor_id_mask_info.hh"
 #include "compositor_image_crop_info.hh"
