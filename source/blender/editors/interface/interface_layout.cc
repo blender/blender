@@ -2107,10 +2107,6 @@ void uiItemFullR(uiLayout *layout,
   bool use_prop_sep_split_label = use_prop_sep;
   bool use_split_empty_name = (flag & UI_ITEM_R_SPLIT_EMPTY_NAME);
 
-  if (RNA_property_identifier(prop) == StringRef("object_eval_state")) {
-    printf(" ");
-  }
-
 #ifdef UI_PROP_DECORATE
   struct DecorateInfo {
     bool use_prop_decorate;
