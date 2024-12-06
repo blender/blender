@@ -33,6 +33,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "CLG_log.h"
+
 #include "BLI_array.hh"
 #include "BLI_bit_group_vector.hh"
 #include "BLI_enumerable_thread_specific.hh"
@@ -86,6 +88,8 @@
 #include "sculpt_dyntopo.hh"
 #include "sculpt_face_set.hh"
 #include "sculpt_intern.hh"
+
+static CLG_LogRef LOG = {"ed.sculpt.undo"};
 
 namespace blender::ed::sculpt_paint::undo {
 
@@ -883,6 +887,18 @@ static void restore_list(bContext *C, Depsgraph *depsgraph, StepData &step_data)
   /* Switching to sculpt mode does not push a particular type.
    * See #124484. */
   if (step_data.type == Type::None && step_data.nodes.is_empty()) {
+    return;
+  }
+
+  /* Adding multires via the `subdivision_set` operator results in the subsequent undo step
+   * not correctly performing a global undo step; we exit early here to avoid crashing.
+   * See: #131478 */
+  const bool multires_undo_step = use_multires_undo(step_data, ss);
+  if ((multires_undo_step && pbvh.type() != bke::pbvh::Type::Grids) ||
+      (!multires_undo_step && pbvh.type() != bke::pbvh::Type::Mesh))
+  {
+    CLOG_WARN(&LOG,
+              "Undo step type and sculpt geometry type do not match: skipping undo state restore");
     return;
   }
 
