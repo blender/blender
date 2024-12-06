@@ -384,8 +384,9 @@ static GPENCIL_tObject *grease_pencil_object_cache_populate(GPENCIL_PrivateData 
       blender::Bounds(float3(0)));
 
   const bool do_onion = !pd->is_render && pd->do_onion;
-  const bool do_multi_frame = (pd->scene->toolsettings->gpencil_flags &
-                               GP_USE_MULTI_FRAME_EDITING) != 0;
+  const bool do_multi_frame = (((pd->scene->toolsettings->gpencil_flags &
+                                 GP_USE_MULTI_FRAME_EDITING) != 0) &&
+                               (ob->mode != OB_MODE_OBJECT));
   const bool use_stroke_order_3d = (grease_pencil.flag & GREASE_PENCIL_STROKE_ORDER_3D) != 0;
   GPENCIL_tObject *tgp_ob = gpencil_object_cache_add(pd, ob, use_stroke_order_3d, bounds);
 
