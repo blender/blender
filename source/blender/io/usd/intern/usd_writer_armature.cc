@@ -4,6 +4,7 @@
 
 #include "usd_writer_armature.hh"
 #include "usd_armature_utils.hh"
+#include "usd_attribute_utils.hh"
 #include "usd_utils.hh"
 
 #include "ANIM_action.hh"
@@ -18,6 +19,7 @@
 #include <pxr/usd/usdSkel/animation.h>
 #include <pxr/usd/usdSkel/bindingAPI.h>
 #include <pxr/usd/usdSkel/skeleton.h>
+#include <pxr/usd/usdSkel/utils.h>
 
 #include "CLG_log.h"
 static CLG_LogRef LOG = {"io.usd"};
@@ -114,11 +116,14 @@ static void initialize(const Object *obj,
   }
 }
 
+namespace blender::io::usd {
+
 /* Add skeleton transform samples from the armature pose channels. */
 static void add_anim_sample(pxr::UsdSkelAnimation &skel_anim,
                             const Object *obj,
                             const pxr::UsdTimeCode time,
-                            const blender::Map<blender::StringRef, const Bone *> *deform_map)
+                            const blender::Map<blender::StringRef, const Bone *> *deform_map,
+                            pxr::UsdUtilsSparseValueWriter &value_writer)
 {
   if (!(skel_anim && obj && obj->pose)) {
     return;
@@ -141,10 +146,19 @@ static void add_anim_sample(pxr::UsdSkelAnimation &skel_anim,
     xforms.push_back(parent_relative_pose_mat(pchan));
   }
 
-  skel_anim.SetTransforms(xforms, time);
+  /* Perform the same steps as UsdSkelAnimation::SetTransforms but write data out sparsely. */
+  pxr::VtArray<pxr::GfVec3f> translations;
+  pxr::VtArray<pxr::GfQuatf> rotations;
+  pxr::VtArray<pxr::GfVec3h> scales;
+  if (pxr::UsdSkelDecomposeTransforms(xforms, &translations, &rotations, &scales)) {
+    set_attribute(skel_anim.GetTranslationsAttr(), translations, time, value_writer);
+    set_attribute(skel_anim.GetRotationsAttr(), rotations, time, value_writer);
+    set_attribute(skel_anim.GetScalesAttr(), scales, time, value_writer);
+  }
+  else {
+    CLOG_WARN(&LOG, "Could not decompose skeleton transforms for frame time %f", time.GetValue());
+  }
 }
-
-namespace blender::io::usd {
 
 USDArmatureWriter::USDArmatureWriter(const USDExporterContext &ctx) : USDAbstractWriter(ctx) {}
 
@@ -195,7 +209,8 @@ void USDArmatureWriter::do_write(HierarchyContext &context)
   }
 
   if (usd_export_context_.export_params.export_animation) {
-    add_anim_sample(skel_anim, context.object, get_export_time_code(), deform_map);
+    add_anim_sample(
+        skel_anim, context.object, get_export_time_code(), deform_map, usd_value_writer_);
   }
 }
 
