@@ -500,6 +500,8 @@ struct Resources : public select::SelectMap {
   Framebuffer overlay_line_in_front_fb = {"overlay_line_in_front_fb"};
 
   /* Output Color. */
+  Framebuffer overlay_output_color_only_fb = {"overlay_output_color_only_fb"};
+  /* Depth, Output Color. */
   Framebuffer overlay_output_fb = {"overlay_output_fb"};
 
   /* Render Frame-buffers. Only used for multiplicative blending on top of the render. */
@@ -649,10 +651,10 @@ struct Resources : public select::SelectMap {
                                       GPU_ATTACHMENT_TEXTURE(this->line_tx));
     this->overlay_color_only_fb.ensure(GPU_ATTACHMENT_NONE,
                                        GPU_ATTACHMENT_TEXTURE(this->overlay_tx));
-    /* The v2d path writes to the overlay output directly, but it needs a depth attachment. */
-    this->overlay_output_fb.ensure(state.is_space_image() ?
-                                       GPUAttachment GPU_ATTACHMENT_TEXTURE(this->depth_tx) :
-                                       GPUAttachment GPU_ATTACHMENT_NONE,
+
+    this->overlay_output_color_only_fb.ensure(GPU_ATTACHMENT_NONE,
+                                              GPU_ATTACHMENT_TEXTURE(this->color_overlay_tx));
+    this->overlay_output_fb.ensure(GPU_ATTACHMENT_TEXTURE(this->depth_tx),
                                    GPU_ATTACHMENT_TEXTURE(this->color_overlay_tx));
   }
 
