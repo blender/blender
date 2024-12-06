@@ -86,31 +86,22 @@ static ImBuf *modifier_render_mask_input(const SeqRenderData *context,
                                          Sequence *mask_sequence,
                                          Mask *mask_id,
                                          int timeline_frame,
-                                         int fra_offset,
-                                         bool make_float)
+                                         int fra_offset)
 {
   ImBuf *mask_input = nullptr;
 
   if (mask_input_type == SEQUENCE_MASK_INPUT_STRIP) {
     if (mask_sequence) {
       SeqRenderState state;
-
       mask_input = seq_render_strip(context, &state, mask_sequence, timeline_frame);
-
-      if (make_float) {
-        if (!mask_input->float_buffer.data) {
-          IMB_float_from_rect(mask_input);
-        }
-      }
-      else {
-        if (!mask_input->byte_buffer.data) {
-          IMB_rect_from_float(mask_input);
-        }
-      }
     }
   }
   else if (mask_input_type == SEQUENCE_MASK_INPUT_ID) {
-    mask_input = seq_render_mask(context, mask_id, timeline_frame - fra_offset, make_float);
+    /* Note that we do not request mask to be float image: if it is that is
+     * fine, but if it is a byte image then we also just take that without
+     * extra memory allocations or conversions. All modifiers are expected
+     * to handle mask being either type. */
+    mask_input = seq_render_mask(context, mask_id, timeline_frame - fra_offset, false);
   }
 
   return mask_input;
@@ -119,16 +110,10 @@ static ImBuf *modifier_render_mask_input(const SeqRenderData *context,
 static ImBuf *modifier_mask_get(SequenceModifierData *smd,
                                 const SeqRenderData *context,
                                 int timeline_frame,
-                                int fra_offset,
-                                bool make_float)
+                                int fra_offset)
 {
-  return modifier_render_mask_input(context,
-                                    smd->mask_input_type,
-                                    smd->mask_sequence,
-                                    smd->mask_id,
-                                    timeline_frame,
-                                    fra_offset,
-                                    make_float);
+  return modifier_render_mask_input(
+      context, smd->mask_input_type, smd->mask_sequence, smd->mask_id, timeline_frame, fra_offset);
 }
 
 static void modifier_init_handle(void *handle_v, int start_line, int tot_line, void *init_data_v)
@@ -155,6 +140,8 @@ static void modifier_init_handle(void *handle_v, int start_line, int tot_line, v
     handle->rect_float = ibuf->float_buffer.data + offset;
   }
 
+  handle->mask_rect = nullptr;
+  handle->mask_rect_float = nullptr;
   if (mask) {
     if (mask->byte_buffer.data) {
       handle->mask_rect = mask->byte_buffer.data + offset;
@@ -163,10 +150,6 @@ static void modifier_init_handle(void *handle_v, int start_line, int tot_line, v
     if (mask->float_buffer.data) {
       handle->mask_rect_float = mask->float_buffer.data + offset;
     }
-  }
-  else {
-    handle->mask_rect = nullptr;
-    handle->mask_rect_float = nullptr;
   }
 }
 
@@ -358,15 +341,17 @@ static void make_cb_table_sop(
 static void color_balance_byte(const float cb_tab[3][CB_TABLE_SIZE],
                                uchar *rect,
                                const uchar *mask_rect,
+                               const float *mask_rect_float,
                                int width,
                                int height)
 {
   uchar *ptr = rect;
   const uchar *ptr_end = ptr + int64_t(width) * height * 4;
   const uchar *mask_ptr = mask_rect;
+  const float *mask_ptr_float = mask_rect_float;
 
   if (mask_ptr != nullptr) {
-    /* Mask is used. */
+    /* Byte mask is used. */
     while (ptr < ptr_end) {
       float pix[4];
       straight_uchar_to_premul_float(pix, ptr);
@@ -383,6 +368,26 @@ static void color_balance_byte(const float cb_tab[3][CB_TABLE_SIZE],
       premul_float_to_straight_uchar(ptr, pix);
       ptr += 4;
       mask_ptr += 4;
+    }
+  }
+  else if (mask_ptr_float != nullptr) {
+    /* Float mask is used. */
+    while (ptr < ptr_end) {
+      float pix[4];
+      straight_uchar_to_premul_float(pix, ptr);
+
+      int p0 = int(pix[0] * (CB_TABLE_SIZE - 1.0f) + 0.5f);
+      int p1 = int(pix[1] * (CB_TABLE_SIZE - 1.0f) + 0.5f);
+      int p2 = int(pix[2] * (CB_TABLE_SIZE - 1.0f) + 0.5f);
+      const float t[3] = {mask_ptr_float[0], mask_ptr_float[1], mask_ptr_float[2]};
+
+      pix[0] = pix[0] * (1.0f - t[0]) + t[0] * cb_tab[0][p0];
+      pix[1] = pix[1] * (1.0f - t[1]) + t[1] * cb_tab[1][p1];
+      pix[2] = pix[2] * (1.0f - t[2]) + t[2] * cb_tab[2][p2];
+
+      premul_float_to_straight_uchar(ptr, pix);
+      ptr += 4;
+      mask_ptr_float += 4;
     }
   }
   else {
@@ -405,6 +410,7 @@ static void color_balance_byte(const float cb_tab[3][CB_TABLE_SIZE],
 
 static void color_balance_float(const StripColorBalance *cb,
                                 float *rect_float,
+                                const uchar *mask_rect,
                                 const float *mask_rect_float,
                                 int width,
                                 int height,
@@ -412,7 +418,8 @@ static void color_balance_float(const StripColorBalance *cb,
 {
   float *ptr = rect_float;
   const float *ptr_end = rect_float + int64_t(width) * height * 4;
-  const float *mask_ptr = mask_rect_float;
+  const uchar *mask_ptr = mask_rect;
+  const float *mask_ptr_float = mask_rect_float;
 
   if (cb->method == SEQ_COLOR_BALANCE_METHOD_LIFTGAMMAGAIN) {
     /* Lift/Gamma/Gain */
@@ -424,9 +431,17 @@ static void color_balance_float(const StripColorBalance *cb,
       float t1 = color_balance_lgg(ptr[1], lift.y, gain.y, gamma.y, mul);
       float t2 = color_balance_lgg(ptr[2], lift.z, gain.z, gamma.z, mul);
       if (mask_ptr) {
-        ptr[0] = ptr[0] * (1.0f - mask_ptr[0]) + t0 * mask_ptr[0];
-        ptr[1] = ptr[1] * (1.0f - mask_ptr[1]) + t1 * mask_ptr[1];
-        ptr[2] = ptr[2] * (1.0f - mask_ptr[2]) + t2 * mask_ptr[2];
+        float mask0 = mask_ptr[0] * (1.0f / 255.0f);
+        float mask1 = mask_ptr[1] * (1.0f / 255.0f);
+        float mask2 = mask_ptr[2] * (1.0f / 255.0f);
+        ptr[0] = ptr[0] * (1.0f - mask0) + t0 * mask0;
+        ptr[1] = ptr[1] * (1.0f - mask1) + t1 * mask1;
+        ptr[2] = ptr[2] * (1.0f - mask2) + t2 * mask2;
+      }
+      else if (mask_ptr_float) {
+        ptr[0] = ptr[0] * (1.0f - mask_ptr_float[0]) + t0 * mask_ptr_float[0];
+        ptr[1] = ptr[1] * (1.0f - mask_ptr_float[1]) + t1 * mask_ptr_float[1];
+        ptr[2] = ptr[2] * (1.0f - mask_ptr_float[2]) + t2 * mask_ptr_float[2];
       }
       else {
         ptr[0] = t0;
@@ -435,6 +450,9 @@ static void color_balance_float(const StripColorBalance *cb,
       }
       ptr += 4;
       if (mask_ptr) {
+        mask_ptr += 4;
+      }
+      if (mask_ptr_float) {
         mask_ptr += 4;
       }
     }
@@ -449,9 +467,17 @@ static void color_balance_float(const StripColorBalance *cb,
       float t1 = color_balance_sop(ptr[1], slope.y, offset.y, power.y, mul);
       float t2 = color_balance_sop(ptr[2], slope.z, offset.z, power.z, mul);
       if (mask_ptr) {
-        ptr[0] = ptr[0] * (1.0f - mask_ptr[0]) + t0 * mask_ptr[0];
-        ptr[1] = ptr[1] * (1.0f - mask_ptr[1]) + t1 * mask_ptr[1];
-        ptr[2] = ptr[2] * (1.0f - mask_ptr[2]) + t2 * mask_ptr[2];
+        float mask0 = mask_ptr[0] * (1.0f / 255.0f);
+        float mask1 = mask_ptr[1] * (1.0f / 255.0f);
+        float mask2 = mask_ptr[2] * (1.0f / 255.0f);
+        ptr[0] = ptr[0] * (1.0f - mask0) + t0 * mask0;
+        ptr[1] = ptr[1] * (1.0f - mask1) + t1 * mask1;
+        ptr[2] = ptr[2] * (1.0f - mask2) + t2 * mask2;
+      }
+      else if (mask_ptr_float) {
+        ptr[0] = ptr[0] * (1.0f - mask_ptr_float[0]) + t0 * mask_ptr_float[0];
+        ptr[1] = ptr[1] * (1.0f - mask_ptr_float[1]) + t1 * mask_ptr_float[1];
+        ptr[2] = ptr[2] * (1.0f - mask_ptr_float[2]) + t2 * mask_ptr_float[2];
       }
       else {
         ptr[0] = t0;
@@ -509,22 +535,19 @@ static void colorBalance_apply(const StripScreenQuad & /*quad*/,
   threading::parallel_for(IndexRange(ibuf->y), 32, [&](const IndexRange y_range) {
     const int64_t offset = y_range.first() * ibuf->x * 4;
     const int y_size = int(y_range.size());
+    const uchar *mask_byte = mask && mask->byte_buffer.data ? mask->byte_buffer.data + offset :
+                                                              nullptr;
+    const float *mask_float = mask && mask->float_buffer.data ? mask->float_buffer.data + offset :
+                                                                nullptr;
     if (ibuf->float_buffer.data != nullptr) {
       /* Float pixels. */
-      color_balance_float(&cb,
-                          ibuf->float_buffer.data + offset,
-                          mask ? mask->float_buffer.data + offset : nullptr,
-                          ibuf->x,
-                          y_size,
-                          mul);
+      color_balance_float(
+          &cb, ibuf->float_buffer.data + offset, mask_byte, mask_float, ibuf->x, y_size, mul);
     }
     else {
       /* Byte pixels. */
-      color_balance_byte(cb_tab,
-                         ibuf->byte_buffer.data + offset,
-                         mask ? mask->byte_buffer.data + offset : nullptr,
-                         ibuf->x,
-                         y_size);
+      color_balance_byte(
+          cb_tab, ibuf->byte_buffer.data + offset, mask_byte, mask_float, ibuf->x, y_size);
     }
   });
 }
@@ -594,11 +617,11 @@ static void whiteBalance_apply_threaded(int width,
       }
 #endif
 
-      if (mask_rect_float) {
-        copy_v3_v3(mask, mask_rect_float + pixel_index);
-      }
-      else if (mask_rect) {
+      if (mask_rect) {
         rgb_uchar_to_float(mask, mask_rect + pixel_index);
+      }
+      else if (mask_rect_float) {
+        copy_v3_v3(mask, mask_rect_float + pixel_index);
       }
 
       result[0] = rgba[0] * (1.0f - mask[0]) + result[0] * mask[0];
@@ -687,7 +710,15 @@ static void curves_apply_threaded(int width,
 
         BKE_curvemapping_evaluate_premulRGBF(curve_mapping, result, pixel);
 
-        if (mask_rect_float) {
+        if (mask_rect) {
+          float t[3];
+          rgb_uchar_to_float(t, mask_rect + pixel_index);
+
+          pixel[0] = pixel[0] * (1.0f - t[0]) + result[0] * t[0];
+          pixel[1] = pixel[1] * (1.0f - t[1]) + result[1] * t[1];
+          pixel[2] = pixel[2] * (1.0f - t[2]) + result[2] * t[2];
+        }
+        else if (mask_rect_float) {
           const float *m = mask_rect_float + pixel_index;
 
           pixel[0] = pixel[0] * (1.0f - m[0]) + result[0] * m[0];
@@ -710,12 +741,18 @@ static void curves_apply_threaded(int width,
 
         if (mask_rect) {
           float t[3];
-
           rgb_uchar_to_float(t, mask_rect + pixel_index);
 
           tempc[0] = tempc[0] * (1.0f - t[0]) + result[0] * t[0];
           tempc[1] = tempc[1] * (1.0f - t[1]) + result[1] * t[1];
           tempc[2] = tempc[2] * (1.0f - t[2]) + result[2] * t[2];
+        }
+        else if (mask_rect_float) {
+          const float *m = mask_rect_float + pixel_index;
+
+          pixel[0] = pixel[0] * (1.0f - m[0]) + result[0] * m[0];
+          pixel[1] = pixel[1] * (1.0f - m[1]) + result[1] * m[1];
+          pixel[2] = pixel[2] * (1.0f - m[2]) + result[2] * m[2];
         }
         else {
           tempc[0] = result[0];
@@ -843,11 +880,11 @@ static void hue_correct_apply_threaded(int width,
       /* convert back to rgb */
       hsv_to_rgb(hsv[0], hsv[1], hsv[2], result, result + 1, result + 2);
 
-      if (mask_rect_float) {
-        copy_v3_v3(mask, mask_rect_float + pixel_index);
-      }
-      else if (mask_rect) {
+      if (mask_rect) {
         rgb_uchar_to_float(mask, mask_rect + pixel_index);
+      }
+      else if (mask_rect_float) {
+        copy_v3_v3(mask, mask_rect_float + pixel_index);
       }
 
       result[0] = pixel[0] * (1.0f - mask[0]) + result[0] * mask[0];
@@ -944,8 +981,12 @@ static void brightcontrast_apply_threaded(int width,
           if (mask_rect) {
             const uchar *m = mask_rect + pixel_index;
             const float t = float(m[c]) / 255.0f;
-
-            v = float(pixel[c]) / 255.0f * (1.0f - t) + v * t;
+            v = i * (1.0f - t) + v * t;
+          }
+          else if (mask_rect_float) {
+            const float *m = mask_rect_float + pixel_index;
+            const float t = m[c];
+            v = i * (1.0f - t) + v * t;
           }
 
           pixel[c] = unit_float_to_uchar_clamp(v);
@@ -958,9 +999,13 @@ static void brightcontrast_apply_threaded(int width,
           i = pixel[c];
           v = a * i + b;
 
-          if (mask_rect_float) {
+          if (mask_rect) {
+            const uchar *m = mask_rect + pixel_index;
+            const float t = float(m[c]) / 255.0f;
+            pixel[c] = pixel[c] * (1.0f - t) + v * t;
+          }
+          else if (mask_rect_float) {
             const float *m = mask_rect_float + pixel_index;
-
             pixel[c] = pixel[c] * (1.0f - m[c]) + v * m[c];
           }
           else {
@@ -1012,11 +1057,7 @@ static void maskmodifier_apply_threaded(int width,
 {
   int x, y;
 
-  if (rect && !mask_rect) {
-    return;
-  }
-
-  if (rect_float && !mask_rect_float) {
+  if (!mask_rect && !mask_rect_float) {
     return;
   }
 
@@ -1025,26 +1066,38 @@ static void maskmodifier_apply_threaded(int width,
       const int pixel_index = (y * width + x) * 4;
 
       if (rect) {
-        const uchar *mask_pixel = mask_rect + pixel_index;
-        const uchar mask = min_iii(mask_pixel[0], mask_pixel[1], mask_pixel[2]);
         uchar *pixel = rect + pixel_index;
+        float m = 1.0f;
+        if (mask_rect) {
+          const uchar *mask_pixel = mask_rect + pixel_index;
+          m = float(min_iii(mask_pixel[0], mask_pixel[1], mask_pixel[2])) * (1.0f / 255.0f);
+        }
+        else if (mask_rect_float) {
+          const float *mask_pixel = mask_rect_float + pixel_index;
+          m = min_fff(mask_pixel[0], mask_pixel[1], mask_pixel[2]);
+        }
 
-        /* byte buffer is straight, so only affect on alpha itself,
+        /* Byte buffer is straight, so only affect on alpha itself,
          * this is the only way to alpha-over byte strip after
-         * applying mask modifier.
-         */
-        pixel[3] = float(pixel[3] * mask) / 255.0f;
+         * applying mask modifier. */
+        pixel[3] = uchar(pixel[3] * m);
       }
       else if (rect_float) {
-        const float *mask_pixel = mask_rect_float + pixel_index;
-        const float mask = min_fff(mask_pixel[0], mask_pixel[1], mask_pixel[2]);
         float *pixel = rect_float + pixel_index;
+        float m = 1.0f;
+        if (mask_rect) {
+          const uchar *mask_pixel = mask_rect + pixel_index;
+          m = float(min_iii(mask_pixel[0], mask_pixel[1], mask_pixel[2])) * (1.0f / 255.0f);
+        }
+        else if (mask_rect_float) {
+          const float *mask_pixel = mask_rect_float + pixel_index;
+          m = min_fff(mask_pixel[0], mask_pixel[1], mask_pixel[2]);
+        }
 
-        /* float buffers are premultiplied, so need to premul color
-         * as well to make it easy to alpha-over masted strip.
-         */
+        /* Float buffers are premultiplied, so need to premul color as well to make it
+         * easy to alpha-over masked strip. */
         for (int c = 0; c < 4; c++) {
-          pixel[c] = pixel[c] * mask;
+          pixel[c] = pixel[c] * m;
         }
       }
     }
@@ -1174,11 +1227,11 @@ static void tonemap_simple(float4 *scene_linear,
     /* Apply mask. */
     if (mask != nullptr) {
       float3 msk(1.0f);
-      if (mask_float != nullptr) {
-        msk = mask_float[pixel_index].xyz();
-      }
-      else if (mask_byte != nullptr) {
+      if (mask_byte != nullptr) {
         rgb_uchar_to_float(msk, mask_byte[pixel_index]);
+      }
+      else if (mask_float != nullptr) {
+        msk = mask_float[pixel_index].xyz();
       }
       pixel = math::interpolate(input.xyz(), pixel, msk);
     }
@@ -1224,11 +1277,11 @@ static void tonemap_rd_photoreceptor(float4 *scene_linear,
     /* Apply mask. */
     if (mask != nullptr) {
       float3 msk(1.0f);
-      if (mask_float != nullptr) {
-        msk = mask_float[pixel_index].xyz();
-      }
-      else if (mask_byte != nullptr) {
+      if (mask_byte != nullptr) {
         rgb_uchar_to_float(msk, mask_byte[pixel_index]);
+      }
+      else if (mask_float != nullptr) {
+        msk = mask_float[pixel_index].xyz();
       }
       pixel = math::interpolate(input.xyz(), pixel, msk);
     }
@@ -1571,11 +1624,8 @@ void SEQ_modifier_apply_stack(const SeqRenderData *context,
         frame_offset = smd->mask_id ? ((Mask *)smd->mask_id)->sfra : 0;
       }
 
-      ImBuf *mask = modifier_mask_get(
-          smd, context, timeline_frame, frame_offset, ibuf->float_buffer.data != nullptr);
-
+      ImBuf *mask = modifier_mask_get(smd, context, timeline_frame, frame_offset);
       smti->apply(quad, smd, ibuf, mask);
-
       if (mask) {
         IMB_freeImBuf(mask);
       }
