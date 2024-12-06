@@ -3711,19 +3711,6 @@ void uiItemMenuEnumR_prop(
                but_func_argN_copy<MenuItemLevel>);
 }
 
-void uiItemMenuEnumR(
-    uiLayout *layout, PointerRNA *ptr, const char *propname, const char *name, int icon)
-{
-  PropertyRNA *prop = RNA_struct_find_property(ptr, propname);
-  if (!prop) {
-    ui_item_disabled(layout, propname);
-    RNA_warning("property not found: %s.%s", RNA_struct_identifier(ptr->type), propname);
-    return;
-  }
-
-  uiItemMenuEnumR_prop(layout, ptr, prop, name, icon);
-}
-
 void uiItemTabsEnumR_prop(uiLayout *layout,
                           bContext *C,
                           PointerRNA *ptr,
