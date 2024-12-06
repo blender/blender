@@ -33,6 +33,28 @@
 
 namespace blender::ed::greasepencil {
 
+/* This utility function is modified from `BKE_object_get_parent_matrix()`. */
+static void get_bone_mat(const Object *parent, const char *parsubstr, float4x4 &r_mat)
+{
+  if (parent->type != OB_ARMATURE) {
+    r_mat = float4x4::identity();
+    return;
+  }
+
+  const bPoseChannel *pchan = BKE_pose_channel_find_name(parent->pose, parsubstr);
+  if (!pchan || !pchan->bone) {
+    r_mat = float4x4::identity();
+    return;
+  }
+
+  if (pchan->bone->flag & BONE_RELATIVE_PARENTING) {
+    r_mat = float4x4(pchan->chan_mat);
+  }
+  else {
+    r_mat = float4x4(pchan->pose_mat);
+  }
+}
+
 bool grease_pencil_layer_parent_set(bke::greasepencil::Layer &layer,
                                     Object *parent,
                                     StringRefNull bone,
@@ -47,6 +69,12 @@ bool grease_pencil_layer_parent_set(bke::greasepencil::Layer &layer,
   /* Calculate inverse parent matrix. */
   if (parent) {
     copy_m4_m4(layer.parentinv, parent->world_to_object().ptr());
+    if (layer.parsubstr) {
+      float4x4 bone_mat;
+      get_bone_mat(parent, layer.parsubstr, bone_mat);
+      float4x4 bone_inverse = math::invert(bone_mat) * float4x4(layer.parentinv);
+      copy_m4_m4(layer.parentinv, bone_inverse.ptr());
+    }
   }
   else {
     unit_m4(layer.parentinv);
