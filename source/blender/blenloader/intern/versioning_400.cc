@@ -14,6 +14,8 @@
 /* Define macros in `DNA_genfile.h`. */
 #define DNA_GENFILE_VERSIONING_MACROS
 
+#include "DNA_action_defaults.h"
+#include "DNA_action_types.h"
 #include "DNA_anim_types.h"
 #include "DNA_brush_types.h"
 #include "DNA_camera_types.h"
@@ -121,6 +123,10 @@ static void convert_action_in_place(blender::animrig::Action &action)
    * so we don't depend on esoteric behavior in `slot_add()`. */
   const int16_t idtype = action.idroot;
   action.idroot = 0;
+
+  /* Initialise the Action's last_slot_handle field to its default value, before
+   * we create a new slot. */
+  action.last_slot_handle = DNA_DEFAULT_ACTION_LAST_SLOT_HANDLE;
 
   Slot &slot = action.slot_add();
   slot.idtype = idtype;
