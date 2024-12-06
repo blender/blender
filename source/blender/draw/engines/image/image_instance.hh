@@ -67,6 +67,7 @@ class Instance {
         0.0f, float(region->winx), 0.0f, float(region->winy), 0.0f, 1.0f);
     float4x4 winmat = float4x4::identity();
     state.view.sync(viewmat, winmat);
+    state.flags.do_tile_drawing = false;
   }
 
   void image_sync()
