@@ -687,7 +687,8 @@ class WM_OT_context_cycle_array(Operator):
 class WM_OT_context_menu_enum(Operator):
     bl_idname = "wm.context_menu_enum"
     bl_label = "Context Enum Menu"
-    bl_options = {'UNDO', 'INTERNAL'}
+    # The menu items & UI logic handles undo.
+    bl_options = {'INTERNAL'}
 
     data_path: rna_path_prop
 
@@ -718,7 +719,8 @@ class WM_OT_context_menu_enum(Operator):
 class WM_OT_context_pie_enum(Operator):
     bl_idname = "wm.context_pie_enum"
     bl_label = "Context Enum Pie"
-    bl_options = {'UNDO', 'INTERNAL'}
+    # The menu items & UI logic handles undo.
+    bl_options = {'INTERNAL'}
 
     data_path: rna_path_prop
 
@@ -750,7 +752,8 @@ class WM_OT_context_pie_enum(Operator):
 class WM_OT_operator_pie_enum(Operator):
     bl_idname = "wm.operator_pie_enum"
     bl_label = "Operator Enum Pie"
-    bl_options = {'UNDO', 'INTERNAL'}
+    # The menu items & UI logic handles undo.
+    bl_options = {'INTERNAL'}
 
     data_path: StringProperty(
         name="Operator",
