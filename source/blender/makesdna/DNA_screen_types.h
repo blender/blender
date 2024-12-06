@@ -485,8 +485,6 @@ typedef struct ARegion {
   View2D v2d;
   /** Coordinates of region. */
   rcti winrct;
-  /** Runtime for partial redraw, same or smaller than winrct. */
-  rcti drawrct;
   /** Size. */
   short winx, winy;
   /**
@@ -508,12 +506,12 @@ typedef struct ARegion {
    */
   short sizex, sizey;
 
-  /** Private, cached notifier events. */
-  short do_draw_paintcursor;
   /** Private, set for indicate drawing overlapped. */
   short overlap;
   /** Temporary copy of flag settings for clean full-screen. */
   short flagfullscreen;
+
+  char _pad[2];
 
   /** Panel. */
   ListBase panels;

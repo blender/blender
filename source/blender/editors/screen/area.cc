@@ -311,7 +311,7 @@ static void region_draw_azones(ScrArea *area, ARegion *region)
     rcti azrct;
     BLI_rcti_init(&azrct, az->x1, az->x2, az->y1, az->y2);
 
-    if (BLI_rcti_isect(&region->drawrct, &azrct, nullptr)) {
+    if (BLI_rcti_isect(&region->runtime->drawrct, &azrct, nullptr)) {
       if (az->type == AZONE_AREA) {
         area_draw_azone(az->x1, az->y1, az->x2, az->y2);
       }
@@ -510,8 +510,8 @@ void ED_region_do_draw(bContext *C, ARegion *region)
 
   region->runtime->do_draw |= RGN_DRAWING;
 
-  /* Set viewport, scissor, ortho and region->drawrct. */
-  wmPartialViewport(&region->drawrct, &region->winrct, &region->drawrct);
+  /* Set viewport, scissor, ortho and region->runtime->drawrct. */
+  wmPartialViewport(&region->runtime->drawrct, &region->winrct, &region->runtime->drawrct);
 
   wmOrtho2_region_pixelspace(region);
 
@@ -550,15 +550,15 @@ void ED_region_do_draw(bContext *C, ARegion *region)
     RandomNumberGenerator rng = RandomNumberGenerator::from_random_seed();
     immUniformColor4f(rng.get_float(), rng.get_float(), rng.get_float(), 0.1f);
     immRectf(pos,
-             region->drawrct.xmin - region->winrct.xmin,
-             region->drawrct.ymin - region->winrct.ymin,
-             region->drawrct.xmax - region->winrct.xmin,
-             region->drawrct.ymax - region->winrct.ymin);
+             region->runtime->drawrct.xmin - region->winrct.xmin,
+             region->runtime->drawrct.ymin - region->winrct.ymin,
+             region->runtime->drawrct.xmax - region->winrct.xmin,
+             region->runtime->drawrct.ymax - region->winrct.ymin);
     immUnbindProgram();
     GPU_blend(GPU_BLEND_NONE);
   }
 
-  memset(&region->drawrct, 0, sizeof(region->drawrct));
+  memset(&region->runtime->drawrct, 0, sizeof(region->runtime->drawrct));
 
   UI_blocklist_free_inactive(C, region);
 
@@ -642,14 +642,14 @@ void ED_region_tag_redraw(ARegion *region)
     region->runtime->do_draw &= ~(RGN_DRAW_PARTIAL | RGN_DRAW_NO_REBUILD |
                                   RGN_DRAW_EDITOR_OVERLAYS);
     region->runtime->do_draw |= RGN_DRAW;
-    memset(&region->drawrct, 0, sizeof(region->drawrct));
+    memset(&region->runtime->drawrct, 0, sizeof(region->runtime->drawrct));
   }
 }
 
 void ED_region_tag_redraw_cursor(ARegion *region)
 {
   if (region) {
-    region->do_draw_paintcursor = RGN_DRAW;
+    region->runtime->do_draw_paintcursor = RGN_DRAW;
   }
 }
 
@@ -658,7 +658,7 @@ void ED_region_tag_redraw_no_rebuild(ARegion *region)
   if (region && !(region->runtime->do_draw & (RGN_DRAWING | RGN_DRAW))) {
     region->runtime->do_draw &= ~(RGN_DRAW_PARTIAL | RGN_DRAW_EDITOR_OVERLAYS);
     region->runtime->do_draw |= RGN_DRAW_NO_REBUILD;
-    memset(&region->drawrct, 0, sizeof(region->drawrct));
+    memset(&region->runtime->drawrct, 0, sizeof(region->runtime->drawrct));
   }
 }
 
@@ -686,7 +686,7 @@ void ED_region_tag_redraw_partial(ARegion *region, const rcti *rct, bool rebuild
   if (region && !(region->runtime->do_draw & RGN_DRAWING)) {
     if (region->runtime->do_draw & RGN_DRAW_PARTIAL) {
       /* Partial redraw already set, expand region. */
-      BLI_rcti_union(&region->drawrct, rct);
+      BLI_rcti_union(&region->runtime->drawrct, rct);
       if (rebuild) {
         region->runtime->do_draw &= ~RGN_DRAW_NO_REBUILD;
       }
@@ -699,7 +699,7 @@ void ED_region_tag_redraw_partial(ARegion *region, const rcti *rct, bool rebuild
     }
     else {
       /* No redraw set yet, set partial region. */
-      region->drawrct = *rct;
+      region->runtime->drawrct = *rct;
       region->runtime->do_draw |= RGN_DRAW_PARTIAL;
       if (!rebuild) {
         region->runtime->do_draw |= RGN_DRAW_NO_REBUILD;

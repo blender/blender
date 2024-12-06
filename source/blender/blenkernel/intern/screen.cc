@@ -1253,7 +1253,6 @@ static void direct_link_region(BlendDataReader *reader, ARegion *region, int spa
   region->runtime = MEM_new<blender::bke::ARegionRuntime>(__func__);
   region->v2d.sms = nullptr;
   region->v2d.alpha_hor = region->v2d.alpha_vert = 255; /* visible by default */
-  memset(&region->drawrct, 0, sizeof(region->drawrct));
 }
 
 void BKE_screen_view3d_do_versions_250(View3D *v3d, ListBase *regions)
