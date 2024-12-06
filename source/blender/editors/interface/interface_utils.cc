@@ -295,7 +295,7 @@ eAutoPropButsReturn uiDefAutoButsRNA(uiLayout *layout,
 {
   eAutoPropButsReturn return_info = UI_PROP_BUTS_NONE_ADDED;
   uiLayout *col;
-  const char *name;
+  std::optional<StringRefNull> name;
 
   RNA_STRUCT_BEGIN (ptr, prop) {
     const int flag = RNA_property_flag(prop);
@@ -320,7 +320,7 @@ eAutoPropButsReturn uiDefAutoButsRNA(uiLayout *layout,
           col = uiLayoutColumn(layout, true);
 
           if (!is_boolean) {
-            uiItemL(col, name, ICON_NONE);
+            uiItemL(col, *name, ICON_NONE);
           }
         }
         else {
@@ -335,7 +335,7 @@ eAutoPropButsReturn uiDefAutoButsRNA(uiLayout *layout,
       case UI_BUT_LABEL_ALIGN_NONE:
       default:
         col = layout;
-        name = nullptr; /* no smart label alignment, show default name with button */
+        name = std::nullopt; /* no smart label alignment, show default name with button */
         break;
     }
 
