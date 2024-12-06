@@ -2686,10 +2686,9 @@ void uiItemEnumR_string_prop(uiLayout *layout,
       continue;
     }
     if (item[a].value == ivalue) {
-      const char *item_name = name.has_value() ?
-                                  name->c_str() :
-                                  CTX_IFACE_(RNA_property_translation_context(prop), item[a].name);
-      const eUI_Item_Flag flag = item_name[0] ? UI_ITEM_NONE : UI_ITEM_R_ICON_ONLY;
+      const StringRefNull item_name = name.value_or(
+          CTX_IFACE_(RNA_property_translation_context(prop), item[a].name));
+      const eUI_Item_Flag flag = !item_name.is_empty() ? UI_ITEM_NONE : UI_ITEM_R_ICON_ONLY;
 
       uiItemFullR(
           layout, ptr, prop, RNA_ENUM_VALUE, ivalue, flag, item_name, icon ? icon : item[a].icon);
