@@ -658,9 +658,7 @@ class _draw_tool_settings_context_mode:
 
         if grease_pencil_tool == 'TINT':
             row.separator(factor=0.4)
-            ups = context.tool_settings.unified_paint_settings
-            prop_owner = ups if ups.use_unified_color else brush
-            row.prop_with_popover(prop_owner, "color", text="", panel="TOPBAR_PT_grease_pencil_vertex_color")
+            row.prop_with_popover(brush, "color", text="", panel="TOPBAR_PT_grease_pencil_vertex_color")
 
         from bl_ui.properties_paint_common import (
             brush_basic_grease_pencil_paint_settings,
