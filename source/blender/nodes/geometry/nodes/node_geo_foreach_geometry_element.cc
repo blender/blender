@@ -56,7 +56,7 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *current_no
           ntree, output_node, [&](PointerRNA *item_ptr) {
             uiLayoutSetPropSep(panel, true);
             uiLayoutSetPropDecorate(panel, false);
-            uiItemR(panel, item_ptr, "socket_type", UI_ITEM_NONE, nullptr, ICON_NONE);
+            uiItemR(panel, item_ptr, "socket_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
           });
     }
   }
@@ -68,7 +68,7 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *current_no
           ntree, output_node, [&](PointerRNA *item_ptr) {
             uiLayoutSetPropSep(panel, true);
             uiLayoutSetPropDecorate(panel, false);
-            uiItemR(panel, item_ptr, "socket_type", UI_ITEM_NONE, nullptr, ICON_NONE);
+            uiItemR(panel, item_ptr, "socket_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
           });
     }
     if (uiLayout *panel = uiLayoutPanel(
@@ -82,15 +82,15 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *current_no
                 storage.generation_items.items[storage.generation_items.active_index];
             uiLayoutSetPropSep(panel, true);
             uiLayoutSetPropDecorate(panel, false);
-            uiItemR(panel, item_ptr, "socket_type", UI_ITEM_NONE, nullptr, ICON_NONE);
+            uiItemR(panel, item_ptr, "socket_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
             if (active_item.socket_type != SOCK_GEOMETRY) {
-              uiItemR(panel, item_ptr, "domain", UI_ITEM_NONE, nullptr, ICON_NONE);
+              uiItemR(panel, item_ptr, "domain", UI_ITEM_NONE, std::nullopt, ICON_NONE);
             }
           });
     }
   }
 
-  uiItemR(layout, &output_node_ptr, "inspection_index", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, &output_node_ptr, "inspection_index", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 namespace input_node {

@@ -133,7 +133,7 @@ static void ui_obj_export_settings(const bContext *C, uiLayout *layout, PointerR
           sub, ptr, "export_selected_objects", UI_ITEM_NONE, IFACE_("Selection Only"), ICON_NONE);
     }
 
-    uiItemR(col, ptr, "global_scale", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "global_scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiItemR(col, ptr, "forward_axis", UI_ITEM_NONE, IFACE_("Forward Axis"), ICON_NONE);
     uiItemR(col, ptr, "up_axis", UI_ITEM_NONE, IFACE_("Up Axis"), ICON_NONE);
   }
@@ -449,20 +449,20 @@ static void ui_obj_import_settings(const bContext *C, uiLayout *layout, PointerR
 
   if (uiLayout *panel = uiLayoutPanel(C, layout, "OBJ_import_general", false, IFACE_("General"))) {
     uiLayout *col = uiLayoutColumn(panel, false);
-    uiItemR(col, ptr, "global_scale", UI_ITEM_NONE, nullptr, ICON_NONE);
-    uiItemR(col, ptr, "clamp_size", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "global_scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    uiItemR(col, ptr, "clamp_size", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiItemR(col, ptr, "forward_axis", UI_ITEM_NONE, IFACE_("Forward Axis"), ICON_NONE);
     uiItemR(col, ptr, "up_axis", UI_ITEM_NONE, IFACE_("Up Axis"), ICON_NONE);
   }
 
   if (uiLayout *panel = uiLayoutPanel(C, layout, "OBJ_import_options", false, IFACE_("Options"))) {
     uiLayout *col = uiLayoutColumn(panel, false);
-    uiItemR(col, ptr, "use_split_objects", UI_ITEM_NONE, nullptr, ICON_NONE);
-    uiItemR(col, ptr, "use_split_groups", UI_ITEM_NONE, nullptr, ICON_NONE);
-    uiItemR(col, ptr, "import_vertex_groups", UI_ITEM_NONE, nullptr, ICON_NONE);
-    uiItemR(col, ptr, "validate_meshes", UI_ITEM_NONE, nullptr, ICON_NONE);
-    uiItemR(col, ptr, "close_spline_loops", UI_ITEM_NONE, nullptr, ICON_NONE);
-    uiItemR(col, ptr, "collection_separator", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "use_split_objects", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    uiItemR(col, ptr, "use_split_groups", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    uiItemR(col, ptr, "import_vertex_groups", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    uiItemR(col, ptr, "validate_meshes", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    uiItemR(col, ptr, "close_spline_loops", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    uiItemR(col, ptr, "collection_separator", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 }
 

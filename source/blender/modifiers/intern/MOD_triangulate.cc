@@ -110,10 +110,10 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "quad_method", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "ngon_method", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "min_vertices", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "keep_custom_normals", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "quad_method", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  uiItemR(layout, ptr, "ngon_method", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  uiItemR(layout, ptr, "min_vertices", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  uiItemR(layout, ptr, "keep_custom_normals", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   modifier_panel_end(layout, ptr);
 }

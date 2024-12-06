@@ -64,14 +64,14 @@ static void node_composit_buts_blur(uiLayout *layout, bContext * /*C*/, PointerR
 
   uiItemR(col, ptr, "filter_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
   if (filter != R_FILTER_FAST_GAUSS) {
-    uiItemR(col, ptr, "use_variable_size", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "use_variable_size", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
     if (!reference) {
-      uiItemR(col, ptr, "use_bokeh", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+      uiItemR(col, ptr, "use_bokeh", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
     }
-    uiItemR(col, ptr, "use_gamma_correction", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "use_gamma_correction", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   }
 
-  uiItemR(col, ptr, "use_relative", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "use_relative", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 
   if (RNA_boolean_get(ptr, "use_relative")) {
     uiItemL(col, IFACE_("Aspect Correction"), ICON_NONE);
@@ -80,7 +80,7 @@ static void node_composit_buts_blur(uiLayout *layout, bContext * /*C*/, PointerR
             ptr,
             "aspect_correction",
             UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_EXPAND,
-            nullptr,
+            std::nullopt,
             ICON_NONE);
 
     col = uiLayoutColumn(layout, true);
@@ -92,7 +92,7 @@ static void node_composit_buts_blur(uiLayout *layout, bContext * /*C*/, PointerR
     uiItemR(col, ptr, "size_x", UI_ITEM_R_SPLIT_EMPTY_NAME, IFACE_("X"), ICON_NONE);
     uiItemR(col, ptr, "size_y", UI_ITEM_R_SPLIT_EMPTY_NAME, IFACE_("Y"), ICON_NONE);
   }
-  uiItemR(col, ptr, "use_extended_bounds", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "use_extended_bounds", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 }
 
 using namespace blender::realtime_compositor;

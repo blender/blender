@@ -61,15 +61,16 @@ static void node_composit_buts_chroma_matte(uiLayout *layout, bContext * /*C*/, 
   uiLayout *col;
 
   col = uiLayoutColumn(layout, false);
-  uiItemR(col, ptr, "tolerance", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "threshold", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "tolerance", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  uiItemR(col, ptr, "threshold", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 
   col = uiLayoutColumn(layout, true);
   /* Removed for now. */
-  // uiItemR(col, ptr, "lift", UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "gain", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
+  // uiItemR(col, ptr, "lift", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
+  uiItemR(
+      col, ptr, "gain", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
   /* Removed for now. */
-  // uiItemR(col, ptr, "shadow_adjust", UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
+  // uiItemR(col, ptr, "shadow_adjust", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
 }
 
 using namespace blender::realtime_compositor;

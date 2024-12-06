@@ -699,15 +699,14 @@ static void add_attribute_search_or_value_buttons(uiLayout *layout,
 
   if (use_attribute) {
     /* TODO: Add attribute search. */
-    uiItemR(prop_row, md_ptr, rna_path_attribute_name.c_str(), UI_ITEM_NONE, "", ICON_NONE);
+    uiItemR(prop_row, md_ptr, rna_path_attribute_name, UI_ITEM_NONE, "", ICON_NONE);
   }
   else {
     const char *name = socket_type == SOCK_BOOLEAN ? (socket.name ? socket.name : "") : "";
-    uiItemR(prop_row, md_ptr, rna_path.c_str(), UI_ITEM_NONE, name, ICON_NONE);
+    uiItemR(prop_row, md_ptr, rna_path, UI_ITEM_NONE, name, ICON_NONE);
   }
 
-  uiItemR(
-      prop_row, md_ptr, rna_path_use_attribute.c_str(), UI_ITEM_R_ICON_ONLY, "", ICON_SPREADSHEET);
+  uiItemR(prop_row, md_ptr, rna_path_use_attribute, UI_ITEM_R_ICON_ONLY, "", ICON_SPREADSHEET);
 }
 
 static void draw_property_for_socket(const bNodeTree &node_tree,

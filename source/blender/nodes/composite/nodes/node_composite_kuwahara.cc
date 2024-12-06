@@ -59,17 +59,17 @@ static void node_composit_buts_kuwahara(uiLayout *layout, bContext * /*C*/, Poin
 
   col = uiLayoutColumn(layout, false);
 
-  uiItemR(col, ptr, "variation", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "variation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   const int variation = RNA_enum_get(ptr, "variation");
 
   if (variation == CMP_NODE_KUWAHARA_CLASSIC) {
-    uiItemR(col, ptr, "use_high_precision", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "use_high_precision", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
   else if (variation == CMP_NODE_KUWAHARA_ANISOTROPIC) {
-    uiItemR(col, ptr, "uniformity", UI_ITEM_NONE, nullptr, ICON_NONE);
-    uiItemR(col, ptr, "sharpness", UI_ITEM_NONE, nullptr, ICON_NONE);
-    uiItemR(col, ptr, "eccentricity", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "uniformity", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    uiItemR(col, ptr, "sharpness", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    uiItemR(col, ptr, "eccentricity", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 }
 

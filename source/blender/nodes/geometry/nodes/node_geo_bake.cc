@@ -142,10 +142,10 @@ static void draw_bake_items(const bContext *C, uiLayout *layout, PointerRNA node
           const NodeGeometryBakeItem &active_item = storage.items[storage.active_index];
           uiLayoutSetPropSep(panel, true);
           uiLayoutSetPropDecorate(panel, false);
-          uiItemR(panel, item_ptr, "socket_type", UI_ITEM_NONE, nullptr, ICON_NONE);
+          uiItemR(panel, item_ptr, "socket_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
           if (socket_type_supports_fields(eNodeSocketDatatype(active_item.socket_type))) {
-            uiItemR(panel, item_ptr, "attribute_domain", UI_ITEM_NONE, nullptr, ICON_NONE);
-            uiItemR(panel, item_ptr, "is_attribute", UI_ITEM_NONE, nullptr, ICON_NONE);
+            uiItemR(panel, item_ptr, "attribute_domain", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+            uiItemR(panel, item_ptr, "is_attribute", UI_ITEM_NONE, std::nullopt, ICON_NONE);
           }
         });
   }
@@ -535,7 +535,7 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *ptr)
     draw_bake_button_row(ctx, col, true);
     if (const std::optional<std::string> bake_state_str = get_bake_state_string(ctx)) {
       uiLayout *row = uiLayoutRow(col, true);
-      uiItemL(row, bake_state_str->c_str(), ICON_NONE);
+      uiItemL(row, *bake_state_str, ICON_NONE);
     }
   }
 
@@ -790,7 +790,7 @@ void draw_common_bake_settings(bContext *C, BakeDrawContext &ctx, uiLayout *layo
   uiLayoutSetActive(settings_col, !ctx.is_baked);
   {
     uiLayout *col = uiLayoutColumn(settings_col, true);
-    uiItemR(col, &ctx.bake_rna, "bake_target", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, &ctx.bake_rna, "bake_target", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiLayout *subcol = uiLayoutColumn(col, true);
     uiLayoutSetActive(subcol, ctx.bake_target == NODES_MODIFIER_BAKE_TARGET_DISK);
     uiItemR(
@@ -859,7 +859,7 @@ static void draw_bake_data_block_list_item(uiList * /*ui_list*/,
     name = fmt::format("{} [{}]", data_block.id_name, data_block.lib_name);
   }
 
-  uiItemR(row, itemptr, "id", UI_ITEM_NONE, name.c_str(), ICON_NONE);
+  uiItemR(row, itemptr, "id", UI_ITEM_NONE, name, ICON_NONE);
 }
 
 void draw_data_blocks(const bContext *C, uiLayout *layout, PointerRNA &bake_rna)

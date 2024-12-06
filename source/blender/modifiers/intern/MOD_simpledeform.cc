@@ -456,19 +456,19 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   int deform_method = RNA_enum_get(ptr, "deform_method");
 
   row = uiLayoutRow(layout, false);
-  uiItemR(row, ptr, "deform_method", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
+  uiItemR(row, ptr, "deform_method", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
   uiLayoutSetPropSep(layout, true);
 
   if (ELEM(deform_method, MOD_SIMPLEDEFORM_MODE_TAPER, MOD_SIMPLEDEFORM_MODE_STRETCH)) {
-    uiItemR(layout, ptr, "factor", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(layout, ptr, "factor", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
   else {
-    uiItemR(layout, ptr, "angle", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(layout, ptr, "angle", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
-  uiItemR(layout, ptr, "origin", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "deform_axis", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "origin", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  uiItemR(layout, ptr, "deform_axis", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
   modifier_panel_end(layout, ptr);
 }
@@ -486,7 +486,7 @@ static void restrictions_panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "limits", UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "limits", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
 
   if (ELEM(deform_method,
            MOD_SIMPLEDEFORM_MODE_TAPER,
@@ -497,13 +497,13 @@ static void restrictions_panel_draw(const bContext * /*C*/, Panel *panel)
 
     row = uiLayoutRowWithHeading(layout, true, IFACE_("Lock"));
     if (deform_axis != 0) {
-      uiItemR(row, ptr, "lock_x", toggles_flag, nullptr, ICON_NONE);
+      uiItemR(row, ptr, "lock_x", toggles_flag, std::nullopt, ICON_NONE);
     }
     if (deform_axis != 1) {
-      uiItemR(row, ptr, "lock_y", toggles_flag, nullptr, ICON_NONE);
+      uiItemR(row, ptr, "lock_y", toggles_flag, std::nullopt, ICON_NONE);
     }
     if (deform_axis != 2) {
-      uiItemR(row, ptr, "lock_z", toggles_flag, nullptr, ICON_NONE);
+      uiItemR(row, ptr, "lock_z", toggles_flag, std::nullopt, ICON_NONE);
     }
   }
 

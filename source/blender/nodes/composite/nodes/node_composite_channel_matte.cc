@@ -61,8 +61,12 @@ static void node_composit_buts_channel_matte(uiLayout *layout, bContext * /*C*/,
 
   uiItemL(layout, IFACE_("Color Space:"), ICON_NONE);
   row = uiLayoutRow(layout, false);
-  uiItemR(
-      row, ptr, "color_space", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
+  uiItemR(row,
+          ptr,
+          "color_space",
+          UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_EXPAND,
+          std::nullopt,
+          ICON_NONE);
 
   col = uiLayoutColumn(layout, false);
   uiItemL(col, IFACE_("Key Channel:"), ICON_NONE);
@@ -71,12 +75,12 @@ static void node_composit_buts_channel_matte(uiLayout *layout, bContext * /*C*/,
           ptr,
           "matte_channel",
           UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_EXPAND,
-          nullptr,
+          std::nullopt,
           ICON_NONE);
 
   col = uiLayoutColumn(layout, false);
 
-  uiItemR(col, ptr, "limit_method", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "limit_method", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   if (RNA_enum_get(ptr, "limit_method") == 0) {
     uiItemL(col, IFACE_("Limiting Channel:"), ICON_NONE);
     row = uiLayoutRow(col, false);
@@ -84,14 +88,22 @@ static void node_composit_buts_channel_matte(uiLayout *layout, bContext * /*C*/,
             ptr,
             "limit_channel",
             UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_EXPAND,
-            nullptr,
+            std::nullopt,
             ICON_NONE);
   }
 
-  uiItemR(
-      col, ptr, "limit_max", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
-  uiItemR(
-      col, ptr, "limit_min", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
+  uiItemR(col,
+          ptr,
+          "limit_max",
+          UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER,
+          std::nullopt,
+          ICON_NONE);
+  uiItemR(col,
+          ptr,
+          "limit_min",
+          UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER,
+          std::nullopt,
+          ICON_NONE);
 }
 
 using namespace blender::realtime_compositor;

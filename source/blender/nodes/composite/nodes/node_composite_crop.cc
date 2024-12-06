@@ -52,8 +52,8 @@ static void node_composit_buts_crop(uiLayout *layout, bContext * /*C*/, PointerR
 {
   uiLayout *col;
 
-  uiItemR(layout, ptr, "use_crop_size", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "relative", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "use_crop_size", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  uiItemR(layout, ptr, "relative", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 
   col = uiLayoutColumn(layout, true);
   if (RNA_boolean_get(ptr, "relative")) {

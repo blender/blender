@@ -209,9 +209,9 @@ static void draw_simulation_state(const bContext *C,
           NodeSimulationItem &active_item = storage.items[storage.active_index];
           uiLayoutSetPropSep(panel, true);
           uiLayoutSetPropDecorate(panel, false);
-          uiItemR(panel, item_ptr, "socket_type", UI_ITEM_NONE, nullptr, ICON_NONE);
+          uiItemR(panel, item_ptr, "socket_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
           if (socket_type_supports_fields(eNodeSocketDatatype(active_item.socket_type))) {
-            uiItemR(panel, item_ptr, "attribute_domain", UI_ITEM_NONE, nullptr, ICON_NONE);
+            uiItemR(panel, item_ptr, "attribute_domain", UI_ITEM_NONE, std::nullopt, ICON_NONE);
           }
         });
   }
@@ -253,7 +253,7 @@ static void node_layout_ex(uiLayout *layout, bContext *C, PointerRNA *current_no
     draw_bake_button_row(ctx, col, true);
     if (const std::optional<std::string> bake_state_str = get_bake_state_string(ctx)) {
       uiLayout *row = uiLayoutRow(col, true);
-      uiItemL(row, bake_state_str->c_str(), ICON_NONE);
+      uiItemL(row, *bake_state_str, ICON_NONE);
     }
   }
   draw_common_bake_settings(C, ctx, layout);

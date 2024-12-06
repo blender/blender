@@ -984,7 +984,7 @@ static void ui_node_draw_input(uiLayout &layout,
   }
 
   if (add_dummy_decorator && split_wrapper.decorate_column) {
-    uiItemDecoratorR(split_wrapper.decorate_column, nullptr, nullptr, 0);
+    uiItemDecoratorR(split_wrapper.decorate_column, nullptr, std::nullopt, 0);
   }
 
   node_socket_add_tooltip(ntree, input, *row);

@@ -300,12 +300,20 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   uiLayoutSetPropSep(layout, true);
 
   row = uiLayoutRowWithHeading(layout, true, IFACE_("Motion"));
-  uiItemR(
-      row, ptr, "use_x", UI_ITEM_R_TOGGLE | UI_ITEM_R_FORCE_BLANK_DECORATE, nullptr, ICON_NONE);
-  uiItemR(
-      row, ptr, "use_y", UI_ITEM_R_TOGGLE | UI_ITEM_R_FORCE_BLANK_DECORATE, nullptr, ICON_NONE);
+  uiItemR(row,
+          ptr,
+          "use_x",
+          UI_ITEM_R_TOGGLE | UI_ITEM_R_FORCE_BLANK_DECORATE,
+          std::nullopt,
+          ICON_NONE);
+  uiItemR(row,
+          ptr,
+          "use_y",
+          UI_ITEM_R_TOGGLE | UI_ITEM_R_FORCE_BLANK_DECORATE,
+          std::nullopt,
+          ICON_NONE);
 
-  uiItemR(layout, ptr, "use_cyclic", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "use_cyclic", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   row = uiLayoutRowWithHeading(layout, true, IFACE_("Along Normals"));
   uiItemR(row, ptr, "use_normal", UI_ITEM_NONE, "", ICON_NONE);
@@ -317,9 +325,9 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   col = uiLayoutColumn(layout, false);
   uiItemR(col, ptr, "falloff_radius", UI_ITEM_NONE, IFACE_("Falloff"), ICON_NONE);
-  uiItemR(col, ptr, "height", UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "width", UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "narrowness", UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "height", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
+  uiItemR(col, ptr, "width", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
+  uiItemR(col, ptr, "narrowness", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
 
   modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", nullptr);
 
@@ -355,7 +363,7 @@ static void time_panel_draw(const bContext * /*C*/, Panel *panel)
   uiItemR(col, ptr, "time_offset", UI_ITEM_NONE, IFACE_("Offset"), ICON_NONE);
   uiItemR(col, ptr, "lifetime", UI_ITEM_NONE, IFACE_("Life"), ICON_NONE);
   uiItemR(col, ptr, "damping_time", UI_ITEM_NONE, IFACE_("Damping"), ICON_NONE);
-  uiItemR(col, ptr, "speed", UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "speed", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
 }
 
 static void texture_panel_draw(const bContext *C, Panel *panel)
@@ -392,7 +400,7 @@ static void texture_panel_draw(const bContext *C, Panel *panel)
   }
   else if (texture_coords == MOD_DISP_MAP_UV && RNA_enum_get(&ob_ptr, "type") == OB_MESH) {
     PointerRNA obj_data_ptr = RNA_pointer_get(&ob_ptr, "data");
-    uiItemPointerR(col, ptr, "uv_layer", &obj_data_ptr, "uv_layers", nullptr, ICON_GROUP_UVS);
+    uiItemPointerR(col, ptr, "uv_layer", &obj_data_ptr, "uv_layers", std::nullopt, ICON_GROUP_UVS);
   }
 }
 

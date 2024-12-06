@@ -57,16 +57,24 @@ static void node_composit_buts_color_matte(uiLayout *layout, bContext * /*C*/, P
   uiLayout *col;
 
   col = uiLayoutColumn(layout, true);
-  uiItemR(
-      col, ptr, "color_hue", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
+  uiItemR(col,
+          ptr,
+          "color_hue",
+          UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER,
+          std::nullopt,
+          ICON_NONE);
   uiItemR(col,
           ptr,
           "color_saturation",
           UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER,
-          nullptr,
+          std::nullopt,
           ICON_NONE);
-  uiItemR(
-      col, ptr, "color_value", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
+  uiItemR(col,
+          ptr,
+          "color_value",
+          UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER,
+          std::nullopt,
+          ICON_NONE);
 }
 
 using namespace blender::realtime_compositor;

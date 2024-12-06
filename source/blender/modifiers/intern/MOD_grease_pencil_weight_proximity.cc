@@ -252,21 +252,22 @@ static void panel_draw(const bContext *C, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
   row = uiLayoutRow(layout, true);
-  uiItemPointerR(row, ptr, "target_vertex_group", &ob_ptr, "vertex_groups", nullptr, ICON_NONE);
+  uiItemPointerR(
+      row, ptr, "target_vertex_group", &ob_ptr, "vertex_groups", std::nullopt, ICON_NONE);
   sub = uiLayoutRow(row, true);
   bool has_output = RNA_string_length(ptr, "target_vertex_group") != 0;
   uiLayoutSetPropDecorate(sub, false);
   uiLayoutSetActive(sub, has_output);
   uiItemR(sub, ptr, "use_invert_output", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
 
-  uiItemR(layout, ptr, "object", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "object", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   sub = uiLayoutColumn(layout, true);
-  uiItemR(sub, ptr, "distance_start", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(sub, ptr, "distance_end", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(sub, ptr, "distance_start", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  uiItemR(sub, ptr, "distance_end", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  uiItemR(layout, ptr, "minimum_weight", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "use_multiply", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "minimum_weight", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  uiItemR(layout, ptr, "use_multiply", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   if (uiLayout *influence_panel = uiLayoutPanelProp(
           C, layout, ptr, "open_influence_panel", IFACE_("Influence")))

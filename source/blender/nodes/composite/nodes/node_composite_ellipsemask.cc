@@ -58,16 +58,24 @@ static void node_composit_buts_ellipsemask(uiLayout *layout, bContext * /*C*/, P
 {
   uiLayout *row;
   row = uiLayoutRow(layout, true);
-  uiItemR(row, ptr, "x", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
-  uiItemR(row, ptr, "y", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  uiItemR(row, ptr, "x", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  uiItemR(row, ptr, "y", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   row = uiLayoutRow(layout, true);
-  uiItemR(
-      row, ptr, "mask_width", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
-  uiItemR(
-      row, ptr, "mask_height", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
+  uiItemR(row,
+          ptr,
+          "mask_width",
+          UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER,
+          std::nullopt,
+          ICON_NONE);
+  uiItemR(row,
+          ptr,
+          "mask_height",
+          UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER,
+          std::nullopt,
+          ICON_NONE);
 
-  uiItemR(layout, ptr, "rotation", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "mask_type", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "rotation", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  uiItemR(layout, ptr, "mask_type", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 }
 
 using namespace blender::realtime_compositor;

@@ -34,37 +34,37 @@ static void node_shader_buts_tex_sky(uiLayout *layout, bContext *C, PointerRNA *
 
   if (RNA_enum_get(ptr, "sky_type") == SHD_SKY_PREETHAM) {
     uiItemR(layout, ptr, "sun_direction", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
-    uiItemR(layout, ptr, "turbidity", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+    uiItemR(layout, ptr, "turbidity", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   }
   if (RNA_enum_get(ptr, "sky_type") == SHD_SKY_HOSEK) {
     uiItemR(layout, ptr, "sun_direction", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
-    uiItemR(layout, ptr, "turbidity", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
-    uiItemR(layout, ptr, "ground_albedo", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+    uiItemR(layout, ptr, "turbidity", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+    uiItemR(layout, ptr, "ground_albedo", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   }
   if (RNA_enum_get(ptr, "sky_type") == SHD_SKY_NISHITA) {
     Scene *scene = CTX_data_scene(C);
     if (BKE_scene_uses_blender_eevee(scene)) {
       uiItemL(layout, RPT_("Sun disc not available in EEVEE"), ICON_ERROR);
     }
-    uiItemR(layout, ptr, "sun_disc", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+    uiItemR(layout, ptr, "sun_disc", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 
     uiLayout *col;
     if (RNA_boolean_get(ptr, "sun_disc")) {
       col = uiLayoutColumn(layout, true);
-      uiItemR(col, ptr, "sun_size", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
-      uiItemR(col, ptr, "sun_intensity", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+      uiItemR(col, ptr, "sun_size", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+      uiItemR(col, ptr, "sun_intensity", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
     }
 
     col = uiLayoutColumn(layout, true);
-    uiItemR(col, ptr, "sun_elevation", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
-    uiItemR(col, ptr, "sun_rotation", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "sun_elevation", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+    uiItemR(col, ptr, "sun_rotation", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 
-    uiItemR(layout, ptr, "altitude", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+    uiItemR(layout, ptr, "altitude", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 
     col = uiLayoutColumn(layout, true);
-    uiItemR(col, ptr, "air_density", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
-    uiItemR(col, ptr, "dust_density", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
-    uiItemR(col, ptr, "ozone_density", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "air_density", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+    uiItemR(col, ptr, "dust_density", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+    uiItemR(col, ptr, "ozone_density", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   }
 }
 

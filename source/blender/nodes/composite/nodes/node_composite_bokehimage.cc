@@ -43,17 +43,26 @@ static void node_composit_init_bokehimage(bNodeTree * /*ntree*/, bNode *node)
 
 static void node_composit_buts_bokehimage(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiItemR(layout, ptr, "flaps", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "angle", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
-  uiItemR(
-      layout, ptr, "rounding", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "flaps", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  uiItemR(layout, ptr, "angle", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  uiItemR(layout,
+          ptr,
+          "rounding",
+          UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER,
+          std::nullopt,
+          ICON_NONE);
   uiItemR(layout,
           ptr,
           "catadioptric",
           UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER,
-          nullptr,
+          std::nullopt,
           ICON_NONE);
-  uiItemR(layout, ptr, "shift", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
+  uiItemR(layout,
+          ptr,
+          "shift",
+          UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER,
+          std::nullopt,
+          ICON_NONE);
 }
 
 using namespace blender::realtime_compositor;

@@ -283,7 +283,7 @@ static void panel_draw(const bContext *C, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "count", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "count", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   uiItemR(layout, ptr, "replace_material", UI_ITEM_NONE, IFACE_("Material Override"), ICON_NONE);
 
   if (uiLayout *sub = uiLayoutPanelProp(
@@ -326,8 +326,8 @@ static void panel_draw(const bContext *C, Panel *panel)
     uiItemR(sub, ptr, "random_offset", UI_ITEM_NONE, IFACE_("Offset"), ICON_NONE);
     uiItemR(sub, ptr, "random_rotation", UI_ITEM_NONE, IFACE_("Rotation"), ICON_NONE);
     uiItemR(sub, ptr, "random_scale", UI_ITEM_NONE, IFACE_("Scale"), ICON_NONE);
-    uiItemR(sub, ptr, "use_uniform_random_scale", UI_ITEM_NONE, nullptr, ICON_NONE);
-    uiItemR(sub, ptr, "seed", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(sub, ptr, "use_uniform_random_scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    uiItemR(sub, ptr, "seed", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
   if (uiLayout *influence_panel = uiLayoutPanelProp(

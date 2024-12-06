@@ -373,9 +373,9 @@ static void uilist_free_dyn_data(uiList *ui_list)
 static bool ui_template_list_data_retrieve(const char *listtype_name,
                                            const char *list_id,
                                            PointerRNA *dataptr,
-                                           const char *propname,
+                                           const StringRefNull propname,
                                            PointerRNA *active_dataptr,
-                                           const char *active_propname,
+                                           const StringRefNull active_propname,
                                            const char *item_dyntip_propname,
                                            TemplateListInputData *r_input_data,
                                            uiListType **r_list_type)
@@ -396,18 +396,20 @@ static bool ui_template_list_data_retrieve(const char *listtype_name,
 
   r_input_data->dataptr = *dataptr;
   if (dataptr->data) {
-    r_input_data->prop = RNA_struct_find_property(dataptr, propname);
+    r_input_data->prop = RNA_struct_find_property(dataptr, propname.c_str());
     if (!r_input_data->prop) {
-      RNA_warning("Property not found: %s.%s", RNA_struct_identifier(dataptr->type), propname);
+      RNA_warning(
+          "Property not found: %s.%s", RNA_struct_identifier(dataptr->type), propname.c_str());
       return false;
     }
   }
 
   r_input_data->active_dataptr = *active_dataptr;
-  r_input_data->activeprop = RNA_struct_find_property(active_dataptr, active_propname);
+  r_input_data->activeprop = RNA_struct_find_property(active_dataptr, active_propname.c_str());
   if (!r_input_data->activeprop) {
-    RNA_warning(
-        "Property not found: %s.%s", RNA_struct_identifier(active_dataptr->type), active_propname);
+    RNA_warning("Property not found: %s.%s",
+                RNA_struct_identifier(active_dataptr->type),
+                active_propname.c_str());
     return false;
   }
 
@@ -1206,9 +1208,9 @@ uiList *uiTemplateList_ex(uiLayout *layout,
                           const char *listtype_name,
                           const char *list_id,
                           PointerRNA *dataptr,
-                          const char *propname,
+                          const StringRefNull propname,
                           PointerRNA *active_dataptr,
-                          const char *active_propname,
+                          const StringRefNull active_propname,
                           const char *item_dyntip_propname,
                           int rows,
                           int maxrows,
@@ -1276,7 +1278,7 @@ void uiTemplateList(uiLayout *layout,
                     const char *listtype_name,
                     const char *list_id,
                     PointerRNA *dataptr,
-                    const char *propname,
+                    blender::StringRefNull propname,
                     PointerRNA *active_dataptr,
                     const char *active_propname,
                     const char *item_dyntip_propname,
@@ -1304,38 +1306,40 @@ void uiTemplateList(uiLayout *layout,
 }
 
 PointerRNA *UI_list_custom_activate_operator_set(uiList *ui_list,
-                                                 const char *opname,
+                                                 const StringRefNull opname,
                                                  bool create_properties)
 {
   uiListDyn *dyn_data = ui_list->dyn_data;
-  dyn_data->custom_activate_optype = WM_operatortype_find(opname, false);
+  dyn_data->custom_activate_optype = WM_operatortype_find(opname.c_str(), false);
   if (!dyn_data->custom_activate_optype) {
     return nullptr;
   }
 
   if (create_properties) {
     PointerRNA *opptr = dyn_data->custom_activate_opptr;
-    WM_operator_properties_alloc(
-        &dyn_data->custom_activate_opptr, opptr ? (IDProperty **)&opptr->data : nullptr, opname);
+    WM_operator_properties_alloc(&dyn_data->custom_activate_opptr,
+                                 opptr ? (IDProperty **)&opptr->data : nullptr,
+                                 opname.c_str());
   }
 
   return dyn_data->custom_activate_opptr;
 }
 
 PointerRNA *UI_list_custom_drag_operator_set(uiList *ui_list,
-                                             const char *opname,
+                                             const StringRefNull opname,
                                              bool create_properties)
 {
   uiListDyn *dyn_data = ui_list->dyn_data;
-  dyn_data->custom_drag_optype = WM_operatortype_find(opname, false);
+  dyn_data->custom_drag_optype = WM_operatortype_find(opname.c_str(), false);
   if (!dyn_data->custom_drag_optype) {
     return nullptr;
   }
 
   if (create_properties) {
     PointerRNA *opptr = dyn_data->custom_drag_opptr;
-    WM_operator_properties_alloc(
-        &dyn_data->custom_drag_opptr, opptr ? (IDProperty **)&opptr->data : nullptr, opname);
+    WM_operator_properties_alloc(&dyn_data->custom_drag_opptr,
+                                 opptr ? (IDProperty **)&opptr->data : nullptr,
+                                 opname.c_str());
   }
 
   return dyn_data->custom_drag_opptr;

@@ -177,7 +177,7 @@ static void panel_draw(const bContext *C, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "object", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "object", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   modifier::greasepencil::draw_vertex_group_settings(C, layout, ptr);
 
   uiLayout *col = uiLayoutColumnWithHeading(layout, true, IFACE_("Bind To"));

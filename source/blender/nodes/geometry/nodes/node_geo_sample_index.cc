@@ -47,7 +47,7 @@ static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "data_type", UI_ITEM_NONE, "", ICON_NONE);
   uiItemR(layout, ptr, "domain", UI_ITEM_NONE, "", ICON_NONE);
-  uiItemR(layout, ptr, "clamp", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "clamp", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)

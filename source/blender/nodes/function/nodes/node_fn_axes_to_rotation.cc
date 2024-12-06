@@ -31,8 +31,8 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiItemR(layout, ptr, "primary_axis", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "secondary_axis", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "primary_axis", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  uiItemR(layout, ptr, "secondary_axis", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 }
 
 static float3 get_orthogonal_of_non_zero_vector(const float3 &v)

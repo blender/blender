@@ -344,7 +344,7 @@ static void node_composit_buts_file_output_ex(uiLayout *layout, bContext *C, Poi
     uiLayout *column = uiLayoutColumn(layout, true);
     uiLayoutSetPropSep(column, true);
     uiLayoutSetPropDecorate(column, false);
-    uiItemR(column, ptr, "save_as_render", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+    uiItemR(column, ptr, "save_as_render", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   }
   const bool save_as_render = RNA_boolean_get(ptr, "save_as_render");
   uiTemplateImageSettings(layout, &imfptr, save_as_render);
@@ -461,7 +461,7 @@ static void node_composit_buts_file_output_ex(uiLayout *layout, bContext *C, Poi
               &active_input_ptr,
               "use_node_format",
               UI_ITEM_R_SPLIT_EMPTY_NAME,
-              nullptr,
+              std::nullopt,
               ICON_NONE);
 
       const bool use_node_format = RNA_boolean_get(&active_input_ptr, "use_node_format");
@@ -475,7 +475,7 @@ static void node_composit_buts_file_output_ex(uiLayout *layout, bContext *C, Poi
                   &active_input_ptr,
                   "save_as_render",
                   UI_ITEM_R_SPLIT_EMPTY_NAME,
-                  nullptr,
+                  std::nullopt,
                   ICON_NONE);
         }
 

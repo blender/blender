@@ -48,7 +48,7 @@ static void node_composit_buts_sunbeams(uiLayout *layout, bContext * /*C*/, Poin
           ptr,
           "ray_length",
           UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER,
-          nullptr,
+          std::nullopt,
           ICON_NONE);
 }
 

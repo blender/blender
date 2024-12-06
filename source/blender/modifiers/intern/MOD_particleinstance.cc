@@ -531,7 +531,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "object", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "object", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   if (!RNA_pointer_is_null(&particle_obj_ptr)) {
     uiItemPointerR(layout,
                    ptr,
@@ -549,14 +549,14 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   uiItemS(layout);
 
   row = uiLayoutRowWithHeading(layout, true, IFACE_("Create Instances"));
-  uiItemR(row, ptr, "use_normal", toggles_flag, nullptr, ICON_NONE);
-  uiItemR(row, ptr, "use_children", toggles_flag, nullptr, ICON_NONE);
-  uiItemR(row, ptr, "use_size", toggles_flag, nullptr, ICON_NONE);
+  uiItemR(row, ptr, "use_normal", toggles_flag, std::nullopt, ICON_NONE);
+  uiItemR(row, ptr, "use_children", toggles_flag, std::nullopt, ICON_NONE);
+  uiItemR(row, ptr, "use_size", toggles_flag, std::nullopt, ICON_NONE);
 
   row = uiLayoutRowWithHeading(layout, true, IFACE_("Show"));
-  uiItemR(row, ptr, "show_alive", toggles_flag, nullptr, ICON_NONE);
-  uiItemR(row, ptr, "show_dead", toggles_flag, nullptr, ICON_NONE);
-  uiItemR(row, ptr, "show_unborn", toggles_flag, nullptr, ICON_NONE);
+  uiItemR(row, ptr, "show_alive", toggles_flag, std::nullopt, ICON_NONE);
+  uiItemR(row, ptr, "show_dead", toggles_flag, std::nullopt, ICON_NONE);
+  uiItemR(row, ptr, "show_unborn", toggles_flag, std::nullopt, ICON_NONE);
 
   uiItemR(layout, ptr, "particle_amount", UI_ITEM_NONE, IFACE_("Amount"), ICON_NONE);
   uiItemR(layout, ptr, "particle_offset", UI_ITEM_NONE, IFACE_("Offset"), ICON_NONE);
@@ -565,7 +565,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiItemR(layout, ptr, "space", UI_ITEM_NONE, IFACE_("Coordinate Space"), ICON_NONE);
   row = uiLayoutRow(layout, true);
-  uiItemR(row, ptr, "axis", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
+  uiItemR(row, ptr, "axis", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
   modifier_panel_end(layout, ptr);
 }
@@ -592,13 +592,13 @@ static void path_panel_draw(const bContext * /*C*/, Panel *panel)
   uiLayoutSetActive(layout, RNA_boolean_get(ptr, "use_path"));
 
   col = uiLayoutColumn(layout, true);
-  uiItemR(col, ptr, "position", UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "position", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
   uiItemR(col, ptr, "random_position", UI_ITEM_R_SLIDER, IFACE_("Random"), ICON_NONE);
   col = uiLayoutColumn(layout, true);
-  uiItemR(col, ptr, "rotation", UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "rotation", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
   uiItemR(col, ptr, "random_rotation", UI_ITEM_R_SLIDER, IFACE_("Random"), ICON_NONE);
 
-  uiItemR(layout, ptr, "use_preserve_shape", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "use_preserve_shape", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 static void layers_panel_draw(const bContext * /*C*/, Panel *panel)

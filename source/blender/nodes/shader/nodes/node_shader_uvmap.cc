@@ -25,7 +25,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_shader_buts_uvmap(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
-  uiItemR(layout, ptr, "from_instancer", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "from_instancer", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 
   if (!RNA_boolean_get(ptr, "from_instancer")) {
     PointerRNA obptr = CTX_data_pointer_get(C, "active_object");
@@ -43,7 +43,7 @@ static void node_shader_buts_uvmap(uiLayout *layout, bContext *C, PointerRNA *pt
       }
     }
 
-    uiItemR(layout, ptr, "uv_map", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_GROUP_UVS);
+    uiItemR(layout, ptr, "uv_map", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_GROUP_UVS);
   }
 }
 

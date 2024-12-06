@@ -61,18 +61,31 @@ static void node_composit_buts_tonemap(uiLayout *layout, bContext * /*C*/, Point
   col = uiLayoutColumn(layout, false);
   uiItemR(col, ptr, "tonemap_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
   if (RNA_enum_get(ptr, "tonemap_type") == 0) {
-    uiItemR(col, ptr, "key", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
-    uiItemR(col, ptr, "offset", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
-    uiItemR(col, ptr, "gamma", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+    uiItemR(
+        col, ptr, "key", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
+    uiItemR(col, ptr, "offset", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+    uiItemR(col, ptr, "gamma", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   }
   else {
-    uiItemR(col, ptr, "intensity", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
-    uiItemR(
-        col, ptr, "contrast", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
-    uiItemR(
-        col, ptr, "adaptation", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
-    uiItemR(
-        col, ptr, "correction", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "intensity", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+    uiItemR(col,
+            ptr,
+            "contrast",
+            UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER,
+            std::nullopt,
+            ICON_NONE);
+    uiItemR(col,
+            ptr,
+            "adaptation",
+            UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER,
+            std::nullopt,
+            ICON_NONE);
+    uiItemR(col,
+            ptr,
+            "correction",
+            UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER,
+            std::nullopt,
+            ICON_NONE);
   }
 }
 

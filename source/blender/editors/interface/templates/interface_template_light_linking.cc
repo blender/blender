@@ -32,6 +32,8 @@
 
 #include "ED_undo.hh"
 
+using blender::StringRefNull;
+
 namespace blender::ui::light_linking {
 
 namespace {
@@ -355,17 +357,22 @@ class CollectionView : public AbstractTreeView {
 
 }  // namespace blender::ui::light_linking
 
-void uiTemplateLightLinkingCollection(
-    uiLayout *layout, bContext *C, uiLayout *context_layout, PointerRNA *ptr, const char *propname)
+void uiTemplateLightLinkingCollection(uiLayout *layout,
+                                      bContext *C,
+                                      uiLayout *context_layout,
+                                      PointerRNA *ptr,
+                                      const StringRefNull propname)
 {
   if (!ptr->data) {
     return;
   }
 
-  PropertyRNA *prop = RNA_struct_find_property(ptr, propname);
+  PropertyRNA *prop = RNA_struct_find_property(ptr, propname.c_str());
   if (!prop) {
-    printf(
-        "%s: property not found: %s.%s\n", __func__, RNA_struct_identifier(ptr->type), propname);
+    printf("%s: property not found: %s.%s\n",
+           __func__,
+           RNA_struct_identifier(ptr->type),
+           propname.c_str());
     return;
   }
 
@@ -373,7 +380,7 @@ void uiTemplateLightLinkingCollection(
     printf("%s: expected pointer property for %s.%s\n",
            __func__,
            RNA_struct_identifier(ptr->type),
-           propname);
+           propname.c_str());
     return;
   }
 
@@ -385,7 +392,7 @@ void uiTemplateLightLinkingCollection(
     printf("%s: expected collection pointer property for %s.%s\n",
            __func__,
            RNA_struct_identifier(ptr->type),
-           propname);
+           propname.c_str());
     return;
   }
 

@@ -59,11 +59,17 @@ static void node_composit_buts_distance_matte(uiLayout *layout, bContext * /*C*/
 
   uiItemL(layout, IFACE_("Color Space:"), ICON_NONE);
   row = uiLayoutRow(layout, false);
-  uiItemR(row, ptr, "channel", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
-
   uiItemR(
-      col, ptr, "tolerance", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "falloff", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
+      row, ptr, "channel", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+
+  uiItemR(col,
+          ptr,
+          "tolerance",
+          UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER,
+          std::nullopt,
+          ICON_NONE);
+  uiItemR(
+      col, ptr, "falloff", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
 }
 
 using namespace blender::realtime_compositor;

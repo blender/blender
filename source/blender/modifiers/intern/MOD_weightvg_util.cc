@@ -339,7 +339,7 @@ void weightvg_ui_common(const bContext *C, PointerRNA *ob_ptr, PointerRNA *ptr, 
 
     if (has_mask_texture) {
       uiItemR(layout, ptr, "mask_tex_use_channel", UI_ITEM_NONE, IFACE_("Channel"), ICON_NONE);
-      uiItemR(layout, ptr, "mask_tex_mapping", UI_ITEM_NONE, nullptr, ICON_NONE);
+      uiItemR(layout, ptr, "mask_tex_mapping", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
       if (mask_tex_mapping == MOD_DISP_MAP_OBJECT) {
         uiItemR(layout, ptr, "mask_tex_map_object", UI_ITEM_NONE, IFACE_("Object"), ICON_NONE);
@@ -347,7 +347,7 @@ void weightvg_ui_common(const bContext *C, PointerRNA *ob_ptr, PointerRNA *ptr, 
       else if (mask_tex_mapping == MOD_DISP_MAP_UV && RNA_enum_get(ob_ptr, "type") == OB_MESH) {
         PointerRNA obj_data_ptr = RNA_pointer_get(ob_ptr, "data");
         uiItemPointerR(
-            layout, ptr, "mask_tex_uv_layer", &obj_data_ptr, "uv_layers", nullptr, ICON_NONE);
+            layout, ptr, "mask_tex_uv_layer", &obj_data_ptr, "uv_layers", std::nullopt, ICON_NONE);
       }
     }
   }

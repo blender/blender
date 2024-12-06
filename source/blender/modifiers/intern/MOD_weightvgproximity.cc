@@ -639,22 +639,22 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   uiLayoutSetPropSep(layout, true);
 
   uiItemPointerR(
-      layout, ptr, "vertex_group", &ob_ptr, "vertex_groups", nullptr, ICON_GROUP_VERTEX);
+      layout, ptr, "vertex_group", &ob_ptr, "vertex_groups", std::nullopt, ICON_GROUP_VERTEX);
 
-  uiItemR(layout, ptr, "target", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "target", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   uiItemS(layout);
 
-  uiItemR(layout, ptr, "proximity_mode", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "proximity_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   if (RNA_enum_get(ptr, "proximity_mode") == MOD_WVG_PROXIMITY_GEOMETRY) {
     uiItemR(layout, ptr, "proximity_geometry", UI_ITEM_R_EXPAND, IFACE_("Geometry"), ICON_NONE);
   }
 
   col = uiLayoutColumn(layout, true);
-  uiItemR(col, ptr, "min_dist", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "max_dist", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "min_dist", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  uiItemR(col, ptr, "max_dist", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  uiItemR(layout, ptr, "normalize", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "normalize", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 static void falloff_panel_draw(const bContext * /*C*/, Panel *panel)

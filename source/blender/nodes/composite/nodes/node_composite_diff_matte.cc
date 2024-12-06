@@ -54,9 +54,14 @@ static void node_composit_buts_diff_matte(uiLayout *layout, bContext * /*C*/, Po
   uiLayout *col;
 
   col = uiLayoutColumn(layout, true);
+  uiItemR(col,
+          ptr,
+          "tolerance",
+          UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER,
+          std::nullopt,
+          ICON_NONE);
   uiItemR(
-      col, ptr, "tolerance", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "falloff", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
+      col, ptr, "falloff", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
 }
 
 using namespace blender::realtime_compositor;

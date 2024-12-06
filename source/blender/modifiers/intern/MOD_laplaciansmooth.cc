@@ -521,18 +521,18 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "iterations", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "iterations", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   row = uiLayoutRowWithHeading(layout, true, IFACE_("Axis"));
-  uiItemR(row, ptr, "use_x", toggles_flag, nullptr, ICON_NONE);
-  uiItemR(row, ptr, "use_y", toggles_flag, nullptr, ICON_NONE);
-  uiItemR(row, ptr, "use_z", toggles_flag, nullptr, ICON_NONE);
+  uiItemR(row, ptr, "use_x", toggles_flag, std::nullopt, ICON_NONE);
+  uiItemR(row, ptr, "use_y", toggles_flag, std::nullopt, ICON_NONE);
+  uiItemR(row, ptr, "use_z", toggles_flag, std::nullopt, ICON_NONE);
 
-  uiItemR(layout, ptr, "lambda_factor", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "lambda_border", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "lambda_factor", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  uiItemR(layout, ptr, "lambda_border", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  uiItemR(layout, ptr, "use_volume_preserve", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "use_normalized", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "use_volume_preserve", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  uiItemR(layout, ptr, "use_normalized", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", nullptr);
 

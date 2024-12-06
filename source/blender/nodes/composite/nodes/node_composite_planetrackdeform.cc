@@ -104,10 +104,12 @@ static void node_composit_buts_planetrackdeform(uiLayout *layout, bContext *C, P
     }
   }
 
-  uiItemR(layout, ptr, "use_motion_blur", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "use_motion_blur", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   if (data->flag & CMP_NODE_PLANE_TRACK_DEFORM_FLAG_MOTION_BLUR) {
-    uiItemR(layout, ptr, "motion_blur_samples", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
-    uiItemR(layout, ptr, "motion_blur_shutter", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+    uiItemR(
+        layout, ptr, "motion_blur_samples", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+    uiItemR(
+        layout, ptr, "motion_blur_shutter", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   }
 }
 

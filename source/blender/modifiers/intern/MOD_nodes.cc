@@ -2009,7 +2009,7 @@ static void add_attribute_search_button(const bContext &C,
                                         const bool is_output)
 {
   if (!nmd.runtime->eval_log) {
-    uiItemR(layout, md_ptr, rna_path_attribute_name.c_str(), UI_ITEM_NONE, "", ICON_NONE);
+    uiItemR(layout, md_ptr, rna_path_attribute_name, UI_ITEM_NONE, "", ICON_NONE);
     return;
   }
 
@@ -2024,7 +2024,7 @@ static void add_attribute_search_button(const bContext &C,
                                  10 * UI_UNIT_X, /* Dummy value, replaced by layout system. */
                                  UI_UNIT_Y,
                                  md_ptr,
-                                 rna_path_attribute_name.c_str(),
+                                 rna_path_attribute_name,
                                  0,
                                  0.0f,
                                  0.0f,
@@ -2103,7 +2103,7 @@ static void add_attribute_search_or_value_buttons(const bContext &C,
   }
   else {
     const char *name = type == SOCK_BOOLEAN ? (socket.name ? IFACE_(socket.name) : "") : "";
-    uiItemR(prop_row, md_ptr, rna_path.c_str(), UI_ITEM_NONE, name, ICON_NONE);
+    uiItemR(prop_row, md_ptr, rna_path, UI_ITEM_NONE, name, ICON_NONE);
     uiItemDecoratorR(layout, md_ptr, rna_path.c_str(), -1);
   }
 
@@ -2335,7 +2335,7 @@ static void draw_bake_panel(uiLayout *layout, PointerRNA *modifier_ptr)
   uiLayout *col = uiLayoutColumn(layout, false);
   uiLayoutSetPropSep(col, true);
   uiLayoutSetPropDecorate(col, false);
-  uiItemR(col, modifier_ptr, "bake_target", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, modifier_ptr, "bake_target", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   uiItemR(col, modifier_ptr, "bake_directory", UI_ITEM_NONE, IFACE_("Bake Path"), ICON_NONE);
 }
 
@@ -2375,7 +2375,7 @@ static void draw_named_attributes_panel(uiLayout *layout, NodesModifierData &nmd
             });
 
   for (const NameWithUsage &attribute : sorted_used_attribute) {
-    const StringRefNull attribute_name = attribute.name;
+    const StringRef attribute_name = attribute.name;
     const geo_log::NamedAttributeUsage usage = attribute.usage;
 
     /* #uiLayoutRowWithHeading doesn't seem to work in this case. */
@@ -2402,10 +2402,10 @@ static void draw_named_attributes_panel(uiLayout *layout, NodesModifierData &nmd
     uiLayout *row = uiLayoutRow(split, false);
     uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_RIGHT);
     uiLayoutSetActive(row, false);
-    uiItemL(row, ss.str().c_str(), ICON_NONE);
+    uiItemL(row, ss.str(), ICON_NONE);
 
     row = uiLayoutRow(split, false);
-    uiItemL(row, attribute_name.c_str(), ICON_NONE);
+    uiItemL(row, attribute_name, ICON_NONE);
   }
 }
 
@@ -2471,7 +2471,7 @@ static void draw_warnings(const bContext *C,
   uiLayout *col = uiLayoutColumn(panel.body, false);
   for (const NodeWarning *warning : warnings) {
     const int icon = node_warning_type_icon(warning->type);
-    uiItemL(col, warning->message.c_str(), icon);
+    uiItemL(col, warning->message, icon);
   }
 }
 

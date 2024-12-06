@@ -380,12 +380,12 @@ static void panel_draw(const bContext *C, Panel *panel)
 
   if (has_cache_file) {
     uiItemPointerR(
-        layout, ptr, "object_path", &cache_file_ptr, "object_paths", nullptr, ICON_NONE);
+        layout, ptr, "object_path", &cache_file_ptr, "object_paths", std::nullopt, ICON_NONE);
   }
 
   if (RNA_enum_get(&ob_ptr, "type") == OB_MESH) {
-    uiItemR(layout, ptr, "read_data", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
-    uiItemR(layout, ptr, "use_vertex_interpolation", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(layout, ptr, "read_data", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+    uiItemR(layout, ptr, "use_vertex_interpolation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
   modifier_panel_end(layout, ptr);
@@ -405,7 +405,7 @@ static void velocity_panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
   uiTemplateCacheFileVelocity(layout, &fileptr);
-  uiItemR(layout, ptr, "velocity_scale", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "velocity_scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 static void time_panel_draw(const bContext * /*C*/, Panel *panel)

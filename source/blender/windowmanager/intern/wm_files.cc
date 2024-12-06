@@ -3292,7 +3292,7 @@ static void wm_open_mainfile_ui(bContext * /*C*/, wmOperator *op)
   uiLayout *layout = op->layout;
   const char *autoexec_text;
 
-  uiItemR(layout, op->ptr, "load_ui", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, op->ptr, "load_ui", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   uiLayout *col = uiLayoutColumn(layout, false);
   if (file_info->is_untrusted) {
@@ -3937,7 +3937,7 @@ static void wm_clear_recent_files_ui(bContext * /*C*/, wmOperator *op)
   uiLayoutSetPropDecorate(layout, false);
 
   uiItemS(layout);
-  uiItemR(layout, op->ptr, "remove", UI_ITEM_R_TOGGLE, nullptr, ICON_NONE);
+  uiItemR(layout, op->ptr, "remove", UI_ITEM_R_TOGGLE, std::nullopt, ICON_NONE);
   uiItemS(layout);
 }
 

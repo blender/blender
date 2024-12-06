@@ -358,22 +358,22 @@ static void grease_pencil_simplify_ui(bContext *C, wmOperator *op)
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
 
-  uiItemR(layout, &ptr, "mode", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, &ptr, "mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   const SimplifyMode mode = SimplifyMode(RNA_enum_get(op->ptr, "mode"));
 
   switch (mode) {
     case SimplifyMode::FIXED:
-      uiItemR(layout, &ptr, "steps", UI_ITEM_NONE, nullptr, ICON_NONE);
+      uiItemR(layout, &ptr, "steps", UI_ITEM_NONE, std::nullopt, ICON_NONE);
       break;
     case SimplifyMode::ADAPTIVE:
-      uiItemR(layout, &ptr, "factor", UI_ITEM_NONE, nullptr, ICON_NONE);
+      uiItemR(layout, &ptr, "factor", UI_ITEM_NONE, std::nullopt, ICON_NONE);
       break;
     case SimplifyMode::SAMPLE:
-      uiItemR(layout, &ptr, "length", UI_ITEM_NONE, nullptr, ICON_NONE);
+      uiItemR(layout, &ptr, "length", UI_ITEM_NONE, std::nullopt, ICON_NONE);
       break;
     case SimplifyMode::MERGE:
-      uiItemR(layout, &ptr, "distance", UI_ITEM_NONE, nullptr, ICON_NONE);
+      uiItemR(layout, &ptr, "distance", UI_ITEM_NONE, std::nullopt, ICON_NONE);
       break;
     default:
       break;
@@ -2976,14 +2976,14 @@ static void grease_pencil_reproject_ui(bContext * /*C*/, wmOperator *op)
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
   row = uiLayoutRow(layout, true);
-  uiItemR(row, op->ptr, "type", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(row, op->ptr, "type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   if (type == ReprojectMode::Surface) {
     row = uiLayoutRow(layout, true);
-    uiItemR(row, op->ptr, "offset", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(row, op->ptr, "offset", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
   row = uiLayoutRow(layout, true);
-  uiItemR(row, op->ptr, "keep_original", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(row, op->ptr, "keep_original", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 static void GREASE_PENCIL_OT_reproject(wmOperatorType *ot)

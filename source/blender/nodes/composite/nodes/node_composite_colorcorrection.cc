@@ -78,9 +78,9 @@ static void node_composit_buts_colorcorrection(uiLayout *layout, bContext * /*C*
   uiLayout *row;
 
   row = uiLayoutRow(layout, false);
-  uiItemR(row, ptr, "red", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
-  uiItemR(row, ptr, "green", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
-  uiItemR(row, ptr, "blue", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  uiItemR(row, ptr, "red", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  uiItemR(row, ptr, "green", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  uiItemR(row, ptr, "blue", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 
   row = uiLayoutRow(layout, false);
   uiItemL(row, "", ICON_NONE);
@@ -155,10 +155,14 @@ static void node_composit_buts_colorcorrection(uiLayout *layout, bContext * /*C*
           ptr,
           "midtones_start",
           UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER,
-          nullptr,
+          std::nullopt,
           ICON_NONE);
-  uiItemR(
-      row, ptr, "midtones_end", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
+  uiItemR(row,
+          ptr,
+          "midtones_end",
+          UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER,
+          std::nullopt,
+          ICON_NONE);
 }
 
 static void node_composit_buts_colorcorrection_ex(uiLayout *layout,
@@ -168,34 +172,34 @@ static void node_composit_buts_colorcorrection_ex(uiLayout *layout,
   uiLayout *row;
 
   row = uiLayoutRow(layout, false);
-  uiItemR(row, ptr, "red", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
-  uiItemR(row, ptr, "green", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
-  uiItemR(row, ptr, "blue", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  uiItemR(row, ptr, "red", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  uiItemR(row, ptr, "green", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  uiItemR(row, ptr, "blue", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   row = layout;
   uiItemL(row, IFACE_("Saturation"), ICON_NONE);
   uiItemR(row,
           ptr,
           "master_saturation",
           UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER,
-          nullptr,
+          std::nullopt,
           ICON_NONE);
   uiItemR(row,
           ptr,
           "highlights_saturation",
           UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER,
-          nullptr,
+          std::nullopt,
           ICON_NONE);
   uiItemR(row,
           ptr,
           "midtones_saturation",
           UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER,
-          nullptr,
+          std::nullopt,
           ICON_NONE);
   uiItemR(row,
           ptr,
           "shadows_saturation",
           UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER,
-          nullptr,
+          std::nullopt,
           ICON_NONE);
 
   uiItemL(row, IFACE_("Contrast"), ICON_NONE);
@@ -203,88 +207,108 @@ static void node_composit_buts_colorcorrection_ex(uiLayout *layout,
           ptr,
           "master_contrast",
           UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER,
-          nullptr,
+          std::nullopt,
           ICON_NONE);
   uiItemR(row,
           ptr,
           "highlights_contrast",
           UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER,
-          nullptr,
+          std::nullopt,
           ICON_NONE);
   uiItemR(row,
           ptr,
           "midtones_contrast",
           UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER,
-          nullptr,
+          std::nullopt,
           ICON_NONE);
   uiItemR(row,
           ptr,
           "shadows_contrast",
           UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER,
-          nullptr,
+          std::nullopt,
           ICON_NONE);
 
   uiItemL(row, IFACE_("Gamma"), ICON_NONE);
-  uiItemR(
-      row, ptr, "master_gamma", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
+  uiItemR(row,
+          ptr,
+          "master_gamma",
+          UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER,
+          std::nullopt,
+          ICON_NONE);
   uiItemR(row,
           ptr,
           "highlights_gamma",
           UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER,
-          nullptr,
+          std::nullopt,
           ICON_NONE);
   uiItemR(row,
           ptr,
           "midtones_gamma",
           UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER,
-          nullptr,
+          std::nullopt,
           ICON_NONE);
   uiItemR(row,
           ptr,
           "shadows_gamma",
           UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER,
-          nullptr,
+          std::nullopt,
           ICON_NONE);
 
   uiItemL(row, IFACE_("Gain"), ICON_NONE);
-  uiItemR(
-      row, ptr, "master_gain", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
+  uiItemR(row,
+          ptr,
+          "master_gain",
+          UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER,
+          std::nullopt,
+          ICON_NONE);
   uiItemR(row,
           ptr,
           "highlights_gain",
           UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER,
-          nullptr,
+          std::nullopt,
           ICON_NONE);
   uiItemR(row,
           ptr,
           "midtones_gain",
           UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER,
-          nullptr,
+          std::nullopt,
           ICON_NONE);
-  uiItemR(
-      row, ptr, "shadows_gain", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
+  uiItemR(row,
+          ptr,
+          "shadows_gain",
+          UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER,
+          std::nullopt,
+          ICON_NONE);
 
   uiItemL(row, IFACE_("Lift"), ICON_NONE);
-  uiItemR(
-      row, ptr, "master_lift", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
+  uiItemR(row,
+          ptr,
+          "master_lift",
+          UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER,
+          std::nullopt,
+          ICON_NONE);
   uiItemR(row,
           ptr,
           "highlights_lift",
           UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER,
-          nullptr,
+          std::nullopt,
           ICON_NONE);
   uiItemR(row,
           ptr,
           "midtones_lift",
           UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER,
-          nullptr,
+          std::nullopt,
           ICON_NONE);
-  uiItemR(
-      row, ptr, "shadows_lift", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
+  uiItemR(row,
+          ptr,
+          "shadows_lift",
+          UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER,
+          std::nullopt,
+          ICON_NONE);
 
   row = uiLayoutRow(layout, false);
-  uiItemR(row, ptr, "midtones_start", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
-  uiItemR(row, ptr, "midtones_end", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  uiItemR(row, ptr, "midtones_start", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  uiItemR(row, ptr, "midtones_end", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 }
 
 using namespace blender::realtime_compositor;

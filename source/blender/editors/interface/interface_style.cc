@@ -33,6 +33,8 @@
 #  include "BLI_math_base.h" /* M_PI */
 #endif
 
+using blender::StringRef;
+
 static void fontstyle_set_ex(const uiFontStyle *fs, const float dpi_fac);
 
 /* style + theme + layout-engine = UI */
@@ -348,13 +350,13 @@ int UI_fontstyle_string_width(const uiFontStyle *fs, const char *str)
 }
 
 int UI_fontstyle_string_width_with_block_aspect(const uiFontStyle *fs,
-                                                const char *str,
+                                                const StringRef str,
                                                 const float aspect)
 {
   /* FIXME(@ideasman42): the final scale of the font is rounded which should be accounted for.
    * Failing to do so causes bad alignment when zoomed out very far in the node-editor. */
   fontstyle_set_ex(fs, UI_SCALE_FAC / aspect);
-  return int(BLF_width(fs->uifont_id, str, BLF_DRAW_STR_DUMMY_MAX) * aspect);
+  return int(BLF_width(fs->uifont_id, str.data(), str.size()) * aspect);
 }
 
 int UI_fontstyle_height_max(const uiFontStyle *fs)

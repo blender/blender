@@ -1345,7 +1345,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
   }
 
   if (but->optype && U.flag & USER_DEVELOPER_UI) {
-    uiItemO(layout, nullptr, ICON_NONE, "UI_OT_copy_python_command_button");
+    uiItemO(layout, std::nullopt, ICON_NONE, "UI_OT_copy_python_command_button");
   }
 
   /* perhaps we should move this into (G.debug & G_DEBUG) - campbell */
@@ -1353,7 +1353,7 @@ bool ui_popup_context_menu_for_button(bContext *C, uiBut *but, const wmEvent *ev
     if (ui_block_is_menu(but->block) == false) {
       uiItemFullO(layout,
                   "UI_OT_editsource",
-                  nullptr,
+                  std::nullopt,
                   ICON_NONE,
                   nullptr,
                   WM_OP_INVOKE_DEFAULT,

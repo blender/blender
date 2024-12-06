@@ -86,7 +86,7 @@ static void node_shader_buts_tex_voronoi(uiLayout *layout, bContext * /*C*/, Poi
     uiItemR(layout, ptr, "distance", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
   }
   if (!ELEM(feature, SHD_VORONOI_N_SPHERE_RADIUS)) {
-    uiItemR(layout, ptr, "normalize", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+    uiItemR(layout, ptr, "normalize", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   }
 }
 

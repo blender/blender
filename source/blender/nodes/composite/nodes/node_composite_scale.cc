@@ -73,7 +73,7 @@ static void node_composit_buts_scale(uiLayout *layout, bContext * /*C*/, Pointer
             ptr,
             "frame_method",
             UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_EXPAND,
-            nullptr,
+            std::nullopt,
             ICON_NONE);
     row = uiLayoutRow(layout, true);
     uiItemR(row, ptr, "offset_x", UI_ITEM_R_SPLIT_EMPTY_NAME, "X", ICON_NONE);

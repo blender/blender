@@ -612,7 +612,7 @@ void rna_mtex_texture_slots_clear(ID *self, bContext *C, ReportList *reports, in
 
 bool rna_IDMaterials_assign_int(PointerRNA *ptr, int key, const PointerRNA *assign_ptr);
 
-const char *rna_translate_ui_text(
+std::optional<blender::StringRefNull> rna_translate_ui_text(
     const char *text, const char *text_ctxt, StructRNA *type, PropertyRNA *prop, bool translate);
 
 /* Internal functions that cycles uses so we need to declare (not ideal!). */

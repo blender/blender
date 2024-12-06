@@ -60,10 +60,11 @@ static void node_composit_buts_color_spill(uiLayout *layout, bContext * /*C*/, P
 
   uiItemL(layout, IFACE_("Despill Channel:"), ICON_NONE);
   row = uiLayoutRow(layout, false);
-  uiItemR(row, ptr, "channel", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
+  uiItemR(
+      row, ptr, "channel", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
   col = uiLayoutColumn(layout, false);
-  uiItemR(col, ptr, "limit_method", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "limit_method", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 
   if (RNA_enum_get(ptr, "limit_method") == 0) {
     uiItemL(col, IFACE_("Limiting Channel:"), ICON_NONE);
@@ -72,30 +73,31 @@ static void node_composit_buts_color_spill(uiLayout *layout, bContext * /*C*/, P
             ptr,
             "limit_channel",
             UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_EXPAND,
-            nullptr,
+            std::nullopt,
             ICON_NONE);
   }
 
-  uiItemR(col, ptr, "ratio", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "use_unspill", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  uiItemR(
+      col, ptr, "ratio", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
+  uiItemR(col, ptr, "use_unspill", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   if (RNA_boolean_get(ptr, "use_unspill") == true) {
     uiItemR(col,
             ptr,
             "unspill_red",
             UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER,
-            nullptr,
+            std::nullopt,
             ICON_NONE);
     uiItemR(col,
             ptr,
             "unspill_green",
             UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER,
-            nullptr,
+            std::nullopt,
             ICON_NONE);
     uiItemR(col,
             ptr,
             "unspill_blue",
             UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER,
-            nullptr,
+            std::nullopt,
             ICON_NONE);
   }
 }

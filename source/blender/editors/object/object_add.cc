@@ -3800,19 +3800,19 @@ static void object_convert_ui(bContext * /*C*/, wmOperator *op)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, op->ptr, "target", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(layout, op->ptr, "keep_original", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, op->ptr, "target", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  uiItemR(layout, op->ptr, "keep_original", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   const int target = RNA_enum_get(op->ptr, "target");
   if (target == OB_MESH) {
-    uiItemR(layout, op->ptr, "merge_customdata", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(layout, op->ptr, "merge_customdata", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
   else if (target == OB_GPENCIL_LEGACY) {
-    uiItemR(layout, op->ptr, "thickness", UI_ITEM_NONE, nullptr, ICON_NONE);
-    uiItemR(layout, op->ptr, "angle", UI_ITEM_NONE, nullptr, ICON_NONE);
-    uiItemR(layout, op->ptr, "offset", UI_ITEM_NONE, nullptr, ICON_NONE);
-    uiItemR(layout, op->ptr, "seams", UI_ITEM_NONE, nullptr, ICON_NONE);
-    uiItemR(layout, op->ptr, "faces", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(layout, op->ptr, "thickness", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    uiItemR(layout, op->ptr, "angle", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    uiItemR(layout, op->ptr, "offset", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    uiItemR(layout, op->ptr, "seams", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    uiItemR(layout, op->ptr, "faces", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 }
 

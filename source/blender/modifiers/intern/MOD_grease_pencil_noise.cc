@@ -282,9 +282,9 @@ static void panel_draw(const bContext *C, Panel *panel)
   uiItemR(col, ptr, "factor_strength", UI_ITEM_NONE, IFACE_("Strength"), ICON_NONE);
   uiItemR(col, ptr, "factor_thickness", UI_ITEM_NONE, IFACE_("Thickness"), ICON_NONE);
   uiItemR(col, ptr, "factor_uvs", UI_ITEM_NONE, IFACE_("UV"), ICON_NONE);
-  uiItemR(col, ptr, "noise_scale", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "noise_offset", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "seed", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "noise_scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  uiItemR(col, ptr, "noise_offset", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  uiItemR(col, ptr, "seed", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   if (uiLayout *random_layout = uiLayoutPanelProp(
           C, layout, ptr, "open_random_panel", IFACE_("Random")))
@@ -296,10 +296,10 @@ static void panel_draw(const bContext *C, Panel *panel)
     uiLayoutSetPropSep(random_col, true);
     uiLayoutSetActive(random_col, RNA_boolean_get(ptr, "use_random"));
 
-    uiItemR(random_col, ptr, "random_mode", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(random_col, ptr, "random_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     const int mode = RNA_enum_get(ptr, "random_mode");
     if (mode != GP_NOISE_RANDOM_KEYFRAME) {
-      uiItemR(random_col, ptr, "step", UI_ITEM_NONE, nullptr, ICON_NONE);
+      uiItemR(random_col, ptr, "step", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     }
   }
 

@@ -157,20 +157,20 @@ bContext *CTX_copy(const bContext *C);
 /* Stored Context */
 
 bContextStore *CTX_store_add(blender::Vector<std::unique_ptr<bContextStore>> &contexts,
-                             blender::StringRefNull name,
+                             blender::StringRef name,
                              const PointerRNA *ptr);
 bContextStore *CTX_store_add(blender::Vector<std::unique_ptr<bContextStore>> &contexts,
-                             blender::StringRefNull name,
+                             blender::StringRef name,
                              blender::StringRef str);
 bContextStore *CTX_store_add_all(blender::Vector<std::unique_ptr<bContextStore>> &contexts,
                                  const bContextStore *context);
 const bContextStore *CTX_store_get(const bContext *C);
 void CTX_store_set(bContext *C, const bContextStore *store);
 const PointerRNA *CTX_store_ptr_lookup(const bContextStore *store,
-                                       blender::StringRefNull name,
+                                       blender::StringRef name,
                                        const StructRNA *type = nullptr);
 std::optional<blender::StringRefNull> CTX_store_string_lookup(const bContextStore *store,
-                                                              blender::StringRefNull name);
+                                                              blender::StringRef name);
 
 /* need to store if python is initialized or not */
 bool CTX_py_init_get(bContext *C);

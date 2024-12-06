@@ -106,14 +106,14 @@ static void sh_node_mix_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *p
       break;
     case SOCK_RGBA:
       uiItemR(layout, ptr, "blend_type", UI_ITEM_NONE, "", ICON_NONE);
-      uiItemR(layout, ptr, "clamp_result", UI_ITEM_NONE, nullptr, ICON_NONE);
+      uiItemR(layout, ptr, "clamp_result", UI_ITEM_NONE, std::nullopt, ICON_NONE);
       break;
     case SOCK_ROTATION:
       break;
     default:
       BLI_assert_unreachable();
   }
-  uiItemR(layout, ptr, "clamp_factor", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "clamp_factor", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 static void sh_node_mix_label(const bNodeTree * /*ntree*/,

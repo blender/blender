@@ -354,7 +354,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   UNUSED_VARS(C);
 #endif
 
-  uiItemR(layout, ptr, "subdivision_type", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "subdivision_type", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
   uiLayoutSetPropSep(layout, true);
 
@@ -367,7 +367,7 @@ static void panel_draw(const bContext *C, Panel *panel)
             ICON_NONE);
   }
   if (ob_use_adaptive_subdivision && show_adaptive_options) {
-    uiItemR(layout, &ob_cycles_ptr, "dicing_rate", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(layout, &ob_cycles_ptr, "dicing_rate", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     float render = std::max(RNA_float_get(&cycles_ptr, "dicing_rate") *
                                 RNA_float_get(&ob_cycles_ptr, "dicing_rate"),
                             0.1f);
@@ -388,7 +388,7 @@ static void panel_draw(const bContext *C, Panel *panel)
     uiItemR(col, ptr, "render_levels", UI_ITEM_NONE, IFACE_("Render"), ICON_NONE);
   }
 
-  uiItemR(layout, ptr, "show_only_control_edges", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "show_only_control_edges", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   SubsurfModifierData *smd = static_cast<SubsurfModifierData *>(ptr->data);
@@ -441,16 +441,16 @@ static void advanced_panel_draw(const bContext *C, Panel *panel)
   uiLayoutSetPropSep(layout, true);
 
   uiLayoutSetActive(layout, !(show_adaptive_options && ob_use_adaptive_subdivision));
-  uiItemR(layout, ptr, "use_limit_surface", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "use_limit_surface", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   uiLayout *col = uiLayoutColumn(layout, true);
   uiLayoutSetActive(col, RNA_boolean_get(ptr, "use_limit_surface"));
-  uiItemR(col, ptr, "quality", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "quality", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  uiItemR(layout, ptr, "uv_smooth", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "boundary_smooth", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "use_creases", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "use_custom_normals", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "uv_smooth", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  uiItemR(layout, ptr, "boundary_smooth", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  uiItemR(layout, ptr, "use_creases", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  uiItemR(layout, ptr, "use_custom_normals", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 static void panel_register(ARegionType *region_type)

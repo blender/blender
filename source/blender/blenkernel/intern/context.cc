@@ -150,7 +150,7 @@ static bContextStore *ctx_store_extend(Vector<std::unique_ptr<bContextStore>> &c
 }
 
 bContextStore *CTX_store_add(Vector<std::unique_ptr<bContextStore>> &contexts,
-                             const blender::StringRefNull name,
+                             const blender::StringRef name,
                              const PointerRNA *ptr)
 {
   bContextStore *ctx = ctx_store_extend(contexts);
@@ -159,7 +159,7 @@ bContextStore *CTX_store_add(Vector<std::unique_ptr<bContextStore>> &contexts,
 }
 
 bContextStore *CTX_store_add(Vector<std::unique_ptr<bContextStore>> &contexts,
-                             const blender::StringRefNull name,
+                             const blender::StringRef name,
                              const blender::StringRef str)
 {
   bContextStore *ctx = ctx_store_extend(contexts);
@@ -188,7 +188,7 @@ void CTX_store_set(bContext *C, const bContextStore *store)
 }
 
 const PointerRNA *CTX_store_ptr_lookup(const bContextStore *store,
-                                       const blender::StringRefNull name,
+                                       const blender::StringRef name,
                                        const StructRNA *type)
 {
   for (auto entry = store->entries.rbegin(); entry != store->entries.rend(); ++entry) {
@@ -203,7 +203,7 @@ const PointerRNA *CTX_store_ptr_lookup(const bContextStore *store,
 }
 
 std::optional<blender::StringRefNull> CTX_store_string_lookup(const bContextStore *store,
-                                                              const blender::StringRefNull name)
+                                                              const blender::StringRef name)
 {
   for (auto entry = store->entries.rbegin(); entry != store->entries.rend(); ++entry) {
     if (entry->name == name && std::holds_alternative<std::string>(entry->value)) {

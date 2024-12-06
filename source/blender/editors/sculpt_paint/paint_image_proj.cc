@@ -6864,32 +6864,32 @@ static void texture_paint_add_texture_paint_slot_ui(bContext *C, wmOperator *op)
 
   if (ob->mode == OB_MODE_SCULPT) {
     slot_type = (ePaintCanvasSource)RNA_enum_get(op->ptr, "slot_type");
-    uiItemR(layout, op->ptr, "slot_type", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
+    uiItemR(layout, op->ptr, "slot_type", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
   }
 
-  uiItemR(layout, op->ptr, "name", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, op->ptr, "name", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   switch (slot_type) {
     case PAINT_CANVAS_SOURCE_IMAGE: {
       uiLayout *col = uiLayoutColumn(layout, true);
-      uiItemR(col, op->ptr, "width", UI_ITEM_NONE, nullptr, ICON_NONE);
-      uiItemR(col, op->ptr, "height", UI_ITEM_NONE, nullptr, ICON_NONE);
+      uiItemR(col, op->ptr, "width", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      uiItemR(col, op->ptr, "height", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-      uiItemR(layout, op->ptr, "alpha", UI_ITEM_NONE, nullptr, ICON_NONE);
-      uiItemR(layout, op->ptr, "generated_type", UI_ITEM_NONE, nullptr, ICON_NONE);
-      uiItemR(layout, op->ptr, "float", UI_ITEM_NONE, nullptr, ICON_NONE);
+      uiItemR(layout, op->ptr, "alpha", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      uiItemR(layout, op->ptr, "generated_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      uiItemR(layout, op->ptr, "float", UI_ITEM_NONE, std::nullopt, ICON_NONE);
       break;
     }
     case PAINT_CANVAS_SOURCE_COLOR_ATTRIBUTE:
-      uiItemR(layout, op->ptr, "domain", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
-      uiItemR(layout, op->ptr, "data_type", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
+      uiItemR(layout, op->ptr, "domain", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+      uiItemR(layout, op->ptr, "data_type", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
       break;
     case PAINT_CANVAS_SOURCE_MATERIAL:
       BLI_assert_unreachable();
       break;
   }
 
-  uiItemR(layout, op->ptr, "color", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, op->ptr, "color", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 #define IMA_DEF_NAME N_("Untitled")

@@ -397,27 +397,27 @@ static void panel_draw(const bContext *C, Panel *panel)
     }
   }
   else if (texture_coords == MOD_DISP_MAP_UV && RNA_enum_get(&ob_ptr, "type") == OB_MESH) {
-    uiItemPointerR(col, ptr, "uv_layer", &obj_data_ptr, "uv_layers", nullptr, ICON_GROUP_UVS);
+    uiItemPointerR(col, ptr, "uv_layer", &obj_data_ptr, "uv_layers", std::nullopt, ICON_GROUP_UVS);
   }
 
   uiItemS(layout);
 
   col = uiLayoutColumn(layout, false);
-  uiItemR(col, ptr, "direction", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "direction", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   if (ELEM(RNA_enum_get(ptr, "direction"),
            MOD_DISP_DIR_X,
            MOD_DISP_DIR_Y,
            MOD_DISP_DIR_Z,
            MOD_DISP_DIR_RGB_XYZ))
   {
-    uiItemR(col, ptr, "space", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "space", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
   uiItemS(layout);
 
   col = uiLayoutColumn(layout, false);
-  uiItemR(col, ptr, "strength", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "mid_level", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "strength", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  uiItemR(col, ptr, "mid_level", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   modifier_vgroup_ui(col, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", nullptr);
 

@@ -49,17 +49,17 @@ static void node_composit_buts_map_value(uiLayout *layout, bContext * /*C*/, Poi
   uiLayout *sub, *col;
 
   col = uiLayoutColumn(layout, true);
-  uiItemR(col, ptr, "offset", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "size", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "offset", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  uiItemR(col, ptr, "size", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 
   col = uiLayoutColumn(layout, true);
-  uiItemR(col, ptr, "use_min", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "use_min", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   sub = uiLayoutColumn(col, false);
   uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_min"));
   uiItemR(sub, ptr, "min", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 
   col = uiLayoutColumn(layout, true);
-  uiItemR(col, ptr, "use_max", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "use_max", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   sub = uiLayoutColumn(col, false);
   uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_max"));
   uiItemR(sub, ptr, "max", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);

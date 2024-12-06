@@ -144,7 +144,7 @@ void modifier_grease_pencil_curve_header_draw(const bContext * /*C*/, Panel *pan
 
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
-  uiItemR(layout, ptr, "use_custom_curve", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "use_custom_curve", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 void modifier_grease_pencil_curve_panel_draw(const bContext * /*C*/, Panel *panel)
@@ -304,19 +304,19 @@ static void modifier_ops_extra_draw(bContext *C, uiLayout *layout, void *md_v)
 
   uiItemS(layout);
 
-  uiItemR(layout, &ptr, "use_pin_to_last", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, &ptr, "use_pin_to_last", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   if (md->type == eModifierType_Nodes) {
     uiItemS(layout);
     uiItemFullO(layout,
                 "OBJECT_OT_geometry_nodes_move_to_nodes",
-                nullptr,
+                std::nullopt,
                 ICON_NONE,
                 nullptr,
                 WM_OP_INVOKE_DEFAULT,
                 UI_ITEM_NONE,
                 &op_ptr);
-    uiItemR(layout, &ptr, "show_group_selector", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(layout, &ptr, "show_group_selector", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 }
 

@@ -36,7 +36,7 @@ static void node_composit_init_pixelate(bNodeTree * /*ntree*/, bNode *node)
 
 static void node_composit_buts_pixelate(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiItemR(layout, ptr, "pixel_size", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "pixel_size", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 }
 
 using namespace blender::realtime_compositor;

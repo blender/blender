@@ -90,7 +90,7 @@ static void node_composit_buts_glare(uiLayout *layout, bContext * /*C*/, Pointer
   uiItemR(layout, ptr, "quality", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 
   if (ELEM(glare_type, CMP_NODE_GLARE_SIMPLE_STAR, CMP_NODE_GLARE_GHOST, CMP_NODE_GLARE_STREAKS)) {
-    uiItemR(layout, ptr, "iterations", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+    uiItemR(layout, ptr, "iterations", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   }
 
   if (ELEM(glare_type, CMP_NODE_GLARE_GHOST, CMP_NODE_GLARE_STREAKS)) {
@@ -98,29 +98,33 @@ static void node_composit_buts_glare(uiLayout *layout, bContext * /*C*/, Pointer
             ptr,
             "color_modulation",
             UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER,
-            nullptr,
+            std::nullopt,
             ICON_NONE);
   }
 
-  uiItemR(layout, ptr, "mix", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "threshold", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "mix", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  uiItemR(layout, ptr, "threshold", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 
   if (glare_type == CMP_NODE_GLARE_STREAKS) {
-    uiItemR(layout, ptr, "streaks", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
-    uiItemR(layout, ptr, "angle_offset", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+    uiItemR(layout, ptr, "streaks", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+    uiItemR(layout, ptr, "angle_offset", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   }
 
   if (ELEM(glare_type, CMP_NODE_GLARE_SIMPLE_STAR, CMP_NODE_GLARE_STREAKS)) {
-    uiItemR(
-        layout, ptr, "fade", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
+    uiItemR(layout,
+            ptr,
+            "fade",
+            UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER,
+            std::nullopt,
+            ICON_NONE);
   }
 
   if (glare_type == CMP_NODE_GLARE_SIMPLE_STAR) {
-    uiItemR(layout, ptr, "use_rotate_45", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+    uiItemR(layout, ptr, "use_rotate_45", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   }
 
   if (ELEM(glare_type, CMP_NODE_GLARE_FOG_GLOW, CMP_NODE_GLARE_BLOOM)) {
-    uiItemR(layout, ptr, "size", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+    uiItemR(layout, ptr, "size", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   }
 }
 
