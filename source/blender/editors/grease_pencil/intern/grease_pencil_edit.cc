@@ -1804,9 +1804,7 @@ static int grease_pencil_move_to_layer_exec(bContext *C, wmOperator *op)
       curves_src.remove_curves(selected_strokes, {});
       drawing_dst.tag_topology_changed();
     }
-    else if (Drawing *drawing_dst = grease_pencil.get_editable_drawing_at(layer_dst,
-                                                                          info.frame_number))
-    {
+    else if (Drawing *drawing_dst = grease_pencil.get_drawing_at(layer_dst, info.frame_number)) {
       /* Append geometry to drawing in target layer. */
       bke::CurvesGeometry selected_elems = curves_copy_curve_selection(
           curves_src, selected_strokes, {});
