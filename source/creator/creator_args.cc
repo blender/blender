@@ -1055,7 +1055,7 @@ static const char arg_handle_background_mode_set_doc[] =
     "\tRun in background (often used for UI-less rendering).\n"
     "\n"
     "\tThe audio device is disabled in background-mode by default\n"
-    "\tand can be re-enabled by passing in '-setaudo Default' afterwards.";
+    "\tand can be re-enabled by passing in '-setaudio Default' afterwards.";
 static int arg_handle_background_mode_set(int /*argc*/, const char ** /*argv*/, void * /*data*/)
 {
   if (!G.quiet) {
