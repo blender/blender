@@ -3036,12 +3036,6 @@ void uiItemEnumR_prop(uiLayout *layout,
                       PointerRNA *ptr,
                       PropertyRNA *prop,
                       int value);
-void uiItemEnumR(uiLayout *layout,
-                 std::optional<blender::StringRefNull> name,
-                 int icon,
-                 PointerRNA *ptr,
-                 blender::StringRefNull propname,
-                 int value);
 void uiItemEnumR_string_prop(uiLayout *layout,
                              PointerRNA *ptr,
                              PropertyRNA *prop,

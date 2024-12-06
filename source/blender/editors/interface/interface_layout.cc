@@ -2632,24 +2632,6 @@ void uiItemEnumR_prop(uiLayout *layout,
   uiItemFullR(layout, ptr, prop, RNA_ENUM_VALUE, value, UI_ITEM_NONE, name, icon);
 }
 
-void uiItemEnumR(uiLayout *layout,
-                 const std::optional<StringRefNull> name,
-                 int icon,
-                 PointerRNA *ptr,
-                 const StringRefNull propname,
-                 int value)
-{
-  PropertyRNA *prop = RNA_struct_find_property(ptr, propname.c_str());
-
-  if (prop == nullptr) {
-    ui_item_disabled(layout, propname.c_str());
-    RNA_warning("property not found: %s.%s", RNA_struct_identifier(ptr->type), propname.c_str());
-    return;
-  }
-
-  uiItemFullR(layout, ptr, prop, RNA_ENUM_VALUE, value, UI_ITEM_NONE, name, icon);
-}
-
 void uiItemEnumR_string_prop(uiLayout *layout,
                              PointerRNA *ptr,
                              PropertyRNA *prop,
