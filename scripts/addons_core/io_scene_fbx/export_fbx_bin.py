@@ -870,8 +870,9 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
         fbx_data_element_custom_properties(props, me)
 
     # Subdivision levels. Take them from the first found subsurf modifier from the
-    # first object that has the mesh. Write crease information if the object has
-    # and subsurf modifier.
+    # first object that has the mesh. Always write crease information if present,
+    # if the modifier explicitly uses creases ("use_creases" setting) and mesh lacks them,
+    # still provide zeros (see TODO comment below)
     write_crease = False
     if scene_data.settings.use_subsurf:
         last_subsurf = None
@@ -895,6 +896,7 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
             elem_data_single_int32(geom, b"PropagateEdgeHardness", 0)
 
             write_crease = last_subsurf.use_creases
+    write_crease = (write_crease or me.edge_creases)
 
     elem_data_single_int32(geom, b"GeometryVersion", FBX_GEOMETRY_VERSION)
 
@@ -1506,9 +1508,9 @@ def fbx_data_mesh_elements(root, me_obj, scene_data, done_meshes):
         elem_data_single_string(lay_smooth, b"Type", b"LayerElementSmoothing")
         elem_data_single_int32(lay_smooth, b"TypedIndex", 0)
     if write_crease:
-        lay_smooth = elem_empty(layer, b"LayerElement")
-        elem_data_single_string(lay_smooth, b"Type", b"LayerElementEdgeCrease")
-        elem_data_single_int32(lay_smooth, b"TypedIndex", 0)
+        lay_crease = elem_empty(layer, b"LayerElement")
+        elem_data_single_string(lay_crease, b"Type", b"LayerElementEdgeCrease")
+        elem_data_single_int32(lay_crease, b"TypedIndex", 0)
     if vcolnumber:
         lay_vcol = elem_empty(layer, b"LayerElement")
         elem_data_single_string(lay_vcol, b"Type", b"LayerElementColor")
