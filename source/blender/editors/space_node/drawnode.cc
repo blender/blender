@@ -1262,7 +1262,7 @@ static void draw_node_socket_name_editable(uiLayout *layout,
       uiLayoutSetEmboss(layout, UI_EMBOSS_NONE);
       uiItemR(layout,
               const_cast<PointerRNA *>(&sock->runtime->declaration->socket_name_rna->owner),
-              sock->runtime->declaration->socket_name_rna->property_name.c_str(),
+              sock->runtime->declaration->socket_name_rna->property_name,
               UI_ITEM_NONE,
               "",
               ICON_NONE);
@@ -1311,13 +1311,13 @@ static void std_node_socket_draw(
       if (node->is_group_input()) {
         uiLayout *row = uiLayoutRow(layout, false);
         uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_RIGHT);
-        node_socket_button_label(C, row, ptr, node_ptr, text.c_str());
+        node_socket_button_label(C, row, ptr, node_ptr, text);
         uiItemL(row, "", ICON_GIZMO);
       }
       else if (nodes::partial_eval::is_supported_value_node(*node)) {
         uiLayout *row = uiLayoutRow(layout, false);
         uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_RIGHT);
-        node_socket_button_label(C, row, ptr, node_ptr, text.c_str());
+        node_socket_button_label(C, row, ptr, node_ptr, text);
         draw_gizmo_pin_icon(row, ptr);
       }
       return;
@@ -1326,7 +1326,7 @@ static void std_node_socket_draw(
         nodes::gizmos::is_builtin_gizmo_node(*node))
     {
       uiLayout *row = uiLayoutRow(layout, false);
-      node_socket_button_label(C, row, ptr, node_ptr, text.c_str());
+      node_socket_button_label(C, row, ptr, node_ptr, text);
       draw_gizmo_pin_icon(row, ptr);
       return;
     }
@@ -1339,7 +1339,7 @@ static void std_node_socket_draw(
     return;
   }
 
-  const StringRefNull label = text.c_str();
+  const StringRefNull label = text;
   text = (sock->flag & SOCK_HIDE_LABEL) ? "" : text;
 
   /* Some socket types draw the gizmo icon in a special way to look better. All others use a
@@ -1354,7 +1354,7 @@ static void std_node_socket_draw(
       break;
     case SOCK_VECTOR:
       if (sock->flag & SOCK_COMPACT) {
-        uiTemplateComponentMenu(layout, ptr, "default_value", text.c_str());
+        uiTemplateComponentMenu(layout, ptr, "default_value", text);
       }
       else {
         if (sock->typeinfo->subtype == PROP_DIRECTION) {
@@ -1364,7 +1364,7 @@ static void std_node_socket_draw(
           uiLayout *column = uiLayoutColumn(layout, false);
           {
             uiLayout *row = uiLayoutRow(column, true);
-            draw_node_socket_name_editable(row, sock, text.c_str());
+            draw_node_socket_name_editable(row, sock, text);
             if (has_gizmo) {
               draw_gizmo_pin_icon(row, ptr);
               gizmo_handled = true;
@@ -1378,7 +1378,7 @@ static void std_node_socket_draw(
       uiLayout *column = uiLayoutColumn(layout, false);
       {
         uiLayout *row = uiLayoutRow(column, true);
-        draw_node_socket_name_editable(row, sock, text.c_str());
+        draw_node_socket_name_editable(row, sock, text);
         if (has_gizmo) {
           draw_gizmo_pin_icon(row, ptr);
           gizmo_handled = true;
@@ -1388,11 +1388,11 @@ static void std_node_socket_draw(
       break;
     }
     case SOCK_MATRIX: {
-      draw_node_socket_name_editable(layout, sock, text.c_str());
+      draw_node_socket_name_editable(layout, sock, text);
       break;
     }
     case SOCK_RGBA: {
-      if (text[0] == '\0') {
+      if (text.is_empty()) {
         uiItemR(layout, ptr, "default_value", DEFAULT_FLAGS, "", ICON_NONE);
       }
       else {
@@ -1404,8 +1404,8 @@ static void std_node_socket_draw(
     }
     case SOCK_STRING: {
       if (socket_needs_attribute_search(*node, *sock)) {
-        if (text[0] == '\0') {
-          node_geometry_add_attribute_search_button(*C, *node, *ptr, *layout, label.c_str());
+        if (text.is_empty()) {
+          node_geometry_add_attribute_search_button(*C, *node, *ptr, *layout, label);
         }
         else {
           uiLayout *row = uiLayoutSplit(layout, 0.4f, false);
@@ -1414,7 +1414,7 @@ static void std_node_socket_draw(
         }
       }
       else {
-        if (text[0] == '\0') {
+        if (text.is_empty()) {
           uiItemFullR(layout,
                       ptr,
                       RNA_struct_find_property(ptr, "default_value"),
@@ -1423,7 +1423,7 @@ static void std_node_socket_draw(
                       UI_ITEM_NONE,
                       "",
                       ICON_NONE,
-                      label.c_str());
+                      label);
         }
         else {
           uiLayout *row = uiLayoutSplit(layout, 0.4f, false);
@@ -1461,7 +1461,7 @@ static void std_node_socket_draw(
     case SOCK_IMAGE: {
       const bNodeTree *node_tree = (const bNodeTree *)node_ptr->owner_id;
       if (node_tree->type == NTREE_GEOMETRY) {
-        if (text[0] == '\0') {
+        if (text.is_empty()) {
           uiTemplateID(layout, C, ptr, "default_value", "image.new", "image.open", nullptr);
         }
         else {
@@ -1481,7 +1481,7 @@ static void std_node_socket_draw(
       break;
     }
     case SOCK_TEXTURE: {
-      if (text[0] == '\0') {
+      if (text.is_empty()) {
         uiTemplateID(layout, C, ptr, "default_value", "texture.new", nullptr, nullptr);
       }
       else {
