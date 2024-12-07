@@ -1333,7 +1333,7 @@ static void std_node_socket_draw(
   }
 
   if ((sock->in_out == SOCK_OUT) || (sock->flag & SOCK_HIDE_VALUE) ||
-      ((sock->flag & SOCK_IS_LINKED) && !all_links_muted(*sock)))
+      (sock->is_directly_linked() && !all_links_muted(*sock)))
   {
     draw_node_socket_without_value(layout, sock, text);
     return;
