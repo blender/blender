@@ -619,19 +619,6 @@ ShaderModule::ShaderModule(const SelectionType selection_type, const bool clippi
         "draw_view", "draw_modelmat_new", "draw_resource_handle_new", "draw_globals");
   });
 
-  uniform_color_batch = shader("overlay_uniform_color", [](gpu::shader::ShaderCreateInfo &info) {
-    info.additional_infos_.clear();
-    info.additional_info("draw_view", "draw_globals")
-        .typedef_source("draw_shader_shared.hh")
-        .storage_buf(0, Qualifier::READ, "ObjectMatrices", "matrix_buf[]")
-        .define("DRAW_MODELMAT_CREATE_INFO")
-        .define("drw_ModelMatrixInverse", "matrix_buf[gl_InstanceID].model_inverse")
-        .define("drw_ModelMatrix", "matrix_buf[gl_InstanceID].model")
-        /* TODO For compatibility with old shaders. To be removed. */
-        .define("ModelMatrixInverse", "drw_ModelMatrixInverse")
-        .define("ModelMatrix", "drw_ModelMatrix");
-  });
-
   wireframe_mesh = selectable_shader("overlay_wireframe", [](gpu::shader::ShaderCreateInfo &info) {
     info.additional_infos_.clear();
     info.define("CUSTOM_DEPTH_BIAS_CONST");

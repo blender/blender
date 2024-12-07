@@ -402,7 +402,6 @@ class ShaderModule {
   ShaderPtr sculpt_curves;
   ShaderPtr sculpt_curves_cage;
   ShaderPtr uniform_color;
-  ShaderPtr uniform_color_batch;
   ShaderPtr uv_analysis_stretch_angle;
   ShaderPtr uv_analysis_stretch_area;
   ShaderPtr uv_brush_stencil;

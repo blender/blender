@@ -22,42 +22,31 @@ namespace blender::draw::overlay {
 class EditText : Overlay {
 
  private:
-  PassSimple ps_ = {"Selection&Cursor"};
+  PassSimple ps_ = {"TextEdit"};
+  PassSimple::Sub *selection_ps_ = nullptr;
+  PassSimple::Sub *selection_highlight_ps_ = nullptr;
+  PassSimple::Sub *cursor_ps_ = nullptr;
 
   View view_edit_text = {"view_edit_text"};
 
-  StorageVectorBuffer<ObjectMatrices> text_selection_buf;
-  StorageVectorBuffer<ObjectMatrices> text_cursor_buf;
   LinePrimitiveBuf box_line_buf_;
+
+  gpu::Batch *quad = nullptr;
 
  public:
   EditText(SelectionType selection_type) : box_line_buf_(selection_type, "box_line_buf_") {}
 
-  void begin_sync(Resources & /*res*/, const State &state) final
+  void begin_sync(Resources &res, const State &state) final
   {
     enabled_ = state.is_space_v3d();
-    text_selection_buf.clear();
-    text_cursor_buf.clear();
     box_line_buf_.clear();
-  }
 
-  void edit_object_sync(Manager & /*manager*/,
-                        const ObjectRef &ob_ref,
-                        Resources &res,
-                        const State & /*state*/) final
-  {
     if (!enabled_) {
       return;
     }
 
-    const Curve &cu = *static_cast<Curve *>(ob_ref.object->data);
-    add_select(cu, ob_ref.object->object_to_world());
-    add_cursor(cu, ob_ref.object->object_to_world());
-    add_boxes(res, cu, ob_ref.object->object_to_world());
-  }
+    quad = res.shapes.quad_solid.get();
 
-  void end_sync(Resources &res, const State &state) final
-  {
     ps_.init();
     ps_.bind_ubo(OVERLAY_GLOBALS_SLOT, &res.globals_buf);
     res.select_bind(ps_);
@@ -69,15 +58,11 @@ class EditText : Overlay {
       {
         auto &sub = ps_.sub("text_selection");
         sub.state_set(default_state, state.clipping_plane_count);
-        sub.shader_set(res.shaders.uniform_color_batch.get());
+        sub.shader_set(res.shaders.uniform_color.get());
         UI_GetThemeColor4fv(TH_WIDGET_TEXT_SELECTION, color);
         srgb_to_linearrgb_v4(color, color);
         sub.push_constant("ucolor", color);
-
-        auto &buf = text_selection_buf;
-        buf.push_update();
-        sub.bind_ssbo("matrix_buf", &buf);
-        sub.draw(res.shapes.quad_solid.get(), buf.size());
+        selection_ps_ = &sub;
       }
 
       /* Highlight text within selection boxes. */
@@ -86,42 +71,56 @@ class EditText : Overlay {
         sub.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_ALPHA |
                           DRW_STATE_DEPTH_GREATER_EQUAL,
                       state.clipping_plane_count);
-        sub.shader_set(res.shaders.uniform_color_batch.get());
+        sub.shader_set(res.shaders.uniform_color.get());
         UI_GetThemeColor4fv(TH_WIDGET_TEXT_HIGHLIGHT, color);
         srgb_to_linearrgb_v4(color, color);
         sub.push_constant("ucolor", color);
-
-        auto &buf = text_selection_buf;
-        buf.push_update();
-        sub.bind_ssbo("matrix_buf", &buf);
-        sub.draw(res.shapes.quad_solid.get(), buf.size());
+        selection_highlight_ps_ = &sub;
       }
 
       /* Cursor (text caret). */
       {
         auto &sub = ps_.sub("text_cursor");
         sub.state_set(default_state, state.clipping_plane_count);
-        sub.shader_set(res.shaders.uniform_color_batch.get());
+        sub.shader_set(res.shaders.uniform_color.get());
         sub.state_set(default_state, state.clipping_plane_count);
         UI_GetThemeColor4fv(TH_WIDGET_TEXT_CURSOR, color);
         srgb_to_linearrgb_v4(color, color);
         sub.push_constant("ucolor", color);
-
-        auto &buf = text_cursor_buf;
-        buf.push_update();
-        sub.bind_ssbo("matrix_buf", &buf);
-        sub.draw(res.shapes.quad_solid.get(), buf.size());
+        cursor_ps_ = &sub;
       }
+    }
+  }
 
-      /* Text boxes. */
-      {
-        auto &sub_pass = ps_.sub("text_boxes");
-        sub_pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH |
-                               DRW_STATE_DEPTH_LESS_EQUAL,
-                           state.clipping_plane_count);
-        sub_pass.shader_set(res.shaders.extra_wire.get());
-        box_line_buf_.end_sync(sub_pass);
-      }
+  void edit_object_sync(Manager &manager,
+                        const ObjectRef &ob_ref,
+                        Resources &res,
+                        const State & /*state*/) final
+  {
+    if (!enabled_) {
+      return;
+    }
+
+    const Curve &cu = *static_cast<Curve *>(ob_ref.object->data);
+    add_select(manager, cu, ob_ref.object->object_to_world());
+    add_cursor(manager, cu, ob_ref.object->object_to_world());
+    add_boxes(res, cu, ob_ref.object->object_to_world());
+  }
+
+  void end_sync(Resources &res, const State &state) final
+  {
+    if (!enabled_) {
+      return;
+    }
+
+    /* Text boxes. */
+    {
+      auto &sub_pass = ps_.sub("text_boxes");
+      sub_pass.state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH |
+                             DRW_STATE_DEPTH_LESS_EQUAL,
+                         state.clipping_plane_count);
+      sub_pass.shader_set(res.shaders.extra_wire.get());
+      box_line_buf_.end_sync(sub_pass);
     }
   }
 
@@ -153,12 +152,9 @@ class EditText : Overlay {
                      float4(origin + half_size_x + half_size_y, 0.0f, 1.0f));
   }
 
-  void add_select(const Curve &cu, const float4x4 &ob_to_world)
+  void add_select(Manager &manager, const Curve &cu, const float4x4 &ob_to_world)
   {
     EditFont *ef = cu.editfont;
-    float4x4 final_mat;
-    float4x2 box;
-
     for (const int i : IndexRange(ef->selboxes_len)) {
       EditFontSelBox *sb = &ef->selboxes[i];
 
@@ -174,6 +170,7 @@ class EditText : Overlay {
       else {
         selboxw = sb->w;
       }
+      float4x2 box;
       /* NOTE: v2_quad_corners_to_mat4 don't need the 3rd corner. */
       if (sb->rot == 0.0f) {
         box[0] = float2(sb->x, sb->y);
@@ -186,24 +183,22 @@ class EditText : Overlay {
         box[1] = mat[0] * selboxw + float2(&sb->x);
         box[3] = mat[1] * sb->h + float2(&sb->x);
       }
-      v2_quad_corners_to_mat4(box, final_mat);
-      final_mat = ob_to_world * final_mat;
-      ObjectMatrices obj_mat;
-      obj_mat.sync(final_mat);
-      text_selection_buf.append(obj_mat);
+      float4x4 mat;
+      v2_quad_corners_to_mat4(box, mat);
+      ResourceHandle res_handle = manager.resource_handle(ob_to_world * mat);
+      selection_ps_->draw(quad, res_handle);
+      selection_highlight_ps_->draw(quad, res_handle);
     }
   }
 
-  void add_cursor(const Curve &cu, const float4x4 &ob_to_world)
+  void add_cursor(Manager &manager, const Curve &cu, const float4x4 &ob_to_world)
   {
     EditFont *edit_font = cu.editfont;
     float4x2 cursor = float4x2(&edit_font->textcurs[0][0]);
     float4x4 mat;
-
     v2_quad_corners_to_mat4(cursor, mat);
-    ObjectMatrices ob_mat;
-    ob_mat.sync(ob_to_world * mat);
-    text_cursor_buf.append(ob_mat);
+    ResourceHandle res_handle = manager.resource_handle(ob_to_world * mat);
+    cursor_ps_->draw(quad, res_handle);
   }
 
   void add_boxes(const Resources &res, const Curve &cu, const float4x4 &ob_to_world)
