@@ -50,11 +50,14 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
   node->storage = data;
 }
 
-static void update_handle_types_for_movement(int8_t &type, int8_t &other)
+/**
+ * Return true if the handle changes from "Vector" to "Free" which changes Bezier curve topology.
+ */
+static bool update_handle_types_for_movement(int8_t &type, int8_t &other)
 {
   switch (type) {
     case BEZIER_HANDLE_FREE:
-      break;
+      return false;
     case BEZIER_HANDLE_AUTO:
       /* Converting auto handles to aligned handled instead of free handles is
        * arbitrary, but expected and "standard" based on behavior in edit mode. */
@@ -67,10 +70,10 @@ static void update_handle_types_for_movement(int8_t &type, int8_t &other)
         /* If the other handle isn't automatic, just make the handle free. */
         type = BEZIER_HANDLE_FREE;
       }
-      break;
+      return false;
     case BEZIER_HANDLE_VECTOR:
       type = BEZIER_HANDLE_FREE;
-      break;
+      return true;
     case BEZIER_HANDLE_ALIGN:
       /* The handle can stay aligned if the other handle is also aligned (in which case the other
        * handle should be updated to be consistent). But otherwise the handle must be made free to
@@ -78,8 +81,9 @@ static void update_handle_types_for_movement(int8_t &type, int8_t &other)
       if (other != BEZIER_HANDLE_ALIGN) {
         type = BEZIER_HANDLE_FREE;
       }
-      break;
+      return false;
   }
+  return false;
 }
 
 static void set_position_in_component(Curves &curves_id,
@@ -116,10 +120,21 @@ static void set_position_in_component(Curves &curves_id,
                                                    curves.handle_positions_right_for_write() :
                                                    curves.handle_positions_left_for_write();
 
+  const bool types_changed = threading::parallel_reduce(
+      selection.index_range(),
+      2048,
+      false,
+      [&](const IndexRange range, bool changed) {
+        selection.slice(range).foreach_index_optimized<int>([&](const int i) {
+          if (update_handle_types_for_movement(handle_types[i], handle_types_other[i])) {
+            changed = true;
+          }
+        });
+        return changed;
+      },
+      std::logical_or<bool>());
+
   selection.foreach_segment(GrainSize(2048), [&](const IndexMaskSegment segment) {
-    for (const int i : segment) {
-      update_handle_types_for_movement(handle_types[i], handle_types_other[i]);
-    }
     for (const int i : segment) {
       bke::curves::bezier::set_handle_position(positions[i],
                                                HandleType(handle_types[i]),
@@ -130,8 +145,10 @@ static void set_position_in_component(Curves &curves_id,
     }
   });
 
+  if (types_changed) {
+    curves.tag_topology_changed();
+  }
   curves.calculate_bezier_auto_handles();
-
   curves.tag_positions_changed();
 }
 
