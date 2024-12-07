@@ -4,7 +4,9 @@
 
 #include "dupli_parent_finder.hh"
 
-#include "BLI_utildefines.h"
+#include "BLI_assert.h"
+
+#include "DNA_object_types.h"
 
 namespace blender::io {
 

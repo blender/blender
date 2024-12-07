@@ -5,8 +5,6 @@
 
 #include "BKE_duplilist.hh"
 
-#include "DNA_object_types.h" /* For MAX_DUPLI_RECUR */
-
 #include <array>
 #include <string>
 
