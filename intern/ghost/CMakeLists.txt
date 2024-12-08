@@ -4,8 +4,8 @@
 
 set(INC
   PUBLIC .
-  ../../source/blender/imbuf
   ../../source/blender/gpu
+  ../../source/blender/imbuf
   ../guardedalloc
 )
 

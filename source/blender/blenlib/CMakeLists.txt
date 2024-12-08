@@ -108,8 +108,8 @@ set(SRC
   intern/math_interp.cc
   intern/math_matrix.cc
   intern/math_matrix_c.cc
-  intern/math_rotation_c.cc
   intern/math_rotation.cc
+  intern/math_rotation_c.cc
   intern/math_solvers.cc
   intern/math_statistics.cc
   intern/math_time.cc
@@ -121,8 +121,8 @@ set(SRC
   intern/memory_utils.cc
   intern/mesh_boolean.cc
   intern/mesh_intersect.cc
-  intern/noise_c.cc
   intern/noise.cc
+  intern/noise_c.cc
   intern/offset_indices.cc
   intern/ordered_edge.cc
   intern/path_utils.cc
