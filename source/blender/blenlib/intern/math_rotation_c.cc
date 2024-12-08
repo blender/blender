@@ -195,10 +195,10 @@ static void quat_to_mat3_no_error(float m[3][3], const float q[4])
 {
   double q0, q1, q2, q3, qda, qdb, qdc, qaa, qab, qac, qbb, qbc, qcc;
 
-  q0 = M_SQRT2 * (double)q[0];
-  q1 = M_SQRT2 * (double)q[1];
-  q2 = M_SQRT2 * (double)q[2];
-  q3 = M_SQRT2 * (double)q[3];
+  q0 = M_SQRT2 * double(q[0]);
+  q1 = M_SQRT2 * double(q[1]);
+  q2 = M_SQRT2 * double(q[2]);
+  q3 = M_SQRT2 * double(q[3]);
 
   qda = q0 * q1;
   qdb = q0 * q2;
@@ -210,24 +210,24 @@ static void quat_to_mat3_no_error(float m[3][3], const float q[4])
   qbc = q2 * q3;
   qcc = q3 * q3;
 
-  m[0][0] = (float)(1.0 - qbb - qcc);
-  m[0][1] = (float)(qdc + qab);
-  m[0][2] = (float)(-qdb + qac);
+  m[0][0] = float(1.0 - qbb - qcc);
+  m[0][1] = float(qdc + qab);
+  m[0][2] = float(-qdb + qac);
 
-  m[1][0] = (float)(-qdc + qab);
-  m[1][1] = (float)(1.0 - qaa - qcc);
-  m[1][2] = (float)(qda + qbc);
+  m[1][0] = float(-qdc + qab);
+  m[1][1] = float(1.0 - qaa - qcc);
+  m[1][2] = float(qda + qbc);
 
-  m[2][0] = (float)(qdb + qac);
-  m[2][1] = (float)(-qda + qbc);
-  m[2][2] = (float)(1.0 - qaa - qbb);
+  m[2][0] = float(qdb + qac);
+  m[2][1] = float(-qda + qbc);
+  m[2][2] = float(1.0 - qaa - qbb);
 }
 
 void quat_to_mat3(float m[3][3], const float q[4])
 {
 #ifndef NDEBUG
   float f;
-  if (!((f = dot_qtqt(q, q)) == 0.0f || (fabsf(f - 1.0f) < (float)QUAT_EPSILON))) {
+  if (!((f = dot_qtqt(q, q)) == 0.0f || (fabsf(f - 1.0f) < float(QUAT_EPSILON)))) {
     fprintf(stderr,
             "Warning! quat_to_mat3() called with non-normalized: size %.8f *** report a bug ***\n",
             f);
@@ -245,14 +245,14 @@ void quat_to_mat4(float m[4][4], const float q[4])
   if (!((q0 = dot_qtqt(q, q)) == 0.0 || (fabs(q0 - 1.0) < QUAT_EPSILON))) {
     fprintf(stderr,
             "Warning! quat_to_mat4() called with non-normalized: size %.8f *** report a bug ***\n",
-            (float)q0);
+            float(q0));
   }
 #endif
 
-  q0 = M_SQRT2 * (double)q[0];
-  q1 = M_SQRT2 * (double)q[1];
-  q2 = M_SQRT2 * (double)q[2];
-  q3 = M_SQRT2 * (double)q[3];
+  q0 = M_SQRT2 * double(q[0]);
+  q1 = M_SQRT2 * double(q[1]);
+  q2 = M_SQRT2 * double(q[2]);
+  q3 = M_SQRT2 * double(q[3]);
 
   qda = q0 * q1;
   qdb = q0 * q2;
@@ -264,19 +264,19 @@ void quat_to_mat4(float m[4][4], const float q[4])
   qbc = q2 * q3;
   qcc = q3 * q3;
 
-  m[0][0] = (float)(1.0 - qbb - qcc);
-  m[0][1] = (float)(qdc + qab);
-  m[0][2] = (float)(-qdb + qac);
+  m[0][0] = float(1.0 - qbb - qcc);
+  m[0][1] = float(qdc + qab);
+  m[0][2] = float(-qdb + qac);
   m[0][3] = 0.0f;
 
-  m[1][0] = (float)(-qdc + qab);
-  m[1][1] = (float)(1.0 - qaa - qcc);
-  m[1][2] = (float)(qda + qbc);
+  m[1][0] = float(-qdc + qab);
+  m[1][1] = float(1.0 - qaa - qcc);
+  m[1][2] = float(qda + qbc);
   m[1][3] = 0.0f;
 
-  m[2][0] = (float)(qdb + qac);
-  m[2][1] = (float)(-qda + qbc);
-  m[2][2] = (float)(1.0 - qaa - qbb);
+  m[2][0] = float(qdb + qac);
+  m[2][1] = float(-qda + qbc);
+  m[2][2] = float(1.0 - qaa - qbb);
   m[2][3] = 0.0f;
 
   m[3][0] = m[3][1] = m[3][2] = 0.0f;
@@ -546,7 +546,7 @@ void rotation_between_vecs_to_quat(float q[4], const float v1[3], const float v2
     else {
       /* Colinear but opposed vectors, 180 rotation... */
       ortho_v3_v3(axis, v1);
-      axis_angle_to_quat(q, axis, (float)M_PI);
+      axis_angle_to_quat(q, axis, float(M_PI));
     }
   }
 }
@@ -730,7 +730,7 @@ void vec_to_quat(float q[4], const float vec[3], short axis, const short upflag)
   /* rotate to axis */
   if (axis > 2) {
     copy_v3_v3(tvec, vec);
-    axis = (short)(axis - 3);
+    axis = short(axis - 3);
   }
   else {
     negate_v3_v3(tvec, vec);
@@ -834,7 +834,7 @@ void QuatInterpolW(float *result, float quat1[4], float quat2[4], float t)
   if ((1.0f + cosom) > 0.0001f) {
 
     if ((1.0f - cosom) > 0.0001f) {
-      omega = (float)acos(cosom);
+      omega = float(acos(cosom));
       sinom = sinf(omega);
       sc1 = sinf((1.0 - t) * omega) / sinom;
       sc2 = sinf(t * omega) / sinom;
@@ -1036,7 +1036,7 @@ void sin_cos_from_fraction(int numerator, int denominator, float *r_sin, float *
   BLI_assert(numerator <= denominator / 4);
   BLI_assert(ELEM(cos_sign, -1.0f, 1.0f));
 
-  const float angle = (float)(2.0 * M_PI) * ((float)numerator / (float)denominator);
+  const float angle = float(2.0 * M_PI) * (float(numerator) / float(denominator));
   *r_sin = sinf(angle);
   *r_cos = cosf(angle) * cos_sign;
 }
@@ -1075,7 +1075,7 @@ void quat_to_axis_angle(float axis[3], float *angle, const float q[4])
   float ha, si;
 
 #ifndef NDEBUG
-  if (!((ha = dot_qtqt(q, q)) == 0.0f || (fabsf(ha - 1.0f) < (float)QUAT_EPSILON))) {
+  if (!((ha = dot_qtqt(q, q)) == 0.0f || (fabsf(ha - 1.0f) < float(QUAT_EPSILON)))) {
     fprintf(stderr,
             "Warning! quat_to_axis_angle() called with non-normalized: size %.8f *** report a bug "
             "***\n",
@@ -1352,15 +1352,15 @@ void eul_to_mat3(float mat[3][3], const float eul[3])
   sc = si * ch;
   ss = si * sh;
 
-  mat[0][0] = (float)(cj * ch);
-  mat[1][0] = (float)(sj * sc - cs);
-  mat[2][0] = (float)(sj * cc + ss);
-  mat[0][1] = (float)(cj * sh);
-  mat[1][1] = (float)(sj * ss + cc);
-  mat[2][1] = (float)(sj * cs - sc);
-  mat[0][2] = (float)-sj;
-  mat[1][2] = (float)(cj * si);
-  mat[2][2] = (float)(cj * ci);
+  mat[0][0] = float(cj * ch);
+  mat[1][0] = float(sj * sc - cs);
+  mat[2][0] = float(sj * cc + ss);
+  mat[0][1] = float(cj * sh);
+  mat[1][1] = float(sj * ss + cc);
+  mat[2][1] = float(sj * cs - sc);
+  mat[0][2] = float(-sj);
+  mat[1][2] = float(cj * si);
+  mat[2][2] = float(cj * ci);
 }
 
 void eul_to_mat4(float mat[4][4], const float eul[3])
@@ -1378,15 +1378,15 @@ void eul_to_mat4(float mat[4][4], const float eul[3])
   sc = si * ch;
   ss = si * sh;
 
-  mat[0][0] = (float)(cj * ch);
-  mat[1][0] = (float)(sj * sc - cs);
-  mat[2][0] = (float)(sj * cc + ss);
-  mat[0][1] = (float)(cj * sh);
-  mat[1][1] = (float)(sj * ss + cc);
-  mat[2][1] = (float)(sj * cs - sc);
-  mat[0][2] = (float)-sj;
-  mat[1][2] = (float)(cj * si);
-  mat[2][2] = (float)(cj * ci);
+  mat[0][0] = float(cj * ch);
+  mat[1][0] = float(sj * sc - cs);
+  mat[2][0] = float(sj * cc + ss);
+  mat[0][1] = float(cj * sh);
+  mat[1][1] = float(sj * ss + cc);
+  mat[2][1] = float(sj * cs - sc);
+  mat[0][2] = float(-sj);
+  mat[1][2] = float(cj * si);
+  mat[2][2] = float(cj * ci);
 
   mat[3][0] = mat[3][1] = mat[3][2] = mat[0][3] = mat[1][3] = mat[2][3] = 0.0f;
   mat[3][3] = 1.0f;
@@ -1401,7 +1401,7 @@ static void mat3_normalized_to_eul2(const float mat[3][3], float eul1[3], float 
 
   BLI_ASSERT_UNIT_M3(mat);
 
-  if (cy > (float)EULER_HYPOT_EPSILON) {
+  if (cy > float(EULER_HYPOT_EPSILON)) {
     eul1[0] = atan2f(mat[1][2], mat[2][2]);
     eul1[1] = atan2f(-mat[0][2], cy);
     eul1[2] = atan2f(mat[0][1], mat[0][0]);
@@ -1518,8 +1518,8 @@ void compatible_eul(float eul[3], const float oldrot[3])
    * NOTE: Values between `pi` & `2 * pi` work, where `pi` has the lowest number of
    * discontinuities and values approaching `2 * pi` center the resulting rotation around zero,
    * at the expense of the result being less compatible, see !104856. */
-  const float pi_thresh = (float)M_PI;
-  const float pi_x2 = (2.0f * (float)M_PI);
+  const float pi_thresh = float(M_PI);
+  const float pi_x2 = (2.0f * float(M_PI));
 
   float deul[3];
   uint i;
@@ -1643,9 +1643,9 @@ void eulO_to_quat(float q[4], const float e[3], const short order)
   double ti, tj, th, ci, cj, ch, si, sj, sh, cc, cs, sc, ss;
   double a[3];
 
-  ti = (double)e[i] * 0.5;
-  tj = (double)e[j] * (R->parity ? -0.5 : 0.5);
-  th = (double)e[k] * 0.5;
+  ti = double(e[i]) * 0.5;
+  tj = double(e[j]) * (R->parity ? -0.5 : 0.5);
+  th = double(e[k]) * 0.5;
 
   ci = cos(ti);
   cj = cos(tj);
@@ -1663,10 +1663,10 @@ void eulO_to_quat(float q[4], const float e[3], const short order)
   a[j] = cj * ss + sj * cc;
   a[k] = cj * cs - sj * sc;
 
-  q[0] = (float)(cj * cc + sj * ss);
-  q[1] = (float)(a[0]);
-  q[2] = (float)(a[1]);
-  q[3] = (float)(a[2]);
+  q[0] = float(cj * cc + sj * ss);
+  q[1] = float(a[0]);
+  q[2] = float(a[1]);
+  q[3] = float(a[2]);
 
   if (R->parity) {
     q[j + 1] = -q[j + 1];
@@ -1710,15 +1710,15 @@ void eulO_to_mat3(float M[3][3], const float e[3], const short order)
   sc = si * ch;
   ss = si * sh;
 
-  M[i][i] = (float)(cj * ch);
-  M[j][i] = (float)(sj * sc - cs);
-  M[k][i] = (float)(sj * cc + ss);
-  M[i][j] = (float)(cj * sh);
-  M[j][j] = (float)(sj * ss + cc);
-  M[k][j] = (float)(sj * cs - sc);
-  M[i][k] = (float)(-sj);
-  M[j][k] = (float)(cj * si);
-  M[k][k] = (float)(cj * ci);
+  M[i][i] = float(cj * ch);
+  M[j][i] = float(sj * sc - cs);
+  M[k][i] = float(sj * cc + ss);
+  M[i][j] = float(cj * sh);
+  M[j][j] = float(sj * ss + cc);
+  M[k][j] = float(sj * cs - sc);
+  M[i][k] = float(-sj);
+  M[j][k] = float(cj * si);
+  M[k][k] = float(cj * ci);
 }
 
 /* returns two euler calculation methods, so we can pick the best */
@@ -1735,7 +1735,7 @@ static void mat3_normalized_to_eulo2(const float mat[3][3],
 
   cy = hypotf(mat[i][i], mat[i][j]);
 
-  if (cy > (float)EULER_HYPOT_EPSILON) {
+  if (cy > float(EULER_HYPOT_EPSILON)) {
     eul1[i] = atan2f(mat[j][k], mat[k][k]);
     eul1[j] = atan2f(-mat[i][k], cy);
     eul1[k] = atan2f(mat[i][j], mat[i][i]);
@@ -2230,7 +2230,7 @@ void copy_dq_dq(DualQuat *r, const DualQuat *dq)
 void quat_apply_track(float quat[4], short axis, short upflag)
 {
   /* rotations are hard coded to match vec_to_quat */
-  const float sqrt_1_2 = (float)M_SQRT1_2;
+  const float sqrt_1_2 = float(M_SQRT1_2);
   const float quat_track[][4] = {
       /* pos-y90 */
       {sqrt_1_2, 0.0, -sqrt_1_2, 0.0},
@@ -2252,7 +2252,7 @@ void quat_apply_track(float quat[4], short axis, short upflag)
   mul_qt_qtqt(quat, quat, quat_track[axis]);
 
   if (axis > 2) {
-    axis = (short)(axis - 3);
+    axis = short(axis - 3);
   }
 
   /* there are 2 possible up-axis for each axis used, the 'quat_track' applies so the first
@@ -2325,7 +2325,7 @@ static float mod_inline(float a, float b)
 
 float angle_wrap_rad(float angle)
 {
-  return mod_inline(angle + (float)M_PI, (float)M_PI * 2.0f) - (float)M_PI;
+  return mod_inline(angle + float(M_PI), float(M_PI) * 2.0f) - float(M_PI);
 }
 
 float angle_wrap_deg(float angle)

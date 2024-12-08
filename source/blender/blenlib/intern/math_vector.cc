@@ -191,9 +191,9 @@ void interp_v3_v3v3_uchar(uchar target[3], const uchar a[3], const uchar b[3], c
 {
   const float s = 1.0f - t;
 
-  target[0] = (char)floorf(s * a[0] + t * b[0]);
-  target[1] = (char)floorf(s * a[1] + t * b[1]);
-  target[2] = (char)floorf(s * a[2] + t * b[2]);
+  target[0] = char(floorf(s * a[0] + t * b[0]));
+  target[1] = char(floorf(s * a[1] + t * b[1]));
+  target[2] = char(floorf(s * a[2] + t * b[2]));
 }
 
 void mid_v3_v3v3(float r[3], const float a[3], const float b[3])
@@ -232,7 +232,7 @@ void mid_v3_v3v3v3v3(
 
 void mid_v3_v3_array(float r[3], const float (*vec_arr)[3], const uint vec_arr_num)
 {
-  const float factor = 1.0f / (float)vec_arr_num;
+  const float factor = 1.0f / float(vec_arr_num);
   zero_v3(r);
 
   for (uint i = 0; i < vec_arr_num; i++) {
@@ -251,7 +251,7 @@ void mid_v3_v3v3_angle_weighted(float r[3], const float a[3], const float b[3])
   BLI_ASSERT_UNIT_V3(b);
 
   add_v3_v3v3(r, a, b);
-  angle = ((float)M_2_PI *
+  angle = (float(M_2_PI) *
            /* normally we would only multiply by 2,
             * but instead of an angle make this 0-1 factor */
            2.0f) *
@@ -362,7 +362,7 @@ float angle_normalized_v3v3(const float v1[3], const float v2[3])
 
   float v2_n[3];
   negate_v3_v3(v2_n, v2);
-  return (float)M_PI - 2.0f * safe_asinf(len_v3v3(v1, v2_n) / 2.0f);
+  return float(M_PI) - 2.0f * safe_asinf(len_v3v3(v1, v2_n) / 2.0f);
 }
 
 float angle_normalized_v2v2(const float a[2], const float b[2])
@@ -378,7 +378,7 @@ float angle_normalized_v2v2(const float a[2], const float b[2])
 
   float v2_n[2];
   negate_v2_v2(v2_n, b);
-  return (float)M_PI - 2.0f * safe_asinf(len_v2v2(a, v2_n) / 2.0f);
+  return float(M_PI) - 2.0f * safe_asinf(len_v2v2(a, v2_n) / 2.0f);
 }
 
 float angle_on_axis_v3v3_v3(const float v1[3], const float v2[3], const float axis[3])
@@ -406,7 +406,7 @@ float angle_signed_on_axis_v3v3_v3(const float v1[3], const float v2[3], const f
   /* calculate the sign (reuse 'tproj') */
   cross_v3_v3v3(tproj, v2_proj, v1_proj);
   if (dot_v3v3(tproj, axis) < 0.0f) {
-    angle = (float)(M_PI * 2.0) - angle;
+    angle = float(M_PI * 2.0) - angle;
   }
 
   return angle;
@@ -450,10 +450,10 @@ void angle_tri_v3(float angles[3], const float v1[3], const float v2[3], const f
   normalize_v3(ed2);
   normalize_v3(ed3);
 
-  angles[0] = (float)M_PI - angle_normalized_v3v3(ed1, ed2);
-  angles[1] = (float)M_PI - angle_normalized_v3v3(ed2, ed3);
+  angles[0] = float(M_PI) - angle_normalized_v3v3(ed1, ed2);
+  angles[1] = float(M_PI) - angle_normalized_v3v3(ed2, ed3);
   // face_angles[2] = M_PI - angle_normalized_v3v3(ed3, ed1);
-  angles[2] = (float)M_PI - (angles[0] + angles[1]);
+  angles[2] = float(M_PI) - (angles[0] + angles[1]);
 }
 
 void angle_quad_v3(
@@ -471,10 +471,10 @@ void angle_quad_v3(
   normalize_v3(ed3);
   normalize_v3(ed4);
 
-  angles[0] = (float)M_PI - angle_normalized_v3v3(ed1, ed2);
-  angles[1] = (float)M_PI - angle_normalized_v3v3(ed2, ed3);
-  angles[2] = (float)M_PI - angle_normalized_v3v3(ed3, ed4);
-  angles[3] = (float)M_PI - angle_normalized_v3v3(ed4, ed1);
+  angles[0] = float(M_PI) - angle_normalized_v3v3(ed1, ed2);
+  angles[1] = float(M_PI) - angle_normalized_v3v3(ed2, ed3);
+  angles[2] = float(M_PI) - angle_normalized_v3v3(ed3, ed4);
+  angles[3] = float(M_PI) - angle_normalized_v3v3(ed4, ed1);
 }
 
 void angle_poly_v3(float *angles, const float *verts[3], int len)
@@ -487,7 +487,7 @@ void angle_poly_v3(float *angles, const float *verts[3], int len)
   for (i = 0; i < len; i++) {
     sub_v3_v3v3(vec[i % 3], verts[i % len], verts[(i + 1) % len]);
     normalize_v3(vec[i % 3]);
-    angles[i] = (float)M_PI - angle_normalized_v3v3(vec[(i + 2) % 3], vec[i % 3]);
+    angles[i] = float(M_PI) - angle_normalized_v3v3(vec[(i + 2) % 3], vec[i % 3]);
   }
 }
 
@@ -857,7 +857,7 @@ double dot_vn_vn(const float *array_src_a, const float *array_src_b, const int s
   const float *array_pt_b = array_src_b + (size - 1);
   int i = size;
   while (i--) {
-    d += (double)(*(array_pt_a--) * *(array_pt_b--));
+    d += double(*(array_pt_a--) * *(array_pt_b--));
   }
   return d;
 }
@@ -868,7 +868,7 @@ double len_squared_vn(const float *array, const int size)
   const float *array_pt = array + (size - 1);
   int i = size;
   while (i--) {
-    d += sqr_db((double)*(array_pt--));
+    d += sqr_db(double(*(array_pt)--));
   }
   return d;
 }
@@ -878,7 +878,7 @@ float normalize_vn_vn(float *array_tar, const float *array_src, const int size)
   const double d = len_squared_vn(array_src, size);
   float d_sqrt;
   if (d > 1.0e-35) {
-    d_sqrt = (float)sqrt(d);
+    d_sqrt = float(sqrt(d));
     mul_vn_vn_fl(array_tar, array_src, size, 1.0f / d_sqrt);
   }
   else {
@@ -906,7 +906,7 @@ void range_vn_i(int *array_tar, const int size, const int start)
 void range_vn_u(uint *array_tar, const int size, const uint start)
 {
   uint *array_pt = array_tar + (size - 1);
-  uint j = start + (uint)(size - 1);
+  uint j = start + uint(size - 1);
   int i = size;
   while (i--) {
     *(array_pt--) = j--;
@@ -918,7 +918,7 @@ void range_vn_fl(float *array_tar, const int size, const float start, const floa
   float *array_pt = array_tar + (size - 1);
   int i = size;
   while (i--) {
-    *(array_pt--) = start + step * (float)(i);
+    *(array_pt--) = start + step * float(i);
   }
 }
 

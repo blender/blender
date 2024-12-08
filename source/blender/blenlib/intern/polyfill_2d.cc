@@ -196,7 +196,7 @@ static eSign span_tri_v2_sign(const float v1[2], const float v2[2], const float 
 }
 
 #ifdef USE_KDTREE
-#  define KDNODE_UNSET ((uint32_t)-1)
+#  define KDNODE_UNSET (uint32_t(-1))
 
 enum {
   KDNODE_FLAG_REMOVED = (1 << 0),
@@ -229,7 +229,7 @@ static void kdtree2d_init(KDTree2D *tree, const uint32_t coords_num, const PolyI
     }
   }
 
-  BLI_assert(tree->node_num == (uint32_t)(node - tree->nodes));
+  BLI_assert(tree->node_num == uint32_t(node - tree->nodes));
 }
 
 static uint32_t kdtree2d_balance_recursive(KDTreeNode2D *nodes,
@@ -338,7 +338,7 @@ static void kdtree2d_node_remove(KDTree2D *tree, uint32_t index)
   {
     KDTreeNode2D *node_parent = &tree->nodes[node->parent];
 
-    BLI_assert((uint32_t)(node - tree->nodes) == node_index);
+    BLI_assert(uint32_t(node - tree->nodes) == node_index);
     if (node_parent->neg == node_index) {
       node_parent->neg = KDNODE_UNSET;
     }
@@ -466,7 +466,7 @@ static void pf_coord_remove(PolyFill *pf, PolyIndex *pi)
     pf->indices = pi->next;
   }
 #ifndef NDEBUG
-  pi->index = (uint32_t)-1;
+  pi->index = uint32_t(-1);
   pi->next = pi->prev = nullptr;
 #endif /* !NDEBUG */
 

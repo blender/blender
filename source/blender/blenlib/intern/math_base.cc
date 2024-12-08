@@ -31,7 +31,7 @@ double double_round(double x, int ndigits)
 
   double pow1, pow2, y, z;
   if (ndigits >= 0) {
-    pow1 = pow(10.0, (double)ndigits);
+    pow1 = pow(10.0, double(ndigits));
     pow2 = 1.0;
     y = (x * pow1) * pow2;
     /* if y overflows, then rounded value is exactly x */
@@ -40,7 +40,7 @@ double double_round(double x, int ndigits)
     }
   }
   else {
-    pow1 = pow(10.0, (double)-ndigits);
+    pow1 = pow(10.0, double(-ndigits));
     pow2 = 1.0; /* unused; silences a gcc compiler warning */
     y = x / pow1;
   }

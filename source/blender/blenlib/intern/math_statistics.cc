@@ -83,7 +83,7 @@ void BLI_covariance_m_vn_ex(const int n,
   /* Note about that division: see https://en.wikipedia.org/wiki/Bessel%27s_correction.
    * In a nutshell, it must be 1 / (n - 1) for 'sample data', and 1 / n for 'population data'...
    */
-  const float covfac = 1.0f / (float)(use_sample_correction ? cos_vn_num - 1 : cos_vn_num);
+  const float covfac = 1.0f / float(use_sample_correction ? cos_vn_num - 1 : cos_vn_num);
 
   memset(r_covmat, 0, sizeof(*r_covmat) * (size_t)(n * n));
 
@@ -108,7 +108,7 @@ void BLI_covariance_m3_v3n(const float (*cos_v3)[3],
                            float r_center[3])
 {
   float center[3];
-  const float mean_fac = 1.0f / (float)cos_v3_num;
+  const float mean_fac = 1.0f / float(cos_v3_num);
   int i;
 
   zero_v3(center);

@@ -335,7 +335,7 @@ static void polyedge_rotate(HalfEdge *edges, const HalfEdge *e)
   HalfEdge *ed[6];
   uint ed_index[6];
 
-  ed_index[0] = (uint)(e - edges);
+  ed_index[0] = uint(e - edges);
   ed[0] = &edges[ed_index[0]];
   ed_index[1] = ed[0]->e_next;
   ed[1] = &edges[ed_index[1]];

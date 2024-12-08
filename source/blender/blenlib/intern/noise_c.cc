@@ -280,11 +280,11 @@ static float newPerlin(float x, float y, float z)
 {
   int A, AA, AB, B, BA, BB;
   float u = floor(x), v = floor(y), w = floor(z);
-  int X = ((int)u) & 255;
-  int Y = ((int)v) & 255;
-  int Z = ((int)w) & 255; /* FIND UNIT CUBE THAT CONTAINS POINT */
-  x -= u;                 /* FIND RELATIVE X,Y,Z */
-  y -= v;                 /* OF POINT IN CUBE. */
+  int X = int(u) & 255;
+  int Y = int(v) & 255;
+  int Z = int(w) & 255; /* FIND UNIT CUBE THAT CONTAINS POINT */
+  x -= u;               /* FIND RELATIVE X,Y,Z */
+  y -= v;               /* OF POINT IN CUBE. */
   z -= w;
   u = npfade(x); /* COMPUTE FADE CURVES */
   v = npfade(y); /* FOR EACH OF X,Y,Z. */
@@ -341,9 +341,9 @@ static float orgBlenderNoise(float x, float y, float z)
   oy = y - fy;
   oz = z - fz;
 
-  ix = (int)fx;
-  iy = (int)fy;
-  iz = (int)fz;
+  ix = int(fx);
+  iy = int(fy);
+  iz = int(fz);
 
   jx = ox - 1;
   jy = oy - 1;
@@ -751,7 +751,7 @@ static const float g_perlin_data_v3[512 + 2][3] = {
 #define SETUP(val, b0, b1, r0, r1) \
   { \
     t = val + 10000.0f; \
-    b0 = ((int)t) & 255; \
+    b0 = (int(t)) & 255; \
     b1 = (b0 + 1) & 255; \
     r0 = t - floorf(t); \
     r1 = r0 - 1.0f; \
@@ -939,9 +939,9 @@ void BLI_noise_voronoi(float x, float y, float z, float *da, float *pa, float me
       break;
   }
 
-  int xi = (int)floor(x);
-  int yi = (int)floor(y);
-  int zi = (int)floor(z);
+  int xi = int(floor(x));
+  int yi = int(floor(y));
+  int zi = int(floor(z));
   da[0] = da[1] = da[2] = da[3] = 1e10f;
   for (int xx = xi - 1; xx <= xi + 1; xx++) {
     for (int yy = yi - 1; yy <= yi + 1; yy++) {
@@ -1114,12 +1114,12 @@ static float BLI_cellNoiseU(float x, float y, float z)
   y = (y + 0.000001f) * 1.00001f;
   z = (z + 0.000001f) * 1.00001f;
 
-  int xi = (int)floor(x);
-  int yi = (int)floor(y);
-  int zi = (int)floor(z);
+  int xi = int(floor(x));
+  int yi = int(floor(y));
+  int zi = int(floor(z));
   uint n = xi + yi * 1301 + zi * 314159;
   n ^= (n << 13);
-  return ((float)(n * (n * n * 15731 + 789221) + 1376312589) / 4294967296.0f);
+  return (float(n * (n * n * 15731 + 789221) + 1376312589) / 4294967296.0f);
 }
 
 float BLI_noise_cell(float x, float y, float z)
@@ -1134,9 +1134,9 @@ void BLI_noise_cell_v3(float x, float y, float z, float r_ca[3])
   y = (y + 0.000001f) * 1.00001f;
   z = (z + 0.000001f) * 1.00001f;
 
-  int xi = (int)floor(x);
-  int yi = (int)floor(y);
-  int zi = (int)floor(z);
+  int xi = int(floor(x));
+  int yi = int(floor(y));
+  int zi = int(floor(z));
   const float *p = HASHPNT(xi, yi, zi);
   r_ca[0] = p[0];
   r_ca[1] = p[1];
@@ -1263,7 +1263,7 @@ float BLI_noise_generic_turbulence(
     sum += t * amp;
   }
 
-  sum *= ((float)(1 << oct) / (float)((1 << (oct + 1)) - 1));
+  sum *= float(1 << oct) / float((1 << (oct + 1)) - 1);
 
   return sum;
 }
@@ -1311,7 +1311,7 @@ float BLI_noise_mg_fbm(
   }
 
   float value = 0.0, pwr = 1.0, pwHL = powf(lacunarity, -H);
-  for (int i = 0; i < (int)octaves; i++) {
+  for (int i = 0; i < int(octaves); i++) {
     value += noisefunc(x, y, z) * pwr;
     pwr *= pwHL;
     x *= lacunarity;
@@ -1372,7 +1372,7 @@ float BLI_noise_mg_multi_fractal(
   }
 
   float value = 1.0, pwr = 1.0, pwHL = powf(lacunarity, -H);
-  for (int i = 0; i < (int)octaves; i++) {
+  for (int i = 0; i < int(octaves); i++) {
     value *= (pwr * noisefunc(x, y, z) + 1.0f);
     pwr *= pwHL;
     x *= lacunarity;
@@ -1440,7 +1440,7 @@ float BLI_noise_mg_hetero_terrain(float x,
 
   float pwHL = powf(lacunarity, -H);
   float pwr = pwHL; /* starts with i=1 instead of 0 */
-  for (int i = 1; i < (int)octaves; i++) {
+  for (int i = 1; i < int(octaves); i++) {
     float increment = (noisefunc(x, y, z) + offset) * pwr * value;
     value += increment;
     pwr *= pwHL;
@@ -1511,7 +1511,7 @@ float BLI_noise_mg_hybrid_multi_fractal(float x,
 
   float pwHL = powf(lacunarity, -H);
   float pwr = pwHL; /* starts with i=1 instead of 0 */
-  for (int i = 1; (weight > 0.001f) && (i < (int)octaves); i++) {
+  for (int i = 1; (weight > 0.001f) && (i < int(octaves)); i++) {
     if (weight > 1.0f) {
       weight = 1.0f;
     }
@@ -1583,7 +1583,7 @@ float BLI_noise_mg_ridged_multi_fractal(float x,
   float result = signal;
   float pwHL = powf(lacunarity, -H);
   float pwr = pwHL; /* starts with i=1 instead of 0 */
-  for (int i = 1; i < (int)octaves; i++) {
+  for (int i = 1; i < int(octaves); i++) {
     x *= lacunarity;
     y *= lacunarity;
     z *= lacunarity;

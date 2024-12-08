@@ -206,12 +206,12 @@ void ScreenSpaceDrawingMode::do_partial_update(
 
       int offset = 0;
       for (int y = gpu_texture_region_to_update.ymin; y < gpu_texture_region_to_update.ymax; y++) {
-        float yf = y / (float)texture_height;
+        float yf = y / float(texture_height);
         float v = info.clipping_uv_bounds.ymax * yf + info.clipping_uv_bounds.ymin * (1.0 - yf) -
                   tile_offset_y;
         for (int x = gpu_texture_region_to_update.xmin; x < gpu_texture_region_to_update.xmax; x++)
         {
-          float xf = x / (float)texture_width;
+          float xf = x / float(texture_width);
           float u = info.clipping_uv_bounds.xmax * xf + info.clipping_uv_bounds.xmin * (1.0 - xf) -
                     tile_offset_x;
           imbuf::interpolate_nearest_border_fl(tile_buffer,

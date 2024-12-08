@@ -51,7 +51,7 @@ bool BLI_tridiagonal_solve(
     return false;
   }
 
-  size_t bytes = sizeof(double) * (uint)count;
+  size_t bytes = sizeof(double) * uint(count);
   double *c1 = (double *)MEM_mallocN(bytes * 2, "tridiagonal_c1d1");
   if (!c1) {
     return false;
@@ -63,8 +63,8 @@ bool BLI_tridiagonal_solve(
 
   /* forward pass */
 
-  c1[0] = c_prev = ((double)c[0]) / b[0];
-  d1[0] = d_prev = ((double)d[0]) / b[0];
+  c1[0] = c_prev = double(c[0]) / b[0];
+  d1[0] = d_prev = double(d[0]) / b[0];
 
   for (i = 1; i < count; i++) {
     double denum = b[i] - a[i] * c_prev;
@@ -76,11 +76,11 @@ bool BLI_tridiagonal_solve(
   /* back pass */
 
   x_prev = d_prev;
-  r_x[--i] = ((float)x_prev);
+  r_x[--i] = float(x_prev);
 
   while (--i >= 0) {
     x_prev = d1[i] - c1[i] * x_prev;
-    r_x[i] = ((float)x_prev);
+    r_x[i] = float(x_prev);
   }
 
   MEM_freeN(c1);
@@ -117,7 +117,7 @@ bool BLI_tridiagonal_solve_cyclic(
     return BLI_tridiagonal_solve(a, b, c, d, r_x, count);
   }
 
-  size_t bytes = sizeof(float) * (uint)count;
+  size_t bytes = sizeof(float) * uint(count);
   float *tmp = (float *)MEM_mallocN(bytes * 2, "tridiagonal_ex");
   if (!tmp) {
     return false;
