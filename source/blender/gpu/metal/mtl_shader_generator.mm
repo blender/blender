@@ -44,6 +44,7 @@ using namespace blender::gpu::shader;
 
 namespace blender::gpu {
 
+std::mutex msl_patch_default_lock;
 char *MSLGeneratorInterface::msl_patch_default = nullptr;
 
 /* Generator names. */
@@ -330,7 +331,9 @@ std::string MTLShader::compute_layout_declare(const ShaderCreateInfo & /*info*/)
 
 char *MSLGeneratorInterface::msl_patch_default_get()
 {
+  msl_patch_default_lock.lock();
   if (msl_patch_default != nullptr) {
+    msl_patch_default_lock.unlock();
     return msl_patch_default;
   }
 
@@ -341,6 +344,7 @@ char *MSLGeneratorInterface::msl_patch_default_get()
 
   msl_patch_default = (char *)malloc(len * sizeof(char));
   memcpy(msl_patch_default, ss_patch.str().c_str(), len * sizeof(char));
+  msl_patch_default_lock.unlock();
   return msl_patch_default;
 }
 
