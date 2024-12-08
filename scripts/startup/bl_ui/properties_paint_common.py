@@ -4,6 +4,7 @@
 
 import bpy
 from bpy.types import Menu, Panel
+from bpy.app.translations import contexts as i18n_contexts
 
 
 class BrushAssetShelf:
@@ -1259,7 +1260,7 @@ def brush_settings_advanced(layout, context, brush, popover=False):
 
         col = layout.column(heading="Affect", align=True)
         col.prop(gp_settings, "use_edit_position", text="Position")
-        col.prop(gp_settings, "use_edit_strength", text="Strength")
+        col.prop(gp_settings, "use_edit_strength", text="Strength", text_ctxt=i18n_contexts.id_gpencil)
         col.prop(gp_settings, "use_edit_thickness", text="Thickness")
         col.prop(gp_settings, "use_edit_uv", text="UV")
 

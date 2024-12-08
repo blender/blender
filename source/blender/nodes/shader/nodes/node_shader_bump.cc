@@ -24,7 +24,8 @@ static void node_declare(NodeDeclarationBuilder &b)
       .subtype(PROP_FACTOR)
       .description(
           "Strength of the bump mapping effect, interpolating between "
-          "no bump mapping and full bump mapping");
+          "no bump mapping and full bump mapping")
+      .translation_context(BLT_I18NCONTEXT_AMOUNT);
   b.add_input<decl::Float>("Distance")
       .default_value(1.0f)
       .min(0.0f)

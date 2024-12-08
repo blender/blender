@@ -765,7 +765,7 @@ class PHYSICS_PT_noise(PhysicButtonsPanel, Panel):
 
         col = flow.column()
         col.prop(domain, "noise_scale", text="Upres Factor")
-        col.prop(domain, "noise_strength", text="Strength")
+        col.prop(domain, "noise_strength", text="Strength", text_ctxt=i18n_contexts.amount)
 
         col = flow.column()
         col.prop(domain, "noise_pos_scale", text="Scale")
@@ -1135,7 +1135,7 @@ class PHYSICS_PT_viscosity(PhysicButtonsPanel, Panel):
         flow.enabled = not is_baking_any and not has_baked_any and not has_baked_data
 
         col = flow.column(align=True)
-        col.prop(domain, "viscosity_value", text="Strength")
+        col.prop(domain, "viscosity_value", text="Strength", text_ctxt=i18n_contexts.amount)
 
 
 class PHYSICS_PT_guide(PhysicButtonsPanel, Panel):

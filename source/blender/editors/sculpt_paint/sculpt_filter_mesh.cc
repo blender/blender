@@ -2503,8 +2503,9 @@ void register_operator_props(wmOperatorType *ot)
                 "of brush radius",
                 0.01,
                 1.0);
-  RNA_def_float(
+  PropertyRNA *prop = RNA_def_float(
       ot->srna, "strength", 1.0f, -10.0f, 10.0f, "Strength", "Filter strength", -10.0f, 10.0f);
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_AMOUNT);
   RNA_def_int(ot->srna,
               "iteration_count",
               1,
@@ -2516,8 +2517,7 @@ void register_operator_props(wmOperatorType *ot)
               100);
 
   /* Smooth filter requires entire event history. */
-  PropertyRNA *prop = RNA_def_collection_runtime(
-      ot->srna, "event_history", &RNA_OperatorStrokeElement, "", "");
+  prop = RNA_def_collection_runtime(ot->srna, "event_history", &RNA_OperatorStrokeElement, "", "");
   RNA_def_property_flag(prop, PropertyFlag(int(PROP_HIDDEN) | int(PROP_SKIP_SAVE)));
 }
 

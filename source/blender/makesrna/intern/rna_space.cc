@@ -4327,6 +4327,7 @@ static void rna_def_space_view3d_shading(BlenderRNA *brna)
   RNA_def_property_float_sdna(prop, nullptr, "studiolight_intensity");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_ui_text(prop, "Strength", "Strength of the studiolight");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_AMOUNT);
   RNA_def_property_range(prop, 0.0f, FLT_MAX);
   RNA_def_property_ui_range(prop, 0.0f, 2.0f, 1, 3);
   RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D | NS_VIEW3D_SHADING, nullptr);

@@ -279,7 +279,12 @@ static void panel_draw(const bContext *C, Panel *panel)
 
   col = uiLayoutColumn(layout, false);
   uiItemR(col, ptr, "factor", UI_ITEM_NONE, IFACE_("Position"), ICON_NONE);
-  uiItemR(col, ptr, "factor_strength", UI_ITEM_NONE, IFACE_("Strength"), ICON_NONE);
+  uiItemR(col,
+          ptr,
+          "factor_strength",
+          UI_ITEM_NONE,
+          CTX_IFACE_(BLT_I18NCONTEXT_ID_GPENCIL, "Strength"),
+          ICON_NONE);
   uiItemR(col, ptr, "factor_thickness", UI_ITEM_NONE, IFACE_("Thickness"), ICON_NONE);
   uiItemR(col, ptr, "factor_uvs", UI_ITEM_NONE, IFACE_("UV"), ICON_NONE);
   uiItemR(col, ptr, "noise_scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);

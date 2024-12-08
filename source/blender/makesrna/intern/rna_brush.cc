@@ -1405,6 +1405,7 @@ static void rna_def_gpencil_options(BlenderRNA *brna)
   RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.001, 3);
   RNA_def_property_ui_text(
       prop, "Strength", "Color strength for new strokes (affect alpha factor of color)");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_GPENCIL);
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_update(prop, NC_GPENCIL | ND_DATA, "rna_BrushGpencilSettings_update");
 

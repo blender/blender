@@ -3898,6 +3898,7 @@ static void rna_def_modifier_displace(BlenderRNA *brna)
   RNA_def_property_range(prop, -FLT_MAX, FLT_MAX);
   RNA_def_property_ui_range(prop, -100, 100, 10, 3);
   RNA_def_property_ui_text(prop, "Strength", "Amount to displace geometry");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_AMOUNT);
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   prop = RNA_def_property(srna, "direction", PROP_ENUM, PROP_NONE);
@@ -10656,6 +10657,7 @@ static void rna_def_modifier_grease_pencil_envelope(BlenderRNA *brna)
   RNA_def_property_range(prop, 0, FLT_MAX);
   RNA_def_property_ui_range(prop, 0, 1, 10, 3);
   RNA_def_property_ui_text(prop, "Strength", "Multiplier for the strength of the new strokes");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_GPENCIL);
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   prop = RNA_def_property(srna, "skip", PROP_INT, PROP_NONE);

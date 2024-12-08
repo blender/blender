@@ -28,6 +28,8 @@
 #include "BLI_task.hh"
 #include "BLI_vector.hh"
 
+#include "BLT_translation.hh"
+
 #include "DNA_customdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -1623,7 +1625,8 @@ void SCULPT_OT_face_sets_edit(wmOperatorType *ot)
       {0, nullptr, 0, nullptr, nullptr},
   };
   RNA_def_enum(ot->srna, "mode", modes, int(EditMode::Grow), "Mode", "");
-  RNA_def_float(ot->srna, "strength", 1.0f, 0.0f, 1.0f, "Strength", "", 0.0f, 1.0f);
+  prop = RNA_def_float(ot->srna, "strength", 1.0f, 0.0f, 1.0f, "Strength", "", 0.0f, 1.0f);
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_AMOUNT);
 
   ot->prop = RNA_def_boolean(ot->srna,
                              "modify_hidden",

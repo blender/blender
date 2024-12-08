@@ -19,7 +19,8 @@ static void node_declare(NodeDeclarationBuilder &b)
       .default_value(1.0f)
       .min(0.0f)
       .max(1000000.0f)
-      .description("Strength of the light source");
+      .description("Strength of the light source")
+      .translation_context(BLT_I18NCONTEXT_AMOUNT);
   b.add_output<decl::Float>("Fac");
 }
 

@@ -15,7 +15,8 @@ static void node_declare(NodeDeclarationBuilder &b)
       .default_value(1.0f)
       .min(0.0f)
       .max(1000000.0f)
-      .description("Strength of the emitted light");
+      .description("Strength of the emitted light")
+      .translation_context(BLT_I18NCONTEXT_AMOUNT);
   b.add_input<decl::Float>("Weight").available(false);
   b.add_output<decl::Shader>("Background");
 }

@@ -1666,6 +1666,7 @@ static void rna_def_fmodifier_noise(BlenderRNA *brna)
       prop,
       "Strength",
       "Amplitude of the noise - the amount that it modifies the underlying curve");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_AMOUNT);
   RNA_def_property_update(prop, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, "rna_FModifier_update");
 
   prop = RNA_def_property(srna, "phase", PROP_FLOAT, PROP_NONE);

@@ -911,7 +911,7 @@ class PHYSICS_PT_dp_brush_velocity_smudge(PhysicButtonsPanel, Panel):
         brush = context.dynamic_paint.brush_settings
 
         layout.active = brush.use_smudge
-        layout.prop(brush, "smudge_strength", text="Strength", slider=True)
+        layout.prop(brush, "smudge_strength", text="Strength", text_ctxt=i18n_contexts.amount, slider=True)
 
 
 class PHYSICS_PT_dp_brush_wave(PhysicButtonsPanel, Panel):

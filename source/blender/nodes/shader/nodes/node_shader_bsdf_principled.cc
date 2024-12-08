@@ -269,7 +269,8 @@ static void node_declare(NodeDeclarationBuilder &b)
       .short_label("Strength")
       .description(
           "Strength of the emitted light. A value of 1.0 ensures "
-          "that the object in the image has the exact same color as the Emission Color");
+          "that the object in the image has the exact same color as the Emission Color")
+      .translation_context(BLT_I18NCONTEXT_AMOUNT);
 #define SOCK_EMISSION_STRENGTH_ID 28
 
   /* Panel for Thin Film settings. */

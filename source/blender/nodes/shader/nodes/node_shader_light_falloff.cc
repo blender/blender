@@ -12,7 +12,8 @@ static void node_declare(NodeDeclarationBuilder &b)
       .default_value(100.0f)
       .min(0.0f)
       .max(1000000.0f)
-      .description("Light strength before applying falloff modification");
+      .description("Light strength before applying falloff modification")
+      .translation_context(BLT_I18NCONTEXT_AMOUNT);
 
   b.add_input<decl::Float>("Smooth").default_value(0.0f).min(0.0f).max(1000.0f).description(
       "Smooth intensity of light near light sources.\n"
