@@ -507,7 +507,7 @@ static void restrictions_panel_draw(const bContext * /*C*/, Panel *panel)
     }
   }
 
-  modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", nullptr);
+  modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", std::nullopt);
 }
 
 static void panel_register(ARegionType *region_type)

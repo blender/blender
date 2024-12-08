@@ -779,7 +779,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
     uiItemR(sub, ptr, "invert_vertex_group", UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
   }
   else if (mode == MOD_MASK_MODE_VGROUP) {
-    modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", nullptr);
+    modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", std::nullopt);
     uiItemR(layout, ptr, "use_smooth", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 

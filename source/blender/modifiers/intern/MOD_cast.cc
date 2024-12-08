@@ -484,7 +484,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   uiItemR(layout, ptr, "size", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   uiItemR(layout, ptr, "use_radius_as_size", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", nullptr);
+  modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", std::nullopt);
 
   uiItemR(layout, ptr, "object", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   if (!RNA_pointer_is_null(&cast_object_ptr)) {

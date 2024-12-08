@@ -246,7 +246,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
     uiItemR(layout, ptr, "use_collapse_triangulate", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-    modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", nullptr);
+    modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", std::nullopt);
     sub = uiLayoutRow(layout, true);
     bool has_vertex_group = RNA_string_length(ptr, "vertex_group") != 0;
     uiLayoutSetActive(sub, has_vertex_group);

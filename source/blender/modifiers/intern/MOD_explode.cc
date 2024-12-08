@@ -1187,7 +1187,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   uiItemR(col, ptr, "use_edge_cut", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   uiItemR(col, ptr, "use_size", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", nullptr);
+  modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", std::nullopt);
 
   row = uiLayoutRow(layout, false);
   uiLayoutSetActive(row, has_vertex_group);

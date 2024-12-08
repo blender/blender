@@ -754,7 +754,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   uiItemR(layout, ptr, "scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   uiItemR(layout, ptr, "smooth_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", nullptr);
+  modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", std::nullopt);
 
   uiItemR(layout, ptr, "use_only_smooth", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   uiItemR(layout, ptr, "use_pin_boundary", UI_ITEM_NONE, std::nullopt, ICON_NONE);

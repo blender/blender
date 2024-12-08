@@ -419,7 +419,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   uiItemR(col, ptr, "strength", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   uiItemR(col, ptr, "mid_level", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  modifier_vgroup_ui(col, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", nullptr);
+  modifier_vgroup_ui(col, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", std::nullopt);
 
   modifier_panel_end(layout, ptr);
 }

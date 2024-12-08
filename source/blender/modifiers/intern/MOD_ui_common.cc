@@ -34,6 +34,8 @@
 
 #include "MOD_ui_common.hh" /* Self include */
 
+using blender::StringRefNull;
+
 /**
  * Poll function so these modifier panels don't show for other object types with modifiers (only
  * grease pencil currently).
@@ -122,19 +124,19 @@ PointerRNA *modifier_panel_get_property_pointers(Panel *panel, PointerRNA *r_ob_
 void modifier_vgroup_ui(uiLayout *layout,
                         PointerRNA *ptr,
                         PointerRNA *ob_ptr,
-                        const char *vgroup_prop,
-                        const char *invert_vgroup_prop,
-                        const char *text)
+                        const StringRefNull vgroup_prop,
+                        const std::optional<StringRefNull> invert_vgroup_prop,
+                        const std::optional<StringRefNull> text)
 {
-  bool has_vertex_group = RNA_string_length(ptr, vgroup_prop) != 0;
+  bool has_vertex_group = RNA_string_length(ptr, vgroup_prop.c_str()) != 0;
 
   uiLayout *row = uiLayoutRow(layout, true);
   uiItemPointerR(row, ptr, vgroup_prop, ob_ptr, "vertex_groups", text, ICON_GROUP_VERTEX);
-  if (invert_vgroup_prop != nullptr) {
+  if (invert_vgroup_prop) {
     uiLayout *sub = uiLayoutRow(row, true);
     uiLayoutSetActive(sub, has_vertex_group);
     uiLayoutSetPropDecorate(sub, false);
-    uiItemR(sub, ptr, invert_vgroup_prop, UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
+    uiItemR(sub, ptr, *invert_vgroup_prop, UI_ITEM_NONE, "", ICON_ARROW_LEFTRIGHT);
   }
 }
 

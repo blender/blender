@@ -450,7 +450,8 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group_a", "invert_vertex_group_a", nullptr);
+  modifier_vgroup_ui(
+      layout, ptr, &ob_ptr, "vertex_group_a", "invert_vertex_group_a", std::nullopt);
   modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group_b", "invert_vertex_group_b", IFACE_("B"));
 
   uiItemS(layout);

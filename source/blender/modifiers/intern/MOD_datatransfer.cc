@@ -225,7 +225,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
                           CDT_MIX_REPLACE_BELOW_THRESHOLD));
   uiItemR(row, ptr, "mix_factor", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", nullptr);
+  modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", std::nullopt);
 
   uiItemO(layout, IFACE_("Generate Data Layers"), ICON_NONE, "OBJECT_OT_datalayout_transfer");
 

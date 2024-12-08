@@ -304,7 +304,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   uiItemR(layout, ptr, "factor", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
   uiItemR(layout, ptr, "deform_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   uiItemR(layout, ptr, "interpolation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
-  modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", nullptr);
+  modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", std::nullopt);
 
   modifier_panel_end(layout, ptr);
 }

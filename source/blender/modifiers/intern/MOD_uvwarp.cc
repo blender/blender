@@ -277,7 +277,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
     uiItemPointerR(col, ptr, "bone_to", &warp_obj_data_ptr, "bones", std::nullopt, ICON_BONE_DATA);
   }
 
-  modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", nullptr);
+  modifier_vgroup_ui(layout, ptr, &ob_ptr, "vertex_group", "invert_vertex_group", std::nullopt);
 
   modifier_panel_end(layout, ptr);
 }

@@ -322,7 +322,7 @@ void weightvg_ui_common(const bContext *C, PointerRNA *ob_ptr, PointerRNA *ptr, 
 
   if (!has_mask_texture) {
     modifier_vgroup_ui(
-        layout, ptr, ob_ptr, "mask_vertex_group", "invert_mask_vertex_group", nullptr);
+        layout, ptr, ob_ptr, "mask_vertex_group", "invert_mask_vertex_group", std::nullopt);
   }
 
   if (!has_mask_vertex_group) {
