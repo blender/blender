@@ -10,7 +10,7 @@
  * DRW Instance Data Manager
  * This is a special memory manager that keeps memory blocks ready to send as VBO data in one
  * continuous allocation. This way we avoid feeding #gpu::Batch each instance data one by one and
- * unnecessary memcpy. Since we lose which memory block was used each #DRWShadingGroup we need to
+ * unnecessary `memcpy`. Since we lose which memory block was used each #DRWShadingGroup we need to
  * redistribute them in the same order/size to avoid to realloc each frame. This is why
  * #DRWInstanceDatas are sorted in a list for each different data size.
  */

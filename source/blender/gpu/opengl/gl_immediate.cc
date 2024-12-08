@@ -152,7 +152,7 @@ void GLImmediate::end()
   glUnmapBuffer(GL_ARRAY_BUFFER);
 
   if (vertex_len == 0) {
-    /* Noop. Nothing to draw. */
+    /* NOOP. Nothing to draw. */
   }
   else if (unwrap(this->shader)->is_polyline) {
     GLintptr offset = buffer_offset();

@@ -2274,32 +2274,32 @@ void vec_apply_track(float vec[3], short axis)
   copy_v3_v3(tvec, vec);
 
   switch (axis) {
-    case 0: /* pos-x */
+    case 0: /* POS-X. */
       // vec[0] =  0.0;
       vec[1] = tvec[2];
       vec[2] = -tvec[1];
       break;
-    case 1: /* pos-y */
+    case 1: /* POS-Y. */
       // vec[0] = tvec[0];
       // vec[1] =  0.0;
       // vec[2] = tvec[2];
       break;
-    case 2: /* pos-z */
+    case 2: /* POS-Z. */
       // vec[0] = tvec[0];
       // vec[1] = tvec[1];
       // vec[2] =  0.0;
       break;
-    case 3: /* neg-x */
+    case 3: /* NEG-X. */
       // vec[0] =  0.0;
       vec[1] = tvec[2];
       vec[2] = -tvec[1];
       break;
-    case 4: /* neg-y */
+    case 4: /* NEG-Y. */
       vec[0] = -tvec[2];
       // vec[1] =  0.0;
       vec[2] = tvec[0];
       break;
-    case 5: /* neg-z */
+    case 5: /* NEG-Z. */
       vec[0] = -tvec[0];
       vec[1] = -tvec[1];
       // vec[2] =  0.0;

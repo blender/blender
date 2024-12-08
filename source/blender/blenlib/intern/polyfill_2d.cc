@@ -147,7 +147,7 @@ struct PolyFill {
 #endif
 };
 
-/* based on libgdx 2013-11-28, apache 2.0 licensed */
+/* Based on LIBGDX 2013-11-28, APACHE 2.0 licensed. */
 
 static void pf_coord_sign_calc(const PolyFill *pf, PolyIndex *pi);
 

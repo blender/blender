@@ -9,14 +9,18 @@
 
 namespace blender::realtime_compositor {
 
-/* Gamma corrects the inputs in its straight alpha form and writes the result to the output. The
+/**
+ * Gamma corrects the inputs in its straight alpha form and writes the result to the output. The
  * gamma factor is assumes to be 2. The output will be allocated internally and is thus expected
- * not to be previously allocated. */
+ * not to be previously allocated.
+ */
 void gamma_correct(Context &context, const Result &input, Result &output);
 
-/* Gamma uncorrects the inputs in its straight alpha form and writes the result to the output. The
+/**
+ * Gamma un-corrects the inputs in its straight alpha form and writes the result to the output. The
  * gamma factor is assumes to be 2. The output will be allocated internally and is thus expected
- * not to be previously allocated. */
+ * not to be previously allocated.
+ */
 void gamma_uncorrect(Context &context, const Result &input, Result &output);
 
 }  // namespace blender::realtime_compositor

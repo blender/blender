@@ -5619,10 +5619,9 @@ static void SCREEN_OT_animation_step(wmOperatorType *ot)
 void ED_reset_audio_device(bContext *C)
 {
   /* If sound was playing back when we changed any sound settings, we need to make sure that
-   * we reinitalize the playback state properly. Audaspace pauses playback on re-initializing
-   * the playback device, so we need to make sure we re-initalize the playback state on our
-   * end as well. (Otherwise the sound device might be in a weird state and crashes Blender)
-   */
+   * we reinitialize the playback state properly. Audaspace pauses playback on re-initializing
+   * the playback device, so we need to make sure we reinitialize the playback state on our
+   * end as well. (Otherwise the sound device might be in a weird state and crashes Blender). */
   bScreen *screen = ED_screen_animation_playing(CTX_wm_manager(C));
   wmWindow *timer_win = nullptr;
   const bool is_playing = screen != nullptr;
@@ -5639,7 +5638,7 @@ void ED_reset_audio_device(bContext *C)
     ED_screen_animation_play(C, 0, 0);
   }
   Main *bmain = CTX_data_main(C);
-  /* Re-initalize the audio device. */
+  /* Re-initialize the audio device. */
   BKE_sound_init(bmain);
   if (is_playing) {
     /* We need to set the context window to the window that was playing back previously.

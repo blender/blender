@@ -427,7 +427,7 @@ struct ARegionRuntime {
   /** Callbacks for this region type. */
   struct ARegionType *type;
 
-  /** Runtime for partial redraw, same or smaller than winrct. */
+  /** Runtime for partial redraw, same or smaller than #ARegion::winrct. */
   rcti drawrct = {};
 
   /**
