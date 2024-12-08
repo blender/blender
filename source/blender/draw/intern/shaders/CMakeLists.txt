@@ -31,7 +31,7 @@ set(SRC_GLSL_COMP
   draw_view_finalize_comp.glsl
   draw_visibility_comp.glsl
 )
-    
+
 # Compile shaders with shader code.
 if (WITH_GPU_SHADER_CPP_COMPILATION)
   with_shader_cpp_compilation_config()

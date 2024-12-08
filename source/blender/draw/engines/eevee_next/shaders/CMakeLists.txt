@@ -72,7 +72,7 @@ set(SRC_GLSL_FRAG
   eevee_surf_occupancy_frag.glsl
   eevee_surf_shadow_frag.glsl
   eevee_surf_volume_frag.glsl
-  eevee_surf_world_frag.glsl 
+  eevee_surf_world_frag.glsl
   eevee_volume_resolve_frag.glsl
 )
 
@@ -215,7 +215,7 @@ if (WITH_GPU_SHADER_CPP_COMPILATION)
   with_shader_cpp_compilation_config()
   # TODO Remove
   add_definitions(-DUSE_GPU_SHADER_CREATE_INFO)
-  
+
   compile_sources_as_cpp(eevee_cpp_shaders_vert "${SRC_GLSL_VERT}" "GPU_VERTEX_SHADER")
   compile_sources_as_cpp(eevee_cpp_shaders_frag "${SRC_GLSL_FRAG}" "GPU_FRAGMENT_SHADER")
   compile_sources_as_cpp(eevee_cpp_shaders_comp "${SRC_GLSL_COMP}" "GPU_COMPUTE_SHADER")
