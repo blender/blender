@@ -3130,7 +3130,7 @@ void ED_areas_do_frame_follow(bContext *C, bool center_view)
 
     LISTBASE_FOREACH (ScrArea *, area, &screen->areabase) {
       LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
-        /* Only frame/center the playhead here if editor type supports it */
+        /* Only frame/center the current-frame indicator here if editor type supports it */
         if (!screen_animation_region_supports_time_follow(eSpace_Type(area->spacetype),
                                                           eRegion_Type(region->regiontype)))
         {
@@ -3138,7 +3138,7 @@ void ED_areas_do_frame_follow(bContext *C, bool center_view)
         }
 
         if ((current_frame >= region->v2d.cur.xmin) && (current_frame <= region->v2d.cur.xmax)) {
-          /* The playhead is already in view, do nothing. */
+          /* The current-frame indicator is already in view, do nothing. */
           continue;
         }
 
