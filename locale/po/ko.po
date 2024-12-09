@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'62b2bb48e8bf')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'cfa63bfefa5b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-02 16:18+0000\n"
+"POT-Creation-Date: 2024-12-09 09:50+0000\n"
 "PO-Revision-Date: 2023-11-14 19:14+0000\n"
 "Last-Translator: Lee YeonJoo <yzoo2@naver.com>\n"
 "Language-Team: Korean <https://translate.blender.org/projects/blender-ui/ui/ko/>\n"
@@ -9809,6 +9809,10 @@ msgid "Amount of fine level detail present in the noise"
 msgstr "노이즈에서 정밀한 디테일 레벨 존재의 양"
 
 
+msgid "Lacunarity"
+msgstr "소란반자"
+
+
 msgid "Time offset for the noise effect"
 msgstr "노이즈 이펙트에 대한 시간 옵셋"
 
@@ -9819,6 +9823,10 @@ msgstr "위상"
 
 msgid "A random seed for the noise effect"
 msgstr "노이즈 이펙트에 대한 랜덤 씨드"
+
+
+msgid "Roughness"
+msgstr "거칠기"
 
 
 msgid "Scaling (in time) of the noise"
@@ -11259,10 +11267,6 @@ msgstr "적응 도메인"
 
 msgid "Adapt simulation resolution and size to fluid"
 msgstr "적응 시뮬레이션 해상도 및 유체에 크기"
-
-
-msgid "Use Adaptive Time Steps"
-msgstr "적응형 시간 단계를 사용"
 
 
 msgid "Bubble"
@@ -16609,10 +16613,6 @@ msgid "Refraction Depth"
 msgstr "굴절 깊이"
 
 
-msgid "Roughness"
-msgstr "거칠기"
-
-
 msgid "Roughness of the material"
 msgstr "매테리얼의 거칠기"
 
@@ -17025,12 +17025,16 @@ msgid "Shader"
 msgstr "셰이더"
 
 
-msgid "Grease Pencil Data"
-msgstr "그리스 펜슬 데이터"
+msgid "Pattern"
+msgstr "패턴"
 
 
 msgid "Interface"
 msgstr "인터페이스"
+
+
+msgid "Grease Pencil Data"
+msgstr "그리스 펜슬 데이터"
 
 
 msgid "Links"
@@ -19008,10 +19012,6 @@ msgid "Show Subframe"
 msgstr "하위 프레임을 표시"
 
 
-msgid "Show current scene subframe and allow set it using interface tools"
-msgstr "현재 씬 하위 프레임을 표시하고 인터페이스 도구를 사용하여 설정할 수 있습니다"
-
-
 msgid "Sync Mode"
 msgstr "동기화 모드"
 
@@ -19946,10 +19946,6 @@ msgid "Marble Texture"
 msgstr "마블 택스처"
 
 
-msgid "Pattern"
-msgstr "패턴"
-
-
 msgid "Use soft marble"
 msgstr "소프트 마블을 사용"
 
@@ -20020,10 +20016,6 @@ msgstr "이득"
 
 msgid "The gain multiplier"
 msgstr "이득 배율"
-
-
-msgid "Lacunarity"
-msgstr "소란반자"
 
 
 msgid "Gap between successive frequencies"
@@ -24041,52 +24033,52 @@ msgid "Material slot name"
 msgstr "매테리얼 슬롯 이름"
 
 
-msgid "Clean Up"
-msgstr "정리"
+msgid "Mirror"
+msgstr "미러"
 
 
-msgid "Merge"
-msgstr "병합"
+msgid "Snap"
+msgstr "스냅"
 
 
-msgid "Show/Hide"
-msgstr "표시/숨기기"
+msgid "UV Mapping"
+msgstr "UV 맵핑"
 
 
 msgid "Local View"
 msgstr "로컬 뷰"
 
 
-msgid "Special Characters"
-msgstr "특수 문자"
-
-
-msgid "Kerning"
-msgstr "자간"
-
-
-msgid "Names"
-msgstr "이름"
-
-
 msgid "Viewpoint"
 msgstr "뷰포트"
 
 
-msgid "Bone Roll"
-msgstr "본 롤"
+msgid "Navigation"
+msgstr "네비게이션"
 
 
-msgid "Toggle Bone Options"
-msgstr "본 옵션을 토글"
+msgid "Align View"
+msgstr "뷰를 정렬"
 
 
-msgid "Enable Bone Options"
-msgstr "본 옵션을 사용"
+msgid "Align View to Active"
+msgstr "뷰를 활성에 정렬"
 
 
-msgid "Disable Bone Options"
-msgstr "본 옵션을 사용 중지"
+msgid "View Regions"
+msgstr "뷰 지역"
+
+
+msgid "Select More/Less"
+msgstr "선택 증가/감소"
+
+
+msgid "Select Similar"
+msgstr "유사한 선택"
+
+
+msgid "Select All by Trait"
+msgstr "형질로 모두 선택"
 
 
 msgid "Select Linked"
@@ -24097,32 +24089,8 @@ msgid "Select Loops"
 msgstr "루프를 선택"
 
 
-msgid "Mesh Select Mode"
-msgstr "메쉬 선택 모드"
-
-
-msgid "Pivot Point"
-msgstr "피벗 포인트"
-
-
-msgid "Snap"
-msgstr "스냅"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "비례 편집 감소"
-
-
-msgid "Mask Edit"
-msgstr "마스크 편집"
-
-
-msgid "Select More/Less"
-msgstr "선택 증가/감소"
-
-
-msgid "View Regions"
-msgstr "뷰 지역"
+msgid "Assign Material"
+msgstr "매테리얼을 할당"
 
 
 msgid "Add Image"
@@ -24145,16 +24113,16 @@ msgid "Track"
 msgstr "트랙"
 
 
-msgid "Navigation"
-msgstr "네비게이션"
-
-
-msgid "Select Similar"
-msgstr "유사한 선택"
-
-
 msgid "Quick Effects"
 msgstr "빠른 이펙트"
+
+
+msgid "Show/Hide"
+msgstr "표시/숨기기"
+
+
+msgid "Clean Up"
+msgstr "정리"
 
 
 msgid "Asset"
@@ -24165,24 +24133,12 @@ msgid "Make Single User"
 msgstr "싱글 유저를 만들기"
 
 
-msgid "UV Mapping"
-msgstr "UV 맵핑"
-
-
 msgid "Hooks"
 msgstr "후크"
 
 
 msgid "Sculpt Set Pivot"
 msgstr "스컬프트 설정 피벗"
-
-
-msgid "Mirror"
-msgstr "미러"
-
-
-msgid "Assign Material"
-msgstr "매테리얼을 할당"
 
 
 msgid "Clear Transform"
@@ -24193,20 +24149,28 @@ msgid "In-Betweens"
 msgstr "사이에서"
 
 
-msgid "Align View to Active"
-msgstr "뷰를 활성에 정렬"
-
-
 msgid "Propagate"
 msgstr "전파"
 
 
-msgid "Align View"
-msgstr "뷰를 정렬"
+msgid "Names"
+msgstr "이름"
 
 
-msgid "Select All by Trait"
-msgstr "형질로 모두 선택"
+msgid "Toggle Bone Options"
+msgstr "본 옵션을 토글"
+
+
+msgid "Enable Bone Options"
+msgstr "본 옵션을 사용"
+
+
+msgid "Disable Bone Options"
+msgstr "본 옵션을 사용 중지"
+
+
+msgid "Mesh Select Mode"
+msgstr "메쉬 선택 모드"
 
 
 msgid "Face Data"
@@ -24219,6 +24183,34 @@ msgstr "페이스 강도로 선택"
 
 msgid "Set Face Strength"
 msgstr "페이스 강도를 설정"
+
+
+msgid "Merge"
+msgstr "병합"
+
+
+msgid "Special Characters"
+msgstr "특수 문자"
+
+
+msgid "Kerning"
+msgstr "자간"
+
+
+msgid "Bone Roll"
+msgstr "본 롤"
+
+
+msgid "Pivot Point"
+msgstr "피벗 포인트"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "비례 편집 감소"
+
+
+msgid "Mask Edit"
+msgstr "마스크 편집"
 
 
 msgid "Basic"
@@ -55707,30 +55699,6 @@ msgid "Panel containing UI elements"
 msgstr "UI 요소가 포함된 패널"
 
 
-msgid "Active Tool"
-msgstr "활성 도구"
-
-
-msgid "View Lock"
-msgstr "뷰 잠금"
-
-
-msgid "Wire Color"
-msgstr "와이어 컬러"
-
-
-msgid "Shadow Settings"
-msgstr "섀도우 설정"
-
-
-msgid "SSAO Settings"
-msgstr "SSAO 설정"
-
-
-msgid "Render Pass"
-msgstr "렌더 패스"
-
-
 msgid "Overlays"
 msgstr "오버레이"
 
@@ -55785,6 +55753,30 @@ msgstr "입체 영상"
 
 msgid "Multi Frame"
 msgstr "다중 프레임"
+
+
+msgid "Active Tool"
+msgstr "활성 도구"
+
+
+msgid "View Lock"
+msgstr "뷰 잠금"
+
+
+msgid "Wire Color"
+msgstr "와이어 컬러"
+
+
+msgid "Shadow Settings"
+msgstr "섀도우 설정"
+
+
+msgid "SSAO Settings"
+msgstr "SSAO 설정"
+
+
+msgid "Render Pass"
+msgstr "렌더 패스"
 
 
 msgid "Bone Constraints"

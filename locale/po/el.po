@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'62b2bb48e8bf')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'cfa63bfefa5b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-02 16:18+0000\n"
+"POT-Creation-Date: 2024-12-09 09:50+0000\n"
 "PO-Revision-Date: 2024-04-29 13:44+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Greek <https://translate.blender.org/projects/blender-ui/ui/el/>\n"
@@ -547,16 +547,16 @@ msgid "Keyboard"
 msgstr "Πληκτρολόγιο"
 
 
-msgid "Merge"
-msgstr "Συγχώνευση"
-
-
-msgid "Select Linked"
-msgstr "Επιλογή Συνδεδεμένων"
+msgid "Mirror"
+msgstr "Καθρέφτισμα"
 
 
 msgid "Snap"
 msgstr "Προσκόλληση"
+
+
+msgid "Select Linked"
+msgstr "Επιλογή Συνδεδεμένων"
 
 
 msgid "Rigid Body"
@@ -575,8 +575,8 @@ msgid "Make Single User"
 msgstr "Ορισμός Ενός Χρήστη"
 
 
-msgid "Mirror"
-msgstr "Καθρέφτισμα"
+msgid "Merge"
+msgstr "Συγχώνευση"
 
 
 msgid "Import"

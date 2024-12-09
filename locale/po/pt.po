@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'62b2bb48e8bf')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'cfa63bfefa5b')\n"
 "Report-Msgid-Bugs-To: Ivan Paulos Tomé <ivan.paulos.tome@yandex.com>\n"
-"POT-Creation-Date: 2024-12-02 16:18+0000\n"
+"POT-Creation-Date: 2024-12-09 09:50+0000\n"
 "PO-Revision-Date: 2024-12-02 16:27+0000\n"
 "Last-Translator: Duarte Ramos <duarte.framos@gmail.com>\n"
 "Language-Team: Portuguese <https://translate.blender.org/projects/blender-ui/ui/pt/>\n"
@@ -12996,6 +12996,10 @@ msgid "Amount of fine level detail present in the noise"
 msgstr "Quantidade de nível de detalhes finos presentes no ruído."
 
 
+msgid "Lacunarity"
+msgstr "Frequência das lacunas"
+
+
 msgid "Time offset for the noise effect"
 msgstr "Deslocamento de tempo para o efeito de ruído."
 
@@ -13006,6 +13010,10 @@ msgstr "Fase"
 
 msgid "A random seed for the noise effect"
 msgstr "Um valor de semente aleatória para o efeito de ruído."
+
+
+msgid "Roughness"
+msgstr "Rugosidade"
 
 
 msgid "Scaling (in time) of the noise"
@@ -15299,14 +15307,6 @@ msgstr "Domínio adaptativo"
 
 msgid "Adapt simulation resolution and size to fluid"
 msgstr "Adaptar resolução de simulação e tamanho ao fluido."
-
-
-msgid "Use Adaptive Time Steps"
-msgstr "Usar Passos Temporais Adaptativos"
-
-
-msgid "Lets the solver automatically decide when to perform multiple simulation steps per frame"
-msgstr "Permite ao solucionador decidir automaticamente quando calcular múltiplos passos por fotograma"
 
 
 msgid "Bubble"
@@ -23945,10 +23945,6 @@ msgid "Approximate the thickness of the object to compute two refraction events 
 msgstr "Aproximar espessura do objecto para computar dois eventos de refracção (0 desactiva) (Descontinuado)"
 
 
-msgid "Roughness"
-msgstr "Rugosidade"
-
-
 msgid "Roughness of the material"
 msgstr "Rugosidade do Material"
 
@@ -24561,10 +24557,6 @@ msgid "Color tag of the node group which influences the header color"
 msgstr "Etiqueta colorida do grupo de nós que influencia a cor do cabeçalho"
 
 
-msgid "Default tag for new node groups"
-msgstr "Etiqueta padrão para novos grupos nós"
-
-
 msgid "Attribute"
 msgstr "Atributo"
 
@@ -24589,6 +24581,14 @@ msgid "Shader"
 msgstr "Sombreador"
 
 
+msgid "Pattern"
+msgstr "Padrão"
+
+
+msgid "Interface"
+msgstr "Interface"
+
+
 msgid "Default Group Node Width"
 msgstr "Largura padrão de Nós de Grupo"
 
@@ -24603,10 +24603,6 @@ msgstr "Descrição da árvore de nós"
 
 msgid "Grease Pencil Data"
 msgstr "Dados de lápis de cera"
-
-
-msgid "Interface"
-msgstr "Interface"
 
 
 msgid "Interface declaration for this node tree"
@@ -27248,10 +27244,6 @@ msgid "Show Subframe"
 msgstr "Mostrar sub-fotogramas"
 
 
-msgid "Show current scene subframe and allow set it using interface tools"
-msgstr "Mostra os sub-fotogramas da cena actual e permite que sejam definidos usando ferramentas de interface."
-
-
 msgid "Simulation Frame End"
 msgstr "Fotograma final da simulação"
 
@@ -28394,10 +28386,6 @@ msgid "Marble Texture"
 msgstr "Textura tipo mármore"
 
 
-msgid "Pattern"
-msgstr "Padrão"
-
-
 msgid "Use soft marble"
 msgstr "Usa um mármore suave."
 
@@ -28468,10 +28456,6 @@ msgstr "Ganho"
 
 msgid "The gain multiplier"
 msgstr "O multiplicador de ganho."
-
-
-msgid "Lacunarity"
-msgstr "Frequência das lacunas"
 
 
 msgid "Gap between successive frequencies"
@@ -33737,52 +33721,52 @@ msgid "Editor menu containing buttons"
 msgstr "Menu de editor contendo botões"
 
 
-msgid "Clean Up"
-msgstr "Limpeza"
+msgid "Mirror"
+msgstr "Espelhar"
 
 
-msgid "Merge"
-msgstr "Fundir"
+msgid "Snap"
+msgstr "Atrair"
 
 
-msgid "Show/Hide"
-msgstr "Mostrar ou ocultar"
+msgid "UV Mapping"
+msgstr "Mapeamento UV"
 
 
 msgid "Local View"
 msgstr "Visão local"
 
 
-msgid "Special Characters"
-msgstr "Caracteres especiais"
-
-
-msgid "Kerning"
-msgstr "Kerning"
-
-
-msgid "Names"
-msgstr "Nomes"
-
-
 msgid "Viewpoint"
 msgstr "Ponto de Vista"
 
 
-msgid "Bone Roll"
-msgstr "Rolagem do osso"
+msgid "Navigation"
+msgstr "Navegação"
 
 
-msgid "Toggle Bone Options"
-msgstr "Alternar opções de ossos"
+msgid "Align View"
+msgstr "Alinhar visualização"
 
 
-msgid "Enable Bone Options"
-msgstr "Ativar opções de ossos"
+msgid "Align View to Active"
+msgstr "Alinhar vista para o activo"
 
 
-msgid "Disable Bone Options"
-msgstr "Desativar as opções de ossos"
+msgid "View Regions"
+msgstr "Regiões de Visualização"
+
+
+msgid "Select More/Less"
+msgstr "Selecionar mais ou menos"
+
+
+msgid "Select Similar"
+msgstr "Selecionar por similaridades"
+
+
+msgid "Select All by Trait"
+msgstr "Selecionar todos por características..."
 
 
 msgid "Select Linked"
@@ -33793,44 +33777,8 @@ msgid "Select Loops"
 msgstr "Seleccionar Anéis"
 
 
-msgid "Mesh Select Mode"
-msgstr "Modo de selecção de malhas"
-
-
-msgid "Pivot Point"
-msgstr "Pontos de pivô"
-
-
-msgid "Snap"
-msgstr "Atrair"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Tipo de decaimento para edição proporcional"
-
-
-msgid "Mask Edit"
-msgstr "Edição de Máscara"
-
-
-msgid "Automasking"
-msgstr "Auto Máscara"
-
-
-msgid "Face Sets Edit"
-msgstr "Edições de Conjuntos de Faces"
-
-
-msgid "Vertex Group Locks"
-msgstr "Bloqueios de Grupos de Vértices"
-
-
-msgid "Select More/Less"
-msgstr "Selecionar mais ou menos"
-
-
-msgid "View Regions"
-msgstr "Regiões de Visualização"
+msgid "Assign Material"
+msgstr "Aplicar Material"
 
 
 msgid "Add Image"
@@ -33853,16 +33801,16 @@ msgid "Track"
 msgstr "Rastrear"
 
 
-msgid "Navigation"
-msgstr "Navegação"
-
-
-msgid "Select Similar"
-msgstr "Selecionar por similaridades"
-
-
 msgid "Quick Effects"
 msgstr "Efeitos instantâneos"
+
+
+msgid "Show/Hide"
+msgstr "Mostrar ou ocultar"
+
+
+msgid "Clean Up"
+msgstr "Limpeza"
 
 
 msgid "Asset"
@@ -33881,12 +33829,12 @@ msgid "Link/Transfer Data"
 msgstr "Vincular/Transferir Dados"
 
 
-msgid "UV Mapping"
-msgstr "Mapeamento UV"
-
-
 msgid "Hooks"
 msgstr "Ganchos"
+
+
+msgid "Vertex Group Locks"
+msgstr "Bloqueios de Grupos de Vértices"
 
 
 msgid "Trim/Add"
@@ -33905,24 +33853,12 @@ msgid "Random Mask"
 msgstr "Máscara Aleatória"
 
 
-msgid "Mirror"
-msgstr "Espelhar"
-
-
-msgid "Assign Material"
-msgstr "Aplicar Material"
-
-
 msgid "Clear Transform"
 msgstr "Limpar transformações"
 
 
 msgid "In-Betweens"
 msgstr "Entre as continuidades"
-
-
-msgid "Align View to Active"
-msgstr "Alinhar vista para o activo"
 
 
 msgid "Propagate"
@@ -33933,12 +33869,24 @@ msgid "Bone Collections"
 msgstr "Colecções de Ossos"
 
 
-msgid "Align View"
-msgstr "Alinhar visualização"
+msgid "Names"
+msgstr "Nomes"
 
 
-msgid "Select All by Trait"
-msgstr "Selecionar todos por características..."
+msgid "Toggle Bone Options"
+msgstr "Alternar opções de ossos"
+
+
+msgid "Enable Bone Options"
+msgstr "Ativar opções de ossos"
+
+
+msgid "Disable Bone Options"
+msgstr "Desativar as opções de ossos"
+
+
+msgid "Mesh Select Mode"
+msgstr "Modo de selecção de malhas"
 
 
 msgid "Face Data"
@@ -33951,6 +33899,42 @@ msgstr "Seleccionar pela Força das Faces"
 
 msgid "Set Face Strength"
 msgstr "Definir Força das Faces"
+
+
+msgid "Merge"
+msgstr "Fundir"
+
+
+msgid "Special Characters"
+msgstr "Caracteres especiais"
+
+
+msgid "Kerning"
+msgstr "Kerning"
+
+
+msgid "Bone Roll"
+msgstr "Rolagem do osso"
+
+
+msgid "Pivot Point"
+msgstr "Pontos de pivô"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Tipo de decaimento para edição proporcional"
+
+
+msgid "Mask Edit"
+msgstr "Edição de Máscara"
+
+
+msgid "Automasking"
+msgstr "Auto Máscara"
+
+
+msgid "Face Sets Edit"
+msgstr "Edições de Conjuntos de Faces"
 
 
 msgid "Keyframe Insert Pie"
@@ -52340,6 +52324,16 @@ msgstr "Colecção de efeitos de objecto"
 
 
 msgctxt "Operator"
+msgid "Add Material Variant"
+msgstr "Adicionar Variante de Material"
+
+
+msgctxt "Operator"
+msgid "Remove Variant"
+msgstr "Remover Variante"
+
+
+msgctxt "Operator"
 msgid "Display Variant"
 msgstr "Mostrar Variante"
 
@@ -52360,21 +52354,6 @@ msgstr "Atribuir como Original"
 
 
 msgctxt "Operator"
-msgid "Add Material Variant"
-msgstr "Adicionar Variante de Material"
-
-
-msgctxt "Operator"
-msgid "Remove Variant"
-msgstr "Remover Variante"
-
-
-msgctxt "Operator"
-msgid "Operator"
-msgstr "Operador"
-
-
-msgctxt "Operator"
 msgid "Add new Slot"
 msgstr "Adicionar Novo Compartimento"
 
@@ -52392,6 +52371,11 @@ msgstr "Remover Compartimento de Variante"
 msgctxt "Operator"
 msgid "Apply glTF animation"
 msgstr "Aplicar animação glTF"
+
+
+msgctxt "Operator"
+msgid "Operator"
+msgstr "Operador"
 
 
 msgid "Mark actions with no F-Curves for deletion after save and reload of file preserving \"action libraries\""
@@ -75002,14 +74986,6 @@ msgid "Active Palette Color"
 msgstr "Cor activa da paleta"
 
 
-msgid "Wire Color"
-msgstr "Cor dos cabos"
-
-
-msgid "Render Pass"
-msgstr "Passo de renderização"
-
-
 msgid "Motion Tracking"
 msgstr "Captura de movimentos"
 
@@ -75024,6 +75000,14 @@ msgstr "Orientações de transformação"
 
 msgid "Stereoscopy"
 msgstr "Estereoscopia"
+
+
+msgid "Wire Color"
+msgstr "Cor dos cabos"
+
+
+msgid "Render Pass"
+msgstr "Passo de renderização"
 
 
 msgid "Bone Constraints"

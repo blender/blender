@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'62b2bb48e8bf')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'cfa63bfefa5b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-02 16:18+0000\n"
+"POT-Creation-Date: 2024-12-09 09:50+0000\n"
 "PO-Revision-Date: 2024-03-13 11:04+0000\n"
 "Last-Translator: Bartosz <gang65@poczta.onet.pl>\n"
 "Language-Team: Ukrainian <https://translate.blender.org/projects/blender-ui/ui/uk/>\n"
@@ -10535,6 +10535,10 @@ msgid "Amount of fine level detail present in the noise"
 msgstr "Обсяг високого рівня деталізації, наявного в шумі"
 
 
+msgid "Lacunarity"
+msgstr "Лакунарність"
+
+
 msgid "Time offset for the noise effect"
 msgstr "Часовий зсув для шумового ефекту"
 
@@ -10545,6 +10549,10 @@ msgstr "Фаза"
 
 msgid "A random seed for the noise effect"
 msgstr "База випадковості для шумового ефекту"
+
+
+msgid "Roughness"
+msgstr "Шорсткість"
 
 
 msgid "Scaling (in time) of the noise"
@@ -12529,10 +12537,6 @@ msgstr "Адаптивний домен"
 
 msgid "Adapt simulation resolution and size to fluid"
 msgstr "Адаптувати роздільність моделювання та розмір до рідини"
-
-
-msgid "Use Adaptive Time Steps"
-msgstr "Вжити Адаптивні Кроки Часу"
 
 
 msgid "Bubble"
@@ -18891,10 +18895,6 @@ msgid "Refraction Depth"
 msgstr "Глибина Заломлення"
 
 
-msgid "Roughness"
-msgstr "Шорсткість"
-
-
 msgid "Roughness of the material"
 msgstr "Шорсткість матеріалу"
 
@@ -19327,12 +19327,16 @@ msgid "Shader"
 msgstr "Відтінювач"
 
 
-msgid "Grease Pencil Data"
-msgstr "Дані Нарисного Олівця"
+msgid "Pattern"
+msgstr "Патерн"
 
 
 msgid "Interface"
 msgstr "Інтерфейс"
+
+
+msgid "Grease Pencil Data"
+msgstr "Дані Нарисного Олівця"
 
 
 msgid "Links"
@@ -21506,10 +21510,6 @@ msgid "Show Subframe"
 msgstr "Показати підкадр"
 
 
-msgid "Show current scene subframe and allow set it using interface tools"
-msgstr "Показати підкадр поточної сцени і дозволити задавати його засобами інтерфейсу"
-
-
 msgid "Sync Mode"
 msgstr "Режим Синхронізації"
 
@@ -22484,10 +22484,6 @@ msgid "Marble Texture"
 msgstr "Мармурова текстура"
 
 
-msgid "Pattern"
-msgstr "Патерн"
-
-
 msgid "Use soft marble"
 msgstr "Використати м'який мармур"
 
@@ -22558,10 +22554,6 @@ msgstr "Підсил"
 
 msgid "The gain multiplier"
 msgstr "Множник підсилення"
-
-
-msgid "Lacunarity"
-msgstr "Лакунарність"
 
 
 msgid "Gap between successive frequencies"
@@ -26831,52 +26823,52 @@ msgid "Material slot name"
 msgstr "Назва гнізда матеріалу"
 
 
-msgid "Clean Up"
-msgstr "Вичищення"
+msgid "Mirror"
+msgstr "Дзеркалення"
 
 
-msgid "Merge"
-msgstr "Об'єднання"
+msgid "Snap"
+msgstr "Підхоп"
 
 
-msgid "Show/Hide"
-msgstr "Показати/приховати"
+msgid "UV Mapping"
+msgstr "Розкладання UV"
 
 
 msgid "Local View"
 msgstr "Огляд Локально"
 
 
-msgid "Special Characters"
-msgstr "Спеціальні символи"
-
-
-msgid "Kerning"
-msgstr "Кернінг"
-
-
-msgid "Names"
-msgstr "Назви"
-
-
 msgid "Viewpoint"
 msgstr "Точка зору"
 
 
-msgid "Bone Roll"
-msgstr "Прокручення Кістки"
+msgid "Navigation"
+msgstr "Навігація"
 
 
-msgid "Toggle Bone Options"
-msgstr "Перемкнути параметри кісток"
+msgid "Align View"
+msgstr "Вирівняти Огляд"
 
 
-msgid "Enable Bone Options"
-msgstr "Увімкнути параметри кісток"
+msgid "Align View to Active"
+msgstr "Вирівняти Огляд за Активним"
 
 
-msgid "Disable Bone Options"
-msgstr "Відключити параметри кісток"
+msgid "View Regions"
+msgstr "Регіони Огляду"
+
+
+msgid "Select More/Less"
+msgstr "Вибрати більше/менше"
+
+
+msgid "Select Similar"
+msgstr "Вибрати подібні"
+
+
+msgid "Select All by Trait"
+msgstr "Вибрати все за рисою"
 
 
 msgid "Select Linked"
@@ -26887,44 +26879,8 @@ msgid "Select Loops"
 msgstr "Виділити петлі"
 
 
-msgid "Mesh Select Mode"
-msgstr "Режим Вибору Сіті"
-
-
-msgid "Pivot Point"
-msgstr "Точка Опертя"
-
-
-msgid "Snap"
-msgstr "Підхоп"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Спад Пропорційного Редагування"
-
-
-msgid "Mask Edit"
-msgstr "Редагування Маски"
-
-
-msgid "Automasking"
-msgstr "Автомаскування"
-
-
-msgid "Face Sets Edit"
-msgstr "Редагування Наборів Граней"
-
-
-msgid "Vertex Group Locks"
-msgstr "Блокування Груп Вершин"
-
-
-msgid "Select More/Less"
-msgstr "Вибрати більше/менше"
-
-
-msgid "View Regions"
-msgstr "Регіони Огляду"
+msgid "Assign Material"
+msgstr "Призначити Матеріал"
 
 
 msgid "Add Image"
@@ -26947,16 +26903,16 @@ msgid "Track"
 msgstr "Стеження"
 
 
-msgid "Navigation"
-msgstr "Навігація"
-
-
-msgid "Select Similar"
-msgstr "Вибрати подібні"
-
-
 msgid "Quick Effects"
 msgstr "Швидкі ефекти"
+
+
+msgid "Show/Hide"
+msgstr "Показати/приховати"
+
+
+msgid "Clean Up"
+msgstr "Вичищення"
 
 
 msgid "Asset"
@@ -26975,12 +26931,12 @@ msgid "Link/Transfer Data"
 msgstr "Пов'язати/Перенести Дані"
 
 
-msgid "UV Mapping"
-msgstr "Розкладання UV"
-
-
 msgid "Hooks"
 msgstr "Гачки"
+
+
+msgid "Vertex Group Locks"
+msgstr "Блокування Груп Вершин"
 
 
 msgid "Sculpt Set Pivot"
@@ -26991,14 +26947,6 @@ msgid "Face Sets Init"
 msgstr "Ініціація Наборів Граней"
 
 
-msgid "Mirror"
-msgstr "Дзеркалення"
-
-
-msgid "Assign Material"
-msgstr "Призначити Матеріал"
-
-
 msgid "Clear Transform"
 msgstr "Зчистити трансформації"
 
@@ -27007,20 +26955,28 @@ msgid "In-Betweens"
 msgstr "У проміжках"
 
 
-msgid "Align View to Active"
-msgstr "Вирівняти Огляд за Активним"
-
-
 msgid "Propagate"
 msgstr "Поширити"
 
 
-msgid "Align View"
-msgstr "Вирівняти Огляд"
+msgid "Names"
+msgstr "Назви"
 
 
-msgid "Select All by Trait"
-msgstr "Вибрати все за рисою"
+msgid "Toggle Bone Options"
+msgstr "Перемкнути параметри кісток"
+
+
+msgid "Enable Bone Options"
+msgstr "Увімкнути параметри кісток"
+
+
+msgid "Disable Bone Options"
+msgstr "Відключити параметри кісток"
+
+
+msgid "Mesh Select Mode"
+msgstr "Режим Вибору Сіті"
 
 
 msgid "Face Data"
@@ -27033,6 +26989,42 @@ msgstr "Вибрати за Силою Грані"
 
 msgid "Set Face Strength"
 msgstr "Задати Силу Грані"
+
+
+msgid "Merge"
+msgstr "Об'єднання"
+
+
+msgid "Special Characters"
+msgstr "Спеціальні символи"
+
+
+msgid "Kerning"
+msgstr "Кернінг"
+
+
+msgid "Bone Roll"
+msgstr "Прокручення Кістки"
+
+
+msgid "Pivot Point"
+msgstr "Точка Опертя"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Спад Пропорційного Редагування"
+
+
+msgid "Mask Edit"
+msgstr "Редагування Маски"
+
+
+msgid "Automasking"
+msgstr "Автомаскування"
+
+
+msgid "Face Sets Edit"
+msgstr "Редагування Наборів Граней"
 
 
 msgid "Basic"
@@ -63830,34 +63822,6 @@ msgid "Panel containing UI elements"
 msgstr "Панель, що містить елементи Інтерфейсу Користувача"
 
 
-msgid "VR"
-msgstr "ВР"
-
-
-msgid "Active Tool"
-msgstr "Активний Засіб"
-
-
-msgid "View Lock"
-msgstr "Блокувати Огляд"
-
-
-msgid "Wire Color"
-msgstr "Колір зв'язку"
-
-
-msgid "Shadow Settings"
-msgstr "Устави Тіні"
-
-
-msgid "SSAO Settings"
-msgstr "Устави Загороди Оточення Простору Екрану"
-
-
-msgid "Render Pass"
-msgstr "Прохід Рендера"
-
-
 msgid "Overlays"
 msgstr "Накладки"
 
@@ -63916,6 +63880,34 @@ msgstr "Багато Кадр"
 
 msgid "Auto-Masking"
 msgstr "Авто-Маскування"
+
+
+msgid "VR"
+msgstr "ВР"
+
+
+msgid "Active Tool"
+msgstr "Активний Засіб"
+
+
+msgid "View Lock"
+msgstr "Блокувати Огляд"
+
+
+msgid "Wire Color"
+msgstr "Колір зв'язку"
+
+
+msgid "Shadow Settings"
+msgstr "Устави Тіні"
+
+
+msgid "SSAO Settings"
+msgstr "Устави Загороди Оточення Простору Екрану"
+
+
+msgid "Render Pass"
+msgstr "Прохід Рендера"
 
 
 msgid "Chain Scaling"

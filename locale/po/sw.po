@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'62b2bb48e8bf')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'cfa63bfefa5b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-02 16:18+0000\n"
+"POT-Creation-Date: 2024-12-09 09:50+0000\n"
 "PO-Revision-Date: 2024-07-05 18:56+0000\n"
 "Last-Translator: Isaac Gicheha <shwaky3@gmail.com>\n"
 "Language-Team: Swahili <https://translate.blender.org/projects/blender-ui/ui/sw/>\n"
@@ -11525,6 +11525,10 @@ msgid "A random seed for the noise effect"
 msgstr "Mbegu nasibu kwa athari ya kelele"
 
 
+msgid "Roughness"
+msgstr "Ukali"
+
+
 msgid "Scaling (in time) of the noise"
 msgstr "Kuongeza (kwa wakati) kwa kelele"
 
@@ -13519,10 +13523,6 @@ msgstr "Kikoa Kinachobadilika"
 
 msgid "Adapt simulation resolution and size to fluid"
 msgstr "Badilisha azimio la uigaji na ukubwa kwa umajimaji"
-
-
-msgid "Use Adaptive Time Steps"
-msgstr "Tumia Hatua za Muda wa Kurekebisha"
 
 
 msgid "Bubble"
@@ -20950,10 +20950,6 @@ msgid "Refraction Depth"
 msgstr "Kina cha Kirejeshi"
 
 
-msgid "Roughness"
-msgstr "Ukali"
-
-
 msgid "Roughness of the material"
 msgstr "Ukali wa nyenzo"
 
@@ -21470,12 +21466,16 @@ msgid "Filter"
 msgstr "Chuja"
 
 
-msgid "Grease Pencil Data"
-msgstr "Data ya Penseli ya Grisi"
+msgid "Pattern"
+msgstr "Muundo"
 
 
 msgid "Interface"
 msgstr "Kiolesura"
+
+
+msgid "Grease Pencil Data"
+msgstr "Data ya Penseli ya Grisi"
 
 
 msgid "Interface declaration for this node tree"
@@ -23901,10 +23901,6 @@ msgid "Show Subframe"
 msgstr "Onyesha Sura ndogo"
 
 
-msgid "Show current scene subframe and allow set it using interface tools"
-msgstr "Onyesha sura ndogo ya eneo la sasa na uiruhusu kuiweka kwa kutumia zana za kiolesura"
-
-
 msgid "Simulation Frame End"
 msgstr "Mwisho wa Fremu ya Kuiga"
 
@@ -24973,10 +24969,6 @@ msgstr "Msukosuko wa kelele"
 
 msgid "Marble Texture"
 msgstr "Muundo wa Marumaru"
-
-
-msgid "Pattern"
-msgstr "Muundo"
 
 
 msgid "Use soft marble"
@@ -29009,48 +29001,48 @@ msgid "Editor menu containing buttons"
 msgstr "Menyu ya mhariri iliyo na vitufe"
 
 
-msgid "Clean Up"
-msgstr "Safisha"
-
-
-msgid "Merge"
-msgstr "Unganisha"
-
-
-msgid "Show/Hide"
-msgstr "Onyesha/Ficha"
-
-
-msgid "Select Linked"
-msgstr "Chagua Imeunganishwa"
-
-
-msgid "Pivot Point"
-msgstr "Egemeo"
+msgid "Mirror"
+msgstr "Kioo"
 
 
 msgid "Snap"
 msgstr "Picha"
 
 
+msgid "Navigation"
+msgstr "Urambazaji"
+
+
+msgid "Select Linked"
+msgstr "Chagua Imeunganishwa"
+
+
 msgid "Apply"
 msgstr "Tumia"
 
 
-msgid "Navigation"
-msgstr "Urambazaji"
+msgid "Show/Hide"
+msgstr "Onyesha/Ficha"
+
+
+msgid "Clean Up"
+msgstr "Safisha"
 
 
 msgid "Asset"
 msgstr "Mali"
 
 
-msgid "Mirror"
-msgstr "Kioo"
-
-
 msgid "Bone Collections"
 msgstr "Mikusanyo ya Mifupa"
+
+
+msgid "Merge"
+msgstr "Unganisha"
+
+
+msgid "Pivot Point"
+msgstr "Egemeo"
 
 
 msgid "Keyframe Insert Pie"
@@ -44650,6 +44642,11 @@ msgstr "Mkusanyiko wa athari za kitu"
 
 
 msgctxt "Operator"
+msgid "Add Material Variant"
+msgstr "Ongeza Lahaja ya Nyenzo"
+
+
+msgctxt "Operator"
 msgid "Display Variant"
 msgstr "Onyesho Lahaja"
 
@@ -44662,11 +44659,6 @@ msgstr "Agiza Tofauti"
 msgctxt "Operator"
 msgid "Assign as Original"
 msgstr "Weka kama Asili"
-
-
-msgctxt "Operator"
-msgid "Add Material Variant"
-msgstr "Ongeza Lahaja ya Nyenzo"
 
 
 msgid "Mark actions with no F-Curves for deletion after save and reload of file preserving \"action libraries\""
@@ -76328,30 +76320,6 @@ msgid "Panel containing UI elements"
 msgstr "Paneli iliyo na vipengele vya UI"
 
 
-msgid "View Lock"
-msgstr "Kufuli ya Tazama"
-
-
-msgid "Selectability & Visibility"
-msgstr "Uteuzi"
-
-
-msgid "Wire Color"
-msgstr "Rangi ya Waya"
-
-
-msgid "Shadow Settings"
-msgstr "Mipangilio ya Kivuli"
-
-
-msgid "SSAO Settings"
-msgstr "Mipangilio ya SSAO"
-
-
-msgid "Compositor"
-msgstr "Mtunzi"
-
-
 msgid "Viewer Node"
 msgstr "Njia ya Mtazamaji"
 
@@ -76410,6 +76378,30 @@ msgstr "Curves Sculpt Parameta Falloff"
 
 msgid "Viewport Debug"
 msgstr "Utatuzi wa kituo cha kutazama"
+
+
+msgid "View Lock"
+msgstr "Kufuli ya Tazama"
+
+
+msgid "Selectability & Visibility"
+msgstr "Uteuzi"
+
+
+msgid "Wire Color"
+msgstr "Rangi ya Waya"
+
+
+msgid "Shadow Settings"
+msgstr "Mipangilio ya Kivuli"
+
+
+msgid "SSAO Settings"
+msgstr "Mipangilio ya SSAO"
+
+
+msgid "Compositor"
+msgstr "Mtunzi"
 
 
 msgid "Fast GI Approximation"
@@ -108255,12 +108247,12 @@ msgid "Deleted %u object(s)"
 msgstr "Vipengee %u vimefutwa"
 
 
-msgid "Object '%s' has no evaluated curves data"
-msgstr "Kitu '%s' hakina data ya curve iliyotathminiwa"
-
-
 msgid "Object '%s' has no evaluated mesh or curves data"
 msgstr "Kitu '%s' hakina matundu au data ya curves iliyotathminiwa"
+
+
+msgid "Object '%s' has no evaluated curves data"
+msgstr "Kitu '%s' hakina data ya curve iliyotathminiwa"
 
 
 msgid "Cannot edit object '%s' as it is used by override collections"

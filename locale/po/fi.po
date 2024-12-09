@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'62b2bb48e8bf')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'cfa63bfefa5b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-02 16:18+0000\n"
+"POT-Creation-Date: 2024-12-09 09:50+0000\n"
 "PO-Revision-Date: 2024-10-16 00:56+0000\n"
 "Last-Translator: Leevi Oksanen <laavi.oksanen@gmail.com>\n"
 "Language-Team: Finnish <https://translate.blender.org/projects/blender-ui/ui/fi/>\n"
@@ -5351,6 +5351,10 @@ msgid "sin(x) / x"
 msgstr "sin(x) / x"
 
 
+msgid "Roughness"
+msgstr "Karheus"
+
+
 msgid "Step Size"
 msgstr "Askelkoko"
 
@@ -6710,10 +6714,6 @@ msgid "Fluid"
 msgstr "Neste"
 
 
-msgid "Roughness"
-msgstr "Karheus"
-
-
 msgid "Blended"
 msgstr "Sekoitettu"
 
@@ -6756,6 +6756,10 @@ msgstr "Attribuutti"
 
 msgid "Shader"
 msgstr "Varjostin"
+
+
+msgid "Pattern"
+msgstr "Kuvio"
 
 
 msgid "Interface"
@@ -7359,10 +7363,6 @@ msgid "Marble Texture"
 msgstr "Marmoritekstuuri"
 
 
-msgid "Pattern"
-msgstr "Kuvio"
-
-
 msgid "Use soft marble"
 msgstr "Käytää pehmeää marmoria"
 
@@ -7427,24 +7427,24 @@ msgid "Vector Font"
 msgstr "Vektorifontti"
 
 
-msgid "Show/Hide"
-msgstr "Näytä/Piilota"
-
-
-msgid "Names"
-msgstr "Nimet"
-
-
-msgid "Select Loops"
-msgstr "Valitse silmukat"
-
-
-msgid "Mesh Select Mode"
-msgstr "Muodon valintatila"
+msgid "UV Mapping"
+msgstr "UV-kartoittaminen"
 
 
 msgid "Select More/Less"
 msgstr "Valitse enemmän/vähemmän"
+
+
+msgid "Select Similar"
+msgstr "Valitse samankaltainen"
+
+
+msgid "Select All by Trait"
+msgstr "Valitse kaikki piirteen mukaan"
+
+
+msgid "Select Loops"
+msgstr "Valitse silmukat"
 
 
 msgid "Add Image"
@@ -7455,12 +7455,8 @@ msgid "Track"
 msgstr "Raide"
 
 
-msgid "Select Similar"
-msgstr "Valitse samankaltainen"
-
-
-msgid "UV Mapping"
-msgstr "UV-kartoittaminen"
+msgid "Show/Hide"
+msgstr "Näytä/Piilota"
 
 
 msgid "Hooks"
@@ -7471,8 +7467,12 @@ msgid "Random Mask"
 msgstr "Satunnainen maski"
 
 
-msgid "Select All by Trait"
-msgstr "Valitse kaikki piirteen mukaan"
+msgid "Names"
+msgstr "Nimet"
+
+
+msgid "Mesh Select Mode"
+msgstr "Muodon valintatila"
 
 
 msgid "Basic"

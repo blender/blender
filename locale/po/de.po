@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'62b2bb48e8bf')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'cfa63bfefa5b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-02 16:18+0000\n"
-"PO-Revision-Date: 2024-11-26 18:56+0000\n"
+"POT-Creation-Date: 2024-12-09 09:50+0000\n"
+"PO-Revision-Date: 2024-12-08 20:56+0000\n"
 "Last-Translator: Thomas Radeke <rahdick@gmx.de>\n"
 "Language-Team: German <https://translate.blender.org/projects/blender-ui/ui/de/>\n"
 "Language: de\n"
@@ -9260,8 +9260,16 @@ msgid "Noise F-Modifier"
 msgstr "Modifikator entfernen"
 
 
+msgid "Lacunarity"
+msgstr "Lückenhaftigkeit"
+
+
 msgid "Phase"
 msgstr "Phase"
+
+
+msgid "Roughness"
+msgstr "Rauheit"
 
 
 msgid "Scaling (in time) of the noise"
@@ -13985,10 +13993,6 @@ msgid "Refraction Depth"
 msgstr "Brechungstiefe"
 
 
-msgid "Roughness"
-msgstr "Rauheit"
-
-
 msgid "Roughness of the material"
 msgstr "Rauheit des Materials"
 
@@ -14185,6 +14189,10 @@ msgid "Render Size"
 msgstr "Renderdauer"
 
 
+msgid "Polygonization resolution in the 3D viewport"
+msgstr "Polygonisierungs-Auflösung im 3D-Ansichtsfenster"
+
+
 msgid "Influence of metaball elements"
 msgstr "Einfluss von Metaballelementen"
 
@@ -14249,12 +14257,16 @@ msgid "Shader"
 msgstr "Shader"
 
 
-msgid "Grease Pencil Data"
-msgstr "Wachsstift-Daten"
+msgid "Pattern"
+msgstr "Muster"
 
 
 msgid "Interface"
 msgstr "Schnittstelle"
+
+
+msgid "Grease Pencil Data"
+msgstr "Wachsstift-Daten"
 
 
 msgid "Links"
@@ -16242,10 +16254,6 @@ msgid "Marble Texture"
 msgstr "Marmor Textur"
 
 
-msgid "Pattern"
-msgstr "Muster"
-
-
 msgid "Use soft marble"
 msgstr "Weichen Marmor verwenden"
 
@@ -16280,10 +16288,6 @@ msgstr "Verstärkung"
 
 msgid "The gain multiplier"
 msgstr "Multiplikator"
-
-
-msgid "Lacunarity"
-msgstr "Lückenhaftigkeit"
 
 
 msgid "Multifractal"
@@ -19047,48 +19051,48 @@ msgid "Material slot name"
 msgstr "Materialsteckplatzname"
 
 
-msgid "Clean Up"
-msgstr "Aufräumen"
+msgid "Mirror"
+msgstr "Spiegeln"
 
 
-msgid "Merge"
-msgstr "Zusammenführen"
-
-
-msgid "Show/Hide"
-msgstr "Zeigen/Verbergen"
+msgid "Snap"
+msgstr "Einrasten"
 
 
 msgid "Local View"
 msgstr "Lokale Ansicht"
 
 
-msgid "Special Characters"
-msgstr "Sonderzeichen"
-
-
-msgid "Kerning"
-msgstr "Kerning"
-
-
-msgid "Names"
-msgstr "Namen"
-
-
 msgid "Viewpoint"
 msgstr "Ansicht"
 
 
-msgid "Toggle Bone Options"
-msgstr "Knochen-Optionen umschalten"
+msgid "Navigation"
+msgstr "Navigation"
 
 
-msgid "Enable Bone Options"
-msgstr "Knochen-Optionen einschalten"
+msgid "Align View"
+msgstr "Ansicht ausrichten"
 
 
-msgid "Disable Bone Options"
-msgstr "Knochen-Optionen ausschalten"
+msgid "Align View to Active"
+msgstr "Ansicht auf Aktiv ausrichten"
+
+
+msgid "View Regions"
+msgstr "Vierfenster Ansicht"
+
+
+msgid "Select More/Less"
+msgstr "Mehr/weniger anzeigen"
+
+
+msgid "Select Similar"
+msgstr "Ähnliche auswählen"
+
+
+msgid "Select All by Trait"
+msgstr "Alles nach Merkmal auswählen"
 
 
 msgid "Select Linked"
@@ -19099,36 +19103,8 @@ msgid "Select Loops"
 msgstr "Schleifen auswählen"
 
 
-msgid "Mesh Select Mode"
-msgstr "Maschenauswahlmodus"
-
-
-msgid "Pivot Point"
-msgstr "Drehpunkt"
-
-
-msgid "Snap"
-msgstr "Einrasten"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Proportionaler Bearbeitungsabfall"
-
-
-msgid "Mask Edit"
-msgstr "Maskenbearbeitung"
-
-
-msgid "Vertex Group Locks"
-msgstr "Punktgruppen sperren"
-
-
-msgid "Select More/Less"
-msgstr "Mehr/weniger anzeigen"
-
-
-msgid "View Regions"
-msgstr "Vierfenster Ansicht"
+msgid "Assign Material"
+msgstr "Material zuweisen"
 
 
 msgid "Add Image"
@@ -19151,16 +19127,16 @@ msgid "Track"
 msgstr "Spur"
 
 
-msgid "Navigation"
-msgstr "Navigation"
-
-
-msgid "Select Similar"
-msgstr "Ähnliche auswählen"
-
-
 msgid "Quick Effects"
 msgstr "Schnelle Effekte"
+
+
+msgid "Show/Hide"
+msgstr "Zeigen/Verbergen"
+
+
+msgid "Clean Up"
+msgstr "Aufräumen"
 
 
 msgid "Asset"
@@ -19179,16 +19155,12 @@ msgid "Hooks"
 msgstr "Haken"
 
 
+msgid "Vertex Group Locks"
+msgstr "Punktgruppen sperren"
+
+
 msgid "Random Mask"
 msgstr "Zufällige Maske"
-
-
-msgid "Mirror"
-msgstr "Spiegeln"
-
-
-msgid "Assign Material"
-msgstr "Material zuweisen"
 
 
 msgid "Clear Transform"
@@ -19199,20 +19171,52 @@ msgid "In-Betweens"
 msgstr "Dazwischen"
 
 
-msgid "Align View to Active"
-msgstr "Ansicht auf Aktiv ausrichten"
+msgid "Names"
+msgstr "Namen"
 
 
-msgid "Align View"
-msgstr "Ansicht ausrichten"
+msgid "Toggle Bone Options"
+msgstr "Knochen-Optionen umschalten"
 
 
-msgid "Select All by Trait"
-msgstr "Alles nach Merkmal auswählen"
+msgid "Enable Bone Options"
+msgstr "Knochen-Optionen einschalten"
+
+
+msgid "Disable Bone Options"
+msgstr "Knochen-Optionen ausschalten"
+
+
+msgid "Mesh Select Mode"
+msgstr "Maschenauswahlmodus"
 
 
 msgid "Face Data"
 msgstr "Flächendaten"
+
+
+msgid "Merge"
+msgstr "Zusammenführen"
+
+
+msgid "Special Characters"
+msgstr "Sonderzeichen"
+
+
+msgid "Kerning"
+msgstr "Kerning"
+
+
+msgid "Pivot Point"
+msgstr "Drehpunkt"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Proportionaler Bearbeitungsabfall"
+
+
+msgid "Mask Edit"
+msgstr "Maskenbearbeitung"
 
 
 msgid "Assets"
@@ -26537,9 +26541,17 @@ msgid "Restore Key Map(s)"
 msgstr "Markierungen synchronisieren"
 
 
+msgid "Copy Studio Light settings to the Studio Light editor"
+msgstr "Studiolicht-Einstellungen in den Studiolicht-Editor kopieren"
+
+
 msgctxt "Operator"
 msgid "Copy Studio Light Settings"
 msgstr "Studiolicht Einstellungen kopieren"
+
+
+msgid "Install a user defined light"
+msgstr "Installiere ein benutzerdefiniertes Licht"
 
 
 msgctxt "Operator"
@@ -26547,9 +26559,17 @@ msgid "Install Light"
 msgstr "Licht installieren"
 
 
+msgid "Save custom studio light from the studio light editor settings"
+msgstr "Speichere benutzerdefiniertes Studiolicht von den Studiolicht-Editor-Einstellungen"
+
+
 msgctxt "Operator"
 msgid "Save Custom Studio Light"
 msgstr "Benutzerdefiniertes Studiolicht speichern"
+
+
+msgid "Delete Studio Light"
+msgstr "Studiolicht löschen"
 
 
 msgctxt "Operator"
@@ -30969,6 +30989,10 @@ msgstr "Materialien in ausgewähltes Objekt kopieren"
 msgctxt "Operator"
 msgid "Isolate Material"
 msgstr "Isolieren von Material"
+
+
+msgid "Toggle whether the active material is the only one that is editable and/or visible"
+msgstr "Umschalten, ob das aktive Material das einzige bearbeit- und/oder sichtbare ist"
 
 
 msgctxt "Operator"
@@ -36349,6 +36373,10 @@ msgid "Studio"
 msgstr "Studio"
 
 
+msgid "Install custom Studio Lights"
+msgstr "Benutzerdefinierte Studiolichter installieren"
+
+
 msgctxt "Operator"
 msgid "Add New Cache"
 msgstr "Neue Szene hinzufügen"
@@ -40419,38 +40447,6 @@ msgid "Active Palette Color"
 msgstr "Aktive Farbpalette"
 
 
-msgid "VR"
-msgstr "VR"
-
-
-msgid "Active Tool"
-msgstr "Aktives Werkzeug"
-
-
-msgid "View Lock"
-msgstr "Ansicht sperren"
-
-
-msgid "Wire Color"
-msgstr "Drahtfarbe"
-
-
-msgid "Shadow Settings"
-msgstr "Schatteneinstellungen"
-
-
-msgid "SSAO Settings"
-msgstr "SSAO Einstellungen"
-
-
-msgid "Render Pass"
-msgstr "Renderdurchgänge"
-
-
-msgid "Compositor"
-msgstr "Setzer"
-
-
 msgid "Overlays"
 msgstr "Überlagerungen"
 
@@ -40501,6 +40497,38 @@ msgstr "Stereoskopie"
 
 msgid "Auto-Masking"
 msgstr "Automatisches Maskieren"
+
+
+msgid "VR"
+msgstr "VR"
+
+
+msgid "Active Tool"
+msgstr "Aktives Werkzeug"
+
+
+msgid "View Lock"
+msgstr "Ansicht sperren"
+
+
+msgid "Wire Color"
+msgstr "Drahtfarbe"
+
+
+msgid "Shadow Settings"
+msgstr "Schatteneinstellungen"
+
+
+msgid "SSAO Settings"
+msgstr "SSAO Einstellungen"
+
+
+msgid "Render Pass"
+msgstr "Renderdurchgänge"
+
+
+msgid "Compositor"
+msgstr "Setzer"
 
 
 msgid "Chain Scaling"
@@ -41087,6 +41115,10 @@ msgid "Timeline"
 msgstr "Zeitleiste"
 
 
+msgid "Copy on Duplicate"
+msgstr "Beim Duplizieren kopieren"
+
+
 msgid "New Objects"
 msgstr "Neue Objekte"
 
@@ -41174,6 +41206,10 @@ msgstr "Blend Dateien"
 
 msgid "Editor"
 msgstr "Editor"
+
+
+msgid "Studio Lights"
+msgstr "Studiolichter"
 
 
 msgid "Cycles Render Devices"
@@ -42213,7 +42249,11 @@ msgstr "Hinzufügen/Entfernen"
 
 
 msgid "Collection Instance Empty Size"
-msgstr "Sammlungsinstanz leerer Größe"
+msgstr "Sammlungsinstanz Leer-Objekt-Größe"
+
+
+msgid "Display size of the empty when new collection instances are created"
+msgstr "Darstellungsgröße des Leer-Objektes, wenn neue Sammlungsinstanzen erstellt werden"
 
 
 msgid "Unselected F-Curve Opacity"
@@ -42253,8 +42293,16 @@ msgid "Material Link To"
 msgstr "Material verknüpfen mit"
 
 
+msgid "Toggle whether the material is linked to object data or the object block"
+msgstr "Umschalten, ob ein Material mit den Objektdaten oder dem Objekt-Block verknüpft wird"
+
+
 msgid "Align Object To"
 msgstr "Objekte ausrichten an"
+
+
+msgid "The default alignment for objects added from a 3D viewport menu"
+msgstr "Die Standardausrichtung für Objekte, die über das 3D-Ansichtsfenstermenü hinzugefügt wurden"
 
 
 msgid "Align newly added objects to the world coordinate system"
@@ -42423,6 +42471,10 @@ msgstr "Volumen duplizieren"
 
 msgid "Causes volume data to be duplicated with the object"
 msgstr "Veranlasst Volumendaten dazu, mit einem Objekt dupliziert zu werden"
+
+
+msgid "Enter edit mode automatically after adding a new object"
+msgstr "In Bearbeitungsmodus wechseln, wenn ein neues Objekt hinzugefügt wird"
 
 
 msgid "Global Undo"
@@ -42877,6 +42929,10 @@ msgid "Anisotropic Filtering"
 msgstr "Anisotrope Filterung"
 
 
+msgid "Quality of anisotropic filtering"
+msgstr "Qualität der anisotropen Filterung"
+
+
 msgid "Audio Device"
 msgstr "Audiogerät"
 
@@ -43153,8 +43209,20 @@ msgid "UI Scale"
 msgstr "UI Skalierung"
 
 
+msgid "Enable edit mode edge smoothing, reducing aliasing (requires restart)"
+msgstr "Aktiviere Kantenglättung im Bearbeitungsmodus, reduziert Treppeneffekt (erfordert Neustart)"
+
+
 msgid "GPU Subdivision"
 msgstr "GPU Unterteilung"
+
+
+msgid "Enable GPU acceleration for evaluating the last subdivision surface modifiers in the stack"
+msgstr "Aktiviere GPU-Beschleunigung zum Auswerten der letzten Oberflächenunterteilung im Modifikatorenstapel"
+
+
+msgid "Enable overlay smooth wires, reducing aliasing"
+msgstr "Aktiviere Überlagerungsglättung für Drähte, reduziert Treppeneffekt"
 
 
 msgid "Region Overlap"
@@ -43165,8 +43233,24 @@ msgid "Display tool/property regions over the main region"
 msgstr "Anzeigen von Werkzeug-/Eigenschaftsregionen über die Hauptregion"
 
 
+msgid "GPU Depth Picking"
+msgstr "GPU-Tiefenauswahl"
+
+
+msgid "When making a selection in 3D View, use the GPU depth buffer to ensure the frontmost object is selected first"
+msgstr "Beim Auswählen im 3D-Ansichtsfenster den GPU-Tiefenpuffer verwenden, um sicherzustellen, dass das vorderste Objekt zuerst ausgewählt wird"
+
+
 msgid "Use Disk Cache"
 msgstr "Festplattenpuffer verwenden"
+
+
+msgid "Edit Studio Light"
+msgstr "Studiolicht bearbeiten"
+
+
+msgid "View the result of the studio light editor in the viewport"
+msgstr "Betrachte das Resultat des Studiolicht-Editors im Ansichtsfenster"
 
 
 msgid "VBO Collection Rate"
@@ -43353,6 +43437,14 @@ msgid "Language used for translation"
 msgstr "Für Übersetzung benutzte Sprache"
 
 
+msgid "HDRI Preview Size"
+msgstr "HDRI-Vorschaugröße"
+
+
+msgid "Diameter of the HDRI preview spheres"
+msgstr "Durchmesser der HDRI-Vorschaukugeln"
+
+
 msgid "Mini Axes Brightness"
 msgstr "Helligkeit des Mini-Koordinatensystems"
 
@@ -43371,6 +43463,10 @@ msgstr "Größe des Koordinatensystem-Icons"
 
 msgid "Mini Axes Type"
 msgstr "Mini Achsentyp"
+
+
+msgid "Show small rotating 3D axes in the top right corner of the 3D viewport"
+msgstr "Kleines, rotierendes 3D-Koordinatensystem in der rechten oberen Ecke der 3D-Ansicht zeigen"
 
 
 msgid "Sub Level Menu Open Delay"
@@ -47718,6 +47814,10 @@ msgstr "Textwert"
 
 msgid "Stereo Mode"
 msgstr "Stereomodus"
+
+
+msgid "Collection of studio lights"
+msgstr "Sammlung von Studiolichtern"
 
 
 msgid "Map X and Y coordinates directly"
@@ -54201,7 +54301,7 @@ msgstr "Ausrichten zu"
 
 
 msgid "Instance Empty Size"
-msgstr "Instanz leere Größe"
+msgstr "Instanz-Leer-Objekt Größe"
 
 
 msgid "Default Color"
@@ -54280,8 +54380,12 @@ msgid "View Name"
 msgstr "Ansichtnamen"
 
 
+msgid "3D Viewport Axes"
+msgstr "3D-Ansichtsfenster-Achsen"
+
+
 msgid "Smooth Wires"
-msgstr "Weichet Draht"
+msgstr "Drähte glätten"
 
 
 msgid "Limit Size"
@@ -54359,6 +54463,18 @@ msgstr "Schwenkachse umkehren"
 
 msgid "Invert Pan Axis"
 msgstr "Schwenkachse umkehren"
+
+
+msgid "No custom MatCaps configured"
+msgstr "Keine benutzerdefinierten MatCaps konfiguriert"
+
+
+msgid "No custom HDRIs configured"
+msgstr "Keine benutzerdefinierten HDRIs konfiguriert"
+
+
+msgid "No custom Studio Lights configured"
+msgstr "Keine benutzerdefinierten Studiolichter konfiguriert"
 
 
 msgid "Use Light"
@@ -55636,6 +55752,10 @@ msgstr "Von aktiver Gruppe entfernen"
 msgctxt "Operator"
 msgid "Remove from All"
 msgstr "Von allen entfernen"
+
+
+msgid "Disable Studio Light Edit"
+msgstr "Studiolicht-Bearbeitung deaktivieren"
 
 
 msgid "Object Location"

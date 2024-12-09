@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'62b2bb48e8bf')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'cfa63bfefa5b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-02 16:18+0000\n"
+"POT-Creation-Date: 2024-12-09 09:50+0000\n"
 "PO-Revision-Date: 2019-12-08 17:40+0700\n"
 "Last-Translator: gongpha <gongpha@gmail.com>\n"
 "Language-Team: Thai Translation Team <gongpha@gmail.com>\n"
@@ -1500,6 +1500,10 @@ msgid "Shader"
 msgstr "เชดเดอร์"
 
 
+msgid "Pattern"
+msgstr "ลวดลาย"
+
+
 msgid "Interface"
 msgstr "อินเตอร์เฟส"
 
@@ -1719,10 +1723,6 @@ msgid "Mirror Y"
 msgstr "สะท้อน Y"
 
 
-msgid "Pattern"
-msgstr "ลวดลาย"
-
-
 msgid "Sharp"
 msgstr "แหลม"
 
@@ -1899,36 +1899,32 @@ msgid "Mix Color"
 msgstr "ผสมสี"
 
 
-msgid "Merge"
-msgstr "ผสาน"
-
-
-msgid "Local View"
-msgstr "มุมมองท้องถิ่น"
-
-
-msgid "Names"
-msgstr "ชื่อ"
-
-
-msgid "Viewpoint"
-msgstr "จุดของมุมมอง"
-
-
-msgid "Pivot Point"
-msgstr "จุดหมุน"
+msgid "Mirror"
+msgstr "กระจกสะท้อน"
 
 
 msgid "Snap"
 msgstr "ยึดติด"
 
 
-msgid "Proportional Editing Falloff"
-msgstr "แก้ไข"
+msgid "Local View"
+msgstr "มุมมองท้องถิ่น"
 
 
-msgid "Mask Edit"
-msgstr "การแก้ไขหน้ากาก"
+msgid "Viewpoint"
+msgstr "จุดของมุมมอง"
+
+
+msgid "Navigation"
+msgstr "การนำทาง"
+
+
+msgid "Align View"
+msgstr "จัดมุมมอง"
+
+
+msgid "Align View to Active"
+msgstr "จัดมุมมองไปยังที่วัตถุใช้งาน"
 
 
 msgid "View Regions"
@@ -1947,28 +1943,32 @@ msgid "Track"
 msgstr "แทร็ค"
 
 
-msgid "Navigation"
-msgstr "การนำทาง"
-
-
 msgid "Hooks"
 msgstr "ตะขอ"
 
 
-msgid "Mirror"
-msgstr "กระจกสะท้อน"
-
-
-msgid "Align View to Active"
-msgstr "จัดมุมมองไปยังที่วัตถุใช้งาน"
-
-
-msgid "Align View"
-msgstr "จัดมุมมอง"
+msgid "Names"
+msgstr "ชื่อ"
 
 
 msgid "Face Data"
 msgstr "ข้อมูลด้าน"
+
+
+msgid "Merge"
+msgstr "ผสาน"
+
+
+msgid "Pivot Point"
+msgstr "จุดหมุน"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "แก้ไข"
+
+
+msgid "Mask Edit"
+msgstr "การแก้ไขหน้ากาก"
 
 
 msgid "Zoom"
@@ -3266,12 +3266,12 @@ msgid "Single Image"
 msgstr "ภาพเดี่ยว"
 
 
-msgid "View Lock"
-msgstr "ล็อกมุมมอง"
-
-
 msgid "Overlays"
 msgstr "วางซ้อน"
+
+
+msgid "View Lock"
+msgstr "ล็อกมุมมอง"
 
 
 msgid "Mask Display"

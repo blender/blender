@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'62b2bb48e8bf')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'cfa63bfefa5b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-02 16:18+0000\n"
+"POT-Creation-Date: 2024-12-09 09:50+0000\n"
 "PO-Revision-Date: 2024-04-29 13:36+0000\n"
 "Last-Translator: Zdeněk Doležal <Griperis@outlook.cz>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
@@ -7646,10 +7646,6 @@ msgid "Adaptive Domain"
 msgstr "Adaptivní Doména"
 
 
-msgid "Use Adaptive Time Steps"
-msgstr "Použít Adaptivní Časové Kroky"
-
-
 msgid "Top"
 msgstr "Nahoře"
 
@@ -10134,12 +10130,16 @@ msgid "Shader"
 msgstr "Shader"
 
 
-msgid "Grease Pencil Data"
-msgstr "Kresba skicovací tužkou"
+msgid "Pattern"
+msgstr "Vzor"
 
 
 msgid "Interface"
 msgstr "Rozhraní"
+
+
+msgid "Grease Pencil Data"
+msgstr "Kresba skicovací tužkou"
 
 
 msgid "Links"
@@ -11837,10 +11837,6 @@ msgstr "Nelze uložit soubor"
 
 msgid "Marble Texture"
 msgstr "Textura"
-
-
-msgid "Pattern"
-msgstr "Vzor"
 
 
 msgid "Use soft marble"
@@ -13757,52 +13753,36 @@ msgid "Material slot name"
 msgstr "Název okénka materiálu"
 
 
-msgid "Clean Up"
-msgstr "Vyčistit"
-
-
-msgid "Merge"
-msgstr "Sloučit"
-
-
-msgid "Show/Hide"
-msgstr "Zobrazit/skrýt"
-
-
-msgid "Local View"
-msgstr "Lokální pohled"
-
-
-msgid "Special Characters"
-msgstr "Speciální Znaky"
-
-
-msgid "Names"
-msgstr "Názvy"
-
-
-msgid "Bone Roll"
-msgstr "Kost"
-
-
-msgid "Select Linked"
-msgstr "Vybrat Propojené"
-
-
-msgid "Mesh Select Mode"
-msgstr "Síťový mód výběru"
-
-
-msgid "Pivot Point"
-msgstr "Bod pro pivot"
+msgid "Mirror"
+msgstr "Zrcadlit"
 
 
 msgid "Snap"
 msgstr "Přichytit"
 
 
-msgid "Proportional Editing Falloff"
-msgstr "Způsob útlumu"
+msgid "UV Mapping"
+msgstr "UV mapování"
+
+
+msgid "Local View"
+msgstr "Lokální pohled"
+
+
+msgid "Navigation"
+msgstr "Navigace"
+
+
+msgid "Align View"
+msgstr "Zarovnat pohled"
+
+
+msgid "Select Linked"
+msgstr "Vybrat Propojené"
+
+
+msgid "Assign Material"
+msgstr "Přiřadit Materiál"
 
 
 msgid "Relations"
@@ -13821,32 +13801,24 @@ msgid "Track"
 msgstr "Sledování"
 
 
-msgid "Navigation"
-msgstr "Navigace"
-
-
 msgid "Quick Effects"
 msgstr "Rychlé Efekty"
+
+
+msgid "Show/Hide"
+msgstr "Zobrazit/skrýt"
+
+
+msgid "Clean Up"
+msgstr "Vyčistit"
 
 
 msgid "Make Single User"
 msgstr "Přivlastnit"
 
 
-msgid "UV Mapping"
-msgstr "UV mapování"
-
-
 msgid "Hooks"
 msgstr "Háky"
-
-
-msgid "Mirror"
-msgstr "Zrcadlit"
-
-
-msgid "Assign Material"
-msgstr "Přiřadit Materiál"
 
 
 msgid "Clear Transform"
@@ -13857,12 +13829,36 @@ msgid "Propagate"
 msgstr "Vložit"
 
 
-msgid "Align View"
-msgstr "Zarovnat pohled"
+msgid "Names"
+msgstr "Názvy"
+
+
+msgid "Mesh Select Mode"
+msgstr "Síťový mód výběru"
 
 
 msgid "Face Data"
 msgstr "Data Ploch"
+
+
+msgid "Merge"
+msgstr "Sloučit"
+
+
+msgid "Special Characters"
+msgstr "Speciální Znaky"
+
+
+msgid "Bone Roll"
+msgstr "Kost"
+
+
+msgid "Pivot Point"
+msgstr "Bod pro pivot"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Způsob útlumu"
 
 
 msgid "Basic"
@@ -31380,22 +31376,6 @@ msgid "Restrict"
 msgstr "Omezit"
 
 
-msgid "Active Tool"
-msgstr "Aktivní nástroj"
-
-
-msgid "View Lock"
-msgstr "Zámek zobrazení"
-
-
-msgid "Shadow Settings"
-msgstr "Nastavení Stínů"
-
-
-msgid "SSAO Settings"
-msgstr "Nastavení SSAO"
-
-
 msgid "Overlays"
 msgstr "Překrytí"
 
@@ -31434,6 +31414,22 @@ msgstr "Stereoskopie"
 
 msgid "Auto-Masking"
 msgstr "Auto-Maska"
+
+
+msgid "Active Tool"
+msgstr "Aktivní nástroj"
+
+
+msgid "View Lock"
+msgstr "Zámek zobrazení"
+
+
+msgid "Shadow Settings"
+msgstr "Nastavení Stínů"
+
+
+msgid "SSAO Settings"
+msgstr "Nastavení SSAO"
 
 
 msgid "Chain Scaling"

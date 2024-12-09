@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'62b2bb48e8bf')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'cfa63bfefa5b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-02 16:18+0000\n"
-"PO-Revision-Date: 2024-12-01 20:14+0000\n"
+"POT-Creation-Date: 2024-12-09 09:50+0000\n"
+"PO-Revision-Date: 2024-12-05 23:56+0000\n"
 "Last-Translator: Gorazd Gorup <gorupgorazd@gmail.com>\n"
 "Language-Team: Slovenian <https://translate.blender.org/projects/blender-ui/ui/sl/>\n"
 "Language: sl\n"
@@ -59,8 +59,44 @@ msgid "Collection of AOVs"
 msgstr "Zbirka AOV"
 
 
+msgid "Animation Channel Bag"
+msgstr "Žakelj animacijskih kanalov"
+
+
+msgid "Collection of animation channels, typically associated with an action slot"
+msgstr "Zbirka animacijskih kanalov, ki so navadno povezani z akcijskim poljem"
+
+
 msgid "F-Curves"
 msgstr "F-krivulje"
+
+
+msgid "The individual F-Curves that animate the slot"
+msgstr "Posamezne F-krivulje, ki sestavljajo animacijo polja"
+
+
+msgid "F-Curve Groups"
+msgstr "Skupine F-krivulj"
+
+
+msgid "Groupings of F-Curves for display purposes, in e.g. the dopesheet and graph editor"
+msgstr "Združevanje F-krivulj, da je njihov prikaz v animacijskem načrtu, urejevalniku grafov itd. preglednejši"
+
+
+msgid "Collection of F-Curves for a specific action slot, on a specific strip"
+msgstr "Zbirka F-krivulj za posamezno akcijsko polje na posameznem traku"
+
+
+msgid "Collection of f-curve groups"
+msgstr "Zbirka skupin F-krivulj"
+
+
+msgid "Animation Channels for Slots"
+msgstr "Animacijski kanali za polja"
+
+
+msgid "For each action slot, a list of animation channels that are meant for that slot"
+msgstr "To je seznam animacijskih kanalov za vsako animacijsko polje posebej"
 
 
 msgid "Action F-Curves"
@@ -247,36 +283,80 @@ msgid "Collection of action groups"
 msgstr "Zbirka skupin akcij"
 
 
+msgid "Action Layer"
+msgstr "Akcijska plast"
+
+
 msgid "Influence"
 msgstr "Vpliv"
+
+
+msgid "How much of this layer is used when blending into the lower layers"
+msgstr "Koliko te plasti se uporabi, ko se jo zliva s spodnjimi plastmi"
 
 
 msgid "Mix Mode"
 msgstr "Način mešanja"
 
 
+msgid "How animation of this layer is blended into the lower layers"
+msgstr "Kako se animacija te plasti zliva s spodnjimi plastmi"
+
+
 msgid "Replace"
 msgstr "Zamenjaj"
+
+
+msgid "Channels in this layer override the same channels from underlying layers"
+msgstr "Kanali na tej plasti povozijo enake kanale s spodnjih plasti"
 
 
 msgid "Offset"
 msgstr "Odmik"
 
 
+msgid "Channels in this layer are added to underlying layers as sequential operations"
+msgstr "Kanali s te plasti se prištejejo spodnjim plastem v obliki zaporednih operacij"
+
+
 msgid "Add"
 msgstr "Prištej"
+
+
+msgid "Channels in this layer are added to underlying layers on a per-channel basis"
+msgstr "Kanali na tej plasti se prištejejo spodnjim plastem, vsak kanal ločeno"
 
 
 msgid "Subtract"
 msgstr "Odštej"
 
 
+msgid "Channels in this layer are subtracted to underlying layers on a per-channel basis"
+msgstr "Kanali na tej plasti se odštejejo od spodnjih plasti, vsak kanal ločeno"
+
+
 msgid "Multiply"
 msgstr "Zmnoži"
 
 
+msgid "Channels in this layer are multiplied with underlying layers on a per-channel basis"
+msgstr "Kanali na tej plasti se zmnožijo s spodnjimi plastmi, vsak kanal ločeno"
+
+
 msgid "Strips"
 msgstr "Trakovi"
+
+
+msgid "The list of strips that are on this animation layer"
+msgstr "Seznam trakov, ki so na tej animacijski plasti"
+
+
+msgid "Action Layers"
+msgstr "Akcijske plasti"
+
+
+msgid "Collection of animation layers"
+msgstr "Zbirka animacijskih plasti"
 
 
 msgid "Action Pose Markers"
@@ -303,13 +383,33 @@ msgid "Index of active pose marker"
 msgstr "Indeks oznake aktivne poze"
 
 
+msgid "Action slot"
+msgstr "Akcijsko polje"
+
+
+msgid "Identifier for a set of channels in this Action, that can be used by a data-block to specify what it gets animated by"
+msgstr "Naziv za množico kanalov v tej akciji, s katerim lahko podatkovni blok navede, kaj ga animira"
+
+
 msgid "Active"
 msgstr "Aktivno"
+
+
+msgid "Whether this is the active slot, can be set by assigning to action.slots.active"
+msgstr "Z nastavitvijo action.slots.active je mogoče določiti, ali je to aktivno polje"
+
+
+msgid "Slot Handle"
+msgstr "Določitelj polja"
 
 
 msgctxt "ID"
 msgid "ID Root Type"
 msgstr "Vrsta temeljnega ID-ja"
+
+
+msgid "Type of data-block that can be animated by this slot"
+msgstr "Vrsta podatkovnega bloka, ki ga je mogoče animirati s tem poljem"
 
 
 msgctxt "ID"
@@ -512,12 +612,76 @@ msgid "Unspecified"
 msgstr "Nedoločeno"
 
 
+msgid "Not yet specified. When this slot is first assigned to a data-block, this will be set to the type of that data-block"
+msgstr "Ni še določeno. Ko to polje prvič dodelimo podatkovnemu bloku, bo to zabeležilo vrsto tega podatkovnega bloka"
+
+
+msgid "Slot Identifier"
+msgstr "Identifikator"
+
+
+msgid "Used when connecting an Action to a data-block, to find the correct slot handle. This is the display name, prefixed by two characters determined by the slot's ID type"
+msgstr "Uporablja se pri povezovanju akcije s podatkovnim blokom, saj z njim poiščemo pravi določitelj polja. Sestavimo ga iz dveh znakov, ki izhajata iz vrste ID-ja polja, in prikaznega imena."
+
+
+msgid "Slot Display Name"
+msgstr "Prikazno ime polja"
+
+
+msgid "Name of the slot, for display in the user interface. This name combined with the slot's data-block type is unique within its Action"
+msgstr "Ime polja, kot je prikazano v uporabniškem vmesniku. Kombinacija imena in oznake vrste podatkovnga polja je edinstvena znotraj svoje akcije"
+
+
+msgid "Selection state of the slot"
+msgstr "Stanje izbire polja"
+
+
 msgid "Show Expanded"
-msgstr "Pokaži razširjeno"
+msgstr "Pokaži razprto"
+
+
+msgid "Expanded state of the slot"
+msgstr "Stanje razprtja polja"
+
+
+msgid "Action Slots"
+msgstr "Akcijska polja"
+
+
+msgid "Collection of action slots"
+msgstr "Zbirka akcijskih polj"
+
+
+msgid "Active Slot"
+msgstr "Aktivno polje"
+
+
+msgid "Active slot for this action"
+msgstr "Aktivno polje za to akcijo"
+
+
+msgid "Action Strip"
+msgstr "Akcijski trak"
 
 
 msgid "Keyframe"
 msgstr "Ključni okvir"
+
+
+msgid "Strip with a set of F-Curves for each action slot"
+msgstr "Trak z množico F-krivulj za vsako akcijsko polje"
+
+
+msgid "Keyframe Animation Strip"
+msgstr "Trak animacije s ključnim okvirji"
+
+
+msgid "Action Strips"
+msgstr "Akcijski trakovi"
+
+
+msgid "Collection of animation strips"
+msgstr "Zbirka animacijskih trakov"
 
 
 msgid "Add-on"
@@ -892,6 +1056,30 @@ msgid "Amount the Active Action contributes to the result of the NLA stack"
 msgstr "Koliko aktivna akcija prispeva h končnemu rezultatu sklada NLA"
 
 
+msgid "Action Slot"
+msgstr "Akcijsko polje"
+
+
+msgid "The slot identifies which sub-set of the Action is considered to be for this data-block, and its name is used to find the right slot when assigning an Action"
+msgstr "Polje pove, katera podmnožica akcije je namenjena temu podatkovnemu bloku. Njegovo ime uporabljamo za iskanje pravega polja, ko dodeljujemo akcijo"
+
+
+msgid "Action Slot Handle"
+msgstr "Določitelj akcijskega polja"
+
+
+msgid "A number that identifies which sub-set of the Action is considered to be for this data-block"
+msgstr "Število, ki pove, katera podmnožica akcije je namenjena temu podatkovnemu bloku"
+
+
+msgid "Slots"
+msgstr "Polja"
+
+
+msgid "The list of slots in this animation data-block"
+msgstr "Seznam polj v tem animacijskem podatkovnem bloku"
+
+
 msgid "Tweak Mode Action Storage"
 msgstr "Akcijska shramba dopolnjevalnega načina"
 
@@ -906,6 +1094,14 @@ msgstr "Vodniki"
 
 msgid "The Drivers/Expressions for this data-block"
 msgstr "Vodniki/izrazi za ta podatkovni blok"
+
+
+msgid "Last Action Slot Identifier"
+msgstr "Identifikator zadnjega akcijskega polja"
+
+
+msgid "The identifier of the most recently assigned action slot. The slot identifies which sub-set of the Action is considered to be for this data-block, and its identifier is used to find the right slot when assigning an Action."
+msgstr "Identifikator nazadnje dodeljenega akcijskega polja. Polje določa, katera podmnožica akcije je namenjena temu podatkovnemu bloku. Njegov identifikator uporabljamo za iskanje pravega polja, ko dodeljujemo akcijo."
 
 
 msgid "NLA Tracks"
@@ -1797,6 +1993,14 @@ msgid "Smaller integer with a range from -128 to 127"
 msgstr "Manjše celo število na intervalu od -128 do 127"
 
 
+msgid "2D 16-Bit Integer Vector"
+msgstr "2D 16-bitni celoštevilski vektor"
+
+
+msgid "16-bit signed integer vector"
+msgstr "16-bitni predznačeni celoštevilski vektor"
+
+
 msgid "2D Integer Vector"
 msgstr "2D celoštevilski vektor"
 
@@ -1993,6 +2197,10 @@ msgid "Geometry attribute that stores rotation"
 msgstr "Geometrijski atribut, ki hrani rotacijo"
 
 
+msgid "2D 16-Bit Integer Vector Attribute"
+msgstr "2D 16-bitni celoštevilski vektorski atribut"
+
+
 msgid "String Attribute"
 msgstr "Atribut z nizom"
 
@@ -2019,6 +2227,10 @@ msgstr "Aktivni atribut"
 
 msgid "Active Attribute Index"
 msgstr "Indeks aktivnega atributa"
+
+
+msgid "Active attribute index or -1 when none are active"
+msgstr "Indeks aktivnega atributa ali -1, kadar ni noben aktiven"
 
 
 msgid "Active Color"
@@ -2921,6 +3133,10 @@ msgid "Main Grease Pencils"
 msgstr "Glavni Grease Pencili"
 
 
+msgid "Collection of Grease Pencils"
+msgstr "Zbirka Grease Pencilov"
+
+
 msgid "Main Hair Curves"
 msgstr "Glavne dlačne krivulje"
 
@@ -3145,8 +3361,80 @@ msgid "Collection of worlds"
 msgstr "Zbirka svetov"
 
 
+msgid "Blendfile Import Context"
+msgstr "Kontekst uvoza datoteke blend"
+
+
+msgid "Contextual data for a blendfile library/linked-data related operation. Currently only exposed as read-only data for the pre/post blendimport handlers"
+msgstr "Kontekstualni podatki za operacije nad knjižnicami/povezanimi podatki datoteke blend. Trenutno so ne voljo samo za branje za določitelje uvozov datotek blend"
+
+
+msgid "Options for this blendfile import operation"
+msgstr "Možnosti za to operacijo uvoza datoteke blend"
+
+
+msgid "Only link data, instead of appending it"
+msgstr "Podatke zgolj poveže, namesto da bi jih pripel"
+
+
+msgid "Make paths of used library blendfiles relative to current blendfile"
+msgstr "Pretvori poti uporabljenih knjižničnih datotek blend v relativne glede na trenutno datoteko blend"
+
+
+msgid "Generate a placeholder (empty ID) if not found in any library files"
+msgstr "Generira začasno vrednost (prazen ID), če je ne najde v nobeni knjižnični datoteki"
+
+
+msgid "Force loaded ID to be tagged as indirectly linked (used in reload context only)"
+msgstr "Poskrbi, da je naloženi ID označen kot posredno povezan (uporabljeno le v kontekstu ponovnega nalaganja)"
+
+
+msgid "Set fake user on appended IDs"
+msgstr "Nastavi lažnega uporabnika na pripete ID-je"
+
+
+msgid "Append (make local) also indirect dependencies of appended IDs coming from other libraries. NOTE: All IDs (including indirectly linked ones) coming from the same initial library are always made local"
+msgstr "Pripne (pretvori v lokalne) tudi posredne odvisnosti pripetih ID-jev, ki prihajajo iz drugih knjižnic. POZOR: Vsi ID-ji (tudi posredno povezani), ki izhajajo iz iste knjižnice, so vedno pretvorjeni v lokalne"
+
+
+msgid "Append Action"
+msgstr "Akcija pripenjanja"
+
+
+msgid "Not yet defined"
+msgstr "Še ni definirano"
+
+
+msgid "ID has been kept linked"
+msgstr "ID je ostal povezan"
+
+
+msgid "An existing matching local ID has been re-used"
+msgstr "Obstoječi ujemajoči se lokalni ID je bil ponovno uporabljen"
+
+
+msgid "The newly linked ID has been made local"
+msgstr "Novo povezani ID je postal lokalen"
+
+
+msgid "The linked ID had other unrelated usages, so it has been duplicated into a local copy"
+msgstr "Povezani ID je uporabljen za druge nesorodne namene, zato je bil podvojen v lokalno kopijo"
+
+
+msgid "Imported ID"
+msgstr "Uvožen ID"
+
+
+msgid "The imported ID. None until it has been linked or appended. May be the same as ``reusable_local_id`` when appended"
+msgstr "Uvoženi ID. Ima vrednost None, dokler kakšnega ID-ja ne povežemo ali pripnemo. Lahko je enak kot vrednost ``reusable_local_id``, ko ga pripnemo"
+
+
 msgid "ID Type"
 msgstr "Vrsta ID"
+
+
+msgid "ID type of the item"
+msgstr "Vrsta ID-ja elementa"
 
 
 msgid "Armature"
@@ -3289,8 +3577,44 @@ msgid "World"
 msgstr "Svet"
 
 
+msgid "Import Info"
+msgstr "Uvozne informacije"
+
+
+msgid "Various status info about an item after it has been imported"
+msgstr "Razne informacije o elementu, potem ko je bil uvožen"
+
+
 msgid "Library Overridden ID"
 msgstr "Povozni knjižnični ID"
+
+
+msgid "ID name of the item"
+msgstr "Ime ID elementa"
+
+
+msgid "Reusable Local ID"
+msgstr "Lokalni ID za večkratno uporabo"
+
+
+msgid "Source Libraries"
+msgstr "Izvorne knjižnice"
+
+
+msgid "Source Library"
+msgstr "Izvorna knjižnica"
+
+
+msgid "Blendfile Import Context Items"
+msgstr "Kontekstni elementi uvoza datoteke Blend"
+
+
+msgid "Collection of blendfile import context items"
+msgstr "Zbirka elementov iz konteksta uvoza datotek blend"
+
+
+msgid "Blendfile Import Context Library"
+msgstr "Kontekstna knjižnica uvoza datoteke blend"
 
 
 msgid "Blender RNA"
@@ -4080,7 +4404,7 @@ msgstr "Podeduje skaliranje, vendar odstrani striženje otroka v orientaciji mir
 
 
 msgid "Rotate non-uniform parent scaling to align with the child, applying parent X scale to child X axis, and so forth"
-msgstr "Zasuka neenakomerno skaliranje starša tako, da ga poravna z otrokom in nanese skaliranje po X glede na otrokovo os X itd."
+msgstr "Rotira starševo neenakomerno skaliranje tako, da je poravnano z otrokom. Starševo skaliranje po osi X nanese na otrokovo os X in enako za ostale osi"
 
 
 msgid "Inherit uniform scaling representing the overall change in the volume of the parent"
@@ -4716,6 +5040,10 @@ msgstr "Podaljša ali skrči krivulje tako, da spreminja njihovo velikost enakom
 
 
 msgid "Grease Pencil Brush Settings"
+msgstr "Nastavitve čopiča Grease Pencil"
+
+
+msgid "Settings for Grease Pencil brush"
 msgstr "Nastavitve čopiča za Grease Pencil"
 
 
@@ -5184,6 +5512,10 @@ msgid "Factor of Simplify using adaptive algorithm"
 msgstr "Faktor poenostavitve s prilagoditvenim algoritmom"
 
 
+msgid "Threshold in screen space used for the simplify algorithm. Points within this threshold are treated as if they were in a straight line."
+msgstr "Prag v prostoru zaslona, ki se uporablja za algoritem poenostavitve. Točke pod pragom obravnavamo, kot da ležijo na premici."
+
+
 msgid "Active Layer"
 msgstr "Aktivna plast"
 
@@ -5286,6 +5618,10 @@ msgstr "S pritiskom modulira naključnost"
 
 msgid "Outline"
 msgstr "Obris"
+
+
+msgid "Convert stroke to outline"
+msgstr "Pretvori potezo v obris"
 
 
 msgid "Use Post-Process Settings"
@@ -6829,7 +7165,7 @@ msgstr "BT.2020 2.4 Exponent EOTF Display"
 
 
 msgid "sRGB IEC 61966-2-1 compound (piece-wise) encoding"
-msgstr "Mešalno (po komponentah) kodiranje sRGB IEC 61966-2-1"
+msgstr "Mešalno kodiranje (po komponentah) sRGB IEC 61966-2-1"
 
 
 msgid "Do not perform any color transform on load, treat colors as in scene linear space already"
@@ -7549,6 +7885,18 @@ msgid "The constraining action"
 msgstr "Omejujoča akcija"
 
 
+msgid "The slot identifies which sub-set of the Action is considered to be for this strip, and its name is used to find the right slot when assigning another Action"
+msgstr "Polje pove, katera podmnožica akcije je namenjena temu traku. Njegovo ime uporabljamo za iskanje pravega polja, ko dodeljujemo novo akcijo"
+
+
+msgid "A number that identifies which sub-set of the Action is considered to be for this Action Constraint"
+msgstr "Število, ki pove, katera podmnožica akcije je namenjena temu akcijskemu omejevalniku"
+
+
+msgid "The list of action slots suitable for this NLA strip"
+msgstr "Seznam akcijskih polj, primernih za ta trak NLA"
+
+
 msgid "Evaluation Time"
 msgstr "Čas izračunavanja"
 
@@ -7563,6 +7911,10 @@ msgstr "Zadnji okvir akcije, ki se še upošteva"
 
 msgid "First frame of the Action to use"
 msgstr "Prvi okvir akcije, ki se že upošteva"
+
+
+msgid "The identifier of the most recently assigned action slot. The slot identifies which sub-set of the Action is considered to be for this constraint, and its identifier is used to find the right slot when assigning an Action."
+msgstr "Identifikator nazadnje dodeljenega akcijskega polja. Polje določa, katera podmnožica akcije je namenjena temu omejevalniku Njegov identifikator uporabljamo za iskanje pravega polja, ko dodeljujemo akcijo."
 
 
 msgid "Maximum"
@@ -7693,8 +8045,16 @@ msgid "Use Evaluation Time"
 msgstr "Uporabi čas izračunavanja"
 
 
+msgid "Interpolate between Action Start and End frames, with the Evaluation Time slider instead of the Target object/bone"
+msgstr "Interpolira med začetnim in končnim okvirjem akcije, pri čemer namesto tarčnega objekta ali kosti uporabi čas izračunavanja"
+
+
 msgid "Armature Constraint"
 msgstr "Skeletni omejevalnik"
+
+
+msgid "Applies transformations done by the Armature modifier"
+msgstr "Uveljavi transformacije, ki jih je povzročil modifikator Skelet"
 
 
 msgid "Targets"
@@ -7709,76 +8069,156 @@ msgid "Use Envelopes"
 msgstr "Uporabi ovojnice"
 
 
+msgid "Multiply weights by envelope for all bones, instead of acting like Vertex Group based blending. The specified weights are still used, and only the listed bones are considered."
+msgstr "Za vse kosti pomnoži uteži z ovojnico, namesto da bi izvedel mešanje na podlagi skupin oglišč. Predložene uteži so še vedno uporabljene in izvajanje je omejeno samo na navedene kosti."
+
+
 msgid "Use Current Location"
 msgstr "Uporabi trenutno lego"
+
+
+msgid "Use the current bone location for envelopes and choosing B-Bone segments instead of rest position"
+msgstr "Za ovojnice uporabi trenutno lego kosti in izbere segmente U-kosti namesto mirovalnih položajev"
 
 
 msgid "Preserve Volume"
 msgstr "Ohrani prostornino"
 
 
+msgid "Deform rotation interpolation with quaternions"
+msgstr "Deformira interpolacijo rotacije s kvaternioni"
+
+
 msgid "Camera Solver Constraint"
 msgstr "Omejevalnik Reševalnik kamere"
+
+
+msgid "Lock motion to the reconstructed camera movement"
+msgstr "Zaklene gibanje na rekonstruirano premikanje kamere"
+
+
+msgid "Movie Clip to get tracking data from"
+msgstr "Video izrezek, ki je podlaga za obrisovanje"
 
 
 msgid "Active Clip"
 msgstr "Aktivni izrezek"
 
 
+msgid "Use active clip defined in scene"
+msgstr "Uporabi aktivni izrezek, ki je definiran v sceni"
+
+
 msgid "Child Of Constraint"
 msgstr "Omejevalnik Otroštvo"
+
+
+msgid "Create constraint-based parent-child relationship"
+msgstr "Ustvari starševsko razmerje z omejevalniki"
 
 
 msgid "Inverse Matrix"
 msgstr "Obratna matrika"
 
 
+msgid "Transformation matrix to apply before"
+msgstr "Transformacijska matrika, ki jo nanese prej"
+
+
 msgid "Set Inverse Pending"
 msgstr "Nastavi obratno matriko v teku"
+
+
+msgid "Set to true to request recalculation of the inverse matrix"
+msgstr "Nastavite na 'prav', da zahtevate preračunavanje obratne matrike"
 
 
 msgid "Location X"
 msgstr "Lega po X"
 
 
+msgid "Use X Location of Parent"
+msgstr "Uporabi starševo lego X"
+
+
 msgid "Location Y"
 msgstr "Lega po Y"
+
+
+msgid "Use Y Location of Parent"
+msgstr "Uporabi starševo lego Y"
 
 
 msgid "Location Z"
 msgstr "Lega po Z"
 
 
+msgid "Use Z Location of Parent"
+msgstr "Uporabi starševo lego Z"
+
+
 msgid "Rotation X"
 msgstr "Rotacija po X"
+
+
+msgid "Use X Rotation of Parent"
+msgstr "Uporabi starševo rotacijo X"
 
 
 msgid "Rotation Y"
 msgstr "Rotacija po Y"
 
 
+msgid "Use Y Rotation of Parent"
+msgstr "Uporabi starševo rotacijo Y"
+
+
 msgid "Rotation Z"
 msgstr "Rotacija po Z"
+
+
+msgid "Use Z Rotation of Parent"
+msgstr "Uporabi starševo rotacijo Z"
 
 
 msgid "Scale X"
 msgstr "Skaliranje po X"
 
 
+msgid "Use X Scale of Parent"
+msgstr "Uporabi starševo skaliranje X"
+
+
 msgid "Scale Y"
 msgstr "Skaliranje po Y"
+
+
+msgid "Use Y Scale of Parent"
+msgstr "Uporabi starševo skaliranje Y"
 
 
 msgid "Scale Z"
 msgstr "Skaliranje po Z"
 
 
+msgid "Use Z Scale of Parent"
+msgstr "Uporabi starševo skaliranje Z"
+
+
 msgid "Clamp To Constraint"
 msgstr "Omejevalnik Navezava"
 
 
+msgid "Constrain an object's location to the nearest point along the target path"
+msgstr "Omeji lego objekta na najbližjo točko vzdolž ciljne poti"
+
+
 msgid "Main Axis"
 msgstr "Glavna os"
+
+
+msgid "Main axis of movement"
+msgstr "Glavna os gibanja"
 
 
 msgid "X"
@@ -7801,144 +8241,388 @@ msgid "Cyclic"
 msgstr "Krožno"
 
 
+msgid "Treat curve as cyclic curve (no clamping to curve bounding box)"
+msgstr "Obravnava krivuljo kot krožno krivuljo (ne poreže na očrtane okvirje krivulje)"
+
+
 msgid "Copy Location Constraint"
 msgstr "Omejevalnik Kopiranje lokacije"
+
+
+msgid "Copy the location of the target"
+msgstr "Kopira lego tarče"
 
 
 msgid "Head/Tail"
 msgstr "Glava / rep"
 
 
+msgid "Target along length of bone: Head is 0, Tail is 1"
+msgstr "Tarča vzdolž dolžine kosti: glava je 0, rep je 1"
+
+
 msgid "Invert X"
 msgstr "Obrni X"
+
+
+msgid "Invert the X location"
+msgstr "Obrne lego X"
 
 
 msgid "Invert Y"
 msgstr "Obrni Y"
 
 
+msgid "Invert the Y location"
+msgstr "Obrne lego Y"
+
+
 msgid "Invert Z"
 msgstr "Obrni Z"
+
+
+msgid "Invert the Z location"
+msgstr "Obrne lego Z"
 
 
 msgid "Follow B-Bone"
 msgstr "Sledenje U-kosti"
 
 
+msgid "Follow shape of B-Bone segments when calculating Head/Tail position"
+msgstr "Sledi oblikam segmentov U-krivulje, ko računa položaj glave/repa"
+
+
+msgid "Add original location into copied location"
+msgstr "Prišteje prvotno lego h kopirani legi"
+
+
 msgid "Copy X"
 msgstr "Kopiraj X"
+
+
+msgid "Copy the target's X location"
+msgstr "Kopira tarčino lego po osi X"
 
 
 msgid "Copy Y"
 msgstr "Kopiraj Y"
 
 
+msgid "Copy the target's Y location"
+msgstr "Kopira tarčino lego po osi Y"
+
+
 msgid "Copy Z"
 msgstr "Kopiraj Z"
+
+
+msgid "Copy the target's Z location"
+msgstr "Kopira tarčino lego po osi Z"
 
 
 msgid "Copy Rotation Constraint"
 msgstr "Omejevalnik Kopiranje rotacije"
 
 
+msgid "Copy the rotation of the target"
+msgstr "Kopira rotacijo tarče"
+
+
 msgid "Euler Order"
 msgstr "Vrstni red rotacij"
+
+
+msgid "Explicitly specify the euler rotation order"
+msgstr "Izrecno določi zaporedje Eulerjevih rotacij"
 
 
 msgid "Default"
 msgstr "Privzeto"
 
 
+msgid "Euler using the default rotation order"
+msgstr "Euler s privzetim zaporedjem rotacij"
+
+
 msgid "XYZ Euler"
 msgstr "Euler XYZ"
+
+
+msgid "Euler using the XYZ rotation order"
+msgstr "Euler z zaporedjem rotacij XYZ"
 
 
 msgid "XZY Euler"
 msgstr "Euler XZY"
 
 
+msgid "Euler using the XZY rotation order"
+msgstr "Euler z zaporedjem rotacij XZY"
+
+
 msgid "YXZ Euler"
 msgstr "Euler YXZ"
+
+
+msgid "Euler using the YXZ rotation order"
+msgstr "Euler z zaporedjem rotacij YXZ"
 
 
 msgid "YZX Euler"
 msgstr "Euler YZX"
 
 
+msgid "Euler using the YZX rotation order"
+msgstr "Euler z zaporedjem rotacij YZX"
+
+
 msgid "ZXY Euler"
 msgstr "Euler ZXY"
+
+
+msgid "Euler using the ZXY rotation order"
+msgstr "Euler z zaporedjem rotacij ZXY"
 
 
 msgid "ZYX Euler"
 msgstr "Euler ZYX"
 
 
+msgid "Euler using the ZYX rotation order"
+msgstr "Euler z zaporedjem rotacij ZYX"
+
+
+msgid "Invert the X rotation"
+msgstr "Obrne rotacijo po X"
+
+
+msgid "Invert the Y rotation"
+msgstr "Obrne rotacijo po Y"
+
+
+msgid "Invert the Z rotation"
+msgstr "Obrne rotacijo po Z"
+
+
+msgid "Specify how the copied and existing rotations are combined"
+msgstr "Določi, na kakšen način se združijo kopirane in obstoječe rotacije"
+
+
+msgid "Replace the original rotation with copied"
+msgstr "Zamenja prvotno rotacijo s kopirano"
+
+
+msgid "Add euler component values together"
+msgstr "Sešteje vrednosti komponent Eulerjevih rotacij"
+
+
 msgid "Before Original"
 msgstr "Pred prvotnim"
+
+
+msgid "Apply copied rotation before original, as if the constraint target is a parent"
+msgstr "Nanese kopirano rotacijo pred prvotno rotacijo, kakor da bi bila tarča omejevelnika starš"
 
 
 msgid "After Original"
 msgstr "Po prvotnem"
 
 
+msgid "Apply copied rotation after original, as if the constraint target is a child"
+msgstr "Nanese kopirano rotacijo po prvotni rotaciji, kakor da bi bila tarča omejevalnika otrok"
+
+
 msgid "Offset (Legacy)"
 msgstr "Odmik (zastarelo)"
+
+
+msgid "Combine rotations like the original Offset checkbox. Does not work well for multiple axis rotations."
+msgstr "Združi rotacije kot pri nekdanji opciji Odmik (Offset). Ne deluje dobro za rotacije po več oseh."
+
+
+msgid "DEPRECATED: Add original rotation into copied rotation"
+msgstr "OPUŠČENO: Prišteje prvotno rotacijo kopirani rotaciji"
+
+
+msgid "Copy the target's X rotation"
+msgstr "Kopira tarčino rotacijo po X"
+
+
+msgid "Copy the target's Y rotation"
+msgstr "Kopira tarčino rotacijo po Y"
+
+
+msgid "Copy the target's Z rotation"
+msgstr "Kopira tarčino rotacijo po Z"
 
 
 msgid "Copy Scale Constraint"
 msgstr "Omejevalnik Kopiranje skaliranja"
 
 
+msgid "Copy the scale of the target"
+msgstr "Kopira skaliranje tarče"
+
+
 msgid "Power"
 msgstr "Moč"
+
+
+msgid "Raise the target's scale to the specified power"
+msgstr "Potencira skaliranje tarče na navedeno število"
 
 
 msgid "Additive"
 msgstr "Aditivno"
 
 
+msgid "Use addition instead of multiplication to combine scale (2.7 compatibility)"
+msgstr "Skaliranje kombinira s seštevanjem namesto z množenjem (združljivo z različico 2.7)"
+
+
 msgid "Make Uniform"
 msgstr "Enakomerno"
+
+
+msgid "Redistribute the copied change in volume equally between the three axes of the owner"
+msgstr "Porazdeli kopirano prostorninsko spremembo enakovredno po vseh treh oseh imetnika"
+
+
+msgid "Combine original scale with copied scale"
+msgstr "Kombinira prvotno skaliranje s kopiranim skaliranjem"
+
+
+msgid "Copy the target's X scale"
+msgstr "Kopira tarčino skaliranje po X"
+
+
+msgid "Copy the target's Y scale"
+msgstr "Kopira tarčino skaliranje po Y"
+
+
+msgid "Copy the target's Z scale"
+msgstr "Kopira tarčino skaliranje po Z"
 
 
 msgid "Copy Transforms Constraint"
 msgstr "Omejevalnik Kopiranje transformacij"
 
 
+msgid "Copy all the transforms of the target"
+msgstr "Kopira vse transformacije tarče"
+
+
+msgid "Specify how the copied and existing transformations are combined"
+msgstr "Določa, kako združiti kopirane in obstoječe transformacije"
+
+
+msgid "Replace the original transformation with copied"
+msgstr "Zamenja prvotne transformacije s kopiranimi"
+
+
+msgid "Apply copied transformation before original, using simple matrix multiplication as if the constraint target is a parent in Full Inherit Scale mode. Will create shear when combining rotation and non-uniform scale."
+msgstr "Nanese kopirane transformacije pred prvotnimi. Uporabi preprosto množenje matrik, kakor da je omejevalnikova tarča starš v načinu polnega dedovanja skaliranja. V prisotnosti rotacije in neenakomernega skaliranja to povzroči striženje."
+
+
+msgid "Apply copied transformation before original, as if the constraint target is a parent in Aligned Inherit Scale mode. This effectively uses Full for location and Split Channels for rotation and scale."
+msgstr "Nanese kopirane transformacije pred prvotnimi., kakor da je omejevalnikova tarča starš v načinu poravnanega dedovanja skaliranja. Efektivno to pomeni, da je lega v polnem načinu, rotacija in skaliranje pa v načinu ločenih kanalov."
+
+
+msgid "Apply copied transformation before original, handling location, rotation and scale separately, similar to a sequence of three Copy constraints"
+msgstr "Nanese kopirane transformacije pred prvotnimi, pri čemer lego, rotacijo in skaliranje obravnava ločeno. Učinek je podoben, kot če bi imeli zaporedje treh omejevalnikov kopiranja"
+
+
+msgid "Apply copied transformation after original, using simple matrix multiplication as if the constraint target is a child in Full Inherit Scale mode. Will create shear when combining rotation and non-uniform scale."
+msgstr "Nanese kopirane transformacije za prvotnimi. Uporabi preprosto množenje matrik, kakor da je omejevalnikova tarča otrok v načinu polnega dedovanja skaliranja. V prisotnosti rotacije in neenakomernega skaliranja to povzroči striženje."
+
+
+msgid "Apply copied transformation after original, as if the constraint target is a child in Aligned Inherit Scale mode. This effectively uses Full for location and Split Channels for rotation and scale."
+msgstr "Nanese kopirane transformacije za prvotnimi., kakor da je omejevalnikova tarča otrok v načinu poravnanega dedovanja skaliranja. Efektivno to pomeni, da je lega v polnem načinu, rotacija in skaliranje pa v načinu ločenih kanalov."
+
+
+msgid "Apply copied transformation after original, handling location, rotation and scale separately, similar to a sequence of three Copy constraints"
+msgstr "Nanese kopirane transformacije za prvotnimi, pri čemer lego, rotacijo in skaliranje obravnava ločeno. Učinek je podoben, kot če bi imeli zaporedje treh omejevalnikov kopiranja"
+
+
 msgid "Remove Target Shear"
 msgstr "Odstrani striženje tarče"
+
+
+msgid "Remove shear from the target transformation before combining"
+msgstr "Pred združevanjem odstrani striženje iz transformacije tarče"
 
 
 msgid "Damped Track Constraint"
 msgstr "Omejevalnik Blago sledenje"
 
 
+msgid "Point toward target by taking the shortest rotation path"
+msgstr "Usmeri se proti tarči po poti najmanjše rotacije"
+
+
 msgid "Track Axis"
 msgstr "Sledilna os"
+
+
+msgid "Axis that points to the target object"
+msgstr "Os, ki je usmerjena proti tarčnemu objektu"
 
 
 msgid "Floor Constraint"
 msgstr "Omejevalnik Tla"
 
 
+msgid "Use the target object for location limitation"
+msgstr "Za omejevanje lege uporabi tarčni objekt"
+
+
 msgid "Floor Location"
 msgstr "Lega tal"
+
+
+msgid "Location of target that object will not pass through"
+msgstr "Lega tarče, preko katere objekt ne bo mogel"
+
+
+msgid "Offset of floor from object origin"
+msgstr "Odmik tal od izhodišča objekta"
 
 
 msgid "Use Rotation"
 msgstr "Uporabi rotacijo"
 
 
+msgid "Use the target's rotation to determine floor"
+msgstr "Uporabi rotacijo tarče, da določi tla"
+
+
 msgid "Follow Path Constraint"
 msgstr "Omejevalnik Sledenje poti"
+
+
+msgid "Lock motion to the target path"
+msgstr "Zaklene gibanje na tarčno pot"
 
 
 msgid "Forward Axis"
 msgstr "Sprednja os"
 
 
+msgid "Axis that points forward along the path"
+msgstr "Os, ki kaže naprej vzdolž poti"
+
+
+msgid "Offset from the position corresponding to the time frame"
+msgstr "Odmik od položaja, ki se ujema s časovnim okvirjem"
+
+
 msgid "Offset Factor"
 msgstr "Faktor odmika"
+
+
+msgid "Percentage value defining target position along length of curve"
+msgstr "Delež dolžine krivulje v odstotkih, ki pove, kje vzdolž krivulje naj se objekt nahaja"
 
 
 msgid "Target Curve object"
@@ -7949,20 +8633,56 @@ msgid "Up Axis"
 msgstr "Navpična os"
 
 
+msgid "Axis that points upward"
+msgstr "Os, ki kaže navzgor"
+
+
 msgid "Follow Curve"
 msgstr "Sledenje krivulji"
+
+
+msgid "Object will follow the heading and banking of the curve"
+msgstr "Objekt se bo obračal s potekom in nagibom krivulje"
+
+
+msgid "Object is scaled by the curve radius"
+msgstr "Objekt spreminja velikost glede na polmer krivulje"
 
 
 msgid "Fixed Position"
 msgstr "Nespremenljiv položaj"
 
 
+msgid "Object will stay locked to a single point somewhere along the length of the curve regardless of time"
+msgstr "Objekt bo priklenjen na eno točko nekje na krivulji, ne glede na čas"
+
+
 msgid "Follow Track Constraint"
 msgstr "Omejevalnik Sledenje obrisu"
 
 
+msgid "Lock motion to the target motion track"
+msgstr "Priklene gibanje na tarčin obris gibanja"
+
+
+msgid "Camera to which motion is parented (if empty active scene camera is used)"
+msgstr "Kamera, ki je starš gibanju (če ni določeno, se uporabi aktivna kamera na sceni)"
+
+
 msgid "Depth Object"
 msgstr "Globinski objekt"
+
+
+msgid "Object used to define depth in camera space by projecting onto surface of this object"
+msgstr "Objekt, s katerim določi globino v prostoru kamere, tako da projicira na površino tega objekta"
+
+
+msgid "How the footage fits in the camera frame"
+msgstr "Kako se posnetek prilega v okvir kamere"
+
+
+msgid "Movie tracking object to follow (if empty, camera object is used)"
+msgstr "Objekt video obrisovanja, ki mu sledimo (če je prazen, se uporabi objekt kamere)"
 
 
 msgctxt "MovieClip"
@@ -7970,12 +8690,24 @@ msgid "Track"
 msgstr "Obris"
 
 
+msgid "Movie tracking track to follow"
+msgstr "Video obris, ki mu sledimo"
+
+
 msgid "3D Position"
 msgstr "Položaj 3D"
 
 
+msgid "Use 3D position of track to parent to"
+msgstr "Za starša uporabi 3D položaj obrisa"
+
+
 msgid "Undistort"
 msgstr "Odstrani popačenje"
+
+
+msgid "Parent to undistorted position of 2D track"
+msgstr "Za starša nastavi nepopačen položaj 2D obrisa"
 
 
 msgid "Kinematic Constraint"
@@ -7986,6 +8718,14 @@ msgid "Chain Length"
 msgstr "Dolžina verige"
 
 
+msgid "How many bones are included in the IK effect - 0 uses all bones"
+msgstr "Koliko kosti je vključenih v učinek IK - 0 pomeni vse kosti"
+
+
+msgid "Radius of limiting sphere"
+msgstr "Polmer sfere, ki omejuje gibanje"
+
+
 msgid "IK Type"
 msgstr "Vrsta IK"
 
@@ -7994,44 +8734,88 @@ msgid "Copy Pose"
 msgstr "Kopiranje poze"
 
 
+msgid "Maximum number of solving iterations"
+msgstr "Maksimalno število iteracij računanja"
+
+
 msgid "Limit Mode"
 msgstr "Omejevalni način"
+
+
+msgid "Distances in relation to sphere of influence to allow"
+msgstr "Kako omeji gibanje glede na sfero"
 
 
 msgid "Inside"
 msgstr "Znotraj"
 
 
+msgid "The object is constrained inside a virtual sphere around the target object, with a radius defined by the limit distance"
+msgstr "Objekt je omejen na gibanje znotraj navidezne sfere okoli tarčnega objekta. Polmer sfere določa omejevalna razdalja"
+
+
 msgid "Outside"
 msgstr "Zunaj"
+
+
+msgid "The object is constrained outside a virtual sphere around the target object, with a radius defined by the limit distance"
+msgstr "Objekt je omejen na gibanje zunaj navidezne sfere okoli tarčnega objekta. Polmer sfere določa omejevalna razdalja"
 
 
 msgid "On Surface"
 msgstr "Na površini"
 
 
+msgid "The object is constrained on the surface of a virtual sphere around the target object, with a radius defined by the limit distance"
+msgstr "Objekt je omejen na gibanje na površini navidezne sfere okoli tarčnega objekta. Polmer sfere določa omejevalna razdalja"
+
+
 msgid "Lock X Pos"
 msgstr "Zakleni položaj po X"
+
+
+msgid "Constraint position along X axis"
+msgstr "Omeji položaj vzdolž osi X"
 
 
 msgid "Lock Y Pos"
 msgstr "Zakleni položaj po Y"
 
 
+msgid "Constraint position along Y axis"
+msgstr "Omeji položaj vzdolž osi Y"
+
+
 msgid "Lock Z Pos"
 msgstr "Zakleni položaj po Z"
+
+
+msgid "Constraint position along Z axis"
+msgstr "Omeji položaj vzdolž osi Z"
 
 
 msgid "Lock X Rotation"
 msgstr "Zakleni rotacijo po X"
 
 
+msgid "Constraint rotation along X axis"
+msgstr "Omeji rotacijo vzdolž osi X"
+
+
 msgid "Lock Y Rotation"
 msgstr "Zakleni rotacijo po Y"
 
 
+msgid "Constraint rotation along Y axis"
+msgstr "Omeji rotacijo vzdolž osi Y"
+
+
 msgid "Lock Z Rotation"
 msgstr "Zakleni rotacijo po Z"
+
+
+msgid "Constraint rotation along Z axis"
+msgstr "Omeji rotacijo vzdolž osi Z"
 
 
 msgid "Orientation Weight"
@@ -8042,6 +8826,10 @@ msgid "Pole Angle"
 msgstr "Tečajni kot"
 
 
+msgid "Pole rotation offset"
+msgstr "Odmik rotacije tečaja"
+
+
 msgid "Pole Sub-Target"
 msgstr "Tečajna podtarča"
 
@@ -8050,12 +8838,28 @@ msgid "Pole Target"
 msgstr "Tečajna tarča"
 
 
+msgid "Object for pole rotation"
+msgstr "Objekt za rotacijo tečaja"
+
+
 msgid "Axis Reference"
 msgstr "Sklic osi"
 
 
+msgid "Constraint axis Lock options relative to Bone or Target reference"
+msgstr "Omeji možnosti zaklepanja osi glede na kost ali sklic tarče"
+
+
 msgid "Bone"
 msgstr "Kost"
+
+
+msgid "Chain follows position of target"
+msgstr "Veriga sledi položaju tarče"
+
+
+msgid "Chain follows rotation of target"
+msgstr "Veriga sledi rotaciji tarče"
 
 
 msgid "Enable IK Stretching"
@@ -8066,48 +8870,148 @@ msgid "Use Tail"
 msgstr "Uporabi rep"
 
 
+msgid "Include bone's tail as last element in chain"
+msgstr "Vključi rep kosti kot zadnji element v verigi"
+
+
 msgid "Limit Distance Constraint"
 msgstr "Omejevalnik Omejitev razdalje"
+
+
+msgid "Limit the distance from target object"
+msgstr "Omeji oddaljenost od tarčnega objekta"
 
 
 msgid "Affect Transform"
 msgstr "Vpliva na transformacije"
 
 
+msgid "Transforms are affected by this constraint as well"
+msgstr "Ta omejevalnik vpliva tudi na transformacije"
+
+
 msgid "Limit Location Constraint"
 msgstr "Omejevalnik Omejitev lokacije"
+
+
+msgid "Limit the location of the constrained object"
+msgstr "Omeji lego objekta"
 
 
 msgid "Maximum X"
 msgstr "Največji X"
 
 
+msgid "Highest X value to allow"
+msgstr "Najvišja dovoljena vrednost po osi X"
+
+
 msgid "Maximum Y"
 msgstr "Največji Y"
+
+
+msgid "Highest Y value to allow"
+msgstr "Najvišja dovoljena vrednost po osi Y"
 
 
 msgid "Maximum Z"
 msgstr "Največji Z"
 
 
+msgid "Highest Z value to allow"
+msgstr "Najvišja dovoljena vrednost po osi Z"
+
+
 msgid "Minimum X"
 msgstr "Najmanjši X"
+
+
+msgid "Lowest X value to allow"
+msgstr "Najnižja dovoljena vrednost po osi X"
 
 
 msgid "Minimum Y"
 msgstr "Najmanjši Y"
 
 
+msgid "Lowest Y value to allow"
+msgstr "Najnižja dovoljena vrednost po osi Y"
+
+
 msgid "Minimum Z"
 msgstr "Najmanjši Z"
+
+
+msgid "Lowest Z value to allow"
+msgstr "Najnižja dovoljena vrednost po osi Z"
+
+
+msgid "Use the maximum X value"
+msgstr "Uporabi najvišjo možno vrednost X"
+
+
+msgid "Use the maximum Y value"
+msgstr "Uporabi najvišjo možno vrednost Y"
+
+
+msgid "Use the maximum Z value"
+msgstr "Uporabi najvišjo možno vrednost Z"
+
+
+msgid "Use the minimum X value"
+msgstr "Uporabi najnižjo možno vrednost X"
+
+
+msgid "Use the minimum Y value"
+msgstr "Uporabi najnižjo možno vrednost Y"
+
+
+msgid "Use the minimum Z value"
+msgstr "Uporabi najnižjo možno vrednost Z"
+
+
+msgid "Transform tools are affected by this constraint as well"
+msgstr "Ta omejevalnik vpliva tudi na transformacijska orodja"
 
 
 msgid "Limit Rotation Constraint"
 msgstr "Omejevalnik Omejitev rotacije"
 
 
+msgid "Limit the rotation of the constrained object"
+msgstr "Omeji rotacijo objekta"
+
+
+msgid "Upper X angle bound"
+msgstr "Največji možni kot po X"
+
+
+msgid "Upper Y angle bound"
+msgstr "Največji možni kot po Y"
+
+
+msgid "Upper Z angle bound"
+msgstr "Največji možni kot po Z"
+
+
+msgid "Lower X angle bound"
+msgstr "Najmanjši možni kot po X"
+
+
+msgid "Lower Y angle bound"
+msgstr "Najmanjši možni kot po Y"
+
+
+msgid "Lower Z angle bound"
+msgstr "Najmanjši možni kot po Z"
+
+
 msgid "Legacy Behavior"
 msgstr "Stara funkcionalnost"
+
+
+msgid "Use the old semi-broken behavior that doesn't understand that rotations loop around"
+msgstr "Uporabi zastareli, nekoliko pokvarjeni način delovanja, ki ne upošteva, da rotacije lahko opravijo več krogov"
 
 
 msgid "Limit X"
@@ -8126,8 +9030,16 @@ msgid "Limit Size Constraint"
 msgstr "Omejevalnik Omejitev velikosti"
 
 
+msgid "Limit the scaling of the constrained object"
+msgstr "Omeji skaliranje objekta"
+
+
 msgid "Locked Track Constraint"
 msgstr "Omejevalnik Vklenjeno sledenje"
+
+
+msgid "Point toward the target along the track axis, while locking the other axis"
+msgstr "Usmeri se proti tarči v smeri osi sledenja, pri tem pa zaklene druge osi"
 
 
 msgid "Locked Axis"
@@ -8138,20 +9050,48 @@ msgid "Maintain Volume Constraint"
 msgstr "Omejevalnik Ohranitev prostornine"
 
 
+msgid "Maintain a constant volume along a single scaling axis"
+msgstr "Ohrani stalno prostornino vzdolž ene same osi skaliranja"
+
+
 msgid "Free Axis"
 msgstr "Prosta os"
+
+
+msgid "The free scaling axis of the object"
+msgstr "Prosta os skaliranja objekta"
+
+
+msgid "The way the constraint treats original non-free axis scaling"
+msgstr "Način, kako omejevalnik obravnava prvotno skaliranje po oseh, ki niso proste"
 
 
 msgid "Strict"
 msgstr "Strogo"
 
 
+msgid "Volume is strictly preserved, overriding the scaling of non-free axes"
+msgstr "Prostornina se na vsak način ohrani, pri tem lahko povozi skaliranje po oseh, ki niso proste"
+
+
 msgid "Uniform"
 msgstr "Enakomerno"
 
 
+msgid "Volume is preserved when the object is scaled uniformly. Deviations from uniform scale on non-free axes are passed through."
+msgstr "Prostornina se ohranja, kadar je objekt skaliran enakomerno. Odstopanja, ki jih povzroči enakomerno skaliranje po oseh, ki niso proste, se ohrani."
+
+
 msgid "Single Axis"
 msgstr "Ena os"
+
+
+msgid "Volume is preserved when the object is scaled only on the free axis. Non-free axis scaling is passed through."
+msgstr "Prostornina se ohranja, kadar se objekt skalira samo po prosti osi. Skaliranje po neprostih oseh se prenese."
+
+
+msgid "Volume of the bone at rest"
+msgstr "Prostornina kosti v mirovanju"
 
 
 msgid "Object Solver Constraint"
@@ -10229,8 +11169,16 @@ msgid "Noise F-Modifier"
 msgstr "F-modifikator Šum"
 
 
+msgid "Lacunarity"
+msgstr "Lakunarnost"
+
+
 msgid "Phase"
 msgstr "Faza"
+
+
+msgid "Roughness"
+msgstr "Hrapavost"
 
 
 msgid "Stepped Interpolation F-Modifier"
@@ -11232,10 +12180,6 @@ msgstr "Časovno skaliranje"
 
 msgid "Adaptive Domain"
 msgstr "Prilagodljiva domena"
-
-
-msgid "Use Adaptive Time Steps"
-msgstr "Uporabi prilagodljive časovne korake"
 
 
 msgid "Bubble"
@@ -15454,10 +16398,6 @@ msgid "Refraction Depth"
 msgstr "Globina loma svetlobe"
 
 
-msgid "Roughness"
-msgstr "Hrapavost"
-
-
 msgid "Show Backface"
 msgstr "Pokaži zadnjo plat"
 
@@ -15704,6 +16644,10 @@ msgstr "Optična maska"
 
 msgid "Shader"
 msgstr "Senčilnik"
+
+
+msgid "Pattern"
+msgstr "Vzorec"
 
 
 msgid "Interface"
@@ -17334,10 +18278,6 @@ msgid "Marble Texture"
 msgstr "Marmorna tekstura"
 
 
-msgid "Pattern"
-msgstr "Vzorec"
-
-
 msgid "Sharp"
 msgstr "Ostro"
 
@@ -17368,10 +18308,6 @@ msgstr "Najvišja dimenzija"
 
 msgid "Gain"
 msgstr "Ojačanje"
-
-
-msgid "Lacunarity"
-msgstr "Lakunarnost"
 
 
 msgid "Multifractal"
@@ -20276,40 +21212,52 @@ msgid "Use Material Mask"
 msgstr "Uporabi masko materiala"
 
 
-msgid "Clean Up"
-msgstr "Počisti"
+msgid "Mirror"
+msgstr "Zrcali"
 
 
-msgid "Merge"
-msgstr "Združi"
+msgid "Snap"
+msgstr "Pritrdi"
 
 
-msgid "Show/Hide"
-msgstr "Pokaži / skrij"
+msgid "UV Mapping"
+msgstr "Preslikanje UV"
 
 
 msgid "Local View"
 msgstr "Lokalni pogled"
 
 
-msgid "Special Characters"
-msgstr "Posebni znaki"
-
-
-msgid "Kerning"
-msgstr "Spodsekavanje"
-
-
-msgid "Names"
-msgstr "Imena"
-
-
 msgid "Viewpoint"
 msgstr "Gledišče"
 
 
-msgid "Bone Roll"
-msgstr "Zasukaj kost"
+msgid "Navigation"
+msgstr "Navigacija"
+
+
+msgid "Align View"
+msgstr "Poravnava pogleda"
+
+
+msgid "Align View to Active"
+msgstr "Poravnaj pogled na aktivno"
+
+
+msgid "View Regions"
+msgstr "Področja pogleda"
+
+
+msgid "Select More/Less"
+msgstr "Izberi več / manj"
+
+
+msgid "Select Similar"
+msgstr "Izberi sorodne"
+
+
+msgid "Select All by Trait"
+msgstr "Izberi vse po značilnosti"
 
 
 msgid "Select Linked"
@@ -20320,28 +21268,8 @@ msgid "Select Loops"
 msgstr "Izberi zanke"
 
 
-msgid "Pivot Point"
-msgstr "Osišče"
-
-
-msgid "Snap"
-msgstr "Pritrdi"
-
-
-msgid "Mask Edit"
-msgstr "Urejanje maske"
-
-
-msgid "Automasking"
-msgstr "Samodejno maskiranje"
-
-
-msgid "Select More/Less"
-msgstr "Izberi več / manj"
-
-
-msgid "View Regions"
-msgstr "Področja pogleda"
+msgid "Assign Material"
+msgstr "Dodeli material"
 
 
 msgid "Add Image"
@@ -20364,16 +21292,16 @@ msgid "Track"
 msgstr "Obriši"
 
 
-msgid "Navigation"
-msgstr "Navigacija"
-
-
-msgid "Select Similar"
-msgstr "Izberi sorodne"
-
-
 msgid "Quick Effects"
 msgstr "Učinki na hitro"
+
+
+msgid "Show/Hide"
+msgstr "Pokaži / skrij"
+
+
+msgid "Clean Up"
+msgstr "Počisti"
 
 
 msgid "Asset"
@@ -20392,10 +21320,6 @@ msgid "Link/Transfer Data"
 msgstr "Poveži / prenesi podatke"
 
 
-msgid "UV Mapping"
-msgstr "Preslikanje UV"
-
-
 msgid "Hooks"
 msgstr "Kavlji"
 
@@ -20408,24 +21332,12 @@ msgid "Random Mask"
 msgstr "Naključna maska"
 
 
-msgid "Mirror"
-msgstr "Zrcali"
-
-
-msgid "Assign Material"
-msgstr "Dodeli material"
-
-
 msgid "Clear Transform"
 msgstr "Počisti transformacijo"
 
 
 msgid "In-Betweens"
 msgstr "Vmesni okvirji"
-
-
-msgid "Align View to Active"
-msgstr "Poravnaj pogled na aktivno"
 
 
 msgid "Propagate"
@@ -20436,12 +21348,8 @@ msgid "Bone Collections"
 msgstr "Zbirke kosti"
 
 
-msgid "Align View"
-msgstr "Poravnava pogleda"
-
-
-msgid "Select All by Trait"
-msgstr "Izberi vse po značilnosti"
+msgid "Names"
+msgstr "Imena"
 
 
 msgid "Face Data"
@@ -20454,6 +21362,34 @@ msgstr "Izberi glede na moč lica"
 
 msgid "Set Face Strength"
 msgstr "Nastavi moč lica"
+
+
+msgid "Merge"
+msgstr "Združi"
+
+
+msgid "Special Characters"
+msgstr "Posebni znaki"
+
+
+msgid "Kerning"
+msgstr "Spodsekavanje"
+
+
+msgid "Bone Roll"
+msgstr "Zasukaj kost"
+
+
+msgid "Pivot Point"
+msgstr "Osišče"
+
+
+msgid "Mask Edit"
+msgstr "Urejanje maske"
+
+
+msgid "Automasking"
+msgstr "Samodejno maskiranje"
 
 
 msgid "Animals"
@@ -31683,34 +32619,6 @@ msgid "Restrict"
 msgstr "Omeji"
 
 
-msgid "VR"
-msgstr "VR"
-
-
-msgid "Active Tool"
-msgstr "Aktivno orodje"
-
-
-msgid "View Lock"
-msgstr "Zaklep pogleda"
-
-
-msgid "Selectability & Visibility"
-msgstr "Izbirljivost in vidnost"
-
-
-msgid "Wire Color"
-msgstr "Barva žice"
-
-
-msgid "Render Pass"
-msgstr "Obhod upodabljanja"
-
-
-msgid "Compositor"
-msgstr "Stavitelj slik"
-
-
 msgid "Overlays"
 msgstr "Pomagala"
 
@@ -31765,6 +32673,34 @@ msgstr "glTF"
 
 msgid "glTF Animations"
 msgstr "Animacije glTF"
+
+
+msgid "VR"
+msgstr "VR"
+
+
+msgid "Active Tool"
+msgstr "Aktivno orodje"
+
+
+msgid "View Lock"
+msgstr "Zaklep pogleda"
+
+
+msgid "Selectability & Visibility"
+msgstr "Izbirljivost in vidnost"
+
+
+msgid "Wire Color"
+msgstr "Barva žice"
+
+
+msgid "Render Pass"
+msgstr "Obhod upodabljanja"
+
+
+msgid "Compositor"
+msgstr "Stavitelj slik"
 
 
 msgid "Chain Scaling"
@@ -34001,7 +34937,7 @@ msgstr "Ime zbirke"
 
 
 msgid "object_color"
-msgstr "Barva objekta"
+msgstr "object_color"
 
 
 msgid "Ankle"
@@ -34033,7 +34969,7 @@ msgstr "Gradnik"
 
 
 msgid "pivot_position"
-msgstr "Položaj osišča"
+msgstr "pivot_position"
 
 
 msgid "X-Global"

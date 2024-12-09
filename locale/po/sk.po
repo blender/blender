@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'62b2bb48e8bf')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'cfa63bfefa5b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-02 16:18+0000\n"
+"POT-Creation-Date: 2024-12-09 09:50+0000\n"
 "PO-Revision-Date: 2024-11-27 07:38+0000\n"
 "Last-Translator: Jozef Matta <jozef.m923@gmail.com>\n"
 "Language-Team: Slovak <https://translate.blender.org/projects/blender-ui/ui/sk/>\n"
@@ -401,14 +401,6 @@ msgstr "Určuje, či ide o aktívnu zásuvku, možno nastaviť priradením k act
 
 msgid "Slot Handle"
 msgstr "Manipulátor zásuvky"
-
-
-msgid ""
-"Number specific to this Slot, unique within the Action.\n"
-"This is used, for example, on a ActionKeyframeStrip to look up the ActionChannelBag for this Slot"
-msgstr ""
-"Číslo špecifické pre túto zásuvku, jedinečné v rámci akcie.\n"
-"Toto sa používa napríklad v ActionKeyframeStrip (akcia pása kľúčových snímok) na vyhľadanie ActionChannelBag (akcia zbalenia kanálov)pre túto zásuvku"
 
 
 msgctxt "ID"
@@ -13197,6 +13189,10 @@ msgid "Amount of fine level detail present in the noise"
 msgstr "Množstvo detailov jemnej úrovne prítomnej v šume"
 
 
+msgid "Lacunarity"
+msgstr "Medzerovitosť"
+
+
 msgid "Time offset for the noise effect"
 msgstr "Časový posuv pre efekt šumu"
 
@@ -13207,6 +13203,10 @@ msgstr "Fáza"
 
 msgid "A random seed for the noise effect"
 msgstr "Náhodné rozosiatie efektu šumu"
+
+
+msgid "Roughness"
+msgstr "Zdrsnenie"
 
 
 msgid "Scaling (in time) of the noise"
@@ -15512,14 +15512,6 @@ msgstr "Adaptívna oblasť"
 
 msgid "Adapt simulation resolution and size to fluid"
 msgstr "Prispôsobí rozlíšenie a veľkosť simulácie na kvapalinu"
-
-
-msgid "Use Adaptive Time Steps"
-msgstr "Použiť prispôsobenie časových krokov"
-
-
-msgid "Lets the solver automatically decide when to perform multiple simulation steps per frame"
-msgstr "Umožňuje riešiteľovi automaticky rozhodnúť, kedy vykonať viacero simulačných krokov na snímku"
 
 
 msgid "Bubble"
@@ -24218,10 +24210,6 @@ msgid "Approximate the thickness of the object to compute two refraction events 
 msgstr "Približná hrúbka objektu na výpočet dvoch refrakčných udalostí (0 je vypnuté) (zastarané)"
 
 
-msgid "Roughness"
-msgstr "Zdrsnenie"
-
-
 msgid "Roughness of the material"
 msgstr "Zdrsnenie materiálu"
 
@@ -24838,10 +24826,6 @@ msgid "Color tag of the node group which influences the header color"
 msgstr "Farba značky skupiny uzlov, ktorá ovplyvňuje farbu záhlavia"
 
 
-msgid "Default tag for new node groups"
-msgstr "Predvolená značka pre nové skupiny uzlov"
-
-
 msgid "Attribute"
 msgstr "Atribút"
 
@@ -24866,6 +24850,14 @@ msgid "Shader"
 msgstr "Tieňovač"
 
 
+msgid "Pattern"
+msgstr "Vzorka"
+
+
+msgid "Interface"
+msgstr "Rozhranie"
+
+
 msgid "Default Group Node Width"
 msgstr "Predvolená šírka uzla skupiny"
 
@@ -24880,10 +24872,6 @@ msgstr "Popis stromu uzlov"
 
 msgid "Grease Pencil Data"
 msgstr "Údaje Grease Pencil"
-
-
-msgid "Interface"
-msgstr "Rozhranie"
 
 
 msgid "Interface declaration for this node tree"
@@ -27529,10 +27517,6 @@ msgid "Show Subframe"
 msgstr "Zobraziť medzi-snímky"
 
 
-msgid "Show current scene subframe and allow set it using interface tools"
-msgstr "Zobrazenie aktuálnej medzisnímky scény a povolenie nastavenia použitím nástrojov rozhrania"
-
-
 msgid "Simulation Frame End"
 msgstr "Koncová snímka simulácie"
 
@@ -28675,10 +28659,6 @@ msgid "Marble Texture"
 msgstr "Textúra Mramor"
 
 
-msgid "Pattern"
-msgstr "Vzorka"
-
-
 msgid "Use soft marble"
 msgstr "Použije jemné mramorovanie"
 
@@ -28749,10 +28729,6 @@ msgstr "Zisk"
 
 msgid "The gain multiplier"
 msgstr "Násobič zisku"
-
-
-msgid "Lacunarity"
-msgstr "Medzerovitosť"
 
 
 msgid "Gap between successive frequencies"
@@ -34078,52 +34054,52 @@ msgid "Editor menu containing buttons"
 msgstr "Ponuka editora obsahujúca tlačidlá"
 
 
-msgid "Clean Up"
-msgstr "Prečistiť"
+msgid "Mirror"
+msgstr "Zrkadlo"
 
 
-msgid "Merge"
-msgstr "Zlúčiť"
+msgid "Snap"
+msgstr "Prichytiť"
 
 
-msgid "Show/Hide"
-msgstr "Ukázať/skryť"
+msgid "UV Mapping"
+msgstr "UV mapovanie"
 
 
 msgid "Local View"
 msgstr "Lokálny pohľad"
 
 
-msgid "Special Characters"
-msgstr "Špeciálne znaky"
-
-
-msgid "Kerning"
-msgstr "Zhustenie znakov"
-
-
-msgid "Names"
-msgstr "Názvy"
-
-
 msgid "Viewpoint"
 msgstr "Smer záberu"
 
 
-msgid "Bone Roll"
-msgstr "Kývanie kosti"
+msgid "Navigation"
+msgstr "Navigácia"
 
 
-msgid "Toggle Bone Options"
-msgstr "Prepínač možnosti kostí"
+msgid "Align View"
+msgstr "Zarovnať pohľad"
 
 
-msgid "Enable Bone Options"
-msgstr "Povoliť možnosti kostí"
+msgid "Align View to Active"
+msgstr "Zarovnať pohľad na aktívne"
 
 
-msgid "Disable Bone Options"
-msgstr "Zakázať možnosti kostí"
+msgid "View Regions"
+msgstr "Oblasti pohľadu"
+
+
+msgid "Select More/Less"
+msgstr "Vybrať viac/menej"
+
+
+msgid "Select Similar"
+msgstr "Vybrať podobné"
+
+
+msgid "Select All by Trait"
+msgstr "Vybrať všetko podľa črty"
 
 
 msgid "Select Linked"
@@ -34134,44 +34110,8 @@ msgid "Select Loops"
 msgstr "Vybrať slučky"
 
 
-msgid "Mesh Select Mode"
-msgstr "Režim výberu povrchovej siete"
-
-
-msgid "Pivot Point"
-msgstr "Otočný bod"
-
-
-msgid "Snap"
-msgstr "Prichytiť"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Dopad proporcionálnej úpravy"
-
-
-msgid "Mask Edit"
-msgstr "Úprava masky"
-
-
-msgid "Automasking"
-msgstr "Automatické maskovanie"
-
-
-msgid "Face Sets Edit"
-msgstr "Úprava nastavenia plôšok"
-
-
-msgid "Vertex Group Locks"
-msgstr "Zámky skupiny vrcholov"
-
-
-msgid "Select More/Less"
-msgstr "Vybrať viac/menej"
-
-
-msgid "View Regions"
-msgstr "Oblasti pohľadu"
+msgid "Assign Material"
+msgstr "Priradiť materiál"
 
 
 msgid "Add Image"
@@ -34194,16 +34134,16 @@ msgid "Track"
 msgstr "Stopa"
 
 
-msgid "Navigation"
-msgstr "Navigácia"
-
-
-msgid "Select Similar"
-msgstr "Vybrať podobné"
-
-
 msgid "Quick Effects"
 msgstr "Rýchle efekty"
+
+
+msgid "Show/Hide"
+msgstr "Ukázať/skryť"
+
+
+msgid "Clean Up"
+msgstr "Prečistiť"
 
 
 msgid "Asset"
@@ -34222,12 +34162,12 @@ msgid "Link/Transfer Data"
 msgstr "Prepojiť/preniesť údaje"
 
 
-msgid "UV Mapping"
-msgstr "UV mapovanie"
-
-
 msgid "Hooks"
 msgstr "Háky"
+
+
+msgid "Vertex Group Locks"
+msgstr "Zámky skupiny vrcholov"
 
 
 msgid "Trim/Add"
@@ -34246,24 +34186,12 @@ msgid "Random Mask"
 msgstr "Náhodná maska"
 
 
-msgid "Mirror"
-msgstr "Zrkadlo"
-
-
-msgid "Assign Material"
-msgstr "Priradiť materiál"
-
-
 msgid "Clear Transform"
 msgstr "Zmazať transformáciu"
 
 
 msgid "In-Betweens"
 msgstr "Sprostredkovatelia"
-
-
-msgid "Align View to Active"
-msgstr "Zarovnať pohľad na aktívne"
 
 
 msgid "Propagate"
@@ -34274,12 +34202,24 @@ msgid "Bone Collections"
 msgstr "Kolekcie kostí"
 
 
-msgid "Align View"
-msgstr "Zarovnať pohľad"
+msgid "Names"
+msgstr "Názvy"
 
 
-msgid "Select All by Trait"
-msgstr "Vybrať všetko podľa črty"
+msgid "Toggle Bone Options"
+msgstr "Prepínač možnosti kostí"
+
+
+msgid "Enable Bone Options"
+msgstr "Povoliť možnosti kostí"
+
+
+msgid "Disable Bone Options"
+msgstr "Zakázať možnosti kostí"
+
+
+msgid "Mesh Select Mode"
+msgstr "Režim výberu povrchovej siete"
 
 
 msgid "Face Data"
@@ -34292,6 +34232,42 @@ msgstr "Vybrať podľa vplyvu plôšky"
 
 msgid "Set Face Strength"
 msgstr "Nastaviť vplyv plôšky"
+
+
+msgid "Merge"
+msgstr "Zlúčiť"
+
+
+msgid "Special Characters"
+msgstr "Špeciálne znaky"
+
+
+msgid "Kerning"
+msgstr "Zhustenie znakov"
+
+
+msgid "Bone Roll"
+msgstr "Kývanie kosti"
+
+
+msgid "Pivot Point"
+msgstr "Otočný bod"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Dopad proporcionálnej úpravy"
+
+
+msgid "Mask Edit"
+msgstr "Úprava masky"
+
+
+msgid "Automasking"
+msgstr "Automatické maskovanie"
+
+
+msgid "Face Sets Edit"
+msgstr "Úprava nastavenia plôšok"
 
 
 msgid "Keyframe Insert Pie"
@@ -52722,6 +52698,16 @@ msgstr "Kolekcia efektov objektu"
 
 
 msgctxt "Operator"
+msgid "Add Material Variant"
+msgstr "Pridať variant materiálu"
+
+
+msgctxt "Operator"
+msgid "Remove Variant"
+msgstr "Odstrániť variant"
+
+
+msgctxt "Operator"
 msgid "Display Variant"
 msgstr "Zobraziť variant"
 
@@ -52742,21 +52728,6 @@ msgstr "Priradiť ako originál"
 
 
 msgctxt "Operator"
-msgid "Add Material Variant"
-msgstr "Pridať variant materiálu"
-
-
-msgctxt "Operator"
-msgid "Remove Variant"
-msgstr "Odstrániť variant"
-
-
-msgctxt "Operator"
-msgid "Operator"
-msgstr "Operátor"
-
-
-msgctxt "Operator"
 msgid "Add new Slot"
 msgstr "Pridať novú zásuvku"
 
@@ -52774,6 +52745,11 @@ msgstr "Odstrániť zásuvku variantu"
 msgctxt "Operator"
 msgid "Apply glTF animation"
 msgstr "Použiť glTF animáciu"
+
+
+msgctxt "Operator"
+msgid "Operator"
+msgstr "Operátor"
 
 
 msgid "Mark actions with no F-Curves for deletion after save and reload of file preserving \"action libraries\""
@@ -89978,46 +89954,6 @@ msgid "Panel containing UI elements"
 msgstr "Panel obsahujúci prvky užívateľského rozhrania"
 
 
-msgid "VR"
-msgstr "Virtuálna realita VR"
-
-
-msgid "VR Info"
-msgstr "VR Info"
-
-
-msgid "Active Tool"
-msgstr "Aktívny nástroj"
-
-
-msgid "View Lock"
-msgstr "Zamknúť zobrazenie"
-
-
-msgid "Selectability & Visibility"
-msgstr "Výber a viditeľnosť"
-
-
-msgid "Wire Color"
-msgstr "Farba drôtu"
-
-
-msgid "Shadow Settings"
-msgstr "Nastavenie tieňa"
-
-
-msgid "SSAO Settings"
-msgstr "Nastavenie SSAO"
-
-
-msgid "Render Pass"
-msgstr "Prechod Prekreslenie"
-
-
-msgid "Compositor"
-msgstr "Kompozítor"
-
-
 msgid "Overlays"
 msgstr "Prekrytia"
 
@@ -90048,14 +89984,6 @@ msgstr "Režim editácie krivky"
 
 msgid "Curves Edit Mode"
 msgstr "Režim editácie krivky"
-
-
-msgid "glTF Variants"
-msgstr "glTF varianty"
-
-
-msgid "glTF Material Variants"
-msgstr "glTF varianty materiálu"
 
 
 msgid "Snapping"
@@ -90094,6 +90022,14 @@ msgid "Multi Frame"
 msgstr "Viacsnímkové"
 
 
+msgid "glTF Variants"
+msgstr "glTF varianty"
+
+
+msgid "glTF Material Variants"
+msgstr "glTF varianty materiálu"
+
+
 msgid "Auto-Masking"
 msgstr "Auto maskovanie"
 
@@ -90120,6 +90056,46 @@ msgstr "glTF"
 
 msgid "glTF Animations"
 msgstr "glTF animácie"
+
+
+msgid "VR"
+msgstr "Virtuálna realita VR"
+
+
+msgid "VR Info"
+msgstr "VR Info"
+
+
+msgid "Active Tool"
+msgstr "Aktívny nástroj"
+
+
+msgid "View Lock"
+msgstr "Zamknúť zobrazenie"
+
+
+msgid "Selectability & Visibility"
+msgstr "Výber a viditeľnosť"
+
+
+msgid "Wire Color"
+msgstr "Farba drôtu"
+
+
+msgid "Shadow Settings"
+msgstr "Nastavenie tieňa"
+
+
+msgid "SSAO Settings"
+msgstr "Nastavenie SSAO"
+
+
+msgid "Render Pass"
+msgstr "Prechod Prekreslenie"
+
+
+msgid "Compositor"
+msgstr "Kompozítor"
 
 
 msgid "Chain Scaling"
@@ -93560,14 +93536,6 @@ msgstr "CPU kompozítor"
 
 msgid "Enable the new CPU compositor"
 msgstr "Povolí nový kompozítor CPU"
-
-
-msgid "Overlay Legacy"
-msgstr "Prekryť zdedené"
-
-
-msgid "Enable the legacy Overlay codebase, requires restart"
-msgstr "Povolí prekrytie zdedenej kódovej základne, vyžaduje reštart"
 
 
 msgid "No Override Auto Resync"
@@ -131306,20 +131274,12 @@ msgid "Deleted %u object(s)"
 msgstr "Odstránených %u objekt(y)"
 
 
-msgid "Object '%s' has no evaluated Grease Pencil data"
-msgstr "Objekt '%s' nemá žiadne vyhodnotené údaje Grease Pencil"
-
-
-msgid "Object '%s' has no evaluated curves data"
-msgstr "Objekt '%s' nemá žiadne vyhodnotené údaje o krivkách"
-
-
 msgid "Object '%s' has no evaluated mesh or curves data"
 msgstr "Objekt '%s' neobsahuje žiadne vyhodnotené údaje povrchovej siete alebo kriviek"
 
 
-msgid "Object '%s' has no evaluated Grease Pencil or curves data"
-msgstr "Objekt '%s' nemá vyhodnotené údaje o Grease Pencil alebo krivkách"
+msgid "Object '%s' has no evaluated curves data"
+msgstr "Objekt '%s' nemá žiadne vyhodnotené údaje o krivkách"
 
 
 msgid "Cannot edit object '%s' as it is used by override collections"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'62b2bb48e8bf')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'cfa63bfefa5b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-02 16:18+0000\n"
+"POT-Creation-Date: 2024-12-09 09:50+0000\n"
 "PO-Revision-Date: 2024-11-08 04:56+0000\n"
 "Last-Translator: Just Adam <adam.abbas2009@gmail.com>\n"
 "Language-Team: Bulgarian <https://translate.blender.org/projects/blender-ui/ui/bg/>\n"
@@ -1008,6 +1008,10 @@ msgid "Cloth"
 msgstr "Тъкан"
 
 
+msgid "Pattern"
+msgstr "Модел"
+
+
 msgid "Sculpt"
 msgstr "Скулпт"
 
@@ -1058,10 +1062,6 @@ msgstr "Остр"
 
 msgid "Area"
 msgstr "Площ"
-
-
-msgid "Pattern"
-msgstr "Модел"
 
 
 msgid "Sharp"
@@ -1164,8 +1164,8 @@ msgid "Click"
 msgstr "Клик"
 
 
-msgid "Merge"
-msgstr "Слей"
+msgid "UV Mapping"
+msgstr "UV Картиране"
 
 
 msgid "Rigid Body"
@@ -1180,16 +1180,16 @@ msgid "Make Single User"
 msgstr "Направи с Единствен Потребител"
 
 
-msgid "UV Mapping"
-msgstr "UV Картиране"
-
-
 msgid "Hooks"
 msgstr "Куки"
 
 
 msgid "In-Betweens"
 msgstr "Междинни Кадри"
+
+
+msgid "Merge"
+msgstr "Слей"
 
 
 msgid "Languages..."

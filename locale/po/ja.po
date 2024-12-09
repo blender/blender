@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'62b2bb48e8bf')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'cfa63bfefa5b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-02 16:18+0000\n"
+"POT-Creation-Date: 2024-12-09 09:50+0000\n"
 "PO-Revision-Date: 2024-11-17 07:56+0000\n"
 "Last-Translator: Satoshi Yamasaki <yamyam@yo.rim.or.jp>\n"
 "Language-Team: Japanese <https://translate.blender.org/projects/blender-ui/ui/ja/>\n"
@@ -13128,6 +13128,10 @@ msgid "Amount of fine level detail present in the noise"
 msgstr "ノイズ中で細かいレベルが現れる量"
 
 
+msgid "Lacunarity"
+msgstr "空隙性"
+
+
 msgid "Time offset for the noise effect"
 msgstr "ノイズエフェクト用の時間のオフセット"
 
@@ -13138,6 +13142,10 @@ msgstr "位相"
 
 msgid "A random seed for the noise effect"
 msgstr "ノイズエフェクト用のランダムシード"
+
+
+msgid "Roughness"
+msgstr "粗さ"
 
 
 msgid "Scaling (in time) of the noise"
@@ -15512,16 +15520,6 @@ msgstr "適応ドメイン"
 
 msgid "Adapt simulation resolution and size to fluid"
 msgstr "シミュレーション解像度とサイズを流体に適応させます"
-
-
-msgid "Use Adaptive Time Steps"
-msgstr "適応タイムステップを使用"
-
-
-msgid "Lets the solver automatically decide when to perform multiple simulation steps per frame"
-msgstr ""
-"フレーム毎に複数のシミュレーションステップを実行する時，\n"
-"自動的にソルバーがその数を設定するようにします"
 
 
 msgid "Bubble"
@@ -24308,10 +24306,6 @@ msgid "Approximate the thickness of the object to compute two refraction events 
 msgstr "オブジェクトの厚みを近似し，二つの屈折事象を計算します（０で無効）（廃止予定）"
 
 
-msgid "Roughness"
-msgstr "粗さ"
-
-
 msgid "Roughness of the material"
 msgstr "素材の粗さ"
 
@@ -24964,10 +24958,6 @@ msgid "Color tag of the node group which influences the header color"
 msgstr "ノードグループのヘッダーカラーに影響するカラータグ"
 
 
-msgid "Default tag for new node groups"
-msgstr "新規ノードグループ用のデフォルトタグ"
-
-
 msgid "Attribute"
 msgstr "属性"
 
@@ -24992,6 +24982,14 @@ msgid "Shader"
 msgstr "シェーダー"
 
 
+msgid "Pattern"
+msgstr "パターン"
+
+
+msgid "Interface"
+msgstr "インターフェイス"
+
+
 msgid "Default Group Node Width"
 msgstr "デフォルトグループノード幅"
 
@@ -25006,10 +25004,6 @@ msgstr "ノードツリーの説明"
 
 msgid "Grease Pencil Data"
 msgstr "グリースペンシルデータ"
-
-
-msgid "Interface"
-msgstr "インターフェイス"
 
 
 msgid "Interface declaration for this node tree"
@@ -27679,10 +27673,6 @@ msgid "Show Subframe"
 msgstr "サブフレームを表示"
 
 
-msgid "Show current scene subframe and allow set it using interface tools"
-msgstr "現在のシーンサブフレームを表示し，インターフェイスツールで設定できるようにします"
-
-
 msgid "Simulation Frame End"
 msgstr "シミュレーションフレーム終了"
 
@@ -28833,10 +28823,6 @@ msgid "Marble Texture"
 msgstr "マーブルテクスチャ"
 
 
-msgid "Pattern"
-msgstr "パターン"
-
-
 msgid "Use soft marble"
 msgstr "ソフトマーブルを使用"
 
@@ -28907,10 +28893,6 @@ msgstr "ゲイン"
 
 msgid "The gain multiplier"
 msgstr "ゲイン乗数"
-
-
-msgid "Lacunarity"
-msgstr "空隙性"
 
 
 msgid "Gap between successive frequencies"
@@ -34190,52 +34172,52 @@ msgid "Editor menu containing buttons"
 msgstr "ボタンを含むエディターメニュー"
 
 
-msgid "Clean Up"
-msgstr "クリーンアップ"
+msgid "Mirror"
+msgstr "ミラー"
 
 
-msgid "Merge"
-msgstr "マージ"
+msgid "Snap"
+msgstr "スナップ"
 
 
-msgid "Show/Hide"
-msgstr "表示/隠す"
+msgid "UV Mapping"
+msgstr "UVマッピング"
 
 
 msgid "Local View"
 msgstr "ローカルビュー"
 
 
-msgid "Special Characters"
-msgstr "特殊文字"
-
-
-msgid "Kerning"
-msgstr "カーニング"
-
-
-msgid "Names"
-msgstr "名前"
-
-
 msgid "Viewpoint"
 msgstr "視点"
 
 
-msgid "Bone Roll"
-msgstr "ボーンロール"
+msgid "Navigation"
+msgstr "視点の操作"
 
 
-msgid "Toggle Bone Options"
-msgstr "ボーンオプションを切り替え"
+msgid "Align View"
+msgstr "視点を揃える"
 
 
-msgid "Enable Bone Options"
-msgstr "ボーンオプションを有効化"
+msgid "Align View to Active"
+msgstr "アクティブに視点を揃える"
 
 
-msgid "Disable Bone Options"
-msgstr "ボーンオプションを無効化"
+msgid "View Regions"
+msgstr "ビュー領域設定"
+
+
+msgid "Select More/Less"
+msgstr "選択の拡大縮小"
+
+
+msgid "Select Similar"
+msgstr "類似選択"
+
+
+msgid "Select All by Trait"
+msgstr "特徴で全選択"
 
 
 msgid "Select Linked"
@@ -34246,44 +34228,8 @@ msgid "Select Loops"
 msgstr "ループ選択"
 
 
-msgid "Mesh Select Mode"
-msgstr "メッシュ選択モード"
-
-
-msgid "Pivot Point"
-msgstr "ピボットポイント"
-
-
-msgid "Snap"
-msgstr "スナップ"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "プロポーショナル編集の減衰タイプ"
-
-
-msgid "Mask Edit"
-msgstr "マスク編集"
-
-
-msgid "Automasking"
-msgstr "自動マスク"
-
-
-msgid "Face Sets Edit"
-msgstr "面セット編集"
-
-
-msgid "Vertex Group Locks"
-msgstr "頂点グループのロック"
-
-
-msgid "Select More/Less"
-msgstr "選択の拡大縮小"
-
-
-msgid "View Regions"
-msgstr "ビュー領域設定"
+msgid "Assign Material"
+msgstr "マテリアルを割り当て"
 
 
 msgid "Add Image"
@@ -34306,16 +34252,16 @@ msgid "Track"
 msgstr "トラック"
 
 
-msgid "Navigation"
-msgstr "視点の操作"
-
-
-msgid "Select Similar"
-msgstr "類似選択"
-
-
 msgid "Quick Effects"
 msgstr "クイックエフェクト"
+
+
+msgid "Show/Hide"
+msgstr "表示/隠す"
+
+
+msgid "Clean Up"
+msgstr "クリーンアップ"
 
 
 msgid "Asset"
@@ -34334,12 +34280,12 @@ msgid "Link/Transfer Data"
 msgstr "データのリンク/転送"
 
 
-msgid "UV Mapping"
-msgstr "UVマッピング"
-
-
 msgid "Hooks"
 msgstr "フック"
+
+
+msgid "Vertex Group Locks"
+msgstr "頂点グループのロック"
 
 
 msgid "Trim/Add"
@@ -34358,24 +34304,12 @@ msgid "Random Mask"
 msgstr "ランダムマスク"
 
 
-msgid "Mirror"
-msgstr "ミラー"
-
-
-msgid "Assign Material"
-msgstr "マテリアルを割り当て"
-
-
 msgid "Clear Transform"
 msgstr "トランスフォームをクリア"
 
 
 msgid "In-Betweens"
 msgstr "中間ポーズ"
-
-
-msgid "Align View to Active"
-msgstr "アクティブに視点を揃える"
 
 
 msgid "Propagate"
@@ -34386,12 +34320,24 @@ msgid "Bone Collections"
 msgstr "ボーンコレクション"
 
 
-msgid "Align View"
-msgstr "視点を揃える"
+msgid "Names"
+msgstr "名前"
 
 
-msgid "Select All by Trait"
-msgstr "特徴で全選択"
+msgid "Toggle Bone Options"
+msgstr "ボーンオプションを切り替え"
+
+
+msgid "Enable Bone Options"
+msgstr "ボーンオプションを有効化"
+
+
+msgid "Disable Bone Options"
+msgstr "ボーンオプションを無効化"
+
+
+msgid "Mesh Select Mode"
+msgstr "メッシュ選択モード"
 
 
 msgid "Face Data"
@@ -34404,6 +34350,42 @@ msgstr "面の強さで選択"
 
 msgid "Set Face Strength"
 msgstr "面の強さを設定"
+
+
+msgid "Merge"
+msgstr "マージ"
+
+
+msgid "Special Characters"
+msgstr "特殊文字"
+
+
+msgid "Kerning"
+msgstr "カーニング"
+
+
+msgid "Bone Roll"
+msgstr "ボーンロール"
+
+
+msgid "Pivot Point"
+msgstr "ピボットポイント"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "プロポーショナル編集の減衰タイプ"
+
+
+msgid "Mask Edit"
+msgstr "マスク編集"
+
+
+msgid "Automasking"
+msgstr "自動マスク"
+
+
+msgid "Face Sets Edit"
+msgstr "面セット編集"
 
 
 msgid "Keyframe Insert Pie"
@@ -52988,6 +52970,16 @@ msgstr "オブジェクトエフェクトの集合"
 
 
 msgctxt "Operator"
+msgid "Add Material Variant"
+msgstr "マテリアルバリアントを追加"
+
+
+msgctxt "Operator"
+msgid "Remove Variant"
+msgstr "バリアントを削除"
+
+
+msgctxt "Operator"
 msgid "Display Variant"
 msgstr "バリアントを表示"
 
@@ -53008,21 +53000,6 @@ msgstr "オリジナルとして割り当て"
 
 
 msgctxt "Operator"
-msgid "Add Material Variant"
-msgstr "マテリアルバリアントを追加"
-
-
-msgctxt "Operator"
-msgid "Remove Variant"
-msgstr "バリアントを削除"
-
-
-msgctxt "Operator"
-msgid "Operator"
-msgstr "オペレーター"
-
-
-msgctxt "Operator"
 msgid "Add new Slot"
 msgstr "新規スロットを追加"
 
@@ -53040,6 +53017,11 @@ msgstr "バリアントスロットを削除"
 msgctxt "Operator"
 msgid "Apply glTF animation"
 msgstr "glTFアニメーションを適用"
+
+
+msgctxt "Operator"
+msgid "Operator"
+msgstr "オペレーター"
 
 
 msgid "Mark actions with no F-Curves for deletion after save and reload of file preserving \"action libraries\""
@@ -90410,46 +90392,6 @@ msgid "Panel containing UI elements"
 msgstr "UIの要素を含むパネル"
 
 
-msgid "VR"
-msgstr "VR"
-
-
-msgid "VR Info"
-msgstr "VR情報"
-
-
-msgid "Active Tool"
-msgstr "アクティブツール"
-
-
-msgid "View Lock"
-msgstr "ビューのロック"
-
-
-msgid "Selectability & Visibility"
-msgstr "選択可否と可視性"
-
-
-msgid "Wire Color"
-msgstr "ワイヤカラー"
-
-
-msgid "Shadow Settings"
-msgstr "影の設定"
-
-
-msgid "SSAO Settings"
-msgstr "SSAO設定"
-
-
-msgid "Render Pass"
-msgstr "レンダーパス"
-
-
-msgid "Compositor"
-msgstr "コンポジター"
-
-
 msgid "Overlays"
 msgstr "オーバーレイ"
 
@@ -90476,14 +90418,6 @@ msgstr "計測"
 
 msgid "Curve Edit Mode"
 msgstr "カーブ編集モード"
-
-
-msgid "glTF Variants"
-msgstr "glTFバリアント"
-
-
-msgid "glTF Material Variants"
-msgstr "glTFマテリアルバリアント"
 
 
 msgid "Snapping"
@@ -90522,6 +90456,14 @@ msgid "Multi Frame"
 msgstr "マルチフレーム"
 
 
+msgid "glTF Variants"
+msgstr "glTFバリアント"
+
+
+msgid "glTF Material Variants"
+msgstr "glTFマテリアルバリアント"
+
+
 msgid "Auto-Masking"
 msgstr "自動マスク"
 
@@ -90548,6 +90490,46 @@ msgstr "glTF"
 
 msgid "glTF Animations"
 msgstr "glTFアニメーション"
+
+
+msgid "VR"
+msgstr "VR"
+
+
+msgid "VR Info"
+msgstr "VR情報"
+
+
+msgid "Active Tool"
+msgstr "アクティブツール"
+
+
+msgid "View Lock"
+msgstr "ビューのロック"
+
+
+msgid "Selectability & Visibility"
+msgstr "選択可否と可視性"
+
+
+msgid "Wire Color"
+msgstr "ワイヤカラー"
+
+
+msgid "Shadow Settings"
+msgstr "影の設定"
+
+
+msgid "SSAO Settings"
+msgstr "SSAO設定"
+
+
+msgid "Render Pass"
+msgstr "レンダーパス"
+
+
+msgid "Compositor"
+msgstr "コンポジター"
 
 
 msgid "Chain Scaling"
@@ -131954,12 +131936,12 @@ msgid "Deleted %u object(s)"
 msgstr "%u個のオブジェクトを削除しました"
 
 
-msgid "Object '%s' has no evaluated curves data"
-msgstr "オブジェクト「%s」に評価済みカーブデータがありません"
-
-
 msgid "Object '%s' has no evaluated mesh or curves data"
 msgstr "オブジェクト「%s」に評価済みメッシュやカーブデータがありません"
+
+
+msgid "Object '%s' has no evaluated curves data"
+msgstr "オブジェクト「%s」に評価済みカーブデータがありません"
 
 
 msgid "Cannot edit object '%s' as it is used by override collections"

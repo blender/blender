@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'62b2bb48e8bf')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'cfa63bfefa5b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-02 16:18+0000\n"
+"POT-Creation-Date: 2024-12-09 09:50+0000\n"
 "PO-Revision-Date: 2024-03-05 22:56+0000\n"
 "Last-Translator: 居樂行 <oscilloscope9705@gmail.com>\n"
 "Language-Team: Chinese (Traditional) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
@@ -9922,6 +9922,10 @@ msgid "Amount of fine level detail present in the noise"
 msgstr "噪訊中呈現的精細等級細節量"
 
 
+msgid "Lacunarity"
+msgstr "缺空"
+
+
 msgid "Time offset for the noise effect"
 msgstr "噪訊效果的時間偏移"
 
@@ -9932,6 +9936,10 @@ msgstr "相位"
 
 msgid "A random seed for the noise effect"
 msgstr "噪訊效果的隨機種子"
+
+
+msgid "Roughness"
+msgstr "粗糙度"
 
 
 msgid "Scaling (in time) of the noise"
@@ -15022,10 +15030,6 @@ msgid "Refraction Depth"
 msgstr "折射深度"
 
 
-msgid "Roughness"
-msgstr "粗糙度"
-
-
 msgid "Show Backface"
 msgstr "顯示背面"
 
@@ -15358,12 +15362,16 @@ msgid "Shader"
 msgstr "著色器"
 
 
-msgid "Grease Pencil Data"
-msgstr "蠟筆資料"
+msgid "Pattern"
+msgstr "樣式"
 
 
 msgid "Interface"
 msgstr "介面"
+
+
+msgid "Grease Pencil Data"
+msgstr "蠟筆資料"
 
 
 msgid "Links"
@@ -17984,10 +17992,6 @@ msgid "Marble Texture"
 msgstr "大理石紋理"
 
 
-msgid "Pattern"
-msgstr "樣式"
-
-
 msgid "Use soft marble"
 msgstr "使用柔大理石"
 
@@ -18058,10 +18062,6 @@ msgstr "增益"
 
 msgid "The gain multiplier"
 msgstr "增益乘數"
-
-
-msgid "Lacunarity"
-msgstr "缺空"
 
 
 msgid "Gap between successive frequencies"
@@ -20897,80 +20897,48 @@ msgid "Material slot name"
 msgstr "材質槽名稱"
 
 
-msgid "Clean Up"
-msgstr "清理"
-
-
-msgid "Merge"
-msgstr "合併"
-
-
-msgid "Show/Hide"
-msgstr "顯示/隱藏"
-
-
-msgid "Local View"
-msgstr "區域視圖"
-
-
-msgid "Special Characters"
-msgstr "特殊字元"
-
-
-msgid "Names"
-msgstr "名稱"
-
-
-msgid "Viewpoint"
-msgstr "視點"
-
-
-msgid "Bone Roll"
-msgstr "骨骼滾動"
-
-
-msgid "Toggle Bone Options"
-msgstr "開關骨骼選項"
-
-
-msgid "Enable Bone Options"
-msgstr "啟用骨骼設定"
-
-
-msgid "Disable Bone Options"
-msgstr "停用骨骼設定"
-
-
-msgid "Select Linked"
-msgstr "選取連結項"
-
-
-msgid "Mesh Select Mode"
-msgstr "網格選取模式"
-
-
-msgid "Pivot Point"
-msgstr "樞紐點"
+msgid "Mirror"
+msgstr "鏡像"
 
 
 msgid "Snap"
 msgstr "吸附"
 
 
-msgid "Proportional Editing Falloff"
-msgstr "比例化編輯衰落"
+msgid "UV Mapping"
+msgstr "UV 映射處理"
 
 
-msgid "Automasking"
-msgstr "自動遮罩"
+msgid "Local View"
+msgstr "區域視圖"
 
 
-msgid "Face Sets Edit"
-msgstr "面集編輯"
+msgid "Viewpoint"
+msgstr "視點"
+
+
+msgid "Navigation"
+msgstr "導覽"
+
+
+msgid "Align View"
+msgstr "對齊視圖"
+
+
+msgid "Align View to Active"
+msgstr "對齊視圖至作用項"
 
 
 msgid "Select More/Less"
 msgstr "較多/較少選取"
+
+
+msgid "Select Similar"
+msgstr "選取相似者"
+
+
+msgid "Select Linked"
+msgstr "選取連結項"
 
 
 msgid "Relations"
@@ -20989,24 +20957,20 @@ msgid "Track"
 msgstr "追蹤"
 
 
-msgid "Navigation"
-msgstr "導覽"
-
-
-msgid "Select Similar"
-msgstr "選取相似者"
-
-
 msgid "Quick Effects"
 msgstr "快速效果"
 
 
+msgid "Show/Hide"
+msgstr "顯示/隱藏"
+
+
+msgid "Clean Up"
+msgstr "清理"
+
+
 msgid "Make Single User"
 msgstr "製作單一使用者"
-
-
-msgid "UV Mapping"
-msgstr "UV 映射處理"
 
 
 msgid "Hooks"
@@ -21021,10 +20985,6 @@ msgid "Random Mask"
 msgstr "隨機遮罩"
 
 
-msgid "Mirror"
-msgstr "鏡像"
-
-
 msgid "Clear Transform"
 msgstr "清除變換"
 
@@ -21033,20 +20993,60 @@ msgid "In-Betweens"
 msgstr "內部之間"
 
 
-msgid "Align View to Active"
-msgstr "對齊視圖至作用項"
-
-
 msgid "Propagate"
 msgstr "增生"
 
 
-msgid "Align View"
-msgstr "對齊視圖"
+msgid "Names"
+msgstr "名稱"
+
+
+msgid "Toggle Bone Options"
+msgstr "開關骨骼選項"
+
+
+msgid "Enable Bone Options"
+msgstr "啟用骨骼設定"
+
+
+msgid "Disable Bone Options"
+msgstr "停用骨骼設定"
+
+
+msgid "Mesh Select Mode"
+msgstr "網格選取模式"
 
 
 msgid "Face Data"
 msgstr "面資料"
+
+
+msgid "Merge"
+msgstr "合併"
+
+
+msgid "Special Characters"
+msgstr "特殊字元"
+
+
+msgid "Bone Roll"
+msgstr "骨骼滾動"
+
+
+msgid "Pivot Point"
+msgstr "樞紐點"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "比例化編輯衰落"
+
+
+msgid "Automasking"
+msgstr "自動遮罩"
+
+
+msgid "Face Sets Edit"
+msgstr "面集編輯"
 
 
 msgid "Basic"
@@ -44596,26 +44596,6 @@ msgid "Palette Color"
 msgstr "色版色彩"
 
 
-msgid "VR"
-msgstr "VR"
-
-
-msgid "Active Tool"
-msgstr "作用中工具"
-
-
-msgid "Wire Color"
-msgstr "線色"
-
-
-msgid "Render Pass"
-msgstr "算繪通遞"
-
-
-msgid "Compositor"
-msgstr "合成器"
-
-
 msgid "Overlays"
 msgstr "疊層"
 
@@ -44638,6 +44618,26 @@ msgstr "立體視覺"
 
 msgid "Auto-Masking"
 msgstr "自動遮罩"
+
+
+msgid "VR"
+msgstr "VR"
+
+
+msgid "Active Tool"
+msgstr "作用中工具"
+
+
+msgid "Wire Color"
+msgstr "線色"
+
+
+msgid "Render Pass"
+msgstr "算繪通遞"
+
+
+msgid "Compositor"
+msgstr "合成器"
 
 
 msgid "Chain Scaling"

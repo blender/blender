@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'62b2bb48e8bf')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'cfa63bfefa5b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-02 16:18+0000\n"
+"POT-Creation-Date: 2024-12-09 09:50+0000\n"
 "PO-Revision-Date: 2012-09-07 22:32+0100\n"
 "Last-Translator: Nikola Radovanovic <cobisimo@gmail.com>\n"
 "Language-Team: Nikola Radovanovic\n"
@@ -4100,6 +4100,10 @@ msgid "Phase"
 msgstr "Фаза"
 
 
+msgid "Roughness"
+msgstr "Храпавост"
+
+
 msgid "Step Size"
 msgstr "Број корака"
 
@@ -6248,10 +6252,6 @@ msgid "Cloth"
 msgstr "Тканина"
 
 
-msgid "Roughness"
-msgstr "Храпавост"
-
-
 msgid "Texture Slot Images"
 msgstr "Слике слота текстура"
 
@@ -6396,12 +6396,16 @@ msgid "Shader"
 msgstr "Сенчења"
 
 
-msgid "Grease Pencil Data"
-msgstr "Подаци скицирања"
+msgid "Pattern"
+msgstr "Шара"
 
 
 msgid "Interface"
 msgstr "Интерфејс"
+
+
+msgid "Grease Pencil Data"
+msgstr "Подаци скицирања"
 
 
 msgid "Links"
@@ -7758,10 +7762,6 @@ msgid "Marble Texture"
 msgstr "Текстура мермера"
 
 
-msgid "Pattern"
-msgstr "Шара"
-
-
 msgid "Use soft marble"
 msgstr "Користи меки мермер"
 
@@ -8728,52 +8728,32 @@ msgid "Material slot name"
 msgstr "Назив слота материјала"
 
 
-msgid "Merge"
-msgstr "Сједини"
+msgid "Mirror"
+msgstr "Огледало"
 
 
-msgid "Show/Hide"
-msgstr "Прикажи/сакриј"
+msgid "Snap"
+msgstr "Лепљење"
+
+
+msgid "UV Mapping"
+msgstr "UV Мапирање"
 
 
 msgid "Local View"
 msgstr "Локални поглед"
 
 
-msgid "Special Characters"
-msgstr "Специјални знаци"
+msgid "Navigation"
+msgstr "Навигација"
 
 
-msgid "Names"
-msgstr "Имена"
-
-
-msgid "Bone Roll"
-msgstr "Ролна костију"
-
-
-msgid "Toggle Bone Options"
-msgstr "Мање/више информација"
-
-
-msgid "Enable Bone Options"
-msgstr "Омогући опције костију"
-
-
-msgid "Disable Bone Options"
-msgstr "Онемогући опције костију"
+msgid "Align View"
+msgstr "Поравнај поглед"
 
 
 msgid "Select Linked"
 msgstr "Изабери повезано"
-
-
-msgid "Mesh Select Mode"
-msgstr "Мод избора мреже"
-
-
-msgid "Snap"
-msgstr "Лепљење"
 
 
 msgid "Relations"
@@ -8792,24 +8772,16 @@ msgid "Track"
 msgstr "Стаза"
 
 
-msgid "Navigation"
-msgstr "Навигација"
-
-
 msgid "Quick Effects"
 msgstr "Брзи ефекти"
 
 
-msgid "UV Mapping"
-msgstr "UV Мапирање"
+msgid "Show/Hide"
+msgstr "Прикажи/сакриј"
 
 
 msgid "Hooks"
 msgstr "Удице"
-
-
-msgid "Mirror"
-msgstr "Огледало"
 
 
 msgid "Clear Transform"
@@ -8824,8 +8796,36 @@ msgid "Propagate"
 msgstr "Пренеси"
 
 
-msgid "Align View"
-msgstr "Поравнај поглед"
+msgid "Names"
+msgstr "Имена"
+
+
+msgid "Toggle Bone Options"
+msgstr "Мање/више информација"
+
+
+msgid "Enable Bone Options"
+msgstr "Омогући опције костију"
+
+
+msgid "Disable Bone Options"
+msgstr "Онемогући опције костију"
+
+
+msgid "Mesh Select Mode"
+msgstr "Мод избора мреже"
+
+
+msgid "Merge"
+msgstr "Сједини"
+
+
+msgid "Special Characters"
+msgstr "Специјални знаци"
+
+
+msgid "Bone Roll"
+msgstr "Ролна костију"
 
 
 msgid "Basic"

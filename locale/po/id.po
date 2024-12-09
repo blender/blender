@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'62b2bb48e8bf')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'cfa63bfefa5b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-02 16:18+0000\n"
+"POT-Creation-Date: 2024-12-09 09:50+0000\n"
 "PO-Revision-Date: 2024-10-26 01:56+0000\n"
 "Last-Translator: \"Adriel Y.\" <mixnblend@users.noreply.translate.blender.org>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
@@ -9538,6 +9538,10 @@ msgid "Phase"
 msgstr "Fase"
 
 
+msgid "Roughness"
+msgstr "Kekasaran"
+
+
 msgid "Step Size"
 msgstr "Ukuran Langkah"
 
@@ -12466,10 +12470,6 @@ msgid "Fluid"
 msgstr "Cairan"
 
 
-msgid "Roughness"
-msgstr "Kekasaran"
-
-
 msgid "Specular"
 msgstr "Spekular"
 
@@ -12584,6 +12584,10 @@ msgstr "Filter"
 
 msgid "Matte"
 msgstr "Matte"
+
+
+msgid "Pattern"
+msgstr "Pola"
 
 
 msgid "Links"
@@ -13091,10 +13095,6 @@ msgstr "Tekstur Sihir"
 
 msgid "Marble Texture"
 msgstr "Tekstur Marmer"
-
-
-msgid "Pattern"
-msgstr "Pola"
 
 
 msgid "Use soft marble"
@@ -14997,20 +14997,24 @@ msgid "Use Material Mask"
 msgstr "Gunakan Masker Bahan"
 
 
-msgid "Merge"
-msgstr "Menggabungkan"
+msgid "Mirror"
+msgstr "Cermin"
 
 
-msgid "Names"
-msgstr "Nama"
+msgid "Snap"
+msgstr "Jepret"
+
+
+msgid "Navigation"
+msgstr "Navigasi"
 
 
 msgid "Select Linked"
 msgstr "Seleksi yang Terhubung"
 
 
-msgid "Snap"
-msgstr "Jepret"
+msgid "Assign Material"
+msgstr "Tugaskan Bahan"
 
 
 msgid "Add Image"
@@ -15025,10 +15029,6 @@ msgid "Track"
 msgstr "Lacak"
 
 
-msgid "Navigation"
-msgstr "Navigasi"
-
-
 msgid "Asset"
 msgstr "Aset"
 
@@ -15037,12 +15037,12 @@ msgid "Hooks"
 msgstr "Kait"
 
 
-msgid "Mirror"
-msgstr "Cermin"
+msgid "Names"
+msgstr "Nama"
 
 
-msgid "Assign Material"
-msgstr "Tugaskan Bahan"
+msgid "Merge"
+msgstr "Menggabungkan"
 
 
 msgctxt "MovieClip"
@@ -25282,12 +25282,12 @@ msgid "Restrict painting to vertices in the group"
 msgstr "Membatasi lukisan ke simpul di kelompok"
 
 
-msgid "Wire Color"
-msgstr "Warna Kabel"
-
-
 msgid "Snapping"
 msgstr "Gertakan"
+
+
+msgid "Wire Color"
+msgstr "Warna Kabel"
 
 
 msgid "Custom Shape"

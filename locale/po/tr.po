@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'62b2bb48e8bf')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'cfa63bfefa5b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-02 16:18+0000\n"
+"POT-Creation-Date: 2024-12-09 09:50+0000\n"
 "PO-Revision-Date: 2024-11-07 10:56+0000\n"
 "Last-Translator: Ugur Saglam <saglamugur556@gmail.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
@@ -10987,6 +10987,10 @@ msgid "Amount of fine level detail present in the noise"
 msgstr "Gürültüde bulunan ince düzey ayrıntı miktarı"
 
 
+msgid "Lacunarity"
+msgstr "Boşluk"
+
+
 msgid "Time offset for the noise effect"
 msgstr "Gürültü efekti için zaman ofseti"
 
@@ -10997,6 +11001,10 @@ msgstr "Faz"
 
 msgid "A random seed for the noise effect"
 msgstr "Gürültü efekti için rastgele bir tohum"
+
+
+msgid "Roughness"
+msgstr "Pürüzlülük"
 
 
 msgid "Scaling (in time) of the noise"
@@ -12998,10 +13006,6 @@ msgstr "Uyarlanabilir Alan"
 
 msgid "Adapt simulation resolution and size to fluid"
 msgstr "Simülasyon çözünürlüğünü ve boyutunu akışkana uyarlayın"
-
-
-msgid "Use Adaptive Time Steps"
-msgstr "Uyarlanabilir Zaman Adımlarını Kullan"
 
 
 msgid "Bubble"
@@ -20406,10 +20410,6 @@ msgid "Refraction Depth"
 msgstr "Kırılma Derinliği"
 
 
-msgid "Roughness"
-msgstr "Pürüzlülük"
-
-
 msgid "Roughness of the material"
 msgstr "Malzemenin pürüzlülüğü"
 
@@ -20906,10 +20906,6 @@ msgid "Color Tag"
 msgstr "Color Tag"
 
 
-msgid "Default tag for new node groups"
-msgstr "Yeni düğüm grupları için varsayılan etiket"
-
-
 msgid "Attribute"
 msgstr "Bağlanmak"
 
@@ -20934,6 +20930,14 @@ msgid "Shader"
 msgstr "Gölgeleme"
 
 
+msgid "Pattern"
+msgstr "Model"
+
+
+msgid "Interface"
+msgstr "Arayüz"
+
+
 msgid "Default Group Node Width"
 msgstr "Varsayılan Grup Düğüm Genişliği"
 
@@ -20948,10 +20952,6 @@ msgstr "Düğüm ağacının açıklaması"
 
 msgid "Grease Pencil Data"
 msgstr "Gres Kalemi Verileri"
-
-
-msgid "Interface"
-msgstr "Arayüz"
 
 
 msgid "Interface declaration for this node tree"
@@ -23405,10 +23405,6 @@ msgid "Show Subframe"
 msgstr "Alt Çerçeveyi Göster"
 
 
-msgid "Show current scene subframe and allow set it using interface tools"
-msgstr "Mevcut sahne alt karesini göster ve arayüz araçlarını kullanarak ayarlanmasına izin ver"
-
-
 msgid "Simulation Frame End"
 msgstr "Simülasyon Çerçevesi Sonu"
 
@@ -24459,10 +24455,6 @@ msgid "Marble Texture"
 msgstr "Mermer Dokusu"
 
 
-msgid "Pattern"
-msgstr "Model"
-
-
 msgid "Use soft marble"
 msgstr "Yumuşak mermer kullanın"
 
@@ -24533,10 +24525,6 @@ msgstr "Kazanmak"
 
 msgid "The gain multiplier"
 msgstr "Kazanç çarpanı"
-
-
-msgid "Lacunarity"
-msgstr "Boşluk"
 
 
 msgid "Gap between successive frequencies"
@@ -29414,52 +29402,52 @@ msgid "Editor menu containing buttons"
 msgstr "Düğmeler içeren düzenleyici menüsü"
 
 
-msgid "Clean Up"
-msgstr "Temizlemek"
+msgid "Mirror"
+msgstr "Yansıtma"
 
 
-msgid "Merge"
-msgstr "Birleştir"
+msgid "Snap"
+msgstr "Yakala"
 
 
-msgid "Show/Hide"
-msgstr "Göster/Gizle"
+msgid "UV Mapping"
+msgstr "UV Haritalama"
 
 
 msgid "Local View"
 msgstr "Yerel Görünüm"
 
 
-msgid "Special Characters"
-msgstr "Özel Karakterler"
-
-
-msgid "Kerning"
-msgstr "Harf aralığı"
-
-
-msgid "Names"
-msgstr "Adlar"
-
-
 msgid "Viewpoint"
 msgstr "Bakış açısı"
 
 
-msgid "Bone Roll"
-msgstr "Kemik Rulosu"
+msgid "Navigation"
+msgstr "Navigasyon"
 
 
-msgid "Toggle Bone Options"
-msgstr "Kemik Seçeneklerini Değiştir"
+msgid "Align View"
+msgstr "Görünümü hizala"
 
 
-msgid "Enable Bone Options"
-msgstr "Kemik Seçeneklerini Etkinleştir"
+msgid "Align View to Active"
+msgstr "Görünümü Etkin Olarak Hizala"
 
 
-msgid "Disable Bone Options"
-msgstr "Kemik Seçeneklerini Devre Dışı Bırak"
+msgid "View Regions"
+msgstr "Bölgeleri Görüntüle"
+
+
+msgid "Select More/Less"
+msgstr "Daha Fazla/Daha Az Seç"
+
+
+msgid "Select Similar"
+msgstr "Benzerini Seç"
+
+
+msgid "Select All by Trait"
+msgstr "Özelliğe Göre Tümünü Seç"
 
 
 msgid "Select Linked"
@@ -29470,44 +29458,8 @@ msgid "Select Loops"
 msgstr "Döngüleri Seç"
 
 
-msgid "Mesh Select Mode"
-msgstr "Örgü Seçim Kipi"
-
-
-msgid "Pivot Point"
-msgstr "Pivot Noktası"
-
-
-msgid "Snap"
-msgstr "Yakala"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Orantılı Düzenleme Düşüşü"
-
-
-msgid "Mask Edit"
-msgstr "Maske Düzenleme"
-
-
-msgid "Automasking"
-msgstr "Otomatik maskeleme"
-
-
-msgid "Face Sets Edit"
-msgstr "Yüz Setleri Düzenle"
-
-
-msgid "Vertex Group Locks"
-msgstr "Vertex Grup Kilitleri"
-
-
-msgid "Select More/Less"
-msgstr "Daha Fazla/Daha Az Seç"
-
-
-msgid "View Regions"
-msgstr "Bölgeleri Görüntüle"
+msgid "Assign Material"
+msgstr "Malzeme Atamak"
 
 
 msgid "Add Image"
@@ -29530,16 +29482,16 @@ msgid "Track"
 msgstr "İzlemek"
 
 
-msgid "Navigation"
-msgstr "Navigasyon"
-
-
-msgid "Select Similar"
-msgstr "Benzerini Seç"
-
-
 msgid "Quick Effects"
 msgstr "Hızlı Etkiler"
+
+
+msgid "Show/Hide"
+msgstr "Göster/Gizle"
+
+
+msgid "Clean Up"
+msgstr "Temizlemek"
 
 
 msgid "Asset"
@@ -29558,12 +29510,12 @@ msgid "Link/Transfer Data"
 msgstr "Veriyi Bağlantıla/Aktar"
 
 
-msgid "UV Mapping"
-msgstr "UV Haritalama"
-
-
 msgid "Hooks"
 msgstr "Kancalar"
+
+
+msgid "Vertex Group Locks"
+msgstr "Vertex Grup Kilitleri"
 
 
 msgid "Trim/Add"
@@ -29582,24 +29534,12 @@ msgid "Random Mask"
 msgstr "Rastgele Maske"
 
 
-msgid "Mirror"
-msgstr "Yansıtma"
-
-
-msgid "Assign Material"
-msgstr "Malzeme Atamak"
-
-
 msgid "Clear Transform"
 msgstr "Temizle Dönüşüm"
 
 
 msgid "In-Betweens"
 msgstr "Arada Kalanlar"
-
-
-msgid "Align View to Active"
-msgstr "Görünümü Etkin Olarak Hizala"
 
 
 msgid "Propagate"
@@ -29610,12 +29550,24 @@ msgid "Bone Collections"
 msgstr "Kemik Koleksiyonları"
 
 
-msgid "Align View"
-msgstr "Görünümü hizala"
+msgid "Names"
+msgstr "Adlar"
 
 
-msgid "Select All by Trait"
-msgstr "Özelliğe Göre Tümünü Seç"
+msgid "Toggle Bone Options"
+msgstr "Kemik Seçeneklerini Değiştir"
+
+
+msgid "Enable Bone Options"
+msgstr "Kemik Seçeneklerini Etkinleştir"
+
+
+msgid "Disable Bone Options"
+msgstr "Kemik Seçeneklerini Devre Dışı Bırak"
+
+
+msgid "Mesh Select Mode"
+msgstr "Örgü Seçim Kipi"
 
 
 msgid "Face Data"
@@ -29628,6 +29580,42 @@ msgstr "Yüz Gücüne Göre Seç"
 
 msgid "Set Face Strength"
 msgstr "Yüz Gücünü Ayarla"
+
+
+msgid "Merge"
+msgstr "Birleştir"
+
+
+msgid "Special Characters"
+msgstr "Özel Karakterler"
+
+
+msgid "Kerning"
+msgstr "Harf aralığı"
+
+
+msgid "Bone Roll"
+msgstr "Kemik Rulosu"
+
+
+msgid "Pivot Point"
+msgstr "Pivot Noktası"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Orantılı Düzenleme Düşüşü"
+
+
+msgid "Mask Edit"
+msgstr "Maske Düzenleme"
+
+
+msgid "Automasking"
+msgstr "Otomatik maskeleme"
+
+
+msgid "Face Sets Edit"
+msgstr "Yüz Setleri Düzenle"
 
 
 msgid "Keyframe Insert Pie"
@@ -45857,6 +45845,16 @@ msgstr "Nesne efektlerinin toplanması"
 
 
 msgctxt "Operator"
+msgid "Add Material Variant"
+msgstr "Malzeme Varyantı Ekle"
+
+
+msgctxt "Operator"
+msgid "Remove Variant"
+msgstr "Varyantı Kaldır"
+
+
+msgctxt "Operator"
 msgid "Display Variant"
 msgstr "Varyantı Görüntüle"
 
@@ -45874,16 +45872,6 @@ msgstr "Orijinaline SıfırlaOrijinaline Sıfırla"
 msgctxt "Operator"
 msgid "Assign as Original"
 msgstr "Orijinal olarak ata"
-
-
-msgctxt "Operator"
-msgid "Add Material Variant"
-msgstr "Malzeme Varyantı Ekle"
-
-
-msgctxt "Operator"
-msgid "Remove Variant"
-msgstr "Varyantı Kaldır"
 
 
 msgctxt "Operator"
@@ -79740,6 +79728,94 @@ msgid "Panel containing UI elements"
 msgstr "UI öğelerini içeren panel"
 
 
+msgid "Overlays"
+msgstr "Kaplamalar"
+
+
+msgid "Guides"
+msgstr "Rehberler"
+
+
+msgid "Viewer Node"
+msgstr "Görüntüleyici Düğümü"
+
+
+msgid "Motion Tracking"
+msgstr "Hareket İzleme"
+
+
+msgid "Mesh Edit Mode"
+msgstr "Mesh Düzenleme Modu"
+
+
+msgid "Measurement"
+msgstr "Ölçüm"
+
+
+msgid "Curve Edit Mode"
+msgstr "Eğri Düzenleme Modu"
+
+
+msgid "Snapping"
+msgstr "Çıtlama"
+
+
+msgid "Transform Orientations"
+msgstr "Dönüştürme Yönlendirmeleri"
+
+
+msgid "Stroke Placement"
+msgstr "İnme Yerleşimi"
+
+
+msgid "Drawing Plane"
+msgstr "Çizim düzlemi"
+
+
+msgid "Quad View"
+msgstr "Dörtlü Görünüm"
+
+
+msgid "Onion Skin"
+msgstr "Soğan Kabuğu"
+
+
+msgid "Stereoscopy"
+msgstr "Stereoskopi"
+
+
+msgid "Multi Frame"
+msgstr "Çoklu Çerçeve"
+
+
+msgid "glTF Variants"
+msgstr "glTF Çeşitleri"
+
+
+msgid "glTF Material Variants"
+msgstr "glTF Malzeme Varyantları"
+
+
+msgid "Auto-Masking"
+msgstr "Otomatik Maskeleme"
+
+
+msgid "Curves Sculpt Add Curve Options"
+msgstr "Eğriler Heykel Eğri Seçenekleri Ekle"
+
+
+msgid "Curves Sculpt Parameter Falloff"
+msgstr "Eğriler Şekil Parametresi Düşüşü"
+
+
+msgid "Curves Grow/Shrink Scaling"
+msgstr "Eğriler Büyüyor/Küçülüyor Ölçekleme"
+
+
+msgid "Viewport Debug"
+msgstr "Görüş Alanı Hata Ayıklaması"
+
+
 msgid "VR"
 msgstr "Sanal Gerçeklik"
 
@@ -79778,94 +79854,6 @@ msgstr "Render Geçişi"
 
 msgid "Compositor"
 msgstr "Dizgici"
-
-
-msgid "Overlays"
-msgstr "Kaplamalar"
-
-
-msgid "Guides"
-msgstr "Rehberler"
-
-
-msgid "Viewer Node"
-msgstr "Görüntüleyici Düğümü"
-
-
-msgid "Motion Tracking"
-msgstr "Hareket İzleme"
-
-
-msgid "Mesh Edit Mode"
-msgstr "Mesh Düzenleme Modu"
-
-
-msgid "Measurement"
-msgstr "Ölçüm"
-
-
-msgid "Curve Edit Mode"
-msgstr "Eğri Düzenleme Modu"
-
-
-msgid "glTF Variants"
-msgstr "glTF Çeşitleri"
-
-
-msgid "glTF Material Variants"
-msgstr "glTF Malzeme Varyantları"
-
-
-msgid "Snapping"
-msgstr "Çıtlama"
-
-
-msgid "Transform Orientations"
-msgstr "Dönüştürme Yönlendirmeleri"
-
-
-msgid "Stroke Placement"
-msgstr "İnme Yerleşimi"
-
-
-msgid "Drawing Plane"
-msgstr "Çizim düzlemi"
-
-
-msgid "Quad View"
-msgstr "Dörtlü Görünüm"
-
-
-msgid "Onion Skin"
-msgstr "Soğan Kabuğu"
-
-
-msgid "Stereoscopy"
-msgstr "Stereoskopi"
-
-
-msgid "Multi Frame"
-msgstr "Çoklu Çerçeve"
-
-
-msgid "Auto-Masking"
-msgstr "Otomatik Maskeleme"
-
-
-msgid "Curves Sculpt Add Curve Options"
-msgstr "Eğriler Heykel Eğri Seçenekleri Ekle"
-
-
-msgid "Curves Sculpt Parameter Falloff"
-msgstr "Eğriler Şekil Parametresi Düşüşü"
-
-
-msgid "Curves Grow/Shrink Scaling"
-msgstr "Eğriler Büyüyor/Küçülüyor Ölçekleme"
-
-
-msgid "Viewport Debug"
-msgstr "Görüş Alanı Hata Ayıklaması"
 
 
 msgid "Chain Scaling"
@@ -117244,12 +117232,12 @@ msgid "Deleted %u object(s)"
 msgstr "%u nesne silindi"
 
 
-msgid "Object '%s' has no evaluated curves data"
-msgstr "'%s' nesnesinin değerlendirilmiş eğri verisi yok"
-
-
 msgid "Object '%s' has no evaluated mesh or curves data"
 msgstr "'%s' nesnesinin değerlendirilmiş ağ veya eğri verisi yok"
+
+
+msgid "Object '%s' has no evaluated curves data"
+msgstr "'%s' nesnesinin değerlendirilmiş eğri verisi yok"
 
 
 msgid "Cannot edit object '%s' as it is used by override collections"

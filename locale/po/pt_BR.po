@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'62b2bb48e8bf')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'cfa63bfefa5b')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2024-12-02 16:18+0000\n"
+"POT-Creation-Date: 2024-12-09 09:50+0000\n"
 "PO-Revision-Date: 2024-04-15 06:56+0000\n"
 "Last-Translator: Ruan da Silva Andrade <ruanandrade818@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -9353,6 +9353,10 @@ msgid "Amount of fine level detail present in the noise"
 msgstr "Quantidade de nível de detalhes finos presentes no ruído."
 
 
+msgid "Lacunarity"
+msgstr "Frequência das lacunas"
+
+
 msgid "Time offset for the noise effect"
 msgstr "Deslocamento de tempo para o efeito de ruído."
 
@@ -9363,6 +9367,10 @@ msgstr "Fase"
 
 msgid "A random seed for the noise effect"
 msgstr "Um valor de semente aleatória para o efeito de ruído."
+
+
+msgid "Roughness"
+msgstr "Rugosidade"
 
 
 msgid "Scaling (in time) of the noise"
@@ -14497,10 +14505,6 @@ msgid "Cloth"
 msgstr "Tecido"
 
 
-msgid "Roughness"
-msgstr "Rugosidade"
-
-
 msgid "Roughness of the material"
 msgstr "Rugosidade do material"
 
@@ -14833,12 +14837,16 @@ msgid "Shader"
 msgstr "Sombreador"
 
 
-msgid "Grease Pencil Data"
-msgstr "Dados de lápis de cera"
+msgid "Pattern"
+msgstr "Padrão"
 
 
 msgid "Interface"
 msgstr "Interface"
+
+
+msgid "Grease Pencil Data"
+msgstr "Dados de lápis de cera"
 
 
 msgid "Links"
@@ -16573,10 +16581,6 @@ msgid "Show Subframe"
 msgstr "Mostrar sub-quadros"
 
 
-msgid "Show current scene subframe and allow set it using interface tools"
-msgstr "Mostra os sub-quadros da cena atual e permite que os mesmos sejam definidos usando as ferramentas de interface."
-
-
 msgid "Sync Mode"
 msgstr "Modo de sincronização"
 
@@ -17475,10 +17479,6 @@ msgid "Marble Texture"
 msgstr "Textura tipo mármore"
 
 
-msgid "Pattern"
-msgstr "Padrão"
-
-
 msgid "Use soft marble"
 msgstr "Usa um mármore suave."
 
@@ -17549,10 +17549,6 @@ msgstr "Ganho"
 
 msgid "The gain multiplier"
 msgstr "O multiplicador de ganho."
-
-
-msgid "Lacunarity"
-msgstr "Frequência das lacunas"
 
 
 msgid "Gap between successive frequencies"
@@ -21475,48 +21471,52 @@ msgid "Material slot name"
 msgstr "Nome do compartimento do material."
 
 
-msgid "Clean Up"
-msgstr "Limpeza"
+msgid "Mirror"
+msgstr "Espelhar"
 
 
-msgid "Merge"
-msgstr "Fundir"
+msgid "Snap"
+msgstr "Atrair"
 
 
-msgid "Show/Hide"
-msgstr "Mostrar ou ocultar"
+msgid "UV Mapping"
+msgstr "Mapeamento UV"
 
 
 msgid "Local View"
 msgstr "Visão local"
 
 
-msgid "Special Characters"
-msgstr "Caracteres especiais"
-
-
-msgid "Names"
-msgstr "Nomes"
-
-
 msgid "Viewpoint"
 msgstr "Ponto de visualização"
 
 
-msgid "Bone Roll"
-msgstr "Rolagem dos ossos"
+msgid "Navigation"
+msgstr "Navegação"
 
 
-msgid "Toggle Bone Options"
-msgstr "Alternar opções de ossos"
+msgid "Align View"
+msgstr "Alinhar visualização"
 
 
-msgid "Enable Bone Options"
-msgstr "Habilitar opções de ossos"
+msgid "Align View to Active"
+msgstr "Alinhar vista para o ativo"
 
 
-msgid "Disable Bone Options"
-msgstr "Desabilitar as opções de ossos"
+msgid "View Regions"
+msgstr "Visualizar Regiões"
+
+
+msgid "Select More/Less"
+msgstr "Selecionar mais ou menos"
+
+
+msgid "Select Similar"
+msgstr "Selecionar por similaridades"
+
+
+msgid "Select All by Trait"
+msgstr "Selecionar todos por características..."
 
 
 msgid "Select Linked"
@@ -21525,30 +21525,6 @@ msgstr "Selecionar vinculados(as)"
 
 msgid "Select Loops"
 msgstr "Selecionar anéis"
-
-
-msgid "Mesh Select Mode"
-msgstr "Modo de seleção de malhas"
-
-
-msgid "Pivot Point"
-msgstr "Pontos de pivô"
-
-
-msgid "Snap"
-msgstr "Atrair"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Tipo de decaimento para edição proporcional"
-
-
-msgid "Select More/Less"
-msgstr "Selecionar mais ou menos"
-
-
-msgid "View Regions"
-msgstr "Visualizar Regiões"
 
 
 msgid "Add Image"
@@ -21571,16 +21547,16 @@ msgid "Track"
 msgstr "Rastrear"
 
 
-msgid "Navigation"
-msgstr "Navegação"
-
-
-msgid "Select Similar"
-msgstr "Selecionar por similaridades"
-
-
 msgid "Quick Effects"
 msgstr "Efeitos instantâneos"
+
+
+msgid "Show/Hide"
+msgstr "Mostrar ou ocultar"
+
+
+msgid "Clean Up"
+msgstr "Limpeza"
 
 
 msgid "Make Single User"
@@ -21591,20 +21567,12 @@ msgid "Convert"
 msgstr "Converter"
 
 
-msgid "UV Mapping"
-msgstr "Mapeamento UV"
-
-
 msgid "Hooks"
 msgstr "Ganchos"
 
 
 msgid "Random Mask"
 msgstr "Máscara Aleatória"
-
-
-msgid "Mirror"
-msgstr "Espelhar"
 
 
 msgid "Clear Transform"
@@ -21615,24 +21583,52 @@ msgid "In-Betweens"
 msgstr "Entre as continuidades"
 
 
-msgid "Align View to Active"
-msgstr "Alinhar vista para o ativo"
-
-
 msgid "Propagate"
 msgstr "Propagar"
 
 
-msgid "Align View"
-msgstr "Alinhar visualização"
+msgid "Names"
+msgstr "Nomes"
 
 
-msgid "Select All by Trait"
-msgstr "Selecionar todos por características..."
+msgid "Toggle Bone Options"
+msgstr "Alternar opções de ossos"
+
+
+msgid "Enable Bone Options"
+msgstr "Habilitar opções de ossos"
+
+
+msgid "Disable Bone Options"
+msgstr "Desabilitar as opções de ossos"
+
+
+msgid "Mesh Select Mode"
+msgstr "Modo de seleção de malhas"
 
 
 msgid "Face Data"
 msgstr "Dados das faces"
+
+
+msgid "Merge"
+msgstr "Fundir"
+
+
+msgid "Special Characters"
+msgstr "Caracteres especiais"
+
+
+msgid "Bone Roll"
+msgstr "Rolagem dos ossos"
+
+
+msgid "Pivot Point"
+msgstr "Pontos de pivô"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Tipo de decaimento para edição proporcional"
 
 
 msgid "Basic"
@@ -50296,14 +50292,6 @@ msgid "Active Palette Color"
 msgstr "Cor ativa da paleta"
 
 
-msgid "Wire Color"
-msgstr "Cor dos cabos"
-
-
-msgid "Render Pass"
-msgstr "Passo de renderização"
-
-
 msgid "Motion Tracking"
 msgstr "Captura de movimentos"
 
@@ -50318,6 +50306,14 @@ msgstr "Exibição Quadrante"
 
 msgid "Stereoscopy"
 msgstr "Estereoscopia"
+
+
+msgid "Wire Color"
+msgstr "Cor dos cabos"
+
+
+msgid "Render Pass"
+msgstr "Passo de renderização"
 
 
 msgid "Bone Constraints"

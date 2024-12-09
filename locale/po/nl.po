@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'62b2bb48e8bf')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'cfa63bfefa5b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-02 16:18+0000\n"
+"POT-Creation-Date: 2024-12-09 09:50+0000\n"
 "PO-Revision-Date: 2023-12-21 01:55+0000\n"
 "Last-Translator: Lisa <blendergirl@tutanota.com>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
@@ -1493,6 +1493,10 @@ msgid "Value Offset"
 msgstr "Waardeverschuiving"
 
 
+msgid "Roughness"
+msgstr "Ruwheid"
+
+
 msgid "Maximum Distance"
 msgstr "Maximale Afstand"
 
@@ -2189,10 +2193,6 @@ msgid "Cloth"
 msgstr "Kleding"
 
 
-msgid "Roughness"
-msgstr "Ruwheid"
-
-
 msgid "Roughness of the material"
 msgstr "Ruwheid van het materiaal"
 
@@ -2674,16 +2674,20 @@ msgid "Active Point"
 msgstr "Actieve Punt"
 
 
-msgid "Show/Hide"
-msgstr "Toon/Verberg"
+msgid "Mirror"
+msgstr "Spiegel"
 
 
 msgid "Local View"
 msgstr "Lokale Scherm"
 
 
-msgid "Names"
-msgstr "Namen"
+msgid "Navigation"
+msgstr "Navigatie"
+
+
+msgid "Select Similar"
+msgstr "Selecteer Vergelijkbaar"
 
 
 msgid "Select Linked"
@@ -2702,16 +2706,12 @@ msgid "Rigid Body"
 msgstr "Star Lichaam"
 
 
-msgid "Navigation"
-msgstr "Navigatie"
-
-
-msgid "Select Similar"
-msgstr "Selecteer Vergelijkbaar"
-
-
 msgid "Quick Effects"
 msgstr "Snelle Effecten"
+
+
+msgid "Show/Hide"
+msgstr "Toon/Verberg"
 
 
 msgid "Convert"
@@ -2722,12 +2722,12 @@ msgid "Hooks"
 msgstr "Haken"
 
 
-msgid "Mirror"
-msgstr "Spiegel"
-
-
 msgid "Clear Transform"
 msgstr "Maak Transformatie Leeg"
+
+
+msgid "Names"
+msgstr "Namen"
 
 
 msgctxt "MovieClip"

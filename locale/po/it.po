@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'62b2bb48e8bf')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'cfa63bfefa5b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-02 16:18+0000\n"
+"POT-Creation-Date: 2024-12-09 09:50+0000\n"
 "PO-Revision-Date: 2024-11-30 12:56+0000\n"
 "Last-Translator: Alessandro Vecchio <alessandrovecchio1907@gmail.com>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
@@ -11133,6 +11133,10 @@ msgid "Amount of fine level detail present in the noise"
 msgstr "Ammontare del dettaglio di livello fine presente nel rumore"
 
 
+msgid "Lacunarity"
+msgstr "Lacunosità"
+
+
 msgid "Time offset for the noise effect"
 msgstr "Offset temporale per l'effetto rumore"
 
@@ -11143,6 +11147,10 @@ msgstr "Fase"
 
 msgid "A random seed for the noise effect"
 msgstr "Un seme casuale per l'effetto rumore"
+
+
+msgid "Roughness"
+msgstr "Rugosità"
 
 
 msgid "Scaling (in time) of the noise"
@@ -17418,10 +17426,6 @@ msgid "Refraction Depth"
 msgstr "Profondità Rifrazione"
 
 
-msgid "Roughness"
-msgstr "Rugosità"
-
-
 msgid "Show Backface"
 msgstr "Mostra Backface"
 
@@ -17790,12 +17794,16 @@ msgid "Shader"
 msgstr "Shader"
 
 
-msgid "Grease Pencil Data"
-msgstr "Dati Matita"
+msgid "Pattern"
+msgstr "Motivo"
 
 
 msgid "Interface"
 msgstr "Interfaccia"
+
+
+msgid "Grease Pencil Data"
+msgstr "Dati Matita"
 
 
 msgid "Links"
@@ -20408,10 +20416,6 @@ msgid "Marble Texture"
 msgstr "Texture Marmo"
 
 
-msgid "Pattern"
-msgstr "Motivo"
-
-
 msgid "Use soft marble"
 msgstr "Utilizza marmo morbido"
 
@@ -20482,10 +20486,6 @@ msgstr "Guadagno"
 
 msgid "The gain multiplier"
 msgstr "Moltiplicatore di guadagno"
-
-
-msgid "Lacunarity"
-msgstr "Lacunosità"
 
 
 msgid "Gap between successive frequencies"
@@ -23599,48 +23599,52 @@ msgid "Material slot name"
 msgstr "Nome dello slot materiale"
 
 
-msgid "Clean Up"
-msgstr "Ripulisci"
+msgid "Mirror"
+msgstr "Specchia"
 
 
-msgid "Merge"
-msgstr "Unisci"
+msgid "Snap"
+msgstr "Aggancia"
 
 
-msgid "Show/Hide"
-msgstr "Mostra/Nascondi"
+msgid "UV Mapping"
+msgstr "Mappatura UV"
 
 
 msgid "Local View"
 msgstr "Vista Locale"
 
 
-msgid "Special Characters"
-msgstr "Caratteri Speciali"
-
-
-msgid "Names"
-msgstr "Nomi"
-
-
 msgid "Viewpoint"
 msgstr "Punto di vista"
 
 
-msgid "Bone Roll"
-msgstr "Rollio Osso"
+msgid "Navigation"
+msgstr "Navigazione"
 
 
-msgid "Toggle Bone Options"
-msgstr "Attiva/disattiva Opzioni Osso"
+msgid "Align View"
+msgstr "Allinea Vista"
 
 
-msgid "Enable Bone Options"
-msgstr "Abilita Opzioni Osso"
+msgid "Align View to Active"
+msgstr "Allinea Vista a Attivo"
 
 
-msgid "Disable Bone Options"
-msgstr "Disabilita Opzioni Osso"
+msgid "View Regions"
+msgstr "Regione Vista"
+
+
+msgid "Select More/Less"
+msgstr "Seleziona Più/Meno"
+
+
+msgid "Select Similar"
+msgstr "Seleziona Simili"
+
+
+msgid "Select All by Trait"
+msgstr "Seleziona Tutto per Caratteristica"
 
 
 msgid "Select Linked"
@@ -23651,28 +23655,8 @@ msgid "Select Loops"
 msgstr "Seleziona Anelli"
 
 
-msgid "Mesh Select Mode"
-msgstr "Modalità Selezione Mesh"
-
-
-msgid "Pivot Point"
-msgstr "Punto di Perno"
-
-
-msgid "Snap"
-msgstr "Aggancia"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Decadimento Modifica Proporzionale"
-
-
-msgid "Select More/Less"
-msgstr "Seleziona Più/Meno"
-
-
-msgid "View Regions"
-msgstr "Regione Vista"
+msgid "Assign Material"
+msgstr "Assegna Materiale"
 
 
 msgid "Add Image"
@@ -23695,36 +23679,24 @@ msgid "Track"
 msgstr "Traccia"
 
 
-msgid "Navigation"
-msgstr "Navigazione"
-
-
-msgid "Select Similar"
-msgstr "Seleziona Simili"
-
-
 msgid "Quick Effects"
 msgstr "Effetti Veloci"
+
+
+msgid "Show/Hide"
+msgstr "Mostra/Nascondi"
+
+
+msgid "Clean Up"
+msgstr "Ripulisci"
 
 
 msgid "Make Single User"
 msgstr "Rendi Utilizzatore Singolo"
 
 
-msgid "UV Mapping"
-msgstr "Mappatura UV"
-
-
 msgid "Hooks"
 msgstr "Ganci"
-
-
-msgid "Mirror"
-msgstr "Specchia"
-
-
-msgid "Assign Material"
-msgstr "Assegna Materiale"
 
 
 msgid "Clear Transform"
@@ -23735,24 +23707,52 @@ msgid "In-Betweens"
 msgstr "Intermedio"
 
 
-msgid "Align View to Active"
-msgstr "Allinea Vista a Attivo"
-
-
 msgid "Propagate"
 msgstr "Propaga"
 
 
-msgid "Align View"
-msgstr "Allinea Vista"
+msgid "Names"
+msgstr "Nomi"
 
 
-msgid "Select All by Trait"
-msgstr "Seleziona Tutto per Caratteristica"
+msgid "Toggle Bone Options"
+msgstr "Attiva/disattiva Opzioni Osso"
+
+
+msgid "Enable Bone Options"
+msgstr "Abilita Opzioni Osso"
+
+
+msgid "Disable Bone Options"
+msgstr "Disabilita Opzioni Osso"
+
+
+msgid "Mesh Select Mode"
+msgstr "Modalità Selezione Mesh"
 
 
 msgid "Face Data"
 msgstr "Dati Faccia"
+
+
+msgid "Merge"
+msgstr "Unisci"
+
+
+msgid "Special Characters"
+msgstr "Caratteri Speciali"
+
+
+msgid "Bone Roll"
+msgstr "Rollio Osso"
+
+
+msgid "Pivot Point"
+msgstr "Punto di Perno"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Decadimento Modifica Proporzionale"
 
 
 msgid "Basic"
@@ -47862,26 +47862,6 @@ msgid "Active Palette Color"
 msgstr "Colore Tavolozza Attivo"
 
 
-msgid "Wire Color"
-msgstr "Colore Filo"
-
-
-msgid "Shadow Settings"
-msgstr "Impostazioni Ombra"
-
-
-msgid "SSAO Settings"
-msgstr "Impostazioni SSAO"
-
-
-msgid "Render Pass"
-msgstr "Passaggi Render"
-
-
-msgid "Compositor"
-msgstr "Compositore"
-
-
 msgid "Overlays"
 msgstr "Sovrapposizioni"
 
@@ -47912,6 +47892,26 @@ msgstr "Stereoscopia"
 
 msgid "Auto-Masking"
 msgstr "Auto-Mascheramento"
+
+
+msgid "Wire Color"
+msgstr "Colore Filo"
+
+
+msgid "Shadow Settings"
+msgstr "Impostazioni Ombra"
+
+
+msgid "SSAO Settings"
+msgstr "Impostazioni SSAO"
+
+
+msgid "Render Pass"
+msgstr "Passaggi Render"
+
+
+msgid "Compositor"
+msgstr "Compositore"
 
 
 msgid "Chain Scaling"

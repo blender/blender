@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'62b2bb48e8bf')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'cfa63bfefa5b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-02 16:18+0000\n"
+"POT-Creation-Date: 2024-12-09 09:50+0000\n"
 "PO-Revision-Date: 2024-01-17 19:22+0000\n"
 "Last-Translator: Peter Simonsson <peter@simonsson.com>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
@@ -4154,6 +4154,10 @@ msgid "Shader"
 msgstr "Shader"
 
 
+msgid "Pattern"
+msgstr "Mönster"
+
+
 msgid "Interface"
 msgstr "Gränssnitt"
 
@@ -4820,10 +4824,6 @@ msgid "Marble Texture"
 msgstr "Marmortextur"
 
 
-msgid "Pattern"
-msgstr "Mönster"
-
-
 msgid "Use soft marble"
 msgstr "Använd mjuk marmor"
 
@@ -5321,28 +5321,24 @@ msgid "Texture"
 msgstr "Textur"
 
 
-msgid "Clean Up"
-msgstr "Städa upp"
+msgid "Mirror"
+msgstr "Spegla"
 
 
-msgid "Show/Hide"
-msgstr "Visa/dölj"
+msgid "Snap"
+msgstr "Snäpp"
 
 
 msgid "Local View"
 msgstr "Lokal vy"
 
 
-msgid "Names"
-msgstr "Namn"
+msgid "Align View"
+msgstr "Justera vy"
 
 
-msgid "Pivot Point"
-msgstr "Fast punkt"
-
-
-msgid "Snap"
-msgstr "Snäpp"
+msgid "Align View to Active"
+msgstr "Justera vy till aktiv"
 
 
 msgid "Select More/Less"
@@ -5369,20 +5365,24 @@ msgid "Quick Effects"
 msgstr "Snabbeffekter"
 
 
+msgid "Show/Hide"
+msgstr "Visa/dölj"
+
+
+msgid "Clean Up"
+msgstr "Städa upp"
+
+
 msgid "Asset"
 msgstr "Tillgång"
 
 
-msgid "Mirror"
-msgstr "Spegla"
+msgid "Names"
+msgstr "Namn"
 
 
-msgid "Align View to Active"
-msgstr "Justera vy till aktiv"
-
-
-msgid "Align View"
-msgstr "Justera vy"
+msgid "Pivot Point"
+msgstr "Fast punkt"
 
 
 msgid "Catalog"

@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'62b2bb48e8bf')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'cfa63bfefa5b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-02 16:18+0000\n"
-"PO-Revision-Date: 2024-11-25 17:56+0000\n"
+"POT-Creation-Date: 2024-12-09 09:50+0000\n"
+"PO-Revision-Date: 2024-12-04 16:56+0000\n"
 "Last-Translator: Damien Picard <dam.pic@free.fr>\n"
 "Language-Team: French <https://translate.blender.org/projects/blender-ui/ui/fr/>\n"
 "Language: fr\n"
@@ -57,6 +57,10 @@ msgstr "Liste des AOV"
 
 msgid "Collection of AOVs"
 msgstr "Collection d’AOV"
+
+
+msgid "Animation Channel Bag"
+msgstr "Ensemble de canaux d’animation"
 
 
 msgid "Collection of animation channels, typically associated with an action slot"
@@ -399,14 +403,6 @@ msgid "Slot Handle"
 msgstr "Descripteur d’emplacement"
 
 
-msgid ""
-"Number specific to this Slot, unique within the Action.\n"
-"This is used, for example, on a ActionKeyframeStrip to look up the ActionChannelBag for this Slot"
-msgstr ""
-"Nombre spécifique à cet emplacement, unique à l’intérieur de l’action.\n"
-"Utilisé par exemple sur une ActionKeyframeStrip pour rechercher l’ActionChannelBag pour cet emplacement"
-
-
 msgctxt "ID"
 msgid "ID Root Type"
 msgstr "Type d’ID racine"
@@ -618,6 +614,10 @@ msgstr "Non-spécifié"
 
 msgid "Not yet specified. When this slot is first assigned to a data-block, this will be set to the type of that data-block"
 msgstr "Pas encore spécifié. Quand cet emplacement est assigné à un bloc de données pour la première fois, cette valeur prend le type de ce bloc de données"
+
+
+msgid "Slot Identifier"
+msgstr "Identifiant de l’emplacement"
 
 
 msgid "Used when connecting an Action to a data-block, to find the correct slot handle. This is the display name, prefixed by two characters determined by the slot's ID type"
@@ -1094,6 +1094,14 @@ msgstr "Contrôleurs"
 
 msgid "The Drivers/Expressions for this data-block"
 msgstr "Les contrôleurs/expressions pour ce bloc de données"
+
+
+msgid "Last Action Slot Identifier"
+msgstr "Dernier identifiant d’emplacement d’action"
+
+
+msgid "The identifier of the most recently assigned action slot. The slot identifies which sub-set of the Action is considered to be for this data-block, and its identifier is used to find the right slot when assigning an Action."
+msgstr "L’identifiant de l’emplacement d’action le plus récemment assigné. L’emplacement identifie quel sous-ensemble de l’action est destiné à ce bloc de données, et son identifiant est utilisé pour trouver le bon emplacement lors de l’assignation d’une action."
 
 
 msgid "NLA Tracks"
@@ -7993,6 +8001,10 @@ msgid "First frame of the Action to use"
 msgstr "Première frame de l’action à utiliser"
 
 
+msgid "The identifier of the most recently assigned action slot. The slot identifies which sub-set of the Action is considered to be for this constraint, and its identifier is used to find the right slot when assigning an Action."
+msgstr "L’identifiant de l’emplacement d’action le plus récemment assigné. L’emplacement identifie quel sous-ensemble de l’action est destiné à cette contrainte, et son identifiant est utilisé pour trouver le bon emplacement lors de l’assignation d’une action."
+
+
 msgid "Maximum"
 msgstr "Maximum"
 
@@ -13193,6 +13205,10 @@ msgid "Amount of fine level detail present in the noise"
 msgstr "Quantité de détails haute fréquence présents dans le bruit"
 
 
+msgid "Lacunarity"
+msgstr "Lacunarité"
+
+
 msgid "Time offset for the noise effect"
 msgstr "Décalage temporel pour l’effet de bruit"
 
@@ -13203,6 +13219,10 @@ msgstr "Phase"
 
 msgid "A random seed for the noise effect"
 msgstr "Une graine aléatoire pour l’effet de bruit"
+
+
+msgid "Roughness"
+msgstr "Rugosité"
 
 
 msgid "Scaling (in time) of the noise"
@@ -15510,14 +15530,6 @@ msgid "Adapt simulation resolution and size to fluid"
 msgstr "Adapter la résolution et la taille de la simulation au fluide"
 
 
-msgid "Use Adaptive Time Steps"
-msgstr "Utiliser des pas temporels adaptatifs"
-
-
-msgid "Lets the solver automatically decide when to perform multiple simulation steps per frame"
-msgstr "Laisse le solveur décider automatiquement quand effectuer plusieurs pas de simulation par frame"
-
-
 msgid "Bubble"
 msgstr "Bulle"
 
@@ -17665,6 +17677,10 @@ msgstr "Groupe de calques de Grease Pencil"
 
 msgid "Set layer group visibility"
 msgstr "Définir la visibilité du groupe de calques"
+
+
+msgid "The layer groups is expanded in the UI"
+msgstr "Le groupe de calques est déplié dans l’interface"
 
 
 msgid "Protect group from further editing and/or frame changes"
@@ -24214,10 +24230,6 @@ msgid "Approximate the thickness of the object to compute two refraction events 
 msgstr "Approximer l’épaisseur de l’objet pour calculer deux évènements de réfraction (0 pour désactiver) (obsolète)"
 
 
-msgid "Roughness"
-msgstr "Rugosité"
-
-
 msgid "Roughness of the material"
 msgstr "Rugosité du matériau"
 
@@ -24834,10 +24846,6 @@ msgid "Color tag of the node group which influences the header color"
 msgstr "Étiquette du groupe de nœuds, qui influence la couleur de l’en-tête"
 
 
-msgid "Default tag for new node groups"
-msgstr "Étiquette par défaut pour les nouveaux groupes de nœuds"
-
-
 msgid "Attribute"
 msgstr "Attribut"
 
@@ -24862,6 +24870,14 @@ msgid "Shader"
 msgstr "Shader"
 
 
+msgid "Pattern"
+msgstr "Motif"
+
+
+msgid "Interface"
+msgstr "Interface"
+
+
 msgid "Default Group Node Width"
 msgstr "Largeur groupe de nœud par défaut"
 
@@ -24876,10 +24892,6 @@ msgstr "Description de l’arborescence nodale"
 
 msgid "Grease Pencil Data"
 msgstr "Données de Grease Pencil"
-
-
-msgid "Interface"
-msgstr "Interface"
 
 
 msgid "Interface declaration for this node tree"
@@ -27525,10 +27537,6 @@ msgid "Show Subframe"
 msgstr "Afficher la sous-frame"
 
 
-msgid "Show current scene subframe and allow set it using interface tools"
-msgstr "Afficher la sous-frame actuelle de la scène et permettre de la définir depuis l’interface"
-
-
 msgid "Simulation Frame End"
 msgstr "Frame de fin de simulation"
 
@@ -28671,10 +28679,6 @@ msgid "Marble Texture"
 msgstr "Texture marbre"
 
 
-msgid "Pattern"
-msgstr "Motif"
-
-
 msgid "Use soft marble"
 msgstr "Utiliser du marbre doux"
 
@@ -28745,10 +28749,6 @@ msgstr "Gain"
 
 msgid "The gain multiplier"
 msgstr "Le multiplicateur de gain"
-
-
-msgid "Lacunarity"
-msgstr "Lacunarité"
 
 
 msgid "Gap between successive frequencies"
@@ -34074,52 +34074,52 @@ msgid "Editor menu containing buttons"
 msgstr "Menu d’éditeur contenant des boutons"
 
 
-msgid "Clean Up"
-msgstr "Nettoyer"
+msgid "Mirror"
+msgstr "Miroir"
 
 
-msgid "Merge"
-msgstr "Fusionner"
+msgid "Snap"
+msgstr "Aimanter"
 
 
-msgid "Show/Hide"
-msgstr "Afficher/cacher"
+msgid "UV Mapping"
+msgstr "Placage UV"
 
 
 msgid "Local View"
 msgstr "Vue locale"
 
 
-msgid "Special Characters"
-msgstr "Caractères spéciaux"
-
-
-msgid "Kerning"
-msgstr "Approche"
-
-
-msgid "Names"
-msgstr "Noms"
-
-
 msgid "Viewpoint"
 msgstr "Point de vue"
 
 
-msgid "Bone Roll"
-msgstr "Roulis de l’os"
+msgid "Navigation"
+msgstr "Navigation"
 
 
-msgid "Toggle Bone Options"
-msgstr "(Dés)activer des options d’os"
+msgid "Align View"
+msgstr "Aligner la vue"
 
 
-msgid "Enable Bone Options"
-msgstr "Activer des options d’os"
+msgid "Align View to Active"
+msgstr "Aligner la vue sur l’actif"
 
 
-msgid "Disable Bone Options"
-msgstr "Désactiver des options d’os"
+msgid "View Regions"
+msgstr "Régions dans la vue"
+
+
+msgid "Select More/Less"
+msgstr "Sélectionner plus ou moins"
+
+
+msgid "Select Similar"
+msgstr "Sélectionner similaires"
+
+
+msgid "Select All by Trait"
+msgstr "Tout sélectionner par caractéristiques"
 
 
 msgid "Select Linked"
@@ -34130,44 +34130,8 @@ msgid "Select Loops"
 msgstr "Sélectionner les boucles"
 
 
-msgid "Mesh Select Mode"
-msgstr "Mode de sélection du maillage"
-
-
-msgid "Pivot Point"
-msgstr "Point de pivot"
-
-
-msgid "Snap"
-msgstr "Aimanter"
-
-
-msgid "Proportional Editing Falloff"
-msgstr "Atténuation de l’édition proportionnelle"
-
-
-msgid "Mask Edit"
-msgstr "Édition du masque"
-
-
-msgid "Automasking"
-msgstr "Masquage auto"
-
-
-msgid "Face Sets Edit"
-msgstr "Édition des ensembles de faces"
-
-
-msgid "Vertex Group Locks"
-msgstr "Verrouillages des groupes de sommets"
-
-
-msgid "Select More/Less"
-msgstr "Sélectionner plus ou moins"
-
-
-msgid "View Regions"
-msgstr "Régions dans la vue"
+msgid "Assign Material"
+msgstr "Assigner un matériau"
 
 
 msgid "Add Image"
@@ -34190,16 +34154,16 @@ msgid "Track"
 msgstr "Suivi"
 
 
-msgid "Navigation"
-msgstr "Navigation"
-
-
-msgid "Select Similar"
-msgstr "Sélectionner similaires"
-
-
 msgid "Quick Effects"
 msgstr "Effets rapides"
+
+
+msgid "Show/Hide"
+msgstr "Afficher/cacher"
+
+
+msgid "Clean Up"
+msgstr "Nettoyer"
 
 
 msgid "Asset"
@@ -34218,12 +34182,12 @@ msgid "Link/Transfer Data"
 msgstr "Lier/transférer des données"
 
 
-msgid "UV Mapping"
-msgstr "Placage UV"
-
-
 msgid "Hooks"
 msgstr "Crochets"
+
+
+msgid "Vertex Group Locks"
+msgstr "Verrouillages des groupes de sommets"
 
 
 msgid "Trim/Add"
@@ -34242,24 +34206,12 @@ msgid "Random Mask"
 msgstr "Masque aléatoire"
 
 
-msgid "Mirror"
-msgstr "Miroir"
-
-
-msgid "Assign Material"
-msgstr "Assigner un matériau"
-
-
 msgid "Clear Transform"
 msgstr "Réinitialiser la transformation"
 
 
 msgid "In-Betweens"
 msgstr "Intervalles"
-
-
-msgid "Align View to Active"
-msgstr "Aligner la vue sur l’actif"
 
 
 msgid "Propagate"
@@ -34270,12 +34222,24 @@ msgid "Bone Collections"
 msgstr "Collections d’os"
 
 
-msgid "Align View"
-msgstr "Aligner la vue"
+msgid "Names"
+msgstr "Noms"
 
 
-msgid "Select All by Trait"
-msgstr "Tout sélectionner par caractéristiques"
+msgid "Toggle Bone Options"
+msgstr "(Dés)activer des options d’os"
+
+
+msgid "Enable Bone Options"
+msgstr "Activer des options d’os"
+
+
+msgid "Disable Bone Options"
+msgstr "Désactiver des options d’os"
+
+
+msgid "Mesh Select Mode"
+msgstr "Mode de sélection du maillage"
 
 
 msgid "Face Data"
@@ -34288,6 +34252,42 @@ msgstr "Sélectionner par force de face"
 
 msgid "Set Face Strength"
 msgstr "Définir la force de face"
+
+
+msgid "Merge"
+msgstr "Fusionner"
+
+
+msgid "Special Characters"
+msgstr "Caractères spéciaux"
+
+
+msgid "Kerning"
+msgstr "Approche"
+
+
+msgid "Bone Roll"
+msgstr "Roulis de l’os"
+
+
+msgid "Pivot Point"
+msgstr "Point de pivot"
+
+
+msgid "Proportional Editing Falloff"
+msgstr "Atténuation de l’édition proportionnelle"
+
+
+msgid "Mask Edit"
+msgstr "Édition du masque"
+
+
+msgid "Automasking"
+msgstr "Masquage auto"
+
+
+msgid "Face Sets Edit"
+msgstr "Édition des ensembles de faces"
 
 
 msgid "Keyframe Insert Pie"
@@ -34446,6 +34446,10 @@ msgstr "Ajouter un masque"
 
 msgid "Move to Layer"
 msgstr "Déplacer vers le calque"
+
+
+msgid "Simplify Stroke"
+msgstr "Simplifier le trait"
 
 
 msgid "UV"
@@ -43598,6 +43602,10 @@ msgid "Amount the strip contributes to the current result"
 msgstr "Combien la bande contribue au résultat actuel"
 
 
+msgid "The identifier of the most recently assigned action slot. The slot identifies which sub-set of the Action is considered to be for this strip, and its identifier is used to find the right slot when assigning an Action."
+msgstr "L’identifiant de l’emplacement d’action. L’emplacement identifie quel sous-ensemble de l’action est destiné à cette bande, et son identifiant est utilisé pour trouver le bon emplacement lors de l’assignation d’une action."
+
+
 msgid "Modifiers affecting all the F-Curves in the referenced Action"
 msgstr "Modificateurs affectant toutes les F-courbes de l’action référencée"
 
@@ -52720,6 +52728,16 @@ msgstr "Collection d’effets d’objet"
 
 
 msgctxt "Operator"
+msgid "Add Material Variant"
+msgstr "Ajouter une variante de matériau"
+
+
+msgctxt "Operator"
+msgid "Remove Variant"
+msgstr "Supprimer la variante"
+
+
+msgctxt "Operator"
 msgid "Display Variant"
 msgstr "Afficher une variante"
 
@@ -52740,21 +52758,6 @@ msgstr "Assigner comme original"
 
 
 msgctxt "Operator"
-msgid "Add Material Variant"
-msgstr "Ajouter une variante de matériau"
-
-
-msgctxt "Operator"
-msgid "Remove Variant"
-msgstr "Supprimer la variante"
-
-
-msgctxt "Operator"
-msgid "Operator"
-msgstr "Opérateur"
-
-
-msgctxt "Operator"
 msgid "Add new Slot"
 msgstr "Ajouter un nouvel emplacement"
 
@@ -52772,6 +52775,11 @@ msgstr "Supprimer l’emplacement de variante"
 msgctxt "Operator"
 msgid "Apply glTF animation"
 msgstr "Appliquer l’animation glTF"
+
+
+msgctxt "Operator"
+msgid "Operator"
+msgstr "Opérateur"
 
 
 msgid "Mark actions with no F-Curves for deletion after save and reload of file preserving \"action libraries\""
@@ -65850,6 +65858,10 @@ msgid "Simplify selected strokes"
 msgstr "Simplifier les traits sélectionnés"
 
 
+msgid "Method used for simplifying stroke points"
+msgstr "Méthode utilisée pour simplifier les points de traits"
+
+
 msgctxt "Operator"
 msgid "Smooth Stroke"
 msgstr "Lisser le trait"
@@ -67234,6 +67246,22 @@ msgstr "Empaqueter les images"
 
 msgid "Pack all images into .blend file"
 msgstr "Empaqueter toutes les images dans le fichier .blend"
+
+
+msgid "Import Scene Extras"
+msgstr "Importer les extras de scène"
+
+
+msgid "Import scene extras as custom properties. Existing custom properties will be overwritten"
+msgstr "Importer les « extras » (données spécifiques à une application) de scène en tant que propriétés personnalisées. Les propriétés personnalisées existantes seront écrasées"
+
+
+msgid "Select imported objects"
+msgstr "Sélectionner les objets importés"
+
+
+msgid "Select created objects at the end of the import"
+msgstr "À la fin de l’import, sélectionner les objets créés"
 
 
 msgid "How normals are computed during import"
@@ -89976,46 +90004,6 @@ msgid "Panel containing UI elements"
 msgstr "Panneau contenant des éléments d’interface"
 
 
-msgid "VR"
-msgstr "VR"
-
-
-msgid "VR Info"
-msgstr "Infos VR"
-
-
-msgid "Active Tool"
-msgstr "Outil actif"
-
-
-msgid "View Lock"
-msgstr "Verrouillage de la vue"
-
-
-msgid "Selectability & Visibility"
-msgstr "Sélectionnabilité et visibilité"
-
-
-msgid "Wire Color"
-msgstr "Couleur des filaires"
-
-
-msgid "Shadow Settings"
-msgstr "Réglages d’ombre"
-
-
-msgid "SSAO Settings"
-msgstr "Réglages de SSAO"
-
-
-msgid "Render Pass"
-msgstr "Passe de rendu"
-
-
-msgid "Compositor"
-msgstr "Compositing"
-
-
 msgid "Overlays"
 msgstr "Surimpressions"
 
@@ -90046,14 +90034,6 @@ msgstr "Mode édition courbe"
 
 msgid "Curves Edit Mode"
 msgstr "Mode édition courbes"
-
-
-msgid "glTF Variants"
-msgstr "Variantes glTF"
-
-
-msgid "glTF Material Variants"
-msgstr "Variantes de matériaux glTF"
 
 
 msgid "Snapping"
@@ -90092,6 +90072,14 @@ msgid "Multi Frame"
 msgstr "Multi-frames"
 
 
+msgid "glTF Variants"
+msgstr "Variantes glTF"
+
+
+msgid "glTF Material Variants"
+msgstr "Variantes de matériaux glTF"
+
+
 msgid "Auto-Masking"
 msgstr "Masquage auto"
 
@@ -90118,6 +90106,46 @@ msgstr "glTF"
 
 msgid "glTF Animations"
 msgstr "Animations glTF"
+
+
+msgid "VR"
+msgstr "VR"
+
+
+msgid "VR Info"
+msgstr "Infos VR"
+
+
+msgid "Active Tool"
+msgstr "Outil actif"
+
+
+msgid "View Lock"
+msgstr "Verrouillage de la vue"
+
+
+msgid "Selectability & Visibility"
+msgstr "Sélectionnabilité et visibilité"
+
+
+msgid "Wire Color"
+msgstr "Couleur des filaires"
+
+
+msgid "Shadow Settings"
+msgstr "Réglages d’ombre"
+
+
+msgid "SSAO Settings"
+msgstr "Réglages de SSAO"
+
+
+msgid "Render Pass"
+msgstr "Passe de rendu"
+
+
+msgid "Compositor"
+msgstr "Compositing"
 
 
 msgid "Chain Scaling"
@@ -93558,14 +93586,6 @@ msgstr "Compositing CPU"
 
 msgid "Enable the new CPU compositor"
 msgstr "Activer le nouveau compositeur CPU"
-
-
-msgid "Overlay Legacy"
-msgstr "Superposition héritée"
-
-
-msgid "Enable the legacy Overlay codebase, requires restart"
-msgstr "Activer le code base hérité des surimpressions, nécessite un redémarrage"
 
 
 msgid "No Override Auto Resync"
@@ -119648,6 +119668,16 @@ msgid "Delete Active Keyframes (All Layers)"
 msgstr "Supprimer les images clés actives (tous les calques)"
 
 
+msgctxt "Operator"
+msgid "Fixed"
+msgstr "Fixe"
+
+
+msgctxt "Operator"
+msgid "Adaptive"
+msgstr "Adaptatif"
+
+
 msgid "Show Fill Color While Drawing"
 msgstr "Afficher la couleur de remplissage durant le dessin"
 
@@ -126854,6 +126884,10 @@ msgid "Data corruption: data-block '%s' is using another local data-block ('%s')
 msgstr "Corruption de données : le bloc de données « %s » utilise un autre bloc de données local (« %s ») comme référence de redéfinition de bibliothèque, suppression de toutes les données de redéfinition"
 
 
+msgid "Data corruption: data-block `%s` has a Library Override property with no RNA path"
+msgstr "Données corrompues : le bloc de données « %s » a une propriété avec redéfinition de bibliothèque mais sans chemin RNA"
+
+
 msgid "libraries"
 msgstr "bibliothèques"
 
@@ -131304,20 +131338,12 @@ msgid "Deleted %u object(s)"
 msgstr "%u objet(s) supprimé(s)"
 
 
-msgid "Object '%s' has no evaluated Grease Pencil data"
-msgstr "L’objet « %s » n’a pas de données Grease Pencil évaluées"
-
-
-msgid "Object '%s' has no evaluated curves data"
-msgstr "L’objet « %s » n’a pas de données courbe évaluées"
-
-
 msgid "Object '%s' has no evaluated mesh or curves data"
 msgstr "L’objet « %s » n’a pas de données maillage ou courbe évaluées"
 
 
-msgid "Object '%s' has no evaluated Grease Pencil or curves data"
-msgstr "L’objet « %s » n’a pas de données Grease Pencil ou courbes évaluées"
+msgid "Object '%s' has no evaluated curves data"
+msgstr "L’objet « %s » n’a pas de données courbe évaluées"
 
 
 msgid "Cannot edit object '%s' as it is used by override collections"
@@ -137731,6 +137757,10 @@ msgid "Cannot add slots to a legacy Action '%s'. Convert it to a layered Action 
 msgstr "Impossible d’ajouter d’emplacements à l’action héritée « %s ». La convertir d’abord en action par calques."
 
 
+msgid "Invalid slot name '%s': name must not be empty."
+msgstr "Nom d’emplacement « %s » invalide : le nom ne doit pas être vide."
+
+
 msgid "Cannot add layers to a legacy Action '%s'. Convert it to a layered Action first."
 msgstr "Impossible d’ajouter de calques à l’action héritée « %s ». La convertir d’abord en action par calques."
 
@@ -137765,6 +137795,14 @@ msgstr "Le marqueur de timeline « %s » est introuvable dans l’action « %
 
 msgid "Action slot display names cannot be empty"
 msgstr "Les noms d’emplacements pour l’affichage ne peuvent pas être vides"
+
+
+msgid "Action slot identifiers should be at least three characters"
+msgstr "Les identifiants d’emplacements d’actions doivent faire au moins trois caractères"
+
+
+msgid "Action slot identifier set with unexpected prefix \"%s\" (expected \"%s\")."
+msgstr "L’identifiant de l’emplacement d’action utilise un préfixe inattendu : « %s » (« %s » attendu)."
 
 
 msgid "Only armature objects are supported"

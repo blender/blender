@@ -1,7 +1,7 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'62b2bb48e8bf')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'cfa63bfefa5b')\n"
 "Report-Msgid-Bugs-To: \n"
 "PO-Revision-Date: 2024-04-29 13:23+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
@@ -191,6 +191,10 @@ msgid "Group"
 msgstr "Агәыԥ"
 
 
+msgid "Roughness"
+msgstr "Аџьаџьара"
+
+
 msgid "Cone"
 msgstr "Аконус"
 
@@ -231,10 +235,6 @@ msgstr "Амра"
 
 msgid "Cube"
 msgstr "Акуб"
-
-
-msgid "Roughness"
-msgstr "Аџьаџьара"
 
 
 msgid "Specular"
