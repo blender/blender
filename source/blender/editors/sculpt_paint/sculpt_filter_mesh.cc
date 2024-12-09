@@ -714,15 +714,8 @@ BLI_NOINLINE static void calc_sphere_translations(const Span<float3> positions,
                                                   const MutableSpan<float3> translations)
 {
   for (const int i : positions.index_range()) {
-    float3x3 transform = float3x3::identity();
-    if (factors[i] > 0.0f) {
-      scale_m3_fl(transform.ptr(), 1.0f - factors[i]);
-    }
-    else {
-      scale_m3_fl(transform.ptr(), 1.0f + factors[i]);
-    }
-    translations[i] = math::midpoint(math::normalize(positions[i]) * math::abs(factors[i]),
-                                     transform * positions[i] - positions[i]);
+    translations[i] = math::midpoint(math::normalize(positions[i]), -positions[i]) *
+                      math::abs(factors[i]);
   }
 }
 
