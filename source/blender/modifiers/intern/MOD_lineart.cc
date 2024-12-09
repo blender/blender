@@ -101,8 +101,13 @@ static void copy_data(const ModifierData *md, ModifierData *target, const int fl
       target_lmd->runtime);
 
   blender::Set<const Object *> *object_dependencies = source_runtime->object_dependencies.get();
-  target_runtime->object_dependencies.reset(
-      new blender::Set<const Object *>(*object_dependencies));
+  if (object_dependencies) {
+    target_runtime->object_dependencies.reset(
+        new blender::Set<const Object *>(*object_dependencies));
+  }
+  else {
+    target_runtime->object_dependencies.release();
+  }
 }
 
 static void free_data(ModifierData *md)
