@@ -187,6 +187,8 @@ static void modify_geometry_set(ModifierData *md,
                                 const ModifierEvalContext *ctx,
                                 bke::GeometrySet *geometry_set)
 {
+  using namespace modifier::greasepencil;
+
   const auto *amd = reinterpret_cast<GreasePencilArmatureModifierData *>(md);
 
   if (!geometry_set->has_grease_pencil()) {
@@ -211,17 +213,15 @@ static void modify_geometry_set(ModifierData *md,
   }
 
   IndexMaskMemory mask_memory;
-  const IndexMask layer_mask = modifier::greasepencil::get_filtered_layer_mask(
-      grease_pencil, amd->influence, mask_memory);
-  const Vector<Drawing *> drawings = modifier::greasepencil::get_drawings_for_write(
+  const IndexMask layer_mask = get_filtered_layer_mask(grease_pencil, amd->influence, mask_memory);
+  const Vector<LayerDrawingInfo> drawings = get_drawing_infos_by_layer(
       grease_pencil, layer_mask, frame);
-  threading::parallel_for_each(drawings.index_range(), [&](const int index) {
-    Drawing *drawing = drawings[index];
+  threading::parallel_for_each(drawings, [&](const LayerDrawingInfo &info) {
     if (edit_hints.is_empty()) {
-      modify_curves(*md, *ctx, *drawing, nullptr);
+      modify_curves(*md, *ctx, *info.drawing, nullptr);
     }
     else {
-      modify_curves(*md, *ctx, *drawing, &edit_hints[index]);
+      modify_curves(*md, *ctx, *info.drawing, &edit_hints[info.layer_index]);
     }
   });
 }
