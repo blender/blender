@@ -272,6 +272,19 @@ DeltaProjectionFunc get_screen_projection_fn(const GreasePencilStrokeParams &par
   return [](const float3 &, const float2 &) { return float3(); };
 }
 
+float3 compute_orig_delta(const DeltaProjectionFunc &projection_fn,
+                          const bke::crazyspace::GeometryDeformation &deformation,
+                          const int index,
+                          const float2 &screen_delta)
+{
+  const float3 old_position_eval = deformation.positions[index];
+  const float3 new_position_eval = projection_fn(old_position_eval, screen_delta);
+  const float3 translation_eval = new_position_eval - old_position_eval;
+  const float3 translation_orig = deformation.translation_from_deformed_to_original(
+      index, translation_eval);
+  return translation_orig;
+}
+
 GreasePencilStrokeParams GreasePencilStrokeParams::from_context(
     const Scene &scene,
     Depsgraph &depsgraph,

@@ -347,6 +347,12 @@ const CurvesEditHints *GeometrySet::get_curve_edit_hints() const
   return (component == nullptr) ? nullptr : component->curves_edit_hints_.get();
 }
 
+const GreasePencilEditHints *GeometrySet::get_grease_pencil_edit_hints() const
+{
+  const GeometryComponentEditData *component = this->get_component<GeometryComponentEditData>();
+  return (component == nullptr) ? nullptr : component->grease_pencil_edit_hints_.get();
+}
+
 const GizmoEditHints *GeometrySet::get_gizmo_edit_hints() const
 {
   const GeometryComponentEditData *component = this->get_component<GeometryComponentEditData>();
@@ -574,6 +580,16 @@ CurvesEditHints *GeometrySet::get_curve_edit_hints_for_write()
   GeometryComponentEditData &component =
       this->get_component_for_write<GeometryComponentEditData>();
   return component.curves_edit_hints_.get();
+}
+
+GreasePencilEditHints *GeometrySet::get_grease_pencil_edit_hints_for_write()
+{
+  if (!this->has<GeometryComponentEditData>()) {
+    return nullptr;
+  }
+  GeometryComponentEditData &component =
+      this->get_component_for_write<GeometryComponentEditData>();
+  return component.grease_pencil_edit_hints_.get();
 }
 
 GizmoEditHints *GeometrySet::get_gizmo_edit_hints_for_write()

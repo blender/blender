@@ -929,6 +929,12 @@ class GreasePencilDrawingEditHints {
   const greasepencil::Drawing *drawing_orig;
   ImplicitSharingPtrAndData positions_data;
 
+  /**
+   * Matrices which transform point movement vectors from original data to corresponding movements
+   * of evaluated data.
+   */
+  std::optional<Array<float3x3>> deform_mats;
+
   std::optional<Span<float3>> positions() const;
   std::optional<MutableSpan<float3>> positions_for_write();
 };
