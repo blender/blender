@@ -47,7 +47,6 @@ class GLContext : public Context {
 
   /** Extensions. */
 
-  static bool clear_texture_support;
   static bool debug_layer_support;
   static bool direct_state_access_support;
   static bool explicit_location_support;

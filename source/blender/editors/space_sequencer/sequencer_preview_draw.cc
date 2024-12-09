@@ -178,7 +178,6 @@ static ImBuf *sequencer_make_scope(Scene *scene,
       display_ibuf, &scene->view_settings, &scene->display_settings);
 
   scope = make_scope_fn(display_ibuf);
-  IMB_rectfill_alpha(scope, 1.0f);
 
   IMB_freeImBuf(display_ibuf);
 
@@ -816,11 +815,7 @@ static void sequencer_draw_scopes(Scene *scene, ARegion *region, SpaceSeq *sseq)
 
   bool use_blend = sseq->mainb == SEQ_DRAW_IMG_IMBUF && sseq->flag & SEQ_USE_ALPHA;
 
-  /* Draw opaque black rectangle over whole preview area. The scope texture
-   * with clamp to border extend mode should be enough, but results in
-   * garbage pixels around the actual scope on some GPUs/drivers (#119505).
-   * To fix that, background must be drawn, and then the scopes texture be
-   * blended on top. */
+  /* Draw black rectangle over scopes area. */
   if (sseq->mainb != SEQ_DRAW_IMG_IMBUF) {
     GPU_blend(GPU_BLEND_NONE);
     uint pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
@@ -829,7 +824,6 @@ static void sequencer_draw_scopes(Scene *scene, ARegion *region, SpaceSeq *sseq)
     immUniformColor4ubv(black);
     immRectf(pos, preview.xmin, preview.ymin, preview.xmax, preview.ymax);
     immUnbindProgram();
-    use_blend = true;
   }
 
   /* Draw scope image if there is one. */

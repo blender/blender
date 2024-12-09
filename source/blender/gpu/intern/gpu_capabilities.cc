@@ -162,11 +162,6 @@ bool GPU_use_hq_normals_workaround()
   return GCaps.use_hq_normals_workaround;
 }
 
-bool GPU_clear_viewport_workaround()
-{
-  return GCaps.clear_viewport_workaround;
-}
-
 bool GPU_stencil_clasify_buffer_workaround()
 {
   return GCaps.stencil_clasify_buffer_workaround;
