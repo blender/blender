@@ -100,11 +100,8 @@ static void copy_data(const ModifierData *md, ModifierData *target, const int fl
 
   blender::Set<const Object *> *object_dependencies = source_runtime->object_dependencies.get();
   if (object_dependencies) {
-    target_runtime->object_dependencies.reset(
-        new blender::Set<const Object *>(*object_dependencies));
-  }
-  else {
-    target_runtime->object_dependencies.release();
+    target_runtime->object_dependencies = std::make_unique<blender::Set<const Object *>>(
+        object_dependencies);
   }
 }
 
