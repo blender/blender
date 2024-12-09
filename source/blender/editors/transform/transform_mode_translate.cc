@@ -227,6 +227,10 @@ static void headerTranslation(TransInfo *t, const float vec[3], char str[UI_MAX_
       dvec[0] = val - ival;
     }
 
+    if (t->flag & T_2D_EDIT) {
+      applyAspectRatio(t, dvec);
+    }
+
     if (t->con.mode & CON_APPLY) {
       int i = 0;
       if (t->con.mode & CON_AXIS0) {
@@ -241,10 +245,6 @@ static void headerTranslation(TransInfo *t, const float vec[3], char str[UI_MAX_
       while (i != 3) {
         dvec[i++] = 0.0f;
       }
-    }
-
-    if (t->flag & T_2D_EDIT) {
-      applyAspectRatio(t, dvec);
     }
 
     dist = len_v3(dvec);
