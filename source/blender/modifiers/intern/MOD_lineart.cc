@@ -95,14 +95,7 @@ static void copy_data(const ModifierData *md, ModifierData *target, const int fl
   GreasePencilLineartModifierData *target_lmd =
       reinterpret_cast<GreasePencilLineartModifierData *>(target);
 
-  target_lmd->runtime = MEM_new<LineartModifierRuntime>(__func__);
-  LineartModifierRuntime *target_runtime = target_lmd->runtime;
-
-  blender::Set<const Object *> *object_dependencies = source_runtime->object_dependencies.get();
-  if (object_dependencies) {
-    target_runtime->object_dependencies = std::make_unique<blender::Set<const Object *>>(
-        object_dependencies);
-  }
+  target_lmd->runtime = MEM_new<LineartModifierRuntime>(__func__, *source_runtime);
 }
 
 static void free_data(ModifierData *md)
@@ -184,20 +177,14 @@ static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphCont
   if (!runtime) {
     runtime = MEM_new<LineartModifierRuntime>(__func__);
     lmd->runtime = runtime;
-    runtime->object_dependencies = nullptr;
   }
-  Set<const Object *> *object_dependencies = runtime->object_dependencies.get();
-  if (!object_dependencies) {
-    runtime->object_dependencies = std::make_unique<Set<const Object *>>();
-    object_dependencies = runtime->object_dependencies.get();
-  }
+  Set<const Object *> &object_dependencies = runtime->object_dependencies;
+  object_dependencies.clear();
 
-  object_dependencies->clear();
-  add_this_collection(
-      *ctx->scene->master_collection, ctx, DAG_EVAL_VIEWPORT, *object_dependencies);
+  add_this_collection(*ctx->scene->master_collection, ctx, DAG_EVAL_VIEWPORT, object_dependencies);
 
   /* No need to add any non-geometry objects into `lmd->object_dependencies` because we won't be
-   * loading */
+   * loading... */
   if (lmd->calculation_flags & MOD_LINEART_USE_CUSTOM_CAMERA && lmd->source_camera) {
     DEG_add_object_relation(
         ctx->node, lmd->source_camera, DEG_OB_COMP_TRANSFORM, "Line Art Modifier");
