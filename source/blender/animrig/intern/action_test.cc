@@ -302,6 +302,22 @@ TEST_F(ActionLayersTest, add_slot)
     EXPECT_STREQ(cube->id.name, slot.identifier);
     EXPECT_EQ(ID_OB, slot.idtype);
   }
+
+  { /* Creating a Slot for a specific ID that already had a slot assigned before should name it
+     * after that previous slot. This should also ensure that the first two characters are actually
+     * correct for the ID type. */
+    AnimData *adt = BKE_animdata_ensure_id(&cube->id);
+    STRNCPY_UTF8(adt->last_slot_identifier, "$$Kübuš 😹");
+    Slot &slot = action->slot_add_for_id(cube->id);
+    EXPECT_EQ(DNA_DEFAULT_ACTION_LAST_SLOT_HANDLE + 3, action->last_slot_handle);
+    EXPECT_EQ(DNA_DEFAULT_ACTION_LAST_SLOT_HANDLE + 3, slot.handle);
+
+    EXPECT_STREQ("Kübuš 😹", slot.identifier + 2)
+        << "The last-assigned slot name should be reused";
+    EXPECT_STREQ("OBKübuš 😹", slot.identifier)
+        << "The ID type encoded in the slot identifier should be correct";
+    EXPECT_EQ(ID_OB, slot.idtype);
+  }
 }
 
 TEST_F(ActionLayersTest, add_slot__reset_idroot)

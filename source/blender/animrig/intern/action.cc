@@ -529,12 +529,27 @@ Slot &Action::slot_add_for_id_type(const ID_Type idtype)
 Slot &Action::slot_add_for_id(const ID &animated_id)
 {
   Slot &slot = this->slot_add();
-
   slot.idtype = GS(animated_id.name);
-  this->slot_identifier_define(slot, animated_id.name);
 
+  /* Determine the identifier for this slot, prioritising transparent
+   * auto-selection when toggling between Actions. That's why the last-used slot
+   * identifier is used here, and the ID name only as fallback. */
+  const AnimData *adt = BKE_animdata_from_id(&animated_id);
+  const StringRefNull last_slot_identifier = adt ? adt->last_slot_identifier : "";
+
+  StringRefNull slot_identifier = last_slot_identifier;
+  if (slot_identifier.is_empty()) {
+    slot_identifier = animated_id.name;
+  }
+
+  this->slot_identifier_define(slot, slot_identifier);
   /* No need to call anim.slot_identifier_propagate() as nothing will be using
    * this brand new Slot yet. */
+
+  /* The last-used slot might have had a different ID type through some quirk (changes to linked
+   * data, for example). So better ensure that the identifier prefix is correct on this new slot,
+   * instead of relying for 100% on the old one. */
+  slot.identifier_ensure_prefix();
 
   return slot;
 }
