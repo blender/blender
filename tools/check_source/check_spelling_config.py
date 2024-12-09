@@ -744,6 +744,8 @@ dict_custom = {
     "bmain",
     "bmesh",
     "bpy",
+    "channelbag",
+    "channelbags",
     "depsgraph",
     "doctree",
     "editmode",

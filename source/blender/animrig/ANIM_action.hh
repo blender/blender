@@ -1531,7 +1531,7 @@ void action_fcurve_move(Action &action_dst,
 /**
  * Moves all F-Curves from one Channelbag to the other.
  *
- * The Channel-bags do not need to be part of the same action, or even belong to
+ * The Channelbags do not need to be part of the same action, or even belong to
  * an action at all.
  *
  * If the F-Curves belonged to channel groups, the group membership also carries
