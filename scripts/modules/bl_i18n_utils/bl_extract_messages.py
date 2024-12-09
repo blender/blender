@@ -1223,13 +1223,6 @@ def dump_addon_messages(addon_module_name, do_checks, settings):
 
 
 def main():
-    try:
-        import bpy
-    except ImportError:
-        print("This script must run from inside blender")
-        return
-
-    import sys
     import argparse
 
     # Get rid of Blender args!
