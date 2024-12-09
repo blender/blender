@@ -92,6 +92,11 @@ bool calc_active_center_for_editmode(Object *obedit, const bool select_only, flo
       }
       break;
     }
+    case OB_GREASE_PENCIL: {
+      copy_v3_v3(r_center, obedit->loc);
+      mul_m4_v3(obedit->world_to_object().ptr(), r_center);
+      return true;
+    }
   }
 
   return false;
