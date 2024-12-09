@@ -20,6 +20,7 @@
 
 namespace blender::realtime_compositor {
 
+template<typename T>
 static void blur_pass(const Result &input,
                       const Result &weights,
                       Result &output,
@@ -32,15 +33,15 @@ static void blur_pass(const Result &input,
    * is padded by 5 pixels to the left of the image, the first 5 pixels should be out of bounds and
    * thus zero, hence the introduced offset. */
   auto load_input = [&](const int2 texel) {
-    float4 color;
+    T color;
     if (extend_bounds) {
       /* Notice that we subtract 1 because the weights result have an extra center weight, see the
        * SymmetricBlurWeights class for more information. */
       int2 blur_radius = weights.domain().size - 1;
-      color = input.load_pixel_zero_generic_type(texel - blur_radius);
+      color = input.load_pixel_zero<T>(texel - blur_radius);
     }
     else {
-      color = input.load_pixel_extended_generic_type(texel);
+      color = input.load_pixel_extended<T>(texel);
     }
 
     return color;
@@ -50,10 +51,10 @@ static void blur_pass(const Result &input,
    * information on the reasoning behind this. */
   const int2 size = int2(output.domain().size.y, output.domain().size.x);
   parallel_for(size, [&](const int2 texel) {
-    float4 accumulated_color = float4(0.0f);
+    T accumulated_color = T(0);
 
     /* First, compute the contribution of the center pixel. */
-    float4 center_color = load_input(texel);
+    T center_color = load_input(texel);
     accumulated_color += center_color * weights.load_pixel<float>(int2(0));
 
     /* Then, compute the contributions of the pixel to the right and left, noting that the
@@ -68,7 +69,7 @@ static void blur_pass(const Result &input,
 
     /* Write the color using the transposed texel. See the horizontal_pass method for more
      * information on the rational behind this. */
-    output.store_pixel_generic_type(int2(texel.y, texel.x), accumulated_color);
+    output.store_pixel(int2(texel.y, texel.x), accumulated_color);
   });
 }
 
@@ -77,16 +78,13 @@ static const char *get_blur_shader(const ResultType type)
   switch (type) {
     case ResultType::Float:
       return "compositor_symmetric_separable_blur_float";
-    case ResultType::Float2:
-      return "compositor_symmetric_separable_blur_float2";
     case ResultType::Vector:
     case ResultType::Color:
       return "compositor_symmetric_separable_blur_float4";
+    case ResultType::Float2:
     case ResultType::Float3:
-      /* GPU module does not support float3 outputs. */
-      break;
     case ResultType::Int2:
-      /* Blur does not support integer types. */
+      /* Not supported. */
       break;
   }
 
@@ -167,7 +165,21 @@ static Result horizontal_pass_cpu(Context &context,
   Result output = context.create_result(input.type());
   output.allocate_texture(transposed_domain);
 
-  blur_pass(input, weights, output, extend_bounds);
+  switch (input.type()) {
+    case ResultType::Float:
+      blur_pass<float>(input, weights, output, extend_bounds);
+      break;
+    case ResultType::Vector:
+    case ResultType::Color:
+      blur_pass<float4>(input, weights, output, extend_bounds);
+      break;
+    case ResultType::Float2:
+    case ResultType::Float3:
+    case ResultType::Int2:
+      /* Not supported. */
+      BLI_assert_unreachable();
+      break;
+  }
 
   return output;
 }
@@ -240,7 +252,21 @@ static void vertical_pass_cpu(Context &context,
   }
   output.allocate_texture(domain);
 
-  blur_pass(horizontal_pass_result, weights, output, extend_bounds);
+  switch (original_input.type()) {
+    case ResultType::Float:
+      blur_pass<float>(horizontal_pass_result, weights, output, extend_bounds);
+      break;
+    case ResultType::Vector:
+    case ResultType::Color:
+      blur_pass<float4>(horizontal_pass_result, weights, output, extend_bounds);
+      break;
+    case ResultType::Float2:
+    case ResultType::Float3:
+    case ResultType::Int2:
+      /* Not supported. */
+      BLI_assert_unreachable();
+      break;
+  }
 }
 
 static void vertical_pass(Context &context,
