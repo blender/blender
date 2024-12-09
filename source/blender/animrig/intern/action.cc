@@ -48,6 +48,7 @@
 #include "ANIM_fcurve.hh"
 #include "ANIM_nla.hh"
 
+#include "action_internal.hh"
 #include "action_runtime.hh"
 
 #include "atomic_ops.h"
@@ -596,50 +597,6 @@ Slot *Action::slot_active_get()
       return slot;
     }
   }
-  return nullptr;
-}
-
-Slot *Action::find_suitable_slot_for(const ID &animated_id)
-{
-  AnimData *adt = BKE_animdata_from_id(&animated_id);
-
-  /* The slot-finding code in assign_action_ensure_slot_for_keying() is very
-   * similar to the code here (differences are documented there). It is very
-   * likely that changes in the logic here should be applied there as well. */
-
-  /* The slot handle is only valid when this action has already been
-   * assigned. Otherwise it's meaningless. */
-  if (adt && adt->action == this) {
-    Slot *slot = this->slot_for_handle(adt->slot_handle);
-    if (slot && slot->is_suitable_for(animated_id)) {
-      return slot;
-    }
-  }
-
-  /* Try the slot identifier from the AnimData, if it is set. */
-  if (adt && adt->last_slot_identifier[0]) {
-    Slot *slot = this->slot_find_by_identifier(adt->last_slot_identifier);
-    if (slot && slot->is_suitable_for(animated_id)) {
-      return slot;
-    }
-  }
-
-  /* Search for the ID name (which includes the ID type). */
-  {
-    Slot *slot = this->slot_find_by_identifier(animated_id.name);
-    if (slot && slot->is_suitable_for(animated_id)) {
-      return slot;
-    }
-  }
-
-  /* If there is only one slot, and it has never been assigned to anything, use that. */
-  if (this->slots().size() == 1) {
-    Slot *slot = this->slot(0);
-    if (!slot->has_idtype()) {
-      return slot;
-    }
-  }
-
   return nullptr;
 }
 
@@ -1256,8 +1213,8 @@ Slot *assign_action_ensure_slot_for_keying(Action &action, ID &animated_id)
   AnimData *adt = BKE_animdata_from_id(&animated_id);
   Slot *slot;
 
-  /* Find a suitable slot, but be stricter when to allow searching by name than
-   * action.find_suitable_slot_for(animated_id). */
+  /* Find a suitable slot, but be stricter about when to allow searching by name
+   * than generic_slot_for_autoassign(...). */
   {
     if (adt && adt->action == &action) {
       /* The slot handle is only valid when this action is already assigned.
@@ -1374,15 +1331,53 @@ bool generic_assign_action(ID &animated_id,
   action_ptr_ref = action_to_assign;
   id_us_plus(&action_ptr_ref->id);
 
-  /* Assign the slot. Legacy Actions do not have slots, so for those `slot` will always be
-   * `nullptr`, which is perfectly acceptable for generic_assign_action_slot(). */
-  Slot *slot = action_to_assign->wrap().find_suitable_slot_for(animated_id);
+  /* Auto-assign a slot. */
+  Slot *slot = generic_slot_for_autoassign(animated_id, action_ptr_ref->wrap(), slot_identifier);
   const ActionSlotAssignmentResult result = generic_assign_action_slot(
       slot, animated_id, action_ptr_ref, slot_handle_ref, slot_identifier);
   BLI_assert(result == ActionSlotAssignmentResult::OK);
   UNUSED_VARS_NDEBUG(result);
 
   return true;
+}
+
+Slot *generic_slot_for_autoassign(const ID &animated_id,
+                                  Action &action,
+                                  const StringRefNull last_slot_identifier)
+{
+  /* The slot-finding code in assign_action_ensure_slot_for_keying() is very
+   * similar to the code here (differences are documented there). It is very
+   * likely that changes in the logic here should be applied there as well. */
+
+  /* Try the slot identifier, if it is set. */
+  if (!last_slot_identifier.is_empty()) {
+    Slot *slot = action.slot_find_by_identifier(last_slot_identifier);
+    if (slot && slot->is_suitable_for(animated_id)) {
+      return slot;
+    }
+  }
+
+  /* Search for the ID name (which includes the ID type). */
+  {
+    Slot *slot = action.slot_find_by_identifier(animated_id.name);
+    if (slot && slot->is_suitable_for(animated_id)) {
+      return slot;
+    }
+  }
+
+  /* If there is only one slot, and it is not specific to any ID type, use that.
+   *
+   * This should only trigger in some special cases, like legacy Actions that
+   * were converted to slotted Actions by the versioning code, where the legacy
+   * Action was never assigned to anything (and thus had idroot = 0). */
+  if (action.slots().size() == 1) {
+    Slot *slot = action.slot(0);
+    if (!slot->has_idtype()) {
+      return slot;
+    }
+  }
+
+  return nullptr;
 }
 
 ActionSlotAssignmentResult generic_assign_action_slot(Slot *slot_to_assign,
