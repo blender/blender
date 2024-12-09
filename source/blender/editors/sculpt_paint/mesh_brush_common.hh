@@ -428,14 +428,6 @@ OffsetIndices<int> create_node_vert_offsets_bmesh(const Span<bke::pbvh::BMeshNod
  * faces are skipped.
  *
  * See #calc_vert_neighbors_interior for a version that does extra filtering for boundary vertices.
- *
- * \note A vector allocated per element is typically not a good strategy for performance because
- * of each vector's 24 byte overhead, non-contiguous memory, and the possibility of further heap
- * allocations. However, it's done here for now for two reasons:
- *  1. In typical quad meshes there are just 4 neighbors, which fit in the inline buffer.
- *  2. We want to avoid using edges, and the remaining topology map we have access to is the
- *     vertex to face map. That requires deduplication when building the neighbors, which
- *     requires some intermediate data structure like a vector anyway.
  */
 GroupedSpan<int> calc_vert_neighbors(OffsetIndices<int> faces,
                                      Span<int> corner_verts,
@@ -457,8 +449,6 @@ GroupedSpan<BMVert *> calc_vert_neighbors(Set<BMVert *, 0> verts,
  * faces are skipped. For boundary vertices (stored in the \a boundary_verts argument), only
  * include other boundary vertices. Corner vertices are skipped entirely and will not have neighbor
  * information populated.
- *
- * \note See #calc_vert_neighbors for information on why we use a Vector per element.
  */
 GroupedSpan<int> calc_vert_neighbors_interior(const OffsetIndices<int> faces,
                                               const Span<int> corner_verts,
