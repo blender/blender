@@ -420,6 +420,13 @@ def dump_rna_messages(msgs, reports, settings, verbose=False):
             # Do not process blacklisted classes, but do handle their children.
             if cls in blacklist_rna_class:
                 reports["rna_structs_skipped"].append(cls)
+            elif bpy.types.Operator in cls.__bases__ and not getattr(cls, "is_registered", True):
+                # unregistering a python-defined operator does not remove it from the list of subclasses of
+                # `bpy.types.Operator`, this works around this issue.
+                # While not a huge problem for main UI messages extraction, it does break fairly badly
+                # extraction of specific add-ons UI messages, see #116579.
+                print("SKIPPING because unregistered:", cls)
+                continue
             elif cls in ret_cls_set:
                 continue
             else:
