@@ -193,7 +193,13 @@ void AntiAliasingPass::sync(const SceneState &scene_state, SceneResources &resou
 
 void AntiAliasingPass::setup_view(View &view, const SceneState &scene_state)
 {
+  const View &default_view = View::default_get();
+  const float4x4 &viewmat = default_view.viewmat();
+  float4x4 winmat = default_view.winmat();
+  float4x4 persmat = default_view.persmat();
+
   if (!enabled_) {
+    view.sync(viewmat, winmat);
     return;
   }
 
@@ -220,11 +226,6 @@ void AntiAliasingPass::setup_view(View &view, const SceneState &scene_state)
   }
 
   setup_taa_weights(sample_offset, weights_, weights_sum_);
-
-  const View &default_view = View::default_get();
-  const float4x4 &viewmat = default_view.viewmat();
-  float4x4 winmat = default_view.winmat();
-  float4x4 persmat = default_view.persmat();
 
   window_translate_m4(winmat.ptr(),
                       persmat.ptr(),
