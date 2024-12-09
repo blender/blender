@@ -34,7 +34,7 @@ static void blur_pass(const Result &input,
     float4 accumulated_color = float4(0.0f);
 
     /* First, compute the contribution of the center pixel. */
-    float4 center_color = input.load_pixel_generic_type(texel);
+    float4 center_color = input.load_pixel<float4>(texel);
     float center_weight = weights.load_pixel<float>(int2(0));
     accumulated_color += center_color * center_weight;
     accumulated_weight += center_weight;
@@ -53,38 +53,15 @@ static void blur_pass(const Result &input,
       /* Add 0.5 to evaluate at the center of the pixels. */
       float weight =
           weights.sample_bilinear_extended(float2((float(i) + 0.5f) / float(radius + 1), 0.0f)).x;
-      accumulated_color += input.load_pixel_extended_generic_type(texel + int2(i, 0)) * weight;
-      accumulated_color += input.load_pixel_extended_generic_type(texel + int2(-i, 0)) * weight;
+      accumulated_color += input.load_pixel_extended<float4>(texel + int2(i, 0)) * weight;
+      accumulated_color += input.load_pixel_extended<float4>(texel + int2(-i, 0)) * weight;
       accumulated_weight += weight * 2.0f;
     }
 
     /* Write the color using the transposed texel. See the horizontal_pass_cpu function for more
      * information on the rational behind this. */
-    output.store_pixel_generic_type(int2(texel.y, texel.x),
-                                    accumulated_color / accumulated_weight);
+    output.store_pixel(int2(texel.y, texel.x), accumulated_color / accumulated_weight);
   });
-}
-
-static const char *get_blur_shader(const ResultType type)
-{
-  switch (type) {
-    case ResultType::Float:
-      return "compositor_symmetric_separable_blur_variable_size_float";
-    case ResultType::Float2:
-      return "compositor_symmetric_separable_blur_variable_size_float2";
-    case ResultType::Vector:
-    case ResultType::Color:
-      return "compositor_symmetric_separable_blur_variable_size_float4";
-    case ResultType::Float3:
-      /* GPU module does not support float3 outputs. */
-      break;
-    case ResultType::Int2:
-      /* Blur does not support integer types. */
-      break;
-  }
-
-  BLI_assert_unreachable();
-  return nullptr;
 }
 
 static Result horizontal_pass_gpu(Context &context,
@@ -93,7 +70,7 @@ static Result horizontal_pass_gpu(Context &context,
                                   const int weights_resolution,
                                   const int filter_type)
 {
-  GPUShader *shader = context.get_shader(get_blur_shader(input.type()));
+  GPUShader *shader = context.get_shader("compositor_symmetric_separable_blur_variable_size");
   GPU_shader_bind(shader);
 
   GPU_shader_uniform_1b(shader, "is_vertical_pass", false);
@@ -182,7 +159,7 @@ static void vertical_pass_gpu(Context &context,
                               const int weights_resolution,
                               const int filter_type)
 {
-  GPUShader *shader = context.get_shader(get_blur_shader(original_input.type()));
+  GPUShader *shader = context.get_shader("compositor_symmetric_separable_blur_variable_size");
   GPU_shader_bind(shader);
 
   GPU_shader_uniform_1b(shader, "is_vertical_pass", true);
@@ -264,6 +241,8 @@ void symmetric_separable_blur_variable_size(Context &context,
                                             const int weights_resolution,
                                             const int filter_type)
 {
+  BLI_assert(input.type() == ResultType::Color);
+
   Result horizontal_pass_result = horizontal_pass(
       context, input, radius, weights_resolution, filter_type);
   vertical_pass(

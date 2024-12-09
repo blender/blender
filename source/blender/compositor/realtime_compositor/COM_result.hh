@@ -413,9 +413,6 @@ class Result {
    * texelFetch function in GLSL works.  */
   float4 load_pixel_generic_type(const int2 &texel) const;
 
-  /* Identical to load_pixel_generic_type but with extended boundary condition. */
-  float4 load_pixel_extended_generic_type(const int2 &texel) const;
-
   /* Stores the given pixel value in the pixel at the given texel coordinates. Asserts if the
    * template type doesn't match the result's type. */
   template<typename T> void store_pixel(const int2 &texel, const T &pixel_value);
@@ -628,19 +625,6 @@ inline float4 Result::load_pixel_generic_type(const int2 &texel) const
   }
   else {
     this->copy_pixel(pixel_value, this->get_float_pixel(texel));
-  }
-  return pixel_value;
-}
-
-inline float4 Result::load_pixel_extended_generic_type(const int2 &texel) const
-{
-  float4 pixel_value = float4(0.0f, 0.0f, 0.0f, 1.0f);
-  if (is_single_value_) {
-    this->copy_pixel(pixel_value, float_texture_);
-  }
-  else {
-    const int2 clamped_texel = math::clamp(texel, int2(0), domain_.size - int2(1));
-    this->copy_pixel(pixel_value, this->get_float_pixel(clamped_texel));
   }
   return pixel_value;
 }
