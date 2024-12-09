@@ -326,7 +326,8 @@ void curve_populate_trans_data_structs(
     const blender::Span<blender::IndexMask> points_to_transform_per_attr,
     const blender::IndexMask &affected_curves,
     bool use_connected_only,
-    const blender::IndexMask &bezier_curves)
+    const blender::IndexMask &bezier_curves,
+    void *extra)
 {
   using namespace blender;
   const std::array<Span<float3>, 3> src_positions_per_selection_attr = {
@@ -381,6 +382,8 @@ void curve_populate_trans_data_structs(
         if (selection[point_in_domain_i]) {
           td.flag = TD_SELECTED;
         }
+
+        td.extra = extra;
 
         if (value_attribute) {
           float *value = &((*value_attribute)[point_in_domain_i]);
