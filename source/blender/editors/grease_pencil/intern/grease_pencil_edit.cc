@@ -1176,6 +1176,117 @@ static void GREASE_PENCIL_OT_stroke_switch_direction(wmOperatorType *ot)
 }
 
 /** \} */
+/* -------------------------------------------------------------------- */
+/** \name Set Start Point Operator
+ * \{ */
+static bke::CurvesGeometry set_start_point(const bke::CurvesGeometry &curves,
+                                           const IndexMask &mask)
+{
+
+  const OffsetIndices<int> points_by_curve = curves.points_by_curve();
+  const VArray<bool> src_cyclic = curves.cyclic();
+
+  /* Early-return if no cyclic curves. */
+  if (array_utils::booleans_mix_calc(src_cyclic) == array_utils::BooleanMix::AllFalse) {
+    return curves;
+  }
+
+  Array<bool> start_set_points(curves.points_num());
+  mask.to_bools(start_set_points.as_mutable_span());
+
+  Array<int> dst_to_src_point(curves.points_num());
+
+  threading::parallel_for(curves.curves_range(), 1024, [&](const IndexRange range) {
+    for (const int curve_i : range) {
+      const IndexRange points = points_by_curve[curve_i];
+      const Span<bool> curve_i_selected_points = start_set_points.as_span().slice(points);
+      const int first_selected = curve_i_selected_points.first_index_try(true);
+
+      MutableSpan<int> dst_to_src_slice = dst_to_src_point.as_mutable_span().slice(points);
+
+      array_utils::fill_index_range<int>(dst_to_src_slice, points.start());
+
+      if (first_selected == -1 || src_cyclic[curve_i] == false) {
+        continue;
+      }
+
+      std::rotate(dst_to_src_slice.begin(),
+                  dst_to_src_slice.begin() + first_selected,
+                  dst_to_src_slice.end());
+    }
+  });
+
+  /* New CurvesGeometry to copy to. */
+  bke::CurvesGeometry dst_curves(curves.points_num(), curves.curves_num());
+  BKE_defgroup_copy_list(&dst_curves.vertex_group_names, &curves.vertex_group_names);
+
+  /* Copy offsets. */
+  array_utils::copy(curves.offsets(), dst_curves.offsets_for_write());
+
+  /* Attribute accessors for copying. */
+  bke::MutableAttributeAccessor dst_attributes = dst_curves.attributes_for_write();
+  const bke::AttributeAccessor src_attributes = curves.attributes();
+
+  /* Copy curve attrs. */
+  bke::copy_attributes(
+      src_attributes, bke::AttrDomain::Curve, bke::AttrDomain::Curve, {}, dst_attributes);
+  array_utils::copy(src_cyclic, dst_curves.cyclic_for_write());
+
+  /* Copy point attrs */
+  gather_attributes(src_attributes,
+                    bke::AttrDomain::Point,
+                    bke::AttrDomain::Point,
+                    {},
+                    dst_to_src_point,
+                    dst_attributes);
+
+  dst_curves.update_curve_types();
+  return dst_curves;
+}
+
+static int grease_pencil_set_start_point_exec(bContext *C, wmOperator *)
+{
+  using namespace bke::greasepencil;
+  const Scene *scene = CTX_data_scene(C);
+  Object *object = CTX_data_active_object(C);
+  GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
+
+  std::atomic<bool> changed = false;
+  const Vector<MutableDrawingInfo> drawings = retrieve_editable_drawings(*scene, grease_pencil);
+  threading::parallel_for_each(drawings, [&](const MutableDrawingInfo &info) {
+    IndexMaskMemory memory;
+    const IndexMask selection = retrieve_editable_and_selected_points(
+        *object, info.drawing, info.layer_index, memory);
+    if (selection.is_empty()) {
+      return;
+    }
+
+    info.drawing.strokes_for_write() = set_start_point(info.drawing.strokes(), selection);
+
+    info.drawing.tag_topology_changed();
+    changed = true;
+  });
+
+  if (changed) {
+    DEG_id_tag_update(&grease_pencil.id, ID_RECALC_GEOMETRY);
+    WM_event_add_notifier(C, NC_GEOM | ND_DATA, &grease_pencil);
+  }
+  return OPERATOR_FINISHED;
+}
+static void GREASE_PENCIL_OT_set_start_point(wmOperatorType *ot)
+{
+  /* Identifiers */
+  ot->name = "Set Start Point";
+  ot->idname = "GREASE_PENCIL_OT_set_start_point";
+  ot->description = "Select which point is the beginning of the curve";
+
+  /* Callbacks */
+  ot->exec = grease_pencil_set_start_point_exec;
+  ot->poll = editable_grease_pencil_point_selection_poll;
+
+  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+/** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Set Curve Caps Operator
@@ -3827,6 +3938,7 @@ void ED_operatortypes_grease_pencil_edit()
   WM_operatortype_append(GREASE_PENCIL_OT_cyclical_set);
   WM_operatortype_append(GREASE_PENCIL_OT_set_active_material);
   WM_operatortype_append(GREASE_PENCIL_OT_stroke_switch_direction);
+  WM_operatortype_append(GREASE_PENCIL_OT_set_start_point);
   WM_operatortype_append(GREASE_PENCIL_OT_set_uniform_thickness);
   WM_operatortype_append(GREASE_PENCIL_OT_set_uniform_opacity);
   WM_operatortype_append(GREASE_PENCIL_OT_caps_set);
