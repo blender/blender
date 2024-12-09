@@ -89,9 +89,8 @@ static void createTransGreasePencilVerts(bContext *C, TransInfo *t)
 
       const IndexMask editable_points = ed::greasepencil::retrieve_editable_points(
           *object, info.drawing, info.layer_index, curves_transform_data->memory);
-      const IndexMask selected_editable_strokes =
-          ed::greasepencil::retrieve_editable_and_selected_strokes(
-              *object, info.drawing, info.layer_index, curves_transform_data->memory);
+      const IndexMask editable_strokes = ed::greasepencil::retrieve_editable_strokes(
+          *object, info.drawing, info.layer_index, curves_transform_data->memory);
 
       for (const int attribute_i : selection_attribute_names.index_range()) {
         const StringRef &selection_name = selection_attribute_names[attribute_i];
@@ -106,7 +105,7 @@ static void createTransGreasePencilVerts(bContext *C, TransInfo *t)
       bezier_curves[layer_offset] = bke::curves::indices_for_type(curves.curve_types(),
                                                                   curves.curve_type_counts(),
                                                                   CURVE_TYPE_BEZIER,
-                                                                  selected_editable_strokes,
+                                                                  editable_strokes,
                                                                   curves_transform_data->memory);
       /* Alter selection as in legacy curves bezt_select_to_transform_triple_flag(). */
       if (!bezier_curves[layer_offset].is_empty()) {
@@ -147,7 +146,7 @@ static void createTransGreasePencilVerts(bContext *C, TransInfo *t)
         tc.data_len += curves.points_num() + 2 * bezier_points.size();
         points_to_transform_per_attribute[layer_offset].append(curves.points_range());
 
-        if (!bezier_points.is_empty()) {
+        if (selection_attribute_names.size() > 1) {
           points_to_transform_per_attribute[layer_offset].append(bezier_points);
           points_to_transform_per_attribute[layer_offset].append(bezier_points);
         }

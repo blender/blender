@@ -260,7 +260,7 @@ static void createTransCurvesVerts(bContext * /*C*/, TransInfo *t)
       tc.data_len = curves.points_num() + 2 * bezier_points.size();
       points_to_transform_per_attribute[i].append(curves.points_range());
 
-      if (bezier_points.size() > 0) {
+      if (selection_attribute_names.size() > 1) {
         points_to_transform_per_attribute[i].append(bezier_points);
         points_to_transform_per_attribute[i].append(bezier_points);
       }
