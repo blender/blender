@@ -456,6 +456,7 @@ Depsgraph *CTX_data_expect_evaluated_depsgraph(const bContext *C);
  *
  * \note Will be expensive if there are relations or objects tagged for update.
  * \note If there are pending updates depsgraph hooks will be invoked.
+ * \warning In many cases, runtime data on associated objects will be destroyed & recreated.
  */
 Depsgraph *CTX_data_ensure_evaluated_depsgraph(const bContext *C);
 
