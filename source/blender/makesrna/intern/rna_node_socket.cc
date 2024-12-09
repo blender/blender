@@ -313,6 +313,12 @@ static bool rna_NodeSocket_is_output_get(PointerRNA *ptr)
   return sock->in_out == SOCK_OUT;
 }
 
+static int rna_NodeSocket_link_limit_get(PointerRNA *ptr)
+{
+  bNodeSocket *sock = static_cast<bNodeSocket *>(ptr->data);
+  return blender::bke::node_socket_link_limit(sock);
+}
+
 static void rna_NodeSocket_link_limit_set(PointerRNA *ptr, int value)
 {
   bNodeSocket *sock = static_cast<bNodeSocket *>(ptr->data);
@@ -610,7 +616,8 @@ static void rna_def_node_socket(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "link_limit", PROP_INT, PROP_NONE);
   RNA_def_property_int_sdna(prop, nullptr, "limit");
-  RNA_def_property_int_funcs(prop, nullptr, "rna_NodeSocket_link_limit_set", nullptr);
+  RNA_def_property_int_funcs(
+      prop, "rna_NodeSocket_link_limit_get", "rna_NodeSocket_link_limit_set", nullptr);
   RNA_def_property_range(prop, 1, 0xFFF);
   RNA_def_property_ui_text(prop, "Link Limit", "Max number of links allowed for this socket");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, nullptr);
