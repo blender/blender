@@ -345,6 +345,18 @@ void Instance::end_sync()
     DRW_texture_ensure_fullscreen_2d(
         &dtxl->depth_in_front, GPU_DEPTH24_STENCIL8, DRWTextureFlag(0));
 
+    if (dtxl->depth_in_front == nullptr) {
+      int2 size = int2(DRW_viewport_size_get()[0], DRW_viewport_size_get()[1]);
+
+      dtxl->depth_in_front = GPU_texture_create_2d("txl.depth_in_front",
+                                                   size.x,
+                                                   size.y,
+                                                   1,
+                                                   GPU_DEPTH24_STENCIL8,
+                                                   GPU_TEXTURE_USAGE_GENERAL,
+                                                   nullptr);
+    }
+
     GPU_framebuffer_ensure_config(
         &dfbl->in_front_fb,
         {GPU_ATTACHMENT_TEXTURE(dtxl->depth_in_front), GPU_ATTACHMENT_TEXTURE(dtxl->color)});
