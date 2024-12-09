@@ -172,6 +172,9 @@ static void update_depsgraph(ModifierData *md, const ModifierUpdateDepsgraphCont
   if (nmd->node_group == nullptr) {
     return;
   }
+  if (ID_MISSING(nmd->node_group)) {
+    return;
+  }
 
   DEG_add_node_tree_output_relation(ctx->node, nmd->node_group, "Nodes Modifier");
 
@@ -239,6 +242,9 @@ static bool depends_on_time(Scene * /*scene*/, ModifierData *md)
   const NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(md);
   const bNodeTree *tree = nmd->node_group;
   if (tree == nullptr) {
+    return false;
+  }
+  if (ID_MISSING(tree)) {
     return false;
   }
   for (const NodesModifierBake &bake : Span(nmd->bakes, nmd->bakes_num)) {
