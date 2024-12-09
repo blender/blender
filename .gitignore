@@ -38,8 +38,9 @@ Desktop.ini
 /doc/python_api/sphinx-out/
 /doc/python_api/rst/bmesh.ops.rst
 
-# in-source lib downloads
+# in-source lib downloads and staging
 /build_files/build_environment/downloads/
+/build_files/build_environment/windows/build/
 
 # in-source buildbot signing configuration
 /build_files/buildbot/codesign/config_server.py
