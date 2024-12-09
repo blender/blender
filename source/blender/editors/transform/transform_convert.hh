@@ -100,6 +100,12 @@ struct CurvesTransformData {
   blender::Vector<int> layer_offsets;
 
   /**
+   * Grease pencil multi-frame editing falloff. One value for each drawing in a
+   * `TransDataContainer`.
+   */
+  blender::Vector<float> grease_pencil_falloffs;
+
+  /**
    * Copy of all positions being transformed.
    */
   blender::Array<blender::float3> positions;
@@ -184,7 +190,8 @@ void curve_populate_trans_data_structs(
     const blender::Span<blender::IndexMask> points_to_transform_indices,
     const blender::IndexMask &affected_curves,
     bool use_connected_only,
-    const blender::IndexMask &bezier_curves);
+    const blender::IndexMask &bezier_curves,
+    void *extra = nullptr);
 
 CurvesTransformData *create_curves_transform_custom_data(TransCustomData &custom_data);
 
