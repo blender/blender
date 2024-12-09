@@ -34,7 +34,11 @@ set(SRC_GLSL_VERT
 
 set(SRC_GLSL_FRAG
   workbench_composite_frag.glsl
-  workbench_effect_dof_frag.glsl
+  workbench_effect_dof_prepare_frag.glsl
+  workbench_effect_dof_downsample_frag.glsl
+  workbench_effect_dof_blur1_frag.glsl
+  workbench_effect_dof_blur2_frag.glsl
+  workbench_effect_dof_resolve_frag.glsl
   workbench_effect_outline_frag.glsl
   workbench_effect_smaa_frag.glsl
   workbench_effect_taa_frag.glsl
@@ -53,6 +57,7 @@ set(SRC_GLSL_COMP
 )
 
 set(SRC_GLSL_LIB
+  workbench_effect_dof_lib.glsl
   workbench_cavity_lib.glsl
   workbench_common_lib.glsl
   workbench_curvature_lib.glsl
