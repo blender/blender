@@ -90,15 +90,13 @@ static void copy_data(const ModifierData *md, ModifierData *target, const int fl
 
   const GreasePencilLineartModifierData *source_lmd =
       reinterpret_cast<const GreasePencilLineartModifierData *>(md);
-  const LineartModifierRuntime *source_runtime = reinterpret_cast<const LineartModifierRuntime *>(
-      source_lmd->runtime);
+  const LineartModifierRuntime *source_runtime = source_lmd->runtime;
 
   GreasePencilLineartModifierData *target_lmd =
       reinterpret_cast<GreasePencilLineartModifierData *>(target);
 
   target_lmd->runtime = MEM_new<LineartModifierRuntime>(__func__);
-  LineartModifierRuntime *target_runtime = reinterpret_cast<LineartModifierRuntime *>(
-      target_lmd->runtime);
+  LineartModifierRuntime *target_runtime = target_lmd->runtime;
 
   blender::Set<const Object *> *object_dependencies = source_runtime->object_dependencies.get();
   if (object_dependencies) {
@@ -113,8 +111,7 @@ static void copy_data(const ModifierData *md, ModifierData *target, const int fl
 static void free_data(ModifierData *md)
 {
   GreasePencilLineartModifierData *lmd = reinterpret_cast<GreasePencilLineartModifierData *>(md);
-  if (lmd->runtime) {
-    LineartModifierRuntime *runtime = reinterpret_cast<LineartModifierRuntime *>(lmd->runtime);
+  if (LineartModifierRuntime *runtime = lmd->runtime) {
     MEM_delete(runtime);
     lmd->runtime = nullptr;
   }
