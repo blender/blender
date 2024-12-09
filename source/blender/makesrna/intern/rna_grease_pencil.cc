@@ -1097,6 +1097,11 @@ static void rna_def_grease_pencil_layer(BlenderRNA *brna)
   RNA_def_property_ui_text(
       prop, "Parent Layer Group", "The parent layer group this layer is part of");
 
+  prop = RNA_def_property(srna, "channel_color", PROP_FLOAT, PROP_COLOR);
+  RNA_def_property_float_sdna(prop, "GreasePencilLayerTreeNode", "color");
+  RNA_def_property_array(prop, 3);
+  RNA_def_property_update(prop, NC_GPENCIL | NA_EDITED, nullptr);
+
   RNA_api_grease_pencil_layer(srna);
 }
 

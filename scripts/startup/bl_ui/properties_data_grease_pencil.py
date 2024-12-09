@@ -146,6 +146,19 @@ class GreasePencil_LayerRelationsPanel:
         col.prop(layer, "use_viewlayer_masks")
 
 
+class GreasePencil_LayerDisplayPanel:
+    bl_label = "Display"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+
+        grease_pencil = context.grease_pencil
+        layer = grease_pencil.layers.active
+
+        layout.prop(layer, "channel_color", text="Channel Color")
+
+
 class GREASE_PENCIL_MT_layer_mask_add(Menu):
     bl_label = "Add Mask"
 
@@ -315,6 +328,12 @@ class DATA_PT_grease_pencil_layer_relations(LayerDataButtonsPanel, GreasePencil_
     bl_options = {'DEFAULT_CLOSED'}
 
 
+class DATA_PT_grease_pencil_layer_display(LayerDataButtonsPanel, GreasePencil_LayerDisplayPanel, Panel):
+    bl_label = "Display"
+    bl_parent_id = "DATA_PT_grease_pencil_layers"
+    bl_options = {'DEFAULT_CLOSED'}
+
+
 class DATA_PT_grease_pencil_onion_skinning(DataButtonsPanel, Panel):
     bl_label = "Onion Skinning"
 
@@ -473,6 +492,7 @@ classes = (
     DATA_PT_grease_pencil_layer_transform,
     DATA_PT_grease_pencil_layer_adjustments,
     DATA_PT_grease_pencil_layer_relations,
+    DATA_PT_grease_pencil_layer_display,
     DATA_PT_grease_pencil_onion_skinning,
     DATA_PT_grease_pencil_onion_skinning_custom_colors,
     DATA_PT_grease_pencil_onion_skinning_display,
