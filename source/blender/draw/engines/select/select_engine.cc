@@ -309,7 +309,7 @@ static void select_engine_free()
     DRW_SHADER_FREE_SAFE(sh_data->select_id_uniform);
   }
 
-  DRW_TEXTURE_FREE_SAFE(e_data.texture_u32);
+  GPU_TEXTURE_FREE_SAFE(e_data.texture_u32);
   GPU_FRAMEBUFFER_FREE_SAFE(e_data.framebuffer_select_id);
 }
 

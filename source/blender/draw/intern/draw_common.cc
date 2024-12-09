@@ -258,7 +258,7 @@ void DRW_globals_update()
   if (weight_ramp_custom != user_weight_ramp ||
       (user_weight_ramp && memcmp(&weight_ramp_copy, &U.coba_weight, sizeof(ColorBand)) != 0))
   {
-    DRW_TEXTURE_FREE_SAFE(G_draw.weight_ramp);
+    GPU_TEXTURE_FREE_SAFE(G_draw.weight_ramp);
   }
 
   if (G_draw.weight_ramp == nullptr) {

@@ -2942,7 +2942,7 @@ void DRW_engines_free()
 
   DRW_gpu_context_enable();
 
-  DRW_TEXTURE_FREE_SAFE(g_select_buffer.texture_depth);
+  GPU_TEXTURE_FREE_SAFE(g_select_buffer.texture_depth);
   GPU_FRAMEBUFFER_FREE_SAFE(g_select_buffer.framebuffer_depth_only);
 
   DRW_shaders_free();
@@ -2959,8 +2959,8 @@ void DRW_engines_free()
   DRW_UBO_FREE_SAFE(G_draw.block_ubo);
   DRW_UBO_FREE_SAFE(G_draw.view_ubo);
   DRW_UBO_FREE_SAFE(G_draw.clipping_ubo);
-  DRW_TEXTURE_FREE_SAFE(G_draw.ramp);
-  DRW_TEXTURE_FREE_SAFE(G_draw.weight_ramp);
+  GPU_TEXTURE_FREE_SAFE(G_draw.ramp);
+  GPU_TEXTURE_FREE_SAFE(G_draw.weight_ramp);
 
   DRW_gpu_context_disable();
 }

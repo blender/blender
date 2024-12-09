@@ -121,7 +121,7 @@ static void volume_batch_cache_clear(Volume *volume)
 
   LISTBASE_FOREACH (DRWVolumeGrid *, grid, &cache->grids) {
     MEM_SAFE_FREE(grid->name);
-    DRW_TEXTURE_FREE_SAFE(grid->texture);
+    GPU_TEXTURE_FREE_SAFE(grid->texture);
   }
   BLI_freelistN(&cache->grids);
 
