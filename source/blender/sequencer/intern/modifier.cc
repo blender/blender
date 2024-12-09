@@ -453,7 +453,7 @@ static void color_balance_float(const StripColorBalance *cb,
         mask_ptr += 4;
       }
       if (mask_ptr_float) {
-        mask_ptr += 4;
+        mask_ptr_float += 4;
       }
     }
   }
@@ -487,6 +487,9 @@ static void color_balance_float(const StripColorBalance *cb,
       ptr += 4;
       if (mask_ptr) {
         mask_ptr += 4;
+      }
+      if (mask_ptr_float) {
+        mask_ptr_float += 4;
       }
     }
   }
