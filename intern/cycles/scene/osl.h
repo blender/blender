@@ -126,7 +126,7 @@ class OSLCompiler {
 #ifdef WITH_OSL
   OSLCompiler(OSLShaderManager *manager, OSL::ShadingSystem *shadingsys, Scene *scene);
 #endif
-  void compile(OSLGlobals *og, Shader *shader);
+  void compile(Shader *shader);
 
   void add(ShaderNode *node, const char *name, bool isfilepath = false);
 
@@ -177,6 +177,7 @@ class OSLCompiler {
 
   ShaderType current_type;
   Shader *current_shader;
+  OSL::ShaderGroupRef current_group;
 
   static int texture_shared_unique_id;
 };
