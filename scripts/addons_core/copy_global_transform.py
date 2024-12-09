@@ -13,8 +13,8 @@ It's called "global" to avoid confusion with the Blender World data-block.
 bl_info = {
     "name": "Copy Global Transform",
     "author": "Sybren A. Stüvel",
-    "version": (3, 0),
-    "blender": (4, 2, 0),
+    "version": (4, 4),
+    "blender": (4, 4, 0),
     "location": "N-panel in the 3D Viewport",
     "description": "Copy and paste object and bone transforms with ease",
     "category": "Animation",
@@ -29,7 +29,7 @@ from typing import Iterable, Optional, Union, Any, TypeAlias, Iterator
 
 import bpy
 from bpy.app.translations import contexts as i18n_contexts
-from bpy.types import Context, Object, Operator, Panel, PoseBone, UILayout, Camera
+from bpy.types import Context, Object, Operator, Panel, PoseBone, UILayout, Camera, ID, ActionChannelbag
 from mathutils import Matrix
 
 
@@ -226,6 +226,26 @@ def set_matrix(context: Context, mat: Matrix) -> None:
         AutoKeying.autokey_transformation(context, context.active_object)
 
 
+def _channelbag_for_id(animated_id: ID) -> ActionChannelbag | None:
+    # This is on purpose limited to the first layer and strip. To support more
+    # than 1 layer, a rewrite of the caller is needed.
+
+    adt = animated_id.animation_data
+    action = adt and adt.action
+    if action is None:
+        return None
+
+    slot_handle = adt.action_slot_handle
+
+    for layer in action.layers:
+        for strip in layer.strips:
+            assert strip.type == 'KEYFRAME'
+            channelbag = strip.channels(slot_handle)
+            return channelbag
+
+    return None
+
+
 def _selected_keyframes(context: Context) -> list[float]:
     """Return the list of frame numbers that have a selected key.
 
@@ -243,7 +263,7 @@ def _selected_keyframes_for_bone(object: Object, bone: PoseBone) -> list[float]:
     Only keys on the given pose bone are considered.
     """
     name = bpy.utils.escape_identifier(bone.name)
-    return _selected_keyframes_in_action(object, "pose.bones[\"{:s}\"].".format(name))
+    return _selected_keyframes_for_action_slot(object, "pose.bones[\"{:s}\"].".format(name))
 
 
 def _selected_keyframes_for_object(object: Object) -> list[float]:
@@ -251,21 +271,21 @@ def _selected_keyframes_for_object(object: Object) -> list[float]:
 
     Only keys on the given object are considered.
     """
-    return _selected_keyframes_in_action(object, "")
+    return _selected_keyframes_for_action_slot(object, "")
 
 
-def _selected_keyframes_in_action(object: Object, rna_path_prefix: str) -> list[float]:
+def _selected_keyframes_for_action_slot(object: Object, rna_path_prefix: str) -> list[float]:
     """Return the list of frame numbers that have a selected key.
 
-    Only keys on the given object's Action on FCurves starting with rna_path_prefix are considered.
+    Only keys on the given object's Action Slot on FCurves starting with rna_path_prefix are considered.
     """
 
-    action = object.animation_data and object.animation_data.action
-    if action is None:
+    cbag = _channelbag_for_id(object)
+    if not cbag:
         return []
 
     keyframes = set()
-    for fcurve in action.fcurves:
+    for fcurve in cbag.fcurves:
         if not fcurve.data_path.startswith(rna_path_prefix):
             continue
 
@@ -468,16 +488,14 @@ class OBJECT_OT_paste_transform(Operator):
         return applicator(context, mat)
 
     def _preprocess_matrix(self, context: Context, matrix: Matrix) -> Matrix:
-        matrix = self._relative_to_world(context, matrix)
+        if self.use_relative:
+            matrix = self._relative_to_world(context, matrix)
 
         if self.use_mirror:
             matrix = self._mirror_matrix(context, matrix)
         return matrix
 
     def _relative_to_world(self, context: Context, matrix: Matrix) -> Matrix:
-        if not self.use_relative:
-            return matrix
-
         rel_ob = _get_relative_ob(context)
         if not rel_ob:
             return matrix
@@ -691,14 +709,11 @@ class TransformableObject(Transformable):
         return hash(self.object.as_pointer())
 
     def _my_fcurves(self) -> Iterable[bpy.types.FCurve]:
-        action = self._action()
-        if not action:
+        cbag = _channelbag_for_id(self.object)
+        if not cbag:
             return
-        yield from action.fcurves
+        yield from cbag.fcurves
 
-    def _action(self) -> Optional[bpy.types.Action]:
-        adt = self.object.animation_data
-        return adt and adt.action
 
 
 class TransformableBone(Transformable):
@@ -729,18 +744,14 @@ class TransformableBone(Transformable):
         return hash(self.pose_bone.as_pointer())
 
     def _my_fcurves(self) -> Iterable[bpy.types.FCurve]:
-        action = self._action()
-        if not action:
+        cbag = _channelbag_for_id(self.arm_object)
+        if not cbag:
             return
 
-        rna_prefix = f"{self.pose_bone.path_from_id()}."
-        for fcurve in action.fcurves:
+        rna_prefix = self.pose_bone.path_from_id() + "."
+        for fcurve in cbag.fcurves:
             if fcurve.data_path.startswith(rna_prefix):
                 yield fcurve
-
-    def _action(self) -> Optional[bpy.types.Action]:
-        adt = self.arm_object.animation_data
-        return adt and adt.action
 
 
 class FixToCameraCommon:
