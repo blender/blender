@@ -58,21 +58,24 @@ static void set_curves_position(bke::CurvesGeometry &curves,
                                 const Field<float3> &position_field)
 {
   MutableAttributeAccessor attributes = curves.attributes_for_write();
+
+  Vector<StringRef> attribute_names;
+  Vector<GField> fields;
+  attribute_names.append("position");
+  fields.append(position_field);
+
   if (attributes.contains("handle_right") && attributes.contains("handle_left")) {
     fn::Field<float3> delta(fn::FieldOperation::Create(
         get_sub_fn(), {position_field, bke::AttributeFieldInput::Create<float3>("position")}));
     for (const StringRef name : {"handle_left", "handle_right"}) {
-      bke::try_capture_field_on_geometry(
-          attributes,
-          field_context,
-          name,
-          bke::AttrDomain::Point,
-          selection_field,
-          Field<float3>(fn::FieldOperation::Create(
-              get_add_fn(), {bke::AttributeFieldInput::Create<float3>(name), delta})));
+      attribute_names.append(name);
+      fields.append(Field<float3>(fn::FieldOperation::Create(
+          get_add_fn(), {bke::AttributeFieldInput::Create<float3>(name), delta})));
     }
   }
-  set_points_position(attributes, field_context, selection_field, position_field);
+
+  bke::try_capture_fields_on_geometry(
+      attributes, field_context, attribute_names, bke::AttrDomain::Point, selection_field, fields);
   curves.calculate_bezier_auto_handles();
 }
 
