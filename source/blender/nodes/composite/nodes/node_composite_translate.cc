@@ -63,7 +63,6 @@ class TranslateOperation : public NodeOperation {
   {
     Result &input = get_input("Image");
     Result &result = get_result("Image");
-    input.pass_through(result);
 
     float x = get_input("X").get_float_value_default(0.0f);
     float y = get_input("Y").get_float_value_default(0.0f);
