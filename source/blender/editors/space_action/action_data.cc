@@ -111,7 +111,6 @@ AnimData *ED_actedit_animdata_from_context(const bContext *C, ID **r_adt_id_owne
 
 static bAction *action_create_new(bContext *C, bAction *oldact)
 {
-  ScrArea *area = CTX_wm_area(C);
   bAction *action;
 
   /* create action - the way to do this depends on whether we've got an
@@ -133,18 +132,6 @@ static bAction *action_create_new(bContext *C, bAction *oldact)
    */
   BLI_assert(action->id.us == 1);
   id_us_min(&action->id);
-
-  /* set ID-Root type */
-  if (area->spacetype == SPACE_ACTION) {
-    SpaceAction *saction = (SpaceAction *)area->spacedata.first;
-
-    if (saction->mode == SACTCONT_SHAPEKEY) {
-      action->idroot = ID_KE;
-    }
-    else {
-      action->idroot = ID_OB;
-    }
-  }
 
   return action;
 }
