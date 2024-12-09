@@ -24,7 +24,8 @@
  * \{ */
 
 /* Pass world space deltas to the fragment shader.
- * This is to make sure that the resulting motion vectors are valid even with displacement. */
+ * This is to make sure that the resulting motion vectors are valid even with displacement.
+ * WARNING: The next value is invalid when rendering the viewport. */
 GPU_SHADER_NAMED_INTERFACE_INFO(eevee_velocity_surface_iface, motion)
 SMOOTH(VEC3, prev)
 SMOOTH(VEC3, next)

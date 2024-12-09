@@ -128,6 +128,7 @@ void velocity_local_pos_get(vec3 lP, int vert_id, out vec3 lP_prev, out vec3 lP_
 /**
  * Given a triple of position, compute the previous and next motion vectors.
  * Returns a tuple of world space motion deltas.
+ * WARNING: The returned motion_next is invalid when rendering the viewport.
  */
 void velocity_vertex(
     vec3 lP_prev, vec3 lP, vec3 lP_next, out vec3 motion_prev, out vec3 motion_next)

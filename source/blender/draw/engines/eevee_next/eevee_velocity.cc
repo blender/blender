@@ -167,10 +167,15 @@ bool VelocityModule::step_object_sync(ObjectKey &object_key,
       object_steps[STEP_PREVIOUS]->get_or_resize(
           vel.obj.ofs[STEP_PREVIOUS]) = ob->object_to_world();
     }
-    /* STEP_NEXT is not used in viewport. */
-    if (vel.obj.ofs[STEP_NEXT] == -1 && !inst_.is_viewport()) {
-      vel.obj.ofs[STEP_NEXT] = object_steps_usage[STEP_NEXT]++;
-      object_steps[STEP_NEXT]->get_or_resize(vel.obj.ofs[STEP_NEXT]) = ob->object_to_world();
+    if (vel.obj.ofs[STEP_NEXT] == -1) {
+      if (inst_.is_viewport()) {
+        /* Just set it to 0. motion.next is not meant to be valid in the viewport. */
+        vel.obj.ofs[STEP_NEXT] = 0;
+      }
+      else {
+        vel.obj.ofs[STEP_NEXT] = object_steps_usage[STEP_NEXT]++;
+        object_steps[STEP_NEXT]->get_or_resize(vel.obj.ofs[STEP_NEXT]) = ob->object_to_world();
+      }
     }
   }
 
