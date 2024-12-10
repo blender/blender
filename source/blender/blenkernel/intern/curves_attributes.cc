@@ -88,19 +88,16 @@ class CurvesVertexGroupsAttributeProvider final : public DynamicAttributesProvid
     return {varray_for_mutable_deform_verts(dverts, vertex_group_index), AttrDomain::Point};
   }
 
-  bool try_delete(void *owner, const StringRef attribute_id) const final
+  bool try_delete(void *owner, const StringRef name) const final
   {
     CurvesGeometry *curves = static_cast<CurvesGeometry *>(owner);
     if (curves == nullptr) {
       return true;
     }
-    const std::string name = attribute_id;
 
     int index;
     bDeformGroup *group;
-    if (!BKE_defgroup_listbase_name_find(
-            &curves->vertex_group_names, name.c_str(), &index, &group))
-    {
+    if (!BKE_defgroup_listbase_name_find(&curves->vertex_group_names, name, &index, &group)) {
       return false;
     }
     BLI_remlink(&curves->vertex_group_names, group);
