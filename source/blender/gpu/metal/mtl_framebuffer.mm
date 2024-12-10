@@ -842,6 +842,7 @@ bool MTLFrameBuffer::add_color_attachment(gpu::MTLTexture *texture,
 {
   BLI_assert(this);
   BLI_assert(slot >= 0 && slot < this->get_attachment_limit());
+  set_color_attachment_bit(GPU_FB_COLOR_ATTACHMENT0 + slot, true);
 
   if (texture) {
     if (miplevel < 0 || miplevel >= MTL_MAX_MIPMAP_COUNT) {
@@ -1203,6 +1204,7 @@ bool MTLFrameBuffer::remove_color_attachment(uint slot)
 {
   BLI_assert(this);
   BLI_assert(slot >= 0 && slot < this->get_attachment_limit());
+  set_color_attachment_bit(GPU_FB_COLOR_ATTACHMENT0 + slot, false);
 
   if (this->has_attachment_at_slot(slot)) {
     colour_attachment_count_ -= (mtl_color_attachments_[slot].used) ? 1 : 0;

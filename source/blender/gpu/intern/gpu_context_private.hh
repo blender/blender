@@ -12,6 +12,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BKE_global.hh"
+
 #include "GPU_batch.hh"
 #include "GPU_context.hh"
 
@@ -110,6 +112,30 @@ class Context {
   bool is_active_on_thread();
 
   Batch *polyline_batch_get();
+
+  /* When using --debug-gpu, assert that the shader fragments write to all the writtable
+   * attachments of the bound framebuffer. */
+  void assert_framebuffer_shader_compatibility(Shader *sh)
+  {
+    if (!(G.debug & G_DEBUG_GPU)) {
+      return;
+    }
+
+    if (!(state_manager->state.write_mask & eGPUWriteMask::GPU_WRITE_COLOR)) {
+      return;
+    }
+
+    uint16_t fragment_output_bits = sh->fragment_output_bits;
+    uint16_t fb_attachments_bits = active_fb->get_color_attachments_bitset();
+
+    if ((fb_attachments_bits & ~fragment_output_bits) != 0) {
+      std::string msg;
+      msg = msg + "Shader (" + sh->name_get() + ") does not write to all framebuffer (" +
+            active_fb->name_get() + ") color attachments";
+      BLI_assert_msg(false, msg.c_str());
+      std::cerr << msg << std::endl;
+    }
+  }
 };
 
 /* Syntactic sugar. */

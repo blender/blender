@@ -39,6 +39,7 @@ GLFrameBuffer::GLFrameBuffer(
   immutable_ = true;
   fbo_id_ = fbo;
   gl_attachments_[0] = target;
+  set_color_attachment_bit(GPU_FB_COLOR_ATTACHMENT0, true);
   /* Never update an internal frame-buffer. */
   dirty_attachments_ = false;
   width_ = w;

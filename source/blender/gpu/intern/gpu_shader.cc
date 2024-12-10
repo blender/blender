@@ -876,6 +876,11 @@ Shader *ShaderCompiler::compile(const shader::ShaderCreateInfo &info, bool is_ba
   shader->init(info, is_batch_compilation);
   shader->specialization_constants_init(info);
 
+  shader->fragment_output_bits = 0;
+  for (const shader::ShaderCreateInfo::FragOut &frag_out : info.fragment_outputs_) {
+    shader->fragment_output_bits |= 1u << frag_out.index;
+  }
+
   std::string defines = shader->defines_declare(info);
   std::string resources = shader->resources_declare(info);
 
