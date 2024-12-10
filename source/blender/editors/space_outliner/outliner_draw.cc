@@ -1968,16 +1968,13 @@ static void outliner_draw_overrides_rna_buts(uiBlock *block,
 
 static bool outliner_but_identity_cmp_context_id_fn(const uiBut *a, const uiBut *b)
 {
-  const PointerRNA *idptr_a = UI_but_context_ptr_get(a, "id", &RNA_ID);
-  const PointerRNA *idptr_b = UI_but_context_ptr_get(b, "id", &RNA_ID);
-  if (!idptr_a || !idptr_b) {
+  const std::optional<int64_t> session_uid_a = UI_but_context_int_get(a, "session_uid");
+  const std::optional<int64_t> session_uid_b = UI_but_context_int_get(b, "session_uid");
+  if (!session_uid_a || !session_uid_b) {
     return false;
   }
-  const ID *id_a = (const ID *)idptr_a->data;
-  const ID *id_b = (const ID *)idptr_b->data;
-
   /* Using session UID to compare is safer than using the pointer. */
-  return id_a->session_uid == id_b->session_uid;
+  return session_uid_a == session_uid_b;
 }
 
 static void outliner_draw_overrides_restrictbuts(Main *bmain,
@@ -2024,8 +2021,7 @@ static void outliner_draw_overrides_restrictbuts(Main *bmain,
                                UI_UNIT_X,
                                UI_UNIT_Y,
                                "");
-    PointerRNA idptr = RNA_id_pointer_create(&id);
-    UI_but_context_ptr_set(block, but, "id", &idptr);
+    UI_but_context_int_set(block, but, "session_uid", id.session_uid);
     UI_but_func_identity_compare_set(but, outliner_but_identity_cmp_context_id_fn);
     UI_but_flag_enable(but, UI_BUT_DRAG_LOCK);
   }
