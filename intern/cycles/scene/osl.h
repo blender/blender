@@ -173,11 +173,11 @@ class OSLCompiler {
   OSLShaderManager *manager;
   OSLRenderServices *services;
   OSL::ShadingSystem *ss;
+  OSL::ShaderGroupRef current_group;
 #endif
 
   ShaderType current_type;
   Shader *current_shader;
-  OSL::ShaderGroupRef current_group;
 
   static int texture_shared_unique_id;
 };
