@@ -16,8 +16,12 @@
 #include "BLI_span.hh"
 
 #include "BKE_attribute.hh"
+#include "BKE_context.hh"
+#include "BKE_crazyspace.hh"
 #include "BKE_curves.hh"
 #include "BKE_curves_utils.hh"
+#include "BKE_geometry_set.hh"
+#include "BKE_object_types.hh"
 
 #include "ED_curves.hh"
 
@@ -192,7 +196,7 @@ static MutableSpan<float3> append_positions_to_custom_data(const IndexMask selec
                                                           selection.size());
 }
 
-static void createTransCurvesVerts(bContext * /*C*/, TransInfo *t)
+static void createTransCurvesVerts(bContext *C, TransInfo *t)
 {
   MutableSpan<TransDataContainer> trans_data_contrainers(t->data_container, t->data_container_len);
   Array<Vector<IndexMask>> points_to_transform_per_attribute(t->data_container_len);
@@ -291,6 +295,8 @@ static void createTransCurvesVerts(bContext * /*C*/, TransInfo *t)
     Object *object = tc.obedit;
     Curves *curves_id = static_cast<Curves *>(object->data);
     bke::CurvesGeometry &curves = curves_id->geometry.wrap();
+    const bke::crazyspace::GeometryDeformation deformation =
+        bke::crazyspace::get_evaluated_curves_deformation(*CTX_data_depsgraph_pointer(C), *object);
 
     std::optional<MutableSpan<float>> value_attribute;
     bke::SpanAttributeWriter<float> attribute_writer;
@@ -312,6 +318,7 @@ static void createTransCurvesVerts(bContext * /*C*/, TransInfo *t)
     curve_populate_trans_data_structs(tc,
                                       curves,
                                       object->object_to_world(),
+                                      deformation,
                                       value_attribute,
                                       points_to_transform_per_attribute[i],
                                       curves.curves_range(),
@@ -443,6 +450,7 @@ void curve_populate_trans_data_structs(
     TransDataContainer &tc,
     blender::bke::CurvesGeometry &curves,
     const blender::float4x4 &transform,
+    const blender::bke::crazyspace::GeometryDeformation &deformation,
     std::optional<blender::MutableSpan<float>> value_attribute,
     const blender::Span<blender::IndexMask> points_to_transform_per_attr,
     const blender::IndexMask &affected_curves,
@@ -463,10 +471,6 @@ void curve_populate_trans_data_structs(
             tc.custom.type);
   }
 
-  float mtx[3][3], smtx[3][3];
-  copy_m3_m4(mtx, transform.ptr());
-  pseudoinverse_m3_m3(smtx, mtx, PSEUDOINVERSE_EPSILON);
-
   MutableSpan<TransData> all_tc_data = MutableSpan(tc.data, tc.data_len);
   OffsetIndices<int> position_offsets_in_td = ed::transform::curves::recent_position_offsets(
       tc.custom.type, points_to_transform_per_attr.size());
@@ -480,6 +484,9 @@ void curve_populate_trans_data_structs(
     selection_attrs.append(selection_attr);
   }
 
+  const float3x3 mtx_base = transform.view<3, 3>();
+  const float3x3 smtx_base = math::pseudo_invert(mtx_base);
+
   for (const int selection_i : position_offsets_in_td.index_range()) {
     if (position_offsets_in_td[selection_i].is_empty()) {
       continue;
@@ -490,10 +497,10 @@ void curve_populate_trans_data_structs(
     VArray<bool> selection = selection_attrs[selection_i];
 
     threading::parallel_for(points_to_transform.index_range(), 1024, [&](const IndexRange range) {
-      for (const int tranform_point_i : range) {
-        const int point_in_domain_i = points_to_transform[tranform_point_i];
-        TransData &td = tc_data[tranform_point_i];
-        float3 *elem = &positions[tranform_point_i];
+      for (const int transform_point_i : range) {
+        const int point_in_domain_i = points_to_transform[transform_point_i];
+        TransData &td = tc_data[transform_point_i];
+        float3 *elem = &positions[transform_point_i];
 
         copy_v3_v3(td.iloc, *elem);
         copy_v3_v3(td.center, td.iloc);
@@ -513,8 +520,16 @@ void curve_populate_trans_data_structs(
         }
         td.ext = nullptr;
 
-        copy_m3_m3(td.smtx, smtx);
-        copy_m3_m3(td.mtx, mtx);
+        if (deformation.deform_mats.is_empty()) {
+          copy_m3_m3(td.smtx, smtx_base.ptr());
+          copy_m3_m3(td.mtx, mtx_base.ptr());
+        }
+        else {
+          const float3x3 mtx = deformation.deform_mats[point_in_domain_i] * mtx_base;
+          const float3x3 smtx = math::pseudo_invert(mtx);
+          copy_m3_m3(td.smtx, smtx.ptr());
+          copy_m3_m3(td.mtx, mtx.ptr());
+        }
       }
     });
   }

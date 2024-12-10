@@ -191,6 +191,9 @@ static void createTransGreasePencilVerts(bContext *C, TransInfo *t)
       const bke::greasepencil::Layer &layer = *layers[info.layer_index];
       const float4x4 layer_space_to_world_space = layer.to_world_space(*object_eval);
       bke::CurvesGeometry &curves = info.drawing.strokes_for_write();
+      const bke::crazyspace::GeometryDeformation deformation =
+          bke::crazyspace::get_evaluated_grease_pencil_drawing_deformation(
+              *CTX_data_depsgraph_pointer(C), *object, info.layer_index, info.frame_number);
 
       std::optional<MutableSpan<float>> value_attribute;
       if (is_scale_thickness) {
@@ -214,6 +217,7 @@ static void createTransGreasePencilVerts(bContext *C, TransInfo *t)
       curve_populate_trans_data_structs(tc,
                                         curves,
                                         layer_space_to_world_space,
+                                        deformation,
                                         value_attribute,
                                         points_to_transform_per_attribute[layer_offset],
                                         affected_strokes,
