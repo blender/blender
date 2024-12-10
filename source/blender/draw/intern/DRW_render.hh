@@ -155,93 +155,12 @@ GPUTexture *DRW_texture_pool_query_2d(int w,
 GPUTexture *DRW_texture_pool_query_fullscreen(eGPUTextureFormat format,
                                               DrawEngineType *engine_type);
 
-GPUTexture *DRW_texture_create_1d(int w,
-                                  eGPUTextureFormat format,
-                                  DRWTextureFlag flags,
-                                  const float *fpixels);
-GPUTexture *DRW_texture_create_2d(
-    int w, int h, eGPUTextureFormat format, DRWTextureFlag flags, const float *fpixels);
-GPUTexture *DRW_texture_create_2d_array(
-    int w, int h, int d, eGPUTextureFormat format, DRWTextureFlag flags, const float *fpixels);
-GPUTexture *DRW_texture_create_3d(
-    int w, int h, int d, eGPUTextureFormat format, DRWTextureFlag flags, const float *fpixels);
-GPUTexture *DRW_texture_create_cube(int w,
-                                    eGPUTextureFormat format,
-                                    DRWTextureFlag flags,
-                                    const float *fpixels);
-GPUTexture *DRW_texture_create_cube_array(
-    int w, int d, eGPUTextureFormat format, DRWTextureFlag flags, const float *fpixels);
-
-void DRW_texture_ensure_fullscreen_2d(GPUTexture **tex,
-                                      eGPUTextureFormat format,
-                                      DRWTextureFlag flags);
-void DRW_texture_ensure_2d(
-    GPUTexture **tex, int w, int h, eGPUTextureFormat format, DRWTextureFlag flags);
-
 /* Explicit parameter variants. */
 GPUTexture *DRW_texture_pool_query_2d_ex(
     int w, int h, eGPUTextureFormat format, eGPUTextureUsage usage, DrawEngineType *engine_type);
 GPUTexture *DRW_texture_pool_query_fullscreen_ex(eGPUTextureFormat format,
                                                  eGPUTextureUsage usage,
                                                  DrawEngineType *engine_type);
-
-GPUTexture *DRW_texture_create_1d_ex(int w,
-                                     eGPUTextureFormat format,
-                                     eGPUTextureUsage usage_flags,
-                                     DRWTextureFlag flags,
-                                     const float *fpixels);
-GPUTexture *DRW_texture_create_2d_ex(int w,
-                                     int h,
-                                     eGPUTextureFormat format,
-                                     eGPUTextureUsage usage_flags,
-                                     DRWTextureFlag flags,
-                                     const float *fpixels);
-GPUTexture *DRW_texture_create_2d_array_ex(int w,
-                                           int h,
-                                           int d,
-                                           eGPUTextureFormat format,
-                                           eGPUTextureUsage usage_flags,
-                                           DRWTextureFlag flags,
-                                           const float *fpixels);
-GPUTexture *DRW_texture_create_3d_ex(int w,
-                                     int h,
-                                     int d,
-                                     eGPUTextureFormat format,
-                                     eGPUTextureUsage usage_flags,
-                                     DRWTextureFlag flags,
-                                     const float *fpixels);
-GPUTexture *DRW_texture_create_cube_ex(int w,
-                                       eGPUTextureFormat format,
-                                       eGPUTextureUsage usage_flags,
-                                       DRWTextureFlag flags,
-                                       const float *fpixels);
-GPUTexture *DRW_texture_create_cube_array_ex(int w,
-                                             int d,
-                                             eGPUTextureFormat format,
-                                             eGPUTextureUsage usage_flags,
-                                             DRWTextureFlag flags,
-                                             const float *fpixels);
-
-void DRW_texture_ensure_fullscreen_2d_ex(GPUTexture **tex,
-                                         eGPUTextureFormat format,
-                                         eGPUTextureUsage usage,
-                                         DRWTextureFlag flags);
-void DRW_texture_ensure_2d_ex(GPUTexture **tex,
-                              int w,
-                              int h,
-                              eGPUTextureFormat format,
-                              eGPUTextureUsage usage,
-                              DRWTextureFlag flags);
-
-void DRW_texture_generate_mipmaps(GPUTexture *tex);
-void DRW_texture_free(GPUTexture *tex);
-#define DRW_TEXTURE_FREE_SAFE(tex) \
-  do { \
-    if (tex != nullptr) { \
-      DRW_texture_free(tex); \
-      tex = nullptr; \
-    } \
-  } while (0)
 
 #define DRW_UBO_FREE_SAFE(ubo) \
   do { \
