@@ -14,6 +14,7 @@
 #include "DNA_windowmanager_types.h"
 
 #include "BLI_listbase.h"
+#include "BLI_math_base.hh"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
@@ -568,7 +569,14 @@ void ElementRotation_ex(const TransInfo *t,
 
     /* Apply gpencil falloff. */
     if (t->options & CTX_GPENCIL_STROKES) {
-      /* Pass. */
+      if (t->obedit_type == OB_GREASE_PENCIL) {
+        const float *gp_falloff = static_cast<const float *>(td->extra);
+        if (gp_falloff != nullptr && *gp_falloff != 1.0f) {
+          float ident_mat[3][3];
+          unit_m3(ident_mat);
+          interp_m3_m3m3(smat, ident_mat, smat, *gp_falloff);
+        }
+      }
     }
 
     sub_v3_v3v3(vec, td->iloc, center);
@@ -1031,7 +1039,9 @@ void ElementResize(const TransInfo *t,
    *   Operating on copies as a temporary solution.
    */
   if (t->options & CTX_GPENCIL_STROKES) {
-    mul_v3_fl(vec, td->factor);
+    const float *gp_falloff_ptr = static_cast<const float *>(td->extra);
+    const float gp_falloff = gp_falloff_ptr != nullptr ? *gp_falloff_ptr : 1.0f;
+    mul_v3_fl(vec, td->factor * gp_falloff);
 
     /* Scale stroke thickness. */
     if (td->val) {
@@ -1043,7 +1053,8 @@ void ElementResize(const TransInfo *t,
 
       float ratio = values_final_evil[0];
       float transformed_value = td->ival * fabs(ratio);
-      *td->val = transformed_value;
+      *td->val = blender::math::max(
+          blender::math::interpolate(transformed_value, td->ival, gp_falloff), 0.001f);
     }
   }
   else {
