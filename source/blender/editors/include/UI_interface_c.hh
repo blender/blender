@@ -1457,11 +1457,13 @@ void UI_but_context_ptr_set(uiBlock *block,
                             uiBut *but,
                             blender::StringRef name,
                             const PointerRNA *ptr);
+void UI_but_context_int_set(uiBlock *block, uiBut *but, blender::StringRef name, int64_t value);
 const PointerRNA *UI_but_context_ptr_get(const uiBut *but,
                                          blender::StringRef name,
                                          const StructRNA *type = nullptr);
 std::optional<blender::StringRefNull> UI_but_context_string_get(const uiBut *but,
                                                                 blender::StringRef name);
+std::optional<int64_t> UI_but_context_int_get(const uiBut *but, blender::StringRef name);
 const bContextStore *UI_but_context_get(const uiBut *but);
 
 void UI_but_unit_type_set(uiBut *but, int unit_type);
@@ -2274,6 +2276,7 @@ uiBlock *uiLayoutGetBlock(uiLayout *layout);
 void uiLayoutSetFunc(uiLayout *layout, uiMenuHandleFunc handlefunc, void *argv);
 void uiLayoutSetContextPointer(uiLayout *layout, blender::StringRef name, PointerRNA *ptr);
 void uiLayoutSetContextString(uiLayout *layout, blender::StringRef name, blender::StringRef value);
+void uiLayoutSetContextInt(uiLayout *layout, blender::StringRef name, int64_t value);
 bContextStore *uiLayoutGetContextStore(uiLayout *layout);
 void uiLayoutContextCopy(uiLayout *layout, const bContextStore *context);
 

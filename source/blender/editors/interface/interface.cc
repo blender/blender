@@ -6041,6 +6041,13 @@ void UI_but_context_ptr_set(uiBlock *block,
   but->context = ctx;
 }
 
+void UI_but_context_int_set(uiBlock *block, uiBut *but, const StringRef name, const int64_t value)
+{
+  bContextStore *ctx = CTX_store_add(block->contexts, name, value);
+  ctx->used = true;
+  but->context = ctx;
+}
+
 const PointerRNA *UI_but_context_ptr_get(const uiBut *but,
                                          const StringRef name,
                                          const StructRNA *type)
@@ -6055,6 +6062,14 @@ std::optional<blender::StringRefNull> UI_but_context_string_get(const uiBut *but
     return {};
   }
   return CTX_store_string_lookup(but->context, name);
+}
+
+std::optional<int64_t> UI_but_context_int_get(const uiBut *but, const StringRef name)
+{
+  if (!but->context) {
+    return {};
+  }
+  return CTX_store_int_lookup(but->context, name);
 }
 
 const bContextStore *UI_but_context_get(const uiBut *but)

@@ -6084,6 +6084,12 @@ void uiLayoutSetContextString(uiLayout *layout, StringRef name, blender::StringR
   layout->context = CTX_store_add(block->contexts, name, value);
 }
 
+void uiLayoutSetContextInt(uiLayout *layout, StringRef name, int64_t value)
+{
+  uiBlock *block = layout->root->block;
+  layout->context = CTX_store_add(block->contexts, name, value);
+}
+
 bContextStore *uiLayoutGetContextStore(uiLayout *layout)
 {
   return layout->context;

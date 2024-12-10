@@ -4446,14 +4446,15 @@ static PyObject *pyrna_struct_getattro(BPy_StructRNA *self, PyObject *pyname)
       PropertyRNA *newprop;
       int newindex;
       blender::StringRef newstr;
+      std::optional<int64_t> newint;
       short newtype;
 
       /* An empty string is used to implement #CTX_data_dir_get,
        * without this check `getattr(context, "")` succeeds. */
       eContextResult done;
       if (name[0]) {
-        done = eContextResult(
-            CTX_data_get(C, name, &newptr, &newlb, &newprop, &newindex, &newstr, &newtype));
+        done = eContextResult(CTX_data_get(
+            C, name, &newptr, &newlb, &newprop, &newindex, &newstr, &newint, &newtype));
       }
       else {
         /* Fall through to built-in `getattr`. */
@@ -4478,6 +4479,16 @@ static PyObject *pyrna_struct_getattro(BPy_StructRNA *self, PyObject *pyname)
             }
             else {
               ret = PyUnicode_FromStringAndSize(newstr.data(), newstr.size());
+            }
+            break;
+          }
+          case CTX_DATA_TYPE_INT64: {
+            if (!newint.has_value()) {
+              ret = Py_None;
+              Py_INCREF(ret);
+            }
+            else {
+              ret = PyLong_FromLong(*newint);
             }
             break;
           }
@@ -4721,10 +4732,11 @@ static int pyrna_struct_setattro(BPy_StructRNA *self, PyObject *pyname, PyObject
     PropertyRNA *newprop;
     int newindex;
     blender::StringRef newstr;
+    std::optional<int64_t> newint;
     short newtype;
 
     const eContextResult done = eContextResult(
-        CTX_data_get(C, name, &newptr, &newlb, &newprop, &newindex, &newstr, &newtype));
+        CTX_data_get(C, name, &newptr, &newlb, &newprop, &newindex, &newstr, &newint, &newtype));
 
     if (done == CTX_RESULT_OK) {
       PyErr_Format(
