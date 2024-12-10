@@ -183,14 +183,16 @@ def get_arguments(filepath, output_filepath, gpu_backend):
 
 
 def create_argparse():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-blender", nargs="+")
-    parser.add_argument("-testdir", nargs=1)
-    parser.add_argument("-outdir", nargs=1)
-    parser.add_argument("-oiiotool", nargs=1)
+    parser = argparse.ArgumentParser(
+        description="Run test script for each blend file in TESTDIR, comparing the render result with known output."
+    )
+    parser.add_argument("--blender", required=True)
+    parser.add_argument("--testdir", required=True)
+    parser.add_argument("--outdir", required=True)
+    parser.add_argument("--oiiotool", required=True)
     parser.add_argument('--batch', default=False, action='store_true')
     parser.add_argument('--fail-silently', default=False, action='store_true')
-    parser.add_argument('--gpu-backend', nargs=1)
+    parser.add_argument('--gpu-backend')
     return parser
 
 
@@ -198,19 +200,13 @@ def main():
     parser = create_argparse()
     args = parser.parse_args()
 
-    blender = args.blender[0]
-    test_dir = args.testdir[0]
-    oiiotool = args.oiiotool[0]
-    output_dir = args.outdir[0]
-    gpu_backend = args.gpu_backend[0]
-
-    gpu_device_type = get_gpu_device_type(blender)
+    gpu_device_type = get_gpu_device_type(args.blender)
     reference_override_dir = None
     if gpu_device_type == "AMD":
         reference_override_dir = "eevee_next_renders/amd"
 
-    report = EEVEEReport("Eevee Next", output_dir, oiiotool, device=gpu_backend, blocklist=BLOCKLIST)
-    if gpu_backend == "vulkan":
+    report = EEVEEReport("Eevee Next", args.outdir, args.oiiotool, device=args.gpu_backend, blocklist=BLOCKLIST)
+    if args.gpu_backend == "vulkan":
         report.set_compare_engine('eevee_next', 'opengl')
     else:
         report.set_compare_engine('cycles', 'CPU')
@@ -219,7 +215,7 @@ def main():
     report.set_reference_dir("eevee_next_renders")
     report.set_reference_override_dir(reference_override_dir)
 
-    test_dir_name = Path(test_dir).name
+    test_dir_name = Path(args.testdir).name
     if test_dir_name.startswith('image_mapping'):
         # Platform dependent border values. To be fixed
         report.set_fail_threshold(0.2)
@@ -241,7 +237,7 @@ def main():
         # points transparent
         report.set_fail_threshold(0.06)
 
-    ok = report.run(test_dir, blender, get_arguments, batch=args.batch, fail_silently=args.fail_silently)
+    ok = report.run(args.testdir, args.blender, get_arguments, batch=args.batch, fail_silently=args.fail_silently)
     sys.exit(not ok)
 
 

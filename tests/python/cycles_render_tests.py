@@ -209,14 +209,16 @@ def get_arguments(filepath, output_filepath, use_hwrt=False, osl=False):
 
 
 def create_argparse():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-blender", nargs="+")
-    parser.add_argument("-testdir", nargs=1)
-    parser.add_argument("-outdir", nargs=1)
-    parser.add_argument("-oiiotool", nargs=1)
-    parser.add_argument("-device", nargs=1)
-    parser.add_argument("-blocklist", nargs="*", default=[])
-    parser.add_argument("-osl", default=False, action='store_true')
+    parser = argparse.ArgumentParser(
+        description="Run test script for each blend file in TESTDIR, comparing the render result with known output."
+    )
+    parser.add_argument("--blender", required=True)
+    parser.add_argument("--testdir", required=True)
+    parser.add_argument("--outdir", required=True)
+    parser.add_argument("--oiiotool", required=True)
+    parser.add_argument("--device", required=True)
+    parser.add_argument("--blocklist", nargs="*", default=[])
+    parser.add_argument("--osl", default=False, action='store_true')
     parser.add_argument('--batch', default=False, action='store_true')
     return parser
 
@@ -225,11 +227,7 @@ def main():
     parser = create_argparse()
     args = parser.parse_args()
 
-    blender = args.blender[0]
-    test_dir = args.testdir[0]
-    oiiotool = args.oiiotool[0]
-    output_dir = args.outdir[0]
-    device = args.device[0]
+    device = args.device
 
     blocklist = BLOCKLIST_ALL
     if device != 'CPU':
@@ -245,7 +243,7 @@ def main():
     if args.osl:
         blocklist += BLOCKLIST_OSL
 
-    report = CyclesReport('Cycles', output_dir, oiiotool, device, blocklist, args.osl)
+    report = CyclesReport('Cycles', args.outdir, args.oiiotool, device, blocklist, args.osl)
     report.set_pixelated(True)
     report.set_reference_dir("cycles_renders")
     if device == 'CPU':
@@ -262,11 +260,11 @@ def main():
     # Blackbody is slightly different between SVM and OSL.
     # Microfacet hair renders slightly differently, and fails on Windows and Linux with OSL
 
-    test_dir_name = Path(test_dir).name
+    test_dir_name = Path(args.testdir).name
     if (test_dir_name in {'motion_blur', 'integrator'}) or ((args.osl) and (test_dir_name in {'shader', 'hair'})):
         report.set_fail_threshold(0.032)
 
-    ok = report.run(test_dir, blender, get_arguments, batch=args.batch)
+    ok = report.run(args.testdir, args.blender, get_arguments, batch=args.batch)
 
     sys.exit(not ok)
 

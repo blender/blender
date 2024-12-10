@@ -51,12 +51,14 @@ def get_arguments(filepath, output_filepath):
 
 
 def create_argparse():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-blender", nargs="+")
-    parser.add_argument("-testdir", nargs=1)
-    parser.add_argument("-outdir", nargs=1)
-    parser.add_argument("-oiiotool", nargs=1)
-    parser.add_argument("-export_method", nargs=1)
+    parser = argparse.ArgumentParser(
+        description="Run test script for each blend file in TESTDIR, comparing the render result with known output."
+    )
+    parser.add_argument("--blender", required=True)
+    parser.add_argument("--testdir", required=True)
+    parser.add_argument("--outdir", required=True)
+    parser.add_argument("--oiiotool", required=True)
+    parser.add_argument("--export_method", required=True)
     parser.add_argument('--batch', default=False, action='store_true')
     parser.add_argument('--fail-silently', default=False, action='store_true')
     return parser
@@ -66,30 +68,24 @@ def main():
     parser = create_argparse()
     args = parser.parse_args()
 
-    blender = args.blender[0]
-    test_dir = args.testdir[0]
-    oiiotool = args.oiiotool[0]
-    output_dir = args.outdir[0]
-    export_method = args.export_method[0]
-
     from modules import render_report
 
-    if export_method == 'HYDRA':
-        report = render_report.Report("Storm Hydra", output_dir, oiiotool)
+    if args.export_method == 'HYDRA':
+        report = render_report.Report("Storm Hydra", args.outdir, args.oiiotool)
         report.set_reference_dir("storm_hydra_renders")
         report.set_compare_engine('cycles', 'CPU')
     else:
-        report = render_report.Report("Storm USD", output_dir, oiiotool)
+        report = render_report.Report("Storm USD", args.outdir, args.oiiotool)
         report.set_reference_dir("storm_usd_renders")
         report.set_compare_engine('storm_hydra')
 
     report.set_pixelated(True)
 
-    test_dir_name = Path(test_dir).name
+    test_dir_name = Path(args.testdir).name
 
-    os.environ['BLENDER_HYDRA_EXPORT_METHOD'] = export_method
+    os.environ['BLENDER_HYDRA_EXPORT_METHOD'] = args.export_method
 
-    ok = report.run(test_dir, blender, get_arguments, batch=args.batch, fail_silently=args.fail_silently)
+    ok = report.run(args.testdir, args.blender, get_arguments, batch=args.batch, fail_silently=args.fail_silently)
 
     sys.exit(not ok)
 
