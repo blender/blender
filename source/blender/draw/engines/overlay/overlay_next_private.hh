@@ -112,54 +112,53 @@ using blender::draw::TextureFromPool;
 using blender::draw::TextureRef;
 
 struct State {
-  Depsgraph *depsgraph;
-  const ViewLayer *view_layer;
-  const Scene *scene;
-  const View3D *v3d;
-  const SpaceLink *space_data;
-  const ARegion *region;
-  const RegionView3D *rv3d;
-  DRWTextStore *dt;
-  View3DOverlay overlay;
-  float pixelsize;
-  eSpace_Type space_type;
-  eContextObjectMode ctx_mode;
-  eObjectMode object_mode;
-  const Object *object_active;
-  bool clear_in_front;
-  bool use_in_front;
-  bool is_wireframe_mode;
+  Depsgraph *depsgraph = nullptr;
+  const ViewLayer *view_layer = nullptr;
+  const Scene *scene = nullptr;
+  const View3D *v3d = nullptr;
+  const SpaceLink *space_data = nullptr;
+  const ARegion *region = nullptr;
+  const RegionView3D *rv3d = nullptr;
+  DRWTextStore *dt = nullptr;
+  View3DOverlay overlay = {};
+  eSpace_Type space_type = SPACE_EMPTY;
+  eContextObjectMode ctx_mode = CTX_MODE_EDIT_MESH;
+  eObjectMode object_mode = OB_MODE_OBJECT;
+  const Object *object_active = nullptr;
+  bool clear_in_front = false;
+  bool use_in_front = false;
+  bool is_wireframe_mode = false;
   /** Whether we are rendering for an image (viewport render). */
-  bool is_viewport_image_render;
+  bool is_viewport_image_render = false;
   /** Whether we are rendering for an image. */
-  bool is_image_render;
+  bool is_image_render = false;
   /** True if rendering only to query the depth. Can be for auto-depth rotation. */
-  bool is_depth_only_drawing;
+  bool is_depth_only_drawing = false;
   /** When drag-dropping material onto objects to assignment. */
-  bool is_material_select;
+  bool is_material_select = false;
   /** Whether we should render the background or leave it transparent. */
-  bool draw_background;
+  bool draw_background = false;
   /** Should text draw in this mode? */
-  bool show_text;
-  bool hide_overlays;
-  bool xray_enabled;
-  bool xray_enabled_and_not_wire;
+  bool show_text = false;
+  bool hide_overlays = false;
+  bool xray_enabled = false;
+  bool xray_enabled_and_not_wire = false;
   /* Brings the active pose armature in front of all objects. */
-  bool do_pose_xray;
+  bool do_pose_xray = false;
   /* Add a veil on top of all surfaces to make the active pose armature pop out. */
-  bool do_pose_fade_geom;
-  float xray_opacity;
-  short v3d_flag;     /* TODO: move to #View3DOverlay. */
-  short v3d_gridflag; /* TODO: move to #View3DOverlay. */
-  int cfra;
-  float3 camera_position;
-  float3 camera_forward;
-  int clipping_plane_count;
+  bool do_pose_fade_geom = false;
+  float xray_opacity = 0.0f;
+  short v3d_flag = 0;     /* TODO: move to #View3DOverlay. */
+  short v3d_gridflag = 0; /* TODO: move to #View3DOverlay. */
+  int cfra = 0;
+  float3 camera_position = float3(0.0f);
+  float3 camera_forward = float3(0.0f);
+  int clipping_plane_count = 0;
 
   /* Active Image properties. Only valid image space only. */
-  int2 image_size;
-  float2 image_uv_aspect;
-  float2 image_aspect;
+  int2 image_size = int2(0);
+  float2 image_uv_aspect = float2(0.0f);
+  float2 image_aspect = float2(0.0f);
 
   View::OffsetData offset_data_get() const
   {

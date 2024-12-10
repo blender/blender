@@ -35,7 +35,7 @@ class Grid : Overlay {
 
   bool show_axis_z_ = false;
   bool is_xr_ = false;
-  bool is_space_image_ = false;
+  bool is_3d_grid_ = false;
   /* Copy of v3d->dist. */
   float v3d_clip_end_ = 0.0f;
 
@@ -48,7 +48,7 @@ class Grid : Overlay {
  public:
   void begin_sync(Resources &res, const State &state) final
   {
-    is_space_image_ = state.is_space_image();
+    is_3d_grid_ = state.is_space_v3d();
 
     enabled_ = init(state);
     if (!enabled_) {
@@ -137,7 +137,7 @@ class Grid : Overlay {
     grid_flag_ = zneg_flag_ = zpos_flag_ = 0;
     show_axis_z_ = false;
 
-    return (state.is_space_image()) ? init_2d(state) : init_3d(state);
+    return (is_3d_grid_) ? init_3d(state) : init_2d(state);
   }
 
   void copy_steps_to_data(Span<float> grid_steps_x, Span<float> grid_steps_y)
@@ -275,7 +275,7 @@ class Grid : Overlay {
   /* Update data that depends on the view. */
   void sync_view(const View &view)
   {
-    if (is_space_image_) {
+    if (!is_3d_grid_) {
       return;
     }
 
