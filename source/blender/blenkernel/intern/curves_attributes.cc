@@ -49,9 +49,6 @@ class CurvesVertexGroupsAttributeProvider final : public DynamicAttributesProvid
  public:
   GAttributeReader try_get_for_read(const void *owner, const StringRef attribute_id) const final
   {
-    if (bke::attribute_name_is_anonymous(attribute_id)) {
-      return {};
-    }
     const CurvesGeometry *curves = static_cast<const CurvesGeometry *>(owner);
     if (curves == nullptr) {
       return {};
@@ -78,9 +75,6 @@ class CurvesVertexGroupsAttributeProvider final : public DynamicAttributesProvid
 
   GAttributeWriter try_get_for_write(void *owner, const StringRef attribute_id) const final
   {
-    if (bke::attribute_name_is_anonymous(attribute_id)) {
-      return {};
-    }
     CurvesGeometry *curves = static_cast<CurvesGeometry *>(owner);
     if (curves == nullptr) {
       return {};
@@ -96,9 +90,6 @@ class CurvesVertexGroupsAttributeProvider final : public DynamicAttributesProvid
 
   bool try_delete(void *owner, const StringRef attribute_id) const final
   {
-    if (bke::attribute_name_is_anonymous(attribute_id)) {
-      return false;
-    }
     CurvesGeometry *curves = static_cast<CurvesGeometry *>(owner);
     if (curves == nullptr) {
       return true;

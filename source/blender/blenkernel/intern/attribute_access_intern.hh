@@ -261,28 +261,21 @@ class GeometryAttributeProviders {
 namespace attribute_accessor_functions {
 
 template<const GeometryAttributeProviders &providers>
-inline bool is_builtin(const void * /*owner*/, const StringRef attribute_id)
+inline bool is_builtin(const void * /*owner*/, const StringRef name)
 {
-  if (bke::attribute_name_is_anonymous(attribute_id)) {
-    return false;
-  }
-  const StringRef name = attribute_id;
   return providers.builtin_attribute_providers().contains_as(name);
 }
 
 template<const GeometryAttributeProviders &providers>
-inline GAttributeReader lookup(const void *owner, const StringRef attribute_id)
+inline GAttributeReader lookup(const void *owner, const StringRef name)
 {
-  if (!bke::attribute_name_is_anonymous(attribute_id)) {
-    const StringRef name = attribute_id;
-    if (const BuiltinAttributeProvider *provider =
-            providers.builtin_attribute_providers().lookup_default_as(name, nullptr))
-    {
-      return provider->try_get_for_read(owner);
-    }
+  if (const BuiltinAttributeProvider *provider =
+          providers.builtin_attribute_providers().lookup_default_as(name, nullptr))
+  {
+    return provider->try_get_for_read(owner);
   }
   for (const DynamicAttributesProvider *provider : providers.dynamic_attribute_providers()) {
-    GAttributeReader attribute = provider->try_get_for_read(owner, attribute_id);
+    GAttributeReader attribute = provider->try_get_for_read(owner, name);
     if (attribute) {
       return attribute;
     }
@@ -324,14 +317,10 @@ inline void foreach_attribute(const void *owner,
 }
 
 template<const GeometryAttributeProviders &providers>
-inline AttributeValidator lookup_validator(const void * /*owner*/,
-                                           const blender::StringRef attribute_id)
+inline AttributeValidator lookup_validator(const void * /*owner*/, const blender::StringRef name)
 {
-  if (bke::attribute_name_is_anonymous(attribute_id)) {
-    return {};
-  }
   const BuiltinAttributeProvider *provider =
-      providers.builtin_attribute_providers().lookup_default_as(attribute_id, nullptr);
+      providers.builtin_attribute_providers().lookup_default_as(name, nullptr);
   if (!provider) {
     return {};
   }
@@ -339,18 +328,15 @@ inline AttributeValidator lookup_validator(const void * /*owner*/,
 }
 
 template<const GeometryAttributeProviders &providers>
-inline GAttributeWriter lookup_for_write(void *owner, const StringRef attribute_id)
+inline GAttributeWriter lookup_for_write(void *owner, const StringRef name)
 {
-  if (!bke::attribute_name_is_anonymous(attribute_id)) {
-    const StringRef name = attribute_id;
-    if (const BuiltinAttributeProvider *provider =
-            providers.builtin_attribute_providers().lookup_default_as(name, nullptr))
-    {
-      return provider->try_get_for_write(owner);
-    }
+  if (const BuiltinAttributeProvider *provider =
+          providers.builtin_attribute_providers().lookup_default_as(name, nullptr))
+  {
+    return provider->try_get_for_write(owner);
   }
   for (const DynamicAttributesProvider *provider : providers.dynamic_attribute_providers()) {
-    GAttributeWriter attribute = provider->try_get_for_write(owner, attribute_id);
+    GAttributeWriter attribute = provider->try_get_for_write(owner, name);
     if (attribute) {
       return attribute;
     }
@@ -359,18 +345,15 @@ inline GAttributeWriter lookup_for_write(void *owner, const StringRef attribute_
 }
 
 template<const GeometryAttributeProviders &providers>
-inline bool remove(void *owner, const StringRef attribute_id)
+inline bool remove(void *owner, const StringRef name)
 {
-  if (!bke::attribute_name_is_anonymous(attribute_id)) {
-    const StringRef name = attribute_id;
-    if (const BuiltinAttributeProvider *provider =
-            providers.builtin_attribute_providers().lookup_default_as(name, nullptr))
-    {
-      return provider->try_delete(owner);
-    }
+  if (const BuiltinAttributeProvider *provider =
+          providers.builtin_attribute_providers().lookup_default_as(name, nullptr))
+  {
+    return provider->try_delete(owner);
   }
   for (const DynamicAttributesProvider *provider : providers.dynamic_attribute_providers()) {
-    if (provider->try_delete(owner, attribute_id)) {
+    if (provider->try_delete(owner, name)) {
       return true;
     }
   }
@@ -379,27 +362,24 @@ inline bool remove(void *owner, const StringRef attribute_id)
 
 template<const GeometryAttributeProviders &providers>
 inline bool add(void *owner,
-                const StringRef attribute_id,
+                const StringRef name,
                 AttrDomain domain,
                 eCustomDataType data_type,
                 const AttributeInit &initializer)
 {
-  if (!bke::attribute_name_is_anonymous(attribute_id)) {
-    const StringRef name = attribute_id;
-    if (const BuiltinAttributeProvider *provider =
-            providers.builtin_attribute_providers().lookup_default_as(name, nullptr))
-    {
-      if (provider->domain() != domain) {
-        return false;
-      }
-      if (provider->data_type() != data_type) {
-        return false;
-      }
-      return provider->try_create(owner, initializer);
+  if (const BuiltinAttributeProvider *provider =
+          providers.builtin_attribute_providers().lookup_default_as(name, nullptr))
+  {
+    if (provider->domain() != domain) {
+      return false;
     }
+    if (provider->data_type() != data_type) {
+      return false;
+    }
+    return provider->try_create(owner, initializer);
   }
   for (const DynamicAttributesProvider *provider : providers.dynamic_attribute_providers()) {
-    if (provider->try_create(owner, attribute_id, domain, data_type, initializer)) {
+    if (provider->try_create(owner, name, domain, data_type, initializer)) {
       return true;
     }
   }

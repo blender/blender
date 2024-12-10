@@ -727,9 +727,6 @@ class MeshVertexGroupsAttributeProvider final : public DynamicAttributesProvider
  public:
   GAttributeReader try_get_for_read(const void *owner, const StringRef attribute_id) const final
   {
-    if (bke::attribute_name_is_anonymous(attribute_id)) {
-      return {};
-    }
     const Mesh *mesh = static_cast<const Mesh *>(owner);
     if (mesh == nullptr) {
       return {};
@@ -756,9 +753,6 @@ class MeshVertexGroupsAttributeProvider final : public DynamicAttributesProvider
 
   GAttributeWriter try_get_for_write(void *owner, const StringRef attribute_id) const final
   {
-    if (bke::attribute_name_is_anonymous(attribute_id)) {
-      return {};
-    }
     Mesh *mesh = static_cast<Mesh *>(owner);
     if (mesh == nullptr) {
       return {};
@@ -775,9 +769,6 @@ class MeshVertexGroupsAttributeProvider final : public DynamicAttributesProvider
 
   bool try_delete(void *owner, const StringRef attribute_id) const final
   {
-    if (bke::attribute_name_is_anonymous(attribute_id)) {
-      return false;
-    }
     Mesh *mesh = static_cast<Mesh *>(owner);
     if (mesh == nullptr) {
       return true;
