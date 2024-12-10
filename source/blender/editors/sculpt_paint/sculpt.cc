@@ -3794,6 +3794,11 @@ void SCULPT_combine_transform_proxies(const Sculpt &sd, Object &ob)
 static void sculpt_update_keyblock(Object &ob)
 {
   SculptSession &ss = *ob.sculpt;
+  if (ss.bm) {
+    /* Shape keys are not supported in dyntopo; they do not function as one would expect, so avoid
+     * attempting to perform updates. */
+    return;
+  }
 
   /* Key-block update happens after handling deformation caused by modifiers,
    * so ss.orig_cos would be updated with new stroke. */
