@@ -43,7 +43,8 @@ class TexturePool : public realtime_compositor::TexturePool {
   GPUTexture *allocate_texture(int2 size, eGPUTextureFormat format) override
   {
     DrawEngineType *owner = (DrawEngineType *)this;
-    return DRW_texture_pool_query_2d(size.x, size.y, format, owner);
+    return DRW_texture_pool_query(
+        DST.vmempool->texture_pool, size.x, size.y, format, GPU_TEXTURE_USAGE_GENERAL, owner);
   }
 };
 
