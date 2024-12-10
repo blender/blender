@@ -175,13 +175,6 @@ void DRW_shader_free(GPUShader *shader);
     } \
   } while (0)
 
-/* Batches */
-
-enum eDRWAttrType {
-  DRW_ATTR_INT,
-  DRW_ATTR_FLOAT,
-};
-
 /* Viewport. */
 
 const float *DRW_viewport_size_get();
@@ -207,10 +200,6 @@ void DRW_render_object_iter(
  * \warning Changing frame might free the #ViewLayerEngineData.
  */
 void DRW_render_set_time(RenderEngine *engine, Depsgraph *depsgraph, int frame, float subframe);
-/**
- * \warning only use for custom pipeline. 99% of the time, you don't want to use this.
- */
-void DRW_render_viewport_size_set(const int size[2]);
 
 /**
  * Assume a valid GL context is bound (and that the gl_context_mutex has been acquired).
@@ -277,14 +266,6 @@ bool DRW_object_is_visible_psys_in_active_context(const Object *object,
 
 Object *DRW_object_get_dupli_parent(const Object *ob);
 DupliObject *DRW_object_get_dupli(const Object *ob);
-
-/* Draw commands */
-
-void DRW_draw_pass(DRWPass *pass);
-/**
- * Draw only a subset of shgroups. Used in special situations as grease pencil strokes.
- */
-void DRW_draw_pass_subset(DRWPass *pass, DRWShadingGroup *start_group, DRWShadingGroup *end_group);
 
 void DRW_draw_callbacks_pre_scene();
 void DRW_draw_callbacks_post_scene();
