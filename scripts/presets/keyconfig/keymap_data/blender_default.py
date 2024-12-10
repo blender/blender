@@ -3792,6 +3792,10 @@ def km_grease_pencil_paint_mode(params):
             {"type": 'SPACE', "value": 'PRESS', "shift": True}
         ),
 
+        # Lasso/Box erase
+        ("grease_pencil.erase_lasso", {"type": 'RIGHTMOUSE', "value": 'PRESS', "ctrl": True, "alt": True}, None),
+        ("grease_pencil.erase_box", {"type": "B", "value": 'PRESS'}, {"properties": [("wait_for_input", True)]}),
+
         *_template_items_context_panel("VIEW3D_PT_greasepencil_draw_context_menu", params.context_menu_event),
     ])
 

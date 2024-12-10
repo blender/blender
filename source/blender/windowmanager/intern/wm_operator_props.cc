@@ -15,6 +15,7 @@
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 
+#include "BLI_bounds.hh"
 #include "BLI_math_base.h"
 #include "BLI_rect.h"
 
@@ -410,6 +411,13 @@ void WM_operator_properties_border_to_rctf(wmOperator *op, rctf *r_rect)
   rcti rect_i;
   WM_operator_properties_border_to_rcti(op, &rect_i);
   BLI_rctf_rcti_copy(r_rect, &rect_i);
+}
+
+blender::Bounds<blender::int2> WM_operator_properties_border_to_bounds(wmOperator *op)
+{
+  using namespace blender;
+  return Bounds<int2>({RNA_int_get(op->ptr, "xmin"), RNA_int_get(op->ptr, "ymin")},
+                      {RNA_int_get(op->ptr, "xmax"), RNA_int_get(op->ptr, "ymax")});
 }
 
 void WM_operator_properties_gesture_box_ex(wmOperatorType *ot, bool deselect, bool extend)

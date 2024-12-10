@@ -4288,6 +4288,7 @@ static void gesture_box_modal_keymap(wmKeyConfig *keyconf)
   WM_modalkeymap_assign(keymap, "VIEW3D_OT_zoom_border");
   WM_modalkeymap_assign(keymap, "IMAGE_OT_render_border");
   WM_modalkeymap_assign(keymap, "IMAGE_OT_view_zoom_border");
+  WM_modalkeymap_assign(keymap, "GREASE_PENCIL_OT_erase_box");
 }
 
 /* Lasso modal operators. */
@@ -4319,6 +4320,7 @@ static void gesture_lasso_modal_keymap(wmKeyConfig *keyconf)
   WM_modalkeymap_assign(keymap, "NODE_OT_select_lasso");
   WM_modalkeymap_assign(keymap, "UV_OT_select_lasso");
   WM_modalkeymap_assign(keymap, "PAINT_OT_hide_show_lasso_gesture");
+  WM_modalkeymap_assign(keymap, "GREASE_PENCIL_OT_erase_lasso");
 }
 
 /* Polyline modal operators */

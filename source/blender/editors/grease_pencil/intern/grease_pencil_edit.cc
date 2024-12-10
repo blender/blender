@@ -418,8 +418,8 @@ static void GREASE_PENCIL_OT_stroke_simplify(wmOperatorType *ot)
 /** \name Delete Operator
  * \{ */
 
-static bke::CurvesGeometry remove_points_and_split(const bke::CurvesGeometry &curves,
-                                                   const IndexMask &mask)
+bke::CurvesGeometry remove_points_and_split(const bke::CurvesGeometry &curves,
+                                            const IndexMask &mask)
 {
   const OffsetIndices<int> points_by_curve = curves.points_by_curve();
   const VArray<bool> src_cyclic = curves.cyclic();
