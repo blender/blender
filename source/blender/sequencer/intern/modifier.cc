@@ -616,7 +616,11 @@ static void whiteBalance_apply_threaded(int width,
 #else
       /* similar to division without the clipping */
       for (int i = 0; i < 3; i++) {
-        result[i] = 1.0f - powf(1.0f - rgba[i], multiplier[i]);
+        /* Prevent pow argument from being negative. This whole math
+         * breaks down overall with any HDR colors; would be good to
+         * revisit and do something more proper. */
+        float f = max_ff(1.0f - rgba[i], 0.0f);
+        result[i] = 1.0f - powf(f, multiplier[i]);
       }
 #endif
 
