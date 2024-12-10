@@ -135,33 +135,6 @@ struct DrawEngineType {
   void (*store_metadata)(void *vedata, RenderResult *render_result);
 };
 
-/* Textures */
-enum DRWTextureFlag {
-  DRW_TEX_FILTER = (1 << 0),
-  DRW_TEX_WRAP = (1 << 1),
-  DRW_TEX_COMPARE = (1 << 2),
-  DRW_TEX_MIPMAP = (1 << 3),
-};
-
-/**
- * Textures from `DRW_texture_pool_query_*` have the options
- * #DRW_TEX_FILTER for color float textures, and no options
- * for depth textures and integer textures.
- */
-GPUTexture *DRW_texture_pool_query_2d(int w,
-                                      int h,
-                                      eGPUTextureFormat format,
-                                      DrawEngineType *engine_type);
-GPUTexture *DRW_texture_pool_query_fullscreen(eGPUTextureFormat format,
-                                              DrawEngineType *engine_type);
-
-/* Explicit parameter variants. */
-GPUTexture *DRW_texture_pool_query_2d_ex(
-    int w, int h, eGPUTextureFormat format, eGPUTextureUsage usage, DrawEngineType *engine_type);
-GPUTexture *DRW_texture_pool_query_fullscreen_ex(eGPUTextureFormat format,
-                                                 eGPUTextureUsage usage,
-                                                 DrawEngineType *engine_type);
-
 #define DRW_UBO_FREE_SAFE(ubo) \
   do { \
     if (ubo != nullptr) { \

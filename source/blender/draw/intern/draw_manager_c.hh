@@ -229,8 +229,6 @@ extern DRWManager DST; /* TODO: get rid of this and allow multi-threaded renderi
 /** \name Functions
  * \{ */
 
-void drw_texture_set_parameters(GPUTexture *tex, DRWTextureFlag flags);
-
 void drw_debug_draw();
 void drw_debug_init();
 void drw_debug_module_free(DRWDebugModule *module);
