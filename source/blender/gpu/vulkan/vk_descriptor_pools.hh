@@ -30,13 +30,13 @@ class VKDescriptorPools {
    * Pool sizes to use. When one descriptor pool is requested to allocate a descriptor but isn't
    * able to do so, it will fail.
    *
-   * Better defaults should be set later on, when we know more about our resource usage.
+   * See VKDescriptorSetTracker::upload_descriptor_sets for rebalancing the pool sizes.
    */
-  static constexpr uint32_t POOL_SIZE_STORAGE_BUFFER = 1000;
-  static constexpr uint32_t POOL_SIZE_DESCRIPTOR_SETS = 1000;
-  static constexpr uint32_t POOL_SIZE_STORAGE_IMAGE = 1000;
-  static constexpr uint32_t POOL_SIZE_COMBINED_IMAGE_SAMPLER = 1000;
-  static constexpr uint32_t POOL_SIZE_UNIFORM_BUFFER = 1000;
+  static constexpr uint32_t POOL_SIZE_STORAGE_BUFFER = 10000;
+  static constexpr uint32_t POOL_SIZE_DESCRIPTOR_SETS = 2500;
+  static constexpr uint32_t POOL_SIZE_STORAGE_IMAGE = 2500;
+  static constexpr uint32_t POOL_SIZE_COMBINED_IMAGE_SAMPLER = 2500;
+  static constexpr uint32_t POOL_SIZE_UNIFORM_BUFFER = 5000;
   static constexpr uint32_t POOL_SIZE_UNIFORM_TEXEL_BUFFER = 1000;
   static constexpr uint32_t POOL_SIZE_INPUT_ATTACHMENT = 1000;
 
