@@ -28,7 +28,11 @@ void GPENCIL_render_init(GPENCIL_Data *vedata,
                          const rcti *rect)
 {
   GPENCIL_FramebufferList *fbl = vedata->fbl;
-  GPENCIL_TextureList *txl = vedata->txl;
+
+  if (vedata->instance == nullptr) {
+    vedata->instance = new GPENCIL_Instance();
+  }
+  GPENCIL_Instance &inst = *vedata->instance;
 
   Scene *scene = DEG_get_evaluated_scene(depsgraph);
   const float *viewport_size = DRW_viewport_size_get();
@@ -90,25 +94,28 @@ void GPENCIL_render_init(GPENCIL_Data *vedata,
   /* FIXME(fclem): we have a precision loss in the depth buffer because of this re-upload.
    * Find where it comes from! */
   /* In multi view render the textures can be reused. */
-  if (txl->render_depth_tx && !do_clear_z) {
-    GPU_texture_update(txl->render_depth_tx, GPU_DATA_FLOAT, pix_z);
+  if (inst.render_depth_tx.is_valid() && !do_clear_z) {
+    GPU_texture_update(inst.render_depth_tx, GPU_DATA_FLOAT, pix_z);
   }
   else {
-    txl->render_depth_tx = DRW_texture_create_2d(
-        size[0], size[1], GPU_DEPTH_COMPONENT24, DRWTextureFlag(0), do_region ? nullptr : pix_z);
+    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT |
+                             GPU_TEXTURE_USAGE_HOST_READ;
+    inst.render_depth_tx.ensure_2d(
+        GPU_DEPTH_COMPONENT24, int2(size), usage, do_region ? nullptr : pix_z);
   }
-  if (txl->render_color_tx && !do_clear_col) {
-    GPU_texture_update(txl->render_color_tx, GPU_DATA_FLOAT, pix_col);
+  if (inst.render_color_tx.is_valid() && !do_clear_col) {
+    GPU_texture_update(inst.render_color_tx, GPU_DATA_FLOAT, pix_col);
   }
   else {
-    txl->render_color_tx = DRW_texture_create_2d(
-        size[0], size[1], GPU_RGBA16F, DRWTextureFlag(0), do_region ? nullptr : pix_col);
+    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT |
+                             GPU_TEXTURE_USAGE_HOST_READ;
+    inst.render_color_tx.ensure_2d(GPU_RGBA16F, int2(size), usage, do_region ? nullptr : pix_col);
   }
 
   GPU_framebuffer_ensure_config(&fbl->render_fb,
                                 {
-                                    GPU_ATTACHMENT_TEXTURE(txl->render_depth_tx),
-                                    GPU_ATTACHMENT_TEXTURE(txl->render_color_tx),
+                                    GPU_ATTACHMENT_TEXTURE(inst.render_depth_tx),
+                                    GPU_ATTACHMENT_TEXTURE(inst.render_color_tx),
                                 });
 
   if (do_clear_z || do_clear_col) {
@@ -129,10 +136,10 @@ void GPENCIL_render_init(GPENCIL_Data *vedata,
     int w = BLI_rcti_size_x(rect);
     int h = BLI_rcti_size_y(rect);
     if (pix_col) {
-      GPU_texture_update_sub(txl->render_color_tx, GPU_DATA_FLOAT, pix_col, x, y, 0, w, h, 0);
+      GPU_texture_update_sub(inst.render_color_tx, GPU_DATA_FLOAT, pix_col, x, y, 0, w, h, 0);
     }
     if (pix_z) {
-      GPU_texture_update_sub(txl->render_depth_tx, GPU_DATA_FLOAT, pix_z, x, y, 0, w, h, 0);
+      GPU_texture_update_sub(inst.render_depth_tx, GPU_DATA_FLOAT, pix_z, x, y, 0, w, h, 0);
     }
   }
 

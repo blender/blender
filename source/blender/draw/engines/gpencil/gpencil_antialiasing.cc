@@ -17,7 +17,6 @@ void GPENCIL_antialiasing_init(GPENCIL_Data *vedata)
   GPENCIL_Instance *inst = vedata->instance;
   GPENCIL_PrivateData *pd = vedata->stl->pd;
   GPENCIL_FramebufferList *fbl = vedata->fbl;
-  GPENCIL_TextureList *txl = vedata->txl;
 
   const float *size = DRW_viewport_size_get();
   const float *sizeinv = DRW_viewport_invert_size_get();
@@ -39,23 +38,20 @@ void GPENCIL_antialiasing_init(GPENCIL_Data *vedata)
     return;
   }
 
-  eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT;
+  if (!inst->smaa_search_tx.is_valid()) {
+    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ;
+    inst->smaa_search_tx.ensure_2d(GPU_R8, int2(SEARCHTEX_WIDTH, SEARCHTEX_HEIGHT), usage);
+    GPU_texture_update(inst->smaa_search_tx, GPU_DATA_UBYTE, searchTexBytes);
 
-  if (txl->smaa_search_tx == nullptr) {
+    inst->smaa_area_tx.ensure_2d(GPU_RG8, int2(AREATEX_WIDTH, AREATEX_HEIGHT), usage);
+    GPU_texture_update(inst->smaa_area_tx, GPU_DATA_UBYTE, areaTexBytes);
 
-    txl->smaa_search_tx = GPU_texture_create_2d(
-        "smaa_search", SEARCHTEX_WIDTH, SEARCHTEX_HEIGHT, 1, GPU_R8, usage, nullptr);
-    GPU_texture_update(txl->smaa_search_tx, GPU_DATA_UBYTE, searchTexBytes);
-
-    txl->smaa_area_tx = GPU_texture_create_2d(
-        "smaa_area", AREATEX_WIDTH, AREATEX_HEIGHT, 1, GPU_RG8, usage, nullptr);
-    GPU_texture_update(txl->smaa_area_tx, GPU_DATA_UBYTE, areaTexBytes);
-
-    GPU_texture_filter_mode(txl->smaa_search_tx, true);
-    GPU_texture_filter_mode(txl->smaa_area_tx, true);
+    GPU_texture_filter_mode(inst->smaa_search_tx, true);
+    GPU_texture_filter_mode(inst->smaa_area_tx, true);
   }
 
   {
+    eGPUTextureUsage usage = GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_ATTACHMENT;
     pd->smaa_edge_tx = DRW_texture_pool_query_2d_ex(
         size[0], size[1], GPU_RG8, usage, &draw_engine_gpencil_type);
     pd->smaa_weight_tx = DRW_texture_pool_query_2d_ex(
@@ -94,8 +90,8 @@ void GPENCIL_antialiasing_init(GPENCIL_Data *vedata)
     pass.state_set(DRW_STATE_WRITE_COLOR);
     pass.shader_set(GPENCIL_shader_antialiasing(1));
     pass.bind_texture("edgesTex", pd->smaa_edge_tx);
-    pass.bind_texture("areaTex", txl->smaa_area_tx);
-    pass.bind_texture("searchTex", txl->smaa_search_tx);
+    pass.bind_texture("areaTex", inst->smaa_area_tx);
+    pass.bind_texture("searchTex", inst->smaa_search_tx);
     pass.push_constant("viewportMetrics", metrics);
     pass.clear_color(float4(0.0f));
     pass.draw_procedural(GPU_PRIM_TRIS, 1, 3);

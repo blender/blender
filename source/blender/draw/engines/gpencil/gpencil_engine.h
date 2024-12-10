@@ -52,6 +52,7 @@ struct GPENCIL_tVfx;
 struct GPENCIL_tLayer;
 
 using PassSimple = blender::draw::PassSimple;
+using Texture = blender::draw::Texture;
 /* NOTE: These do not preserve the PassSimple memory across frames.
  * If that becomes a bottleneck, these containers can be improved. */
 using GPENCIL_tVfx_Pool = blender::draw::detail::SubPassVector<GPENCIL_tVfx>;
@@ -166,22 +167,6 @@ typedef struct GPENCIL_FramebufferList {
   struct GPUFrameBuffer *smaa_weight_fb;
 } GPENCIL_FramebufferList;
 
-typedef struct GPENCIL_TextureList {
-  /* Dummy texture to avoid errors cause by empty sampler. */
-  struct GPUTexture *dummy_texture;
-  struct GPUTexture *dummy_depth;
-  /* Snapshot for smoother drawing. */
-  struct GPUTexture *snapshot_depth_tx;
-  struct GPUTexture *snapshot_color_tx;
-  struct GPUTexture *snapshot_reveal_tx;
-  /* Textures used by Antialiasing. */
-  struct GPUTexture *smaa_area_tx;
-  struct GPUTexture *smaa_search_tx;
-  /* Textures used during render. Containing underlying rendered scene. */
-  struct GPUTexture *render_depth_tx;
-  struct GPUTexture *render_color_tx;
-} GPENCIL_TextureList;
-
 struct GPENCIL_Instance {
   PassSimple smaa_edge_ps = {"smaa_edge"};
   PassSimple smaa_weight_ps = {"smaa_weight"};
@@ -192,12 +177,26 @@ struct GPENCIL_Instance {
   PassSimple mask_invert_ps = {"mask_invert_ps"};
 
   float4x4 object_bound_mat;
+
+  /* Dummy texture to avoid errors cause by empty sampler. */
+  Texture dummy_texture = {"dummy_texture"};
+  Texture dummy_depth = {"dummy_depth"};
+  /* Textures used during render. Containing underlying rendered scene. */
+  Texture render_depth_tx = {"render_depth_tx"};
+  Texture render_color_tx = {"render_color_tx"};
+  /* Snapshot for smoother drawing. */
+  Texture snapshot_depth_tx = {"snapshot_depth_tx"};
+  Texture snapshot_color_tx = {"snapshot_color_tx"};
+  Texture snapshot_reveal_tx = {"snapshot_reveal_tx"};
+  /* Textures used by Antialiasing. */
+  Texture smaa_area_tx = {"smaa_area_tx"};
+  Texture smaa_search_tx = {"smaa_search_tx"};
 };
 
 struct GPENCIL_Data {
   void *engine_type; /* Required */
   struct GPENCIL_FramebufferList *fbl;
-  struct GPENCIL_TextureList *txl;
+  DRWViewportEmptyList *txl;
   DRWViewportEmptyList *psl;
   struct GPENCIL_StorageList *stl;
   struct GPENCIL_Instance *instance;
