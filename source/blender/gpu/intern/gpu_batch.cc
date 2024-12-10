@@ -274,6 +274,11 @@ static uint16_t bind_attribute_as_ssbo(const ShaderInterface *interface,
       BLI_assert((offset % 4) == 0);
       int descriptor[2] = {int(stride) / 4, int(offset) / 4};
       GPU_shader_uniform_2iv(shader, uniform_name, descriptor);
+      /* WORKAROUND: Fix for polyline workaround. Ideally should be fused with `gpu_attr_0`.
+       * But for now, changes are a bit too invasive. Will need to be revisited later on. */
+      char uniform_name_len[] = "gpu_attr_0_len";
+      uniform_name_len[9] = '0' + input->location;
+      GPU_shader_uniform_1i(shader, uniform_name_len, a->comp_len);
     }
   }
   return bound_attr;
