@@ -412,7 +412,7 @@ void do_smooth_brush(const Sculpt &sd, Object &ob, Span<PBVHNode *> nodes)
    * strength can become 0 during the stroke, but it can not change sign (the sign is determined
    * in the beginning of the stroke. So here it is important to not switch to enhance brush in the
    * middle of the stroke. */
-  if (ss.cache->bstrength < 0.0f) {
+  if (ss.cache->initial_direction_flipped) {
     /* Invert mode, intensify details. */
     enhance_details_brush(sd, ob, nodes);
   }

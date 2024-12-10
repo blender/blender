@@ -2214,6 +2214,23 @@ void SCULPT_calc_area_normal_and_center(const Sculpt &sd,
  * \{ */
 
 /**
+ * Calculates the sign of the direction of the brush stroke, typically indicates whether the stroke
+ * will deform a surface inwards or outwards along the brush normal.
+ */
+static float brush_flip(const Brush &brush, const blender::ed::sculpt_paint::StrokeCache &cache)
+{
+  if (brush.flag & BRUSH_INVERT_TO_SCRAPE_FILL) {
+    return 1.0f;
+  }
+
+  const float dir = (brush.flag & BRUSH_DIR_IN) ? -1.0f : 1.0f;
+  const float pen_flip = cache.pen_flip ? -1.0f : 1.0f;
+  const float invert = cache.invert ? -1.0f : 1.0f;
+
+  return dir * pen_flip * invert;
+}
+
+/**
  * Return modified brush strength. Includes the direction of the brush, positive
  * values pull vertices, negative values push. Uses tablet pressure and a
  * special multiplier found experimentally to scale the strength factor.
@@ -2230,18 +2247,12 @@ static float brush_strength(const Sculpt &sd,
   /* Primary strength input; square it to make lower values more sensitive. */
   const float root_alpha = BKE_brush_alpha_get(scene, &brush);
   const float alpha = root_alpha * root_alpha;
-  const float dir = (brush.flag & BRUSH_DIR_IN) ? -1.0f : 1.0f;
   const float pressure = BKE_brush_use_alpha_pressure(&brush) ? cache.pressure : 1.0f;
-  const float pen_flip = cache.pen_flip ? -1.0f : 1.0f;
-  const float invert = cache.invert ? -1.0f : 1.0f;
   float overlap = ups.overlap_factor;
   /* Spacing is integer percentage of radius, divide by 50 to get
    * normalized diameter. */
 
-  float flip = dir * invert * pen_flip;
-  if (brush.flag & BRUSH_INVERT_TO_SCRAPE_FILL) {
-    flip = 1.0f;
-  }
+  const float flip = brush_flip(brush, cache);
 
   /* Pressure final value after being tweaked depending on the brush. */
   float final_pressure;
@@ -4322,6 +4333,7 @@ static void sculpt_update_cache_invariants(
   copy_v3_v3(cache->true_initial_normal, ss.cursor_normal);
 
   mode = RNA_enum_get(op->ptr, "mode");
+  cache->pen_flip = RNA_boolean_get(op->ptr, "pen_flip");
   cache->invert = mode == BRUSH_STROKE_INVERT;
   cache->alt_smooth = mode == BRUSH_STROKE_SMOOTH;
   cache->normal_weight = brush->normal_weight;
@@ -4353,6 +4365,8 @@ static void sculpt_update_cache_invariants(
   copy_v2_v2(cache->mouse, cache->initial_mouse);
   copy_v2_v2(cache->mouse_event, cache->initial_mouse);
   copy_v2_v2(ups->tex_mouse, cache->initial_mouse);
+
+  cache->initial_direction_flipped = brush_flip(*brush, *cache) < 0.0f;
 
   /* Truly temporary data that isn't stored in properties. */
   cache->vc = vc;
@@ -4709,7 +4723,6 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt &sd, Object &ob, Po
     RNA_float_get_array(ptr, "location", cache.true_location);
   }
 
-  cache.pen_flip = RNA_boolean_get(ptr, "pen_flip");
   RNA_float_get_array(ptr, "mouse", cache.mouse);
   RNA_float_get_array(ptr, "mouse_event", cache.mouse_event);
 
