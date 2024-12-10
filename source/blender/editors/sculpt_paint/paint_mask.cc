@@ -256,17 +256,12 @@ static void fill_mask_mesh(Object &object, const float value, const Span<PBVHNod
   mask.finish();
 }
 
-static void fill_mask_grids(Main &bmain,
-                            const Scene &scene,
-                            Depsgraph &depsgraph,
-                            Object &object,
-                            const float value,
-                            const Span<PBVHNode *> nodes)
+static void fill_mask_grids(
+    Main &bmain, const Scene &scene, Depsgraph &depsgraph, Object &object, const float value)
 {
-  SubdivCCG &subdiv_ccg = *object.sculpt->subdiv_ccg;
+  SculptSession &ss = *object.sculpt;
 
-  const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
-  if (value == 0.0f && !key.has_mask) {
+  if (value == 0.0f && !BKE_pbvh_get_grid_key(*ss.pbvh)->has_mask) {
     /* Unlike meshes, don't dynamically remove masks since it is interleaved with other data. */
     return;
   }
@@ -274,12 +269,18 @@ static void fill_mask_grids(Main &bmain,
   MultiresModifierData &mmd = *BKE_sculpt_multires_active(&scene, &object);
   BKE_sculpt_mask_layers_ensure(&depsgraph, &bmain, &object, &mmd);
 
+  /* We need to re-fetch this data because BKE_sculpt_mask_layers_ensure frees the associated data.
+   * See #130010. */
+  SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
+  CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
+  Vector<PBVHNode *> nodes = bke::pbvh::search_gather(*ss.pbvh, {});
+
   const BitGroupVector<> &grid_hidden = subdiv_ccg.grid_hidden;
 
   const Span<CCGElem *> grids = subdiv_ccg.grids;
   bool any_changed = false;
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
-    for (PBVHNode *node : nodes.slice(range)) {
+    for (PBVHNode *node : nodes.as_span().slice(range)) {
       const Span<int> grid_indices = bke::pbvh::node_grid_indices(*node);
       if (std::all_of(grid_indices.begin(), grid_indices.end(), [&](const int grid) {
             CCGElem *elem = grids[grid];
@@ -362,12 +363,19 @@ static void fill_mask(
       fill_mask_mesh(object, value, nodes);
       break;
     case PBVH_GRIDS:
-      fill_mask_grids(bmain, scene, depsgraph, object, value, nodes);
+      fill_mask_grids(bmain, scene, depsgraph, object, value);
       break;
     case PBVH_BMESH:
       fill_mask_bmesh(object, value, nodes);
       break;
   }
+
+  if (BKE_pbvh_type(*object.sculpt->pbvh) == PBVH_GRIDS) {
+    /* Refetch the nodes as they may have changed and become invalidated by recreating the mask
+     * layer */
+    nodes = bke::pbvh::search_gather(*object.sculpt->pbvh, {});
+  }
+
   /* Avoid calling #BKE_pbvh_node_mark_update_mask by doing that update here. */
   for (PBVHNode *node : nodes) {
     BKE_pbvh_node_fully_masked_set(node, value == 1.0f);
@@ -402,20 +410,20 @@ static void invert_mask_mesh(Object &object, const Span<PBVHNode *> nodes)
 static void invert_mask_grids(Main &bmain,
                               const Scene &scene,
                               Depsgraph &depsgraph,
-                              Object &object,
-                              const Span<PBVHNode *> nodes)
+                              Object &object)
 {
-  SubdivCCG &subdiv_ccg = *object.sculpt->subdiv_ccg;
 
   MultiresModifierData &mmd = *BKE_sculpt_multires_active(&scene, &object);
   BKE_sculpt_mask_layers_ensure(&depsgraph, &bmain, &object, &mmd);
+  Vector<PBVHNode *> nodes = bke::pbvh::search_gather(*object.sculpt->pbvh, {});
+  SubdivCCG &subdiv_ccg = *object.sculpt->subdiv_ccg;
 
   const BitGroupVector<> &grid_hidden = subdiv_ccg.grid_hidden;
 
   const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
   const Span<CCGElem *> grids = subdiv_ccg.grids;
   threading::parallel_for(nodes.index_range(), 1, [&](const IndexRange range) {
-    for (PBVHNode *node : nodes.slice(range)) {
+    for (PBVHNode *node : nodes.as_span().slice(range)) {
       undo::push_node(object, node, undo::Type::Mask);
 
       const Span<int> grid_indices = bke::pbvh::node_grid_indices(*node);
@@ -474,7 +482,7 @@ static void invert_mask(Main &bmain, const Scene &scene, Depsgraph &depsgraph, O
       invert_mask_mesh(object, nodes);
       break;
     case PBVH_GRIDS:
-      invert_mask_grids(bmain, scene, depsgraph, object, nodes);
+      invert_mask_grids(bmain, scene, depsgraph, object);
       break;
     case PBVH_BMESH:
       invert_mask_bmesh(object, nodes);
