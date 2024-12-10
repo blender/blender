@@ -133,7 +133,6 @@ class BokehBlurOperation : public NodeOperation {
     const bool extend_bounds = this->get_extend_bounds();
 
     const Result &input = this->get_input("Image");
-    const Result &weights = this->get_input("Bokeh");
     const Result &mask_image = this->get_input("Bounding box");
 
     Domain domain = this->compute_domain();
@@ -145,6 +144,8 @@ class BokehBlurOperation : public NodeOperation {
     Result &output = this->get_result("Image");
     output.allocate_texture(domain);
 
+    Result blur_kernel = this->compute_blur_kernel(radius);
+
     auto load_input = [&](const int2 texel) {
       /* If bounds are extended, then we treat the input as padded by a radius amount of pixels.
        * So we load the input with an offset by the radius amount and fallback to a transparent
@@ -155,34 +156,12 @@ class BokehBlurOperation : public NodeOperation {
       return input.load_pixel_extended<float4>(texel);
     };
 
-    /* Given the texel in the range [-radius, radius] in both axis, load the appropriate weight
-     * from the weights image, where the given texel (0, 0) corresponds the center of weights
-     * image. Note that we load the weights image inverted along both directions to maintain
-     * the shape of the weights if it was not symmetrical. To understand why inversion makes sense,
-     * consider a 1D weights image whose right half is all ones and whose left half is all zeros.
-     * Further, consider that we are blurring a single white pixel on a black background. When
-     * computing the value of a pixel that is to the right of the white pixel, the white pixel will
-     * be in the left region of the search window, and consequently, without inversion, a zero will
-     * be sampled from the left side of the weights image and result will be zero. However, what
-     * we expect is that pixels to the right of the white pixel will be white, that is, they should
-     * sample a weight of 1 from the right side of the weights image, hence the need for
-     * inversion. */
-    auto load_weight = [&](const int2 texel) {
-      /* Add the radius to transform the texel into the range [0, radius * 2], with an additional
-       * 0.5 to sample at the center of the pixels, then divide by the upper bound plus one to
-       * transform the texel into the normalized range [0, 1] needed to sample the weights sampler.
-       * Finally, invert the textures coordinates by subtracting from 1 to maintain the shape of
-       * the weights as mentioned in the function description. */
-      return weights.sample_bilinear_extended(
-          1.0f - ((float2(texel) + float2(radius + 0.5f)) / (radius * 2.0f + 1.0f)));
-    };
-
     parallel_for(domain.size, [&](const int2 texel) {
       /* The mask input is treated as a boolean. If it is zero, then no blurring happens for this
        * pixel. Otherwise, the pixel is blurred normally and the mask value is irrelevant. */
-      float mask = mask_image.load_pixel_extended<float>(texel);
+      float mask = mask_image.load_pixel<float>(texel);
       if (mask == 0.0f) {
-        output.store_pixel(texel, input.load_pixel_extended<float4>(texel));
+        output.store_pixel(texel, input.load_pixel<float4>(texel));
         return;
       }
 
@@ -192,7 +171,7 @@ class BokehBlurOperation : public NodeOperation {
       float4 accumulated_weight = float4(0.0f);
       for (int y = -radius; y <= radius; y++) {
         for (int x = -radius; x <= radius; x++) {
-          float4 weight = load_weight(int2(x, y));
+          float4 weight = blur_kernel.load_pixel<float4>(int2(x, y) + radius);
           accumulated_color += load_input(texel + int2(x, y)) * weight;
           accumulated_weight += weight;
         }
@@ -200,6 +179,8 @@ class BokehBlurOperation : public NodeOperation {
 
       output.store_pixel(texel, math::safe_divide(accumulated_color, accumulated_weight));
     });
+
+    blur_kernel.release();
   }
 
   void execute_variable_size()
@@ -330,6 +311,36 @@ class BokehBlurOperation : public NodeOperation {
 
       output.store_pixel(texel, math::safe_divide(accumulated_color, accumulated_weight));
     });
+  }
+
+  /* Compute a blur kernel from the bokeh result by interpolating it to the size of the kernel.
+   * Note that we load the bokeh result inverted along both directions to maintain the shape of the
+   * weights if it was not symmetrical. To understand why inversion makes sense, consider a 1D
+   * weights image whose right half is all ones and whose left half is all zeros. Further, consider
+   * that we are blurring a single white pixel on a black background. When computing the value of a
+   * pixel that is to the right of the white pixel, the white pixel will be in the left region of
+   * the search window, and consequently, without inversion, a zero will be sampled from the left
+   * side of the weights image and result will be zero. However, what we expect is that pixels to
+   * the right of the white pixel will be white, that is, they should sample a weight of 1 from the
+   * right side of the weights image, hence the need for inversion. */
+  Result compute_blur_kernel(const int radius)
+  {
+    const Result &bokeh = this->get_input("Bokeh");
+
+    Result kernel = context().create_result(ResultType::Color);
+    const int2 kernel_size = int2(radius * 2 + 1);
+    kernel.allocate_texture(kernel_size);
+    parallel_for(kernel_size, [&](const int2 texel) {
+      /* Add 0.5 to sample at the center of the pixels, then divide by the kernel size to transform
+       * the texel into the normalized range [0, 1] needed to sample the bokeh result. Finally,
+       * invert the textures coordinates by subtracting from 1 to maintain the shape of the weights
+       * as mentioned above. */
+      const float2 weight_coordinates = 1.0f - ((float2(texel) + 0.5f) / float2(kernel_size));
+      float4 weight = bokeh.sample_bilinear_extended(weight_coordinates);
+      kernel.store_pixel(texel, weight);
+    });
+
+    return kernel;
   }
 
   int compute_variable_size_search_radius()
