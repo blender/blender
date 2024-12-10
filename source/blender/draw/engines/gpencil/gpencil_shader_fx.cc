@@ -588,19 +588,19 @@ void gpencil_vfx_cache_populate(GPENCIL_Data *vedata,
                                 GPENCIL_tObject *tgp_ob,
                                 const bool is_edit_mode)
 {
-  GPENCIL_FramebufferList *fbl = vedata->fbl;
+  GPENCIL_Instance *inst = vedata->instance;
   GPENCIL_PrivateData *pd = vedata->stl->pd;
 
   /* These may not be allocated yet, use address of future pointer. */
   gpIterVfxData iter{};
   iter.pd = pd;
   iter.tgp_ob = tgp_ob;
-  iter.target_fb = &fbl->layer_fb;
-  iter.source_fb = &fbl->object_fb;
-  iter.target_color_tx = &pd->color_layer_tx;
-  iter.source_color_tx = &pd->color_object_tx;
-  iter.target_reveal_tx = &pd->reveal_layer_tx;
-  iter.source_reveal_tx = &pd->reveal_object_tx;
+  iter.target_fb = &inst->layer_fb;
+  iter.source_fb = &inst->object_fb;
+  iter.target_color_tx = &inst->color_layer_tx;
+  iter.source_color_tx = &inst->color_object_tx;
+  iter.target_reveal_tx = &inst->reveal_layer_tx;
+  iter.source_reveal_tx = &inst->reveal_object_tx;
 
   /* If simplify enabled, nothing more to do. */
   if (!pd->simplify_fx) {
@@ -643,7 +643,7 @@ void gpencil_vfx_cache_populate(GPENCIL_Data *vedata,
 
   if ((!pd->simplify_fx && tgp_ob->vfx.first != nullptr) || tgp_ob->do_mat_holdout) {
     /* We need an extra pass to combine result to main buffer. */
-    iter.target_fb = &fbl->gpencil_fb;
+    iter.target_fb = &inst->gpencil_fb;
 
     GPUShader *sh = GPENCIL_shader_fx_composite_get();
 

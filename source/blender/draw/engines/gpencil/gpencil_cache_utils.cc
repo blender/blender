@@ -287,7 +287,8 @@ GPENCIL_tLayer *grease_pencil_layer_cache_get(GPENCIL_tObject *tgp_ob,
   return nullptr;
 }
 
-GPENCIL_tLayer *grease_pencil_layer_cache_add(GPENCIL_PrivateData *pd,
+GPENCIL_tLayer *grease_pencil_layer_cache_add(GPENCIL_Instance *inst,
+                                              GPENCIL_PrivateData *pd,
                                               const Object *ob,
                                               const blender::bke::greasepencil::Layer &layer,
                                               const int onion_id,
@@ -414,9 +415,9 @@ GPENCIL_tLayer *grease_pencil_layer_cache_add(GPENCIL_PrivateData *pd,
     pass.shader_set(GPENCIL_shader_layer_blend_get());
     pass.push_constant("blendMode", int(layer.blend_mode));
     pass.push_constant("blendOpacity", layer_opacity);
-    pass.bind_texture("colorBuf", &pd->color_layer_tx);
-    pass.bind_texture("revealBuf", &pd->reveal_layer_tx);
-    pass.bind_texture("maskBuf", (is_masked) ? &pd->mask_tx : &pd->dummy_tx);
+    pass.bind_texture("colorBuf", &inst->color_layer_tx);
+    pass.bind_texture("revealBuf", &inst->reveal_layer_tx);
+    pass.bind_texture("maskBuf", (is_masked) ? &inst->mask_tx : &pd->dummy_tx);
     pass.state_stencil(0xFF, 0xFF, 0xFF);
     pass.draw_procedural(GPU_PRIM_TRIS, 1, 3);
 
@@ -440,7 +441,7 @@ GPENCIL_tLayer *grease_pencil_layer_cache_add(GPENCIL_PrivateData *pd,
     PassSimple &pass = *tgp_layer->geom_ps;
 
     GPUTexture *depth_tex = (is_in_front) ? pd->dummy_depth : pd->scene_depth_tx;
-    GPUTexture **mask_tex = (is_masked) ? &pd->mask_tx : &pd->dummy_tx;
+    GPUTexture **mask_tex = (is_masked) ? &inst->mask_tx : &pd->dummy_tx;
 
     DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_BLEND_ALPHA_PREMUL;
     /* For 2D mode, we render all strokes with uniform depth (increasing with stroke id). */

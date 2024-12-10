@@ -27,8 +27,6 @@ void GPENCIL_render_init(GPENCIL_Data *vedata,
                          const Depsgraph *depsgraph,
                          const rcti *rect)
 {
-  GPENCIL_FramebufferList *fbl = vedata->fbl;
-
   if (vedata->instance == nullptr) {
     vedata->instance = new GPENCIL_Instance();
   }
@@ -112,21 +110,18 @@ void GPENCIL_render_init(GPENCIL_Data *vedata,
     inst.render_color_tx.ensure_2d(GPU_RGBA16F, int2(size), usage, do_region ? nullptr : pix_col);
   }
 
-  GPU_framebuffer_ensure_config(&fbl->render_fb,
-                                {
-                                    GPU_ATTACHMENT_TEXTURE(inst.render_depth_tx),
-                                    GPU_ATTACHMENT_TEXTURE(inst.render_color_tx),
-                                });
+  inst.render_fb.ensure(GPU_ATTACHMENT_TEXTURE(inst.render_depth_tx),
+                        GPU_ATTACHMENT_TEXTURE(inst.render_color_tx));
 
   if (do_clear_z || do_clear_col) {
     /* To avoid unpredictable result, clear buffers that have not be initialized. */
-    GPU_framebuffer_bind(fbl->render_fb);
+    GPU_framebuffer_bind(inst.render_fb);
     if (do_clear_col) {
       const float clear_col[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-      GPU_framebuffer_clear_color(fbl->render_fb, clear_col);
+      GPU_framebuffer_clear_color(inst.render_fb, clear_col);
     }
     if (do_clear_z) {
-      GPU_framebuffer_clear_depth(fbl->render_fb, 1.0f);
+      GPU_framebuffer_clear_depth(inst.render_fb, 1.0f);
     }
   }
 
@@ -176,7 +171,7 @@ static void GPENCIL_render_result_z(RenderLayer *rl,
 
   float *ro_buffer_data = rp->ibuf->float_buffer.data;
 
-  GPU_framebuffer_read_depth(vedata->fbl->render_fb,
+  GPU_framebuffer_read_depth(vedata->instance->render_fb,
                              rect->xmin,
                              rect->ymin,
                              BLI_rcti_size_x(rect),
@@ -223,10 +218,9 @@ static void GPENCIL_render_result_combined(RenderLayer *rl,
                                            const rcti *rect)
 {
   RenderPass *rp = RE_pass_find_by_name(rl, RE_PASSNAME_COMBINED, viewname);
-  GPENCIL_FramebufferList *fbl = ((GPENCIL_Data *)vedata)->fbl;
 
-  GPU_framebuffer_bind(fbl->render_fb);
-  GPU_framebuffer_read_color(vedata->fbl->render_fb,
+  GPU_framebuffer_bind(vedata->instance->render_fb);
+  GPU_framebuffer_read_color(vedata->instance->render_fb,
                              rect->xmin,
                              rect->ymin,
                              BLI_rcti_size_x(rect),

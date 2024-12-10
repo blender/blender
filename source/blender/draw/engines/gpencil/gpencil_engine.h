@@ -53,6 +53,8 @@ struct GPENCIL_tLayer;
 
 using PassSimple = blender::draw::PassSimple;
 using Texture = blender::draw::Texture;
+using TextureFromPool = blender::draw::TextureFromPool;
+using Framebuffer = blender::draw::Framebuffer;
 /* NOTE: These do not preserve the PassSimple memory across frames.
  * If that becomes a bottleneck, these containers can be improved. */
 using GPENCIL_tVfx_Pool = blender::draw::detail::SubPassVector<GPENCIL_tVfx>;
@@ -156,17 +158,6 @@ typedef struct GPENCIL_StorageList {
   struct GPENCIL_PrivateData *pd;
 } GPENCIL_StorageList;
 
-typedef struct GPENCIL_FramebufferList {
-  struct GPUFrameBuffer *render_fb;
-  struct GPUFrameBuffer *gpencil_fb;
-  struct GPUFrameBuffer *snapshot_fb;
-  struct GPUFrameBuffer *layer_fb;
-  struct GPUFrameBuffer *object_fb;
-  struct GPUFrameBuffer *mask_fb;
-  struct GPUFrameBuffer *smaa_edge_fb;
-  struct GPUFrameBuffer *smaa_weight_fb;
-} GPENCIL_FramebufferList;
-
 struct GPENCIL_Instance {
   PassSimple smaa_edge_ps = {"smaa_edge"};
   PassSimple smaa_weight_ps = {"smaa_weight"};
@@ -191,11 +182,40 @@ struct GPENCIL_Instance {
   /* Textures used by Antialiasing. */
   Texture smaa_area_tx = {"smaa_area_tx"};
   Texture smaa_search_tx = {"smaa_search_tx"};
+
+  /* Temp Textures (shared with other engines). */
+  TextureFromPool depth_tx = {"depth_tx"};
+  TextureFromPool color_tx = {"color_tx"};
+  TextureFromPool color_layer_tx = {"color_layer_tx"};
+  TextureFromPool color_object_tx = {"color_object_tx"};
+  /* Revealage is 1 - alpha */
+  TextureFromPool reveal_tx = {"reveal_tx"};
+  TextureFromPool reveal_layer_tx = {"reveal_layer_tx"};
+  TextureFromPool reveal_object_tx = {"reveal_object_tx"};
+  /* Mask texture */
+  TextureFromPool mask_depth_tx = {"mask_depth_tx"};
+  TextureFromPool mask_color_tx = {"mask_color_tx"};
+  TextureFromPool mask_tx = {"mask_tx"};
+  /* Anti-Aliasing. */
+  TextureFromPool smaa_edge_tx = {"smaa_edge_tx"};
+  TextureFromPool smaa_weight_tx = {"smaa_weight_tx"};
+
+  Framebuffer render_fb = {"render_fb"};
+  Framebuffer gpencil_fb = {"gpencil_fb"};
+  Framebuffer snapshot_fb = {"snapshot_fb"};
+  Framebuffer layer_fb = {"layer_fb"};
+  Framebuffer object_fb = {"object_fb"};
+  Framebuffer mask_fb = {"mask_fb"};
+  Framebuffer smaa_edge_fb = {"smaa_edge_fb"};
+  Framebuffer smaa_weight_fb = {"smaa_weight_fb"};
+
+  void acquire_resources(GPENCIL_PrivateData *pd);
+  void release_resources();
 };
 
 struct GPENCIL_Data {
   void *engine_type; /* Required */
-  struct GPENCIL_FramebufferList *fbl;
+  DRWViewportEmptyList *fbl;
   DRWViewportEmptyList *txl;
   DRWViewportEmptyList *psl;
   struct GPENCIL_StorageList *stl;
@@ -225,20 +245,6 @@ typedef struct GPENCIL_PrivateData {
   struct {
     GPENCIL_tObject *first, *last;
   } tobjects, tobjects_infront;
-  /* Temp Textures (shared with other engines). */
-  GPUTexture *depth_tx;
-  GPUTexture *color_tx;
-  GPUTexture *color_layer_tx;
-  GPUTexture *color_object_tx;
-  /* Revealage is 1 - alpha */
-  GPUTexture *reveal_tx;
-  GPUTexture *reveal_layer_tx;
-  GPUTexture *reveal_object_tx;
-  /* Mask texture */
-  GPUTexture *mask_tx;
-  /* Anti-Aliasing. */
-  GPUTexture *smaa_edge_tx;
-  GPUTexture *smaa_weight_tx;
   /* Pointer to dtxl->depth */
   GPUTexture *scene_depth_tx;
   GPUFrameBuffer *scene_fb;
@@ -337,7 +343,8 @@ GPENCIL_tLayer *grease_pencil_layer_cache_get(GPENCIL_tObject *tgp_ob,
                                               int layer_id,
                                               bool skip_onion);
 
-GPENCIL_tLayer *grease_pencil_layer_cache_add(GPENCIL_PrivateData *pd,
+GPENCIL_tLayer *grease_pencil_layer_cache_add(GPENCIL_Instance *inst,
+                                              GPENCIL_PrivateData *pd,
                                               const Object *ob,
                                               const blender::bke::greasepencil::Layer &layer,
                                               int onion_id,
@@ -390,7 +397,7 @@ struct GPUShader *GPENCIL_shader_fx_shadow_get(void);
 void GPENCIL_shader_free(void);
 
 /* Antialiasing */
-void GPENCIL_antialiasing_init(struct GPENCIL_Data *vedata);
+void GPENCIL_antialiasing_init(GPENCIL_Instance *inst, GPENCIL_PrivateData *pd);
 void GPENCIL_antialiasing_draw(struct GPENCIL_Data *vedata);
 
 /* main functions */
