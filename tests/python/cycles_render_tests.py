@@ -62,7 +62,7 @@ BLOCKLIST_OSL = [
     # Noise differences due to Principled BSDF mixing/layering used in some of these scenes
     'render_passes_.*.blend',
     # Noise differences in Principled BSDF mixing/layering
-    'principled_.*.blend',
+    'principled_bsdf_.*.blend',
 ]
 
 BLOCKLIST_OPTIX = [
