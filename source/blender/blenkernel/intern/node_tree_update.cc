@@ -870,8 +870,8 @@ class NodeTreeMainUpdater {
   void update_eval_dependencies(bNodeTree &ntree)
   {
     ntree.ensure_topology_cache();
-    nodes::GeometryNodesEvalDependencies new_deps;
-    nodes::gather_geometry_nodes_eval_dependencies(ntree, new_deps);
+    nodes::GeometryNodesEvalDependencies new_deps =
+        nodes::gather_geometry_nodes_eval_dependencies_with_cache(ntree);
 
     /* Check if the dependencies have changed. */
     if (!ntree.runtime->geometry_nodes_eval_dependencies ||

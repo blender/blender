@@ -76,10 +76,16 @@ struct GeometryNodesEvalDependencies {
 };
 
 /**
- * Find all evaluation dependencies for the given node tree.
- * NOTE: It's assumed that all (indirectly) used node groups are updated already.
+ * Finds all evaluation dependencies for the given node. This does not include dependencies that
+ * are passed into the node group. It also may not contain all data-blocks referenced by the node
+ * tree if some of them can statically be detected to not be used by the evaluation.
  */
-void gather_geometry_nodes_eval_dependencies(bNodeTree &ntree,
-                                             GeometryNodesEvalDependencies &deps);
+GeometryNodesEvalDependencies gather_geometry_nodes_eval_dependencies_recursive(
+    const bNodeTree &ntree);
+/**
+ * Same as above, but assumes that dependencies are already cached on the referenced node groups.
+ */
+GeometryNodesEvalDependencies gather_geometry_nodes_eval_dependencies_with_cache(
+    const bNodeTree &ntree);
 
 }  // namespace blender::nodes
