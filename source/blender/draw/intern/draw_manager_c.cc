@@ -2948,9 +2948,9 @@ void DRW_engines_free()
   drw_debug_module_free(DST.debug);
   DST.debug = nullptr;
 
-  DRW_UBO_FREE_SAFE(G_draw.block_ubo);
-  DRW_UBO_FREE_SAFE(G_draw.view_ubo);
-  DRW_UBO_FREE_SAFE(G_draw.clipping_ubo);
+  GPU_UBO_FREE_SAFE(G_draw.block_ubo);
+  GPU_UBO_FREE_SAFE(G_draw.view_ubo);
+  GPU_UBO_FREE_SAFE(G_draw.clipping_ubo);
   GPU_TEXTURE_FREE_SAFE(G_draw.ramp);
   GPU_TEXTURE_FREE_SAFE(G_draw.weight_ramp);
 

@@ -135,14 +135,6 @@ struct DrawEngineType {
   void (*store_metadata)(void *vedata, RenderResult *render_result);
 };
 
-#define DRW_UBO_FREE_SAFE(ubo) \
-  do { \
-    if (ubo != nullptr) { \
-      GPU_uniformbuf_free(ubo); \
-      ubo = nullptr; \
-    } \
-  } while (0)
-
 /* Shaders */
 void DRW_shader_init();
 void DRW_shader_exit();
@@ -166,14 +158,6 @@ GPUMaterial *DRW_shader_from_material(
     void *thunk,
     GPUMaterialPassReplacementCallbackFn pass_replacement_cb = nullptr);
 void DRW_shader_queue_optimize_material(GPUMaterial *mat);
-void DRW_shader_free(GPUShader *shader);
-#define DRW_SHADER_FREE_SAFE(shader) \
-  do { \
-    if (shader != nullptr) { \
-      DRW_shader_free(shader); \
-      shader = nullptr; \
-    } \
-  } while (0)
 
 /* Viewport. */
 

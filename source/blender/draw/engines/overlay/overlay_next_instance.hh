@@ -118,7 +118,7 @@ class Instance {
 
   ~Instance()
   {
-    DRW_UBO_FREE_SAFE(grid_ubo);
+    GPU_UBO_FREE_SAFE(grid_ubo);
   }
 
   void init();

@@ -419,3 +419,11 @@ int GPU_shader_get_builtin_block(GPUShader *shader, int builtin);
 int GPU_shader_get_uniform_block(GPUShader *shader, const char *name);
 
 /** \} */
+
+#define GPU_SHADER_FREE_SAFE(shader) \
+  do { \
+    if (shader != nullptr) { \
+      GPU_shader_free(shader); \
+      shader = nullptr; \
+    } \
+  } while (0)

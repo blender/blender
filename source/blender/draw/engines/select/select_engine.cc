@@ -305,8 +305,8 @@ static void select_engine_free()
   SelectEngineData &e_data = get_engine_data();
   for (int sh_data_index = 0; sh_data_index < ARRAY_SIZE(e_data.sh_data); sh_data_index++) {
     SELECTID_Shaders *sh_data = &e_data.sh_data[sh_data_index];
-    DRW_SHADER_FREE_SAFE(sh_data->select_id_flat);
-    DRW_SHADER_FREE_SAFE(sh_data->select_id_uniform);
+    GPU_SHADER_FREE_SAFE(sh_data->select_id_flat);
+    GPU_SHADER_FREE_SAFE(sh_data->select_id_uniform);
   }
 
   GPU_TEXTURE_FREE_SAFE(e_data.texture_u32);

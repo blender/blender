@@ -22,7 +22,7 @@ class ShaderModule {
   struct ShaderDeleter {
     void operator()(GPUShader *shader)
     {
-      DRW_SHADER_FREE_SAFE(shader);
+      GPU_SHADER_FREE_SAFE(shader);
     }
   };
   using ShaderPtr = std::unique_ptr<GPUShader, ShaderDeleter>;
