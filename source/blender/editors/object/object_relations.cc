@@ -1567,26 +1567,22 @@ static int make_links_data_exec(bContext *C, wmOperator *op)
               break;
             }
 
-            if (cu_dst->vfont) {
-              id_us_min(&cu_dst->vfont->id);
-            }
-            cu_dst->vfont = cu_src->vfont;
-            id_us_plus((ID *)cu_dst->vfont);
-            if (cu_dst->vfontb) {
-              id_us_min(&cu_dst->vfontb->id);
-            }
-            cu_dst->vfontb = cu_src->vfontb;
-            id_us_plus((ID *)cu_dst->vfontb);
-            if (cu_dst->vfonti) {
-              id_us_min(&cu_dst->vfonti->id);
-            }
-            cu_dst->vfonti = cu_src->vfonti;
-            id_us_plus((ID *)cu_dst->vfonti);
-            if (cu_dst->vfontbi) {
-              id_us_min(&cu_dst->vfontbi->id);
-            }
-            cu_dst->vfontbi = cu_src->vfontbi;
-            id_us_plus((ID *)cu_dst->vfontbi);
+#define CURVE_VFONT_SET(vfont_member) \
+  { \
+    if (cu_dst->vfont_member) { \
+      id_us_min(&cu_dst->vfont_member->id); \
+    } \
+    cu_dst->vfont_member = cu_src->vfont_member; \
+    id_us_plus((ID *)cu_dst->vfont_member); \
+  } \
+  ((void)0)
+
+            CURVE_VFONT_SET(vfont);
+            CURVE_VFONT_SET(vfontb);
+            CURVE_VFONT_SET(vfonti);
+            CURVE_VFONT_SET(vfontbi);
+
+#undef CURVE_VFONT_SET
 
             DEG_id_tag_update(&ob_dst->id,
                               ID_RECALC_TRANSFORM | ID_RECALC_GEOMETRY | ID_RECALC_ANIMATION);
