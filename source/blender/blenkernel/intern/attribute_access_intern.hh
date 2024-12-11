@@ -261,9 +261,15 @@ class GeometryAttributeProviders {
 namespace attribute_accessor_functions {
 
 template<const GeometryAttributeProviders &providers>
-inline bool is_builtin(const void * /*owner*/, const StringRef name)
+inline std::optional<AttributeDomainAndType> builtin_domain_and_type(const void * /*owner*/,
+                                                                     const StringRef name)
 {
-  return providers.builtin_attribute_providers().contains_as(name);
+  if (const BuiltinAttributeProvider *provider =
+          providers.builtin_attribute_providers().lookup_default_as(name, nullptr))
+  {
+    return AttributeDomainAndType{provider->domain(), provider->data_type()};
+  }
+  return std::nullopt;
 }
 
 template<const GeometryAttributeProviders &providers>
@@ -391,7 +397,7 @@ inline AttributeAccessorFunctions accessor_functions_for_providers()
 {
   return AttributeAccessorFunctions{nullptr,
                                     nullptr,
-                                    is_builtin<providers>,
+                                    builtin_domain_and_type<providers>,
                                     lookup<providers>,
                                     nullptr,
                                     foreach_attribute<providers>,
