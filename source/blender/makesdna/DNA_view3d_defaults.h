@@ -45,6 +45,7 @@
     .xray_alpha_bone = 0.5f, \
     .bone_wire_alpha = 1.0f, \
     .fade_alpha = 0.40f, \
+    .normals_length = 0.1f, \
     .texture_paint_mode_opacity = 1.0f, \
     .weight_paint_mode_opacity = 1.0f, \
     .vertex_paint_mode_opacity = 1.0f, \
