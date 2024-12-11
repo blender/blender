@@ -1526,6 +1526,25 @@ static void execute_realize_mesh_task(const RealizeInstancesOptions &options,
       dst_attribute_writers);
 }
 
+static void copy_vertex_group_names(Mesh &dst_mesh, const Span<const Mesh *> src_meshes)
+{
+  Set<StringRef> existing_names;
+  LISTBASE_FOREACH (const bDeformGroup *, defgroup, &dst_mesh.vertex_group_names) {
+    existing_names.add(defgroup->name);
+  }
+  for (const Mesh *mesh : src_meshes) {
+    LISTBASE_FOREACH (const bDeformGroup *, src, &mesh->vertex_group_names) {
+      const StringRef src_name = src->name;
+      if (existing_names.contains(src_name)) {
+        continue;
+      }
+      bDeformGroup *dst = MEM_cnew<bDeformGroup>(__func__);
+      src_name.copy(dst->name);
+      BLI_addtail(&dst_mesh.vertex_group_names, dst);
+    }
+  }
+}
+
 static void execute_realize_mesh_tasks(const RealizeInstancesOptions &options,
                                        const AllMeshesInfo &all_meshes_info,
                                        const Span<RealizeMeshTask> tasks,
@@ -1570,9 +1589,11 @@ static void execute_realize_mesh_tasks(const RealizeInstancesOptions &options,
   const RealizeMeshTask &first_task = tasks.first();
   const Mesh &first_mesh = *first_task.mesh_info->mesh;
   BKE_mesh_copy_parameters_for_eval(dst_mesh, &first_mesh);
-  /* The above line also copies vertex group names. We don't want that here because the new
-   * attributes are added explicitly below. */
-  BLI_freelistN(&dst_mesh->vertex_group_names);
+
+  BLI_assert(BLI_listbase_count(&dst_mesh->vertex_group_names) ==
+             BLI_listbase_count(&first_mesh.vertex_group_names));
+  copy_vertex_group_names(*dst_mesh, all_meshes_info.order.as_span().drop_front(1));
+  dst_mesh->vertex_group_active_index = first_mesh.vertex_group_active_index;
 
   /* Add materials. */
   for (const int i : IndexRange(ordered_materials.size())) {
