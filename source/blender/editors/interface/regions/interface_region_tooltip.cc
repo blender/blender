@@ -41,8 +41,10 @@
 #include "BKE_context.hh"
 #include "BKE_idtype.hh"
 #include "BKE_image.hh"
+#include "BKE_main.hh"
 #include "BKE_paint.hh"
 #include "BKE_screen.hh"
+#include "BKE_vfont.hh"
 
 #include "BIF_glutil.hh"
 
@@ -1710,12 +1712,21 @@ static void ui_tooltip_from_clip(MovieClip &clip, uiTooltipData &data)
 
 static void ui_tooltip_from_vfont(const VFont &font, uiTooltipData &data)
 {
+  if (BKE_vfont_is_builtin(&font)) {
+    /* In memory font previous are currently not supported,
+     *  don't attempt to handle as a file. */
+    return;
+  }
   if (!font.filepath[0]) {
     /* Let's not bother with packed files _for now_. */
     return;
   }
 
-  if (!BLI_exists(font.filepath)) {
+  char filepath_abs[FILE_MAX];
+  STRNCPY(filepath_abs, font.filepath);
+  BLI_path_abs(filepath_abs, ID_BLEND_PATH_FROM_GLOBAL(&font.id));
+
+  if (!BLI_exists(filepath_abs)) {
     UI_tooltip_text_field_add(
         data, TIP_("File not found"), {}, UI_TIP_STYLE_NORMAL, UI_TIP_LC_ALERT);
     return;
@@ -1724,7 +1735,7 @@ static void ui_tooltip_from_vfont(const VFont &font, uiTooltipData &data)
   float color[4];
   const uiWidgetColors *theme = ui_tooltip_get_theme();
   rgba_uchar_to_float(color, theme->text);
-  ImBuf *ibuf = IMB_font_preview(font.filepath, 200 * UI_SCALE_FAC, color);
+  ImBuf *ibuf = IMB_font_preview(filepath_abs, 200 * UI_SCALE_FAC, color);
   if (ibuf) {
     uiTooltipImage image_data;
     image_data.width = ibuf->x;
