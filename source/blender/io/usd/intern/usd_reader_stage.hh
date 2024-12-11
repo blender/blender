@@ -38,7 +38,7 @@ class USDStageReader {
  protected:
   pxr::UsdStageRefPtr stage_;
   USDImportParams params_;
-  ImportSettings settings_;
+  const ImportSettings &settings_;
 
   blender::Vector<USDPrimReader *> readers_;
 

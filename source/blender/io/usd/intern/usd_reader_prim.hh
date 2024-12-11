@@ -121,6 +121,16 @@ class USDPrimReader {
     return prim_path_;
   }
 
+  virtual std::string object_prim_path() const
+  {
+    return prim_path();
+  }
+
+  virtual std::string data_prim_path() const
+  {
+    return prim_path();
+  }
+
   void set_is_in_instancer_proto(bool flag)
   {
     is_in_instancer_proto_ = flag;

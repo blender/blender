@@ -59,6 +59,11 @@ void USDXformReader::read_object_data(Main * /*bmain*/, const double motionSampl
   set_props(use_parent_xform(), motionSampleTime);
 }
 
+std::string USDXformReader::object_prim_path() const
+{
+  return get_xformable().GetPrim().GetPath().GetAsString();
+}
+
 void USDXformReader::read_matrix(float r_mat[4][4] /* local matrix */,
                                  const float time,
                                  const float scale,
@@ -150,8 +155,7 @@ bool USDXformReader::is_root_xform_prim() const
 
 std::optional<XformResult> USDXformReader::get_local_usd_xform(const float time) const
 {
-  pxr::UsdGeomXformable xformable = use_parent_xform_ ? pxr::UsdGeomXformable(prim_.GetParent()) :
-                                                        pxr::UsdGeomXformable(prim_);
+  pxr::UsdGeomXformable xformable = get_xformable();
 
   if (!xformable) {
     /* This might happen if the prim is a Scope. */
@@ -172,4 +176,9 @@ std::optional<XformResult> USDXformReader::get_local_usd_xform(const float time)
   return XformResult(pxr::GfMatrix4f(xform), is_constant);
 }
 
+pxr::UsdGeomXformable USDXformReader::get_xformable() const
+{
+  pxr::UsdPrim prim = use_parent_xform_ ? prim_.GetParent() : prim_;
+  return pxr::UsdGeomXformable(prim);
+}
 }  // namespace blender::io::usd

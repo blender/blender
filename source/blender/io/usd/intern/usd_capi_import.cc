@@ -36,6 +36,7 @@
 #include "DNA_collection_types.h"
 #include "DNA_layer_types.h"
 #include "DNA_listBase.h"
+#include "DNA_material_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_windowmanager_types.h"
@@ -43,6 +44,8 @@
 #include "ED_undo.hh"
 
 #include "MEM_guardedalloc.h"
+
+#include "RNA_access.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -169,6 +172,7 @@ struct ImportJobData {
   ImportSettings settings;
 
   USDStageReader *archive;
+  ImportedPrimMap prim_map;
 
   bool *stop;
   bool *do_update;
@@ -345,8 +349,18 @@ static void import_startjob(void *customdata, wmJobWorkerStatus *worker_status)
     }
 
     Object *ob = reader->object();
+    if (!ob) {
+      continue;
+    }
 
     reader->read_object_data(data->bmain, 0.0);
+
+    data->prim_map[reader->object_prim_path()].push_back(RNA_id_pointer_create(&ob->id));
+
+    if (ob->data) {
+      data->prim_map[reader->data_prim_path()].push_back(
+          RNA_id_pointer_create(static_cast<ID *>(ob->data)));
+    }
 
     USDPrimReader *parent = reader->parent();
 
@@ -365,6 +379,14 @@ static void import_startjob(void *customdata, wmJobWorkerStatus *worker_status)
       return;
     }
   }
+
+  data->settings.usd_path_to_mat_name.foreach_item(
+      [&](const std::string &path, const std::string &name) {
+        Material *mat = data->settings.mat_name_to_mat.lookup_default(name, nullptr);
+        if (mat) {
+          data->prim_map[path].push_back(RNA_id_pointer_create(&mat->id));
+        }
+      });
 
   if (data->params.import_skeletons) {
     archive->process_armature_modifiers();
@@ -457,7 +479,7 @@ static void import_endjob(void *customdata)
     /* Ensure Python types for invoking hooks are registered. */
     register_hook_converters();
 
-    call_import_hooks(data->archive->stage(), data->params.worker_status->reports);
+    call_import_hooks(data->archive->stage(), data->prim_map, data->params.worker_status->reports);
 
     if (data->is_background_job) {
       /* Blender already returned from the import operator, so we need to store our own extra undo

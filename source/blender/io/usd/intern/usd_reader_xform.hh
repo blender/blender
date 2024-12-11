@@ -39,6 +39,8 @@ class USDXformReader : public USDPrimReader {
   void create_object(Main *bmain, double motionSampleTime) override;
   void read_object_data(Main *bmain, double motionSampleTime) override;
 
+  std::string object_prim_path() const override;
+
   void read_matrix(float r_mat[4][4], float time, float scale, bool *r_is_constant) const;
 
   bool use_parent_xform() const
@@ -68,6 +70,9 @@ class USDXformReader : public USDPrimReader {
    *           is constant over time.
    */
   virtual std::optional<XformResult> get_local_usd_xform(float time) const;
+
+ private:
+  pxr::UsdGeomXformable get_xformable() const;
 };
 
 }  // namespace blender::io::usd
