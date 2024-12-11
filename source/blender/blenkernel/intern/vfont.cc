@@ -255,7 +255,7 @@ static PackedFile *get_builtin_packedfile()
   return BKE_packedfile_new_from_memory(mem, builtin_font_size);
 }
 
-static VFontData *vfont_get_data(VFont *vfont)
+static VFontData *vfont_data_ensure(VFont *vfont)
 {
   if (vfont == nullptr) {
     return nullptr;
@@ -874,7 +874,7 @@ static bool vfont_to_curve(Object *ob,
     return ok;
   }
 
-  vfd = vfont_get_data(vfont);
+  vfd = vfont_data_ensure(vfont);
 
   /* The VFont Data can not be found */
   if (!vfd) {
@@ -995,7 +995,7 @@ static bool vfont_to_curve(Object *ob,
     }
 
     if (vfont != oldvfont) {
-      vfd = vfont_get_data(vfont);
+      vfd = vfont_data_ensure(vfont);
       oldvfont = vfont;
     }
 
