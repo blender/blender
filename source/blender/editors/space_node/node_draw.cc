@@ -364,27 +364,30 @@ static Array<uiBlock *> node_uiblocks_init(const bContext &C, const Span<bNode *
   return blocks;
 }
 
-float2 node_to_view(const bNode &node, const float2 &co)
+float2 node_to_view(const float2 &co)
 {
-  const float2 node_location = bke::node_to_view(&node, co);
-  return node_location * UI_SCALE_FAC;
+  return co * UI_SCALE_FAC;
+}
+
+static rctf node_to_rect(const bNode &node)
+{
+  rctf rect{};
+  rect.xmin = node.location[0];
+  rect.ymin = node.location[1] - node.height;
+  rect.xmax = node.location[0] + node.width;
+  rect.ymax = node.location[1];
+  return rect;
 }
 
 void node_to_updated_rect(const bNode &node, rctf &r_rect)
 {
-  const float2 xmin_ymax = node_to_view(node, {node.offsetx, node.offsety});
-  r_rect.xmin = xmin_ymax.x;
-  r_rect.ymax = xmin_ymax.y;
-  const float2 xmax_ymin = node_to_view(node,
-                                        {node.offsetx + node.width, node.offsety - node.height});
-  r_rect.xmax = xmax_ymin.x;
-  r_rect.ymin = xmax_ymin.y;
+  r_rect = node_to_rect(node);
+  BLI_rctf_mul(&r_rect, UI_SCALE_FAC);
 }
 
-float2 node_from_view(const bNode &node, const float2 &co)
+float2 node_from_view(const float2 &co)
 {
-  const float2 node_location = co / UI_SCALE_FAC;
-  return bke::node_from_view(&node, node_location);
+  return co / UI_SCALE_FAC;
 }
 
 static bool is_node_panels_supported(const bNode &node)
@@ -408,11 +411,8 @@ static bool node_update_basis_buttons(const bContext &C,
 
   PointerRNA nodeptr = RNA_pointer_create(&ntree.id, &RNA_Node, &node);
 
-  /* Get "global" coordinates. */
-  float2 loc = node_to_view(node, float2(0));
   /* Round the node origin because text contents are always pixel-aligned. */
-  loc.x = round(loc.x);
-  loc.y = round(loc.y);
+  const float2 loc = math::round(node_to_view(node.location));
 
   dy -= NODE_DYS / 4;
 
@@ -1097,7 +1097,7 @@ static void node_update_basis_from_declaration(
           else if constexpr (std::is_same_v<ItemT, flat_item::Layout>) {
             const nodes::LayoutDeclaration &decl = *item.decl;
             /* Round the node origin because text contents are always pixel-aligned. */
-            const float2 loc = math::round(node_to_view(node, float2(0)));
+            const float2 loc = math::round(node_to_view(node.location));
             uiLayout *layout = UI_block_layout(&block,
                                                UI_LAYOUT_VERTICAL,
                                                UI_LAYOUT_PANEL,
@@ -1220,11 +1220,8 @@ static void node_update_basis(const bContext &C,
                               bNode &node,
                               uiBlock &block)
 {
-  /* Get "global" coordinates. */
-  float2 loc = node_to_view(node, float2(0));
   /* Round the node origin because text contents are always pixel-aligned. */
-  loc.x = round(loc.x);
-  loc.y = round(loc.y);
+  const float2 loc = math::round(node_to_view(node.location));
 
   int dy = loc.y;
 
@@ -1259,11 +1256,8 @@ static void node_update_hidden(bNode &node, uiBlock &block)
 {
   int totin = 0, totout = 0;
 
-  /* Get "global" coordinates. */
-  float2 loc = node_to_view(node, float2(0));
   /* Round the node origin because text contents are always pixel-aligned. */
-  loc.x = round(loc.x);
-  loc.y = round(loc.y);
+  const float2 loc = math::round(node_to_view(node.location));
 
   /* Calculate minimal radius. */
   for (const bNodeSocket *socket : node.input_sockets()) {
@@ -3873,11 +3867,18 @@ static float frame_node_label_height(const NodeFrame &frame_data)
 
 #define NODE_FRAME_MARGIN (1.5f * U.widget_unit)
 
-/* XXX Does a bounding box update by iterating over all children.
+/**
+ * Does a bounding box update by iterating over all children.
  * Not ideal to do this in every draw call, but doing as transform callback doesn't work,
- * since the child node totr rects are not updated properly at that point. */
-static void frame_node_prepare_for_draw(bNode &node, Span<bNode *> nodes)
+ * since the frame node automatic size depends on the size of each node which is only calculated
+ * while drawing.
+ */
+static rctf calc_node_frame_dimensions(bNode &node)
 {
+  if (!node.is_frame()) {
+    return node.runtime->totr;
+  }
+
   NodeFrame *data = (NodeFrame *)node.storage;
 
   const float margin = NODE_FRAME_MARGIN;
@@ -3897,13 +3898,9 @@ static void frame_node_prepare_for_draw(bNode &node, Span<bNode *> nodes)
   /* For shrinking bounding box, initialize the rect from first child node. */
   bool bbinit = (data->flag & NODE_FRAME_SHRINK);
   /* Fit bounding box to all children. */
-  for (const bNode *tnode : nodes) {
-    if (tnode->parent != &node) {
-      continue;
-    }
-
+  for (bNode *child : node.direct_children_in_frame()) {
     /* Add margin to node rect. */
-    rctf noderect = tnode->runtime->totr;
+    rctf noderect = calc_node_frame_dimensions(*child);
     noderect.xmin -= margin;
     noderect.xmax += margin;
     noderect.ymin -= margin;
@@ -3921,19 +3918,20 @@ static void frame_node_prepare_for_draw(bNode &node, Span<bNode *> nodes)
   }
 
   /* Now adjust the frame size from view-space bounding box. */
-  const float2 offset = node_from_view(node, {rect.xmin, rect.ymax});
-  node.offsetx = offset.x;
-  node.offsety = offset.y;
-  const float2 max = node_from_view(node, {rect.xmax, rect.ymin});
-  node.width = max.x - node.offsetx;
-  node.height = -max.y + node.offsety;
+  const float2 min = node_from_view({rect.xmin, rect.ymin});
+  const float2 max = node_from_view({rect.xmax, rect.ymax});
+  node.location[0] = min.x;
+  node.location[1] = max.y;
+  node.width = max.x - min.x;
+  node.height = max.y - min.y;
 
   node.runtime->totr = rect;
+  return rect;
 }
 
 static void reroute_node_prepare_for_draw(bNode &node)
 {
-  const float2 loc = node_to_view(node, float2(0));
+  const float2 loc = node_to_view(node.location);
 
   /* When the node is hidden, the input and output socket are both in the same place. */
   node.input_socket(0).runtime->location = loc;
@@ -3979,12 +3977,9 @@ static void node_update_nodetree(const bContext &C,
     }
   }
 
-  /* Now calculate the size of frame nodes, which can depend on the size of other nodes.
-   * Update nodes in reverse, so children sizes get updated before parents. */
-  for (int i = nodes.size() - 1; i >= 0; i--) {
-    if (nodes[i]->is_frame()) {
-      frame_node_prepare_for_draw(*nodes[i], nodes);
-    }
+  /* Now calculate the size of frame nodes, which can depend on the size of other nodes. */
+  for (bNode *frame : ntree.root_frames()) {
+    calc_node_frame_dimensions(*frame);
   }
 }
 

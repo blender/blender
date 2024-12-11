@@ -334,7 +334,7 @@ class bNodeRuntime : NonCopyable, NonMovable {
    */
   /** Reserved size of the preview rect. */
   short preview_xsize, preview_ysize = 0;
-  /** Entire bound-box (world-space). */
+  /** Calculated bounding box of node in the view space of the node editor (including UI scale). */
   rctf totr{};
 
   /** Used at runtime when going through the tree. Initialize before use. */

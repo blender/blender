@@ -374,10 +374,10 @@ static void link_drag_search_exec_fn(bContext *C, void *arg1, void *arg2)
   BLI_assert(new_nodes.size() == 1);
   bNode *new_node = new_nodes.first();
 
-  new_node->locx = storage.cursor.x / UI_SCALE_FAC;
-  new_node->locy = storage.cursor.y / UI_SCALE_FAC + 20;
+  new_node->location[0] = storage.cursor.x / UI_SCALE_FAC;
+  new_node->location[1] = storage.cursor.y / UI_SCALE_FAC + 20;
   if (storage.in_out() == SOCK_IN) {
-    new_node->locx -= new_node->width;
+    new_node->location[0] -= new_node->width;
   }
 
   bke::node_set_selected(new_node, true);

@@ -321,8 +321,8 @@ static void node_group_ungroup(Main *bmain, bNodeTree *ntree, bNode *gnode)
     }
 
     if (!node->parent) {
-      node->locx += gnode->locx;
-      node->locy += gnode->locy;
+      node->location[0] += gnode->location[0];
+      node->location[1] += gnode->location[1];
     }
 
     node->flag |= NODE_SELECT;
@@ -557,8 +557,8 @@ static bool node_group_separate_selected(
     }
 
     if (!newnode->parent) {
-      newnode->locx += offset.x;
-      newnode->locy += offset.y;
+      newnode->location[0] += offset.x;
+      newnode->location[1] += offset.y;
     }
   }
   if (!make_copy) {
@@ -820,8 +820,7 @@ static void get_min_max_of_nodes(const Span<bNode *> nodes,
 
   INIT_MINMAX2(min, max);
   for (const bNode *node : nodes) {
-    const float2 node_offset = {node->offsetx, node->offsety};
-    float2 loc = bke::node_to_view(node, node_offset);
+    float2 loc(node->location);
     math::min_max(loc, min, max);
     if (use_size) {
       loc.x += node->width;
@@ -955,13 +954,13 @@ static void node_group_make_insert_selected(const bContext &C,
       return node;
     }
     bNode *output_node = bke::node_add_static_node(&C, &group, NODE_GROUP_OUTPUT);
-    output_node->locx = real_max[0] - center[0] + 50.0f;
+    output_node->location[0] = real_max[0] - center[0] + 50.0f;
     return output_node;
   }();
 
   /* Create new group input node for easier organization of the new nodes inside the group. */
   bNode *input_node = bke::node_add_static_node(&C, &group, NODE_GROUP_INPUT);
-  input_node->locx = real_min[0] - center[0] - 200.0f;
+  input_node->location[0] = real_min[0] - center[0] - 200.0f;
 
   struct InputSocketInfo {
     /* The unselected node the original link came from. */
@@ -1124,8 +1123,8 @@ static void node_group_make_insert_selected(const bContext &C,
   /* move nodes in the group to the center */
   for (bNode *node : nodes_to_move) {
     if (!node->parent) {
-      node->locx -= center[0];
-      node->locy -= center[1];
+      node->location[0] -= center[0];
+      node->location[1] -= center[1];
     }
   }
 
@@ -1226,8 +1225,8 @@ static bNode *node_group_make_from_nodes(const bContext &C,
   bNode *gnode = bke::node_add_node(&C, &ntree, ntype);
   gnode->id = (ID *)ngroup;
 
-  gnode->locx = 0.5f * (min[0] + max[0]);
-  gnode->locy = 0.5f * (min[1] + max[1]);
+  gnode->location[0] = 0.5f * (min[0] + max[0]);
+  gnode->location[1] = 0.5f * (min[1] + max[1]);
 
   node_group_make_insert_selected(C, ntree, gnode, nodes_to_group);
 

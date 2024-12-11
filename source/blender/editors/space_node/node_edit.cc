@@ -603,10 +603,10 @@ void ED_node_shader_default(const bContext *C, ID *id)
                                   blender::bke::node_find_socket(output, SOCK_IN, "Surface"));
     }
 
-    shader->locx = 10.0f;
-    shader->locy = 300.0f;
-    output->locx = 300.0f;
-    output->locy = 300.0f;
+    shader->location[0] = 10.0f;
+    shader->location[1] = 300.0f;
+    output->location[0] = 300.0f;
+    output->location[1] = 300.0f;
     blender::bke::node_set_active(ntree, output);
     BKE_ntree_update_main_tree(bmain, ntree, nullptr);
   }
@@ -630,12 +630,12 @@ void ED_node_composit_default(const bContext *C, Scene *sce)
       nullptr, &sce->id, "Compositing Nodetree", ntreeType_Composite->idname);
 
   bNode *out = blender::bke::node_add_static_node(C, sce->nodetree, CMP_NODE_COMPOSITE);
-  out->locx = 200.0f;
-  out->locy = 200.0f;
+  out->location[0] = 200.0f;
+  out->location[1] = 200.0f;
 
   bNode *in = blender::bke::node_add_static_node(C, sce->nodetree, CMP_NODE_R_LAYERS);
-  in->locx = -200.0f;
-  in->locy = 200.0f;
+  in->location[0] = -200.0f;
+  in->location[1] = 200.0f;
   blender::bke::node_set_active(sce->nodetree, in);
 
   /* Links from color to color. */
@@ -659,12 +659,12 @@ void ED_node_texture_default(const bContext *C, Tex *tex)
       nullptr, &tex->id, "Texture Nodetree", ntreeType_Texture->idname);
 
   bNode *out = blender::bke::node_add_static_node(C, tex->nodetree, TEX_NODE_OUTPUT);
-  out->locx = 300.0f;
-  out->locy = 300.0f;
+  out->location[0] = 300.0f;
+  out->location[1] = 300.0f;
 
   bNode *in = blender::bke::node_add_static_node(C, tex->nodetree, TEX_NODE_CHECKER);
-  in->locx = 10.0f;
-  in->locy = 300.0f;
+  in->location[0] = 10.0f;
+  in->location[1] = 300.0f;
   blender::bke::node_set_active(tex->nodetree, in);
 
   bNodeSocket *fromsock = (bNodeSocket *)in->outputs.first;
@@ -915,7 +915,6 @@ static bool socket_is_occluded(const float2 &location,
 struct NodeSizeWidget {
   float mxstart, mystart;
   float oldlocx, oldlocy;
-  float oldoffsetx, oldoffsety;
   float oldwidth, oldheight;
   int directions;
 };
@@ -931,10 +930,8 @@ static void node_resize_init(
   nsw->mystart = cursor.y;
 
   /* store old */
-  nsw->oldlocx = node->locx;
-  nsw->oldlocy = node->locy;
-  nsw->oldoffsetx = node->offsetx;
-  nsw->oldoffsety = node->offsety;
+  nsw->oldlocx = node->location[0];
+  nsw->oldlocy = node->location[1];
   nsw->oldwidth = node->width;
   nsw->oldheight = node->height;
   nsw->directions = dir;
@@ -954,10 +951,8 @@ static void node_resize_exit(bContext *C, wmOperator *op, bool cancel)
     bNode *node = bke::node_get_active(snode->edittree);
     NodeSizeWidget *nsw = (NodeSizeWidget *)op->customdata;
 
-    node->locx = nsw->oldlocx;
-    node->locy = nsw->oldlocy;
-    node->offsetx = nsw->oldoffsetx;
-    node->offsety = nsw->oldoffsety;
+    node->location[0] = nsw->oldlocx;
+    node->location[1] = nsw->oldlocy;
     node->width = nsw->oldwidth;
     node->height = nsw->oldheight;
   }
@@ -1019,9 +1014,9 @@ static int node_resize_modal(bContext *C, wmOperator *op, const wmEvent *event)
             if (snap_to_grid) {
               dx = nearest_node_grid_coord(dx);
             }
-            node->locx = nsw->oldlocx + dx;
-            CLAMP(node->locx, locmax - widthmax, locmax - widthmin);
-            *pwidth = locmax - node->locx;
+            node->location[0] = nsw->oldlocx + dx;
+            CLAMP(node->location[0], locmax - widthmax, locmax - widthmin);
+            *pwidth = locmax - node->location[0];
           }
         }
 
@@ -1032,33 +1027,13 @@ static int node_resize_modal(bContext *C, wmOperator *op, const wmEvent *event)
           if (nsw->directions & NODE_RESIZE_TOP) {
             float locmin = nsw->oldlocy - nsw->oldheight;
 
-            node->locy = nsw->oldlocy + dy;
-            CLAMP(node->locy, locmin + heightmin, locmin + heightmax);
-            node->height = node->locy - locmin;
+            node->location[1] = nsw->oldlocy + dy;
+            CLAMP(node->location[1], locmin + heightmin, locmin + heightmax);
+            node->height = node->location[1] - locmin;
           }
           if (nsw->directions & NODE_RESIZE_BOTTOM) {
             node->height = nsw->oldheight - dy;
             CLAMP(node->height, heightmin, heightmax);
-          }
-        }
-
-        if (node->type == NODE_FRAME) {
-          /* Keep the offset symmetric around center point. */
-          if (nsw->directions & NODE_RESIZE_LEFT) {
-            node->locx = nsw->oldlocx + 0.5f * dx;
-            node->offsetx = nsw->oldoffsetx + 0.5f * dx;
-          }
-          if (nsw->directions & NODE_RESIZE_RIGHT) {
-            node->locx = nsw->oldlocx + 0.5f * dx;
-            node->offsetx = nsw->oldoffsetx - 0.5f * dx;
-          }
-          if (nsw->directions & NODE_RESIZE_TOP) {
-            node->locy = nsw->oldlocy + 0.5f * dy;
-            node->offsety = nsw->oldoffsety + 0.5f * dy;
-          }
-          if (nsw->directions & NODE_RESIZE_BOTTOM) {
-            node->locy = nsw->oldlocy + 0.5f * dy;
-            node->offsety = nsw->oldoffsety - 0.5f * dy;
           }
         }
       }
@@ -1207,7 +1182,7 @@ static bool cursor_isect_multi_input_socket(const float2 &cursor, const bNodeSoc
 {
   const float node_socket_height = node_socket_calculate_height(socket);
   const float2 location = socket.runtime->location;
-  /* `.xmax = socket->locx + NODE_SOCKSIZE * 5.5f`
+  /* `.xmax = socket->location[0] + NODE_SOCKSIZE * 5.5f`
    * would be the same behavior as for regular sockets.
    * But keep it smaller because for multi-input socket you
    * sometimes want to drag the link to the other side, if you may

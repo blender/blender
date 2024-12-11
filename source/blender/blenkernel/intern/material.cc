@@ -1999,10 +1999,10 @@ static void material_default_surface_init(Material *ma)
                               output,
                               blender::bke::node_find_socket(output, SOCK_IN, "Surface"));
 
-  principled->locx = 10.0f;
-  principled->locy = 300.0f;
-  output->locx = 300.0f;
-  output->locy = 300.0f;
+  principled->location[0] = 10.0f;
+  principled->location[1] = 300.0f;
+  output->location[0] = 300.0f;
+  output->location[1] = 300.0f;
 
   blender::bke::node_set_active(ntree, output);
 }
@@ -2025,10 +2025,10 @@ static void material_default_volume_init(Material *ma)
                               output,
                               blender::bke::node_find_socket(output, SOCK_IN, "Volume"));
 
-  principled->locx = 10.0f;
-  principled->locy = 300.0f;
-  output->locx = 300.0f;
-  output->locy = 300.0f;
+  principled->location[0] = 10.0f;
+  principled->location[1] = 300.0f;
+  output->location[0] = 300.0f;
+  output->location[1] = 300.0f;
 
   blender::bke::node_set_active(ntree, output);
 }
@@ -2050,10 +2050,10 @@ static void material_default_holdout_init(Material *ma)
                               output,
                               blender::bke::node_find_socket(output, SOCK_IN, "Surface"));
 
-  holdout->locx = 10.0f;
-  holdout->locy = 300.0f;
-  output->locx = 300.0f;
-  output->locy = 300.0f;
+  holdout->location[0] = 10.0f;
+  holdout->location[1] = 300.0f;
+  output->location[0] = 300.0f;
+  output->location[1] = 300.0f;
 
   blender::bke::node_set_active(ntree, output);
 }

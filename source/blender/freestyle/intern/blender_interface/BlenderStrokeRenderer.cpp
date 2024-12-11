@@ -235,60 +235,60 @@ Material *BlenderStrokeRenderer::GetStrokeShader(Main *bmain,
   ma->blend_method = MA_BM_HASHED;
 
   bNode *input_attr_color = blender::bke::node_add_static_node(nullptr, ntree, SH_NODE_ATTRIBUTE);
-  input_attr_color->locx = 0.0f;
-  input_attr_color->locy = -200.0f;
+  input_attr_color->location[0] = 0.0f;
+  input_attr_color->location[1] = -200.0f;
   storage = (NodeShaderAttribute *)input_attr_color->storage;
   STRNCPY(storage->name, "Color");
 
   bNode *mix_rgb_color = blender::bke::node_add_static_node(
       nullptr, ntree, SH_NODE_MIX_RGB_LEGACY);
   mix_rgb_color->custom1 = MA_RAMP_BLEND;  // Mix
-  mix_rgb_color->locx = 200.0f;
-  mix_rgb_color->locy = -200.0f;
+  mix_rgb_color->location[0] = 200.0f;
+  mix_rgb_color->location[1] = -200.0f;
   tosock = (bNodeSocket *)BLI_findlink(&mix_rgb_color->inputs, 0);  // Fac
   toptr = RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, tosock);
   RNA_float_set(&toptr, "default_value", 0.0f);
 
   bNode *input_attr_alpha = blender::bke::node_add_static_node(nullptr, ntree, SH_NODE_ATTRIBUTE);
-  input_attr_alpha->locx = 400.0f;
-  input_attr_alpha->locy = 300.0f;
+  input_attr_alpha->location[0] = 400.0f;
+  input_attr_alpha->location[1] = 300.0f;
   storage = (NodeShaderAttribute *)input_attr_alpha->storage;
   STRNCPY(storage->name, "Alpha");
 
   bNode *mix_rgb_alpha = blender::bke::node_add_static_node(
       nullptr, ntree, SH_NODE_MIX_RGB_LEGACY);
   mix_rgb_alpha->custom1 = MA_RAMP_BLEND;  // Mix
-  mix_rgb_alpha->locx = 600.0f;
-  mix_rgb_alpha->locy = 300.0f;
+  mix_rgb_alpha->location[0] = 600.0f;
+  mix_rgb_alpha->location[1] = 300.0f;
   tosock = (bNodeSocket *)BLI_findlink(&mix_rgb_alpha->inputs, 0);  // Fac
   toptr = RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, tosock);
   RNA_float_set(&toptr, "default_value", 0.0f);
 
   bNode *shader_emission = blender::bke::node_add_static_node(nullptr, ntree, SH_NODE_EMISSION);
-  shader_emission->locx = 400.0f;
-  shader_emission->locy = -200.0f;
+  shader_emission->location[0] = 400.0f;
+  shader_emission->location[1] = -200.0f;
 
   bNode *input_light_path = blender::bke::node_add_static_node(nullptr, ntree, SH_NODE_LIGHT_PATH);
-  input_light_path->locx = 400.0f;
-  input_light_path->locy = 100.0f;
+  input_light_path->location[0] = 400.0f;
+  input_light_path->location[1] = 100.0f;
 
   bNode *mix_shader_color = blender::bke::node_add_static_node(nullptr, ntree, SH_NODE_MIX_SHADER);
-  mix_shader_color->locx = 600.0f;
-  mix_shader_color->locy = -100.0f;
+  mix_shader_color->location[0] = 600.0f;
+  mix_shader_color->location[1] = -100.0f;
 
   bNode *shader_transparent = blender::bke::node_add_static_node(
       nullptr, ntree, SH_NODE_BSDF_TRANSPARENT);
-  shader_transparent->locx = 600.0f;
-  shader_transparent->locy = 100.0f;
+  shader_transparent->location[0] = 600.0f;
+  shader_transparent->location[1] = 100.0f;
 
   bNode *mix_shader_alpha = blender::bke::node_add_static_node(nullptr, ntree, SH_NODE_MIX_SHADER);
-  mix_shader_alpha->locx = 800.0f;
-  mix_shader_alpha->locy = 100.0f;
+  mix_shader_alpha->location[0] = 800.0f;
+  mix_shader_alpha->location[1] = 100.0f;
 
   bNode *output_material = blender::bke::node_add_static_node(
       nullptr, ntree, SH_NODE_OUTPUT_MATERIAL);
-  output_material->locx = 1000.0f;
-  output_material->locy = 100.0f;
+  output_material->location[0] = 1000.0f;
+  output_material->location[1] = 100.0f;
 
   fromsock = (bNodeSocket *)BLI_findlink(&input_attr_color->outputs, 0);  // Color
   tosock = (bNodeSocket *)BLI_findlink(&mix_rgb_color->inputs, 1);        // Color1
@@ -393,8 +393,8 @@ Material *BlenderStrokeRenderer::GetStrokeShader(Main *bmain,
 
         // add new UV Map node
         bNode *input_uvmap = blender::bke::node_add_static_node(nullptr, ntree, SH_NODE_UVMAP);
-        input_uvmap->locx = node->locx - 200.0f;
-        input_uvmap->locy = node->locy;
+        input_uvmap->location[0] = node->location[0] - 200.0f;
+        input_uvmap->location[1] = node->location[1];
         NodeShaderUVMap *storage = (NodeShaderUVMap *)input_uvmap->storage;
         if (node->custom1 & 1) {  // use_tips
           STRNCPY(storage->uv_map, uvNames[1]);

@@ -136,8 +136,8 @@ static bNode *add_node(
   bNode *new_node = blender::bke::node_add_static_node(C, ntree, type);
 
   if (new_node) {
-    new_node->locx = locx;
-    new_node->locy = locy;
+    new_node->location[0] = locx;
+    new_node->location[1] = locy;
   }
 
   return new_node;

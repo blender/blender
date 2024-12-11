@@ -169,40 +169,40 @@ void USDPointInstancerReader::read_object_data(Main *bmain, const double motionS
   ntree->tree_interface.add_socket(
       "Geometry", "", "NodeSocketGeometry", NODE_INTERFACE_SOCKET_INPUT, nullptr);
   bNode *group_input = bke::node_add_static_node(nullptr, ntree, NODE_GROUP_INPUT);
-  group_input->locx = -400.0f;
+  group_input->location[0] = -400.0f;
   bNode *group_output = bke::node_add_static_node(nullptr, ntree, NODE_GROUP_OUTPUT);
-  group_output->locx = 500.0f;
+  group_output->location[0] = 500.0f;
   group_output->flag |= NODE_DO_OUTPUT;
 
   bNode *instance_on_points_node = bke::node_add_static_node(
       nullptr, ntree, GEO_NODE_INSTANCE_ON_POINTS);
-  instance_on_points_node->locx = 300.0f;
+  instance_on_points_node->location[0] = 300.0f;
   bNodeSocket *socket = bke::node_find_socket(instance_on_points_node, SOCK_IN, "Pick Instance");
   socket->default_value_typed<bNodeSocketValueBoolean>()->value = true;
 
   bNode *mask_attrib_node = add_input_named_attrib_node(ntree, "mask", CD_PROP_BOOL);
-  mask_attrib_node->locx = 100.0f;
-  mask_attrib_node->locy = -100.0f;
+  mask_attrib_node->location[0] = 100.0f;
+  mask_attrib_node->location[1] = -100.0f;
 
   bNode *collection_info_node = bke::node_add_static_node(
       nullptr, ntree, GEO_NODE_COLLECTION_INFO);
-  collection_info_node->locx = 100.0f;
-  collection_info_node->locy = -300.0f;
+  collection_info_node->location[0] = 100.0f;
+  collection_info_node->location[1] = -300.0f;
   socket = bke::node_find_socket(collection_info_node, SOCK_IN, "Separate Children");
   socket->default_value_typed<bNodeSocketValueBoolean>()->value = true;
 
   bNode *indices_attrib_node = add_input_named_attrib_node(ntree, "proto_index", CD_PROP_INT32);
-  indices_attrib_node->locx = 100.0f;
-  indices_attrib_node->locy = -500.0f;
+  indices_attrib_node->location[0] = 100.0f;
+  indices_attrib_node->location[1] = -500.0f;
 
   bNode *rotation_attrib_node = add_input_named_attrib_node(
       ntree, "orientation", CD_PROP_QUATERNION);
-  rotation_attrib_node->locx = 100.0f;
-  rotation_attrib_node->locy = -700.0f;
+  rotation_attrib_node->location[0] = 100.0f;
+  rotation_attrib_node->location[1] = -700.0f;
 
   bNode *scale_attrib_node = add_input_named_attrib_node(ntree, "scale", CD_PROP_FLOAT3);
-  scale_attrib_node->locx = 100.0f;
-  scale_attrib_node->locy = -900.0f;
+  scale_attrib_node->location[0] = 100.0f;
+  scale_attrib_node->location[1] = -900.0f;
 
   bke::node_add_link(ntree,
                      group_input,

@@ -110,8 +110,8 @@ bNode *MaterialNode::add_node(int node_type, int locx, int locy, std::string lab
     if (label.length() > 0) {
       STRNCPY(node->label, label.c_str());
     }
-    node->locx = locx;
-    node->locy = locy;
+    node->location[0] = locx;
+    node->location[1] = locy;
     node->flag |= NODE_SELECT;
   }
   node_map[label] = node;

@@ -334,7 +334,7 @@ static void snode_autoconnect(SpaceNode &snode, const bool allow_multiple, const
 
   /* Sort nodes left to right. */
   std::sort(sorted_nodes.begin(), sorted_nodes.end(), [](const bNode *a, const bNode *b) {
-    return a->locx < b->locx;
+    return a->location[0] < b->location[0];
   });
 
   // int numlinks = 0; /* UNUSED */
@@ -705,7 +705,7 @@ static void position_viewer_node(bNodeTree &tree,
     new_viewer_position = main_candidate;
   }
 
-  const float2 old_position = float2(viewer_node.locx, viewer_node.locy) * UI_SCALE_FAC;
+  const float2 old_position = float2(viewer_node.location) * UI_SCALE_FAC;
   if (old_position.x > node_to_view.runtime->totr.xmax) {
     if (BLI_rctf_inside_rctf(&region_bounds, &viewer_node.runtime->totr)) {
       /* Measure distance from right edge of the node to view and the left edge of the
@@ -728,8 +728,8 @@ static void position_viewer_node(bNodeTree &tree,
     }
   }
 
-  viewer_node.locx = new_viewer_position->x / UI_SCALE_FAC;
-  viewer_node.locy = new_viewer_position->y / UI_SCALE_FAC;
+  viewer_node.location[0] = new_viewer_position->x / UI_SCALE_FAC;
+  viewer_node.location[1] = new_viewer_position->y / UI_SCALE_FAC;
   viewer_node.parent = nullptr;
 }
 
@@ -2818,7 +2818,7 @@ static int node_insert_offset_modal(bContext *C, wmOperator *op, const wmEvent *
                                        clamped_duration, 0.0f, 1.0f, NODE_INSOFS_ANIM_DURATION) -
                                    BLI_easing_cubic_ease_in_out(
                                        prev_duration, 0.0f, 1.0f, NODE_INSOFS_ANIM_DURATION));
-        node->locx += offset_step;
+        node->location[0] += offset_step;
         redraw = true;
       }
     }

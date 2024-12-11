@@ -2142,19 +2142,19 @@ static bNodeTree *add_auto_smooth_node_tree(Main &bmain, Library *owner_library)
   angle_data.subtype = PROP_ANGLE;
 
   bNode *group_output = node_add_node(nullptr, group, "NodeGroupOutput");
-  group_output->locx = 480.0f;
-  group_output->locy = -100.0f;
+  group_output->location[0] = 480.0f;
+  group_output->location[1] = -100.0f;
   bNode *group_input_angle = node_add_node(nullptr, group, "NodeGroupInput");
-  group_input_angle->locx = -420.0f;
-  group_input_angle->locy = -300.0f;
+  group_input_angle->location[0] = -420.0f;
+  group_input_angle->location[1] = -300.0f;
   LISTBASE_FOREACH (bNodeSocket *, socket, &group_input_angle->outputs) {
     if (!STREQ(socket->identifier, "Socket_2")) {
       socket->flag |= SOCK_HIDDEN;
     }
   }
   bNode *group_input_mesh = node_add_node(nullptr, group, "NodeGroupInput");
-  group_input_mesh->locx = -60.0f;
-  group_input_mesh->locy = -100.0f;
+  group_input_mesh->location[0] = -60.0f;
+  group_input_mesh->location[1] = -100.0f;
   LISTBASE_FOREACH (bNodeSocket *, socket, &group_input_mesh->outputs) {
     if (!STREQ(socket->identifier, "Socket_1")) {
       socket->flag |= SOCK_HIDDEN;
@@ -2162,30 +2162,30 @@ static bNodeTree *add_auto_smooth_node_tree(Main &bmain, Library *owner_library)
   }
   bNode *shade_smooth_edge = node_add_node(nullptr, group, "GeometryNodeSetShadeSmooth");
   shade_smooth_edge->custom1 = int16_t(bke::AttrDomain::Edge);
-  shade_smooth_edge->locx = 120.0f;
-  shade_smooth_edge->locy = -100.0f;
+  shade_smooth_edge->location[0] = 120.0f;
+  shade_smooth_edge->location[1] = -100.0f;
   bNode *shade_smooth_face = node_add_node(nullptr, group, "GeometryNodeSetShadeSmooth");
   shade_smooth_face->custom1 = int16_t(bke::AttrDomain::Face);
-  shade_smooth_face->locx = 300.0f;
-  shade_smooth_face->locy = -100.0f;
+  shade_smooth_face->location[0] = 300.0f;
+  shade_smooth_face->location[1] = -100.0f;
   bNode *edge_angle = node_add_node(nullptr, group, "GeometryNodeInputMeshEdgeAngle");
-  edge_angle->locx = -420.0f;
-  edge_angle->locy = -220.0f;
+  edge_angle->location[0] = -420.0f;
+  edge_angle->location[1] = -220.0f;
   bNode *edge_smooth = node_add_node(nullptr, group, "GeometryNodeInputEdgeSmooth");
-  edge_smooth->locx = -60.0f;
-  edge_smooth->locy = -160.0f;
+  edge_smooth->location[0] = -60.0f;
+  edge_smooth->location[1] = -160.0f;
   bNode *face_smooth = node_add_node(nullptr, group, "GeometryNodeInputShadeSmooth");
-  face_smooth->locx = -240.0f;
-  face_smooth->locy = -340.0f;
+  face_smooth->location[0] = -240.0f;
+  face_smooth->location[1] = -340.0f;
   bNode *boolean_and = node_add_node(nullptr, group, "FunctionNodeBooleanMath");
   boolean_and->custom1 = NODE_BOOLEAN_MATH_AND;
-  boolean_and->locx = -60.0f;
-  boolean_and->locy = -220.0f;
+  boolean_and->location[0] = -60.0f;
+  boolean_and->location[1] = -220.0f;
   bNode *less_than_or_equal = node_add_node(nullptr, group, "FunctionNodeCompare");
   static_cast<NodeFunctionCompare *>(less_than_or_equal->storage)->operation =
       NODE_COMPARE_LESS_EQUAL;
-  less_than_or_equal->locx = -240.0f;
-  less_than_or_equal->locy = -180.0f;
+  less_than_or_equal->location[0] = -240.0f;
+  less_than_or_equal->location[1] = -180.0f;
 
   node_add_link(group,
                 edge_angle,
