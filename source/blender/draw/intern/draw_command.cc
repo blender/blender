@@ -339,6 +339,18 @@ void StateSet::set(DRWState state)
 {
   RecordingState recording_state;
   StateSet{state, 0}.execute(recording_state);
+
+  /* This function is used for cleaning the state for the viewport drawing.
+   * Make sure to reset textures resources to avoid feedback loop when rendering (see #131652). */
+  GPU_texture_unbind_all();
+  GPU_texture_image_unbind_all();
+  GPU_uniformbuf_debug_unbind_all();
+  GPU_storagebuf_debug_unbind_all();
+
+  /* Remained of legacy draw manager. Kept it to avoid regression, but might become uneeded. */
+  GPU_point_size(5);
+  GPU_line_smooth(false);
+  GPU_line_width(0.0f);
 }
 
 void StencilSet::execute() const
