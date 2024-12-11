@@ -227,30 +227,29 @@ static PyObject *pygpu_batch_program_set(BPyGPUBatch *self, BPyGPUShader *py_sha
 PyDoc_STRVAR(
     /* Wrap. */
     pygpu_batch_draw_doc,
-    ".. method:: draw(program=None)\n"
+    ".. method:: draw(shader=None)\n"
     "\n"
-    "   Run the drawing program with the parameters assigned to the batch.\n"
+    "   Run the drawing shader with the parameters assigned to the batch.\n"
     "\n"
-    "   :arg program: Program that performs the drawing operations.\n"
-    "      If ``None`` is passed, the last program set to this batch will run.\n"
+    "   :arg shader: Shader that performs the drawing operations.\n"
+    "      If ``None`` is passed, the last shader set to this batch will run.\n"
     "   :type program: :class:`gpu.types.GPUShader`\n");
 static PyObject *pygpu_batch_draw(BPyGPUBatch *self, PyObject *args)
 {
   static bool deprecation_warning_issued = false;
 
-  BPyGPUShader *py_program = nullptr;
+  BPyGPUShader *py_shader = nullptr;
 
-  if (!PyArg_ParseTuple(args, "|O!:GPUBatch.draw", &BPyGPUShader_Type, &py_program)) {
+  if (!PyArg_ParseTuple(args, "|O!:GPUBatch.draw", &BPyGPUShader_Type, &py_shader)) {
     return nullptr;
   }
-  if (py_program == nullptr) {
-
+  if (py_shader == nullptr) {
     if (!deprecation_warning_issued) {
       /* Deprecation warning raised when calling gpu.types.GPUBatch.draw without a valid GPUShader.
        */
       PyErr_WarnEx(PyExc_DeprecationWarning,
-                   "Calling GPUBatch.draw without specifying a program is deprecated. "
-                   "Please provide a valid GPUShader as the 'program' parameter.",
+                   "Calling GPUBatch.draw without specifying a shader is deprecated. "
+                   "Please provide a valid GPUShader as the 'shader' parameter.",
                    1);
       deprecation_warning_issued = true;
     }
@@ -259,8 +258,8 @@ static PyObject *pygpu_batch_draw(BPyGPUBatch *self, PyObject *args)
       return nullptr;
     }
   }
-  else if (self->batch->shader != py_program->shader) {
-    GPU_batch_set_shader(self->batch, py_program->shader);
+  else if (self->batch->shader != py_shader->shader) {
+    GPU_batch_set_shader(self->batch, py_shader->shader);
   }
 
   GPU_batch_draw(self->batch);
