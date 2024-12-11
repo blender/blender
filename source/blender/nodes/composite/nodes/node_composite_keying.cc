@@ -122,6 +122,9 @@ class KeyingOperation : public NodeOperation {
         feathered_matte.release();
       }
     }
+    else {
+      tweaked_matte.release();
+    }
   }
 
   Result compute_blurred_input()
