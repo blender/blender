@@ -217,7 +217,7 @@ def align_uv_rotation_island(bm, uv_layer, faces, method, axis, aspect_y):
     return True
 
 
-def align_uv_rotation_bmesh(mesh, bm, method, axis, aspect_y):
+def align_uv_rotation_bmesh(bm, method, axis, aspect_y):
     import bpy_extras.bmesh_utils
 
     uv_layer = bm.loops.layers.uv.active
@@ -260,7 +260,7 @@ def align_uv_rotation(context, method, axis, correct_aspect):
     for ob in ob_list:
         bm = bmesh.from_edit_mesh(ob.data)
         if bm.loops.layers.uv:
-            if align_uv_rotation_bmesh(ob.data, bm, method, axis, aspect_y):
+            if align_uv_rotation_bmesh(bm, method, axis, aspect_y):
                 bmesh.update_edit_mesh(ob.data)
 
     return {'FINISHED'}

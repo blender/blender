@@ -31,7 +31,7 @@ class _TempModuleOverride:
         self.module = sys.modules.get(self.module_name)
         sys.modules[self.module_name] = self.module_override
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, _type, _value, _traceback):
         if self.module is None:
             # Account for removal of `module_override` (albeit unlikely).
             sys.modules.pop(self.module_name, None)

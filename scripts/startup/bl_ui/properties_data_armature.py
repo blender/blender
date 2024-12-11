@@ -379,7 +379,7 @@ class POSE_PT_selection_sets(Panel):
 
 
 class POSE_UL_selection_set(UIList):
-    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
+    def draw_item(self, _context, layout, _data, item, icon, _active_data, _active_propname, _index):
         row = layout.row()
         row.prop(item, "name", text="", emboss=False)
         if self.layout_type in ('DEFAULT', 'COMPACT'):
@@ -389,7 +389,7 @@ class POSE_UL_selection_set(UIList):
 class POSE_MT_selection_set_create(Menu):
     bl_label = "Choose Selection Set"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
         layout.operator("pose.selection_set_add_and_assign",
                         text="New Selection Set")

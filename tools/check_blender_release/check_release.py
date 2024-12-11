@@ -15,6 +15,9 @@ from check_utils import sliceCommandLineArguments
 
 
 def load_tests(loader, standard_tests, pattern):
+    # Unused.
+    del pattern
+
     standard_tests.addTests(loader.loadTestsFromTestCase(
         check_module_enabled.UnitTesting))
     standard_tests.addTests(loader.loadTestsFromTestCase(

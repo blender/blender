@@ -174,7 +174,7 @@ def is_ignore_dna_name(name):
         return False
 
 
-def write_member(fw, indent, b, theme, ls):
+def write_member(fw, indent, _blend, _theme, ls):
     path_old = ()
 
     for key, value in ls:

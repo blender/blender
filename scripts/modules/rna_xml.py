@@ -350,7 +350,7 @@ def xml2rna(
                         # print(elems)
                         if len(elems) == 1:
                             # sub node named by its type
-                            child_xml_real, = elems
+                            child_xml_real = elems[0]
 
                             # print(child_xml_real, subvalue)
                             xml2rna_node(child_xml_real, subvalue)

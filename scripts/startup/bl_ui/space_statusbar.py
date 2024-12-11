@@ -8,7 +8,7 @@ from bpy.types import Header
 class STATUSBAR_HT_header(Header):
     bl_space_type = 'STATUSBAR'
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
 
         # input status

@@ -292,7 +292,7 @@ class App:
 def main() -> int:
     root = Tk()
 
-    app = App(root)
+    _app = App(root)
     root.title("Cursor Maker")
 
     root.mainloop()

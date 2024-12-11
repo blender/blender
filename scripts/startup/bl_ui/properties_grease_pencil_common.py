@@ -785,7 +785,7 @@ class GREASE_PENCIL_MT_draw_delete(Menu):
 class GREASE_PENCIL_MT_stroke_simplify(Menu):
     bl_label = "Simplify Stroke"
 
-    def draw(self, context):
+    def draw(self, _context):
         layout = self.layout
         layout.operator("grease_pencil.stroke_simplify", text="Fixed").mode = 'FIXED'
         layout.operator("grease_pencil.stroke_simplify", text="Adaptive").mode = 'ADAPTIVE'

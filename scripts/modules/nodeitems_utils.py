@@ -99,7 +99,7 @@ _node_categories = {}
 def register_node_categories(identifier, cat_list):
     if identifier in _node_categories:
         raise KeyError("Node categories list '{:s}' already registered".format(identifier))
-        return
+        # return
 
     # works as draw function for menus
     def draw_node_item(self, context):

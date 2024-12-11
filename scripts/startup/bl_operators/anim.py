@@ -392,7 +392,7 @@ class UpdateAnimatedTransformConstraint(Operator):
         to_paths = {"to_max_x", "to_max_y", "to_max_z", "to_min_x", "to_min_y", "to_min_z"}
         paths = from_paths | to_paths
 
-        def update_cb(base, class_name, old_path, fcurve, options):
+        def update_cb(base, _class_name, old_path, fcurve, options):
             # print(options)
 
             def handle_deg2rad(fcurve):

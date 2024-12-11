@@ -294,7 +294,7 @@ class AddModifierMenu(Operator):
             return False
         return space and space.type == 'PROPERTIES' and space.context == 'MODIFIER'
 
-    def invoke(self, context, event):
+    def invoke(self, _context, _event):
         return bpy.ops.wm.call_menu(name="OBJECT_MT_modifier_add")
 
 
