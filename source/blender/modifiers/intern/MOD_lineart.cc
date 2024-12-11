@@ -687,12 +687,12 @@ static void bake_panel_draw(const bContext * /*C*/, Panel *panel)
 
   uiLayout *col = uiLayoutColumn(layout, false);
   uiLayoutSetEnabled(col, !is_baked);
-  uiItemO(col, nullptr, ICON_NONE, "OBJECT_OT_lineart_bake_strokes");
+  uiItemO(col, std::nullopt, ICON_NONE, "OBJECT_OT_lineart_bake_strokes");
   uiItemBooleanO(
       col, IFACE_("Bake All"), ICON_NONE, "OBJECT_OT_lineart_bake_strokes", "bake_all", true);
 
   col = uiLayoutColumn(layout, false);
-  uiItemO(col, nullptr, ICON_NONE, "OBJECT_OT_lineart_clear");
+  uiItemO(col, std::nullopt, ICON_NONE, "OBJECT_OT_lineart_clear");
   uiItemBooleanO(
       col, IFACE_("Clear All"), ICON_NONE, "OBJECT_OT_lineart_clear", "clear_all", true);
 }

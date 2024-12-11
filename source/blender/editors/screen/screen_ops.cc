@@ -5072,9 +5072,9 @@ static void screen_area_menu_items(ScrArea *area, uiLayout *layout)
     RNA_boolean_set(&ptr, "use_hide_panels", true);
   }
 
-  uiItemO(layout, nullptr, ICON_NONE, "SCREEN_OT_area_dupli");
+  uiItemO(layout, std::nullopt, ICON_NONE, "SCREEN_OT_area_dupli");
   uiItemS(layout);
-  uiItemO(layout, nullptr, ICON_X, "SCREEN_OT_area_close");
+  uiItemO(layout, std::nullopt, ICON_X, "SCREEN_OT_area_close");
 }
 
 void ED_screens_header_tools_menu_create(bContext *C, uiLayout *layout, void * /*arg*/)

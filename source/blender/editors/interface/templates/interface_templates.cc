@@ -3150,7 +3150,7 @@ void uiTemplateCollectionExporters(uiLayout *layout, bContext *C)
   uiItemIntO(col, "", ICON_REMOVE, "COLLECTION_OT_exporter_remove", "index", index);
 
   col = uiLayoutColumn(layout, true);
-  uiItemO(col, nullptr, ICON_EXPORT, "COLLECTION_OT_export_all");
+  uiItemO(col, std::nullopt, ICON_EXPORT, "COLLECTION_OT_export_all");
   uiLayoutSetEnabled(col, !BLI_listbase_is_empty(exporters));
 
   /* Draw the active exporter. */

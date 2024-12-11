@@ -2032,7 +2032,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
 
   row = uiLayoutRow(layout, false);
   uiItemO(row, IFACE_("Create Armature"), ICON_NONE, "OBJECT_OT_skin_armature_create");
-  uiItemO(row, nullptr, ICON_NONE, "MESH_OT_customdata_skin_add");
+  uiItemO(row, std::nullopt, ICON_NONE, "MESH_OT_customdata_skin_add");
 
   row = uiLayoutRow(layout, false);
   uiItemFullO(row,
