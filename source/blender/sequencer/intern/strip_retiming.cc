@@ -164,6 +164,10 @@ bool SEQ_retiming_data_is_editable(const Sequence *seq)
 
 bool SEQ_retiming_is_allowed(const Sequence *seq)
 {
+  if (seq->len < 2) {
+    return false;
+  }
+
   return ELEM(seq->type,
               SEQ_TYPE_SOUND_RAM,
               SEQ_TYPE_IMAGE,
@@ -306,6 +310,9 @@ float seq_retiming_evaluate(const Sequence *seq, const float frame_index)
 
 static SeqRetimingKey *seq_retiming_add_key(Sequence *seq, float frame_index)
 {
+  if (!SEQ_retiming_is_allowed(seq)) {
+    return nullptr;
+  }
   /* Clamp timeline frame to strip content range. */
   if (frame_index <= 0) {
     return &seq->retiming_keys[0];
