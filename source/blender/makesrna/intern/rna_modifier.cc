@@ -1395,6 +1395,9 @@ static void rna_BevelModifier_weight_attribute_visit_for_search(
     blender::FunctionRef<void(StringPropertySearchVisitParams)> visit_fn)
 {
   Object *ob = (Object *)ptr->owner_id;
+  if (ob->type != OB_MESH) {
+    return;
+  }
   PointerRNA mesh_ptr = RNA_id_pointer_create(static_cast<ID *>(ob->data));
   PropertyRNA *attributes_prop = RNA_struct_find_property(&mesh_ptr, "attributes");
   RNA_PROP_BEGIN (&mesh_ptr, itemptr, attributes_prop) {
