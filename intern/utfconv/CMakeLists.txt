@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 set(INC
-  .
+  PUBLIC .
 )
 
 set(INC_SYS
@@ -30,3 +30,4 @@ if(WIN32)
 endif()
 
 blender_add_lib(bf_intern_utfconv "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+add_library(bf::intern::utfconv ALIAS bf_intern_utfconv)

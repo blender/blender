@@ -27,7 +27,7 @@
 #include "ED_fileselect.hh"
 
 #ifdef WIN32
-#  include "BLI_string_utf8.h" /* For `BLI_strncpy_wchar_as_utf8`. */
+#  include "utfconv.hh"
 
 /* Need to include windows.h so _WIN32_IE is defined. */
 #  include <windows.h>
@@ -211,7 +211,7 @@ static void fsmenu_add_windows_quick_access(FSMenu *fsmenu,
     }
 
     char utf_path[FILE_MAXDIR];
-    BLI_strncpy_wchar_as_utf8(utf_path, path, FILE_MAXDIR);
+    conv_utf_16_to_8(path, utf_path, FILE_MAXDIR);
 
     /* Skip library folders since they are not currently supported. */
     if (!BLI_strcasestr(utf_path, ".library-ms")) {
@@ -232,7 +232,7 @@ static void fsmenu_add_windows_folder(FSMenu *fsmenu,
   LPWSTR pPath;
   char line[FILE_MAXDIR];
   if (SHGetKnownFolderPath(rfid, 0, nullptr, &pPath) == S_OK) {
-    BLI_strncpy_wchar_as_utf8(line, pPath, FILE_MAXDIR);
+    conv_utf_16_to_8(pPath, line, FILE_MAXDIR);
     fsmenu_insert_entry(fsmenu, category, line, name, icon, flag);
   }
   CoTaskMemFree(pPath);
@@ -262,7 +262,7 @@ void fsmenu_read_system(FSMenu *fsmenu, int read_bookmarks)
         /* Skip over floppy disks A & B. */
         if (i > 1) {
           /* Friendly volume descriptions without using SHGetFileInfoW (#85689). */
-          BLI_strncpy_wchar_from_utf8(wline, tmps, 4);
+          conv_utf_8_to_16(tmps, wline, 4);
           IShellFolder *desktop;
           if (SHGetDesktopFolder(&desktop) == S_OK) {
             PIDLIST_RELATIVE volume;
@@ -274,7 +274,7 @@ void fsmenu_read_system(FSMenu *fsmenu, int read_bookmarks)
               if (desktop->GetDisplayNameOf(volume, SHGDN_FORADDRESSBAR, &volume_name) == S_OK) {
                 wchar_t *volume_name_wchar;
                 if (StrRetToStrW(&volume_name, volume, &volume_name_wchar) == S_OK) {
-                  BLI_strncpy_wchar_as_utf8(line, volume_name_wchar, FILE_MAXDIR);
+                  conv_utf_16_to_8(volume_name_wchar, line, FILE_MAXDIR);
                   name = line;
                   CoTaskMemFree(volume_name_wchar);
                 }
