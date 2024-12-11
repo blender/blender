@@ -93,4 +93,11 @@ void PixelOperation::compute_results_reference_counts(const Schedule &schedule)
   }
 }
 
+void PixelOperation::release_inputs()
+{
+  for (const auto item : inputs_to_reference_counts_map_.items()) {
+    this->get_input(item.key).release(item.value);
+  }
+}
+
 }  // namespace blender::realtime_compositor

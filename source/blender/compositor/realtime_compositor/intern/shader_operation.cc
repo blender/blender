@@ -189,6 +189,9 @@ void ShaderOperation::link_node_input_external(DInputSocket input_socket,
     input_descriptor.domain_priority = math::min(
         input_descriptor.domain_priority,
         input_descriptor_from_input_socket(input_socket.bsocket()).domain_priority);
+
+    /* Increment the input's reference count. */
+    inputs_to_reference_counts_map_.lookup(input_identifier)++;
   }
 
   /* Link the attribute representing the shader operation input corresponding to the given output
@@ -244,6 +247,10 @@ void ShaderOperation::declare_operation_input(DInputSocket input_socket,
 
   /* Map the output socket to the identifier of the operation input that was declared for it. */
   outputs_to_declared_inputs_map_.add_new(output_socket, input_identifier);
+
+  /* Map the identifier of the operation input to a reference count of 1, this will later be
+   * incremented if that same output was referenced again. */
+  inputs_to_reference_counts_map_.add_new(input_identifier, 1);
 }
 
 void ShaderOperation::populate_results_for_node(DNode node)

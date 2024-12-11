@@ -627,17 +627,19 @@ void Result::increment_reference_count(int count)
   reference_count_ += count;
 }
 
-void Result::release()
+void Result::release(const int count)
 {
+  BLI_assert(count > 0);
+
   /* If there is a master result, release it instead. */
   if (master_) {
-    master_->release();
+    master_->release(count);
     return;
   }
 
-  /* Decrement the reference count, and if it reaches zero, release the texture back into the
-   * texture pool. */
-  reference_count_--;
+  /* Decrement the reference count, and if it is not yet zero, return and do not free. */
+  reference_count_ -= count;
+  BLI_assert(reference_count_ >= 0);
   if (reference_count_ != 0) {
     return;
   }

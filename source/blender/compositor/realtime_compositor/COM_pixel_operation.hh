@@ -77,6 +77,12 @@ class PixelOperation : public Operation {
   /* A map that associates the output socket of a node that is not part of the pixel operation to
    * the identifier of the input of the operation that was declared for it. */
   Map<DOutputSocket, std::string> outputs_to_declared_inputs_map_;
+  /* A map that associates the identifier of each input of the operation with the number of node
+   * inputs that use it, that is, its reference count. This is needed to properly release inputs
+   * after evaluation, since the results that provide the inputs aren't aware that multiple of
+   * their outgoing links are now part of a single pixel operation, so we need to release the
+   * inputs with their internal reference count stored here. See PixelOperation::release_inputs. */
+  Map<std::string, int> inputs_to_reference_counts_map_;
   /* A map that associates the output socket that provides the result of an output of the operation
    * with the identifier of that output. This is needed to help the compiler establish links
    * between operations. */
@@ -128,6 +134,12 @@ class PixelOperation : public Operation {
    *
    * The node execution schedule is given as an input. */
   void compute_results_reference_counts(const Schedule &schedule);
+
+ protected:
+  /* Release the results that are mapped to the inputs of the operation, making sure to release the
+   * input with a count equivalent to its reference count stored in inputs_to_reference_counts_map_
+   * to avoid leaking the result. */
+  void release_inputs() override;
 };
 
 }  // namespace blender::realtime_compositor
