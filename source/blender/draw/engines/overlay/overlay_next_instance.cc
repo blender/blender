@@ -56,7 +56,7 @@ void Instance::init()
     state.hide_overlays = (state.v3d->flag2 & V3D_HIDE_OVERLAYS) != 0;
     state.xray_enabled = XRAY_ACTIVE(state.v3d);
     state.xray_enabled_and_not_wire = state.xray_enabled && (state.v3d->shading.type > OB_WIRE);
-    state.xray_opacity = XRAY_ALPHA(state.v3d);
+    state.xray_opacity = state.xray_enabled ? XRAY_ALPHA(state.v3d) : 1.0f;
 
     if (!state.hide_overlays) {
       state.overlay = state.v3d->overlay;
@@ -697,7 +697,12 @@ bool Instance::object_is_in_front(const Object *object, const State &state)
 
 bool Instance::object_needs_prepass(const ObjectRef &ob_ref, bool in_paint_mode)
 {
-  if (selection_type_ != SelectionType::DISABLED || state.is_depth_only_drawing) {
+  if (resources.is_selection() && state.is_wireframe_mode && !state.is_solid()) {
+    /* Selection in wireframe mode only use wires unless xray opacity is 1. */
+    return false;
+  }
+
+  if (resources.is_selection() || state.is_depth_only_drawing) {
     /* Selection and depth picking always need a prepass.
      * Note that depth writing and depth test might be disable for certain selection mode. */
     return true;
