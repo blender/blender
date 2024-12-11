@@ -1074,9 +1074,11 @@ def brush_shared_settings(layout, context, brush, popover=False):
 
     # Sculpt Curves #
     if mode == 'SCULPT_CURVES':
+        tool = brush.curves_sculpt_tool
         size = True
         strength = True
-        direction = brush.curves_sculpt_tool in {'GROW_SHRINK', 'SELECTION_PAINT'}
+        direction = tool in {'GROW_SHRINK', 'SELECTION_PAINT'}
+        strength_pressure = tool not in {'SLIDE'}
 
     # Grease Pencil #
     if mode == 'PAINT_GREASE_PENCIL':

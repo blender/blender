@@ -152,7 +152,7 @@ struct SlideOperationExecutor {
     brush_ = BKE_paint_brush_for_read(&curves_sculpt_->paint);
     brush_radius_base_re_ = BKE_brush_size_get(ctx_.scene, brush_);
     brush_radius_factor_ = brush_radius_factor(*brush_, stroke_extension);
-    brush_strength_ = brush_strength_get(*ctx_.scene, *brush_, stroke_extension);
+    brush_strength_ = BKE_brush_alpha_get(ctx_.scene, brush_);
 
     curve_factors_ = *curves_orig_->attributes().lookup_or_default(
         ".selection", bke::AttrDomain::Curve, 1.0f);
