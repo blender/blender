@@ -1713,12 +1713,12 @@ static void ui_tooltip_from_clip(MovieClip &clip, uiTooltipData &data)
 static void ui_tooltip_from_vfont(const VFont &font, uiTooltipData &data)
 {
   if (BKE_vfont_is_builtin(&font)) {
-    /* In memory font previous are currently not supported,
+    /* In memory font previews are currently not supported,
      *  don't attempt to handle as a file. */
     return;
   }
   if (!font.filepath[0]) {
-    /* Let's not bother with packed files _for now_. */
+    /* These may be packed files, currently not supported. */
     return;
   }
 

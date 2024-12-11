@@ -514,7 +514,7 @@ void BKE_vfont_build_char(Curve *cu,
                           int charidx,
                           const float fsize)
 {
-  VFontData *vfd = vfont_get_data(which_vfont(cu, info));
+  VFontData *vfd = vfont_data_ensure(which_vfont(cu, info));
   if (!vfd) {
     return;
   }
