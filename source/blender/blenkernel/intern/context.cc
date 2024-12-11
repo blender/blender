@@ -212,26 +212,32 @@ const PointerRNA *CTX_store_ptr_lookup(const bContextStore *store,
 }
 
 template<typename T>
-std::optional<T> ctx_store_lookup_impl(const bContextStore *store, const blender::StringRef name)
+const T *ctx_store_lookup_impl(const bContextStore *store, const blender::StringRef name)
 {
   for (auto entry = store->entries.rbegin(); entry != store->entries.rend(); ++entry) {
     if (entry->name == name && std::holds_alternative<T>(entry->value)) {
-      return std::get<T>(entry->value);
+      return &std::get<T>(entry->value);
     }
   }
-  return {};
+  return nullptr;
 }
 
 std::optional<blender::StringRefNull> CTX_store_string_lookup(const bContextStore *store,
                                                               const blender::StringRef name)
 {
-  return ctx_store_lookup_impl<std::string>(store, name);
+  if (const std::string *value = ctx_store_lookup_impl<std::string>(store, name)) {
+    return *value;
+  }
+  return {};
 }
 
 std::optional<int64_t> CTX_store_int_lookup(const bContextStore *store,
                                             const blender::StringRef name)
 {
-  return ctx_store_lookup_impl<int64_t>(store, name);
+  if (const int64_t *value = ctx_store_lookup_impl<int64_t>(store, name)) {
+    return *value;
+  }
+  return {};
 }
 
 /* is python initialized? */
