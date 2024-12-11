@@ -205,6 +205,7 @@ void Instance::object_sync(ObjectRef &ob_ref, Manager &manager)
   if (in_sculpt_mode) {
     switch (ob_ref.object->type) {
       case OB_MESH:
+      case OB_CURVES:
         /* TODO(fclem): Make it part of a #Meshes. */
         layer.sculpts.object_sync(manager, ob_ref, resources, state);
         break;
