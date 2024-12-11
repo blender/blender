@@ -987,7 +987,8 @@ static int parent_set_invoke_menu(bContext *C, wmOperatorType *ot)
   }
   else if (parent->type == OB_MESH) {
     if (has_children_of_type.curves) {
-      uiItemO(layout, "Object (Attach Curves to Surface)", ICON_NONE, "CURVES_OT_surface_set");
+      uiItemO(
+          layout, IFACE_("Object (Attach Curves to Surface)"), ICON_NONE, "CURVES_OT_surface_set");
     }
   }
 
