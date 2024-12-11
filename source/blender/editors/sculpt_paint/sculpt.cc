@@ -5231,7 +5231,9 @@ static void stroke_undo_end(const bContext *C, Brush *brush)
   }
 }
 
-bool SCULPT_handles_colors_report(const Object &object, ReportList *reports)
+namespace blender::ed::sculpt_paint {
+
+bool color_supported_check(const Object &object, ReportList *reports)
 {
   switch (blender::bke::object::pbvh_get(object)->type()) {
     case blender::bke::pbvh::Type::Mesh:
@@ -5246,8 +5248,6 @@ bool SCULPT_handles_colors_report(const Object &object, ReportList *reports)
   BLI_assert_unreachable();
   return false;
 }
-
-namespace blender::ed::sculpt_paint {
 
 static bool stroke_test_start(bContext *C, wmOperator *op, const float mval[2])
 {
@@ -5421,7 +5421,7 @@ static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, const wmEvent
   Brush &brush = *BKE_paint_brush(&sd.paint);
 
   if (SCULPT_brush_type_is_paint(brush.sculpt_brush_type) &&
-      !SCULPT_handles_colors_report(ob, op->reports))
+      !color_supported_check(ob, op->reports))
   {
     return OPERATOR_CANCELLED;
   }
