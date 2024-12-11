@@ -854,9 +854,9 @@ void WM_OT_usd_export(wmOperatorType *ot)
                   "merge_parent_xform",
                   false,
                   "Merge parent Xform",
-                  "Merge USD primitives with their Xform parent if possible: "
-                  "USD does not allow nested UsdGeomGprim. Intermediary Xform will "
-                  "be defined to keep the USD file valid.");
+                  "Merge USD primitives with their Xform parent if possible. USD does not allow "
+                  "nested UsdGeomGprims, intermediary Xform prims will be defined to keep the USD "
+                  "file valid when encountering object hierarchies.");
 }
 
 /* ====== USD Import ====== */

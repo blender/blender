@@ -343,7 +343,6 @@ static void import_startjob(void *customdata, wmJobWorkerStatus *worker_status)
   /* Setup parenthood and read actual object data. */
   i = 0;
   for (USDPrimReader *reader : archive->readers()) {
-
     if (!reader) {
       continue;
     }
@@ -355,11 +354,12 @@ static void import_startjob(void *customdata, wmJobWorkerStatus *worker_status)
 
     reader->read_object_data(data->bmain, 0.0);
 
-    data->prim_map[reader->object_prim_path()].push_back(RNA_id_pointer_create(&ob->id));
-
+    /* TODO: Move this outside the loop once when we support reading object data in parallel. */
+    data->prim_map.lookup_or_add_default(reader->object_prim_path())
+        .append(RNA_id_pointer_create(&ob->id));
     if (ob->data) {
-      data->prim_map[reader->data_prim_path()].push_back(
-          RNA_id_pointer_create(static_cast<ID *>(ob->data)));
+      data->prim_map.lookup_or_add_default(reader->data_prim_path())
+          .append(RNA_id_pointer_create(static_cast<ID *>(ob->data)));
     }
 
     USDPrimReader *parent = reader->parent();
@@ -384,7 +384,7 @@ static void import_startjob(void *customdata, wmJobWorkerStatus *worker_status)
       [&](const std::string &path, const std::string &name) {
         Material *mat = data->settings.mat_name_to_mat.lookup_default(name, nullptr);
         if (mat) {
-          data->prim_map[path].push_back(RNA_id_pointer_create(&mat->id));
+          data->prim_map.lookup_or_add_default(path).append(RNA_id_pointer_create(&mat->id));
         }
       });
 

@@ -3,17 +3,21 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #pragma once
 
+#include "BLI_map.hh"
+#include "BLI_vector.hh"
+
+#include "RNA_types.hh"
+
 #include <pxr/usd/usd/common.h>
 #include <pxr/usd/usdShade/material.h>
 
 struct Depsgraph;
 struct Material;
-struct PointerRNA;
 struct ReportList;
 
 namespace blender::io::usd {
 
-using ImportedPrimMap = std::map<std::string, std::vector<PointerRNA>>;
+using ImportedPrimMap = Map<std::string, Vector<PointerRNA>>;
 
 /** Ensure classes and type converters necessary for invoking import and export hooks
  * are registered. */

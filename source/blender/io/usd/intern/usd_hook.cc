@@ -145,7 +145,7 @@ struct USDSceneImportContext {
     if (!prim_map_dict) {
       prim_map_dict = new boost::python::dict;
 
-      for (auto &[path, ids] : prim_map) {
+      prim_map.foreach_item([&](const std::string &path, const Vector<PointerRNA> &ids) {
         if (!prim_map_dict->has_key(path)) {
           (*prim_map_dict)[path] = boost::python::list();
         }
@@ -155,7 +155,7 @@ struct USDSceneImportContext {
         for (auto &ptr_rna : ids) {
           list.append(ptr_rna);
         }
-      }
+      });
     }
 
     return *prim_map_dict;

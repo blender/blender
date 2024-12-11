@@ -136,6 +136,7 @@ struct USDExportParams {
   bool only_deform_bones = false;
 
   bool convert_world_material = true;
+  bool merge_parent_xform = false;
 
   bool use_instancing = false;
   bool export_custom_properties = true;
@@ -167,8 +168,6 @@ struct USDExportParams {
   char root_prim_path[1024] = ""; /* FILE_MAX */
   char collection[MAX_IDPROP_NAME] = "";
   char custom_properties_namespace[MAX_IDPROP_NAME] = "";
-
-  bool merge_parent_xform = false;
 
   /** Communication structure between the wmJob management code and the worker code. Currently used
    * to generate safely reports from the worker thread. */
