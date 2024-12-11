@@ -87,7 +87,7 @@ class FrameBuffer {
   bool dirty_state_ = true;
   /* Flag specifying the current bind operation should use explicit load-store state. */
   bool use_explicit_load_store_ = false;
-  /** Bitset indicating the color attachments slots in use. */
+  /** Bit-set indicating the color attachments slots in use. */
   uint16_t color_attachments_bits_ = 0;
 
  public:

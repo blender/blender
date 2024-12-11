@@ -45,8 +45,8 @@ void main()
   float coc_near = reduce_max(cocs_near);
   float coc_far = reduce_max(cocs_far);
 
-  /* now we need to write the near-far fields premultiplied by the coc
-   * also use bilateral weighting by each coc values to avoid bleeding. */
+  /* Now we need to write the near-far fields pre-multiplied by the COC
+   * also use bilateral weighting by each COC values to avoid bleeding. */
   vec4 near_weights = step(0.0, cocs_near) * clamp(1.0 - abs(coc_near - cocs_near), 0.0, 1.0);
   vec4 far_weights = step(0.0, cocs_far) * clamp(1.0 - abs(coc_far - cocs_far), 0.0, 1.0);
 

@@ -113,8 +113,8 @@ class Context {
 
   Batch *polyline_batch_get();
 
-  /* When using --debug-gpu, assert that the shader fragments write to all the writtable
-   * attachments of the bound framebuffer. */
+  /* When using `--debug-gpu`, assert that the shader fragments write to all the writable
+   * attachments of the bound frame-buffer. */
   void assert_framebuffer_shader_compatibility(Shader *sh)
   {
     if (!(G.debug & G_DEBUG_GPU)) {
@@ -130,7 +130,7 @@ class Context {
 
     if ((fb_attachments_bits & ~fragment_output_bits) != 0) {
       std::string msg;
-      msg = msg + "Shader (" + sh->name_get() + ") does not write to all framebuffer (" +
+      msg = msg + "Shader (" + sh->name_get() + ") does not write to all frame-buffer (" +
             active_fb->name_get() + ") color attachments";
       BLI_assert_msg(false, msg.c_str());
       std::cerr << msg << std::endl;

@@ -140,7 +140,7 @@ eGPUTextureFormat RenderBuffers::vector_tx_format()
                                      inst_.motion_blur.postfx_enabled()) &&
                                     !inst_.is_viewport();
 
-  /* Only RG16F (motion.prev) for the viewport. */
+  /* Only RG16F (`motion.prev`) for the viewport. */
   return do_full_vector_render_pass ? GPU_RGBA16F : GPU_RG16F;
 }
 

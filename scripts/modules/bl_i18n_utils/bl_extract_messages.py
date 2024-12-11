@@ -484,7 +484,7 @@ def dump_rna_messages(msgs, reports, settings, verbose=False):
 def dump_py_messages_from_files(msgs, reports, files, settings):
     """
     Dump text inlined in the python files given, e.g. "My Name" in:
-        layout.prop("someprop", text="My Name")
+        ``layout.prop("someprop", text="My Name")``
     """
     import ast
 

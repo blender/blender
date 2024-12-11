@@ -1470,7 +1470,7 @@ static void icon_draw_size(float x,
   Icon *icon = BKE_icon_get(icon_id);
 
   if (icon->obj_type != ICON_DATA_STUDIOLIGHT) {
-    /* Icon Alpha should not apply to Mapcaps/Studio lighting. #80356. */
+    /* Icon alpha should not apply to MatCap/Studio lighting. #80356. */
     alpha *= btheme->tui.icon_alpha;
   }
 

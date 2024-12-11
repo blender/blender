@@ -532,7 +532,7 @@ Slot &Action::slot_add_for_id(const ID &animated_id)
   Slot &slot = this->slot_add();
   slot.idtype = GS(animated_id.name);
 
-  /* Determine the identifier for this slot, prioritising transparent
+  /* Determine the identifier for this slot, prioritizing transparent
    * auto-selection when toggling between Actions. That's why the last-used slot
    * identifier is used here, and the ID name only as fallback. */
   const AnimData *adt = BKE_animdata_from_id(&animated_id);
