@@ -567,6 +567,22 @@ class Vector {
   }
 
   /**
+   * Moves the elements of another vector to the end of this vector.
+   *
+   * This may result in reallocation to fit other vector elements, other vector will keep it
+   * buffer allocation, but it will become empty.
+   * This can be used in vectors that manages resources, allowing acquiring resources from another
+   * vector, preventing shared ownership of managed resources.
+   */
+  template<int64_t OtherInlineBufferCapacity>
+  void extend(Vector<T, OtherInlineBufferCapacity, Allocator> &&other)
+  {
+    BLI_assert(this != &other);
+    this->extend(std::make_move_iterator(other.begin()), std::make_move_iterator(other.end()));
+    other.clear();
+  }
+
+  /**
    * Adds all elements from the array that are not already in the vector. This is an expensive
    * operation when the vector is large, but can be very cheap when it is known that the vector is
    * small.
@@ -651,7 +667,12 @@ class Vector {
     }
 
     try {
-      std::uninitialized_copy_n(first, insert_amount, begin_ + insert_index);
+      if constexpr (std::is_rvalue_reference_v<decltype(*first)>) {
+        std::uninitialized_move_n(first, insert_amount, begin_ + insert_index);
+      }
+      else {
+        std::uninitialized_copy_n(first, insert_amount, begin_ + insert_index);
+      }
     }
     catch (...) {
       /* Destruct all values that have been moved. */
