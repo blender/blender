@@ -5236,9 +5236,10 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 12)) {
-    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
       version_node_locations_to_global(*ntree);
     }
+    FOREACH_NODETREE_END;
   }
 
   /* Always run this versioning; meshes are written with the legacy format which always needs to
