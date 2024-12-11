@@ -664,6 +664,12 @@ uint GPU_shader_get_attribute_len(const GPUShader *shader)
   return interface->attr_len_;
 }
 
+uint GPU_shader_get_ssbo_input_len(const GPUShader *shader)
+{
+  const ShaderInterface *interface = unwrap(shader)->interface;
+  return interface->ssbo_len_;
+}
+
 int GPU_shader_get_attribute(const GPUShader *shader, const char *name)
 {
   const ShaderInterface *interface = unwrap(shader)->interface;
@@ -685,6 +691,19 @@ bool GPU_shader_get_attribute_info(const GPUShader *shader,
 
   BLI_strncpy(r_name, interface->input_name_get(attr), 256);
   *r_type = attr->location != -1 ? interface->attr_types_[attr->location] : -1;
+  return true;
+}
+
+bool GPU_shader_get_ssbo_input_info(const GPUShader *shader, int ssbo_location, char r_name[256])
+{
+  const ShaderInterface *interface = unwrap(shader)->interface;
+
+  const ShaderInput *ssbo_input = interface->ssbo_get(ssbo_location);
+  if (!ssbo_input) {
+    return false;
+  }
+
+  BLI_strncpy(r_name, interface->input_name_get(ssbo_input), 256);
   return true;
 }
 

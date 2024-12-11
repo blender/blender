@@ -700,30 +700,67 @@ PyDoc_STRVAR(
     "   :rtype: tuple[tuple[str, str | None], ...]\n");
 static PyObject *pygpu_shader_attrs_info_get(BPyGPUShader *self, PyObject * /*arg*/)
 {
-  uint attr_len = GPU_shader_get_attribute_len(self->shader);
+  using namespace blender::gpu::shader;
+  PyObject *ret;
+  int type;
   int location_test = 0, attrs_added = 0;
+  char name[256];
 
-  PyObject *ret = PyTuple_New(attr_len);
-  while (attrs_added < attr_len) {
-    char name[256];
-    int type;
-    if (!GPU_shader_get_attribute_info(self->shader, location_test++, name, &type)) {
-      continue;
-    }
-    PyObject *py_type;
-    if (type != -1) {
-      py_type = PyUnicode_InternFromString(
-          PyC_StringEnum_FindIDFromValue(pygpu_attrtype_items, type));
-    }
-    else {
-      py_type = Py_None;
-      Py_INCREF(py_type);
-    }
+  if (bpygpu_shader_is_polyline(self->shader)) {
+    /* WORKAROUND: Special case for POLYLINE shader. Check the SSBO inputs as attributes. */
+    uint input_len = GPU_shader_get_ssbo_input_len(self->shader);
 
-    PyObject *attr_info = PyTuple_New(2);
-    PyTuple_SET_ITEMS(attr_info, PyUnicode_FromString(name), py_type);
-    PyTuple_SetItem(ret, attrs_added, attr_info);
-    attrs_added++;
+    /* Skip "gpu_index_buf". */
+    input_len -= 1;
+    ret = PyTuple_New(input_len);
+    while (attrs_added < input_len) {
+      if (!GPU_shader_get_ssbo_input_info(self->shader, location_test++, name)) {
+        continue;
+      }
+      if (STREQ(name, "gpu_index_buf")) {
+        continue;
+      }
+
+      type = STREQ(name, "pos") ? int(Type::VEC3) : STREQ(name, "color") ? int(Type::VEC4) : -1;
+      PyObject *py_type;
+      if (type != -1) {
+        py_type = PyUnicode_InternFromString(
+            PyC_StringEnum_FindIDFromValue(pygpu_attrtype_items, type));
+      }
+      else {
+        py_type = Py_None;
+        Py_INCREF(py_type);
+      }
+
+      PyObject *attr_info = PyTuple_New(2);
+      PyTuple_SET_ITEMS(attr_info, PyUnicode_FromString(name), py_type);
+      PyTuple_SetItem(ret, attrs_added, attr_info);
+      attrs_added++;
+    }
+  }
+  else {
+    uint attr_len = GPU_shader_get_attribute_len(self->shader);
+
+    ret = PyTuple_New(attr_len);
+    while (attrs_added < attr_len) {
+      if (!GPU_shader_get_attribute_info(self->shader, location_test++, name, &type)) {
+        continue;
+      }
+      PyObject *py_type;
+      if (type != -1) {
+        py_type = PyUnicode_InternFromString(
+            PyC_StringEnum_FindIDFromValue(pygpu_attrtype_items, type));
+      }
+      else {
+        py_type = Py_None;
+        Py_INCREF(py_type);
+      }
+
+      PyObject *attr_info = PyTuple_New(2);
+      PyTuple_SET_ITEMS(attr_info, PyUnicode_FromString(name), py_type);
+      PyTuple_SetItem(ret, attrs_added, attr_info);
+      attrs_added++;
+    }
   }
   return ret;
 }
@@ -1097,6 +1134,14 @@ PyObject *bpygpu_shader_init()
   submodule = PyModule_Create(&pygpu_shader_module_def);
 
   return submodule;
+}
+
+bool bpygpu_shader_is_polyline(GPUShader *shader)
+{
+  return ELEM(shader,
+              GPU_shader_get_builtin_shader(GPU_SHADER_3D_POLYLINE_FLAT_COLOR),
+              GPU_shader_get_builtin_shader(GPU_SHADER_3D_POLYLINE_SMOOTH_COLOR),
+              GPU_shader_get_builtin_shader(GPU_SHADER_3D_POLYLINE_UNIFORM_COLOR));
 }
 
 /** \} */

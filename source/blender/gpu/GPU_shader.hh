@@ -206,12 +206,14 @@ void GPU_shader_uniform_4fv_array(GPUShader *sh, const char *name, int len, cons
  * Used to create #GPUVertexFormat from the shader's vertex input layout.
  * \{ */
 
-unsigned int GPU_shader_get_attribute_len(const GPUShader *shader);
+uint GPU_shader_get_attribute_len(const GPUShader *shader);
+uint GPU_shader_get_ssbo_input_len(const GPUShader *shader);
 int GPU_shader_get_attribute(const GPUShader *shader, const char *name);
 bool GPU_shader_get_attribute_info(const GPUShader *shader,
                                    int attr_location,
                                    char r_name[256],
                                    int *r_type);
+bool GPU_shader_get_ssbo_input_info(const GPUShader *shader, int ssbo_location, char r_name[256]);
 
 /** \} */
 
