@@ -50,7 +50,7 @@ class Grid : Overlay {
   {
     is_3d_grid_ = state.is_space_v3d();
 
-    enabled_ = init(state);
+    enabled_ = !state.is_space_node() && init(state);
     if (!enabled_) {
       grid_ps_.init();
       return;
