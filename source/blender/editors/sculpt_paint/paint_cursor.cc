@@ -1703,7 +1703,7 @@ static void paint_cursor_draw_main_inactive_cursor(PaintCursorContext *pcontext)
       pcontext->pos,
       0,
       0,
-      pcontext->final_radius *
+      pcontext->radius *
           clamp_f(BKE_brush_alpha_get(pcontext->scene, pcontext->brush), 0.0f, 1.0f),
       80);
 }
