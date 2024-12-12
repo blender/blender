@@ -905,6 +905,7 @@ static bool vfont_to_curve(Object *ob,
     }
     custrinfo = cu->strinfo;
     if (!custrinfo) {
+      MEM_freeN(mem_tmp);
       return ok;
     }
 
