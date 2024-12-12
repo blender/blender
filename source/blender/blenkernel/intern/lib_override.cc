@@ -3817,13 +3817,16 @@ void BKE_lib_override_library_delete(Main *bmain, ID *id_root)
 
 void BKE_lib_override_library_make_local(Main *bmain, ID *id)
 {
-  if (!ID_IS_OVERRIDE_LIBRARY(id)) {
-    return;
-  }
   if (ID_IS_OVERRIDE_LIBRARY_VIRTUAL(id)) {
     /* We should never directly 'make local' virtual overrides (aka shape keys). */
     BLI_assert_unreachable();
     id->flag &= ~ID_FLAG_EMBEDDED_DATA_LIB_OVERRIDE;
+    return;
+  }
+  /* Cannot use `ID_IS_OVERRIDE_LIBRARY` here, as we may call this function on some already
+   * partially processed liboverrides (e.g. from the #PartialWriteContext code), where the linked
+   * reference pointer has already been set to null. */
+  if (!id->override_library) {
     return;
   }
 

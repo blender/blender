@@ -1817,7 +1817,18 @@ void PartialWriteContext::make_local(ID *ctx_id, const int make_local_flags)
   BKE_main_idmap_remove_id(this->bmain.id_map, ctx_id);
   BKE_main_idmap_remove_id(matching_uid_map_, ctx_id);
 
-  BKE_lib_id_make_local(&this->bmain, ctx_id, make_local_flags);
+  if (ID_IS_LINKED(ctx_id)) {
+    BKE_lib_id_make_local(&this->bmain, ctx_id, make_local_flags);
+  }
+  /* NOTE: Cannot rely only on `ID_IS_OVERRIDE_LIBRARY` here, as the reference pointer to the
+   * linked data may have already been cleared out by dependency management in code above that
+   * call. */
+  else if ((ctx_id->override_library || ID_IS_OVERRIDE_LIBRARY(ctx_id)) &&
+           (make_local_flags & LIB_ID_MAKELOCAL_LIBOVERRIDE_CLEAR) != 0)
+
+  {
+    BKE_lib_override_library_make_local(&this->bmain, ctx_id);
+  }
 
   this->preempt_session_uid(ctx_id, ctx_id_session_uid);
   BKE_main_idmap_insert_id(this->bmain.id_map, ctx_id);
