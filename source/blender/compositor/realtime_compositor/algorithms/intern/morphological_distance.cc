@@ -49,48 +49,52 @@ static void morphological_distance_gpu(Context &context,
   input.unbind_as_texture();
 }
 
-static void morphological_distance_cpu(const Result &input, Result &output, const int distance)
+template<bool IsDilate>
+static void morphological_distance_cpu(const Result &input,
+                                       Result &output,
+                                       const int structuring_element_radius)
 {
   output.allocate_texture(input.domain());
 
-  /* We have specialized code for each sign, so use the absolute value. */
-  const int radius = math::abs(distance);
+  const float limit = IsDilate ? std::numeric_limits<float>::lowest() :
+                                 std::numeric_limits<float>::max();
+  const auto morphology_operator = [](const float a, const float b) {
+    if constexpr (IsDilate) {
+      return math::max(a, b);
+    }
+    else {
+      return math::min(a, b);
+    }
+  };
+
+  const int2 image_size = input.domain().size;
+
+  const int radius_squared = math::square(structuring_element_radius);
 
   /* Find the minimum/maximum value in the circular window of the given radius around the pixel.
    * By circular window, we mean that pixels in the window whose distance to the center of window
    * is larger than the given radius are skipped and not considered. Consequently, the dilation
    * or erosion that take place produces round results as opposed to squarish ones. This is
    * essentially a morphological operator with a circular structuring element. */
-  if (distance > 0) {
-    parallel_for(input.domain().size, [&](const int2 texel) {
-      float value = std::numeric_limits<float>::lowest();
-      for (int y = -radius; y <= radius; y++) {
-        for (int x = -radius; x <= radius; x++) {
-          if (x * x + y * y <= radius * radius) {
-            const float fallback = std::numeric_limits<float>::lowest();
-            value = math::max(value, input.load_pixel_fallback(texel + int2(x, y), fallback));
-          }
-        }
-      }
+  parallel_for(image_size, [&](const int2 texel) {
+    /* Compute the start and end bounds of the window such that no out-of-bounds processing happen
+     * in the loops. */
+    const int2 start = math::max(texel - structuring_element_radius, int2(0)) - texel;
+    const int2 end = math::min(texel + structuring_element_radius + 1, image_size) - texel;
 
-      output.store_pixel(texel, value);
-    });
-  }
-  else {
-    parallel_for(input.domain().size, [&](const int2 texel) {
-      float value = std::numeric_limits<float>::max();
-      for (int y = -radius; y <= radius; y++) {
-        for (int x = -radius; x <= radius; x++) {
-          if (x * x + y * y <= radius * radius) {
-            const float fallback = std::numeric_limits<float>::max();
-            value = math::min(value, input.load_pixel_fallback(texel + int2(x, y), fallback));
-          }
+    float value = limit;
+    for (int y = start.y; y < end.y; y++) {
+      const int yy = y * y;
+      for (int x = start.x; x < end.x; x++) {
+        if (x * x + yy > radius_squared) {
+          continue;
         }
+        value = morphology_operator(value, input.load_pixel<float>(texel + int2(x, y)));
       }
+    }
 
-      output.store_pixel(texel, value);
-    });
-  }
+    output.store_pixel(texel, value);
+  });
 }
 
 void morphological_distance(Context &context,
@@ -102,7 +106,12 @@ void morphological_distance(Context &context,
     morphological_distance_gpu(context, input, output, distance);
   }
   else {
-    morphological_distance_cpu(input, output, distance);
+    if (distance > 0) {
+      morphological_distance_cpu<true>(input, output, math::abs(distance));
+    }
+    else {
+      morphological_distance_cpu<false>(input, output, math::abs(distance));
+    }
   }
 }
 
