@@ -44,7 +44,7 @@ struct LibraryForeachIDData {
   ID *self_id;
 
   /** Flags controlling the behavior of the 'foreach id' looping code. */
-  int flag;
+  LibraryForeachIDFlag flag;
   /** Generic flags to be passed to all callback calls for current processed data. */
   int cb_flag;
   /** Callback flags that are forbidden for all callback calls for current processed data. */
@@ -117,7 +117,7 @@ void BKE_lib_query_foreachid_process(LibraryForeachIDData *data, ID **id_pp, int
   }
 }
 
-int BKE_lib_query_foreachid_process_flags_get(const LibraryForeachIDData *data)
+LibraryForeachIDFlag BKE_lib_query_foreachid_process_flags_get(const LibraryForeachIDData *data)
 {
   return data->flag;
 }
@@ -146,7 +146,7 @@ static bool library_foreach_ID_link(Main *bmain,
                                     ID *id,
                                     blender::FunctionRef<LibraryIDLinkCallback> callback,
                                     void *user_data,
-                                    int flag,
+                                    LibraryForeachIDFlag flag,
                                     LibraryForeachIDData *inherit_data);
 
 void BKE_lib_query_idpropertiesForeachIDLink_callback(IDProperty *id_prop, void *user_data)
@@ -210,7 +210,7 @@ static bool library_foreach_ID_link(Main *bmain,
                                     ID *id,
                                     blender::FunctionRef<LibraryIDLinkCallback> callback,
                                     void *user_data,
-                                    int flag,
+                                    LibraryForeachIDFlag flag,
                                     LibraryForeachIDData *inherit_data)
 {
   LibraryForeachIDData data{};
@@ -415,7 +415,7 @@ void BKE_library_foreach_ID_link(Main *bmain,
                                  ID *id,
                                  blender::FunctionRef<LibraryIDLinkCallback> callback,
                                  void *user_data,
-                                 int flag)
+                                 const LibraryForeachIDFlag flag)
 {
   library_foreach_ID_link(bmain, nullptr, id, callback, user_data, flag, nullptr);
 }
@@ -438,7 +438,7 @@ void BKE_library_foreach_subdata_id(
     blender::FunctionRef<void(LibraryForeachIDData *data)> subdata_foreach_id,
     blender::FunctionRef<LibraryIDLinkCallback> callback,
     void *user_data,
-    const int flag)
+    const LibraryForeachIDFlag flag)
 {
   BLI_assert((flag & (IDWALK_RECURSE | IDWALK_DO_INTERNAL_RUNTIME_POINTERS |
                       IDWALK_DO_LIBRARY_POINTER | IDWALK_INCLUDE_UI)) == 0);

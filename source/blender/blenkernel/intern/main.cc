@@ -558,8 +558,10 @@ void BKE_main_relations_create(Main *bmain, const short flag)
 
   ID *id;
   FOREACH_MAIN_ID_BEGIN (bmain, id) {
-    const int idwalk_flag = IDWALK_READONLY |
-                            ((flag & MAINIDRELATIONS_INCLUDE_UI) != 0 ? IDWALK_INCLUDE_UI : 0);
+    const LibraryForeachIDFlag idwalk_flag = IDWALK_READONLY |
+                                             ((flag & MAINIDRELATIONS_INCLUDE_UI) != 0 ?
+                                                  IDWALK_INCLUDE_UI :
+                                                  IDWALK_NOP);
 
     /* Ensure all IDs do have an entry, even if they are not connected to any other. */
     MainIDRelationsEntry **entry_p;
