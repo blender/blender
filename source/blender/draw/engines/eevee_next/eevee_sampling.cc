@@ -236,6 +236,18 @@ void Sampling::step()
   reset_ = false;
 }
 
+void Sampling::reset()
+{
+  BLI_assert(inst_.is_viewport());
+  reset_ = true;
+}
+
+bool Sampling::is_reset() const
+{
+  BLI_assert(inst_.is_viewport());
+  return reset_;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */

@@ -72,27 +72,29 @@ void Instance::init(const int2 &output_res,
     return;
   }
 
-  if (assign_if_different(debug_mode, (eDebugMode)G.debug_value)) {
-    sampling.reset();
-  }
-  if (output_res != film.display_extent_get()) {
-    sampling.reset();
-  }
-  if (output_rect) {
-    int2 offset = int2(output_rect->xmin, output_rect->ymin);
-    int2 extent = int2(BLI_rcti_size_x(output_rect), BLI_rcti_size_y(output_rect));
-    if (offset != film.get_data().offset || extent != film.get_data().extent) {
+  if (is_viewport()) {
+    if (assign_if_different(debug_mode, (eDebugMode)G.debug_value)) {
       sampling.reset();
     }
-  }
-  if (assign_if_different(overlays_enabled_, v3d && !(v3d->flag2 & V3D_HIDE_OVERLAYS))) {
-    sampling.reset();
-  }
-  if (is_painting()) {
-    sampling.reset();
-  }
-  if (is_navigating() && scene->eevee.flag & SCE_EEVEE_SHADOW_JITTERED_VIEWPORT) {
-    sampling.reset();
+    if (output_res != film.display_extent_get()) {
+      sampling.reset();
+    }
+    if (output_rect) {
+      int2 offset = int2(output_rect->xmin, output_rect->ymin);
+      int2 extent = int2(BLI_rcti_size_x(output_rect), BLI_rcti_size_y(output_rect));
+      if (offset != film.get_data().offset || extent != film.get_data().extent) {
+        sampling.reset();
+      }
+    }
+    if (assign_if_different(overlays_enabled_, v3d && !(v3d->flag2 & V3D_HIDE_OVERLAYS))) {
+      sampling.reset();
+    }
+    if (is_painting()) {
+      sampling.reset();
+    }
+    if (is_navigating() && scene->eevee.flag & SCE_EEVEE_SHADOW_JITTERED_VIEWPORT) {
+      sampling.reset();
+    }
   }
 
   sampling.init(scene);
@@ -175,7 +177,9 @@ void Instance::update_eval_members()
 
 void Instance::view_update()
 {
-  sampling.reset();
+  if (is_viewport()) {
+    sampling.reset();
+  }
 }
 
 /** \} */

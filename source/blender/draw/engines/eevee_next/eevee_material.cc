@@ -210,7 +210,9 @@ MaterialPass MaterialModule::material_pass_get(Object *ob,
 
   const bool is_transparent = GPU_material_flag_get(matpass.gpumat, GPU_MATFLAG_TRANSPARENT);
 
-  if (use_deferred_compilation && GPU_material_recalc_flag_get(matpass.gpumat)) {
+  if (inst_.is_viewport() && use_deferred_compilation &&
+      GPU_material_recalc_flag_get(matpass.gpumat))
+  {
     /* TODO(Miguel Pozo): This is broken, it consumes the flag,
      * but GPUMats can be shared across viewports. */
     inst_.sampling.reset();
