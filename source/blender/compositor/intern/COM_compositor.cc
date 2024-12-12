@@ -79,25 +79,9 @@ void COM_execute(Render *render,
   compositor_init_node_previews(render_data, node_tree);
   compositor_reset_node_tree_status(node_tree);
 
-  if (scene->r.compositor_device == SCE_COMPOSITOR_DEVICE_GPU ||
-      (USER_EXPERIMENTAL_TEST(&U, enable_new_cpu_compositor) && !scene->r.use_old_cpu_compositor))
-  {
-    /* Realtime compositor. */
-    RE_compositor_execute(
-        *render, *scene, *render_data, *node_tree, view_name, render_context, profiler);
-  }
-  else {
-    /* CPU compositor. */
-
-    /* Initialize workscheduler. */
-    blender::compositor::WorkScheduler::initialize(BKE_render_num_threads(render_data));
-
-    /* Execute. */
-    const bool is_rendering = render_context != nullptr;
-    blender::compositor::ExecutionSystem system(
-        render_data, scene, node_tree, is_rendering, view_name, render_context, profiler);
-    system.execute();
-  }
+  /* Realtime compositor. */
+  RE_compositor_execute(
+      *render, *scene, *render_data, *node_tree, view_name, render_context, profiler);
 
   BLI_mutex_unlock(&g_compositor.mutex);
 }

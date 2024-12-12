@@ -758,9 +758,7 @@ typedef struct UserDef_Experimental {
   char use_new_volume_nodes;
   char use_new_file_import_nodes;
   char use_shader_node_previews;
-  char enable_new_cpu_compositor;
-  char _pad[4];
-  /** `makesdna` does not allow empty structs. */
+  char _pad[5];
 } UserDef_Experimental;
 
 #define USER_EXPERIMENTAL_TEST(userdef, member) \
