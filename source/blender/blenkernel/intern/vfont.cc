@@ -504,27 +504,20 @@ static void build_underline(Curve *cu,
   mul_v2_fl(bp[3].vec, font_size);
 }
 
-void BKE_vfont_build_char(Curve *cu,
-                          ListBase *nubase,
-                          uint character,
-                          const CharInfo *info,
-                          float ofsx,
-                          float ofsy,
-                          float rot,
-                          int charidx,
-                          const float fsize)
+static void vfont_build_char_impl(Curve *cu,
+                                  ListBase *nubase,
+                                  const VChar *che,
+                                  const CharInfo *info,
+                                  float ofsx,
+                                  float ofsy,
+                                  float rot,
+                                  int charidx,
+                                  const float fsize)
 {
-  VFontData *vfd = vfont_data_ensure(which_vfont(cu, info));
-  if (!vfd) {
-    return;
-  }
-
   /* make a copy at distance ofsx, ofsy with shear */
   float shear = cu->shear;
   float si = sinf(rot);
   float co = cosf(rot);
-
-  VChar *che = find_vfont_char(vfd, character);
 
   /* Select the glyph data */
   Nurb *nu1 = nullptr;
@@ -625,6 +618,24 @@ void BKE_vfont_build_char(Curve *cu,
 
     nu1 = nu1->next;
   }
+}
+
+void BKE_vfont_build_char(Curve *cu,
+                          ListBase *nubase,
+                          uint character,
+                          const CharInfo *info,
+                          float ofsx,
+                          float ofsy,
+                          float rot,
+                          int charidx,
+                          const float fsize)
+{
+  VFontData *vfd = vfont_data_ensure(which_vfont(cu, info));
+  if (!vfd) {
+    return;
+  }
+  VChar *che = find_vfont_char(vfd, character);
+  vfont_build_char_impl(cu, nubase, che, info, ofsx, ofsy, rot, charidx, fsize);
 }
 
 int BKE_vfont_select_get(Object *ob, int *r_start, int *r_end)
@@ -1521,6 +1532,7 @@ static bool vfont_to_curve(Object *ob,
           ascii = towupper(ascii);
         }
 
+        vfont_info_context_update(&vfinfo_ctx, cu, info);
         che = find_vfont_char(vfinfo_ctx.vfd, ascii);
 
         twidth = char_width(cu, che, info);
@@ -1718,7 +1730,12 @@ static bool vfont_to_curve(Object *ob,
       }
       /* We don't want to see any character for '\n'. */
       if (cha != '\n') {
-        BKE_vfont_build_char(cu, r_nubase, cha, info, ct->xof, ct->yof, ct->rot, i, font_size);
+
+        vfont_info_context_update(&vfinfo_ctx, cu, info);
+        /* Find the character, the characters has to be in the memory already
+         * since character checking has been done earlier already. */
+        che = find_vfont_char(vfinfo_ctx.vfd, cha);
+        vfont_build_char_impl(cu, r_nubase, che, info, ct->xof, ct->yof, ct->rot, i, font_size);
 
         if (info->flag & CU_CHINFO_UNDERLINE) {
           float ulwidth, uloverlap = 0.0f;
@@ -1730,9 +1747,6 @@ static bool vfont_to_curve(Object *ob,
           {
             uloverlap = xtrax + 0.1f;
           }
-          /* Find the character, the characters has to be in the memory already
-           * since character checking has been done earlier already. */
-          che = find_vfont_char(vfinfo_ctx.vfd, cha);
 
           twidth = char_width(cu, che, info);
           ulwidth = (twidth * (1.0f + (info->kern / 40.0f))) + uloverlap;
@@ -1931,7 +1945,10 @@ static bool vfont_to_curve(Object *ob,
       for (; i <= char_end && char_yof == chartransdata[i].yof; i++) {
         info = &custrinfo[i];
         ascii = info->flag & CU_CHINFO_SMALLCAPS_CHECK ? towupper(mem[i]) : mem[i];
+
+        vfont_info_context_update(&vfinfo_ctx, cu, info);
         che = find_vfont_char(vfinfo_ctx.vfd, ascii);
+
         const float charwidth = char_width(cu, che, info);
         const float charhalf = (charwidth / 2.0f);
         if (cursor_location[0] <= ((chartransdata[i].xof + charhalf) * font_size)) {
