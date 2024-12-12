@@ -69,6 +69,7 @@
 
 #include "ANIM_action_legacy.hh"
 
+#include "GPU_context.hh"
 #include "GPU_framebuffer.hh"
 #include "GPU_matrix.hh"
 #include "GPU_viewport.hh"
@@ -400,6 +401,13 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
     RE_render_result_rect_from_ibuf(rr, ibuf_result, oglrender->view_id);
     IMB_freeImBuf(ibuf_result);
   }
+
+  /* Perform render step between renders to allow
+   * flushing of freed GPUBackend resources. */
+  if (GPU_backend_get_type() == GPU_BACKEND_METAL) {
+    GPU_flush();
+  }
+  GPU_render_step(true);
 }
 
 static void screen_opengl_render_write(OGLRender *oglrender)

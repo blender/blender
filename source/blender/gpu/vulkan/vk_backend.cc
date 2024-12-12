@@ -548,7 +548,7 @@ void VKBackend::render_end()
   }
 }
 
-void VKBackend::render_step() {}
+void VKBackend::render_step(bool /*force_resource_release*/) {}
 
 void VKBackend::capabilities_init(VKDevice &device)
 {

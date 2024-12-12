@@ -60,7 +60,7 @@ class GPUBackend {
    * Used for performing per-frame actions globally */
   virtual void render_begin() = 0;
   virtual void render_end() = 0;
-  virtual void render_step() = 0;
+  virtual void render_step(bool force_resource_release = false) = 0;
 };
 
 namespace debug {

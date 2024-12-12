@@ -234,13 +234,13 @@ void GPU_render_end()
     backend->render_end();
   }
 }
-void GPU_render_step()
+void GPU_render_step(bool force_resource_release)
 {
   GPUBackend *backend = GPUBackend::get();
   BLI_assert(backend);
   if (backend) {
     printf_end(active_ctx);
-    backend->render_step();
+    backend->render_step(force_resource_release);
     printf_begin(active_ctx);
   }
 }

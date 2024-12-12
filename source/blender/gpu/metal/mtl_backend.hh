@@ -74,7 +74,7 @@ class MTLBackend : public GPUBackend {
   /* Render Frame Coordination. */
   void render_begin() override;
   void render_end() override;
-  void render_step() override;
+  void render_step(bool force_resource_release = false) override;
   bool is_inside_render_boundary();
 
  private:
