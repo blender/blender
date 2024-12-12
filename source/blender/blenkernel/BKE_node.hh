@@ -696,14 +696,19 @@ void node_attach_node(bNodeTree *ntree, bNode *node, bNode *parent);
 void node_detach_node(bNodeTree *ntree, bNode *node);
 
 /**
- * Finds a node based on given socket and returns true on success.
+ * Finds a node based on given socket, returning null in the case where the socket is not part of
+ * the node tree.
  */
-bool node_find_node_try(bNodeTree *ntree, bNodeSocket *sock, bNode **r_node, int *r_sockindex);
+bNode *node_find_node_try(bNodeTree &ntree, bNodeSocket &socket);
 
 /**
- * Same as #node_find_node_try but expects that the socket definitely is in the node tree.
+ * Find the node that contains the given socket. This uses the node topology cache, meaning
+ * subsequent access after changing the node tree will be more expensive, but ammortized over time,
+ * the cost is constant.
  */
-void node_find_node(bNodeTree *ntree, bNodeSocket *sock, bNode **r_node, int *r_sockindex);
+bNode &node_find_node(bNodeTree &ntree, bNodeSocket &socket);
+const bNode &node_find_node(const bNodeTree &ntree, const bNodeSocket &socket);
+
 /**
  * Finds a node based on its name.
  */

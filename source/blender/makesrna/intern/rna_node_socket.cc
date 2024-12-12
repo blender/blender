@@ -234,15 +234,15 @@ static StructRNA *rna_NodeSocket_refine(PointerRNA *ptr)
 
 static std::optional<std::string> rna_NodeSocket_path(const PointerRNA *ptr)
 {
-  bNodeTree *ntree = reinterpret_cast<bNodeTree *>(ptr->owner_id);
-  bNodeSocket *sock = static_cast<bNodeSocket *>(ptr->data);
-  bNode *node;
-  int socketindex;
-  char name_esc[sizeof(node->name) * 2];
+  const bNodeTree *ntree = reinterpret_cast<bNodeTree *>(ptr->owner_id);
+  const bNodeSocket *sock = static_cast<bNodeSocket *>(ptr->data);
 
-  blender::bke::node_find_node(ntree, sock, &node, &socketindex);
+  const bNode &node = blender::bke::node_find_node(*ntree, *sock);
+  const ListBase *sockets = (sock->in_out == SOCK_IN) ? &node.inputs : &node.outputs;
+  const int socketindex = BLI_findindex(sockets, sock);
 
-  BLI_str_escape(name_esc, node->name, sizeof(name_esc));
+  char name_esc[sizeof(node.name) * 2];
+  BLI_str_escape(name_esc, node.name, sizeof(name_esc));
 
   if (sock->in_out == SOCK_IN) {
     return fmt::format("nodes[\"{}\"].inputs[{}]", name_esc, socketindex);
@@ -260,25 +260,20 @@ static PointerRNA rna_NodeSocket_node_get(PointerRNA *ptr)
 {
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(ptr->owner_id);
   bNodeSocket *sock = static_cast<bNodeSocket *>(ptr->data);
-  bNode *node;
-
-  blender::bke::node_find_node(ntree, sock, &node, nullptr);
-
-  PointerRNA r_ptr = RNA_pointer_create(&ntree->id, &RNA_Node, node);
-  return r_ptr;
+  bNode &node = blender::bke::node_find_node(*ntree, *sock);
+  return RNA_pointer_create(&ntree->id, &RNA_Node, &node);
 }
 
 static void rna_NodeSocket_type_set(PointerRNA *ptr, int value)
 {
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(ptr->owner_id);
   bNodeSocket *sock = static_cast<bNodeSocket *>(ptr->data);
-  bNode *node;
-  blender::bke::node_find_node(ntree, sock, &node, nullptr);
-  if (node->type != NODE_CUSTOM) {
+  bNode &node = blender::bke::node_find_node(*ntree, *sock);
+  if (node.type != NODE_CUSTOM) {
     /* Can't change the socket type on built-in nodes like this. */
     return;
   }
-  blender::bke::node_modify_socket_type_static(ntree, node, sock, value, 0);
+  blender::bke::node_modify_socket_type_static(ntree, &node, sock, value, 0);
 }
 
 static bool rna_NodeSocket_is_linked_get(PointerRNA *ptr)
@@ -335,11 +330,10 @@ static void rna_NodeSocket_hide_set(PointerRNA *ptr, bool value)
   }
 
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(ptr->owner_id);
-  bNode *node;
-  blender::bke::node_find_node(ntree, sock, &node, nullptr);
+  bNode &node = blender::bke::node_find_node(*ntree, *sock);
 
   /* The Reroute node is the socket itself, do not hide this. */
-  if (node->is_reroute()) {
+  if (node.is_reroute()) {
     return;
   }
 

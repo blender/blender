@@ -1355,15 +1355,12 @@ static bNodeLink *rna_NodeTree_link_new(bNodeTree *ntree,
                                         bool verify_limits,
                                         bool handle_dynamic_sockets)
 {
-  bNodeLink *ret;
-  bNode *fromnode = nullptr, *tonode = nullptr;
-
   if (!rna_NodeTree_check(ntree, reports)) {
     return nullptr;
   }
 
-  blender::bke::node_find_node_try(ntree, fromsock, &fromnode, nullptr);
-  blender::bke::node_find_node_try(ntree, tosock, &tonode, nullptr);
+  bNode *fromnode = blender::bke::node_find_node_try(*ntree, *fromsock);
+  bNode *tonode = blender::bke::node_find_node_try(*ntree, *tosock);
   /* check validity of the sockets:
    * if sockets from different trees are passed in this will fail!
    */
@@ -1424,7 +1421,7 @@ static bNodeLink *rna_NodeTree_link_new(bNodeTree *ntree,
     }
   }
 
-  ret = blender::bke::node_add_link(ntree, fromnode, fromsock, tonode, tosock);
+  bNodeLink *ret = blender::bke::node_add_link(ntree, fromnode, fromsock, tonode, tosock);
 
   if (ret) {
 
