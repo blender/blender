@@ -846,7 +846,7 @@ if(WITH_CYCLES OR WITH_GPU_RENDER_TESTS)
             ${CMAKE_CURRENT_LIST_DIR}/storm_render_tests.py
             --testdir "${TEST_SRC_DIR}/render/${render_test}"
             --outdir "${TEST_OUT_DIR}/storm_hydra"
-            -export_method "HYDRA"
+            --export_method "HYDRA"
             ${_gpu_render_tests_arguments}
           )
         endforeach()
@@ -857,7 +857,7 @@ if(WITH_CYCLES OR WITH_GPU_RENDER_TESTS)
             ${CMAKE_CURRENT_LIST_DIR}/storm_render_tests.py
             --testdir "${TEST_SRC_DIR}/render/${render_test}"
             --outdir "${TEST_OUT_DIR}/storm_usd"
-            -export_method "USD"
+            --export_method "USD"
             ${_gpu_render_tests_arguments}
           )
         endforeach()
