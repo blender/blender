@@ -256,10 +256,10 @@ static void action_foreach_id(ID *id, LibraryForeachIDData *data)
    * NOTE: early-returns by BKE_LIB_FOREACHID_PROCESS_... macros are forbidden in non-readonly
    * cases (see #IDWALK_RET_STOP_ITER documentation). */
 
-  const int flag = BKE_lib_query_foreachid_process_flags_get(data);
+  const LibraryForeachIDFlag flag = BKE_lib_query_foreachid_process_flags_get(data);
   const bool is_readonly = flag & IDWALK_READONLY;
 
-  constexpr int idwalk_flags = IDWALK_CB_NEVER_SELF | IDWALK_CB_LOOPBACK;
+  constexpr LibraryForeachIDCallbackFlag idwalk_flags = IDWALK_CB_NEVER_SELF | IDWALK_CB_LOOPBACK;
 
   Main *bmain = BKE_lib_query_foreachid_process_main_get(data);
 
