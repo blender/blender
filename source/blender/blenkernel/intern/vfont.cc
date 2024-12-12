@@ -989,10 +989,8 @@ static bool vfont_to_curve(Object *ob,
     }
 
     vfont = which_vfont(cu, info);
-
-    if (vfont == nullptr) {
-      break;
-    }
+    /* This can't happen as `cu->vfont` is is never null and is used if others are null. */
+    BLI_assert(vfont != nullptr);
 
     if (vfont != oldvfont) {
       vfd = vfont_data_ensure(vfont);
