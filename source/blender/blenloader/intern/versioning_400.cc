@@ -5242,6 +5242,29 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     FOREACH_NODETREE_END;
   }
 
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 13)) {
+    LISTBASE_FOREACH (Object *, object, &bmain->objects) {
+      LISTBASE_FOREACH (ModifierData *, modifier, &object->modifiers) {
+        if (modifier->type != eModifierType_Nodes) {
+          continue;
+        }
+        NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(modifier);
+        if (!nmd->settings.properties) {
+          continue;
+        }
+        LISTBASE_FOREACH (IDProperty *, idprop, &nmd->settings.properties->data.group) {
+          if (idprop->type != IDP_STRING) {
+            continue;
+          }
+          blender::StringRef prop_name(idprop->name);
+          if (prop_name.endswith("_attribute_name") || prop_name.endswith("_use_attribute")) {
+            idprop->flag |= IDP_FLAG_OVERRIDABLE_LIBRARY | IDP_FLAG_STATIC_TYPE;
+          }
+        }
+      }
+    }
+  }
+
   /* Always run this versioning; meshes are written with the legacy format which always needs to
    * be converted to the new format on file load. Can be moved to a subversion check in a larger
    * breaking release. */
