@@ -393,8 +393,9 @@ static void panel_draw(const bContext *C, Panel *panel)
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   SubsurfModifierData *smd = static_cast<SubsurfModifierData *>(ptr->data);
   Object *ob = static_cast<Object *>(ob_ptr.data);
-  const Mesh *mesh = static_cast<const Mesh *>(ob->data);
-  if (BKE_subsurf_modifier_force_disable_gpu_evaluation_for_mesh(smd, mesh)) {
+  if (ob->type == OB_MESH && BKE_subsurf_modifier_force_disable_gpu_evaluation_for_mesh(
+                                 smd, static_cast<const Mesh *>(ob->data)))
+  {
     uiItemL(layout,
             RPT_("Sharp edges or custom normals detected, disabling GPU subdivision"),
             ICON_INFO);
