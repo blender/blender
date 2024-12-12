@@ -496,42 +496,40 @@ void curve_populate_trans_data_structs(
     IndexMask points_to_transform = points_to_transform_per_attr[selection_i];
     VArray<bool> selection = selection_attrs[selection_i];
 
-    threading::parallel_for(points_to_transform.index_range(), 1024, [&](const IndexRange range) {
-      for (const int transform_point_i : range) {
-        const int point_in_domain_i = points_to_transform[transform_point_i];
-        TransData &td = tc_data[transform_point_i];
-        float3 *elem = &positions[transform_point_i];
+    points_to_transform.foreach_index(
+        GrainSize(1024), [&](const int64_t domain_i, const int64_t transform_i) {
+          TransData &td = tc_data[transform_i];
+          float3 *elem = &positions[transform_i];
 
-        copy_v3_v3(td.iloc, *elem);
-        copy_v3_v3(td.center, td.iloc);
-        td.loc = *elem;
+          copy_v3_v3(td.iloc, *elem);
+          copy_v3_v3(td.center, td.iloc);
+          td.loc = *elem;
 
-        td.flag = 0;
-        if (selection[point_in_domain_i]) {
-          td.flag = TD_SELECTED;
-        }
+          td.flag = 0;
+          if (selection[domain_i]) {
+            td.flag = TD_SELECTED;
+          }
 
-        td.extra = extra;
+          td.extra = extra;
 
-        if (value_attribute) {
-          float *value = &((*value_attribute)[point_in_domain_i]);
-          td.val = value;
-          td.ival = *value;
-        }
-        td.ext = nullptr;
+          if (value_attribute) {
+            float *value = &((*value_attribute)[domain_i]);
+            td.val = value;
+            td.ival = *value;
+          }
+          td.ext = nullptr;
 
-        if (deformation.deform_mats.is_empty()) {
-          copy_m3_m3(td.smtx, smtx_base.ptr());
-          copy_m3_m3(td.mtx, mtx_base.ptr());
-        }
-        else {
-          const float3x3 mtx = deformation.deform_mats[point_in_domain_i] * mtx_base;
-          const float3x3 smtx = math::pseudo_invert(mtx);
-          copy_m3_m3(td.smtx, smtx.ptr());
-          copy_m3_m3(td.mtx, mtx.ptr());
-        }
-      }
-    });
+          if (deformation.deform_mats.is_empty()) {
+            copy_m3_m3(td.smtx, smtx_base.ptr());
+            copy_m3_m3(td.mtx, mtx_base.ptr());
+          }
+          else {
+            const float3x3 mtx = deformation.deform_mats[domain_i] * mtx_base;
+            const float3x3 smtx = math::pseudo_invert(mtx);
+            copy_m3_m3(td.smtx, smtx.ptr());
+            copy_m3_m3(td.mtx, mtx.ptr());
+          }
+        });
   }
   if (use_connected_only) {
     const VArray<int8_t> curve_types = curves.curve_types();
