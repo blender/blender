@@ -10,8 +10,6 @@
 
 #include "BLI_span.hh"
 
-#include "BKE_lib_query.hh" /* For LibraryForeachIDCallbackFlag enum. */
-
 #include "intern/builder/deg_builder.h"
 #include "intern/builder/deg_builder_key.h"
 #include "intern/builder/deg_builder_map.h"
@@ -313,7 +311,7 @@ class DepsgraphNodeBuilder : public DepsgraphBuilder {
   static void modifier_walk(void *user_data,
                             struct Object *object,
                             struct ID **idpoin,
-                            LibraryForeachIDCallbackFlag cb_flag);
+                            int cb_flag);
   static void constraint_walk(bConstraint *constraint,
                               ID **idpoin,
                               bool is_reference,

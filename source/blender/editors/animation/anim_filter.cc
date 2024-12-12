@@ -2770,10 +2770,7 @@ struct tAnimFilterModifiersContext {
 };
 
 /* dependency walker callback for modifier dependencies */
-static void animfilter_modifier_idpoin_cb(void *afm_ptr,
-                                          Object *ob,
-                                          ID **idpoin,
-                                          LibraryForeachIDCallbackFlag /*cb_flag*/)
+static void animfilter_modifier_idpoin_cb(void *afm_ptr, Object *ob, ID **idpoin, int /*cb_flag*/)
 {
   tAnimFilterModifiersContext *afm = (tAnimFilterModifiersContext *)afm_ptr;
   ID *owner_id = &ob->id;

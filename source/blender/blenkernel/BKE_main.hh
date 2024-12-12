@@ -25,8 +25,6 @@
 #include "BLI_compiler_attrs.h"
 #include "BLI_sys_types.h"
 
-#include "BKE_lib_query.hh" /* For LibraryForeachIDCallbackFlag. */
-
 struct BLI_mempool;
 struct BlendThumbnail;
 struct GHash;
@@ -61,7 +59,7 @@ struct MainIDRelationsEntryItem {
   /* Session uid of the `id_pointer`. */
   uint session_uid;
 
-  LibraryForeachIDCallbackFlag usage_flag; /* Using IDWALK_ enums, defined in BKE_lib_query.hh */
+  int usage_flag; /* Using IDWALK_ enums, defined in BKE_lib_query.hh */
 };
 
 struct MainIDRelationsEntry {

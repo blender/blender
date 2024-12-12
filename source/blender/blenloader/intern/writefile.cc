@@ -1244,7 +1244,7 @@ static int write_id_direct_linked_data_process_cb(LibraryIDLinkCallbackData *cb_
 {
   ID *self_id = cb_data->self_id;
   ID *id = *cb_data->id_pointer;
-  const LibraryForeachIDCallbackFlag cb_flag = cb_data->cb_flag;
+  const int cb_flag = cb_data->cb_flag;
 
   if (id == nullptr || !ID_IS_LINKED(id)) {
     return IDWALK_RET_NOP;

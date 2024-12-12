@@ -3334,10 +3334,8 @@ static void lib_link_all(FileData *fd, Main *bmain)
     if ((id->tag & ID_TAG_NEED_LINK) != 0) {
       /* Not all original pointer values can be considered as valid.
        * Handling of DNA deprecated data should never be needed in undo case. */
-      const LibraryForeachIDFlag flag = IDWALK_NO_ORIG_POINTERS_ACCESS | IDWALK_INCLUDE_UI |
-                                        ((fd->flags & FD_FLAGS_IS_MEMFILE) ?
-                                             IDWALK_NOP :
-                                             IDWALK_DO_DEPRECATED_POINTERS);
+      const int flag = IDWALK_NO_ORIG_POINTERS_ACCESS | IDWALK_INCLUDE_UI |
+                       ((fd->flags & FD_FLAGS_IS_MEMFILE) ? 0 : IDWALK_DO_DEPRECATED_POINTERS);
       BKE_library_foreach_ID_link(bmain, id, lib_link_cb, &reader, flag);
 
       after_liblink_id_process(&reader, id);
@@ -4250,10 +4248,10 @@ void BLO_expand_main(void *fdhandle, Main *mainvar, BLOExpandDoitCallback callba
        * Expanding should _not_ require processing of UI ID pointers.
        * Expanding should never modify ID pointers themselves.
        * Handling of DNA deprecated data should never be needed in undo case. */
-      const LibraryForeachIDFlag flag = IDWALK_READONLY | IDWALK_NO_ORIG_POINTERS_ACCESS |
-                                        ((!fd || (fd->flags & FD_FLAGS_IS_MEMFILE)) ?
-                                             IDWALK_NOP :
-                                             IDWALK_DO_DEPRECATED_POINTERS);
+      const int flag = IDWALK_READONLY | IDWALK_NO_ORIG_POINTERS_ACCESS |
+                       ((!fd || (fd->flags & FD_FLAGS_IS_MEMFILE)) ?
+                            0 :
+                            IDWALK_DO_DEPRECATED_POINTERS);
       BKE_library_foreach_ID_link(nullptr, id_iter, expand_cb, &expander, flag);
 
       do_it = true;

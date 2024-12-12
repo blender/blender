@@ -44,11 +44,11 @@ struct LibraryForeachIDData {
   ID *self_id;
 
   /** Flags controlling the behavior of the 'foreach id' looping code. */
-  LibraryForeachIDFlag flag;
+  int flag;
   /** Generic flags to be passed to all callback calls for current processed data. */
-  LibraryForeachIDCallbackFlag cb_flag;
+  int cb_flag;
   /** Callback flags that are forbidden for all callback calls for current processed data. */
-  LibraryForeachIDCallbackFlag cb_flag_clear;
+  int cb_flag_clear;
 
   /* Function to call for every ID pointers of current processed data, and its opaque user data
    * pointer. */
@@ -68,20 +68,18 @@ bool BKE_lib_query_foreachid_iter_stop(const LibraryForeachIDData *data)
   return (data->status & IDWALK_STOP) != 0;
 }
 
-void BKE_lib_query_foreachid_process(LibraryForeachIDData *data,
-                                     ID **id_pp,
-                                     LibraryForeachIDCallbackFlag cb_flag)
+void BKE_lib_query_foreachid_process(LibraryForeachIDData *data, ID **id_pp, int cb_flag)
 {
   if (BKE_lib_query_foreachid_iter_stop(data)) {
     return;
   }
 
-  const LibraryForeachIDFlag flag = data->flag;
+  const int flag = data->flag;
   ID *old_id = *id_pp;
 
   /* Update the callback flags with the ones defined (or forbidden) in `data` by the generic
    * caller code. */
-  cb_flag = LibraryForeachIDCallbackFlag((cb_flag | data->cb_flag) & ~data->cb_flag_clear);
+  cb_flag = ((cb_flag | data->cb_flag) & ~data->cb_flag_clear);
 
   /* Update the callback flags with some extra information regarding overrides: all 'loopback',
    * 'internal', 'embedded' etc. ID pointers are never overridable. */
@@ -119,7 +117,7 @@ void BKE_lib_query_foreachid_process(LibraryForeachIDData *data,
   }
 }
 
-LibraryForeachIDFlag BKE_lib_query_foreachid_process_flags_get(const LibraryForeachIDData *data)
+int BKE_lib_query_foreachid_process_flags_get(const LibraryForeachIDData *data)
 {
   return data->flag;
 }
@@ -129,10 +127,11 @@ Main *BKE_lib_query_foreachid_process_main_get(const LibraryForeachIDData *data)
   return data->bmain;
 }
 
-int BKE_lib_query_foreachid_process_callback_flag_override(
-    LibraryForeachIDData *data, const LibraryForeachIDCallbackFlag cb_flag, const bool do_replace)
+int BKE_lib_query_foreachid_process_callback_flag_override(LibraryForeachIDData *data,
+                                                           const int cb_flag,
+                                                           const bool do_replace)
 {
-  const LibraryForeachIDCallbackFlag cb_flag_backup = data->cb_flag;
+  const int cb_flag_backup = data->cb_flag;
   if (do_replace) {
     data->cb_flag = cb_flag;
   }
@@ -147,7 +146,7 @@ static bool library_foreach_ID_link(Main *bmain,
                                     ID *id,
                                     blender::FunctionRef<LibraryIDLinkCallback> callback,
                                     void *user_data,
-                                    LibraryForeachIDFlag flag,
+                                    int flag,
                                     LibraryForeachIDData *inherit_data);
 
 void BKE_lib_query_idpropertiesForeachIDLink_callback(IDProperty *id_prop, void *user_data)
@@ -155,10 +154,9 @@ void BKE_lib_query_idpropertiesForeachIDLink_callback(IDProperty *id_prop, void 
   BLI_assert(id_prop->type == IDP_ID);
 
   LibraryForeachIDData *data = (LibraryForeachIDData *)user_data;
-  const LibraryForeachIDCallbackFlag cb_flag = IDWALK_CB_USER |
-                                               ((id_prop->flag & IDP_FLAG_OVERRIDABLE_LIBRARY) ?
-                                                    IDWALK_CB_NOP :
-                                                    IDWALK_CB_OVERRIDE_LIBRARY_NOT_OVERRIDABLE);
+  const int cb_flag = IDWALK_CB_USER | ((id_prop->flag & IDP_FLAG_OVERRIDABLE_LIBRARY) ?
+                                            0 :
+                                            IDWALK_CB_OVERRIDE_LIBRARY_NOT_OVERRIDABLE);
   BKE_LIB_FOREACHID_PROCESS_ID(data, id_prop->data.pointer, cb_flag);
 }
 
@@ -166,7 +164,7 @@ void BKE_library_foreach_ID_embedded(LibraryForeachIDData *data, ID **id_pp)
 {
   /* Needed e.g. for callbacks handling relationships. This call should be absolutely read-only. */
   ID *id = *id_pp;
-  const LibraryForeachIDFlag flag = data->flag;
+  const int flag = data->flag;
 
   BKE_lib_query_foreachid_process(data, id_pp, IDWALK_CB_EMBEDDED);
   if (BKE_lib_query_foreachid_iter_stop(data)) {
@@ -212,7 +210,7 @@ static bool library_foreach_ID_link(Main *bmain,
                                     ID *id,
                                     blender::FunctionRef<LibraryIDLinkCallback> callback,
                                     void *user_data,
-                                    LibraryForeachIDFlag flag,
+                                    int flag,
                                     LibraryForeachIDData *inherit_data)
 {
   LibraryForeachIDData data{};
@@ -306,11 +304,11 @@ static bool library_foreach_ID_link(Main *bmain,
      * In that case, we do not want to generate those 'generic flags' from our current sub-data ID
      * (the node tree), but re-use those generated for the 'owner' ID (the material). */
     if (inherit_data == nullptr) {
-      data.cb_flag = ID_IS_LINKED(id) ? IDWALK_CB_INDIRECT_USAGE : IDWALK_CB_NOP;
+      data.cb_flag = ID_IS_LINKED(id) ? IDWALK_CB_INDIRECT_USAGE : 0;
       /* When an ID is defined as not reference-counting its ID usages, it should never do it. */
       data.cb_flag_clear = (id->tag & ID_TAG_NO_USER_REFCOUNT) ?
                                IDWALK_CB_USER | IDWALK_CB_USER_ONE :
-                               IDWALK_CB_NOP;
+                               0;
     }
     else {
       data.cb_flag = inherit_data->cb_flag;
@@ -417,7 +415,7 @@ void BKE_library_foreach_ID_link(Main *bmain,
                                  ID *id,
                                  blender::FunctionRef<LibraryIDLinkCallback> callback,
                                  void *user_data,
-                                 const LibraryForeachIDFlag flag)
+                                 int flag)
 {
   library_foreach_ID_link(bmain, nullptr, id, callback, user_data, flag, nullptr);
 }
@@ -440,7 +438,7 @@ void BKE_library_foreach_subdata_id(
     blender::FunctionRef<void(LibraryForeachIDData *data)> subdata_foreach_id,
     blender::FunctionRef<LibraryIDLinkCallback> callback,
     void *user_data,
-    const LibraryForeachIDFlag flag)
+    const int flag)
 {
   BLI_assert((flag & (IDWALK_RECURSE | IDWALK_DO_INTERNAL_RUNTIME_POINTERS |
                       IDWALK_DO_LIBRARY_POINTER | IDWALK_INCLUDE_UI)) == 0);
@@ -521,7 +519,7 @@ struct IDUsersIter {
 static int foreach_libblock_id_users_callback(LibraryIDLinkCallbackData *cb_data)
 {
   ID **id_p = cb_data->id_pointer;
-  const LibraryForeachIDCallbackFlag cb_flag = cb_data->cb_flag;
+  const int cb_flag = cb_data->cb_flag;
   IDUsersIter *iter = static_cast<IDUsersIter *>(cb_data->user_data);
 
   if (*id_p) {
@@ -982,7 +980,7 @@ static int foreach_libblock_used_linked_data_tag_clear_cb(LibraryIDLinkCallbackD
 {
   ID *self_id = cb_data->self_id;
   ID **id_p = cb_data->id_pointer;
-  const LibraryForeachIDCallbackFlag cb_flag = cb_data->cb_flag;
+  const int cb_flag = cb_data->cb_flag;
   bool *is_changed = static_cast<bool *>(cb_data->user_data);
 
   if (*id_p) {
