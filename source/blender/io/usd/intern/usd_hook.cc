@@ -23,11 +23,14 @@
 #if PXR_VERSION >= 2411
 #  include <pxr/external/boost/python/call_method.hpp>
 #  include <pxr/external/boost/python/class.hpp>
+#  include <pxr/external/boost/python/dict.hpp>
 #  include <pxr/external/boost/python/import.hpp>
+#  include <pxr/external/boost/python/list.hpp>
 #  include <pxr/external/boost/python/ref.hpp>
 #  include <pxr/external/boost/python/return_value_policy.hpp>
 #  include <pxr/external/boost/python/to_python_converter.hpp>
-#  define REF python::ref
+#  define PYTHON_NS pxr::pxr_boost::python
+#  define REF pxr::pxr_boost::python::ref
 
 using namespace pxr::pxr_boost;
 #else
@@ -36,6 +39,7 @@ using namespace pxr::pxr_boost;
 #  include <boost/python/import.hpp>
 #  include <boost/python/return_value_policy.hpp>
 #  include <boost/python/to_python_converter.hpp>
+#  define PYTHON_NS boost::python
 #  define REF boost::ref
 
 using namespace boost;
@@ -140,17 +144,16 @@ struct USDSceneImportContext {
     return stage;
   }
 
-  boost::python::dict get_prim_map()
+  PYTHON_NS::dict get_prim_map()
   {
     if (!prim_map_dict) {
-      prim_map_dict = new boost::python::dict;
+      prim_map_dict = new PYTHON_NS::dict;
 
       prim_map.foreach_item([&](const std::string &path, const Vector<PointerRNA> &ids) {
         if (!prim_map_dict->has_key(path)) {
-          (*prim_map_dict)[path] = boost::python::list();
+          (*prim_map_dict)[path] = PYTHON_NS::list();
         }
-        boost::python::list list = boost::python::extract<boost::python::list>(
-            (*prim_map_dict)[path]);
+        PYTHON_NS::list list = PYTHON_NS::extract<PYTHON_NS::list>((*prim_map_dict)[path]);
 
         for (auto &ptr_rna : ids) {
           list.append(ptr_rna);
@@ -163,7 +166,7 @@ struct USDSceneImportContext {
 
   pxr::UsdStageRefPtr stage;
   ImportedPrimMap prim_map;
-  boost::python::dict *prim_map_dict = nullptr;
+  PYTHON_NS::dict *prim_map_dict = nullptr;
 };
 
 /* Encapsulate arguments for material export. */
@@ -426,3 +429,4 @@ void call_import_hooks(pxr::UsdStageRefPtr stage,
 }  // namespace blender::io::usd
 
 #undef REF
+#undef PYTHON_NS
