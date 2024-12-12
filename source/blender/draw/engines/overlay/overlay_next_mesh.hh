@@ -822,13 +822,20 @@ class MeshUVs : Overlay {
       };
 
       ListBaseWrapper<ImageTile> tiles(image->tiles);
-
+      /* image->active_tile_index could point to a non existing ImageTile. To work around this we
+       * get the active tile when looping over all tiles. */
+      const ImageTile *active_tile = nullptr;
+      int tile_index = 0;
       for (const ImageTile *tile : tiles) {
         draw_tile(tile, false);
+        if (tile_index == image->active_tile_index) {
+          active_tile = tile;
+        }
+        tile_index++;
       }
       /* Draw active tile on top. */
-      if (show_tiled_image_active_) {
-        draw_tile(tiles.get(image->active_tile_index), true);
+      if (show_tiled_image_active_ && active_tile != nullptr) {
+        draw_tile(active_tile, true);
       }
     }
 
