@@ -263,12 +263,6 @@ const GPUShaderCreateInfo *GPU_shader_create_info_get(const char *info_name)
   return gpu_shader_create_info_get(info_name);
 }
 
-void GPU_shader_create_info_get_unfinalized_copy(const char *info_name,
-                                                 GPUShaderCreateInfo &r_info)
-{
-  gpu_shader_create_info_get_unfinalized_copy(info_name, r_info);
-}
-
 bool GPU_shader_create_info_check_error(const GPUShaderCreateInfo *_info, char r_error[128])
 {
   using namespace blender::gpu::shader;

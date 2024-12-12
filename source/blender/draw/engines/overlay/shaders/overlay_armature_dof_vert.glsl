@@ -15,6 +15,7 @@ vec3 sphere_project(float ax, float az)
 
 void main()
 {
+  mat4 inst_obmat = data_buf[gl_InstanceID].object_to_world;
   mat4 model_mat = inst_obmat;
   model_mat[0][3] = model_mat[1][3] = model_mat[2][3] = 0.0;
   model_mat[3][3] = 1.0;
@@ -27,7 +28,7 @@ void main()
 
   vec3 world_pos = (model_mat * vec4(final_pos, 1.0)).xyz;
   gl_Position = point_world_to_ndc(world_pos);
-  finalColor = color;
+  finalColor = data_buf[gl_InstanceID].color_;
 
   edgeStart = edgePos = ((gl_Position.xy / gl_Position.w) * 0.5 + 0.5) * sizeViewport;
 

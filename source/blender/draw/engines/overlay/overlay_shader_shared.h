@@ -213,14 +213,14 @@ BLI_STATIC_ASSERT_ALIGN(ThemeColorData, 16)
 
 struct ExtraInstanceData {
   float4 color_;
-  float4x4 object_to_world_;
+  float4x4 object_to_world;
 
 #if !defined(GPU_SHADER) && defined(__cplusplus)
   ExtraInstanceData(const float4x4 &object_to_world, const float4 &color, float draw_size)
   {
     this->color_ = color;
-    this->object_to_world_ = object_to_world;
-    this->object_to_world_[3][3] = draw_size;
+    this->object_to_world = object_to_world;
+    this->object_to_world[3][3] = draw_size;
   };
 
   ExtraInstanceData with_color(const float4 &color) const
@@ -239,11 +239,11 @@ struct ExtraInstanceData {
                     float angle_max_z)
   {
     this->color_ = color;
-    this->object_to_world_ = object_to_world;
-    this->object_to_world_[0][3] = angle_min_x;
-    this->object_to_world_[1][3] = angle_min_z;
-    this->object_to_world_[2][3] = angle_max_x;
-    this->object_to_world_[3][3] = angle_max_z;
+    this->object_to_world = object_to_world;
+    this->object_to_world[0][3] = angle_min_x;
+    this->object_to_world[1][3] = angle_min_z;
+    this->object_to_world[2][3] = angle_max_x;
+    this->object_to_world[3][3] = angle_max_z;
   };
 #endif
 };
@@ -276,6 +276,7 @@ BLI_STATIC_ASSERT_ALIGN(ParticlePointData, 16)
 struct BoneEnvelopeData {
   float4 head_sphere;
   float4 tail_sphere;
+  /* TODO(pragma37): wire width is never used in the shader. */
   float4 bone_color_and_wire_width;
   float4 state_color;
   float4 x_axis;

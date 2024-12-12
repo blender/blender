@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "gpu_shader_create_info.hh"
+#include "overlay_common_info.hh"
 
 GPU_SHADER_CREATE_INFO(overlay_antialiasing)
 DO_STATIC_COMPILATION()
@@ -24,4 +24,6 @@ PUSH_CONSTANT(FLOAT, opacity)
 FRAGMENT_OUT(0, VEC4, fragColor)
 FRAGMENT_SOURCE("overlay_xray_fade_frag.glsl")
 ADDITIONAL_INFO(draw_fullscreen)
+SAMPLER(2, DEPTH_2D, xrayDepthTexInfront)
+SAMPLER(3, DEPTH_2D, depthTexInfront)
 GPU_SHADER_CREATE_END()

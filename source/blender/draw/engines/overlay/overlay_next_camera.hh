@@ -26,7 +26,7 @@ struct CameraInstanceData : public ExtraInstanceData {
   float &volume_end = color_[3];
   float &depth = color_[3];
   float &focus = color_[3];
-  float4x4 &matrix = object_to_world_;
+  float4x4 &matrix = object_to_world;
   float &dist_color_id = matrix[0][3];
   float &corner_x = matrix[0][3];
   float &corner_y = matrix[1][3];
@@ -38,7 +38,7 @@ struct CameraInstanceData : public ExtraInstanceData {
   float &mist_end = matrix[3][3];
 
   CameraInstanceData(const CameraInstanceData &data)
-      : CameraInstanceData(data.object_to_world_, data.color_)
+      : CameraInstanceData(data.object_to_world, data.color_)
   {
   }
 
@@ -805,7 +805,7 @@ class Cameras : Overlay {
 
         /* Connecting line between cameras. */
         call_buffers_.stereo_connect_lines.append(stereodata.matrix.location(),
-                                                  instdata.object_to_world_.location(),
+                                                  instdata.object_to_world.location(),
                                                   res.theme_settings.color_wire,
                                                   cam_select_id);
       }

@@ -65,9 +65,6 @@ GPUShader *GPU_shader_create_from_info_name(const char *info_name);
  */
 const GPUShaderCreateInfo *GPU_shader_create_info_get(const char *info_name);
 
-void GPU_shader_create_info_get_unfinalized_copy(const char *info_name,
-                                                 GPUShaderCreateInfo &r_info);
-
 /**
  * Error checking for user created shaders.
  * \return true is create info is valid.

@@ -16,6 +16,7 @@ void main()
 {
   select_id_set(in_select_buf[gl_InstanceID]);
   vec4 bone_color, state_color;
+  mat4 inst_obmat = data_buf[gl_InstanceID];
   mat4 model_mat = extract_matrix_packed_data(inst_obmat, state_color, bone_color);
 
   mat4 model_view_matrix = drw_view.viewmat * model_mat;
