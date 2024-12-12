@@ -374,7 +374,7 @@ class POSE_PT_selection_sets(Panel):
         sub.operator("pose.selection_set_unassign", text="Remove")
 
         sub = row.row(align=True)
-        sub.operator("pose.selection_set_select", text="Select")
+        sub.operator("pose.selection_set_select", text="Select").selection_set_index = -1
         sub.operator("pose.selection_set_deselect", text="Deselect")
 
 
