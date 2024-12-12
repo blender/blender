@@ -100,8 +100,11 @@ def setup():
                 if mat_slot.material:
                     mat_slot.material.thickness_mode = 'SPHERE'
 
+        if bpy.data.objects.get('Volume_Probe_Baked') is not None:
+            # Some file already have pre existing probe setup with baked data.
+            pass
         # Does not work in edit mode
-        if bpy.context.mode == 'OBJECT':
+        elif bpy.context.mode == 'OBJECT':
             # Simple probe setup
             bpy.ops.object.lightprobe_add(type='SPHERE', location=(0.0, 0.1, 1.0))
             cubemap = bpy.context.selected_objects[0]
