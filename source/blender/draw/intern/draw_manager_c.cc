@@ -482,15 +482,6 @@ static void drw_manager_init(DRWManager *dst, GPUViewport *viewport, const int s
     ED_view3d_init_mats_rv3d(dst->draw_ctx.object_edit, rv3d);
   }
 
-  if (G_draw.view_ubo == nullptr) {
-    G_draw.view_ubo = GPU_uniformbuf_create_ex(sizeof(ViewMatrices), nullptr, "G_draw.view_ubo");
-  }
-
-  if (G_draw.clipping_ubo == nullptr) {
-    G_draw.clipping_ubo = GPU_uniformbuf_create_ex(
-        sizeof(float4) * 6, nullptr, "G_draw.clipping_ubo");
-  }
-
   memset(dst->object_instance_data, 0x0, sizeof(dst->object_instance_data));
 }
 
@@ -2949,8 +2940,6 @@ void DRW_engines_free()
   DST.debug = nullptr;
 
   GPU_UBO_FREE_SAFE(G_draw.block_ubo);
-  GPU_UBO_FREE_SAFE(G_draw.view_ubo);
-  GPU_UBO_FREE_SAFE(G_draw.clipping_ubo);
   GPU_TEXTURE_FREE_SAFE(G_draw.ramp);
   GPU_TEXTURE_FREE_SAFE(G_draw.weight_ramp);
 

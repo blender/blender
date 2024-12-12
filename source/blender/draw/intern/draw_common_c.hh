@@ -37,13 +37,6 @@ BLI_STATIC_ASSERT_ALIGN(GlobalsUboStorage, 16)
 void DRW_globals_update();
 void DRW_globals_free();
 
-/**
- * Get the wire color theme_id of an object based on its state
- * \a r_color is a way to get a pointer to the static color var associated
- */
-int DRW_object_wire_theme_get(Object *ob, ViewLayer *view_layer, float **r_color);
-float *DRW_color_background_blend_get(int theme_id);
-
 /* draw_hair.cc */
 
 /**
@@ -114,8 +107,5 @@ struct DRW_Global {
 
   GPUTexture *ramp;
   GPUTexture *weight_ramp;
-
-  GPUUniformBuf *view_ubo;
-  GPUUniformBuf *clipping_ubo;
 };
 extern DRW_Global G_draw;
