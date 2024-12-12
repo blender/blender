@@ -1,0 +1,13 @@
+# this otherwise leads to error C1258 due to too long path for XML log files
+diff --git a/cmake/helpers.cmake b/cmake/helpers.cmake
+index 1d3e175..48770c4 100644
+--- a/cmake/helpers.cmake
++++ b/cmake/helpers.cmake
+@@ -229,7 +229,6 @@ function(add_umf_target_compile_options name)
+             ${name}
+             PRIVATE /MD$<$<CONFIG:Debug>:d>
+                     $<$<CONFIG:Release>:/sdl>
+-                    /analyze
+                     /DYNAMICBASE
+                     /W4
+                     /Gy

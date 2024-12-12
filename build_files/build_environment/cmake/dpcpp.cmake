@@ -46,6 +46,9 @@ set(DPCPP_EXTRA_ARGS
   -DSYCL_PI_UR_USE_FETCH_CONTENT=OFF
   -DSYCL_PI_UR_SOURCE_DIR=${BUILD_DIR}/unifiedruntime/src/external_unifiedruntime/
   -DFETCHCONTENT_SOURCE_DIR_UNIFIED-MEMORY-FRAMEWORK=${BUILD_DIR}/unifiedmemoryframework/src/external_unifiedmemoryframework/
+  -DSYCL_UMF_DISABLE_HWLOC=ON
+  -DUMF_DISABLE_HWLOC=ON
+  -DUMF_BUILD_SHARED_LIBRARY=OFF
   # Below here is copied from an invocation of buildbot/config.py
   -DLLVM_ENABLE_ASSERTIONS=ON
   -DLLVM_TARGETS_TO_BUILD=X86
@@ -71,7 +74,7 @@ set(DPCPP_EXTRA_ARGS
   -DXPTI_ENABLE_WERROR=OFF
   -DSYCL_CLANG_EXTRA_FLAGS=
   -DSYCL_ENABLE_PLUGINS=level_zero
-  -DSYCL_ENABLE_KERNEL_FUSION=OFF
+  -DSYCL_ENABLE_EXTENSION_JIT=OFF
   -DSYCL_ENABLE_MAJOR_RELEASE_PREVIEW_LIB=OFF
   -DCMAKE_INSTALL_RPATH=\$ORIGIN
   -DPython3_ROOT_DIR=${LIBDIR}/python/
@@ -79,10 +82,20 @@ set(DPCPP_EXTRA_ARGS
   -DPYTHON_EXECUTABLE=${PYTHON_BINARY}
   -DLLDB_ENABLE_CURSES=OFF
   -DLLVM_ENABLE_TERMINFO=OFF
+  -DLLVM_ENABLE_ZSTD=FORCE_ON
+  -DLLVM_USE_STATIC_ZSTD=ON
+  -Dzstd_INCLUDE_DIR=${LIBDIR}/zstd/include
 )
 
 if(WIN32)
-  list(APPEND DPCPP_EXTRA_ARGS -DPython3_FIND_REGISTRY=NEVER)
+  list(APPEND DPCPP_EXTRA_ARGS
+    -DPython3_FIND_REGISTRY=NEVER
+    -Dzstd_LIBRARY=${LIBDIR}/zstd/lib/zstd_static.lib
+    )
+else()
+  list(APPEND DPCPP_EXTRA_ARGS
+    -Dzstd_LIBRARY=${LIBDIR}/zstd/lib/libzstd.a
+  )
 endif()
 
 ExternalProject_Add(external_dpcpp
@@ -111,7 +124,7 @@ ExternalProject_Add(external_dpcpp
     ${PATCH_DIR}/dpcpp.diff &&
     ${PATCH_CMD} -p 1 -d
     ${BUILD_DIR}/dpcpp/src/external_dpcpp <
-    ${PATCH_DIR}/dpcpp_13328.diff
+    ${PATCH_DIR}/dpcpp_15124.diff
 
   INSTALL_DIR ${LIBDIR}/dpcpp
 )
@@ -142,9 +155,6 @@ if(WIN32)
       COMMAND ${CMAKE_COMMAND} -E rm -f ${HARVEST_TARGET}/dpcpp/bin/lld.exe
       COMMAND ${CMAKE_COMMAND} -E rm -f ${HARVEST_TARGET}/dpcpp/bin/lld-link.exe
       COMMAND ${CMAKE_COMMAND} -E rm -f ${HARVEST_TARGET}/dpcpp/bin/wasm-ld.exe
-      COMMAND ${CMAKE_COMMAND} -E rm -f ${HARVEST_TARGET}/dpcpp/bin/pi_unified_runtime.dll
-      COMMAND ${CMAKE_COMMAND} -E rm -f ${HARVEST_TARGET}/dpcpp/bin/ur_adapter_level_zero.dll
-      COMMAND ${CMAKE_COMMAND} -E rm -f ${HARVEST_TARGET}/dpcpp/bin/ur_loader.dll
       DEPENDEES install
     )
   endif()
@@ -152,7 +162,6 @@ else()
   harvest(external_dpcpp dpcpp/bin dpcpp/bin "*")
   harvest(external_dpcpp dpcpp/include dpcpp/include "*")
   harvest(external_dpcpp dpcpp/lib dpcpp/lib "libsycl*")
-  # avoid harvesting libpi_unified_runtime and libur_ as they're optional.
-  harvest(external_dpcpp dpcpp/lib dpcpp/lib "libpi_level_zero*")
+  harvest(external_dpcpp dpcpp/lib dpcpp/lib "libur*")
   harvest(external_dpcpp dpcpp/lib/clang dpcpp/lib/clang "*")
 endif()

@@ -1039,25 +1039,26 @@ set(OPENPGL_HOMEPAGE http://www.openpgl.org/)
 set(OPENPGL_LICENSE SPDX:Apache-2.0)
 set(OPENPGL_COPYRIGHT "Copyright 2020 Intel Corporation.")
 
-set(LEVEL_ZERO_VERSION 1.16.1)
+# Default version used by DPCPP: unified-runtime/cmake/FetchLevelZero.cmake
+set(LEVEL_ZERO_VERSION 1.19.2)
 set(LEVEL_ZERO_NAME "oneAPI Level Zero")
 set(LEVEL_ZERO_URI https://codeload.github.com/oneapi-src/level-zero/tar.gz/refs/tags/v${LEVEL_ZERO_VERSION})
-set(LEVEL_ZERO_HASH f341dd6355d8da6ee9c29031642b8e8e4259f91c13c72d318c81663af048817e)
+set(LEVEL_ZERO_HASH b0bea0a09d1a68f68ecf8694e58a60e199fa5785f91c2fd59f026133bc1c4f28)
 set(LEVEL_ZERO_HASH_TYPE SHA256)
 set(LEVEL_ZERO_FILE level-zero-${LEVEL_ZERO_VERSION}.tar.gz)
 set(LEVEL_ZERO_HOMEPAGE https://github.com/oneapi-src/level-zero)
 set(LEVEL_ZERO_LICENSE SPDX:MIT)
-set(LEVEL_ZERO_COPYRIGHT "Copyright (C) 2019-2021 Intel Corporation")
+set(LEVEL_ZERO_COPYRIGHT "Copyright (C) 2019-2024 Intel Corporation")
 
-set(DPCPP_VERSION d2817d6d317db1143bb227168e85c409d5ab7c82) # tip of sycl-rel_5_2_0 as of 2024.05.24
+set(DPCPP_VERSION v6.0.0-rc1)
 set(DPCPP_URI https://github.com/intel/llvm/archive/${DPCPP_VERSION}.tar.gz)
-set(DPCPP_HASH 86cbff157b79e29a6ebb96ba79c96f64b4296c33fcd896f60a5579955fca5724)
+set(DPCPP_HASH 65f508827f48d9a894cc8c6fbdc9b15760681558ee29f6ebfef608034db99ca1)
 set(DPCPP_HASH_TYPE SHA256)
 set(DPCPP_FILE DPCPP-${DPCPP_VERSION}.tar.gz)
 set(DPCPP_NAME DPC++)
 set(DPCPP_HOMEPAGE "https://github.com/intel/llvm#oneapi-dpc-compiler")
 set(DPCPP_LICENSE SPDX:Apache-2.0)
-set(DPCPP_COPYRIGHT "Copyright (C) 2021 Intel Corporation")
+set(DPCPP_COPYRIGHT "Copyright (C) 2021-2024 Intel Corporation")
 
 ########################
 ### DPCPP DEPS BEGIN ###
@@ -1068,14 +1069,14 @@ set(DPCPP_COPYRIGHT "Copyright (C) 2021 Intel Corporation")
 # will take care of building them, unpack is being done in dpcpp_deps.cmake
 
 # Source llvm/lib/SYCLLowerIR/CMakeLists.txt
-set(VCINTRINSICS_VERSION da892e1982b6c25b9a133f85b4ac97142d8a3def)
+set(VCINTRINSICS_VERSION b2565a03eb3cac07f5e8000fde971f95dc782c75)
 set(VCINTRINSICS_URI https://github.com/intel/vc-intrinsics/archive/${VCINTRINSICS_VERSION}.tar.gz)
-set(VCINTRINSICS_HASH 06b85bd988059939770eb6e6e6194562d17c5f5a5df9947af18696b3b1fe92f3)
+set(VCINTRINSICS_HASH 4dfccbb60c2a929a97745c7a4cff04cc3f54aca1590b2763ca7842be59b55f01)
 set(VCINTRINSICS_HASH_TYPE SHA256)
 set(VCINTRINSICS_FILE vc-intrinsics-${VCINTRINSICS_VERSION}.tar.gz)
 set(VCINTRINSICS_HOMEPAGE https://github.com/intel/vc-intrinsics)
 set(VCINTRINSICS_LICENSE SPDX:MIT)
-set(VCINTRINSICS_COPYRIGHT "Copyright (c) 2019 Intel Corporation")
+set(VCINTRINSICS_COPYRIGHT "Copyright (c) 2019-2024 Intel Corporation")
 
 # Source opencl/CMakeLists.txt
 set(OPENCLHEADERS_VERSION 9ddb236e6eb3cf844f9e2f81677e1045f9bf838e)
@@ -1101,9 +1102,9 @@ set(ICDLOADER_COPYRIGHT " Copyright (c) 2020 The Khronos Group Inc.")
 # Source sycl/cmake/modules/AddBoostMp11Headers.cmake
 # Using external MP11 here, getting AddBoostMp11Headers.cmake to recognize
 # our copy in boost directly was more trouble than it was worth.
-set(MP11_VERSION ef7608b463298b881bc82eae4f45a4385ed74fca)
+set(MP11_VERSION 863d8b8d2b20f2acd0b5870f23e553df9ce90e6c)
 set(MP11_URI https://github.com/boostorg/mp11/archive/${MP11_VERSION}.tar.gz)
-set(MP11_HASH ec2d68858dd4d04f9a1e3960fc94a58440715e1b3e746cc495438116715343e2)
+set(MP11_HASH 525692267abb8086bb9cc2fe81fb96d73ac645dfa6825cb5114686aafe244e9f)
 set(MP11_HASH_TYPE SHA256)
 set(MP11_FILE mp11-${MP11_VERSION}.tar.gz)
 set(MP11_HOMEPAGE https://github.com/boostorg/mp11)
@@ -1120,10 +1121,10 @@ set(SPIRV_HEADERS_HOMEPAGE https://github.com/KhronosGroup/SPIRV-Headers)
 set(SPIRV_HEADERS_LICENSE SPDX:MIT-Khronos-old)
 set(SPIRV_HEADERS_COPYRIGHT "Copyright (c) 2015-2024 The Khronos Group Inc.")
 
-# Source sycl/plugins/unified_runtime/CMakeLists.txt
-set(UNIFIED_RUNTIME_VERSION ec634ff05b067d7922ec45059dda94665e5dcd9b)
+# Source sycl/cmake/modules/FetchUnifiedRuntime.cmake
+set(UNIFIED_RUNTIME_VERSION 04db12683146673af9a09e923c19cf9a4ee96982)
 set(UNIFIED_RUNTIME_URI https://github.com/oneapi-src/unified-runtime/archive/${UNIFIED_RUNTIME_VERSION}.tar.gz)
-set(UNIFIED_RUNTIME_HASH ff15574aba6225d0c8a32f71866126551dee1aaacfa7894b8fdcc5e52e0f5da9)
+set(UNIFIED_RUNTIME_HASH 1ebb6f6ec640dac6279ad84a705ddb48da12e29af9942a7e8fc087f23212f650)
 set(UNIFIED_RUNTIME_HASH_TYPE SHA256)
 set(UNIFIED_RUNTIME_FILE unified-runtime-${UNIFIED_RUNTIME_VERSION}.tar.gz)
 set(UNIFIED_RUNTIME_HOMEPAGE https://github.com/oneapi-src/unified-runtime)
@@ -1131,9 +1132,9 @@ set(UNIFIED_RUNTIME_LICENSE SPDX:Apache-2.0 WITH LLVM-exception)
 set(UNIFIED_RUNTIME_COPYRIGHT "Copyright (C) 2019-2024 Intel Corporation")
 
 # Source unified-runtime/source/common/CMakeList.txt
-set(UNIFIED_MEMORY_FRAMEWORK_VERSION 9bf7a0dc4dff76844e10edbb5c6e9d917536ef6d)
+set(UNIFIED_MEMORY_FRAMEWORK_VERSION v0.9.0)
 set(UNIFIED_MEMORY_FRAMEWORK_URI https://github.com/oneapi-src/unified-memory-framework/archive/${UNIFIED_MEMORY_FRAMEWORK_VERSION}.tar.gz)
-set(UNIFIED_MEMORY_FRAMEWORK_HASH 7ff7d0be7be6e59693d238eab02b5a9741c820d3d995446781dcd7a2adaa28e9)
+set(UNIFIED_MEMORY_FRAMEWORK_HASH 8594738d84abb4001bb0e962383b8a2604837e7bbc378d0771ecdab436c7d001)
 set(UNIFIED_MEMORY_FRAMEWORK_HASH_TYPE SHA256)
 set(UNIFIED_MEMORY_FRAMEWORK_FILE unified-memory-framework-${UNIFIED_MEMORY_FRAMEWORK_VERSION}.tar.gz)
 set(UNIFIED_MEMORY_FRAMEWORK_HOMEPAGE https://github.com/oneapi-src/unified-memory-framework)

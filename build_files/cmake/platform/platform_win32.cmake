@@ -1040,11 +1040,19 @@ if(WITH_CYCLES AND WITH_CYCLES_EMBREE)
     )
 
     if(EMBREE_SYCL_SUPPORT)
-      set(EMBREE_LIBRARIES
-        ${EMBREE_LIBRARIES}
-        optimized ${LIBDIR}/embree/lib/embree4_sycl.lib
-        debug ${LIBDIR}/embree/lib/embree4_sycl_d.lib
-      )
+      # MSVC debug version of embree may have been compiled without SYCL support
+      if(EXISTS ${LIBDIR}/embree/lib/embree4_sycl_d.lib)
+        set(EMBREE_LIBRARIES
+          ${EMBREE_LIBRARIES}
+          optimized ${LIBDIR}/embree/lib/embree4_sycl.lib
+          debug ${LIBDIR}/embree/lib/embree4_sycl_d.lib
+        )
+      else()
+        set(EMBREE_LIBRARIES
+          ${EMBREE_LIBRARIES}
+          optimized ${LIBDIR}/embree/lib/embree4_sycl.lib
+        )
+      endif()
     endif()
 
     if(EMBREE_STATIC_LIB)
@@ -1069,11 +1077,19 @@ if(WITH_CYCLES AND WITH_CYCLES_EMBREE)
       )
 
       if(EMBREE_SYCL_SUPPORT)
-        set(EMBREE_LIBRARIES
-          ${EMBREE_LIBRARIES}
-          optimized ${LIBDIR}/embree/lib/embree_rthwif.lib
-          debug ${LIBDIR}/embree/lib/embree_rthwif_d.lib
-        )
+        # MSVC debug version of embree may have been compiled without SYCL support
+        if(EXISTS ${LIBDIR}/embree/lib/embree_rthwif_d.lib)
+          set(EMBREE_LIBRARIES
+            ${EMBREE_LIBRARIES}
+            optimized ${LIBDIR}/embree/lib/embree_rthwif.lib
+            debug ${LIBDIR}/embree/lib/embree_rthwif_d.lib
+          )
+        else()
+          set(EMBREE_LIBRARIES
+            ${EMBREE_LIBRARIES}
+            optimized ${LIBDIR}/embree/lib/embree_rthwif.lib
+          )
+        endif()
       endif()
     endif()
   endif()
