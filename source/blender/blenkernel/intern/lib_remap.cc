@@ -173,7 +173,7 @@ static void foreach_libblock_remap_callback_apply(ID *id_owner,
 
 static int foreach_libblock_remap_callback(LibraryIDLinkCallbackData *cb_data)
 {
-  const int cb_flag = cb_data->cb_flag;
+  const LibraryForeachIDCallbackFlag cb_flag = cb_data->cb_flag;
 
   /* NOTE: Support remapping of `IDWALK_CB_EMBEDDED_NON_OWNING` pointers, this is necessary in some
    * complex low-level ID manipulation cases (e.g. in ID swapping, see #BKE_lib_id_swap & co).
@@ -880,7 +880,7 @@ static void libblock_relink_to_newid_prepare_data(Main *bmain,
                                                   RelinkToNewIDData *relink_data);
 static int id_relink_to_newid_looper(LibraryIDLinkCallbackData *cb_data)
 {
-  const int cb_flag = cb_data->cb_flag;
+  const LibraryForeachIDCallbackFlag cb_flag = cb_data->cb_flag;
   /* NOTE: For now, support remapping `IDWALK_CB_EMBEDDED_NON_OWNING` pointers. */
   if (cb_flag & (IDWALK_CB_EMBEDDED | IDWALK_CB_OVERRIDE_LIBRARY_REFERENCE)) {
     return IDWALK_RET_NOP;

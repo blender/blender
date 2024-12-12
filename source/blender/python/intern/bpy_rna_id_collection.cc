@@ -68,7 +68,7 @@ static int foreach_libblock_id_user_map_callback(LibraryIDLinkCallbackData *cb_d
 
   if (*id_p) {
     IDUserMapData *data = static_cast<IDUserMapData *>(cb_data->user_data);
-    const int cb_flag = cb_data->cb_flag;
+    const LibraryForeachIDCallbackFlag cb_flag = cb_data->cb_flag;
 
     if (data->types_bitmap) {
       if (!id_check_type(*id_p, data->types_bitmap)) {

@@ -259,7 +259,7 @@ static void action_foreach_id(ID *id, LibraryForeachIDData *data)
   const LibraryForeachIDFlag flag = BKE_lib_query_foreachid_process_flags_get(data);
   const bool is_readonly = flag & IDWALK_READONLY;
 
-  constexpr int idwalk_flags = IDWALK_CB_NEVER_SELF | IDWALK_CB_LOOPBACK;
+  constexpr LibraryForeachIDCallbackFlag idwalk_flags = IDWALK_CB_NEVER_SELF | IDWALK_CB_LOOPBACK;
 
   Main *bmain = BKE_lib_query_foreachid_process_main_get(data);
 

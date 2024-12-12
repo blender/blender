@@ -3633,7 +3633,7 @@ void DepsgraphRelationBuilder::build_copy_on_write_relations(IDNode *id_node)
 void DepsgraphRelationBuilder::modifier_walk(void *user_data,
                                              Object * /*object*/,
                                              ID **idpoin,
-                                             int /*cb_flag*/)
+                                             LibraryForeachIDCallbackFlag /*cb_flag*/)
 {
   BuilderWalkUserData *data = (BuilderWalkUserData *)user_data;
   ID *id = *idpoin;
