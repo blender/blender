@@ -906,6 +906,10 @@ static bool vfont_to_curve(Object *ob,
     return ok;
   }
 
+  /* This must only be used for calculations which apply to all text,
+   * for character level queries, values from `vfinfo_ctx` must be updated & used.  */
+  VFontData *vfont_vfd = vfinfo_ctx.vfd;
+
   if (ef) {
     slen = ef->len;
     mem = ef->textbuf;
@@ -1342,11 +1346,11 @@ static bool vfont_to_curve(Object *ob,
           case CU_ALIGN_Y_TOP_BASELINE:
             break;
           case CU_ALIGN_Y_TOP:
-            yoff = textbox_y_origin - vfont_ascent(vfinfo_ctx.vfd);
+            yoff = textbox_y_origin - vfont_ascent(vfont_vfd);
             break;
           case CU_ALIGN_Y_CENTER:
-            yoff = ((((vfinfo_ctx.vfd->em_height + (lines - 1) * linedist) * 0.5f) -
-                     vfont_ascent(vfinfo_ctx.vfd)) -
+            yoff = ((((vfont_vfd->em_height + (lines - 1) * linedist) * 0.5f) -
+                     vfont_ascent(vfont_vfd)) -
                     (tb_scale.h * 0.5f) + textbox_y_origin);
             break;
           case CU_ALIGN_Y_BOTTOM_BASELINE:
@@ -1354,7 +1358,7 @@ static bool vfont_to_curve(Object *ob,
             break;
           case CU_ALIGN_Y_BOTTOM:
             yoff = textbox_y_origin + ((lines - 1) * linedist) - tb_scale.h +
-                   vfont_descent(vfinfo_ctx.vfd);
+                   vfont_descent(vfont_vfd);
             break;
         }
 
@@ -1375,17 +1379,16 @@ static bool vfont_to_curve(Object *ob,
         case CU_ALIGN_Y_TOP_BASELINE:
           break;
         case CU_ALIGN_Y_TOP:
-          yoff = -vfont_ascent(vfinfo_ctx.vfd);
+          yoff = -vfont_ascent(vfont_vfd);
           break;
         case CU_ALIGN_Y_CENTER:
-          yoff = ((vfinfo_ctx.vfd->em_height + (lnr - 1) * linedist) * 0.5f) -
-                 vfont_ascent(vfinfo_ctx.vfd);
+          yoff = ((vfont_vfd->em_height + (lnr - 1) * linedist) * 0.5f) - vfont_ascent(vfont_vfd);
           break;
         case CU_ALIGN_Y_BOTTOM_BASELINE:
           yoff = (lnr - 1) * linedist;
           break;
         case CU_ALIGN_Y_BOTTOM:
-          yoff = (lnr - 1) * linedist + vfont_descent(vfinfo_ctx.vfd);
+          yoff = (lnr - 1) * linedist + vfont_descent(vfont_vfd);
           break;
       }
 
