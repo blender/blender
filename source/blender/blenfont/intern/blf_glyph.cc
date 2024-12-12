@@ -1854,12 +1854,14 @@ static void blf_glyph_to_curves(const FT_Outline &ftoutline,
   MEM_freeN(onpoints);
 }
 
-static FT_GlyphSlot blf_glyphslot_ensure_outline(FontBLF *font, const uint charcode)
+static FT_GlyphSlot blf_glyphslot_ensure_outline(FontBLF *font,
+                                                 const uint charcode,
+                                                 bool use_fallback)
 {
   /* Glyph might not come from the initial font. */
   FontBLF *font_with_glyph = font;
-  FT_UInt glyph_index = blf_glyph_index_from_charcode(&font_with_glyph, charcode);
-
+  FT_UInt glyph_index = use_fallback ? blf_glyph_index_from_charcode(&font_with_glyph, charcode) :
+                                       blf_get_char_index(font_with_glyph, charcode);
   if (!blf_ensure_face(font_with_glyph)) {
     return nullptr;
   }
@@ -1880,9 +1882,10 @@ static FT_GlyphSlot blf_glyphslot_ensure_outline(FontBLF *font, const uint charc
   return glyph;
 }
 
-float blf_character_to_curves(FontBLF *font, uint unicode, ListBase *nurbsbase, const float scale)
+float blf_character_to_curves(
+    FontBLF *font, uint unicode, ListBase *nurbsbase, const float scale, bool use_fallback)
 {
-  FT_GlyphSlot glyph = blf_glyphslot_ensure_outline(font, unicode);
+  FT_GlyphSlot glyph = blf_glyphslot_ensure_outline(font, unicode, use_fallback);
   if (!glyph) {
     return 0.0f;
   }

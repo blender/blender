@@ -112,10 +112,8 @@ bool BLF_get_vfont_metrics(int fontid, float *ascend_ratio, float *em_ratio, flo
 /**
  * Convert a character's outlines into curves.
  */
-float BLF_character_to_curves(int fontid,
-                              unsigned int unicode,
-                              ListBase *nurbsbase,
-                              const float scale);
+float BLF_character_to_curves(
+    int fontid, unsigned int unicode, ListBase *nurbsbase, const float scale, bool use_fallback);
 
 /**
  * Check if font supports a particular glyph.
