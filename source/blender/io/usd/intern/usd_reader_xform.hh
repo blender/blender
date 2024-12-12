@@ -10,6 +10,9 @@
 #include "usd.hh"
 #include "usd_reader_prim.hh"
 
+/* For #UsdGeomXformable. */
+#include <pxr/usd/usdGeom/xformable.h>
+
 namespace blender::io::usd {
 
 /**
