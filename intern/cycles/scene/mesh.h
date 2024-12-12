@@ -207,7 +207,6 @@ class Mesh : public Geometry {
 
   void compute_bounds() override;
   void apply_transform(const Transform &tfm, const bool apply_to_motion) override;
-  void add_face_normals();
   void add_vertex_normals();
   void add_undisplaced();
 

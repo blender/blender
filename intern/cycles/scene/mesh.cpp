@@ -532,38 +532,6 @@ void Mesh::apply_transform(const Transform &tfm, const bool apply_to_motion)
   }
 }
 
-void Mesh::add_face_normals()
-{
-  /* don't compute if already there */
-  if (attributes.find(ATTR_STD_FACE_NORMAL)) {
-    return;
-  }
-
-  /* get attributes */
-  Attribute *attr_fN = attributes.add(ATTR_STD_FACE_NORMAL);
-  float3 *fN = attr_fN->data_float3();
-
-  /* compute face normals */
-  const size_t triangles_size = num_triangles();
-
-  if (triangles_size) {
-    float3 *verts_ptr = verts.data();
-
-    for (size_t i = 0; i < triangles_size; i++) {
-      fN[i] = get_triangle(i).compute_normal(verts_ptr);
-    }
-  }
-
-  /* expected to be in local space */
-  if (transform_applied) {
-    const Transform ntfm = transform_inverse(transform_normal);
-
-    for (size_t i = 0; i < triangles_size; i++) {
-      fN[i] = normalize(transform_direction(&ntfm, fN[i]));
-    }
-  }
-}
-
 void Mesh::add_vertex_normals()
 {
   const bool flip = transform_negative_scaled;
@@ -573,18 +541,18 @@ void Mesh::add_vertex_normals()
   /* static vertex normals */
   if (!attributes.find(ATTR_STD_VERTEX_NORMAL) && triangles_size) {
     /* get attributes */
-    Attribute *attr_fN = attributes.find(ATTR_STD_FACE_NORMAL);
     Attribute *attr_vN = attributes.add(ATTR_STD_VERTEX_NORMAL);
 
-    float3 *fN = attr_fN->data_float3();
+    float3 *verts_ptr = verts.data();
     float3 *vN = attr_vN->data_float3();
 
     /* compute vertex normals */
     std::fill_n(vN, verts.size(), zero_float3());
 
     for (size_t i = 0; i < triangles_size; i++) {
+      const float3 fN = get_triangle(i).compute_normal(verts_ptr);
       for (size_t j = 0; j < 3; j++) {
-        vN[get_triangle(i).v[j]] += fN[i];
+        vN[get_triangle(i).v[j]] += fN;
       }
     }
 

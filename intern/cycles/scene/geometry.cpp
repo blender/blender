@@ -740,12 +740,10 @@ void GeometryManager::device_update(Device *device,
             if (mesh->get_subdivision_type() != Mesh::SUBDIVISION_CATMULL_CLARK)
 #endif
             {
-              mesh->add_face_normals();
               mesh->add_vertex_normals();
             }
           }
           else {
-            mesh->add_face_normals();
             mesh->add_vertex_normals();
           }
 

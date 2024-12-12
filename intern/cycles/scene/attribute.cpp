@@ -332,8 +332,6 @@ const char *Attribute::standard_name(AttributeStandard std)
   switch (std) {
     case ATTR_STD_VERTEX_NORMAL:
       return "N";
-    case ATTR_STD_FACE_NORMAL:
-      return "Ng";
     case ATTR_STD_UV:
       return "uv";
     case ATTR_STD_GENERATED:
@@ -537,9 +535,6 @@ Attribute *AttributeSet::add(AttributeStandard std, ustring name)
       case ATTR_STD_VERTEX_NORMAL:
         attr = add(name, TypeNormal, ATTR_ELEMENT_VERTEX);
         break;
-      case ATTR_STD_FACE_NORMAL:
-        attr = add(name, TypeNormal, ATTR_ELEMENT_FACE);
-        break;
       case ATTR_STD_UV:
         attr = add(name, TypeFloat2, ATTR_ELEMENT_CORNER);
         break;
@@ -609,9 +604,6 @@ Attribute *AttributeSet::add(AttributeStandard std, ustring name)
     switch (std) {
       case ATTR_STD_VERTEX_NORMAL:
         attr = add(name, TypeNormal, ATTR_ELEMENT_VERTEX);
-        break;
-      case ATTR_STD_FACE_NORMAL:
-        attr = add(name, TypeNormal, ATTR_ELEMENT_FACE);
         break;
       case ATTR_STD_VOLUME_DENSITY:
       case ATTR_STD_VOLUME_FLAME:
@@ -814,8 +806,7 @@ void AttributeSet::tag_modified(const Attribute &attr)
   /* Some attributes are not stored in the various kernel attribute arrays
    * (DeviceScene::attribute_*), so the modified flags are only set if the associated standard
    * corresponds to an attribute which will be stored in the kernel's attribute arrays. */
-  const bool modifies_device_array = (attr.std != ATTR_STD_FACE_NORMAL &&
-                                      attr.std != ATTR_STD_VERTEX_NORMAL);
+  const bool modifies_device_array = (attr.std != ATTR_STD_VERTEX_NORMAL);
 
   if (modifies_device_array) {
     const AttrKernelDataType kernel_type = Attribute::kernel_type(attr);
