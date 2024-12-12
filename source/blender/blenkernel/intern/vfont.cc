@@ -1697,33 +1697,33 @@ static bool vfont_to_curve(Object *ob,
       /* We don't want to see any character for '\n'. */
       if (cha != '\n') {
         BKE_vfont_build_char(cu, r_nubase, cha, info, ct->xof, ct->yof, ct->rot, i, font_size);
-      }
 
-      if ((info->flag & CU_CHINFO_UNDERLINE) && (cha != '\n')) {
-        float ulwidth, uloverlap = 0.0f;
-        rctf rect;
+        if (info->flag & CU_CHINFO_UNDERLINE) {
+          float ulwidth, uloverlap = 0.0f;
+          rctf rect;
 
-        if ((i < (slen - 1)) && (mem[i + 1] != '\n') &&
-            ((mem[i + 1] != ' ') || (custrinfo[i + 1].flag & CU_CHINFO_UNDERLINE)) &&
-            ((custrinfo[i + 1].flag & CU_CHINFO_WRAP) == 0))
-        {
-          uloverlap = xtrax + 0.1f;
+          if ((i < (slen - 1)) && (mem[i + 1] != '\n') &&
+              ((mem[i + 1] != ' ') || (custrinfo[i + 1].flag & CU_CHINFO_UNDERLINE)) &&
+              ((custrinfo[i + 1].flag & CU_CHINFO_WRAP) == 0))
+          {
+            uloverlap = xtrax + 0.1f;
+          }
+          /* Find the character, the characters has to be in the memory already
+           * since character checking has been done earlier already. */
+          che = find_vfont_char(vfd, cha);
+
+          twidth = char_width(cu, che, info);
+          ulwidth = (twidth * (1.0f + (info->kern / 40.0f))) + uloverlap;
+
+          rect.xmin = ct->xof;
+          rect.xmax = rect.xmin + ulwidth;
+
+          rect.ymin = ct->yof;
+          rect.ymax = rect.ymin - cu->ulheight;
+
+          build_underline(
+              cu, r_nubase, &rect, cu->ulpos - 0.05f, ct->rot, i, info->mat_nr, font_size);
         }
-        /* Find the character, the characters has to be in the memory already
-         * since character checking has been done earlier already. */
-        che = find_vfont_char(vfd, cha);
-
-        twidth = char_width(cu, che, info);
-        ulwidth = (twidth * (1.0f + (info->kern / 40.0f))) + uloverlap;
-
-        rect.xmin = ct->xof;
-        rect.xmax = rect.xmin + ulwidth;
-
-        rect.ymin = ct->yof;
-        rect.ymax = rect.ymin - cu->ulheight;
-
-        build_underline(
-            cu, r_nubase, &rect, cu->ulpos - 0.05f, ct->rot, i, info->mat_nr, font_size);
       }
       ct++;
     }
