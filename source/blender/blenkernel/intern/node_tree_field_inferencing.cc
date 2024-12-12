@@ -673,8 +673,8 @@ static void determine_group_output_states(
   }
 }
 
-static void update_socket_states(const bNodeTree &tree,
-                                 const Span<SocketFieldState> field_state_by_socket_id)
+static Array<FieldSocketState> calc_socket_states(
+    const Span<SocketFieldState> field_state_by_socket_id)
 {
   auto get_state_to_store = [&](const SocketFieldState &state) {
     if (state.is_always_single) {
@@ -689,10 +689,11 @@ static void update_socket_states(const bNodeTree &tree,
     return FieldSocketState::CanBeField;
   };
 
-  for (const bNodeSocket *socket : tree.all_sockets()) {
-    const SocketFieldState &state = field_state_by_socket_id[socket->index_in_tree()];
-    const_cast<bNodeSocket *>(socket)->runtime->field_state = get_state_to_store(state);
+  Array<FieldSocketState> result(field_state_by_socket_id.size());
+  for (const int i : field_state_by_socket_id.index_range()) {
+    result[i] = get_state_to_store(field_state_by_socket_id[i]);
   }
+  return result;
 }
 
 static void prepare_inferencing_interfaces(
@@ -733,13 +734,13 @@ bool update_field_inferencing(const bNodeTree &tree)
   propagate_field_status_from_left_to_right(tree, interface_by_node, field_state_by_socket_id);
   determine_group_output_states(
       tree, *new_inferencing_interface, interface_by_node, field_state_by_socket_id);
-  update_socket_states(tree, field_state_by_socket_id);
 
   /* Update the previous group interface. */
   const bool group_interface_changed = !tree.runtime->field_inferencing_interface ||
                                        *tree.runtime->field_inferencing_interface !=
                                            *new_inferencing_interface;
   tree.runtime->field_inferencing_interface = std::move(new_inferencing_interface);
+  tree.runtime->field_states = calc_socket_states(field_state_by_socket_id);
 
   return group_interface_changed;
 }

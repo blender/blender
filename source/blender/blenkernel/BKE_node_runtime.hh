@@ -78,6 +78,12 @@ struct NodeIDEquality {
 
 namespace blender::bke {
 
+enum class FieldSocketState : int8_t {
+  RequiresSingle,
+  CanBeField,
+  IsField,
+};
+
 using NodeIDVectorSet = VectorSet<bNode *, DefaultProbingStrategy, NodeIDHash, NodeIDEquality>;
 
 struct NodeLinkError {
@@ -154,6 +160,8 @@ class bNodeTreeRuntime : NonCopyable, NonMovable {
 
   /** Information about how inputs and outputs of the node group interact with fields. */
   std::unique_ptr<nodes::FieldInferencingInterface> field_inferencing_interface;
+  /** Field status for every socket, accessed with #bNodeSocket::index_in_tree(). */
+  Array<FieldSocketState> field_states;
   /** Information about usage of anonymous attributes within the group. */
   std::unique_ptr<node_tree_reference_lifetimes::ReferenceLifetimesInfo> reference_lifetimes_info;
   std::unique_ptr<nodes::gizmos::TreeGizmoPropagation> gizmo_propagation;
@@ -218,12 +226,6 @@ class bNodeTreeRuntime : NonCopyable, NonMovable {
   Vector<bNode *> root_frames;
 };
 
-enum class FieldSocketState {
-  RequiresSingle,
-  CanBeField,
-  IsField,
-};
-
 /**
  * Run-time data for every socket. This should only contain data that is somewhat persistent (i.e.
  * data that lives longer than a single depsgraph evaluation + redraw). Data that's only used in
@@ -253,11 +255,6 @@ class bNodeSocketRuntime : NonCopyable, NonMovable {
    * #bNode::runtime::totr).
    */
   float2 location;
-
-  /**
-   * This is computed during field inferencing and influences the socket shape in geometry nodes.
-   */
-  std::optional<FieldSocketState> field_state;
 
   /** Only valid when #topology_cache_is_dirty is false. */
   Vector<bNodeLink *> directly_linked_links;

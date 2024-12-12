@@ -2318,10 +2318,14 @@ static void node_draw_link_end_markers(const bNodeLink &link,
 
 static bool node_link_is_field_link(const SpaceNode &snode, const bNodeLink &link)
 {
-  if (snode.edittree->type != NTREE_GEOMETRY) {
+  const bNodeTree &tree = *snode.edittree;
+  if (tree.type != NTREE_GEOMETRY) {
     return false;
   }
-  if (link.fromsock && link.fromsock->runtime->field_state == bke::FieldSocketState::IsField) {
+  const Span<bke::FieldSocketState> field_states = tree.runtime->field_states;
+  if (link.fromsock &&
+      field_states[link.fromsock->index_in_tree()] == bke::FieldSocketState::IsField)
+  {
     return true;
   }
   return false;
