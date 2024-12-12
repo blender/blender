@@ -65,10 +65,8 @@ GPU_TEST(texture_read)
 
 static void test_texture_1d()
 {
-  if (GPU_type_matches_ex(GPU_DEVICE_ANY, GPU_OS_ANY, GPU_DRIVER_ANY, GPU_BACKEND_OPENGL) &&
-      G.debug & G_DEBUG_GPU_FORCE_WORKAROUNDS)
-  {
-    GTEST_SKIP() << "OpenGL texture clearing workaround doesn't support 1d textures.";
+  if (GPU_backend_get_type() == GPU_BACKEND_OPENGL) {
+    GTEST_SKIP() << "OpenGL texture clearing doesn't support 1d textures.";
   }
   const int SIZE = 32;
   GPU_render_begin();
@@ -659,12 +657,18 @@ GPU_TEST(texture_roundtrip__GPU_DATA_FLOAT__GPU_DEPTH_COMPONENT24);
 
 static void test_texture_roundtrip__GPU_DATA_FLOAT__GPU_DEPTH24_STENCIL8()
 {
+  if (GPU_backend_get_type() == GPU_BACKEND_OPENGL) {
+    GTEST_SKIP() << "Float based texture readback not supported on OpenGL";
+  }
   texture_create_upload_read_with_bias<GPU_DEPTH24_STENCIL8, GPU_DATA_FLOAT>(0.0f);
 }
 GPU_TEST(texture_roundtrip__GPU_DATA_FLOAT__GPU_DEPTH24_STENCIL8);
 
 static void test_texture_roundtrip__GPU_DATA_FLOAT__GPU_DEPTH32F_STENCIL8()
 {
+  if (GPU_backend_get_type() == GPU_BACKEND_OPENGL) {
+    GTEST_SKIP() << "Float based texture readback not supported on OpenGL";
+  }
   texture_create_upload_read_with_bias<GPU_DEPTH32F_STENCIL8, GPU_DATA_FLOAT>(0.0f);
 }
 GPU_TEST(texture_roundtrip__GPU_DATA_FLOAT__GPU_DEPTH32F_STENCIL8);
