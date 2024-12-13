@@ -794,11 +794,11 @@ static FT_UInt blf_glyph_index_from_charcode(FontBLF **font, const uint charcode
     return 0;
   }
 
-  /* First look in currently-loaded cached fonts that match the coverage bit. Super fast. */
+  /* First look in fonts that match the coverage bit. */
   int coverage_bit = blf_charcode_to_coverage_bit(charcode);
   for (int i = 0; i < BLF_MAX_FONT; i++) {
     FontBLF *f = global_font[i];
-    if (!f || f == *font || !(f->face) || !(f->flags & BLF_DEFAULT) ||
+    if (!f || f == *font || !(f->flags & BLF_DEFAULT) ||
         (!((*font)->flags & BLF_MONOSPACED) && (f->flags & BLF_MONOSPACED)) ||
         f->flags & BLF_LAST_RESORT)
     {
@@ -813,25 +813,7 @@ static FT_UInt blf_glyph_index_from_charcode(FontBLF **font, const uint charcode
     }
   }
 
-  /* Next look only in unloaded fonts that match the coverage bit. */
-  for (int i = 0; i < BLF_MAX_FONT; i++) {
-    FontBLF *f = global_font[i];
-    if (!f || f == *font || (f->face) || !(f->flags & BLF_DEFAULT) ||
-        (!((*font)->flags & BLF_MONOSPACED) && (f->flags & BLF_MONOSPACED)) ||
-        f->flags & BLF_LAST_RESORT)
-    {
-      continue;
-    }
-    if (coverage_bit < 0 || blf_font_has_coverage_bit(f, coverage_bit)) {
-      glyph_index = blf_get_char_index(f, charcode);
-      if (glyph_index) {
-        *font = f;
-        return glyph_index;
-      }
-    }
-  }
-
-  /* Last look in anything else. Also check if we have a last-resort font. */
+  /* Next look in the rest. Also check if we have a last-resort font. */
   FontBLF *last_resort = nullptr;
   for (int i = 0; i < BLF_MAX_FONT; i++) {
     FontBLF *f = global_font[i];
