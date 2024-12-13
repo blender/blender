@@ -714,6 +714,10 @@ const bNode &node_find_node(const bNodeTree &ntree, const bNodeSocket &socket);
  */
 bNode *node_find_node_by_name(bNodeTree *ntree, StringRefNull name);
 
+/** Try to find an input item with the given identifier in the entire node interface tree. */
+const bNodeTreeInterfaceSocket *node_find_interface_input_by_identifier(const bNodeTree &ntree,
+                                                                        StringRef identifier);
+
 bool node_is_parent_and_child(const bNode *parent, const bNode *child);
 
 int node_count_socket_links(const bNodeTree *ntree, const bNodeSocket *sock);
