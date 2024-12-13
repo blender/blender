@@ -719,7 +719,8 @@ static int node_add_file_modal(bContext *C, wmOperator *op, const wmEvent *event
 
   for (bNode *node : data->nodes) {
     node->location[1] -= stack_offset;
-    stack_offset += (node->runtime->draw_bounds.ymax - node->runtime->draw_bounds.ymin) * delta_factor;
+    stack_offset += (node->runtime->draw_bounds.ymax - node->runtime->draw_bounds.ymin) *
+                    delta_factor;
     redraw = true;
   }
 

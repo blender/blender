@@ -52,6 +52,7 @@ BLOCKLIST_METAL = [
     "principled_bsdf_interior.blend",
 ]
 
+
 def setup():
     import bpy
 
@@ -223,7 +224,6 @@ def main():
     reference_override_dir = None
     if gpu_device_type == "AMD":
         reference_override_dir = "eevee_next_renders/amd"
-
 
     blocklist = BLOCKLIST
     if args.gpu_backend == "metal":

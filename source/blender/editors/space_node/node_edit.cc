@@ -1231,7 +1231,9 @@ bNodeSocket *node_find_indicated_socket(SpaceNode &snode,
 
   for (bNode *node : sorted_nodes) {
     const bool node_hidden = node->flag & NODE_HIDDEN;
-    if (!node->is_reroute() && !node_hidden && node->runtime->draw_bounds.ymax - cursor.y < NODE_DY) {
+    if (!node->is_reroute() && !node_hidden &&
+        node->runtime->draw_bounds.ymax - cursor.y < NODE_DY)
+    {
       /* Don't pick socket when cursor is over node header. This allows the user to always resize
        * by dragging on the left and right side of the header. */
       continue;
