@@ -54,29 +54,29 @@
 void main()
 {
   ivec2 texel = ivec2(gl_GlobalInvocationID.xy);
+  ivec2 image_size = texture_size(input_tx);
 
   /* Apply a threshold operation on the center pixel, where the threshold is currently hard-coded
    * at 0.5. The pixels with values larger than the threshold are said to be masked. */
   bool is_center_masked = texture_load(input_tx, texel).x > 0.5;
 
-  /* Since the distance search window will access pixels outside of the bounds of the image, we use
-   * a texture loader with a fallback value. And since we don't want those values to affect the
-   * result, the fallback value is chosen such that the inner condition fails, which is when the
-   * sampled pixel and the center pixel are the same, so choose a fallback that will be considered
-   * masked if the center pixel is masked and unmasked otherwise. */
-  vec4 fallback = vec4(is_center_masked ? 1.0 : 0.0);
-
   /* Since the distance search window is limited to the given radius, the maximum possible squared
    * distance to the center is double the squared radius. */
   int minimum_squared_distance = radius * radius * 2;
 
+  /* Compute the start and end bounds of the window such that no out-of-bounds processing happen in
+   * the loops. */
+  ivec2 start = max(texel - radius, ivec2(0)) - texel;
+  ivec2 end = min(texel + radius + 1, image_size) - texel;
+
   /* Find the squared distance to the nearest different pixel in the search window of the given
    * radius. */
-  for (int y = -radius; y <= radius; y++) {
-    for (int x = -radius; x <= radius; x++) {
-      bool is_sample_masked = texture_load(input_tx, texel + ivec2(x, y), fallback).x > 0.5;
+  for (int y = start.y; y < end.y; y++) {
+    int yy = y * y;
+    for (int x = start.x; x < end.x; x++) {
+      bool is_sample_masked = texture_load(input_tx, texel + ivec2(x, y)).x > 0.5;
       if (is_center_masked != is_sample_masked) {
-        minimum_squared_distance = min(minimum_squared_distance, x * x + y * y);
+        minimum_squared_distance = min(minimum_squared_distance, x * x + yy);
       }
     }
   }
