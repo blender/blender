@@ -486,9 +486,12 @@ ccl_device_forceinline void volume_integrate_step_scattering(
     ccl_private VolumeIntegrateState &ccl_restrict vstate,
     ccl_private VolumeIntegrateResult &ccl_restrict result)
 {
-  /* Pick random color channel, we use the Veach one-sample
-   * model with balance heuristic for the channels. */
-  const Spectrum albedo = safe_divide_color(coeff.sigma_s, coeff.sigma_t);
+  /* Pick random color channel for sampling the scatter distance. We use the Veach one-sample model
+   * with balance heuristic for the channels.
+   * Set `albedo` to 1 for the channel where extinction coefficient `sigma_t` is zero, to make sure
+   * that we sample a distance outside the current segment when that channel is picked, meaning
+   * light passes through without attenuation. */
+  const Spectrum albedo = safe_divide_color(coeff.sigma_s, coeff.sigma_t, 1.0f);
   Spectrum channel_pdf;
   const int channel = volume_sample_channel(
       albedo, result.indirect_throughput, &vstate.rchannel, &channel_pdf);

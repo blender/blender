@@ -634,12 +634,13 @@ ccl_device_inline Spectrum safe_invert_color(Spectrum a)
   return a;
 }
 
-ccl_device_inline Spectrum safe_divide_color(Spectrum a, Spectrum b)
+/* Returns `a/b`, and replace the channel value with `fallback` if `b == 0`. */
+ccl_device_inline Spectrum safe_divide_color(Spectrum a, Spectrum b, const float fallback = 0.0f)
 {
   FOREACH_SPECTRUM_CHANNEL (i) {
     GET_SPECTRUM_CHANNEL(a, i) = (GET_SPECTRUM_CHANNEL(b, i) != 0.0f) ?
                                      GET_SPECTRUM_CHANNEL(a, i) / GET_SPECTRUM_CHANNEL(b, i) :
-                                     0.0f;
+                                     fallback;
   }
 
   return a;
