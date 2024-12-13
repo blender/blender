@@ -51,7 +51,7 @@
 
 #include "BLO_read_write.hh"
 
-static CLG_LogRef LOG = {"bke.data_transfer"};
+static CLG_LogRef LOG = {"bke.vfont"};
 static ThreadRWMutex vfont_rwlock = BLI_RWLOCK_INITIALIZER;
 
 /**************************** Prototypes **************************/
