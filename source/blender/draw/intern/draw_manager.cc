@@ -186,7 +186,7 @@ ResourceHandleRange Manager::resource_handle_for_sculpt(const ObjectRef &ref)
 
 void Manager::compute_visibility(View &view)
 {
-  bool freeze_culling = (U.experimental.use_viewport_debug && DST.draw_ctx.v3d &&
+  bool freeze_culling = (USER_EXPERIMENTAL_TEST(&U, use_viewport_debug) && DST.draw_ctx.v3d &&
                          (DST.draw_ctx.v3d->debug_flag & V3D_DEBUG_FREEZE_CULLING) != 0);
 
   BLI_assert_msg(view.manager_fingerprint_ != this->fingerprint_get(),

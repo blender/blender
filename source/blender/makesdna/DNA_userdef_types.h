@@ -735,6 +735,10 @@ typedef struct UserDef_FileSpaceData {
   int temp_win_sizey;
 } UserDef_FileSpaceData;
 
+/**
+ * Checking experimental members must use the #USER_EXPERIMENTAL_TEST() macro
+ * unless the #USER_DEVELOPER_UI is known to be enabled.
+ */
 typedef struct UserDef_Experimental {
   /* Debug options, always available. */
   char use_undo_legacy;

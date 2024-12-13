@@ -37,14 +37,14 @@ void search_link_ops_for_tool_node(GatherLinkSearchOpParams &params)
 
 void search_link_ops_for_volume_grid_node(GatherLinkSearchOpParams &params)
 {
-  if (U.experimental.use_new_volume_nodes) {
+  if (USER_EXPERIMENTAL_TEST(&U, use_new_volume_nodes)) {
     nodes::search_link_ops_for_basic_node(params);
   }
 }
 
 void search_link_ops_for_import_node(GatherLinkSearchOpParams &params)
 {
-  if (U.experimental.use_new_file_import_nodes) {
+  if (USER_EXPERIMENTAL_TEST(&U, use_new_file_import_nodes)) {
     nodes::search_link_ops_for_basic_node(params);
   }
 }

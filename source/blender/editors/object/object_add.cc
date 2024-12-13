@@ -2109,7 +2109,7 @@ void OBJECT_OT_curves_empty_hair_add(wmOperatorType *ot)
 
 static bool object_pointcloud_add_poll(bContext *C)
 {
-  if (!U.experimental.use_new_point_cloud_type) {
+  if (!USER_EXPERIMENTAL_TEST(&U, use_new_point_cloud_type)) {
     return false;
   }
   return ED_operator_objectmode(C);
@@ -2752,7 +2752,7 @@ static const EnumPropertyItem *convert_target_itemf(bContext *C,
   RNA_enum_items_add_value(&item, &totitem, convert_target_items, OB_MESH);
   RNA_enum_items_add_value(&item, &totitem, convert_target_items, OB_CURVES_LEGACY);
   RNA_enum_items_add_value(&item, &totitem, convert_target_items, OB_CURVES);
-  if (U.experimental.use_new_point_cloud_type) {
+  if (USER_EXPERIMENTAL_TEST(&U, use_new_point_cloud_type)) {
     RNA_enum_items_add_value(&item, &totitem, convert_target_items, OB_POINTCLOUD);
   }
   RNA_enum_items_add_value(&item, &totitem, convert_target_items, OB_GREASE_PENCIL);

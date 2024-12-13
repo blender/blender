@@ -3230,7 +3230,7 @@ static void node_draw_basis(const bContext &C,
   const bool show_preview = (snode.overlay.flag & SN_OVERLAY_SHOW_OVERLAYS) &&
                             (snode.overlay.flag & SN_OVERLAY_SHOW_PREVIEWS) &&
                             (node.flag & NODE_PREVIEW) &&
-                            (U.experimental.use_shader_node_previews ||
+                            (USER_EXPERIMENTAL_TEST(&U, use_shader_node_previews) ||
                              ntree.type != NTREE_SHADER);
 
   /* Skip if out of view. */
@@ -4798,7 +4798,7 @@ static void draw_nodetree(const bContext &C,
     tree_draw_ctx.compositor_per_node_execution_time =
         &scene->runtime->compositor.per_node_execution_time;
   }
-  else if (ntree.type == NTREE_SHADER && U.experimental.use_shader_node_previews &&
+  else if (ntree.type == NTREE_SHADER && USER_EXPERIMENTAL_TEST(&U, use_shader_node_previews) &&
            BKE_scene_uses_shader_previews(CTX_data_scene(&C)) &&
            snode->overlay.flag & SN_OVERLAY_SHOW_OVERLAYS &&
            snode->overlay.flag & SN_OVERLAY_SHOW_PREVIEWS)

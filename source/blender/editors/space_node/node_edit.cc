@@ -544,7 +544,7 @@ bool ED_node_is_geometry(SpaceNode *snode)
 bool ED_node_supports_preview(SpaceNode *snode)
 {
   return ED_node_is_compositor(snode) ||
-         (U.experimental.use_shader_node_previews && ED_node_is_shader(snode));
+         (USER_EXPERIMENTAL_TEST(&U, use_shader_node_previews) && ED_node_is_shader(snode));
 }
 
 void ED_node_shader_default(const bContext *C, ID *id)
@@ -1173,7 +1173,7 @@ bool node_is_previewable(const SpaceNode &snode, const bNodeTree &ntree, const b
     return false;
   }
   if (ntree.type == NTREE_SHADER) {
-    return U.experimental.use_shader_node_previews && !node.is_frame();
+    return USER_EXPERIMENTAL_TEST(&U, use_shader_node_previews) && !node.is_frame();
   }
   return node.typeinfo->flag & NODE_PREVIEW;
 }

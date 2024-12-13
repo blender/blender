@@ -1571,7 +1571,7 @@ static void fill_texpaint_slots_recursive(bNodeTree *nodetree,
 static ePaintSlotFilter material_paint_slot_filter(const Object *ob)
 {
   ePaintSlotFilter slot_filter = PAINT_SLOT_IMAGE;
-  if (ob->mode == OB_MODE_SCULPT && U.experimental.use_sculpt_texture_paint) {
+  if (ob->mode == OB_MODE_SCULPT && USER_EXPERIMENTAL_TEST(&U, use_sculpt_texture_paint)) {
     slot_filter |= PAINT_SLOT_COLOR_ATTRIBUTE;
   }
   return slot_filter;
