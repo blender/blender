@@ -1065,29 +1065,21 @@ ccl_device_noinline void svm_node_closure_volume(KernelGlobals kg,
         }
       } break;
       case CLOSURE_VOLUME_MIE_ID: {
-        /* We approximate the Mie phase function for water droplets using a mix of Draine and H-G
-         * following "An Approximate Mie Scattering Function for Fog and Cloud Rendering", Johannes
-         * Jendersie and Eugene d'Eon, https://research.nvidia.com/labs/rtr/approximate-mie.
-         *
-         * The numerical fit here (eq. 4-7 in the paper) is intended for 5<d<50.
-         * Generally, we try to allow exceeding the soft limits when reasonable. Here, the only
-         * real limit is that the values need to stay within -1<g<1, 0<a and 0<mixture<1.
-         * This results in the condition d > 1.67154, so we clamp it to 2 to be safe. */
-        const float d = max(2.0f,
-                            stack_valid(param1_offset) ? stack_load_float(stack, param1_offset) :
-                                                         __uint_as_float(node.w));
-        const float mixture = fast_expf(-0.599085f / (d - 0.641583f) - 0.665888f);
+        const float d = stack_valid(param1_offset) ? stack_load_float(stack, param1_offset) :
+                                                     __uint_as_float(node.w);
+        float g_HG, g_D, alpha, mixture;
+        phase_mie_fitted_parameters(d, &g_HG, &g_D, &alpha, &mixture);
         ccl_private HenyeyGreensteinVolume *hg = (ccl_private HenyeyGreensteinVolume *)bsdf_alloc(
             sd, sizeof(HenyeyGreensteinVolume), weight * (1.0f - mixture));
         if (hg) {
-          hg->g = fast_expf(-0.0990567f / (d - 1.67154f));
+          hg->g = g_HG;
           sd->flag |= volume_henyey_greenstein_setup(hg);
         }
         ccl_private DraineVolume *draine = (ccl_private DraineVolume *)bsdf_alloc(
             sd, sizeof(DraineVolume), weight * mixture);
         if (draine) {
-          draine->g = fast_expf(-2.20679f / (d + 3.91029f) - 0.428934f);
-          draine->alpha = fast_expf(3.62489f - 8.29288f / (d + 5.52825f));
+          draine->g = g_D;
+          draine->alpha = alpha;
           sd->flag |= volume_draine_setup(draine);
         }
       } break;

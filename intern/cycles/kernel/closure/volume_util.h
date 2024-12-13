@@ -240,4 +240,54 @@ ccl_device float3 phase_fournier_forand_sample(float3 D,
   return phase_sample_direction(D, cos_theta, rand.y);
 }
 
+/* We approximate the Mie phase function for water droplets with diameters 0 < d < 50 um using a
+ * mixture of Draine and Henyey-Greenstein, following
+ * "An Approximate Mie Scattering Function for Fog and Cloud Rendering (Supplemental)"
+ * https://research.nvidia.com/labs/rtr/approximate-mie/publications/approximate-mie-supplemental.pdf
+ * For d > 1, the phase function is strong forward-scattering. For d very close to 0, the phase
+ * function is a mixture of Henyey-Greenstein and Rayleigh.
+ */
+ccl_device void phase_mie_fitted_parameters(float d,
+                                            ccl_private float *g_HG,
+                                            ccl_private float *g_D,
+                                            ccl_private float *alpha,
+                                            ccl_private float *w)
+{
+  d = fmaxf(d, 0.0f);
+  if (d <= 0.1f) {
+    /* Eq (11 - 14). */
+    *g_HG = 13.8f * sqr(d);
+    *g_D = 1.1456f * d * fast_sinf(9.29044f * d);
+    *alpha = 250.0f;
+    *w = 0.252977f - 312.983f * powf(d, 4.3f);
+  }
+  else if (d < 1.5f) {
+    /* Eq (15 - 18). */
+    const float log_d = fast_logf(d);
+    *g_HG = 0.862f - 0.143f * sqr(log_d);
+    const float a = (log_d - 0.238604f) * (log_d + 1.00667f);
+    const float b = 0.507522f - 0.15677f * log_d;
+    const float c = 1.19692f * fast_cosf(a / b) + 1.37932f * log_d + 0.0625835f;
+    *g_D = 0.379685f * fast_cosf(c) + 0.344213f;
+    *alpha = 250.0f;
+    *w = 0.146209f * fast_cosf(3.38707f * log_d + 2.11193f) + 0.316072f + 0.0778917f * log_d;
+  }
+  else if (d < 5.0f) {
+    /* Eq (19 - 22). */
+    const float log_d = fast_logf(d);
+    *g_HG = 0.0604931f * fast_logf(log_d) + 0.940256f;
+    *g_D = 0.500411f - (0.081287f / (-2.0f * log_d + fast_tanf(log_d) + 1.27551f));
+    *alpha = 7.30354f * log_d + 6.31675f;
+    const float temp = fast_cosf(5.68947f * (fast_logf(log_d) - 0.0292149f));
+    *w = 0.026914f * (log_d - temp) + 0.3764f;
+  }
+  else {
+    /* Eq (7 - 10). */
+    *g_HG = fast_expf(-0.0990567f / (d - 1.67154f));
+    *g_D = fast_expf(-2.20679f / (d + 3.91029f) - 0.428934f);
+    *alpha = fast_expf(3.62489f - 8.29288f / (d + 5.52825f));
+    *w = fast_expf(-0.599085f / (d - 0.641583f) - 0.665888f);
+  }
+}
+
 CCL_NAMESPACE_END
