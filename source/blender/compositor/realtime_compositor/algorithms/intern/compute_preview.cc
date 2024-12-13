@@ -131,8 +131,6 @@ void compute_preview(Context &context, const DNode &node, const Result &input_re
   }
 
   const int2 preview_size = compute_preview_size(input_result.domain().size);
-  node->runtime->preview_xsize = preview_size.x;
-  node->runtime->preview_ysize = preview_size.y;
 
   bNodePreview *preview = bke::node_preview_verify(
       root_tree->previews, node.instance_key(), preview_size.x, preview_size.y, true);
