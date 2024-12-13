@@ -387,26 +387,24 @@ float3 DrawingPlacement::reproject(const float3 pos) const
     /* Reproject the point onto the `placement_plane_` from the current view. */
     RegionView3D *rv3d = static_cast<RegionView3D *>(region_->regiondata);
 
-    float3 ray_co, ray_no;
+    float3 ray_no;
     if (rv3d->is_persp) {
-      ray_co = float3(rv3d->viewinv[3]);
-      ray_no = math::normalize(ray_co - world_pos);
+      ray_no = math::normalize(world_pos - float3(rv3d->viewinv[3]));
     }
     else {
-      ray_co = world_pos;
       ray_no = -float3(rv3d->viewinv[2]);
     }
     float4 plane;
     if (plane_ == DrawingPlacementPlane::View) {
-      plane = float4(rv3d->viewinv[2]);
+      plane_from_point_normal_v3(plane, placement_loc_, rv3d->viewinv[2]);
     }
     else {
       plane = placement_plane_;
     }
 
     float lambda;
-    if (isect_ray_plane_v3(ray_co, ray_no, plane, &lambda, false)) {
-      proj_point = ray_co + ray_no * lambda;
+    if (isect_ray_plane_v3(world_pos, ray_no, plane, &lambda, false)) {
+      proj_point = world_pos + ray_no * lambda;
     }
     else {
       return pos;
