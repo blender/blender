@@ -55,23 +55,33 @@ struct ToNanoOp {
       try {
 #    if NANOVDB_MAJOR_VERSION_NUMBER > 32 || \
         (NANOVDB_MAJOR_VERSION_NUMBER == 32 && NANOVDB_MINOR_VERSION_NUMBER >= 6)
+#      if NANOVDB_MAJOR_VERSION_NUMBER > 32 || \
+          (NANOVDB_MAJOR_VERSION_NUMBER == 32 && NANOVDB_MINOR_VERSION_NUMBER >= 7)
+        /* OpenVDB 12. */
+        using nanovdb::tools::createNanoGrid;
+        using nanovdb::tools::StatsMode;
+#      else
         /* OpenVDB 11. */
+        using nanovdb::createNanoGrid;
+        using nanovdb::StatsMode;
+#      endif
+
         if constexpr (std::is_same_v<FloatGridType, openvdb::FloatGrid>) {
           openvdb::FloatGrid floatgrid(*openvdb::gridConstPtrCast<GridType>(grid));
           if (precision == 0) {
-            nanogrid = nanovdb::createNanoGrid<openvdb::FloatGrid, nanovdb::FpN>(floatgrid);
+            nanogrid = createNanoGrid<openvdb::FloatGrid, nanovdb::FpN>(floatgrid);
           }
           else if (precision == 16) {
-            nanogrid = nanovdb::createNanoGrid<openvdb::FloatGrid, nanovdb::Fp16>(floatgrid);
+            nanogrid = createNanoGrid<openvdb::FloatGrid, nanovdb::Fp16>(floatgrid);
           }
           else {
-            nanogrid = nanovdb::createNanoGrid<openvdb::FloatGrid, float>(floatgrid);
+            nanogrid = createNanoGrid<openvdb::FloatGrid, float>(floatgrid);
           }
         }
         else if constexpr (std::is_same_v<FloatGridType, openvdb::Vec3fGrid>) {
           openvdb::Vec3fGrid floatgrid(*openvdb::gridConstPtrCast<GridType>(grid));
-          nanogrid = nanovdb::createNanoGrid<openvdb::Vec3fGrid, nanovdb::Vec3f>(
-              floatgrid, nanovdb::StatsMode::Disable);
+          nanogrid = createNanoGrid<openvdb::Vec3fGrid, nanovdb::Vec3f>(floatgrid,
+                                                                        StatsMode::Disable);
         }
 #    else
         /* OpenVDB 10. */
