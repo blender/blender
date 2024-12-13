@@ -27,7 +27,6 @@ struct VFontData {
 
 struct VChar {
   ListBase nurbsbase;
-  unsigned int index;
   float width;
 };
 
@@ -40,5 +39,5 @@ struct VChar {
 VFontData *BKE_vfontdata_from_freetypefont(PackedFile *pf);
 VFontData *BKE_vfontdata_copy(const VFontData *vfont_src, int flag);
 
-VChar *BKE_vfontdata_char_from_freetypefont(VFont *vfont, unsigned long character);
+VChar *BKE_vfontdata_char_from_freetypefont(VFont *vfont, unsigned int character);
 VChar *BKE_vfontdata_char_copy(const VChar *vchar_src);

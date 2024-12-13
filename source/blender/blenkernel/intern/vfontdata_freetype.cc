@@ -75,7 +75,7 @@ VFontData *BKE_vfontdata_copy(const VFontData *vfont_src, const int /*flag*/)
   return vfont_dst;
 }
 
-VChar *BKE_vfontdata_char_from_freetypefont(VFont *vfont, ulong character)
+VChar *BKE_vfontdata_char_from_freetypefont(VFont *vfont, uint character)
 {
   if (!vfont) {
     return nullptr;
@@ -107,7 +107,6 @@ VChar *BKE_vfontdata_char_from_freetypefont(VFont *vfont, ulong character)
   }
 
   VChar *che = (VChar *)MEM_callocN(sizeof(VChar), "objfnt_char");
-  che->index = character;
 
   /* need to set a size for embolden, etc. */
   BLF_size(font_id, 16);
@@ -115,7 +114,7 @@ VChar *BKE_vfontdata_char_from_freetypefont(VFont *vfont, ulong character)
   che->width = BLF_character_to_curves(
       font_id, character, &che->nurbsbase, vfont->data->scale, use_fallback);
 
-  BLI_ghash_insert(vfont->data->characters, POINTER_FROM_UINT(che->index), che);
+  BLI_ghash_insert(vfont->data->characters, POINTER_FROM_UINT(character), che);
   BLF_unload_id(font_id);
   return che;
 }
