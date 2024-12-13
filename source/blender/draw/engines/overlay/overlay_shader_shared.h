@@ -336,14 +336,14 @@ struct BoneStickData {
   BoneStickData() = default;
 
   /* For bone fills. */
-  BoneStickData(float3 &bone_start,
-                float3 &bone_end,
-                float4 &wire_color,
-                float4 &bone_color,
-                float4 &head_color,
-                float4 &tail_color)
-      : bone_start(bone_start),
-        bone_end(bone_end),
+  BoneStickData(const float3 &bone_start,
+                const float3 &bone_end,
+                const float4 &wire_color,
+                const float4 &bone_color,
+                const float4 &head_color,
+                const float4 &tail_color)
+      : bone_start(float3(bone_start), 0.0f),
+        bone_end(float3(bone_end), 0.0f),
         wire_color(wire_color),
         bone_color(bone_color),
         head_color(head_color),
