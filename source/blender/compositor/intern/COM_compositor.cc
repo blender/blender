@@ -6,17 +6,15 @@
 
 #include "BLT_translation.hh"
 
-#include "DNA_userdef_types.h"
-
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_scene.hh"
 
-#include "COM_ExecutionSystem.h"
-#include "COM_WorkScheduler.h"
 #include "COM_compositor.hh"
 
 #include "RE_compositor.hh"
+
+static constexpr float COM_PREVIEW_SIZE = 140.f;
 
 static struct {
   bool is_initialized = false;
@@ -35,12 +33,12 @@ static void compositor_init_node_previews(const RenderData *render_data, bNodeTr
                            1.0f;
   int preview_width, preview_height;
   if (aspect < 1.0f) {
-    preview_width = blender::compositor::COM_PREVIEW_SIZE;
-    preview_height = int(blender::compositor::COM_PREVIEW_SIZE * aspect);
+    preview_width = COM_PREVIEW_SIZE;
+    preview_height = int(COM_PREVIEW_SIZE * aspect);
   }
   else {
-    preview_width = int(blender::compositor::COM_PREVIEW_SIZE / aspect);
-    preview_height = blender::compositor::COM_PREVIEW_SIZE;
+    preview_width = int(COM_PREVIEW_SIZE / aspect);
+    preview_height = COM_PREVIEW_SIZE;
   }
   blender::bke::node_preview_init_tree(node_tree, preview_width, preview_height);
 }
@@ -90,7 +88,6 @@ void COM_deinitialize()
 {
   if (g_compositor.is_initialized) {
     BLI_mutex_lock(&g_compositor.mutex);
-    blender::compositor::WorkScheduler::deinitialize();
     g_compositor.is_initialized = false;
     BLI_mutex_unlock(&g_compositor.mutex);
     BLI_mutex_end(&g_compositor.mutex);

@@ -14,54 +14,6 @@ class Profiler;
 
 struct Render;
 
-/* Keep ascii art. */
-/* clang-format off */
-
-/**
- * \defgroup Model The data model of the compositor
- * \ingroup compositor
- * \defgroup Memory The memory management stuff
- * \ingroup compositor
- * \defgroup Execution The execution logic
- * \ingroup compositor
- * \defgroup Conversion Conversion logic
- * \ingroup compositor
- * \defgroup Node All nodes of the compositor
- * \ingroup compositor
- * \defgroup Operation All operations of the compositor
- * \ingroup compositor
- *
- * \section priority Render priority
- * Render priority is an priority of an output node.
- * A user has a different need of Render priorities of output nodes
- * than during editing.
- * for example. the Active ViewerNode has top priority during editing,
- * but during rendering a CompositeNode has.
- * All NodeOperation has a setting for their render-priority,
- * but only for output NodeOperation these have effect.
- * In ExecutionSystem.execute all priorities are checked.
- *
- * \section workscheduler WorkScheduler
- * the WorkScheduler is implemented as a static class. the responsibility of the WorkScheduler
- * is to balance WorkPackages to the available and free devices.
- * the work-scheduler can work in 2 states.
- * For witching these between the state you need to recompile blender
- *
- * \subsection multithread Multi threaded
- * Default the work-scheduler will place all work as WorkPackage in a queue.
- * For every CPUcore a working thread is created.
- * These working threads will ask the WorkScheduler if there is work
- * for a specific Device.
- * the work-scheduler will find work for the device and the device
- * will be asked to execute the WorkPackage.
- *
- * \subsection singlethread Single threaded
- * For debugging reasons the multi-threading can be disabled.
- * This is done by changing the `COM_threading_model`
- * to `ThreadingModel::SingleThreaded`. When compiling the work-scheduler
- * will be changes to support no threading and run everything on the CPU.
- */
-
 /**
  * \brief The main method that is used to execute the compositor tree.
  * It can be executed during editing (`blenkernel/node.cc`) or rendering
@@ -94,7 +46,6 @@ struct Render;
  *            should be checked further, probably it'll be also needed for preview
  *            generation in display space
  */
-/* clang-format on */
 
 void COM_execute(Render *render,
                  RenderData *render_data,
