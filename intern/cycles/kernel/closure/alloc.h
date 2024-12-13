@@ -60,9 +60,13 @@ ccl_device_inline ccl_private ShaderClosure *bsdf_alloc(ccl_private ShaderData *
 
   const float sample_weight = fabsf(average(weight));
 
+  /* Do not perform weight cutoff for volume shaders, because large volume with low density could
+   * still contribute significantly to the scene. It should be up to the volume shader to decide
+   * the cutoff. */
   /* Use comparison this way to help dealing with non-finite weight: if the average is not finite
    * we will not allocate new closure. */
-  if (sample_weight >= CLOSURE_WEIGHT_CUTOFF) {
+  const bool volume_valid = (sd->flag & SD_IS_VOLUME_SHADER_EVAL) && (sample_weight > 0.0f);
+  if (volume_valid || sample_weight >= CLOSURE_WEIGHT_CUTOFF) {
     ccl_private ShaderClosure *sc = closure_alloc(sd, size, CLOSURE_NONE_ID, weight);
     if (!sc) {
       return NULL;

@@ -1133,7 +1133,7 @@ ccl_device_noinline int svm_node_principled_volume(KernelGlobals kg,
                                                   __uint_as_float(value_node.x);
   density = mix_weight * fmaxf(density, 0.0f) * object_volume_density(kg, sd->object);
 
-  if (density > CLOSURE_WEIGHT_CUTOFF) {
+  if (density > 0.0f) {
     /* Density and color attribute lookup if available. */
     const AttributeDescriptor attr_density = find_attribute(kg, sd, attr_node.x);
     if (attr_density.offset != ATTR_STD_NOT_FOUND) {
@@ -1142,7 +1142,7 @@ ccl_device_noinline int svm_node_principled_volume(KernelGlobals kg,
     }
   }
 
-  if (density > CLOSURE_WEIGHT_CUTOFF) {
+  if (density > 0.0f) {
     /* Compute scattering color. */
     Spectrum color = closure_weight;
 
@@ -1187,13 +1187,13 @@ ccl_device_noinline int svm_node_principled_volume(KernelGlobals kg,
   float blackbody = (stack_valid(blackbody_offset)) ? stack_load_float(stack, blackbody_offset) :
                                                       __uint_as_float(value_node.w);
 
-  if (emission > CLOSURE_WEIGHT_CUTOFF) {
+  if (emission > 0.0f) {
     float3 emission_color = stack_load_float3(stack, emission_color_offset);
     emission_setup(
         sd, rgb_to_spectrum(emission * emission_color * object_volume_density(kg, sd->object)));
   }
 
-  if (blackbody > CLOSURE_WEIGHT_CUTOFF) {
+  if (blackbody > 0.0f) {
     float T = stack_load_float(stack, temperature_offset);
 
     /* Add flame temperature from attribute if available. */
@@ -1210,7 +1210,7 @@ ccl_device_noinline int svm_node_principled_volume(KernelGlobals kg,
     float sigma = 5.670373e-8f * 1e-6f / M_PI_F;
     float intensity = sigma * mix(1.0f, T4, blackbody);
 
-    if (intensity > CLOSURE_WEIGHT_CUTOFF) {
+    if (intensity > 0.0f) {
       float3 blackbody_tint = stack_load_float3(stack, node.w);
       float3 bb = blackbody_tint * intensity *
                   rec709_to_rgb(kg, svm_math_blackbody_color_rec709(T));
