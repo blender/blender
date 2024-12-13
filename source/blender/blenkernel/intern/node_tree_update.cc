@@ -722,6 +722,9 @@ class NodeTreeMainUpdater {
       /* Internal links should always map corresponding input and output sockets. */
       return &node.input_by_identifier(output_socket->identifier);
     }
+    if (node.type == GEO_NODE_CAPTURE_ATTRIBUTE) {
+      return &node.input_socket(output_socket->index());
+    }
     for (const bNodeSocket *input_socket : node.input_sockets()) {
       if (!input_socket->is_available()) {
         continue;
