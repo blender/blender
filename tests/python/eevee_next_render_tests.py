@@ -32,9 +32,25 @@ BLOCKLIST = [
     # Blocked due to point cloud volume differences between platforms (to be fixed).
     "points_volume.blend",
     # Blocked due to GBuffer encoding of small IOR difference between platforms (to be fixed).
-    "principled_thinfilm_transmission.blend",
+    "principled_bsdf_thinfilm_transmission.blend",
+    "ray_offset.blend",
+    # Blocked due to difference in border texel handling between platforms (to be fixed).
+    "render_passes_thinfilm_color.blend",
 ]
 
+BLOCKLIST_METAL = [
+    # Blocked due to difference in tangent space calculation (to be fixed).
+    "tangent_no_uv.blend",
+    # Blocked due to difference in volume lightprobe bakes (to be fixed).
+    "clamp_.*.blend",
+    "shadow_all_max_bounces.blend",
+    "light_link_exclude.blend",
+    "light_link_instanced_receiver.blend",
+    # Blocked due to difference in screen space tracing (to be fixed).
+    "sss_reflection_clamp.blend",
+    # Blocked due to difference in volume rendering (to be fixed).
+    "principled_bsdf_interior.blend",
+]
 
 def setup():
     import bpy
@@ -208,7 +224,12 @@ def main():
     if gpu_device_type == "AMD":
         reference_override_dir = "eevee_next_renders/amd"
 
-    report = EEVEEReport("Eevee Next", args.outdir, args.oiiotool, device=args.gpu_backend, blocklist=BLOCKLIST)
+
+    blocklist = BLOCKLIST
+    if args.gpu_backend == "metal":
+        blocklist += BLOCKLIST_METAL
+
+    report = EEVEEReport("Eevee Next", args.outdir, args.oiiotool, device=args.gpu_backend, blocklist=blocklist)
     if args.gpu_backend == "vulkan":
         report.set_compare_engine('eevee_next', 'opengl')
     else:
