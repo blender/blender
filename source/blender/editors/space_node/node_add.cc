@@ -216,7 +216,7 @@ static int add_reroute_exec(bContext *C, wmOperator *op)
     /* Attach the reroute node to frame nodes behind it. */
     for (const int i : frame_nodes.index_range()) {
       bNode *frame_node = frame_nodes.last(i);
-      if (BLI_rctf_isect_pt_v(&frame_node->runtime->totr, insert_point)) {
+      if (BLI_rctf_isect_pt_v(&frame_node->runtime->draw_bounds, insert_point)) {
         bke::node_attach_node(&ntree, reroute, frame_node);
         break;
       }
@@ -719,7 +719,7 @@ static int node_add_file_modal(bContext *C, wmOperator *op, const wmEvent *event
 
   for (bNode *node : data->nodes) {
     node->location[1] -= stack_offset;
-    stack_offset += (node->runtime->totr.ymax - node->runtime->totr.ymin) * delta_factor;
+    stack_offset += (node->runtime->draw_bounds.ymax - node->runtime->draw_bounds.ymin) * delta_factor;
     redraw = true;
   }
 

@@ -3968,8 +3968,8 @@ bool node_declaration_ensure(bNodeTree *ntree, bNode *node)
 
 void node_dimensions_get(const bNode *node, float *r_width, float *r_height)
 {
-  *r_width = node->runtime->totr.xmax - node->runtime->totr.xmin;
-  *r_height = node->runtime->totr.ymax - node->runtime->totr.ymin;
+  *r_width = node->runtime->draw_bounds.xmax - node->runtime->draw_bounds.xmin;
+  *r_height = node->runtime->draw_bounds.ymax - node->runtime->draw_bounds.ymin;
 }
 
 void node_tag_update_id(bNode *node)

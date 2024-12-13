@@ -260,7 +260,7 @@ struct NodeClipboard {
         IDWALK_READONLY);
 
     NodeClipboardItem item;
-    item.draw_rect = node.runtime->totr;
+    item.draw_rect = node.runtime->draw_bounds;
     item.node = new_node;
     this->nodes.append(std::move(item));
   }

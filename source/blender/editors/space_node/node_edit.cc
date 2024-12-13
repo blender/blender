@@ -872,7 +872,7 @@ void ED_node_set_active(
 void ED_node_post_apply_transform(bContext * /*C*/, bNodeTree * /*ntree*/)
 {
   /* XXX This does not work due to layout functions relying on node->block,
-   * which only exists during actual drawing. Can we rely on valid totr rects?
+   * which only exists during actual drawing. Can we rely on valid draw_bounds rects?
    */
   /* make sure nodes have correct bounding boxes after transform */
   // node_update_nodetree(C, ntree, 0.0f, 0.0f);
@@ -899,7 +899,7 @@ static bool socket_is_occluded(const float2 &location,
     rctf socket_hitbox;
     const float socket_hitbox_radius = NODE_SOCKSIZE - 0.1f * U.widget_unit;
     BLI_rctf_init_pt_radius(&socket_hitbox, location, socket_hitbox_radius);
-    if (BLI_rctf_inside_rctf(&node->runtime->totr, &socket_hitbox)) {
+    if (BLI_rctf_inside_rctf(&node->runtime->draw_bounds, &socket_hitbox)) {
       return true;
     }
   }
@@ -1231,7 +1231,7 @@ bNodeSocket *node_find_indicated_socket(SpaceNode &snode,
 
   for (bNode *node : sorted_nodes) {
     const bool node_hidden = node->flag & NODE_HIDDEN;
-    if (!node->is_reroute() && !node_hidden && node->runtime->totr.ymax - cursor.y < NODE_DY) {
+    if (!node->is_reroute() && !node_hidden && node->runtime->draw_bounds.ymax - cursor.y < NODE_DY) {
       /* Don't pick socket when cursor is over node header. This allows the user to always resize
        * by dragging on the left and right side of the header. */
       continue;

@@ -241,18 +241,18 @@ NodeResizeDirection node_get_resize_direction(const SpaceNode &snode,
 
     NodeResizeDirection dir = NODE_RESIZE_NONE;
 
-    const rctf &totr = node->runtime->totr;
+    const rctf &bounds = node->runtime->draw_bounds;
 
-    if (x > totr.xmax - size && x <= totr.xmax && y >= totr.ymin && y < totr.ymax) {
+    if (x > bounds.xmax - size && x <= bounds.xmax && y >= bounds.ymin && y < bounds.ymax) {
       dir |= NODE_RESIZE_RIGHT;
     }
-    if (x >= totr.xmin && x < totr.xmin + size && y >= totr.ymin && y < totr.ymax) {
+    if (x >= bounds.xmin && x < bounds.xmin + size && y >= bounds.ymin && y < bounds.ymax) {
       dir |= NODE_RESIZE_LEFT;
     }
-    if (x >= totr.xmin && x < totr.xmax && y >= totr.ymax - size && y < totr.ymax) {
+    if (x >= bounds.xmin && x < bounds.xmax && y >= bounds.ymax - size && y < bounds.ymax) {
       dir |= NODE_RESIZE_TOP;
     }
-    if (x >= totr.xmin && x < totr.xmax && y >= totr.ymin && y < totr.ymin + size) {
+    if (x >= bounds.xmin && x < bounds.xmax && y >= bounds.ymin && y < bounds.ymin + size) {
       dir |= NODE_RESIZE_BOTTOM;
     }
 
@@ -261,22 +261,22 @@ NodeResizeDirection node_get_resize_direction(const SpaceNode &snode,
 
   if (node->flag & NODE_HIDDEN) {
     /* right part of node */
-    rctf totr = node->runtime->totr;
-    totr.xmin = node->runtime->totr.xmax - 1.0f * U.widget_unit;
-    if (BLI_rctf_isect_pt(&totr, x, y)) {
+    rctf bounds = node->runtime->draw_bounds;
+    bounds.xmin = node->runtime->draw_bounds.xmax - 1.0f * U.widget_unit;
+    if (BLI_rctf_isect_pt(&bounds, x, y)) {
       return NODE_RESIZE_RIGHT;
     }
 
     return NODE_RESIZE_NONE;
   }
 
-  const rctf &totr = node->runtime->totr;
+  const rctf &bounds = node->runtime->draw_bounds;
   NodeResizeDirection dir = NODE_RESIZE_NONE;
 
-  if (x >= totr.xmax - size && x < totr.xmax && y >= totr.ymin && y < totr.ymax) {
+  if (x >= bounds.xmax - size && x < bounds.xmax && y >= bounds.ymin && y < bounds.ymax) {
     dir |= NODE_RESIZE_RIGHT;
   }
-  if (x >= totr.xmin && x < totr.xmin + size && y >= totr.ymin && y < totr.ymax) {
+  if (x >= bounds.xmin && x < bounds.xmin + size && y >= bounds.ymin && y < bounds.ymax) {
     dir |= NODE_RESIZE_LEFT;
   }
   return dir;

@@ -252,7 +252,7 @@ class bNodeSocketRuntime : NonCopyable, NonMovable {
   /**
    * The location of the socket in the tree, calculated while drawing the nodes and invalid if the
    * node tree hasn't been drawn yet. In the node tree's "world space" (the same as
-   * #bNode::runtime::totr).
+   * #bNode::runtime::draw_bounds).
    */
   float2 location;
 
@@ -278,7 +278,7 @@ class bNodePanelRuntime : NonCopyable, NonMovable {
  public:
   /* The vertical location of the panel in the tree, calculated while drawing the nodes and invalid
    * if the node tree hasn't been drawn yet. In the node tree's "world space" (the same as
-   * #bNode::runtime::totr). */
+   * #bNode::runtime::draw_bounds). */
   std::optional<float> header_center_y;
   std::optional<bNodePanelExtent> content_extent;
 };
@@ -320,7 +320,7 @@ class bNodeRuntime : NonCopyable, NonMovable {
   bNode *original = nullptr;
 
   /** Calculated bounding box of node in the view space of the node editor (including UI scale). */
-  rctf totr{};
+  rctf draw_bounds{};
 
   /** Used at runtime when going through the tree. Initialize before use. */
   short tmp_flag = 0;
