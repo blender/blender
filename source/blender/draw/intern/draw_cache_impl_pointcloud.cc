@@ -23,7 +23,6 @@
 #include "DNA_pointcloud_types.h"
 
 #include "BKE_attribute.hh"
-#include "BKE_material.h"
 #include "BKE_pointcloud.hh"
 
 #include "GPU_batch.hh"
@@ -94,20 +93,20 @@ static PointCloudBatchCache *pointcloud_batch_cache_get(PointCloud &pointcloud)
   return static_cast<PointCloudBatchCache *>(pointcloud.batch_cache);
 }
 
-static bool pointcloud_batch_cache_valid(Object &object, PointCloud &pointcloud)
+static bool pointcloud_batch_cache_valid(PointCloud &pointcloud)
 {
   PointCloudBatchCache *cache = pointcloud_batch_cache_get(pointcloud);
 
   if (cache == nullptr) {
     return false;
   }
-  if (cache->eval_cache.mat_len != BKE_object_material_count_eval(&object)) {
+  if (cache->eval_cache.mat_len != DRW_pointcloud_material_count_get(&pointcloud)) {
     return false;
   }
   return cache->is_dirty == false;
 }
 
-static void pointcloud_batch_cache_init(Object &object, PointCloud &pointcloud)
+static void pointcloud_batch_cache_init(PointCloud &pointcloud)
 {
   PointCloudBatchCache *cache = pointcloud_batch_cache_get(pointcloud);
 
@@ -119,7 +118,7 @@ static void pointcloud_batch_cache_init(Object &object, PointCloud &pointcloud)
     cache->eval_cache = {};
   }
 
-  cache->eval_cache.mat_len = BKE_object_material_count_eval(&object);
+  cache->eval_cache.mat_len = DRW_pointcloud_material_count_get(&pointcloud);
   cache->eval_cache.surface_per_mat = static_cast<gpu::Batch **>(
       MEM_callocN(sizeof(gpu::Batch *) * cache->eval_cache.mat_len, __func__));
 
@@ -173,11 +172,11 @@ static void pointcloud_batch_cache_clear(PointCloud &pointcloud)
   pointcloud_discard_attributes(*cache);
 }
 
-void DRW_pointcloud_batch_cache_validate(Object &object, PointCloud *pointcloud)
+void DRW_pointcloud_batch_cache_validate(PointCloud *pointcloud)
 {
-  if (!pointcloud_batch_cache_valid(object, *pointcloud)) {
+  if (!pointcloud_batch_cache_valid(*pointcloud)) {
     pointcloud_batch_cache_clear(*pointcloud);
-    pointcloud_batch_cache_init(object, *pointcloud);
+    pointcloud_batch_cache_init(*pointcloud);
   }
 }
 
@@ -418,6 +417,11 @@ gpu::VertBuf **DRW_pointcloud_evaluated_attribute(PointCloud *pointcloud, const 
     return nullptr;
   }
   return &cache.eval_cache.attributes_buf[request_i];
+}
+
+int DRW_pointcloud_material_count_get(const PointCloud *pointcloud)
+{
+  return max_ii(1, pointcloud->totcol);
 }
 
 void DRW_pointcloud_batch_cache_create_requested(Object *ob)
