@@ -1101,12 +1101,11 @@ void Slot::users_remove(ID &animated_id)
   BLI_assert(this->runtime);
   Vector<ID *> &users = this->runtime->users;
 
-  const int64_t vector_index = users.first_index_of_try(&animated_id);
-  if (vector_index < 0) {
-    return;
-  }
-
-  users.remove_and_reorder(vector_index);
+  /* Even though users_add() ensures that there are no duplicates, there's still things like
+   * pointer swapping etc. that can happen via the foreach-id looping code. That means that the
+   * entries in the user map are not 100% under control of the user_add() and user_remove()
+   * function, and thus we cannot assume that there are no duplicates. */
+  users.remove_if([&](const ID *user) { return user == &animated_id; });
 }
 
 void Slot::users_invalidate(Main &bmain)
