@@ -13,6 +13,8 @@
 #include "GEO_join_geometries.hh"
 #include "GEO_randomize.hh"
 
+#include "DNA_mesh_types.h"
+
 #include "node_geometry_util.hh"
 
 namespace blender::nodes::node_geo_curve_to_mesh_cc {
@@ -113,6 +115,8 @@ static void node_geo_exec(GeoNodeExecParams params)
     if (geometry_set.has_curves()) {
       const Curves &curves = *geometry_set.get_curves();
       Mesh *mesh = curve_to_mesh(curves.geometry.wrap(), profile_set, fill_caps, attribute_filter);
+      mesh->mat = static_cast<Material **>(MEM_dupallocN(curves.mat));
+      mesh->totcol = curves.totcol;
       geometry_set.replace_mesh(mesh);
     }
     if (geometry_set.has_grease_pencil()) {
