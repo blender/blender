@@ -847,7 +847,8 @@ float *Film::read_pass(eViewLayerEEVEEPassType pass_type, int layer_offset)
   if (pass_is_float3(pass_type)) {
     /* Convert result in place as we cannot do this conversion on GPU. */
     for (const int px : IndexRange(GPU_texture_width(pass_tx) * GPU_texture_height(pass_tx))) {
-      *(reinterpret_cast<float3 *>(result) + px) = *(reinterpret_cast<float3 *>(result + px * 4));
+      float3 tmp = *(reinterpret_cast<float3 *>(result + px * 4));
+      *(reinterpret_cast<float3 *>(result) + px) = tmp;
     }
   }
 
