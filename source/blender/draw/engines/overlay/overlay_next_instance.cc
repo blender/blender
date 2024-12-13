@@ -754,8 +754,8 @@ bool Instance::object_is_rendered_transparent(const Object *object, const State 
 
   if (shading.color_type == V3D_SHADING_MATERIAL_COLOR) {
     if (object->type == OB_MESH) {
-      Mesh *mesh = static_cast<Mesh *>(object->data);
-      for (int i = 0; i < mesh->totcol; i++) {
+      const int materials_num = BKE_object_material_count_eval(object);
+      for (int i = 0; i < materials_num; i++) {
         Material *mat = BKE_object_material_get_eval(const_cast<Object *>(object), i + 1);
         if (mat && mat->a < 1.0f) {
           return true;

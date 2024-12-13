@@ -55,7 +55,7 @@ void DRW_curves_batch_cache_validate(Curves *curves);
 void DRW_curves_batch_cache_free(Curves *curves);
 
 void DRW_pointcloud_batch_cache_dirty_tag(PointCloud *pointcloud, int mode);
-void DRW_pointcloud_batch_cache_validate(PointCloud *pointcloud);
+void DRW_pointcloud_batch_cache_validate(Object &object, PointCloud *pointcloud);
 void DRW_pointcloud_batch_cache_free(PointCloud *pointcloud);
 
 void DRW_volume_batch_cache_dirty_tag(Volume *volume, int mode);
@@ -98,8 +98,6 @@ void DRW_vertbuf_create_wiredata(gpu::VertBuf *vbo, int vert_len);
 
 void DRW_curve_batch_cache_create_requested(Object *ob, const Scene *scene);
 
-int DRW_curve_material_count_get(const Curve *cu);
-
 blender::gpu::Batch *DRW_curve_batch_cache_get_wire_edge(Curve *cu);
 blender::gpu::Batch *DRW_curve_batch_cache_get_wire_edge_viewer_attribute(Curve *cu);
 blender::gpu::Batch *DRW_curve_batch_cache_get_normal_edge(Curve *cu);
@@ -124,8 +122,6 @@ blender::gpu::Batch *DRW_lattice_batch_cache_get_edit_verts(Lattice *lt);
 /** \name Curves
  * \{ */
 
-int DRW_curves_material_count_get(const Curves *curves);
-
 /**
  * Provide GPU access to a specific evaluated attribute on curves.
  *
@@ -149,8 +145,6 @@ void DRW_curves_batch_cache_create_requested(Object *ob);
 /** \name PointCloud
  * \{ */
 
-int DRW_pointcloud_material_count_get(const PointCloud *pointcloud);
-
 gpu::VertBuf *DRW_pointcloud_position_and_radius_buffer_get(Object *ob);
 
 gpu::VertBuf **DRW_pointcloud_evaluated_attribute(PointCloud *pointcloud, const char *name);
@@ -163,8 +157,6 @@ void DRW_pointcloud_batch_cache_create_requested(Object *ob);
 /* -------------------------------------------------------------------- */
 /** \name Volume
  * \{ */
-
-int DRW_volume_material_count_get(const Volume *volume);
 
 blender::gpu::Batch *DRW_volume_batch_cache_get_wireframes_face(Volume *volume);
 blender::gpu::Batch *DRW_volume_batch_cache_get_selection_surface(Volume *volume);
@@ -277,8 +269,6 @@ blender::gpu::Batch *DRW_mesh_batch_cache_get_edit_mesh_analysis(Mesh &mesh);
  * \{ */
 
 gpu::VertBuf *DRW_mesh_batch_cache_pos_vertbuf_get(Mesh &mesh);
-
-int DRW_mesh_material_count_get(const Object &object, const Mesh &mesh);
 
 /* Edit mesh bitflags (is this the right place?) */
 enum {

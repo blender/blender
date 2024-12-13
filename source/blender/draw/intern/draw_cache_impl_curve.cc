@@ -819,11 +819,6 @@ gpu::Batch *DRW_curve_batch_cache_get_edit_verts(Curve *cu)
   return DRW_batch_request(&cache->batch.edit_verts);
 }
 
-int DRW_curve_material_count_get(const Curve *cu)
-{
-  return max_ii(1, cu->totcol);
-}
-
 /** \} */
 
 /* -------------------------------------------------------------------- */

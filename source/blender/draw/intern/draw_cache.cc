@@ -935,35 +935,7 @@ blender::gpu::VertBuf *DRW_cache_object_pos_vertbuf_get(Object *ob)
 
 int DRW_cache_object_material_count_get(const Object *ob)
 {
-  using namespace blender::draw;
-  short type = ob->type;
-
-  Mesh *mesh = BKE_object_get_evaluated_mesh_no_subsurf_unchecked(ob);
-  if (mesh != nullptr && type != OB_POINTCLOUD) {
-    /* Some object types can have one data type in ob->data, but will be rendered as mesh.
-     * For point clouds this never happens. Ideally this check would happen at another level
-     * and we would just have to care about ob->data here. */
-    type = OB_MESH;
-  }
-
-  switch (type) {
-    case OB_MESH:
-      return DRW_mesh_material_count_get(
-          *ob, *static_cast<const Mesh *>((mesh != nullptr) ? mesh : ob->data));
-    case OB_CURVES_LEGACY:
-    case OB_SURF:
-    case OB_FONT:
-      return DRW_curve_material_count_get(static_cast<const Curve *>(ob->data));
-    case OB_CURVES:
-      return DRW_curves_material_count_get(static_cast<const Curves *>(ob->data));
-    case OB_POINTCLOUD:
-      return DRW_pointcloud_material_count_get(static_cast<const PointCloud *>(ob->data));
-    case OB_VOLUME:
-      return DRW_volume_material_count_get(static_cast<const Volume *>(ob->data));
-    default:
-      BLI_assert(0);
-      return 0;
-  }
+  return BKE_object_material_count_eval(ob);
 }
 
 blender::gpu::Batch **DRW_cache_object_surface_material_get(Object *ob,
@@ -3336,7 +3308,7 @@ void drw_batch_cache_validate(Object *ob)
       DRW_curves_batch_cache_validate((Curves *)ob->data);
       break;
     case OB_POINTCLOUD:
-      DRW_pointcloud_batch_cache_validate((PointCloud *)ob->data);
+      DRW_pointcloud_batch_cache_validate(*ob, (PointCloud *)ob->data);
       break;
     case OB_VOLUME:
       DRW_volume_batch_cache_validate((Volume *)ob->data);
