@@ -388,6 +388,15 @@ void VKBackend::detect_workarounds(VKDevice &device)
   workarounds.dynamic_rendering_unused_attachments = !device.supports_extension(
       VK_EXT_DYNAMIC_RENDERING_UNUSED_ATTACHMENTS_EXTENSION_NAME);
 
+#ifdef __APPLE__
+  /* Due to a limitation in MoltenVK, attachments should be sequential even when using
+   * dynamic rendering. MoltenVK internally uses render passes to simulate dynamic rendering and
+   * same limitations apply. */
+  if (GPU_type_matches(GPU_DEVICE_APPLE, GPU_OS_MAC, GPU_DRIVER_ANY)) {
+    GCaps.render_pass_workaround = true;
+  }
+#endif
+
   device.workarounds_ = workarounds;
 }
 
