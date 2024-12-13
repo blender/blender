@@ -368,9 +368,10 @@ static void outliner_collection_set_flag_recursive(Scene *scene,
                                                    PropertyRNA *base_or_object_prop,
                                                    const bool value)
 {
-  if (layer_collection && layer_collection->flag & LAYER_COLLECTION_EXCLUDE) {
+  if (!layer_collection) {
     return;
   }
+
   PointerRNA ptr;
   outliner_layer_or_collection_pointer_create(scene, layer_collection, collection, &ptr);
   if (layer_or_collection_prop && !RNA_property_editable(&ptr, layer_or_collection_prop)) {
@@ -380,7 +381,7 @@ static void outliner_collection_set_flag_recursive(Scene *scene,
   RNA_property_boolean_set(&ptr, layer_or_collection_prop, value);
 
   /* Set the same flag for the nested objects as well. */
-  if (base_or_object_prop) {
+  if (base_or_object_prop && !(layer_collection->flag & LAYER_COLLECTION_EXCLUDE)) {
     /* NOTE: We can't use BKE_collection_object_cache_get()
      * otherwise we would not take collection exclusion into account. */
     LISTBASE_FOREACH (CollectionObject *, cob, &layer_collection->collection->gobject) {
@@ -505,7 +506,7 @@ void outliner_collection_isolate_flag(Scene *scene,
                                       const bool value)
 {
   PointerRNA ptr;
-  const bool is_hide = strstr(propname, "hide_") != nullptr;
+  const bool is_hide = strstr(propname, "hide_") || (strcmp(propname, "exclude") == 0);
 
   LayerCollection *top_layer_collection = layer_collection ?
                                               static_cast<LayerCollection *>(
@@ -1577,6 +1578,10 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                       0,
                                       0,
                                       nullptr);
+              UI_but_func_set(bt,
+                              view_layer__layer_collection_set_flag_recursive_fn,
+                              layer_collection,
+                              (char *)"exclude");
               UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
             }
 
