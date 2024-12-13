@@ -243,7 +243,9 @@ class Vector {
     const int64_t size = other.size();
 
     if (other.is_inline()) {
-      if (size <= InlineBufferCapacity) {
+      /* This first check is not strictly necessary, but improves performance because it can be
+       * done at compile time and makes the size check at run-time unnecessary. */
+      if (OtherInlineBufferCapacity <= InlineBufferCapacity || size <= InlineBufferCapacity) {
         /* Copy between inline buffers. */
         uninitialized_relocate_n(other.begin_, size, begin_);
         end_ = begin_ + size;
