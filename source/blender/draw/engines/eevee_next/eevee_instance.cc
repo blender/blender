@@ -701,15 +701,14 @@ void Instance::light_bake_irradiance(
 
   volume_probes.bake.init(probe);
 
-  custom_pipeline_wrapper([&]() { this->render_sync(); });
-  while (materials.queued_shaders_count > 0) {
-    /* Leave some time for shaders to compile. */
-    BLI_time_sleep_ms(50);
-    /** WORKAROUND: Re-sync to check if all shaders are already compiled. */
-    custom_pipeline_wrapper([&]() { this->render_sync(); });
-  }
-
   custom_pipeline_wrapper([&]() {
+    this->render_sync();
+    while (materials.queued_shaders_count > 0) {
+      /* Leave some time for shaders to compile. */
+      BLI_time_sleep_ms(50);
+      /** WORKAROUND: Re-sync to check if all shaders are already compiled. */
+      this->render_sync();
+    }
     /* Sampling module needs to be initialized to computing lighting. */
     sampling.init(probe);
     sampling.step();
