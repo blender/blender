@@ -32,9 +32,7 @@
 #include "NOD_composite.hh"
 #include "node_composite_util.hh"
 
-#ifdef WITH_COMPOSITOR_CPU
-#  include "COM_compositor.hh"
-#endif
+#include "COM_compositor.hh"
 
 static void composite_get_from_context(const bContext *C,
                                        blender::bke::bNodeTreeType * /*treetype*/,
@@ -183,11 +181,7 @@ void ntreeCompositExecTree(Render *render,
                            blender::realtime_compositor::RenderContext *render_context,
                            blender::realtime_compositor::Profiler *profiler)
 {
-#ifdef WITH_COMPOSITOR_CPU
   COM_execute(render, rd, scene, ntree, view_name, render_context, profiler);
-#else
-  UNUSED_VARS(render, scene, ntree, rd, view_name, render_context, profiler);
-#endif
 }
 
 /* *********************************************** */

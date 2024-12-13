@@ -196,10 +196,6 @@ if(WITH_CODEC_SNDFILE)
   add_definitions(-DWITH_SNDFILE)
 endif()
 
-if(WITH_COMPOSITOR_CPU)
-  add_definitions(-DWITH_COMPOSITOR_CPU)
-endif()
-
 if(WITH_CYCLES)
   list(APPEND INC
     ../../../../intern/cycles/blender

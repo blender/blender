@@ -15,6 +15,7 @@ set(INC
   ../../makesrna
   ../../render
   ../../windowmanager
+  ../../compositor
   ../../compositor/realtime_compositor
   ../../compositor/realtime_compositor/algorithms
   ../../compositor/realtime_compositor/cached_resources
@@ -142,13 +143,6 @@ endif()
 
 if(WITH_IMAGE_OPENEXR)
   add_definitions(-DWITH_OPENEXR)
-endif()
-
-if(WITH_COMPOSITOR_CPU)
-  list(APPEND INC
-    ../../compositor
-  )
-  add_definitions(-DWITH_COMPOSITOR_CPU)
 endif()
 
 if(WITH_OPENIMAGEDENOISE)
