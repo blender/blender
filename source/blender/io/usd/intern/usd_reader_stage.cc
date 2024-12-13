@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 #include "usd_reader_stage.hh"
+
+#include "usd_hook.hh"
 #include "usd_reader_camera.hh"
 #include "usd_reader_curve.hh"
 #include "usd_reader_instance.hh"
@@ -20,6 +22,7 @@
 #include "usd_utils.hh"
 
 #include <pxr/pxr.h>
+#include <pxr/usd/usd/primRange.h>
 #include <pxr/usd/usdGeom/camera.h>
 #include <pxr/usd/usdGeom/capsule.h>
 #include <pxr/usd/usdGeom/cone.h>
@@ -535,8 +538,12 @@ void USDStageReader::import_all_materials(Main *bmain)
       continue;
     }
 
-    /* Add the material now. */
-    Material *new_mtl = mtl_reader.add_material(usd_mtl);
+    /* Can the material be handled by an iport hook? */
+    const bool have_import_hook = settings_.mat_import_hook_sources.contains(mtl_path);
+
+    /* Add the Blender material. If we have an import hook which can handle this material
+     * we don't import USD Preview Surface shaders. */
+    Material *new_mtl = mtl_reader.add_material(usd_mtl, !have_import_hook);
     BLI_assert_msg(new_mtl, "Failed to create material");
 
     const std::string mtl_name = make_safe_name(new_mtl->id.name + 2, true);
@@ -548,6 +555,12 @@ void USDStageReader::import_all_materials(Main *bmain)
        * materials to objects elsewhere in the code. */
       settings_.usd_path_to_mat_name.lookup_or_add_default(
           prim.GetPath().GetAsString()) = mtl_name;
+    }
+
+    if (have_import_hook) {
+      /* Defer invoking the hook to convert the material till we can do so from
+       * the main thread. */
+      settings_.usd_path_to_mat_for_hook.lookup_or_add_default(mtl_path) = new_mtl;
     }
   }
 }
@@ -564,6 +577,50 @@ void USDStageReader::fake_users_for_unused_materials()
 
     if (mat->id.us == 0) {
       id_fake_user_set(&mat->id);
+    }
+  }
+}
+
+void USDStageReader::find_material_import_hook_sources()
+{
+  pxr::UsdPrimRange range = stage_->Traverse();
+  for (pxr::UsdPrim prim : range) {
+    if (prim.IsA<pxr::UsdShadeMaterial>()) {
+      pxr::UsdShadeMaterial usd_mat(prim);
+      if (have_material_import_hook(stage_, usd_mat, params_, reports())) {
+        settings_.mat_import_hook_sources.add(prim.GetPath().GetAsString());
+      }
+    }
+  }
+}
+
+void USDStageReader::call_material_import_hooks(Main *bmain) const
+{
+  if (settings_.usd_path_to_mat_for_hook.is_empty()) {
+    /* No materials can be converted by a hook. */
+    return;
+  }
+
+  for (const auto item : settings_.usd_path_to_mat_for_hook.items()) {
+    pxr::UsdPrim prim = stage_->GetPrimAtPath(pxr::SdfPath(item.key));
+
+    pxr::UsdShadeMaterial usd_mtl(prim);
+    if (!usd_mtl) {
+      continue;
+    }
+
+    bool success = blender::io::usd::call_material_import_hooks(
+        stage_, item.value, usd_mtl, params_, reports());
+
+    if (!success) {
+      /* None of the hooks succeeded, so fall back on importing USD Preview Surface if possible. */
+      CLOG_WARN(&LOG,
+                "USD hook 'on_material_import' for material %s failed, attempting to convert USD "
+                "Preview Surface material",
+                usd_mtl.GetPath().GetAsString().c_str());
+
+      USDMaterialReader mat_reader(this->params_, bmain);
+      mat_reader.import_usd_preview(item.value, usd_mtl);
     }
   }
 }

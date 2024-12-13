@@ -10,6 +10,7 @@
 #include "usd.hh"
 
 #include "BLI_map.hh"
+#include "BLI_set.hh"
 
 #include "WM_types.hh"
 
@@ -35,16 +36,26 @@ struct ImportSettings {
 
   std::function<CacheFile *()> get_cache_file{};
 
+  /*
+   * The fields below are mutable because they are used to keep track
+   * of what the importer is doing. This is necessary even when all
+   * the other import settings are to remain const.
+   */
+
   /* Map a USD material prim path to a Blender material name.
-   * This map is updated by readers during stage traversal.
-   * This field is mutable because it is used to keep track
-   * of what the importer is doing. This is necessary even
-   * when all the other import settings are to remain const. */
+   * This map is updated by readers during stage traversal. */
   mutable blender::Map<std::string, std::string> usd_path_to_mat_name{};
   /* Map a material name to Blender material.
-   * This map is updated by readers during stage traversal,
-   * and is mutable similar to the map above. */
+   * This map is updated by readers during stage traversal. */
   mutable blender::Map<std::string, Material *> mat_name_to_mat{};
+  /* Map a USD material prim path to a Blender material to be
+   * converted by invoking the 'on_material_import' USD hook.
+   * This map is updated by readers during stage traversal. */
+  mutable blender::Map<std::string, Material *> usd_path_to_mat_for_hook{};
+  /* Set of paths to USD material prims that can be converted by the
+   * 'on_material_import' USD hook. For efficiency this set should
+   * be populated prior to stage traversal. */
+  mutable blender::Set<std::string> mat_import_hook_sources{};
 
   /* We use the stage metersPerUnit to convert camera properties from USD scene units to the
    * correct millimeter scale that Blender uses for camera parameters. */

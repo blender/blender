@@ -1287,10 +1287,10 @@ static void copy_single_file(const Image *ima,
   }
 }
 
-static void export_texture(Image *ima,
-                           const pxr::UsdStageRefPtr stage,
-                           const bool allow_overwrite,
-                           ReportList *reports)
+void export_texture(Image *ima,
+                    const pxr::UsdStageRefPtr stage,
+                    const bool allow_overwrite,
+                    ReportList *reports)
 {
   std::string dest_dir = get_export_textures_dir(stage);
   if (dest_dir.empty()) {
@@ -1618,7 +1618,8 @@ pxr::UsdShadeMaterial create_usd_material(const USDExporterContext &usd_export_c
   }
 #endif
 
-  call_material_export_hooks(usd_export_context.stage, material, usd_material, reports);
+  call_material_export_hooks(
+      usd_export_context.stage, material, usd_material, usd_export_context.export_params, reports);
 
   return usd_material;
 }

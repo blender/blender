@@ -9,6 +9,7 @@
 #include "usd.hh"
 #include "usd_attribute_utils.hh"
 #include "usd_hash_types.hh"
+#include "usd_hook.hh"
 #include "usd_mesh_utils.hh"
 #include "usd_reader_material.hh"
 #include "usd_skel_convert.hh"
@@ -92,8 +93,7 @@ static void assign_materials(Main *bmain,
                              const blender::Map<pxr::SdfPath, int> &mat_index_map,
                              const blender::io::usd::USDImportParams &params,
                              pxr::UsdStageRefPtr stage,
-                             blender::Map<std::string, Material *> &mat_name_to_mat,
-                             blender::Map<std::string, std::string> &usd_path_to_mat_name)
+                             const blender::io::usd::ImportSettings &settings)
 {
   using namespace blender::io::usd;
   if (!(stage && bmain && ob)) {
@@ -108,7 +108,7 @@ static void assign_materials(Main *bmain,
 
   for (const auto item : mat_index_map.items()) {
     Material *assigned_mat = blender::io::usd::find_existing_material(
-        item.key, params, mat_name_to_mat, usd_path_to_mat_name);
+        item.key, params, settings.mat_name_to_mat, settings.usd_path_to_mat_name);
     if (!assigned_mat) {
       /* Blender material doesn't exist, so create it now. */
 
@@ -122,8 +122,12 @@ static void assign_materials(Main *bmain,
         continue;
       }
 
-      /* Add the Blender material. */
-      assigned_mat = mat_reader.add_material(usd_mat);
+      const bool have_import_hook = settings.mat_import_hook_sources.contains(
+          item.key.GetAsString());
+
+      /* Add the Blender material. If we have an import hook which can handle this material
+       * we don't import USD Preview Surface shaders. */
+      assigned_mat = mat_reader.add_material(usd_mat, !have_import_hook);
 
       if (!assigned_mat) {
         CLOG_WARN(&LOG,
@@ -133,12 +137,19 @@ static void assign_materials(Main *bmain,
       }
 
       const std::string mat_name = make_safe_name(assigned_mat->id.name + 2, true);
-      mat_name_to_mat.lookup_or_add_default(mat_name) = assigned_mat;
+      settings.mat_name_to_mat.lookup_or_add_default(mat_name) = assigned_mat;
 
       if (params.mtl_name_collision_mode == USD_MTL_NAME_COLLISION_MAKE_UNIQUE) {
         /* Record the name of the Blender material we created for the USD material
          * with the given path. */
-        usd_path_to_mat_name.lookup_or_add_default(item.key.GetAsString()) = mat_name;
+        settings.usd_path_to_mat_name.lookup_or_add_default(item.key.GetAsString()) = mat_name;
+      }
+
+      if (have_import_hook) {
+        /* Defer invoking the hook to convert the material till we can do so from
+         * the main thread. */
+        settings.usd_path_to_mat_for_hook.lookup_or_add_default(
+            item.key.GetAsString()) = assigned_mat;
       }
     }
 
@@ -736,13 +747,8 @@ void USDMeshReader::readFaceSetsSample(Main *bmain, Mesh *mesh, const double mot
   if (this->settings_->mat_name_to_mat.is_empty()) {
     build_material_map(bmain, &this->settings_->mat_name_to_mat);
   }
-  utils::assign_materials(bmain,
-                          object_,
-                          mat_map,
-                          this->import_params_,
-                          this->prim_.GetStage(),
-                          this->settings_->mat_name_to_mat,
-                          this->settings_->usd_path_to_mat_name);
+  utils::assign_materials(
+      bmain, object_, mat_map, this->import_params_, this->prim_.GetStage(), *this->settings_);
 }
 
 Mesh *USDMeshReader::read_mesh(Mesh *existing_mesh,

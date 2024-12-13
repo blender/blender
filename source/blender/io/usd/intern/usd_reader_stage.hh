@@ -87,6 +87,19 @@ class USDStageReader {
    * materials. */
   void fake_users_for_unused_materials();
 
+  /**
+   * Discover the USD materials that can be converted
+   * by material import hook add-ons.
+   */
+  void find_material_import_hook_sources();
+
+  /**
+   * Invoke USD hook add-ons to convert materials.  This function
+   * should be called from the main thread and not from a
+   * background job.
+   */
+  void call_material_import_hooks(struct Main *bmain) const;
+
   bool valid() const;
 
   pxr::UsdStageRefPtr stage()
