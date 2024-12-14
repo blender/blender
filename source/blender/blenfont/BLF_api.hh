@@ -109,6 +109,10 @@ char *BLF_display_name_from_id(int fontid);
  */
 bool BLF_get_vfont_metrics(int fontid, float *ascend_ratio, float *em_ratio, float *scale);
 
+#define BLF_VFONT_METRICS_SCALE_DEFAULT float(1.0 / 1000.0)
+#define BLF_VFONT_METRICS_EM_RATIO_DEFAULT 1.0f
+#define BLF_VFONT_METRICS_ASCEND_RATIO_DEFAULT 0.8f
+
 /**
  * Convert a character's outlines into curves.
  */

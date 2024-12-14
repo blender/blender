@@ -781,28 +781,13 @@ enum {
 
 /** \} */
 
-/**
- * Font metric values explained:
- *
- * Baseline: Line where the text "rests", used as the origin vertical position for the glyphs.
- * Em height: Space most glyphs should fit within.
- * Ascent: the recommended distance above the baseline to fit most characters.
- * Descent: the recommended distance below the baseline to fit most characters.
- *
- * We obtain ascent and descent from the font itself (FT_Face->ascender / face->height).
- * And in some cases it is even the same value as FT_Face->bbox.yMax/yMin
- * (font top and bottom respectively).
- *
- * The em_height here is relative to FT_Face->bbox.
- */
-
-static float vfont_ascent(const VFontData *vfd)
+static float vfont_metrics_ascent(const VFontData_Metrics *metrics)
 {
-  return vfd->ascender * vfd->em_height;
+  return metrics->ascend_ratio * metrics->em_ratio;
 }
-static float vfont_descent(const VFontData *vfd)
+static float vfont_metrics_descent(const VFontData_Metrics *metrics)
 {
-  return vfd->em_height - vfont_ascent(vfd);
+  return metrics->em_ratio - vfont_metrics_ascent(metrics);
 }
 
 struct VFontInfoContext {
@@ -918,8 +903,9 @@ static bool vfont_to_curve(Object *ob,
   }
 
   /* This must only be used for calculations which apply to all text,
-   * for character level queries, values from `vfinfo_ctx` must be updated & used.  */
-  VFontData *vfont_vfd = vfinfo_ctx.vfd;
+   * for character level queries, values from `vfinfo_ctx` must be updated & used.
+   * Note that this can be null. */
+  const VFontData_Metrics *metrics = &vfinfo_ctx.vfd->metrics;
 
   if (ef) {
     slen = ef->len;
@@ -1357,11 +1343,11 @@ static bool vfont_to_curve(Object *ob,
           case CU_ALIGN_Y_TOP_BASELINE:
             break;
           case CU_ALIGN_Y_TOP:
-            yoff = textbox_y_origin - vfont_ascent(vfont_vfd);
+            yoff = textbox_y_origin - vfont_metrics_ascent(metrics);
             break;
           case CU_ALIGN_Y_CENTER:
-            yoff = ((((vfont_vfd->em_height + (lines - 1) * linedist) * 0.5f) -
-                     vfont_ascent(vfont_vfd)) -
+            yoff = ((((metrics->em_ratio + (lines - 1) * linedist) * 0.5f) -
+                     vfont_metrics_ascent(metrics)) -
                     (tb_scale.h * 0.5f) + textbox_y_origin);
             break;
           case CU_ALIGN_Y_BOTTOM_BASELINE:
@@ -1369,7 +1355,7 @@ static bool vfont_to_curve(Object *ob,
             break;
           case CU_ALIGN_Y_BOTTOM:
             yoff = textbox_y_origin + ((lines - 1) * linedist) - tb_scale.h +
-                   vfont_descent(vfont_vfd);
+                   vfont_metrics_descent(metrics);
             break;
         }
 
@@ -1390,16 +1376,17 @@ static bool vfont_to_curve(Object *ob,
         case CU_ALIGN_Y_TOP_BASELINE:
           break;
         case CU_ALIGN_Y_TOP:
-          yoff = -vfont_ascent(vfont_vfd);
+          yoff = -vfont_metrics_ascent(metrics);
           break;
         case CU_ALIGN_Y_CENTER:
-          yoff = ((vfont_vfd->em_height + (lnr - 1) * linedist) * 0.5f) - vfont_ascent(vfont_vfd);
+          yoff = ((metrics->em_ratio + (lnr - 1) * linedist) * 0.5f) -
+                 vfont_metrics_ascent(metrics);
           break;
         case CU_ALIGN_Y_BOTTOM_BASELINE:
           yoff = (lnr - 1) * linedist;
           break;
         case CU_ALIGN_Y_BOTTOM:
-          yoff = (lnr - 1) * linedist + vfont_descent(vfont_vfd);
+          yoff = (lnr - 1) * linedist + vfont_metrics_descent(metrics);
           break;
       }
 

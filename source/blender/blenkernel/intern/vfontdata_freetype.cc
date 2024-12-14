@@ -31,6 +31,13 @@
 extern const void *builtin_font_data;
 extern int builtin_font_size;
 
+void BKE_vfontdata_metrics_get_defaults(VFontData_Metrics *metrics)
+{
+  metrics->scale = BLF_VFONT_METRICS_SCALE_DEFAULT;
+  metrics->em_ratio = BLF_VFONT_METRICS_EM_RATIO_DEFAULT;
+  metrics->ascend_ratio = BLF_VFONT_METRICS_ASCEND_RATIO_DEFAULT;
+}
+
 VFontData *BKE_vfontdata_from_freetypefont(PackedFile *pf)
 {
   int fontid = BLF_load_mem("FTVFont", static_cast<const uchar *>(pf->data), pf->size);
@@ -49,7 +56,11 @@ VFontData *BKE_vfontdata_from_freetypefont(PackedFile *pf)
 
   BLI_str_utf8_invalid_strip(vfd->name, ARRAY_SIZE(vfd->name));
 
-  BLF_get_vfont_metrics(fontid, &vfd->ascender, &vfd->em_height, &vfd->scale);
+  if (!BLF_get_vfont_metrics(
+          fontid, &vfd->metrics.ascend_ratio, &vfd->metrics.em_ratio, &vfd->metrics.scale))
+  {
+    BKE_vfontdata_metrics_get_defaults(&vfd->metrics);
+  }
 
   vfd->characters = BLI_ghash_int_new_ex(__func__, 255);
 
@@ -112,7 +123,7 @@ VChar *BKE_vfontdata_char_from_freetypefont(VFont *vfont, uint character)
   BLF_size(font_id, 16);
 
   che->width = BLF_character_to_curves(
-      font_id, character, &che->nurbsbase, vfont->data->scale, use_fallback);
+      font_id, character, &che->nurbsbase, vfont->data->metrics.scale, use_fallback);
 
   BLI_ghash_insert(vfont->data->characters, POINTER_FROM_UINT(character), che);
   BLF_unload_id(font_id);
