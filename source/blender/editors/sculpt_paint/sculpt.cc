@@ -6404,7 +6404,7 @@ void calc_factors_common_from_orig_data_grids(const Depsgraph &depsgraph,
   fill_factor_from_hide_and_mask(subdiv_ccg, grids, factors);
   filter_region_clip_factors(ss, positions, factors);
   if (brush.flag & BRUSH_FRONTFACE) {
-    calc_front_face(cache.view_normal_symm, normals, grids, factors);
+    calc_front_face(cache.view_normal_symm, normals, factors);
   }
 
   r_distances.resize(positions.size());
