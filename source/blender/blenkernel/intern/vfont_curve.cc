@@ -591,7 +591,7 @@ static bool vfont_to_curve(Object *ob,
   CharTrans *chartransdata = nullptr, *ct;
   TempLineInfo *lineinfo;
   float xof, yof, xtrax, linedist;
-  float twidth = 0, maxlen = 0;
+  float twidth = 0;
   int i, slen, j;
   int curbox;
   /* These values are only set to the selection range when `selboxes` is non-null. */
@@ -867,15 +867,12 @@ static bool vfont_to_curve(Object *ob,
       lineinfo[lnr].char_nr = cnr;
       lineinfo[lnr].wspace_nr = wsnr;
 
-      CLAMP_MIN(maxlen, lineinfo[lnr].x_min);
-
       if (tb_bounds_for_cursor != nullptr) {
         tb_bounds_for_cursor[curbox].char_index_last = i;
       }
 
       if ((tb_scale.h != 0.0f) && (-(yof - tb_scale.y) > (tb_scale.h - linedist) - yof_scale)) {
         if (cu->totbox > (curbox + 1)) {
-          maxlen = 0;
           curbox++;
           i_textbox_array[curbox] = i + 1;
 
