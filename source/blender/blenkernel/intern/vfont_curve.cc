@@ -236,22 +236,22 @@ static void build_underline(Curve *cu,
                             short mat_nr,
                             const float font_size)
 {
-  Nurb *nu2;
+  Nurb *nu;
   BPoint *bp;
 
-  nu2 = (Nurb *)MEM_callocN(sizeof(Nurb), "underline_nurb");
-  nu2->resolu = cu->resolu;
-  nu2->bezt = nullptr;
-  nu2->knotsu = nu2->knotsv = nullptr;
-  nu2->charidx = charidx + 1000;
+  nu = (Nurb *)MEM_callocN(sizeof(Nurb), "underline_nurb");
+  nu->resolu = cu->resolu;
+  nu->bezt = nullptr;
+  nu->knotsu = nu->knotsv = nullptr;
+  nu->charidx = charidx + 1000;
   if (mat_nr >= 0) {
-    nu2->mat_nr = mat_nr;
+    nu->mat_nr = mat_nr;
   }
-  nu2->pntsu = 4;
-  nu2->pntsv = 1;
-  nu2->orderu = 4;
-  nu2->orderv = 1;
-  nu2->flagu = CU_NURB_CYCLIC;
+  nu->pntsu = 4;
+  nu->pntsv = 1;
+  nu->orderu = 4;
+  nu->orderv = 1;
+  nu->flagu = CU_NURB_CYCLIC;
 
   bp = (BPoint *)MEM_calloc_arrayN(4, sizeof(BPoint), "underline_bp");
 
@@ -263,14 +263,14 @@ static void build_underline(Curve *cu,
   /* Used by curve extrusion. */
   bp[0].radius = bp[1].radius = bp[2].radius = bp[3].radius = 1.0f;
 
-  nu2->bp = bp;
-  BLI_addtail(nubase, nu2);
+  nu->bp = bp;
+  BLI_addtail(nubase, nu);
 
   if (rot != 0.0f) {
     float si = sinf(rot);
     float co = cosf(rot);
 
-    for (int i = nu2->pntsu; i > 0; i--) {
+    for (int i = nu->pntsu; i > 0; i--) {
       float *fp = bp->vec;
 
       float x = fp[0] - rect->xmin;
@@ -282,7 +282,7 @@ static void build_underline(Curve *cu,
       bp++;
     }
 
-    bp = nu2->bp;
+    bp = nu->bp;
   }
 
   mul_v2_fl(bp[0].vec, font_size);
@@ -307,57 +307,57 @@ static void vfont_char_build_impl(Curve *cu,
   float co = cosf(rot);
 
   /* Select the glyph data */
-  Nurb *nu1 = nullptr;
+  const Nurb *nu_from_vchar = nullptr;
   if (che) {
-    nu1 = static_cast<Nurb *>(che->nurbsbase.first);
+    nu_from_vchar = static_cast<Nurb *>(che->nurbsbase.first);
   }
 
-  /* Create the character */
-  while (nu1) {
-    BezTriple *bezt1 = nu1->bezt;
-    if (bezt1) {
-      Nurb *nu2 = (Nurb *)MEM_mallocN(sizeof(Nurb), "duplichar_nurb");
-      if (nu2 == nullptr) {
+  /* Create the character. */
+  while (nu_from_vchar) {
+    const BezTriple *bezt_from_vchar = nu_from_vchar->bezt;
+    if (bezt_from_vchar) {
+      Nurb *nu = (Nurb *)MEM_mallocN(sizeof(Nurb), "duplichar_nurb");
+      if (nu == nullptr) {
         break;
       }
-      *nu2 = blender::dna::shallow_copy(*nu1);
-      nu2->resolu = cu->resolu;
-      nu2->bp = nullptr;
-      nu2->knotsu = nu2->knotsv = nullptr;
-      nu2->flag = CU_SMOOTH;
-      nu2->charidx = charidx;
+      *nu = blender::dna::shallow_copy(*nu_from_vchar);
+      nu->resolu = cu->resolu;
+      nu->bp = nullptr;
+      nu->knotsu = nu->knotsv = nullptr;
+      nu->flag = CU_SMOOTH;
+      nu->charidx = charidx;
       if (info->mat_nr > 0) {
-        nu2->mat_nr = info->mat_nr;
+        nu->mat_nr = info->mat_nr;
       }
       else {
-        nu2->mat_nr = 0;
+        nu->mat_nr = 0;
       }
-      // nu2->trim.first = 0;
-      // nu2->trim.last = 0;
-      int u = nu2->pntsu;
+      // nu->trim.first = 0;
+      // nu->trim.last = 0;
+      int u = nu->pntsu;
 
-      BezTriple *bezt2 = (BezTriple *)MEM_malloc_arrayN(u, sizeof(BezTriple), "duplichar_bezt2");
-      if (bezt2 == nullptr) {
-        MEM_freeN(nu2);
+      BezTriple *bezt = (BezTriple *)MEM_malloc_arrayN(u, sizeof(BezTriple), "duplichar_bezt2");
+      if (bezt == nullptr) {
+        MEM_freeN(nu);
         break;
       }
-      memcpy(bezt2, bezt1, u * sizeof(BezTriple));
-      nu2->bezt = bezt2;
+      memcpy(bezt, bezt_from_vchar, u * sizeof(BezTriple));
+      nu->bezt = bezt;
 
       if (shear != 0.0f) {
-        bezt2 = nu2->bezt;
+        bezt = nu->bezt;
 
-        for (int i = nu2->pntsu; i > 0; i--) {
-          bezt2->vec[0][0] += shear * bezt2->vec[0][1];
-          bezt2->vec[1][0] += shear * bezt2->vec[1][1];
-          bezt2->vec[2][0] += shear * bezt2->vec[2][1];
-          bezt2++;
+        for (int i = nu->pntsu; i > 0; i--) {
+          bezt->vec[0][0] += shear * bezt->vec[0][1];
+          bezt->vec[1][0] += shear * bezt->vec[1][1];
+          bezt->vec[2][0] += shear * bezt->vec[2][1];
+          bezt++;
         }
       }
       if (rot != 0.0f) {
-        bezt2 = nu2->bezt;
-        for (int i = nu2->pntsu; i > 0; i--) {
-          float *fp = bezt2->vec[0];
+        bezt = nu->bezt;
+        for (int i = nu->pntsu; i > 0; i--) {
+          float *fp = bezt->vec[0];
 
           float x = fp[0];
           fp[0] = co * x + si * fp[1];
@@ -369,41 +369,41 @@ static void vfont_char_build_impl(Curve *cu,
           fp[6] = co * x + si * fp[7];
           fp[7] = -si * x + co * fp[7];
 
-          bezt2++;
+          bezt++;
         }
       }
-      bezt2 = nu2->bezt;
+      bezt = nu->bezt;
 
       if (info->flag & CU_CHINFO_SMALLCAPS_CHECK) {
         const float sca = cu->smallcaps_scale;
-        for (int i = nu2->pntsu; i > 0; i--) {
-          float *fp = bezt2->vec[0];
+        for (int i = nu->pntsu; i > 0; i--) {
+          float *fp = bezt->vec[0];
           fp[0] *= sca;
           fp[1] *= sca;
           fp[3] *= sca;
           fp[4] *= sca;
           fp[6] *= sca;
           fp[7] *= sca;
-          bezt2++;
+          bezt++;
         }
       }
-      bezt2 = nu2->bezt;
+      bezt = nu->bezt;
 
-      for (int i = nu2->pntsu; i > 0; i--) {
-        float *fp = bezt2->vec[0];
+      for (int i = nu->pntsu; i > 0; i--) {
+        float *fp = bezt->vec[0];
         fp[0] = (fp[0] + ofsx) * fsize;
         fp[1] = (fp[1] + ofsy) * fsize;
         fp[3] = (fp[3] + ofsx) * fsize;
         fp[4] = (fp[4] + ofsy) * fsize;
         fp[6] = (fp[6] + ofsx) * fsize;
         fp[7] = (fp[7] + ofsy) * fsize;
-        bezt2++;
+        bezt++;
       }
 
-      BLI_addtail(nubase, nu2);
+      BLI_addtail(nubase, nu);
     }
 
-    nu1 = nu1->next;
+    nu_from_vchar = nu_from_vchar->next;
   }
 }
 
