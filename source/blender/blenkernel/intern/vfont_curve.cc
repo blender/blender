@@ -53,7 +53,7 @@ static float vfont_metrics_descent(const VFontData_Metrics *metrics)
   return metrics->em_ratio - vfont_metrics_ascent(metrics);
 }
 
-static VFont *which_vfont(const Curve *cu, const CharInfo *info)
+static VFont *vfont_from_charinfo(const Curve *cu, const CharInfo *info)
 {
   switch (info->flag & (CU_CHINFO_BOLD | CU_CHINFO_ITALIC)) {
     case CU_CHINFO_BOLD:
@@ -96,7 +96,7 @@ static VFontData *vfont_data_ensure_with_lock(VFont *vfont)
   return vfont->data;
 }
 
-static VChar *find_vfont_char(const VFontData *vfd, uint character)
+static VChar *vfont_char_find(const VFontData *vfd, uint character)
 {
   return static_cast<VChar *>(BLI_ghash_lookup(vfd->characters, POINTER_FROM_UINT(character)));
 }
@@ -210,13 +210,11 @@ static VChar *vfont_placeholder_ensure(VCharPlaceHolder &che_placeholder, uint c
   return &che_placeholder.data.che[che_index];
 }
 
-static VChar *find_vfont_char_or_placeholder(const VFontData *vfd,
+static VChar *vfont_char_find_or_placeholder(const VFontData *vfd,
                                              uint character,
                                              VCharPlaceHolder &che_placeholder)
 {
-  VChar *che = vfd ? static_cast<VChar *>(
-                         BLI_ghash_lookup(vfd->characters, POINTER_FROM_UINT(character))) :
-                     nullptr;
+  VChar *che = vfd ? vfont_char_find(vfd, character) : nullptr;
   if (UNLIKELY(che == nullptr)) {
     che = vfont_placeholder_ensure(che_placeholder, character);
   }
@@ -293,7 +291,7 @@ static void build_underline(Curve *cu,
   mul_v2_fl(bp[3].vec, font_size);
 }
 
-static void vfont_build_char_impl(Curve *cu,
+static void vfont_char_build_impl(Curve *cu,
                                   ListBase *nubase,
                                   const VChar *che,
                                   const CharInfo *info,
@@ -409,7 +407,7 @@ static void vfont_build_char_impl(Curve *cu,
   }
 }
 
-void BKE_vfont_build_char(Curve *cu,
+void BKE_vfont_char_build(Curve *cu,
                           ListBase *nubase,
                           uint character,
                           const CharInfo *info,
@@ -419,15 +417,15 @@ void BKE_vfont_build_char(Curve *cu,
                           int charidx,
                           const float fsize)
 {
-  VFontData *vfd = vfont_data_ensure_with_lock(which_vfont(cu, info));
+  VFontData *vfd = vfont_data_ensure_with_lock(vfont_from_charinfo(cu, info));
   if (!vfd) {
     return;
   }
-  VChar *che = find_vfont_char(vfd, character);
-  vfont_build_char_impl(cu, nubase, che, info, ofsx, ofsy, rot, charidx, fsize);
+  VChar *che = vfont_char_find(vfd, character);
+  vfont_char_build_impl(cu, nubase, che, info, ofsx, ofsy, rot, charidx, fsize);
 }
 
-static float char_width(Curve *cu, VChar *che, const CharInfo *info)
+static float vfont_char_width(Curve *cu, VChar *che, const CharInfo *info)
 {
   /* The character wasn't found, probably ascii = 0, then the width shall be 0 as well */
   if (che == nullptr) {
@@ -534,7 +532,7 @@ static void vfont_info_context_update(VFontInfoContext *vfinfo_ctx,
                                       const Curve *cu,
                                       const CharInfo *info)
 {
-  VFont *vfont = which_vfont(cu, info);
+  VFont *vfont = vfont_from_charinfo(cu, info);
   if (vfinfo_ctx->vfont != vfont) {
     vfinfo_ctx->vfont = vfont;
     vfinfo_ctx->vfd = vfont_data_ensure_with_lock(vfont);
@@ -760,7 +758,7 @@ static bool vfont_to_curve(Object *ob,
     if (!ELEM(ascii, '\n', '\0')) {
       if (vfinfo_ctx.vfd) {
         BLI_rw_mutex_lock(&vfont_rwlock, THREAD_LOCK_READ);
-        che = find_vfont_char(vfinfo_ctx.vfd, ascii);
+        che = vfont_char_find(vfinfo_ctx.vfd, ascii);
         BLI_rw_mutex_unlock(&vfont_rwlock);
 
         /* The character wasn't in the current curve base so load it. */
@@ -771,7 +769,7 @@ static bool vfont_to_curve(Object *ob,
            *
            * Such a check should not be a bottleneck since it wouldn't
            * happen often once all the chars are load. */
-          if ((che = find_vfont_char(vfinfo_ctx.vfd, ascii)) == nullptr) {
+          if ((che = vfont_char_find(vfinfo_ctx.vfd, ascii)) == nullptr) {
             che = BKE_vfontdata_char_from_freetypefont(vfinfo_ctx.vfont, ascii);
           }
           BLI_rw_mutex_unlock(&vfont_rwlock);
@@ -788,7 +786,7 @@ static bool vfont_to_curve(Object *ob,
       che = nullptr;
     }
 
-    twidth = char_width(cu, che, info);
+    twidth = vfont_char_width(cu, che, info);
 
     /* Calculate positions. */
 
@@ -942,7 +940,7 @@ static bool vfont_to_curve(Object *ob,
       }
 
       /* Set the width of the character. */
-      twidth = char_width(cu, che, info);
+      twidth = vfont_char_width(cu, che, info);
 
       xof += (twidth * wsfac * (1.0f + (info->kern / 40.0f))) + xtrax;
 
@@ -1262,9 +1260,9 @@ static bool vfont_to_curve(Object *ob,
         }
 
         vfont_info_context_update(&vfinfo_ctx, cu, info);
-        che = find_vfont_char_or_placeholder(vfinfo_ctx.vfd, ascii, che_placeholder);
+        che = vfont_char_find_or_placeholder(vfinfo_ctx.vfd, ascii, che_placeholder);
 
-        twidth = char_width(cu, che, info);
+        twidth = vfont_char_width(cu, che, info);
 
         dtime = distfac * 0.5f * twidth;
 
@@ -1463,8 +1461,8 @@ static bool vfont_to_curve(Object *ob,
         vfont_info_context_update(&vfinfo_ctx, cu, info);
         /* Find the character, the characters has to be in the memory already
          * since character checking has been done earlier already. */
-        che = find_vfont_char_or_placeholder(vfinfo_ctx.vfd, cha, che_placeholder);
-        vfont_build_char_impl(cu, r_nubase, che, info, ct->xof, ct->yof, ct->rot, i, font_size);
+        che = vfont_char_find_or_placeholder(vfinfo_ctx.vfd, cha, che_placeholder);
+        vfont_char_build_impl(cu, r_nubase, che, info, ct->xof, ct->yof, ct->rot, i, font_size);
 
         if (info->flag & CU_CHINFO_UNDERLINE) {
           float ulwidth, uloverlap = 0.0f;
@@ -1477,7 +1475,7 @@ static bool vfont_to_curve(Object *ob,
             uloverlap = xtrax + 0.1f;
           }
 
-          twidth = char_width(cu, che, info);
+          twidth = vfont_char_width(cu, che, info);
           ulwidth = (twidth * (1.0f + (info->kern / 40.0f))) + uloverlap;
 
           rect.xmin = ct->xof;
@@ -1676,9 +1674,9 @@ static bool vfont_to_curve(Object *ob,
         ascii = info->flag & CU_CHINFO_SMALLCAPS_CHECK ? towupper(mem[i]) : mem[i];
 
         vfont_info_context_update(&vfinfo_ctx, cu, info);
-        che = find_vfont_char_or_placeholder(vfinfo_ctx.vfd, ascii, che_placeholder);
+        che = vfont_char_find_or_placeholder(vfinfo_ctx.vfd, ascii, che_placeholder);
 
-        const float charwidth = char_width(cu, che, info);
+        const float charwidth = vfont_char_width(cu, che, info);
         const float charhalf = (charwidth / 2.0f);
         if (cursor_location[0] <= ((chartransdata[i].xof + charhalf) * font_size)) {
           break;

@@ -49,7 +49,7 @@ static CLG_LogRef LOG = {"bke.vfont"};
 /** \name Prototypes
  * \{ */
 
-static PackedFile *get_builtin_packedfile(void);
+static PackedFile *packedfile_new_from_builtin(void);
 
 /** \} */
 
@@ -63,7 +63,7 @@ int builtin_font_size = 0;
 static void vfont_init_data(ID *id)
 {
   VFont *vfont = (VFont *)id;
-  PackedFile *pf = get_builtin_packedfile();
+  PackedFile *pf = packedfile_new_from_builtin();
 
   if (pf) {
     VFontData *vfd;
@@ -107,7 +107,7 @@ static void vfont_copy_data(Main * /*bmain*/,
 static void vfont_free_data(ID *id)
 {
   VFont *vfont = (VFont *)id;
-  BKE_vfont_free_data(vfont);
+  BKE_vfont_data_free(vfont);
 
   if (vfont->packedfile) {
     BKE_packedfile_free(vfont->packedfile);
@@ -198,7 +198,47 @@ IDTypeInfo IDType_ID_VF = {
 /** \name VFont
  * \{ */
 
-void BKE_vfont_free_data(VFont *vfont)
+void BKE_vfont_data_ensure(VFont *vfont)
+{
+  PackedFile *pf;
+  if (BKE_vfont_is_builtin(vfont)) {
+    pf = packedfile_new_from_builtin();
+  }
+  else {
+    if (vfont->packedfile) {
+      pf = vfont->packedfile;
+
+      /* We need to copy a tmp font to memory unless it is already there */
+      if (vfont->temp_pf == nullptr) {
+        vfont->temp_pf = BKE_packedfile_duplicate(pf);
+      }
+    }
+    else {
+      pf = BKE_packedfile_new(nullptr, vfont->filepath, ID_BLEND_PATH_FROM_GLOBAL(&vfont->id));
+
+      if (vfont->temp_pf == nullptr) {
+        vfont->temp_pf = BKE_packedfile_new(
+            nullptr, vfont->filepath, ID_BLEND_PATH_FROM_GLOBAL(&vfont->id));
+      }
+    }
+    if (!pf) {
+      CLOG_WARN(&LOG, "Font file doesn't exist: %s", vfont->filepath);
+
+      /* NOTE(@ideasman42): Don't attempt to find a fallback.
+       * If the font requested by the user doesn't load, font rendering will display
+       * placeholder characters instead. */
+    }
+  }
+
+  if (pf) {
+    vfont->data = BKE_vfontdata_from_freetypefont(pf);
+    if (pf != vfont->packedfile) {
+      BKE_packedfile_free(pf);
+    }
+  }
+}
+
+void BKE_vfont_data_free(VFont *vfont)
 {
   if (vfont->data) {
     if (vfont->data->characters) {
@@ -241,7 +281,7 @@ void BKE_vfont_builtin_register(const void *mem, int size)
   builtin_font_size = size;
 }
 
-static PackedFile *get_builtin_packedfile()
+static PackedFile *packedfile_new_from_builtin()
 {
   if (!builtin_font_data) {
     CLOG_ERROR(&LOG, "Internal error, builtin font not loaded");
@@ -256,46 +296,6 @@ static PackedFile *get_builtin_packedfile()
   return BKE_packedfile_new_from_memory(mem, builtin_font_size);
 }
 
-void BKE_vfont_data_ensure(VFont *vfont)
-{
-  PackedFile *pf;
-  if (BKE_vfont_is_builtin(vfont)) {
-    pf = get_builtin_packedfile();
-  }
-  else {
-    if (vfont->packedfile) {
-      pf = vfont->packedfile;
-
-      /* We need to copy a tmp font to memory unless it is already there */
-      if (vfont->temp_pf == nullptr) {
-        vfont->temp_pf = BKE_packedfile_duplicate(pf);
-      }
-    }
-    else {
-      pf = BKE_packedfile_new(nullptr, vfont->filepath, ID_BLEND_PATH_FROM_GLOBAL(&vfont->id));
-
-      if (vfont->temp_pf == nullptr) {
-        vfont->temp_pf = BKE_packedfile_new(
-            nullptr, vfont->filepath, ID_BLEND_PATH_FROM_GLOBAL(&vfont->id));
-      }
-    }
-    if (!pf) {
-      CLOG_WARN(&LOG, "Font file doesn't exist: %s", vfont->filepath);
-
-      /* NOTE(@ideasman42): Don't attempt to find a fallback.
-       * If the font requested by the user doesn't load, font rendering will display
-       * placeholder characters instead. */
-    }
-  }
-
-  if (pf) {
-    vfont->data = BKE_vfontdata_from_freetypefont(pf);
-    if (pf != vfont->packedfile) {
-      BKE_packedfile_free(pf);
-    }
-  }
-}
-
 VFont *BKE_vfont_load(Main *bmain, const char *filepath)
 {
   char filename[FILE_MAXFILE];
@@ -306,7 +306,7 @@ VFont *BKE_vfont_load(Main *bmain, const char *filepath)
   if (STREQ(filepath, FO_BUILTIN_NAME)) {
     STRNCPY(filename, filepath);
 
-    pf = get_builtin_packedfile();
+    pf = packedfile_new_from_builtin();
     is_builtin = true;
   }
   else {
@@ -379,7 +379,7 @@ VFont *BKE_vfont_load_exists(Main *bmain, const char *filepath)
   return BKE_vfont_load_exists_ex(bmain, filepath, nullptr);
 }
 
-VFont *BKE_vfont_builtin_get()
+VFont *BKE_vfont_builtin_ensure()
 {
   LISTBASE_FOREACH (VFont *, vfont, &G_MAIN->fonts) {
     if (BKE_vfont_is_builtin(vfont)) {
