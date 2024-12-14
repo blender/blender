@@ -44,6 +44,12 @@ static ThreadRWMutex vfont_rwlock = BLI_RWLOCK_INITIALIZER;
 /** \name Private Utilities
  * \{ */
 
+static void mid_v2v2(float a[2], float b[2])
+{
+  a[0] = b[0] = (a[0] * 0.5) + (b[0] * 0.5f);
+  a[1] = b[1] = (a[1] * 0.5) + (b[1] * 0.5f);
+}
+
 static float vfont_metrics_ascent(const VFontData_Metrics *metrics)
 {
   return metrics->ascend_ratio * metrics->em_ratio;
@@ -227,14 +233,20 @@ static VChar *vfont_char_find_or_placeholder(const VFontData *vfd,
 /** \name VFont Build Character
  * \{ */
 
-static void build_underline(Curve *cu,
-                            ListBase *nubase,
-                            const rctf *rect,
-                            float yofs,
-                            float rot,
-                            int charidx,
-                            short mat_nr,
-                            const float font_size)
+/**
+ * \param ul_prev_nu: The previous adjacent underline
+ * which has it's right edge welded with this underlines left edge
+ * to prevent gaps or overlapping geometry which can cause Z-fighting.
+ */
+static Nurb *build_underline(Curve *cu,
+                             ListBase *nubase,
+                             const rctf *rect,
+                             float yofs,
+                             float rot,
+                             int charidx,
+                             short mat_nr,
+                             const float font_size,
+                             Nurb *ul_prev_nu)
 {
   Nurb *nu;
   BPoint *bp;
@@ -289,6 +301,15 @@ static void build_underline(Curve *cu,
   mul_v2_fl(bp[1].vec, font_size);
   mul_v2_fl(bp[2].vec, font_size);
   mul_v2_fl(bp[3].vec, font_size);
+
+  if (ul_prev_nu) {
+    /* Weld locations with the previous, adjacent underline. */
+    BPoint *bp_prev = ul_prev_nu->bp;
+    mid_v2v2(bp_prev[1].vec, bp[0].vec); /* Lower line. */
+    mid_v2v2(bp_prev[2].vec, bp[3].vec); /* Upper line. */
+  }
+
+  return nu;
 }
 
 static void vfont_char_build_impl(Curve *cu,
@@ -1430,6 +1451,11 @@ static bool vfont_to_curve(Object *ob,
     /* Make NURBS-data. */
     BKE_nurbList_free(r_nubase);
 
+    /* Track the previous underline so contiguous underlines can be welded together.
+     * This is done to prevent overlapping geometry, see: #122540. */
+    int ul_prev_i = -1;
+    Nurb *ul_prev_nu = nullptr;
+
     ct = chartransdata;
     for (i = 0; i < slen; i++) {
       uint cha = uint(mem[i]);
@@ -1469,7 +1495,7 @@ static bool vfont_to_curve(Object *ob,
               ((mem[i + 1] != ' ') || (custrinfo[i + 1].flag & CU_CHINFO_UNDERLINE)) &&
               ((custrinfo[i + 1].flag & CU_CHINFO_WRAP) == 0))
           {
-            uloverlap = xtrax + 0.1f;
+            uloverlap = xtrax;
           }
 
           twidth = vfont_char_width(cu, che, info);
@@ -1481,8 +1507,25 @@ static bool vfont_to_curve(Object *ob,
           rect.ymin = ct->yof;
           rect.ymax = rect.ymin - cu->ulheight;
 
-          build_underline(
-              cu, r_nubase, &rect, cu->ulpos - 0.05f, ct->rot, i, info->mat_nr, font_size);
+          if ((ul_prev_i != -1) &&
+              /* Skip welding underlines when there are gaps. */
+              ((ul_prev_i + 1 != i) ||
+               /* Skip welding on new lines. */
+               (chartransdata[ul_prev_i].linenr != ct->linenr)))
+          {
+            ul_prev_nu = nullptr;
+          }
+
+          ul_prev_nu = build_underline(cu,
+                                       r_nubase,
+                                       &rect,
+                                       cu->ulpos - 0.05f,
+                                       ct->rot,
+                                       i,
+                                       info->mat_nr,
+                                       font_size,
+                                       ul_prev_nu);
+          ul_prev_i = ul_prev_nu ? i : -1;
         }
       }
       ct++;
