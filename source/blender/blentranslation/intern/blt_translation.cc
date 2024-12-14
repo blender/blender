@@ -24,7 +24,7 @@
 
 #ifdef WITH_INTERNATIONAL
 #  include "BLI_threads.h"
-#  include "boost_locale_wrapper.h"
+#  include "blender_locale.h"
 #endif /* WITH_INTERNATIONAL */
 
 bool BLT_is_default_context(const char *msgctxt)

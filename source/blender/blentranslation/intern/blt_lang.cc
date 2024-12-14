@@ -38,7 +38,7 @@
 #  include "BLI_fileops.h"
 #  include "BLI_linklist.h"
 
-#  include "boost_locale_wrapper.h"
+#  include "blender_locale.h"
 
 /* Locale options. */
 static const char **locales = nullptr;

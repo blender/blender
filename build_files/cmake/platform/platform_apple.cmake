@@ -256,9 +256,6 @@ if(WITH_BOOST)
   set(Boost_ROOT ${LIBDIR}/boost)
   set(Boost_NO_SYSTEM_PATHS ON)
   set(_boost_FIND_COMPONENTS)
-  if(WITH_INTERNATIONAL)
-    list(APPEND _boost_FIND_COMPONENTS locale)
-  endif()
   if(WITH_USD AND USD_PYTHON_SUPPORT)
     list(APPEND _boost_FIND_COMPONENTS python${PYTHON_VERSION_NO_DOTS})
   endif()
@@ -280,8 +277,8 @@ if(WITH_BOOST)
 endif()
 add_bundled_libraries(boost/lib)
 
-if(WITH_INTERNATIONAL OR WITH_CODEC_FFMPEG)
-  string(APPEND PLATFORM_LINKFLAGS " -liconv") # boost_locale and ffmpeg needs it !
+if(WITH_CODEC_FFMPEG)
+  string(APPEND PLATFORM_LINKFLAGS " -liconv") # ffmpeg needs it !
 endif()
 
 if(WITH_PUGIXML)
