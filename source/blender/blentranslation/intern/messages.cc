@@ -5,7 +5,11 @@
  *
  * Adapted from boost::locale */
 
-#include "messages.h"
+/** \file
+ * \ingroup blt
+ */
+
+#include "messages.hh"
 
 #include <algorithm>
 #include <cstdint>
@@ -26,7 +30,11 @@
 #  include "BLI_winstuff.h"
 #endif
 
+#include "CLG_log.h"
+
 namespace blender::locale {
+
+static CLG_LogRef LOG = {"translation.messages"};
 
 /* Upper/lower case, intentionally restricted to ASCII. */
 
@@ -556,8 +564,11 @@ void init(const StringRef locale_full_name,
   global_messages = std::make_unique<MOMessages>(info, domains, paths);
   global_full_name = info.to_full_name();
 
-  if (!global_messages->error().empty()) {
-    printf("bl_locale_set(%s): %s\n", global_full_name.c_str(), global_messages->error().c_str());
+  if (global_messages->error().empty()) {
+    CLOG_INFO(&LOG, 2, "Locale %s used for translation", global_full_name.c_str());
+  }
+  else {
+    CLOG_ERROR(&LOG, "Locale %s: %s", global_full_name.c_str(), global_messages->error().c_str());
     free();
   }
 }

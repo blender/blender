@@ -3,10 +3,10 @@
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
- * \ingroup intern_locale
+ * \ingroup blt
  */
 
-#include "messages.h"
+#include "messages.hh"
 
 #import <Cocoa/Cocoa.h>
 

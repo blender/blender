@@ -3,6 +3,10 @@
  *
  * Adapted from boost::locale */
 
+/** \file
+ * \ingroup blt
+ */
+
 #include <string>
 
 #include "BLI_string_ref.hh"
