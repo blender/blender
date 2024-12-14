@@ -538,7 +538,7 @@ void USDStageReader::import_all_materials(Main *bmain)
       continue;
     }
 
-    /* Can the material be handled by an iport hook? */
+    /* Can the material be handled by an import hook? */
     const bool have_import_hook = settings_.mat_import_hook_sources.contains(mtl_path);
 
     /* Add the Blender material. If we have an import hook which can handle this material

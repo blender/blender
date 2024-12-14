@@ -347,7 +347,7 @@ void StateSet::set(DRWState state)
   GPU_uniformbuf_debug_unbind_all();
   GPU_storagebuf_debug_unbind_all();
 
-  /* Remained of legacy draw manager. Kept it to avoid regression, but might become uneeded. */
+  /* Remained of legacy draw manager. Kept it to avoid regression, but might become unneeded. */
   GPU_point_size(5);
   GPU_line_smooth(false);
   GPU_line_width(0.0f);

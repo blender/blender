@@ -709,7 +709,7 @@ bNode *node_find_node_try(bNodeTree &ntree, bNodeSocket &socket);
 
 /**
  * Find the node that contains the given socket. This uses the node topology cache, meaning
- * subsequent access after changing the node tree will be more expensive, but ammortized over time,
+ * subsequent access after changing the node tree will be more expensive, but amortized over time,
  * the cost is constant.
  */
 bNode &node_find_node(bNodeTree &ntree, bNodeSocket &socket);

@@ -243,11 +243,12 @@ struct USDMaterialImportContext {
   }
 
   /**
-   * If the given texture asset path is a URI or is relative to a USDZ arhive, attempt to copy the
-   * texture to the local file system and returns a tuple[str, bool], containing the asset's local
-   * path and a boolean indicating whether the path references a temporary file (in the case where
-   * imported textures should be packed). The original asset path will be returned unchanged if
-   * it's alreay a local file or if it could not be copied to a local destination.
+   * If the given texture asset path is a URI or is relative to a USDZ archive,
+   * attempt to copy the texture to the local file system and returns a `tuple[str, bool]`,
+   * containing the asset's local path and a boolean indicating whether the path references
+   * a temporary file (in the case where imported textures should be packed).
+   * The original asset path will be returned unchanged if it's already a local file
+   * or if it could not be copied to a local destination.
    */
   PYTHON_NS::tuple import_texture(const std::string &asset_path) const
   {

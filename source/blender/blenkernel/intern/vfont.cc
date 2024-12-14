@@ -208,7 +208,7 @@ void BKE_vfont_data_ensure(VFont *vfont)
     if (vfont->packedfile) {
       pf = vfont->packedfile;
 
-      /* We need to copy a tmp font to memory unless it is already there */
+      /* We need to copy a temporary font to memory unless it is already there. */
       if (vfont->temp_pf == nullptr) {
         vfont->temp_pf = BKE_packedfile_duplicate(pf);
       }
