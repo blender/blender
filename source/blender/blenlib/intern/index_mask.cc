@@ -646,8 +646,17 @@ IndexMask IndexMask::from_union(const IndexMask &mask_a,
                                 const IndexMask &mask_b,
                                 IndexMaskMemory &memory)
 {
+  return IndexMask::from_union({mask_a, mask_b}, memory);
+}
+
+IndexMask IndexMask::from_union(const Span<IndexMask> masks, IndexMaskMemory &memory)
+{
   ExprBuilder builder;
-  const Expr &expr = builder.merge({&mask_a, &mask_b});
+  Vector<ExprBuilder::Term> terms;
+  for (const IndexMask &mask : masks) {
+    terms.append(&mask);
+  }
+  const Expr &expr = builder.merge(terms);
   return evaluate_expression(expr, memory);
 }
 

@@ -242,6 +242,8 @@ class IndexMask : private IndexMaskData {
   static IndexMask from_union(const IndexMask &mask_a,
                               const IndexMask &mask_b,
                               IndexMaskMemory &memory);
+  /** Constructs a mask from the union of multiple masks. */
+  static IndexMask from_union(Span<IndexMask> masks, IndexMaskMemory &memory);
   /** Construct a mask from the difference of #mask_a and #mask_b. */
   static IndexMask from_difference(const IndexMask &mask_a,
                                    const IndexMask &mask_b,

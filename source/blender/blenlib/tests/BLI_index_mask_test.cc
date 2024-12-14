@@ -370,6 +370,19 @@ TEST(index_mask, FromUnion)
     EXPECT_EQ(mask_union[4], 20001);
     EXPECT_EQ(mask_union[5], 20002);
   }
+  {
+    IndexMaskMemory memory;
+    IndexMask mask_union = IndexMask::from_union({}, memory);
+    EXPECT_TRUE(mask_union.is_empty());
+  }
+  {
+    IndexMaskMemory memory;
+    IndexMask mask_union = IndexMask::from_union({IndexRange::from_begin_end(0, 10000),
+                                                  IndexRange::from_begin_end(20000, 30000),
+                                                  IndexRange::from_begin_end(40000, 50000)},
+                                                 memory);
+    EXPECT_EQ(mask_union.size(), 30000);
+  }
 }
 
 TEST(index_mask, FromDifference)
