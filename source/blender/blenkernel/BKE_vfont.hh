@@ -83,6 +83,8 @@ enum eEditFontMode {
 bool BKE_vfont_is_builtin(const VFont *vfont);
 void BKE_vfont_builtin_register(const void *mem, int size);
 
+void BKE_vfont_data_ensure(VFont *vfont);
+
 void BKE_vfont_free_data(VFont *vfont);
 /**
  * Return the built-in #VFont, without adding a user (the user-count may be zero).

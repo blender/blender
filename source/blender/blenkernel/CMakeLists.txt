@@ -311,6 +311,7 @@ set(SRC
   intern/undo_system.cc
   intern/unit.cc
   intern/vfont.cc
+  intern/vfont_curve.cc
   intern/vfontdata_freetype.cc
   intern/viewer_path.cc
   intern/volume.cc
