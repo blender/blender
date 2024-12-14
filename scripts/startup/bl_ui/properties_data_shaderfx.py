@@ -15,13 +15,6 @@ class DATA_PT_shader_fx(ShaderFxButtonsPanel, Panel):
     bl_label = "Effects"
     bl_options = {'HIDE_HEADER'}
 
-    # Unused: always show for now.
-
-    # @classmethod
-    # def poll(cls, context):
-    #     ob = context.object
-    #     return ob and ob.type == 'GPENCIL'
-
     def draw(self, _context):
         layout = self.layout
         layout.operator_menu_enum("object.shaderfx_add", "type")

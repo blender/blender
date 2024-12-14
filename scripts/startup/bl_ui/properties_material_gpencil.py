@@ -94,7 +94,7 @@ class MATERIAL_PT_gpencil_slots(GreasePencilMaterialsPanel, Panel):
         ob = context.object
         ma = context.material
 
-        return (ma and ma.grease_pencil) or (ob and ob.type == 'GPENCIL')
+        return ma and ma.grease_pencil
 
 
 # Used as parent for "Stroke" and "Fill" panels

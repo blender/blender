@@ -89,7 +89,7 @@ class EEVEE_MATERIAL_PT_context_material(MaterialButtonsPanel, Panel):
         ob = context.object
         mat = context.material
 
-        if (ob and ob.type == 'GPENCIL') or (mat and mat.grease_pencil):
+        if mat and mat.grease_pencil:
             return False
 
         return (ob or mat) and (context.engine in cls.COMPAT_ENGINES)

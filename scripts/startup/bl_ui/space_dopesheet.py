@@ -879,7 +879,7 @@ class LayersDopeSheetPanel:
     def poll(cls, context):
         st = context.space_data
         ob = context.object
-        if st.mode != 'GPENCIL' or ob is None or ob.type != 'GPENCIL':
+        if st.mode != 'GPENCIL' or ob is None or ob.type != 'GREASEPENCIL':
             return False
 
         gpd = ob.data

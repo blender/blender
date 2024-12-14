@@ -77,7 +77,7 @@ class GreasePencilDisplayPanel:
         else:
             brush = context.tool_settings.gpencil_paint.brush
 
-        if ob and ob.type in {'GPENCIL', 'GREASEPENCIL'} and brush:
+        if ob and ob.type == 'GREASEPENCIL' and brush:
             return True
 
         return False
