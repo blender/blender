@@ -485,8 +485,10 @@ struct bNodeTreeType {
   /**
    * If true, then some UI elements related to building node groups will be hidden.
    * This can be used by Python-defined custom node tree types.
+   *
+   * This is a uint8_t instead of bool to avoid compiler warnings in generated RNA code.
    */
-  bool no_group_interface;
+  uint8_t no_group_interface;
 
   /* RNA integration */
   ExtensionRNA rna_ext;
