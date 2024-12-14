@@ -11463,6 +11463,14 @@ static void rna_def_nodetree(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_REGISTER);
   RNA_def_property_ui_text(prop, "Icon", "The node tree icon");
 
+  prop = RNA_def_property(srna, "bl_use_group_interface", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_negative_sdna(prop, nullptr, "typeinfo->no_group_interface", 1);
+  RNA_def_property_boolean_default(prop, true);
+  RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
+  RNA_def_property_ui_text(prop,
+                           "Use Group Interface",
+                           "Determines the visibility of some UI elements related to node groups");
+
   /* poll */
   func = RNA_def_function(srna, "poll", nullptr);
   RNA_def_function_ui_description(func, "Check visibility in the editor");

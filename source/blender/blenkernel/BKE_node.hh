@@ -482,6 +482,12 @@ struct bNodeTreeType {
   /* Check if the socket type is valid for this tree type. */
   bool (*valid_socket_type)(bNodeTreeType *ntreetype, bNodeSocketType *socket_type);
 
+  /**
+   * If true, then some UI elements related to building node groups will be hidden.
+   * This can be used by Python-defined custom node tree types.
+   */
+  bool no_group_interface;
+
   /* RNA integration */
   ExtensionRNA rna_ext;
 };
