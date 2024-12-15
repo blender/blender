@@ -108,9 +108,9 @@ static VFontData *vfont_data_ensure_with_lock(VFont *vfont)
   return vfont->data;
 }
 
-static VChar *vfont_char_find(const VFontData *vfd, uint character)
+static VChar *vfont_char_find(const VFontData *vfd, char32_t charcode)
 {
-  return static_cast<VChar *>(BLI_ghash_lookup(vfd->characters, POINTER_FROM_UINT(character)));
+  return static_cast<VChar *>(BLI_ghash_lookup(vfd->characters, POINTER_FROM_UINT(charcode)));
 }
 
 /**
@@ -119,13 +119,13 @@ static VChar *vfont_char_find(const VFontData *vfd, uint character)
  * The intended use-case for this function is that characters are initialized once.
  * Any future access can then use #vfont_char_find or #vfont_char_find_or_placeholder.
  */
-static VChar *vfont_char_ensure_with_lock(VFont *vfont, uint character)
+static VChar *vfont_char_ensure_with_lock(VFont *vfont, char32_t charcode)
 {
   VChar *che;
   VFontData *vfd = vfont->data;
   if (vfd) {
     BLI_rw_mutex_lock(&vfont_rwlock, THREAD_LOCK_READ);
-    che = vfont_char_find(vfd, character);
+    che = vfont_char_find(vfd, charcode);
     BLI_rw_mutex_unlock(&vfont_rwlock);
 
     /* The character wasn't in the current curve base so load it. */
@@ -136,8 +136,8 @@ static VChar *vfont_char_ensure_with_lock(VFont *vfont, uint character)
        *
        * Such a check should not be a bottleneck since it wouldn't
        * happen often once all the chars are load. */
-      if ((che = vfont_char_find(vfd, character)) == nullptr) {
-        che = BKE_vfontdata_char_from_freetypefont(vfont, character);
+      if ((che = vfont_char_find(vfd, charcode)) == nullptr) {
+        che = BKE_vfontdata_char_from_freetypefont(vfont, charcode);
       }
       BLI_rw_mutex_unlock(&vfont_rwlock);
     }
@@ -179,9 +179,9 @@ struct VCharPlaceHolder {
  * Return a "placeholder" character, used for the glyph not found symbol,
  * used when the font can't be loaded or it doesn't contain the requested glyph.
  */
-static VChar *vfont_placeholder_ensure(VCharPlaceHolder &che_placeholder, uint character)
+static VChar *vfont_placeholder_ensure(VCharPlaceHolder &che_placeholder, char32_t charcode)
 {
-  const int che_index = (character == ' ') ? 0 : 1;
+  const int che_index = (charcode == ' ') ? 0 : 1;
 
   if (!che_placeholder.initialized) {
     const VFontData_Metrics *metrics = che_placeholder.metrics;
@@ -265,12 +265,12 @@ static VChar *vfont_placeholder_ensure(VCharPlaceHolder &che_placeholder, uint c
  * A version of #vfont_char_find that returns a place-holder if the glyph cannot be found.
  */
 static VChar *vfont_char_find_or_placeholder(const VFontData *vfd,
-                                             uint character,
+                                             char32_t charcode,
                                              VCharPlaceHolder &che_placeholder)
 {
-  VChar *che = vfd ? vfont_char_find(vfd, character) : nullptr;
+  VChar *che = vfd ? vfont_char_find(vfd, charcode) : nullptr;
   if (UNLIKELY(che == nullptr)) {
-    che = vfont_placeholder_ensure(che_placeholder, character);
+    che = vfont_placeholder_ensure(che_placeholder, charcode);
   }
   return che;
 }
@@ -481,7 +481,7 @@ static void vfont_char_build_impl(Curve *cu,
 
 void BKE_vfont_char_build(Curve *cu,
                           ListBase *nubase,
-                          uint character,
+                          uint charcode,
                           const CharInfo *info,
                           float ofsx,
                           float ofsy,
@@ -493,13 +493,13 @@ void BKE_vfont_char_build(Curve *cu,
   if (!vfd) {
     return;
   }
-  VChar *che = vfont_char_find(vfd, character);
+  VChar *che = vfont_char_find(vfd, charcode);
   vfont_char_build_impl(cu, nubase, che, info, ofsx, ofsy, rot, charidx, fsize);
 }
 
 static float vfont_char_width(Curve *cu, VChar *che, const CharInfo *info)
 {
-  /* The character wasn't found, probably ascii = 0, then the width shall be 0 as well. */
+  /* The character wasn't found, probably `charcode = 0`, then the width shall be 0 as well. */
   if (che == nullptr) {
     return 0.0f;
   }
@@ -508,6 +508,14 @@ static float vfont_char_width(Curve *cu, VChar *che, const CharInfo *info)
   }
 
   return che->width;
+}
+
+static char32_t vfont_char_apply_smallcaps(char32_t charcode, const CharInfo *info)
+{
+  if (UNLIKELY((info->flag & CU_CHINFO_SMALLCAPS_CHECK))) {
+    return toupper(charcode);
+  }
+  return charcode;
 }
 
 static void textbox_scale(TextBox *tb_dst, const TextBox *tb_src, float scale)
@@ -679,7 +687,6 @@ static bool vfont_to_curve(Object *ob,
   int selstart = 0, selend = 0;
   int cnr = 0, lnr = 0, wsnr = 0;
   const char32_t *mem = nullptr;
-  char32_t ascii;
   const float font_size = cu->fsize * iter_data->scale_to_fit;
   /* Shift down vertically to be 25% below & 75% above baseline (before font scale is applied). */
   const float font_select_y_offset = 0.25;
@@ -826,20 +833,21 @@ static bool vfont_to_curve(Object *ob,
   while (i <= slen) {
     /* Characters in the list. */
     info = &custrinfo[i];
-    ascii = mem[i];
+    char32_t charcode = mem[i];
     if (info->flag & CU_CHINFO_SMALLCAPS) {
-      ascii = towupper(ascii);
-      if (mem[i] != ascii) {
+      charcode = towupper(charcode);
+      if (mem[i] != charcode) {
         info->flag |= CU_CHINFO_SMALLCAPS_CHECK;
       }
     }
+    /* The #vfont_char_apply_smallcaps function can be used from now on. */
 
     vfont_info_context_update(&vfinfo_ctx, cu, info);
 
-    if (!ELEM(ascii, '\n', '\0')) {
-      che = vfont_char_ensure_with_lock(vfinfo_ctx.vfont, ascii);
+    if (!ELEM(charcode, '\n', '\0')) {
+      che = vfont_char_ensure_with_lock(vfinfo_ctx.vfont, charcode);
       if (che == nullptr) {
-        che = vfont_placeholder_ensure(che_placeholder, ascii);
+        che = vfont_placeholder_ensure(che_placeholder, charcode);
       }
     }
     else {
@@ -914,7 +922,7 @@ static bool vfont_to_curve(Object *ob,
       }
     }
 
-    if (ascii == '\n' || ascii == 0 || ct->dobreak) {
+    if (charcode == '\n' || charcode == 0 || ct->dobreak) {
       ct->xof = xof;
       ct->yof = yof;
       ct->linenr = lnr;
@@ -960,7 +968,7 @@ static bool vfont_to_curve(Object *ob,
       cnr = 0;
       wsnr = 0;
     }
-    else if (ascii == '\t') { /* Tab character. */
+    else if (charcode == '\t') { /* Tab character. */
       float tabfac;
 
       ct->xof = xof;
@@ -988,7 +996,7 @@ static bool vfont_to_curve(Object *ob,
         sb->w = xof * font_size;
       }
 
-      if (ascii == ' ') { /* Space character. */
+      if (charcode == ' ') { /* Space character. */
         wsfac = cu->wordspace;
         wsnr++;
       }
@@ -1014,9 +1022,9 @@ static bool vfont_to_curve(Object *ob,
 
   cu->lines = 1;
   for (i = 0; i <= slen; i++) {
-    ascii = mem[i];
+    const char32_t charcode = mem[i];
     ct = &chartransdata[i];
-    if (ascii == '\n' || ct->dobreak) {
+    if (charcode == '\n' || ct->dobreak) {
       cu->lines++;
     }
   }
@@ -1311,13 +1319,10 @@ static bool vfont_to_curve(Object *ob,
 
         /* Rotate around center character. */
         info = &custrinfo[i];
-        ascii = mem[i];
-        if (info->flag & CU_CHINFO_SMALLCAPS_CHECK) {
-          ascii = towupper(ascii);
-        }
+        const char32_t charcode = vfont_char_apply_smallcaps(mem[i], info);
 
         vfont_info_context_update(&vfinfo_ctx, cu, info);
-        che = vfont_char_find_or_placeholder(vfinfo_ctx.vfd, ascii, che_placeholder);
+        che = vfont_char_find_or_placeholder(vfinfo_ctx.vfd, charcode, che_placeholder);
 
         twidth = vfont_char_width(cu, che, info);
 
@@ -1496,7 +1501,6 @@ static bool vfont_to_curve(Object *ob,
 
     ct = chartransdata;
     for (i = 0; i < slen; i++) {
-      uint cha = uint(mem[i]);
       info = &(custrinfo[i]);
 
       if ((cu->overflow == CU_OVERFLOW_TRUNCATE) && (ob && ob->mode != OB_MODE_EDIT) &&
@@ -1505,9 +1509,7 @@ static bool vfont_to_curve(Object *ob,
         break;
       }
 
-      if (info->flag & CU_CHINFO_SMALLCAPS_CHECK) {
-        cha = towupper(cha);
-      }
+      const char32_t charcode = vfont_char_apply_smallcaps(mem[i], info);
 
       /* Only do that check in case we do have an object, otherwise all materials get erased every
        * time that code is called without an object. */
@@ -1517,12 +1519,12 @@ static bool vfont_to_curve(Object *ob,
         info->mat_nr = 0;
       }
       /* We don't want to see any character for `\n`. */
-      if (cha != '\n') {
+      if (charcode != '\n') {
 
         vfont_info_context_update(&vfinfo_ctx, cu, info);
         /* Find the character, the characters has to be in the memory already
          * since character checking has been done earlier already. */
-        che = vfont_char_find_or_placeholder(vfinfo_ctx.vfd, cha, che_placeholder);
+        che = vfont_char_find_or_placeholder(vfinfo_ctx.vfd, charcode, che_placeholder);
         vfont_char_build_impl(cu, r_nubase, che, info, ct->xof, ct->yof, ct->rot, i, font_size);
 
         if (info->flag & CU_CHINFO_UNDERLINE) {
@@ -1750,10 +1752,10 @@ static bool vfont_to_curve(Object *ob,
        * (using the character midpoint on the x-axis as a reference). */
       for (; i <= char_end && char_yof == chartransdata[i].yof; i++) {
         info = &custrinfo[i];
-        ascii = info->flag & CU_CHINFO_SMALLCAPS_CHECK ? towupper(mem[i]) : mem[i];
+        const char32_t charcode = vfont_char_apply_smallcaps(mem[i], info);
 
         vfont_info_context_update(&vfinfo_ctx, cu, info);
-        che = vfont_char_find_or_placeholder(vfinfo_ctx.vfd, ascii, che_placeholder);
+        che = vfont_char_find_or_placeholder(vfinfo_ctx.vfd, charcode, che_placeholder);
 
         const float charwidth = vfont_char_width(cu, che, info);
         const float charhalf = (charwidth / 2.0f);
