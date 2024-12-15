@@ -107,6 +107,38 @@ static VChar *vfont_char_find(const VFontData *vfd, uint character)
   return static_cast<VChar *>(BLI_ghash_lookup(vfd->characters, POINTER_FROM_UINT(character)));
 }
 
+/**
+ * Find the character or lazily initialize it.
+ */
+static VChar *vfont_char_ensure_with_lock(VFont *vfont, uint character)
+{
+  VChar *che;
+  VFontData *vfd = vfont->data;
+  if (vfd) {
+    BLI_rw_mutex_lock(&vfont_rwlock, THREAD_LOCK_READ);
+    che = vfont_char_find(vfd, character);
+    BLI_rw_mutex_unlock(&vfont_rwlock);
+
+    /* The character wasn't in the current curve base so load it. */
+    if (che == nullptr) {
+      BLI_rw_mutex_lock(&vfont_rwlock, THREAD_LOCK_WRITE);
+      /* Check it once again, char might have been already load
+       * between previous #BLI_rw_mutex_unlock() and this #BLI_rw_mutex_lock().
+       *
+       * Such a check should not be a bottleneck since it wouldn't
+       * happen often once all the chars are load. */
+      if ((che = vfont_char_find(vfd, character)) == nullptr) {
+        che = BKE_vfontdata_char_from_freetypefont(vfont, character);
+      }
+      BLI_rw_mutex_unlock(&vfont_rwlock);
+    }
+  }
+  else {
+    che = nullptr;
+  }
+  return che;
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -777,28 +809,7 @@ static bool vfont_to_curve(Object *ob,
     vfont_info_context_update(&vfinfo_ctx, cu, info);
 
     if (!ELEM(ascii, '\n', '\0')) {
-      if (vfinfo_ctx.vfd) {
-        BLI_rw_mutex_lock(&vfont_rwlock, THREAD_LOCK_READ);
-        che = vfont_char_find(vfinfo_ctx.vfd, ascii);
-        BLI_rw_mutex_unlock(&vfont_rwlock);
-
-        /* The character wasn't in the current curve base so load it. */
-        if (che == nullptr) {
-          BLI_rw_mutex_lock(&vfont_rwlock, THREAD_LOCK_WRITE);
-          /* Check it once again, char might have been already load
-           * between previous #BLI_rw_mutex_unlock() and this #BLI_rw_mutex_lock().
-           *
-           * Such a check should not be a bottleneck since it wouldn't
-           * happen often once all the chars are load. */
-          if ((che = vfont_char_find(vfinfo_ctx.vfd, ascii)) == nullptr) {
-            che = BKE_vfontdata_char_from_freetypefont(vfinfo_ctx.vfont, ascii);
-          }
-          BLI_rw_mutex_unlock(&vfont_rwlock);
-        }
-      }
-      else {
-        che = nullptr;
-      }
+      che = vfont_char_ensure_with_lock(vfinfo_ctx.vfont, ascii);
       if (che == nullptr) {
         che = vfont_placeholder_ensure(che_placeholder, ascii);
       }
