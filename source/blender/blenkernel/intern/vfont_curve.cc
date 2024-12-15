@@ -404,8 +404,6 @@ static void vfont_char_build_impl(Curve *cu,
       else {
         nu->mat_nr = 0;
       }
-      // nu->trim.first = 0;
-      // nu->trim.last = 0;
       int u = nu->pntsu;
 
       BezTriple *bezt = (BezTriple *)MEM_malloc_arrayN(u, sizeof(BezTriple), "duplichar_bezt2");
@@ -1821,9 +1819,6 @@ static bool vfont_to_curve(Object *ob,
 #undef MARGIN_X_MIN
 #undef MARGIN_Y_MIN
 }
-
-#undef DESCENT
-#undef ASCENT
 
 /** \} */
 
