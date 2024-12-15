@@ -12,7 +12,13 @@
 #endif
 #ifdef WITH_NANOVDB
 #  define NANOVDB_USE_OPENVDB
-#  include <nanovdb/util/OpenToNanoVDB.h>
+#  include <nanovdb/NanoVDB.h>
+#  if NANOVDB_MAJOR_VERSION_NUMBER > 32 || \
+      (NANOVDB_MAJOR_VERSION_NUMBER == 32 && NANOVDB_MINOR_VERSION_NUMBER >= 7)
+#    include <nanovdb/tools/CreateNanoGrid.h>
+#  else
+#    include <nanovdb/util/OpenToNanoVDB.h>
+#  endif
 #endif
 
 CCL_NAMESPACE_BEGIN
