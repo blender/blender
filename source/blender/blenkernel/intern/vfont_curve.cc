@@ -38,12 +38,20 @@
 #include "BKE_vfont.hh"
 #include "BKE_vfontdata.hh"
 
+/**
+ * Locking on when manipulating the #VFont because multiple objects may share a VFont.
+ * Depsgraph evaluation can evaluate multiple objects in different threads,
+ * so any changes to the #VFont (such as glyph cache) must use locking.
+ */
 static ThreadRWMutex vfont_rwlock = BLI_RWLOCK_INITIALIZER;
 
 /* -------------------------------------------------------------------- */
 /** \name Private Utilities
  * \{ */
 
+/**
+ * Calculate the mid-point between two points and assign it to both of them.
+ */
 static void mid_v2v2(float a[2], float b[2])
 {
   a[0] = b[0] = (a[0] * 0.5) + (b[0] * 0.5f);
@@ -79,17 +87,15 @@ static VFontData *vfont_data_ensure_with_lock(VFont *vfont)
     return nullptr;
   }
 
-  /* And then set the data */
+  /* Lazily initialize the data. */
   if (!vfont->data) {
 
     BLI_rw_mutex_lock(&vfont_rwlock, THREAD_LOCK_WRITE);
 
     if (vfont->data) {
-      /* Check data again, since it might have been already
-       * initialized from other thread (previous check is
-       * not accurate or threading, just prevents unneeded
-       * lock if all the data is here for sure).
-       */
+      /* Check data again, since it might have been already initialized from other thread
+       * (previous check is not accurate or threading,
+       * just prevents unneeded lock if all the data is here for sure). */
       BLI_rw_mutex_unlock(&vfont_rwlock);
       return vfont->data;
     }
@@ -109,6 +115,9 @@ static VChar *vfont_char_find(const VFontData *vfd, uint character)
 
 /**
  * Find the character or lazily initialize it.
+ *
+ * The intended use-case for this function is that characters are initialized once.
+ * Any future access can then use #vfont_char_find or #vfont_char_find_or_placeholder.
  */
 static VChar *vfont_char_ensure_with_lock(VFont *vfont, uint character)
 {
@@ -166,6 +175,10 @@ struct VCharPlaceHolder {
   } data;
 };
 
+/**
+ * Return a "placeholder" character, used for the glyph not found symbol,
+ * used when the font can't be loaded or it doesn't contain the requested glyph.
+ */
 static VChar *vfont_placeholder_ensure(VCharPlaceHolder &che_placeholder, uint character)
 {
   const int che_index = (character == ' ') ? 0 : 1;
@@ -248,6 +261,9 @@ static VChar *vfont_placeholder_ensure(VCharPlaceHolder &che_placeholder, uint c
   return &che_placeholder.data.che[che_index];
 }
 
+/**
+ * A version of #vfont_char_find that returns a place-holder if the glyph cannot be found.
+ */
 static VChar *vfont_char_find_or_placeholder(const VFontData *vfd,
                                              uint character,
                                              VCharPlaceHolder &che_placeholder)
@@ -269,6 +285,9 @@ static VChar *vfont_char_find_or_placeholder(const VFontData *vfd,
  * \param ul_prev_nu: The previous adjacent underline
  * which has it's right edge welded with this underlines left edge
  * to prevent gaps or overlapping geometry which can cause Z-fighting.
+ *
+ * \return The shape used for the underline which may be passed in
+ * as the `ul_prev_nu` in future calls to this function.
  */
 static Nurb *build_underline(Curve *cu,
                              ListBase *nubase,
@@ -354,7 +373,7 @@ static void vfont_char_build_impl(Curve *cu,
                                   int charidx,
                                   const float fsize)
 {
-  /* make a copy at distance ofsx, ofsy with shear */
+  /* Make a copy at distance ofsx, ofsy with shear. */
   float shear = cu->shear;
   float si = sinf(rot);
   float co = cosf(rot);
@@ -480,7 +499,7 @@ void BKE_vfont_char_build(Curve *cu,
 
 static float vfont_char_width(Curve *cu, VChar *che, const CharInfo *info)
 {
-  /* The character wasn't found, probably ascii = 0, then the width shall be 0 as well */
+  /* The character wasn't found, probably ascii = 0, then the width shall be 0 as well. */
   if (che == nullptr) {
     return 0.0f;
   }
@@ -541,11 +560,12 @@ struct VFontToCurveIter {
  * offset into the string at a mouse cursor location. Used for getting
  * text cursor (caret) position or selection range.
  * \{ */
-/* Used when translating a mouse cursor location to a position within the string. */
+
+/** Used when translating a mouse cursor location to a position within the string. */
 struct VFontCursor_Params {
-  /* Mouse cursor location in Object coordinate space as input. */
+  /** Mouse cursor location in Object coordinate space as input. */
   float cursor_location[2];
-  /* Character position within EditFont::textbuf as output. */
+  /** Character position within #EditFont::textbuf as output. */
   int r_string_offset;
 };
 
@@ -618,12 +638,20 @@ struct TextBoxBounds_ForCursor {
  * Used for storing per-line data for alignment & wrapping.
  */
 struct TempLineInfo {
-  float x_min;   /* left margin */
-  float x_max;   /* right margin */
-  int char_nr;   /* number of characters */
-  int wspace_nr; /* number of white-spaces of line */
+  /** Left margin. */
+  float x_min;
+  /** Right margin. */
+  float x_max;
+  /** Number of characters. */
+  int char_nr;
+  /** Number of white-spaces of line. */
+  int wspace_nr;
 };
 
+/**
+ * This function implements text layout & formatting
+ * with font styles, text boxes as well as text cursor placement.
+ */
 static bool vfont_to_curve(Object *ob,
                            Curve *cu,
                            const eEditFontMode mode,
@@ -670,7 +698,7 @@ static bool vfont_to_curve(Object *ob,
 #define MARGIN_X_MIN (xof_scale + tb_scale.x)
 #define MARGIN_Y_MIN (yof_scale + tb_scale.y)
 
-  /* NOTE: do calculations including the trailing '\0' of a string
+  /* NOTE: do calculations including the trailing `\0` of a string
    * because the cursor can be at that location. */
 
   BLI_assert(ob == nullptr || ob->type == OB_FONT);
@@ -709,7 +737,7 @@ static bool vfont_to_curve(Object *ob,
     char32_t *mem_tmp;
     slen = cu->len_char32;
 
-    /* Create unicode string */
+    /* Create unicode string. */
     mem_tmp = static_cast<char32_t *>(
         MEM_malloc_arrayN((slen + 1), sizeof(*mem_tmp), "convertedmem"));
     if (!mem_tmp) {
@@ -718,7 +746,7 @@ static bool vfont_to_curve(Object *ob,
 
     BLI_str_utf8_as_utf32(mem_tmp, cu->str, slen + 1);
 
-    if (cu->strinfo == nullptr) { /* old file */
+    if (cu->strinfo == nullptr) { /* Should only ever happen with old files. */
       cu->strinfo = static_cast<CharInfo *>(
           MEM_calloc_arrayN((slen + 4), sizeof(CharInfo), "strinfo compat"));
     }
@@ -754,11 +782,11 @@ static bool vfont_to_curve(Object *ob,
     selboxes = ef->selboxes;
   }
 
-  /* calc offset and rotation of each char */
+  /* Calculate the offset and rotation of each char. */
   ct = chartransdata = static_cast<CharTrans *>(
       MEM_calloc_arrayN((slen + 1), sizeof(CharTrans), "buildtext"));
 
-  /* We assume the worst case: 1 character per line (is freed at end anyway) */
+  /* We assume the worst case: 1 character per line (is freed at end anyway). */
   lineinfo = static_cast<TempLineInfo *>(
       MEM_malloc_arrayN((slen * 2 + 1), sizeof(*lineinfo), "lineinfo"));
 
@@ -796,7 +824,7 @@ static bool vfont_to_curve(Object *ob,
 
   i = 0;
   while (i <= slen) {
-    /* Characters in the list */
+    /* Characters in the list. */
     info = &custrinfo[i];
     ascii = mem[i];
     if (info->flag & CU_CHINFO_SMALLCAPS) {
@@ -1044,12 +1072,12 @@ static bool vfont_to_curve(Object *ob,
         for (j = i; !ELEM(mem[j], '\0', '\n') && (chartransdata[j].dobreak == 0) && (j < slen);
              j++)
         {
-          /* do nothing */
+          /* Pass. */
         }
 
-        //              if ((mem[j] != '\n') && (mem[j])) {
+        // if ((mem[j] != '\n') && (mem[j])) {
         ct->xof += ct->charnr * lineinfo[ct->linenr].x_min;
-        //              }
+        // }
         ct++;
       }
     }
@@ -1059,7 +1087,7 @@ static bool vfont_to_curve(Object *ob,
         for (j = i; (mem[j]) && (mem[j] != '\n') && (chartransdata[j].dobreak == 0) && (j < slen);
              j++)
         {
-          /* pass */
+          /* Pass. */
         }
 
         if ((mem[j] != '\n') && (chartransdata[j].dobreak != 0)) {
@@ -1182,7 +1210,7 @@ static bool vfont_to_curve(Object *ob,
       int char_idx_offset = char_beg;
 
       rctf *bounds = &tb_bounds->bounds;
-      /* In a text-box with no curves, 'yof' only decrements over lines, 'ymax' and 'ymin'
+      /* In a text-box with no curves, `yof` only decrements over lines, `ymax` and `ymin`
        * can be obtained from any character in the first and last line of the text-box. */
       bounds->ymax = chartransdata[char_beg].yof;
       bounds->ymin = chartransdata[char_end].yof;
@@ -1241,7 +1269,7 @@ static bool vfont_to_curve(Object *ob,
 
       /* We put the x-coordinate exact at the curve, the y is rotated. */
 
-      /* length correction */
+      /* Length correction. */
       const float chartrans_size_x = maxx - minx;
       if (chartrans_size_x != 0.0f) {
         const CurveCache *cc = cu->textoncurve->runtime->curve_cache;
@@ -1274,7 +1302,7 @@ static bool vfont_to_curve(Object *ob,
         distfac /= chartrans_size_x;
       }
 
-      timeofs += distfac * cu->xof; /* not cyclic */
+      timeofs += distfac * cu->xof; /* Not cyclic. */
 
       ct = chartransdata;
       for (i = 0; i <= slen; i++, ct++) {
@@ -1299,7 +1327,6 @@ static bool vfont_to_curve(Object *ob,
         CLAMP(ctime, 0.0f, 1.0f);
 
         /* Calculate the right loc AND the right rot separately. */
-        /* `vec` needs 4 items. */
         BKE_where_on_path(cu->textoncurve, ctime, vec, nullptr, nullptr, nullptr, nullptr);
         BKE_where_on_path(
             cu->textoncurve, ctime + dtime, nullptr, rotvec, nullptr, nullptr, nullptr);
@@ -1353,10 +1380,10 @@ static bool vfont_to_curve(Object *ob,
     ct = &chartransdata[ef->pos];
 
     if (ELEM(mode, FO_CURSUP, FO_PAGEUP) && ct->linenr == 0) {
-      /* pass */
+      /* Pass. */
     }
     else if (ELEM(mode, FO_CURSDOWN, FO_PAGEDOWN) && ct->linenr == lnr) {
-      /* pass */
+      /* Pass. */
     }
     else {
       switch (mode) {
@@ -1489,7 +1516,7 @@ static bool vfont_to_curve(Object *ob,
         //     &LOG, "Illegal material index (%d) in text object, setting to 0", info->mat_nr);
         info->mat_nr = 0;
       }
-      /* We don't want to see any character for '\n'. */
+      /* We don't want to see any character for `\n`. */
       if (cha != '\n') {
 
         vfont_info_context_update(&vfinfo_ctx, cu, info);
@@ -1549,10 +1576,10 @@ static bool vfont_to_curve(Object *ob,
     iter_data->status = VFONT_TO_CURVE_DONE;
   }
   else if (cu->overflow == CU_OVERFLOW_NONE) {
-    /* Do nothing. */
+    /* Pass. */
   }
   else if ((tb_scale.h == 0.0f) && (tb_scale.w == 0.0f)) {
-    /* Do nothing. */
+    /* Pass. */
   }
   else if (cu->overflow == CU_OVERFLOW_SCALE) {
     if ((cu->totbox == 1) && ((tb_scale.w == 0.0f) || (tb_scale.h == 0.0f))) {
@@ -1644,7 +1671,7 @@ static bool vfont_to_curve(Object *ob,
 
   if (cursor_params) {
     const float *cursor_location = cursor_params->cursor_location;
-    /* Erasing all text could give slen = 0 */
+    /* Erasing all text could give `slen = 0`. */
     if (slen == 0) {
       cursor_params->r_string_offset = -1;
     }
@@ -1717,6 +1744,7 @@ static bool vfont_to_curve(Object *ob,
       /* Loop back until find the first character of the line, this because `cursor_location` can
        * be positioned further below the text, so #i can be the last character of the last line. */
       for (; i >= char_beg + 1 && chartransdata[i - 1].yof == char_yof; i--) {
+        /* Pass. */
       }
       /* Loop until find the first character to the right of `cursor_location`
        * (using the character midpoint on the x-axis as a reference). */
