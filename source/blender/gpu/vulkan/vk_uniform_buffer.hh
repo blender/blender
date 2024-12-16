@@ -19,6 +19,12 @@ namespace blender::gpu {
 class VKUniformBuffer : public UniformBuf, NonCopyable {
   VKBuffer buffer_;
 
+  /**
+   * Has this uniform data already been fed with data. When so we are not allowed to directly
+   * overwrite the data as it could still be in use.
+   */
+  bool data_uploaded_ = false;
+
  public:
   VKUniformBuffer(size_t size, const char *name) : UniformBuf(size, name) {}
 
@@ -43,6 +49,15 @@ class VKUniformBuffer : public UniformBuf, NonCopyable {
   }
 
   void ensure_updated();
+
+  /**
+   * Reset data uploaded flag. When the resource is sure it isn't used, the caller can call
+   * reset_data_uploaded so the next update can use ReBAR when available.
+   */
+  void reset_data_uploaded()
+  {
+    data_uploaded_ = false;
+  }
 
  private:
   void allocate();

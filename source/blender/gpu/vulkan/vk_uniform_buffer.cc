@@ -21,11 +21,16 @@ void VKUniformBuffer::update(const void *data)
     allocate();
   }
 
-  /* TODO: when buffer is mapped and newly created we should use `buffer_.update_immediately`. */
-  void *data_copy = MEM_mallocN(size_in_bytes_, __func__);
-  memcpy(data_copy, data, size_in_bytes_);
-  VKContext &context = *VKContext::get();
-  buffer_.update_render_graph(context, data_copy);
+  if (!data_uploaded_ && buffer_.is_mapped()) {
+    buffer_.update_immediately(data);
+  }
+  else {
+    void *data_copy = MEM_mallocN(size_in_bytes_, __func__);
+    memcpy(data_copy, data, size_in_bytes_);
+    VKContext &context = *VKContext::get();
+    buffer_.update_render_graph(context, data_copy);
+  }
+  data_uploaded_ = true;
 }
 
 void VKUniformBuffer::allocate()
@@ -45,6 +50,7 @@ void VKUniformBuffer::clear_to_zero()
   }
   VKContext &context = *VKContext::get();
   buffer_.clear(context, 0);
+  data_uploaded_ = true;
 }
 
 void VKUniformBuffer::ensure_updated()
@@ -55,10 +61,17 @@ void VKUniformBuffer::ensure_updated()
 
   /* Upload attached data, during bind time. */
   if (data_) {
-    /* TODO: when buffer is mapped and newly created we should use `buffer_.update_immediately`. */
-    VKContext &context = *VKContext::get();
-    buffer_.update_render_graph(context, std::move(data_));
-    data_ = nullptr;
+    if (!data_uploaded_ && buffer_.is_mapped()) {
+      buffer_.update_immediately(data_);
+      MEM_freeN(data_);
+      data_ = nullptr;
+    }
+    else {
+      VKContext &context = *VKContext::get();
+      buffer_.update_render_graph(context, std::move(data_));
+      data_ = nullptr;
+    }
+    data_uploaded_ = true;
   }
 }
 

@@ -24,6 +24,8 @@ class VKBuffer : public NonCopyable {
   size_t size_in_bytes_ = 0;
   VkBuffer vk_buffer_ = VK_NULL_HANDLE;
   VmaAllocation allocation_ = VK_NULL_HANDLE;
+  VkMemoryPropertyFlags vk_memory_property_flags_;
+
   /* Pointer to the virtually mapped memory. */
   void *mapped_memory_ = nullptr;
 
@@ -33,10 +35,19 @@ class VKBuffer : public NonCopyable {
 
   /** Has this buffer been allocated? */
   bool is_allocated() const;
+
+  /**
+   * Allocate the buffer.
+   *
+   * When `is_host_visible` is set to true it will allocate from a host visible memory heap. When
+   * `is_host_visible` is false it will try to allocate from a host visible memory heap. When not
+   * available it will allocate from a not host visible memory heap. This is also known as
+   * Resizable BAR or ReBAR.
+   */
   bool create(size_t size,
               GPUUsageType usage,
               VkBufferUsageFlags buffer_usage,
-              bool is_host_visible = true);
+              bool is_host_visible);
   void clear(VKContext &context, uint32_t clear_value);
   void update_immediately(const void *data) const;
 

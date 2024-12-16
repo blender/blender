@@ -169,7 +169,8 @@ VKBuffer &VKImmediate::ensure_space(VkDeviceSize bytes_needed, VkDeviceSize offs
   result.create(alloc_size,
                 GPU_USAGE_DYNAMIC,
                 VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
-                    VK_BUFFER_USAGE_TRANSFER_DST_BIT);
+                    VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+                true);
   debug::object_label(result.vk_handle(), "Immediate");
 
   return result;
