@@ -739,8 +739,8 @@ if(WITH_GPU_DRAW_TESTS)
   add_definitions(-DWITH_GPU_DRAW_TESTS)
 endif()
 
-if(WITH_GTEST)
-  add_definitions(-DWITH_GTEST)
+if(WITH_GTESTS)
+  add_definitions(-DWITH_GTESTS)
 endif()
 
 blender_add_lib(bf_gpu "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
