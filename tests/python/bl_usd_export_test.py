@@ -422,6 +422,28 @@ class USDExportTest(AbstractUSDTest):
         input_displacement = shader_surface.GetInput('displacement')
         self.assertTrue(input_displacement.Get() is None)
 
+    def test_export_metaballs(self):
+        """Validate correct export of Metaball objects. These are written out as Meshes."""
+
+        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_metaballs.blend"))
+        export_path = self.tempdir / "usd_metaballs.usda"
+        self.export_and_validate(filepath=str(export_path), evaluation_mode="RENDER")
+
+        stage = Usd.Stage.Open(str(export_path))
+
+        # There should be 3 Mesh prims and they should each correspond to the "basis"
+        # metaball (i.e. the ones without any numeric suffix)
+        mesh_prims = [prim for prim in stage.Traverse() if prim.IsA(UsdGeom.Mesh)]
+        prim_names = [prim.GetPath().pathString for prim in mesh_prims]
+        self.assertEqual(len(mesh_prims), 3)
+        self.assertListEqual(
+            sorted(prim_names), ["/root/Ball_A/Ball_A", "/root/Ball_B/Ball_B", "/root/Ball_C/Ball_C"])
+
+        # Make rough check of vertex counts to ensure geometry is present
+        actual_prim_verts = {prim.GetName(): len(UsdGeom.Mesh(prim).GetPointsAttr().Get()) for prim in mesh_prims}
+        expected_prim_verts = {"Ball_A": 2232, "Ball_B": 2876, "Ball_C": 1152}
+        self.assertDictEqual(actual_prim_verts, expected_prim_verts)
+
     def check_primvar(self, prim, pv_name, pv_typeName, pv_interp, elements_len):
         pv = UsdGeom.PrimvarsAPI(prim).GetPrimvar(pv_name)
         self.assertTrue(pv.HasValue())
