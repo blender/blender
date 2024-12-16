@@ -39,9 +39,6 @@
 
 using namespace blender;
 
-static SequenceModifierTypeInfo *modifiersTypes[NUM_SEQUENCE_MODIFIER_TYPES];
-static bool modifierTypesInit = false;
-
 /* -------------------------------------------------------------------- */
 
 static float4 load_pixel_premul(const uchar *ptr)
@@ -443,16 +440,6 @@ static void colorBalance_apply(const StripScreenQuad & /*quad*/,
   apply_modifier_op(op, ibuf, mask);
 }
 
-static SequenceModifierTypeInfo seqModifier_ColorBalance = {
-    /*name*/ CTX_N_(BLT_I18NCONTEXT_ID_SEQUENCE, "Color Balance"),
-    /*struct_name*/ "ColorBalanceModifierData",
-    /*struct_size*/ sizeof(ColorBalanceModifierData),
-    /*init_data*/ colorBalance_init_data,
-    /*free_data*/ nullptr,
-    /*copy_data*/ nullptr,
-    /*apply*/ colorBalance_apply,
-};
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -509,16 +496,6 @@ static void whiteBalance_apply(const StripScreenQuad & /*quad*/,
   op.multiplier[2] = (data->white_value[2] != 0.0f) ? 1.0f / data->white_value[2] : FLT_MAX;
   apply_modifier_op(op, ibuf, mask);
 }
-
-static SequenceModifierTypeInfo seqModifier_WhiteBalance = {
-    /*name*/ CTX_N_(BLT_I18NCONTEXT_ID_SEQUENCE, "White Balance"),
-    /*struct_name*/ "WhiteBalanceModifierData",
-    /*struct_size*/ sizeof(WhiteBalanceModifierData),
-    /*init_data*/ whiteBalance_init_data,
-    /*free_data*/ nullptr,
-    /*copy_data*/ nullptr,
-    /*apply*/ whiteBalance_apply,
-};
 
 /** \} */
 
@@ -589,16 +566,6 @@ static void curves_apply(const StripScreenQuad & /*quad*/,
 
   BKE_curvemapping_premultiply(&cmd->curve_mapping, true);
 }
-
-static SequenceModifierTypeInfo seqModifier_Curves = {
-    /*name*/ CTX_N_(BLT_I18NCONTEXT_ID_SEQUENCE, "Curves"),
-    /*struct_name*/ "CurvesModifierData",
-    /*struct_size*/ sizeof(CurvesModifierData),
-    /*init_data*/ curves_init_data,
-    /*free_data*/ curves_free_data,
-    /*copy_data*/ curves_copy_data,
-    /*apply*/ curves_apply,
-};
 
 /** \} */
 
@@ -696,16 +663,6 @@ static void hue_correct_apply(const StripScreenQuad & /*quad*/,
   apply_modifier_op(op, ibuf, mask);
 }
 
-static SequenceModifierTypeInfo seqModifier_HueCorrect = {
-    /*name*/ CTX_N_(BLT_I18NCONTEXT_ID_SEQUENCE, "Hue Correct"),
-    /*struct_name*/ "HueCorrectModifierData",
-    /*struct_size*/ sizeof(HueCorrectModifierData),
-    /*init_data*/ hue_correct_init_data,
-    /*free_data*/ hue_correct_free_data,
-    /*copy_data*/ hue_correct_copy_data,
-    /*apply*/ hue_correct_apply,
-};
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -764,16 +721,6 @@ static void brightcontrast_apply(const StripScreenQuad & /*quad*/,
 
   apply_modifier_op(op, ibuf, mask);
 }
-
-static SequenceModifierTypeInfo seqModifier_BrightContrast = {
-    /*name*/ CTX_N_(BLT_I18NCONTEXT_ID_SEQUENCE, "Brightness/Contrast"),
-    /*struct_name*/ "BrightContrastModifierData",
-    /*struct_size*/ sizeof(BrightContrastModifierData),
-    /*init_data*/ nullptr,
-    /*free_data*/ nullptr,
-    /*copy_data*/ nullptr,
-    /*apply*/ brightcontrast_apply,
-};
 
 /** \} */
 
@@ -838,16 +785,6 @@ static void maskmodifier_apply(const StripScreenQuad & /*quad*/,
   /* Image has gained transparency. */
   ibuf->planes = R_IMF_PLANES_RGBA;
 }
-
-static SequenceModifierTypeInfo seqModifier_Mask = {
-    /*name*/ CTX_N_(BLT_I18NCONTEXT_ID_SEQUENCE, "Mask"),
-    /*struct_name*/ "SequencerMaskModifierData",
-    /*struct_size*/ sizeof(SequencerMaskModifierData),
-    /*init_data*/ nullptr,
-    /*free_data*/ nullptr,
-    /*copy_data*/ nullptr,
-    /*apply*/ maskmodifier_apply,
-};
 
 /** \} */
 
@@ -1166,55 +1103,94 @@ static void tonemapmodifier_apply(const StripScreenQuad &quad,
       });
 }
 
-static SequenceModifierTypeInfo seqModifier_Tonemap = {
-    /*name*/ CTX_N_(BLT_I18NCONTEXT_ID_SEQUENCE, "Tonemap"),
-    /*struct_name*/ "SequencerTonemapModifierData",
-    /*struct_size*/ sizeof(SequencerTonemapModifierData),
-    /*init_data*/ tonemapmodifier_init_data,
-    /*free_data*/ nullptr,
-    /*copy_data*/ nullptr,
-    /*apply*/ tonemapmodifier_apply,
-};
-
-static SequenceModifierTypeInfo seqModifier_SoundEqualizer = {
-    /*name*/ CTX_N_(BLT_I18NCONTEXT_ID_SEQUENCE, "Equalizer"),
-    /*struct_name*/ "SoundEqualizerModifierData",
-    /*struct_size*/ sizeof(SoundEqualizerModifierData),
-    /*init_data*/ SEQ_sound_equalizermodifier_init_data,
-    /*free_data*/ SEQ_sound_equalizermodifier_free,
-    /*copy_data*/ SEQ_sound_equalizermodifier_copy_data,
-    /*apply*/ nullptr,
-};
 /** \} */
 
 /* -------------------------------------------------------------------- */
 /** \name Public Modifier Functions
  * \{ */
 
-static void sequence_modifier_type_info_init()
-{
-#define INIT_TYPE(typeName) (modifiersTypes[seqModifierType_##typeName] = &seqModifier_##typeName)
-
-  INIT_TYPE(ColorBalance);
-  INIT_TYPE(Curves);
-  INIT_TYPE(HueCorrect);
-  INIT_TYPE(BrightContrast);
-  INIT_TYPE(Mask);
-  INIT_TYPE(WhiteBalance);
-  INIT_TYPE(Tonemap);
-  INIT_TYPE(SoundEqualizer);
-
-#undef INIT_TYPE
-}
+static SequenceModifierTypeInfo modifiersTypes[NUM_SEQUENCE_MODIFIER_TYPES] = {
+    {}, /* First entry is unused. */
+    {
+        /*name*/ CTX_N_(BLT_I18NCONTEXT_ID_SEQUENCE, "Color Balance"),
+        /*struct_name*/ "ColorBalanceModifierData",
+        /*struct_size*/ sizeof(ColorBalanceModifierData),
+        /*init_data*/ colorBalance_init_data,
+        /*free_data*/ nullptr,
+        /*copy_data*/ nullptr,
+        /*apply*/ colorBalance_apply,
+    },
+    {
+        /*name*/ CTX_N_(BLT_I18NCONTEXT_ID_SEQUENCE, "Curves"),
+        /*struct_name*/ "CurvesModifierData",
+        /*struct_size*/ sizeof(CurvesModifierData),
+        /*init_data*/ curves_init_data,
+        /*free_data*/ curves_free_data,
+        /*copy_data*/ curves_copy_data,
+        /*apply*/ curves_apply,
+    },
+    {
+        /*name*/ CTX_N_(BLT_I18NCONTEXT_ID_SEQUENCE, "Hue Correct"),
+        /*struct_name*/ "HueCorrectModifierData",
+        /*struct_size*/ sizeof(HueCorrectModifierData),
+        /*init_data*/ hue_correct_init_data,
+        /*free_data*/ hue_correct_free_data,
+        /*copy_data*/ hue_correct_copy_data,
+        /*apply*/ hue_correct_apply,
+    },
+    {
+        /*name*/ CTX_N_(BLT_I18NCONTEXT_ID_SEQUENCE, "Brightness/Contrast"),
+        /*struct_name*/ "BrightContrastModifierData",
+        /*struct_size*/ sizeof(BrightContrastModifierData),
+        /*init_data*/ nullptr,
+        /*free_data*/ nullptr,
+        /*copy_data*/ nullptr,
+        /*apply*/ brightcontrast_apply,
+    },
+    {
+        /*name*/ CTX_N_(BLT_I18NCONTEXT_ID_SEQUENCE, "Mask"),
+        /*struct_name*/ "SequencerMaskModifierData",
+        /*struct_size*/ sizeof(SequencerMaskModifierData),
+        /*init_data*/ nullptr,
+        /*free_data*/ nullptr,
+        /*copy_data*/ nullptr,
+        /*apply*/ maskmodifier_apply,
+    },
+    {
+        /*name*/ CTX_N_(BLT_I18NCONTEXT_ID_SEQUENCE, "White Balance"),
+        /*struct_name*/ "WhiteBalanceModifierData",
+        /*struct_size*/ sizeof(WhiteBalanceModifierData),
+        /*init_data*/ whiteBalance_init_data,
+        /*free_data*/ nullptr,
+        /*copy_data*/ nullptr,
+        /*apply*/ whiteBalance_apply,
+    },
+    {
+        /*name*/ CTX_N_(BLT_I18NCONTEXT_ID_SEQUENCE, "Tonemap"),
+        /*struct_name*/ "SequencerTonemapModifierData",
+        /*struct_size*/ sizeof(SequencerTonemapModifierData),
+        /*init_data*/ tonemapmodifier_init_data,
+        /*free_data*/ nullptr,
+        /*copy_data*/ nullptr,
+        /*apply*/ tonemapmodifier_apply,
+    },
+    {
+        /*name*/ CTX_N_(BLT_I18NCONTEXT_ID_SEQUENCE, "Equalizer"),
+        /*struct_name*/ "SoundEqualizerModifierData",
+        /*struct_size*/ sizeof(SoundEqualizerModifierData),
+        /*init_data*/ SEQ_sound_equalizermodifier_init_data,
+        /*free_data*/ SEQ_sound_equalizermodifier_free,
+        /*copy_data*/ SEQ_sound_equalizermodifier_copy_data,
+        /*apply*/ nullptr,
+    },
+};
 
 const SequenceModifierTypeInfo *SEQ_modifier_type_info_get(int type)
 {
-  if (!modifierTypesInit) {
-    sequence_modifier_type_info_init();
-    modifierTypesInit = true;
+  if (type <= 0 || type >= NUM_SEQUENCE_MODIFIER_TYPES) {
+    return nullptr;
   }
-
-  return modifiersTypes[type];
+  return &modifiersTypes[type];
 }
 
 SequenceModifierData *SEQ_modifier_new(Sequence *seq, const char *name, int type)
