@@ -805,7 +805,7 @@ void SEQ_retiming_key_speed_set(
   const SeqRetimingKey *key_prev = key - 1;
   const float speed_fac = 100.0f / speed;
 
-  const int frame_index_max = seq->len;
+  const int frame_index_max = seq->len - 1;
   const int frame_retimed_prev = round_fl_to_int(key_prev->retiming_factor * frame_index_max);
   const int frame_retimed = round_fl_to_int(key->retiming_factor * frame_index_max);
 
@@ -938,7 +938,7 @@ class RetimingRange {
   {
     for (int timeline_frame = start; timeline_frame <= end; timeline_frame++) {
       /* We need number actual number of frames here. */
-      const double normal_step = 1 / double(seq->len);
+      const double normal_step = 1 / double(seq->len - 1);
 
       const int frame_index = timeline_frame - SEQ_time_start_frame_get(seq);
       /* Who needs calculus, when you can have slow code? */
