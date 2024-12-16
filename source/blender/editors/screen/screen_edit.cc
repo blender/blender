@@ -560,6 +560,12 @@ static bool screen_area_join_ex(
     ED_area_tag_redraw(side2);
   }
 
+  if (sa1 != CTX_wm_area(C)) {
+    /* Active area has changed so active region could be invalid. It is
+     * safe to set null and let it be set later by mouse position. #131751. */
+    screen->active_region = nullptr;
+  }
+
   BKE_icon_changed(screen->id.icon_id);
   return true;
 }
