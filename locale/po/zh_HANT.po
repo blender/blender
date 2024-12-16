@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'cfa63bfefa5b')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'2eb53ba3b21b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-09 09:50+0000\n"
+"POT-Creation-Date: 2024-12-16 09:31+0000\n"
 "PO-Revision-Date: 2024-03-05 22:56+0000\n"
 "Last-Translator: 居樂行 <oscilloscope9705@gmail.com>\n"
 "Language-Team: Chinese (Traditional) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
@@ -33017,15 +33017,6 @@ msgstr "移動書籤"
 
 
 msgctxt "Operator"
-msgid "Cancel File Load"
-msgstr "取消檔案載入"
-
-
-msgid "Cancel loading of selected file"
-msgstr "取消載入選取的檔案"
-
-
-msgctxt "Operator"
 msgid "Delete Selected Files"
 msgstr "刪除所選的檔案"
 
@@ -39135,11 +39126,6 @@ msgid "Use the mouse to sample a color in the image"
 msgstr "使用滑鼠取樣影像中的色彩"
 
 
-msgctxt "Operator"
-msgid "Texture Paint Toggle"
-msgstr "紋理繪製切換"
-
-
 msgid "Toggle texture paint mode in 3D view"
 msgstr "在 3D 視圖中切換紋理繪製模式"
 
@@ -44596,10 +44582,6 @@ msgid "Palette Color"
 msgstr "色版色彩"
 
 
-msgid "Overlays"
-msgstr "疊層"
-
-
 msgid "Motion Tracking"
 msgstr "運動跟蹤"
 
@@ -44638,6 +44620,10 @@ msgstr "算繪通遞"
 
 msgid "Compositor"
 msgstr "合成器"
+
+
+msgid "Overlays"
+msgstr "疊層"
 
 
 msgid "Chain Scaling"
@@ -61825,10 +61811,6 @@ msgstr "遮罩"
 
 msgid "Pose Library"
 msgstr "姿勢庫"
-
-
-msgid "All Add-ons"
-msgstr "所有附加元件"
 
 
 msgid "All Add-ons Installed by User"

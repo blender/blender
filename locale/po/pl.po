@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'cfa63bfefa5b')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'2eb53ba3b21b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-09 09:50+0000\n"
+"POT-Creation-Date: 2024-12-16 09:31+0000\n"
 "PO-Revision-Date: 2024-11-23 15:56+0000\n"
 "Last-Translator: Kacper Madej <cacperkacper@yahoo.com>\n"
 "Language-Team: Polish <https://translate.blender.org/projects/blender-ui/ui/pl/>\n"
@@ -15383,11 +15383,6 @@ msgid "Hide/Show"
 msgstr "Ukryj/Pokaż"
 
 
-msgctxt "Operator"
-msgid "Texture Paint Toggle"
-msgstr "Przełącz malowanie tekstury"
-
-
 msgid "Toggle texture paint mode in 3D view"
 msgstr "Przełącza tryb malowania tekstury w widoku 3D"
 
@@ -20202,11 +20197,6 @@ msgstr "Znajdź węzeł..."
 
 
 msgctxt "Operator"
-msgid "Insert Into Group"
-msgstr "Wstaw do grupy"
-
-
-msgctxt "Operator"
 msgid "Mute"
 msgstr "Wycisz"
 
@@ -20229,6 +20219,11 @@ msgstr "Zwiń"
 msgctxt "Operator"
 msgid "Fit"
 msgstr "Dopasuj"
+
+
+msgctxt "Operator"
+msgid "Insert Into Group"
+msgstr "Wstaw do grupy"
 
 
 msgctxt "Operator"
@@ -27429,10 +27424,6 @@ msgstr "Edycja wideo"
 
 msgid "Cycles Render Engine"
 msgstr "Silnik renderowania Cycles"
-
-
-msgid "All Add-ons"
-msgstr "Wszystkie wtyczki"
 
 
 msgid "All Add-ons Installed by User"

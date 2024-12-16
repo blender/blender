@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'cfa63bfefa5b')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'2eb53ba3b21b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-09 09:50+0000\n"
+"POT-Creation-Date: 2024-12-16 09:31+0000\n"
 "PO-Revision-Date: 2024-07-05 18:56+0000\n"
 "Last-Translator: Isaac Gicheha <shwaky3@gmail.com>\n"
 "Language-Team: Swahili <https://translate.blender.org/projects/blender-ui/ui/sw/>\n"
@@ -12680,6 +12680,26 @@ msgid "Select the file format to be used for caching volumetric data"
 msgstr "Chagua umbizo la faili litakalotumika kuweka akiba ya data ya ujazo"
 
 
+msgid "Uni Cache"
+msgstr "Cache ya Uni"
+
+
+msgid "Uni file format (.uni)"
+msgstr "Uni umbizo la faili (.uni)"
+
+
+msgid "OpenVDB file format (.vdb)"
+msgstr "umbizo la faili la OpenVDB (.vdb)"
+
+
+msgid "Raw Cache"
+msgstr "Cache ghafi"
+
+
+msgid "Raw file format (.raw)"
+msgstr "Umbizo la faili mbichi (.ghafi)"
+
+
 msgid "Cache directory"
 msgstr "Saraka ya akiba"
 
@@ -18690,10 +18710,6 @@ msgstr "Sanduku la Maandishi Inayotumika"
 
 msgid "Horizontal Alignment"
 msgstr "Mpangilio wa Mlalo"
-
-
-msgid "Text horizontal alignment from the object center"
-msgstr "Mpangilio wa matini mlalo kutoka katikati ya kitu"
 
 
 msgid "Align text to the left"
@@ -44641,26 +44657,6 @@ msgid "Collection of object effects"
 msgstr "Mkusanyiko wa athari za kitu"
 
 
-msgctxt "Operator"
-msgid "Add Material Variant"
-msgstr "Ongeza Lahaja ya Nyenzo"
-
-
-msgctxt "Operator"
-msgid "Display Variant"
-msgstr "Onyesho Lahaja"
-
-
-msgctxt "Operator"
-msgid "Assign To Variant"
-msgstr "Agiza Tofauti"
-
-
-msgctxt "Operator"
-msgid "Assign as Original"
-msgstr "Weka kama Asili"
-
-
 msgid "Mark actions with no F-Curves for deletion after save and reload of file preserving \"action libraries\""
 msgstr "Weka alama kwa vitendo bila F-Curve kwa kufutwa baada ya kuhifadhi na kupakia upya faili inayohifadhi \"maktaba za vitendo\""
 
@@ -52739,15 +52735,6 @@ msgstr "Juu ya orodha"
 
 msgid "Bottom of the list"
 msgstr "Chini ya orodha"
-
-
-msgctxt "Operator"
-msgid "Cancel File Load"
-msgstr "Ghairi Upakiaji wa Faili"
-
-
-msgid "Cancel loading of selected file"
-msgstr "Ghairi upakiaji wa faili iliyochaguliwa"
 
 
 msgctxt "Operator"
@@ -61780,11 +61767,6 @@ msgid "Maintain parent child relationships"
 msgstr "Dumisha uhusiano wa mzazi na mtoto"
 
 
-msgctxt "Operator"
-msgid "Toggle Edit Mode"
-msgstr "Geuza Modi ya Kuhariri"
-
-
 msgid "Toggle object's edit mode"
 msgstr "Geuza modi ya kuhariri ya kitu"
 
@@ -65471,11 +65453,6 @@ msgstr "Sampuli ya rangi ya onyesho la towe"
 
 msgid "Add to Palette"
 msgstr "Ongeza kwa Palette"
-
-
-msgctxt "Operator"
-msgid "Texture Paint Toggle"
-msgstr "Kugeuza Rangi ya Umbile"
 
 
 msgid "Toggle texture paint mode in 3D view"
@@ -97423,8 +97400,28 @@ msgstr "Imeshindwa kupakia mipangilio ya kuhamisha."
 
 
 msgctxt "Operator"
+msgid "Display Variant"
+msgstr "Onyesho Lahaja"
+
+
+msgctxt "Operator"
+msgid "Assign To Variant"
+msgstr "Agiza Tofauti"
+
+
+msgctxt "Operator"
 msgid "Reset To Original"
 msgstr "Weka Upya Kwa Asili"
+
+
+msgctxt "Operator"
+msgid "Assign as Original"
+msgstr "Weka kama Asili"
+
+
+msgctxt "Operator"
+msgid "Add Material Variant"
+msgstr "Ongeza Lahaja ya Nyenzo"
 
 
 msgid "No glTF Animation"
@@ -101299,11 +101296,6 @@ msgstr "Ondoa kutoka kwa Fremu"
 
 
 msgctxt "Operator"
-msgid "Insert Into Group"
-msgstr "Ingiza Katika Kikundi"
-
-
-msgctxt "Operator"
 msgid "Mute"
 msgstr "Nyamazisha"
 
@@ -101370,6 +101362,11 @@ msgstr "Tengeneza na Ubadilishe Viungo"
 
 
 msgctxt "Operator"
+msgid "Insert Into Group"
+msgstr "Ingiza Katika Kikundi"
+
+
+msgctxt "Operator"
 msgid "Node Preview"
 msgstr "Muhtasari wa Nodi"
 
@@ -101387,11 +101384,6 @@ msgstr "Tafuta..."
 msgctxt "Operator"
 msgid "Link to Viewer"
 msgstr "Unganisha kwa Mtazamaji"
-
-
-msgctxt "Operator"
-msgid "Exit Group"
-msgstr "Toka kwenye Kikundi"
 
 
 msgctxt "Operator"
@@ -101419,6 +101411,11 @@ msgstr "Mandhari Kuza Ndani"
 msgctxt "Operator"
 msgid "Backdrop Zoom Out"
 msgstr "Mandhari Zoom Out"
+
+
+msgctxt "Operator"
+msgid "Exit Group"
+msgstr "Toka kwenye Kikundi"
 
 
 msgid "Closed by Default"
@@ -105679,10 +105676,6 @@ msgstr "Pete za makali hazijaunganishwa"
 
 msgid "color_index is invalid"
 msgstr "index_color ni batili"
-
-
-msgid "Compositing | Initializing execution"
-msgstr "Kutunga |"
 
 
 msgid "Compositor node tree has cyclic links!"
@@ -113768,26 +113761,6 @@ msgid "Object file format (.obj)"
 msgstr "Umbo la faili la kitu (.obj)"
 
 
-msgid "Uni Cache"
-msgstr "Cache ya Uni"
-
-
-msgid "Uni file format (.uni)"
-msgstr "Uni umbizo la faili (.uni)"
-
-
-msgid "OpenVDB file format (.vdb)"
-msgstr "umbizo la faili la OpenVDB (.vdb)"
-
-
-msgid "Raw Cache"
-msgstr "Cache ghafi"
-
-
-msgid "Raw file format (.raw)"
-msgstr "Umbizo la faili mbichi (.ghafi)"
-
-
 msgid "Uni file format"
 msgstr "Umbizo la faili Uni"
 
@@ -118619,10 +118592,6 @@ msgstr "Ukaguzi wa Scene ya VR"
 
 msgid "View the viewport with virtual reality glasses (head-mounted displays)"
 msgstr "Ona kituo cha kutazama na glasi za uhalisia pepe (maonyesho yaliyowekwa kichwani)"
-
-
-msgid "All Add-ons"
-msgstr "Viongezi vyote"
 
 
 msgid "All Add-ons Installed by User"

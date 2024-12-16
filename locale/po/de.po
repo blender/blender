@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'cfa63bfefa5b')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'2eb53ba3b21b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-09 09:50+0000\n"
+"POT-Creation-Date: 2024-12-16 09:31+0000\n"
 "PO-Revision-Date: 2024-12-08 20:56+0000\n"
 "Last-Translator: Thomas Radeke <rahdick@gmx.de>\n"
 "Language-Team: German <https://translate.blender.org/projects/blender-ui/ui/de/>\n"
@@ -29976,11 +29976,6 @@ msgstr "Richtung, um das aktive Lesezeichen in Richtung"
 
 
 msgctxt "Operator"
-msgid "Cancel File Load"
-msgstr "Laden der Datei abbrechen"
-
-
-msgctxt "Operator"
 msgid "Delete Selected Files"
 msgstr "Ausgewählte Datei löschen"
 
@@ -34118,11 +34113,6 @@ msgid "Maintain parent child relationships"
 msgstr "Eltern-Kind-Beziehungen beibehalten"
 
 
-msgctxt "Operator"
-msgid "Toggle Edit Mode"
-msgstr "Bearbeitungsmodus umschalten"
-
-
 msgid "Toggle object's edit mode"
 msgstr "Bearbeitungsmodus eines Objekts umschalten"
 
@@ -35826,11 +35816,6 @@ msgstr "Projektionsbild"
 
 msgid "Use the mouse to sample a color in the image"
 msgstr "Maus benützen, um eine Farbe im Bild abzutasten"
-
-
-msgctxt "Operator"
-msgid "Texture Paint Toggle"
-msgstr "Texturmalerei"
 
 
 msgid "Highlight Angle"
@@ -40447,14 +40432,6 @@ msgid "Active Palette Color"
 msgstr "Aktive Farbpalette"
 
 
-msgid "Overlays"
-msgstr "Überlagerungen"
-
-
-msgid "Guides"
-msgstr "Hilfslinien"
-
-
 msgid "Motion Tracking"
 msgstr "Bewegungsverfolgung"
 
@@ -40481,6 +40458,10 @@ msgstr "Transformationsausrichtung"
 
 msgid "Drawing Plane"
 msgstr "Malfläche"
+
+
+msgid "Guides"
+msgstr "Hilfslinien"
 
 
 msgid "Quad View"
@@ -40529,6 +40510,10 @@ msgstr "Renderdurchgänge"
 
 msgid "Compositor"
 msgstr "Setzer"
+
+
+msgid "Overlays"
+msgstr "Überlagerungen"
 
 
 msgid "Chain Scaling"
@@ -60756,10 +60741,6 @@ msgstr "Entfernte Ebene"
 
 msgid "Pose Library"
 msgstr "Posen-Bibliothek"
-
-
-msgid "All Add-ons"
-msgstr "Alle Add-Ons"
 
 
 msgid "All Add-ons Installed by User"

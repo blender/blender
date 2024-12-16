@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'cfa63bfefa5b')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'2eb53ba3b21b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-09 09:50+0000\n"
-"PO-Revision-Date: 2024-11-30 12:56+0000\n"
+"POT-Creation-Date: 2024-12-16 09:31+0000\n"
+"PO-Revision-Date: 2024-12-13 19:56+0000\n"
 "Last-Translator: Alessandro Vecchio <alessandrovecchio1907@gmail.com>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
 "Language: it\n"
@@ -545,6 +545,10 @@ msgstr "Spazio di Lavoro"
 msgctxt "ID"
 msgid "World"
 msgstr "Mondo"
+
+
+msgid "Slot Identifier"
+msgstr "Identificatore Slot"
 
 
 msgid "Slot Display Name"
@@ -12219,6 +12223,10 @@ msgid "Speed of the burning reaction (higher value results in smaller flames)"
 msgstr "Velocità della reazione di combustione (un valore più alto si traduce in fiamme più piccole)"
 
 
+msgid "Uni Cache"
+msgstr "Cache Uni"
+
+
 msgid "End"
 msgstr "Fine"
 
@@ -15912,10 +15920,6 @@ msgstr "Casella di Testo Attiva"
 
 msgid "Horizontal Alignment"
 msgstr "Allineamento Orizzontale"
-
-
-msgid "Text horizontal alignment from the object center"
-msgstr "Allineamento orizzontale del testo dal centro dell'oggetto"
 
 
 msgid "Align text to the left"
@@ -35662,15 +35666,6 @@ msgstr "Fine della lista"
 
 
 msgctxt "Operator"
-msgid "Cancel File Load"
-msgstr "Annulla Carica File"
-
-
-msgid "Cancel loading of selected file"
-msgstr "Annulla il caricamento del file selezionato"
-
-
-msgctxt "Operator"
 msgid "Delete Selected Files"
 msgstr "Cancella i File Selezionati"
 
@@ -42388,11 +42383,6 @@ msgid "Add to Palette"
 msgstr "Aggiungi alla Tavolozza"
 
 
-msgctxt "Operator"
-msgid "Texture Paint Toggle"
-msgstr "Commuta Pittura Texture"
-
-
 msgid "Change selection for all vertices"
 msgstr "Cambia la selezione per tutti i vertici"
 
@@ -47862,10 +47852,6 @@ msgid "Active Palette Color"
 msgstr "Colore Tavolozza Attivo"
 
 
-msgid "Overlays"
-msgstr "Sovrapposizioni"
-
-
 msgid "Motion Tracking"
 msgstr "Tracciatura Movimento"
 
@@ -47912,6 +47898,10 @@ msgstr "Passaggi Render"
 
 msgid "Compositor"
 msgstr "Compositore"
+
+
+msgid "Overlays"
+msgstr "Sovrapposizioni"
 
 
 msgid "Chain Scaling"
@@ -63327,6 +63317,10 @@ msgid "Could not create new folder: %s"
 msgstr "Impossibile creare la nuova cartella: %s"
 
 
+msgid "Copy Bundle to Asset Library..."
+msgstr "Copia Bundle nella Libreria Risorse..."
+
+
 msgid "File name, overwrite existing"
 msgstr "Nome del file, sovrascrive l'esistente"
 
@@ -64513,10 +64507,6 @@ msgid "Relationship"
 msgstr "Relazioni"
 
 
-msgid "Uni Cache"
-msgstr "Cache Uni"
-
-
 msgid "Flame"
 msgstr "Fiamma"
 
@@ -65581,10 +65571,6 @@ msgstr "Libreria Pose"
 
 msgid "UV Layout"
 msgstr "Layout UV"
-
-
-msgid "All Add-ons"
-msgstr "Tutti gli Add-on"
 
 
 msgid "All Add-ons Installed by User"

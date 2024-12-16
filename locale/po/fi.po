@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'cfa63bfefa5b')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'2eb53ba3b21b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-09 09:50+0000\n"
+"POT-Creation-Date: 2024-12-16 09:31+0000\n"
 "PO-Revision-Date: 2024-10-16 00:56+0000\n"
 "Last-Translator: Leevi Oksanen <laavi.oksanen@gmail.com>\n"
 "Language-Team: Finnish <https://translate.blender.org/projects/blender-ui/ui/fi/>\n"
@@ -5724,6 +5724,14 @@ msgstr "2D-vektori"
 
 msgid "3D vector"
 msgstr "3D-vektori"
+
+
+msgid "OpenVDB"
+msgstr "OpenVDB"
+
+
+msgid "Raw Cache"
+msgstr "Raaka välimuisti"
 
 
 msgid "End"
@@ -15649,14 +15657,6 @@ msgid "Binary Object"
 msgstr "Binääriobjekti"
 
 
-msgid "OpenVDB"
-msgstr "OpenVDB"
-
-
-msgid "Raw Cache"
-msgstr "Raaka välimuisti"
-
-
 msgid "X Velocity"
 msgstr "X-nopeus"
 
@@ -17836,10 +17836,6 @@ msgstr "Tuo SVG-käyrinä"
 
 msgid "UV Layout"
 msgstr "UV-asetelma"
-
-
-msgid "All Add-ons"
-msgstr "Kaikki lisäosat"
 
 
 msgid "All Add-ons Installed by User"

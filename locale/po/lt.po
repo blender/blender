@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'cfa63bfefa5b')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'2eb53ba3b21b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-09 09:50+0000\n"
+"POT-Creation-Date: 2024-12-16 09:31+0000\n"
 "PO-Revision-Date: 2024-11-14 16:56+0000\n"
 "Last-Translator: Aras Pranckevičius <aras@nesnausk.org>\n"
 "Language-Team: Lithuanian <https://translate.blender.org/projects/blender-ui/ui/lt/>\n"
@@ -2189,6 +2189,10 @@ msgstr "Importavimo būdas"
 
 msgid "Domain Settings"
 msgstr "Domeno-Srities nustatymai"
+
+
+msgid "OpenVDB"
+msgstr "„OpenVDB“"
 
 
 msgid "CFL"
@@ -4777,10 +4781,6 @@ msgstr "Išsaugota „%s“"
 
 msgid "custom"
 msgstr "pasirinktinis/-ė"
-
-
-msgid "OpenVDB"
-msgstr "„OpenVDB“"
 
 
 msgid "Save As..."

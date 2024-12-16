@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'cfa63bfefa5b')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'2eb53ba3b21b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-09 09:50+0000\n"
+"POT-Creation-Date: 2024-12-16 09:31+0000\n"
 "PO-Revision-Date: 2023-11-14 19:14+0000\n"
 "Last-Translator: Lee YeonJoo <yzoo2@naver.com>\n"
 "Language-Team: Korean <https://translate.blender.org/projects/blender-ui/ui/ko/>\n"
@@ -39468,15 +39468,6 @@ msgstr "목록의 맨 아래로"
 
 
 msgctxt "Operator"
-msgid "Cancel File Load"
-msgstr "파일 불러오기를 취소"
-
-
-msgid "Cancel loading of selected file"
-msgstr "선택된 파일의 불러오기를 취소"
-
-
-msgctxt "Operator"
 msgid "Delete Selected Files"
 msgstr "선택된 파일을 삭제함"
 
@@ -48365,11 +48356,6 @@ msgid "Add to Palette"
 msgstr "팔레트에 추가"
 
 
-msgctxt "Operator"
-msgid "Texture Paint Toggle"
-msgstr "텍스처 페인트 토글"
-
-
 msgid "Toggle texture paint mode in 3D view"
 msgstr "3D 뷰에서 텍스처 페인트 모드를 토글"
 
@@ -55699,14 +55685,6 @@ msgid "Panel containing UI elements"
 msgstr "UI 요소가 포함된 패널"
 
 
-msgid "Overlays"
-msgstr "오버레이"
-
-
-msgid "Guides"
-msgstr "가이드"
-
-
 msgid "Motion Tracking"
 msgstr "모션 트래킹"
 
@@ -55737,6 +55715,10 @@ msgstr "스트로크 배치"
 
 msgid "Drawing Plane"
 msgstr "드로잉 평면"
+
+
+msgid "Guides"
+msgstr "가이드"
 
 
 msgid "Quad View"
@@ -55777,6 +55759,10 @@ msgstr "SSAO 설정"
 
 msgid "Render Pass"
 msgstr "렌더 패스"
+
+
+msgid "Overlays"
+msgstr "오버레이"
 
 
 msgid "Bone Constraints"
@@ -81020,10 +81006,6 @@ msgstr "스테레오 3D 모드는 전체 화면 할 수 있는 창이 필요"
 
 msgid "Pose Library"
 msgstr "포즈 라이브러리"
-
-
-msgid "All Add-ons"
-msgstr "모든 애드온"
 
 
 msgid "All Add-ons Installed by User"

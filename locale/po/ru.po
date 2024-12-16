@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'cfa63bfefa5b')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'2eb53ba3b21b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-09 09:50+0000\n"
-"PO-Revision-Date: 2024-12-09 07:27+0000\n"
+"POT-Creation-Date: 2024-12-16 09:31+0000\n"
+"PO-Revision-Date: 2024-12-10 12:00+0000\n"
 "Last-Translator: Fatih Alexandr <radix83@rambler.ru>\n"
 "Language-Team: Russian <https://translate.blender.org/projects/blender-ui/ui/ru/>\n"
 "Language: ru\n"
@@ -2493,7 +2493,7 @@ msgstr "Состояние выделения рукоятки 2"
 
 
 msgid "Tilt"
-msgstr "Наклон оси"
+msgstr "Наклон по оси"
 
 
 msgid "Tilt in 3D View"
@@ -14064,6 +14064,18 @@ msgid "Select the file format to be used for caching volumetric data"
 msgstr "Формат файла для хранения кэша волюметрических данных"
 
 
+msgid "Uni Cache"
+msgstr "Uni Cache"
+
+
+msgid "OpenVDB"
+msgstr "OpenVDB"
+
+
+msgid "OpenVDB file format (.vdb)"
+msgstr "Формат файла OpenVDB (.vdb)"
+
+
 msgid "Cache directory"
 msgstr "Папка кэша"
 
@@ -19676,6 +19688,26 @@ msgid "Curve object name that defines the taper (width)"
 msgstr "Объект кривой, управляющей конусообразными сужениями (шириной)"
 
 
+msgid "Taper Radius"
+msgstr "Радиус сужения"
+
+
+msgid "Determine how the effective radius of the spline point is computed when a taper object is specified"
+msgstr "Определить, как вычисляется эффективный радиус точки сплайна, когда указан объект сужения"
+
+
+msgid "Override the radius of the spline point with the taper radius"
+msgstr "Заменить радиус точки сплайна радиусом сужения"
+
+
+msgid "Multiply the radius of the spline point by the taper radius"
+msgstr "Умножить радиус точки сплайна на радиус сужения"
+
+
+msgid "Add the radius of the bevel point to the taper radius"
+msgstr "Добавить радиус фаски к радиусу сужения"
+
+
 msgid "Texture Space Location"
 msgstr "Положение текстурного пространства"
 
@@ -19685,7 +19717,7 @@ msgstr "Размер текстурного пространства"
 
 
 msgid "Twist Method"
-msgstr "Расчёт уклона"
+msgstr "Метод скручивания"
 
 
 msgid "The type of tilt calculation for 3D Curves"
@@ -19768,6 +19800,10 @@ msgid "Option for paths and curve-deform: apply the curve radius to objects foll
 msgstr "Опция для путей и деформации кривой: применять радиус кривой к объектам, следующим за ним, и к деформированным объектам"
 
 
+msgid "Option for curve-deform: make deformed child stretch along entire path"
+msgstr "Настройка для деформации по кривой: растягивать деформированных потомков вдоль всего пути"
+
+
 msgid "Surface Curve"
 msgstr "Кривая поверхности"
 
@@ -19786,10 +19822,6 @@ msgstr "Датаблок кривой для хранения текста"
 
 msgid "Horizontal Alignment"
 msgstr "Горизонтальное выравнивание"
-
-
-msgid "Text horizontal alignment from the object center"
-msgstr "Горизонтальное выравнивание текста по центру объекта"
 
 
 msgid "Align text to the left"
@@ -45620,16 +45652,6 @@ msgstr "Коллекция эффектов объекта"
 
 
 msgctxt "Operator"
-msgid "Reset to Original"
-msgstr "Сбросить до исходника"
-
-
-msgctxt "Operator"
-msgid "Assign as Original"
-msgstr "Назначить как оригинал"
-
-
-msgctxt "Operator"
 msgid "Clear Useless Actions"
 msgstr "Очистить бесполезные действия"
 
@@ -51330,7 +51352,7 @@ msgstr "Тип сплайна"
 
 
 msgid "Toggle Free/Align"
-msgstr "Переключить свободную рукоятку или с выравниванием"
+msgstr "Переключить на свободную рукоятку или с выравниванием"
 
 
 msgid "Hide (un)selected control points"
@@ -52767,15 +52789,6 @@ msgstr "На верх списка"
 
 msgid "Bottom of the list"
 msgstr "В низ списка"
-
-
-msgctxt "Operator"
-msgid "Cancel File Load"
-msgstr "Отменить загрузку файла"
-
-
-msgid "Cancel loading of selected file"
-msgstr "Отменить загрузку выбранного файла"
 
 
 msgctxt "Operator"
@@ -60611,11 +60624,6 @@ msgid "Maintain parent child relationships"
 msgstr "Сохранять отношение родитель-потомок"
 
 
-msgctxt "Operator"
-msgid "Toggle Edit Mode"
-msgstr "Переключить режим редактирования"
-
-
 msgid "Toggle object's edit mode"
 msgstr "Переключить режим редактирования объекта"
 
@@ -63833,11 +63841,6 @@ msgstr "Сэмплировать выходной экранный цвет"
 
 msgid "Add to Palette"
 msgstr "Добавить в палитру"
-
-
-msgctxt "Operator"
-msgid "Texture Paint Toggle"
-msgstr "Переключить режим рисования на текстуре"
 
 
 msgid "Toggle texture paint mode in 3D view"
@@ -72837,14 +72840,6 @@ msgid "Panel containing UI elements"
 msgstr "Панель содержит элементы интерфейса"
 
 
-msgid "Overlays"
-msgstr "Наложения"
-
-
-msgid "Guides"
-msgstr "Направляющие"
-
-
 msgid "Viewer Node"
 msgstr "Нода предпросмотра"
 
@@ -72879,6 +72874,10 @@ msgstr "Расположение штрихов"
 
 msgid "Drawing Plane"
 msgstr "Плоскость рисования"
+
+
+msgid "Guides"
+msgstr "Направляющие"
 
 
 msgid "Quad View"
@@ -72931,6 +72930,10 @@ msgstr "Проход рендера"
 
 msgid "Compositor"
 msgstr "Композитор"
+
+
+msgid "Overlays"
+msgstr "Наложения"
 
 
 msgid "Bone Constraints"
@@ -80044,10 +80047,6 @@ msgstr "Использовать мультисэмплированное раз
 
 msgid "Use multiple views in the scene"
 msgstr "Использовать несколько видов для этой сцены"
-
-
-msgid "Use New CPU Compositor"
-msgstr "Использовать новый CPU компо́зитор"
 
 
 msgid "Overwrite existing files while rendering"
@@ -91706,6 +91705,11 @@ msgstr "Сбросить до исходника"
 
 
 msgctxt "Operator"
+msgid "Assign as Original"
+msgstr "Назначить как оригинал"
+
+
+msgctxt "Operator"
 msgid "Multiple Images"
 msgstr "Несколько изображений"
 
@@ -94919,11 +94923,6 @@ msgstr "Удалить из рамки"
 
 
 msgctxt "Operator"
-msgid "Insert Into Group"
-msgstr "Вставить в группу"
-
-
-msgctxt "Operator"
 msgid "Mute"
 msgstr "Выключить"
 
@@ -94998,13 +94997,13 @@ msgstr "Создать и заменить связи"
 
 
 msgctxt "Operator"
-msgid "Find..."
-msgstr "Найти..."
+msgid "Insert Into Group"
+msgstr "Вставить в группу"
 
 
 msgctxt "Operator"
-msgid "Exit Group"
-msgstr "Покинуть группу"
+msgid "Find..."
+msgstr "Найти..."
 
 
 msgctxt "Operator"
@@ -95032,6 +95031,11 @@ msgstr "Увеличить подложку"
 msgctxt "Operator"
 msgid "Backdrop Zoom Out"
 msgstr "Уменьшить подложку"
+
+
+msgctxt "Operator"
+msgid "Exit Group"
+msgstr "Покинуть группу"
 
 
 msgid "Slot {:d}"
@@ -98002,10 +98006,6 @@ msgstr "Документы"
 
 msgid "Saved \"%s\""
 msgstr "«%s» сохранено"
-
-
-msgid "Domain unsupported for \"id\" attribute"
-msgstr "Домен не поддерживается для атрибута \"id\""
 
 
 msgid "Attribute domain not supported by this geometry type"
@@ -104783,18 +104783,6 @@ msgid "Binary object file format (.bobj.gz)"
 msgstr "Формат файла двоичного объекта (.bobj.gz)"
 
 
-msgid "Uni Cache"
-msgstr "Uni Cache"
-
-
-msgid "OpenVDB"
-msgstr "OpenVDB"
-
-
-msgid "OpenVDB file format (.vdb)"
-msgstr "Формат файла OpenVDB (.vdb)"
-
-
 msgid "X component of the force field"
 msgstr "X-компонента силового поля"
 
@@ -108524,10 +108512,6 @@ msgstr "UV-макет"
 
 msgid "Export the UV layout as a 2D graphic"
 msgstr "Экспортировать UV-развёртку в 2D-графику"
-
-
-msgid "All Add-ons"
-msgstr "Все аддоны"
 
 
 msgid "All Add-ons Installed by User"

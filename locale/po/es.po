@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'cfa63bfefa5b')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'2eb53ba3b21b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-09 09:50+0000\n"
-"PO-Revision-Date: 2024-12-07 03:56+0000\n"
+"POT-Creation-Date: 2024-12-16 09:31+0000\n"
+"PO-Revision-Date: 2024-12-15 01:56+0000\n"
 "Last-Translator: Gabriel Gazzán <gabcorreo@gmail.com>\n"
 "Language-Team: Spanish <https://translate.blender.org/projects/blender-ui/ui/es/>\n"
 "Language: es\n"
@@ -401,6 +401,14 @@ msgstr "Permite definir si este es el contenedor activo; podrá ser definido asi
 
 msgid "Slot Handle"
 msgstr "Identificador del contenedor"
+
+
+msgid ""
+"Number specific to this Slot, unique within the Action.\n"
+"This is used, for example, on a ActionKeyframeStrip to look up the ActionChannelbag for this Slot"
+msgstr ""
+"Número específico para este contenedor, único dentro de la acción.\n"
+"Es usado, por ejemplo, al insertar claves en un clip de acción para consultar la bolsa de canales usada para este contenedor"
 
 
 msgctxt "ID"
@@ -13209,6 +13217,10 @@ msgid "Lacunarity"
 msgstr "Lacunaridad"
 
 
+msgid "Gap between successive frequencies. Depth needs to be greater than 0 for this to have an effect"
+msgstr "Distancia entre dos frecuencias sucesivas. La profundidad deberá ser mayor a 0 para que esto surta efecto"
+
+
 msgid "Time offset for the noise effect"
 msgstr "Desplazamiento de tiempo para el efecto de ruido"
 
@@ -13225,12 +13237,24 @@ msgid "Roughness"
 msgstr "Rugosidad"
 
 
+msgid "Amount of high frequency detail. Depth needs to be greater than 0 for this to have an effect"
+msgstr "Cantidad de detalle de alta frecuencia. La profundidad necesitará ser mayor a 0 para que esto surta efecto"
+
+
 msgid "Scaling (in time) of the noise"
 msgstr "Escalado del ruido (en tiempo)"
 
 
 msgid "Amplitude of the noise - the amount that it modifies the underlying curve"
 msgstr "Amplitud del ruido - la magnitud en que modifica a la curva subyacente"
+
+
+msgid "Legacy Noise"
+msgstr "Ruido antiguo"
+
+
+msgid "Use the legacy way of generating noise. Has the issue that it can produce values outside of -1/1"
+msgstr "Usar el método antiguo de generar ruido. Presenta el inconveniente de que podría producir valores por fuera del rango entre -1 y 1"
 
 
 msgid "Stepped Interpolation F-Modifier"
@@ -14609,6 +14633,30 @@ msgid "Select the file format to be used for caching volumetric data"
 msgstr "Seleccionar el formato de archivo a ser usado para el caché de datos volumétricos"
 
 
+msgid "Uni Cache"
+msgstr "Caché Uni"
+
+
+msgid "Uni file format (.uni)"
+msgstr "Formato de archivo Uni (.uni)"
+
+
+msgid "OpenVDB"
+msgstr "OpenVDB"
+
+
+msgid "OpenVDB file format (.vdb)"
+msgstr "Formato de archivo OpenVDB (.vdb)"
+
+
+msgid "Raw Cache"
+msgstr "Caché crudo"
+
+
+msgid "Raw file format (.raw)"
+msgstr "Formato de archivo Raw (.raw)"
+
+
 msgid "Cache directory"
 msgstr "Directorio del caché"
 
@@ -15528,6 +15576,14 @@ msgstr "Dominio adaptativo"
 
 msgid "Adapt simulation resolution and size to fluid"
 msgstr "Adapta la resolución y el tamaño de la simulación al fluido"
+
+
+msgid "Adaptive Time Steps"
+msgstr "Intervalos de tiempo adaptativos"
+
+
+msgid "Automatically decide when to perform multiple simulation steps per frame"
+msgstr "Permite que el método de resolución decida automáticamente cuándo utilizar intervalos adicionales de simulación por cada fotograma"
 
 
 msgid "Bubble"
@@ -21683,10 +21739,6 @@ msgid "Horizontal Alignment"
 msgstr "Alineación horizontal"
 
 
-msgid "Text horizontal alignment from the object center"
-msgstr "Alineación horizontal del texto con respecto al centro del objeto"
-
-
 msgid "Align text to the left"
 msgstr "Alinea el texto a la izquierda"
 
@@ -24846,6 +24898,10 @@ msgid "Color tag of the node group which influences the header color"
 msgstr "Etiqueta de color del grupo de nodos, que influenciará al color de su encabezado"
 
 
+msgid "Default color tag for new nodes and node groups"
+msgstr "Etiqueta de color predefinida para nuevos nodos y grupos de nodos"
+
+
 msgid "Attribute"
 msgstr "Atributo"
 
@@ -27535,6 +27591,10 @@ msgstr "Opciones del espacio de color en el que trabaja el editor de video"
 
 msgid "Show Subframe"
 msgstr "Mostrar subfotogramas"
+
+
+msgid "Display and allow setting fractional frame values for the current frame"
+msgstr "Mostrar y permitir establecer valores de fotograma con decimales para el fotograma actual"
 
 
 msgid "Simulation Frame End"
@@ -43805,6 +43865,10 @@ msgid "Custom color of the node body"
 msgstr "Color presonalizado del cuerpo del nodo"
 
 
+msgid "Node header color tag"
+msgstr "Etiqueta de color del encabezado del nodo"
+
+
 msgid "Absolute bounding box dimensions of the node"
 msgstr "Dimensiones absolutas del volumen delimitador del nodo"
 
@@ -48149,6 +48213,10 @@ msgid "Retrieve the scene's active camera"
 msgstr "Proporciona la cámara activa de la escena"
 
 
+msgid "Output a single collection"
+msgstr "Producir una única colección"
+
+
 msgid "Curve Handle Positions"
 msgstr "Posición de asas curva"
 
@@ -48291,6 +48359,10 @@ msgstr "Permite realizar una selección a partir de una capa de Grease Pencil"
 
 msgid "Retrieve a unit length vector indicating the direction pointing away from the geometry at each element"
 msgstr "Proporciona un versor que indica la dirección que apunta hacia afuera de una geometría, en cada elemento"
+
+
+msgid "Output a single object"
+msgstr "Producir un único objeto"
 
 
 msgid "Retrieve a vector indicating the location of each element"
@@ -52725,61 +52797,6 @@ msgid "Collection of object effects"
 msgstr "Colección de efectos del objeto"
 
 
-msgctxt "Operator"
-msgid "Add Material Variant"
-msgstr "Agregar variante de material"
-
-
-msgctxt "Operator"
-msgid "Remove Variant"
-msgstr "Eliminar variante"
-
-
-msgctxt "Operator"
-msgid "Display Variant"
-msgstr "Mostrar variante"
-
-
-msgctxt "Operator"
-msgid "Assign To Variant"
-msgstr "Asignar a variante"
-
-
-msgctxt "Operator"
-msgid "Reset to Original"
-msgstr "Restablecer a original"
-
-
-msgctxt "Operator"
-msgid "Assign as Original"
-msgstr "Asignar como original"
-
-
-msgctxt "Operator"
-msgid "Add new Slot"
-msgstr "Agregar nuevo contenedor"
-
-
-msgctxt "Operator"
-msgid "Assign Material To Variant"
-msgstr "Asignar material a variante"
-
-
-msgctxt "Operator"
-msgid "Remove a variant Slot"
-msgstr "Eliminar contenedor de variante"
-
-
-msgctxt "Operator"
-msgid "Apply glTF animation"
-msgstr "Aplicar animación glTF"
-
-
-msgctxt "Operator"
-msgid "Operator"
-msgstr "Operador"
-
-
 msgid "Mark actions with no F-Curves for deletion after save and reload of file preserving \"action libraries\""
 msgstr "Marcar las acciones sin curvas-f para ser borradas luego de guardar y recargar el archivo, preservando las \"bibliotecas de acciones\""
 
@@ -55084,10 +55101,6 @@ msgstr "Actualiza el repositorio de trabajo i18n (archivos .po)"
 msgctxt "Operator"
 msgid "Update I18n Work Repository"
 msgstr "Actualizar repositorio de trabajo I18n"
-
-
-msgid "Add an entry to the list"
-msgstr "Agrega una entrada a la lista"
 
 
 msgid "Align the UV island's rotation"
@@ -59014,11 +59027,11 @@ msgstr "Eje a lo largo del cual alinear el marcador 3D"
 
 
 msgid "Align bundle align X axis"
-msgstr "Alínea el marcador 3D a lo largo del eje X"
+msgstr "Alinea el marcador 3D a lo largo del eje X"
 
 
 msgid "Align bundle align Y axis"
-msgstr "Alínea el marcador 3D a lo largo del eje Y"
+msgstr "Alinea el marcador 3D a lo largo del eje Y"
 
 
 msgctxt "Operator"
@@ -62486,15 +62499,6 @@ msgstr "La cima de la lista"
 
 msgid "Bottom of the list"
 msgstr "El fondo de la lista"
-
-
-msgctxt "Operator"
-msgid "Cancel File Load"
-msgstr "Cancelar carga de archivo"
-
-
-msgid "Cancel loading of selected file"
-msgstr "Cancela la carga del archivo seleccionado"
 
 
 msgctxt "Operator"
@@ -73188,11 +73192,6 @@ msgid "Maintain parent child relationships"
 msgstr "Mantener relaciones jerárquicas"
 
 
-msgctxt "Operator"
-msgid "Toggle Edit Mode"
-msgstr "Alternar modo Edición"
-
-
 msgid "Toggle object's edit mode"
 msgstr "Alterna el modo de Edición del objeto"
 
@@ -77348,11 +77347,6 @@ msgstr "Toma una muestra del color visualizado en pantalla"
 
 msgid "Add to Palette"
 msgstr "Agregar a la paleta"
-
-
-msgctxt "Operator"
-msgid "Texture Paint Toggle"
-msgstr "Alternar Pintar Texturas"
 
 
 msgid "Toggle texture paint mode in 3D view"
@@ -84294,6 +84288,10 @@ msgid "Reset this property's value to its default value"
 msgstr "Restablecer el valor de esta propiedad"
 
 
+msgid "Add an entry to the list"
+msgstr "Agrega una entrada a la lista"
+
+
 msgctxt "Operator"
 msgid "Unset Property"
 msgstr "Quitar propiedad"
@@ -87535,6 +87533,14 @@ msgid "Resize the objects to keep bounding box under this value. Value 0 disable
 msgstr "Redimensiona los objetos para mantener el volumen delimitador por debajo de este valor. Un valor de 0 deshabilita la limitación"
 
 
+msgid "Detect Cyclic Curves"
+msgstr "Detectar curvas cíclicas"
+
+
+msgid "Join curve endpoints if overlapping control points are detected(if disabled, no curves will be cyclic)"
+msgstr "Unir los extremos de la curva cuando se detecten puntos de control superpuestos (en caso de estar inactiva, ninguna curva será cíclica)"
+
+
 msgid "Path Separator"
 msgstr "Separador de rutas"
 
@@ -88698,10 +88704,6 @@ msgstr "Genera un sombreador de Previsualización de Superficies de USD para apr
 
 msgid "Merge parent Xform"
 msgstr "Fundir transformación de superior"
-
-
-msgid "Merge USD primitives with their Xform parent if possible: USD does not allow nested UsdGeomGprim. Intermediary Xform will be defined to keep the USD file valid."
-msgstr "Fundir las primitivas USD con la transformación de su superior, cuando esto sea posible: USD no permite UsdGeomGprim anidadas. Se definirá una transformación intermedia para mantener la validez del archivo USD."
 
 
 msgid "Only export deform bones and their parents"
@@ -90002,14 +90004,6 @@ msgid "Panel containing UI elements"
 msgstr "Panel que contiene elementos de la interfaz"
 
 
-msgid "Overlays"
-msgstr "Sobreimpresos"
-
-
-msgid "Guides"
-msgstr "Guías"
-
-
 msgid "Viewer Node"
 msgstr "Nodo Visor"
 
@@ -90048,6 +90042,10 @@ msgstr "Ubicación del trazo"
 
 msgid "Drawing Plane"
 msgstr "Plano de dibujo"
+
+
+msgid "Guides"
+msgstr "Guías"
 
 
 msgid "Grease Pencil Options"
@@ -90144,6 +90142,10 @@ msgstr "Pasada de procesamiento"
 
 msgid "Compositor"
 msgstr "Nodos de composición"
+
+
+msgid "Overlays"
+msgstr "Sobreimpresos"
 
 
 msgid "Chain Scaling"
@@ -93576,14 +93578,6 @@ msgstr "Usar claves visuales de forma automática, para objetos con restriccione
 
 msgid "Experimental features"
 msgstr "Características experimentales"
-
-
-msgid "CPU Compositor"
-msgstr "Compositor por CPU"
-
-
-msgid "Enable the new CPU compositor"
-msgstr "Habilitar el nuevo compositor por CPU"
 
 
 msgid "No Override Auto Resync"
@@ -99798,14 +99792,6 @@ msgid "Use multiple views in the scene"
 msgstr "Permite usar múltiples vistas en la escena"
 
 
-msgid "Use New CPU Compositor"
-msgstr "Usar nuevo compositor por CPU"
-
-
-msgid "Use the new CPU compositor implementation"
-msgstr "Permite usar la nueva implementación del compositor por CPU"
-
-
 msgid "Overwrite existing files while rendering"
 msgstr "Sobrescribir archivos existentes durante el procesamiento"
 
@@ -104068,7 +104054,7 @@ msgstr "Muestra la proyección de los marcadores 3D en la película"
 
 
 msgid "Show Disabled"
-msgstr "Mostrar deshabilitado"
+msgstr "Mostrar deshabilitados"
 
 
 msgid "Show disabled tracks from the footage"
@@ -116679,8 +116665,28 @@ msgstr "Filtrar acciones"
 
 
 msgctxt "Operator"
+msgid "Display Variant"
+msgstr "Mostrar variante"
+
+
+msgctxt "Operator"
+msgid "Assign To Variant"
+msgstr "Asignar a variante"
+
+
+msgctxt "Operator"
 msgid "Reset To Original"
 msgstr "Restablecer a original"
+
+
+msgctxt "Operator"
+msgid "Assign as Original"
+msgstr "Asignar como original"
+
+
+msgctxt "Operator"
+msgid "Add Material Variant"
+msgstr "Agregar variante de material"
 
 
 msgid "No glTF Animation"
@@ -119760,7 +119766,7 @@ msgstr "Huecos"
 
 msgctxt "Operator"
 msgid "Scale Feather"
-msgstr "Redimensionar esfumado"
+msgstr "Escalar esfumado"
 
 
 msgctxt "Operator"
@@ -122105,11 +122111,6 @@ msgstr "Eliminar del marco"
 
 
 msgctxt "Operator"
-msgid "Insert Into Group"
-msgstr "Insertar en grupo"
-
-
-msgctxt "Operator"
 msgid "Mute"
 msgstr "Deshabilitar"
 
@@ -122136,10 +122137,6 @@ msgstr "Proyección en X"
 msgctxt "Operator"
 msgid "Fit"
 msgstr "Ajustar"
-
-
-msgid "Experimental CPU Implementation"
-msgstr "Implementación experimental por CPU"
 
 
 msgid "Node Editor Overlays"
@@ -122188,6 +122185,11 @@ msgstr "Crear y reemplazar vínculos"
 
 
 msgctxt "Operator"
+msgid "Insert Into Group"
+msgstr "Insertar en grupo"
+
+
+msgctxt "Operator"
 msgid "Node Preview"
 msgstr "Previsualización de nodo"
 
@@ -122205,11 +122207,6 @@ msgstr "Buscar..."
 msgctxt "Operator"
 msgid "Link to Viewer"
 msgstr "Vincular a nodo Visor"
-
-
-msgctxt "Operator"
-msgid "Exit Group"
-msgstr "Salir del grupo"
 
 
 msgctxt "Operator"
@@ -122237,6 +122234,11 @@ msgstr "Ampliar imagen de fondo"
 msgctxt "Operator"
 msgid "Backdrop Zoom Out"
 msgstr "Reducir imagen de fondo"
+
+
+msgctxt "Operator"
+msgid "Exit Group"
+msgstr "Salir del grupo"
 
 
 msgid "Closed by Default"
@@ -122778,6 +122780,11 @@ msgstr "Clip"
 msgctxt "Operator"
 msgid "Move/Extend from Current Frame"
 msgstr "Mover/Extender desde el fotograma actual"
+
+
+msgctxt "Operator"
+msgid "Remove Gaps (All)"
+msgstr "Eliminar huecos (todo)"
 
 
 msgctxt "Operator"
@@ -126375,18 +126382,6 @@ msgid "Saved \"%s\""
 msgstr "\"%s\" guardado"
 
 
-msgid "Unable to create builtin attribute in edit mode"
-msgstr "No es posible crear un atributo interno en modo Edición"
-
-
-msgid "Domain unsupported for \"id\" attribute"
-msgstr "Dominio no soportado para el atributo \"id\""
-
-
-msgid "Type unsupported for \"id\" attribute"
-msgstr "Tipo no soportado para el atributo \"id\""
-
-
 msgid "Attribute name cannot be empty"
 msgstr "El nombre del atributo no puede estar vacío"
 
@@ -127885,14 +127880,6 @@ msgstr "Los anillos de bordes no están conectados"
 
 msgid "color_index is invalid"
 msgstr "color_index es inválido"
-
-
-msgid "Compositing | Initializing execution"
-msgstr "Composición | Inicializando ejecución"
-
-
-msgid "Compositing | Operation %i-%li"
-msgstr "Composición | Operación %i-%li"
 
 
 msgid "Compositor node tree has cyclic links!"
@@ -131336,8 +131323,16 @@ msgid "Deleted %u object(s)"
 msgstr "Se borraron %u objeto(s)"
 
 
+msgid "Object '%s' has no evaluated Curve or Grease Pencil data"
+msgstr "El objeto '%s' no contiene datos evaluados de curva o Grease Pencil"
+
+
 msgid "Object '%s' has no evaluated mesh or curves data"
 msgstr "El objeto '%s' no contiene datos de mallas o curvas evaluados"
+
+
+msgid "Object '%s' has no evaluated Grease Pencil or Curves data"
+msgstr "El objeto '%s' no contiene datos evaluados de Grease Pencil o de curvas"
 
 
 msgid "Object '%s' has no evaluated curves data"
@@ -133972,6 +133967,10 @@ msgid "No items are selected"
 msgstr "No se han seleccionado elementos"
 
 
+msgid "Copy Bundle to Asset Library..."
+msgstr "Copiar marcador 3D a biblioteca de recursos..."
+
+
 msgid "File name, overwrite existing"
 msgstr "Nombre de archivo, sobrescribir existente"
 
@@ -135731,6 +135730,10 @@ msgstr "Clip de película no encontrado"
 
 msgid "Mask not found"
 msgstr "Máscara no encontrada"
+
+
+msgid "Filename '%s' too long (max length %zu, was %zu)"
+msgstr "Nombre de archivo '%s' demasiado largo (longitud máxima %zu, era %zu)"
 
 
 msgid "File '%s' could not be loaded"
@@ -138069,6 +138072,18 @@ msgid "Length of sizes must be the same as the selection size"
 msgstr "La longitud de los tamaños debe ser la misma que el tamaño de la selección"
 
 
+msgid "Length of reorder indices must be the same as the number of curves"
+msgstr "La longitud de los identificadores de reordenamiento debe ser igual a la cantidad de curvas"
+
+
+msgid "Reorder indices must be valid"
+msgstr "Los identificadores de reordenamiento deben ser válidos"
+
+
+msgid "Reorder indices must not have duplicates"
+msgstr "Los identificadores de reordenamiento no deben tener duplicados"
+
+
 msgid "Dependency graph update requested during evaluation"
 msgstr "Se ha solicitado una actualización de la gráfica de dependencias durante la evaluación"
 
@@ -138127,30 +138142,6 @@ msgstr "Formato de archivo de objeto binario (.bobj.gz)"
 
 msgid "Object file format (.obj)"
 msgstr "Formato de archivo de objeto (.obj)"
-
-
-msgid "Uni Cache"
-msgstr "Caché Uni"
-
-
-msgid "Uni file format (.uni)"
-msgstr "Formato de archivo Uni (.uni)"
-
-
-msgid "OpenVDB"
-msgstr "OpenVDB"
-
-
-msgid "OpenVDB file format (.vdb)"
-msgstr "Formato de archivo OpenVDB (.vdb)"
-
-
-msgid "Raw Cache"
-msgstr "Caché crudo"
-
-
-msgid "Raw file format (.raw)"
-msgstr "Formato de archivo Raw (.raw)"
 
 
 msgid "Uni file format"
@@ -143120,12 +143111,32 @@ msgid "Adds a colored tint to the coat layer by modeling absorption in the layer
 msgstr "Agrega un tinte a la capa de barniz, modelando la absorción de la misma. La saturación aumentará en ángulos llanos, a medida que la luz atraviesa el medio (dependiendo del IR del barniz)"
 
 
+msgid "Intensity of the sheen layer, which simulates very small fibers on the surface"
+msgstr "Intensidad de la capa de brillo tangencial, que simula micro fibras sobre la superficie"
+
+
+msgid "Roughness of the sheen layer. Low and high roughness values produce fuzzy or dusty appearance, respectively"
+msgstr "Rugosidad de la capa de brillo tangencial. Valores muy bajos o altos producirán, respectivamente, apariencias difusas o polvorientas"
+
+
+msgid "Color of the sheen reflection"
+msgstr "Color de reflexión del brillo tangencial"
+
+
 msgid "Color of light emission from the surface"
 msgstr "Color de la luz a ser emitida desde la superficie"
 
 
 msgid "Strength of the emitted light. A value of 1.0 ensures that the object in the image has the exact same color as the Emission Color"
 msgstr "Intensidad de la luz a ser emitida. Un valor de 1.0 asegurará que el objeto en la imagen tenga el color exacto indicado en la opción de Color de emisión"
+
+
+msgid "Thickness of the film in nanometers"
+msgstr "Grosor de la película, expresado en nanómetros"
+
+
+msgid "Index of refraction (IOR) of the thin film"
+msgstr "Índice de refracción (IR) de la película delgada"
 
 
 msgid "IOR Level"
@@ -145159,10 +145170,6 @@ msgstr "Inspección de escena con RV"
 
 msgid "View the viewport with virtual reality glasses (head-mounted displays)"
 msgstr "Permite ver la vista usando un casco de realidad virtual"
-
-
-msgid "All Add-ons"
-msgstr "Todos los complementos"
 
 
 msgid "All Add-ons Installed by User"

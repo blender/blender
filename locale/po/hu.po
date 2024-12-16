@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'cfa63bfefa5b')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'2eb53ba3b21b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-09 09:50+0000\n"
+"POT-Creation-Date: 2024-12-16 09:31+0000\n"
 "PO-Revision-Date: 2024-01-11 03:55+0000\n"
 "Last-Translator: Répási Dávid <hu.repasidavid@protonmail.com>\n"
 "Language-Team: Hungarian <https://translate.blender.org/projects/blender-ui/ui/hu/>\n"
@@ -9455,11 +9455,6 @@ msgstr "Objektum kényszerítők"
 
 
 msgctxt "Operator"
-msgid "Add Material Variant"
-msgstr "Anyagvariáns hozzáadása"
-
-
-msgctxt "Operator"
 msgid "Clear Useless Actions"
 msgstr "Nem használt akciók törlése"
 
@@ -10388,15 +10383,6 @@ msgstr "Könyvjelző hozzáadása a kiválasztott/aktív könyvtár alapján"
 
 msgid "Delete selected bookmark"
 msgstr "Kiválasztott könyvjelző törlése"
-
-
-msgctxt "Operator"
-msgid "Cancel File Load"
-msgstr "Fájl betöltésének visszavonása"
-
-
-msgid "Cancel loading of selected file"
-msgstr "Fájl megnyitásának visszavonása"
 
 
 msgctxt "Operator"
@@ -15521,6 +15507,11 @@ msgid "Deselect"
 msgstr "Kijelölés törlése"
 
 
+msgctxt "Operator"
+msgid "Add Material Variant"
+msgstr "Anyagvariáns hozzáadása"
+
+
 msgid "Description:"
 msgstr "Leírás:"
 
@@ -17482,10 +17473,6 @@ msgstr "Rendszer Konzol ki- bekapcsolása"
 msgctxt "Operator"
 msgid "Toggle System Console"
 msgstr "Rendszer Konzol ki- bekapcsolása"
-
-
-msgid "All Add-ons"
-msgstr "Minden kiegészítő"
 
 
 msgid "All Add-ons Installed by User"

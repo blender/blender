@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'cfa63bfefa5b')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'2eb53ba3b21b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-09 09:50+0000\n"
+"POT-Creation-Date: 2024-12-16 09:31+0000\n"
 "PO-Revision-Date: 2024-04-29 13:36+0000\n"
 "Last-Translator: Zdeněk Doležal <Griperis@outlook.cz>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
@@ -22086,15 +22086,6 @@ msgstr "Přesunout Záložku"
 
 
 msgctxt "Operator"
-msgid "Cancel File Load"
-msgstr "Zrušit animaci"
-
-
-msgid "Cancel loading of selected file"
-msgstr "Odstranit označené"
-
-
-msgctxt "Operator"
 msgid "Delete Selected Files"
 msgstr "Odstranit Vybrané Soubory"
 
@@ -25620,11 +25611,6 @@ msgstr "Typ: Animace"
 
 
 msgctxt "Operator"
-msgid "Toggle Edit Mode"
-msgstr "Přepnout Editační Režim"
-
-
-msgctxt "Operator"
 msgid "Add Effector"
 msgstr "Efekt"
 
@@ -27192,11 +27178,6 @@ msgstr "Zobrazit nastaveni hran"
 
 msgid "Add to Palette"
 msgstr "Přidat do palety"
-
-
-msgctxt "Operator"
-msgid "Texture Paint Toggle"
-msgstr "Kresba na texturu"
 
 
 msgid "Change selection for all vertices"
@@ -31376,14 +31357,6 @@ msgid "Restrict"
 msgstr "Omezit"
 
 
-msgid "Overlays"
-msgstr "Překrytí"
-
-
-msgid "Guides"
-msgstr "Vodítka"
-
-
 msgid "Motion Tracking"
 msgstr "Sledování Pohybu"
 
@@ -31408,6 +31381,10 @@ msgid "Transform Orientations"
 msgstr "Orientace transformací"
 
 
+msgid "Guides"
+msgstr "Vodítka"
+
+
 msgid "Stereoscopy"
 msgstr "Stereoskopie"
 
@@ -31430,6 +31407,10 @@ msgstr "Nastavení Stínů"
 
 msgid "SSAO Settings"
 msgstr "Nastavení SSAO"
+
+
+msgid "Overlays"
+msgstr "Překrytí"
 
 
 msgid "Chain Scaling"

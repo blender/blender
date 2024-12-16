@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'cfa63bfefa5b')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'2eb53ba3b21b')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2024-12-09 09:50+0000\n"
+"POT-Creation-Date: 2024-12-16 09:31+0000\n"
 "PO-Revision-Date: 2024-04-15 06:56+0000\n"
 "Last-Translator: Ruan da Silva Andrade <ruanandrade818@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -35430,15 +35430,6 @@ msgstr "Fim da lista"
 
 
 msgctxt "Operator"
-msgid "Cancel File Load"
-msgstr "Cancelar carregamento de arquivo"
-
-
-msgid "Cancel loading of selected file"
-msgstr "Cancela o carregamento de um arquivo selecionado."
-
-
-msgctxt "Operator"
 msgid "Delete Selected Files"
 msgstr "Apagar os arquivos selecionados"
 
@@ -43683,11 +43674,6 @@ msgstr "Amostras das cores de exibição de saída."
 
 msgid "Add to Palette"
 msgstr "Adicionar para a paleta"
-
-
-msgctxt "Operator"
-msgid "Texture Paint Toggle"
-msgstr "Alternar para pintura de textura"
 
 
 msgid "Toggle texture paint mode in 3D view"
@@ -70979,10 +70965,6 @@ msgstr "Falha ao abrir a janela"
 
 msgid "Pose Library"
 msgstr "Biblioteca de poses"
-
-
-msgid "All Add-ons"
-msgstr "Todos os complementos"
 
 
 msgid "All Add-ons Installed by User"

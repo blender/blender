@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'cfa63bfefa5b')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'2eb53ba3b21b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-09 09:50+0000\n"
+"POT-Creation-Date: 2024-12-16 09:31+0000\n"
 "PO-Revision-Date: 2024-03-13 11:04+0000\n"
 "Last-Translator: Bartosz <gang65@poczta.onet.pl>\n"
 "Language-Team: Ukrainian <https://translate.blender.org/projects/blender-ui/ui/uk/>\n"
@@ -44601,15 +44601,6 @@ msgstr "Кінець списку"
 
 
 msgctxt "Operator"
-msgid "Cancel File Load"
-msgstr "Скасувати завантаження файлу"
-
-
-msgid "Cancel loading of selected file"
-msgstr "Скасувати завантаження вибраного файлу"
-
-
-msgctxt "Operator"
 msgid "Delete Selected Files"
 msgstr "Видалити вибрані файли"
 
@@ -51790,11 +51781,6 @@ msgid "Maintain parent child relationships"
 msgstr "Зберегти зв'язки предок-нащадок"
 
 
-msgctxt "Operator"
-msgid "Toggle Edit Mode"
-msgstr "Перемкнути Режим Редагування"
-
-
 msgid "Toggle object's edit mode"
 msgstr "Перемкнути режим редагування об'єкта"
 
@@ -54940,11 +54926,6 @@ msgstr "Вибірка виводу кольору показу"
 
 msgid "Add to Palette"
 msgstr "Додати у палітру"
-
-
-msgctxt "Operator"
-msgid "Texture Paint Toggle"
-msgstr "Перемкнути малювання текстури"
 
 
 msgid "Toggle texture paint mode in 3D view"
@@ -63822,14 +63803,6 @@ msgid "Panel containing UI elements"
 msgstr "Панель, що містить елементи Інтерфейсу Користувача"
 
 
-msgid "Overlays"
-msgstr "Накладки"
-
-
-msgid "Guides"
-msgstr "Напрямні"
-
-
 msgid "Motion Tracking"
 msgstr "Відстеження руху"
 
@@ -63860,6 +63833,10 @@ msgstr "Розміщення Штриха"
 
 msgid "Drawing Plane"
 msgstr "Площина Рисування"
+
+
+msgid "Guides"
+msgstr "Напрямні"
 
 
 msgid "Quad View"
@@ -63908,6 +63885,10 @@ msgstr "Устави Загороди Оточення Простору Екра
 
 msgid "Render Pass"
 msgstr "Прохід Рендера"
+
+
+msgid "Overlays"
+msgstr "Накладки"
 
 
 msgid "Chain Scaling"
@@ -93577,10 +93558,6 @@ msgstr "Для режиму 3D-стерео вікно має бути повн�
 
 msgid "Pose Library"
 msgstr "Бібліотека поз"
-
-
-msgid "All Add-ons"
-msgstr "Всі додатки"
 
 
 msgid "All Add-ons Installed by User"

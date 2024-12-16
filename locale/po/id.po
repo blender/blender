@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'cfa63bfefa5b')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'2eb53ba3b21b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-09 09:50+0000\n"
+"POT-Creation-Date: 2024-12-16 09:31+0000\n"
 "PO-Revision-Date: 2024-10-26 01:56+0000\n"
 "Last-Translator: \"Adriel Y.\" <mixnblend@users.noreply.translate.blender.org>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
@@ -20271,11 +20271,6 @@ msgstr "Hapus"
 
 
 msgctxt "Operator"
-msgid "Cancel File Load"
-msgstr "Batal"
-
-
-msgctxt "Operator"
 msgid "Delete Selected Files"
 msgstr "Hapus Berkas Terpilih"
 
@@ -22694,11 +22689,6 @@ msgstr "Gambar Proyek"
 
 msgid "Add to Palette"
 msgstr "Tambah ke Palet"
-
-
-msgctxt "Operator"
-msgid "Texture Paint Toggle"
-msgstr "Tekstur"
 
 
 msgid "Hide selected vertices"

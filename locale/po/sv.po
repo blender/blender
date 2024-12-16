@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'cfa63bfefa5b')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'2eb53ba3b21b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-09 09:50+0000\n"
+"POT-Creation-Date: 2024-12-16 09:31+0000\n"
 "PO-Revision-Date: 2024-01-17 19:22+0000\n"
 "Last-Translator: Peter Simonsson <peter@simonsson.com>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
@@ -11028,11 +11028,6 @@ msgid "Toggle whether item under cursor is enabled or closed"
 msgstr "Växla om objektet under musen är aktiverat eller stängt"
 
 
-msgctxt "Operator"
-msgid "Texture Paint Toggle"
-msgstr "Växla texturmålning"
-
-
 msgid "Weights from envelopes with user defined radius"
 msgstr "Vikter från omslutningar med användardefinierad radie"
 
@@ -14837,11 +14832,6 @@ msgstr "Ta bort från ram"
 
 
 msgctxt "Operator"
-msgid "Insert Into Group"
-msgstr "Infoga i grupp"
-
-
-msgctxt "Operator"
 msgid "Node Options"
 msgstr "Nodalternativ"
 
@@ -14854,6 +14844,11 @@ msgstr "Okopplade uttag"
 msgctxt "Operator"
 msgid "Collapse"
 msgstr "Fäll ihop"
+
+
+msgctxt "Operator"
+msgid "Insert Into Group"
+msgstr "Infoga i grupp"
 
 
 msgctxt "Operator"
@@ -14872,11 +14867,6 @@ msgstr "Hitta..."
 
 
 msgctxt "Operator"
-msgid "Exit Group"
-msgstr "Gå ur grupp"
-
-
-msgctxt "Operator"
 msgid "Online Manual"
 msgstr "Onlinemanual"
 
@@ -14887,6 +14877,11 @@ msgstr "Förhandsgranskningar"
 
 msgid "Named Attributes"
 msgstr "Namngivna attribut"
+
+
+msgctxt "Operator"
+msgid "Exit Group"
+msgstr "Gå ur grupp"
 
 
 msgid "Closed by Default"
@@ -16762,10 +16757,6 @@ msgstr "Cycles renderingsmotor"
 
 msgid "Pose Library"
 msgstr "Pose-bibliotek"
-
-
-msgid "All Add-ons"
-msgstr "Alla tillägg"
 
 
 msgid "All Add-ons Installed by User"

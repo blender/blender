@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'cfa63bfefa5b')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'2eb53ba3b21b')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-09 09:50+0000\n"
-"PO-Revision-Date: 2024-12-05 23:56+0000\n"
+"POT-Creation-Date: 2024-12-16 09:31+0000\n"
+"PO-Revision-Date: 2024-12-10 12:00+0000\n"
 "Last-Translator: Gorazd Gorup <gorupgorazd@gmail.com>\n"
 "Language-Team: Slovenian <https://translate.blender.org/projects/blender-ui/ui/sl/>\n"
 "Language: sl\n"
@@ -8822,6 +8822,10 @@ msgid "Orientation Weight"
 msgstr "Utež usmerjenosti"
 
 
+msgid "For Tree-IK: Weight of orientation control for this target"
+msgstr "Vpliv orientacijske kontrole za to tarčo"
+
+
 msgid "Pole Angle"
 msgstr "Tečajni kot"
 
@@ -8872,6 +8876,10 @@ msgstr "Uporabi rep"
 
 msgid "Include bone's tail as last element in chain"
 msgstr "Vključi rep kosti kot zadnji element v verigi"
+
+
+msgid "For Tree-IK: Weight of position control for this target"
+msgstr "Vpliv položajne kontrole za to tarčo"
 
 
 msgid "Limit Distance Constraint"
@@ -9098,40 +9106,104 @@ msgid "Object Solver Constraint"
 msgstr "Omejevalnik Objektni reševalnik"
 
 
+msgid "Lock motion to the reconstructed object movement"
+msgstr "Priklene gibanje na rekonstruirano premikanje objekta"
+
+
 msgid "Pivot Constraint"
 msgstr "Omejevalnik Osišče"
+
+
+msgid "Rotate around a different point"
+msgstr "Rotira okoli druge točke"
+
+
+msgid "Offset of pivot from target (when set), or from owner's location (when Fixed Position is off), or the absolute pivot point"
+msgstr "Odmik osišča od tarče (kadar je ta nastavljena) ali od lege imetnika (kadar je možnost Nespremenljiv položaj izklopljena) ali od absolutnega osišča"
 
 
 msgid "Enabled Rotation Range"
 msgstr "Interval delujoče rotacije"
 
 
+msgid "Rotation range on which pivoting should occur"
+msgstr "Rotacijski interval, na katerem naj se vrtenje okoli točke vrši"
+
+
+msgid "Use the pivot point in every rotation"
+msgstr "Uporabi osišče za vsako rotacijo"
+
+
 msgid "-X Rotation"
 msgstr "Rotacija po -X"
+
+
+msgid "Use the pivot point in the negative rotation range around the X-axis"
+msgstr "Uporabi osišče na negativnem rotacijskem intervalu okoli osi X"
 
 
 msgid "-Y Rotation"
 msgstr "Rotacija po -Y"
 
 
+msgid "Use the pivot point in the negative rotation range around the Y-axis"
+msgstr "Uporabi osišče na negativnem rotacijskem intervalu okoli osi Y"
+
+
 msgid "-Z Rotation"
 msgstr "Rotacija po -Z"
+
+
+msgid "Use the pivot point in the negative rotation range around the Z-axis"
+msgstr "Uporabi osišče na negativnem rotacijskem intervalu okoli osi Z"
+
+
+msgid "Use the pivot point in the positive rotation range around the X-axis"
+msgstr "Uporabi osišče na pozitivnem rotacijskem intervalu okoli osi X"
+
+
+msgid "Use the pivot point in the positive rotation range around the Y-axis"
+msgstr "Uporabi osišče na pozitivnem rotacijskem intervalu okoli osi Y"
+
+
+msgid "Use the pivot point in the positive rotation range around the Z-axis"
+msgstr "Uporabi osišče na pozitivnem rotacijskem intervalu okoli osi Z"
+
+
+msgid "Target Object, defining the position of the pivot when defined"
+msgstr "Tarčni objekt. Kadar je izbran, določa položaj osišča"
 
 
 msgid "Use Relative Offset"
 msgstr "Uporabi relativni odmik"
 
 
+msgid "Offset will be an absolute point in space instead of relative to the target"
+msgstr "Odmik bo točka, določena absolutno v prostoru, ne relativno glede na tarčo"
+
+
 msgid "Python Constraint"
 msgstr "Omejevalnik Python"
+
+
+msgid "Use Python script for constraint evaluation"
+msgstr "Za vrednotenje omejevalnika uporabi program v Pythonu"
 
 
 msgid "Script Error"
 msgstr "Napaka programa"
 
 
+msgid "The linked Python script has thrown an error"
+msgstr "Navedeni program v Pythonu je javil napako"
+
+
 msgid "Number of Targets"
 msgstr "Količina tarč"
+
+
+msgid "Usually only 1 to 3 are needed"
+msgstr "Običajno jih je potrebnih med ena in tri"
 
 
 msgid "Target Objects"
@@ -9142,16 +9214,32 @@ msgid "Script"
 msgstr "Program"
 
 
+msgid "The text object that contains the Python script"
+msgstr "Besedilni objekt, ki vsebuje program v Pythonu"
+
+
 msgid "Use Targets"
 msgstr "Uporabi tarče"
+
+
+msgid "Use the targets indicated in the constraint panel"
+msgstr "Uporabi tarče, ki so navedene v nastavitvah omejevalnika"
 
 
 msgid "Shrinkwrap Constraint"
 msgstr "Omejevalnik Nalepek"
 
 
+msgid "Create constraint-based shrinkwrap relationship"
+msgstr "Ustvari omejevanje, ki se obnaša kot nalepek"
+
+
 msgid "Face Cull"
 msgstr "Izločanje lic"
+
+
+msgid "Stop vertices from projecting to a face on the target when facing towards/away"
+msgstr "Ne pusti ogliščem, da se projicirajo na lice tarče, kadar je to obrnjeno stran/proti njim"
 
 
 msgid "No culling"
@@ -9162,8 +9250,16 @@ msgid "Front"
 msgstr "Spredaj"
 
 
+msgid "No projection when in front of the face"
+msgstr "Ne projicira, kadar je pred licem"
+
+
 msgid "Back"
 msgstr "Zadaj"
+
+
+msgid "No projection when behind the face"
+msgstr "Ne projicira, kadar je za licem"
 
 
 msgid "Distance to Target"
@@ -9174,88 +9270,208 @@ msgid "Project Axis"
 msgstr "Projekcijska os"
 
 
+msgid "Axis constrain to"
+msgstr "Omejitev osi na"
+
+
 msgid "Axis Space"
 msgstr "Prostor osi"
+
+
+msgid "Space for the projection axis"
+msgstr "Prostor za projicirano os"
 
 
 msgid "Project Distance"
 msgstr "Oddaljenost projekcije"
 
 
+msgid "Limit the distance used for projection (zero disables)"
+msgstr "Omeji razdaljo, ki se uporablja za projekcijo (0 - onemogočeno)"
+
+
 msgid "Shrinkwrap Type"
 msgstr "Vrsta nalepka"
+
+
+msgid "Select type of shrinkwrap algorithm for target position"
+msgstr "Izbere vrsto algoritma nalepka za položaj tarče"
 
 
 msgid "Nearest Surface Point"
 msgstr "Najbližja točka na površini"
 
 
+msgid "Shrink the location to the nearest target surface"
+msgstr "Skrči lego na najbližjo površino tarče"
+
+
 msgid "Project"
 msgstr "Projekcija"
+
+
+msgid "Shrink the location to the nearest target surface along a given axis"
+msgstr "Skrči lego na najbližjo površino tarče vzdolž dane osi"
 
 
 msgid "Nearest Vertex"
 msgstr "Najbližje oglišče"
 
 
+msgid "Shrink the location to the nearest target vertex"
+msgstr "Skrči lego na najbližje oglišče tarče"
+
+
 msgid "Target Normal Project"
 msgstr "Projekcija vzdolž tarčnih normal"
+
+
+msgid "Shrink the location to the nearest target surface along the interpolated vertex normals of the target"
+msgstr "Skrči lego na najbližjo površino tarče vzdolž interpoliranih ogliščnih normal tarče"
+
+
+msgid "Target Mesh object"
+msgstr "Tarčni mrežni objekt"
+
+
+msgid "Axis that is aligned to the normal"
+msgstr "Os, ki je poravnana z normalno"
 
 
 msgid "Invert Cull"
 msgstr "Obrnjeno izločanje"
 
 
+msgid "When projecting in the opposite direction invert the face cull mode"
+msgstr "Kadar projicira v nasprotno smer, obrne način izločanja lic"
+
+
 msgid "Project Opposite"
 msgstr "Projekcija nasproti"
+
+
+msgid "Project in both specified and opposite directions"
+msgstr "Projicira v določeno in nasprotno smer"
 
 
 msgid "Align Axis To Normal"
 msgstr "Poravnaj os z normalo"
 
 
+msgid "Align the specified axis to the surface normal"
+msgstr "Poravna izbrano os s površinsko normalo"
+
+
 msgid "Snap Mode"
 msgstr "Način pritrjevanja"
+
+
+msgid "Select how to constrain the object to the target surface"
+msgstr "Izbere, kako omejiti objekt na površino tarče"
+
+
+msgid "The point is constrained to the surface of the target object, with distance offset towards the original point location"
+msgstr "Točka je omejena na površino tarčnega objekta. Odmik kaže v smer izvirne lege točke"
+
+
+msgid "The point is constrained to be inside the target object"
+msgstr "Točka je omejena na notranjost tarčnega objekta"
+
+
+msgid "The point is constrained to be outside the target object"
+msgstr "Točka je omejena na zunanjost tarčnega objekta"
 
 
 msgid "Outside Surface"
 msgstr "Zunaj površine"
 
 
+msgid "The point is constrained to the surface of the target object, with distance offset always to the outside, towards or away from the original location"
+msgstr "Točka je omejena na površino tarčnega objekta. Odmik vedno kaže ven, naj bo proč od ali proti izvirni legi"
+
+
+msgid "The point is constrained to the surface of the target object, with distance offset applied exactly along the target normal"
+msgstr "Točka je omejena na površino tarčnega objekta. Odmik je nanesen vzdolž tarčne normale"
+
+
 msgid "Spline IK Constraint"
 msgstr "Omejevalnik IK z zlepki"
+
+
+msgid "Align 'n' bones along a curve"
+msgstr "Poravna 'n' kosti vzdolž krivulje"
 
 
 msgid "Volume Variation"
 msgstr "Spremenljivost prostornine"
 
 
+msgid "Factor between volume variation and stretching"
+msgstr "Faktor med spremenljivostjo in raztegovanjem prostornine"
+
+
 msgid "Volume Variation Maximum"
 msgstr "Največja spremenljivost prostornine"
+
+
+msgid "Maximum volume stretching factor"
+msgstr "Največji možni faktor raztegovanja prostornine"
 
 
 msgid "Volume Variation Minimum"
 msgstr "Minimum spremenljivosti prostornine"
 
 
+msgid "Minimum volume stretching factor"
+msgstr "Najmanjši možni faktor raztegovanja prostornine"
+
+
 msgid "Volume Variation Smoothness"
 msgstr "Zglajenost spremenljivosti prostornine"
+
+
+msgid "Strength of volume stretching clamping"
+msgstr "Moč prirezovanja raztegovanja prostornine"
+
+
+msgid "How many bones are included in the chain"
+msgstr "Koliko kosti je vključenih v verigo"
 
 
 msgid "Joint Bindings"
 msgstr "Vezave sklepov"
 
 
+msgid "(EXPERIENCED USERS ONLY) The relative positions of the joints along the chain, as percentages"
+msgstr "(SAMO IZKUŠENI UPORABNIKI) Relativni položaj sklepov vzdolž verige v odstotkih"
+
+
+msgid "Curve that controls this relationship"
+msgstr "Krivulja, ki upravlja razmerje"
+
+
 msgid "Use Volume Variation Maximum"
 msgstr "Uporabi največjo spremenljivost prostornine"
+
+
+msgid "Use upper limit for volume variation"
+msgstr "Uporabi zgornjo mejo za spremenljivost prostornine"
 
 
 msgid "Use Volume Variation Minimum"
 msgstr "Uporabi minimum spremenljivosti prostornine"
 
 
+msgid "Use lower limit for volume variation"
+msgstr "Uporabi spodnjo mejo za spremenljivost prostornine"
+
+
 msgid "Chain Offset"
 msgstr "Odmik verige"
+
+
+msgid "Offset the entire chain relative to the root joint"
+msgstr "Odmakne celo verigo relativno na korenski sklep"
 
 
 msgid "Use Curve Radius"
@@ -9266,104 +9482,228 @@ msgid "Even Divisions"
 msgstr "Enakomerne delitve"
 
 
+msgid "Ignore the relative lengths of the bones when fitting to the curve"
+msgstr "Zanemari relativne dolžine kosti, ko prilega na krivuljo"
+
+
 msgid "Use Original Scale"
 msgstr "Uporabi izvirno skaliranje"
+
+
+msgid "Apply volume preservation over the original scaling"
+msgstr "Uveljavi ohranitev prostornine na izvirno skaliranje"
 
 
 msgid "XZ Scale Mode"
 msgstr "Skalirni način XZ"
 
 
+msgid "Method used for determining the scaling of the X and Z axes of the bones"
+msgstr "Metoda za določanje skaliranja kosti po oseh X in Z"
+
+
+msgid "Don't scale the X and Z axes"
+msgstr "Ne skalira osi X in Z"
+
+
 msgid "Bone Original"
 msgstr "Izvirno od kosti"
+
+
+msgid "Use the original scaling of the bones"
+msgstr "Uporabi izvirno skaliranje kosti"
 
 
 msgid "Inverse Scale"
 msgstr "Obrnjeno skaliranje"
 
 
+msgid "Scale of the X and Z axes is the inverse of the Y-Scale"
+msgstr "Skaliranje po oseh X in Z je inverzno skaliranju po Y"
+
+
 msgid "Volume Preservation"
 msgstr "Ohranjanje prostornine"
+
+
+msgid "Scale of the X and Z axes are adjusted to preserve the volume of the bones"
+msgstr "Skaliranje po oseh X in Z se prilagodi, da se ohrani prostornina kosti"
 
 
 msgid "Y Scale Mode"
 msgstr "Skalirni način Y"
 
 
+msgid "Method used for determining the scaling of the Y axis of the bones, on top of the shape and scaling of the curve itself"
+msgstr "Metoda za določanje skaliranja kosti po osi X, upoštevaje obliko in skaliranje krivulje same"
+
+
+msgid "Don't scale in the Y axis"
+msgstr "Ne skalira po osi Y"
+
+
 msgid "Fit Curve"
 msgstr "Prilagodi krivulji"
+
+
+msgid "Scale the bones to fit the entire length of the curve"
+msgstr "Skalira kosti, da zapolnijo celo dolžino krivulje"
+
+
+msgid "Use the original Y scale of the bone"
+msgstr "Uporabi izvirno skaliranje kosti po osi Y"
 
 
 msgid "Stretch To Constraint"
 msgstr "Omejevalnik Razteg"
 
 
+msgid "Stretch to meet the target object"
+msgstr "Raztegne objekt, da se dotika tarčnega objekta"
+
+
 msgid "Keep Axis"
 msgstr "Ohrani os"
+
+
+msgid "The rotation type and axis order to use"
+msgstr "Katera vrsta rotacije in zaporedje osi rotacije naj se uporabita"
 
 
 msgid "XZ"
 msgstr "XZ"
 
 
+msgid "Rotate around local X, then Z"
+msgstr "Rotira okoli lokalnega X, potem še okoli Z"
+
+
 msgid "ZX"
 msgstr "ZX"
+
+
+msgid "Rotate around local Z, then X"
+msgstr "Rotira okoli lokalnega Z, potem še okoli X"
 
 
 msgid "Swing"
 msgstr "Zibanje"
 
 
+msgid "Use the smallest single axis rotation, similar to Damped Track"
+msgstr "Uporabi najmanjšo rotacijo po eni sami osi, podobno kot pri blagem sledenju"
+
+
 msgid "Original Length"
 msgstr "Izvirna dolžina"
+
+
+msgid "Length at rest position"
+msgstr "Dolžina v položaju mirovanja"
+
+
+msgid "Maintain the object's volume as it stretches"
+msgstr "Med raztegovanjem ohrani prostornino objekta"
 
 
 msgid "Track To Constraint"
 msgstr "Omejevalnik Sledenje"
 
 
+msgid "Aim the constrained object toward the target"
+msgstr "Usmeri objekt z omejevalnikom proti tarči"
+
+
 msgid "Target Z"
 msgstr "Z tarče"
+
+
+msgid "Target's Z axis, not World Z axis, will constraint the Up direction"
+msgstr "Smer navzgor bo omejila tarčna os Z, ne os Z sveta"
 
 
 msgid "Transform Cache Constraint"
 msgstr "Omejevalnik Transformacijski predpomnilnik"
 
 
+msgid "Look up transformation from an external file"
+msgstr "Pridobi transformacijo iz zunanje datoteke"
+
+
+msgid "Path to the object in the Alembic archive used to lookup the transform matrix"
+msgstr "Pot do objekta v arhivu Alembic, s katerim se pridobi transformacijsko matriko"
+
+
 msgid "Transformation Constraint"
 msgstr "Omejevalnik Transformacija"
+
+
+msgid "Map transformations of the target to the object"
+msgstr "Preslika transformacije tarče na objekt"
 
 
 msgid "From Maximum X"
 msgstr "Od največjega X"
 
 
+msgid "Top range of X axis source motion"
+msgstr "Zgornji interval izvornega gibanja po osi X"
+
+
 msgid "From Maximum Y"
 msgstr "Od največjega Y"
+
+
+msgid "Top range of Y axis source motion"
+msgstr "Zgornji interval izvornega gibanja po osi Y"
 
 
 msgid "From Maximum Z"
 msgstr "Od največjega Z"
 
 
+msgid "Top range of Z axis source motion"
+msgstr "Zgornji interval izvornega gibanja po osi Z"
+
+
 msgid "From Minimum X"
 msgstr "Od minimalnega X"
+
+
+msgid "Bottom range of X axis source motion"
+msgstr "Spodnji interval izvornega gibanja po osi X"
 
 
 msgid "From Minimum Y"
 msgstr "Od minimalnega Y"
 
 
+msgid "Bottom range of Y axis source motion"
+msgstr "Spodnji interval izvornega gibanja po osi Y"
+
+
 msgid "From Minimum Z"
 msgstr "Od minimalnega Z"
+
+
+msgid "Bottom range of Z axis source motion"
+msgstr "Spodnji interval izvornega gibanja po osi Z"
 
 
 msgid "From Mode"
 msgstr "Način rotacije"
 
 
+msgid "Specify the type of rotation channels to use"
+msgstr "Uporabi izbrani vrsto rotacijskih kanalov"
+
+
 msgid "Auto Euler"
 msgstr "Samodejni Euler"
+
+
+msgid "Euler using the rotation order of the target"
+msgstr "Euler uporabi zaporedje rotacij s tače"
 
 
 msgid "Quaternion rotation"
@@ -9374,12 +9714,24 @@ msgid "Swing and X Twist"
 msgstr "Nihanje in zvijanje po X"
 
 
+msgid "Decompose into a swing rotation to aim the X axis, followed by twist around it"
+msgstr "Razcepi v nihajno rotacijo za usmeritev osi X, ki ji sledi zvijanje okoli osi X"
+
+
 msgid "Swing and Y Twist"
 msgstr "Nihanje in zvijanje po Y"
 
 
+msgid "Decompose into a swing rotation to aim the Y axis, followed by twist around it"
+msgstr "Razcepi v nihajno rotacijo za usmeritev osi Y, ki ji sledi zvijanje okoli osi Y"
+
+
 msgid "Swing and Z Twist"
 msgstr "Nihanje in zvijanje po Z"
+
+
+msgid "Decompose into a swing rotation to aim the Z axis, followed by twist around it"
+msgstr "Razcepi v nihajno rotacijo za usmeritev osi Z, ki ji sledi zvijanje okoli osi Z"
 
 
 msgid "Map From"
@@ -11771,6 +12123,10 @@ msgstr "Vzgonska gostota"
 
 msgid "Buoyancy Heat"
 msgstr "Vzgonska toplota"
+
+
+msgid "OpenVDB"
+msgstr "OpenVDB"
 
 
 msgid "Cache directory"
@@ -26653,11 +27009,6 @@ msgstr "Aktivni modifikator"
 
 
 msgctxt "Operator"
-msgid "Operator"
-msgstr "Operator"
-
-
-msgctxt "Operator"
 msgid "Export Keying Set..."
 msgstr "Izvozi množico ključev ..."
 
@@ -29994,11 +30345,6 @@ msgstr "Udejanji primerke"
 
 
 msgctxt "Operator"
-msgid "Toggle Edit Mode"
-msgstr "Preklop urejevalnega načina"
-
-
-msgctxt "Operator"
 msgid "Add Empty Image/Drop Image to Empty"
 msgstr "Dodaj sliko praznice/Spusti sliko na praznico"
 
@@ -32619,14 +32965,6 @@ msgid "Restrict"
 msgstr "Omeji"
 
 
-msgid "Overlays"
-msgstr "Pomagala"
-
-
-msgid "Guides"
-msgstr "Vodnice"
-
-
 msgid "Viewer Node"
 msgstr "Predogledno vozlišče"
 
@@ -32649,6 +32987,10 @@ msgstr "Usmerjenost transformacij"
 
 msgid "Stroke Placement"
 msgstr "Postavitev poteze"
+
+
+msgid "Guides"
+msgstr "Vodnice"
 
 
 msgid "Grease Pencil Options"
@@ -32701,6 +33043,10 @@ msgstr "Obhod upodabljanja"
 
 msgid "Compositor"
 msgstr "Stavitelj slik"
+
+
+msgid "Overlays"
+msgstr "Pomagala"
 
 
 msgid "Chain Scaling"
@@ -41197,11 +41543,6 @@ msgstr "Odstrani iz okvirja"
 
 
 msgctxt "Operator"
-msgid "Insert Into Group"
-msgstr "Vstavi v skupino"
-
-
-msgctxt "Operator"
 msgid "Mute"
 msgstr "Suspendiraj"
 
@@ -41228,10 +41569,6 @@ msgstr "Projekcija X"
 msgctxt "Operator"
 msgid "Fit"
 msgstr "Prilagodi"
-
-
-msgid "Experimental CPU Implementation"
-msgstr "Eksperimentalna implementacija na CPE"
 
 
 msgid "Node Editor Overlays"
@@ -41280,6 +41617,11 @@ msgstr "Poveži in zamenjaj"
 
 
 msgctxt "Operator"
+msgid "Insert Into Group"
+msgstr "Vstavi v skupino"
+
+
+msgctxt "Operator"
 msgid "Node Preview"
 msgstr "Predogled vozlišča"
 
@@ -41297,11 +41639,6 @@ msgstr "Najdi ..."
 msgctxt "Operator"
 msgid "Link to Viewer"
 msgstr "Poveži s predoglednim vozliščem"
-
-
-msgctxt "Operator"
-msgid "Exit Group"
-msgstr "Izhod iz skupine"
 
 
 msgctxt "Operator"
@@ -41329,6 +41666,11 @@ msgstr "Približaj ozadje"
 msgctxt "Operator"
 msgid "Backdrop Zoom Out"
 msgstr "Oddalji ozadje"
+
+
+msgctxt "Operator"
+msgid "Exit Group"
+msgstr "Izhod iz skupine"
 
 
 msgid "Closed by Default"
@@ -47783,10 +48125,6 @@ msgstr "Blaženje (po moči)"
 msgctxt "Action"
 msgid "Dynamic Effects"
 msgstr "Dinamični učinki"
-
-
-msgid "OpenVDB"
-msgstr "OpenVDB"
 
 
 msgid "X Velocity"
