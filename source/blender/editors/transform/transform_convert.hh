@@ -187,6 +187,7 @@ void animrecord_check_state(TransInfo *t, ID *id);
  * Used for both curves and grease pencil objects.
  */
 void curve_populate_trans_data_structs(
+    const TransInfo &t,
     TransDataContainer &tc,
     blender::bke::CurvesGeometry &curves,
     const blender::float4x4 &transform,

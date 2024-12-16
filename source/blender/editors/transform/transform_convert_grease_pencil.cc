@@ -214,7 +214,8 @@ static void createTransGreasePencilVerts(bContext *C, TransInfo *t)
           tc.custom.type.data);
       curves_transform_data.grease_pencil_falloffs[drawing] = info.multi_frame_falloff;
       float &drawing_falloff = curves_transform_data.grease_pencil_falloffs[drawing];
-      curve_populate_trans_data_structs(tc,
+      curve_populate_trans_data_structs(*t,
+                                        tc,
                                         curves,
                                         layer_space_to_world_space,
                                         deformation,
