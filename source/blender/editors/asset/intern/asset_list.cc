@@ -584,12 +584,12 @@ void asset_preview_ensure_requested(const bContext &C,
 
 ImBuf *asset_image_get(const AssetHandle *asset_handle)
 {
-  ImBuf *imbuf = filelist_file_getimage(asset_handle->file_data);
+  ImBuf *imbuf = filelist_file_get_preview_image(asset_handle->file_data);
   if (imbuf) {
     return imbuf;
   }
 
-  return filelist_geticon_image_ex(asset_handle->file_data);
+  return filelist_geticon_special_file_image_ex(asset_handle->file_data);
 }
 
 bool listen(const wmNotifier *notifier)

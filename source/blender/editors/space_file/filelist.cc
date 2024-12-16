@@ -1201,14 +1201,14 @@ static FileDirEntry *filelist_geticon_get_file(FileList *filelist, const int ind
   return filelist_file(filelist, index);
 }
 
-ImBuf *filelist_getimage(FileList *filelist, const int index)
+ImBuf *filelist_get_preview_image(FileList *filelist, const int index)
 {
   FileDirEntry *file = filelist_geticon_get_file(filelist, index);
 
   return file->preview_icon_id ? BKE_icon_imbuf_get_buffer(file->preview_icon_id) : nullptr;
 }
 
-ImBuf *filelist_file_getimage(const FileDirEntry *file)
+ImBuf *filelist_file_get_preview_image(const FileDirEntry *file)
 {
   return file->preview_icon_id ? BKE_icon_imbuf_get_buffer(file->preview_icon_id) : nullptr;
 }
@@ -1222,7 +1222,7 @@ static ImBuf *filelist_ensure_special_file_image(SpecialFileImages image, int ic
   return gSpecialFileImages[int(image)] = UI_svg_icon_bitmap(icon, 256.0f, false);
 }
 
-ImBuf *filelist_geticon_image_ex(const FileDirEntry *file)
+ImBuf *filelist_geticon_special_file_image_ex(const FileDirEntry *file)
 {
   ImBuf *ibuf = nullptr;
 
@@ -1241,16 +1241,16 @@ ImBuf *filelist_geticon_image_ex(const FileDirEntry *file)
   return ibuf;
 }
 
-ImBuf *filelist_geticon_image(FileList *filelist, const int index)
+ImBuf *filelist_geticon_special_file_image(FileList *filelist, const int index)
 {
   FileDirEntry *file = filelist_geticon_get_file(filelist, index);
-  return filelist_geticon_image_ex(file);
+  return filelist_geticon_special_file_image_ex(file);
 }
 
-static int filelist_geticon_ex(const FileList *filelist,
-                               const FileDirEntry *file,
-                               const bool is_main,
-                               const bool ignore_libdir)
+static int filelist_geticon_file_type_ex(const FileList *filelist,
+                                         const FileDirEntry *file,
+                                         const bool is_main,
+                                         const bool ignore_libdir)
 {
   const eFileSel_File_Types typeflag = (eFileSel_File_Types)file->typeflag;
 
@@ -1364,17 +1364,17 @@ static int filelist_geticon_ex(const FileList *filelist,
   return is_main ? ICON_FILE_BLANK : ICON_NONE;
 }
 
-int filelist_geticon(FileList *filelist, const int index, const bool is_main)
+int filelist_geticon_file_type(FileList *filelist, const int index, const bool is_main)
 {
   FileDirEntry *file = filelist_geticon_get_file(filelist, index);
 
-  return filelist_geticon_ex(filelist, file, is_main, false);
+  return filelist_geticon_file_type_ex(filelist, file, is_main, false);
 }
 
 int ED_file_icon(const FileDirEntry *file)
 {
   return file->preview_icon_id ? file->preview_icon_id :
-                                 filelist_geticon_ex(nullptr, file, false, false);
+                                 filelist_geticon_file_type_ex(nullptr, file, false, false);
 }
 
 static bool filelist_intern_entry_is_main_file(const FileListInternEntry *intern_entry)
