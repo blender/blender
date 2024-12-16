@@ -208,7 +208,7 @@ static bool bake_strokes(Object *ob,
 
   MOD_lineart_gpencil_generate_v3(
       lmd->cache,
-      ob->object_to_world(),
+      ob->world_to_object(),
       dg,
       *drawing,
       lmd->source_type,
