@@ -590,10 +590,8 @@ static void file_draw_preview(const FileList *files,
                               FileLayout *layout,
                               const bool is_special_file_image,
                               const bool dimmed,
-                              const bool is_link,
                               float *r_scale)
 {
-  const bool is_offline = (file->attributes & FILE_ATTR_OFFLINE);
   const bool is_loading = filelist_file_is_preview_pending(files, file);
 
   BLI_assert(imb != nullptr);
@@ -712,69 +710,6 @@ static void file_draw_preview(const FileList *files,
                     UI_NO_ICON_OVERLAY_TEXT);
   }
 
-  if (icon_aspect < 2.0f) {
-    const float icon_x = float(tile_draw_rect->xmin) + (3.0f * UI_SCALE_FAC);
-    const float icon_y = float(tile_draw_rect->ymin) + (17.0f * UI_SCALE_FAC);
-    const uchar light[4] = {255, 255, 255, 255};
-    if (is_offline) {
-      /* Icon at bottom to indicate the file is offline. */
-      UI_icon_draw_ex(icon_x,
-                      icon_y,
-                      ICON_INTERNET,
-                      1.0f / UI_SCALE_FAC,
-                      0.6f,
-                      0.0f,
-                      light,
-                      true,
-                      UI_NO_ICON_OVERLAY_TEXT);
-    }
-    else if (is_link) {
-      /* Icon at bottom to indicate it is a shortcut, link, or alias. */
-      UI_icon_draw_ex(icon_x,
-                      icon_y,
-                      ICON_FILE_ALIAS,
-                      1.0f / UI_SCALE_FAC,
-                      0.6f,
-                      0.0f,
-                      nullptr,
-                      false,
-                      UI_NO_ICON_OVERLAY_TEXT);
-    }
-    else if (file_type_icon &&
-             ((!is_special_file_image && !(file->typeflag & FILE_TYPE_FTFONT)) || is_loading))
-    {
-      /* Smaller, fainter icon at bottom-left for preview image thumbnail, but not for fonts. */
-      UI_icon_draw_ex(icon_x,
-                      icon_y,
-                      file_type_icon,
-                      1.0f / UI_SCALE_FAC,
-                      0.6f,
-                      0.0f,
-                      light,
-                      true,
-                      UI_NO_ICON_OVERLAY_TEXT);
-    }
-  }
-
-  const bool is_current_main_data = filelist_file_get_id(file) != nullptr;
-  if (is_current_main_data) {
-    /* Smaller, fainter icon at the top-right indicating that the file represents data from the
-     * current file (from current #Main in fact). */
-    float icon_x, icon_y;
-    const uchar light[4] = {255, 255, 255, 255};
-    icon_x = float(tile_draw_rect->xmax) - (16.0f * UI_SCALE_FAC);
-    icon_y = float(tile_draw_rect->ymax) - (20.0f * UI_SCALE_FAC);
-    UI_icon_draw_ex(icon_x,
-                    icon_y,
-                    ICON_CURRENT_FILE,
-                    1.0f / UI_SCALE_FAC,
-                    0.6f,
-                    0.0f,
-                    light,
-                    true,
-                    UI_NO_ICON_OVERLAY_TEXT);
-  }
-
   const bool show_outline = !is_special_file_image &&
                             (file->typeflag & (FILE_TYPE_IMAGE | FILE_TYPE_OBJECT_IO |
                                                FILE_TYPE_MOVIE | FILE_TYPE_BLENDER));
@@ -806,6 +741,89 @@ static void file_draw_preview(const FileList *files,
 
   if (r_scale) {
     *r_scale = scale;
+  }
+}
+
+static void file_draw_indicator_icons(const FileList *files,
+                                      const FileDirEntry *file,
+                                      const rcti *tile_draw_rect,
+                                      const float preview_icon_aspect,
+                                      const int file_type_icon,
+                                      const bool has_special_file_image)
+{
+  const bool is_offline = (file->attributes & FILE_ATTR_OFFLINE);
+  const bool is_link = (file->attributes & FILE_ATTR_ANY_LINK);
+  const bool is_loading = filelist_file_is_preview_pending(files, file);
+
+  /* Don't draw these icons if the preview image is small. They are just indicators and shouldn't
+   * cover the preview. */
+  if (preview_icon_aspect < 2.0f) {
+    const float icon_x = float(tile_draw_rect->xmin) + (3.0f * UI_SCALE_FAC);
+    const float icon_y = float(tile_draw_rect->ymin) + (17.0f * UI_SCALE_FAC);
+    const uchar light[4] = {255, 255, 255, 255};
+    if (is_offline) {
+      /* Icon at bottom to indicate the file is offline. */
+      UI_icon_draw_ex(icon_x,
+                      icon_y,
+                      ICON_INTERNET,
+                      1.0f / UI_SCALE_FAC,
+                      0.6f,
+                      0.0f,
+                      light,
+                      true,
+                      UI_NO_ICON_OVERLAY_TEXT);
+    }
+    else if (is_link) {
+      /* Icon at bottom to indicate it is a shortcut, link, or alias. */
+      UI_icon_draw_ex(icon_x,
+                      icon_y,
+                      ICON_FILE_ALIAS,
+                      1.0f / UI_SCALE_FAC,
+                      0.6f,
+                      0.0f,
+                      nullptr,
+                      false,
+                      UI_NO_ICON_OVERLAY_TEXT);
+    }
+    else if (file_type_icon) {
+      /* Smaller, fainter type icon at bottom-left.
+       *
+       * Always draw while loading, the preview shows a loading icon and doesn't indicate the type
+       * yet then. After loading, the special file image may already draw the type icon in
+       * #file_draw_preview(), don't draw it again here. Also don't draw it for font files, they
+       * render a font preview already, the type indicator would be redundant.
+       */
+      if (is_loading || !(has_special_file_image || (file->typeflag & FILE_TYPE_FTFONT))) {
+        UI_icon_draw_ex(icon_x,
+                        icon_y,
+                        file_type_icon,
+                        1.0f / UI_SCALE_FAC,
+                        0.6f,
+                        0.0f,
+                        light,
+                        true,
+                        UI_NO_ICON_OVERLAY_TEXT);
+      }
+    }
+  }
+
+  const bool is_current_main_data = filelist_file_get_id(file) != nullptr;
+  if (is_current_main_data) {
+    /* Smaller, fainter icon at the top-right indicating that the file represents data from the
+     * current file (from current #Main in fact). */
+    float icon_x, icon_y;
+    const uchar light[4] = {255, 255, 255, 255};
+    icon_x = float(tile_draw_rect->xmax) - (16.0f * UI_SCALE_FAC);
+    icon_y = float(tile_draw_rect->ymax) - (20.0f * UI_SCALE_FAC);
+    UI_icon_draw_ex(icon_x,
+                    icon_y,
+                    ICON_CURRENT_FILE,
+                    1.0f / UI_SCALE_FAC,
+                    0.6f,
+                    0.0f,
+                    light,
+                    true,
+                    UI_NO_ICON_OVERLAY_TEXT);
   }
 }
 
@@ -1246,7 +1264,6 @@ void file_draw_list(const bContext *C, ARegion *region)
     /* don't drag parent or refresh items */
     do_drag = !FILENAME_IS_CURRPAR(file->relpath);
     const bool is_hidden = (file->attributes & FILE_ATTR_HIDDEN);
-    const bool is_link = (file->attributes & FILE_ATTR_ANY_LINK);
 
     if (FILE_IMGDISPLAY == params->display) {
       const int file_type_icon = filelist_geticon_file_type(files, i, false);
@@ -1268,9 +1285,10 @@ void file_draw_list(const bContext *C, ARegion *region)
                         layout,
                         is_special_file_image,
                         is_hidden,
-                        is_link,
                         /* Returns the scale which is needed below. */
                         &scale);
+      file_draw_indicator_icons(
+          files, file, &tile_draw_rect, thumb_icon_aspect, file_type_icon, is_special_file_image);
       if (do_drag) {
         file_add_preview_drag_but(
             sfile, block, layout, file, path, &tile_draw_rect, imb, file_type_icon, scale);
