@@ -404,6 +404,10 @@ class Context : public realtime_compositor::Context {
                                    const char *pass_name,
                                    realtime_compositor::MetaData &meta_data) const override
   {
+    if (!scene) {
+      return;
+    }
+
     ViewLayer *view_layer = static_cast<ViewLayer *>(
         BLI_findlink(&scene->view_layers, view_layer_id));
     if (!view_layer) {
