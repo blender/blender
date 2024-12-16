@@ -856,14 +856,6 @@ ccl_device Spectrum bsdf_hair_huang_eval(KernelGlobals kg,
   bsdf->extra->gamma_m_min = gamma_m_min;
   bsdf->extra->gamma_m_max = gamma_m_max;
 
-  /* FIXME(weizhen): There is a problem of `fast_sinf(-1.57085085f)` returning 0 instead of
-   * expected -1, causing the range to be incorrect. As that seems an uncommon case, it feels safer
-   * to cover this case first, and look into solving the problem in `fast_sinf()` later. */
-  kernel_assert(bsdf->extra->gamma_m_min < bsdf->extra->gamma_m_max);
-  if (!(bsdf->extra->gamma_m_min < bsdf->extra->gamma_m_max)) {
-    return zero_spectrum();
-  }
-
   const float projected_area = cos_theta(local_I) * dh;
 
   return (bsdf_hair_huang_eval_r(kg, sc, local_I, local_O) +
