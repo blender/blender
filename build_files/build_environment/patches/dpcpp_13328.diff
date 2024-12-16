@@ -1,0 +1,12 @@
+diff --git a/clang/lib/Driver/CMakeLists.txt b/clang/lib/Driver/CMakeLists.txt
+index bfeb4a763da84..94400f08154a2 100644
+--- a/clang/lib/Driver/CMakeLists.txt
++++ b/clang/lib/Driver/CMakeLists.txt
+@@ -98,6 +98,7 @@ add_clang_library(clangDriver
+ 
+   DEPENDS
+   ClangDriverOptions
++  DeviceConfigFile
+ 
+   LINK_LIBS
+   clangBasic
