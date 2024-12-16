@@ -750,35 +750,37 @@ Material *BKE_object_material_get_eval(Object *ob, short act)
   BLI_assert(DEG_is_evaluated_object(ob));
 
   const ID *data = get_evaluated_object_data_with_materials(ob);
-  const short *tot_slots_data_ptr = BKE_id_material_len_p(const_cast<ID *>(data));
-  const int tot_slots_data = tot_slots_data_ptr ? *tot_slots_data_ptr : 0;
+  const int slots_num = BKE_object_material_count_eval(ob);
 
-  if (tot_slots_data == 0) {
+  if (slots_num == 0) {
     return nullptr;
   }
 
   /* Clamp to number of slots if index is out of range, same convention as used for rendering. */
-  const int slot_index = clamp_i(act - 1, 0, tot_slots_data - 1);
+  const int slot_index = clamp_i(act - 1, 0, slots_num - 1);
   const int tot_slots_object = ob->totcol;
-
-  Material ***materials_data_ptr = BKE_id_material_array_p(const_cast<ID *>(data));
-  Material **materials_data = materials_data_ptr ? *materials_data_ptr : nullptr;
-  Material **materials_object = ob->mat;
 
   /* Check if slot is overwritten by object. */
   if (slot_index < tot_slots_object) {
     if (ob->matbits) {
       if (ob->matbits[slot_index]) {
-        Material *material = materials_object[slot_index];
+        Material *material = ob->mat[slot_index];
         if (material != nullptr) {
           return material;
         }
       }
     }
   }
+
   /* Otherwise use data from object-data. */
-  if (slot_index < tot_slots_data) {
-    Material *material = materials_data[slot_index];
+  const short *data_slots_num_ptr = BKE_id_material_len_p(const_cast<ID *>(data));
+  if (!data_slots_num_ptr) {
+    return nullptr;
+  }
+  const int data_slots_num = *data_slots_num_ptr;
+  Material **data_materials = *BKE_id_material_array_p(const_cast<ID *>(data));
+  if (slot_index < data_slots_num) {
+    Material *material = data_materials[slot_index];
     return material;
   }
   return nullptr;
@@ -793,7 +795,13 @@ int BKE_object_material_count_eval(const Object *ob)
   BLI_assert(ob->data != nullptr);
   const ID *id = get_evaluated_object_data_with_materials(const_cast<Object *>(ob));
   const short *len_p = BKE_id_material_len_p(const_cast<ID *>(id));
-  return len_p ? *len_p : 0;
+  return std::max(ob->totcol, len_p ? *len_p : 0);
+}
+
+int BKE_object_material_count_with_fallback_eval(const Object *ob)
+{
+  const int actual_count = BKE_object_material_count_eval(ob);
+  return std::max(1, actual_count);
 }
 
 void BKE_id_material_eval_assign(ID *id, int slot, Material *material)

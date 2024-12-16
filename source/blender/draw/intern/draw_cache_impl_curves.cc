@@ -946,11 +946,6 @@ void DRW_curves_batch_cache_free_old(Curves *curves, int ctime)
   }
 }
 
-int DRW_curves_material_count_get(const Curves *curves)
-{
-  return max_ii(1, curves->totcol);
-}
-
 gpu::Batch *DRW_curves_batch_cache_get_edit_points(Curves *curves)
 {
   CurvesBatchCache &cache = get_batch_cache(*curves);

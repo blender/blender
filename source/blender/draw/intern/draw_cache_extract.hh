@@ -50,8 +50,6 @@ enum {
   DRW_MESH_WEIGHT_STATE_LOCK_RELATIVE = (1 << 2),
 };
 
-int mesh_render_mat_len_get(const Object &object, const Mesh &mesh);
-
 struct MeshBufferList {
   /* Every VBO below contains at least enough data for every loop in the mesh
    * (except fdots and skin roots). For some VBOs, it extends to (in this exact order) :
