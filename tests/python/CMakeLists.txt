@@ -783,7 +783,7 @@ if(WITH_CYCLES OR WITH_GPU_RENDER_TESTS)
         endforeach()
       endif()
 
-      if(WITH_VULKAN_BACKEND)
+      if(WITH_VULKAN_BACKEND AND WITH_GPU_RENDER_TESTS_VULKAN)
         foreach(render_test ${gpu_render_tests})
           add_render_test(
             eevee_next_${render_test}_vulkan
@@ -823,7 +823,7 @@ if(WITH_CYCLES OR WITH_GPU_RENDER_TESTS)
         endforeach()
       endif()
 
-      if(WITH_VULKAN_BACKEND)
+      if(WITH_VULKAN_BACKEND AND WITH_GPU_RENDER_TESTS_VULKAN)
         foreach(render_test ${gpu_render_tests})
           add_render_test(
             workbench_${render_test}_vulkan
