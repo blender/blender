@@ -84,6 +84,10 @@ bool is_output_linked_to_node_conditioned(DOutputSocket output, FunctionRef<bool
 int number_of_inputs_linked_to_output_conditioned(DOutputSocket output,
                                                   FunctionRef<bool(DInputSocket)> condition)
 {
+  if (!output->is_logically_linked()) {
+    return 0;
+  }
+
   int count = 0;
   output.foreach_target_socket(
       [&](DInputSocket target, const TargetSocketPathInfo & /*path_info*/) {
