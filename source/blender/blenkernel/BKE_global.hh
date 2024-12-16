@@ -282,6 +282,16 @@ enum {
   G_FILE_AUTOPACK = (1 << 0),
   G_FILE_COMPRESS = (1 << 1),
 
+  /**
+   * When in background mode, do not automatically build a depsgraph when loading a blendfile.
+   * Typically set by the `--disable-depsgraph-on-file-load` command-line argument.
+   *
+   * NOTE: This is a temporary option, it is intended to be removed in blender 5.0.
+   * The default behavior will then be changed to never automatically generate a depsgraph on
+   * fileload when in background mode.
+   */
+  G_BACKGROUND_NO_DEPSGRAPH = 1 << 2,
+
   // G_FILE_DEPRECATED_9 = (1 << 9),
   G_FILE_NO_UI = (1 << 10),
 
@@ -319,7 +329,8 @@ enum {
  * Run-time only #G.fileflags which are never read or written to/from Blend files.
  * This means we can change the values without worrying about do-versions.
  */
-#define G_FILE_FLAG_ALL_RUNTIME (G_FILE_NO_UI | G_FILE_RECOVER_READ | G_FILE_RECOVER_WRITE)
+#define G_FILE_FLAG_ALL_RUNTIME \
+  (G_BACKGROUND_NO_DEPSGRAPH | G_FILE_NO_UI | G_FILE_RECOVER_READ | G_FILE_RECOVER_WRITE)
 
 /** #Global.moving, signals drawing in (3d) window to denote transform */
 enum {

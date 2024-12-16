@@ -816,7 +816,9 @@ static void wm_file_read_post(bContext *C,
 
     /* After load post, so for example the driver namespace can be filled
      * before evaluating the depsgraph. */
-    wm_event_do_depsgraph(C, true);
+    if (!G.background || (G.fileflags & G_BACKGROUND_NO_DEPSGRAPH) == 0) {
+      wm_event_do_depsgraph(C, true);
+    }
 
     ED_editors_init(C);
 
