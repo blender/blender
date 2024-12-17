@@ -1202,7 +1202,7 @@ static void setup_app_data(bContext *C,
 
   BLI_assert(BKE_main_namemap_validate(bmain));
 
-  if (mode != LOAD_UNDO && !USER_EXPERIMENTAL_TEST(&U, no_override_auto_resync)) {
+  if (mode != LOAD_UNDO && liboverride::is_auto_resync_enabled()) {
     reports->duration.lib_overrides_resync = BLI_time_now_seconds();
 
     BKE_lib_override_library_main_resync(
