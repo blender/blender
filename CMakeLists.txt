@@ -829,8 +829,12 @@ Run GPU render tests silently (finished tests will pass). \
 Generated report will show failing tests"
   ON
 )
+option(WITH_GPU_BACKEND_TESTS "\
+Enable GPU backend related unit testing"
+  OFF
+)
 option(WITH_GPU_DRAW_TESTS "\
-Enable GPU drawing related unit testing (GPU backends and draw manager)"
+Enable GPU drawing related unit testing (draw manager)"
   OFF
 )
 option(WITH_COMPOSITOR_REALTIME_TESTS "Enable regression testing for realtime compositor" OFF)

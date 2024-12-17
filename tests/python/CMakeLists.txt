@@ -988,7 +988,7 @@ else()
 endif()
 
 
-if(WITH_GPU_DRAW_TESTS)
+if(WITH_GPU_RENDER_TESTS)
   if(NOT OPENIMAGEIO_TOOL)
     message(STATUS "Disabling OpenGL draw tests because OIIO oiiotool does not exist")
   elseif(NOT EXISTS "${TEST_SRC_DIR}/opengl")

@@ -39,7 +39,7 @@
 #include "gpu_srgb_to_framebuffer_space_info.hh"
 
 #ifdef WITH_GTESTS
-#  ifdef WITH_GPU_DRAW_TESTS
+#  ifdef WITH_GPU_BACKEND_TESTS
 #    include "gpu_shader_test_info.hh"
 #  endif
 #endif

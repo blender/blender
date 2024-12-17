@@ -685,7 +685,7 @@ set(MSL_SRC
 )
 
 if(WITH_GTESTS)
-  if(WITH_GPU_DRAW_TESTS)
+  if(WITH_GPU_BACKEND_TESTS)
     list(APPEND GLSL_SRC ${GLSL_SRC_TEST})
   endif()
 endif()
@@ -736,8 +736,8 @@ if(WITH_OPENCOLORIO)
   add_definitions(-DWITH_OCIO)
 endif()
 
-if(WITH_GPU_DRAW_TESTS)
-  add_definitions(-DWITH_GPU_DRAW_TESTS)
+if(WITH_GPU_BACKEND_TESTS)
+  add_definitions(-DWITH_GPU_BACKEND_TESTS)
 endif()
 
 if(WITH_GTESTS)
@@ -778,7 +778,7 @@ if(WITH_GTESTS)
     bf_windowmanager
   )
 
-  if(WITH_GPU_DRAW_TESTS)
+  if(WITH_GPU_BACKEND_TESTS)
     list(APPEND TEST_SRC
       tests/buffer_texture_test.cc
       tests/compute_test.cc
