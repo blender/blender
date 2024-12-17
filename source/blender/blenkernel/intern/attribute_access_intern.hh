@@ -93,6 +93,11 @@ class BuiltinAttributeProvider {
   {
     return validator_;
   }
+
+  GPointer default_value() const
+  {
+    return default_value_;
+  }
 };
 
 /**
@@ -273,6 +278,17 @@ inline std::optional<AttributeDomainAndType> builtin_domain_and_type(const void 
 }
 
 template<const GeometryAttributeProviders &providers>
+inline GPointer builtin_default_value(const void * /*owner*/, const StringRef attribute_id)
+{
+  if (const BuiltinAttributeProvider *provider =
+          providers.builtin_attribute_providers().lookup_default_as(attribute_id, nullptr))
+  {
+    return provider->default_value();
+  }
+  return {};
+}
+
+template<const GeometryAttributeProviders &providers>
 inline GAttributeReader lookup(const void *owner, const StringRef name)
 {
   if (const BuiltinAttributeProvider *provider =
@@ -398,6 +414,7 @@ inline AttributeAccessorFunctions accessor_functions_for_providers()
   return AttributeAccessorFunctions{nullptr,
                                     nullptr,
                                     builtin_domain_and_type<providers>,
+                                    builtin_default_value<providers>,
                                     lookup<providers>,
                                     nullptr,
                                     foreach_attribute<providers>,
