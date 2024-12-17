@@ -15,7 +15,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_linklist_stack.h"
-#include "BLI_rand.h"
+#include "BLI_rand.hh"
 #include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
@@ -311,7 +311,7 @@ static void region_draw_azones(ScrArea *area, ARegion *region)
     rcti azrct;
     BLI_rcti_init(&azrct, az->x1, az->x2, az->y1, az->y2);
 
-    if (BLI_rcti_isect(&region->drawrct, &azrct, nullptr)) {
+    if (BLI_rcti_isect(&region->runtime->drawrct, &azrct, nullptr)) {
       if (az->type == AZONE_AREA) {
         area_draw_azone(az->x1, az->y1, az->x2, az->y2);
       }
@@ -498,6 +498,7 @@ void ED_region_do_layout(bContext *C, ARegion *region)
 
 void ED_region_do_draw(bContext *C, ARegion *region)
 {
+  using namespace blender;
   wmWindow *win = CTX_wm_window(C);
   ScrArea *area = CTX_wm_area(C);
   ARegionType *at = region->runtime->type;
@@ -509,8 +510,8 @@ void ED_region_do_draw(bContext *C, ARegion *region)
 
   region->runtime->do_draw |= RGN_DRAWING;
 
-  /* Set viewport, scissor, ortho and region->drawrct. */
-  wmPartialViewport(&region->drawrct, &region->winrct, &region->drawrct);
+  /* Set viewport, scissor, ortho and region->runtime->drawrct. */
+  wmPartialViewport(&region->runtime->drawrct, &region->winrct, &region->runtime->drawrct);
 
   wmOrtho2_region_pixelspace(region);
 
@@ -546,17 +547,18 @@ void ED_region_do_draw(bContext *C, ARegion *region)
     GPUVertFormat *format = immVertexFormat();
     uint pos = GPU_vertformat_attr_add(format, "pos", GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
     immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
-    immUniformColor4f(BLI_thread_frand(0), BLI_thread_frand(0), BLI_thread_frand(0), 0.1f);
+    RandomNumberGenerator rng = RandomNumberGenerator::from_random_seed();
+    immUniformColor4f(rng.get_float(), rng.get_float(), rng.get_float(), 0.1f);
     immRectf(pos,
-             region->drawrct.xmin - region->winrct.xmin,
-             region->drawrct.ymin - region->winrct.ymin,
-             region->drawrct.xmax - region->winrct.xmin,
-             region->drawrct.ymax - region->winrct.ymin);
+             region->runtime->drawrct.xmin - region->winrct.xmin,
+             region->runtime->drawrct.ymin - region->winrct.ymin,
+             region->runtime->drawrct.xmax - region->winrct.xmin,
+             region->runtime->drawrct.ymax - region->winrct.ymin);
     immUnbindProgram();
     GPU_blend(GPU_BLEND_NONE);
   }
 
-  memset(&region->drawrct, 0, sizeof(region->drawrct));
+  memset(&region->runtime->drawrct, 0, sizeof(region->runtime->drawrct));
 
   UI_blocklist_free_inactive(C, region);
 
@@ -640,14 +642,14 @@ void ED_region_tag_redraw(ARegion *region)
     region->runtime->do_draw &= ~(RGN_DRAW_PARTIAL | RGN_DRAW_NO_REBUILD |
                                   RGN_DRAW_EDITOR_OVERLAYS);
     region->runtime->do_draw |= RGN_DRAW;
-    memset(&region->drawrct, 0, sizeof(region->drawrct));
+    memset(&region->runtime->drawrct, 0, sizeof(region->runtime->drawrct));
   }
 }
 
 void ED_region_tag_redraw_cursor(ARegion *region)
 {
   if (region) {
-    region->do_draw_paintcursor = RGN_DRAW;
+    region->runtime->do_draw_paintcursor = RGN_DRAW;
   }
 }
 
@@ -656,7 +658,7 @@ void ED_region_tag_redraw_no_rebuild(ARegion *region)
   if (region && !(region->runtime->do_draw & (RGN_DRAWING | RGN_DRAW))) {
     region->runtime->do_draw &= ~(RGN_DRAW_PARTIAL | RGN_DRAW_EDITOR_OVERLAYS);
     region->runtime->do_draw |= RGN_DRAW_NO_REBUILD;
-    memset(&region->drawrct, 0, sizeof(region->drawrct));
+    memset(&region->runtime->drawrct, 0, sizeof(region->runtime->drawrct));
   }
 }
 
@@ -684,7 +686,7 @@ void ED_region_tag_redraw_partial(ARegion *region, const rcti *rct, bool rebuild
   if (region && !(region->runtime->do_draw & RGN_DRAWING)) {
     if (region->runtime->do_draw & RGN_DRAW_PARTIAL) {
       /* Partial redraw already set, expand region. */
-      BLI_rcti_union(&region->drawrct, rct);
+      BLI_rcti_union(&region->runtime->drawrct, rct);
       if (rebuild) {
         region->runtime->do_draw &= ~RGN_DRAW_NO_REBUILD;
       }
@@ -697,7 +699,7 @@ void ED_region_tag_redraw_partial(ARegion *region, const rcti *rct, bool rebuild
     }
     else {
       /* No redraw set yet, set partial region. */
-      region->drawrct = *rct;
+      region->runtime->drawrct = *rct;
       region->runtime->do_draw |= RGN_DRAW_PARTIAL;
       if (!rebuild) {
         region->runtime->do_draw |= RGN_DRAW_NO_REBUILD;
@@ -2027,6 +2029,23 @@ static void area_init_type_fallback(ScrArea *area, eSpace_Type space_type)
   }
 }
 
+void ED_area_and_region_types_init(ScrArea *area)
+{
+  area->type = BKE_spacetype_from_id(area->spacetype);
+
+  if (area->type == nullptr) {
+    area_init_type_fallback(area, SPACE_VIEW3D);
+    BLI_assert(area->type != nullptr);
+  }
+
+  LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
+    region->runtime->type = BKE_regiontype_from_id(area->type, region->regiontype);
+    /* Invalid region types may be stored in files (e.g. for new files), but they should be handled
+     * on file read already, see #BKE_screen_area_blend_read_lib(). */
+    BLI_assert_msg(region->runtime->type != nullptr, "Region type not valid for this space type");
+  }
+}
+
 void ED_area_init(wmWindowManager *wm, wmWindow *win, ScrArea *area)
 {
   WorkSpace *workspace = WM_window_get_active_workspace(win);
@@ -2041,20 +2060,7 @@ void ED_area_init(wmWindowManager *wm, wmWindow *win, ScrArea *area)
   rcti window_rect;
   WM_window_rect_calc(win, &window_rect);
 
-  /* Set type-definitions. */
-  area->type = BKE_spacetype_from_id(area->spacetype);
-
-  if (area->type == nullptr) {
-    area_init_type_fallback(area, SPACE_VIEW3D);
-    BLI_assert(area->type != nullptr);
-  }
-
-  LISTBASE_FOREACH (ARegion *, region, &area->regionbase) {
-    region->runtime->type = BKE_regiontype_from_id(area->type, region->regiontype);
-    /* Invalid region types may be stored in files (e.g. for new files), but they should be handled
-     * on file read already, see #BKE_screen_area_blend_read_lib(). */
-    BLI_assert_msg(region->runtime->type != nullptr, "Region type not valid for this space type");
-  }
+  ED_area_and_region_types_init(area);
 
   /* area sizes */
   area_calc_totrct(area, &window_rect);

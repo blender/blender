@@ -2464,7 +2464,8 @@ static void bevel_harden_normals(BevelParams *bp, BMesh *bm)
   /* I suspect this is not necessary. TODO: test that guess. */
   BM_mesh_normals_update(bm);
 
-  int cd_clnors_offset = CustomData_get_offset(&bm->ldata, CD_CUSTOMLOOPNORMAL);
+  int cd_clnors_offset = CustomData_get_offset_named(
+      &bm->ldata, CD_PROP_INT16_2D, "custom_normal");
 
   /* If there is not already a custom split normal layer then making one
    * (with #BM_lnorspace_update) will not respect the auto-smooth angle between smooth faces.
@@ -2479,7 +2480,7 @@ static void bevel_harden_normals(BevelParams *bp, BMesh *bm)
   BM_lnorspace_update(bm);
 
   if (cd_clnors_offset == -1) {
-    cd_clnors_offset = CustomData_get_offset(&bm->ldata, CD_CUSTOMLOOPNORMAL);
+    cd_clnors_offset = CustomData_get_offset_named(&bm->ldata, CD_PROP_INT16_2D, "custom_normal");
   }
 
   BMIter fiter;

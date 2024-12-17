@@ -153,7 +153,7 @@ static void ui_alembic_export_settings(const bContext *C, uiLayout *layout, Poin
 
   if (uiLayout *panel = uiLayoutPanel(C, layout, "ABC_export_general", false, IFACE_("General"))) {
     uiLayout *col = uiLayoutColumn(panel, false);
-    uiItemR(col, ptr, "global_scale", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "global_scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
     col = uiLayoutColumn(panel, false);
     if (CTX_wm_space_file(C)) {
@@ -176,7 +176,7 @@ static void ui_alembic_export_settings(const bContext *C, uiLayout *layout, Poin
     uiItemR(sub, ptr, "gsamples", UI_ITEM_NONE, IFACE_("Geometry"), ICON_NONE);
 
     sub = uiLayoutColumn(col, true);
-    uiItemR(sub, ptr, "sh_open", UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
+    uiItemR(sub, ptr, "sh_open", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
     uiItemR(sub, ptr, "sh_close", UI_ITEM_R_SLIDER, IFACE_("Close"), ICON_NONE);
 
     uiItemS(col);
@@ -188,27 +188,27 @@ static void ui_alembic_export_settings(const bContext *C, uiLayout *layout, Poin
             UI_ITEM_NONE,
             IFACE_("Custom Properties"),
             ICON_NONE);
-    uiItemR(col, ptr, "flatten", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "flatten", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
     col = uiLayoutColumn(panel, true);
-    uiItemR(col, ptr, "evaluation_mode", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "evaluation_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
   /* Object Data */
   if (uiLayout *panel = uiLayoutPanel(C, layout, "ABC_export_geometry", false, IFACE_("Geometry")))
   {
     uiLayout *col = uiLayoutColumn(panel, true);
-    uiItemR(col, ptr, "uvs", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "uvs", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
     uiLayout *row = uiLayoutRow(col, false);
     uiLayoutSetActive(row, RNA_boolean_get(ptr, "uvs"));
-    uiItemR(row, ptr, "packuv", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(row, ptr, "packuv", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-    uiItemR(col, ptr, "normals", UI_ITEM_NONE, nullptr, ICON_NONE);
-    uiItemR(col, ptr, "vcolors", UI_ITEM_NONE, nullptr, ICON_NONE);
-    uiItemR(col, ptr, "orcos", UI_ITEM_NONE, nullptr, ICON_NONE);
-    uiItemR(col, ptr, "face_sets", UI_ITEM_NONE, nullptr, ICON_NONE);
-    uiItemR(col, ptr, "curves_as_mesh", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "normals", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    uiItemR(col, ptr, "vcolors", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    uiItemR(col, ptr, "orcos", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    uiItemR(col, ptr, "face_sets", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    uiItemR(col, ptr, "curves_as_mesh", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
     uiItemS(col);
 
@@ -217,7 +217,7 @@ static void ui_alembic_export_settings(const bContext *C, uiLayout *layout, Poin
     uiItemR(sub, ptr, "subdiv_schema", UI_ITEM_NONE, IFACE_("Use Schema"), ICON_NONE);
 
     col = uiLayoutColumn(panel, false);
-    uiItemR(col, ptr, "triangulate", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "triangulate", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     sub = uiLayoutColumn(col, false);
     uiLayoutSetActive(sub, RNA_boolean_get(ptr, "triangulate"));
     uiItemR(sub, ptr, "quad_method", UI_ITEM_NONE, IFACE_("Method Quads"), ICON_NONE);
@@ -229,8 +229,8 @@ static void ui_alembic_export_settings(const bContext *C, uiLayout *layout, Poin
           C, layout, "ABC_export_particles", false, IFACE_("Particle Systems")))
   {
     uiLayout *col = uiLayoutColumn(panel, true);
-    uiItemR(col, ptr, "export_hair", UI_ITEM_NONE, nullptr, ICON_NONE);
-    uiItemR(col, ptr, "export_particles", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "export_hair", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    uiItemR(col, ptr, "export_particles", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 }
 
@@ -571,16 +571,16 @@ static void ui_alembic_import_settings(const bContext *C, uiLayout *layout, Poin
 
   if (uiLayout *panel = uiLayoutPanel(C, layout, "ABC_import_general", false, IFACE_("General"))) {
     uiLayout *col = uiLayoutColumn(panel, false);
-    uiItemR(col, ptr, "scale", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
   if (uiLayout *panel = uiLayoutPanel(C, layout, "ABC_import_options", false, IFACE_("Options"))) {
     uiLayout *col = uiLayoutColumn(panel, false);
-    uiItemR(col, ptr, "relative_path", UI_ITEM_NONE, nullptr, ICON_NONE);
-    uiItemR(col, ptr, "set_frame_range", UI_ITEM_NONE, nullptr, ICON_NONE);
-    uiItemR(col, ptr, "is_sequence", UI_ITEM_NONE, nullptr, ICON_NONE);
-    uiItemR(col, ptr, "validate_meshes", UI_ITEM_NONE, nullptr, ICON_NONE);
-    uiItemR(col, ptr, "always_add_cache_reader", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "relative_path", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    uiItemR(col, ptr, "set_frame_range", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    uiItemR(col, ptr, "is_sequence", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    uiItemR(col, ptr, "validate_meshes", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    uiItemR(col, ptr, "always_add_cache_reader", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 }
 

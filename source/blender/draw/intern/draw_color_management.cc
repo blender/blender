@@ -177,22 +177,4 @@ void DRW_viewport_colormanagement_set(GPUViewport *viewport)
   blender::draw::color_management::viewport_color_management_set(*viewport);
 }
 
-void DRW_transform_none(GPUTexture *tex)
-{
-  drw_state_set(DRW_STATE_WRITE_COLOR);
-
-  GPU_matrix_identity_set();
-  GPU_matrix_identity_projection_set();
-
-  /* Draw as texture for final render (without immediate mode). */
-  blender::gpu::Batch *geom = DRW_cache_fullscreen_quad_get();
-  GPU_batch_program_set_builtin(geom, GPU_SHADER_3D_IMAGE_COLOR);
-  GPU_batch_uniform_4f(geom, "color", 1.0f, 1.0f, 1.0f, 1.0f);
-  GPU_batch_texture_bind(geom, "image", tex);
-
-  GPU_batch_draw(geom);
-
-  GPU_texture_unbind(tex);
-}
-
 /** \} */

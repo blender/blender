@@ -886,7 +886,7 @@ Sound_fadeout(Sound* self, PyObject* args)
 }
 
 PyDoc_STRVAR(M_aud_Sound_filter_doc,
-			 ".. method:: filter(b, a = (1))\n\n"
+			 ".. method:: filter(b, a = (1,))\n\n"
 			 "   Filters a sound with the supplied IIR filter coefficients.\n"
 			 "   Without the second parameter you'll get a FIR filter.\n\n"
 			 "   If the first value of the a sequence is 0,\n"

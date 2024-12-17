@@ -44,18 +44,33 @@
         <UIRef Id="$(var.CPACK_WIX_UI_REF)" />
 
         <?include "properties.wxi"?>
-            
+        <UI>
+            <Publish Dialog="ExitDialog" 
+                Control="Finish" 
+                Event="DoAction" 
+                Value="LaunchBrowser">WIXUI_EXITDIALOGOPTIONALCHECKBOX = 1 and NOT Installed</Publish>
+            <ProgressText Action="RegisterBlender">Registering Blender</ProgressText>
+        </UI>
+        <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT" Value="Learn how to support Blender" />
+        <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOX" Value="1" />
+        <UIRef Id="WixUI_ErrorProgressText" />
+        <CustomAction Id="LaunchBrowser"
+             ExeCommand="explorer.exe &quot;https://fund.blender.org/?utm_source=blender-$(var.CPACK_PACKAGE_VERSION)-installer-msi&quot;"
+             Directory="INSTALL_ROOT"
+              Return="asyncNoWait" >
+           REMOVE="ALL"
+        </CustomAction>
         <CustomAction Id="RegisterBlender" 
                       Impersonate="no"
                       Execute="deferred"
-                      FileKey="CM_FP_Blender.blender.exe"
-                      ExeCommand=" --register-allusers"
+                      FileKey="CM_FP_Blender.blender_launcher.exe"
+                      ExeCommand="--register-allusers"
                       Return="ignore" />
         <CustomAction Id="UnRegisterBlender" 
                       Impersonate="no"
                       Execute="deferred"
-                      FileKey="CM_FP_Blender.blender.exe"
-                      ExeCommand=" --unregister-allusers"
+                      FileKey="CM_FP_Blender.blender_launcher.exe"
+                      ExeCommand="--unregister-allusers"
                       Return="ignore" />
         <InstallExecuteSequence>
             <Custom Action="RegisterBlender" After="InstallFiles" />

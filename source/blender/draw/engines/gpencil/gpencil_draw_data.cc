@@ -428,13 +428,13 @@ GPENCIL_LightPool *gpencil_light_pool_create(GPENCIL_PrivateData *pd, Object * /
 void gpencil_material_pool_free(void *storage)
 {
   GPENCIL_MaterialPool *matpool = (GPENCIL_MaterialPool *)storage;
-  DRW_UBO_FREE_SAFE(matpool->ubo);
+  GPU_UBO_FREE_SAFE(matpool->ubo);
 }
 
 void gpencil_light_pool_free(void *storage)
 {
   GPENCIL_LightPool *lightpool = (GPENCIL_LightPool *)storage;
-  DRW_UBO_FREE_SAFE(lightpool->ubo);
+  GPU_UBO_FREE_SAFE(lightpool->ubo);
 }
 
 /** \} */

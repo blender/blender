@@ -19,6 +19,8 @@
 #include "DNA_scene_types.h"
 #include "DNA_world_types.h"
 
+#include "RNA_path.hh"
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_array_utils.h"
@@ -28,6 +30,7 @@
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
+#include "BLI_vector.hh"
 
 #include "BKE_camera.h"
 #include "BKE_context.hh"
@@ -674,30 +677,45 @@ bool ED_view3d_camera_lock_sync(const Depsgraph *depsgraph, View3D *v3d, RegionV
 bool ED_view3d_camera_autokey(
     const Scene *scene, ID *id_key, bContext *C, const bool do_rotate, const bool do_translate)
 {
-  using namespace blender::animrig;
-  if (autokeyframe_cfra_can_key(scene, id_key)) {
-    const float cfra = float(scene->r.cfra);
-    blender::Vector<PointerRNA> sources;
-    /* add data-source override for the camera object */
-    blender::animrig::relative_keyingset_add_source(sources, id_key);
+  BLI_assert(GS(id_key->name) == ID_OB);
+  using namespace blender;
 
-    /* insert keyframes
-     * 1) on the first frame
-     * 2) on each subsequent frame
-     *    TODO: need to check in future that frame changed before doing this
-     */
-    if (do_rotate) {
-      KeyingSet *ks = blender::animrig::get_keyingset_for_autokeying(scene, ANIM_KS_ROTATION_ID);
-      blender::animrig::apply_keyingset(C, &sources, ks, ModifyKeyMode::INSERT, cfra);
-    }
-    if (do_translate) {
-      KeyingSet *ks = blender::animrig::get_keyingset_for_autokeying(scene, ANIM_KS_LOCATION_ID);
-      blender::animrig::apply_keyingset(C, &sources, ks, ModifyKeyMode::INSERT, cfra);
-    }
-
-    return true;
+  /* While `autokeyframe_object` does already call `autokeyframe_cfra_can_key` we need this here
+   * because at the time of writing this it returns void. Once the keying result is returned, like
+   * implemented for `blender::animrig::insert_keyframes`, this `if` can be removed. */
+  if (!animrig::autokeyframe_cfra_can_key(scene, id_key)) {
+    return false;
   }
-  return false;
+
+  Object *camera_object = reinterpret_cast<Object *>(id_key);
+
+  Vector<RNAPath> rna_paths;
+
+  if (do_rotate) {
+    switch (camera_object->rotmode) {
+      case ROT_MODE_QUAT:
+        rna_paths.append({"rotation_quaternion"});
+        break;
+
+      case ROT_MODE_AXISANGLE:
+        rna_paths.append({"rotation_axis_angle"});
+        break;
+
+      case ROT_MODE_EUL:
+        rna_paths.append({"rotation_euler"});
+        break;
+
+      default:
+        break;
+    }
+  }
+  if (do_translate) {
+    rna_paths.append({"location"});
+  }
+
+  animrig::autokeyframe_object(C, scene, camera_object, rna_paths);
+  WM_main_add_notifier(NC_ANIMATION | ND_KEYFRAME | NA_ADDED, nullptr);
+  return true;
 }
 
 bool ED_view3d_camera_lock_autokey(

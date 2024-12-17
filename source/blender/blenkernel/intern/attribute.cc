@@ -220,32 +220,42 @@ static bool bke_attribute_rename_if_exists(AttributeOwner &owner,
   return BKE_attribute_rename(owner, old_name, new_name, reports);
 }
 
-static bool mesh_edit_mode_attribute_valid(const blender::StringRef name,
-                                           const AttrDomain domain,
-                                           const eCustomDataType data_type,
-                                           ReportList *reports)
+static bool name_valid_for_builtin_domain_and_type(
+    const blender::bke::AttributeAccessor attributes,
+    const blender::StringRefNull name,
+    const AttrDomain domain,
+    const eCustomDataType data_type,
+    ReportList *reports)
 {
-  if (ELEM(name,
-           "position",
-           ".edge_verts",
-           ".corner_vert",
-           ".corner_edge",
-           "sharp_edge",
-           "sharp_face",
-           "material_index"))
-  {
-    BKE_report(reports, RPT_ERROR, "Unable to create builtin attribute in edit mode");
-    return false;
+  if (const std::optional metadata = attributes.get_builtin_domain_and_type(name)) {
+    if (domain != metadata->domain) {
+      BKE_reportf(reports, RPT_ERROR, "Domain unsupported for \"%s\" attribute", name.c_str());
+      return false;
+    }
+    if (data_type != metadata->data_type) {
+      BKE_reportf(reports, RPT_ERROR, "Type unsupported for \"%s\" attribute", name.c_str());
+      return false;
+    }
   }
-  if (name == "id") {
-    if (domain != AttrDomain::Point) {
-      BKE_report(reports, RPT_ERROR, "Domain unsupported for \"id\" attribute");
+  return true;
+}
+
+static bool mesh_attribute_valid(const Mesh &mesh,
+                                 const blender::StringRefNull name,
+                                 const AttrDomain domain,
+                                 const eCustomDataType data_type,
+                                 ReportList *reports)
+{
+  using namespace blender;
+  if (mesh.runtime->edit_mesh) {
+    if (BM_attribute_stored_in_bmesh_builtin(name)) {
+      BKE_report(reports, RPT_ERROR, "Unable to create attribute in edit mode");
       return false;
     }
-    if (data_type != CD_PROP_INT32) {
-      BKE_report(reports, RPT_ERROR, "Type unsupported for \"id\" attribute");
-      return false;
-    }
+  }
+  if (!name_valid_for_builtin_domain_and_type(mesh.attributes(), name, domain, data_type, reports))
+  {
+    return false;
   }
   return true;
 }
@@ -287,12 +297,24 @@ bool BKE_attribute_rename(AttributeOwner &owner,
 
   if (owner.type() == AttributeOwnerType::Mesh) {
     Mesh *mesh = owner.get_mesh();
-    if (mesh->runtime->edit_mesh) {
-      if (!mesh_edit_mode_attribute_valid(
-              new_name, BKE_attribute_domain(owner, layer), eCustomDataType(layer->type), reports))
-      {
-        return false;
-      }
+    if (!mesh_attribute_valid(*mesh,
+                              new_name,
+                              BKE_attribute_domain(owner, layer),
+                              eCustomDataType(layer->type),
+                              reports))
+    {
+      return false;
+    }
+  }
+  else if (owner.type() == AttributeOwnerType::Curves) {
+    Curves *curves = owner.get_curves();
+    if (!name_valid_for_builtin_domain_and_type(curves->geometry.wrap().attributes(),
+                                                new_name,
+                                                BKE_attribute_domain(owner, layer),
+                                                eCustomDataType(layer->type),
+                                                reports))
+    {
+      return false;
     }
   }
 
@@ -385,7 +407,7 @@ CustomDataLayer *BKE_attribute_new(AttributeOwner &owner,
   if (owner.type() == AttributeOwnerType::Mesh) {
     Mesh *mesh = owner.get_mesh();
     if (BMEditMesh *em = mesh->runtime->edit_mesh.get()) {
-      if (!mesh_edit_mode_attribute_valid(name, domain, type, reports)) {
+      if (!mesh_attribute_valid(*mesh, name, domain, type, reports)) {
         return nullptr;
       }
       BM_data_layer_add_named(em->bm, customdata, type, uniquename.c_str());

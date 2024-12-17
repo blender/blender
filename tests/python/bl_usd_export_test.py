@@ -422,6 +422,58 @@ class USDExportTest(AbstractUSDTest):
         input_displacement = shader_surface.GetInput('displacement')
         self.assertTrue(input_displacement.Get() is None)
 
+    def test_export_metaballs(self):
+        """Validate correct export of Metaball objects. These are written out as Meshes."""
+
+        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_metaballs.blend"))
+        export_path = self.tempdir / "usd_metaballs.usda"
+        self.export_and_validate(filepath=str(export_path), evaluation_mode="RENDER")
+
+        stage = Usd.Stage.Open(str(export_path))
+
+        # There should be 3 Mesh prims and they should each correspond to the "basis"
+        # metaball (i.e. the ones without any numeric suffix)
+        mesh_prims = [prim for prim in stage.Traverse() if prim.IsA(UsdGeom.Mesh)]
+        prim_names = [prim.GetPath().pathString for prim in mesh_prims]
+        self.assertEqual(len(mesh_prims), 3)
+        self.assertListEqual(
+            sorted(prim_names), ["/root/Ball_A/Ball_A", "/root/Ball_B/Ball_B", "/root/Ball_C/Ball_C"])
+
+        # Make rough check of vertex counts to ensure geometry is present
+        actual_prim_verts = {prim.GetName(): len(UsdGeom.Mesh(prim).GetPointsAttr().Get()) for prim in mesh_prims}
+        expected_prim_verts = {"Ball_A": 2232, "Ball_B": 2876, "Ball_C": 1152}
+        self.assertDictEqual(actual_prim_verts, expected_prim_verts)
+
+    def test_particle_hair(self):
+        """Validate correct export of particle hair emitters."""
+
+        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_particle_hair.blend"))
+
+        # Ensure the hair dynamics are baked for all relevant frames...
+        for frame in range(1, 11):
+            bpy.context.scene.frame_set(frame)
+        bpy.context.scene.frame_set(1)
+
+        export_path = self.tempdir / "usd_particle_hair.usda"
+        self.export_and_validate(
+            filepath=str(export_path), export_hair=True, export_animation=True, evaluation_mode="RENDER")
+
+        stage = Usd.Stage.Open(str(export_path))
+        main_prim = stage.GetPrimAtPath("/root/Sphere")
+        hair_prim = stage.GetPrimAtPath("/root/Sphere/ParticleSystem")
+        self.assertTrue(main_prim.IsValid())
+        self.assertTrue(hair_prim.IsValid())
+
+        # Ensure we have 5 frames of rotation data for the main Sphere and 10 frames for the hair data
+        rot_samples = UsdGeom.Xformable(main_prim).GetRotateXYZOp().GetTimeSamples()
+        self.assertEqual(len(rot_samples), 5)
+
+        hair_curves = UsdGeom.BasisCurves(hair_prim)
+        hair_samples = hair_curves.GetPointsAttr().GetTimeSamples()
+        self.assertEqual(hair_curves.GetTypeAttr().Get(), "cubic")
+        self.assertEqual(hair_curves.GetBasisAttr().Get(), "bspline")
+        self.assertEqual(len(hair_samples), 10)
+
     def check_primvar(self, prim, pv_name, pv_typeName, pv_interp, elements_len):
         pv = UsdGeom.PrimvarsAPI(prim).GetPrimvar(pv_name)
         self.assertTrue(pv.HasValue())
@@ -753,6 +805,7 @@ class USDExportTest(AbstractUSDTest):
         self.assertEqual(prim.GetTypeName(), "Skeleton")
         prim_skel = UsdSkel.BindingAPI(prim)
         anim = UsdSkel.Animation(prim_skel.GetAnimationSource())
+        self.assertEqual(anim.GetPrim().GetName(), "ArmatureAction_001")
         self.assertEqual(anim.GetJointsAttr().Get(),
                          ['Bone',
                           'Bone/Bone_001',
@@ -762,9 +815,9 @@ class USDExportTest(AbstractUSDTest):
         loc_samples = anim.GetTranslationsAttr().GetTimeSamples()
         rot_samples = anim.GetRotationsAttr().GetTimeSamples()
         scale_samples = anim.GetScalesAttr().GetTimeSamples()
-        self.assertEqual(loc_samples, [1.0, 2.0, 3.0, 4.0, 5.0])
-        self.assertEqual(rot_samples, [1.0, 2.0, 3.0, 4.0, 5.0])
-        self.assertEqual(scale_samples, [1.0, 2.0, 3.0, 4.0, 5.0])
+        self.assertEqual(loc_samples, [])
+        self.assertEqual(rot_samples, [1.0, 2.0, 3.0])
+        self.assertEqual(scale_samples, [])
 
         # Validate the shape key animation
         prim = stage.GetPrimAtPath("/root/cube_anim_keys")
@@ -1123,6 +1176,86 @@ class USDExportTest(AbstractUSDTest):
 
         self.assertTupleEqual(expected, actual)
 
+    def test_texture_export_hook(self):
+        """Exporting textures from on_material_export USD hook."""
+
+        # Clear USD hook results.
+        ExportTextureUSDHook.exported_textures = {}
+
+        bpy.utils.register_class(ExportTextureUSDHook)
+        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_materials_export.blend"))
+
+        export_path = self.tempdir / "usd_materials_export.usda"
+
+        self.export_and_validate(
+            filepath=str(export_path),
+            export_materials=True,
+            generate_preview_surface=False,
+        )
+
+        # Verify that the exported texture paths were returned as expected.
+        expected = {'/root/_materials/Transforms': './textures/test_grid_<UDIM>.png',
+                    '/root/_materials/Clip_With_Round': './textures/test_grid_<UDIM>.png',
+                    '/root/_materials/NormalMap': './textures/test_normal.exr',
+                    '/root/_materials/Material': './textures/test_grid_<UDIM>.png',
+                    '/root/_materials/Clip_With_LessThanInvert': './textures/test_grid_<UDIM>.png',
+                    '/root/_materials/NormalMap_Scale_Bias': './textures/test_normal_invertY.exr'}
+
+        self.assertDictEqual(ExportTextureUSDHook.exported_textures,
+                             expected,
+                             "Unexpected texture export paths")
+
+        bpy.utils.unregister_class(ExportTextureUSDHook)
+
+        # Verify that the texture files were copied as expected.
+        tex_names = ['test_grid_1001.png', 'test_grid_1002.png',
+                     'test_normal.exr', 'test_normal_invertY.exr']
+
+        for name in tex_names:
+            tex_path = self.tempdir / "textures" / name
+            self.assertTrue(tex_path.exists(),
+                            f"Exported texture {tex_path} doesn't exist")
+
+    def test_inmem_pack_texture_export_hook(self):
+        """Exporting packed and in memory textures from on_material_export USD hook."""
+
+        # Clear hook results.
+        ExportTextureUSDHook.exported_textures = {}
+
+        bpy.utils.register_class(ExportTextureUSDHook)
+        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_materials_inmem_pack.blend"))
+
+        export_path = self.tempdir / "usd_materials_inmem_pack.usda"
+
+        self.export_and_validate(
+            filepath=str(export_path),
+            export_materials=True,
+            generate_preview_surface=False,
+        )
+
+        # Verify that the exported texture paths were returned as expected.
+        expected = {'/root/_materials/MAT_pack_udim': './textures/test_grid_<UDIM>.png',
+                    '/root/_materials/MAT_pack_single': './textures/test_single.png',
+                    '/root/_materials/MAT_inmem_udim': './textures/inmem_udim.<UDIM>.png',
+                    '/root/_materials/MAT_inmem_single': './textures/inmem_single.png'}
+
+        self.assertDictEqual(ExportTextureUSDHook.exported_textures,
+                             expected,
+                             "Unexpected texture export paths")
+
+        bpy.utils.unregister_class(ExportTextureUSDHook)
+
+        # Verify that the texture files were copied as expected.
+        tex_names = ['test_grid_1001.png', 'test_grid_1002.png',
+                     'test_single.png',
+                     'inmem_udim.1001.png', 'inmem_udim.1002.png',
+                     'inmem_single.png']
+
+        for name in tex_names:
+            tex_path = self.tempdir / "textures" / name
+            self.assertTrue(tex_path.exists(),
+                            f"Exported texture {tex_path} doesn't exist")
+
 
 class USDHookBase():
     instructions = {}
@@ -1205,6 +1338,36 @@ class USDHook2(USDHookBase, bpy.types.USDHook):
     @staticmethod
     def on_import(import_context):
         return USDHookBase.do_on_import(USDHook2.bl_label, import_context)
+
+
+class ExportTextureUSDHook(bpy.types.USDHook):
+    bl_idname = "export_texture_usd_hook"
+    bl_label = "Export Texture USD Hook"
+
+    exported_textures = {}
+
+    @staticmethod
+    def on_material_export(export_context, bl_material, usd_material):
+        """
+        If a texture image node exists in the given material's
+        node tree, call exprt_texture() on the image and cache
+        the returned path.
+        """
+        tex_image_node = None
+        if bl_material and bl_material.node_tree:
+            for node in bl_material.node_tree.nodes:
+                if node.type == 'TEX_IMAGE':
+                    tex_image_node = node
+
+        if tex_image_node is None:
+            return False
+
+        tex_path = export_context.export_texture(tex_image_node.image)
+
+        ExportTextureUSDHook.exported_textures[usd_material.GetPath()
+                                               .pathString] = tex_path
+
+        return True
 
 
 def main():

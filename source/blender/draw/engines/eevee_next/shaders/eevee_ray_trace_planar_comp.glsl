@@ -9,6 +9,10 @@
  * are then tagged to avoid re-evaluation by screen trace.
  */
 
+#include "infos/eevee_tracing_info.hh"
+
+COMPUTE_SHADER_CREATE_INFO(eevee_ray_trace_planar)
+
 #include "eevee_bxdf_sampling_lib.glsl"
 #include "eevee_colorspace_lib.glsl"
 #include "eevee_gbuffer_lib.glsl"
@@ -78,7 +82,7 @@ void main()
 
   /* TODO(fclem): Take IOR into account in the roughness LOD bias. */
   /* TODO(fclem): pdf to roughness mapping is a crude approximation. Find something better. */
-  float roughness = saturate(ray_pdf_inv);
+  // float roughness = saturate(ray_pdf_inv);
 
   /* Transform the ray into planar view-space. */
   Ray ray_view;

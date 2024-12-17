@@ -99,6 +99,11 @@ static void OVERLAY_next_instance_free(void *instance_)
   }
 }
 
+static void OVERLAY_next_engine_free()
+{
+  overlay::ShaderModule::module_free();
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -113,7 +118,7 @@ DrawEngineType draw_engine_overlay_next_type = {
     /*idname*/ N_("Overlay"),
     /*vedata_size*/ &overlay_data_size,
     /*engine_init*/ &OVERLAY_next_engine_init,
-    /*engine_free*/ nullptr,
+    /*engine_free*/ &OVERLAY_next_engine_free,
     /*instance_free*/ &OVERLAY_next_instance_free,
     /*cache_init*/ &OVERLAY_next_cache_init,
     /*cache_populate*/ &OVERLAY_next_cache_populate,

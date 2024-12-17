@@ -41,14 +41,6 @@ static void free_mesh_eval(MeshRuntime &mesh_runtime)
   }
 }
 
-static void free_bvh_cache(MeshRuntime &mesh_runtime)
-{
-  if (mesh_runtime.bvh_cache) {
-    bvhcache_free(mesh_runtime.bvh_cache);
-    mesh_runtime.bvh_cache = nullptr;
-  }
-}
-
 static void free_batch_cache(MeshRuntime &mesh_runtime)
 {
   if (mesh_runtime.batch_cache) {
@@ -57,12 +49,24 @@ static void free_batch_cache(MeshRuntime &mesh_runtime)
   }
 }
 
+static void free_bvh_caches(MeshRuntime &mesh_runtime)
+{
+  mesh_runtime.bvh_cache_verts.tag_dirty();
+  mesh_runtime.bvh_cache_edges.tag_dirty();
+  mesh_runtime.bvh_cache_faces.tag_dirty();
+  mesh_runtime.bvh_cache_corner_tris.tag_dirty();
+  mesh_runtime.bvh_cache_corner_tris_no_hidden.tag_dirty();
+  mesh_runtime.bvh_cache_loose_verts.tag_dirty();
+  mesh_runtime.bvh_cache_loose_verts_no_hidden.tag_dirty();
+  mesh_runtime.bvh_cache_loose_edges.tag_dirty();
+  mesh_runtime.bvh_cache_loose_edges_no_hidden.tag_dirty();
+}
+
 MeshRuntime::MeshRuntime() = default;
 
 MeshRuntime::~MeshRuntime()
 {
   free_mesh_eval(*this);
-  free_bvh_cache(*this);
   free_batch_cache(*this);
 }
 
@@ -312,7 +316,7 @@ void BKE_mesh_runtime_clear_cache(Mesh *mesh)
 void BKE_mesh_runtime_clear_geometry(Mesh *mesh)
 {
   /* Tagging shared caches dirty will free the allocated data if there is only one user. */
-  free_bvh_cache(*mesh->runtime);
+  free_bvh_caches(*mesh->runtime);
   mesh->runtime->subdiv_ccg.reset();
   mesh->runtime->bounds_cache.tag_dirty();
   mesh->runtime->vert_to_face_offset_cache.tag_dirty();
@@ -336,7 +340,7 @@ void BKE_mesh_runtime_clear_geometry(Mesh *mesh)
 void Mesh::tag_edges_split()
 {
   /* Triangulation didn't change because vertex positions and loop vertex indices didn't change. */
-  free_bvh_cache(*this->runtime);
+  free_bvh_caches(*this->runtime);
   this->runtime->vert_normals_cache.tag_dirty();
   this->runtime->subdiv_ccg.reset();
   this->runtime->vert_to_face_offset_cache.tag_dirty();
@@ -392,7 +396,7 @@ void Mesh::tag_positions_changed()
 
 void Mesh::tag_positions_changed_no_normals()
 {
-  free_bvh_cache(*this->runtime);
+  free_bvh_caches(*this->runtime);
   this->runtime->corner_tris_cache.tag_dirty();
   this->runtime->bounds_cache.tag_dirty();
   this->runtime->shrinkwrap_boundary_cache.tag_dirty();
@@ -401,13 +405,20 @@ void Mesh::tag_positions_changed_no_normals()
 void Mesh::tag_positions_changed_uniformly()
 {
   /* The normals and triangulation didn't change, since all verts moved by the same amount. */
-  free_bvh_cache(*this->runtime);
+  free_bvh_caches(*this->runtime);
   this->runtime->bounds_cache.tag_dirty();
 }
 
 void Mesh::tag_topology_changed()
 {
   BKE_mesh_runtime_clear_geometry(this);
+}
+
+void Mesh::tag_visibility_changed()
+{
+  this->runtime->bvh_cache_corner_tris_no_hidden.tag_dirty();
+  this->runtime->bvh_cache_loose_verts_no_hidden.tag_dirty();
+  this->runtime->bvh_cache_loose_edges_no_hidden.tag_dirty();
 }
 
 /** \} */

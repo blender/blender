@@ -22,6 +22,7 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
+#include "COM_algorithm_gamma_correct.hh"
 #include "COM_algorithm_morphological_blur.hh"
 #include "COM_bokeh_kernel.hh"
 #include "COM_node_operation.hh"
@@ -69,30 +70,31 @@ static void node_composit_buts_defocus(uiLayout *layout, bContext *C, PointerRNA
   col = uiLayoutColumn(layout, false);
   uiItemL(col, IFACE_("Bokeh Type:"), ICON_NONE);
   uiItemR(col, ptr, "bokeh", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
-  uiItemR(col, ptr, "angle", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "angle", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 
-  uiItemR(layout, ptr, "use_gamma_correction", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  uiItemR(
+      layout, ptr, "use_gamma_correction", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 
   col = uiLayoutColumn(layout, false);
   uiLayoutSetActive(col, RNA_boolean_get(ptr, "use_zbuffer") == true);
-  uiItemR(col, ptr, "f_stop", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "f_stop", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 
-  uiItemR(layout, ptr, "blur_max", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "threshold", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "blur_max", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  uiItemR(layout, ptr, "threshold", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 
   col = uiLayoutColumn(layout, false);
-  uiItemR(col, ptr, "use_preview", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "use_preview", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 
   uiTemplateID(layout, C, ptr, "scene", nullptr, nullptr, nullptr);
 
   col = uiLayoutColumn(layout, false);
-  uiItemR(col, ptr, "use_zbuffer", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "use_zbuffer", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   sub = uiLayoutColumn(col, false);
   uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_zbuffer") == false);
-  uiItemR(sub, ptr, "z_scale", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  uiItemR(sub, ptr, "z_scale", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class DefocusOperation : public NodeOperation {
  public:
@@ -121,25 +123,48 @@ class DefocusOperation : public NodeOperation {
     const Result &bokeh_kernel = context().cache_manager().bokeh_kernels.get(
         context(), kernel_size, sides, rotation, roundness, 0.0f, 0.0f);
 
+    Result *defocus_input = &input;
+    Result *defocus_output = &output;
+
+    /* Apply gamma correction if needed. */
+    Result gamma_defocus_output = this->context().create_result(ResultType::Color);
+    Result gamma_corrected_input = this->context().create_result(ResultType::Color);
+    if (this->should_apply_gamma_correction()) {
+      gamma_correct(this->context(), input, gamma_corrected_input);
+      defocus_input = &gamma_corrected_input;
+      defocus_output = &gamma_defocus_output;
+    }
+
     if (this->context().use_gpu()) {
-      this->execute_gpu(radius, bokeh_kernel, maximum_defocus_radius);
+      this->execute_gpu(
+          *defocus_input, radius, bokeh_kernel, *defocus_output, maximum_defocus_radius);
     }
     else {
-      this->execute_cpu(radius, bokeh_kernel, maximum_defocus_radius);
+      this->execute_cpu(
+          *defocus_input, radius, bokeh_kernel, *defocus_output, maximum_defocus_radius);
     }
 
     radius.release();
+
+    /* Undo gamma correction. */
+    if (this->should_apply_gamma_correction()) {
+      gamma_corrected_input.release();
+      gamma_uncorrect(this->context(), gamma_defocus_output, output);
+      gamma_defocus_output.release();
+    }
   }
 
-  void execute_gpu(const Result &radius, const Result &bokeh_kernel, const int search_radius)
+  void execute_gpu(const Result &input,
+                   const Result &radius,
+                   const Result &bokeh_kernel,
+                   Result &output,
+                   const int search_radius)
   {
     GPUShader *shader = context().get_shader("compositor_defocus_blur");
     GPU_shader_bind(shader);
 
-    GPU_shader_uniform_1b(shader, "gamma_correct", node_storage(bnode()).gamco);
     GPU_shader_uniform_1i(shader, "search_radius", search_radius);
 
-    Result &input = get_input("Image");
     input.bind_as_texture(shader, "input_tx");
 
     radius.bind_as_texture(shader, "radius_tx");
@@ -148,7 +173,6 @@ class DefocusOperation : public NodeOperation {
     bokeh_kernel.bind_as_texture(shader, "weights_tx");
 
     const Domain domain = compute_domain();
-    Result &output = get_result("Image");
     output.allocate_texture(domain);
     output.bind_as_image(shader, "output_img");
 
@@ -161,14 +185,13 @@ class DefocusOperation : public NodeOperation {
     output.unbind_as_image();
   }
 
-  void execute_cpu(const Result &radius, const Result &bokeh_kernel, const int search_radius)
+  void execute_cpu(const Result &input,
+                   const Result &radius,
+                   const Result &bokeh_kernel,
+                   Result &output,
+                   const int search_radius)
   {
-    const bool gamma_correct = node_storage(bnode()).gamco;
-
-    Result &input = get_input("Image");
-
     const Domain domain = compute_domain();
-    Result &output = get_result("Image");
     output.allocate_texture(domain);
 
     /* Given the texel in the range [-radius, radius] in both axis, load the appropriate weight
@@ -194,7 +217,7 @@ class DefocusOperation : public NodeOperation {
     };
 
     parallel_for(domain.size, [&](const int2 texel) {
-      float center_radius = math::max(0.0f, radius.load_pixel(texel).x);
+      float center_radius = math::max(0.0f, radius.load_pixel<float, true>(texel));
 
       /* Go over the window of the given search radius and accumulate the colors multiplied by
        * their respective weights as well as the weights themselves, but only if both the radius of
@@ -204,8 +227,8 @@ class DefocusOperation : public NodeOperation {
       float4 accumulated_weight = float4(0.0);
       for (int y = -search_radius; y <= search_radius; y++) {
         for (int x = -search_radius; x <= search_radius; x++) {
-          float candidate_radius = math::max(0.0f,
-                                             radius.load_pixel_extended(texel + int2(x, y)).x);
+          float candidate_radius = math::max(
+              0.0f, radius.load_pixel_extended<float, true>(texel + int2(x, y)));
 
           /* Skip accumulation if either the x or y distances of the candidate pixel are larger
            * than either the center or candidate pixel radius. Note that the max and min functions
@@ -216,11 +239,7 @@ class DefocusOperation : public NodeOperation {
           }
 
           float4 weight = load_weight(int2(x, y), radius);
-          float4 input_color = input.load_pixel_extended(texel + int2(x, y));
-
-          if (gamma_correct) {
-            input_color = gamma_correct_blur_input(input_color);
-          }
+          float4 input_color = input.load_pixel_extended<float4>(texel + int2(x, y));
 
           accumulated_color += input_color * weight;
           accumulated_weight += weight;
@@ -229,31 +248,8 @@ class DefocusOperation : public NodeOperation {
 
       accumulated_color = math::safe_divide(accumulated_color, accumulated_weight);
 
-      if (gamma_correct) {
-        accumulated_color = gamma_uncorrect_blur_output(accumulated_color);
-      }
-
       output.store_pixel(texel, accumulated_color);
     });
-  }
-
-  /* Preprocess the input of the blur filter by squaring it in its alpha straight form, assuming
-   * the given color is alpha pre-multiplied. */
-  float4 gamma_correct_blur_input(const float4 &color)
-  {
-    float alpha = color.w > 0.0f ? color.w : 1.0f;
-    float3 corrected_color = math::square(math::max(color.xyz() / alpha, float3(0.0f))) * alpha;
-    return float4(corrected_color, color.w);
-  }
-
-  /* Postprocess the output of the blur filter by taking its square root it in its alpha straight
-   * form, assuming the given color is alpha pre-multiplied. This essential undoes the processing
-   * done by the gamma_correct_blur_input function. */
-  float4 gamma_uncorrect_blur_output(const float4 &color)
-  {
-    float alpha = color.w > 0.0f ? color.w : 1.0f;
-    float3 uncorrected_color = math::sqrt(math::max(color.xyz() / alpha, float3(0.0f))) * alpha;
-    return float4(uncorrected_color, color.w);
   }
 
   Result compute_defocus_radius()
@@ -268,7 +264,8 @@ class DefocusOperation : public NodeOperation {
 
   Result compute_defocus_radius_from_scale()
   {
-    if (this->context().use_gpu()) {
+    Result &input_depth = get_input("Z");
+    if (this->context().use_gpu() && !input_depth.is_single_value()) {
       return compute_defocus_radius_from_scale_gpu();
     }
     return compute_defocus_radius_from_scale_cpu();
@@ -282,18 +279,18 @@ class DefocusOperation : public NodeOperation {
     GPU_shader_uniform_1f(shader, "scale", node_storage(bnode()).scale);
     GPU_shader_uniform_1f(shader, "max_radius", node_storage(bnode()).maxblur);
 
-    Result &input_radius = get_input("Z");
-    input_radius.bind_as_texture(shader, "radius_tx");
+    Result &input_depth = get_input("Z");
+    input_depth.bind_as_texture(shader, "radius_tx");
 
     Result output_radius = context().create_result(ResultType::Float);
-    const Domain domain = input_radius.domain();
+    const Domain domain = input_depth.domain();
     output_radius.allocate_texture(domain);
     output_radius.bind_as_image(shader, "radius_img");
 
     compute_dispatch_threads_at_least(shader, domain.size);
 
     GPU_shader_unbind();
-    input_radius.unbind_as_texture();
+    input_depth.unbind_as_texture();
     output_radius.unbind_as_image();
 
     return output_radius;
@@ -304,15 +301,26 @@ class DefocusOperation : public NodeOperation {
     const float scale = node_storage(bnode()).scale;
     const float max_radius = node_storage(bnode()).maxblur;
 
-    Result &input_radius = get_input("Z");
+    Result &input_depth = get_input("Z");
 
     Result output_radius = context().create_result(ResultType::Float);
-    const Domain domain = input_radius.domain();
+
+    auto compute_radius = [&](const float depth) {
+      return math::clamp(depth * scale, 0.0f, max_radius);
+    };
+
+    if (input_depth.is_single_value()) {
+      output_radius.allocate_single_value();
+      output_radius.set_float_value(compute_radius(input_depth.get_float_value()));
+      return output_radius;
+    }
+
+    const Domain domain = input_depth.domain();
     output_radius.allocate_texture(domain);
 
     parallel_for(domain.size, [&](const int2 texel) {
-      float radius = input_radius.load_pixel(texel).x;
-      output_radius.store_pixel(texel, float4(math::clamp(radius * scale, 0.0f, max_radius)));
+      float depth = input_depth.load_pixel<float>(texel);
+      output_radius.store_pixel(texel, compute_radius(depth));
     });
 
     return output_radius;
@@ -320,12 +328,17 @@ class DefocusOperation : public NodeOperation {
 
   Result compute_defocus_radius_from_depth()
   {
+    Result &input_depth = get_input("Z");
     Result output_radius = context().create_result(ResultType::Float);
-    if (this->context().use_gpu()) {
+    if (this->context().use_gpu() && !input_depth.is_single_value()) {
       compute_defocus_radius_from_depth_gpu(output_radius);
     }
     else {
       compute_defocus_radius_from_depth_cpu(output_radius);
+    }
+
+    if (output_radius.is_single_value()) {
+      return output_radius;
     }
 
     /* We apply a dilate morphological operator on the radius computed from depth, the operator
@@ -376,17 +389,12 @@ class DefocusOperation : public NodeOperation {
 
     Result &input_depth = get_input("Z");
 
-    const Domain domain = input_depth.domain();
-    output_radius.allocate_texture(domain);
-
-    /* Given a depth image, compute the radius of the circle of confusion in pixels based on
+    /* Given a depth value, compute the radius of the circle of confusion in pixels based on
      * equation (8) of the paper:
      *
      *   Potmesil, Michael, and Indranil Chakravarty. "A lens and aperture camera model for
      * synthetic image generation." ACM SIGGRAPH Computer Graphics 15.3 (1981): 297-305. */
-    parallel_for(domain.size, [&](const int2 texel) {
-      float depth = input_depth.load_pixel(texel).x;
-
+    auto compute_radius = [&](const float depth) {
       /* Compute `Vu` in equation (7). */
       const float distance_to_image_of_object = (focal_length * depth) / (depth - focal_length);
 
@@ -399,7 +407,21 @@ class DefocusOperation : public NodeOperation {
       /* The diameter is in meters, so multiply by the pixels per meter. */
       float radius = (diameter / 2.0f) * pixels_per_meter;
 
-      output_radius.store_pixel(texel, float4(math::min(max_radius, radius)));
+      return math::min(max_radius, radius);
+    };
+
+    if (input_depth.is_single_value()) {
+      output_radius.allocate_single_value();
+      output_radius.set_float_value(compute_radius(input_depth.get_float_value()));
+      return;
+    }
+
+    const Domain domain = input_depth.domain();
+    output_radius.allocate_texture(domain);
+
+    parallel_for(domain.size, [&](const int2 texel) {
+      float depth = input_depth.load_pixel<float>(texel);
+      output_radius.store_pixel(texel, compute_radius(depth));
     });
   }
 
@@ -497,6 +519,11 @@ class DefocusOperation : public NodeOperation {
   const float get_f_stop()
   {
     return math::max(1e-3f, node_storage(bnode()).fstop);
+  }
+
+  bool should_apply_gamma_correction()
+  {
+    return node_storage(this->bnode()).gamco;
   }
 
   const Camera *get_camera()

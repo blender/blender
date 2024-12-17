@@ -19,7 +19,7 @@
 
 #include "rna_internal.hh"
 
-#include "DNA_object_types.h"
+#include "BKE_duplilist.hh"
 
 #include "DEG_depsgraph.hh"
 

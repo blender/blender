@@ -20,6 +20,39 @@
 
 namespace blender::draw::overlay {
 
+/* Add prepass which will write to the depth buffer so that the
+ * alpha-under overlays (alpha checker) will draw correctly for external engines.
+ * NOTE: Use the same Z-depth value as in the regular image drawing engine. */
+class ImagePrepass : Overlay {
+ private:
+  PassSimple ps_ = {"ImagePrepass"};
+
+ public:
+  void begin_sync(Resources &res, const State &state) final
+  {
+    enabled_ = state.is_space_image() && !res.is_selection();
+
+    if (!enabled_) {
+      return;
+    }
+
+    ps_.init();
+    ps_.state_set(DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_ALWAYS);
+    ps_.shader_set(res.shaders.mesh_edit_depth.get());
+    ps_.draw(res.shapes.image_quad.get());
+  }
+
+  void draw_on_render(GPUFrameBuffer *framebuffer, Manager &manager, View &view) final
+  {
+    if (!enabled_) {
+      return;
+    }
+
+    GPU_framebuffer_bind(framebuffer);
+    manager.submit(ps_, view);
+  }
+};
+
 /**
  * A depth pass that write surface depth when it is needed.
  * It is also used for selecting non overlay-only objects.

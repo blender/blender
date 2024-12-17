@@ -19,20 +19,20 @@
 namespace blender::animrig::legacy {
 
 /**
- * Return the ChannelBag for compatibility with the legacy Python API.
+ * Return the Channelbag for compatibility with the legacy Python API.
  *
- * \return the ChannelBag for the first slot, of the first keyframe Strip on the
+ * \return the Channelbag for the first slot, of the first keyframe Strip on the
  * bottom layer, or nullptr if that doesn't exist.
  */
-ChannelBag *channelbag_get(Action &action);
+Channelbag *channelbag_get(Action &action);
 
 /**
- * Ensure a ChannelBag exists, for compatibility with the legacy Python API.
+ * Ensure a Channelbag exists, for compatibility with the legacy Python API.
  *
  * This basically is channelbag_get(action), additionally creating the necessary
  * slot, layer, and keyframe strip if necessary.
  */
-ChannelBag &channelbag_ensure(Action &action);
+Channelbag &channelbag_ensure(Action &action);
 
 /**
  * Return all F-Curves in the Action.

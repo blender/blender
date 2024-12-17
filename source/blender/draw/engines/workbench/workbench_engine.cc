@@ -409,8 +409,6 @@ class Instance {
             GPUTexture *depth_in_front_tx,
             GPUTexture *color_tx)
   {
-    view_.sync(DRW_view_default_get());
-
     int2 resolution = scene_state_.resolution;
 
     /** Always setup in-front depth, since Overlays can be updated without causing a Workbench
@@ -430,7 +428,8 @@ class Instance {
 
     if (scene_state_.render_finished) {
       /* Just copy back the already rendered result */
-      anti_aliasing_ps_.draw(manager, view_, scene_state_, resources_, depth_in_front_tx);
+      anti_aliasing_ps_.draw(
+          manager, View::default_get(), scene_state_, resources_, depth_in_front_tx);
       return;
     }
 
@@ -681,7 +680,7 @@ static void write_render_z_output(RenderLayer *layer,
     int pix_num = BLI_rcti_size_x(rect) * BLI_rcti_size_y(rect);
 
     /* Convert GPU depth [0..1] to view Z [near..far] */
-    if (DRW_view_is_persp_get(nullptr)) {
+    if (blender::draw::View::default_get().is_persp()) {
       for (float &z : MutableSpan(rp->ibuf->float_buffer.data, pix_num)) {
         if (z == 1.0f) {
           z = 1e10f; /* Background */
@@ -694,8 +693,8 @@ static void write_render_z_output(RenderLayer *layer,
     }
     else {
       /* Keep in mind, near and far distance are negatives. */
-      float near = DRW_view_near_distance_get(nullptr);
-      float far = DRW_view_far_distance_get(nullptr);
+      float near = blender::draw::View::default_get().near_clip();
+      float far = blender::draw::View::default_get().far_clip();
       float range = fabsf(far - near);
 
       for (float &z : MutableSpan(rp->ibuf->float_buffer.data, pix_num)) {
@@ -743,9 +742,7 @@ static void workbench_render_to_image(void *vedata,
   /* Render */
   /* TODO: Remove old draw manager calls. */
   DRW_cache_restart();
-  DRWView *view = DRW_view_create(viewmat.ptr(), winmat.ptr(), nullptr, nullptr, nullptr);
-  DRW_view_default_set(view);
-  DRW_view_set_active(view);
+  blender::draw::View::default_set(float4x4(viewmat), float4x4(winmat));
 
   ved->instance->init(camera_ob);
 
@@ -763,8 +760,7 @@ static void workbench_render_to_image(void *vedata,
   manager.end_sync();
 
   /* TODO: Remove old draw manager calls. */
-  DRW_render_instance_buffer_finish();
-  DRW_curves_update();
+  DRW_curves_update(manager);
 
   DefaultTextureList &dtxl = *DRW_viewport_texture_list_get();
   ved->instance->draw_image_render(manager, dtxl.depth, dtxl.depth_in_front, dtxl.color, engine);

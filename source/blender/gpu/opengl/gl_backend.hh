@@ -20,7 +20,6 @@
 #include "gl_compilation_subprocess.hh"
 #include "gl_compute.hh"
 #include "gl_context.hh"
-#include "gl_drawlist.hh"
 #include "gl_framebuffer.hh"
 #include "gl_index_buffer.hh"
 #include "gl_query.hh"
@@ -85,11 +84,6 @@ class GLBackend : public GPUBackend {
   Batch *batch_alloc() override
   {
     return new GLBatch();
-  };
-
-  DrawList *drawlist_alloc(int list_length) override
-  {
-    return new GLDrawList(list_length);
   };
 
   Fence *fence_alloc() override
@@ -176,7 +170,7 @@ class GLBackend : public GPUBackend {
   /* Render Frame Coordination */
   void render_begin() override{};
   void render_end() override{};
-  void render_step() override{};
+  void render_step(bool /*force_resource_release*/) override{};
 
   bool debug_capture_begin(const char *title);
   void debug_capture_end();

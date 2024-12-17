@@ -11,6 +11,10 @@
  * tag the appropriate tiles.
  */
 
+#include "infos/eevee_shadow_info.hh"
+
+COMPUTE_SHADER_CREATE_INFO(eevee_shadow_tag_update)
+
 #include "common_aabb_lib.glsl"
 #include "common_intersect_lib.glsl"
 

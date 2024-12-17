@@ -12,6 +12,10 @@ file(WRITE ${BUILD_DIR}/mesa/tmp/native-file.ini "\
 llvm-config = '${LIBDIR}/llvm/bin/llvm-config'"
 )
 
+# llvm-config will add -lmxl2. Make sure it can be found and that no system
+# library is used instead.
+set(MESA_LDFLAGS "-L${LIBDIR}/xml2/lib")
+
 set(MESA_EXTRA_FLAGS
   ${MESON_BUILD_TYPE}
   -Dc_args=${MESA_CFLAGS}

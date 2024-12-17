@@ -13,6 +13,7 @@ void main()
 
   /* Relative to DPI scaling. Have constant screen size. */
   vec3 screen_pos = ViewMatrixInverse[0].xyz * pos.x + ViewMatrixInverse[1].xyz * pos.y;
+  vec3 inst_pos = data_buf[gl_InstanceID].xyz;
   vec3 p = inst_pos;
   p.z *= (pos.z == 0.0) ? 0.0 : 1.0;
   float screen_size = mul_project_m4_v3_zfac(p) * sizePixel;

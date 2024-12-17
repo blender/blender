@@ -45,13 +45,15 @@
 
 #include "interface_intern.hh"
 
+using blender::StringRefNull;
+
 /*************************** RNA Utilities ******************************/
 
 uiBut *uiDefAutoButR(uiBlock *block,
                      PointerRNA *ptr,
                      PropertyRNA *prop,
                      int index,
-                     const char *name,
+                     const std::optional<StringRefNull> name,
                      int icon,
                      int x,
                      int y,
@@ -66,7 +68,7 @@ uiBut *uiDefAutoButR(uiBlock *block,
         return nullptr;
       }
 
-      if (icon && name && name[0] == '\0') {
+      if (icon && name && name->is_empty()) {
         but = uiDefIconButR_prop(block,
                                  UI_BTYPE_ICON_TOGGLE,
                                  0,
@@ -157,7 +159,7 @@ uiBut *uiDefAutoButR(uiBlock *block,
       break;
     }
     case PROP_ENUM:
-      if (icon && name && name[0] == '\0') {
+      if (icon && name && name->is_empty()) {
         but = uiDefIconButR_prop(
             block, UI_BTYPE_MENU, 0, icon, x, y, width, height, ptr, prop, index, 0, 0, nullptr);
       }
@@ -166,7 +168,7 @@ uiBut *uiDefAutoButR(uiBlock *block,
                                      UI_BTYPE_MENU,
                                      0,
                                      icon,
-                                     nullptr,
+                                     std::nullopt,
                                      x,
                                      y,
                                      width,
@@ -184,7 +186,7 @@ uiBut *uiDefAutoButR(uiBlock *block,
       }
       break;
     case PROP_STRING:
-      if (icon && name && name[0] == '\0') {
+      if (icon && name && name->is_empty()) {
         but = uiDefIconButR_prop(
             block, UI_BTYPE_TEXT, 0, icon, x, y, width, height, ptr, prop, index, 0, 0, nullptr);
       }
@@ -293,7 +295,7 @@ eAutoPropButsReturn uiDefAutoButsRNA(uiLayout *layout,
 {
   eAutoPropButsReturn return_info = UI_PROP_BUTS_NONE_ADDED;
   uiLayout *col;
-  const char *name;
+  std::optional<StringRefNull> name;
 
   RNA_STRUCT_BEGIN (ptr, prop) {
     const int flag = RNA_property_flag(prop);
@@ -318,7 +320,7 @@ eAutoPropButsReturn uiDefAutoButsRNA(uiLayout *layout,
           col = uiLayoutColumn(layout, true);
 
           if (!is_boolean) {
-            uiItemL(col, name, ICON_NONE);
+            uiItemL(col, *name, ICON_NONE);
           }
         }
         else {
@@ -333,7 +335,7 @@ eAutoPropButsReturn uiDefAutoButsRNA(uiLayout *layout,
       case UI_BUT_LABEL_ALIGN_NONE:
       default:
         col = layout;
-        name = nullptr; /* no smart label alignment, show default name with button */
+        name = std::nullopt; /* no smart label alignment, show default name with button */
         break;
     }
 
@@ -966,13 +968,13 @@ void UI_butstore_update(uiBlock *block)
 /**
  * Follow the logic from #wm_keymap_item_find_in_keymap.
  */
-static bool ui_key_event_property_match(const char *opname,
+static bool ui_key_event_property_match(const StringRefNull opname,
                                         IDProperty *properties,
                                         const bool is_strict,
                                         wmOperatorType *ui_optype,
                                         PointerRNA *ui_opptr)
 {
-  if (!STREQ(ui_optype->idname, opname)) {
+  if (ui_optype->idname != opname) {
     return false;
   }
 
@@ -991,7 +993,7 @@ static bool ui_key_event_property_match(const char *opname,
 }
 
 std::optional<std::string> UI_key_event_operator_string(const bContext *C,
-                                                        const char *opname,
+                                                        const StringRefNull opname,
                                                         IDProperty *properties,
                                                         const bool is_strict)
 {

@@ -509,7 +509,7 @@ static void update_duplicate_action_constraint_settings(
   bAction *act = (bAction *)act_con->act;
   if (act) {
     blender::animrig::Action &action = act->wrap();
-    blender::animrig::ChannelBag *cbag = blender::animrig::channelbag_for_action_slot(
+    blender::animrig::Channelbag *cbag = blender::animrig::channelbag_for_action_slot(
         action, act_con->action_slot_handle);
 
     /* Create a copy and mirror the animation */

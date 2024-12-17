@@ -19,7 +19,6 @@ IGNORE_SOURCE = (
     "source/creator/blender_launcher_win32.c",
 
     # Pre-computed headers.
-    "source/blender/compositor/COM_precomp.h",
     "source/blender/freestyle/FRS_precomp.h",
 
     # Specific source files.

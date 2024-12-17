@@ -225,9 +225,9 @@ ccl_device float2 compute_3d_gabor_noise_cell(
   float2 noise = make_float2(0.0f, 0.0f);
   for (int i = 0; i < IMPULSES_COUNT; ++i) {
     /* Compute unique seeds for each of the needed random variables. */
-    float4 seed_for_orientation = make_float4(cell.x, cell.y, cell.z, i * 3);
-    float4 seed_for_kernel_center = make_float4(cell.x, cell.y, cell.z, i * 3 + 1);
-    float4 seed_for_weight = make_float4(cell.x, cell.y, cell.z, i * 3 + 2);
+    float4 seed_for_orientation = make_float4(cell, i * 3);
+    float4 seed_for_kernel_center = make_float4(cell, i * 3 + 1);
+    float4 seed_for_weight = make_float4(cell, i * 3 + 2);
 
     float3 orientation = compute_3d_orientation(base_orientation, isotropy, seed_for_orientation);
 

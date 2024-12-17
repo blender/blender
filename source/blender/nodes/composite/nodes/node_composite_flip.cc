@@ -38,7 +38,7 @@ static void node_composit_buts_flip(uiLayout *layout, bContext * /*C*/, PointerR
   uiItemR(layout, ptr, "axis", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class FlipOperation : public NodeOperation {
  public:
@@ -108,7 +108,7 @@ class FlipOperation : public NodeOperation {
       if (flip_y) {
         flipped_texel.y = size.y - texel.y - 1;
       }
-      output.store_pixel(texel, input.load_pixel(flipped_texel));
+      output.store_pixel(texel, input.load_pixel<float4>(flipped_texel));
     });
   }
 

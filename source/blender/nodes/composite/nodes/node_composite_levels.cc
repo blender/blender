@@ -45,7 +45,7 @@ static void node_composit_buts_view_levels(uiLayout *layout, bContext * /*C*/, P
   uiItemR(layout, ptr, "channel", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class LevelsOperation : public NodeOperation {
  private:

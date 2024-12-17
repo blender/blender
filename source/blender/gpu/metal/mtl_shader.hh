@@ -169,14 +169,6 @@ class MTLShader : public Shader {
   friend shader::ShaderCreateInfo;
   friend shader::StageInterfaceInfo;
 
- public:
-  /* Cached SSBO vertex fetch attribute uniform locations. */
-  int uni_ssbo_input_prim_type_loc = -1;
-  int uni_ssbo_input_vert_count_loc = -1;
-  int uni_ssbo_uses_indexed_rendering = -1;
-  int uni_ssbo_uses_index_mode_u16 = -1;
-  int uni_ssbo_index_base_loc = -1;
-
  private:
   /* Context Handle. */
   MTLContext *context_ = nullptr;
@@ -223,37 +215,6 @@ class MTLShader : public Shader {
 
   /* True to enable multi-viewport rendering support. */
   bool uses_gpu_viewport_index = false;
-
-  /** SSBO Vertex fetch pragma options. */
-  /* Indicates whether to pass in VertexBuffer's as regular buffer bindings
-   * and perform vertex assembly manually, rather than using Stage-in.
-   * This is used to give a vertex shader full access to all of the
-   * vertex data.
-   * This is primarily used for optimization techniques and
-   * alternative solutions for Geometry-shaders which are unsupported
-   * by Metal. */
-  bool use_ssbo_vertex_fetch_mode_ = false;
-  /* Output primitive type when rendering sing ssbo_vertex_fetch. */
-  MTLPrimitiveType ssbo_vertex_fetch_output_prim_type_;
-
-  /* Output vertices per original vertex shader instance.
-   * This number will be multiplied by the number of input primitives
-   * from the source draw call. */
-  uint32_t ssbo_vertex_fetch_output_num_verts_ = 0;
-
-  bool ssbo_vertex_attribute_bind_active_ = false;
-  int ssbo_vertex_attribute_bind_mask_ = 0;
-  bool ssbo_vbo_slot_used_[MTL_SSBO_VERTEX_FETCH_MAX_VBOS];
-
-  struct ShaderSSBOAttributeBinding {
-    int attribute_index = -1;
-    int uniform_stride;
-    int uniform_offset;
-    int uniform_fetchmode;
-    int uniform_vbo_id;
-    int uniform_attr_type;
-  };
-  ShaderSSBOAttributeBinding cached_ssbo_attribute_bindings_[MTL_MAX_VERTEX_INPUT_ATTRIBUTES] = {};
 
   /* Metal Shader Uniform data store.
    * This blocks is used to store current shader push_constant
@@ -346,33 +307,11 @@ class MTLShader : public Shader {
   bool get_push_constant_is_dirty();
   void push_constant_bindstate_mark_dirty(bool is_dirty);
 
-  /* SSBO vertex fetch draw parameters. */
-  bool get_uses_ssbo_vertex_fetch() const override
-  {
-    return use_ssbo_vertex_fetch_mode_;
-  }
-  int get_ssbo_vertex_fetch_output_num_verts() const override
-  {
-    return ssbo_vertex_fetch_output_num_verts_;
-  }
-
   /* DEPRECATED: Kept only because of BGL API. (Returning -1 in METAL). */
   int program_handle_get() const override
   {
     return -1;
   }
-
-  MTLPrimitiveType get_ssbo_vertex_fetch_output_prim_type()
-  {
-    return ssbo_vertex_fetch_output_prim_type_;
-  }
-  static int ssbo_vertex_type_to_attr_type(MTLVertexFormat attribute_type);
-  void prepare_ssbo_vertex_fetch_metadata();
-
-  /* SSBO Vertex Bindings Utility functions. */
-  void ssbo_vertex_fetch_bind_attributes_begin();
-  void ssbo_vertex_fetch_bind_attribute(const MTLSSBOAttribute &ssbo_attr);
-  void ssbo_vertex_fetch_bind_attributes_end(id<MTLRenderCommandEncoder> active_encoder);
 
   /* Metal shader properties and source mapping. */
   void set_vertex_function_name(NSString *vetex_function_name);

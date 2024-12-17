@@ -5,6 +5,8 @@
 #include "BLI_math_matrix.hh"
 #include "BLI_task.hh"
 
+#include "DNA_mesh_types.h"
+
 #include "GEO_curve_constraints.hh"
 
 #include "BKE_bvhutils.hh"
@@ -69,9 +71,7 @@ void solve_length_and_collision_constraints(const OffsetIndices<int> points_by_c
 {
   solve_length_constraints(points_by_curve, curve_selection, segment_lengths_cu, positions_cu);
 
-  BVHTreeFromMesh surface_bvh;
-  BKE_bvhtree_from_mesh_get(&surface_bvh, &surface, BVHTREE_FROM_CORNER_TRIS, 2);
-  BLI_SCOPED_DEFER([&]() { free_bvhtree_from_mesh(&surface_bvh); });
+  BVHTreeFromMesh surface_bvh = surface.bvh_corner_tris();
 
   const float radius = 0.005f;
   const int max_collisions = 5;

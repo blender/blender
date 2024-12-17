@@ -121,7 +121,7 @@ static void volume_batch_cache_clear(Volume *volume)
 
   LISTBASE_FOREACH (DRWVolumeGrid *, grid, &cache->grids) {
     MEM_SAFE_FREE(grid->name);
-    DRW_TEXTURE_FREE_SAFE(grid->texture);
+    GPU_TEXTURE_FREE_SAFE(grid->texture);
   }
   BLI_freelistN(&cache->grids);
 
@@ -336,11 +336,6 @@ DRWVolumeGrid *DRW_volume_batch_cache_get_grid(Volume *volume,
   VolumeBatchCache *cache = volume_batch_cache_get(volume);
   DRWVolumeGrid *grid = volume_grid_cache_get(volume, volume_grid, cache);
   return (grid->texture != nullptr) ? grid : nullptr;
-}
-
-int DRW_volume_material_count_get(const Volume *volume)
-{
-  return max_ii(1, volume->totcol);
 }
 
 }  // namespace blender::draw

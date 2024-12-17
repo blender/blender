@@ -9,6 +9,10 @@
  * invocations and overdraw.
  */
 
+#include "infos/eevee_depth_of_field_info.hh"
+
+VERTEX_SHADER_CREATE_INFO(eevee_depth_of_field_scatter)
+
 #include "eevee_depth_of_field_lib.glsl"
 #include "gpu_shader_math_vector_lib.glsl"
 

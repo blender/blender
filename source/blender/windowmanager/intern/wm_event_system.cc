@@ -6679,7 +6679,7 @@ bool WM_window_modal_keymap_status_draw(bContext *C, wmWindow *win, uiLayout *la
                  op->type, items[i].value, true))
     {
       /*  Show text instead */
-      uiItemL(row, fmt::format("{}: {}", *str, items[i].name).c_str(), ICON_NONE);
+      uiItemL(row, fmt::format("{}: {}", *str, items[i].name), ICON_NONE);
     }
   }
   return true;

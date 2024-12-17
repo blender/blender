@@ -255,7 +255,8 @@ struct ColorPaintLocalData {
   Vector<float4> colors;
   Vector<float4> new_colors;
   Vector<float4> mix_colors;
-  Vector<Vector<int>> vert_neighbors;
+  Vector<int> neighbor_offsets;
+  Vector<int> neighbor_data;
 };
 
 static void do_color_smooth_task(const Depsgraph &depsgraph,
@@ -308,10 +309,13 @@ static void do_color_smooth_task(const Depsgraph &depsgraph,
                                verts[i]);
   }
 
-  tls.vert_neighbors.resize(verts.size());
-  calc_vert_neighbors(
-      faces, corner_verts, vert_to_face_map, attribute_data.hide_poly, verts, tls.vert_neighbors);
-  const Span<Vector<int>> vert_neighbors = tls.vert_neighbors;
+  const GroupedSpan<int> neighbors = calc_vert_neighbors(faces,
+                                                         corner_verts,
+                                                         vert_to_face_map,
+                                                         attribute_data.hide_poly,
+                                                         verts,
+                                                         tls.neighbor_offsets,
+                                                         tls.neighbor_data);
 
   tls.new_colors.resize(verts.size());
   MutableSpan<float4> new_colors = tls.new_colors;
@@ -320,7 +324,7 @@ static void do_color_smooth_task(const Depsgraph &depsgraph,
                                  vert_to_face_map,
                                  color_attribute.span,
                                  color_attribute.domain,
-                                 vert_neighbors,
+                                 neighbors,
                                  new_colors);
 
   for (const int i : colors.index_range()) {

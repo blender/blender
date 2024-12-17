@@ -125,6 +125,34 @@ ccl_device_inline void volume_stack_clean(KernelGlobals kg, IntegratorState stat
   }
 }
 
+/* Check if the volume is homogeneous by checking if the shader flag is set or if volume attributes
+ * are needed. */
+ccl_device_inline bool volume_is_homogeneous(KernelGlobals kg,
+                                             ccl_private const VolumeStack &entry)
+{
+  const int shader_flag = kernel_data_fetch(shaders, (entry.shader & SHADER_MASK)).flags;
+
+  if (shader_flag & SD_HETEROGENEOUS_VOLUME) {
+    return false;
+  }
+
+  if (shader_flag & SD_NEED_VOLUME_ATTRIBUTES) {
+    const int object = entry.object;
+    if (object == OBJECT_NONE) {
+      /* Volume attributes for world is not supported. */
+      return true;
+    }
+
+    const int object_flag = kernel_data_fetch(object_flag, object);
+    if (object_flag & SD_OBJECT_HAS_VOLUME_ATTRIBUTES) {
+      /* If both the shader and the object needs volume attributes, the volume is heterogeneous. */
+      return false;
+    }
+  }
+
+  return true;
+}
+
 template<typename StackReadOp>
 ccl_device float volume_stack_step_size(KernelGlobals kg, StackReadOp stack_read)
 {
@@ -136,27 +164,7 @@ ccl_device float volume_stack_step_size(KernelGlobals kg, StackReadOp stack_read
       break;
     }
 
-    int shader_flag = kernel_data_fetch(shaders, (entry.shader & SHADER_MASK)).flags;
-
-    bool heterogeneous = false;
-
-    if (shader_flag & SD_HETEROGENEOUS_VOLUME) {
-      heterogeneous = true;
-    }
-    else if (shader_flag & SD_NEED_VOLUME_ATTRIBUTES) {
-      /* We want to render world or objects without any volume grids
-       * as homogeneous, but can only verify this at run-time since other
-       * heterogeneous volume objects may be using the same shader. */
-      int object = entry.object;
-      if (object != OBJECT_NONE) {
-        int object_flag = kernel_data_fetch(object_flag, object);
-        if (object_flag & SD_OBJECT_HAS_VOLUME_ATTRIBUTES) {
-          heterogeneous = true;
-        }
-      }
-    }
-
-    if (heterogeneous) {
+    if (!volume_is_homogeneous(kg, entry)) {
       float object_step_size = object_volume_step_size(kg, entry.object);
       object_step_size *= kernel_data.integrator.volume_step_rate;
       step_size = fminf(object_step_size, step_size);

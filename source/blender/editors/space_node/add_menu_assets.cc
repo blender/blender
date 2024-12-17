@@ -252,7 +252,7 @@ static void add_root_catalogs_draw(const bContext *C, Menu *menu)
   const bool loading_finished = all_loading_finished();
 
   asset::AssetItemTree &tree = *snode.runtime->assets_for_menu;
-  if (tree.catalogs.is_empty() && loading_finished) {
+  if (tree.catalogs.is_empty() && loading_finished && tree.unassigned_assets.is_empty()) {
     return;
   }
 

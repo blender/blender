@@ -2,6 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 #include "usd_writer_camera.hh"
+#include "usd_attribute_utils.hh"
 #include "usd_hierarchy_iterator.hh"
 
 #include <pxr/usd/usdGeom/camera.h>
@@ -79,23 +80,42 @@ void USDCameraWriter::do_write(HierarchyContext &context)
   float sensor_size, aperture_x, aperture_y;
   camera_sensor_size_for_render(camera, &scene->r, &sensor_size, &aperture_x, &aperture_y);
 
-  usd_camera.CreateFocalLengthAttr().Set(camera->lens / tenth_unit_to_mm, timecode);
-  usd_camera.CreateHorizontalApertureAttr().Set(aperture_x / tenth_unit_to_mm, timecode);
-  usd_camera.CreateVerticalApertureAttr().Set(aperture_y / tenth_unit_to_mm, timecode);
-  usd_camera.CreateHorizontalApertureOffsetAttr().Set(
-      sensor_size * camera->shiftx / tenth_unit_to_mm, timecode);
-  usd_camera.CreateVerticalApertureOffsetAttr().Set(
-      sensor_size * camera->shifty / tenth_unit_to_mm, timecode);
-
-  usd_camera.CreateClippingRangeAttr().Set(
-      pxr::VtValue(pxr::GfVec2f(camera->clip_start, camera->clip_end)), timecode);
+  set_attribute(usd_camera.CreateFocalLengthAttr(pxr::VtValue(), true),
+                camera->lens / tenth_unit_to_mm,
+                timecode,
+                usd_value_writer_);
+  set_attribute(usd_camera.CreateHorizontalApertureAttr(pxr::VtValue(), true),
+                aperture_x / tenth_unit_to_mm,
+                timecode,
+                usd_value_writer_);
+  set_attribute(usd_camera.CreateVerticalApertureAttr(pxr::VtValue(), true),
+                aperture_y / tenth_unit_to_mm,
+                timecode,
+                usd_value_writer_);
+  set_attribute(usd_camera.CreateHorizontalApertureOffsetAttr(pxr::VtValue(), true),
+                sensor_size * camera->shiftx / tenth_unit_to_mm,
+                timecode,
+                usd_value_writer_);
+  set_attribute(usd_camera.CreateVerticalApertureOffsetAttr(pxr::VtValue(), true),
+                sensor_size * camera->shifty / tenth_unit_to_mm,
+                timecode,
+                usd_value_writer_);
+  set_attribute(usd_camera.CreateClippingRangeAttr(pxr::VtValue(), true),
+                pxr::GfVec2f(camera->clip_start, camera->clip_end),
+                timecode,
+                usd_value_writer_);
 
   /* Write DoF-related attributes. */
   if (camera->dof.flag & CAM_DOF_ENABLED) {
-    usd_camera.CreateFStopAttr().Set(camera->dof.aperture_fstop, timecode);
-
-    float focus_distance = BKE_camera_object_dof_distance(context.object);
-    usd_camera.CreateFocusDistanceAttr().Set(focus_distance, timecode);
+    const float focus_distance = BKE_camera_object_dof_distance(context.object);
+    set_attribute(usd_camera.CreateFStopAttr(pxr::VtValue(), true),
+                  camera->dof.aperture_fstop,
+                  timecode,
+                  usd_value_writer_);
+    set_attribute(usd_camera.CreateFocusDistanceAttr(pxr::VtValue(), true),
+                  focus_distance,
+                  timecode,
+                  usd_value_writer_);
   }
 
   auto prim = usd_camera.GetPrim();

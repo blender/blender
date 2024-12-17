@@ -281,7 +281,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   uiLayoutSetPropSep(layout, true);
 
   uiLayout *col = uiLayoutColumn(layout, false);
-  uiItemR(col, ptr, "object", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "object", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   if (!RNA_pointer_is_null(&hook_object_ptr) &&
       RNA_enum_get(&hook_object_ptr, "type") == OB_ARMATURE)
   {
@@ -290,7 +290,7 @@ static void panel_draw(const bContext *C, Panel *panel)
         col, ptr, "subtarget", &hook_object_data_ptr, "bones", IFACE_("Bone"), ICON_NONE);
   }
 
-  uiItemR(layout, ptr, "strength", UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "strength", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
 
   if (uiLayout *sub = uiLayoutPanelProp(C, layout, ptr, "open_falloff_panel", IFACE_("Falloff"))) {
     uiLayoutSetPropSep(sub, true);
@@ -301,9 +301,9 @@ static void panel_draw(const bContext *C, Panel *panel)
 
     uiLayout *row = uiLayoutRow(sub, false);
     uiLayoutSetActive(row, use_falloff);
-    uiItemR(row, ptr, "falloff_radius", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(row, ptr, "falloff_radius", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-    uiItemR(sub, ptr, "use_falloff_uniform", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(sub, ptr, "use_falloff_uniform", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
     if (RNA_enum_get(ptr, "falloff_type") == eWarp_Falloff_Curve) {
       uiTemplateCurveMapping(sub, ptr, "custom_curve", 0, false, false, false, false);

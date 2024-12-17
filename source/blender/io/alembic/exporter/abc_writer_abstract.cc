@@ -6,6 +6,8 @@
 
 #include "BKE_object.hh"
 
+#include "DNA_object_types.h"
+
 #include <Alembic/AbcGeom/Visibility.h>
 
 #include "CLG_log.h"

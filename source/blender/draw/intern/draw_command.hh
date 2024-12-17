@@ -463,6 +463,9 @@ struct StateSet {
 
   void execute(RecordingState &state) const;
   std::string serialize() const;
+
+  /* Set state of the GPU module manually. */
+  static void set(DRWState state = DRW_STATE_DEFAULT);
 };
 
 struct StencilSet {

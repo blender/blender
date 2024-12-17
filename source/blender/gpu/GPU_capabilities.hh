@@ -50,7 +50,6 @@ bool GPU_mip_render_workaround();
 bool GPU_depth_blitting_workaround();
 bool GPU_use_main_context_workaround();
 bool GPU_use_hq_normals_workaround();
-bool GPU_clear_viewport_workaround();
 bool GPU_crappy_amd_driver();
 
 bool GPU_vulkan_render_pass_workaround();

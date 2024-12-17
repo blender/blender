@@ -46,7 +46,7 @@ typedef struct GPUVertBufHandle GPUVertBufHandle;
 struct ActionLayer;
 struct ActionSlot;
 struct ActionStrip;
-struct ActionChannelBag;
+struct ActionChannelbag;
 
 /* Declarations of the C++ wrappers. */
 #ifdef __cplusplus
@@ -54,7 +54,7 @@ namespace blender::animrig {
 class Action;
 class Slot;
 class SlotRuntime;
-class ChannelBag;
+class Channelbag;
 class ChannelGroup;
 class Layer;
 class Strip;
@@ -687,7 +687,7 @@ typedef struct bActionGroup {
   /**
    * Span of channels in this group for layered actions.
    *
-   * This specifies that span as a range of items in a ChannelBag's fcurve
+   * This specifies that span as a range of items in a Channelbag's fcurve
    * array.
    *
    * Note that empty groups (`fcurve_range_length == 0`) are allowed, and they
@@ -700,12 +700,12 @@ typedef struct bActionGroup {
   int fcurve_range_length;
 
   /**
-   * For layered actions: the ChannelBag this group belongs to.
+   * For layered actions: the Channelbag this group belongs to.
    *
    * This is needed in the keyframe drawing code, etc., to give direct access to
    * the fcurves in this group.
    */
-  struct ActionChannelBag *channel_bag;
+  struct ActionChannelbag *channelbag;
 
   /** Settings for this action-group. */
   int flag;
@@ -1262,7 +1262,7 @@ typedef struct ActionStrip {
  * \see #blender::animrig::StripKeyframeData
  */
 typedef struct ActionStripKeyframeData {
-  struct ActionChannelBag **channelbag_array;
+  struct ActionChannelbag **channelbag_array;
   int channelbag_array_num;
 
   uint8_t _pad[4];
@@ -1274,9 +1274,9 @@ typedef struct ActionStripKeyframeData {
 } ActionStripKeyframeData;
 
 /**
- * \see #blender::animrig::ChannelBag
+ * \see #blender::animrig::Channelbag
  */
-typedef struct ActionChannelBag {
+typedef struct ActionChannelbag {
   int32_t slot_handle;
 
   /* Channel groups. These index into the `fcurve_array` below to specify group
@@ -1304,16 +1304,16 @@ typedef struct ActionChannelBag {
   /* TODO: Design & implement a way to integrate other channel types as well,
    * and still have them map to a certain slot */
 #ifdef __cplusplus
-  blender::animrig::ChannelBag &wrap();
-  const blender::animrig::ChannelBag &wrap() const;
+  blender::animrig::Channelbag &wrap();
+  const blender::animrig::Channelbag &wrap() const;
 #endif
-} ActionChannelBag;
+} ActionChannelbag;
 
 #ifdef __cplusplus
 /* Some static assertions that things that should have the same type actually do. */
 static_assert(std::is_same_v<decltype(ActionSlot::handle), decltype(bAction::last_slot_handle)>);
 static_assert(
-    std::is_same_v<decltype(ActionSlot::handle), decltype(ActionChannelBag::slot_handle)>);
+    std::is_same_v<decltype(ActionSlot::handle), decltype(ActionChannelbag::slot_handle)>);
 static_assert(
     std::is_same_v<decltype(ActionSlot::handle), decltype(SpaceAction::action_slot_handle)>);
 #endif

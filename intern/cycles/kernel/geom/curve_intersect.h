@@ -262,7 +262,7 @@ ccl_device bool curve_intersect_recursive(const float3 ray_P,
   const float3 center = float4_to_float3(0.25f * (curve[0] + curve[1] + curve[2] + curve[3]));
   const float dt = dot(center - ray_P, ray_D) / dot(ray_D, ray_D);
   const float3 ref = ray_P + ray_D * dt;
-  const float4 ref4 = make_float4(ref.x, ref.y, ref.z, 0.0f);
+  const float4 ref4 = make_float4(ref, 0.0f);
   curve[0] -= ref4;
   curve[1] -= ref4;
   curve[2] -= ref4;

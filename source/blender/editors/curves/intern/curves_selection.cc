@@ -544,25 +544,30 @@ void select_linked(bke::CurvesGeometry &curves, const IndexMask &curves_mask)
 {
   const OffsetIndices points_by_curve = curves.points_by_curve();
   const VArray<int8_t> curve_types = curves.curve_types();
+  const IndexRange all_writers = get_curves_all_selection_attribute_names().index_range();
+  const IndexRange selection_writer = IndexRange(1);
 
   Vector<bke::GSpanAttributeWriter> selection_writers = init_selection_writers(
       curves, bke::AttrDomain::Point);
 
   curves_mask.foreach_index(GrainSize(256), [&](const int64_t curve) {
-    for (const int i : selection_writers.index_range()) {
+    /* For Bezier curves check all three selection layers  ".selection", ".selection_handle_left",
+     * ".selection_handle_right". For other curves only ".selection". */
+    const IndexRange curve_writers = curve_types[curve] == CURVE_TYPE_BEZIER ? all_writers :
+                                                                               selection_writer;
+    const IndexRange points = points_by_curve[curve];
+
+    for (const int i : curve_writers) {
       bke::GSpanAttributeWriter &selection = selection_writers[i];
-      GMutableSpan selection_curve = selection.span.slice(points_by_curve[curve]);
+      GMutableSpan selection_curve = selection.span.slice(points);
       if (has_anything_selected(selection_curve)) {
         fill_selection_true(selection_curve);
-        for (const int j : selection_writers.index_range()) {
+        for (const int j : curve_writers) {
           if (j == i) {
             continue;
           }
-          fill_selection_true(selection_writers[j].span.slice(points_by_curve[curve]));
+          fill_selection_true(selection_writers[j].span.slice(points));
         }
-        return;
-      }
-      if (curve_types[curve] != CURVE_TYPE_BEZIER) {
         return;
       }
     }

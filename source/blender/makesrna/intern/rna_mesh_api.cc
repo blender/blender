@@ -25,9 +25,9 @@
 
 #  include "BKE_anim_data.hh"
 #  include "BKE_attribute.hh"
+#  include "BKE_geometry_compare.hh"
 #  include "BKE_mesh.h"
 #  include "BKE_mesh.hh"
-#  include "BKE_mesh_compare.hh"
 #  include "BKE_mesh_mapping.hh"
 #  include "BKE_mesh_runtime.hh"
 #  include "BKE_mesh_tangent.hh"
@@ -41,8 +41,8 @@
 
 static const char *rna_Mesh_unit_test_compare(Mesh *mesh, Mesh *mesh2, float threshold)
 {
-  using namespace blender::bke::compare_meshes;
-  const std::optional<MeshMismatch> mismatch = compare_meshes(*mesh, *mesh2, threshold);
+  using namespace blender::bke::compare_geometry;
+  const std::optional<GeoMismatch> mismatch = compare_meshes(*mesh, *mesh2, threshold);
 
   if (!mismatch) {
     return "Same";

@@ -21,6 +21,7 @@ using blender::BitSpan;
 using blender::BitVector;
 using blender::float3;
 using blender::IndexRange;
+using blender::int2;
 using blender::int3;
 using blender::Span;
 using blender::VArray;
@@ -29,136 +30,22 @@ using blender::VArray;
 /** \name BVHCache
  * \{ */
 
-struct BVHCacheItem {
-  bool is_filled;
-  BVHTree *tree;
-};
+namespace blender::bke {
 
-struct BVHCache {
-  BVHCacheItem items[BVHTREE_MAX_ITEM];
-  ThreadMutex mutex;
-};
-
-/**
- * Queries a bvhcache for the cache bvhtree of the request type
- *
- * When the `r_locked` is filled and the tree could not be found the caches mutex will be
- * locked. This mutex can be unlocked by calling `bvhcache_unlock`.
- *
- * When `r_locked` is used the `mesh_eval_mutex` must contain the `MeshRuntime.eval_mutex`.
- */
-static bool bvhcache_find(BVHCache **bvh_cache_p,
-                          BVHCacheType type,
-                          BVHTree **r_tree,
-                          bool *r_locked,
-                          std::mutex *mesh_eval_mutex)
+BVHCacheItem::BVHCacheItem() = default;
+BVHCacheItem::~BVHCacheItem()
 {
-  bool do_lock = r_locked;
-  if (r_locked) {
-    *r_locked = false;
-  }
-  if (*bvh_cache_p == nullptr) {
-    if (!do_lock) {
-      /* Cache does not exist and no lock is requested. */
-      return false;
-    }
-    /* Lazy initialization of the bvh_cache using the `mesh_eval_mutex`. */
-    std::lock_guard lock{*mesh_eval_mutex};
-    if (*bvh_cache_p == nullptr) {
-      *bvh_cache_p = bvhcache_init();
-    }
-  }
-  BVHCache *bvh_cache = *bvh_cache_p;
-
-  if (bvh_cache->items[type].is_filled) {
-    *r_tree = bvh_cache->items[type].tree;
-    return true;
-  }
-  if (do_lock) {
-    BLI_mutex_lock(&bvh_cache->mutex);
-    bool in_cache = bvhcache_find(bvh_cache_p, type, r_tree, nullptr, nullptr);
-    if (in_cache) {
-      BLI_mutex_unlock(&bvh_cache->mutex);
-      return in_cache;
-    }
-    *r_locked = true;
-  }
-  return false;
+  BLI_bvhtree_free(this->tree);
 }
 
-static void bvhcache_unlock(BVHCache *bvh_cache, bool lock_started)
-{
-  if (lock_started) {
-    BLI_mutex_unlock(&bvh_cache->mutex);
-  }
-}
+}  // namespace blender::bke
 
-bool bvhcache_has_tree(const BVHCache *bvh_cache, const BVHTree *tree)
-{
-  if (bvh_cache == nullptr) {
-    return false;
-  }
+using blender::bke::BVHCacheItem;
 
-  for (int i = 0; i < BVHTREE_MAX_ITEM; i++) {
-    if (bvh_cache->items[i].tree == tree) {
-      return true;
-    }
-  }
-  return false;
-}
-
-BVHCache *bvhcache_init()
-{
-  BVHCache *cache = MEM_cnew<BVHCache>(__func__);
-  BLI_mutex_init(&cache->mutex);
-  return cache;
-}
-/**
- * Inserts a BVHTree of the given type under the cache
- * After that the caller no longer needs to worry when to free the BVHTree
- * as that will be done when the cache is freed.
- *
- * A call to this assumes that there was no previous cached tree of the given type
- * \warning The #BVHTree can be nullptr.
- */
-static void bvhcache_insert(BVHCache *bvh_cache, BVHTree *tree, BVHCacheType type)
-{
-  BVHCacheItem *item = &bvh_cache->items[type];
-  BLI_assert(!item->is_filled);
-  item->tree = tree;
-  item->is_filled = true;
-}
-
-void bvhcache_free(BVHCache *bvh_cache)
-{
-  for (int index = 0; index < BVHTREE_MAX_ITEM; index++) {
-    BVHCacheItem *item = &bvh_cache->items[index];
-    BLI_bvhtree_free(item->tree);
-    item->tree = nullptr;
-  }
-  BLI_mutex_end(&bvh_cache->mutex);
-  MEM_freeN(bvh_cache);
-}
-
-/**
- * BVH-tree balancing inside a mutex lock must be run in isolation. Balancing
- * is multithreaded, and we do not want the current thread to start another task
- * that may involve acquiring the same mutex lock that it is waiting for.
- */
-static void bvhtree_balance_isolated(void *userdata)
-{
-  BLI_bvhtree_balance((BVHTree *)userdata);
-}
-
-static void bvhtree_balance(BVHTree *tree, const bool isolate)
+static void bvhtree_balance(BVHTree *tree)
 {
   if (tree) {
-    if (isolate) {
-      BLI_task_isolate(bvhtree_balance_isolated, tree);
-    }
-    else {
-      BLI_bvhtree_balance(tree);
-    }
+    BLI_bvhtree_balance(tree);
   }
 }
 
@@ -487,24 +374,23 @@ static void mesh_edges_spherecast(void *userdata,
 /** \name Common Utils
  * \{ */
 
-static void bvhtree_from_mesh_setup_data(BVHTree *tree,
-                                         const BVHCacheType bvh_cache_type,
-                                         const Span<float3> positions,
-                                         const Span<blender::int2> edges,
-                                         const Span<int> corner_verts,
-                                         const Span<int3> corner_tris,
-                                         const MFace *face,
-                                         BVHTreeFromMesh *r_data)
+static BVHTreeFromMesh bvhtree_from_mesh_setup_data(BVHTree *tree,
+                                                    const BVHCacheType bvh_cache_type,
+                                                    const Span<float3> positions,
+                                                    const Span<blender::int2> edges,
+                                                    const Span<int> corner_verts,
+                                                    const Span<int3> corner_tris,
+                                                    const MFace *face)
 {
-  *r_data = {};
+  BVHTreeFromMesh data{};
 
-  r_data->tree = tree;
+  data.tree = tree;
 
-  r_data->vert_positions = positions;
-  r_data->edges = edges;
-  r_data->face = face;
-  r_data->corner_verts = corner_verts;
-  r_data->corner_tris = corner_tris;
+  data.vert_positions = positions;
+  data.edges = edges;
+  data.face = face;
+  data.corner_verts = corner_verts;
+  data.corner_tris = corner_tris;
 
   switch (bvh_cache_type) {
     case BVHTREE_FROM_VERTS:
@@ -512,28 +398,29 @@ static void bvhtree_from_mesh_setup_data(BVHTree *tree,
     case BVHTREE_FROM_LOOSEVERTS_NO_HIDDEN:
       /* a nullptr nearest callback works fine
        * remember the min distance to point is the same as the min distance to BV of point */
-      r_data->nearest_callback = nullptr;
-      r_data->raycast_callback = mesh_verts_spherecast;
+      data.nearest_callback = nullptr;
+      data.raycast_callback = mesh_verts_spherecast;
       break;
     case BVHTREE_FROM_EDGES:
     case BVHTREE_FROM_LOOSEEDGES:
     case BVHTREE_FROM_LOOSEEDGES_NO_HIDDEN:
-      r_data->nearest_callback = mesh_edges_nearest_point;
-      r_data->raycast_callback = mesh_edges_spherecast;
+      data.nearest_callback = mesh_edges_nearest_point;
+      data.raycast_callback = mesh_edges_spherecast;
       break;
     case BVHTREE_FROM_FACES:
-      r_data->nearest_callback = mesh_faces_nearest_point;
-      r_data->raycast_callback = mesh_faces_spherecast;
+      data.nearest_callback = mesh_faces_nearest_point;
+      data.raycast_callback = mesh_faces_spherecast;
       break;
     case BVHTREE_FROM_CORNER_TRIS:
     case BVHTREE_FROM_CORNER_TRIS_NO_HIDDEN:
-      r_data->nearest_callback = mesh_corner_tris_nearest_point;
-      r_data->raycast_callback = mesh_corner_tris_spherecast;
+      data.nearest_callback = mesh_corner_tris_nearest_point;
+      data.raycast_callback = mesh_corner_tris_spherecast;
       break;
     case BVHTREE_MAX_ITEM:
       BLI_assert(false);
       break;
   }
+  return data;
 }
 
 static BVHTree *bvhtree_new_common(
@@ -593,11 +480,11 @@ BVHTree *bvhtree_from_mesh_verts_ex(BVHTreeFromMesh *data,
   BVHTree *tree = bvhtree_from_mesh_verts_create_tree(
       epsilon, tree_type, axis, vert_positions, verts_mask, verts_num_active);
 
-  bvhtree_balance(tree, false);
+  bvhtree_balance(tree);
 
   if (data) {
     /* Setup BVHTreeFromMesh */
-    bvhtree_from_mesh_setup_data(tree, BVHTREE_FROM_VERTS, vert_positions, {}, {}, {}, {}, data);
+    *data = bvhtree_from_mesh_setup_data(tree, BVHTREE_FROM_VERTS, vert_positions, {}, {}, {}, {});
   }
 
   return tree;
@@ -648,12 +535,12 @@ BVHTree *bvhtree_from_mesh_edges_ex(BVHTreeFromMesh *data,
   BVHTree *tree = bvhtree_from_mesh_edges_create_tree(
       vert_positions, edges, edges_mask, edges_num_active, epsilon, tree_type, axis);
 
-  bvhtree_balance(tree, false);
+  bvhtree_balance(tree);
 
   if (data) {
     /* Setup BVHTreeFromMesh */
-    bvhtree_from_mesh_setup_data(
-        tree, BVHTREE_FROM_EDGES, vert_positions, edges, {}, {}, {}, data);
+    *data = bvhtree_from_mesh_setup_data(
+        tree, BVHTREE_FROM_EDGES, vert_positions, edges, {}, {}, {});
   }
 
   return tree;
@@ -764,18 +651,12 @@ BVHTree *bvhtree_from_mesh_corner_tris_ex(BVHTreeFromMesh *data,
                                                             corner_tris_mask,
                                                             corner_tris_num_active);
 
-  bvhtree_balance(tree, false);
+  bvhtree_balance(tree);
 
   if (data) {
     /* Setup BVHTreeFromMesh */
-    bvhtree_from_mesh_setup_data(tree,
-                                 BVHTREE_FROM_CORNER_TRIS,
-                                 vert_positions,
-                                 {},
-                                 corner_verts,
-                                 corner_tris,
-                                 nullptr,
-                                 data);
+    *data = bvhtree_from_mesh_setup_data(
+        tree, BVHTREE_FROM_CORNER_TRIS, vert_positions, {}, corner_verts, corner_tris, nullptr);
   }
 
   return tree;
@@ -896,138 +777,173 @@ static BitVector<> corner_tris_no_hidden_map_get(const blender::OffsetIndices<in
   return corner_tris_mask;
 }
 
-BVHTree *BKE_bvhtree_from_mesh_get(BVHTreeFromMesh *data,
-                                   const Mesh *mesh,
-                                   const BVHCacheType bvh_cache_type,
-                                   const int tree_type)
+BVHTreeFromMesh Mesh::bvh_loose_verts() const
 {
-  using namespace blender;
   using namespace blender::bke;
-  BVHCache **bvh_cache_p = (BVHCache **)&mesh->runtime->bvh_cache;
-
-  Span<int3> corner_tris;
-  if (ELEM(bvh_cache_type, BVHTREE_FROM_CORNER_TRIS, BVHTREE_FROM_CORNER_TRIS_NO_HIDDEN)) {
-    corner_tris = mesh->corner_tris();
-  }
-
-  const Span<float3> positions = mesh->vert_positions();
-  const Span<int2> edges = mesh->edges();
-  const Span<int> corner_verts = mesh->corner_verts();
-
-  /* Setup BVHTreeFromMesh */
-  bvhtree_from_mesh_setup_data(nullptr,
-                               bvh_cache_type,
-                               positions,
-                               edges,
-                               corner_verts,
-                               corner_tris,
-                               (const MFace *)CustomData_get_layer(&mesh->fdata_legacy, CD_MFACE),
-                               data);
-
-  bool lock_started = false;
-  data->cached = bvhcache_find(
-      bvh_cache_p, bvh_cache_type, &data->tree, &lock_started, &mesh->runtime->eval_mutex);
-
-  if (data->cached) {
-    BLI_assert(lock_started == false);
-
-    /* NOTE: #data->tree can be nullptr. */
-    return data->tree;
-  }
-
-  /* Create BVHTree. */
-
-  switch (bvh_cache_type) {
-    case BVHTREE_FROM_LOOSEVERTS: {
-      const LooseVertCache &loose_verts = mesh->loose_verts();
-      data->tree = bvhtree_from_mesh_verts_create_tree(
-          0.0f, tree_type, 6, positions, loose_verts.is_loose_bits, loose_verts.count);
-      break;
+  const Span<float3> positions = this->vert_positions();
+  this->runtime->bvh_cache_loose_verts.ensure([&](BVHCacheItem &data) {
+    const LooseVertCache &loose_verts = this->loose_verts();
+    data.tree = bvhtree_from_mesh_verts_create_tree(
+        0.0f, 2, 6, positions, loose_verts.is_loose_bits, loose_verts.count);
+    if (data.tree) {
+      BLI_bvhtree_balance(data.tree);
     }
-    case BVHTREE_FROM_LOOSEVERTS_NO_HIDDEN: {
-      int mask_bits_act_len = -1;
-      const BitVector<> mask = loose_verts_no_hidden_mask_get(*mesh, &mask_bits_act_len);
-      data->tree = bvhtree_from_mesh_verts_create_tree(
-          0.0f, tree_type, 6, positions, mask, mask_bits_act_len);
-      break;
-    }
-    case BVHTREE_FROM_VERTS: {
-      data->tree = bvhtree_from_mesh_verts_create_tree(0.0f, tree_type, 6, positions, {}, -1);
-      break;
-    }
-    case BVHTREE_FROM_LOOSEEDGES: {
-      const LooseEdgeCache &loose_edges = mesh->loose_edges();
-      data->tree = bvhtree_from_mesh_edges_create_tree(
-          positions, edges, loose_edges.is_loose_bits, loose_edges.count, 0.0f, tree_type, 6);
-      break;
-    }
-    case BVHTREE_FROM_LOOSEEDGES_NO_HIDDEN: {
-      int mask_bits_act_len = -1;
-      const BitVector<> mask = loose_edges_no_hidden_mask_get(*mesh, &mask_bits_act_len);
-      data->tree = bvhtree_from_mesh_edges_create_tree(
-          positions, edges, mask, mask_bits_act_len, 0.0f, tree_type, 6);
-      break;
-    }
-    case BVHTREE_FROM_EDGES: {
-      data->tree = bvhtree_from_mesh_edges_create_tree(
-          positions, edges, {}, -1, 0.0f, tree_type, 6);
-      break;
-    }
-    case BVHTREE_FROM_FACES: {
-      BLI_assert(!(mesh->totface_legacy == 0 && mesh->faces_num != 0));
-      data->tree = bvhtree_from_mesh_faces_create_tree(
-          0.0f,
-          tree_type,
-          6,
-          positions,
-          (const MFace *)CustomData_get_layer(&mesh->fdata_legacy, CD_MFACE),
-          mesh->totface_legacy,
-          {},
-          -1);
-      break;
-    }
-    case BVHTREE_FROM_CORNER_TRIS_NO_HIDDEN: {
-      AttributeAccessor attributes = mesh->attributes();
-      int mask_bits_act_len = -1;
-      const BitVector<> mask = corner_tris_no_hidden_map_get(
-          mesh->faces(),
-          *attributes.lookup_or_default(".hide_poly", AttrDomain::Face, false),
-          corner_tris.size(),
-          &mask_bits_act_len);
-      data->tree = bvhtree_from_mesh_corner_tris_create_tree(
-          0.0f, tree_type, 6, positions, corner_verts, corner_tris, mask, mask_bits_act_len);
-      break;
-    }
-    case BVHTREE_FROM_CORNER_TRIS: {
-      data->tree = bvhtree_from_mesh_corner_tris_create_tree(
-          0.0f, tree_type, 6, positions, corner_verts, corner_tris, {}, -1);
-      break;
-    }
-    case BVHTREE_MAX_ITEM:
-      BLI_assert_unreachable();
-      break;
-  }
+  });
+  const BVHCacheItem &tree = this->runtime->bvh_cache_loose_verts.data();
+  return bvhtree_from_mesh_setup_data(
+      tree.tree, BVHTREE_FROM_LOOSEVERTS, positions, {}, {}, {}, nullptr);
+}
 
-  bvhtree_balance(data->tree, lock_started);
-
-  /* Save on cache for later use */
-  // printf("BVHTree built and saved on cache\n");
-  BLI_assert(data->cached == false);
-  data->cached = true;
-  bvhcache_insert(*bvh_cache_p, data->tree, bvh_cache_type);
-  bvhcache_unlock(*bvh_cache_p, lock_started);
-
-#ifndef NDEBUG
-  if (data->tree != nullptr) {
-    if (BLI_bvhtree_get_tree_type(data->tree) != tree_type) {
-      printf("tree_type %d obtained instead of %d\n",
-             BLI_bvhtree_get_tree_type(data->tree),
-             tree_type);
+BVHTreeFromMesh Mesh::bvh_loose_no_hidden_verts() const
+{
+  const Span<float3> positions = this->vert_positions();
+  this->runtime->bvh_cache_loose_verts_no_hidden.ensure([&](BVHCacheItem &data) {
+    int mask_bits_act_len = -1;
+    const BitVector<> mask = loose_verts_no_hidden_mask_get(*this, &mask_bits_act_len);
+    data.tree = bvhtree_from_mesh_verts_create_tree(0.0f, 2, 6, positions, {}, -1);
+    if (data.tree) {
+      BLI_bvhtree_balance(data.tree);
     }
-  }
-#endif
+  });
+  const BVHCacheItem &tree = this->runtime->bvh_cache_loose_verts_no_hidden.data();
+  return bvhtree_from_mesh_setup_data(
+      tree.tree, BVHTREE_FROM_LOOSEVERTS_NO_HIDDEN, positions, {}, {}, {}, nullptr);
+}
 
-  return data->tree;
+BVHTreeFromMesh Mesh::bvh_verts() const
+{
+  const Span<float3> positions = this->vert_positions();
+  this->runtime->bvh_cache_verts.ensure([&](BVHCacheItem &data) {
+    data.tree = bvhtree_from_mesh_verts_create_tree(0.0f, 2, 6, positions, {}, -1);
+    if (data.tree) {
+      BLI_bvhtree_balance(data.tree);
+    }
+  });
+  const BVHCacheItem &tree = this->runtime->bvh_cache_verts.data();
+  return bvhtree_from_mesh_setup_data(
+      tree.tree, BVHTREE_FROM_VERTS, positions, {}, {}, {}, nullptr);
+}
+
+BVHTreeFromMesh Mesh::bvh_loose_edges() const
+{
+  using namespace blender::bke;
+  const Span<float3> positions = this->vert_positions();
+  const Span<int2> edges = this->edges();
+  this->runtime->bvh_cache_loose_edges.ensure([&](BVHCacheItem &data) {
+    const LooseEdgeCache &loose_edges = this->loose_edges();
+    data.tree = bvhtree_from_mesh_edges_create_tree(
+        positions, edges, loose_edges.is_loose_bits, loose_edges.count, 0.0f, 2, 6);
+    if (data.tree) {
+      BLI_bvhtree_balance(data.tree);
+    }
+  });
+  const BVHCacheItem &tree = this->runtime->bvh_cache_loose_edges.data();
+  BVHTreeFromMesh data;
+  return bvhtree_from_mesh_setup_data(
+      tree.tree, BVHTREE_FROM_LOOSEEDGES, positions, edges, {}, {}, nullptr);
+}
+
+BVHTreeFromMesh Mesh::bvh_loose_no_hidden_edges() const
+{
+  const Span<float3> positions = this->vert_positions();
+  const Span<int2> edges = this->edges();
+  this->runtime->bvh_cache_loose_edges_no_hidden.ensure([&](BVHCacheItem &data) {
+    int mask_bits_act_len = -1;
+    const BitVector<> mask = loose_edges_no_hidden_mask_get(*this, &mask_bits_act_len);
+    data.tree = bvhtree_from_mesh_edges_create_tree(
+        positions, edges, mask, mask_bits_act_len, 0.0f, 2, 6);
+    if (data.tree) {
+      BLI_bvhtree_balance(data.tree);
+    }
+  });
+  const BVHCacheItem &tree = this->runtime->bvh_cache_loose_edges_no_hidden.data();
+  return bvhtree_from_mesh_setup_data(
+      tree.tree, BVHTREE_FROM_LOOSEEDGES_NO_HIDDEN, positions, {}, {}, {}, nullptr);
+}
+
+BVHTreeFromMesh Mesh::bvh_edges() const
+{
+  const Span<float3> positions = this->vert_positions();
+  const Span<int2> edges = this->edges();
+  this->runtime->bvh_cache_edges.ensure([&](BVHCacheItem &data) {
+    data.tree = bvhtree_from_mesh_edges_create_tree(positions, edges, {}, -1, 0.0f, 2, 6);
+    if (data.tree) {
+      BLI_bvhtree_balance(data.tree);
+    }
+  });
+  const BVHCacheItem &tree = this->runtime->bvh_cache_edges.data();
+  return bvhtree_from_mesh_setup_data(
+      tree.tree, BVHTREE_FROM_EDGES, positions, edges, {}, {}, nullptr);
+}
+
+BVHTreeFromMesh Mesh::bvh_legacy_faces() const
+{
+  BLI_assert(!(this->totface_legacy == 0 && this->faces_num != 0));
+  const Span<float3> positions = this->vert_positions();
+  this->runtime->bvh_cache_faces.ensure([&](BVHCacheItem &data) {
+    data.tree = bvhtree_from_mesh_faces_create_tree(
+        0.0f,
+        2,
+        6,
+        positions,
+        (const MFace *)CustomData_get_layer(&this->fdata_legacy, CD_MFACE),
+        this->totface_legacy,
+        {},
+        -1);
+    if (data.tree) {
+      BLI_bvhtree_balance(data.tree);
+    }
+  });
+  const BVHCacheItem &tree = this->runtime->bvh_cache_faces.data();
+  return bvhtree_from_mesh_setup_data(
+      tree.tree, BVHTREE_FROM_FACES, positions, {}, {}, {}, nullptr);
+}
+
+BVHTreeFromMesh Mesh::bvh_corner_tris_no_hidden() const
+{
+  using namespace blender::bke;
+  const Span<float3> positions = this->vert_positions();
+  const Span<int> corner_verts = this->corner_verts();
+  const Span<int3> corner_tris = this->corner_tris();
+  this->runtime->bvh_cache_verts.ensure([&](BVHCacheItem &data) {
+    AttributeAccessor attributes = this->attributes();
+    int mask_bits_act_len = -1;
+    const BitVector<> mask = corner_tris_no_hidden_map_get(
+        this->faces(),
+        *attributes.lookup_or_default(".hide_poly", AttrDomain::Face, false),
+        corner_tris.size(),
+        &mask_bits_act_len);
+    data.tree = bvhtree_from_mesh_corner_tris_create_tree(
+        0.0f, 2, 6, positions, corner_verts, corner_tris, mask, mask_bits_act_len);
+    if (data.tree) {
+      BLI_bvhtree_balance(data.tree);
+    }
+  });
+  const BVHCacheItem &tree = this->runtime->bvh_cache_verts.data();
+  return bvhtree_from_mesh_setup_data(tree.tree,
+                                      BVHTREE_FROM_CORNER_TRIS_NO_HIDDEN,
+                                      positions,
+                                      {},
+                                      corner_verts,
+                                      corner_tris,
+                                      nullptr);
+}
+
+BVHTreeFromMesh Mesh::bvh_corner_tris() const
+{
+  const Span<float3> positions = this->vert_positions();
+  const Span<int> corner_verts = this->corner_verts();
+  const Span<int3> corner_tris = this->corner_tris();
+  this->runtime->bvh_cache_corner_tris.ensure([&](BVHCacheItem &data) {
+    data.tree = bvhtree_from_mesh_corner_tris_create_tree(
+        0.0f, 2, 6, positions, corner_verts, corner_tris, {}, -1);
+    if (data.tree) {
+      BLI_bvhtree_balance(data.tree);
+    }
+  });
+  const BVHCacheItem &tree = this->runtime->bvh_cache_corner_tris.data();
+  return bvhtree_from_mesh_setup_data(
+      tree.tree, BVHTREE_FROM_CORNER_TRIS, positions, {}, corner_verts, corner_tris, nullptr);
 }
 
 void BKE_bvhtree_from_mesh_tris_init(const Mesh &mesh,
@@ -1039,7 +955,7 @@ void BKE_bvhtree_from_mesh_tris_init(const Mesh &mesh,
 
   if (faces_mask.size() == mesh.faces_num) {
     /* Can use cache if all faces are in the bvh tree. */
-    BKE_bvhtree_from_mesh_get(&r_data, &mesh, BVHTREE_FROM_CORNER_TRIS, 2);
+    r_data = mesh.bvh_corner_tris();
     return;
   }
 
@@ -1048,14 +964,8 @@ void BKE_bvhtree_from_mesh_tris_init(const Mesh &mesh,
   const Span<int> corner_verts = mesh.corner_verts();
   const OffsetIndices faces = mesh.faces();
   const Span<int3> corner_tris = mesh.corner_tris();
-  bvhtree_from_mesh_setup_data(nullptr,
-                               BVHTREE_FROM_CORNER_TRIS,
-                               positions,
-                               edges,
-                               corner_verts,
-                               corner_tris,
-                               nullptr,
-                               &r_data);
+  r_data = bvhtree_from_mesh_setup_data(
+      nullptr, BVHTREE_FROM_CORNER_TRIS, positions, edges, corner_verts, corner_tris, nullptr);
 
   int tris_num = 0;
   faces_mask.foreach_index(
@@ -1063,6 +973,7 @@ void BKE_bvhtree_from_mesh_tris_init(const Mesh &mesh,
 
   int active_num = -1;
   BVHTree *tree = bvhtree_new_common(0.0f, 2, 6, tris_num, active_num);
+  r_data.owned_tree = std::unique_ptr<BVHTree, BVHTreeDeleter>(tree);
   r_data.tree = tree;
   if (tree == nullptr) {
     return;
@@ -1092,17 +1003,18 @@ void BKE_bvhtree_from_mesh_edges_init(const Mesh &mesh,
 
   if (edges_mask.size() == mesh.edges_num) {
     /* Can use cache if all edges are in the bvh tree. */
-    BKE_bvhtree_from_mesh_get(&r_data, &mesh, BVHTREE_FROM_EDGES, 2);
+    r_data = mesh.bvh_edges();
     return;
   }
 
   const Span<float3> positions = mesh.vert_positions();
   const Span<int2> edges = mesh.edges();
-  bvhtree_from_mesh_setup_data(
-      nullptr, BVHTREE_FROM_EDGES, positions, edges, {}, {}, nullptr, &r_data);
+  r_data = bvhtree_from_mesh_setup_data(
+      nullptr, BVHTREE_FROM_EDGES, positions, edges, {}, {}, nullptr);
 
   int active_num = -1;
   BVHTree *tree = bvhtree_new_common(0.0f, 2, 6, edges_mask.size(), active_num);
+  r_data.owned_tree = std::unique_ptr<BVHTree, BVHTreeDeleter>(tree);
   r_data.tree = tree;
   if (tree == nullptr) {
     return;
@@ -1128,16 +1040,17 @@ void BKE_bvhtree_from_mesh_verts_init(const Mesh &mesh,
 
   if (verts_mask.size() == mesh.verts_num) {
     /* Can use cache if all vertices are in the bvh tree. */
-    BKE_bvhtree_from_mesh_get(&r_data, &mesh, BVHTREE_FROM_VERTS, 2);
+    r_data = mesh.bvh_verts();
     return;
   }
 
   const Span<float3> positions = mesh.vert_positions();
-  bvhtree_from_mesh_setup_data(
-      nullptr, BVHTREE_FROM_VERTS, positions, {}, {}, {}, nullptr, &r_data);
+  r_data = bvhtree_from_mesh_setup_data(
+      nullptr, BVHTREE_FROM_VERTS, positions, {}, {}, {}, nullptr);
 
   int active_num = -1;
   BVHTree *tree = bvhtree_new_common(0.0f, 2, 6, verts_mask.size(), active_num);
+  r_data.owned_tree = std::unique_ptr<BVHTree, BVHTreeDeleter>(tree);
   r_data.tree = tree;
   if (tree == nullptr) {
     return;
@@ -1149,21 +1062,6 @@ void BKE_bvhtree_from_mesh_verts_init(const Mesh &mesh,
   });
 
   BLI_bvhtree_balance(tree);
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Free Functions
- * \{ */
-
-void free_bvhtree_from_mesh(BVHTreeFromMesh *data)
-{
-  if (data->tree && !data->cached) {
-    BLI_bvhtree_free(data->tree);
-  }
-
-  *data = {};
 }
 
 /** \} */

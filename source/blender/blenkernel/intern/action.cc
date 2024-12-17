@@ -20,6 +20,7 @@
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
+#include "DNA_defaults.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
@@ -95,6 +96,15 @@ using namespace blender;
 
 /*********************** Armature Datablock ***********************/
 namespace blender::bke {
+
+static void action_init_data(ID *action_id)
+{
+  BLI_assert(GS(action_id->name) == ID_AC);
+  bAction *action = reinterpret_cast<bAction *>(action_id);
+
+  BLI_assert(MEMCMP_STRUCT_AFTER_IS_ZERO(action, id));
+  MEMCPY_STRUCT_AFTER(action, DNA_struct_default_get(bAction), id);
+}
 
 /**
  * Only copy internal data of Action ID from source
@@ -246,10 +256,10 @@ static void action_foreach_id(ID *id, LibraryForeachIDData *data)
    * NOTE: early-returns by BKE_LIB_FOREACHID_PROCESS_... macros are forbidden in non-readonly
    * cases (see #IDWALK_RET_STOP_ITER documentation). */
 
-  const int flag = BKE_lib_query_foreachid_process_flags_get(data);
+  const LibraryForeachIDFlag flag = BKE_lib_query_foreachid_process_flags_get(data);
   const bool is_readonly = flag & IDWALK_READONLY;
 
-  constexpr int idwalk_flags = IDWALK_CB_NEVER_SELF | IDWALK_CB_LOOPBACK;
+  constexpr LibraryForeachIDCallbackFlag idwalk_flags = IDWALK_CB_NEVER_SELF | IDWALK_CB_LOOPBACK;
 
   Main *bmain = BKE_lib_query_foreachid_process_main_get(data);
 
@@ -310,9 +320,9 @@ static void action_foreach_id(ID *id, LibraryForeachIDData *data)
   }
 }
 
-static void write_channelbag(BlendWriter *writer, animrig::ChannelBag &channelbag)
+static void write_channelbag(BlendWriter *writer, animrig::Channelbag &channelbag)
 {
-  BLO_write_struct(writer, ActionChannelBag, &channelbag);
+  BLO_write_struct(writer, ActionChannelbag, &channelbag);
 
   Span<bActionGroup *> groups = channelbag.channel_groups();
   BLO_write_pointer_array(writer, groups.size(), groups.data());
@@ -336,7 +346,7 @@ static void write_strip_keyframe_data(BlendWriter *writer,
   auto channelbags = strip_keyframe_data.channelbags();
   BLO_write_pointer_array(writer, channelbags.size(), channelbags.data());
 
-  for (animrig::ChannelBag *channelbag : channelbags) {
+  for (animrig::Channelbag *channelbag : channelbags) {
     write_channelbag(writer, *channelbag);
   }
 }
@@ -508,7 +518,7 @@ static void action_blend_write(BlendWriter *writer, ID *id, const void *id_addre
      * forward-compat legacy data is also written, and vice-versa. Both have
      * pointers to each other that won't resolve properly when loaded in older
      * Blender versions if only one is written. */
-    animrig::ChannelBag *bag = channelbag_for_action_slot(action, first_slot.handle);
+    animrig::Channelbag *bag = channelbag_for_action_slot(action, first_slot.handle);
     if (bag) {
       action_blend_write_make_legacy_fcurves_listbase(action.curves, bag->fcurves());
       action_blend_write_make_legacy_channel_groups_listbase(action.groups, bag->channel_groups());
@@ -553,13 +563,13 @@ static void action_blend_write(BlendWriter *writer, ID *id, const void *id_addre
   BKE_previewimg_blend_write(writer, action.preview);
 }
 
-static void read_channelbag(BlendDataReader *reader, animrig::ChannelBag &channelbag)
+static void read_channelbag(BlendDataReader *reader, animrig::Channelbag &channelbag)
 {
   BLO_read_pointer_array(
       reader, channelbag.group_array_num, reinterpret_cast<void **>(&channelbag.group_array));
   for (int i = 0; i < channelbag.group_array_num; i++) {
     BLO_read_struct(reader, bActionGroup, &channelbag.group_array[i]);
-    channelbag.group_array[i]->channel_bag = &channelbag;
+    channelbag.group_array[i]->channelbag = &channelbag;
 
     /* Clear the legacy channels #ListBase, since it will have been set for some
      * groups for forward compatibility.
@@ -590,8 +600,8 @@ static void read_strip_keyframe_data(BlendDataReader *reader,
                          reinterpret_cast<void **>(&strip_keyframe_data.channelbag_array));
 
   for (int i = 0; i < strip_keyframe_data.channelbag_array_num; i++) {
-    BLO_read_struct(reader, ActionChannelBag, &strip_keyframe_data.channelbag_array[i]);
-    ActionChannelBag *channelbag = strip_keyframe_data.channelbag_array[i];
+    BLO_read_struct(reader, ActionChannelbag, &strip_keyframe_data.channelbag_array[i]);
+    ActionChannelbag *channelbag = strip_keyframe_data.channelbag_array[i];
     read_channelbag(reader, channelbag->wrap());
   }
 }
@@ -745,7 +755,7 @@ IDTypeInfo IDType_ID_AC = {
     /*flags*/ IDTYPE_FLAGS_NO_ANIMDATA,
     /*asset_type_info*/ &blender::bke::AssetType_AC,
 
-    /*init_data*/ nullptr,
+    /*init_data*/ blender::bke::action_init_data,
     /*copy_data*/ blender::bke::action_copy_data,
     /*free_data*/ blender::bke::action_free_data,
     /*make_local*/ nullptr,
@@ -780,7 +790,7 @@ bAction *BKE_action_add(Main *bmain, const char name[])
 
 bActionGroup *get_active_actiongroup(bAction *act)
 {
-  /* TODO: move this logic to the animrig::ChannelBag struct and unify with code
+  /* TODO: move this logic to the animrig::Channelbag struct and unify with code
    * that uses direct access to the flags. */
   for (bActionGroup *agrp : animrig::legacy::channel_groups_all(act)) {
     if (agrp->flag & AGRP_ACTIVE) {
@@ -792,7 +802,7 @@ bActionGroup *get_active_actiongroup(bAction *act)
 
 void set_active_action_group(bAction *act, bActionGroup *agrp, short select)
 {
-  /* TODO: move this logic to the animrig::ChannelBag struct and unify with code
+  /* TODO: move this logic to the animrig::Channelbag struct and unify with code
    * that uses direct access to the flags. */
   for (bActionGroup *grp : animrig::legacy::channel_groups_all(act)) {
     if ((grp == agrp) && (select)) {
@@ -1913,7 +1923,7 @@ void what_does_obaction(Object *ob,
     /* Find the named channel group. */
     Action &action = act->wrap();
     if (action.is_action_layered()) {
-      ChannelBag *cbag = channelbag_for_action_slot(action, action_slot_handle);
+      Channelbag *cbag = channelbag_for_action_slot(action, action_slot_handle);
       agrp = cbag ? cbag->channel_group_find(groupname) : nullptr;
     }
     else {

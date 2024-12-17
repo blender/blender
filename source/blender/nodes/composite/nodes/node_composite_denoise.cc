@@ -71,11 +71,11 @@ static void node_composit_buts_denoise(uiLayout *layout, bContext * /*C*/, Point
 #endif
 
   uiItemL(layout, IFACE_("Prefilter:"), ICON_NONE);
-  uiItemR(layout, ptr, "prefilter", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "use_hdr", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "prefilter", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  uiItemR(layout, ptr, "use_hdr", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 /* A callback to cancel the filter operations by evaluating the context's is_canceled method. The
  * API specifies that true indicates the filter should continue, while false indicates it should
@@ -106,6 +106,7 @@ class DenoiseOperation : public NodeOperation {
 
 #ifdef WITH_OPENIMAGEDENOISE
     oidn::DeviceRef device = oidn::newDevice(oidn::DeviceType::CPU);
+    device.set("setAffinity", false);
     device.commit();
 
     const int width = input_image.domain().size.x;
@@ -197,8 +198,9 @@ class DenoiseOperation : public NodeOperation {
       /* OIDN already wrote to the output directly, however, OIDN skips the alpha channel, so we
        * need to restore it. */
       parallel_for(int2(width, height), [&](const int2 texel) {
-        const float alpha = input_image.load_pixel(texel).w;
-        output_image.store_pixel(texel, float4(output_image.load_pixel(texel).xyz(), alpha));
+        const float alpha = input_image.load_pixel<float4>(texel).w;
+        output_image.store_pixel(texel,
+                                 float4(output_image.load_pixel<float4>(texel).xyz(), alpha));
       });
     }
 

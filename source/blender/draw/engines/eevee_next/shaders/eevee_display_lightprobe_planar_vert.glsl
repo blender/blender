@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "infos/eevee_lightprobe_sphere_info.hh"
+
+VERTEX_SHADER_CREATE_INFO(eevee_display_lightprobe_planar)
+
 #include "draw_view_lib.glsl"
 #include "gpu_shader_math_matrix_lib.glsl"
 

@@ -1491,3 +1491,41 @@ macro(windows_process_platform_bundled_libraries library_deps)
     endforeach()
   endif()
 endmacro()
+
+macro(with_shader_cpp_compilation_config)
+  # avoid noisy warnings
+  if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
+    add_c_flag("-Wno-unused-result")
+    remove_cc_flag("-Wmissing-declarations")
+    # Would be nice to enable the warning once we support references.
+    add_cxx_flag("-Wno-uninitialized")
+    # Would be nice to enable the warning once we support nameless parameters.
+    add_cxx_flag("-Wno-unused-parameter")
+    # To compile libraries.
+    add_cxx_flag("-Wno-pragma-once-outside-header")
+  elseif(MSVC)
+    # Equivalent to "-Wno-uninitialized"
+    add_cxx_flag("/wd4700")
+    # Equivalent to "-Wno-unused-parameter"
+    add_cxx_flag("/wd4100")
+    # Disable "potential divide by 0" warning
+    add_cxx_flag("/wd4723")
+  endif()
+  add_definitions(-DGPU_SHADER)
+endmacro()
+
+function(compile_sources_as_cpp
+  executable
+  sources
+  define
+  )
+
+  foreach(glsl_file ${sources})
+    set_source_files_properties(${glsl_file} PROPERTIES LANGUAGE CXX)
+  endforeach()
+
+  add_library(${executable} OBJECT ${sources})
+  set_target_properties(${executable} PROPERTIES LINKER_LANGUAGE CXX)
+  target_include_directories(${executable} PUBLIC ${INC_GLSL})
+  target_compile_definitions(${executable} PRIVATE ${define})
+endfunction()

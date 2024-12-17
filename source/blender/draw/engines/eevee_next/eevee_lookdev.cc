@@ -183,7 +183,7 @@ void LookdevModule::sync()
   for (int index : IndexRange(num_spheres)) {
     if (spheres_[index].color_tx_.ensure_2d(color_format, extent)) {
       /* Request redraw if the light-probe were off and the sampling was already finished. */
-      if (inst_.sampling.finished_viewport()) {
+      if (inst_.is_viewport() && inst_.sampling.finished_viewport()) {
         inst_.sampling.reset();
       }
     }

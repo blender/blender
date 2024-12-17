@@ -477,7 +477,7 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   uiLayoutSetPropSep(layout, true);
 
   col = uiLayoutColumn(layout, false);
-  uiItemR(col, ptr, "geometry_mode", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "geometry_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   if (RNA_enum_get(ptr, "geometry_mode") == MOD_OCEAN_GEOM_GENERATE) {
     sub = uiLayoutColumn(col, true);
     uiItemR(sub, ptr, "repeat_x", UI_ITEM_NONE, IFACE_("Repeat X"), ICON_NONE);
@@ -488,15 +488,15 @@ static void panel_draw(const bContext * /*C*/, Panel *panel)
   uiItemR(sub, ptr, "viewport_resolution", UI_ITEM_NONE, IFACE_("Resolution Viewport"), ICON_NONE);
   uiItemR(sub, ptr, "resolution", UI_ITEM_NONE, IFACE_("Render"), ICON_NONE);
 
-  uiItemR(col, ptr, "time", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "time", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  uiItemR(col, ptr, "depth", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "size", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "spatial_size", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "depth", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  uiItemR(col, ptr, "size", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  uiItemR(col, ptr, "spatial_size", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  uiItemR(col, ptr, "random_seed", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "random_seed", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  uiItemR(col, ptr, "use_normals", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "use_normals", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   modifier_panel_end(layout, ptr);
 
@@ -517,9 +517,9 @@ static void waves_panel_draw(const bContext * /*C*/, Panel *panel)
 
   col = uiLayoutColumn(layout, false);
   uiItemR(col, ptr, "wave_scale", UI_ITEM_NONE, IFACE_("Scale"), ICON_NONE);
-  uiItemR(col, ptr, "wave_scale_min", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "choppiness", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "wind_velocity", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "wave_scale_min", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  uiItemR(col, ptr, "choppiness", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  uiItemR(col, ptr, "wind_velocity", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   uiItemS(layout);
 
@@ -528,7 +528,7 @@ static void waves_panel_draw(const bContext * /*C*/, Panel *panel)
   sub = uiLayoutColumn(col, false);
   uiLayoutSetActive(sub, RNA_float_get(ptr, "wave_alignment") > 0.0f);
   uiItemR(sub, ptr, "wave_direction", UI_ITEM_NONE, IFACE_("Direction"), ICON_NONE);
-  uiItemR(sub, ptr, "damping", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(sub, ptr, "damping", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 static void foam_panel_draw_header(const bContext * /*C*/, Panel *panel)
@@ -606,10 +606,10 @@ static void spectrum_panel_draw(const bContext * /*C*/, Panel *panel)
   uiLayoutSetPropSep(layout, true);
 
   col = uiLayoutColumn(layout, false);
-  uiItemR(col, ptr, "spectrum", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "spectrum", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   if (ELEM(spectrum, MOD_OCEAN_SPECTRUM_TEXEL_MARSEN_ARSLOE, MOD_OCEAN_SPECTRUM_JONSWAP)) {
-    uiItemR(col, ptr, "sharpen_peak_jonswap", UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
-    uiItemR(col, ptr, "fetch_jonswap", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "sharpen_peak_jonswap", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
+    uiItemR(col, ptr, "fetch_jonswap", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 }
 
@@ -650,7 +650,7 @@ static void bake_panel_draw(const bContext * /*C*/, Panel *panel)
     RNA_boolean_set(&op_ptr, "free", false);
   }
 
-  uiItemR(layout, ptr, "filepath", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "filepath", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   col = uiLayoutColumn(layout, true);
   uiLayoutSetEnabled(col, !is_cached);
@@ -659,7 +659,7 @@ static void bake_panel_draw(const bContext * /*C*/, Panel *panel)
 
   col = uiLayoutColumn(layout, false);
   uiLayoutSetActive(col, use_foam);
-  uiItemR(col, ptr, "bake_foam_fade", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "bake_foam_fade", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 #endif /* WITH_OCEANSIM */
 

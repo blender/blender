@@ -168,9 +168,8 @@ class OBJImportTest : public BlendfileLoadingBaseTest {
         int endpoint = (nurb->flagu & CU_NURB_ENDPOINT) ? 1 : 0;
         EXPECT_EQ(nurb->orderu, exp.mesh_faces_num_or_curve_order);
         EXPECT_EQ(endpoint, exp.mesh_edges_num_or_curve_endp);
-        /* Cyclic flag is not set by the importer yet. */
-        // int cyclic = (nurb->flagu & CU_NURB_CYCLIC) ? 1 : 0;
-        // EXPECT_EQ(cyclic, exp.mesh_corner_num_or_curve_cyclic);
+        int cyclic = (nurb->flagu & CU_NURB_CYCLIC) ? 1 : 0;
+        EXPECT_EQ(cyclic, exp.mesh_corner_num_or_curve_cyclic);
       }
       if (!exp.first_mat.empty()) {
         Material *mat = BKE_object_material_get(object, 1);
@@ -263,11 +262,11 @@ TEST_F(OBJImportTest, import_nurbs)
       {"OBCube", OB_MESH, 8, 12, 6, 24, float3(1, 1, -1), float3(-1, 1, 1)},
       {"OBnurbs",
        OB_CURVES_LEGACY,
-       12,
+       9,
        0,
        4,
        1,
-       float3(0.260472f, -1.477212f, -0.866025f),
+       float3(1.149067f, 0.964181f, -0.866025f),
        float3(-1.5f, 2.598076f, 0)},
   };
   import_and_check("nurbs.obj", expect, std::size(expect), 0);
@@ -279,7 +278,7 @@ TEST_F(OBJImportTest, import_nurbs_curves)
       {"OBCube", OB_MESH, 8, 12, 6, 24, float3(1, 1, -1), float3(-1, 1, 1)},
       {"OBCurveDeg3", OB_CURVES_LEGACY, 4, 0, 3, 0, float3(10, -2, 0), float3(6, -2, 0)},
       {"OBnurbs_curves", OB_CURVES_LEGACY, 4, 0, 4, 0, float3(2, -2, 0), float3(-2, -2, 0)},
-      {"OBNurbsCurveCyclic", OB_CURVES_LEGACY, 7, 0, 4, 1, float3(-2, -2, 0), float3(-6, 2, 0)},
+      {"OBNurbsCurveCyclic", OB_CURVES_LEGACY, 4, 0, 4, 1, float3(-6, -2, -0), float3(-6, 2, 0)},
       {"OBNurbsCurveDiffWeights",
        OB_CURVES_LEGACY,
        4,
@@ -306,11 +305,11 @@ TEST_F(OBJImportTest, import_nurbs_cyclic)
       {"OBCube", OB_MESH, 8, 12, 6, 24, float3(1, 1, -1), float3(-1, 1, 1)},
       {"OBnurbs_cyclic",
        OB_CURVES_LEGACY,
-       31,
+       28,
        0,
        4,
        1,
-       float3(2.591002f, 0, -0.794829f),
+       float3(0.935235f, -0.000000f, 3.518242f),
        float3(3.280729f, 0, 3.043217f)},
   };
   import_and_check("nurbs_cyclic.obj", expect, std::size(expect), 0);
@@ -352,7 +351,7 @@ TEST_F(OBJImportTest, import_nurbs_manual)
 {
   Expectation expect[] = {
       {"OBCube", OB_MESH, 8, 12, 6, 24, float3(1, 1, -1), float3(-1, 1, 1)},
-      {"OBCurve_Cyclic", OB_CURVES_LEGACY, 7, 0, 4, 1, float3(-2, 0, 2), float3(2, 0, -2)},
+      {"OBCurve_Cyclic", OB_CURVES_LEGACY, 4, 0, 4, 1, float3(-2, 0, -2), float3(2, 0, -2)},
       {"OBCurve_Endpoints", OB_CURVES_LEGACY, 5, 1, 4, 0, float3(-2, 0, 2), float3(-2, 0, 2)},
       {"OBCurve_NonUniform_Parm",
        OB_CURVES_LEGACY,

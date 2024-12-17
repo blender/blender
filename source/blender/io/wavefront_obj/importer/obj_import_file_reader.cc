@@ -90,6 +90,10 @@ static void geom_add_vertex(const char *p, const char *end, GlobalVertices &r_gl
       srgb_to_linearrgb_v3_v3(linear, srgb);
       r_global_vertices.set_vertex_color(r_global_vertices.vertices.size() - 1, linear);
     }
+    else if (srgb.x > 0) {
+      /* Treats value in srgb.x as weight. */
+      r_global_vertices.set_vertex_weight(r_global_vertices.vertices.size() - 1, srgb.x);
+    }
   }
   UNUSED_VARS(p);
 }
@@ -318,7 +322,7 @@ static Geometry *geom_set_curve_type(Geometry *geom,
                                      Vector<std::unique_ptr<Geometry>> &r_all_geometries)
 {
   p = drop_whitespace(p, end);
-  if (!StringRef(p, end).startswith("bspline")) {
+  if (!StringRef(p, end).startswith("bspline") && !StringRef(p, end).startswith("rat bspline")) {
     CLOG_WARN(&LOG, "Curve type not supported: '%s'", std::string(p, end).c_str());
     return geom;
   }

@@ -65,7 +65,7 @@ float4 PointCloud::Point::point_for_step(const float3 *points,
   const size_t center_step = ((num_steps - 1) / 2);
   if (step == center_step) {
     /* Center step: regular key location. */
-    return make_float4(points[p].x, points[p].y, points[p].z, radius[p]);
+    return make_float4(points[p], radius[p]);
   }
   else {
     /* Center step is not stored in this array. */
@@ -152,7 +152,7 @@ void PointCloud::copy_center_to_motion_step(const int motion_step)
     for (int i = 0; i < numpoints; i++) {
       float3 P = points_data[i];
       float r = radius_data[i];
-      attrib_P[i] = make_float4(P.x, P.y, P.z, r);
+      attrib_P[i] = make_float4(P, r);
     }
   }
 }
@@ -268,8 +268,7 @@ void PointCloud::pack(Scene *scene, float4 *packed_points, uint *packed_shader)
   int *shader_data = shader.data();
 
   for (size_t i = 0; i < numpoints; i++) {
-    packed_points[i] = make_float4(
-        points_data[i].x, points_data[i].y, points_data[i].z, radius_data[i]);
+    packed_points[i] = make_float4(points_data[i], radius_data[i]);
   }
 
   uint shader_id = 0;

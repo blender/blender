@@ -23,10 +23,10 @@
 
 #include "tile_highlight.h"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 class RenderContext;
 class Profiler;
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor
 
 struct bNodeTree;
 struct Depsgraph;
@@ -45,13 +45,12 @@ struct BaseRender {
    * highlight. */
   virtual blender::render::TilesHighlight *get_tile_highlight() = 0;
 
-  /* GPU/realtime compositor. */
   virtual void compositor_execute(const Scene &scene,
                                   const RenderData &render_data,
                                   const bNodeTree &node_tree,
                                   const char *view_name,
-                                  blender::realtime_compositor::RenderContext *render_context,
-                                  blender::realtime_compositor::Profiler *profiler) = 0;
+                                  blender::compositor::RenderContext *render_context,
+                                  blender::compositor::Profiler *profiler) = 0;
   virtual void compositor_free() = 0;
 
   virtual void display_init(RenderResult *render_result) = 0;
@@ -102,8 +101,8 @@ struct ViewRender : public BaseRender {
                           const RenderData & /*render_data*/,
                           const bNodeTree & /*node_tree*/,
                           const char * /*view_name*/,
-                          blender::realtime_compositor::RenderContext * /*render_context*/,
-                          blender::realtime_compositor::Profiler * /*profiler*/) override
+                          blender::compositor::RenderContext * /*render_context*/,
+                          blender::compositor::Profiler * /*profiler*/) override
   {
   }
   void compositor_free() override {}
@@ -147,8 +146,8 @@ struct Render : public BaseRender {
                           const RenderData &render_data,
                           const bNodeTree &node_tree,
                           const char *view_name,
-                          blender::realtime_compositor::RenderContext *render_context,
-                          blender::realtime_compositor::Profiler *profiler) override;
+                          blender::compositor::RenderContext *render_context,
+                          blender::compositor::Profiler *profiler) override;
   void compositor_free() override;
 
   void display_init(RenderResult *render_result) override;
@@ -210,10 +209,9 @@ struct Render : public BaseRender {
   struct Depsgraph *pipeline_depsgraph = nullptr;
   Scene *pipeline_scene_eval = nullptr;
 
-  /* Realtime Compositor.
-   * NOTE: Use bare pointer instead of smart pointer because the RealtimeCompositor is a fully
-   * opaque type. */
-  blender::render::RealtimeCompositor *compositor = nullptr;
+  /* Compositor.
+   * NOTE: Use bare pointer instead of smart pointer because the it is a fully opaque type. */
+  blender::render::Compositor *compositor = nullptr;
   std::mutex compositor_mutex;
 
   /* Callbacks for the corresponding base class method implementation. */

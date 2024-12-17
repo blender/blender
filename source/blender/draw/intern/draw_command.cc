@@ -290,22 +290,12 @@ void ClearMulti::execute() const
 
 void StateSet::execute(RecordingState &recording_state) const
 {
-  /**
-   * Does not support locked state for the moment and never should.
-   * Better implement a less hacky selection!
-   */
-  BLI_assert(DST.state_lock == 0);
-
   bool state_changed = assign_if_different(recording_state.pipeline_state, new_state);
   bool clip_changed = assign_if_different(recording_state.clip_plane_count, clip_plane_count);
 
   if (!state_changed && !clip_changed) {
     return;
   }
-
-  /* Keep old API working. Keep the state tracking in sync. */
-  /* TODO(fclem): Move at the end of a pass. */
-  DST.state = new_state;
 
   GPU_state_set(to_write_mask(new_state),
                 to_blend(new_state),
@@ -342,6 +332,25 @@ void StateSet::execute(RecordingState &recording_state) const
   else {
     GPU_program_point_size(false);
   }
+}
+
+/* Set state of the GPU module manually. */
+void StateSet::set(DRWState state)
+{
+  RecordingState recording_state;
+  StateSet{state, 0}.execute(recording_state);
+
+  /* This function is used for cleaning the state for the viewport drawing.
+   * Make sure to reset textures resources to avoid feedback loop when rendering (see #131652). */
+  GPU_texture_unbind_all();
+  GPU_texture_image_unbind_all();
+  GPU_uniformbuf_debug_unbind_all();
+  GPU_storagebuf_debug_unbind_all();
+
+  /* Remained of legacy draw manager. Kept it to avoid regression, but might become unneeded. */
+  GPU_point_size(5);
+  GPU_line_smooth(false);
+  GPU_line_width(0.0f);
 }
 
 void StencilSet::execute() const

@@ -2673,19 +2673,19 @@ static void image_new_draw(bContext * /*C*/, wmOperator *op)
   uiLayoutSetPropDecorate(layout, false);
 
   col = uiLayoutColumn(layout, false);
-  uiItemR(col, op->ptr, "name", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(col, op->ptr, "width", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(col, op->ptr, "height", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(col, op->ptr, "color", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(col, op->ptr, "alpha", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(col, op->ptr, "generated_type", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(col, op->ptr, "float", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(col, op->ptr, "tiled", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, op->ptr, "name", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  uiItemR(col, op->ptr, "width", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  uiItemR(col, op->ptr, "height", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  uiItemR(col, op->ptr, "color", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  uiItemR(col, op->ptr, "alpha", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  uiItemR(col, op->ptr, "generated_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  uiItemR(col, op->ptr, "float", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  uiItemR(col, op->ptr, "tiled", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
 #if 0
   if (is_multiview) {
     uiItemL(col[0], "", ICON_NONE);
-    uiItemR(col[1], op->ptr, "use_stereo_3d", 0, nullptr, ICON_NONE);
+    uiItemR(col[1], op->ptr, "use_stereo_3d", 0, std::nullopt, ICON_NONE);
   }
 #endif
 }
@@ -4134,12 +4134,12 @@ static void draw_fill_tile(PointerRNA *ptr, uiLayout *layout)
   uiLayoutSetPropDecorate(layout, false);
 
   uiLayout *col = uiLayoutColumn(layout, false);
-  uiItemR(col, ptr, "color", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "width", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "height", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "alpha", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "generated_type", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "float", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "color", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  uiItemR(col, ptr, "width", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  uiItemR(col, ptr, "height", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  uiItemR(col, ptr, "alpha", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  uiItemR(col, ptr, "generated_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  uiItemR(col, ptr, "float", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 static void tile_fill_init(PointerRNA *ptr, Image *ima, ImageTile *tile)
@@ -4281,10 +4281,10 @@ static void tile_add_draw(bContext * /*C*/, wmOperator *op)
   uiLayoutSetPropDecorate(layout, false);
 
   col = uiLayoutColumn(layout, false);
-  uiItemR(col, op->ptr, "number", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(col, op->ptr, "count", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(col, op->ptr, "label", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(layout, op->ptr, "fill", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, op->ptr, "number", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  uiItemR(col, op->ptr, "count", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  uiItemR(col, op->ptr, "label", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  uiItemR(layout, op->ptr, "fill", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   if (RNA_boolean_get(op->ptr, "fill")) {
     draw_fill_tile(op->ptr, layout);

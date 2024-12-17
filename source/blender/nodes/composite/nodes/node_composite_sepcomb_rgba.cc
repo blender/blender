@@ -27,7 +27,7 @@ static void cmp_node_seprgba_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>("A").translation_context(BLT_I18NCONTEXT_COLOR);
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class SeparateRGBAShaderNode : public ShaderNode {
  public:
@@ -94,7 +94,7 @@ static void cmp_node_combrgba_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>("Image");
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class CombineRGBAShaderNode : public ShaderNode {
  public:

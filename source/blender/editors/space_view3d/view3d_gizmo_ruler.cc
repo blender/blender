@@ -1406,7 +1406,7 @@ static int view3d_ruler_remove_invoke(bContext *C, wmOperator *op, const wmEvent
 
   if (v3d->gizmo_flag & (V3D_GIZMO_HIDE | V3D_GIZMO_HIDE_TOOL)) {
     BKE_report(op->reports, RPT_WARNING, "Gizmos hidden in this view");
-    return OPERATOR_CANCELLED;
+    return OPERATOR_PASS_THROUGH;
   }
 
   wmGizmoMap *gzmap = region->runtime->gizmo_map;

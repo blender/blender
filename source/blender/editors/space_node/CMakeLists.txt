@@ -10,7 +10,6 @@ set(INC
   ../../blenloader
   ../../blentranslation
   ../../compositor
-  ../../compositor/realtime_compositor
   ../../draw
   ../../functions
   ../../geometry
@@ -60,13 +59,9 @@ set(LIB
   PRIVATE bf::dna
   bf_editor_screen
   PRIVATE bf::intern::guardedalloc
-  bf_realtime_compositor
+  bf_compositor
   PRIVATE bf::extern::fmtlib
 )
-
-if(WITH_COMPOSITOR_CPU)
-  add_definitions(-DWITH_COMPOSITOR_CPU)
-endif()
 
 if(WITH_OPENIMAGEDENOISE)
   add_definitions(-DWITH_OPENIMAGEDENOISE)

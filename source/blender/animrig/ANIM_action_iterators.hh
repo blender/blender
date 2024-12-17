@@ -20,7 +20,7 @@ namespace blender::animrig {
 class Action;
 class Layer;
 class Strip;
-class ChannelBag;
+class Channelbag;
 }  // namespace blender::animrig
 
 namespace blender::animrig {

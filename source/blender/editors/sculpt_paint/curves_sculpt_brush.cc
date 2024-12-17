@@ -8,6 +8,8 @@
 
 #include "BLI_math_geom.h"
 
+#include "DNA_mesh_types.h"
+
 #include "BKE_attribute_math.hh"
 #include "BKE_bvhutils.hh"
 #include "BKE_context.hh"
@@ -190,9 +192,7 @@ std::optional<CurvesBrush3D> sample_curves_3d_brush(const Depsgraph &depsgraph,
     const float4x4 world_to_surface_mat = math::invert(surface_to_world_mat);
 
     Mesh *surface_eval = BKE_object_get_evaluated_mesh(surface_object_eval);
-    BVHTreeFromMesh surface_bvh;
-    BKE_bvhtree_from_mesh_get(&surface_bvh, surface_eval, BVHTREE_FROM_CORNER_TRIS, 2);
-    BLI_SCOPED_DEFER([&]() { free_bvhtree_from_mesh(&surface_bvh); });
+    BVHTreeFromMesh surface_bvh = surface_eval->bvh_corner_tris();
 
     const float3 center_ray_start_su = math::transform_point(world_to_surface_mat,
                                                              center_ray_start_wo);
@@ -344,6 +344,14 @@ Vector<float4x4> get_symmetry_brush_transforms(const eCurvesSymmetryType symmetr
   }
 
   return matrices;
+}
+
+void remember_stroke_position(Scene &scene, const float3 &brush_position_wo)
+{
+  UnifiedPaintSettings &ups = scene.toolsettings->unified_paint_settings;
+  copy_v3_v3(ups.average_stroke_accum, brush_position_wo);
+  ups.average_stroke_counter = 1;
+  ups.last_stroke_valid = true;
 }
 
 float transform_brush_radius(const float4x4 &transform,

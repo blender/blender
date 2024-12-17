@@ -15,6 +15,10 @@
  * - Gather input color (whole mip chain), Scatter rect list, Signed CoC (whole mip chain).
  */
 
+#include "infos/eevee_depth_of_field_info.hh"
+
+COMPUTE_SHADER_CREATE_INFO(eevee_depth_of_field_reduce)
+
 #include "eevee_depth_of_field_lib.glsl"
 #include "gpu_shader_math_vector_lib.glsl"
 
@@ -29,7 +33,6 @@ float dof_scatter_neighborhood_rejection(vec3 color)
   vec2 texel_size = 1.0 / vec2(textureSize(downsample_tx, 0).xy);
   vec2 uv = ((vec2(gl_GlobalInvocationID.xy) + 0.5) * 0.5) * texel_size;
 
-  vec3 max_diff = vec3(0.0);
   for (int i = 0; i < 4; i++) {
     vec2 sample_uv = uv + quad_offsets[i] * texel_size;
     vec3 ref = textureLod(downsample_tx, sample_uv, 0.0).rgb;

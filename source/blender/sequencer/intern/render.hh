@@ -54,6 +54,9 @@ ImBuf *seq_render_strip(const SeqRenderData *context,
                         SeqRenderState *state,
                         Sequence *seq,
                         float timeline_frame);
+
+/* Renders Mask into an image suitable for sequencer:
+ * RGB channels contain mask intensity; alpha channel is opaque. */
 ImBuf *seq_render_mask(const SeqRenderData *context,
                        Mask *mask,
                        float frame_index,

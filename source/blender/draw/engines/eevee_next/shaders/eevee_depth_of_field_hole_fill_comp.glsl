@@ -12,6 +12,10 @@
  * rotation to ensure maximum coverage.
  */
 
+#include "infos/eevee_depth_of_field_info.hh"
+
+COMPUTE_SHADER_CREATE_INFO(eevee_depth_of_field_hole_fill)
+
 #include "eevee_depth_of_field_accumulator_lib.glsl"
 
 void main()
@@ -30,8 +34,6 @@ void main()
   /* Gather at half resolution. Divide CoC by 2. */
   base_radius *= 0.5;
   min_intersectable_radius *= 0.5;
-
-  bool do_density_change = dof_do_density_change(base_radius, min_intersectable_radius);
 
   vec4 out_color = vec4(0.0);
   float out_weight = 0.0;

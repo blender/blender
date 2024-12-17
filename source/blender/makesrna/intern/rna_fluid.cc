@@ -1315,7 +1315,9 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
 
   /*  Cache type - generated dynamically based on domain type */
   static const EnumPropertyItem cache_file_type_items[] = {
-      {0, "NONE", 0, "", ""},
+      {FLUID_DOMAIN_FILE_UNI, "UNI", 0, "Uni Cache", "Uni file format (.uni)"},
+      {FLUID_DOMAIN_FILE_OPENVDB, "OPENVDB", 0, "OpenVDB", "OpenVDB file format (.vdb)"},
+      {FLUID_DOMAIN_FILE_RAW, "RAW", 0, "Raw Cache", "Raw file format (.raw)"},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
@@ -2453,8 +2455,8 @@ static void rna_def_fluid_domain_settings(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, nullptr, "flags", FLUID_DOMAIN_USE_ADAPTIVE_TIME);
   RNA_def_property_ui_text(
       prop,
-      "Use Adaptive Time Steps",
-      "Lets the solver automatically decide when to perform multiple simulation steps per frame");
+      "Adaptive Time Steps",
+      "Automatically decide when to perform multiple simulation steps per frame");
   RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Fluid_datacache_reset");
 
   prop = RNA_def_property(srna, "cfl_condition", PROP_FLOAT, PROP_NONE);

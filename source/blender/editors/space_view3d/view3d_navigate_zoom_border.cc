@@ -58,8 +58,13 @@ static int view3d_zoom_border_exec(bContext *C, wmOperator *op)
 
   ED_view3d_dist_range_get(v3d, dist_range);
 
-  ED_view3d_depth_override(
-      CTX_data_ensure_evaluated_depsgraph(C), region, v3d, nullptr, V3D_DEPTH_NO_GPENCIL, nullptr);
+  ED_view3d_depth_override(CTX_data_ensure_evaluated_depsgraph(C),
+                           region,
+                           v3d,
+                           nullptr,
+                           V3D_DEPTH_NO_GPENCIL,
+                           true,
+                           nullptr);
   {
     /* avoid allocating the whole depth buffer */
     ViewDepths depth_temp = {0};

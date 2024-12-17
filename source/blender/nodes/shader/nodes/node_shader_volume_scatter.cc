@@ -42,7 +42,7 @@ static void node_declare(NodeDeclarationBuilder &b)
   b.add_input<decl::Float>("Alpha").default_value(0.5f).min(0.0f).max(500.0f);
   b.add_input<decl::Float>("Diameter")
       .default_value(20.0f)
-      .min(5.0f)
+      .min(0.0f)
       .max(50.0f)
       .description("Diameter of the water droplets, in micrometers");
   b.add_input<decl::Float>("Weight").available(false);

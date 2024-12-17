@@ -902,4 +902,12 @@ void set_lineart_modifier_limits(GreasePencilLineartModifierData &lmd,
 GreasePencilLineartModifierData *get_first_lineart_modifier(const Object &ob);
 
 GreasePencil *from_context(bContext &C);
+
+/**
+ * Remove the points in the \a point_mask and split each curve at the points that are removed (if
+ * necessary).
+ */
+bke::CurvesGeometry remove_points_and_split(const bke::CurvesGeometry &curves,
+                                            const IndexMask &point_mask);
+
 }  // namespace blender::ed::greasepencil

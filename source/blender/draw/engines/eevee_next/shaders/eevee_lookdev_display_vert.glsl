@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "infos/eevee_lookdev_info.hh"
+
+VERTEX_SHADER_CREATE_INFO(eevee_lookdev_display)
+
 void main()
 {
   uint vert_index = gl_VertexID < 3 ? gl_VertexID : gl_VertexID - 2;

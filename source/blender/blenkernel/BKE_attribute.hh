@@ -463,7 +463,8 @@ class AttributeIter {
 struct AttributeAccessorFunctions {
   bool (*domain_supported)(const void *owner, AttrDomain domain);
   int (*domain_size)(const void *owner, AttrDomain domain);
-  bool (*is_builtin)(const void *owner, StringRef attribute_id);
+  std::optional<AttributeDomainAndType> (*builtin_domain_and_type)(const void *owner,
+                                                                   StringRef attribute_id);
   GAttributeReader (*lookup)(const void *owner, StringRef attribute_id);
   GVArray (*adapt_domain)(const void *owner,
                           const GVArray &varray,
@@ -549,7 +550,15 @@ class AttributeAccessor {
    */
   bool is_builtin(const StringRef attribute_id) const
   {
-    return fn_->is_builtin(owner_, attribute_id);
+    return fn_->builtin_domain_and_type(owner_, attribute_id).has_value();
+  }
+
+  /**
+   * \return The required domain and type for the attribute, if it is builtin.
+   */
+  std::optional<AttributeDomainAndType> get_builtin_domain_and_type(const StringRef name) const
+  {
+    return fn_->builtin_domain_and_type(owner_, name);
   }
 
   /**

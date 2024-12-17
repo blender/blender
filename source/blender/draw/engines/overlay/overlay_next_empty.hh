@@ -49,7 +49,7 @@ class Empties : Overlay {
     EmptyInstanceBuf image_buf = {selection_type_, "image_buf"};
   } call_buffers_;
 
-  State::ViewOffsetData offset_data_;
+  View::OffsetData offset_data_;
   float4x4 depth_bias_winmat_;
 
  public:
@@ -207,8 +207,7 @@ class Empties : Overlay {
     manager.generate_commands(images_blend_ps_, view);
     manager.generate_commands(images_front_ps_, view);
 
-    float view_dist = State::view_dist_get(offset_data_, view.winmat());
-    depth_bias_winmat_ = winmat_polygon_offset(view.winmat(), view_dist, -1.0f);
+    depth_bias_winmat_ = offset_data_.winmat_polygon_offset(view.winmat(), -1.0f);
   }
 
   void draw_line(Framebuffer &framebuffer, Manager &manager, View &view) final

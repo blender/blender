@@ -32,7 +32,7 @@ void foreach_fcurve_in_action(Action &action, FunctionRef<void(FCurve &fcurve)> 
       if (strip->type() != Strip::Type::Keyframe) {
         continue;
       }
-      for (ChannelBag *bag : strip->data<StripKeyframeData>(action).channelbags()) {
+      for (Channelbag *bag : strip->data<StripKeyframeData>(action).channelbags()) {
         for (FCurve *fcu : bag->fcurves()) {
           callback(*fcu);
         }
@@ -56,7 +56,7 @@ void foreach_fcurve_in_action_slot(Action &action,
         if (strip->type() != Strip::Type::Keyframe) {
           continue;
         }
-        for (ChannelBag *bag : strip->data<StripKeyframeData>(action).channelbags()) {
+        for (Channelbag *bag : strip->data<StripKeyframeData>(action).channelbags()) {
           if (bag->slot_handle != handle) {
             continue;
           }

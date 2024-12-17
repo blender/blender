@@ -8,6 +8,11 @@
  * Evaluate shadowing using shadow map ray-tracing.
  */
 
+#include "infos/eevee_shadow_info.hh"
+
+SHADER_LIBRARY_CREATE_INFO(eevee_global_ubo)
+SHADER_LIBRARY_CREATE_INFO(eevee_shadow_data)
+
 #include "draw_math_geom_lib.glsl"
 #include "draw_view_lib.glsl"
 #include "eevee_bxdf_sampling_lib.glsl"
@@ -159,7 +164,6 @@ ShadowRayDirectional shadow_ray_generate_directional(
     LightData light, vec2 random_2d, vec3 lP, vec3 lNg, float texel_radius)
 {
   float clip_near = orderedIntBitsToFloat(light.clip_near);
-  float clip_far = orderedIntBitsToFloat(light.clip_far);
   /* Assumed to be non-null. */
   float dist_to_near_plane = -lP.z - clip_near;
   /* Trace in a radius that is covered by low resolution page inflation. */
@@ -237,7 +241,6 @@ ShadowRayPunctual shadow_ray_generate_punctual(LightData light, vec2 random_2d, 
     random_2d = sample_disk(random_2d);
   }
 
-  float clip_far = intBitsToFloat(light.clip_far);
   float clip_near = intBitsToFloat(light.clip_near);
   float shape_radius = light_spot_data_get(light).shadow_radius;
   /* Clamp to a minimum value to avoid `local_ray_up` being degenerate. Could be revisited as the
@@ -424,6 +427,8 @@ float shadow_eval(LightData light,
   vec2 pixel = floor(gl_FragCoord.xy);
 #  elif defined(GPU_COMPUTE_SHADER)
   vec2 pixel = vec2(gl_GlobalInvocationID.xy);
+#  else
+  vec2 pixel = UTIL_TEXEL;
 #  endif
   vec3 blue_noise_3d = utility_tx_fetch(utility_tx, pixel, UTIL_BLUE_NOISE_LAYER).rgb;
   vec3 random_shadow_3d = fract(blue_noise_3d + sampling_rng_3D_get(SAMPLING_SHADOW_U));

@@ -30,7 +30,7 @@ class PrintStructC99(gdb.Command):
         first_line = string.split('\n')[0]
         return first_line.split('=')[1][:-1].strip()
 
-    def invoke(self, arg, from_tty):
+    def invoke(self, arg, _from_tty):
         ret_ptype = gdb.execute('ptype {}'.format(arg), to_string=True)
         tname = self.extract_typename(ret_ptype)
         print('{} {} = {{'.format(tname, arg))

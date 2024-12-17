@@ -70,8 +70,8 @@ void PinchOperation::on_stroke_extended(const bContext &C, const InputSample &ex
           const float influence_squared = influence * influence / 25.0f;
           const float influence_final = invert ? 1.0 + influence_squared :
                                                  1.0f - influence_squared;
-          positions[point_i] = projection_fn(deformation.positions[point_i],
-                                             (target - co) * (1.0f - influence_final));
+          positions[point_i] += compute_orig_delta(
+              projection_fn, deformation, point_i, (target - co) * (1.0f - influence_final));
         });
 
         params.drawing.tag_positions_changed();

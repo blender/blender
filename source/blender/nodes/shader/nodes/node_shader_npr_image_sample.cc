@@ -27,7 +27,7 @@ static void node_shader_buts(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr
           ptr,
           "offset_type",
           UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_EXPAND,
-          nullptr,
+          std::nullopt,
           ICON_NONE);
 }
 

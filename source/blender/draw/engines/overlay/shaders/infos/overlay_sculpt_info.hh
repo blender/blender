@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "gpu_shader_create_info.hh"
+#include "overlay_common_info.hh"
 
 GPU_SHADER_INTERFACE_INFO(overlay_sculpt_mask_iface)
 FLAT(VEC3, faceset_color)
@@ -21,13 +21,10 @@ VERTEX_OUT(overlay_sculpt_mask_iface)
 VERTEX_SOURCE("overlay_sculpt_mask_vert.glsl")
 FRAGMENT_SOURCE("overlay_sculpt_mask_frag.glsl")
 FRAGMENT_OUT(0, VEC4, fragColor)
-ADDITIONAL_INFO(draw_mesh)
-ADDITIONAL_INFO(draw_object_infos)
+ADDITIONAL_INFO(draw_view)
+ADDITIONAL_INFO(draw_modelmat_new)
+ADDITIONAL_INFO(draw_resource_handle_new)
 ADDITIONAL_INFO(draw_globals)
 GPU_SHADER_CREATE_END()
 
-GPU_SHADER_CREATE_INFO(overlay_sculpt_mask_clipped)
-DO_STATIC_COMPILATION()
-ADDITIONAL_INFO(overlay_sculpt_mask)
-ADDITIONAL_INFO(drw_clipped)
-GPU_SHADER_CREATE_END()
+OVERLAY_INFO_CLIP_VARIATION(overlay_sculpt_mask)

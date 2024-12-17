@@ -103,10 +103,8 @@ ccl_device float fast_sinf(float x)
   u = madd(s, u * x, x);
   /* For large x, the argument reduction can fail and the polynomial can be
    * evaluated with arguments outside the valid internal. Just clamp the bad
-   * values away (setting to 0.0f means no branches need to be generated). */
-  if (fabsf(u) > 1.0f) {
-    u = 0.0f;
-  }
+   * values away. */
+  u = clamp(u, -1.0f, 1.0f);
   return u;
 }
 
@@ -132,9 +130,7 @@ ccl_device float fast_cosf(float x)
   if ((q & 1) != 0) {
     u = -u;
   }
-  if (fabsf(u) > 1.0f) {
-    u = 0.0f;
-  }
+  u = clamp(u, -1.0f, 1.0f);
   return u;
 }
 
@@ -167,12 +163,8 @@ ccl_device void fast_sincosf(float x, ccl_private float *sine, ccl_private float
   if ((q & 1) != 0) {
     cu = -cu;
   }
-  if (fabsf(su) > 1.0f) {
-    su = 0.0f;
-  }
-  if (fabsf(cu) > 1.0f) {
-    cu = 0.0f;
-  }
+  su = clamp(su, -1.0f, 1.0f);
+  cu = clamp(cu, -1.0f, 1.0f);
   *sine = su;
   *cosine = cu;
 }

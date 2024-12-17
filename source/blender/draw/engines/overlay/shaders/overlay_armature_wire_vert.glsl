@@ -10,10 +10,10 @@ void main()
 {
   select_id_set(in_select_buf[gl_VertexID / 2]);
 
-  finalColor.rgb = color.rgb;
+  finalColor.rgb = data_buf[gl_VertexID].color_.rgb;
   finalColor.a = 1.0;
 
-  vec3 world_pos = pos;
+  vec3 world_pos = data_buf[gl_VertexID].pos_.xyz;
   gl_Position = point_world_to_ndc(world_pos);
 
   edgeStart = edgePos = ((gl_Position.xy / gl_Position.w) * 0.5 + 0.5) * sizeViewport.xy;

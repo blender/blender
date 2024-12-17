@@ -55,7 +55,7 @@ void DRW_globals_update()
     }
     if (plane_len < 6) {
       for (auto i : IndexRange(plane_len, 6 - plane_len)) {
-        /* Fill other planes with same valid planes. Avoid changing. */
+        /* Fill other planes with same valid planes. Avoid changing further logic. */
         gb->clip_planes[i] = gb->clip_planes[plane_len - 1];
       }
     }
@@ -258,7 +258,7 @@ void DRW_globals_update()
   if (weight_ramp_custom != user_weight_ramp ||
       (user_weight_ramp && memcmp(&weight_ramp_copy, &U.coba_weight, sizeof(ColorBand)) != 0))
   {
-    DRW_TEXTURE_FREE_SAFE(G_draw.weight_ramp);
+    GPU_TEXTURE_FREE_SAFE(G_draw.weight_ramp);
   }
 
   if (G_draw.weight_ramp == nullptr) {
@@ -273,210 +273,7 @@ void DRW_globals_update()
 
 void DRW_globals_free() {}
 
-DRWView *DRW_view_create_with_zoffset(const DRWView *parent_view,
-                                      const RegionView3D *rv3d,
-                                      float offset)
-{
-  /* Create view with depth offset */
-  float viewmat[4][4], winmat[4][4];
-  DRW_view_viewmat_get(parent_view, viewmat, false);
-  DRW_view_winmat_get(parent_view, winmat, false);
-
-  float viewdist = rv3d->dist;
-
-  /* special exception for ortho camera (`viewdist` isn't used for perspective cameras). */
-  if (rv3d->persp == RV3D_CAMOB && rv3d->is_persp == false) {
-    viewdist = 1.0f / max_ff(fabsf(winmat[0][0]), fabsf(winmat[1][1]));
-  }
-
-  winmat[3][2] -= GPU_polygon_offset_calc(winmat, viewdist, offset);
-
-  return DRW_view_create_sub(parent_view, viewmat, winmat);
-}
-
 /* ******************************************** COLOR UTILS ************************************ */
-
-int DRW_object_wire_theme_get(Object *ob, ViewLayer *view_layer, float **r_color)
-{
-  /* TODO: FINISH. */
-
-  const DRWContextState *draw_ctx = DRW_context_state_get();
-  const bool is_edit = (draw_ctx->object_mode & OB_MODE_EDIT) && (ob->mode & OB_MODE_EDIT);
-  BKE_view_layer_synced_ensure(draw_ctx->scene, view_layer);
-  const Base *base = BKE_view_layer_active_base_get(view_layer);
-  const bool active = base && ((ob->base_flag & BASE_FROM_DUPLI) ?
-                                   (DRW_object_get_dupli_parent(ob) == base->object) :
-                                   (base->object == ob));
-
-  /* confusing logic here, there are 2 methods of setting the color
-   * 'colortab[colindex]' and 'theme_id', colindex overrides theme_id.
-   *
-   * NOTE: no theme yet for 'colindex'. */
-  int theme_id = is_edit ? TH_WIRE_EDIT : TH_WIRE;
-
-  if (is_edit) {
-    /* fallback to TH_WIRE */
-  }
-  else if (((G.moving & G_TRANSFORM_OBJ) != 0) && ((ob->base_flag & BASE_SELECTED) != 0)) {
-    theme_id = TH_TRANSFORM;
-  }
-  else {
-    /* Sets the 'theme_id' or fallback to wire */
-    if ((ob->base_flag & BASE_SELECTED) != 0) {
-      theme_id = (active) ? TH_ACTIVE : TH_SELECT;
-    }
-    else {
-      switch (ob->type) {
-        case OB_LAMP:
-          theme_id = TH_LIGHT;
-          break;
-        case OB_SPEAKER:
-          theme_id = TH_SPEAKER;
-          break;
-        case OB_CAMERA:
-          theme_id = TH_CAMERA;
-          break;
-        case OB_EMPTY:
-          theme_id = TH_EMPTY;
-          break;
-        case OB_LIGHTPROBE:
-          /* TODO: add light-probe color. */
-          theme_id = TH_EMPTY;
-          break;
-        default:
-          /* fallback to TH_WIRE */
-          break;
-      }
-    }
-  }
-
-  if (r_color != nullptr) {
-    if (UNLIKELY(ob->base_flag & BASE_FROM_SET)) {
-      *r_color = G_draw.block.color_wire;
-    }
-    else {
-      switch (theme_id) {
-        case TH_WIRE_EDIT:
-          *r_color = G_draw.block.color_wire_edit;
-          break;
-        case TH_ACTIVE:
-          *r_color = G_draw.block.color_active;
-          break;
-        case TH_SELECT:
-          *r_color = G_draw.block.color_select;
-          break;
-        case TH_TRANSFORM:
-          *r_color = G_draw.block.color_transform;
-          break;
-        case TH_SPEAKER:
-          *r_color = G_draw.block.color_speaker;
-          break;
-        case TH_CAMERA:
-          *r_color = G_draw.block.color_camera;
-          break;
-        case TH_EMPTY:
-          *r_color = G_draw.block.color_empty;
-          break;
-        case TH_LIGHT:
-          *r_color = G_draw.block.color_light;
-          break;
-        default:
-          *r_color = G_draw.block.color_wire;
-          break;
-      }
-    }
-  }
-
-  return theme_id;
-}
-
-float *DRW_color_background_blend_get(int theme_id)
-{
-  /* XXX This is very stupid, better find something more general. */
-
-  static float colors[11][4];
-  float *ret;
-
-  switch (theme_id) {
-    case TH_WIRE_EDIT:
-      ret = colors[0];
-      break;
-    case TH_ACTIVE:
-      ret = colors[1];
-      break;
-    case TH_SELECT:
-      ret = colors[2];
-      break;
-    case TH_TRANSFORM:
-      ret = colors[5];
-      break;
-    case TH_SPEAKER:
-      ret = colors[6];
-      break;
-    case TH_CAMERA:
-      ret = colors[7];
-      break;
-    case TH_EMPTY:
-      ret = colors[8];
-      break;
-    case TH_LIGHT:
-      ret = colors[9];
-      break;
-    default:
-      ret = colors[10];
-      break;
-  }
-
-  UI_GetThemeColorBlendShade4fv(theme_id, TH_BACK, 0.5, 0, ret);
-
-  return ret;
-}
-
-bool DRW_object_is_flat(Object *ob, int *r_axis)
-{
-  float dim[3];
-
-  if (!ELEM(ob->type,
-            OB_MESH,
-            OB_CURVES_LEGACY,
-            OB_SURF,
-            OB_FONT,
-            OB_CURVES,
-            OB_POINTCLOUD,
-            OB_VOLUME))
-  {
-    /* Non-meshes object cannot be considered as flat. */
-    return false;
-  }
-
-  BKE_object_dimensions_get(ob, dim);
-  if (dim[0] == 0.0f) {
-    *r_axis = 0;
-    return true;
-  }
-  if (dim[1] == 0.0f) {
-    *r_axis = 1;
-    return true;
-  }
-  if (dim[2] == 0.0f) {
-    *r_axis = 2;
-    return true;
-  }
-  return false;
-}
-
-bool DRW_object_axis_orthogonal_to_view(Object *ob, int axis)
-{
-  float ob_rot[3][3], invviewmat[4][4];
-  DRW_view_viewmat_get(nullptr, invviewmat, true);
-  BKE_object_rot_to_mat3(ob, ob_rot, true);
-  float dot = dot_v3v3(ob_rot[axis], invviewmat[2]);
-  if (fabsf(dot) < 1e-3) {
-    return true;
-  }
-
-  return false;
-}
 
 static void DRW_evaluate_weight_to_color(const float weight, float result[4])
 {

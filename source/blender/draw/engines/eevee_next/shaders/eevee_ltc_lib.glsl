@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "infos/eevee_common_info.hh"
+
 /**
  * Adapted from :
  * Real-Time Polygonal-Light Shading with Linearly Transformed Cosines.
@@ -60,7 +62,6 @@ vec3 ltc_solve_cubic(vec4 coefs)
 
   /* Algorithm A */
   {
-    float A_a = 1.0;
     float C_a = delta.x;
     float D_a = -2.0 * B * delta.x + delta.y;
 
@@ -84,7 +85,6 @@ vec3 ltc_solve_cubic(vec4 coefs)
 
   /* Algorithm D */
   {
-    float A_d = D;
     float C_d = delta.z;
     float D_d = -D * delta.y + 2.0 * C * delta.z;
 

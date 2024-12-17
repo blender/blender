@@ -444,24 +444,7 @@ class Armatures : Overlay {
 
     Armatures::BoneBuffers *bone_buf = nullptr;
     Resources *res = nullptr;
-
-    /* TODO: Legacy structures to be removed after overlay next is shipped. */
-    DRWCallBuffer *outline = nullptr;
-    DRWCallBuffer *solid = nullptr;
-    DRWCallBuffer *wire = nullptr;
-    DRWCallBuffer *envelope_outline = nullptr;
-    DRWCallBuffer *envelope_solid = nullptr;
-    DRWCallBuffer *envelope_distance = nullptr;
-    DRWCallBuffer *stick = nullptr;
-    DRWCallBuffer *dof_lines = nullptr;
-    DRWCallBuffer *dof_sphere = nullptr;
-    DRWCallBuffer *point_solid = nullptr;
-    DRWCallBuffer *point_outline = nullptr;
-    DRWShadingGroup *custom_solid = nullptr;
-    DRWShadingGroup *custom_outline = nullptr;
-    DRWShadingGroup *custom_wire = nullptr;
-    GHash *custom_shapes_ghash = nullptr;
-    OVERLAY_ExtraCallBuffers *extras = nullptr;
+    DRWTextStore *dt = nullptr;
 
     /* Not a theme, this is an override. */
     const float *const_color = nullptr;
@@ -479,13 +462,6 @@ class Armatures : Overlay {
     const ThemeWireColor *bcolor = nullptr; /* pchan color */
 
     DrawContext() = default;
-
-    /* Runtime switch between legacy and new overlay code-base.
-     * Should be removed once the legacy code is removed. */
-    bool is_overlay_next() const
-    {
-      return this->bone_buf != nullptr;
-    }
   };
 
   DrawContext create_draw_context(const ObjectRef &ob_ref,
@@ -499,6 +475,7 @@ class Armatures : Overlay {
     ctx.ob = ob_ref.object;
     ctx.ob_ref = &ob_ref;
     ctx.res = &res;
+    ctx.dt = state.dt;
     ctx.draw_mode = draw_mode;
     ctx.drawtype = eArmature_Drawtype(arm->drawtype);
 

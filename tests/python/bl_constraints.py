@@ -450,7 +450,7 @@ class ActionConstraintTest(AbstractConstraintTests):
 
     def test_assign_action_slot_virgin(self):
         action = bpy.data.actions.new("Slotted")
-        slot = action.slots.new()
+        slot = action.slots.new('OBJECT', "Slot")
 
         con = self.constraint()
         con.action = action

@@ -610,7 +610,7 @@ class VIEW3D_PT_slots_paint_canvas(SelectPaintSlotHelper, View3DPanel, Panel):
     def get_mode_settings(self, context):
         return context.tool_settings.paint_mode
 
-    def draw_image_interpolation(self, **kwargs):
+    def draw_image_interpolation(self, **_kwargs):
         pass
 
     def draw_header(self, context):

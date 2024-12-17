@@ -16,7 +16,8 @@ Mesh *create_line_mesh(const float3 start, const float3 delta, const int count)
     return nullptr;
   }
 
-  Mesh *mesh = BKE_mesh_new_nomain(count, count - 1, 0, 0);
+  const int edges_num = count - 1;
+  Mesh *mesh = BKE_mesh_new_nomain(count, edges_num, 0, 0);
   MutableSpan<float3> positions = mesh->vert_positions_for_write();
   MutableSpan<int2> edges = mesh->edges_for_write();
 
@@ -42,7 +43,7 @@ Mesh *create_line_mesh(const float3 start, const float3 delta, const int count)
 
   mesh->tag_loose_verts_none();
   mesh->tag_overlapping_none();
-  mesh->bounds_set_eager(*bounds::min_max<float3>({start, start + delta * count}));
+  mesh->bounds_set_eager(*bounds::min_max<float3>({start, start + delta * edges_num}));
 
   return mesh;
 }

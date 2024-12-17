@@ -727,9 +727,6 @@ class MeshVertexGroupsAttributeProvider final : public DynamicAttributesProvider
  public:
   GAttributeReader try_get_for_read(const void *owner, const StringRef attribute_id) const final
   {
-    if (bke::attribute_name_is_anonymous(attribute_id)) {
-      return {};
-    }
     const Mesh *mesh = static_cast<const Mesh *>(owner);
     if (mesh == nullptr) {
       return {};
@@ -756,9 +753,6 @@ class MeshVertexGroupsAttributeProvider final : public DynamicAttributesProvider
 
   GAttributeWriter try_get_for_write(void *owner, const StringRef attribute_id) const final
   {
-    if (bke::attribute_name_is_anonymous(attribute_id)) {
-      return {};
-    }
     Mesh *mesh = static_cast<Mesh *>(owner);
     if (mesh == nullptr) {
       return {};
@@ -773,21 +767,16 @@ class MeshVertexGroupsAttributeProvider final : public DynamicAttributesProvider
     return {varray_for_mutable_deform_verts(dverts, vertex_group_index), AttrDomain::Point};
   }
 
-  bool try_delete(void *owner, const StringRef attribute_id) const final
+  bool try_delete(void *owner, const StringRef name) const final
   {
-    if (bke::attribute_name_is_anonymous(attribute_id)) {
-      return false;
-    }
     Mesh *mesh = static_cast<Mesh *>(owner);
     if (mesh == nullptr) {
       return true;
     }
 
-    const std::string name = attribute_id;
-
     int index;
     bDeformGroup *group;
-    if (!BKE_id_defgroup_name_find(&mesh->id, name.c_str(), &index, &group)) {
+    if (!BKE_id_defgroup_name_find(&mesh->id, name, &index, &group)) {
       return false;
     }
     BLI_remlink(&mesh->vertex_group_names, group);
@@ -832,6 +821,17 @@ class MeshVertexGroupsAttributeProvider final : public DynamicAttributesProvider
   }
 };
 
+static std::function<void()> get_tag_modified_function(void *owner, const StringRef name)
+{
+  if (name.startswith(".hide")) {
+    return [owner]() { (static_cast<Mesh *>(owner))->tag_visibility_changed(); };
+  }
+  if (name == "custom_normal") {
+    return [owner]() { (static_cast<Mesh *>(owner))->tag_custom_normals_changed(); };
+  }
+  return {};
+}
+
 /**
  * In this function all the attribute providers for a mesh component are created. Most data in this
  * function is statically allocated, because it does not change over time.
@@ -856,16 +856,20 @@ static GeometryAttributeProviders create_attribute_providers_for_mesh()
 
   static CustomDataAccessInfo corner_access = {MAKE_MUTABLE_CUSTOM_DATA_GETTER(corner_data),
                                                MAKE_CONST_CUSTOM_DATA_GETTER(corner_data),
-                                               MAKE_GET_ELEMENT_NUM_GETTER(corners_num)};
+                                               MAKE_GET_ELEMENT_NUM_GETTER(corners_num),
+                                               get_tag_modified_function};
   static CustomDataAccessInfo point_access = {MAKE_MUTABLE_CUSTOM_DATA_GETTER(vert_data),
                                               MAKE_CONST_CUSTOM_DATA_GETTER(vert_data),
-                                              MAKE_GET_ELEMENT_NUM_GETTER(verts_num)};
+                                              MAKE_GET_ELEMENT_NUM_GETTER(verts_num),
+                                              get_tag_modified_function};
   static CustomDataAccessInfo edge_access = {MAKE_MUTABLE_CUSTOM_DATA_GETTER(edge_data),
                                              MAKE_CONST_CUSTOM_DATA_GETTER(edge_data),
-                                             MAKE_GET_ELEMENT_NUM_GETTER(edges_num)};
+                                             MAKE_GET_ELEMENT_NUM_GETTER(edges_num),
+                                             get_tag_modified_function};
   static CustomDataAccessInfo face_access = {MAKE_MUTABLE_CUSTOM_DATA_GETTER(face_data),
                                              MAKE_CONST_CUSTOM_DATA_GETTER(face_data),
-                                             MAKE_GET_ELEMENT_NUM_GETTER(faces_num)};
+                                             MAKE_GET_ELEMENT_NUM_GETTER(faces_num),
+                                             get_tag_modified_function};
 
 #undef MAKE_CONST_CUSTOM_DATA_GETTER
 #undef MAKE_MUTABLE_CUSTOM_DATA_GETTER

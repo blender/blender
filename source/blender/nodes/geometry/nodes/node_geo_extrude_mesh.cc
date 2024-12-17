@@ -125,7 +125,6 @@ static void remove_unsupported_corner_data(Mesh &mesh)
   CustomData_free_layers(&mesh.corner_data, CD_TANGENT, mesh.corners_num);
   CustomData_free_layers(&mesh.corner_data, CD_MLOOPTANGENT, mesh.corners_num);
   CustomData_free_layers(&mesh.corner_data, CD_GRID_PAINT_MASK, mesh.corners_num);
-  CustomData_free_layers(&mesh.corner_data, CD_CUSTOMLOOPNORMAL, mesh.corners_num);
 }
 
 static void expand_mesh(Mesh &mesh,

@@ -2,6 +2,17 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#ifdef GPU_SHADER
+#  pragma once
+#  include "gpu_glsl_cpp_stubs.hh"
+
+#  include "draw_object_infos_info.hh"
+#  include "draw_view_info.hh"
+#  include "eevee_shader_shared.hh"
+
+#  define VELOCITY_CAMERA
+#endif
+
 #include "eevee_defines.hh"
 #include "gpu_shader_create_info.hh"
 
@@ -13,7 +24,8 @@
  * \{ */
 
 /* Pass world space deltas to the fragment shader.
- * This is to make sure that the resulting motion vectors are valid even with displacement. */
+ * This is to make sure that the resulting motion vectors are valid even with displacement.
+ * WARNING: The next value is invalid when rendering the viewport. */
 GPU_SHADER_NAMED_INTERFACE_INFO(eevee_velocity_surface_iface, motion)
 SMOOTH(VEC3, prev)
 SMOOTH(VEC3, next)

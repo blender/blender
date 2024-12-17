@@ -4,6 +4,10 @@
 
 #pragma once
 
+#include "infos/eevee_film_info.hh"
+
+SHADER_LIBRARY_CREATE_INFO(eevee_film)
+
 /** Storing/merging and sorting cryptomatte samples. */
 
 bool cryptomatte_can_merge_sample(vec2 dst, vec2 src)

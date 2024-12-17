@@ -48,12 +48,13 @@ def remove_comments(string: str) -> str:
     regex = re.compile(pattern, re.MULTILINE | re.DOTALL)
 
     def _replacer(m: re.Match[str]) -> str:
-        # if the 2nd group (capturing comments) is not None,
-        # it means we have captured a non-quoted (real) comment string.
+        # If the 2nd group (capturing comments) is not None,
+        # It means we have captured a non-quoted (real) comment string.
         if m.group(2) is not None:
-            return ""  # so we will return empty to remove the comment
-        else:  # otherwise, we will return the 1st group
-            return m.group(1)  # capture
+            # So we will return empty to remove the comment.
+            return ""
+        # Otherwise, we will return the 1st group.
+        return m.group(1)  # capture
     return regex.sub(_replacer, string)
 
 
@@ -69,8 +70,7 @@ def extract_terms(fn: str, data_src: str) -> None:
     for m in re_defines.finditer(data_src_nocomments):
         defines[m.group(1)] = fn
 
-    # Don't edit the file.
-    return None
+    # Returning None indicates the file is not edited.
 
 
 def main() -> int:

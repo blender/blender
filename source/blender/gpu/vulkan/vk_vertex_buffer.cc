@@ -148,7 +148,7 @@ void VKVertexBuffer::upload_data()
 
   if (flag & GPU_VERTBUF_DATA_DIRTY) {
     device_format_ensure();
-    if (buffer_.is_mapped()) {
+    if (buffer_.is_mapped() && !data_uploaded_) {
       upload_data_direct(buffer_);
     }
     else {
@@ -158,6 +158,7 @@ void VKVertexBuffer::upload_data()
     if (usage_ == GPU_USAGE_STATIC) {
       MEM_SAFE_FREE(data_);
     }
+    data_uploaded_ = true;
 
     flag &= ~GPU_VERTBUF_DATA_DIRTY;
     flag |= GPU_VERTBUF_DATA_UPLOADED;

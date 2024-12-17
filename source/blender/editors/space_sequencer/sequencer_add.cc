@@ -269,7 +269,7 @@ static void sequencer_generic_invoke_xy__internal(
   }
 }
 
-static void load_data_init_from_operator(SeqLoadData *load_data, bContext *C, wmOperator *op)
+static bool load_data_init_from_operator(SeqLoadData *load_data, bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
 
@@ -294,7 +294,19 @@ static void load_data_init_from_operator(SeqLoadData *load_data, bContext *C, wm
 
   if ((prop = RNA_struct_find_property(op->ptr, "filepath"))) {
     RNA_property_string_get(op->ptr, prop, load_data->path);
-    STRNCPY(load_data->name, BLI_path_basename(load_data->path));
+    /* File basename might be too long, better report it now than silently
+     * truncating the basename later. */
+    const char *basename = BLI_path_basename(load_data->path);
+    if (strlen(basename) >= sizeof(StripElem::filename)) {
+      BKE_reportf(op->reports,
+                  RPT_ERROR,
+                  "Filename '%s' too long (max length %zu, was %zu)",
+                  basename,
+                  sizeof(StripElem::filename),
+                  strlen(basename));
+      return false;
+    }
+    STRNCPY(load_data->name, basename);
   }
   else if ((prop = RNA_struct_find_property(op->ptr, "directory"))) {
     char *directory = RNA_string_get_alloc(op->ptr, "directory", nullptr, 0, nullptr);
@@ -357,6 +369,7 @@ static void load_data_init_from_operator(SeqLoadData *load_data, bContext *C, wm
       load_data->stereo3d_format = &imf->stereo3d_format;
     }
   }
+  return true;
 }
 
 static void seq_load_apply_generic_options(bContext *C, wmOperator *op, Sequence *seq)
@@ -653,7 +666,9 @@ static int sequencer_add_movieclip_strip_exec(bContext *C, wmOperator *op)
   }
 
   SeqLoadData load_data;
-  load_data_init_from_operator(&load_data, C, op);
+  if (!load_data_init_from_operator(&load_data, C, op)) {
+    return OPERATOR_CANCELLED;
+  }
   load_data.clip = clip;
 
   Sequence *seq = SEQ_add_movieclip_strip(scene, ed->seqbasep, &load_data);
@@ -987,7 +1002,9 @@ static int sequencer_add_movie_strip_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   SeqLoadData load_data;
 
-  load_data_init_from_operator(&load_data, C, op);
+  if (!load_data_init_from_operator(&load_data, C, op)) {
+    return OPERATOR_CANCELLED;
+  }
 
   if (RNA_boolean_get(op->ptr, "replace_sel")) {
     ED_sequencer_deselect_all(scene);
@@ -1341,7 +1358,9 @@ static int sequencer_add_image_strip_exec(bContext *C, wmOperator *op)
   Editing *ed = SEQ_editing_ensure(scene);
 
   SeqLoadData load_data;
-  load_data_init_from_operator(&load_data, C, op);
+  if (!load_data_init_from_operator(&load_data, C, op)) {
+    return OPERATOR_CANCELLED;
+  }
 
   int minframe, numdigits;
   load_data.image.len = sequencer_add_image_strip_calculate_length(

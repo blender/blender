@@ -14,6 +14,10 @@
  * Adapted from G3D Innovation Engine implementation.
  */
 
+#include "infos/eevee_motion_blur_info.hh"
+
+COMPUTE_SHADER_CREATE_INFO(eevee_motion_blur_tiles_flatten_rgba)
+
 #include "draw_math_geom_lib.glsl"
 #include "eevee_velocity_lib.glsl"
 

@@ -118,11 +118,10 @@ struct PuffOperationExecutor {
     surface_corner_verts_ = surface_->corner_verts();
     surface_corner_tris_ = surface_->corner_tris();
     corner_normals_su_ = surface_->corner_normals();
-    BKE_bvhtree_from_mesh_get(&surface_bvh_, surface_, BVHTREE_FROM_CORNER_TRIS, 2);
-    BLI_SCOPED_DEFER([&]() { free_bvhtree_from_mesh(&surface_bvh_); });
+    surface_bvh_ = surface_->bvh_corner_tris();
 
     if (stroke_extension.is_first) {
-      if (falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE) {
+      if (falloff_shape == PAINT_FALLOFF_SHAPE_SPHERE || (U.uiflag & USER_ORBIT_SELECTION)) {
         self.brush_3d_ = *sample_curves_3d_brush(*ctx_.depsgraph,
                                                  *ctx_.region,
                                                  *ctx_.v3d,
@@ -130,6 +129,9 @@ struct PuffOperationExecutor {
                                                  *object_,
                                                  brush_pos_re_,
                                                  brush_radius_base_re_);
+        remember_stroke_position(
+            *ctx_.scene,
+            math::transform_point(transforms_.curves_to_world, self_->brush_3d_.position_cu));
       }
 
       self_->constraint_solver_.initialize(

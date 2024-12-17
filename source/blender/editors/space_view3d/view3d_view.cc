@@ -498,10 +498,6 @@ static bool drw_select_loop_pass(eDRWSelectStage stage, void *user_data)
       /* quirk of GPU_select_end, only take hits value from first call. */
       data->hits = hits;
     }
-    if (data->gpu_select_mode == GPU_SELECT_NEAREST_FIRST_PASS) {
-      data->gpu_select_mode = GPU_SELECT_NEAREST_SECOND_PASS;
-      continue_pass = (hits > 0);
-    }
     data->pass += 1;
   }
   else {
@@ -558,13 +554,10 @@ int view3d_opengl_select_ex(const ViewContext *vc,
   BKE_view_layer_synced_ensure(scene, vc->view_layer);
   const bool use_obedit_skip = (BKE_view_layer_edit_object_get(vc->view_layer) != nullptr) &&
                                (vc->obedit == nullptr);
-  const bool is_pick_select = (U.gpu_flag & USER_GPU_FLAG_NO_DEPT_PICK) == 0;
-  const bool do_passes = ((is_pick_select == false) &&
-                          (select_mode == VIEW3D_SELECT_PICK_NEAREST));
-  const bool use_nearest = (is_pick_select && select_mode == VIEW3D_SELECT_PICK_NEAREST);
+  const bool use_nearest = select_mode == VIEW3D_SELECT_PICK_NEAREST;
   bool draw_surface = true;
 
-  eGPUSelectMode gpu_select_mode;
+  eGPUSelectMode gpu_select_mode = GPU_SELECT_INVALID;
 
   /* case not a box select */
   if (input->xmin == input->xmax) {
@@ -576,24 +569,14 @@ int view3d_opengl_select_ex(const ViewContext *vc,
     rect = *input;
   }
 
-  if (is_pick_select) {
-    if (select_mode == VIEW3D_SELECT_PICK_NEAREST) {
-      gpu_select_mode = GPU_SELECT_PICK_NEAREST;
-    }
-    else if (select_mode == VIEW3D_SELECT_PICK_ALL) {
-      gpu_select_mode = GPU_SELECT_PICK_ALL;
-    }
-    else {
-      gpu_select_mode = GPU_SELECT_ALL;
-    }
+  if (select_mode == VIEW3D_SELECT_PICK_NEAREST) {
+    gpu_select_mode = GPU_SELECT_PICK_NEAREST;
+  }
+  else if (select_mode == VIEW3D_SELECT_PICK_ALL) {
+    gpu_select_mode = GPU_SELECT_PICK_ALL;
   }
   else {
-    if (do_passes) {
-      gpu_select_mode = GPU_SELECT_NEAREST_FIRST_PASS;
-    }
-    else {
-      gpu_select_mode = GPU_SELECT_ALL;
-    }
+    gpu_select_mode = GPU_SELECT_ALL;
   }
 
   /* Important to use 'vc->obact', not 'BKE_view_layer_active_object_get(vc->view_layer)' below,

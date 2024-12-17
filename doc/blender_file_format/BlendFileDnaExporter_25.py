@@ -229,7 +229,7 @@ class DNACatalogHTML:
 
         return structure_field
 
-    def indent(self, input, dent, startswith=''):
+    def indent(self, input, dent):
         output = ''
         if dent < 0:
             for line in input.split('\n'):

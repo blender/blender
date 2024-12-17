@@ -1208,31 +1208,31 @@ static bNodeTree *offset_radius_node_tree_add(ConversionData &conversion_data, L
       DATA_("Layer"), "", "NodeSocketString", NODE_INTERFACE_SOCKET_INPUT, nullptr);
 
   bNode *group_output = bke::node_add_node(nullptr, group, "NodeGroupOutput");
-  group_output->locx = 800;
-  group_output->locy = 160;
+  group_output->location[0] = 800;
+  group_output->location[1] = 160;
   bNode *group_input = bke::node_add_node(nullptr, group, "NodeGroupInput");
-  group_input->locx = 0;
-  group_input->locy = 160;
+  group_input->location[0] = 0;
+  group_input->location[1] = 160;
 
   bNode *set_curve_radius = bke::node_add_node(nullptr, group, "GeometryNodeSetCurveRadius");
-  set_curve_radius->locx = 600;
-  set_curve_radius->locy = 160;
+  set_curve_radius->location[0] = 600;
+  set_curve_radius->location[1] = 160;
   bNode *named_layer_selection = bke::node_add_node(
       nullptr, group, "GeometryNodeInputNamedLayerSelection");
-  named_layer_selection->locx = 200;
-  named_layer_selection->locy = 100;
+  named_layer_selection->location[0] = 200;
+  named_layer_selection->location[1] = 100;
   bNode *input_radius = bke::node_add_node(nullptr, group, "GeometryNodeInputRadius");
-  input_radius->locx = 0;
-  input_radius->locy = 0;
+  input_radius->location[0] = 0;
+  input_radius->location[1] = 0;
 
   bNode *add = bke::node_add_node(nullptr, group, "ShaderNodeMath");
   add->custom1 = NODE_MATH_ADD;
-  add->locx = 200;
-  add->locy = 0;
+  add->location[0] = 200;
+  add->location[1] = 0;
 
   bNode *clamp_radius = bke::node_add_node(nullptr, group, "ShaderNodeClamp");
-  clamp_radius->locx = 400;
-  clamp_radius->locy = 0;
+  clamp_radius->location[0] = 400;
+  clamp_radius->location[1] = 0;
   bNodeSocket *sock_max = bke::node_find_socket(clamp_radius, SOCK_IN, "Max");
   static_cast<bNodeSocketValueFloat *>(sock_max->default_value)->value = FLT_MAX;
 

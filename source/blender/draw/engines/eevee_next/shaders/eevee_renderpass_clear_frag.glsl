@@ -6,6 +6,10 @@
  * Clear render passes and background.
  */
 
+#include "infos/eevee_material_info.hh"
+
+FRAGMENT_SHADER_CREATE_INFO(eevee_renderpass_clear)
+
 #include "eevee_renderpass_lib.glsl"
 
 void main()

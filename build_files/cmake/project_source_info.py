@@ -68,7 +68,7 @@ def cmake_cache_var_iter() -> Iterator[tuple[str, str, str]]:
 
 
 def cmake_cache_var(var: str) -> str | None:
-    for var_iter, type_iter, value_iter in cmake_cache_var_iter():
+    for var_iter, _type_iter, value_iter in cmake_cache_var_iter():
         if var == var_iter:
             return value_iter
     return None

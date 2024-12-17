@@ -16,132 +16,90 @@ CCL_NAMESPACE_BEGIN
 /* Blender Camera Intermediate: we first convert both the offline and 3d view
  * render camera to this, and from there convert to our native camera format. */
 
-struct BlenderCamera {
-  float nearclip;
-  float farclip;
+class BlenderCamera {
+ public:
+  explicit BlenderCamera(BL::RenderSettings &b_render)
+  {
+    full_width = render_width = render_resolution_x(b_render);
+    full_height = render_height = render_resolution_y(b_render);
+  };
 
-  CameraType type;
-  float ortho_scale;
+  float nearclip = 1e-5f;
+  float farclip = 1e5f;
 
-  float lens;
-  float shuttertime;
-  MotionPosition motion_position;
+  CameraType type = CAMERA_PERSPECTIVE;
+  float ortho_scale = 1.0f;
+
+  float lens = 50.0f;
+  float shuttertime = 1.0f;
+  MotionPosition motion_position = MOTION_POSITION_CENTER;
   array<float> shutter_curve;
 
-  Camera::RollingShutterType rolling_shutter_type;
-  float rolling_shutter_duration;
+  Camera::RollingShutterType rolling_shutter_type = Camera::ROLLING_SHUTTER_NONE;
+  float rolling_shutter_duration = 0.1f;
 
-  float aperturesize;
-  uint apertureblades;
-  float aperturerotation;
-  float focaldistance;
+  float aperturesize = 0.0f;
+  uint apertureblades = 0;
+  float aperturerotation = 0.0f;
+  float focaldistance = 10.0f;
 
-  float2 shift;
-  float2 offset;
-  float zoom;
+  float2 shift = zero_float2();
+  float2 offset = zero_float2();
+  float zoom = 1.0f;
 
-  float2 pixelaspect;
+  float2 pixelaspect = one_float2();
 
-  float aperture_ratio;
+  float aperture_ratio = 1.0f;
 
-  PanoramaType panorama_type;
-  float fisheye_fov;
-  float fisheye_lens;
-  float latitude_min;
-  float latitude_max;
-  float longitude_min;
-  float longitude_max;
-  bool use_spherical_stereo;
-  float interocular_distance;
-  float convergence_distance;
-  bool use_pole_merge;
-  float pole_merge_angle_from;
-  float pole_merge_angle_to;
+  PanoramaType panorama_type = PANORAMA_EQUIRECTANGULAR;
+  float fisheye_fov = M_PI_F;
+  float fisheye_lens = 10.5f;
+  float latitude_min = -M_PI_2_F;
+  float latitude_max = M_PI_2_F;
+  float longitude_min = -M_PI_F;
+  float longitude_max = M_PI_F;
+  bool use_spherical_stereo = false;
+  float interocular_distance = 0.065f;
+  float convergence_distance = 30.0f * 0.065f;
+  bool use_pole_merge = false;
+  float pole_merge_angle_from = (60.0f * M_PI_F / 180.0f);
+  float pole_merge_angle_to = (75.0f * M_PI_F / 180.0f);
 
-  float fisheye_polynomial_k0;
-  float fisheye_polynomial_k1;
-  float fisheye_polynomial_k2;
-  float fisheye_polynomial_k3;
-  float fisheye_polynomial_k4;
+  float fisheye_polynomial_k0 = 0.0f;
+  float fisheye_polynomial_k1 = 0.0f;
+  float fisheye_polynomial_k2 = 0.0f;
+  float fisheye_polynomial_k3 = 0.0f;
+  float fisheye_polynomial_k4 = 0.0f;
 
-  float central_cylindrical_range_u_min;
-  float central_cylindrical_range_u_max;
-  float central_cylindrical_range_v_min;
-  float central_cylindrical_range_v_max;
-  float central_cylindrical_radius;
+  float central_cylindrical_range_u_min = -M_PI_F;
+  float central_cylindrical_range_u_max = M_PI_F;
+  float central_cylindrical_range_v_min = -1.0f;
+  float central_cylindrical_range_v_max = 1.0f;
+  float central_cylindrical_radius = 1.0f;
 
-  enum { AUTO, HORIZONTAL, VERTICAL } sensor_fit;
-  float sensor_width;
-  float sensor_height;
+  enum { AUTO, HORIZONTAL, VERTICAL } sensor_fit = AUTO;
+  float sensor_width = 36.0f;
+  float sensor_height = 24.0f;
 
-  int full_width;
-  int full_height;
+  int full_width = 0;
+  int full_height = 0;
 
-  int render_width;
-  int render_height;
+  int render_width = 0;
+  int render_height = 0;
 
-  BoundBox2D border;
-  BoundBox2D viewport_camera_border;
-  BoundBox2D pano_viewplane;
-  float pano_aspectratio;
+  BoundBox2D border = BoundBox2D();
+  BoundBox2D viewport_camera_border = BoundBox2D();
+  BoundBox2D pano_viewplane = BoundBox2D();
+  float pano_aspectratio = 0.0f;
 
-  float passepartout_alpha;
+  float passepartout_alpha = 0.5f;
 
-  Transform matrix;
+  Transform matrix = transform_identity();
 
-  float offscreen_dicing_scale;
+  float offscreen_dicing_scale = 1.0f;
 
-  int motion_steps;
+  int motion_steps = 0;
 };
-
-static void blender_camera_init(BlenderCamera *bcam, BL::RenderSettings &b_render)
-{
-  memset((void *)bcam, 0, sizeof(BlenderCamera));
-
-  bcam->nearclip = 1e-5f;
-  bcam->farclip = 1e5f;
-
-  bcam->type = CAMERA_PERSPECTIVE;
-  bcam->ortho_scale = 1.0f;
-
-  bcam->lens = 50.0f;
-  bcam->shuttertime = 1.0f;
-
-  bcam->rolling_shutter_type = Camera::ROLLING_SHUTTER_NONE;
-  bcam->rolling_shutter_duration = 0.1f;
-
-  bcam->aperturesize = 0.0f;
-  bcam->apertureblades = 0;
-  bcam->aperturerotation = 0.0f;
-  bcam->focaldistance = 10.0f;
-
-  bcam->zoom = 1.0f;
-  bcam->pixelaspect = one_float2();
-  bcam->aperture_ratio = 1.0f;
-
-  bcam->sensor_width = 36.0f;
-  bcam->sensor_height = 24.0f;
-  bcam->sensor_fit = BlenderCamera::AUTO;
-  bcam->motion_position = MOTION_POSITION_CENTER;
-  bcam->border.right = 1.0f;
-  bcam->border.top = 1.0f;
-  bcam->viewport_camera_border.right = 1.0f;
-  bcam->viewport_camera_border.top = 1.0f;
-  bcam->pano_viewplane.right = 1.0f;
-  bcam->pano_viewplane.top = 1.0f;
-  bcam->pano_aspectratio = 0.0f;
-  bcam->passepartout_alpha = 0.5f;
-  bcam->offscreen_dicing_scale = 1.0f;
-  bcam->matrix = transform_identity();
-
-  bcam->central_cylindrical_radius = 1.0f;
-
-  /* render resolution */
-  bcam->render_width = render_resolution_x(b_render);
-  bcam->render_height = render_resolution_y(b_render);
-  bcam->full_width = bcam->render_width;
-  bcam->full_height = bcam->render_height;
-}
 
 static float blender_camera_focal_distance(BL::RenderEngine &b_engine,
                                            BL::Object &b_ob,
@@ -621,8 +579,7 @@ void BlenderSync::sync_camera(BL::RenderSettings &b_render,
                               int height,
                               const char *viewname)
 {
-  BlenderCamera bcam;
-  blender_camera_init(&bcam, b_render);
+  BlenderCamera bcam(b_render);
 
   /* pixel aspect */
   bcam.pixelaspect.x = b_render.pixel_aspect_x();
@@ -715,15 +672,14 @@ void BlenderSync::sync_camera_motion(
   }
 
   if (cam->get_camera_type() == CAMERA_PERSPECTIVE) {
-    BlenderCamera bcam;
-    float aspectratio, sensor_size;
-    blender_camera_init(&bcam, b_render);
+    BlenderCamera bcam(b_render);
 
-    /* TODO(sergey): Consider making it a part of blender_camera_init(). */
+    /* TODO(sergey): Consider making it a part of BlenderCamera(). */
     bcam.pixelaspect.x = b_render.pixel_aspect_x();
     bcam.pixelaspect.y = b_render.pixel_aspect_y();
 
     blender_camera_from_object(&bcam, b_engine, b_ob);
+    float aspectratio, sensor_size;
     blender_camera_viewplane(&bcam, width, height, NULL, &aspectratio, &sensor_size);
     /* TODO(sergey): De-duplicate calculation with camera sync. */
     float fov = 2.0f * atanf((0.5f * sensor_size) / bcam.lens / aspectratio);
@@ -859,15 +815,13 @@ static void blender_camera_view_subset(BL::RenderEngine &b_engine,
   float cam_aspect, sensor_size;
 
   /* Get viewport viewplane. */
-  BlenderCamera view_bcam;
-  blender_camera_init(&view_bcam, b_render);
+  BlenderCamera view_bcam(b_render);
   blender_camera_from_view(&view_bcam, b_engine, b_scene, b_v3d, b_rv3d, width, height, true);
 
   blender_camera_viewplane(&view_bcam, width, height, &view, view_aspect, &sensor_size);
 
   /* Get camera viewplane. */
-  BlenderCamera cam_bcam;
-  blender_camera_init(&cam_bcam, b_render);
+  BlenderCamera cam_bcam(b_render);
   blender_camera_from_object(&cam_bcam, b_engine, b_ob, true);
 
   /* Camera border is affect by aspect, viewport is not. */
@@ -992,9 +946,8 @@ void BlenderSync::sync_view(BL::SpaceView3D &b_v3d,
                             int width,
                             int height)
 {
-  BlenderCamera bcam;
   BL::RenderSettings b_render_settings(b_scene.render());
-  blender_camera_init(&bcam, b_render_settings);
+  BlenderCamera bcam(b_render_settings);
   blender_camera_from_view(&bcam, b_engine, b_scene, b_v3d, b_rv3d, width, height);
   blender_camera_border(&bcam, b_engine, b_render_settings, b_scene, b_v3d, b_rv3d, width, height);
   PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");

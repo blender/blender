@@ -95,25 +95,28 @@ const EnumPropertyItem rna_enum_node_socket_data_type_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-const EnumPropertyItem rna_enum_node_group_color_tag_items[] = {
-    {int(blender::bke::NodeGroupColorTag::None),
+const EnumPropertyItem rna_enum_node_color_tag_items[] = {
+    {int(blender::bke::NodeColorTag::None),
      "NONE",
      0,
      "None",
-     "Default tag for new node groups"},
-    {int(blender::bke::NodeGroupColorTag::Attribute), "ATTRIBUTE", 0, "Attribute", ""},
-    {int(blender::bke::NodeGroupColorTag::Color), "COLOR", 0, "Color", ""},
-    {int(blender::bke::NodeGroupColorTag::Converter), "CONVERTER", 0, "Converter", ""},
-    {int(blender::bke::NodeGroupColorTag::Distort), "DISTORT", 0, "Distort", ""},
-    {int(blender::bke::NodeGroupColorTag::Filter), "FILTER", 0, "Filter", ""},
-    {int(blender::bke::NodeGroupColorTag::Geometry), "GEOMETRY", 0, "Geometry", ""},
-    {int(blender::bke::NodeGroupColorTag::Input), "INPUT", 0, "Input", ""},
-    {int(blender::bke::NodeGroupColorTag::Matte), "MATTE", 0, "Matte", ""},
-    {int(blender::bke::NodeGroupColorTag::Output), "OUTPUT", 0, "Output", ""},
-    {int(blender::bke::NodeGroupColorTag::Script), "SCRIPT", 0, "Script", ""},
-    {int(blender::bke::NodeGroupColorTag::Shader), "SHADER", 0, "Shader", ""},
-    {int(blender::bke::NodeGroupColorTag::Texture), "TEXTURE", 0, "Texture", ""},
-    {int(blender::bke::NodeGroupColorTag::Vector), "VECTOR", 0, "Vector", ""},
+     "Default color tag for new nodes and node groups"},
+    {int(blender::bke::NodeColorTag::Attribute), "ATTRIBUTE", 0, "Attribute", ""},
+    {int(blender::bke::NodeColorTag::Color), "COLOR", 0, "Color", ""},
+    {int(blender::bke::NodeColorTag::Converter), "CONVERTER", 0, "Converter", ""},
+    {int(blender::bke::NodeColorTag::Distort), "DISTORT", 0, "Distort", ""},
+    {int(blender::bke::NodeColorTag::Filter), "FILTER", 0, "Filter", ""},
+    {int(blender::bke::NodeColorTag::Geometry), "GEOMETRY", 0, "Geometry", ""},
+    {int(blender::bke::NodeColorTag::Input), "INPUT", 0, "Input", ""},
+    {int(blender::bke::NodeColorTag::Matte), "MATTE", 0, "Matte", ""},
+    {int(blender::bke::NodeColorTag::Output), "OUTPUT", 0, "Output", ""},
+    {int(blender::bke::NodeColorTag::Script), "SCRIPT", 0, "Script", ""},
+    {int(blender::bke::NodeColorTag::Shader), "SHADER", 0, "Shader", ""},
+    {int(blender::bke::NodeColorTag::Texture), "TEXTURE", 0, "Texture", ""},
+    {int(blender::bke::NodeColorTag::Vector), "VECTOR", 0, "Vector", ""},
+    {int(blender::bke::NodeColorTag::Pattern), "PATTERN", 0, "Pattern", ""},
+    {int(blender::bke::NodeColorTag::Interface), "INTERFACE", 0, "Interface", ""},
+    {int(blender::bke::NodeColorTag::Group), "GROUP", 0, "Group", ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -657,6 +660,7 @@ static const EnumPropertyItem node_cryptomatte_layer_name_items[] = {
 #  include "DNA_scene_types.h"
 #  include "WM_api.hh"
 
+using blender::float2;
 using blender::nodes::BakeItemsAccessor;
 using blender::nodes::CaptureAttributeItemsAccessor;
 using blender::nodes::ForeachGeometryElementGenerationItemsAccessor;
@@ -798,7 +802,7 @@ const EnumPropertyItem *rna_node_socket_type_itemf(
     tmp.value = i;
     tmp.identifier = stype->idname;
     tmp.icon = RNA_struct_ui_icon(srna);
-    tmp.name = blender::bke::node_socket_type_label(stype);
+    tmp.name = blender::bke::node_socket_type_label(stype).c_str();
     tmp.description = RNA_struct_ui_description(srna);
 
     RNA_enum_item_add(&item, &totitem, &tmp);
@@ -887,6 +891,39 @@ static const EnumPropertyItem *rna_node_static_type_itemf(bContext * /*C*/,
   *r_free = true;
 
   return item;
+}
+
+static float2 node_parent_offset(const bNode &node)
+{
+  return node.parent ? float2(node.parent->location[0], node.parent->location[1]) : float2(0);
+}
+
+static void rna_Node_location_get(PointerRNA *ptr, float *value)
+{
+  const bNode *node = static_cast<bNode *>(ptr->data);
+  copy_v2_v2(value, float2(node->location[0], node->location[1]) - node_parent_offset(*node));
+}
+
+static void move_child_nodes(bNode &node, const float2 &delta)
+{
+  for (bNode *child : node.direct_children_in_frame()) {
+    child->location[0] += delta.x;
+    child->location[1] += delta.y;
+    if (child->is_frame()) {
+      move_child_nodes(*child, delta);
+    }
+  }
+}
+
+static void rna_Node_location_set(PointerRNA *ptr, const float *value)
+{
+  bNode *node = static_cast<bNode *>(ptr->data);
+  const float2 new_location = float2(value) + node_parent_offset(*node);
+  if (node->is_frame()) {
+    move_child_nodes(*node, new_location - float2(node->location[0], node->location[1]));
+  }
+  node->location[0] = new_location.x;
+  node->location[1] = new_location.y;
 }
 
 /* ******** Node Tree ******** */
@@ -1157,30 +1194,33 @@ static const EnumPropertyItem *rna_NodeTree_color_tag_itemf(bContext * /*C*/,
   EnumPropertyItem *items = nullptr;
   int items_num = 0;
 
-  for (const EnumPropertyItem *item = rna_enum_node_group_color_tag_items; item->identifier;
-       item++)
-  {
-    switch (blender::bke::NodeGroupColorTag(item->value)) {
-      case blender::bke::NodeGroupColorTag::Attribute:
-      case blender::bke::NodeGroupColorTag::Geometry: {
+  for (const EnumPropertyItem *item = rna_enum_node_color_tag_items; item->identifier; item++) {
+    switch (blender::bke::NodeColorTag(item->value)) {
+      case blender::bke::NodeColorTag::Attribute:
+      case blender::bke::NodeColorTag::Geometry: {
         if (ntree.type == NTREE_GEOMETRY) {
           RNA_enum_item_add(&items, &items_num, item);
         }
         break;
       }
-      case blender::bke::NodeGroupColorTag::Shader:
-      case blender::bke::NodeGroupColorTag::Script: {
+      case blender::bke::NodeColorTag::Shader:
+      case blender::bke::NodeColorTag::Script: {
         if (ntree.type == NTREE_SHADER) {
           RNA_enum_item_add(&items, &items_num, item);
         }
         break;
       }
-      case blender::bke::NodeGroupColorTag::Distort:
-      case blender::bke::NodeGroupColorTag::Filter:
-      case blender::bke::NodeGroupColorTag::Matte: {
+      case blender::bke::NodeColorTag::Distort:
+      case blender::bke::NodeColorTag::Filter:
+      case blender::bke::NodeColorTag::Matte: {
         if (ntree.type == NTREE_COMPOSIT) {
           RNA_enum_item_add(&items, &items_num, item);
         }
+        break;
+      }
+      case blender::bke::NodeColorTag::Pattern:
+      case blender::bke::NodeColorTag::Interface:
+      case blender::bke::NodeColorTag::Group: {
         break;
       }
       default: {
@@ -1199,7 +1239,7 @@ static const EnumPropertyItem *rna_NodeTree_color_tag_itemf(bContext * /*C*/,
 static bNode *rna_NodeTree_node_new(bNodeTree *ntree,
                                     bContext *C,
                                     ReportList *reports,
-                                    const char *type)
+                                    blender::StringRefNull type)
 {
   blender::bke::bNodeType *ntype;
   bNode *node;
@@ -1213,7 +1253,7 @@ static bNode *rna_NodeTree_node_new(bNodeTree *ntree,
 
   ntype = blender::bke::node_type_find(type);
   if (!ntype) {
-    BKE_reportf(reports, RPT_ERROR, "Node type %s undefined", type);
+    BKE_reportf(reports, RPT_ERROR, "Node type %s undefined", type.c_str());
     return nullptr;
   }
 
@@ -1223,7 +1263,7 @@ static bNode *rna_NodeTree_node_new(bNodeTree *ntree,
       BKE_reportf(reports,
                   RPT_ERROR,
                   "Cannot add node of type %s to node tree '%s'\n  %s",
-                  type,
+                  type.c_str(),
                   ntree->id.name + 2,
                   disabled_hint);
       return nullptr;
@@ -1232,7 +1272,7 @@ static bNode *rna_NodeTree_node_new(bNodeTree *ntree,
       BKE_reportf(reports,
                   RPT_ERROR,
                   "Cannot add node of type %s to node tree '%s'",
-                  type,
+                  type.c_str(),
                   ntree->id.name + 2);
       return nullptr;
     }
@@ -1340,15 +1380,12 @@ static bNodeLink *rna_NodeTree_link_new(bNodeTree *ntree,
                                         bool verify_limits,
                                         bool handle_dynamic_sockets)
 {
-  bNodeLink *ret;
-  bNode *fromnode = nullptr, *tonode = nullptr;
-
   if (!rna_NodeTree_check(ntree, reports)) {
     return nullptr;
   }
 
-  blender::bke::node_find_node_try(ntree, fromsock, &fromnode, nullptr);
-  blender::bke::node_find_node_try(ntree, tosock, &tonode, nullptr);
+  bNode *fromnode = blender::bke::node_find_node_try(*ntree, *fromsock);
+  bNode *tonode = blender::bke::node_find_node_try(*ntree, *tosock);
   /* check validity of the sockets:
    * if sockets from different trees are passed in this will fail!
    */
@@ -1409,7 +1446,7 @@ static bNodeLink *rna_NodeTree_link_new(bNodeTree *ntree,
     }
   }
 
-  ret = blender::bke::node_add_link(ntree, fromnode, fromsock, tonode, tosock);
+  bNodeLink *ret = blender::bke::node_add_link(ntree, fromnode, fromsock, tonode, tosock);
 
   if (ret) {
 
@@ -2462,6 +2499,53 @@ static void rna_Node_name_set(PointerRNA *ptr, const char *value)
   BKE_animdata_fix_paths_rename_all(nullptr, "nodes", oldname, node->name);
 }
 
+static int rna_Node_color_tag_get(PointerRNA *ptr)
+{
+  bNode *node = static_cast<bNode *>(ptr->data);
+
+  const int nclass = node->typeinfo->ui_class == nullptr ? node->typeinfo->nclass :
+                                                           node->typeinfo->ui_class(node);
+
+  switch (nclass) {
+    case NODE_CLASS_INPUT:
+      return int(blender::bke::NodeColorTag::Input);
+    case NODE_CLASS_OUTPUT:
+      return int(blender::bke::NodeColorTag::Output);
+    case NODE_CLASS_OP_COLOR:
+      return int(blender::bke::NodeColorTag::Color);
+    case NODE_CLASS_OP_VECTOR:
+      return int(blender::bke::NodeColorTag::Vector);
+    case NODE_CLASS_OP_FILTER:
+      return int(blender::bke::NodeColorTag::Filter);
+    case NODE_CLASS_CONVERTER:
+      return int(blender::bke::NodeColorTag::Converter);
+    case NODE_CLASS_MATTE:
+      return int(blender::bke::NodeColorTag::Matte);
+    case NODE_CLASS_DISTORT:
+      return int(blender::bke::NodeColorTag::Distort);
+    case NODE_CLASS_PATTERN:
+      return int(blender::bke::NodeColorTag::Pattern);
+    case NODE_CLASS_TEXTURE:
+      return int(blender::bke::NodeColorTag::Texture);
+    case NODE_CLASS_SCRIPT:
+      return int(blender::bke::NodeColorTag::Script);
+    case NODE_CLASS_INTERFACE:
+      return int(blender::bke::NodeColorTag::Interface);
+    case NODE_CLASS_SHADER:
+      return int(blender::bke::NodeColorTag::Shader);
+    case NODE_CLASS_GEOMETRY:
+      return int(blender::bke::NodeColorTag::Geometry);
+    case NODE_CLASS_ATTRIBUTE:
+      return int(blender::bke::NodeColorTag::Attribute);
+    case NODE_CLASS_GROUP:
+      return int(blender::bke::NodeColorTag::Group);
+    case NODE_CLASS_LAYOUT:
+      break;
+  }
+
+  return int(blender::bke::NodeColorTag::None);
+}
+
 static bool allow_changing_sockets(bNode *node)
 {
   return ELEM(node->type, NODE_CUSTOM, SH_NODE_SCRIPT, CMP_NODE_OUTPUT_FILE);
@@ -2479,6 +2563,10 @@ static bNodeSocket *rna_Node_inputs_new(ID *id,
   if (!allow_changing_sockets(node)) {
     BKE_report(reports, RPT_ERROR, "Cannot add socket to built-in node");
     return nullptr;
+  }
+  if (identifier == nullptr) {
+    /* Use the name as default identifier if no separate identifier is provided. */
+    identifier = name;
   }
 
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(id);
@@ -2515,6 +2603,11 @@ static bNodeSocket *rna_Node_outputs_new(ID *id,
   if (use_multi_input) {
     BKE_report(reports, RPT_ERROR, "Output sockets cannot be multi-input");
     return nullptr;
+  }
+
+  if (identifier == nullptr) {
+    /* Use the name as default identifier if no separate identifier is provided. */
+    identifier = name;
   }
 
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(id);
@@ -3721,9 +3814,9 @@ static void rna_Node_ItemArray_item_color_get(PointerRNA *ptr, float *values)
 {
   using ItemT = typename Accessors::ItemT;
   ItemT &item = *static_cast<ItemT *>(ptr->data);
-  const char *socket_type_idname = blender::bke::node_static_socket_type(
+  const blender::StringRefNull socket_type_idname = *blender::bke::node_static_socket_type(
       Accessors::get_socket_type(item), 0);
-  ED_node_type_draw_color(socket_type_idname, values);
+  ED_node_type_draw_color(socket_type_idname.c_str(), values);
 }
 
 template<typename Accessor>
@@ -4216,6 +4309,9 @@ static void rna_reroute_node_socket_type_set(PointerRNA *ptr, const char *value)
 
   bNode &node = *static_cast<bNode *>(ptr->data);
 
+  if (value == nullptr) {
+    return;
+  }
   blender::bke::bNodeSocketType *socket_type = blender::bke::node_socket_type_find(value);
   if (socket_type == nullptr) {
     return;
@@ -4678,6 +4774,7 @@ static void def_math(StructRNA *srna)
   RNA_def_property_ui_text(prop, "Operation", "");
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_NODETREE);
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_ShaderNode_socket_update");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 
   prop = RNA_def_property(srna, "use_clamp", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "custom2", SHD_MATH_CLAMP);
@@ -4750,6 +4847,7 @@ static void def_vector_math(StructRNA *srna)
   RNA_def_property_ui_text(prop, "Operation", "");
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_NODETREE);
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_ShaderNode_socket_update");
+  RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 }
 
 static void def_rgb_curve(StructRNA *srna)
@@ -10285,6 +10383,32 @@ static void def_geo_input_material(StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
+static void def_geo_input_collection(StructRNA *srna)
+{
+  PropertyRNA *prop;
+
+  prop = RNA_def_property(srna, "collection", PROP_POINTER, PROP_NONE);
+  RNA_def_property_pointer_sdna(prop, nullptr, "id");
+  RNA_def_property_struct_type(prop, "Collection");
+  RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_ui_text(prop, "Collection", "");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+}
+
+static void def_geo_input_object(StructRNA *srna)
+{
+  PropertyRNA *prop;
+
+  prop = RNA_def_property(srna, "object", PROP_POINTER, PROP_NONE);
+  RNA_def_property_pointer_sdna(prop, nullptr, "id");
+  RNA_def_property_struct_type(prop, "Object");
+  RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_override_flag(prop, PROPOVERRIDE_OVERRIDABLE_LIBRARY);
+  RNA_def_property_ui_text(prop, "Object", "");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+}
+
 static void def_geo_image(StructRNA *srna)
 {
   PropertyRNA *prop;
@@ -10429,8 +10553,9 @@ static void def_geo_string_to_curves(StructRNA *srna)
   RNA_def_property_enum_sdna(prop, nullptr, "align_x");
   RNA_def_property_enum_items(prop, rna_node_geometry_string_to_curves_align_x_items);
   RNA_def_property_enum_default(prop, GEO_NODE_STRING_TO_CURVES_ALIGN_X_LEFT);
-  RNA_def_property_ui_text(
-      prop, "Horizontal Alignment", "Text horizontal alignment from the object center");
+  RNA_def_property_ui_text(prop,
+                           "Horizontal Alignment",
+                           "Text horizontal alignment from the object or text box center");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "align_y", PROP_ENUM, PROP_NONE);
@@ -10945,10 +11070,17 @@ static void rna_def_node(BlenderRNA *brna)
       "Node type (deprecated, use bl_static_type or bl_idname for the actual identifier string)");
 
   prop = RNA_def_property(srna, "location", PROP_FLOAT, PROP_XYZ);
-  RNA_def_property_float_sdna(prop, nullptr, "locx");
+  RNA_def_property_array(prop, 2);
+  RNA_def_property_float_funcs(prop, "rna_Node_location_get", "rna_Node_location_set", nullptr);
+  RNA_def_property_range(prop, -100000.0f, 100000.0f);
+  RNA_def_property_ui_text(prop, "Location", "Location of the node within its parent frame");
+  RNA_def_property_update(prop, NC_NODE, "rna_Node_update");
+
+  prop = RNA_def_property(srna, "location_absolute", PROP_FLOAT, PROP_XYZ);
+  RNA_def_property_float_sdna(prop, nullptr, "location");
   RNA_def_property_array(prop, 2);
   RNA_def_property_range(prop, -100000.0f, 100000.0f);
-  RNA_def_property_ui_text(prop, "Location", "");
+  RNA_def_property_ui_text(prop, "Absolute Location", "Location of the node in the entire canvas");
   RNA_def_property_update(prop, NC_NODE, "rna_Node_update");
 
   prop = RNA_def_property(srna, "width", PROP_FLOAT, PROP_XYZ);
@@ -11055,6 +11187,12 @@ static void rna_def_node(BlenderRNA *brna)
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_ui_text(prop, "Color", "Custom color of the node body");
   RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, nullptr);
+
+  prop = RNA_def_property(srna, "color_tag", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, rna_enum_node_color_tag_items);
+  RNA_def_property_enum_funcs(prop, "rna_Node_color_tag_get", nullptr, nullptr);
+  RNA_def_property_ui_text(prop, "Color Tag", "Node header color tag");
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
   prop = RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", SELECT);
@@ -11464,7 +11602,7 @@ static void rna_def_nodetree(BlenderRNA *brna)
   RNA_def_struct_register_funcs(srna, "rna_NodeTree_register", "rna_NodeTree_unregister", nullptr);
 
   prop = RNA_def_property(srna, "color_tag", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_items(prop, rna_enum_node_group_color_tag_items);
+  RNA_def_property_enum_items(prop, rna_enum_node_color_tag_items);
   RNA_def_property_enum_funcs(prop, nullptr, nullptr, "rna_NodeTree_color_tag_itemf");
   RNA_def_property_ui_text(
       prop, "Color Tag", "Color tag of the node group which influences the header color");
@@ -11566,6 +11704,14 @@ static void rna_def_nodetree(BlenderRNA *brna)
   RNA_def_property_enum_default(prop, ICON_NODETREE);
   RNA_def_property_flag(prop, PROP_REGISTER);
   RNA_def_property_ui_text(prop, "Icon", "The node tree icon");
+
+  prop = RNA_def_property(srna, "bl_use_group_interface", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_negative_sdna(prop, nullptr, "typeinfo->no_group_interface", 1);
+  RNA_def_property_boolean_default(prop, true);
+  RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
+  RNA_def_property_ui_text(prop,
+                           "Use Group Interface",
+                           "Determines the visibility of some UI elements related to node groups");
 
   /* poll */
   func = RNA_def_function(srna, "poll", nullptr);

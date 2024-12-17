@@ -29,11 +29,19 @@ void VKIndexBuffer::ensure_updated()
     return;
   }
 
-  VKContext &context = *VKContext::get();
-  VKStagingBuffer staging_buffer(buffer_, VKStagingBuffer::Direction::HostToDevice);
-  staging_buffer.host_buffer_get().update_immediately(data_);
-  staging_buffer.copy_to_device(context);
-  MEM_SAFE_FREE(data_);
+  if (!data_uploaded_ && buffer_.is_mapped()) {
+    buffer_.update_immediately(data_);
+    MEM_SAFE_FREE(data_);
+  }
+  else {
+    VKContext &context = *VKContext::get();
+    VKStagingBuffer staging_buffer(buffer_, VKStagingBuffer::Direction::HostToDevice);
+    staging_buffer.host_buffer_get().update_immediately(data_);
+    staging_buffer.copy_to_device(context);
+    MEM_SAFE_FREE(data_);
+  }
+
+  data_uploaded_ = true;
 }
 
 void VKIndexBuffer::upload_data()

@@ -9,7 +9,13 @@
 #  include <openvdb/openvdb.h>
 #endif
 #ifdef WITH_NANOVDB
-#  include <nanovdb/util/GridHandle.h>
+#  include <nanovdb/NanoVDB.h>
+#  if NANOVDB_MAJOR_VERSION_NUMBER > 32 || \
+      (NANOVDB_MAJOR_VERSION_NUMBER == 32 && NANOVDB_MINOR_VERSION_NUMBER >= 7)
+#    include <nanovdb/GridHandle.h>
+#  else
+#    include <nanovdb/util/GridHandle.h>
+#  endif
 #endif
 
 #include "scene/image.h"

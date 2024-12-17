@@ -37,7 +37,7 @@ static void cmp_node_gamma_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>("Image");
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class GammaShaderNode : public ShaderNode {
  public:

@@ -9,6 +9,8 @@
  * Results are meant to be conservative.
  */
 
+#include "draw_view_info.hh"
+
 #include "common_shape_lib.glsl"
 #include "draw_math_geom_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"
@@ -133,6 +135,7 @@ IsectFrustum isect_frustum_setup(Frustum shape)
  * \{ */
 
 #ifdef DRW_VIEW_CULLING_INFO
+SHADER_LIBRARY_CREATE_INFO(draw_view_culling)
 
 bool intersect_view(Pyramid pyramid)
 {

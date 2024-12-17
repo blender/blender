@@ -7,6 +7,10 @@
  * Dispatched one thread per light.
  */
 
+#include "infos/eevee_light_culling_info.hh"
+
+COMPUTE_SHADER_CREATE_INFO(eevee_light_shadow_setup)
+
 #include "eevee_sampling_lib.glsl"
 #include "gpu_shader_math_fast_lib.glsl"
 #include "gpu_shader_math_matrix_lib.glsl"
@@ -239,8 +243,6 @@ void cubeface_sync(int tilemap_id,
       break;
   }
 
-  mat4x4 prev_viewmat = tilemaps_buf[tilemap_id].viewmat;
-
   tilemaps_buf[tilemap_id].viewmat = viewmat;
 
   /* Update corners. */
@@ -271,7 +273,6 @@ void main()
 
   if (is_sun_light(light.type)) {
     /* Distant lights. */
-    vec3 position_on_light = vec3(0.0);
 
     if (light.shadow_jitter && uniform_buf.shadow.use_jitter) {
       /* TODO(fclem): Remove atan here. We only need the cosine of the angle. */

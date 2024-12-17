@@ -74,7 +74,7 @@ class Lights : Overlay {
     float4 &theme_color = data.color_;
 
     /* Pack render data into object matrix. */
-    float4x4 &matrix = data.object_to_world_;
+    float4x4 &matrix = data.object_to_world;
     float &area_size_x = matrix[0].w;
     float &area_size_y = matrix[1].w;
     float &spot_cosine = matrix[0].w;

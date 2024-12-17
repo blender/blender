@@ -100,9 +100,9 @@ void ensure_surface_deformation_node_exists(bContext &C, Object &curves_ob)
                      group_output,
                      static_cast<bNodeSocket *>(group_output->inputs.first));
 
-  group_input->locx = -200;
-  group_output->locx = 200;
-  deform_node->locx = 0;
+  group_input->location[0] = -200;
+  group_output->location[0] = 200;
+  deform_node->location[0] = 0;
 
   ED_node_tree_propagate_change(&C, bmain, nmd.node_group);
 }

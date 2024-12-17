@@ -45,7 +45,7 @@ static void node_composit_init_valtorgb(bNodeTree * /*ntree*/, bNode *node)
   node->storage = BKE_colorband_add(true);
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 static ColorBand *get_color_band(const bNode &node)
 {
@@ -178,7 +178,7 @@ static void cmp_node_rgbtobw_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>("Val");
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class RGBToBWShaderNode : public ShaderNode {
  public:

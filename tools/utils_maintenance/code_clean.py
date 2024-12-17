@@ -449,7 +449,7 @@ class EditGenerator:
     def edit_list_from_file(_source: str, _data: str, _shared_edit_data: Any) -> list[Edit]:
         # The `__init_subclass__` function ensures this is always overridden.
         raise RuntimeError("This function must be overridden by it's subclass!")
-        return []
+        # return []
 
     @staticmethod
     def setup() -> Any:

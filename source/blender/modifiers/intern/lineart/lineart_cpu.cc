@@ -5094,7 +5094,7 @@ bool MOD_lineart_compute_feature_lines_v3(Depsgraph *depsgraph,
   lineart_main_get_view_vector(ld);
 
   LineartModifierRuntime *runtime = reinterpret_cast<LineartModifierRuntime *>(lmd.runtime);
-  blender::Set<const Object *> *included_objects = runtime ? runtime->object_dependencies.get() :
+  blender::Set<const Object *> *included_objects = runtime ? &runtime->object_dependencies :
                                                              nullptr;
 
   lineart_main_load_geometries(depsgraph,

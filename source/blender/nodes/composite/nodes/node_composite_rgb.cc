@@ -23,7 +23,7 @@ static void cmp_node_rgb_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>("RGBA").default_value({0.5f, 0.5f, 0.5f, 1.0f});
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class RGBOperation : public NodeOperation {
  public:

@@ -88,7 +88,7 @@ bool BlenderObjectCulling::test_camera(Scene *scene, float3 bb[8])
   bool all_behind = true;
   for (int i = 0; i < 8; ++i) {
     float3 p = bb[i];
-    float4 b = make_float4(p.x, p.y, p.z, 1.0f);
+    float4 b = make_float4(p, 1.0f);
     float4 c = make_float4(
         dot(worldtondc.x, b), dot(worldtondc.y, b), dot(worldtondc.z, b), dot(worldtondc.w, b));
     p = float4_to_float3(c / c.w);

@@ -59,18 +59,14 @@ void gpu_select_next_set_result(GPUSelectResult *hit_buf, uint hit_len)
     case eGPUSelectMode::GPU_SELECT_ALL:
       hit_results.copy_from(hits);
       break;
-    case eGPUSelectMode::GPU_SELECT_NEAREST_FIRST_PASS:
-      hit_results.copy_from(hits);
-      break;
-    case eGPUSelectMode::GPU_SELECT_NEAREST_SECOND_PASS:
-      hit_results.copy_from(hits);
-      break;
     case eGPUSelectMode::GPU_SELECT_PICK_ALL:
       hit_results.copy_from(hits);
       break;
     case eGPUSelectMode::GPU_SELECT_PICK_NEAREST:
       hit_results.copy_from(hits);
       break;
+    case eGPUSelectMode::GPU_SELECT_NEAREST_FIRST_PASS:
+    case eGPUSelectMode::GPU_SELECT_NEAREST_SECOND_PASS:
     case eGPUSelectMode::GPU_SELECT_INVALID:
       BLI_assert_unreachable();
       break;

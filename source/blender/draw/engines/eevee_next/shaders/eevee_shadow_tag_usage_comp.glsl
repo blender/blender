@@ -10,6 +10,10 @@
  * needed.
  */
 
+#include "infos/eevee_shadow_info.hh"
+
+COMPUTE_SHADER_CREATE_INFO(eevee_shadow_tag_usage_opaque)
+
 #include "eevee_shadow_tag_usage_lib.glsl"
 
 void main()

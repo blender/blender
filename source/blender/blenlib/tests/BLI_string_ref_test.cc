@@ -99,6 +99,15 @@ TEST(string_ref_null, CompareEqualStringRef2)
   EXPECT_FALSE(StringRef("test") != ref);
 }
 
+TEST(string_ref_null, Constexpr)
+{
+  constexpr StringRefNull sref("World", 5);
+  BLI_STATIC_ASSERT(sref[2] == 'r', "");
+  BLI_STATIC_ASSERT(sref.size() == 5, "");
+  std::array<int, std::size_t(sref.find_first_of('o'))> compiles = {1};
+  EXPECT_EQ(compiles[0], 1);
+}
+
 TEST(string_ref, DefaultConstructor)
 {
   StringRef ref;

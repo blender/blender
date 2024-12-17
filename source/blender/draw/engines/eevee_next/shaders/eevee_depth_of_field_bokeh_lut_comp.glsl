@@ -10,6 +10,10 @@
  * as it is way more complex and expensive to do.
  */
 
+#include "infos/eevee_depth_of_field_info.hh"
+
+COMPUTE_SHADER_CREATE_INFO(eevee_depth_of_field_bokeh_lut)
+
 #include "eevee_depth_of_field_lib.glsl"
 
 void main()
@@ -25,7 +29,6 @@ void main()
   if (dof_buf.bokeh_blades > 0.0) {
     /* NOTE: atan(y,x) has output range [-M_PI..M_PI], so add 2pi to avoid negative angles. */
     float theta = atan(gather_uv.y, gather_uv.x) + M_TAU;
-    float r = length(gather_uv);
 
     radius /= circle_to_polygon_radius(dof_buf.bokeh_blades, theta - dof_buf.bokeh_rotation);
 

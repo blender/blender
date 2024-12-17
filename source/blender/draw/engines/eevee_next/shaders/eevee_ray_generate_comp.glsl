@@ -7,6 +7,10 @@
  * by the next pass to trace the rays.
  */
 
+#include "infos/eevee_tracing_info.hh"
+
+COMPUTE_SHADER_CREATE_INFO(eevee_ray_generate)
+
 #include "eevee_gbuffer_lib.glsl"
 #include "eevee_ray_generate_lib.glsl"
 #include "eevee_sampling_lib.glsl"

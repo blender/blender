@@ -259,6 +259,10 @@ static int pose_slide_init(bContext *C, wmOperator *op, ePoseSlide_Modes mode)
   pso->num.idx_max = 0;                /* One axis. */
   pso->num.unit_type[0] = B_UNIT_NONE; /* Percentages don't have any units. */
 
+  /* Save current bone visibility. */
+  View3D *v3d = static_cast<View3D *>(pso->area->spacedata.first);
+  pso->overlay_flag = v3d->overlay.flag;
+
   /* Return status is whether we've got all the data we were requested to get. */
   return 1;
 }
@@ -1062,10 +1066,6 @@ static int pose_slide_invoke_common(bContext *C, wmOperator *op, const wmEvent *
 
   /* Add a modal handler for this operator. */
   WM_event_add_modal_handler(C, op);
-
-  /* Save current bone visibility. */
-  View3D *v3d = static_cast<View3D *>(pso->area->spacedata.first);
-  pso->overlay_flag = v3d->overlay.flag;
 
   return OPERATOR_RUNNING_MODAL;
 }

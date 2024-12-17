@@ -1740,11 +1740,10 @@ void BM_lnorspacearr_store(BMesh *bm, MutableSpan<float3> r_lnors)
 {
   BLI_assert(bm->lnor_spacearr != nullptr);
 
-  if (!CustomData_has_layer(&bm->ldata, CD_CUSTOMLOOPNORMAL)) {
-    BM_data_layer_add(bm, &bm->ldata, CD_CUSTOMLOOPNORMAL);
-  }
+  BM_data_layer_ensure_named(bm, &bm->ldata, CD_PROP_INT16_2D, "custom_normal");
 
-  int cd_loop_clnors_offset = CustomData_get_offset(&bm->ldata, CD_CUSTOMLOOPNORMAL);
+  int cd_loop_clnors_offset = CustomData_get_offset_named(
+      &bm->ldata, CD_PROP_INT16_2D, "custom_normal");
 
   BM_loops_calc_normal_vcos(
       bm, {}, {}, {}, true, r_lnors, bm->lnor_spacearr, nullptr, cd_loop_clnors_offset, false);
@@ -1837,7 +1836,8 @@ void BM_lnorspace_rebuild(BMesh *bm, bool preserve_clnor)
   Array<float3> r_lnors(bm->totloop, float3(0));
   Array<float3> oldnors(preserve_clnor ? bm->totloop : 0, float3(0));
 
-  int cd_loop_clnors_offset = CustomData_get_offset(&bm->ldata, CD_CUSTOMLOOPNORMAL);
+  int cd_loop_clnors_offset = CustomData_get_offset_named(
+      &bm->ldata, CD_PROP_INT16_2D, "custom_normal");
 
   BM_mesh_elem_index_ensure(bm, BM_LOOP);
 
@@ -1928,7 +1928,8 @@ void BM_lnorspace_err(BMesh *bm)
 
   BKE_lnor_spacearr_init(temp, bm->totloop, MLNOR_SPACEARR_BMLOOP_PTR);
 
-  int cd_loop_clnors_offset = CustomData_get_offset(&bm->ldata, CD_CUSTOMLOOPNORMAL);
+  int cd_loop_clnors_offset = CustomData_get_offset_named(
+      &bm->ldata, CD_PROP_INT16_2D, "custom_normal");
   Array<float3> lnors(bm->totloop, float3(0));
   BM_loops_calc_normal_vcos(
       bm, {}, {}, {}, true, lnors, temp, nullptr, cd_loop_clnors_offset, true);
@@ -2151,10 +2152,9 @@ BMLoopNorEditDataArray *BM_loop_normal_editdata_array_init(BMesh *bm,
   BMLoopNorEditDataArray *lnors_ed_arr = MEM_cnew<BMLoopNorEditDataArray>(__func__);
   lnors_ed_arr->lidx_to_lnor_editdata = MEM_cnew_array<BMLoopNorEditData *>(bm->totloop, __func__);
 
-  if (!CustomData_has_layer(&bm->ldata, CD_CUSTOMLOOPNORMAL)) {
-    BM_data_layer_add(bm, &bm->ldata, CD_CUSTOMLOOPNORMAL);
-  }
-  const int cd_custom_normal_offset = CustomData_get_offset(&bm->ldata, CD_CUSTOMLOOPNORMAL);
+  BM_data_layer_ensure_named(bm, &bm->ldata, CD_PROP_INT16_2D, "custom_normal");
+  const int cd_custom_normal_offset = CustomData_get_offset_named(
+      &bm->ldata, CD_PROP_INT16_2D, "custom_normal");
 
   BM_mesh_elem_index_ensure(bm, BM_LOOP);
 
@@ -2203,7 +2203,7 @@ bool BM_custom_loop_normals_to_vector_layer(BMesh *bm)
   BMLoop *l;
   BMIter liter, fiter;
 
-  if (!CustomData_has_layer(&bm->ldata, CD_CUSTOMLOOPNORMAL)) {
+  if (!CustomData_has_layer_named(&bm->ldata, CD_PROP_INT16_2D, "custom_normal")) {
     return false;
   }
 
@@ -2216,7 +2216,8 @@ bool BM_custom_loop_normals_to_vector_layer(BMesh *bm)
     CustomData_set_layer_flag(&bm->ldata, CD_NORMAL, CD_FLAG_TEMPORARY);
   }
 
-  const int cd_custom_normal_offset = CustomData_get_offset(&bm->ldata, CD_CUSTOMLOOPNORMAL);
+  const int cd_custom_normal_offset = CustomData_get_offset_named(
+      &bm->ldata, CD_PROP_INT16_2D, "custom_normal");
   const int cd_normal_offset = CustomData_get_offset(&bm->ldata, CD_NORMAL);
 
   int l_index = 0;
@@ -2237,14 +2238,15 @@ bool BM_custom_loop_normals_to_vector_layer(BMesh *bm)
 
 void BM_custom_loop_normals_from_vector_layer(BMesh *bm, bool add_sharp_edges)
 {
-  if (!CustomData_has_layer(&bm->ldata, CD_CUSTOMLOOPNORMAL) ||
-      !CustomData_has_layer(&bm->ldata, CD_NORMAL))
-  {
+  const int cd_custom_normal_offset = CustomData_get_offset_named(
+      &bm->ldata, CD_PROP_INT16_2D, "custom_normal");
+  if (cd_custom_normal_offset == -1) {
     return;
   }
-
-  const int cd_custom_normal_offset = CustomData_get_offset(&bm->ldata, CD_CUSTOMLOOPNORMAL);
   const int cd_normal_offset = CustomData_get_offset(&bm->ldata, CD_NORMAL);
+  if (cd_normal_offset == -1) {
+    return;
+  }
 
   if (bm->lnor_spacearr == nullptr) {
     bm->lnor_spacearr = MEM_cnew<MLoopNorSpaceArray>(__func__);

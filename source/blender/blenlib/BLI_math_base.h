@@ -135,32 +135,17 @@ MINLINE double interpd(double target, double origin, double t);
 MINLINE float ratiof(float min, float max, float pos);
 MINLINE double ratiod(double min, double max, double pos);
 
-/**
- * Map a normalized value, i.e. from interval [0, 1] to interval [a, b].
- */
-MINLINE float scalenorm(float a, float b, float x);
-/**
- * Map a normalized value, i.e. from interval [0, 1] to interval [a, b].
- */
-MINLINE double scalenormd(double a, double b, double x);
-
 /* NOTE: Compilers will up-cast all types smaller than int to int when performing arithmetic
  * operation. */
 
 MINLINE int square_s(short a);
-MINLINE int square_uchar(unsigned char a);
-MINLINE int cube_s(short a);
-MINLINE int cube_uchar(unsigned char a);
 
 MINLINE int square_i(int a);
 MINLINE unsigned int square_uint(unsigned int a);
 MINLINE float square_f(float a);
-MINLINE double square_d(double a);
 
 MINLINE int cube_i(int a);
-MINLINE unsigned int cube_uint(unsigned int a);
 MINLINE float cube_f(float a);
-MINLINE double cube_d(double a);
 
 MINLINE float min_ff(float a, float b);
 MINLINE float max_ff(float a, float b);
@@ -171,7 +156,6 @@ MINLINE float max_ffff(float a, float b, float c, float d);
 
 MINLINE double min_dd(double a, double b);
 MINLINE double max_dd(double a, double b);
-MINLINE double min_ddd(double a, double b, double c);
 MINLINE double max_ddd(double a, double b, double c);
 
 MINLINE int min_ii(int a, int b);
@@ -184,15 +168,8 @@ MINLINE int max_iiii(int a, int b, int c, int d);
 MINLINE uint min_uu(uint a, uint b);
 MINLINE uint max_uu(uint a, uint b);
 
-MINLINE size_t min_zz(size_t a, size_t b);
-MINLINE size_t max_zz(size_t a, size_t b);
-
-MINLINE char min_cc(char a, char b);
-MINLINE char max_cc(char a, char b);
-
 MINLINE int clamp_i(int value, int min, int max);
 MINLINE float clamp_f(float value, float min, float max);
-MINLINE size_t clamp_z(size_t value, size_t min, size_t max);
 
 /**
  * Almost-equal for IEEE floats, using absolute difference method.
@@ -268,7 +245,6 @@ MINLINE unsigned int log2_ceil_u(unsigned int x);
 MINLINE int power_of_2_max_i(int n);
 MINLINE int power_of_2_min_i(int n);
 MINLINE unsigned int power_of_2_max_u(unsigned int x);
-MINLINE unsigned int power_of_2_min_u(unsigned int x);
 
 /**
  * Integer division that rounds 0.5 up, particularly useful for color blending
@@ -313,33 +289,19 @@ MINLINE float floored_fmod(float f, float n);
  */
 MINLINE float round_to_even(float f);
 
-MINLINE signed char round_fl_to_char(float a);
 MINLINE unsigned char round_fl_to_uchar(float a);
 MINLINE short round_fl_to_short(float a);
-MINLINE unsigned short round_fl_to_ushort(float a);
 MINLINE int round_fl_to_int(float a);
 MINLINE unsigned int round_fl_to_uint(float a);
 
-MINLINE signed char round_db_to_char(double a);
-MINLINE unsigned char round_db_to_uchar(double a);
-MINLINE short round_db_to_short(double a);
-MINLINE unsigned short round_db_to_ushort(double a);
 MINLINE int round_db_to_int(double a);
-MINLINE unsigned int round_db_to_uint(double a);
 
-MINLINE signed char round_fl_to_char_clamp(float a);
 MINLINE unsigned char round_fl_to_uchar_clamp(float a);
-MINLINE short round_fl_to_short_clamp(float a);
-MINLINE unsigned short round_fl_to_ushort_clamp(float a);
 MINLINE int round_fl_to_int_clamp(float a);
-MINLINE unsigned int round_fl_to_uint_clamp(float a);
 
-MINLINE signed char round_db_to_char_clamp(double a);
 MINLINE unsigned char round_db_to_uchar_clamp(double a);
 MINLINE short round_db_to_short_clamp(double a);
-MINLINE unsigned short round_db_to_ushort_clamp(double a);
 MINLINE int round_db_to_int_clamp(double a);
-MINLINE unsigned int round_db_to_uint_clamp(double a);
 
 int pow_i(int base, int exp);
 

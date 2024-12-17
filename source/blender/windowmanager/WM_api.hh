@@ -20,6 +20,7 @@
 #include "DNA_windowmanager_types.h"
 
 #include "BLI_array.hh"
+#include "BLI_bounds_types.hh"
 #include "BLI_compiler_attrs.h"
 #include "BLI_function_ref.hh"
 #include "BLI_map.hh"
@@ -1033,6 +1034,7 @@ void WM_operator_properties_use_cursor_init(wmOperatorType *ot);
 void WM_operator_properties_border(wmOperatorType *ot);
 void WM_operator_properties_border_to_rcti(wmOperator *op, rcti *r_rect);
 void WM_operator_properties_border_to_rctf(wmOperator *op, rctf *r_rect);
+blender::Bounds<blender::int2> WM_operator_properties_border_to_bounds(wmOperator *op);
 /**
  * Use with #WM_gesture_box_invoke
  */

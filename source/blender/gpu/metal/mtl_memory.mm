@@ -990,9 +990,9 @@ MTLTemporaryBuffer MTLCircularBuffer::allocate_range_aligned(uint64_t alloc_size
       /* Resize to the maximum of basic resize heuristic OR the size of the current offset +
        * requested allocation -- we want the buffer to grow to a large enough size such that it
        * does not need to resize mid-frame. */
-      new_size = max_ulul(
-          min_ulul(MTLScratchBufferManager::mtl_scratch_buffer_max_size_, new_size * 1.2),
-          aligned_current_offset + aligned_alloc_size);
+      new_size = max_ulul(min_ulul(MTLScratchBufferManager::mtl_scratch_buffer_max_size_,
+                                   ceil_to_multiple_ul(new_size * 1.2f, 256)),
+                          aligned_current_offset + aligned_alloc_size);
 
 #ifdef MTL_SCRATCH_BUFFER_ALLOW_TEMPORARY_EXPANSION
       /* IF a requested allocation EXCEEDS the maximum supported size, temporarily allocate up to

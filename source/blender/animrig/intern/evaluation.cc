@@ -140,7 +140,7 @@ static EvaluationResult evaluate_keyframe_data(PointerRNA &animated_id_ptr,
                                                const slot_handle_t slot_handle,
                                                const AnimationEvalContext &offset_eval_context)
 {
-  ChannelBag *channelbag_for_slot = strip_data.channelbag_for_slot(slot_handle);
+  Channelbag *channelbag_for_slot = strip_data.channelbag_for_slot(slot_handle);
   if (!channelbag_for_slot) {
     return {};
   }

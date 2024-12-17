@@ -2,6 +2,12 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+__all__ = (
+    "draw_circle_2d",
+    "draw_texture_2d",
+)
+
+
 def draw_circle_2d(position, color, radius, *, segments=None):
     """
     Draw a circle.

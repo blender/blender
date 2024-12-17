@@ -560,6 +560,12 @@ static bool screen_area_join_ex(
     ED_area_tag_redraw(side2);
   }
 
+  if (sa1 != CTX_wm_area(C)) {
+    /* Active area has changed so active region could be invalid. It is
+     * safe to set null and let it be set later by mouse position. #131751. */
+    screen->active_region = nullptr;
+  }
+
   BKE_icon_changed(screen->id.icon_id);
   return true;
 }
@@ -673,7 +679,11 @@ static bool region_poll(const bContext *C,
                         const ScrArea *area,
                         const ARegion *region)
 {
-  if (!region->runtime->type || !region->runtime->type->poll) {
+  if (!region->runtime->type) {
+    BLI_assert_unreachable();
+    return false;
+  }
+  if (!region->runtime->type->poll) {
     /* Show region by default. */
     return true;
   }
@@ -733,28 +743,33 @@ static bool screen_regions_poll(bContext *C, wmWindow *win, const bScreen *scree
 }
 
 /**
- * \param force_full_refresh: If false, a full refresh will only be performed if the screen is
- * tagged for refresh (#bScreen.do_refresh), or region polling changes require a refresh.
+ * Refreshes the active screen of \a win if #bScreen.do_refresh is set. Region polling is also done
+ * here, which will trigger a refresh on changes.
+ *
+ * Screen refreshes should only be necessary if the screen layout changes in some way.
  */
-static void screen_refresh(bContext *C,
-                           wmWindowManager *wm,
-                           wmWindow *win,
-                           const bool force_full_refresh)
+static void screen_refresh_if_needed(bContext *C, wmWindowManager *wm, wmWindow *win)
 {
   bScreen *screen = WM_window_get_active_screen(win);
-  bool do_refresh = screen->do_refresh;
-
-  /* Returns true if a change was done that requires refreshing. */
-  if (screen_regions_poll(C, win, screen)) {
-    do_refresh = true;
-  }
-
-  if (!force_full_refresh && !do_refresh) {
-    return;
-  }
 
   /* Exception for background mode, we only need the screen context. */
   if (!G.background) {
+    if (screen->do_refresh) {
+      ED_screen_areas_iter (win, screen, area) {
+        /* Ensure all area and region types are set before polling, it depends on it (see #130583).
+         */
+        ED_area_and_region_types_init(area);
+      }
+    }
+
+    /* Returns true if a change was done that requires refreshing. */
+    if (screen_regions_poll(C, win, screen)) {
+      screen->do_refresh = true;
+    }
+
+    if (!screen->do_refresh) {
+      return;
+    }
 
     /* Called even when creating the ghost window fails in #WM_window_open. */
     if (win->ghostwin) {
@@ -790,7 +805,10 @@ static void screen_refresh(bContext *C,
 
 void ED_screen_refresh(bContext *C, wmWindowManager *wm, wmWindow *win)
 {
-  screen_refresh(C, wm, win, /*force_full_refresh=*/true);
+  bScreen *screen = WM_window_get_active_screen(win);
+  /* Enforce full refresh. */
+  screen->do_refresh = true;
+  screen_refresh_if_needed(C, wm, win);
 }
 
 void ED_screens_init(bContext *C, Main *bmain, wmWindowManager *wm)
@@ -816,9 +834,7 @@ void ED_screens_init(bContext *C, Main *bmain, wmWindowManager *wm)
 
 void ED_screen_ensure_updated(bContext *C, wmWindowManager *wm, wmWindow *win)
 {
-  /* Only do a full refresh if required (checks #bScreen.do_refresh tag). */
-  const bool force_full_refresh = false;
-  screen_refresh(C, wm, win, force_full_refresh);
+  screen_refresh_if_needed(C, wm, win);
 }
 
 void ED_region_remove(bContext *C, ScrArea *area, ARegion *region)
@@ -1815,9 +1831,6 @@ void ED_screen_animation_timer(bContext *C, int redraws, int sync, int enable)
     sad->from_anim_edit = ELEM(spacetype, SPACE_GRAPH, SPACE_ACTION, SPACE_NLA);
 
     screen->animtimer->customdata = sad;
-
-    /* Seek audio to ensure playback in preview range with AV sync. */
-    DEG_id_tag_update(&scene->id, ID_RECALC_FRAME_CHANGE);
   }
 
   /* Notifier caught by top header, for button. */

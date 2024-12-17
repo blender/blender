@@ -13,6 +13,10 @@
  * we precompute a weight profile texture to be able to support per pixel AND per channel radius.
  */
 
+#include "infos/eevee_subsurface_info.hh"
+
+COMPUTE_SHADER_CREATE_INFO(eevee_subsurface_convolve)
+
 #include "draw_view_lib.glsl"
 #include "eevee_gbuffer_lib.glsl"
 #include "eevee_sampling_lib.glsl"

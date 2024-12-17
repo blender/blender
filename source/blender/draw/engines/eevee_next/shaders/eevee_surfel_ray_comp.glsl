@@ -11,6 +11,10 @@
  * Dispatched as 1 thread per surfel.
  */
 
+#include "infos/eevee_lightprobe_volume_info.hh"
+
+COMPUTE_SHADER_CREATE_INFO(eevee_surfel_ray)
+
 #include "draw_view_lib.glsl"
 #include "eevee_lightprobe_sphere_lib.glsl"
 #include "gpu_shader_math_base_lib.glsl"

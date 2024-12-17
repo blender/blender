@@ -390,12 +390,13 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
   }
 
   /* handle custom split normals */
-  if (ob->type == OB_MESH && CustomData_has_layer(&result->corner_data, CD_CUSTOMLOOPNORMAL) &&
-      result->faces_num > 0)
+  bke::MutableAttributeAccessor attributes = result->attributes_for_write();
+  bke::GAttributeWriter custom_normals = attributes.lookup_for_write("custom_normal");
+  if (ob->type == OB_MESH && custom_normals && custom_normals.domain == bke::AttrDomain::Corner &&
+      custom_normals.varray.type().is<short2>() && result->faces_num > 0)
   {
     blender::Array<blender::float3> corner_normals(result_corner_verts.size());
-    blender::short2 *clnors = static_cast<blender::short2 *>(CustomData_get_layer_for_write(
-        &result->corner_data, CD_CUSTOMLOOPNORMAL, result->corners_num));
+    MutableVArraySpan clnors(custom_normals.varray.typed<short2>());
     blender::bke::mesh::CornerNormalSpaceArray lnors_spacearr;
 
     /* The transform matrix of a normal must be
@@ -405,7 +406,6 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
     transpose_m4(mtx_nor);
 
     /* calculate custom normals into corner_normals, then mirror first half into second half */
-    const bke::AttributeAccessor attributes = result->attributes();
     const VArraySpan sharp_edges = *attributes.lookup<bool>("sharp_edge", AttrDomain::Edge);
     const VArraySpan sharp_faces = *attributes.lookup<bool>("sharp_face", AttrDomain::Face);
     blender::bke::mesh::normals_calc_corners(result->vert_positions(),
@@ -441,7 +441,10 @@ Mesh *BKE_mesh_mirror_apply_mirror_on_axis_for_modifier(MirrorModifierData *mmd,
             lnors_spacearr.spaces[space_index], corner_normals[mirrorj]);
       }
     }
+
+    clnors.save();
   }
+  custom_normals.finish();
 
   /* handle vgroup stuff */
   if (BKE_object_supports_vertex_groups(ob)) {

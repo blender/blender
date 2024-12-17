@@ -36,6 +36,8 @@ ListBase *object_duplilist_preview(Depsgraph *depsgraph,
                                    const ViewerPath *viewer_path);
 void free_object_duplilist(ListBase *lb);
 
+constexpr int MAX_DUPLI_RECUR = 8;
+
 struct DupliObject {
   DupliObject *next, *prev;
   /* Object whose geometry is instanced. */
@@ -54,7 +56,7 @@ struct DupliObject {
 
   /* Persistent identifier for a dupli object, for inter-frame matching of
    * objects with motion blur, or inter-update matching for syncing. */
-  int persistent_id[8]; /* MAX_DUPLI_RECUR */
+  int persistent_id[MAX_DUPLI_RECUR];
 
   /* Particle this dupli was generated from. */
   ParticleSystem *particle_system;

@@ -58,7 +58,7 @@ static void cmp_node_huesatval_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>("Image");
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class HueSaturationValueShaderNode : public ShaderNode {
  public:

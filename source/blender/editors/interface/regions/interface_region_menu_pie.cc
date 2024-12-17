@@ -37,6 +37,9 @@
 #include "interface_intern.hh"
 #include "interface_regions_intern.hh"
 
+using blender::StringRef;
+using blender::StringRefNull;
+
 /* -------------------------------------------------------------------- */
 /** \name Pie Menu
  * \{ */
@@ -216,13 +219,16 @@ int UI_pie_menu_invoke(bContext *C, const char *idname, const wmEvent *event)
   return OPERATOR_INTERFACE;
 }
 
-int UI_pie_menu_invoke_from_operator_enum(
-    bContext *C, const char *title, const char *opname, const char *propname, const wmEvent *event)
+int UI_pie_menu_invoke_from_operator_enum(bContext *C,
+                                          const StringRefNull title,
+                                          const StringRefNull opname,
+                                          const StringRefNull propname,
+                                          const wmEvent *event)
 {
   uiPieMenu *pie;
   uiLayout *layout;
 
-  pie = UI_pie_menu_begin(C, IFACE_(title), ICON_NONE, event);
+  pie = UI_pie_menu_begin(C, IFACE_(title.c_str()), ICON_NONE, event);
   layout = UI_pie_menu_layout(pie);
 
   layout = uiLayoutRadial(layout);
@@ -260,7 +266,7 @@ int UI_pie_menu_invoke_from_rna_enum(bContext *C,
   layout = UI_pie_menu_layout(pie);
 
   layout = uiLayoutRadial(layout);
-  uiItemFullR(layout, &r_ptr, r_prop, RNA_NO_INDEX, 0, UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
+  uiItemFullR(layout, &r_ptr, r_prop, RNA_NO_INDEX, 0, UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
   UI_pie_menu_end(C, pie);
 
@@ -291,7 +297,7 @@ struct PieMenuLevelData {
 
   /* needed for calling uiItemsFullEnumO_array again for new level */
   wmOperatorType *ot;
-  const char *propname;
+  blender::StringRefNull propname;
   IDProperty *properties;
   wmOperatorCallContext context;
   eUI_Item_Flag flag;
@@ -316,7 +322,7 @@ static void ui_pie_menu_level_invoke(bContext *C, void *argN, void *arg2)
   WM_operator_properties_create_ptr(&ptr, lvl->ot);
   /* So the context is passed to `itemf` functions (some need it). */
   WM_operator_properties_sanitize(&ptr, false);
-  PropertyRNA *prop = RNA_struct_find_property(&ptr, lvl->propname);
+  PropertyRNA *prop = RNA_struct_find_property(&ptr, lvl->propname.c_str());
 
   if (prop) {
     uiItemsFullEnumO_items(layout,
@@ -330,7 +336,7 @@ static void ui_pie_menu_level_invoke(bContext *C, void *argN, void *arg2)
                            lvl->totitem);
   }
   else {
-    RNA_warning("%s.%s not found", RNA_struct_identifier(ptr.type), lvl->propname);
+    RNA_warning("%s.%s not found", RNA_struct_identifier(ptr.type), lvl->propname.c_str());
   }
 
   UI_pie_menu_end(C, pie);
@@ -338,7 +344,7 @@ static void ui_pie_menu_level_invoke(bContext *C, void *argN, void *arg2)
 
 void ui_pie_menu_level_create(uiBlock *block,
                               wmOperatorType *ot,
-                              const char *propname,
+                              const StringRefNull propname,
                               IDProperty *properties,
                               const EnumPropertyItem *items,
                               int totitem,

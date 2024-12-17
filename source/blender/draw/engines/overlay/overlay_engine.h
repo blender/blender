@@ -12,7 +12,6 @@
 extern "C" {
 #endif
 
-extern DrawEngineType draw_engine_overlay_type;
 extern DrawEngineType draw_engine_overlay_next_type;
 
 #ifdef __cplusplus

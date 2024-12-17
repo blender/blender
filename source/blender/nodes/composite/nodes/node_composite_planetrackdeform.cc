@@ -104,14 +104,16 @@ static void node_composit_buts_planetrackdeform(uiLayout *layout, bContext *C, P
     }
   }
 
-  uiItemR(layout, ptr, "use_motion_blur", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "use_motion_blur", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   if (data->flag & CMP_NODE_PLANE_TRACK_DEFORM_FLAG_MOTION_BLUR) {
-    uiItemR(layout, ptr, "motion_blur_samples", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
-    uiItemR(layout, ptr, "motion_blur_shutter", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+    uiItemR(
+        layout, ptr, "motion_blur_samples", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+    uiItemR(
+        layout, ptr, "motion_blur_shutter", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   }
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class PlaneTrackDeformOperation : public NodeOperation {
  public:
@@ -293,7 +295,7 @@ class PlaneTrackDeformOperation : public NodeOperation {
       accumulated_color /= homography_matrices.size();
 
       /* Premultiply the mask value as an alpha. */
-      float4 plane_color = accumulated_color * plane_mask.load_pixel(texel).x;
+      float4 plane_color = accumulated_color * plane_mask.load_pixel<float>(texel);
 
       output.store_pixel(texel, plane_color);
     });
@@ -326,7 +328,7 @@ class PlaneTrackDeformOperation : public NodeOperation {
 
       accumulated_mask /= homography_matrices.size();
 
-      plane_mask.store_pixel(texel, float4(accumulated_mask));
+      plane_mask.store_pixel(texel, accumulated_mask);
     });
 
     return plane_mask;

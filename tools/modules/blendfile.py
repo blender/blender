@@ -101,7 +101,7 @@ class BlendFile:
     def __enter__(self):
         return self
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, _type, _value, _traceback):
         self.close()
 
     def find_blocks_from_code(self, code):
@@ -594,7 +594,7 @@ class BlendFileRaw:
     def __enter__(self):
         return self
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, _type, _value, _traceback):
         self.close()
 
     def find_blocks_from_code(self, code):

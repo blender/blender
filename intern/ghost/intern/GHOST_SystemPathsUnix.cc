@@ -100,7 +100,7 @@ const char *GHOST_SystemPathsUnix::getUserDir(int version, const char *versionst
 const char *GHOST_SystemPathsUnix::getUserSpecialDir(GHOST_TUserSpecialDirTypes type) const
 {
   const char *type_str;
-  std::string add_path = "";
+  static string path = "";
 
   switch (type) {
     case GHOST_kUserSpecialDirDesktop:
@@ -126,12 +126,11 @@ const char *GHOST_SystemPathsUnix::getUserSpecialDir(GHOST_TUserSpecialDirTypes 
       if (cache_dir) {
         return cache_dir;
       }
-      /* Fallback to ~home/.cache/.
-       * When invoking `xdg-user-dir` without parameters the user folder
-       * will be read. `.cache` will be appended. */
-      type_str = "";
-      add_path = ".cache";
-      break;
+
+      /* If `XDG_CACHE_HOME` is not set, then `$HOME/.cache is used`. */
+      const char *home_dir = getenv("HOME");
+      path = string(home_dir) + "/.cache";
+      return path.c_str();
     }
     default:
       GHOST_ASSERT(
@@ -140,7 +139,6 @@ const char *GHOST_SystemPathsUnix::getUserSpecialDir(GHOST_TUserSpecialDirTypes 
       return nullptr;
   }
 
-  static string path = "";
   /* Pipe `stderr` to `/dev/null` to avoid error prints. We will fail gracefully still. */
   string command = string("xdg-user-dir ") + type_str + " 2> /dev/null";
 
@@ -160,10 +158,6 @@ const char *GHOST_SystemPathsUnix::getUserSpecialDir(GHOST_TUserSpecialDirTypes 
   if (pclose(fstream) == -1) {
     perror("GHOST_SystemPathsUnix::getUserSpecialDir failed at pclose()");
     return nullptr;
-  }
-
-  if (!add_path.empty()) {
-    path_stream << '/' << add_path;
   }
 
   path = path_stream.str();

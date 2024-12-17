@@ -2089,7 +2089,7 @@ static int object_transform_axis_target_invoke(bContext *C, wmOperator *op, cons
 
   ViewDepths *depths = nullptr;
   ED_view3d_depth_override(
-      vc.depsgraph, vc.region, vc.v3d, nullptr, V3D_DEPTH_NO_GPENCIL, &depths);
+      vc.depsgraph, vc.region, vc.v3d, nullptr, V3D_DEPTH_NO_GPENCIL, false, &depths);
 
 #ifdef USE_RENDER_OVERRIDE
   vc.v3d->flag2 = flag2_prev;

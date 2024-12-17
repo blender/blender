@@ -28,7 +28,7 @@ ccl_device_inline void film_write_aov_pass_color(KernelGlobals kg,
 {
   ccl_global float *buffer = film_pass_pixel_render_buffer(kg, state, render_buffer);
   film_write_pass_float4(buffer + kernel_data.film.pass_aov_color + aov_id,
-                         make_float4(color.x, color.y, color.z, 1.0f));
+                         make_float4(color, 1.0f));
 }
 
 CCL_NAMESPACE_END

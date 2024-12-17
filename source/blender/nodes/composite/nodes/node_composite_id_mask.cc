@@ -38,11 +38,11 @@ static void cmp_node_idmask_declare(NodeDeclarationBuilder &b)
 
 static void node_composit_buts_id_mask(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiItemR(layout, ptr, "index", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "use_antialiasing", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "index", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  uiItemR(layout, ptr, "use_antialiasing", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class IDMaskOperation : public NodeOperation {
  public:
@@ -105,9 +105,9 @@ class IDMaskOperation : public NodeOperation {
     output_mask.allocate_texture(domain);
 
     parallel_for(domain.size, [&](const int2 texel) {
-      float input_mask_value = input_mask.load_pixel(texel).x;
+      float input_mask_value = input_mask.load_pixel<float>(texel);
       float mask = int(math::round(input_mask_value)) == index ? 1.0f : 0.0f;
-      output_mask.store_pixel(texel, float4(mask));
+      output_mask.store_pixel(texel, mask);
     });
   }
 

@@ -665,8 +665,8 @@ static void do_versions_material_convert_legacy_blend_mode(bNodeTree *ntree, cha
       blender::bke::node_remove_link(ntree, link);
 
       bNode *add_node = blender::bke::node_add_static_node(nullptr, ntree, SH_NODE_ADD_SHADER);
-      add_node->locx = 0.5f * (fromnode->locx + tonode->locx);
-      add_node->locy = 0.5f * (fromnode->locy + tonode->locy);
+      add_node->locx_legacy = 0.5f * (fromnode->locx_legacy + tonode->locx_legacy);
+      add_node->locy_legacy = 0.5f * (fromnode->locy_legacy + tonode->locy_legacy);
 
       bNodeSocket *shader1_socket = static_cast<bNodeSocket *>(add_node->inputs.first);
       bNodeSocket *shader2_socket = static_cast<bNodeSocket *>(add_node->inputs.last);
@@ -674,8 +674,8 @@ static void do_versions_material_convert_legacy_blend_mode(bNodeTree *ntree, cha
 
       bNode *transp_node = blender::bke::node_add_static_node(
           nullptr, ntree, SH_NODE_BSDF_TRANSPARENT);
-      transp_node->locx = add_node->locx;
-      transp_node->locy = add_node->locy - 110.0f;
+      transp_node->locx_legacy = add_node->locx_legacy;
+      transp_node->locy_legacy = add_node->locy_legacy - 110.0f;
 
       bNodeSocket *transp_socket = blender::bke::node_find_socket(transp_node, SOCK_OUT, "BSDF");
 
@@ -697,13 +697,13 @@ static void do_versions_material_convert_legacy_blend_mode(bNodeTree *ntree, cha
 
       /* If incoming link is from a closure socket, we need to convert it. */
       if (fromsock->type == SOCK_SHADER) {
-        transp_node->locx = 0.33f * fromnode->locx + 0.66f * tonode->locx;
-        transp_node->locy = 0.33f * fromnode->locy + 0.66f * tonode->locy;
+        transp_node->locx_legacy = 0.33f * fromnode->locx_legacy + 0.66f * tonode->locx_legacy;
+        transp_node->locy_legacy = 0.33f * fromnode->locy_legacy + 0.66f * tonode->locy_legacy;
 
         bNode *shtorgb_node = blender::bke::node_add_static_node(
             nullptr, ntree, SH_NODE_SHADERTORGB);
-        shtorgb_node->locx = 0.66f * fromnode->locx + 0.33f * tonode->locx;
-        shtorgb_node->locy = 0.66f * fromnode->locy + 0.33f * tonode->locy;
+        shtorgb_node->locx_legacy = 0.66f * fromnode->locx_legacy + 0.33f * tonode->locx_legacy;
+        shtorgb_node->locy_legacy = 0.66f * fromnode->locy_legacy + 0.33f * tonode->locy_legacy;
 
         bNodeSocket *shader_socket = blender::bke::node_find_socket(
             shtorgb_node, SOCK_IN, "Shader");
@@ -713,8 +713,8 @@ static void do_versions_material_convert_legacy_blend_mode(bNodeTree *ntree, cha
         blender::bke::node_add_link(ntree, shtorgb_node, rgba_socket, transp_node, color_socket);
       }
       else {
-        transp_node->locx = 0.5f * (fromnode->locx + tonode->locx);
-        transp_node->locy = 0.5f * (fromnode->locy + tonode->locy);
+        transp_node->locx_legacy = 0.5f * (fromnode->locx_legacy + tonode->locx_legacy);
+        transp_node->locy_legacy = 0.5f * (fromnode->locy_legacy + tonode->locy_legacy);
 
         blender::bke::node_add_link(ntree, fromnode, fromsock, transp_node, color_socket);
       }
@@ -1019,8 +1019,8 @@ static void displacement_node_insert(bNodeTree *ntree)
 
     /* Add displacement node. */
     bNode *node = blender::bke::node_add_static_node(nullptr, ntree, SH_NODE_DISPLACEMENT);
-    node->locx = 0.5f * (fromnode->locx + tonode->locx);
-    node->locy = 0.5f * (fromnode->locy + tonode->locy);
+    node->locx_legacy = 0.5f * (fromnode->locx_legacy + tonode->locx_legacy);
+    node->locy_legacy = 0.5f * (fromnode->locy_legacy + tonode->locy_legacy);
 
     bNodeSocket *scale_socket = blender::bke::node_find_socket(node, SOCK_IN, "Scale");
     bNodeSocket *midlevel_socket = blender::bke::node_find_socket(node, SOCK_IN, "Midlevel");
@@ -1078,8 +1078,8 @@ static void square_roughness_node_insert(bNodeTree *ntree)
     /* Add `sqrt` node. */
     bNode *node = blender::bke::node_add_static_node(nullptr, ntree, SH_NODE_MATH);
     node->custom1 = NODE_MATH_POWER;
-    node->locx = 0.5f * (fromnode->locx + tonode->locx);
-    node->locy = 0.5f * (fromnode->locy + tonode->locy);
+    node->locx_legacy = 0.5f * (fromnode->locx_legacy + tonode->locx_legacy);
+    node->locy_legacy = 0.5f * (fromnode->locy_legacy + tonode->locy_legacy);
 
     /* Link to input and material output node. */
     *version_cycles_node_socket_float_value(static_cast<bNodeSocket *>(node->inputs.last)) = 0.5f;
@@ -1342,13 +1342,13 @@ static void update_vector_math_node_add_and_subtract_operators(bNodeTree *ntree)
 
         bNode *absNode = blender::bke::node_add_static_node(nullptr, ntree, SH_NODE_VECTOR_MATH);
         absNode->custom1 = NODE_VECTOR_MATH_ABSOLUTE;
-        absNode->locx = node->locx + node->width + 20.0f;
-        absNode->locy = node->locy;
+        absNode->locx_legacy = node->locx_legacy + node->width + 20.0f;
+        absNode->locy_legacy = node->locy_legacy;
 
         bNode *dotNode = blender::bke::node_add_static_node(nullptr, ntree, SH_NODE_VECTOR_MATH);
         dotNode->custom1 = NODE_VECTOR_MATH_DOT_PRODUCT;
-        dotNode->locx = absNode->locx + absNode->width + 20.0f;
-        dotNode->locy = absNode->locy;
+        dotNode->locx_legacy = absNode->locx_legacy + absNode->width + 20.0f;
+        dotNode->locy_legacy = absNode->locy_legacy;
         bNodeSocket *sockDotB = static_cast<bNodeSocket *>(BLI_findlink(&dotNode->inputs, 1));
         bNodeSocket *sockDotOutValue = blender::bke::node_find_socket(dotNode, SOCK_OUT, "Value");
         copy_v3_fl(version_cycles_node_socket_vector_value(sockDotB), 1 / 3.0f);
@@ -1437,8 +1437,8 @@ static void update_vector_math_node_cross_product_operator(bNodeTree *ntree)
           bNode *normalizeNode = blender::bke::node_add_static_node(
               nullptr, ntree, SH_NODE_VECTOR_MATH);
           normalizeNode->custom1 = NODE_VECTOR_MATH_NORMALIZE;
-          normalizeNode->locx = node->locx + node->width + 20.0f;
-          normalizeNode->locy = node->locy;
+          normalizeNode->locx_legacy = node->locx_legacy + node->width + 20.0f;
+          normalizeNode->locy_legacy = node->locy_legacy;
           bNodeSocket *sockNormalizeOut = blender::bke::node_find_socket(
               normalizeNode, SOCK_OUT, "Vector");
 
@@ -1461,12 +1461,12 @@ static void update_vector_math_node_cross_product_operator(bNodeTree *ntree)
           bNode *lengthNode = blender::bke::node_add_static_node(
               nullptr, ntree, SH_NODE_VECTOR_MATH);
           lengthNode->custom1 = NODE_VECTOR_MATH_LENGTH;
-          lengthNode->locx = node->locx + node->width + 20.0f;
+          lengthNode->locx_legacy = node->locx_legacy + node->width + 20.0f;
           if (version_node_socket_is_used(sockOutVector)) {
-            lengthNode->locy = node->locy - lengthNode->height - 20.0f;
+            lengthNode->locy_legacy = node->locy_legacy - lengthNode->height - 20.0f;
           }
           else {
-            lengthNode->locy = node->locy;
+            lengthNode->locy_legacy = node->locy_legacy;
           }
           bNodeSocket *sockLengthOut = blender::bke::node_find_socket(
               lengthNode, SOCK_OUT, "Value");
@@ -1513,8 +1513,8 @@ static void update_vector_math_node_normalize_operator(bNodeTree *ntree)
           bNode *lengthNode = blender::bke::node_add_static_node(
               nullptr, ntree, SH_NODE_VECTOR_MATH);
           lengthNode->custom1 = NODE_VECTOR_MATH_LENGTH;
-          lengthNode->locx = node->locx + node->width + 20.0f;
-          lengthNode->locy = node->locy;
+          lengthNode->locx_legacy = node->locx_legacy + node->width + 20.0f;
+          lengthNode->locy_legacy = node->locy_legacy;
           bNodeSocket *sockLengthValue = blender::bke::node_find_socket(
               lengthNode, SOCK_OUT, "Value");
 
@@ -1604,8 +1604,8 @@ static void update_vector_math_node_average_operator(bNodeTree *ntree)
           bNode *normalizeNode = blender::bke::node_add_static_node(
               nullptr, ntree, SH_NODE_VECTOR_MATH);
           normalizeNode->custom1 = NODE_VECTOR_MATH_NORMALIZE;
-          normalizeNode->locx = node->locx + node->width + 20.0f;
-          normalizeNode->locy = node->locy;
+          normalizeNode->locx_legacy = node->locx_legacy + node->width + 20.0f;
+          normalizeNode->locy_legacy = node->locy_legacy;
           bNodeSocket *sockNormalizeOut = blender::bke::node_find_socket(
               normalizeNode, SOCK_OUT, "Vector");
 
@@ -1628,12 +1628,12 @@ static void update_vector_math_node_average_operator(bNodeTree *ntree)
           bNode *lengthNode = blender::bke::node_add_static_node(
               nullptr, ntree, SH_NODE_VECTOR_MATH);
           lengthNode->custom1 = NODE_VECTOR_MATH_LENGTH;
-          lengthNode->locx = node->locx + node->width + 20.0f;
+          lengthNode->locx_legacy = node->locx_legacy + node->width + 20.0f;
           if (version_node_socket_is_used(sockOutVector)) {
-            lengthNode->locy = node->locy - lengthNode->height - 20.0f;
+            lengthNode->locy_legacy = node->locy_legacy - lengthNode->height - 20.0f;
           }
           else {
-            lengthNode->locy = node->locy;
+            lengthNode->locy_legacy = node->locy_legacy;
           }
           bNodeSocket *sockLengthOut = blender::bke::node_find_socket(
               lengthNode, SOCK_OUT, "Value");
@@ -1767,12 +1767,12 @@ static void update_mapping_node_inputs_and_properties(bNodeTree *ntree)
         maximumNode = blender::bke::node_add_static_node(nullptr, ntree, SH_NODE_VECTOR_MATH);
         maximumNode->custom1 = NODE_VECTOR_MATH_MAXIMUM;
         if (mapping->flag & TEXMAP_CLIP_MAX) {
-          maximumNode->locx = node->locx + (node->width + 20.0f) * 2.0f;
+          maximumNode->locx_legacy = node->locx_legacy + (node->width + 20.0f) * 2.0f;
         }
         else {
-          maximumNode->locx = node->locx + node->width + 20.0f;
+          maximumNode->locx_legacy = node->locx_legacy + node->width + 20.0f;
         }
-        maximumNode->locy = node->locy;
+        maximumNode->locy_legacy = node->locy_legacy;
         bNodeSocket *sockMaximumB = static_cast<bNodeSocket *>(
             BLI_findlink(&maximumNode->inputs, 1));
         copy_v3_v3(version_cycles_node_socket_vector_value(sockMaximumB), mapping->min);
@@ -1800,8 +1800,8 @@ static void update_mapping_node_inputs_and_properties(bNodeTree *ntree)
       if (mapping->flag & TEXMAP_CLIP_MAX) {
         minimumNode = blender::bke::node_add_static_node(nullptr, ntree, SH_NODE_VECTOR_MATH);
         minimumNode->custom1 = NODE_VECTOR_MATH_MINIMUM;
-        minimumNode->locx = node->locx + node->width + 20.0f;
-        minimumNode->locy = node->locy;
+        minimumNode->locx_legacy = node->locx_legacy + node->width + 20.0f;
+        minimumNode->locy_legacy = node->locy_legacy;
         bNodeSocket *sockMinimumB = static_cast<bNodeSocket *>(
             BLI_findlink(&minimumNode->inputs, 1));
         copy_v3_v3(version_cycles_node_socket_vector_value(sockMinimumB), mapping->max);
@@ -1962,8 +1962,8 @@ static void update_voronoi_node_crackle(bNodeTree *ntree)
         texVoronoi->feature = SHD_VORONOI_F2;
         texVoronoi->distance = tex->distance;
         texVoronoi->dimensions = 3;
-        voronoiNode->locx = node->locx + node->width + 20.0f;
-        voronoiNode->locy = node->locy;
+        voronoiNode->locx_legacy = node->locx_legacy + node->width + 20.0f;
+        voronoiNode->locy_legacy = node->locy_legacy;
 
         bNodeSocket *sockVector = blender::bke::node_find_socket(node, SOCK_IN, "Vector");
         bNodeSocket *sockScale = blender::bke::node_find_socket(node, SOCK_IN, "Scale");
@@ -2002,8 +2002,8 @@ static void update_voronoi_node_crackle(bNodeTree *ntree)
 
         bNode *subtractNode = blender::bke::node_add_static_node(nullptr, ntree, SH_NODE_MATH);
         subtractNode->custom1 = NODE_MATH_SUBTRACT;
-        subtractNode->locx = voronoiNode->locx + voronoiNode->width + 20.0f;
-        subtractNode->locy = voronoiNode->locy;
+        subtractNode->locx_legacy = voronoiNode->locx_legacy + voronoiNode->width + 20.0f;
+        subtractNode->locy_legacy = voronoiNode->locy_legacy;
         bNodeSocket *sockSubtractOutValue = blender::bke::node_find_socket(
             subtractNode, SOCK_OUT, "Value");
 
@@ -2097,8 +2097,8 @@ static void update_voronoi_node_square_distance(bNodeTree *ntree)
       {
         bNode *multiplyNode = blender::bke::node_add_static_node(nullptr, ntree, SH_NODE_MATH);
         multiplyNode->custom1 = NODE_MATH_MULTIPLY;
-        multiplyNode->locx = node->locx + node->width + 20.0f;
-        multiplyNode->locy = node->locy;
+        multiplyNode->locx_legacy = node->locx_legacy + node->width + 20.0f;
+        multiplyNode->locy_legacy = node->locy_legacy;
 
         bNodeSocket *sockValue = blender::bke::node_find_socket(multiplyNode, SOCK_OUT, "Value");
         LISTBASE_FOREACH_BACKWARD_MUTABLE (bNodeLink *, link, &ntree->links) {
@@ -2148,8 +2148,8 @@ static void update_noise_and_wave_distortion(bNodeTree *ntree)
 
         bNode *mulNode = blender::bke::node_add_static_node(nullptr, ntree, SH_NODE_MATH);
         mulNode->custom1 = NODE_MATH_MULTIPLY;
-        mulNode->locx = node->locx;
-        mulNode->locy = node->locy - 240.0f;
+        mulNode->locx_legacy = node->locx_legacy;
+        mulNode->locy_legacy = node->locy_legacy - 240.0f;
         mulNode->flag |= NODE_HIDDEN;
         bNodeSocket *mulSockA = static_cast<bNodeSocket *>(BLI_findlink(&mulNode->inputs, 0));
         bNodeSocket *mulSockB = static_cast<bNodeSocket *>(BLI_findlink(&mulNode->inputs, 1));

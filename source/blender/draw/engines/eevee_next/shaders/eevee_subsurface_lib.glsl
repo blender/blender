@@ -11,6 +11,10 @@
  * - utility_tx
  */
 
+#include "infos/eevee_common_info.hh"
+
+SHADER_LIBRARY_CREATE_INFO(eevee_utility_texture)
+
 #include "eevee_shadow_lib.glsl"
 
 #ifdef EEVEE_UTILITY_TX

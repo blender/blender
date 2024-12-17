@@ -45,7 +45,7 @@ static void node_composit_init_curves_time(bNodeTree * /*ntree*/, bNode *node)
   node->storage = BKE_curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class TimeCurveOperation : public NodeOperation {
  public:
@@ -140,7 +140,7 @@ static void node_buts_curvevec(uiLayout *layout, bContext * /*C*/, PointerRNA *p
   uiTemplateCurveMapping(layout, ptr, "mapping", 'v', false, false, false, false);
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 static CurveMapping *get_curve_mapping(const bNode &node)
 {
@@ -260,7 +260,7 @@ static void node_composit_init_curve_rgb(bNodeTree * /*ntree*/, bNode *node)
   node->storage = BKE_curvemapping_add(4, 0.0f, 0.0f, 1.0f, 1.0f);
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 static CurveMapping *get_curve_mapping(const bNode &node)
 {

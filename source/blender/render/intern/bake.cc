@@ -594,9 +594,7 @@ bool RE_bake_pixels_populate_from_objects(Mesh *me_low,
     me_highpoly[i] = highpoly[i].mesh;
 
     if (BKE_mesh_runtime_corner_tris_len(me_highpoly[i]) != 0) {
-      /* Create a BVH-tree for each `highpoly` object. */
-      BKE_bvhtree_from_mesh_get(&treeData[i], me_highpoly[i], BVHTREE_FROM_CORNER_TRIS, 2);
-
+      treeData[i] = me_highpoly[i]->bvh_corner_tris();
       if (treeData[i].tree == nullptr) {
         printf("Baking: out of memory while creating BHVTree for object \"%s\"\n",
                highpoly[i].ob->id.name + 2);
@@ -663,8 +661,6 @@ bool RE_bake_pixels_populate_from_objects(Mesh *me_low,
   /* garbage collection */
 cleanup:
   for (int i = 0; i < tot_highpoly; i++) {
-    free_bvhtree_from_mesh(&treeData[i]);
-
     if (tris_high[i]) {
       MEM_freeN(tris_high[i]);
     }

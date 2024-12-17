@@ -4,7 +4,6 @@
 
 void main()
 {
-#ifdef OVERLAY_NEXT
   /* TODO(fclem): Cleanup naming. Here the xray depth mean the scene depth (from workbench) and
    * simple depth is the overlay depth. */
   float depth_infront = textureLod(depthTexInfront, uvcoordsvar.xy, 0.0).r;
@@ -33,9 +32,4 @@ void main()
 
   discard;
   return;
-#else
-  float depth = texture(depthTex, uvcoordsvar.xy).r;
-  float depth_xray = texture(xrayDepthTex, uvcoordsvar.xy).r;
-  fragColor = vec4((depth < 1.0 && depth > depth_xray) ? opacity : 1.0);
-#endif
 }

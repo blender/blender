@@ -69,7 +69,7 @@ class ForceFields : Overlay {
 
     ExtraInstanceData data(
         ob->object_to_world(), res.object_background_blend_color(ob_ref, state), 1.0f);
-    float4x4 &matrix = data.object_to_world_;
+    float4x4 &matrix = data.object_to_world;
     float &size_x = matrix[0][3];
     float &size_y = matrix[1][3];
     float &size_z = matrix[2][3];

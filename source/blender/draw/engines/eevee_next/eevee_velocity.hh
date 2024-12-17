@@ -122,8 +122,6 @@ class VelocityModule {
   /** This is the end of the current frame sync. Not the step_sync. */
   void end_sync();
 
-  void bind_resources(DRWShadingGroup *grp);
-
   template<typename PassType> void bind_resources(PassType &pass)
   {
     /* Storage Buffer. */

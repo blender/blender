@@ -52,8 +52,8 @@ static void node_composit_buts_crop(uiLayout *layout, bContext * /*C*/, PointerR
 {
   uiLayout *col;
 
-  uiItemR(layout, ptr, "use_crop_size", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "relative", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "use_crop_size", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  uiItemR(layout, ptr, "relative", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 
   col = uiLayoutColumn(layout, true);
   if (RNA_boolean_get(ptr, "relative")) {
@@ -70,7 +70,7 @@ static void node_composit_buts_crop(uiLayout *layout, bContext * /*C*/, PointerR
   }
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class CropOperation : public NodeOperation {
  public:
@@ -146,7 +146,7 @@ class CropOperation : public NodeOperation {
       bool is_inside = texel.x >= lower_bound.x && texel.y >= lower_bound.y &&
                        texel.x < upper_bound.x && texel.y < upper_bound.y;
       /* Write the pixel color if it is inside the cropping region, otherwise, write zero. */
-      float4 color = is_inside ? input.load_pixel(texel) : float4(0.0f);
+      float4 color = is_inside ? input.load_pixel<float4>(texel) : float4(0.0f);
       output.store_pixel(texel, color);
     });
   }
@@ -214,7 +214,7 @@ class CropOperation : public NodeOperation {
     output.allocate_texture(Domain(size, compute_domain().transformation));
 
     parallel_for(size, [&](const int2 texel) {
-      output.store_pixel(texel, input.load_pixel(texel + lower_bound));
+      output.store_pixel(texel, input.load_pixel<float4>(texel + lower_bound));
     });
   }
 

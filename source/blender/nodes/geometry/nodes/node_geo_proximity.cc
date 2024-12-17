@@ -99,9 +99,6 @@ class ProximityFunction : public mf::MultiFunction {
   ~ProximityFunction()
   {
     for (BVHTrees &trees : bvh_trees_) {
-      if (trees.mesh_bvh.tree) {
-        free_bvhtree_from_mesh(&trees.mesh_bvh);
-      }
       if (trees.pointcloud_bvh.tree) {
         free_bvhtree_from_pointcloud(&trees.pointcloud_bvh);
       }

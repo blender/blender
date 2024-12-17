@@ -563,7 +563,7 @@ void BKE_image_ensure_gpu_texture(Image *image, ImageUser *iuser);
  * and view can be cached at a time, so the cache should be invalidated in operators and RNA
  * callbacks that change the layer, pass, or view of the image to maintain a correct cache state.
  * However, in some cases, multiple layers, passes, or views might be needed at the same time, like
- * is the case for the realtime compositor. This is currently not supported, so the caller should
+ * is the case for the compositor. This is currently not supported, so the caller should
  * ensure that the requested layer is indeed the cached one and invalidated the cached otherwise by
  * calling BKE_image_ensure_gpu_texture. This is a workaround until image can support a more
  * complete caching system.

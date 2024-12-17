@@ -177,8 +177,8 @@ TEST_F(ActionLegacyTest, action_fcurves_remove_layered)
 
   action.layer_keystrip_ensure();
   StripKeyframeData *strip_data = action.strip_keyframe_data()[0];
-  ChannelBag &bag_1 = strip_data->channelbag_for_slot_ensure(slot_1);
-  ChannelBag &bag_2 = strip_data->channelbag_for_slot_ensure(slot_2);
+  Channelbag &bag_1 = strip_data->channelbag_for_slot_ensure(slot_1);
+  Channelbag &bag_2 = strip_data->channelbag_for_slot_ensure(slot_2);
 
   /* Add some F-Curves to each channelbag. */
   FCurve &fcurve_loc_x = bag_1.fcurve_ensure(nullptr, {"location", 0});

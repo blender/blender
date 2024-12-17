@@ -12,6 +12,8 @@
 #include "BKE_curves.hh"
 #include "BKE_curves_utils.hh"
 
+#include "GEO_reorder.hh"
+
 #include "ED_curves.hh"
 
 namespace blender::ed::curves {
@@ -317,6 +319,11 @@ void resize_curves(bke::CurvesGeometry &curves,
   /* Move the result into `curves`. */
   curves = std::move(dst_curves);
   curves.tag_topology_changed();
+}
+
+void reorder_curves(bke::CurvesGeometry &curves, const Span<int> old_by_new_indices_map)
+{
+  curves = geometry::reorder_curves_geometry(curves, old_by_new_indices_map, {});
 }
 
 }  // namespace blender::ed::curves

@@ -8,6 +8,10 @@
  * For each shadow view, copy page atlas location to the indirection table before render.
  */
 
+#include "infos/eevee_shadow_info.hh"
+
+COMPUTE_SHADER_CREATE_INFO(eevee_shadow_tilemap_rendermap)
+
 #include "eevee_shadow_tilemap_lib.glsl"
 
 void main()

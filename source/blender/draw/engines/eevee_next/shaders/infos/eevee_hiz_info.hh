@@ -2,13 +2,17 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#ifdef GPU_SHADER
+#  pragma once
+#  include "gpu_glsl_cpp_stubs.hh"
+
+#  include "draw_fullscreen_info.hh"
+#  include "draw_view_info.hh"
+#  include "eevee_common_info.hh"
+#endif
+
 #include "eevee_defines.hh"
 #include "gpu_shader_create_info.hh"
-
-GPU_SHADER_CREATE_INFO(eevee_hiz_data)
-SAMPLER(HIZ_TEX_SLOT, FLOAT_2D, hiz_tx)
-ADDITIONAL_INFO(eevee_global_ubo)
-GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(eevee_hiz_update_base)
 LOCAL_GROUP_SIZE(FILM_GROUP_SIZE, FILM_GROUP_SIZE)

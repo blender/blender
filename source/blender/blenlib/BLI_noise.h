@@ -12,6 +12,8 @@
 extern "C" {
 #endif
 
+extern const uchar BLI_noise_hash_uchar_512[512]; /* Quiet warning. */
+
 float BLI_noise_hnoise(float noisesize, float x, float y, float z);
 float BLI_noise_hnoisep(float noisesize, float x, float y, float z);
 /**

@@ -79,10 +79,11 @@ const ShrinkwrapBoundaryData &boundary_cache_ensure(const Mesh &mesh);
 struct ShrinkwrapTreeData {
   Mesh *mesh;
 
-  BVHTree *bvh;
+  const BVHTree *bvh;
   BVHTreeFromMesh treeData;
 
   blender::OffsetIndices<int> faces;
+  blender::Span<blender::int2> edges;
   blender::Span<int> corner_edges;
 
   blender::Span<blender::float3> face_normals;

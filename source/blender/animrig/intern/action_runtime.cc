@@ -13,6 +13,7 @@
 #include "BKE_lib_query.hh"
 #include "BKE_main.hh"
 #include "BKE_nla.hh"
+#include "BKE_node.hh"
 
 #include "BLI_set.hh"
 
@@ -68,21 +69,6 @@ void rebuild_slot_user_cache(Main &bmain)
     return true;
   };
 
-  auto visit_linked_id = [&](LibraryIDLinkCallbackData *cb_data) -> int {
-    ID *id = *cb_data->id_pointer;
-    if (!id) {
-      /* Can happen when the 'foreach' code visits a nullptr. */
-      return IDWALK_RET_NOP;
-    }
-
-    if (!visit_id(id)) {
-      /* When we hit an ID that was already visited, the recursion can stop. */
-      return IDWALK_RET_STOP_RECURSION;
-    }
-
-    return IDWALK_RET_NOP;
-  };
-
   /* Loop over all IDs to cache their slot usage. */
   ListBase *ids_of_idtype;
   ID *id;
@@ -102,16 +88,13 @@ void rebuild_slot_user_cache(Main &bmain)
       }
 
       /* Process embedded IDs, as these are not listed in bmain, but still can
-       * have their own Action+Slot. */
-      BKE_library_foreach_ID_link(
-          &bmain,
-          id,
-          visit_linked_id,
-          nullptr,
-          IDWALK_READONLY | IDWALK_RECURSE |
-              /* This is more about "we don't care" than "must be ignored". We don't pass an owner
-               * ID, and it's not used in the callback either, so don't bother looking it up.  */
-              IDWALK_IGNORE_MISSING_OWNER_ID);
+       * have their own Action+Slot. Unfortunately there is no generic looper
+       * for embedded IDs. At this moment the only animatable embedded ID is a
+       * node tree. */
+      bNodeTree *node_tree = bke::node_tree_from_id(id);
+      if (node_tree) {
+        visit_id(&node_tree->id);
+      }
     }
     FOREACH_MAIN_LISTBASE_ID_END;
   }

@@ -27,7 +27,7 @@ static void cmp_node_sephsva_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>("A").translation_context(BLT_I18NCONTEXT_COLOR);
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class SeparateHSVAShaderNode : public ShaderNode {
  public:
@@ -94,7 +94,7 @@ static void cmp_node_combhsva_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>("Image");
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class CombineHSVAShaderNode : public ShaderNode {
  public:

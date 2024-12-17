@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "infos/eevee_lightprobe_volume_info.hh"
+
+FRAGMENT_SHADER_CREATE_INFO(eevee_debug_surfels)
+
 #include "eevee_sampling_lib.glsl"
 #include "gpu_shader_debug_gradients_lib.glsl"
 

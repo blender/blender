@@ -69,6 +69,15 @@ ccl_device_inline float4 make_float4(float f)
 #endif
 }
 
+ccl_device_inline float4 make_float4(float3 a, float b)
+{
+#ifdef __KERNEL_SSE__
+  return float4(_mm_set_ps(b, a.z, a.y, a.x));
+#else
+  return make_float4(a.x, a.y, a.z, b);
+#endif
+}
+
 ccl_device_inline float4 make_float4(const int4 i)
 {
 #ifdef __KERNEL_SSE__

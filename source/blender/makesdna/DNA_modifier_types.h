@@ -25,6 +25,7 @@ using NodesModifierRuntimeHandle = blender::NodesModifierRuntime;
 #else
 typedef struct NodesModifierRuntimeHandle NodesModifierRuntimeHandle;
 #endif
+struct LineartModifierRuntime;
 
 /* WARNING ALERT! TYPEDEF VALUES ARE WRITTEN IN FILES! SO DO NOT CHANGE!
  * (ONLY ADD NEW ITEMS AT THE END)
@@ -3221,7 +3222,7 @@ typedef struct GreasePencilLineartModifierData {
   struct LineartData *la_data_ptr;
 
   /* Points to a `LineartModifierRuntime`, which includes the object dependency list. */
-  void *runtime;
+  struct LineartModifierRuntime *runtime;
 } GreasePencilLineartModifierData;
 
 typedef struct GreasePencilArmatureModifierData {

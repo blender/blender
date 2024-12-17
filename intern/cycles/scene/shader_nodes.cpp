@@ -7334,7 +7334,7 @@ void RGBRampNode::compile(SVMCompiler &compiler)
 
   compiler.add_node(ramp.size());
   for (int i = 0; i < ramp.size(); i++) {
-    compiler.add_node(make_float4(ramp[i].x, ramp[i].y, ramp[i].z, ramp_alpha[i]));
+    compiler.add_node(make_float4(ramp[i], ramp_alpha[i]));
   }
 }
 

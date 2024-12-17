@@ -9,6 +9,10 @@
  * This renders the bounding boxes for transparent objects in order to tag the correct shadows.
  */
 
+#include "infos/eevee_shadow_info.hh"
+
+VERTEX_SHADER_CREATE_INFO(eevee_shadow_tag_usage_transparent)
+
 #include "common_shape_lib.glsl"
 #include "draw_model_lib.glsl"
 #include "gpu_shader_math_vector_lib.glsl"

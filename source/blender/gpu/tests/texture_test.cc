@@ -65,10 +65,8 @@ GPU_TEST(texture_read)
 
 static void test_texture_1d()
 {
-  if (GPU_type_matches_ex(GPU_DEVICE_ANY, GPU_OS_ANY, GPU_DRIVER_ANY, GPU_BACKEND_OPENGL) &&
-      G.debug & G_DEBUG_GPU_FORCE_WORKAROUNDS)
-  {
-    GTEST_SKIP() << "OpenGL texture clearing workaround doesn't support 1d textures.";
+  if (GPU_backend_get_type() == GPU_BACKEND_OPENGL) {
+    GTEST_SKIP() << "OpenGL texture clearing doesn't support 1d textures.";
   }
   const int SIZE = 32;
   GPU_render_begin();
@@ -659,12 +657,18 @@ GPU_TEST(texture_roundtrip__GPU_DATA_FLOAT__GPU_DEPTH_COMPONENT24);
 
 static void test_texture_roundtrip__GPU_DATA_FLOAT__GPU_DEPTH24_STENCIL8()
 {
+  if (GPU_backend_get_type() == GPU_BACKEND_OPENGL) {
+    GTEST_SKIP() << "Float based texture readback not supported on OpenGL";
+  }
   texture_create_upload_read_with_bias<GPU_DEPTH24_STENCIL8, GPU_DATA_FLOAT>(0.0f);
 }
 GPU_TEST(texture_roundtrip__GPU_DATA_FLOAT__GPU_DEPTH24_STENCIL8);
 
 static void test_texture_roundtrip__GPU_DATA_FLOAT__GPU_DEPTH32F_STENCIL8()
 {
+  if (GPU_backend_get_type() == GPU_BACKEND_OPENGL) {
+    GTEST_SKIP() << "Float based texture readback not supported on OpenGL";
+  }
   texture_create_upload_read_with_bias<GPU_DEPTH32F_STENCIL8, GPU_DATA_FLOAT>(0.0f);
 }
 GPU_TEST(texture_roundtrip__GPU_DATA_FLOAT__GPU_DEPTH32F_STENCIL8);
@@ -1022,6 +1026,132 @@ static void test_texture_roundtrip__GPU_DATA_2_10_10_10_REV__GPU_RGB10_A2UI()
   texture_create_upload_read_pixel<GPU_RGB10_A2UI, GPU_DATA_2_10_10_10_REV>();
 }
 GPU_TEST(texture_roundtrip__GPU_DATA_2_10_10_10_REV__GPU_RGB10_A2UI);
+
+/* \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Unpack row length
+ * \{ */
+
+static void test_texture_update_sub_no_unpack_row_length()
+{
+  const int2 size(1024);
+  const int2 sub_size(256);
+  const int2 sub_offset(256);
+
+  GPUTexture *texture = GPU_texture_create_2d(
+      __func__, UNPACK2(size), 2, GPU_RGBA32F, GPU_TEXTURE_USAGE_GENERAL, nullptr);
+  const float4 clear_color(0.0f, 0.0f, 0.0f, 0.0f);
+  GPU_texture_clear(texture, GPU_DATA_FLOAT, &clear_color);
+
+  const float4 texture_color(0.0f, 1.0f, 0.0f, 1.0f);
+  float4 *texture_data = static_cast<float4 *>(
+      MEM_mallocN(sub_size.x * sub_size.y * sizeof(float4), __func__));
+  for (int i = 0; i < sub_size.x * sub_size.y; i++) {
+    texture_data[i] = texture_color;
+  }
+
+  GPU_texture_update_sub(
+      texture, GPU_DATA_FLOAT, texture_data, UNPACK2(sub_offset), 0, UNPACK2(sub_size), 1);
+  float4 *texture_data_read = static_cast<float4 *>(GPU_texture_read(texture, GPU_DATA_FLOAT, 0));
+
+  for (int x = 0; x < size.x; x++) {
+    for (int y = 0; y < sub_offset.y; y++) {
+      int index = x + y * size.x;
+      ASSERT_EQ(texture_data_read[index], clear_color);
+    }
+  }
+  for (int y = sub_offset.y; y < sub_offset.y + sub_size.y; y++) {
+    for (int x = 0; x < sub_offset.x; x++) {
+      int index = x + y * size.x;
+      ASSERT_EQ(texture_data_read[index], clear_color);
+    }
+    for (int x = sub_offset.x; x < sub_offset.x + sub_size.x; x++) {
+      int index = x + y * size.x;
+      ASSERT_EQ(texture_data_read[index], texture_color);
+    }
+    for (int x = sub_offset.x + sub_size.x; x < size.x; x++) {
+      int index = x + y * size.x;
+      ASSERT_EQ(texture_data_read[index], clear_color);
+    }
+  }
+  for (int x = 0; x < size.x; x++) {
+    for (int y = sub_offset.y + sub_size.y; y < size.y; y++) {
+      int index = x + y * size.x;
+      ASSERT_EQ(texture_data_read[index], clear_color);
+    }
+  }
+
+  MEM_freeN(texture_data);
+  MEM_freeN(texture_data_read);
+  GPU_texture_free(texture);
+}
+GPU_TEST(texture_update_sub_no_unpack_row_length);
+
+static void test_texture_update_sub_unpack_row_length()
+{
+  const int2 size(1024);
+  const int2 sub_size(256);
+  const int2 sub_offset(256);
+
+  GPUTexture *texture = GPU_texture_create_2d(
+      __func__, UNPACK2(size), 2, GPU_RGBA32F, GPU_TEXTURE_USAGE_GENERAL, nullptr);
+  const float4 clear_color(0.0f, 0.0f, 0.0f, 0.0f);
+  GPU_texture_clear(texture, GPU_DATA_FLOAT, &clear_color);
+
+  const float4 texture_color(0.0f, 1.0f, 0.0f, 1.0f);
+  const float4 texture_color_off(1.0f, 0.0f, 0.0f, 1.0f);
+  float4 *texture_data = static_cast<float4 *>(
+      MEM_mallocN(size.x * size.y * sizeof(float4), __func__));
+  for (int x = 0; x < size.x; x++) {
+    for (int y = 0; y < size.y; y++) {
+      int index = x + y * size.x;
+      texture_data[index] = ((x >= sub_offset.x && x < sub_offset.x + sub_size.x) &&
+                             (y >= sub_offset.y && y < sub_offset.y + sub_size.y)) ?
+                                texture_color :
+                                texture_color_off;
+    }
+  }
+
+  GPU_unpack_row_length_set(size.x);
+  float4 *texture_data_offset = &texture_data[sub_offset.x + sub_offset.y * size.x];
+  GPU_texture_update_sub(
+      texture, GPU_DATA_FLOAT, texture_data_offset, UNPACK2(sub_offset), 0, UNPACK2(sub_size), 1);
+  float4 *texture_data_read = static_cast<float4 *>(GPU_texture_read(texture, GPU_DATA_FLOAT, 0));
+  GPU_unpack_row_length_set(0);
+
+  for (int x = 0; x < size.x; x++) {
+    for (int y = 0; y < sub_offset.y; y++) {
+      int index = x + y * size.x;
+      ASSERT_EQ(texture_data_read[index], clear_color);
+    }
+  }
+  for (int y = sub_offset.y; y < sub_offset.y + sub_size.y; y++) {
+    for (int x = 0; x < sub_offset.x; x++) {
+      int index = x + y * size.x;
+      ASSERT_EQ(texture_data_read[index], clear_color);
+    }
+    for (int x = sub_offset.x; x < sub_offset.x + sub_size.x; x++) {
+      int index = x + y * size.x;
+      ASSERT_EQ(texture_data_read[index], texture_color);
+    }
+    for (int x = sub_offset.x + sub_size.x; x < size.x; x++) {
+      int index = x + y * size.x;
+      ASSERT_EQ(texture_data_read[index], clear_color);
+    }
+  }
+  for (int x = 0; x < size.x; x++) {
+    for (int y = sub_offset.y + sub_size.y; y < size.y; y++) {
+      int index = x + y * size.x;
+      ASSERT_EQ(texture_data_read[index], clear_color);
+    }
+  }
+
+  MEM_freeN(texture_data);
+  MEM_freeN(texture_data_read);
+  GPU_texture_free(texture);
+}
+GPU_TEST(texture_update_sub_unpack_row_length);
 
 /* \} */
 

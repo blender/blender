@@ -87,6 +87,8 @@
  \
     .stencil_pos = {256, 256}, \
     .stencil_dimension = {256, 256}, \
+    .mask_stencil_pos = {256, 256}, \
+    .mask_stencil_dimension = {256, 256}, \
  \
     /* sculpting defaults to the draw brush for new brushes */ \
     .sculpt_brush_type = SCULPT_BRUSH_TYPE_DRAW, \

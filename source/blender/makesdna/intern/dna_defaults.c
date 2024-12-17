@@ -24,7 +24,8 @@
  * To create these defaults there is a GDB script which can be handy to get started:
  * `./tools/utils/gdb_struct_repr_c99.py`
  *
- * Magic numbers should be replaced with flags before committing.
+ * Magic numbers should be replaced with human readable values before committing,
+ * typically enums or preprocessor defined values.
  *
  * \note Defaults must be registered by adding the #SDNA_DEFAULT_DECL_STRUCT and
  * #SDNA_DEFAULT_DECL macro calls to the lists below.
@@ -38,7 +39,8 @@
  *
  * These access the struct table #DNA_default_table using the struct number.
  *
- * \note Struct members only define their members (pointers are left as NULL set).
+ * \note Struct defaults only define members stored directly in the struct,
+ * pointers are set to null.
  *
  * Typical Usage
  * -------------
@@ -147,6 +149,7 @@
   static const struct_name DNA_DEFAULT_##struct_name = _DNA_DEFAULT_##struct_name
 
 /* DNA_action_defaults.h */
+SDNA_DEFAULT_DECL_STRUCT(bAction);
 SDNA_DEFAULT_DECL_STRUCT(ActionLayer);
 SDNA_DEFAULT_DECL_STRUCT(ActionStrip);
 
@@ -397,6 +400,7 @@ extern const bTheme U_theme_default;
 const void *DNA_default_table[SDNA_TYPE_MAX] = {
 
     /* DNA_anim_defaults.h */
+    SDNA_DEFAULT_DECL(bAction),
     SDNA_DEFAULT_DECL(ActionLayer),
     SDNA_DEFAULT_DECL(ActionStrip),
 

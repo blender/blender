@@ -2362,32 +2362,6 @@ bool node_frustum_exclude_aabb(const Node &node, const Span<float4> frustum_plan
 
 }  // namespace blender::bke::pbvh
 
-void BKE_pbvh_draw_debug_cb(blender::bke::pbvh::Tree &pbvh,
-                            void (*draw_fn)(blender::bke::pbvh::Node *node, void *user_data),
-                            void *user_data)
-{
-  blender::bke::pbvh::Node::Flags flag = blender::bke::pbvh::Node::Leaf;
-
-  std::visit(
-      [&](auto &nodes) {
-        for (blender::bke::pbvh::Node &node : nodes) {
-          if (node.flag_ & blender::bke::pbvh::Node::TexLeaf) {
-            flag = blender::bke::pbvh::Node::TexLeaf;
-            break;
-          }
-        }
-
-        for (blender::bke::pbvh::Node &node : nodes) {
-          if (!(node.flag_ & flag)) {
-            continue;
-          }
-
-          draw_fn(&node, user_data);
-        }
-      },
-      pbvh.nodes_);
-}
-
 void BKE_pbvh_vert_coords_apply(blender::bke::pbvh::Tree &pbvh,
                                 const blender::Span<blender::float3> vert_positions)
 {

@@ -62,7 +62,7 @@ BLOCKLIST_OSL = [
     # Noise differences due to Principled BSDF mixing/layering used in some of these scenes
     'render_passes_.*.blend',
     # Noise differences in Principled BSDF mixing/layering
-    'principled_.*.blend',
+    'principled_bsdf_.*.blend',
 ]
 
 BLOCKLIST_OPTIX = [
@@ -77,28 +77,26 @@ BLOCKLIST_OPTIX_OSL = [
     'ambient_occlusion.*.blend',
     'bevel.blend',
     'osl_trace_shader.blend',
-    # The Volumetric noise texture is different for some reason
-    'principled_absorption.blend',
-    # Dicing tests use wireframe node which doesn't appear to be supported in OptiX
-    'dicing_camera.blend',
-    'offscreen_dicing.blend',
-    'panorama_dicing.blend',
     # Bump evaluation is not implemented yet. See 104276
     'compare_bump.blend',
     'both_displacement.blend',
     'bump_with_displacement.blend',
     'ray_portal.blend',
-    # TODO: Investigate every other failing case and add them here.
-    # Note: Many tests are failing due to CUDA errors. Some of these are driver issues that NVIDIA is currently looking into.
-    #
-    # Currently failing tests that aren't in this list are:
-    # ray_portal*.blend - CUDA error
-    # image_mapping_udim*.blend - Can't load UDIM from disk? But can load UDIM if it's packed, but doesn't seem to use it properly.
-    # points_volume.blend - CUDA error
-    # principled_emission_alpha.blend - CUDA error related to connected inputs. Probably the same as 122779
-    # point_density_*_object - Object scale doesn't appear to be appplied to texture
-    # All the other tests mentioned in BLOCKLIST_OSL (E.g. Principled BSDF tests having noise differences)
+    # Volumetric textures use a different default texture mapping in OptiX OSL. See 129279
+    'principled_absorption.blend',
+    'denoise_volume.blend',
+    # The 3D texture doesn't have the right mappings
+    'point_density_.*_object.blend',
+    # Dicing tests use wireframe node which doesn't appear to be supported with OptiX OSL
+    'dicing_camera.blend',
+    'offscreen_dicing.blend',
+    'panorama_dicing.blend',
+    # The mapping of the UDIM texture is incorrect. Need to investigate why.
+    'image_mapping_udim_packed.blend',
+    # Error during rendering. Need to investigate why.
+    'points_volume.blend',
 ]
+
 
 BLOCKLIST_METAL = []
 
@@ -209,14 +207,16 @@ def get_arguments(filepath, output_filepath, use_hwrt=False, osl=False):
 
 
 def create_argparse():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-blender", nargs="+")
-    parser.add_argument("-testdir", nargs=1)
-    parser.add_argument("-outdir", nargs=1)
-    parser.add_argument("-oiiotool", nargs=1)
-    parser.add_argument("-device", nargs=1)
-    parser.add_argument("-blocklist", nargs="*", default=[])
-    parser.add_argument("-osl", default=False, action='store_true')
+    parser = argparse.ArgumentParser(
+        description="Run test script for each blend file in TESTDIR, comparing the render result with known output."
+    )
+    parser.add_argument("--blender", required=True)
+    parser.add_argument("--testdir", required=True)
+    parser.add_argument("--outdir", required=True)
+    parser.add_argument("--oiiotool", required=True)
+    parser.add_argument("--device", required=True)
+    parser.add_argument("--blocklist", nargs="*", default=[])
+    parser.add_argument("--osl", default=False, action='store_true')
     parser.add_argument('--batch', default=False, action='store_true')
     return parser
 
@@ -225,11 +225,7 @@ def main():
     parser = create_argparse()
     args = parser.parse_args()
 
-    blender = args.blender[0]
-    test_dir = args.testdir[0]
-    oiiotool = args.oiiotool[0]
-    output_dir = args.outdir[0]
-    device = args.device[0]
+    device = args.device
 
     blocklist = BLOCKLIST_ALL
     if device != 'CPU':
@@ -245,7 +241,7 @@ def main():
     if args.osl:
         blocklist += BLOCKLIST_OSL
 
-    report = CyclesReport('Cycles', output_dir, oiiotool, device, blocklist, args.osl)
+    report = CyclesReport('Cycles', args.outdir, args.oiiotool, device, blocklist, args.osl)
     report.set_pixelated(True)
     report.set_reference_dir("cycles_renders")
     if device == 'CPU':
@@ -262,11 +258,11 @@ def main():
     # Blackbody is slightly different between SVM and OSL.
     # Microfacet hair renders slightly differently, and fails on Windows and Linux with OSL
 
-    test_dir_name = Path(test_dir).name
+    test_dir_name = Path(args.testdir).name
     if (test_dir_name in {'motion_blur', 'integrator'}) or ((args.osl) and (test_dir_name in {'shader', 'hair'})):
         report.set_fail_threshold(0.032)
 
-    ok = report.run(test_dir, blender, get_arguments, batch=args.batch)
+    ok = report.run(args.testdir, args.blender, get_arguments, batch=args.batch)
 
     sys.exit(not ok)
 

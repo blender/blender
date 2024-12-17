@@ -89,7 +89,7 @@ class LightProbes : Overlay {
     const select::ID select_id = res.select_id(ob_ref);
     const float4 color = res.object_wire_color(ob_ref, state);
     ExtraInstanceData data(ob->object_to_world(), color, 1.0f);
-    float4x4 &matrix = data.object_to_world_;
+    float4x4 &matrix = data.object_to_world;
     float &clip_start = matrix[2].w;
     float &clip_end = matrix[3].w;
     float &draw_size = matrix[3].w;
@@ -109,7 +109,7 @@ class LightProbes : Overlay {
           const float f = 1.0f - prb->falloff;
           ExtraInstanceData data(ob->object_to_world(), color, prb->distinf);
           attenuation.append(data, select_id);
-          data.object_to_world_[3].w = prb->distinf * f;
+          data.object_to_world[3].w = prb->distinf * f;
           attenuation.append(data, select_id);
         }
 

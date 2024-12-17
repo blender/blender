@@ -78,16 +78,10 @@ class Sampling {
 
   /* Viewport Only: Function to call to notify something in the scene changed.
    * This will reset accumulation. Do not call after end_sync() or during sample rendering. */
-  void reset()
-  {
-    reset_ = true;
-  }
+  void reset();
 
   /* Viewport Only: true if an update happened in the scene and accumulation needs reset. */
-  bool is_reset() const
-  {
-    return reset_;
-  }
+  bool is_reset() const;
 
   template<typename PassType> void bind_resources(PassType &pass)
   {

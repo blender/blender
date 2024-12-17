@@ -1231,28 +1231,28 @@ static void grease_pencil_interpolate_sequence_ui(bContext *C, wmOperator *op)
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
   row = uiLayoutRow(layout, true);
-  uiItemR(row, op->ptr, "step", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(row, op->ptr, "step", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   row = uiLayoutRow(layout, true);
-  uiItemR(row, op->ptr, "layers", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(row, op->ptr, "layers", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   if (CTX_data_mode_enum(C) == CTX_MODE_EDIT_GPENCIL_LEGACY) {
     row = uiLayoutRow(layout, true);
-    uiItemR(row, op->ptr, "interpolate_selected_only", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(row, op->ptr, "interpolate_selected_only", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
   row = uiLayoutRow(layout, true);
-  uiItemR(row, op->ptr, "exclude_breakdowns", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(row, op->ptr, "exclude_breakdowns", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   row = uiLayoutRow(layout, true);
-  uiItemR(row, op->ptr, "flip", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(row, op->ptr, "flip", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   col = uiLayoutColumn(layout, true);
-  uiItemR(col, op->ptr, "smooth_factor", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(col, op->ptr, "smooth_steps", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, op->ptr, "smooth_factor", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  uiItemR(col, op->ptr, "smooth_steps", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   row = uiLayoutRow(layout, true);
-  uiItemR(row, op->ptr, "type", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(row, op->ptr, "type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   if (type == InterpolationType::CurveMap) {
     /* Get an RNA pointer to ToolSettings to give to the custom curve. */
@@ -1265,16 +1265,16 @@ static void grease_pencil_interpolate_sequence_ui(bContext *C, wmOperator *op)
   }
   else if (type != InterpolationType::Linear) {
     row = uiLayoutRow(layout, false);
-    uiItemR(row, op->ptr, "easing", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(row, op->ptr, "easing", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     if (type == InterpolationType::Back) {
       row = uiLayoutRow(layout, false);
-      uiItemR(row, op->ptr, "back", UI_ITEM_NONE, nullptr, ICON_NONE);
+      uiItemR(row, op->ptr, "back", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     }
     else if (type == InterpolationType::Elastic) {
       row = uiLayoutRow(layout, false);
-      uiItemR(row, op->ptr, "amplitude", UI_ITEM_NONE, nullptr, ICON_NONE);
+      uiItemR(row, op->ptr, "amplitude", UI_ITEM_NONE, std::nullopt, ICON_NONE);
       row = uiLayoutRow(layout, false);
-      uiItemR(row, op->ptr, "period", UI_ITEM_NONE, nullptr, ICON_NONE);
+      uiItemR(row, op->ptr, "period", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     }
   }
 }

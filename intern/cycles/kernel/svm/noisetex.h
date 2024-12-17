@@ -333,7 +333,7 @@ ccl_device_noinline int svm_node_tex_noise(KernelGlobals kg,
                        &color);
       break;
     case 4:
-      noise_texture_4d(make_float4(vector.x, vector.y, vector.z, w),
+      noise_texture_4d(make_float4(vector, w),
                        detail,
                        roughness,
                        lacunarity,

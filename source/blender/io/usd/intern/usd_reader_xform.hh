@@ -10,6 +10,9 @@
 #include "usd.hh"
 #include "usd_reader_prim.hh"
 
+/* For #UsdGeomXformable. */
+#include <pxr/usd/usdGeom/xformable.h>
+
 namespace blender::io::usd {
 
 /**
@@ -38,6 +41,8 @@ class USDXformReader : public USDPrimReader {
 
   void create_object(Main *bmain, double motionSampleTime) override;
   void read_object_data(Main *bmain, double motionSampleTime) override;
+
+  std::string object_prim_path() const override;
 
   void read_matrix(float r_mat[4][4], float time, float scale, bool *r_is_constant) const;
 
@@ -68,6 +73,9 @@ class USDXformReader : public USDPrimReader {
    *           is constant over time.
    */
   virtual std::optional<XformResult> get_local_usd_xform(float time) const;
+
+ private:
+  pxr::UsdGeomXformable get_xformable() const;
 };
 
 }  // namespace blender::io::usd

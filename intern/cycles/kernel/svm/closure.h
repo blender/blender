@@ -1065,29 +1065,21 @@ ccl_device_noinline void svm_node_closure_volume(KernelGlobals kg,
         }
       } break;
       case CLOSURE_VOLUME_MIE_ID: {
-        /* We approximate the Mie phase function for water droplets using a mix of Draine and H-G
-         * following "An Approximate Mie Scattering Function for Fog and Cloud Rendering", Johannes
-         * Jendersie and Eugene d'Eon, https://research.nvidia.com/labs/rtr/approximate-mie.
-         *
-         * The numerical fit here (eq. 4-7 in the paper) is intended for 5<d<50.
-         * Generally, we try to allow exceeding the soft limits when reasonable. Here, the only
-         * real limit is that the values need to stay within -1<g<1, 0<a and 0<mixture<1.
-         * This results in the condition d > 1.67154, so we clamp it to 2 to be safe. */
-        const float d = max(2.0f,
-                            stack_valid(param1_offset) ? stack_load_float(stack, param1_offset) :
-                                                         __uint_as_float(node.w));
-        const float mixture = fast_expf(-0.599085f / (d - 0.641583f) - 0.665888f);
+        const float d = stack_valid(param1_offset) ? stack_load_float(stack, param1_offset) :
+                                                     __uint_as_float(node.w);
+        float g_HG, g_D, alpha, mixture;
+        phase_mie_fitted_parameters(d, &g_HG, &g_D, &alpha, &mixture);
         ccl_private HenyeyGreensteinVolume *hg = (ccl_private HenyeyGreensteinVolume *)bsdf_alloc(
             sd, sizeof(HenyeyGreensteinVolume), weight * (1.0f - mixture));
         if (hg) {
-          hg->g = fast_expf(-0.0990567f / (d - 1.67154f));
+          hg->g = g_HG;
           sd->flag |= volume_henyey_greenstein_setup(hg);
         }
         ccl_private DraineVolume *draine = (ccl_private DraineVolume *)bsdf_alloc(
             sd, sizeof(DraineVolume), weight * mixture);
         if (draine) {
-          draine->g = fast_expf(-2.20679f / (d + 3.91029f) - 0.428934f);
-          draine->alpha = fast_expf(3.62489f - 8.29288f / (d + 5.52825f));
+          draine->g = g_D;
+          draine->alpha = alpha;
           sd->flag |= volume_draine_setup(draine);
         }
       } break;
@@ -1133,7 +1125,7 @@ ccl_device_noinline int svm_node_principled_volume(KernelGlobals kg,
                                                   __uint_as_float(value_node.x);
   density = mix_weight * fmaxf(density, 0.0f) * object_volume_density(kg, sd->object);
 
-  if (density > CLOSURE_WEIGHT_CUTOFF) {
+  if (density > 0.0f) {
     /* Density and color attribute lookup if available. */
     const AttributeDescriptor attr_density = find_attribute(kg, sd, attr_node.x);
     if (attr_density.offset != ATTR_STD_NOT_FOUND) {
@@ -1142,7 +1134,7 @@ ccl_device_noinline int svm_node_principled_volume(KernelGlobals kg,
     }
   }
 
-  if (density > CLOSURE_WEIGHT_CUTOFF) {
+  if (density > 0.0f) {
     /* Compute scattering color. */
     Spectrum color = closure_weight;
 
@@ -1187,13 +1179,13 @@ ccl_device_noinline int svm_node_principled_volume(KernelGlobals kg,
   float blackbody = (stack_valid(blackbody_offset)) ? stack_load_float(stack, blackbody_offset) :
                                                       __uint_as_float(value_node.w);
 
-  if (emission > CLOSURE_WEIGHT_CUTOFF) {
+  if (emission > 0.0f) {
     float3 emission_color = stack_load_float3(stack, emission_color_offset);
     emission_setup(
         sd, rgb_to_spectrum(emission * emission_color * object_volume_density(kg, sd->object)));
   }
 
-  if (blackbody > CLOSURE_WEIGHT_CUTOFF) {
+  if (blackbody > 0.0f) {
     float T = stack_load_float(stack, temperature_offset);
 
     /* Add flame temperature from attribute if available. */
@@ -1210,7 +1202,7 @@ ccl_device_noinline int svm_node_principled_volume(KernelGlobals kg,
     float sigma = 5.670373e-8f * 1e-6f / M_PI_F;
     float intensity = sigma * mix(1.0f, T4, blackbody);
 
-    if (intensity > CLOSURE_WEIGHT_CUTOFF) {
+    if (intensity > 0.0f) {
       float3 blackbody_tint = stack_load_float3(stack, node.w);
       float3 bb = blackbody_tint * intensity *
                   rec709_to_rgb(kg, svm_math_blackbody_color_rec709(T));

@@ -19,7 +19,6 @@
 
 #include "vk_batch.hh"
 #include "vk_context.hh"
-#include "vk_drawlist.hh"
 #include "vk_fence.hh"
 #include "vk_framebuffer.hh"
 #include "vk_ghost_api.hh"
@@ -77,17 +76,18 @@ bool GPU_vulkan_is_supported_driver(VkPhysicalDevice vk_physical_device)
     return false;
   }
 
-  /* NVIDIA drivers below 550 don't work. When sending command to the GPU there is no reply back
-   * when they are finished. Driver 550 should support GTX 700 and above GPUs.
-   *
-   * NOTE: We should retest later after fixing other issues. Allowing more drivers is always
-   * better as reporting to the user is quite limited.
+#ifndef _WIN32
+  /* NVIDIA drivers below 550 don't work on Linux. When sending command to the GPU there is not
+   * always a reply back when they are finished. The issue is reported on the Internet many times,
+   * but there is no mention of a solution. This means that on Linux we can only support GTX900 and
+   * or use MesaNVK.
    */
   if (vk_physical_device_driver_properties.driverID == VK_DRIVER_ID_NVIDIA_PROPRIETARY &&
       conformance_version < VK_MAKE_API_VERSION(1, 3, 7, 2))
   {
     return false;
   }
+#endif
 
   return true;
 }
@@ -145,6 +145,12 @@ static Vector<StringRefNull> missing_capabilities_get(VkPhysicalDevice vk_physic
   if (!extensions.contains(VK_KHR_SWAPCHAIN_EXTENSION_NAME)) {
     missing_capabilities.append(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
   }
+#ifndef __APPLE__
+  /* Metal doesn't support provoking vertex. */
+  if (!extensions.contains(VK_EXT_PROVOKING_VERTEX_EXTENSION_NAME)) {
+    missing_capabilities.append(VK_EXT_PROVOKING_VERTEX_EXTENSION_NAME);
+  }
+#endif
 
   return missing_capabilities;
 }
@@ -267,7 +273,9 @@ void VKBackend::platform_init()
   vkEnumeratePhysicalDevices(vk_instance, &physical_devices_count, vk_physical_devices.data());
   int index = 0;
   for (VkPhysicalDevice vk_physical_device : vk_physical_devices) {
-    if (missing_capabilities_get(vk_physical_device).is_empty()) {
+    if (missing_capabilities_get(vk_physical_device).is_empty() &&
+        GPU_vulkan_is_supported_driver(vk_physical_device))
+    {
       VkPhysicalDeviceProperties vk_properties = {};
       vkGetPhysicalDeviceProperties(vk_physical_device, &vk_properties);
       std::stringstream identifier;
@@ -383,6 +391,15 @@ void VKBackend::detect_workarounds(VKDevice &device)
   workarounds.dynamic_rendering_unused_attachments = !device.supports_extension(
       VK_EXT_DYNAMIC_RENDERING_UNUSED_ATTACHMENTS_EXTENSION_NAME);
 
+#ifdef __APPLE__
+  /* Due to a limitation in MoltenVK, attachments should be sequential even when using
+   * dynamic rendering. MoltenVK internally uses render passes to simulate dynamic rendering and
+   * same limitations apply. */
+  if (GPU_type_matches(GPU_DEVICE_APPLE, GPU_OS_MAC, GPU_DRIVER_ANY)) {
+    GCaps.render_pass_workaround = true;
+  }
+#endif
+
   device.workarounds_ = workarounds;
 }
 
@@ -453,11 +470,6 @@ Context *VKBackend::context_alloc(void *ghost_window, void *ghost_context)
 Batch *VKBackend::batch_alloc()
 {
   return new VKBatch();
-}
-
-DrawList *VKBackend::drawlist_alloc(int list_length)
-{
-  return new VKDrawList(list_length);
 }
 
 Fence *VKBackend::fence_alloc()
@@ -548,7 +560,7 @@ void VKBackend::render_end()
   }
 }
 
-void VKBackend::render_step() {}
+void VKBackend::render_step(bool /*force_resource_release*/) {}
 
 void VKBackend::capabilities_init(VKDevice &device)
 {

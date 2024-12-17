@@ -7,6 +7,10 @@
  * See eShadowDebug for more information.
  */
 
+#include "infos/eevee_shadow_info.hh"
+
+FRAGMENT_SHADER_CREATE_INFO(eevee_shadow_debug)
+
 #include "draw_view_lib.glsl"
 #include "eevee_light_iter_lib.glsl"
 #include "eevee_light_lib.glsl"

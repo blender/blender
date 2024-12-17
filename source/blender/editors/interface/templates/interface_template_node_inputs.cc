@@ -47,7 +47,10 @@ static void draw_node_input(bContext *C,
   if (!socket.is_available()) {
     return;
   }
-  if ((socket.flag & (SOCK_IS_LINKED | SOCK_HIDE_VALUE)) != 0) {
+  if (socket.is_directly_linked()) {
+    return;
+  }
+  if (socket.flag & SOCK_HIDE_VALUE) {
     return;
   }
   if (socket.typeinfo->draw == nullptr) {
@@ -60,9 +63,12 @@ static void draw_node_input(bContext *C,
   if (node.is_reroute()) {
     return;
   }
+  if (socket.idname == StringRef("NodeSocketVirtual")) {
+    return;
+  }
 
   PointerRNA socket_ptr = RNA_pointer_create(node_ptr->owner_id, &RNA_NodeSocket, &socket);
-  const char *text = IFACE_(bke::nodeSocketLabel(&socket));
+  const StringRefNull text(IFACE_(bke::nodeSocketLabel(&socket).c_str()));
   uiLayout *row = uiLayoutRow(layout, true);
   socket.typeinfo->draw(C, row, &socket_ptr, node_ptr, text);
 }

@@ -46,7 +46,9 @@ void Sampling::init(const Scene *scene)
     }
   }
 
-  motion_blur_steps_ = !inst_.is_viewport() ? scene->eevee.motion_blur_steps : 1;
+  motion_blur_steps_ = !inst_.is_viewport() && ((scene->r.mode & R_MBLUR) != 0) ?
+                           scene->eevee.motion_blur_steps :
+                           1;
   sample_count_ = divide_ceil_u(sample_count_, motion_blur_steps_);
 
   if (scene->eevee.flag & SCE_EEVEE_DOF_JITTER) {
@@ -232,6 +234,18 @@ void Sampling::step()
   sample_++;
 
   reset_ = false;
+}
+
+void Sampling::reset()
+{
+  BLI_assert(inst_.is_viewport());
+  reset_ = true;
+}
+
+bool Sampling::is_reset() const
+{
+  BLI_assert(inst_.is_viewport());
+  return reset_;
 }
 
 /** \} */

@@ -35,6 +35,8 @@ Hook function ``on_import()`` is called after the USD import finalizes. This fun
 as an argument an instance of an internally defined class ``USDSceneImportContext`` which provides the
 following accessors to the scene data:
 
+- ``get_prim_map()`` returns a dict where the key is an imported USD Prim path and the value a list of
+   the IDs created by the imported prim.
 - ``get_stage()`` returns the USD stage which was imported.
 
 The hook functions should return ``True`` on success or ``False`` if the operation was bypassed or

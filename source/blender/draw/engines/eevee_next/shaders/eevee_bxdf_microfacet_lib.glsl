@@ -4,6 +4,10 @@
 
 #pragma once
 
+#include "infos/eevee_common_info.hh"
+
+SHADER_LIBRARY_CREATE_INFO(eevee_utility_texture)
+
 #include "eevee_bxdf_lib.glsl"
 #include "eevee_thickness_lib.glsl"
 #include "gpu_shader_codegen_lib.glsl"

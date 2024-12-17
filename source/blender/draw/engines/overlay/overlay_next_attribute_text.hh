@@ -126,6 +126,43 @@ class AttributeTexts : Overlay {
     add_values_to_text_cache(dt, attribute, {float3(0, 0, 0)}, object_to_world);
   }
 
+  static void add_text_to_cache(DRWTextStore *dt,
+                                const float3 &position,
+                                const StringRef text,
+                                const uchar4 &color)
+  {
+    DRW_text_cache_add(dt,
+                       position,
+                       text.data(),
+                       text.size(),
+                       0,
+                       0,
+                       DRW_TEXT_CACHE_GLOBALSPACE,
+                       color,
+                       true,
+                       true);
+  }
+
+  static void add_lines_to_cache(DRWTextStore *dt,
+                                 const float3 &position,
+                                 const Span<StringRef> lines,
+                                 const uchar4 &color)
+  {
+    for (const int i : lines.index_range()) {
+      const StringRef line = lines[i];
+      DRW_text_cache_add(dt,
+                         position,
+                         line.data(),
+                         line.size(),
+                         0,
+                         -i * 12.0f * UI_SCALE_FAC,
+                         DRW_TEXT_CACHE_GLOBALSPACE,
+                         color,
+                         true,
+                         true);
+    }
+  }
+
   void add_values_to_text_cache(DRWTextStore *dt,
                                 const GVArray &values,
                                 const Span<float3> positions,
@@ -141,48 +178,89 @@ class AttributeTexts : Overlay {
         const float3 position = math::transform_point(object_to_world, positions[i]);
         const T &value = values_typed[i];
 
-        char numstr[64];
-        size_t numstr_len = 0;
         if constexpr (std::is_same_v<T, bool>) {
-          numstr_len = SNPRINTF_RLEN(numstr, "%s", value ? "True" : "False");
+          char numstr[64];
+          const size_t numstr_len = SNPRINTF_RLEN(numstr, "%s", value ? "True" : "False");
+          add_text_to_cache(dt, position, StringRef(numstr, numstr_len), col);
         }
         else if constexpr (std::is_same_v<T, int8_t>) {
-          numstr_len = SNPRINTF_RLEN(numstr, "%d", int(value));
+          char numstr[64];
+          const size_t numstr_len = SNPRINTF_RLEN(numstr, "%d", int(value));
+          add_text_to_cache(dt, position, StringRef(numstr, numstr_len), col);
         }
         else if constexpr (std::is_same_v<T, int>) {
-          numstr_len = SNPRINTF_RLEN(numstr, "%d", value);
+          char numstr[64];
+          const size_t numstr_len = SNPRINTF_RLEN(numstr, "%d", value);
+          add_text_to_cache(dt, position, StringRef(numstr, numstr_len), col);
         }
         else if constexpr (std::is_same_v<T, int2>) {
-          numstr_len = SNPRINTF_RLEN(numstr, "(%d, %d)", value.x, value.y);
+          char numstr[64];
+          const size_t numstr_len = SNPRINTF_RLEN(numstr, "(%d, %d)", value.x, value.y);
+          add_text_to_cache(dt, position, StringRef(numstr, numstr_len), col);
         }
         else if constexpr (std::is_same_v<T, float>) {
-          numstr_len = SNPRINTF_RLEN(numstr, "%g", value);
+          char numstr[64];
+          const size_t numstr_len = SNPRINTF_RLEN(numstr, "%g", value);
+          add_text_to_cache(dt, position, StringRef(numstr, numstr_len), col);
         }
         else if constexpr (std::is_same_v<T, float2>) {
-          numstr_len = SNPRINTF_RLEN(numstr, "(%g, %g)", value.x, value.y);
+          char numstr[64];
+          const size_t numstr_len = SNPRINTF_RLEN(numstr, "(%g, %g)", value.x, value.y);
+          add_text_to_cache(dt, position, StringRef(numstr, numstr_len), col);
         }
         else if constexpr (std::is_same_v<T, float3>) {
-          numstr_len = SNPRINTF_RLEN(numstr, "(%g, %g, %g)", value.x, value.y, value.z);
+          char numstr[64];
+          const size_t numstr_len = SNPRINTF_RLEN(
+              numstr, "(%g, %g, %g)", value.x, value.y, value.z);
+          add_text_to_cache(dt, position, StringRef(numstr, numstr_len), col);
         }
         else if constexpr (std::is_same_v<T, ColorGeometry4b>) {
           const ColorGeometry4f color = value.decode();
-          numstr_len = SNPRINTF_RLEN(
+          char numstr[64];
+          const size_t numstr_len = SNPRINTF_RLEN(
               numstr, "(%.3f, %.3f, %.3f, %.3f)", color.r, color.g, color.b, color.a);
+          add_text_to_cache(dt, position, StringRef(numstr, numstr_len), col);
         }
         else if constexpr (std::is_same_v<T, ColorGeometry4f>) {
-          numstr_len = SNPRINTF_RLEN(
+          char numstr[64];
+          const size_t numstr_len = SNPRINTF_RLEN(
               numstr, "(%.3f, %.3f, %.3f, %.3f)", value.r, value.g, value.b, value.a);
+          add_text_to_cache(dt, position, StringRef(numstr, numstr_len), col);
         }
         else if constexpr (std::is_same_v<T, math::Quaternion>) {
-          numstr_len = SNPRINTF_RLEN(
+          char numstr[64];
+          const size_t numstr_len = SNPRINTF_RLEN(
               numstr, "(%.3f, %.3f, %.3f, %.3f)", value.w, value.x, value.y, value.z);
+          add_text_to_cache(dt, position, StringRef(numstr, numstr_len), col);
+        }
+        else if constexpr (std::is_same_v<T, float4x4>) {
+          float3 location;
+          math::EulerXYZ rotation;
+          float3 scale;
+          math::to_loc_rot_scale_safe<true>(value, location, rotation, scale);
+
+          char location_str[64];
+          const size_t location_str_len = SNPRINTF_RLEN(
+              location_str, "Location: %.3f, %.3f, %.3f", location.x, location.y, location.z);
+          char rotation_str[64];
+          const size_t rotation_str_len = SNPRINTF_RLEN(rotation_str,
+                                                        "Rotation: %.3f°, %.3f°, %.3f°",
+                                                        rotation.x().degree(),
+                                                        rotation.y().degree(),
+                                                        rotation.z().degree());
+          char scale_str[64];
+          const size_t scale_str_len = SNPRINTF_RLEN(
+              scale_str, "Scale: %.3f, %.3f, %.3f", scale.x, scale.y, scale.z);
+          add_lines_to_cache(dt,
+                             position,
+                             {StringRef(location_str, location_str_len),
+                              StringRef(rotation_str, rotation_str_len),
+                              StringRef(scale_str, scale_str_len)},
+                             col);
         }
         else {
           BLI_assert_unreachable();
         }
-
-        DRW_text_cache_add(
-            dt, position, numstr, numstr_len, 0, 0, DRW_TEXT_CACHE_GLOBALSPACE, col, true, true);
       }
     });
   }

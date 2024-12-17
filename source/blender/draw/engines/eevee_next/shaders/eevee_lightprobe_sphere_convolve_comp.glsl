@@ -4,6 +4,10 @@
 
 /* Shader to convert cube-map to octahedral projection. */
 
+#include "infos/eevee_lightprobe_sphere_info.hh"
+
+COMPUTE_SHADER_CREATE_INFO(eevee_lightprobe_sphere_convolve)
+
 #include "eevee_lightprobe_sphere_mapping_lib.glsl"
 #include "eevee_sampling_lib.glsl"
 #include "gpu_shader_math_base_lib.glsl"
@@ -61,8 +65,6 @@ float sample_weight(vec3 out_direction, vec3 in_direction, float linear_roughnes
   out_direction = normalize(out_direction);
   in_direction = normalize(in_direction);
 
-  float cos_theta = saturate(dot(out_direction, in_direction));
-
   /* From linear roughness to GGX roughness input. */
   float m = square(linear_roughness);
   /* Map GGX roughness to spherical gaussian sharpness.
@@ -88,7 +90,6 @@ void main()
 {
   SphereProbeUvArea sample_coord = reinterpret_as_atlas_coord(probe_coord_packed);
   SphereProbePixelArea out_texel_area = reinterpret_as_write_coord(write_coord_packed);
-  SphereProbePixelArea in_texel_area = reinterpret_as_write_coord(read_coord_packed);
 
   /* Texel in probe. */
   ivec2 out_local_texel = ivec2(gl_GlobalInvocationID.xy);

@@ -14,6 +14,8 @@
 /* Define macros in `DNA_genfile.h`. */
 #define DNA_GENFILE_VERSIONING_MACROS
 
+#include "DNA_action_defaults.h"
+#include "DNA_action_types.h"
 #include "DNA_anim_types.h"
 #include "DNA_brush_types.h"
 #include "DNA_camera_types.h"
@@ -109,13 +111,6 @@ static void version_composite_nodetree_null_id(bNodeTree *ntree, Scene *scene)
   }
 }
 
-struct ActionUserInfo {
-  ID *id;
-  blender::animrig::slot_handle_t *slot_handle;
-  bAction **action_ptr_ptr;
-  char *slot_name;
-};
-
 static void convert_action_in_place(blender::animrig::Action &action)
 {
   using namespace blender::animrig;
@@ -129,6 +124,10 @@ static void convert_action_in_place(blender::animrig::Action &action)
   const int16_t idtype = action.idroot;
   action.idroot = 0;
 
+  /* Initialize the Action's last_slot_handle field to its default value, before
+   * we create a new slot. */
+  action.last_slot_handle = DNA_DEFAULT_ACTION_LAST_SLOT_HANDLE;
+
   Slot &slot = action.slot_add();
   slot.idtype = idtype;
   slot.identifier_ensure_prefix();
@@ -136,7 +135,7 @@ static void convert_action_in_place(blender::animrig::Action &action)
   Layer &layer = action.layer_add("Layer");
   blender::animrig::Strip &strip = layer.strip_add(action,
                                                    blender::animrig::Strip::Type::Keyframe);
-  ChannelBag &bag = strip.data<StripKeyframeData>(action).channelbag_for_slot_ensure(slot);
+  Channelbag &bag = strip.data<StripKeyframeData>(action).channelbag_for_slot_ensure(slot);
   const int fcu_count = BLI_listbase_count(&action.curves);
   const int group_count = BLI_listbase_count(&action.groups);
   bag.fcurve_array = MEM_cnew_array<FCurve *>(fcu_count, "Action versioning - fcurves");
@@ -149,7 +148,7 @@ static void convert_action_in_place(blender::animrig::Action &action)
   LISTBASE_FOREACH_INDEX (bActionGroup *, group, &action.groups, group_index) {
     bag.group_array[group_index] = group;
 
-    group->channel_bag = &bag;
+    group->channelbag = &bag;
     group->fcurve_range_start = fcurve_index;
 
     LISTBASE_FOREACH (FCurve *, fcu, &group->channels) {
@@ -179,6 +178,14 @@ static void convert_action_in_place(blender::animrig::Action &action)
 static void version_legacy_actions_to_layered(Main *bmain)
 {
   using namespace blender::animrig;
+
+  struct ActionUserInfo {
+    ID *id;
+    slot_handle_t *slot_handle;
+    bAction **action_ptr_ptr;
+    char *slot_name;
+  };
+
   blender::Map<bAction *, blender::Vector<ActionUserInfo>> action_users;
   LISTBASE_FOREACH (bAction *, dna_action, &bmain->actions) {
     Action &action = dna_action->wrap();
@@ -188,54 +195,37 @@ static void version_legacy_actions_to_layered(Main *bmain)
     action_users.add(dna_action, {});
   }
 
+  auto callback = [&](ID &animated_id,
+                      bAction *&action_ptr_ref,
+                      slot_handle_t &slot_handle_ref,
+                      char *slot_name) -> bool {
+    blender::Vector<ActionUserInfo> *action_user_vector = action_users.lookup_ptr(action_ptr_ref);
+    /* Only actions that need to be converted are in this map. */
+    if (!action_user_vector) {
+      return true;
+    }
+    ActionUserInfo user_info;
+    user_info.id = &animated_id;
+    user_info.action_ptr_ptr = &action_ptr_ref;
+    user_info.slot_handle = &slot_handle_ref;
+    user_info.slot_name = slot_name;
+    action_user_vector->append(user_info);
+    return true;
+  };
+
   ID *id;
   FOREACH_MAIN_ID_BEGIN (bmain, id) {
-    auto callback = [&](ID &animated_id,
-                        bAction *&action_ptr_ref,
-                        slot_handle_t &slot_handle_ref,
-                        char *slot_name) -> bool {
-      blender::Vector<ActionUserInfo> *action_user_vector = action_users.lookup_ptr(
-          action_ptr_ref);
-      /* Only actions that need to be converted are in this map. */
-      if (!action_user_vector) {
-        return true;
-      }
-      ActionUserInfo user_info;
-      user_info.id = &animated_id;
-      user_info.action_ptr_ptr = &action_ptr_ref;
-      user_info.slot_handle = &slot_handle_ref;
-      user_info.slot_name = slot_name;
-      action_user_vector->append(user_info);
-      return true;
-    };
-
-    auto embedded_id_callback = [&](LibraryIDLinkCallbackData *cb_data) -> int {
-      ID *linked_id = *cb_data->id_pointer;
-
-      /* We only process embedded IDs with this callback. */
-      if (!linked_id || (linked_id->flag & ID_FLAG_EMBEDDED_DATA) == 0) {
-        return IDWALK_RET_STOP_RECURSION;
-      }
-
-      foreach_action_slot_use_with_references(*linked_id, callback);
-
-      return IDWALK_RET_NOP;
-    };
-
-    /* Process the main ID itself. */
+    /* Process the ID itself. */
     foreach_action_slot_use_with_references(*id, callback);
 
     /* Process embedded IDs, as these are not listed in bmain, but still can
-     * have their own Action+Slot. */
-    BKE_library_foreach_ID_link(
-        bmain,
-        id,
-        embedded_id_callback,
-        nullptr,
-        IDWALK_RECURSE | IDWALK_READONLY |
-            /* This is more about "we don't care" than "must be ignored". We don't pass an owner
-             * ID, and it's not used in the callback either, so don't bother looking it up.  */
-            IDWALK_IGNORE_MISSING_OWNER_ID);
+     * have their own Action+Slot. Unfortunately there is no generic looper
+     * for embedded IDs. At this moment the only animatable embedded ID is a
+     * node tree. */
+    bNodeTree *node_tree = blender::bke::node_tree_from_id(id);
+    if (node_tree) {
+      foreach_action_slot_use_with_references(node_tree->id, callback);
+    }
   }
   FOREACH_MAIN_ID_END;
 
@@ -293,6 +283,19 @@ static void version_legacy_actions_to_layered(Main *bmain)
           break;
       }
     }
+  }
+}
+
+static void version_fcurve_noise_modifier(FCurve &fcurve)
+{
+  LISTBASE_FOREACH (FModifier *, fcurve_modifier, &fcurve.modifiers) {
+    if (fcurve_modifier->type != FMODIFIER_TYPE_NOISE) {
+      continue;
+    }
+    FMod_Noise *data = static_cast<FMod_Noise *>(fcurve_modifier->data);
+    data->lacunarity = 2.0f;
+    data->roughness = 0.5f;
+    data->legacy_noise = true;
   }
 }
 
@@ -574,8 +577,8 @@ static void versioning_eevee_material_shadow_none(Material *material)
     bNode *new_output = blender::bke::node_add_node(nullptr, ntree, "ShaderNodeOutputMaterial");
     new_output->custom1 = SHD_OUTPUT_EEVEE;
     new_output->parent = output_node->parent;
-    new_output->locx = output_node->locx;
-    new_output->locy = output_node->locy - output_node->height - 120;
+    new_output->locx_legacy = output_node->locx_legacy;
+    new_output->locy_legacy = output_node->locy_legacy - output_node->height - 120;
 
     auto copy_link = [&](const char *socket_name) {
       bNodeSocket *sock = blender::bke::node_find_socket(output_node, SOCK_IN, socket_name);
@@ -602,8 +605,8 @@ static void versioning_eevee_material_shadow_none(Material *material)
   STRNCPY(mix_node->label, "Disable Shadow");
   mix_node->flag |= NODE_HIDDEN;
   mix_node->parent = output_node->parent;
-  mix_node->locx = output_node->locx;
-  mix_node->locy = output_node->locy - output_node->height - 120;
+  mix_node->locx_legacy = output_node->locx_legacy;
+  mix_node->locy_legacy = output_node->locy_legacy - output_node->height - 120;
   bNodeSocket *mix_fac = static_cast<bNodeSocket *>(BLI_findlink(&mix_node->inputs, 0));
   bNodeSocket *mix_in_1 = static_cast<bNodeSocket *>(BLI_findlink(&mix_node->inputs, 1));
   bNodeSocket *mix_in_2 = static_cast<bNodeSocket *>(BLI_findlink(&mix_node->inputs, 2));
@@ -621,8 +624,8 @@ static void versioning_eevee_material_shadow_none(Material *material)
   bNode *lp_node = blender::bke::node_add_node(nullptr, ntree, "ShaderNodeLightPath");
   lp_node->flag |= NODE_HIDDEN;
   lp_node->parent = output_node->parent;
-  lp_node->locx = output_node->locx;
-  lp_node->locy = mix_node->locy + 35;
+  lp_node->locx_legacy = output_node->locx_legacy;
+  lp_node->locy_legacy = mix_node->locy_legacy + 35;
   bNodeSocket *is_shadow = blender::bke::node_find_socket(lp_node, SOCK_OUT, "Is Shadow Ray");
   blender::bke::node_add_link(ntree, lp_node, is_shadow, mix_node, mix_fac);
   /* Hide unconnected sockets for cleaner look. */
@@ -636,8 +639,8 @@ static void versioning_eevee_material_shadow_none(Material *material)
   bNode *bsdf_node = blender::bke::node_add_node(nullptr, ntree, "ShaderNodeBsdfTransparent");
   bsdf_node->flag |= NODE_HIDDEN;
   bsdf_node->parent = output_node->parent;
-  bsdf_node->locx = output_node->locx;
-  bsdf_node->locy = mix_node->locy - 35;
+  bsdf_node->locx_legacy = output_node->locx_legacy;
+  bsdf_node->locy_legacy = mix_node->locy_legacy - 35;
   bNodeSocket *bsdf_out = blender::bke::node_find_socket(bsdf_node, SOCK_OUT, "BSDF");
   blender::bke::node_add_link(ntree, bsdf_node, bsdf_out, mix_node, mix_in_2);
 }
@@ -902,8 +905,8 @@ static bool versioning_eevee_material_blend_mode_settings(bNodeTree *ntree, floa
       math_node->custom1 = NODE_MATH_GREATER_THAN;
       math_node->flag |= NODE_HIDDEN;
       math_node->parent = to_node->parent;
-      math_node->locx = to_node->locx - math_node->width - 30;
-      math_node->locy = min_ff(to_node->locy, from_node->locy);
+      math_node->locx_legacy = to_node->locx_legacy - math_node->width - 30;
+      math_node->locy_legacy = min_ff(to_node->locy_legacy, from_node->locy_legacy);
 
       bNodeSocket *input_1 = static_cast<bNodeSocket *>(BLI_findlink(&math_node->inputs, 0));
       bNodeSocket *input_2 = static_cast<bNodeSocket *>(BLI_findlink(&math_node->inputs, 1));
@@ -957,8 +960,8 @@ static void versioning_replace_splitviewer(bNodeTree *ntree)
 
     bNode *viewer_node = blender::bke::node_add_static_node(nullptr, ntree, CMP_NODE_VIEWER);
     /* Nodes are created stacked on top of each other, so separate them a bit. */
-    viewer_node->locx = node->locx + node->width + viewer_node->width / 4.0f;
-    viewer_node->locy = node->locy;
+    viewer_node->locx_legacy = node->locx_legacy + node->width + viewer_node->width / 4.0f;
+    viewer_node->locy_legacy = node->locy_legacy;
     viewer_node->flag &= ~NODE_PREVIEW;
 
     bNodeSocket *split_out_socket = blender::bke::node_add_static_socket(
@@ -1574,8 +1577,8 @@ static void version_refraction_depth_to_thickness_value(bNodeTree *ntree, float 
     }
     bNode *value_node = blender::bke::node_add_static_node(nullptr, ntree, SH_NODE_VALUE);
     value_node->parent = node->parent;
-    value_node->locx = node->locx;
-    value_node->locy = node->locy - 160.0f;
+    value_node->locx_legacy = node->locx_legacy;
+    value_node->locy_legacy = node->locy_legacy - 160.0f;
     bNodeSocket *socket_value = blender::bke::node_find_socket(value_node, SOCK_OUT, "Value");
 
     *version_cycles_node_socket_float_value(socket_value) = thickness;
@@ -1622,8 +1625,8 @@ static void versioning_update_noise_texture_node(bNodeTree *ntree)
       bNode *clamp_node = blender::bke::node_add_static_node(nullptr, ntree, SH_NODE_CLAMP);
       clamp_node->parent = node->parent;
       clamp_node->custom1 = NODE_CLAMP_MINMAX;
-      clamp_node->locx = node->locx;
-      clamp_node->locy = node->locy - 300.0f;
+      clamp_node->locx_legacy = node->locx_legacy;
+      clamp_node->locy_legacy = node->locy_legacy - 300.0f;
       clamp_node->flag |= NODE_HIDDEN;
       bNodeSocket *clamp_socket_value = blender::bke::node_find_socket(
           clamp_node, SOCK_IN, "Value");
@@ -1717,8 +1720,8 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
       bNode *min_node = blender::bke::node_add_static_node(nullptr, ntree, SH_NODE_MATH);
       min_node->parent = node->parent;
       min_node->custom1 = NODE_MATH_MINIMUM;
-      min_node->locx = node->locx;
-      min_node->locy = node->locy - 320.0f;
+      min_node->locx_legacy = node->locx_legacy;
+      min_node->locy_legacy = node->locy_legacy - 320.0f;
       min_node->flag |= NODE_HIDDEN;
       bNodeSocket *min_socket_A = static_cast<bNodeSocket *>(BLI_findlink(&min_node->inputs, 0));
       bNodeSocket *min_socket_B = static_cast<bNodeSocket *>(BLI_findlink(&min_node->inputs, 1));
@@ -1727,8 +1730,8 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
       bNode *sub1_node = blender::bke::node_add_static_node(nullptr, ntree, SH_NODE_MATH);
       sub1_node->parent = node->parent;
       sub1_node->custom1 = NODE_MATH_SUBTRACT;
-      sub1_node->locx = node->locx;
-      sub1_node->locy = node->locy - 360.0f;
+      sub1_node->locx_legacy = node->locx_legacy;
+      sub1_node->locy_legacy = node->locy_legacy - 360.0f;
       sub1_node->flag |= NODE_HIDDEN;
       bNodeSocket *sub1_socket_A = static_cast<bNodeSocket *>(BLI_findlink(&sub1_node->inputs, 0));
       bNodeSocket *sub1_socket_B = static_cast<bNodeSocket *>(BLI_findlink(&sub1_node->inputs, 1));
@@ -1751,8 +1754,8 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
         bNode *greater_node = blender::bke::node_add_static_node(nullptr, ntree, SH_NODE_MATH);
         greater_node->parent = node->parent;
         greater_node->custom1 = NODE_MATH_GREATER_THAN;
-        greater_node->locx = node->locx;
-        greater_node->locy = node->locy - 400.0f;
+        greater_node->locx_legacy = node->locx_legacy;
+        greater_node->locy_legacy = node->locy_legacy - 400.0f;
         greater_node->flag |= NODE_HIDDEN;
         bNodeSocket *greater_socket_A = static_cast<bNodeSocket *>(
             BLI_findlink(&greater_node->inputs, 0));
@@ -1774,8 +1777,8 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
         bNode *clamp_node = blender::bke::node_add_static_node(nullptr, ntree, SH_NODE_CLAMP);
         clamp_node->parent = node->parent;
         clamp_node->custom1 = NODE_CLAMP_MINMAX;
-        clamp_node->locx = node->locx;
-        clamp_node->locy = node->locy + 40.0f;
+        clamp_node->locx_legacy = node->locx_legacy;
+        clamp_node->locy_legacy = node->locy_legacy + 40.0f;
         clamp_node->flag |= NODE_HIDDEN;
         bNodeSocket *clamp_socket_value = blender::bke::node_find_socket(
             clamp_node, SOCK_IN, "Value");
@@ -1787,8 +1790,8 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
         bNode *mul_node = blender::bke::node_add_static_node(nullptr, ntree, SH_NODE_MATH);
         mul_node->parent = node->parent;
         mul_node->custom1 = NODE_MATH_MULTIPLY;
-        mul_node->locx = node->locx;
-        mul_node->locy = node->locy + 80.0f;
+        mul_node->locx_legacy = node->locx_legacy;
+        mul_node->locy_legacy = node->locy_legacy + 80.0f;
         mul_node->flag |= NODE_HIDDEN;
         bNodeSocket *mul_socket_A = static_cast<bNodeSocket *>(BLI_findlink(&mul_node->inputs, 0));
         bNodeSocket *mul_socket_B = static_cast<bNodeSocket *>(BLI_findlink(&mul_node->inputs, 1));
@@ -1804,8 +1807,8 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
           sub2_node->parent = node->parent;
           sub2_node->custom1 = NODE_MATH_SUBTRACT;
           sub2_node->custom2 = SHD_MATH_CLAMP;
-          sub2_node->locx = node->locx;
-          sub2_node->locy = node->locy + 120.0f;
+          sub2_node->locx_legacy = node->locx_legacy;
+          sub2_node->locy_legacy = node->locy_legacy + 120.0f;
           sub2_node->flag |= NODE_HIDDEN;
           bNodeSocket *sub2_socket_A = static_cast<bNodeSocket *>(
               BLI_findlink(&sub2_node->inputs, 0));
@@ -1817,8 +1820,8 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
           bNode *add_node = blender::bke::node_add_static_node(nullptr, ntree, SH_NODE_MATH);
           add_node->parent = node->parent;
           add_node->custom1 = NODE_MATH_ADD;
-          add_node->locx = node->locx;
-          add_node->locy = node->locy + 160.0f;
+          add_node->locx_legacy = node->locx_legacy;
+          add_node->locy_legacy = node->locy_legacy + 160.0f;
           add_node->flag |= NODE_HIDDEN;
           bNodeSocket *add_socket_A = static_cast<bNodeSocket *>(
               BLI_findlink(&add_node->inputs, 0));
@@ -1866,8 +1869,8 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
           bNode *mul_node = blender::bke::node_add_static_node(nullptr, ntree, SH_NODE_MATH);
           mul_node->parent = node->parent;
           mul_node->custom1 = NODE_MATH_MULTIPLY;
-          mul_node->locx = node->locx;
-          mul_node->locy = node->locy + 40.0f;
+          mul_node->locx_legacy = node->locx_legacy;
+          mul_node->locy_legacy = node->locy_legacy + 40.0f;
           mul_node->flag |= NODE_HIDDEN;
           bNodeSocket *mul_socket_A = static_cast<bNodeSocket *>(
               BLI_findlink(&mul_node->inputs, 0));
@@ -1884,8 +1887,8 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
             bNode *add_node = blender::bke::node_add_static_node(nullptr, ntree, SH_NODE_MATH);
             add_node->parent = node->parent;
             add_node->custom1 = NODE_MATH_ADD;
-            add_node->locx = node->locx;
-            add_node->locy = node->locy + 80.0f;
+            add_node->locx_legacy = node->locx_legacy;
+            add_node->locy_legacy = node->locy_legacy + 80.0f;
             add_node->flag |= NODE_HIDDEN;
             bNodeSocket *add_socket_A = static_cast<bNodeSocket *>(
                 BLI_findlink(&add_node->inputs, 0));
@@ -1941,8 +1944,8 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
       bNode *max1_node = blender::bke::node_add_static_node(nullptr, ntree, SH_NODE_MATH);
       max1_node->parent = node->parent;
       max1_node->custom1 = NODE_MATH_MAXIMUM;
-      max1_node->locx = node->locx;
-      max1_node->locy = node->locy - 400.0f + locy_offset;
+      max1_node->locx_legacy = node->locx_legacy;
+      max1_node->locy_legacy = node->locy_legacy - 400.0f + locy_offset;
       max1_node->flag |= NODE_HIDDEN;
       bNodeSocket *max1_socket_A = static_cast<bNodeSocket *>(BLI_findlink(&max1_node->inputs, 0));
       bNodeSocket *max1_socket_B = static_cast<bNodeSocket *>(BLI_findlink(&max1_node->inputs, 1));
@@ -1951,8 +1954,8 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
       bNode *mul_node = blender::bke::node_add_static_node(nullptr, ntree, SH_NODE_MATH);
       mul_node->parent = node->parent;
       mul_node->custom1 = NODE_MATH_MULTIPLY;
-      mul_node->locx = node->locx;
-      mul_node->locy = node->locy - 360.0f + locy_offset;
+      mul_node->locx_legacy = node->locx_legacy;
+      mul_node->locy_legacy = node->locy_legacy - 360.0f + locy_offset;
       mul_node->flag |= NODE_HIDDEN;
       bNodeSocket *mul_socket_A = static_cast<bNodeSocket *>(BLI_findlink(&mul_node->inputs, 0));
       bNodeSocket *mul_socket_B = static_cast<bNodeSocket *>(BLI_findlink(&mul_node->inputs, 1));
@@ -1961,8 +1964,8 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
       bNode *pow_node = blender::bke::node_add_static_node(nullptr, ntree, SH_NODE_MATH);
       pow_node->parent = node->parent;
       pow_node->custom1 = NODE_MATH_POWER;
-      pow_node->locx = node->locx;
-      pow_node->locy = node->locy - 320.0f + locy_offset;
+      pow_node->locx_legacy = node->locx_legacy;
+      pow_node->locy_legacy = node->locy_legacy - 320.0f + locy_offset;
       pow_node->flag |= NODE_HIDDEN;
       bNodeSocket *pow_socket_A = static_cast<bNodeSocket *>(BLI_findlink(&pow_node->inputs, 0));
       bNodeSocket *pow_socket_B = static_cast<bNodeSocket *>(BLI_findlink(&pow_node->inputs, 1));
@@ -1985,8 +1988,8 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
         bNode *max2_node = blender::bke::node_add_static_node(nullptr, ntree, SH_NODE_MATH);
         max2_node->parent = node->parent;
         max2_node->custom1 = NODE_MATH_MAXIMUM;
-        max2_node->locx = node->locx;
-        max2_node->locy = node->locy - 440.0f + locy_offset;
+        max2_node->locx_legacy = node->locx_legacy;
+        max2_node->locy_legacy = node->locy_legacy - 440.0f + locy_offset;
         max2_node->flag |= NODE_HIDDEN;
         bNodeSocket *max2_socket_A = static_cast<bNodeSocket *>(
             BLI_findlink(&max2_node->inputs, 0));
@@ -2011,8 +2014,8 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
       bNode *max2_node = blender::bke::node_add_static_node(nullptr, ntree, SH_NODE_MATH);
       max2_node->parent = node->parent;
       max2_node->custom1 = NODE_MATH_MAXIMUM;
-      max2_node->locx = node->locx;
-      max2_node->locy = node->locy - 360.0f + locy_offset;
+      max2_node->locx_legacy = node->locx_legacy;
+      max2_node->locy_legacy = node->locy_legacy - 360.0f + locy_offset;
       max2_node->flag |= NODE_HIDDEN;
       bNodeSocket *max2_socket_A = static_cast<bNodeSocket *>(BLI_findlink(&max2_node->inputs, 0));
       bNodeSocket *max2_socket_B = static_cast<bNodeSocket *>(BLI_findlink(&max2_node->inputs, 1));
@@ -2021,8 +2024,8 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
       bNode *pow_node = blender::bke::node_add_static_node(nullptr, ntree, SH_NODE_MATH);
       pow_node->parent = node->parent;
       pow_node->custom1 = NODE_MATH_POWER;
-      pow_node->locx = node->locx;
-      pow_node->locy = node->locy - 320.0f + locy_offset;
+      pow_node->locx_legacy = node->locx_legacy;
+      pow_node->locy_legacy = node->locy_legacy - 320.0f + locy_offset;
       pow_node->flag |= NODE_HIDDEN;
       bNodeSocket *pow_socket_A = static_cast<bNodeSocket *>(BLI_findlink(&pow_node->inputs, 0));
       bNodeSocket *pow_socket_B = static_cast<bNodeSocket *>(BLI_findlink(&pow_node->inputs, 1));
@@ -2095,8 +2098,8 @@ static void version_principled_bsdf_subsurface(bNodeTree *ntree)
     if (subsurf->link || subsurf_col->link || base_col->link) {
       bNode *mix = blender::bke::node_add_static_node(nullptr, ntree, SH_NODE_MIX);
       static_cast<NodeShaderMix *>(mix->storage)->data_type = SOCK_RGBA;
-      mix->locx = node->locx - 170;
-      mix->locy = node->locy - 120;
+      mix->locx_legacy = node->locx_legacy - 170;
+      mix->locy_legacy = node->locy_legacy - 120;
 
       bNodeSocket *a_in = blender::bke::node_find_socket(mix, SOCK_IN, "A_Color");
       bNodeSocket *b_in = blender::bke::node_find_socket(mix, SOCK_IN, "B_Color");
@@ -2222,8 +2225,8 @@ static void change_input_socket_to_rotation_type(bNodeTree &ntree,
     }
     bNode *convert = blender::bke::node_add_node(nullptr, &ntree, "FunctionNodeEulerToRotation");
     convert->parent = node.parent;
-    convert->locx = node.locx - 40;
-    convert->locy = node.locy;
+    convert->locx_legacy = node.locx_legacy - 40;
+    convert->locy_legacy = node.locy_legacy;
     link->tonode = convert;
     link->tosock = blender::bke::node_find_socket(convert, SOCK_IN, "Euler");
 
@@ -2255,8 +2258,8 @@ static void change_output_socket_to_rotation_type(bNodeTree &ntree,
     }
     bNode *convert = blender::bke::node_add_node(nullptr, &ntree, "FunctionNodeRotationToEuler");
     convert->parent = node.parent;
-    convert->locx = node.locx + 40;
-    convert->locy = node.locy;
+    convert->locx_legacy = node.locx_legacy + 40;
+    convert->locy_legacy = node.locy_legacy;
     link->fromnode = convert;
     link->fromsock = blender::bke::node_find_socket(convert, SOCK_OUT, "Euler");
 
@@ -2470,8 +2473,8 @@ static void remove_triangulate_node_min_size_input(bNodeTree *tree)
         tree, &corners_of_face, SOCK_OUT, SOCK_INT, PROP_NONE, "Corner Index", "Corner Index");
     version_node_add_socket_if_not_exist(
         tree, &corners_of_face, SOCK_OUT, SOCK_INT, PROP_NONE, "Total", "Total");
-    corners_of_face.locx = triangulate->locx - 200;
-    corners_of_face.locy = triangulate->locy - 50;
+    corners_of_face.locx_legacy = triangulate->locx_legacy - 200;
+    corners_of_face.locy_legacy = triangulate->locy_legacy - 50;
     corners_of_face.parent = triangulate->parent;
     LISTBASE_FOREACH (bNodeSocket *, socket, &corners_of_face.inputs) {
       socket->flag |= SOCK_HIDDEN;
@@ -2493,8 +2496,8 @@ static void remove_triangulate_node_min_size_input(bNodeTree *tree)
         tree, &greater_or_equal, SOCK_IN, SOCK_INT, PROP_NONE, "B_INT", "B");
     version_node_add_socket_if_not_exist(
         tree, &greater_or_equal, SOCK_OUT, SOCK_BOOLEAN, PROP_NONE, "Result", "Result");
-    greater_or_equal.locx = triangulate->locx - 100;
-    greater_or_equal.locy = triangulate->locy - 50;
+    greater_or_equal.locx_legacy = triangulate->locx_legacy - 100;
+    greater_or_equal.locy_legacy = triangulate->locy_legacy - 50;
     greater_or_equal.parent = triangulate->parent;
     greater_or_equal.flag &= ~NODE_OPTIONS;
     version_node_add_link(*tree,
@@ -2519,8 +2522,8 @@ static void remove_triangulate_node_min_size_input(bNodeTree *tree)
           tree, &boolean_and, SOCK_IN, SOCK_BOOLEAN, PROP_NONE, "Boolean_001", "Boolean");
       version_node_add_socket_if_not_exist(
           tree, &boolean_and, SOCK_OUT, SOCK_BOOLEAN, PROP_NONE, "Boolean", "Boolean");
-      boolean_and.locx = triangulate->locx - 75;
-      boolean_and.locy = triangulate->locy - 50;
+      boolean_and.locx_legacy = triangulate->locx_legacy - 75;
+      boolean_and.locy_legacy = triangulate->locy_legacy - 50;
       boolean_and.parent = triangulate->parent;
       boolean_and.flag &= ~NODE_OPTIONS;
       boolean_and.custom1 = NODE_BOOLEAN_MATH_AND;
@@ -2602,8 +2605,8 @@ static void version_principled_bsdf_specular_tint(bNodeTree *ntree)
       /* Metallic Mix needs to be dynamically mixed. */
       bNode *mix = blender::bke::node_add_static_node(nullptr, ntree, SH_NODE_MIX);
       static_cast<NodeShaderMix *>(mix->storage)->data_type = SOCK_RGBA;
-      mix->locx = node->locx - 270;
-      mix->locy = node->locy - 120;
+      mix->locx_legacy = node->locx_legacy - 270;
+      mix->locy_legacy = node->locy_legacy - 120;
 
       bNodeSocket *a_in = blender::bke::node_find_socket(mix, SOCK_IN, "A_Color");
       bNodeSocket *b_in = blender::bke::node_find_socket(mix, SOCK_IN, "B_Color");
@@ -2634,8 +2637,8 @@ static void version_principled_bsdf_specular_tint(bNodeTree *ntree)
     if (specular_tint_sock->link || (metallic_mix_out && specular_tint_old > 0.0f)) {
       bNode *mix = blender::bke::node_add_static_node(nullptr, ntree, SH_NODE_MIX);
       static_cast<NodeShaderMix *>(mix->storage)->data_type = SOCK_RGBA;
-      mix->locx = node->locx - 170;
-      mix->locy = node->locy - 120;
+      mix->locx_legacy = node->locx_legacy - 170;
+      mix->locy_legacy = node->locy_legacy - 120;
 
       bNodeSocket *a_in = blender::bke::node_find_socket(mix, SOCK_IN, "A_Color");
       bNodeSocket *b_in = blender::bke::node_find_socket(mix, SOCK_IN, "B_Color");
@@ -2962,8 +2965,8 @@ static void fix_geometry_nodes_object_info_scale(bNodeTree &ntree)
     bNode *absolute_value = blender::bke::node_add_node(nullptr, &ntree, "ShaderNodeVectorMath");
     absolute_value->custom1 = NODE_VECTOR_MATH_ABSOLUTE;
     absolute_value->parent = node->parent;
-    absolute_value->locx = node->locx + 100;
-    absolute_value->locy = node->locy - 50;
+    absolute_value->locx_legacy = node->locx_legacy + 100;
+    absolute_value->locy_legacy = node->locy_legacy - 50;
     blender::bke::node_add_link(&ntree,
                                 node,
                                 scale,
@@ -3237,8 +3240,8 @@ static void hide_simulation_node_skip_socket_value(Main &bmain)
 
       bNode &input_node = version_node_add_empty(*tree, "FunctionNodeInputBool");
       input_node.parent = node->parent;
-      input_node.locx = node->locx - 25;
-      input_node.locy = node->locy;
+      input_node.locx_legacy = node->locx_legacy - 25;
+      input_node.locy_legacy = node->locy_legacy;
 
       NodeInputBool *input_node_storage = MEM_cnew<NodeInputBool>(__func__);
       input_node.storage = input_node_storage;
@@ -3279,6 +3282,56 @@ static void add_subsurf_node_limit_surface_option(Main &bmain)
               ntree, node, SOCK_IN, SOCK_BOOLEAN, PROP_NONE, "Limit Surface", "Limit Surface");
           static_cast<bNodeSocketValueBoolean *>(socket->default_value)->value = false;
         }
+      }
+    }
+  }
+}
+
+static void version_node_locations_to_global(bNodeTree &ntree)
+{
+  LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
+    node->location[0] = node->locx_legacy;
+    node->location[1] = node->locy_legacy;
+    for (const bNode *parent = node->parent; parent; parent = parent->parent) {
+      node->location[0] += parent->locx_legacy;
+      node->location[1] += parent->locy_legacy;
+    }
+
+    node->location[0] += node->offsetx_legacy;
+    node->location[1] += node->offsety_legacy;
+    node->offsetx_legacy = 0.0f;
+    node->offsety_legacy = 0.0f;
+  }
+}
+
+/**
+ * Clear unnecessary pointers to data blocks on output sockets group input nodes.
+ * These values should never have been set in the first place. They are not harmful on their own,
+ * but can pull in additional data-blocks when the node group is linked/appended.
+ */
+static void version_group_input_socket_data_block_reference(bNodeTree &ntree)
+{
+  LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
+    if (node->type != NODE_GROUP_INPUT) {
+      continue;
+    }
+    LISTBASE_FOREACH (bNodeSocket *, socket, &node->outputs) {
+      switch (socket->type) {
+        case SOCK_OBJECT:
+          socket->default_value_typed<bNodeSocketValueObject>()->value = nullptr;
+          break;
+        case SOCK_IMAGE:
+          socket->default_value_typed<bNodeSocketValueImage>()->value = nullptr;
+          break;
+        case SOCK_COLLECTION:
+          socket->default_value_typed<bNodeSocketValueCollection>()->value = nullptr;
+          break;
+        case SOCK_TEXTURE:
+          socket->default_value_typed<bNodeSocketValueTexture>()->value = nullptr;
+          break;
+        case SOCK_MATERIAL:
+          socket->default_value_typed<bNodeSocketValueMaterial>()->value = nullptr;
+          break;
       }
     }
   }
@@ -5196,11 +5249,81 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 10)) {
+    LISTBASE_FOREACH (bAction *, dna_action, &bmain->actions) {
+      blender::animrig::Action &action = dna_action->wrap();
+      blender::animrig::foreach_fcurve_in_action(
+          action, [&](FCurve &fcurve) { version_fcurve_noise_modifier(fcurve); });
+    }
+
+    ID *id;
+    FOREACH_MAIN_ID_BEGIN (bmain, id) {
+      AnimData *adt = BKE_animdata_from_id(id);
+      if (!adt) {
+        continue;
+      }
+
+      LISTBASE_FOREACH (FCurve *, fcu, &adt->drivers) {
+        version_fcurve_noise_modifier(*fcu);
+      }
+    }
+    FOREACH_MAIN_ID_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 11)) {
+    /* #update_paint_modes_for_brush_assets() didn't handle image editor tools for some time. 4.3
+     * files saved during that period could have invalid tool references stored. */
+    LISTBASE_FOREACH (WorkSpace *, workspace, &bmain->workspaces) {
+      LISTBASE_FOREACH (bToolRef *, tref, &workspace->tools) {
+        if (tref->space_type == SPACE_IMAGE && tref->mode == SI_MODE_PAINT) {
+          STRNCPY(tref->idname, "builtin.brush");
+        }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 12)) {
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      version_node_locations_to_global(*ntree);
+    }
+    FOREACH_NODETREE_END;
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 13)) {
+    LISTBASE_FOREACH (Object *, object, &bmain->objects) {
+      LISTBASE_FOREACH (ModifierData *, modifier, &object->modifiers) {
+        if (modifier->type != eModifierType_Nodes) {
+          continue;
+        }
+        NodesModifierData *nmd = reinterpret_cast<NodesModifierData *>(modifier);
+        if (!nmd->settings.properties) {
+          continue;
+        }
+        LISTBASE_FOREACH (IDProperty *, idprop, &nmd->settings.properties->data.group) {
+          if (idprop->type != IDP_STRING) {
+            continue;
+          }
+          blender::StringRef prop_name(idprop->name);
+          if (prop_name.endswith("_attribute_name") || prop_name.endswith("_use_attribute")) {
+            idprop->flag |= IDP_FLAG_OVERRIDABLE_LIBRARY | IDP_FLAG_STATIC_TYPE;
+          }
+        }
+      }
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 14)) {
+    LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
+      version_group_input_socket_data_block_reference(*ntree);
+    }
+  }
+
   /* Always run this versioning; meshes are written with the legacy format which always needs to
    * be converted to the new format on file load. Can be moved to a subversion check in a larger
    * breaking release. */
   LISTBASE_FOREACH (Mesh *, mesh, &bmain->meshes) {
     blender::bke::mesh_sculpt_mask_to_generic(*mesh);
+    blender::bke::mesh_custom_normals_to_generic(*mesh);
   }
 
   /**

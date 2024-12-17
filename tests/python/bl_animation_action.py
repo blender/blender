@@ -13,6 +13,61 @@ blender -b --factory-startup --python tests/python/bl_animation_action.py
 """
 
 
+class ActionSlotCreationTest(unittest.TestCase):
+    """Test creating action slots & their resulting identifiers and id roots."""
+
+    def setUp(self) -> None:
+        bpy.ops.wm.read_homefile(use_factory_startup=True)
+
+        self.action = bpy.data.actions.new('Action')
+
+    def test_same_name_different_type(self):
+        slot1 = self.action.slots.new('OBJECT', "Bob")
+        slot2 = self.action.slots.new('CAMERA', "Bob")
+        slot3 = self.action.slots.new('LIGHT', "Bob")
+
+        self.assertEqual("OBBob", slot1.identifier)
+        self.assertEqual('OBJECT', slot1.id_root)
+
+        self.assertEqual("CABob", slot2.identifier)
+        self.assertEqual('CAMERA', slot2.id_root)
+
+        self.assertEqual("LABob", slot3.identifier)
+        self.assertEqual('LIGHT', slot3.id_root)
+
+    def test_same_name_same_type(self):
+        slot1 = self.action.slots.new('OBJECT', "Bob")
+        slot2 = self.action.slots.new('OBJECT', "Bob")
+        slot3 = self.action.slots.new('OBJECT', "Bob")
+
+        self.assertEqual("OBBob", slot1.identifier)
+        self.assertEqual('OBJECT', slot1.id_root)
+
+        self.assertEqual("OBBob.001", slot2.identifier)
+        self.assertEqual('OBJECT', slot2.id_root)
+
+        self.assertEqual("OBBob.002", slot3.identifier)
+        self.assertEqual('OBJECT', slot3.id_root)
+
+    def test_invalid_arguments(self):
+        with self.assertRaises(TypeError):
+            # ID type parameter is required.
+            self.action.slots.new('Hello')
+
+        with self.assertRaises(TypeError):
+            # Name parameter is required.
+            self.action.slots.new('OBJECT')
+
+        with self.assertRaises(RuntimeError):
+            # Name parameter must not be empty.
+            self.action.slots.new('OBJECT', "")
+
+        with self.assertRaises(TypeError):
+            # Creating slots with unspecified ID type is
+            # not supported in the Python API.
+            self.action.slots.new('UNSPECIFIED', "Bob")
+
+
 class ActionSlotAssignmentTest(unittest.TestCase):
     """Test assigning actions & check reference counts."""
 
@@ -53,13 +108,13 @@ class ActionSlotAssignmentTest(unittest.TestCase):
         cube = bpy.data.objects['Cube']
         cube_adt = cube.animation_data_create()
         cube_adt.action = action
-        slot_cube = action.slots.new(for_id=cube)
+        slot_cube = action.slots.new(cube.id_type, cube.name)
         cube_adt.action_slot_handle = slot_cube.handle
         self.assertEqual(cube_adt.action_slot_handle, slot_cube.handle)
 
         # Assign the Action to the camera as well.
         camera = bpy.data.objects['Camera']
-        slot_camera = action.slots.new(for_id=camera)
+        slot_camera = action.slots.new(camera.id_type, camera.name)
         camera_adt = camera.animation_data_create()
         camera_adt.action = action
         self.assertEqual(camera_adt.action_slot_handle, slot_camera.handle)
@@ -69,13 +124,13 @@ class ActionSlotAssignmentTest(unittest.TestCase):
         self.assertEqual(cube_adt.last_slot_identifier, slot_cube.identifier)
 
         # It should not be possible to set the slot handle while the Action is unassigned.
-        slot_extra = action.slots.new()
+        slot_extra = action.slots.new('OBJECT', "Slot")
         cube_adt.action_slot_handle = slot_extra.handle
         self.assertNotEqual(cube_adt.action_slot_handle, slot_extra.handle)
 
         # Slots from another Action should be gracefully rejected.
         other_action = bpy.data.actions.new("That Other Action")
-        slot = other_action.slots.new()
+        slot = other_action.slots.new('OBJECT', "Slot")
         cube_adt.action = action
         cube_adt.action_slot = slot_cube
         with self.assertRaises(RuntimeError):
@@ -147,13 +202,13 @@ class LegacyAPIOnLayeredActionTest(unittest.TestCase):
         self.action = bpy.data.actions.new('LayeredAction')
 
     def test_fcurves_on_layered_action(self) -> None:
-        slot = self.action.slots.new(for_id=bpy.data.objects['Cube'])
+        slot = self.action.slots.new(bpy.data.objects['Cube'].id_type, bpy.data.objects['Cube'].name)
 
         layer = self.action.layers.new(name="Layer")
         strip = layer.strips.new(type='KEYFRAME')
         channelbag = strip.channelbags.new(slot=slot)
 
-        # Create new F-Curves via legacy API, they should be stored on the ChannelBag.
+        # Create new F-Curves via legacy API, they should be stored on the Channelbag.
         fcurve1 = self.action.fcurves.new("scale", index=1)
         fcurve2 = self.action.fcurves.new("scale", index=2)
         self.assertEqual([fcurve1, fcurve2], channelbag.fcurves[:], "Expected two F-Curves after creating them")
@@ -191,7 +246,7 @@ class LegacyAPIOnLayeredActionTest(unittest.TestCase):
         self.assertEqual([], self.action.layers[:])
 
     def test_fcurves_new_on_empty_action(self) -> None:
-        # Create new F-Curves via legacy API, this should create a layer+strip+ChannelBag.
+        # Create new F-Curves via legacy API, this should create a layer+strip+Channelbag.
         fcurve1 = self.action.fcurves.new("scale", index=1)
         fcurve2 = self.action.fcurves.new("scale", index=2)
 
@@ -239,7 +294,7 @@ class LegacyAPIOnLayeredActionTest(unittest.TestCase):
         self.assertNotIn(group, channelbag.groups[:], "A group should be removable via the legacy API")
 
 
-class ChannelBagsTest(unittest.TestCase):
+class ChannelbagsTest(unittest.TestCase):
     def setUp(self):
         anims = bpy.data.actions
         while anims:
@@ -247,8 +302,7 @@ class ChannelBagsTest(unittest.TestCase):
 
         self.action = bpy.data.actions.new('TestAction')
 
-        self.slot = self.action.slots.new()
-        self.slot.identifier = 'OBTest'
+        self.slot = self.action.slots.new('OBJECT', "Test")
 
         self.layer = self.action.layers.new(name="Layer")
         self.strip = self.layer.strips.new(type='KEYFRAME')
@@ -285,7 +339,7 @@ class ChannelBagsTest(unittest.TestCase):
 
         # Removing an unrelated F-Curve should fail, even when an F-Curve with
         # the same RNA path and array index exists.
-        other_slot = self.action.slots.new()
+        other_slot = self.action.slots.new('OBJECT', "Slot")
         other_cbag = self.strip.channelbags.new(other_slot)
         other_fcurve = other_cbag.fcurves.new('location', index=1)
         with self.assertRaises(RuntimeError):
@@ -354,7 +408,7 @@ class ChannelBagsTest(unittest.TestCase):
 
         # Attempting to remove a channel group that belongs to a different
         # channel bag should fail.
-        other_slot = self.action.slots.new()
+        other_slot = self.action.slots.new('OBJECT', "Slot")
         other_cbag = self.strip.channelbags.new(other_slot)
         other_group = other_cbag.groups.new('group1')
         with self.assertRaises(RuntimeError):
@@ -378,8 +432,7 @@ class DataPathTest(unittest.TestCase):
     def test_repr(self):
         action = bpy.data.actions.new('TestAction')
 
-        slot = action.slots.new()
-        slot.identifier = 'OBTest'
+        slot = action.slots.new('OBJECT', "Test")
         self.assertEqual("bpy.data.actions['TestAction'].slots[\"OBTest\"]", repr(slot))
 
         layer = action.layers.new(name="Layer")

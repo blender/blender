@@ -79,9 +79,11 @@ void TwistOperation::on_stroke_extended(const bContext &C, const InputSample &ex
 
           const float angle = DEG2RADF(invert ? -1.0f : 1.0f) * influence;
           const float2 radial_offset = co - mouse_pos;
-          positions[point_i] = projection_fn(deformation.positions[point_i],
-                                             rotate_by_angle(radial_offset, angle) -
-                                                 radial_offset);
+          positions[point_i] += compute_orig_delta(projection_fn,
+                                                   deformation,
+                                                   point_i,
+                                                   rotate_by_angle(radial_offset, angle) -
+                                                       radial_offset);
         });
 
         params.drawing.tag_positions_changed();

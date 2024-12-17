@@ -19,7 +19,6 @@ extern "C" {
 /** \name Init
  * \{ */
 
-void zero_m2(float m[2][2]);
 void zero_m3(float m[3][3]);
 void zero_m4(float m[4][4]);
 
@@ -33,8 +32,6 @@ void copy_m3_m3(float m1[3][3], const float m2[3][3]);
 void copy_m4_m4(float m1[4][4], const float m2[4][4]);
 void copy_m3_m4(float m1[3][3], const float m2[4][4]);
 void copy_m4_m3(float m1[4][4], const float m2[3][3]);
-void copy_m3_m2(float m1[3][3], const float m2[2][2]);
-void copy_m4_m2(float m1[4][4], const float m2[2][2]);
 
 void copy_m4_m4_db(double m1[4][4], const double m2[4][4]);
 
@@ -47,7 +44,6 @@ void copy_m3_m3d(float m1[3][3], const double m2[3][3]);
 void copy_m3d_m3(double m1[3][3], const float m2[3][3]);
 void copy_m4d_m4(double m1[4][4], const float m2[4][4]);
 
-void swap_m3m3(float m1[3][3], float m2[3][3]);
 void swap_m4m4(float m1[4][4], float m2[4][4]);
 
 /** Build index shuffle matrix. */
@@ -66,7 +62,6 @@ void madd_m3_m3m3fl(float R[3][3], const float A[3][3], const float B[3][3], flo
 void madd_m4_m4m4fl(float R[4][4], const float A[4][4], const float B[4][4], float f);
 
 void sub_m3_m3m3(float R[3][3], const float A[3][3], const float B[3][3]);
-void sub_m4_m4m4(float R[4][4], const float A[4][4], const float B[4][4]);
 
 void mul_m3_m3m3(float R[3][3], const float A[3][3], const float B[3][3]);
 void mul_m4_m3m4(float R[4][4], const float A[3][3], const float B[4][4]);
@@ -207,7 +202,6 @@ void mul_v3_m3v3(float r[3], const float M[3][3], const float a[3]);
 void mul_v2_m3v3(float r[2], const float M[3][3], const float a[3]);
 void mul_transposed_m3_v3(const float M[3][3], float r[3]);
 void mul_transposed_mat3_m4_v3(const float M[4][4], float r[3]);
-void mul_m3_v3_double(const float M[3][3], double r[3]);
 
 /**
  * Combines transformations, handling scale separately in a manner equivalent
@@ -231,9 +225,6 @@ void negate_m3(float R[3][3]);
 void negate_mat3_m4(float R[4][4]);
 void negate_m4(float R[4][4]);
 
-bool invert_m3_ex(float mat[3][3], float epsilon);
-bool invert_m3_m3_ex(float inverse[3][3], const float mat[3][3], float epsilon);
-
 bool invert_m3(float mat[3][3]);
 bool invert_m2_m2(float inverse[2][2], const float mat[2][2]);
 bool invert_m3_m3(float inverse[3][3], const float mat[3][3]);
@@ -250,11 +241,6 @@ bool invert_m4_m4(float inverse[4][4], const float mat[4][4]);
  * be useful to have a valid local transform center, see #57767.
  */
 bool invert_m4_m4_fallback(float inverse[4][4], const float mat[4][4]);
-
-/* Double arithmetic (mixed float/double). */
-
-void mul_m4_v4d(const float mat[4][4], double r[4]);
-void mul_v4d_m4v4d(double r[4], const float mat[4][4], const double v[4]);
 
 /* Double matrix functions (no mixing types). */
 
@@ -278,17 +264,11 @@ void transpose_m4_m4(float R[4][4], const float M[4][4]);
 
 bool compare_m4m4(const float mat1[4][4], const float mat2[4][4], float limit);
 
-void normalize_m2_ex(float R[2][2], float r_scale[2]) ATTR_NONNULL();
-void normalize_m2(float R[2][2]) ATTR_NONNULL();
-void normalize_m2_m2_ex(float R[2][2], const float M[2][2], float r_scale[2]) ATTR_NONNULL();
 void normalize_m2_m2(float R[2][2], const float M[2][2]) ATTR_NONNULL();
-void normalize_m3_ex(float R[3][3], float r_scale[3]) ATTR_NONNULL();
 void normalize_m3(float R[3][3]) ATTR_NONNULL();
-void normalize_m3_m3_ex(float R[3][3], const float M[3][3], float r_scale[3]) ATTR_NONNULL();
 void normalize_m3_m3(float R[3][3], const float M[3][3]) ATTR_NONNULL();
 void normalize_m4_ex(float R[4][4], float r_scale[3]) ATTR_NONNULL();
 void normalize_m4(float R[4][4]) ATTR_NONNULL();
-void normalize_m4_m4_ex(float rmat[4][4], const float mat[4][4], float r_scale[3]) ATTR_NONNULL();
 void normalize_m4_m4(float rmat[4][4], const float mat[4][4]) ATTR_NONNULL();
 
 /**
@@ -304,15 +284,6 @@ void orthogonalize_m3(float R[3][3], int axis);
  */
 void orthogonalize_m4(float R[4][4], int axis);
 
-/**
- * Make an orthonormal matrix around the selected axis of the given matrix,
- * in a way that is symmetric and stable to variations in the input, and
- * preserving the value of the determinant, i.e. the overall volume change.
- *
- * \param axis: Axis to build the orthonormal basis around.
- * \param normalize: Normalize the matrix instead of preserving volume.
- */
-void orthogonalize_m3_stable(float R[3][3], int axis, bool normalize);
 /**
  * Make an orthonormal matrix around the selected axis of the given matrix,
  * in a way that is symmetric and stable to variations in the input, and
@@ -364,8 +335,6 @@ void pseudoinverse_m4_m4(float inverse[4][4], const float mat[4][4], float epsil
 void pseudoinverse_m3_m3(float inverse[3][3], const float mat[3][3], float epsilon);
 
 bool has_zero_axis_m4(const float matrix[4][4]);
-/** Fix any zero scale axis adding a small bias orthogonal to the other valid axis. */
-void zero_axis_bias_m4(float mat[4][4]);
 
 void invert_m4_m4_safe(float inverse[4][4], const float mat[4][4]);
 
@@ -386,14 +355,12 @@ void invert_m4_m4_safe_ortho(float inverse[4][4], const float mat[4][4]);
 
 void scale_m3_fl(float R[3][3], float scale);
 void scale_m4_fl(float R[4][4], float scale);
-void scale_m4_v2(float R[4][4], const float scale[2]);
 
 /**
  * This computes the overall volume scale factor of a transformation matrix.
  * For an orthogonal matrix, it is the product of all three scale values.
  * Returns a negative value if the transform is flipped by negative scale.
  */
-float mat3_to_volume_scale(const float mat[3][3]);
 float mat4_to_volume_scale(const float mat[4][4]);
 
 /**
@@ -403,14 +370,10 @@ float mat4_to_volume_scale(const float mat[4][4]);
  */
 float mat3_to_scale(const float mat[3][3]);
 float mat4_to_scale(const float mat[4][4]);
-/** Return 2D scale (in XY plane) of given mat4. */
-float mat4_to_xy_scale(const float mat[4][4]);
 
 void size_to_mat3(float R[3][3], const float size[3]);
 void size_to_mat4(float R[4][4], const float size[3]);
 
-/** Return 2D size assuming the given matrix is a 2D affine matrix. */
-void mat3_to_size_2d(float size[2], const float M[3][3]);
 void mat3_to_size(float size[3], const float M[3][3]);
 void mat4_to_size(float size[3], const float M[4][4]);
 
@@ -421,9 +384,6 @@ void mat4_to_size(float size[3], const float M[4][4]);
  * size = size_v3[max_axis_v3(size_v3)];
  * \endcode
  * .. without 2x unnecessary `sqrtf` calls.
- */
-float mat3_to_size_max_axis(const float M[3][3]);
-/**
  * Only the first 3 axes are used.
  */
 float mat4_to_size_max_axis(const float M[4][4]);
@@ -454,11 +414,6 @@ void rescale_m4(float mat[4][4], const float scale[3]);
  * Typical use case is to make 3x3 matrix, copy to 4x4, then pass to this function.
  */
 void transform_pivot_set_m4(float mat[4][4], const float pivot[3]);
-
-/**
- * \param rot: A 3x3 rotation matrix, normalized never negative.
- */
-void mat4_to_rot(float rot[3][3], const float wmat[4][4]);
 
 /**
  * \param rot: A 3x3 rotation matrix, normalized never negative.
@@ -507,8 +462,6 @@ void loc_quat_size_to_mat4(float R[4][4],
                            const float loc[3],
                            const float quat[4],
                            const float size[3]);
-void loc_axisangle_size_to_mat4(
-    float R[4][4], const float loc[3], const float axis[3], float angle, const float size[3]);
 
 void blend_m3_m3m3(float out[3][3], const float dst[3][3], const float src[3][3], float srcweight);
 void blend_m4_m4m4(float out[4][4], const float dst[4][4], const float src[4][4], float srcweight);
@@ -555,7 +508,6 @@ bool is_negative_m3(const float mat[3][3]);
 /** A version of #is_negative_m3 that takes a 4x4 matrix. */
 bool is_negative_m4(const float mat[4][4]);
 
-bool is_zero_m3(const float mat[3][3]);
 bool is_zero_m4(const float mat[4][4]);
 
 bool equals_m3m3(const float mat1[3][3], const float mat2[3][3]);

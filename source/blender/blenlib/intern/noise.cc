@@ -615,6 +615,12 @@ template float perlin_fbm<float3>(float3 p,
                                   const float lacunarity,
                                   const bool normalize);
 
+template float perlin_fbm<float2>(float2 p,
+                                  const float detail,
+                                  const float roughness,
+                                  const float lacunarity,
+                                  const bool normalize);
+
 template<typename T>
 float perlin_multi_fractal(T p, const float detail, const float roughness, const float lacunarity)
 {

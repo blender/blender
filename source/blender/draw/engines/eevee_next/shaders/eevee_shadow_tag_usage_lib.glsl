@@ -11,6 +11,12 @@
  * This contains the common logic used for tagging shadows for opaque and transparent receivers.
  */
 
+#include "infos/eevee_shadow_info.hh"
+
+#ifdef GPU_LIBRARY_SHADER
+SHADER_LIBRARY_CREATE_INFO(eevee_shadow_tag_usage_surfels)
+#endif
+
 #include "draw_intersect_lib.glsl"
 #include "draw_view_lib.glsl"
 #include "eevee_light_iter_lib.glsl"

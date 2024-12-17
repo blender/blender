@@ -1,3 +1,30 @@
+Audaspace 1.5
+
+- Performance improvements and two more quality presets for the JOS resampler.
+- Bugfixes for PulseAudio.
+- CoreAudio device is only opened on demand.
+- FFMPEG 7 support and dropped support for FFMPEG older than 6.
+- Various minor fixes and improvements.
+
+Detailed list of changes:
+
+3566597 FFMPEG Update
+c158a27 Porting bugfix from Blender.
+edb388b Bugfix for PulseAudio: buffers not cleared after pause.
+6affec8 Port fix from Blender.
+a99262e Load CoreAudio device on demand
+ae29ce2 Adding default quality parameter also to JOSResample.
+dae2044 Renaming resample quality enum values in the C API.
+8c810b5 Add resampling quality parameter to various mixdown functions, and to PySound resample
+1b9b7f9 Add ResampleQuality enum and APIs to control resampling quality
+4bfd596 Avoid std::string copies by value
+0d18fe7 JOSResampleReader performance and faster quality settings (#18)
+2a300d9 Filter design python script.
+5f745ff Bugfix for reading an animated property with a negative time value.
+04eeb56 Fix python documentation.
+631850b Update AUTHORS.
+db2ff58 Improve seeking for animated sequences
+
 Audaspace 1.4
 
 - Support for OS specific/native audio devices/backends has been added, that is PulseAudio (Linux), WASAPI (Windows) and CoreAudio (MacOS).

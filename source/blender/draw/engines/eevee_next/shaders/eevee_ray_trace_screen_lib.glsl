@@ -15,8 +15,11 @@
  */
 
 #include "draw_view_lib.glsl"
+#include "eevee_bxdf_diffuse_lib.glsl"
+#include "eevee_bxdf_microfacet_lib.glsl"
 #include "eevee_ray_types_lib.glsl"
 #include "eevee_thickness_lib.glsl"
+#include "gpu_shader_codegen_lib.glsl"
 #include "gpu_shader_math_fast_lib.glsl"
 #include "gpu_shader_math_matrix_lib.glsl"
 

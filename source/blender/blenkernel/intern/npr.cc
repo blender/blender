@@ -20,10 +20,10 @@ bNodeTree *BKE_npr_tree_add(Main *bmain, const char *name)
   bNode *output = blender::bke::node_add_static_node(nullptr, ntree, SH_NODE_NPR_OUTPUT);
 
   /* Weird offsets, but these are the same as the default material node trees. */
-  input->locx = 10.0f;
-  input->locy = 300.0f;
-  output->locx = 300.0f;
-  output->locy = 300.0f;
+  input->location[0] = 10.0f;
+  input->location[1] = 300.0f;
+  output->location[0] = 300.0f;
+  output->location[1] = 300.0f;
 
   blender::bke::node_add_link(ntree,
                               input,

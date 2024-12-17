@@ -234,6 +234,10 @@ class Manager {
    */
   void compute_visibility(View &view);
   /**
+   * Same as compute_visibility but only do it if needed.
+   */
+  void ensure_visibility(View &view);
+  /**
    * Generate commands for #ResourceHandle for the given #View and #PassMain.
    * The commands needs to be regenerated for any change inside the #Manager, the #PassMain or in
    * the #View. Avoids just in time command generation.

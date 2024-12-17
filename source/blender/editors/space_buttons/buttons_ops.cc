@@ -144,7 +144,7 @@ static int context_menu_invoke(bContext *C, wmOperator * /*op*/, const wmEvent *
   uiPopupMenu *pup = UI_popup_menu_begin(C, IFACE_("Context Menu"), ICON_NONE);
   uiLayout *layout = UI_popup_menu_layout(pup);
 
-  uiItemM(layout, "INFO_MT_area", nullptr, ICON_NONE);
+  uiItemM(layout, "INFO_MT_area", std::nullopt, ICON_NONE);
   UI_popup_menu_end(C, pup);
 
   return OPERATOR_INTERFACE;

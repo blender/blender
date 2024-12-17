@@ -68,15 +68,15 @@ static void node_composit_buts_lensdist(uiLayout *layout, bContext * /*C*/, Poin
   uiLayout *col;
 
   col = uiLayoutColumn(layout, false);
-  uiItemR(col, ptr, "use_projector", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "use_projector", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 
   col = uiLayoutColumn(col, false);
   uiLayoutSetActive(col, RNA_boolean_get(ptr, "use_projector") == false);
-  uiItemR(col, ptr, "use_jitter", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "use_fit", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "use_jitter", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  uiItemR(col, ptr, "use_fit", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 /* --------------------------------------------------------------------
  * Screen Lens Distortion
@@ -343,7 +343,7 @@ class LensDistortionOperation : public NodeOperation {
 
       /* Sample the red and blue channels shifted by the dispersion amount. */
       const float red = input.sample_bilinear_zero(normalized_texel + float2(dispersion, 0.0f)).x;
-      const float green = input.load_pixel(texel).y;
+      const float green = input.load_pixel<float4>(texel).y;
       const float blue = input.sample_bilinear_zero(normalized_texel - float2(dispersion, 0.0f)).z;
 
       output.store_pixel(texel, float4(red, green, blue, 1.0f));

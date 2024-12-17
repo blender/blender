@@ -856,33 +856,33 @@ static const char *node_get_static_idname(int type, int treetype)
   return "";
 }
 
-static const char *node_socket_get_static_idname(bNodeSocket *sock)
+static blender::StringRefNull node_socket_get_static_idname(bNodeSocket *sock)
 {
   switch (sock->type) {
     case SOCK_FLOAT: {
       bNodeSocketValueFloat *dval = sock->default_value_typed<bNodeSocketValueFloat>();
-      return blender::bke::node_static_socket_type(SOCK_FLOAT, dval->subtype);
+      return *blender::bke::node_static_socket_type(SOCK_FLOAT, dval->subtype);
     }
     case SOCK_INT: {
       bNodeSocketValueInt *dval = sock->default_value_typed<bNodeSocketValueInt>();
-      return blender::bke::node_static_socket_type(SOCK_INT, dval->subtype);
+      return *blender::bke::node_static_socket_type(SOCK_INT, dval->subtype);
     }
     case SOCK_BOOLEAN: {
-      return blender::bke::node_static_socket_type(SOCK_BOOLEAN, PROP_NONE);
+      return *blender::bke::node_static_socket_type(SOCK_BOOLEAN, PROP_NONE);
     }
     case SOCK_VECTOR: {
       bNodeSocketValueVector *dval = sock->default_value_typed<bNodeSocketValueVector>();
-      return blender::bke::node_static_socket_type(SOCK_VECTOR, dval->subtype);
+      return *blender::bke::node_static_socket_type(SOCK_VECTOR, dval->subtype);
     }
     case SOCK_RGBA: {
-      return blender::bke::node_static_socket_type(SOCK_RGBA, PROP_NONE);
+      return *blender::bke::node_static_socket_type(SOCK_RGBA, PROP_NONE);
     }
     case SOCK_STRING: {
       bNodeSocketValueString *dval = sock->default_value_typed<bNodeSocketValueString>();
-      return blender::bke::node_static_socket_type(SOCK_STRING, dval->subtype);
+      return *blender::bke::node_static_socket_type(SOCK_STRING, dval->subtype);
     }
     case SOCK_SHADER: {
-      return blender::bke::node_static_socket_type(SOCK_SHADER, PROP_NONE);
+      return *blender::bke::node_static_socket_type(SOCK_SHADER, PROP_NONE);
     }
   }
   return "";
@@ -917,18 +917,18 @@ static void do_versions_nodetree_customnodes(bNodeTree *ntree, int /*is_group*/)
 
       /* sockets idname */
       LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
-        STRNCPY(sock->idname, node_socket_get_static_idname(sock));
+        STRNCPY(sock->idname, node_socket_get_static_idname(sock).c_str());
       }
       LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
-        STRNCPY(sock->idname, node_socket_get_static_idname(sock));
+        STRNCPY(sock->idname, node_socket_get_static_idname(sock).c_str());
       }
     }
     /* tree sockets idname */
     LISTBASE_FOREACH (bNodeSocket *, sock, &ntree->inputs_legacy) {
-      STRNCPY(sock->idname, node_socket_get_static_idname(sock));
+      STRNCPY(sock->idname, node_socket_get_static_idname(sock).c_str());
     }
     LISTBASE_FOREACH (bNodeSocket *, sock, &ntree->outputs_legacy) {
-      STRNCPY(sock->idname, node_socket_get_static_idname(sock));
+      STRNCPY(sock->idname, node_socket_get_static_idname(sock).c_str());
     }
   }
 
@@ -2313,10 +2313,10 @@ void blo_do_versions_260(FileData *fd, Library * /*lib*/, Main *bmain)
             num_inputs++;
 
             if (link->tonode) {
-              if (input_locx > link->tonode->locx - offsetx) {
-                input_locx = link->tonode->locx - offsetx;
+              if (input_locx > link->tonode->locx_legacy - offsetx) {
+                input_locx = link->tonode->locx_legacy - offsetx;
               }
-              input_locy += link->tonode->locy;
+              input_locy += link->tonode->locy_legacy;
             }
           }
           else {
@@ -2332,10 +2332,10 @@ void blo_do_versions_260(FileData *fd, Library * /*lib*/, Main *bmain)
             num_outputs++;
 
             if (link->fromnode) {
-              if (output_locx < link->fromnode->locx + offsetx) {
-                output_locx = link->fromnode->locx + offsetx;
+              if (output_locx < link->fromnode->locx_legacy + offsetx) {
+                output_locx = link->fromnode->locx_legacy + offsetx;
               }
-              output_locy += link->fromnode->locy;
+              output_locy += link->fromnode->locy_legacy;
             }
           }
           else {
@@ -2350,13 +2350,13 @@ void blo_do_versions_260(FileData *fd, Library * /*lib*/, Main *bmain)
 
       if (num_inputs > 0) {
         input_locy /= num_inputs;
-        input_node->locx = input_locx;
-        input_node->locy = input_locy;
+        input_node->locx_legacy = input_locx;
+        input_node->locy_legacy = input_locy;
       }
       if (num_outputs > 0) {
         output_locy /= num_outputs;
-        output_node->locx = output_locx;
-        output_node->locy = output_locy;
+        output_node->locx_legacy = output_locx;
+        output_node->locy_legacy = output_locy;
       }
     }
     FOREACH_NODETREE_END;

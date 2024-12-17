@@ -1108,13 +1108,18 @@ static int curve_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event)
         /* needed or else the draw matrix can be incorrect */
         view3d_operator_needs_opengl(C);
 
-        eV3DDepthOverrideMode depth_mode = V3D_DEPTH_NO_OVERLAYS;
+        eV3DDepthOverrideMode depth_mode = V3D_DEPTH_ALL;
         if (cps->flag & CURVE_PAINT_FLAG_DEPTH_ONLY_SELECTED) {
           depth_mode = V3D_DEPTH_SELECTED_ONLY;
         }
 
-        ED_view3d_depth_override(
-            cdd->vc.depsgraph, cdd->vc.region, cdd->vc.v3d, nullptr, depth_mode, &cdd->depths);
+        ED_view3d_depth_override(cdd->vc.depsgraph,
+                                 cdd->vc.region,
+                                 cdd->vc.v3d,
+                                 nullptr,
+                                 depth_mode,
+                                 false,
+                                 &cdd->depths);
 
         if (cdd->depths != nullptr) {
           cdd->project.use_depth = true;

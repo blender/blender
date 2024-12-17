@@ -5,6 +5,10 @@
 
 # Note: this code should be cleaned up / refactored.
 
+__all__ = (
+    "main",
+)
+
 import sys
 if sys.version_info.major < 3:
     print("\nPython3.x needed, found %s.\nAborting!\n" %
@@ -51,7 +55,7 @@ for k, v in IGNORE_SOURCE_MISSING_FLAT:
 del IGNORE_SOURCE_MISSING_FLAT
 
 
-def replace_line(f: str, i: int, text: str, keep_indent: bool = True) -> None:
+def replace_line(f: str, i: int, text: str) -> None:
     file_handle = open(f, 'r')
     data = file_handle.readlines()
     file_handle.close()
@@ -95,11 +99,14 @@ def is_c(filename: str) -> bool:
     return (ext in {".c", ".cpp", ".cxx", ".m", ".mm", ".rc", ".cc", ".inl", ".metal", ".msl"})
 
 
-def is_c_any(filename: str) -> bool:
-    return is_c(filename) or is_c_header(filename)
+# def is_c_any(filename: str) -> bool:
+#     return is_c(filename) or is_c_header(filename)
 
 
 def cmake_get_src(f: str) -> None:
+
+    # TODO: only partially implemented, needs work.
+    do_replace_text = False
 
     sources_h = []
     sources_c = []
@@ -272,8 +279,9 @@ def cmake_get_src(f: str) -> None:
                             if new_path_rel != l:
                                 print("overly relative path:\n  %s:%d\n  %s\n  %s" % (f, line_number, l, new_path_rel))
 
-                                # # Save time. just replace the line
-                                # replace_line(f, line_number - 1, new_path_rel)
+                                # Save time. just replace the line.
+                                if do_replace_text:
+                                    replace_line(f, line_number - 1, new_path_rel)
 
                         else:
                             raise Exception("non existent include %s:%d -> %s" % (f, line_number, new_file))

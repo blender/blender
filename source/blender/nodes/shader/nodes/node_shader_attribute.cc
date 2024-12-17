@@ -9,6 +9,8 @@
 #include "UI_interface.hh"
 #include "UI_resources.hh"
 
+#include "RNA_access.hh"
+
 namespace blender::nodes::node_shader_attribute_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
@@ -21,8 +23,16 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_shader_buts_attribute(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiItemR(layout, ptr, "attribute_type", UI_ITEM_R_SPLIT_EMPTY_NAME, IFACE_("Type"), ICON_NONE);
-  uiItemR(layout, ptr, "attribute_name", UI_ITEM_R_SPLIT_EMPTY_NAME, IFACE_("Name"), ICON_NONE);
+  uiItemR(layout, ptr, "attribute_type", UI_ITEM_NONE, "", ICON_NONE);
+  uiItemFullR(layout,
+              ptr,
+              RNA_struct_find_property(ptr, "attribute_name"),
+              -1,
+              0,
+              UI_ITEM_NONE,
+              "",
+              ICON_NONE,
+              "Name");
 }
 
 static void node_shader_init_attribute(bNodeTree * /*ntree*/, bNode *node)

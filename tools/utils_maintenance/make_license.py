@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 # pylint: disable=missing-function-docstring, missing-module-docstring, missing-class-docstring
 
+import datetime
 import itertools
 import json
 import os
@@ -39,22 +40,24 @@ INTRODUCTION = r"""<!--
 This document is auto-generated with `make license`.
 To update it, edit (paths relative to Blender projects root):
 
- * For external libraries: ./build_files/build_environment/cmake/versions.cmake
- * For internal libraries: ./extern/*/Blender.README
- * For fonts: ./tools/utils_maintenance/make_license.py
- * To add new licenses: ./release/license/licenses.json
+ * Introduction and formatting: ./tools/utils_maintenance/make_license.py
+ * External libraries: ./build_files/build_environment/cmake/versions.cmake
+ * Internal libraries: ./extern/*/Blender.README
+ * Fonts: ./tools/utils_maintenance/make_license.py
+ * New licenses: ./release/license/licenses.json
 
 Then run `make license` and commit `license.md`.
 
 -->
 # Blender Third-Party Licenses
 
-While Blender itself is released under [GPU-GPL 3.0 or later](https://spdx.org/licenses/GPL-3.0-or-later.html),
+While Blender itself is released under [GPU-GPL 3.0 or later](https://spdx.org/licenses/GPL-3.0-or-later.html)
+`© 2011-<THIS-YEAR> Blender Foundation`,
 it contains dependencies which have different licenses.
 
 <SPDX:GPL-3.0-or-later>
 
-"""
+""".replace("<THIS-YEAR>", str(datetime.date.today().year))
 
 INTRODUCTION += r"""
 ## Fonts

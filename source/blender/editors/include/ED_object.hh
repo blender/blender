@@ -519,30 +519,6 @@ bool iter_other(Main *bmain,
  */
 bool multires_update_totlevels(Object *ob, void *totlevel_v);
 
-/* `object_greasepencil_modifier.cc` */
-
-GpencilModifierData *gpencil_modifier_add(
-    ReportList *reports, Main *bmain, Scene *scene, Object *ob, const char *name, int type);
-bool gpencil_modifier_remove(ReportList *reports,
-                             Main *bmain,
-                             Object *ob,
-                             GpencilModifierData *md);
-void gpencil_modifier_clear(Main *bmain, Object *ob);
-bool gpencil_modifier_move_down(ReportList *reports, Object *ob, GpencilModifierData *md);
-bool gpencil_modifier_move_up(ReportList *reports, Object *ob, GpencilModifierData *md);
-bool gpencil_modifier_move_to_index(ReportList *reports,
-                                    Object *ob,
-                                    GpencilModifierData *md,
-                                    int index);
-bool gpencil_modifier_apply(Main *bmain,
-                            ReportList *reports,
-                            Depsgraph *depsgraph,
-                            Object *ob,
-                            GpencilModifierData *md,
-                            int mode);
-bool gpencil_modifier_copy(ReportList *reports, Object *ob, GpencilModifierData *md);
-void gpencil_modifier_copy_to_object(Object *ob_dst, GpencilModifierData *md);
-
 /* `object_shader_fx.cc` */
 
 ShaderFxData *shaderfx_add(

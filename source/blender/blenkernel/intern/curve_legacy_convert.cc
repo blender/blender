@@ -204,6 +204,9 @@ Curves *curve_legacy_to_curves(const Curve &curve_legacy, const ListBase &nurbs_
 
   radius_attribute.finish();
 
+  curves_id->mat = static_cast<Material **>(MEM_dupallocN(curve_legacy.mat));
+  curves_id->totcol = curve_legacy.totcol;
+
   return curves_id;
 }
 

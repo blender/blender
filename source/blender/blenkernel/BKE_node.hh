@@ -77,11 +77,11 @@ namespace inverse_eval {
 class InverseEvalParams;
 }  // namespace inverse_eval
 }  // namespace nodes
-namespace realtime_compositor {
+namespace compositor {
 class Context;
 class NodeOperation;
 class ShaderNode;
-}  // namespace realtime_compositor
+}  // namespace compositor
 }  // namespace blender
 
 namespace blender::bke {
@@ -133,10 +133,11 @@ using NodeGatherSocketLinkOperationsFunction =
 using NodeGatherAddOperationsFunction =
     void (*)(blender::nodes::GatherAddNodeSearchParams &params);
 
-using NodeGetCompositorOperationFunction = blender::realtime_compositor::NodeOperation
-    *(*)(blender::realtime_compositor::Context &context, blender::nodes::DNode node);
+using NodeGetCompositorOperationFunction =
+    blender::compositor::NodeOperation *(*)(blender::compositor::Context &context,
+                                            blender::nodes::DNode node);
 using NodeGetCompositorShaderNodeFunction =
-    blender::realtime_compositor::ShaderNode *(*)(blender::nodes::DNode node);
+    blender::compositor::ShaderNode *(*)(blender::nodes::DNode node);
 using NodeExtraInfoFunction = void (*)(blender::nodes::NodeExtraInfoParams &params);
 using NodeInverseElemEvalFunction =
     void (*)(blender::nodes::value_elem::InverseElemEvalParams &params);
@@ -157,7 +158,7 @@ struct bNodeSocketType {
   char subtype_label[64];
 
   void (*draw)(
-      bContext *C, uiLayout *layout, PointerRNA *ptr, PointerRNA *node_ptr, const char *text);
+      bContext *C, uiLayout *layout, PointerRNA *ptr, PointerRNA *node_ptr, StringRefNull text);
   void (*draw_color)(bContext *C, PointerRNA *ptr, PointerRNA *node_ptr, float *r_color);
   void (*draw_color_simple)(const bNodeSocketType *socket_type, float *r_color);
 
@@ -166,7 +167,7 @@ struct bNodeSocketType {
                                 const bNodeTreeInterfaceSocket *interface_socket,
                                 bNode *node,
                                 bNodeSocket *socket,
-                                const char *data_path);
+                                StringRefNull data_path);
   void (*interface_from_socket)(ID *id,
                                 bNodeTreeInterfaceSocket *interface_socket,
                                 const bNode *node,
@@ -327,10 +328,10 @@ struct bNodeType {
    * responsibility of the caller. */
   NodeGetCompositorShaderNodeFunction get_compositor_shader_node;
 
-  /* A message to display in the node header for unsupported realtime compositor nodes. The message
+  /* A message to display in the node header for unsupported compositor nodes. The message
    * is assumed to be static and thus require no memory handling. This field is to be removed when
    * all nodes are supported. */
-  const char *realtime_compositor_unsupported_message;
+  const char *compositor_unsupported_message;
 
   /* Build a multi-function for this node. */
   NodeMultiFunctionBuildFunction build_multi_function;
@@ -426,7 +427,7 @@ struct bNodeType {
  * This is separate from the `NODE_CLASS_*` enum, because those have some additional items and are
  * not purely color tags. Some classes also have functional effects (e.g. `NODE_CLASS_INPUT`).
  */
-enum class NodeGroupColorTag {
+enum class NodeColorTag {
   None = 0,
   Attribute = 1,
   Color = 2,
@@ -441,9 +442,12 @@ enum class NodeGroupColorTag {
   Shader = 11,
   Texture = 12,
   Vector = 13,
+  Pattern = 14,
+  Interface = 15,
+  Group = 16,
 };
 
-using bNodeClassCallback = void (*)(void *calldata, int nclass, const char *name);
+using bNodeClassCallback = void (*)(void *calldata, int nclass, StringRefNull name);
 
 struct bNodeTreeType {
   int type;        /* type identifier */
@@ -479,6 +483,14 @@ struct bNodeTreeType {
   /* Check if the socket type is valid for this tree type. */
   bool (*valid_socket_type)(bNodeTreeType *ntreetype, bNodeSocketType *socket_type);
 
+  /**
+   * If true, then some UI elements related to building node groups will be hidden.
+   * This can be used by Python-defined custom node tree types.
+   *
+   * This is a uint8_t instead of bool to avoid compiler warnings in generated RNA code.
+   */
+  uint8_t no_group_interface;
+
   /* RNA integration */
   ExtensionRNA rna_ext;
 };
@@ -489,7 +501,7 @@ struct bNodeTreeType {
 /** \name Generic API, Trees
  * \{ */
 
-bNodeTreeType *node_tree_type_find(const char *idname);
+bNodeTreeType *node_tree_type_find(StringRefNull idname);
 void node_tree_type_add(bNodeTreeType *nt);
 void node_tree_type_free_link(const bNodeTreeType *nt);
 bool node_tree_is_registered(const bNodeTree *ntree);
@@ -521,7 +533,7 @@ GHashIterator *node_tree_type_get_iterator();
  */
 void node_tree_set_type(const bContext *C, bNodeTree *ntree);
 
-bNodeTree *node_tree_add_tree(Main *bmain, const char *name, const char *idname);
+bNodeTree *node_tree_add_tree(Main *bmain, StringRefNull name, StringRefNull idname);
 
 /**
  * Add a new (non-embedded) node tree, like #node_tree_add_tree, but allows to create it inside a
@@ -529,8 +541,8 @@ bNodeTree *node_tree_add_tree(Main *bmain, const char *name, const char *idname)
  */
 bNodeTree *node_tree_add_in_lib(Main *bmain,
                                 Library *owner_library,
-                                const char *name,
-                                const char *idname);
+                                StringRefNull name,
+                                StringRefNull idname);
 
 /**
  * Free tree which is embedded into another data-block.
@@ -586,11 +598,11 @@ void node_tree_blend_write(BlendWriter *writer, bNodeTree *ntree);
 /** \name Generic API, Nodes
  * \{ */
 
-bNodeType *node_type_find(const char *idname);
-const char *node_type_find_alias(const char *idname);
+bNodeType *node_type_find(StringRefNull idname);
+StringRefNull node_type_find_alias(StringRefNull idname);
 void node_register_type(bNodeType *ntype);
 void node_unregister_type(bNodeType *ntype);
-void node_register_alias(bNodeType *nt, const char *alias);
+void node_register_alias(bNodeType *nt, StringRefNull alias);
 GHashIterator *node_type_get_iterator();
 
 /* Helper macros for iterating over node types. */
@@ -608,16 +620,16 @@ GHashIterator *node_type_get_iterator();
   } \
   ((void)0)
 
-bNodeSocketType *node_socket_type_find(const char *idname);
+bNodeSocketType *node_socket_type_find(StringRefNull idname);
 void node_register_socket_type(bNodeSocketType *stype);
 void node_unregister_socket_type(bNodeSocketType *stype);
 bool node_socket_is_registered(const bNodeSocket *sock);
 GHashIterator *node_socket_type_get_iterator();
-const char *node_socket_type_label(const bNodeSocketType *stype);
+StringRefNull node_socket_type_label(const bNodeSocketType *stype);
 
-const char *node_static_socket_type(int type, int subtype);
-const char *node_static_socket_interface_type_new(int type, int subtype);
-const char *node_static_socket_label(int type, int subtype);
+std::optional<StringRefNull> node_static_socket_type(int type, int subtype);
+std::optional<StringRefNull> node_static_socket_interface_type_new(int type, int subtype);
+std::optional<StringRefNull> node_static_socket_label(int type, int subtype);
 
 /* Helper macros for iterating over node types. */
 #define NODE_SOCKET_TYPES_BEGIN(stype) \
@@ -642,22 +654,22 @@ const bNodeSocket *node_find_socket(const bNode *node,
 bNodeSocket *node_add_socket(bNodeTree *ntree,
                              bNode *node,
                              eNodeSocketInOut in_out,
-                             const char *idname,
-                             const char *identifier,
-                             const char *name);
+                             StringRefNull idname,
+                             StringRefNull identifier,
+                             StringRefNull name);
 bNodeSocket *node_add_static_socket(bNodeTree *ntree,
                                     bNode *node,
                                     eNodeSocketInOut in_out,
                                     int type,
                                     int subtype,
-                                    const char *identifier,
-                                    const char *name);
+                                    StringRefNull identifier,
+                                    StringRefNull name);
 void node_remove_socket(bNodeTree *ntree, bNode *node, bNodeSocket *sock);
 
 void node_modify_socket_type_static(
     bNodeTree *ntree, bNode *node, bNodeSocket *sock, int type, int subtype);
 
-bNode *node_add_node(const bContext *C, bNodeTree *ntree, const char *idname);
+bNode *node_add_node(const bContext *C, bNodeTree *ntree, StringRefNull idname);
 bNode *node_add_static_node(const bContext *C, bNodeTree *ntree, int type);
 
 /**
@@ -693,18 +705,27 @@ void node_attach_node(bNodeTree *ntree, bNode *node, bNode *parent);
 void node_detach_node(bNodeTree *ntree, bNode *node);
 
 /**
- * Finds a node based on given socket and returns true on success.
+ * Finds a node based on given socket, returning null in the case where the socket is not part of
+ * the node tree.
  */
-bool node_find_node_try(bNodeTree *ntree, bNodeSocket *sock, bNode **r_node, int *r_sockindex);
+bNode *node_find_node_try(bNodeTree &ntree, bNodeSocket &socket);
 
 /**
- * Same as #node_find_node_try but expects that the socket definitely is in the node tree.
+ * Find the node that contains the given socket. This uses the node topology cache, meaning
+ * subsequent access after changing the node tree will be more expensive, but amortized over time,
+ * the cost is constant.
  */
-void node_find_node(bNodeTree *ntree, bNodeSocket *sock, bNode **r_node, int *r_sockindex);
+bNode &node_find_node(bNodeTree &ntree, bNodeSocket &socket);
+const bNode &node_find_node(const bNodeTree &ntree, const bNodeSocket &socket);
+
 /**
  * Finds a node based on its name.
  */
-bNode *node_find_node_by_name(bNodeTree *ntree, const char *name);
+bNode *node_find_node_by_name(bNodeTree *ntree, StringRefNull name);
+
+/** Try to find an input item with the given identifier in the entire node interface tree. */
+const bNodeTreeInterfaceSocket *node_find_interface_input_by_identifier(const bNodeTree &ntree,
+                                                                        StringRef identifier);
 
 bool node_is_parent_and_child(const bNode *parent, const bNode *child);
 
@@ -748,7 +769,7 @@ bNodeInstanceKey node_instance_key(bNodeInstanceKey parent_key,
                                    const bNodeTree *ntree,
                                    const bNode *node);
 
-bNodeInstanceHash *node_instance_hash_new(const char *info);
+bNodeInstanceHash *node_instance_hash_new(StringRefNull info);
 void node_instance_hash_free(bNodeInstanceHash *hash, bNodeInstanceValueFP valfreefp);
 void node_instance_hash_insert(bNodeInstanceHash *hash, bNodeInstanceKey key, void *value);
 void *node_instance_hash_lookup(bNodeInstanceHash *hash, bNodeInstanceKey key);
@@ -775,15 +796,19 @@ bool node_group_poll(const bNodeTree *nodetree,
                      const bNodeTree *grouptree,
                      const char **r_disabled_hint);
 
-void node_type_base_custom(
-    bNodeType *ntype, const char *idname, const char *name, const char *enum_name, short nclass);
+void node_type_base_custom(bNodeType *ntype,
+                           StringRefNull idname,
+                           StringRefNull name,
+                           StringRefNull enum_name,
+                           short nclass);
 
 /**
  * \warning Nodes defining a storage type _must_ allocate this for new nodes.
  * Otherwise nodes will reload as undefined (#46619).
+ * #storagename is optional due to some compositor nodes use non-DNA storage type.
  */
 void node_type_storage(bNodeType *ntype,
-                       const char *storagename,
+                       std::optional<StringRefNull> storagename,
                        void (*freefunc)(bNode *node),
                        void (*copyfunc)(bNodeTree *dest_ntree,
                                         bNode *dest_node,
@@ -1390,6 +1415,8 @@ void node_tree_remove_layer_n(bNodeTree *ntree, Scene *scene, int layer_index);
 #define GEO_NODE_FOREACH_GEOMETRY_ELEMENT_INPUT 2148
 #define GEO_NODE_FOREACH_GEOMETRY_ELEMENT_OUTPUT 2149
 #define GEO_NODE_MERGE_LAYERS 2150
+#define GEO_NODE_INPUT_COLLECTION 2151
+#define GEO_NODE_INPUT_OBJECT 2152
 
 /** \} */
 
@@ -1449,8 +1476,8 @@ void node_system_exit();
 
 bNodeTree *node_tree_add_tree_embedded(Main *bmain,
                                        ID *owner_id,
-                                       const char *name,
-                                       const char *idname);
+                                       StringRefNull name,
+                                       StringRefNull idname);
 
 /* Copy/free functions, need to manage ID users. */
 
@@ -1488,11 +1515,14 @@ bool node_type_is_undefined(const bNode *node);
 
 bool node_is_static_socket_type(const bNodeSocketType *stype);
 
-const char *node_socket_sub_type_label(int subtype);
+StringRefNull node_socket_sub_type_label(int subtype);
 
 void node_remove_socket_ex(bNodeTree *ntree, bNode *node, bNodeSocket *sock, bool do_id_user);
 
-void node_modify_socket_type(bNodeTree *ntree, bNode *node, bNodeSocket *sock, const char *idname);
+void node_modify_socket_type(bNodeTree *ntree,
+                             bNode *node,
+                             bNodeSocket *sock,
+                             StringRefNull idname);
 
 /**
  * \note Goes over entire tree.
@@ -1555,10 +1585,6 @@ void node_link_set_mute(bNodeTree *ntree, bNodeLink *link, const bool muted);
 bool node_link_is_selected(const bNodeLink *link);
 
 void node_internal_relink(bNodeTree *ntree, bNode *node);
-
-float2 node_to_view(const bNode *node, float2 loc);
-
-float2 node_from_view(const bNode *node, float2 view_loc);
 
 void node_position_relative(bNode *from_node,
                             const bNode *to_node,
@@ -1716,18 +1742,18 @@ void nodeLabel(const bNodeTree *ntree, const bNode *node, char *label, int maxle
 /**
  * Get node socket label if it is set.
  */
-const char *nodeSocketLabel(const bNodeSocket *sock);
+StringRefNull nodeSocketLabel(const bNodeSocket *sock);
 
 /**
  * Get node socket short label if it is set.
  * It is used when grouping sockets under panels, to avoid redundancy in the label.
  */
-const char *nodeSocketShortLabel(const bNodeSocket *sock);
+std::optional<StringRefNull> nodeSocketShortLabel(const bNodeSocket *sock);
 
 /**
  * Initialize a new node type struct with default values and callbacks.
  */
-void node_type_base(bNodeType *ntype, int type, const char *name, short nclass);
+void node_type_base(bNodeType *ntype, int type, StringRefNull name, short nclass);
 
 void node_type_socket_templates(bNodeType *ntype,
                                 bNodeSocketTemplate *inputs,

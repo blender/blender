@@ -101,18 +101,6 @@ MINLINE double ratiod(double min, double max, double pos)
   return range == 0 ? 0 : ((pos - min) / range);
 }
 
-MINLINE float scalenorm(float a, float b, float x)
-{
-  BLI_assert(x <= 1 && x >= 0);
-  return (x * (b - a)) + a;
-}
-
-MINLINE double scalenormd(double a, double b, double x)
-{
-  BLI_assert(x <= 1 && x >= 0);
-  return (x * (b - a)) + a;
-}
-
 MINLINE float power_of_2(float val)
 {
   return (float)pow(2.0, ceil(log((double)val) / M_LN2));
@@ -154,16 +142,6 @@ MINLINE unsigned int power_of_2_max_u(unsigned int x)
   x |= (x >> 8);
   x |= (x >> 16);
   return x + 1;
-}
-
-MINLINE unsigned int power_of_2_min_u(unsigned int x)
-{
-  x |= (x >> 1);
-  x |= (x >> 2);
-  x |= (x >> 4);
-  x |= (x >> 8);
-  x |= (x >> 16);
-  return x - (x >> 1);
 }
 
 MINLINE unsigned int log2_floor_u(unsigned int x)
@@ -220,46 +198,25 @@ MINLINE unsigned int log2_ceil_u(unsigned int x)
     return (ty)floor(arg + 0.5); \
   }
 
-MINLINE signed char round_fl_to_char(float a){_round_fl_impl(a, signed char)} MINLINE
-    unsigned char round_fl_to_uchar(float a){_round_fl_impl(a, unsigned char)} MINLINE
+MINLINE unsigned char round_fl_to_uchar(float a){_round_fl_impl(a, unsigned char)} MINLINE
     short round_fl_to_short(float a){_round_fl_impl(a, short)} MINLINE
-    unsigned short round_fl_to_ushort(float a){_round_fl_impl(a, unsigned short)} MINLINE
     int round_fl_to_int(float a){_round_fl_impl(a, int)} MINLINE
     unsigned int round_fl_to_uint(float a){_round_fl_impl(a, unsigned int)}
 
-MINLINE signed char round_db_to_char(double a){_round_db_impl(a, signed char)} MINLINE
-    unsigned char round_db_to_uchar(double a){_round_db_impl(a, unsigned char)} MINLINE
-    short round_db_to_short(double a){_round_db_impl(a, short)} MINLINE
-    unsigned short round_db_to_ushort(double a){_round_db_impl(a, unsigned short)} MINLINE
-    int round_db_to_int(double a){_round_db_impl(a, int)} MINLINE
-    unsigned int round_db_to_uint(double a){_round_db_impl(a, unsigned int)}
+MINLINE int round_db_to_int(double a){_round_db_impl(a, int)}
 
 #undef _round_fl_impl
 #undef _round_db_impl
 
-MINLINE signed char round_fl_to_char_clamp(float a){
-    _round_clamp_fl_impl(a, signed char, SCHAR_MIN, SCHAR_MAX)} MINLINE
-    unsigned char round_fl_to_uchar_clamp(float a){
-        _round_clamp_fl_impl(a, unsigned char, 0, UCHAR_MAX)} MINLINE
-    short round_fl_to_short_clamp(float a){
-        _round_clamp_fl_impl(a, short, SHRT_MIN, SHRT_MAX)} MINLINE
-    unsigned short round_fl_to_ushort_clamp(float a){
-        _round_clamp_fl_impl(a, unsigned short, 0, USHRT_MAX)} MINLINE
-    int round_fl_to_int_clamp(float a){_round_clamp_fl_impl(a, int, INT_MIN, INT_MAX)} MINLINE
-    unsigned int round_fl_to_uint_clamp(float a){
-        _round_clamp_fl_impl(a, unsigned int, 0, UINT_MAX)}
+MINLINE unsigned char round_fl_to_uchar_clamp(float a){
+    _round_clamp_fl_impl(a, unsigned char, 0, UCHAR_MAX)} MINLINE
+    int round_fl_to_int_clamp(float a){_round_clamp_fl_impl(a, int, INT_MIN, INT_MAX)}
 
-MINLINE signed char round_db_to_char_clamp(double a){
-    _round_clamp_db_impl(a, signed char, SCHAR_MIN, SCHAR_MAX)} MINLINE
-    unsigned char round_db_to_uchar_clamp(double a){
-        _round_clamp_db_impl(a, unsigned char, 0, UCHAR_MAX)} MINLINE
+MINLINE unsigned char round_db_to_uchar_clamp(double a){
+    _round_clamp_db_impl(a, unsigned char, 0, UCHAR_MAX)} MINLINE
     short round_db_to_short_clamp(double a){
         _round_clamp_db_impl(a, short, SHRT_MIN, SHRT_MAX)} MINLINE
-    unsigned short round_db_to_ushort_clamp(double a){
-        _round_clamp_db_impl(a, unsigned short, 0, USHRT_MAX)} MINLINE
-    int round_db_to_int_clamp(double a){_round_clamp_db_impl(a, int, INT_MIN, INT_MAX)} MINLINE
-    unsigned int round_db_to_uint_clamp(double a){
-        _round_clamp_db_impl(a, unsigned int, 0, UINT_MAX)}
+    int round_db_to_int_clamp(double a){_round_clamp_db_impl(a, int, INT_MIN, INT_MAX)}
 
 #undef _round_clamp_fl_impl
 #undef _round_clamp_db_impl
@@ -352,49 +309,19 @@ MINLINE unsigned int square_uint(unsigned int a)
   return a * a;
 }
 
-MINLINE int square_uchar(unsigned char a)
-{
-  return a * a;
-}
-
 MINLINE float square_f(float a)
-{
-  return a * a;
-}
-
-MINLINE double square_d(double a)
 {
   return a * a;
 }
 
 /* Cube. */
 
-MINLINE int cube_s(short a)
-{
-  return a * a * a;
-}
-
 MINLINE int cube_i(int a)
 {
   return a * a * a;
 }
 
-MINLINE unsigned int cube_uint(unsigned int a)
-{
-  return a * a * a;
-}
-
-MINLINE int cube_uchar(unsigned char a)
-{
-  return a * a * a;
-}
-
 MINLINE float cube_f(float a)
-{
-  return a * a * a;
-}
-
-MINLINE double cube_d(double a)
 {
   return a * a * a;
 }
@@ -473,10 +400,6 @@ MINLINE unsigned long long max_ulul(unsigned long long a, unsigned long long b)
   return (b < a) ? a : b;
 }
 
-MINLINE double min_ddd(double a, double b, double c)
-{
-  return min_dd(min_dd(a, b), c);
-}
 MINLINE double max_ddd(double a, double b, double c)
 {
   return max_dd(max_dd(a, b), c);
@@ -527,15 +450,6 @@ MINLINE size_t max_zz(size_t a, size_t b)
   return (b < a) ? a : b;
 }
 
-MINLINE char min_cc(char a, char b)
-{
-  return (a < b) ? a : b;
-}
-MINLINE char max_cc(char a, char b)
-{
-  return (b < a) ? a : b;
-}
-
 MINLINE int clamp_i(int value, int min, int max)
 {
   return min_ii(max_ii(value, min), max);
@@ -550,11 +464,6 @@ MINLINE float clamp_f(float value, float min, float max)
     return min;
   }
   return value;
-}
-
-MINLINE size_t clamp_z(size_t value, size_t min, size_t max)
-{
-  return min_zz(max_zz(value, min), max);
 }
 
 MINLINE int compare_ff(float a, float b, const float max_diff)

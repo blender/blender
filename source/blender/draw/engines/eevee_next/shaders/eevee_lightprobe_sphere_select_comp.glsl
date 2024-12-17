@@ -7,6 +7,14 @@
  * irradiance cache from each spherical probe location except for the world probe.
  */
 
+#include "infos/eevee_lightprobe_sphere_info.hh"
+
+#ifdef GLSL_CPP_STUBS
+#  define SPHERE_PROBE_SELECT
+#  undef SPHERE_PROBE
+#endif
+COMPUTE_SHADER_CREATE_INFO(eevee_lightprobe_sphere_select)
+
 #include "eevee_lightprobe_sphere_lib.glsl"
 #include "eevee_lightprobe_volume_eval_lib.glsl"
 

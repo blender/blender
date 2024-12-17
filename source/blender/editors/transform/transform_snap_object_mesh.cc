@@ -34,11 +34,12 @@ static void snap_object_data_mesh_get(const Mesh *mesh_eval,
                                       BVHTreeFromMesh *r_treedata)
 {
   /* The BVHTree from corner_tris is always required. */
-  BKE_bvhtree_from_mesh_get(r_treedata,
-                            mesh_eval,
-                            skip_hidden ? BVHTREE_FROM_CORNER_TRIS_NO_HIDDEN :
-                                          BVHTREE_FROM_CORNER_TRIS,
-                            4);
+  if (skip_hidden) {
+    *r_treedata = mesh_eval->bvh_corner_tris_no_hidden();
+  }
+  else {
+    *r_treedata = mesh_eval->bvh_corner_tris();
+  }
 }
 
 /** \} */
@@ -476,20 +477,12 @@ static eSnapMode snapMesh(SnapObjectContext *sctx,
   BVHTreeFromMesh treedata, treedata_dummy;
   snap_object_data_mesh_get(mesh_eval, skip_hidden, &treedata);
 
-  BVHTree *bvhtree[2] = {nullptr};
-  bvhtree[0] = BKE_bvhtree_from_mesh_get(&treedata_dummy,
-                                         mesh_eval,
-                                         skip_hidden ? BVHTREE_FROM_LOOSEEDGES_NO_HIDDEN :
-                                                       BVHTREE_FROM_LOOSEEDGES,
-                                         2);
-  BLI_assert(treedata_dummy.cached);
+  const BVHTree *bvhtree[2] = {nullptr};
+  bvhtree[0] = skip_hidden ? mesh_eval->bvh_loose_no_hidden_edges().tree :
+                             mesh_eval->bvh_loose_edges().tree;
   if (snap_to & SCE_SNAP_TO_POINT) {
-    bvhtree[1] = BKE_bvhtree_from_mesh_get(&treedata_dummy,
-                                           mesh_eval,
-                                           skip_hidden ? BVHTREE_FROM_LOOSEVERTS_NO_HIDDEN :
-                                                         BVHTREE_FROM_LOOSEVERTS,
-                                           2);
-    BLI_assert(treedata_dummy.cached);
+    bvhtree[1] = skip_hidden ? mesh_eval->bvh_loose_no_hidden_verts().tree :
+                               mesh_eval->bvh_loose_verts().tree;
   }
 
   /* #XRAY_ENABLED can return false even with the XRAY flag enabled, this happens because the
