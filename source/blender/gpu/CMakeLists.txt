@@ -437,6 +437,7 @@ if(WITH_VULKAN_BACKEND)
     ${VULKAN_LIBRARIES}
     ${SHADERC_LIBRARIES}
     extern_vulkan_memory_allocator
+    PRIVATE bf::extern::xxhash
   )
 
   add_definitions(-DWITH_VULKAN_BACKEND)
