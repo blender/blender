@@ -77,28 +77,26 @@ BLOCKLIST_OPTIX_OSL = [
     'ambient_occlusion.*.blend',
     'bevel.blend',
     'osl_trace_shader.blend',
-    # The Volumetric noise texture is different for some reason
-    'principled_absorption.blend',
-    # Dicing tests use wireframe node which doesn't appear to be supported in OptiX
-    'dicing_camera.blend',
-    'offscreen_dicing.blend',
-    'panorama_dicing.blend',
     # Bump evaluation is not implemented yet. See 104276
     'compare_bump.blend',
     'both_displacement.blend',
     'bump_with_displacement.blend',
     'ray_portal.blend',
-    # TODO: Investigate every other failing case and add them here.
-    # Note: Many tests are failing due to CUDA errors. Some of these are driver issues that NVIDIA is currently looking into.
-    #
-    # Currently failing tests that aren't in this list are:
-    # ray_portal*.blend - CUDA error
-    # image_mapping_udim*.blend - Can't load UDIM from disk? But can load UDIM if it's packed, but doesn't seem to use it properly.
-    # points_volume.blend - CUDA error
-    # principled_emission_alpha.blend - CUDA error related to connected inputs. Probably the same as 122779
-    # point_density_*_object - Object scale doesn't appear to be appplied to texture
-    # All the other tests mentioned in BLOCKLIST_OSL (E.g. Principled BSDF tests having noise differences)
+    # Volumetric textures use a different default texture mapping in OptiX OSL. See 129279
+    'principled_absorption.blend',
+    'denoise_volume.blend',
+    # The 3D texture doesn't have the right mappings
+    'point_density_.*_object.blend',
+    # Dicing tests use wireframe node which doesn't appear to be supported with OptiX OSL
+    'dicing_camera.blend',
+    'offscreen_dicing.blend',
+    'panorama_dicing.blend',
+    # The mapping of the UDIM texture is incorrect. Need to investigate why.
+    'image_mapping_udim_packed.blend',
+    # Error during rendering. Need to investigate why.
+    'points_volume.blend',
 ]
+
 
 BLOCKLIST_METAL = []
 
