@@ -99,11 +99,11 @@ void SEQ_fontmap_clear()
   for (const auto &item : g_font_map.path_to_file_font_id.items()) {
     BLF_unload_id(item.value);
   }
-  g_font_map.path_to_file_font_id.clear_and_shrink();
+  g_font_map.path_to_file_font_id.clear();
   for (const auto &item : g_font_map.name_to_mem_font_id.items()) {
     BLF_unload_id(item.value);
   }
-  g_font_map.name_to_mem_font_id.clear_and_shrink();
+  g_font_map.name_to_mem_font_id.clear();
 }
 
 static int seq_load_font_file(const std::string &path)

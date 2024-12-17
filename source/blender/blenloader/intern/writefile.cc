@@ -682,8 +682,8 @@ static void mywrite_id_end(WriteData *wd, ID * /*id*/)
     wd->mem.current_id_session_uid = MAIN_ID_SESSION_UID_UNSET;
   }
 
-  wd->validation_data.per_id_addresses_set.clear_and_shrink();
-  wd->per_id_written_shared_addresses.clear_and_shrink();
+  wd->validation_data.per_id_addresses_set.clear();
+  wd->per_id_written_shared_addresses.clear();
 
   BLI_assert(wd->is_writing_id == true);
   wd->is_writing_id = false;

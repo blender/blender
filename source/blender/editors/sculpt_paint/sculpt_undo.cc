@@ -1792,7 +1792,7 @@ void push_end_ex(Object &ob, const bool use_nested_undo)
   for (std::unique_ptr<Node> &node : step_data->undo_nodes_by_pbvh_node.values()) {
     step_data->nodes.append(std::move(node));
   }
-  step_data->undo_nodes_by_pbvh_node.clear_and_shrink();
+  step_data->undo_nodes_by_pbvh_node.clear();
 
   /* We don't need normals in the undo stack. */
   for (std::unique_ptr<Node> &unode : step_data->nodes) {

@@ -1045,7 +1045,7 @@ LayerMask::~LayerMask()
 
 void LayerRuntime::clear()
 {
-  frames_.clear_and_shrink();
+  frames_.clear();
   sorted_keys_cache_.tag_dirty();
   masks_.clear_and_shrink();
   trans_data_ = {};

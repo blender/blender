@@ -836,7 +836,7 @@ void free_previews(wmWindowManager &wm, SpaceNode &snode)
 {
   /* This should not be called from the drawing pass, because it will result in a deadlock. */
   WM_jobs_kill_type(&wm, &snode, WM_JOB_TYPE_RENDER_PREVIEW);
-  snode.runtime->tree_previews_per_context.clear_and_shrink();
+  snode.runtime->tree_previews_per_context.clear();
 }
 
 /** \} */

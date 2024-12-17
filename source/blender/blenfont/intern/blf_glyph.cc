@@ -152,7 +152,7 @@ void blf_glyph_cache_release(FontBLF *font)
 
 GlyphCacheBLF::~GlyphCacheBLF()
 {
-  this->glyphs.clear_and_shrink();
+  this->glyphs.clear();
   if (this->texture) {
     GPU_texture_free(this->texture);
   }

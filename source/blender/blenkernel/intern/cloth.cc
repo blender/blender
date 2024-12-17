@@ -919,7 +919,7 @@ static void cloth_free_errorsprings(Cloth *cloth,
 
   MEM_SAFE_FREE(spring_ref);
 
-  cloth->edgeset.clear_and_shrink();
+  cloth->edgeset.clear();
 }
 
 BLI_INLINE void cloth_bend_poly_dir(
@@ -1568,7 +1568,7 @@ static bool cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
         }
       }
     }
-    existing_vert_pairs.clear_and_shrink();
+    existing_vert_pairs.clear();
     if (tmp_mesh) {
       BKE_id_free(nullptr, &tmp_mesh->id);
     }

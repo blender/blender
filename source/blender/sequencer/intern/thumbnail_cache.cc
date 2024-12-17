@@ -120,8 +120,8 @@ struct ThumbnailCache {
         IMB_freeImBuf(thumb.thumb);
       }
     }
-    map_.clear_and_shrink();
-    requests_.clear_and_shrink();
+    map_.clear();
+    requests_.clear();
     logical_time_ = 0;
   }
 

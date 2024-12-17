@@ -608,7 +608,7 @@ int size(const AssetLibraryReference *library_reference)
 
 void storage_exit()
 {
-  global_storage().clear_and_shrink();
+  global_storage().clear();
 }
 
 /** \} */

@@ -3751,7 +3751,7 @@ void UI_blocklist_free(const bContext *C, ARegion *region)
   while (uiBlock *block = static_cast<uiBlock *>(BLI_pophead(lb))) {
     UI_block_free(C, block);
   }
-  region->runtime->block_name_map.clear_and_shrink();
+  region->runtime->block_name_map.clear();
 }
 
 void UI_blocklist_free_inactive(const bContext *C, ARegion *region)

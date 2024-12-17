@@ -86,7 +86,7 @@ struct NodeClipboard {
     }
     this->nodes.clear_and_shrink();
     this->links.clear_and_shrink();
-    this->old_ids_to_idinfo.clear_and_shrink();
+    this->old_ids_to_idinfo.clear();
   }
 
   /**

@@ -527,9 +527,22 @@ class Set {
   }
 
   /**
-   * Remove all elements from the set.
+   * Remove all elements. Under some circumstances #clear_and_keep_capacity may be more efficient.
    */
   void clear()
+  {
+    std::destroy_at(this);
+    new (this) Set(NoExceptConstructor{});
+  }
+
+  /**
+   * Remove all elements, but don't free the underlying memory.
+   *
+   * This can be more efficient than using #clear if approximately the same or more elements are
+   * added again afterwards. If way fewer elements are added instead, the cost of maintaining a
+   * large hash table can lead to very bad worst-case performance.
+   */
+  void clear_and_keep_capacity()
   {
     for (Slot &slot : slots_) {
       slot.~Slot();
@@ -538,15 +551,6 @@ class Set {
 
     removed_slots_ = 0;
     occupied_and_removed_slots_ = 0;
-  }
-
-  /**
-   * Removes all keys from the set and frees any allocated memory.
-   */
-  void clear_and_shrink()
-  {
-    std::destroy_at(this);
-    new (this) Set(NoExceptConstructor{});
   }
 
   /**
