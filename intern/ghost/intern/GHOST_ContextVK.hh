@@ -45,11 +45,12 @@
 #endif
 
 typedef enum {
+  GHOST_kVulkanPlatformHeadless = 0,
 #ifdef WITH_GHOST_X11
-  GHOST_kVulkanPlatformX11 = 0,
+  GHOST_kVulkanPlatformX11 = 1,
 #endif
 #ifdef WITH_GHOST_WAYLAND
-  GHOST_kVulkanPlatformWayland = 1,
+  GHOST_kVulkanPlatformWayland = 2,
 #endif
 } GHOST_TVulkanPlatformType;
 
