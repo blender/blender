@@ -9,7 +9,7 @@
 #include "COM_context.hh"
 #include "COM_result.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 /* Dilate or erode the given input using a morphological inverse distance operation evaluated at
  * the given falloff. The radius of the structuring element is equivalent to the absolute value of
@@ -22,4 +22,4 @@ void morphological_distance_feather(Context &context,
                                     const int distance,
                                     const int falloff_type = PROP_SMOOTH);
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

@@ -49,7 +49,7 @@ static void node_composit_buts_viewer(uiLayout *layout, bContext * /*C*/, Pointe
   uiItemR(layout, ptr, "use_alpha", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class ViewerOperation : public NodeOperation {
  public:

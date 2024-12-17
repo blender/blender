@@ -12,7 +12,7 @@
 
 #include "COM_algorithm_gamma_correct.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 static void gamma_correct_gpu(Context &context, const Result &input, Result &output)
 {
@@ -90,4 +90,4 @@ void gamma_uncorrect(Context &context, const Result &input, Result &output)
   }
 }
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

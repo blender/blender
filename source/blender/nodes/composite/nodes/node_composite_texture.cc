@@ -32,7 +32,7 @@ static void cmp_node_texture_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>("Color");
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class TextureOperation : public NodeOperation {
  public:

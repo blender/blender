@@ -44,7 +44,7 @@ static void node_composit_buts_split(uiLayout *layout, bContext * /*C*/, Pointer
   uiItemR(col, ptr, "factor", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class SplitOperation : public NodeOperation {
  public:

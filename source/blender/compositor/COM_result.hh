@@ -20,7 +20,7 @@
 #include "COM_domain.hh"
 #include "COM_meta_data.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 class Context;
 
@@ -1024,4 +1024,4 @@ inline void Result::copy_pixel(float *target, const float *source) const
   }
 }
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

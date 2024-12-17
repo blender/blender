@@ -13,7 +13,7 @@
 #include "COM_context.hh"
 #include "COM_profiler.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 Map<bNodeInstanceKey, timeit::Nanoseconds> &Profiler::get_nodes_evaluation_times()
 {
@@ -69,4 +69,4 @@ void Profiler::finalize(const bNodeTree &node_tree)
   this->accumulate_node_group_times(node_tree, bke::NODE_INSTANCE_KEY_BASE);
 }
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

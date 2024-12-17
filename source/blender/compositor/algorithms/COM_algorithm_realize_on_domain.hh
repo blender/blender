@@ -10,7 +10,7 @@
 #include "COM_domain.hh"
 #include "COM_result.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 /* Projects the input on a target domain, copies the area of the input that intersects the target
  * domain, and fill the rest with zeros or repetitions of the input depending on the realization
@@ -25,4 +25,4 @@ void realize_on_domain(Context &context,
                        const float3x3 &input_transformation,
                        const RealizationOptions &realization_options);
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

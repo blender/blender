@@ -18,7 +18,7 @@
 #include "COM_static_cache_manager.hh"
 #include "COM_texture_pool.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 Context::Context(TexturePool &texture_pool) : texture_pool_(texture_pool) {}
 
@@ -119,4 +119,4 @@ StaticCacheManager &Context::cache_manager()
   return cache_manager_;
 }
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

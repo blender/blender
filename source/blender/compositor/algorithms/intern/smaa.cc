@@ -24,7 +24,7 @@
 
 #include "COM_smaa_precomputed_textures.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 /**
  *                  _______  ___  ___       ___           ___
@@ -1700,4 +1700,4 @@ void smaa(Context &context,
   weights.release();
 }
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

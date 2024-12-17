@@ -50,7 +50,7 @@ static void node_composit_buts_antialiasing(uiLayout *layout, bContext * /*C*/, 
   uiItemR(col, ptr, "corner_rounding", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class AntiAliasingOperation : public NodeOperation {
  public:

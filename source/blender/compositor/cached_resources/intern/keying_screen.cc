@@ -32,7 +32,7 @@
 #include "COM_result.hh"
 #include "COM_utilities.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 /* --------------------------------------------------------------------
  * Keying Screen Key.
@@ -285,4 +285,4 @@ Result &KeyingScreenContainer::get(Context &context,
   return keying_screen.result;
 }
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

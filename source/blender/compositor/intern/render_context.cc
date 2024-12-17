@@ -28,7 +28,7 @@
 
 #include "COM_render_context.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 /* ------------------------------------------------------------------------------------------------
  * File Output
@@ -153,4 +153,4 @@ void RenderContext::save_file_outputs(Scene *scene)
   }
 }
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

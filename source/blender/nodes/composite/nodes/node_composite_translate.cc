@@ -53,7 +53,7 @@ static void node_composit_buts_translate(uiLayout *layout, bContext * /*C*/, Poi
   uiItemR(layout, ptr, "wrap_axis", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class TranslateOperation : public NodeOperation {
  public:

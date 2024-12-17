@@ -64,7 +64,7 @@ static void node_composit_buts_dilateerode(uiLayout *layout, bContext * /*C*/, P
   }
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class DilateErodeOperation : public NodeOperation {
  public:

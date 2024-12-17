@@ -52,7 +52,7 @@ static void node_composit_buts_sunbeams(uiLayout *layout, bContext * /*C*/, Poin
           ICON_NONE);
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class SunBeamsOperation : public NodeOperation {
  public:

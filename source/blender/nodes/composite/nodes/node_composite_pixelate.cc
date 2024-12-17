@@ -39,7 +39,7 @@ static void node_composit_buts_pixelate(uiLayout *layout, bContext * /*C*/, Poin
   uiItemR(layout, ptr, "pixel_size", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class PixelateOperation : public NodeOperation {
  public:

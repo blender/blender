@@ -76,7 +76,7 @@ static void node_composit_buts_lensdist(uiLayout *layout, bContext * /*C*/, Poin
   uiItemR(col, ptr, "use_fit", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 /* --------------------------------------------------------------------
  * Screen Lens Distortion

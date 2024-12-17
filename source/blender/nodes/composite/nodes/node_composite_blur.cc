@@ -95,7 +95,7 @@ static void node_composit_buts_blur(uiLayout *layout, bContext * /*C*/, PointerR
   uiItemR(col, ptr, "use_extended_bounds", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class BlurOperation : public NodeOperation {
  public:

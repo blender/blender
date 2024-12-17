@@ -76,7 +76,7 @@ static void node_composit_buts_movieclip_ex(uiLayout *layout, bContext *C, Point
   uiTemplateColorspaceSettings(layout, &clipptr, "colorspace_settings");
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class MovieClipOperation : public NodeOperation {
  public:

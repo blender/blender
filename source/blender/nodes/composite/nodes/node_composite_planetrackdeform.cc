@@ -113,7 +113,7 @@ static void node_composit_buts_planetrackdeform(uiLayout *layout, bContext *C, P
   }
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class PlaneTrackDeformOperation : public NodeOperation {
  public:

@@ -18,7 +18,7 @@
 #include "COM_result.hh"
 #include "COM_utilities.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 /* --------------------------------------------------------------------
  * Bokeh Kernel Key.
@@ -308,4 +308,4 @@ Result &BokehKernelContainer::get(Context &context,
   return bokeh_kernel.result;
 }
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

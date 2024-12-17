@@ -67,7 +67,7 @@ static void node_composit_buts_luma_matte(uiLayout *layout, bContext * /*C*/, Po
           ICON_NONE);
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 static float get_high(const bNode &node)
 {

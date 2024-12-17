@@ -12,7 +12,7 @@
 #include "COM_cached_resource.hh"
 #include "COM_result.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 class Context;
 
@@ -68,4 +68,4 @@ class SMAAPrecomputedTexturesContainer : public CachedResourceContainer {
   SMAAPrecomputedTextures &get(Context &context);
 };
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

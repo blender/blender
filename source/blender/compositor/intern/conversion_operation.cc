@@ -12,7 +12,7 @@
 #include "COM_result.hh"
 #include "COM_utilities.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 /* --------------------------------------------------------------------
  * Conversion Operation
@@ -270,4 +270,4 @@ GPUShader *ConvertVectorToColorOperation::get_conversion_shader() const
   return context().get_shader("compositor_convert_vector_to_color");
 }
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

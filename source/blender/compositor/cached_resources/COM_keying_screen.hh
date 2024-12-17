@@ -17,7 +17,7 @@
 #include "COM_cached_resource.hh"
 #include "COM_result.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 class Context;
 
@@ -86,4 +86,4 @@ class KeyingScreenContainer : CachedResourceContainer {
               float smoothness);
 };
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

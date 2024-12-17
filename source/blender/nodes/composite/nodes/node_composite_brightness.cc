@@ -48,7 +48,7 @@ static void node_composit_buts_brightcontrast(uiLayout *layout, bContext * /*C*/
   uiItemR(layout, ptr, "use_premultiply", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 static bool get_use_premultiply(const bNode &node)
 {

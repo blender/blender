@@ -15,7 +15,7 @@
 #include "COM_algorithm_van_vliet_gaussian_blur.hh"
 #include "COM_van_vliet_gaussian_coefficients.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 #define FILTER_ORDER 2
 
@@ -389,4 +389,4 @@ void van_vliet_gaussian_blur(Context &context, Result &input, Result &output, fl
   horizontal_pass_result.release();
 }
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

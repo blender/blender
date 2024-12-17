@@ -54,8 +54,8 @@ void COM_execute(Render *render,
                  Scene *scene,
                  bNodeTree *node_tree,
                  const char *view_name,
-                 blender::realtime_compositor::RenderContext *render_context,
-                 blender::realtime_compositor::Profiler *profiler)
+                 blender::compositor::RenderContext *render_context,
+                 blender::compositor::Profiler *profiler)
 {
   /* Initialize mutex, TODO: this mutex init is actually not thread safe and
    * should be done somewhere as part of blender startup, all the other

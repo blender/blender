@@ -15,7 +15,7 @@
 #include "COM_result.hh"
 #include "COM_scheduler.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 using namespace nodes::derived_node_tree_types;
 
@@ -70,4 +70,4 @@ class NodeOperation : public Operation {
   Result *get_preview_result();
 };
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

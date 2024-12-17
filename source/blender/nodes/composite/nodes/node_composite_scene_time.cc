@@ -17,7 +17,7 @@ static void cmp_node_scene_time_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>("Frame");
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class SceneTimeOperation : public NodeOperation {
  public:

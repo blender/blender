@@ -17,7 +17,7 @@
 #include "COM_cached_resource.hh"
 #include "COM_result.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 class Context;
 
@@ -93,4 +93,4 @@ class CachedMaskContainer : CachedResourceContainer {
               float motion_blur_shutter);
 };
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

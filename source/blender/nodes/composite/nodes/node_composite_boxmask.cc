@@ -80,7 +80,7 @@ static void node_composit_buts_boxmask(uiLayout *layout, bContext * /*C*/, Point
   uiItemR(layout, ptr, "mask_type", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 template<CMPNodeMaskType MaskType>
 static void box_mask(const Result &base_mask,

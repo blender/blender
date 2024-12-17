@@ -12,7 +12,7 @@
 #include "COM_result.hh"
 #include "COM_simple_operation.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 /* ------------------------------------------------------------------------------------------------
  * Realize On Domain Operation
@@ -44,4 +44,4 @@ class RealizeOnDomainOperation : public SimpleOperation {
   Domain compute_domain() override;
 };
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

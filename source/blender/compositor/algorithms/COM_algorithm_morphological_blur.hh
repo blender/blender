@@ -13,7 +13,7 @@
 #include "COM_context.hh"
 #include "COM_result.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 /* Possible morphological operations to apply. */
 enum class MorphologicalBlurOperation : uint8_t {
@@ -38,4 +38,4 @@ void morphological_blur(
     const MorphologicalBlurOperation operation = MorphologicalBlurOperation::Erode,
     const int filter_type = R_FILTER_GAUSS);
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

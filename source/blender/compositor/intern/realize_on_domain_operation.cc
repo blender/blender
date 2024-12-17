@@ -12,7 +12,7 @@
 
 #include "COM_realize_on_domain_operation.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 /* ------------------------------------------------------------------------------------------------
  * Realize On Domain Operation
@@ -84,4 +84,4 @@ SimpleOperation *RealizeOnDomainOperation::construct_if_needed(
   return new RealizeOnDomainOperation(context, operation_domain, input_descriptor.type);
 }
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

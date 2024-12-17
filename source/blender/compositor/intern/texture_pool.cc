@@ -13,7 +13,7 @@
 
 #include "COM_texture_pool.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 /* -------------------------------------------------------------------- */
 /** \name Texture Pool Key
@@ -69,4 +69,4 @@ void TexturePool::reset()
 
 /** \} */
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

@@ -73,7 +73,7 @@ static void node_composit_buts_kuwahara(uiLayout *layout, bContext * /*C*/, Poin
   }
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class ConvertKuwaharaOperation : public NodeOperation {
  public:

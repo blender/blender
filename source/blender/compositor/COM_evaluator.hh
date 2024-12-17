@@ -18,7 +18,7 @@
 #include "COM_operation.hh"
 #include "COM_shader_operation.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 using namespace nodes::derived_node_tree_types;
 
@@ -176,4 +176,4 @@ class Evaluator {
   void cancel_evaluation();
 };
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

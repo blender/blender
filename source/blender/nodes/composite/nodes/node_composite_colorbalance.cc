@@ -209,7 +209,7 @@ static void node_composit_buts_colorbalance_ex(uiLayout *layout, bContext * /*C*
   }
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 static CMPNodeColorBalanceMethod get_color_balance_method(const bNode &node)
 {

@@ -30,7 +30,7 @@ static void cmp_node_separate_xyz_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>("Z");
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class SeparateXYZShaderNode : public ShaderNode {
  public:
@@ -91,7 +91,7 @@ static void cmp_node_combine_xyz_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Vector>("Vector");
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class CombineXYZShaderNode : public ShaderNode {
  public:

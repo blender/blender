@@ -16,7 +16,7 @@
 #include "COM_scheduler.hh"
 #include "COM_utilities.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 using namespace nodes::derived_node_tree_types;
 
@@ -363,4 +363,4 @@ Schedule compute_schedule(const Context &context, const DerivedNodeTree &tree)
   return schedule;
 }
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

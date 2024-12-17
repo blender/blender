@@ -9,7 +9,7 @@
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 /* Possible interpolations to use when realizing an input result of some domain on another domain.
  * See the RealizationOptions struct for more information. */
@@ -165,4 +165,4 @@ bool operator==(const Domain &a, const Domain &b);
 /* Inverse of the above equality operator. */
 bool operator!=(const Domain &a, const Domain &b);
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

@@ -42,7 +42,7 @@ static void node_composit_buts_id_mask(uiLayout *layout, bContext * /*C*/, Point
   uiItemR(layout, ptr, "use_antialiasing", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class IDMaskOperation : public NodeOperation {
  public:

@@ -440,7 +440,7 @@ static void node_composit_copy_image(bNodeTree * /*dst_ntree*/,
   }
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class ImageOperation : public NodeOperation {
  public:
@@ -659,7 +659,7 @@ static void node_composit_buts_viewlayers(uiLayout *layout, bContext *C, Pointer
   RNA_string_set(&op_ptr, "scene", scene_name);
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class RenderLayerOperation : public NodeOperation {
  public:

@@ -29,7 +29,7 @@ static void node_composit_buts_switch(uiLayout *layout, bContext * /*C*/, Pointe
   uiItemR(layout, ptr, "check", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class SwitchOperation : public NodeOperation {
  public:

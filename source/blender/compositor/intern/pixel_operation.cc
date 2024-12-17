@@ -20,7 +20,7 @@
 #include "COM_shader_operation.hh"
 #include "COM_utilities.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 using namespace nodes::derived_node_tree_types;
 
@@ -57,7 +57,7 @@ void PixelOperation::compute_preview()
 {
   for (const DOutputSocket &output : preview_outputs_) {
     Result &result = get_result(get_output_identifier_from_output_socket(output));
-    realtime_compositor::compute_preview(context(), output.node(), result);
+    compositor::compute_preview(context(), output.node(), result);
     /* Preview results gets as an extra reference in pixel operations as can be seen in the
      * compute_results_reference_counts method, so release it after computing preview. */
     result.release();
@@ -100,4 +100,4 @@ void PixelOperation::release_inputs()
   }
 }
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

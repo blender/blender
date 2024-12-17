@@ -22,7 +22,7 @@
 #include "COM_static_cache_manager.hh"
 #include "COM_texture_pool.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 /* ------------------------------------------------------------------------------------------------
  * Context
@@ -177,4 +177,4 @@ class Context {
   StaticCacheManager &cache_manager();
 };
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

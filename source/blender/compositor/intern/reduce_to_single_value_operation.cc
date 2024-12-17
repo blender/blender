@@ -14,7 +14,7 @@
 #include "COM_reduce_to_single_value_operation.hh"
 #include "COM_result.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 ReduceToSingleValueOperation::ReduceToSingleValueOperation(Context &context, ResultType type)
     : SimpleOperation(context)
@@ -82,4 +82,4 @@ SimpleOperation *ReduceToSingleValueOperation::construct_if_needed(Context &cont
   return new ReduceToSingleValueOperation(context, input_result.type());
 }
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

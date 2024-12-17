@@ -38,7 +38,7 @@
 #include "COM_context.hh"
 #include "COM_van_vliet_gaussian_coefficients.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 /* --------------------------------------------------------------------
  * Van Vliet Gaussian Coefficients Key.
@@ -533,4 +533,4 @@ VanVlietGaussianCoefficients &VanVlietGaussianCoefficientsContainer::get(Context
   return deriche_gaussian_coefficients;
 }
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

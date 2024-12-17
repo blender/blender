@@ -14,7 +14,7 @@
 #include "COM_operation.hh"
 #include "COM_scheduler.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 using namespace nodes::derived_node_tree_types;
 
@@ -142,4 +142,4 @@ class PixelOperation : public Operation {
   void release_inputs() override;
 };
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

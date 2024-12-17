@@ -10,7 +10,7 @@
 
 #include "COM_context.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 using namespace nodes::derived_node_tree_types;
 
@@ -22,4 +22,4 @@ using Schedule = VectorSet<DNode>;
  * traversal of dependencies based on a heuristic estimation of the number of needed buffers. */
 Schedule compute_schedule(const Context &context, const DerivedNodeTree &tree);
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

@@ -9,7 +9,7 @@
 #include "COM_context.hh"
 #include "COM_result.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 /* Blur the input using a fourth order IIR filter approximating a Gaussian filter of the given
  * sigma computed using Van Vliet's design method. This is based on the following paper:
@@ -33,4 +33,4 @@ namespace blender::realtime_compositor {
  * expected not to be previously allocated. */
 void van_vliet_gaussian_blur(Context &context, Result &input, Result &output, float2 sigma);
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

@@ -13,7 +13,7 @@
 
 #include "NOD_derived_node_tree.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 using namespace nodes::derived_node_tree_types;
 
@@ -86,4 +86,4 @@ class ShaderNode {
   void populate_outputs();
 };
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

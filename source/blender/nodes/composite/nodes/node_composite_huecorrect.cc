@@ -57,7 +57,7 @@ static void node_composit_init_huecorrect(bNodeTree * /*ntree*/, bNode *node)
   cumapping->cur = 1;
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 static CurveMapping *get_curve_mapping(const bNode &node)
 {

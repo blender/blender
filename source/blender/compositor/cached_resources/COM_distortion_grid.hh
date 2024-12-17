@@ -16,7 +16,7 @@
 #include "COM_cached_resource.hh"
 #include "COM_result.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 class Context;
 
@@ -88,4 +88,4 @@ class DistortionGridContainer : CachedResourceContainer {
       Context &context, MovieClip *movie_clip, int2 size, DistortionType type, int frame_number);
 };
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

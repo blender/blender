@@ -7,7 +7,7 @@
 #include "COM_result.hh"
 #include "COM_simple_operation.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 const StringRef SimpleOperation::input_identifier_ = StringRef("Input");
 const StringRef SimpleOperation::output_identifier_ = StringRef("Output");
@@ -52,4 +52,4 @@ InputDescriptor &SimpleOperation::get_input_descriptor()
   return Operation::get_input_descriptor(input_identifier_);
 }
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

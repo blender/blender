@@ -33,7 +33,7 @@ static void cmp_node_exposure_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>("Image");
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class ExposureShaderNode : public ShaderNode {
  public:

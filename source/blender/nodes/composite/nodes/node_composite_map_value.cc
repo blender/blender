@@ -65,7 +65,7 @@ static void node_composit_buts_map_value(uiLayout *layout, bContext * /*C*/, Poi
   uiItemR(sub, ptr, "max", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 static bool get_use_min(const bNode &node)
 {

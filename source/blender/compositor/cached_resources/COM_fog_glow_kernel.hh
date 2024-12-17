@@ -13,7 +13,7 @@
 
 #include "COM_cached_resource.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 /* ------------------------------------------------------------------------------------------------
  * Fog Glow Kernel Key.
@@ -72,4 +72,4 @@ class FogGlowKernelContainer : CachedResourceContainer {
   FogGlowKernel &get(int kernel_size, int2 spatial_size);
 };
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

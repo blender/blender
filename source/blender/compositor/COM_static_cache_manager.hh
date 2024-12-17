@@ -20,7 +20,7 @@
 #include "COM_symmetric_separable_blur_weights.hh"
 #include "COM_van_vliet_gaussian_coefficients.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 /* -------------------------------------------------------------------------------------------------
  * Static Cache Manager
@@ -84,4 +84,4 @@ class StaticCacheManager {
   void skip_next_reset();
 };
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

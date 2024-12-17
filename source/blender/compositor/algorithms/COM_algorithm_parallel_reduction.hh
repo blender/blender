@@ -9,7 +9,7 @@
 #include "COM_context.hh"
 #include "COM_result.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 /* --------------------------------------------------------------------
  * Sum Reductions.
@@ -113,4 +113,4 @@ float minimum_float_in_range(Context &context,
                              const float lower_bound,
                              const float upper_bound);
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

@@ -35,7 +35,7 @@ static void node_composit_buts_composite(uiLayout *layout, bContext * /*C*/, Poi
   uiItemR(layout, ptr, "use_alpha", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class CompositeOperation : public NodeOperation {
  public:

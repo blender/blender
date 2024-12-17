@@ -28,7 +28,7 @@
 #include "COM_result.hh"
 #include "COM_utilities.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 /* --------------------------------------------------------------------
  * Cached Texture Key.
@@ -164,4 +164,4 @@ CachedTexture &CachedTextureContainer::get(Context &context,
   return cached_texture;
 }
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

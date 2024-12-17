@@ -19,7 +19,7 @@
 #include "COM_shader_operation.hh"
 #include "COM_utilities.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 using namespace nodes::derived_node_tree_types;
 
@@ -234,4 +234,4 @@ void Evaluator::cancel_evaluation()
   }
 }
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

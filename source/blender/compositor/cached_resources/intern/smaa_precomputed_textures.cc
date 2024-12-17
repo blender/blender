@@ -14,7 +14,7 @@
 #include "COM_smaa_precomputed_textures.hh"
 #include "COM_utilities.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 /* ------------------------------------------------------------------------------------------------
  * SMAA Precomputed Textures.
@@ -134,4 +134,4 @@ SMAAPrecomputedTextures &SMAAPrecomputedTexturesContainer::get(Context &context)
   return *textures_;
 }
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

@@ -17,7 +17,7 @@
 #include "COM_domain.hh"
 #include "COM_result.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 Result::Result(Context &context) : context_(&context) {}
 
@@ -778,4 +778,4 @@ void Result::allocate_data(int2 size, bool from_pool)
   }
 }
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

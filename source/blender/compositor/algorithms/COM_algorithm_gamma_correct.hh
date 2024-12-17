@@ -7,7 +7,7 @@
 #include "COM_context.hh"
 #include "COM_result.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 /**
  * Gamma corrects the inputs in its straight alpha form and writes the result to the output. The
@@ -23,4 +23,4 @@ void gamma_correct(Context &context, const Result &input, Result &output);
  */
 void gamma_uncorrect(Context &context, const Result &input, Result &output);
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

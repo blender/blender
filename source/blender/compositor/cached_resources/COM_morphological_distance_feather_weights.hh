@@ -12,7 +12,7 @@
 
 #include "COM_cached_resource.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 class Context;
 
@@ -78,4 +78,4 @@ class MorphologicalDistanceFeatherWeightsContainer : CachedResourceContainer {
   MorphologicalDistanceFeatherWeights &get(Context &context, int type, int radius);
 };
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

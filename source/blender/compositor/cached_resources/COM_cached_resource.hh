@@ -4,7 +4,7 @@
 
 #pragma once
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 /* -------------------------------------------------------------------------------------------------
  * Cached Resource.
@@ -49,4 +49,4 @@ class CachedResourceContainer {
   virtual void reset() = 0;
 };
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

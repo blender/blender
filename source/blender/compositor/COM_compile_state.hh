@@ -13,7 +13,7 @@
 #include "COM_pixel_operation.hh"
 #include "COM_scheduler.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 using namespace nodes::derived_node_tree_types;
 
@@ -174,4 +174,4 @@ class CompileState {
   Domain compute_pixel_node_domain(DNode node);
 };
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

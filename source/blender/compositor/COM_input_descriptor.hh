@@ -6,7 +6,7 @@
 
 #include "COM_result.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 /* ------------------------------------------------------------------------------------------------
  * Input Realization Options
@@ -42,4 +42,4 @@ class InputDescriptor {
   bool expects_single_value = false;
 };
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

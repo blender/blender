@@ -20,7 +20,7 @@
 #include "COM_morphological_distance_feather_weights.hh"
 #include "COM_result.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 /* --------------------------------------------------------------------
  * Morphological Distance Feather Weights Key.
@@ -179,4 +179,4 @@ MorphologicalDistanceFeatherWeights &MorphologicalDistanceFeatherWeightsContaine
   return weights;
 }
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

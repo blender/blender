@@ -14,7 +14,7 @@
 
 struct RenderResult;
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 /* ------------------------------------------------------------------------------------------------
  * File Output
@@ -119,4 +119,4 @@ class RenderContext {
   void save_file_outputs(Scene *scene);
 };
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

@@ -15,7 +15,7 @@
 #include "COM_algorithm_morphological_blur.hh"
 #include "COM_algorithm_symmetric_separable_blur.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 static const char *get_shader(MorphologicalBlurOperation operation)
 {
@@ -101,4 +101,4 @@ void morphological_blur(Context &context,
   apply_morphological_operator(context, input, output, operation);
 }
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

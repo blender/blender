@@ -4,7 +4,7 @@
 
 #include "COM_static_cache_manager.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 void StaticCacheManager::reset()
 {
@@ -35,4 +35,4 @@ void StaticCacheManager::skip_next_reset()
   should_skip_next_reset_ = true;
 }
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

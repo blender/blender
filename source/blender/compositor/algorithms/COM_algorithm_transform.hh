@@ -10,7 +10,7 @@
 #include "COM_domain.hh"
 #include "COM_result.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 /* Transforms the given result based on the given transformation and realization options, writing
  * the transformed result to the given output.
@@ -35,4 +35,4 @@ void transform(Context &context,
                const float3x3 &transformation,
                RealizationOptions realization_options);
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

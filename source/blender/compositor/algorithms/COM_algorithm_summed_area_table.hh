@@ -10,7 +10,7 @@
 #include "COM_context.hh"
 #include "COM_result.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 /* Possible operations to apply on pixels before computing the summed area table. The Square
  * operation, for instance, can be useful to compute image variance from sum of squares. */
@@ -76,4 +76,4 @@ inline float4 summed_area_table_sum(const Result &table,
   return addend - subtrahend;
 }
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

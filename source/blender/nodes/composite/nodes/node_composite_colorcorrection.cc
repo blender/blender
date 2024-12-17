@@ -311,7 +311,7 @@ static void node_composit_buts_colorcorrection_ex(uiLayout *layout,
   uiItemR(row, ptr, "midtones_end", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class ColorCorrectionShaderNode : public ShaderNode {
  public:

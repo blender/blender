@@ -9,7 +9,7 @@
 
 #include "COM_cached_resource.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 class Context;
 
@@ -72,4 +72,4 @@ class OCIOColorSpaceConversionShaderContainer : CachedResourceContainer {
   OCIOColorSpaceConversionShader &get(Context &context, std::string source, std::string target);
 };
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

@@ -49,7 +49,7 @@ static void node_composit_init_map_uv(bNodeTree * /*ntree*/, bNode *node)
   node->custom2 = CMP_NODE_MAP_UV_FILTERING_ANISOTROPIC;
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class MapUVOperation : public NodeOperation {
  public:

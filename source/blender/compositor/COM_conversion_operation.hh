@@ -11,7 +11,7 @@
 #include "COM_result.hh"
 #include "COM_simple_operation.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 /* --------------------------------------------------------------------
  * Conversion Operation
@@ -141,4 +141,4 @@ class ConvertVectorToColorOperation : public ConversionOperation {
   GPUShader *get_conversion_shader() const override;
 };
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

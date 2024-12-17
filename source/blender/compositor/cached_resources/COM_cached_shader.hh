@@ -15,7 +15,7 @@
 #include "COM_cached_resource.hh"
 #include "COM_result.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 /* ------------------------------------------------------------------------------------------------
  * Cached Shader Key.
@@ -67,4 +67,4 @@ class CachedShaderContainer : public CachedResourceContainer {
   GPUShader *get(const char *info_name, ResultPrecision precision);
 };
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

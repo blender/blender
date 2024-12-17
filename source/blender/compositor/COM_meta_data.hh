@@ -6,7 +6,7 @@
 
 #pragma once
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 /* ------------------------------------------------------------------------------------------------
  * Cryptomatte Meta Data
@@ -41,4 +41,4 @@ struct MetaData {
   bool is_cryptomatte_layer() const;
 };
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

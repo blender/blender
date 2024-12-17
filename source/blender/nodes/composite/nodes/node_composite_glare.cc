@@ -128,7 +128,7 @@ static void node_composit_buts_glare(uiLayout *layout, bContext * /*C*/, Pointer
   }
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class GlareOperation : public NodeOperation {
  public:

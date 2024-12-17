@@ -38,7 +38,7 @@ static void node_composit_buts_premulkey(uiLayout *layout, bContext * /*C*/, Poi
   uiItemR(layout, ptr, "mapping", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 static CMPNodeAlphaConvertMode get_mode(const bNode &node)
 {

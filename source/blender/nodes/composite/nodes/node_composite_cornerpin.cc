@@ -52,7 +52,7 @@ static void cmp_node_cornerpin_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>("Plane");
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class CornerPinOperation : public NodeOperation {
  public:

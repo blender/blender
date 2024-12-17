@@ -29,7 +29,7 @@
 #include "COM_result.hh"
 #include "COM_utilities.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 /* --------------------------------------------------------------------
  * Cached Image Key.
@@ -302,4 +302,4 @@ Result CachedImageContainer::get(Context &context,
   return cached_image.result;
 }
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

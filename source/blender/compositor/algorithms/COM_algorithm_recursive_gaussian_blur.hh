@@ -9,7 +9,7 @@
 #include "COM_context.hh"
 #include "COM_result.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 /* Blur the input using a recursive Gaussian blur algorithm given a certain radius. This differs
  * from the standard symmetric separable blur algorithm in that it is orders of magnitude faster
@@ -21,4 +21,4 @@ namespace blender::realtime_compositor {
  * expected not to be previously allocated. */
 void recursive_gaussian_blur(Context &context, Result &input, Result &output, float2 radius);
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

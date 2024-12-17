@@ -16,7 +16,7 @@
 
 #include "COM_algorithm_morphological_distance.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 static const char *get_shader_name(const int distance)
 {
@@ -115,4 +115,4 @@ void morphological_distance(Context &context,
   }
 }
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

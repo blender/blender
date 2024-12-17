@@ -19,7 +19,7 @@ static void cmp_node_value_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>("Value").default_value(0.5f);
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class ValueOperation : public NodeOperation {
  public:

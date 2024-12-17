@@ -52,7 +52,7 @@ static void init_switch_view(const bContext *C, PointerRNA *ptr)
   id_us_plus(node->id);
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class SwitchViewOperation : public NodeOperation {
  public:

@@ -13,7 +13,7 @@
 #include "COM_cached_resource.hh"
 #include "COM_result.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 class Context;
 
@@ -95,4 +95,4 @@ class BokehKernelContainer : CachedResourceContainer {
               float lens_shift);
 };
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

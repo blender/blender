@@ -7,7 +7,7 @@
 #include "COM_context.hh"
 #include "COM_result.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 /* Dilate or erode the given input using a morphological operator with a circular structuring
  * element of radius equivalent to the absolute value of the given distance parameter. A positive
@@ -18,4 +18,4 @@ void morphological_distance(Context &context,
                             Result &output,
                             const int distance);
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

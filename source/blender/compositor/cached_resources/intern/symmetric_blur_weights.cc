@@ -19,7 +19,7 @@
 #include "COM_result.hh"
 #include "COM_symmetric_blur_weights.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 /* --------------------------------------------------------------------
  * Symmetric Blur Weights Key.
@@ -142,4 +142,4 @@ Result &SymmetricBlurWeightsContainer::get(Context &context, int type, float2 ra
   return weights.result;
 }
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

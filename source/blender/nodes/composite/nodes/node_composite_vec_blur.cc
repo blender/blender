@@ -66,7 +66,7 @@ static void node_composit_buts_vecblur(uiLayout *layout, bContext * /*C*/, Point
   uiItemR(col, ptr, "factor", UI_ITEM_R_SPLIT_EMPTY_NAME, IFACE_("Blur"), ICON_NONE);
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 #define MOTION_BLUR_TILE_SIZE 32
 #define DEPTH_SCALE 100.0f

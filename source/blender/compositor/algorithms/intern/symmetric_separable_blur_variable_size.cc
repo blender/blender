@@ -18,7 +18,7 @@
 
 #include "COM_symmetric_separable_blur_weights.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 static void blur_pass(const Result &input,
                       const Result &radius_input,
@@ -250,4 +250,4 @@ void symmetric_separable_blur_variable_size(Context &context,
   horizontal_pass_result.release();
 }
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

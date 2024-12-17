@@ -13,7 +13,7 @@
 #include "COM_algorithm_symmetric_separable_blur.hh"
 #include "COM_algorithm_van_vliet_gaussian_blur.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 /* Compute the Gaussian sigma from the radius, where the radius is in pixels. Blender's filter is
  * truncated at |x| > 3 * sigma as can be seen in the R_FILTER_GAUSS case of the RE_filter_value
@@ -66,4 +66,4 @@ void recursive_gaussian_blur(Context &context, Result &input, Result &output, fl
   van_vliet_gaussian_blur(context, input, output, sigma);
 }
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

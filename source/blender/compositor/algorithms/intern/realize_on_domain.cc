@@ -21,7 +21,7 @@
 
 #include "COM_algorithm_realize_on_domain.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 static const char *get_realization_shader(Result &input,
                                           const RealizationOptions &realization_options)
@@ -184,4 +184,4 @@ void realize_on_domain(Context &context,
   }
 }
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

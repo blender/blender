@@ -14,7 +14,7 @@
 #include "COM_result.hh"
 #include "COM_utilities.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 /* The Morphological Distance Feather operation is a linear combination between the result of two
  * operations. The first operation is a Gaussian blur with a radius equivalent to the dilate/erode
@@ -307,4 +307,4 @@ void morphological_distance_feather(Context &context,
   horizontal_pass_result.release();
 }
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

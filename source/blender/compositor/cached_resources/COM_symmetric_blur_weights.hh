@@ -13,7 +13,7 @@
 
 #include "COM_cached_resource.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 class Context;
 
@@ -69,4 +69,4 @@ class SymmetricBlurWeightsContainer : public CachedResourceContainer {
   Result &get(Context &context, int type, float2 radius);
 };
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

@@ -72,7 +72,7 @@ static void node_composit_buts_distance_matte(uiLayout *layout, bContext * /*C*/
       col, ptr, "falloff", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 static CMPNodeDistanceMatteColorSpace get_color_space(const bNode &node)
 {

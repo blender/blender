@@ -24,7 +24,7 @@
 #include "COM_distortion_grid.hh"
 #include "COM_result.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 /* --------------------------------------------------------------------
  * Distortion Grid Key.
@@ -148,4 +148,4 @@ Result &DistortionGridContainer::get(
   return distortion_grid.result;
 }
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

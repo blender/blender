@@ -19,7 +19,7 @@
 
 #include "COM_algorithm_summed_area_table.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 /* ------------------------------------------------------------------------------------------------
  * Summed Area Table
@@ -279,4 +279,4 @@ void summed_area_table(Context &context,
   }
 }
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

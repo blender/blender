@@ -22,7 +22,7 @@
 #include "COM_pixel_operation.hh"
 #include "COM_scheduler.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 using namespace nodes::derived_node_tree_types;
 
@@ -174,4 +174,4 @@ class ShaderOperation : public PixelOperation {
                                 gpu::shader::ShaderCreateInfo &shader_create_info);
 };
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

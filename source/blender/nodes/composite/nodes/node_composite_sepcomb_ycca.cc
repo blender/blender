@@ -34,7 +34,7 @@ static void node_composit_init_mode_sepycca(bNodeTree * /*ntree*/, bNode *node)
   node->custom1 = 1; /* BLI_YCC_ITU_BT709 */
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class SeparateYCCAShaderNode : public ShaderNode {
  public:
@@ -127,7 +127,7 @@ static void node_composit_init_mode_combycca(bNodeTree * /*ntree*/, bNode *node)
   node->custom1 = 1; /* BLI_YCC_ITU_BT709 */
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class CombineYCCAShaderNode : public ShaderNode {
  public:

@@ -16,7 +16,7 @@
 
 #include "gpu_shader_create_info.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 /* --------------------------------------------------------------------
  * Cached Shader Key.
@@ -98,4 +98,4 @@ GPUShader *CachedShaderContainer::get(const char *info_name, ResultPrecision pre
   return cached_shader.shader();
 }
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

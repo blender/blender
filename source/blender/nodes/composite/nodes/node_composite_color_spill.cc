@@ -102,7 +102,7 @@ static void node_composit_buts_color_spill(uiLayout *layout, bContext * /*C*/, P
   }
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 /* Get the index of the channel used for spilling. */
 static int get_spill_channel(const bNode &node)

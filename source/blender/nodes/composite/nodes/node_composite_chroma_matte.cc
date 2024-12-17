@@ -73,7 +73,7 @@ static void node_composit_buts_chroma_matte(uiLayout *layout, bContext * /*C*/, 
   // uiItemR(col, ptr, "shadow_adjust", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 static float get_acceptance(const bNode &node)
 {

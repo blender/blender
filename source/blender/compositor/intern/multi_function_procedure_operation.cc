@@ -39,7 +39,7 @@
 #include "COM_scheduler.hh"
 #include "COM_utilities.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 using namespace nodes::derived_node_tree_types;
 
@@ -407,4 +407,4 @@ void MultiFunctionProcedureOperation::populate_operation_result(DOutputSocket ou
   parameter_identifiers_.append(output_identifier);
 }
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

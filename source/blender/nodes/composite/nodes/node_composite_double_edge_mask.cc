@@ -48,7 +48,7 @@ static void node_composit_buts_double_edge_mask(uiLayout *layout,
   uiItemR(col, ptr, "edge_mode", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class DoubleEdgeMaskOperation : public NodeOperation {
  public:

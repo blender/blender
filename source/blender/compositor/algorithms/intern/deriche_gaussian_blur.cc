@@ -16,7 +16,7 @@
 #include "COM_algorithm_deriche_gaussian_blur.hh"
 #include "COM_deriche_gaussian_coefficients.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 #define FILTER_ORDER 4
 
@@ -273,4 +273,4 @@ void deriche_gaussian_blur(Context &context, Result &input, Result &output, floa
   horizontal_pass_result.release();
 }
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

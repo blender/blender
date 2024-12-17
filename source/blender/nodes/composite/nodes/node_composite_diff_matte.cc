@@ -64,7 +64,7 @@ static void node_composit_buts_diff_matte(uiLayout *layout, bContext * /*C*/, Po
       col, ptr, "falloff", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 static float get_tolerance(const bNode &node)
 {

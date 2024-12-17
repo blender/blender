@@ -12,7 +12,7 @@
 
 #include "COM_cached_resource.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 class Context;
 
@@ -103,4 +103,4 @@ class VanVlietGaussianCoefficientsContainer : CachedResourceContainer {
   VanVlietGaussianCoefficients &get(Context &context, float sigma);
 };
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

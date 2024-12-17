@@ -17,7 +17,7 @@
 #include "COM_result.hh"
 #include "COM_texture_pool.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 class SimpleOperation;
 
@@ -186,4 +186,4 @@ class Operation {
   void release_unneeded_results();
 };
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

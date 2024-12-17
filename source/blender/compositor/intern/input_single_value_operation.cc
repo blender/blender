@@ -10,7 +10,7 @@
 #include "COM_result.hh"
 #include "COM_utilities.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 const StringRef InputSingleValueOperation::output_identifier_ = StringRef("Output");
 
@@ -63,4 +63,4 @@ void InputSingleValueOperation::populate_result(Result result)
   Operation::populate_result(output_identifier_, result);
 }
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

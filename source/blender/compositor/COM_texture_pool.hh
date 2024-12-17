@@ -12,7 +12,7 @@
 
 #include "GPU_texture.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 /* ------------------------------------------------------------------------------------------------
  * Texture Pool Key
@@ -75,4 +75,4 @@ class TexturePool {
   virtual GPUTexture *allocate_texture(int2 size, eGPUTextureFormat format) = 0;
 };
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

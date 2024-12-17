@@ -32,7 +32,7 @@
 #include "COM_context.hh"
 #include "COM_deriche_gaussian_coefficients.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 /* --------------------------------------------------------------------
  * Deriche Gaussian Coefficients Key.
@@ -316,4 +316,4 @@ DericheGaussianCoefficients &DericheGaussianCoefficientsContainer::get(Context &
   return deriche_gaussian_coefficients;
 }
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

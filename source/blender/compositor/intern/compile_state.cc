@@ -19,7 +19,7 @@
 #include "COM_scheduler.hh"
 #include "COM_utilities.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 using namespace nodes::derived_node_tree_types;
 
@@ -193,4 +193,4 @@ Domain CompileState::compute_pixel_node_domain(DNode node)
   return node_domain;
 }
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

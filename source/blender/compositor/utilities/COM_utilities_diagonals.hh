@@ -7,7 +7,7 @@
 #include "BLI_math_base.hh"
 #include "BLI_math_vector_types.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 /* Computes the number of diagonals in the matrix of the given size, where the diagonals are
  * indexed from the upper left corner to the lower right corner such that their start is at the
@@ -177,4 +177,4 @@ inline int2 get_anti_diagonal_direction()
   return int2(-1, 1);
 }
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

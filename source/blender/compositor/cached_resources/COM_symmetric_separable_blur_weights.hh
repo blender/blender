@@ -13,7 +13,7 @@
 
 #include "COM_cached_resource.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 class Context;
 
@@ -80,4 +80,4 @@ class SymmetricSeparableBlurWeightsContainer : public CachedResourceContainer {
 
 /** \} */
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

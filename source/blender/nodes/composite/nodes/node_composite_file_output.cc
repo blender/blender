@@ -503,7 +503,7 @@ static void node_composit_buts_file_output_ex(uiLayout *layout, bContext *C, Poi
   }
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class FileOutputOperation : public NodeOperation {
  public:

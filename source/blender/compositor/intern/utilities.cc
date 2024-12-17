@@ -19,7 +19,7 @@
 #include "COM_result.hh"
 #include "COM_utilities.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 using namespace nodes::derived_node_tree_types;
 using TargetSocketPathInfo = DOutputSocket::TargetSocketPathInfo;
@@ -170,4 +170,4 @@ DOutputSocket find_preview_output_socket(const DNode &node)
   return DOutputSocket();
 }
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

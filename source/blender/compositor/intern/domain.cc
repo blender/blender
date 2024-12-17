@@ -7,7 +7,7 @@
 
 #include "COM_domain.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 Domain::Domain(const int2 &size) : size(size), transformation(float3x3::identity()) {}
 
@@ -36,4 +36,4 @@ bool operator!=(const Domain &a, const Domain &b)
   return !(a == b);
 }
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

@@ -34,7 +34,7 @@
 
 #include <sstream>
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 using namespace nodes::derived_node_tree_types;
 
@@ -553,4 +553,4 @@ void ShaderOperation::generate_code_for_inputs(GPUMaterial *material,
   shader_create_info.compute_source_generated += initialize_attributes.str();
 }
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

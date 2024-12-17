@@ -12,7 +12,7 @@
 
 #include "COM_cached_resource.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 class Context;
 
@@ -84,4 +84,4 @@ class DericheGaussianCoefficientsContainer : CachedResourceContainer {
   DericheGaussianCoefficients &get(Context &context, float sigma);
 };
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

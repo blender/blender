@@ -15,7 +15,7 @@
 #include "COM_shader_node.hh"
 #include "COM_utilities.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 using namespace nodes::derived_node_tree_types;
 
@@ -203,4 +203,4 @@ void ShaderNode::populate_outputs()
   }
 }
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

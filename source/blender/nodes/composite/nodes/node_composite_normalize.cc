@@ -26,7 +26,7 @@ static void cmp_node_normalize_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>("Value");
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class NormalizeOperation : public NodeOperation {
  private:

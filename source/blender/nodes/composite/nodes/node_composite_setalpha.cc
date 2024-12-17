@@ -52,7 +52,7 @@ static void node_composit_buts_set_alpha(uiLayout *layout, bContext * /*C*/, Poi
   uiItemR(layout, ptr, "mode", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 static CMPNodeSetAlphaMode get_mode(const bNode &node)
 {

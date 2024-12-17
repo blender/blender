@@ -16,7 +16,7 @@
 #include "COM_cached_resource.hh"
 #include "COM_result.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 class Context;
 
@@ -85,4 +85,4 @@ class CachedTextureContainer : CachedResourceContainer {
                      float3 scale);
 };
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

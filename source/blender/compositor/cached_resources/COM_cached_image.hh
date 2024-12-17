@@ -17,7 +17,7 @@
 #include "COM_cached_resource.hh"
 #include "COM_result.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 class Context;
 
@@ -75,4 +75,4 @@ class CachedImageContainer : CachedResourceContainer {
   Result get(Context &context, Image *image, const ImageUser *image_user, const char *pass_name);
 };
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

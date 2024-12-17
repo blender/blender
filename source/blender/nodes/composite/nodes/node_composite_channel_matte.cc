@@ -106,7 +106,7 @@ static void node_composit_buts_channel_matte(uiLayout *layout, bContext * /*C*/,
           ICON_NONE);
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 static CMPNodeChannelMatteColorSpace get_color_space(const bNode &node)
 {

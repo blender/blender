@@ -8,7 +8,7 @@
 #include "COM_result.hh"
 #include "COM_simple_operation.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 /* ------------------------------------------------------------------------------------------------
  * Reduce To Single Value Operation
@@ -30,4 +30,4 @@ class ReduceToSingleValueOperation : public SimpleOperation {
   static SimpleOperation *construct_if_needed(Context &context, const Result &input_result);
 };
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

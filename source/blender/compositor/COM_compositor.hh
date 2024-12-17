@@ -7,10 +7,10 @@
 #include "DNA_color_types.h"
 #include "DNA_node_types.h"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 class RenderContext;
 class Profiler;
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor
 
 struct Render;
 
@@ -52,8 +52,8 @@ void COM_execute(Render *render,
                  Scene *scene,
                  bNodeTree *node_tree,
                  const char *view_name,
-                 blender::realtime_compositor::RenderContext *render_context,
-                 blender::realtime_compositor::Profiler *profiler);
+                 blender::compositor::RenderContext *render_context,
+                 blender::compositor::Profiler *profiler);
 
 /**
  * \brief Deinitialize the compositor caches and allocated memory.

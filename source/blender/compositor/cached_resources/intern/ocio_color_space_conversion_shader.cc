@@ -28,7 +28,7 @@
 #  include <OpenColorIO/OpenColorIO.h>
 #endif
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 /* ------------------------------------------------------------------------------------------------
  * OCIO Color Space Conversion Shader Key.
@@ -562,4 +562,4 @@ OCIOColorSpaceConversionShader &OCIOColorSpaceConversionShaderContainer::get(Con
   return shader;
 }
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

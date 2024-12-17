@@ -15,7 +15,7 @@
 #include "COM_input_descriptor.hh"
 #include "COM_result.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 using namespace nodes::derived_node_tree_types;
 
@@ -88,4 +88,4 @@ template<typename Function> inline void parallel_for(const int2 range, const Fun
   });
 }
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

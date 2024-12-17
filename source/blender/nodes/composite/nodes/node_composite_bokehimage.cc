@@ -65,7 +65,7 @@ static void node_composit_buts_bokehimage(uiLayout *layout, bContext * /*C*/, Po
           ICON_NONE);
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class BokehImageOperation : public NodeOperation {
  public:

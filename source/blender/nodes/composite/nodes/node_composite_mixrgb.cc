@@ -73,7 +73,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   }
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 static int get_mode(const bNode &node)
 {

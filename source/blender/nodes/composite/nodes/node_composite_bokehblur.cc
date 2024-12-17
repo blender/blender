@@ -60,7 +60,7 @@ static void node_composit_buts_bokehblur(uiLayout *layout, bContext * /*C*/, Poi
   uiItemR(layout, ptr, "use_extended_bounds", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class BokehBlurOperation : public NodeOperation {
  public:

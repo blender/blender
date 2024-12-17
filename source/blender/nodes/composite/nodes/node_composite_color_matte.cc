@@ -77,7 +77,7 @@ static void node_composit_buts_color_matte(uiLayout *layout, bContext * /*C*/, P
           ICON_NONE);
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 static float get_hue_epsilon(const bNode &node)
 {

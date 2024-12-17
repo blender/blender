@@ -11,7 +11,7 @@
 
 #include "NOD_derived_node_tree.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 class Context;
 
@@ -46,4 +46,4 @@ class Profiler {
                                                   bNodeInstanceKey instance_key);
 };
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

@@ -22,7 +22,7 @@
 
 #include "COM_algorithm_parallel_reduction.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 /* Reduces the given texture into a single value and returns it. The return value should be freed
  * by a call to MEM_freeN. The return value is either a pointer to a float, or a pointer to an
@@ -807,4 +807,4 @@ float minimum_float_in_range(Context &context,
   return minimum_float_in_range_cpu(result, lower_bound, upper_bound);
 }
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

@@ -87,7 +87,7 @@ static void node_composit_buts_moviedistortion(uiLayout *layout, bContext *C, Po
   uiItemR(layout, ptr, "distortion_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class MovieDistortionOperation : public NodeOperation {
  public:

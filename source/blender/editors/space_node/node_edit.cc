@@ -103,7 +103,7 @@ struct CompoJob {
   float *progress;
   bool cancelled;
 
-  realtime_compositor::Profiler profiler;
+  compositor::Profiler profiler;
 };
 
 float node_socket_calculate_height(const bNodeSocket &socket)

@@ -32,7 +32,7 @@
 #include "COM_scheduler.hh"
 #include "COM_utilities.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 using namespace nodes::derived_node_tree_types;
 
@@ -62,7 +62,7 @@ void NodeOperation::evaluate()
 void NodeOperation::compute_preview()
 {
   if (context().should_compute_node_previews() && is_node_preview_needed(node())) {
-    realtime_compositor::compute_preview(context(), node(), *get_preview_result());
+    compositor::compute_preview(context(), node(), *get_preview_result());
   }
 }
 
@@ -115,4 +115,4 @@ bool NodeOperation::should_compute_output(StringRef identifier)
   return get_result(identifier).should_compute();
 }
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

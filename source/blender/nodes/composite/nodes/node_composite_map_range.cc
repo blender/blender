@@ -63,7 +63,7 @@ static void node_composit_buts_map_range(uiLayout *layout, bContext * /*C*/, Poi
   uiItemR(col, ptr, "use_clamp", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 static bool get_should_clamp(const bNode &node)
 {

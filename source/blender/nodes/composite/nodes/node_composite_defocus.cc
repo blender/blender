@@ -94,7 +94,7 @@ static void node_composit_buts_defocus(uiLayout *layout, bContext *C, PointerRNA
   uiItemR(sub, ptr, "z_scale", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class DefocusOperation : public NodeOperation {
  public:

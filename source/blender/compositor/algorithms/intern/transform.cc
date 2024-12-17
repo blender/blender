@@ -18,7 +18,7 @@
 
 #include "COM_algorithm_transform.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 /* Given a potentially transformed domain, compute a domain such that its rotation and scale become
  * identity and the size of the domain is increased/reduced to adapt to the new transformation. For
@@ -82,4 +82,4 @@ void transform(Context &context,
   output.get_realization_options().interpolation = realization_options.interpolation;
 }
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

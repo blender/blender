@@ -19,7 +19,7 @@
 
 #include "COM_algorithm_jump_flooding.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 static void jump_flooding_pass_gpu(Context &context, Result &input, Result &output, int step_size)
 {
@@ -144,4 +144,4 @@ void jump_flooding(Context &context, Result &input, Result &output)
   output.steal_data(*result_to_flood);
 }
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

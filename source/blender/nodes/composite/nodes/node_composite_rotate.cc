@@ -46,7 +46,7 @@ static void node_composit_buts_rotate(uiLayout *layout, bContext * /*C*/, Pointe
   uiItemR(layout, ptr, "filter_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class RotateOperation : public NodeOperation {
  public:

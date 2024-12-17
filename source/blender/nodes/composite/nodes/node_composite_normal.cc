@@ -39,7 +39,7 @@ static void cmp_node_normal_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>("Dot");
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 /* The vector value is stored in the default value of the output socket. */
 static float3 get_vector_value(const bNode &node)

@@ -89,7 +89,7 @@ static void node_composit_buts_tonemap(uiLayout *layout, bContext * /*C*/, Point
   }
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class ToneMapOperation : public NodeOperation {
  public:

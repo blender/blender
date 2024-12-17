@@ -13,7 +13,7 @@
 
 #include "COM_algorithm_extract_alpha.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 static void extract_alpha_gpu(Context &context, Result &input, Result &output)
 {
@@ -50,4 +50,4 @@ void extract_alpha(Context &context, Result &input, Result &output)
   }
 }
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

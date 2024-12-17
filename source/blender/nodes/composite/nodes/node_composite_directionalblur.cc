@@ -63,7 +63,7 @@ static void node_composit_buts_dblur(uiLayout *layout, bContext * /*C*/, Pointer
   uiItemR(layout, ptr, "zoom", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class DirectionalBlurOperation : public NodeOperation {
  public:

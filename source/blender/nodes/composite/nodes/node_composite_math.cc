@@ -69,7 +69,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   }
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class MathShaderNode : public ShaderNode {
  public:

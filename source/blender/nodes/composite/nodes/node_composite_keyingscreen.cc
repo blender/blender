@@ -81,7 +81,7 @@ static void node_composit_buts_keyingscreen(uiLayout *layout, bContext *C, Point
   uiItemR(layout, ptr, "smoothness", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class KeyingScreenOperation : public NodeOperation {
  public:

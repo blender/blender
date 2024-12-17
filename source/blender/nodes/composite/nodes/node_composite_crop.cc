@@ -70,7 +70,7 @@ static void node_composit_buts_crop(uiLayout *layout, bContext * /*C*/, PointerR
   }
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class CropOperation : public NodeOperation {
  public:

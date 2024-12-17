@@ -227,7 +227,7 @@ namespace blender::nodes::node_composite_base_cryptomatte_cc {
 
 NODE_STORAGE_FUNCS(NodeCryptomatte)
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class BaseCryptoMatteOperation : public NodeOperation {
  public:
@@ -658,7 +658,7 @@ static void node_update_cryptomatte(bNodeTree *ntree, bNode *node)
   ntreeCompositCryptomatteUpdateLayerNames(node);
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 using namespace blender::nodes::node_composite_base_cryptomatte_cc;
 
 class CryptoMatteOperation : public BaseCryptoMatteOperation {
@@ -967,7 +967,7 @@ static void node_init_cryptomatte_legacy(bNodeTree *ntree, bNode *node)
   ntreeCompositCryptomatteAddSocket(ntree, node);
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 using namespace blender::nodes::node_composite_base_cryptomatte_cc;
 
 class LegacyCryptoMatteOperation : public BaseCryptoMatteOperation {

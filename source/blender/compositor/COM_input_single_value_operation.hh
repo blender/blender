@@ -12,7 +12,7 @@
 #include "COM_operation.hh"
 #include "COM_result.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 using namespace nodes::derived_node_tree_types;
 
@@ -45,4 +45,4 @@ class InputSingleValueOperation : public Operation {
   void populate_result(Result result);
 };
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

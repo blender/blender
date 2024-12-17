@@ -6,10 +6,10 @@
 
 #include <memory>
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 class RenderContext;
 class Profiler;
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor
 
 struct bNodeTree;
 struct Render;
@@ -33,8 +33,8 @@ void RE_compositor_execute(Render &render,
                            const RenderData &render_data,
                            const bNodeTree &node_tree,
                            const char *view_name,
-                           blender::realtime_compositor::RenderContext *render_context,
-                           blender::realtime_compositor::Profiler *profiler);
+                           blender::compositor::RenderContext *render_context,
+                           blender::compositor::Profiler *profiler);
 
 /* Free compositor caches. */
 void RE_compositor_free(Render &render);

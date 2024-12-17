@@ -81,7 +81,7 @@ static void node_composit_buts_scale(uiLayout *layout, bContext * /*C*/, Pointer
   }
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class ScaleOperation : public NodeOperation {
  public:

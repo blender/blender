@@ -7,7 +7,7 @@
 #include "COM_context.hh"
 #include "COM_result.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 /* Computes a jump flooding table from the given input and writes the result to the output. A jump
  * flooding table computes for each pixel the texel location of the closest "seed pixel". A seed
@@ -63,4 +63,4 @@ inline int2 initialize_jump_flooding_value(const int2 &texel, const bool is_seed
   return encode_jump_flooding_value(texel, is_seed);
 }
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

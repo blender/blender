@@ -24,7 +24,7 @@
 
 #include "COM_algorithm_compute_preview.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 static void compute_preview_cpu(Context &context,
                                 const Result &input_result,
@@ -143,4 +143,4 @@ void compute_preview(Context &context, const DNode &node, const Result &input_re
   }
 }
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

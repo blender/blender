@@ -9,7 +9,7 @@
 #include "COM_operation.hh"
 #include "COM_result.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 /* ------------------------------------------------------------------------------------------------
  * Simple Operation
@@ -63,4 +63,4 @@ class SimpleOperation : public Operation {
   InputDescriptor &get_input_descriptor();
 };
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

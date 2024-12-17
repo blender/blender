@@ -103,7 +103,7 @@ static void node_composit_buts_trackpos(uiLayout *layout, bContext *C, PointerRN
   }
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class TrackPositionOperation : public NodeOperation {
  public:

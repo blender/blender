@@ -45,7 +45,7 @@ static void cmp_node_displace_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Color>("Image");
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class DisplaceOperation : public NodeOperation {
  public:

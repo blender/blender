@@ -23,7 +23,7 @@
 
 #include "COM_fog_glow_kernel.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 /* --------------------------------------------------------------------
  * Fog Glow Kernel Key.
@@ -177,4 +177,4 @@ FogGlowKernel &FogGlowKernelContainer::get(int kernel_size, int2 spatial_size)
   return kernel;
 }
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

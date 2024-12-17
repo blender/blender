@@ -23,7 +23,7 @@
 #include "COM_pixel_operation.hh"
 #include "COM_scheduler.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 using namespace nodes::derived_node_tree_types;
 
@@ -107,4 +107,4 @@ class MultiFunctionProcedureOperation : public PixelOperation {
   void populate_operation_result(DOutputSocket output_socket, mf::Variable *variable);
 };
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

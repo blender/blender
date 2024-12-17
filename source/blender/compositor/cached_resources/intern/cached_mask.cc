@@ -24,7 +24,7 @@
 #include "COM_result.hh"
 #include "COM_utilities.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 /* --------------------------------------------------------------------
  * Cached Mask Key.
@@ -208,4 +208,4 @@ Result &CachedMaskContainer::get(Context &context,
   return cached_mask.result;
 }
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

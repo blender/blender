@@ -70,7 +70,7 @@ static void node_composit_buts_mask(uiLayout *layout, bContext *C, PointerRNA *p
   }
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class MaskOperation : public NodeOperation {
  public:

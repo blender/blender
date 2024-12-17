@@ -89,7 +89,7 @@ static void cmp_node_separate_color_update(bNodeTree * /*ntree*/, bNode *node)
   node_cmp_combsep_color_label(&node->outputs, (CMPNodeCombSepColorMode)storage->mode);
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class SeparateColorShaderNode : public ShaderNode {
  public:
@@ -293,7 +293,7 @@ static void cmp_node_combine_color_update(bNodeTree * /*ntree*/, bNode *node)
   node_cmp_combsep_color_label(&node->inputs, (CMPNodeCombSepColorMode)storage->mode);
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class CombineColorShaderNode : public ShaderNode {
  public:

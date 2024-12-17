@@ -20,7 +20,7 @@
 #include "COM_simple_operation.hh"
 #include "COM_texture_pool.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 Operation::Operation(Context &context) : context_(context) {}
 
@@ -221,4 +221,4 @@ void Operation::release_inputs()
   }
 }
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

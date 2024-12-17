@@ -4,7 +4,7 @@
 
 #include "COM_meta_data.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 bool MetaData::is_cryptomatte_layer() const
 {
@@ -12,4 +12,4 @@ bool MetaData::is_cryptomatte_layer() const
          !this->cryptomatte.conversion.empty();
 }
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor

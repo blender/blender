@@ -48,7 +48,7 @@ enum class OutputSocketFieldType {
 };
 
 /**
- * A bit-field that maps to the #realtime_compositor::InputRealizationOptions.
+ * A bit-field that maps to the #compositor::InputRealizationOptions.
  */
 enum class CompositorInputRealizationOptions : uint8_t {
   None = 0,
@@ -201,11 +201,11 @@ class SocketDeclaration : public ItemDeclaration {
       CompositorInputRealizationOptions::RealizeOnOperationDomain;
 
   /** The priority of the input for determining the domain of the node. See
-   * realtime_compositor::InputDescriptor for more information. */
+   * compositor::InputDescriptor for more information. */
   int compositor_domain_priority_ = 0;
 
   /** This input expects a single value and can't operate on non-single values. See
-   * realtime_compositor::InputDescriptor for more information. */
+   * compositor::InputDescriptor for more information. */
   bool compositor_expects_single_value_ = false;
 
   /** Utility method to make the socket available if there is a straightforward way to do so. */
@@ -357,13 +357,13 @@ class BaseSocketDeclarationBuilder {
 
   /**
    * The priority of the input for determining the domain of the node. See
-   * realtime_compositor::InputDescriptor for more information.
+   * compositor::InputDescriptor for more information.
    */
   BaseSocketDeclarationBuilder &compositor_domain_priority(int priority);
 
   /**
    * This input expects a single value and can't operate on non-single values. See
-   * realtime_compositor::InputDescriptor for more information.
+   * compositor::InputDescriptor for more information.
    */
   BaseSocketDeclarationBuilder &compositor_expects_single_value(bool value = true);
 

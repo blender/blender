@@ -11,7 +11,7 @@
 #include "COM_context.hh"
 #include "COM_result.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 
 /* Blur the input using a horizontal and a vertical separable blur passes given a certain radius
  * and filter type using SymmetricSeparableBlurWeights. The output is written to the given output
@@ -25,4 +25,4 @@ void symmetric_separable_blur(Context &context,
                               const int filter_type = R_FILTER_GAUSS,
                               const bool extend_bounds = false);
 
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor
