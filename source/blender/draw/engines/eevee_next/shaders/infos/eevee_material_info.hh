@@ -177,9 +177,10 @@ ADDITIONAL_INFO(eevee_hiz_data)
 GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(eevee_surf_deferred_npr_output)
-    .define("NPR_INDEX")
-    .push_constant(Type::INT, "npr_index")
-    .fragment_out(5, Type::UINT, "out_npr_index");
+DEFINE("NPR_INDEX")
+PUSH_CONSTANT(INT, npr_index)
+FRAGMENT_OUT(5, UINT, out_npr_index)
+GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(eevee_surf_deferred)
 FRAGMENT_SOURCE("eevee_surf_deferred_frag.glsl")
