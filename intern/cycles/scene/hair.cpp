@@ -206,17 +206,8 @@ void Hair::Curve::keys_for_step(const float3 *curve_keys,
   const size_t center_step = ((num_steps - 1) / 2);
   if (step == center_step) {
     /* Center step: regular key location. */
-    /* TODO(sergey): Consider adding make_float4(float3, float)
-     * function.
-     */
-    r_keys[0] = make_float4(curve_keys[first_key + k0].x,
-                            curve_keys[first_key + k0].y,
-                            curve_keys[first_key + k0].z,
-                            curve_radius[first_key + k0]);
-    r_keys[1] = make_float4(curve_keys[first_key + k1].x,
-                            curve_keys[first_key + k1].y,
-                            curve_keys[first_key + k1].z,
-                            curve_radius[first_key + k1]);
+    r_keys[0] = make_float4(curve_keys[first_key + k0], curve_radius[first_key + k0]);
+    r_keys[1] = make_float4(curve_keys[first_key + k1], curve_radius[first_key + k1]);
   }
   else {
     /* Center step is not stored in this array. */
@@ -252,22 +243,10 @@ void Hair::Curve::cardinal_keys_for_step(const float3 *curve_keys,
   const size_t center_step = ((num_steps - 1) / 2);
   if (step == center_step) {
     /* Center step: regular key location. */
-    r_keys[0] = make_float4(curve_keys[first_key + k0].x,
-                            curve_keys[first_key + k0].y,
-                            curve_keys[first_key + k0].z,
-                            curve_radius[first_key + k0]);
-    r_keys[1] = make_float4(curve_keys[first_key + k1].x,
-                            curve_keys[first_key + k1].y,
-                            curve_keys[first_key + k1].z,
-                            curve_radius[first_key + k1]);
-    r_keys[2] = make_float4(curve_keys[first_key + k2].x,
-                            curve_keys[first_key + k2].y,
-                            curve_keys[first_key + k2].z,
-                            curve_radius[first_key + k2]);
-    r_keys[3] = make_float4(curve_keys[first_key + k3].x,
-                            curve_keys[first_key + k3].y,
-                            curve_keys[first_key + k3].z,
-                            curve_radius[first_key + k3]);
+    r_keys[0] = make_float4(curve_keys[first_key + k0], curve_radius[first_key + k0]);
+    r_keys[1] = make_float4(curve_keys[first_key + k1], curve_radius[first_key + k1]);
+    r_keys[2] = make_float4(curve_keys[first_key + k2], curve_radius[first_key + k2]);
+    r_keys[3] = make_float4(curve_keys[first_key + k3], curve_radius[first_key + k3]);
   }
   else {
     /* Center step is not stored in this array. */
@@ -515,7 +494,7 @@ void Hair::pack_curves(Scene *scene,
     float *radius_ptr = curve_radius.data();
 
     for (size_t i = 0; i < curve_keys_size; i++) {
-      curve_key_co[i] = make_float4(keys_ptr[i].x, keys_ptr[i].y, keys_ptr[i].z, radius_ptr[i]);
+      curve_key_co[i] = make_float4(keys_ptr[i], radius_ptr[i]);
     }
   }
 

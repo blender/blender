@@ -492,10 +492,10 @@ ccl_device_inline float4 film_calculate_shadow_catcher_matte_with_shadow(
                                         in_background[0], in_background[1], in_background[2]) *
                                     scale_exposure;
     const float3 alpha_over = color_matte + color_background * (1.0f - alpha_matte);
-    return make_float4(alpha_over.x, alpha_over.y, alpha_over.z, 1.0f);
+    return make_float4(alpha_over, 1.0f);
   }
 
-  return make_float4(color_matte.x, color_matte.y, color_matte.z, alpha_matte);
+  return make_float4(color_matte, alpha_matte);
 }
 
 ccl_device_inline void film_get_pass_pixel_shadow_catcher(

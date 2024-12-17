@@ -254,9 +254,8 @@ ccl_device bool film_write_shadow_catcher_transparent(KernelGlobals kg,
   if (kernel_shadow_catcher_is_matte_path(path_flag)) {
     const float3 contribution_rgb = spectrum_to_rgb(contribution);
 
-    film_write_pass_float4(
-        buffer + kernel_data.film.pass_shadow_catcher_matte,
-        make_float4(contribution_rgb.x, contribution_rgb.y, contribution_rgb.z, transparent));
+    film_write_pass_float4(buffer + kernel_data.film.pass_shadow_catcher_matte,
+                           make_float4(contribution_rgb, transparent));
     /* NOTE: Accumulate the combined pass and to the samples count pass, so that the adaptive
      * sampling is based on how noisy the combined pass is as if there were no catchers in the
      * scene. */
@@ -353,9 +352,8 @@ ccl_device_inline void film_write_combined_transparent_pass(KernelGlobals kg,
   if (kernel_data.film.light_pass_flag & PASSMASK(COMBINED)) {
     const float3 contribution_rgb = spectrum_to_rgb(contribution);
 
-    film_write_pass_float4(
-        buffer + kernel_data.film.pass_combined,
-        make_float4(contribution_rgb.x, contribution_rgb.y, contribution_rgb.z, transparent));
+    film_write_pass_float4(buffer + kernel_data.film.pass_combined,
+                           make_float4(contribution_rgb, transparent));
   }
 
   film_write_adaptive_buffer(kg, sample, contribution, buffer);
