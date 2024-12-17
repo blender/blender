@@ -16,10 +16,9 @@ set(INC
   ../../render
   ../../windowmanager
   ../../compositor
-  ../../compositor/realtime_compositor
-  ../../compositor/realtime_compositor/algorithms
-  ../../compositor/realtime_compositor/cached_resources
-  ../../compositor/realtime_compositor/utilities
+  ../../compositor/algorithms
+  ../../compositor/cached_resources
+  ../../compositor/utilities
 
   # RNA_prototypes.hh
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
@@ -134,7 +133,7 @@ set(LIB
   bf_functions
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::extern::fmtlib
-  bf_realtime_compositor
+  bf_compositor
 )
 
 if(WITH_OPENCOLORIO)

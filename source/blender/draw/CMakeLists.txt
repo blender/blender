@@ -20,9 +20,9 @@ set(INC
   ../nodes
   ../render
   ../render/intern
-  ../compositor/realtime_compositor
-  ../compositor/realtime_compositor/algorithms
-  ../compositor/realtime_compositor/cached_resources
+  ../compositor
+  ../compositor/algorithms
+  ../compositor/cached_resources
   ../windowmanager
 
   ../../../intern/opensubdiv
@@ -311,7 +311,7 @@ set(LIB
   PRIVATE bf::dna
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
-  bf_realtime_compositor
+  bf_compositor
   bf_windowmanager
   PRIVATE bf::intern::atomic
   PRIVATE bf::extern::fmtlib
