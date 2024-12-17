@@ -111,7 +111,7 @@ void register_node_type_cmp_texture()
 
   cmp_node_type_base(&ntype, CMP_NODE_TEXTURE, "Texture", NODE_CLASS_INPUT);
   ntype.declare = file_ns::cmp_node_texture_declare;
-  ntype.realtime_compositor_unsupported_message = N_(
+  ntype.compositor_unsupported_message = N_(
       "Texture nodes not supported in the Viewport compositor");
   ntype.flag |= NODE_PREVIEW;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;

@@ -77,7 +77,6 @@ void COM_execute(Render *render,
   compositor_init_node_previews(render_data, node_tree);
   compositor_reset_node_tree_status(node_tree);
 
-  /* Realtime compositor. */
   RE_compositor_execute(
       *render, *scene, *render_data, *node_tree, view_name, render_context, profiler);
 

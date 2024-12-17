@@ -50,7 +50,7 @@
 #  include "gpu_shader_fullscreen_blit_info.hh"
 #endif
 
-/* Realtime compositor. */
+/* Compositor. */
 #include "compositor_alpha_crop_info.hh"
 #include "compositor_bilateral_blur_info.hh"
 #include "compositor_bokeh_blur_info.hh"

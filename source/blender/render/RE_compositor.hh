@@ -17,14 +17,14 @@ struct RenderData;
 struct Scene;
 
 /* ------------------------------------------------------------------------------------------------
- * Render Realtime Compositor
+ * Render Compositor
  *
  * Implementation of the compositor for final rendering, as opposed to the viewport compositor
  * that is part of the draw manager. The input and output of this is pre-existing RenderResult
  * buffers in scenes, that are uploaded to and read back from the GPU. */
 
 namespace blender::render {
-class RealtimeCompositor;
+class Compositor;
 }
 
 /* Execute compositor. */

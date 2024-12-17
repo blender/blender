@@ -824,7 +824,7 @@ void register_node_type_cmp_rlayers()
   ntype.initfunc_api = file_ns::node_composit_init_rlayers;
   ntype.poll = file_ns::node_composit_poll_rlayers;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
-  ntype.realtime_compositor_unsupported_message = N_(
+  ntype.compositor_unsupported_message = N_(
       "Render passes not supported in the Viewport compositor");
   ntype.flag |= NODE_PREVIEW;
   blender::bke::node_type_storage(&ntype,

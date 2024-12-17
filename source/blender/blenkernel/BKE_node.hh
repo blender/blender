@@ -328,10 +328,10 @@ struct bNodeType {
    * responsibility of the caller. */
   NodeGetCompositorShaderNodeFunction get_compositor_shader_node;
 
-  /* A message to display in the node header for unsupported realtime compositor nodes. The message
+  /* A message to display in the node header for unsupported compositor nodes. The message
    * is assumed to be static and thus require no memory handling. This field is to be removed when
    * all nodes are supported. */
-  const char *realtime_compositor_unsupported_message;
+  const char *compositor_unsupported_message;
 
   /* Build a multi-function for this node. */
   NodeMultiFunctionBuildFunction build_multi_function;

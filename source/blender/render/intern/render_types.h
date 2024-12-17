@@ -45,7 +45,6 @@ struct BaseRender {
    * highlight. */
   virtual blender::render::TilesHighlight *get_tile_highlight() = 0;
 
-  /* GPU/realtime compositor. */
   virtual void compositor_execute(const Scene &scene,
                                   const RenderData &render_data,
                                   const bNodeTree &node_tree,
@@ -210,10 +209,9 @@ struct Render : public BaseRender {
   struct Depsgraph *pipeline_depsgraph = nullptr;
   Scene *pipeline_scene_eval = nullptr;
 
-  /* Realtime Compositor.
-   * NOTE: Use bare pointer instead of smart pointer because the RealtimeCompositor is a fully
-   * opaque type. */
-  blender::render::RealtimeCompositor *compositor = nullptr;
+  /* Compositor.
+   * NOTE: Use bare pointer instead of smart pointer because the it is a fully opaque type. */
+  blender::render::Compositor *compositor = nullptr;
   std::mutex compositor_mutex;
 
   /* Callbacks for the corresponding base class method implementation. */

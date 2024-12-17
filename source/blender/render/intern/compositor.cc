@@ -617,9 +617,9 @@ class Context : public compositor::Context {
   }
 };
 
-/* Render Realtime Compositor */
+/* Render Compositor */
 
-class RealtimeCompositor {
+class Compositor {
  private:
   /* Render instance for GPU context to run compositor in. */
   Render &render_;
@@ -635,7 +635,7 @@ class RealtimeCompositor {
   compositor::ResultPrecision used_precision_;
 
  public:
-  RealtimeCompositor(Render &render, const ContextInputData &input_data) : render_(render)
+  Compositor(Render &render, const ContextInputData &input_data) : render_(render)
   {
     texture_pool_ = std::make_unique<TexturePool>();
     context_ = std::make_unique<Context>(input_data, *texture_pool_);
@@ -644,7 +644,7 @@ class RealtimeCompositor {
     used_precision_ = context_->get_precision();
   }
 
-  ~RealtimeCompositor()
+  ~Compositor()
   {
     /* Use uses_gpu_ instead of context_->use_gpu() because we are freeing resources from the last
      * evaluation. See uses_gpu_ for more information. */
@@ -762,7 +762,7 @@ void Render::compositor_execute(const Scene &scene,
   }
 
   if (!this->compositor) {
-    this->compositor = new blender::render::RealtimeCompositor(*this, input_data);
+    this->compositor = new blender::render::Compositor(*this, input_data);
   }
 
   this->compositor->execute();

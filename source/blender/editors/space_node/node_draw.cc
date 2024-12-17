@@ -134,9 +134,9 @@ struct TreeDrawContext {
 
   NestedTreePreviews *nested_group_infos = nullptr;
   /**
-   * True if there is an active realtime compositor using the node tree, false otherwise.
+   * True if there is an active compositor using the node tree, false otherwise.
    */
-  bool used_by_realtime_compositor = false;
+  bool used_by_compositor = false;
 
   blender::Map<bNodeInstanceKey, blender::timeit::Nanoseconds>
       *compositor_per_node_execution_time = nullptr;
@@ -2566,7 +2566,7 @@ static void node_add_unsupported_compositor_operation_error_message_button(const
                nullptr,
                0,
                0,
-               TIP_(node.typeinfo->realtime_compositor_unsupported_message));
+               TIP_(node.typeinfo->compositor_unsupported_message));
   UI_block_emboss_set(&block, UI_EMBOSS);
 }
 
@@ -2576,9 +2576,7 @@ static void node_add_error_message_button(const TreeDrawContext &tree_draw_ctx,
                                           const rctf &rect,
                                           float &icon_offset)
 {
-  if (tree_draw_ctx.used_by_realtime_compositor &&
-      node.typeinfo->realtime_compositor_unsupported_message)
-  {
+  if (tree_draw_ctx.used_by_compositor && node.typeinfo->compositor_unsupported_message) {
     node_add_unsupported_compositor_operation_error_message_button(node, block, rect, icon_offset);
     return;
   }
@@ -4721,7 +4719,7 @@ static void snode_setup_v2d(SpaceNode &snode, ARegion &region, const float2 &cen
 }
 
 /* Similar to DRW_is_viewport_compositor_enabled() in `draw_manager.cc` but checks all 3D views. */
-static bool realtime_compositor_is_in_use(const bContext &context)
+static bool compositor_is_in_use(const bContext &context)
 {
   const Scene *scene = CTX_data_scene(&context);
   if (!scene->use_nodes) {
@@ -4797,7 +4795,7 @@ static void draw_nodetree(const bContext &C,
   }
   else if (ntree.type == NTREE_COMPOSIT) {
     const Scene *scene = CTX_data_scene(&C);
-    tree_draw_ctx.used_by_realtime_compositor = realtime_compositor_is_in_use(C);
+    tree_draw_ctx.used_by_compositor = compositor_is_in_use(C);
     tree_draw_ctx.compositor_per_node_execution_time =
         &scene->runtime->compositor.per_node_execution_time;
   }
