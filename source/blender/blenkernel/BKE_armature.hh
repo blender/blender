@@ -29,7 +29,6 @@ struct PoseTree;
 struct Scene;
 struct bArmature;
 struct bConstraint;
-struct bGPDstroke;
 struct bPose;
 struct bPoseChannel;
 struct MDeformVert;
@@ -628,16 +627,6 @@ void BKE_pose_eval_cleanup(Depsgraph *depsgraph, Scene *scene, Object *object);
 
 /* Note that we could have a 'BKE_armature_deform_coords' that doesn't take object data
  * currently there are no callers for this though. */
-
-void BKE_armature_deform_coords_with_gpencil_stroke(const Object *ob_arm,
-                                                    const Object *ob_target,
-                                                    float (*vert_coords)[3],
-                                                    float (*vert_deform_mats)[3][3],
-                                                    int vert_coords_len,
-                                                    int deformflag,
-                                                    float (*vert_coords_prev)[3],
-                                                    const char *defgrp_name,
-                                                    bGPDstroke *gps_target);
 
 void BKE_armature_deform_coords_with_curves(
     const Object &ob_arm,
