@@ -90,6 +90,23 @@ class KeyingOperation : public NodeOperation {
 
   void execute() override
   {
+    Result &input_image = get_result("Image");
+    Result &output_image = get_result("Image");
+    Result &output_matte = get_result("Matte");
+    Result &output_edges = get_result("Edges");
+    if (input_image.is_single_value()) {
+      if (output_image.should_compute()) {
+        input_image.pass_through(output_image);
+      }
+      if (output_matte.should_compute()) {
+        output_matte.allocate_invalid();
+      }
+      if (output_edges.should_compute()) {
+        output_edges.allocate_invalid();
+      }
+      return;
+    }
+
     Result blurred_input = compute_blurred_input();
 
     Result matte = compute_matte(blurred_input);
@@ -99,8 +116,6 @@ class KeyingOperation : public NodeOperation {
     Result tweaked_matte = compute_tweaked_matte(matte);
     matte.release();
 
-    Result &output_image = get_result("Image");
-    Result &output_matte = get_result("Matte");
     if (output_image.should_compute() || output_matte.should_compute()) {
       Result blurred_matte = compute_blurred_matte(tweaked_matte);
       tweaked_matte.release();
@@ -343,7 +358,7 @@ class KeyingOperation : public NodeOperation {
         return;
       }
 
-      float4 key_color = key.load_pixel<float4>(texel);
+      float4 key_color = key.load_pixel<float4, true>(texel);
       int3 key_saturation_indices = compute_saturation_indices(key_color.xyz());
       float input_saturation = compute_saturation(input_color, key_saturation_indices);
       float key_saturation = compute_saturation(key_color, key_saturation_indices);
@@ -635,7 +650,7 @@ class KeyingOperation : public NodeOperation {
     };
 
     parallel_for(input.domain().size, [&](const int2 texel) {
-      float4 key_color = key.load_pixel<float4>(texel);
+      float4 key_color = key.load_pixel<float4, true>(texel);
       float4 color = input.load_pixel<float4>(texel);
       float matte = matte_image.load_pixel<float>(texel);
 

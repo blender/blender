@@ -118,12 +118,41 @@ class MapUVOperation : public NodeOperation {
 
   void execute_cpu()
   {
+    const Result &input_uv = get_input("UV");
+    if (input_uv.is_single_value()) {
+      this->execute_single_cpu();
+      return;
+    }
+
     if (this->get_nearest_neighbour()) {
       this->execute_cpu_nearest();
     }
     else {
       this->execute_cpu_anisotropic();
     }
+  }
+
+  void execute_single_cpu()
+  {
+    const Result &input_uv = get_input("UV");
+    const Result &input_image = get_input("Image");
+
+    float2 uv_coordinates = input_uv.get_single_value<float4>().xy();
+    float4 sampled_color = input_image.sample_nearest_zero(uv_coordinates);
+
+    /* The UV input is assumed to contain an alpha channel as its third channel, since the
+     * UV coordinates might be defined in only a subset area of the UV texture as mentioned.
+     * In that case, the alpha is typically opaque at the subset area and transparent
+     * everywhere else, and alpha pre-multiplication is then performed. This format of having
+     * an alpha channel in the UV coordinates is the format used by UV passes in render
+     * engines, hence the mentioned logic. */
+    float alpha = input_uv.get_single_value<float4>().z;
+
+    float4 result = sampled_color * alpha;
+
+    Result &output = get_result("Image");
+    output.allocate_single_value();
+    output.set_color_value(result);
   }
 
   void execute_cpu_nearest()
@@ -140,7 +169,7 @@ class MapUVOperation : public NodeOperation {
 
       float4 sampled_color = input_image.sample_nearest_zero(uv_coordinates);
 
-      /* The UV texture is assumed to contain an alpha channel as its third channel, since the
+      /* The UV input is assumed to contain an alpha channel as its third channel, since the
        * UV coordinates might be defined in only a subset area of the UV texture as mentioned.
        * In that case, the alpha is typically opaque at the subset area and transparent
        * everywhere else, and alpha pre-multiplication is then performed. This format of having
@@ -216,7 +245,7 @@ class MapUVOperation : public NodeOperation {
         float gradient_attenuation = math::max(
             0.0f, 1.0f - gradient_attenuation_factor * gradient_magnitude);
 
-        /* The UV texture is assumed to contain an alpha channel as its third channel, since the
+        /* The UV input is assumed to contain an alpha channel as its third channel, since the
          * UV coordinates might be defined in only a subset area of the UV texture as mentioned.
          * In that case, the alpha is typically opaque at the subset area and transparent
          * everywhere else, and alpha pre-multiplication is then performed. This format of having

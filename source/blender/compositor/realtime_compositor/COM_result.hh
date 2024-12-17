@@ -389,23 +389,25 @@ class Result {
   /* Returns a reference to the allocate integer data. */
   int *integer_texture() const;
 
-  /* Gets the single value stored in the result. Asserts if the template type doesn't match the
-   * result's type. */
+  /* Gets the single value stored in the result. Assumes the result stores a value of the given
+   * template type. */
   template<typename T> T get_single_value() const;
 
-  /* Loads the pixel at the given texel coordinates. If the result is a single value result, then
-   * that single value is returned for all texel coordinates. Asserts if the template type doesn't
-   * match the result's type. */
-  template<typename T> T load_pixel(const int2 &texel) const;
+  /* Loads the pixel at the given texel coordinates. Assumes the result stores a value of the given
+   * template type. If the CouldBeSingleValue template argument is true and the result is a single
+   * value result, then that single value is returned for all texel coordinates. */
+  template<typename T, bool CouldBeSingleValue = false> T load_pixel(const int2 &texel) const;
 
   /* Identical to load_pixel but with extended boundary condition. */
-  template<typename T> T load_pixel_extended(const int2 &texel) const;
+  template<typename T, bool CouldBeSingleValue = false>
+  T load_pixel_extended(const int2 &texel) const;
 
   /* Identical to load_pixel but with a fallback value for out of bound access. */
-  template<typename T> T load_pixel_fallback(const int2 &texel, const T &fallback) const;
+  template<typename T, bool CouldBeSingleValue = false>
+  T load_pixel_fallback(const int2 &texel, const T &fallback) const;
 
   /* Identical to load_pixel but with zero boundary condition. */
-  template<typename T> T load_pixel_zero(const int2 &texel) const;
+  template<typename T, bool CouldBeSingleValue = false> T load_pixel_zero(const int2 &texel) const;
 
   /* Similar to load_pixel, but can load a result whose type is not known at compile time. If the
    * number of channels in the result are less than 4, then the rest of the returned float4 will
@@ -413,8 +415,8 @@ class Result {
    * texelFetch function in GLSL works.  */
   float4 load_pixel_generic_type(const int2 &texel) const;
 
-  /* Stores the given pixel value in the pixel at the given texel coordinates. Asserts if the
-   * template type doesn't match the result's type. */
+  /* Stores the given pixel value in the pixel at the given texel coordinates. Assumes the result
+   * stores a value of the given template type. */
   template<typename T> void store_pixel(const int2 &texel, const T &pixel_value);
 
   /* Similar to store_pixel, but can write to a result whose types is not known at compile time.
@@ -564,10 +566,15 @@ template<typename T> inline T Result::get_single_value() const
   }
 }
 
-template<typename T> inline T Result::load_pixel(const int2 &texel) const
+template<typename T, bool CouldBeSingleValue> inline T Result::load_pixel(const int2 &texel) const
 {
-  if (is_single_value_) {
-    return this->get_single_value<T>();
+  if constexpr (CouldBeSingleValue) {
+    if (is_single_value_) {
+      return this->get_single_value<T>();
+    }
+  }
+  else {
+    BLI_assert(!this->is_single_value());
   }
 
   if constexpr (std::is_scalar_v<T>) {
@@ -578,10 +585,16 @@ template<typename T> inline T Result::load_pixel(const int2 &texel) const
   }
 }
 
-template<typename T> inline T Result::load_pixel_extended(const int2 &texel) const
+template<typename T, bool CouldBeSingleValue>
+inline T Result::load_pixel_extended(const int2 &texel) const
 {
-  if (is_single_value_) {
-    return this->get_single_value<T>();
+  if constexpr (CouldBeSingleValue) {
+    if (is_single_value_) {
+      return this->get_single_value<T>();
+    }
+  }
+  else {
+    BLI_assert(!this->is_single_value());
   }
 
   const int2 clamped_texel = math::clamp(texel, int2(0), domain_.size - int2(1));
@@ -593,11 +606,16 @@ template<typename T> inline T Result::load_pixel_extended(const int2 &texel) con
   }
 }
 
-template<typename T>
+template<typename T, bool CouldBeSingleValue>
 inline T Result::load_pixel_fallback(const int2 &texel, const T &fallback) const
 {
-  if (is_single_value_) {
-    return this->get_single_value<T>();
+  if constexpr (CouldBeSingleValue) {
+    if (is_single_value_) {
+      return this->get_single_value<T>();
+    }
+  }
+  else {
+    BLI_assert(!this->is_single_value());
   }
 
   if (texel.x < 0 || texel.y < 0 || texel.x >= domain_.size.x || texel.y >= domain_.size.y) {
@@ -612,9 +630,10 @@ inline T Result::load_pixel_fallback(const int2 &texel, const T &fallback) const
   }
 }
 
-template<typename T> inline T Result::load_pixel_zero(const int2 &texel) const
+template<typename T, bool CouldBeSingleValue>
+inline T Result::load_pixel_zero(const int2 &texel) const
 {
-  return this->load_pixel_fallback(texel, T(0));
+  return this->load_pixel_fallback<T, CouldBeSingleValue>(texel, T(0));
 }
 
 inline float4 Result::load_pixel_generic_type(const int2 &texel) const

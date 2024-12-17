@@ -49,6 +49,13 @@ class FilterOperation : public NodeOperation {
 
   void execute() override
   {
+    Result &input_image = get_input("Image");
+    if (input_image.is_single_value()) {
+      Result &output_image = get_result("Image");
+      input_image.pass_through(output_image);
+      return;
+    }
+
     if (this->context().use_gpu()) {
       this->execute_gpu();
     }
@@ -125,7 +132,8 @@ class FilterOperation : public NodeOperation {
         /* Mix the channel-wise magnitude with the original color at the center of the kernel using
          * the input factor. */
         float4 color = input.load_pixel<float4>(texel);
-        magnitude = math::interpolate(color.xyz(), magnitude, factor.load_pixel<float>(texel));
+        magnitude = math::interpolate(
+            color.xyz(), magnitude, factor.load_pixel<float, true>(texel));
 
         /* Store the channel-wise magnitude with the original alpha of the input. */
         output.store_pixel(texel, float4(magnitude, color.w));
@@ -143,7 +151,7 @@ class FilterOperation : public NodeOperation {
 
         /* Mix with the original color at the center of the kernel using the input factor. */
         color = math::interpolate(
-            input.load_pixel<float4>(texel), color, factor.load_pixel<float>(texel));
+            input.load_pixel<float4>(texel), color, factor.load_pixel<float, true>(texel));
 
         /* Store the color making sure it is not negative. */
         output.store_pixel(texel, math::max(color, float4(0.0f)));

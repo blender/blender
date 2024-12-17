@@ -13,6 +13,7 @@
 
 #include "GPU_shader.hh"
 
+#include "COM_algorithm_symmetric_separable_blur.hh"
 #include "COM_node_operation.hh"
 #include "COM_utilities.hh"
 
@@ -65,6 +66,18 @@ class BilateralBlurOperation : public NodeOperation {
     const Result &input_image = get_input("Image");
     if (input_image.is_single_value()) {
       get_input("Image").pass_through(get_result("Image"));
+      return;
+    }
+
+    /* If the determinator is a single value, then the node essentially becomes a box blur. */
+    const Result &determinator_image = get_input("Determinator");
+    if (determinator_image.is_single_value()) {
+      Result &output_image = get_result("Image");
+      symmetric_separable_blur(this->context(),
+                               input_image,
+                               output_image,
+                               float2(this->get_blur_radius()),
+                               R_FILTER_BOX);
       return;
     }
 

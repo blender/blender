@@ -104,10 +104,17 @@ static float2 max_velocity_approximate(const float2 &a,
  * Each of the previous and next velocities are reduces independently. */
 static Result compute_max_tile_velocity_cpu(Context &context, const Result &velocity_image)
 {
+  if (velocity_image.is_single_value()) {
+    Result output = context.create_result(ResultType::Vector);
+    output.allocate_single_value();
+    output.set_vector_value(velocity_image.get_single_value<float4>());
+    return output;
+  }
+
   const int2 tile_size = int2(MOTION_BLUR_TILE_SIZE);
   const int2 velocity_size = velocity_image.domain().size;
   const int2 tiles_count = math::divide_ceil(velocity_size, tile_size);
-  Result output = context.create_result(ResultType::Color);
+  Result output = context.create_result(ResultType::Vector);
   output.allocate_texture(Domain(tiles_count));
 
   parallel_for(tiles_count, [&](const int2 texel) {
@@ -189,8 +196,15 @@ static Result dilate_max_velocity_cpu(Context &context,
                                       const Result &max_tile_velocity,
                                       const float shutter_speed)
 {
+  if (max_tile_velocity.is_single_value()) {
+    Result output = context.create_result(ResultType::Vector);
+    output.allocate_single_value();
+    output.set_vector_value(max_tile_velocity.get_single_value<float4>());
+    return output;
+  }
+
   const int2 size = max_tile_velocity.domain().size;
-  Result output = context.create_result(ResultType::Color);
+  Result output = context.create_result(ResultType::Vector);
   output.allocate_texture(Domain(size));
 
   parallel_for(size, [&](const int2 texel) { output.store_pixel(texel, float4(0.0f)); });
@@ -421,8 +435,8 @@ static void motion_blur_cpu(const Result &input_image,
         float2 uv = (float2(texel) + 0.5f) / float2(size);
 
         /* Data of the center pixel of the gather (target). */
-        float center_depth = input_depth.load_pixel<float>(texel);
-        float4 center_motion = float4(input_velocity.load_pixel<float4>(texel)) *
+        float center_depth = input_depth.load_pixel<float, true>(texel);
+        float4 center_motion = float4(input_velocity.load_pixel<float4, true>(texel)) *
                                float4(float2(shutter_speed), float2(-shutter_speed));
         float4 center_color = input_image.load_pixel<float4>(texel);
 
@@ -434,7 +448,7 @@ static void motion_blur_cpu(const Result &input_image,
 
         /* No need to multiply by the shutter speed and invert the next velocities since this was
          * already done in dilate_max_velocity. */
-        float4 max_motion = max_velocity.load_pixel<float4>(tile);
+        float4 max_motion = max_velocity.load_pixel<float4, true>(tile);
 
         Accumulator accum;
         accum.weight = float3(0.0f, 0.0f, 1.0f);
@@ -536,7 +550,7 @@ class VectorBlurOperation : public NodeOperation {
     Result &input = get_input("Speed");
     input.bind_as_texture(shader, "input_tx");
 
-    Result output = context().create_result(ResultType::Color);
+    Result output = context().create_result(ResultType::Vector);
     const int2 tiles_count = math::divide_ceil(input.domain().size, int2(32));
     output.allocate_texture(Domain(tiles_count));
     output.bind_as_image(shader, "output_img");

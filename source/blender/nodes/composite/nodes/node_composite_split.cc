@@ -110,15 +110,17 @@ class SplitOperation : public NodeOperation {
     if (is_horizontal) {
       parallel_for(domain.size, [&](const int2 texel) {
         output_image.store_pixel(texel,
-                                 split_pixel <= texel.x ? first_image.load_pixel<float4>(texel) :
-                                                          second_image.load_pixel<float4>(texel));
+                                 split_pixel <= texel.x ?
+                                     first_image.load_pixel<float4, true>(texel) :
+                                     second_image.load_pixel<float4, true>(texel));
       });
     }
     else {
       parallel_for(domain.size, [&](const int2 texel) {
         output_image.store_pixel(texel,
-                                 split_pixel <= texel.y ? first_image.load_pixel<float4>(texel) :
-                                                          second_image.load_pixel<float4>(texel));
+                                 split_pixel <= texel.y ?
+                                     first_image.load_pixel<float4, true>(texel) :
+                                     second_image.load_pixel<float4, true>(texel));
       });
     }
   }

@@ -247,7 +247,7 @@ class ConvertKuwaharaOperation : public NodeOperation {
                        const int2 size)
   {
     parallel_for(size, [&](const int2 texel) {
-      int radius = math::max(0, int(size_input.load_pixel<float>(texel)));
+      int radius = math::max(0, int(size_input.load_pixel<float, true>(texel)));
 
       float4 mean_of_squared_color_of_quadrants[4] = {
           float4(0.0f), float4(0.0f), float4(0.0f), float4(0.0f)};
@@ -434,7 +434,7 @@ class ConvertKuwaharaOperation : public NodeOperation {
       float eigenvalue_difference = first_eigenvalue - second_eigenvalue;
       float anisotropy = eigenvalue_sum > 0.0f ? eigenvalue_difference / eigenvalue_sum : 0.0f;
 
-      float radius = math::max(0.0f, size.load_pixel<float>(texel));
+      float radius = math::max(0.0f, size.load_pixel<float, true>(texel));
       if (radius == 0.0f) {
         output.store_pixel(texel, input.load_pixel<float4>(texel));
         return;
