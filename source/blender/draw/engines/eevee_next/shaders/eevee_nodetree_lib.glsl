@@ -42,7 +42,13 @@ vec4 g_specular_indirect;
 struct TextureHandle {
   uint type;
   uint index;
+#ifdef __cplusplus
+  /* Constructors for Metal MSL. */
+  inline TextureHandle() = default;
+  inline TextureHandle(uint in_type, uint in_index) : type(in_type), index(in_index) {}
+#endif
 };
+
 #define TEXTURE_HANDLE_DEFAULT TextureHandle(0, 0)
 #ifndef NPR_SHADER
 #  define TextureHandle_eval(t, o, ot) vec4(0.0)
