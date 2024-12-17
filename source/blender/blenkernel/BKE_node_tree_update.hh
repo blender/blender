@@ -8,6 +8,8 @@
  * \ingroup bke
  */
 
+#include <functional>
+
 struct ID;
 struct ImageUser;
 struct Main;
@@ -58,21 +60,16 @@ void BKE_ntree_update_tag_image_user_changed(bNodeTree *ntree, ImageUser *iuser)
 
 struct NodeTreeUpdateExtraParams {
   /**
-   * Data passed into the callbacks.
-   */
-  void *user_data;
-
-  /**
    * Called for every tree that has been changed during the update. This can be used to send
    * notifiers to trigger redraws or depsgraph updates.
    */
-  void (*tree_changed_fn)(ID *, bNodeTree *, void *user_data);
+  std::function<void(bNodeTree &, ID &owner)> tree_changed_fn;
 
   /**
    * Called for every tree whose output value may have changed based on the provided update tags.
    * This can be used to tag the depsgraph if necessary.
    */
-  void (*tree_output_changed_fn)(ID *, bNodeTree *, void *user_data);
+  std::function<void(bNodeTree &, ID &owner)> tree_output_changed_fn;
 };
 
 /**

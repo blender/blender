@@ -499,13 +499,13 @@ void ED_node_tree_propagate_change(const bContext *C, Main *bmain, bNodeTree *ro
     }
   }
 
-  NodeTreeUpdateExtraParams params = {nullptr};
-  params.tree_changed_fn = [](ID *id, bNodeTree *ntree, void * /*user_data*/) {
-    blender::ed::space_node::send_notifiers_after_tree_change(id, ntree);
-    DEG_id_tag_update(&ntree->id, ID_RECALC_SYNC_TO_EVAL);
+  NodeTreeUpdateExtraParams params;
+  params.tree_changed_fn = [](bNodeTree &ntree, ID &owner_id) {
+    blender::ed::space_node::send_notifiers_after_tree_change(&owner_id, &ntree);
+    DEG_id_tag_update(&ntree.id, ID_RECALC_SYNC_TO_EVAL);
   };
-  params.tree_output_changed_fn = [](ID * /*id*/, bNodeTree *ntree, void * /*user_data*/) {
-    DEG_id_tag_update(&ntree->id, ID_RECALC_NTREE_OUTPUT);
+  params.tree_output_changed_fn = [](bNodeTree &ntree, ID & /*owner_id*/) {
+    DEG_id_tag_update(&ntree.id, ID_RECALC_NTREE_OUTPUT);
   };
 
   BKE_ntree_update_main_tree(bmain, root_ntree, &params);
