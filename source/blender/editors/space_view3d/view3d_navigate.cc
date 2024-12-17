@@ -801,6 +801,10 @@ bool view3d_orbit_calc_center(bContext *C, float r_dyn_ofs[3])
     BKE_paint_stroke_get_average(scene, ob_act_eval, lastofs);
     is_set = true;
   }
+  else if (ob_act && (ob_act->mode & OB_MODE_SCULPT_CURVES)) {
+    BKE_paint_stroke_get_average(scene, ob_act_eval, lastofs);
+    is_set = true;
+  }
   else if (ob_act && (ob_act->mode & OB_MODE_EDIT) && (ob_act->type == OB_FONT)) {
     Curve *cu = static_cast<Curve *>(ob_act_eval->data);
     EditFont *ef = cu->editfont;

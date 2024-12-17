@@ -16,6 +16,7 @@
 #include "BKE_object.hh"
 #include "BKE_paint.hh"
 #include "BKE_report.hh"
+#include "BLI_bounds.hh"
 
 #include "ED_screen.hh"
 #include "ED_view3d.hh"
@@ -286,6 +287,14 @@ struct DensityAddOperationExecutor {
                                                            add_outputs.new_points_range :
                                                            add_outputs.new_curves_range));
       selection.finish();
+    }
+    if (U.uiflag & USER_ORBIT_SELECTION) {
+      if (const std::optional<Bounds<float3>> center_cu = bounds::min_max(
+              curves_orig_->positions().slice(add_outputs.new_points_range)))
+      {
+        remember_stroke_position(
+            *ctx_.scene, math::transform_point(transforms_.curves_to_world, center_cu->center()));
+      }
     }
 
     if (add_outputs.uv_error) {

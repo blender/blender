@@ -346,6 +346,14 @@ Vector<float4x4> get_symmetry_brush_transforms(const eCurvesSymmetryType symmetr
   return matrices;
 }
 
+void remember_stroke_position(Scene &scene, const float3 &brush_position_wo)
+{
+  UnifiedPaintSettings &ups = scene.toolsettings->unified_paint_settings;
+  copy_v3_v3(ups.average_stroke_accum, brush_position_wo);
+  ups.average_stroke_counter = 1;
+  ups.last_stroke_valid = true;
+}
+
 float transform_brush_radius(const float4x4 &transform,
                              const float3 &brush_position,
                              const float old_radius)
