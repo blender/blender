@@ -734,7 +734,7 @@ class USDImportTest(AbstractUSDTest):
         self.assertAlmostEqual(f.evaluate(10), 0.0, 2, "Unexpected value for rotation quaternion Z curve at frame 10")
 
     def check_curve(self, blender_curve, usd_curve):
-        curve_type_map = {"linear": 1, "cubic": 2}
+        curve_type_map = {"linear": 1, "cubic-bezier": 2, "cubic-bspline": 3}
         cyclic_map = {"nonperiodic": False, "periodic": True}
 
         # Check correct spline count.
@@ -744,8 +744,11 @@ class USDImportTest(AbstractUSDTest):
 
         # Check correct type of curve. All splines should have the same type and periodicity.
         usd_curve_type = usd_curve.GetTypeAttr().Get()
+        usd_curve_type_basis = usd_curve_type
+        if usd_curve_type != "linear":
+            usd_curve_type_basis = usd_curve_type + "-" + usd_curve.GetBasisAttr().Get()
         usd_cyclic = usd_curve.GetWrapAttr().Get()
-        expected_curve_type = curve_type_map[usd_curve_type]
+        expected_curve_type = curve_type_map[usd_curve_type_basis]
         expected_cyclic = cyclic_map[usd_cyclic]
 
         for i in range(0, blender_spline_count):
@@ -762,10 +765,10 @@ class USDImportTest(AbstractUSDTest):
         blender_positions = blender_curve.attributes["position"].data
 
         point_count = 0
-        if usd_curve_type == "linear":
+        if usd_curve_type_basis == "linear":
             point_count = len(usd_positions)
             self.assertEqual(len(blender_positions), point_count)
-        elif usd_curve_type == "cubic":
+        elif usd_curve_type_basis == "cubic-bezier":
             control_point_count = 0
             usd_vert_counts = usd_curve.GetCurveVertexCountsAttr().Get()
             for i in range(0, usd_spline_count):
@@ -776,19 +779,25 @@ class USDImportTest(AbstractUSDTest):
 
             point_count = control_point_count
             self.assertEqual(len(blender_positions), point_count)
+        elif usd_curve_type_basis == "cubic-bspline":
+            point_count = len(usd_positions)
+            self.assertEqual(len(blender_positions), point_count)
 
-        # Check radius data.
+        # Check radius data. (note: the currently available bsplines have no radii)
+        if usd_curve_type_basis == "cubic-bspline":
+            return
+
         usd_width_interpolation = usd_curve.GetWidthsInterpolation()
         usd_radius = [w / 2 for w in usd_curve.GetWidthsAttr().Get()]
         blender_radius = [r.value for r in blender_curve.attributes["radius"].data]
-        if usd_curve_type == "linear":
+        if usd_curve_type_basis == "linear":
             if usd_width_interpolation == "constant":
                 usd_radius = usd_radius * point_count
 
             for i in range(0, len(blender_radius)):
                 self.assertAlmostEqual(blender_radius[i], usd_radius[i], 2)
 
-        elif usd_curve_type == "cubic":
+        elif usd_curve_type_basis == "cubic-bezier":
             if usd_width_interpolation == "constant":
                 usd_radius = usd_radius * point_count
 
@@ -909,6 +918,27 @@ class USDImportTest(AbstractUSDTest):
 
         blender_curve = bpy.data.objects["bezier_periodic_multiple_vertex"].data
         usd_prim = stage.GetPrimAtPath("/root/bezier_periodic/multiple/bezier_periodic_multiple_vertex")
+        self.check_curve(blender_curve, UsdGeom.BasisCurves(usd_prim))
+
+    def test_import_curves_bspline(self):
+        """Test importing bspline curve variations."""
+
+        # Use the existing hair test file to create the USD file
+        # for import. It is validated as part of the bl_usd_export test.
+        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "usd_particle_hair.blend"))
+        testfile = str(self.tempdir / "usd_particle_hair.usda")
+        res = bpy.ops.wm.usd_export(filepath=testfile, export_hair=True, evaluation_mode="RENDER")
+        self.assertEqual({'FINISHED'}, res, f"Unable to export to {testfile}")
+
+        # Reload the empty file and import back in
+        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "empty.blend"))
+        res = bpy.ops.wm.usd_import(filepath=testfile)
+        self.assertEqual({'FINISHED'}, res, f"Unable to import USD file {testfile}")
+
+        stage = Usd.Stage.Open(testfile)
+
+        blender_curve = bpy.data.objects["ParticleSystem"].data
+        usd_prim = stage.GetPrimAtPath("/root/Sphere/ParticleSystem")
         self.check_curve(blender_curve, UsdGeom.BasisCurves(usd_prim))
 
     def test_import_point_instancer(self):
