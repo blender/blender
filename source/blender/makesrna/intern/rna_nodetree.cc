@@ -819,75 +819,37 @@ const EnumPropertyItem *rna_node_socket_type_itemf(
   return item;
 }
 
-static const EnumPropertyItem *rna_node_static_type_itemf(bContext * /*C*/,
-                                                          PointerRNA *ptr,
-                                                          PropertyRNA * /*prop*/,
-                                                          bool *r_free)
+static const char *get_legacy_node_type(const PointerRNA *ptr)
 {
-  EnumPropertyItem *item = nullptr;
-  EnumPropertyItem tmp;
-  int totitem = 0;
-
-  /* hack, don't want to add include path to RNA just for this, since in the future RNA types
-   * for nodes should be defined locally at runtime anyway ...
-   */
-
-  tmp.value = NODE_CUSTOM;
-  tmp.identifier = "CUSTOM";
-  tmp.name = N_("Custom");
-  tmp.description = N_("Custom Node");
-  tmp.icon = ICON_NONE;
-  RNA_enum_item_add(&item, &totitem, &tmp);
-
-  tmp.value = NODE_CUSTOM_GROUP;
-  tmp.identifier = "CUSTOM GROUP";
-  tmp.name = N_("CustomGroup");
-  tmp.description = N_("Custom Group Node");
-  tmp.icon = ICON_NONE;
-  RNA_enum_item_add(&item, &totitem, &tmp);
-
-  tmp.value = NODE_UNDEFINED;
-  tmp.identifier = "UNDEFINED";
-  tmp.name = N_("UNDEFINED");
-  tmp.description = "";
-  tmp.icon = ICON_NONE;
-  RNA_enum_item_add(&item, &totitem, &tmp);
-
-  const char *category = "";
-  if (RNA_struct_is_a(ptr->type, &RNA_ShaderNode)) {
-    category = "ShaderNode";
+  const bNode *node = static_cast<const bNode *>(ptr->data);
+  const blender::bke::bNodeType *ntype = node->typeinfo;
+  if (ntype->type == NODE_CUSTOM) {
+    return "CUSTOM";
   }
-  else if (RNA_struct_is_a(ptr->type, &RNA_CompositorNode)) {
-    category = "CompositorNode";
+  if (ntype->type == NODE_CUSTOM_GROUP) {
+    return "CUSTOM GROUP";
   }
-  else if (RNA_struct_is_a(ptr->type, &RNA_TextureNode)) {
-    category = "TextureNode";
+  if (ntype->type == NODE_UNDEFINED) {
+    return "UNDEFINED";
   }
-  else if (RNA_struct_is_a(ptr->type, &RNA_GeometryNode)) {
-    category = "GeometryNode";
+  if (ntype->enum_name_legacy) {
+    return ntype->enum_name_legacy;
   }
-  else if (RNA_struct_is_a(ptr->type, &RNA_FunctionNode)) {
-    category = "FunctionNode";
-  }
+  return ntype->idname;
+}
 
-  NODE_TYPES_BEGIN (ntype) {
-    if (ntype->enum_name_legacy &&
-        (BLI_str_startswith(ntype->idname, "Node") || BLI_str_startswith(ntype->idname, category)))
-    {
-      tmp.value = ntype->type;
-      tmp.identifier = ntype->enum_name_legacy;
-      tmp.name = ntype->ui_name;
-      tmp.description = ntype->ui_description;
-      tmp.icon = ICON_NONE;
-      RNA_enum_item_add(&item, &totitem, &tmp);
-    }
-  }
-  NODE_TYPES_END;
+static int rna_node_type_length(PointerRNA *ptr)
+{
+  const char *legacy_type = get_legacy_node_type(ptr);
+  BLI_assert(legacy_type);
+  return strlen(legacy_type);
+}
 
-  RNA_enum_item_end(&item, &totitem);
-  *r_free = true;
-
-  return item;
+static void rna_node_type_get(PointerRNA *ptr, char *value)
+{
+  const char *legacy_type = get_legacy_node_type(ptr);
+  BLI_assert(legacy_type);
+  strcpy(value, legacy_type);
 }
 
 static float2 node_parent_offset(const bNode &node)
@@ -10790,11 +10752,6 @@ static void rna_def_node(BlenderRNA *brna)
   FunctionRNA *func;
   PropertyRNA *parm;
 
-  static const EnumPropertyItem dummy_static_type_items[] = {
-      {NODE_CUSTOM, "CUSTOM", 0, "Custom", "Custom Node"},
-      {0, nullptr, 0, nullptr, nullptr},
-  };
-
   static const EnumPropertyItem warning_propagation_items[] = {
       {NODE_WARNING_PROPAGATION_ALL, "ALL", 0, "All", ""},
       {NODE_WARNING_PROPAGATION_NONE, "NONE", 0, "None", ""},
@@ -10816,16 +10773,11 @@ static void rna_def_node(BlenderRNA *brna)
   RNA_def_struct_register_funcs(srna, "rna_Node_register", "rna_Node_unregister", nullptr);
   RNA_def_struct_idprops_func(srna, "rna_Node_idprops");
 
-  prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, nullptr, "type");
-  RNA_def_property_enum_items(prop, dummy_static_type_items);
-  RNA_def_property_enum_funcs(prop, nullptr, nullptr, "rna_node_static_type_itemf");
-  RNA_def_property_enum_default(prop, NODE_CUSTOM);
+  prop = RNA_def_property(srna, "type", PROP_STRING, PROP_NONE);
+  RNA_def_property_string_funcs(prop, "rna_node_type_get", "rna_node_type_length", nullptr);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_ui_text(
-      prop,
-      "Type",
-      "Node type (deprecated, use bl_static_type or bl_idname for the actual identifier string)");
+      prop, "Type", "Legacy unique node type identifier, redundant with bl_idname property");
 
   prop = RNA_def_property(srna, "location", PROP_FLOAT, PROP_XYZ);
   RNA_def_property_array(prop, 2);
@@ -11019,13 +10971,13 @@ static void rna_def_node(BlenderRNA *brna)
   RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
   RNA_def_property_ui_text(prop, "Icon", "The node icon");
 
-  prop = RNA_def_property(srna, "bl_static_type", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, nullptr, "typeinfo->type");
-  RNA_def_property_enum_items(prop, dummy_static_type_items);
-  RNA_def_property_enum_funcs(prop, nullptr, nullptr, "rna_node_static_type_itemf");
-  RNA_def_property_enum_default(prop, NODE_CUSTOM);
-  RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
-  RNA_def_property_ui_text(prop, "Static Type", "Node type (deprecated, use with care)");
+  prop = RNA_def_property(srna, "bl_static_type", PROP_STRING, PROP_NONE);
+  RNA_def_property_string_funcs(prop, "rna_node_type_get", "rna_node_type_length", nullptr);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+  RNA_def_property_ui_text(
+      prop,
+      "Static Type",
+      "Legacy unique node type identifier, redundant with bl_idname property");
 
   /* type-based size properties */
   prop = RNA_def_property(srna, "bl_width_default", PROP_FLOAT, PROP_UNSIGNED);
