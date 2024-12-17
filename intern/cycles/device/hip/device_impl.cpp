@@ -210,7 +210,6 @@ string HIPDevice::compile_kernel_get_common_cflags(const uint kernel_features)
   const string include_path = source_path;
   string cflags = string_printf(
       "-m%d "
-      "--use_fast_math "
       "-DHIPCC "
       "-I\"%s\"",
       machine,
@@ -218,6 +217,20 @@ string HIPDevice::compile_kernel_get_common_cflags(const uint kernel_features)
   if (use_adaptive_compilation()) {
     cflags += " -D__KERNEL_FEATURES__=" + to_string(kernel_features);
   }
+
+  const char *extra_cflags = getenv("CYCLES_HIP_EXTRA_CFLAGS");
+  if (extra_cflags) {
+    cflags += string(" ") + string(extra_cflags);
+  }
+
+#  ifdef WITH_NANOVDB
+  cflags += " -DWITH_NANOVDB";
+#  endif
+
+#  ifdef WITH_CYCLES_DEBUG
+  cflags += " -DWITH_CYCLES_DEBUG";
+#  endif
+
   return cflags;
 }
 
@@ -250,15 +263,15 @@ string HIPDevice::compile_kernel(const uint kernel_features, const char *name, c
   const string kernel_md5 = util_md5_string(source_md5 + common_cflags);
 
   const char *const kernel_ext = "genco";
-  std::string options;
-#  ifdef _WIN32
-  options.append("Wno-parentheses-equality -Wno-unused-value -ffast-math");
-#  else
-  options.append("Wno-parentheses-equality -Wno-unused-value -O3 -ffast-math");
-#  endif
+  std::string options = "-Wno-parentheses-equality -Wno-unused-value -ffast-math";
+
 #  ifndef NDEBUG
   options.append(" -save-temps");
 #  endif
+  if (major == 9 && minor == 0) {
+    /* Reduce optimization level on VEGA GPUs to avoid some rendering artifacts */
+    options.append(" -O1");
+  }
   options.append(" --offload-arch=").append(arch.c_str());
 
   const string include_path = source_path;
@@ -318,13 +331,14 @@ string HIPDevice::compile_kernel(const uint kernel_features, const char *name, c
   source_path = path_join(path_join(source_path, "kernel"),
                           path_join("device", path_join(base, string_printf("%s.cpp", name))));
 
-  string command = string_printf("%s -%s -I %s --%s %s -o \"%s\"",
+  string command = string_printf("%s %s -I \"%s\" --%s \"%s\" -o \"%s\" %s",
                                  hipcc,
                                  options.c_str(),
                                  include_path.c_str(),
                                  kernel_ext,
                                  source_path.c_str(),
-                                 fatbin.c_str());
+                                 fatbin.c_str(),
+                                 common_cflags.c_str());
 
   printf("Compiling %sHIP kernel ...\n%s\n",
          (use_adaptive_compilation()) ? "adaptive " : "",
