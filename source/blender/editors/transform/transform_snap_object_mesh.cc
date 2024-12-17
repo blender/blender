@@ -474,7 +474,7 @@ static eSnapMode snapMesh(SnapObjectContext *sctx,
     return SCE_SNAP_TO_NONE;
   }
 
-  bke::BVHTreeFromMesh treedata, treedata_dummy;
+  bke::BVHTreeFromMesh treedata;
   snap_object_data_mesh_get(mesh_eval, skip_hidden, &treedata);
 
   const BVHTree *bvhtree[2] = {nullptr};
