@@ -43,9 +43,9 @@ PATHS_EXCLUDE = set(
     os.path.join(SOURCE_DIR, p.replace("/", os.sep))
     for p in
     (
-        "build_files/cmake/clang_array_check.py",
-        "build_files/cmake/cmake_netbeans_project.py",
-        "build_files/cmake/cmake_qtcreator_project.py",
+        "tools/check_source/clang_array_check.py",
+        "tools/utils_ide/cmake_netbeans_project.py",
+        "tools/utils_ide/cmake_qtcreator_project.py",
         "release/datafiles/blender_icons_geom.py",  # Uses `bpy` too much.
         "tests/utils/bl_run_operators.py",  # Uses `bpy` too much.
         "tests/utils/bl_run_operators_event_simulate.py",  # Uses `bpy` too much.
