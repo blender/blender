@@ -23,7 +23,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_hash.h"
 #include "BLI_heap.h"
-#include "BLI_kdopbvh.h"
+#include "BLI_kdopbvh.hh"
 #include "BLI_kdtree.h"
 #include "BLI_lasso_2d.hh"
 #include "BLI_math_geom.h"

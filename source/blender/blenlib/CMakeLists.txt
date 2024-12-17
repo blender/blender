@@ -30,7 +30,7 @@ set(SRC
   intern/BLI_ghash_utils.cc
   intern/BLI_heap.c
   intern/BLI_heap_simple.c
-  intern/BLI_kdopbvh.c
+  intern/BLI_kdopbvh.cc
   intern/BLI_linklist.c
   intern/BLI_linklist_lockfree.c
   intern/BLI_memarena.c
@@ -269,7 +269,7 @@ set(SRC
   BLI_inplace_priority_queue.hh
   BLI_iterator.h
   BLI_jitter_2d.h
-  BLI_kdopbvh.h
+  BLI_kdopbvh.hh
   BLI_kdtree.h
   BLI_kdtree_impl.h
   BLI_lasso_2d.hh

@@ -11,7 +11,7 @@
 #include <cstring>
 #include <ctime>
 
-#include "BLI_kdopbvh.h"
+#include "BLI_kdopbvh.hh"
 #include "BLI_math_geom.h"
 #include "BLI_utildefines.h"
 

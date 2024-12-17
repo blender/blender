@@ -9,7 +9,7 @@
 #include <cstdio>
 #include <cstdlib>
 
-#include "BLI_kdopbvh.h"
+#include "BLI_kdopbvh.hh"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
 #include "BLI_path_utils.hh"

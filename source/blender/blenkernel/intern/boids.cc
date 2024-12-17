@@ -26,7 +26,7 @@
 #include "BKE_collision.h"
 #include "BKE_effect.h"
 #include "BKE_particle.h"
-#include "BLI_kdopbvh.h"
+#include "BLI_kdopbvh.hh"
 
 #include "BLT_translation.hh"
 
