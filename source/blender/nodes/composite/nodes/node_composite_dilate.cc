@@ -9,8 +9,10 @@
 #include <limits>
 
 #include "BLI_assert.h"
+#include "BLI_index_range.hh"
 #include "BLI_math_base.hh"
 #include "BLI_math_vector_types.hh"
+#include "BLI_task.hh"
 
 #include "RNA_access.hh"
 
@@ -118,8 +120,7 @@ class DilateErodeOperation : public NodeOperation {
     GPUShader *shader = context().get_shader(get_morphological_step_shader_name());
     GPU_shader_bind(shader);
 
-    /* Pass the absolute value of the distance. We have specialized shaders for each sign. */
-    GPU_shader_uniform_1i(shader, "radius", math::abs(get_distance()));
+    GPU_shader_uniform_1i(shader, "radius", this->get_structuring_element_size() / 2);
 
     const Result &input_mask = get_input("Mask");
     input_mask.bind_as_texture(shader, "input_tx");
@@ -166,7 +167,7 @@ class DilateErodeOperation : public NodeOperation {
     Result horizontal_pass_result = context().create_result(ResultType::Float);
     horizontal_pass_result.allocate_texture(transposed_domain);
 
-    if (this->get_distance() > 0) {
+    if (this->is_dilation()) {
       this->execute_step_pass_cpu<true>(input, horizontal_pass_result);
     }
     else {
@@ -191,8 +192,7 @@ class DilateErodeOperation : public NodeOperation {
     GPUShader *shader = context().get_shader(get_morphological_step_shader_name());
     GPU_shader_bind(shader);
 
-    /* Pass the absolute value of the distance. We have specialized shaders for each sign. */
-    GPU_shader_uniform_1i(shader, "radius", math::abs(get_distance()));
+    GPU_shader_uniform_1i(shader, "radius", this->get_structuring_element_size() / 2);
 
     horizontal_pass_result.bind_as_texture(shader, "input_tx");
 
@@ -210,13 +210,21 @@ class DilateErodeOperation : public NodeOperation {
     output_mask.unbind_as_image();
   }
 
+  const char *get_morphological_step_shader_name()
+  {
+    if (this->is_dilation()) {
+      return "compositor_morphological_step_dilate";
+    }
+    return "compositor_morphological_step_erode";
+  }
+
   void execute_step_vertical_pass_cpu(Result &horizontal_pass_result)
   {
     const Domain domain = compute_domain();
     Result &output_mask = get_result("Mask");
     output_mask.allocate_texture(domain);
 
-    if (this->get_distance() > 0) {
+    if (this->is_dilation()) {
       this->execute_step_pass_cpu<true>(horizontal_pass_result, output_mask);
     }
     else {
@@ -224,6 +232,14 @@ class DilateErodeOperation : public NodeOperation {
     }
   }
 
+  /* Apply a van Herk/Gil-Werman algorithm on the input based on:
+   *
+   *   Domanski, Luke, Pascal Vallotton, and Dadong Wang. "Parallel van Herk/Gil-Werman image
+   *   morphology on GPUs using CUDA." GTC 2009 Conference posters. 2009.
+   *
+   * The output is written transposed for more efficient execution, see the horizontal pass method
+   * for more information. The template argument IsDilate decides if dilation or erosion will be
+   * performed. */
   template<bool IsDilate> void execute_step_pass_cpu(const Result &input, Result &output)
   {
     const float limit = IsDilate ? std::numeric_limits<float>::lowest() :
@@ -237,32 +253,64 @@ class DilateErodeOperation : public NodeOperation {
       }
     };
 
-    /* We have specialized code for each sign, so use the absolute value. */
-    const int radius = math::abs(this->get_distance());
-
-    /* Notice that the size is transposed, see the note on the horizontal pass method for more
+    /* Notice that the domain is transposed, see the note on the horizontal pass method for more
      * information on the reasoning behind this. */
-    const int2 size = int2(output.domain().size.y, output.domain().size.x);
-    parallel_for(size, [&](const int2 texel) {
-      /* Find the maximum/minimum value in the window of the given radius around the pixel. This
-       * is essentially a morphological dilate/erode operator with a square structuring element. */
-      float value = limit;
-      for (int i = -radius; i <= radius; i++) {
-        value = morphology_operator(value, input.load_pixel_fallback(texel + int2(i, 0), limit));
+    const int2 image_size = int2(output.domain().size.y, output.domain().size.x);
+
+    /* We process rows in tiles whose size is the same as the structuring element size. So we
+     * compute the number of tiles using ceiling division, noting that the last tile might not be
+     * complete. */
+    const int size = this->get_structuring_element_size();
+    const int tiles_count = int(math::ceil(float(image_size.x) / size));
+
+    /* Process along rows in parallel. */
+    threading::parallel_for(IndexRange(image_size.y), 1, [&](const IndexRange sub_y_range) {
+      Array<float> prefix_table(size);
+      Array<float> suffix_table(size);
+      for (const int64_t y : sub_y_range) {
+        for (const int64_t tile_index : IndexRange(tiles_count)) {
+          const int64_t tile_start = tile_index * size;
+          /* Compute the x texel location of the pixel at the center of the tile. Noting that the
+           * size of the structuring element is guaranteed to be odd. */
+          const int64_t tile_center = tile_start + size / 2;
+
+          float prefix_value = limit;
+          float suffix_value = limit;
+          /* Starting from the pixel at the center of the tile, recursively compute the prefix
+           * table to the right and the suffix table to the left by applying the morphology
+           * operator. */
+          for (const int64_t i : IndexRange(size)) {
+            const float right_value = input.load_pixel_fallback(int2(tile_center + i, y), limit);
+            prefix_value = morphology_operator(prefix_value, right_value);
+            prefix_table[i] = prefix_value;
+
+            /* Note that we access pixels increasingly to the left, so invert the suffix table when
+             * writing to it. */
+            const float left_value = input.load_pixel_fallback(int2(tile_center - i, y), limit);
+            suffix_value = morphology_operator(suffix_value, left_value);
+            suffix_table[size - 1 - i] = suffix_value;
+          }
+
+          const IndexRange tile_range = IndexRange(tile_start, size);
+          const IndexRange safe_tile_range = tile_range.intersect(IndexRange(image_size.x));
+          /* For each pixel in the tile, write the result of applying the morphology operator on
+           * the prefix and suffix values. */
+          for (const int64_t x : safe_tile_range) {
+            /* Compute the local table index, since the prefix and suffix tables are local to each
+             * tile. */
+            const int64_t table_index = x - tile_start;
+            const float prefix_value = prefix_table[table_index];
+            const float suffix_value = suffix_table[table_index];
+
+            const float value = morphology_operator(prefix_value, suffix_value);
+
+            /* Write the value using the transposed texel. See the horizontal pass method for more
+             * information on the rational behind this. */
+            output.store_pixel(int2(y, x), value);
+          }
+        }
       }
-
-      /* Write the value using the transposed texel. See the horizontal pass method for more
-       * information on the rational behind this. */
-      output.store_pixel(int2(texel.y, texel.x), value);
     });
-  }
-
-  const char *get_morphological_step_shader_name()
-  {
-    if (get_distance() > 0) {
-      return "compositor_morphological_step_dilate";
-    }
-    return "compositor_morphological_step_erode";
   }
 
   /* --------------------------------
@@ -466,6 +514,21 @@ class DilateErodeOperation : public NodeOperation {
     return false;
   }
 
+  /* Gets the size of the structuring element. See the get_distance method for more information. */
+  int get_structuring_element_size()
+  {
+    return math::abs(this->get_distance()) * 2 + 1;
+  }
+
+  /* Returns true if dilation should be performed, as opposed to erosion. See the get_distance()
+   * method for more information. */
+  bool is_dilation()
+  {
+    return this->get_distance() > 0;
+  }
+
+  /* The signed radius of the structuring element, that is, half the structuring element size. The
+   * sign indicates either dilation or erosion, where negative values means erosion. */
   int get_distance()
   {
     return bnode().custom2;
