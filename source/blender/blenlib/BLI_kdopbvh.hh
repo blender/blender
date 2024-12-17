@@ -125,11 +125,20 @@ using BVHTree_NearestProjectedCallback = void (*)(void *userdata,
                                                   int clip_plane_len,
                                                   BVHTreeNearest *nearest);
 
+void BLI_bvhtree_free(BVHTree *tree);
+
+class BVHTreeDeleter {
+ public:
+  void operator()(BVHTree *tree)
+  {
+    BLI_bvhtree_free(tree);
+  }
+};
+
 /**
  * \note many callers don't check for `NULL` return.
  */
 BVHTree *BLI_bvhtree_new(int maxsize, float epsilon, char tree_type, char axis);
-void BLI_bvhtree_free(BVHTree *tree);
 
 /**
  * Construct: first insert points, then call balance.

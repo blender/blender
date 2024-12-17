@@ -23,14 +23,6 @@ struct MFace;
 struct Mesh;
 struct PointCloud;
 
-class BVHTreeDeleter {
- public:
-  void operator()(BVHTree *tree)
-  {
-    BLI_bvhtree_free(tree);
-  }
-};
-
 /**
  * Struct that stores basic information about a #BVHTree built from a mesh.
  */
