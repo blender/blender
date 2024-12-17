@@ -218,7 +218,7 @@ ccl_device void light_tree_importance(const float3 N_or_D,
   float cos_max_outgoing_angle;
   const float cos_theta_plus_theta_u = cos_theta * cos_theta_u - sin_theta * sin_theta_u;
   if (bcone.theta_e - bcone.theta_o < 0 || cos_theta < 0 || cos_theta_u < 0 ||
-      cos_theta_plus_theta_u < cosf(bcone.theta_e - bcone.theta_o))
+      cos_theta_plus_theta_u < fast_cosf(bcone.theta_e - bcone.theta_o))
   {
     min_importance = 0.0f;
   }
