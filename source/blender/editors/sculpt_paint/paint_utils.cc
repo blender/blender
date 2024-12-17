@@ -283,7 +283,7 @@ static int imapaint_pick_face(ViewContext *vc,
   const float3 start_object = math::transform_point(world_to_object, start_world);
   const float3 end_object = math::transform_point(world_to_object, end_world);
 
-  BVHTreeFromMesh mesh_bvh = mesh.bvh_corner_tris();
+  bke::BVHTreeFromMesh mesh_bvh = mesh.bvh_corner_tris();
 
   BVHTreeRayHit ray_hit;
   ray_hit.dist = FLT_MAX;

@@ -42,7 +42,7 @@ static CLG_LogRef LOG = {"bke.mesh"};
 /** \name Some Generic Helpers
  * \{ */
 
-static bool mesh_remap_bvhtree_query_nearest(BVHTreeFromMesh *treedata,
+static bool mesh_remap_bvhtree_query_nearest(blender::bke::BVHTreeFromMesh *treedata,
                                              BVHTreeNearest *nearest,
                                              const float co[3],
                                              const float max_dist_sq,
@@ -71,7 +71,7 @@ static bool mesh_remap_bvhtree_query_nearest(BVHTreeFromMesh *treedata,
   return false;
 }
 
-static bool mesh_remap_bvhtree_query_raycast(BVHTreeFromMesh *treedata,
+static bool mesh_remap_bvhtree_query_raycast(blender::bke::BVHTreeFromMesh *treedata,
                                              BVHTreeRayHit *rayhit,
                                              const float co[3],
                                              const float no[3],
@@ -123,7 +123,7 @@ float BKE_mesh_remap_calc_difference_from_mesh(const SpaceTransform *space_trans
   float result = 0.0f;
   int i;
 
-  BVHTreeFromMesh treedata = me_src->bvh_verts();
+  blender::bke::BVHTreeFromMesh treedata = me_src->bvh_verts();
   nearest.index = -1;
 
   for (i = 0; i < numverts_dst; i++) {
@@ -470,7 +470,7 @@ void BKE_mesh_remap_calc_verts_from_mesh(const int mode,
     }
   }
   else {
-    BVHTreeFromMesh treedata{};
+    blender::bke::BVHTreeFromMesh treedata{};
     BVHTreeNearest nearest = {0};
     BVHTreeRayHit rayhit = {0};
     float hit_dist;
@@ -695,7 +695,7 @@ void BKE_mesh_remap_calc_edges_from_mesh(const int mode,
     }
   }
   else {
-    BVHTreeFromMesh treedata{};
+    blender::bke::BVHTreeFromMesh treedata{};
     BVHTreeNearest nearest = {0};
     BVHTreeRayHit rayhit = {0};
     float hit_dist;
@@ -1234,7 +1234,7 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
     }
   }
   else {
-    Array<BVHTreeFromMesh> treedata;
+    Array<blender::bke::BVHTreeFromMesh> treedata;
     BVHTreeNearest nearest = {0};
     BVHTreeRayHit rayhit = {0};
     int num_trees = 0;
@@ -1424,7 +1424,7 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
               }
             }
           }
-          bvhtree_from_mesh_verts_ex(
+          blender::bke::bvhtree_from_mesh_verts_ex(
               &treedata[tindex], positions_src, verts_active, num_verts_active, 0.0, 2, 6);
         }
       }
@@ -1449,15 +1449,15 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
               corner_tris_num_active++;
             }
           }
-          bvhtree_from_mesh_corner_tris_ex(&treedata[tindex],
-                                           positions_src,
-                                           corner_verts_src,
-                                           corner_tris_src,
-                                           corner_tris_active,
-                                           corner_tris_num_active,
-                                           0.0,
-                                           2,
-                                           6);
+          blender::bke::bvhtree_from_mesh_corner_tris_ex(&treedata[tindex],
+                                                         positions_src,
+                                                         corner_verts_src,
+                                                         corner_tris_src,
+                                                         corner_tris_active,
+                                                         corner_tris_num_active,
+                                                         0.0,
+                                                         2,
+                                                         6);
         }
       }
       else {
@@ -1500,7 +1500,7 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
       }
 
       for (tindex = 0; tindex < num_trees; tindex++) {
-        BVHTreeFromMesh *tdata = &treedata[tindex];
+        blender::bke::BVHTreeFromMesh *tdata = &treedata[tindex];
 
         for (plidx_dst = 0; plidx_dst < face_dst.size(); plidx_dst++) {
           const int vert_dst = corner_verts_dst[face_dst.start() + plidx_dst];
@@ -2060,7 +2060,7 @@ void BKE_mesh_remap_calc_faces_from_mesh(const int mode,
     float hit_dist;
     const blender::Span<int> tri_faces = me_src->corner_tri_faces();
 
-    BVHTreeFromMesh treedata = me_src->bvh_corner_tris();
+    blender::bke::BVHTreeFromMesh treedata = me_src->bvh_corner_tris();
 
     if (mode == MREMAP_MODE_POLY_NEAREST) {
       nearest.index = -1;

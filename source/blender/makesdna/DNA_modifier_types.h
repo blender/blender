@@ -20,10 +20,15 @@
 
 namespace blender {
 struct NodesModifierRuntime;
+namespace bke {
+struct BVHTreeFromMesh;
 }
+}  // namespace blender
 using NodesModifierRuntimeHandle = blender::NodesModifierRuntime;
+using BVHTreeFromMeshHandle = blender::bke::BVHTreeFromMesh;
 #else
 typedef struct NodesModifierRuntimeHandle NodesModifierRuntimeHandle;
+typedef struct BVHTreeFromMeshHandle BVHTreeFromMeshHandle;
 #endif
 struct LineartModifierRuntime;
 
@@ -956,7 +961,7 @@ typedef struct SurfaceModifierData_Runtime {
   struct Mesh *mesh;
 
   /** Bounding volume hierarchy of the mesh faces. */
-  struct BVHTreeFromMesh *bvhtree;
+  BVHTreeFromMeshHandle *bvhtree;
 
   int cfra_prev, verts_num;
 

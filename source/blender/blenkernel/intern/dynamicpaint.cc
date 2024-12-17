@@ -3459,7 +3459,7 @@ static void mesh_tris_spherecast_dp(void *userdata,
                                     const BVHTreeRay *ray,
                                     BVHTreeRayHit *hit)
 {
-  const BVHTreeFromMesh *data = (BVHTreeFromMesh *)userdata;
+  const blender::bke::BVHTreeFromMesh *data = (blender::bke::BVHTreeFromMesh *)userdata;
   const blender::Span<blender::float3> positions = data->vert_positions;
   const int3 *corner_tris = data->corner_tris.data();
   const int *corner_verts = data->corner_verts.data();
@@ -3471,7 +3471,7 @@ static void mesh_tris_spherecast_dp(void *userdata,
   t1 = positions[corner_verts[corner_tris[index][1]]];
   t2 = positions[corner_verts[corner_tris[index][2]]];
 
-  dist = bvhtree_ray_tri_intersection(ray, hit->dist, t0, t1, t2);
+  dist = blender::bke::bvhtree_ray_tri_intersection(ray, hit->dist, t0, t1, t2);
 
   if (dist >= 0 && dist < hit->dist) {
     hit->index = index;
@@ -3491,7 +3491,7 @@ static void mesh_tris_nearest_point_dp(void *userdata,
                                        const float co[3],
                                        BVHTreeNearest *nearest)
 {
-  const BVHTreeFromMesh *data = (BVHTreeFromMesh *)userdata;
+  const blender::bke::BVHTreeFromMesh *data = (blender::bke::BVHTreeFromMesh *)userdata;
   const blender::Span<blender::float3> positions = data->vert_positions;
   const int3 *corner_tris = data->corner_tris.data();
   const int *corner_verts = data->corner_verts.data();
@@ -3977,7 +3977,8 @@ static void dynamic_paint_paint_mesh_cell_point_cb_ex(void *__restrict userdata,
   const float *avg_brushNor = data->avg_brushNor;
   const Vec3f *brushVelocity = data->brushVelocity;
 
-  BVHTreeFromMesh *treeData = static_cast<BVHTreeFromMesh *>(data->treeData);
+  blender::bke::BVHTreeFromMesh *treeData = static_cast<blender::bke::BVHTreeFromMesh *>(
+      data->treeData);
 
   const int index = grid->t_index[grid->s_pos[c_index] + id];
   const int samples = bData->s_num[index];
@@ -4354,7 +4355,7 @@ static bool dynamicPaint_paintMesh(Depsgraph *depsgraph,
     /* check bounding box collision */
     if (grid && meshBrush_boundsIntersect(&grid->grid_bounds, &mesh_bb, brush, brush_radius)) {
       /* Build a bvh tree from transformed vertices */
-      BVHTreeFromMesh treeData = mesh->bvh_corner_tris();
+      blender::bke::BVHTreeFromMesh treeData = mesh->bvh_corner_tris();
       if (treeData.tree != nullptr) {
         int c_index;
         int total_cells = grid->dim[0] * grid->dim[1] * grid->dim[2];

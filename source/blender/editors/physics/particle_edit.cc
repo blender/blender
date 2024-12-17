@@ -467,7 +467,7 @@ struct PEData {
   Object *ob;
   Mesh *mesh;
   PTCacheEdit *edit;
-  BVHTreeFromMesh *shape_bvh;
+  blender::bke::BVHTreeFromMesh *shape_bvh;
   Depsgraph *depsgraph;
 
   RNG *rng;
@@ -538,7 +538,7 @@ static bool PE_create_shape_tree(PEData *data, Object *shapeob)
     return false;
   }
 
-  data->shape_bvh = MEM_new<BVHTreeFromMesh>(__func__, mesh->bvh_corner_tris());
+  data->shape_bvh = MEM_new<blender::bke::BVHTreeFromMesh>(__func__, mesh->bvh_corner_tris());
   return data->shape_bvh->tree != nullptr;
 }
 
@@ -5112,7 +5112,7 @@ static bool shape_cut_poll(bContext *C)
 }
 
 struct PointInsideBVH {
-  BVHTreeFromMesh *bvhdata;
+  blender::bke::BVHTreeFromMesh *bvhdata;
   int num_hits;
 };
 
@@ -5133,7 +5133,7 @@ static void point_inside_bvh_cb(void *userdata,
 /* true if the point is inside the shape mesh */
 static bool shape_cut_test_point(PEData *data, ParticleEditSettings *pset, ParticleCacheKey *key)
 {
-  BVHTreeFromMesh *shape_bvh = data->shape_bvh;
+  blender::bke::BVHTreeFromMesh *shape_bvh = data->shape_bvh;
   const float dir[3] = {1.0f, 0.0f, 0.0f};
   PointInsideBVH userdata;
 

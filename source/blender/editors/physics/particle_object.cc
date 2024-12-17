@@ -701,7 +701,7 @@ static bool remap_hair_emitter(Depsgraph *depsgraph,
   ParticleData *pa, *tpa;
   PTCacheEditPoint *edit_point;
   PTCacheEditKey *ekey;
-  BVHTreeFromMesh bvhtree = {nullptr};
+  blender::bke::BVHTreeFromMesh bvhtree = {nullptr};
   const MFace *mface = nullptr, *mf;
   const blender::int2 *edges = nullptr, *edge;
   Mesh *mesh, *target_mesh;

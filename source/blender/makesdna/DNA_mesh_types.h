@@ -32,6 +32,7 @@ using offset_indices::OffsetIndices;
 template<typename T> class MutableSpan;
 template<typename T> class Span;
 namespace bke {
+struct BVHTreeFromMesh;
 struct MeshRuntime;
 class AttributeAccessor;
 class MutableAttributeAccessor;
@@ -46,7 +47,6 @@ typedef struct MeshRuntimeHandle MeshRuntimeHandle;
 #endif
 
 struct AnimData;
-struct BVHTreeFromMesh;
 struct Ipo;
 struct Key;
 struct MCol;
@@ -399,15 +399,15 @@ typedef struct Mesh {
    */
   blender::Span<blender::float3> corner_normals() const;
 
-  BVHTreeFromMesh bvh_verts() const;
-  BVHTreeFromMesh bvh_edges() const;
-  BVHTreeFromMesh bvh_legacy_faces() const;
-  BVHTreeFromMesh bvh_corner_tris() const;
-  BVHTreeFromMesh bvh_corner_tris_no_hidden() const;
-  BVHTreeFromMesh bvh_loose_verts() const;
-  BVHTreeFromMesh bvh_loose_edges() const;
-  BVHTreeFromMesh bvh_loose_no_hidden_verts() const;
-  BVHTreeFromMesh bvh_loose_no_hidden_edges() const;
+  blender::bke::BVHTreeFromMesh bvh_verts() const;
+  blender::bke::BVHTreeFromMesh bvh_edges() const;
+  blender::bke::BVHTreeFromMesh bvh_legacy_faces() const;
+  blender::bke::BVHTreeFromMesh bvh_corner_tris() const;
+  blender::bke::BVHTreeFromMesh bvh_corner_tris_no_hidden() const;
+  blender::bke::BVHTreeFromMesh bvh_loose_verts() const;
+  blender::bke::BVHTreeFromMesh bvh_loose_edges() const;
+  blender::bke::BVHTreeFromMesh bvh_loose_no_hidden_verts() const;
+  blender::bke::BVHTreeFromMesh bvh_loose_no_hidden_edges() const;
 
   void count_memory(blender::MemoryCounter &memory) const;
 

@@ -59,8 +59,8 @@ static void geo_proximity_init(bNodeTree * /*tree*/, bNode *node)
 class ProximityFunction : public mf::MultiFunction {
  private:
   struct BVHTrees {
-    BVHTreeFromMesh mesh_bvh = {};
-    BVHTreeFromPointCloud pointcloud_bvh = {};
+    bke::BVHTreeFromMesh mesh_bvh = {};
+    bke::BVHTreeFromPointCloud pointcloud_bvh = {};
   };
 
   GeometrySet target_;
@@ -100,7 +100,7 @@ class ProximityFunction : public mf::MultiFunction {
   {
     for (BVHTrees &trees : bvh_trees_) {
       if (trees.pointcloud_bvh.tree) {
-        free_bvhtree_from_pointcloud(&trees.pointcloud_bvh);
+        bke::free_bvhtree_from_pointcloud(&trees.pointcloud_bvh);
       }
     }
   }
@@ -129,8 +129,8 @@ class ProximityFunction : public mf::MultiFunction {
             if (group_mask.is_empty()) {
               continue;
             }
-            BVHTreeFromPointCloud &bvh = bvh_trees_[group_i].pointcloud_bvh;
-            BKE_bvhtree_from_pointcloud_get(pointcloud, group_mask, bvh);
+            bke::BVHTreeFromPointCloud &bvh = bvh_trees_[group_i].pointcloud_bvh;
+            bke::bvhtree_from_pointcloud_get(pointcloud, group_mask, bvh);
           }
         },
         threading::individual_task_sizes(
@@ -163,18 +163,18 @@ class ProximityFunction : public mf::MultiFunction {
             if (group_mask.is_empty()) {
               continue;
             }
-            BVHTreeFromMesh &bvh = bvh_trees_[group_i].mesh_bvh;
+            bke::BVHTreeFromMesh &bvh = bvh_trees_[group_i].mesh_bvh;
             switch (type_) {
               case GEO_NODE_PROX_TARGET_POINTS: {
-                BKE_bvhtree_from_mesh_verts_init(mesh, group_mask, bvh);
+                bke::bvhtree_from_mesh_verts_init(mesh, group_mask, bvh);
                 break;
               }
               case GEO_NODE_PROX_TARGET_EDGES: {
-                BKE_bvhtree_from_mesh_edges_init(mesh, group_mask, bvh);
+                bke::bvhtree_from_mesh_edges_init(mesh, group_mask, bvh);
                 break;
               }
               case GEO_NODE_PROX_TARGET_FACES: {
-                BKE_bvhtree_from_mesh_tris_init(mesh, group_mask, bvh);
+                bke::bvhtree_from_mesh_tris_init(mesh, group_mask, bvh);
                 break;
               }
             }
@@ -237,14 +237,14 @@ class ProximityFunction : public mf::MultiFunction {
                                  sample_position,
                                  &nearest,
                                  trees.mesh_bvh.nearest_callback,
-                                 const_cast<BVHTreeFromMesh *>(&trees.mesh_bvh));
+                                 const_cast<bke::BVHTreeFromMesh *>(&trees.mesh_bvh));
       }
       if (trees.pointcloud_bvh.tree != nullptr) {
         BLI_bvhtree_find_nearest(trees.pointcloud_bvh.tree,
                                  sample_position,
                                  &nearest,
                                  trees.pointcloud_bvh.nearest_callback,
-                                 const_cast<BVHTreeFromPointCloud *>(&trees.pointcloud_bvh));
+                                 const_cast<bke::BVHTreeFromPointCloud *>(&trees.pointcloud_bvh));
       }
 
       if (!positions.is_empty()) {

@@ -58,7 +58,7 @@ struct SDefEdgePolys {
 };
 
 struct SDefBindCalcData {
-  BVHTreeFromMesh *treeData;
+  blender::bke::BVHTreeFromMesh *treeData;
   const SDefAdjacencyArray *vert_edges;
   const SDefEdgePolys *edge_polys;
   SDefVert *bind_verts;
@@ -1212,7 +1212,7 @@ static bool surfacedeformBind(Object *ob,
     return false;
   }
 
-  BVHTreeFromMesh treeData = target->bvh_corner_tris();
+  blender::bke::BVHTreeFromMesh treeData = target->bvh_corner_tris();
   if (treeData.tree == nullptr) {
     BKE_modifier_set_error(ob, (ModifierData *)smd_eval, "Out of memory");
     freeAdjacencyMap(vert_edges, adj_array, edge_polys);

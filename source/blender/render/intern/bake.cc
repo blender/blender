@@ -319,7 +319,7 @@ static void barycentric_differentials_from_position(const float co[3],
 /**
  * This function populates pixel_array and returns TRUE if things are correct
  */
-static bool cast_ray_highpoly(BVHTreeFromMesh *treeData,
+static bool cast_ray_highpoly(blender::bke::BVHTreeFromMesh *treeData,
                               TriTessFace *triangle_low,
                               TriTessFace *triangles[],
                               BakePixel *pixel_array_low,
@@ -572,7 +572,7 @@ bool RE_bake_pixels_populate_from_objects(Mesh *me_low,
   /* Assume all high-poly tessfaces are triangles. */
   me_highpoly = static_cast<Mesh **>(
       MEM_mallocN(sizeof(Mesh *) * tot_highpoly, "Highpoly Derived Meshes"));
-  Array<BVHTreeFromMesh> treeData(tot_highpoly);
+  Array<blender::bke::BVHTreeFromMesh> treeData(tot_highpoly);
 
   if (!is_cage) {
     me_eval_low = BKE_mesh_copy_for_eval(*me_low);

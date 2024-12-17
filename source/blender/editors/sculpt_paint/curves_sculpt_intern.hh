@@ -26,7 +26,11 @@ struct View3D;
 struct Object;
 struct Brush;
 struct Scene;
+namespace blender {
+namespace bke {
 struct BVHTreeFromMesh;
+}
+}  // namespace blender
 struct ReportList;
 
 namespace blender::ed::sculpt_paint {
@@ -136,7 +140,7 @@ std::optional<CurvesBrush3D> sample_curves_surface_3d_brush(
     const ARegion &region,
     const View3D &v3d,
     const CurvesSurfaceTransforms &transforms,
-    const BVHTreeFromMesh &surface_bvh,
+    const bke::BVHTreeFromMesh &surface_bvh,
     const float2 &brush_pos_re,
     const float brush_radius_re);
 
