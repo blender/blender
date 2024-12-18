@@ -94,13 +94,13 @@ vec4 TextureHandle_eval_impl(TextureHandle tex, vec2 offset, bool texel_offset)
     /* View-space offset. */
     vec3 vP = drw_point_world_to_view(g_data.P);
     vec2 uv = drw_point_view_to_screen(vP + vec3(offset, 0.0)).xy;
-    texel = ivec2(uv * extent);
+    texel = ivec2(uv * vec2(extent));
   }
 
   texel = clamp(texel, ivec2(0), extent - ivec2(1));
 
   float depth = texelFetch(hiz_tx, texel, 0).r;
-  vec2 screen_uv = vec2(texel) / extent;
+  vec2 screen_uv = vec2(texel) / vec2(extent);
 
   switch (tex.type) {
     case TEX_HANDLE_RP_COLOR:
@@ -177,7 +177,7 @@ bool foreach_light_setup(uint l_idx,
                          out float out_shadow_mask)
 {
   LightData light = light_buf[l_idx];
-  if (light.color == vec3(0.0)) {
+  if (is_zero(light.color)) {
     return false;
   }
 
