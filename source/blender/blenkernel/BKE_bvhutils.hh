@@ -9,15 +9,12 @@
  * This header encapsulates necessary code to build a BVH.
  */
 
-#include <mutex>
-
 #include "BLI_bit_span.hh"
 #include "BLI_index_mask_fwd.hh"
 #include "BLI_kdopbvh.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_span.hh"
 
-struct BVHCache;
 struct BVHTree;
 struct MFace;
 struct Mesh;
