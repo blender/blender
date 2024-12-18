@@ -737,30 +737,21 @@ static void file_draw_loading_icon(const rcti *tile_draw_rect,
                                    const float preview_icon_aspect,
                                    const FileLayout *layout)
 {
-  /* Small icon in the middle of large image, scaled to fit container and UI scale */
-  float icon_opacity = 0.4f;
+  const float opacity = 0.4f;
 
   uchar icon_color[4] = {0, 0, 0, 255};
   /* Contrast with background since we are not showing the large document image. */
   UI_GetThemeColor4ubv(TH_TEXT, icon_color);
 
-  const auto [scaled_width, scaled_height, scale] = preview_image_scaled_dimensions_get(
-      200, 256, *layout, true);
+  const int cent_x = tile_draw_rect->xmin + layout->prv_border_x + (layout->prv_w / 2.0f) + 0.5f;
+  const int cent_y = tile_draw_rect->ymax - layout->prv_border_y - (layout->prv_h / 2.0f) + 0.5f;
+  const float aspect = preview_icon_aspect / UI_SCALE_FAC;
 
-  /* Additional offset to keep the scaled image centered. Difference between maximum
-   * width/height and the actual width/height, divided by two for centering.  */
-  const float ofs_x = (float(layout->prv_w) - float(scaled_width)) / 2.0f;
-  const float ofs_y = (float(layout->prv_h) - float(scaled_height)) / 2.0f;
-  const int xmin = tile_draw_rect->xmin + layout->prv_border_x + int(ofs_x + 0.5f);
-  const int ymin = tile_draw_rect->ymax - layout->prv_border_y - layout->prv_h + int(ofs_y + 0.5f);
-
-  const float icon_x = xmin + scaled_width * 0.178f;
-  const float icon_y = ymin + scaled_width * 0.15f;
-  UI_icon_draw_ex(icon_x,
-                  icon_y,
+  UI_icon_draw_ex(cent_x - (ICON_DEFAULT_WIDTH / aspect / 2.0f),
+                  cent_y - (ICON_DEFAULT_HEIGHT / aspect / 2.0f),
                   ICON_TEMP,
-                  preview_icon_aspect / UI_SCALE_FAC / 2.0f,
-                  icon_opacity,
+                  aspect,
+                  opacity,
                   0.0f,
                   icon_color,
                   false,
