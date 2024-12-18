@@ -96,14 +96,7 @@ class ProximityFunction : public mf::MultiFunction {
     }
   }
 
-  ~ProximityFunction()
-  {
-    for (BVHTrees &trees : bvh_trees_) {
-      if (trees.pointcloud_bvh.tree) {
-        bke::free_bvhtree_from_pointcloud(&trees.pointcloud_bvh);
-      }
-    }
-  }
+  ~ProximityFunction() = default;
 
   void init_for_pointcloud(const PointCloud &pointcloud, const Field<int> &group_id_field)
   {
@@ -236,7 +229,7 @@ class ProximityFunction : public mf::MultiFunction {
                                  const_cast<bke::BVHTreeFromMesh *>(&trees.mesh_bvh));
       }
       if (trees.pointcloud_bvh.tree != nullptr) {
-        BLI_bvhtree_find_nearest(trees.pointcloud_bvh.tree,
+        BLI_bvhtree_find_nearest(trees.pointcloud_bvh.tree.get(),
                                  sample_position,
                                  &nearest,
                                  trees.pointcloud_bvh.nearest_callback,

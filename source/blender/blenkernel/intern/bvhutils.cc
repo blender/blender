@@ -812,23 +812,15 @@ BVHTreeFromPointCloud bvhtree_from_pointcloud_get(const PointCloud &pointcloud,
                                                   const IndexMask &points_mask)
 {
   const Span<float3> positions = pointcloud.positions();
-  BVHTree *tree = create_tree_from_verts(positions, points_mask).release();
+  std::unique_ptr<BVHTree, BVHTreeDeleter> tree = create_tree_from_verts(positions, points_mask);
   if (!tree) {
     return {};
   }
   BVHTreeFromPointCloud data{};
-  data.tree = tree;
+  data.tree = std::move(tree);
   data.nearest_callback = nullptr;
   data.coords = (const float(*)[3])positions.data();
   return data;
-}
-
-void free_bvhtree_from_pointcloud(BVHTreeFromPointCloud *data)
-{
-  if (data->tree) {
-    BLI_bvhtree_free(data->tree);
-  }
-  memset(data, 0, sizeof(*data));
 }
 
 /** \} */

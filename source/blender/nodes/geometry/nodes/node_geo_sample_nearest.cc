@@ -94,14 +94,12 @@ static void get_closest_pointcloud_points(const PointCloud &pointcloud,
     nearest.dist_sq = FLT_MAX;
     const float3 position = positions[i];
     BLI_bvhtree_find_nearest(
-        tree_data.tree, position, &nearest, tree_data.nearest_callback, &tree_data);
+        tree_data.tree.get(), position, &nearest, tree_data.nearest_callback, &tree_data);
     r_indices[i] = nearest.index;
     if (!r_distances_sq.is_empty()) {
       r_distances_sq[i] = nearest.dist_sq;
     }
   });
-
-  bke::free_bvhtree_from_pointcloud(&tree_data);
 }
 
 static void get_closest_mesh_points(const Mesh &mesh,
