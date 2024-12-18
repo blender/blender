@@ -1909,11 +1909,11 @@ static bNodeSocket *make_socket(bNodeTree *ntree,
 
   if (identifier[0] != '\0') {
     /* use explicit identifier */
-    STRNCPY(auto_identifier, identifier.c_str());
+    identifier.copy(auto_identifier);
   }
   else {
     /* if no explicit identifier is given, assign a unique identifier based on the name */
-    STRNCPY(auto_identifier, name.c_str());
+    name.copy(auto_identifier);
   }
   /* Make the identifier unique. */
   BLI_uniquename_cb(
@@ -1926,12 +1926,12 @@ static bNodeSocket *make_socket(bNodeTree *ntree,
   STRNCPY(sock->identifier, auto_identifier);
   sock->limit = (in_out == SOCK_IN ? 1 : 0xFFF);
 
-  STRNCPY(sock->name, name.c_str());
+  name.copy(sock->name);
   sock->storage = nullptr;
   sock->flag |= SOCK_COLLAPSED;
   sock->type = SOCK_CUSTOM; /* int type undefined by default */
 
-  STRNCPY(sock->idname, idname.c_str());
+  idname.copy(sock->idname);
   node_socket_set_typeinfo(ntree, sock, node_socket_type_find(idname));
 
   return sock;
@@ -2091,7 +2091,7 @@ void node_modify_socket_type(bNodeTree *ntree,
     }
   }
 
-  STRNCPY(sock->idname, idname.c_str());
+  idname.copy(sock->idname);
   node_socket_set_typeinfo(ntree, sock, socktype);
 }
 
@@ -2640,7 +2640,7 @@ bNode *node_add_node(const bContext *C, bNodeTree *ntree, const StringRefNull id
   node_unique_id(ntree, node);
   node->ui_order = ntree->all_nodes().size();
 
-  STRNCPY(node->idname, idname.c_str());
+  idname.copy(node->idname);
   node_set_typeinfo(C, ntree, node, node_type_find(idname));
 
   BKE_ntree_update_tag_node_new(ntree, node);
@@ -3196,7 +3196,7 @@ static bNodeTree *node_tree_add_tree_do(Main *bmain,
     BLI_assert(owner_id == nullptr);
   }
 
-  STRNCPY(ntree->idname, idname.c_str());
+  idname.copy(ntree->idname);
   ntree_set_typeinfo(ntree, node_tree_type_find(idname));
 
   return ntree;
@@ -4319,7 +4319,7 @@ void node_type_base(bNodeType *ntype, const int type, const StringRefNull name, 
   BLI_assert(ntype->idname[0] != '\0');
 
   ntype->type = type;
-  STRNCPY(ntype->ui_name, name.c_str());
+  name.copy(ntype->ui_name);
   ntype->nclass = nclass;
 
   node_type_base_defaults(ntype);
@@ -4334,9 +4334,9 @@ void node_type_base_custom(bNodeType *ntype,
                            const StringRefNull enum_name,
                            const short nclass)
 {
-  STRNCPY(ntype->idname, idname.c_str());
+  idname.copy(ntype->idname);
   ntype->type = NODE_CUSTOM;
-  STRNCPY(ntype->ui_name, name.c_str());
+  name.copy(ntype->ui_name);
   ntype->nclass = nclass;
   ntype->enum_name_legacy = enum_name.c_str();
 
@@ -4604,7 +4604,7 @@ void node_type_storage(bNodeType *ntype,
                                         const bNode *src_node))
 {
   if (storagename.has_value()) {
-    STRNCPY(ntype->storagename, storagename->c_str());
+    storagename->copy(ntype->storagename);
   }
   else {
     ntype->storagename[0] = '\0';
