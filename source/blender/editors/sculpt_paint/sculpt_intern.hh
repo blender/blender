@@ -395,16 +395,13 @@ bool SCULPT_brush_cursor_poll(bContext *C);
 
 namespace blender::ed::sculpt_paint {
 /**
- * Returns true if sculpt session can handle color attributes
- * (pbvh->type() == bke::pbvh::Type::Mesh).  If false an error
- * message will be shown to the user.  Operators should return
- * OPERATOR_CANCELLED in this case.
+ * Returns true if the current Mesh type can handle color attributes. If false an error message
+ * will be shown to the user.  Operators should return OPERATOR_CANCELLED in this case.
  *
- * NOTE: Does not check if a color attribute actually exists.
- * Calling code must handle this itself; in most cases a call to
- * BKE_sculpt_color_layer_create_if_needed() is sufficient.
+ * NOTE: Does not check if a color attribute actually exists. Calling code must handle this itself;
+ * in most cases a call to BKE_sculpt_color_layer_create_if_needed() is sufficient.
  */
-bool color_supported_check(const Object &object, ReportList *reports);
+bool color_supported_check(const Scene &scene, Object &object, ReportList *reports);
 }  // namespace blender::ed::sculpt_paint
 
 /** \} */

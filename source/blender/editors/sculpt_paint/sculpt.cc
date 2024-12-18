@@ -5233,20 +5233,18 @@ static void stroke_undo_end(const bContext *C, Brush *brush)
 
 namespace blender::ed::sculpt_paint {
 
-bool color_supported_check(const Object &object, ReportList *reports)
+bool color_supported_check(const Scene &scene, Object &object, ReportList *reports)
 {
-  switch (blender::bke::object::pbvh_get(object)->type()) {
-    case blender::bke::pbvh::Type::Mesh:
-      return true;
-    case blender::bke::pbvh::Type::BMesh:
-      BKE_report(reports, RPT_ERROR, "Not supported in dynamic topology mode");
-      return false;
-    case blender::bke::pbvh::Type::Grids:
-      BKE_report(reports, RPT_ERROR, "Not supported in multiresolution mode");
-      return false;
+  if (const SculptSession &ss = *object.sculpt; ss.bm) {
+    BKE_report(reports, RPT_ERROR, "Not supported in dynamic topology mode");
+    return false;
   }
-  BLI_assert_unreachable();
-  return false;
+  else if (BKE_sculpt_multires_active(&scene, &object)) {
+    BKE_report(reports, RPT_ERROR, "Not supported in multiresolution mode");
+    return false;
+  }
+
+  return true;
 }
 
 static bool stroke_test_start(bContext *C, wmOperator *op, const float mval[2])
@@ -5421,7 +5419,7 @@ static int sculpt_brush_stroke_invoke(bContext *C, wmOperator *op, const wmEvent
   Brush &brush = *BKE_paint_brush(&sd.paint);
 
   if (SCULPT_brush_type_is_paint(brush.sculpt_brush_type) &&
-      !color_supported_check(ob, op->reports))
+      !color_supported_check(scene, ob, op->reports))
   {
     return OPERATOR_CANCELLED;
   }

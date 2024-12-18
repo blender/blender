@@ -478,7 +478,7 @@ static int sculpt_color_filter_init(bContext *C, wmOperator *op)
   }
 
   /* Disable for multires and dyntopo for now */
-  if (!bke::object::pbvh_get(ob) || !color_supported_check(ob, op->reports)) {
+  if (!bke::object::pbvh_get(ob) || !color_supported_check(scene, ob, op->reports)) {
     return OPERATOR_CANCELLED;
   }
 
