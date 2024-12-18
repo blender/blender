@@ -54,6 +54,10 @@ class CachedImage : public CachedResource {
   CachedImage(Context &context, Image *image, ImageUser *image_user, const char *pass_name);
 
   ~CachedImage();
+
+ private:
+  /* Populates the meta data of the image. */
+  void populate_meta_data(const Image *image, const ImageUser &image_user);
 };
 
 /* ------------------------------------------------------------------------------------------------
