@@ -1919,7 +1919,7 @@ static bNodeSocket *make_socket(bNodeTree *ntree,
   BLI_uniquename_cb(
       unique_identifier_check, lb, "socket", '_', auto_identifier, sizeof(auto_identifier));
 
-  bNodeSocket *sock = MEM_cnew<bNodeSocket>("sock");
+  bNodeSocket *sock = MEM_cnew<bNodeSocket>(__func__);
   sock->runtime = MEM_new<bNodeSocketRuntime>(__func__);
   sock->in_out = in_out;
 
@@ -2634,7 +2634,7 @@ void node_unique_id(bNodeTree *ntree, bNode *node)
 
 bNode *node_add_node(const bContext *C, bNodeTree *ntree, const StringRefNull idname)
 {
-  bNode *node = MEM_cnew<bNode>("new node");
+  bNode *node = MEM_cnew<bNode>(__func__);
   node->runtime = MEM_new<bNodeRuntime>(__func__);
   BLI_addtail(&ntree->nodes, node);
   node_unique_id(ntree, node);
@@ -2930,7 +2930,7 @@ bNodeLink *node_add_link(
   if (eNodeSocketInOut(fromsock->in_out) == SOCK_OUT &&
       eNodeSocketInOut(tosock->in_out) == SOCK_IN)
   {
-    link = MEM_cnew<bNodeLink>("link");
+    link = MEM_cnew<bNodeLink>(__func__);
     if (ntree) {
       BLI_addtail(&ntree->links, link);
     }
@@ -2943,7 +2943,7 @@ bNodeLink *node_add_link(
            eNodeSocketInOut(tosock->in_out) == SOCK_OUT)
   {
     /* OK but flip */
-    link = MEM_cnew<bNodeLink>("link");
+    link = MEM_cnew<bNodeLink>(__func__);
     if (ntree) {
       BLI_addtail(&ntree->links, link);
     }
