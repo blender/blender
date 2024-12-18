@@ -483,7 +483,6 @@ static void write_node_socket_interface(BlendWriter *writer, const bNodeSocket *
 static bNodeSocket *make_socket(bNodeTree *ntree,
                                 const eNodeSocketInOut in_out,
                                 const StringRef idname,
-
                                 const StringRef name,
                                 const StringRef identifier)
 {
@@ -501,8 +500,8 @@ static bNodeSocket *make_socket(bNodeTree *ntree,
 
   sock->limit = (in_out == SOCK_IN ? 1 : 0xFFF);
 
-  STRNCPY(sock->identifier, identifier.data());
-  STRNCPY(sock->name, name.data());
+  identifier.copy(sock->identifier);
+  name.copy(sock->name);
   sock->storage = nullptr;
   sock->flag |= SOCK_COLLAPSED;
 
