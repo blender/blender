@@ -122,8 +122,7 @@ class SampleNearestSurfaceFunction : public mf::MultiFunction {
         [&](const IndexRange range) {
           for (const int group_i : range) {
             const IndexMask &group_mask = group_masks[group_i];
-            bke::BVHTreeFromMesh &bvh = bvh_trees_[group_i];
-            bke::bvhtree_from_mesh_tris_init(mesh, group_mask, bvh);
+            bvh_trees_[group_i] = bke::bvhtree_from_mesh_tris_init(mesh, group_mask);
           }
         },
         threading::individual_task_sizes(

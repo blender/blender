@@ -73,13 +73,12 @@ enum BVHCacheType {
  * \param verts_num_active: if >= 0, number of active verts to add to BVH-tree
  * (else will be computed from `verts_mask`).
  */
-BVHTree *bvhtree_from_mesh_verts_ex(BVHTreeFromMesh *data,
-                                    Span<float3> vert_positions,
-                                    BitSpan verts_mask,
-                                    int verts_num_active,
-                                    float epsilon,
-                                    int tree_type,
-                                    int axis);
+BVHTreeFromMesh bvhtree_from_mesh_verts_ex(Span<float3> vert_positions,
+                                           BitSpan verts_mask,
+                                           int verts_num_active,
+                                           float epsilon,
+                                           int tree_type,
+                                           int axis);
 
 /**
  * Builds a BVH-tree where nodes are the given edges.
@@ -89,48 +88,40 @@ BVHTree *bvhtree_from_mesh_verts_ex(BVHTreeFromMesh *data,
  * \param edges_num_active: if >= 0, number of active edges to add to BVH-tree
  * (else will be computed from `edges_mask`).
  */
-BVHTree *bvhtree_from_mesh_edges_ex(BVHTreeFromMesh *data,
-                                    Span<float3> vert_positions,
-                                    Span<int2> edges,
-                                    BitSpan edges_mask,
-                                    int edges_num_active,
-                                    float epsilon,
-                                    int tree_type,
-                                    int axis);
+BVHTreeFromMesh bvhtree_from_mesh_edges_ex(Span<float3> vert_positions,
+                                           Span<int2> edges,
+                                           BitSpan edges_mask,
+                                           int edges_num_active,
+                                           float epsilon,
+                                           int tree_type,
+                                           int axis);
 
 /**
  * Builds a BVH-tree where nodes are the triangle faces (#Mesh::corner_tris()) of the given mesh.
  */
-BVHTree *bvhtree_from_mesh_corner_tris_ex(BVHTreeFromMesh *data,
-                                          Span<float3> vert_positions,
-                                          Span<int> corner_verts,
-                                          Span<int3> corner_tris,
-                                          BitSpan corner_tris_mask,
-                                          int corner_tris_num_active,
-                                          float epsilon,
-                                          int tree_type,
-                                          int axis);
+BVHTreeFromMesh bvhtree_from_mesh_corner_tris_ex(Span<float3> vert_positions,
+                                                 Span<int> corner_verts,
+                                                 Span<int3> corner_tris,
+                                                 BitSpan corner_tris_mask,
+                                                 int corner_tris_num_active,
+                                                 float epsilon,
+                                                 int tree_type,
+                                                 int axis);
 
 /**
  * Build a bvh tree from the triangles in the mesh that correspond to the faces in the given mask.
  */
-void bvhtree_from_mesh_tris_init(const Mesh &mesh,
-                                 const IndexMask &faces_mask,
-                                 BVHTreeFromMesh &r_data);
+BVHTreeFromMesh bvhtree_from_mesh_tris_init(const Mesh &mesh, const IndexMask &faces_mask);
 
 /**
  * Build a bvh tree containing the given edges.
  */
-void bvhtree_from_mesh_edges_init(const Mesh &mesh,
-                                  const IndexMask &edges_mask,
-                                  BVHTreeFromMesh &r_data);
+BVHTreeFromMesh bvhtree_from_mesh_edges_init(const Mesh &mesh, const IndexMask &edges_mask);
 
 /**
  * Build a bvh tree containing the given vertices.
  */
-void bvhtree_from_mesh_verts_init(const Mesh &mesh,
-                                  const IndexMask &verts_mask,
-                                  BVHTreeFromMesh &r_data);
+BVHTreeFromMesh bvhtree_from_mesh_verts_init(const Mesh &mesh, const IndexMask &verts_mask);
 
 /**
  * Math functions used by callbacks
@@ -152,9 +143,8 @@ struct BVHTreeFromPointCloud {
   const float (*coords)[3];
 };
 
-void bvhtree_from_pointcloud_get(const PointCloud &pointcloud,
-                                 const IndexMask &points_mask,
-                                 BVHTreeFromPointCloud &r_data);
+BVHTreeFromPointCloud bvhtree_from_pointcloud_get(const PointCloud &pointcloud,
+                                                  const IndexMask &points_mask);
 
 void free_bvhtree_from_pointcloud(BVHTreeFromPointCloud *data);
 

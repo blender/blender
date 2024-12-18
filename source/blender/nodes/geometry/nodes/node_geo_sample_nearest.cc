@@ -80,8 +80,8 @@ static void get_closest_pointcloud_points(const PointCloud &pointcloud,
   BLI_assert(positions.size() >= r_indices.size());
   BLI_assert(pointcloud.totpoint > 0);
 
-  bke::BVHTreeFromPointCloud tree_data;
-  bke::bvhtree_from_pointcloud_get(pointcloud, IndexMask(pointcloud.totpoint), tree_data);
+  bke::BVHTreeFromPointCloud tree_data = bke::bvhtree_from_pointcloud_get(
+      pointcloud, IndexMask(pointcloud.totpoint));
   if (tree_data.tree == nullptr) {
     r_indices.fill(0);
     r_distances_sq.fill(0.0f);

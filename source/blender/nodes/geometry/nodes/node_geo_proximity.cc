@@ -129,8 +129,8 @@ class ProximityFunction : public mf::MultiFunction {
             if (group_mask.is_empty()) {
               continue;
             }
-            bke::BVHTreeFromPointCloud &bvh = bvh_trees_[group_i].pointcloud_bvh;
-            bke::bvhtree_from_pointcloud_get(pointcloud, group_mask, bvh);
+            bvh_trees_[group_i].pointcloud_bvh = bke::bvhtree_from_pointcloud_get(pointcloud,
+                                                                                  group_mask);
           }
         },
         threading::individual_task_sizes(
@@ -163,20 +163,16 @@ class ProximityFunction : public mf::MultiFunction {
             if (group_mask.is_empty()) {
               continue;
             }
-            bke::BVHTreeFromMesh &bvh = bvh_trees_[group_i].mesh_bvh;
             switch (type_) {
-              case GEO_NODE_PROX_TARGET_POINTS: {
-                bke::bvhtree_from_mesh_verts_init(mesh, group_mask, bvh);
+              case GEO_NODE_PROX_TARGET_POINTS:
+                bvh_trees_[group_i].mesh_bvh = bke::bvhtree_from_mesh_verts_init(mesh, group_mask);
                 break;
-              }
-              case GEO_NODE_PROX_TARGET_EDGES: {
-                bke::bvhtree_from_mesh_edges_init(mesh, group_mask, bvh);
+              case GEO_NODE_PROX_TARGET_EDGES:
+                bvh_trees_[group_i].mesh_bvh = bke::bvhtree_from_mesh_edges_init(mesh, group_mask);
                 break;
-              }
-              case GEO_NODE_PROX_TARGET_FACES: {
-                bke::bvhtree_from_mesh_tris_init(mesh, group_mask, bvh);
+              case GEO_NODE_PROX_TARGET_FACES:
+                bvh_trees_[group_i].mesh_bvh = bke::bvhtree_from_mesh_tris_init(mesh, group_mask);
                 break;
-              }
             }
           }
         },

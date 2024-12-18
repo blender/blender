@@ -1424,8 +1424,8 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
               }
             }
           }
-          blender::bke::bvhtree_from_mesh_verts_ex(
-              &treedata[tindex], positions_src, verts_active, num_verts_active, 0.0, 2, 6);
+          treedata[tindex] = blender::bke::bvhtree_from_mesh_verts_ex(
+              positions_src, verts_active, num_verts_active, 0.0, 2, 6);
         }
       }
       else {
@@ -1449,15 +1449,14 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
               corner_tris_num_active++;
             }
           }
-          blender::bke::bvhtree_from_mesh_corner_tris_ex(&treedata[tindex],
-                                                         positions_src,
-                                                         corner_verts_src,
-                                                         corner_tris_src,
-                                                         corner_tris_active,
-                                                         corner_tris_num_active,
-                                                         0.0,
-                                                         2,
-                                                         6);
+          treedata[tindex] = blender::bke::bvhtree_from_mesh_corner_tris_ex(positions_src,
+                                                                            corner_verts_src,
+                                                                            corner_tris_src,
+                                                                            corner_tris_active,
+                                                                            corner_tris_num_active,
+                                                                            0.0,
+                                                                            2,
+                                                                            6);
         }
       }
       else {
