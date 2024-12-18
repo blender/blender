@@ -2154,6 +2154,8 @@ static void paint_draw_cursor(bContext *C, int x, int y, void * /*unused*/)
     return;
   }
   if (paint_cursor_is_3d_view_navigating(&pcontext)) {
+    /* Still draw stencil while navigating. */
+    paint_cursor_check_and_draw_alpha_overlays(&pcontext);
     return;
   }
 
