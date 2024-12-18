@@ -43,26 +43,6 @@ struct BVHTreeFromMesh {
   std::unique_ptr<BVHTree, BVHTreeDeleter> owned_tree;
 };
 
-enum BVHCacheType {
-  BVHTREE_FROM_VERTS,
-  BVHTREE_FROM_EDGES,
-  BVHTREE_FROM_FACES,
-  BVHTREE_FROM_CORNER_TRIS,
-  BVHTREE_FROM_CORNER_TRIS_NO_HIDDEN,
-
-  BVHTREE_FROM_LOOSEVERTS,
-  BVHTREE_FROM_LOOSEEDGES,
-
-  /* These types consider geometry visibility when getting loose elements.
-   * NOTE: If the element is linked to a face or edge that is hidden, but the element itself is not
-   * hidden, it is considered a loose element. */
-  BVHTREE_FROM_LOOSEVERTS_NO_HIDDEN,
-  BVHTREE_FROM_LOOSEEDGES_NO_HIDDEN,
-
-  /* Keep `BVHTREE_MAX_ITEM` as last item. */
-  BVHTREE_MAX_ITEM,
-};
-
 /**
  * Builds a BVH-tree where nodes are the given vertices.
  */
