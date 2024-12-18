@@ -2797,6 +2797,10 @@ bool GreasePencil::insert_duplicate_frame(blender::bke::greasepencil::Layer &lay
   if (!layer.frames().contains(src_frame_number)) {
     return false;
   }
+
+  if (layer.is_locked()) {
+    return false;
+  }
   const GreasePencilFrame src_frame = layer.frames().lookup(src_frame_number);
 
   /* Create the new frame structure, with the same duration.

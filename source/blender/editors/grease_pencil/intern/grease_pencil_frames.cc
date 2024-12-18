@@ -868,17 +868,19 @@ static int grease_pencil_active_frame_delete_exec(bContext *C, wmOperator *op)
   bool changed = false;
 
   if (only_active) {
-    if (!grease_pencil.has_active_layer()) {
+    Layer *active_layer = grease_pencil.get_active_layer();
+    if ((active_layer == nullptr) || active_layer->is_locked()) {
       return OPERATOR_CANCELLED;
     }
-
-    Layer &active_layer = *grease_pencil.get_active_layer();
-    if (std::optional<int> active_frame_number = active_layer.start_frame_at(current_frame)) {
-      changed |= grease_pencil.remove_frames(active_layer, {active_frame_number.value()});
+    if (std::optional<int> active_frame_number = active_layer->start_frame_at(current_frame)) {
+      changed |= grease_pencil.remove_frames(*active_layer, {active_frame_number.value()});
     }
   }
   else {
     for (Layer *layer : grease_pencil.layers_for_write()) {
+      if (layer->is_locked()) {
+        continue;
+      }
       if (std::optional<int> active_frame_number = layer->start_frame_at(current_frame)) {
         changed |= grease_pencil.remove_frames(*layer, {active_frame_number.value()});
       }
