@@ -1414,18 +1414,17 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
 
         for (tindex = 0; tindex < num_trees; tindex++) {
           MeshElemMap *isld = island_store.islands[tindex];
-          int num_verts_active = 0;
           verts_active.fill(false);
           for (int i = 0; i < isld->count; i++) {
             for (const int vidx_src : corner_verts_src.slice(faces_src[isld->indices[i]])) {
               if (!verts_active[vidx_src]) {
                 verts_active[vidx_src].set();
-                num_verts_active++;
               }
             }
           }
+          IndexMaskMemory memory;
           treedata[tindex] = blender::bke::bvhtree_from_mesh_verts_ex(
-              positions_src, verts_active, num_verts_active, 0.0, 2, 6);
+              positions_src, IndexMask::from_bits(verts_active, memory));
         }
       }
       else {
@@ -1437,26 +1436,23 @@ void BKE_mesh_remap_calc_loops_from_mesh(const int mode,
       if (use_islands) {
         corner_tris_src = me_src->corner_tris();
         tri_faces_src = me_src->corner_tri_faces();
-        blender::BitVector<> corner_tris_active(corner_tris_src.size());
+        blender::BitVector<> faces_active(corner_tris_src.size());
 
         for (tindex = 0; tindex < num_trees; tindex++) {
-          int corner_tris_num_active = 0;
-          corner_tris_active.fill(false);
-          for (const int64_t i : corner_tris_src.index_range()) {
-            const blender::IndexRange face = faces_src[tri_faces_src[i]];
+          faces_active.fill(false);
+          for (const int64_t i : faces_src.index_range()) {
+            const blender::IndexRange face = faces_src[i];
             if (island_store.items_to_islands[face.start()] == tindex) {
-              corner_tris_active[i].set();
-              corner_tris_num_active++;
+              faces_active[i].set();
             }
           }
-          treedata[tindex] = blender::bke::bvhtree_from_mesh_corner_tris_ex(positions_src,
-                                                                            corner_verts_src,
-                                                                            corner_tris_src,
-                                                                            corner_tris_active,
-                                                                            corner_tris_num_active,
-                                                                            0.0,
-                                                                            2,
-                                                                            6);
+          IndexMaskMemory memory;
+          treedata[tindex] = blender::bke::bvhtree_from_mesh_corner_tris_ex(
+              positions_src,
+              faces_src,
+              corner_verts_src,
+              corner_tris_src,
+              IndexMask::from_bits(faces_active, memory));
         }
       }
       else {
