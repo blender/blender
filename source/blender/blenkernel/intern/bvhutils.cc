@@ -746,14 +746,16 @@ blender::bke::BVHTreeFromMesh Mesh::bvh_corner_tris_no_hidden() const
   if (!hide_poly) {
     return this->bvh_corner_tris();
   }
-  this->runtime->bvh_cache_verts.ensure([&](std::unique_ptr<BVHTree, BVHTreeDeleter> &data) {
-    const OffsetIndices<int> faces = this->faces();
-    IndexMaskMemory memory;
-    const IndexMask visible_faces = IndexMask::from_bools_inverse(
-        faces.index_range(), VArraySpan(hide_poly), memory);
-    data = create_tree_from_tris(positions, faces, corner_verts, corner_tris, visible_faces);
-  });
-  const std::unique_ptr<BVHTree, BVHTreeDeleter> &tree = this->runtime->bvh_cache_verts.data();
+  this->runtime->bvh_cache_corner_tris_no_hidden.ensure(
+      [&](std::unique_ptr<BVHTree, BVHTreeDeleter> &data) {
+        const OffsetIndices<int> faces = this->faces();
+        IndexMaskMemory memory;
+        const IndexMask visible_faces = IndexMask::from_bools_inverse(
+            faces.index_range(), VArraySpan(hide_poly), memory);
+        data = create_tree_from_tris(positions, faces, corner_verts, corner_tris, visible_faces);
+      });
+  const std::unique_ptr<BVHTree, BVHTreeDeleter> &tree =
+      this->runtime->bvh_cache_corner_tris_no_hidden.data();
   return bvhtree_from_mesh_setup_data(tree.get(),
                                       BVHTREE_FROM_CORNER_TRIS_NO_HIDDEN,
                                       positions,
