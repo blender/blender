@@ -4026,56 +4026,6 @@ void wm_event_do_handlers(bContext *C)
     if (screen == nullptr) {
       wm_event_free_all(win);
     }
-    else {
-      Scene *scene = WM_window_get_active_scene(win);
-      ViewLayer *view_layer = WM_window_get_active_view_layer(win);
-      Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, view_layer);
-      Scene *scene_eval = (depsgraph != nullptr) ? DEG_get_evaluated_scene(depsgraph) : nullptr;
-
-      if (scene_eval != nullptr) {
-        const int is_playing_sound = BKE_sound_scene_playing(scene_eval);
-
-        if (scene_eval->id.recalc & ID_RECALC_FRAME_CHANGE) {
-          /* Ignore seek here, the audio will be updated to the scene frame after jump during next
-           * dependency graph update. */
-        }
-        else if (is_playing_sound != -1) {
-          bool is_playing_screen;
-
-          is_playing_screen = (ED_screen_animation_playing(wm) != nullptr);
-
-          if (((is_playing_sound == 1) && (is_playing_screen == 0)) ||
-              ((is_playing_sound == 0) && (is_playing_screen == 1)))
-          {
-            wmWindow *win_ctx = CTX_wm_window(C);
-            bScreen *screen_stx = CTX_wm_screen(C);
-            Scene *scene_ctx = CTX_data_scene(C);
-
-            CTX_wm_window_set(C, win);
-            CTX_wm_screen_set(C, screen);
-            CTX_data_scene_set(C, scene);
-
-            ED_screen_animation_play(C, -1, 1);
-
-            CTX_data_scene_set(C, scene_ctx);
-            CTX_wm_screen_set(C, screen_stx);
-            CTX_wm_window_set(C, win_ctx);
-          }
-
-          if (is_playing_sound == 0) {
-            const double time = BKE_sound_sync_scene(scene_eval);
-            if (isfinite(time)) {
-              int ncfra = round(time * FPS);
-              if (ncfra != scene->r.cfra) {
-                scene->r.cfra = ncfra;
-                ED_update_for_newframe(CTX_data_main(C), depsgraph);
-                WM_event_add_notifier(C, NC_WINDOW, nullptr);
-              }
-            }
-          }
-        }
-      }
-    }
 
     wmEvent *event;
     while ((event = static_cast<wmEvent *>(win->event_queue.first))) {

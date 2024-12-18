@@ -40,6 +40,12 @@ struct ReportList;
 struct Scene;
 struct ViewLayer;
 
+namespace blender::bke::liboverride {
+
+bool is_auto_resync_enabled();
+
+}  // namespace blender::bke::liboverride
+
 /**
  * Initialize empty overriding of \a reference_id by \a local_id.
  */

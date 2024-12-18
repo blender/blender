@@ -606,32 +606,6 @@ static void armature_deform_coords_impl(const Object *ob_arm,
   }
 }
 
-void BKE_armature_deform_coords_with_gpencil_stroke(const Object *ob_arm,
-                                                    const Object *ob_target,
-                                                    float (*vert_coords)[3],
-                                                    float (*vert_deform_mats)[3][3],
-                                                    int vert_coords_len,
-                                                    int deformflag,
-                                                    float (*vert_coords_prev)[3],
-                                                    const char *defgrp_name,
-                                                    bGPDstroke *gps_target)
-{
-  const ListBase *defbase = BKE_id_defgroup_list_get(static_cast<const ID *>(ob_target->data));
-  const blender::Span<MDeformVert> dverts = {gps_target->dvert, gps_target->totpoints};
-  armature_deform_coords_impl(ob_arm,
-                              ob_target,
-                              defbase,
-                              vert_coords,
-                              vert_deform_mats,
-                              vert_coords_len,
-                              deformflag,
-                              vert_coords_prev,
-                              defgrp_name,
-                              dverts,
-                              nullptr,
-                              nullptr);
-}
-
 void BKE_armature_deform_coords_with_curves(
     const Object &ob_arm,
     const Object &ob_target,

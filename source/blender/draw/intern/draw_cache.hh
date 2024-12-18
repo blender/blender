@@ -22,7 +22,6 @@ struct Object;
 struct PTCacheEdit;
 struct ParticleSystem;
 struct Volume;
-struct bGPDstroke;
 struct Scene;
 
 /**

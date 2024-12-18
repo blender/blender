@@ -1,5 +1,6 @@
 import bpy
 from bpy.types import NodeTree, Node, NodeSocket, NodeTreeInterfaceSocket
+from bl_ui import node_add_menu
 
 # Implementation of custom nodes from Python
 
@@ -131,46 +132,15 @@ class MyCustomNode(MyCustomTreeNode, Node):
         return "I am a custom node"
 
 
-### Node Categories ###
-# Node categories are a python system for automatically
-# extending the Add menu, toolbar panels and search operator.
-# For more examples see scripts/startup/nodeitems_builtins.py
+# Add custom nodes to the Add menu.
+def draw_add_menu(self, context):
+    layout = self.layout
+    if context.space_data.tree_type != MyCustomTree.bl_idname:
+        # Avoid adding nodes to built-in node tree
+        return
+    # Add nodes to the layout. Can use submenus, separators, etc. as in any other menu.
+    node_add_menu.add_node_type(layout, "CustomNodeType")
 
-import nodeitems_utils
-from nodeitems_utils import NodeCategory, NodeItem
-
-# our own base class with an appropriate poll function,
-# so the categories only show up in our own tree type
-
-
-class MyNodeCategory(NodeCategory):
-    @classmethod
-    def poll(cls, context):
-        return context.space_data.tree_type == 'CustomTreeType'
-
-
-# all categories in a list
-node_categories = [
-    # identifier, label, items list
-    MyNodeCategory('SOMENODES', "Some Nodes", items=[
-        # our basic node
-        NodeItem("CustomNodeType"),
-    ]),
-    MyNodeCategory('OTHERNODES', "Other Nodes", items=[
-        # the node item can have additional settings,
-        # which are applied to new nodes
-        # NOTE: settings values are stored as string expressions,
-        # for this reason they should be converted to strings using repr()
-        NodeItem("CustomNodeType", label="Node A", settings={
-            "my_string_prop": repr("Lorem ipsum dolor sit amet"),
-            "my_float_prop": repr(1.0),
-        }),
-        NodeItem("CustomNodeType", label="Node B", settings={
-            "my_string_prop": repr("consectetur adipisicing elit"),
-            "my_float_prop": repr(2.0),
-        }),
-    ]),
-]
 
 classes = (
     MyCustomTree,
@@ -185,11 +155,11 @@ def register():
     for cls in classes:
         register_class(cls)
 
-    nodeitems_utils.register_node_categories('CUSTOM_NODES', node_categories)
+    bpy.types.NODE_MT_add.append(draw_add_menu)
 
 
 def unregister():
-    nodeitems_utils.unregister_node_categories('CUSTOM_NODES')
+    bpy.types.NODE_MT_add.remove(draw_add_menu)
 
     from bpy.utils import unregister_class
     for cls in reversed(classes):

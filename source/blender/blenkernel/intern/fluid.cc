@@ -49,7 +49,7 @@
 #  include "DNA_particle_types.h"
 #  include "DNA_scene_types.h"
 
-#  include "BLI_kdopbvh.h"
+#  include "BLI_kdopbvh.hh"
 #  include "BLI_kdtree.h"
 #  include "BLI_threads.h"
 #  include "BLI_voxel.h"

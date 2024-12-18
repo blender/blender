@@ -64,6 +64,8 @@
 
 static CLG_LogRef LOG = {"bke.blendfile_link_append"};
 
+using namespace blender::bke;
+
 /* -------------------------------------------------------------------- */
 /** \name Link/append context implementation and public management API.
  * \{ */
@@ -1997,9 +1999,7 @@ void BKE_blendfile_library_relocate(BlendfileLinkAppendContext *lapp_context,
   BKE_library_main_rebuild_hierarchy(bmain);
 
   /* Resync overrides if needed. */
-  if (!USER_EXPERIMENTAL_TEST(&U, no_override_auto_resync) &&
-      lapp_context->params->context.scene != nullptr)
-  {
+  if (liboverride::is_auto_resync_enabled() && lapp_context->params->context.scene != nullptr) {
     BlendFileReadReport report{};
     report.reports = reports;
     BKE_lib_override_library_main_resync(bmain,

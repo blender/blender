@@ -8,19 +8,17 @@
  * \ingroup bli
  */
 
+#include "BLI_function_ref.hh"
+#include "BLI_math_vector.hh"
 #include "BLI_sys_types.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 struct BVHTree;
 struct DistProjectedAABBPrecalc;
 
-typedef struct BVHTree BVHTree;
+struct BVHTree;
 #define USE_KDOPBVH_WATERTIGHT
 
-typedef struct BVHTreeAxisRange {
+struct BVHTreeAxisRange {
   union {
     struct {
       float min, max;
@@ -28,14 +26,14 @@ typedef struct BVHTreeAxisRange {
     /* alternate access */
     float range[2];
   };
-} BVHTreeAxisRange;
+};
 
-typedef struct BVHTreeOverlap {
+struct BVHTreeOverlap {
   int indexA;
   int indexB;
-} BVHTreeOverlap;
+};
 
-typedef struct BVHTreeNearest {
+struct BVHTreeNearest {
   /** The index of the nearest found
    * (untouched if none is found within a dist radius from the given coordinates) */
   int index;
@@ -48,9 +46,9 @@ typedef struct BVHTreeNearest {
   /** squared distance to search around */
   float dist_sq;
   int flags;
-} BVHTreeNearest;
+};
 
-typedef struct BVHTreeRay {
+struct BVHTreeRay {
   /** ray origin */
   float origin[3];
   /** ray direction */
@@ -60,9 +58,9 @@ typedef struct BVHTreeRay {
 #ifdef USE_KDOPBVH_WATERTIGHT
   struct IsectRayPrecalc *isect_precalc;
 #endif
-} BVHTreeRay;
+};
 
-typedef struct BVHTreeRayHit {
+struct BVHTreeRayHit {
   /** Index of the tree node (untouched if no hit is found). */
   int index;
   /** Coordinates of the hit point. */
@@ -71,7 +69,7 @@ typedef struct BVHTreeRayHit {
   float no[3];
   /** Distance to the hit point. */
   float dist;
-} BVHTreeRayHit;
+};
 
 enum {
   BVH_OVERLAP_USE_THREADING = (1 << 0),
@@ -94,44 +92,53 @@ enum {
 /**
  * Callback must update nearest in case it finds a nearest result.
  */
-typedef void (*BVHTree_NearestPointCallback)(void *userdata,
-                                             int index,
-                                             const float co[3],
-                                             BVHTreeNearest *nearest);
+using BVHTree_NearestPointCallback = void (*)(void *userdata,
+                                              int index,
+                                              const float co[3],
+                                              BVHTreeNearest *nearest);
 
 /**
  * Callback must update hit in case it finds a nearest successful hit.
  */
-typedef void (*BVHTree_RayCastCallback)(void *userdata,
-                                        int index,
-                                        const BVHTreeRay *ray,
-                                        BVHTreeRayHit *hit);
+using BVHTree_RayCastCallback = void (*)(void *userdata,
+                                         int index,
+                                         const BVHTreeRay *ray,
+                                         BVHTreeRayHit *hit);
 
 /**
  * Callback to check if 2 nodes overlap (use thread if intersection results need to be stored).
  */
-typedef bool (*BVHTree_OverlapCallback)(void *userdata, int index_a, int index_b, int thread);
+using BVHTree_OverlapCallback = bool (*)(void *userdata, int index_a, int index_b, int thread);
 
 /**
  * Callback to range search query.
  */
-typedef void (*BVHTree_RangeQuery)(void *userdata, int index, const float co[3], float dist_sq);
+using BVHTree_RangeQuery = void (*)(void *userdata, int index, const float co[3], float dist_sq);
 
 /**
  * Callback to find nearest projected.
  */
-typedef void (*BVHTree_NearestProjectedCallback)(void *userdata,
-                                                 int index,
-                                                 const struct DistProjectedAABBPrecalc *precalc,
-                                                 const float (*clip_plane)[4],
-                                                 int clip_plane_len,
-                                                 BVHTreeNearest *nearest);
+using BVHTree_NearestProjectedCallback = void (*)(void *userdata,
+                                                  int index,
+                                                  const DistProjectedAABBPrecalc *precalc,
+                                                  const float (*clip_plane)[4],
+                                                  int clip_plane_len,
+                                                  BVHTreeNearest *nearest);
+
+void BLI_bvhtree_free(BVHTree *tree);
+
+class BVHTreeDeleter {
+ public:
+  void operator()(BVHTree *tree)
+  {
+    BLI_bvhtree_free(tree);
+  }
+};
 
 /**
  * \note many callers don't check for `NULL` return.
  */
 BVHTree *BLI_bvhtree_new(int maxsize, float epsilon, char tree_type, char axis);
-void BLI_bvhtree_free(BVHTree *tree);
 
 /**
  * Construct: first insert points, then call balance.
@@ -301,15 +308,6 @@ int BLI_bvhtree_find_nearest_projected(const BVHTree *tree,
  */
 extern const float bvhtree_kdop_axes[13][3];
 
-#ifdef __cplusplus
-}
-#endif
-
-#ifdef __cplusplus
-
-#  include "BLI_function_ref.hh"
-#  include "BLI_math_vector.hh"
-
 namespace blender {
 
 using BVHTree_RayCastCallback_CPP =
@@ -354,5 +352,3 @@ inline void BLI_bvhtree_range_query_cpp(const BVHTree &tree,
 }
 
 }  // namespace blender
-
-#endif

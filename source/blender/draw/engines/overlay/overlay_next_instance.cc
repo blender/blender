@@ -50,8 +50,10 @@ void Instance::init()
   state.space_type = state.v3d != nullptr ? SPACE_VIEW3D : eSpace_Type(ctx->space_data->spacetype);
   if (state.v3d != nullptr) {
     state.clear_in_front = (state.v3d->shading.type != OB_SOLID);
-    state.use_in_front = (state.v3d->shading.type <= OB_SOLID) ||
-                         BKE_scene_uses_blender_workbench(state.scene);
+    /* TODO(pragma37): Check with @fclem if this was intentional. */
+    // state.use_in_front = (state.v3d->shading.type <= OB_SOLID) ||
+    //                      BKE_scene_uses_blender_workbench(state.scene);
+    state.use_in_front = true;
     state.is_wireframe_mode = (state.v3d->shading.type == OB_WIRE);
     state.hide_overlays = (state.v3d->flag2 & V3D_HIDE_OVERLAYS) != 0;
     state.xray_enabled = XRAY_ACTIVE(state.v3d);

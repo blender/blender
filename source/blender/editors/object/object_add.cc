@@ -11,6 +11,7 @@
 #include <cstring>
 #include <optional>
 
+#include "BKE_curve_legacy_convert.hh"
 #include "BKE_curves.hh"
 #include "MEM_guardedalloc.h"
 
@@ -2476,7 +2477,7 @@ static void make_object_duplilist_real(bContext *C,
     return;
   }
 
-  GHash *dupli_gh = BLI_ghash_ptr_new(__func__);
+  blender::Map<const DupliObject *, Object *> dupli_map;
   if (use_hierarchy) {
     parent_gh = BLI_ghash_new(dupliobject_hash, dupliobject_cmp, __func__);
 
@@ -2525,7 +2526,8 @@ static void make_object_duplilist_real(bContext *C,
     copy_m4_m4(ob_dst->runtime->object_to_world.ptr(), dob->mat);
     BKE_object_apply_mat4(ob_dst, ob_dst->object_to_world().ptr(), false, false);
 
-    BLI_ghash_insert(dupli_gh, dob, ob_dst);
+    dupli_map.add(dob, ob_dst);
+
     if (parent_gh) {
       void **val;
       /* Due to nature of hash/comparison of this ghash, a lot of duplis may be considered as
@@ -2546,7 +2548,7 @@ static void make_object_duplilist_real(bContext *C,
 
   LISTBASE_FOREACH (DupliObject *, dob, lb_duplis) {
     Object *ob_src = dob->ob;
-    Object *ob_dst = static_cast<Object *>(BLI_ghash_lookup(dupli_gh, dob));
+    Object *ob_dst = dupli_map.lookup(dob);
 
     /* Remap new object to itself, and clear again newid pointer of orig object. */
     BKE_libblock_relink_to_newid(bmain, &ob_dst->id, 0);
@@ -2632,7 +2634,6 @@ static void make_object_duplilist_real(bContext *C,
   base_select(base, BA_DESELECT);
   DEG_id_tag_update(&base->object->id, ID_RECALC_SELECT);
 
-  BLI_ghash_free(dupli_gh, nullptr, nullptr);
   if (parent_gh) {
     BLI_ghash_free(parent_gh, nullptr, nullptr);
   }
@@ -3339,14 +3340,10 @@ static Object *convert_grease_pencil(Base &base,
   return nullptr;
 }
 
-static Object *convert_font_to_curves_legacy(Base &base,
-                                             ObjectConversionInfo &info,
-                                             Base **r_new_base)
+static Object *convert_font_to_curve_legacy_generic(Object *ob,
+                                                    Object *newob,
+                                                    ObjectConversionInfo &info)
 {
-  Object *ob = base.object;
-  ob->flag |= OB_DONE;
-  Object *newob = get_object_for_conversion(base, info, r_new_base);
-
   Curve *cu = static_cast<Curve *>(newob->data);
 
   Object *ob_eval = DEG_get_evaluated_object(info.depsgraph, ob);
@@ -3402,6 +3399,80 @@ static Object *convert_font_to_curves_legacy(Base &base,
   return newob;
 }
 
+static Object *convert_font_to_curves_legacy(Base &base,
+                                             ObjectConversionInfo &info,
+                                             Base **r_new_base)
+{
+  Object *ob = base.object;
+  ob->flag |= OB_DONE;
+  Object *newob = get_object_for_conversion(base, info, r_new_base);
+
+  return convert_font_to_curve_legacy_generic(ob, newob, info);
+}
+
+static Object *convert_font_to_curves(Base &base, ObjectConversionInfo &info, Base **r_new_base)
+{
+  Object *ob = base.object;
+  ob->flag |= OB_DONE;
+  Object *newob = get_object_for_conversion(base, info, r_new_base);
+  Object *curve_ob = convert_font_to_curve_legacy_generic(ob, newob, info);
+  BLI_assert(curve_ob->type == OB_CURVES_LEGACY);
+
+  Curve *legacy_curve_id = static_cast<Curve *>(curve_ob->data);
+  Curves *curves_nomain = bke::curve_legacy_to_curves(*legacy_curve_id);
+
+  Curves *curves_id = BKE_curves_add(info.bmain, BKE_id_name(legacy_curve_id->id));
+  curves_id->geometry.wrap() = curves_nomain->geometry.wrap();
+
+  blender::bke::curves_copy_parameters(*curves_nomain, *curves_id);
+
+  curve_ob->data = curves_id;
+  curve_ob->type = OB_CURVES;
+
+  BKE_id_free(nullptr, curves_nomain);
+
+  return curve_ob;
+}
+
+static Object *convert_font_to_grease_pencil(Base &base,
+                                             ObjectConversionInfo &info,
+                                             Base **r_new_base)
+{
+  Object *ob = base.object;
+  ob->flag |= OB_DONE;
+  Object *newob = get_object_for_conversion(base, info, r_new_base);
+  Object *curve_ob = convert_font_to_curve_legacy_generic(ob, newob, info);
+  BLI_assert(curve_ob->type == OB_CURVES_LEGACY);
+
+  Curve *legacy_curve_id = static_cast<Curve *>(curve_ob->data);
+  Curves *curves_nomain = bke::curve_legacy_to_curves(*legacy_curve_id);
+
+  GreasePencil *grease_pencil = BKE_grease_pencil_add(info.bmain,
+                                                      BKE_id_name(legacy_curve_id->id));
+  bke::greasepencil::Layer &layer = grease_pencil->add_layer(DATA_("Converted Layer"));
+
+  const int current_frame = info.scene->r.cfra;
+
+  bke::greasepencil::Drawing *drawing = grease_pencil->insert_frame(layer, current_frame);
+
+  blender::bke::CurvesGeometry &curves = curves_nomain->geometry.wrap();
+
+  drawing->strokes_for_write() = std::move(curves);
+  /* Default radius (1.0 unit) is too thick for converted strokes. */
+  drawing->radii_for_write().fill(0.01f);
+  drawing->tag_positions_changed();
+
+  curve_ob->data = grease_pencil;
+  curve_ob->type = OB_GREASE_PENCIL;
+
+  /* We don't need the intermediate font/curve data ID any more. */
+  BKE_id_delete(info.bmain, legacy_curve_id);
+
+  BKE_id_free(nullptr, curves_nomain);
+
+  return curve_ob;
+}
+
 static Object *convert_font_to_mesh(Base &base, ObjectConversionInfo &info, Base **r_new_base)
 {
   Object *newob = convert_font_to_curves_legacy(base, info, r_new_base);
@@ -3409,8 +3480,9 @@ static Object *convert_font_to_mesh(Base &base, ObjectConversionInfo &info, Base
   /* No assumption should be made that the resulting objects is a mesh, as conversion can
    * fail. */
   object_data_convert_curve_to_mesh(info.bmain, info.depsgraph, newob);
+
   /* Meshes doesn't use the "curve cache". */
-  BKE_object_free_curve_cache(newob);
+  BKE_object_free_derived_caches(newob);
 
   return newob;
 }
@@ -3425,11 +3497,10 @@ static Object *convert_font(Base &base,
       return convert_font_to_mesh(base, info, r_new_base);
     case OB_CURVES_LEGACY:
       return convert_font_to_curves_legacy(base, info, r_new_base);
+    case OB_CURVES:
+      return convert_font_to_curves(base, info, r_new_base);
     case OB_GREASE_PENCIL:
-      /* TODO: Converting to curves when target object type is Grease Pencil. This is to keep the
-       * logic the same as prior to https://projects.blender.org/blender/blender/pulls/130668 ,
-       * later implementation should handle this properly. */
-      return convert_font_to_curves_legacy(base, info, r_new_base);
+      return convert_font_to_grease_pencil(base, info, r_new_base);
     default:
       return nullptr;
   }
@@ -3447,8 +3518,9 @@ static Object *convert_curves_legacy_to_mesh(Base &base,
   /* No assumption should be made that the resulting objects is a mesh, as conversion can
    * fail. */
   object_data_convert_curve_to_mesh(info.bmain, info.depsgraph, newob);
-  /* Meshes don't use the "curve cache". */
-  BKE_object_free_curve_cache(newob);
+
+  /* Meshes doesn't use the "curve cache". */
+  BKE_object_free_derived_caches(newob);
 
   return newob;
 }
@@ -3464,6 +3536,41 @@ static Object *convert_curves_legacy_to_curves(Base &base,
   return convert_grease_pencil_component_to_curves(base, info, r_new_base);
 }
 
+static Object *convert_curves_legacy_to_grease_pencil(Base &base,
+                                                      ObjectConversionInfo &info,
+                                                      Base **r_new_base)
+{
+  Object *ob = base.object;
+  ob->flag |= OB_DONE;
+  Object *newob = get_object_for_conversion(base, info, r_new_base);
+  BLI_assert(newob->type == OB_CURVES_LEGACY);
+
+  Curve *legacy_curve_id = static_cast<Curve *>(newob->data);
+  Curves *curves_nomain = bke::curve_legacy_to_curves(*legacy_curve_id);
+
+  GreasePencil *grease_pencil = BKE_grease_pencil_add(info.bmain,
+                                                      BKE_id_name(legacy_curve_id->id));
+  bke::greasepencil::Layer &layer = grease_pencil->add_layer(DATA_("Converted Layer"));
+
+  const int current_frame = info.scene->r.cfra;
+
+  bke::greasepencil::Drawing *drawing = grease_pencil->insert_frame(layer, current_frame);
+
+  blender::bke::CurvesGeometry &curves = curves_nomain->geometry.wrap();
+
+  drawing->strokes_for_write() = std::move(curves);
+  /* Default radius (1.0 unit) is too thick for converted strokes. */
+  drawing->radii_for_write().fill(0.01f);
+  drawing->tag_positions_changed();
+
+  newob->data = grease_pencil;
+  newob->type = OB_GREASE_PENCIL;
+
+  BKE_id_free(nullptr, curves_nomain);
+
+  return newob;
+}
+
 static Object *convert_curves_legacy(Base &base,
                                      const ObjectType target,
                                      ObjectConversionInfo &info,
@@ -3474,6 +3581,8 @@ static Object *convert_curves_legacy(Base &base,
       return convert_curves_legacy_to_mesh(base, info, r_new_base);
     case OB_CURVES:
       return convert_curves_legacy_to_curves(base, info, r_new_base);
+    case OB_GREASE_PENCIL:
+      return convert_curves_legacy_to_grease_pencil(base, info, r_new_base);
     default:
       return nullptr;
   }

@@ -43,7 +43,6 @@
 #include "ED_object_vgroup.hh"
 
 #include "ANIM_animdata.hh"
-#include "ANIM_fcurve.hh"
 
 #include <string>
 #include <vector>
@@ -61,13 +60,35 @@ inline float max_mag_component(const pxr::GfVec3d &vec)
 }
 
 /* Utility: create curve at the given array index. */
-FCurve *create_fcurve(const int array_index, const std::string &rna_path)
+FCurve *create_fcurve(const int array_index, const std::string &rna_path, const int totvert)
 {
   FCurve *fcu = BKE_fcurve_create();
   fcu->flag = (FCURVE_VISIBLE | FCURVE_SELECTED);
   fcu->rna_path = BLI_strdup(rna_path.c_str());
   fcu->array_index = array_index;
+  fcu->bezt = MEM_cnew_array<BezTriple>(totvert, "beztriple");
+  fcu->totvert = totvert;
+
   return fcu;
+}
+
+void resize_fcurve(FCurve *fcu, uint bezt_count)
+{
+  /* There is no need to resize if the counts match. */
+  if (!fcu || bezt_count == fcu->totvert) {
+    return;
+  }
+
+  BezTriple *new_bezt = nullptr;
+  if (bezt_count > 0) {
+    const size_t new_size = sizeof(BezTriple) * bezt_count;
+    new_bezt = MEM_cnew_array<BezTriple>(bezt_count, "beztriple");
+    memcpy(new_bezt, fcu->bezt, new_size);
+  }
+
+  MEM_freeN(fcu->bezt);
+  fcu->bezt = new_bezt;
+  fcu->totvert = bezt_count;
 }
 
 /* Utility: create curve at the given array index and
@@ -78,26 +99,24 @@ FCurve *create_chan_fcurve(bAction *act,
                            const std::string &rna_path,
                            const int totvert)
 {
-  FCurve *fcu = create_fcurve(array_index, rna_path);
-  fcu->totvert = totvert;
+  FCurve *fcu = create_fcurve(array_index, rna_path, totvert);
   action_groups_add_channel(act, grp, fcu);
   return fcu;
 }
 
 /* Utility: add curve sample. */
 void add_bezt(FCurve *fcu,
+              uint bezt_index,
               const float frame,
               const float value,
               const eBezTriple_Interpolation ipo = BEZT_IPO_LIN)
 {
-  BezTriple bez;
-  memset(&bez, 0, sizeof(BezTriple));
+  BezTriple &bez = fcu->bezt[bezt_index];
   bez.vec[1][0] = frame;
   bez.vec[1][1] = value;
   bez.ipo = ipo; /* use default interpolation mode here... */
   bez.f1 = bez.f2 = bez.f3 = SELECT;
   bez.h1 = bez.h2 = HD_AUTO;
-  blender::animrig::insert_bezt_fcurve(fcu, &bez, INSERTKEY_NOFLAGS);
 }
 
 /**
@@ -154,24 +173,19 @@ void import_skeleton_curves(Main *bmain,
   blender::Vector<FCurve *> loc_curves;
   blender::Vector<FCurve *> rot_curves;
   blender::Vector<FCurve *> scale_curves;
+  loc_curves.reserve(joint_order.size() * 3);
+  rot_curves.reserve(joint_order.size() * 4);
+  scale_curves.reserve(joint_order.size() * 3);
 
   /* Iterate over the joints and create the corresponding curves for the bones. */
   for (const pxr::TfToken &joint : joint_order) {
     const std::string *name = joint_to_bone_map.lookup_ptr(joint);
-
     if (name == nullptr) {
       /* This joint doesn't correspond to any bone we created.
        * Add null placeholders for the channel curves. */
-      loc_curves.append(nullptr);
-      loc_curves.append(nullptr);
-      loc_curves.append(nullptr);
-      rot_curves.append(nullptr);
-      rot_curves.append(nullptr);
-      rot_curves.append(nullptr);
-      rot_curves.append(nullptr);
-      scale_curves.append(nullptr);
-      scale_curves.append(nullptr);
-      scale_curves.append(nullptr);
+      loc_curves.append_n_times(nullptr, 3);
+      rot_curves.append_n_times(nullptr, 4);
+      scale_curves.append_n_times(nullptr, 3);
       continue;
     }
 
@@ -262,6 +276,7 @@ void import_skeleton_curves(Main *bmain,
   }
 
   /* Set the curve samples. */
+  uint bezt_index = 0;
   for (const double frame : samples) {
     pxr::VtMatrix4dArray joint_local_xforms;
     if (!skel_query.ComputeJointLocalTransforms(&joint_local_xforms, frame)) {
@@ -300,7 +315,7 @@ void import_skeleton_curves(Main *bmain,
           break;
         }
         if (FCurve *fcu = loc_curves[k]) {
-          add_bezt(fcu, frame, t[j]);
+          add_bezt(fcu, bezt_index, frame, t[j]);
         }
       }
 
@@ -312,10 +327,10 @@ void import_skeleton_curves(Main *bmain,
         }
         if (FCurve *fcu = rot_curves[k]) {
           if (j == 0) {
-            add_bezt(fcu, frame, re);
+            add_bezt(fcu, bezt_index, frame, re);
           }
           else {
-            add_bezt(fcu, frame, im[j - 1]);
+            add_bezt(fcu, bezt_index, frame, im[j - 1]);
           }
         }
       }
@@ -327,14 +342,19 @@ void import_skeleton_curves(Main *bmain,
           break;
         }
         if (FCurve *fcu = scale_curves[k]) {
-          add_bezt(fcu, frame, s[j]);
+          add_bezt(fcu, bezt_index, frame, s[j]);
         }
       }
     }
+
+    bezt_index++;
   }
 
   /* Recalculate curve handles. */
-  auto recalc_handles = [](FCurve *fcu) { BKE_fcurve_handles_recalc(fcu); };
+  auto recalc_handles = [bezt_index](FCurve *fcu) {
+    resize_fcurve(fcu, bezt_index);
+    BKE_fcurve_handles_recalc(fcu);
+  };
   std::for_each(loc_curves.begin(), loc_curves.end(), recalc_handles);
   std::for_each(rot_curves.begin(), rot_curves.end(), recalc_handles);
   std::for_each(scale_curves.begin(), scale_curves.end(), recalc_handles);
@@ -624,11 +644,10 @@ void import_blendshapes(Main *bmain,
     return;
   }
 
-  const size_t num_samples = times.size();
-
   /* Create the animation and curves. */
   bAction *act = blender::animrig::id_action_ensure(bmain, &key->id);
   blender::Vector<FCurve *> curves;
+  curves.reserve(blendshapes.size());
 
   for (auto blendshape_name : blendshapes) {
     if (!shapekey_names.contains(blendshape_name)) {
@@ -640,13 +659,13 @@ void import_blendshapes(Main *bmain,
 
     /* Create the curve for this shape key. */
     std::string rna_path = "key_blocks[\"" + blendshape_name.GetString() + "\"].value";
-    FCurve *fcu = create_fcurve(0, rna_path);
-    fcu->totvert = num_samples;
+    FCurve *fcu = create_fcurve(0, rna_path, times.size());
     curves.append(fcu);
     BLI_addtail(&act->curves, fcu);
   }
 
   /* Add the weight time samples to the curves. */
+  uint bezt_index = 0;
   for (double frame : times) {
     pxr::VtFloatArray weights;
     if (!weights_attr.Get(&weights, frame)) {
@@ -664,13 +683,18 @@ void import_blendshapes(Main *bmain,
 
     for (int wi = 0; wi < weights.size(); ++wi) {
       if (curves[wi] != nullptr) {
-        add_bezt(curves[wi], frame, weights[wi]);
+        add_bezt(curves[wi], bezt_index, frame, weights[wi]);
       }
     }
+
+    bezt_index++;
   }
 
   /* Recalculate curve handles. */
-  auto recalc_handles = [](FCurve *fcu) { BKE_fcurve_handles_recalc(fcu); };
+  auto recalc_handles = [bezt_index](FCurve *fcu) {
+    resize_fcurve(fcu, bezt_index);
+    BKE_fcurve_handles_recalc(fcu);
+  };
   std::for_each(curves.begin(), curves.end(), recalc_handles);
 }
 

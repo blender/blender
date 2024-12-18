@@ -2719,7 +2719,10 @@ static int bpy_prop_arg_parse_tag_defines(PyObject *o, void *p)
   "   :arg poll: function to be called to determine whether an item is valid for this " \
   "property.\n" \
   "              The function must take 2 values (self, object) and return Bool.\n" \
-  "   :type poll: Callable[[:class:`bpy.types.bpy_struct`, :class:`bpy.types.bpy_struct`], " \
+  "              Note that the poll return value will be checked only when assigning " \
+  "an item from the UI, but it is still possible to assign an \"invalid\" item to " \
+  "the property directly.\n" \
+  "   :type poll: Callable[[:class:`bpy.types.bpy_struct`, :class:`bpy.types.ID`], " \
   "bool]\n"
 
 #define BPY_PROPDEF_GET_DOC(ty) \
@@ -2963,7 +2966,7 @@ PyDoc_STRVAR(
     "   :type default: Sequence[bool]\n" BPY_PROPDEF_OPTIONS_DOC BPY_PROPDEF_OPTIONS_OVERRIDE_DOC
         BPY_PROPDEF_TAGS_DOC BPY_PROPDEF_SUBTYPE_NUMBER_ARRAY_DOC BPY_PROPDEF_VECSIZE_DOC
             BPY_PROPDEF_UPDATE_DOC BPY_PROPDEF_GET_DOC("Sequence[bool]")
-                BPY_PROPDEF_SET_DOC("tuple[bool]"));
+                BPY_PROPDEF_SET_DOC("tuple[bool, ...]"));
 static PyObject *BPy_BoolVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
   StructRNA *srna;
@@ -3337,7 +3340,7 @@ PyDoc_STRVAR(
             BPY_PROPDEF_INT_STEP_DOC BPY_PROPDEF_OPTIONS_DOC BPY_PROPDEF_OPTIONS_OVERRIDE_DOC
                 BPY_PROPDEF_TAGS_DOC BPY_PROPDEF_SUBTYPE_NUMBER_ARRAY_DOC BPY_PROPDEF_VECSIZE_DOC
                     BPY_PROPDEF_UPDATE_DOC BPY_PROPDEF_GET_DOC("Sequence[int]")
-                        BPY_PROPDEF_SET_DOC("tuple[int]"));
+                        BPY_PROPDEF_SET_DOC("tuple[int, ...]"));
 static PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
   StructRNA *srna;
@@ -3720,7 +3723,7 @@ PyDoc_STRVAR(
             BPY_PROPDEF_FLOAT_STEP_DOC BPY_PROPDEF_FLOAT_PREC_DOC
                 BPY_PROPDEF_SUBTYPE_NUMBER_ARRAY_DOC BPY_PROPDEF_UNIT_DOC BPY_PROPDEF_VECSIZE_DOC
                     BPY_PROPDEF_UPDATE_DOC BPY_PROPDEF_GET_DOC("Sequence[float]")
-                        BPY_PROPDEF_SET_DOC("tuple[float]"));
+                        BPY_PROPDEF_SET_DOC("tuple[float, ...]"));
 static PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
   StructRNA *srna;

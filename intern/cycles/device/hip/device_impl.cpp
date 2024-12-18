@@ -313,16 +313,17 @@ string HIPDevice::compile_kernel(const uint kernel_features, const char *name, c
     return string();
   }
 
-  const int hipcc_hip_version = hipewCompilerVersion();
-  VLOG_INFO << "Found hipcc " << hipcc << ", HIP version " << hipcc_hip_version << ".";
-  if (hipcc_hip_version < 40) {
-    printf(
-        "Unsupported HIP version %d.%d detected, "
-        "you need HIP 4.0 or newer.\n",
-        hipcc_hip_version / 10,
-        hipcc_hip_version % 10);
+#  ifdef WITH_HIP_SDK_5
+  int hip_major_ver = hipRuntimeVersion / 10000000;
+  if (hip_major_ver > 5) {
+    set_error(string_printf(
+        "HIP Runtime version %d does not work with kernels compiled with HIP SDK 5\n",
+        hip_major_ver));
     return string();
   }
+#  endif
+  const int hipcc_hip_version = hipewCompilerVersion();
+  VLOG_INFO << "Found hipcc " << hipcc << ", HIP version " << hipcc_hip_version << ".";
 
   double starttime = time_dt();
 
@@ -755,9 +756,9 @@ void HIPDevice::tex_alloc(device_texture &mem)
 
     HIP_MEMCPY3D param;
     memset(&param, 0, sizeof(HIP_MEMCPY3D));
-    param.dstMemoryType = get_memory_type(hipMemoryTypeArray);
+    param.dstMemoryType = hipMemoryTypeArray;
     param.dstArray = array_3d;
-    param.srcMemoryType = get_memory_type(hipMemoryTypeHost);
+    param.srcMemoryType = hipMemoryTypeHost;
     param.srcHost = mem.host_pointer;
     param.srcPitch = src_pitch;
     param.WidthInBytes = param.srcPitch;
@@ -787,10 +788,10 @@ void HIPDevice::tex_alloc(device_texture &mem)
 
     hip_Memcpy2D param;
     memset(&param, 0, sizeof(param));
-    param.dstMemoryType = get_memory_type(hipMemoryTypeDevice);
+    param.dstMemoryType = hipMemoryTypeDevice;
     param.dstDevice = mem.device_pointer;
     param.dstPitch = dst_pitch;
-    param.srcMemoryType = get_memory_type(hipMemoryTypeHost);
+    param.srcMemoryType = hipMemoryTypeHost;
     param.srcHost = mem.host_pointer;
     param.srcPitch = src_pitch;
     param.WidthInBytes = param.srcPitch;
@@ -976,11 +977,6 @@ int HIPDevice::get_device_default_attribute(hipDeviceAttribute_t attribute, int 
     return default_value;
   }
   return value;
-}
-
-hipMemoryType HIPDevice::get_memory_type(hipMemoryType mem_type)
-{
-  return get_hip_memory_type(mem_type, hipRuntimeVersion);
 }
 
 CCL_NAMESPACE_END

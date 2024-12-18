@@ -1749,7 +1749,7 @@ class CyclesPreferences(bpy.types.AddonPreferences):
                     col.label(text=rpt_("and AMD Radeon Pro %s driver or newer") % driver_version,
                               icon='BLANK1', translate=False)
                 elif sys.platform.startswith("linux"):
-                    driver_version = "22.10"
+                    driver_version = "23.40"
                     col.label(
                         text=rpt_("Requires AMD GPU with RDNA architecture"),
                         icon='BLANK1',

@@ -991,9 +991,18 @@ class SEQUENCER_MT_strip(Menu):
 
         layout = self.layout
         st = context.space_data
-        has_sequencer, _has_preview = _space_view_types(st)
+        has_sequencer, has_preview = _space_view_types(st)
+
+        if has_preview:
+            layout.operator_context = 'INVOKE_REGION_PREVIEW'
+        else:
+            layout.operator_context = 'INVOKE_REGION_WIN'
 
         layout.menu("SEQUENCER_MT_strip_transform")
+
+        if has_preview:
+            layout.separator()
+            layout.operator("sequencer.preview_duplicate_move", text="Duplicate")
 
         if has_sequencer:
             layout.menu("SEQUENCER_MT_strip_retiming")

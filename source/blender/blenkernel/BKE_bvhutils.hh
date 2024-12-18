@@ -13,7 +13,7 @@
 
 #include "BLI_bit_span.hh"
 #include "BLI_index_mask_fwd.hh"
-#include "BLI_kdopbvh.h"
+#include "BLI_kdopbvh.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_span.hh"
 
@@ -22,14 +22,6 @@ struct BVHTree;
 struct MFace;
 struct Mesh;
 struct PointCloud;
-
-class BVHTreeDeleter {
- public:
-  void operator()(BVHTree *tree)
-  {
-    BLI_bvhtree_free(tree);
-  }
-};
 
 /**
  * Struct that stores basic information about a #BVHTree built from a mesh.

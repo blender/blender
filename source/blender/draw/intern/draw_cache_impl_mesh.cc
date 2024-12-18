@@ -1792,50 +1792,50 @@ void DRW_mesh_batch_cache_create_requested(TaskGraph &task_graph,
   assert_deps_valid(MBC_EDIT_SELECTION_VERTS,
                     {BUFFER_INDEX(ibo.points), BUFFER_INDEX(vbo.pos), BUFFER_INDEX(vbo.vert_idx)});
   if (DRW_batch_requested(cache.batch.edit_selection_verts, GPU_PRIM_POINTS)) {
-    if (edit_mapping_valid) {
+    if (is_editmode && !edit_mapping_valid) {
+      init_empty_dummy_batch(*cache.batch.edit_selection_verts);
+    }
+    else {
       DRW_ibo_request(cache.batch.edit_selection_verts, &mbuflist->ibo.points);
       DRW_vbo_request(cache.batch.edit_selection_verts, &mbuflist->vbo.pos);
       DRW_vbo_request(cache.batch.edit_selection_verts, &mbuflist->vbo.vert_idx);
-    }
-    else {
-      init_empty_dummy_batch(*cache.batch.edit_selection_verts);
     }
   }
   assert_deps_valid(MBC_EDIT_SELECTION_EDGES,
                     {BUFFER_INDEX(ibo.lines), BUFFER_INDEX(vbo.pos), BUFFER_INDEX(vbo.edge_idx)});
   if (DRW_batch_requested(cache.batch.edit_selection_edges, GPU_PRIM_LINES)) {
-    if (edit_mapping_valid) {
+    if (is_editmode && !edit_mapping_valid) {
+      init_empty_dummy_batch(*cache.batch.edit_selection_edges);
+    }
+    else {
       DRW_ibo_request(cache.batch.edit_selection_edges, &mbuflist->ibo.lines);
       DRW_vbo_request(cache.batch.edit_selection_edges, &mbuflist->vbo.pos);
       DRW_vbo_request(cache.batch.edit_selection_edges, &mbuflist->vbo.edge_idx);
-    }
-    else {
-      init_empty_dummy_batch(*cache.batch.edit_selection_edges);
     }
   }
   assert_deps_valid(MBC_EDIT_SELECTION_FACES,
                     {BUFFER_INDEX(ibo.tris), BUFFER_INDEX(vbo.pos), BUFFER_INDEX(vbo.face_idx)});
   if (DRW_batch_requested(cache.batch.edit_selection_faces, GPU_PRIM_TRIS)) {
-    if (edit_mapping_valid) {
+    if (is_editmode && !edit_mapping_valid) {
+      init_empty_dummy_batch(*cache.batch.edit_selection_faces);
+    }
+    else {
       DRW_ibo_request(cache.batch.edit_selection_faces, &mbuflist->ibo.tris);
       DRW_vbo_request(cache.batch.edit_selection_faces, &mbuflist->vbo.pos);
       DRW_vbo_request(cache.batch.edit_selection_faces, &mbuflist->vbo.face_idx);
-    }
-    else {
-      init_empty_dummy_batch(*cache.batch.edit_selection_faces);
     }
   }
   assert_deps_valid(
       MBC_EDIT_SELECTION_FACEDOTS,
       {BUFFER_INDEX(ibo.fdots), BUFFER_INDEX(vbo.fdots_pos), BUFFER_INDEX(vbo.fdot_idx)});
   if (DRW_batch_requested(cache.batch.edit_selection_fdots, GPU_PRIM_POINTS)) {
-    if (edit_mapping_valid) {
+    if (is_editmode && !edit_mapping_valid) {
+      init_empty_dummy_batch(*cache.batch.edit_selection_fdots);
+    }
+    else {
       DRW_ibo_request(cache.batch.edit_selection_fdots, &mbuflist->ibo.fdots);
       DRW_vbo_request(cache.batch.edit_selection_fdots, &mbuflist->vbo.fdots_pos);
       DRW_vbo_request(cache.batch.edit_selection_fdots, &mbuflist->vbo.fdot_idx);
-    }
-    else {
-      init_empty_dummy_batch(*cache.batch.edit_selection_fdots);
     }
   }
 

@@ -10,7 +10,7 @@ To call this directly:
 
 export CLANG_LIB_DIR=/usr/lib64
 cd {BUILD_DIR}
-python ../blender/build_files/cmake/cmake_static_check_clang.py --match=".*" --checks=struct_comments
+python ../blender/tools/check_source/static_check_clang.py --match=".*" --checks=struct_comments
 
 """
 

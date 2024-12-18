@@ -333,7 +333,7 @@ static void voxel_size_edit_draw(const bContext *C, ARegion * /*region*/, void *
 
   GPU_matrix_push();
   GPU_matrix_mul(cd->text_mat);
-  /* Resolution scale is already accounted for in 'text_mat'. */
+  /* (Constant viewport) scale is already accounted for in 'text_mat'. */
   BLF_size(fontid, 10.0f * fstyle_points);
   BLF_color3f(fontid, 1.0f, 1.0f, 1.0f);
   BLF_width_and_height(fontid, str, strdrawlen, &strwidth, &strheight);
@@ -591,7 +591,7 @@ static int voxel_size_edit_invoke(bContext *C, wmOperator *op, const wmEvent *ev
   /* Scale the text to constant viewport size. */
   float text_pos_word_space[3];
   mul_v3_m4v3(text_pos_word_space, active_object->object_to_world().ptr(), text_pos);
-  const float pixelsize = ED_view3d_pixel_size(rv3d, text_pos_word_space);
+  const float pixelsize = ED_view3d_pixel_size_no_ui_scale(rv3d, text_pos_word_space);
   scale_m4_fl(scale_mat, pixelsize * 0.5f);
   mul_m4_m4_post(cd->text_mat, scale_mat);
 

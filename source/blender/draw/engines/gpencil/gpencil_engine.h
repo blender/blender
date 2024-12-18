@@ -38,7 +38,6 @@ struct Object;
 struct RenderEngine;
 struct RenderLayer;
 struct View3D;
-struct bGPDstroke;
 
 /* used to convert pixel scale. */
 #define GPENCIL_PIXEL_FACTOR 2000.0f

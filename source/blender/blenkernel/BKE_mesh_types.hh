@@ -15,6 +15,7 @@
 #include "BLI_bit_vector.hh"
 #include "BLI_bounds_types.hh"
 #include "BLI_implicit_sharing.hh"
+#include "BLI_kdopbvh.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_shared_cache.hh"
 #include "BLI_vector.hh"
@@ -107,12 +108,6 @@ struct TrianglesCache {
   void tag_dirty();
 };
 
-struct BVHCacheItem {
-  BVHTree *tree = nullptr;
-  BVHCacheItem();
-  ~BVHCacheItem();
-};
-
 struct MeshRuntime {
   /**
    * "Evaluated" mesh owned by this mesh. Used for objects which don't have effective modifiers, so
@@ -164,15 +159,15 @@ struct MeshRuntime {
   /** Cache for triangle to original face index map, accessed with #Mesh::corner_tri_faces(). */
   SharedCache<Array<int>> corner_tri_faces_cache;
 
-  SharedCache<BVHCacheItem> bvh_cache_verts;
-  SharedCache<BVHCacheItem> bvh_cache_edges;
-  SharedCache<BVHCacheItem> bvh_cache_faces;
-  SharedCache<BVHCacheItem> bvh_cache_corner_tris;
-  SharedCache<BVHCacheItem> bvh_cache_corner_tris_no_hidden;
-  SharedCache<BVHCacheItem> bvh_cache_loose_verts;
-  SharedCache<BVHCacheItem> bvh_cache_loose_verts_no_hidden;
-  SharedCache<BVHCacheItem> bvh_cache_loose_edges;
-  SharedCache<BVHCacheItem> bvh_cache_loose_edges_no_hidden;
+  SharedCache<std::unique_ptr<BVHTree, BVHTreeDeleter>> bvh_cache_verts;
+  SharedCache<std::unique_ptr<BVHTree, BVHTreeDeleter>> bvh_cache_edges;
+  SharedCache<std::unique_ptr<BVHTree, BVHTreeDeleter>> bvh_cache_faces;
+  SharedCache<std::unique_ptr<BVHTree, BVHTreeDeleter>> bvh_cache_corner_tris;
+  SharedCache<std::unique_ptr<BVHTree, BVHTreeDeleter>> bvh_cache_corner_tris_no_hidden;
+  SharedCache<std::unique_ptr<BVHTree, BVHTreeDeleter>> bvh_cache_loose_verts;
+  SharedCache<std::unique_ptr<BVHTree, BVHTreeDeleter>> bvh_cache_loose_verts_no_hidden;
+  SharedCache<std::unique_ptr<BVHTree, BVHTreeDeleter>> bvh_cache_loose_edges;
+  SharedCache<std::unique_ptr<BVHTree, BVHTreeDeleter>> bvh_cache_loose_edges_no_hidden;
 
   /** Needed in case we need to lazily initialize the mesh. */
   CustomData_MeshMasks cd_mask_extra = {};
