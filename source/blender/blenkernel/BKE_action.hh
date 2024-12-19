@@ -14,6 +14,7 @@
 #include "BLI_compiler_attrs.h"
 #include "BLI_function_ref.hh"
 
+#include "DNA_action_defaults.h"
 struct BlendDataReader;
 struct BlendLibReader;
 struct BlendWriter;

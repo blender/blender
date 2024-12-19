@@ -58,6 +58,7 @@
 #include "BLI_string_utf8.h"
 #include "BLI_string_utils.hh"
 
+#include "BKE_action.hh"
 #include "BKE_anim_data.hh"
 #include "BKE_animsys.h"
 #include "BKE_armature.hh"
@@ -96,6 +97,7 @@
 #include "ANIM_action_iterators.hh"
 #include "ANIM_armature_iter.hh"
 #include "ANIM_bone_collections.hh"
+#include "ANIM_versioning.hh"
 
 #include "BLT_translation.hh"
 
@@ -120,72 +122,6 @@ static void version_composite_nodetree_null_id(bNodeTree *ntree, Scene *scene)
   }
 }
 
-static void convert_action_in_place(blender::animrig::Action &action)
-{
-  using namespace blender::animrig;
-  if (action.is_action_layered()) {
-    return;
-  }
-
-  /* Store this ahead of time, because adding the slot sets the action's idroot
-   * to 0. We also set the action's idroot to 0 manually, just to be defensive
-   * so we don't depend on esoteric behavior in `slot_add()`. */
-  const int16_t idtype = action.idroot;
-  action.idroot = 0;
-
-  /* Initialize the Action's last_slot_handle field to its default value, before
-   * we create a new slot. */
-  action.last_slot_handle = DNA_DEFAULT_ACTION_LAST_SLOT_HANDLE;
-
-  Slot &slot = action.slot_add();
-  slot.idtype = idtype;
-
-  const std::string slot_identifier{slot.identifier_prefix_for_idtype() + DATA_("Legacy Slot")};
-  action.slot_identifier_define(slot, slot_identifier);
-
-  Layer &layer = action.layer_add("Layer");
-  blender::animrig::Strip &strip = layer.strip_add(action,
-                                                   blender::animrig::Strip::Type::Keyframe);
-  Channelbag &bag = strip.data<StripKeyframeData>(action).channelbag_for_slot_ensure(slot);
-  const int fcu_count = BLI_listbase_count(&action.curves);
-  const int group_count = BLI_listbase_count(&action.groups);
-  bag.fcurve_array = MEM_cnew_array<FCurve *>(fcu_count, "Action versioning - fcurves");
-  bag.fcurve_array_num = fcu_count;
-  bag.group_array = MEM_cnew_array<bActionGroup *>(group_count, "Action versioning - groups");
-  bag.group_array_num = group_count;
-
-  int group_index = 0;
-  int fcurve_index = 0;
-  LISTBASE_FOREACH_INDEX (bActionGroup *, group, &action.groups, group_index) {
-    bag.group_array[group_index] = group;
-
-    group->channelbag = &bag;
-    group->fcurve_range_start = fcurve_index;
-
-    LISTBASE_FOREACH (FCurve *, fcu, &group->channels) {
-      if (fcu->grp != group) {
-        break;
-      }
-      bag.fcurve_array[fcurve_index++] = fcu;
-    }
-
-    group->fcurve_range_length = fcurve_index - group->fcurve_range_start;
-  }
-
-  LISTBASE_FOREACH (FCurve *, fcu, &action.curves) {
-    /* Any fcurves with groups have already been added to the fcurve array. */
-    if (fcu->grp) {
-      continue;
-    }
-    bag.fcurve_array[fcurve_index++] = fcu;
-  }
-
-  BLI_assert(fcurve_index == fcu_count);
-
-  action.curves = {nullptr, nullptr};
-  action.groups = {nullptr, nullptr};
-}
-
 static void version_legacy_actions_to_layered(Main *bmain)
 {
   using namespace blender::animrig;
@@ -200,7 +136,8 @@ static void version_legacy_actions_to_layered(Main *bmain)
   blender::Map<bAction *, blender::Vector<ActionUserInfo>> action_users;
   LISTBASE_FOREACH (bAction *, dna_action, &bmain->actions) {
     Action &action = dna_action->wrap();
-    if (action.is_action_layered()) {
+
+    if (versioning::action_is_layered(action)) {
       continue;
     }
     action_users.add(dna_action, {});
@@ -242,7 +179,14 @@ static void version_legacy_actions_to_layered(Main *bmain)
 
   for (const auto &item : action_users.items()) {
     Action &action = item.key->wrap();
-    convert_action_in_place(action);
+
+    /* Skip all handling of pre-Animato actions. These are handled in a later
+     * versioning step. See `do_versions_ipos_to_layered_actions()`. */
+    if (!BLI_listbase_is_empty(&action.chanbase)) {
+      continue;
+    }
+
+    versioning::convert_legacy_action(action);
     blender::Vector<ActionUserInfo> &user_infos = item.value;
     Slot &slot_to_assign = *action.slot(0);
 

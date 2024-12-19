@@ -57,6 +57,7 @@
 #include "BKE_nla.hh"
 
 #include "ANIM_action.hh"
+#include "ANIM_versioning.hh"
 
 #include "CLG_log.h"
 
@@ -1394,6 +1395,9 @@ static void fcurve_add_to_list(
  * Convert IPO-Curve to F-Curve (including Driver data), and free any of the old data that
  * is not relevant, BUT do not free the IPO-Curve itself...
  *
+ * \param `id`: data-block that the IPO-Curve is attached to and/or which the new
+ * datapaths will start from. May be null, which may impact the datapaths of the
+ * created F-Curves in some cases.
  * \param actname: name of Action-Channel (if applicable) that IPO-Curve's IPO-block belonged to.
  * \param constname: name of Constraint-Channel (if applicable)
  * that IPO-Curve's IPO-block belonged to \a seq.
@@ -1684,18 +1688,32 @@ static void icu_to_fcurves(ID *id,
 
 /* ------------------------- */
 
-/* Convert IPO-block (i.e. all its IpoCurves) to the new system.
+/**
+ * Convert an IPO block to listbases of Animato data.
+ *
  * This does not assume that any ID or AnimData uses it, but does assume that
  * it is given two lists, which it will perform driver/animation-data separation.
+ *
+ * \param `id`: Data-block that the IPO-Curve is attached to and/or which the
+ * new datapaths will start from. May be null, which may impact the datapaths of
+ * the created F-Curves in some cases.
+ * \param `actname`: Contrary to what you might think, this is not the name of
+ * an action. I (Nathan) don't know what it *is*, but I'm leaving this note here
+ * so people in the future are not misled by the awful parameter name.
+ * \param `animgroups`: List of channel groups that the converted data will be
+ * added to.
+ * \param `anim`: List of FCurves that the converted animation data will be
+ * added to.
+ * \param `drivers`: List of FCurves that converted drivers will be added to.
  */
 static void ipo_to_animato(ID *id,
                            Ipo *ipo,
                            char actname[],
                            char constname[],
                            Strip *strip,
-                           ListBase *animgroups,
-                           ListBase *anim,
-                           ListBase *drivers)
+                           ListBase /* bActionGroup */ *animgroups,
+                           ListBase /* FCurve */ *anim,
+                           ListBase /* FCurve */ *drivers)
 {
   IpoCurve *icu;
 
@@ -1771,23 +1789,28 @@ static void ipo_to_animato(ID *id,
   }
 }
 
-/* Convert Action-block to new system, separating animation and drivers
+/**
+ * Convert a pre-Animato Action to an Animato Action and drivers.
+ *
+ *
  * New curves may not be converted directly into the given Action (i.e. for Actions linked
  * to Objects, where ob->ipo and ob->action need to be combined).
- * NOTE: we need to be careful here, as same data-structs are used for new system too!
+ *
+ * Pre-Animato Actions can contain drivers, which are added to `drivers`.
+ *
+ * Note: this was refactored from older code. In general `groups` and `curves`
+ * should just be from `act`, and `drivers` should be from the adt of `id`.
+ * However, this is not always the case for `drivers`, and diving into the
+ * spaghetti of where this is called it wasn't clear to me (Nathan) if that's
+ * actually *always* the case for `groups` and `curves` either, so I (Nathan)
+ * left them as separate parameters to be on the safe side.
  */
-static void action_to_animato(
+static void convert_pre_animato_action_to_animato_action_in_place(
     ID *id, bAction *act, ListBase *groups, ListBase *curves, ListBase *drivers)
 {
-  bActionChannel *achan, *achann;
-  bConstraintChannel *conchan, *conchann;
-
-  BLI_assert_msg(
-      act->wrap().is_action_legacy(),
-      "Conversion from pre-2.5 animation data should happen before conversion to layered Actions");
-
-  /* only continue if there are Action Channels (indicating unconverted data) */
-  if (BLI_listbase_is_empty(&act->chanbase)) {
+  const bool is_pre_animato_action = !BLI_listbase_is_empty(&act->chanbase);
+  BLI_assert_msg(is_pre_animato_action, "Action is not pre-Animato.");
+  if (!is_pre_animato_action) {
     return;
   }
 
@@ -1798,10 +1821,7 @@ static void action_to_animato(
   }
 
   /* loop through Action-Channels, converting data, freeing as we go */
-  for (achan = static_cast<bActionChannel *>(act->chanbase.first); achan; achan = achann) {
-    /* get pointer to next Action Channel */
-    achann = achan->next;
-
+  LISTBASE_FOREACH_MUTABLE (bActionChannel *, achan, &act->chanbase) {
     /* convert Action Channel's IPO data */
     if (achan->ipo) {
       ipo_to_animato(id, achan->ipo, achan->name, nullptr, nullptr, groups, curves, drivers);
@@ -1810,12 +1830,7 @@ static void action_to_animato(
     }
 
     /* convert constraint channel IPO-data */
-    for (conchan = static_cast<bConstraintChannel *>(achan->constraintChannels.first); conchan;
-         conchan = conchann)
-    {
-      /* get pointer to next Constraint Channel */
-      conchann = conchan->next;
-
+    LISTBASE_FOREACH_MUTABLE (bConstraintChannel *, conchan, &achan->constraintChannels) {
       /* convert Constraint Channel's IPO data */
       if (conchan->ipo) {
         ipo_to_animato(
@@ -1831,6 +1846,40 @@ static void action_to_animato(
     /* free Action Channel */
     BLI_freelinkN(&act->chanbase, achan);
   }
+}
+
+/**
+ * Ensure that the action is a modern layered action, upgrading if necessary.
+ *
+ * This deals with both Animato and pre-Animato actions, ensuring that they are
+ * fully upgraded. In the case of a pre-Animato action, it may contain drivers
+ * as well, which are converted and added to `drivers`.
+ *
+ * Much of the behavior of this function, and the reason for most of the
+ * parameters, is due to
+ * `convert_pre_animato_action_to_animato_action_in_place()`. See its
+ * documentation for more details.
+ *
+ * \see convert_pre_animato_action_to_animato_action_in_place()
+ */
+static void ensure_action_is_layered(
+    ID *id, bAction *act, ListBase *groups, ListBase *curves, ListBase *drivers)
+{
+  /* Already converted to the most modern kind of action, so no need to
+   * convert. */
+  if (blender::animrig::versioning::action_is_layered(*act)) {
+    return;
+  }
+
+  /* If there are Action Channels, indicating a pre-Animato action, then convert
+   * to Animato data. Note that pre-Animato actions may include drivers! */
+  const bool is_pre_animato_action = !BLI_listbase_is_empty(&act->chanbase);
+  if (is_pre_animato_action) {
+    convert_pre_animato_action_to_animato_action_in_place(id, act, groups, curves, drivers);
+  }
+
+  /* Convert to layered action. */
+  blender::animrig::versioning::convert_legacy_action(*act);
 }
 
 /* ------------------------- */
@@ -1893,8 +1942,11 @@ static void ipo_to_animdata(
       }
     }
 
-    /* add F-Curves to action */
+    /* Add F-Curves to action, creating an Animato action. */
     BLI_movelisttolist(&adt->action->curves, &anim);
+
+    /* Upgrade Animato action to a layered action. */
+    blender::animrig::versioning::convert_legacy_action(*adt->action);
   }
 
   /* deal with drivers */
@@ -1931,7 +1983,7 @@ static void action_to_animdata(ID *id, bAction *act)
   }
 
   /* convert Action data */
-  action_to_animato(id, act, &adt->action->groups, &adt->action->curves, &adt->drivers);
+  ensure_action_is_layered(id, act, &adt->action->groups, &adt->action->curves, &adt->drivers);
 }
 
 /* ------------------------- */
@@ -1955,7 +2007,7 @@ static void nlastrips_to_animdata(ID *id, ListBase *strips)
     /* this old strip is only worth something if it had an action... */
     if (as->act) {
       /* convert Action data (if not yet converted), storing the results in the same Action */
-      action_to_animato(id, as->act, &as->act->groups, &as->act->curves, &adt->drivers);
+      ensure_action_is_layered(id, as->act, &as->act->groups, &as->act->curves, &adt->drivers);
 
       /* Create a new-style NLA-strip which references this Action,
        * then copy over relevant settings. */
@@ -2088,7 +2140,7 @@ static bool seq_convert_callback(Strip *strip, void *userdata)
 /* *************************************************** */
 /* External API - Only Called from do_versions() */
 
-void do_versions_ipos_to_animato(Main *bmain)
+void do_versions_ipos_to_layered_actions(Main *bmain)
 {
   ListBase drivers = {nullptr, nullptr};
   ID *id;
@@ -2098,13 +2150,8 @@ void do_versions_ipos_to_animato(Main *bmain)
     return;
   }
 
-  /* only convert if version is right */
-  if (bmain->versionfile >= 250) {
-    CLOG_WARN(&LOG, "Animation data too new to convert (Version %d)", bmain->versionfile);
-    return;
-  }
   if (G.debug & G_DEBUG) {
-    printf("INFO: Converting to Animato...\n");
+    printf("INFO: Converting IPO to modern animation data types...\n");
   }
 
   /* ----------- Animation Attached to Data -------------- */
@@ -2448,7 +2495,7 @@ void do_versions_ipos_to_animato(Main *bmain)
     }
 
     /* be careful! some of the actions we encounter will be converted ones... */
-    action_to_animato(nullptr, act, &act->groups, &act->curves, &drivers);
+    ensure_action_is_layered(nullptr, act, &act->groups, &act->curves, &drivers);
   }
 
   /* ipo's */
@@ -2467,6 +2514,9 @@ void do_versions_ipos_to_animato(Main *bmain)
       new_act = BKE_action_add(bmain, id->name + 2);
       ipo_to_animato(nullptr, ipo, nullptr, nullptr, nullptr, nullptr, &new_act->curves, &drivers);
       new_act->idroot = ipo->blocktype;
+
+      /* Upgrade the resulting Animato action to a layered action. */
+      blender::animrig::versioning::convert_legacy_action(*new_act);
     }
 
     /* clear fake-users, and set user-count to zero to make sure it is cleared on file-save */

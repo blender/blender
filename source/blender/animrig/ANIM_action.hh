@@ -53,14 +53,20 @@ class Slot;
  *
  * \note This wrapper class for the `bAction` DNA struct only has functionality
  * for the layered animation data. The legacy F-Curves (in `bAction::curves`)
- * and their groups (in `bAction::groups`) are not managed here. To see whether
- * an Action uses this legacy data, or has been converted to the current layered
- * structure, use `Action::is_action_legacy()` and
- * `Action::is_action_layered()`. Note that an empty Action is considered valid
- * for both.
+ * and their groups (in `bAction::groups`) are not managed here.
+ *
+ * To continue supporting legacy actions at runtime, there are
+ * `Action::is_action_legacy()` and `Action::is_action_layered()` that report
+ * whether an Action uses that legacy F-Curve data or is instead a layered
+ * Action. These methods will eventually be removed when runtime support for
+ * legacy actions is fully removed. For code in blend file loading and
+ * versioning, which will stick around for the long-term, use
+ * `BKE_action_is_layered()` instead. (Note that an empty Action is considered
+ * both a valid legacy *and* layered action.)
  *
  * \see #AnimData::action
  * \see #AnimData::slot_handle
+ * \see #BKE_action_is_layered
  */
 class Action : public ::bAction {
  public:
@@ -88,6 +94,13 @@ class Action : public ::bAction {
    *
    * \note An empty Action is valid as both a legacy and layered Action. Code that only supports
    * layered Actions should assert on `is_action_layered()`.
+   *
+   * \note This method will be removed when runtime support for legacy Actions
+   * is removed, so only use it in such runtime code. See
+   * `BKE_action_is_layered()` for uses that should stick around for the long
+   * term, such as blend file loading and versioning.
+   *
+   * \see #BKE_action_is_layered
    */
   bool is_action_legacy() const;
   /**
@@ -97,6 +110,13 @@ class Action : public ::bAction {
    * - Evaluated for data-blocks based on their slot handle.
    *
    * \note An empty Action is valid as both a legacy and layered Action.
+   *
+   * \note This method will be removed when runtime support for legacy Actions
+   * is removed, so only use it in such runtime code. See
+   * `BKE_action_is_layered()` for uses that should stick around for the long
+   * term, such as blend file loading and versioning.
+   *
+   * \see #BKE_action_is_layered
    */
   bool is_action_layered() const;
 

@@ -645,7 +645,7 @@ void do_versions_after_setup(Main *new_bmain,
    * the versions of all the linked libraries. */
 
   if (!blendfile_or_libraries_versions_atleast(new_bmain, 250, 0)) {
-    do_versions_ipos_to_animato(new_bmain);
+    do_versions_ipos_to_layered_actions(new_bmain);
   }
 
   if (!blendfile_or_libraries_versions_atleast(new_bmain, 250, 0)) {
