@@ -15,15 +15,12 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
+#include "IMB_anim.hh"
 #include "IMB_colormanagement.hh"
 #include "IMB_imbuf_types.hh"
 
 #include "BKE_colortools.hh"
 #include "BKE_image_format.hh"
-
-#ifdef WITH_FFMPEG
-#  include "BKE_writeffmpeg.hh"
-#endif
 
 /* Init/Copy/Free */
 
@@ -329,16 +326,14 @@ char BKE_imtype_valid_depths_with_video(char imtype, const ID *owner_id)
   UNUSED_VARS(owner_id); /* Might be unused depending on build options. */
 
   int depths = BKE_imtype_valid_depths(imtype);
-#ifdef WITH_FFMPEG
   /* Depending on video codec selected, valid color bit depths might vary. */
   if (imtype == R_IMF_IMTYPE_FFMPEG) {
     const bool is_render_out = (owner_id && GS(owner_id->name) == ID_SCE);
     if (is_render_out) {
       const Scene *scene = (const Scene *)owner_id;
-      depths |= BKE_ffmpeg_valid_bit_depths(scene->r.ffcodecdata.codec);
+      depths |= IMB_ffmpeg_valid_bit_depths(scene->r.ffcodecdata.codec);
     }
   }
-#endif
   return depths;
 }
 

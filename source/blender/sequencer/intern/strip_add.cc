@@ -33,6 +33,7 @@
 
 #include "DEG_depsgraph_query.hh"
 
+#include "IMB_anim.hh"
 #include "IMB_colormanagement.hh"
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
@@ -453,7 +454,7 @@ Sequence *SEQ_add_movie_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqL
       DEG_id_tag_update(&scene->id, ID_RECALC_AUDIO_FPS | ID_RECALC_SEQUENCER_STRIPS);
     }
 
-    load_data->r_video_stream_start = IMD_anim_get_offset(anim_arr[0]);
+    load_data->r_video_stream_start = IMB_anim_get_offset(anim_arr[0]);
   }
 
   Sequence *seq = SEQ_sequence_alloc(

@@ -249,6 +249,7 @@ set(INC
   ../../gpu
   ../../ikplugin
   ../../imbuf
+  ../../imbuf/movie
   ../../io/usd
   ../../modifiers
   ../../nodes
@@ -315,15 +316,6 @@ if(WITH_AUDASPACE)
 endif()
 
 if(WITH_CODEC_FFMPEG)
-  list(APPEND INC
-    ../../../../intern/ffmpeg
-  )
-  list(APPEND INC_SYS
-    ${FFMPEG_INCLUDE_DIRS}
-  )
-  list(APPEND LIB
-    ${FFMPEG_LIBRARIES}
-  )
   add_definitions(-DWITH_FFMPEG)
 endif()
 

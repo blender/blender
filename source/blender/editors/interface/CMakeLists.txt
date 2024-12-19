@@ -14,6 +14,7 @@ set(INC
   ../../functions
   ../../gpu
   ../../imbuf
+  ../../imbuf/movie
   ../../makesrna
   ../../nodes
   ../../python

@@ -245,7 +245,7 @@ struct Render : public BaseRender {
    */
   struct ReportList *reports = nullptr;
 
-  void **movie_ctx_arr = nullptr;
+  blender::Vector<ImbMovieWriter *> movie_writers;
   char viewname[MAX_NAME] = "";
 
   /* TODO: replace by a whole draw manager. */

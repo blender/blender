@@ -35,6 +35,7 @@
 
 #include "DEG_depsgraph.hh"
 
+#include "IMB_anim.hh"
 #include "IMB_imbuf.hh"
 
 #include "SEQ_channels.hh"

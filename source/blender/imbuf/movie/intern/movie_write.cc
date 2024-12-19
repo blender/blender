@@ -1,11 +1,15 @@
-/* SPDX-FileCopyrightText: 2023 Blender Authors
+/* SPDX-FileCopyrightText: 2006 Peter Schlaile.
+ * SPDX-FileCopyrightText: 2023-2024 Blender Authors
  *
- * SPDX-License-Identifier: GPL-2.0-or-later
- * Partial Copyright 2006 Peter Schlaile. */
+ * SPDX-License-Identifier: GPL-2.0-or-later */
 
 /** \file
- * \ingroup bke
+ * \ingroup imbuf
  */
+
+#include "DNA_scene_types.h"
+
+#include "IMB_movie_write.hh"
 
 #ifdef WITH_FFMPEG
 #  include <cstdio>
@@ -14,8 +18,6 @@
 #  include <cstdlib>
 
 #  include "MEM_guardedalloc.h"
-
-#  include "DNA_scene_types.h"
 
 #  include "BLI_blenlib.h"
 
@@ -28,16 +30,18 @@
 #  include "BLI_math_base.h"
 #  include "BLI_threads.h"
 #  include "BLI_utildefines.h"
-#  include "BLI_vector.hh"
 
 #  include "BKE_global.hh"
 #  include "BKE_image.hh"
 #  include "BKE_main.hh"
 #  include "BKE_report.hh"
 #  include "BKE_sound.h"
-#  include "BKE_writeffmpeg.hh"
 
+#  include "IMB_anim.hh"
 #  include "IMB_imbuf.hh"
+
+#  include "ffmpeg_swscale.hh"
+#  include "ffmpeg_util.hh"
 
 /* This needs to be included after BLI_math_base.h otherwise it will redefine some math defines
  * like M_SQRT1_2 leading to warnings with MSVC */
@@ -50,34 +54,13 @@ extern "C" {
 #  include <libavutil/opt.h>
 #  include <libavutil/rational.h>
 #  include <libavutil/samplefmt.h>
-#  include <libswscale/swscale.h>
 
 #  include "ffmpeg_compat.h"
 }
 
 struct StampData;
 
-/* libswscale context creation and destruction is expensive.
- * Maintain a cache of already created contexts. */
-
-constexpr int64_t swscale_cache_max_entries = 32;
-
-struct SwscaleContext {
-  int src_width = 0, src_height = 0;
-  int dst_width = 0, dst_height = 0;
-  AVPixelFormat src_format = AV_PIX_FMT_NONE, dst_format = AV_PIX_FMT_NONE;
-  int flags = 0;
-
-  SwsContext *context = nullptr;
-  int64_t last_use_timestamp = 0;
-  bool is_used = false;
-};
-
-static ThreadMutex swscale_cache_lock = PTHREAD_MUTEX_INITIALIZER;
-static int64_t swscale_cache_timestamp = 0;
-static blender::Vector<SwscaleContext> *swscale_cache = nullptr;
-
-struct FFMpegContext {
+struct ImbMovieWriter {
   int ffmpeg_type;
   AVCodecID ffmpeg_codec;
   AVCodecID ffmpeg_audio_codec;
@@ -126,7 +109,8 @@ struct FFMpegContext {
     printf
 
 static void ffmpeg_dict_set_int(AVDictionary **dict, const char *key, int value);
-static void ffmpeg_filepath_get(FFMpegContext *context,
+static void ffmpeg_movie_close(ImbMovieWriter *context);
+static void ffmpeg_filepath_get(ImbMovieWriter *context,
                                 char filepath[FILE_MAX],
                                 const RenderData *rd,
                                 bool preview,
@@ -150,7 +134,7 @@ static int request_float_audio_buffer(int codec_id)
 
 #  ifdef WITH_AUDASPACE
 
-static int write_audio_frame(FFMpegContext *context)
+static int write_audio_frame(ImbMovieWriter *context)
 {
   AVFrame *frame = nullptr;
   AVCodecContext *c = context->audio_codec;
@@ -340,7 +324,7 @@ static const char **get_file_extensions(int format)
 }
 
 /* Write a frame to the output file */
-static bool write_video_frame(FFMpegContext *context, AVFrame *frame, ReportList *reports)
+static bool write_video_frame(ImbMovieWriter *context, AVFrame *frame, ReportList *reports)
 {
   int ret, success = 1;
   AVPacket *packet = av_packet_alloc();
@@ -396,7 +380,7 @@ static bool write_video_frame(FFMpegContext *context, AVFrame *frame, ReportList
 }
 
 /* read and encode a frame of video from the buffer */
-static AVFrame *generate_video_frame(FFMpegContext *context, const ImBuf *image)
+static AVFrame *generate_video_frame(ImbMovieWriter *context, const ImBuf *image)
 {
   const uint8_t *pixels = image->byte_buffer.data;
   const float *pixels_fl = image->float_buffer.data;
@@ -482,7 +466,7 @@ static AVFrame *generate_video_frame(FFMpegContext *context, const ImBuf *image)
     BLI_assert(context->img_convert_ctx != NULL);
     /* Ensure the frame we are scaling to is writable as well. */
     av_frame_make_writable(context->current_frame);
-    BKE_ffmpeg_sws_scale_frame(context->img_convert_ctx, context->current_frame, rgb_frame);
+    ffmpeg_sws_scale_frame(context->img_convert_ctx, context->current_frame, rgb_frame);
   }
 
   return context->current_frame;
@@ -531,7 +515,7 @@ static AVRational calc_time_base(uint den, double num, int codec_id)
 }
 
 static const AVCodec *get_av1_encoder(
-    FFMpegContext *context, RenderData *rd, AVDictionary **opts, int rectx, int recty)
+    ImbMovieWriter *context, RenderData *rd, AVDictionary **opts, int rectx, int recty)
 {
   /* There are three possible encoders for AV1: `libaom-av1`, librav1e, and `libsvtav1`. librav1e
    * tends to give the best compression quality while `libsvtav1` tends to be the fastest encoder.
@@ -712,189 +696,6 @@ static const AVCodec *get_av1_encoder(
   return codec;
 }
 
-static SwsContext *sws_create_context(int src_width,
-                                      int src_height,
-                                      int av_src_format,
-                                      int dst_width,
-                                      int dst_height,
-                                      int av_dst_format,
-                                      int sws_flags)
-{
-#  if defined(FFMPEG_SWSCALE_THREADING)
-  /* sws_getContext does not allow passing flags that ask for multi-threaded
-   * scaling context, so do it the hard way. */
-  SwsContext *c = sws_alloc_context();
-  if (c == nullptr) {
-    return nullptr;
-  }
-  av_opt_set_int(c, "srcw", src_width, 0);
-  av_opt_set_int(c, "srch", src_height, 0);
-  av_opt_set_int(c, "src_format", av_src_format, 0);
-  av_opt_set_int(c, "dstw", dst_width, 0);
-  av_opt_set_int(c, "dsth", dst_height, 0);
-  av_opt_set_int(c, "dst_format", av_dst_format, 0);
-  av_opt_set_int(c, "sws_flags", sws_flags, 0);
-  av_opt_set_int(c, "threads", BLI_system_thread_count(), 0);
-
-  if (sws_init_context(c, nullptr, nullptr) < 0) {
-    sws_freeContext(c);
-    return nullptr;
-  }
-#  else
-  SwsContext *c = sws_getContext(src_width,
-                                 src_height,
-                                 AVPixelFormat(av_src_format),
-                                 dst_width,
-                                 dst_height,
-                                 AVPixelFormat(av_dst_format),
-                                 sws_flags,
-                                 nullptr,
-                                 nullptr,
-                                 nullptr);
-#  endif
-
-  return c;
-}
-
-static void init_swscale_cache_if_needed()
-{
-  if (swscale_cache == nullptr) {
-    swscale_cache = new blender::Vector<SwscaleContext>();
-    swscale_cache_timestamp = 0;
-  }
-}
-
-static bool remove_oldest_swscale_context()
-{
-  int64_t oldest_index = -1;
-  int64_t oldest_time = 0;
-  for (int64_t index = 0; index < swscale_cache->size(); index++) {
-    SwscaleContext &ctx = (*swscale_cache)[index];
-    if (ctx.is_used) {
-      continue;
-    }
-    int64_t time = swscale_cache_timestamp - ctx.last_use_timestamp;
-    if (time > oldest_time) {
-      oldest_time = time;
-      oldest_index = index;
-    }
-  }
-
-  if (oldest_index >= 0) {
-    SwscaleContext &ctx = (*swscale_cache)[oldest_index];
-    sws_freeContext(ctx.context);
-    swscale_cache->remove_and_reorder(oldest_index);
-    return true;
-  }
-  return false;
-}
-
-static void maintain_swscale_cache_size()
-{
-  while (swscale_cache->size() > swscale_cache_max_entries) {
-    if (!remove_oldest_swscale_context()) {
-      /* Could not remove anything (all contexts are actively used),
-       * stop trying. */
-      break;
-    }
-  }
-}
-
-SwsContext *BKE_ffmpeg_sws_get_context(int src_width,
-                                       int src_height,
-                                       int av_src_format,
-                                       int dst_width,
-                                       int dst_height,
-                                       int av_dst_format,
-                                       int sws_flags)
-{
-  BLI_mutex_lock(&swscale_cache_lock);
-
-  init_swscale_cache_if_needed();
-
-  swscale_cache_timestamp++;
-
-  /* Search for unused context that has suitable parameters. */
-  SwsContext *ctx = nullptr;
-  for (SwscaleContext &c : *swscale_cache) {
-    if (!c.is_used && c.src_width == src_width && c.src_height == src_height &&
-        c.src_format == av_src_format && c.dst_width == dst_width && c.dst_height == dst_height &&
-        c.dst_format == av_dst_format && c.flags == sws_flags)
-    {
-      ctx = c.context;
-      /* Mark as used. */
-      c.is_used = true;
-      c.last_use_timestamp = swscale_cache_timestamp;
-      break;
-    }
-  }
-  if (ctx == nullptr) {
-    /* No free matching context in cache: create a new one. */
-    ctx = sws_create_context(
-        src_width, src_height, av_src_format, dst_width, dst_height, av_dst_format, sws_flags);
-    SwscaleContext c;
-    c.src_width = src_width;
-    c.src_height = src_height;
-    c.dst_width = dst_width;
-    c.dst_height = dst_height;
-    c.src_format = AVPixelFormat(av_src_format);
-    c.dst_format = AVPixelFormat(av_dst_format);
-    c.flags = sws_flags;
-    c.context = ctx;
-    c.is_used = true;
-    c.last_use_timestamp = swscale_cache_timestamp;
-    swscale_cache->append(c);
-
-    maintain_swscale_cache_size();
-  }
-
-  BLI_mutex_unlock(&swscale_cache_lock);
-  return ctx;
-}
-
-void BKE_ffmpeg_sws_release_context(SwsContext *ctx)
-{
-  BLI_mutex_lock(&swscale_cache_lock);
-  init_swscale_cache_if_needed();
-
-  bool found = false;
-  for (SwscaleContext &c : *swscale_cache) {
-    if (c.context == ctx) {
-      BLI_assert_msg(c.is_used, "Releasing ffmpeg swscale context that is not in use");
-      c.is_used = false;
-      found = true;
-      break;
-    }
-  }
-  BLI_assert_msg(found, "Releasing ffmpeg swscale context that is not in cache");
-  UNUSED_VARS_NDEBUG(found);
-  maintain_swscale_cache_size();
-
-  BLI_mutex_unlock(&swscale_cache_lock);
-}
-
-void BKE_ffmpeg_exit()
-{
-  BLI_mutex_lock(&swscale_cache_lock);
-  if (swscale_cache != nullptr) {
-    for (SwscaleContext &c : *swscale_cache) {
-      sws_freeContext(c.context);
-    }
-    delete swscale_cache;
-    swscale_cache = nullptr;
-  }
-  BLI_mutex_unlock(&swscale_cache_lock);
-}
-
-void BKE_ffmpeg_sws_scale_frame(SwsContext *ctx, AVFrame *dst, const AVFrame *src)
-{
-#  if defined(FFMPEG_SWSCALE_THREADING)
-  sws_scale_frame(ctx, dst, src);
-#  else
-  sws_scale(ctx, src->data, src->linesize, 0, src->height, dst->data, dst->linesize);
-#  endif
-}
-
 /* Remap H.264 CRF to H.265 CRF: 17..32 range (23 default) to 20..37 range (28 default).
  * https://trac.ffmpeg.org/wiki/Encode/H.265 */
 static int remap_crf_to_h265_crf(int crf, bool is_10_or_12_bpp)
@@ -927,7 +728,7 @@ static int remap_crf_to_h264_10bpp_crf(int crf)
   return crf;
 }
 
-static void set_quality_rate_options(const FFMpegContext *context,
+static void set_quality_rate_options(const ImbMovieWriter *context,
                                      const AVCodecID codec_id,
                                      const RenderData *rd,
                                      AVDictionary **opts)
@@ -935,7 +736,7 @@ static void set_quality_rate_options(const FFMpegContext *context,
   AVCodecContext *c = context->video_codec;
 
   /* Handle constant bit rate (CBR) case. */
-  if (!BKE_ffmpeg_codec_supports_crf(codec_id) || context->ffmpeg_crf < 0) {
+  if (!IMB_ffmpeg_codec_supports_crf(codec_id) || context->ffmpeg_crf < 0) {
     c->bit_rate = context->ffmpeg_video_bitrate * 1000;
     c->rc_max_rate = rd->ffcodecdata.rc_max_rate * 1000;
     c->rc_min_rate = rd->ffcodecdata.rc_min_rate * 1000;
@@ -1006,7 +807,7 @@ static void set_quality_rate_options(const FFMpegContext *context,
 
 /* prepare a video stream for the output file */
 
-static AVStream *alloc_video_stream(FFMpegContext *context,
+static AVStream *alloc_video_stream(ImbMovieWriter *context,
                                     RenderData *rd,
                                     AVCodecID codec_id,
                                     AVFormatContext *of,
@@ -1234,7 +1035,7 @@ static AVStream *alloc_video_stream(FFMpegContext *context,
     char error_str[AV_ERROR_MAX_STRING_SIZE];
     av_make_error_string(error_str, AV_ERROR_MAX_STRING_SIZE, ret);
     fprintf(stderr, "Couldn't initialize video codec: %s\n", error_str);
-    BLI_strncpy(error, IMB_ffmpeg_last_error(), error_size);
+    BLI_strncpy(error, ffmpeg_last_error(), error_size);
     av_dict_free(&opts);
     avcodec_free_context(&c);
     context->video_codec = nullptr;
@@ -1254,7 +1055,7 @@ static AVStream *alloc_video_stream(FFMpegContext *context,
     /* Output pixel format is different, allocate frame for conversion. */
     AVPixelFormat src_format = is_10_bpp || is_12_bpp ? AV_PIX_FMT_GBRAPF32LE : AV_PIX_FMT_RGBA;
     context->img_convert_frame = alloc_picture(src_format, c->width, c->height);
-    context->img_convert_ctx = BKE_ffmpeg_sws_get_context(
+    context->img_convert_ctx = ffmpeg_sws_get_context(
         c->width, c->height, src_format, c->width, c->height, c->pix_fmt, SWS_BICUBIC);
 
     /* Setup BT.709 coefficients for RGB->YUV conversion, if needed. */
@@ -1288,7 +1089,7 @@ static AVStream *alloc_video_stream(FFMpegContext *context,
   return st;
 }
 
-static AVStream *alloc_audio_stream(FFMpegContext *context,
+static AVStream *alloc_audio_stream(ImbMovieWriter *context,
                                     RenderData *rd,
                                     AVCodecID codec_id,
                                     AVFormatContext *of,
@@ -1399,7 +1200,7 @@ static AVStream *alloc_audio_stream(FFMpegContext *context,
     char error_str[AV_ERROR_MAX_STRING_SIZE];
     av_make_error_string(error_str, AV_ERROR_MAX_STRING_SIZE, ret);
     fprintf(stderr, "Couldn't initialize audio codec: %s\n", error_str);
-    BLI_strncpy(error, IMB_ffmpeg_last_error(), error_size);
+    BLI_strncpy(error, ffmpeg_last_error(), error_size);
     avcodec_free_context(&c);
     context->audio_codec = nullptr;
     return nullptr;
@@ -1458,7 +1259,7 @@ static void ffmpeg_add_metadata_callback(void *data,
   av_dict_set(metadata, propname, propvalue, 0);
 }
 
-static bool start_ffmpeg_impl(FFMpegContext *context,
+static bool start_ffmpeg_impl(ImbMovieWriter *context,
                               RenderData *rd,
                               int rectx,
                               int recty,
@@ -1733,7 +1534,7 @@ static void flush_ffmpeg(AVCodecContext *c, AVStream *stream, AVFormatContext *o
  * ********************************************************************** */
 
 /* Get the output filename-- similar to the other output formats */
-static void ffmpeg_filepath_get(FFMpegContext *context,
+static void ffmpeg_filepath_get(ImbMovieWriter *context,
                                 char filepath[FILE_MAX],
                                 const RenderData *rd,
                                 bool preview,
@@ -1802,30 +1603,40 @@ static void ffmpeg_filepath_get(FFMpegContext *context,
   BLI_path_suffix(filepath, FILE_MAX, suffix, "");
 }
 
-void BKE_ffmpeg_filepath_get(char filepath[/*FILE_MAX*/ 1024],
-                             const RenderData *rd,
-                             bool preview,
-                             const char *suffix)
+static void ffmpeg_get_filepath(char filepath[/*FILE_MAX*/ 1024],
+                                const RenderData *rd,
+                                bool preview,
+                                const char *suffix)
 {
   ffmpeg_filepath_get(nullptr, filepath, rd, preview, suffix);
 }
 
-bool BKE_ffmpeg_start(void *context_v,
-                      const Scene *scene,
-                      RenderData *rd,
-                      int rectx,
-                      int recty,
-                      ReportList *reports,
-                      bool preview,
-                      const char *suffix)
+static ImbMovieWriter *ffmpeg_movie_open(const Scene *scene,
+                                         RenderData *rd,
+                                         int rectx,
+                                         int recty,
+                                         ReportList *reports,
+                                         bool preview,
+                                         const char *suffix)
 {
-  FFMpegContext *context = static_cast<FFMpegContext *>(context_v);
+  ImbMovieWriter *context = static_cast<ImbMovieWriter *>(
+      MEM_callocN(sizeof(ImbMovieWriter), "new FFMPEG context"));
+
+  context->ffmpeg_codec = AV_CODEC_ID_MPEG4;
+  context->ffmpeg_audio_codec = AV_CODEC_ID_NONE;
+  context->ffmpeg_video_bitrate = 1150;
+  context->ffmpeg_audio_bitrate = 128;
+  context->ffmpeg_gop_size = 12;
+  context->ffmpeg_autosplit = 0;
+  context->stamp_data = nullptr;
+  context->audio_time_total = 0.0;
 
   context->ffmpeg_autosplit_count = 0;
   context->ffmpeg_preview = preview;
   context->stamp_data = BKE_stamp_info_from_scene_static(scene);
 
   bool success = start_ffmpeg_impl(context, rd, rectx, recty, suffix, reports);
+
 #  ifdef WITH_AUDASPACE
   if (context->audio_stream) {
     AVCodecContext *c = context->audio_codec;
@@ -1854,21 +1665,29 @@ bool BKE_ffmpeg_start(void *context_v,
         specs.format = AUD_FORMAT_FLOAT64;
         break;
       default:
-        return -31415;
+        success = false;
+        break;
     }
 
     specs.rate = rd->ffcodecdata.audio_mixrate;
-    context->audio_mixdown_device = BKE_sound_mixdown(
-        scene, specs, preview ? rd->psfra : rd->sfra, rd->ffcodecdata.audio_volume);
+    if (success) {
+      context->audio_mixdown_device = BKE_sound_mixdown(
+          scene, specs, preview ? rd->psfra : rd->sfra, rd->ffcodecdata.audio_volume);
+    }
   }
 #  endif
-  return success;
+
+  if (!success) {
+    ffmpeg_movie_close(context);
+    return nullptr;
+  }
+  return context;
 }
 
-static void end_ffmpeg_impl(FFMpegContext *context, int is_autosplit);
+static void end_ffmpeg_impl(ImbMovieWriter *context, int is_autosplit);
 
 #  ifdef WITH_AUDASPACE
-static void write_audio_frames(FFMpegContext *context, double to_pts)
+static void write_audio_frames(ImbMovieWriter *context, double to_pts)
 {
   AVCodecContext *c = context->audio_codec;
 
@@ -1882,15 +1701,14 @@ static void write_audio_frames(FFMpegContext *context, double to_pts)
 }
 #  endif
 
-bool BKE_ffmpeg_append(void *context_v,
-                       RenderData *rd,
-                       int start_frame,
-                       int frame,
-                       const ImBuf *image,
-                       const char *suffix,
-                       ReportList *reports)
+static bool ffmpeg_movie_append(ImbMovieWriter *context,
+                                RenderData *rd,
+                                int start_frame,
+                                int frame,
+                                const ImBuf *image,
+                                const char *suffix,
+                                ReportList *reports)
 {
-  FFMpegContext *context = static_cast<FFMpegContext *>(context_v);
   AVFrame *avframe;
   bool success = true;
 
@@ -1920,7 +1738,7 @@ bool BKE_ffmpeg_append(void *context_v,
   return success;
 }
 
-static void end_ffmpeg_impl(FFMpegContext *context, int is_autosplit)
+static void end_ffmpeg_impl(ImbMovieWriter *context, int is_autosplit)
 {
   PRINT("Closing FFMPEG...\n");
 
@@ -2000,179 +1818,17 @@ static void end_ffmpeg_impl(FFMpegContext *context, int is_autosplit)
   }
 
   if (context->img_convert_ctx != nullptr) {
-    BKE_ffmpeg_sws_release_context(context->img_convert_ctx);
+    ffmpeg_sws_release_context(context->img_convert_ctx);
     context->img_convert_ctx = nullptr;
   }
 }
 
-void BKE_ffmpeg_end(void *context_v)
+static void ffmpeg_movie_close(ImbMovieWriter *context)
 {
-  FFMpegContext *context = static_cast<FFMpegContext *>(context_v);
-  end_ffmpeg_impl(context, false);
-}
-
-void BKE_ffmpeg_preset_set(RenderData *rd, int preset)
-{
-  bool is_ntsc = (rd->frs_sec != 25);
-
-  switch (preset) {
-    case FFMPEG_PRESET_H264:
-      rd->ffcodecdata.type = FFMPEG_AVI;
-      rd->ffcodecdata.codec = AV_CODEC_ID_H264;
-      rd->ffcodecdata.video_bitrate = 6000;
-      rd->ffcodecdata.gop_size = is_ntsc ? 18 : 15;
-      rd->ffcodecdata.rc_max_rate = 9000;
-      rd->ffcodecdata.rc_min_rate = 0;
-      rd->ffcodecdata.rc_buffer_size = 224 * 8;
-      rd->ffcodecdata.mux_packet_size = 2048;
-      rd->ffcodecdata.mux_rate = 10080000;
-      break;
-
-    case FFMPEG_PRESET_THEORA:
-    case FFMPEG_PRESET_XVID:
-      if (preset == FFMPEG_PRESET_XVID) {
-        rd->ffcodecdata.type = FFMPEG_AVI;
-        rd->ffcodecdata.codec = AV_CODEC_ID_MPEG4;
-      }
-      else if (preset == FFMPEG_PRESET_THEORA) {
-        rd->ffcodecdata.type = FFMPEG_OGG; /* XXX broken */
-        rd->ffcodecdata.codec = AV_CODEC_ID_THEORA;
-      }
-
-      rd->ffcodecdata.video_bitrate = 6000;
-      rd->ffcodecdata.gop_size = is_ntsc ? 18 : 15;
-      rd->ffcodecdata.rc_max_rate = 9000;
-      rd->ffcodecdata.rc_min_rate = 0;
-      rd->ffcodecdata.rc_buffer_size = 224 * 8;
-      rd->ffcodecdata.mux_packet_size = 2048;
-      rd->ffcodecdata.mux_rate = 10080000;
-      break;
-
-    case FFMPEG_PRESET_AV1:
-      rd->ffcodecdata.type = FFMPEG_AV1;
-      rd->ffcodecdata.codec = AV_CODEC_ID_AV1;
-      rd->ffcodecdata.video_bitrate = 6000;
-      rd->ffcodecdata.gop_size = is_ntsc ? 18 : 15;
-      rd->ffcodecdata.rc_max_rate = 9000;
-      rd->ffcodecdata.rc_min_rate = 0;
-      rd->ffcodecdata.rc_buffer_size = 224 * 8;
-      rd->ffcodecdata.mux_packet_size = 2048;
-      rd->ffcodecdata.mux_rate = 10080000;
-      break;
-  }
-}
-
-void BKE_ffmpeg_image_type_verify(RenderData *rd, const ImageFormatData *imf)
-{
-  int audio = 0;
-
-  if (imf->imtype == R_IMF_IMTYPE_FFMPEG) {
-    if (rd->ffcodecdata.type <= 0 || rd->ffcodecdata.codec <= 0 ||
-        rd->ffcodecdata.audio_codec <= 0 || rd->ffcodecdata.video_bitrate <= 1)
-    {
-      BKE_ffmpeg_preset_set(rd, FFMPEG_PRESET_H264);
-      rd->ffcodecdata.constant_rate_factor = FFM_CRF_MEDIUM;
-      rd->ffcodecdata.ffmpeg_preset = FFM_PRESET_GOOD;
-      rd->ffcodecdata.type = FFMPEG_MKV;
-    }
-    if (rd->ffcodecdata.type == FFMPEG_OGG) {
-      rd->ffcodecdata.type = FFMPEG_MPEG2;
-    }
-
-    audio = 1;
-  }
-  else if (imf->imtype == R_IMF_IMTYPE_H264) {
-    if (rd->ffcodecdata.codec != AV_CODEC_ID_H264) {
-      BKE_ffmpeg_preset_set(rd, FFMPEG_PRESET_H264);
-      audio = 1;
-    }
-  }
-  else if (imf->imtype == R_IMF_IMTYPE_XVID) {
-    if (rd->ffcodecdata.codec != AV_CODEC_ID_MPEG4) {
-      BKE_ffmpeg_preset_set(rd, FFMPEG_PRESET_XVID);
-      audio = 1;
-    }
-  }
-  else if (imf->imtype == R_IMF_IMTYPE_THEORA) {
-    if (rd->ffcodecdata.codec != AV_CODEC_ID_THEORA) {
-      BKE_ffmpeg_preset_set(rd, FFMPEG_PRESET_THEORA);
-      audio = 1;
-    }
-  }
-  else if (imf->imtype == R_IMF_IMTYPE_AV1) {
-    if (rd->ffcodecdata.codec != AV_CODEC_ID_AV1) {
-      BKE_ffmpeg_preset_set(rd, FFMPEG_PRESET_AV1);
-      audio = 1;
-    }
-  }
-
-  if (audio && rd->ffcodecdata.audio_codec < 0) {
-    rd->ffcodecdata.audio_codec = AV_CODEC_ID_NONE;
-    rd->ffcodecdata.audio_bitrate = 128;
-  }
-}
-
-bool BKE_ffmpeg_alpha_channel_is_supported(const RenderData *rd)
-{
-  int codec = rd->ffcodecdata.codec;
-
-  return ELEM(codec,
-              AV_CODEC_ID_FFV1,
-              AV_CODEC_ID_QTRLE,
-              AV_CODEC_ID_PNG,
-              AV_CODEC_ID_VP9,
-              AV_CODEC_ID_HUFFYUV);
-}
-
-bool BKE_ffmpeg_codec_supports_crf(int av_codec_id)
-{
-  return ELEM(av_codec_id,
-              AV_CODEC_ID_H264,
-              AV_CODEC_ID_H265,
-              AV_CODEC_ID_MPEG4,
-              AV_CODEC_ID_VP9,
-              AV_CODEC_ID_AV1);
-}
-
-int BKE_ffmpeg_valid_bit_depths(int av_codec_id)
-{
-  int bit_depths = R_IMF_CHAN_DEPTH_8;
-  /* Note: update properties_output.py `use_bpp` when changing this function. */
-  if (ELEM(av_codec_id, AV_CODEC_ID_H264, AV_CODEC_ID_H265, AV_CODEC_ID_AV1)) {
-    bit_depths |= R_IMF_CHAN_DEPTH_10;
-  }
-  if (ELEM(av_codec_id, AV_CODEC_ID_H265, AV_CODEC_ID_AV1)) {
-    bit_depths |= R_IMF_CHAN_DEPTH_12;
-  }
-  return bit_depths;
-}
-
-void *BKE_ffmpeg_context_create()
-{
-  /* New FFMPEG data struct. */
-  FFMpegContext *context = static_cast<FFMpegContext *>(
-      MEM_callocN(sizeof(FFMpegContext), "new FFMPEG context"));
-
-  context->ffmpeg_codec = AV_CODEC_ID_MPEG4;
-  context->ffmpeg_audio_codec = AV_CODEC_ID_NONE;
-  context->ffmpeg_video_bitrate = 1150;
-  context->ffmpeg_audio_bitrate = 128;
-  context->ffmpeg_gop_size = 12;
-  context->ffmpeg_autosplit = 0;
-  context->ffmpeg_autosplit_count = 0;
-  context->ffmpeg_preview = false;
-  context->stamp_data = nullptr;
-  context->audio_time_total = 0.0;
-
-  return context;
-}
-
-void BKE_ffmpeg_context_free(void *context_v)
-{
-  FFMpegContext *context = static_cast<FFMpegContext *>(context_v);
   if (context == nullptr) {
     return;
   }
+  end_ffmpeg_impl(context, false);
   if (context->stamp_data) {
     MEM_freeN(context->stamp_data);
   }
@@ -2180,3 +1836,85 @@ void BKE_ffmpeg_context_free(void *context_v)
 }
 
 #endif /* WITH_FFMPEG */
+
+static bool is_imtype_ffmpeg(const char imtype)
+{
+  return ELEM(imtype,
+              R_IMF_IMTYPE_AVIRAW,
+              R_IMF_IMTYPE_AVIJPEG,
+              R_IMF_IMTYPE_FFMPEG,
+              R_IMF_IMTYPE_H264,
+              R_IMF_IMTYPE_XVID,
+              R_IMF_IMTYPE_THEORA,
+              R_IMF_IMTYPE_AV1);
+}
+
+ImbMovieWriter *IMB_movie_write_begin(const char imtype,
+                                      const Scene *scene,
+                                      RenderData *rd,
+                                      int rectx,
+                                      int recty,
+                                      ReportList *reports,
+                                      bool preview,
+                                      const char *suffix)
+{
+  if (!is_imtype_ffmpeg(imtype)) {
+    return nullptr;
+  }
+
+  ImbMovieWriter *writer = nullptr;
+#ifdef WITH_FFMPEG
+  writer = ffmpeg_movie_open(scene, rd, rectx, recty, reports, preview, suffix);
+#else
+  UNUSED_VARS(scene, rd, rectx, recty, reports, preview, suffix);
+#endif
+  return writer;
+}
+
+bool IMB_movie_write_append(ImbMovieWriter *writer,
+                            RenderData *rd,
+                            int start_frame,
+                            int frame,
+                            const ImBuf *image,
+                            const char *suffix,
+                            ReportList *reports)
+{
+  if (writer == nullptr) {
+    return false;
+  }
+
+#ifdef WITH_FFMPEG
+  bool ok = ffmpeg_movie_append(writer, rd, start_frame, frame, image, suffix, reports);
+  return ok;
+#else
+  UNUSED_VARS(rd, start_frame, frame, image, suffix, reports);
+  return false;
+#endif
+}
+
+void IMB_movie_write_end(ImbMovieWriter *writer)
+{
+#ifdef WITH_FFMPEG
+  if (writer) {
+    ffmpeg_movie_close(writer);
+  }
+#else
+  UNUSED_VARS(writer);
+#endif
+}
+
+void IMB_movie_filepath_get(char filepath[/*FILE_MAX*/ 1024],
+                            const RenderData *rd,
+                            bool preview,
+                            const char *suffix)
+{
+#ifdef WITH_FFMPEG
+  if (is_imtype_ffmpeg(rd->im_format.imtype)) {
+    ffmpeg_get_filepath(filepath, rd, preview, suffix);
+    return;
+  }
+#else
+  UNUSED_VARS(rd, preview, suffix);
+#endif
+  filepath[0] = '\0';
+}

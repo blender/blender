@@ -10,6 +10,7 @@ set(INC
   ../../draw
   ../../gpu
   ../../imbuf
+  ../../imbuf/movie
   ../../makesrna
   ../../sequencer
   ../../windowmanager

@@ -7,6 +7,7 @@ set(INC
   ../blender/editors/include
   ../blender/gpu
   ../blender/imbuf
+  ../blender/imbuf/movie
   ../blender/io/usd
   ../blender/bmesh
   ../blender/makesrna

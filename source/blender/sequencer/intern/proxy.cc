@@ -32,6 +32,7 @@
 
 #include "WM_types.hh"
 
+#include "IMB_anim.hh"
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 #include "IMB_metadata.hh"

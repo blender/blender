@@ -63,7 +63,6 @@
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
 #include "BKE_sound.h"
-#include "BKE_writemovie.hh"
 
 #include "NOD_composite.hh"
 
@@ -78,6 +77,7 @@
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 #include "IMB_metadata.hh"
+#include "IMB_movie_write.hh"
 
 #include "RE_engine.h"
 #include "RE_pipeline.h"
@@ -167,12 +167,8 @@ static void render_callback_exec_id(Render *re, Main *bmain, ID *id, eCbEvent ev
 /** \name Allocation & Free
  * \{ */
 
-static bool do_write_image_or_movie(Render *re,
-                                    Main *bmain,
-                                    Scene *scene,
-                                    bMovieHandle *mh,
-                                    const int totvideos,
-                                    const char *filepath_override);
+static bool do_write_image_or_movie(
+    Render *re, Main *bmain, Scene *scene, const int totvideos, const char *filepath_override);
 
 /* default callbacks, set in each new render */
 static void result_nothing(void * /*arg*/, RenderResult * /*rr*/) {}
@@ -2053,9 +2049,7 @@ void RE_RenderFrame(Render *re,
                                      (rd.scemode & R_EXTENSION) != 0,
                                      false,
                                      nullptr);
-
-        /* reports only used for Movie */
-        do_write_image_or_movie(re, bmain, scene, nullptr, 0, filepath_override);
+        do_write_image_or_movie(re, bmain, scene, 0, filepath_override);
       }
     }
 
@@ -2152,8 +2146,7 @@ bool RE_WriteRenderViewsMovie(ReportList *reports,
                               RenderResult *rr,
                               Scene *scene,
                               RenderData *rd,
-                              bMovieHandle *mh,
-                              void **movie_ctx_arr,
+                              ImbMovieWriter **movie_writers,
                               const int totvideos,
                               bool preview)
 {
@@ -2177,13 +2170,14 @@ bool RE_WriteRenderViewsMovie(ReportList *reports,
 
       IMB_colormanagement_imbuf_for_write(ibuf, true, false, &image_format);
 
-      if (!mh->append_movie(movie_ctx_arr[view_id],
-                            rd,
-                            preview ? scene->r.psfra : scene->r.sfra,
-                            scene->r.cfra,
-                            ibuf,
-                            suffix,
-                            reports))
+      BLI_assert(movie_writers[view_id] != nullptr);
+      if (!IMB_movie_write_append(movie_writers[view_id],
+                                  rd,
+                                  preview ? scene->r.psfra : scene->r.sfra,
+                                  scene->r.cfra,
+                                  ibuf,
+                                  suffix,
+                                  reports))
       {
         ok = false;
       }
@@ -2211,13 +2205,14 @@ bool RE_WriteRenderViewsMovie(ReportList *reports,
 
     ibuf_arr[2] = IMB_stereo3d_ImBuf(&image_format, ibuf_arr[0], ibuf_arr[1]);
 
-    if (!mh->append_movie(movie_ctx_arr[0],
-                          rd,
-                          preview ? scene->r.psfra : scene->r.sfra,
-                          scene->r.cfra,
-                          ibuf_arr[2],
-                          "",
-                          reports))
+    BLI_assert(movie_writers[0] != nullptr);
+    if (!IMB_movie_write_append(movie_writers[0],
+                                rd,
+                                preview ? scene->r.psfra : scene->r.sfra,
+                                scene->r.cfra,
+                                ibuf_arr[2],
+                                "",
+                                reports))
     {
       ok = false;
     }
@@ -2233,12 +2228,8 @@ bool RE_WriteRenderViewsMovie(ReportList *reports,
   return ok;
 }
 
-static bool do_write_image_or_movie(Render *re,
-                                    Main *bmain,
-                                    Scene *scene,
-                                    bMovieHandle *mh,
-                                    const int totvideos,
-                                    const char *filepath_override)
+static bool do_write_image_or_movie(
+    Render *re, Main *bmain, Scene *scene, const int totvideos, const char *filepath_override)
 {
   char filepath[FILE_MAX];
   RenderResult rres;
@@ -2256,7 +2247,7 @@ static bool do_write_image_or_movie(Render *re,
     /* write movie or image */
     if (BKE_imtype_is_movie(scene->r.im_format.imtype)) {
       RE_WriteRenderViewsMovie(
-          re->reports, &rres, scene, &re->r, mh, re->movie_ctx_arr, totvideos, false);
+          re->reports, &rres, scene, &re->r, re->movie_writers.data(), totvideos, false);
     }
     else {
       if (filepath_override) {
@@ -2334,16 +2325,12 @@ static void get_videos_dimensions(const Render *re,
   BKE_scene_multiview_videos_dimensions_get(rd, width, height, r_width, r_height);
 }
 
-static void re_movie_free_all(Render *re, bMovieHandle *mh, int totvideos)
+static void re_movie_free_all(Render *re)
 {
-  int i;
-
-  for (i = 0; i < totvideos; i++) {
-    mh->end_movie(re->movie_ctx_arr[i]);
-    mh->context_free(re->movie_ctx_arr[i]);
+  for (ImbMovieWriter *writer : re->movie_writers) {
+    IMB_movie_write_end(writer);
   }
-
-  MEM_SAFE_FREE(re->movie_ctx_arr);
+  re->movie_writers.clear_and_shrink();
 }
 
 void RE_RenderAnim(Render *re,
@@ -2361,7 +2348,6 @@ void RE_RenderAnim(Render *re,
 
   RenderData rd;
   memcpy(&rd, &scene->r, sizeof(rd));
-  bMovieHandle *mh = nullptr;
   const int cfra_old = rd.cfra;
   const float subframe_old = rd.subframe;
   int nfra, totrendered = 0, totskipped = 0;
@@ -2385,42 +2371,30 @@ void RE_RenderAnim(Render *re,
 
   if (is_movie && do_write_file) {
     size_t width, height;
-    int i;
-    bool is_error = false;
-
     get_videos_dimensions(re, &rd, &width, &height);
 
-    mh = BKE_movie_handle_get(rd.im_format.imtype);
-    if (mh == nullptr) {
-      render_pipeline_free(re);
-      BKE_report(re->reports, RPT_ERROR, "Movie format unsupported");
-      return;
-    }
-
-    re->movie_ctx_arr = MEM_cnew_array<void *>(totvideos, "Movies' Context");
-
-    for (i = 0; i < totvideos; i++) {
+    bool is_error = false;
+    re->movie_writers.reserve(totvideos);
+    for (int i = 0; i < totvideos; i++) {
       const char *suffix = BKE_scene_multiview_view_id_suffix_get(&re->r, i);
-
-      re->movie_ctx_arr[i] = mh->context_create();
-
-      if (!mh->start_movie(re->movie_ctx_arr[i],
-                           re->pipeline_scene_eval,
-                           &re->r,
-                           width,
-                           height,
-                           re->reports,
-                           false,
-                           suffix))
-      {
+      ImbMovieWriter *writer = IMB_movie_write_begin(rd.im_format.imtype,
+                                                     re->pipeline_scene_eval,
+                                                     &re->r,
+                                                     width,
+                                                     height,
+                                                     re->reports,
+                                                     false,
+                                                     suffix);
+      if (writer == nullptr) {
         is_error = true;
         break;
       }
+      re->movie_writers.append(writer);
     }
 
     if (is_error) {
-      /* report is handled above */
-      re_movie_free_all(re, mh, i + 1);
+      BKE_report(re->reports, RPT_ERROR, "Movie format unsupported");
+      re_movie_free_all(re);
       render_pipeline_free(re);
       return;
     }
@@ -2558,7 +2532,7 @@ void RE_RenderAnim(Render *re,
     const bool should_write = !(re->flag & R_SKIP_WRITE);
     if (re->test_break_cb(re->tbh) == 0) {
       if (!G.is_break && should_write) {
-        if (!do_write_image_or_movie(re, bmain, scene, mh, totvideos, nullptr)) {
+        if (!do_write_image_or_movie(re, bmain, scene, totvideos, nullptr)) {
           G.is_break = true;
         }
       }
@@ -2610,7 +2584,7 @@ void RE_RenderAnim(Render *re,
 
   /* end movie */
   if (is_movie && do_write_file) {
-    re_movie_free_all(re, mh, totvideos);
+    re_movie_free_all(re);
   }
 
   if (totskipped && totrendered == 0) {

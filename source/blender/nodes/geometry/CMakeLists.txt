@@ -16,6 +16,7 @@ set(INC
   ../../geometry
   ../../gpu
   ../../imbuf
+  ../../imbuf/movie
   ../../makesrna
   ../../modifiers
   ../../render

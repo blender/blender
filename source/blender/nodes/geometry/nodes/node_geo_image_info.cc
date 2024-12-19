@@ -4,6 +4,7 @@
 
 #include "BKE_image.hh"
 
+#include "IMB_anim.hh"
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 

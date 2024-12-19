@@ -63,6 +63,7 @@ const EnumPropertyItem rna_enum_color_space_convert_default_items[] = {
 
 #  include "ED_node.hh"
 
+#  include "IMB_anim.hh"
 #  include "IMB_colormanagement.hh"
 #  include "IMB_imbuf.hh"
 

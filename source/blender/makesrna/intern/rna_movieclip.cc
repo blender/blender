@@ -27,6 +27,7 @@
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 #include "IMB_metadata.hh"
+#include "IMB_movie_enums.hh"
 
 #ifdef RNA_RUNTIME
 

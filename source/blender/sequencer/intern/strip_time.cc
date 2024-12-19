@@ -21,6 +21,7 @@
 
 #include "DNA_sound_types.h"
 
+#include "IMB_anim.hh"
 #include "IMB_imbuf.hh"
 
 #include "SEQ_channels.hh"

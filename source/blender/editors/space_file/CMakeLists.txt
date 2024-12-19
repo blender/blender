@@ -11,6 +11,7 @@ set(INC
   ../../blentranslation
   ../../gpu
   ../../imbuf
+  ../../imbuf/movie
   ../../makesrna
   ../../render
   ../../windowmanager

@@ -1,4 +1,5 @@
 /* SPDX-FileCopyrightText: 2011 Peter Schlaile <peter [at] schlaile [dot] de>.
+ * SPDX-FileCopyrightText: 2024 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -32,11 +33,11 @@
 #  include "BLI_winstuff.h"
 #endif
 
-#include "BKE_writeffmpeg.hh"
-
 #include "IMB_anim.hh"
-#include "IMB_imbuf.hh"
-#include "IMB_indexer.hh"
+
+#include "ffmpeg_swscale.hh"
+#include "movie_proxy_indexer.hh"
+#include "movie_read.hh"
 
 #ifdef WITH_FFMPEG
 extern "C" {
@@ -599,13 +600,13 @@ static proxy_output_ctx *alloc_proxy_output_ffmpeg(ImBufAnim *anim,
     rv->frame->height = height;
     av_frame_get_buffer(rv->frame, align);
 
-    rv->sws_ctx = BKE_ffmpeg_sws_get_context(st->codecpar->width,
-                                             rv->orig_height,
-                                             AVPixelFormat(st->codecpar->format),
-                                             width,
-                                             height,
-                                             rv->c->pix_fmt,
-                                             SWS_FAST_BILINEAR);
+    rv->sws_ctx = ffmpeg_sws_get_context(st->codecpar->width,
+                                         rv->orig_height,
+                                         AVPixelFormat(st->codecpar->format),
+                                         width,
+                                         height,
+                                         rv->c->pix_fmt,
+                                         SWS_FAST_BILINEAR);
   }
 
   ret = avformat_write_header(rv->of, nullptr);
@@ -640,7 +641,7 @@ static void add_to_proxy_output_ffmpeg(proxy_output_ctx *ctx, AVFrame *frame)
   if (ctx->sws_ctx && frame &&
       (frame->data[0] || frame->data[1] || frame->data[2] || frame->data[3]))
   {
-    BKE_ffmpeg_sws_scale_frame(ctx->sws_ctx, ctx->frame, frame);
+    ffmpeg_sws_scale_frame(ctx->sws_ctx, ctx->frame, frame);
   }
 
   frame = ctx->sws_ctx ? (frame ? ctx->frame : nullptr) : frame;
@@ -731,7 +732,7 @@ static void free_proxy_output_ffmpeg(proxy_output_ctx *ctx, int rollback)
   avformat_free_context(ctx->of);
 
   if (ctx->sws_ctx) {
-    BKE_ffmpeg_sws_release_context(ctx->sws_ctx);
+    ffmpeg_sws_release_context(ctx->sws_ctx);
     ctx->sws_ctx = nullptr;
   }
   if (ctx->frame) {

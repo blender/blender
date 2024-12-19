@@ -34,13 +34,14 @@
 #  include "BKE_global.hh"
 #  include "BKE_image.hh"
 #  include "BKE_scene.hh"
-#  include "BKE_writemovie.hh"
 
 #  include "DEG_depsgraph_query.hh"
 
 #  include "ED_transform.hh"
 #  include "ED_transform_snap_object_context.hh"
 #  include "ED_uvedit.hh"
+
+#  include "IMB_movie_write.hh"
 
 #  ifdef WITH_PYTHON
 #    include "BPY_extern.hh"
@@ -114,7 +115,7 @@ static void rna_SceneRender_get_frame_path(
   }
 
   if (BKE_imtype_is_movie(rd->im_format.imtype)) {
-    BKE_movie_filepath_get(filepath, rd, preview != 0, suffix);
+    IMB_movie_filepath_get(filepath, rd, preview != 0, suffix);
   }
   else {
     BKE_image_path_from_imformat(filepath,

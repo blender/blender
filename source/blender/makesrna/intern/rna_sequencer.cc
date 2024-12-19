@@ -127,6 +127,7 @@ const EnumPropertyItem rna_enum_strip_color_items[] = {
 #  include "DEG_depsgraph.hh"
 #  include "DEG_depsgraph_build.hh"
 
+#  include "IMB_anim.hh"
 #  include "IMB_imbuf.hh"
 
 #  include "SEQ_edit.hh"

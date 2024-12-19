@@ -74,6 +74,7 @@
 #include "BLI_utildefines.h"
 
 #include "IMB_imbuf_enums.h"
+#include "movie/IMB_movie_enums.hh"
 
 #include "DNA_defaults.h"
 

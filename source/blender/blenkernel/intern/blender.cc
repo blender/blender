@@ -18,6 +18,7 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
+#include "IMB_anim.hh"
 #include "IMB_imbuf.hh"
 #include "IMB_moviecache.hh"
 
@@ -36,7 +37,6 @@
 #include "BKE_report.hh"
 #include "BKE_screen.hh"
 #include "BKE_studiolight.h"
-#include "BKE_writeffmpeg.hh"
 
 #include "DEG_depsgraph.hh"
 
@@ -79,9 +79,7 @@ void BKE_blender_free()
 
   IMB_moviecache_destruct();
   SEQ_fontmap_clear();
-#ifdef WITH_FFMPEG
-  BKE_ffmpeg_exit();
-#endif
+  IMB_ffmpeg_exit();
 
   blender::bke::node_system_exit();
 }

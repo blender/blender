@@ -11,6 +11,7 @@ set(INC
   ../../draw
   ../../gpu
   ../../imbuf
+  ../../imbuf/movie
   ../../makesrna
   ../../nodes
   ../../render

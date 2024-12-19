@@ -19,6 +19,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
 
+#include "IMB_anim.hh"
 #include "IMB_imbuf.hh"
 
 #include "SEQ_render.hh"

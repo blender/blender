@@ -1,4 +1,4 @@
-/* SPDX-FileCopyrightText: 2023 Blender Authors
+/* SPDX-FileCopyrightText: 2023-2024 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -12,7 +12,8 @@
 #  include <io.h>
 #endif
 
-#include "IMB_anim.hh"
+#include "IMB_movie_enums.hh"
+#include "movie_read.hh"
 #include <stdio.h>
 #include <stdlib.h>
 /*

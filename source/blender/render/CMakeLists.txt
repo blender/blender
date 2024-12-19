@@ -15,6 +15,7 @@ set(INC
   ../gpu
   ../gpu/intern
   ../imbuf
+  ../imbuf/movie
   ../makesrna
   ../nodes
   ../sequencer
