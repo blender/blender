@@ -189,22 +189,6 @@ index 8de74ede8a9..f9861f39169 100644
  
          num = length - shift;
          while (num--) {
-diff --git a/extern/quadriflow/src/config.hpp b/extern/quadriflow/src/config.hpp
-index 842b885a209..bf597ad0f39 100644
---- a/extern/quadriflow/src/config.hpp
-+++ b/extern/quadriflow/src/config.hpp
-@@ -1,6 +1,11 @@
- #ifndef CONFIG_H_
- #define CONFIG_H_
- 
-+/* Workaround a bug in boost 1.68, until we upgrade to a newer version. */
-+#if defined(__clang__) && defined(WIN32)
-+  #include <boost/type_traits/is_assignable.hpp>
-+  using namespace boost;
-+#endif
- // Move settings to cmake to make CMake happy :)
- 
- // #define WITH_SCALE
 diff --git a/extern/quadriflow/src/hierarchy.cpp b/extern/quadriflow/src/hierarchy.cpp
 index c333256a139..70a9628320f 100644
 --- a/extern/quadriflow/src/hierarchy.cpp
@@ -255,3 +239,153 @@ index aa27066e6e4..5b9d717db71 100644
  		std::size_t operator()(const obj_vertex &v) const {
  			size_t hash = std::hash<uint32_t>()(v.p);
  			hash = hash * 37 + std::hash<uint32_t>()(v.uv);
+diff --git a/extern/quadriflow/src/flow.hpp b/extern/quadriflow/src/flow.hpp
+index ab4a01c..a77f7ae 100644
+--- a/extern/quadriflow/src/flow.hpp
++++ b/extern/quadriflow/src/flow.hpp
+@@ -7,17 +7,12 @@
+ #include <vector>
+ 
+ #include "config.hpp"
+-
+-#include <boost/graph/adjacency_list.hpp>
+-#include <boost/graph/boykov_kolmogorov_max_flow.hpp>
+-#include <boost/graph/edmonds_karp_max_flow.hpp>
+-#include <boost/graph/push_relabel_max_flow.hpp>
++#include "../patches/boykov_kolmogorov_max_flow.hpp"
+ 
+ #include <lemon/network_simplex.h>
+ #include <lemon/preflow.h>
+ #include <lemon/smart_graph.h>
+ 
+-using namespace boost;
+ using namespace Eigen;
+ 
+ namespace qflow {
+@@ -34,78 +29,52 @@ class MaxFlowHelper {
+ 
+ class BoykovMaxFlowHelper : public MaxFlowHelper {
+    public:
+-    typedef int EdgeWeightType;
+-    typedef adjacency_list_traits<vecS, vecS, directedS> Traits;
+-    // clang-format off
+-    typedef adjacency_list < vecS, vecS, directedS,
+-        property < vertex_name_t, std::string,
+-        property < vertex_index_t, long,
+-        property < vertex_color_t, boost::default_color_type,
+-        property < vertex_distance_t, long,
+-        property < vertex_predecessor_t, Traits::edge_descriptor > > > > >,
+-
+-        property < edge_capacity_t, EdgeWeightType,
+-        property < edge_residual_capacity_t, EdgeWeightType,
+-        property < edge_reverse_t, Traits::edge_descriptor > > > > Graph;
+-    // clang-format on
+-
+-   public:
+-    BoykovMaxFlowHelper() { rev = get(edge_reverse, g); }
+-    void resize(int n, int m) {
+-        vertex_descriptors.resize(n);
+-        for (int i = 0; i < n; ++i) vertex_descriptors[i] = add_vertex(g);
+-    }
+-    int compute() {
+-        EdgeWeightType flow =
+-            boykov_kolmogorov_max_flow(g, vertex_descriptors.front(), vertex_descriptors.back());
+-        return flow;
++    BoykovMaxFlowHelper() = default;
++    void resize(int n, int m) override {
++        num_verts = n;
++        num_edges = 0;
++        flow.resize(num_verts, m * 2);
+     }
+-    void addDirectEdge(Traits::vertex_descriptor& v1, Traits::vertex_descriptor& v2,
+-                       property_map<Graph, edge_reverse_t>::type& rev, const int capacity,
+-                       const int inv_capacity, Graph& g, Traits::edge_descriptor& e1,
+-                       Traits::edge_descriptor& e2) {
+-        e1 = add_edge(v1, v2, g).first;
+-        e2 = add_edge(v2, v1, g).first;
+-        put(edge_capacity, g, e1, capacity);
+-        put(edge_capacity, g, e2, inv_capacity);
+-
+-        rev[e1] = e2;
+-        rev[e2] = e1;
++    int compute() override {
++        return flow.max_flow(0, num_verts - 1);
+     }
+-    void addEdge(int x, int y, int c, int rc, int v, int cost = 1) {
+-        Traits::edge_descriptor e1, e2;
+-        addDirectEdge(vertex_descriptors[x], vertex_descriptors[y], rev, c, rc, g, e1, e2);
++    void addEdge(int x, int y, int c, int rc, int v, int cost = 1) override {
++        const int e1 = num_edges++;
++        const int e2 = num_edges++;
++        flow.set_edge(e1, e2, x, y, c);
++        flow.set_edge(e2, e1, y, x, rc);
+         if (v != -1) {
+-            edge_to_variables[e1] = std::make_pair(v, -1);
+-            edge_to_variables[e2] = std::make_pair(v, 1);
++            edge_to_variables.emplace_back(v, -1);
++            edge_to_variables.emplace_back(v, 1);
++        }
++        else {
++            edge_to_variables.emplace_back(-1, -1);
++            edge_to_variables.emplace_back(-1, -1);
+         }
+     }
+-    void applyTo(std::vector<Vector2i>& edge_diff) {
+-        property_map<Graph, edge_capacity_t>::type capacity = get(edge_capacity, g);
+-        property_map<Graph, edge_residual_capacity_t>::type residual_capacity =
+-            get(edge_residual_capacity, g);
+-
+-        graph_traits<Graph>::vertex_iterator u_iter, u_end;
+-        graph_traits<Graph>::out_edge_iterator ei, e_end;
+-        for (tie(u_iter, u_end) = vertices(g); u_iter != u_end; ++u_iter)
+-            for (tie(ei, e_end) = out_edges(*u_iter, g); ei != e_end; ++ei)
+-                if (capacity[*ei] > 0) {
+-                    int flow = (capacity[*ei] - residual_capacity[*ei]);
++    void applyTo(std::vector<Vector2i>& edge_diff) override {
++        for (int vert = 0; vert < num_verts; vert++) {
++            for (int edge : flow.vertex_out_edges(vert)) {
++                const int capacity = flow.edge_capacity(edge);
++                const int residual_capacity = flow.edge_residual_capacity(edge);
++                if (capacity > 0) {
++                    int flow = (capacity - residual_capacity);
+                     if (flow > 0) {
+-                        auto it = edge_to_variables.find(*ei);
+-                        if (it != edge_to_variables.end()) {
+-                            edge_diff[it->second.first / 2][it->second.first % 2] +=
+-                                it->second.second * flow;
++                        std::pair<int, int> e2v = edge_to_variables[edge];
++                        if (e2v.first != -1) {
++                            edge_diff[e2v.first / 2][e2v.first % 2] += e2v.second * flow;
+                         }
+                     }
+                 }
++            }
++        }
+     }
+ 
+    private:
+-    Graph g;
+-    property_map<Graph, edge_reverse_t>::type rev;
+-    std::vector<Traits::vertex_descriptor> vertex_descriptors;
+-    std::map<Traits::edge_descriptor, std::pair<int, int>> edge_to_variables;
++    BoykovKolmogorovMaxFlow flow;
++    std::vector<std::pair<int, int>> edge_to_variables;
++    int num_verts = 0;
++    int num_edges = 0;
+ };
+ 
+ class NetworkSimplexFlowHelper : public MaxFlowHelper {
+diff --git a/extern/quadriflow/src/post-solver.cpp b/extern/quadriflow/src/post-solver.cpp
+index 6027ddd..ccefd15 100644
+--- a/extern/quadriflow/src/post-solver.cpp
++++ b/extern/quadriflow/src/post-solver.cpp
+@@ -5,7 +5,9 @@
+ //  Created by Jingwei on 2/5/18.
+ //
+ #include <algorithm>
++#ifdef POST_SOLVER
+ #include <boost/program_options.hpp>
++#endif
+ #include <cmath>
+ #include <cstdio>
+ #include <string>
