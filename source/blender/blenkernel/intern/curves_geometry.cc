@@ -359,6 +359,15 @@ MutableSpan<float3> CurvesGeometry::positions_for_write()
   return get_mutable_attribute<float3>(*this, AttrDomain::Point, ATTR_POSITION);
 }
 
+VArray<float> CurvesGeometry::radius() const
+{
+  return get_varray_attribute<float>(*this, AttrDomain::Point, ATTR_RADIUS, 0.01f);
+}
+MutableSpan<float> CurvesGeometry::radius_for_write()
+{
+  return get_mutable_attribute<float>(*this, AttrDomain::Point, ATTR_RADIUS);
+}
+
 Span<int> CurvesGeometry::offsets() const
 {
   if (this->curve_num == 0) {
