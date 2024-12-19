@@ -225,12 +225,6 @@ void VKDevice::init_glsl_patch()
     ss << "#extension GL_ARB_shader_stencil_export: enable\n";
     ss << "#define GPU_ARB_shader_stencil_export 1\n";
   }
-  if (!workarounds_.shader_output_layer) {
-    ss << "#define gpu_Layer gl_Layer\n";
-  }
-  if (!workarounds_.shader_output_viewport_index) {
-    ss << "#define gpu_ViewportIndex gl_ViewportIndex\n";
-  }
   if (!workarounds_.fragment_shader_barycentric) {
     ss << "#extension GL_EXT_fragment_shader_barycentric : require\n";
     ss << "#define gpu_BaryCoord gl_BaryCoordEXT\n";

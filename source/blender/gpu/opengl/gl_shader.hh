@@ -217,7 +217,7 @@ class GLShader : public Shader {
    */
   std::string workaround_geometry_shader_source_create(const shader::ShaderCreateInfo &info);
 
-  bool do_geometry_shader_injection(const shader::ShaderCreateInfo *info);
+  bool do_geometry_shader_injection(const shader::ShaderCreateInfo *info) const;
 
   MEM_CXX_CLASS_ALLOC_FUNCS("GLShader");
 };
