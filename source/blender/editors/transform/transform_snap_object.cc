@@ -926,7 +926,9 @@ static eSnapMode snap_obj_fn(SnapObjectContext *sctx,
         retval = snapCurve(sctx, ob_eval, obmat);
       }
       break;
-    case OB_FONT:
+    case OB_FONT: {
+      break;
+    }
     case OB_EMPTY:
     case OB_LAMP:
       retval = snap_object_center(sctx, ob_eval, obmat, sctx->runtime.snap_to_flag);
