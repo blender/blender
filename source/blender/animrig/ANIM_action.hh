@@ -715,6 +715,8 @@ class Slot : public ::ActionSlot {
    * \note This static method invalidates all user caches of all Action Slots.
    *
    * \see #blender::animrig::internal::rebuild_slot_user_cache()
+   * \see #blender::bke::animdata::action_slots_user_cache_invalidate(), which is an alternative to
+   *      calling this static method in case the caller only wants to depend on BKE headers.
    */
   static void users_invalidate(Main &bmain);
 
