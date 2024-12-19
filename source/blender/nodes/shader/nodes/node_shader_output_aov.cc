@@ -60,6 +60,7 @@ void register_node_type_sh_output_aov()
   static blender::bke::bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_OUTPUT_AOV, "AOV Output", NODE_CLASS_OUTPUT);
+  ntype.enum_name_legacy = "OUTPUT_AOV";
   ntype.declare = file_ns::node_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_output_aov;
   ntype.initfunc = file_ns::node_shader_init_output_aov;

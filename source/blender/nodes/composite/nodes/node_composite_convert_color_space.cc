@@ -198,6 +198,7 @@ void register_node_type_cmp_convert_color_space()
 
   cmp_node_type_base(
       &ntype, CMP_NODE_CONVERT_COLOR_SPACE, "Convert Colorspace", NODE_CLASS_CONVERTER);
+  ntype.enum_name_legacy = "CONVERT_COLORSPACE";
   ntype.declare = file_ns::CMP_NODE_CONVERT_COLOR_SPACE_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_convert_colorspace;
   blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::Middle);

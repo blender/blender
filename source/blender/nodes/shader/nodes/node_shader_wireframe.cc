@@ -59,6 +59,7 @@ void register_node_type_sh_wireframe()
   static blender::bke::bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_WIREFRAME, "Wireframe", NODE_CLASS_INPUT);
+  ntype.enum_name_legacy = "WIREFRAME";
   ntype.declare = file_ns::node_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_wireframe;
   ntype.gpu_fn = file_ns::node_shader_gpu_wireframe;

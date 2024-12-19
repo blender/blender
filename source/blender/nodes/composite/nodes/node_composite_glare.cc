@@ -1983,6 +1983,7 @@ void register_node_type_cmp_glare()
   static blender::bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_GLARE, "Glare", NODE_CLASS_OP_FILTER);
+  ntype.enum_name_legacy = "GLARE";
   ntype.declare = file_ns::cmp_node_glare_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_glare;
   ntype.initfunc = file_ns::node_composit_init_glare;

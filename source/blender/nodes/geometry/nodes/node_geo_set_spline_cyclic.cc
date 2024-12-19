@@ -74,6 +74,7 @@ static void node_register()
   static blender::bke::bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_SET_SPLINE_CYCLIC, "Set Spline Cyclic", NODE_CLASS_GEOMETRY);
+  ntype.enum_name_legacy = "SET_SPLINE_CYCLIC";
   ntype.geometry_node_execute = node_geo_exec;
   ntype.declare = node_declare;
   blender::bke::node_register_type(&ntype);

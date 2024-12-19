@@ -11712,7 +11712,7 @@ void RNA_def_nodetree(BlenderRNA *brna)
   rna_def_geo_bake_item(brna);
   rna_def_geo_capture_attribute_item(brna);
 
-#  define DefNode(Category, ID, DefFunc, EnumName, StructName, UIName, UIDesc) \
+#  define DefNode(Category, ID, DefFunc, StructName, UIName, UIDesc) \
     { \
       srna = define_specific_node(brna, #Category #StructName, #Category, DefFunc); \
       if (ID == CMP_NODE_OUTPUT_FILE) { \

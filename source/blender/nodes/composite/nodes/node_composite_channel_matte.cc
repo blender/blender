@@ -298,6 +298,7 @@ void register_node_type_cmp_channel_matte()
   static blender::bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_CHANNEL_MATTE, "Channel Key", NODE_CLASS_MATTE);
+  ntype.enum_name_legacy = "CHANNEL_MATTE";
   ntype.declare = file_ns::cmp_node_channel_matte_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_channel_matte;
   ntype.flag |= NODE_PREVIEW;

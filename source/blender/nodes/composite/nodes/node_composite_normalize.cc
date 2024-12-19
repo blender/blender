@@ -115,6 +115,7 @@ void register_node_type_cmp_normalize()
   static blender::bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_NORMALIZE, "Normalize", NODE_CLASS_OP_VECTOR);
+  ntype.enum_name_legacy = "NORMALIZE";
   ntype.declare = file_ns::cmp_node_normalize_declare;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 

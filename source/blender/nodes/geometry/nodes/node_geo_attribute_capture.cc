@@ -252,6 +252,7 @@ static void node_register()
 
   geo_node_type_base(
       &ntype, GEO_NODE_CAPTURE_ATTRIBUTE, "Capture Attribute", NODE_CLASS_ATTRIBUTE);
+  ntype.enum_name_legacy = "CAPTURE_ATTRIBUTE";
   blender::bke::node_type_storage(
       &ntype, "NodeGeometryAttributeCapture", node_free_storage, node_copy_storage);
   ntype.initfunc = node_init;

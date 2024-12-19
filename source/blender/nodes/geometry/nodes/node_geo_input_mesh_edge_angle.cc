@@ -191,6 +191,7 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
   geo_node_type_base(&ntype, GEO_NODE_INPUT_MESH_EDGE_ANGLE, "Edge Angle", NODE_CLASS_INPUT);
+  ntype.enum_name_legacy = "MESH_EDGE_ANGLE";
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
   blender::bke::node_register_type(&ntype);

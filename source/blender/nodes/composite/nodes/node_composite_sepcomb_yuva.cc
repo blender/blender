@@ -57,6 +57,7 @@ void register_node_type_cmp_sepyuva()
 
   cmp_node_type_base(
       &ntype, CMP_NODE_SEPYUVA_LEGACY, "Separate YUVA (Legacy)", NODE_CLASS_CONVERTER);
+  ntype.enum_name_legacy = "SEPYUVA";
   ntype.declare = file_ns::cmp_node_sepyuva_declare;
   ntype.gather_link_search_ops = nullptr;
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
@@ -124,6 +125,7 @@ void register_node_type_cmp_combyuva()
 
   cmp_node_type_base(
       &ntype, CMP_NODE_COMBYUVA_LEGACY, "Combine YUVA (Legacy)", NODE_CLASS_CONVERTER);
+  ntype.enum_name_legacy = "COMBYUVA";
   ntype.declare = file_ns::cmp_node_combyuva_declare;
   ntype.gather_link_search_ops = nullptr;
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;

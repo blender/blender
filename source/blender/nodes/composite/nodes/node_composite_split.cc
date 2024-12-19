@@ -150,6 +150,7 @@ void register_node_type_cmp_split()
   static blender::bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_SPLIT, "Split", NODE_CLASS_CONVERTER);
+  ntype.enum_name_legacy = "SPLIT";
   ntype.declare = file_ns::cmp_node_split_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_split;
   ntype.flag |= NODE_PREVIEW;

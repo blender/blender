@@ -117,6 +117,7 @@ void register_node_type_sh_bump()
   static blender::bke::bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_BUMP, "Bump", NODE_CLASS_OP_VECTOR);
+  ntype.enum_name_legacy = "BUMP";
   ntype.declare = file_ns::node_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_bump;
   ntype.gpu_fn = file_ns::gpu_shader_bump;

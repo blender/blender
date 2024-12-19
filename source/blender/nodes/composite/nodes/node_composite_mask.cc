@@ -178,6 +178,7 @@ void register_node_type_cmp_mask()
   static blender::bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_MASK, "Mask", NODE_CLASS_INPUT);
+  ntype.enum_name_legacy = "MASK";
   ntype.declare = file_ns::cmp_node_mask_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_mask;
   ntype.initfunc = file_ns::node_composit_init_mask;

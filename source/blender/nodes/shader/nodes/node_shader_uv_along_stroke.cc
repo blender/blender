@@ -29,6 +29,7 @@ void register_node_type_sh_uvalongstroke()
   static blender::bke::bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_UVALONGSTROKE, "UV Along Stroke", NODE_CLASS_INPUT);
+  ntype.enum_name_legacy = "UVALONGSTROKE";
   ntype.declare = file_ns::node_declare;
   ntype.add_ui_poll = line_style_shader_nodes_poll;
   ntype.draw_buttons = file_ns::node_shader_buts_uvalongstroke;

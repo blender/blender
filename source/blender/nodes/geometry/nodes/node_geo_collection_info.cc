@@ -188,6 +188,7 @@ static void node_register()
   static blender::bke::bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_COLLECTION_INFO, "Collection Info", NODE_CLASS_INPUT);
+  ntype.enum_name_legacy = "COLLECTION_INFO";
   ntype.declare = node_declare;
   ntype.initfunc = node_node_init;
   blender::bke::node_type_storage(&ntype,

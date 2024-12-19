@@ -43,6 +43,7 @@ void register_node_type_sh_rgbtobw()
   static blender::bke::bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_RGBTOBW, "RGB to BW", NODE_CLASS_CONVERTER);
+  ntype.enum_name_legacy = "RGBTOBW";
   ntype.declare = file_ns::sh_node_rgbtobw_declare;
   ntype.gpu_fn = file_ns::gpu_shader_rgbtobw;
   ntype.materialx_fn = file_ns::node_shader_materialx;

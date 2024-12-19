@@ -127,6 +127,7 @@ void register_node_type_cmp_translate()
   static blender::bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_TRANSLATE, "Translate", NODE_CLASS_DISTORT);
+  ntype.enum_name_legacy = "TRANSLATE";
   ntype.declare = file_ns::cmp_node_translate_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_translate;
   ntype.initfunc = file_ns::node_composit_init_translate;

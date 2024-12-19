@@ -88,6 +88,7 @@ void register_node_type_sh_script()
   static blender::bke::bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_SCRIPT, "Script", NODE_CLASS_SCRIPT);
+  ntype.enum_name_legacy = "SCRIPT";
   ntype.draw_buttons = file_ns::node_shader_buts_script;
   ntype.draw_buttons_ex = file_ns::node_shader_buts_script_ex;
   ntype.initfunc = file_ns::init;

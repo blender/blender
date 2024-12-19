@@ -58,6 +58,7 @@ void register_node_type_sh_bevel()
   static blender::bke::bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_BEVEL, "Bevel", NODE_CLASS_INPUT);
+  ntype.enum_name_legacy = "BEVEL";
   ntype.declare = file_ns::node_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_bevel;
   ntype.initfunc = file_ns::node_shader_init_bevel;

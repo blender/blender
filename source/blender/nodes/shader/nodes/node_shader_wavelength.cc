@@ -44,6 +44,7 @@ void register_node_type_sh_wavelength()
   static blender::bke::bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_WAVELENGTH, "Wavelength", NODE_CLASS_CONVERTER);
+  ntype.enum_name_legacy = "WAVELENGTH";
   ntype.declare = file_ns::node_declare;
   blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::Middle);
   ntype.gpu_fn = file_ns::node_shader_gpu_wavelength;

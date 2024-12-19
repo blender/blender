@@ -106,6 +106,7 @@ void register_node_type_sh_tangent()
   static blender::bke::bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_TANGENT, "Tangent", NODE_CLASS_INPUT);
+  ntype.enum_name_legacy = "TANGENT";
   ntype.declare = file_ns::node_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_tangent;
   blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::Middle);

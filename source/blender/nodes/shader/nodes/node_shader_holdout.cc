@@ -31,6 +31,7 @@ void register_node_type_sh_holdout()
   static blender::bke::bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_HOLDOUT, "Holdout", NODE_CLASS_SHADER);
+  ntype.enum_name_legacy = "HOLDOUT";
   ntype.add_ui_poll = object_shader_nodes_poll;
   ntype.declare = file_ns::node_declare;
   ntype.gpu_fn = file_ns::gpu_shader_rgb;

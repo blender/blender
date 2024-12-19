@@ -242,6 +242,7 @@ static void node_register()
 
   geo_node_type_base(
       &ntype, GEO_NODE_SAMPLE_GRID_INDEX, "Sample Grid Index", NODE_CLASS_CONVERTER);
+  ntype.enum_name_legacy = "SAMPLE_GRID_INDEX";
   ntype.initfunc = node_init;
   ntype.declare = node_declare;
   ntype.gather_link_search_ops = node_gather_link_search_ops;

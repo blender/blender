@@ -182,6 +182,7 @@ void register_node_type_cmp_moviedistortion()
   static blender::bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_MOVIEDISTORTION, "Movie Distortion", NODE_CLASS_DISTORT);
+  ntype.enum_name_legacy = "MOVIEDISTORTION";
   ntype.declare = file_ns::cmp_node_moviedistortion_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_moviedistortion;
   ntype.labelfunc = file_ns::label;

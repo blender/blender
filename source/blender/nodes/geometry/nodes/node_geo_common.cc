@@ -20,6 +20,7 @@ static void register_node_type_geo_group()
   static blender::bke::bNodeType ntype;
 
   bke::node_type_base_custom(&ntype, "GeometryNodeGroup", "Group", "GROUP", NODE_CLASS_GROUP);
+  ntype.enum_name_legacy = "GROUP";
   ntype.type = NODE_GROUP;
   ntype.poll = geo_node_poll_default;
   ntype.poll_instance = node_group_poll_instance;

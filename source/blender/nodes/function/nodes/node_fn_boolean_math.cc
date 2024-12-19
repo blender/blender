@@ -191,6 +191,7 @@ static void node_register()
   static blender::bke::bNodeType ntype;
 
   fn_node_type_base(&ntype, FN_NODE_BOOLEAN_MATH, "Boolean Math", NODE_CLASS_CONVERTER);
+  ntype.enum_name_legacy = "BOOLEAN_MATH";
   ntype.declare = node_declare;
   ntype.labelfunc = node_label;
   ntype.updatefunc = node_update;

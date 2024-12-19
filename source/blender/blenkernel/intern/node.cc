@@ -1727,6 +1727,11 @@ void node_register_type(bNodeType *nt)
   BLI_assert(nt->idname[0] != '\0');
   BLI_assert(nt->poll != nullptr);
 
+  if (!nt->enum_name_legacy) {
+    /* For new nodes, use the idname as a unique identifier. */
+    nt->enum_name_legacy = nt->idname;
+  }
+
   if (nt->declare) {
     nt->static_declaration = new nodes::NodeDeclaration();
     nodes::build_node_declaration(*nt, *nt->static_declaration, nullptr, nullptr);
@@ -4298,7 +4303,7 @@ void node_type_base(bNodeType *ntype, const int type, const StringRefNull name, 
    * created in makesrna, which can not be associated to a bNodeType immediately,
    * since bNodeTypes are registered afterward ...
    */
-#define DefNode(Category, ID, DefFunc, EnumName, StructName, UIName, UIDesc) \
+#define DefNode(Category, ID, DefFunc, StructName, UIName, UIDesc) \
   case ID: { \
     STRNCPY(ntype->idname, #Category #StructName); \
     StructRNA *srna = RNA_struct_find(#Category #StructName); \
@@ -4306,7 +4311,6 @@ void node_type_base(bNodeType *ntype, const int type, const StringRefNull name, 
     ntype->rna_ext.srna = srna; \
     RNA_struct_blender_type_set(srna, ntype); \
     RNA_def_struct_ui_text(srna, UIName, UIDesc); \
-    ntype->enum_name_legacy = EnumName; \
     STRNCPY(ntype->ui_description, UIDesc); \
     break; \
   }
