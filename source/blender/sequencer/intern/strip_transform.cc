@@ -8,6 +8,7 @@
  * \ingroup bke
  */
 
+#include "BLI_math_matrix_types.hh"
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
 
@@ -16,6 +17,7 @@
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
+#include "BLI_rect.h"
 
 #include "SEQ_animation.hh"
 #include "SEQ_channels.hh"
@@ -640,6 +642,29 @@ void SEQ_image_transform_origin_offset_pixelspace_get(const Scene *scene,
   SEQ_image_transform_mirror_factor_get(seq, mirror);
   mul_v2_v2(r_origin, mirror);
   mul_v2_v2(r_origin, viewport_pixel_aspect);
+}
+
+void SEQ_image_transform_matrix_get(const Scene *scene,
+                                    const Sequence *seq,
+                                    float r_transform_matrix[4][4])
+{
+  float image_size[2] = {float(scene->r.xsch), float(scene->r.ysch)};
+  if (ELEM(seq->type, SEQ_TYPE_MOVIE, SEQ_TYPE_IMAGE)) {
+    image_size[0] = seq->strip->stripdata->orig_width;
+    image_size[1] = seq->strip->stripdata->orig_height;
+  }
+
+  StripTransform *transform = seq->strip->transform;
+  float rotation_matrix[3][3];
+  axis_angle_to_mat3_single(rotation_matrix, 'Z', transform->rotation);
+  loc_rot_size_to_mat4(r_transform_matrix,
+                       blender::float3{transform->xofs, transform->yofs, 0.0f},
+                       rotation_matrix,
+                       blender::float3{transform->scale_x, transform->scale_y, 1.0f});
+  const float origin[2] = {image_size[0] * transform->origin[0],
+                           image_size[1] * transform->origin[1]};
+  const float pivot[3] = {origin[0] - (image_size[0] / 2), origin[1] - (image_size[1] / 2), 0.0f};
+  transform_pivot_set_m4(r_transform_matrix, pivot);
 }
 
 static void seq_image_transform_quad_get_ex(const Scene *scene,

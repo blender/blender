@@ -80,6 +80,19 @@ void sequencer_operatortypes()
   WM_operatortype_append(SEQUENCER_OT_retiming_segment_speed_set);
   WM_operatortype_append(SEQUENCER_OT_retiming_key_delete);
 
+  /* `sequencer_text_edit.cc` */
+  WM_operatortype_append(SEQUENCER_OT_text_cursor_move);
+  WM_operatortype_append(SEQUENCER_OT_text_insert);
+  WM_operatortype_append(SEQUENCER_OT_text_delete);
+  WM_operatortype_append(SEQUENCER_OT_text_line_break);
+  WM_operatortype_append(SEQUENCER_OT_text_select_all);
+  WM_operatortype_append(SEQUENCER_OT_text_deselect_all);
+  WM_operatortype_append(SEQUENCER_OT_text_edit_mode_toggle);
+  WM_operatortype_append(SEQUENCER_OT_text_cursor_set);
+  WM_operatortype_append(SEQUENCER_OT_text_edit_copy);
+  WM_operatortype_append(SEQUENCER_OT_text_edit_paste);
+  WM_operatortype_append(SEQUENCER_OT_text_edit_cut);
+
   /* `sequencer_select.cc` */
   WM_operatortype_append(SEQUENCER_OT_select_all);
   WM_operatortype_append(SEQUENCER_OT_select);

@@ -1040,6 +1040,12 @@ static bool versioning_convert_strip_speed_factor(Sequence *seq, void *user_data
   return true;
 }
 
+static bool versioning_clear_strip_unused_flag(Sequence *seq, void * /*user_data*/)
+{
+  seq->flag &= ~(1 << 6);
+  return true;
+}
+
 static bool all_scenes_use(Main *bmain, const blender::Span<const char *> engines)
 {
   if (!bmain->scenes.first) {
@@ -5301,6 +5307,15 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 14)) {
     LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
       version_group_input_socket_data_block_reference(*ntree);
+    }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 15)) {
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      Editing *ed = SEQ_editing_get(scene);
+      if (ed != nullptr) {
+        SEQ_for_each_callback(&ed->seqbase, versioning_clear_strip_unused_flag, scene);
+      }
     }
   }
 

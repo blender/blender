@@ -871,6 +871,7 @@ static bool seq_read_data_cb(Sequence *seq, void *user_data)
   if (seq->type == SEQ_TYPE_TEXT) {
     TextVars *t = static_cast<TextVars *>(seq->effectdata);
     t->text_blf_id = SEQ_FONT_NOT_LOADED;
+    t->runtime = nullptr;
   }
 
   BLO_read_struct(reader, IDProperty, &seq->prop);

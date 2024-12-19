@@ -32,12 +32,15 @@ struct bSound;
 namespace blender::seq {
 struct MediaPresence;
 struct ThumbnailCache;
+struct TextVarsRuntime;
 }  // namespace blender::seq
 using MediaPresence = blender::seq::MediaPresence;
 using ThumbnailCache = blender::seq::ThumbnailCache;
+using TextVarsRuntime = blender::seq::TextVarsRuntime;
 #else
 typedef struct MediaPresence MediaPresence;
 typedef struct ThumbnailCache ThumbnailCache;
+typedef struct TextVarsRuntime TextVarsRuntime;
 #endif
 
 /* -------------------------------------------------------------------- */
@@ -453,9 +456,17 @@ typedef struct TextVars {
   float outline_width;
   char flag;
   char align;
+  char _pad[2];
+
+  /* Ofssets in bytes relative to #TextVars::text. */
+  int cursor_offset;
+  int selection_start_offset;
+  int selection_end_offset;
+
   char align_y DNA_DEPRECATED /* Only used for versioning. */;
   char anchor_x, anchor_y;
-  char _pad[7];
+  char _pad1;
+  TextVarsRuntime *runtime;
 } TextVars;
 
 /** #TextVars.flag */
@@ -627,7 +638,7 @@ enum {
   SEQ_OVERLAP = (1 << 3),
   SEQ_FILTERY = (1 << 4),
   SEQ_MUTE = (1 << 5),
-  /* SEQ_FLAG_SKIP_THUMBNAILS = (1 << 6), */ /* no longer used */
+  SEQ_FLAG_TEXT_EDITING_ACTIVE = (1 << 6),
   SEQ_REVERSE_FRAMES = (1 << 7),
   SEQ_IPO_FRAME_LOCKED = (1 << 8),
   SEQ_EFFECT_NOT_LOADED = (1 << 9),
