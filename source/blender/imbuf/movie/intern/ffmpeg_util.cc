@@ -493,7 +493,7 @@ void IMB_ffmpeg_image_type_verify(RenderData *rd, const ImageFormatData *imf)
 
 bool IMB_ffmpeg_alpha_channel_is_supported(int av_codec_id)
 {
-#if WITH_FFMPEG
+#ifdef WITH_FFMPEG
   return ELEM(av_codec_id,
               AV_CODEC_ID_FFV1,
               AV_CODEC_ID_QTRLE,
@@ -508,7 +508,7 @@ bool IMB_ffmpeg_alpha_channel_is_supported(int av_codec_id)
 
 bool IMB_ffmpeg_codec_supports_crf(int av_codec_id)
 {
-#if WITH_FFMPEG
+#ifdef WITH_FFMPEG
   return ELEM(av_codec_id,
               AV_CODEC_ID_H264,
               AV_CODEC_ID_H265,
