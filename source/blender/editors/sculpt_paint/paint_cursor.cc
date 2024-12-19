@@ -36,6 +36,7 @@
 #include "NOD_texture.h"
 
 #include "WM_api.hh"
+#include "WM_toolsystem.hh"
 #include "wm_cursors.hh"
 
 #include "IMB_colormanagement.hh"
@@ -574,6 +575,10 @@ static bool paint_draw_tex_overlay(UnifiedPaintSettings *ups,
       !((mtex->brush_map_mode == MTEX_MAP_MODE_STENCIL) ||
         (valid && ELEM(mtex->brush_map_mode, MTEX_MAP_MODE_VIEW, MTEX_MAP_MODE_TILED))))
   {
+    return false;
+  }
+
+  if (!WM_toolsystem_active_tool_is_brush(vc->C)) {
     return false;
   }
 
