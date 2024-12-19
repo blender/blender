@@ -73,9 +73,9 @@ void ParticleSystemManager::device_update_particles(Device *,
       kparticles[i].lifetime = pa.lifetime;
       kparticles[i].size = pa.size;
       kparticles[i].rotation = pa.rotation;
-      kparticles[i].location = float3_to_float4(pa.location);
-      kparticles[i].velocity = float3_to_float4(pa.velocity);
-      kparticles[i].angular_velocity = float3_to_float4(pa.angular_velocity);
+      kparticles[i].location = make_float4(pa.location);
+      kparticles[i].velocity = make_float4(pa.velocity);
+      kparticles[i].angular_velocity = make_float4(pa.angular_velocity);
 
       i++;
 

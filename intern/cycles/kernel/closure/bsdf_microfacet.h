@@ -677,11 +677,11 @@ ccl_device int bsdf_microfacet_sample(KernelGlobals kg,
      * space before and after sampling. */
     local_I = make_float3(dot(X, wi), dot(Y, wi), cos_NI);
     if (m_type == MicrofacetType::GGX) {
-      local_H = microfacet_ggx_sample_vndf(local_I, alpha_x, alpha_y, float3_to_float2(rand));
+      local_H = microfacet_ggx_sample_vndf(local_I, alpha_x, alpha_y, make_float2(rand));
     }
     else {
       /* m_type == MicrofacetType::BECKMANN */
-      local_H = microfacet_beckmann_sample_vndf(local_I, alpha_x, alpha_y, float3_to_float2(rand));
+      local_H = microfacet_beckmann_sample_vndf(local_I, alpha_x, alpha_y, make_float2(rand));
     }
 
     H = to_global(local_H, X, Y, N);

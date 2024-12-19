@@ -75,6 +75,21 @@ ccl_device_inline float3 make_float3(float f)
 #endif
 }
 
+ccl_device_inline float3 make_float3(float4 a)
+{
+  return make_float3(a.x, a.y, a.z);
+}
+
+ccl_device_inline float3 make_float3(float2 a)
+{
+  return make_float3(a.x, a.y, 0.0f);
+}
+
+ccl_device_inline float3 make_float3(float2 a, float b)
+{
+  return make_float3(a.x, a.y, b);
+}
+
 ccl_device_inline void print_float3(ccl_private const char *label, const float3 a)
 {
 #ifdef __KERNEL_PRINTF__

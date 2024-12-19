@@ -141,10 +141,10 @@ ccl_device_forceinline float curve_ribbon_v(
   const float r_curve = P_curve4.w;
 
   float3 P = ray_P + ray_D * t;
-  const float3 P_curve = float4_to_float3(P_curve4);
+  const float3 P_curve = make_float3(P_curve4);
 
   const float4 dPdu4 = metal::catmull_rom_derivative(u, curve[0], curve[1], curve[2], curve[3]);
-  const float3 dPdu = float4_to_float3(dPdu4);
+  const float3 dPdu = make_float3(dPdu4);
 
   const float3 tangent = normalize(dPdu);
   const float3 bitangent = normalize(cross(tangent, -ray_D));

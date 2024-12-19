@@ -502,7 +502,7 @@ ccl_device int surface_shader_bsdf_guided_sample_closure_mis(KernelGlobals kg,
 
   if (sample_guiding) {
     /* Sample guiding distribution. */
-    guide_pdf = guiding_bsdf_sample(kg, state, float3_to_float2(rand_bsdf), wo);
+    guide_pdf = guiding_bsdf_sample(kg, state, make_float2(rand_bsdf), wo);
     *bsdf_pdf = 0.0f;
 
     if (guide_pdf != 0.0f) {
@@ -678,7 +678,7 @@ ccl_device int surface_shader_bsdf_guided_sample_closure_ris(KernelGlobals kg,
     float unguided_bsdf_pdfs[MAX_CLOSURE];
     bsdf_eval_init(&ris_samples[1].bsdf_eval, eval);
     ris_samples[1].guide_pdf = guiding_bsdf_sample(
-        kg, state, float3_to_float2(ris_samples[1].rand), &ris_samples[1].wo);
+        kg, state, make_float2(ris_samples[1].rand), &ris_samples[1].wo);
     ris_samples[1].guide_pdf *= (1.0f - bssrdf_sampling_prob);
     ris_samples[1].incoming_radiance_pdf = guiding_surface_incoming_radiance_pdf(
         kg, state, ris_samples[1].wo);

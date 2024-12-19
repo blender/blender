@@ -75,9 +75,9 @@ ccl_device_forceinline Transform transform_inverse_impl(const Transform tfm)
 
   /* Compute translation and fill transform. */
   Transform itfm;
-  itfm.x = float3_to_float4(inverse_x, -transform_inverse_dot(inverse_x, w));
-  itfm.y = float3_to_float4(inverse_y, -transform_inverse_dot(inverse_y, w));
-  itfm.z = float3_to_float4(inverse_z, -transform_inverse_dot(inverse_z, w));
+  itfm.x = make_float4(inverse_x, -transform_inverse_dot(inverse_x, w));
+  itfm.y = make_float4(inverse_y, -transform_inverse_dot(inverse_y, w));
+  itfm.z = make_float4(inverse_z, -transform_inverse_dot(inverse_z, w));
 
   return itfm;
 }

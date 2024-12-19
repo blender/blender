@@ -245,7 +245,7 @@ ccl_device float3 curve_motion_center_location(KernelGlobals kg, ccl_private con
   P_curve[0] = kernel_data_fetch(curve_keys, k0);
   P_curve[1] = kernel_data_fetch(curve_keys, k1);
 
-  return float4_to_float3(P_curve[1]) * sd->u + float4_to_float3(P_curve[0]) * (1.0f - sd->u);
+  return make_float3(P_curve[1]) * sd->u + make_float3(P_curve[0]) * (1.0f - sd->u);
 }
 
 /* Curve tangent normal */

@@ -23,8 +23,8 @@ ccl_device_inline void distant_light_uv(const ccl_global KernelLight *klight,
 
   /* Get u axis and v axis. */
   const Transform itfm = klight->itfm;
-  const float u_ = dot(D, float4_to_float3(itfm.x)) * fac;
-  const float v_ = dot(D, float4_to_float3(itfm.y)) * fac;
+  const float u_ = dot(D, make_float3(itfm.x)) * fac;
+  const float v_ = dot(D, make_float3(itfm.y)) * fac;
 
   /* NOTE: Return barycentric coordinates in the same notation as Embree and OptiX. */
   *u = v_ + 0.5f;

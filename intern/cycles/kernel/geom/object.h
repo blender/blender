@@ -455,17 +455,17 @@ ccl_device float4 particle_rotation(KernelGlobals kg, int particle)
 
 ccl_device float3 particle_location(KernelGlobals kg, int particle)
 {
-  return float4_to_float3(kernel_data_fetch(particles, particle).location);
+  return make_float3(kernel_data_fetch(particles, particle).location);
 }
 
 ccl_device float3 particle_velocity(KernelGlobals kg, int particle)
 {
-  return float4_to_float3(kernel_data_fetch(particles, particle).velocity);
+  return make_float3(kernel_data_fetch(particles, particle).velocity);
 }
 
 ccl_device float3 particle_angular_velocity(KernelGlobals kg, int particle)
 {
-  return float4_to_float3(kernel_data_fetch(particles, particle).angular_velocity);
+  return make_float3(kernel_data_fetch(particles, particle).angular_velocity);
 }
 
 /* Object intersection in BVH */

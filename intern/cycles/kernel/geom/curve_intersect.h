@@ -185,12 +185,12 @@ ccl_device bool curve_intersect_iterative(const float3 ray_D,
     const float4 P4 = catmull_rom_basis_eval(curve, u);
     const float4 dPdu4 = catmull_rom_basis_derivative(curve, u);
 
-    const float3 P = float4_to_float3(P4);
-    const float3 dPdu = float4_to_float3(dPdu4);
+    const float3 P = make_float3(P4);
+    const float3 dPdu = make_float3(dPdu4);
     const float radius = P4.w;
     const float dradiusdu = dPdu4.w;
 
-    const float3 ddPdu = float4_to_float3(catmull_rom_basis_derivative2(curve, u));
+    const float3 ddPdu = make_float3(catmull_rom_basis_derivative2(curve, u));
 
     const float3 R = Q - P;
     const float len_R = len(R);
@@ -259,7 +259,7 @@ ccl_device bool curve_intersect_recursive(const float3 ray_P,
                                           ccl_private Intersection *isect)
 {
   /* Move ray closer to make intersection stable. */
-  const float3 center = float4_to_float3(0.25f * (curve[0] + curve[1] + curve[2] + curve[3]));
+  const float3 center = make_float3(0.25f * (curve[0] + curve[1] + curve[2] + curve[3]));
   const float dt = dot(center - ray_P, ray_D) / dot(ray_D, ray_D);
   const float3 ref = ray_P + ray_D * dt;
   const float4 ref4 = make_float4(ref, 0.0f);
@@ -304,10 +304,8 @@ ccl_device bool curve_intersect_recursive(const float3 ray_P,
       const float4 P2 = P3 - dP3du;
 
       /* Calculate bounding cylinders. */
-      const float rr1 = sqr_point_to_line_distance(float4_to_float3(dP0du),
-                                                   float4_to_float3(P3 - P0));
-      const float rr2 = sqr_point_to_line_distance(float4_to_float3(dP3du),
-                                                   float4_to_float3(P3 - P0));
+      const float rr1 = sqr_point_to_line_distance(make_float3(dP0du), make_float3(P3 - P0));
+      const float rr2 = sqr_point_to_line_distance(make_float3(dP3du), make_float3(P3 - P0));
       const float maxr12 = sqrtf(max(rr1, rr2));
       const float one_plus_ulp = 1.0f + 2.0f * FLT_EPSILON;
       const float one_minus_ulp = 1.0f - 2.0f * FLT_EPSILON;
@@ -321,8 +319,8 @@ ccl_device bool curve_intersect_recursive(const float3 ray_P,
       float2 tc_outer;
       float u_outer0, u_outer1;
       float3 Ng_outer0, Ng_outer1;
-      valid = cylinder_intersect(float4_to_float3(P0),
-                                 float4_to_float3(P3),
+      valid = cylinder_intersect(make_float3(P0),
+                                 make_float3(P3),
                                  r_outer,
                                  ray_D,
                                  &tc_outer,
@@ -337,10 +335,9 @@ ccl_device bool curve_intersect_recursive(const float3 ray_P,
       /* Intersect with cap-planes. */
       float2 tp = make_float2(ray_tmin - dt, ray_tmax - dt);
       tp = make_float2(max(tp.x, tc_outer.x), min(tp.y, tc_outer.y));
-      const float2 h0 = half_plane_intersect(float4_to_float3(P0), float4_to_float3(dP0du), ray_D);
+      const float2 h0 = half_plane_intersect(make_float3(P0), make_float3(dP0du), ray_D);
       tp = make_float2(max(tp.x, h0.x), min(tp.y, h0.y));
-      const float2 h1 = half_plane_intersect(
-          float4_to_float3(P3), -float4_to_float3(dP3du), ray_D);
+      const float2 h1 = half_plane_intersect(make_float3(P3), -make_float3(dP3du), ray_D);
       tp = make_float2(max(tp.x, h1.x), min(tp.y, h1.y));
       valid = tp.x <= tp.y;
       if (!valid) {
@@ -357,8 +354,8 @@ ccl_device bool curve_intersect_recursive(const float3 ray_P,
       float2 tc_inner;
       float u_inner0, u_inner1;
       float3 Ng_inner0, Ng_inner1;
-      const bool valid_inner = cylinder_intersect(float4_to_float3(P0),
-                                                  float4_to_float3(P3),
+      const bool valid_inner = cylinder_intersect(make_float3(P0),
+                                                  make_float3(P3),
                                                   r_inner,
                                                   ray_D,
                                                   &tc_inner,
@@ -540,7 +537,7 @@ ccl_device_inline float4 ribbon_to_ray_space(const float3 ray_space[3],
                                              const float3 ray_org,
                                              const float4 P4)
 {
-  float3 P = float4_to_float3(P4) - ray_org;
+  float3 P = make_float3(P4) - ray_org;
   return make_float4(dot(ray_space[0], P), dot(ray_space[1], P), dot(ray_space[2], P), P4.w);
 }
 
@@ -568,10 +565,10 @@ ccl_device_inline bool ribbon_intersect(const float3 ray_org,
 
   /* Evaluate first point and radius scaled normal direction. */
   float4 p0 = catmull_rom_basis_eval(curve, 0.0f);
-  float3 dp0dt = float4_to_float3(catmull_rom_basis_derivative(curve, 0.0f));
+  float3 dp0dt = make_float3(catmull_rom_basis_derivative(curve, 0.0f));
   if (reduce_max(fabs(dp0dt)) < eps) {
     const float4 p1 = catmull_rom_basis_eval(curve, step_size);
-    dp0dt = float4_to_float3(p1 - p0);
+    dp0dt = make_float3(p1 - p0);
   }
   float3 wn0 = normalize(make_float3(dp0dt.y, -dp0dt.x, 0.0f)) * p0.w;
 
@@ -583,16 +580,16 @@ ccl_device_inline bool ribbon_intersect(const float3 ray_org,
         make_float2(p0.x, p0.y), make_float2(p1.x, p1.y), max(p0.w, p1.w));
 
     /* Evaluate next point. */
-    float3 dp1dt = float4_to_float3(catmull_rom_basis_derivative(curve, u + step_size));
-    dp1dt = (reduce_max(fabs(dp1dt)) < eps) ? float4_to_float3(p1 - p0) : dp1dt;
+    float3 dp1dt = make_float3(catmull_rom_basis_derivative(curve, u + step_size));
+    dp1dt = (reduce_max(fabs(dp1dt)) < eps) ? make_float3(p1 - p0) : dp1dt;
     const float3 wn1 = normalize(make_float3(dp1dt.y, -dp1dt.x, 0.0f)) * p1.w;
 
     if (valid) {
       /* Construct quad coordinates. */
-      const float3 lp0 = float4_to_float3(p0) + wn0;
-      const float3 lp1 = float4_to_float3(p1) + wn1;
-      const float3 up0 = float4_to_float3(p0) - wn0;
-      const float3 up1 = float4_to_float3(p1) - wn1;
+      const float3 lp0 = make_float3(p0) + wn0;
+      const float3 lp1 = make_float3(p1) + wn1;
+      const float3 up0 = make_float3(p0) - wn0;
+      const float3 up1 = make_float3(p1) - wn1;
 
       /* Intersect quad. */
       float vu, vv, vt;
@@ -718,7 +715,7 @@ ccl_device_inline void curve_shader_setup(KernelGlobals kg,
   P = P + D * t;
 
   const float4 dPdu4 = catmull_rom_basis_derivative(P_curve, sd->u);
-  const float3 dPdu = float4_to_float3(dPdu4);
+  const float3 dPdu = make_float3(dPdu4);
 
   if (sd->type & PRIMITIVE_CURVE_RIBBON) {
     /* Rounded smooth normals for ribbons, to approximate thick curve shape. */
@@ -742,7 +739,7 @@ ccl_device_inline void curve_shader_setup(KernelGlobals kg,
      * however for Optix this would go beyond the size of the payload. */
     /* NOTE: It is possible that P will be the same as P_inside (precision issues, or very small
      * radius). In this case use the view direction to approximate the normal. */
-    const float3 P_inside = float4_to_float3(catmull_rom_basis_eval(P_curve, sd->u));
+    const float3 P_inside = make_float3(catmull_rom_basis_eval(P_curve, sd->u));
     const float3 N = (!isequal(P, P_inside)) ? normalize(P - P_inside) : -sd->wi;
 
     sd->N = N;

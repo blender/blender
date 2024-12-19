@@ -17,7 +17,7 @@ ccl_device_forceinline bool point_intersect_test(const float4 point,
                                                  const float ray_tmax,
                                                  ccl_private float *t)
 {
-  const float3 center = float4_to_float3(point);
+  const float3 center = make_float3(point);
   const float radius = point.w;
 
   const float rd2 = 1.0f / dot(ray_D, ray_D);
@@ -98,9 +98,9 @@ ccl_device_inline void point_shader_setup(KernelGlobals kg,
 #  endif
 
   /* Compute point center for normal. */
-  float3 center = float4_to_float3((isect->type & PRIMITIVE_MOTION) ?
-                                       motion_point(kg, sd->object, sd->prim, sd->time) :
-                                       kernel_data_fetch(points, sd->prim));
+  float3 center = make_float3((isect->type & PRIMITIVE_MOTION) ?
+                                  motion_point(kg, sd->object, sd->prim, sd->time) :
+                                  kernel_data_fetch(points, sd->prim));
   if (!(sd->object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
     object_position_transform_auto(kg, sd, &center);
   }

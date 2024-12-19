@@ -163,8 +163,8 @@ void TextureMapping::compile(SVMCompiler &compiler, int offset_in, int offset_ou
 
   if (use_minmax) {
     compiler.add_node(NODE_MIN_MAX, offset_out, offset_out);
-    compiler.add_node(float3_to_float4(min));
-    compiler.add_node(float3_to_float4(max));
+    compiler.add_node(make_float4(min));
+    compiler.add_node(make_float4(max));
   }
 
   if (type == NORMAL) {
@@ -7090,7 +7090,7 @@ void CurvesNode::compile(SVMCompiler &compiler,
 
   compiler.add_node(curves.size());
   for (int i = 0; i < curves.size(); i++) {
-    compiler.add_node(float3_to_float4(curves[i]));
+    compiler.add_node(make_float4(curves[i]));
   }
 }
 

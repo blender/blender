@@ -165,9 +165,9 @@ ccl_device_inline Transform make_transform(const float3 x, const float3 y, const
 {
   Transform t;
 
-  t.x = float3_to_float4(x, 0.0f);
-  t.y = float3_to_float4(y, 0.0f);
-  t.z = float3_to_float4(z, 0.0f);
+  t.x = make_float4(x, 0.0f);
+  t.y = make_float4(y, 0.0f);
+  t.z = make_float4(z, 0.0f);
 
   return t;
 }
@@ -343,9 +343,9 @@ ccl_device_inline bool transform_uniform_scale(const Transform &tfm, float &scal
    * surface area and bump, where we expect it to not be so sensitive */
   float eps = 1e-6f;
 
-  float sx = len_squared(float4_to_float3(tfm.x));
-  float sy = len_squared(float4_to_float3(tfm.y));
-  float sz = len_squared(float4_to_float3(tfm.z));
+  float sx = len_squared(make_float3(tfm.x));
+  float sy = len_squared(make_float3(tfm.y));
+  float sz = len_squared(make_float3(tfm.z));
   float stx = len_squared(transform_get_column(&tfm, 0));
   float sty = len_squared(transform_get_column(&tfm, 1));
   float stz = len_squared(transform_get_column(&tfm, 2));

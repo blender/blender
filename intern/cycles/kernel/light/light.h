@@ -189,7 +189,7 @@ ccl_device_noinline bool light_sample(KernelGlobals kg,
 {
   /* The first two dimensions of the Sobol sequence have better stratification, use them to sample
    * position on the light. */
-  const float2 rand = float3_to_float2(rand_light);
+  const float2 rand = make_float2(rand_light);
 
   int prim;
   MeshLight mesh_light;

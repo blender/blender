@@ -233,7 +233,7 @@ static void set_default_value(ShaderInput *input,
       break;
     }
     case SocketType::COLOR: {
-      node->set(socket, float4_to_float3(get_float4(b_sock.ptr, "default_value")));
+      node->set(socket, make_float3(get_float4(b_sock.ptr, "default_value")));
       break;
     }
     case SocketType::NORMAL:
@@ -1504,7 +1504,7 @@ void BlenderSync::resolve_view_layer_attributes(Shader *shader,
           }
           else {
             val_float = val_avg;
-            val_float3 = float4_to_float3(value);
+            val_float3 = make_float3(value);
           }
 
           foreach (ShaderInput *sock, output->links) {

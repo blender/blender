@@ -306,9 +306,9 @@ ccl_device_forceinline float4 primitive_motion_vector(KernelGlobals kg,
 
 #if defined(__HAIR__) || defined(__POINTCLOUD__)
     if (is_curve_or_point) {
-      motion_pre = float4_to_float3(primitive_surface_attribute_float4(kg, sd, desc, NULL, NULL));
+      motion_pre = make_float3(primitive_surface_attribute_float4(kg, sd, desc, NULL, NULL));
       desc.offset += numverts;
-      motion_post = float4_to_float3(primitive_surface_attribute_float4(kg, sd, desc, NULL, NULL));
+      motion_post = make_float3(primitive_surface_attribute_float4(kg, sd, desc, NULL, NULL));
 
       /* Curve */
       if ((sd->object_flag & SD_OBJECT_HAS_VERTEX_MOTION) == 0) {
@@ -361,19 +361,19 @@ ccl_device_forceinline float4 primitive_motion_vector(KernelGlobals kg,
   else {
     tfm = kernel_data.cam.worldtocamera;
     motion_center = normalize(transform_point(&tfm, center));
-    motion_center = float2_to_float3(direction_to_panorama(&kernel_data.cam, motion_center));
+    motion_center = make_float3(direction_to_panorama(&kernel_data.cam, motion_center));
     motion_center.x *= kernel_data.cam.width;
     motion_center.y *= kernel_data.cam.height;
 
     tfm = kernel_data.cam.motion_pass_pre;
     motion_pre = normalize(transform_point(&tfm, motion_pre));
-    motion_pre = float2_to_float3(direction_to_panorama(&kernel_data.cam, motion_pre));
+    motion_pre = make_float3(direction_to_panorama(&kernel_data.cam, motion_pre));
     motion_pre.x *= kernel_data.cam.width;
     motion_pre.y *= kernel_data.cam.height;
 
     tfm = kernel_data.cam.motion_pass_post;
     motion_post = normalize(transform_point(&tfm, motion_post));
-    motion_post = float2_to_float3(direction_to_panorama(&kernel_data.cam, motion_post));
+    motion_post = make_float3(direction_to_panorama(&kernel_data.cam, motion_post));
     motion_post.x *= kernel_data.cam.width;
     motion_post.y *= kernel_data.cam.height;
   }
