@@ -179,7 +179,7 @@ static void SCULPT_OT_optimize(wmOperatorType *ot)
   ot->exec = optimize_exec;
   ot->poll = SCULPT_mode_poll;
 
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = OPTYPE_REGISTER;
 }
 
 /** \} */
