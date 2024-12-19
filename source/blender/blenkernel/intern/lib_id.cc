@@ -872,10 +872,11 @@ void BKE_id_move_to_same_lib(Main &bmain, ID &id, const ID &owner_id)
     return;
   }
 
+  BKE_main_namemap_remove_name(&bmain, &id, BKE_id_name(id));
+
   id.lib = owner_id.lib;
   id.tag |= ID_TAG_INDIRECT;
 
-  BKE_main_namemap_remove_name(&bmain, &id, BKE_id_name(id));
   ListBase &lb = *which_libbase(&bmain, GS(id.name));
   BKE_id_new_name_validate(
       bmain, lb, id, BKE_id_name(id), IDNewNameMode::RenameExistingNever, true);
