@@ -893,7 +893,7 @@ else()
 
 endif()
 
-if(WITH_COMPOSITOR_REALTIME_TESTS)
+if(WITH_GPU_COMPOSITOR_TESTS)
   if(NOT OPENIMAGEIO_TOOL)
     message(WARNING "Disabling compositor tests because OIIO oiiotool does not exist")
   else()
