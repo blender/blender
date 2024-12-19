@@ -327,6 +327,11 @@ static Vector<NodeLinkItem> ui_node_link_items(NodeLinkArg *arg,
 
   if (arg->node_type->type == NODE_GROUP) {
     LISTBASE_FOREACH (bNodeTree *, ngroup, &arg->bmain->nodetrees) {
+      if (BKE_id_name(ngroup->id)[0] == '.') {
+        /* Don't display hidden node groups, just like the add menu. */
+        continue;
+      }
+
       const char *disabled_hint;
       if ((ngroup->type != arg->ntree->type) ||
           !bke::node_group_poll(arg->ntree, ngroup, &disabled_hint))
