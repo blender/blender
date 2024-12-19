@@ -275,9 +275,11 @@ void CachedImage::populate_meta_data(const Image *image, const ImageUser &image_
     return;
   }
 
-  /* We assume the given pass is a Cryptomatte pass and retrieve its layer name. If it wasn't a
+  /* We assume the given pass is a Cryptomatte pass and retrieve its full name. If it wasn't a
    * Cryptomatte pass, the checks below will fail anyways. */
-  const std::string combined_pass_name = std::string(render_layer->name) + "." + render_pass->name;
+  const bool is_named_layer = render_layer->name[0] != '\0';
+  const std::string layer_prefix = is_named_layer ? std::string(render_layer->name) + "." : "";
+  const std::string combined_pass_name = layer_prefix + render_pass->name;
   StringRef cryptomatte_layer_name = bke::cryptomatte::BKE_cryptomatte_extract_layer_name(
       combined_pass_name);
 
