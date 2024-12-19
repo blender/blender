@@ -333,15 +333,6 @@ static Vector<NodeLinkItem> ui_node_link_items(NodeLinkArg *arg,
       {
         continue;
       }
-    }
-
-    LISTBASE_FOREACH (bNodeTree *, ngroup, &arg->bmain->nodetrees) {
-      const char *disabled_hint;
-      if ((ngroup->type != arg->ntree->type) ||
-          !bke::node_group_poll(arg->ntree, ngroup, &disabled_hint))
-      {
-        continue;
-      }
 
       ngroup->ensure_interface_cache();
       Span<bNodeTreeInterfaceSocket *> iosockets = (in_out == SOCK_IN ?
