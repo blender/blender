@@ -884,8 +884,8 @@ else()
 
   foreach(comp_test ${compositor_tests})
     add_render_test(
-      compositor_${comp_test}_cpu
-      ${CMAKE_CURRENT_LIST_DIR}/compositor_cpu_render_tests.py
+      compositor_cpu_${comp_test}
+      ${CMAKE_CURRENT_LIST_DIR}/compositor_render_tests.py
       --testdir "${TEST_SRC_DIR}/compositor/${comp_test}"
       --outdir "${TEST_OUT_DIR}/compositor_cpu"
     )
@@ -914,10 +914,11 @@ if(WITH_COMPOSITOR_REALTIME_TESTS)
 
     foreach(comp_test ${compositor_tests})
       add_render_test(
-        compositor_${comp_test}_realtime
-        ${CMAKE_CURRENT_LIST_DIR}/compositor_realtime_render_tests.py
+        compositor_gpu_${comp_test}
+        ${CMAKE_CURRENT_LIST_DIR}/compositor_render_tests.py
         --testdir "${TEST_SRC_DIR}/compositor/${comp_test}"
-        --outdir "${TEST_OUT_DIR}/compositor_realtime"
+        --outdir "${TEST_OUT_DIR}/compositor_gpu"
+        --gpu
       )
     endforeach()
   endif()
