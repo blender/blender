@@ -48,7 +48,6 @@
 #include "ANIM_fcurve.hh"
 #include "ANIM_nla.hh"
 
-#include "action_internal.hh"
 #include "action_runtime.hh"
 
 #include "atomic_ops.h"
