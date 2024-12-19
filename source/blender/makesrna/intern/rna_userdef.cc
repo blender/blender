@@ -342,11 +342,8 @@ static void rna_userdef_language_update(Main *bmain, Scene * /*scene*/, PointerR
 {
   BLT_lang_set(nullptr);
 
-  const char *uilng = BLT_lang_get();
-  if (STREQ(uilng, "en_US")) {
-    U.transopts &= ~(USER_TR_IFACE | USER_TR_TOOLTIPS | USER_TR_REPORTS | USER_TR_NEWDATANAME);
-  }
-  else {
+  if (!blender::bke::preferences::exists()) {
+    /* If changing language without current userprefs, enable all usage options. */
     U.transopts |= (USER_TR_IFACE | USER_TR_TOOLTIPS | USER_TR_REPORTS | USER_TR_NEWDATANAME);
   }
 
