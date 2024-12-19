@@ -339,6 +339,8 @@ bool IMB_isanim(const char *filepath)
   if (isffmpeg(filepath)) {
     return true;
   }
+#else
+  UNUSED_VARS(filepath);
 #endif
 
   return false;
