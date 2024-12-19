@@ -70,7 +70,7 @@ def main():
         report.set_fail_threshold(0.06)
         report.set_fail_percent(2)
 
-    arguments_callback = lambda filepath, output_filepath: get_arguments(filepath, output_filepath, execution_device)
+    def arguments_callback(filepath, output_filepath): return get_arguments(filepath, output_filepath, execution_device)
     ok = report.run(args.testdir, args.blender, arguments_callback, batch=args.batch)
 
     sys.exit(not ok)
