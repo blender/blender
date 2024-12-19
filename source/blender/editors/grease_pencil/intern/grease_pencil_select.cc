@@ -948,9 +948,11 @@ static int grease_pencil_material_select_exec(bContext *C, wmOperator *op)
 {
   const Scene *scene = CTX_data_scene(C);
   Object *object = CTX_data_active_object(C);
+  ToolSettings *ts = CTX_data_tool_settings(C);
   GreasePencil &grease_pencil = *static_cast<GreasePencil *>(object->data);
   const bool select = !RNA_boolean_get(op->ptr, "deselect");
   const int material_index = object->actcol - 1;
+  const bke::AttrDomain domain = ED_grease_pencil_selection_domain_get(ts, object);
 
   if (material_index == -1) {
     return OPERATOR_CANCELLED;
@@ -967,8 +969,24 @@ static int grease_pencil_material_select_exec(bContext *C, wmOperator *op)
       return;
     }
     bke::GSpanAttributeWriter selection = ed::curves::ensure_selection_attribute(
-        curves, bke::AttrDomain::Curve, CD_PROP_BOOL);
-    index_mask::masked_fill(selection.span.typed<bool>(), select, strokes);
+        curves, domain, CD_PROP_BOOL);
+
+    switch (domain) {
+      case bke::AttrDomain::Curve: {
+        index_mask::masked_fill(selection.span.typed<bool>(), select, strokes);
+        break;
+      }
+      case bke::AttrDomain::Point: {
+        const OffsetIndices<int> points_by_curve = curves.points_by_curve();
+        strokes.foreach_index([&](const int curve_index) {
+          const IndexRange points = points_by_curve[curve_index];
+          ed::curves::fill_selection(selection.span.slice(points), select);
+        });
+        break;
+      }
+      default:
+        BLI_assert_unreachable();
+    }
     selection.finish();
   });
 
