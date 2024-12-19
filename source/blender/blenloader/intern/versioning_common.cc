@@ -33,6 +33,8 @@
 #include "BKE_node_tree_update.hh"
 #include "BKE_screen.hh"
 
+#include "ANIM_versioning.hh"
+
 #include "NOD_socket.hh"
 
 #include "BLT_translation.hh"
@@ -678,5 +680,10 @@ void do_versions_after_setup(Main *new_bmain,
   if (!blendfile_or_libraries_versions_atleast(new_bmain, 403, 3)) {
     /* Convert all the legacy grease pencil objects. This does not touch annotations. */
     blender::bke::greasepencil::convert::legacy_main(*new_bmain, lapp_context, *reports);
+  }
+
+  if (!blendfile_or_libraries_versions_atleast(new_bmain, 404, 2)) {
+    /* Version all the action assignments of just-versioned datablocks. */
+    blender::animrig::versioning::convert_legacy_action_assignments(*new_bmain, reports->reports);
   }
 }

@@ -545,8 +545,22 @@ short BLO_version_from_file(const char *filepath);
 struct ID_Readfile_Data {
   struct Tags {
     bool is_id_link_placeholder : 1;
+
+    /**
+     * Set when this ID used a legacy Action, in which case it also should pick
+     * an appropriate slot.
+     *
+     * \see ANIM_versioning.hh
+     */
+    bool action_assignment_needs_slot : 1;
   } tags;
 };
+
+/**
+ * Return `id->runtime.readfile_data->tags` if the `readfile_data` is allocated,
+ * otherwise return an all-zero set of tags.
+ */
+ID_Readfile_Data::Tags BLO_readfile_id_runtime_tags(ID &id);
 
 /**
  * Free the ID_Readfile_Data of all IDs in this bmain and all their embedded IDs.

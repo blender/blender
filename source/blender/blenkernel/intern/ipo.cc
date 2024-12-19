@@ -1792,7 +1792,6 @@ static void ipo_to_animato(ID *id,
 /**
  * Convert a pre-Animato Action to an Animato Action and drivers.
  *
- *
  * New curves may not be converted directly into the given Action (i.e. for Actions linked
  * to Objects, where ob->ipo and ob->action need to be combined).
  *
@@ -1878,8 +1877,13 @@ static void ensure_action_is_layered(
     convert_pre_animato_action_to_animato_action_in_place(id, act, groups, curves, drivers);
   }
 
+  /* If there is an animated ID, tag it so that its Action usage also will get converted. */
+  if (id) {
+    blender::animrig::versioning::tag_action_user_for_slotted_actions_conversion(*id);
+  }
+
   /* Convert to layered action. */
-  blender::animrig::versioning::convert_legacy_action(*act);
+  blender::animrig::versioning::convert_legacy_animato_action(*act);
 }
 
 /* ------------------------- */
@@ -1946,7 +1950,8 @@ static void ipo_to_animdata(
     BLI_movelisttolist(&adt->action->curves, &anim);
 
     /* Upgrade Animato action to a layered action. */
-    blender::animrig::versioning::convert_legacy_action(*adt->action);
+    blender::animrig::versioning::tag_action_user_for_slotted_actions_conversion(*id);
+    blender::animrig::versioning::convert_legacy_animato_action(*adt->action);
   }
 
   /* deal with drivers */
@@ -2128,7 +2133,7 @@ static bool seq_convert_callback(Strip *strip, void *userdata)
   /* convert IPO */
   ipo_to_animdata(cd->bmain, (ID *)cd->scene, strip->ipo, nullptr, nullptr, strip);
 
-  if (cd->adt->action) {
+  if (cd->adt->action && !blender::animrig::versioning::action_is_layered(*cd->adt->action)) {
     cd->adt->action->idroot = ID_SCE; /* scene-rooted */
   }
 
@@ -2142,11 +2147,52 @@ static bool seq_convert_callback(Strip *strip, void *userdata)
 
 void do_versions_ipos_to_layered_actions(Main *bmain)
 {
+  using blender::animrig::versioning::action_is_layered;
+
   ListBase drivers = {nullptr, nullptr};
   ID *id;
 
   if (bmain == nullptr) {
     CLOG_ERROR(&LOG, "Argh! Main is nullptr");
+    return;
+  }
+
+  /* Only convert if the bmain version is old enough.
+   *
+   * Note that the mixing of pre-2.50 and post-2.50 animation data is not supported, and so there
+   * is no need to check for the version of library blend files.
+   *
+   * See the check in #BKE_blendfile_link(), that actively warns users that their animation data
+   * will not be converted when linking to a pre-2.50 blend file.
+   *
+   * But even when the main file is newer, it could still link in pre-2.50 Actions, and those need
+   * to be converted in this function as well.
+   */
+  if (bmain->versionfile >= 250) {
+    bool shown_info = false;
+
+    LISTBASE_FOREACH (ID *, id, &bmain->actions) {
+      bAction *action = reinterpret_cast<bAction *>(id);
+
+      const bool is_pre_animato_action = !BLI_listbase_is_empty(&action->chanbase);
+      if (!is_pre_animato_action) {
+        continue;
+      }
+
+      if (G.debug & G_DEBUG) {
+        if (!shown_info) {
+          printf("INFO: Converting IPO Action to modern animation data types...\n");
+          shown_info = true;
+        }
+
+        printf("\tconverting action %s\n", id->name + 2);
+      }
+
+      /* This Action will be object-only. */
+      action->idroot = ID_OB;
+
+      ensure_action_is_layered(nullptr, action, &action->groups, &action->curves, &drivers);
+    }
     return;
   }
 
@@ -2276,7 +2322,7 @@ void do_versions_ipos_to_layered_actions(Main *bmain)
     /* object's action will always be object-rooted */
     {
       AnimData *adt = BKE_animdata_from_id(id);
-      if (adt && adt->action) {
+      if (adt && adt->action && !action_is_layered(*adt->action)) {
         adt->action->idroot = ID_OB;
       }
     }
@@ -2301,7 +2347,7 @@ void do_versions_ipos_to_layered_actions(Main *bmain)
       /* Convert Shape-key data... */
       ipo_to_animdata(bmain, id, key->ipo, nullptr, nullptr, nullptr);
 
-      if (adt->action) {
+      if (adt->action && !action_is_layered(*adt->action)) {
         adt->action->idroot = key->ipo->blocktype;
       }
 
@@ -2326,7 +2372,7 @@ void do_versions_ipos_to_layered_actions(Main *bmain)
       /* Convert Material data... */
       ipo_to_animdata(bmain, id, ma->ipo, nullptr, nullptr, nullptr);
 
-      if (adt->action) {
+      if (adt->action && !action_is_layered(*adt->action)) {
         adt->action->idroot = ma->ipo->blocktype;
       }
 
@@ -2351,7 +2397,7 @@ void do_versions_ipos_to_layered_actions(Main *bmain)
       /* Convert World data... */
       ipo_to_animdata(bmain, id, wo->ipo, nullptr, nullptr, nullptr);
 
-      if (adt->action) {
+      if (adt->action && !action_is_layered(*adt->action)) {
         adt->action->idroot = wo->ipo->blocktype;
       }
 
@@ -2386,7 +2432,7 @@ void do_versions_ipos_to_layered_actions(Main *bmain)
       /* Convert Texture data... */
       ipo_to_animdata(bmain, id, te->ipo, nullptr, nullptr, nullptr);
 
-      if (adt->action) {
+      if (adt->action && !action_is_layered(*adt->action)) {
         adt->action->idroot = te->ipo->blocktype;
       }
 
@@ -2411,7 +2457,7 @@ void do_versions_ipos_to_layered_actions(Main *bmain)
       /* Convert Camera data... */
       ipo_to_animdata(bmain, id, ca->ipo, nullptr, nullptr, nullptr);
 
-      if (adt->action) {
+      if (adt->action && !action_is_layered(*adt->action)) {
         adt->action->idroot = ca->ipo->blocktype;
       }
 
@@ -2436,7 +2482,7 @@ void do_versions_ipos_to_layered_actions(Main *bmain)
       /* Convert Light data... */
       ipo_to_animdata(bmain, id, la->ipo, nullptr, nullptr, nullptr);
 
-      if (adt->action) {
+      if (adt->action && !action_is_layered(*adt->action)) {
         adt->action->idroot = la->ipo->blocktype;
       }
 
@@ -2461,7 +2507,7 @@ void do_versions_ipos_to_layered_actions(Main *bmain)
       /* Convert Curve data... */
       ipo_to_animdata(bmain, id, cu->ipo, nullptr, nullptr, nullptr);
 
-      if (adt->action) {
+      if (adt->action && !action_is_layered(*adt->action)) {
         adt->action->idroot = cu->ipo->blocktype;
       }
 
@@ -2516,7 +2562,8 @@ void do_versions_ipos_to_layered_actions(Main *bmain)
       new_act->idroot = ipo->blocktype;
 
       /* Upgrade the resulting Animato action to a layered action. */
-      blender::animrig::versioning::convert_legacy_action(*new_act);
+      blender::animrig::versioning::tag_action_user_for_slotted_actions_conversion(*id);
+      blender::animrig::versioning::convert_legacy_animato_action(*new_act);
     }
 
     /* clear fake-users, and set user-count to zero to make sure it is cleared on file-save */

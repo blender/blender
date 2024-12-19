@@ -75,6 +75,16 @@ TEST(animrig_versioning, action_is_layered)
     EXPECT_TRUE(action_is_layered(action)) << "Layered Actions should be considered 'layered'";
   }
 
+  { /* Layered Action as it exists on disk, with forward-compatible info in there. */
+    bAction action = {{nullptr}};
+    FCurve *fake_fcurve = nullptr;
+    action.layer_array_num = 1;
+
+    BLI_addtail(&action.curves, &fake_fcurve);
+    EXPECT_TRUE(action_is_layered(action))
+        << "Layered Actions with forward-compat data should be considered 'layered'";
+  }
+
   { /* Completely zero'ed out Action. */
     bAction action = {{nullptr}};
     EXPECT_TRUE(action_is_layered(action)) << "Zero'ed-out Actions should be considered 'layered'";

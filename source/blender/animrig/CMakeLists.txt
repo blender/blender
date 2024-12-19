@@ -62,6 +62,7 @@ set(SRC
 set(LIB
   PRIVATE bf::blenkernel
   bf::blenlib
+  PRIVATE bf::blenloader
   PRIVATE bf::blentranslation
   PRIVATE bf::depsgraph
   bf::dna

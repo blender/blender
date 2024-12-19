@@ -20,7 +20,7 @@ struct Main;
  * Note: this *only* deals with animation data that is *pre-Animato*, and
  * upgrades it all the way past Animato to modern Layered Actions and drivers.
  * Actions that are already Animato actions are ignored, as they are versioned
- * elsewhere (see `version_legacy_actions_to_layered()`). This is admittedly
+ * elsewhere (see `animrig::versioning::convert_legacy_actions()`). This is admittedly
  * weird, but it's due to the fact that versioning pre-Animato data requires
  * creating new datablocks, which must happen at a stage *after* the standard
  * versioning where the simpler Animato-to-Layered upgrades are done.

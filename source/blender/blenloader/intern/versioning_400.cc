@@ -122,120 +122,6 @@ static void version_composite_nodetree_null_id(bNodeTree *ntree, Scene *scene)
   }
 }
 
-static void version_legacy_actions_to_layered(Main *bmain)
-{
-  using namespace blender::animrig;
-
-  struct ActionUserInfo {
-    ID *id;
-    slot_handle_t *slot_handle;
-    bAction **action_ptr_ptr;
-    char *slot_name;
-  };
-
-  blender::Map<bAction *, blender::Vector<ActionUserInfo>> action_users;
-  LISTBASE_FOREACH (bAction *, dna_action, &bmain->actions) {
-    Action &action = dna_action->wrap();
-
-    if (versioning::action_is_layered(action)) {
-      continue;
-    }
-    action_users.add(dna_action, {});
-  }
-
-  auto callback = [&](ID &animated_id,
-                      bAction *&action_ptr_ref,
-                      slot_handle_t &slot_handle_ref,
-                      char *slot_name) -> bool {
-    blender::Vector<ActionUserInfo> *action_user_vector = action_users.lookup_ptr(action_ptr_ref);
-    /* Only actions that need to be converted are in this map. */
-    if (!action_user_vector) {
-      return true;
-    }
-    ActionUserInfo user_info;
-    user_info.id = &animated_id;
-    user_info.action_ptr_ptr = &action_ptr_ref;
-    user_info.slot_handle = &slot_handle_ref;
-    user_info.slot_name = slot_name;
-    action_user_vector->append(user_info);
-    return true;
-  };
-
-  ID *id;
-  FOREACH_MAIN_ID_BEGIN (bmain, id) {
-    /* Process the ID itself. */
-    foreach_action_slot_use_with_references(*id, callback);
-
-    /* Process embedded IDs, as these are not listed in bmain, but still can
-     * have their own Action+Slot. Unfortunately there is no generic looper
-     * for embedded IDs. At this moment the only animatable embedded ID is a
-     * node tree. */
-    bNodeTree *node_tree = blender::bke::node_tree_from_id(id);
-    if (node_tree) {
-      foreach_action_slot_use_with_references(node_tree->id, callback);
-    }
-  }
-  FOREACH_MAIN_ID_END;
-
-  for (const auto &item : action_users.items()) {
-    Action &action = item.key->wrap();
-
-    /* Skip all handling of pre-Animato actions. These are handled in a later
-     * versioning step. See `do_versions_ipos_to_layered_actions()`. */
-    if (!BLI_listbase_is_empty(&action.chanbase)) {
-      continue;
-    }
-
-    versioning::convert_legacy_action(action);
-    blender::Vector<ActionUserInfo> &user_infos = item.value;
-    Slot &slot_to_assign = *action.slot(0);
-
-    for (ActionUserInfo &action_user : user_infos) {
-      const ActionSlotAssignmentResult result = generic_assign_action_slot(
-          &slot_to_assign,
-          *action_user.id,
-          *action_user.action_ptr_ptr,
-          *action_user.slot_handle,
-          action_user.slot_name);
-      switch (result) {
-        case ActionSlotAssignmentResult::OK:
-          break;
-        case ActionSlotAssignmentResult::SlotNotSuitable:
-          /* If the slot wasn't suitable for the ID, we force assignment anyway,
-           * but with a warning.
-           *
-           * This happens when the legacy action assigned to the ID had a
-           * mismatched idroot, and therefore the created slot does as well.
-           * This mismatch can happen in a variety of ways, and we opt to
-           * preserve this unusual (but technically valid) state of affairs.
-           */
-          *action_user.slot_handle = slot_to_assign.handle;
-          BLI_strncpy_utf8(
-              action_user.slot_name, slot_to_assign.identifier, Slot::identifier_length_max);
-
-          printf(
-              "Warning: legacy action \"%s\" is assigned to \"%s\", which does not match the "
-              "action's id_root \"%s\". The action has been upgraded to a slotted action with "
-              "slot \"%s\" with an id_type \"%s\", which has also been assigned to \"%s\" despite "
-              "this type mismatch. This likely indicates something odd about the blend file.\n",
-              action.id.name + 2,
-              action_user.id->name,
-              slot_to_assign.identifier_prefix_for_idtype().c_str(),
-              slot_to_assign.identifier_without_prefix().c_str(),
-              slot_to_assign.identifier_prefix_for_idtype().c_str(),
-              action_user.id->name);
-          break;
-        case ActionSlotAssignmentResult::SlotNotFromAction:
-          BLI_assert(!"SlotNotFromAction should not be returned here");
-          break;
-        case ActionSlotAssignmentResult::MissingAction:
-          BLI_assert(!"MissingAction should not be returned here");
-          break;
-      }
-    }
-  }
-}
-
 static void version_fcurve_noise_modifier(FCurve &fcurve)
 {
   LISTBASE_FOREACH (FModifier *, fcurve_modifier, &fcurve.modifiers) {
@@ -1415,7 +1301,8 @@ void do_versions_after_linking_400(FileData *fd, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 2)) {
-    version_legacy_actions_to_layered(bmain);
+    blender::animrig::versioning::convert_legacy_animato_actions(*bmain);
+    blender::animrig::versioning::tag_action_users_for_slotted_actions_conversion(*bmain);
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 7)) {

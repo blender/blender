@@ -61,12 +61,12 @@ class Slot;
  * Action. These methods will eventually be removed when runtime support for
  * legacy actions is fully removed. For code in blend file loading and
  * versioning, which will stick around for the long-term, use
- * `BKE_action_is_layered()` instead. (Note that an empty Action is considered
- * both a valid legacy *and* layered action.)
+ * `animrig::versioning::action_is_layered()` instead. (Note that an empty
+ * Action is considered both a valid legacy *and* layered action.)
  *
  * \see #AnimData::action
  * \see #AnimData::slot_handle
- * \see #BKE_action_is_layered
+ * \see #animrig::versioning::action_is_layered()
  */
 class Action : public ::bAction {
  public:
