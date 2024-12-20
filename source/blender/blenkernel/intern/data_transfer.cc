@@ -966,9 +966,9 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
       return true;
     }
     if (r_map && cddata_type == CD_FAKE_SEAM) {
-      if (!CustomData_has_layer_named(&me_dst->edge_data, CD_PROP_BOOL, ".uv_seam")) {
+      if (!CustomData_has_layer_named(&me_dst->edge_data, CD_PROP_BOOL, "uv_seam")) {
         CustomData_add_layer_named(
-            &me_dst->edge_data, CD_PROP_BOOL, CD_SET_DEFAULT, me_dst->edges_num, ".uv_seam");
+            &me_dst->edge_data, CD_PROP_BOOL, CD_SET_DEFAULT, me_dst->edges_num, "uv_seam");
       }
       data_transfer_layersmapping_add_item_cd(
           r_map,
@@ -976,9 +976,9 @@ static bool data_transfer_layersmapping_generate(ListBase *r_map,
           mix_mode,
           mix_factor,
           mix_weights,
-          CustomData_get_layer_named(&me_src->edge_data, CD_PROP_BOOL, ".uv_seam"),
+          CustomData_get_layer_named(&me_src->edge_data, CD_PROP_BOOL, "uv_seam"),
           CustomData_get_layer_named_for_write(
-              &me_dst->edge_data, CD_PROP_BOOL, ".uv_seam", me_dst->edges_num),
+              &me_dst->edge_data, CD_PROP_BOOL, "uv_seam", me_dst->edges_num),
           interp,
           interp_data);
       return true;

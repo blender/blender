@@ -640,6 +640,32 @@ int rna_AttributeGroup_length(PointerRNA *ptr)
   return BKE_attributes_length(owner, ATTR_DOMAIN_MASK_ALL, CD_MASK_PROP_ALL);
 }
 
+bool rna_AttributeGroup_lookup_string(PointerRNA *ptr, const char *key, PointerRNA *r_ptr)
+{
+  AttributeOwner owner = owner_from_attribute_pointer_rna(ptr);
+
+  if (CustomDataLayer *layer = BKE_attribute_search_for_write(
+          owner, key, CD_MASK_PROP_ALL, ATTR_DOMAIN_MASK_ALL))
+  {
+    *r_ptr = RNA_pointer_create(ptr->owner_id, &RNA_Attribute, layer);
+    return true;
+  }
+
+  /* Support retrieving UV seam name convention with older name. To be removed as part of 5.0
+   * breaking changes. */
+  if (STREQ(key, ".uv_seam")) {
+    if (CustomDataLayer *layer = BKE_attribute_search_for_write(
+            owner, "uv_seam", CD_MASK_PROP_ALL, ATTR_DOMAIN_MASK_ALL))
+    {
+      *r_ptr = RNA_pointer_create(ptr->owner_id, &RNA_Attribute, layer);
+      return true;
+    }
+  }
+
+  *r_ptr = PointerRNA_NULL;
+  return false;
+}
+
 static int rna_AttributeGroupID_active_index_get(PointerRNA *ptr)
 {
   AttributeOwner owner = AttributeOwner::from_id(ptr->owner_id);
@@ -1776,7 +1802,7 @@ void rna_def_attributes_common(StructRNA *srna, const AttributeOwnerType type)
                                     "rna_AttributeGroup_iterator_get",
                                     "rna_AttributeGroup_length",
                                     nullptr,
-                                    nullptr,
+                                    "rna_AttributeGroup_lookup_string",
                                     nullptr);
   RNA_def_property_struct_type(prop, "Attribute");
   RNA_def_property_ui_text(prop, "Attributes", "Geometry attributes");

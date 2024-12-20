@@ -236,7 +236,7 @@ static void build_poly_connections(blender::AtomicDisjointSet &islands,
 
   const bke::AttributeAccessor attributes = mesh.attributes();
   const VArray<bool> uv_seams = *attributes.lookup_or_default<bool>(
-      ".uv_seam", bke::AttrDomain::Edge, false);
+      "uv_seam", bke::AttrDomain::Edge, false);
   const VArray<bool> hide_poly = *attributes.lookup_or_default<bool>(
       ".hide_poly", bke::AttrDomain::Face, false);
 
@@ -286,7 +286,7 @@ static void paintface_select_linked_faces(Mesh &mesh,
 
   bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
   const VArray<bool> uv_seams = *attributes.lookup_or_default<bool>(
-      ".uv_seam", bke::AttrDomain::Edge, false);
+      "uv_seam", bke::AttrDomain::Edge, false);
   bke::SpanAttributeWriter<bool> select_poly = attributes.lookup_or_add_for_write_span<bool>(
       ".select_poly", bke::AttrDomain::Face);
 
