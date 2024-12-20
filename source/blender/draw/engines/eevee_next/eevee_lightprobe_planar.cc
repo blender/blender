@@ -117,18 +117,12 @@ void PlanarProbeModule::set_view(const draw::View &main_view, int2 main_view_ext
     res.combined_fb.ensure(GPU_ATTACHMENT_TEXTURE_LAYER(depth_tx_, resource_index),
                            GPU_ATTACHMENT_TEXTURE_LAYER(radiance_tx_, resource_index));
 
-    GPUAttachment npr_index_attachment = GPU_ATTACHMENT_NONE;
-    if (inst_.render_buffers.npr_index_tx.is_valid()) {
-      npr_index_attachment = GPU_ATTACHMENT_TEXTURE(inst_.render_buffers.npr_index_tx);
-    }
-
     res.gbuffer_fb.ensure(GPU_ATTACHMENT_TEXTURE_LAYER(depth_tx_, resource_index),
                           GPU_ATTACHMENT_TEXTURE_LAYER(radiance_tx_, resource_index),
                           GPU_ATTACHMENT_TEXTURE(gbuf.header_tx),
                           GPU_ATTACHMENT_TEXTURE_LAYER(gbuf.normal_tx.layer_view(0), 0),
                           GPU_ATTACHMENT_TEXTURE_LAYER(gbuf.closure_tx.layer_view(0), 0),
-                          GPU_ATTACHMENT_TEXTURE_LAYER(gbuf.closure_tx.layer_view(1), 0),
-                          npr_index_attachment);
+                          GPU_ATTACHMENT_TEXTURE_LAYER(gbuf.closure_tx.layer_view(1), 0));
 
     inst_.pipelines.planar.render(res.view,
                                   depth_tx_.layer_view(resource_index),

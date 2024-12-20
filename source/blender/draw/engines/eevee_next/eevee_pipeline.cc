@@ -476,7 +476,6 @@ void DeferredLayerBase::gbuffer_pass_sync(Instance &inst)
                                   GPU_ATTACHMENT_WRITE,
                                   GPU_ATTACHMENT_WRITE,
                                   GPU_ATTACHMENT_WRITE,
-                                  GPU_ATTACHMENT_WRITE,
                                   GPU_ATTACHMENT_WRITE});
   /* G-buffer. */
   gbuffer_ps_.bind_image(GBUF_NORMAL_SLOT, &inst.gbuffer.normal_img_tx);
@@ -526,7 +525,6 @@ template<typename F> void DeferredLayerBase::npr_pass_sync(Instance &inst, F cal
   npr_ps_.init();
   /* Textures. */
   npr_ps_.bind_texture(RBUFS_UTILITY_TEX_SLOT, inst.pipelines.utility_tx);
-  npr_ps_.bind_texture(INDEX_NPR_TX_SLOT, &inst.render_buffers.npr_index_tx);
 #if 0
   npr_ps_.bind_resources(inst.gbuffer);
 #else
@@ -651,7 +649,6 @@ void DeferredLayer::end_sync(bool is_first_pass,
       sub.subpass_transition(GPU_ATTACHMENT_WRITE, /* Needed for depth test. */
                              {GPU_ATTACHMENT_IGNORE,
                               GPU_ATTACHMENT_READ, /* Header. */
-                              GPU_ATTACHMENT_IGNORE,
                               GPU_ATTACHMENT_IGNORE,
                               GPU_ATTACHMENT_IGNORE,
                               GPU_ATTACHMENT_IGNORE});
@@ -893,10 +890,6 @@ GPUTexture *DeferredLayer::render(View &main_view,
   if (use_screen_transmission_) {
     /* Update for refraction. */
     inst_.hiz_buffer.update();
-    /* Reset the NPR index buffer. */
-    int clear_value = 0;
-    GPU_texture_clear(
-        inst_.render_buffers.npr_index_tx, eGPUDataFormat::GPU_DATA_UINT, &clear_value);
   }
 
   GPU_framebuffer_bind(prepass_fb);

@@ -114,11 +114,6 @@ void RenderBuffers::acquire(int2 extent)
                                                        EEVEE_RENDER_PASS_CRYPTOMATTE_MATERIAL)),
       cryptomatte_format,
       GPU_TEXTURE_USAGE_SHADER_READ | GPU_TEXTURE_USAGE_SHADER_WRITE);
-
-  if (inst_.npr_enabled()) {
-    npr_index_tx.acquire(
-        extent, GPU_R8UI, GPU_TEXTURE_USAGE_ATTACHMENT | GPU_TEXTURE_USAGE_SHADER_READ);
-  }
 }
 
 void RenderBuffers::release()
@@ -136,7 +131,6 @@ void RenderBuffers::release()
   vector_tx.release();
 
   cryptomatte_tx.release();
-  npr_index_tx.release();
 }
 
 eGPUTextureFormat RenderBuffers::vector_tx_format()

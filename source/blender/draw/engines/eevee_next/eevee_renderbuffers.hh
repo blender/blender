@@ -37,8 +37,6 @@ class RenderBuffers {
   Texture rp_color_tx;
   Texture rp_value_tx;
 
-  TextureFromPool npr_index_tx;
-
  private:
   Instance &inst_;
 
