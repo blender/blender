@@ -25,14 +25,17 @@
 #include "BLI_bitmap_draw_2d.h"
 #include "BLI_ghash.h"
 #include "BLI_hash.hh"
+#include "BLI_index_range.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_base.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
+#include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_string.h"
 #include "BLI_string_utils.hh"
+#include "BLI_task.hh"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
@@ -2513,84 +2516,73 @@ ImBuf *BKE_tracking_distort_frame(MovieTracking *tracking,
 }
 
 void BKE_tracking_max_distortion_delta_across_bound(MovieTracking *tracking,
-                                                    const int image_width,
-                                                    const int image_height,
-                                                    const rcti *rect,
+                                                    const int size[2],
                                                     const bool undistort,
                                                     float r_delta[2])
 {
-  float pos[2], warped_pos[2];
-  const int coord_delta = 5;
-  void (*apply_distortion)(MovieTracking *tracking,
-                           int image_width,
-                           int image_height,
-                           const float pos[2],
-                           float out[2]);
+  using namespace blender;
+  float2 delta = float2(0.0f);
+  threading::parallel_for(IndexRange(size[0]), 32, [&](const IndexRange sub_x_range) {
+    for (const int64_t x : sub_x_range) {
+      /* Bottom edge. */
+      const float2 bottom_position = float2(x, 0.0f);
+      float2 distorted_bottom_position;
+      if (undistort) {
+        BKE_tracking_undistort_v2(
+            tracking, size[0], size[1], bottom_position, distorted_bottom_position);
+      }
+      else {
+        BKE_tracking_distort_v2(
+            tracking, size[0], size[1], bottom_position, distorted_bottom_position);
+      }
+      delta = math::max(delta, math::abs(bottom_position - distorted_bottom_position));
 
-  if (undistort) {
-    apply_distortion = BKE_tracking_undistort_v2;
-  }
-  else {
-    apply_distortion = BKE_tracking_distort_v2;
-  }
-
-  r_delta[0] = r_delta[1] = -FLT_MAX;
-
-  for (int a = rect->xmin; a <= rect->xmax + coord_delta; a += coord_delta) {
-    if (a > rect->xmax) {
-      a = rect->xmax;
+      /* Top edge. */
+      const float2 top_position = float2(x, size[1]);
+      float2 distorted_top_position;
+      if (undistort) {
+        BKE_tracking_undistort_v2(
+            tracking, size[0], size[1], top_position, distorted_top_position);
+      }
+      else {
+        BKE_tracking_distort_v2(tracking, size[0], size[1], top_position, distorted_top_position);
+      }
+      delta = math::max(delta, math::abs(top_position - distorted_top_position));
     }
+  });
 
-    /* bottom edge */
-    pos[0] = a;
-    pos[1] = rect->ymin;
+  threading::parallel_for(IndexRange(size[1]), 32, [&](const IndexRange sub_y_range) {
+    for (const int64_t y : sub_y_range) {
+      /* Left edge. */
+      const float2 left_position = float2(0.0f, y);
+      float2 distorted_left_position;
+      if (undistort) {
+        BKE_tracking_undistort_v2(
+            tracking, size[0], size[1], left_position, distorted_left_position);
+      }
+      else {
+        BKE_tracking_distort_v2(
+            tracking, size[0], size[1], left_position, distorted_left_position);
+      }
+      delta = math::max(delta, math::abs(left_position - distorted_left_position));
 
-    apply_distortion(tracking, image_width, image_height, pos, warped_pos);
-
-    r_delta[0] = max_ff(r_delta[0], fabsf(pos[0] - warped_pos[0]));
-    r_delta[1] = max_ff(r_delta[1], fabsf(pos[1] - warped_pos[1]));
-
-    /* top edge */
-    pos[0] = a;
-    pos[1] = rect->ymax;
-
-    apply_distortion(tracking, image_width, image_height, pos, warped_pos);
-
-    r_delta[0] = max_ff(r_delta[0], fabsf(pos[0] - warped_pos[0]));
-    r_delta[1] = max_ff(r_delta[1], fabsf(pos[1] - warped_pos[1]));
-
-    if (a >= rect->xmax) {
-      break;
+      /* Right edge. */
+      const float2 right_position = float2(size[0], y);
+      float2 distorted_right_position;
+      if (undistort) {
+        BKE_tracking_undistort_v2(
+            tracking, size[0], size[1], right_position, distorted_right_position);
+      }
+      else {
+        BKE_tracking_distort_v2(
+            tracking, size[0], size[1], right_position, distorted_right_position);
+      }
+      delta = math::max(delta, math::abs(right_position - distorted_right_position));
     }
-  }
+  });
 
-  for (int a = rect->ymin; a <= rect->ymax + coord_delta; a += coord_delta) {
-    if (a > rect->ymax) {
-      a = rect->ymax;
-    }
-
-    /* left edge */
-    pos[0] = rect->xmin;
-    pos[1] = a;
-
-    apply_distortion(tracking, image_width, image_height, pos, warped_pos);
-
-    r_delta[0] = max_ff(r_delta[0], fabsf(pos[0] - warped_pos[0]));
-    r_delta[1] = max_ff(r_delta[1], fabsf(pos[1] - warped_pos[1]));
-
-    /* right edge */
-    pos[0] = rect->xmax;
-    pos[1] = a;
-
-    apply_distortion(tracking, image_width, image_height, pos, warped_pos);
-
-    r_delta[0] = max_ff(r_delta[0], fabsf(pos[0] - warped_pos[0]));
-    r_delta[1] = max_ff(r_delta[1], fabsf(pos[1] - warped_pos[1]));
-
-    if (a >= rect->ymax) {
-      break;
-    }
-  }
+  r_delta[0] = delta.x;
+  r_delta[1] = delta.y;
 }
 
 /* --------------------------------------------------------------------

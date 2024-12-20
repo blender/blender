@@ -526,10 +526,8 @@ struct ImBuf *BKE_tracking_distort_frame(struct MovieTracking *tracking,
                                          float overscan);
 
 void BKE_tracking_max_distortion_delta_across_bound(struct MovieTracking *tracking,
-                                                    int image_width,
-                                                    int image_height,
-                                                    const struct rcti *rect,
-                                                    bool undistort,
+                                                    const int size[2],
+                                                    const bool undistort,
                                                     float r_delta[2]);
 
 /* --------------------------------------------------------------------
