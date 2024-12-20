@@ -348,7 +348,6 @@ set(SRC
   BLI_rand.h
   BLI_rand.hh
   BLI_random_access_iterator_mixin.hh
-  BLI_range.h
   BLI_rect.h
   BLI_resource_scope.hh
   BLI_scanfill.h

@@ -8,8 +8,8 @@
 
 #pragma once
 
+#include "BLI_bounds_types.hh"
 #include "BLI_math_vector_types.hh"
-#include "BLI_range.h"
 
 #include "DNA_curve_types.h"
 
@@ -139,15 +139,17 @@ const ActKeyColumn *ED_keylist_find_exact(const AnimKeylist *keylist, float cfra
 const ActKeyColumn *ED_keylist_find_next(const AnimKeylist *keylist, float cfra);
 const ActKeyColumn *ED_keylist_find_prev(const AnimKeylist *keylist, float cfra);
 const ActKeyColumn *ED_keylist_find_any_between(const AnimKeylist *keylist,
-                                                const Range2f frame_range);
+                                                const blender::Bounds<float> frame_range);
 bool ED_keylist_is_empty(const AnimKeylist *keylist);
 const ListBase /*ActKeyColumn*/ *ED_keylist_listbase(const AnimKeylist *keylist);
-bool ED_keylist_all_keys_frame_range(const AnimKeylist *keylist, Range2f *r_frame_range);
+bool ED_keylist_all_keys_frame_range(const AnimKeylist *keylist,
+                                     blender::Bounds<float> *r_frame_range);
 /**
  * Return the selected key-frame's range. If none are selected, return False and
  * do not affect the frame range.
  */
-bool ED_keylist_selected_keys_frame_range(const AnimKeylist *keylist, Range2f *r_frame_range);
+bool ED_keylist_selected_keys_frame_range(const AnimKeylist *keylist,
+                                          blender::Bounds<float> *r_frame_range);
 const ActKeyColumn *ED_keylist_array(const AnimKeylist *keylist);
 int64_t ED_keylist_array_len(const AnimKeylist *keylist);
 

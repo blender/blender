@@ -374,7 +374,7 @@ void animviz_motionpath_compute_range(Object *ob, Scene *scene)
     fcurve_to_keylist(ob->adt, fcu, keylist, 0, {-FLT_MAX, FLT_MAX}, true);
   }
 
-  Range2f frame_range;
+  blender::Bounds<float> frame_range;
   switch (avs->path_range) {
     case MOTIONPATH_RANGE_KEYS_SELECTED:
       if (ED_keylist_selected_keys_frame_range(keylist, &frame_range)) {
