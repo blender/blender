@@ -59,8 +59,13 @@ static void node_shader_buts_tex_pointdensity(uiLayout *layout, bContext * /*C*/
     }
     if (shader_point_density->ob_color_source == SHD_POINTDENSITY_COLOR_VERTCOL) {
       if (obdata_ptr.data) {
-        uiItemPointerR(
-            layout, ptr, "vertex_attribute_name", &obdata_ptr, "vertex_colors", "", ICON_NONE);
+        uiItemPointerR(layout,
+                       ptr,
+                       "vertex_attribute_name",
+                       &obdata_ptr,
+                       "color_attributes",
+                       "",
+                       ICON_GROUP_VCOL);
       }
     }
   }
