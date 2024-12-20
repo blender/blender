@@ -27,7 +27,9 @@
 #include "BLI_array.hh"
 #include "BLI_map.hh"
 #include "BLI_math_vector_types.hh"
+#include "BLI_ordered_edge.hh"
 #include "BLI_span.hh"
+#include "BLI_vector_set.hh"
 
 #include "DNA_customdata_types.h"
 #include "DNA_material_types.h"
@@ -211,6 +213,7 @@ void USDMeshReader::read_object_data(Main *bmain, const double motionSampleTime)
 
     if (subdivScheme == pxr::UsdGeomTokens->catmullClark) {
       add_subdiv_modifier();
+      read_subdiv();
     }
   }
 
@@ -359,6 +362,44 @@ void USDMeshReader::read_uv_data_primvar(Mesh *mesh,
   uv_data.finish();
 }
 
+void USDMeshReader::read_subdiv()
+{
+  ModifierData *md = (ModifierData *)(object_->modifiers.last);
+  SubsurfModifierData *subdiv_data = reinterpret_cast<SubsurfModifierData *>(md);
+
+  pxr::TfToken uv_smooth;
+  mesh_prim_.GetFaceVaryingLinearInterpolationAttr().Get(&uv_smooth);
+
+  if (uv_smooth == pxr::UsdGeomTokens->all) {
+    subdiv_data->uv_smooth = SUBSURF_UV_SMOOTH_NONE;
+  }
+  else if (uv_smooth == pxr::UsdGeomTokens->cornersOnly) {
+    subdiv_data->uv_smooth = SUBSURF_UV_SMOOTH_PRESERVE_CORNERS;
+  }
+  else if (uv_smooth == pxr::UsdGeomTokens->cornersPlus1) {
+    subdiv_data->uv_smooth = SUBSURF_UV_SMOOTH_PRESERVE_CORNERS_AND_JUNCTIONS;
+  }
+  else if (uv_smooth == pxr::UsdGeomTokens->cornersPlus2) {
+    subdiv_data->uv_smooth = SUBSURF_UV_SMOOTH_PRESERVE_CORNERS_JUNCTIONS_AND_CONCAVE;
+  }
+  else if (uv_smooth == pxr::UsdGeomTokens->boundaries) {
+    subdiv_data->uv_smooth = SUBSURF_UV_SMOOTH_PRESERVE_BOUNDARIES;
+  }
+  else if (uv_smooth == pxr::UsdGeomTokens->none) {
+    subdiv_data->uv_smooth = SUBSURF_UV_SMOOTH_ALL;
+  }
+
+  pxr::TfToken boundary_smooth;
+  mesh_prim_.GetInterpolateBoundaryAttr().Get(&boundary_smooth);
+
+  if (boundary_smooth == pxr::UsdGeomTokens->edgeOnly) {
+    subdiv_data->boundary_smooth = SUBSURF_BOUNDARY_SMOOTH_ALL;
+  }
+  else if (boundary_smooth == pxr::UsdGeomTokens->edgeAndCorner) {
+    subdiv_data->boundary_smooth = SUBSURF_BOUNDARY_SMOOTH_PRESERVE_CORNERS;
+  }
+}
+
 void USDMeshReader::read_vertex_creases(Mesh *mesh, const double motionSampleTime)
 {
   pxr::VtIntArray corner_indices;
@@ -383,8 +424,7 @@ void USDMeshReader::read_vertex_creases(Mesh *mesh, const double motionSampleTim
   }
 
   if (corner_indices.size() != corner_sharpnesses.size()) {
-    CLOG_WARN(
-        &LOG, "Vertex crease and sharpnesses count mismatch for mesh %s", prim_path_.c_str());
+    CLOG_WARN(&LOG, "Vertex crease and sharpness count mismatch for mesh %s", prim_path_.c_str());
     return;
   }
 
@@ -396,6 +436,79 @@ void USDMeshReader::read_vertex_creases(Mesh *mesh, const double motionSampleTim
   for (size_t i = 0; i < corner_indices.size(); i++) {
     creases.span[corner_indices[i]] = std::clamp(corner_sharpnesses[i], 0.0f, 1.0f);
   }
+  creases.finish();
+}
+
+void USDMeshReader::read_edge_creases(Mesh *mesh, const double motionSampleTime)
+{
+  pxr::VtArray<int> crease_lengths;
+  pxr::VtArray<int> crease_indices;
+  pxr::VtArray<float> crease_sharpness;
+  mesh_prim_.GetCreaseLengthsAttr().Get(&crease_lengths, motionSampleTime);
+  mesh_prim_.GetCreaseIndicesAttr().Get(&crease_indices, motionSampleTime);
+  mesh_prim_.GetCreaseSharpnessesAttr().Get(&crease_sharpness, motionSampleTime);
+
+  /* Prevent the creation of the `crease_edge` attribute if we have no data. */
+  if (crease_lengths.empty() || crease_indices.empty() || crease_sharpness.empty()) {
+    return;
+  }
+
+  /* There should be as many sharpness values as lengths. */
+  if (crease_lengths.size() != crease_sharpness.size()) {
+    CLOG_WARN(&LOG, "Edge crease and sharpness count mismatch for mesh %s", prim_path_.c_str());
+    return;
+  }
+
+  /* Build mapping from vert pairs to edge index. */
+  using EdgeMap = VectorSet<OrderedEdge,
+                            DefaultProbingStrategy,
+                            DefaultHash<OrderedEdge>,
+                            DefaultEquality<OrderedEdge>,
+                            SimpleVectorSetSlot<OrderedEdge, int>,
+                            GuardedAllocator>;
+  Span<int2> edges = mesh->edges();
+  EdgeMap edge_map;
+  edge_map.reserve(edges.size());
+
+  for (const int i : edges.index_range()) {
+    edge_map.add(edges[i]);
+  }
+
+  bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
+  bke::SpanAttributeWriter creases = attributes.lookup_or_add_for_write_only_span<float>(
+      "crease_edge", bke::AttrDomain::Edge);
+  creases.span.fill(0.0f);
+
+  size_t index_start = 0;
+  for (size_t i = 0; i < crease_lengths.size(); i++) {
+    const int length = crease_lengths[i];
+    if (length < 2) {
+      /* Since each crease must be at least one edge long, each element of this array must be at
+       * least two. If this is not the case it would not be safe to continue. */
+      CLOG_WARN(&LOG, "Edge crease length %d is invalid for mesh %s", length, prim_path_.c_str());
+      break;
+    }
+
+    if (index_start + length > crease_indices.size()) {
+      CLOG_WARN(&LOG, "Edge crease lengths are out of bounds for mesh %s", prim_path_.c_str());
+      break;
+    }
+
+    const float sharpness = std::clamp(crease_sharpness[i], 0.0f, 1.0f);
+    for (size_t j = 0; j < length - 1; j++) {
+      const int v1 = crease_indices[index_start + j];
+      const int v2 = crease_indices[index_start + j + 1];
+      const int edge_i = edge_map.index_of_try({v1, v2});
+      if (edge_i < 0) {
+        continue;
+      }
+
+      creases.span[edge_i] = sharpness;
+    }
+
+    index_start += length;
+  }
+
   creases.finish();
 }
 
@@ -508,6 +621,8 @@ void USDMeshReader::read_mesh_sample(ImportSettings *settings,
 
   if (new_mesh || (settings->read_flag & MOD_MESHSEQ_READ_POLY) != 0) {
     read_mpolys(mesh);
+    read_edge_creases(mesh, motionSampleTime);
+
     if (normal_interpolation_ == pxr::UsdGeomTokens->faceVarying) {
       process_normals_face_varying(mesh);
     }
