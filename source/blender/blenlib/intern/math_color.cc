@@ -723,8 +723,6 @@ int constrain_rgb(float *r, float *g, float *b)
   return 0; /* Color within RGB gamut */
 }
 
-
-
 /* ************************************* other ************************************************* */
 
 void rgb_float_set_hue_float_offset(float rgb[3], float hue_offset)
