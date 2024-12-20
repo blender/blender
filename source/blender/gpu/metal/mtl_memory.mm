@@ -571,6 +571,7 @@ MTLSafeFreeList::MTLSafeFreeList()
   in_free_queue_ = false;
   current_list_index_ = 0;
   next_ = nullptr;
+  referenced_by_workload_ = false;
 }
 
 void MTLSafeFreeList::insert_buffer(gpu::MTLBuffer *buffer)
