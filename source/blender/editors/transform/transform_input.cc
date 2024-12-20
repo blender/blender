@@ -536,12 +536,12 @@ void transform_input_update(TransInfo *t, const float fac)
 
   if (mi->use_virtual_mval) {
     /* Update accumulator. */
-    double mval_delta[2];
+    double2 mval_delta;
     sub_v2_v2v2_db(mval_delta, mi->virtual_mval.accum, mi->virtual_mval.prev);
     mval_delta[0] *= fac;
     mval_delta[1] *= fac;
     copy_v2_v2_db(mi->virtual_mval.accum, mi->virtual_mval.prev);
-    add_v2_v2_db(mi->virtual_mval.accum, mval_delta);
+    mi->virtual_mval.accum += mval_delta;
   }
 
   if (ELEM(mi->apply, InputAngle, InputAngleSpring)) {

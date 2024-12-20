@@ -11,6 +11,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
+#include "BLI_math_vector.hh"
 
 #include "BKE_context.hh"
 #include "BKE_mask.h"
@@ -671,7 +672,7 @@ static int slide_point_modal(bContext *C, wmOperator *op, const wmEvent *event)
     case MOUSEMOVE: {
       ScrArea *area = CTX_wm_area(C);
       ARegion *region = CTX_wm_region(C);
-      float delta[2];
+      blender::float2 delta;
 
       ED_mask_mouse_pos(area, region, event->mval, co);
       sub_v2_v2v2(delta, co, data->prev_mouse_coord);
@@ -708,7 +709,7 @@ static int slide_point_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
             /* flip last point */
             if (data->point != &data->spline->points[0]) {
-              negate_v2(delta);
+              delta *= -1.0f;
             }
           }
         }

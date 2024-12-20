@@ -4588,12 +4588,14 @@ static void damptrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 
 static void damptrack_do_transform(float matrix[4][4], const float tarvec_in[3], int track_axis)
 {
+  using namespace blender;
   /* find the (unit) direction vector going from the owner to the target */
-  float tarvec[3];
+  float3 tarvec;
 
   if (normalize_v3_v3(tarvec, tarvec_in) != 0.0f) {
-    float obvec[3], obloc[3];
-    float raxis[3], rangle;
+    float3 obvec, obloc;
+    float3 raxis;
+    float rangle;
     float rmat[3][3], tmat[4][4];
 
     /* find the (unit) direction that the axis we're interested in currently points
@@ -4619,7 +4621,7 @@ static void damptrack_do_transform(float matrix[4][4], const float tarvec_in[3],
      * - the min/max wrappers around (obvec . tarvec) result (stored temporarily in rangle)
      *   are used to ensure that the smallest angle is chosen
      */
-    cross_v3_v3v3_hi_prec(raxis, obvec, tarvec);
+    raxis = math::cross_high_precision(obvec, tarvec);
 
     rangle = dot_v3v3(obvec, tarvec);
     rangle = acosf(max_ff(-1.0f, min_ff(1.0f, rangle)));

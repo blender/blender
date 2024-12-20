@@ -300,7 +300,7 @@ static bool annotation_stroke_filtermval(tGPsdata *p, const float mval[2], const
 
 /* convert screen-coordinates to buffer-coordinates */
 static void annotation_stroke_convertcoords(tGPsdata *p,
-                                            const float mval[2],
+                                            const blender::float2 mval,
                                             float out[3],
                                             const float *depth)
 {
@@ -311,8 +311,7 @@ static void annotation_stroke_convertcoords(tGPsdata *p,
 
   /* in 3d-space - pt->x/y/z are 3 side-by-side floats */
   if (gpd->runtime.sbuffer_sflag & GP_STROKE_3DSPACE) {
-    int mval_i[2];
-    round_v2i_v2fl(mval_i, mval);
+    blender::int2 mval_i = blender::int2(mval);
     if (annotation_project_check(p) && ED_view3d_autodist_simple(p->region, mval_i, out, 0, depth))
     {
       /* projecting onto 3D-Geometry
@@ -966,7 +965,7 @@ static void annotation_stroke_newfrombuffer(tGPsdata *p)
 
     /* get an array of depths, far depths are blended */
     if (annotation_project_check(p)) {
-      int mval_i[2], mval_prev[2] = {0};
+      blender::int2 mval_i, mval_prev = {0, 0};
       int interp_depth = 0;
       int found_depth = 0;
 
@@ -978,8 +977,7 @@ static void annotation_stroke_newfrombuffer(tGPsdata *p)
            i < gpd->runtime.sbuffer_used;
            i++, ptc++, pt++)
       {
-        round_v2i_v2fl(mval_i, ptc->m_xy);
-
+        mval_i = blender::int2(ptc->m_xy);
         if ((ED_view3d_depth_read_cached(depths, mval_i, depth_margin, depth_arr + i) == 0) &&
             (i && (ED_view3d_depth_read_cached_seg(
                        depths, mval_i, mval_prev, depth_margin + 1, depth_arr + i) == 0)))
@@ -1121,8 +1119,7 @@ static void annotation_stroke_eraser_dostroke(tGPsdata *p,
   bGPDspoint *pt1, *pt2;
   int pc1[2] = {0};
   int pc2[2] = {0};
-  int mval_i[2];
-  round_v2i_v2fl(mval_i, mval);
+  blender::int2 mval_i = blender::int2(mval);
 
   if (gps->totpoints == 0) {
     /* just free stroke */

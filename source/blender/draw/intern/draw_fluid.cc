@@ -172,7 +172,7 @@ static GPUTexture *create_volume_texture(const int dim[3],
                                          const void *data)
 {
   GPUTexture *tex = nullptr;
-  int final_dim[3] = {UNPACK3(dim)};
+  blender::int3 final_dim = {UNPACK3(dim)};
 
   if (data == nullptr) {
     return nullptr;
@@ -199,7 +199,7 @@ static GPUTexture *create_volume_texture(const int dim[3],
     printf("Error: Could not create 3D texture.\n");
     tex = GPU_texture_create_error(3, false);
   }
-  else if (equals_v3v3_int(dim, final_dim)) {
+  else if (blender::int3(dim) == final_dim) {
     /* No need to resize, just upload the data. */
     GPU_texture_update_sub(tex, data_format, data, 0, 0, 0, UNPACK3(final_dim));
   }

@@ -865,7 +865,7 @@ struct uiKeyNavLock {
   /** Set when we're using keyboard-input. */
   bool is_keynav;
   /** Only used to check if we've moved the cursor. */
-  int event_xy[2];
+  blender::int2 event_xy;
 };
 
 using uiBlockHandleCreateFunc = uiBlock *(*)(bContext *C, uiPopupBlockHandle *handle, void *arg1);
@@ -876,7 +876,7 @@ struct uiPopupBlockCreate {
   void *arg;
   uiFreeArgFunc arg_free;
 
-  int event_xy[2];
+  blender::int2 event_xy;
 
   /** Set when popup is initialized from a button. */
   ARegion *butregion;

@@ -354,8 +354,7 @@ void ViewOpsData::init_navigation(bContext *C,
     ED_view3d_win_to_vector(region, mval, this->init.mousevec);
 
     {
-      int event_xy_offset[2];
-      add_v2_v2v2_int(event_xy_offset, event->xy, this->init.event_xy_offset);
+      int2 event_xy_offset = int2(event->xy) - this->init.event_xy_offset;
 
       /* For rotation with trackball rotation. */
       calctrackballvec(&region->winrct, event_xy_offset, this->init.trackvec);

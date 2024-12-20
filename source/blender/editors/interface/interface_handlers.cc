@@ -10679,12 +10679,11 @@ static int ui_handle_menu_event(bContext *C,
     else {
       if (event->type == MOUSEMOVE) {
         WM_cursor_set(win, PopupTitleDragCursor);
-        int mdiff[2];
+        blender::int2 mdiff = blender::int2(event->xy) - blender::int2(menu->grab_xy_prev);
 
-        sub_v2_v2v2_int(mdiff, event->xy, menu->grab_xy_prev);
         copy_v2_v2_int(menu->grab_xy_prev, event->xy);
 
-        add_v2_v2v2_int(menu->popup_create_vars.event_xy, menu->popup_create_vars.event_xy, mdiff);
+        menu->popup_create_vars.event_xy -= mdiff;
 
         ui_popup_translate(region, mdiff);
       }
