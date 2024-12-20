@@ -74,27 +74,6 @@ bool interp_v3_v3v3_slerp(float target[3], const float a[3], const float b[3], c
 
   return true;
 }
-bool interp_v2_v2v2_slerp(float target[2], const float a[2], const float b[2], const float t)
-{
-  float cosom, w[2];
-
-  BLI_ASSERT_UNIT_V2(a);
-  BLI_ASSERT_UNIT_V2(b);
-
-  cosom = dot_v2v2(a, b);
-
-  /* direct opposites */
-  if (UNLIKELY(cosom < (1.0f + FLT_EPSILON))) {
-    return false;
-  }
-
-  interp_dot_slerp(t, cosom, w);
-
-  target[0] = w[0] * a[0] + w[1] * b[0];
-  target[1] = w[0] * a[1] + w[1] * b[1];
-
-  return true;
-}
 
 void interp_v3_v3v3_slerp_safe(float target[3], const float a[3], const float b[3], const float t)
 {

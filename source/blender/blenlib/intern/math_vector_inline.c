@@ -47,13 +47,6 @@ MINLINE void copy_v3_v3(float r[3], const float a[3])
   r[2] = a[2];
 }
 
-MINLINE void copy_v3fl_v3s(float r[3], const short a[3])
-{
-  r[0] = (float)a[0];
-  r[1] = (float)a[1];
-  r[2] = (float)a[2];
-}
-
 MINLINE void copy_v4_v4(float r[4], const float a[4])
 {
   r[0] = a[0];
@@ -85,12 +78,6 @@ MINLINE void copy_v4_fl(float r[4], float f)
 
 /* unsigned char */
 
-MINLINE void copy_v2_v2_uchar(unsigned char r[2], const unsigned char a[2])
-{
-  r[0] = a[0];
-  r[1] = a[1];
-}
-
 MINLINE void copy_v3_v3_uchar(unsigned char r[3], const unsigned char a[3])
 {
   r[0] = a[0];
@@ -99,50 +86,6 @@ MINLINE void copy_v3_v3_uchar(unsigned char r[3], const unsigned char a[3])
 }
 
 MINLINE void copy_v4_v4_uchar(unsigned char r[4], const unsigned char a[4])
-{
-  r[0] = a[0];
-  r[1] = a[1];
-  r[2] = a[2];
-  r[3] = a[3];
-}
-
-MINLINE void copy_v2_uchar(unsigned char r[2], const unsigned char a)
-{
-  r[0] = a;
-  r[1] = a;
-}
-
-MINLINE void copy_v3_uchar(unsigned char r[3], const unsigned char a)
-{
-  r[0] = a;
-  r[1] = a;
-  r[2] = a;
-}
-
-MINLINE void copy_v4_uchar(unsigned char r[4], const unsigned char a)
-{
-  r[0] = a;
-  r[1] = a;
-  r[2] = a;
-  r[3] = a;
-}
-
-/* char */
-
-MINLINE void copy_v2_v2_char(char r[2], const char a[2])
-{
-  r[0] = a[0];
-  r[1] = a[1];
-}
-
-MINLINE void copy_v3_v3_char(char r[3], const char a[3])
-{
-  r[0] = a[0];
-  r[1] = a[1];
-  r[2] = a[2];
-}
-
-MINLINE void copy_v4_v4_char(char r[4], const char a[4])
 {
   r[0] = a[0];
   r[1] = a[1];
@@ -163,14 +106,6 @@ MINLINE void copy_v3_v3_short(short r[3], const short a[3])
   r[0] = a[0];
   r[1] = a[1];
   r[2] = a[2];
-}
-
-MINLINE void copy_v4_v4_short(short r[4], const short a[4])
-{
-  r[0] = a[0];
-  r[1] = a[1];
-  r[2] = a[2];
-  r[3] = a[3];
 }
 
 /* int */
@@ -210,13 +145,6 @@ MINLINE void copy_v4_v4_int(int r[4], const int a[4])
 
 /* double */
 
-MINLINE void zero_v3_db(double r[3])
-{
-  r[0] = 0.0;
-  r[1] = 0.0;
-  r[2] = 0.0;
-}
-
 MINLINE void copy_v2_v2_db(double r[2], const double a[2])
 {
   r[0] = a[0];
@@ -238,12 +166,6 @@ MINLINE void copy_v4_v4_db(double r[4], const double a[4])
   r[3] = a[3];
 }
 
-MINLINE void round_v2i_v2fl(int r[2], const float a[2])
-{
-  r[0] = (int)roundf(a[0]);
-  r[1] = (int)roundf(a[1]);
-}
-
 MINLINE void copy_v2fl_v2i(float r[2], const int a[2])
 {
   r[0] = (float)a[0];
@@ -251,12 +173,6 @@ MINLINE void copy_v2fl_v2i(float r[2], const int a[2])
 }
 
 /* double -> float */
-
-MINLINE void copy_v2fl_v2db(float r[2], const double a[2])
-{
-  r[0] = (float)a[0];
-  r[1] = (float)a[1];
-}
 
 MINLINE void copy_v3fl_v3db(float r[3], const double a[3])
 {
@@ -286,14 +202,6 @@ MINLINE void copy_v3db_v3fl(double r[3], const float a[3])
   r[0] = (double)a[0];
   r[1] = (double)a[1];
   r[2] = (double)a[2];
-}
-
-MINLINE void copy_v4db_v4fl(double r[4], const float a[4])
-{
-  r[0] = (double)a[0];
-  r[1] = (double)a[1];
-  r[2] = (double)a[2];
-  r[3] = (double)a[3];
 }
 
 MINLINE void swap_v2_v2(float a[2], float b[2])
@@ -355,39 +263,13 @@ MINLINE void add_v3_fl(float r[3], float f)
   r[2] += f;
 }
 
-MINLINE void add_v4_fl(float r[4], float f)
-{
-  r[0] += f;
-  r[1] += f;
-  r[2] += f;
-  r[3] += f;
-}
-
 MINLINE void add_v2_v2(float r[2], const float a[2])
 {
   r[0] += a[0];
   r[1] += a[1];
 }
 
-MINLINE void add_v2_v2_db(double r[2], const double a[2])
-{
-  r[0] += a[0];
-  r[1] += a[1];
-}
-
 MINLINE void add_v2_v2v2(float r[2], const float a[2], const float b[2])
-{
-  r[0] = a[0] + b[0];
-  r[1] = a[1] + b[1];
-}
-
-MINLINE void add_v2_v2_int(int r[2], const int a[2])
-{
-  r[0] = r[0] + a[0];
-  r[1] = r[1] + a[1];
-}
-
-MINLINE void add_v2_v2v2_int(int r[2], const int a[2], const int b[2])
 {
   r[0] = a[0] + b[0];
   r[1] = a[1] + b[1];
@@ -429,14 +311,6 @@ MINLINE void add_v4_v4(float r[4], const float a[4])
   r[3] += a[3];
 }
 
-MINLINE void add_v4_v4v4(float r[4], const float a[4], const float b[4])
-{
-  r[0] = a[0] + b[0];
-  r[1] = a[1] + b[1];
-  r[2] = a[2] + b[2];
-  r[3] = a[3] + b[3];
-}
-
 MINLINE void add_v3_uchar_clamped(uchar r[3], int i)
 {
   r[0] = (uchar)clamp_i(r[0] + i, 0, 255);
@@ -445,12 +319,6 @@ MINLINE void add_v3_uchar_clamped(uchar r[3], int i)
 }
 
 MINLINE void sub_v2_v2(float r[2], const float a[2])
-{
-  r[0] -= a[0];
-  r[1] -= a[1];
-}
-
-MINLINE void sub_v2_v2_db(double r[2], const double a[2])
 {
   r[0] -= a[0];
   r[1] -= a[1];
@@ -515,14 +383,6 @@ MINLINE void sub_v3db_v3fl_v3fl(double r[3], const float a[3], const float b[3])
   r[2] = (double)a[2] - (double)b[2];
 }
 
-MINLINE void sub_v4_v4(float r[4], const float a[4])
-{
-  r[0] -= a[0];
-  r[1] -= a[1];
-  r[2] -= a[2];
-  r[3] -= a[3];
-}
-
 MINLINE void sub_v4_v4v4(float r[4], const float a[4], const float b[4])
 {
   r[0] = a[0] - b[0];
@@ -564,13 +424,6 @@ MINLINE void mul_v3_v3fl(float r[3], const float a[3], float f)
   r[2] = a[2] * f;
 }
 
-MINLINE void mul_v3_v3db_db(double r[3], const double a[3], double f)
-{
-  r[0] = a[0] * f;
-  r[1] = a[1] * f;
-  r[2] = a[2] * f;
-}
-
 MINLINE void mul_v2_v2(float r[2], const float a[2])
 {
   r[0] *= a[0];
@@ -592,45 +445,12 @@ MINLINE void mul_v4_fl(float r[4], float f)
   r[3] *= f;
 }
 
-MINLINE void mul_v4_v4(float r[4], const float a[4])
-{
-  r[0] *= a[0];
-  r[1] *= a[1];
-  r[2] *= a[2];
-  r[3] *= a[3];
-}
-
 MINLINE void mul_v4_v4fl(float r[4], const float a[4], float f)
 {
   r[0] = a[0] * f;
   r[1] = a[1] * f;
   r[2] = a[2] * f;
   r[3] = a[3] * f;
-}
-
-/**
- * Avoid doing:
- *
- * angle = atan2f(dvec[0], dvec[1]);
- * angle_to_mat2(mat, angle);
- *
- * instead use a vector as a matrix.
- */
-
-MINLINE void mul_v2_v2_cw(float r[2], const float mat[2], const float vec[2])
-{
-  BLI_assert(r != vec);
-
-  r[0] = mat[0] * vec[0] + (+mat[1]) * vec[1];
-  r[1] = mat[1] * vec[0] + (-mat[0]) * vec[1];
-}
-
-MINLINE void mul_v2_v2_ccw(float r[2], const float mat[2], const float vec[2])
-{
-  float r0 = mat[0] * vec[0] + (-mat[1]) * vec[1];
-  float r1 = mat[1] * vec[0] + (+mat[0]) * vec[1];
-  r[0] = r0;
-  r[1] = r1;
 }
 
 MINLINE float mul_project_m4_v3_zfac(const float mat[4][4], const float co[3])
@@ -677,13 +497,6 @@ MINLINE void madd_v3_v3fl(float r[3], const float a[3], float f)
   r[2] += a[2] * f;
 }
 
-MINLINE void madd_v3_v3v3(float r[3], const float a[3], const float b[3])
-{
-  r[0] += a[0] * b[0];
-  r[1] += a[1] * b[1];
-  r[2] += a[2] * b[2];
-}
-
 MINLINE void madd_v2_v2v2fl(float r[2], const float a[2], const float b[2], float f)
 {
   r[0] = a[0] + b[0] * f;
@@ -691,13 +504,6 @@ MINLINE void madd_v2_v2v2fl(float r[2], const float a[2], const float b[2], floa
 }
 
 MINLINE void madd_v3_v3v3fl(float r[3], const float a[3], const float b[3], float f)
-{
-  r[0] = a[0] + b[0] * f;
-  r[1] = a[1] + b[1] * f;
-  r[2] = a[2] + b[2] * f;
-}
-
-MINLINE void madd_v3_v3v3db_db(double r[3], const double a[3], const double b[3], double f)
 {
   r[0] = a[0] + b[0] * f;
   r[1] = a[1] + b[1] * f;
@@ -740,12 +546,6 @@ MINLINE void mul_v2_v2v2(float r[2], const float a[2], const float b[2])
 {
   r[0] = a[0] * b[0];
   r[1] = a[1] * b[1];
-}
-
-MINLINE void negate_v2(float r[2])
-{
-  r[0] = -r[0];
-  r[1] = -r[1];
 }
 
 MINLINE void negate_v2_v2(float r[2], const float a[2])
@@ -819,20 +619,6 @@ MINLINE void invert_v3_safe(float r[3])
   }
 }
 
-MINLINE void abs_v3(float r[3])
-{
-  r[0] = fabsf(r[0]);
-  r[1] = fabsf(r[1]);
-  r[2] = fabsf(r[2]);
-}
-
-MINLINE void abs_v3_v3(float r[3], const float a[3])
-{
-  r[0] = fabsf(a[0]);
-  r[1] = fabsf(a[1]);
-  r[2] = fabsf(a[2]);
-}
-
 MINLINE float dot_v2v2(const float a[2], const float b[2])
 {
   return a[0] * b[0] + a[1] * b[1];
@@ -893,14 +679,6 @@ MINLINE void cross_v3_v3v3(float r[3], const float a[3], const float b[3])
   r[2] = a[0] * b[1] - a[1] * b[0];
 }
 
-MINLINE void cross_v3_v3v3_hi_prec(float r[3], const float a[3], const float b[3])
-{
-  BLI_assert(r != a && r != b);
-  r[0] = (float)((double)a[1] * (double)b[2] - (double)a[2] * (double)b[1]);
-  r[1] = (float)((double)a[2] * (double)b[0] - (double)a[0] * (double)b[2]);
-  r[2] = (float)((double)a[0] * (double)b[1] - (double)a[1] * (double)b[0]);
-}
-
 MINLINE void cross_v3_v3v3_db(double r[3], const double a[3], const double b[3])
 {
   BLI_assert(r != a && r != b);
@@ -924,11 +702,6 @@ MINLINE float len_squared_v2(const float v[2])
 }
 
 MINLINE float len_squared_v3(const float v[3])
-{
-  return v[0] * v[0] + v[1] * v[1] + v[2] * v[2];
-}
-
-MINLINE double len_squared_v3_db(const double v[3])
 {
   return v[0] * v[0] + v[1] * v[1] + v[2] * v[2];
 }
@@ -988,11 +761,6 @@ MINLINE float len_v2v2_int(const int v1[2], const int v2[2])
 MINLINE float len_v3(const float a[3])
 {
   return sqrtf(dot_v3v3(a, a));
-}
-
-MINLINE double len_v3_db(const double a[3])
-{
-  return sqrt(dot_v3v3_db(a, a));
 }
 
 MINLINE float len_squared_v2v2(const float a[2], const float b[2])
@@ -1217,16 +985,6 @@ MINLINE bool equals_v3v3(const float v1[3], const float v2[3])
 MINLINE bool equals_v4v4(const float v1[4], const float v2[4])
 {
   return ((v1[0] == v2[0]) && (v1[1] == v2[1]) && (v1[2] == v2[2]) && (v1[3] == v2[3]));
-}
-
-MINLINE bool equals_v2v2_int(const int v1[2], const int v2[2])
-{
-  return ((v1[0] == v2[0]) && (v1[1] == v2[1]));
-}
-
-MINLINE bool equals_v3v3_int(const int v1[3], const int v2[3])
-{
-  return ((v1[0] == v2[0]) && (v1[1] == v2[1]) && (v1[2] == v2[2]));
 }
 
 MINLINE bool equals_v4v4_int(const int v1[4], const int v2[4])

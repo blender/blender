@@ -318,7 +318,6 @@ float determinant_m3(
     float a1, float a2, float a3, float b1, float b2, float b3, float c1, float c2, float c3);
 float determinant_m3_array(const float m[3][3]);
 float determinant_m4_mat3_array(const float m[4][4]);
-double determinant_m3_array_db(const double m[3][3]);
 float determinant_m4(const float m[4][4]);
 
 #define PSEUDOINVERSE_EPSILON 1e-8f

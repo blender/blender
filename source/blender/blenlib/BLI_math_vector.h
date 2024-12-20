@@ -43,25 +43,13 @@ MINLINE void swap_v4_v4(float a[4], float b[4]);
 
 /* unsigned char */
 
-MINLINE void copy_v2_v2_uchar(unsigned char r[2], const unsigned char a[2]);
 MINLINE void copy_v3_v3_uchar(unsigned char r[3], const unsigned char a[3]);
 MINLINE void copy_v4_v4_uchar(unsigned char r[4], const unsigned char a[4]);
-
-MINLINE void copy_v2_uchar(unsigned char r[2], unsigned char a);
-MINLINE void copy_v3_uchar(unsigned char r[3], unsigned char a);
-MINLINE void copy_v4_uchar(unsigned char r[4], unsigned char a);
-
-/* char */
-
-MINLINE void copy_v2_v2_char(char r[2], const char a[2]);
-MINLINE void copy_v3_v3_char(char r[3], const char a[3]);
-MINLINE void copy_v4_v4_char(char r[4], const char a[4]);
 
 /* short */
 
 MINLINE void copy_v2_v2_short(short r[2], const short a[2]);
 MINLINE void copy_v3_v3_short(short r[3], const short a[3]);
-MINLINE void copy_v4_v4_short(short r[4], const short a[4]);
 
 /* int */
 
@@ -72,26 +60,16 @@ MINLINE void copy_v4_v4_int(int r[4], const int a[4]);
 
 /* double */
 
-MINLINE void zero_v3_db(double r[3]);
 MINLINE void copy_v2_v2_db(double r[2], const double a[2]);
 MINLINE void copy_v3_v3_db(double r[3], const double a[3]);
 MINLINE void copy_v4_v4_db(double r[4], const double a[4]);
-
-/* short -> float */
-
-MINLINE void copy_v3fl_v3s(float r[3], const short a[3]);
 
 /* int <-> float */
 
 MINLINE void copy_v2fl_v2i(float r[2], const int a[2]);
 
-/* int <-> float */
-
-MINLINE void round_v2i_v2fl(int r[2], const float a[2]);
-
 /* double -> float */
 
-MINLINE void copy_v2fl_v2db(float r[2], const double a[2]);
 MINLINE void copy_v3fl_v3db(float r[3], const double a[3]);
 MINLINE void copy_v4fl_v4db(float r[4], const double a[4]);
 
@@ -99,7 +77,6 @@ MINLINE void copy_v4fl_v4db(float r[4], const double a[4]);
 
 MINLINE void copy_v2db_v2fl(double r[2], const float a[2]);
 MINLINE void copy_v3db_v3fl(double r[3], const float a[3]);
-MINLINE void copy_v4db_v4fl(double r[4], const float a[4]);
 
 /* float args -> vec */
 
@@ -115,24 +92,18 @@ MINLINE void copy_v4_fl4(float v[4], float x, float y, float z, float w);
 
 MINLINE void add_v2_fl(float r[2], float f);
 MINLINE void add_v3_fl(float r[3], float f);
-MINLINE void add_v4_fl(float r[4], float f);
 MINLINE void add_v2_v2(float r[2], const float a[2]);
-MINLINE void add_v2_v2_db(double r[2], const double a[2]);
 MINLINE void add_v2_v2v2(float r[2], const float a[2], const float b[2]);
-MINLINE void add_v2_v2_int(int r[2], const int a[2]);
-MINLINE void add_v2_v2v2_int(int r[2], const int a[2], const int b[2]);
 MINLINE void add_v3_v3(float r[3], const float a[3]);
 MINLINE void add_v3_v3_db(double r[3], const double a[3]);
 MINLINE void add_v3_v3v3(float r[3], const float a[3], const float b[3]);
 MINLINE void add_v4_v4(float r[4], const float a[4]);
-MINLINE void add_v4_v4v4(float r[4], const float a[4], const float b[4]);
 
 MINLINE void add_v3fl_v3fl_v3i(float r[3], const float a[3], const int b[3]);
 
 MINLINE void add_v3_uchar_clamped(uchar r[3], int i);
 
 MINLINE void sub_v2_v2(float r[2], const float a[2]);
-MINLINE void sub_v2_v2_db(double r[2], const double a[2]);
 MINLINE void sub_v2_v2v2(float r[2], const float a[2], const float b[2]);
 MINLINE void sub_v2_v2v2_db(double r[2], const double a[2], const double b[2]);
 MINLINE void sub_v2_v2v2_int(int r[2], const int a[2], const int b[2]);
@@ -140,7 +111,6 @@ MINLINE void sub_v3_v3(float r[3], const float a[3]);
 MINLINE void sub_v3_v3v3(float r[3], const float a[3], const float b[3]);
 MINLINE void sub_v3_v3v3_int(int r[3], const int a[3], const int b[3]);
 MINLINE void sub_v3_v3v3_db(double r[3], const double a[3], const double b[3]);
-MINLINE void sub_v4_v4(float r[4], const float a[4]);
 MINLINE void sub_v4_v4v4(float r[4], const float a[4], const float b[4]);
 
 MINLINE void sub_v2db_v2fl_v2fl(double r[2], const float a[2], const float b[2]);
@@ -151,16 +121,12 @@ MINLINE void mul_v2_v2fl(float r[2], const float a[2], float f);
 MINLINE void mul_v3_fl(float r[3], float f);
 MINLINE void mul_v3db_db(double r[3], double f);
 MINLINE void mul_v3_v3fl(float r[3], const float a[3], float f);
-MINLINE void mul_v3_v3db_db(double r[3], const double a[3], double f);
 MINLINE void mul_v2_v2(float r[2], const float a[2]);
 MINLINE void mul_v2_v2v2(float r[2], const float a[2], const float b[2]);
 MINLINE void mul_v3_v3(float r[3], const float a[3]);
 MINLINE void mul_v3_v3v3(float r[3], const float v1[3], const float v2[3]);
 MINLINE void mul_v4_fl(float r[4], float f);
-MINLINE void mul_v4_v4(float r[4], const float a[4]);
 MINLINE void mul_v4_v4fl(float r[4], const float a[4], float f);
-MINLINE void mul_v2_v2_cw(float r[2], const float mat[2], const float vec[2]);
-MINLINE void mul_v2_v2_ccw(float r[2], const float mat[2], const float vec[2]);
 /**
  * Convenience function to get the projected depth of a position.
  * This avoids creating a temporary 4D vector and multiplying it - only for the 4th component.
@@ -191,10 +157,8 @@ MINLINE float dot_m4_v3_row_z(const float M[4][4], const float a[3]) ATTR_WARN_U
 
 MINLINE void madd_v2_v2fl(float r[2], const float a[2], float f);
 MINLINE void madd_v3_v3fl(float r[3], const float a[3], float f);
-MINLINE void madd_v3_v3v3(float r[3], const float a[3], const float b[3]);
 MINLINE void madd_v2_v2v2fl(float r[2], const float a[2], const float b[2], float f);
 MINLINE void madd_v3_v3v3fl(float r[3], const float a[3], const float b[3], float f);
-MINLINE void madd_v3_v3v3db_db(double r[3], const double a[3], const double b[3], double f);
 MINLINE void madd_v3_v3v3v3(float r[3], const float a[3], const float b[3], const float c[3]);
 MINLINE void madd_v4_v4fl(float r[4], const float a[4], float f);
 
@@ -203,7 +167,6 @@ MINLINE void madd_v3fl_v3fl_v3fl_v3i(float r[3],
                                      const float b[3],
                                      const int c[3]);
 
-MINLINE void negate_v2(float r[2]);
 MINLINE void negate_v2_v2(float r[2], const float a[2]);
 MINLINE void negate_v3(float r[3]);
 MINLINE void negate_v3_v3(float r[3], const float a[3]);
@@ -220,9 +183,6 @@ MINLINE void invert_v3(float r[3]);
  * Invert the vector, but leaves zero values as zero.
  */
 MINLINE void invert_v3_safe(float r[3]);
-
-MINLINE void abs_v3(float r[3]);
-MINLINE void abs_v3_v3(float r[3], const float a[3]);
 
 MINLINE float dot_v2v2(const float a[2], const float b[2]) ATTR_WARN_UNUSED_RESULT;
 MINLINE double dot_v2v2_db(const double a[2], const double b[2]) ATTR_WARN_UNUSED_RESULT;
@@ -243,7 +203,6 @@ MINLINE void cross_v3_v3v3(float r[3], const float a[3], const float b[3]);
  * Cross product suffers from severe precision loss when vectors are
  * nearly parallel or opposite; doing the computation in double helps a lot.
  */
-MINLINE void cross_v3_v3v3_hi_prec(float r[3], const float a[3], const float b[3]);
 MINLINE void cross_v3_v3v3_db(double r[3], const double a[3], const double b[3]);
 
 /**
@@ -276,8 +235,6 @@ MINLINE int len_manhattan_v2v2_int(const int a[2], const int b[2]) ATTR_WARN_UNU
 MINLINE float len_v3(const float a[3]) ATTR_WARN_UNUSED_RESULT;
 MINLINE float len_v3v3(const float a[3], const float b[3]) ATTR_WARN_UNUSED_RESULT;
 
-MINLINE double len_v3_db(const double a[3]) ATTR_WARN_UNUSED_RESULT;
-MINLINE double len_squared_v3_db(const double v[3]) ATTR_WARN_UNUSED_RESULT;
 MINLINE float normalize_v2_length(float n[2], float unit_length);
 /**
  * \note any vectors containing `nan` will be zeroed out.
@@ -348,8 +305,6 @@ void interp_v3_v3v3v3_uv(
  */
 bool interp_v3_v3v3_slerp(float target[3], const float a[3], const float b[3], float t)
     ATTR_WARN_UNUSED_RESULT;
-bool interp_v2_v2v2_slerp(float target[2], const float a[2], const float b[2], float t)
-    ATTR_WARN_UNUSED_RESULT;
 
 /**
  * Same as #interp_v3_v3v3_slerp but uses fallback values for opposite vectors.
@@ -411,8 +366,6 @@ MINLINE bool equals_v2v2(const float v1[2], const float v2[2]) ATTR_WARN_UNUSED_
 MINLINE bool equals_v3v3(const float v1[3], const float v2[3]) ATTR_WARN_UNUSED_RESULT;
 MINLINE bool equals_v4v4(const float v1[4], const float v2[4]) ATTR_WARN_UNUSED_RESULT;
 
-MINLINE bool equals_v2v2_int(const int v1[2], const int v2[2]) ATTR_WARN_UNUSED_RESULT;
-MINLINE bool equals_v3v3_int(const int v1[3], const int v2[3]) ATTR_WARN_UNUSED_RESULT;
 MINLINE bool equals_v4v4_int(const int v1[4], const int v2[4]) ATTR_WARN_UNUSED_RESULT;
 
 MINLINE bool compare_v2v2(const float v1[2],
