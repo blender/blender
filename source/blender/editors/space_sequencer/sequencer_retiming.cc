@@ -179,6 +179,14 @@ void SEQUENCER_OT_retiming_reset(wmOperatorType *ot)
 
 /** \} */
 
+static SeqRetimingKey *ensure_left_and_right_keys(const bContext *C, Sequence *seq)
+{
+  Scene *scene = CTX_data_scene(C);
+  SEQ_retiming_data_ensure(seq);
+  SEQ_retiming_add_key(scene, seq, left_fake_key_frame_get(C, seq));
+  return SEQ_retiming_add_key(scene, seq, right_fake_key_frame_get(C, seq));
+}
+
 /* -------------------------------------------------------------------- */
 /** \name Retiming Add Key
  * \{ */
@@ -203,7 +211,7 @@ static bool retiming_key_add_new_for_seq(bContext *C,
     return false;
   }
 
-  SEQ_retiming_data_ensure(seq);
+  ensure_left_and_right_keys(C, seq);
   SEQ_retiming_add_key(scene, seq, timeline_frame);
   return true;
 }
@@ -308,7 +316,8 @@ static bool freeze_frame_add_new_for_seq(const bContext *C,
                                          const int duration)
 {
   Scene *scene = CTX_data_scene(C);
-  SEQ_retiming_data_ensure(seq);
+  ensure_left_and_right_keys(C, seq);
+
   // ensure L+R key
   SeqRetimingKey *key = SEQ_retiming_add_key(scene, seq, timeline_frame);
 
@@ -434,6 +443,7 @@ static bool transition_add_new_for_seq(const bContext *C,
   Scene *scene = CTX_data_scene(C);
 
   // ensure L+R key
+  ensure_left_and_right_keys(C, seq);
   SeqRetimingKey *key = SEQ_retiming_add_key(scene, seq, timeline_frame);
 
   if (key == nullptr) {
@@ -607,14 +617,6 @@ void SEQUENCER_OT_retiming_key_delete(wmOperatorType *ot)
 /* -------------------------------------------------------------------- */
 /** \name Retiming Set Segment Speed
  * \{ */
-
-static SeqRetimingKey *ensure_left_and_right_keys(const bContext *C, Sequence *seq)
-{
-  Scene *scene = CTX_data_scene(C);
-  SEQ_retiming_data_ensure(seq);
-  SEQ_retiming_add_key(scene, seq, left_fake_key_frame_get(C, seq));
-  return SEQ_retiming_add_key(scene, seq, right_fake_key_frame_get(C, seq));
-}
 
 /* Return speed of existing segment or strip. Assume 1 element is selected. */
 static float strip_speed_get(bContext *C, const wmOperator * /*op*/)
