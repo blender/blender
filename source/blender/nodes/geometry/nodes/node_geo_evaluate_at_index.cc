@@ -100,6 +100,7 @@ static void node_register()
 
   geo_node_type_base(
       &ntype, GEO_NODE_EVALUATE_AT_INDEX, "Evaluate at Index", NODE_CLASS_CONVERTER);
+  ntype.enum_name_legacy = "FIELD_AT_INDEX";
   ntype.geometry_node_execute = node_geo_exec;
   ntype.draw_buttons = node_layout;
   ntype.initfunc = node_init;

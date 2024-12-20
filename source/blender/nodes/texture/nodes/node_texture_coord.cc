@@ -35,6 +35,7 @@ void register_node_type_tex_coord()
   static blender::bke::bNodeType ntype;
 
   tex_node_type_base(&ntype, TEX_NODE_COORD, "Coordinates", NODE_CLASS_INPUT);
+  ntype.enum_name_legacy = "COORD";
   blender::bke::node_type_socket_templates(&ntype, nullptr, outputs);
   ntype.exec_fn = exec;
 

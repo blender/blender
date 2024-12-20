@@ -916,7 +916,7 @@ struct MeshDeformBind {
   int *varidx;
 
   const BVHTree *bvhtree;
-  BVHTreeFromMesh bvhdata;
+  blender::bke::BVHTreeFromMesh bvhdata;
 
   /* avoid DM function calls during intersections */
   struct {

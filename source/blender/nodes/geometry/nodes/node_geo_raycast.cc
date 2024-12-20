@@ -99,7 +99,7 @@ static void raycast_to_mesh(const IndexMask &mask,
                             const MutableSpan<float3> r_hit_normals,
                             const MutableSpan<float> r_hit_distances)
 {
-  BVHTreeFromMesh tree_data = mesh.bvh_corner_tris();
+  bke::BVHTreeFromMesh tree_data = mesh.bvh_corner_tris();
   if (tree_data.tree == nullptr) {
     return;
   }
@@ -303,6 +303,7 @@ static void node_register()
   static blender::bke::bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_RAYCAST, "Raycast", NODE_CLASS_GEOMETRY);
+  ntype.enum_name_legacy = "RAYCAST";
   bke::node_type_size_preset(&ntype, bke::eNodeSizePreset::Middle);
   ntype.initfunc = node_init;
   blender::bke::node_type_storage(

@@ -160,6 +160,7 @@ void register_node_type_sh_valtorgb()
   static blender::bke::bNodeType ntype;
 
   sh_fn_node_type_base(&ntype, SH_NODE_VALTORGB, "Color Ramp", NODE_CLASS_CONVERTER);
+  ntype.enum_name_legacy = "VALTORGB";
   ntype.declare = file_ns::sh_node_valtorgb_declare;
   ntype.initfunc = file_ns::node_shader_init_valtorgb;
   blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::Large);

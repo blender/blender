@@ -4372,6 +4372,7 @@ void BKE_lib_override_library_validate(Main *bmain, ID *id, ReportList *reports)
    * properly 'liboverride embedded' IDs, like root node-trees, or shape-keys. */
   if (!override_library_is_valid(*liboverride_id, *liboverride, reports)) {
     BKE_lib_override_library_make_local(nullptr, liboverride_id);
+    return;
   }
 
   override_library_properties_validate(*liboverride_id, *liboverride, reports);

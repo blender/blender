@@ -129,6 +129,8 @@ const EnumPropertyItem rna_enum_strip_color_items[] = {
 
 #  include "IMB_imbuf.hh"
 
+#  include "MOV_read.hh"
+
 #  include "SEQ_edit.hh"
 
 struct SequenceSearchData {
@@ -887,7 +889,7 @@ static PointerRNA rna_MovieSequence_metadata_get(ID *scene_id, Sequence *seq)
     return PointerRNA_NULL;
   }
 
-  IDProperty *metadata = IMB_anim_load_metadata(sanim->anim);
+  IDProperty *metadata = MOV_load_metadata(sanim->anim);
   if (metadata == nullptr) {
     return PointerRNA_NULL;
   }
@@ -939,7 +941,7 @@ static void rna_Sequence_proxy_filepath_set(PointerRNA *ptr, const char *value)
   BLI_path_split_dir_file(
       value, proxy->dirpath, sizeof(proxy->dirpath), proxy->filename, sizeof(proxy->filename));
   if (proxy->anim) {
-    IMB_free_anim(proxy->anim);
+    MOV_close(proxy->anim);
     proxy->anim = nullptr;
   }
 }

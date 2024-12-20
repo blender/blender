@@ -34,6 +34,7 @@ static void createTransGreasePencilVerts(bContext *C, TransInfo *t)
   MutableSpan<TransDataContainer> trans_data_contrainers(t->data_container, t->data_container_len);
   const bool use_proportional_edit = (t->flag & T_PROP_EDIT_ALL) != 0;
   const bool use_connected_only = (t->flag & T_PROP_CONNECTED) != 0;
+  const bool use_individual_origins = (t->around == V3D_AROUND_LOCAL_ORIGINS);
   ToolSettings *ts = scene->toolsettings;
   const bool is_scale_thickness = ((t->mode == TFM_CURVE_SHRINKFATTEN) ||
                                    (ts->gp_sculpt.flag & GP_SCULPT_SETT_FLAG_SCALE_THICKNESS));
@@ -205,7 +206,7 @@ static void createTransGreasePencilVerts(bContext *C, TransInfo *t)
         value_attribute = opacities;
       }
 
-      const IndexMask affected_strokes = use_proportional_edit ?
+      const IndexMask affected_strokes = use_proportional_edit || use_individual_origins ?
                                              ed::greasepencil::retrieve_editable_strokes(
                                                  *object, info.drawing, info.layer_index, memory) :
                                              IndexMask();

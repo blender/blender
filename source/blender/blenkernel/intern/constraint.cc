@@ -5195,7 +5195,7 @@ static void followtrack_project_to_depth_object_if_needed(FollowTrackContext *co
   sub_v3_v3v3(ray_direction, ray_end, ray_start);
   normalize_v3(ray_direction);
 
-  BVHTreeFromMesh tree_data = depth_mesh->bvh_corner_tris();
+  blender::bke::BVHTreeFromMesh tree_data = depth_mesh->bvh_corner_tris();
 
   BVHTreeRayHit hit;
   hit.dist = BVH_RAYCAST_DIST_MAX;

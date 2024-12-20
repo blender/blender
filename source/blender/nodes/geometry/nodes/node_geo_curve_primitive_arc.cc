@@ -373,6 +373,7 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
   geo_node_type_base(&ntype, GEO_NODE_CURVE_PRIMITIVE_ARC, "Arc", NODE_CLASS_GEOMETRY);
+  ntype.enum_name_legacy = "CURVE_PRIMITIVE_ARC";
   ntype.initfunc = node_init;
   blender::bke::node_type_storage(&ntype,
                                   "NodeGeometryCurvePrimitiveArc",

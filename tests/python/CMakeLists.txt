@@ -879,13 +879,13 @@ else()
   )
 
   if(WITH_LIBMV)
-    list(APPEND compositor_tests distort matte)
+    list(APPEND compositor_tests distort matte anisotropic_filtering)
   endif()
 
   foreach(comp_test ${compositor_tests})
     add_render_test(
-      compositor_${comp_test}_cpu
-      ${CMAKE_CURRENT_LIST_DIR}/compositor_cpu_render_tests.py
+      compositor_cpu_${comp_test}
+      ${CMAKE_CURRENT_LIST_DIR}/compositor_render_tests.py
       --testdir "${TEST_SRC_DIR}/compositor/${comp_test}"
       --outdir "${TEST_OUT_DIR}/compositor_cpu"
     )
@@ -893,7 +893,7 @@ else()
 
 endif()
 
-if(WITH_COMPOSITOR_REALTIME_TESTS)
+if(WITH_GPU_COMPOSITOR_TESTS)
   if(NOT OPENIMAGEIO_TOOL)
     message(WARNING "Disabling compositor tests because OIIO oiiotool does not exist")
   else()
@@ -914,10 +914,11 @@ if(WITH_COMPOSITOR_REALTIME_TESTS)
 
     foreach(comp_test ${compositor_tests})
       add_render_test(
-        compositor_${comp_test}_realtime
-        ${CMAKE_CURRENT_LIST_DIR}/compositor_realtime_render_tests.py
+        compositor_gpu_${comp_test}
+        ${CMAKE_CURRENT_LIST_DIR}/compositor_render_tests.py
         --testdir "${TEST_SRC_DIR}/compositor/${comp_test}"
-        --outdir "${TEST_OUT_DIR}/compositor_realtime"
+        --outdir "${TEST_OUT_DIR}/compositor_gpu"
+        --gpu
       )
     endforeach()
   endif()

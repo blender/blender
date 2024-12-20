@@ -7,6 +7,7 @@ set(INC
   PUBLIC ${CMAKE_CURRENT_BINARY_DIR}
   ../../blenlib
   ../../imbuf
+  ../../imbuf/movie
 )
 
 set(INC_SYS

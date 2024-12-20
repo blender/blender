@@ -179,7 +179,7 @@ static void SCULPT_OT_optimize(wmOperatorType *ot)
   ot->exec = optimize_exec;
   ot->poll = SCULPT_mode_poll;
 
-  ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+  ot->flag = OPTYPE_REGISTER;
 }
 
 /** \} */
@@ -621,7 +621,7 @@ static int sample_color_invoke(bContext *C, wmOperator *op, const wmEvent * /*ev
   Brush &brush = *BKE_paint_brush(&sd.paint);
   SculptSession &ss = *ob.sculpt;
 
-  if (!color_supported_check(ob, op->reports)) {
+  if (!color_supported_check(scene, ob, op->reports)) {
     return OPERATOR_CANCELLED;
   }
 
@@ -824,7 +824,7 @@ static int mask_by_color_invoke(bContext *C, wmOperator *op, const wmEvent *even
   }
 
   /* Color data is not available in multi-resolution or dynamic topology. */
-  if (!color_supported_check(ob, op->reports)) {
+  if (!color_supported_check(scene, ob, op->reports)) {
     return OPERATOR_CANCELLED;
   }
 

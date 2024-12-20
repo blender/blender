@@ -91,6 +91,7 @@ static void node_register()
   static blender::bke::bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_CURVE_PRIMITIVE_SPIRAL, "Spiral", NODE_CLASS_GEOMETRY);
+  ntype.enum_name_legacy = "CURVE_PRIMITIVE_SPIRAL";
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
   blender::bke::node_register_type(&ntype);

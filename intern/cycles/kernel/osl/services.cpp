@@ -595,11 +595,11 @@ static bool set_attribute_float4(float4 f[3], TypeDesc type, bool derivatives, v
     return true;
   }
   else if (type == TypeFloat) {
-    fval[0] = average(float4_to_float3(f[0]));
+    fval[0] = average(make_float3(f[0]));
 
     if (derivatives) {
-      fval[1] = average(float4_to_float3(f[1]));
-      fval[2] = average(float4_to_float3(f[2]));
+      fval[1] = average(make_float3(f[1]));
+      fval[2] = average(make_float3(f[2]));
     }
     return true;
   }

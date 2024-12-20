@@ -22,6 +22,7 @@ static void node_register()
   static blender::bke::bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_INPUT_FACE_SMOOTH, "Is Face Smooth", NODE_CLASS_INPUT);
+  ntype.enum_name_legacy = "INPUT_SHADE_SMOOTH";
   ntype.geometry_node_execute = node_geo_exec;
   ntype.declare = node_declare;
   blender::bke::node_register_type(&ntype);

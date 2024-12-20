@@ -251,12 +251,13 @@ static void init(bNodeTree * /*ntree*/, bNode *node)
 }
 
 /* Node type definitions */
-#define TexDef(TEXTYPE, outputs, name, Name) \
+#define TexDef(TEXTYPE, outputs, name, Name, EnumNameLegacy) \
   void register_node_type_tex_proc_##name(void) \
   { \
     static blender::bke::bNodeType ntype; \
 \
     tex_node_type_base(&ntype, TEX_NODE_PROC + TEXTYPE, Name, NODE_CLASS_TEXTURE); \
+    ntype.enum_name_legacy = EnumNameLegacy; \
     blender::bke::node_type_socket_templates(&ntype, name##_inputs, outputs); \
     blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::Middle); \
     ntype.initfunc = init; \
@@ -271,9 +272,13 @@ static void init(bNodeTree * /*ntree*/, bNode *node)
 #define C outputs_color_only
 #define CV outputs_both
 
-TexDef(TEX_VORONOI, CV, voronoi, "Voronoi") TexDef(TEX_BLEND, C, blend, "Blend");
-TexDef(TEX_MAGIC, C, magic, "Magic") TexDef(TEX_MARBLE, CV, marble, "Marble");
-TexDef(TEX_CLOUDS, CV, clouds, "Clouds") TexDef(TEX_WOOD, CV, wood, "Wood");
-TexDef(TEX_MUSGRAVE, CV, musgrave, "Musgrave") TexDef(TEX_NOISE, C, noise, "Noise");
-TexDef(TEX_STUCCI, CV, stucci, "Stucci");
-TexDef(TEX_DISTNOISE, CV, distnoise, "Distorted Noise");
+TexDef(TEX_VORONOI, CV, voronoi, "Voronoi", "TEX_VORONOI")
+    TexDef(TEX_BLEND, C, blend, "Blend", "TEX_BLEND");
+TexDef(TEX_MAGIC, C, magic, "Magic", "TEX_MAGIC")
+    TexDef(TEX_MARBLE, CV, marble, "Marble", "TEX_MARBLE");
+TexDef(TEX_CLOUDS, CV, clouds, "Clouds", "TEX_CLOUDS")
+    TexDef(TEX_WOOD, CV, wood, "Wood", "TEX_WOOD");
+TexDef(TEX_MUSGRAVE, CV, musgrave, "Musgrave", "TEX_MUSGRAVE")
+    TexDef(TEX_NOISE, C, noise, "Noise", "TEX_NOISE");
+TexDef(TEX_STUCCI, CV, stucci, "Stucci", "TEX_STUCCI");
+TexDef(TEX_DISTNOISE, CV, distnoise, "Distorted Noise", "TEX_DISTNOISE");

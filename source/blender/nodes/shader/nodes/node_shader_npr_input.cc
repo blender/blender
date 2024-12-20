@@ -42,6 +42,7 @@ void register_node_type_sh_npr_input()
   static blender::bke::bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_NPR_INPUT, "NPR Input", NODE_CLASS_INPUT);
+  ntype.enum_name_legacy = "NPR_INPUT";
   ntype.declare = file_ns::node_declare;
   ntype.add_ui_poll = npr_shader_nodes_poll;
   ntype.gpu_fn = file_ns::node_shader_fn;

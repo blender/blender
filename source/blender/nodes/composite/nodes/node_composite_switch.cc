@@ -62,6 +62,7 @@ void register_node_type_cmp_switch()
   static blender::bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_SWITCH, "Switch", NODE_CLASS_CONVERTER);
+  ntype.enum_name_legacy = "SWITCH";
   ntype.declare = file_ns::cmp_node_switch_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_switch;
   blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::Default);

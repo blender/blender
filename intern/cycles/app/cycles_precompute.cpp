@@ -224,7 +224,7 @@ static bool cycles_precompute(std::string name)
         float mu = (ny == 1) ? rand.w : clamp(float(y) / float(ny - 1), 1e-4f, 1.0f);
         float ior = (nz == 1) ? 0.0f : clamp(float(z) / float(nz - 1), 1e-4f, 0.99f);
 
-        float value = term.evaluation(rough, mu, ior, float4_to_float3(rand));
+        float value = term.evaluation(rough, mu, ior, make_float3(rand));
         if (isnan(value)) {
           value = 0.0f;
         }

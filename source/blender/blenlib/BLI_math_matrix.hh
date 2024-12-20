@@ -368,6 +368,20 @@ inline void to_loc_rot_scale(const MatBase<T, 4, 4> &mat,
  * \{ */
 
 /**
+ * Transform a 2d point using a 2x2 matrix (rotation & scale).
+ */
+template<typename T>
+[[nodiscard]] VecBase<T, 2> transform_point(const MatBase<T, 2, 2> &mat,
+                                            const VecBase<T, 2> &point);
+
+/**
+ * Transform a 2d point using a 3x3 matrix (location & rotation & scale).
+ */
+template<typename T>
+[[nodiscard]] VecBase<T, 2> transform_point(const MatBase<T, 3, 3> &mat,
+                                            const VecBase<T, 2> &point);
+
+/**
  * Transform a 3d point using a 3x3 matrix (rotation & scale).
  */
 template<typename T>
@@ -1595,6 +1609,18 @@ template<typename MatT, typename VectorT>
 [[nodiscard]] MatT from_origin_transform(const MatT &transform, const VectorT origin)
 {
   return from_location<MatT>(origin) * transform * from_location<MatT>(-origin);
+}
+
+template<typename T>
+VecBase<T, 2> transform_point(const MatBase<T, 2, 2> &mat, const VecBase<T, 2> &point)
+{
+  return mat * point;
+}
+
+template<typename T>
+VecBase<T, 2> transform_point(const MatBase<T, 3, 3> &mat, const VecBase<T, 2> &point)
+{
+  return mat.template view<2, 2>() * point + mat.location();
 }
 
 template<typename T>

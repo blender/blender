@@ -80,7 +80,7 @@ struct ShrinkwrapTreeData {
   Mesh *mesh;
 
   const BVHTree *bvh;
-  BVHTreeFromMesh treeData;
+  blender::bke::BVHTreeFromMesh treeData;
 
   blender::OffsetIndices<int> faces;
   blender::Span<blender::int2> edges;

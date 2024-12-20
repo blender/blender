@@ -641,7 +641,7 @@ static PyObject *osl_update_node_func(PyObject * /*self*/, PyObject *args)
         set_float4(b_sock.ptr, "default_value", default_float4);
       }
       else if (data_type == BL::NodeSocket::type_VECTOR) {
-        set_float3(b_sock.ptr, "default_value", float4_to_float3(default_float4));
+        set_float3(b_sock.ptr, "default_value", make_float3(default_float4));
       }
       else if (data_type == BL::NodeSocket::type_STRING) {
         set_string(b_sock.ptr, "default_value", default_string);

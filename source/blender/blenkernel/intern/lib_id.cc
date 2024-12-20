@@ -872,16 +872,18 @@ void BKE_id_move_to_same_lib(Main &bmain, ID &id, const ID &owner_id)
     return;
   }
 
+  BKE_main_namemap_remove_name(&bmain, &id, BKE_id_name(id));
+
   id.lib = owner_id.lib;
   id.tag |= ID_TAG_INDIRECT;
 
-  BKE_main_namemap_remove_name(&bmain, &id, BKE_id_name(id));
   ListBase &lb = *which_libbase(&bmain, GS(id.name));
   BKE_id_new_name_validate(
       bmain, lb, id, BKE_id_name(id), IDNewNameMode::RenameExistingNever, true);
 }
 
-static void id_embedded_swap(ID **embedded_id_a,
+static void id_embedded_swap(Main *bmain,
+                             ID **embedded_id_a,
                              ID **embedded_id_b,
                              const bool do_full_id,
                              IDRemapper *remapper_id_a,
@@ -939,7 +941,8 @@ static void id_swap(Main *bmain,
     id_b->recalc = id_a_back.recalc;
   }
 
-  id_embedded_swap((ID **)blender::bke::node_tree_ptr_from_id(id_a),
+  id_embedded_swap(bmain,
+                   (ID **)blender::bke::node_tree_ptr_from_id(id_a),
                    (ID **)blender::bke::node_tree_ptr_from_id(id_b),
                    do_full_id,
                    remapper_id_a,
@@ -947,7 +950,8 @@ static void id_swap(Main *bmain,
   if (GS(id_a->name) == ID_SCE) {
     Scene *scene_a = (Scene *)id_a;
     Scene *scene_b = (Scene *)id_b;
-    id_embedded_swap((ID **)&scene_a->master_collection,
+    id_embedded_swap(bmain,
+                     (ID **)&scene_a->master_collection,
                      (ID **)&scene_b->master_collection,
                      do_full_id,
                      remapper_id_a,
@@ -969,6 +973,22 @@ static void id_swap(Main *bmain,
         bmain, {id_b}, ID_REMAP_TYPE_REMAP, *remapper_id_b, self_remap_flags);
   }
 
+  if ((id_type->flags & IDTYPE_FLAGS_NO_ANIMDATA) == 0 && bmain) {
+    /* Action Slots point to the IDs they animate, and thus now also needs swapping. Instead of
+     * doing this here (and requiring knowledge of how that's supposed to be done), just mark these
+     * pointers as dirty so that they're rebuilt at first use.
+     *
+     * There are a few calls to id_swap() where `bmain` is nil. None of these matter here, though:
+     *
+     * - At blendfile load (`read_libblock_undo_restore_at_old_address()`). Fine
+     *   because after loading the action slot user cache is rebuilt anyway.
+     * - Swapping window managers (`swap_wm_data_for_blendfile()`). Fine because
+     *   WMs cannot be animated.
+     * - Palette undo code (`palette_undo_preserve()`). Fine because palettes
+     *   cannot be animated. */
+    blender::bke::animdata::action_slots_user_cache_invalidate(*bmain);
+  }
+
   if (input_remapper_id_a == nullptr && remapper_id_a != nullptr) {
     MEM_delete(remapper_id_a);
   }
@@ -981,7 +1001,8 @@ static void id_swap(Main *bmain,
  * (like e.g. the depsgraph) may treat them as independent IDs, so swapping them here and
  * switching their pointers in the owner IDs allows to help not break cached relationships and
  * such (by preserving the pointer values). */
-static void id_embedded_swap(ID **embedded_id_a,
+static void id_embedded_swap(Main *bmain,
+                             ID **embedded_id_a,
                              ID **embedded_id_b,
                              const bool do_full_id,
                              IDRemapper *remapper_id_a,
@@ -997,14 +1018,8 @@ static void id_embedded_swap(ID **embedded_id_a,
 
     /* Do not remap internal references to itself here, since embedded IDs pointers also need to be
      * potentially remapped in owner ID's data, which will also handle embedded IDs data. */
-    id_swap(nullptr,
-            *embedded_id_a,
-            *embedded_id_b,
-            do_full_id,
-            false,
-            remapper_id_a,
-            remapper_id_b,
-            0);
+    id_swap(
+        bmain, *embedded_id_a, *embedded_id_b, do_full_id, false, remapper_id_a, remapper_id_b, 0);
     /* Manual 'remap' of owning embedded pointer in owner ID. */
     std::swap(*embedded_id_a, *embedded_id_b);
 

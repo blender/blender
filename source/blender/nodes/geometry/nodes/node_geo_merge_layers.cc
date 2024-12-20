@@ -199,6 +199,7 @@ static void node_register()
   static blender::bke::bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_MERGE_LAYERS, "Merge Layers", NODE_CLASS_GEOMETRY);
+  ntype.enum_name_legacy = "MERGE_LAYERS";
   ntype.declare = node_declare;
   ntype.initfunc = node_init;
   ntype.draw_buttons = node_layout;

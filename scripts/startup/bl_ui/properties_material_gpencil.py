@@ -92,8 +92,9 @@ class MATERIAL_PT_gpencil_slots(GreasePencilMaterialsPanel, Panel):
     @classmethod
     def poll(cls, context):
         ma = context.material
-
-        return ma and ma.grease_pencil
+        found_material = ma and ma.grease_pencil
+        found_object = context.object and context.object.type == 'GREASEPENCIL'
+        return found_material or found_object
 
 
 # Used as parent for "Stroke" and "Fill" panels

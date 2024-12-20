@@ -339,8 +339,8 @@ ccl_device bool ray_aabb_intersect(const float3 bbox_min,
   const float3 t_upper = (bbox_max - ray_P) * inv_ray_D;
 
   /* The four t-intervals (for x-/y-/z-slabs, and ray p(t)). */
-  const float4 tmins = float3_to_float4(min(t_lower, t_upper), t_range->min);
-  const float4 tmaxes = float3_to_float4(max(t_lower, t_upper), t_range->max);
+  const float4 tmins = make_float4(min(t_lower, t_upper), t_range->min);
+  const float4 tmaxes = make_float4(max(t_lower, t_upper), t_range->max);
 
   /* Max of mins and min of maxes. */
   const float tmin = reduce_max(tmins);
@@ -361,8 +361,8 @@ ccl_device_inline bool ray_infinite_cylinder_intersect(const float3 P,
 {
   /* Convert to a 2D problem. */
   const float2 inv_len = 1.0f / make_float2(len_u, len_v);
-  float2 P_proj = float3_to_float2(P) * inv_len;
-  const float2 D_proj = float3_to_float2(D) * inv_len;
+  float2 P_proj = make_float2(P) * inv_len;
+  const float2 D_proj = make_float2(D) * inv_len;
 
   /* Solve quadratic equation a*t^2 + 2b*t + c = 0. */
   const float a = dot(D_proj, D_proj);

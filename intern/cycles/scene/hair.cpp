@@ -21,10 +21,10 @@ void Hair::Curve::bounds_grow(const int k, const float4 *keys, BoundBox &bounds)
 {
   float3 P[4];
 
-  P[0] = float4_to_float3(keys[max(first_key + k - 1, first_key)]);
-  P[1] = float4_to_float3(keys[first_key + k]);
-  P[2] = float4_to_float3(keys[first_key + k + 1]);
-  P[3] = float4_to_float3(keys[min(first_key + k + 2, first_key + num_keys - 1)]);
+  P[0] = make_float3(keys[max(first_key + k - 1, first_key)]);
+  P[1] = make_float3(keys[first_key + k]);
+  P[2] = make_float3(keys[first_key + k + 1]);
+  P[3] = make_float3(keys[min(first_key + k + 2, first_key + num_keys - 1)]);
 
   float3 lower;
   float3 upper;
@@ -98,10 +98,10 @@ void Hair::Curve::bounds_grow(const int k,
 void Hair::Curve::bounds_grow(float4 keys[4], BoundBox &bounds) const
 {
   float3 P[4] = {
-      float4_to_float3(keys[0]),
-      float4_to_float3(keys[1]),
-      float4_to_float3(keys[2]),
-      float4_to_float3(keys[3]),
+      make_float3(keys[0]),
+      make_float3(keys[1]),
+      make_float3(keys[2]),
+      make_float3(keys[3]),
   };
 
   float3 lower;
@@ -407,7 +407,7 @@ void Hair::compute_bounds()
       float4 *key_steps = curve_attr->data_float4();
 
       for (size_t i = 0; i < steps_size; i++) {
-        bnds.grow(float4_to_float3(key_steps[i]));
+        bnds.grow(make_float3(key_steps[i]));
       }
     }
 
@@ -426,7 +426,7 @@ void Hair::compute_bounds()
         float4 *key_steps = curve_attr->data_float4();
 
         for (size_t i = 0; i < steps_size; i++) {
-          bnds.grow_safe(float4_to_float3(key_steps[i]));
+          bnds.grow_safe(make_float3(key_steps[i]));
         }
       }
     }
@@ -470,11 +470,11 @@ void Hair::apply_transform(const Transform &tfm, const bool apply_to_motion)
       float4 *key_steps = curve_attr->data_float4();
 
       for (size_t i = 0; i < steps_size; i++) {
-        float3 co = transform_point(&tfm, float4_to_float3(key_steps[i]));
+        float3 co = transform_point(&tfm, make_float3(key_steps[i]));
         float radius = key_steps[i].w * scalar;
 
         /* scale for curve radius is only correct for uniform scale */
-        key_steps[i] = float3_to_float4(co);
+        key_steps[i] = make_float4(co);
         key_steps[i].w = radius;
       }
     }

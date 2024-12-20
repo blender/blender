@@ -42,3 +42,11 @@ node_tree_group_type = {
     'TextureNodeTree': 'TextureNodeGroup',
     'GeometryNodeTree': 'GeometryNodeGroup',
 }
+
+
+def register():
+    pass
+
+
+def unregister():
+    pass

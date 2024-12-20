@@ -47,6 +47,8 @@
 #include "IMB_imbuf_types.hh"
 #include "IMB_metadata.hh"
 
+#include "MOV_read.hh"
+
 #include "RNA_prototypes.hh"
 
 #include "RE_engine.h"
@@ -1106,7 +1108,7 @@ static ImBuf *seq_render_movie_strip_custom_file_proxy(const SeqRenderData *cont
 
   int frameno = round_fl_to_int(SEQ_give_frame_index(context->scene, seq, timeline_frame)) +
                 seq->anim_startofs;
-  return IMB_anim_absolute(proxy->anim, frameno, IMB_TC_NONE, IMB_PROXY_NONE);
+  return MOV_decode_frame(proxy->anim, frameno, IMB_TC_NONE, IMB_PROXY_NONE);
 }
 
 static IMB_Timecode_Type seq_render_movie_strip_timecode_get(Sequence *seq)
@@ -1142,10 +1144,10 @@ static ImBuf *seq_render_movie_strip_view(const SeqRenderData *context,
       ibuf = seq_render_movie_strip_custom_file_proxy(context, seq, timeline_frame);
     }
     else {
-      ibuf = IMB_anim_absolute(sanim->anim,
-                               frame_index + seq->anim_startofs,
-                               seq_render_movie_strip_timecode_get(seq),
-                               psize);
+      ibuf = MOV_decode_frame(sanim->anim,
+                              frame_index + seq->anim_startofs,
+                              seq_render_movie_strip_timecode_get(seq),
+                              psize);
     }
 
     if (ibuf != nullptr) {
@@ -1155,10 +1157,10 @@ static ImBuf *seq_render_movie_strip_view(const SeqRenderData *context,
 
   /* Fetching for requested proxy size failed, try fetching the original instead. */
   if (ibuf == nullptr) {
-    ibuf = IMB_anim_absolute(sanim->anim,
-                             frame_index + seq->anim_startofs,
-                             seq_render_movie_strip_timecode_get(seq),
-                             IMB_PROXY_NONE);
+    ibuf = MOV_decode_frame(sanim->anim,
+                            frame_index + seq->anim_startofs,
+                            seq_render_movie_strip_timecode_get(seq),
+                            IMB_PROXY_NONE);
   }
   if (ibuf == nullptr) {
     return nullptr;
@@ -1249,10 +1251,7 @@ static ImBuf *seq_render_movie_strip(const SeqRenderData *context,
 
   if (*r_is_proxy_image == false) {
     if (sanim && sanim->anim) {
-      short fps_denom;
-      float fps_num;
-      IMB_anim_get_fps(sanim->anim, true, &fps_denom, &fps_num);
-      seq->strip->stripdata->orig_fps = fps_denom / fps_num;
+      seq->strip->stripdata->orig_fps = MOV_get_fps(sanim->anim);
     }
     seq->strip->stripdata->orig_width = ibuf->x;
     seq->strip->stripdata->orig_height = ibuf->y;

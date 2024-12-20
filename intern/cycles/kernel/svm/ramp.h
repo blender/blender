@@ -92,7 +92,7 @@ ccl_device_noinline int svm_node_rgb_ramp(
   float4 color = rgb_ramp_lookup(kg, offset, fac, interpolate, false, table_size);
 
   if (stack_valid(color_offset))
-    stack_store_float3(stack, color_offset, float4_to_float3(color));
+    stack_store_float3(stack, color_offset, make_float3(color));
   if (stack_valid(alpha_offset))
     stack_store_float(stack, alpha_offset, color.w);
 

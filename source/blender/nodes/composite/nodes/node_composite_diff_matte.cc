@@ -135,6 +135,7 @@ void register_node_type_cmp_diff_matte()
   static blender::bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_DIFF_MATTE, "Difference Key", NODE_CLASS_MATTE);
+  ntype.enum_name_legacy = "DIFF_MATTE";
   ntype.declare = file_ns::cmp_node_diff_matte_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_diff_matte;
   ntype.flag |= NODE_PREVIEW;

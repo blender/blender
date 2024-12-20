@@ -380,7 +380,7 @@ ccl_device Spectrum fresnel_iridescence(KernelGlobals kg,
    * matrix. Since CIE RGB uses E as its white point, this sidesteps the chromatic adaption
    * topic, but the primary colors don't match (unless you happen to actually work in CIE RGB.)
    */
-  R *= float4_to_float3(kernel_data.film.white_xyz);
+  R *= make_float3(kernel_data.film.white_xyz);
   return saturate(xyz_to_rgb(kg, R));
 }
 

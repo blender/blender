@@ -126,7 +126,7 @@ static void gpu_viewport_textures_create(GPUViewport *viewport)
 
   if (viewport->color_render_tx[0] == nullptr) {
 
-    /* NOTE: dtxl_color texture requires write support as it may be written to by the realtime
+    /* NOTE: dtxl_color texture requires write support as it may be written to by the viewport
      * compositor. */
     viewport->color_render_tx[0] = GPU_texture_create_2d("dtxl_color",
                                                          UNPACK2(size),

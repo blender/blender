@@ -131,6 +131,7 @@ static void register_node()
 
   geo_node_type_base(
       &ntype, GEO_NODE_TRANSFORM_GEOMETRY, "Transform Geometry", NODE_CLASS_GEOMETRY);
+  ntype.enum_name_legacy = "TRANSFORM_GEOMETRY";
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.draw_buttons = node_layout;

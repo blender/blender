@@ -63,8 +63,8 @@ ccl_device_noinline int svm_node_min_max(KernelGlobals kg,
 {
   float3 v = stack_load_float3(stack, vec_offset);
 
-  float3 mn = float4_to_float3(read_node_float(kg, &offset));
-  float3 mx = float4_to_float3(read_node_float(kg, &offset));
+  float3 mn = make_float3(read_node_float(kg, &offset));
+  float3 mx = make_float3(read_node_float(kg, &offset));
 
   float3 r = min(max(mn, v), mx);
   stack_store_float3(stack, out_offset, r);

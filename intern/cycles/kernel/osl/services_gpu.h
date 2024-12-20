@@ -1000,7 +1000,7 @@ ccl_device_inline bool set_attribute_float4(ccl_private float4 fval[3],
     }
     if ((type_aggregate == 1 /* TypeDesc::SCALAR */)) {
       for (int i = 0; i < (derivatives ? 3 : 1); ++i) {
-        static_cast<ccl_private float *>(val)[i] = average(float4_to_float3(fval[i]));
+        static_cast<ccl_private float *>(val)[i] = average(make_float3(fval[i]));
       }
       return true;
     }

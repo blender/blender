@@ -594,7 +594,9 @@ static void duplidata_key_free(void *key)
     drw_batch_cache_generate_requested(dupli_key->ob);
   }
   else {
+    /* Geometry instances shouldn't be rendered with edit mode overlays. */
     Object temp_object = blender::dna::shallow_copy(*dupli_key->ob);
+    temp_object.mode = OB_MODE_OBJECT;
     blender::bke::ObjectRuntime runtime = *dupli_key->ob->runtime;
     temp_object.runtime = &runtime;
 

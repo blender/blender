@@ -104,7 +104,7 @@ class OBJECT_MT_modifier_add_edit(ModifierAddMenu, Menu):
             self.operator_modifier_add(layout, 'DATA_TRANSFER')
         if ob_type in {'MESH', 'CURVE', 'FONT', 'SURFACE', 'LATTICE'}:
             self.operator_modifier_add(layout, 'MESH_CACHE')
-        if ob_type in {'MESH', 'CURVE', 'CURVES', 'FONT', 'SURFACE', 'POINTCLOUD'}:
+        if ob_type in {'MESH', 'CURVE', 'CURVES', 'FONT', 'POINTCLOUD'}:
             self.operator_modifier_add(layout, 'MESH_SEQUENCE_CACHE')
         if ob_type == 'MESH':
             self.operator_modifier_add(layout, 'UV_PROJECT')

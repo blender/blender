@@ -416,6 +416,7 @@ void register_node_type_cmp_bokehblur()
   static blender::bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_BOKEHBLUR, "Bokeh Blur", NODE_CLASS_OP_FILTER);
+  ntype.enum_name_legacy = "BOKEHBLUR";
   ntype.declare = file_ns::cmp_node_bokehblur_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_bokehblur;
   ntype.initfunc = file_ns::node_composit_init_bokehblur;

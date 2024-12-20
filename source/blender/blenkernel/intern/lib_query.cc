@@ -8,6 +8,8 @@
 
 #include <cstdlib>
 
+#include "CLG_log.h"
+
 #include "DNA_anim_types.h"
 
 #include "BLI_function_ref.hh"
@@ -24,6 +26,8 @@
 #include "BKE_lib_query.hh"
 #include "BKE_main.hh"
 #include "BKE_node.hh"
+
+static CLG_LogRef LOG = {"bke.lib_query"};
 
 /* status */
 enum {
@@ -730,6 +734,75 @@ static void lib_query_unused_ids_tag_id(ID *id, UnusedIDsData &data)
   }
 }
 
+static void lib_query_unused_ids_untag_id(ID &id, UnusedIDsData &data)
+{
+  BLI_assert(data.unused_ids.contains(&id));
+
+  id.tag &= ~data.id_tag;
+  data.unused_ids.remove_contained(&id);
+
+  const int id_code = BKE_idtype_idcode_to_index(GS(id.name));
+  (*data.num_total)[INDEX_ID_NULL]--;
+  (*data.num_total)[id_code]--;
+  if (ID_IS_LINKED(&id)) {
+    (*data.num_linked)[INDEX_ID_NULL]--;
+    (*data.num_linked)[id_code]--;
+  }
+  else {
+    (*data.num_local)[INDEX_ID_NULL]--;
+    (*data.num_local)[id_code]--;
+  }
+}
+
+/* Certain corner-cases require to consider an ID as used, even if there are no 'real' refcounting
+ * usages of these. */
+static bool lib_query_unused_ids_has_exception_user(ID &id, UnusedIDsData &data)
+{
+  switch (GS(id.name)) {
+    case ID_OB: {
+      /* FIXME: This is a workaround until Object usages are handled more soundly.
+       *
+       * Historically, only refcounting Object usages were the Collection ones. All other
+       * references (e.g. as Constraints or Modifiers targets) did not increase their usercount.
+       *
+       * This is not entirely true anymore (e.g. some type-agnostic ID usages like IDPointer custom
+       * properties do refcount Object ones too), but there are still many Object usages that
+       * should refcount them and don't do it.
+       *
+       * This becomes a problem with linked data, as in that case instancing of linked Objects in
+       * the scene is not enforced (to avoid cluttering the scene), which leaves some actually used
+       * linked objects with a `0` usercount.
+       *
+       * So this is a special check to consider linked objects as used also in case some other
+       * used ID uses them.
+       */
+      if (!ID_IS_LINKED(&id)) {
+        return false;
+      }
+      MainIDRelationsEntry *id_relations = static_cast<MainIDRelationsEntry *>(
+          BLI_ghash_lookup(data.bmain->relations->relations_from_pointers, &id));
+      for (MainIDRelationsEntryItem *from = id_relations->from_ids; from; from = from->next) {
+        if (!data.unused_ids.contains(from->id_pointer.from)) {
+          return true;
+        }
+      }
+      break;
+    }
+    case ID_IM: {
+      /* Images which have a 'viewer' source (e.g. render results) should not be considered as
+       * orphaned/unused data. */
+      const Image &image = reinterpret_cast<Image &>(id);
+      if (image.source == IMA_SRC_VIEWER) {
+        return true;
+      }
+      break;
+    }
+    default:
+      return false;
+  }
+  return false;
+}
+
 /* Returns `true` if given ID is detected as part of at least one dependency loop, false otherwise.
  */
 static bool lib_query_unused_ids_tag_recurse(ID *id, UnusedIDsData &data)
@@ -774,14 +847,9 @@ static bool lib_query_unused_ids_tag_recurse(ID *id, UnusedIDsData &data)
     return false;
   }
 
-  if (ELEM(GS(id->name), ID_IM)) {
-    /* Images which have a 'viewer' source (e.g. render results) should not be considered as
-     * orphaned/unused data. */
-    const Image *image = (Image *)id;
-    if (image->source == IMA_SRC_VIEWER) {
-      id_relations->tags |= MAINIDRELATIONS_ENTRY_TAGS_PROCESSED;
-      return false;
-    }
+  if (lib_query_unused_ids_has_exception_user(*id, data)) {
+    id_relations->tags |= MAINIDRELATIONS_ENTRY_TAGS_PROCESSED;
+    return false;
   }
 
   /* An ID user is 'valid' (i.e. may affect the 'used'/'not used' status of the ID it uses) if it
@@ -847,6 +915,7 @@ static bool lib_query_unused_ids_tag_recurse(ID *id, UnusedIDsData &data)
 
 static void lib_query_unused_ids_tag(UnusedIDsData &data)
 {
+  BLI_assert(data.bmain->relations != nullptr);
   BKE_main_relations_tag_set(data.bmain, MAINIDRELATIONS_ENTRY_TAGS_PROCESSED, false);
 
   /* First loop, to only check for immediately unused IDs (those with 0 user count).
@@ -865,10 +934,36 @@ static void lib_query_unused_ids_tag(UnusedIDsData &data)
   }
   FOREACH_MAIN_ID_END;
 
+  /* Special post-process to handle linked objects with no users, see
+   * #lib_query_unused_ids_has_exception_user for details.
+   *
+   * NOTE: Here needs to be in a separate loop, so that all directly unused users of objects have
+   * been tagged as such already by the previous loop. */
+  constexpr int max_loop_num = 10;
+  int loop_num;
+  for (loop_num = 0; loop_num < max_loop_num; loop_num++) {
+    bool do_loop = false;
+    FOREACH_MAIN_LISTBASE_ID_BEGIN (&data.bmain->objects, id) {
+      if (!data.unused_ids.contains(id)) {
+        continue;
+      }
+      if (lib_query_unused_ids_has_exception_user(*id, data)) {
+        lib_query_unused_ids_untag_id(*id, data);
+        do_loop = true;
+      }
+    }
+    FOREACH_MAIN_LISTBASE_ID_END;
+    if (!do_loop) {
+      break;
+    }
+  }
+  if (loop_num >= max_loop_num) {
+    CLOG_WARN(&LOG, "Unexpected levels of dependencies between non-instantiated but used Objects");
+  }
+
   if (!data.do_recursive) {
     return;
   }
-  BLI_assert(data.bmain->relations != nullptr);
 
   FOREACH_MAIN_ID_BEGIN (data.bmain, id) {
     if (lib_query_unused_ids_tag_recurse(id, data)) {
@@ -904,9 +999,7 @@ static void lib_query_unused_ids_tag(UnusedIDsData &data)
 void BKE_lib_query_unused_ids_amounts(Main *bmain, LibQueryUnusedIDsData &parameters)
 {
   std::array<int, INDEX_ID_MAX> num_dummy{0};
-  if (parameters.do_recursive) {
-    BKE_main_relations_create(bmain, 0);
-  }
+  BKE_main_relations_create(bmain, 0);
 
   parameters.num_total.fill(0);
   parameters.num_local.fill(0);
@@ -954,9 +1047,7 @@ void BKE_lib_query_unused_ids_amounts(Main *bmain, LibQueryUnusedIDsData &parame
     lib_query_unused_ids_tag(data);
   }
 
-  if (parameters.do_recursive) {
-    BKE_main_relations_free(bmain);
-  }
+  BKE_main_relations_free(bmain);
 }
 
 void BKE_lib_query_unused_ids_tag(Main *bmain, const int tag, LibQueryUnusedIDsData &parameters)
@@ -969,13 +1060,9 @@ void BKE_lib_query_unused_ids_tag(Main *bmain, const int tag, LibQueryUnusedIDsD
 
   UnusedIDsData data(bmain, tag, parameters);
 
-  if (parameters.do_recursive) {
-    BKE_main_relations_create(bmain, 0);
-  }
+  BKE_main_relations_create(bmain, 0);
   lib_query_unused_ids_tag(data);
-  if (parameters.do_recursive) {
-    BKE_main_relations_free(bmain);
-  }
+  BKE_main_relations_free(bmain);
 }
 
 static int foreach_libblock_used_linked_data_tag_clear_cb(LibraryIDLinkCallbackData *cb_data)

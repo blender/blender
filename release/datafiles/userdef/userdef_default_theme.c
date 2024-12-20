@@ -702,6 +702,8 @@ const bTheme U_theme_default = {
     .row_alternate = RGBA(0xffffff05),
     .anim_preview_range = RGBA(0xa14d0066),
     .metadatatext = RGBA(0xffffffff),
+    .text_strip_cursor = RGBA(0x71a8ffff),
+    .selected_text = RGBA(0xffffff4d),
   },
   .space_image = {
     .back = RGBA(0x30303000),

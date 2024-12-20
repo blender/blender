@@ -60,6 +60,7 @@ void register_node_type_sh_input_aov()
   static blender::bke::bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_INPUT_AOV, "AOV Input", NODE_CLASS_INPUT);
+  ntype.enum_name_legacy = "INPUT_AOV";
   ntype.declare = file_ns::node_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_input_aov;
   ntype.initfunc = file_ns::node_shader_init_input_aov;

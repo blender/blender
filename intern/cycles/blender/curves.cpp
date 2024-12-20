@@ -393,7 +393,7 @@ static float4 CurveSegmentMotionCV(ParticleCurveData *CData, int sys, int curve,
   }
 
   /* curve motion keys store both position and radius in float4 */
-  float4 mP = float3_to_float4(ickey_loc);
+  float4 mP = make_float4(ickey_loc);
   mP.w = radius;
   return mP;
 }
@@ -441,7 +441,7 @@ static void export_hair_motion_validate_attribute(Hair *hair,
       float4 *mP = attr_mP->data_float4() + step * num_keys;
 
       for (int key = 0; key < num_keys; key++) {
-        mP[key] = float3_to_float4(hair->get_curve_keys()[key]);
+        mP[key] = make_float4(hair->get_curve_keys()[key]);
         mP[key].w = hair->get_curve_radius()[key];
       }
     }
@@ -490,7 +490,7 @@ static void ExportCurveSegmentsMotion(Hair *hair, ParticleCurveData *CData, int 
               /* unlike mesh coordinates, these tend to be slightly different
                * between frames due to particle transforms into/out of object
                * space, so we use an epsilon to detect actual changes */
-              float4 curve_key = float3_to_float4(hair->get_curve_keys()[i]);
+              float4 curve_key = make_float4(hair->get_curve_keys()[i]);
               curve_key.w = hair->get_curve_radius()[i];
               if (len_squared(mP[i] - curve_key) > 1e-5f * 1e-5f) {
                 have_motion = true;
@@ -962,7 +962,7 @@ static void export_hair_curves_motion(Hair *hair,
           if (!have_motion) {
             /* TODO: use epsilon for comparison? Was needed for particles due to
              * transform, but ideally should not happen anymore. */
-            float4 curve_key = float3_to_float4(hair->get_curve_keys()[i]);
+            float4 curve_key = make_float4(hair->get_curve_keys()[i]);
             curve_key.w = hair->get_curve_radius()[i];
             have_motion = !(mP[i] == curve_key);
           }

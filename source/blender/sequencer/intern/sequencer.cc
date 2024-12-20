@@ -37,6 +37,8 @@
 
 #include "IMB_imbuf.hh"
 
+#include "MOV_read.hh"
+
 #include "SEQ_channels.hh"
 #include "SEQ_connect.hh"
 #include "SEQ_edit.hh"
@@ -110,7 +112,7 @@ static void seq_free_strip(Strip *strip)
 
   if (strip->proxy) {
     if (strip->proxy->anim) {
-      IMB_free_anim(strip->proxy->anim);
+      MOV_close(strip->proxy->anim);
     }
 
     MEM_freeN(strip->proxy);
@@ -870,6 +872,7 @@ static bool seq_read_data_cb(Sequence *seq, void *user_data)
   if (seq->type == SEQ_TYPE_TEXT) {
     TextVars *t = static_cast<TextVars *>(seq->effectdata);
     t->text_blf_id = SEQ_FONT_NOT_LOADED;
+    t->runtime = nullptr;
   }
 
   BLO_read_struct(reader, IDProperty, &seq->prop);

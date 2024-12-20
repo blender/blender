@@ -611,6 +611,7 @@ void register_node_type_sh_mix()
 
   static blender::bke::bNodeType ntype;
   sh_fn_node_type_base(&ntype, SH_NODE_MIX, "Mix", NODE_CLASS_CONVERTER);
+  ntype.enum_name_legacy = "MIX";
   ntype.declare = file_ns::sh_node_mix_declare;
   ntype.ui_class = file_ns::sh_node_mix_ui_class;
   ntype.gpu_fn = file_ns::gpu_shader_mix;

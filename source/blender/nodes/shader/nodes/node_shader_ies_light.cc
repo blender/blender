@@ -57,6 +57,7 @@ void register_node_type_sh_tex_ies()
   static blender::bke::bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_TEX_IES, "IES Texture", NODE_CLASS_TEXTURE);
+  ntype.enum_name_legacy = "TEX_IES";
   ntype.declare = file_ns::node_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_ies;
   ntype.initfunc = file_ns::node_shader_init_tex_ies;

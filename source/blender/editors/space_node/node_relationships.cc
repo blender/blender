@@ -324,13 +324,7 @@ void update_multi_input_indices_for_removed_links(bNode &node)
 static void snode_autoconnect(SpaceNode &snode, const bool allow_multiple, const bool replace)
 {
   bNodeTree *ntree = snode.edittree;
-  Vector<bNode *> sorted_nodes;
-
-  for (bNode *node : ntree->all_nodes()) {
-    if (node->flag & NODE_SELECT) {
-      sorted_nodes.append(node);
-    }
-  }
+  Vector<bNode *> sorted_nodes = get_selected_nodes(*ntree).extract_vector();
 
   /* Sort nodes left to right. */
   std::sort(sorted_nodes.begin(), sorted_nodes.end(), [](const bNode *a, const bNode *b) {

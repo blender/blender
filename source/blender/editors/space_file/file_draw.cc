@@ -511,8 +511,7 @@ void file_calc_previews(const bContext *C, ARegion *region)
 
 static std::tuple<int, int, float> preview_image_scaled_dimensions_get(const int image_width,
                                                                        const int image_height,
-                                                                       const FileLayout &layout,
-                                                                       const bool never_scale_up)
+                                                                       const FileLayout &layout)
 {
   const float ui_imbx = image_width * UI_SCALE_FAC;
   const float ui_imby = image_height * UI_SCALE_FAC;
@@ -520,7 +519,7 @@ static std::tuple<int, int, float> preview_image_scaled_dimensions_get(const int
   float scale;
   float scaledx, scaledy;
   if (((ui_imbx > layout.prv_w) || (ui_imby > layout.prv_h)) ||
-      (!never_scale_up && ((ui_imbx < layout.prv_w) || (ui_imby < layout.prv_h))))
+      (((ui_imbx < layout.prv_w) || (ui_imby < layout.prv_h))))
   {
     if (image_width > image_height) {
       scaledx = float(layout.prv_w);
@@ -549,8 +548,7 @@ static void file_add_preview_drag_but(const SpaceFile *sfile,
                                       const char *path,
                                       const rcti *tile_draw_rect,
                                       const ImBuf *preview_image,
-                                      const int icon,
-                                      const bool is_special_file_image)
+                                      const int file_type_icon)
 {
   /* Invisible button for dragging. */
   rcti drag_rect = *tile_draw_rect;
@@ -571,12 +569,12 @@ static void file_add_preview_drag_but(const SpaceFile *sfile,
                         0.0,
                         nullptr);
 
-  /* Unlike thumbnails, icons are not scaled up. */
-  const bool never_scale_up = is_special_file_image;
-
+  const ImBuf *drag_image = preview_image ? preview_image :
+                                            /* Larger directory or document icon. */
+                                            filelist_geticon_special_file_image_ex(file);
   const auto [scaled_width, scaled_height, scale] = preview_image_scaled_dimensions_get(
-      preview_image->x, preview_image->y, *layout, never_scale_up);
-  file_but_enable_drag(but, sfile, file, path, preview_image, icon, scale);
+      drag_image->x, drag_image->y, *layout);
+  file_but_enable_drag(but, sfile, file, path, drag_image, file_type_icon, scale);
 
   if (file->asset) {
     UI_but_func_tooltip_set(but, file_draw_asset_tooltip_func, file->asset, nullptr);
@@ -589,20 +587,14 @@ static void file_add_preview_drag_but(const SpaceFile *sfile,
 
 static void file_draw_preview(const FileDirEntry *file,
                               const rcti *tile_draw_rect,
-                              const float icon_aspect,
                               const ImBuf *imb,
-                              const int file_type_icon,
                               FileLayout *layout,
-                              const bool is_special_file_image,
                               const bool dimmed)
 {
   BLI_assert(imb != nullptr);
 
-  /* Unlike thumbnails, icons are not scaled up. */
-  const bool never_scale_up = is_special_file_image;
-
   const auto [scaled_width, scaled_height, scale] = preview_image_scaled_dimensions_get(
-      imb->x, imb->y, *layout, never_scale_up);
+      imb->x, imb->y, *layout);
 
   /* Additional offset to keep the scaled image centered. Difference between maximum
    * width/height and the actual width/height, divided by two for centering.  */
@@ -613,98 +605,41 @@ static void file_draw_preview(const FileDirEntry *file,
 
   GPU_blend(GPU_BLEND_ALPHA);
 
-  /* the large image */
-
   float document_img_col[4] = {1.0f, 1.0f, 1.0f, 1.0f};
-  if (is_special_file_image) {
-    if (file->typeflag & FILE_TYPE_DIR) {
-      UI_GetThemeColor4fv(TH_ICON_FOLDER, document_img_col);
-    }
-    else {
-      UI_GetThemeColor4fv(TH_TEXT, document_img_col);
-    }
-  }
-  else if (file->typeflag & FILE_TYPE_FTFONT) {
+  if (file->typeflag & FILE_TYPE_FTFONT) {
     UI_GetThemeColor4fv(TH_TEXT, document_img_col);
   }
-
   if (dimmed) {
     document_img_col[3] *= 0.3f;
   }
 
-  if (!is_special_file_image && ELEM(file->typeflag, FILE_TYPE_IMAGE, FILE_TYPE_OBJECT_IO)) {
+  if (ELEM(file->typeflag, FILE_TYPE_IMAGE, FILE_TYPE_OBJECT_IO)) {
     /* Draw checker pattern behind image previews in case they have transparency. */
     imm_draw_box_checker_2d(
         float(xmin), float(ymin), float(xmin + scaled_width), float(ymin + scaled_height));
   }
 
-  if (!is_special_file_image && file->typeflag & FILE_TYPE_BLENDERLIB) {
+  if (file->typeflag & FILE_TYPE_BLENDERLIB) {
     /* Datablock preview images use premultiplied alpha. */
     GPU_blend(GPU_BLEND_ALPHA_PREMULT);
   }
 
-  if (is_special_file_image) {
-    /* Draw large folder or document icon. */
-    const int icon_large = (file->typeflag & FILE_TYPE_DIR) ? ICON_FILE_FOLDER_LARGE :
-                                                              ICON_FILE_LARGE;
-    uchar icon_col[4];
-    rgba_float_to_uchar(icon_col, document_img_col);
-    float icon_x = float(xmin) + (file->typeflag & FILE_TYPE_DIR ? 0.0f : scaled_width * -0.142f);
-    float icon_y = float(ymin) + (file->typeflag & FILE_TYPE_DIR ? scaled_width * -0.11f : 0.0f);
-    UI_icon_draw_ex(icon_x,
-                    icon_y,
-                    icon_large,
-                    icon_aspect / 4.0f / UI_SCALE_FAC,
-                    document_img_col[3],
-                    0.0f,
-                    icon_col,
-                    false,
-                    UI_NO_ICON_OVERLAY_TEXT);
-  }
-  else {
-    IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_3D_IMAGE_COLOR);
-    immDrawPixelsTexTiled_scaling(&state,
-                                  float(xmin),
-                                  float(ymin),
-                                  imb->x,
-                                  imb->y,
-                                  GPU_RGBA8,
-                                  true,
-                                  imb->byte_buffer.data,
-                                  scale,
-                                  scale,
-                                  1.0f,
-                                  1.0f,
-                                  document_img_col);
-  }
+  IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_3D_IMAGE_COLOR);
+  immDrawPixelsTexTiled_scaling(&state,
+                                float(xmin),
+                                float(ymin),
+                                imb->x,
+                                imb->y,
+                                GPU_RGBA8,
+                                true,
+                                imb->byte_buffer.data,
+                                scale,
+                                scale,
+                                1.0f,
+                                1.0f,
+                                document_img_col);
 
-  if (file_type_icon && is_special_file_image) {
-    /* Small icon in the middle of large image, scaled to fit container and UI scale */
-    float icon_x, icon_y;
-    float icon_opacity = 0.4f;
-    uchar icon_color[4] = {0, 0, 0, 255};
-    if (rgb_to_grayscale(document_img_col) < 0.5f) {
-      icon_color[0] = 255;
-      icon_color[1] = 255;
-      icon_color[2] = 255;
-    }
-
-    icon_x = xmin +
-             (file->typeflag & FILE_TYPE_DIR ? scaled_width * 0.31f : scaled_width * 0.178f);
-    icon_y = ymin + (file->typeflag & FILE_TYPE_DIR ? scaled_width * 0.19f : scaled_width * 0.15f);
-    UI_icon_draw_ex(icon_x,
-                    icon_y,
-                    file_type_icon,
-                    icon_aspect / UI_SCALE_FAC / (file->typeflag & FILE_TYPE_DIR ? 1.5f : 2.0f),
-                    icon_opacity,
-                    0.0f,
-                    icon_color,
-                    false,
-                    UI_NO_ICON_OVERLAY_TEXT);
-  }
-
-  const bool show_outline = !is_special_file_image &&
-                            (file->typeflag & (FILE_TYPE_IMAGE | FILE_TYPE_OBJECT_IO |
+  const bool show_outline = (file->typeflag & (FILE_TYPE_IMAGE | FILE_TYPE_OBJECT_IO |
                                                FILE_TYPE_MOVIE | FILE_TYPE_BLENDER));
   /* Contrasting outline around some preview types. */
   if (show_outline) {
@@ -733,34 +668,99 @@ static void file_draw_preview(const FileDirEntry *file,
   GPU_blend(GPU_BLEND_NONE);
 }
 
+static void file_draw_special_image(const FileDirEntry *file,
+                                    const rcti *tile_draw_rect,
+                                    const int file_type_icon,
+                                    const float icon_aspect,
+                                    const FileLayout *layout,
+                                    const bool dimmed)
+{
+  float document_img_col[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+  if (file->typeflag & FILE_TYPE_DIR) {
+    UI_GetThemeColor4fv(TH_ICON_FOLDER, document_img_col);
+  }
+  else {
+    UI_GetThemeColor4fv(TH_TEXT, document_img_col);
+  }
+
+  if (dimmed) {
+    document_img_col[3] *= 0.3f;
+  }
+
+  GPU_blend(GPU_BLEND_ALPHA);
+
+  const int cent_x = tile_draw_rect->xmin + layout->prv_border_x + (layout->prv_w / 2.0f) + 0.5f;
+  const int cent_y = tile_draw_rect->ymax - layout->prv_border_y - (layout->prv_h / 2.0f) + 0.5f;
+  const float aspect = icon_aspect / UI_SCALE_FAC;
+
+  {
+    /* Draw large folder or document icon. */
+    const int icon_large = (file->typeflag & FILE_TYPE_DIR) ? ICON_FILE_FOLDER_LARGE :
+                                                              ICON_FILE_LARGE;
+
+    uchar icon_col[4];
+    rgba_float_to_uchar(icon_col, document_img_col);
+
+    const float scale = 4.0f;
+    const float ofs_y = (file->typeflag & FILE_TYPE_DIR ? -0.02f : 0.0f) * layout->prv_h;
+
+    UI_icon_draw_ex(cent_x - (ICON_DEFAULT_WIDTH * scale / aspect / 2.0f),
+                    cent_y - (ICON_DEFAULT_HEIGHT * scale / aspect / 2.0f) + ofs_y,
+                    icon_large,
+                    icon_aspect / UI_SCALE_FAC / scale,
+                    document_img_col[3],
+                    0.0f,
+                    icon_col,
+                    false,
+                    UI_NO_ICON_OVERLAY_TEXT);
+  }
+
+  if (file_type_icon) {
+    /* Small icon in the middle of large image, scaled to fit container and UI scale */
+    float icon_opacity = 0.4f;
+    uchar icon_color[4] = {0, 0, 0, 255};
+    if (rgb_to_grayscale(document_img_col) < 0.5f) {
+      icon_color[0] = 255;
+      icon_color[1] = 255;
+      icon_color[2] = 255;
+    }
+
+    const float scale = file->typeflag & FILE_TYPE_DIR ? 1.5f : 2.0f;
+    const float ofs_y = (file->typeflag & FILE_TYPE_DIR ? -0.035f : -0.135f) * layout->prv_h;
+
+    UI_icon_draw_ex(cent_x - (ICON_DEFAULT_WIDTH * scale / aspect / 2.0f),
+                    cent_y - (ICON_DEFAULT_HEIGHT * scale / aspect / 2.0f) + ofs_y,
+                    file_type_icon,
+                    icon_aspect / UI_SCALE_FAC / scale,
+                    icon_opacity,
+                    0.0f,
+                    icon_color,
+                    false,
+                    UI_NO_ICON_OVERLAY_TEXT);
+  }
+
+  GPU_blend(GPU_BLEND_NONE);
+}
+
 static void file_draw_loading_icon(const rcti *tile_draw_rect,
                                    const float preview_icon_aspect,
                                    const FileLayout *layout)
 {
-  /* Small icon in the middle of large image, scaled to fit container and UI scale */
-  float icon_opacity = 0.4f;
+  const float opacity = 0.4f;
 
   uchar icon_color[4] = {0, 0, 0, 255};
   /* Contrast with background since we are not showing the large document image. */
   UI_GetThemeColor4ubv(TH_TEXT, icon_color);
 
-  const auto [scaled_width, scaled_height, scale] = preview_image_scaled_dimensions_get(
-      200, 256, *layout, true);
+  const int cent_x = tile_draw_rect->xmin + layout->prv_border_x + (layout->prv_w / 2.0f) + 0.5f;
+  const int cent_y = tile_draw_rect->ymax - layout->prv_border_y - (layout->prv_h / 2.0f) + 0.5f;
+  const float aspect = preview_icon_aspect / UI_SCALE_FAC;
 
-  /* Additional offset to keep the scaled image centered. Difference between maximum
-   * width/height and the actual width/height, divided by two for centering.  */
-  const float ofs_x = (float(layout->prv_w) - float(scaled_width)) / 2.0f;
-  const float ofs_y = (float(layout->prv_h) - float(scaled_height)) / 2.0f;
-  const int xmin = tile_draw_rect->xmin + layout->prv_border_x + int(ofs_x + 0.5f);
-  const int ymin = tile_draw_rect->ymax - layout->prv_border_y - layout->prv_h + int(ofs_y + 0.5f);
-
-  const float icon_x = xmin + scaled_width * 0.178f;
-  const float icon_y = ymin + scaled_width * 0.15f;
-  UI_icon_draw_ex(icon_x,
-                  icon_y,
+  UI_icon_draw_ex(cent_x - (ICON_DEFAULT_WIDTH / aspect / 2.0f),
+                  cent_y - (ICON_DEFAULT_HEIGHT / aspect / 2.0f),
                   ICON_TEMP,
-                  preview_icon_aspect / UI_SCALE_FAC / 2.0f,
-                  icon_opacity,
+                  aspect,
+                  opacity,
                   0.0f,
                   icon_color,
                   false,
@@ -1290,42 +1290,30 @@ void file_draw_list(const bContext *C, ARegion *region)
 
     if (FILE_IMGDISPLAY == params->display) {
       const int file_type_icon = filelist_geticon_file_type(files, i, false);
-      bool is_special_file_image = false;
+      const ImBuf *preview_imb = filelist_get_preview_image(files, i);
 
-      const ImBuf *imb = filelist_get_preview_image(files, i);
-      if (!imb) {
-        imb = filelist_geticon_special_file_image(files, i);
-        is_special_file_image = true;
-      }
+      bool has_special_file_image = false;
 
       const bool is_loading = filelist_file_is_preview_pending(files, file);
       if (is_loading) {
         file_draw_loading_icon(&tile_draw_rect, thumb_icon_aspect, layout);
       }
+      else if (preview_imb) {
+        file_draw_preview(file, &tile_draw_rect, preview_imb, layout, is_hidden);
+      }
       else {
-        file_draw_preview(file,
-                          &tile_draw_rect,
-                          thumb_icon_aspect,
-                          imb,
-                          file_type_icon,
-                          layout,
-                          is_special_file_image,
-                          is_hidden);
+        /* Larger folder or document icon, with file/folder type icon in the middle (if any). */
+        file_draw_special_image(
+            file, &tile_draw_rect, file_type_icon, thumb_icon_aspect, layout, is_hidden);
+        has_special_file_image = true;
       }
 
       file_draw_indicator_icons(
-          files, file, &tile_draw_rect, thumb_icon_aspect, file_type_icon, is_special_file_image);
+          files, file, &tile_draw_rect, thumb_icon_aspect, file_type_icon, has_special_file_image);
 
       if (do_drag) {
-        file_add_preview_drag_but(sfile,
-                                  block,
-                                  layout,
-                                  file,
-                                  path,
-                                  &tile_draw_rect,
-                                  imb,
-                                  file_type_icon,
-                                  is_special_file_image);
+        file_add_preview_drag_but(
+            sfile, block, layout, file, path, &tile_draw_rect, preview_imb, file_type_icon);
       }
     }
     else {

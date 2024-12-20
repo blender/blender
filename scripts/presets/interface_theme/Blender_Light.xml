@@ -836,6 +836,8 @@
         metadatatext="#ffffff"
         preview_range="#a14d0066"
         row_alternate="#ffffff0d"
+        text_strip_cursor="#71a8ff"
+        selected_text= "#19191a4d"
         >
         <space>
           <ThemeSpaceGeneric

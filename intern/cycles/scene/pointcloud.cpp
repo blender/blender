@@ -29,7 +29,7 @@ void PointCloud::Point::bounds_grow(const float3 *points,
 
 void PointCloud::Point::bounds_grow(const float4 &point, BoundBox &bounds) const
 {
-  bounds.grow(float4_to_float3(point), point.w);
+  bounds.grow(make_float3(point), point.w);
 }
 
 float4 PointCloud::Point::motion_key(const float3 *points,
@@ -189,7 +189,7 @@ void PointCloud::compute_bounds()
       float4 *point_steps = attr->data_float4();
 
       for (size_t i = 0; i < steps_size; i++) {
-        bnds.grow(float4_to_float3(point_steps[i]), point_steps[i].w);
+        bnds.grow(make_float3(point_steps[i]), point_steps[i].w);
       }
     }
 
@@ -206,7 +206,7 @@ void PointCloud::compute_bounds()
         float4 *point_steps = attr->data_float4();
 
         for (size_t i = 0; i < steps_size; i++) {
-          bnds.grow_safe(float4_to_float3(point_steps[i]), point_steps[i].w);
+          bnds.grow_safe(make_float3(point_steps[i]), point_steps[i].w);
         }
       }
     }
@@ -248,12 +248,12 @@ void PointCloud::apply_transform(const Transform &tfm, const bool apply_to_motio
       float4 *point_steps = attr->data_float4();
 
       for (size_t i = 0; i < steps_size; i++) {
-        float3 co = transform_point(&tfm, float4_to_float3(point_steps[i]));
+        float3 co = transform_point(&tfm, make_float3(point_steps[i]));
         float radius = point_steps[i].w * scalar;
 
         /* scale for curve radius is only correct for uniform
          * scale */
-        point_steps[i] = float3_to_float4(co);
+        point_steps[i] = make_float4(co);
         point_steps[i].w = radius;
       }
     }

@@ -21,6 +21,8 @@
 #include "IMB_imbuf.hh"
 #include "IMB_moviecache.hh"
 
+#include "MOV_util.hh"
+
 #include "BKE_addon.h"
 #include "BKE_asset.hh"
 #include "BKE_blender.hh"           /* own include */
@@ -36,7 +38,6 @@
 #include "BKE_report.hh"
 #include "BKE_screen.hh"
 #include "BKE_studiolight.h"
-#include "BKE_writeffmpeg.hh"
 
 #include "DEG_depsgraph.hh"
 
@@ -79,9 +80,7 @@ void BKE_blender_free()
 
   IMB_moviecache_destruct();
   SEQ_fontmap_clear();
-#ifdef WITH_FFMPEG
-  BKE_ffmpeg_exit();
-#endif
+  MOV_exit();
 
   blender::bke::node_system_exit();
 }

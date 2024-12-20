@@ -41,7 +41,7 @@ ccl_device void camera_sample_perspective(KernelGlobals kg,
 {
   /* create ray form raster position */
   ProjectionTransform rastertocamera = kernel_data.cam.rastertocamera;
-  const float3 raster = float2_to_float3(raster_xy);
+  const float3 raster = make_float3(raster_xy);
   float3 Pcamera = transform_perspective(&rastertocamera, raster);
 
   if (kernel_data.cam.have_perspective_motion) {
@@ -77,7 +77,7 @@ ccl_device void camera_sample_perspective(KernelGlobals kg,
     float3 Pfocus = D * ft;
 
     /* update ray for effect of lens */
-    P = float2_to_float3(lens_uv);
+    P = make_float3(lens_uv);
     D = normalize(Pfocus - P);
   }
 
@@ -107,8 +107,8 @@ ccl_device void camera_sample_perspective(KernelGlobals kg,
     /* TODO: can this be optimized to give compact differentials directly? */
     ray->dP = differential_zero_compact();
     differential3 dD;
-    dD.dx = normalize(Dcenter + float4_to_float3(kernel_data.cam.dx)) - Dcenter_normalized;
-    dD.dy = normalize(Dcenter + float4_to_float3(kernel_data.cam.dy)) - Dcenter_normalized;
+    dD.dx = normalize(Dcenter + make_float3(kernel_data.cam.dx)) - Dcenter_normalized;
+    dD.dy = normalize(Dcenter + make_float3(kernel_data.cam.dy)) - Dcenter_normalized;
     ray->dD = differential_make_compact(dD);
 #endif
   }
@@ -171,7 +171,7 @@ ccl_device void camera_sample_orthographic(KernelGlobals kg,
 {
   /* create ray form raster position */
   ProjectionTransform rastertocamera = kernel_data.cam.rastertocamera;
-  float3 Pcamera = transform_perspective(&rastertocamera, float2_to_float3(raster_xy));
+  float3 Pcamera = transform_perspective(&rastertocamera, make_float3(raster_xy));
 
   float3 P;
   float3 D = make_float3(0.0f, 0.0f, 1.0f);
@@ -187,7 +187,7 @@ ccl_device void camera_sample_orthographic(KernelGlobals kg,
     float3 Pfocus = D * kernel_data.cam.focaldistance;
 
     /* Update ray for effect of lens */
-    float3 lens_uvw = float2_to_float3(lens_uv);
+    float3 lens_uvw = make_float3(lens_uv);
 
     D = normalize(Pfocus - lens_uvw);
     /* Compute position the ray will be if it traveled until it intersected the near clip plane.
@@ -213,8 +213,8 @@ ccl_device void camera_sample_orthographic(KernelGlobals kg,
 #ifdef __RAY_DIFFERENTIALS__
   /* ray differential */
   differential3 dP;
-  dP.dx = float4_to_float3(kernel_data.cam.dx);
-  dP.dy = float4_to_float3(kernel_data.cam.dx);
+  dP.dx = make_float3(kernel_data.cam.dx);
+  dP.dy = make_float3(kernel_data.cam.dx);
 
   ray->dP = differential_make_compact(dP);
   ray->dD = differential_zero_compact();

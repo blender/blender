@@ -144,6 +144,7 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
   sh_node_type_base(&ntype, SH_NODE_REPEAT_INPUT, "Repeat Input", NODE_CLASS_INTERFACE);
+  ntype.enum_name_legacy = "REPEAT_INPUT";
   ntype.initfunc = node_init;
   ntype.declare = node_declare;
   ntype.labelfunc = node_label;
@@ -242,6 +243,7 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
   sh_node_type_base(&ntype, SH_NODE_REPEAT_OUTPUT, "Repeat Output", NODE_CLASS_INTERFACE);
+  ntype.enum_name_legacy = "REPEAT_OUTPUT";
   ntype.initfunc = node_init;
   ntype.declare = node_declare;
   ntype.labelfunc = repeat_input_node::node_label;

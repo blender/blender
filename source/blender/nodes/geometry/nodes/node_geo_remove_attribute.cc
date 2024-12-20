@@ -173,6 +173,7 @@ static void node_register()
 
   geo_node_type_base(
       &ntype, GEO_NODE_REMOVE_ATTRIBUTE, "Remove Named Attribute", NODE_CLASS_ATTRIBUTE);
+  ntype.enum_name_legacy = "REMOVE_ATTRIBUTE";
   ntype.declare = node_declare;
   ntype.draw_buttons = node_layout;
   bke::node_type_size(&ntype, 170, 100, 700);

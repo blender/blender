@@ -92,10 +92,12 @@ SeqEffectHandle SEQ_effect_handle_get(Sequence *seq);
 int SEQ_effect_get_num_inputs(int seq_type);
 void SEQ_effect_text_font_unload(TextVars *data, bool do_id_user);
 void SEQ_effect_text_font_load(TextVars *data, bool do_id_user);
+bool SEQ_effects_can_render_text(const Sequence *seq);
 
 namespace blender::seq {
 
 struct CharInfo {
+  int index = 0;
   const char *str_ptr = nullptr;
   int byte_length = 0;
   float2 position{0.0f, 0.0f};
@@ -111,11 +113,12 @@ struct LineInfo {
 struct TextVarsRuntime {
   Vector<LineInfo> lines;
 
-  rcti text_boundbox;
+  rcti text_boundbox; /* Boundbox used for box drawing and selection. */
   int line_height;
   int font_descender;
   int character_count;
   int font;
+  bool editing_is_active; /* UI uses this to differentiate behavior. */
 };
 
 }  // namespace blender::seq

@@ -57,6 +57,7 @@ void register_node_type_cmp_seprgba()
 
   cmp_node_type_base(
       &ntype, CMP_NODE_SEPRGBA_LEGACY, "Separate RGBA (Legacy)", NODE_CLASS_CONVERTER);
+  ntype.enum_name_legacy = "SEPRGBA";
   ntype.declare = file_ns::cmp_node_seprgba_declare;
   ntype.gather_link_search_ops = nullptr;
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
@@ -124,6 +125,7 @@ void register_node_type_cmp_combrgba()
 
   cmp_node_type_base(
       &ntype, CMP_NODE_COMBRGBA_LEGACY, "Combine RGBA (Legacy)", NODE_CLASS_CONVERTER);
+  ntype.enum_name_legacy = "COMBRGBA";
   ntype.declare = file_ns::cmp_node_combrgba_declare;
   ntype.gather_link_search_ops = nullptr;
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;

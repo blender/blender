@@ -88,6 +88,7 @@ void register_node_type_cmp_switch_view()
   static blender::bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_SWITCH_VIEW, "Switch View", NODE_CLASS_CONVERTER);
+  ntype.enum_name_legacy = "VIEWSWITCH";
   ntype.declare = file_ns::node_declare;
   ntype.initfunc_api = file_ns::init_switch_view;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;

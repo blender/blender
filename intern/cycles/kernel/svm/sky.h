@@ -174,7 +174,7 @@ ccl_device float3 sky_radiance_nishita(KernelGlobals kg,
       float x = fractf((-direction.y - M_PI_2_F + sun_rotation) / M_2PI_F);
       /* more pixels toward horizon compensation */
       float y = safe_sqrtf(dir_elevation / M_PI_2_F);
-      xyz = float4_to_float3(kernel_tex_image_interp(kg, texture_id, x, y));
+      xyz = make_float3(kernel_tex_image_interp(kg, texture_id, x, y));
     }
   }
   /* ground */
@@ -188,7 +188,7 @@ ccl_device float3 sky_radiance_nishita(KernelGlobals kg,
       fade = sqr(fade) * fade;
       /* interpolation */
       float x = fractf((-direction.y - M_PI_2_F + sun_rotation) / M_2PI_F);
-      xyz = float4_to_float3(kernel_tex_image_interp(kg, texture_id, x, -0.5)) * fade;
+      xyz = make_float3(kernel_tex_image_interp(kg, texture_id, x, -0.5)) * fade;
     }
   }
 

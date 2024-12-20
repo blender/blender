@@ -10,6 +10,7 @@ set(INC
   ../blenloader
   ../blentranslation
   ../imbuf
+  ../imbuf/movie
   ../makesrna
   ../render
   ../windowmanager

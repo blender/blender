@@ -510,6 +510,7 @@ void register_node_type_frame()
   ntype->free_self = (void (*)(blender::bke::bNodeType *))MEM_freeN;
 
   blender::bke::node_type_base(ntype, NODE_FRAME, "Frame", NODE_CLASS_LAYOUT);
+  ntype->enum_name_legacy = "FRAME";
   ntype->initfunc = node_frame_init;
   blender::bke::node_type_storage(
       ntype, "NodeFrame", node_free_standard_storage, node_copy_standard_storage);
@@ -552,6 +553,7 @@ void register_node_type_reroute()
   ntype->free_self = (void (*)(blender::bke::bNodeType *))MEM_freeN;
 
   blender::bke::node_type_base(ntype, NODE_REROUTE, "Reroute", NODE_CLASS_LAYOUT);
+  ntype->enum_name_legacy = "REROUTE";
   ntype->declare = node_reroute_declare;
   ntype->initfunc = node_reroute_init;
   node_type_storage(ntype, "NodeReroute", node_free_standard_storage, node_copy_standard_storage);
@@ -783,6 +785,7 @@ void register_node_type_group_input()
   ntype->free_self = (void (*)(blender::bke::bNodeType *))MEM_freeN;
 
   blender::bke::node_type_base(ntype, NODE_GROUP_INPUT, "Group Input", NODE_CLASS_INTERFACE);
+  ntype->enum_name_legacy = "GROUP_INPUT";
   blender::bke::node_type_size(ntype, 140, 80, 400);
   ntype->declare = blender::nodes::group_input_declare;
   ntype->insert_link = blender::nodes::group_input_insert_link;
@@ -807,6 +810,7 @@ void register_node_type_group_output()
   ntype->free_self = (void (*)(blender::bke::bNodeType *))MEM_freeN;
 
   blender::bke::node_type_base(ntype, NODE_GROUP_OUTPUT, "Group Output", NODE_CLASS_INTERFACE);
+  ntype->enum_name_legacy = "GROUP_OUTPUT";
   blender::bke::node_type_size(ntype, 140, 80, 400);
   ntype->declare = blender::nodes::group_output_declare;
   ntype->insert_link = blender::nodes::group_output_insert_link;

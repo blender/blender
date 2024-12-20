@@ -123,10 +123,10 @@ ccl_device_noinline void svm_node_attr(KernelGlobals kg,
   else if (desc.type == NODE_ATTR_FLOAT4 || desc.type == NODE_ATTR_RGBA) {
     float4 f = primitive_surface_attribute_float4(kg, sd, desc, NULL, NULL);
     if (type == NODE_ATTR_OUTPUT_FLOAT) {
-      stack_store_float(stack, out_offset, average(float4_to_float3(f)));
+      stack_store_float(stack, out_offset, average(make_float3(f)));
     }
     else if (type == NODE_ATTR_OUTPUT_FLOAT3) {
-      stack_store_float3(stack, out_offset, float4_to_float3(f));
+      stack_store_float3(stack, out_offset, make_float3(f));
     }
     else {
       stack_store_float(stack, out_offset, f.w);
@@ -230,10 +230,10 @@ ccl_device_noinline void svm_node_attr_bump_dx(KernelGlobals kg,
     float4 dx;
     float4 f = primitive_surface_attribute_float4(kg, sd, desc, &dx, NULL);
     if (type == NODE_ATTR_OUTPUT_FLOAT) {
-      stack_store_float(stack, out_offset, average(float4_to_float3(f + dx)));
+      stack_store_float(stack, out_offset, average(make_float3(f + dx)));
     }
     else if (type == NODE_ATTR_OUTPUT_FLOAT3) {
-      stack_store_float3(stack, out_offset, float4_to_float3(f + dx));
+      stack_store_float3(stack, out_offset, make_float3(f + dx));
     }
     else {
       stack_store_float(stack, out_offset, f.w + dx.w);
@@ -328,10 +328,10 @@ ccl_device_noinline void svm_node_attr_bump_dy(KernelGlobals kg,
     float4 dy;
     float4 f = primitive_surface_attribute_float4(kg, sd, desc, NULL, &dy);
     if (type == NODE_ATTR_OUTPUT_FLOAT) {
-      stack_store_float(stack, out_offset, average(float4_to_float3(f + dy)));
+      stack_store_float(stack, out_offset, average(make_float3(f + dy)));
     }
     else if (type == NODE_ATTR_OUTPUT_FLOAT3) {
-      stack_store_float3(stack, out_offset, float4_to_float3(f + dy));
+      stack_store_float3(stack, out_offset, make_float3(f + dy));
     }
     else {
       stack_store_float(stack, out_offset, f.w + dy.w);

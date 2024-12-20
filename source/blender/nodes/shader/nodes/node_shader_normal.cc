@@ -62,6 +62,7 @@ void register_node_type_sh_normal()
   static blender::bke::bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_NORMAL, "Normal", NODE_CLASS_OP_VECTOR);
+  ntype.enum_name_legacy = "NORMAL";
   ntype.declare = file_ns::node_declare;
   ntype.gpu_fn = file_ns::gpu_shader_normal;
   ntype.materialx_fn = file_ns::node_shader_materialx;

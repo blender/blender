@@ -214,14 +214,37 @@ class USDImportTest(AbstractUSDTest):
 
         # Reload the empty file and import back in
         bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "empty.blend"))
-        res = bpy.ops.wm.usd_import(filepath=testfile)
+        res = bpy.ops.wm.usd_import(filepath=testfile, import_subdiv=True)
         self.assertEqual({'FINISHED'}, res, f"Unable to import USD file {testfile}")
 
         # Validate crease attributes
-
         mesh = bpy.data.objects["crease_verts"].data
-        blender_crease_vert_data = [round(d.value, 5) for d in mesh.attributes["crease_vert"].data]
-        self.assertEqual(blender_crease_vert_data, [0.3, 0.0, 0.2, 0.1, 0.8, 0.7, 1.0, 0.9])
+        blender_crease_data = [round(d.value, 5) for d in mesh.attributes["crease_vert"].data]
+        self.assertEqual(blender_crease_data, [0.3, 0.0, 0.2, 0.1, 0.8, 0.7, 1.0, 0.9])
+
+        mesh = bpy.data.objects["crease_edge"].data
+        blender_crease_data = [round(d.value, 5) for d in mesh.attributes["crease_edge"].data]
+        self.assertEqual(
+            blender_crease_data,
+            [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.9, 0.0, 0.0, 0.8, 0.0, 0.0, 0.7, 0.0,
+             0.0, 0.6, 0.0, 0.0, 0.5, 0.0, 0.0, 0.4, 0.0, 0.0, 0.3, 0.0, 0.0, 0.2, 0.0, 0.0, 0.1, 0.0, 0.0,
+             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+
+        # Validate SubdivisionSurface modifier settings
+        def check_mod(mesh_name, levels, render_levels, uv_smooth, boundary_smooth):
+            mod = bpy.data.objects[mesh_name].modifiers[0]
+            self.assertEqual(mod.levels, levels)
+            self.assertEqual(mod.render_levels, render_levels)
+            self.assertEqual(mod.uv_smooth, uv_smooth)
+            self.assertEqual(mod.boundary_smooth, boundary_smooth)
+
+        check_mod("mesh1", 1, 2, 'NONE', 'ALL')
+        check_mod("mesh2", 1, 2, 'PRESERVE_CORNERS', 'ALL')
+        check_mod("mesh3", 1, 2, 'PRESERVE_CORNERS_AND_JUNCTIONS', 'ALL')
+        check_mod("mesh4", 1, 2, 'PRESERVE_CORNERS_JUNCTIONS_AND_CONCAVE', 'ALL')
+        check_mod("mesh5", 1, 2, 'PRESERVE_BOUNDARIES', 'ALL')
+        check_mod("mesh6", 1, 2, 'SMOOTH_ALL', 'ALL')
+        check_mod("mesh7", 1, 2, 'PRESERVE_BOUNDARIES', 'PRESERVE_CORNERS')
 
     def test_import_camera_properties(self):
         """Test importing camera to ensure properties set correctly."""

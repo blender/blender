@@ -17,7 +17,7 @@ ccl_device_noinline void svm_node_vertex_color(KernelGlobals kg,
   if (descriptor.offset != ATTR_STD_NOT_FOUND) {
     if (descriptor.type == NODE_ATTR_FLOAT4 || descriptor.type == NODE_ATTR_RGBA) {
       float4 vertex_color = primitive_surface_attribute_float4(kg, sd, descriptor, NULL, NULL);
-      stack_store_float3(stack, color_offset, float4_to_float3(vertex_color));
+      stack_store_float3(stack, color_offset, make_float3(vertex_color));
       stack_store_float(stack, alpha_offset, vertex_color.w);
     }
     else {
@@ -45,7 +45,7 @@ ccl_device_noinline void svm_node_vertex_color_bump_dx(KernelGlobals kg,
       float4 dx;
       float4 vertex_color = primitive_surface_attribute_float4(kg, sd, descriptor, &dx, NULL);
       vertex_color += dx;
-      stack_store_float3(stack, color_offset, float4_to_float3(vertex_color));
+      stack_store_float3(stack, color_offset, make_float3(vertex_color));
       stack_store_float(stack, alpha_offset, vertex_color.w);
     }
     else {
@@ -75,7 +75,7 @@ ccl_device_noinline void svm_node_vertex_color_bump_dy(KernelGlobals kg,
       float4 dy;
       float4 vertex_color = primitive_surface_attribute_float4(kg, sd, descriptor, NULL, &dy);
       vertex_color += dy;
-      stack_store_float3(stack, color_offset, float4_to_float3(vertex_color));
+      stack_store_float3(stack, color_offset, make_float3(vertex_color));
       stack_store_float(stack, alpha_offset, vertex_color.w);
     }
     else {

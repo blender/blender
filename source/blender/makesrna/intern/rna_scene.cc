@@ -26,6 +26,9 @@
 #include "IMB_colormanagement.hh"
 #include "IMB_imbuf_types.hh"
 
+#include "MOV_enums.hh"
+#include "MOV_util.hh"
+
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"
@@ -52,13 +55,6 @@
 /* Include for Bake Options */
 #include "RE_engine.h"
 #include "RE_pipeline.h"
-
-#ifdef WITH_FFMPEG
-#  include "BKE_writeffmpeg.hh"
-#  include "ffmpeg_compat.h"
-#  include <libavcodec/avcodec.h>
-#  include <libavformat/avformat.h>
-#endif
 
 #include "ED_render.hh"
 #include "ED_transform.hh"
@@ -1349,10 +1345,7 @@ static void rna_ImageFormatSettings_file_format_set(PointerRNA *ptr, int value)
   if (id && GS(id->name) == ID_SCE) {
     Scene *scene = (Scene *)ptr->owner_id;
     RenderData *rd = &scene->r;
-#  ifdef WITH_FFMPEG
-    BKE_ffmpeg_image_type_verify(rd, imf);
-#  endif
-    (void)rd;
+    MOV_validate_output_settings(rd, imf);
   }
 
   BKE_image_format_update_color_space_for_type(imf);
@@ -1388,7 +1381,6 @@ static const EnumPropertyItem *rna_ImageFormatSettings_color_mode_itemf(bContext
   char chan_flag = BKE_imtype_valid_channels(imf->imtype, true) |
                    (is_render ? IMA_CHAN_FLAG_BW : 0);
 
-#  ifdef WITH_FFMPEG
   /* a WAY more crappy case than B&W flag: depending on codec, file format MIGHT support
    * alpha channel. for example MPEG format with h264 codec can't do alpha channel, but
    * the same MPEG format with QTRLE codec can easily handle alpha channel.
@@ -1397,11 +1389,10 @@ static const EnumPropertyItem *rna_ImageFormatSettings_color_mode_itemf(bContext
     Scene *scene = (Scene *)ptr->owner_id;
     RenderData *rd = &scene->r;
 
-    if (BKE_ffmpeg_alpha_channel_is_supported(rd)) {
+    if (MOV_codec_supports_alpha(rd->ffcodecdata.codec)) {
       chan_flag |= IMA_CHAN_FLAG_RGBA;
     }
   }
-#  endif
 
   if (chan_flag == (IMA_CHAN_FLAG_BW | IMA_CHAN_FLAG_RGB | IMA_CHAN_FLAG_RGBA)) {
     return rna_enum_image_color_mode_items;
@@ -2947,7 +2938,7 @@ static std::optional<std::string> rna_FFmpegSettings_path(const PointerRNA * /*p
 static void rna_FFmpegSettings_codec_update(Main * /*bmain*/, Scene * /*scene*/, PointerRNA *ptr)
 {
   FFMpegCodecData *codec_data = (FFMpegCodecData *)ptr->data;
-  if (!BKE_ffmpeg_codec_supports_crf(codec_data->codec)) {
+  if (!MOV_codec_supports_crf(codec_data->codec)) {
     /* Constant Rate Factor (CRF) setting is only available for some codecs. Change encoder quality
      * mode to CBR for others. */
     codec_data->constant_rate_factor = FFM_CRF_NONE;
@@ -6426,24 +6417,28 @@ static void rna_def_scene_ffmpeg_settings(BlenderRNA *brna)
   };
 
   static const EnumPropertyItem ffmpeg_codec_items[] = {
-      {AV_CODEC_ID_NONE, "NONE", 0, "No Video", "Disables video output, for audio-only renders"},
-      {AV_CODEC_ID_AV1, "AV1", 0, "AV1", ""},
-      {AV_CODEC_ID_H264, "H264", 0, "H.264", ""},
-      {AV_CODEC_ID_H265, "H265", 0, "H.265 / HEVC", ""},
-      {AV_CODEC_ID_VP9, "WEBM", 0, "WebM / VP9", ""},
+      {FFMPEG_CODEC_ID_NONE,
+       "NONE",
+       0,
+       "No Video",
+       "Disables video output, for audio-only renders"},
+      {FFMPEG_CODEC_ID_AV1, "AV1", 0, "AV1", ""},
+      {FFMPEG_CODEC_ID_H264, "H264", 0, "H.264", ""},
+      {FFMPEG_CODEC_ID_H265, "H265", 0, "H.265 / HEVC", ""},
+      {FFMPEG_CODEC_ID_VP9, "WEBM", 0, "WebM / VP9", ""},
       /* Legacy / rare codecs. */
       RNA_ENUM_ITEM_SEPR,
-      {AV_CODEC_ID_DNXHD, "DNXHD", 0, "DNxHD", ""},
-      {AV_CODEC_ID_DVVIDEO, "DV", 0, "DV", ""},
-      {AV_CODEC_ID_FFV1, "FFV1", 0, "FFmpeg video codec #1", ""},
-      {AV_CODEC_ID_FLV1, "FLASH", 0, "Flash Video", ""},
-      {AV_CODEC_ID_HUFFYUV, "HUFFYUV", 0, "HuffYUV", ""},
-      {AV_CODEC_ID_MPEG1VIDEO, "MPEG1", 0, "MPEG-1", ""},
-      {AV_CODEC_ID_MPEG2VIDEO, "MPEG2", 0, "MPEG-2", ""},
-      {AV_CODEC_ID_MPEG4, "MPEG4", 0, "MPEG-4 (divx)", ""},
-      {AV_CODEC_ID_PNG, "PNG", 0, "PNG", ""},
-      {AV_CODEC_ID_QTRLE, "QTRLE", 0, "QuickTime Animation", ""},
-      {AV_CODEC_ID_THEORA, "THEORA", 0, "Theora", ""},
+      {FFMPEG_CODEC_ID_DNXHD, "DNXHD", 0, "DNxHD", ""},
+      {FFMPEG_CODEC_ID_DVVIDEO, "DV", 0, "DV", ""},
+      {FFMPEG_CODEC_ID_FFV1, "FFV1", 0, "FFmpeg video codec #1", ""},
+      {FFMPEG_CODEC_ID_FLV1, "FLASH", 0, "Flash Video", ""},
+      {FFMPEG_CODEC_ID_HUFFYUV, "HUFFYUV", 0, "HuffYUV", ""},
+      {FFMPEG_CODEC_ID_MPEG1VIDEO, "MPEG1", 0, "MPEG-1", ""},
+      {FFMPEG_CODEC_ID_MPEG2VIDEO, "MPEG2", 0, "MPEG-2", ""},
+      {FFMPEG_CODEC_ID_MPEG4, "MPEG4", 0, "MPEG-4 (divx)", ""},
+      {FFMPEG_CODEC_ID_PNG, "PNG", 0, "PNG", ""},
+      {FFMPEG_CODEC_ID_QTRLE, "QTRLE", 0, "QuickTime Animation", ""},
+      {FFMPEG_CODEC_ID_THEORA, "THEORA", 0, "Theora", ""},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
@@ -6478,15 +6473,19 @@ static void rna_def_scene_ffmpeg_settings(BlenderRNA *brna)
   };
 
   static const EnumPropertyItem ffmpeg_audio_codec_items[] = {
-      {AV_CODEC_ID_NONE, "NONE", 0, "No Audio", "Disables audio output, for video-only renders"},
-      {AV_CODEC_ID_AAC, "AAC", 0, "AAC", ""},
-      {AV_CODEC_ID_AC3, "AC3", 0, "AC3", ""},
-      {AV_CODEC_ID_FLAC, "FLAC", 0, "FLAC", ""},
-      {AV_CODEC_ID_MP2, "MP2", 0, "MP2", ""},
-      {AV_CODEC_ID_MP3, "MP3", 0, "MP3", ""},
-      {AV_CODEC_ID_OPUS, "OPUS", 0, "Opus", ""},
-      {AV_CODEC_ID_PCM_S16LE, "PCM", 0, "PCM", ""},
-      {AV_CODEC_ID_VORBIS, "VORBIS", 0, "Vorbis", ""},
+      {FFMPEG_CODEC_ID_NONE,
+       "NONE",
+       0,
+       "No Audio",
+       "Disables audio output, for video-only renders"},
+      {FFMPEG_CODEC_ID_AAC, "AAC", 0, "AAC", ""},
+      {FFMPEG_CODEC_ID_AC3, "AC3", 0, "AC3", ""},
+      {FFMPEG_CODEC_ID_FLAC, "FLAC", 0, "FLAC", ""},
+      {FFMPEG_CODEC_ID_MP2, "MP2", 0, "MP2", ""},
+      {FFMPEG_CODEC_ID_MP3, "MP3", 0, "MP3", ""},
+      {FFMPEG_CODEC_ID_OPUS, "OPUS", 0, "Opus", ""},
+      {FFMPEG_CODEC_ID_PCM_S16LE, "PCM", 0, "PCM", ""},
+      {FFMPEG_CODEC_ID_VORBIS, "VORBIS", 0, "Vorbis", ""},
       {0, nullptr, 0, nullptr, nullptr},
   };
 #  endif
@@ -6525,7 +6524,7 @@ static void rna_def_scene_ffmpeg_settings(BlenderRNA *brna)
   RNA_def_property_enum_bitflag_sdna(prop, nullptr, "codec");
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_enum_items(prop, ffmpeg_codec_items);
-  RNA_def_property_enum_default(prop, AV_CODEC_ID_H264);
+  RNA_def_property_enum_default(prop, FFMPEG_CODEC_ID_H264);
   RNA_def_property_ui_text(prop, "Video Codec", "FFmpeg codec to use for video output");
   RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_FFmpegSettings_codec_update");
 

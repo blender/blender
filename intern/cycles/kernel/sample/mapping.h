@@ -169,7 +169,7 @@ ccl_device float3 sample_uniform_sphere(const float2 rand)
   float r = sin_from_cos(z);
   float phi = M_2PI_F * rand.y;
 
-  return float2_to_float3(polar_to_cartesian(r, phi), z);
+  return make_float3(polar_to_cartesian(r, phi), z);
 }
 
 /* sample point in unit polygon with given number of corners and rotation */

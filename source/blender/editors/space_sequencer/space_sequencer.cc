@@ -788,11 +788,16 @@ static void sequencer_preview_region_init(wmWindowManager *wm, ARegion *region)
   WM_event_add_keymap_handler_v2d_mask(&region->runtime->handlers, keymap);
 #endif
 
+  /* Own keymap. */
+  keymap = WM_keymap_ensure(wm->defaultconf, "SequencerPreview", SPACE_SEQ, RGN_TYPE_WINDOW);
+  WM_event_add_keymap_handler_v2d_mask(&region->runtime->handlers, keymap);
+
   keymap = WM_keymap_ensure(wm->defaultconf, "SequencerCommon", SPACE_SEQ, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->runtime->handlers, keymap);
 
-  /* Own keymap. */
-  keymap = WM_keymap_ensure(wm->defaultconf, "SequencerPreview", SPACE_SEQ, RGN_TYPE_WINDOW);
+  /* Do this instead of adding V2D keymap flag to `art->keymapflag` text editing keymap conflicts
+   * with V2D keymap. This seems to be only way to define order of evaluation. */
+  keymap = WM_keymap_ensure(wm->defaultconf, "View2D", SPACE_EMPTY, RGN_TYPE_WINDOW);
   WM_event_add_keymap_handler_v2d_mask(&region->runtime->handlers, keymap);
 
   ListBase *lb = WM_dropboxmap_find("Sequencer", SPACE_SEQ, RGN_TYPE_PREVIEW);
@@ -1122,8 +1127,7 @@ void ED_spacetype_sequencer()
   art->on_view2d_changed = sequencer_preview_region_view2d_changed;
   art->draw = sequencer_preview_region_draw;
   art->listener = sequencer_preview_region_listener;
-  art->keymapflag = ED_KEYMAP_TOOL | ED_KEYMAP_GIZMO | ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES |
-                    ED_KEYMAP_GPENCIL;
+  art->keymapflag = ED_KEYMAP_TOOL | ED_KEYMAP_GIZMO | ED_KEYMAP_GPENCIL;
   BLI_addhead(&st->regiontypes, art);
 
   /* List-view/buttons. */

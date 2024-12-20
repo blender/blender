@@ -122,6 +122,7 @@ void register_node_type_sh_mapping()
   static blender::bke::bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_MAPPING, "Mapping", NODE_CLASS_OP_VECTOR);
+  ntype.enum_name_legacy = "MAPPING";
   ntype.declare = file_ns::node_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_mapping;
   ntype.gpu_fn = file_ns::gpu_shader_mapping;

@@ -177,6 +177,7 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
   fn_node_type_base(&ntype, FN_NODE_AXES_TO_ROTATION, "Axes to Rotation", NODE_CLASS_CONVERTER);
+  ntype.enum_name_legacy = "AXES_TO_ROTATION";
   ntype.declare = node_declare;
   ntype.initfunc = node_init;
   ntype.build_multi_function = node_build_multi_function;

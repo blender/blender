@@ -1026,7 +1026,7 @@ static int min_distance_edit_invoke(bContext *C, wmOperator *op, const wmEvent *
     return OPERATOR_CANCELLED;
   }
 
-  BVHTreeFromMesh surface_bvh_eval = surface_me_eval->bvh_corner_tris();
+  bke::BVHTreeFromMesh surface_bvh_eval = surface_me_eval->bvh_corner_tris();
 
   const int2 mouse_pos_int_re{event->mval};
   const float2 mouse_pos_re{mouse_pos_int_re};

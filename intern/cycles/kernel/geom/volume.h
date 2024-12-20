@@ -39,7 +39,7 @@ ccl_device_inline float3 volume_normalized_position(KernelGlobals kg,
 
 ccl_device float volume_attribute_value_to_float(const float4 value)
 {
-  return average(float4_to_float3(value));
+  return average(make_float3(value));
 }
 
 ccl_device float volume_attribute_value_to_alpha(const float4 value)
@@ -51,10 +51,10 @@ ccl_device float3 volume_attribute_value_to_float3(const float4 value)
 {
   if (value.w > 1e-6f && value.w != 1.0f) {
     /* For RGBA colors, unpremultiply after interpolation. */
-    return float4_to_float3(value) / value.w;
+    return make_float3(value) / value.w;
   }
   else {
-    return float4_to_float3(value);
+    return make_float3(value);
   }
 }
 

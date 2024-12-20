@@ -269,6 +269,7 @@ void register_node_type_cmp_movieclip()
   static blender::bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_MOVIECLIP, "Movie Clip", NODE_CLASS_INPUT);
+  ntype.enum_name_legacy = "MOVIECLIP";
   ntype.declare = file_ns::cmp_node_movieclip_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_movieclip;
   ntype.draw_buttons_ex = file_ns::node_composit_buts_movieclip_ex;

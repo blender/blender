@@ -76,7 +76,7 @@ struct PuffOperationExecutor {
   Span<int> surface_corner_verts_;
   Span<int3> surface_corner_tris_;
   Span<float3> corner_normals_su_;
-  BVHTreeFromMesh surface_bvh_;
+  bke::BVHTreeFromMesh surface_bvh_;
 
   PuffOperationExecutor(const bContext &C) : ctx_(C) {}
 

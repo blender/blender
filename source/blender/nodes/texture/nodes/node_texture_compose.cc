@@ -44,6 +44,7 @@ void register_node_type_tex_compose()
 
   tex_node_type_base(
       &ntype, TEX_NODE_COMPOSE_LEGACY, "Combine RGBA (Legacy)", NODE_CLASS_OP_COLOR);
+  ntype.enum_name_legacy = "COMPOSE";
   blender::bke::node_type_socket_templates(&ntype, inputs, outputs);
   ntype.exec_fn = exec;
 

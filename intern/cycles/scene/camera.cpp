@@ -468,8 +468,8 @@ void Camera::update(Scene *scene)
   kcam->height = height;
 
   /* store differentials */
-  kcam->dx = float3_to_float4(dx);
-  kcam->dy = float3_to_float4(dy);
+  kcam->dx = make_float4(dx);
+  kcam->dy = make_float4(dy);
 
   /* clipping */
   kcam->nearclip = nearclip;

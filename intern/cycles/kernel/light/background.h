@@ -278,7 +278,7 @@ ccl_device_inline float3 background_sun_sample(KernelGlobals kg,
                                                float2 rand,
                                                ccl_private float *pdf)
 {
-  const float3 N = float4_to_float3(kernel_data.background.sun);
+  const float3 N = make_float3(kernel_data.background.sun);
   const float angle = kernel_data.background.sun.w;
   float unused;
   return sample_uniform_cone(N, one_minus_cos(angle), rand, &unused, pdf);
@@ -286,7 +286,7 @@ ccl_device_inline float3 background_sun_sample(KernelGlobals kg,
 
 ccl_device_inline float background_sun_pdf(KernelGlobals kg, float3 D)
 {
-  const float3 N = float4_to_float3(kernel_data.background.sun);
+  const float3 N = make_float3(kernel_data.background.sun);
   const float angle = kernel_data.background.sun.w;
   return pdf_uniform_cone(N, D, angle);
 }

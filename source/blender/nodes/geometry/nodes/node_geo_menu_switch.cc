@@ -412,6 +412,7 @@ static void register_node()
   static blender::bke::bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_MENU_SWITCH, "Menu Switch", NODE_CLASS_CONVERTER);
+  ntype.enum_name_legacy = "MENU_SWITCH";
   ntype.declare = node_declare;
   ntype.initfunc = node_init;
   blender::bke::node_type_storage(&ntype, "NodeMenuSwitch", node_free_storage, node_copy_storage);

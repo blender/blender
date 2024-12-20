@@ -2219,7 +2219,7 @@ class VIEW3D_MT_paint_grease_pencil(Menu):
 
         layout.separator()
 
-        layout.operator("paint.sample_color")
+        layout.operator("paint.sample_color").merged = False
 
 
 class VIEW3D_MT_paint_vertex_grease_pencil(Menu):
@@ -3411,7 +3411,7 @@ class VIEW3D_MT_paint_vertex(Menu):
         layout.separator()
 
         layout.operator("paint.vertex_color_set")
-        layout.operator("paint.sample_color")
+        layout.operator("paint.sample_color").merged = False
 
 
 class VIEW3D_MT_hook(Menu):

@@ -23,6 +23,8 @@
 
 #include "IMB_imbuf.hh"
 
+#include "MOV_read.hh"
+
 #include "SEQ_channels.hh"
 #include "SEQ_iterator.hh"
 #include "SEQ_render.hh"
@@ -332,12 +334,7 @@ float SEQ_time_sequence_get_fps(Scene *scene, Sequence *seq)
       if (strip_anim->anim == nullptr) {
         return 0.0f;
       }
-      short frs_sec;
-      float frs_sec_base;
-      if (IMB_anim_get_fps(strip_anim->anim, true, &frs_sec, &frs_sec_base)) {
-        return float(frs_sec) / frs_sec_base;
-      }
-      break;
+      return MOV_get_fps(strip_anim->anim);
     }
     case SEQ_TYPE_MOVIECLIP:
       if (seq->clip != nullptr) {

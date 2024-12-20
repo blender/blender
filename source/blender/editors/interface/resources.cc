@@ -721,6 +721,12 @@ const uchar *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
         case TH_SEQ_SELECTED:
           cp = ts->selected_strip;
           break;
+        case TH_SEQ_TEXT_CURSOR:
+          cp = ts->text_strip_cursor;
+          break;
+        case TH_SEQ_SELECTED_TEXT:
+          cp = ts->selected_text;
+          break;
 
         case TH_CONSOLE_OUTPUT:
           cp = ts->console_output;

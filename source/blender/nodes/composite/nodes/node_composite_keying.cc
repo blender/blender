@@ -682,6 +682,7 @@ void register_node_type_cmp_keying()
   static blender::bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_KEYING, "Keying", NODE_CLASS_MATTE);
+  ntype.enum_name_legacy = "KEYING";
   ntype.declare = file_ns::cmp_node_keying_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_keying;
   ntype.initfunc = file_ns::node_composit_init_keying;

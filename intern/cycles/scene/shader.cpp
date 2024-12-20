@@ -638,14 +638,14 @@ void ShaderManager::device_update_common(Device * /*device*/,
   /* film */
   KernelFilm *kfilm = &dscene->data.film;
   /* color space, needs to be here because e.g. displacement shaders could depend on it */
-  kfilm->xyz_to_r = float3_to_float4(xyz_to_r);
-  kfilm->xyz_to_g = float3_to_float4(xyz_to_g);
-  kfilm->xyz_to_b = float3_to_float4(xyz_to_b);
-  kfilm->rgb_to_y = float3_to_float4(rgb_to_y);
-  kfilm->white_xyz = float3_to_float4(white_xyz);
-  kfilm->rec709_to_r = float3_to_float4(rec709_to_r);
-  kfilm->rec709_to_g = float3_to_float4(rec709_to_g);
-  kfilm->rec709_to_b = float3_to_float4(rec709_to_b);
+  kfilm->xyz_to_r = make_float4(xyz_to_r);
+  kfilm->xyz_to_g = make_float4(xyz_to_g);
+  kfilm->xyz_to_b = make_float4(xyz_to_b);
+  kfilm->rgb_to_y = make_float4(rgb_to_y);
+  kfilm->white_xyz = make_float4(white_xyz);
+  kfilm->rec709_to_r = make_float4(rec709_to_r);
+  kfilm->rec709_to_g = make_float4(rec709_to_g);
+  kfilm->rec709_to_b = make_float4(rec709_to_b);
   kfilm->is_rec709 = is_rec709;
 }
 
@@ -891,9 +891,9 @@ void ShaderManager::init_xyz_transforms()
                                                  1.0572252f,
                                                  0.0f);
 
-  xyz_to_r = float4_to_float3(xyz_to_rec709.x);
-  xyz_to_g = float4_to_float3(xyz_to_rec709.y);
-  xyz_to_b = float4_to_float3(xyz_to_rec709.z);
+  xyz_to_r = make_float3(xyz_to_rec709.x);
+  xyz_to_g = make_float3(xyz_to_rec709.y);
+  xyz_to_b = make_float3(xyz_to_rec709.z);
   rgb_to_y = make_float3(0.2126729f, 0.7151522f, 0.0721750f);
   white_xyz = make_float3(0.95047f, 1.0f, 1.08883f);
 
@@ -946,18 +946,18 @@ void ShaderManager::init_xyz_transforms()
     return;
   }
 
-  xyz_to_r = float4_to_float3(xyz_to_rgb.x);
-  xyz_to_g = float4_to_float3(xyz_to_rgb.y);
-  xyz_to_b = float4_to_float3(xyz_to_rgb.z);
+  xyz_to_r = make_float3(xyz_to_rgb.x);
+  xyz_to_g = make_float3(xyz_to_rgb.y);
+  xyz_to_b = make_float3(xyz_to_rgb.z);
 
   const Transform rgb_to_xyz = transform_inverse(xyz_to_rgb);
-  rgb_to_y = float4_to_float3(rgb_to_xyz.y);
+  rgb_to_y = make_float3(rgb_to_xyz.y);
   white_xyz = transform_direction(&rgb_to_xyz, one_float3());
 
   const Transform rec709_to_rgb = xyz_to_rgb * transform_inverse(xyz_to_rec709);
-  rec709_to_r = float4_to_float3(rec709_to_rgb.x);
-  rec709_to_g = float4_to_float3(rec709_to_rgb.y);
-  rec709_to_b = float4_to_float3(rec709_to_rgb.z);
+  rec709_to_r = make_float3(rec709_to_rgb.x);
+  rec709_to_g = make_float3(rec709_to_rgb.y);
+  rec709_to_b = make_float3(rec709_to_rgb.z);
   is_rec709 = transform_equal_threshold(xyz_to_rgb, xyz_to_rec709, 0.0001f);
 #endif
 }

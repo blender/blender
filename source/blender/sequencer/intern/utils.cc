@@ -40,6 +40,8 @@
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 
+#include "MOV_read.hh"
+
 #include "multiview.hh"
 #include "proxy.hh"
 #include "sequencer.hh"
@@ -287,7 +289,7 @@ static bool open_anim_file_multiview(Scene *scene, Sequence *seq, const char *fi
 
     index_dir_set(ed, seq, sanim);
     BLI_addtail(&seq->anims, sanim);
-    IMB_suffix_anim(sanim->anim, suffix);
+    MOV_set_multiview_suffix(sanim->anim, suffix);
     is_multiview_loaded = true;
   }
 

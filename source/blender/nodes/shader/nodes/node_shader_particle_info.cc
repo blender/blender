@@ -51,6 +51,7 @@ void register_node_type_sh_particle_info()
   static blender::bke::bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_PARTICLE_INFO, "Particle Info", NODE_CLASS_INPUT);
+  ntype.enum_name_legacy = "PARTICLE_INFO";
   ntype.declare = file_ns::node_declare;
   ntype.gpu_fn = file_ns::gpu_shader_particle_info;
   ntype.materialx_fn = file_ns::node_shader_materialx;

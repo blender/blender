@@ -31,7 +31,7 @@ using namespace blender;
 
 static void snap_object_data_mesh_get(const Mesh *mesh_eval,
                                       bool skip_hidden,
-                                      BVHTreeFromMesh *r_treedata)
+                                      bke::BVHTreeFromMesh *r_treedata)
 {
   /* The BVHTree from corner_tris is always required. */
   if (skip_hidden) {
@@ -57,7 +57,7 @@ static void mesh_corner_tris_raycast_backface_culling_cb(void *userdata,
                                                          const BVHTreeRay *ray,
                                                          BVHTreeRayHit *hit)
 {
-  const BVHTreeFromMesh *data = (BVHTreeFromMesh *)userdata;
+  const bke::BVHTreeFromMesh *data = (bke::BVHTreeFromMesh *)userdata;
   const blender::Span<blender::float3> positions = data->vert_positions;
   const int3 &tri = data->corner_tris[index];
   const float *vtri_co[3] = {
@@ -65,7 +65,7 @@ static void mesh_corner_tris_raycast_backface_culling_cb(void *userdata,
       positions[data->corner_verts[tri[1]]],
       positions[data->corner_verts[tri[2]]],
   };
-  float dist = bvhtree_ray_tri_intersection(ray, hit->dist, UNPACK3(vtri_co));
+  float dist = bke::bvhtree_ray_tri_intersection(ray, hit->dist, UNPACK3(vtri_co));
 
   if (dist >= 0 && dist < hit->dist) {
     float no[3];
@@ -130,7 +130,7 @@ static bool raycastMesh(SnapObjectContext *sctx,
     len_diff = 0.0f;
   }
 
-  BVHTreeFromMesh treedata;
+  bke::BVHTreeFromMesh treedata;
   snap_object_data_mesh_get(mesh_eval, use_hide, &treedata);
 
   const blender::Span<int> tri_faces = mesh_eval->corner_tri_faces();
@@ -197,7 +197,7 @@ static bool nearest_world_mesh(SnapObjectContext *sctx,
                                const float4x4 &obmat,
                                bool use_hide)
 {
-  BVHTreeFromMesh treedata;
+  bke::BVHTreeFromMesh treedata;
   snap_object_data_mesh_get(mesh_eval, use_hide, &treedata);
   if (treedata.tree == nullptr) {
     return false;
@@ -474,7 +474,7 @@ static eSnapMode snapMesh(SnapObjectContext *sctx,
     return SCE_SNAP_TO_NONE;
   }
 
-  BVHTreeFromMesh treedata, treedata_dummy;
+  bke::BVHTreeFromMesh treedata;
   snap_object_data_mesh_get(mesh_eval, skip_hidden, &treedata);
 
   const BVHTree *bvhtree[2] = {nullptr};

@@ -15,11 +15,12 @@ try:
 except ImportError:
     inside_blender = False
 
-SET_COMPOSITOR_DEVICE_SCRIPT = "import bpy; " \
-    "bpy.data.scenes[0].render.compositor_device = 'CPU'"
+
+def get_compositor_device_setter_script(execution_device):
+    return f"import bpy; bpy.data.scenes[0].render.compositor_device = '{execution_device}'"
 
 
-def get_arguments(filepath, output_filepath):
+def get_arguments(filepath, output_filepath, execution_device):
     return [
         "--background",
         "--factory-startup",
@@ -28,7 +29,7 @@ def get_arguments(filepath, output_filepath):
         "--debug-exit-on-error",
         filepath,
         "-P", os.path.realpath(__file__),
-        "--python-expr", SET_COMPOSITOR_DEVICE_SCRIPT,
+        "--python-expr", get_compositor_device_setter_script(execution_device),
         "-o", output_filepath,
         "-F", "PNG",
         "-f", "1"]
@@ -42,6 +43,7 @@ def create_argparse():
     parser.add_argument("--testdir", required=True)
     parser.add_argument("--outdir", required=True)
     parser.add_argument("--oiiotool", required=True)
+    parser.add_argument("--gpu", default=False, action='store_true')
     parser.add_argument('--batch', default=False, action='store_true')
     return parser
 
@@ -51,9 +53,11 @@ def main():
     args = parser.parse_args()
 
     from modules import render_report
-    report = render_report.Report("Compositor CPU", args.outdir, args.oiiotool)
+    execution_device = "GPU" if args.gpu else "CPU"
+    report_title = f"Compositor {execution_device}"
+    report = render_report.Report(report_title, args.outdir, args.oiiotool)
     report.set_pixelated(True)
-    report.set_reference_dir("compositor_cpu_renders")
+    report.set_reference_dir("compositor_renders")
 
     if os.path.basename(args.testdir) == 'filter':
         # Temporary change to pass OpenImageDenoise test with both 1.3 and 1.4.
@@ -66,7 +70,8 @@ def main():
         report.set_fail_threshold(0.06)
         report.set_fail_percent(2)
 
-    ok = report.run(args.testdir, args.blender, get_arguments, batch=args.batch)
+    def arguments_callback(filepath, output_filepath): return get_arguments(filepath, output_filepath, execution_device)
+    ok = report.run(args.testdir, args.blender, arguments_callback, batch=args.batch)
 
     sys.exit(not ok)
 

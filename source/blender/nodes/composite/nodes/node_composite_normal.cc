@@ -96,6 +96,7 @@ void register_node_type_cmp_normal()
   static blender::bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_NORMAL, "Normal", NODE_CLASS_OP_VECTOR);
+  ntype.enum_name_legacy = "NORMAL";
   ntype.declare = file_ns::cmp_node_normal_declare;
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
   ntype.build_multi_function = file_ns::node_build_multi_function;

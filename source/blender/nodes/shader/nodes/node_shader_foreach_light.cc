@@ -155,6 +155,7 @@ static void node_register()
   static blender::bke::bNodeType ntype;
   sh_node_type_base(
       &ntype, SH_NODE_FOREACH_LIGHT_INPUT, "For Each Light Input", NODE_CLASS_INTERFACE);
+  ntype.enum_name_legacy = "FOREACH_LIGHT_INPUT";
   ntype.initfunc = node_init;
   ntype.declare = node_declare;
   ntype.labelfunc = node_label;
@@ -256,6 +257,7 @@ static void node_register()
   static blender::bke::bNodeType ntype;
   sh_node_type_base(
       &ntype, SH_NODE_FOREACH_LIGHT_OUTPUT, "For Each Light Output", NODE_CLASS_INTERFACE);
+  ntype.enum_name_legacy = "FOREACH_LIGHT_OUTPUT";
   ntype.initfunc = node_init;
   ntype.declare = node_declare;
   ntype.labelfunc = foreach_light_input_node::node_label;

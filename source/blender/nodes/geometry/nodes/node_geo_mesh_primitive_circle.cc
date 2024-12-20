@@ -222,6 +222,7 @@ static void node_register()
   static blender::bke::bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_MESH_PRIMITIVE_CIRCLE, "Mesh Circle", NODE_CLASS_GEOMETRY);
+  ntype.enum_name_legacy = "MESH_PRIMITIVE_CIRCLE";
   ntype.initfunc = node_init;
   blender::bke::node_type_storage(
       &ntype, "NodeGeometryMeshCircle", node_free_standard_storage, node_copy_standard_storage);

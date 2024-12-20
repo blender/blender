@@ -48,6 +48,7 @@ static void node_register()
   static blender::bke::bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_GRID_TO_MESH, "Grid to Mesh", NODE_CLASS_GEOMETRY);
+  ntype.enum_name_legacy = "GRID_TO_MESH";
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.gather_link_search_ops = search_link_ops_for_volume_grid_node;

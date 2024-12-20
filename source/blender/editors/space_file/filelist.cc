@@ -68,6 +68,8 @@
 #include "IMB_imbuf_types.hh"
 #include "IMB_thumbs.hh"
 
+#include "MOV_util.hh"
+
 #include "WM_api.hh"
 #include "WM_types.hh"
 
@@ -2852,7 +2854,7 @@ int ED_path_extension_type(const char *path)
     return FILE_TYPE_IMAGE;
   }
   if (BLI_path_extension_check(path, ".ogg")) {
-    if (IMB_isanim(path)) {
+    if (MOV_is_movie_file(path)) {
       return FILE_TYPE_MOVIE;
     }
     return FILE_TYPE_SOUND;

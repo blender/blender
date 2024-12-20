@@ -257,41 +257,31 @@ static void action_foreach_id(ID *id, LibraryForeachIDData *data)
    * cases (see #IDWALK_RET_STOP_ITER documentation). */
 
   const LibraryForeachIDFlag flag = BKE_lib_query_foreachid_process_flags_get(data);
-  const bool is_readonly = flag & IDWALK_READONLY;
-
   constexpr LibraryForeachIDCallbackFlag idwalk_flags = IDWALK_CB_NEVER_SELF | IDWALK_CB_LOOPBACK;
 
+  /* Note that `bmain` can be `nullptr`. An example is in
+   * `deg_eval_copy_on_write.cc`, function `deg_expand_eval_copy_datablock`. */
   Main *bmain = BKE_lib_query_foreachid_process_main_get(data);
 
-  if (is_readonly) {
-    /* bmain is still necessary to have, because in the read-only mode the cache
-     * may still be dirty, and we have no way to check. Without that knowledge
-     * it's possible to report invalid pointers, which should be avoided at all
-     * time. */
-    if (bmain) {
-      for (animrig::Slot *slot : action.slots()) {
-        for (ID *slot_user : slot->users(*bmain)) {
-          BKE_LIB_FOREACHID_PROCESS_ID(data, slot_user, idwalk_flags);
-        }
-      }
-    }
-  }
-  else if (bmain && !bmain->is_action_slot_to_id_map_dirty) {
-    /* Because BKE_library_foreach_ID_link() can be called with bmain=nullptr,
-     * there are cases where we do not know which `main` this is called for. An example is in
-     * `deg_eval_copy_on_write.cc`, function `deg_expand_eval_copy_datablock`.
-     *
-     * Also if the cache is already dirty, we shouldn't loop over the pointers in there. If we
-     * were to call `slot->users(*bmain)` in that case, it would rebuild the cache. But then
-     * another ID using the same Action may also trigger a rebuild of the cache, because another
-     * user pointer changed, forcing way too many rebuilds of the user map.  */
-    bool should_invalidate = false;
+  /* This function should not rebuild the slot user map, because that in turn loops over all IDs.
+   * It is really up to the caller to ensure things are clean when the slot user pointers should be
+   * reported.
+   *
+   * For things like ID remapping it's fine to skip the pointers when they're dirty. The next time
+   * somebody tries to actually use them, they will be rebuilt anyway. */
+  const bool slot_user_cache_is_known_clean = bmain && !bmain->is_action_slot_to_id_map_dirty;
 
+  if (slot_user_cache_is_known_clean) {
+    bool should_invalidate = false;
     for (animrig::Slot *slot : action.slots()) {
-      for (ID *slot_user : slot->runtime_users()) {
-        ID *old_pointer = slot_user;
+      for (ID *&slot_user : slot->runtime_users()) {
+        ID *const old_pointer = slot_user;
         BKE_LIB_FOREACHID_PROCESS_ID(data, slot_user, idwalk_flags);
-        /* If slot_user changed, the cache should be invalidated. */
+        /* If slot_user changed, the cache should be invalidated. Not all pointer changes are
+         * semantically correct for our use. For example, when ID-remapping is used to replace
+         * MECube with MESuzanne. If MECube is animated by some slot before the remap, it will
+         * remain animated by that slot after the remap, even when all `object->data` pointers now
+         * reference MESuzanne instead. */
         should_invalidate |= (slot_user != old_pointer);
       }
     }
@@ -299,6 +289,14 @@ static void action_foreach_id(ID *id, LibraryForeachIDData *data)
     if (should_invalidate) {
       animrig::Slot::users_invalidate(*bmain);
     }
+
+#ifndef NDEBUG
+    const bool is_readonly = flag & IDWALK_READONLY;
+    if (is_readonly) {
+      BLI_assert_msg(!should_invalidate,
+                     "pointers were changed while IDWALK_READONLY flag was set");
+    }
+#endif
   }
 
   /* Note that, even though `BKE_fcurve_foreach_id()` exists, it is not called here. That function

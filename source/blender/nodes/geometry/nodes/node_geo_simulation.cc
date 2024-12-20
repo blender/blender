@@ -490,6 +490,7 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
   geo_node_type_base(&ntype, GEO_NODE_SIMULATION_INPUT, "Simulation Input", NODE_CLASS_INTERFACE);
+  ntype.enum_name_legacy = "SIMULATION_INPUT";
   ntype.initfunc = node_init;
   ntype.declare = node_declare;
   ntype.labelfunc = node_label;
@@ -865,6 +866,7 @@ static void node_register()
 
   geo_node_type_base(
       &ntype, GEO_NODE_SIMULATION_OUTPUT, "Simulation Output", NODE_CLASS_INTERFACE);
+  ntype.enum_name_legacy = "SIMULATION_OUTPUT";
   ntype.initfunc = node_init;
   ntype.declare = node_declare;
   ntype.labelfunc = sim_input_node::node_label;

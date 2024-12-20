@@ -317,9 +317,9 @@ ccl_device void shader_setup_from_curve(KernelGlobals kg,
   P_curve[3] = kernel_data_fetch(curve_keys, kb);
 
   /* Interpolate position and tangent. */
-  sd->P = float4_to_float3(catmull_rom_basis_derivative(P_curve, sd->u));
+  sd->P = make_float3(catmull_rom_basis_derivative(P_curve, sd->u));
 #  ifdef __DPDU__
-  sd->dPdu = float4_to_float3(catmull_rom_basis_derivative(P_curve, sd->u));
+  sd->dPdu = make_float3(catmull_rom_basis_derivative(P_curve, sd->u));
 #  endif
 
   /* Transform into world space */

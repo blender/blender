@@ -240,24 +240,47 @@ class Vector {
       is_nothrow_move_constructible())
       : Vector(NoExceptConstructor(), other.allocator_)
   {
-    const int64_t size = other.size();
-
     if (other.is_inline()) {
-      /* This first check is not strictly necessary, but improves performance because it can be
-       * done at compile time and makes the size check at run-time unnecessary. */
-      if (OtherInlineBufferCapacity <= InlineBufferCapacity || size <= InlineBufferCapacity) {
-        /* Copy between inline buffers. */
-        uninitialized_relocate_n(other.begin_, size, begin_);
-        end_ = begin_ + size;
+      const int64_t size = other.size();
+
+      /* Optimize the case by copying the full inline buffer. */
+      constexpr bool other_is_same_type = std::is_same_v<Vector, std::decay_t<decltype(other)>>;
+      constexpr size_t max_full_copy_size = 32;
+      if constexpr (other_is_same_type && std::is_trivial_v<T> &&
+                    sizeof(inline_buffer_) <= max_full_copy_size)
+      {
+        /* This check is technically optional. However, benchmarking shows that skipping work
+         * for empty vectors (which is a common case) is worth the extra check even in the case
+         * when the vector is not empty. */
+        if (size > 0) {
+          /* Copy the full inline buffer instead of only the used parts. This may copy
+           * uninitialized values but allows producing more optimal code than when the copy size
+           * would depend on a dynamic value. */
+          memcpy(inline_buffer_, other.inline_buffer_, sizeof(inline_buffer_));
+          this->increase_size_by_unchecked(size);
+          /* Reset other vector. */
+          other.end_ = other.inline_buffer_;
+        }
       }
       else {
-        /* Copy from inline buffer to newly allocated buffer. */
-        const int64_t capacity = size;
-        begin_ = static_cast<T *>(
-            allocator_.allocate(sizeof(T) * size_t(capacity), alignof(T), AT));
-        capacity_end_ = begin_ + capacity;
-        uninitialized_relocate_n(other.begin_, size, begin_);
-        end_ = begin_ + size;
+        /* This first check is not strictly necessary, but improves performance because it can be
+         * done at compile time and makes the size check at run-time unnecessary. */
+        if (OtherInlineBufferCapacity <= InlineBufferCapacity || size <= InlineBufferCapacity) {
+          /* Copy between inline buffers. */
+          uninitialized_relocate_n(other.begin_, size, begin_);
+          end_ = begin_ + size;
+        }
+        else {
+          /* Copy from inline buffer to newly allocated buffer. */
+          const int64_t capacity = size;
+          begin_ = static_cast<T *>(
+              allocator_.allocate(sizeof(T) * size_t(capacity), alignof(T), AT));
+          capacity_end_ = begin_ + capacity;
+          uninitialized_relocate_n(other.begin_, size, begin_);
+          end_ = begin_ + size;
+        }
+        /* Reset other vector. */
+        other.end_ = other.inline_buffer_;
       }
     }
     else {
@@ -265,11 +288,13 @@ class Vector {
       begin_ = other.begin_;
       end_ = other.end_;
       capacity_end_ = other.capacity_end_;
+
+      /* Reset other vector. */
+      other.begin_ = other.inline_buffer_;
+      other.end_ = other.inline_buffer_;
+      other.capacity_end_ = other.inline_buffer_ + OtherInlineBufferCapacity;
     }
 
-    other.begin_ = other.inline_buffer_;
-    other.end_ = other.begin_;
-    other.capacity_end_ = other.begin_ + OtherInlineBufferCapacity;
     UPDATE_VECTOR_SIZE(this);
     UPDATE_VECTOR_SIZE(&other);
   }

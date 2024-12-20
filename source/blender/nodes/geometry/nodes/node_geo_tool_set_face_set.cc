@@ -57,6 +57,7 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
   geo_node_type_base(&ntype, GEO_NODE_TOOL_SET_FACE_SET, "Set Face Set", NODE_CLASS_GEOMETRY);
+  ntype.enum_name_legacy = "TOOL_SET_FACE_SET";
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.gather_link_search_ops = search_link_ops_for_tool_node;

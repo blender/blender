@@ -94,7 +94,7 @@ struct AddOperationExecutor {
   Span<int> surface_corner_verts_eval_;
   Span<int3> surface_corner_tris_eval_;
   VArraySpan<float2> surface_uv_map_eval_;
-  BVHTreeFromMesh surface_bvh_eval_;
+  bke::BVHTreeFromMesh surface_bvh_eval_;
 
   const CurvesSculpt *curves_sculpt_ = nullptr;
   const Brush *brush_ = nullptr;

@@ -281,6 +281,7 @@ Sequence *find_nearest_seq(const Scene *scene,
                            const View2D *v2d,
                            const int mval[2],
                            eSeqHandle *r_hand);
+bool seq_point_image_isect(const Scene *scene, const Sequence *seq, float point_view[2]);
 
 /* `sequencer_add.cc` */
 
@@ -379,6 +380,22 @@ int left_fake_key_frame_get(const bContext *C, const Sequence *seq);
 int right_fake_key_frame_get(const bContext *C, const Sequence *seq);
 bool retiming_keys_can_be_displayed(const SpaceSeq *sseq);
 rctf seq_retiming_keys_box_get(const Scene *scene, const View2D *v2d, const Sequence *seq);
+
+/* `sequencer_text_edit.cc` */
+bool sequencer_text_editing_active_poll(bContext *C);
+void SEQUENCER_OT_text_cursor_move(wmOperatorType *ot);
+void SEQUENCER_OT_text_insert(wmOperatorType *ot);
+void SEQUENCER_OT_text_delete(wmOperatorType *ot);
+void SEQUENCER_OT_text_line_break(wmOperatorType *ot);
+void SEQUENCER_OT_text_select_all(wmOperatorType *ot);
+void SEQUENCER_OT_text_deselect_all(wmOperatorType *ot);
+void SEQUENCER_OT_text_edit_mode_toggle(wmOperatorType *ot);
+void SEQUENCER_OT_text_cursor_set(wmOperatorType *ot);
+void SEQUENCER_OT_text_edit_copy(wmOperatorType *ot);
+void SEQUENCER_OT_text_edit_paste(wmOperatorType *ot);
+void SEQUENCER_OT_text_edit_cut(wmOperatorType *ot);
+blender::int2 seq_text_cursor_offset_to_position(const TextVarsRuntime *text, int cursor_offset);
+blender::IndexRange seq_text_selection_range_get(const TextVars *data);
 
 /* `sequencer_timeline_draw.cc` */
 blender::Vector<Sequence *> sequencer_visible_strips_get(const bContext *C);

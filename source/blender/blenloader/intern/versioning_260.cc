@@ -67,11 +67,9 @@
 #include "SEQ_modifier.hh"
 #include "SEQ_utils.hh"
 
-#ifdef WITH_FFMPEG
-#  include "BKE_writeffmpeg.hh"
-#endif
+#include "IMB_imbuf_enums.h"
 
-#include "IMB_imbuf.hh" /* for proxy / time-code versioning stuff. */
+#include "MOV_enums.hh"
 
 #include "NOD_common.h"
 #include "NOD_composite.hh"
@@ -2754,12 +2752,10 @@ void blo_do_versions_260(FileData *fd, Library * /*lib*/, Main *bmain)
         scene->toolsettings->snap_node_mode = 8;      /* SCE_SNAP_TO_GRID */
       }
 
-#ifdef WITH_FFMPEG
       /* Update for removed "sound-only" option in FFMPEG export settings. */
       if (scene->r.ffcodecdata.type >= FFMPEG_INVALID) {
         scene->r.ffcodecdata.type = FFMPEG_AVI;
       }
-#endif
     }
   }
 

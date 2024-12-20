@@ -129,3 +129,15 @@ void SEQ_image_transform_bounding_box_from_collection(Scene *scene,
                                                       bool apply_rotation,
                                                       float r_min[2],
                                                       float r_max[2]);
+
+/**
+ * Get strip image transformation matrix. Pivot point is set to correspond with viewport coordinate
+ * system
+ *
+ * \param scene: Scene in which strips are located
+ * \param seq: Strip that is used to construct the matrix
+ * \param r_transform_matrix: Return value
+ */
+void SEQ_image_transform_matrix_get(const Scene *scene,
+                                    const Sequence *seq,
+                                    float r_transform_matrix[4][4]);
