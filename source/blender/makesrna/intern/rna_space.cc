@@ -2453,12 +2453,12 @@ static void seq_build_proxy(bContext *C, PointerRNA *ptr)
   ProxyJob *pj = ED_seq_proxy_job_get(C, wm_job);
 
   LISTBASE_FOREACH (Sequence *, seq, seqbase) {
-    if (seq->type != SEQ_TYPE_MOVIE || seq->strip == nullptr || seq->strip->proxy == nullptr) {
+    if (seq->type != SEQ_TYPE_MOVIE || seq->data == nullptr || seq->data->proxy == nullptr) {
       continue;
     }
 
     /* Add new proxy size. */
-    seq->strip->proxy->build_size_flags |= SEQ_rendersize_to_proxysize(sseq->render_size);
+    seq->data->proxy->build_size_flags |= SEQ_rendersize_to_proxysize(sseq->render_size);
 
     /* Build proxy. */
     SEQ_proxy_rebuild_context(

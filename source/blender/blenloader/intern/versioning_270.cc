@@ -429,12 +429,12 @@ static bool seq_update_proxy_cb(Sequence *seq, void * /*user_data*/)
 
 #define SEQ_USE_PROXY_CUSTOM_DIR (1 << 19)
 #define SEQ_USE_PROXY_CUSTOM_FILE (1 << 21)
-  if (seq->strip && seq->strip->proxy && !seq->strip->proxy->storage) {
+  if (seq->data && seq->data->proxy && !seq->data->proxy->storage) {
     if (seq->flag & SEQ_USE_PROXY_CUSTOM_DIR) {
-      seq->strip->proxy->storage = SEQ_STORAGE_PROXY_CUSTOM_DIR;
+      seq->data->proxy->storage = SEQ_STORAGE_PROXY_CUSTOM_DIR;
     }
     if (seq->flag & SEQ_USE_PROXY_CUSTOM_FILE) {
-      seq->strip->proxy->storage = SEQ_STORAGE_PROXY_CUSTOM_FILE;
+      seq->data->proxy->storage = SEQ_STORAGE_PROXY_CUSTOM_FILE;
     }
   }
 #undef SEQ_USE_PROXY_CUSTOM_DIR

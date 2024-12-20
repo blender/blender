@@ -566,8 +566,8 @@ static StripElem *rna_SequenceElements_append(ID *id, Sequence *seq, const char 
   Scene *scene = (Scene *)id;
   StripElem *se;
 
-  seq->strip->stripdata = se = static_cast<StripElem *>(
-      MEM_reallocN(seq->strip->stripdata, sizeof(StripElem) * (seq->len + 1)));
+  seq->data->stripdata = se = static_cast<StripElem *>(
+      MEM_reallocN(seq->data->stripdata, sizeof(StripElem) * (seq->len + 1)));
   se += seq->len;
   STRNCPY(se->filename, filename);
   seq->len++;
@@ -607,7 +607,7 @@ static void rna_SequenceElements_pop(ID *id, Sequence *seq, ReportList *reports,
     seq->flag |= SEQ_SINGLE_FRAME_CONTENT;
   }
 
-  se = seq->strip->stripdata;
+  se = seq->data->stripdata;
   if (index > 0) {
     memcpy(new_seq, se, sizeof(StripElem) * index);
   }
@@ -616,8 +616,8 @@ static void rna_SequenceElements_pop(ID *id, Sequence *seq, ReportList *reports,
     memcpy(&new_seq[index], &se[index + 1], sizeof(StripElem) * (seq->len - index));
   }
 
-  MEM_freeN(seq->strip->stripdata);
-  seq->strip->stripdata = new_seq;
+  MEM_freeN(seq->data->stripdata);
+  seq->data->stripdata = new_seq;
 
   WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
 }

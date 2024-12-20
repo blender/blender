@@ -63,7 +63,7 @@ static void seq_proxy_build_job(const bContext *C, ReportList *reports)
       BKE_reportf(reports, RPT_WARNING, "Proxy is not enabled for %s, skipping", seq->name);
       continue;
     }
-    if (seq->strip->proxy->build_size_flags == 0) {
+    if (seq->data->proxy->build_size_flags == 0) {
       BKE_reportf(reports, RPT_WARNING, "Resolution is not selected for %s, skipping", seq->name);
       continue;
     }
@@ -71,7 +71,7 @@ static void seq_proxy_build_job(const bContext *C, ReportList *reports)
     bool success = SEQ_proxy_rebuild_context(
         pj->main, pj->depsgraph, pj->scene, seq, file_list, &pj->queue, false);
 
-    if (!success && (seq->strip->proxy->build_flags & SEQ_PROXY_SKIP_EXISTING) != 0) {
+    if (!success && (seq->data->proxy->build_flags & SEQ_PROXY_SKIP_EXISTING) != 0) {
       BKE_reportf(reports, RPT_WARNING, "Overwrite is not checked for %s, skipping", seq->name);
     }
   }
@@ -179,43 +179,43 @@ static int sequencer_enable_proxies_exec(bContext *C, wmOperator *op)
     if (seq->flag & SELECT) {
       if (ELEM(seq->type, SEQ_TYPE_MOVIE, SEQ_TYPE_IMAGE)) {
         SEQ_proxy_set(seq, turnon);
-        if (seq->strip->proxy == nullptr) {
+        if (seq->data->proxy == nullptr) {
           continue;
         }
 
         if (proxy_25) {
-          seq->strip->proxy->build_size_flags |= SEQ_PROXY_IMAGE_SIZE_25;
+          seq->data->proxy->build_size_flags |= SEQ_PROXY_IMAGE_SIZE_25;
         }
         else {
-          seq->strip->proxy->build_size_flags &= ~SEQ_PROXY_IMAGE_SIZE_25;
+          seq->data->proxy->build_size_flags &= ~SEQ_PROXY_IMAGE_SIZE_25;
         }
 
         if (proxy_50) {
-          seq->strip->proxy->build_size_flags |= SEQ_PROXY_IMAGE_SIZE_50;
+          seq->data->proxy->build_size_flags |= SEQ_PROXY_IMAGE_SIZE_50;
         }
         else {
-          seq->strip->proxy->build_size_flags &= ~SEQ_PROXY_IMAGE_SIZE_50;
+          seq->data->proxy->build_size_flags &= ~SEQ_PROXY_IMAGE_SIZE_50;
         }
 
         if (proxy_75) {
-          seq->strip->proxy->build_size_flags |= SEQ_PROXY_IMAGE_SIZE_75;
+          seq->data->proxy->build_size_flags |= SEQ_PROXY_IMAGE_SIZE_75;
         }
         else {
-          seq->strip->proxy->build_size_flags &= ~SEQ_PROXY_IMAGE_SIZE_75;
+          seq->data->proxy->build_size_flags &= ~SEQ_PROXY_IMAGE_SIZE_75;
         }
 
         if (proxy_100) {
-          seq->strip->proxy->build_size_flags |= SEQ_PROXY_IMAGE_SIZE_100;
+          seq->data->proxy->build_size_flags |= SEQ_PROXY_IMAGE_SIZE_100;
         }
         else {
-          seq->strip->proxy->build_size_flags &= ~SEQ_PROXY_IMAGE_SIZE_100;
+          seq->data->proxy->build_size_flags &= ~SEQ_PROXY_IMAGE_SIZE_100;
         }
 
         if (!overwrite) {
-          seq->strip->proxy->build_flags |= SEQ_PROXY_SKIP_EXISTING;
+          seq->data->proxy->build_flags |= SEQ_PROXY_SKIP_EXISTING;
         }
         else {
-          seq->strip->proxy->build_flags &= ~SEQ_PROXY_SKIP_EXISTING;
+          seq->data->proxy->build_flags &= ~SEQ_PROXY_SKIP_EXISTING;
         }
       }
     }

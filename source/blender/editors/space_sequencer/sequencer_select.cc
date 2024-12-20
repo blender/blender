@@ -251,13 +251,13 @@ void ED_sequencer_select_sequence_single(Scene *scene, Sequence *seq, bool desel
   SEQ_select_active_set(scene, seq);
 
   if (ELEM(seq->type, SEQ_TYPE_IMAGE, SEQ_TYPE_MOVIE)) {
-    if (seq->strip) {
-      BLI_strncpy(ed->act_imagedir, seq->strip->dirpath, FILE_MAXDIR);
+    if (seq->data) {
+      BLI_strncpy(ed->act_imagedir, seq->data->dirpath, FILE_MAXDIR);
     }
   }
   else if (seq->type == SEQ_TYPE_SOUND_RAM) {
-    if (seq->strip) {
-      BLI_strncpy(ed->act_sounddir, seq->strip->dirpath, FILE_MAXDIR);
+    if (seq->data) {
+      BLI_strncpy(ed->act_sounddir, seq->data->dirpath, FILE_MAXDIR);
     }
   }
   seq->flag |= SELECT;
@@ -587,13 +587,13 @@ static void sequencer_select_set_active(Scene *scene, Sequence *seq)
   SEQ_select_active_set(scene, seq);
 
   if (ELEM(seq->type, SEQ_TYPE_IMAGE, SEQ_TYPE_MOVIE)) {
-    if (seq->strip) {
-      BLI_strncpy(ed->act_imagedir, seq->strip->dirpath, FILE_MAXDIR);
+    if (seq->data) {
+      BLI_strncpy(ed->act_imagedir, seq->data->dirpath, FILE_MAXDIR);
     }
   }
   else if (seq->type == SEQ_TYPE_SOUND_RAM) {
-    if (seq->strip) {
-      BLI_strncpy(ed->act_sounddir, seq->strip->dirpath, FILE_MAXDIR);
+    if (seq->data) {
+      BLI_strncpy(ed->act_sounddir, seq->data->dirpath, FILE_MAXDIR);
     }
   }
   recurs_sel_seq(seq);
@@ -2347,7 +2347,7 @@ static bool select_grouped_data(blender::Span<Sequence *> strips,
                                 const int channel)
 {
   bool changed = false;
-  const char *dirpath = actseq->strip ? actseq->strip->dirpath : nullptr;
+  const char *dirpath = actseq->data ? actseq->data->dirpath : nullptr;
 
   if (!SEQ_USE_DATA(actseq)) {
     return changed;
@@ -2355,8 +2355,8 @@ static bool select_grouped_data(blender::Span<Sequence *> strips,
 
   if (SEQ_HAS_PATH(actseq) && dirpath) {
     for (Sequence *seq : strips) {
-      if (SEQ_CHANNEL_CHECK(seq, channel) && SEQ_HAS_PATH(seq) && seq->strip &&
-          STREQ(seq->strip->dirpath, dirpath))
+      if (SEQ_CHANNEL_CHECK(seq, channel) && SEQ_HAS_PATH(seq) && seq->data &&
+          STREQ(seq->data->dirpath, dirpath))
       {
         seq->flag |= SELECT;
         changed = true;

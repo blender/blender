@@ -622,7 +622,7 @@ static bool seq_sound_proxy_update_cb(Sequence *seq, void * /*user_data*/)
 #define SEQ_USE_PROXY_CUSTOM_FILE (1 << 21)
   /* don't know, if anybody used that this way, but just in case, upgrade to new way... */
   if ((seq->flag & SEQ_USE_PROXY_CUSTOM_FILE) && !(seq->flag & SEQ_USE_PROXY_CUSTOM_DIR)) {
-    SNPRINTF(seq->strip->proxy->dirpath, "%s" SEP_STR "BL_proxy", seq->strip->dirpath);
+    SNPRINTF(seq->data->proxy->dirpath, "%s" SEP_STR "BL_proxy", seq->data->dirpath);
   }
 #undef SEQ_USE_PROXY_CUSTOM_DIR
 #undef SEQ_USE_PROXY_CUSTOM_FILE

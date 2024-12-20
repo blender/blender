@@ -945,13 +945,13 @@ static void scene_foreach_id(ID *id, LibraryForeachIDData *data)
 static bool seq_foreach_path_callback(Sequence *seq, void *user_data)
 {
   if (SEQ_HAS_PATH(seq)) {
-    StripElem *se = seq->strip->stripdata;
+    StripElem *se = seq->data->stripdata;
     BPathForeachPathData *bpath_data = (BPathForeachPathData *)user_data;
 
     if (ELEM(seq->type, SEQ_TYPE_MOVIE, SEQ_TYPE_SOUND_RAM) && se) {
       BKE_bpath_foreach_path_dirfile_fixed_process(bpath_data,
-                                                   seq->strip->dirpath,
-                                                   sizeof(seq->strip->dirpath),
+                                                   seq->data->dirpath,
+                                                   sizeof(seq->data->dirpath),
                                                    se->filename,
                                                    sizeof(se->filename));
     }
@@ -967,8 +967,8 @@ static bool seq_foreach_path_callback(Sequence *seq, void *user_data)
 
       for (i = 0; i < len; i++, se++) {
         BKE_bpath_foreach_path_dirfile_fixed_process(bpath_data,
-                                                     seq->strip->dirpath,
-                                                     sizeof(seq->strip->dirpath),
+                                                     seq->data->dirpath,
+                                                     sizeof(seq->data->dirpath),
                                                      se->filename,
                                                      sizeof(se->filename));
       }
@@ -976,7 +976,7 @@ static bool seq_foreach_path_callback(Sequence *seq, void *user_data)
     else {
       /* simple case */
       BKE_bpath_foreach_path_fixed_process(
-          bpath_data, seq->strip->dirpath, sizeof(seq->strip->dirpath));
+          bpath_data, seq->data->dirpath, sizeof(seq->data->dirpath));
     }
   }
   return true;

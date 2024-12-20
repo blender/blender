@@ -13,7 +13,7 @@
 #include "tree_element.hh"
 
 struct Sequence;
-struct Strip;
+struct StripData;
 
 namespace blender::ed::outliner {
 
@@ -34,7 +34,7 @@ class TreeElementSequence : public AbstractTreeElement {
 
 class TreeElementSequenceStrip : public AbstractTreeElement {
  public:
-  TreeElementSequenceStrip(TreeElement &legacy_te, Strip &strip);
+  TreeElementSequenceStrip(TreeElement &legacy_te, StripData &strip);
 };
 
 /* -------------------------------------------------------------------- */

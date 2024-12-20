@@ -249,7 +249,7 @@ void SEQ_render_new_render_data(Main *bmain,
 
 StripElem *SEQ_render_give_stripelem(const Scene *scene, const Sequence *seq, int timeline_frame)
 {
-  StripElem *se = seq->strip->stripdata;
+  StripElem *se = seq->data->stripdata;
 
   if (seq->type == SEQ_TYPE_IMAGE) {
     /* only IMAGE strips use the whole array, MOVIE strips use only the first element,
@@ -376,7 +376,7 @@ struct OpaqueQuadTracker {
 
 static bool sequencer_use_transform(const Sequence *seq)
 {
-  const StripTransform *transform = seq->strip->transform;
+  const StripTransform *transform = seq->data->transform;
 
   if (transform->xofs != 0 || transform->yofs != 0 || transform->scale_x != 1 ||
       transform->scale_y != 1 || transform->rotation != 0)
@@ -389,7 +389,7 @@ static bool sequencer_use_transform(const Sequence *seq)
 
 static bool sequencer_use_crop(const Sequence *seq)
 {
-  const StripCrop *crop = seq->strip->crop;
+  const StripCrop *crop = seq->data->crop;
   if (crop->left > 0 || crop->right > 0 || crop->top > 0 || crop->bottom > 0) {
     return true;
   }
@@ -461,7 +461,7 @@ static void sequencer_image_crop_transform_matrix(const Sequence *seq,
                                                   const float preview_scale_factor,
                                                   float r_transform_matrix[4][4])
 {
-  const StripTransform *transform = seq->strip->transform;
+  const StripTransform *transform = seq->data->transform;
   const float scale_x = transform->scale_x * image_scale_factor;
   const float scale_y = transform->scale_y * image_scale_factor;
   const float image_center_offs_x = (out->x - in->x) / 2;
@@ -485,7 +485,7 @@ static void sequencer_image_crop_init(const Sequence *seq,
                                       float crop_scale_factor,
                                       rctf *r_crop)
 {
-  const StripCrop *c = seq->strip->crop;
+  const StripCrop *c = seq->data->crop;
   const int left = c->left * crop_scale_factor;
   const int right = c->right * crop_scale_factor;
   const int top = c->top * crop_scale_factor;
@@ -560,11 +560,11 @@ static void sequencer_preprocess_transform_crop(
   const float crop_scale_factor = do_scale_to_render_size ? preview_scale_factor : 1.0f;
   sequencer_image_crop_init(seq, in, crop_scale_factor, &source_crop);
 
-  const StripTransform *transform = seq->strip->transform;
+  const StripTransform *transform = seq->data->transform;
   eIMBInterpolationFilterMode filter = IMB_FILTER_NEAREST;
   switch (transform->filter) {
     case SEQ_TRANSFORM_FILTER_AUTO:
-      filter = get_auto_filter(seq->strip->transform);
+      filter = get_auto_filter(seq->data->transform);
       break;
     case SEQ_TRANSFORM_FILTER_NEAREST:
       filter = IMB_FILTER_NEAREST;
@@ -944,13 +944,13 @@ static ImBuf *seq_render_image_strip_view(const SeqRenderData *context,
   }
 
   if (prefix[0] == '\0') {
-    ibuf = IMB_loadiffname(filepath, flag, seq->strip->colorspace_settings.name);
+    ibuf = IMB_loadiffname(filepath, flag, seq->data->colorspace_settings.name);
   }
   else {
     char filepath_view[FILE_MAX];
     BKE_scene_multiview_view_prefix_get(context->scene, filepath, prefix, &ext);
     seq_multiview_name(context->scene, view_id, prefix, ext, filepath_view, FILE_MAX);
-    ibuf = IMB_loadiffname(filepath_view, flag, seq->strip->colorspace_settings.name);
+    ibuf = IMB_loadiffname(filepath_view, flag, seq->data->colorspace_settings.name);
   }
 
   if (ibuf == nullptr) {
@@ -1020,7 +1020,7 @@ static ImBuf *seq_render_image_strip(const SeqRenderData *context,
     return nullptr;
   }
 
-  BLI_path_join(filepath, sizeof(filepath), seq->strip->dirpath, s_elem->filename);
+  BLI_path_join(filepath, sizeof(filepath), seq->data->dirpath, s_elem->filename);
   BLI_path_abs(filepath, ID_BLEND_PATH_FROM_GLOBAL(&context->scene->id));
 
   /* Try to get a proxy image. */
@@ -1095,11 +1095,11 @@ static ImBuf *seq_render_movie_strip_custom_file_proxy(const SeqRenderData *cont
                                                        int timeline_frame)
 {
   char filepath[PROXY_MAXFILE];
-  StripProxy *proxy = seq->strip->proxy;
+  StripProxy *proxy = seq->data->proxy;
 
   if (proxy->anim == nullptr) {
     if (seq_proxy_get_custom_file_filepath(seq, filepath, context->view_id)) {
-      proxy->anim = openanim(filepath, IB_rect, 0, seq->strip->colorspace_settings.name);
+      proxy->anim = openanim(filepath, IB_rect, 0, seq->data->colorspace_settings.name);
     }
     if (proxy->anim == nullptr) {
       return nullptr;
@@ -1117,8 +1117,8 @@ static IMB_Timecode_Type seq_render_movie_strip_timecode_get(Sequence *seq)
   if (!use_timecodes) {
     return IMB_TC_NONE;
   }
-  return IMB_Timecode_Type(seq->strip->proxy ? IMB_Timecode_Type(seq->strip->proxy->tc) :
-                                               IMB_TC_NONE);
+  return IMB_Timecode_Type(seq->data->proxy ? IMB_Timecode_Type(seq->data->proxy->tc) :
+                                              IMB_TC_NONE);
 }
 
 /**
@@ -1139,7 +1139,7 @@ static ImBuf *seq_render_movie_strip_view(const SeqRenderData *context,
     /* Try to get a proxy image.
      * Movie proxies are handled by ImBuf module with exception of `custom file` setting. */
     if (context->scene->ed->proxy_storage != SEQ_EDIT_PROXY_DIR_STORAGE &&
-        seq->strip->proxy->storage & SEQ_STORAGE_PROXY_CUSTOM_FILE)
+        seq->data->proxy->storage & SEQ_STORAGE_PROXY_CUSTOM_FILE)
     {
       ibuf = seq_render_movie_strip_custom_file_proxy(context, seq, timeline_frame);
     }
@@ -1246,15 +1246,15 @@ static ImBuf *seq_render_movie_strip(const SeqRenderData *context,
   blender::seq::media_presence_set_missing(context->scene, seq, ibuf == nullptr);
   if (ibuf == nullptr) {
     return create_missing_media_image(
-        context, seq->strip->stripdata->orig_width, seq->strip->stripdata->orig_height);
+        context, seq->data->stripdata->orig_width, seq->data->stripdata->orig_height);
   }
 
   if (*r_is_proxy_image == false) {
     if (sanim && sanim->anim) {
-      seq->strip->stripdata->orig_fps = MOV_get_fps(sanim->anim);
+      seq->data->stripdata->orig_fps = MOV_get_fps(sanim->anim);
     }
-    seq->strip->stripdata->orig_width = ibuf->x;
-    seq->strip->stripdata->orig_height = ibuf->y;
+    seq->data->stripdata->orig_width = ibuf->x;
+    seq->data->stripdata->orig_height = ibuf->y;
   }
 
   return ibuf;

@@ -174,10 +174,10 @@ static void sequencer_generic_invoke_path__internal(bContext *C,
   if (RNA_struct_find_property(op->ptr, identifier)) {
     Scene *scene = CTX_data_scene(C);
     Sequence *last_seq = SEQ_select_active_get(scene);
-    if (last_seq && last_seq->strip && SEQ_HAS_PATH(last_seq)) {
+    if (last_seq && last_seq->data && SEQ_HAS_PATH(last_seq)) {
       Main *bmain = CTX_data_main(C);
       char dirpath[FILE_MAX];
-      STRNCPY(dirpath, last_seq->strip->dirpath);
+      STRNCPY(dirpath, last_seq->data->dirpath);
       BLI_path_abs(dirpath, BKE_main_blendfile_path(bmain));
       RNA_string_set(op->ptr, identifier, dirpath);
     }
@@ -832,8 +832,8 @@ static void seq_build_proxy(bContext *C, blender::Span<Sequence *> movie_strips)
   for (Sequence *seq : movie_strips) {
     /* Enable and set proxy size. */
     SEQ_proxy_set(seq, true);
-    seq->strip->proxy->build_size_flags = seq_get_proxy_size_flags(C);
-    seq->strip->proxy->build_flags |= SEQ_PROXY_SKIP_EXISTING;
+    seq->data->proxy->build_size_flags = seq_get_proxy_size_flags(C);
+    seq->data->proxy->build_flags |= SEQ_PROXY_SKIP_EXISTING;
     SEQ_proxy_rebuild_context(pj->main, pj->depsgraph, pj->scene, seq, nullptr, &pj->queue, true);
   }
 
@@ -1332,13 +1332,13 @@ static void sequencer_add_image_strip_load_files(wmOperator *op,
                                                  const int numdigits)
 {
   const bool use_placeholders = RNA_boolean_get(op->ptr, "use_placeholders");
-  char dirpath[sizeof(seq->strip->dirpath)];
+  char dirpath[sizeof(seq->data->dirpath)];
   BLI_path_split_dir_part(load_data->path, dirpath, sizeof(dirpath));
   SEQ_add_image_set_directory(seq, dirpath);
 
   if (use_placeholders) {
     sequencer_image_seq_reserve_frames(
-        op, seq->strip->stripdata, load_data->image.len, minframe, numdigits);
+        op, seq->data->stripdata, load_data->image.len, minframe, numdigits);
   }
   else {
     size_t strip_frame = 0;

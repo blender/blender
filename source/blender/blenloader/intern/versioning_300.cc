@@ -1505,8 +1505,8 @@ static bNodeSocket *do_version_replace_float_size_with_vector(bNodeTree *ntree,
 
 static bool seq_transform_origin_set(Sequence *seq, void * /*user_data*/)
 {
-  StripTransform *transform = seq->strip->transform;
-  if (seq->strip->transform != nullptr) {
+  StripTransform *transform = seq->data->transform;
+  if (seq->data->transform != nullptr) {
     transform->origin[0] = transform->origin[1] = 0.5f;
   }
   return true;
@@ -1514,8 +1514,8 @@ static bool seq_transform_origin_set(Sequence *seq, void * /*user_data*/)
 
 static bool seq_transform_filter_set(Sequence *seq, void * /*user_data*/)
 {
-  StripTransform *transform = seq->strip->transform;
-  if (seq->strip->transform != nullptr) {
+  StripTransform *transform = seq->data->transform;
+  if (seq->data->transform != nullptr) {
     transform->filter = SEQ_TRANSFORM_FILTER_BILINEAR;
   }
   return true;

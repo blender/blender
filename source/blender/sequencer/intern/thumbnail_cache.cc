@@ -165,7 +165,7 @@ bool strip_can_have_thumbnail(const Scene *scene, const Sequence *seq)
   if (!ELEM(seq->type, SEQ_TYPE_MOVIE, SEQ_TYPE_IMAGE)) {
     return false;
   }
-  const StripElem *se = seq->strip->stripdata;
+  const StripElem *se = seq->data->stripdata;
   if (se->orig_height == 0 || se->orig_width == 0) {
     return false;
   }
@@ -180,13 +180,13 @@ static std::string get_path_from_seq(Scene *scene, const Sequence *seq, float ti
     case SEQ_TYPE_IMAGE: {
       const StripElem *s_elem = SEQ_render_give_stripelem(scene, seq, timeline_frame);
       if (s_elem != nullptr) {
-        BLI_path_join(filepath, sizeof(filepath), seq->strip->dirpath, s_elem->filename);
+        BLI_path_join(filepath, sizeof(filepath), seq->data->dirpath, s_elem->filename);
         BLI_path_abs(filepath, ID_BLEND_PATH_FROM_GLOBAL(&scene->id));
       }
     } break;
     case SEQ_TYPE_MOVIE:
       BLI_path_join(
-          filepath, sizeof(filepath), seq->strip->dirpath, seq->strip->stripdata->filename);
+          filepath, sizeof(filepath), seq->data->dirpath, seq->data->stripdata->filename);
       BLI_path_abs(filepath, ID_BLEND_PATH_FROM_GLOBAL(&scene->id));
       break;
   }
@@ -455,7 +455,7 @@ static ImBuf *query_thumbnail(ThumbnailCache &cache,
 
   if (best_score > 0) {
     /* We do not have an exact frame match, add a thumb generation request. */
-    const StripElem *se = seq->strip->stripdata;
+    const StripElem *se = seq->data->stripdata;
     int img_width = se->orig_width;
     int img_height = se->orig_height;
     ThumbnailCache::Request request(key,
@@ -521,7 +521,7 @@ void thumbnail_cache_invalidate_strip(Scene *scene, const Sequence *seq)
   ThumbnailCache *cache = query_thumbnail_cache(scene);
   if (cache != nullptr) {
     if (ELEM((seq)->type, SEQ_TYPE_MOVIE, SEQ_TYPE_IMAGE)) {
-      const StripElem *elem = seq->strip->stripdata;
+      const StripElem *elem = seq->data->stripdata;
       if (elem != nullptr) {
         int paths_count = 1;
         if (seq->type == SEQ_TYPE_IMAGE) {
@@ -532,7 +532,7 @@ void thumbnail_cache_invalidate_strip(Scene *scene, const Sequence *seq)
         const char *basepath = seq->scene ? ID_BLEND_PATH_FROM_GLOBAL(&seq->scene->id) :
                                             BKE_main_blendfile_path_from_global();
         for (int i = 0; i < paths_count; i++, elem++) {
-          BLI_path_join(filepath, sizeof(filepath), seq->strip->dirpath, elem->filename);
+          BLI_path_join(filepath, sizeof(filepath), seq->data->dirpath, elem->filename);
           BLI_path_abs(filepath, basepath);
           cache->remove_entry(filepath);
         }

@@ -801,8 +801,7 @@ static void draw_seq_text_get_source(const Sequence *seq, char *r_source, size_t
   switch (seq->type) {
     case SEQ_TYPE_IMAGE:
     case SEQ_TYPE_MOVIE: {
-      BLI_path_join(
-          r_source, source_maxncpy, seq->strip->dirpath, seq->strip->stripdata->filename);
+      BLI_path_join(r_source, source_maxncpy, seq->data->dirpath, seq->data->stripdata->filename);
       break;
     }
     case SEQ_TYPE_SOUND_RAM: {

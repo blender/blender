@@ -616,13 +616,13 @@ static void do_versions_seq_alloc_transform_and_crop(ListBase *seqbase)
 {
   LISTBASE_FOREACH (Sequence *, seq, seqbase) {
     if (ELEM(seq->type, SEQ_TYPE_SOUND_RAM, SEQ_TYPE_SOUND_HD) == 0) {
-      if (seq->strip->transform == nullptr) {
-        seq->strip->transform = static_cast<StripTransform *>(
+      if (seq->data->transform == nullptr) {
+        seq->data->transform = static_cast<StripTransform *>(
             MEM_callocN(sizeof(StripTransform), "StripTransform"));
       }
 
-      if (seq->strip->crop == nullptr) {
-        seq->strip->crop = static_cast<StripCrop *>(MEM_callocN(sizeof(StripCrop), "StripCrop"));
+      if (seq->data->crop == nullptr) {
+        seq->data->crop = static_cast<StripCrop *>(MEM_callocN(sizeof(StripCrop), "StripCrop"));
       }
 
       if (seq->seqbase.first != nullptr) {

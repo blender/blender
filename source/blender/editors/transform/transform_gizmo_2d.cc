@@ -331,7 +331,7 @@ static float gizmo2d_calc_rotation(const bContext *C)
   if (strips.size() == 1) {
     /* Only return the strip rotation if only one is selected. */
     for (Sequence *seq : strips) {
-      StripTransform *transform = seq->strip->transform;
+      StripTransform *transform = seq->data->transform;
       float mirror[2];
       SEQ_image_transform_mirror_factor_get(seq, mirror);
       return transform->rotation * mirror[0] * mirror[1];

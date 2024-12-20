@@ -258,7 +258,7 @@ void SEQ_relations_free_imbuf(Scene *scene, ListBase *seqbase, bool for_render)
       continue;
     }
 
-    if (seq->strip) {
+    if (seq->data) {
       if (seq->type == SEQ_TYPE_MOVIE) {
         SEQ_relations_sequence_free_anim(seq);
       }

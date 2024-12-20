@@ -101,10 +101,10 @@ static eSpaceSeq_Proxy_RenderSize get_sequencer_render_size(Main *bmain)
 
 static bool can_use_proxy(const Sequence *seq, int psize)
 {
-  if (seq->strip->proxy == nullptr) {
+  if (seq->data->proxy == nullptr) {
     return false;
   }
-  short size_flags = seq->strip->proxy->build_size_flags;
+  short size_flags = seq->data->proxy->build_size_flags;
   return (seq->flag & SEQ_USE_PROXY) != 0 && psize != IMB_PROXY_NONE && (size_flags & psize) != 0;
 }
 
@@ -147,15 +147,15 @@ static void seq_convert_transform_crop(const Scene *scene,
                                        Sequence *seq,
                                        const eSpaceSeq_Proxy_RenderSize render_size)
 {
-  if (seq->strip->transform == nullptr) {
-    seq->strip->transform = MEM_cnew<StripTransform>(__func__);
+  if (seq->data->transform == nullptr) {
+    seq->data->transform = MEM_cnew<StripTransform>(__func__);
   }
-  if (seq->strip->crop == nullptr) {
-    seq->strip->crop = MEM_cnew<StripCrop>(__func__);
+  if (seq->data->crop == nullptr) {
+    seq->data->crop = MEM_cnew<StripCrop>(__func__);
   }
 
-  StripCrop *c = seq->strip->crop;
-  StripTransform *t = seq->strip->transform;
+  StripCrop *c = seq->data->crop;
+  StripTransform *t = seq->data->transform;
   int old_image_center_x = scene->r.xsch / 2;
   int old_image_center_y = scene->r.ysch / 2;
   int image_size_x = scene->r.xsch;
@@ -165,7 +165,7 @@ static void seq_convert_transform_crop(const Scene *scene,
   const uint32_t use_transform_flag = (1 << 16);
   const uint32_t use_crop_flag = (1 << 17);
 
-  const StripElem *s_elem = seq->strip->stripdata;
+  const StripElem *s_elem = seq->data->stripdata;
   if (s_elem != nullptr) {
     image_size_x = s_elem->orig_width;
     image_size_y = s_elem->orig_height;
@@ -290,13 +290,13 @@ static void seq_convert_transform_crop_2(const Scene *scene,
                                          Sequence *seq,
                                          const eSpaceSeq_Proxy_RenderSize render_size)
 {
-  const StripElem *s_elem = seq->strip->stripdata;
+  const StripElem *s_elem = seq->data->stripdata;
   if (s_elem == nullptr) {
     return;
   }
 
-  StripCrop *c = seq->strip->crop;
-  StripTransform *t = seq->strip->transform;
+  StripCrop *c = seq->data->crop;
+  StripTransform *t = seq->data->transform;
   int image_size_x = s_elem->orig_width;
   int image_size_y = s_elem->orig_height;
 

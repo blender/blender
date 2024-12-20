@@ -1909,7 +1909,7 @@ static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
   ListBase *seqbase = SEQ_active_seqbase_get(ed);
 
   Sequence *seq, *seq_new;
-  Strip *strip_new;
+  StripData *data_new;
   StripElem *se, *se_new;
   int start_ofs, timeline_frame, frame_end;
   int step = RNA_int_get(op->ptr, "length");
@@ -1941,15 +1941,15 @@ static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
         seq_new->endofs = 1 - step;
 
         /* New strip. */
-        strip_new = seq_new->strip;
-        strip_new->us = 1;
+        data_new = seq_new->data;
+        data_new->us = 1;
 
         /* New stripdata, only one element now. */
         /* Note this assume all elements (images) have the same dimension,
          * since we only copy the name here. */
-        se_new = static_cast<StripElem *>(MEM_reallocN(strip_new->stripdata, sizeof(*se_new)));
+        se_new = static_cast<StripElem *>(MEM_reallocN(data_new->stripdata, sizeof(*se_new)));
         STRNCPY(se_new->filename, se->filename);
-        strip_new->stripdata = se_new;
+        data_new->stripdata = se_new;
 
         if (step > 1) {
           seq_new->flag &= ~SEQ_OVERLAP;
@@ -2450,7 +2450,7 @@ static int sequencer_rendersize_exec(bContext *C, wmOperator * /*op*/)
   Sequence *active_seq = SEQ_select_active_get(scene);
   StripElem *se = nullptr;
 
-  if (active_seq == nullptr || active_seq->strip == nullptr) {
+  if (active_seq == nullptr || active_seq->data == nullptr) {
     return OPERATOR_CANCELLED;
   }
 
@@ -2459,7 +2459,7 @@ static int sequencer_rendersize_exec(bContext *C, wmOperator * /*op*/)
       se = SEQ_render_give_stripelem(scene, active_seq, scene->r.cfra);
       break;
     case SEQ_TYPE_MOVIE:
-      se = active_seq->strip->stripdata;
+      se = active_seq->data->stripdata;
       break;
     default:
       return OPERATOR_CANCELLED;
@@ -2477,8 +2477,8 @@ static int sequencer_rendersize_exec(bContext *C, wmOperator * /*op*/)
   scene->r.xsch = se->orig_width;
   scene->r.ysch = se->orig_height;
 
-  active_seq->strip->transform->scale_x = active_seq->strip->transform->scale_y = 1.0f;
-  active_seq->strip->transform->xofs = active_seq->strip->transform->yofs = 0.0f;
+  active_seq->data->transform->scale_x = active_seq->data->transform->scale_y = 1.0f;
+  active_seq->data->transform->xofs = active_seq->data->transform->yofs = 0.0f;
 
   SEQ_relations_invalidate_cache_preprocessed(scene, active_seq);
   WM_event_add_notifier(C, NC_SCENE | ND_RENDER_OPTIONS, scene);
@@ -2797,12 +2797,12 @@ static int sequencer_change_path_exec(bContext *C, wmOperator *op)
        * but look into changing after 2.60. */
       BLI_path_rel(directory, BKE_main_blendfile_path(bmain));
     }
-    STRNCPY(seq->strip->dirpath, directory);
+    STRNCPY(seq->data->dirpath, directory);
 
-    if (seq->strip->stripdata) {
-      MEM_freeN(seq->strip->stripdata);
+    if (seq->data->stripdata) {
+      MEM_freeN(seq->data->stripdata);
     }
-    seq->strip->stripdata = se = MEM_cnew_array<StripElem>(len, "stripelem");
+    seq->data->stripdata = se = MEM_cnew_array<StripElem>(len, "stripelem");
 
     if (use_placeholders) {
       sequencer_image_seq_reserve_frames(op, se, len, minext_frameme, numdigits);
@@ -2867,9 +2867,9 @@ static int sequencer_change_path_invoke(bContext *C, wmOperator *op, const wmEve
   Sequence *seq = SEQ_select_active_get(scene);
   char filepath[FILE_MAX];
 
-  BLI_path_join(filepath, sizeof(filepath), seq->strip->dirpath, seq->strip->stripdata->filename);
+  BLI_path_join(filepath, sizeof(filepath), seq->data->dirpath, seq->data->stripdata->filename);
 
-  RNA_string_set(op->ptr, "directory", seq->strip->dirpath);
+  RNA_string_set(op->ptr, "directory", seq->data->dirpath);
   RNA_string_set(op->ptr, "filepath", filepath);
 
   /* Set default display depending on seq type. */
@@ -3256,7 +3256,7 @@ static int sequencer_strip_transform_clear_exec(bContext *C, wmOperator *op)
 
   LISTBASE_FOREACH (Sequence *, seq, ed->seqbasep) {
     if (seq->flag & SELECT && seq->type != SEQ_TYPE_SOUND_RAM) {
-      StripTransform *transform = seq->strip->transform;
+      StripTransform *transform = seq->data->transform;
       switch (property) {
         case STRIP_TRANSFORM_POSITION:
           transform->xofs = 0;

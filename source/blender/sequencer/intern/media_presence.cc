@@ -42,13 +42,13 @@ static bool check_sound_media_missing(const bSound *sound, const Sequence *seq)
 
 static bool check_media_missing(const Sequence *seq)
 {
-  if (seq == nullptr || seq->strip == nullptr) {
+  if (seq == nullptr || seq->data == nullptr) {
     return false;
   }
 
   /* Images or movies. */
   if (ELEM((seq)->type, SEQ_TYPE_MOVIE, SEQ_TYPE_IMAGE)) {
-    const StripElem *elem = seq->strip->stripdata;
+    const StripElem *elem = seq->data->stripdata;
     if (elem != nullptr) {
       int paths_count = 1;
       if (seq->type == SEQ_TYPE_IMAGE) {
@@ -58,7 +58,7 @@ static bool check_media_missing(const Sequence *seq)
       char filepath[FILE_MAX];
       const char *basepath = get_seq_base_path(seq);
       for (int i = 0; i < paths_count; i++, elem++) {
-        BLI_path_join(filepath, sizeof(filepath), seq->strip->dirpath, elem->filename);
+        BLI_path_join(filepath, sizeof(filepath), seq->data->dirpath, elem->filename);
         BLI_path_abs(filepath, basepath);
         if (!BLI_exists(filepath)) {
           return true;

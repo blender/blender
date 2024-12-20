@@ -131,7 +131,7 @@ std::unique_ptr<AbstractTreeElement> AbstractTreeElement::create_from_type(const
                                                    *static_cast<Sequence *>(create_data));
     case TSE_SEQ_STRIP:
       return std::make_unique<TreeElementSequenceStrip>(legacy_te,
-                                                        *static_cast<Strip *>(create_data));
+                                                        *static_cast<StripData *>(create_data));
     case TSE_SEQUENCE_DUP:
       return std::make_unique<TreeElementSequenceStripDuplicate>(
           legacy_te, *static_cast<Sequence *>(create_data));

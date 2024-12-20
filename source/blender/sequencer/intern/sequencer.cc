@@ -76,55 +76,55 @@ StripProxy *seq_strip_proxy_alloc()
   return strip_proxy;
 }
 
-static Strip *seq_strip_alloc(int type)
+static StripData *seq_strip_alloc(int type)
 {
-  Strip *strip = static_cast<Strip *>(MEM_callocN(sizeof(Strip), "strip"));
+  StripData *data = static_cast<StripData *>(MEM_callocN(sizeof(StripData), "strip"));
 
   if (type != SEQ_TYPE_SOUND_RAM) {
-    strip->transform = static_cast<StripTransform *>(
+    data->transform = static_cast<StripTransform *>(
         MEM_callocN(sizeof(StripTransform), "StripTransform"));
-    strip->transform->scale_x = 1;
-    strip->transform->scale_y = 1;
-    strip->transform->origin[0] = 0.5f;
-    strip->transform->origin[1] = 0.5f;
-    strip->transform->filter = SEQ_TRANSFORM_FILTER_AUTO;
-    strip->crop = static_cast<StripCrop *>(MEM_callocN(sizeof(StripCrop), "StripCrop"));
+    data->transform->scale_x = 1;
+    data->transform->scale_y = 1;
+    data->transform->origin[0] = 0.5f;
+    data->transform->origin[1] = 0.5f;
+    data->transform->filter = SEQ_TRANSFORM_FILTER_AUTO;
+    data->crop = static_cast<StripCrop *>(MEM_callocN(sizeof(StripCrop), "StripCrop"));
   }
 
-  strip->us = 1;
-  return strip;
+  data->us = 1;
+  return data;
 }
 
-static void seq_free_strip(Strip *strip)
+static void seq_free_strip(StripData *data)
 {
-  strip->us--;
-  if (strip->us > 0) {
+  data->us--;
+  if (data->us > 0) {
     return;
   }
-  if (strip->us < 0) {
+  if (data->us < 0) {
     printf("error: negative users in strip\n");
     return;
   }
 
-  if (strip->stripdata) {
-    MEM_freeN(strip->stripdata);
+  if (data->stripdata) {
+    MEM_freeN(data->stripdata);
   }
 
-  if (strip->proxy) {
-    if (strip->proxy->anim) {
-      MOV_close(strip->proxy->anim);
+  if (data->proxy) {
+    if (data->proxy->anim) {
+      MOV_close(data->proxy->anim);
     }
 
-    MEM_freeN(strip->proxy);
+    MEM_freeN(data->proxy);
   }
-  if (strip->crop) {
-    MEM_freeN(strip->crop);
+  if (data->crop) {
+    MEM_freeN(data->crop);
   }
-  if (strip->transform) {
-    MEM_freeN(strip->transform);
+  if (data->transform) {
+    MEM_freeN(data->transform);
   }
 
-  MEM_freeN(strip);
+  MEM_freeN(data);
 }
 
 Sequence *SEQ_sequence_alloc(ListBase *lb, int timeline_frame, int machine, int type)
@@ -156,7 +156,7 @@ Sequence *SEQ_sequence_alloc(ListBase *lb, int timeline_frame, int machine, int 
     seq->blend_mode = SEQ_TYPE_ALPHAOVER;
   }
 
-  seq->strip = seq_strip_alloc(type);
+  seq->data = seq_strip_alloc(type);
   seq->stereo3d_format = static_cast<Stereo3dFormat *>(
       MEM_callocN(sizeof(Stereo3dFormat), "Sequence Stereo Format"));
 
@@ -177,8 +177,8 @@ static void seq_sequence_free_ex(Scene *scene,
                                  const bool do_cache,
                                  const bool do_id_user)
 {
-  if (seq->strip) {
-    seq_free_strip(seq->strip);
+  if (seq->data) {
+    seq_free_strip(seq->data);
   }
 
   SEQ_relations_sequence_free_anim(seq);
@@ -511,23 +511,23 @@ static Sequence *seq_dupli(const Scene *scene_src,
     SEQ_relations_session_uid_generate(seqn);
   }
 
-  seqn->strip = static_cast<Strip *>(MEM_dupallocN(seq->strip));
+  seqn->data = static_cast<StripData *>(MEM_dupallocN(seq->data));
 
   seqn->stereo3d_format = static_cast<Stereo3dFormat *>(MEM_dupallocN(seq->stereo3d_format));
 
   /* XXX: add F-Curve duplication stuff? */
 
-  if (seq->strip->crop) {
-    seqn->strip->crop = static_cast<StripCrop *>(MEM_dupallocN(seq->strip->crop));
+  if (seq->data->crop) {
+    seqn->data->crop = static_cast<StripCrop *>(MEM_dupallocN(seq->data->crop));
   }
 
-  if (seq->strip->transform) {
-    seqn->strip->transform = static_cast<StripTransform *>(MEM_dupallocN(seq->strip->transform));
+  if (seq->data->transform) {
+    seqn->data->transform = static_cast<StripTransform *>(MEM_dupallocN(seq->data->transform));
   }
 
-  if (seq->strip->proxy) {
-    seqn->strip->proxy = static_cast<StripProxy *>(MEM_dupallocN(seq->strip->proxy));
-    seqn->strip->proxy->anim = nullptr;
+  if (seq->data->proxy) {
+    seqn->data->proxy = static_cast<StripProxy *>(MEM_dupallocN(seq->data->proxy));
+    seqn->data->proxy->anim = nullptr;
   }
 
   if (seq->prop) {
@@ -546,14 +546,14 @@ static Sequence *seq_dupli(const Scene *scene_src,
   }
 
   if (seq->type == SEQ_TYPE_META) {
-    seqn->strip->stripdata = nullptr;
+    seqn->data->stripdata = nullptr;
 
     BLI_listbase_clear(&seqn->seqbase);
     BLI_listbase_clear(&seqn->channels);
     SEQ_channels_duplicate(&seqn->channels, &seq->channels);
   }
   else if (seq->type == SEQ_TYPE_SCENE) {
-    seqn->strip->stripdata = nullptr;
+    seqn->data->stripdata = nullptr;
     if (seq->scene_sound) {
       seqn->scene_sound = BKE_sound_scene_add_scene_sound_defaults(scene_dst, seqn);
     }
@@ -565,18 +565,18 @@ static Sequence *seq_dupli(const Scene *scene_src,
     /* avoid assert */
   }
   else if (seq->type == SEQ_TYPE_MOVIE) {
-    seqn->strip->stripdata = static_cast<StripElem *>(MEM_dupallocN(seq->strip->stripdata));
+    seqn->data->stripdata = static_cast<StripElem *>(MEM_dupallocN(seq->data->stripdata));
     BLI_listbase_clear(&seqn->anims);
   }
   else if (seq->type == SEQ_TYPE_SOUND_RAM) {
-    seqn->strip->stripdata = static_cast<StripElem *>(MEM_dupallocN(seq->strip->stripdata));
+    seqn->data->stripdata = static_cast<StripElem *>(MEM_dupallocN(seq->data->stripdata));
     seqn->scene_sound = nullptr;
     if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
       id_us_plus((ID *)seqn->sound);
     }
   }
   else if (seq->type == SEQ_TYPE_IMAGE) {
-    seqn->strip->stripdata = static_cast<StripElem *>(MEM_dupallocN(seq->strip->stripdata));
+    seqn->data->stripdata = static_cast<StripElem *>(MEM_dupallocN(seq->data->stripdata));
   }
   else if (seq->type & SEQ_TYPE_EFFECT) {
     SeqEffectHandle sh;
@@ -585,7 +585,7 @@ static Sequence *seq_dupli(const Scene *scene_src,
       sh.copy(seqn, seq, flag);
     }
 
-    seqn->strip->stripdata = nullptr;
+    seqn->data->stripdata = nullptr;
   }
   else {
     /* sequence type not handled in duplicate! Expect a crash now... */
@@ -717,8 +717,8 @@ SequencerToolSettings *SEQ_tool_settings_copy(SequencerToolSettings *tool_settin
 
 static bool seq_set_strip_done_cb(Sequence *seq, void * /*userdata*/)
 {
-  if (seq->strip) {
-    seq->strip->done = false;
+  if (seq->data) {
+    seq->data->done = false;
   }
   return true;
 }
@@ -727,7 +727,7 @@ static bool seq_write_data_cb(Sequence *seq, void *userdata)
 {
   BlendWriter *writer = (BlendWriter *)userdata;
   BLO_write_struct(writer, Sequence, seq);
-  if (seq->strip && seq->strip->done == 0) {
+  if (seq->data && seq->data->done == 0) {
     /* Write strip with 'done' at 0 because read-file. */
 
     /* TODO this doesn't depend on the `Strip` data to be present? */
@@ -762,28 +762,26 @@ static bool seq_write_data_cb(Sequence *seq, void *userdata)
 
     BLO_write_struct(writer, Stereo3dFormat, seq->stereo3d_format);
 
-    Strip *strip = seq->strip;
-    BLO_write_struct(writer, Strip, strip);
-    if (strip->crop) {
-      BLO_write_struct(writer, StripCrop, strip->crop);
+    StripData *data = seq->data;
+    BLO_write_struct(writer, StripData, data);
+    if (data->crop) {
+      BLO_write_struct(writer, StripCrop, data->crop);
     }
-    if (strip->transform) {
-      BLO_write_struct(writer, StripTransform, strip->transform);
+    if (data->transform) {
+      BLO_write_struct(writer, StripTransform, data->transform);
     }
-    if (strip->proxy) {
-      BLO_write_struct(writer, StripProxy, strip->proxy);
+    if (data->proxy) {
+      BLO_write_struct(writer, StripProxy, data->proxy);
     }
     if (seq->type == SEQ_TYPE_IMAGE) {
-      BLO_write_struct_array(writer,
-                             StripElem,
-                             MEM_allocN_len(strip->stripdata) / sizeof(StripElem),
-                             strip->stripdata);
+      BLO_write_struct_array(
+          writer, StripElem, MEM_allocN_len(data->stripdata) / sizeof(StripElem), data->stripdata);
     }
     else if (ELEM(seq->type, SEQ_TYPE_MOVIE, SEQ_TYPE_SOUND_RAM)) {
-      BLO_write_struct(writer, StripElem, strip->stripdata);
+      BLO_write_struct(writer, StripElem, data->stripdata);
     }
 
-    strip->done = true;
+    data->done = true;
   }
 
   if (seq->prop) {
@@ -878,9 +876,9 @@ static bool seq_read_data_cb(Sequence *seq, void *user_data)
   BLO_read_struct(reader, IDProperty, &seq->prop);
   IDP_BlendDataRead(reader, &seq->prop);
 
-  BLO_read_struct(reader, Strip, &seq->strip);
-  if (seq->strip && seq->strip->done == 0) {
-    seq->strip->done = true;
+  BLO_read_struct(reader, StripData, &seq->data);
+  if (seq->data && seq->data->done == 0) {
+    seq->data->done = true;
 
     /* `SEQ_TYPE_SOUND_HD` case needs to be kept here, for backward compatibility. */
     if (ELEM(seq->type, SEQ_TYPE_IMAGE, SEQ_TYPE_MOVIE, SEQ_TYPE_SOUND_RAM, SEQ_TYPE_SOUND_HD)) {
@@ -891,23 +889,23 @@ static bool seq_read_data_cb(Sequence *seq, void *user_data)
        * least large enough for the requested data (here a single #StripElem item), and always
        * assign the whole read memory (without any truncating). But relying on this behavior is
        * weak and should be addressed. */
-      BLO_read_struct(reader, StripElem, &seq->strip->stripdata);
+      BLO_read_struct(reader, StripElem, &seq->data->stripdata);
     }
     else {
-      seq->strip->stripdata = nullptr;
+      seq->data->stripdata = nullptr;
     }
-    BLO_read_struct(reader, StripCrop, &seq->strip->crop);
-    BLO_read_struct(reader, StripTransform, &seq->strip->transform);
-    BLO_read_struct(reader, StripProxy, &seq->strip->proxy);
-    if (seq->strip->proxy) {
-      seq->strip->proxy->anim = nullptr;
+    BLO_read_struct(reader, StripCrop, &seq->data->crop);
+    BLO_read_struct(reader, StripTransform, &seq->data->transform);
+    BLO_read_struct(reader, StripProxy, &seq->data->proxy);
+    if (seq->data->proxy) {
+      seq->data->proxy->anim = nullptr;
     }
     else if (seq->flag & SEQ_USE_PROXY) {
       SEQ_proxy_set(seq, true);
     }
 
     /* need to load color balance to it could be converted to modifier */
-    BLO_read_struct(reader, StripColorBalance, &seq->strip->color_balance);
+    BLO_read_struct(reader, StripColorBalance, &seq->data->color_balance);
   }
 
   SEQ_modifier_blend_read_data(reader, &seq->modifiers);
@@ -939,7 +937,7 @@ static bool seq_doversion_250_sound_proxy_update_cb(Sequence *seq, void *user_da
   if (seq->type == SEQ_TYPE_SOUND_HD) {
     char filepath_abs[FILE_MAX];
     BLI_path_join(
-        filepath_abs, sizeof(filepath_abs), seq->strip->dirpath, seq->strip->stripdata->filename);
+        filepath_abs, sizeof(filepath_abs), seq->data->dirpath, seq->data->stripdata->filename);
     BLI_path_abs(filepath_abs, BKE_main_blendfile_path(bmain));
     seq->sound = BKE_sound_new_file(bmain, filepath_abs);
     seq->type = SEQ_TYPE_SOUND_RAM;

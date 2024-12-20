@@ -9,7 +9,7 @@
  * Note on terminology
  * - #Sequence: video/effect/audio data you can select and manipulate in the sequencer.
  * - #Sequence.machine: Strange name for the channel.
- * - #Strip: The data referenced by the #Sequence
+ * - #StripData: The data referenced by the #Sequence
  * - Meta Strip (SEQ_TYPE_META): Support for nesting Sequences.
  */
 
@@ -55,7 +55,7 @@ typedef struct StripAnim {
 } StripAnim;
 
 typedef struct StripElem {
-  /** File name concatenated onto #Strip::dirpath. */
+  /** File name concatenated onto #StripData::dirpath. */
   char filename[256];
   /** Ignore when zeroed. */
   int orig_width, orig_height;
@@ -113,8 +113,8 @@ typedef struct StripProxy {
   char _pad[5];
 } StripProxy;
 
-typedef struct Strip {
-  struct Strip *next, *prev;
+typedef struct StripData {
+  struct StripData *next, *prev;
   int us, done;
   int startstill, endstill;
   /**
@@ -131,7 +131,7 @@ typedef struct Strip {
 
   /* color management */
   ColorManagedColorspaceSettings colorspace_settings;
-} Strip;
+} StripData;
 
 typedef enum eSeqRetimingKeyFlag {
   SEQ_SPEED_TRANSITION_IN = (1 << 0),
@@ -209,7 +209,7 @@ typedef struct Sequence {
   /** MOVIECLIP render flags. */
   int clip_flag;
 
-  Strip *strip;
+  StripData *data;
 
   /** Old animation system, deprecated for 2.5. */
   struct Ipo *ipo DNA_DEPRECATED;

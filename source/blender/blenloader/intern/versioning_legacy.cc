@@ -2608,8 +2608,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
       ed = sce->ed;
       if (ed) {
         LISTBASE_FOREACH (Sequence *, seq, SEQ_active_seqbase_get(ed)) {
-          if (seq->strip && seq->strip->proxy) {
-            seq->strip->proxy->quality = 90;
+          if (seq->data && seq->data->proxy) {
+            seq->data->proxy->quality = 90;
           }
         }
       }

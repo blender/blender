@@ -86,8 +86,8 @@ static void seq_get_thumb_image_dimensions(const Sequence *seq,
                                            float *r_image_width,
                                            float *r_image_height)
 {
-  float image_width = seq->strip->stripdata->orig_width;
-  float image_height = seq->strip->stripdata->orig_height;
+  float image_width = seq->data->stripdata->orig_width;
+  float image_height = seq->data->stripdata->orig_height;
 
   /* Fix the dimensions to be max SEQ_THUMB_SIZE for x or y. */
   float aspect_ratio = image_width / image_height;

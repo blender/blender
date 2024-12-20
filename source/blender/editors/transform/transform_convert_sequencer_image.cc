@@ -47,7 +47,7 @@ static TransData *SeqToTransData(const Scene *scene,
                                  TransDataSeq *tdseq,
                                  int vert_index)
 {
-  const StripTransform *transform = seq->strip->transform;
+  const StripTransform *transform = seq->data->transform;
   float origin[2];
   SEQ_image_transform_origin_offset_pixelspace_get(scene, seq, origin);
   float vertex[2] = {origin[0], origin[1]};
@@ -221,7 +221,7 @@ static void recalcData_sequencer_image(TransInfo *t)
 
     TransDataSeq *tdseq = static_cast<TransDataSeq *>(td->extra);
     Sequence *seq = tdseq->seq;
-    StripTransform *transform = seq->strip->transform;
+    StripTransform *transform = seq->data->transform;
     float mirror[2];
     SEQ_image_transform_mirror_factor_get(seq, mirror);
 
@@ -269,7 +269,7 @@ static void special_aftertrans_update__sequencer_image(bContext * /*C*/, TransIn
   for (i = 0, td = tc->data, td2d = tc->data_2d; i < tc->data_len; i++, td++, td2d++) {
     TransDataSeq *tdseq = static_cast<TransDataSeq *>(td->extra);
     Sequence *seq = tdseq->seq;
-    StripTransform *transform = seq->strip->transform;
+    StripTransform *transform = seq->data->transform;
     if (t->state == TRANS_CANCEL) {
       if (t->mode == TFM_ROTATION) {
         transform->rotation = tdseq->orig_rotation;

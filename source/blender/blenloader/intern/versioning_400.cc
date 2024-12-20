@@ -2974,7 +2974,7 @@ static void fix_geometry_nodes_object_info_scale(bNodeTree &ntree)
 
 static bool seq_filter_bilinear_to_auto(Sequence *seq, void * /*user_data*/)
 {
-  StripTransform *transform = seq->strip->transform;
+  StripTransform *transform = seq->data->transform;
   if (transform != nullptr && transform->filter == SEQ_TRANSFORM_FILTER_BILINEAR) {
     transform->filter = SEQ_TRANSFORM_FILTER_AUTO;
   }
@@ -3068,10 +3068,10 @@ static void versioning_update_timecode(short int *tc)
 
 static bool seq_proxies_timecode_update(Sequence *seq, void * /*user_data*/)
 {
-  if (seq->strip == nullptr || seq->strip->proxy == nullptr) {
+  if (seq->data == nullptr || seq->data->proxy == nullptr) {
     return true;
   }
-  StripProxy *proxy = seq->strip->proxy;
+  StripProxy *proxy = seq->data->proxy;
   versioning_update_timecode(&proxy->tc);
   return true;
 }
