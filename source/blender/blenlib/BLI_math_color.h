@@ -199,19 +199,6 @@ MINLINE void cpack_cpy_3ub(unsigned char r_col[3], unsigned int pack);
 
 /** \} */
 
-/* -------------------------------------------------------------------- */
-/** \name lift/gamma/gain / ASC-CDL conversion
- * \{ */
-
-void lift_gamma_gain_to_asc_cdl(const float *lift,
-                                const float *gamma,
-                                const float *gain,
-                                float *offset,
-                                float *slope,
-                                float *power);
-
-/** \} */
-
 #ifdef __cplusplus
 }
 #endif
