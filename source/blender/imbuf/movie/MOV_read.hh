@@ -33,9 +33,9 @@ struct GSet;
  * When done with playback, use #MOV_close to delete it.
  */
 MovieReader *MOV_open_file(const char *filepath,
-                             int ib_flags,
-                             int streamindex,
-                             char colorspace[IM_MAX_SPACE]);
+                           int ib_flags,
+                           int streamindex,
+                           char colorspace[IM_MAX_SPACE]);
 
 /**
  * Release memory and other resources associated with movie playback.

@@ -359,12 +359,6 @@ static void get_tc_filepath(MovieReader *anim, IMB_Timecode_Type tc, char *filep
 }
 
 /* ----------------------------------------------------------------------
- * - common rebuilder structures
- * ---------------------------------------------------------------------- */
-
-struct MovieProxyBuilder {};
-
-/* ----------------------------------------------------------------------
  * - ffmpeg rebuilder
  * ---------------------------------------------------------------------- */
 
@@ -690,7 +684,7 @@ static void free_proxy_output_ffmpeg(proxy_output_ctx *ctx, int rollback)
 static IMB_Timecode_Type tc_types[IMB_TC_NUM_TYPES] = {IMB_TC_RECORD_RUN,
                                                        IMB_TC_RECORD_RUN_NO_GAPS};
 
-struct FFmpegIndexBuilderContext : public MovieProxyBuilder {
+struct MovieProxyBuilder {
 
   AVFormatContext *iFormatCtx;
   AVCodecContext *iCodecCtx;
@@ -726,8 +720,7 @@ static MovieProxyBuilder *index_ffmpeg_create_context(MovieReader *anim,
                                                       int quality,
                                                       bool build_only_on_bad_performance)
 {
-  FFmpegIndexBuilderContext *context = MEM_cnew<FFmpegIndexBuilderContext>(
-      "FFmpeg index builder context");
+  MovieProxyBuilder *context = MEM_cnew<MovieProxyBuilder>("FFmpeg index builder context");
   int num_proxy_sizes = IMB_PROXY_MAX_SLOT;
   int i, streamcount;
 
@@ -845,7 +838,7 @@ static MovieProxyBuilder *index_ffmpeg_create_context(MovieReader *anim,
   return (MovieProxyBuilder *)context;
 }
 
-static void index_rebuild_ffmpeg_finish(FFmpegIndexBuilderContext *context, const bool stop)
+static void index_rebuild_ffmpeg_finish(MovieProxyBuilder *context, const bool stop)
 {
   int i;
 
@@ -869,8 +862,7 @@ static void index_rebuild_ffmpeg_finish(FFmpegIndexBuilderContext *context, cons
   MEM_freeN(context);
 }
 
-static void index_rebuild_ffmpeg_proc_decoded_frame(FFmpegIndexBuilderContext *context,
-                                                    AVFrame *in_frame)
+static void index_rebuild_ffmpeg_proc_decoded_frame(MovieProxyBuilder *context, AVFrame *in_frame)
 {
   int i;
   uint64_t s_pts = context->seek_pos_pts;
@@ -915,7 +907,7 @@ static void index_rebuild_ffmpeg_proc_decoded_frame(FFmpegIndexBuilderContext *c
   context->frameno_gapless++;
 }
 
-static int index_rebuild_ffmpeg(FFmpegIndexBuilderContext *context,
+static int index_rebuild_ffmpeg(MovieProxyBuilder *context,
                                 const bool *stop,
                                 bool *do_update,
                                 float *progress)
@@ -1005,7 +997,7 @@ static int index_rebuild_ffmpeg(FFmpegIndexBuilderContext *context,
 }
 
 /* Get number of frames, that can be decoded in specified time period. */
-static int indexer_performance_get_decode_rate(FFmpegIndexBuilderContext *context,
+static int indexer_performance_get_decode_rate(MovieProxyBuilder *context,
                                                const double time_period)
 {
   AVFrame *in_frame = av_frame_alloc();
@@ -1056,7 +1048,7 @@ static int indexer_performance_get_decode_rate(FFmpegIndexBuilderContext *contex
 /* Read up to 10k movie packets and return max GOP size detected.
  * Number of packets is arbitrary. It should be as large as possible, but processed within
  * reasonable time period, so detected GOP size is as close to real as possible. */
-static int indexer_performance_get_max_gop_size(FFmpegIndexBuilderContext *context)
+static int indexer_performance_get_max_gop_size(MovieProxyBuilder *context)
 {
   AVPacket *packet = av_packet_alloc();
 
@@ -1097,7 +1089,7 @@ static int indexer_performance_get_max_gop_size(FFmpegIndexBuilderContext *conte
  * Since proxies use GOP size of 10 frames, skip building if detected GOP size is less or
  * equal.
  */
-static bool indexer_need_to_build_proxy(FFmpegIndexBuilderContext *context)
+static bool indexer_need_to_build_proxy(MovieProxyBuilder *context)
 {
   if (!context->build_only_on_bad_performance) {
     return true;
@@ -1207,8 +1199,8 @@ void MOV_proxy_builder_process(MovieProxyBuilder *context,
 {
 #ifdef WITH_FFMPEG
   if (context != nullptr) {
-    if (indexer_need_to_build_proxy((FFmpegIndexBuilderContext *)context)) {
-      index_rebuild_ffmpeg((FFmpegIndexBuilderContext *)context, stop, do_update, progress);
+    if (indexer_need_to_build_proxy(context)) {
+      index_rebuild_ffmpeg(context, stop, do_update, progress);
     }
   }
 #endif
@@ -1219,7 +1211,7 @@ void MOV_proxy_builder_finish(MovieProxyBuilder *context, const bool stop)
 {
 #ifdef WITH_FFMPEG
   if (context != nullptr) {
-    index_rebuild_ffmpeg_finish((FFmpegIndexBuilderContext *)context, stop);
+    index_rebuild_ffmpeg_finish(context, stop);
   }
 #endif
   /* static defined at top of the file */
