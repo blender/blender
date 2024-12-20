@@ -119,13 +119,29 @@ void normals_calc_verts(Span<float3> vert_positions,
 struct CornerNormalSpace {
   /** The automatically computed face corner normal, not including influence of custom normals. */
   float3 vec_lnor;
-  /** Reference vector, orthogonal to #vec_lnor. */
+  /**
+   * Reference vector, orthogonal to #vec_lnor, aligned with one of the edges (borders) of the
+   * smooth fan, called 'reference edge'.
+   */
   float3 vec_ref;
   /** Third vector, orthogonal to #vec_lnor and #vec_ref. */
   float3 vec_ortho;
-  /** Reference angle around #vec_ortho, in [0, pi] range (0.0 marks space as invalid). */
+  /**
+   * Reference angle around #vec_ortho, in ]0, pi] range, between #vec_lnor and the reference edge.
+   *
+   * A 0.0 value marks that space as invalid, as it can only happen in extremely degenerate
+   * geometry cases (it would mean that the default normal is perfectly aligned with the reference
+   * edge).
+   */
   float ref_alpha;
-  /** Reference angle around #vec_lnor, in [0, 2pi] range (0.0 marks space as invalid). */
+  /**
+   * Reference angle around #vec_lnor, in ]0, 2pi] range, between the reference edge and the other
+   * border edge of the fan.
+   *
+   * A 0.0 value marks that space as invalid, as it can only happen in degenerate geometry cases
+   * (it would mean that all the edges connected to that corner of the smooth fan are perfectly
+   * aligned).
+   */
   float ref_beta;
 };
 

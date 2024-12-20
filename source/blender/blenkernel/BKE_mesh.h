@@ -229,18 +229,37 @@ bool BKE_mesh_vert_normals_are_dirty(const Mesh *mesh);
 bool BKE_mesh_face_normals_are_dirty(const Mesh *mesh);
 
 /**
- * References a contiguous loop-fan with normal offset vars.
+ * References a contiguous loop-fan.
+ * Combined with the automatically calculated face corner normal, this gives a dimensional
+ * coordinate space used to convert normals between the "custom normal" #short2 representation and
+ * a regular #float3 format.
  */
 struct MLoopNorSpace {
-  /** Automatically computed loop normal. */
+  /** The automatically computed face corner normal, not including influence of custom normals. */
   float vec_lnor[3];
-  /** Reference vector, orthogonal to vec_lnor. */
+  /**
+   * Reference vector, orthogonal to #vec_lnor, aligned with one of the edges (borders) of the
+   * smooth fan, called 'reference edge'.
+   */
   float vec_ref[3];
-  /** Third vector, orthogonal to vec_lnor and vec_ref. */
+  /** Third vector, orthogonal to #vec_lnor and #vec_ref. */
   float vec_ortho[3];
-  /** Reference angle, around vec_ortho, in ]0, pi] range (0.0 marks that space as invalid). */
+  /**
+   * Reference angle around #vec_ortho, in ]0, pi] range, between #vec_lnor and the reference edge.
+   *
+   * A 0.0 value marks that space as invalid, as it can only happen in extremely degenerate
+   * geometry cases (it would mean that the default normal is perfectly aligned with the reference
+   * edge).
+   */
   float ref_alpha;
-  /** Reference angle, around vec_lnor, in ]0, 2pi] range (0.0 marks that space as invalid). */
+  /**
+   * Reference angle around #vec_lnor, in ]0, 2pi] range, between the reference edge and the other
+   * border edge of the fan.
+   *
+   * A 0.0 value marks that space as invalid, as it can only happen in degenerate geometry cases
+   * (it would mean that all the edges connected to that corner of the smooth fan are perfectly
+   * aligned).
+   */
   float ref_beta;
   /** All loops using this lnor space (i.e. smooth fan of loops),
    * as (depending on owning MLoopNorSpaceArrary.data_type):
