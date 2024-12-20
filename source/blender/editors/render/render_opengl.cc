@@ -57,7 +57,8 @@
 
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
-#include "IMB_movie_write.hh"
+
+#include "MOV_write.hh"
 
 #include "RE_pipeline.h"
 
@@ -138,7 +139,7 @@ struct OGLRender {
   /** Use to check if running modal or not (invoked or executed). */
   wmTimer *timer;
 
-  blender::Vector<ImbMovieWriter *> movie_writers;
+  blender::Vector<MovieWriter *> movie_writers;
 
   TaskPool *task_pool;
   bool pool_ok;
@@ -912,8 +913,8 @@ static void screen_opengl_render_end(bContext *C, OGLRender *oglrender)
 
   if (!oglrender->movie_writers.is_empty()) {
     if (BKE_imtype_is_movie(scene->r.im_format.imtype)) {
-      for (ImbMovieWriter *writer : oglrender->movie_writers) {
-        IMB_movie_write_end(writer);
+      for (MovieWriter *writer : oglrender->movie_writers) {
+        MOV_write_end(writer);
       }
     }
     oglrender->movie_writers.clear_and_shrink();
@@ -980,14 +981,14 @@ static bool screen_opengl_render_anim_init(bContext *C, wmOperator *op)
     for (i = 0; i < oglrender->totvideos; i++) {
       Scene *scene_eval = DEG_get_evaluated_scene(oglrender->depsgraph);
       const char *suffix = BKE_scene_multiview_view_id_suffix_get(&scene->r, i);
-      ImbMovieWriter *writer = IMB_movie_write_begin(scene->r.im_format.imtype,
-                                                     scene_eval,
-                                                     &scene->r,
-                                                     oglrender->sizex,
-                                                     oglrender->sizey,
-                                                     oglrender->reports,
-                                                     PRVRANGEON != 0,
-                                                     suffix);
+      MovieWriter *writer = MOV_write_begin(scene->r.im_format.imtype,
+                                            scene_eval,
+                                            &scene->r,
+                                            oglrender->sizex,
+                                            oglrender->sizey,
+                                            oglrender->reports,
+                                            PRVRANGEON != 0,
+                                            suffix);
       if (writer == nullptr) {
         BKE_report(oglrender->reports, RPT_ERROR, "Movie format unsupported");
         screen_opengl_render_end(C, oglrender);

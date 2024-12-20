@@ -21,8 +21,9 @@
 
 #include "DEG_depsgraph.hh"
 
-#include "IMB_anim.hh"
 #include "IMB_imbuf.hh"
+
+#include "MOV_read.hh"
 
 #include "SEQ_iterator.hh"
 #include "SEQ_prefetch.hh"
@@ -400,7 +401,7 @@ void SEQ_relations_sequence_free_anim(Sequence *seq)
     StripAnim *sanim = static_cast<StripAnim *>(seq->anims.last);
 
     if (sanim->anim) {
-      IMB_free_anim(sanim->anim);
+      MOV_close(sanim->anim);
       sanim->anim = nullptr;
     }
 

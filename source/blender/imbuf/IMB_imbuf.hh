@@ -46,8 +46,6 @@
 
 #include "IMB_imbuf_types.hh"
 
-#define IM_MAX_SPACE 64
-
 struct ImBuf;
 struct rctf;
 struct rcti;

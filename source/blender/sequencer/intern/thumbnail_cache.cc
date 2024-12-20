@@ -19,8 +19,9 @@
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
 
-#include "IMB_anim.hh"
 #include "IMB_imbuf.hh"
+
+#include "MOV_read.hh"
 
 #include "SEQ_render.hh"
 #include "SEQ_thumbnail_cache.hh"
@@ -319,9 +320,9 @@ void ThumbGenerationJob::run_fn(void *customdata, wmJobWorkerStatus *worker_stat
     int64_t grain_size = math::max<int64_t>(8, requests.size() / 4);
     threading::parallel_for(requests.index_range(), grain_size, [&](IndexRange range) {
       /* Often the same movie file is chopped into multiple strips next to each other.
-       * Since the requests are sorted by file path and frame index, we can reuse ImBufAnim
+       * Since the requests are sorted by file path and frame index, we can reuse MovieReader
        * objects between them for performance. */
-      ImBufAnim *cur_anim = nullptr;
+      MovieReader *cur_anim = nullptr;
       std::string cur_anim_path;
       int cur_stream = 0;
       for (const int i : range) {
@@ -350,18 +351,18 @@ void ThumbGenerationJob::run_fn(void *customdata, wmJobWorkerStatus *worker_stat
           /* Are we switching to a different movie file / stream? */
           if (request.file_path != cur_anim_path || request.stream_index != cur_stream) {
             if (cur_anim != nullptr) {
-              IMB_free_anim(cur_anim);
+              MOV_close(cur_anim);
               cur_anim = nullptr;
             }
 
             cur_anim_path = request.file_path;
             cur_stream = request.stream_index;
-            cur_anim = IMB_open_anim(cur_anim_path.c_str(), IB_rect, cur_stream, nullptr);
+            cur_anim = MOV_open_file(cur_anim_path.c_str(), IB_rect, cur_stream, nullptr);
           }
 
           /* Decode the movie frame. */
           if (cur_anim != nullptr) {
-            thumb = IMB_anim_absolute(cur_anim, request.frame_index, IMB_TC_NONE, IMB_PROXY_NONE);
+            thumb = MOV_decode_frame(cur_anim, request.frame_index, IMB_TC_NONE, IMB_PROXY_NONE);
             if (thumb != nullptr) {
               seq_imbuf_assign_spaces(job->scene_, thumb);
             }
@@ -394,7 +395,7 @@ void ThumbGenerationJob::run_fn(void *customdata, wmJobWorkerStatus *worker_stat
         }
       }
       if (cur_anim != nullptr) {
-        IMB_free_anim(cur_anim);
+        MOV_close(cur_anim);
         cur_anim = nullptr;
       }
     });

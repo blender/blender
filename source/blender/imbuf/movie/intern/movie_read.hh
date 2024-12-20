@@ -23,9 +23,9 @@ struct SwsContext;
 #endif
 
 struct IDProperty;
-struct ImBufAnimIndex;
+struct MovieIndex;
 
-struct ImBufAnim {
+struct MovieReader {
   enum class State { Uninitialized, Failed, Valid };
   int ib_flags;
   State state;
@@ -69,9 +69,9 @@ struct ImBufAnim {
   int proxies_tried;
   int indices_tried;
 
-  ImBufAnim *proxy_anim[IMB_PROXY_MAX_SLOT];
-  ImBufAnimIndex *record_run;
-  ImBufAnimIndex *no_gaps;
+  MovieReader *proxy_anim[IMB_PROXY_MAX_SLOT];
+  MovieIndex *record_run;
+  MovieIndex *no_gaps;
 
   char colorspace[64];
   char suffix[64]; /* MAX_NAME - multiview */

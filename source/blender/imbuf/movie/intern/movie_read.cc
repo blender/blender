@@ -13,11 +13,6 @@
 #include <cstdio>
 #include <cstdlib>
 #include <sys/types.h>
-#ifndef _WIN32
-#  include <dirent.h>
-#else
-#  include <io.h>
-#endif
 
 #include "BLI_math_base.hh"
 #include "BLI_path_utils.hh"
@@ -29,11 +24,11 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "IMB_anim.hh"
 #include "IMB_colormanagement.hh"
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
-#include "intern/IMB_colormanagement_intern.hh"
+
+#include "MOV_read.hh"
 
 #include "IMB_metadata.hh"
 #include "movie_proxy_indexer.hh"
@@ -41,7 +36,7 @@
 
 #ifdef WITH_FFMPEG
 #  include "ffmpeg_swscale.hh"
-#  include "ffmpeg_util.hh"
+#  include "movie_util.hh"
 
 extern "C" {
 #  include <libavcodec/avcodec.h>
@@ -56,46 +51,32 @@ extern "C" {
 #endif /* WITH_FFMPEG */
 
 #ifdef WITH_FFMPEG
-static void free_anim_ffmpeg(ImBufAnim *anim);
+static void free_anim_ffmpeg(MovieReader *anim);
 #endif
 
-void IMB_free_anim(ImBufAnim *anim)
+void MOV_close(MovieReader *anim)
 {
   if (anim == nullptr) {
-    printf("free anim, anim == nullptr\n");
     return;
   }
 
 #ifdef WITH_FFMPEG
   free_anim_ffmpeg(anim);
 #endif
-  IMB_free_indices(anim);
+  MOV_close_proxies(anim);
   IMB_metadata_free(anim->metadata);
 
   MEM_freeN(anim);
 }
 
-void IMB_close_anim(ImBufAnim *anim)
+void MOV_get_filename(const MovieReader *anim, char *filename, int filename_maxncpy)
 {
-  if (anim == nullptr) {
-    return;
-  }
-
-  IMB_free_anim(anim);
+  BLI_path_split_file_part(anim->filepath, filename, filename_maxncpy);
 }
 
-void IMB_close_anim_proxies(ImBufAnim *anim)
+IDProperty *MOV_load_metadata(MovieReader *anim)
 {
-  if (anim == nullptr) {
-    return;
-  }
-
-  IMB_free_indices(anim);
-}
-
-IDProperty *IMB_anim_load_metadata(ImBufAnim *anim)
-{
-  if (anim->state == ImBufAnim::State::Valid) {
+  if (anim->state == MovieReader::State::Valid) {
 #ifdef WITH_FFMPEG
     BLI_assert(anim->pFormatCtx != nullptr);
     av_log(anim->pFormatCtx, AV_LOG_DEBUG, "METADATA FETCH\n");
@@ -116,16 +97,16 @@ IDProperty *IMB_anim_load_metadata(ImBufAnim *anim)
   return anim->metadata;
 }
 
-ImBufAnim *IMB_open_anim(const char *filepath,
-                         int ib_flags,
-                         int streamindex,
-                         char colorspace[IM_MAX_SPACE])
+MovieReader *MOV_open_file(const char *filepath,
+                           int ib_flags,
+                           int streamindex,
+                           char colorspace[IM_MAX_SPACE])
 {
-  ImBufAnim *anim;
+  MovieReader *anim;
 
   BLI_assert(!BLI_path_is_rel(filepath));
 
-  anim = (ImBufAnim *)MEM_callocN(sizeof(ImBufAnim), "anim struct");
+  anim = (MovieReader *)MEM_callocN(sizeof(MovieReader), "anim struct");
   if (anim != nullptr) {
     if (colorspace) {
       colorspace_set_default_role(colorspace, IM_MAX_SPACE, COLOR_ROLE_DEFAULT_BYTE);
@@ -143,7 +124,7 @@ ImBufAnim *IMB_open_anim(const char *filepath,
   return anim;
 }
 
-bool IMB_anim_can_produce_frames(const ImBufAnim *anim)
+bool MOV_is_initialized_and_valid(const MovieReader *anim)
 {
 #if !defined(WITH_FFMPEG)
   UNUSED_VARS(anim);
@@ -157,7 +138,7 @@ bool IMB_anim_can_produce_frames(const ImBufAnim *anim)
   return false;
 }
 
-void IMB_suffix_anim(ImBufAnim *anim, const char *suffix)
+void MOV_set_multiview_suffix(MovieReader *anim, const char *suffix)
 {
   STRNCPY(anim->suffix, suffix);
 }
@@ -249,7 +230,7 @@ static int calc_pix_fmt_max_component_bits(AVPixelFormat fmt)
   return bits;
 }
 
-static int startffmpeg(ImBufAnim *anim)
+static int startffmpeg(MovieReader *anim)
 {
   const AVCodec *pCodec;
   AVFormatContext *pFormatCtx = nullptr;
@@ -350,7 +331,7 @@ static int startffmpeg(ImBufAnim *anim)
   }
 
   anim->frs_sec = frs_num;
-  anim->frs_sec_base = frs_den;
+  anim->frs_sec_base = frs_den / AV_TIME_BASE;
   /* Save the relative start time for the video. IE the start time in relation to where playback
    * starts. */
   anim->start_offset = ffmpeg_stream_start_time_get(video_stream);
@@ -480,7 +461,7 @@ static int startffmpeg(ImBufAnim *anim)
   return 0;
 }
 
-static double ffmpeg_steps_per_frame_get(ImBufAnim *anim)
+static double ffmpeg_steps_per_frame_get(MovieReader *anim)
 {
   AVStream *v_st = anim->pFormatCtx->streams[anim->videoStream];
   AVRational time_base = v_st->time_base;
@@ -493,7 +474,7 @@ static double ffmpeg_steps_per_frame_get(ImBufAnim *anim)
  * It is likely to overshoot and scanning stops. Having previous frame backed up, it is possible
  * to use it when overshoot happens.
  */
-static void ffmpeg_double_buffer_backup_frame_store(ImBufAnim *anim, int64_t pts_to_search)
+static void ffmpeg_double_buffer_backup_frame_store(MovieReader *anim, int64_t pts_to_search)
 {
   /* `anim->pFrame` is beyond `pts_to_search`. Don't store it. */
   if (anim->pFrame_backup_complete && anim->cur_pts >= pts_to_search) {
@@ -512,7 +493,7 @@ static void ffmpeg_double_buffer_backup_frame_store(ImBufAnim *anim, int64_t pts
 }
 
 /* Free stored backup frame. */
-static void ffmpeg_double_buffer_backup_frame_clear(ImBufAnim *anim)
+static void ffmpeg_double_buffer_backup_frame_clear(MovieReader *anim)
 {
   if (anim->pFrame_backup_complete) {
     av_frame_unref(anim->pFrame_backup);
@@ -521,7 +502,7 @@ static void ffmpeg_double_buffer_backup_frame_clear(ImBufAnim *anim)
 }
 
 /* Return recently decoded frame. If it does not exist, return frame from backup buffer. */
-static AVFrame *ffmpeg_double_buffer_frame_fallback_get(ImBufAnim *anim)
+static AVFrame *ffmpeg_double_buffer_frame_fallback_get(MovieReader *anim)
 {
   av_log(anim->pFormatCtx, AV_LOG_ERROR, "DECODE UNHAPPY: PTS not matched!\n");
 
@@ -539,7 +520,7 @@ static AVFrame *ffmpeg_double_buffer_frame_fallback_get(ImBufAnim *anim)
  *
  * \param ibuf: The frame just read by `ffmpeg_fetchibuf`, processed in-place.
  */
-static void ffmpeg_postprocess(ImBufAnim *anim, AVFrame *input, ImBuf *ibuf)
+static void ffmpeg_postprocess(MovieReader *anim, AVFrame *input, ImBuf *ibuf)
 {
   int filter_y = 0;
 
@@ -663,7 +644,7 @@ static void ffmpeg_postprocess(ImBufAnim *anim, AVFrame *input, ImBuf *ibuf)
   }
 }
 
-static void final_frame_log(ImBufAnim *anim,
+static void final_frame_log(MovieReader *anim,
                             int64_t frame_pts_start,
                             int64_t frame_pts_end,
                             const char *str)
@@ -682,7 +663,7 @@ static bool ffmpeg_pts_isect(int64_t pts_start, int64_t pts_end, int64_t pts_to_
 }
 
 /* Return frame that matches `pts_to_search`, nullptr if matching frame does not exist. */
-static AVFrame *ffmpeg_frame_by_pts_get(ImBufAnim *anim, int64_t pts_to_search)
+static AVFrame *ffmpeg_frame_by_pts_get(MovieReader *anim, int64_t pts_to_search)
 {
   /* NOTE: `frame->pts + frame->pkt_duration` does not always match pts of next frame.
    * See footage from #86361. Here it is OK to use, because PTS must match current or backup frame.
@@ -709,7 +690,7 @@ static AVFrame *ffmpeg_frame_by_pts_get(ImBufAnim *anim, int64_t pts_to_search)
   return best_frame;
 }
 
-static void ffmpeg_decode_store_frame_pts(ImBufAnim *anim)
+static void ffmpeg_decode_store_frame_pts(MovieReader *anim)
 {
   anim->cur_pts = av_get_pts_from_frame(anim->pFrame);
 
@@ -729,7 +710,7 @@ static void ffmpeg_decode_store_frame_pts(ImBufAnim *anim)
          int64_t(anim->cur_pts));
 }
 
-static int ffmpeg_read_video_frame(ImBufAnim *anim, AVPacket *packet)
+static int ffmpeg_read_video_frame(MovieReader *anim, AVPacket *packet)
 {
   int ret = 0;
   while ((ret = av_read_frame(anim->pFormatCtx, packet)) >= 0) {
@@ -744,7 +725,7 @@ static int ffmpeg_read_video_frame(ImBufAnim *anim, AVPacket *packet)
 }
 
 /* decode one video frame also considering the packet read into cur_packet */
-static int ffmpeg_decode_video_frame(ImBufAnim *anim)
+static int ffmpeg_decode_video_frame(MovieReader *anim)
 {
   av_log(anim->pFormatCtx, AV_LOG_DEBUG, "  DECODE VIDEO FRAME\n");
 
@@ -815,7 +796,7 @@ static int ffmpeg_decode_video_frame(ImBufAnim *anim)
   return (rval >= 0);
 }
 
-static int64_t ffmpeg_get_seek_pts(ImBufAnim *anim, int64_t pts_to_search)
+static int64_t ffmpeg_get_seek_pts(MovieReader *anim, int64_t pts_to_search)
 {
   /* FFMPEG seeks internally using DTS values instead of PTS. In some files DTS and PTS values are
    * offset and sometimes FFMPEG fails to take this into account when seeking.
@@ -835,13 +816,15 @@ static int64_t ffmpeg_get_seek_pts(ImBufAnim *anim, int64_t pts_to_search)
 /* This gives us an estimate of which pts our requested frame will have.
  * Note that this might be off a bit in certain video files, but it should still be close enough.
  */
-static int64_t ffmpeg_get_pts_to_search(ImBufAnim *anim, ImBufAnimIndex *tc_index, int position)
+static int64_t ffmpeg_get_pts_to_search(MovieReader *anim,
+                                        const MovieIndex *tc_index,
+                                        int position)
 {
   int64_t pts_to_search;
 
   if (tc_index) {
-    int new_frame_index = IMB_indexer_get_frame_index(tc_index, position);
-    pts_to_search = IMB_indexer_get_pts(tc_index, new_frame_index);
+    int new_frame_index = tc_index->get_frame_index(position);
+    pts_to_search = tc_index->get_pts(new_frame_index);
   }
   else {
     AVStream *v_st = anim->pFormatCtx->streams[anim->videoStream];
@@ -856,12 +839,12 @@ static int64_t ffmpeg_get_pts_to_search(ImBufAnim *anim, ImBufAnimIndex *tc_inde
   return pts_to_search;
 }
 
-static bool ffmpeg_is_first_frame_decode(ImBufAnim *anim)
+static bool ffmpeg_is_first_frame_decode(MovieReader *anim)
 {
   return anim->pFrame_complete == false;
 }
 
-static void ffmpeg_scan_log(ImBufAnim *anim, int64_t pts_to_search)
+static void ffmpeg_scan_log(MovieReader *anim, int64_t pts_to_search)
 {
   int64_t frame_pts_start = av_get_pts_from_frame(anim->pFrame);
   int64_t frame_pts_end = frame_pts_start + av_get_frame_duration_in_pts_units(anim->pFrame);
@@ -874,7 +857,7 @@ static void ffmpeg_scan_log(ImBufAnim *anim, int64_t pts_to_search)
 }
 
 /* Decode frames one by one until its PTS matches pts_to_search. */
-static void ffmpeg_decode_video_frame_scan(ImBufAnim *anim, int64_t pts_to_search)
+static void ffmpeg_decode_video_frame_scan(MovieReader *anim, int64_t pts_to_search)
 {
   const int64_t start_gop_frame = anim->cur_key_frame_pts;
   bool decode_error = false;
@@ -898,7 +881,7 @@ static void ffmpeg_decode_video_frame_scan(ImBufAnim *anim, int64_t pts_to_searc
  * read_seek2() functions defined. When seeking in these formats, rule to seek to last
  * necessary I-frame is not honored. It is not even guaranteed that I-frame, that must be
  * decoded will be read. See https://trac.ffmpeg.org/ticket/1607 & #86944. */
-static int ffmpeg_generic_seek_workaround(ImBufAnim *anim,
+static int ffmpeg_generic_seek_workaround(MovieReader *anim,
                                           int64_t *requested_pts,
                                           int64_t pts_to_search)
 {
@@ -960,7 +943,7 @@ static int ffmpeg_generic_seek_workaround(ImBufAnim *anim,
 
 /* Read packet until timestamp matches `anim->cur_packet`, thus recovering internal `anim` stream
  * position state. */
-static void ffmpeg_seek_recover_stream_position(ImBufAnim *anim)
+static void ffmpeg_seek_recover_stream_position(MovieReader *anim)
 {
   AVPacket *temp_packet = av_packet_alloc();
   while (ffmpeg_read_video_frame(anim, temp_packet) >= 0) {
@@ -976,7 +959,7 @@ static void ffmpeg_seek_recover_stream_position(ImBufAnim *anim)
 }
 
 /* Check if seeking and mainly flushing codec buffers is needed. */
-static bool ffmpeg_seek_buffers_need_flushing(ImBufAnim *anim, int position, int64_t seek_pos)
+static bool ffmpeg_seek_buffers_need_flushing(MovieReader *anim, int position, int64_t seek_pos)
 {
   /* Get timestamp of packet read after seeking. */
   AVPacket *temp_packet = av_packet_alloc();
@@ -1005,9 +988,9 @@ static bool ffmpeg_seek_buffers_need_flushing(ImBufAnim *anim, int position, int
 }
 
 /* Seek to last necessary key frame. */
-static int ffmpeg_seek_to_key_frame(ImBufAnim *anim,
+static int ffmpeg_seek_to_key_frame(MovieReader *anim,
                                     int position,
-                                    ImBufAnimIndex *tc_index,
+                                    const MovieIndex *tc_index,
                                     int64_t pts_to_search)
 {
   int64_t seek_pos;
@@ -1015,10 +998,10 @@ static int ffmpeg_seek_to_key_frame(ImBufAnim *anim,
 
   if (tc_index) {
     /* We can use timestamps generated from our indexer to seek. */
-    int new_frame_index = IMB_indexer_get_frame_index(tc_index, position);
+    int new_frame_index = tc_index->get_frame_index(position);
 
-    uint64_t pts = IMB_indexer_get_seek_pos_pts(tc_index, new_frame_index);
-    uint64_t dts = IMB_indexer_get_seek_pos_dts(tc_index, new_frame_index);
+    uint64_t pts = tc_index->get_seek_pos_pts(new_frame_index);
+    uint64_t dts = tc_index->get_seek_pos_dts(new_frame_index);
 
     anim->cur_key_frame_pts = timestamp_from_pts_or_dts(pts, dts);
 
@@ -1082,19 +1065,19 @@ static int ffmpeg_seek_to_key_frame(ImBufAnim *anim,
   return ret;
 }
 
-static bool ffmpeg_must_decode(ImBufAnim *anim, int position)
+static bool ffmpeg_must_decode(MovieReader *anim, int position)
 {
   return !anim->pFrame_complete || anim->cur_position != position;
 }
 
-static bool ffmpeg_must_seek(ImBufAnim *anim, int position)
+static bool ffmpeg_must_seek(MovieReader *anim, int position)
 {
   bool must_seek = position != anim->cur_position + 1 || ffmpeg_is_first_frame_decode(anim);
   anim->seek_before_decode = must_seek;
   return must_seek;
 }
 
-static ImBuf *ffmpeg_fetchibuf(ImBufAnim *anim, int position, IMB_Timecode_Type tc)
+static ImBuf *ffmpeg_fetchibuf(MovieReader *anim, int position, IMB_Timecode_Type tc)
 {
   if (anim == nullptr) {
     return nullptr;
@@ -1102,7 +1085,7 @@ static ImBuf *ffmpeg_fetchibuf(ImBufAnim *anim, int position, IMB_Timecode_Type 
 
   av_log(anim->pFormatCtx, AV_LOG_DEBUG, "FETCH: seek_pos=%d\n", position);
 
-  ImBufAnimIndex *tc_index = IMB_anim_open_index(anim, tc);
+  const MovieIndex *tc_index = movie_open_index(anim, tc);
   int64_t pts_to_search = ffmpeg_get_pts_to_search(anim, tc_index, position);
   AVStream *v_st = anim->pFormatCtx->streams[anim->videoStream];
   double frame_rate = av_q2d(v_st->r_frame_rate);
@@ -1171,7 +1154,7 @@ static ImBuf *ffmpeg_fetchibuf(ImBufAnim *anim, int position, IMB_Timecode_Type 
   return cur_frame_final;
 }
 
-static void free_anim_ffmpeg(ImBufAnim *anim)
+static void free_anim_ffmpeg(MovieReader *anim)
 {
   if (anim == nullptr) {
     return;
@@ -1200,36 +1183,36 @@ static void free_anim_ffmpeg(ImBufAnim *anim)
  * Try to initialize the #anim struct.
  * Returns true on success.
  */
-static bool anim_getnew(ImBufAnim *anim)
+static bool anim_getnew(MovieReader *anim)
 {
   if (anim == nullptr) {
     /* Nothing to initialize. */
     return false;
   }
 
-  BLI_assert(anim->state == ImBufAnim::State::Uninitialized);
+  BLI_assert(anim->state == MovieReader::State::Uninitialized);
 
 #ifdef WITH_FFMPEG
   free_anim_ffmpeg(anim);
   if (startffmpeg(anim)) {
-    anim->state = ImBufAnim::State::Failed;
+    anim->state = MovieReader::State::Failed;
     return false;
   }
 #endif
-  anim->state = ImBufAnim::State::Valid;
+  anim->state = MovieReader::State::Valid;
   return true;
 }
 
-ImBuf *IMB_anim_previewframe(ImBufAnim *anim)
+ImBuf *MOV_decode_preview_frame(MovieReader *anim)
 {
   ImBuf *ibuf = nullptr;
   int position = 0;
 
-  ibuf = IMB_anim_absolute(anim, 0, IMB_TC_NONE, IMB_PROXY_NONE);
+  ibuf = MOV_decode_frame(anim, 0, IMB_TC_NONE, IMB_PROXY_NONE);
   if (ibuf) {
     IMB_freeImBuf(ibuf);
     position = anim->duration_in_frames / 2;
-    ibuf = IMB_anim_absolute(anim, position, IMB_TC_NONE, IMB_PROXY_NONE);
+    ibuf = MOV_decode_frame(anim, position, IMB_TC_NONE, IMB_PROXY_NONE);
 
     char value[128];
     IMB_metadata_ensure(&ibuf->metadata);
@@ -1258,10 +1241,10 @@ ImBuf *IMB_anim_previewframe(ImBufAnim *anim)
   return ibuf;
 }
 
-ImBuf *IMB_anim_absolute(ImBufAnim *anim,
-                         int position,
-                         IMB_Timecode_Type tc,
-                         IMB_Proxy_Size preview_size)
+ImBuf *MOV_decode_frame(MovieReader *anim,
+                        int position,
+                        IMB_Timecode_Type tc,
+                        IMB_Proxy_Size preview_size)
 {
   ImBuf *ibuf = nullptr;
   if (anim == nullptr) {
@@ -1269,7 +1252,7 @@ ImBuf *IMB_anim_absolute(ImBufAnim *anim,
   }
 
   if (preview_size == IMB_PROXY_NONE) {
-    if (anim->state == ImBufAnim::State::Uninitialized) {
+    if (anim->state == MovieReader::State::Uninitialized) {
       if (!anim_getnew(anim)) {
         return nullptr;
       }
@@ -1283,17 +1266,17 @@ ImBuf *IMB_anim_absolute(ImBufAnim *anim,
     }
   }
   else {
-    ImBufAnim *proxy = IMB_anim_open_proxy(anim, preview_size);
+    MovieReader *proxy = movie_open_proxy(anim, preview_size);
 
     if (proxy) {
-      position = IMB_anim_index_get_frame_index(anim, tc, position);
+      position = MOV_calc_frame_index_with_timecode(anim, tc, position);
 
-      return IMB_anim_absolute(proxy, position, IMB_TC_NONE, IMB_PROXY_NONE);
+      return MOV_decode_frame(proxy, position, IMB_TC_NONE, IMB_PROXY_NONE);
     }
   }
 
 #ifdef WITH_FFMPEG
-  if (anim->state == ImBufAnim::State::Valid) {
+  if (anim->state == MovieReader::State::Valid) {
     ibuf = ffmpeg_fetchibuf(anim, position, tc);
     if (ibuf) {
       anim->cur_position = position;
@@ -1307,70 +1290,56 @@ ImBuf *IMB_anim_absolute(ImBufAnim *anim,
   return ibuf;
 }
 
-/***/
-
-int IMB_anim_get_duration(ImBufAnim *anim, IMB_Timecode_Type tc)
+int MOV_get_duration_frames(MovieReader *anim, IMB_Timecode_Type tc)
 {
-  ImBufAnimIndex *idx;
   if (tc == IMB_TC_NONE) {
     return anim->duration_in_frames;
   }
 
-  idx = IMB_anim_open_index(anim, tc);
+  const MovieIndex *idx = movie_open_index(anim, tc);
   if (!idx) {
     return anim->duration_in_frames;
   }
 
-  return IMB_indexer_get_duration(idx);
+  return idx->get_duration();
 }
 
-double IMB_anim_get_offset(ImBufAnim *anim)
+double MOV_get_start_offset_seconds(const MovieReader *anim)
 {
   return anim->start_offset;
 }
 
-bool IMB_anim_get_fps(const ImBufAnim *anim,
-                      bool no_av_base,
-                      short *r_frs_sec,
-                      float *r_frs_sec_base)
+float MOV_get_fps(const MovieReader *anim)
 {
-  double frs_sec_base_double;
-  if (anim->frs_sec) {
-    if (anim->frs_sec > SHRT_MAX) {
-      /* We cannot store original rational in our short/float format,
-       * we need to approximate it as best as we can... */
-      *r_frs_sec = SHRT_MAX;
-      frs_sec_base_double = anim->frs_sec_base * double(SHRT_MAX) / double(anim->frs_sec);
-    }
-    else {
-      *r_frs_sec = anim->frs_sec;
-      frs_sec_base_double = anim->frs_sec_base;
-    }
-#ifdef WITH_FFMPEG
-    if (no_av_base) {
-      *r_frs_sec_base = float(frs_sec_base_double / AV_TIME_BASE);
-    }
-    else {
-      *r_frs_sec_base = float(frs_sec_base_double);
-    }
-#else
-    UNUSED_VARS(no_av_base);
-    *r_frs_sec_base = float(frs_sec_base_double);
-#endif
-    BLI_assert(*r_frs_sec > 0);
-    BLI_assert(*r_frs_sec_base > 0.0f);
+  if (anim->frs_sec > 0 && anim->frs_sec_base > 0) {
+    return float(double(anim->frs_sec) / anim->frs_sec_base);
+  }
+  return 0.0f;
+}
 
+bool MOV_get_fps_num_denom(const MovieReader *anim, short &r_fps_num, float &r_fps_denom)
+{
+  if (anim->frs_sec > 0 && anim->frs_sec_base > 0) {
+    if (anim->frs_sec > SHRT_MAX) {
+      /* If numerator is larger than the max short, we need to approximate. */
+      r_fps_num = SHRT_MAX;
+      r_fps_denom = float(anim->frs_sec_base * double(SHRT_MAX) / double(anim->frs_sec));
+    }
+    else {
+      r_fps_num = anim->frs_sec;
+      r_fps_denom = float(anim->frs_sec_base);
+    }
     return true;
   }
   return false;
 }
 
-int IMB_anim_get_image_width(ImBufAnim *anim)
+int MOV_get_image_width(const MovieReader *anim)
 {
   return ELEM(anim->video_rotation, 90, 270) ? anim->y : anim->x;
 }
 
-int IMB_anim_get_image_height(ImBufAnim *anim)
+int MOV_get_image_height(const MovieReader *anim)
 {
   return ELEM(anim->video_rotation, 90, 270) ? anim->x : anim->y;
 }

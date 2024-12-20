@@ -18,9 +18,10 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-#include "IMB_anim.hh"
 #include "IMB_imbuf.hh"
 #include "IMB_moviecache.hh"
+
+#include "MOV_util.hh"
 
 #include "BKE_addon.h"
 #include "BKE_asset.hh"
@@ -79,7 +80,7 @@ void BKE_blender_free()
 
   IMB_moviecache_destruct();
   SEQ_fontmap_clear();
-  IMB_ffmpeg_exit();
+  MOV_exit();
 
   blender::bke::node_system_exit();
 }

@@ -68,7 +68,8 @@
 #include "SEQ_utils.hh"
 
 #include "IMB_imbuf_enums.h"
-#include "IMB_movie_enums.hh"
+
+#include "MOV_enums.hh"
 
 #include "NOD_common.h"
 #include "NOD_composite.hh"

@@ -12,17 +12,18 @@ set(INC_SYS
 )
 
 set(SRC
-  IMB_anim.hh
-  IMB_movie_enums.hh
-  IMB_movie_write.hh
+  MOV_enums.hh
+  MOV_util.hh
+  MOV_read.hh
+  MOV_write.hh
 
   intern/ffmpeg_compat.h
-  intern/ffmpeg_util.cc
-  intern/ffmpeg_util.hh
   intern/movie_proxy_indexer.cc
   intern/movie_proxy_indexer.hh
   intern/movie_read.cc
   intern/movie_read.hh
+  intern/movie_util.cc
+  intern/movie_util.hh
   intern/movie_write.cc
 )
 

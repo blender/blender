@@ -9,7 +9,7 @@
 
 #include "DNA_scene_types.h"
 
-#include "IMB_movie_write.hh"
+#include "MOV_write.hh"
 
 #ifdef WITH_FFMPEG
 #  include <cstdio>
@@ -37,11 +37,13 @@
 #  include "BKE_report.hh"
 #  include "BKE_sound.h"
 
-#  include "IMB_anim.hh"
 #  include "IMB_imbuf.hh"
 
+#  include "MOV_enums.hh"
+#  include "MOV_util.hh"
+
 #  include "ffmpeg_swscale.hh"
-#  include "ffmpeg_util.hh"
+#  include "movie_util.hh"
 
 /* This needs to be included after BLI_math_base.h otherwise it will redefine some math defines
  * like M_SQRT1_2 leading to warnings with MSVC */
@@ -60,7 +62,7 @@ extern "C" {
 
 struct StampData;
 
-struct ImbMovieWriter {
+struct MovieWriter {
   int ffmpeg_type;
   AVCodecID ffmpeg_codec;
   AVCodecID ffmpeg_audio_codec;
@@ -109,8 +111,8 @@ struct ImbMovieWriter {
     printf
 
 static void ffmpeg_dict_set_int(AVDictionary **dict, const char *key, int value);
-static void ffmpeg_movie_close(ImbMovieWriter *context);
-static void ffmpeg_filepath_get(ImbMovieWriter *context,
+static void ffmpeg_movie_close(MovieWriter *context);
+static void ffmpeg_filepath_get(MovieWriter *context,
                                 char filepath[FILE_MAX],
                                 const RenderData *rd,
                                 bool preview,
@@ -134,7 +136,7 @@ static int request_float_audio_buffer(int codec_id)
 
 #  ifdef WITH_AUDASPACE
 
-static int write_audio_frame(ImbMovieWriter *context)
+static int write_audio_frame(MovieWriter *context)
 {
   AVFrame *frame = nullptr;
   AVCodecContext *c = context->audio_codec;
@@ -324,7 +326,7 @@ static const char **get_file_extensions(int format)
 }
 
 /* Write a frame to the output file */
-static bool write_video_frame(ImbMovieWriter *context, AVFrame *frame, ReportList *reports)
+static bool write_video_frame(MovieWriter *context, AVFrame *frame, ReportList *reports)
 {
   int ret, success = 1;
   AVPacket *packet = av_packet_alloc();
@@ -380,7 +382,7 @@ static bool write_video_frame(ImbMovieWriter *context, AVFrame *frame, ReportLis
 }
 
 /* read and encode a frame of video from the buffer */
-static AVFrame *generate_video_frame(ImbMovieWriter *context, const ImBuf *image)
+static AVFrame *generate_video_frame(MovieWriter *context, const ImBuf *image)
 {
   const uint8_t *pixels = image->byte_buffer.data;
   const float *pixels_fl = image->float_buffer.data;
@@ -515,7 +517,7 @@ static AVRational calc_time_base(uint den, double num, int codec_id)
 }
 
 static const AVCodec *get_av1_encoder(
-    ImbMovieWriter *context, RenderData *rd, AVDictionary **opts, int rectx, int recty)
+    MovieWriter *context, RenderData *rd, AVDictionary **opts, int rectx, int recty)
 {
   /* There are three possible encoders for AV1: `libaom-av1`, librav1e, and `libsvtav1`. librav1e
    * tends to give the best compression quality while `libsvtav1` tends to be the fastest encoder.
@@ -728,7 +730,7 @@ static int remap_crf_to_h264_10bpp_crf(int crf)
   return crf;
 }
 
-static void set_quality_rate_options(const ImbMovieWriter *context,
+static void set_quality_rate_options(const MovieWriter *context,
                                      const AVCodecID codec_id,
                                      const RenderData *rd,
                                      AVDictionary **opts)
@@ -736,7 +738,7 @@ static void set_quality_rate_options(const ImbMovieWriter *context,
   AVCodecContext *c = context->video_codec;
 
   /* Handle constant bit rate (CBR) case. */
-  if (!IMB_ffmpeg_codec_supports_crf(codec_id) || context->ffmpeg_crf < 0) {
+  if (!MOV_codec_supports_crf(codec_id) || context->ffmpeg_crf < 0) {
     c->bit_rate = context->ffmpeg_video_bitrate * 1000;
     c->rc_max_rate = rd->ffcodecdata.rc_max_rate * 1000;
     c->rc_min_rate = rd->ffcodecdata.rc_min_rate * 1000;
@@ -807,7 +809,7 @@ static void set_quality_rate_options(const ImbMovieWriter *context,
 
 /* prepare a video stream for the output file */
 
-static AVStream *alloc_video_stream(ImbMovieWriter *context,
+static AVStream *alloc_video_stream(MovieWriter *context,
                                     RenderData *rd,
                                     AVCodecID codec_id,
                                     AVFormatContext *of,
@@ -1089,7 +1091,7 @@ static AVStream *alloc_video_stream(ImbMovieWriter *context,
   return st;
 }
 
-static AVStream *alloc_audio_stream(ImbMovieWriter *context,
+static AVStream *alloc_audio_stream(MovieWriter *context,
                                     RenderData *rd,
                                     AVCodecID codec_id,
                                     AVFormatContext *of,
@@ -1259,7 +1261,7 @@ static void ffmpeg_add_metadata_callback(void *data,
   av_dict_set(metadata, propname, propvalue, 0);
 }
 
-static bool start_ffmpeg_impl(ImbMovieWriter *context,
+static bool start_ffmpeg_impl(MovieWriter *context,
                               RenderData *rd,
                               int rectx,
                               int recty,
@@ -1534,7 +1536,7 @@ static void flush_ffmpeg(AVCodecContext *c, AVStream *stream, AVFormatContext *o
  * ********************************************************************** */
 
 /* Get the output filename-- similar to the other output formats */
-static void ffmpeg_filepath_get(ImbMovieWriter *context,
+static void ffmpeg_filepath_get(MovieWriter *context,
                                 char filepath[FILE_MAX],
                                 const RenderData *rd,
                                 bool preview,
@@ -1611,16 +1613,16 @@ static void ffmpeg_get_filepath(char filepath[/*FILE_MAX*/ 1024],
   ffmpeg_filepath_get(nullptr, filepath, rd, preview, suffix);
 }
 
-static ImbMovieWriter *ffmpeg_movie_open(const Scene *scene,
-                                         RenderData *rd,
-                                         int rectx,
-                                         int recty,
-                                         ReportList *reports,
-                                         bool preview,
-                                         const char *suffix)
+static MovieWriter *ffmpeg_movie_open(const Scene *scene,
+                                      RenderData *rd,
+                                      int rectx,
+                                      int recty,
+                                      ReportList *reports,
+                                      bool preview,
+                                      const char *suffix)
 {
-  ImbMovieWriter *context = static_cast<ImbMovieWriter *>(
-      MEM_callocN(sizeof(ImbMovieWriter), "new FFMPEG context"));
+  MovieWriter *context = static_cast<MovieWriter *>(
+      MEM_callocN(sizeof(MovieWriter), "new FFMPEG context"));
 
   context->ffmpeg_codec = AV_CODEC_ID_MPEG4;
   context->ffmpeg_audio_codec = AV_CODEC_ID_NONE;
@@ -1684,10 +1686,10 @@ static ImbMovieWriter *ffmpeg_movie_open(const Scene *scene,
   return context;
 }
 
-static void end_ffmpeg_impl(ImbMovieWriter *context, int is_autosplit);
+static void end_ffmpeg_impl(MovieWriter *context, int is_autosplit);
 
 #  ifdef WITH_AUDASPACE
-static void write_audio_frames(ImbMovieWriter *context, double to_pts)
+static void write_audio_frames(MovieWriter *context, double to_pts)
 {
   AVCodecContext *c = context->audio_codec;
 
@@ -1701,7 +1703,7 @@ static void write_audio_frames(ImbMovieWriter *context, double to_pts)
 }
 #  endif
 
-static bool ffmpeg_movie_append(ImbMovieWriter *context,
+static bool ffmpeg_movie_append(MovieWriter *context,
                                 RenderData *rd,
                                 int start_frame,
                                 int frame,
@@ -1738,7 +1740,7 @@ static bool ffmpeg_movie_append(ImbMovieWriter *context,
   return success;
 }
 
-static void end_ffmpeg_impl(ImbMovieWriter *context, int is_autosplit)
+static void end_ffmpeg_impl(MovieWriter *context, int is_autosplit)
 {
   PRINT("Closing FFMPEG...\n");
 
@@ -1823,7 +1825,7 @@ static void end_ffmpeg_impl(ImbMovieWriter *context, int is_autosplit)
   }
 }
 
-static void ffmpeg_movie_close(ImbMovieWriter *context)
+static void ffmpeg_movie_close(MovieWriter *context)
 {
   if (context == nullptr) {
     return;
@@ -1849,20 +1851,20 @@ static bool is_imtype_ffmpeg(const char imtype)
               R_IMF_IMTYPE_AV1);
 }
 
-ImbMovieWriter *IMB_movie_write_begin(const char imtype,
-                                      const Scene *scene,
-                                      RenderData *rd,
-                                      int rectx,
-                                      int recty,
-                                      ReportList *reports,
-                                      bool preview,
-                                      const char *suffix)
+MovieWriter *MOV_write_begin(const char imtype,
+                             const Scene *scene,
+                             RenderData *rd,
+                             int rectx,
+                             int recty,
+                             ReportList *reports,
+                             bool preview,
+                             const char *suffix)
 {
   if (!is_imtype_ffmpeg(imtype)) {
     return nullptr;
   }
 
-  ImbMovieWriter *writer = nullptr;
+  MovieWriter *writer = nullptr;
 #ifdef WITH_FFMPEG
   writer = ffmpeg_movie_open(scene, rd, rectx, recty, reports, preview, suffix);
 #else
@@ -1871,13 +1873,13 @@ ImbMovieWriter *IMB_movie_write_begin(const char imtype,
   return writer;
 }
 
-bool IMB_movie_write_append(ImbMovieWriter *writer,
-                            RenderData *rd,
-                            int start_frame,
-                            int frame,
-                            const ImBuf *image,
-                            const char *suffix,
-                            ReportList *reports)
+bool MOV_write_append(MovieWriter *writer,
+                      RenderData *rd,
+                      int start_frame,
+                      int frame,
+                      const ImBuf *image,
+                      const char *suffix,
+                      ReportList *reports)
 {
   if (writer == nullptr) {
     return false;
@@ -1892,7 +1894,7 @@ bool IMB_movie_write_append(ImbMovieWriter *writer,
 #endif
 }
 
-void IMB_movie_write_end(ImbMovieWriter *writer)
+void MOV_write_end(MovieWriter *writer)
 {
 #ifdef WITH_FFMPEG
   if (writer) {
@@ -1903,10 +1905,10 @@ void IMB_movie_write_end(ImbMovieWriter *writer)
 #endif
 }
 
-void IMB_movie_filepath_get(char filepath[/*FILE_MAX*/ 1024],
-                            const RenderData *rd,
-                            bool preview,
-                            const char *suffix)
+void MOV_filepath_from_settings(char filepath[/*FILE_MAX*/ 1024],
+                                const RenderData *rd,
+                                bool preview,
+                                const char *suffix)
 {
 #ifdef WITH_FFMPEG
   if (is_imtype_ffmpeg(rd->im_format.imtype)) {

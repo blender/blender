@@ -18,7 +18,7 @@ struct GPUTexture;
 struct ImBuf;
 struct Image;
 struct ImageFormatData;
-struct ImbMovieWriter;
+struct MovieWriter;
 struct Main;
 struct Object;
 struct RenderData;
@@ -344,7 +344,7 @@ bool RE_WriteRenderViewsMovie(struct ReportList *reports,
                               struct RenderResult *rr,
                               struct Scene *scene,
                               struct RenderData *rd,
-                              struct ImbMovieWriter **movie_writers,
+                              struct MovieWriter **movie_writers,
                               int totvideos,
                               bool preview);
 

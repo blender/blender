@@ -33,9 +33,10 @@
 #include "ED_screen.hh"
 #include "ED_transform.hh"
 
-#include "IMB_anim.hh"
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
+
+#include "MOV_read.hh"
 
 #include "WM_api.hh"
 #include "WM_types.hh"
@@ -552,19 +553,12 @@ static void prefetch_data_fn(void *custom_data, wmJobWorkerStatus * /*worker_sta
   }
 
   char colorspace[64] = "\0"; /* 64 == MAX_COLORSPACE_NAME length. */
-  ImBufAnim *anim = openanim(job_data->path, IB_rect, 0, colorspace);
+  MovieReader *anim = openanim(job_data->path, IB_rect, 0, colorspace);
 
   if (anim != nullptr) {
-    g_drop_coords.strip_len = IMB_anim_get_duration(anim, IMB_TC_NONE);
-    short frs_sec;
-    float frs_sec_base;
-    if (IMB_anim_get_fps(anim, true, &frs_sec, &frs_sec_base)) {
-      g_drop_coords.playback_rate = float(frs_sec) / frs_sec_base;
-    }
-    else {
-      g_drop_coords.playback_rate = 0;
-    }
-    IMB_free_anim(anim);
+    g_drop_coords.strip_len = MOV_get_duration_frames(anim, IMB_TC_NONE);
+    g_drop_coords.playback_rate = MOV_get_fps(anim);
+    MOV_close(anim);
 #ifdef WITH_AUDASPACE
     /* Try to load sound and see if the video has a sound channel. */
     AUD_Sound *sound = AUD_Sound_file(job_data->path);

@@ -11,10 +11,11 @@
 
 #include "DNA_scene_types.h"
 
-#include "IMB_anim.hh"
+#include "MOV_enums.hh"
+#include "MOV_util.hh"
 
 #include "ffmpeg_swscale.hh"
-#include "ffmpeg_util.hh"
+#include "movie_util.hh"
 
 #ifdef WITH_FFMPEG
 
@@ -331,7 +332,7 @@ int ffmpeg_deinterlace(
 
 #endif /* WITH_FFMPEG */
 
-bool IMB_isanim(const char *filepath)
+bool MOV_is_movie_file(const char *filepath)
 {
   BLI_assert(!BLI_path_is_rel(filepath));
 
@@ -346,7 +347,7 @@ bool IMB_isanim(const char *filepath)
   return false;
 }
 
-void IMB_ffmpeg_init()
+void MOV_init()
 {
 #ifdef WITH_FFMPEG
   avdevice_register_all();
@@ -362,14 +363,14 @@ void IMB_ffmpeg_init()
 #endif
 }
 
-void IMB_ffmpeg_exit()
+void MOV_exit()
 {
 #ifdef WITH_FFMPEG
   ffmpeg_sws_exit();
 #endif
 }
 
-int IMB_ffmpeg_valid_bit_depths(int av_codec_id)
+int MOV_codec_valid_bit_depths(int av_codec_id)
 {
   int bit_depths = R_IMF_CHAN_DEPTH_8;
 #ifdef WITH_FFMPEG
@@ -439,7 +440,7 @@ static void ffmpeg_preset_set(RenderData *rd, int preset)
 }
 #endif
 
-void IMB_ffmpeg_image_type_verify(RenderData *rd, const ImageFormatData *imf)
+void MOV_validate_output_settings(RenderData *rd, const ImageFormatData *imf)
 {
 #ifdef WITH_FFMPEG
   int audio = 0;
@@ -493,7 +494,7 @@ void IMB_ffmpeg_image_type_verify(RenderData *rd, const ImageFormatData *imf)
 #endif
 }
 
-bool IMB_ffmpeg_alpha_channel_is_supported(int av_codec_id)
+bool MOV_codec_supports_alpha(int av_codec_id)
 {
 #ifdef WITH_FFMPEG
   return ELEM(av_codec_id,
@@ -508,7 +509,7 @@ bool IMB_ffmpeg_alpha_channel_is_supported(int av_codec_id)
 #endif
 }
 
-bool IMB_ffmpeg_codec_supports_crf(int av_codec_id)
+bool MOV_codec_supports_crf(int av_codec_id)
 {
 #ifdef WITH_FFMPEG
   return ELEM(av_codec_id,

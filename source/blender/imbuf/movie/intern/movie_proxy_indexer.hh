@@ -8,11 +8,7 @@
 
 #pragma once
 
-#ifdef WIN32
-#  include <io.h>
-#endif
-
-#include "IMB_movie_enums.hh"
+#include "MOV_enums.hh"
 #include "movie_read.hh"
 #include <stdio.h>
 #include <stdlib.h>
@@ -35,67 +31,26 @@
  * the BL_proxy directory structure for later reuse in different blender files.
  */
 
-struct anim_index_entry {
+struct MovieIndexFrame {
   int frameno;
   uint64_t seek_pos_pts;
   uint64_t seek_pos_dts;
   uint64_t pts;
 };
 
-struct ImBufAnimIndex {
+struct MovieIndex {
   char filepath[1024];
 
   int num_entries;
-  anim_index_entry *entries;
+  MovieIndexFrame *entries;
+
+  uint64_t get_seek_pos_pts(int frame_index) const;
+  uint64_t get_seek_pos_dts(int frame_index) const;
+
+  int get_frame_index(int frameno) const;
+  uint64_t get_pts(int frame_index) const;
+  int get_duration() const;
 };
 
-struct anim_index_builder;
-
-struct anim_index_builder {
-  FILE *fp;
-  char filepath[FILE_MAX];
-  char filepath_temp[FILE_MAX];
-
-  void *private_data;
-
-  void (*delete_priv_data)(anim_index_builder *idx);
-  void (*proc_frame)(anim_index_builder *idx,
-                     unsigned char *buffer,
-                     int data_size,
-                     anim_index_entry *entry);
-};
-
-anim_index_builder *IMB_index_builder_create(const char *filepath);
-void IMB_index_builder_add_entry(anim_index_builder *fp,
-                                 int frameno,
-                                 uint64_t seek_pos_pts,
-                                 uint64_t seek_pos_dts,
-                                 uint64_t pts);
-
-void IMB_index_builder_proc_frame(anim_index_builder *fp,
-                                  unsigned char *buffer,
-                                  int data_size,
-                                  int frameno,
-                                  uint64_t seek_pos_pts,
-                                  uint64_t seek_pos_dts,
-                                  uint64_t pts);
-
-void IMB_index_builder_finish(anim_index_builder *fp, int rollback);
-
-ImBufAnimIndex *IMB_indexer_open(const char *filepath);
-uint64_t IMB_indexer_get_seek_pos_pts(ImBufAnimIndex *idx, int frame_index);
-uint64_t IMB_indexer_get_seek_pos_dts(ImBufAnimIndex *idx, int frame_index);
-
-int IMB_indexer_get_frame_index(ImBufAnimIndex *idx, int frameno);
-uint64_t IMB_indexer_get_pts(ImBufAnimIndex *idx, int frame_index);
-int IMB_indexer_get_duration(ImBufAnimIndex *idx);
-
-void IMB_indexer_close(ImBufAnimIndex *idx);
-
-void IMB_free_indices(ImBufAnim *anim);
-
-ImBufAnim *IMB_anim_open_proxy(ImBufAnim *anim, IMB_Proxy_Size preview_size);
-ImBufAnimIndex *IMB_anim_open_index(ImBufAnim *anim, IMB_Timecode_Type tc);
-
-int IMB_proxy_size_to_array_index(IMB_Proxy_Size pr_size);
-int IMB_timecode_to_array_index(IMB_Timecode_Type tc);
+MovieReader *movie_open_proxy(MovieReader *anim, IMB_Proxy_Size preview_size);
+const MovieIndex *movie_open_index(MovieReader *anim, IMB_Timecode_Type tc);

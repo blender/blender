@@ -14,6 +14,8 @@ extern "C" {
  * \ingroup imbuf
  */
 
+#define IM_MAX_SPACE 64
+
 /* WARNING: Keep explicit value assignments here,
  * this file is included in areas where not all format defines are set
  * (e.g. intern/dds only get WITH_DDS, even if TIFF, HDR etc are also defined).

@@ -41,7 +41,7 @@
 #  include "ED_transform_snap_object_context.hh"
 #  include "ED_uvedit.hh"
 
-#  include "IMB_movie_write.hh"
+#  include "MOV_write.hh"
 
 #  ifdef WITH_PYTHON
 #    include "BPY_extern.hh"
@@ -115,7 +115,7 @@ static void rna_SceneRender_get_frame_path(
   }
 
   if (BKE_imtype_is_movie(rd->im_format.imtype)) {
-    IMB_movie_filepath_get(filepath, rd, preview != 0, suffix);
+    MOV_filepath_from_settings(filepath, rd, preview != 0, suffix);
   }
   else {
     BKE_image_path_from_imformat(filepath,
