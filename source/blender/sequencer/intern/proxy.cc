@@ -51,7 +51,7 @@
 #include "utils.hh"
 
 struct SeqIndexBuildContext {
-  MovieProxyBuilder *index_context;
+  MovieProxyBuilder *proxy_builder;
 
   int tc_flags;
   int size_flags;
@@ -483,7 +483,7 @@ bool SEQ_proxy_rebuild_context(Main *bmain,
       sanim = static_cast<StripAnim *>(BLI_findlink(&nseq->anims, i));
 
       if (sanim->anim) {
-        context->index_context = MOV_proxy_builder_start(sanim->anim,
+        context->proxy_builder = MOV_proxy_builder_start(sanim->anim,
                                                          IMB_Timecode_Type(context->tc_flags),
                                                          context->size_flags,
                                                          context->quality,
@@ -491,7 +491,7 @@ bool SEQ_proxy_rebuild_context(Main *bmain,
                                                          file_list,
                                                          build_only_on_bad_performance);
       }
-      if (!context->index_context) {
+      if (!context->proxy_builder) {
         MEM_freeN(context);
         return false;
       }
@@ -514,8 +514,8 @@ void SEQ_proxy_rebuild(SeqIndexBuildContext *context, wmJobWorkerStatus *worker_
   int timeline_frame;
 
   if (seq->type == SEQ_TYPE_MOVIE) {
-    if (context->index_context) {
-      MOV_proxy_builder_process(context->index_context,
+    if (context->proxy_builder) {
+      MOV_proxy_builder_process(context->proxy_builder,
                                 &worker_status->stop,
                                 &worker_status->do_update,
                                 &worker_status->progress);
@@ -576,12 +576,12 @@ void SEQ_proxy_rebuild(SeqIndexBuildContext *context, wmJobWorkerStatus *worker_
 
 void SEQ_proxy_rebuild_finish(SeqIndexBuildContext *context, bool stop)
 {
-  if (context->index_context) {
+  if (context->proxy_builder) {
     LISTBASE_FOREACH (StripAnim *, sanim, &context->seq->anims) {
       MOV_close_proxies(sanim->anim);
     }
 
-    MOV_proxy_builder_finish(context->index_context, stop);
+    MOV_proxy_builder_finish(context->proxy_builder, stop);
   }
 
   seq_free_sequence_recurse(nullptr, context->seq, true);
