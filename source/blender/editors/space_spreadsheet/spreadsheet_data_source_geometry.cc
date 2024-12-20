@@ -682,16 +682,7 @@ bke::GeometrySet spreadsheet_get_display_geometry_set(const SpaceSpreadsheet *ss
   }
   else {
     if (BLI_listbase_is_single(&sspreadsheet->viewer_path.path)) {
-      if (const bke::GeometrySet *geometry_eval = object_eval->runtime->geometry_set_eval) {
-        geometry_set = *geometry_eval;
-      }
-
-      if (object_eval->mode == OB_MODE_EDIT && object_eval->type == OB_MESH) {
-        if (Mesh *mesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(object_eval)) {
-          BKE_mesh_wrapper_ensure_mdata(mesh);
-          geometry_set.replace_mesh(mesh, bke::GeometryOwnershipType::ReadOnly);
-        }
-      }
+      geometry_set = bke::object_get_evaluated_geometry_set(*object_eval);
     }
     else {
       if (const ViewerNodeLog *viewer_log =
