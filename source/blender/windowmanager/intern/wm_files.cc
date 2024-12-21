@@ -4022,28 +4022,39 @@ static uiBlock *block_create_autorun_warning(bContext *C, ARegion *region, void 
   UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
   UI_block_emboss_set(block, UI_EMBOSS);
 
-  uiLayout *layout = uiItemsAlertBox(block, 44, ALERT_ICON_ERROR);
+  const char *title = RPT_(
+      "For security reasons, automatic execution of Python scripts "
+      "in this file was disabled:");
+  const char *message = RPT_("This may lead to unexpected behavior");
+  const char *checkbox_text = RPT_("Permanently allow execution of scripts");
+
+  /* Measure strings to find the longest. */
+  const uiStyle *style = UI_style_get_dpi();
+  UI_fontstyle_set(&style->widget);
+  int text_width = int(BLF_width(style->widget.uifont_id, title, BLF_DRAW_STR_DUMMY_MAX));
+  text_width = std::max(text_width,
+                        int(BLF_width(style->widget.uifont_id, message, BLF_DRAW_STR_DUMMY_MAX)));
+  text_width = std::max(
+      text_width,
+      int(BLF_width(style->widget.uifont_id, checkbox_text, BLF_DRAW_STR_DUMMY_MAX) +
+          (UI_SCALE_FAC * 25.0f)));
+
+  const int dialog_width = std::max(int(400.0f * UI_SCALE_FAC),
+                                    text_width + int(style->columnspace * 2.5));
+  const short icon_size = 64 * UI_SCALE_FAC;
+  uiLayout *layout = uiItemsAlertBox(
+      block, style, dialog_width + icon_size, ALERT_ICON_ERROR, icon_size);
 
   /* Title and explanation text. */
   uiLayout *col = uiLayoutColumn(layout, true);
-  uiItemL_ex(col,
-             RPT_("For security reasons, automatic execution of Python scripts "
-                  "in this file was disabled:"),
-             ICON_NONE,
-             true,
-             false);
+  uiItemL_ex(col, title, ICON_NONE, true, false);
   uiItemL_ex(col, G.autoexec_fail, ICON_NONE, false, true);
-  uiItemL(col, RPT_("This may lead to unexpected behavior"), ICON_NONE);
+  uiItemL(col, message, ICON_NONE);
 
   uiItemS(layout);
 
   PointerRNA pref_ptr = RNA_pointer_create(nullptr, &RNA_PreferencesFilePaths, &U);
-  uiItemR(layout,
-          &pref_ptr,
-          "use_scripts_auto_execute",
-          UI_ITEM_NONE,
-          RPT_("Permanently allow execution of scripts"),
-          ICON_NONE);
+  uiItemR(layout, &pref_ptr, "use_scripts_auto_execute", UI_ITEM_NONE, checkbox_text, ICON_NONE);
 
   uiItemS_ex(layout, 3.0f);
 
@@ -4356,7 +4367,7 @@ static uiBlock *block_create_save_file_overwrite_dialog(bContext *C, ARegion *re
       block, UI_BLOCK_KEEP_OPEN | UI_BLOCK_LOOP | UI_BLOCK_NO_WIN_CLIP | UI_BLOCK_NUMSELECT);
   UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
 
-  uiLayout *layout = uiItemsAlertBox(block, 34, ALERT_ICON_WARNING);
+  uiLayout *layout = uiItemsAlertBox(block, 44, ALERT_ICON_WARNING);
 
   /* Title. */
   if (bmain->has_forward_compatibility_issues) {
