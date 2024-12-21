@@ -1408,7 +1408,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
             /* done */
           }
           else {
-            float min[3], max[3];
+            float3 min, max;
             /* only bounds support */
             INIT_MINMAX(min, max);
             BKE_object_minmax_dupli(depsgraph, scene, ob, min, max, true);

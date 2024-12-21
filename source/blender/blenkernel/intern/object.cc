@@ -154,6 +154,7 @@
 
 using blender::Bounds;
 using blender::float3;
+using blender::float4x4;
 using blender::MutableSpan;
 using blender::Span;
 using blender::Vector;
@@ -3508,16 +3509,11 @@ void BKE_boundbox_init_from_minmax(BoundBox *bb, const float min[3], const float
   bb->vec[1][2] = bb->vec[2][2] = bb->vec[5][2] = bb->vec[6][2] = max[2];
 }
 
-void BKE_boundbox_minmax(const BoundBox *bb,
-                         const float obmat[4][4],
-                         float r_min[3],
-                         float r_max[3])
+void BKE_boundbox_minmax(const BoundBox &bb, const float4x4 &matrix, float3 &r_min, float3 &r_max)
 {
-  int i;
-  for (i = 0; i < 8; i++) {
-    float vec[3];
-    mul_v3_m4v3(vec, obmat, bb->vec[i]);
-    minmax_v3v3_v3(r_min, r_max, vec);
+  using namespace blender;
+  for (const int i : IndexRange(ARRAY_SIZE(bb.vec))) {
+    math::min_max(math::transform_point(matrix, float3(bb.vec[i])), r_min, r_max);
   }
 }
 
@@ -3631,31 +3627,23 @@ void BKE_object_dimensions_set(Object *ob, const float value[3], int axis_mask)
   BKE_object_dimensions_set_ex(ob, value, axis_mask, nullptr, nullptr);
 }
 
-void BKE_object_minmax(Object *ob, float r_min[3], float r_max[3])
+void BKE_object_minmax(Object *ob, float3 &r_min, float3 &r_max)
 {
   using namespace blender;
+  const float4x4 &object_to_world = ob->object_to_world();
   if (const std::optional<Bounds<float3>> bounds = BKE_object_boundbox_get(ob)) {
-    minmax_v3v3_v3(r_min, r_max, math::transform_point(ob->object_to_world(), bounds->min));
-    minmax_v3v3_v3(r_min, r_max, math::transform_point(ob->object_to_world(), bounds->max));
+    math::min_max(math::transform_point(object_to_world, bounds->min), r_min, r_max);
+    math::min_max(math::transform_point(object_to_world, bounds->max), r_min, r_max);
     return;
   }
-  float3 size = ob->scale;
 
-  copy_v3_v3(size, ob->scale);
+  float3 size = ob->scale;
   if (ob->type == OB_EMPTY) {
     size *= ob->empty_drawsize;
   }
 
-  minmax_v3v3_v3(r_min, r_max, ob->object_to_world().location());
-
-  float3 vec;
-  copy_v3_v3(vec, ob->object_to_world().location());
-  add_v3_v3(vec, size);
-  minmax_v3v3_v3(r_min, r_max, vec);
-
-  copy_v3_v3(vec, ob->object_to_world().location());
-  sub_v3_v3(vec, size);
-  minmax_v3v3_v3(r_min, r_max, vec);
+  math::min_max(object_to_world.location() + size, r_min, r_max);
+  math::min_max(object_to_world.location() - size, r_min, r_max);
 }
 
 void BKE_object_empty_draw_type_set(Object *ob, const int value)
@@ -3800,8 +3788,8 @@ bool BKE_object_minmax_empty_drawtype(const Object *ob, float r_min[3], float r_
 bool BKE_object_minmax_dupli(Depsgraph *depsgraph,
                              Scene *scene,
                              Object *ob,
-                             float r_min[3],
-                             float r_max[3],
+                             float3 &r_min,
+                             float3 &r_max,
                              const bool use_hidden)
 {
   using namespace blender;
@@ -3826,13 +3814,7 @@ bool BKE_object_minmax_dupli(Depsgraph *depsgraph,
       if (const std::optional<Bounds<float3>> bounds = BKE_object_boundbox_get(&temp_ob)) {
         BoundBox bb;
         BKE_boundbox_init_from_minmax(&bb, bounds->min, bounds->max);
-        int i;
-        for (i = 0; i < 8; i++) {
-          float3 vec;
-          mul_v3_m4v3(vec, dob->mat, bb.vec[i]);
-          minmax_v3v3_v3(r_min, r_max, vec);
-        }
-
+        BKE_boundbox_minmax(bb, float4x4(dob->mat), r_min, r_max);
         ok = true;
       }
     }
