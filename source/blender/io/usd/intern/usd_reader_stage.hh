@@ -38,7 +38,7 @@ class USDStageReader {
  protected:
   pxr::UsdStageRefPtr stage_;
   USDImportParams params_;
-  const ImportSettings &settings_;
+  ImportSettings settings_;
 
   blender::Vector<USDPrimReader *> readers_;
 
@@ -59,7 +59,7 @@ class USDStageReader {
  public:
   USDStageReader(pxr::UsdStageRefPtr stage,
                  const USDImportParams &params,
-                 const ImportSettings &settings);
+                 std::function<CacheFile *()> get_cache_file_fn = {});
 
   ~USDStageReader();
 

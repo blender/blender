@@ -382,7 +382,6 @@ void world_material_to_dome_light(const USDExportParams &params,
 /* Import the dome light as a world material. */
 
 void dome_light_to_world_material(const USDImportParams &params,
-                                  const ImportSettings & /*settings*/,
                                   Scene *scene,
                                   Main *bmain,
                                   const pxr::UsdLuxDomeLight &dome_light,

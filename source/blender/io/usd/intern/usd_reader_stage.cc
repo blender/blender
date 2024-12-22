@@ -29,11 +29,13 @@
 #include <pxr/usd/usdGeom/cube.h>
 #include <pxr/usd/usdGeom/cylinder.h>
 #include <pxr/usd/usdGeom/mesh.h>
+#include <pxr/usd/usdGeom/metrics.h>
 #include <pxr/usd/usdGeom/nurbsCurves.h>
 #include <pxr/usd/usdGeom/pointInstancer.h>
 #include <pxr/usd/usdGeom/points.h>
 #include <pxr/usd/usdGeom/scope.h>
 #include <pxr/usd/usdGeom/sphere.h>
+#include <pxr/usd/usdGeom/tokens.h>
 #include <pxr/usd/usdGeom/xform.h>
 #include <pxr/usd/usdLux/boundableLightBase.h>
 #include <pxr/usd/usdLux/nonboundableLightBase.h>
@@ -41,6 +43,8 @@
 
 #include "BLI_map.hh"
 #include "BLI_math_base.h"
+#include "BLI_math_matrix.h"
+#include "BLI_math_rotation.h"
 #include "BLI_sort.hh"
 #include "BLI_string.h"
 
@@ -54,7 +58,7 @@
 #include "DNA_collection_types.h"
 #include "DNA_material_types.h"
 
-#include <fmt/format.h>
+#include <fmt/core.h>
 
 static CLG_LogRef LOG = {"io.usd"};
 
@@ -110,11 +114,79 @@ static void set_instance_collection(
   }
 }
 
+/* Update the given import settings with the global rotation matrix to orient
+ * imported objects with Z-up, if necessary */
+static void convert_to_z_up(pxr::UsdStageRefPtr stage, ImportSettings &settings)
+{
+  if (!stage || pxr::UsdGeomGetStageUpAxis(stage) == pxr::UsdGeomTokens->z) {
+    return;
+  }
+
+  settings.do_convert_mat = true;
+
+  /* Rotate 90 degrees about the X-axis. */
+  float rmat[3][3];
+  float axis[3] = {1.0f, 0.0f, 0.0f};
+  axis_angle_normalized_to_mat3(rmat, axis, M_PI_2);
+
+  unit_m4(settings.conversion_mat);
+  copy_m4_m3(settings.conversion_mat, rmat);
+}
+
+/**
+ * Find the lowest level of Blender generated roots
+ * so that round tripping an export can be more invisible
+ */
+static void find_prefix_to_skip(pxr::UsdStageRefPtr stage, ImportSettings &settings)
+{
+  if (!stage) {
+    return;
+  }
+
+  pxr::TfToken generated_key("Blender:generated");
+  pxr::SdfPath path("/");
+  auto prim = stage->GetPseudoRoot();
+  while (true) {
+
+    uint32_t child_count = 0;
+    for (auto child : prim.GetChildren()) {
+      if (child_count == 0) {
+        prim = child.GetPrim();
+      }
+      ++child_count;
+    }
+
+    if (child_count != 1) {
+      /* Our blender write out only supports a single root chain,
+       * so whenever we encounter more than one child, we should
+       * early exit */
+      break;
+    }
+
+    /* We only care about prims that have the key and the value doesn't matter */
+    if (!prim.HasCustomDataKey(generated_key)) {
+      break;
+    }
+    path = path.AppendChild(prim.GetName());
+  }
+
+  /* Treat the root as empty */
+  if (path == pxr::SdfPath("/")) {
+    path = pxr::SdfPath();
+  }
+
+  settings.skip_prefix = path;
+}
+
 USDStageReader::USDStageReader(pxr::UsdStageRefPtr stage,
                                const USDImportParams &params,
-                               const ImportSettings &settings)
-    : stage_(stage), params_(params), settings_(settings)
+                               std::function<CacheFile *()> get_cache_file_fn)
+    : stage_(stage), params_(params)
 {
+  convert_to_z_up(stage_, settings_);
+  find_prefix_to_skip(stage_, settings_);
+  settings_.get_cache_file = get_cache_file_fn;
+  settings_.stage_meters_per_unit = pxr::UsdGeomGetStageMetersPerUnit(stage);
 }
 
 USDStageReader::~USDStageReader()

@@ -22,7 +22,6 @@
 
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
-#include "BLI_math_rotation.h"
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
 #include "BLI_timeit.hh"
@@ -51,8 +50,6 @@
 #include "WM_types.hh"
 
 #include <pxr/usd/usd/stage.h>
-#include <pxr/usd/usdGeom/metrics.h>
-#include <pxr/usd/usdGeom/tokens.h>
 
 #include <fmt/core.h>
 
@@ -87,74 +84,6 @@ static bool gather_objects_paths(const pxr::UsdPrim &object, ListBase *object_pa
   return true;
 }
 
-/* Update the given import settings with the global rotation matrix to orient
- * imported objects with Z-up, if necessary */
-static void convert_to_z_up(pxr::UsdStageRefPtr stage, ImportSettings *r_settings)
-{
-  if (!stage || pxr::UsdGeomGetStageUpAxis(stage) == pxr::UsdGeomTokens->z) {
-    return;
-  }
-
-  if (!r_settings) {
-    return;
-  }
-
-  r_settings->do_convert_mat = true;
-
-  /* Rotate 90 degrees about the X-axis. */
-  float rmat[3][3];
-  float axis[3] = {1.0f, 0.0f, 0.0f};
-  axis_angle_normalized_to_mat3(rmat, axis, M_PI_2);
-
-  unit_m4(r_settings->conversion_mat);
-  copy_m4_m3(r_settings->conversion_mat, rmat);
-}
-
-/**
- * Find the lowest level of Blender generated roots
- * so that round tripping an export can be more invisible
- */
-static void find_prefix_to_skip(pxr::UsdStageRefPtr stage, ImportSettings *r_settings)
-{
-  if (!stage) {
-    return;
-  }
-
-  pxr::TfToken generated_key("Blender:generated");
-  pxr::SdfPath path("/");
-  auto prim = stage->GetPseudoRoot();
-  while (true) {
-
-    uint32_t child_count = 0;
-    for (auto child : prim.GetChildren()) {
-      if (child_count == 0) {
-        prim = child.GetPrim();
-      }
-      ++child_count;
-    }
-
-    if (child_count != 1) {
-      /* Our blender write out only supports a single root chain,
-       * so whenever we encounter more than one child, we should
-       * early exit */
-      break;
-    }
-
-    /* We only care about prims that have the key and the value doesn't matter */
-    if (!prim.HasCustomDataKey(generated_key)) {
-      break;
-    }
-    path = path.AppendChild(prim.GetName());
-  }
-
-  /* Treat the root as empty */
-  if (path == pxr::SdfPath("/")) {
-    path = pxr::SdfPath();
-  }
-
-  r_settings->skip_prefix = path;
-}
-
 enum {
   USD_NO_ERROR = 0,
   USD_ARCHIVE_FAIL,
@@ -169,7 +98,6 @@ struct ImportJobData {
 
   char filepath[1024];
   USDImportParams params;
-  ImportSettings settings;
 
   USDStageReader *archive;
   ImportedPrimMap prim_map;
@@ -229,27 +157,6 @@ static void import_startjob(void *customdata, wmJobWorkerStatus *worker_status)
 
   BLI_path_abs(data->filepath, BKE_main_blendfile_path_from_global());
 
-  /* Callback function to lazily create a cache file when converting
-   * time varying data. */
-  auto get_cache_file = [data]() {
-    if (!data->cache_file) {
-      data->cache_file = static_cast<CacheFile *>(
-          BKE_cachefile_add(data->bmain, BLI_path_basename(data->filepath)));
-
-      /* Decrement the ID ref-count because it is going to be incremented for each
-       * modifier and constraint that it will be attached to, so since currently
-       * it is not used by anyone, its use count will off by one. */
-      id_us_min(&data->cache_file->id);
-
-      data->cache_file->is_sequence = data->params.is_sequence;
-      data->cache_file->scale = data->params.scale;
-      STRNCPY(data->cache_file->filepath, data->filepath);
-    }
-    return data->cache_file;
-  };
-
-  data->settings.get_cache_file = get_cache_file;
-
   *data->do_update = true;
   *data->progress = 0.05f;
 
@@ -286,10 +193,6 @@ static void import_startjob(void *customdata, wmJobWorkerStatus *worker_status)
     return;
   }
 
-  convert_to_z_up(stage, &data->settings);
-  find_prefix_to_skip(stage, &data->settings);
-  data->settings.stage_meters_per_unit = UsdGeomGetStageMetersPerUnit(stage);
-
   /* Set up the stage for animated data. */
   if (data->params.set_frame_range) {
     data->scene->r.sfra = stage->GetStartTimeCode();
@@ -299,7 +202,26 @@ static void import_startjob(void *customdata, wmJobWorkerStatus *worker_status)
   *data->do_update = true;
   *data->progress = 0.15f;
 
-  USDStageReader *archive = new USDStageReader(stage, data->params, data->settings);
+  /* Callback function to lazily create a cache file when converting
+   * time varying data. */
+  auto get_cache_file = [data]() {
+    if (!data->cache_file) {
+      data->cache_file = static_cast<CacheFile *>(
+          BKE_cachefile_add(data->bmain, BLI_path_basename(data->filepath)));
+
+      /* Decrement the ID ref-count because it is going to be incremented for each
+       * modifier and constraint that it will be attached to, so since currently
+       * it is not used by anyone, its use count will off by one. */
+      id_us_min(&data->cache_file->id);
+
+      data->cache_file->is_sequence = data->params.is_sequence;
+      data->cache_file->scale = data->params.scale;
+      STRNCPY(data->cache_file->filepath, data->filepath);
+    }
+    return data->cache_file;
+  };
+
+  USDStageReader *archive = new USDStageReader(stage, data->params, get_cache_file);
 
   /* Ensure Python types for invoking hooks are registered. */
   register_hook_converters();
@@ -314,7 +236,7 @@ static void import_startjob(void *customdata, wmJobWorkerStatus *worker_status)
       !archive->dome_lights().is_empty())
   {
     dome_light_to_world_material(
-        data->params, data->settings, data->scene, data->bmain, archive->dome_lights().first());
+        data->params, data->scene, data->bmain, archive->dome_lights().first());
   }
 
   if (data->params.import_materials && data->params.import_all_materials) {
@@ -385,9 +307,9 @@ static void import_startjob(void *customdata, wmJobWorkerStatus *worker_status)
     }
   }
 
-  data->settings.usd_path_to_mat_name.foreach_item(
+  archive->settings().usd_path_to_mat_name.foreach_item(
       [&](const std::string &path, const std::string &name) {
-        Material *mat = data->settings.mat_name_to_mat.lookup_default(name, nullptr);
+        Material *mat = archive->settings().mat_name_to_mat.lookup_default(name, nullptr);
         if (mat) {
           data->prim_map.lookup_or_add_default(path).append(RNA_id_pointer_create(&mat->id));
         }
@@ -697,10 +619,7 @@ CacheArchiveHandle *USD_create_handle(Main * /*bmain*/,
 
   USDImportParams params{};
 
-  blender::io::usd::ImportSettings settings{};
-  convert_to_z_up(stage, &settings);
-  find_prefix_to_skip(stage, &settings);
-  USDStageReader *stage_reader = new USDStageReader(stage, params, settings);
+  USDStageReader *stage_reader = new USDStageReader(stage, params);
 
   if (object_paths) {
     gather_objects_paths(stage->GetPseudoRoot(), object_paths);
