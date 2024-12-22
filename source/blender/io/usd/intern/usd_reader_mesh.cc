@@ -696,7 +696,6 @@ void USDMeshReader::read_custom_data(const ImportSettings *settings,
 
     if (ELEM(type,
              pxr::SdfValueTypeNames->StringArray,
-             pxr::SdfValueTypeNames->QuatfArray,
              pxr::SdfValueTypeNames->QuatdArray,
              pxr::SdfValueTypeNames->QuathArray))
     {
