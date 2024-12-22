@@ -46,7 +46,7 @@ namespace blender::bke::node_tree_reference_lifetimes {
 struct ReferenceLifetimesInfo;
 }
 
-namespace blender {
+namespace blender::bke {
 
 struct NodeIDHash {
   uint64_t operator()(const bNode *node) const
@@ -73,10 +73,6 @@ struct NodeIDEquality {
     return this->operator()(b, a);
   }
 };
-
-}  // namespace blender
-
-namespace blender::bke {
 
 enum class FieldSocketState : int8_t {
   RequiresSingle,
