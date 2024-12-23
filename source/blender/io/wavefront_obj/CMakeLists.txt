@@ -7,7 +7,6 @@ set(INC
   exporter
   importer
   ../common
-  ../../blenkernel
   ../../bmesh/intern
   ../../editors/include
   ../../makesrna
@@ -52,7 +51,7 @@ set(SRC
 )
 
 set(LIB
-  bf_blenkernel
+  PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::bmesh
   PRIVATE bf::depsgraph

@@ -4,7 +4,6 @@
 
 set(INC
   ../include
-  ../../blenkernel
   ../../makesrna
   ../../windowmanager
 )
@@ -17,7 +16,7 @@ set(SRC
 )
 
 set(LIB
-  bf_blenkernel
+  PRIVATE bf::blenkernel
   bf_windowmanager
   PRIVATE bf::blenlib
   PRIVATE bf::dna

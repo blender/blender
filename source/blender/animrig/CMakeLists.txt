@@ -6,7 +6,6 @@ set(INC
   PUBLIC .
   intern
 
-  ../blenkernel
   ../blentranslation
   ../editors/include
   ../makesrna
@@ -61,7 +60,7 @@ set(SRC
 )
 
 set(LIB
-  bf_blenkernel
+  PRIVATE bf::blenkernel
   bf::blenlib
   PRIVATE bf::depsgraph
   bf::dna

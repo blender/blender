@@ -6,7 +6,6 @@ set(INC
   .
   ..
   ../intern
-  ../../blenkernel
   ../../blentranslation
   ../../editors/include
   ../../functions
@@ -129,6 +128,7 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::depsgraph
   PRIVATE bf::dna

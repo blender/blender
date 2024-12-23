@@ -4,7 +4,6 @@
 
 set(INC
   .
-  ../blenkernel
   ../blentranslation
   ../draw
   ../editors/include
@@ -59,7 +58,7 @@ set(SRC
 
 set(LIB
   PRIVATE bf::animrig
-  bf_blenkernel
+  PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::bmesh
   PRIVATE bf::depsgraph

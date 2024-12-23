@@ -530,6 +530,7 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
@@ -542,7 +543,6 @@ set(LIB
 
 set(INC
   .
-  ../blenkernel
   ../blentranslation
   ../imbuf
   ../makesrna

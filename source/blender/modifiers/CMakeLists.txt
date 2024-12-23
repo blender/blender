@@ -6,7 +6,6 @@ set(INC
   .
   intern
   intern/lineart
-  ../blenkernel
   ../blenloader
   ../blentranslation
   ../editors/include
@@ -140,7 +139,7 @@ set(SRC
 
 set(LIB
   PRIVATE bf::blenfont
-  bf_blenkernel
+  PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::bmesh
   PRIVATE bf::depsgraph

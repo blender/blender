@@ -6,7 +6,6 @@ set(INC
   ../asset
   ../include
   ../../asset_system
-  ../../blenkernel
   ../../blenloader
   ../../blentranslation
   ../../gpu
@@ -46,7 +45,7 @@ set(SRC
 
 set(LIB
   PRIVATE bf::blenfont
-  bf_blenkernel
+  PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc

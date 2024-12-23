@@ -8,7 +8,6 @@ set(INC
   include
   ../intern
   ../../editors/include
-  ../../blenkernel
   ../../blenloader
   ../../blentranslation
   ../../functions
@@ -247,6 +246,7 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::bmesh
   PRIVATE bf::depsgraph

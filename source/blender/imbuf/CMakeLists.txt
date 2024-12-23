@@ -7,7 +7,6 @@ add_subdirectory(movie)
 set(INC
   .
   ./movie
-  ../blenkernel
   ../blenloader
   ../gpu
   ../makesrna
@@ -73,7 +72,7 @@ set(SRC
 )
 
 set(LIB
-  bf_blenkernel
+  PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
   bf_blenloader
   PRIVATE bf::dna

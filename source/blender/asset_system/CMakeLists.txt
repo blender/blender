@@ -6,7 +6,6 @@ set(INC
   .
   intern
   intern/library_types
-  ../blenkernel
 )
 
 set(INC_SYS
@@ -46,7 +45,7 @@ set(SRC
 )
 
 set(LIB
-  bf_blenkernel
+  PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::dna
   PRIVATE bf::intern::clog

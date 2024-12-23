@@ -5,7 +5,6 @@
 set(INC
   PUBLIC .
   ../animrig
-  ../blenkernel
   ../draw
   ../functions
   ../makesrna
@@ -151,7 +150,7 @@ set(SRC
 )
 
 set(LIB
-  bf_blenkernel
+  PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::bmesh
   PRIVATE bf::dna

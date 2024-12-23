@@ -7,7 +7,6 @@ set(INC
   ..
   ../intern
   ../../editors/include
-  ../../blenkernel
   ../../blentranslation
   ../../imbuf
   ../../makesrna
@@ -56,6 +55,7 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::bmesh
   PRIVATE bf::depsgraph

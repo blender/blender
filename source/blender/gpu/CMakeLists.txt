@@ -9,7 +9,6 @@ set(INC
   metal
   opengl
   vulkan
-  ../blenkernel
   ../draw
   ../imbuf
   ../makesrna
@@ -380,6 +379,7 @@ set(METAL_SRC
 )
 
 set(LIB
+  PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::bmesh
   PRIVATE bf::dna

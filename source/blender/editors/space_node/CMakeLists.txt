@@ -6,7 +6,6 @@ set(INC
   ../include
   ../io
   ../../asset_system
-  ../../blenkernel
   ../../blenloader
   ../../blentranslation
   ../../compositor
@@ -53,7 +52,7 @@ set(SRC
 set(LIB
   PRIVATE bf::animrig
   PRIVATE bf::blenfont
-  bf_blenkernel
+  PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::depsgraph
   PRIVATE bf::dna

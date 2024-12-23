@@ -7,7 +7,6 @@ set(INC
   gizmo
   gizmo/intern
   ../asset_system
-  ../blenkernel
   ../blenloader
   ../blentranslation
   ../compositor
@@ -97,6 +96,7 @@ set(SRC
 
 set(LIB
   PRIVATE bf::blenfont
+  PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::bmesh
   PRIVATE bf::depsgraph

@@ -4,7 +4,6 @@
 
 set(INC
   ../include
-  ../../blenkernel
   ../../blentranslation
   ../../gpu
   ../../imbuf
@@ -33,7 +32,7 @@ set(SRC
 set(LIB
   PRIVATE bf::animrig
   PRIVATE bf::blenfont
-  bf_blenkernel
+  PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::bmesh
   PRIVATE bf::depsgraph

@@ -6,7 +6,6 @@
 set(INC
   .
   intern
-  ../blenkernel
   ../blentranslation
   ../compositor
   ../compositor/cached_resources
@@ -61,6 +60,7 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::depsgraph
   PRIVATE bf::dna

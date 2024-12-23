@@ -5,7 +5,6 @@
 set(INC
   .
   ../common
-  ../../blenkernel
   ../../blenloader
   ../../blentranslation
   ../../editors/include
@@ -83,7 +82,7 @@ set(SRC
 )
 
 set(LIB
-  bf_blenkernel
+  PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::bmesh
   PRIVATE bf::depsgraph

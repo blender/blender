@@ -4,7 +4,6 @@
 
 set(INC
   ../include
-  ../../blenkernel
   ../../blentranslation
   ../../gpu
   ../../ikplugin
@@ -114,7 +113,7 @@ set(LIB
   PRIVATE bf::animrig
   PRIVATE bf::blenfont
   PRIVATE bf::extern::fmtlib
-  bf_blenkernel
+  PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::bmesh
   PRIVATE bf::depsgraph

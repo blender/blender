@@ -5,7 +5,6 @@
 set(INC
   ../include
   ../uvedit
-  ../../blenkernel
   ../../blentranslation
   ../../draw
   ../../functions
@@ -62,7 +61,7 @@ set(SRC
 
 set(LIB
   PRIVATE bf::blenfont
-  bf_blenkernel
+  PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::bmesh
   PRIVATE bf::depsgraph

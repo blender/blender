@@ -4,7 +4,6 @@
 
 set(INC
   ../include
-  ../../blenkernel
   ../../blentranslation
   ../../gpu
   ../../makesrna
@@ -32,7 +31,7 @@ set(SRC
 )
 
 set(LIB
-  bf_blenkernel
+  PRIVATE bf::blenkernel
   PRIVATE bf::animrig
   PRIVATE bf::blenlib
   PRIVATE bf::depsgraph

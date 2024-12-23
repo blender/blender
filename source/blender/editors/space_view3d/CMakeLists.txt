@@ -6,7 +6,6 @@ set(INC
   ../asset
   ../include
   ../../asset_system
-  ../../blenkernel
   ../../blenloader
   ../../blentranslation
   ../../draw
@@ -83,6 +82,7 @@ set(SRC
 set(LIB
   PRIVATE bf::animrig
   PRIVATE bf::blenfont
+  PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::bmesh
   PRIVATE bf::depsgraph

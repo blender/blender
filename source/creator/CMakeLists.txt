@@ -3,7 +3,6 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 set(INC
-  ../blender/blenkernel
   ../blender/editors/include
   ../blender/gpu
   ../blender/imbuf
@@ -15,6 +14,7 @@ set(INC
 )
 
 set(LIB
+  PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::bmesh
   PRIVATE bf::depsgraph

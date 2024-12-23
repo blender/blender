@@ -5,7 +5,6 @@
 set(INC
   ../include
   ../../asset_system
-  ../../blenkernel
   ../../blentranslation
   ../../functions
   ../../geometry
@@ -61,7 +60,7 @@ set(SRC
 set(LIB
   PRIVATE bf::animrig
   PRIVATE bf::blenfont
-  bf_blenkernel
+  PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::bmesh
   PRIVATE bf::depsgraph

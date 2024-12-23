@@ -43,7 +43,6 @@ endif()
 
 set(INC
   ../../../../intern/guardedalloc
-  ../../blenkernel
   ../../blenlib
   ../../imbuf
   ../../makesdna
@@ -74,6 +73,7 @@ set(LIB
   ${BOOST_LIBRARIES}
   ${USD_LIBRARIES}
   ${TBB_LIBRARIES}
+  PRIVATE bf::blenkernel
   PRIVATE bf::depsgraph
   PRIVATE bf::intern::clog
   bf_io_usd

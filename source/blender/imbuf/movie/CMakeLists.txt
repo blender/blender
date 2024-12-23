@@ -5,7 +5,6 @@
 set(INC
   PUBLIC .
   ..
-  ../../blenkernel
 )
 
 set(INC_SYS
@@ -29,6 +28,7 @@ set(SRC
 
 set(LIB
   PRIVATE bf_blenkernel
+  PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf_imbuf
   PRIVATE bf::intern::guardedalloc

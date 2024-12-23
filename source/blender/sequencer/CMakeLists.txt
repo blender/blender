@@ -6,7 +6,6 @@ set(INC
   .
   intern
   ../animrig
-  ../blenkernel
   ../blenloader
   ../blentranslation
   ../imbuf
@@ -85,7 +84,7 @@ set(SRC
 
 set(LIB
   PRIVATE bf::blenfont
-  bf_blenkernel
+  PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
