@@ -2893,6 +2893,14 @@ static void image_walk_ntree_all_users(
           ImageUser *iuser = static_cast<ImageUser *>(node->storage);
           callback(ima, id, iuser, customdata);
         }
+        if (node->type == CMP_NODE_CRYPTOMATTE) {
+          CMPNodeCryptomatteSource source = static_cast<CMPNodeCryptomatteSource>(node->custom1);
+          if (source == CMP_NODE_CRYPTOMATTE_SOURCE_IMAGE) {
+            Image *image = (Image *)node->id;
+            ImageUser *image_user = &static_cast<NodeCryptomatte *>(node->storage)->iuser;
+            callback(image, id, image_user, customdata);
+          }
+        }
       }
       break;
   }
