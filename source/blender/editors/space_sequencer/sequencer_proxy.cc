@@ -50,7 +50,7 @@ static void seq_proxy_build_job(const bContext *C, ReportList *reports)
   wmJob *wm_job = ED_seq_proxy_wm_job_get(C);
   ProxyJob *pj = ED_seq_proxy_job_get(C, wm_job);
 
-  GSet *file_list = BLI_gset_new(BLI_ghashutil_strhash_p, BLI_ghashutil_strcmp, "file list");
+  blender::Set<std::string> processed_paths;
   bool selected = false; /* Check for no selected strips */
 
   LISTBASE_FOREACH (Sequence *, seq, SEQ_active_seqbase_get(ed)) {
@@ -69,14 +69,12 @@ static void seq_proxy_build_job(const bContext *C, ReportList *reports)
     }
 
     bool success = SEQ_proxy_rebuild_context(
-        pj->main, pj->depsgraph, pj->scene, seq, file_list, &pj->queue, false);
+        pj->main, pj->depsgraph, pj->scene, seq, &processed_paths, &pj->queue, false);
 
     if (!success && (seq->data->proxy->build_flags & SEQ_PROXY_SKIP_EXISTING) != 0) {
       BKE_reportf(reports, RPT_WARNING, "Overwrite is not checked for %s, skipping", seq->name);
     }
   }
-
-  BLI_gset_free(file_list, MEM_freeN);
 
   if (!selected) {
     BKE_reportf(reports, RPT_WARNING, "Select movie or image strips");
@@ -104,19 +102,18 @@ static int sequencer_rebuild_proxy_exec(bContext *C, wmOperator * /*o*/)
   Depsgraph *depsgraph = CTX_data_ensure_evaluated_depsgraph(C);
   Scene *scene = CTX_data_scene(C);
   Editing *ed = SEQ_editing_get(scene);
-  GSet *file_list;
 
   if (ed == nullptr) {
     return OPERATOR_CANCELLED;
   }
 
-  file_list = BLI_gset_new(BLI_ghashutil_strhash_p, BLI_ghashutil_strcmp, "file list");
+  blender::Set<std::string> processed_paths;
 
   LISTBASE_FOREACH (Sequence *, seq, SEQ_active_seqbase_get(ed)) {
     if (seq->flag & SELECT) {
       ListBase queue = {nullptr, nullptr};
 
-      SEQ_proxy_rebuild_context(bmain, depsgraph, scene, seq, file_list, &queue, false);
+      SEQ_proxy_rebuild_context(bmain, depsgraph, scene, seq, &processed_paths, &queue, false);
 
       wmJobWorkerStatus worker_status = {};
       LISTBASE_FOREACH (LinkData *, link, &queue) {
@@ -127,8 +124,6 @@ static int sequencer_rebuild_proxy_exec(bContext *C, wmOperator * /*o*/)
       SEQ_relations_free_imbuf(scene, &ed->seqbase, false);
     }
   }
-
-  BLI_gset_free(file_list, MEM_freeN);
 
   return OPERATOR_FINISHED;
 }

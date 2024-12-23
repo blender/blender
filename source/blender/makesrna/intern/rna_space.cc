@@ -2448,7 +2448,7 @@ static void seq_build_proxy(bContext *C, PointerRNA *ptr)
   Scene *scene = CTX_data_scene(C);
   ListBase *seqbase = SEQ_active_seqbase_get(SEQ_editing_get(scene));
 
-  GSet *file_list = BLI_gset_new(BLI_ghashutil_strhash_p, BLI_ghashutil_strcmp, "file list");
+  blender::Set<std::string> processed_paths;
   wmJob *wm_job = ED_seq_proxy_wm_job_get(C);
   ProxyJob *pj = ED_seq_proxy_job_get(C, wm_job);
 
@@ -2462,10 +2462,8 @@ static void seq_build_proxy(bContext *C, PointerRNA *ptr)
 
     /* Build proxy. */
     SEQ_proxy_rebuild_context(
-        pj->main, pj->depsgraph, pj->scene, seq, file_list, &pj->queue, true);
+        pj->main, pj->depsgraph, pj->scene, seq, &processed_paths, &pj->queue, true);
   }
-
-  BLI_gset_free(file_list, MEM_freeN);
 
   if (!WM_jobs_is_running(wm_job)) {
     G.is_break = false;

@@ -14,11 +14,14 @@
 
 #include "MOV_enums.hh"
 
+#include "BLI_set.hh"
+
+#include <string>
+
 struct IDProperty;
 struct ImBuf;
 struct MovieReader;
 struct MovieProxyBuilder;
-struct GSet;
 
 /**
  * Opens a movie file for reading / playback.
@@ -177,7 +180,7 @@ MovieProxyBuilder *MOV_proxy_builder_start(MovieReader *anim,
                                            int proxy_sizes_in_use,
                                            int quality,
                                            const bool overwrite,
-                                           GSet *file_list,
+                                           blender::Set<std::string> *processed_paths,
                                            bool build_only_on_bad_performance);
 
 /**

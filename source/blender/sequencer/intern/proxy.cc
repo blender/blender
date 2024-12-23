@@ -423,7 +423,7 @@ bool SEQ_proxy_rebuild_context(Main *bmain,
                                Depsgraph *depsgraph,
                                Scene *scene,
                                Sequence *seq,
-                               GSet *file_list,
+                               blender::Set<std::string> *processed_paths,
                                ListBase *queue,
                                bool build_only_on_bad_performance)
 {
@@ -488,7 +488,7 @@ bool SEQ_proxy_rebuild_context(Main *bmain,
                                                          context->size_flags,
                                                          context->quality,
                                                          context->overwrite,
-                                                         file_list,
+                                                         processed_paths,
                                                          build_only_on_bad_performance);
       }
       if (!context->proxy_builder) {

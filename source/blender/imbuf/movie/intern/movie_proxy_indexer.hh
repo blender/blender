@@ -8,10 +8,12 @@
 
 #pragma once
 
+#include "BLI_vector.hh"
+#include "IMB_imbuf_enums.h"
 #include "MOV_enums.hh"
-#include "movie_read.hh"
-#include <stdio.h>
-#include <stdlib.h>
+
+struct MovieReader;
+
 /*
  * separate animation index files to solve the following problems:
  *
@@ -41,8 +43,7 @@ struct MovieIndexFrame {
 struct MovieIndex {
   char filepath[1024];
 
-  int num_entries;
-  MovieIndexFrame *entries;
+  blender::Vector<MovieIndexFrame> entries;
 
   uint64_t get_seek_pos_pts(int frame_index) const;
   uint64_t get_seek_pos_dts(int frame_index) const;
