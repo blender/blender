@@ -476,9 +476,11 @@ typedef struct bNode {
   /** A span containing all input sockets of the node (including unavailable sockets). */
   blender::Span<bNodeSocket *> input_sockets();
   blender::Span<const bNodeSocket *> input_sockets() const;
+  blender::IndexRange input_socket_indices_in_tree() const;
   /** A span containing all output sockets of the node (including unavailable sockets). */
   blender::Span<bNodeSocket *> output_sockets();
   blender::Span<const bNodeSocket *> output_sockets() const;
+  blender::IndexRange output_socket_indices_in_tree() const;
   /** Utility to get an input socket by its index. */
   bNodeSocket &input_socket(int index);
   const bNodeSocket &input_socket(int index) const;

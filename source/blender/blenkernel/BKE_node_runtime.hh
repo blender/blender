@@ -695,6 +695,26 @@ inline blender::Span<const bNodeSocket *> bNode::output_sockets() const
   return this->runtime->outputs;
 }
 
+inline blender::IndexRange bNode::input_socket_indices_in_tree() const
+{
+  BLI_assert(blender::bke::node_tree_runtime::topology_cache_is_available(*this));
+  const int num_inputs = this->runtime->inputs.size();
+  if (num_inputs == 0) {
+    return {};
+  }
+  return blender::IndexRange::from_begin_size(this->input_socket(0).index_in_tree(), num_inputs);
+}
+
+inline blender::IndexRange bNode::output_socket_indices_in_tree() const
+{
+  BLI_assert(blender::bke::node_tree_runtime::topology_cache_is_available(*this));
+  const int num_outputs = this->runtime->outputs.size();
+  if (num_outputs == 0) {
+    return {};
+  }
+  return blender::IndexRange::from_begin_size(this->output_socket(0).index_in_tree(), num_outputs);
+}
+
 inline bNodeSocket &bNode::input_socket(int index)
 {
   BLI_assert(blender::bke::node_tree_runtime::topology_cache_is_available(*this));
