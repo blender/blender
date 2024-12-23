@@ -1423,13 +1423,13 @@ void bNodeTreeInterface::ensure_items_cache() const
     bNodeTreeInterface &mutable_self = const_cast<bNodeTreeInterface &>(*this);
 
     mutable_self.foreach_item([&](bNodeTreeInterfaceItem &item) {
-      runtime.items_.append(&item);
+      runtime.items_.add_new(&item);
       if (bNodeTreeInterfaceSocket *socket = get_item_as<bNodeTreeInterfaceSocket>(&item)) {
         if (socket->flag & NODE_INTERFACE_SOCKET_INPUT) {
-          runtime.inputs_.append(socket);
+          runtime.inputs_.add_new(socket);
         }
         if (socket->flag & NODE_INTERFACE_SOCKET_OUTPUT) {
-          runtime.outputs_.append(socket);
+          runtime.outputs_.add_new(socket);
         }
       }
       return true;

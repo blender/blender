@@ -16,8 +16,10 @@
 
 /** Workaround to forward-declare C++ type in C header. */
 #ifdef __cplusplus
-#  include <BLI_vector.hh>
 #  include <string>
+
+#  include "BLI_vector.hh"
+#  include "BLI_vector_set.hh"
 
 namespace blender {
 template<typename T> class Span;
@@ -847,6 +849,10 @@ typedef struct bNodeTree {
   blender::Span<const bNodeTreeInterfaceSocket *> interface_outputs() const;
   blender::Span<bNodeTreeInterfaceItem *> interface_items();
   blender::Span<const bNodeTreeInterfaceItem *> interface_items() const;
+
+  int interface_input_index(const bNodeTreeInterfaceSocket &io_socket) const;
+  int interface_output_index(const bNodeTreeInterfaceSocket &io_socket) const;
+  int interface_item_index(const bNodeTreeInterfaceItem &io_item) const;
 #endif
 } bNodeTree;
 

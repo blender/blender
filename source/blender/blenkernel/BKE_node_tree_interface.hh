@@ -15,6 +15,7 @@
 #include "BLI_cache_mutex.hh"
 #include "BLI_parameter_pack_utils.hh"
 #include "BLI_vector.hh"
+#include "BLI_vector_set.hh"
 
 namespace blender::bke {
 
@@ -39,10 +40,10 @@ class bNodeTreeInterfaceRuntime {
   CacheMutex items_cache_mutex_;
 
   /* Runtime topology cache for linear access to items. */
-  Vector<bNodeTreeInterfaceItem *> items_;
+  VectorSet<bNodeTreeInterfaceItem *> items_;
   /* Socket-only lists for input/output access by index. */
-  Vector<bNodeTreeInterfaceSocket *> inputs_;
-  Vector<bNodeTreeInterfaceSocket *> outputs_;
+  VectorSet<bNodeTreeInterfaceSocket *> inputs_;
+  VectorSet<bNodeTreeInterfaceSocket *> outputs_;
 };
 
 namespace node_interface {

@@ -2154,8 +2154,7 @@ static void draw_property_for_socket(DrawGroupInputsContext &ctx,
   uiLayout *row = uiLayoutRow(layout, true);
   uiLayoutSetPropDecorate(row, true);
 
-  const int input_index =
-      const_cast<const bNodeTree *>(ctx.nmd.node_group)->interface_inputs().first_index(&socket);
+  const int input_index = ctx.nmd.node_group->interface_input_index(socket);
 
   /* Use #uiItemPointerR to draw pointer properties because #uiItemR would not have enough
    * information about what type of ID to select for editing the values. This is because
