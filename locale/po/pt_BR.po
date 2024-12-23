@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'2eb53ba3b21b')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'159424053bc2')\n"
 "Report-Msgid-Bugs-To: Leandro Paganelli <leandrobp@fastmail.com>\n"
-"POT-Creation-Date: 2024-12-16 09:31+0000\n"
+"POT-Creation-Date: 2024-12-23 13:35+0000\n"
 "PO-Revision-Date: 2024-04-15 06:56+0000\n"
 "Last-Translator: Ruan da Silva Andrade <ruanandrade818@gmail.com>\n"
 "Language-Team: Portuguese (Brazil) <https://translate.blender.org/projects/blender-ui/ui/pt_BR/>\n"
@@ -27000,14 +27000,6 @@ msgid "Static Type"
 msgstr "Tipo estático"
 
 
-msgid "Node type (deprecated, use with care)"
-msgstr "Tipo de nó (função obsoleta, usar com cautela)."
-
-
-msgid "Custom Node"
-msgstr "Nós personalizados"
-
-
 msgid "Custom color of the node body"
 msgstr "Cor personalizada do corpo do nó."
 
@@ -27058,10 +27050,6 @@ msgstr "Mostrar "
 
 msgid "Show Texture"
 msgstr "Mostrar textura"
-
-
-msgid "Node type (deprecated, use bl_static_type or bl_idname for the actual identifier string)"
-msgstr "Tipo de nó (obsoleto, use bl_static_type ou bl_idname para a variável texto de identificação atual)."
 
 
 msgid "Use custom color for the node"
@@ -46452,6 +46440,11 @@ msgstr "Trocar entradas"
 
 
 msgctxt "Operator"
+msgid "Deselect All"
+msgstr "(De)selecionar tudo"
+
+
+msgctxt "Operator"
 msgid "Unmute Strips"
 msgstr "Desmutar Faixas"
 
@@ -62132,11 +62125,6 @@ msgstr "Redefinir configurações"
 
 
 msgctxt "Operator"
-msgid "Deselect All"
-msgstr "(De)selecionar tudo"
-
-
-msgctxt "Operator"
 msgid "Statistics"
 msgstr "Estatísticas"
 
@@ -65730,42 +65718,6 @@ msgstr "Pelo menos 8 trilhas comuns em ambos os quadros-chave são necessárias 
 
 msgid "Blender is compiled without motion tracking library"
 msgstr "Blender está compilado sem suporte a biblioteca de captura de movimentos."
-
-
-msgid "Error writing frame"
-msgstr "Erro ao escrever quadro"
-
-
-msgid "No valid formats found"
-msgstr "Nenhum formato válido encontrado."
-
-
-msgid "Render width has to be 720 pixels for DV!"
-msgstr "Largura da renderização deve ser de 720 pixeis para DV !"
-
-
-msgid "Render height has to be 480 pixels for DV-NTSC!"
-msgstr "Altura da renderização deve ser de 480 pixeis para DV-NTSC !"
-
-
-msgid "Render height has to be 576 pixels for DV-PAL!"
-msgstr "Altura da renderização dele ser de 576 pixeis para DV-PAL !"
-
-
-msgid "Error initializing video stream"
-msgstr "Erro ao inicializar o fluxo de vídeo."
-
-
-msgid "Error initializing audio stream"
-msgstr "Erro ao inicializar o fluxo de áudio."
-
-
-msgid "Could not open file for writing"
-msgstr "Não é possível abrir o arquivo para escrita."
-
-
-msgid "Could not initialize streams, probably unsupported codec combination"
-msgstr "Não é possível inicializar fluxos, provavelmente uma combinação de codificador não suportada."
 
 
 msgid "unknown error reading file"
@@ -69723,6 +69675,42 @@ msgid "Freestyle: Stroke rendering"
 msgstr "Freestyle: Renderização de traços..."
 
 
+msgid "Error writing frame"
+msgstr "Erro ao escrever quadro"
+
+
+msgid "No valid formats found"
+msgstr "Nenhum formato válido encontrado."
+
+
+msgid "Render width has to be 720 pixels for DV!"
+msgstr "Largura da renderização deve ser de 720 pixeis para DV !"
+
+
+msgid "Render height has to be 480 pixels for DV-NTSC!"
+msgstr "Altura da renderização deve ser de 480 pixeis para DV-NTSC !"
+
+
+msgid "Render height has to be 576 pixels for DV-PAL!"
+msgstr "Altura da renderização dele ser de 576 pixeis para DV-PAL !"
+
+
+msgid "Error initializing video stream"
+msgstr "Erro ao inicializar o fluxo de vídeo."
+
+
+msgid "Error initializing audio stream"
+msgstr "Erro ao inicializar o fluxo de áudio."
+
+
+msgid "Could not open file for writing"
+msgstr "Não é possível abrir o arquivo para escrita."
+
+
+msgid "Could not initialize streams, probably unsupported codec combination"
+msgstr "Não é possível inicializar fluxos, provavelmente uma combinação de codificador não suportada."
+
+
 msgid "Index out of range"
 msgstr "Índice fora do intervalo"
 
@@ -70739,11 +70727,6 @@ msgstr "Balanço de cor"
 
 
 msgctxt "Sequence"
-msgid "White Balance"
-msgstr "Balanço dos tons brancos"
-
-
-msgctxt "Sequence"
 msgid "Curves"
 msgstr "Curvas"
 
@@ -70751,6 +70734,11 @@ msgstr "Curvas"
 msgctxt "Sequence"
 msgid "Hue Correct"
 msgstr "Correção de matiz"
+
+
+msgctxt "Sequence"
+msgid "White Balance"
+msgstr "Balanço dos tons brancos"
 
 
 msgctxt "Sequence"

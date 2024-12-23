@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'2eb53ba3b21b')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'159424053bc2')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-16 09:31+0000\n"
+"POT-Creation-Date: 2024-12-23 13:35+0000\n"
 "PO-Revision-Date: 2012-09-07 22:32+0100\n"
 "Last-Translator: Nikola Radovanovic <cobisimo@gmail.com>\n"
 "Language-Team: Nikola Radovanovic\n"
@@ -10738,10 +10738,6 @@ msgid "Static Type"
 msgstr "Статичка врста"
 
 
-msgid "Node type (deprecated, use with care)"
-msgstr "Врста чвора (застарело, користите пажљиво)"
-
-
 msgid "Outputs"
 msgstr "Излази"
 
@@ -18495,6 +18491,11 @@ msgid "Swap Inputs"
 msgstr "Замени улаз"
 
 
+msgctxt "Operator"
+msgid "Deselect All"
+msgstr "Поништи цео изабор"
+
+
 msgid "Zoom preview to fit in the area"
 msgstr "Зумирај поглед да испуни простор"
 
@@ -23813,11 +23814,6 @@ msgstr "Запамти корисничке поставке"
 
 
 msgctxt "Operator"
-msgid "Deselect All"
-msgstr "Поништи цео изабор"
-
-
-msgctxt "Operator"
 msgid "Statistics"
 msgstr "Статистика"
 
@@ -25105,14 +25101,6 @@ msgid "Plane Track"
 msgstr "Праћење плоче"
 
 
-msgid "Error writing frame"
-msgstr "Грешка при упису кадра"
-
-
-msgid "No valid formats found"
-msgstr "Није пронађен исправан формат"
-
-
 msgid "unknown error reading file"
 msgstr "непозната грешака приликом читања датотеке"
 
@@ -26281,6 +26269,14 @@ msgstr "Препиши %s"
 
 msgid "UV Vertex"
 msgstr "UV теме"
+
+
+msgid "Error writing frame"
+msgstr "Грешка при упису кадра"
+
+
+msgid "No valid formats found"
+msgstr "Није пронађен исправан формат"
 
 
 msgid "Index out of range"

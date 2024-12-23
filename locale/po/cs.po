@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'2eb53ba3b21b')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'159424053bc2')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-16 09:31+0000\n"
+"POT-Creation-Date: 2024-12-23 13:35+0000\n"
 "PO-Revision-Date: 2024-04-29 13:36+0000\n"
 "Last-Translator: Zdeněk Doležal <Griperis@outlook.cz>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
@@ -16637,10 +16637,6 @@ msgid "Node in a node tree"
 msgstr "Kompoziční uzly"
 
 
-msgid "Custom Node"
-msgstr "Vlastní Uzel"
-
-
 msgid "Custom color of the node body"
 msgstr "Vlastní barva těla uzlu"
 
@@ -28951,6 +28947,11 @@ msgstr "Vstupy"
 
 
 msgctxt "Operator"
+msgid "Deselect All"
+msgstr "O(d)značit vše"
+
+
+msgctxt "Operator"
 msgid "Unlock Strips"
 msgstr "Odemknout Proužky"
 
@@ -31357,6 +31358,14 @@ msgid "Restrict"
 msgstr "Omezit"
 
 
+msgid "Overlays"
+msgstr "Překrytí"
+
+
+msgid "Guides"
+msgstr "Vodítka"
+
+
 msgid "Motion Tracking"
 msgstr "Sledování Pohybu"
 
@@ -31381,10 +31390,6 @@ msgid "Transform Orientations"
 msgstr "Orientace transformací"
 
 
-msgid "Guides"
-msgstr "Vodítka"
-
-
 msgid "Stereoscopy"
 msgstr "Stereoskopie"
 
@@ -31407,10 +31412,6 @@ msgstr "Nastavení Stínů"
 
 msgid "SSAO Settings"
 msgstr "Nastavení SSAO"
-
-
-msgid "Overlays"
-msgstr "Překrytí"
 
 
 msgid "Chain Scaling"
@@ -38627,11 +38628,6 @@ msgstr "Uložit uživatelské nastavení"
 
 
 msgctxt "Operator"
-msgid "Deselect All"
-msgstr "O(d)značit vše"
-
-
-msgctxt "Operator"
 msgid "Statistics"
 msgstr "Statistika"
 
@@ -41871,18 +41867,6 @@ msgid "Original Mode"
 msgstr "Původní Režim"
 
 
-msgid "Error writing frame"
-msgstr "Inkrementální"
-
-
-msgid "No valid formats found"
-msgstr "Orientace manipulátorů (Klávesová zkratka: Alt Space)"
-
-
-msgid "Could not open file for writing"
-msgstr "Nelze otevřít soubor pro psaní"
-
-
 msgid "ID %s not found in library %s anymore!"
 msgstr "ID %s se v knihovně %s už nenašlo!"
 
@@ -44162,6 +44146,18 @@ msgstr "vlastní"
 
 msgid "UV Vertex"
 msgstr "Vrchol"
+
+
+msgid "Error writing frame"
+msgstr "Inkrementální"
+
+
+msgid "No valid formats found"
+msgstr "Orientace manipulátorů (Klávesová zkratka: Alt Space)"
+
+
+msgid "Could not open file for writing"
+msgstr "Nelze otevřít soubor pro psaní"
 
 
 msgid "Keying set path could not be added"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'2eb53ba3b21b')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'159424053bc2')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-16 09:31+0000\n"
+"POT-Creation-Date: 2024-12-23 13:35+0000\n"
 "PO-Revision-Date: 2015-03-03 16:21+0530\n"
 "Last-Translator: Roshan Lal Gumasta <roshan@anisecrets.com>\n"
 "Language-Team: Hindi <www.anisecrets.com>\n"
@@ -5911,38 +5911,6 @@ msgid "Undefined Type"
 msgstr "अपरिभाषित प्रकार"
 
 
-msgid "Error writing frame"
-msgstr "गठन लेखन में त्रुटि"
-
-
-msgid "No valid formats found"
-msgstr "कोई मान्य स्वरूप नहीं मिला"
-
-
-msgid "Render width has to be 720 pixels for DV!"
-msgstr " प्रतिपादन चौड़ाई डीवी के लिए ७२० पिक्सल होना चाहिए!"
-
-
-msgid "Render height has to be 480 pixels for DV-NTSC!"
-msgstr " प्रतिपादन ऊंचाई DV NTSC के लिए ४८० पिक्सेल होना चाहिए!"
-
-
-msgid "Render height has to be 576 pixels for DV-PAL!"
-msgstr " प्रतिपादन ऊंचाई ५७६ पिक्सल DV-पाल लिए होना चाहिए!"
-
-
-msgid "Error initializing video stream"
-msgstr "वीडियो स्ट्रीम आरंभ करने में त्रुटि"
-
-
-msgid "Error initializing audio stream"
-msgstr "श्रव्य स्ट्रीम आरंभ करने में त्रुटि"
-
-
-msgid "Could not open file for writing"
-msgstr "लेखन के लिए संचिका को नहीं खोल सकता"
-
-
 msgid "unknown error reading file"
 msgstr "संचिका पठन में अज्ञात त्रुटि"
 
@@ -6651,6 +6619,38 @@ msgstr "रिक्त स्थान"
 
 msgid "Overwrite %s"
 msgstr "अधिलेखित करें %s"
+
+
+msgid "Error writing frame"
+msgstr "गठन लेखन में त्रुटि"
+
+
+msgid "No valid formats found"
+msgstr "कोई मान्य स्वरूप नहीं मिला"
+
+
+msgid "Render width has to be 720 pixels for DV!"
+msgstr " प्रतिपादन चौड़ाई डीवी के लिए ७२० पिक्सल होना चाहिए!"
+
+
+msgid "Render height has to be 480 pixels for DV-NTSC!"
+msgstr " प्रतिपादन ऊंचाई DV NTSC के लिए ४८० पिक्सेल होना चाहिए!"
+
+
+msgid "Render height has to be 576 pixels for DV-PAL!"
+msgstr " प्रतिपादन ऊंचाई ५७६ पिक्सल DV-पाल लिए होना चाहिए!"
+
+
+msgid "Error initializing video stream"
+msgstr "वीडियो स्ट्रीम आरंभ करने में त्रुटि"
+
+
+msgid "Error initializing audio stream"
+msgstr "श्रव्य स्ट्रीम आरंभ करने में त्रुटि"
+
+
+msgid "Could not open file for writing"
+msgstr "लेखन के लिए संचिका को नहीं खोल सकता"
 
 
 msgid "Flame"

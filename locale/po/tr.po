@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'2eb53ba3b21b')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'159424053bc2')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-16 09:31+0000\n"
+"POT-Creation-Date: 2024-12-23 13:35+0000\n"
 "PO-Revision-Date: 2024-12-10 23:56+0000\n"
 "Last-Translator: bitigchi <bitigchi@me.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
@@ -14929,6 +14929,38 @@ msgstr "Görünüm katmanını işlerken maske katmanlarını ekleyin"
 
 msgid "ViewLayer"
 msgstr "Görünüm Katmanı"
+
+
+msgid "Color tag 1"
+msgstr "Renk etiketi 1"
+
+
+msgid "Color tag 2"
+msgstr "Renk etiketi 2"
+
+
+msgid "Color tag 3"
+msgstr "Renk etiketi 3"
+
+
+msgid "Color tag 4"
+msgstr "Renk etiketi 4"
+
+
+msgid "Color tag 5"
+msgstr "Renk etiketi 5"
+
+
+msgid "Color tag 6"
+msgstr "Renk etiketi 6"
+
+
+msgid "Color tag 7"
+msgstr "Renk etiketi 7"
+
+
+msgid "Color tag 8"
+msgstr "Renk etiketi 8"
 
 
 msgid "Set layer group visibility"
@@ -38211,14 +38243,6 @@ msgid "Static Type"
 msgstr "Statik Tip"
 
 
-msgid "Node type (deprecated, use with care)"
-msgstr "Düğüm türü (kullanım dışı, dikkatli kullanın)"
-
-
-msgid "Custom Node"
-msgstr "Özel Düğüm"
-
-
 msgid "Custom color of the node body"
 msgstr "Düğüm gövdesinin özel rengi"
 
@@ -38273,10 +38297,6 @@ msgstr "Dokuyu Göster"
 
 msgid "Display node in viewport textured shading mode"
 msgstr "Görünüm alanı dokulu gölgelendirme modunda düğümü görüntüle"
-
-
-msgid "Node type (deprecated, use bl_static_type or bl_idname for the actual identifier string)"
-msgstr "Düğüm türü (kullanım dışı, gerçek tanımlayıcı dizesi için bl_static_type veya bl_idname kullanın)"
 
 
 msgid "Use custom color for the node"
@@ -56954,38 +56974,6 @@ msgid "Set Default icon"
 msgstr "Varsayılan simgeyi ayarla"
 
 
-msgid "Color tag 1"
-msgstr "Renk etiketi 1"
-
-
-msgid "Color tag 2"
-msgstr "Renk etiketi 2"
-
-
-msgid "Color tag 3"
-msgstr "Renk etiketi 3"
-
-
-msgid "Color tag 4"
-msgstr "Renk etiketi 4"
-
-
-msgid "Color tag 5"
-msgstr "Renk etiketi 5"
-
-
-msgid "Color tag 6"
-msgstr "Renk etiketi 6"
-
-
-msgid "Color tag 7"
-msgstr "Renk etiketi 7"
-
-
-msgid "Color tag 8"
-msgstr "Renk etiketi 8"
-
-
 msgctxt "Operator"
 msgid "Remove Layer Group"
 msgstr "Katman Grubunu Kaldır"
@@ -72995,6 +72983,11 @@ msgstr "Efekt şeridinin iki girişini değiştirin"
 
 
 msgctxt "Operator"
+msgid "Deselect All"
+msgstr "Tümünü Seçimden Çıkar"
+
+
+msgctxt "Operator"
 msgid "Unlock Strips"
 msgstr "Şeritlerin kilidini aç"
 
@@ -79705,6 +79698,14 @@ msgid "Panel containing UI elements"
 msgstr "UI öğelerini içeren panel"
 
 
+msgid "Overlays"
+msgstr "Kaplamalar"
+
+
+msgid "Guides"
+msgstr "Rehberler"
+
+
 msgid "Viewer Node"
 msgstr "Görüntüleyici Düğümü"
 
@@ -79739,10 +79740,6 @@ msgstr "İnme Yerleşimi"
 
 msgid "Drawing Plane"
 msgstr "Çizim düzlemi"
-
-
-msgid "Guides"
-msgstr "Rehberler"
 
 
 msgid "Quad View"
@@ -79827,10 +79824,6 @@ msgstr "Render Geçişi"
 
 msgid "Compositor"
 msgstr "Dizgici"
-
-
-msgid "Overlays"
-msgstr "Kaplamalar"
 
 
 msgid "Chain Scaling"
@@ -100526,10 +100519,6 @@ msgid "Action when 'Space' is pressed"
 msgstr "'Boşluk' tuşuna basıldığında eylem"
 
 
-msgid "Toggle animation playback ('Shift-Space' for Tools)"
-msgstr "Animasyon oynatmayı değiştir (Araçlar için 'Shift-Space')"
-
-
 msgid "Search"
 msgstr "Aramak"
 
@@ -104941,11 +104930,6 @@ msgstr "Başlatma Ayarları"
 msgctxt "Operator"
 msgid "Reset Settings"
 msgstr "Ayarları Sıfırla"
-
-
-msgctxt "Operator"
-msgid "Deselect All"
-msgstr "Tümünü Seçimden Çıkar"
 
 
 msgctxt "Operator"
@@ -113981,50 +113965,6 @@ msgid "OpenVDB error: {}"
 msgstr "OpenVDB hatası: {}"
 
 
-msgid "Error writing frame"
-msgstr "Çerçeve yazılırken hata oluştu"
-
-
-msgid "No valid formats found"
-msgstr "Geçerli format bulunamadı"
-
-
-msgid "Can't allocate FFmpeg format context"
-msgstr "FFmpeg biçim bağlamı tahsis edilemiyor"
-
-
-msgid "Render width has to be 720 pixels for DV!"
-msgstr "DV için render genişliği 720 piksel olmak zorunda!"
-
-
-msgid "Render height has to be 480 pixels for DV-NTSC!"
-msgstr "DV-NTSC için render yüksekliği 480 piksel olmak zorunda!"
-
-
-msgid "Render height has to be 576 pixels for DV-PAL!"
-msgstr "DV-PAL için render yüksekliği 576 piksel olmak zorunda!"
-
-
-msgid "FFmpeg only supports 48khz / stereo audio for DV!"
-msgstr "FFmpeg DV için sadece 48khz / stereo sesi destekler!"
-
-
-msgid "Error initializing video stream"
-msgstr "Video akışı başlatılırken hata oluştu"
-
-
-msgid "Error initializing audio stream"
-msgstr "Ses akışı başlatılırken hata oluştu"
-
-
-msgid "Could not open file for writing"
-msgstr "Yazma için dosya açılamadı"
-
-
-msgid "Could not initialize streams, probably unsupported codec combination"
-msgstr "Akışlar başlatılamadı, muhtemelen desteklenmeyen kodek kombinasyonu"
-
-
 msgid "Library database with null library data-block pointer!"
 msgstr "Boş kütüphane veri bloğu işaretçisine sahip kütüphane veritabanı!"
 
@@ -122212,6 +122152,50 @@ msgid "Freestyle: Stroke rendering"
 msgstr "Serbest Stil: Vuruş işleme"
 
 
+msgid "Error writing frame"
+msgstr "Çerçeve yazılırken hata oluştu"
+
+
+msgid "No valid formats found"
+msgstr "Geçerli format bulunamadı"
+
+
+msgid "Can't allocate FFmpeg format context"
+msgstr "FFmpeg biçim bağlamı tahsis edilemiyor"
+
+
+msgid "Render width has to be 720 pixels for DV!"
+msgstr "DV için render genişliği 720 piksel olmak zorunda!"
+
+
+msgid "Render height has to be 480 pixels for DV-NTSC!"
+msgstr "DV-NTSC için render yüksekliği 480 piksel olmak zorunda!"
+
+
+msgid "Render height has to be 576 pixels for DV-PAL!"
+msgstr "DV-PAL için render yüksekliği 576 piksel olmak zorunda!"
+
+
+msgid "FFmpeg only supports 48khz / stereo audio for DV!"
+msgstr "FFmpeg DV için sadece 48khz / stereo sesi destekler!"
+
+
+msgid "Error initializing video stream"
+msgstr "Video akışı başlatılırken hata oluştu"
+
+
+msgid "Error initializing audio stream"
+msgstr "Ses akışı başlatılırken hata oluştu"
+
+
+msgid "Could not open file for writing"
+msgstr "Yazma için dosya açılamadı"
+
+
+msgid "Could not initialize streams, probably unsupported codec combination"
+msgstr "Akışlar başlatılamadı, muhtemelen desteklenmeyen kodek kombinasyonu"
+
+
 msgid "Alembic Export: Unable to find collection '%s'"
 msgstr "Alembic Export: '%s' koleksiyonu bulunamadı"
 
@@ -123401,18 +123385,6 @@ msgstr "Panel oluşturulamıyor"
 
 msgid "Unable to copy item"
 msgstr "Öğe kopyalanamıyor"
-
-
-msgid "CustomGroup"
-msgstr "Özel Grup"
-
-
-msgid "Custom Group Node"
-msgstr "Özel Grup Düğümü"
-
-
-msgid "UNDEFINED"
-msgstr "TANIMLANMAMIŞ"
 
 
 msgctxt "NodeTree"
@@ -127724,11 +127696,6 @@ msgstr "Renk Dengesi"
 
 
 msgctxt "Sequence"
-msgid "White Balance"
-msgstr "Beyaz Dengesi"
-
-
-msgctxt "Sequence"
 msgid "Curves"
 msgstr "Eğriler"
 
@@ -127741,6 +127708,11 @@ msgstr "Ton Doğru"
 msgctxt "Sequence"
 msgid "Brightness/Contrast"
 msgstr "Parlaklık/Kontrast"
+
+
+msgctxt "Sequence"
+msgid "White Balance"
+msgstr "Beyaz Dengesi"
 
 
 msgctxt "Sequence"

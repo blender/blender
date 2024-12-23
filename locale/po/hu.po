@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'2eb53ba3b21b')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'159424053bc2')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-16 09:31+0000\n"
+"POT-Creation-Date: 2024-12-23 13:35+0000\n"
 "PO-Revision-Date: 2024-01-11 03:55+0000\n"
 "Last-Translator: Répási Dávid <hu.repasidavid@protonmail.com>\n"
 "Language-Team: Hungarian <https://translate.blender.org/projects/blender-ui/ui/hu/>\n"
@@ -12218,6 +12218,11 @@ msgid "Swap Strip"
 msgstr "Sáv megcserélése"
 
 
+msgctxt "Operator"
+msgid "Deselect All"
+msgstr "Összes elem kijelölése (megszüntetése)"
+
+
 msgid "View all the strips in the sequencer"
 msgstr "Mutassa az összes sávot"
 
@@ -15553,11 +15558,6 @@ msgstr "Opciók:"
 msgctxt "Operator"
 msgid "Reset Settings"
 msgstr "Beállítások visszaállítása"
-
-
-msgctxt "Operator"
-msgid "Deselect All"
-msgstr "Összes elem kijelölése (megszüntetése)"
 
 
 msgid "Add-ons:"

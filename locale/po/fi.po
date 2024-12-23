@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'2eb53ba3b21b')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'159424053bc2')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-16 09:31+0000\n"
+"POT-Creation-Date: 2024-12-23 13:35+0000\n"
 "PO-Revision-Date: 2024-10-16 00:56+0000\n"
 "Last-Translator: Leevi Oksanen <laavi.oksanen@gmail.com>\n"
 "Language-Team: Finnish <https://translate.blender.org/projects/blender-ui/ui/fi/>\n"
@@ -8059,10 +8059,6 @@ msgid "Sound Clip"
 msgstr "Ääniklippi"
 
 
-msgid "Custom Node"
-msgstr "Mukautettu noodi"
-
-
 msgid "Show Options"
 msgstr "Näytä vaihtoehdot"
 
@@ -14110,14 +14106,6 @@ msgid "Undefined Type"
 msgstr "Määrittelemätön tyyppi"
 
 
-msgid "Error writing frame"
-msgstr "Virhe kirjoittaessa kehystä"
-
-
-msgid "No valid formats found"
-msgstr "Päteviä formaatteja ei löytynyt"
-
-
 msgid "Sculpting"
 msgstr "Veistäminen"
 
@@ -15645,6 +15633,14 @@ msgid "Pack Islands"
 msgstr "Pakkaa UV-saaret"
 
 
+msgid "Error writing frame"
+msgstr "Virhe kirjoittaessa kehystä"
+
+
+msgid "No valid formats found"
+msgstr "Päteviä formaatteja ei löytynyt"
+
+
 msgid "Could not open SVG"
 msgstr "SVG-tiedostoa ei kyetty avaamaan"
 
@@ -15696,18 +15692,6 @@ msgstr "Muuta"
 
 msgid "Unknown socket type"
 msgstr "Tuntematon pistoketyyppi"
-
-
-msgid "CustomGroup"
-msgstr "Mukautettu ryhmä"
-
-
-msgid "Custom Group Node"
-msgstr "Mukautettu ryhmänoodi"
-
-
-msgid "UNDEFINED"
-msgstr "MÄÄRITTELEMÄTÖN"
 
 
 msgctxt "NodeTree"
@@ -17222,11 +17206,6 @@ msgstr "Väritasapaino"
 
 
 msgctxt "Sequence"
-msgid "White Balance"
-msgstr "Valkotasapaino"
-
-
-msgctxt "Sequence"
 msgid "Curves"
 msgstr "Käyrät"
 
@@ -17239,6 +17218,11 @@ msgstr "Sävykorjaus"
 msgctxt "Sequence"
 msgid "Brightness/Contrast"
 msgstr "Kirkkaus/Kontrasti"
+
+
+msgctxt "Sequence"
+msgid "White Balance"
+msgstr "Valkotasapaino"
 
 
 msgctxt "Sequence"

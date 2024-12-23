@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'2eb53ba3b21b')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'159424053bc2')\n"
 "Report-Msgid-Bugs-To: Ivan Paulos Tomé <ivan.paulos.tome@yandex.com>\n"
-"POT-Creation-Date: 2024-12-16 09:31+0000\n"
-"PO-Revision-Date: 2024-12-15 09:56+0000\n"
+"POT-Creation-Date: 2024-12-23 13:35+0000\n"
+"PO-Revision-Date: 2024-12-19 22:56+0000\n"
 "Last-Translator: Duarte Ramos <duarte.framos@gmail.com>\n"
 "Language-Team: Portuguese <https://translate.blender.org/projects/blender-ui/ui/pt/>\n"
 "Language: pt\n"
@@ -14636,6 +14636,30 @@ msgid "Select the file format to be used for caching volumetric data"
 msgstr "Selecionar o formato de ficheiros a usar para armazenar dados volumétricos"
 
 
+msgid "Uni Cache"
+msgstr "Aramazenamento Uni"
+
+
+msgid "Uni file format (.uni)"
+msgstr "Formato de ficheiro Uni (.uni)"
+
+
+msgid "OpenVDB"
+msgstr "OpenVDB"
+
+
+msgid "OpenVDB file format (.vdb)"
+msgstr "Formato de ficheiro OpenVDB (.vdb)"
+
+
+msgid "Raw Cache"
+msgstr "Armazenamento Raw"
+
+
+msgid "Raw file format (.raw)"
+msgstr "Formato de ficheiro Raw (.raw)"
+
+
 msgid "Cache directory"
 msgstr "Pasta de armazenagem"
 
@@ -15559,6 +15583,10 @@ msgstr "Adaptar resolução de simulação e tamanho ao fluido."
 
 msgid "Adaptive Time Steps"
 msgstr "Passos Temporais Adaptativos"
+
+
+msgid "Automatically decide when to perform multiple simulation steps per frame"
+msgstr "Decidir automaticamente quando efectuar múltiplos passos por fotograma"
 
 
 msgid "Bubble"
@@ -17710,6 +17738,10 @@ msgid "Set layer group visibility"
 msgstr "Definir visibilidade de grupos de camada"
 
 
+msgid "The layer groups is expanded in the UI"
+msgstr "O grupo de camadas está expandido no interface do utilizador"
+
+
 msgid "Protect group from further editing and/or frame changes"
 msgstr "Proteger grupo de edições e/ou alterações nos fotogramas futuras"
 
@@ -17752,6 +17784,10 @@ msgstr "Nome da camada máscara"
 
 msgid "Grease Pencil Mask Layers"
 msgstr "Máscaras de Camadas de Grease Pencil"
+
+
+msgid "Collection of Grease Pencil masking layers"
+msgstr "Colecção de camadas máscara de Grease Pencil"
 
 
 msgid "Active Layer Mask Index"
@@ -18117,8 +18153,36 @@ msgid "Type of ID block that action can be used on - DO NOT CHANGE UNLESS YOU KN
 msgstr "Tipo de identificador de bloco em que a acção pode ser usada - NÃO ALTERE A MENOS QUE SAIBA O QUE ESTÁ FAZENDO."
 
 
+msgid "Is Layered Action"
+msgstr "É Acção em Camadas"
+
+
+msgid "Return whether this is a layered Action. An empty Action considered as both a 'layered' and a 'layered' Action."
+msgstr "Informa se esta é uma acção com camadas. Uma acção vazia é considerada tanto 'em camadas' como uma 'Acção em camadas'."
+
+
+msgid "Is Legacy Action"
+msgstr "É Acção de Legado"
+
+
+msgid "Return whether this is a legacy Action. Legacy Actions have no layers or slots. An empty Action considered as both a 'legacy' and a 'layered' Action."
+msgstr "Informa se é uma Acção de legado. Acções de legado não têm camadas nem compartimentos. Uma Acção vazia é considerada tanto 'de legado' como Acção em camadas."
+
+
+msgid "Is Empty"
+msgstr "É Vazio"
+
+
+msgid "False when there is any Layer, Slot, or legacy F-Curve"
+msgstr "Falso se houver alguma Camada, Compartimento ou Curva-F de legado"
+
+
 msgid "Layers"
 msgstr "Camadas"
+
+
+msgid "The list of layers that make up this Action"
+msgstr "Lista de camadas que compõe esta Acção"
 
 
 msgid "Pose Markers"
@@ -43652,14 +43716,6 @@ msgid "Static Type"
 msgstr "Tipo estático"
 
 
-msgid "Node type (deprecated, use with care)"
-msgstr "Tipo de nó (função obsoleta, usar com cautela)."
-
-
-msgid "Custom Node"
-msgstr "Nós personalizados"
-
-
 msgid "Custom color of the node body"
 msgstr "Cor personalizada do corpo do nó."
 
@@ -43714,10 +43770,6 @@ msgstr "Mostrar textura"
 
 msgid "Display node in viewport textured shading mode"
 msgstr "Mostrar nó no modo de sombreamento texturado da janela de visualização"
-
-
-msgid "Node type (deprecated, use bl_static_type or bl_idname for the actual identifier string)"
-msgstr "Tipo de nó (obsoleto, use bl_static_type ou bl_idname para a variável texto de identificação actual)."
 
 
 msgid "Use custom color for the node"
@@ -71600,6 +71652,11 @@ msgid "Swap Inputs"
 msgstr "Trocar entradas"
 
 
+msgctxt "Operator"
+msgid "Deselect All"
+msgstr "Deseleccionar Tudo"
+
+
 msgid "Unmute (un)selected strips"
 msgstr "Torna não mudas as faixas (de)seleccionadas."
 
@@ -86296,11 +86353,6 @@ msgstr "Report Definições"
 
 
 msgctxt "Operator"
-msgid "Deselect All"
-msgstr "Deseleccionar Tudo"
-
-
-msgctxt "Operator"
 msgid "Update Work Repository"
 msgstr "Actualizar Repositório de Trabalho"
 
@@ -88803,42 +88855,6 @@ msgstr "Pelo menos 8 rastreadores comuns em ambos os fotogramas chave são neces
 
 msgid "Blender is compiled without motion tracking library"
 msgstr "Blender está compilado sem suporte a biblioteca de captura de movimentos."
-
-
-msgid "Error writing frame"
-msgstr "Erro ao escrever fotograma"
-
-
-msgid "No valid formats found"
-msgstr "Nenhum formato válido encontrado."
-
-
-msgid "Render width has to be 720 pixels for DV!"
-msgstr "Largura da renderização deve ser de 720 pixeis para DV !"
-
-
-msgid "Render height has to be 480 pixels for DV-NTSC!"
-msgstr "Altura da renderização deve ser de 480 pixeis para DV-NTSC !"
-
-
-msgid "Render height has to be 576 pixels for DV-PAL!"
-msgstr "Altura da renderização dele ser de 576 pixeis para DV-PAL !"
-
-
-msgid "Error initializing video stream"
-msgstr "Erro ao inicializar o fluxo de vídeo."
-
-
-msgid "Error initializing audio stream"
-msgstr "Erro ao inicializar o fluxo de áudio."
-
-
-msgid "Could not open file for writing"
-msgstr "Não é possível abrir o ficheiro para escrita."
-
-
-msgid "Could not initialize streams, probably unsupported codec combination"
-msgstr "Não é possível inicializar fluxos, provavelmente uma combinação de codificador não suportada."
 
 
 msgid "unknown error reading file"
@@ -92535,6 +92551,42 @@ msgid "Freestyle: Stroke rendering"
 msgstr "Freestyle: Renderização de traços..."
 
 
+msgid "Error writing frame"
+msgstr "Erro ao escrever fotograma"
+
+
+msgid "No valid formats found"
+msgstr "Nenhum formato válido encontrado."
+
+
+msgid "Render width has to be 720 pixels for DV!"
+msgstr "Largura da renderização deve ser de 720 pixeis para DV !"
+
+
+msgid "Render height has to be 480 pixels for DV-NTSC!"
+msgstr "Altura da renderização deve ser de 480 pixeis para DV-NTSC !"
+
+
+msgid "Render height has to be 576 pixels for DV-PAL!"
+msgstr "Altura da renderização dele ser de 576 pixeis para DV-PAL !"
+
+
+msgid "Error initializing video stream"
+msgstr "Erro ao inicializar o fluxo de vídeo."
+
+
+msgid "Error initializing audio stream"
+msgstr "Erro ao inicializar o fluxo de áudio."
+
+
+msgid "Could not open file for writing"
+msgstr "Não é possível abrir o ficheiro para escrita."
+
+
+msgid "Could not initialize streams, probably unsupported codec combination"
+msgstr "Não é possível inicializar fluxos, provavelmente uma combinação de codificador não suportada."
+
+
 msgid "Unhandled Gprim type: %s (%s)"
 msgstr "Tipo de Gprim não processado: %s (%s)"
 
@@ -93410,11 +93462,6 @@ msgstr "Balanço de cor"
 
 
 msgctxt "Sequence"
-msgid "White Balance"
-msgstr "Balanço dos tons brancos"
-
-
-msgctxt "Sequence"
 msgid "Curves"
 msgstr "Curvas"
 
@@ -93422,6 +93469,11 @@ msgstr "Curvas"
 msgctxt "Sequence"
 msgid "Hue Correct"
 msgstr "Correção de matiz"
+
+
+msgctxt "Sequence"
+msgid "White Balance"
+msgstr "Balanço dos tons brancos"
 
 
 msgctxt "Sequence"

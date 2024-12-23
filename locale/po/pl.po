@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'2eb53ba3b21b')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'159424053bc2')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-16 09:31+0000\n"
+"POT-Creation-Date: 2024-12-23 13:35+0000\n"
 "PO-Revision-Date: 2024-11-23 15:56+0000\n"
 "Last-Translator: Kacper Madej <cacperkacper@yahoo.com>\n"
 "Language-Team: Polish <https://translate.blender.org/projects/blender-ui/ui/pl/>\n"
@@ -15759,6 +15759,11 @@ msgstr "Właściwość"
 
 
 msgctxt "Operator"
+msgid "Deselect All"
+msgstr "Usuń zaznaczenie wszystkiego"
+
+
+msgctxt "Operator"
 msgid "New Texture"
 msgstr "Nowa tekstura"
 
@@ -19417,11 +19422,6 @@ msgid "Load"
 msgstr "Wczytaj"
 
 
-msgctxt "Operator"
-msgid "Deselect All"
-msgstr "Usuń zaznaczenie wszystkiego"
-
-
 msgid "Add-ons:"
 msgstr "Wtyczki:"
 
@@ -22143,42 +22143,6 @@ msgstr "Tony"
 
 msgid "worlds"
 msgstr "światy"
-
-
-msgid "Error writing frame"
-msgstr "Błąd zapisu klatki"
-
-
-msgid "No valid formats found"
-msgstr "Nie odnaleziono poprawnych formatów"
-
-
-msgid "Render width has to be 720 pixels for DV!"
-msgstr "Szerokość renderu musi wynosić 720 pikseli dla DV!"
-
-
-msgid "Render height has to be 480 pixels for DV-NTSC!"
-msgstr "Wysokość renderu musi wynosić 480 pikseli dla DV-NTSC!"
-
-
-msgid "Render height has to be 576 pixels for DV-PAL!"
-msgstr "Wysokość renderu musi wynosić 576 pikseli dla DV-PAL!"
-
-
-msgid "Error initializing video stream"
-msgstr "Błąd inicjacji strumienia filmowego"
-
-
-msgid "Error initializing audio stream"
-msgstr "Błąd inicjacji strumienia dźwiękowego"
-
-
-msgid "Could not open file for writing"
-msgstr "Nie można było otworzyć pliku do zapisu"
-
-
-msgid "Could not initialize streams, probably unsupported codec combination"
-msgstr "Nie można było zainicjować strumieni, prawdopodobnie nieobsługiwana kombinacja kodeków"
 
 
 msgid "unknown error reading file"
@@ -26109,6 +26073,42 @@ msgid "Object has negative scale, unwrap will operate on a non-flipped version o
 msgstr "Obiekt posiada ujemną skalę, odwijanie (unwrap) będzie używało nie odwróconej wersji siatki"
 
 
+msgid "Error writing frame"
+msgstr "Błąd zapisu klatki"
+
+
+msgid "No valid formats found"
+msgstr "Nie odnaleziono poprawnych formatów"
+
+
+msgid "Render width has to be 720 pixels for DV!"
+msgstr "Szerokość renderu musi wynosić 720 pikseli dla DV!"
+
+
+msgid "Render height has to be 480 pixels for DV-NTSC!"
+msgstr "Wysokość renderu musi wynosić 480 pikseli dla DV-NTSC!"
+
+
+msgid "Render height has to be 576 pixels for DV-PAL!"
+msgstr "Wysokość renderu musi wynosić 576 pikseli dla DV-PAL!"
+
+
+msgid "Error initializing video stream"
+msgstr "Błąd inicjacji strumienia filmowego"
+
+
+msgid "Error initializing audio stream"
+msgstr "Błąd inicjacji strumienia dźwiękowego"
+
+
+msgid "Could not open file for writing"
+msgstr "Nie można było otworzyć pliku do zapisu"
+
+
+msgid "Could not initialize streams, probably unsupported codec combination"
+msgstr "Nie można było zainicjować strumieni, prawdopodobnie nieobsługiwana kombinacja kodeków"
+
+
 msgid "Index out of range"
 msgstr "Indeks poza zakresem"
 
@@ -27179,11 +27179,6 @@ msgstr "Balans koloru"
 
 
 msgctxt "Sequence"
-msgid "White Balance"
-msgstr "Balans bieli"
-
-
-msgctxt "Sequence"
 msgid "Curves"
 msgstr "Krzywe"
 
@@ -27191,6 +27186,11 @@ msgstr "Krzywe"
 msgctxt "Sequence"
 msgid "Hue Correct"
 msgstr "Korekta barwy"
+
+
+msgctxt "Sequence"
+msgid "White Balance"
+msgstr "Balans bieli"
 
 
 msgid "Strips must be the same length"

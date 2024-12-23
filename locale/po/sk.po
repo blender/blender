@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'2eb53ba3b21b')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'159424053bc2')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-16 09:31+0000\n"
-"PO-Revision-Date: 2024-12-10 07:48+0000\n"
+"POT-Creation-Date: 2024-12-23 13:35+0000\n"
+"PO-Revision-Date: 2024-12-17 07:02+0000\n"
 "Last-Translator: Jozef Matta <jozef.m923@gmail.com>\n"
 "Language-Team: Slovak <https://translate.blender.org/projects/blender-ui/ui/sk/>\n"
 "Language: sk\n"
@@ -17731,6 +17731,38 @@ msgid "Group of Grease Pencil layers"
 msgstr "Skupina vrstiev Grease Pencil"
 
 
+msgid "Color tag 1"
+msgstr "Farebný príznak 1"
+
+
+msgid "Color tag 2"
+msgstr "Farebný príznak 2"
+
+
+msgid "Color tag 3"
+msgstr "Farebný príznak 3"
+
+
+msgid "Color tag 4"
+msgstr "Farebný príznak 4"
+
+
+msgid "Color tag 5"
+msgstr "Farebný príznak 5"
+
+
+msgid "Color tag 6"
+msgstr "Farebný príznak 6"
+
+
+msgid "Color tag 7"
+msgstr "Farebný príznak 7"
+
+
+msgid "Color tag 8"
+msgstr "Farebný príznak 8"
+
+
 msgid "Set layer group visibility"
 msgstr "Nastaviť viditeľnosť skupiny vrstiev"
 
@@ -21739,6 +21771,10 @@ msgid "Horizontal Alignment"
 msgstr "Horizontálne zarovnanie"
 
 
+msgid "Text horizontal alignment from the object or text box center"
+msgstr "Vodorovné zarovnanie textu od stredu objektu alebo textového poľa"
+
+
 msgid "Align text to the left"
 msgstr "Zarovná text naľavo"
 
@@ -24888,6 +24924,14 @@ msgstr "Uzol stromu pozostávajúci z prepojených uzlov používaných na tieň
 
 msgid "The node tree label"
 msgstr "Nápis uzla stromu"
+
+
+msgid "Use Group Interface"
+msgstr "Použiť skupinové rozhranie"
+
+
+msgid "Determines the visibility of some UI elements related to node groups"
+msgstr "Určuje viditeľnosť niektorých prvkov užívateľského rozhrania súvisiacich so skupinami uzlov"
 
 
 msgid "Color Tag"
@@ -43853,14 +43897,6 @@ msgid "Static Type"
 msgstr "Statický typ"
 
 
-msgid "Node type (deprecated, use with care)"
-msgstr "Typ uzla (zastarané, používajte opatrne)"
-
-
-msgid "Custom Node"
-msgstr "Vlastný uzol"
-
-
 msgid "Custom color of the node body"
 msgstr "Vlastná farba tela uzla"
 
@@ -43887,6 +43923,18 @@ msgstr "Interné pripojenia vstupov a výstupov pre útlm"
 
 msgid "Optional custom node label"
 msgstr "Voliteľný nápis vlastného uzla"
+
+
+msgid "Location of the node within its parent frame"
+msgstr "Umiestni uzol v rámci jeho nadradenej snímky"
+
+
+msgid "Absolute Location"
+msgstr "Absolútna poloha"
+
+
+msgid "Location of the node in the entire canvas"
+msgstr "Umiestni uzol na celom plátne"
 
 
 msgid "Unique node identifier"
@@ -43919,10 +43967,6 @@ msgstr "Zobraziť textúru"
 
 msgid "Display node in viewport textured shading mode"
 msgstr "Zobrazí uzol v zábere režimu textúrovaného tieňovania"
-
-
-msgid "Node type (deprecated, use bl_static_type or bl_idname for the actual identifier string)"
-msgstr "Typ uzla (zastarané, použite bl_static_type alebo bl_idname pre skutočný identifikátor reťazca)"
 
 
 msgid "Use custom color for the node"
@@ -62502,6 +62546,15 @@ msgstr "Naspodok zoznamu"
 
 
 msgctxt "Operator"
+msgid "Cancel File Operation"
+msgstr "Zrušiť operáciu so súborom"
+
+
+msgid "Cancel file operation"
+msgstr "Zrušiť operáciu so súborom"
+
+
+msgctxt "Operator"
 msgid "Delete Selected Files"
 msgstr "Odstrániť vybrané súbory"
 
@@ -64802,6 +64855,24 @@ msgstr "Vytvorí kópie vybraných ťahov Grease Pencil a presunie ich"
 
 
 msgctxt "Operator"
+msgid "Grease Pencil Box Erase"
+msgstr "Mazať poľom Grease Pencil"
+
+
+msgid "Erase points in the box region"
+msgstr "Maže body v oblasti poľa"
+
+
+msgctxt "Operator"
+msgid "Grease Pencil Erase Lasso"
+msgstr "Mazať lasom Grease Pencil"
+
+
+msgid "Erase points in the lasso region"
+msgstr "Maže body v oblasti lasa"
+
+
+msgctxt "Operator"
 msgid "Extrude Stroke Points"
 msgstr "Vysunúť body ťahu"
 
@@ -65146,38 +65217,6 @@ msgstr "Zmeniť ikonu skupiny vrstiev"
 
 msgid "Set Default icon"
 msgstr "Nastaviť predvolenú ikonu"
-
-
-msgid "Color tag 1"
-msgstr "Farebný príznak 1"
-
-
-msgid "Color tag 2"
-msgstr "Farebný príznak 2"
-
-
-msgid "Color tag 3"
-msgstr "Farebný príznak 3"
-
-
-msgid "Color tag 4"
-msgstr "Farebný príznak 4"
-
-
-msgid "Color tag 5"
-msgstr "Farebný príznak 5"
-
-
-msgid "Color tag 6"
-msgstr "Farebný príznak 6"
-
-
-msgid "Color tag 7"
-msgstr "Farebný príznak 7"
-
-
-msgid "Color tag 8"
-msgstr "Farebný príznak 8"
 
 
 msgctxt "Operator"
@@ -65761,6 +65800,15 @@ msgstr "Vyberie všetky body ťahu"
 
 msgid "Select all stroke points between other strokes"
 msgstr "Vyberie všetky body ťahu medzi inými ťahmi"
+
+
+msgctxt "Operator"
+msgid "Set Start Point"
+msgstr "Nastaviť počiatočný bod"
+
+
+msgid "Select which point is the beginning of the curve"
+msgstr "Vyberte, ktorý bod je začiatkom krivky"
 
 
 msgctxt "Operator"
@@ -73192,6 +73240,11 @@ msgid "Maintain parent child relationships"
 msgstr "Zachová vzťahy rodič potomok"
 
 
+msgctxt "Operator"
+msgid "Edit Mode"
+msgstr "Režim editácie"
+
+
 msgid "Toggle object's edit mode"
 msgstr "Prepína režim editácie objektu"
 
@@ -77347,6 +77400,11 @@ msgstr "Vzorka výstupnej farby zobrazenia"
 
 msgid "Add to Palette"
 msgstr "Pridať do palety"
+
+
+msgctxt "Operator"
+msgid "Texture Paint Mode"
+msgstr "Režim Maľovanie textúry"
 
 
 msgid "Toggle texture paint mode in 3D view"
@@ -82656,6 +82714,11 @@ msgstr "Vymeniť vstupy"
 
 msgid "Swap the two inputs of the effect strip"
 msgstr "Prehodí dva vstupy pre efekt pásu"
+
+
+msgctxt "Operator"
+msgid "Deselect All"
+msgstr "Odznačiť všetko"
 
 
 msgctxt "Operator"
@@ -88706,6 +88769,10 @@ msgid "Merge parent Xform"
 msgstr "Zlúčiť nadradený Xform"
 
 
+msgid "Merge USD primitives with their Xform parent if possible. USD does not allow nested UsdGeomGprims, intermediary Xform prims will be defined to keep the USD file valid when encountering object hierarchies."
+msgstr "Ak je to možné, zlúči prvotné tvary USD s ich nadradenou formou Xform. USD neumožňuje vnorené UsdGeomGprims, budú definované sprostredkujúce prvotné tvary Xform, aby sa zachovala platnosť USD súboru pri stretnutí s hierarchiami objektov."
+
+
 msgid "Only export deform bones and their parents"
 msgstr "Exportuje len deformované kosti a ich rodičov"
 
@@ -90004,6 +90071,14 @@ msgid "Panel containing UI elements"
 msgstr "Panel obsahujúci prvky užívateľského rozhrania"
 
 
+msgid "Overlays"
+msgstr "Prekrytia"
+
+
+msgid "Guides"
+msgstr "Vodenie"
+
+
 msgid "Viewer Node"
 msgstr "Uzol Zobrazovač"
 
@@ -90042,10 +90117,6 @@ msgstr "Umiestnenie ťahu"
 
 msgid "Drawing Plane"
 msgstr "Rovina kreslenia"
-
-
-msgid "Guides"
-msgstr "Vodenie"
 
 
 msgid "Grease Pencil Options"
@@ -90142,10 +90213,6 @@ msgstr "Prechod Prekreslenie"
 
 msgid "Compositor"
 msgstr "Kompozítor"
-
-
-msgid "Overlays"
-msgstr "Prekrytia"
 
 
 msgid "Chain Scaling"
@@ -93582,10 +93649,6 @@ msgstr "Experimentálne vlastnosti"
 
 msgid "No Override Auto Resync"
 msgstr "Bez prepisu automatickej opätovnej synchronizácie"
-
-
-msgid "Disable library overrides automatic resync detection and process on file load (can be useful to help fixing broken files)"
-msgstr "Zakáže prepis knižnice automatickej opätovnej synchronizácie a procesu pri načítaní súboru (môže byť užitočné pre pomoc pri oprave poškodených súborov)"
 
 
 msgid "Asset Debug Info"
@@ -112893,24 +112956,6 @@ msgid "Action when 'Space' is pressed"
 msgstr "Akcia pri stlačení 'medzerníka'"
 
 
-msgid "Toggle animation playback ('Shift-Space' for Tools)"
-msgstr "Prepínanie prehrávania animácie ('Shift-medzerník' pre Nástroje)"
-
-
-msgid ""
-"Open the popup tool-bar\n"
-"When 'Space' is held and used as a modifier:\n"
-"• Pressing the tools binding key switches to it immediately.\n"
-"• Dragging the cursor over a tool and releasing activates it (like a pie menu).\n"
-"For Play use 'Shift-Space'"
-msgstr ""
-"Otvorí vyskakovaciu lištu nástrojov\n"
-" Pridržaný 'medzerník' sa používa ako modifikátor:\n"
-"• Stlačením klávesy s väzbou na nástroj ho okamžite prepnete.\n"
-"• Presunutím kurzora nad nástroj a jeho uvoľnením sa aktivuje (napríklad koláčová ponuka).\n"
-"Pre prehrávanie použite 'Shift+medzerník'"
-
-
 msgid "Search"
 msgstr "Vyhľadať"
 
@@ -117724,11 +117769,6 @@ msgstr "Resetovať nastavenia"
 
 
 msgctxt "Operator"
-msgid "Deselect All"
-msgstr "Odznačiť všetko"
-
-
-msgctxt "Operator"
 msgid "Update Work Repository"
 msgstr "Aktualizovať pracovné úložisko"
 
@@ -119341,6 +119381,10 @@ msgstr "Po kľúčovej snímke"
 
 msgid "Stroke Thickness"
 msgstr "Hrúbka ťahu"
+
+
+msgid "Channel Color"
+msgstr "Farba kanála"
 
 
 msgid "Autolock Inactive Layers"
@@ -126382,6 +126426,10 @@ msgid "Saved \"%s\""
 msgstr "Uložené \"%s\""
 
 
+msgid "Unable to create attribute in edit mode"
+msgstr "Nemožnosť vytvoriť atribút v režime editácie"
+
+
 msgid "Attribute name cannot be empty"
 msgstr "Názov atribútu nemôže byť prázdny"
 
@@ -126400,6 +126448,14 @@ msgstr "Názov atribútu nemôže byť prázdny"
 
 msgid "Attribute is required and can't be removed"
 msgstr "Atribút je povinný a nemožno ho odstrániť"
+
+
+msgid "Domain unsupported for \"%s\" attribute"
+msgstr "Nepodporovaná doména pre atribút \"%s\""
+
+
+msgid "Type unsupported for \"%s\" attribute"
+msgstr "Nepodporovaný typ pre atribút \"%s\""
 
 
 msgid "Layer '%s' could not be created"
@@ -127580,50 +127636,6 @@ msgstr "pracovne_priestory"
 
 msgid "worlds"
 msgstr "svety"
-
-
-msgid "Error writing frame"
-msgstr "Chyba pri zápise snímky"
-
-
-msgid "No valid formats found"
-msgstr "Nenašli sa žiadne platné formáty"
-
-
-msgid "Can't allocate FFmpeg format context"
-msgstr "Nemožno prideliť kontext formátu FFmpeg"
-
-
-msgid "Render width has to be 720 pixels for DV!"
-msgstr "Šírka prekreslenia musí byť 720 pixelov pre DV!"
-
-
-msgid "Render height has to be 480 pixels for DV-NTSC!"
-msgstr "Výška prekreslenia musí byť 480 pixelov pre DV-NTSC!"
-
-
-msgid "Render height has to be 576 pixels for DV-PAL!"
-msgstr "Výška prekreslenia musí byť 576 pixelov pre DV-PAL!"
-
-
-msgid "FFmpeg only supports 48khz / stereo audio for DV!"
-msgstr "FFmpeg podporuje iba 48khz / stereo zvuk pre DV!"
-
-
-msgid "Error initializing video stream"
-msgstr "Chyba pri inicializácii video prúdu"
-
-
-msgid "Error initializing audio stream"
-msgstr "Chyba pri inicializácii zvukového prúdu"
-
-
-msgid "Could not open file for writing"
-msgstr "Nepodarilo sa otvoriť súbor pre zápis"
-
-
-msgid "Could not initialize streams, probably unsupported codec combination"
-msgstr "Nepodarilo sa inicializovať prúdy. Pravdepodobne nepodporovaná kombinácia kodeku"
 
 
 msgid "Library database with null library data-block pointer!"
@@ -132017,6 +132029,10 @@ msgstr "Objekt (bez inverzie)"
 
 msgid "Object (Keep Transform Without Inverse)"
 msgstr "Objekt (zachovať transformáciu bez inverzie)"
+
+
+msgid "Object (Attach Curves to Surface)"
+msgstr "Objekt (Pripojenie kriviek k povrchu)"
 
 
 msgid "Make Selected Objects Single-User"
@@ -137106,6 +137122,50 @@ msgid "Freestyle: Stroke rendering"
 msgstr "Freestyle: Prekreslenie ťahu"
 
 
+msgid "Error writing frame"
+msgstr "Chyba pri zápise snímky"
+
+
+msgid "No valid formats found"
+msgstr "Nenašli sa žiadne platné formáty"
+
+
+msgid "Can't allocate FFmpeg format context"
+msgstr "Nemožno prideliť kontext formátu FFmpeg"
+
+
+msgid "Render width has to be 720 pixels for DV!"
+msgstr "Šírka prekreslenia musí byť 720 pixelov pre DV!"
+
+
+msgid "Render height has to be 480 pixels for DV-NTSC!"
+msgstr "Výška prekreslenia musí byť 480 pixelov pre DV-NTSC!"
+
+
+msgid "Render height has to be 576 pixels for DV-PAL!"
+msgstr "Výška prekreslenia musí byť 576 pixelov pre DV-PAL!"
+
+
+msgid "FFmpeg only supports 48khz / stereo audio for DV!"
+msgstr "FFmpeg podporuje iba 48khz / stereo zvuk pre DV!"
+
+
+msgid "Error initializing video stream"
+msgstr "Chyba pri inicializácii video prúdu"
+
+
+msgid "Error initializing audio stream"
+msgstr "Chyba pri inicializácii zvukového prúdu"
+
+
+msgid "Could not open file for writing"
+msgstr "Nepodarilo sa otvoriť súbor pre zápis"
+
+
+msgid "Could not initialize streams, probably unsupported codec combination"
+msgstr "Nepodarilo sa inicializovať prúdy. Pravdepodobne nepodporovaná kombinácia kodeku"
+
+
 msgid "Alembic Export: Unable to find collection '%s'"
 msgstr "Export Alembic: Nepodarilo sa nájsť kolekciu '%s'"
 
@@ -138523,18 +138583,6 @@ msgstr "Nemožno vytvoriť panel"
 
 msgid "Unable to copy item"
 msgstr "Nemožno skopírovať položku"
-
-
-msgid "CustomGroup"
-msgstr "Vlastná skupina"
-
-
-msgid "Custom Group Node"
-msgstr "Uzol Vlastná skupina"
-
-
-msgid "UNDEFINED"
-msgstr "NEDEFINOVANÉ"
 
 
 msgctxt "NodeTree"
@@ -143884,11 +143932,6 @@ msgstr "Vyvážiť farbu"
 
 
 msgctxt "Sequence"
-msgid "White Balance"
-msgstr "Vyvážiť bielu"
-
-
-msgctxt "Sequence"
 msgid "Curves"
 msgstr "Krivky"
 
@@ -143901,6 +143944,11 @@ msgstr "Korigovať odtieň"
 msgctxt "Sequence"
 msgid "Brightness/Contrast"
 msgstr "Jas/kontrast"
+
+
+msgctxt "Sequence"
+msgid "White Balance"
+msgstr "Vyvážiť bielu"
 
 
 msgctxt "Sequence"
@@ -145154,6 +145202,10 @@ msgstr "Formát Scalable Vector Graphics (SVG) 1.1"
 
 msgid "Import SVG as curves"
 msgstr "Importuje SVG ako krivky"
+
+
+msgid "Subclasses Error"
+msgstr "Chyba podtriedy"
 
 
 msgid "UV Layout"

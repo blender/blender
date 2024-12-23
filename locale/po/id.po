@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'2eb53ba3b21b')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'159424053bc2')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-16 09:31+0000\n"
+"POT-Creation-Date: 2024-12-23 13:35+0000\n"
 "PO-Revision-Date: 2024-10-26 01:56+0000\n"
 "Last-Translator: \"Adriel Y.\" <mixnblend@users.noreply.translate.blender.org>\n"
 "Language-Team: Indonesian <https://translate.blender.org/projects/blender-ui/ui/id/>\n"
@@ -17116,14 +17116,6 @@ msgid "Static Type"
 msgstr "Jenis Statik"
 
 
-msgid "Node type (deprecated, use with care)"
-msgstr "Tipe simpul (sudah tidak digunakan lagi, gunakan dengan hati-hati)"
-
-
-msgid "Custom Node"
-msgstr "Node Kustom"
-
-
 msgid "Custom color of the node body"
 msgstr "Warna kustom badan simpul"
 
@@ -17178,10 +17170,6 @@ msgstr "Tampilkan Tekstur"
 
 msgid "Display node in viewport textured shading mode"
 msgstr "Menampilkan simpul di mode bayangan bertekstur tampilan"
-
-
-msgid "Node type (deprecated, use bl_static_type or bl_idname for the actual identifier string)"
-msgstr "Tipe simpul (tidak digunakan lagi, gunakan bl_static_type atau bl_idname untuk string pengenal sebenarnya)"
 
 
 msgid "Use custom color for the node"
@@ -23592,6 +23580,11 @@ msgstr "Properti"
 
 
 msgctxt "Operator"
+msgid "Deselect All"
+msgstr "Tidak Seleksi Semuanya"
+
+
+msgctxt "Operator"
 msgid "Border Offset View"
 msgstr "Kamera"
 
@@ -27590,11 +27583,6 @@ msgstr "Pengaturan Reset"
 
 
 msgctxt "Operator"
-msgid "Deselect All"
-msgstr "Tidak Seleksi Semuanya"
-
-
-msgctxt "Operator"
 msgid "Statistics"
 msgstr "Statistik"
 
@@ -30063,14 +30051,6 @@ msgid "Undefined Type"
 msgstr "Tipe"
 
 
-msgid "No valid formats found"
-msgstr "Orientasi Transformasi"
-
-
-msgid "Could not open file for writing"
-msgstr "Tidak dapat membuka dokumen untuk menulis"
-
-
 msgid "Unable to read"
 msgstr "Tidak dapat membuka dokumen"
 
@@ -31469,6 +31449,14 @@ msgid "UV Vertex"
 msgstr "Vertex UV"
 
 
+msgid "No valid formats found"
+msgstr "Orientasi Transformasi"
+
+
+msgid "Could not open file for writing"
+msgstr "Tidak dapat membuka dokumen untuk menulis"
+
+
 msgid "Array length mismatch (expected %d, got %d)"
 msgstr "Ketidakcocokan panjang larik (ekspektasi %d, dapat %d)"
 
@@ -32077,13 +32065,13 @@ msgstr "Keseimbangan Warna"
 
 
 msgctxt "Sequence"
-msgid "White Balance"
-msgstr "Keseimbangan Putih"
+msgid "Curves"
+msgstr "Kurva"
 
 
 msgctxt "Sequence"
-msgid "Curves"
-msgstr "Kurva"
+msgid "White Balance"
+msgstr "Keseimbangan Putih"
 
 
 msgid "Strips must have the same number of inputs"

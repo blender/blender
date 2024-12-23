@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'2eb53ba3b21b')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'159424053bc2')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-16 09:31+0000\n"
-"PO-Revision-Date: 2024-12-15 01:56+0000\n"
+"POT-Creation-Date: 2024-12-23 13:35+0000\n"
+"PO-Revision-Date: 2024-12-19 07:56+0000\n"
 "Last-Translator: Gabriel Gazzán <gabcorreo@gmail.com>\n"
 "Language-Team: Spanish <https://translate.blender.org/projects/blender-ui/ui/es/>\n"
 "Language: es\n"
@@ -17572,7 +17572,7 @@ msgstr "Modo de fundido"
 
 
 msgid "Regular"
-msgstr "Regular"
+msgstr "Normal"
 
 
 msgid "Hard Light"
@@ -17729,6 +17729,38 @@ msgstr "Grupo de capas de Grease Pencil"
 
 msgid "Group of Grease Pencil layers"
 msgstr "Grupo de capas de Grease Pencil"
+
+
+msgid "Color tag 1"
+msgstr "Color 1"
+
+
+msgid "Color tag 2"
+msgstr "Color 2"
+
+
+msgid "Color tag 3"
+msgstr "Color 3"
+
+
+msgid "Color tag 4"
+msgstr "Color 4"
+
+
+msgid "Color tag 5"
+msgstr "Color 5"
+
+
+msgid "Color tag 6"
+msgstr "Color 6"
+
+
+msgid "Color tag 7"
+msgstr "Color 7"
+
+
+msgid "Color tag 8"
+msgstr "Color 8"
 
 
 msgid "Set layer group visibility"
@@ -21739,6 +21771,10 @@ msgid "Horizontal Alignment"
 msgstr "Alineación horizontal"
 
 
+msgid "Text horizontal alignment from the object or text box center"
+msgstr "Alineación horizontal del texto con respecto al centro del objeto o del marco de texto"
+
+
 msgid "Align text to the left"
 msgstr "Alinea el texto a la izquierda"
 
@@ -24888,6 +24924,14 @@ msgstr "Árbol de nodos compuesto por nodos vinculados entre sí; usados para so
 
 msgid "The node tree label"
 msgstr "Etiqueta del árbol de nodos"
+
+
+msgid "Use Group Interface"
+msgstr "Usar interfaz del grupo"
+
+
+msgid "Determines the visibility of some UI elements related to node groups"
+msgstr "Definirá la visibilidad de algunos elementos de la interfaz relacionados con los grupos de nodos"
 
 
 msgid "Color Tag"
@@ -43853,14 +43897,6 @@ msgid "Static Type"
 msgstr "Tipo estático"
 
 
-msgid "Node type (deprecated, use with care)"
-msgstr "Tipo de nodo (depreciado, usar con cautela)"
-
-
-msgid "Custom Node"
-msgstr "Nodo personalizado"
-
-
 msgid "Custom color of the node body"
 msgstr "Color presonalizado del cuerpo del nodo"
 
@@ -43887,6 +43923,18 @@ msgstr "Conexiones de entrada-salida internas a silenciar"
 
 msgid "Optional custom node label"
 msgstr "Etiqueta personalizada opcional del nodo"
+
+
+msgid "Location of the node within its parent frame"
+msgstr "Posición del nodo dentro de su marco superior"
+
+
+msgid "Absolute Location"
+msgstr "Posición absoluta"
+
+
+msgid "Location of the node in the entire canvas"
+msgstr "Posición del nodo dentro del lienzo completo"
 
 
 msgid "Unique node identifier"
@@ -43919,10 +43967,6 @@ msgstr "Mostrar textura"
 
 msgid "Display node in viewport textured shading mode"
 msgstr "Muestra el nodo en el modo texturizado de la vista"
-
-
-msgid "Node type (deprecated, use bl_static_type or bl_idname for the actual identifier string)"
-msgstr "Tipo de nodo (depreciado, usar bl_static_type o bl_idname para obtener la cadena de identificación real)"
 
 
 msgid "Use custom color for the node"
@@ -62502,6 +62546,15 @@ msgstr "El fondo de la lista"
 
 
 msgctxt "Operator"
+msgid "Cancel File Operation"
+msgstr "Cancelar operación de archivo"
+
+
+msgid "Cancel file operation"
+msgstr "Cancela la operación con archivos"
+
+
+msgctxt "Operator"
 msgid "Delete Selected Files"
 msgstr "Borrar archivos seleccionados"
 
@@ -64712,11 +64765,11 @@ msgstr "Permite abrir o cerrar el trazo seleccionado, agregando un segmento desd
 
 
 msgid "Close All"
-msgstr "Cerrar todo"
+msgstr "Cerrar todos"
 
 
 msgid "Open All"
-msgstr "Abrir todo"
+msgstr "Abrir todos"
 
 
 msgid "Delete selected strokes or points"
@@ -64799,6 +64852,24 @@ msgstr "Duplicar trazos"
 
 msgid "Make copies of the selected Grease Pencil strokes and move them"
 msgstr "Permite hacer copias de los trazos seleccionados de Grease Pencil y moverlos"
+
+
+msgctxt "Operator"
+msgid "Grease Pencil Box Erase"
+msgstr "Borrar Grease Pencil (Marco)"
+
+
+msgid "Erase points in the box region"
+msgstr "Borra puntos dentro del marco definido"
+
+
+msgctxt "Operator"
+msgid "Grease Pencil Erase Lasso"
+msgstr "Borrar Grease Pencil (Lazo)"
+
+
+msgid "Erase points in the lasso region"
+msgstr "Borra puntos dentro del lazo definido"
 
 
 msgctxt "Operator"
@@ -65146,38 +65217,6 @@ msgstr "Cambiar ícono de grupo de capas"
 
 msgid "Set Default icon"
 msgstr "Definir ícono predefinido"
-
-
-msgid "Color tag 1"
-msgstr "Color 1"
-
-
-msgid "Color tag 2"
-msgstr "Color 2"
-
-
-msgid "Color tag 3"
-msgstr "Color 3"
-
-
-msgid "Color tag 4"
-msgstr "Color 4"
-
-
-msgid "Color tag 5"
-msgstr "Color 5"
-
-
-msgid "Color tag 6"
-msgstr "Color 6"
-
-
-msgid "Color tag 7"
-msgstr "Color 7"
-
-
-msgid "Color tag 8"
-msgstr "Color 8"
 
 
 msgctxt "Operator"
@@ -65718,7 +65757,7 @@ msgstr "Separar por capa"
 
 msgctxt "Operator"
 msgid "Set Active Material"
-msgstr "Definir material activo"
+msgstr "Definir como material activo"
 
 
 msgid "Set the selected stroke material as the active material"
@@ -65761,6 +65800,15 @@ msgstr "Permite seleccionar todos los puntos de un trazo"
 
 msgid "Select all stroke points between other strokes"
 msgstr "Permite seleccionar los puntos correspondientes a segmentos de un trazo, tomando en cuenta sus intersecciones"
+
+
+msgctxt "Operator"
+msgid "Set Start Point"
+msgstr "Definir punto de inicio"
+
+
+msgid "Select which point is the beginning of the curve"
+msgstr "Selecciona el punto que determinará el inicio de la curva"
 
 
 msgctxt "Operator"
@@ -68200,7 +68248,7 @@ msgstr "Fusiona triángulos adjacentes en cuadriláteros"
 
 
 msgid "Make Holes"
-msgstr "Hacer hueco"
+msgstr "Hacer huecos"
 
 
 msgid "Delete selected faces that are used by the hull"
@@ -68212,7 +68260,7 @@ msgstr "Comparar materiales"
 
 
 msgid "Compare Seam"
-msgstr "Comparar costura"
+msgstr "Comparar costuras"
 
 
 msgid "Max Shape Angle"
@@ -68224,7 +68272,7 @@ msgstr "Límite angular de la forma"
 
 
 msgid "Compare Sharp"
-msgstr "Comparar definido"
+msgstr "Comparar definición"
 
 
 msgid "Topology Influence"
@@ -73192,6 +73240,11 @@ msgid "Maintain parent child relationships"
 msgstr "Mantener relaciones jerárquicas"
 
 
+msgctxt "Operator"
+msgid "Edit Mode"
+msgstr "Modo Edición"
+
+
 msgid "Toggle object's edit mode"
 msgstr "Alterna el modo de Edición del objeto"
 
@@ -77347,6 +77400,11 @@ msgstr "Toma una muestra del color visualizado en pantalla"
 
 msgid "Add to Palette"
 msgstr "Agregar a la paleta"
+
+
+msgctxt "Operator"
+msgid "Texture Paint Mode"
+msgstr "Modo Pintar Texturas"
 
 
 msgid "Toggle texture paint mode in 3D view"
@@ -82656,6 +82714,11 @@ msgstr "Intercambiar entradas"
 
 msgid "Swap the two inputs of the effect strip"
 msgstr "Intercambia las dos entradas del clip de efecto"
+
+
+msgctxt "Operator"
+msgid "Deselect All"
+msgstr "(De)seleccionar todo"
 
 
 msgctxt "Operator"
@@ -88706,6 +88769,10 @@ msgid "Merge parent Xform"
 msgstr "Fundir transformación de superior"
 
 
+msgid "Merge USD primitives with their Xform parent if possible. USD does not allow nested UsdGeomGprims, intermediary Xform prims will be defined to keep the USD file valid when encountering object hierarchies."
+msgstr "Fundir las primitivas USD con la transformación de su superior, cuando esto sea posible. USD no permite primitivas geométricas anidadas. Se definirán primitivas de transformación intermedias para mantener la validez del archivo USD, al encontrar jerarquías de objetos."
+
+
 msgid "Only export deform bones and their parents"
 msgstr "Sólo exportar huesos deformantes y sus superiores"
 
@@ -90004,6 +90071,14 @@ msgid "Panel containing UI elements"
 msgstr "Panel que contiene elementos de la interfaz"
 
 
+msgid "Overlays"
+msgstr "Sobreimpresos"
+
+
+msgid "Guides"
+msgstr "Guías"
+
+
 msgid "Viewer Node"
 msgstr "Nodo Visor"
 
@@ -90042,10 +90117,6 @@ msgstr "Ubicación del trazo"
 
 msgid "Drawing Plane"
 msgstr "Plano de dibujo"
-
-
-msgid "Guides"
-msgstr "Guías"
 
 
 msgid "Grease Pencil Options"
@@ -90142,10 +90213,6 @@ msgstr "Pasada de procesamiento"
 
 msgid "Compositor"
 msgstr "Nodos de composición"
-
-
-msgid "Overlays"
-msgstr "Sobreimpresos"
 
 
 msgid "Chain Scaling"
@@ -93582,10 +93649,6 @@ msgstr "Características experimentales"
 
 msgid "No Override Auto Resync"
 msgstr "No resincronizar redefiniciones automáticamente"
-
-
-msgid "Disable library overrides automatic resync detection and process on file load (can be useful to help fixing broken files)"
-msgstr "Deshabilita la detección y el procesamiento de la resincronización automática de redefiniciones de bibliotecas al cargar un archivo (puede resultar útil para ayudar a corregir archivos dañados)"
 
 
 msgid "Asset Debug Info"
@@ -112893,24 +112956,6 @@ msgid "Action when 'Space' is pressed"
 msgstr "Acción cuando se presiona la 'barra espaciadora'"
 
 
-msgid "Toggle animation playback ('Shift-Space' for Tools)"
-msgstr "Reproducir / Detener animación ('Mayúsculas-Espacio' para herramientas)"
-
-
-msgid ""
-"Open the popup tool-bar\n"
-"When 'Space' is held and used as a modifier:\n"
-"• Pressing the tools binding key switches to it immediately.\n"
-"• Dragging the cursor over a tool and releasing activates it (like a pie menu).\n"
-"For Play use 'Shift-Space'"
-msgstr ""
-"Abre la barra de herramientas emergente\n"
-"Cuando la 'barra espaciadora' es mantenida y usada como tecla modificadora:\n"
-"• Presionar el atajo de una herramienta la activará inmediatamente.\n"
-"• Arrastrar el cursor sobre una herramienta y soltarlo la activará (como en un menú circular).\n"
-"Para reproducir usar 'Mayúsculas-Epacio'"
-
-
 msgid "Search"
 msgstr "Buscar"
 
@@ -117724,11 +117769,6 @@ msgstr "Restablecer opciones"
 
 
 msgctxt "Operator"
-msgid "Deselect All"
-msgstr "(De)seleccionar todo"
-
-
-msgctxt "Operator"
 msgid "Update Work Repository"
 msgstr "Actualizar repositorio de trabajo"
 
@@ -119341,6 +119381,10 @@ msgstr "Claves posteriores"
 
 msgid "Stroke Thickness"
 msgstr "Grosor del trazo"
+
+
+msgid "Channel Color"
+msgstr "Color del canal"
 
 
 msgid "Autolock Inactive Layers"
@@ -126382,6 +126426,10 @@ msgid "Saved \"%s\""
 msgstr "\"%s\" guardado"
 
 
+msgid "Unable to create attribute in edit mode"
+msgstr "No es posible crear un atributo en modo Edición"
+
+
 msgid "Attribute name cannot be empty"
 msgstr "El nombre del atributo no puede estar vacío"
 
@@ -126400,6 +126448,14 @@ msgstr "El nombre del atributo no puede estar vacío"
 
 msgid "Attribute is required and can't be removed"
 msgstr "Este atributo es requerido y no puede ser eliminado"
+
+
+msgid "Domain unsupported for \"%s\" attribute"
+msgstr "Dominio no soportado para el atributo \"%s\""
+
+
+msgid "Type unsupported for \"%s\" attribute"
+msgstr "Tipo no soportado para el atributo \"%s\""
 
 
 msgid "Layer '%s' could not be created"
@@ -127580,50 +127636,6 @@ msgstr "espacios_de_trabajo"
 
 msgid "worlds"
 msgstr "entornos"
-
-
-msgid "Error writing frame"
-msgstr "Error al guardar fotograma"
-
-
-msgid "No valid formats found"
-msgstr "No se encontraron formatos válidos"
-
-
-msgid "Can't allocate FFmpeg format context"
-msgstr "No es posible asignar el contexto del formato FFmpeg"
-
-
-msgid "Render width has to be 720 pixels for DV!"
-msgstr "¡El ancho de la imagen procesada debe ser de 720 píxeles para DV!"
-
-
-msgid "Render height has to be 480 pixels for DV-NTSC!"
-msgstr "¡La altura de la imagen procesada debe ser de 480 píxeles para DV-NTSC!"
-
-
-msgid "Render height has to be 576 pixels for DV-PAL!"
-msgstr "¡La altura de la imagen procesada debe ser de 576 píxeles para DV-PAL!"
-
-
-msgid "FFmpeg only supports 48khz / stereo audio for DV!"
-msgstr "¡FFmpeg sólo soporta audio estéreo de 48khz para DV!"
-
-
-msgid "Error initializing video stream"
-msgstr "Error inicializando flujo de video"
-
-
-msgid "Error initializing audio stream"
-msgstr "Error inicializando flujo de audio"
-
-
-msgid "Could not open file for writing"
-msgstr "No fue posible abrir el archivo para escritura"
-
-
-msgid "Could not initialize streams, probably unsupported codec combination"
-msgstr "No fue posible inicializar los flujos, probablemente debido a una combinación no soportada de compresores"
 
 
 msgid "Library database with null library data-block pointer!"
@@ -132017,6 +132029,10 @@ msgstr "Sin compensación"
 
 msgid "Object (Keep Transform Without Inverse)"
 msgstr "Mantener transformación sin compensación"
+
+
+msgid "Object (Attach Curves to Surface)"
+msgstr "Anclar curvas a superficie"
 
 
 msgid "Make Selected Objects Single-User"
@@ -137106,6 +137122,50 @@ msgid "Freestyle: Stroke rendering"
 msgstr "Freestyle: Procesamiento de trazos"
 
 
+msgid "Error writing frame"
+msgstr "Error al guardar fotograma"
+
+
+msgid "No valid formats found"
+msgstr "No se encontraron formatos válidos"
+
+
+msgid "Can't allocate FFmpeg format context"
+msgstr "No es posible asignar el contexto del formato FFmpeg"
+
+
+msgid "Render width has to be 720 pixels for DV!"
+msgstr "¡El ancho de la imagen procesada debe ser de 720 píxeles para DV!"
+
+
+msgid "Render height has to be 480 pixels for DV-NTSC!"
+msgstr "¡La altura de la imagen procesada debe ser de 480 píxeles para DV-NTSC!"
+
+
+msgid "Render height has to be 576 pixels for DV-PAL!"
+msgstr "¡La altura de la imagen procesada debe ser de 576 píxeles para DV-PAL!"
+
+
+msgid "FFmpeg only supports 48khz / stereo audio for DV!"
+msgstr "¡FFmpeg sólo soporta audio estéreo de 48khz para DV!"
+
+
+msgid "Error initializing video stream"
+msgstr "Error inicializando flujo de video"
+
+
+msgid "Error initializing audio stream"
+msgstr "Error inicializando flujo de audio"
+
+
+msgid "Could not open file for writing"
+msgstr "No fue posible abrir el archivo para escritura"
+
+
+msgid "Could not initialize streams, probably unsupported codec combination"
+msgstr "No fue posible inicializar los flujos, probablemente debido a una combinación no soportada de compresores"
+
+
 msgid "Alembic Export: Unable to find collection '%s'"
 msgstr "Exportación a Alembic: No es posible encontrar la colección '%s'"
 
@@ -138523,18 +138583,6 @@ msgstr "No fue posible crear el panel"
 
 msgid "Unable to copy item"
 msgstr "No fue posible copiar el elemento"
-
-
-msgid "CustomGroup"
-msgstr "Grupo_personalizado"
-
-
-msgid "Custom Group Node"
-msgstr "Nodo de grupo personalizado"
-
-
-msgid "UNDEFINED"
-msgstr "NO_DEFINIDO"
 
 
 msgctxt "NodeTree"
@@ -143884,11 +143932,6 @@ msgstr "Balance de color"
 
 
 msgctxt "Sequence"
-msgid "White Balance"
-msgstr "Balance de blancos"
-
-
-msgctxt "Sequence"
 msgid "Curves"
 msgstr "Curvas"
 
@@ -143901,6 +143944,11 @@ msgstr "Corregir tono"
 msgctxt "Sequence"
 msgid "Brightness/Contrast"
 msgstr "Brillo / Contraste"
+
+
+msgctxt "Sequence"
+msgid "White Balance"
+msgstr "Balance de blancos"
 
 
 msgctxt "Sequence"
@@ -145154,6 +145202,10 @@ msgstr "Formato Scalable Vector Graphics (SVG) 1.1"
 
 msgid "Import SVG as curves"
 msgstr "Importar SVG como curvas"
+
+
+msgid "Subclasses Error"
+msgstr "Error de sub clases"
 
 
 msgid "UV Layout"

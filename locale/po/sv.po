@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'2eb53ba3b21b')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'159424053bc2')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-16 09:31+0000\n"
+"POT-Creation-Date: 2024-12-23 13:35+0000\n"
 "PO-Revision-Date: 2024-01-17 19:22+0000\n"
 "Last-Translator: Peter Simonsson <peter@simonsson.com>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
@@ -11183,6 +11183,11 @@ msgid "Sphere"
 msgstr "Sfär"
 
 
+msgctxt "Operator"
+msgid "Deselect All"
+msgstr "Avmarkera allt"
+
+
 msgid "Add or remove comments"
 msgstr "Lägg till eller ta bort kommentarer"
 
@@ -13675,11 +13680,6 @@ msgstr "Tillägget '{}' kunde inte hittas!"
 msgctxt "Operator"
 msgid "Reset Settings"
 msgstr "Återställ inställningar"
-
-
-msgctxt "Operator"
-msgid "Deselect All"
-msgstr "Avmarkera allt"
 
 
 msgctxt "Operator"

@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'2eb53ba3b21b')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'159424053bc2')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-16 09:31+0000\n"
-"PO-Revision-Date: 2024-12-13 19:56+0000\n"
+"POT-Creation-Date: 2024-12-23 13:35+0000\n"
+"PO-Revision-Date: 2024-12-18 18:56+0000\n"
 "Last-Translator: Alessandro Vecchio <alessandrovecchio1907@gmail.com>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
 "Language: it\n"
@@ -15922,6 +15922,10 @@ msgid "Horizontal Alignment"
 msgstr "Allineamento Orizzontale"
 
 
+msgid "Text horizontal alignment from the object or text box center"
+msgstr "Allineamento orizzontale del testo dal centro dell'oggetto o della casella di testo"
+
+
 msgid "Align text to the left"
 msgstr "Allinea testo a sinistra"
 
@@ -17770,6 +17774,10 @@ msgid "Create proxy images in a custom directory (default is movie location)"
 msgstr "Crea immagini proxy in una directory personalizzata (la definita è la posizione del filmato)"
 
 
+msgid "Use Group Interface"
+msgstr "Utilizza Interfaccia Gruppo"
+
+
 msgid "Color Tag"
 msgstr "Tag Colore"
 
@@ -18493,6 +18501,10 @@ msgid "Use Alpha"
 msgstr "Utilizza Alfa"
 
 
+msgid "Lights affect Grease Pencil object"
+msgstr "Le luci hanno effetto sugli oggetti Grease Pencil"
+
+
 msgid "Scale instance based on face size"
 msgstr "Scala l'istanza in base alle dimensioni della faccia"
 
@@ -18613,6 +18625,10 @@ msgid "Global Z"
 msgstr "Globale Z"
 
 
+msgid "Affect Children"
+msgstr "Effetto sui Figli"
+
+
 msgid "Apply effectors to children"
 msgstr "Applica gli effettori ai figli"
 
@@ -18655,6 +18671,10 @@ msgstr "Separazione Minima"
 
 msgid "Children Per Parent"
 msgstr "Figli Per Genitore"
+
+
+msgid "Number of children per parent"
+msgstr "Quantità di figli per genitore"
 
 
 msgid "Child Radius"
@@ -18791,6 +18811,10 @@ msgstr "Come distribuire le particelle sull'elemento selezionato"
 
 msgid "Jittered"
 msgstr "Tremolio"
+
+
+msgid "Amount of air drag"
+msgstr "Ammontare della resistenza dell'aria"
 
 
 msgid "Stiffness"
@@ -29041,10 +29065,6 @@ msgstr "L'etichetta del nodo"
 
 msgid "Static Type"
 msgstr "Tipo Statico"
-
-
-msgid "Custom Node"
-msgstr "Nodo Personalizzato"
 
 
 msgid "Custom color of the node body"
@@ -44649,6 +44669,11 @@ msgid "Swap Inputs"
 msgstr "Scambia Ingressi"
 
 
+msgctxt "Operator"
+msgid "Deselect All"
+msgstr "Deseleziona Tutto"
+
+
 msgid "Unmute (un)selected strips"
 msgstr "Riattiva gli spezzoni (de)selezionati"
 
@@ -47852,6 +47877,10 @@ msgid "Active Palette Color"
 msgstr "Colore Tavolozza Attivo"
 
 
+msgid "Overlays"
+msgstr "Sovrapposizioni"
+
+
 msgid "Motion Tracking"
 msgstr "Tracciatura Movimento"
 
@@ -47898,10 +47927,6 @@ msgstr "Passaggi Render"
 
 msgid "Compositor"
 msgstr "Compositore"
-
-
-msgid "Overlays"
-msgstr "Sovrapposizioni"
 
 
 msgid "Chain Scaling"
@@ -57623,11 +57648,6 @@ msgstr "Resetta Impostazioni"
 
 
 msgctxt "Operator"
-msgid "Deselect All"
-msgstr "Deseleziona Tutto"
-
-
-msgctxt "Operator"
 msgid "Statistics"
 msgstr "Statistiche"
 
@@ -57871,6 +57891,23 @@ msgid "Stroke Thickness"
 msgstr "Spessore Tratto"
 
 
+msgid "Channel Color"
+msgstr "Colore Canale"
+
+
+msgid "Autolock Inactive Layers"
+msgstr "Auto-blocca Livelli Inattivi"
+
+
+msgid "No layers to add"
+msgstr "Nessun livello da aggiungere"
+
+
+msgctxt "Operator"
+msgid "Duplicate Empty Keyframes"
+msgstr "Duplica Keyframes Vuoti"
+
+
 msgctxt "Operator"
 msgid "Hide Others"
 msgstr "Nascondi Altri"
@@ -57882,17 +57919,78 @@ msgstr "Blocca Tutto"
 
 
 msgctxt "Operator"
+msgid "Unlock All"
+msgstr "Sblocca Tutto"
+
+
+msgctxt "Operator"
 msgid "Merge Down"
 msgstr "Unisci col Sottostante"
+
+
+msgctxt "Operator"
+msgid "Merge Group"
+msgstr "Unisci Gruppo"
+
+
+msgctxt "Operator"
+msgid "Merge All"
+msgstr "Unisci Tutto"
+
+
+msgctxt "Operator"
+msgid "Copy Layer to Selected"
+msgstr "Copia Livello alla Selezione"
+
+
+msgctxt "Operator"
+msgid "Copy All Layers to Selected"
+msgstr "Copia Tutti i Layers alla Selezione"
+
+
+msgctxt "Operator"
+msgid "Delete Group"
+msgstr "Cancella Gruppo"
+
+
+msgid "Interpolation U"
+msgstr "Interpolazione U"
+
+
+msgid "Overblur"
+msgstr "Overblur"
+
+
+msgid "Resolution Limit"
+msgstr "Limite Risoluzione"
+
+
+msgctxt "ID"
+msgid "Volume Scatter"
+msgstr "Dispersione Volume"
 
 
 msgid "Bleed Bias"
 msgstr "Influenza Scolorimento"
 
 
+msgid "Arrow Size"
+msgstr "Dimensione Freccia"
+
+
 msgctxt "Operator"
 msgid "Lock Invert All"
-msgstr "Inverti Tutti i Blocchi"
+msgstr "Blocca Inverti Tutto"
+
+
+msgctxt "Operator"
+msgid "Delete All Shape Keys"
+msgstr "Cancella Tutti gli Shape Keys"
+
+
+msgctxt "Operator"
+msgid "Apply All Shape Keys"
+msgstr "Applica Tutti gli Shape Keys"
 
 
 msgctxt "Operator"
@@ -57931,8 +58029,35 @@ msgstr "Cancella Tutti i Gruppi"
 
 
 msgctxt "Operator"
+msgid "New Shape from Mix"
+msgstr "Nuova Forma dal Mix"
+
+
+msgctxt "Operator"
 msgid "Mirror Shape Key (Topology)"
-msgstr "Specchia Chiave Forma (Topologia)"
+msgstr "Specchia Shape Key (Topologia)"
+
+
+msgctxt "Operator"
+msgid "Move to Top"
+msgstr "Muovi In Cima"
+
+
+msgctxt "Operator"
+msgid "Move to Bottom"
+msgstr "Muovi In Fondo"
+
+
+msgid "Resolution Viewport"
+msgstr "Risoluzione Viewport"
+
+
+msgid "Influence Threshold"
+msgstr "Influenza Soglia"
+
+
+msgid "Update on Edit"
+msgstr "Aggiorna alla Modifica"
 
 
 msgctxt "Operator"
@@ -57940,8 +58065,36 @@ msgid "Search..."
 msgstr "Cerca..."
 
 
+msgid "Distance Reference"
+msgstr "Riferimento Distanza"
+
+
+msgid "Angle Outer"
+msgstr "Angolo Esterno"
+
+
 msgid "Detail"
 msgstr "Dettaglio"
+
+
+msgid "Failed to load volume:"
+msgstr "Impossibile caricare il volume:"
+
+
+msgid "Negation"
+msgstr "Negazione"
+
+
+msgid "Combination"
+msgstr "Combinazione"
+
+
+msgid "Condition"
+msgstr "Condizione"
+
+
+msgid "Line Set Collection"
+msgstr "Raccolta di Set di Linee"
 
 
 msgid "Base Transparency"
@@ -57958,15 +58111,27 @@ msgstr "Spaziatura Lungo il Tratto"
 
 msgctxt "Operator"
 msgid "Go to Linestyle Textures Properties"
-msgstr "Vai alle Proprietà Texture Stile Linea"
+msgstr "Vai alle Proprietà Texture Stile-Linea"
 
 
 msgid "Priority"
 msgstr "Priorità"
 
 
+msgid "Select by"
+msgstr "Seleziona per"
+
+
 msgid "Image Border"
 msgstr "Bordo Immagine"
+
+
+msgid "Angle Min"
+msgstr "Min Angolo"
+
+
+msgid "Curvature Min"
+msgstr "Min Curvatura"
 
 
 msgid "Draw:"
@@ -58004,7 +58169,7 @@ msgstr "Cursore alla Griglia"
 
 msgctxt "Operator"
 msgid "Poly"
-msgstr "Polilinea"
+msgstr "Poly"
 
 
 msgid "Display Cursor"
@@ -58013,6 +58178,14 @@ msgstr "Mostra Cursore"
 
 msgid "Data Source:"
 msgstr "Sorgente Dati:"
+
+
+msgid "No annotation source"
+msgstr "Nessuna fonte di annotazione"
+
+
+msgid "Channel Colors are disabled in Animation preferences"
+msgstr "I Colori dei Canali sono disabilitati nelle preferenze di Animazione"
 
 
 msgctxt "Operator"
@@ -61102,30 +61275,6 @@ msgstr "VistaRender"
 
 msgid "At least 8 common tracks on both keyframes are needed for reconstruction"
 msgstr "Almeno 8 tracce comuni su entrambi i keyframes sono necessarie per la ricostruzione"
-
-
-msgid "Error writing frame"
-msgstr "Errore scrivendo il frame"
-
-
-msgid "No valid formats found"
-msgstr "Non trovati formati validi"
-
-
-msgid "Render width has to be 720 pixels for DV!"
-msgstr "La larghezza del render deve essere di 720 pixels per DV!"
-
-
-msgid "Render height has to be 480 pixels for DV-NTSC!"
-msgstr "L'altezza del render deve essere di 480 pixels per DV-NTSC!"
-
-
-msgid "Render height has to be 576 pixels for DV-PAL!"
-msgstr "L'altezza del render deve essere di 576 pixels per DV-PAL!"
-
-
-msgid "Could not open file for writing"
-msgstr "Impossibile aprire il file per la scrittura"
 
 
 msgid "unknown error reading file"
@@ -64479,6 +64628,30 @@ msgid "Freestyle: Stroke rendering"
 msgstr "Freestyle: Disegno tratti"
 
 
+msgid "Error writing frame"
+msgstr "Errore scrivendo il frame"
+
+
+msgid "No valid formats found"
+msgstr "Non trovati formati validi"
+
+
+msgid "Render width has to be 720 pixels for DV!"
+msgstr "La larghezza del render deve essere di 720 pixels per DV!"
+
+
+msgid "Render height has to be 480 pixels for DV-NTSC!"
+msgstr "L'altezza del render deve essere di 480 pixels per DV-NTSC!"
+
+
+msgid "Render height has to be 576 pixels for DV-PAL!"
+msgstr "L'altezza del render deve essere di 576 pixels per DV-PAL!"
+
+
+msgid "Could not open file for writing"
+msgstr "Impossibile aprire il file per la scrittura"
+
+
 msgid "Index out of range"
 msgstr "Indice fuori intervallo"
 
@@ -65391,11 +65564,6 @@ msgstr "Bilanciamento Colore"
 
 
 msgctxt "Sequence"
-msgid "White Balance"
-msgstr "Bilanciamento del Bianco"
-
-
-msgctxt "Sequence"
 msgid "Curves"
 msgstr "Curve"
 
@@ -65403,6 +65571,11 @@ msgstr "Curve"
 msgctxt "Sequence"
 msgid "Hue Correct"
 msgstr "Correzione Tonalità"
+
+
+msgctxt "Sequence"
+msgid "White Balance"
+msgstr "Bilanciamento del Bianco"
 
 
 msgctxt "Sequence"

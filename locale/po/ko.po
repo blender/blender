@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'2eb53ba3b21b')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'159424053bc2')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-16 09:31+0000\n"
+"POT-Creation-Date: 2024-12-23 13:35+0000\n"
 "PO-Revision-Date: 2023-11-14 19:14+0000\n"
 "Last-Translator: Lee YeonJoo <yzoo2@naver.com>\n"
 "Language-Team: Korean <https://translate.blender.org/projects/blender-ui/ui/ko/>\n"
@@ -30474,14 +30474,6 @@ msgid "Static Type"
 msgstr "정적 유형"
 
 
-msgid "Node type (deprecated, use with care)"
-msgstr "노드 유형 (더 이상 사용되지 않음,주의해서 사용)"
-
-
-msgid "Custom Node"
-msgstr "커스텀 노드"
-
-
 msgid "Custom color of the node body"
 msgstr "노드 바디의 커스텀 컬러"
 
@@ -30532,10 +30524,6 @@ msgstr "미리보기를 표시"
 
 msgid "Show Texture"
 msgstr "텍스처를 표시"
-
-
-msgid "Node type (deprecated, use bl_static_type or bl_idname for the actual identifier string)"
-msgstr "노드 유형 (더 이상 사용되지 않음, 실제 식별자 문자열에 bl_static_type 또는 bl_idname 사용)"
 
 
 msgid "Use custom color for the node"
@@ -51311,6 +51299,11 @@ msgstr "입력을 교환"
 
 
 msgctxt "Operator"
+msgid "Deselect All"
+msgstr "모두 선택 해제"
+
+
+msgctxt "Operator"
 msgid "Unlock Strips"
 msgstr "스트립을 잠금 해제"
 
@@ -55685,6 +55678,14 @@ msgid "Panel containing UI elements"
 msgstr "UI 요소가 포함된 패널"
 
 
+msgid "Overlays"
+msgstr "오버레이"
+
+
+msgid "Guides"
+msgstr "가이드"
+
+
 msgid "Motion Tracking"
 msgstr "모션 트래킹"
 
@@ -55715,10 +55716,6 @@ msgstr "스트로크 배치"
 
 msgid "Drawing Plane"
 msgstr "드로잉 평면"
-
-
-msgid "Guides"
-msgstr "가이드"
 
 
 msgid "Quad View"
@@ -55759,10 +55756,6 @@ msgstr "SSAO 설정"
 
 msgid "Render Pass"
 msgstr "렌더 패스"
-
-
-msgid "Overlays"
-msgstr "오버레이"
 
 
 msgid "Bone Constraints"
@@ -70348,11 +70341,6 @@ msgstr "설정을 재설정"
 
 
 msgctxt "Operator"
-msgid "Deselect All"
-msgstr "모두 선택 해제"
-
-
-msgctxt "Operator"
 msgid "Statistics"
 msgstr "통계"
 
@@ -75069,42 +75057,6 @@ msgid "Original Mode"
 msgstr "원본 모드"
 
 
-msgid "Error writing frame"
-msgstr "프레임 쓰는 중 오류"
-
-
-msgid "No valid formats found"
-msgstr "올바른 형식을 찾을 수 없음"
-
-
-msgid "Render width has to be 720 pixels for DV!"
-msgstr "DV를 위해서는 렌더 폭은 720 픽셀이어야 합니다!"
-
-
-msgid "Render height has to be 480 pixels for DV-NTSC!"
-msgstr "DV-NTSC를 위해서는 렌더 높이는 480 픽셀이어야 합니다!"
-
-
-msgid "Render height has to be 576 pixels for DV-PAL!"
-msgstr "DV-PAL를 위해서는 렌더 높이는 576 픽셀이어야 합니다!"
-
-
-msgid "Error initializing video stream"
-msgstr "비디오 스트림 초기화 오류"
-
-
-msgid "Error initializing audio stream"
-msgstr "오디오 스트림 초기화 오류"
-
-
-msgid "Could not open file for writing"
-msgstr "작성하기 위해 파일을 열 수 없습니다"
-
-
-msgid "Could not initialize streams, probably unsupported codec combination"
-msgstr "스트림을 초기화 할 수 없음, 지원되지 않는 코덱 조합 일 수 있습니다"
-
-
 msgid "ID %s is in local database while being linked from library %s!"
 msgstr "ID %s은 라이브러리 %s에서 링크되는 동안 로컬 데이터베이스에 있습니다!"
 
@@ -79626,6 +79578,42 @@ msgid "Freestyle: Stroke rendering"
 msgstr "프리스타일: 스트로크 렌더링"
 
 
+msgid "Error writing frame"
+msgstr "프레임 쓰는 중 오류"
+
+
+msgid "No valid formats found"
+msgstr "올바른 형식을 찾을 수 없음"
+
+
+msgid "Render width has to be 720 pixels for DV!"
+msgstr "DV를 위해서는 렌더 폭은 720 픽셀이어야 합니다!"
+
+
+msgid "Render height has to be 480 pixels for DV-NTSC!"
+msgstr "DV-NTSC를 위해서는 렌더 높이는 480 픽셀이어야 합니다!"
+
+
+msgid "Render height has to be 576 pixels for DV-PAL!"
+msgstr "DV-PAL를 위해서는 렌더 높이는 576 픽셀이어야 합니다!"
+
+
+msgid "Error initializing video stream"
+msgstr "비디오 스트림 초기화 오류"
+
+
+msgid "Error initializing audio stream"
+msgstr "오디오 스트림 초기화 오류"
+
+
+msgid "Could not open file for writing"
+msgstr "작성하기 위해 파일을 열 수 없습니다"
+
+
+msgid "Could not initialize streams, probably unsupported codec combination"
+msgstr "스트림을 초기화 할 수 없음, 지원되지 않는 코덱 조합 일 수 있습니다"
+
+
 msgid "Index out of range"
 msgstr "범위를 벗어난 인덱스"
 
@@ -80717,11 +80705,6 @@ msgstr "컬러 균형"
 
 
 msgctxt "Sequence"
-msgid "White Balance"
-msgstr "화이트 밸런스"
-
-
-msgctxt "Sequence"
 msgid "Curves"
 msgstr "커브"
 
@@ -80729,6 +80712,11 @@ msgstr "커브"
 msgctxt "Sequence"
 msgid "Hue Correct"
 msgstr "색조 보정"
+
+
+msgctxt "Sequence"
+msgid "White Balance"
+msgstr "화이트 밸런스"
 
 
 msgctxt "Sequence"

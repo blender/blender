@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'2eb53ba3b21b')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'159424053bc2')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-16 09:31+0000\n"
+"POT-Creation-Date: 2024-12-23 13:35+0000\n"
 "PO-Revision-Date: 2024-03-05 22:56+0000\n"
 "Last-Translator: 居樂行 <oscilloscope9705@gmail.com>\n"
 "Language-Team: Chinese (Traditional) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
@@ -25551,14 +25551,6 @@ msgid "Static Type"
 msgstr "靜態類型"
 
 
-msgid "Node type (deprecated, use with care)"
-msgstr "節點類型 (已棄用，請小心使用)"
-
-
-msgid "Custom Node"
-msgstr "自訂節點"
-
-
 msgid "Custom color of the node body"
 msgstr "節點本體的自訂色彩"
 
@@ -25609,10 +25601,6 @@ msgstr "顯示預覽"
 
 msgid "Show Texture"
 msgstr "顯示紋理"
-
-
-msgid "Node type (deprecated, use bl_static_type or bl_idname for the actual identifier string)"
-msgstr "節點類型 (已棄用，請使用 bl_static_type 或 bl_idname 取得實際辨識碼字串)"
 
 
 msgid "Use custom color for the node"
@@ -41718,6 +41706,11 @@ msgid "Swap Inputs"
 msgstr "交換輸入"
 
 
+msgctxt "Operator"
+msgid "Deselect All"
+msgstr "取消全選"
+
+
 msgid "View all the strips in the sequencer"
 msgstr "檢視序段編輯器中的全部片段"
 
@@ -44582,6 +44575,10 @@ msgid "Palette Color"
 msgstr "色版色彩"
 
 
+msgid "Overlays"
+msgstr "疊層"
+
+
 msgid "Motion Tracking"
 msgstr "運動跟蹤"
 
@@ -44620,10 +44617,6 @@ msgstr "算繪通遞"
 
 msgid "Compositor"
 msgstr "合成器"
-
-
-msgid "Overlays"
-msgstr "疊層"
 
 
 msgid "Chain Scaling"
@@ -54965,11 +54958,6 @@ msgstr "重設設定"
 
 
 msgctxt "Operator"
-msgid "Deselect All"
-msgstr "取消全選"
-
-
-msgctxt "Operator"
 msgid "Statistics"
 msgstr "統計數據"
 
@@ -57466,42 +57454,6 @@ msgstr "平面軌道"
 
 msgid "Blender is compiled without motion tracking library"
 msgstr "Blender 編譯時未開啟動態追蹤函式庫"
-
-
-msgid "Error writing frame"
-msgstr "寫入框幀時發生錯誤"
-
-
-msgid "No valid formats found"
-msgstr "找不到有效的格式"
-
-
-msgid "Render width has to be 720 pixels for DV!"
-msgstr "對於 DV，算繪寬度必須為 720 像素！"
-
-
-msgid "Render height has to be 480 pixels for DV-NTSC!"
-msgstr "對於 DV-NTSC，算繪高度必須為 480 像素！"
-
-
-msgid "Render height has to be 576 pixels for DV-PAL!"
-msgstr "對於 DV-PAL，算繪高度必須為 576 像素！"
-
-
-msgid "Error initializing video stream"
-msgstr "初始化視訊串流時發生錯誤"
-
-
-msgid "Error initializing audio stream"
-msgstr "初始化音訊串流時發生錯誤"
-
-
-msgid "Could not open file for writing"
-msgstr "無法開啟檔案以寫入"
-
-
-msgid "Could not initialize streams, probably unsupported codec combination"
-msgstr "無法初始化串流，可能是結合未支援的邊解碼器"
 
 
 msgid "unknown error reading file"
@@ -60525,6 +60477,42 @@ msgstr "Freestyle：製作視圖映射"
 
 msgid "Freestyle: Stroke rendering"
 msgstr "Freestyle：算繪筆觸"
+
+
+msgid "Error writing frame"
+msgstr "寫入框幀時發生錯誤"
+
+
+msgid "No valid formats found"
+msgstr "找不到有效的格式"
+
+
+msgid "Render width has to be 720 pixels for DV!"
+msgstr "對於 DV，算繪寬度必須為 720 像素！"
+
+
+msgid "Render height has to be 480 pixels for DV-NTSC!"
+msgstr "對於 DV-NTSC，算繪高度必須為 480 像素！"
+
+
+msgid "Render height has to be 576 pixels for DV-PAL!"
+msgstr "對於 DV-PAL，算繪高度必須為 576 像素！"
+
+
+msgid "Error initializing video stream"
+msgstr "初始化視訊串流時發生錯誤"
+
+
+msgid "Error initializing audio stream"
+msgstr "初始化音訊串流時發生錯誤"
+
+
+msgid "Could not open file for writing"
+msgstr "無法開啟檔案以寫入"
+
+
+msgid "Could not initialize streams, probably unsupported codec combination"
+msgstr "無法初始化串流，可能是結合未支援的邊解碼器"
 
 
 msgid "Index out of range"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'2eb53ba3b21b')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'159424053bc2')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-16 09:31+0000\n"
+"POT-Creation-Date: 2024-12-23 13:35+0000\n"
 "PO-Revision-Date: 2024-11-17 07:56+0000\n"
 "Last-Translator: Satoshi Yamasaki <yamyam@yo.rim.or.jp>\n"
 "Language-Team: Japanese <https://translate.blender.org/projects/blender-ui/ui/ja/>\n"
@@ -17722,6 +17722,38 @@ msgstr "グリースペンシルレイヤーグループ"
 
 msgid "Group of Grease Pencil layers"
 msgstr "グリースペンシルレイヤーのグループ"
+
+
+msgid "Color tag 1"
+msgstr "カラータグ1"
+
+
+msgid "Color tag 2"
+msgstr "カラータグ2"
+
+
+msgid "Color tag 3"
+msgstr "カラータグ3"
+
+
+msgid "Color tag 4"
+msgstr "カラータグ4"
+
+
+msgid "Color tag 5"
+msgstr "カラータグ5"
+
+
+msgid "Color tag 6"
+msgstr "カラータグ6"
+
+
+msgid "Color tag 7"
+msgstr "カラータグ7"
+
+
+msgid "Color tag 8"
+msgstr "カラータグ8"
 
 
 msgid "Set layer group visibility"
@@ -43955,14 +43987,6 @@ msgid "Static Type"
 msgstr "静的タイプ"
 
 
-msgid "Node type (deprecated, use with care)"
-msgstr "ノードタイプ（廃止予定．注意して使用）"
-
-
-msgid "Custom Node"
-msgstr "カスタムノード"
-
-
 msgid "Custom color of the node body"
 msgstr "ノード本体のカスタムカラーセット"
 
@@ -44017,10 +44041,6 @@ msgstr "テクスチャを表示"
 
 msgid "Display node in viewport textured shading mode"
 msgstr "ビューポートでノードをテクスチャシェーディングモードで表示します"
-
-
-msgid "Node type (deprecated, use bl_static_type or bl_idname for the actual identifier string)"
-msgstr "ノードタイプ（廃止予定．実際の識別子文字列には bl_static_type または bl_idname を使用してください）"
 
 
 msgid "Use custom color for the node"
@@ -65435,38 +65455,6 @@ msgid "Set Default icon"
 msgstr "デフォルトアイコンを設定"
 
 
-msgid "Color tag 1"
-msgstr "カラータグ1"
-
-
-msgid "Color tag 2"
-msgstr "カラータグ2"
-
-
-msgid "Color tag 3"
-msgstr "カラータグ3"
-
-
-msgid "Color tag 4"
-msgstr "カラータグ4"
-
-
-msgid "Color tag 5"
-msgstr "カラータグ5"
-
-
-msgid "Color tag 6"
-msgstr "カラータグ6"
-
-
-msgid "Color tag 7"
-msgstr "カラータグ7"
-
-
-msgid "Color tag 8"
-msgstr "カラータグ8"
-
-
 msgctxt "Operator"
 msgid "Remove Layer Group"
 msgstr "レイヤーグループを削除"
@@ -82918,6 +82906,11 @@ msgstr "エフェクトストリップの二つの入力を交換します"
 
 
 msgctxt "Operator"
+msgid "Deselect All"
+msgstr "すべて選択解除"
+
+
+msgctxt "Operator"
 msgid "Unlock Strips"
 msgstr "ストリップをロック解除"
 
@@ -90338,6 +90331,14 @@ msgid "Panel containing UI elements"
 msgstr "UIの要素を含むパネル"
 
 
+msgid "Overlays"
+msgstr "オーバーレイ"
+
+
+msgid "Guides"
+msgstr "ガイド"
+
+
 msgid "Viewer Node"
 msgstr "ビューアーノード"
 
@@ -90372,10 +90373,6 @@ msgstr "ストロークの基準"
 
 msgid "Drawing Plane"
 msgstr "ドロー平面"
-
-
-msgid "Guides"
-msgstr "ガイド"
 
 
 msgid "Grease Pencil Options"
@@ -90472,10 +90469,6 @@ msgstr "レンダーパス"
 
 msgid "Compositor"
 msgstr "コンポジター"
-
-
-msgid "Overlays"
-msgstr "オーバーレイ"
 
 
 msgid "Chain Scaling"
@@ -93931,12 +93924,6 @@ msgstr "実験的機能"
 
 msgid "No Override Auto Resync"
 msgstr "オーバーライド自動再同期なし"
-
-
-msgid "Disable library overrides automatic resync detection and process on file load (can be useful to help fixing broken files)"
-msgstr ""
-"ファイル読み込み時にライブラリオーバーライドの自動再同期の探知と\n"
-"処理を無効にします（壊れたファイルの修正に役立つかもしれません）"
 
 
 msgid "Asset Debug Info"
@@ -113500,24 +113487,6 @@ msgid "Action when 'Space' is pressed"
 msgstr "[スペース]キーが押された時のアクション"
 
 
-msgid "Toggle animation playback ('Shift-Space' for Tools)"
-msgstr "アニメーション再生切り替え（[Shift]＋[スペース]でツール表示）"
-
-
-msgid ""
-"Open the popup tool-bar\n"
-"When 'Space' is held and used as a modifier:\n"
-"• Pressing the tools binding key switches to it immediately.\n"
-"• Dragging the cursor over a tool and releasing activates it (like a pie menu).\n"
-"For Play use 'Shift-Space'"
-msgstr ""
-"ポップアップツールバーを開きます．\n"
-"[スペース]押しながらの時は特殊キーとして使用されます:\n"
-"• ツールにバインドされたキーを押すとそのツールに切り替え\n"
-"• ツール上でカーソルをドラッグ＆リリースするとそのツールを有効化（パイメニューと同じ）\n"
-"再生は[Shift]＋[スペース]です"
-
-
 msgid "Search"
 msgstr "検索"
 
@@ -118346,11 +118315,6 @@ msgstr "設定を初期化"
 msgctxt "Operator"
 msgid "Reset Settings"
 msgstr "設定をリセット"
-
-
-msgctxt "Operator"
-msgid "Deselect All"
-msgstr "すべて選択解除"
 
 
 msgctxt "Operator"
@@ -128129,50 +128093,6 @@ msgid "worlds"
 msgstr "ワールド"
 
 
-msgid "Error writing frame"
-msgstr "フレーム保存エラー"
-
-
-msgid "No valid formats found"
-msgstr "有効なフォーマットがありません"
-
-
-msgid "Can't allocate FFmpeg format context"
-msgstr "FFmpeg フォーマットコンテクストが割り当てできません"
-
-
-msgid "Render width has to be 720 pixels for DV!"
-msgstr "DV用では幅が720ピクセルでないといけません！"
-
-
-msgid "Render height has to be 480 pixels for DV-NTSC!"
-msgstr "DV-NTSC用では高さが480ピクセルでないといけません！"
-
-
-msgid "Render height has to be 576 pixels for DV-PAL!"
-msgstr "DV-PAL用では高さが576ピクセルでないといけません！"
-
-
-msgid "FFmpeg only supports 48khz / stereo audio for DV!"
-msgstr "FFmpeg は48kHz/ステレオ音声の DV のみ対応しています！"
-
-
-msgid "Error initializing video stream"
-msgstr "ビデオストリーム初期化エラー"
-
-
-msgid "Error initializing audio stream"
-msgstr "オーディオストリーム初期化エラー"
-
-
-msgid "Could not open file for writing"
-msgstr "保存用のファイルが開けませんでした"
-
-
-msgid "Could not initialize streams, probably unsupported codec combination"
-msgstr "ストリーム初期化失敗，未対応のコーデック組み合わせによると思われます"
-
-
 msgid "Library database with null library data-block pointer!"
 msgstr "ライブラリデータブロックが NULL ポインタのライブラリデータベースです！"
 
@@ -137605,6 +137525,50 @@ msgid "Freestyle: Stroke rendering"
 msgstr "Freestyle: ストロークレンダリング"
 
 
+msgid "Error writing frame"
+msgstr "フレーム保存エラー"
+
+
+msgid "No valid formats found"
+msgstr "有効なフォーマットがありません"
+
+
+msgid "Can't allocate FFmpeg format context"
+msgstr "FFmpeg フォーマットコンテクストが割り当てできません"
+
+
+msgid "Render width has to be 720 pixels for DV!"
+msgstr "DV用では幅が720ピクセルでないといけません！"
+
+
+msgid "Render height has to be 480 pixels for DV-NTSC!"
+msgstr "DV-NTSC用では高さが480ピクセルでないといけません！"
+
+
+msgid "Render height has to be 576 pixels for DV-PAL!"
+msgstr "DV-PAL用では高さが576ピクセルでないといけません！"
+
+
+msgid "FFmpeg only supports 48khz / stereo audio for DV!"
+msgstr "FFmpeg は48kHz/ステレオ音声の DV のみ対応しています！"
+
+
+msgid "Error initializing video stream"
+msgstr "ビデオストリーム初期化エラー"
+
+
+msgid "Error initializing audio stream"
+msgstr "オーディオストリーム初期化エラー"
+
+
+msgid "Could not open file for writing"
+msgstr "保存用のファイルが開けませんでした"
+
+
+msgid "Could not initialize streams, probably unsupported codec combination"
+msgstr "ストリーム初期化失敗，未対応のコーデック組み合わせによると思われます"
+
+
 msgid "Alembic Export: Unable to find collection '%s'"
 msgstr "Alembic Export: コレクション「%s」が見つかりません"
 
@@ -138978,18 +138942,6 @@ msgstr "パネルが作成できません"
 
 msgid "Unable to copy item"
 msgstr "アイテムがコピーできません"
-
-
-msgid "CustomGroup"
-msgstr "カスタムグループ"
-
-
-msgid "Custom Group Node"
-msgstr "カスタムグループノード"
-
-
-msgid "UNDEFINED"
-msgstr "未定義"
 
 
 msgctxt "NodeTree"
@@ -144394,11 +144346,6 @@ msgstr "カラーバランス"
 
 
 msgctxt "Sequence"
-msgid "White Balance"
-msgstr "ホワイトバランス"
-
-
-msgctxt "Sequence"
 msgid "Curves"
 msgstr "カーブ"
 
@@ -144411,6 +144358,11 @@ msgstr "色相補正"
 msgctxt "Sequence"
 msgid "Brightness/Contrast"
 msgstr "輝度/コントラスト"
+
+
+msgctxt "Sequence"
+msgid "White Balance"
+msgstr "ホワイトバランス"
 
 
 msgctxt "Sequence"

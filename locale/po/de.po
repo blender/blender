@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'2eb53ba3b21b')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'159424053bc2')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-16 09:31+0000\n"
+"POT-Creation-Date: 2024-12-23 13:35+0000\n"
 "PO-Revision-Date: 2024-12-08 20:56+0000\n"
 "Last-Translator: Thomas Radeke <rahdick@gmx.de>\n"
 "Language-Team: German <https://translate.blender.org/projects/blender-ui/ui/de/>\n"
@@ -37724,6 +37724,11 @@ msgstr "Eingänge vertauschen"
 
 
 msgctxt "Operator"
+msgid "Deselect All"
+msgstr "Alles abwählen"
+
+
+msgctxt "Operator"
 msgid "Unlock Strips"
 msgstr "Streifen entsperren"
 
@@ -40432,6 +40437,14 @@ msgid "Active Palette Color"
 msgstr "Aktive Farbpalette"
 
 
+msgid "Overlays"
+msgstr "Überlagerungen"
+
+
+msgid "Guides"
+msgstr "Hilfslinien"
+
+
 msgid "Motion Tracking"
 msgstr "Bewegungsverfolgung"
 
@@ -40458,10 +40471,6 @@ msgstr "Transformationsausrichtung"
 
 msgid "Drawing Plane"
 msgstr "Malfläche"
-
-
-msgid "Guides"
-msgstr "Hilfslinien"
 
 
 msgid "Quad View"
@@ -40510,10 +40519,6 @@ msgstr "Renderdurchgänge"
 
 msgid "Compositor"
 msgstr "Setzer"
-
-
-msgid "Overlays"
-msgstr "Überlagerungen"
 
 
 msgid "Chain Scaling"
@@ -51002,11 +51007,6 @@ msgstr "Einstellungen zurücksetzen"
 
 
 msgctxt "Operator"
-msgid "Deselect All"
-msgstr "Alles abwählen"
-
-
-msgctxt "Operator"
 msgid "Statistics"
 msgstr "Statiken"
 
@@ -56143,38 +56143,6 @@ msgid "Could not write volume: %s"
 msgstr "Masse konnte nicht geschrieben werden: %s"
 
 
-msgid "Error writing frame"
-msgstr "Einzelbild Schreibfehler"
-
-
-msgid "No valid formats found"
-msgstr "Keine gültiges Format gefunden"
-
-
-msgid "Render width has to be 720 pixels for DV!"
-msgstr "Renderbreite sollte für DV 720 Pixel sein!"
-
-
-msgid "Render height has to be 480 pixels for DV-NTSC!"
-msgstr "Renderhöhe sollte für DV-NTSC 480 Pixel sein!"
-
-
-msgid "Render height has to be 576 pixels for DV-PAL!"
-msgstr "Renderhöhe sollte für DV-PAL 576 Pixel sein!"
-
-
-msgid "Error initializing video stream"
-msgstr "Fehler beim Initialisieren des Videostreams"
-
-
-msgid "Error initializing audio stream"
-msgstr "Fehler beim Initialisieren des Audiostreams"
-
-
-msgid "Could not open file for writing"
-msgstr "Datei kann nicht zum Schreiben geöffnet werden"
-
-
 msgid "unknown error reading file"
 msgstr "Unbekannter Dateilesefehler"
 
@@ -59396,6 +59364,38 @@ msgstr "Überschreibe %s"
 
 msgid "UV Vertex"
 msgstr "UV Knoten"
+
+
+msgid "Error writing frame"
+msgstr "Einzelbild Schreibfehler"
+
+
+msgid "No valid formats found"
+msgstr "Keine gültiges Format gefunden"
+
+
+msgid "Render width has to be 720 pixels for DV!"
+msgstr "Renderbreite sollte für DV 720 Pixel sein!"
+
+
+msgid "Render height has to be 480 pixels for DV-NTSC!"
+msgstr "Renderhöhe sollte für DV-NTSC 480 Pixel sein!"
+
+
+msgid "Render height has to be 576 pixels for DV-PAL!"
+msgstr "Renderhöhe sollte für DV-PAL 576 Pixel sein!"
+
+
+msgid "Error initializing video stream"
+msgstr "Fehler beim Initialisieren des Videostreams"
+
+
+msgid "Error initializing audio stream"
+msgstr "Fehler beim Initialisieren des Audiostreams"
+
+
+msgid "Could not open file for writing"
+msgstr "Datei kann nicht zum Schreiben geöffnet werden"
 
 
 msgid "Keying set path could not be added"

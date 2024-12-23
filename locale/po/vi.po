@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'2eb53ba3b21b')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'159424053bc2')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-16 09:31+0000\n"
+"POT-Creation-Date: 2024-12-23 13:35+0000\n"
 "PO-Revision-Date: 2024-12-12 15:44+0000\n"
 "Last-Translator: Hoang Duy Tran <hoangduytran1960@googlemail.com>\n"
 "Language-Team: Vietnamese <https://translate.blender.org/projects/blender-ui/ui/vi/>\n"
@@ -17624,6 +17624,38 @@ msgstr "Nhóm Tầng Lớp Bút Chì Dầu"
 
 msgid "Group of Grease Pencil layers"
 msgstr "Nhóm của các tầng lớp Bút Chì Dầu"
+
+
+msgid "Color tag 1"
+msgstr "Thẻ màu 1"
+
+
+msgid "Color tag 2"
+msgstr "Thẻ màu 2"
+
+
+msgid "Color tag 3"
+msgstr "Thẻ màu 3"
+
+
+msgid "Color tag 4"
+msgstr "Thẻ màu 4"
+
+
+msgid "Color tag 5"
+msgstr "Thẻ màu 5"
+
+
+msgid "Color tag 6"
+msgstr "Thẻ màu 6"
+
+
+msgid "Color tag 7"
+msgstr "Thẻ màu 7"
+
+
+msgid "Color tag 8"
+msgstr "Thẻ màu 8"
 
 
 msgid "Set layer group visibility"
@@ -43521,14 +43553,6 @@ msgid "Static Type"
 msgstr "Kiểu Tĩnh"
 
 
-msgid "Node type (deprecated, use with care)"
-msgstr "Kiểu nút static (lỗi thời, dùng cẩn thận)"
-
-
-msgid "Custom Node"
-msgstr "Nút Tự Tạo"
-
-
 msgid "Custom color of the node body"
 msgstr "Màu tùy chọn của thân nút"
 
@@ -43587,10 +43611,6 @@ msgstr "Hiển Thị Chất Liệu"
 
 msgid "Display node in viewport textured shading mode"
 msgstr "Hiển thị nút trong chế độ tô bóng chất liệu của cổng nhìn"
-
-
-msgid "Node type (deprecated, use bl_static_type or bl_idname for the actual identifier string)"
-msgstr "Loại nút (lỗi thời, dùng bl_static_type hay bl_idname cho các chuỗi ký tự định danh (tên) thật)"
 
 
 msgid "Use custom color for the node"
@@ -64752,38 +64772,6 @@ msgid "Set Default icon"
 msgstr "Đặt biểu tượng mặc định"
 
 
-msgid "Color tag 1"
-msgstr "Thẻ màu 1"
-
-
-msgid "Color tag 2"
-msgstr "Thẻ màu 2"
-
-
-msgid "Color tag 3"
-msgstr "Thẻ màu 3"
-
-
-msgid "Color tag 4"
-msgstr "Thẻ màu 4"
-
-
-msgid "Color tag 5"
-msgstr "Thẻ màu 5"
-
-
-msgid "Color tag 6"
-msgstr "Thẻ màu 6"
-
-
-msgid "Color tag 7"
-msgstr "Thẻ màu 7"
-
-
-msgid "Color tag 8"
-msgstr "Thẻ màu 8"
-
-
 msgctxt "Operator"
 msgid "Remove Layer Group"
 msgstr "Xóa Nhóm Tầng Lớp"
@@ -82197,6 +82185,11 @@ msgstr "Hoán đổi hai đầu vào của dải hiệu ứng"
 
 
 msgctxt "Operator"
+msgid "Deselect All"
+msgstr "Hủy Chọn Toàn Bộ"
+
+
+msgctxt "Operator"
 msgid "Unlock Strips"
 msgstr "Tháo khóa Dải"
 
@@ -89534,6 +89527,14 @@ msgid "Panel containing UI elements"
 msgstr "Bảng có chứa các phần tử Giao Diện Người Dùng (UI)"
 
 
+msgid "Overlays"
+msgstr "Lớp Vẽ Lồng"
+
+
+msgid "Guides"
+msgstr "Hướng Dẫn"
+
+
 msgid "Viewer Node"
 msgstr "Nút Quan Sát"
 
@@ -89572,10 +89573,6 @@ msgstr "Phương Pháp Đặt Nét Vẽ"
 
 msgid "Drawing Plane"
 msgstr "Bề Diện Tác Họa"
-
-
-msgid "Guides"
-msgstr "Hướng Dẫn"
 
 
 msgid "Grease Pencil Options"
@@ -89668,10 +89665,6 @@ msgstr "Lượt Kết Xuất"
 
 msgid "Compositor"
 msgstr "Trình Tổng Hợp"
-
-
-msgid "Overlays"
-msgstr "Lớp Vẽ Lồng"
 
 
 msgid "Chain Scaling"
@@ -93108,10 +93101,6 @@ msgstr "Chức năng thử nghiệm"
 
 msgid "No Override Auto Resync"
 msgstr "Không Tự Động Tái Đồng Bộ Hóa Vượt Quyền"
-
-
-msgid "Disable library overrides automatic resync detection and process on file load (can be useful to help fixing broken files)"
-msgstr "Tắt tính năng tự động phát hiện tái đồng bộ và xử lý của vượt quyền thư viện khi nạp tập tin (có thể hữu ích để giúp sửa các tập tin bị hỏng hóc)"
 
 
 msgid "Asset Debug Info"
@@ -112292,24 +112281,6 @@ msgid "Action when 'Space' is pressed"
 msgstr "Hành động khi nhấn 'Dấu Cách'"
 
 
-msgid "Toggle animation playback ('Shift-Space' for Tools)"
-msgstr "Bật/tắt chơi lại hoạt họa ('Shift-thanh cách' cho Công Cụ)"
-
-
-msgid ""
-"Open the popup tool-bar\n"
-"When 'Space' is held and used as a modifier:\n"
-"• Pressing the tools binding key switches to it immediately.\n"
-"• Dragging the cursor over a tool and releasing activates it (like a pie menu).\n"
-"For Play use 'Shift-Space'"
-msgstr ""
-"Mở thanh công cụ bật lên\n"
-"Khi ‘Thanh Cách’ được giữ xuống và được sử dụng làm công cụ sửa đổi thì:\n"
-"• Nhấn phím kết buộc với công cụ sẽ ngay lập tức chuyển sang cái đó.\n"
-"• Kéo rê con trỏ qua một công cụ và thả ra để kích hoạt nó (giống như trình đơn rẻ quạt).\n"
-"Để Chơi xin hãy sử dụng 'Shift-Thanh Cách'"
-
-
 msgid "Search"
 msgstr "Tìm Kiếm"
 
@@ -117094,11 +117065,6 @@ msgstr "Khởi Thủy các Cài Đặt"
 msgctxt "Operator"
 msgid "Reset Settings"
 msgstr "Hoàn Lại Sắp Đặt"
-
-
-msgctxt "Operator"
-msgid "Deselect All"
-msgstr "Hủy Chọn Toàn Bộ"
 
 
 msgctxt "Operator"
@@ -126673,50 +126639,6 @@ msgid "worlds"
 msgstr "thế giới"
 
 
-msgid "Error writing frame"
-msgstr "Lỗi xảy ra trong khi ghi khung hình"
-
-
-msgid "No valid formats found"
-msgstr "Không tìm thấy định dạng hợp lệ nào cả"
-
-
-msgid "Can't allocate FFmpeg format context"
-msgstr "Không thể cấp phát ngữ cảnh định dạng FFmpeg được"
-
-
-msgid "Render width has to be 720 pixels for DV!"
-msgstr "Đối với DV, chiều rộng kết xuất phải bằng 720 điểm ảnh!"
-
-
-msgid "Render height has to be 480 pixels for DV-NTSC!"
-msgstr "Đối với DV-NTSC, chiều cao kết xuất phải bằng 480 điểm ảnh!"
-
-
-msgid "Render height has to be 576 pixels for DV-PAL!"
-msgstr "Đối với DV-PAL, chiều cao kết xuất phải bằng 576 điểm ảnh!"
-
-
-msgid "FFmpeg only supports 48khz / stereo audio for DV!"
-msgstr "FFmpeg chỉ hỗ trợ âm thanh 48khz / âm thanh nổi cho DV mà thôi!"
-
-
-msgid "Error initializing video stream"
-msgstr "Lỗi xảy ra trong khi khởi thủy luồng video"
-
-
-msgid "Error initializing audio stream"
-msgstr "Lỗi xảy ra trong khi khởi thủy luồng âm thanh"
-
-
-msgid "Could not open file for writing"
-msgstr "Không thể mở tập tin để ghi thông tin được"
-
-
-msgid "Could not initialize streams, probably unsupported codec combination"
-msgstr "Không thể khởi thủy các luồng. Có lẽ là vì tập hợp bộ hóa giải mã chưa được hỗ trợ"
-
-
 msgid "Library database with null library data-block pointer!"
 msgstr "Cơ sở dữ liệu thư viện với con trỏ khối dữ liệu thư viện NULL (trống rỗng)!"
 
@@ -136118,6 +136040,50 @@ msgid "Freestyle: Stroke rendering"
 msgstr "Freestyle: Kết xuất đường nét"
 
 
+msgid "Error writing frame"
+msgstr "Lỗi xảy ra trong khi ghi khung hình"
+
+
+msgid "No valid formats found"
+msgstr "Không tìm thấy định dạng hợp lệ nào cả"
+
+
+msgid "Can't allocate FFmpeg format context"
+msgstr "Không thể cấp phát ngữ cảnh định dạng FFmpeg được"
+
+
+msgid "Render width has to be 720 pixels for DV!"
+msgstr "Đối với DV, chiều rộng kết xuất phải bằng 720 điểm ảnh!"
+
+
+msgid "Render height has to be 480 pixels for DV-NTSC!"
+msgstr "Đối với DV-NTSC, chiều cao kết xuất phải bằng 480 điểm ảnh!"
+
+
+msgid "Render height has to be 576 pixels for DV-PAL!"
+msgstr "Đối với DV-PAL, chiều cao kết xuất phải bằng 576 điểm ảnh!"
+
+
+msgid "FFmpeg only supports 48khz / stereo audio for DV!"
+msgstr "FFmpeg chỉ hỗ trợ âm thanh 48khz / âm thanh nổi cho DV mà thôi!"
+
+
+msgid "Error initializing video stream"
+msgstr "Lỗi xảy ra trong khi khởi thủy luồng video"
+
+
+msgid "Error initializing audio stream"
+msgstr "Lỗi xảy ra trong khi khởi thủy luồng âm thanh"
+
+
+msgid "Could not open file for writing"
+msgstr "Không thể mở tập tin để ghi thông tin được"
+
+
+msgid "Could not initialize streams, probably unsupported codec combination"
+msgstr "Không thể khởi thủy các luồng. Có lẽ là vì tập hợp bộ hóa giải mã chưa được hỗ trợ"
+
+
 msgid "Alembic Export: Unable to find collection '%s'"
 msgstr "Xuất Khẩu Alembic: Không tìm thấy bộ sưu tập '%s' ở đâu cả"
 
@@ -137531,18 +137497,6 @@ msgstr "Không thể tạo bảng điều khiển được"
 
 msgid "Unable to copy item"
 msgstr "Không thể sao chép mục được"
-
-
-msgid "CustomGroup"
-msgstr "Nhóm Tùy Chỉnh"
-
-
-msgid "Custom Group Node"
-msgstr "Nút Nhóm Tùy Chỉnh"
-
-
-msgid "UNDEFINED"
-msgstr "KHÔNG XÁC ĐỊNH"
 
 
 msgctxt "NodeTree"
@@ -142708,11 +142662,6 @@ msgstr "Cân Bằng Màu"
 
 
 msgctxt "Sequence"
-msgid "White Balance"
-msgstr "Cân Bằng Trắng"
-
-
-msgctxt "Sequence"
 msgid "Curves"
 msgstr "Đường Cong"
 
@@ -142725,6 +142674,11 @@ msgstr "Chỉnh Sắc Màu"
 msgctxt "Sequence"
 msgid "Brightness/Contrast"
 msgstr "Độ Sáng/Độ Tương Phản"
+
+
+msgctxt "Sequence"
+msgid "White Balance"
+msgstr "Cân Bằng Trắng"
 
 
 msgctxt "Sequence"
