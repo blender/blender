@@ -7,7 +7,6 @@ set(INC
   ../uvedit
   ../../blenkernel
   ../../blentranslation
-  ../../bmesh
   ../../draw
   ../../functions
   ../../geometry
@@ -65,6 +64,7 @@ set(LIB
   PRIVATE bf::blenfont
   bf_blenkernel
   PRIVATE bf::blenlib
+  PRIVATE bf::bmesh
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   PRIVATE bf::extern::fmtlib

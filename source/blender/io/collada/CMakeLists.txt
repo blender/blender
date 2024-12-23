@@ -29,7 +29,6 @@ set(INC
   ../../makesrna
   ../../windowmanager
   ../../../../intern/iksolver/extern
-  ../../bmesh
 )
 
 set(INC_SYS
@@ -115,6 +114,7 @@ set(LIB
   ${XML2_LIBRARIES}
   PRIVATE bf::animrig
   PRIVATE bf::blenlib
+  PRIVATE bf::bmesh
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc

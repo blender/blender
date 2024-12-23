@@ -8,7 +8,6 @@ set(INC
   ../../asset_system
   ../../blenkernel
   ../../blentranslation
-  ../../bmesh
   ../../gpu
   ../../imbuf
   ../../makesrna
@@ -112,6 +111,7 @@ set(LIB
   PRIVATE bf::animrig
   PRIVATE bf::blenfont
   PRIVATE bf::blenlib
+  PRIVATE bf::bmesh
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   PRIVATE bf::intern::clog

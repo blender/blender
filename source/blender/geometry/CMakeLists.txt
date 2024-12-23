@@ -6,7 +6,6 @@ set(INC
   .
   ../blenkernel
   ../blentranslation
-  ../bmesh
   ../functions
   ../makesrna
   ../../../intern/eigen
@@ -102,6 +101,7 @@ set(SRC
 set(LIB
   bf_blenkernel
   PRIVATE bf::blenlib
+  PRIVATE bf::bmesh
   PRIVATE bf::dna
   PRIVATE bf::intern::atomic
   PRIVATE bf::intern::guardedalloc

@@ -6,7 +6,6 @@ set(INC
   ../include
   ../../blenkernel
   ../../blentranslation
-  ../../bmesh
   ../../gpu
   ../../imbuf
   ../../makesrna
@@ -50,6 +49,7 @@ set(LIB
   bf_blenkernel
   PRIVATE bf::animrig
   PRIVATE bf::blenlib
+  PRIVATE bf::bmesh
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc

@@ -6,7 +6,6 @@ set(INC
   ../include
   ../../blenkernel
   ../../blentranslation
-  ../../bmesh
   ../../gpu
   ../../ikplugin
   ../../makesrna
@@ -117,7 +116,7 @@ set(LIB
   PRIVATE bf::extern::fmtlib
   bf_blenkernel
   PRIVATE bf::blenlib
-  bf_bmesh
+  PRIVATE bf::bmesh
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   bf_editor_mask

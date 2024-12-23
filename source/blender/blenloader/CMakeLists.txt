@@ -8,7 +8,6 @@ set(INC
   ../blentranslation
   ../draw
   ../editors/include
-  ../bmesh
   ../gpu
   ../imbuf
   ../imbuf/movie
@@ -62,6 +61,7 @@ set(LIB
   PRIVATE bf::animrig
   bf_blenkernel
   PRIVATE bf::blenlib
+  PRIVATE bf::bmesh
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   PRIVATE bf::intern::clog

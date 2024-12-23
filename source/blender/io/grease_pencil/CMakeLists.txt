@@ -7,7 +7,6 @@ set(INC
   ../common
   ../../blenkernel
   ../../blenloader
-  ../../bmesh
   ../../editors/include
   ../../functions
   ../../geometry
@@ -33,6 +32,7 @@ set(SRC
 set(LIB
   bf_blenkernel
   PRIVATE bf::blenlib
+  PRIVATE bf::bmesh
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   PRIVATE bf::extern::nanosvg

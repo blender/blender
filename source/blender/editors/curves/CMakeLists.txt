@@ -6,7 +6,6 @@ set(INC
   ../include
   ../../blenkernel
   ../../blentranslation
-  ../../bmesh
   ../../functions
   ../../geometry
   ../../gpu
@@ -37,6 +36,7 @@ set(SRC
 set(LIB
   bf_blenkernel
   PRIVATE bf::blenlib
+  PRIVATE bf::bmesh
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   PRIVATE bf::extern::curve_fit_nd

@@ -7,7 +7,6 @@ set(INC
   ../../asset_system
   ../../blenkernel
   ../../blentranslation
-  ../../bmesh
   ../../functions
   ../../geometry
   ../../gpu
@@ -64,6 +63,7 @@ set(LIB
   PRIVATE bf::blenfont
   bf_blenkernel
   PRIVATE bf::blenlib
+  PRIVATE bf::bmesh
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   bf_editor_mesh

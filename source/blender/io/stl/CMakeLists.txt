@@ -9,7 +9,6 @@ set(INC
   intern
   ../common
   ../../blenkernel
-  ../../bmesh
   ../../editors/include
   ../../makesrna
   ../../windowmanager
@@ -42,6 +41,7 @@ set(SRC
 set(LIB
   bf_blenkernel
   PRIVATE bf::blenlib
+  PRIVATE bf::bmesh
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   PRIVATE bf::intern::clog

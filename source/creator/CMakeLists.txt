@@ -9,7 +9,6 @@ set(INC
   ../blender/imbuf
   ../blender/imbuf/movie
   ../blender/io/usd
-  ../blender/bmesh
   ../blender/makesrna
   ../blender/render
   ../blender/windowmanager
@@ -17,6 +16,7 @@ set(INC
 
 set(LIB
   PRIVATE bf::blenlib
+  PRIVATE bf::bmesh
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   PRIVATE bf::intern::clog

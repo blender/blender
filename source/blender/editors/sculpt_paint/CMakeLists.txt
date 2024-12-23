@@ -13,7 +13,6 @@ set(INC
   ../../blenlib
   ../../blenloader
   ../../blentranslation
-  ../../bmesh
   ../../draw
   ../../functions
   ../../geometry
@@ -183,6 +182,7 @@ set(LIB
   bf_blenkernel
   PRIVATE bf::animrig
   PRIVATE bf::blenlib
+  PRIVATE bf::bmesh
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   PRIVATE bf::extern::fmtlib
