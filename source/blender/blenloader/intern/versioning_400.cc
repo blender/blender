@@ -5361,6 +5361,24 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     }
   }
 
+  /* Fix incorrect identifier in the shader mix node. */
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 16)) {
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type == NTREE_SHADER) {
+        LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+          if (node->type == SH_NODE_MIX_SHADER) {
+            LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
+              if (STREQ(socket->identifier, "Shader.001")) {
+                STRNCPY(socket->identifier, "Shader_001");
+              }
+            }
+          }
+        }
+      }
+    }
+    FOREACH_NODETREE_END;
+  }
+
   /* Always run this versioning; meshes are written with the legacy format which always needs to
    * be converted to the new format on file load. Can be moved to a subversion check in a larger
    * breaking release. */
