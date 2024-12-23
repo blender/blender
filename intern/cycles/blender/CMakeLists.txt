@@ -6,7 +6,6 @@ set(INC
   ..
   ../../mikktspace
   ../../../source/blender/makesrna
-  ../../../source/blender/gpu
   ../../../source/blender/render
   ${CMAKE_BINARY_DIR}/source/blender/makesrna/intern
 )
@@ -60,6 +59,7 @@ set(LIB
   PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::dna
+  PRIVATE bf::gpu
   PRIVATE bf::intern::guardedalloc
   cycles_bvh
   cycles_device

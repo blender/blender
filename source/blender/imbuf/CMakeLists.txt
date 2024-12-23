@@ -8,7 +8,6 @@ set(INC
   .
   ./movie
   ../blenloader
-  ../gpu
   ../makesrna
   ../sequencer
   ../../../intern/memutil
@@ -76,6 +75,7 @@ set(LIB
   PRIVATE bf::blenlib
   bf_blenloader
   PRIVATE bf::dna
+  PRIVATE bf::gpu
   bf_imbuf_openimageio
   PRIVATE bf::intern::guardedalloc
   bf_intern_memutil

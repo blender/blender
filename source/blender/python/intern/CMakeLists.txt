@@ -7,7 +7,6 @@ set(INC
   ../../blenloader
   ../../blentranslation
   ../../editors/include
-  ../../gpu
   ../../imbuf
   ../../imbuf/intern/oiio
   ../../makesrna
@@ -126,6 +125,7 @@ set(LIB
   bf_editor_animation
   bf_editor_interface
   bf_editor_space_api
+  PRIVATE bf::gpu
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::animrig

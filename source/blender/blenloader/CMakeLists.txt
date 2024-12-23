@@ -7,7 +7,6 @@ set(INC
   ../blentranslation
   ../draw
   ../editors/include
-  ../gpu
   ../imbuf
   ../imbuf/movie
   ../makesrna
@@ -63,6 +62,7 @@ set(LIB
   PRIVATE bf::bmesh
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
+  PRIVATE bf::gpu
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::extern::fmtlib

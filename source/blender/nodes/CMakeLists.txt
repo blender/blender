@@ -60,7 +60,6 @@ set(INC
   ../depsgraph
   ../functions
   ../geometry
-  ../gpu
   ../imbuf
   ../makesrna
   ../modifiers
@@ -145,6 +144,7 @@ set(LIB
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   bf_functions
+  PRIVATE bf::gpu
   PRIVATE bf::intern::guardedalloc
   bf_nodes_composite
   bf_nodes_function

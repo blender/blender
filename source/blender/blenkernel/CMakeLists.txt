@@ -9,7 +9,6 @@ set(INC
   ../blentranslation
   ../draw
   ../functions
-  ../gpu
   ../ikplugin
   ../imbuf
   ../makesrna
@@ -568,7 +567,7 @@ set(LIB
   bf_draw
   PRIVATE bf::extern::curve_fit_nd
   bf_functions
-  bf_gpu
+  PRIVATE bf::gpu
   bf_ikplugin
   bf_imbuf
   bf::imbuf_movie

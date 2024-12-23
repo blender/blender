@@ -7,7 +7,6 @@ set(INC
   ../../blenloader
   ../../blentranslation
   ../../draw
-  ../../gpu
   ../../imbuf
   ../../imbuf/movie
   ../../makesrna
@@ -41,6 +40,7 @@ set(LIB
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   bf_draw
+  PRIVATE bf::gpu
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::animrig
 )

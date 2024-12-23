@@ -5,7 +5,6 @@
 set(INC
   ../include
   ../../blentranslation
-  ../../gpu
   ../../makesrna
   ../../windowmanager
   # RNA_prototypes.hh
@@ -37,6 +36,7 @@ set(LIB
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   PRIVATE bf::extern::curve_fit_nd
+  PRIVATE bf::gpu
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
 )

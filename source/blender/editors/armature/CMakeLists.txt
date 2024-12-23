@@ -7,7 +7,6 @@ set(INC
   ../../asset_system
   ../../blenloader
   ../../blentranslation
-  ../../gpu
   ../../makesrna
   ../../windowmanager
   ../../../../intern/eigen
@@ -49,6 +48,7 @@ set(LIB
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   PRIVATE bf::extern::fmtlib
+  PRIVATE bf::gpu
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
 )

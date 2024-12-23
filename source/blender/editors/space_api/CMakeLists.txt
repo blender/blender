@@ -6,7 +6,6 @@ set(INC
   ../include
   ../io
   ../../asset_system
-  ../../gpu
   ../../makesrna
   ../../windowmanager
 )
@@ -43,6 +42,7 @@ set(LIB
   bf_editor_space_topbar
   bf_editor_space_userpref
   bf_editor_space_view3d
+  PRIVATE bf::gpu
   PRIVATE bf::intern::guardedalloc
 )
 

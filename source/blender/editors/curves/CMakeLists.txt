@@ -7,7 +7,6 @@ set(INC
   ../../blentranslation
   ../../functions
   ../../geometry
-  ../../gpu
   ../../makesrna
   ../../windowmanager
 
@@ -40,6 +39,7 @@ set(LIB
   PRIVATE bf::dna
   PRIVATE bf::extern::curve_fit_nd
   PRIVATE bf::extern::fmtlib
+  PRIVATE bf::gpu
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
 )

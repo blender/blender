@@ -7,7 +7,6 @@ set(INC
   ../../blenfont
   ../../blenloader
   ../../blentranslation
-  ../../gpu
   ../../imbuf
   ../../makesrna
   ../../sequencer
@@ -140,6 +139,7 @@ set(LIB
   PRIVATE bf::dna
   bf_editor_id_management
   bf_editor_undo
+  PRIVATE bf::gpu
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   extern_fmtlib

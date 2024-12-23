@@ -6,7 +6,6 @@ set(INC
   ../include
   ../../blentranslation
   ../../geometry
-  ../../gpu
   ../../makesrna
   ../../windowmanager
   ../../../../intern/eigen
@@ -40,6 +39,7 @@ set(LIB
   PRIVATE bf::bmesh
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
+  PRIVATE bf::gpu
   PRIVATE bf::intern::guardedalloc
 )
 

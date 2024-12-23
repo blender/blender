@@ -7,7 +7,6 @@ set(INC
   ../space_sequencer
   ../../asset_system
   ../../blentranslation
-  ../../gpu
   ../../imbuf
   ../../makesrna
   ../../sequencer
@@ -114,6 +113,7 @@ set(LIB
   PRIVATE bf::bmesh
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
+  PRIVATE bf::gpu
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
 )

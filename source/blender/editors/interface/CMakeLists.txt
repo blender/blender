@@ -11,7 +11,6 @@ set(INC
   ../../blentranslation
   ../../draw
   ../../functions
-  ../../gpu
   ../../imbuf
   ../../imbuf/movie
   ../../makesrna
@@ -108,6 +107,7 @@ set(LIB
   bf_editor_datafiles
   bf_editor_id_management
   PRIVATE bf::extern::fmtlib
+  PRIVATE bf::gpu
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::animrig
 )

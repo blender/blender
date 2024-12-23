@@ -5,7 +5,6 @@
 set(INC
   ../include
   ../../blenloader
-  ../../gpu
   ../../makesrna
   ../../windowmanager
 
@@ -27,6 +26,7 @@ set(LIB
   PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::dna
+  PRIVATE bf::gpu
   PRIVATE bf::intern::guardedalloc
 )
 

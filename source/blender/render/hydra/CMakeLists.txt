@@ -49,7 +49,6 @@ set(INC
   ../../makesrna
   ../../nodes
   ../../io/usd
-  ../../gpu
   ../../gpu/intern
   ../../python/intern
   # RNA_prototypes.hh
@@ -75,6 +74,7 @@ set(LIB
   ${TBB_LIBRARIES}
   PRIVATE bf::blenkernel
   PRIVATE bf::depsgraph
+  PRIVATE bf::gpu
   PRIVATE bf::intern::clog
   bf_io_usd
 )

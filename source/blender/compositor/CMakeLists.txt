@@ -9,7 +9,6 @@ set(INC
   utilities
   ../blentranslation
   ../functions
-  ../gpu
   ../gpu/intern
   ../imbuf
   ../makesrna
@@ -149,7 +148,7 @@ set(SRC
 set(LIB
   PRIVATE bf::blenkernel
   bf_functions
-  bf_gpu
+  PRIVATE bf::gpu
   bf_imbuf
   bf_render
   PRIVATE bf::blenlib

@@ -6,7 +6,6 @@ set(INC
   ../include
   ../../blenloader
   ../../blentranslation
-  ../../gpu
   ../../imbuf
   ../../imbuf/movie
   ../../makesrna
@@ -50,6 +49,7 @@ set(LIB
   PRIVATE bf::blenlib
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
+  PRIVATE bf::gpu
   PRIVATE bf::intern::guardedalloc
 )
 

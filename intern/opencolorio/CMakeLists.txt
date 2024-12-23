@@ -4,7 +4,6 @@
 
 set(INC
   .
-  ../../source/blender/gpu
   ../../source/blender/gpu/intern
 )
 
@@ -24,6 +23,7 @@ set(SRC
 set(LIB
   PRIVATE bf::blenlib
   PRIVATE bf::dna
+  PRIVATE bf::gpu
   PRIVATE bf::intern::guardedalloc
 )
 

@@ -5,7 +5,6 @@
 set(INC
   ../include
   ../../blentranslation
-  ../../gpu
   ../../ikplugin
   ../../makesrna
   ../../render
@@ -119,7 +118,7 @@ set(LIB
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   bf_editor_mask
-  bf_gpu
+  PRIVATE bf::gpu
   PRIVATE bf::intern::guardedalloc
 )
 

@@ -9,7 +9,6 @@ set(INC
   ../../draw
   ../../functions
   ../../geometry
-  ../../gpu
   ../../imbuf
   ../../makesrna
   ../../render
@@ -67,6 +66,7 @@ set(LIB
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   PRIVATE bf::extern::fmtlib
+  PRIVATE bf::gpu
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   bf_windowmanager

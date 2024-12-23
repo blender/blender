@@ -8,7 +8,6 @@ set(INC
   ../../blentranslation
   ../../functions
   ../../geometry
-  ../../gpu
   ../../ikplugin
   ../../imbuf
   ../../makesrna
@@ -69,6 +68,7 @@ set(LIB
   bf_editor_metaball
   bf_editor_grease_pencil
   PRIVATE bf::extern::fmtlib
+  PRIVATE bf::gpu
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   bf_render

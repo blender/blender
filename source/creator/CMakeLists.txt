@@ -4,7 +4,6 @@
 
 set(INC
   ../blender/editors/include
-  ../blender/gpu
   ../blender/imbuf
   ../blender/imbuf/movie
   ../blender/io/usd
@@ -19,6 +18,7 @@ set(LIB
   PRIVATE bf::bmesh
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
+  PRIVATE bf::gpu
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   bf_windowmanager

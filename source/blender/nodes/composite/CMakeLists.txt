@@ -9,7 +9,6 @@ set(INC
   ../../editors/include
   ../../blentranslation
   ../../functions
-  ../../gpu
   ../../imbuf
   ../../makesrna
   ../../render
@@ -131,6 +130,7 @@ set(LIB
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   bf_functions
+  PRIVATE bf::gpu
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::extern::fmtlib
   bf_compositor

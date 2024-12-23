@@ -12,7 +12,6 @@ set(INC
   ../../draw
   ../../functions
   ../../geometry
-  ../../gpu
   ../../imbuf
   ../../makesrna
   ../../nodes
@@ -57,6 +56,7 @@ set(LIB
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   bf_editor_screen
+  PRIVATE bf::gpu
   PRIVATE bf::intern::guardedalloc
   bf_compositor
   PRIVATE bf::extern::fmtlib

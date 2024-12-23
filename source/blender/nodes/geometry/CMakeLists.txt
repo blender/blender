@@ -12,7 +12,6 @@ set(INC
   ../../blentranslation
   ../../functions
   ../../geometry
-  ../../gpu
   ../../imbuf
   ../../imbuf/movie
   ../../makesrna
@@ -253,6 +252,7 @@ set(LIB
   PRIVATE bf::dna
   bf_functions
   bf_geometry
+  PRIVATE bf::gpu
   PRIVATE bf::intern::guardedalloc
   bf_nodes
   PRIVATE bf::intern::atomic

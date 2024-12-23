@@ -8,7 +8,6 @@ set(INC
   ../../asset_system
   ../../blenloader
   ../../blentranslation
-  ../../gpu
   ../../imbuf
   ../../makesrna
   ../../sequencer
@@ -50,6 +49,7 @@ set(LIB
   PRIVATE bf::dna
   bf_editor_datafiles
   bf_editor_space_sequencer
+  PRIVATE bf::gpu
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::extern::fmtlib
 )

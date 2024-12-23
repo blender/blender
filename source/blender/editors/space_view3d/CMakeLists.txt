@@ -10,7 +10,6 @@ set(INC
   ../../blentranslation
   ../../draw
   ../../functions
-  ../../gpu
   ../../imbuf
   ../../makesrna
   ../../modifiers
@@ -90,6 +89,7 @@ set(LIB
   bf_editor_curves
   bf_editor_lattice
   bf_editor_mesh
+  PRIVATE bf::gpu
   PRIVATE bf::intern::guardedalloc
 )
 

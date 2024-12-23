@@ -11,7 +11,6 @@ set(INC
   ../compositor/cached_resources
   ../draw
   ../draw/intern
-  ../gpu
   ../gpu/intern
   ../imbuf
   ../imbuf/movie
@@ -65,6 +64,7 @@ set(LIB
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   PRIVATE bf::extern::fmtlib
+  PRIVATE bf::gpu
   PRIVATE bf::intern::guardedalloc
   bf_compositor
   PRIVATE bf::intern::atomic
