@@ -49,6 +49,8 @@ static const float proxy_fac[] = {0.25, 0.50, 0.75, 1.00};
  * - time code index functions
  * ---------------------------------------------------------------------- */
 
+#ifdef WITH_FFMPEG
+
 struct MovieIndexBuilder {
   FILE *fp;
   char filepath[FILE_MAX];
@@ -110,6 +112,8 @@ static void index_builder_finish(MovieIndexBuilder *fp, bool rollback)
 
   MEM_freeN(fp);
 }
+
+#endif
 
 static MovieIndex *movie_index_open(const char *filepath)
 {
