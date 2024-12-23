@@ -23,6 +23,7 @@
 #include "COM_context.hh"
 #include "COM_distortion_grid.hh"
 #include "COM_result.hh"
+#include "COM_utilities.hh"
 
 namespace blender::compositor {
 
@@ -61,43 +62,58 @@ DistortionGrid::DistortionGrid(
   MovieDistortion *distortion = BKE_tracking_distortion_new(
       &movie_clip->tracking, calibration_size.x, calibration_size.y);
 
-  distortion_grid_ = Array<float2>(size.x * size.y);
-  threading::parallel_for(IndexRange(size.y), 1, [&](const IndexRange sub_y_range) {
-    for (const int64_t y : sub_y_range) {
-      for (const int64_t x : IndexRange(size.x)) {
-        /* The tracking distortion functions expect the coordinates to be in the space of the image
-         * where the tracking camera was calibrated. So we first remap the coordinates into that
-         * space, apply the distortion, then remap back to the original coordinates space. This is
-         * done by dividing the by the size then multiplying by the calibration size, making sure
-         * to add 0.5 to evaluate at the center of pixels. */
-        float2 coordinates = ((float2(x, y) + 0.5f) / float2(size)) * float2(calibration_size);
+  /* Compute how much the image would extend outside each of its bounds due to distortion. */
+  int right_delta;
+  int left_delta;
+  int bottom_delta;
+  int top_delta;
+  BKE_tracking_distortion_bounds_deltas(&movie_clip->tracking,
+                                        size,
+                                        type == DistortionType::Undistort,
+                                        &right_delta,
+                                        &left_delta,
+                                        &bottom_delta,
+                                        &top_delta);
 
-        if (type == DistortionType::Undistort) {
-          BKE_tracking_distortion_undistort_v2(distortion, coordinates, coordinates);
-        }
-        else {
-          BKE_tracking_distortion_distort_v2(distortion, coordinates, coordinates);
-        }
+  /* Extend the size by the deltas of the bounds. */
+  const int2 extended_size = size + int2(right_delta + left_delta, bottom_delta + top_delta);
 
-        /* Note that we should remap the coordinates back into the original size by dividing by the
-         * calibration size and multiplying by the size, however, we skip the latter to store the
-         * coordinates in normalized form, since this is what the shader expects. */
-        distortion_grid_[y * size.x + x] = coordinates / float2(calibration_size);
-      }
+  distortion_grid_ = Array<float2>(extended_size.x * extended_size.y);
+  parallel_for(extended_size, [&](const int2 texel) {
+    /* The tracking distortion functions expect the coordinates to be in the space of the image
+     * where the tracking camera was calibrated. So we first remap the coordinates into that space,
+     * apply the distortion, then remap back to the original coordinates space. This is done by
+     * dividing the by the size then multiplying by the calibration size, making sure to add 0.5 to
+     * evaluate at the center of pixels.
+     *
+     * Subtract the lower left bounds delta since we are looping over the extended domain. */
+    float2 coordinates = ((float2(texel - int2(left_delta, bottom_delta)) + 0.5f) / float2(size)) *
+                         float2(calibration_size);
+
+    if (type == DistortionType::Undistort) {
+      BKE_tracking_distortion_undistort_v2(distortion, coordinates, coordinates);
     }
+    else {
+      BKE_tracking_distortion_distort_v2(distortion, coordinates, coordinates);
+    }
+
+    /* Note that we should remap the coordinates back into the original size by dividing by the
+     * calibration size and multiplying by the size, however, we skip the latter to store the
+     * coordinates in normalized form, since this is what the shader expects. */
+    distortion_grid_[texel.y * extended_size.x + texel.x] = coordinates / float2(calibration_size);
   });
 
   BKE_tracking_distortion_free(distortion);
 
   if (context.use_gpu()) {
-    this->result.allocate_texture(Domain(size), false);
+    this->result.allocate_texture(Domain(extended_size), false);
     GPU_texture_update(this->result, GPU_DATA_FLOAT, distortion_grid_.data());
 
     /* CPU-side data no longer needed, so free it. */
     distortion_grid_ = Array<float2>();
   }
   else {
-    this->result.wrap_external(&distortion_grid_[0].x, size);
+    this->result.wrap_external(&distortion_grid_[0].x, extended_size);
   }
 }
 
