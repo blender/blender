@@ -1431,12 +1431,25 @@ static int node_link_modal(bContext *C, wmOperator *op, const wmEvent *event)
   return OPERATOR_RUNNING_MODAL;
 }
 
+static void remove_unavailable_links(bNodeTree &tree, bNodeSocket &socket)
+{
+  tree.ensure_topology_cache();
+  Vector<bNodeLink *> links = socket.directly_linked_links();
+  for (bNodeLink *link : links) {
+    if (!link->is_available()) {
+      bke::node_remove_link(&tree, link);
+    }
+  }
+}
+
 static std::unique_ptr<bNodeLinkDrag> node_link_init(ARegion &region,
                                                      SpaceNode &snode,
                                                      const float2 cursor,
                                                      const bool detach)
 {
   if (bNodeSocket *sock = node_find_indicated_socket(snode, region, cursor, SOCK_OUT)) {
+    remove_unavailable_links(*snode.edittree, *sock);
+    snode.edittree->ensure_topology_cache();
     bNode &node = sock->owner_node();
 
     std::unique_ptr<bNodeLinkDrag> nldrag = std::make_unique<bNodeLinkDrag>();
@@ -1468,6 +1481,8 @@ static std::unique_ptr<bNodeLinkDrag> node_link_init(ARegion &region,
   }
 
   if (bNodeSocket *sock = node_find_indicated_socket(snode, region, cursor, SOCK_IN)) {
+    remove_unavailable_links(*snode.edittree, *sock);
+    snode.edittree->ensure_topology_cache();
     bNode &node = sock->owner_node();
     std::unique_ptr<bNodeLinkDrag> nldrag = std::make_unique<bNodeLinkDrag>();
     nldrag->last_node_hovered_while_dragging_a_link = &node;
