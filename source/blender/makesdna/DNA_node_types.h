@@ -19,7 +19,6 @@
 #  include <string>
 
 #  include "BLI_vector.hh"
-#  include "BLI_vector_set.hh"
 
 namespace blender {
 template<typename T> class Span;
