@@ -2238,7 +2238,7 @@ static NodesModifierPanel *find_panel_by_id(NodesModifierData &nmd, const int id
   return nullptr;
 }
 
-static bool interace_panel_has_socket(const bNodeTreeInterfacePanel &interface_panel)
+static bool interface_panel_has_socket(const bNodeTreeInterfacePanel &interface_panel)
 {
   for (const bNodeTreeInterfaceItem *item : interface_panel.items()) {
     if (item->item_type == NODE_INTERFACE_SOCKET) {
@@ -2251,7 +2251,7 @@ static bool interace_panel_has_socket(const bNodeTreeInterfacePanel &interface_p
       }
     }
     if (item->item_type == NODE_INTERFACE_PANEL) {
-      if (interace_panel_has_socket(*reinterpret_cast<const bNodeTreeInterfacePanel *>(item))) {
+      if (interface_panel_has_socket(*reinterpret_cast<const bNodeTreeInterfacePanel *>(item))) {
         return true;
       }
     }
@@ -2271,7 +2271,7 @@ static void draw_interface_panel_content(const bContext *C,
   for (const bNodeTreeInterfaceItem *item : interface_panel.items()) {
     if (item->item_type == NODE_INTERFACE_PANEL) {
       const auto &sub_interface_panel = *reinterpret_cast<const bNodeTreeInterfacePanel *>(item);
-      if (!interace_panel_has_socket(sub_interface_panel)) {
+      if (!interface_panel_has_socket(sub_interface_panel)) {
         continue;
       }
       NodesModifierPanel *panel = find_panel_by_id(nmd, sub_interface_panel.identifier);
