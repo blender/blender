@@ -3316,16 +3316,24 @@ static void rename_mesh_uv_seam_attribute(Mesh &mesh)
   }
   Set<StringRef> names;
   for (const CustomDataLayer &layer : Span(mesh.vert_data.layers, mesh.vert_data.totlayer)) {
-    names.add_new(layer.name);
+    if (layer.type & CD_MASK_PROP_ALL) {
+      names.add(layer.name);
+    }
   }
   for (const CustomDataLayer &layer : Span(mesh.edge_data.layers, mesh.edge_data.totlayer)) {
-    names.add_new(layer.name);
+    if (layer.type & CD_MASK_PROP_ALL) {
+      names.add(layer.name);
+    }
   }
   for (const CustomDataLayer &layer : Span(mesh.face_data.layers, mesh.face_data.totlayer)) {
-    names.add_new(layer.name);
+    if (layer.type & CD_MASK_PROP_ALL) {
+      names.add(layer.name);
+    }
   }
   for (const CustomDataLayer &layer : Span(mesh.corner_data.layers, mesh.corner_data.totlayer)) {
-    names.add_new(layer.name);
+    if (layer.type & CD_MASK_PROP_ALL) {
+      names.add(layer.name);
+    }
   }
   LISTBASE_FOREACH (const bDeformGroup *, vertex_group, &mesh.vertex_group_names) {
     names.add(vertex_group->name);
