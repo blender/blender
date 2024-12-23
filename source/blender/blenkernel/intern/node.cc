@@ -1627,27 +1627,76 @@ void node_tree_set_type(const bContext *C, bNodeTree *ntree)
   }
 }
 
-static GHash *nodetreetypes_hash = nullptr;
-static GHash *nodetypes_hash = nullptr;
-static GHash *nodetypes_alias_hash = nullptr;
-static GHash *nodesockettypes_hash = nullptr;
-
-bNodeTreeType *node_tree_type_find(const StringRefNull idname)
-{
-  if (idname[0]) {
-    bNodeTreeType *nt = static_cast<bNodeTreeType *>(
-        BLI_ghash_lookup(nodetreetypes_hash, idname.c_str()));
-    if (nt) {
-      return nt;
-    }
+template<typename T> struct StructPointerIDNameHash {
+  uint64_t operator()(const T *value) const
+  {
+    return get_default_hash<StringRef>(value->idname);
   }
+  uint64_t operator()(const StringRef name) const
+  {
+    return get_default_hash<StringRef>(name);
+  }
+};
 
-  return nullptr;
+template<typename T> struct StructPointerNameEqual {
+  bool operator()(const T *a, const T *b) const
+  {
+    return STREQ(a->idname, b->idname);
+  }
+  bool operator()(const StringRef idname, const T *a) const
+  {
+    return a->idname == idname;
+  }
+};
+
+static auto &get_node_tree_type_map()
+{
+  static VectorSet<bNodeTreeType *,
+                   DefaultProbingStrategy,
+                   StructPointerIDNameHash<bNodeTreeType>,
+                   StructPointerNameEqual<bNodeTreeType>>
+      map;
+  return map;
+}
+
+static auto &get_node_type_map()
+{
+  static VectorSet<bNodeType *,
+                   DefaultProbingStrategy,
+                   StructPointerIDNameHash<bNodeType>,
+                   StructPointerNameEqual<bNodeType>>
+      map;
+  return map;
+}
+
+static auto &get_node_type_alias_map()
+{
+  static Map<std::string, std::string> map;
+  return map;
+}
+
+static auto &get_socket_type_map()
+{
+  static VectorSet<bNodeSocketType *,
+                   DefaultProbingStrategy,
+                   StructPointerIDNameHash<bNodeSocketType>,
+                   StructPointerNameEqual<bNodeSocketType>>
+      map;
+  return map;
+}
+
+bNodeTreeType *node_tree_type_find(const StringRef idname)
+{
+  bNodeTreeType *const *value = get_node_tree_type_map().lookup_key_ptr_as(idname);
+  if (!value) {
+    return nullptr;
+  }
+  return *value;
 }
 
 void node_tree_type_add(bNodeTreeType *nt)
 {
-  BLI_ghash_insert(nodetreetypes_hash, nt->idname, nt);
+  get_node_tree_type_map().add(nt);
   /* XXX pass Main to register function? */
   /* Probably not. It is pretty much expected we want to update G_MAIN here I think -
    * or we'd want to update *all* active Mains, which we cannot do anyway currently. */
@@ -1666,7 +1715,8 @@ static void ntree_free_type(void *treetype_v)
 
 void node_tree_type_free_link(const bNodeTreeType *nt)
 {
-  BLI_ghash_remove(nodetreetypes_hash, nt->idname, nullptr, ntree_free_type);
+  get_node_tree_type_map().remove(const_cast<bNodeTreeType *>(nt));
+  ntree_free_type(const_cast<bNodeTreeType *>(nt));
 }
 
 bool node_tree_is_registered(const bNodeTree *ntree)
@@ -1674,34 +1724,27 @@ bool node_tree_is_registered(const bNodeTree *ntree)
   return (ntree->typeinfo != &NodeTreeTypeUndefined);
 }
 
-GHashIterator *node_tree_type_get_iterator()
+Span<bNodeTreeType *> node_tree_types_get()
 {
-  return BLI_ghashIterator_new(nodetreetypes_hash);
+  return get_node_tree_type_map().as_span();
 }
 
-bNodeType *node_type_find(const StringRefNull idname)
+bNodeType *node_type_find(const StringRef idname)
 {
-  if (idname[0]) {
-    bNodeType *nt = static_cast<bNodeType *>(BLI_ghash_lookup(nodetypes_hash, idname.c_str()));
-    if (nt) {
-      return nt;
-    }
+  bNodeType *const *value = get_node_type_map().lookup_key_ptr_as(idname);
+  if (!value) {
+    return nullptr;
   }
-
-  return nullptr;
+  return *value;
 }
 
 StringRefNull node_type_find_alias(const StringRefNull alias)
 {
-  if (alias[0]) {
-    const char *idname = static_cast<const char *>(
-        BLI_ghash_lookup(nodetypes_alias_hash, alias.c_str()));
-    if (idname) {
-      return idname;
-    }
+  const std::string *idname = get_node_type_alias_map().lookup_ptr_as(alias);
+  if (!idname) {
+    return alias;
   }
-
-  return alias;
+  return *idname;
 }
 
 static void node_free_type(void *nodetype_v)
@@ -1737,7 +1780,7 @@ void node_register_type(bNodeType *nt)
     nodes::build_node_declaration(*nt, *nt->static_declaration, nullptr, nullptr);
   }
 
-  BLI_ghash_insert(nodetypes_hash, nt->idname, nt);
+  get_node_type_map().add_new(nt);
   /* XXX pass Main to register function? */
   /* Probably not. It is pretty much expected we want to update G_MAIN here I think -
    * or we'd want to update *all* active Mains, which we cannot do anyway currently. */
@@ -1746,12 +1789,18 @@ void node_register_type(bNodeType *nt)
 
 void node_unregister_type(bNodeType *nt)
 {
-  BLI_ghash_remove(nodetypes_hash, nt->idname, nullptr, node_free_type);
+  get_node_type_map().remove(nt);
+  node_free_type(nt);
 }
 
-void node_register_alias(bNodeType *nt, const StringRefNull alias)
+Span<bNodeType *> node_types_get()
 {
-  BLI_ghash_insert(nodetypes_alias_hash, BLI_strdup(alias.c_str()), BLI_strdup(nt->idname));
+  return get_node_type_map().as_span();
+}
+
+void node_register_alias(bNodeType *nt, const StringRef alias)
+{
+  get_node_type_alias_map().add_new(alias, nt->idname);
 }
 
 bool node_type_is_undefined(const bNode *node)
@@ -1776,22 +1825,18 @@ bool node_type_is_undefined(const bNode *node)
   return false;
 }
 
-GHashIterator *node_type_get_iterator()
+Span<bNodeSocketType *> node_socket_types_get()
 {
-  return BLI_ghashIterator_new(nodetypes_hash);
+  return get_socket_type_map().as_span();
 }
 
-bNodeSocketType *node_socket_type_find(const StringRefNull idname)
+bNodeSocketType *node_socket_type_find(const StringRef idname)
 {
-  if (idname[0]) {
-    bNodeSocketType *st = static_cast<bNodeSocketType *>(
-        BLI_ghash_lookup(nodesockettypes_hash, idname.c_str()));
-    if (st) {
-      return st;
-    }
+  bNodeSocketType *const *value = get_socket_type_map().lookup_key_ptr_as(idname);
+  if (!value) {
+    return nullptr;
   }
-
-  return nullptr;
+  return *value;
 }
 
 static void node_free_socket_type(void *socktype_v)
@@ -1807,7 +1852,7 @@ static void node_free_socket_type(void *socktype_v)
 
 void node_register_socket_type(bNodeSocketType *st)
 {
-  BLI_ghash_insert(nodesockettypes_hash, st->idname, st);
+  get_socket_type_map().add(st);
   /* XXX pass Main to register function? */
   /* Probably not. It is pretty much expected we want to update G_MAIN here I think -
    * or we'd want to update *all* active Mains, which we cannot do anyway currently. */
@@ -1816,17 +1861,13 @@ void node_register_socket_type(bNodeSocketType *st)
 
 void node_unregister_socket_type(bNodeSocketType *st)
 {
-  BLI_ghash_remove(nodesockettypes_hash, st->idname, nullptr, node_free_socket_type);
+  get_socket_type_map().remove(st);
+  node_free_socket_type(st);
 }
 
 bool node_socket_is_registered(const bNodeSocket *sock)
 {
   return (sock->typeinfo != &NodeSocketTypeUndefined);
-}
-
-GHashIterator *node_socket_type_get_iterator()
-{
-  return BLI_ghashIterator_new(nodesockettypes_hash);
 }
 
 StringRefNull node_socket_type_label(const bNodeSocketType *stype)
@@ -2657,7 +2698,7 @@ bNode *node_add_static_node(const bContext *C, bNodeTree *ntree, const int type)
 {
   const char *idname = nullptr;
 
-  NODE_TYPES_BEGIN (ntype) {
+  for (bNodeType *ntype : node_types_get()) {
     /* Do an extra poll here, because some int types are used
      * for multiple node types, this helps find the desired type. */
     if (ntype->type != type) {
@@ -2670,7 +2711,6 @@ bNode *node_add_static_node(const bContext *C, bNodeTree *ntree, const int type)
       break;
     }
   }
-  NODE_TYPES_END;
   if (!idname) {
     CLOG_ERROR(&LOG, "static node type %d undefined", type);
     return nullptr;
@@ -4152,10 +4192,9 @@ void node_instance_hash_remove_untagged(bNodeInstanceHash *hash, bNodeInstanceVa
 static Set<int> get_known_node_types_set()
 {
   Set<int> result;
-  NODE_TYPES_BEGIN (ntype) {
+  for (const bNodeType *ntype : node_types_get()) {
     result.add(ntype->type);
   }
-  NODE_TYPES_END;
   return result;
 }
 
@@ -4619,58 +4658,38 @@ void node_type_storage(bNodeType *ntype,
 
 void node_system_init()
 {
-  nodetreetypes_hash = BLI_ghash_str_new("nodetreetypes_hash gh");
-  nodetypes_hash = BLI_ghash_str_new("nodetypes_hash gh");
-  nodetypes_alias_hash = BLI_ghash_str_new("nodetypes_alias_hash gh");
-  nodesockettypes_hash = BLI_ghash_str_new("nodesockettypes_hash gh");
-
   register_nodes();
 }
 
 void node_system_exit()
 {
-  if (nodetypes_alias_hash) {
-    BLI_ghash_free(nodetypes_alias_hash, MEM_freeN, MEM_freeN);
-    nodetypes_alias_hash = nullptr;
+  get_node_type_alias_map().clear();
+
+  const Vector<bNodeType *> node_types = get_node_type_map().extract_vector();
+  for (bNodeType *nt : node_types) {
+    if (nt->rna_ext.free) {
+      nt->rna_ext.free(nt->rna_ext.data);
+    }
+    node_free_type(nt);
   }
 
-  if (nodetypes_hash) {
-    NODE_TYPES_BEGIN (nt) {
-      if (nt->rna_ext.free) {
-        nt->rna_ext.free(nt->rna_ext.data);
-      }
+  const Vector<bNodeSocketType *> socket_types = get_socket_type_map().extract_vector();
+  for (bNodeSocketType *st : socket_types) {
+    if (st->ext_socket.free) {
+      st->ext_socket.free(st->ext_socket.data);
     }
-    NODE_TYPES_END;
-
-    BLI_ghash_free(nodetypes_hash, nullptr, node_free_type);
-    nodetypes_hash = nullptr;
+    if (st->ext_interface.free) {
+      st->ext_interface.free(st->ext_interface.data);
+    }
+    node_free_socket_type(st);
   }
 
-  if (nodesockettypes_hash) {
-    NODE_SOCKET_TYPES_BEGIN (st) {
-      if (st->ext_socket.free) {
-        st->ext_socket.free(st->ext_socket.data);
-      }
-      if (st->ext_interface.free) {
-        st->ext_interface.free(st->ext_interface.data);
-      }
+  const Vector<bNodeTreeType *> tree_types = get_node_tree_type_map().extract_vector();
+  for (bNodeTreeType *nt : tree_types) {
+    if (nt->rna_ext.free) {
+      nt->rna_ext.free(nt->rna_ext.data);
     }
-    NODE_SOCKET_TYPES_END;
-
-    BLI_ghash_free(nodesockettypes_hash, nullptr, node_free_socket_type);
-    nodesockettypes_hash = nullptr;
-  }
-
-  if (nodetreetypes_hash) {
-    NODE_TREE_TYPES_BEGIN (nt) {
-      if (nt->rna_ext.free) {
-        nt->rna_ext.free(nt->rna_ext.data);
-      }
-    }
-    NODE_TREE_TYPES_END;
-
-    BLI_ghash_free(nodetreetypes_hash, nullptr, ntree_free_type);
-    nodetreetypes_hash = nullptr;
+    ntree_free_type(nt);
   }
 }
 

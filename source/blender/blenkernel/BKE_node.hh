@@ -55,7 +55,6 @@ struct bNodeSocket;
 struct bNodeStack;
 struct bNodeTree;
 struct bNodeTreeExec;
-struct bNodeTreeType;
 struct uiLayout;
 
 namespace blender {
@@ -501,27 +500,12 @@ struct bNodeTreeType {
 /** \name Generic API, Trees
  * \{ */
 
-bNodeTreeType *node_tree_type_find(StringRefNull idname);
+bNodeTreeType *node_tree_type_find(StringRef idname);
 void node_tree_type_add(bNodeTreeType *nt);
 void node_tree_type_free_link(const bNodeTreeType *nt);
 bool node_tree_is_registered(const bNodeTree *ntree);
-GHashIterator *node_tree_type_get_iterator();
 
-/* Helper macros for iterating over tree types. */
-#define NODE_TREE_TYPES_BEGIN(ntype) \
-  { \
-    GHashIterator *__node_tree_type_iter__ = blender::bke::node_tree_type_get_iterator(); \
-    for (; !BLI_ghashIterator_done(__node_tree_type_iter__); \
-         BLI_ghashIterator_step(__node_tree_type_iter__)) \
-    { \
-      blender::bke::bNodeTreeType *ntype = (blender::bke::bNodeTreeType *) \
-          BLI_ghashIterator_getValue(__node_tree_type_iter__);
-
-#define NODE_TREE_TYPES_END \
-  } \
-  BLI_ghashIterator_free(__node_tree_type_iter__); \
-  } \
-  (void)0
+Span<bNodeTreeType *> node_tree_types_get();
 
 /**
  * Try to initialize all type-info in a node tree.
@@ -598,54 +582,25 @@ void node_tree_blend_write(BlendWriter *writer, bNodeTree *ntree);
 /** \name Generic API, Nodes
  * \{ */
 
-bNodeType *node_type_find(StringRefNull idname);
+bNodeType *node_type_find(StringRef idname);
 StringRefNull node_type_find_alias(StringRefNull idname);
 void node_register_type(bNodeType *ntype);
 void node_unregister_type(bNodeType *ntype);
-void node_register_alias(bNodeType *nt, StringRefNull alias);
-GHashIterator *node_type_get_iterator();
+void node_register_alias(bNodeType *nt, StringRef alias);
 
-/* Helper macros for iterating over node types. */
-#define NODE_TYPES_BEGIN(ntype) \
-  { \
-    GHashIterator *__node_type_iter__ = blender::bke::node_type_get_iterator(); \
-    for (; !BLI_ghashIterator_done(__node_type_iter__); \
-         BLI_ghashIterator_step(__node_type_iter__)) { \
-      blender::bke::bNodeType *ntype = (blender::bke::bNodeType *)BLI_ghashIterator_getValue( \
-          __node_type_iter__);
+Span<bNodeType *> node_types_get();
 
-#define NODE_TYPES_END \
-  } \
-  BLI_ghashIterator_free(__node_type_iter__); \
-  } \
-  ((void)0)
-
-bNodeSocketType *node_socket_type_find(StringRefNull idname);
+bNodeSocketType *node_socket_type_find(StringRef idname);
 void node_register_socket_type(bNodeSocketType *stype);
 void node_unregister_socket_type(bNodeSocketType *stype);
 bool node_socket_is_registered(const bNodeSocket *sock);
-GHashIterator *node_socket_type_get_iterator();
 StringRefNull node_socket_type_label(const bNodeSocketType *stype);
 
 std::optional<StringRefNull> node_static_socket_type(int type, int subtype);
 std::optional<StringRefNull> node_static_socket_interface_type_new(int type, int subtype);
 std::optional<StringRefNull> node_static_socket_label(int type, int subtype);
 
-/* Helper macros for iterating over node types. */
-#define NODE_SOCKET_TYPES_BEGIN(stype) \
-  { \
-    GHashIterator *__node_socket_type_iter__ = blender::bke::node_socket_type_get_iterator(); \
-    for (; !BLI_ghashIterator_done(__node_socket_type_iter__); \
-         BLI_ghashIterator_step(__node_socket_type_iter__)) \
-    { \
-      blender::bke::bNodeSocketType *stype = (blender::bke::bNodeSocketType *) \
-          BLI_ghashIterator_getValue(__node_socket_type_iter__);
-
-#define NODE_SOCKET_TYPES_END \
-  } \
-  BLI_ghashIterator_free(__node_socket_type_iter__); \
-  } \
-  ((void)0)
+Span<bNodeSocketType *> node_socket_types_get();
 
 bNodeSocket *node_find_socket(bNode *node, eNodeSocketInOut in_out, StringRef identifier);
 const bNodeSocket *node_find_socket(const bNode *node,

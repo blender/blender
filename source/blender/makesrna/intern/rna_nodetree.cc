@@ -689,43 +689,35 @@ void rna_Node_socket_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr);
 
 int rna_node_tree_idname_to_enum(const char *idname)
 {
-  int i = 0, result = -1;
-  NODE_TREE_TYPES_BEGIN (nt) {
+  using namespace blender;
+  Span<const bke::bNodeTreeType *> types = bke::node_tree_types_get();
+  for (const int i : types.index_range()) {
+    const bke::bNodeTreeType *nt = types[i];
     if (STREQ(nt->idname, idname)) {
-      result = i;
-      break;
+      return i;
     }
-    i++;
   }
-  NODE_TREE_TYPES_END;
-  return result;
+  return -1;
 }
 
 blender::bke::bNodeTreeType *rna_node_tree_type_from_enum(int value)
 {
-  int i = 0;
-  blender::bke::bNodeTreeType *result = nullptr;
-  NODE_TREE_TYPES_BEGIN (nt) {
-    if (i == value) {
-      result = nt;
-      break;
-    }
-    i++;
-  }
-  NODE_TREE_TYPES_END;
-  return result;
+  blender::Span<blender::bke::bNodeTreeType *> types = blender::bke::node_tree_types_get();
+  return types.index_range().contains(value) ? types[value] : nullptr;
 }
 
 const EnumPropertyItem *rna_node_tree_type_itemf(
     void *data, bool (*poll)(void *data, blender::bke::bNodeTreeType *), bool *r_free)
 {
+  using namespace blender;
   EnumPropertyItem tmp = {0};
   EnumPropertyItem *item = nullptr;
-  int totitem = 0, i = 0;
+  int totitem = 0;
 
-  NODE_TREE_TYPES_BEGIN (nt) {
+  const Span<bke::bNodeTreeType *> types = bke::node_tree_types_get();
+  for (const int i : types.index_range()) {
+    bke::bNodeTreeType *nt = types[i];
     if (poll && !poll(data, nt)) {
-      i++;
       continue;
     }
 
@@ -736,10 +728,7 @@ const EnumPropertyItem *rna_node_tree_type_itemf(
     tmp.description = nt->ui_description;
 
     RNA_enum_item_add(&item, &totitem, &tmp);
-
-    i++;
   }
-  NODE_TREE_TYPES_END;
 
   if (totitem == 0) {
     *r_free = false;
@@ -754,44 +743,36 @@ const EnumPropertyItem *rna_node_tree_type_itemf(
 
 int rna_node_socket_idname_to_enum(const char *idname)
 {
-  int i = 0, result = -1;
-  NODE_SOCKET_TYPES_BEGIN (stype) {
-    if (STREQ(stype->idname, idname)) {
-      result = i;
-      break;
+  using namespace blender;
+  Span<const bke::bNodeSocketType *> types = bke::node_socket_types_get();
+  for (const int i : types.index_range()) {
+    const bke::bNodeSocketType *nt = types[i];
+    if (STREQ(nt->idname, idname)) {
+      return i;
     }
-    i++;
   }
-  NODE_SOCKET_TYPES_END;
-  return result;
+  return -1;
 }
 
 blender::bke::bNodeSocketType *rna_node_socket_type_from_enum(int value)
 {
-  int i = 0;
-  blender::bke::bNodeSocketType *result = nullptr;
-  NODE_SOCKET_TYPES_BEGIN (stype) {
-    if (i == value) {
-      result = stype;
-      break;
-    }
-    i++;
-  }
-  NODE_SOCKET_TYPES_END;
-  return result;
+  blender::Span<blender::bke::bNodeSocketType *> types = blender::bke::node_socket_types_get();
+  return types.index_range().contains(value) ? types[value] : nullptr;
 }
 
 const EnumPropertyItem *rna_node_socket_type_itemf(
     void *data, bool (*poll)(void *data, blender::bke::bNodeSocketType *), bool *r_free)
 {
+  using namespace blender;
   EnumPropertyItem *item = nullptr;
   EnumPropertyItem tmp = {0};
-  int totitem = 0, i = 0;
+  int totitem = 0;
   StructRNA *srna;
 
-  NODE_SOCKET_TYPES_BEGIN (stype) {
+  const Span<bke::bNodeSocketType *> types = bke::node_socket_types_get();
+  for (const int i : types.index_range()) {
+    bke::bNodeSocketType *stype = types[i];
     if (poll && !poll(data, stype)) {
-      i++;
       continue;
     }
 
@@ -803,10 +784,7 @@ const EnumPropertyItem *rna_node_socket_type_itemf(
     tmp.description = RNA_struct_ui_description(srna);
 
     RNA_enum_item_add(&item, &totitem, &tmp);
-
-    i++;
   }
-  NODE_SOCKET_TYPES_END;
 
   if (totitem == 0) {
     *r_free = false;
