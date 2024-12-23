@@ -158,10 +158,8 @@ static void subdivide_bezier_segment(const float3 &position_prev,
     /* The first point in the segment is always copied. */
     dst_positions[segment_points.first()] = position_prev;
 
-    /* Non-vector segments in the result curve are given free handles. This could possibly be
-     * improved with another pass that sets handles to aligned where possible, but currently that
-     * does not provide much benefit for the increased complexity. */
-    fill_segment_handle_types(BEZIER_HANDLE_FREE);
+    /* Non-vector segments in the result curve are given auto handles. */
+    fill_segment_handle_types(BEZIER_HANDLE_AUTO);
 
     /* In order to generate a Bezier curve with the same shape as the input curve, apply the
      * De Casteljau algorithm iteratively for the provided number of cuts, constantly updating the
