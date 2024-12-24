@@ -115,6 +115,9 @@ using blender::Vector;
 #define TEMPLATE_SEARCH_TEXTBUT_MIN_WIDTH (UI_UNIT_X * 4)
 #define TEMPLATE_SEARCH_TEXTBUT_HEIGHT UI_UNIT_Y
 
+/* Maximum width for a Status Bar report */
+#define REPORT_BANNER_MAX_WIDTH (800.0f * UI_SCALE_FAC)
+
 /* -------------------------------------------------------------------- */
 /** \name Header Template
  * \{ */
@@ -6443,6 +6446,7 @@ void uiTemplateReportsBanner(uiLayout *layout, bContext *C)
 
   UI_fontstyle_set(&style->widget);
   int width = BLF_width(style->widget.uifont_id, report->message, report->len);
+  width = min_ii(width, int(REPORT_BANNER_MAX_WIDTH));
   width = min_ii(int(rti->widthfac * width), width);
   width = max_ii(width, 10 * UI_SCALE_FAC);
 
