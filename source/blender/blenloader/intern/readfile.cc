@@ -5019,6 +5019,16 @@ void BLO_read_int8_array(BlendDataReader *reader, const int64_t array_size, int8
       BLO_read_struct_array_with_size(reader, *((void **)ptr_p), sizeof(int8_t) * array_size));
 }
 
+void BLO_read_int16_array(BlendDataReader *reader, const int64_t array_size, int16_t **ptr_p)
+{
+  *ptr_p = reinterpret_cast<int16_t *>(
+      BLO_read_struct_array_with_size(reader, *((void **)ptr_p), sizeof(int16_t) * array_size));
+
+  if (*ptr_p && BLO_read_requires_endian_switch(reader)) {
+    BLI_endian_switch_int16_array(*ptr_p, array_size);
+  }
+}
+
 void BLO_read_int32_array(BlendDataReader *reader, const int64_t array_size, int32_t **ptr_p)
 {
   *ptr_p = reinterpret_cast<int32_t *>(

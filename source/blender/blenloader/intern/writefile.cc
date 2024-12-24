@@ -1877,6 +1877,11 @@ void BLO_write_int8_array(BlendWriter *writer, const int64_t num, const int8_t *
   BLO_write_raw(writer, sizeof(int8_t) * size_t(num), data_ptr);
 }
 
+void BLO_write_int16_array(BlendWriter *writer, const int64_t num, const int16_t *data_ptr)
+{
+  BLO_write_raw(writer, sizeof(int16_t) * size_t(num), data_ptr);
+}
+
 void BLO_write_uint8_array(BlendWriter *writer, const int64_t num, const uint8_t *data_ptr)
 {
   BLO_write_raw(writer, sizeof(uint8_t) * size_t(num), data_ptr);

@@ -203,6 +203,7 @@ void BLO_write_raw(BlendWriter *writer, size_t size_in_bytes, const void *data_p
  */
 void BLO_write_char_array(BlendWriter *writer, int64_t num, const char *data_ptr);
 void BLO_write_int8_array(BlendWriter *writer, int64_t num, const int8_t *data_ptr);
+void BLO_write_int16_array(BlendWriter *writer, int64_t num, const int16_t *data_ptr);
 void BLO_write_uint8_array(BlendWriter *writer, int64_t num, const uint8_t *data_ptr);
 void BLO_write_int32_array(BlendWriter *writer, int64_t num, const int32_t *data_ptr);
 void BLO_write_uint32_array(BlendWriter *writer, int64_t num, const uint32_t *data_ptr);
@@ -331,6 +332,7 @@ void BLO_read_struct_list_with_size(BlendDataReader *reader,
 void BLO_read_char_array(BlendDataReader *reader, int64_t array_size, char **ptr_p);
 void BLO_read_int8_array(BlendDataReader *reader, int64_t array_size, int8_t **ptr_p);
 void BLO_read_uint8_array(BlendDataReader *reader, int64_t array_size, uint8_t **ptr_p);
+void BLO_read_int16_array(BlendDataReader *reader, const int64_t array_size, int16_t **ptr_p);
 void BLO_read_int32_array(BlendDataReader *reader, int64_t array_size, int32_t **ptr_p);
 void BLO_read_uint32_array(BlendDataReader *reader, int64_t array_size, uint32_t **ptr_p);
 void BLO_read_float_array(BlendDataReader *reader, int64_t array_size, float **ptr_p);
