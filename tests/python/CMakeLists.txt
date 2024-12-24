@@ -21,6 +21,13 @@ file(MAKE_DIRECTORY ${TEST_OUT_DIR}/blendfile_io)
 #   message(FATAL_ERROR "CMake test directory not found!")
 # endif()
 
+if(WITH_SYSTEM_PYTHON_TESTS)
+  if(NOT EXISTS "${TEST_SYSTEM_PYTHON_EXE}")
+    message(ERROR "'System Python' tests requested but no valid system python path, set TEST_SYSTEM_PYTHON_EXE.")
+    set(WITH_SYSTEM_PYTHON_TESTS OFF)
+  endif()
+endif()
+
 # Run Blender command with parameters.
 function(add_blender_test_impl testname envvars_list exe)
   add_test(
@@ -115,6 +122,29 @@ function(add_render_test testname testscript)
   endif()
   add_python_test(${testname} ${testscript} ${_args})
 endfunction()
+
+# Run Python script outside Blender, using system default Python3 interpreter,
+# NOT the one specified in `TEST_PYTHON_EXE`.
+function(add_system_python_test testname testscript)
+  if(NOT WITH_SYSTEM_PYTHON_TESTS)
+    return()
+  endif()
+
+  add_test(
+    NAME ${testname}
+    COMMAND ${TEST_SYSTEM_PYTHON_EXE} ${testscript} ${ARGN}
+    WORKING_DIRECTORY $<TARGET_FILE_DIR:blender>
+  )
+  blender_test_set_envvars("${testname}" "")
+endfunction()
+
+# ------------------------------------------------------------------------------
+# TESTS USING SYSTEM PYTHON
+add_system_python_test(
+  script_validate_on_system_python
+  ${CMAKE_CURRENT_LIST_DIR}/system_python/load_tool_scripts.py
+  --root-dir ${CMAKE_SOURCE_DIR}
+)
 
 # ------------------------------------------------------------------------------
 # GENERAL PYTHON CORRECTNESS TESTS
