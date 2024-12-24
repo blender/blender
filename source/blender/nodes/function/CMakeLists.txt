@@ -60,6 +60,7 @@ set(SRC
   nodes/node_fn_transform_point.cc
   nodes/node_fn_transpose_matrix.cc
   nodes/node_fn_value_to_string.cc
+  nodes/node_fn_find_in_string.cc
 
   node_function_util.cc
 

@@ -304,6 +304,7 @@ DefNode(FunctionNode, FN_NODE_SEPARATE_MATRIX, 0, SeparateMatrix, "Separate Matr
 DefNode(FunctionNode, FN_NODE_SEPARATE_TRANSFORM, 0, SeparateTransform, "Separate Transform", "")
 DefNode(FunctionNode, FN_NODE_SLICE_STRING, 0, SliceString, "Slice String", "")
 DefNode(FunctionNode, FN_NODE_STRING_LENGTH, 0, StringLength, "String Length", "")
+DefNode(FunctionNode, FN_NODE_FIND_IN_STRING, 0, FindInString, "Find In String","")
 DefNode(FunctionNode, FN_NODE_TRANSFORM_DIRECTION, 0, TransformDirection, "Transform Direction", "")
 DefNode(FunctionNode, FN_NODE_TRANSFORM_POINT, 0, TransformPoint, "Transform Point", "")
 DefNode(FunctionNode, FN_NODE_TRANSPOSE_MATRIX, 0, TransposeMatrix, "Transpose Matrix", "")
