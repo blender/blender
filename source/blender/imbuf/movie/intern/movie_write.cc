@@ -7,6 +7,8 @@
  * \ingroup imbuf
  */
 
+#include "movie_write.hh"
+
 #include "DNA_scene_types.h"
 
 #include "MOV_write.hh"
@@ -15,19 +17,13 @@
 #  include <cstdio>
 #  include <cstring>
 
-#  include <cstdlib>
-
 #  include "MEM_guardedalloc.h"
 
-#  include "BLI_blenlib.h"
-
-#  ifdef WITH_AUDASPACE
-#    include <AUD_Device.h>
-#    include <AUD_Special.h>
-#  endif
-
 #  include "BLI_endian_defines.h"
+#  include "BLI_fileops.h"
 #  include "BLI_math_base.h"
+#  include "BLI_path_utils.hh"
+#  include "BLI_string.h"
 #  include "BLI_threads.h"
 #  include "BLI_utildefines.h"
 
@@ -35,7 +31,6 @@
 #  include "BKE_image.hh"
 #  include "BKE_main.hh"
 #  include "BKE_report.hh"
-#  include "BKE_sound.h"
 
 #  include "IMB_imbuf.hh"
 
@@ -45,72 +40,17 @@
 #  include "ffmpeg_swscale.hh"
 #  include "movie_util.hh"
 
-/* This needs to be included after BLI_math_base.h otherwise it will redefine some math defines
- * like M_SQRT1_2 leading to warnings with MSVC */
-extern "C" {
-#  include <libavcodec/avcodec.h>
-#  include <libavformat/avformat.h>
-#  include <libavutil/buffer.h>
-#  include <libavutil/channel_layout.h>
-#  include <libavutil/imgutils.h>
-#  include <libavutil/opt.h>
-#  include <libavutil/rational.h>
-#  include <libavutil/samplefmt.h>
+static constexpr int64_t ffmpeg_autosplit_size = 2'000'000'000;
 
-#  include "ffmpeg_compat.h"
-}
-
-struct StampData;
-
-struct MovieWriter {
-  int ffmpeg_type;
-  AVCodecID ffmpeg_codec;
-  AVCodecID ffmpeg_audio_codec;
-  int ffmpeg_video_bitrate;
-  int ffmpeg_audio_bitrate;
-  int ffmpeg_gop_size;
-  int ffmpeg_max_b_frames;
-  int ffmpeg_autosplit;
-  int ffmpeg_autosplit_count;
-  bool ffmpeg_preview;
-
-  int ffmpeg_crf;    /* set to 0 to not use CRF mode; we have another flag for lossless anyway. */
-  int ffmpeg_preset; /* see eFFMpegPreset */
-
-  AVFormatContext *outfile;
-  AVCodecContext *video_codec;
-  AVCodecContext *audio_codec;
-  AVStream *video_stream;
-  AVStream *audio_stream;
-  AVFrame *current_frame; /* Image frame in output pixel format. */
-  int video_time;
-
-  /* Image frame in Blender's own pixel format, may need conversion to the output pixel format. */
-  AVFrame *img_convert_frame;
-  SwsContext *img_convert_ctx;
-
-  uint8_t *audio_input_buffer;
-  uint8_t *audio_deinterleave_buffer;
-  int audio_input_samples;
-  double audio_time;
-  double audio_time_total;
-  bool audio_deinterleave;
-  int audio_sample_size;
-
-  StampData *stamp_data;
-
-#  ifdef WITH_AUDASPACE
-  AUD_Device *audio_mixdown_device;
-#  endif
-};
-
-#  define FFMPEG_AUTOSPLIT_SIZE 2000000000
-
-#  define PRINT \
+#  define FF_DEBUG_PRINT \
     if (G.debug & G_DEBUG_FFMPEG) \
     printf
 
-static void ffmpeg_dict_set_int(AVDictionary **dict, const char *key, int value);
+static void ffmpeg_dict_set_int(AVDictionary **dict, const char *key, int value)
+{
+  av_dict_set_int(dict, key, value, 0);
+}
+
 static void ffmpeg_movie_close(MovieWriter *context);
 static void ffmpeg_filepath_get(MovieWriter *context,
                                 char filepath[FILE_MAX],
@@ -118,145 +58,20 @@ static void ffmpeg_filepath_get(MovieWriter *context,
                                 bool preview,
                                 const char *suffix);
 
-/* Delete a picture buffer */
-
-static void delete_picture(AVFrame *f)
+static AVFrame *alloc_frame(AVPixelFormat pix_fmt, int width, int height)
 {
-  if (f) {
-    av_frame_free(&f);
-  }
-}
-
-static int request_float_audio_buffer(int codec_id)
-{
-  /* If any of these codecs, we prefer the float sample format (if supported) */
-  return codec_id == AV_CODEC_ID_AAC || codec_id == AV_CODEC_ID_AC3 ||
-         codec_id == AV_CODEC_ID_VORBIS;
-}
-
-#  ifdef WITH_AUDASPACE
-
-static int write_audio_frame(MovieWriter *context)
-{
-  AVFrame *frame = nullptr;
-  AVCodecContext *c = context->audio_codec;
-
-  AUD_Device_read(
-      context->audio_mixdown_device, context->audio_input_buffer, context->audio_input_samples);
-
-  frame = av_frame_alloc();
-  frame->pts = context->audio_time / av_q2d(c->time_base);
-  frame->nb_samples = context->audio_input_samples;
-  frame->format = c->sample_fmt;
-#    ifdef FFMPEG_USE_OLD_CHANNEL_VARS
-  frame->channels = c->channels;
-  frame->channel_layout = c->channel_layout;
-  const int num_channels = c->channels;
-#    else
-  av_channel_layout_copy(&frame->ch_layout, &c->ch_layout);
-  const int num_channels = c->ch_layout.nb_channels;
-#    endif
-
-  if (context->audio_deinterleave) {
-    int channel, i;
-    uint8_t *temp;
-
-    for (channel = 0; channel < num_channels; channel++) {
-      for (i = 0; i < frame->nb_samples; i++) {
-        memcpy(context->audio_deinterleave_buffer +
-                   (i + channel * frame->nb_samples) * context->audio_sample_size,
-               context->audio_input_buffer +
-                   (num_channels * i + channel) * context->audio_sample_size,
-               context->audio_sample_size);
-      }
-    }
-
-    temp = context->audio_deinterleave_buffer;
-    context->audio_deinterleave_buffer = context->audio_input_buffer;
-    context->audio_input_buffer = temp;
-  }
-
-  avcodec_fill_audio_frame(frame,
-                           num_channels,
-                           c->sample_fmt,
-                           context->audio_input_buffer,
-                           context->audio_input_samples * num_channels *
-                               context->audio_sample_size,
-                           1);
-
-  int success = 1;
-
-  char error_str[AV_ERROR_MAX_STRING_SIZE];
-  int ret = avcodec_send_frame(c, frame);
-  if (ret < 0) {
-    /* Can't send frame to encoder. This shouldn't happen. */
-    av_make_error_string(error_str, AV_ERROR_MAX_STRING_SIZE, ret);
-    fprintf(stderr, "Can't send audio frame: %s\n", error_str);
-    success = -1;
-  }
-
-  AVPacket *pkt = av_packet_alloc();
-
-  while (ret >= 0) {
-
-    ret = avcodec_receive_packet(c, pkt);
-    if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) {
-      break;
-    }
-    if (ret < 0) {
-      av_make_error_string(error_str, AV_ERROR_MAX_STRING_SIZE, ret);
-      fprintf(stderr, "Error encoding audio frame: %s\n", error_str);
-      success = -1;
-    }
-
-    pkt->stream_index = context->audio_stream->index;
-    av_packet_rescale_ts(pkt, c->time_base, context->audio_stream->time_base);
-#    ifdef FFMPEG_USE_DURATION_WORKAROUND
-    my_guess_pkt_duration(context->outfile, context->audio_stream, pkt);
-#    endif
-
-    pkt->flags |= AV_PKT_FLAG_KEY;
-
-    int write_ret = av_interleaved_write_frame(context->outfile, pkt);
-    if (write_ret != 0) {
-      av_make_error_string(error_str, AV_ERROR_MAX_STRING_SIZE, ret);
-      fprintf(stderr, "Error writing audio packet: %s\n", error_str);
-      success = -1;
-      break;
-    }
-  }
-
-  av_packet_free(&pkt);
-  av_frame_free(&frame);
-
-  return success;
-}
-#  endif /* #ifdef WITH_AUDASPACE */
-
-/* Allocate a temporary frame */
-static AVFrame *alloc_picture(AVPixelFormat pix_fmt, int width, int height)
-{
-  /* allocate space for the struct */
   AVFrame *f = av_frame_alloc();
   if (f == nullptr) {
     return nullptr;
   }
-
-  /* allocate the actual picture buffer */
   const size_t align = ffmpeg_get_buffer_alignment();
-  int size = av_image_get_buffer_size(pix_fmt, width, height, align);
-  AVBufferRef *buf = av_buffer_alloc(size);
-  if (buf == nullptr) {
-    av_frame_free(&f);
-    return nullptr;
-  }
-
-  av_image_fill_arrays(f->data, f->linesize, buf->data, pix_fmt, width, height, align);
-  f->buf[0] = buf;
   f->format = pix_fmt;
   f->width = width;
   f->height = height;
-
+  if (av_frame_get_buffer(f, align) < 0) {
+    av_frame_free(&f);
+    return nullptr;
+  }
   return f;
 }
 
@@ -373,7 +188,7 @@ static bool write_video_frame(MovieWriter *context, AVFrame *frame, ReportList *
   if (!success) {
     BKE_report(reports, RPT_ERROR, "Error writing frame");
     av_make_error_string(error_str, AV_ERROR_MAX_STRING_SIZE, ret);
-    PRINT("Error writing frame: %s\n", error_str);
+    FF_DEBUG_PRINT("ffmpeg: error writing video frame: %s\n", error_str);
   }
 
   av_packet_free(&packet);
@@ -807,8 +622,6 @@ static void set_quality_rate_options(const MovieWriter *context,
   }
 }
 
-/* prepare a video stream for the output file */
-
 static AVStream *alloc_video_stream(MovieWriter *context,
                                     RenderData *rd,
                                     AVCodecID codec_id,
@@ -997,7 +810,7 @@ static AVStream *alloc_video_stream(MovieWriter *context,
   }
 
   if (of->oformat->flags & AVFMT_GLOBALHEADER) {
-    PRINT("Using global header\n");
+    FF_DEBUG_PRINT("ffmpeg: using global video header\n");
     c->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
   }
 
@@ -1046,7 +859,7 @@ static AVStream *alloc_video_stream(MovieWriter *context,
   av_dict_free(&opts);
 
   /* FFMPEG expects its data in the output pixel format. */
-  context->current_frame = alloc_picture(c->pix_fmt, c->width, c->height);
+  context->current_frame = alloc_frame(c->pix_fmt, c->width, c->height);
 
   if (c->pix_fmt == AV_PIX_FMT_RGBA) {
     /* Output pixel format is the same we use internally, no conversion necessary. */
@@ -1056,7 +869,7 @@ static AVStream *alloc_video_stream(MovieWriter *context,
   else {
     /* Output pixel format is different, allocate frame for conversion. */
     AVPixelFormat src_format = is_10_bpp || is_12_bpp ? AV_PIX_FMT_GBRAPF32LE : AV_PIX_FMT_RGBA;
-    context->img_convert_frame = alloc_picture(src_format, c->width, c->height);
+    context->img_convert_frame = alloc_frame(src_format, c->width, c->height);
     context->img_convert_ctx = ffmpeg_sws_get_context(
         c->width, c->height, src_format, c->width, c->height, c->pix_fmt, SWS_BICUBIC);
 
@@ -1091,167 +904,6 @@ static AVStream *alloc_video_stream(MovieWriter *context,
   return st;
 }
 
-static AVStream *alloc_audio_stream(MovieWriter *context,
-                                    RenderData *rd,
-                                    AVCodecID codec_id,
-                                    AVFormatContext *of,
-                                    char *error,
-                                    int error_size)
-{
-  AVStream *st;
-  const AVCodec *codec;
-
-  error[0] = '\0';
-
-  st = avformat_new_stream(of, nullptr);
-  if (!st) {
-    return nullptr;
-  }
-  st->id = 1;
-
-  codec = avcodec_find_encoder(codec_id);
-  if (!codec) {
-    fprintf(stderr, "Couldn't find valid audio codec\n");
-    context->audio_codec = nullptr;
-    return nullptr;
-  }
-
-  context->audio_codec = avcodec_alloc_context3(codec);
-  AVCodecContext *c = context->audio_codec;
-  c->thread_count = BLI_system_thread_count();
-  c->thread_type = FF_THREAD_SLICE;
-
-  c->sample_rate = rd->ffcodecdata.audio_mixrate;
-  c->bit_rate = context->ffmpeg_audio_bitrate * 1000;
-  c->sample_fmt = AV_SAMPLE_FMT_S16;
-
-  const int num_channels = rd->ffcodecdata.audio_channels;
-  int channel_layout_mask = 0;
-  switch (rd->ffcodecdata.audio_channels) {
-    case FFM_CHANNELS_MONO:
-      channel_layout_mask = AV_CH_LAYOUT_MONO;
-      break;
-    case FFM_CHANNELS_STEREO:
-      channel_layout_mask = AV_CH_LAYOUT_STEREO;
-      break;
-    case FFM_CHANNELS_SURROUND4:
-      channel_layout_mask = AV_CH_LAYOUT_QUAD;
-      break;
-    case FFM_CHANNELS_SURROUND51:
-      channel_layout_mask = AV_CH_LAYOUT_5POINT1_BACK;
-      break;
-    case FFM_CHANNELS_SURROUND71:
-      channel_layout_mask = AV_CH_LAYOUT_7POINT1;
-      break;
-  }
-  BLI_assert(channel_layout_mask != 0);
-
-#  ifdef FFMPEG_USE_OLD_CHANNEL_VARS
-  c->channels = num_channels;
-  c->channel_layout = channel_layout_mask;
-#  else
-  av_channel_layout_from_mask(&c->ch_layout, channel_layout_mask);
-#  endif
-
-  if (request_float_audio_buffer(codec_id)) {
-    /* mainly for AAC codec which is experimental */
-    c->strict_std_compliance = FF_COMPLIANCE_EXPERIMENTAL;
-    c->sample_fmt = AV_SAMPLE_FMT_FLT;
-  }
-
-  if (codec->sample_fmts) {
-    /* Check if the preferred sample format for this codec is supported.
-     * this is because, depending on the version of LIBAV,
-     * and with the whole FFMPEG/LIBAV fork situation,
-     * you have various implementations around.
-     * Float samples in particular are not always supported. */
-    const enum AVSampleFormat *p = codec->sample_fmts;
-    for (; *p != -1; p++) {
-      if (*p == c->sample_fmt) {
-        break;
-      }
-    }
-    if (*p == -1) {
-      /* sample format incompatible with codec. Defaulting to a format known to work */
-      c->sample_fmt = codec->sample_fmts[0];
-    }
-  }
-
-  if (codec->supported_samplerates) {
-    const int *p = codec->supported_samplerates;
-    int best = 0;
-    int best_dist = INT_MAX;
-    for (; *p; p++) {
-      int dist = abs(c->sample_rate - *p);
-      if (dist < best_dist) {
-        best_dist = dist;
-        best = *p;
-      }
-    }
-    /* best is the closest supported sample rate (same as selected if best_dist == 0) */
-    c->sample_rate = best;
-  }
-
-  if (of->oformat->flags & AVFMT_GLOBALHEADER) {
-    c->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
-  }
-
-  int ret = avcodec_open2(c, codec, nullptr);
-
-  if (ret < 0) {
-    char error_str[AV_ERROR_MAX_STRING_SIZE];
-    av_make_error_string(error_str, AV_ERROR_MAX_STRING_SIZE, ret);
-    fprintf(stderr, "Couldn't initialize audio codec: %s\n", error_str);
-    BLI_strncpy(error, ffmpeg_last_error(), error_size);
-    avcodec_free_context(&c);
-    context->audio_codec = nullptr;
-    return nullptr;
-  }
-
-  /* Need to prevent floating point exception when using VORBIS audio codec,
-   * initialize this value in the same way as it's done in FFMPEG itself (sergey) */
-  c->time_base.num = 1;
-  c->time_base.den = c->sample_rate;
-
-  if (c->frame_size == 0) {
-    /* Used to be if ((c->codec_id >= CODEC_ID_PCM_S16LE) && (c->codec_id <= CODEC_ID_PCM_DVD))
-     * not sure if that is needed anymore, so let's try out if there are any
-     * complaints regarding some FFMPEG versions users might have. */
-    context->audio_input_samples = AV_INPUT_BUFFER_MIN_SIZE * 8 / c->bits_per_coded_sample /
-                                   num_channels;
-  }
-  else {
-    context->audio_input_samples = c->frame_size;
-  }
-
-  context->audio_deinterleave = av_sample_fmt_is_planar(c->sample_fmt);
-
-  context->audio_sample_size = av_get_bytes_per_sample(c->sample_fmt);
-
-  context->audio_input_buffer = (uint8_t *)av_malloc(context->audio_input_samples * num_channels *
-                                                     context->audio_sample_size);
-  if (context->audio_deinterleave) {
-    context->audio_deinterleave_buffer = (uint8_t *)av_malloc(
-        context->audio_input_samples * num_channels * context->audio_sample_size);
-  }
-
-  context->audio_time = 0.0f;
-
-  avcodec_parameters_from_context(st->codecpar, c);
-
-  return st;
-}
-/* essential functions -- start, append, end */
-
-static void ffmpeg_dict_set_int(AVDictionary **dict, const char *key, int value)
-{
-  char buffer[32];
-
-  SNPRINTF(buffer, "%d", value);
-
-  av_dict_set(dict, key, buffer, 0);
-}
-
 static void ffmpeg_add_metadata_callback(void *data,
                                          const char *propname,
                                          char *propvalue,
@@ -1281,7 +933,7 @@ static bool start_ffmpeg_impl(MovieWriter *context,
   context->ffmpeg_video_bitrate = rd->ffcodecdata.video_bitrate;
   context->ffmpeg_audio_bitrate = rd->ffcodecdata.audio_bitrate;
   context->ffmpeg_gop_size = rd->ffcodecdata.gop_size;
-  context->ffmpeg_autosplit = rd->ffcodecdata.flags & FFMPEG_AUTOSPLIT_OUTPUT;
+  context->ffmpeg_autosplit = (rd->ffcodecdata.flags & FFMPEG_AUTOSPLIT_OUTPUT) != 0;
   context->ffmpeg_crf = rd->ffcodecdata.constant_rate_factor;
   context->ffmpeg_preset = rd->ffcodecdata.ffmpeg_preset;
 
@@ -1291,12 +943,12 @@ static bool start_ffmpeg_impl(MovieWriter *context,
 
   /* Determine the correct filename */
   ffmpeg_filepath_get(context, filepath, rd, context->ffmpeg_preview, suffix);
-  PRINT(
-      "Starting output to %s(FFMPEG)...\n"
-      "  Using type=%d, codec=%d, audio_codec=%d,\n"
+  FF_DEBUG_PRINT(
+      "ffmpeg: starting output to %s:\n"
+      "  type=%d, codec=%d, audio_codec=%d,\n"
       "  video_bitrate=%d, audio_bitrate=%d,\n"
       "  gop_size=%d, autosplit=%d\n"
-      "  render width=%d, render height=%d\n",
+      "  width=%d, height=%d\n",
       filepath,
       context->ffmpeg_type,
       context->ffmpeg_codec,
@@ -1401,30 +1053,36 @@ static bool start_ffmpeg_impl(MovieWriter *context,
   if (video_codec != AV_CODEC_ID_NONE) {
     context->video_stream = alloc_video_stream(
         context, rd, video_codec, of, rectx, recty, error, sizeof(error));
-    PRINT("alloc video stream %p\n", context->video_stream);
+    FF_DEBUG_PRINT("ffmpeg: alloc video stream %p\n", context->video_stream);
     if (!context->video_stream) {
       if (error[0]) {
         BKE_report(reports, RPT_ERROR, error);
-        PRINT("Video stream error: %s\n", error);
+        FF_DEBUG_PRINT("ffmpeg: video stream error: %s\n", error);
       }
       else {
         BKE_report(reports, RPT_ERROR, "Error initializing video stream");
-        PRINT("Error initializing video stream");
+        FF_DEBUG_PRINT("ffmpeg: error initializing video stream\n");
       }
       goto fail;
     }
   }
 
   if (context->ffmpeg_audio_codec != AV_CODEC_ID_NONE) {
-    context->audio_stream = alloc_audio_stream(context, rd, audio_codec, of, error, sizeof(error));
+    context->audio_stream = alloc_audio_stream(context,
+                                               rd->ffcodecdata.audio_mixrate,
+                                               rd->ffcodecdata.audio_channels,
+                                               audio_codec,
+                                               of,
+                                               error,
+                                               sizeof(error));
     if (!context->audio_stream) {
       if (error[0]) {
         BKE_report(reports, RPT_ERROR, error);
-        PRINT("Audio stream error: %s\n", error);
+        FF_DEBUG_PRINT("ffmpeg: audio stream error: %s\n", error);
       }
       else {
         BKE_report(reports, RPT_ERROR, "Error initializing audio stream");
-        PRINT("Error initializing audio stream");
+        FF_DEBUG_PRINT("ffmpeg: error initializing audio stream\n");
       }
       goto fail;
     }
@@ -1432,7 +1090,7 @@ static bool start_ffmpeg_impl(MovieWriter *context,
   if (!(fmt->flags & AVFMT_NOFILE)) {
     if (avio_open(&of->pb, filepath, AVIO_FLAG_WRITE) < 0) {
       BKE_report(reports, RPT_ERROR, "Could not open file for writing");
-      PRINT("Could not open file for writing\n");
+      FF_DEBUG_PRINT("ffmpeg: could not open file %s for writing\n", filepath);
       goto fail;
     }
   }
@@ -1449,7 +1107,7 @@ static bool start_ffmpeg_impl(MovieWriter *context,
                "Could not initialize streams, probably unsupported codec combination");
     char error_str[AV_ERROR_MAX_STRING_SIZE];
     av_make_error_string(error_str, AV_ERROR_MAX_STRING_SIZE, ret);
-    PRINT("Could not write media header: %s\n", error_str);
+    FF_DEBUG_PRINT("ffmpeg: could not write media header: %s\n", error_str);
     goto fail;
   }
 
@@ -1463,36 +1121,18 @@ fail:
     avio_close(of->pb);
   }
 
-  if (context->video_stream) {
-    context->video_stream = nullptr;
-  }
-
-  if (context->audio_stream) {
-    context->audio_stream = nullptr;
-  }
+  context->video_stream = nullptr;
+  context->audio_stream = nullptr;
 
   avformat_free_context(of);
   return false;
 }
 
-/**
- * Writes any delayed frames in the encoder. This function is called before
- * closing the encoder.
- *
- * <p>
- * Since an encoder may use both past and future frames to predict
- * inter-frames (H.264 B-frames, for example), it can output the frames
- * in a different order from the one it was given.
- * For example, when sending frames 1, 2, 3, 4 to the encoder, it may write
- * them in the order 1, 4, 2, 3 - first the two frames used for prediction,
- * and then the bidirectionally-predicted frames. What this means in practice
- * is that the encoder may not immediately produce one output frame for each
- * input frame. These delayed frames must be flushed before we close the
- * stream. We do this by calling avcodec_encode_video with NULL for the last
- * parameter.
- * </p>
- */
-static void flush_ffmpeg(AVCodecContext *c, AVStream *stream, AVFormatContext *outfile)
+/* Flush any pending frames. An encoder may use both past and future frames
+ * to predict inter-frames (H.264 B-frames, for example); it can output
+ * the frames in a different order from the one it was given. The delayed
+ * frames must be flushed before we close the stream. */
+static void flush_delayed_frames(AVCodecContext *c, AVStream *stream, AVFormatContext *outfile)
 {
   char error_str[AV_ERROR_MAX_STRING_SIZE];
   AVPacket *packet = av_packet_alloc();
@@ -1530,10 +1170,6 @@ static void flush_ffmpeg(AVCodecContext *c, AVStream *stream, AVFormatContext *o
 
   av_packet_free(&packet);
 }
-
-/* **********************************************************************
- * * public interface
- * ********************************************************************** */
 
 /* Get the output filename-- similar to the other output formats */
 static void ffmpeg_filepath_get(MovieWriter *context,
@@ -1629,7 +1265,7 @@ static MovieWriter *ffmpeg_movie_open(const Scene *scene,
   context->ffmpeg_video_bitrate = 1150;
   context->ffmpeg_audio_bitrate = 128;
   context->ffmpeg_gop_size = 12;
-  context->ffmpeg_autosplit = 0;
+  context->ffmpeg_autosplit = false;
   context->stamp_data = nullptr;
   context->audio_time_total = 0.0;
 
@@ -1639,45 +1275,13 @@ static MovieWriter *ffmpeg_movie_open(const Scene *scene,
 
   bool success = start_ffmpeg_impl(context, rd, rectx, recty, suffix, reports);
 
-#  ifdef WITH_AUDASPACE
-  if (context->audio_stream) {
-    AVCodecContext *c = context->audio_codec;
-
-    AUD_DeviceSpecs specs;
-#    ifdef FFMPEG_USE_OLD_CHANNEL_VARS
-    specs.channels = AUD_Channels(c->channels);
-#    else
-    specs.channels = AUD_Channels(c->ch_layout.nb_channels);
-#    endif
-
-    switch (av_get_packed_sample_fmt(c->sample_fmt)) {
-      case AV_SAMPLE_FMT_U8:
-        specs.format = AUD_FORMAT_U8;
-        break;
-      case AV_SAMPLE_FMT_S16:
-        specs.format = AUD_FORMAT_S16;
-        break;
-      case AV_SAMPLE_FMT_S32:
-        specs.format = AUD_FORMAT_S32;
-        break;
-      case AV_SAMPLE_FMT_FLT:
-        specs.format = AUD_FORMAT_FLOAT32;
-        break;
-      case AV_SAMPLE_FMT_DBL:
-        specs.format = AUD_FORMAT_FLOAT64;
-        break;
-      default:
-        success = false;
-        break;
-    }
-
-    specs.rate = rd->ffcodecdata.audio_mixrate;
-    if (success) {
-      context->audio_mixdown_device = BKE_sound_mixdown(
-          scene, specs, preview ? rd->psfra : rd->sfra, rd->ffcodecdata.audio_volume);
-    }
+  if (success) {
+    success = movie_audio_open(context,
+                               scene,
+                               preview ? rd->psfra : rd->sfra,
+                               rd->ffcodecdata.audio_mixrate,
+                               rd->ffcodecdata.audio_volume);
   }
-#  endif
 
   if (!success) {
     ffmpeg_movie_close(context);
@@ -1686,22 +1290,7 @@ static MovieWriter *ffmpeg_movie_open(const Scene *scene,
   return context;
 }
 
-static void end_ffmpeg_impl(MovieWriter *context, int is_autosplit);
-
-#  ifdef WITH_AUDASPACE
-static void write_audio_frames(MovieWriter *context, double to_pts)
-{
-  AVCodecContext *c = context->audio_codec;
-
-  while (context->audio_stream) {
-    if ((context->audio_time_total >= to_pts) || !write_audio_frame(context)) {
-      break;
-    }
-    context->audio_time_total += double(context->audio_input_samples) / double(c->sample_rate);
-    context->audio_time += double(context->audio_input_samples) / double(c->sample_rate);
-  }
-}
-#  endif
+static void end_ffmpeg_impl(MovieWriter *context, bool is_autosplit);
 
 static bool ffmpeg_movie_append(MovieWriter *context,
                                 RenderData *rd,
@@ -1714,21 +1303,17 @@ static bool ffmpeg_movie_append(MovieWriter *context,
   AVFrame *avframe;
   bool success = true;
 
-  PRINT("Writing frame %i, render width=%d, render height=%d\n", frame, image->x, image->y);
+  FF_DEBUG_PRINT("ffmpeg: writing frame #%i (%ix%i)\n", frame, image->x, image->y);
 
   if (context->video_stream) {
     avframe = generate_video_frame(context, image);
     success = (avframe && write_video_frame(context, avframe, reports));
-#  ifdef WITH_AUDASPACE
     /* Add +1 frame because we want to encode audio up until the next video frame. */
     write_audio_frames(
         context, (frame - start_frame + 1) / (double(rd->frs_sec) / double(rd->frs_sec_base)));
-#  else
-    UNUSED_VARS(start_frame);
-#  endif
 
     if (context->ffmpeg_autosplit) {
-      if (avio_tell(context->outfile->pb) > FFMPEG_AUTOSPLIT_SIZE) {
+      if (avio_tell(context->outfile->pb) > ffmpeg_autosplit_size) {
         end_ffmpeg_impl(context, true);
         context->ffmpeg_autosplit_count++;
 
@@ -1740,29 +1325,20 @@ static bool ffmpeg_movie_append(MovieWriter *context,
   return success;
 }
 
-static void end_ffmpeg_impl(MovieWriter *context, int is_autosplit)
+static void end_ffmpeg_impl(MovieWriter *context, bool is_autosplit)
 {
-  PRINT("Closing FFMPEG...\n");
+  FF_DEBUG_PRINT("ffmpeg: closing\n");
 
-#  ifdef WITH_AUDASPACE
-  if (is_autosplit == false) {
-    if (context->audio_mixdown_device) {
-      AUD_Device_free(context->audio_mixdown_device);
-      context->audio_mixdown_device = nullptr;
-    }
-  }
-#  else
-  UNUSED_VARS(is_autosplit);
-#  endif
+  movie_audio_close(context, is_autosplit);
 
   if (context->video_stream) {
-    PRINT("Flushing delayed video frames...\n");
-    flush_ffmpeg(context->video_codec, context->video_stream, context->outfile);
+    FF_DEBUG_PRINT("ffmpeg: flush delayed video frames\n");
+    flush_delayed_frames(context->video_codec, context->video_stream, context->outfile);
   }
 
   if (context->audio_stream) {
-    PRINT("Flushing delayed audio frames...\n");
-    flush_ffmpeg(context->audio_codec, context->audio_stream, context->outfile);
+    FF_DEBUG_PRINT("ffmpeg: flush delayed audio frames\n");
+    flush_delayed_frames(context->audio_codec, context->audio_stream, context->outfile);
   }
 
   if (context->outfile) {
@@ -1771,24 +1347,11 @@ static void end_ffmpeg_impl(MovieWriter *context, int is_autosplit)
 
   /* Close the video codec */
 
-  if (context->video_stream != nullptr) {
-    PRINT("zero video stream %p\n", context->video_stream);
-    context->video_stream = nullptr;
-  }
+  context->video_stream = nullptr;
+  context->audio_stream = nullptr;
 
-  if (context->audio_stream != nullptr) {
-    context->audio_stream = nullptr;
-  }
-
-  /* free the temp buffer */
-  if (context->current_frame != nullptr) {
-    delete_picture(context->current_frame);
-    context->current_frame = nullptr;
-  }
-  if (context->img_convert_frame != nullptr) {
-    delete_picture(context->img_convert_frame);
-    context->img_convert_frame = nullptr;
-  }
+  av_frame_free(&context->current_frame);
+  av_frame_free(&context->img_convert_frame);
 
   if (context->outfile != nullptr && context->outfile->oformat) {
     if (!(context->outfile->oformat->flags & AVFMT_NOFILE)) {
