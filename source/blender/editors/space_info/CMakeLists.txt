@@ -8,7 +8,6 @@ set(INC
   ../../blentranslation
   ../../imbuf
   ../../makesrna
-  ../../windowmanager
 
   # RNA_prototypes.hh
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
@@ -39,6 +38,7 @@ set(LIB
   PRIVATE bf::gpu
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::extern::fmtlib
+  PRIVATE bf::windowmanager
 )
 
 

@@ -9,7 +9,6 @@ set(INC
   ../../blentranslation
   ../../editors/include
   ../../makesrna
-  ../../windowmanager
   ../../../../intern/utfconv
 )
 
@@ -93,6 +92,7 @@ set(LIB
 
   ${ALEMBIC_LIBRARIES}
   ${OPENEXR_LIBRARIES}
+  PRIVATE bf::windowmanager
 )
 
 if(WITH_BOOST)

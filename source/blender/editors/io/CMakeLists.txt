@@ -14,7 +14,6 @@ set(INC
   ../../io/usd
   ../../io/wavefront_obj
   ../../makesrna
-  ../../windowmanager
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 
@@ -57,6 +56,7 @@ set(LIB
   PRIVATE bf::extern::fmtlib
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::intern::clog
+  PRIVATE bf::windowmanager
 )
 
 if(WITH_OPENCOLLADA)

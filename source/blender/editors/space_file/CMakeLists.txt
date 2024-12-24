@@ -12,7 +12,6 @@ set(INC
   ../../imbuf/movie
   ../../makesrna
   ../../render
-  ../../windowmanager
 
   # RNA_prototypes.hh
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
@@ -51,6 +50,7 @@ set(LIB
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::extern::fmtlib
   PRIVATE bf::intern::atomic
+  PRIVATE bf::windowmanager
 )
 
 if(WIN32)

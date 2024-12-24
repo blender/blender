@@ -6,7 +6,6 @@ set(INC
   ../include
   ../../makesrna
   ../../sequencer
-  ../../windowmanager
   # RNA_prototypes.hh
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
@@ -27,6 +26,7 @@ set(LIB
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::windowmanager
 )
 
 if(WITH_AUDASPACE)

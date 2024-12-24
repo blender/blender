@@ -17,7 +17,6 @@ set(INC
   ../../nodes
   ../../python
   ../../render
-  ../../windowmanager
   ../../../../intern/ghost
   # RNA_prototypes.hh
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
@@ -110,6 +109,7 @@ set(LIB
   PRIVATE bf::gpu
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::animrig
+  PRIVATE bf::windowmanager
 )
 
 if(WITH_INTERNATIONAL)

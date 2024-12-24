@@ -9,7 +9,6 @@ set(INC
   ../editors/include
   ../makesrna
   ../render
-  ../windowmanager
   ../../../intern/eigen
   # RNA_prototypes.hh
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
@@ -46,6 +45,7 @@ set(LIB
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::windowmanager
 )
 
 

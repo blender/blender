@@ -15,7 +15,6 @@ set(INC
   ../../python
   ../../render
   ../../shader_fx
-  ../../windowmanager
 
   # RNA_prototypes.hh
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
@@ -72,7 +71,7 @@ set(LIB
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   bf_render
-  bf_windowmanager
+  PRIVATE bf::windowmanager
 )
 
 

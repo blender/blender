@@ -9,7 +9,6 @@ set(INC
   ../../functions
   ../../makesrna
   ../../nodes
-  ../../windowmanager
 
   # RNA_prototypes.hh
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
@@ -36,7 +35,7 @@ set(LIB
   bf_editor_object
   PRIVATE bf::extern::fmtlib
   PRIVATE bf::intern::guardedalloc
-  bf_windowmanager
+  PRIVATE bf::windowmanager
 )
 
 blender_add_lib(bf_editor_geometry "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

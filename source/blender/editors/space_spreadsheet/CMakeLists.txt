@@ -9,7 +9,6 @@ set(INC
   ../../functions
   ../../makesrna
   ../../nodes
-  ../../windowmanager
 
   # RNA_prototypes.hh
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
@@ -55,6 +54,7 @@ set(LIB
   PRIVATE bf::extern::fmtlib
   PRIVATE bf::gpu
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::windowmanager
 )
 
 if(WITH_OPENVDB)

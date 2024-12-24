@@ -17,7 +17,6 @@ set(INC
   ../../makesrna
   ../../modifiers
   ../../render
-  ../../windowmanager
   ../../io/common
   ../../io/ply
   ../../io/stl
@@ -258,6 +257,7 @@ set(LIB
   PRIVATE bf::intern::atomic
   PRIVATE bf::extern::fmtlib
   PRIVATE bf::extern::xxhash
+  PRIVATE bf::windowmanager
 )
 
 if(WITH_IO_STL)

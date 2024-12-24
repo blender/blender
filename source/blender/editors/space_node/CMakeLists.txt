@@ -16,7 +16,6 @@ set(INC
   ../../makesrna
   ../../nodes
   ../../render
-  ../../windowmanager
 
   # RNA_prototypes.hh
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
@@ -60,6 +59,7 @@ set(LIB
   PRIVATE bf::intern::guardedalloc
   bf_compositor
   PRIVATE bf::extern::fmtlib
+  PRIVATE bf::windowmanager
 )
 
 if(WITH_OPENIMAGEDENOISE)

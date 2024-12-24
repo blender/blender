@@ -7,7 +7,6 @@ set(INC
   ../../blentranslation
   ../../geometry
   ../../makesrna
-  ../../windowmanager
   ../../../../intern/eigen
   # RNA_prototypes.hh
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
@@ -41,6 +40,7 @@ set(LIB
   PRIVATE bf::dna
   PRIVATE bf::gpu
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::windowmanager
 )
 
 if(WITH_UV_SLIM)

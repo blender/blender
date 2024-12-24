@@ -10,7 +10,6 @@ set(INC
   ../../imbuf
   ../../makesrna
   ../../sequencer
-  ../../windowmanager
 
   ../../../../extern/fmtlib/include
 
@@ -142,6 +141,7 @@ set(LIB
   PRIVATE bf::gpu
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::windowmanager
   extern_fmtlib
 )
 

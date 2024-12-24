@@ -6,7 +6,6 @@ set(INC
   ../include
   ../../blentranslation
   ../../makesrna
-  ../../windowmanager
 )
 
 set(INC_SYS
@@ -34,6 +33,7 @@ set(LIB
   PRIVATE bf::gpu
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::animrig
+  PRIVATE bf::windowmanager
 )
 
 

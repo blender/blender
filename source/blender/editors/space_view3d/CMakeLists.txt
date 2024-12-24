@@ -15,7 +15,6 @@ set(INC
   ../../modifiers
   ../../nodes
   ../../render
-  ../../windowmanager
   ../../../../intern/mantaflow/extern
 
   # RNA_prototypes.hh
@@ -91,6 +90,7 @@ set(LIB
   bf_editor_mesh
   PRIVATE bf::gpu
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::windowmanager
 )
 
 if(WITH_PYTHON)

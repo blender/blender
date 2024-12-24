@@ -10,7 +10,6 @@ set(INC
   ../../editors/include
   ../../functions
   ../../makesrna
-  ../../windowmanager
 )
 
 set(INC_SYS
@@ -73,6 +72,7 @@ set(LIB
   PRIVATE bf::dna
   bf_functions
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::windowmanager
 )
 
 add_node_discovery(

@@ -10,7 +10,6 @@ set(INC
   ../makesrna
   ../modifiers
   ../sequencer
-  ../windowmanager
   # RNA_prototypes.hh
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
@@ -156,6 +155,7 @@ set(LIB
   PRIVATE bf::dna
   PRIVATE bf::intern::atomic
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::windowmanager
 )
 
 if(WITH_PYTHON)

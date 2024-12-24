@@ -20,7 +20,6 @@ set(INC
   ../compositor
   ../compositor/algorithms
   ../compositor/cached_resources
-  ../windowmanager
 
   ../../../intern/opensubdiv
 )
@@ -311,7 +310,7 @@ set(LIB
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   bf_compositor
-  bf_windowmanager
+  PRIVATE bf::windowmanager
   PRIVATE bf::intern::atomic
   PRIVATE bf::extern::fmtlib
 )

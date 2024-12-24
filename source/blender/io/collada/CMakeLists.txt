@@ -26,7 +26,6 @@ set(INC
   ../../ikplugin
   ../../imbuf
   ../../makesrna
-  ../../windowmanager
   ../../../../intern/iksolver/extern
 )
 
@@ -118,6 +117,7 @@ set(LIB
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::windowmanager
 )
 
 if(WITH_BUILDINFO)

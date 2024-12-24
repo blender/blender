@@ -8,7 +8,6 @@ set(INC
   ../../blenloader
   ../../blentranslation
   ../../makesrna
-  ../../windowmanager
 
   # RNA_prototypes.hh
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
@@ -31,7 +30,7 @@ set(LIB
   PRIVATE bf::dna
   PRIVATE bf::extern::fmtlib
   PRIVATE bf::intern::guardedalloc
-  bf_windowmanager
+  PRIVATE bf::windowmanager
 )
 
 blender_add_lib(bf_editor_space_userpref "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

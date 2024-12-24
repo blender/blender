@@ -9,7 +9,6 @@ set(INC
   ../blender/io/usd
   ../blender/makesrna
   ../blender/render
-  ../blender/windowmanager
 )
 
 set(LIB
@@ -21,7 +20,7 @@ set(LIB
   PRIVATE bf::gpu
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
-  bf_windowmanager
+  PRIVATE bf::windowmanager
 )
 
 if(HAVE_FEENABLEEXCEPT)

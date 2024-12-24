@@ -12,7 +12,6 @@ set(INC
   ../../imbuf
   ../../makesrna
   ../../render
-  ../../windowmanager
   ../../compositor
   ../../compositor/algorithms
   ../../compositor/cached_resources
@@ -134,6 +133,7 @@ set(LIB
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::extern::fmtlib
   bf_compositor
+  PRIVATE bf::windowmanager
 )
 
 if(WITH_OPENCOLORIO)

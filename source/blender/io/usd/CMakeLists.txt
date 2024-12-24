@@ -51,7 +51,6 @@ set(INC
   ../../makesrna
   ../../nodes
   ../../python/intern
-  ../../windowmanager
   ../../../../intern/utfconv
   # RNA_prototypes.hh
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
@@ -204,6 +203,7 @@ set(LIB
   PRIVATE bf::intern::guardedalloc
   bf_io_common
   PRIVATE bf::extern::fmtlib
+  PRIVATE bf::windowmanager
 )
 
 list(APPEND LIB

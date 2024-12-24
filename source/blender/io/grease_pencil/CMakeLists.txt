@@ -11,7 +11,6 @@ set(INC
   ../../geometry
   ../../makesdna
   ../../makesrna
-  ../../windowmanager
   ../../../../intern/guardedalloc
   ../../../../intern/utfconv
   ../../../../extern/fmtlib/include
@@ -37,6 +36,7 @@ set(LIB
   PRIVATE bf::extern::nanosvg
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::windowmanager
   PRIVATE extern_fmtlib
   bf_io_common
 )

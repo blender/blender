@@ -11,7 +11,6 @@ set(INC
   ../../imbuf
   ../../makesrna
   ../../render
-  ../../windowmanager
   # RNA_prototypes.hh
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
@@ -62,6 +61,7 @@ set(LIB
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc
   bf_nodes
+  PRIVATE bf::windowmanager
 )
 
 blender_add_lib(bf_nodes_texture "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

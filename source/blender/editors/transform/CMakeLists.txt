@@ -9,7 +9,6 @@ set(INC
   ../../makesrna
   ../../render
   ../../sequencer
-  ../../windowmanager
   # RNA_prototypes.hh
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
@@ -120,6 +119,7 @@ set(LIB
   bf_editor_mask
   PRIVATE bf::gpu
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::windowmanager
 )
 
 blender_add_lib(bf_editor_transform "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

@@ -13,7 +13,6 @@ set(INC
   ../nodes
   ../render
   ../sequencer
-  ../windowmanager
 
   # RNA_prototypes.hh
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
@@ -67,6 +66,7 @@ set(LIB
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::extern::fmtlib
   PRIVATE bf::intern::memutil
+  PRIVATE bf::windowmanager
 )
 
 if(WITH_BUILDINFO)

@@ -10,7 +10,6 @@ set(INC
   ../../imbuf
   ../../imbuf/intern/oiio
   ../../makesrna
-  ../../windowmanager
   ../../../../intern/mantaflow/extern
   ../../../../intern/opencolorio
   # RNA_prototypes.hh
@@ -133,6 +132,7 @@ set(LIB
 
   ${PYTHON_LINKFLAGS}
   ${PYTHON_LIBRARIES}
+  PRIVATE bf::windowmanager
 )
 
 # Only to check if `buildinfo` is available.

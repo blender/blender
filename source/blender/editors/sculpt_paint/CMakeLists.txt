@@ -19,7 +19,6 @@ set(INC
   ../../makesrna
   ../../nodes
   ../../render
-  ../../windowmanager
   ../../../../intern/eigen
   # RNA_prototypes.hh
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
@@ -188,6 +187,7 @@ set(LIB
   PRIVATE bf::intern::atomic
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::windowmanager
 )
 
 if(WITH_POTRACE)

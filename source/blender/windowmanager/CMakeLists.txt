@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 set(INC
-  .
+  PUBLIC .
   gizmo
   gizmo/intern
   ../asset_system
@@ -204,6 +204,7 @@ if(WITH_XR_OPENXR)
 endif()
 
 blender_add_lib_nolist(bf_windowmanager "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+add_library(bf::windowmanager ALIAS bf_windowmanager)
 
 # RNA_prototypes.hh
 add_dependencies(bf_windowmanager bf_rna)

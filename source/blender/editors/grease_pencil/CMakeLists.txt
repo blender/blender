@@ -7,7 +7,6 @@ set(INC
   ../../blentranslation
   ../../imbuf
   ../../makesrna
-  ../../windowmanager
   ../../../../extern/curve_fit_nd
   ../../geometry
   ../sculpt_paint
@@ -53,6 +52,7 @@ set(LIB
   PRIVATE bf::gpu
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::intern::clog
+  PRIVATE bf::windowmanager
   extern_curve_fit_nd
   extern_fmtlib
 )

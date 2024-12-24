@@ -12,7 +12,6 @@ set(INC
   ../../imbuf
   ../../makesrna
   ../../render
-  ../../windowmanager
   # RNA_prototypes.hh
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
@@ -69,7 +68,7 @@ set(LIB
   PRIVATE bf::gpu
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
-  bf_windowmanager
+  PRIVATE bf::windowmanager
 )
 
 if(WITH_FREESTYLE)
