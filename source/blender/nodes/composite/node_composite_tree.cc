@@ -173,17 +173,6 @@ void register_node_tree_type_cmp()
   blender::bke::node_tree_type_add(tt);
 }
 
-void ntreeCompositExecTree(Render *render,
-                           Scene *scene,
-                           bNodeTree *ntree,
-                           RenderData *rd,
-                           const char *view_name,
-                           blender::compositor::RenderContext *render_context,
-                           blender::compositor::Profiler *profiler)
-{
-  COM_execute(render, rd, scene, ntree, view_name, render_context, profiler);
-}
-
 /* *********************************************** */
 
 void ntreeCompositUpdateRLayers(bNodeTree *ntree)

@@ -70,6 +70,7 @@
 #include "NOD_texture.h"
 #include "node_intern.hh" /* own include */
 
+#include "COM_compositor.hh"
 #include "COM_profiler.hh"
 
 namespace blender::ed::space_node {
@@ -303,14 +304,14 @@ static void compo_startjob(void *cjv, wmJobWorkerStatus *worker_status)
   BKE_callback_exec_id(cj->bmain, &cj->scene->id, BKE_CB_EVT_COMPOSITE_PRE);
 
   if ((scene->r.scemode & R_MULTIVIEW) == 0) {
-    ntreeCompositExecTree(cj->re, scene, ntree, &scene->r, "", nullptr, &cj->profiler);
+    COM_execute(cj->re, &scene->r, scene, ntree, "", nullptr, &cj->profiler);
   }
   else {
     LISTBASE_FOREACH (SceneRenderView *, srv, &scene->r.views) {
       if (BKE_scene_multiview_is_render_view_active(&scene->r, srv) == false) {
         continue;
       }
-      ntreeCompositExecTree(cj->re, scene, ntree, &scene->r, srv->name, nullptr, &cj->profiler);
+      COM_execute(cj->re, &scene->r, scene, ntree, srv->name, nullptr, &cj->profiler);
     }
   }
 
