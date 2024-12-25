@@ -5,7 +5,6 @@
 set(INC
   .
   ../common
-  ../../blenloader
   ../../editors/include
   ../../functions
   ../../geometry
@@ -30,6 +29,7 @@ set(SRC
 set(LIB
   PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
+  PRIVATE bf::blenloader
   PRIVATE bf::bmesh
   PRIVATE bf::depsgraph
   PRIVATE bf::dna

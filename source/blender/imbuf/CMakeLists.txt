@@ -7,7 +7,6 @@ add_subdirectory(movie)
 set(INC
   .
   ./movie
-  ../blenloader
   ../makesrna
   ../sequencer
   ../../../intern/memutil
@@ -73,7 +72,7 @@ set(SRC
 set(LIB
   PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
-  bf_blenloader
+  PRIVATE bf::blenloader
   PRIVATE bf::dna
   PRIVATE bf::gpu
   bf_imbuf_openimageio

@@ -55,7 +55,6 @@ set(INC
   texture
   ../animrig
   ../editors/include
-  ../blenloader
   ../depsgraph
   ../functions
   ../geometry
@@ -138,6 +137,7 @@ set(SRC
 set(LIB
   PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
+  PRIVATE bf::blenloader
   PRIVATE bf::blentranslation
   PRIVATE bf::bmesh
   PRIVATE bf::depsgraph

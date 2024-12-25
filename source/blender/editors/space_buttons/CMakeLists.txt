@@ -4,7 +4,6 @@
 
 set(INC
   ../include
-  ../../blenloader
   ../../makesrna
 
   # RNA_prototypes.hh
@@ -26,6 +25,7 @@ set(SRC
 set(LIB
   PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
+  PRIVATE bf::blenloader
   PRIVATE bf::blentranslation
   PRIVATE bf::bmesh
   PRIVATE bf::dna

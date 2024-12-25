@@ -5,7 +5,6 @@
 set(INC
   PUBLIC .
   ../asset_system
-  ../blenloader
   ../draw
   ../functions
   ../ikplugin
@@ -558,7 +557,7 @@ set(LIB
   bf_asset_system
   PRIVATE bf::blenfont
   PRIVATE bf::blenlib
-  bf_blenloader
+  PRIVATE bf::blenloader
   PRIVATE bf::blentranslation
   PRIVATE bf::bmesh
   PRIVATE bf::depsgraph
