@@ -4,7 +4,6 @@
 
 set(INC
   ../include
-  ../../blentranslation
   ../../imbuf
   ../../makesrna
   ../../../../extern/curve_fit_nd
@@ -46,6 +45,7 @@ set(LIB
   PRIVATE bf::blenkernel
   PRIVATE bf::animrig
   PRIVATE bf::blenlib
+  PRIVATE bf::blentranslation
   PRIVATE bf::bmesh
   PRIVATE bf::depsgraph
   PRIVATE bf::dna

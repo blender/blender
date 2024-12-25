@@ -5,7 +5,6 @@
 set(INC
   ../include
   ../../blenloader
-  ../../blentranslation
   ../../makesrna
   ../../modifiers
 
@@ -32,6 +31,7 @@ set(LIB
   PRIVATE bf::blenkernel
   PRIVATE bf::animrig
   PRIVATE bf::blenlib
+  PRIVATE bf::blentranslation
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   PRIVATE bf::gpu

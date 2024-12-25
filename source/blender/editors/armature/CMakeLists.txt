@@ -6,7 +6,6 @@ set(INC
   ../include
   ../../asset_system
   ../../blenloader
-  ../../blentranslation
   ../../makesrna
   ../../../../intern/eigen
   # RNA_prototypes.hh
@@ -44,6 +43,7 @@ set(LIB
   PRIVATE bf::blenfont
   PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
+  PRIVATE bf::blentranslation
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   PRIVATE bf::extern::fmtlib

@@ -6,7 +6,6 @@ set(INC
   PUBLIC .
   intern
 
-  ../blentranslation
   ../editors/include
   ../makesrna
   ../../../extern/fmtlib/include
@@ -61,6 +60,7 @@ set(SRC
 set(LIB
   PRIVATE bf::blenkernel
   bf::blenlib
+  PRIVATE bf::blentranslation
   PRIVATE bf::depsgraph
   bf::dna
   PRIVATE bf::intern::guardedalloc

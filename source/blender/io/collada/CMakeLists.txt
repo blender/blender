@@ -21,7 +21,6 @@ unset(OPENCOLLADA_ANIMATION_CLIP CACHE)
 
 set(INC
   .
-  ../../blentranslation
   ../../editors/include
   ../../ikplugin
   ../../imbuf
@@ -113,6 +112,7 @@ set(LIB
   PRIVATE bf::animrig
   PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
+  PRIVATE bf::blentranslation
   PRIVATE bf::bmesh
   PRIVATE bf::depsgraph
   PRIVATE bf::dna

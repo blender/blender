@@ -6,7 +6,6 @@ set(INC
   .
   ..
   ../intern
-  ../../blentranslation
   ../../editors/include
   ../../functions
   ../../imbuf
@@ -128,6 +127,7 @@ set(SRC
 set(LIB
   PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
+  PRIVATE bf::blentranslation
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   bf_functions

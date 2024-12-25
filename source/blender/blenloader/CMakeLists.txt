@@ -4,7 +4,6 @@
 
 set(INC
   .
-  ../blentranslation
   ../draw
   ../editors/include
   ../imbuf
@@ -58,6 +57,7 @@ set(LIB
   PRIVATE bf::animrig
   PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
+  PRIVATE bf::blentranslation
   PRIVATE bf::bmesh
   PRIVATE bf::depsgraph
   PRIVATE bf::dna

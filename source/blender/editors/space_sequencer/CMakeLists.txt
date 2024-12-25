@@ -5,7 +5,6 @@
 set(INC
   ../include
   ../../blenloader
-  ../../blentranslation
   ../../draw
   ../../imbuf
   ../../imbuf/movie
@@ -54,6 +53,7 @@ set(LIB
   PRIVATE bf::blenfont
   PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
+  PRIVATE bf::blentranslation
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   bf_editor_interface

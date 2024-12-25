@@ -7,7 +7,6 @@ set(INC
   ../include
   ../../asset_system
   ../../blenloader
-  ../../blentranslation
   ../../imbuf
   ../../imbuf/movie
   ../../makesrna
@@ -45,6 +44,7 @@ set(LIB
   PRIVATE bf::blenfont
   PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
+  PRIVATE bf::blentranslation
   PRIVATE bf::dna
   PRIVATE bf::gpu
   PRIVATE bf::intern::guardedalloc

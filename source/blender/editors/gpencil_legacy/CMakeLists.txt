@@ -4,7 +4,6 @@
 
 set(INC
   ../include
-  ../../blentranslation
   ../../imbuf
   ../../makesrna
   # RNA_prototypes.hh
@@ -32,6 +31,7 @@ set(LIB
   PRIVATE bf::blenfont
   PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
+  PRIVATE bf::blentranslation
   PRIVATE bf::bmesh
   PRIVATE bf::depsgraph
   PRIVATE bf::dna

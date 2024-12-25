@@ -4,7 +4,6 @@
 
 set(INC
   ../include
-  ../../blentranslation
   ../../ikplugin
   ../../makesrna
   ../../render
@@ -110,6 +109,7 @@ set(SRC
 set(LIB
   PRIVATE bf::animrig
   PRIVATE bf::blenfont
+  PRIVATE bf::blentranslation
   PRIVATE bf::extern::fmtlib
   PRIVATE bf::blenkernel
   PRIVATE bf::blenlib

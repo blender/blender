@@ -7,7 +7,6 @@ set(INC
   intern
 
   ../blenloader
-  ../blentranslation
   ../editors/include
   ../editors/space_view3d
   ../functions
@@ -303,6 +302,7 @@ set(LIB
   PRIVATE bf::blenfont
   PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
+  PRIVATE bf::blentranslation
   PRIVATE bf::bmesh
   PRIVATE bf::depsgraph
   PRIVATE bf::dna

@@ -11,7 +11,6 @@ set(INC
   ../../asset_system
   ../../blenlib
   ../../blenloader
-  ../../blentranslation
   ../../draw
   ../../functions
   ../../geometry
@@ -179,6 +178,7 @@ set(LIB
   PRIVATE bf::blenkernel
   PRIVATE bf::animrig
   PRIVATE bf::blenlib
+  PRIVATE bf::blentranslation
   PRIVATE bf::bmesh
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
