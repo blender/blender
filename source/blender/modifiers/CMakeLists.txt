@@ -7,7 +7,6 @@ set(INC
   intern
   intern/lineart
   ../editors/include
-  ../functions
   ../geometry
   ../makesrna
   ../nodes
@@ -143,6 +142,7 @@ set(LIB
   PRIVATE bf::bmesh
   PRIVATE bf::depsgraph
   PUBLIC bf::dna
+  PRIVATE bf::functions
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::extern::fmtlib
   PRIVATE bf::windowmanager

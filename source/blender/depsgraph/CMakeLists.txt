@@ -6,7 +6,6 @@ set(INC
   PUBLIC .
   ../animrig
   ../draw
-  ../functions
   ../makesrna
   ../modifiers
   ../sequencer
@@ -153,6 +152,7 @@ set(LIB
   PRIVATE bf::blenlib
   PRIVATE bf::bmesh
   PRIVATE bf::dna
+  PRIVATE bf::functions
   PRIVATE bf::intern::atomic
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::windowmanager

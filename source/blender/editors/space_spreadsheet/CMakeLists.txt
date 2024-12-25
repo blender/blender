@@ -4,7 +4,6 @@
 
 set(INC
   ../include
-  ../../functions
   ../../makesrna
   ../../nodes
 
@@ -52,6 +51,7 @@ set(LIB
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   PRIVATE bf::extern::fmtlib
+  PRIVATE bf::functions
   PRIVATE bf::gpu
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::windowmanager

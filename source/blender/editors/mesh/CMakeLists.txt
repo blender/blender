@@ -6,7 +6,6 @@ set(INC
   ../include
   ../uvedit
   ../../draw
-  ../../functions
   ../../geometry
   ../../imbuf
   ../../makesrna
@@ -65,6 +64,7 @@ set(LIB
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   PRIVATE bf::extern::fmtlib
+  PRIVATE bf::functions
   PRIVATE bf::gpu
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc

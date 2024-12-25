@@ -8,7 +8,6 @@ set(INC
   ../../asset_system
   ../../compositor
   ../../draw
-  ../../functions
   ../../geometry
   ../../imbuf
   ../../makesrna
@@ -55,6 +54,7 @@ set(LIB
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   bf_editor_screen
+  PRIVATE bf::functions
   PRIVATE bf::gpu
   PRIVATE bf::intern::guardedalloc
   bf_compositor

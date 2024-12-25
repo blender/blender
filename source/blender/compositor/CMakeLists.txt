@@ -7,7 +7,6 @@ set(INC
   algorithms
   cached_resources
   utilities
-  ../functions
   ../gpu/intern
   ../imbuf
   ../makesrna
@@ -147,7 +146,7 @@ set(SRC
 set(LIB
   PRIVATE bf::blenkernel
   PRIVATE bf::blentranslation
-  bf_functions
+  PRIVATE bf::functions
   PRIVATE bf::gpu
   bf_imbuf
   bf_render

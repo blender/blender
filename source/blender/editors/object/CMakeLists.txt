@@ -5,7 +5,6 @@
 set(INC
   ../include
   ../../asset_system
-  ../../functions
   ../../geometry
   ../../ikplugin
   ../../imbuf
@@ -67,6 +66,7 @@ set(LIB
   bf_editor_metaball
   bf_editor_grease_pencil
   PRIVATE bf::extern::fmtlib
+  PRIVATE bf::functions
   PRIVATE bf::gpu
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc

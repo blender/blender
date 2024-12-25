@@ -8,7 +8,6 @@ set(INC
   include
   ../intern
   ../../editors/include
-  ../../functions
   ../../geometry
   ../../imbuf
   ../../imbuf/movie
@@ -249,7 +248,7 @@ set(LIB
   PRIVATE bf::bmesh
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
-  bf_functions
+  PRIVATE bf::functions
   bf_geometry
   PRIVATE bf::gpu
   PRIVATE bf::intern::guardedalloc

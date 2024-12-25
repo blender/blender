@@ -4,7 +4,6 @@
 
 set(INC
   .
-  ../functions
   ../makesrna
   ../../../intern/eigen
 )
@@ -102,6 +101,7 @@ set(LIB
   PRIVATE bf::blentranslation
   PRIVATE bf::bmesh
   PRIVATE bf::dna
+  PRIVATE bf::functions
   PRIVATE bf::intern::atomic
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::extern::fmtlib

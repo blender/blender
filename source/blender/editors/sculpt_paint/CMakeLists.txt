@@ -11,7 +11,6 @@ set(INC
   ../../asset_system
   ../../blenlib
   ../../draw
-  ../../functions
   ../../geometry
   ../../imbuf
   ../../makesrna
@@ -183,6 +182,7 @@ set(LIB
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   PRIVATE bf::extern::fmtlib
+  PRIVATE bf::functions
   PRIVATE bf::gpu
   PRIVATE bf::intern::atomic
   PRIVATE bf::intern::clog

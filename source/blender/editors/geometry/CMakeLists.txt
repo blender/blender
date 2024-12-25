@@ -5,7 +5,6 @@
 set(INC
   ../include
   ../../asset_system
-  ../../functions
   ../../makesrna
   ../../nodes
 
@@ -34,6 +33,7 @@ set(LIB
   PRIVATE bf::dna
   bf_editor_object
   PRIVATE bf::extern::fmtlib
+  PRIVATE bf::functions
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::windowmanager
 )

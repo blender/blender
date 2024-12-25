@@ -7,7 +7,6 @@ set(INC
   ..
   ../intern
   ../../editors/include
-  ../../functions
   ../../makesrna
 )
 
@@ -70,7 +69,7 @@ set(LIB
   PRIVATE bf::blenlib
   PRIVATE bf::blentranslation
   PRIVATE bf::dna
-  bf_functions
+  PRIVATE bf::functions
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::windowmanager
 )

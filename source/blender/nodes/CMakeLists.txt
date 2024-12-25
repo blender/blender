@@ -56,7 +56,6 @@ set(INC
   ../animrig
   ../editors/include
   ../depsgraph
-  ../functions
   ../geometry
   ../imbuf
   ../makesrna
@@ -142,7 +141,7 @@ set(LIB
   PRIVATE bf::bmesh
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
-  bf_functions
+  PRIVATE bf::functions
   PRIVATE bf::gpu
   PRIVATE bf::intern::guardedalloc
   bf_nodes_composite

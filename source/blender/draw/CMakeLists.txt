@@ -8,7 +8,6 @@ set(INC
 
   ../editors/include
   ../editors/space_view3d
-  ../functions
   ../gpu/intern
   ../imbuf
   ../makesrna
@@ -306,6 +305,7 @@ set(LIB
   PRIVATE bf::bmesh
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
+  PRIVATE bf::functions
   PRIVATE bf::gpu
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc

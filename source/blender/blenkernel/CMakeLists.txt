@@ -6,7 +6,6 @@ set(INC
   PUBLIC .
   ../asset_system
   ../draw
-  ../functions
   ../ikplugin
   ../imbuf
   ../makesrna
@@ -564,7 +563,7 @@ set(LIB
   PRIVATE bf::dna
   bf_draw
   PRIVATE bf::extern::curve_fit_nd
-  bf_functions
+  PRIVATE bf::functions
   PRIVATE bf::gpu
   bf_ikplugin
   bf_imbuf

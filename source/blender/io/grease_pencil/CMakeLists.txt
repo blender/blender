@@ -6,7 +6,6 @@ set(INC
   .
   ../common
   ../../editors/include
-  ../../functions
   ../../geometry
   ../../makesdna
   ../../makesrna
@@ -34,6 +33,7 @@ set(LIB
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   PRIVATE bf::extern::nanosvg
+  PRIVATE bf::functions
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::windowmanager
