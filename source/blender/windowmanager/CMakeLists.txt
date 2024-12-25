@@ -10,7 +10,6 @@ set(INC
   ../compositor
   ../editors/include
   ../draw
-  ../imbuf
   ../imbuf/movie
   ../makesrna
   ../nodes
@@ -104,6 +103,7 @@ set(LIB
   bf_editor_undo
   PRIVATE bf::extern::fmtlib
   PRIVATE bf::gpu
+  PRIVATE bf::imbuf
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::animrig

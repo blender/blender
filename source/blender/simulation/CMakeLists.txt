@@ -5,7 +5,6 @@
 set(INC
   .
   intern
-  ../imbuf
   ../makesrna
   ../nodes
 )
@@ -33,6 +32,7 @@ set(LIB
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   PRIVATE bf::functions
+  PRIVATE bf::imbuf
   PRIVATE bf::intern::guardedalloc
 )
 

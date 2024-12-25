@@ -7,7 +7,6 @@ set(INC
   ..
   ../intern
   ../../editors/include
-  ../../imbuf
   ../../makesrna
   ../../render
   ../../../../intern/sky/include
@@ -131,6 +130,7 @@ set(LIB
   PRIVATE bf::dna
   PRIVATE bf::functions
   PRIVATE bf::gpu
+  PRIVATE bf::imbuf
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   bf_intern_sky

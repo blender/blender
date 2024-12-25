@@ -6,7 +6,6 @@ set(INC
   PUBLIC .
   ../draw
   ../editors/include
-  ../imbuf
   ../imbuf/movie
   ../makesrna
   ../nodes
@@ -62,6 +61,7 @@ set(LIB
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   PRIVATE bf::gpu
+  PRIVATE bf::imbuf
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::extern::fmtlib

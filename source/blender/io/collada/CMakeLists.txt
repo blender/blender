@@ -23,7 +23,6 @@ set(INC
   .
   ../../editors/include
   ../../ikplugin
-  ../../imbuf
   ../../makesrna
   ../../../../intern/iksolver/extern
 )
@@ -116,6 +115,7 @@ set(LIB
   PRIVATE bf::bmesh
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
+  PRIVATE bf::imbuf
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::windowmanager
 )

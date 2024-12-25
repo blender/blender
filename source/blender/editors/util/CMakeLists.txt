@@ -6,7 +6,6 @@ set(INC
   ../include
   ../space_sequencer
   ../../asset_system
-  ../../imbuf
   ../../makesrna
   ../../sequencer
   # RNA_prototypes.hh
@@ -113,6 +112,7 @@ set(LIB
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   PRIVATE bf::gpu
+  PRIVATE bf::imbuf
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::windowmanager

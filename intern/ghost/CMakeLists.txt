@@ -4,7 +4,6 @@
 
 set(INC
   PUBLIC .
-  ../../source/blender/imbuf
   ../guardedalloc
 )
 
@@ -74,6 +73,7 @@ set(LIB
   PRIVATE bf::blenlib
   PRIVATE bf::dna
   PRIVATE bf::gpu
+  PRIVATE bf::imbuf
   PRIVATE bf::intern::clog
 )
 

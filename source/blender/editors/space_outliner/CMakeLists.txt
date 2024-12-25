@@ -5,7 +5,6 @@
 set(INC
   ../include
   ../../blenfont
-  ../../imbuf
   ../../makesrna
   ../../sequencer
 
@@ -139,6 +138,7 @@ set(LIB
   bf_editor_id_management
   bf_editor_undo
   PRIVATE bf::gpu
+  PRIVATE bf::imbuf
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::windowmanager

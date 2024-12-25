@@ -6,7 +6,6 @@ set(INC
   ../asset
   ../include
   ../../asset_system
-  ../../imbuf
   ../../imbuf/movie
   ../../makesrna
   ../../render
@@ -47,6 +46,7 @@ set(LIB
   PRIVATE bf::blentranslation
   PRIVATE bf::dna
   PRIVATE bf::gpu
+  PRIVATE bf::imbuf
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::extern::fmtlib
   PRIVATE bf::intern::atomic

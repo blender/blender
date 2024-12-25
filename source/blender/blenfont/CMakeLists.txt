@@ -4,7 +4,6 @@
 
 set(INC
   PUBLIC .
-  ../imbuf
   ../makesrna
 )
 
@@ -31,6 +30,7 @@ set(LIB
   PRIVATE bf::blentranslation
   PRIVATE bf::dna
   PRIVATE bf::gpu
+  PRIVATE bf::imbuf
   PRIVATE bf::intern::guardedalloc
   ${FREETYPE_LIBRARIES} ${BROTLI_LIBRARIES}
 )

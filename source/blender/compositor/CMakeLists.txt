@@ -8,7 +8,6 @@ set(INC
   cached_resources
   utilities
   ../gpu/intern
-  ../imbuf
   ../makesrna
   ../nodes
   ../render
@@ -148,7 +147,7 @@ set(LIB
   PRIVATE bf::blentranslation
   PRIVATE bf::functions
   PRIVATE bf::gpu
-  bf_imbuf
+  PRIVATE bf::imbuf
   bf_render
   PRIVATE bf::blenlib
   PRIVATE bf::dna

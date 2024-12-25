@@ -7,7 +7,6 @@ set(INC
   ../include
   ../../asset_system
   ../../draw
-  ../../imbuf
   ../../makesrna
   ../../modifiers
   ../../nodes
@@ -89,6 +88,7 @@ set(LIB
   bf_editor_mesh
   PRIVATE bf::functions
   PRIVATE bf::gpu
+  PRIVATE bf::imbuf
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::windowmanager
 )

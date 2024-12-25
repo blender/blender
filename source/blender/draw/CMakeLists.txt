@@ -9,7 +9,6 @@ set(INC
   ../editors/include
   ../editors/space_view3d
   ../gpu/intern
-  ../imbuf
   ../makesrna
   ../nodes
   ../render
@@ -307,6 +306,7 @@ set(LIB
   PRIVATE bf::dna
   PRIVATE bf::functions
   PRIVATE bf::gpu
+  PRIVATE bf::imbuf
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   bf_compositor

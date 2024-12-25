@@ -5,7 +5,6 @@
 set(INC
   ..
   ../../editors/include
-  ../../imbuf
   ../../imbuf/intern/oiio
   ../../makesrna
   ../../../../intern/mantaflow/extern
@@ -125,6 +124,7 @@ set(LIB
   bf_editor_interface
   bf_editor_space_api
   PRIVATE bf::gpu
+  PRIVATE bf::imbuf
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::animrig

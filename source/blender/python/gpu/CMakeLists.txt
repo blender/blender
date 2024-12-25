@@ -5,7 +5,6 @@
 set(INC
   .
   ../../editors/include
-  ../../imbuf
 )
 
 set(INC_SYS
@@ -62,6 +61,7 @@ set(LIB
   PRIVATE bf::blenlib
   PRIVATE bf::dna
   PRIVATE bf::gpu
+  PRIVATE bf::imbuf
   PRIVATE bf::intern::guardedalloc
 )
 

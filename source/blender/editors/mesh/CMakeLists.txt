@@ -7,7 +7,6 @@ set(INC
   ../uvedit
   ../../draw
   ../../geometry
-  ../../imbuf
   ../../makesrna
   ../../render
   # RNA_prototypes.hh
@@ -66,6 +65,7 @@ set(LIB
   PRIVATE bf::extern::fmtlib
   PRIVATE bf::functions
   PRIVATE bf::gpu
+  PRIVATE bf::imbuf
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::windowmanager

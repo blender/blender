@@ -5,7 +5,6 @@
 set(INC
   ../include
   ../../draw
-  ../../imbuf
   ../../imbuf/movie
   ../../makesrna
   ../../sequencer
@@ -59,6 +58,7 @@ set(LIB
   bf_editor_interface
   bf_editor_util
   PRIVATE bf::gpu
+  PRIVATE bf::imbuf
   PRIVATE bf::intern::atomic
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::animrig

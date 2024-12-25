@@ -11,7 +11,6 @@ set(INC
   ../draw
   ../draw/intern
   ../gpu/intern
-  ../imbuf
   ../imbuf/movie
   ../makesrna
   ../nodes
@@ -64,6 +63,7 @@ set(LIB
   PRIVATE bf::dna
   PRIVATE bf::extern::fmtlib
   PRIVATE bf::gpu
+  PRIVATE bf::imbuf
   PRIVATE bf::intern::guardedalloc
   bf_compositor
   PRIVATE bf::intern::atomic

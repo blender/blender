@@ -6,7 +6,6 @@ set(INC
   ../asset
   ../include
   ../../draw
-  ../../imbuf
   ../../imbuf/movie
   ../../makesrna
   ../../render
@@ -41,6 +40,7 @@ set(LIB
   PRIVATE bf::dna
   bf_editor_uvedit
   PRIVATE bf::gpu
+  PRIVATE bf::imbuf
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::windowmanager

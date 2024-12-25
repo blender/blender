@@ -4,7 +4,6 @@
 
 set(INC
   ../include
-  ../../imbuf
   ../../imbuf/movie
   ../../makesrna
 
@@ -49,6 +48,7 @@ set(LIB
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   PRIVATE bf::gpu
+  PRIVATE bf::imbuf
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::windowmanager
 )

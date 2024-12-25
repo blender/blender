@@ -4,7 +4,6 @@
 
 set(INC
   ../include
-  ../../imbuf
   ../../makesrna
 
   # RNA_prototypes.hh
@@ -36,6 +35,7 @@ set(LIB
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   PRIVATE bf::gpu
+  PRIVATE bf::imbuf
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::extern::fmtlib
   PRIVATE bf::windowmanager

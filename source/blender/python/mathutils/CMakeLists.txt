@@ -4,7 +4,6 @@
 
 set(INC
   .
-  ../../imbuf
 )
 
 set(INC_SYS
@@ -43,7 +42,7 @@ set(LIB
   PRIVATE bf::bmesh
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
-  bf_imbuf
+  PRIVATE bf::imbuf
   PRIVATE bf::intern::guardedalloc
   bf_python_ext
 

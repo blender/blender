@@ -9,7 +9,6 @@ set(INC
   ../intern
   ../../editors/include
   ../../geometry
-  ../../imbuf
   ../../imbuf/movie
   ../../makesrna
   ../../modifiers
@@ -251,6 +250,7 @@ set(LIB
   PRIVATE bf::functions
   bf_geometry
   PRIVATE bf::gpu
+  PRIVATE bf::imbuf
   PRIVATE bf::intern::guardedalloc
   bf_nodes
   PRIVATE bf::intern::atomic

@@ -57,7 +57,6 @@ set(INC
   ../editors/include
   ../depsgraph
   ../geometry
-  ../imbuf
   ../makesrna
   ../modifiers
   ../render
@@ -143,6 +142,7 @@ set(LIB
   PRIVATE bf::dna
   PRIVATE bf::functions
   PRIVATE bf::gpu
+  PRIVATE bf::imbuf
   PRIVATE bf::intern::guardedalloc
   bf_nodes_composite
   bf_nodes_function

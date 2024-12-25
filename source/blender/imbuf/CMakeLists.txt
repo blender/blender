@@ -5,7 +5,7 @@
 add_subdirectory(movie)
 
 set(INC
-  .
+  PUBLIC .
   ./movie
   ../makesrna
   ../sequencer
@@ -161,6 +161,7 @@ set_source_files_properties(
 )
 
 blender_add_lib(bf_imbuf "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+add_library(bf::imbuf ALIAS bf_imbuf)
 
 if(WITH_GTESTS)
   set(TEST_SRC

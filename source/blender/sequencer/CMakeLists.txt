@@ -6,7 +6,6 @@ set(INC
   .
   intern
   ../animrig
-  ../imbuf
   ../imbuf/movie
   ../makesrna
   ../render
@@ -87,6 +86,7 @@ set(LIB
   PRIVATE bf::blentranslation
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
+  PRIVATE bf::imbuf
   PRIVATE bf::intern::atomic
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc

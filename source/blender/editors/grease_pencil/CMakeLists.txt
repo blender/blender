@@ -4,7 +4,6 @@
 
 set(INC
   ../include
-  ../../imbuf
   ../../makesrna
   ../../../../extern/curve_fit_nd
   ../../geometry
@@ -50,6 +49,7 @@ set(LIB
   PRIVATE bf::dna
   PRIVATE bf::functions
   PRIVATE bf::gpu
+  PRIVATE bf::imbuf
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::intern::clog
   PRIVATE bf::windowmanager

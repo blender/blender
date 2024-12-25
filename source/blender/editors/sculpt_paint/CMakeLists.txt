@@ -12,7 +12,6 @@ set(INC
   ../../blenlib
   ../../draw
   ../../geometry
-  ../../imbuf
   ../../makesrna
   ../../nodes
   ../../render
@@ -184,6 +183,7 @@ set(LIB
   PRIVATE bf::extern::fmtlib
   PRIVATE bf::functions
   PRIVATE bf::gpu
+  PRIVATE bf::imbuf
   PRIVATE bf::intern::atomic
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc

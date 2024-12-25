@@ -8,7 +8,6 @@ set(INC
   ../include
   ../../asset_system
   ../../draw
-  ../../imbuf
   ../../imbuf/movie
   ../../makesrna
   ../../nodes
@@ -107,6 +106,7 @@ set(LIB
   PRIVATE bf::extern::fmtlib
   PRIVATE bf::functions
   PRIVATE bf::gpu
+  PRIVATE bf::imbuf
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::animrig
   PRIVATE bf::windowmanager

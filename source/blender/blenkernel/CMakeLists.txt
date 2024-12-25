@@ -7,7 +7,6 @@ set(INC
   ../asset_system
   ../draw
   ../ikplugin
-  ../imbuf
   ../makesrna
   ../modifiers
   ../nodes
@@ -566,7 +565,7 @@ set(LIB
   PRIVATE bf::functions
   PRIVATE bf::gpu
   bf_ikplugin
-  bf_imbuf
+  PRIVATE bf::imbuf
   bf::imbuf_movie
   PRIVATE bf::intern::clog
   bf_intern_ghost

@@ -9,7 +9,6 @@ set(INC
   ../../compositor
   ../../draw
   ../../geometry
-  ../../imbuf
   ../../makesrna
   ../../nodes
   ../../render
@@ -56,6 +55,7 @@ set(LIB
   bf_editor_screen
   PRIVATE bf::functions
   PRIVATE bf::gpu
+  PRIVATE bf::imbuf
   PRIVATE bf::intern::guardedalloc
   bf_compositor
   PRIVATE bf::extern::fmtlib

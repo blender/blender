@@ -6,7 +6,6 @@ set(INC
   ../asset
   ../include
   ../../asset_system
-  ../../imbuf
   ../../makesrna
   ../../sequencer
   ../../../../extern/fmtlib/include
@@ -49,6 +48,7 @@ set(LIB
   bf_editor_datafiles
   bf_editor_space_sequencer
   PRIVATE bf::gpu
+  PRIVATE bf::imbuf
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::extern::fmtlib
   PRIVATE bf::windowmanager
