@@ -4944,7 +4944,7 @@ class VIEW3D_MT_edit_mesh_normals(Menu):
 
         layout.operator("mesh.merge_normals", text="Merge")
         layout.operator("mesh.split_normals", text="Split")
-        layout.menu("VIEW3D_MT_edit_mesh_normals_average", text="Average")
+        layout.menu("VIEW3D_MT_edit_mesh_normals_average", text="Average", text_ctxt=i18n_contexts.id_mesh)
 
         layout.separator()
 
