@@ -4260,7 +4260,9 @@ static int area_join_modal(bContext *C, wmOperator *op, const wmEvent *event)
         else {
           status.item(IFACE_("Select Location"), ICON_MOUSE_LMB);
           status.item(IFACE_("Cancel"), ICON_EVENT_ESC);
-          status.item_bool(IFACE_("Precision"), event->modifier & KM_ALT, ICON_EVENT_ALT);
+          status.item_bool(CTX_IFACE_(BLT_I18NCONTEXT_ID_SCREEN, "Precision"),
+                           event->modifier & KM_ALT,
+                           ICON_EVENT_ALT);
           status.item_bool(IFACE_("Snap"), event->modifier & KM_CTRL, ICON_EVENT_CTRL);
         }
       }
