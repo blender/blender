@@ -5,7 +5,6 @@
 set(INC
   ../include
   ../space_sequencer
-  ../../asset_system
   ../../makesrna
   ../../sequencer
   # RNA_prototypes.hh
@@ -104,6 +103,7 @@ set(SRC
 
 set(LIB
   PRIVATE bf::animrig
+  PRIVATE bf::asset_system
   PRIVATE bf::blenfont
   PRIVATE bf::blenkernel
   PRIVATE bf::blenlib

@@ -4,7 +4,6 @@
 
 set(INC
   ../include
-  ../../asset_system
   ../../makesrna
 )
 
@@ -20,6 +19,7 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf::asset_system
   PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::blenloader

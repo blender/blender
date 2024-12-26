@@ -5,7 +5,6 @@
 set(INC
   ../include
   ../io
-  ../../asset_system
   ../../compositor
   ../../draw
   ../../geometry
@@ -43,6 +42,7 @@ set(SRC
 
 set(LIB
   PRIVATE bf::animrig
+  PRIVATE bf::asset_system
   PRIVATE bf::blenfont
   PRIVATE bf::blenkernel
   PRIVATE bf::blenlib

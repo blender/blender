@@ -5,7 +5,6 @@
 set(INC
   ../asset
   ../include
-  ../../asset_system
   ../../imbuf/movie
   ../../makesrna
 
@@ -38,6 +37,7 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf::asset_system
   PRIVATE bf::blenfont
   PRIVATE bf::blenkernel
   PRIVATE bf::blenlib

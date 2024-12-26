@@ -4,7 +4,6 @@
 
 set(INC
   PUBLIC .
-  ../asset_system
   ../draw
   ../ikplugin
   ../makesrna
@@ -550,7 +549,7 @@ set(SRC
 
 set(LIB
   PRIVATE bf::animrig
-  bf_asset_system
+  PRIVATE bf::asset_system
   PRIVATE bf::blenfont
   PRIVATE bf::blenlib
   PRIVATE bf::blenloader

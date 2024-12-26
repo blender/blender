@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 set(INC
-  .
+  PUBLIC .
   intern
   intern/library_types
 )
@@ -54,6 +54,7 @@ set(LIB
 
 
 blender_add_lib(bf_asset_system "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+add_library(bf::asset_system ALIAS bf_asset_system)
 
 if(WITH_GTESTS)
   set(TEST_INC

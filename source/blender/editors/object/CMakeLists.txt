@@ -4,7 +4,6 @@
 
 set(INC
   ../include
-  ../../asset_system
   ../../geometry
   ../../ikplugin
   ../../makesrna
@@ -53,6 +52,7 @@ set(SRC
 
 set(LIB
   PRIVATE bf::animrig
+  PRIVATE bf::asset_system
   PRIVATE bf::blenfont
   PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
