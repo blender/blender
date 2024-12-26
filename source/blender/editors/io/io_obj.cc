@@ -76,7 +76,7 @@ static int wm_obj_export_exec(bContext *C, wmOperator *op)
     BKE_report(op->reports, RPT_ERROR, "No filepath given");
     return OPERATOR_CANCELLED;
   }
-  OBJExportParams export_params{};
+  OBJExportParams export_params;
   export_params.file_base_for_tests[0] = '\0';
   RNA_string_get(op->ptr, "filepath", export_params.filepath);
   export_params.blen_filepath = CTX_data_main(C)->filepath;
@@ -402,7 +402,7 @@ void WM_OT_obj_export(wmOperatorType *ot)
 
 static int wm_obj_import_exec(bContext *C, wmOperator *op)
 {
-  OBJImportParams import_params{};
+  OBJImportParams import_params;
   import_params.global_scale = RNA_float_get(op->ptr, "global_scale");
   import_params.clamp_size = RNA_float_get(op->ptr, "clamp_size");
   import_params.forward_axis = eIOAxis(RNA_enum_get(op->ptr, "forward_axis"));

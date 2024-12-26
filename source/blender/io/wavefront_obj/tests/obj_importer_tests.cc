@@ -51,19 +51,6 @@ struct Expectation {
 
 class OBJImportTest : public BlendfileLoadingBaseTest {
  public:
-  OBJImportTest()
-  {
-    params.global_scale = 1.0f;
-    params.clamp_size = 0;
-    params.forward_axis = IO_AXIS_NEGATIVE_Z;
-    params.up_axis = IO_AXIS_Y;
-    params.validate_meshes = true;
-    params.use_split_objects = true;
-    params.use_split_groups = false;
-    params.import_vertex_groups = false;
-    params.relative_paths = true;
-    params.clear_selection = true;
-  }
   void import_and_check(const char *path,
                         const Expectation *expect,
                         size_t expect_count,

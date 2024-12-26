@@ -22,54 +22,54 @@ struct ReportList;
 
 struct OBJExportParams {
   /** Full path to the destination `.OBJ` file. */
-  char filepath[FILE_MAX];
+  char filepath[FILE_MAX] = "";
   /** Pretend that destination file folder is this, if non-empty. Used only for tests. */
-  char file_base_for_tests[FILE_MAX];
+  char file_base_for_tests[FILE_MAX] = "";
   char collection[MAX_IDPROP_NAME] = "";
 
   /** Full path to current blender file (used for comments in output). */
-  const char *blen_filepath;
+  const char *blen_filepath = nullptr;
 
   /** Whether multiple frames should be exported. */
-  bool export_animation;
+  bool export_animation = false;
   /** The first frame to be exported. */
-  int start_frame;
+  int start_frame = INT_MIN;
   /** The last frame to be exported. */
-  int end_frame;
+  int end_frame = INT_MAX;
 
   /* Geometry Transform options. */
-  eIOAxis forward_axis;
-  eIOAxis up_axis;
-  float global_scale;
+  eIOAxis forward_axis = IO_AXIS_NEGATIVE_Z;
+  eIOAxis up_axis = IO_AXIS_Y;
+  float global_scale = 1.0f;
 
   /* File Write Options. */
-  bool export_selected_objects;
-  bool apply_modifiers;
-  eEvaluationMode export_eval_mode;
-  bool export_uv;
-  bool export_normals;
-  bool export_colors;
-  bool export_materials;
-  bool export_triangulated_mesh;
-  bool export_curves_as_nurbs;
-  ePathReferenceMode path_mode;
-  bool export_pbr_extensions;
+  bool export_selected_objects = false;
+  bool apply_modifiers = true;
+  eEvaluationMode export_eval_mode = DAG_EVAL_VIEWPORT;
+  bool export_uv = true;
+  bool export_normals = true;
+  bool export_colors = false;
+  bool export_materials = true;
+  bool export_triangulated_mesh = false;
+  bool export_curves_as_nurbs = false;
+  ePathReferenceMode path_mode = PATH_REFERENCE_AUTO;
+  bool export_pbr_extensions = false;
 
   /* Grouping options. */
-  bool export_object_groups;
-  bool export_material_groups;
-  bool export_vertex_groups;
+  bool export_object_groups = false;
+  bool export_material_groups = false;
+  bool export_vertex_groups = false;
   /* Calculate smooth groups from sharp edges. */
-  bool export_smooth_groups;
+  bool export_smooth_groups = false;
   /* Create bitflags instead of the default "0"/"1" group IDs. */
-  bool smooth_groups_bitflags;
+  bool smooth_groups_bitflags = false;
 
   ReportList *reports = nullptr;
 };
 
 struct OBJImportParams {
   /** Full path to the source OBJ file to import. */
-  char filepath[FILE_MAX];
+  char filepath[FILE_MAX] = "";
   /** Value 0 disables clamping. */
   float clamp_size = 0.0f;
   float global_scale = 1.0f;
