@@ -4564,6 +4564,7 @@ void MESH_OT_fill(wmOperatorType *ot)
   ot->name = "Fill";
   ot->idname = "MESH_OT_fill";
   ot->description = "Fill a selected edge loop with faces";
+  ot->translation_context = BLT_I18NCONTEXT_ID_MESH;
 
   /* api callbacks */
   ot->exec = edbm_fill_exec;
