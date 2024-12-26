@@ -7,9 +7,6 @@
 #include "util/math.h"
 #include "util/types.h"
 
-#include "kernel/globals.h"
-#include "kernel/types.h"
-
 #include "kernel/camera/projection.h"
 
 CCL_NAMESPACE_BEGIN
@@ -293,7 +290,7 @@ struct FisheyeEquidistant : public CommonValues {
 };
 
 struct FisheyeEquisolid : public CommonValues {
-  bool skip_invalid() const
+  bool skip_invalid() const override
   {
     return true;
   }

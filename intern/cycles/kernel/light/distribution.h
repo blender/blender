@@ -6,8 +6,7 @@
 
 #include "kernel/globals.h"
 
-#include "kernel/light/light.h"
-#include "kernel/light/triangle.h"
+#include "kernel/light/common.h"
 
 CCL_NAMESPACE_BEGIN
 

@@ -94,9 +94,7 @@ ccl_device_inline float area_light_rect_sample(float3 P,
     const float t = len(dir);
     return -t * t * t / (z0 * len_u * len_v);
   }
-  else {
-    return 1.0f / S;
-  }
+  return 1.0f / S;
 }
 
 /* Light spread. */

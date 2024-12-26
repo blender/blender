@@ -39,7 +39,7 @@ template<typename TexT, typename OutT = float4> struct TextureInterpolator {
 
   static ccl_always_inline OutT zero()
   {
-    if constexpr (std::is_same<OutT, float4>::value) {
+    if constexpr (std::is_same_v<OutT, float4>) {
       return zero_float4();
     }
     else {
@@ -209,8 +209,9 @@ template<typename TexT, typename OutT = float4> struct TextureInterpolator {
   static ccl_always_inline int wrap_mirror(int x, int width)
   {
     const int m = abs(x + (x < 0)) % (2 * width);
-    if (m >= width)
+    if (m >= width) {
       return 2 * width - m - 1;
+    }
     return m;
   }
 
@@ -248,7 +249,7 @@ template<typename TexT, typename OutT = float4> struct TextureInterpolator {
     }
 
     const TexT *data = (const TexT *)info.data;
-    return read((const TexT *)data, ix, iy, width, height);
+    return read(data, ix, iy, width, height);
   }
 
   static ccl_always_inline OutT interp_linear(const TextureInfo &info, float x, float y)

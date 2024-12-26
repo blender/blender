@@ -139,7 +139,7 @@ NodeType::NodeType(Type type, const NodeType *base) : type(type), base(base)
   }
 }
 
-NodeType::~NodeType() {}
+NodeType::~NodeType() = default;
 
 void NodeType::register_input(ustring name,
                               ustring ui_name,

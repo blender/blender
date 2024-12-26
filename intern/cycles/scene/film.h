@@ -6,7 +6,6 @@
 
 #include "scene/pass.h"
 #include "util/string.h"
-#include "util/vector.h"
 
 #include "kernel/types.h"
 
@@ -18,13 +17,13 @@ class Device;
 class DeviceScene;
 class Scene;
 
-typedef enum FilterType {
+enum FilterType {
   FILTER_BOX,
   FILTER_GAUSSIAN,
   FILTER_BLACKMAN_HARRIS,
 
   FILTER_NUM_TYPES,
-} FilterType;
+};
 
 class Film : public Node {
  public:
@@ -58,7 +57,7 @@ class Film : public Node {
 
  public:
   Film();
-  ~Film();
+  ~Film() override;
 
   /* add default passes to scene */
   static void add_default(Scene *scene);

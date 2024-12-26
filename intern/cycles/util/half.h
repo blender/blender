@@ -8,7 +8,7 @@
 #include "util/types.h"
 
 #if !defined(__KERNEL_GPU__) && defined(__KERNEL_SSE2__)
-#  include "util/simd.h"
+#  include "util/simd.h"  // IWYU pragma: keep
 #endif
 
 CCL_NAMESPACE_BEGIN

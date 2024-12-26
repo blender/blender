@@ -10,7 +10,7 @@
  *   (which rules out trick like using `uint64_t` as a drop-in replacement for double).
  * - Padding rules are matching exactly `double`
  *   (which rules out array of `uint8_t`). */
-typedef struct ccl_vdb_double_t {
+struct ccl_vdb_double_t {
   union ccl_vdb_helper_t {
     double d;
     uint64_t i;
@@ -31,7 +31,7 @@ typedef struct ccl_vdb_double_t {
     helper.i = i;
     return (float)helper.d;
   }
-} ccl_vdb_double_t;
+};
 
 #  define double ccl_vdb_double_t
 #  include "kernel/util/nanovdb.h"

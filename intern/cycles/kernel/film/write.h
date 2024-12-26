@@ -111,7 +111,7 @@ ccl_device_inline void film_overwrite_pass_float3(ccl_global float *ccl_restrict
 
 /* Read back from passes. */
 
-ccl_device_inline float kernel_read_pass_float(ccl_global float *ccl_restrict buffer)
+ccl_device_inline float kernel_read_pass_float(ccl_global const float *ccl_restrict buffer)
 {
   return *buffer;
 }

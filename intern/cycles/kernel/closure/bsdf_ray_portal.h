@@ -10,12 +10,12 @@
 
 CCL_NAMESPACE_BEGIN
 
-typedef struct RayPortalClosure {
+struct RayPortalClosure {
   SHADER_CLOSURE_BASE;
 
   float3 P;
   float3 D;
-} RayPortalClosure;
+};
 
 static_assert(sizeof(ShaderClosure) >= sizeof(RayPortalClosure), "RayPortalClosure is too large!");
 

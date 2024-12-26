@@ -2,14 +2,13 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 
 #include "app/opengl/window.h"
 
 #include "util/string.h"
 #include "util/thread.h"
-#include "util/time.h"
 #include "util/version.h"
 
 #include <SDL.h>
@@ -42,7 +41,7 @@ struct Window {
 
 /* public */
 
-static void window_display_text(int x, int y, const char *text)
+static void window_display_text(int /*x*/, int /*y*/, const char *text)
 {
 /* Not currently supported, need to add text rendering support. */
 #if 0
@@ -64,7 +63,7 @@ static void window_display_text(int x, int y, const char *text)
              bitmap + 1);
   }
 #else
-  static string last_text = "";
+  static string last_text;
 
   if (text != last_text) {
     printf("%s\n", text);

@@ -66,14 +66,13 @@ ccl_device_noinline_cpu float svm_wave(NodeWaveType type,
   if (profile == NODE_WAVE_PROFILE_SIN) {
     return 0.5f + 0.5f * sinf(n - M_PI_2_F);
   }
-  else if (profile == NODE_WAVE_PROFILE_SAW) {
+  if (profile == NODE_WAVE_PROFILE_SAW) {
     n /= M_2PI_F;
     return n - floorf(n);
   }
-  else { /* NODE_WAVE_PROFILE_TRI */
-    n /= M_2PI_F;
-    return fabsf(n - floorf(n + 0.5f)) * 2.0f;
-  }
+  /* NODE_WAVE_PROFILE_TRI */
+  n /= M_2PI_F;
+  return fabsf(n - floorf(n + 0.5f)) * 2.0f;
 }
 
 ccl_device_noinline int svm_node_tex_wave(
@@ -115,10 +114,12 @@ ccl_device_noinline int svm_node_tex_wave(
                      droughness,
                      phase);
 
-  if (stack_valid(fac_offset))
+  if (stack_valid(fac_offset)) {
     stack_store_float(stack, fac_offset, f);
-  if (stack_valid(color_offset))
+  }
+  if (stack_valid(color_offset)) {
     stack_store_float3(stack, color_offset, make_float3(f, f, f));
+  }
   return offset;
 }
 

@@ -37,7 +37,7 @@ Attribute::Attribute(
 Attribute::~Attribute()
 {
   /* For voxel data, we need to free the image handle. */
-  if (element == ATTR_ELEMENT_VOXEL && buffer.size()) {
+  if (element == ATTR_ELEMENT_VOXEL && !buffer.empty()) {
     ImageHandle &handle = data_voxel();
     handle.~ImageHandle();
   }
@@ -166,29 +166,27 @@ size_t Attribute::data_sizeof() const
   if (element == ATTR_ELEMENT_VOXEL) {
     return sizeof(ImageHandle);
   }
-  else if (element == ATTR_ELEMENT_CORNER_BYTE) {
+  if (element == ATTR_ELEMENT_CORNER_BYTE) {
     return sizeof(uchar4);
   }
-  else if (type == TypeFloat) {
+  if (type == TypeFloat) {
     return sizeof(float);
   }
-  else if (type == TypeFloat2) {
+  if (type == TypeFloat2) {
     return sizeof(float2);
   }
-  else if (type == TypeMatrix) {
+  if (type == TypeMatrix) {
     return sizeof(Transform);
     // The float3 type is not interchangeable with float4
     // as it is now a packed type.
   }
-  else if (type == TypeFloat4) {
+  if (type == TypeFloat4) {
     return sizeof(float4);
   }
-  else if (type == TypeRGBA) {
+  if (type == TypeRGBA) {
     return sizeof(float4);
   }
-  else {
-    return sizeof(float3);
-  }
+  return sizeof(float3);
 }
 
 size_t Attribute::element_size(Geometry *geom, AttributePrimitive prim) const
@@ -473,7 +471,7 @@ AttributeSet::AttributeSet(Geometry *geometry, AttributePrimitive prim)
 {
 }
 
-AttributeSet::~AttributeSet() {}
+AttributeSet::~AttributeSet() = default;
 
 Attribute *AttributeSet::add(ustring name, TypeDesc type, AttributeElement element)
 {
@@ -525,7 +523,7 @@ Attribute *AttributeSet::add(AttributeStandard std, ustring name)
 {
   Attribute *attr = nullptr;
 
-  if (name == ustring()) {
+  if (name.empty()) {
     name = Attribute::standard_name(std);
   }
 
@@ -727,9 +725,7 @@ Attribute *AttributeSet::find(AttributeRequest &req)
   if (req.std == ATTR_STD_NONE) {
     return find(req.name);
   }
-  else {
-    return find(req.std);
-  }
+  return find(req.std);
 }
 
 void AttributeSet::remove(Attribute *attribute)
@@ -862,9 +858,9 @@ AttributeRequest::AttributeRequest(AttributeStandard std_)
 
 /* AttributeRequestSet */
 
-AttributeRequestSet::AttributeRequestSet() {}
+AttributeRequestSet::AttributeRequestSet() = default;
 
-AttributeRequestSet::~AttributeRequestSet() {}
+AttributeRequestSet::~AttributeRequestSet() = default;
 
 bool AttributeRequestSet::modified(const AttributeRequestSet &other)
 {

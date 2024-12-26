@@ -9,9 +9,6 @@
 #include "scene/tabulated_sobol.h"
 #include "util/hash.h"
 
-#include <cmath>
-#include <vector>
-
 CCL_NAMESPACE_BEGIN
 
 void tabulated_sobol_generate_4D(float4 points[], int size, int rng_seed)

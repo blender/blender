@@ -7,9 +7,6 @@
 #  include "device/oneapi/queue.h"
 #  include "device/oneapi/device_impl.h"
 #  include "util/log.h"
-#  include "util/time.h"
-#  include <iomanip>
-#  include <vector>
 
 #  include "kernel/device/oneapi/kernel.h"
 
@@ -60,7 +57,7 @@ void OneapiDeviceQueue::init_execution()
   oneapi_device_->load_texture_info();
 
   SyclQueue *device_queue = oneapi_device_->sycl_queue();
-  void *kg_dptr = (void *)oneapi_device_->kernel_globals_device_pointer();
+  void *kg_dptr = oneapi_device_->kernel_globals_device_pointer();
   assert(device_queue);
   assert(kg_dptr);
   kernel_context_ = new KernelContext{device_queue, kg_dptr, 0};
@@ -111,9 +108,10 @@ bool OneapiDeviceQueue::synchronize()
   }
 
   bool is_finished_ok = oneapi_device_->queue_synchronize(oneapi_device_->sycl_queue());
-  if (is_finished_ok == false)
+  if (is_finished_ok == false) {
     oneapi_device_->set_error("oneAPI unknown kernel execution error: got runtime exception \"" +
                               oneapi_device_->oneapi_error_message() + "\"");
+  }
 
   debug_synchronize();
 

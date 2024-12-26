@@ -188,7 +188,7 @@ class Camera : public Node {
  public:
   /* functions */
   Camera();
-  ~Camera();
+  ~Camera() override;
 
   void compute_auto_viewplane();
 

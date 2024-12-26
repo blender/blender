@@ -4,8 +4,11 @@
 
 #ifdef WITH_METAL
 
-#  include "device/metal/device_impl.h"
+#  include <map>
+#  include <mutex>
+
 #  include "device/metal/device.h"
+#  include "device/metal/device_impl.h"
 
 #  include "scene/scene.h"
 
@@ -96,7 +99,7 @@ MetalDevice::MetalDevice(const DeviceInfo &info, Stats &stats, Profiler &profile
     max_threads_per_threadgroup = 512;
 
     use_metalrt = info.use_hardware_raytracing;
-    if (auto metalrt = getenv("CYCLES_METALRT")) {
+    if (auto *metalrt = getenv("CYCLES_METALRT")) {
       use_metalrt = (atoi(metalrt) != 0);
     }
 
@@ -118,7 +121,7 @@ MetalDevice::MetalDevice(const DeviceInfo &info, Stats &stats, Profiler &profile
         break;
     }
 
-    if (auto envstr = getenv("CYCLES_METAL_SPECIALIZATION_LEVEL")) {
+    if (auto *envstr = getenv("CYCLES_METAL_SPECIALIZATION_LEVEL")) {
       kernel_specialization_level = (MetalPipelineType)atoi(envstr);
     }
     metal_printf("kernel_specialization_level = %s\n",
@@ -429,8 +432,9 @@ bool MetalDevice::load_kernels(const uint _kernel_features)
     kernel_features |= _kernel_features;
 
     /* check if GPU is supported */
-    if (!support_device(kernel_features))
+    if (!support_device(kernel_features)) {
       return false;
+    }
 
     /* Keep track of whether motion blur is enabled, so to enable/disable motion in BVH builds
      * This is necessary since objects may be reported to have motion if the Vector pass is
@@ -807,7 +811,7 @@ void MetalDevice::generic_free(device_memory &mem)
         mmem.use_UMA = false;
       }
 
-      mem.shared_pointer = 0;
+      mem.shared_pointer = nullptr;
 
       /* Free device memory. */
       delayed_free_list.push_back(mmem.mtlBuffer);
@@ -1119,7 +1123,6 @@ void MetalDevice::tex_alloc(device_texture &mem)
     }
 
     /* General variables for both architectures */
-    string bind_name = mem.name;
     size_t dsize = datatype_size(mem.data_type);
     size_t size = mem.memory_size();
 
@@ -1325,8 +1328,9 @@ void MetalDevice::tex_free(device_texture &mem)
     MetalMem &mmem = *metal_mem_map.at(&mem);
 
     assert(texture_slot_map[mem.slot] == mmem.mtlTexture);
-    if (texture_slot_map[mem.slot] == mmem.mtlTexture)
+    if (texture_slot_map[mem.slot] == mmem.mtlTexture) {
       texture_slot_map[mem.slot] = nil;
+    }
 
     if (mmem.mtlTexture) {
       /* Free bindless texture. */

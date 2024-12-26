@@ -92,14 +92,14 @@ class Hair : public Geometry {
 
   /* Constructor/Destructor */
   Hair();
-  ~Hair();
+  ~Hair() override;
 
   /* Geometry */
   void clear(bool preserve_shaders = false) override;
 
   void resize_curves(int numcurves, int numkeys);
   void reserve_curves(int numcurves, int numkeys);
-  void add_curve_key(float3 loc, float radius);
+  void add_curve_key(float3 co, float radius);
   void add_curve(int first_key, int shader);
 
   void copy_center_to_motion_step(const int motion_step);

@@ -21,7 +21,7 @@ CCL_NAMESPACE_BEGIN
 struct KernelGlobalsGPU {
   int unused[1];
 };
-typedef ccl_global const KernelGlobalsGPU *ccl_restrict KernelGlobals;
+using KernelGlobals = ccl_global const KernelGlobalsGPU *ccl_restrict;
 
 struct KernelParamsHIP {
   /* Global scene data and textures */

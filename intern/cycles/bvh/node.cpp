@@ -10,8 +10,6 @@
 #include "bvh/build.h"
 #include "bvh/bvh.h"
 
-#include "util/vector.h"
-
 CCL_NAMESPACE_BEGIN
 
 /* BVH Node */

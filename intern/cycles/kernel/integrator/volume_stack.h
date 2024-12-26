@@ -174,12 +174,12 @@ ccl_device float volume_stack_step_size(KernelGlobals kg, StackReadOp stack_read
   return step_size;
 }
 
-typedef enum VolumeSampleMethod {
+enum VolumeSampleMethod {
   VOLUME_SAMPLE_NONE = 0,
   VOLUME_SAMPLE_DISTANCE = (1 << 0),
   VOLUME_SAMPLE_EQUIANGULAR = (1 << 1),
   VOLUME_SAMPLE_MIS = (VOLUME_SAMPLE_DISTANCE | VOLUME_SAMPLE_EQUIANGULAR),
-} VolumeSampleMethod;
+};
 
 ccl_device VolumeSampleMethod volume_stack_sample_method(KernelGlobals kg, IntegratorState state)
 {

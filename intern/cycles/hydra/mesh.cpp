@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0 */
 
 #include "hydra/mesh.h"
+#include "hydra/attribute.h"
 #include "hydra/geometry.inl"
 #include "scene/mesh.h"
 
@@ -96,7 +97,7 @@ HdCyclesMesh::HdCyclesMesh(const SdfPath &rprimId
 {
 }
 
-HdCyclesMesh::~HdCyclesMesh() {}
+HdCyclesMesh::~HdCyclesMesh() = default;
 
 HdDirtyBits HdCyclesMesh::GetInitialDirtyBitsMask() const
 {
@@ -416,7 +417,7 @@ void HdCyclesMesh::PopulateTopology(HdSceneDelegate *sceneDelegate)
         shader = it->second;
       }
       else {
-        const auto material = static_cast<const HdCyclesMaterial *>(
+        const auto *const material = static_cast<const HdCyclesMaterial *>(
             sceneDelegate->GetRenderIndex().GetSprim(HdPrimTypeTokens->material,
                                                      geomSubset.materialId));
 

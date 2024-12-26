@@ -953,12 +953,10 @@ ccl_device Spectrum surface_shader_transparency(KernelGlobals kg, ccl_private co
   if (sd->flag & SD_HAS_ONLY_VOLUME) {
     return one_spectrum();
   }
-  else if (sd->flag & (SD_TRANSPARENT | SD_RAY_PORTAL)) {
+  if (sd->flag & (SD_TRANSPARENT | SD_RAY_PORTAL)) {
     return sd->closure_transparent_extinction;
   }
-  else {
-    return zero_spectrum();
-  }
+  return zero_spectrum();
 }
 
 ccl_device Spectrum surface_shader_alpha(KernelGlobals kg, ccl_private const ShaderData *sd)
@@ -977,8 +975,9 @@ ccl_device Spectrum surface_shader_diffuse(KernelGlobals kg, ccl_private const S
   for (int i = 0; i < sd->num_closure; i++) {
     ccl_private const ShaderClosure *sc = &sd->closure[i];
 
-    if (CLOSURE_IS_BSDF_DIFFUSE(sc->type) || CLOSURE_IS_BSSRDF(sc->type))
+    if (CLOSURE_IS_BSDF_DIFFUSE(sc->type) || CLOSURE_IS_BSSRDF(sc->type)) {
       eval += bsdf_albedo(kg, sd, sc, true, true);
+    }
   }
 
   return eval;
@@ -991,8 +990,9 @@ ccl_device Spectrum surface_shader_glossy(KernelGlobals kg, ccl_private const Sh
   for (int i = 0; i < sd->num_closure; i++) {
     ccl_private const ShaderClosure *sc = &sd->closure[i];
 
-    if (CLOSURE_IS_BSDF_GLOSSY(sc->type) || CLOSURE_IS_GLASS(sc->type))
+    if (CLOSURE_IS_BSDF_GLOSSY(sc->type) || CLOSURE_IS_GLASS(sc->type)) {
       eval += bsdf_albedo(kg, sd, sc, true, false);
+    }
   }
 
   return eval;
@@ -1005,8 +1005,9 @@ ccl_device Spectrum surface_shader_transmission(KernelGlobals kg, ccl_private co
   for (int i = 0; i < sd->num_closure; i++) {
     ccl_private const ShaderClosure *sc = &sd->closure[i];
 
-    if (CLOSURE_IS_BSDF_TRANSMISSION(sc->type) || CLOSURE_IS_GLASS(sc->type))
+    if (CLOSURE_IS_BSDF_TRANSMISSION(sc->type) || CLOSURE_IS_GLASS(sc->type)) {
       eval += bsdf_albedo(kg, sd, sc, false, true);
+    }
   }
 
   return eval;
@@ -1097,9 +1098,7 @@ ccl_device Spectrum surface_shader_background(ccl_private const ShaderData *sd)
   if (sd->flag & SD_EMISSION) {
     return sd->closure_emission_background;
   }
-  else {
-    return zero_spectrum();
-  }
+  return zero_spectrum();
 }
 
 /* Emission */
@@ -1109,9 +1108,7 @@ ccl_device Spectrum surface_shader_emission(ccl_private const ShaderData *sd)
   if (sd->flag & SD_EMISSION) {
     return emissive_simple_eval(sd->Ng, sd->wi) * sd->closure_emission_background;
   }
-  else {
-    return zero_spectrum();
-  }
+  return zero_spectrum();
 }
 
 /* Holdout */

@@ -2,12 +2,13 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#include <stdlib.h>
+#include <cstdlib>
 
 #include "device/device.h"
+
 #include "scene/background.h"
+#include "scene/bake.h"
 #include "scene/camera.h"
-#include "scene/colorspace.h"
 #include "scene/film.h"
 #include "scene/integrator.h"
 #include "scene/light.h"
@@ -16,11 +17,10 @@
 #include "scene/scene.h"
 #include "scene/shader.h"
 #include "scene/stats.h"
+
 #include "session/buffers.h"
 #include "session/session.h"
 
-#include "util/algorithm.h"
-#include "util/color.h"
 #include "util/foreach.h"
 #include "util/hash.h"
 #include "util/log.h"
@@ -991,7 +991,7 @@ void BlenderSession::update_bake_progress()
 void BlenderSession::update_status_progress()
 {
   string timestatus, status, substatus;
-  string scene_status = "";
+  string scene_status;
   double progress;
   double total_time, remaining_time = 0, render_time;
   float mem_used = (float)session->stats.mem_used / 1024.0f / 1024.0f;
@@ -1008,11 +1008,11 @@ void BlenderSession::update_status_progress()
     if (scene) {
       scene_status += " | " + scene->name;
     }
-    if (b_rlay_name != "") {
+    if (!b_rlay_name.empty()) {
       scene_status += ", " + b_rlay_name;
     }
 
-    if (b_rview_name != "") {
+    if (!b_rview_name.empty()) {
       scene_status += ", " + b_rview_name;
     }
 
@@ -1022,10 +1022,10 @@ void BlenderSession::update_status_progress()
 
     timestatus += string_printf("Mem:%.2fM, Peak:%.2fM", (double)mem_used, (double)mem_peak);
 
-    if (status.size() > 0) {
+    if (!status.empty()) {
       status = " | " + status;
     }
-    if (substatus.size() > 0) {
+    if (!substatus.empty()) {
       status += " | " + substatus;
     }
   }

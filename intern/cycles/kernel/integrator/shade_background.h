@@ -156,8 +156,9 @@ ccl_device_inline void integrate_distant_lights(KernelGlobals kg,
         /* This path should have been resolved with mnee, it will
          * generate a firefly for small lights since it is improbable. */
         const ccl_global KernelLight *klight = &kernel_data_fetch(lights, lamp);
-        if (klight->use_caustics)
+        if (klight->use_caustics) {
           continue;
+        }
       }
 #endif /* __MNEE__ */
 

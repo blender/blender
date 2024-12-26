@@ -7,8 +7,6 @@
 #include "util/array.h"
 #include "util/types.h"
 
-#include "scene/hair.h"
-
 CCL_NAMESPACE_BEGIN
 
 class Device;

@@ -111,7 +111,7 @@ class Integrator : public Node {
   };
 
   Integrator();
-  ~Integrator();
+  ~Integrator() override;
 
   void device_update(Device *device, DeviceScene *dscene, Scene *scene);
   void device_free(Device *device, DeviceScene *dscene, bool force_free = false);

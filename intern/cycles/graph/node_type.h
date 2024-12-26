@@ -5,10 +5,9 @@
 #pragma once
 
 #include "graph/node_enum.h"
-#include "util/array.h"
+#include "util/array.h"  // IWYU pragma: keep
 #include "util/map.h"
 #include "util/param.h"
-#include "util/string.h"
 #include "util/vector.h"
 
 CCL_NAMESPACE_BEGIN
@@ -16,7 +15,7 @@ CCL_NAMESPACE_BEGIN
 struct Node;
 struct NodeType;
 
-typedef uint64_t SocketModifiedFlags;
+using SocketModifiedFlags = uint64_t;
 
 /* Socket Type */
 
@@ -117,7 +116,7 @@ struct NodeType {
   const SocketType *find_input(ustring name) const;
   const SocketType *find_output(ustring name) const;
 
-  typedef Node *(*CreateFunc)(const NodeType *type);
+  using CreateFunc = Node *(*)(const NodeType *);
 
   ustring name;
   Type type;
@@ -235,7 +234,7 @@ struct NodeType {
                          ustring(ui_name), \
                          SocketType::NODE, \
                          SOCKET_OFFSETOF(T, name), \
-                         &defval, \
+                         (const void *)&defval, \
                          nullptr, \
                          node_type, \
                          ##__VA_ARGS__); \

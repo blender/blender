@@ -9,14 +9,14 @@
  * evaluation at arbitrary points is required for this to work. See the paper
  * for more details. */
 
+#include "scene/mesh.h"
+
 #include "subd/dice.h"
 #include "subd/subpatch.h"
 
 #include "util/deque.h"
 #include "util/types.h"
 #include "util/vector.h"
-
-#include <deque>
 
 CCL_NAMESPACE_BEGIN
 

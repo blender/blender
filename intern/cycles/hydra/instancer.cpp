@@ -135,7 +135,7 @@ VtMatrix4dArray HdCyclesInstancer::ComputeInstanceTransforms(const SdfPath &prot
 
   VtMatrix4dArray resultTransforms;
 
-  if (const auto instancer = static_cast<HdCyclesInstancer *>(
+  if (auto *const instancer = static_cast<HdCyclesInstancer *>(
           GetDelegate()->GetRenderIndex().GetInstancer(GetParentId())))
   {
     for (const GfMatrix4d &parentTransform : instancer->ComputeInstanceTransforms(GetId())) {

@@ -120,7 +120,7 @@ class LightManager {
   ~LightManager();
 
   /* IES texture management */
-  int add_ies(const string &ies);
+  int add_ies(const string &content);
   int add_ies_from_file(const string &filename);
   void remove_ies(int slot);
 

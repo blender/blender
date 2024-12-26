@@ -2,23 +2,22 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#include <optional>
-
-#include "scene/attribute.h"
 #include "scene/pointcloud.h"
+#include "scene/attribute.h"
 #include "scene/scene.h"
+
+#include "util/hash.h"
 
 #include "blender/attribute_convert.h"
 #include "blender/sync.h"
 #include "blender/util.h"
 
-#include "util/color.h"
 #include "util/foreach.h"
-#include "util/hash.h"
+
+#include "DNA_pointcloud_types.h"
 
 #include "BKE_attribute.hh"
 #include "BKE_attribute_math.hh"
-#include "BKE_pointcloud.hh"
 
 CCL_NAMESPACE_BEGIN
 

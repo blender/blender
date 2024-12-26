@@ -106,8 +106,9 @@ ccl_device_noinline void svm_node_wireframe(KernelGlobals kg,
     f += (f - wireframe(kg, sd, dP, size, pixel_size, &Py)) / len(dP.dy);
   }
 
-  if (stack_valid(out_fac))
+  if (stack_valid(out_fac)) {
     stack_store_float(stack, out_fac, f);
+  }
 }
 
 CCL_NAMESPACE_END

@@ -133,9 +133,9 @@ static float3 output_estimate_emission(ShaderOutput *output, bool &is_constant)
   if (node == nullptr) {
     return zero_float3();
   }
-  else if (node->type == EmissionNode::get_node_type() ||
-           node->type == BackgroundNode::get_node_type() ||
-           node->type == PrincipledBsdfNode::get_node_type())
+  if (node->type == EmissionNode::get_node_type() ||
+      node->type == BackgroundNode::get_node_type() ||
+      node->type == PrincipledBsdfNode::get_node_type())
   {
     const bool is_principled = (node->type == PrincipledBsdfNode::get_node_type());
     /* Emission and Background node. */
@@ -176,8 +176,8 @@ static float3 output_estimate_emission(ShaderOutput *output, bool &is_constant)
 
     return estimate;
   }
-  else if (node->type == LightFalloffNode::get_node_type() ||
-           node->type == IESLightNode::get_node_type())
+  if (node->type == LightFalloffNode::get_node_type() ||
+      node->type == IESLightNode::get_node_type())
   {
     /* Get strength from Light Falloff and IES texture node. */
     ShaderInput *strength_in = node->input("Strength");
@@ -186,7 +186,7 @@ static float3 output_estimate_emission(ShaderOutput *output, bool &is_constant)
     return (strength_in->link) ? output_estimate_emission(strength_in->link, is_constant) :
                                  make_float3(node->get_float(strength_in->socket_type));
   }
-  else if (node->type == AddClosureNode::get_node_type()) {
+  if (node->type == AddClosureNode::get_node_type()) {
     /* Add Closure. */
     ShaderInput *closure1_in = node->input("Closure1");
     ShaderInput *closure2_in = node->input("Closure2");
@@ -200,7 +200,7 @@ static float3 output_estimate_emission(ShaderOutput *output, bool &is_constant)
 
     return estimate1 + estimate2;
   }
-  else if (node->type == MixClosureNode::get_node_type()) {
+  if (node->type == MixClosureNode::get_node_type()) {
     /* Mix Closure. */
     ShaderInput *fac_in = node->input("Fac");
     ShaderInput *closure1_in = node->input("Closure1");
@@ -217,39 +217,37 @@ static float3 output_estimate_emission(ShaderOutput *output, bool &is_constant)
       is_constant = false;
       return estimate1 + estimate2;
     }
-    else {
-      const float fac = node->get_float(fac_in->socket_type);
-      return (1.0f - fac) * estimate1 + fac * estimate2;
-    }
+
+    const float fac = node->get_float(fac_in->socket_type);
+    return (1.0f - fac) * estimate1 + fac * estimate2;
   }
-  else {
-    /* Other nodes, potentially OSL nodes with arbitrary code for which all we can
-     * determine is if it has emission or not. */
-    const bool has_emission = node->has_surface_emission();
-    float3 estimate;
 
-    if (output->type() == SocketType::CLOSURE) {
-      if (has_emission) {
-        estimate = one_float3();
-        is_constant = false;
-      }
-      else {
-        estimate = zero_float3();
-      }
+  /* Other nodes, potentially OSL nodes with arbitrary code for which all we can
+   * determine is if it has emission or not. */
+  const bool has_emission = node->has_surface_emission();
+  float3 estimate;
 
-      foreach (const ShaderInput *in, node->inputs) {
-        if (in->type() == SocketType::CLOSURE && in->link) {
-          estimate += output_estimate_emission(in->link, is_constant);
-        }
-      }
-    }
-    else {
+  if (output->type() == SocketType::CLOSURE) {
+    if (has_emission) {
       estimate = one_float3();
       is_constant = false;
     }
+    else {
+      estimate = zero_float3();
+    }
 
-    return estimate;
+    foreach (const ShaderInput *in, node->inputs) {
+      if (in->type() == SocketType::CLOSURE && in->link) {
+        estimate += output_estimate_emission(in->link, is_constant);
+      }
+    }
   }
+  else {
+    estimate = one_float3();
+    is_constant = false;
+  }
+
+  return estimate;
 }
 
 void Shader::estimate_emission()
@@ -433,7 +431,7 @@ ShaderManager::ShaderManager()
   init_xyz_transforms();
 }
 
-ShaderManager::~ShaderManager() {}
+ShaderManager::~ShaderManager() = default;
 
 ShaderManager *ShaderManager::create(int shadingsystem, Device *device)
 {
@@ -523,7 +521,7 @@ void ShaderManager::device_update_common(Device * /*device*/,
 {
   dscene->shaders.free();
 
-  if (scene->shaders.size() == 0) {
+  if (scene->shaders.empty()) {
     return;
   }
 

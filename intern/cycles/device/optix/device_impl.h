@@ -8,7 +8,7 @@
 #ifdef WITH_OPTIX
 
 #  include "device/cuda/device_impl.h"
-#  include "device/optix/util.h"
+#  include "device/optix/util.h"  // IWYU pragma: keep
 #  include "kernel/osl/globals.h"
 
 CCL_NAMESPACE_BEGIN
@@ -89,7 +89,7 @@ class OptiXDevice : public CUDADevice {
 
  public:
   OptiXDevice(const DeviceInfo &info, Stats &stats, Profiler &profiler, bool headless);
-  ~OptiXDevice();
+  ~OptiXDevice() override;
 
   BVHLayoutMask get_bvh_layout_mask(uint /*kernel_features*/) const override;
 
@@ -113,7 +113,7 @@ class OptiXDevice : public CUDADevice {
 
   void update_launch_params(size_t offset, void *data, size_t data_size);
 
-  virtual unique_ptr<DeviceQueue> gpu_queue_create() override;
+  unique_ptr<DeviceQueue> gpu_queue_create() override;
 
   void *get_cpu_osl_memory() override;
 };

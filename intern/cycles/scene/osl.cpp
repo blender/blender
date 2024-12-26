@@ -96,8 +96,9 @@ void OSLShaderManager::device_update_specific(Device *device,
                                               Scene *scene,
                                               Progress &progress)
 {
-  if (!need_update())
+  if (!need_update()) {
     return;
+  }
 
   scoped_callback_timer timer([scene](double time) {
     if (scene->update_stats) {
@@ -154,8 +155,9 @@ void OSLShaderManager::device_update_specific(Device *device,
       }
     });
 
-    if (shader->emission_sampling != EMISSION_SAMPLING_NONE)
+    if (shader->emission_sampling != EMISSION_SAMPLING_NONE) {
       scene->light_manager->tag_update(scene, LightManager::SHADER_COMPILED);
+    }
   }
 
   /* setup shader engine */
@@ -368,7 +370,7 @@ void OSLShaderManager::shading_system_init()
       };
 
       const int nraytypes = sizeof(raytypes) / sizeof(raytypes[0]);
-      ss->attribute("raytypes", TypeDesc(TypeDesc::STRING, nraytypes), raytypes);
+      ss->attribute("raytypes", TypeDesc(TypeDesc::STRING, nraytypes), (const void *)raytypes);
 
       OSLRenderServices::register_closures(ss);
 
@@ -471,8 +473,9 @@ const char *OSLShaderManager::shader_load_filepath(string filepath)
     if (oso_modified_time != 0) {
       const char *hash = shader_test_loaded(shader_filepath_hash(osopath, oso_modified_time));
 
-      if (hash)
+      if (hash) {
         return hash;
+      }
     }
 
     /* Auto-compile .OSL to .OSO if needed. */
@@ -480,8 +483,9 @@ const char *OSLShaderManager::shader_load_filepath(string filepath)
       OSLShaderManager::osl_compile(filepath, osopath);
       modified_time = path_modified_time(osopath);
     }
-    else
+    else {
       modified_time = oso_modified_time;
+    }
 
     filepath = osopath;
   }
@@ -489,7 +493,7 @@ const char *OSLShaderManager::shader_load_filepath(string filepath)
     if (extension == ".oso") {
       /* .OSO File, nothing to do */
     }
-    else if (path_dirname(filepath) == "") {
+    else if (path_dirname(filepath).empty()) {
       /* .OSO File in search path */
       filepath = path_join(path_user_get("shaders"), filepath + ".oso");
     }
@@ -501,8 +505,9 @@ const char *OSLShaderManager::shader_load_filepath(string filepath)
     /* test if we have loaded this .OSO already */
     const char *hash = shader_test_loaded(shader_filepath_hash(filepath, modified_time));
 
-    if (hash)
+    if (hash) {
       return hash;
+    }
   }
 
   /* read oso bytecode from file */
@@ -522,7 +527,7 @@ const char *OSLShaderManager::shader_load_filepath(string filepath)
 const char *OSLShaderManager::shader_load_bytecode(const string &hash, const string &bytecode)
 {
   for (const auto &[device_type, ss] : ss_shared) {
-    ss->LoadMemoryCompiledShader(hash.c_str(), bytecode.c_str());
+    ss->LoadMemoryCompiledShader(hash, bytecode);
   }
 
   OSLShaderInfo info;
@@ -562,8 +567,9 @@ OSLNode *OSLShaderManager::osl_node(ShaderGraph *graph,
   }
   else {
     hash = osl_manager->shader_test_loaded(bytecode_hash);
-    if (!hash)
+    if (!hash) {
       hash = osl_manager->shader_load_bytecode(bytecode_hash, bytecode);
+    }
   }
 
   if (!hash) {
@@ -579,11 +585,13 @@ OSLNode *OSLShaderManager::osl_node(ShaderGraph *graph,
     const OSL::OSLQuery::Parameter *param = info->query.getparam(i);
 
     /* skip unsupported types */
-    if (param->varlenarray || param->isstruct || param->type.arraylen > 1)
+    if (param->varlenarray || param->isstruct || param->type.arraylen > 1) {
       continue;
+    }
 
-    if (!param->isoutput)
+    if (!param->isoutput) {
       num_inputs++;
+    }
   }
 
   /* create node */
@@ -596,8 +604,9 @@ OSLNode *OSLShaderManager::osl_node(ShaderGraph *graph,
     const OSL::OSLQuery::Parameter *param = info->query.getparam(i);
 
     /* skip unsupported types */
-    if (param->varlenarray || param->isstruct || param->type.arraylen > 1)
+    if (param->varlenarray || param->isstruct || param->type.arraylen > 1) {
       continue;
+    }
 
     SocketType::Type socket_type;
 
@@ -606,16 +615,21 @@ OSLNode *OSLShaderManager::osl_node(ShaderGraph *graph,
       socket_type = SocketType::CLOSURE;
     }
     else if (param->type.vecsemantics != TypeDesc::NOSEMANTICS) {
-      if (param->type.vecsemantics == TypeDesc::COLOR)
+      if (param->type.vecsemantics == TypeDesc::COLOR) {
         socket_type = SocketType::COLOR;
-      else if (param->type.vecsemantics == TypeDesc::POINT)
+      }
+      else if (param->type.vecsemantics == TypeDesc::POINT) {
         socket_type = SocketType::POINT;
-      else if (param->type.vecsemantics == TypeDesc::VECTOR)
+      }
+      else if (param->type.vecsemantics == TypeDesc::VECTOR) {
         socket_type = SocketType::VECTOR;
-      else if (param->type.vecsemantics == TypeDesc::NORMAL)
+      }
+      else if (param->type.vecsemantics == TypeDesc::NORMAL) {
         socket_type = SocketType::NORMAL;
-      else
+      }
+      else {
         continue;
+      }
 
       if (!param->isoutput && param->validdefault) {
         float3 *default_value = (float3 *)node->input_default_value();
@@ -646,11 +660,13 @@ OSLNode *OSLShaderManager::osl_node(ShaderGraph *graph,
           *(ustring *)node->input_default_value() = param->sdefault[0];
         }
       }
-      else
+      else {
         continue;
+      }
     }
-    else
+    else {
       continue;
+    }
 
     if (param->isoutput) {
       node->add_output(param->name, socket_type);
@@ -742,8 +758,9 @@ string OSLCompiler::compatible_name(ShaderNode *node, ShaderInput *input)
   size_t i;
 
   /* Strip white-space. */
-  while ((i = sname.find(" ")) != string::npos)
+  while ((i = sname.find(" ")) != string::npos) {
     sname.replace(i, 1, "");
+  }
 
   /* if output exists with the same name, add "In" suffix */
   foreach (ShaderOutput *output, node->outputs) {
@@ -762,8 +779,9 @@ string OSLCompiler::compatible_name(ShaderNode *node, ShaderOutput *output)
   size_t i;
 
   /* Strip white-space. */
-  while ((i = sname.find(" ")) != string::npos)
+  while ((i = sname.find(" ")) != string::npos) {
     sname.replace(i, 1, "");
+  }
 
   /* if input exists with the same name, add "Out" suffix */
   foreach (ShaderInput *input, node->inputs) {
@@ -781,26 +799,34 @@ bool OSLCompiler::node_skip_input(ShaderNode *node, ShaderInput *input)
   /* exception for output node, only one input is actually used
    * depending on the current shader type */
 
-  if (input->flags() & SocketType::SVM_INTERNAL)
+  if (input->flags() & SocketType::SVM_INTERNAL) {
     return true;
+  }
 
   if (node->special_type == SHADER_SPECIAL_TYPE_OUTPUT) {
-    if (input->name() == "Surface" && current_type != SHADER_TYPE_SURFACE)
+    if (input->name() == "Surface" && current_type != SHADER_TYPE_SURFACE) {
       return true;
-    if (input->name() == "Volume" && current_type != SHADER_TYPE_VOLUME)
+    }
+    if (input->name() == "Volume" && current_type != SHADER_TYPE_VOLUME) {
       return true;
-    if (input->name() == "Displacement" && current_type != SHADER_TYPE_DISPLACEMENT)
+    }
+    if (input->name() == "Displacement" && current_type != SHADER_TYPE_DISPLACEMENT) {
       return true;
-    if (input->name() == "Normal" && current_type != SHADER_TYPE_BUMP)
+    }
+    if (input->name() == "Normal" && current_type != SHADER_TYPE_BUMP) {
       return true;
+    }
   }
   else if (node->special_type == SHADER_SPECIAL_TYPE_BUMP) {
-    if (input->name() == "Height")
+    if (input->name() == "Height") {
       return true;
+    }
   }
   else if (current_type == SHADER_TYPE_DISPLACEMENT && input->link &&
            input->link->parent->special_type == SHADER_SPECIAL_TYPE_BUMP)
+  {
     return true;
+  }
 
   return false;
 }
@@ -811,8 +837,9 @@ void OSLCompiler::add(ShaderNode *node, const char *name, bool isfilepath)
   if (isfilepath) {
     name = manager->shader_load_filepath(name);
 
-    if (name == nullptr)
+    if (name == nullptr) {
       return;
+    }
   }
 
   /* pass in fixed parameter values */
@@ -860,22 +887,28 @@ void OSLCompiler::add(ShaderNode *node, const char *name, bool isfilepath)
 
   /* Create shader of the appropriate type. OSL only distinguishes between "surface"
    * and "displacement" at the moment. */
-  if (current_type == SHADER_TYPE_SURFACE)
-    ss->Shader(*current_group, "surface", name, id(node).c_str());
-  else if (current_type == SHADER_TYPE_VOLUME)
-    ss->Shader(*current_group, "surface", name, id(node).c_str());
-  else if (current_type == SHADER_TYPE_DISPLACEMENT)
-    ss->Shader(*current_group, "displacement", name, id(node).c_str());
-  else if (current_type == SHADER_TYPE_BUMP)
-    ss->Shader(*current_group, "displacement", name, id(node).c_str());
-  else
+  if (current_type == SHADER_TYPE_SURFACE) {
+    ss->Shader(*current_group, "surface", name, id(node));
+  }
+  else if (current_type == SHADER_TYPE_VOLUME) {
+    ss->Shader(*current_group, "surface", name, id(node));
+  }
+  else if (current_type == SHADER_TYPE_DISPLACEMENT) {
+    ss->Shader(*current_group, "displacement", name, id(node));
+  }
+  else if (current_type == SHADER_TYPE_BUMP) {
+    ss->Shader(*current_group, "displacement", name, id(node));
+  }
+  else {
     assert(0);
+  }
 
   /* link inputs to other nodes */
   foreach (ShaderInput *input, node->inputs) {
     if (input->link) {
-      if (node_skip_input(node, input))
+      if (node_skip_input(node, input)) {
         continue;
+      }
 
       /* connect shaders */
       string id_from = id(input->link->parent);
@@ -883,8 +916,7 @@ void OSLCompiler::add(ShaderNode *node, const char *name, bool isfilepath)
       string param_from = compatible_name(input->link->parent, input->link);
       string param_to = compatible_name(node, input);
 
-      ss->ConnectShaders(
-          *current_group, id_from.c_str(), param_from.c_str(), id_to.c_str(), param_to.c_str());
+      ss->ConnectShaders(*current_group, id_from, param_from, id_to, param_to);
     }
   }
 
@@ -898,8 +930,9 @@ void OSLCompiler::add(ShaderNode *node, const char *name, bool isfilepath)
         OSLNode *oslnode = static_cast<OSLNode *>(node);
         oslnode->has_emission = true;
       }
-      if (info->has_surface_transparent)
+      if (info->has_surface_transparent) {
         current_shader->has_surface_transparent = true;
+      }
       if (info->has_surface_bssrdf) {
         current_shader->has_surface_bssrdf = true;
         current_shader->has_bssrdf_bump = true; /* can't detect yet */
@@ -913,10 +946,12 @@ void OSLCompiler::add(ShaderNode *node, const char *name, bool isfilepath)
     }
   }
   else if (current_type == SHADER_TYPE_VOLUME) {
-    if (node->has_spatial_varying())
+    if (node->has_spatial_varying()) {
       current_shader->has_volume_spatial_varying = true;
-    if (node->has_attribute_dependency())
+    }
+    if (node->has_attribute_dependency()) {
       current_shader->has_volume_attribute_dependency = true;
+    }
   }
 }
 
@@ -998,8 +1033,9 @@ void OSLCompiler::parameter(ShaderNode *node, const char *name)
       // OSL does not support booleans, so convert to int
       const array<bool> &value = node->get_bool_array(socket);
       array<int> intvalue(value.size());
-      for (size_t i = 0; i < value.size(); i++)
+      for (size_t i = 0; i < value.size(); i++) {
         intvalue[i] = value[i];
+      }
       ss->Parameter(*current_group, uname, array_typedesc(TypeInt, value.size()), intvalue.data());
       break;
     }
@@ -1118,13 +1154,13 @@ void OSLCompiler::parameter(const char *name, int f)
 
 void OSLCompiler::parameter(const char *name, const char *s)
 {
-  ss->Parameter(*current_group, name, TypeString, &s);
+  ss->Parameter(*current_group, name, TypeString, (const void *)&s);
 }
 
 void OSLCompiler::parameter(const char *name, ustring s)
 {
   const char *str = s.c_str();
-  ss->Parameter(*current_group, name, TypeString, &str);
+  ss->Parameter(*current_group, name, TypeString, (const void *)&str);
 }
 
 void OSLCompiler::parameter(const char *name, const Transform &tfm)
@@ -1159,10 +1195,12 @@ void OSLCompiler::parameter_color_array(const char *name, const array<float3> &f
 
 void OSLCompiler::parameter_attribute(const char *name, ustring s)
 {
-  if (Attribute::name_standard(s.c_str()))
+  if (Attribute::name_standard(s.c_str())) {
     parameter(name, (string("geom:") + s.c_str()).c_str());
-  else
+  }
+  else {
     parameter(name, s.c_str());
+  }
 }
 
 void OSLCompiler::find_dependencies(ShaderNodeSet &dependencies, ShaderInput *input)
@@ -1171,8 +1209,9 @@ void OSLCompiler::find_dependencies(ShaderNodeSet &dependencies, ShaderInput *in
 
   if (node != nullptr && dependencies.find(node) == dependencies.end()) {
     foreach (ShaderInput *in, node->inputs)
-      if (!node_skip_input(node, in))
+      if (!node_skip_input(node, in)) {
         find_dependencies(dependencies, in);
+      }
 
     dependencies.insert(node);
   }
@@ -1191,37 +1230,45 @@ void OSLCompiler::generate_nodes(const ShaderNodeSet &nodes)
         bool inputs_done = true;
 
         foreach (ShaderInput *input, node->inputs)
-          if (!node_skip_input(node, input))
-            if (input->link && done.find(input->link->parent) == done.end())
+          if (!node_skip_input(node, input)) {
+            if (input->link && done.find(input->link->parent) == done.end()) {
               inputs_done = false;
+            }
+          }
 
         if (inputs_done) {
           node->compile(*this);
           done.insert(node);
 
           if (current_type == SHADER_TYPE_SURFACE) {
-            if (node->has_surface_transparent())
+            if (node->has_surface_transparent()) {
               current_shader->has_surface_transparent = true;
-            if (node->get_feature() & KERNEL_FEATURE_NODE_RAYTRACE)
+            }
+            if (node->get_feature() & KERNEL_FEATURE_NODE_RAYTRACE) {
               current_shader->has_surface_raytrace = true;
-            if (node->has_spatial_varying())
+            }
+            if (node->has_spatial_varying()) {
               current_shader->has_surface_spatial_varying = true;
+            }
             if (node->has_surface_bssrdf()) {
               current_shader->has_surface_bssrdf = true;
-              if (node->has_bssrdf_bump())
+              if (node->has_bssrdf_bump()) {
                 current_shader->has_bssrdf_bump = true;
+              }
             }
             if (node->has_bump()) {
               current_shader->has_bump = true;
             }
           }
           else if (current_type == SHADER_TYPE_VOLUME) {
-            if (node->has_spatial_varying())
+            if (node->has_spatial_varying()) {
               current_shader->has_volume_spatial_varying = true;
+            }
           }
         }
-        else
+        else {
           nodes_done = false;
+        }
       }
     }
   } while (!nodes_done);
@@ -1265,8 +1312,9 @@ OSL::ShaderGroupRef OSLCompiler::compile_type(Shader *shader, ShaderGraph *graph
     generate_nodes(dependencies);
     output->compile(*this);
   }
-  else
+  else {
     assert(0);
+  }
 
   ss->ShaderGroupEnd(*current_group);
 
@@ -1303,10 +1351,12 @@ void OSLCompiler::compile(Shader *shader)
     if (shader->reference_count() && graph && output->input("Surface")->link) {
       shader->osl_surface_ref = compile_type(shader, shader->graph, SHADER_TYPE_SURFACE);
 
-      if (has_bump)
+      if (has_bump) {
         shader->osl_surface_bump_ref = compile_type(shader, shader->graph, SHADER_TYPE_BUMP);
-      else
+      }
+      else {
         shader->osl_surface_bump_ref = OSL::ShaderGroupRef();
+      }
 
       shader->has_surface = true;
     }
@@ -1320,16 +1370,18 @@ void OSLCompiler::compile(Shader *shader)
       shader->osl_volume_ref = compile_type(shader, shader->graph, SHADER_TYPE_VOLUME);
       shader->has_volume = true;
     }
-    else
+    else {
       shader->osl_volume_ref = OSL::ShaderGroupRef();
+    }
 
     /* generate displacement shader */
     if (shader->reference_count() && graph && output->input("Displacement")->link) {
       shader->osl_displacement_ref = compile_type(shader, shader->graph, SHADER_TYPE_DISPLACEMENT);
       shader->has_displacement = true;
     }
-    else
+    else {
       shader->osl_displacement_ref = OSL::ShaderGroupRef();
+    }
 
     /* Estimate emission for MIS. */
     shader->estimate_emission();

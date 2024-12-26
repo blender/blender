@@ -4,6 +4,8 @@
 
 #include "kernel/bvh/bvh.h"
 
+#include "kernel/closure/volume.h"
+
 #include "kernel/integrator/guiding.h"
 #include "kernel/integrator/path_state.h"
 
@@ -420,7 +422,7 @@ ccl_device_inline bool subsurface_random_walk(KernelGlobals kg,
       /* If we hit the surface, we are done. */
       break;
     }
-    else if (reduce_max(throughput) < VOLUME_THROUGHPUT_EPSILON) {
+    if (reduce_max(throughput) < VOLUME_THROUGHPUT_EPSILON) {
       /* Avoid unnecessary work and precision issue when throughput gets really small. */
       break;
     }

@@ -34,7 +34,7 @@ class ParticleSystem : public Node {
   NODE_DECLARE
 
   ParticleSystem();
-  ~ParticleSystem();
+  ~ParticleSystem() override;
 
   void tag_update(Scene *scene);
 

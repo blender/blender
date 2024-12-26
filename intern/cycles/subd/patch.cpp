@@ -4,8 +4,6 @@
 
 /* Parts adapted from code in the public domain in NVidia Mesh Tools. */
 
-#include "scene/mesh.h"
-
 #include "subd/patch.h"
 
 #include "util/math.h"

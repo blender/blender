@@ -96,9 +96,7 @@ ccl_device_forceinline float triangle_light_pdf(KernelGlobals kg,
     if (UNLIKELY(solid_angle == 0.0f)) {
       return 0.0f;
     }
-    else {
-      pdf = 1.0f / solid_angle;
-    }
+    pdf = 1.0f / solid_angle;
   }
   else {
     if (UNLIKELY(area == 0.0f)) {
@@ -231,9 +229,7 @@ ccl_device_forceinline bool triangle_light_sample(KernelGlobals kg,
       ls->pdf = 0.0f;
       return false;
     }
-    else {
-      ls->pdf = 1.0f / solid_angle;
-    }
+    ls->pdf = 1.0f / solid_angle;
   }
   else {
     if (UNLIKELY(area == 0.0f)) {

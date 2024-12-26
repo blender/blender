@@ -13,12 +13,12 @@
 
 CCL_NAMESPACE_BEGIN
 
-typedef struct VelvetBsdf {
+struct VelvetBsdf {
   SHADER_CLOSURE_BASE;
 
   float sigma;
   float invsigma2;
-} VelvetBsdf;
+};
 
 static_assert(sizeof(ShaderClosure) >= sizeof(VelvetBsdf), "VelvetBsdf is too large!");
 

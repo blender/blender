@@ -15,16 +15,18 @@
 
 CCL_NAMESPACE_BEGIN
 
+// NOLINTBEGIN
 #define BVH_NODE_SIZE 4
 #define BVH_NODE_LEAF_SIZE 1
 #define BVH_UNALIGNED_NODE_SIZE 7
+// NOLINTEND
 
 /* Pack Utility */
 struct BVHStackEntry {
   const BVHNode *node;
   int idx;
 
-  BVHStackEntry(const BVHNode *n = 0, int i = 0);
+  BVHStackEntry(const BVHNode *n = nullptr, int i = 0);
   int encodeIdx() const;
 };
 

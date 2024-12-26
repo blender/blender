@@ -5,7 +5,8 @@
 #pragma once
 
 #include "integrator/tile.h"
-#include "util/types.h"
+
+#include "util/types_int2.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -20,7 +21,7 @@ class WorkTileScheduler {
   WorkTileScheduler();
 
   /* To indicate if there is accelerated RT support. */
-  void set_accelerated_rt(bool state);
+  void set_accelerated_rt(bool accelerated_rt);
 
   /* MAximum path states which are allowed to be used by a single scheduled work tile.
    *

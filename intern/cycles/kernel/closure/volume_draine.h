@@ -12,12 +12,12 @@ CCL_NAMESPACE_BEGIN
 
 /* DRAINE CLOSURE */
 
-typedef struct DraineVolume {
+struct DraineVolume {
   SHADER_CLOSURE_VOLUME_BASE;
 
   float g;
   float alpha;
-} DraineVolume;
+};
 static_assert(sizeof(ShaderVolumeClosure) >= sizeof(DraineVolume), "DraineVolume is too large!");
 
 ccl_device int volume_draine_setup(ccl_private DraineVolume *volume)

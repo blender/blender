@@ -4,10 +4,7 @@
 
 #pragma once
 
-#include "MEM_guardedalloc.h"
-#include "RNA_access.hh"
 #include "RNA_blender_cpp.hh"
-#include "RNA_path.hh"
 #include "RNA_types.hh"
 
 #include "blender/id_map.h"
@@ -20,7 +17,6 @@
 #include "util/map.h"
 #include "util/set.h"
 #include "util/transform.h"
-#include "util/vector.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -35,10 +31,8 @@ class Mesh;
 class Object;
 class ParticleSystem;
 class Scene;
-class ViewLayer;
 class Shader;
 class ShaderGraph;
-class ShaderNode;
 class TaskPool;
 
 class BlenderSync {
@@ -69,7 +63,7 @@ class BlenderSync {
                  void **python_thread_state,
                  const DeviceInfo &denoise_device_info);
   void sync_view_layer(BL::ViewLayer &b_view_layer);
-  void sync_render_passes(BL::RenderLayer &b_render_layer, BL::ViewLayer &b_view_layer);
+  void sync_render_passes(BL::RenderLayer &b_rlay, BL::ViewLayer &b_view_layer);
   void sync_integrator(BL::ViewLayer &b_view_layer,
                        bool background,
                        const DeviceInfo &denoise_device_info);
@@ -79,11 +73,11 @@ class BlenderSync {
                    int height,
                    const char *viewname);
   void sync_view(BL::SpaceView3D &b_v3d, BL::RegionView3D &b_rv3d, int width, int height);
-  inline int get_layer_samples()
+  int get_layer_samples()
   {
     return view_layer.samples;
   }
-  inline int get_layer_bound_samples()
+  int get_layer_bound_samples()
   {
     return view_layer.bound_samples;
   }
@@ -96,7 +90,7 @@ class BlenderSync {
                                       const bool background,
                                       const bool use_developer_ui);
   static SessionParams get_session_params(BL::RenderEngine &b_engine,
-                                          BL::Preferences &b_userpref,
+                                          BL::Preferences &b_preferences,
                                           BL::Scene &b_scene,
                                           bool background);
   static bool get_session_pause(BL::Scene &b_scene, bool background);
@@ -253,29 +247,18 @@ class BlenderSync {
   int max_subdivisions;
 
   struct RenderLayerInfo {
-    RenderLayerInfo()
-        : material_override(PointerRNA_NULL),
-          world_override(PointerRNA_NULL),
-          use_background_shader(true),
-          use_surfaces(true),
-          use_hair(true),
-          use_volumes(true),
-          use_motion_blur(true),
-          samples(0),
-          bound_samples(false)
-    {
-    }
+    RenderLayerInfo() : material_override(PointerRNA_NULL), world_override(PointerRNA_NULL) {}
 
     string name;
     BL::Material material_override;
     BL::World world_override;
-    bool use_background_shader;
-    bool use_surfaces;
-    bool use_hair;
-    bool use_volumes;
-    bool use_motion_blur;
-    int samples;
-    bool bound_samples;
+    bool use_background_shader = true;
+    bool use_surfaces = true;
+    bool use_hair = true;
+    bool use_volumes = true;
+    bool use_motion_blur = true;
+    int samples = 0;
+    bool bound_samples = false;
   } view_layer;
 
   Progress &progress;

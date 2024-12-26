@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "util/defines.h"
+#include "util/types_base.h"
 
 CCL_NAMESPACE_BEGIN
 

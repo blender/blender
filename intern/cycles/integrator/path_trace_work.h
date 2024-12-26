@@ -7,7 +7,6 @@
 #include "integrator/pass_accessor.h"
 #include "scene/pass.h"
 #include "session/buffers.h"
-#include "util/types.h"
 #include "util/unique_ptr.h"
 
 CCL_NAMESPACE_BEGIN
@@ -33,7 +32,7 @@ class PathTraceWork {
   static unique_ptr<PathTraceWork> create(Device *device,
                                           Film *film,
                                           DeviceScene *device_scene,
-                                          bool *cancel_requested_flag);
+                                          const bool *cancel_requested_flag);
 
   virtual ~PathTraceWork();
 
@@ -128,7 +127,7 @@ class PathTraceWork {
 
   /* Cheap-ish request to see whether rendering is requested and is to be stopped as soon as
    * possible, without waiting for any samples to be finished. */
-  inline bool is_cancel_requested() const
+  bool is_cancel_requested() const
   {
     /* NOTE: Rely on the fact that on x86 CPU reading scalar can happen without atomic even in
      * threaded environment. */
@@ -143,14 +142,18 @@ class PathTraceWork {
 
 #ifdef WITH_PATH_GUIDING
   /* Initializes the per-thread guiding kernel data. */
-  virtual void guiding_init_kernel_globals(void *, void *, const bool) {}
+  virtual void guiding_init_kernel_globals(void * /*unused*/,
+                                           void * /*unused*/,
+                                           const bool /*unused*/)
+  {
+  }
 #endif
 
  protected:
   PathTraceWork(Device *device,
                 Film *film,
                 DeviceScene *device_scene,
-                bool *cancel_requested_flag);
+                const bool *cancel_requested_flag);
 
   PassAccessor::PassAccessInfo get_display_pass_access_info(PassMode pass_mode) const;
 
@@ -182,7 +185,7 @@ class PathTraceWork {
   BufferParams effective_big_tile_params_;
   BufferParams effective_buffer_params_;
 
-  bool *cancel_requested_flag_ = nullptr;
+  const bool *cancel_requested_flag_ = nullptr;
 };
 
 CCL_NAMESPACE_END

@@ -4,9 +4,8 @@
 
 #pragma once
 
-#include <atomic>
+#include <cassert>
 
-#include "util/map.h"
 #include "util/thread.h"
 #include "util/vector.h"
 
@@ -124,7 +123,7 @@ class ProfilingHelper {
     state->event = previous_event;
   }
 
-  inline void set_event(ProfilingEvent event)
+  void set_event(ProfilingEvent event)
   {
     state->event = event;
   }
@@ -147,7 +146,7 @@ class ProfilingWithShaderHelper : public ProfilingHelper {
     state->shader = -1;
   }
 
-  inline void set_shader(int object, int shader)
+  void set_shader(int object, int shader)
   {
     if (state->active) {
       state->shader = shader;

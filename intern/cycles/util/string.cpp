@@ -2,17 +2,18 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#include <stdarg.h>
-#include <stdio.h>
+#include <cstdarg>
+#include <cstdio>
 
 #include <algorithm>
 #include <cctype>
 
 #include "util/foreach.h"
 #include "util/string.h"
-#include "util/windows.h"
+#include "util/types_float4.h"
 
 #ifdef _WIN32
+#  include "util/windows.h"
 #  ifndef vsnprintf
 #    define vsnprintf _vsnprintf
 #  endif
@@ -24,12 +25,12 @@ string string_printf(const char *format, ...)
 {
   vector<char> str(128, 0);
 
-  while (1) {
+  while (true) {
     va_list args;
     int result;
 
     va_start(args, format);
-    result = vsnprintf(&str[0], str.size(), format, args);
+    result = vsnprintf(str.data(), str.size(), format, args);
     va_end(args);
 
     if (result == -1) {
@@ -42,13 +43,13 @@ string string_printf(const char *format, ...)
       str.resize(str.size() * 2, 0);
       continue;
     }
-    else if (result >= (int)str.size()) {
+    if (result >= (int)str.size()) {
       /* not enough space */
       str.resize(result + 1, 0);
       continue;
     }
 
-    return string(&str[0]);
+    return string(str.data());
   }
 }
 
@@ -172,9 +173,7 @@ string string_from_bool(bool var)
   if (var) {
     return "True";
   }
-  else {
-    return "False";
-  }
+  return "False";
 }
 
 string to_string(const char *str)
@@ -250,9 +249,7 @@ string string_human_readable_size(size_t size)
   if (*suffix != 'B') {
     return string_printf("%.2f%c", double(size * 1024 + r) / 1024.0, *suffix);
   }
-  else {
-    return string_printf("%zu", size);
-  }
+  return string_printf("%zu", size);
 }
 
 string string_human_readable_number(size_t num)
@@ -269,7 +266,8 @@ string string_human_readable_number(size_t num)
 
   int i = -1;
   while (num) {
-    if (++i && i % 3 == 0) {
+    i++;
+    if (i && i % 3 == 0) {
       *(--p) = ',';
     }
 

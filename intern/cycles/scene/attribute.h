@@ -73,7 +73,7 @@ class Attribute {
 
   char *data()
   {
-    return (buffer.size()) ? &buffer[0] : nullptr;
+    return (!buffer.empty()) ? buffer.data() : nullptr;
   }
   float2 *data_float2()
   {
@@ -115,7 +115,7 @@ class Attribute {
 
   const char *data() const
   {
-    return (buffer.size()) ? &buffer[0] : nullptr;
+    return (!buffer.empty()) ? buffer.data() : nullptr;
   }
   const float2 *data_float2() const
   {
@@ -155,7 +155,7 @@ class Attribute {
   void add(const float2 &f);
   void add(const float3 &f);
   void add(const uchar4 &f);
-  void add(const Transform &tfm);
+  void add(const Transform &f);
   void add(const char *data);
 
   void set_data_from(Attribute &&other);

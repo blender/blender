@@ -14,17 +14,14 @@
 #  include "scene/hair.h"
 #  include "scene/mesh.h"
 #  include "scene/object.h"
-#  include "scene/pass.h"
 #  include "scene/pointcloud.h"
 #  include "scene/scene.h"
 
 #  include "util/debug.h"
 #  include "util/log.h"
-#  include "util/md5.h"
 #  include "util/path.h"
 #  include "util/progress.h"
 #  include "util/task.h"
-#  include "util/time.h"
 
 #  define __KERNEL_OPTIX__
 #  include "kernel/device/optix/globals.h"
@@ -80,6 +77,8 @@ OptiXDevice::OptiXDevice(const DeviceInfo &info, Stats &stats, Profiler &profile
         break;
       case 4:
         LOG_IF(INFO, VLOG_IS_ON(1)) << message;
+        break;
+      default:
         break;
     }
   };
@@ -168,7 +167,7 @@ static string get_optix_include_dir()
     const string env_include_dir = path_join(env_dir, "include");
     return env_include_dir;
   }
-  else if (default_dir[0]) {
+  if (default_dir[0]) {
     const string default_include_dir = path_join(default_dir, "include");
     return default_include_dir;
   }
@@ -226,7 +225,7 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
             "to a directory containing the OptiX SDK.");
         return false;
       }
-      else if (!path_is_directory(optix_include_dir)) {
+      if (!path_is_directory(optix_include_dir)) {
         set_error(string_printf(
             "OptiX headers not found at %s, unable to compile OptiX kernels at runtime. Install "
             "OptiX SDK in the specified location, or set OPTIX_ROOT_DIR environment variable to a "
@@ -326,8 +325,9 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
       pipeline_options.usesPrimitiveTypeFlags |= OPTIX_PRIMITIVE_TYPE_FLAGS_ROUND_CUBIC_BSPLINE;
 #  endif
     }
-    else
+    else {
       pipeline_options.usesPrimitiveTypeFlags |= OPTIX_PRIMITIVE_TYPE_FLAGS_CUSTOM;
+    }
   }
   if (kernel_features & KERNEL_FEATURE_POINTCLOUD) {
     pipeline_options.usesPrimitiveTypeFlags |= OPTIX_PRIMITIVE_TYPE_FLAGS_CUSTOM;
@@ -393,7 +393,7 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
                                                         ptx_data.data(),
                                                         ptx_data.size(),
                                                         nullptr,
-                                                        0,
+                                                        nullptr,
                                                         &optix_module);
 #  endif
     if (result != OPTIX_SUCCESS) {
@@ -573,7 +573,7 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
   }
 
   optix_assert(optixProgramGroupCreate(
-      context, group_descs, NUM_PROGRAM_GROUPS, &group_options, nullptr, 0, groups));
+      context, group_descs, NUM_PROGRAM_GROUPS, &group_options, nullptr, nullptr, groups));
 
   /* Get program stack sizes. */
   OptixStackSizes stack_size[NUM_PROGRAM_GROUPS] = {};
@@ -648,7 +648,7 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
                                      pipeline_groups.data(),
                                      pipeline_groups.size(),
                                      nullptr,
-                                     0,
+                                     nullptr,
                                      &pipelines[PIP_SHADE]));
 
     /* Combine ray generation and trace continuation stack size. */
@@ -691,7 +691,7 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
                                      pipeline_groups.data(),
                                      pipeline_groups.size(),
                                      nullptr,
-                                     0,
+                                     nullptr,
                                      &pipelines[PIP_INTERSECT]));
 
     /* Calculate continuation stack size based on the maximum of all ray generation stack sizes. */
@@ -812,7 +812,8 @@ bool OptiXDevice::load_osl_kernels()
                                                  ptx_data.data(),
                                                  ptx_data.size(),
                                                  nullptr,
-                                                 0,
+                                                 nullptr,
+                                                 ,
                                                  &osl_modules.back());
 #    else
     const OptixResult result = optixModuleCreateFromPTX(context,
@@ -821,7 +822,7 @@ bool OptiXDevice::load_osl_kernels()
                                                         ptx_data.data(),
                                                         ptx_data.size(),
                                                         nullptr,
-                                                        0,
+                                                        nullptr,
                                                         &osl_modules.back());
 #    endif
     if (result != OPTIX_SUCCESS) {
@@ -837,7 +838,7 @@ bool OptiXDevice::load_osl_kernels()
     group_desc.callables.moduleDC = osl_modules.back();
 
     optix_assert(optixProgramGroupCreate(
-        context, &group_desc, 1, &group_options, nullptr, 0, &osl_groups.back()));
+        context, &group_desc, 1, &group_options, nullptr, nullptr, &osl_groups.back()));
   }
 
   TaskPool pool;
@@ -884,7 +885,7 @@ bool OptiXDevice::load_osl_kernels()
                                             osl_kernels[i].ptx.data(),
                                             osl_kernels[i].ptx.size(),
                                             nullptr,
-                                            0,
+                                            nullptr,
                                             &osl_modules[i]);
     });
 #    endif
@@ -910,7 +911,7 @@ bool OptiXDevice::load_osl_kernels()
     group_desc.callables.moduleDC = osl_modules[i];
 
     optix_assert(optixProgramGroupCreate(
-        context, &group_desc, 1, &group_options, nullptr, 0, &osl_groups[i]));
+        context, &group_desc, 1, &group_options, nullptr, nullptr, &osl_groups[i]));
   }
 
   /* Update SBT with new entries. */
@@ -963,7 +964,7 @@ bool OptiXDevice::load_osl_kernels()
                                      pipeline_groups.data(),
                                      pipeline_groups.size(),
                                      nullptr,
-                                     0,
+                                     nullptr,
                                      &pipelines[PIP_SHADE]));
 
     /* Get program stack sizes. */

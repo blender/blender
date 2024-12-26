@@ -10,10 +10,7 @@
 
 #include "kernel/types.h"
 
-#include "util/half.h"
 #include "util/string.h"
-#include "util/thread.h"
-#include "util/types.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -43,17 +40,17 @@ class BufferPass : public Node {
   BufferPass &operator=(BufferPass &&other) = default;
   BufferPass &operator=(const BufferPass &other) = default;
 
-  ~BufferPass() = default;
+  ~BufferPass() override = default;
 
   PassInfo get_info() const;
 
-  inline bool operator==(const BufferPass &other) const
+  bool operator==(const BufferPass &other) const
   {
     return type == other.type && mode == other.mode && name == other.name &&
            include_albedo == other.include_albedo && lightgroup == other.lightgroup &&
            offset == other.offset;
   }
-  inline bool operator!=(const BufferPass &other) const
+  bool operator!=(const BufferPass &other) const
   {
     return !(*this == other);
   }
@@ -109,7 +106,7 @@ class BufferParams : public Node {
   BufferParams &operator=(BufferParams &&other) = default;
   BufferParams &operator=(const BufferParams &other) = default;
 
-  ~BufferParams() = default;
+  ~BufferParams() override = default;
 
   /* Pre-calculate all fields which depends on the passes.
    *

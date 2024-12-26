@@ -6,7 +6,6 @@
 
 #include "device/cpu/kernel_function.h"
 #include "util/half.h"
-#include "util/types.h"
 
 CCL_NAMESPACE_BEGIN
 

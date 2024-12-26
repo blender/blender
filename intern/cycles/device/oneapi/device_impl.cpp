@@ -10,7 +10,6 @@
 
 #  include "device/oneapi/device_impl.h"
 
-#  include "util/debug.h"
 #  include "util/foreach.h"
 #  include "util/log.h"
 
@@ -21,7 +20,7 @@
 #  if defined(WITH_OPENIMAGEDENOISE)
 #    include <OpenImageDenoise/config.h>
 #    if OIDN_VERSION >= 20300
-#      include "util/openimagedenoise.h"
+#      include "util/openimagedenoise.h"  // IWYU pragma: keep
 #    endif
 #  endif
 
@@ -69,7 +68,7 @@ OneapiDevice::OneapiDevice(const DeviceInfo &info, Stats &stats, Profiler &profi
   bool is_finished_ok = create_queue(device_queue_,
                                      info.num,
 #  ifdef WITH_EMBREE_GPU
-                                     use_hardware_raytracing ? &embree_device : nullptr
+                                     use_hardware_raytracing ? (void *)&embree_device : nullptr
 #  else
                                      nullptr
 #  endif
@@ -130,8 +129,9 @@ OneapiDevice::OneapiDevice(const DeviceInfo &info, Stats &stats, Profiler &profi
 OneapiDevice::~OneapiDevice()
 {
 #  ifdef WITH_EMBREE_GPU
-  if (embree_device)
+  if (embree_device) {
     rtcReleaseDevice(embree_device);
+  }
 #  endif
 
   texture_info.free();
@@ -141,8 +141,9 @@ OneapiDevice::~OneapiDevice()
   for (ConstMemMap::iterator mt = const_mem_map_.begin(); mt != const_mem_map_.end(); mt++)
     delete mt->second;
 
-  if (device_queue_)
+  if (device_queue_) {
     free_queue(device_queue_);
+  }
 }
 
 bool OneapiDevice::check_peer_access(Device * /*peer_device*/)
@@ -218,12 +219,10 @@ size_t OneapiDevice::get_free_mem() const
     return device.get_info<sycl::ext::intel::info::device::free_memory>();
   }
   /* Estimate: Capacity - in use. */
-  else if (device_mem_in_use < max_memory_on_device_) {
+  if (device_mem_in_use < max_memory_on_device_) {
     return max_memory_on_device_ - device_mem_in_use;
   }
-  else {
-    return 0;
-  }
+  return 0;
 }
 
 bool OneapiDevice::load_kernels(const uint requested_features)
@@ -244,10 +243,8 @@ bool OneapiDevice::load_kernels(const uint requested_features)
               "\"");
     return false;
   }
-  else {
-    VLOG_INFO << "Test kernel has been executed successfully for \"" << info.description << "\"";
-    assert(device_queue_);
-  }
+  VLOG_INFO << "Test kernel has been executed successfully for \"" << info.description << "\"";
+  assert(device_queue_);
 
   if (use_hardware_raytracing && !can_use_hardware_raytracing_for_features(requested_features)) {
     VLOG_INFO
@@ -423,8 +420,9 @@ void OneapiDevice::mem_copy_to(device_memory &mem)
     tex_alloc((device_texture &)mem);
   }
   else {
-    if (!mem.device_pointer)
+    if (!mem.device_pointer) {
       generic_alloc(mem);
+    }
 
     generic_copy_to(mem);
   }
@@ -634,7 +632,7 @@ void *OneapiDevice::usm_aligned_alloc_host(size_t memory_size, size_t alignment)
 void OneapiDevice::usm_free(void *usm_ptr)
 {
   assert(device_queue_);
-  return usm_free(device_queue_, usm_ptr);
+  usm_free(device_queue_, usm_ptr);
 }
 
 void OneapiDevice::check_usm(SyclQueue *queue_, const void *usm_ptr, bool allow_host = false)
@@ -746,8 +744,9 @@ bool OneapiDevice::usm_memcpy(SyclQueue *queue_, void *dest, void *src, size_t n
   /* sycl::queue::memcpy may crash if the queue is in an invalid state due to previous
    * runtime errors. It's better to avoid running memory operations in that case.
    * The render will be canceled and the queue will be destroyed anyway. */
-  if (have_error())
+  if (have_error()) {
     return false;
+  }
 
   sycl::queue *queue = reinterpret_cast<sycl::queue *>(queue_);
   OneapiDevice::check_usm(queue_, dest, true);
@@ -779,8 +778,9 @@ bool OneapiDevice::usm_memcpy(SyclQueue *queue_, void *dest, void *src, size_t n
     /* NOTE(@sirgienko) Host-side blocking wait on this operation is mandatory, otherwise the host
      * may not wait until the end of the transfer before using the memory.
      */
-    if (from_device_to_host || host_or_device_memop_with_offset)
+    if (from_device_to_host || host_or_device_memop_with_offset) {
       mem_event.wait();
+    }
     return true;
 #  endif
   }
@@ -799,8 +799,9 @@ bool OneapiDevice::usm_memset(SyclQueue *queue_,
   /* sycl::queue::memset may crash if the queue is in an invalid state due to previous
    * runtime errors. It's better to avoid running memory operations in that case.
    * The render will be canceled and the queue will be destroyed anyway. */
-  if (have_error())
+  if (have_error()) {
     return false;
+  }
 
   sycl::queue *queue = reinterpret_cast<sycl::queue *>(queue_);
   OneapiDevice::check_usm(queue_, usm_ptr, true);
@@ -1020,9 +1021,10 @@ int parse_driver_build_version(const sycl::device &device)
         const std::string &third_number_substr = driver_version.substr(
             second_dot_position + 1, third_dot_position - second_dot_position - 1);
         const std::string &forth_number_substr = driver_version.substr(third_dot_position + 1);
-        if (third_number_substr.length() == 3 && forth_number_substr.length() == 4)
+        if (third_number_substr.length() == 3 && forth_number_substr.length() == 4) {
           driver_build_version = std::stoi(third_number_substr) * 10000 +
                                  std::stoi(forth_number_substr);
+        }
       }
       else {
         const std::string &third_number_substr = driver_version.substr(second_dot_position + 1);
@@ -1280,8 +1282,7 @@ int OneapiDevice::get_num_multiprocessors()
   if (device.has(sycl::aspect::ext_intel_gpu_eu_count)) {
     return device.get_info<sycl::ext::intel::info::device::gpu_eu_count>();
   }
-  else
-    return 0;
+  return 0;
 }
 
 int OneapiDevice::get_max_num_threads_per_multiprocessor()
@@ -1293,8 +1294,7 @@ int OneapiDevice::get_max_num_threads_per_multiprocessor()
     return device.get_info<sycl::ext::intel::info::device::gpu_eu_simd_width>() *
            device.get_info<sycl::ext::intel::info::device::gpu_hw_threads_per_eu>();
   }
-  else
-    return 0;
+  return 0;
 }
 
 CCL_NAMESPACE_END

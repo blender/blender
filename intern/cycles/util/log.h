@@ -5,8 +5,8 @@
 #pragma once
 
 #if defined(WITH_CYCLES_LOGGING) && !defined(__KERNEL_GPU__)
-#  include <gflags/gflags.h>
-#  include <glog/logging.h>
+#  include <gflags/gflags.h>  // IWYU pragma: export
+#  include <glog/logging.h>   // IWYU pragma: export
 #endif
 
 #include <iosfwd>

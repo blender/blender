@@ -18,8 +18,9 @@ CCL_NAMESPACE_BEGIN
 
 ccl_device float2 direction_to_equirectangular_range(float3 dir, float4 range)
 {
-  if (is_zero(dir))
+  if (is_zero(dir)) {
     return zero_float2();
+  }
 
   float u = (atan2f(dir.y, dir.x) - range.y) / range.x;
   float v = (acosf(dir.z / len(dir)) - range.w) / range.z;
@@ -86,8 +87,9 @@ ccl_device float3 fisheye_equidistant_to_direction(float u, float v, float fov)
 
   float r = sqrtf(u * u + v * v);
 
-  if (r > 1.0f)
+  if (r > 1.0f) {
     return zero_float3();
+  }
 
   float theta = r * fov * 0.5f;
 
@@ -112,8 +114,9 @@ fisheye_equisolid_to_direction(float u, float v, float lens, float fov, float wi
   float rmax = 2.0f * lens * sinf(fov * 0.25f);
   float r = sqrtf(u * u + v * v);
 
-  if (r > rmax)
+  if (r > rmax) {
     return zero_float3();
+  }
 
   float theta = 2.0f * asinf(r / (2.0f * lens));
 
@@ -131,8 +134,9 @@ ccl_device_inline float3 fisheye_lens_polynomial_to_direction(
   float4 rr = make_float4(r, r2, r2 * r, r2 * r2);
   float theta = -(coeff0 + dot(coeffs, rr));
 
-  if (fabsf(theta) > 0.5f * fov)
+  if (fabsf(theta) > 0.5f * fov) {
     return zero_float3();
+  }
 
   return fisheye_to_direction(theta, u, v, r);
 }
@@ -186,8 +190,9 @@ ccl_device float3 mirrorball_to_direction(float u, float v)
   dir.x = 2.0f * u - 1.0f;
   dir.z = 2.0f * v - 1.0f;
 
-  if (dir.x * dir.x + dir.z * dir.z > 1.0f)
+  if (dir.x * dir.x + dir.z * dir.z > 1.0f) {
     return zero_float3();
+  }
 
   dir.y = -sqrtf(max(1.0f - dir.x * dir.x - dir.z * dir.z, 0.0f));
 
@@ -203,8 +208,9 @@ ccl_device float2 direction_to_mirrorball(float3 dir)
   dir.y -= 1.0f;
 
   float div = 2.0f * sqrtf(max(-0.5f * dir.y, 0.0f));
-  if (div > 0.0f)
+  if (div > 0.0f) {
     dir /= div;
+  }
 
   float u = 0.5f * (dir.x + 1.0f);
   float v = 0.5f * (dir.z + 1.0f);

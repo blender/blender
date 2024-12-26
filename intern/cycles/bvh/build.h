@@ -7,7 +7,7 @@
 
 #pragma once
 
-#include <float.h>
+#include <cfloat>
 
 #include "bvh/params.h"
 #include "bvh/unaligned.h"
@@ -56,10 +56,10 @@ class BVHBuild {
   friend class BVHObjectBinning;
 
   /* Adding references. */
-  void add_reference_triangles(BoundBox &root, BoundBox &center, Mesh *mesh, int i);
-  void add_reference_curves(BoundBox &root, BoundBox &center, Hair *hair, int i);
+  void add_reference_triangles(BoundBox &root, BoundBox &center, Mesh *mesh, int object_index);
+  void add_reference_curves(BoundBox &root, BoundBox &center, Hair *hair, int object_index);
   void add_reference_points(BoundBox &root, BoundBox &center, PointCloud *pointcloud, int i);
-  void add_reference_geometry(BoundBox &root, BoundBox &center, Geometry *geom, int i);
+  void add_reference_geometry(BoundBox &root, BoundBox &center, Geometry *geom, int object_index);
   void add_reference_object(BoundBox &root, BoundBox &center, Object *ob, int i);
   void add_references(BVHRange &root);
 
@@ -77,8 +77,8 @@ class BVHBuild {
 
   /* Threads. */
   enum { THREAD_TASK_SIZE = 4096 };
-  void thread_build_node(InnerNode *node, int child, const BVHObjectBinning &range, int level);
-  void thread_build_spatial_split_node(InnerNode *node,
+  void thread_build_node(InnerNode *inner, int child, const BVHObjectBinning &range, int level);
+  void thread_build_spatial_split_node(InnerNode *inner,
                                        int child,
                                        const BVHRange &range,
                                        vector<BVHReference> &references,

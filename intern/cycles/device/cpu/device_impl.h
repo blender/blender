@@ -7,7 +7,9 @@
 /* So ImathMath is included before our kernel_cpu_compat. */
 #ifdef WITH_OSL
 /* So no context pollution happens from indirectly included windows.h */
-#  include "util/windows.h"
+#  ifdef _WIN32
+#    include "util/windows.h"
+#  endif
 #  include <OSL/oslexec.h>
 #endif
 
@@ -54,25 +56,22 @@ class CPUDevice : public Device {
 #endif
 
   CPUDevice(const DeviceInfo &info_, Stats &stats_, Profiler &profiler_, bool headless_);
-  ~CPUDevice();
+  ~CPUDevice() override;
 
-  virtual BVHLayoutMask get_bvh_layout_mask(uint /*kernel_features*/) const override;
+  BVHLayoutMask get_bvh_layout_mask(uint /*kernel_features*/) const override;
 
   /* Returns true if the texture info was copied to the device (meaning, some more
    * re-initialization might be needed). */
   bool load_texture_info();
 
-  virtual void mem_alloc(device_memory &mem) override;
-  virtual void mem_copy_to(device_memory &mem) override;
-  virtual void mem_copy_from(
-      device_memory &mem, size_t y, size_t w, size_t h, size_t elem) override;
-  virtual void mem_zero(device_memory &mem) override;
-  virtual void mem_free(device_memory &mem) override;
-  virtual device_ptr mem_alloc_sub_ptr(device_memory &mem,
-                                       size_t offset,
-                                       size_t /*size*/) override;
+  void mem_alloc(device_memory &mem) override;
+  void mem_copy_to(device_memory &mem) override;
+  void mem_copy_from(device_memory &mem, size_t y, size_t w, size_t h, size_t elem) override;
+  void mem_zero(device_memory &mem) override;
+  void mem_free(device_memory &mem) override;
+  device_ptr mem_alloc_sub_ptr(device_memory &mem, size_t offset, size_t /*size*/) override;
 
-  virtual void const_copy_to(const char *name, void *host, size_t size) override;
+  void const_copy_to(const char *name, void *host, size_t size) override;
 
   void global_alloc(device_memory &mem);
   void global_free(device_memory &mem);
@@ -84,12 +83,12 @@ class CPUDevice : public Device {
 
   void *get_guiding_device() const override;
 
-  virtual void get_cpu_kernel_thread_globals(
+  void get_cpu_kernel_thread_globals(
       vector<CPUKernelThreadGlobals> &kernel_thread_globals) override;
-  virtual void *get_cpu_osl_memory() override;
+  void *get_cpu_osl_memory() override;
 
  protected:
-  virtual bool load_kernels(uint /*kernel_features*/) override;
+  bool load_kernels(uint /*kernel_features*/) override;
 };
 
 CCL_NAMESPACE_END

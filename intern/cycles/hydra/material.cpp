@@ -188,7 +188,7 @@ TfStaticData<UsdToCycles> sUsdToCyles;
 
 HdCyclesMaterial::HdCyclesMaterial(const SdfPath &sprimId) : HdMaterial(sprimId) {}
 
-HdCyclesMaterial::~HdCyclesMaterial() {}
+HdCyclesMaterial::~HdCyclesMaterial() = default;
 
 HdDirtyBits HdCyclesMaterial::GetInitialDirtyBitsMask() const
 {
@@ -417,7 +417,7 @@ void HdCyclesMaterial::PopulateShaderGraph(const HdMaterialNetwork2 &networkMap)
 {
   _nodes.clear();
 
-  auto graph = new ShaderGraph();
+  auto *graph = new ShaderGraph();
 
   // Iterate all the nodes first and build a complete but unconnected graph with parameters set
   for (const auto &nodeEntry : networkMap.nodes) {

@@ -41,11 +41,11 @@ bool namedSampleCountPairComparator(const NamedSampleCountPair &a, const NamedSa
 
 }  // namespace
 
-NamedSizeEntry::NamedSizeEntry() : name(""), size(0) {}
+NamedSizeEntry::NamedSizeEntry() : size(0) {}
 
 NamedSizeEntry::NamedSizeEntry(const string &name, size_t size) : name(name), size(size) {}
 
-NamedTimeEntry::NamedTimeEntry() : name(""), time(0) {}
+NamedTimeEntry::NamedTimeEntry() : time(0) {}
 
 NamedTimeEntry::NamedTimeEntry(const string &name, double time) : name(name), time(time) {}
 
@@ -63,7 +63,7 @@ string NamedSizeStats::full_report(int indent_level)
 {
   const string indent(indent_level * kIndentNumSpaces, ' ');
   const string double_indent = indent + indent;
-  string result = "";
+  string result;
   result += string_printf("%sTotal memory: %s (%s)\n",
                           indent.c_str(),
                           string_human_readable_size(total_size).c_str(),
@@ -83,7 +83,7 @@ string NamedTimeStats::full_report(int indent_level)
 {
   const string indent(indent_level * kIndentNumSpaces, ' ');
   const string double_indent = indent + indent;
-  string result = "";
+  string result;
   result += string_printf("%sTotal time: %fs\n", indent.c_str(), total_time);
   sort(entries.begin(), entries.end(), namedTimeEntryComparator);
   foreach (const NamedTimeEntry &entry, entries) {
@@ -95,7 +95,7 @@ string NamedTimeStats::full_report(int indent_level)
 
 /* Named time sample statistics. */
 
-NamedNestedSampleStats::NamedNestedSampleStats() : name(""), self_samples(0), sum_samples(0) {}
+NamedNestedSampleStats::NamedNestedSampleStats() : self_samples(0), sum_samples(0) {}
 
 NamedNestedSampleStats::NamedNestedSampleStats(const string &name, uint64_t samples)
     : name(name), self_samples(samples), sum_samples(samples)
@@ -153,7 +153,7 @@ NamedSampleCountPair::NamedSampleCountPair(const ustring &name, uint64_t samples
 {
 }
 
-NamedSampleCountStats::NamedSampleCountStats() {}
+NamedSampleCountStats::NamedSampleCountStats() = default;
 
 void NamedSampleCountStats::add(const ustring &name, uint64_t samples, uint64_t hits)
 {
@@ -186,7 +186,7 @@ string NamedSampleCountStats::full_report(int indent_level)
 
   sort(sorted_entries.begin(), sorted_entries.end(), namedSampleCountPairComparator);
 
-  string result = "";
+  string result;
   foreach (const NamedSampleCountPair &entry, sorted_entries) {
     const double seconds = entry.samples * 0.001;
     const double relative = ((double)entry.samples) / (entry.hits * avg_samples_per_hit);
@@ -200,24 +200,24 @@ string NamedSampleCountStats::full_report(int indent_level)
 
 /* Mesh statistics. */
 
-MeshStats::MeshStats() {}
+MeshStats::MeshStats() = default;
 
 string MeshStats::full_report(int indent_level)
 {
   const string indent(indent_level * kIndentNumSpaces, ' ');
-  string result = "";
+  string result;
   result += indent + "Geometry:\n" + geometry.full_report(indent_level + 1);
   return result;
 }
 
 /* Image statistics. */
 
-ImageStats::ImageStats() {}
+ImageStats::ImageStats() = default;
 
 string ImageStats::full_report(int indent_level)
 {
   const string indent(indent_level * kIndentNumSpaces, ' ');
-  string result = "";
+  string result;
   result += indent + "Textures:\n" + textures.full_report(indent_level + 1);
   return result;
 }
@@ -284,7 +284,7 @@ void RenderStats::collect_profiling(Scene *scene, Profiler &prof)
 
 string RenderStats::full_report()
 {
-  string result = "";
+  string result;
   result += "Mesh statistics:\n" + mesh.full_report(1);
   result += "Image statistics:\n" + image.full_report(1);
   if (has_profiling) {
@@ -305,11 +305,11 @@ string UpdateTimeStats::full_report(int indent_level)
   return times.full_report(indent_level + 1);
 }
 
-SceneUpdateStats::SceneUpdateStats() {}
+SceneUpdateStats::SceneUpdateStats() = default;
 
 string SceneUpdateStats::full_report()
 {
-  string result = "";
+  string result;
   result += "Scene:\n" + scene.full_report(1);
   result += "Geometry:\n" + geometry.full_report(1);
   result += "Light:\n" + light.full_report(1);

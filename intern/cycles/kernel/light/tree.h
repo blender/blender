@@ -866,9 +866,7 @@ ccl_device float light_tree_pdf(KernelGlobals kg,
         bit_trail = kemitter->bit_trail;
         continue;
       }
-      else {
-        return pdf;
-      }
+      return pdf;
     }
 
     /* Inner node. */

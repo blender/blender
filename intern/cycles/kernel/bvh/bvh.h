@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "kernel/bvh/nodes.h"
 #include "kernel/bvh/types.h"
 #include "kernel/bvh/util.h"
 
@@ -66,8 +67,6 @@ CCL_NAMESPACE_BEGIN
  * Originally based on "Understanding the Efficiency of Ray Traversal on GPUs",
  * the code has been extended and modified to support more primitives and work
  * with CPU and various GPU kernel languages. */
-
-#  include "kernel/bvh/nodes.h"
 
 /* Regular BVH traversal */
 

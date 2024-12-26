@@ -123,13 +123,13 @@ struct CCLIntersectContext : public RTCIntersectContext,
                              public CCLShadowContext,
                              public CCLLocalContext,
                              public CCLVolumeContext {
-  typedef enum {
+  enum RayType {
     RAY_REGULAR = 0,
     RAY_SHADOW_ALL = 1,
     RAY_LOCAL = 2,
     RAY_SSS = 3,
     RAY_VOLUME_ALL = 4,
-  } RayType;
+  };
 
   RayType type;
 

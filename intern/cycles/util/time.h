@@ -70,6 +70,6 @@ class scoped_callback_timer {
 /* Make human readable string from time, compatible with Blender metadata. */
 
 string time_human_readable_from_seconds(const double seconds);
-double time_human_readable_to_seconds(const string &str);
+double time_human_readable_to_seconds(const string &time_string);
 
 CCL_NAMESPACE_END

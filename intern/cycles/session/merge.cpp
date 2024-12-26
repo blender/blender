@@ -6,7 +6,6 @@
 
 #include "util/array.h"
 #include "util/map.h"
-#include "util/system.h"
 #include "util/time.h"
 #include "util/unique_ptr.h"
 
@@ -82,18 +81,15 @@ static MergeChannelOp parse_channel_operation(const string &pass_name)
   {
     return MERGE_CHANNEL_COPY;
   }
-  else if (string_startswith(pass_name, "Debug BVH") ||
-           string_startswith(pass_name, "Debug Ray") ||
-           string_startswith(pass_name, "Debug Render Time"))
+  if (string_startswith(pass_name, "Debug BVH") || string_startswith(pass_name, "Debug Ray") ||
+      string_startswith(pass_name, "Debug Render Time"))
   {
     return MERGE_CHANNEL_SUM;
   }
-  else if (string_startswith(pass_name, "Debug Sample Count")) {
+  if (string_startswith(pass_name, "Debug Sample Count")) {
     return MERGE_CHANNEL_SAMPLES;
   }
-  else {
-    return MERGE_CHANNEL_AVERAGE;
-  }
+  return MERGE_CHANNEL_AVERAGE;
 }
 
 /* Splits in at its last dot, setting suffix to the part after the dot and
@@ -151,7 +147,7 @@ static bool parse_channels(const ImageSpec &in_spec,
   for (int i = 0; i < in_spec.nchannels; i++) {
     MergeImagePass pass;
     pass.channel_name = in_spec.channelnames[i];
-    pass.format = (in_spec.channelformats.size() > 0) ? in_spec.channelformats[i] : in_spec.format;
+    pass.format = (!in_spec.channelformats.empty()) ? in_spec.channelformats[i] : in_spec.format;
     pass.offset = i;
     pass.merge_offset = i;
 
@@ -196,12 +192,12 @@ static bool parse_channels(const ImageSpec &in_spec,
     layer.samples = 0;
 
     /* Determine number of samples from metadata. */
-    if (layer.name == "") {
+    if (layer.name.empty()) {
       layer.samples = 1;
     }
     else if (layer.samples < 1) {
       string sample_string = in_spec.get_string_attribute("cycles." + name + ".samples", "");
-      if (sample_string != "") {
+      if (!sample_string.empty()) {
         if (!sscanf(sample_string.c_str(), "%d", &layer.samples)) {
           error = "Failed to parse samples metadata: " + sample_string;
           return false;
@@ -251,7 +247,7 @@ static bool open_images(const vector<string> &filepaths, vector<MergeImage> &ima
       return false;
     }
 
-    if (image.layers.size() == 0) {
+    if (image.layers.empty()) {
       error = "Could not find a render layer for merging";
       return false;
     }
@@ -261,7 +257,7 @@ static bool open_images(const vector<string> &filepaths, vector<MergeImage> &ima
       return false;
     }
 
-    if (images.size() > 0) {
+    if (!images.empty()) {
       const ImageSpec &base_spec = images[0].in->spec();
       const ImageSpec &spec = image.in->spec();
 
@@ -366,7 +362,7 @@ static void merge_channels_metadata(vector<MergeImage> &images, ImageSpec &out_s
   map<string, int> layer_num_samples;
   for (MergeImage &image : images) {
     for (MergeImageLayer &layer : image.layers) {
-      if (layer.name != "") {
+      if (!layer.name.empty()) {
         layer_num_samples[layer.name] += layer.samples;
       }
     }
@@ -570,7 +566,7 @@ static void read_layer_samples(vector<MergeImage> &images,
 }
 /* Image Merger */
 
-ImageMerger::ImageMerger() {}
+ImageMerger::ImageMerger() = default;
 
 bool ImageMerger::run()
 {

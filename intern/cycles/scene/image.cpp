@@ -273,7 +273,7 @@ void ImageMetaData::detect_colorspace()
 
 /* Image Loader */
 
-ImageLoader::ImageLoader() {}
+ImageLoader::ImageLoader() = default;
 
 ustring ImageLoader::osl_filepath() const
 {
@@ -290,9 +290,7 @@ bool ImageLoader::equals(const ImageLoader *a, const ImageLoader *b)
   if (a == nullptr && b == nullptr) {
     return true;
   }
-  else {
-    return (a && b && typeid(*a) == typeid(*b) && a->equals(*b));
-  }
+  return (a && b && typeid(*a) == typeid(*b) && a->equals(*b));
 }
 
 bool ImageLoader::is_vdb_loader() const
@@ -395,7 +393,7 @@ ImageHandle ImageManager::add_image(const string &filename,
     /* Since we don't have information about the exact tile format used in this code location,
      * just attempt all replacement patterns that Blender supports. */
     if (tile != 0) {
-      string_replace(tile_filename, "<UDIM>", string_printf("%04d", (int)tile));
+      string_replace(tile_filename, "<UDIM>", string_printf("%04d", tile));
 
       int u = ((tile - 1001) % 10);
       int v = ((tile - 1001) / 10);
@@ -640,7 +638,7 @@ bool ImageManager::file_load_image(Image *img, int texture_limit)
   }
 
   /* Scale image down if needed. */
-  if (pixels_storage.size() > 0) {
+  if (!pixels_storage.empty()) {
     float scale_factor = 1.0f;
     while (max_size * scale_factor > texture_limit) {
       scale_factor *= 0.5f;
@@ -811,7 +809,7 @@ void ImageManager::device_load_image(Device *device, Scene *scene, size_t slot, 
   img->need_load = false;
 }
 
-void ImageManager::device_free_image(Device *, size_t slot)
+void ImageManager::device_free_image(Device * /*unused*/, size_t slot)
 {
   Image *img = images[slot];
   if (img == nullptr) {

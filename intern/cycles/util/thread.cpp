@@ -4,10 +4,15 @@
 
 #include "util/thread.h"
 
-#include "util/system.h"
-#include "util/windows.h"
+#if defined(__APPLE__) || defined(__linux__) && !defined(__GLIBC__)
+#else
+#  include "util/system.h"
+#  ifdef _WIN32
+#    include "util/windows.h"
+#  endif
 
-#include <system_error>
+#  include <system_error>
+#endif
 
 CCL_NAMESPACE_BEGIN
 

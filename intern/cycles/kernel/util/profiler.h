@@ -5,7 +5,7 @@
 #pragma once
 
 #ifndef __KERNEL_GPU__
-#  include "util/profiling.h"
+#  include "util/profiling.h"  // IWYU pragma: export
 #endif
 
 CCL_NAMESPACE_BEGIN

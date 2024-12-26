@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include "kernel/closure/volume.h"
+
 #include "kernel/geom/attribute.h"
 #include "kernel/geom/shader_data.h"
 

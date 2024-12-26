@@ -8,11 +8,8 @@
 #include "scene/stats.h"
 
 #include "util/foreach.h"
-#include "util/hash.h"
 #include "util/log.h"
-#include "util/map.h"
 #include "util/progress.h"
-#include "util/vector.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -26,7 +23,7 @@ NODE_DEFINE(ParticleSystem)
 
 ParticleSystem::ParticleSystem() : Node(get_node_type()) {}
 
-ParticleSystem::~ParticleSystem() {}
+ParticleSystem::~ParticleSystem() = default;
 
 void ParticleSystem::tag_update(Scene *scene)
 {
@@ -40,9 +37,9 @@ ParticleSystemManager::ParticleSystemManager()
   need_update_ = true;
 }
 
-ParticleSystemManager::~ParticleSystemManager() {}
+ParticleSystemManager::~ParticleSystemManager() = default;
 
-void ParticleSystemManager::device_update_particles(Device *,
+void ParticleSystemManager::device_update_particles(Device * /*unused*/,
                                                     DeviceScene *dscene,
                                                     Scene *scene,
                                                     Progress &progress)
@@ -117,7 +114,7 @@ void ParticleSystemManager::device_update(Device *device,
   need_update_ = false;
 }
 
-void ParticleSystemManager::device_free(Device *, DeviceScene *dscene)
+void ParticleSystemManager::device_free(Device * /*unused*/, DeviceScene *dscene)
 {
   dscene->particles.free();
 }

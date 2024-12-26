@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: Apache-2.0 */
 
 #include "bvh/bvh.h"
-#include "bvh/bvh2.h"
 
 #include "device/device.h"
 
@@ -19,24 +18,16 @@
 #include "scene/scene.h"
 #include "scene/shader.h"
 #include "scene/shader_nodes.h"
-#include "scene/stats.h"
-#include "scene/volume.h"
 
 #include "subd/patch_table.h"
 #include "subd/split.h"
 
-#ifdef WITH_OSL
-#  include "kernel/osl/globals.h"
-#endif
-
 #include "util/foreach.h"
-#include "util/log.h"
 #include "util/progress.h"
-#include "util/task.h"
 
 CCL_NAMESPACE_BEGIN
 
-void GeometryManager::device_update_mesh(Device *,
+void GeometryManager::device_update_mesh(Device * /*unused*/,
                                          DeviceScene *dscene,
                                          Scene *scene,
                                          Progress &progress)

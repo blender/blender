@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "kernel/closure/volume.h"
+
 #include "kernel/film/denoising_passes.h"
 #include "kernel/film/light_passes.h"
 
@@ -25,13 +27,13 @@ CCL_NAMESPACE_BEGIN
 
 /* Events for probabilistic scattering. */
 
-typedef enum VolumeIntegrateEvent {
+enum VolumeIntegrateEvent {
   VOLUME_PATH_SCATTERED = 0,
   VOLUME_PATH_ATTENUATED = 1,
   VOLUME_PATH_MISSED = 2
-} VolumeIntegrateEvent;
+};
 
-typedef struct VolumeIntegrateResult {
+struct VolumeIntegrateResult {
   /* Throughput and offset for direct light scattering. */
   bool direct_scatter;
   Spectrum direct_throughput;
@@ -46,7 +48,7 @@ typedef struct VolumeIntegrateResult {
   Spectrum indirect_throughput;
   float indirect_t;
   ShaderVolumePhases indirect_phases;
-} VolumeIntegrateResult;
+};
 
 /* Ignore paths that have volume throughput below this value, to avoid unnecessary work
  * and precision issues.
@@ -59,16 +61,16 @@ typedef struct VolumeIntegrateResult {
  * extinction coefficient = absorption coefficient + scattering coefficient
  * sigma_t = sigma_a + sigma_s */
 
-typedef struct VolumeShaderCoefficients {
+struct VolumeShaderCoefficients {
   Spectrum sigma_t;
   Spectrum sigma_s;
   Spectrum emission;
-} VolumeShaderCoefficients;
+};
 
-typedef struct EquiangularCoefficients {
+struct EquiangularCoefficients {
   float3 P;
   Interval<float> t_range;
-} EquiangularCoefficients;
+};
 
 /* Evaluate shader to get extinction coefficient at P. */
 ccl_device_inline bool shadow_volume_shader_sample(KernelGlobals kg,
@@ -383,7 +385,7 @@ ccl_device Spectrum volume_emission_integrate(ccl_private VolumeShaderCoefficien
 
 /* Volume Integration */
 
-typedef struct VolumeIntegrateState {
+struct VolumeIntegrateState {
   /* Random numbers for scattering. */
   float rscatter;
   float rchannel;
@@ -393,7 +395,7 @@ typedef struct VolumeIntegrateState {
   bool use_mis;
   float distance_pdf;
   float equiangular_pdf;
-} VolumeIntegrateState;
+};
 
 ccl_device bool volume_integrate_should_stop(ccl_private VolumeIntegrateResult &result)
 {
@@ -1144,17 +1146,13 @@ ccl_device VolumeIntegrateEvent volume_integrate(KernelGlobals kg,
     if (integrate_volume_phase_scatter(kg, state, &sd, ray, &rng_state, &result.indirect_phases)) {
       return VOLUME_PATH_SCATTERED;
     }
-    else {
-      return VOLUME_PATH_MISSED;
-    }
+    return VOLUME_PATH_MISSED;
   }
-  else {
 #  if defined(__PATH_GUIDING__)
-    /* No guiding if we don't scatter. */
-    state->guiding.use_volume_guiding = false;
+  /* No guiding if we don't scatter. */
+  state->guiding.use_volume_guiding = false;
 #  endif
-    return VOLUME_PATH_ATTENUATED;
-  }
+  return VOLUME_PATH_ATTENUATED;
 }
 
 #endif

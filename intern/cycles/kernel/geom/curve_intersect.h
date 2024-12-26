@@ -6,7 +6,6 @@
 
 #pragma once
 
-#include "kernel/geom/curve.h"
 #include "kernel/geom/motion_curve.h"
 #include "kernel/geom/object.h"
 
@@ -17,10 +16,12 @@ CCL_NAMESPACE_BEGIN
  * The code here was adapted from curve_intersector_sweep.h in Embree, to get
  * an exact match between Embree CPU ray-tracing and our GPU ray-tracing. */
 
+// NOLINTBEGIN
 #define CURVE_NUM_BEZIER_SUBDIVISIONS 3
 #define CURVE_NUM_BEZIER_SUBDIVISIONS_UNSTABLE (CURVE_NUM_BEZIER_SUBDIVISIONS + 1)
 #define CURVE_NUM_BEZIER_STEPS 2
 #define CURVE_NUM_JACOBIAN_ITERATIONS 5
+// NOLINTEND
 
 #ifdef __HAIR__
 
@@ -114,10 +115,8 @@ ccl_device_inline bool cylinder_intersect(const float3 cylinder_start,
       *t_o = make_float2(-FLT_MAX, FLT_MAX);
       return true;
     }
-    else {
-      *t_o = make_float2(-FLT_MAX, FLT_MAX);
-      return false;
-    }
+    *t_o = make_float2(-FLT_MAX, FLT_MAX);
+    return false;
   }
 
   /* Standard case for rays that are not parallel to the cylinder. */
@@ -290,7 +289,7 @@ ccl_device bool curve_intersect_recursive(const float3 ray_P,
   float u1 = 1.0f;
   int i = 0;
 
-  while (1) {
+  while (true) {
     for (; i < CURVE_NUM_BEZIER_STEPS; i++) {
       const float step = i * step_size;
 
@@ -670,16 +669,15 @@ ccl_device_forceinline bool curve_intersect(KernelGlobals kg,
 
     return false;
   }
-  else {
-    if (curve_intersect_recursive(ray_P, ray_D, tmin, tmax, curve, isect)) {
-      isect->prim = prim;
-      isect->object = object;
-      isect->type = type;
-      return true;
-    }
 
-    return false;
+  if (curve_intersect_recursive(ray_P, ray_D, tmin, tmax, curve, isect)) {
+    isect->prim = prim;
+    isect->object = object;
+    isect->type = type;
+    return true;
   }
+
+  return false;
 }
 
 ccl_device_inline void curve_shader_setup(KernelGlobals kg,

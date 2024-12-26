@@ -9,15 +9,18 @@
 
 #include "util/algorithm.h"
 #include "util/array.h"
-#include "util/map.h"
 #include "util/path.h"
 #include "util/set.h"
 #include "util/transform.h"
 #include "util/types.h"
-#include "util/vector.h"
+
+#include "RNA_blender_cpp.hh"
+
+#include "DNA_mesh_types.h"
 
 #include "BKE_image.hh"
-#include "BKE_mesh.hh"
+#include "BKE_mesh.h"
+#include "BKE_mesh_types.hh"
 
 CCL_NAMESPACE_BEGIN
 
@@ -43,7 +46,7 @@ struct BObjectInfo {
   }
 };
 
-typedef BL::ShaderNodeAttribute::attribute_type_enum BlenderAttributeType;
+using BlenderAttributeType = BL::ShaderNodeAttribute::attribute_type_enum;
 BlenderAttributeType blender_attribute_name_split_type(ustring name, string *r_real_name);
 
 void python_thread_state_save(void **python_thread_state);
@@ -688,9 +691,7 @@ static inline Mesh::SubdivisionType object_subdivision_type(BL::Object &b_ob,
       if (subsurf.subdivision_type() == BL::SubsurfModifier::subdivision_type_CATMULL_CLARK) {
         return Mesh::SUBDIVISION_CATMULL_CLARK;
       }
-      else {
-        return Mesh::SUBDIVISION_LINEAR;
-      }
+      return Mesh::SUBDIVISION_LINEAR;
     }
   }
 
@@ -747,7 +748,7 @@ static inline bool object_need_motion_attribute(BObjectInfo &b_ob_info, Scene *s
 
 class EdgeMap {
  public:
-  EdgeMap() {}
+  EdgeMap() = default;
 
   void clear()
   {

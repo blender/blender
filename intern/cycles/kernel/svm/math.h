@@ -59,10 +59,12 @@ ccl_device_noinline int svm_node_vector_math(KernelGlobals kg,
 
   svm_vector_math(&value, &vector, (NodeVectorMathType)type, a, b, c, param1);
 
-  if (stack_valid(value_stack_offset))
+  if (stack_valid(value_stack_offset)) {
     stack_store_float(stack, value_stack_offset, value);
-  if (stack_valid(vector_stack_offset))
+  }
+  if (stack_valid(vector_stack_offset)) {
     stack_store_float3(stack, vector_stack_offset, vector);
+  }
   return offset;
 }
 

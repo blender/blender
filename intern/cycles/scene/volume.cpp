@@ -298,7 +298,7 @@ void VolumeMeshBuilder::create_mesh(vector<float3> &vertices,
 #ifdef WITH_OPENVDB
 static bool is_non_empty_leaf(const openvdb::MaskGrid::TreeType &tree, const openvdb::Coord coord)
 {
-  auto *leaf_node = tree.probeLeaf(coord);
+  const auto *leaf_node = tree.probeLeaf(coord);
   return (leaf_node && !leaf_node->isEmpty());
 }
 #endif
@@ -561,7 +561,7 @@ static openvdb::FloatGrid::ConstPtr get_vdb_for_attribute(Volume *volume, Attrib
 }
 
 class MergeScalarGrids {
-  typedef openvdb::FloatTree ScalarTree;
+  using ScalarTree = openvdb::FloatTree;
 
   openvdb::tree::ValueAccessor<const ScalarTree> m_acc_x, m_acc_y, m_acc_z;
 
@@ -572,9 +572,8 @@ class MergeScalarGrids {
   }
 
   MergeScalarGrids(const MergeScalarGrids &other)
-      : m_acc_x(other.m_acc_x), m_acc_y(other.m_acc_y), m_acc_z(other.m_acc_z)
-  {
-  }
+
+      = default;
 
   void operator()(const openvdb::Vec3STree::ValueOnIter &it) const
   {

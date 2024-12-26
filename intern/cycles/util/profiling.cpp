@@ -2,10 +2,11 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#include "util/profiling.h"
-#include "util/algorithm.h"
+#include <cassert>
+#include <thread>
+
 #include "util/foreach.h"
-#include "util/set.h"
+#include "util/profiling.h"
 
 CCL_NAMESPACE_BEGIN
 

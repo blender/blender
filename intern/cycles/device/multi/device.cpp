@@ -16,9 +16,7 @@
 
 #include "util/foreach.h"
 #include "util/list.h"
-#include "util/log.h"
 #include "util/map.h"
-#include "util/time.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -32,11 +30,11 @@ class MultiDevice : public Device {
   };
 
   list<SubDevice> devices;
-  device_ptr unique_key;
+  device_ptr unique_key = 1;
   vector<vector<SubDevice *>> peer_islands;
 
   MultiDevice(const DeviceInfo &info, Stats &stats, Profiler &profiler, bool headless)
-      : Device(info, stats, profiler, headless), unique_key(1)
+      : Device(info, stats, profiler, headless)
   {
     foreach (const DeviceInfo &subinfo, info.multi_devices) {
       /* Always add CPU devices at the back since GPU devices can change
@@ -82,7 +80,7 @@ class MultiDevice : public Device {
     }
   }
 
-  ~MultiDevice()
+  ~MultiDevice() override
   {
     foreach (SubDevice &sub, devices)
       delete sub.device;
@@ -98,7 +96,7 @@ class MultiDevice : public Device {
     return error_msg;
   }
 
-  virtual BVHLayoutMask get_bvh_layout_mask(uint kernel_features) const override
+  BVHLayoutMask get_bvh_layout_mask(uint kernel_features) const override
   {
     BVHLayoutMask bvh_layout_mask = BVH_LAYOUT_ALL;
     BVHLayoutMask bvh_layout_mask_all = BVH_LAYOUT_NONE;
@@ -256,7 +254,7 @@ class MultiDevice : public Device {
     }
   }
 
-  virtual void *get_cpu_osl_memory() override
+  void *get_cpu_osl_memory() override
   {
     /* Always return the OSL memory of the CPU device (this works since the constructor above
      * guarantees that CPU devices are always added to the back). */

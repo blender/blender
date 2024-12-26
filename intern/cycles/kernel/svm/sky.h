@@ -26,7 +26,7 @@ ccl_device float sky_angle_between(float thetav, float phiv, float theta, float 
  * "A Practical Analytic Model for Daylight"
  * A. J. Preetham, Peter Shirley, Brian Smits
  */
-ccl_device float sky_perez_function(ccl_private float *lam, float theta, float gamma)
+ccl_device float sky_perez_function(ccl_private const float *lam, float theta, float gamma)
 {
   float ctheta = cosf(theta);
   float cgamma = cosf(gamma);
@@ -71,7 +71,9 @@ ccl_device float3 sky_radiance_preetham(KernelGlobals kg,
  * "An Analytic Model for Full Spectral Sky-Dome Radiance"
  * Lukas Hosek, Alexander Wilkie
  */
-ccl_device float sky_radiance_internal(ccl_private float *configuration, float theta, float gamma)
+ccl_device float sky_radiance_internal(ccl_private const float *configuration,
+                                       float theta,
+                                       float gamma)
 {
   float ctheta = cosf(theta);
   float cgamma = cosf(gamma);
@@ -130,7 +132,7 @@ ccl_device float3 sky_radiance_nishita(KernelGlobals kg,
                                        uint32_t path_flag,
                                        float3 pixel_bottom,
                                        float3 pixel_top,
-                                       ccl_private float *nishita_data,
+                                       ccl_private const float *nishita_data,
                                        uint texture_id)
 {
   /* definitions */

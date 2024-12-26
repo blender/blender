@@ -4,13 +4,15 @@
 
 #include "device/cpu/device_impl.h"
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 
 /* So ImathMath is included before our kernel_cpu_compat. */
 #ifdef WITH_OSL
 /* So no context pollution happens from indirectly included windows.h */
-#  include "util/windows.h"
+#  ifdef _WIN32
+#    include "util/windows.h"
+#  endif
 #  include <OSL/oslexec.h>
 #endif
 
@@ -27,29 +29,19 @@
 
 #include "device/device.h"
 
-// clang-format off
-#include "kernel/globals.h"
 #include "kernel/device/cpu/kernel.h"
+#include "kernel/globals.h"
 #include "kernel/types.h"
-
-#include "kernel/osl/globals.h"
-// clang-format on
 
 #include "bvh/embree.h"
 
 #include "session/buffers.h"
 
-#include "util/debug.h"
 #include "util/foreach.h"
 #include "util/guiding.h"
 #include "util/log.h"
-#include "util/map.h"
-#include "util/openimagedenoise.h"
-#include "util/optimization.h"
 #include "util/progress.h"
-#include "util/system.h"
 #include "util/task.h"
-#include "util/thread.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -282,7 +274,9 @@ void CPUDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
   }
   else
 #endif
+  {
     Device::build_bvh(bvh, progress, refit);
+  }
 }
 
 void *CPUDevice::get_guiding_device() const

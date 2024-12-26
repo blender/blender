@@ -5,24 +5,25 @@
 #ifdef WITH_CUDA
 
 #  include <climits>
-#  include <limits.h>
-#  include <stdio.h>
-#  include <stdlib.h>
-#  include <string.h>
+#  include <cstdio>
+#  include <cstdlib>
+#  include <cstring>
 
 #  include "device/cuda/device_impl.h"
 
 #  include "util/debug.h"
 #  include "util/foreach.h"
 #  include "util/log.h"
-#  include "util/map.h"
 #  include "util/md5.h"
 #  include "util/path.h"
 #  include "util/string.h"
 #  include "util/system.h"
 #  include "util/time.h"
 #  include "util/types.h"
-#  include "util/windows.h"
+
+#  ifdef _WIN32
+#    include "util/windows.h"
+#  endif
 
 #  include "kernel/device/cuda/globals.h"
 
@@ -64,9 +65,9 @@ CUDADevice::CUDADevice(const DeviceInfo &info, Stats &stats, Profiler &profiler,
 
   cuDevId = info.num;
   cuDevice = 0;
-  cuContext = 0;
+  cuContext = nullptr;
 
-  cuModule = 0;
+  cuModule = nullptr;
 
   need_texture_info = false;
 
@@ -344,7 +345,7 @@ string CUDADevice::compile_kernel(const string &common_cflags,
         nvcc_cuda_version % 10);
     return string();
   }
-  else if (!(nvcc_cuda_version >= 102 && nvcc_cuda_version < 130)) {
+  if (!(nvcc_cuda_version >= 102 && nvcc_cuda_version < 130)) {
     printf(
         "CUDA version %d.%d detected, build may succeed but only "
         "CUDA 10.1 to 12 are officially supported.\n",
@@ -417,7 +418,7 @@ bool CUDADevice::load_kernels(const uint kernel_features)
   }
 
   /* check if cuda init succeeded */
-  if (cuContext == 0) {
+  if (cuContext == nullptr) {
     return false;
   }
 

@@ -14,7 +14,7 @@ HDCYCLES_NAMESPACE_OPEN_SCOPE
 
 HdCyclesRenderBuffer::HdCyclesRenderBuffer(const SdfPath &bprimId) : HdRenderBuffer(bprimId) {}
 
-HdCyclesRenderBuffer::~HdCyclesRenderBuffer() {}
+HdCyclesRenderBuffer::~HdCyclesRenderBuffer() = default;
 
 void HdCyclesRenderBuffer::Finalize(HdRenderParam *renderParam)
 {

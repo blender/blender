@@ -36,7 +36,9 @@
 #  include <shlwapi.h>
 #endif
 
-#include "util/windows.h"
+#ifdef _WIN32
+#  include "util/windows.h"
+#endif
 
 CCL_NAMESPACE_BEGIN
 
@@ -55,9 +57,9 @@ typedef struct _stat path_stat_t;
 typedef struct stat path_stat_t;
 #endif
 
-static string cached_path = "";
-static string cached_user_path = "";
-static string cached_xdg_cache_path = "";
+static string cached_path;
+static string cached_user_path;
+static string cached_xdg_cache_path;
 
 namespace {
 
@@ -162,7 +164,7 @@ class directory_iterator {
  public:
   class path_info {
    public:
-    explicit path_info(const string &path) : path_(path), entry_(nullptr) {}
+    explicit path_info(const string &path) : path_(path) {}
 
     string path()
     {
@@ -176,7 +178,7 @@ class directory_iterator {
 
    protected:
     const string &path_;
-    const struct dirent *entry_;
+    const struct dirent *entry_ = nullptr;
   };
 
   directory_iterator() : path_info_(""), name_list_(nullptr), num_entries_(-1), cur_entry_(-1) {}
@@ -254,7 +256,7 @@ class directory_iterator {
     for (int i = 0; i < num_entries_; ++i) {
       free(name_list_[i]);
     }
-    free(name_list_);
+    free((void *)name_list_);
     name_list_ = nullptr;
   }
 
@@ -298,7 +300,7 @@ static char *path_specials(const string &sub)
   if (env_shader_path != nullptr && sub == "shader") {
     return env_shader_path;
   }
-  else if (env_source_path != nullptr && sub == "source") {
+  if (env_source_path != nullptr && sub == "source") {
     return env_source_path;
   }
   return nullptr;
@@ -311,13 +313,11 @@ static string path_xdg_cache_get()
   if (home) {
     return string(home);
   }
-  else {
-    home = getenv("HOME");
-    if (home == nullptr) {
-      home = getpwuid(getuid())->pw_dir;
-    }
-    return path_join(string(home), ".cache");
+  home = getenv("HOME");
+  if (home == nullptr) {
+    home = getpwuid(getuid())->pw_dir;
   }
+  return path_join(string(home), ".cache");
 }
 #endif
 
@@ -360,7 +360,7 @@ string path_user_get(const string &sub)
 string path_cache_get(const string &sub)
 {
 #if defined(__linux__) || defined(__APPLE__)
-  if (cached_xdg_cache_path == "") {
+  if (cached_xdg_cache_path.empty()) {
     cached_xdg_cache_path = path_xdg_cache_get();
   }
   string result = path_join(cached_xdg_cache_path, "cycles");
@@ -414,10 +414,10 @@ string path_dirname(const string &path)
 
 string path_join(const string &dir, const string &file)
 {
-  if (dir.size() == 0) {
+  if (dir.empty()) {
     return file;
   }
-  if (file.size() == 0) {
+  if (file.empty()) {
     return dir;
   }
   string result = dir;
@@ -454,8 +454,8 @@ bool path_is_relative(const string &path)
   return true;
 #  endif /* HAVE_SHLWAPI_H */
 #else    /* _WIN32 */
-  if (path.size() == 0) {
-    return 1;
+  if (path.empty()) {
+    return true;
   }
   return path[0] != DIR_SEP;
 #endif   /* _WIN32 */
@@ -573,7 +573,7 @@ bool path_exists(const string &path)
 #else  /* _WIN32 */
   struct stat st;
   if (stat(path.c_str(), &st) != 0) {
-    return 0;
+    return false;
   }
   return st.st_mode != 0;
 #endif /* _WIN32 */
@@ -629,7 +629,7 @@ static bool create_directories_recursivey(const string &path)
   }
 
   string parent = path_dirname(path);
-  if (parent.size() > 0 && parent != path) {
+  if (!parent.empty() && parent != path) {
     if (!create_directories_recursivey(parent)) {
       return false;
     }
@@ -660,8 +660,8 @@ bool path_write_binary(const string &path, const vector<uint8_t> &binary)
     return false;
   }
 
-  if (binary.size() > 0) {
-    fwrite(&binary[0], sizeof(uint8_t), binary.size(), f);
+  if (!binary.empty()) {
+    fwrite(binary.data(), sizeof(uint8_t), binary.size(), f);
   }
 
   fclose(f);
@@ -689,12 +689,12 @@ bool path_read_binary(const string &path, vector<uint8_t> &binary)
 
   binary.resize(path_file_size(path));
 
-  if (binary.size() == 0) {
+  if (binary.empty()) {
     fclose(f);
     return false;
   }
 
-  if (fread(&binary[0], sizeof(uint8_t), binary.size(), f) != binary.size()) {
+  if (fread(binary.data(), sizeof(uint8_t), binary.size(), f) != binary.size()) {
     fclose(f);
     return false;
   }
@@ -742,7 +742,7 @@ bool path_read_text(const string &path, string &text)
     return false;
   }
 
-  const char *str = (const char *)&binary[0];
+  const char *str = (const char *)binary.data();
   size_t size = binary.size();
   text = string(str, size);
 
@@ -757,7 +757,7 @@ bool path_read_compressed_text(const string &path, string &text)
     return false;
   }
 
-  const char *str = (const char *)&binary[0];
+  const char *str = (const char *)binary.data();
   size_t size = binary.size();
   text = string(str, size);
 
@@ -779,7 +779,7 @@ bool path_remove(const string &path)
 }
 
 struct SourceReplaceState {
-  typedef map<string, string> ProcessedMapping;
+  using ProcessedMapping = map<string, string>;
   /* Base director for all relative include headers. */
   string base;
   /* Result of processed files. */
@@ -798,7 +798,7 @@ static string line_directive(const SourceReplaceState &state,
 {
   string unescaped_path = path;
   /* First we make path relative. */
-  if (string_startswith(unescaped_path, state.base.c_str())) {
+  if (string_startswith(unescaped_path, state.base)) {
     const string base_file = path_filename(state.base);
     const size_t base_len = state.base.length();
     unescaped_path = base_file +
@@ -806,7 +806,7 @@ static string line_directive(const SourceReplaceState &state,
   }
   /* Second, we replace all unsafe characters. */
   const size_t length = unescaped_path.length();
-  string escaped_path = "";
+  string escaped_path;
   for (size_t i = 0; i < length; ++i) {
     const char ch = unescaped_path[i];
     if (strchr("\"\'\?\\", ch) != nullptr) {
@@ -887,7 +887,7 @@ static string path_source_replace_includes_recursive(const string &_source,
   const string &source = *psource;
 
   /* Perform full file processing. */
-  string result = "";
+  string result;
   const size_t source_length = source.length();
   size_t index = 0;
   /* Information about where we are in the source. */
@@ -904,7 +904,7 @@ static string path_source_replace_includes_recursive(const string &_source,
    * gives measurable speedup.
    */
   bool inside_preprocessor = false;
-  string preprocessor_line = "";
+  string preprocessor_line;
   /* Actual loop over the whole source. */
   while (index < source_length) {
     char ch = source[index];
@@ -993,9 +993,7 @@ bool path_cache_kernel_exists_and_mark_used(const string &path)
     path_cache_kernel_mark_used(path);
     return true;
   }
-  else {
-    return false;
-  }
+  return false;
 }
 
 void path_cache_kernel_mark_added_and_clear_old(const string &new_path,

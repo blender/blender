@@ -3,7 +3,10 @@
  * SPDX-License-Identifier: Apache-2.0 */
 
 #include "util/aligned_malloc.h"
-#include "util/guarded_allocator.h"
+
+#ifdef WITH_BLENDER_GUARDEDALLOC
+#  include "../../guardedalloc/MEM_guardedalloc.h"
+#endif
 
 #include <cassert>
 

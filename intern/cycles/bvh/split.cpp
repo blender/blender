@@ -89,7 +89,7 @@ BVHObjectSplit::BVHObjectSplit(BVHBuild *builder,
 
 void BVHObjectSplit::split(BVHRange &left, BVHRange &right, const BVHRange &range)
 {
-  assert(references_->size() > 0);
+  assert(!references_->empty());
   /* sort references according to split */
   bvh_reference_sort(range.start(),
                      range.end(),
@@ -318,7 +318,7 @@ void BVHSpatialSplit::split(BVHBuild *builder,
     }
   }
   /* Insert duplicated references into actual array in one go. */
-  if (new_refs.size() != 0) {
+  if (!new_refs.empty()) {
     refs.insert(refs.begin() + (right_end - new_refs.size()), new_refs.begin(), new_refs.end());
   }
   if (aligned_space_ != nullptr) {
@@ -345,7 +345,7 @@ void BVHSpatialSplit::split_triangle_primitive(const Mesh *mesh,
                                                BoundBox &right_bounds)
 {
   Mesh::Triangle t = mesh->get_triangle(prim_index);
-  const float3 *verts = &mesh->verts[0];
+  const float3 *verts = mesh->verts.data();
   float3 v1 = tfm ? transform_point(tfm, verts[t.v[2]]) : verts[t.v[2]];
   v1 = get_unaligned_point(v1);
 

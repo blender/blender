@@ -5,24 +5,25 @@
 #ifdef WITH_HIP
 
 #  include <climits>
-#  include <limits.h>
-#  include <stdio.h>
-#  include <stdlib.h>
-#  include <string.h>
+#  include <cstdio>
+#  include <cstdlib>
+#  include <cstring>
 
 #  include "device/hip/device_impl.h"
 
 #  include "util/debug.h"
 #  include "util/foreach.h"
 #  include "util/log.h"
-#  include "util/map.h"
 #  include "util/md5.h"
 #  include "util/path.h"
 #  include "util/string.h"
 #  include "util/system.h"
 #  include "util/time.h"
 #  include "util/types.h"
-#  include "util/windows.h"
+
+#  ifdef _WIN32
+#    include "util/windows.h"
+#  endif
 
 #  include "kernel/device/hip/globals.h"
 
@@ -64,9 +65,9 @@ HIPDevice::HIPDevice(const DeviceInfo &info, Stats &stats, Profiler &profiler, b
 
   hipDevId = info.num;
   hipDevice = 0;
-  hipContext = 0;
+  hipContext = nullptr;
 
-  hipModule = 0;
+  hipModule = nullptr;
 
   need_texture_info = false;
 
@@ -137,15 +138,13 @@ bool HIPDevice::support_device(const uint /*kernel_features*/)
   if (hipSupportsDevice(hipDevId)) {
     return true;
   }
-  else {
-    /* We only support Navi and above. */
-    hipDeviceProp_t props;
-    hipGetDeviceProperties(&props, hipDevId);
+  /* We only support Navi and above. */
+  hipDeviceProp_t props;
+  hipGetDeviceProperties(&props, hipDevId);
 
-    set_error(string_printf("HIP backend requires AMD RDNA graphics card or up, but found %s.",
-                            props.name));
-    return false;
-  }
+  set_error(string_printf("HIP backend requires AMD RDNA graphics card or up, but found %s.",
+                          props.name));
+  return false;
 }
 
 bool HIPDevice::check_peer_access(Device *peer_device)
@@ -272,7 +271,7 @@ string HIPDevice::compile_kernel(const uint kernel_features, const char *name, c
     /* Reduce optimization level on VEGA GPUs to avoid some rendering artifacts */
     options.append(" -O1");
   }
-  options.append(" --offload-arch=").append(arch.c_str());
+  options.append(" --offload-arch=").append(arch);
 
   const string include_path = source_path;
   const string fatbin_file = string_printf(
@@ -382,8 +381,9 @@ bool HIPDevice::load_kernels(const uint kernel_features)
   }
 
   /* check if hip init succeeded */
-  if (hipContext == 0)
+  if (hipContext == nullptr) {
     return false;
+  }
 
   /* check if GPU is supported */
   if (!support_device(kernel_features)) {
@@ -393,8 +393,9 @@ bool HIPDevice::load_kernels(const uint kernel_features)
   /* get kernel */
   const char *kernel_name = "kernel";
   string fatbin = compile_kernel(kernel_features, kernel_name);
-  if (fatbin.empty())
+  if (fatbin.empty()) {
     return false;
+  }
 
   /* open module */
   HIPContextScope scope(this);
@@ -402,14 +403,17 @@ bool HIPDevice::load_kernels(const uint kernel_features)
   string fatbin_data;
   hipError_t result;
 
-  if (path_read_compressed_text(fatbin, fatbin_data))
+  if (path_read_compressed_text(fatbin, fatbin_data)) {
     result = hipModuleLoadData(&hipModule, fatbin_data.c_str());
-  else
+  }
+  else {
     result = hipErrorFileNotFound;
+  }
 
-  if (result != hipSuccess)
+  if (result != hipSuccess) {
     set_error(string_printf(
         "Failed to load HIP kernel from '%s' (%s)", fatbin.c_str(), hipewErrorString(result)));
+  }
 
   if (result == hipSuccess) {
     kernels.load(this);

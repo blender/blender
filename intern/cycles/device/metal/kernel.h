@@ -7,6 +7,7 @@
 #ifdef WITH_METAL
 
 #  include "device/kernel.h"
+
 #  include <Metal/Metal.h>
 
 CCL_NAMESPACE_BEGIN

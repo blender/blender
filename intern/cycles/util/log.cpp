@@ -7,7 +7,7 @@
 #include "util/math.h"
 #include "util/string.h"
 
-#include <stdio.h>
+#include <cstdio>
 #ifdef _MSC_VER
 #  define snprintf _snprintf
 #endif
@@ -19,7 +19,7 @@ static bool is_verbosity_set()
 {
   using CYCLES_GFLAGS_NAMESPACE::GetCommandLineOption;
 
-  std::string verbosity;
+  string verbosity;
   if (!GetCommandLineOption("v", &verbosity)) {
     return false;
   }

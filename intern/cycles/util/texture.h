@@ -9,14 +9,16 @@
 CCL_NAMESPACE_BEGIN
 
 /* Color to use when textures are not found. */
-#define TEX_IMAGE_MISSING_R 1
-#define TEX_IMAGE_MISSING_G 0
-#define TEX_IMAGE_MISSING_B 1
-#define TEX_IMAGE_MISSING_A 1
+enum {
+  TEX_IMAGE_MISSING_R = 1,
+  TEX_IMAGE_MISSING_G = 0,
+  TEX_IMAGE_MISSING_B = 1,
+  TEX_IMAGE_MISSING_A = 1
+};
 
 /* Interpolation types for textures
  * CUDA also use texture space to store other objects. */
-typedef enum InterpolationType {
+enum InterpolationType {
   INTERPOLATION_NONE = -1,
   INTERPOLATION_LINEAR = 0,
   INTERPOLATION_CLOSEST = 1,
@@ -24,9 +26,9 @@ typedef enum InterpolationType {
   INTERPOLATION_SMART = 3,
 
   INTERPOLATION_NUM_TYPES,
-} InterpolationType;
+};
 
-typedef enum ImageDataType {
+enum ImageDataType {
   IMAGE_DATA_TYPE_FLOAT4 = 0,
   IMAGE_DATA_TYPE_BYTE4 = 1,
   IMAGE_DATA_TYPE_HALF4 = 2,
@@ -41,11 +43,11 @@ typedef enum ImageDataType {
   IMAGE_DATA_TYPE_NANOVDB_FP16 = 11,
 
   IMAGE_DATA_NUM_TYPES
-} ImageDataType;
+};
 
 /* Alpha types
  * How to treat alpha in images. */
-typedef enum ImageAlphaType {
+enum ImageAlphaType {
   IMAGE_ALPHA_UNASSOCIATED = 0,
   IMAGE_ALPHA_ASSOCIATED = 1,
   IMAGE_ALPHA_CHANNEL_PACKED = 2,
@@ -53,12 +55,12 @@ typedef enum ImageAlphaType {
   IMAGE_ALPHA_AUTO = 4,
 
   IMAGE_ALPHA_NUM_TYPES,
-} ImageAlphaType;
+};
 
 /* Extension types for textures.
  *
  * Defines how the image is extrapolated past its original bounds. */
-typedef enum ExtensionType {
+enum ExtensionType {
   /* Cause the image to repeat horizontally and vertically. */
   EXTENSION_REPEAT = 0,
   /* Extend by repeating edge pixels of the image. */
@@ -69,9 +71,9 @@ typedef enum ExtensionType {
   EXTENSION_MIRROR = 3,
 
   EXTENSION_NUM_TYPES,
-} ExtensionType;
+};
 
-typedef struct TextureInfo {
+struct TextureInfo {
   /* Pointer, offset or texture depending on device. */
   uint64_t data;
   /* Data Type */
@@ -83,6 +85,6 @@ typedef struct TextureInfo {
   /* Transform for 3D textures. */
   uint use_transform_3d;
   Transform transform_3d;
-} TextureInfo;
+};
 
 CCL_NAMESPACE_END

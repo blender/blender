@@ -9,8 +9,7 @@
  * DiagSplit. For more algorithm details, see the DiagSplit paper or the
  * ARB_tessellation_shader OpenGL extension, Section 2.X.2. */
 
-#include "util/types.h"
-#include "util/vector.h"
+#include "util/transform.h"
 
 #include "subd/subpatch.h"
 

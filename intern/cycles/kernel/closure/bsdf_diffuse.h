@@ -13,9 +13,9 @@
 
 CCL_NAMESPACE_BEGIN
 
-typedef struct DiffuseBsdf {
+struct DiffuseBsdf {
   SHADER_CLOSURE_BASE;
-} DiffuseBsdf;
+};
 
 static_assert(sizeof(ShaderClosure) >= sizeof(DiffuseBsdf), "DiffuseBsdf is too large!");
 

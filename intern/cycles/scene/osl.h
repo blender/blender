@@ -39,15 +39,12 @@ class ShaderOutput;
  * to auto detect closures in the shader for MIS and transparent shadows */
 
 struct OSLShaderInfo {
-  OSLShaderInfo()
-      : has_surface_emission(false), has_surface_transparent(false), has_surface_bssrdf(false)
-  {
-  }
+  OSLShaderInfo() = default;
 
   OSL::OSLQuery query;
-  bool has_surface_emission;
-  bool has_surface_transparent;
-  bool has_surface_bssrdf;
+  bool has_surface_emission = false;
+  bool has_surface_transparent = false;
+  bool has_surface_bssrdf = false;
 };
 
 /* Shader Manage */
@@ -55,7 +52,7 @@ struct OSLShaderInfo {
 class OSLShaderManager : public ShaderManager {
  public:
   OSLShaderManager(Device *device);
-  ~OSLShaderManager();
+  ~OSLShaderManager() override;
 
   static void free_memory();
 
@@ -123,7 +120,7 @@ class OSLShaderManager : public ShaderManager {
 class OSLCompiler {
  public:
 #ifdef WITH_OSL
-  OSLCompiler(OSLShaderManager *manager, OSL::ShadingSystem *shadingsys, Scene *scene);
+  OSLCompiler(OSLShaderManager *manager, OSL::ShadingSystem *ss, Scene *scene);
 #endif
   void compile(Shader *shader);
 

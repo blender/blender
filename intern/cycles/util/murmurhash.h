@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "util/types.h"
+#include <cstdint>
 
 CCL_NAMESPACE_BEGIN
 

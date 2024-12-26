@@ -116,7 +116,7 @@ class Geometry : public Node {
 
   /* Constructor/Destructor */
   explicit Geometry(const NodeType *node_type, const Type type);
-  virtual ~Geometry();
+  ~Geometry() override;
 
   /* Geometry */
   virtual void clear(bool preserve_shaders = false);

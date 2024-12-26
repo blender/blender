@@ -5,19 +5,20 @@
 #ifdef WITH_HIPRT
 
 #  include "device/hiprt/device_impl.h"
+#  include "kernel/device/hiprt/globals.h"
 
-#  include "util/debug.h"
 #  include "util/foreach.h"
 #  include "util/log.h"
-#  include "util/map.h"
 #  include "util/md5.h"
 #  include "util/path.h"
 #  include "util/progress.h"
 #  include "util/string.h"
-#  include "util/system.h"
 #  include "util/time.h"
 #  include "util/types.h"
-#  include "util/windows.h"
+
+#  ifdef _WIN32
+#    include "util/windows.h"
+#  endif
 
 #  include "bvh/hiprt.h"
 
@@ -77,7 +78,7 @@ HIPRTDevice::HIPRTDevice(const DeviceInfo &info, Stats &stats, Profiler &profile
 {
   HIPContextScope scope(this);
   global_stack_buffer = {0};
-  hiprtContextCreationInput hiprt_context_input = {0};
+  hiprtContextCreationInput hiprt_context_input = {nullptr};
   hiprt_context_input.ctxt = hipContext;
   hiprt_context_input.device = hipDevice;
   hiprt_context_input.deviceType = hiprtDeviceAMD;
@@ -217,7 +218,7 @@ string HIPRTDevice::compile_kernel(const uint kernel_features, const char *name,
   path_create_directories(fatbin);
 
   string rtc_options;
-  rtc_options.append(" --offload-arch=").append(arch.c_str());
+  rtc_options.append(" --offload-arch=").append(arch);
   rtc_options.append(" -D __HIPRT__");
   rtc_options.append(" -ffast-math -O3 -std=c++17");
   rtc_options.append(" -fgpu-rdc -c --gpu-bundle-output -c -emit-llvm");
@@ -286,7 +287,7 @@ string HIPRTDevice::compile_kernel(const uint kernel_features, const char *name,
   // After compilation, the bitcode produced is linked with HIP RT bitcode (containing
   // implementations of HIP RT functions, e.g. traversal, to produce the final executable code
   string linker_options;
-  linker_options.append(" --offload-arch=").append(arch.c_str());
+  linker_options.append(" --offload-arch=").append(arch);
   linker_options.append(" -fgpu-rdc --hip-link --cuda-device-only ");
 
   string linker_command = string_printf("clang++ %s \"%s\" \"%s\" -o \"%s\"",
@@ -319,8 +320,9 @@ bool HIPRTDevice::load_kernels(const uint kernel_features)
     return true;
   }
 
-  if (hipContext == 0)
+  if (hipContext == nullptr) {
     return false;
+  }
 
   if (!support_device(kernel_features)) {
     return false;
@@ -329,8 +331,9 @@ bool HIPRTDevice::load_kernels(const uint kernel_features)
   /* get kernel */
   const char *kernel_name = "kernel";
   string fatbin = compile_kernel(kernel_features, kernel_name);
-  if (fatbin.empty())
+  if (fatbin.empty()) {
     return false;
+  }
 
   /* open module */
   HIPContextScope scope(this);
@@ -341,12 +344,14 @@ bool HIPRTDevice::load_kernels(const uint kernel_features)
   if (path_read_compressed_text(fatbin, fatbin_data)) {
     result = hipModuleLoadData(&hipModule, fatbin_data.c_str());
   }
-  else
+  else {
     result = hipErrorFileNotFound;
+  }
 
-  if (result != hipSuccess)
+  if (result != hipSuccess) {
     set_error(string_printf(
         "Failed to load HIP kernel from '%s' (%s)", fatbin.c_str(), hipewErrorString(result)));
+  }
 
   if (result == hipSuccess) {
     kernels.load(this);
@@ -509,14 +514,14 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_triangle_blas(BVHHIPRT *bvh, Mesh *
     bvh->triangle_index.copy_to_device();
     bvh->triangle_mesh.triangleIndices = (void *)(bvh->triangle_index.device_pointer);
     // either has to set the host pointer to zero, or increment the refcount on triangle_data
-    bvh->triangle_index.host_pointer = 0;
+    bvh->triangle_index.host_pointer = nullptr;
     bvh->vertex_data.host_pointer = vertex_data;
     bvh->vertex_data.data_elements = 4;
     bvh->vertex_data.data_type = TYPE_FLOAT;
     bvh->vertex_data.data_size = vertex_size;
     bvh->vertex_data.copy_to_device();
     bvh->triangle_mesh.vertices = (void *)(bvh->vertex_data.device_pointer);
-    bvh->vertex_data.host_pointer = 0;
+    bvh->vertex_data.host_pointer = nullptr;
 
     geom_input.type = hiprtPrimitiveTypeTriangleMesh;
     geom_input.primitive.triangleMesh = bvh->triangle_mesh;
@@ -552,7 +557,7 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_curve_blas(BVHHIPRT *bvh, Hair *hai
 
   for (uint j = 0; j < num_curves; j++) {
     const Hair::Curve curve = hair->get_curve(j);
-    const float *curve_radius = &hair->get_curve_radius()[0];
+    const float *curve_radius = hair->get_curve_radius().data();
     int first_key = curve.first_key;
     for (int k = 0; k < curve.num_keys - 1; k++) {
       if (curve_attr_mP == nullptr) {
@@ -567,10 +572,12 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_curve_blas(BVHHIPRT *bvh, Hair *hai
             current_keys[1].y == current_keys[2].y && current_keys[2].y == current_keys[3].y &&
             current_keys[0].z == current_keys[1].z && current_keys[1].z == current_keys[2].z &&
             current_keys[2].z == current_keys[3].z)
+        {
           continue;
+        }
 
         BoundBox bounds = BoundBox::empty;
-        curve.bounds_grow(k, &hair->get_curve_keys()[0], curve_radius, bounds);
+        curve.bounds_grow(k, hair->get_curve_keys().data(), curve_radius, bounds);
         if (bounds.valid()) {
           int type = PRIMITIVE_PACK_SEGMENT(primitive_type, k);
           bvh->custom_prim_info[num_bounds].x = j;
@@ -586,7 +593,7 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_curve_blas(BVHHIPRT *bvh, Hair *hai
 
         if (bvh->params.num_motion_curve_steps == 0 || bvh->params.use_spatial_split) {
           BoundBox bounds = BoundBox::empty;
-          curve.bounds_grow(k, &hair->get_curve_keys()[0], curve_radius, bounds);
+          curve.bounds_grow(k, hair->get_curve_keys().data(), curve_radius, bounds);
           for (size_t step = 0; step < num_steps - 1; step++) {
             curve.bounds_grow(k, key_steps + step * num_keys, bounds);
           }
@@ -776,8 +783,9 @@ void HIPRTDevice::build_blas(BVHHIPRT *bvh, Geometry *geom, hiprtBuildOptions op
     case Geometry::VOLUME: {
       Mesh *mesh = static_cast<Mesh *>(geom);
 
-      if (mesh->num_triangles() == 0)
+      if (mesh->num_triangles() == 0) {
         return;
+      }
 
       geom_input = prepare_triangle_blas(bvh, mesh);
       break;
@@ -786,8 +794,9 @@ void HIPRTDevice::build_blas(BVHHIPRT *bvh, Geometry *geom, hiprtBuildOptions op
     case Geometry::HAIR: {
       Hair *const hair = static_cast<Hair *const>(geom);
 
-      if (hair->num_segments() == 0)
+      if (hair->num_segments() == 0) {
         return;
+      }
 
       geom_input = prepare_curve_blas(bvh, hair);
       break;
@@ -795,8 +804,9 @@ void HIPRTDevice::build_blas(BVHHIPRT *bvh, Geometry *geom, hiprtBuildOptions op
 
     case Geometry::POINTCLOUD: {
       PointCloud *pointcloud = static_cast<PointCloud *>(geom);
-      if (pointcloud->num_points() == 0)
+      if (pointcloud->num_points() == 0) {
         return;
+      }
 
       geom_input = prepare_point_blas(bvh, pointcloud);
       break;
@@ -832,7 +842,7 @@ void HIPRTDevice::build_blas(BVHHIPRT *bvh, Geometry *geom, hiprtBuildOptions op
                                 bvh->geom_input,
                                 options,
                                 (void *)(scratch_buffer.device_pointer),
-                                0,
+                                nullptr,
                                 bvh->hiprt_geom);
   }
   if (rt_err != hiprtSuccess) {
@@ -848,7 +858,7 @@ hiprtScene HIPRTDevice::build_tlas(BVHHIPRT *bvh,
 
   size_t num_object = objects.size();
   if (num_object == 0) {
-    return 0;
+    return nullptr;
   }
 
   hiprtBuildOperation build_operation = refit ? hiprtBuildOperationUpdate :
@@ -943,12 +953,14 @@ hiprtScene HIPRTDevice::build_tlas(BVHHIPRT *bvh,
 
             prim_time_offset[blender_instance_id] = time_offset;
           }
-          else
+          else {
             prim_time_offset[blender_instance_id] = -1;
+          }
         }
       }
-      else
+      else {
         custom_prim_info_offset[blender_instance_id] = {-1, -1};
+      }
 
       hiprtTransformHeader current_header = {0};
       current_header.frameCount = 1;
@@ -970,8 +982,9 @@ hiprtScene HIPRTDevice::build_tlas(BVHHIPRT *bvh,
         }
       }
       else {
-        if (transform_applied)
+        if (transform_applied) {
           current_transform = identity_matrix;
+        }
         get_hiprt_transform(hiprt_transform_matrix.matrix, current_transform);
         transform_matrix.push_back_slow(hiprt_transform_matrix);
       }
@@ -989,7 +1002,7 @@ hiprtScene HIPRTDevice::build_tlas(BVHHIPRT *bvh,
   }
 
   int frame_count = transform_matrix.size();
-  hiprtSceneBuildInput scene_input_ptr = {0};
+  hiprtSceneBuildInput scene_input_ptr = {nullptr};
   scene_input_ptr.instanceCount = num_instances;
   scene_input_ptr.frameCount = frame_count;
   scene_input_ptr.frameType = hiprtFrameTypeMatrix;
@@ -1007,7 +1020,7 @@ hiprtScene HIPRTDevice::build_tlas(BVHHIPRT *bvh,
     instance_transform_matrix.data_type = TYPE_UCHAR;
     instance_transform_matrix.data_size = frame_count;
     instance_transform_matrix.copy_to_device();
-    instance_transform_matrix.host_pointer = 0;
+    instance_transform_matrix.host_pointer = nullptr;
   }
 
   scene_input_ptr.instanceMasks = (void *)prim_visibility.device_pointer;
@@ -1015,7 +1028,7 @@ hiprtScene HIPRTDevice::build_tlas(BVHHIPRT *bvh,
   scene_input_ptr.instanceTransformHeaders = (void *)transform_headers.device_pointer;
   scene_input_ptr.instanceFrames = (void *)instance_transform_matrix.device_pointer;
 
-  hiprtScene scene = 0;
+  hiprtScene scene = nullptr;
 
   hiprtError rt_err = hiprtCreateScene(hiprt_context, scene_input_ptr, options, scene);
 
@@ -1041,7 +1054,7 @@ hiprtScene HIPRTDevice::build_tlas(BVHHIPRT *bvh,
                            scene_input_ptr,
                            options,
                            (void *)scratch_buffer.device_pointer,
-                           0,
+                           nullptr,
                            scene);
 
   if (rt_err != hiprtSuccess) {
@@ -1060,7 +1073,7 @@ hiprtScene HIPRTDevice::build_tlas(BVHHIPRT *bvh,
     custom_prim_info.data_type = TYPE_INT;
     custom_prim_info.data_size = data_size;
     custom_prim_info.copy_to_device();
-    custom_prim_info.host_pointer = 0;
+    custom_prim_info.host_pointer = nullptr;
 
     custom_prim_info_offset.copy_to_device();
   }
@@ -1074,7 +1087,7 @@ hiprtScene HIPRTDevice::build_tlas(BVHHIPRT *bvh,
     prims_time.data_type = TYPE_FLOAT;
     prims_time.data_size = data_size;
     prims_time.copy_to_device();
-    prims_time.host_pointer = 0;
+    prims_time.host_pointer = nullptr;
 
     prim_time_offset.copy_to_device();
   }
@@ -1093,8 +1106,9 @@ hiprtScene HIPRTDevice::build_tlas(BVHHIPRT *bvh,
 
   for (int index = 0; index < table_index; index++) {
 
-    hip_assert(hipMemcpyHtoD(
-        table_device_ptr + kernel_param_offset[index], &functions_table, sizeof(device_ptr)));
+    hip_assert(hipMemcpyHtoD(table_device_ptr + kernel_param_offset[index],
+                             (void *)&functions_table,
+                             sizeof(device_ptr)));
   }
 
   return scene;

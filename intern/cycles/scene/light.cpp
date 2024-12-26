@@ -24,8 +24,6 @@
 #include "util/log.h"
 #include "util/path.h"
 #include "util/progress.h"
-#include "util/task.h"
-#include <stack>
 
 CCL_NAMESPACE_BEGIN
 
@@ -281,7 +279,7 @@ void LightManager::test_enabled_lights(Scene *scene)
   }
 }
 
-void LightManager::device_update_distribution(Device *,
+void LightManager::device_update_distribution(Device * /*unused*/,
                                               DeviceScene *dscene,
                                               Scene *scene,
                                               Progress &progress)
@@ -396,7 +394,7 @@ void LightManager::device_update_distribution(Device *,
         offset++;
 
         Mesh::Triangle t = mesh->get_triangle(i);
-        if (!t.valid(&mesh->get_verts()[0])) {
+        if (!t.valid(mesh->get_verts().data())) {
           continue;
         }
         float3 p1 = mesh->get_verts()[t.v[0]];
@@ -797,7 +795,7 @@ static std::pair<int, LightTreeMeasure> light_tree_specialize_nodes_flatten(
   return std::make_pair(node_index, new_node.measure);
 }
 
-void LightManager::device_update_tree(Device *,
+void LightManager::device_update_tree(Device * /*unused*/,
                                       DeviceScene *dscene,
                                       Scene *scene,
                                       Progress &progress)
@@ -1461,7 +1459,9 @@ void LightManager::device_update(Device *device,
   need_update_background = false;
 }
 
-void LightManager::device_free(Device *, DeviceScene *dscene, const bool free_background)
+void LightManager::device_free(Device * /*unused*/,
+                               DeviceScene *dscene,
+                               const bool free_background)
 {
   dscene->light_tree_nodes.free();
   dscene->light_tree_emitters.free();
@@ -1494,7 +1494,7 @@ int LightManager::add_ies_from_file(const string &filename)
   string content;
 
   /* If the file can't be opened, call with an empty line */
-  if (filename.empty() || !path_read_text(filename.c_str(), content)) {
+  if (filename.empty() || !path_read_text(filename, content)) {
     content = "\n";
   }
 
@@ -1574,14 +1574,12 @@ void LightManager::device_update_ies(DeviceScene *dscene)
       /* If the preceding slot has users, we found the new end of the table. */
       break;
     }
-    else {
-      /* The slot will be past the new end of the table, so free it. */
-      delete ies_slots[slot_end - 1];
-    }
+    /* The slot will be past the new end of the table, so free it. */
+    delete ies_slots[slot_end - 1];
   }
   ies_slots.resize(slot_end);
 
-  if (ies_slots.size() > 0) {
+  if (!ies_slots.empty()) {
     int packed_size = 0;
     foreach (IESSlot *slot, ies_slots) {
       packed_size += slot->ies.packed_size();

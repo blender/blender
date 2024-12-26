@@ -107,7 +107,7 @@ ccl_device void svm_eval_nodes(KernelGlobals kg,
   Spectrum closure_weight;
   int offset = sd->shader & SHADER_MASK;
 
-  while (1) {
+  while (true) {
     uint4 node = read_node(kg, &offset);
 
     switch (node.x) {

@@ -202,7 +202,7 @@ bool GeometryManager::displace(Device *device, Scene *scene, Mesh *mesh, Progres
     stitch_keys.insert(i.second); /* stitching index */
   }
 
-  typedef unordered_multimap<int, int>::iterator map_it_t;
+  using map_it_t = unordered_multimap<int, int>::iterator;
 
   for (int key : stitch_keys) {
     pair<map_it_t, map_it_t> verts = mesh->vert_stitching_map.equal_range(key);
@@ -287,7 +287,7 @@ bool GeometryManager::displace(Device *device, Scene *scene, Mesh *mesh, Progres
           vN[vert] += fN[i];
 
           /* add face normals to stitched vertices */
-          if (stitch_keys.size()) {
+          if (!stitch_keys.empty()) {
             map_it_t key = mesh->vert_to_stitching_key_map.find(vert);
 
             if (key != mesh->vert_to_stitching_key_map.end()) {
@@ -357,7 +357,7 @@ bool GeometryManager::displace(Device *device, Scene *scene, Mesh *mesh, Progres
               mN[vert] += fN;
 
               /* add face normals to stitched vertices */
-              if (stitch_keys.size()) {
+              if (!stitch_keys.empty()) {
                 map_it_t key = mesh->vert_to_stitching_key_map.find(vert);
 
                 if (key != mesh->vert_to_stitching_key_map.end()) {

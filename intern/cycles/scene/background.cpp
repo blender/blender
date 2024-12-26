@@ -15,7 +15,6 @@
 #include "util/foreach.h"
 #include "util/math.h"
 #include "util/time.h"
-#include "util/types.h"
 
 CCL_NAMESPACE_BEGIN
 

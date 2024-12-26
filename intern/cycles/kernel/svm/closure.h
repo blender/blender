@@ -7,7 +7,9 @@
 #include "kernel/closure/alloc.h"
 #include "kernel/closure/bsdf.h"
 #include "kernel/closure/bsdf_util.h"
+#include "kernel/closure/bssrdf.h"
 #include "kernel/closure/emissive.h"
+#include "kernel/closure/volume.h"
 
 #include "kernel/geom/curve.h"
 #include "kernel/geom/object.h"
@@ -185,8 +187,9 @@ ccl_device
         float aspect = sqrtf(1.0f - anisotropic * 0.9f);
         alpha_x /= aspect;
         alpha_y *= aspect;
-        if (anisotropic_rotation != 0.0f)
+        if (anisotropic_rotation != 0.0f) {
           T = rotate_around_axis(T, N, anisotropic_rotation * M_2PI_F);
+        }
       }
 
 #ifdef __CAUSTICS_TRICKS__
@@ -488,8 +491,9 @@ ccl_device
     case CLOSURE_BSDF_PHYSICAL_CONDUCTOR:
     case CLOSURE_BSDF_F82_CONDUCTOR: {
 #ifdef __CAUSTICS_TRICKS__
-      if (!kernel_data.integrator.caustics_reflective && (path_flag & PATH_RAY_DIFFUSE))
+      if (!kernel_data.integrator.caustics_reflective && (path_flag & PATH_RAY_DIFFUSE)) {
         break;
+      }
 #endif
       ccl_private MicrofacetBsdf *bsdf = (ccl_private MicrofacetBsdf *)bsdf_alloc(
           sd, sizeof(MicrofacetBsdf), rgb_to_spectrum(make_float3(mix_weight)));
@@ -568,8 +572,9 @@ ccl_device
     case CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ID:
     case CLOSURE_BSDF_MICROFACET_MULTI_GGX_ID: {
 #ifdef __CAUSTICS_TRICKS__
-      if (!kernel_data.integrator.caustics_reflective && (path_flag & PATH_RAY_DIFFUSE))
+      if (!kernel_data.integrator.caustics_reflective && (path_flag & PATH_RAY_DIFFUSE)) {
         break;
+      }
 #endif
       Spectrum weight = closure_weight * mix_weight;
       ccl_private MicrofacetBsdf *bsdf = (ccl_private MicrofacetBsdf *)bsdf_alloc(
@@ -633,8 +638,9 @@ ccl_device
     case CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID:
     case CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID: {
 #ifdef __CAUSTICS_TRICKS__
-      if (!kernel_data.integrator.caustics_refractive && (path_flag & PATH_RAY_DIFFUSE))
+      if (!kernel_data.integrator.caustics_refractive && (path_flag & PATH_RAY_DIFFUSE)) {
         break;
+      }
 #endif
       Spectrum weight = closure_weight * mix_weight;
       ccl_private MicrofacetBsdf *bsdf = (ccl_private MicrofacetBsdf *)bsdf_alloc(
@@ -671,8 +677,9 @@ ccl_device
                                         (path_flag & PATH_RAY_DIFFUSE) == 0);
       const bool refractive_caustics = (kernel_data.integrator.caustics_refractive ||
                                         (path_flag & PATH_RAY_DIFFUSE) == 0);
-      if (!(reflective_caustics || refractive_caustics))
+      if (!(reflective_caustics || refractive_caustics)) {
         break;
+      }
 #else
       const bool reflective_caustics = true;
       const bool refractive_caustics = true;
@@ -742,8 +749,9 @@ ccl_device
     }
     case CLOSURE_BSDF_GLOSSY_TOON_ID:
 #ifdef __CAUSTICS_TRICKS__
-      if (!kernel_data.integrator.caustics_reflective && (path_flag & PATH_RAY_DIFFUSE))
+      if (!kernel_data.integrator.caustics_reflective && (path_flag & PATH_RAY_DIFFUSE)) {
         break;
+      }
       ATTR_FALLTHROUGH;
 #endif
     case CLOSURE_BSDF_DIFFUSE_TOON_ID: {
@@ -955,8 +963,9 @@ ccl_device
           bsdf->T = normalize(sd->dPdv);
           bsdf->offset = 0.0f;
         }
-        else
+        else {
           bsdf->T = normalize(sd->dPdu);
+        }
 
         if (type == CLOSURE_BSDF_HAIR_REFLECTION_ID) {
           sd->flag |= bsdf_hair_reflection_setup(bsdf);
@@ -1336,10 +1345,12 @@ ccl_device_noinline void svm_node_mix_closure(ccl_private ShaderData *sd,
   float in_weight = (stack_valid(in_weight_offset)) ? stack_load_float(stack, in_weight_offset) :
                                                       1.0f;
 
-  if (stack_valid(weight1_offset))
+  if (stack_valid(weight1_offset)) {
     stack_store_float(stack, weight1_offset, in_weight * (1.0f - weight));
-  if (stack_valid(weight2_offset))
+  }
+  if (stack_valid(weight2_offset)) {
     stack_store_float(stack, weight2_offset, in_weight * weight);
+  }
 }
 
 /* (Bump) normal */

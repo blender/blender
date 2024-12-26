@@ -13,14 +13,14 @@
 
 CCL_NAMESPACE_BEGIN
 
-typedef struct HairBsdf {
+struct HairBsdf {
   SHADER_CLOSURE_BASE;
 
   float3 T;
   float roughness1;
   float roughness2;
   float offset;
-} HairBsdf;
+};
 
 static_assert(sizeof(ShaderClosure) >= sizeof(HairBsdf), "HairBsdf is too large!");
 
@@ -187,8 +187,9 @@ ccl_device int bsdf_hair_reflection_sample(ccl_private const ShaderClosure *sc,
   *wo = (cosphi * costheta_i) * locy - (sinphi * costheta_i) * locx + (sintheta_i)*Tg;
 
   *pdf = fabsf(phi_pdf * theta_pdf);
-  if (M_PI_2_F - fabsf(theta_i) < 0.001f)
+  if (M_PI_2_F - fabsf(theta_i) < 0.001f) {
     *pdf = 0.0f;
+  }
 
   *eval = make_spectrum(*pdf);
 

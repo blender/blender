@@ -13,7 +13,6 @@
 #pragma once
 
 #include "util/string.h"
-#include "util/types.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -22,7 +21,7 @@ class MD5Hash {
   MD5Hash();
   ~MD5Hash();
 
-  void append(const uint8_t *data, int size);
+  void append(const uint8_t *data, int nbytes);
   void append(const string &str);
   bool append_file(const string &filepath);
   string get_hex();

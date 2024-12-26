@@ -40,8 +40,9 @@ void OSLGlobals::thread_init(KernelGlobalsCPU *kg, OSLGlobals *osl_globals, cons
 
 void OSLGlobals::thread_free(KernelGlobalsCPU *kg)
 {
-  if (!kg->osl)
+  if (!kg->osl) {
     return;
+  }
 
   OSL::ShadingSystem *ss = (OSL::ShadingSystem *)kg->osl_ss;
   OSLThreadData *tdata = kg->osl_tdata;

@@ -15,11 +15,11 @@ CCL_NAMESPACE_BEGIN
 
 #if defined(__KERNEL_GPU__)
 /* Strings are represented by their hashes on the GPU. */
-typedef size_t DeviceString;
+using DeviceString = size_t;
 #elif defined(OPENIMAGEIO_USTRING_H)
-typedef ustring DeviceString;
+using DeviceString = ustring;
 #else
-typedef const char *DeviceString;
+using DeviceString = const char *;
 #endif
 
 ccl_device_inline DeviceString make_string(const char *str, size_t hash)

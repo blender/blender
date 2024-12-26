@@ -11,8 +11,6 @@
 
 #include "session/display_driver.h"
 
-#include "util/unique_ptr.h"
-
 CCL_NAMESPACE_BEGIN
 
 class OpenGLDisplayDriver : public DisplayDriver {
@@ -21,27 +19,27 @@ class OpenGLDisplayDriver : public DisplayDriver {
    * the context on the Cycles render thread independent of the main thread. */
   OpenGLDisplayDriver(const std::function<bool()> &gl_context_enable,
                       const std::function<void()> &gl_context_disable);
-  ~OpenGLDisplayDriver();
+  ~OpenGLDisplayDriver() override;
 
-  virtual void graphics_interop_activate() override;
-  virtual void graphics_interop_deactivate() override;
+  void graphics_interop_activate() override;
+  void graphics_interop_deactivate() override;
 
-  virtual void clear() override;
+  void clear() override;
 
   void set_zoom(float zoom_x, float zoom_y);
 
  protected:
-  virtual void next_tile_begin() override;
+  void next_tile_begin() override;
 
-  virtual bool update_begin(const Params &params, int texture_width, int texture_height) override;
-  virtual void update_end() override;
+  bool update_begin(const Params &params, int texture_width, int texture_height) override;
+  void update_end() override;
 
-  virtual half4 *map_texture_buffer() override;
-  virtual void unmap_texture_buffer() override;
+  half4 *map_texture_buffer() override;
+  void unmap_texture_buffer() override;
 
-  virtual GraphicsInterop graphics_interop_get() override;
+  GraphicsInterop graphics_interop_get() override;
 
-  virtual void draw(const Params &params) override;
+  void draw(const Params &params) override;
 
   /* Make sure texture is allocated and its initial configuration is performed. */
   bool gl_texture_resources_ensure();

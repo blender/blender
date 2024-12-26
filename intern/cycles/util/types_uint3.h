@@ -38,7 +38,7 @@ ccl_device_inline uint3 make_uint3(uint x, uint y, uint z)
 /* Metal has native packed_float3. */
 #elif defined(__KERNEL_CUDA__) || defined(__KERNEL_ONEAPI__)
 /* CUDA and oneAPI uint3 are already packed. */
-typedef uint3 packed_uint3;
+using packed_uint3 = uint3;
 #else
 /* HIP uint3 is not packed (https://github.com/ROCm-Developer-Tools/HIP/issues/706). */
 struct packed_uint3 {

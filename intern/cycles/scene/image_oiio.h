@@ -11,7 +11,7 @@ CCL_NAMESPACE_BEGIN
 class OIIOImageLoader : public ImageLoader {
  public:
   OIIOImageLoader(const string &filepath);
-  ~OIIOImageLoader();
+  ~OIIOImageLoader() override;
 
   bool load_metadata(const ImageDeviceFeatures &features, ImageMetaData &metadata) override;
 

@@ -17,7 +17,7 @@ HDCYCLES_NAMESPACE_OPEN_SCOPE
 class HdCyclesDisplayDriver final : public CCL_NS::DisplayDriver {
  public:
   HdCyclesDisplayDriver(HdCyclesSession *renderParam, Hgi *hgi);
-  ~HdCyclesDisplayDriver();
+  ~HdCyclesDisplayDriver() override;
 
  private:
   void next_tile_begin() override;

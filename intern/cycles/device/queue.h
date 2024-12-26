@@ -7,7 +7,6 @@
 #include "device/kernel.h"
 
 #include "device/graphics_interop.h"
-#include "util/debug.h"
 #include "util/log.h"
 #include "util/map.h"
 #include "util/string.h"
@@ -37,7 +36,7 @@ struct DeviceKernelArguments {
   size_t sizes[MAX_ARGS];
   size_t count = 0;
 
-  DeviceKernelArguments() {}
+  DeviceKernelArguments() = default;
 
   template<class T> DeviceKernelArguments(const T *arg)
   {

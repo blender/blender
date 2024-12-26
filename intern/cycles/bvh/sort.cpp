@@ -7,7 +7,8 @@
 
 #include "bvh/sort.h"
 
-#include "bvh/build.h"
+#include "bvh/params.h"
+#include "bvh/unaligned.h"
 
 #include "util/algorithm.h"
 #include "util/task.h"
@@ -49,25 +50,25 @@ struct BVHReferenceCompare {
     if (ca < cb) {
       return -1;
     }
-    else if (ca > cb) {
+    if (ca > cb) {
       return 1;
     }
-    else if (ra.prim_object() < rb.prim_object()) {
+    if (ra.prim_object() < rb.prim_object()) {
       return -1;
     }
-    else if (ra.prim_object() > rb.prim_object()) {
+    if (ra.prim_object() > rb.prim_object()) {
       return 1;
     }
-    else if (ra.prim_index() < rb.prim_index()) {
+    if (ra.prim_index() < rb.prim_index()) {
       return -1;
     }
-    else if (ra.prim_index() > rb.prim_index()) {
+    if (ra.prim_index() > rb.prim_index()) {
       return 1;
     }
-    else if (ra.prim_type() < rb.prim_type()) {
+    if (ra.prim_type() < rb.prim_type()) {
       return -1;
     }
-    else if (ra.prim_type() > rb.prim_type()) {
+    if (ra.prim_type() > rb.prim_type()) {
       return 1;
     }
 

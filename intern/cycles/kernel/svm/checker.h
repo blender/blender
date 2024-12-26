@@ -42,10 +42,12 @@ ccl_device_noinline void svm_node_tex_checker(KernelGlobals kg,
 
   float f = svm_checker(co * scale);
 
-  if (stack_valid(color_offset))
+  if (stack_valid(color_offset)) {
     stack_store_float3(stack, color_offset, (f == 1.0f) ? color1 : color2);
-  if (stack_valid(fac_offset))
+  }
+  if (stack_valid(fac_offset)) {
     stack_store_float(stack, fac_offset, f);
+  }
 }
 
 CCL_NAMESPACE_END

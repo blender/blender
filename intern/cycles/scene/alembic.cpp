@@ -7,6 +7,7 @@
 #include "scene/alembic_read.h"
 #include "scene/camera.h"
 #include "scene/curves.h"
+#include "scene/hair.h"
 #include "scene/mesh.h"
 #include "scene/object.h"
 #include "scene/pointcloud.h"
@@ -438,7 +439,7 @@ AlembicObject::AlembicObject() : Node(get_node_type())
   schema_type = INVALID;
 }
 
-AlembicObject::~AlembicObject() {}
+AlembicObject::~AlembicObject() = default;
 
 void AlembicObject::set_object(Object *object_)
 {
@@ -660,7 +661,7 @@ void AlembicObject::setup_transform_cache(CachedData &cached_data, float scale)
     cached_data.transforms.set_time_sampling(*xform_time_sampling);
   }
 
-  if (xform_samples.size() == 0) {
+  if (xform_samples.empty()) {
     Transform tfm = transform_scale(make_float3(scale));
     cached_data.transforms.add_data(tfm, 0.0);
   }
@@ -701,7 +702,7 @@ AttributeRequestSet AlembicObject::get_requested_attributes()
     Shader *shader = static_cast<Shader *>(node);
 
     foreach (const AttributeRequest &attr, shader->attributes.requests) {
-      if (attr.name != "") {
+      if (!attr.name.empty()) {
         requested_attributes.add(attr.name);
       }
     }
@@ -871,10 +872,10 @@ void AlembicProcedural::generate(Scene *scene, Progress &progress)
     factory.setPolicy(Alembic::Abc::ErrorHandler::kQuietNoopPolicy);
 
     std::vector<std::string> filenames;
-    filenames.push_back(filepath.c_str());
+    filenames.emplace_back(filepath.c_str());
 
     for (const ustring &layer : layers) {
-      filenames.push_back(layer.c_str());
+      filenames.emplace_back(layer.c_str());
     }
 
     /* We need to reverse the order as overriding archives should come first. */
@@ -1110,7 +1111,7 @@ void AlembicProcedural::read_mesh(AlembicObject *abc_object, Abc::chrono_t frame
       triangles.push_back_reserved(tri.x);
       triangles.push_back_reserved(tri.y);
       triangles.push_back_reserved(tri.z);
-      smooth.push_back_reserved(1);
+      smooth.push_back_reserved(true);
     }
 
     mesh->set_triangles(triangles);

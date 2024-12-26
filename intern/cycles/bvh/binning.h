@@ -91,9 +91,7 @@ class BVHObjectBinning : public BVHRange {
     if (aligned_space_ == nullptr) {
       return prim.bounds();
     }
-    else {
-      return unaligned_heuristic_->compute_aligned_prim_boundbox(prim, *aligned_space_);
-    }
+    return unaligned_heuristic_->compute_aligned_prim_boundbox(prim, *aligned_space_);
   }
 };
 

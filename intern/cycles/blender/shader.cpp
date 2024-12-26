@@ -4,7 +4,6 @@
 
 #include "scene/shader.h"
 #include "scene/background.h"
-#include "scene/colorspace.h"
 #include "scene/integrator.h"
 #include "scene/light.h"
 #include "scene/osl.h"
@@ -17,7 +16,6 @@
 #include "blender/texture.h"
 #include "blender/util.h"
 
-#include "util/debug.h"
 #include "util/foreach.h"
 #include "util/set.h"
 #include "util/string.h"
@@ -27,9 +25,9 @@
 
 CCL_NAMESPACE_BEGIN
 
-typedef unordered_multimap<void *, ShaderInput *> PtrInputMap;
-typedef map<void *, ShaderOutput *> PtrOutputMap;
-typedef map<string, ConvertNode *> ProxyMap;
+using PtrInputMap = unordered_multimap<void *, ShaderInput *>;
+using PtrOutputMap = map<void *, ShaderOutput *>;
+using ProxyMap = map<string, ConvertNode *>;
 
 /* Find */
 
@@ -299,7 +297,7 @@ static ShaderNode *add_node(Scene *scene,
     curves->set_min_x(min_x);
     curves->set_max_x(max_x);
     curves->set_curves(curve_mapping_curves);
-    curves->set_extrapolate(mapping.extend() == mapping.extend_EXTRAPOLATED);
+    curves->set_extrapolate(mapping.extend() == BL::CurveMapping::extend_EXTRAPOLATED);
     node = curves;
   }
   if (b_node.is_a(&RNA_ShaderNodeVectorCurve)) {
@@ -313,7 +311,7 @@ static ShaderNode *add_node(Scene *scene,
     curves->set_min_x(min_x);
     curves->set_max_x(max_x);
     curves->set_curves(curve_mapping_curves);
-    curves->set_extrapolate(mapping.extend() == mapping.extend_EXTRAPOLATED);
+    curves->set_extrapolate(mapping.extend() == BL::CurveMapping::extend_EXTRAPOLATED);
     node = curves;
   }
   else if (b_node.is_a(&RNA_ShaderNodeFloatCurve)) {
@@ -327,7 +325,7 @@ static ShaderNode *add_node(Scene *scene,
     curve->set_min_x(min_x);
     curve->set_max_x(max_x);
     curve->set_curve(curve_mapping_curve);
-    curve->set_extrapolate(mapping.extend() == mapping.extend_EXTRAPOLATED);
+    curve->set_extrapolate(mapping.extend() == BL::CurveMapping::extend_EXTRAPOLATED);
     node = curve;
   }
   else if (b_node.is_a(&RNA_ShaderNodeValToRGB)) {
@@ -1284,12 +1282,15 @@ static void add_nodes(Scene *scene,
     {
 
       BL::ShaderNodeTree b_group_ntree(PointerRNA_NULL);
-      if (b_node.is_a(&RNA_ShaderNodeGroup))
+      if (b_node.is_a(&RNA_ShaderNodeGroup)) {
         b_group_ntree = BL::ShaderNodeTree(((BL::NodeGroup)(b_node)).node_tree());
-      else if (b_node.is_a(&RNA_NodeCustomGroup))
+      }
+      else if (b_node.is_a(&RNA_NodeCustomGroup)) {
         b_group_ntree = BL::ShaderNodeTree(((BL::NodeCustomGroup)(b_node)).node_tree());
-      else
+      }
+      else {
         b_group_ntree = BL::ShaderNodeTree(((BL::ShaderNodeCustomGroup)(b_node)).node_tree());
+      }
 
       ProxyMap group_proxy_input_map, group_proxy_output_map;
 
@@ -1427,8 +1428,9 @@ static void add_nodes(Scene *scene,
 
     ShaderOutput *output = nullptr;
     PtrOutputMap::iterator output_it = output_map.find(b_from_sock.ptr.data);
-    if (output_it != output_map.end())
+    if (output_it != output_map.end()) {
       output = output_it->second;
+    }
 
     /* either socket may be nullptr when the node was not exported, typically
      * because the node type is not supported */

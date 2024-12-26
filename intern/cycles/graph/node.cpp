@@ -14,7 +14,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Node Type */
 
-NodeOwner::~NodeOwner() {}
+NodeOwner::~NodeOwner() = default;
 
 Node::Node(const NodeType *type_, ustring name_) : name(name_), type(type_)
 {
@@ -226,15 +226,13 @@ ustring Node::get_string(const SocketType &input) const
   if (input.type == SocketType::STRING) {
     return get_socket_value<ustring>(this, input);
   }
-  else if (input.type == SocketType::ENUM) {
+  if (input.type == SocketType::ENUM) {
     const NodeEnum &enm = *input.enum_values;
     int intvalue = get_socket_value<int>(this, input);
     return (enm.exists(intvalue)) ? enm[intvalue] : ustring();
   }
-  else {
-    assert(0);
-    return ustring();
-  }
+  assert(0);
+  return ustring();
 }
 
 Transform Node::get_transform(const SocketType &input) const
@@ -307,12 +305,12 @@ bool Node::has_default_value(const SocketType &input) const
   return memcmp(dst, src, input.size()) == 0;
 }
 
-void Node::set_default_value(const SocketType &socket)
+void Node::set_default_value(const SocketType &input)
 {
-  const void *src = socket.default_value;
-  void *dst = ((char *)this) + socket.struct_offset;
-  if (socket.size() > 0) {
-    memcpy(dst, src, socket.size());
+  const void *src = input.default_value;
+  void *dst = ((char *)this) + input.struct_offset;
+  if (input.size() > 0) {
+    memcpy(dst, src, input.size());
   }
 }
 
@@ -903,7 +901,7 @@ void Node::set_if_different(const SocketType &input, array<Node *> &value)
 void Node::print_modified_sockets() const
 {
   printf("Node : %s\n", name.c_str());
-  for (auto &socket : type->inputs) {
+  for (const auto &socket : type->inputs) {
     if (socket_is_modified(socket)) {
       printf("-- socket modified : %s\n", socket.name.c_str());
     }

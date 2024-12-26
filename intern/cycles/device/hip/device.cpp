@@ -10,10 +10,12 @@
 #  include "device/device.h"
 #  include "device/hip/device_impl.h"
 
-#  include "integrator/denoiser_oidn_gpu.h"
+#  include "integrator/denoiser_oidn_gpu.h"  // IWYU pragma: keep
 
 #  include "util/string.h"
-#  include "util/windows.h"
+#  ifdef _WIN32
+#    include "util/windows.h"
+#  endif
 #endif /* WITH_HIP */
 
 #ifdef WITH_HIPRT
@@ -30,8 +32,9 @@ bool device_hip_init()
   static bool initialized = false;
   static bool result = false;
 
-  if (initialized)
+  if (initialized) {
     return result;
+  }
 
   initialized = true;
   int hipew_result = hipewInit(HIPEW_INIT_HIP);
@@ -73,10 +76,10 @@ bool device_hip_init()
 Device *device_hip_create(const DeviceInfo &info, Stats &stats, Profiler &profiler, bool headless)
 {
 #ifdef WITH_HIPRT
-  if (info.use_hardware_raytracing)
+  if (info.use_hardware_raytracing) {
     return new HIPRTDevice(info, stats, profiler, headless);
-  else
-    return new HIPDevice(info, stats, profiler, headless);
+  }
+  return new HIPDevice(info, stats, profiler, headless);
 #elif defined(WITH_HIP)
   return new HIPDevice(info, stats, profiler, headless);
 #else
@@ -118,8 +121,9 @@ void device_hip_info(vector<DeviceInfo> &devices)
 #ifdef WITH_HIP
   hipError_t result = device_hip_safe_init();
   if (result != hipSuccess) {
-    if (result != hipErrorNoDevice)
+    if (result != hipErrorNoDevice) {
       fprintf(stderr, "HIP hipInit: %s\n", hipewErrorString(result));
+    }
     return;
   }
 
@@ -214,13 +218,15 @@ void device_hip_info(vector<DeviceInfo> &devices)
 
     VLOG_INFO << "Added device \"" << info.description << "\" with id \"" << info.id << "\".";
 
-    if (info.denoisers & DENOISER_OPENIMAGEDENOISE)
+    if (info.denoisers & DENOISER_OPENIMAGEDENOISE) {
       VLOG_INFO << "Device with id \"" << info.id << "\" supports "
                 << denoiserTypeToHumanReadable(DENOISER_OPENIMAGEDENOISE) << ".";
+    }
   }
 
-  if (!display_devices.empty())
+  if (!display_devices.empty()) {
     devices.insert(devices.end(), display_devices.begin(), display_devices.end());
+  }
 #else  /* WITH_HIP */
   (void)devices;
 #endif /* WITH_HIP */
@@ -243,7 +249,7 @@ string device_hip_capabilities()
     return string("Error getting devices: ") + hipewErrorString(result);
   }
 
-  string capabilities = "";
+  string capabilities;
   for (int num = 0; num < count; num++) {
     char name[256];
     if (hipDeviceGetName(name, 256, num) != hipSuccess) {

@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
+#include <map>
+
 #include "util/string.h"
 
 #include "util/array.h"

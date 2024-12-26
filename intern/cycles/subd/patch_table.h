@@ -26,10 +26,12 @@ struct PatchTable;
 }
 #endif
 
+// NOLINTBEGIN
 #define PATCH_ARRAY_SIZE 4
 #define PATCH_PARAM_SIZE 2
 #define PATCH_HANDLE_SIZE 3
 #define PATCH_NODE_SIZE 1
+// NOLINTEND
 
 struct PackedPatchTable {
   array<uint> table;

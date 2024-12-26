@@ -11,10 +11,10 @@ CCL_NAMESPACE_BEGIN
 /* Element of ID pass stored in the render buffers.
  * It is `float2` semantically, but it must be unaligned since the offset of ID passes in the
  * render buffers might not meet expected by compiler alignment. */
-typedef struct CryptoPassBufferElement {
+struct CryptoPassBufferElement {
   float x;
   float y;
-} CryptoPassBufferElement;
+};
 
 ccl_device_inline void film_write_cryptomatte_slots(ccl_global float *buffer,
                                                     int num_slots,
@@ -55,7 +55,7 @@ ccl_device_inline void film_write_cryptomatte_slots(ccl_global float *buffer,
     }
     /* If there already is a slot for that ID, add the weight.
      * If no slot was found, add it to the last. */
-    else if (id_buffer[slot].x == id || slot == num_slots - 1) {
+    if (id_buffer[slot].x == id || slot == num_slots - 1) {
       id_buffer[slot].y += weight;
       break;
     }

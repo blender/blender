@@ -9,7 +9,6 @@
 
 #include "util/aligned_malloc.h"
 #include "util/guarded_allocator.h"
-#include "util/types.h"
 #include "util/vector.h"
 
 CCL_NAMESPACE_BEGIN
@@ -145,7 +144,7 @@ template<typename T, size_t alignment = MIN_ALIGNMENT_CPU_DATA_TYPES> class arra
           clear();
           return nullptr;
         }
-        else if (data_ != nullptr) {
+        if (data_ != nullptr) {
           mem_copy(newdata, data_, ((datasize_ < newsize) ? datasize_ : newsize));
           mem_free(data_, capacity_);
         }
@@ -269,7 +268,7 @@ template<typename T, size_t alignment = MIN_ALIGNMENT_CPU_DATA_TYPES> class arra
   }
 
  protected:
-  inline T *mem_allocate(size_t N)
+  T *mem_allocate(size_t N)
   {
     if (N == 0) {
       return nullptr;
@@ -284,7 +283,7 @@ template<typename T, size_t alignment = MIN_ALIGNMENT_CPU_DATA_TYPES> class arra
     return mem;
   }
 
-  inline void mem_free(T *mem, size_t N)
+  void mem_free(T *mem, size_t N)
   {
     if (mem != nullptr) {
       util_guarded_mem_free(sizeof(T) * N);
@@ -292,7 +291,7 @@ template<typename T, size_t alignment = MIN_ALIGNMENT_CPU_DATA_TYPES> class arra
     }
   }
 
-  inline void mem_copy(T *mem_to, const T *mem_from, const size_t N)
+  void mem_copy(T *mem_to, const T *mem_from, const size_t N)
   {
     memcpy((void *)mem_to, mem_from, sizeof(T) * N);
   }

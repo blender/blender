@@ -32,7 +32,7 @@ CCL_NAMESPACE_BEGIN
  * are sampled using a Bernoulli distribution, as shown in Figure (3). By stratified sampling, they
  * mean a constant number of impulses per cell, so the stratification is the grid itself in that
  * sense, as described in the supplementary material of the paper. */
-#define IMPULSES_COUNT 8
+#define IMPULSES_COUNT 8  // NOLINT
 
 /* Computes a 2D Gabor kernel based on Equation (6) in the original Gabor noise paper. Where the
  * frequency argument is the F_0 parameter and the orientation argument is the w_0 parameter. We

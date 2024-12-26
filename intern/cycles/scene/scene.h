@@ -13,7 +13,6 @@
 
 #include "util/param.h"
 #include "util/string.h"
-#include "util/texture.h"
 #include "util/thread.h"
 
 CCL_NAMESPACE_BEGIN
@@ -166,7 +165,7 @@ class Scene : public NodeOwner {
   SceneUpdateStats *update_stats;
 
   Scene(const SceneParams &params, Device *device);
-  ~Scene();
+  ~Scene() override;
 
   void device_update(Device *device, Progress &progress);
 

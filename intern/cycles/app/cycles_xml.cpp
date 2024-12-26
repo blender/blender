@@ -2,11 +2,9 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#include <stdio.h>
+#include <cstdio>
 
 #include <algorithm>
-#include <iterator>
-#include <sstream>
 
 #include "graph/node_xml.h"
 
@@ -37,16 +35,15 @@ CCL_NAMESPACE_BEGIN
 /* XML reading state */
 
 struct XMLReadState : public XMLReader {
-  Scene *scene;      /* Scene pointer. */
-  Transform tfm;     /* Current transform state. */
-  bool smooth;       /* Smooth normal state. */
-  Shader *shader;    /* Current shader. */
-  string base;       /* Base path to current file. */
-  float dicing_rate; /* Current dicing rate. */
-  Object *object;    /* Current object. */
+  Scene *scene = nullptr;   /* Scene pointer. */
+  Transform tfm;            /* Current transform state. */
+  bool smooth = false;      /* Smooth normal state. */
+  Shader *shader = nullptr; /* Current shader. */
+  string base;              /* Base path to current file. */
+  float dicing_rate = 1.0f; /* Current dicing rate. */
+  Object *object = nullptr; /* Current object. */
 
   XMLReadState()
-      : scene(nullptr), smooth(false), shader(nullptr), dicing_rate(1.0f), object(nullptr)
   {
     tfm = transform_identity();
   }
@@ -208,8 +205,7 @@ static void xml_read_alembic(XMLReadState &state, xml_node graph_node)
       string path;
       if (xml_read_string(&path, node, "path")) {
         ustring object_path(path, 0);
-        AlembicObject *object = static_cast<AlembicObject *>(
-            proc->get_or_create_object(object_path));
+        AlembicObject *object = proc->get_or_create_object(object_path);
 
         array<Node *> used_shaders = object->get_used_shaders();
         used_shaders.push_back_slow(state.shader);
@@ -347,11 +343,11 @@ static void xml_read_shader_graph(XMLReadState &state, Shader *shader, xml_node 
         fprintf(stderr, "Unknown shader node \"%s\".\n", node.name());
         continue;
       }
-      else if (node_type->type != NodeType::SHADER) {
+      if (node_type->type != NodeType::SHADER) {
         fprintf(stderr, "Node type \"%s\" is not a shader node.\n", node_type->name.c_str());
         continue;
       }
-      else if (node_type->create == nullptr) {
+      if (node_type->create == nullptr) {
         fprintf(stderr, "Can't create abstract node type \"%s\".\n", node_type->name.c_str());
         continue;
       }
@@ -412,19 +408,18 @@ static Mesh *xml_add_mesh(Scene *scene, const Transform &tfm, Object *object)
     Geometry *geometry = object->get_geometry();
     return static_cast<Mesh *>(geometry);
   }
-  else {
-    /* Create mesh */
-    Mesh *mesh = new Mesh();
-    scene->geometry.push_back(mesh);
 
-    /* Create object. */
-    Object *object = new Object();
-    object->set_geometry(mesh);
-    object->set_tfm(tfm);
-    scene->objects.push_back(object);
+  /* Create mesh */
+  Mesh *mesh = new Mesh();
+  scene->geometry.push_back(mesh);
 
-    return mesh;
-  }
+  /* Create object. */
+  object = new Object();
+  object->set_geometry(mesh);
+  object->set_tfm(tfm);
+  scene->objects.push_back(object);
+
+  return mesh;
 }
 
 static void xml_read_mesh(const XMLReadState &state, xml_node node)
@@ -662,7 +657,7 @@ static void xml_read_transform(xml_node node, Transform &tfm)
   if (node.attribute("matrix")) {
     vector<float> matrix;
     if (xml_read_float_array(matrix, node, "matrix") && matrix.size() == 16) {
-      ProjectionTransform projection = *(ProjectionTransform *)&matrix[0];
+      ProjectionTransform projection = *(ProjectionTransform *)matrix.data();
       tfm = tfm * projection_to_transform(projection_transpose(projection));
     }
   }

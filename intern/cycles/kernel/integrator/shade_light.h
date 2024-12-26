@@ -83,13 +83,9 @@ ccl_device void integrator_shade_light(KernelGlobals kg,
     integrator_path_terminate(kg, state, DEVICE_KERNEL_INTEGRATOR_SHADE_LIGHT);
     return;
   }
-  else {
-    integrator_path_next(kg,
-                         state,
-                         DEVICE_KERNEL_INTEGRATOR_SHADE_LIGHT,
-                         DEVICE_KERNEL_INTEGRATOR_INTERSECT_CLOSEST);
-    return;
-  }
+
+  integrator_path_next(
+      kg, state, DEVICE_KERNEL_INTEGRATOR_SHADE_LIGHT, DEVICE_KERNEL_INTEGRATOR_INTERSECT_CLOSEST);
 
   /* TODO: in some cases we could continue directly to SHADE_BACKGROUND, but
    * probably that optimization is probably not practical if we add lights to

@@ -4,14 +4,11 @@
 
 #pragma once
 
-#include "scene/attribute.h"
 #include "scene/shader.h"
 #include "scene/shader_graph.h"
 
 #include "util/array.h"
-#include "util/set.h"
 #include "util/string.h"
-#include "util/thread.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -29,7 +26,7 @@ class ShaderOutput;
 class SVMShaderManager : public ShaderManager {
  public:
   SVMShaderManager();
-  ~SVMShaderManager();
+  ~SVMShaderManager() override;
 
   void reset(Scene *scene) override;
 

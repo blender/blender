@@ -10,6 +10,8 @@
 #  include "device/hip/kernel.h"
 #  include "device/hiprt/device_impl.h"
 
+#  include "kernel/device/hiprt/globals.h"
+
 CCL_NAMESPACE_BEGIN
 
 HIPRTDeviceQueue::HIPRTDeviceQueue(HIPRTDevice *device)
@@ -69,7 +71,7 @@ bool HIPRTDeviceQueue::enqueue(DeviceKernel kernel,
                                        shared_mem_bytes,
                                        hip_stream_,
                                        const_cast<void **>(args_copy.values),
-                                       0),
+                                       nullptr),
                  "enqueue");
 
   debug_enqueue_end();

@@ -2,8 +2,8 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#include "GPU_context.hh"
 #include "GPU_immediate.hh"
+#include "GPU_platform.hh"
 #include "GPU_shader.hh"
 #include "GPU_state.hh"
 #include "GPU_texture.hh"
@@ -12,9 +12,9 @@
 
 #include "blender/display_driver.h"
 
-#include "device/device.h"
 #include "util/log.h"
 #include "util/math.h"
+#include "util/vector.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -55,7 +55,7 @@ int BlenderDisplayShader::get_tex_coord_attrib_location()
 /* --------------------------------------------------------------------
  * BlenderFallbackDisplayShader.
  */
-static GPUShader *compile_fallback_shader(void)
+static GPUShader *compile_fallback_shader()
 {
   /* NOTE: Compilation errors are logged to console. */
   GPUShader *shader = GPU_shader_create_from_info_name("gpu_shader_cycles_display_fallback");
@@ -364,7 +364,7 @@ class DisplayGPUPixelBuffer {
  protected:
   void reset()
   {
-    gpu_pixel_buffer = 0;
+    gpu_pixel_buffer = nullptr;
     width = 0;
     height = 0;
   }
@@ -387,9 +387,9 @@ class DrawTile {
     texture.gpu_resources_destroy();
   }
 
-  inline bool ready_to_draw() const
+  bool ready_to_draw() const
   {
-    return texture.gpu_texture != 0;
+    return texture.gpu_texture != nullptr;
   }
 
   /* Texture which contains pixels of the tile. */
@@ -771,9 +771,17 @@ void BlenderDisplayDriver::draw(const Params &params)
 
   GPUVertFormat *format = immVertexFormat();
   const int texcoord_attribute = GPU_vertformat_attr_add(
-      format, display_shader_->tex_coord_attribute_name, GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+      format,
+      ccl::BlenderDisplayShader::tex_coord_attribute_name,
+      GPU_COMP_F32,
+      2,
+      GPU_FETCH_FLOAT);
   const int position_attribute = GPU_vertformat_attr_add(
-      format, display_shader_->position_attribute_name, GPU_COMP_F32, 2, GPU_FETCH_FLOAT);
+      format,
+      ccl::BlenderDisplayShader::position_attribute_name,
+      GPU_COMP_F32,
+      2,
+      GPU_FETCH_FLOAT);
 
   /* NOTE: Shader is bound again through IMM to register this shader with the IMM module
    * and perform required setup for IMM rendering. This is required as the IMM module

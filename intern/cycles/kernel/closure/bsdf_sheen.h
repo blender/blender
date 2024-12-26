@@ -15,12 +15,12 @@
 
 CCL_NAMESPACE_BEGIN
 
-typedef struct SheenBsdf {
+struct SheenBsdf {
   SHADER_CLOSURE_BASE;
   float roughness;
   float transformA, transformB;
   float3 T, B;
-} SheenBsdf;
+};
 
 static_assert(sizeof(ShaderClosure) >= sizeof(SheenBsdf), "SheenBsdf is too large!");
 

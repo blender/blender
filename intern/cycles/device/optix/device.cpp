@@ -6,11 +6,6 @@
 #include "device/optix/device.h"
 
 #include "device/cuda/device.h"
-#include "device/optix/device_impl.h"
-
-#include "integrator/denoiser_oidn_gpu.h"
-
-#include "util/log.h"
 
 #ifdef WITH_OSL
 #  include <OSL/oslconfig.h>
@@ -18,8 +13,14 @@
 #endif
 
 #ifdef WITH_OPTIX
+#  include "device/optix/device_impl.h"
+
+#  include "integrator/denoiser_oidn_gpu.h"  // IWYU pragma: keep
+
 #  include <optix_function_table_definition.h>
 #endif
+
+#include "util/log.h"
 
 #ifndef OPTIX_FUNCTION_TABLE_SYMBOL
 #  define OPTIX_FUNCTION_TABLE_SYMBOL g_optixFunctionTable
@@ -47,7 +48,7 @@ bool device_optix_init()
                     "Please update to the latest driver first!";
     return false;
   }
-  else if (result != OPTIX_SUCCESS) {
+  if (result != OPTIX_SUCCESS) {
     VLOG_WARNING << "OptiX initialization failed with error code " << (unsigned int)result;
     return false;
   }

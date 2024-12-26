@@ -18,7 +18,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-typedef struct HuangHairExtra {
+struct HuangHairExtra {
   /* Optional modulation factors. */
   float R, TT, TRT;
 
@@ -39,9 +39,9 @@ typedef struct HuangHairExtra {
 
   /* Valid integration interval. */
   float gamma_m_min, gamma_m_max;
-} HuangHairExtra;
+};
 
-typedef struct HuangHairBSDF {
+struct HuangHairBSDF {
   SHADER_CLOSURE_BASE;
 
   /* Absorption coefficient. */
@@ -64,7 +64,7 @@ typedef struct HuangHairBSDF {
 
   /* Extra closure for optional modulation factors and local coordinate system. */
   ccl_private HuangHairExtra *extra;
-} HuangHairBSDF;
+};
 
 static_assert(sizeof(ShaderClosure) >= sizeof(HuangHairBSDF), "HuangHairBSDF is too large!");
 static_assert(sizeof(ShaderClosure) >= sizeof(HuangHairExtra), "HuangHairExtra is too large!");

@@ -86,8 +86,11 @@ BoundBox BVHUnaligned::compute_aligned_prim_boundbox(const BVHReference &prim,
     const int segment = PRIMITIVE_UNPACK_SEGMENT(packed_type);
     const Hair *hair = static_cast<const Hair *>(object->get_geometry());
     const Hair::Curve &curve = hair->get_curve(curve_index);
-    curve.bounds_grow(
-        segment, &hair->get_curve_keys()[0], &hair->get_curve_radius()[0], aligned_space, bounds);
+    curve.bounds_grow(segment,
+                      hair->get_curve_keys().data(),
+                      hair->get_curve_radius().data(),
+                      aligned_space,
+                      bounds);
   }
   else {
     bounds = prim.bounds().transformed(&aligned_space);

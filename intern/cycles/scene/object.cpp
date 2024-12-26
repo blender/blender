@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0 */
 
 #include "scene/object.h"
+
 #include "device/device.h"
 #include "scene/camera.h"
 #include "scene/curves.h"
@@ -22,7 +23,7 @@
 #include "util/murmurhash.h"
 #include "util/progress.h"
 #include "util/set.h"
-#include "util/task.h"
+#include "util/tbb.h"
 #include "util/vector.h"
 
 #include "subd/patch_table.h"
@@ -120,7 +121,7 @@ Object::Object() : Node(get_node_type())
   intersects_volume = false;
 }
 
-Object::~Object() {}
+Object::~Object() = default;
 
 void Object::update_motion()
 {
@@ -141,10 +142,8 @@ void Object::update_motion()
         motion.clear();
         return;
       }
-      else {
-        /* Otherwise just copy center motion. */
-        motion[i] = tfm;
-      }
+      /* Otherwise just copy center motion. */
+      motion[i] = tfm;
     }
 
     /* Test if any of the transforms are actually different. */
@@ -344,7 +343,9 @@ float Object::compute_volume_step_size() const
               metadata.type != IMAGE_DATA_TYPE_NANOVDB_FPN &&
               metadata.type != IMAGE_DATA_TYPE_NANOVDB_FP16)
 #endif
+          {
             size /= make_float3(metadata.width, metadata.height, metadata.depth);
+          }
 
           /* Step size is transformed from voxel to world space. */
           Transform voxel_tfm = tfm;
@@ -446,7 +447,7 @@ ObjectManager::ObjectManager()
   need_flags_update = true;
 }
 
-ObjectManager::~ObjectManager() {}
+ObjectManager::~ObjectManager() = default;
 
 static float object_volume_density(const Transform &tfm, Geometry *geom)
 {
@@ -780,7 +781,7 @@ void ObjectManager::device_update(Device *device,
 
   device_free(device, dscene, false);
 
-  if (scene->objects.size() == 0) {
+  if (scene->objects.empty()) {
     return;
   }
 
@@ -844,8 +845,11 @@ void ObjectManager::device_update(Device *device,
   }
 }
 
-void ObjectManager::device_update_flags(
-    Device *, DeviceScene *dscene, Scene *scene, Progress & /*progress*/, bool bounds_valid)
+void ObjectManager::device_update_flags(Device * /*unused*/,
+                                        DeviceScene *dscene,
+                                        Scene *scene,
+                                        Progress & /*progress*/,
+                                        bool bounds_valid)
 {
   if (!need_update() && !need_flags_update) {
     return;
@@ -867,7 +871,7 @@ void ObjectManager::device_update_flags(
     need_flags_update = false;
   }
 
-  if (scene->objects.size() == 0) {
+  if (scene->objects.empty()) {
     return;
   }
 
@@ -948,7 +952,9 @@ void ObjectManager::device_update_flags(
   dscene->object_volume_step.clear_modified();
 }
 
-void ObjectManager::device_update_geom_offsets(Device *, DeviceScene *dscene, Scene *scene)
+void ObjectManager::device_update_geom_offsets(Device * /*unused*/,
+                                               DeviceScene *dscene,
+                                               Scene *scene)
 {
   if (dscene->objects.size() == 0) {
     return;
@@ -993,7 +999,7 @@ void ObjectManager::device_update_geom_offsets(Device *, DeviceScene *dscene, Sc
   }
 }
 
-void ObjectManager::device_free(Device *, DeviceScene *dscene, bool force_free)
+void ObjectManager::device_free(Device * /*unused*/, DeviceScene *dscene, bool force_free)
 {
   dscene->objects.free_if_need_realloc(force_free);
   dscene->object_motion_pass.free_if_need_realloc(force_free);

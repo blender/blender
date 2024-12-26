@@ -309,11 +309,11 @@ ccl_device_inline bool path_state_ao_bounce(KernelGlobals kg, ConstIntegratorSta
  */
 
 /* RNG State loaded onto stack. */
-typedef struct RNGState {
+struct RNGState {
   uint rng_pixel;
   uint rng_offset;
   int sample;
-} RNGState;
+};
 
 ccl_device_inline void path_state_rng_load(ConstIntegratorState state,
                                            ccl_private RNGState *rng_state)

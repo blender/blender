@@ -12,11 +12,11 @@ CCL_NAMESPACE_BEGIN
 
 /* HENYEY-GREENSTEIN CLOSURE */
 
-typedef struct HenyeyGreensteinVolume {
+struct HenyeyGreensteinVolume {
   SHADER_CLOSURE_VOLUME_BASE;
 
   float g;
-} HenyeyGreensteinVolume;
+};
 static_assert(sizeof(ShaderVolumeClosure) >= sizeof(HenyeyGreensteinVolume),
               "HenyeyGreensteinVolume is too large!");
 

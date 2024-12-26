@@ -63,23 +63,23 @@ ccl_device_inline float3 disk_to_hemisphere(const float2 p)
 
 /* 4x4 projection matrix, perspective or orthographic. */
 
-typedef struct ProjectionTransform {
+struct ProjectionTransform {
   float4 x, y, z, w; /* rows */
 
 #ifndef __KERNEL_GPU__
-  ProjectionTransform() {}
+  ProjectionTransform() = default;
 
   explicit ProjectionTransform(const Transform &tfm)
       : x(tfm.x), y(tfm.y), z(tfm.z), w(make_float4(0.0f, 0.0f, 0.0f, 1.0f))
   {
   }
 #endif
-} ProjectionTransform;
+};
 
-typedef struct PerspectiveMotionTransform {
+struct PerspectiveMotionTransform {
   ProjectionTransform pre;
   ProjectionTransform post;
-} PerspectiveMotionTransform;
+};
 
 CCL_NAMESPACE_END
 

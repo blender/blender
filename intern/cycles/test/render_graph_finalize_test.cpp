@@ -163,7 +163,7 @@ class RenderGraph : public testing::Test {
 
   RenderGraph() : testing::Test(), builder(&graph) {}
 
-  virtual void SetUp()
+  void SetUp() override
   {
     /* The test is running outside of the typical application configuration when the OCIO is
      * initialized prior to Cycles. Explicitly create the raw configuration to avoid the warning
@@ -182,7 +182,7 @@ class RenderGraph : public testing::Test {
     util_logging_verbosity_set(5);
   }
 
-  virtual void TearDown()
+  void TearDown() override
   {
     /* Effectively disable logging, so that the next test suit starts in an environment which is
      * not logging by default. */

@@ -6,7 +6,6 @@
 
 #include <cstddef>
 #include <cstdlib>
-#include <memory>
 
 #ifdef WITH_BLENDER_GUARDEDALLOC
 #  include "../../guardedalloc/MEM_guardedalloc.h"
@@ -21,18 +20,18 @@ void util_guarded_mem_free(size_t n);
 /* Guarded allocator for the use with STL. */
 template<typename T> class GuardedAllocator {
  public:
-  typedef size_t size_type;
-  typedef ptrdiff_t difference_type;
-  typedef T *pointer;
-  typedef const T *const_pointer;
-  typedef T &reference;
-  typedef const T &const_reference;
-  typedef T value_type;
+  using size_type = size_t;
+  using difference_type = ptrdiff_t;
+  using pointer = T *;
+  using const_pointer = const T *;
+  using reference = T &;
+  using const_reference = const T &;
+  using value_type = T;
 
-  GuardedAllocator() {}
-  GuardedAllocator(const GuardedAllocator &) {}
+  GuardedAllocator() = default;
+  GuardedAllocator(const GuardedAllocator & /*unused*/) = default;
 
-  T *allocate(size_t n, const void *hint = 0)
+  T *allocate(size_t n, const void *hint = nullptr)
   {
     (void)hint;
     size_t size = n * sizeof(T);
@@ -79,10 +78,7 @@ template<typename T> class GuardedAllocator {
     return &x;
   }
 
-  GuardedAllocator<T> &operator=(const GuardedAllocator &)
-  {
-    return *this;
-  }
+  GuardedAllocator<T> &operator=(const GuardedAllocator & /*unused*/) = default;
 
   size_t max_size() const
   {
@@ -90,21 +86,21 @@ template<typename T> class GuardedAllocator {
   }
 
   template<class U> struct rebind {
-    typedef GuardedAllocator<U> other;
+    using other = GuardedAllocator<U>;
   };
 
-  template<class U> GuardedAllocator(const GuardedAllocator<U> &) {}
+  template<class U> GuardedAllocator(const GuardedAllocator<U> & /*unused*/) {}
 
-  template<class U> GuardedAllocator &operator=(const GuardedAllocator<U> &)
+  template<class U> GuardedAllocator &operator=(const GuardedAllocator<U> & /*unused*/)
   {
     return *this;
   }
 
-  inline bool operator==(GuardedAllocator const & /*other*/) const
+  bool operator==(GuardedAllocator const & /*other*/) const
   {
     return true;
   }
-  inline bool operator!=(GuardedAllocator const &other) const
+  bool operator!=(GuardedAllocator const &other) const
   {
     return !operator==(other);
   }

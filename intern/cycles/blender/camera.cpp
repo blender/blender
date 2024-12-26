@@ -762,7 +762,7 @@ static void blender_camera_from_view(BlenderCamera *bcam,
       }
       else {
         /* magic zoom formula */
-        bcam->zoom = (float)b_rv3d.view_camera_zoom();
+        bcam->zoom = b_rv3d.view_camera_zoom();
         bcam->zoom = (1.41421f + bcam->zoom / 50.0f);
         bcam->zoom *= bcam->zoom;
         bcam->zoom = 2.0f / bcam->zoom;

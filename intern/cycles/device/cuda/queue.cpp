@@ -119,7 +119,7 @@ bool CUDADeviceQueue::enqueue(DeviceKernel kernel,
                                 shared_mem_bytes,
                                 cuda_stream_,
                                 const_cast<void **>(args.values),
-                                0),
+                                nullptr),
                  "enqueue");
 
   debug_enqueue_end();

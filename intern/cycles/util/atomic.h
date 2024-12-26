@@ -7,7 +7,7 @@
 #ifndef __KERNEL_GPU__
 
 /* Using atomic ops header from Blender. */
-#  include "atomic_ops.h"
+#  include "atomic_ops.h"  // IWYU pragma: export
 
 #  define atomic_add_and_fetch_float(p, x) atomic_add_and_fetch_fl((p), (x))
 #  define atomic_compare_and_swap_float(p, old_val, new_val) \

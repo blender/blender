@@ -3,15 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0 */
 
 #include "scene/curves.h"
-#include "device/device.h"
-#include "scene/mesh.h"
-#include "scene/object.h"
-#include "scene/scene.h"
 
 #include "util/foreach.h"
-#include "util/map.h"
-#include "util/progress.h"
-#include "util/vector.h"
+#include "util/math.h"
 
 CCL_NAMESPACE_BEGIN
 

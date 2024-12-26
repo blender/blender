@@ -23,7 +23,8 @@ ccl_device float2 sample_uniform_disk(const float2 rand)
   if (a == 0.0f && b == 0.0f) {
     return zero_float2();
   }
-  else if (a * a > b * b) {
+
+  if (a * a > b * b) {
     r = a;
     phi = M_PI_4_F * (b / a);
   }

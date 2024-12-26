@@ -4,9 +4,19 @@
 
 #ifdef WITH_METAL
 
-#  include "device/metal/kernel.h"
+#  include <algorithm>
+#  include <atomic>
+#  include <chrono>
+#  include <deque>
+#  include <thread>
+#  include <vector>
+
 #  include "device/metal/device_impl.h"
+#  include "device/metal/kernel.h"
+
 #  include "kernel/device/metal/function_constants.h"
+
+#  include "util/debug.h"
 #  include "util/md5.h"
 #  include "util/path.h"
 #  include "util/tbb.h"
@@ -310,7 +320,7 @@ void ShaderCache::load_kernel(DeviceKernel device_kernel,
 
       metal_printf("Spawning %d Cycles kernel compilation threads\n", max_mtlcompiler_threads);
       for (int i = 0; i < max_mtlcompiler_threads; i++) {
-        compile_threads.push_back(std::thread([this] { this->compile_thread_func(); }));
+        compile_threads.emplace_back([this] { this->compile_thread_func(); });
       }
     }
   }
@@ -393,7 +403,7 @@ bool MetalKernelPipeline::should_use_binary_archive() const
 {
   /* Issues with binary archives in older macOS versions. */
   if (@available(macOS 13.0, *)) {
-    if (auto str = getenv("CYCLES_METAL_DISABLE_BINARY_ARCHIVES")) {
+    if (auto *str = getenv("CYCLES_METAL_DISABLE_BINARY_ARCHIVES")) {
       if (atoi(str) != 0) {
         /* Don't archive if we have opted out by env var. */
         return false;
@@ -758,7 +768,7 @@ void MetalKernelPipeline::compile()
       metal_printf(
           "newComputePipelineStateWithDescriptor failed for \"%s\"%s. "
           "Error:\n%s\n",
-          device_kernel_as_string((DeviceKernel)device_kernel),
+          device_kernel_as_string(device_kernel),
           (archive && !recreate_archive) ? " Archive may be incomplete or corrupt - attempting "
                                            "recreation.." :
                                            "",
@@ -786,7 +796,7 @@ void MetalKernelPipeline::compile()
     metal_printf("%16s | %2d | %-55s | %7.2fs | FAILED!\n",
                  kernel_type_as_string(pso_type),
                  device_kernel,
-                 device_kernel_as_string((DeviceKernel)device_kernel),
+                 device_kernel_as_string(device_kernel),
                  duration);
     return;
   }
@@ -826,7 +836,7 @@ void MetalKernelPipeline::compile()
     metal_printf("%16s | %2d | %-55s | %7.2fs | %s: %s\n",
                  kernel_type_as_string(pso_type),
                  device_kernel,
-                 device_kernel_as_string((DeviceKernel)device_kernel),
+                 device_kernel_as_string(device_kernel),
                  duration,
                  creating_new_archive ? " new" : "load",
                  metalbin_name.c_str());
@@ -835,7 +845,7 @@ void MetalKernelPipeline::compile()
 
 bool MetalDeviceKernels::load(MetalDevice *device, MetalPipelineType pso_type)
 {
-  auto shader_cache = get_shader_cache(device->mtlDevice);
+  auto *shader_cache = get_shader_cache(device->mtlDevice);
   for (int i = 0; i < DEVICE_KERNEL_NUM; i++) {
     shader_cache->load_kernel((DeviceKernel)i, device, pso_type);
   }
@@ -863,7 +873,7 @@ int MetalDeviceKernels::num_incomplete_specialization_requests()
 int MetalDeviceKernels::get_loaded_kernel_count(MetalDevice const *device,
                                                 MetalPipelineType pso_type)
 {
-  auto shader_cache = get_shader_cache(device->mtlDevice);
+  auto *shader_cache = get_shader_cache(device->mtlDevice);
   int loaded_count = DEVICE_KERNEL_NUM;
   for (int i = 0; i < DEVICE_KERNEL_NUM; i++) {
     if (shader_cache->should_load_kernel((DeviceKernel)i, device, pso_type)) {

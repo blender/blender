@@ -19,9 +19,11 @@ CCL_NAMESPACE_BEGIN
 
 /* DiagSplit */
 
-#define DSPLIT_NON_UNIFORM -1
-#define STITCH_NGON_CENTER_VERT_INDEX_OFFSET 0x60000000
-#define STITCH_NGON_SPLIT_EDGE_CENTER_VERT_TAG (0x60000000 - 1)
+enum {
+  DSPLIT_NON_UNIFORM = -1,
+  STITCH_NGON_CENTER_VERT_INDEX_OFFSET = 0x60000000,
+  STITCH_NGON_SPLIT_EDGE_CENTER_VERT_TAG = (0x60000000 - 1)
+};
 
 DiagSplit::DiagSplit(const SubdParams &params_) : params(params_) {}
 
@@ -614,7 +616,7 @@ void DiagSplit::post_split()
       return hash_uint2(k.first, k.second);
     }
   };
-  typedef unordered_map<pair<int, int>, int, pair_hasher> edge_stitch_verts_map_t;
+  using edge_stitch_verts_map_t = unordered_map<pair<int, int>, int, pair_hasher>;
   edge_stitch_verts_map_t edge_stitch_verts_map;
 
   foreach (Edge &edge, edges) {

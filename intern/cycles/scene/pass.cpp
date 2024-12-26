@@ -4,7 +4,6 @@
 
 #include "scene/pass.h"
 
-#include "util/algorithm.h"
 #include "util/log.h"
 
 CCL_NAMESPACE_BEGIN
@@ -419,9 +418,7 @@ int Pass::get_offset(const vector<Pass *> &passes, const Pass *pass)
       if (current_pass->is_written()) {
         return pass_offset;
       }
-      else {
-        return PASS_UNUSED;
-      }
+      return PASS_UNUSED;
     }
     if (current_pass->is_written()) {
       pass_offset += current_pass->get_info().num_components;

@@ -4,6 +4,7 @@
 
 #include "RNA_types.hh"
 #include "scene/background.h"
+#include "scene/bake.h"
 #include "scene/camera.h"
 #include "scene/curves.h"
 #include "scene/film.h"
@@ -62,8 +63,8 @@ BlenderSync::BlenderSync(BL::RenderEngine &b_engine,
       use_developer_ui(use_developer_ui),
       dicing_rate(1.0f),
       max_subdivisions(12),
-      progress(progress),
-      has_updates_(true)
+      progress(progress)
+
 {
   PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
   dicing_rate = preview ? RNA_float_get(&cscene, "preview_dicing_rate") :
@@ -71,7 +72,7 @@ BlenderSync::BlenderSync(BL::RenderEngine &b_engine,
   max_subdivisions = RNA_int_get(&cscene, "max_subdivisions");
 }
 
-BlenderSync::~BlenderSync() {}
+BlenderSync::~BlenderSync() = default;
 
 void BlenderSync::reset(BL::BlendData &b_data, BL::Scene &b_scene)
 {

@@ -4,13 +4,10 @@
 
 #pragma once
 
-#include "MEM_guardedalloc.h"
-
 #include "RNA_blender_cpp.hh"
 
 #include "device/device.h"
 
-#include "scene/bake.h"
 #include "scene/scene.h"
 #include "session/session.h"
 
@@ -52,10 +49,10 @@ class BlenderSession {
 
   void render_frame_finish();
 
-  void bake(BL::Depsgraph &b_depsgrah,
+  void bake(BL::Depsgraph &b_depsgraph_,
             BL::Object &b_object,
-            const string &pass_type,
-            const int custom_flag,
+            const string &bake_type,
+            const int bake_filter,
             const int bake_width,
             const int bake_height);
 

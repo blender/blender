@@ -16,7 +16,6 @@
 #include "util/array.h"
 #include "util/boundbox.h"
 #include "util/param.h"
-#include "util/thread.h"
 #include "util/transform.h"
 #include "util/types.h"
 #include "util/vector.h"
@@ -79,7 +78,7 @@ class Object : public Node {
   bool intersects_volume;
 
   Object();
-  ~Object();
+  ~Object() override;
 
   void tag_update(Scene *scene);
 

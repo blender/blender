@@ -25,7 +25,7 @@ struct OrientationBounds {
   float theta_o; /* angle bounding the normals */
   float theta_e; /* angle bounding the light emissions */
 
-  __forceinline OrientationBounds() {}
+  __forceinline OrientationBounds() = default;
 
   __forceinline OrientationBounds(const float3 &axis_, float theta_o_, float theta_e_)
       : axis(axis_), theta_o(theta_o_), theta_e(theta_e_)
@@ -37,7 +37,7 @@ struct OrientationBounds {
   /* If the orientation bound is set to empty, the values are set to minimums
    * so that merging it with another non-empty orientation bound guarantees that
    * the return value is equal to non-empty orientation bound. */
-  __forceinline OrientationBounds(empty_t)
+  __forceinline OrientationBounds(empty_t /*unused*/)
       : axis(make_float3(0, 0, 0)), theta_o(FLT_MIN), theta_e(FLT_MIN)
   {
   }
@@ -69,7 +69,7 @@ struct LightTreeMeasure {
 
   __forceinline LightTreeMeasure() = default;
 
-  __forceinline LightTreeMeasure(empty_t) {}
+  __forceinline LightTreeMeasure(empty_t /*unused*/) {}
 
   __forceinline LightTreeMeasure(const BoundBox &bbox,
                                  const OrientationBounds &bcone,
@@ -79,9 +79,8 @@ struct LightTreeMeasure {
   }
 
   __forceinline LightTreeMeasure(const LightTreeMeasure &other)
-      : bbox(other.bbox), bcone(other.bcone), energy(other.energy)
-  {
-  }
+
+      = default;
 
   __forceinline bool is_zero() const
   {
@@ -191,7 +190,7 @@ struct LightTreeEmitter {
   LightTreeMeasure measure;
 
   LightTreeEmitter(Object *object, int object_id); /* Mesh emitter. */
-  LightTreeEmitter(Scene *scene, int prim_id, int object_id, bool with_transformation = false);
+  LightTreeEmitter(Scene *scene, int prim_id, int object_id, bool need_transformation = false);
 
   __forceinline bool is_mesh() const
   {

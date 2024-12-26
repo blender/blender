@@ -13,12 +13,12 @@
 
 CCL_NAMESPACE_BEGIN
 
-typedef struct ToonBsdf {
+struct ToonBsdf {
   SHADER_CLOSURE_BASE;
 
   float size;
   float smooth;
-} ToonBsdf;
+};
 
 static_assert(sizeof(ShaderClosure) >= sizeof(ToonBsdf), "ToonBsdf is too large!");
 

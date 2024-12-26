@@ -81,7 +81,7 @@ ccl_device float phase_draine(float cos_theta, float g, float alpha)
   if (fabsf(g) < 1e-3f && alpha > 0.999f) {
     return phase_rayleigh(cos_theta);
   }
-  else if (fabsf(alpha) < 1e-3f) {
+  if (fabsf(alpha) < 1e-3f) {
     return phase_henyey_greenstein(cos_theta, g);
   }
 
@@ -127,7 +127,7 @@ phase_draine_sample(float3 D, float g, float alpha, float2 rand, ccl_private flo
   if (fabsf(g) < 1e-3f && alpha > 0.999f) {
     return phase_rayleigh_sample(D, rand, pdf);
   }
-  else if (fabsf(alpha) < 1e-3f) {
+  if (fabsf(alpha) < 1e-3f) {
     return phase_henyey_greenstein_sample(D, g, rand, pdf);
   }
 

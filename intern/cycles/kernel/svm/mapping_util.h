@@ -4,7 +4,11 @@
 
 #pragma once
 
-#include "kernel/svm/util.h"
+#include "kernel/svm/types.h"
+
+#include "util/math.h"
+#include "util/transform.h"
+#include "util/types.h"
 
 CCL_NAMESPACE_BEGIN
 

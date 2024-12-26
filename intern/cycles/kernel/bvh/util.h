@@ -88,12 +88,13 @@ ccl_device int intersections_compare(const void *a, const void *b)
   const Intersection *isect_a = (const Intersection *)a;
   const Intersection *isect_b = (const Intersection *)b;
 
-  if (isect_a->t < isect_b->t)
+  if (isect_a->t < isect_b->t) {
     return -1;
-  else if (isect_a->t > isect_b->t)
+  }
+  if (isect_a->t > isect_b->t) {
     return 1;
-  else
-    return 0;
+  }
+  return 0;
 }
 #endif
 
@@ -195,10 +196,8 @@ ccl_device_inline int intersection_find_attribute(KernelGlobals kg,
       if (UNLIKELY(attr_map.element == 0)) {
         return (int)ATTR_STD_NOT_FOUND;
       }
-      else {
-        /* Chain jump to a different part of the table. */
-        attr_offset = attr_map.offset;
-      }
+      /* Chain jump to a different part of the table. */
+      attr_offset = attr_map.offset;
     }
     else {
       attr_offset += ATTR_PRIM_TYPES;
@@ -207,7 +206,7 @@ ccl_device_inline int intersection_find_attribute(KernelGlobals kg,
   }
 
   /* return result */
-  return (attr_map.element == ATTR_ELEMENT_NONE) ? (int)ATTR_STD_NOT_FOUND : (int)attr_map.offset;
+  return (attr_map.element == ATTR_ELEMENT_NONE) ? (int)ATTR_STD_NOT_FOUND : attr_map.offset;
 }
 
 /* Transparent Shadows */

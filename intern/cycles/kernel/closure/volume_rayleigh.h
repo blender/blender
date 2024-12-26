@@ -12,9 +12,9 @@ CCL_NAMESPACE_BEGIN
 
 /* RAYLEIGH CLOSURE */
 
-typedef struct RayleighVolume {
+struct RayleighVolume {
   SHADER_CLOSURE_VOLUME_BASE;
-} RayleighVolume;
+};
 static_assert(sizeof(ShaderVolumeClosure) >= sizeof(RayleighVolume),
               "RayleighVolume is too large!");
 

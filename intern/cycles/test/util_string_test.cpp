@@ -110,14 +110,14 @@ TEST(util_string_split, multiple_spaces)
 
 TEST(util_string_replace, empty_haystack_and_other)
 {
-  string str = "";
+  string str;
   string_replace(str, "x", "");
   EXPECT_EQ(str, "");
 }
 
 TEST(util_string_replace, empty_haystack)
 {
-  string str = "";
+  string str;
   string_replace(str, "x", "y");
   EXPECT_EQ(str, "");
 }

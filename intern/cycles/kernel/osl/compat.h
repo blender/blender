@@ -18,8 +18,8 @@ static inline OSL::ustring to_ustring(OSLUStringHash h)
 }
 
 #else
-typedef OSL::ustring OSLUStringHash;
-typedef OSL::ustring OSLUStringRep;
+using OSLUStringHash = OSL::ustring;
+using OSLUStringRep = OSL::ustring;
 
 static inline OSL::ustring to_ustring(OSLUStringHash h)
 {

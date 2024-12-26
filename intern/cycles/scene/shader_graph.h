@@ -13,6 +13,7 @@
 #include "util/map.h"
 #include "util/param.h"
 #include "util/set.h"
+#include "util/string.h"
 #include "util/types.h"
 #include "util/vector.h"
 
@@ -66,11 +67,8 @@ enum ShaderNodeSpecialType {
 class ShaderInput {
  public:
   ShaderInput(const SocketType &socket_type_, ShaderNode *parent_)
-      : socket_type(socket_type_),
-        parent(parent_),
-        link(nullptr),
-        stack_offset(SVM_STACK_INVALID),
-        constant_folded_in(false)
+      : socket_type(socket_type_), parent(parent_)
+
   {
   }
 
@@ -104,12 +102,12 @@ class ShaderInput {
 
   const SocketType &socket_type;
   ShaderNode *parent;
-  ShaderOutput *link;
-  int stack_offset; /* for SVM compiler */
+  ShaderOutput *link = nullptr;
+  int stack_offset = SVM_STACK_INVALID; /* for SVM compiler */
 
   /* Keeps track of whether a constant was folded in this socket, to avoid over-optimizing when the
    * link is null. */
-  bool constant_folded_in;
+  bool constant_folded_in = false;
 };
 
 /* Output
@@ -119,7 +117,7 @@ class ShaderInput {
 class ShaderOutput {
  public:
   ShaderOutput(const SocketType &socket_type_, ShaderNode *parent_)
-      : socket_type(socket_type_), parent(parent_), stack_offset(SVM_STACK_INVALID)
+      : socket_type(socket_type_), parent(parent_)
   {
   }
 
@@ -137,7 +135,7 @@ class ShaderOutput {
   const SocketType &socket_type;
   ShaderNode *parent;
   vector<ShaderInput *> links;
-  int stack_offset; /* for SVM compiler */
+  int stack_offset = SVM_STACK_INVALID; /* for SVM compiler */
 };
 
 /* Node
@@ -148,7 +146,7 @@ class ShaderOutput {
 class ShaderNode : public Node {
  public:
   explicit ShaderNode(const NodeType *type);
-  virtual ~ShaderNode();
+  ~ShaderNode() override;
 
   void create_inputs_outputs(const NodeType *type);
   void remove_input(ShaderInput *input);
@@ -253,26 +251,26 @@ class ShaderNode : public Node {
 #define SHADER_NODE_CLASS(type) \
   NODE_DECLARE \
   type(); \
-  virtual ShaderNode *clone(ShaderGraph *graph) const \
+  ShaderNode *clone(ShaderGraph *graph) const override \
   { \
     return graph->create_node<type>(*this); \
   } \
-  virtual void compile(SVMCompiler &compiler); \
-  virtual void compile(OSLCompiler &compiler);
+  void compile(SVMCompiler &compiler) override; \
+  void compile(OSLCompiler &compiler) override;
 
 #define SHADER_NODE_NO_CLONE_CLASS(type) \
   NODE_DECLARE \
   type(); \
-  virtual void compile(SVMCompiler &compiler); \
-  virtual void compile(OSLCompiler &compiler);
+  void compile(SVMCompiler &compiler) override; \
+  void compile(OSLCompiler &compiler) override;
 
 #define SHADER_NODE_BASE_CLASS(type) \
-  virtual ShaderNode *clone(ShaderGraph *graph) const \
+  ShaderNode *clone(ShaderGraph *graph) const override \
   { \
     return graph->create_node<type>(*this); \
   } \
-  virtual void compile(SVMCompiler &compiler); \
-  virtual void compile(OSLCompiler &compiler);
+  void compile(SVMCompiler &compiler) override; \
+  void compile(OSLCompiler &compiler) override;
 
 class ShaderNodeIDComparator {
  public:
@@ -282,8 +280,8 @@ class ShaderNodeIDComparator {
   }
 };
 
-typedef set<ShaderNode *, ShaderNodeIDComparator> ShaderNodeSet;
-typedef map<ShaderNode *, ShaderNode *, ShaderNodeIDComparator> ShaderNodeMap;
+using ShaderNodeSet = set<ShaderNode *, ShaderNodeIDComparator>;
+using ShaderNodeMap = map<ShaderNode *, ShaderNode *, ShaderNodeIDComparator>;
 
 /* Graph
  *
@@ -299,7 +297,7 @@ class ShaderGraph : public NodeOwner {
   string displacement_hash;
 
   ShaderGraph();
-  ~ShaderGraph();
+  ~ShaderGraph() override;
 
   ShaderNode *add(ShaderNode *node);
   OutputNode *output();
@@ -330,8 +328,7 @@ class ShaderGraph : public NodeOwner {
     return node;
   }
 
-  /* This function is used to delete a node created and owned by the graph.
-   */
+  /* This function is used to delete a node created and owned by the graph. */
   template<typename T> void delete_node(T *node)
   {
     assert(node->get_owner() == this);
@@ -339,7 +336,7 @@ class ShaderGraph : public NodeOwner {
   }
 
  protected:
-  typedef pair<ShaderNode *const, ShaderNode *> NodePair;
+  using NodePair = pair<ShaderNode *const, ShaderNode *>;
 
   void find_dependencies(ShaderNodeSet &dependencies, ShaderInput *input);
   void clear_nodes();

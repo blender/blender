@@ -4,13 +4,15 @@
 
 #pragma once
 
-#include <string.h>
+#include <cstring>
 
 #include "scene/geometry.h"
 #include "scene/scene.h"
 
 #include "util/map.h"
 #include "util/set.h"
+
+#include "RNA_blender_cpp.hh"
 
 CCL_NAMESPACE_BEGIN
 
@@ -149,7 +151,7 @@ template<typename K, typename T, typename Flags = uint> class id_map {
   void post_sync(bool do_delete = true)
   {
     map<K, T *> new_map;
-    typedef pair<const K, T *> TMapPair;
+    using TMapPair = pair<const K, T *>;
     typename map<K, T *>::iterator jt;
 
     for (jt = b_map.begin(); jt != b_map.end(); jt++) {
@@ -234,15 +236,15 @@ struct ObjectKey {
     if (ob < k.ob) {
       return true;
     }
-    else if (ob == k.ob) {
+    if (ob == k.ob) {
       if (parent < k.parent) {
         return true;
       }
-      else if (parent == k.parent) {
+      if (parent == k.parent) {
         if (use_particle_hair < k.use_particle_hair) {
           return true;
         }
-        else if (use_particle_hair == k.use_particle_hair) {
+        if (use_particle_hair == k.use_particle_hair) {
           return memcmp(id, k.id, sizeof(id)) < 0;
         }
       }
@@ -268,7 +270,7 @@ struct GeometryKey {
     if (id < k.id) {
       return true;
     }
-    else if (id == k.id) {
+    if (id == k.id) {
       if (geometry_type < k.geometry_type) {
         return true;
       }
@@ -300,7 +302,7 @@ struct ParticleSystemKey {
     if (ob < k.ob) {
       return true;
     }
-    else if (ob == k.ob) {
+    if (ob == k.ob) {
       return memcmp(id + 1, k.id + 1, sizeof(int) * (OBJECT_PERSISTENT_ID_SIZE - 1)) < 0;
     }
 

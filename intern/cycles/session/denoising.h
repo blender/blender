@@ -8,7 +8,10 @@
  * parameters. Currently it is an annoying mixture of terms used interchangeably. */
 
 #include "device/device.h"
+
 #include "integrator/denoiser.h"
+
+#include "session/buffers.h"
 
 #include "util/string.h"
 #include "util/unique_ptr.h"

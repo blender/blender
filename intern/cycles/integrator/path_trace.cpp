@@ -6,16 +6,18 @@
 
 #include "device/cpu/device.h"
 #include "device/device.h"
+
 #include "integrator/pass_accessor.h"
 #include "integrator/path_trace_display.h"
 #include "integrator/path_trace_tile.h"
 #include "integrator/render_scheduler.h"
+
 #include "scene/pass.h"
 #include "scene/scene.h"
+
 #include "session/tile.h"
-#include "util/algorithm.h"
+
 #include "util/log.h"
-#include "util/math.h"
 #include "util/progress.h"
 #include "util/tbb.h"
 #include "util/time.h"
@@ -1006,11 +1008,11 @@ static string get_layer_view_name(const RenderBuffers &buffers)
 {
   string result;
 
-  if (buffers.params.layer.size()) {
+  if (!buffers.params.layer.empty()) {
     result += string(buffers.params.layer);
   }
 
-  if (buffers.params.view.size()) {
+  if (!buffers.params.view.empty()) {
     if (!result.empty()) {
       result += ", ";
     }

@@ -5,8 +5,6 @@
 
 #include "hydra/attribute.h"
 #include "scene/attribute.h"
-#include "scene/geometry.h"
-#include "scene/scene.h"
 
 #include <pxr/base/gf/vec2f.h>
 #include <pxr/base/gf/vec3f.h>

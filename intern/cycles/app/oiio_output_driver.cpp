@@ -6,6 +6,9 @@
 
 #include "scene/colorspace.h"
 
+#include "util/image.h"
+#include "util/unique_ptr.h"
+
 #include <OpenImageIO/imagebuf.h>
 #include <OpenImageIO/imagebufalgo.h>
 
@@ -18,7 +21,7 @@ OIIOOutputDriver::OIIOOutputDriver(const string_view filepath,
 {
 }
 
-OIIOOutputDriver::~OIIOOutputDriver() {}
+OIIOOutputDriver::~OIIOOutputDriver() = default;
 
 void OIIOOutputDriver::write_render_tile(const Tile &tile)
 {

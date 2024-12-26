@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include <pxr/pxr.h>
+#include <pxr/pxr.h>  // IWYU pragma: export
 
 #define CCL_NS ccl
 #define CCL_NAMESPACE_USING_DIRECTIVE using namespace CCL_NS;

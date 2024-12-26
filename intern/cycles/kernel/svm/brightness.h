@@ -21,8 +21,9 @@ ccl_device_noinline void svm_node_brightness(
 
   color = svm_brightness_contrast(color, brightness, contrast);
 
-  if (stack_valid(out_color))
+  if (stack_valid(out_color)) {
     stack_store_float3(stack, out_color, color);
+  }
 }
 
 CCL_NAMESPACE_END

@@ -30,9 +30,7 @@ ccl_device_inline uint attribute_primitive_type(KernelGlobals kg, int prim, int 
   if ((type & PRIMITIVE_TRIANGLE) && subd_triangle_patch(kg, prim) != ~0) {
     return ATTR_PRIM_SUBD;
   }
-  else {
-    return ATTR_PRIM_GEOMETRY;
-  }
+  return ATTR_PRIM_GEOMETRY;
 }
 
 ccl_device_inline AttributeDescriptor attribute_not_found()
@@ -66,10 +64,8 @@ find_attribute(KernelGlobals kg, int object, int prim, int type, uint64_t id)
       if (UNLIKELY(attr_map.element == 0)) {
         return attribute_not_found();
       }
-      else {
-        /* Chain jump to a different part of the table. */
-        attr_offset = attr_map.offset;
-      }
+      /* Chain jump to a different part of the table. */
+      attr_offset = attr_map.offset;
     }
     else {
       attr_offset += ATTR_PRIM_TYPES;
@@ -88,7 +84,7 @@ find_attribute(KernelGlobals kg, int object, int prim, int type, uint64_t id)
 
   /* return result */
   desc.offset = (attr_map.element == ATTR_ELEMENT_NONE) ? (int)ATTR_STD_NOT_FOUND :
-                                                          (int)attr_map.offset;
+                                                          attr_map.offset;
   desc.type = (NodeAttributeType)attr_map.type;
   desc.flags = (AttributeFlag)attr_map.flags;
 

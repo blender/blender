@@ -7,8 +7,6 @@
 
 #pragma once
 
-#include <cstddef>
-
 CCL_NAMESPACE_BEGIN
 
 class BVHReference;

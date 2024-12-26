@@ -7,12 +7,17 @@
 
 #pragma once
 
-#include "util/types.h"
+#include "util/defines.h"
+#include "util/types_base.h"
+
+#ifndef __KERNEL_GPU__
+#  include <climits>
+#endif
 
 CCL_NAMESPACE_BEGIN
 
 #define NANOVDB_USE_SINGLE_ROOT_KEY
-#define NANOVDB_DATA_ALIGNMENT 32
+#define NANOVDB_DATA_ALIGNMENT 32  // NOLINT
 
 namespace nanovdb {
 
@@ -360,19 +365,14 @@ template<typename BuildT> class CachedReadAccessor {
   using LowerT = NanoLower<BuildT>;
   using LeafT = NanoLeaf<BuildT>;
 
-  mutable Coord mKeys[3];
-  mutable ccl_global const RootT *mRoot;
-  mutable ccl_global const void *mNode[3];
+  mutable Coord mKeys[3] = {Coord(INT_MAX), Coord(INT_MAX), Coord(INT_MAX)};
+  mutable ccl_global const RootT *mRoot = nullptr;
+  mutable ccl_global const void *mNode[3] = {nullptr, nullptr, nullptr};
 
  public:
   using ValueType = typename RootT::ValueType;
 
-  ccl_device_inline_method CachedReadAccessor(ccl_global const RootT &root)
-      : mKeys{Coord(INT_MAX), Coord(INT_MAX), Coord(INT_MAX)},
-        mRoot(&root),
-        mNode{nullptr, nullptr, nullptr}
-  {
-  }
+  ccl_device_inline_method CachedReadAccessor(ccl_global const RootT &root) : mRoot(&root) {}
 
   template<typename NodeT> ccl_device_inline_method bool isCached(const Coord ijk) const
   {
@@ -419,10 +419,10 @@ template<typename BuildT> class CachedReadAccessor {
     if (isCached<LeafT>(ijk)) {
       return getValueAndCache(*((ccl_global const LeafT *)mNode[0]), ijk);
     }
-    else if (isCached<LowerT>(ijk)) {
+    if (isCached<LowerT>(ijk)) {
       return getValueAndCache(*((ccl_global const LowerT *)mNode[1]), ijk);
     }
-    else if (isCached<UpperT>(ijk)) {
+    if (isCached<UpperT>(ijk)) {
       return getValueAndCache(*((ccl_global const UpperT *)mNode[2]), ijk);
     }
     return getValueAndCache(*mRoot, ijk);

@@ -31,26 +31,24 @@ class PathTraceWorkCPU : public PathTraceWork {
   PathTraceWorkCPU(Device *device,
                    Film *film,
                    DeviceScene *device_scene,
-                   bool *cancel_requested_flag);
+                   const bool *cancel_requested_flag);
 
-  virtual void init_execution() override;
+  void init_execution() override;
 
-  virtual void render_samples(RenderStatistics &statistics,
-                              int start_sample,
-                              int samples_num,
-                              int sample_offset) override;
+  void render_samples(RenderStatistics &statistics,
+                      int start_sample,
+                      int samples_num,
+                      int sample_offset) override;
 
-  virtual void copy_to_display(PathTraceDisplay *display,
-                               PassMode pass_mode,
-                               int num_samples) override;
-  virtual void destroy_gpu_resources(PathTraceDisplay *display) override;
+  void copy_to_display(PathTraceDisplay *display, PassMode pass_mode, int num_samples) override;
+  void destroy_gpu_resources(PathTraceDisplay *display) override;
 
-  virtual bool copy_render_buffers_from_device() override;
-  virtual bool copy_render_buffers_to_device() override;
-  virtual bool zero_render_buffers() override;
+  bool copy_render_buffers_from_device() override;
+  bool copy_render_buffers_to_device() override;
+  bool zero_render_buffers() override;
 
-  virtual int adaptive_sampling_converge_filter_count_active(float threshold, bool reset) override;
-  virtual void cryptomatte_postproces() override;
+  int adaptive_sampling_converge_filter_count_active(float threshold, bool reset) override;
+  void cryptomatte_postproces() override;
 
 #ifdef WITH_PATH_GUIDING
   /* Initializes the per-thread guiding kernel data. The function sets the pointers to the
@@ -63,9 +61,10 @@ class PathTraceWorkCPU : public PathTraceWork {
 
   /* Pushes the collected training data/samples of a path to the global sample storage.
    * This function is called at the end of a random walk/path generation. */
-  void guiding_push_sample_data_to_global_storage(KernelGlobalsCPU *kernel_globals,
+  void guiding_push_sample_data_to_global_storage(KernelGlobalsCPU *kg,
                                                   IntegratorStateCPU *state,
-                                                  ccl_global float *ccl_restrict render_buffer);
+                                                  ccl_global const float *ccl_restrict
+                                                      render_buffer);
 #endif
 
  protected:

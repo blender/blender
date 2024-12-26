@@ -7,7 +7,6 @@
 
 #include "device/device.h"
 
-#include "scene/hair.h"
 #include "scene/mesh.h"
 #include "scene/object.h"
 #include "scene/scene.h"
@@ -18,7 +17,6 @@
 
 #include "util/foreach.h"
 #include "util/log.h"
-#include "util/progress.h"
 #include "util/set.h"
 
 CCL_NAMESPACE_BEGIN
@@ -424,7 +422,7 @@ void Mesh::copy_center_to_motion_step(const int motion_step)
   if (attr_mP) {
     Attribute *attr_mN = attributes.find(ATTR_STD_MOTION_VERTEX_NORMAL);
     Attribute *attr_N = attributes.find(ATTR_STD_VERTEX_NORMAL);
-    float3 *P = &verts[0];
+    float3 *P = verts.data();
     float3 *N = (attr_N) ? attr_N->data_float3() : nullptr;
     size_t numverts = verts.size();
 

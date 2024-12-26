@@ -45,8 +45,9 @@ ccl_device_noinline void svm_node_hsv(KernelGlobals kg,
   color.y = max(color.y, 0.0f);
   color.z = max(color.z, 0.0f);
 
-  if (stack_valid(out_color_offset))
+  if (stack_valid(out_color_offset)) {
     stack_store_float3(stack, out_color_offset, color);
+  }
 }
 
 CCL_NAMESPACE_END

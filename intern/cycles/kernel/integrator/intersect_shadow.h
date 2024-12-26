@@ -69,12 +69,13 @@ ccl_device int shadow_intersections_compare(const void *a, const void *b)
   const Intersection *isect_a = (const Intersection *)a;
   const Intersection *isect_b = (const Intersection *)b;
 
-  if (isect_a->t < isect_b->t)
+  if (isect_a->t < isect_b->t) {
     return -1;
-  else if (isect_a->t > isect_b->t)
+  }
+  if (isect_a->t > isect_b->t) {
     return 1;
-  else
-    return 0;
+  }
+  return 0;
 }
 #  endif
 
@@ -133,7 +134,8 @@ ccl_device bool integrate_intersect_shadow_transparent(KernelGlobals kg,
   }
 
   if (!opaque_hit) {
-    const uint num_recorded_hits = min(num_hits, min(max_hits, INTEGRATOR_SHADOW_ISECT_SIZE));
+    const uint num_recorded_hits = min(num_hits,
+                                       min(max_hits, (uint)INTEGRATOR_SHADOW_ISECT_SIZE));
 
     if (num_recorded_hits > 0) {
       sort_shadow_intersections(state, num_recorded_hits);
@@ -175,18 +177,14 @@ ccl_device void integrator_intersect_shadow(KernelGlobals kg, IntegratorShadowSt
     integrator_shadow_path_terminate(kg, state, DEVICE_KERNEL_INTEGRATOR_INTERSECT_SHADOW);
     return;
   }
-  else {
-    /* Hit nothing or transparent surfaces, continue to shadow kernel
-     * for shading and render buffer output.
-     *
-     * TODO: could also write to render buffer directly if no transparent shadows?
-     * Could save a kernel execution for the common case. */
-    integrator_shadow_path_next(kg,
-                                state,
-                                DEVICE_KERNEL_INTEGRATOR_INTERSECT_SHADOW,
-                                DEVICE_KERNEL_INTEGRATOR_SHADE_SHADOW);
-    return;
-  }
+
+  /* Hit nothing or transparent surfaces, continue to shadow kernel
+   * for shading and render buffer output.
+   *
+   * TODO: could also write to render buffer directly if no transparent shadows?
+   * Could save a kernel execution for the common case. */
+  integrator_shadow_path_next(
+      kg, state, DEVICE_KERNEL_INTEGRATOR_INTERSECT_SHADOW, DEVICE_KERNEL_INTEGRATOR_SHADE_SHADOW);
 }
 
 CCL_NAMESPACE_END

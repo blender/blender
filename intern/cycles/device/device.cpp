@@ -2,8 +2,8 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 
 #include "bvh/bvh2.h"
 
@@ -15,20 +15,21 @@
 #include "device/cuda/device.h"
 #include "device/dummy/device.h"
 #include "device/hip/device.h"
-#include "device/hiprt/device_impl.h"
 #include "device/metal/device.h"
 #include "device/multi/device.h"
 #include "device/oneapi/device.h"
 #include "device/optix/device.h"
 
+#ifdef WITH_HIPRT
+#  include <hiprtew.h>
+#endif
+
 #include "util/foreach.h"
-#include "util/half.h"
 #include "util/log.h"
 #include "util/math.h"
 #include "util/string.h"
 #include "util/system.h"
 #include "util/task.h"
-#include "util/time.h"
 #include "util/types.h"
 #include "util/vector.h"
 
@@ -47,7 +48,7 @@ uint Device::devices_initialized_mask = 0;
 
 /* Device */
 
-Device::~Device() noexcept(false) {}
+Device::~Device() noexcept(false) = default;
 
 void Device::build_bvh(BVH *bvh, Progress &progress, bool refit)
 {
@@ -86,22 +87,25 @@ Device *Device::create(const DeviceInfo &info, Stats &stats, Profiler &profiler,
 #endif
 #ifdef WITH_OPTIX
     case DEVICE_OPTIX:
-      if (device_optix_init())
+      if (device_optix_init()) {
         device = device_optix_create(info, stats, profiler, headless);
+      }
       break;
 #endif
 
 #ifdef WITH_HIP
     case DEVICE_HIP:
-      if (device_hip_init())
+      if (device_hip_init()) {
         device = device_hip_create(info, stats, profiler, headless);
+      }
       break;
 #endif
 
 #ifdef WITH_METAL
     case DEVICE_METAL:
-      if (device_metal_init())
+      if (device_metal_init()) {
         device = device_metal_create(info, stats, profiler, headless);
+      }
       break;
 #endif
 
@@ -127,25 +131,25 @@ DeviceType Device::type_from_string(const char *name)
   if (strcmp(name, "CPU") == 0) {
     return DEVICE_CPU;
   }
-  else if (strcmp(name, "CUDA") == 0) {
+  if (strcmp(name, "CUDA") == 0) {
     return DEVICE_CUDA;
   }
-  else if (strcmp(name, "OPTIX") == 0) {
+  if (strcmp(name, "OPTIX") == 0) {
     return DEVICE_OPTIX;
   }
-  else if (strcmp(name, "MULTI") == 0) {
+  if (strcmp(name, "MULTI") == 0) {
     return DEVICE_MULTI;
   }
-  else if (strcmp(name, "HIP") == 0) {
+  if (strcmp(name, "HIP") == 0) {
     return DEVICE_HIP;
   }
-  else if (strcmp(name, "METAL") == 0) {
+  if (strcmp(name, "METAL") == 0) {
     return DEVICE_METAL;
   }
-  else if (strcmp(name, "ONEAPI") == 0) {
+  if (strcmp(name, "ONEAPI") == 0) {
     return DEVICE_ONEAPI;
   }
-  else if (strcmp(name, "HIPRT") == 0) {
+  if (strcmp(name, "HIPRT") == 0) {
     return DEVICE_HIPRT;
   }
 
@@ -157,25 +161,25 @@ string Device::string_from_type(DeviceType type)
   if (type == DEVICE_CPU) {
     return "CPU";
   }
-  else if (type == DEVICE_CUDA) {
+  if (type == DEVICE_CUDA) {
     return "CUDA";
   }
-  else if (type == DEVICE_OPTIX) {
+  if (type == DEVICE_OPTIX) {
     return "OPTIX";
   }
-  else if (type == DEVICE_MULTI) {
+  if (type == DEVICE_MULTI) {
     return "MULTI";
   }
-  else if (type == DEVICE_HIP) {
+  if (type == DEVICE_HIP) {
     return "HIP";
   }
-  else if (type == DEVICE_METAL) {
+  if (type == DEVICE_METAL) {
     return "METAL";
   }
-  else if (type == DEVICE_ONEAPI) {
+  if (type == DEVICE_ONEAPI) {
     return "ONEAPI";
   }
-  else if (type == DEVICE_HIPRT) {
+  if (type == DEVICE_HIPRT) {
     return "HIPRT";
   }
 
@@ -202,8 +206,9 @@ vector<DeviceType> Device::available_types()
   types.push_back(DEVICE_ONEAPI);
 #endif
 #ifdef WITH_HIPRT
-  if (hiprtewInit())
+  if (hiprtewInit()) {
     types.push_back(DEVICE_HIPRT);
+  }
 #endif
   return types;
 }
@@ -312,7 +317,7 @@ DeviceInfo Device::dummy_device(const string &error_msg)
 string Device::device_capabilities(uint mask)
 {
   thread_scoped_lock lock(device_mutex);
-  string capabilities = "";
+  string capabilities;
 
   if (mask & DEVICE_MASK_CPU) {
     capabilities += "\nCPU device capabilities: ";
@@ -374,7 +379,7 @@ DeviceInfo Device::get_multi_device(const vector<DeviceInfo> &subdevices,
                                     int threads,
                                     bool background)
 {
-  assert(subdevices.size() > 0);
+  assert(!subdevices.empty());
 
   if (subdevices.size() == 1) {
     /* No multi device needed. */
@@ -489,7 +494,7 @@ void *Device::get_cpu_osl_memory()
   return nullptr;
 }
 
-GPUDevice::~GPUDevice() noexcept(false) {}
+GPUDevice::~GPUDevice() noexcept(false) = default;
 
 bool GPUDevice::load_texture_info()
 {
@@ -500,9 +505,7 @@ bool GPUDevice::load_texture_info()
     texture_info.copy_to_device();
     return true;
   }
-  else {
-    return false;
-  }
+  return false;
 }
 
 void GPUDevice::init_host_memory(size_t preferred_texture_headroom,
@@ -628,7 +631,7 @@ void GPUDevice::move_textures_to_host(size_t size, bool for_texture)
 
 GPUDevice::Mem *GPUDevice::generic_alloc(device_memory &mem, size_t pitch_padding)
 {
-  void *device_pointer = 0;
+  void *device_pointer = nullptr;
   size_t size = mem.memory_size() + pitch_padding;
 
   bool mem_alloc_result = false;
@@ -666,7 +669,7 @@ GPUDevice::Mem *GPUDevice::generic_alloc(device_memory &mem, size_t pitch_paddin
 
   /* Fall back to mapped host memory if needed and possible. */
 
-  void *shared_pointer = 0;
+  void *shared_pointer = nullptr;
 
   if (!mem_alloc_result && can_map_host && mem.type != MEM_DEVICE_ONLY) {
     if (mem.shared_pointer) {
@@ -678,8 +681,8 @@ GPUDevice::Mem *GPUDevice::generic_alloc(device_memory &mem, size_t pitch_paddin
       /* Allocate host memory ourselves. */
       mem_alloc_result = alloc_host(shared_pointer, size);
 
-      assert((mem_alloc_result && shared_pointer != 0) ||
-             (!mem_alloc_result && shared_pointer == 0));
+      assert((mem_alloc_result && shared_pointer != nullptr) ||
+             (!mem_alloc_result && shared_pointer == nullptr));
     }
 
     if (mem_alloc_result) {
@@ -717,7 +720,7 @@ GPUDevice::Mem *GPUDevice::generic_alloc(device_memory &mem, size_t pitch_paddin
   /* Insert into map of allocations. */
   thread_scoped_lock lock(device_mem_map_mutex);
   Mem *cmem = &device_mem_map[&mem];
-  if (shared_pointer != 0) {
+  if (shared_pointer != nullptr) {
     /* Replace host pointer with our host allocation. Only works if
      * memory layout is the same and has no pitch padding. Also
      * does not work if we move textures to host during a render,
@@ -765,10 +768,10 @@ void GPUDevice::generic_free(device_memory &mem)
         assert(mem.shared_counter > 0);
         if (--mem.shared_counter == 0) {
           if (mem.host_pointer == mem.shared_pointer) {
-            mem.host_pointer = 0;
+            mem.host_pointer = nullptr;
           }
           free_host(mem.shared_pointer);
-          mem.shared_pointer = 0;
+          mem.shared_pointer = nullptr;
         }
       }
       map_host_used -= mem.device_size;

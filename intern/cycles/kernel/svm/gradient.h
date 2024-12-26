@@ -21,34 +21,33 @@ ccl_device float svm_gradient(float3 p, NodeGradientType type)
   if (type == NODE_BLEND_LINEAR) {
     return x;
   }
-  else if (type == NODE_BLEND_QUADRATIC) {
+  if (type == NODE_BLEND_QUADRATIC) {
     float r = fmaxf(x, 0.0f);
     return r * r;
   }
-  else if (type == NODE_BLEND_EASING) {
+  if (type == NODE_BLEND_EASING) {
     float r = fminf(fmaxf(x, 0.0f), 1.0f);
     float t = r * r;
 
     return (3.0f * t - 2.0f * t * r);
   }
-  else if (type == NODE_BLEND_DIAGONAL) {
+  if (type == NODE_BLEND_DIAGONAL) {
     return (x + y) * 0.5f;
   }
-  else if (type == NODE_BLEND_RADIAL) {
+  if (type == NODE_BLEND_RADIAL) {
     return atan2f(y, x) / M_2PI_F + 0.5f;
   }
-  else {
-    /* Bias a little bit for the case where p is a unit length vector,
-     * to get exactly zero instead of a small random value depending
-     * on float precision. */
-    float r = fmaxf(0.999999f - sqrtf(x * x + y * y + z * z), 0.0f);
 
-    if (type == NODE_BLEND_QUADRATIC_SPHERE) {
-      return r * r;
-    }
-    else if (type == NODE_BLEND_SPHERICAL) {
-      return r;
-    }
+  /* Bias a little bit for the case where p is a unit length vector,
+   * to get exactly zero instead of a small random value depending
+   * on float precision. */
+  float r = fmaxf(0.999999f - sqrtf(x * x + y * y + z * z), 0.0f);
+
+  if (type == NODE_BLEND_QUADRATIC_SPHERE) {
+    return r * r;
+  }
+  if (type == NODE_BLEND_SPHERICAL) {
+    return r;
   }
 
   return 0.0f;
@@ -67,10 +66,12 @@ ccl_device_noinline void svm_node_tex_gradient(ccl_private ShaderData *sd,
   float f = svm_gradient(co, (NodeGradientType)type);
   f = saturatef(f);
 
-  if (stack_valid(fac_offset))
+  if (stack_valid(fac_offset)) {
     stack_store_float(stack, fac_offset, f);
-  if (stack_valid(color_offset))
+  }
+  if (stack_valid(color_offset)) {
     stack_store_float3(stack, color_offset, make_float3(f, f, f));
+  }
 }
 
 CCL_NAMESPACE_END

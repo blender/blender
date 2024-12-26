@@ -121,10 +121,12 @@ ccl_device_noinline int svm_node_tex_brick(
     color1 = facm * color1 + tint * color2;
   }
 
-  if (stack_valid(color_offset))
+  if (stack_valid(color_offset)) {
     stack_store_float3(stack, color_offset, color1 * (1.0f - f) + mortar * f);
-  if (stack_valid(fac_offset))
+  }
+  if (stack_valid(fac_offset)) {
     stack_store_float(stack, fac_offset, f);
+  }
   return offset;
 }
 

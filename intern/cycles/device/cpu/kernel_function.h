@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "util/debug.h"
-#include "util/system.h"
+#include "util/debug.h"   // IWYU pragma: keep
+#include "util/system.h"  // IWYU pragma: keep
 
 CCL_NAMESPACE_BEGIN
 
@@ -23,7 +23,7 @@ template<typename FunctionType> class CPUKernelFunction {
     kernel_info_ = get_best_kernel_info(kernel_default, kernel_sse42, kernel_avx2);
   }
 
-  template<typename... Args> inline auto operator()(Args... args) const
+  template<typename... Args> auto operator()(Args... args) const
   {
     assert(kernel_info_.kernel);
 

@@ -128,15 +128,15 @@ class DebugFlags {
   Metal metal;
 
  private:
-  DebugFlags();
+  DebugFlags() = default;
 
  public:
   explicit DebugFlags(DebugFlags const & /*other*/) = delete;
   void operator=(DebugFlags const & /*other*/) = delete;
 };
 
-typedef DebugFlags &DebugFlagsRef;
-typedef const DebugFlags &DebugFlagsConstRef;
+using DebugFlagsRef = DebugFlags &;
+using DebugFlagsConstRef = const DebugFlags &;
 
 inline DebugFlags &DebugFlags()
 {

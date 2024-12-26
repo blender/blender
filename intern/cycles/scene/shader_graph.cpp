@@ -559,7 +559,7 @@ void ShaderGraph::constant_fold(Scene *scene)
     traverse_queue.pop();
     done.insert(node);
     foreach (ShaderOutput *output, node->outputs) {
-      if (output->links.size() == 0) {
+      if (output->links.empty()) {
         continue;
       }
       /* Schedule node which was depending on the value,
@@ -1184,7 +1184,7 @@ int ShaderGraph::get_num_closures()
     if (closure_type == CLOSURE_NONE_ID) {
       continue;
     }
-    else if (CLOSURE_IS_BSSRDF(closure_type)) {
+    if (CLOSURE_IS_BSSRDF(closure_type)) {
       num_closures += 3;
     }
     else if (CLOSURE_IS_BSDF_MULTISCATTER(closure_type)) {
@@ -1231,7 +1231,7 @@ void ShaderGraph::dump_graph(const char *filename)
   foreach (ShaderNode *node, nodes) {
     fprintf(fd, "// NODE: %p\n", node);
     fprintf(fd, "\"%p\" [shape=record,label=\"{", node);
-    if (node->inputs.size()) {
+    if (!node->inputs.empty()) {
       fprintf(fd, "{");
       foreach (ShaderInput *socket, node->inputs) {
         if (socket != node->inputs[0]) {
@@ -1251,7 +1251,7 @@ void ShaderGraph::dump_graph(const char *filename)
     else if (node->bump == SHADER_BUMP_DY) {
       fprintf(fd, " (bump:dy)");
     }
-    if (node->outputs.size()) {
+    if (!node->outputs.empty()) {
       fprintf(fd, "|{");
       foreach (ShaderOutput *socket, node->outputs) {
         if (socket != node->outputs[0]) {

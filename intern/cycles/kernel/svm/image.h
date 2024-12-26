@@ -45,8 +45,11 @@ ccl_device_inline float3 texco_remap_square(float3 co)
   return (co - make_float3(0.5f, 0.5f, 0.5f)) * 2.0f;
 }
 
-ccl_device_noinline int svm_node_tex_image(
-    KernelGlobals kg, ccl_private ShaderData *sd, ccl_private float *stack, uint4 node, int offset)
+ccl_device_noinline int svm_node_tex_image(KernelGlobals kg,
+                                           ccl_private ShaderData * /*sd*/,
+                                           ccl_private float *stack,
+                                           uint4 node,
+                                           int offset)
 {
   uint co_offset, out_offset, alpha_offset, flags;
 
@@ -111,10 +114,12 @@ ccl_device_noinline int svm_node_tex_image(
 
   float4 f = svm_image_texture(kg, id, tex_co.x, tex_co.y, flags);
 
-  if (stack_valid(out_offset))
+  if (stack_valid(out_offset)) {
     stack_store_float3(stack, out_offset, make_float3(f.x, f.y, f.z));
-  if (stack_valid(alpha_offset))
+  }
+  if (stack_valid(alpha_offset)) {
     stack_store_float(stack, alpha_offset, f.w);
+  }
   return offset;
 }
 
@@ -214,14 +219,16 @@ ccl_device_noinline void svm_node_tex_image_box(KernelGlobals kg,
     f += weight.z * svm_image_texture(kg, id, uv.x, uv.y, flags);
   }
 
-  if (stack_valid(out_offset))
+  if (stack_valid(out_offset)) {
     stack_store_float3(stack, out_offset, make_float3(f.x, f.y, f.z));
-  if (stack_valid(alpha_offset))
+  }
+  if (stack_valid(alpha_offset)) {
     stack_store_float(stack, alpha_offset, f.w);
+  }
 }
 
 ccl_device_noinline void svm_node_tex_environment(KernelGlobals kg,
-                                                  ccl_private ShaderData *sd,
+                                                  ccl_private ShaderData * /*sd*/,
                                                   ccl_private float *stack,
                                                   uint4 node)
 {
@@ -236,17 +243,21 @@ ccl_device_noinline void svm_node_tex_environment(KernelGlobals kg,
 
   co = safe_normalize(co);
 
-  if (projection == 0)
+  if (projection == 0) {
     uv = direction_to_equirectangular(co);
-  else
+  }
+  else {
     uv = direction_to_mirrorball(co);
+  }
 
   float4 f = svm_image_texture(kg, id, uv.x, uv.y, flags);
 
-  if (stack_valid(out_offset))
+  if (stack_valid(out_offset)) {
     stack_store_float3(stack, out_offset, make_float3(f.x, f.y, f.z));
-  if (stack_valid(alpha_offset))
+  }
+  if (stack_valid(alpha_offset)) {
     stack_store_float(stack, alpha_offset, f.w);
+  }
 }
 
 CCL_NAMESPACE_END

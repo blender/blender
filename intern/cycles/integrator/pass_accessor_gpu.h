@@ -5,6 +5,7 @@
 #pragma once
 
 #include "integrator/pass_accessor.h"
+
 #include "kernel/types.h"
 
 CCL_NAMESPACE_BEGIN

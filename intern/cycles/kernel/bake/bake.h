@@ -11,6 +11,7 @@
 #include "kernel/integrator/surface_shader.h"
 
 #include "kernel/geom/object.h"
+#include "kernel/geom/shader_data.h"
 
 #include "kernel/util/colorspace.h"
 

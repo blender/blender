@@ -12,7 +12,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Light Sample Result */
 
-typedef struct LightSample {
+struct LightSample {
   float3 P;            /* position on light, or direction for distant light */
   packed_float3 Ng;    /* normal on light */
   float t;             /* distance to light (FLT_MAX for distant light) */
@@ -28,7 +28,7 @@ typedef struct LightSample {
   int group;           /* lightgroup */
   LightType type;      /* type of light */
   int emitter_id;      /* index in the emitter array */
-} LightSample;
+};
 
 /* Utilities */
 
@@ -56,8 +56,9 @@ ccl_device float light_pdf_area_to_solid_angle(const float3 Ng, const float3 I, 
 {
   float cos_pi = dot(Ng, I);
 
-  if (cos_pi <= 0.0f)
+  if (cos_pi <= 0.0f) {
     return 0.0f;
+  }
 
   return t * t / cos_pi;
 }

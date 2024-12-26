@@ -127,7 +127,7 @@ NODE_DEFINE(Film)
 
 Film::Film() : Node(get_node_type()), filter_table_offset_(TABLE_OFFSET_INVALID) {}
 
-Film::~Film() {}
+Film::~Film() = default;
 
 void Film::add_default(Scene *scene)
 {
@@ -240,7 +240,7 @@ void Film::device_update(Device *device, DeviceScene *dscene, Scene *scene)
       assert(pass->get_type() <= PASS_CATEGORY_BAKE_END);
     }
 
-    if (pass->get_lightgroup() != ustring()) {
+    if (!pass->get_lightgroup().empty()) {
       if (!have_lightgroup) {
         kfilm->pass_lightgroup = kfilm->pass_stride;
         have_lightgroup = true;
@@ -432,7 +432,7 @@ int Film::get_aov_offset(Scene *scene, string name, bool &is_color)
         is_color = false;
         return offset_value;
       }
-      else if (pass->get_type() == PASS_AOV_COLOR) {
+      if (pass->get_type() == PASS_AOV_COLOR) {
         is_color = true;
         return offset_color;
       }

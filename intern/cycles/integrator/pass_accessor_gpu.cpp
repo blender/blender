@@ -2,11 +2,11 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
+#include "device/queue.h"
+
 #include "integrator/pass_accessor_gpu.h"
 
-#include "device/queue.h"
 #include "session/buffers.h"
-#include "util/log.h"
 
 CCL_NAMESPACE_BEGIN
 

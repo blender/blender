@@ -594,7 +594,7 @@ ccl_device_forceinline bool integrate_surface_terminate(IntegratorState state,
   if (continuation_probability == 0.0f) {
     return true;
   }
-  else if (continuation_probability != 1.0f) {
+  if (continuation_probability != 1.0f) {
     INTEGRATOR_STATE_WRITE(state, path, throughput) /= continuation_probability;
   }
 

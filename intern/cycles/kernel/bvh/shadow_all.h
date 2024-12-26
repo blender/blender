@@ -257,7 +257,7 @@ ccl_device_inline
                  * so that we can detect this and trace another ray if needed. */
                 ++(*r_num_recorded_hits);
 
-                const uint max_record_hits = min(max_hits, INTEGRATOR_SHADOW_ISECT_SIZE);
+                const uint max_record_hits = min(max_hits, (uint)INTEGRATOR_SHADOW_ISECT_SIZE);
                 if (*r_num_recorded_hits <= max_record_hits || isect.t < tmax_hits) {
                   integrator_state_write_shadow_isect(state, &isect, isect_index);
 

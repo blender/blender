@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include <float.h>
-#include <math.h>
+#include <cfloat>
+#include <cmath>
 
 #include "util/math.h"
 #include "util/transform.h"
@@ -19,7 +19,7 @@ class BoundBox {
  public:
   float3 min, max;
 
-  __forceinline BoundBox() {}
+  __forceinline BoundBox() = default;
 
   __forceinline BoundBox(const float3 &pt) : min(pt), max(pt) {}
 
@@ -27,7 +27,7 @@ class BoundBox {
 
   enum empty_t { empty = 0 };
 
-  __forceinline BoundBox(empty_t)
+  __forceinline BoundBox(empty_t /*unused*/)
       : min(make_float3(FLT_MAX, FLT_MAX, FLT_MAX)), max(make_float3(-FLT_MAX, -FLT_MAX, -FLT_MAX))
   {
   }
@@ -188,12 +188,12 @@ __forceinline BoundBox intersect(const BoundBox &a, const BoundBox &b, const Bou
 
 class BoundBox2D {
  public:
-  float left;
-  float right;
-  float bottom;
-  float top;
+  float left = 0.0f;
+  float right = 1.0f;
+  float bottom = 0.0f;
+  float top = 1.0f;
 
-  BoundBox2D() : left(0.0f), right(1.0f), bottom(0.0f), top(1.0f) {}
+  BoundBox2D() = default;
 
   bool operator==(const BoundBox2D &other) const
   {

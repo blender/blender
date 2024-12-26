@@ -46,7 +46,7 @@ class PathTrace {
   /* Render scheduler is used to report timing information and access things like start/finish
    * sample. */
   PathTrace(Device *device,
-            Device *denoiser_device,
+            Device *denoise_device,
             Film *film,
             DeviceScene *device_scene,
             RenderScheduler &render_scheduler,

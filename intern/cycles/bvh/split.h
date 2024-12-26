@@ -28,7 +28,7 @@ class BVHObjectSplit {
   BoundBox left_bounds;
   BoundBox right_bounds;
 
-  BVHObjectSplit() {}
+  BVHObjectSplit() = default;
   BVHObjectSplit(BVHBuild *builder,
                  BVHSpatialStorage *storage,
                  const BVHRange &range,
@@ -50,9 +50,7 @@ class BVHObjectSplit {
     if (aligned_space_ == nullptr) {
       return prim.bounds();
     }
-    else {
-      return unaligned_heuristic_->compute_aligned_prim_boundbox(prim, *aligned_space_);
-    }
+    return unaligned_heuristic_->compute_aligned_prim_boundbox(prim, *aligned_space_);
   }
 };
 
@@ -148,9 +146,7 @@ class BVHSpatialSplit {
     if (aligned_space_ == nullptr) {
       return prim.bounds();
     }
-    else {
-      return unaligned_heuristic_->compute_aligned_prim_boundbox(prim, *aligned_space_);
-    }
+    return unaligned_heuristic_->compute_aligned_prim_boundbox(prim, *aligned_space_);
   }
 
   __forceinline float3 get_unaligned_point(const float3 &point) const
@@ -158,9 +154,7 @@ class BVHSpatialSplit {
     if (aligned_space_ == nullptr) {
       return point;
     }
-    else {
-      return transform_point(aligned_space_, point);
-    }
+    return transform_point(aligned_space_, point);
   }
 };
 
@@ -179,7 +173,7 @@ class BVHMixedSplit {
 
   BoundBox bounds;
 
-  BVHMixedSplit() {}
+  BVHMixedSplit() = default;
 
   __forceinline BVHMixedSplit(BVHBuild *builder,
                               BVHSpatialStorage *storage,
@@ -225,10 +219,12 @@ class BVHMixedSplit {
                            BVHRange &right,
                            const BVHRange &range)
   {
-    if (builder->params.use_spatial_split && minSAH == spatial.sah)
+    if (builder->params.use_spatial_split && minSAH == spatial.sah) {
       spatial.split(builder, left, right, range);
-    if (!left.size() || !right.size())
+    }
+    if (!left.size() || !right.size()) {
       object.split(left, right, range);
+    }
   }
 };
 

@@ -7,12 +7,13 @@
 #include "util/image.h"
 #include "util/log.h"
 #include "util/path.h"
+#include "util/unique_ptr.h"
 
 CCL_NAMESPACE_BEGIN
 
 OIIOImageLoader::OIIOImageLoader(const string &filepath) : filepath(filepath) {}
 
-OIIOImageLoader::~OIIOImageLoader() {}
+OIIOImageLoader::~OIIOImageLoader() = default;
 
 bool OIIOImageLoader::load_metadata(const ImageDeviceFeatures & /*features*/,
                                     ImageMetaData &metadata)
@@ -166,7 +167,7 @@ static void oiio_load_pixels(const ImageMetaData &metadata,
 
 bool OIIOImageLoader::load_pixels(const ImageMetaData &metadata,
                                   void *pixels,
-                                  const size_t,
+                                  const size_t /*pixels_size*/,
                                   const bool associate_alpha)
 {
   unique_ptr<ImageInput> in = nullptr;

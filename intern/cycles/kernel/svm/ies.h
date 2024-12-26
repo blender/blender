@@ -11,7 +11,7 @@
 CCL_NAMESPACE_BEGIN
 
 ccl_device_noinline void svm_node_ies(KernelGlobals kg,
-                                      ccl_private ShaderData *sd,
+                                      ccl_private ShaderData * /*sd*/,
                                       ccl_private float *stack,
                                       uint4 node)
 {

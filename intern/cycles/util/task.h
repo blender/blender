@@ -8,7 +8,6 @@
 #include "util/string.h"
 #include "util/tbb.h"
 #include "util/thread.h"
-#include "util/vector.h"
 
 CCL_NAMESPACE_BEGIN
 

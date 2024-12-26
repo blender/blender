@@ -33,7 +33,7 @@ SceneLock::SceneLock(const HdRenderParam *renderParam)
 {
 }
 
-SceneLock::~SceneLock() {}
+SceneLock::~SceneLock() = default;
 
 HdCyclesSession::HdCyclesSession(Session *session_, const bool keep_nodes)
     : session(session_), keep_nodes(keep_nodes), _ownCyclesSession(false)
@@ -122,7 +122,7 @@ void HdCyclesSession::UpdateScene()
       for (ShaderNode *node : scene->default_background->graph->nodes) {
         if (node->is_a(BackgroundNode::get_node_type())) {
           BackgroundNode *bgNode = static_cast<BackgroundNode *>(node);
-          bgNode->set_color((scene->lights.size() == 0) ? make_float3(0.5f) : zero_float3());
+          bgNode->set_color((scene->lights.empty()) ? make_float3(0.5f) : zero_float3());
         }
       }
     }

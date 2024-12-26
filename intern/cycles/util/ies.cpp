@@ -37,7 +37,7 @@ void IESFile::clear()
 
 int IESFile::packed_size()
 {
-  if (v_angles.size() && h_angles.size() > 0) {
+  if (!v_angles.empty() && !h_angles.empty()) {
     return 2 + h_angles.size() + v_angles.size() + h_angles.size() * v_angles.size();
   }
   return 0;
@@ -45,17 +45,17 @@ int IESFile::packed_size()
 
 void IESFile::pack(float *data)
 {
-  if (v_angles.size() && h_angles.size()) {
+  if (!v_angles.empty() && !h_angles.empty()) {
     *(data++) = __int_as_float(h_angles.size());
     *(data++) = __int_as_float(v_angles.size());
 
-    memcpy(data, &h_angles[0], h_angles.size() * sizeof(float));
+    memcpy(data, h_angles.data(), h_angles.size() * sizeof(float));
     data += h_angles.size();
-    memcpy(data, &v_angles[0], v_angles.size() * sizeof(float));
+    memcpy(data, v_angles.data(), v_angles.size() * sizeof(float));
     data += v_angles.size();
 
     for (int h = 0; h < intensity.size(); h++) {
-      memcpy(data, &intensity[h][0], v_angles.size() * sizeof(float));
+      memcpy(data, intensity[h].data(), v_angles.size() * sizeof(float));
       data += v_angles.size();
     }
   }
@@ -65,12 +65,12 @@ class IESTextParser {
  public:
   string text;
   char *data;
-  bool error;
+  bool error = false;
 
-  IESTextParser(const string &str) : text(str), error(false)
+  IESTextParser(const string &str) : text(str)
   {
     std::replace(text.begin(), text.end(), ',', ' ');
-    data = strstr(&text[0], "\nTILT=");
+    data = strstr(text.data(), "\nTILT=");
   }
 
   bool eof()
@@ -374,7 +374,7 @@ void IESFile::process_type_c()
 
 bool IESFile::process()
 {
-  if (h_angles.size() == 0 || v_angles.size() == 0) {
+  if (h_angles.empty() || v_angles.empty()) {
     return false;
   }
 

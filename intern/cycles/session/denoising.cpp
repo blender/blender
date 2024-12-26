@@ -6,9 +6,7 @@
 #include "device/cpu/device.h"
 
 #include "util/map.h"
-#include "util/system.h"
 #include "util/task.h"
-#include "util/time.h"
 
 #include <OpenImageIO/filesystem.h>
 
@@ -142,7 +140,7 @@ bool DenoiseImageLayer::match_channels(const std::vector<string> &channelnames,
 {
   vector<int> &mapping = previous_output_to_image_channel;
 
-  assert(mapping.size() == 0);
+  assert(mapping.empty());
   mapping.resize(output_to_image_channel.size(), -1);
 
   for (int i = 0; i < output_to_image_channel.size(); i++) {
@@ -379,7 +377,7 @@ bool DenoiseImage::parse_channels(const ImageSpec &in_spec, string &error)
      */
     if (layer.samples < 1) {
       string sample_string = in_spec.get_string_attribute("cycles." + name + ".samples", "");
-      if (sample_string != "") {
+      if (!sample_string.empty()) {
         if (!sscanf(sample_string.c_str(), "%d", &layer.samples)) {
           error = "Failed to parse samples metadata: " + sample_string;
           return false;

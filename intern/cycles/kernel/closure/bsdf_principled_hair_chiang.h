@@ -19,7 +19,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-typedef struct ChiangHairBSDF {
+struct ChiangHairBSDF {
   SHADER_CLOSURE_BASE;
 
   /* Absorption coefficient. */
@@ -37,7 +37,7 @@ typedef struct ChiangHairBSDF {
 
   /* Azimuthal offset. */
   float h;
-} ChiangHairBSDF;
+};
 
 static_assert(sizeof(ShaderClosure) >= sizeof(ChiangHairBSDF), "ChiangHairBSDF is too large!");
 
@@ -69,9 +69,7 @@ ccl_device_inline float logistic_cdf(float x, float s)
   if (arg > 88.0f) {
     return 0.0f;
   }
-  else {
-    return 1.0f / (1.0f + expf(arg));
-  }
+  return 1.0f / (1.0f + expf(arg));
 }
 
 /* Numerical approximation to the Bessel function of the first kind. */
@@ -103,9 +101,7 @@ ccl_device_inline float log_bessel_I0(float x)
      * This is only used with positive cosines. */
     return x + 0.5f * (1.f / (8.0f * x) - M_LN_2PI_F - logf(x));
   }
-  else {
-    return logf(bessel_I0(x));
-  }
+  return logf(bessel_I0(x));
 }
 
 /* Logistic distribution limited to the interval [-pi, pi]. */
@@ -149,12 +145,10 @@ ccl_device_inline float longitudinal_scattering(
     kernel_assert(isfinite_safe(val));
     return val;
   }
-  else {
-    float i0 = bessel_I0(cos_arg);
-    float val = (expf(-sin_arg) * i0) / (sinhf(inv_v) * 2.0f * v);
-    kernel_assert(isfinite_safe(val));
-    return val;
-  }
+  float i0 = bessel_I0(cos_arg);
+  float val = (expf(-sin_arg) * i0) / (sinhf(inv_v) * 2.0f * v);
+  kernel_assert(isfinite_safe(val));
+  return val;
 }
 
 #ifdef __HAIR__

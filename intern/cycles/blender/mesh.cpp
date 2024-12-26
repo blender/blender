@@ -9,17 +9,15 @@
 #include "blender/sync.h"
 #include "blender/util.h"
 
+#include "scene/bake.h"
 #include "scene/camera.h"
-#include "scene/colorspace.h"
 #include "scene/mesh.h"
 #include "scene/object.h"
 #include "scene/scene.h"
 
-#include "subd/patch.h"
 #include "subd/split.h"
 
 #include "util/algorithm.h"
-#include "util/color.h"
 #include "util/disjoint_set.h"
 #include "util/foreach.h"
 #include "util/hash.h"
@@ -43,7 +41,7 @@ template<bool is_subd> struct MikkMeshWrapper {
                   const Mesh *mesh,
                   float3 *tangent,
                   float *tangent_sign)
-      : mesh(mesh), uv(nullptr), orco(nullptr), tangent(tangent), tangent_sign(tangent_sign)
+      : mesh(mesh), tangent(tangent), tangent_sign(tangent_sign)
   {
     const AttributeSet &attributes = is_subd ? mesh->subd_attributes : mesh->attributes;
 
@@ -125,14 +123,12 @@ template<bool is_subd> struct MikkMeshWrapper {
       float2 tfuv = uv[corner_index];
       return mikk::float3(tfuv.x, tfuv.y, 1.0f);
     }
-    else if (orco != nullptr) {
+    if (orco != nullptr) {
       const int vertex_index = VertexIndex(face_num, vert_num);
       const float2 uv = map_to_sphere((orco[vertex_index] + orco_loc) * inv_orco_size);
       return mikk::float3(uv.x, uv.y, 1.0f);
     }
-    else {
-      return mikk::float3(0.0f, 0.0f, 1.0f);
-    }
+    return mikk::float3(0.0f, 0.0f, 1.0f);
   }
 
   mikk::float3 GetNormal(const int face_num, const int vert_num)
@@ -155,7 +151,7 @@ template<bool is_subd> struct MikkMeshWrapper {
       }
       else {
         const Mesh::Triangle tri = mesh->get_triangle(face_num);
-        vN = tri.compute_normal(&mesh->get_verts()[0]);
+        vN = tri.compute_normal(mesh->get_verts().data());
       }
     }
     return mikk::float3(vN.x, vN.y, vN.z);
@@ -175,8 +171,8 @@ template<bool is_subd> struct MikkMeshWrapper {
 
   float3 *vertex_normal;
   float2 *texface;
-  float2 *uv;
-  float3 *orco;
+  float2 *uv = nullptr;
+  float3 *orco = nullptr;
   float3 orco_loc, inv_orco_size;
 
   float3 *tangent;
@@ -248,7 +244,7 @@ static void attr_create_motion_from_velocity(Mesh *mesh,
   mesh->set_motion_steps(3);
 
   /* Find or add attribute */
-  float3 *P = &mesh->get_verts()[0];
+  float3 *P = mesh->get_verts().data();
   Attribute *attr_mP = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
 
   if (!attr_mP) {
@@ -685,7 +681,7 @@ static void attr_create_pointiness(Mesh *mesh,
   vector<float> raw_data(num_verts, 0.0f);
   vector<float3> edge_accum(num_verts, zero_float3());
   EdgeMap visited_edges;
-  memset(&counter[0], 0, sizeof(int) * counter.size());
+  memset(counter.data(), 0, sizeof(int) * counter.size());
 
   for (const int i : edges.index_range()) {
     const blender::int2 b_edge = edges[i];
@@ -722,8 +718,8 @@ static void attr_create_pointiness(Mesh *mesh,
   AttributeSet &attributes = (subdivision) ? mesh->subd_attributes : mesh->attributes;
   Attribute *attr = attributes.add(ATTR_STD_POINTINESS);
   float *data = attr->data_float();
-  memcpy(data, &raw_data[0], sizeof(float) * raw_data.size());
-  memset(&counter[0], 0, sizeof(int) * counter.size());
+  memcpy(data, raw_data.data(), sizeof(float) * raw_data.size());
+  memset(counter.data(), 0, sizeof(int) * counter.size());
   visited_edges.clear();
   for (const int i : edges.index_range()) {
     const blender::int2 b_edge = edges[i];
@@ -1251,7 +1247,7 @@ void BlenderSync::sync_mesh_motion(BL::Depsgraph b_depsgraph,
     if (new_attribute) {
       /* In case of new attribute, we verify if there really was any motion. */
       if (b_verts_num != numverts ||
-          memcmp(mP, &mesh->get_verts()[0], sizeof(float3) * numverts) == 0)
+          memcmp(mP, mesh->get_verts().data(), sizeof(float3) * numverts) == 0)
       {
         /* no motion, remove attributes again */
         if (b_verts_num != numverts) {
@@ -1269,7 +1265,7 @@ void BlenderSync::sync_mesh_motion(BL::Depsgraph b_depsgraph,
         VLOG_DEBUG << "Filling deformation motion for object " << ob_name;
         /* motion, fill up previous steps that we might have skipped because
          * they had no motion, but we need them anyway now */
-        float3 *P = &mesh->get_verts()[0];
+        float3 *P = mesh->get_verts().data();
         float3 *N = (attr_N) ? attr_N->data_float3() : nullptr;
         for (int step = 0; step < motion_step; step++) {
           memcpy(attr_mP->data_float3() + step * numverts, P, sizeof(float3) * numverts);
@@ -1283,7 +1279,7 @@ void BlenderSync::sync_mesh_motion(BL::Depsgraph b_depsgraph,
       if (b_verts_num != numverts) {
         VLOG_WARNING << "Topology differs, discarding motion blur for object " << ob_name
                      << " at time " << motion_step;
-        memcpy(mP, &mesh->get_verts()[0], sizeof(float3) * numverts);
+        memcpy(mP, mesh->get_verts().data(), sizeof(float3) * numverts);
         if (mN != nullptr) {
           memcpy(mN, attr_N->data_float3(), sizeof(float3) * numverts);
         }

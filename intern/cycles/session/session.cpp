@@ -2,15 +2,12 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#include <limits.h>
-#include <string.h>
+#include <cstring>
 
 #include "device/cpu/device.h"
 #include "device/device.h"
-#include "integrator/pass_accessor_cpu.h"
 #include "integrator/path_trace.h"
 #include "scene/background.h"
-#include "scene/bake.h"
 #include "scene/camera.h"
 #include "scene/integrator.h"
 #include "scene/light.h"
@@ -240,7 +237,7 @@ void Session::thread_run()
         session_thread_cond_.wait(session_thread_lock);
         continue;
       }
-      else if (session_thread_state_ == SESSION_THREAD_END) {
+      if (session_thread_state_ == SESSION_THREAD_END) {
         /* End thread immediately. */
         break;
       }

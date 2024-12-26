@@ -28,15 +28,14 @@ motion_point_for_step(KernelGlobals kg, int offset, int numverts, int numsteps, 
     /* center step: regular key location */
     return kernel_data_fetch(points, prim);
   }
-  else {
-    /* center step is not stored in this array */
-    if (step > numsteps)
-      step--;
-
-    offset += step * numverts;
-
-    return kernel_data_fetch(attributes_float4, offset + prim);
+  /* center step is not stored in this array */
+  if (step > numsteps) {
+    step--;
   }
+
+  offset += step * numverts;
+
+  return kernel_data_fetch(attributes_float4, offset + prim);
 }
 
 /* return 2 point key locations */

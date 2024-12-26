@@ -8,7 +8,6 @@
 #include "scene/scene.h"
 
 #include "util/progress.h"
-#include "util/vector.h"
 
 CCL_NAMESPACE_BEGIN
 

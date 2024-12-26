@@ -138,8 +138,9 @@ ccl_device_inline bool motion_triangle_intersect_local(KernelGlobals kg,
        */
       hit = lcg_step_uint(lcg_state) % local_isect->num_hits;
 
-      if (hit >= max_hits)
+      if (hit >= max_hits) {
         return false;
+      }
     }
   }
   else {

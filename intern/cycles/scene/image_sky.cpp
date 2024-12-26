@@ -4,12 +4,9 @@
 
 #include "scene/image_sky.h"
 
-#include "sky_model.h"
+#include "util/tbb.h"
 
-#include "util/image.h"
-#include "util/log.h"
-#include "util/path.h"
-#include "util/task.h"
+#include "sky_model.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -26,9 +23,9 @@ SkyLoader::SkyLoader(float sun_elevation,
 {
 }
 
-SkyLoader::~SkyLoader(){};
+SkyLoader::~SkyLoader() = default;
 
-bool SkyLoader::load_metadata(const ImageDeviceFeatures &, ImageMetaData &metadata)
+bool SkyLoader::load_metadata(const ImageDeviceFeatures & /*features*/, ImageMetaData &metadata)
 {
   metadata.width = 512;
   metadata.height = 128;

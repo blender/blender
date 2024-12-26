@@ -59,18 +59,16 @@ ccl_device float voronoi_distance(const T a, const T b, ccl_private const Vorono
   if (params.metric == NODE_VORONOI_EUCLIDEAN) {
     return distance(a, b);
   }
-  else if (params.metric == NODE_VORONOI_MANHATTAN) {
+  if (params.metric == NODE_VORONOI_MANHATTAN) {
     return reduce_add(fabs(a - b));
   }
-  else if (params.metric == NODE_VORONOI_CHEBYCHEV) {
+  if (params.metric == NODE_VORONOI_CHEBYCHEV) {
     return reduce_max(fabs(a - b));
   }
-  else if (params.metric == NODE_VORONOI_MINKOWSKI) {
+  if (params.metric == NODE_VORONOI_MINKOWSKI) {
     return powf(reduce_add(power(fabs(a - b), params.exponent)), 1.0f / params.exponent);
   }
-  else {
-    return 0.0f;
-  }
+  return 0.0f;
 }
 
 /* **** 1D Voronoi **** */
@@ -902,7 +900,7 @@ ccl_device VoronoiOutput fractal_voronoi_x_fx(ccl_private const VoronoiParams &p
       output = octave;
       break;
     }
-    else if (i <= params.detail) {
+    if (i <= params.detail) {
       max_amplitude += amplitude;
       output.distance += octave.distance * amplitude;
       output.color += octave.color * amplitude;
@@ -953,7 +951,7 @@ ccl_device float fractal_voronoi_distance_to_edge(ccl_private const VoronoiParam
       distance = octave_distance;
       break;
     }
-    else if (i <= params.detail) {
+    if (i <= params.detail) {
       max_amplitude = mix(max_amplitude, params.max_distance / scale, amplitude);
       distance = mix(distance, min(distance, octave_distance / scale), amplitude);
       scale *= params.lacunarity;
@@ -993,16 +991,21 @@ ccl_device void svm_voronoi_output(const uint4 stack_offsets,
   svm_unpack_node_uchar3(
       stack_offsets.w, &position_stack_offset, &w_out_stack_offset, &radius_stack_offset);
 
-  if (stack_valid(distance_stack_offset))
+  if (stack_valid(distance_stack_offset)) {
     stack_store_float(stack, distance_stack_offset, distance);
-  if (stack_valid(color_stack_offset))
+  }
+  if (stack_valid(color_stack_offset)) {
     stack_store_float3(stack, color_stack_offset, color);
-  if (stack_valid(position_stack_offset))
+  }
+  if (stack_valid(position_stack_offset)) {
     stack_store_float3(stack, position_stack_offset, position);
-  if (stack_valid(w_out_stack_offset))
+  }
+  if (stack_valid(w_out_stack_offset)) {
     stack_store_float(stack, w_out_stack_offset, w);
-  if (stack_valid(radius_stack_offset))
+  }
+  if (stack_valid(radius_stack_offset)) {
     stack_store_float(stack, radius_stack_offset, radius);
+  }
 }
 
 template<uint node_feature_mask>

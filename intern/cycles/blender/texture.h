@@ -4,8 +4,9 @@
 
 #pragma once
 
-#include "blender/sync.h"
-#include <stdlib.h>
+#include "RNA_blender_cpp.hh"
+
+#include "util/types.h"
 
 CCL_NAMESPACE_BEGIN
 

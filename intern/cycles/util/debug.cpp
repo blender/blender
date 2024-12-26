@@ -4,12 +4,9 @@
 
 #include "util/debug.h"
 
-#include <stdlib.h>
-
-#include "bvh/params.h"
+#include <cstdlib>
 
 #include "util/log.h"
-#include "util/string.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -73,15 +70,15 @@ void DebugFlags::Metal::reset()
     adaptive_compile = true;
   }
 
-  if (auto str = getenv("CYCLES_METAL_LOCAL_ATOMIC_SORT")) {
+  if (auto *str = getenv("CYCLES_METAL_LOCAL_ATOMIC_SORT")) {
     use_local_atomic_sort = (atoi(str) != 0);
   }
 
-  if (auto str = getenv("CYCLES_METAL_NANOVDB")) {
+  if (auto *str = getenv("CYCLES_METAL_NANOVDB")) {
     use_nanovdb = (atoi(str) != 0);
   }
 
-  if (auto str = getenv("CYCLES_METAL_ASYNC_PSO_CREATION")) {
+  if (auto *str = getenv("CYCLES_METAL_ASYNC_PSO_CREATION")) {
     use_async_pso_creation = (atoi(str) != 0);
   }
 }
@@ -94,11 +91,6 @@ DebugFlags::OptiX::OptiX()
 void DebugFlags::OptiX::reset()
 {
   use_debug = false;
-}
-
-DebugFlags::DebugFlags()
-{
-  /* Nothing for now. */
 }
 
 void DebugFlags::reset()

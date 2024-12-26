@@ -11,7 +11,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-typedef struct Bssrdf {
+struct Bssrdf {
   SHADER_CLOSURE_BASE;
 
   Spectrum radius;
@@ -21,7 +21,7 @@ typedef struct Bssrdf {
   /* Parameters for refractive entry bounce. */
   float ior;
   float alpha;
-} Bssrdf;
+};
 
 static_assert(sizeof(ShaderClosure) >= sizeof(Bssrdf), "Bssrdf is too large!");
 
@@ -129,8 +129,9 @@ ccl_device float bssrdf_burley_eval(const float d, float r)
 {
   const float Rm = BURLEY_TRUNCATE * d;
 
-  if (r >= Rm)
+  if (r >= Rm) {
     return 0.0f;
+  }
 
   /* Burley reflectance profile, equation (3).
    *
@@ -187,9 +188,7 @@ ccl_device_forceinline float bssrdf_burley_root_find(float xi)
     }
 
     r = r - f / f_;
-    if (r < 0.0f) {
-      r = 0.0f;
-    }
+    r = fmaxf(r, 0.0f);
   }
   return r;
 }

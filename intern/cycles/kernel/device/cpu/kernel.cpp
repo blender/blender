@@ -51,7 +51,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Memory Copy */
 
-void kernel_const_copy(KernelGlobalsCPU *kg, const char *name, void *host, size_t)
+void kernel_const_copy(KernelGlobalsCPU *kg, const char *name, void *host, size_t /*unused*/)
 {
   if (strcmp(name, "data") == 0) {
     kg->data = *(KernelData *)host;
@@ -63,7 +63,7 @@ void kernel_const_copy(KernelGlobalsCPU *kg, const char *name, void *host, size_
 
 void kernel_global_memory_copy(KernelGlobalsCPU *kg, const char *name, void *mem, size_t size)
 {
-  if (0) {
+  if (false) {
   }
 
 #define KERNEL_DATA_ARRAY(type, tname) \

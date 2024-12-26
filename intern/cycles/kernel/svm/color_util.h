@@ -40,20 +40,26 @@ ccl_device float3 svm_mix_overlay(float t, float3 col1, float3 col2)
 
   float3 outcol = col1;
 
-  if (outcol.x < 0.5f)
+  if (outcol.x < 0.5f) {
     outcol.x *= tm + 2.0f * t * col2.x;
-  else
+  }
+  else {
     outcol.x = 1.0f - (tm + 2.0f * t * (1.0f - col2.x)) * (1.0f - outcol.x);
+  }
 
-  if (outcol.y < 0.5f)
+  if (outcol.y < 0.5f) {
     outcol.y *= tm + 2.0f * t * col2.y;
-  else
+  }
+  else {
     outcol.y = 1.0f - (tm + 2.0f * t * (1.0f - col2.y)) * (1.0f - outcol.y);
+  }
 
-  if (outcol.z < 0.5f)
+  if (outcol.z < 0.5f) {
     outcol.z *= tm + 2.0f * t * col2.z;
-  else
+  }
+  else {
     outcol.z = 1.0f - (tm + 2.0f * t * (1.0f - col2.z)) * (1.0f - outcol.z);
+  }
 
   return outcol;
 }
@@ -69,12 +75,15 @@ ccl_device float3 svm_mix_div(float t, float3 col1, float3 col2)
 
   float3 outcol = col1;
 
-  if (col2.x != 0.0f)
+  if (col2.x != 0.0f) {
     outcol.x = tm * outcol.x + t * outcol.x / col2.x;
-  if (col2.y != 0.0f)
+  }
+  if (col2.y != 0.0f) {
     outcol.y = tm * outcol.y + t * outcol.y / col2.y;
-  if (col2.z != 0.0f)
+  }
+  if (col2.z != 0.0f) {
     outcol.z = tm * outcol.z + t * outcol.z / col2.z;
+  }
 
   return outcol;
 }
@@ -105,30 +114,48 @@ ccl_device float3 svm_mix_dodge(float t, float3 col1, float3 col2)
 
   if (outcol.x != 0.0f) {
     float tmp = 1.0f - t * col2.x;
-    if (tmp <= 0.0f)
+    if (tmp <= 0.0f) {
       outcol.x = 1.0f;
-    else if ((tmp = outcol.x / tmp) > 1.0f)
-      outcol.x = 1.0f;
-    else
-      outcol.x = tmp;
+    }
+    else {
+      tmp = outcol.x / tmp;
+      if (tmp > 1.0f) {
+        outcol.x = 1.0f;
+      }
+      else {
+        outcol.x = tmp;
+      }
+    }
   }
   if (outcol.y != 0.0f) {
     float tmp = 1.0f - t * col2.y;
-    if (tmp <= 0.0f)
+    if (tmp <= 0.0f) {
       outcol.y = 1.0f;
-    else if ((tmp = outcol.y / tmp) > 1.0f)
-      outcol.y = 1.0f;
-    else
-      outcol.y = tmp;
+    }
+    else {
+      tmp = outcol.y / tmp;
+      if (tmp > 1.0f) {
+        outcol.y = 1.0f;
+      }
+      else {
+        outcol.y = tmp;
+      }
+    }
   }
   if (outcol.z != 0.0f) {
     float tmp = 1.0f - t * col2.z;
-    if (tmp <= 0.0f)
+    if (tmp <= 0.0f) {
       outcol.z = 1.0f;
-    else if ((tmp = outcol.z / tmp) > 1.0f)
-      outcol.z = 1.0f;
-    else
-      outcol.z = tmp;
+    }
+    else {
+      tmp = outcol.z / tmp;
+      if (tmp > 1.0f) {
+        outcol.z = 1.0f;
+      }
+      else {
+        outcol.z = tmp;
+      }
+    }
   }
 
   return outcol;
@@ -141,34 +168,55 @@ ccl_device float3 svm_mix_burn(float t, float3 col1, float3 col2)
   float3 outcol = col1;
 
   tmp = tm + t * col2.x;
-  if (tmp <= 0.0f)
+  if (tmp <= 0.0f) {
     outcol.x = 0.0f;
-  else if ((tmp = (1.0f - (1.0f - outcol.x) / tmp)) < 0.0f)
-    outcol.x = 0.0f;
-  else if (tmp > 1.0f)
-    outcol.x = 1.0f;
-  else
-    outcol.x = tmp;
+  }
+  else {
+    tmp = (1.0f - (1.0f - outcol.x) / tmp);
+    if (tmp < 0.0f) {
+      outcol.x = 0.0f;
+    }
+    else if (tmp > 1.0f) {
+      outcol.x = 1.0f;
+    }
+    else {
+      outcol.x = tmp;
+    }
+  }
 
   tmp = tm + t * col2.y;
-  if (tmp <= 0.0f)
+  if (tmp <= 0.0f) {
     outcol.y = 0.0f;
-  else if ((tmp = (1.0f - (1.0f - outcol.y) / tmp)) < 0.0f)
-    outcol.y = 0.0f;
-  else if (tmp > 1.0f)
-    outcol.y = 1.0f;
-  else
-    outcol.y = tmp;
+  }
+  else {
+    tmp = (1.0f - (1.0f - outcol.y) / tmp);
+    if (tmp < 0.0f) {
+      outcol.y = 0.0f;
+    }
+    else if (tmp > 1.0f) {
+      outcol.y = 1.0f;
+    }
+    else {
+      outcol.y = tmp;
+    }
+  }
 
   tmp = tm + t * col2.z;
-  if (tmp <= 0.0f)
+  if (tmp <= 0.0f) {
     outcol.z = 0.0f;
-  else if ((tmp = (1.0f - (1.0f - outcol.z) / tmp)) < 0.0f)
-    outcol.z = 0.0f;
-  else if (tmp > 1.0f)
-    outcol.z = 1.0f;
-  else
-    outcol.z = tmp;
+  }
+  else {
+    tmp = (1.0f - (1.0f - outcol.z) / tmp);
+    if (tmp < 0.0f) {
+      outcol.z = 0.0f;
+    }
+    else if (tmp > 1.0f) {
+      outcol.z = 1.0f;
+    }
+    else {
+      outcol.z = tmp;
+    }
+  }
 
   return outcol;
 }

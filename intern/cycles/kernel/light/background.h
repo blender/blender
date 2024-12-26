@@ -38,8 +38,9 @@ ccl_device float3 background_map_sample(KernelGlobals kg, float2 rand, ccl_priva
       first = middle + 1;
       count -= step + 1;
     }
-    else
+    else {
       count = step;
+    }
   }
 
   int index_v = max(0, first - 1);
@@ -66,8 +67,9 @@ ccl_device float3 background_map_sample(KernelGlobals kg, float2 rand, ccl_priva
       first = middle + 1;
       count -= step + 1;
     }
-    else
+    else {
       count = step;
+    }
   }
 
   int index_u = max(0, first - 1);
@@ -88,10 +90,12 @@ ccl_device float3 background_map_sample(KernelGlobals kg, float2 rand, ccl_priva
   float sin_theta = sinf(M_PI_F * v);
   float denom = (M_2PI_F * M_PI_F * sin_theta) * cdf_last_u.x * cdf_last_v.x;
 
-  if (sin_theta == 0.0f || denom == 0.0f)
+  if (sin_theta == 0.0f || denom == 0.0f) {
     *pdf = 0.0f;
-  else
+  }
+  else {
     *pdf = (cdf_u.x * cdf_v.x) / denom;
+  }
 
   /* compute direction */
   return equirectangular_to_direction(u, v);
@@ -109,8 +113,9 @@ ccl_device float background_map_pdf(KernelGlobals kg, float3 direction)
 
   float sin_theta = sinf(uv.y * M_PI_F);
 
-  if (sin_theta == 0.0f)
+  if (sin_theta == 0.0f) {
     return 0.0f;
+  }
 
   int index_u = clamp(float_to_int(uv.x * res_x), 0, res_x - 1);
   int index_v = clamp(float_to_int(uv.y * res_y), 0, res_y - 1);
@@ -122,8 +127,9 @@ ccl_device float background_map_pdf(KernelGlobals kg, float3 direction)
 
   float denom = (M_2PI_F * M_PI_F * sin_theta) * cdf_last_u.x * cdf_last_v.x;
 
-  if (denom == 0.0f)
+  if (denom == 0.0f) {
     return 0.0f;
+  }
 
   /* pdfs in U direction */
   float2 cdf_u = kernel_data_fetch(light_background_conditional_cdf,
@@ -143,8 +149,9 @@ ccl_device_inline bool background_portal_data_fetch_and_check_side(
   *dir = klight->area.dir;
 
   /* Check whether portal is on the right side. */
-  if (dot(*dir, P - *lightpos) > 1e-4f)
+  if (dot(*dir, P - *lightpos) > 1e-4f) {
     return true;
+  }
 
   return false;
 }
@@ -156,12 +163,14 @@ ccl_device_inline float background_portal_pdf(
 
   int num_possible = 0;
   for (int p = 0; p < kernel_data.integrator.num_portals; p++) {
-    if (p == ignore_portal)
+    if (p == ignore_portal) {
       continue;
+    }
 
     float3 lightpos, dir;
-    if (!background_portal_data_fetch_and_check_side(kg, P, p, &lightpos, &dir))
+    if (!background_portal_data_fetch_and_check_side(kg, P, p, &lightpos, &dir)) {
       continue;
+    }
 
     /* There's a portal that could be sampled from this position. */
     if (is_possible) {
@@ -194,7 +203,9 @@ ccl_device_inline float background_portal_pdf(
                             nullptr,
                             nullptr,
                             is_round))
+    {
       continue;
+    }
 
     if (is_round) {
       float t;
@@ -220,8 +231,9 @@ ccl_device int background_num_possible_portals(KernelGlobals kg, float3 P)
   int num_possible_portals = 0;
   for (int p = 0; p < kernel_data.integrator.num_portals; p++) {
     float3 lightpos, dir;
-    if (background_portal_data_fetch_and_check_side(kg, P, p, &lightpos, &dir))
+    if (background_portal_data_fetch_and_check_side(kg, P, p, &lightpos, &dir)) {
       num_possible_portals++;
+    }
   }
   return num_possible_portals;
 }
@@ -244,8 +256,9 @@ ccl_device float3 background_portal_sample(KernelGlobals kg,
   for (int p = 0; p < kernel_data.integrator.num_portals; p++) {
     /* Search for the sampled portal. */
     float3 lightpos, dir;
-    if (!background_portal_data_fetch_and_check_side(kg, P, p, &lightpos, &dir))
+    if (!background_portal_data_fetch_and_check_side(kg, P, p, &lightpos, &dir)) {
       continue;
+    }
 
     if (portal == 0) {
       /* p is the portal to be sampled. */

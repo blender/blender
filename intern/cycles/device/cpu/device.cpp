@@ -4,7 +4,6 @@
 
 #include "device/cpu/device.h"
 #include "device/cpu/device_impl.h"
-#include "integrator/denoiser_oidn.h"
 
 /* Used for `info.denoisers`. */
 /* TODO(sergey): The denoisers are probably to be moved completely out of the device into their
@@ -45,7 +44,7 @@ void device_cpu_info(vector<DeviceInfo> &devices)
 
 string device_cpu_capabilities()
 {
-  string capabilities = "";
+  string capabilities;
   capabilities += system_cpu_support_sse42() ? "SSE42 " : "";
   capabilities += system_cpu_support_avx2() ? "AVX2" : "";
   if (capabilities[capabilities.size() - 1] == ' ') {

@@ -7,7 +7,6 @@
 #include "graph/node.h"
 #include "scene/attribute.h"
 #include "scene/procedural.h"
-#include "util/set.h"
 #include "util/transform.h"
 #include "util/vector.h"
 
@@ -377,7 +376,7 @@ class AlembicObject : public Node {
   NODE_SOCKET_API(float, radius_scale)
 
   AlembicObject();
-  ~AlembicObject();
+  ~AlembicObject() override;
 
  private:
   friend class AlembicProcedural;
@@ -509,11 +508,11 @@ class AlembicProcedural : public Procedural {
   NODE_SOCKET_API(int, prefetch_cache_size)
 
   AlembicProcedural();
-  ~AlembicProcedural();
+  ~AlembicProcedural() override;
 
   /* Populates the Cycles scene with Nodes for every contained AlembicObject on the first
    * invocation, and updates the data on subsequent invocations if the frame changed. */
-  void generate(Scene *scene, Progress &progress);
+  void generate(Scene *scene, Progress &progress) override;
 
   /* Tag for an update only if something was modified. */
   void tag_update(Scene *scene);
@@ -539,7 +538,7 @@ class AlembicProcedural : public Procedural {
    * specified in our objects socket, and accumulate all of the transformations samples along the
    * way for each IObject. */
   void walk_hierarchy(Alembic::AbcGeom::IObject parent,
-                      const Alembic::AbcGeom::ObjectHeader &ohead,
+                      const Alembic::AbcGeom::ObjectHeader &header,
                       MatrixSamplesData matrix_samples_data,
                       const unordered_map<string, AlembicObject *> &object_map,
                       Progress &progress);

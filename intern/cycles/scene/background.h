@@ -33,7 +33,7 @@ class Background : public Node {
   NODE_SOCKET_API(ustring, lightgroup)
 
   Background();
-  ~Background();
+  ~Background() override;
 
   void device_update(Device *device, DeviceScene *dscene, Scene *scene);
   void device_free(Device *device, DeviceScene *dscene);

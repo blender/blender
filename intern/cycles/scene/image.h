@@ -11,7 +11,6 @@
 #include "util/string.h"
 #include "util/thread.h"
 #include "util/transform.h"
-#include "util/unique_ptr.h"
 #include "util/vector.h"
 
 CCL_NAMESPACE_BEGIN
@@ -31,22 +30,14 @@ class VDBImageLoader;
 /* Image Parameters */
 class ImageParams {
  public:
-  bool animated;
-  InterpolationType interpolation;
-  ExtensionType extension;
-  ImageAlphaType alpha_type;
+  bool animated = false;
+  InterpolationType interpolation = INTERPOLATION_LINEAR;
+  ExtensionType extension = EXTENSION_CLIP;
+  ImageAlphaType alpha_type = IMAGE_ALPHA_AUTO;
   ustring colorspace;
-  float frame;
+  float frame = 0.0f;
 
-  ImageParams()
-      : animated(false),
-        interpolation(INTERPOLATION_LINEAR),
-        extension(EXTENSION_CLIP),
-        alpha_type(IMAGE_ALPHA_AUTO),
-        colorspace(u_colorspace_raw),
-        frame(0.0f)
-  {
-  }
+  ImageParams() : colorspace(u_colorspace_raw) {}
 
   bool operator==(const ImageParams &other) const
   {
@@ -96,7 +87,7 @@ class ImageDeviceFeatures {
 class ImageLoader {
  public:
   ImageLoader();
-  virtual ~ImageLoader(){};
+  virtual ~ImageLoader() = default;
 
   /* Load metadata without actual image yet, should be fast. */
   virtual bool load_metadata(const ImageDeviceFeatures &features, ImageMetaData &metadata) = 0;

@@ -67,14 +67,12 @@ float4 PointCloud::Point::point_for_step(const float3 *points,
     /* Center step: regular key location. */
     return make_float4(points[p], radius[p]);
   }
-  else {
-    /* Center step is not stored in this array. */
-    if (step > center_step) {
-      step--;
-    }
-    const size_t offset = step * num_points;
-    return point_steps[offset + p];
+  /* Center step is not stored in this array. */
+  if (step > center_step) {
+    step--;
   }
+  const size_t offset = step * num_points;
+  return point_steps[offset + p];
 }
 
 /* PointCloud */
@@ -93,7 +91,7 @@ NODE_DEFINE(PointCloud)
 
 PointCloud::PointCloud() : Geometry(node_type, Geometry::POINTCLOUD) {}
 
-PointCloud::~PointCloud() {}
+PointCloud::~PointCloud() = default;
 
 void PointCloud::resize(int numpoints)
 {

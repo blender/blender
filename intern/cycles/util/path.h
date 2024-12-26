@@ -9,10 +9,9 @@
  * linked libraries, the path to the library may be set with path_init, which
  * then makes all paths relative to that. */
 
-#include <stdio.h>
+#include <cstdio>
 
 #include "util/string.h"
-#include "util/types.h"
 #include "util/vector.h"
 
 CCL_NAMESPACE_BEGIN

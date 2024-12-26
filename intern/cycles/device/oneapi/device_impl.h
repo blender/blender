@@ -14,12 +14,8 @@ CCL_NAMESPACE_BEGIN
 
 class DeviceQueue;
 
-typedef void (*OneAPIDeviceIteratorCallback)(const char *id,
-                                             const char *name,
-                                             int num,
-                                             bool hwrt_support,
-                                             bool oidn_support,
-                                             void *user_ptr);
+using OneAPIDeviceIteratorCallback =
+    void (*)(const char *, const char *, const int, bool, bool, void *);
 
 class OneapiDevice : public GPUDevice {
  private:
@@ -46,27 +42,27 @@ class OneapiDevice : public GPUDevice {
   size_t get_free_mem() const;
 
  public:
-  virtual BVHLayoutMask get_bvh_layout_mask(uint kernel_features) const override;
+  BVHLayoutMask get_bvh_layout_mask(const uint requested_features) const override;
 
   OneapiDevice(const DeviceInfo &info, Stats &stats, Profiler &profiler, bool headless);
 
-  virtual ~OneapiDevice();
+  ~OneapiDevice() override;
 #  ifdef WITH_EMBREE_GPU
   void build_bvh(BVH *bvh, Progress &progress, bool refit) override;
 #  endif
   bool check_peer_access(Device *peer_device) override;
 
-  bool load_kernels(const uint kernel_features) override;
+  bool load_kernels(const uint requested_features) override;
 
   void reserve_private_memory(const uint kernel_features);
 
-  virtual void get_device_memory_info(size_t &total, size_t &free) override;
-  virtual bool alloc_device(void *&device_pointer, size_t size) override;
-  virtual void free_device(void *device_pointer) override;
-  virtual bool alloc_host(void *&shared_pointer, size_t size) override;
-  virtual void free_host(void *shared_pointer) override;
-  virtual void transform_host_pointer(void *&device_pointer, void *&shared_pointer) override;
-  virtual void copy_host_to_device(void *device_pointer, void *host_pointer, size_t size) override;
+  void get_device_memory_info(size_t &total, size_t &free) override;
+  bool alloc_device(void *&device_pointer, const size_t size) override;
+  void free_device(void *device_pointer) override;
+  bool alloc_host(void *&shared_pointer, const size_t size) override;
+  void free_host(void *shared_pointer) override;
+  void transform_host_pointer(void *&device_pointer, void *&shared_pointer) override;
+  void copy_host_to_device(void *device_pointer, void *host_pointer, const size_t size) override;
 
   string oneapi_error_message();
 
@@ -91,7 +87,7 @@ class OneapiDevice : public GPUDevice {
 
   device_ptr mem_alloc_sub_ptr(device_memory &mem, size_t offset, size_t /*size*/) override;
 
-  virtual void const_copy_to(const char *name, void *host, size_t size) override;
+  void const_copy_to(const char *name, void *host, const size_t size) override;
 
   void global_alloc(device_memory &mem);
 
@@ -102,9 +98,9 @@ class OneapiDevice : public GPUDevice {
   void tex_free(device_texture &mem);
 
   /* Graphics resources interoperability. */
-  virtual bool should_use_graphics_interop() override;
+  bool should_use_graphics_interop() override;
 
-  virtual unique_ptr<DeviceQueue> gpu_queue_create() override;
+  unique_ptr<DeviceQueue> gpu_queue_create() override;
 
   /* NOTE(@nsirgien): Create this methods to avoid some compilation problems on Windows with host
    * side compilation (MSVC). */
@@ -135,7 +131,7 @@ class OneapiDevice : public GPUDevice {
   SyclQueue *sycl_queue();
 
  protected:
-  bool can_use_hardware_raytracing_for_features(uint kernel_features) const;
+  bool can_use_hardware_raytracing_for_features(const uint requested_features) const;
   void check_usm(SyclQueue *queue, const void *usm_ptr, bool allow_host);
   bool create_queue(SyclQueue *&external_queue, int device_index, void *embree_device);
   void free_queue(SyclQueue *queue);

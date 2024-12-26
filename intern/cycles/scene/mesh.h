@@ -6,19 +6,16 @@
 
 #include "graph/node.h"
 
-#include "bvh/params.h"
 #include "scene/attribute.h"
 #include "scene/geometry.h"
 #include "scene/shader.h"
 
 #include "util/array.h"
 #include "util/boundbox.h"
-#include "util/list.h"
 #include "util/map.h"
 #include "util/param.h"
 #include "util/set.h"
 #include "util/types.h"
-#include "util/vector.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -187,10 +184,10 @@ class Mesh : public Geometry {
  public:
   /* Functions */
   Mesh();
-  ~Mesh();
+  ~Mesh() override;
 
-  void resize_mesh(int numverts, int numfaces);
-  void reserve_mesh(int numverts, int numfaces);
+  void resize_mesh(int numverts, int numtris);
+  void reserve_mesh(int numverts, int numtris);
   void resize_subd_faces(int numfaces, int num_ngons, int numcorners);
   void reserve_subd_faces(int numfaces, int num_ngons, int numcorners);
   void reserve_subd_creases(size_t num_creases);

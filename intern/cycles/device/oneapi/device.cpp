@@ -9,9 +9,8 @@
 #ifdef WITH_ONEAPI
 #  include "device/device.h"
 #  include "device/oneapi/device_impl.h"
-#  include "integrator/denoiser_oidn_gpu.h"
+#  include "integrator/denoiser_oidn_gpu.h"  // IWYU pragma: keep
 
-#  include "util/path.h"
 #  include "util/string.h"
 
 #  ifdef __linux__
@@ -87,6 +86,7 @@ Device *device_oneapi_create(const DeviceInfo &info,
   (void)info;
   (void)stats;
   (void)profiler;
+  (void)headless;
 
   LOG(FATAL) << "Requested to create oneAPI device while not enabled for this build.";
 
@@ -144,9 +144,10 @@ static void device_iterator_cb(const char *id,
   devices->push_back(info);
   VLOG_INFO << "Added device \"" << info.description << "\" with id \"" << info.id << "\".";
 
-  if (info.denoisers & DENOISER_OPENIMAGEDENOISE)
+  if (info.denoisers & DENOISER_OPENIMAGEDENOISE) {
     VLOG_INFO << "Device with id \"" << info.id << "\" supports "
               << denoiserTypeToHumanReadable(DENOISER_OPENIMAGEDENOISE) << ".";
+  }
 }
 #endif
 

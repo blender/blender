@@ -5,7 +5,7 @@
 #include "integrator/tile.h"
 
 #include "util/log.h"
-#include "util/math.h"
+#include "util/math_base.h"
 
 #include <ostream>
 

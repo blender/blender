@@ -42,7 +42,7 @@ struct OSLGlobals {
   /* per thread data */
   static void thread_init(struct KernelGlobalsCPU *kg,
                           OSLGlobals *osl_globals,
-                          const int thread_init);
+                          const int thread_index);
   static void thread_free(struct KernelGlobalsCPU *kg);
 
   bool use;
@@ -60,7 +60,7 @@ struct OSLGlobals {
   OSL::ShaderGroupRef background_state;
 
   /* attributes */
-  typedef unordered_map<OSLUStringHash, int> ObjectNameMap;
+  using ObjectNameMap = unordered_map<OSLUStringHash, int>;
 
   ObjectNameMap object_name_map;
   vector<ustring> object_names;

@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include <string.h>
+#include <cstring>
 #include <string>
 
 /* Use string view implementation from OIIO.
@@ -15,6 +15,8 @@
 #include "util/vector.h"
 
 CCL_NAMESPACE_BEGIN
+
+struct float4;
 
 using std::string;
 using std::to_string;

@@ -19,14 +19,14 @@ NODE_ABSTRACT_DEFINE(Procedural)
 
 Procedural::Procedural(const NodeType *type) : Node(type) {}
 
-Procedural::~Procedural() {}
+Procedural::~Procedural() = default;
 
 ProceduralManager::ProceduralManager()
 {
   need_update_ = true;
 }
 
-ProceduralManager::~ProceduralManager() {}
+ProceduralManager::~ProceduralManager() = default;
 
 void ProceduralManager::update(Scene *scene, Progress &progress)
 {

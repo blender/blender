@@ -133,7 +133,7 @@ HdCyclesDelegate::HdCyclesDelegate(const HdRenderSettingsMap &settingsMap,
   }
 }
 
-HdCyclesDelegate::~HdCyclesDelegate() {}
+HdCyclesDelegate::~HdCyclesDelegate() = default;
 
 void HdCyclesDelegate::SetDrivers(const HdDriverVector &drivers)
 {
@@ -486,28 +486,27 @@ VtValue HdCyclesDelegate::GetRenderSetting(const TfToken &key) const
   if (key == HdCyclesRenderSettingsTokens->stageMetersPerUnit) {
     return VtValue(_renderParam->GetStageMetersPerUnit());
   }
-  else if (key == HdCyclesRenderSettingsTokens->device) {
+  if (key == HdCyclesRenderSettingsTokens->device) {
     return VtValue(TfToken(Device::string_from_type(session->params.device.type)));
   }
-  else if (key == HdCyclesRenderSettingsTokens->threads) {
+  if (key == HdCyclesRenderSettingsTokens->threads) {
     return VtValue(session->params.threads);
   }
-  else if (key == HdCyclesRenderSettingsTokens->timeLimit) {
+  if (key == HdCyclesRenderSettingsTokens->timeLimit) {
     return VtValue(session->params.time_limit);
   }
-  else if (key == HdCyclesRenderSettingsTokens->samples) {
+  if (key == HdCyclesRenderSettingsTokens->samples) {
     return VtValue(session->params.samples);
   }
-  else if (key == HdCyclesRenderSettingsTokens->sampleOffset) {
+  if (key == HdCyclesRenderSettingsTokens->sampleOffset) {
     return VtValue(session->params.sample_offset);
   }
-  else {
-    const std::string &keyString = key.GetString();
-    if (keyString.rfind("cycles:integrator:", 0) == 0) {
-      ustring socketName(keyString, sizeof("cycles:integrator:") - 1);
-      if (const SocketType *socket = scene->integrator->type->find_input(socketName)) {
-        return GetNodeValue(scene->integrator, *socket);
-      }
+
+  const std::string &keyString = key.GetString();
+  if (keyString.rfind("cycles:integrator:", 0) == 0) {
+    ustring socketName(keyString, sizeof("cycles:integrator:") - 1);
+    if (const SocketType *socket = scene->integrator->type->find_input(socketName)) {
+      return GetNodeValue(scene->integrator, *socket);
     }
   }
 

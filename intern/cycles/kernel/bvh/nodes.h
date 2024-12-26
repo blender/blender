@@ -2,6 +2,11 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
+#include "kernel/geom/object.h"
+#include "kernel/globals.h"
+
+CCL_NAMESPACE_BEGIN
+
 // TODO(sergey): Look into avoid use of full Transform and use 3x3 matrix and
 // 3-vector which might be faster.
 ccl_device_forceinline Transform bvh_unaligned_node_fetch_space(KernelGlobals kg,
@@ -139,7 +144,7 @@ ccl_device_forceinline int bvh_node_intersect(KernelGlobals kg,
   if (__float_as_uint(node.x) & PATH_RAY_NODE_UNALIGNED) {
     return bvh_unaligned_node_intersect(kg, P, dir, idir, tmin, tmax, node_addr, visibility, dist);
   }
-  else {
-    return bvh_aligned_node_intersect(kg, P, idir, tmin, tmax, node_addr, visibility, dist);
-  }
+  return bvh_aligned_node_intersect(kg, P, idir, tmin, tmax, node_addr, visibility, dist);
 }
+
+CCL_NAMESPACE_END

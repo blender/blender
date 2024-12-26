@@ -35,7 +35,7 @@ BVH2::BVH2(const BVHParams &params_,
 {
 }
 
-void BVH2::build(Progress &progress, Stats *)
+void BVH2::build(Progress &progress, Stats * /*unused*/)
 {
   progress.set_substatus("Building BVH");
 
@@ -201,8 +201,8 @@ void BVH2::pack_unaligned_inner(const BVHStackEntry &e,
 void BVH2::pack_unaligned_node(int idx,
                                const Transform &aligned_space0,
                                const Transform &aligned_space1,
-                               const BoundBox &bounds0,
-                               const BoundBox &bounds1,
+                               const BoundBox &b0,
+                               const BoundBox &b1,
                                int c0,
                                int c1,
                                uint visibility0,
@@ -213,8 +213,8 @@ void BVH2::pack_unaligned_node(int idx,
   assert(c1 < 0 || c1 < pack.nodes.size());
 
   float4 data[BVH_UNALIGNED_NODE_SIZE];
-  Transform space0 = BVHUnaligned::compute_node_transform(bounds0, aligned_space0);
-  Transform space1 = BVHUnaligned::compute_node_transform(bounds1, aligned_space1);
+  Transform space0 = BVHUnaligned::compute_node_transform(b0, aligned_space0);
+  Transform space1 = BVHUnaligned::compute_node_transform(b1, aligned_space1);
   data[0] = make_float4(__int_as_float(visibility0 | PATH_RAY_NODE_UNALIGNED),
                         __int_as_float(visibility1 | PATH_RAY_NODE_UNALIGNED),
                         __int_as_float(c0),
@@ -269,7 +269,7 @@ void BVH2::pack_nodes(const BVHNode *root)
     nextNodeIdx += root->has_unaligned() ? BVH_UNALIGNED_NODE_SIZE : BVH_NODE_SIZE;
   }
 
-  while (stack.size()) {
+  while (!stack.empty()) {
     BVHStackEntry e = stack.back();
     stack.pop_back();
 
@@ -383,7 +383,7 @@ void BVH2::refit_primitives(int start, int end, BoundBox &bbox, uint &visibility
         Hair::Curve curve = hair->get_curve(pidx - prim_offset);
         int k = PRIMITIVE_UNPACK_SEGMENT(pack.prim_type[prim]);
 
-        curve.bounds_grow(k, &hair->get_curve_keys()[0], &hair->get_curve_radius()[0], bbox);
+        curve.bounds_grow(k, hair->get_curve_keys().data(), hair->get_curve_radius().data(), bbox);
 
         /* Motion curves. */
         if (hair->get_use_motion_blur()) {
@@ -395,7 +395,8 @@ void BVH2::refit_primitives(int start, int end, BoundBox &bbox, uint &visibility
             float3 *key_steps = attr->data_float3();
 
             for (size_t i = 0; i < steps; i++) {
-              curve.bounds_grow(k, key_steps + i * hair_size, &hair->get_curve_radius()[0], bbox);
+              curve.bounds_grow(
+                  k, key_steps + i * hair_size, hair->get_curve_radius().data(), bbox);
             }
           }
         }
@@ -404,8 +405,8 @@ void BVH2::refit_primitives(int start, int end, BoundBox &bbox, uint &visibility
         /* Points. */
         const PointCloud *pointcloud = static_cast<const PointCloud *>(ob->get_geometry());
         int prim_offset = (params.top_level) ? pointcloud->prim_offset : 0;
-        const float3 *points = &pointcloud->points[0];
-        const float *radius = &pointcloud->radius[0];
+        const float3 *points = pointcloud->points.data();
+        const float *radius = pointcloud->radius.data();
         PointCloud::Point point = pointcloud->get_point(pidx - prim_offset);
 
         point.bounds_grow(points, radius, bbox);
@@ -430,7 +431,7 @@ void BVH2::refit_primitives(int start, int end, BoundBox &bbox, uint &visibility
         const Mesh *mesh = static_cast<const Mesh *>(ob->get_geometry());
         int prim_offset = (params.top_level) ? mesh->prim_offset : 0;
         Mesh::Triangle triangle = mesh->get_triangle(pidx - prim_offset);
-        const float3 *vpos = &mesh->verts[0];
+        const float3 *vpos = mesh->verts.data();
 
         triangle.bounds_grow(vpos, bbox);
 
@@ -528,13 +529,14 @@ void BVH2::pack_instances(size_t nodes_size, size_t leaf_nodes_size)
     pack.prim_time.resize(prim_index_size);
   }
 
-  int *pack_prim_index = (pack.prim_index.size()) ? &pack.prim_index[0] : nullptr;
-  int *pack_prim_type = (pack.prim_type.size()) ? &pack.prim_type[0] : nullptr;
-  int *pack_prim_object = (pack.prim_object.size()) ? &pack.prim_object[0] : nullptr;
-  uint *pack_prim_visibility = (pack.prim_visibility.size()) ? &pack.prim_visibility[0] : nullptr;
-  int4 *pack_nodes = (pack.nodes.size()) ? &pack.nodes[0] : nullptr;
-  int4 *pack_leaf_nodes = (pack.leaf_nodes.size()) ? &pack.leaf_nodes[0] : nullptr;
-  float2 *pack_prim_time = (pack.prim_time.size()) ? &pack.prim_time[0] : nullptr;
+  int *pack_prim_index = (pack.prim_index.size()) ? pack.prim_index.data() : nullptr;
+  int *pack_prim_type = (pack.prim_type.size()) ? pack.prim_type.data() : nullptr;
+  int *pack_prim_object = (pack.prim_object.size()) ? pack.prim_object.data() : nullptr;
+  uint *pack_prim_visibility = (pack.prim_visibility.size()) ? pack.prim_visibility.data() :
+                                                               nullptr;
+  int4 *pack_nodes = (pack.nodes.size()) ? pack.nodes.data() : nullptr;
+  int4 *pack_leaf_nodes = (pack.leaf_nodes.size()) ? pack.leaf_nodes.data() : nullptr;
+  float2 *pack_prim_time = (pack.prim_time.size()) ? pack.prim_time.data() : nullptr;
 
   unordered_map<Geometry *, int> geometry_map;
 
@@ -579,10 +581,10 @@ void BVH2::pack_instances(size_t nodes_size, size_t leaf_nodes_size)
     /* merge primitive, object and triangle indexes */
     if (bvh->pack.prim_index.size()) {
       size_t bvh_prim_index_size = bvh->pack.prim_index.size();
-      int *bvh_prim_index = &bvh->pack.prim_index[0];
-      int *bvh_prim_type = &bvh->pack.prim_type[0];
-      uint *bvh_prim_visibility = &bvh->pack.prim_visibility[0];
-      float2 *bvh_prim_time = bvh->pack.prim_time.size() ? &bvh->pack.prim_time[0] : nullptr;
+      int *bvh_prim_index = bvh->pack.prim_index.data();
+      int *bvh_prim_type = bvh->pack.prim_type.data();
+      uint *bvh_prim_visibility = bvh->pack.prim_visibility.data();
+      float2 *bvh_prim_time = bvh->pack.prim_time.size() ? bvh->pack.prim_time.data() : nullptr;
 
       for (size_t i = 0; i < bvh_prim_index_size; i++) {
         pack_prim_index[pack_prim_index_offset] = bvh_prim_index[i] + geom_prim_offset;
@@ -598,7 +600,7 @@ void BVH2::pack_instances(size_t nodes_size, size_t leaf_nodes_size)
 
     /* merge nodes */
     if (bvh->pack.leaf_nodes.size()) {
-      int4 *leaf_nodes_offset = &bvh->pack.leaf_nodes[0];
+      int4 *leaf_nodes_offset = bvh->pack.leaf_nodes.data();
       size_t leaf_nodes_offset_size = bvh->pack.leaf_nodes.size();
       for (size_t i = 0, j = 0; i < leaf_nodes_offset_size; i += BVH_NODE_LEAF_SIZE, j++) {
         int4 data = leaf_nodes_offset[i];
@@ -613,7 +615,7 @@ void BVH2::pack_instances(size_t nodes_size, size_t leaf_nodes_size)
     }
 
     if (bvh->pack.nodes.size()) {
-      int4 *bvh_nodes = &bvh->pack.nodes[0];
+      int4 *bvh_nodes = bvh->pack.nodes.data();
       size_t bvh_nodes_size = bvh->pack.nodes.size();
 
       for (size_t i = 0; i < bvh_nodes_size;) {

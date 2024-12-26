@@ -146,14 +146,18 @@ ccl_device_inline void film_write_data_passes(KernelGlobals kg,
     /* Falloff */
     const float mist_falloff = kernel_data.film.mist_falloff;
 
-    if (mist_falloff == 1.0f)
+    if (mist_falloff == 1.0f) {
       ;
-    else if (mist_falloff == 2.0f)
+    }
+    else if (mist_falloff == 2.0f) {
       mist = mist * mist;
-    else if (mist_falloff == 0.5f)
+    }
+    else if (mist_falloff == 0.5f) {
       mist = sqrtf(mist);
-    else
+    }
+    else {
       mist = powf(mist, mist_falloff);
+    }
 
     /* Modulate by transparency */
     const Spectrum throughput = INTEGRATOR_STATE(state, path, throughput);

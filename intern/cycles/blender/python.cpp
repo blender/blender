@@ -17,13 +17,11 @@
 #include "util/debug.h"
 #include "util/foreach.h"
 #include "util/guiding.h"
-#include "util/log.h"
 #include "util/md5.h"
 #include "util/openimagedenoise.h"
 #include "util/path.h"
 #include "util/string.h"
 #include "util/task.h"
-#include "util/tbb.h"
 #include "util/types.h"
 
 #include "GPU_state.hh"
@@ -63,7 +61,7 @@ PyObject *pyunicode_from_string(const char *str)
 /* Synchronize debug flags from a given Blender scene.
  * Return truth when device list needs invalidation.
  */
-static void debug_flags_sync_from_scene(BL::Scene b_scene)
+void debug_flags_sync_from_scene(BL::Scene b_scene)
 {
   DebugFlagsRef flags = DebugFlags();
   PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
@@ -82,7 +80,7 @@ static void debug_flags_sync_from_scene(BL::Scene b_scene)
 /* Reset debug flags to default values.
  * Return truth when device list needs invalidation.
  */
-static void debug_flags_reset()
+void debug_flags_reset()
 {
   DebugFlagsRef flags = DebugFlags();
   flags.reset();
@@ -110,22 +108,20 @@ static const char *PyC_UnicodeAsBytes(PyObject *py_str, PyObject **coerce)
      */
     return result;
   }
-  else {
-    PyErr_Clear();
-    if (PyBytes_Check(py_str)) {
-      return PyBytes_AS_STRING(py_str);
-    }
-    else if ((*coerce = PyUnicode_EncodeFSDefault(py_str))) {
-      return PyBytes_AS_STRING(*coerce);
-    }
-    else {
-      /* Clear the error, so Cycles can be at least used without
-       * GPU and OSL support,
-       */
-      PyErr_Clear();
-      return "";
-    }
+  PyErr_Clear();
+  if (PyBytes_Check(py_str)) {
+    return PyBytes_AS_STRING(py_str);
   }
+
+  *coerce = PyUnicode_EncodeFSDefault(py_str);
+  if (*coerce) {
+    return PyBytes_AS_STRING(*coerce);
+  }
+  /* Clear the error, so Cycles can be at least used without
+   * GPU and OSL support,
+   */
+  PyErr_Clear();
+  return "";
 }
 
 static PyObject *init_func(PyObject * /*self*/, PyObject *args)
@@ -183,11 +179,11 @@ static PyObject *create_func(PyObject * /*self*/, PyObject *args)
   ID *bScreen = (ID *)PyLong_AsVoidPtr(pyscreen);
 
   PointerRNA engineptr = RNA_pointer_create(
-      nullptr, &RNA_RenderEngine, (void *)PyLong_AsVoidPtr(pyengine));
+      nullptr, &RNA_RenderEngine, PyLong_AsVoidPtr(pyengine));
   BL::RenderEngine engine(engineptr);
 
   PointerRNA preferencesptr = RNA_pointer_create(
-      nullptr, &RNA_Preferences, (void *)PyLong_AsVoidPtr(pypreferences));
+      nullptr, &RNA_Preferences, PyLong_AsVoidPtr(pypreferences));
   BL::Preferences preferences(preferencesptr);
 
   PointerRNA dataptr = RNA_main_pointer_create((Main *)PyLong_AsVoidPtr(pydata));
@@ -448,16 +444,16 @@ static PyObject *osl_update_node_func(PyObject * /*self*/, PyObject *args)
   PyObject *pydata, *pynodegroup, *pynode;
   const char *filepath = nullptr;
 
-  if (!PyArg_ParseTuple(args, "OOOs", &pydata, &pynodegroup, &pynode, &filepath))
+  if (!PyArg_ParseTuple(args, "OOOs", &pydata, &pynodegroup, &pynode, &filepath)) {
     return nullptr;
+  }
 
   /* RNA */
   PointerRNA dataptr = RNA_main_pointer_create((Main *)PyLong_AsVoidPtr(pydata));
   BL::BlendData b_data(dataptr);
 
-  PointerRNA nodeptr = RNA_pointer_create((ID *)PyLong_AsVoidPtr(pynodegroup),
-                                          &RNA_ShaderNodeScript,
-                                          (void *)PyLong_AsVoidPtr(pynode));
+  PointerRNA nodeptr = RNA_pointer_create(
+      (ID *)PyLong_AsVoidPtr(pynodegroup), &RNA_ShaderNodeScript, PyLong_AsVoidPtr(pynode));
   BL::ShaderNodeScript b_node(nodeptr);
 
   /* update bytecode hash */
@@ -466,16 +462,18 @@ static PyObject *osl_update_node_func(PyObject * /*self*/, PyObject *args)
   if (!bytecode.empty()) {
     MD5Hash md5;
     md5.append((const uint8_t *)bytecode.c_str(), bytecode.size());
-    b_node.bytecode_hash(md5.get_hex().c_str());
+    b_node.bytecode_hash(md5.get_hex());
   }
-  else
+  else {
     b_node.bytecode_hash("");
+  }
 
   /* query from file path */
   OSL::OSLQuery query;
 
-  if (!OSLShaderManager::osl_query(query, filepath))
+  if (!OSLShaderManager::osl_query(query, filepath)) {
     Py_RETURN_FALSE;
+  }
 
   /* add new sockets from parameters */
   set<void *> used_sockets;
@@ -484,8 +482,9 @@ static PyObject *osl_update_node_func(PyObject * /*self*/, PyObject *args)
     const OSL::OSLQuery::Parameter *param = query.getparam(i);
 
     /* skip unsupported types */
-    if (param->varlenarray || param->isstruct || param->type.arraylen > 1)
+    if (param->varlenarray || param->isstruct || param->type.arraylen > 1) {
       continue;
+    }
 
     /* Read metadata. */
     bool is_bool_param = false;
@@ -515,7 +514,7 @@ static PyObject *osl_update_node_func(PyObject * /*self*/, PyObject *args)
     float4 default_float4 = make_float4(0.0f, 0.0f, 0.0f, 1.0f);
     float default_float = 0.0f;
     int default_int = 0;
-    string default_string = "";
+    string default_string;
     bool default_boolean = false;
 
     if (param->isclosure) {
@@ -557,27 +556,32 @@ static PyObject *osl_update_node_func(PyObject * /*self*/, PyObject *args)
         else {
           socket_type = "NodeSocketInt";
           data_type = BL::NodeSocket::type_INT;
-          if (param->validdefault)
+          if (param->validdefault) {
             default_int = param->idefault[0];
+          }
         }
       }
       else if (param->type.basetype == TypeDesc::FLOAT) {
         socket_type = "NodeSocketFloat";
         data_type = BL::NodeSocket::type_VALUE;
-        if (param->validdefault)
+        if (param->validdefault) {
           default_float = param->fdefault[0];
+        }
       }
       else if (param->type.basetype == TypeDesc::STRING) {
         socket_type = "NodeSocketString";
         data_type = BL::NodeSocket::type_STRING;
-        if (param->validdefault)
+        if (param->validdefault) {
           default_string = param->sdefault[0].string();
+        }
       }
-      else
+      else {
         continue;
+      }
     }
-    else
+    else {
       continue;
+    }
 
     /* Update existing socket. */
     bool found_existing = false;
@@ -688,12 +692,14 @@ static PyObject *osl_compile_func(PyObject * /*self*/, PyObject *args)
 {
   const char *inputfile = nullptr, *outputfile = nullptr;
 
-  if (!PyArg_ParseTuple(args, "ss", &inputfile, &outputfile))
+  if (!PyArg_ParseTuple(args, "ss", &inputfile, &outputfile)) {
     return nullptr;
+  }
 
   /* return */
-  if (!OSLShaderManager::osl_compile(inputfile, outputfile))
+  if (!OSLShaderManager::osl_compile(inputfile, outputfile)) {
     Py_RETURN_FALSE;
+  }
 
   Py_RETURN_TRUE;
 }
@@ -756,7 +762,7 @@ static PyObject *denoise_func(PyObject * /*self*/, PyObject *args, PyObject *key
 
   /* Get device specification from preferences and scene. */
   PointerRNA preferencesptr = RNA_pointer_create(
-      nullptr, &RNA_Preferences, (void *)PyLong_AsVoidPtr(pypreferences));
+      nullptr, &RNA_Preferences, PyLong_AsVoidPtr(pypreferences));
   BL::Preferences b_preferences(preferencesptr);
 
   PointerRNA sceneptr = RNA_id_pointer_create((ID *)PyLong_AsVoidPtr(pyscene));

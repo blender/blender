@@ -15,12 +15,12 @@ CCL_NAMESPACE_BEGIN
 
 #ifdef __OSL__
 
-typedef struct PhongRampBsdf {
+struct PhongRampBsdf {
   SHADER_CLOSURE_BASE;
 
   float exponent;
   ccl_private float3 *colors;
-} PhongRampBsdf;
+};
 
 static_assert(sizeof(ShaderClosure) >= sizeof(PhongRampBsdf), "PhongRampBsdf is too large!");
 
@@ -30,10 +30,12 @@ ccl_device float3 bsdf_phong_ramp_get_color(const float3 colors[8], float pos)
 
   float npos = pos * (float)(MAXCOLORS - 1);
   int ipos = float_to_int(npos);
-  if (ipos < 0)
+  if (ipos < 0) {
     return colors[0];
-  if (ipos >= (MAXCOLORS - 1))
+  }
+  if (ipos >= (MAXCOLORS - 1)) {
     return colors[MAXCOLORS - 1];
+  }
   float offset = npos - (float)ipos;
   return colors[ipos] * (1.0f - offset) + colors[ipos + 1] * offset;
 }

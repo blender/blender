@@ -7,9 +7,9 @@
 
 #pragma once
 
-#include "kernel/types.h"
-
 #include "util/hash.h"
+#include "util/math.h"
+#include "util/types.h"
 
 CCL_NAMESPACE_BEGIN
 

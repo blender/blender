@@ -27,7 +27,8 @@ BlenderImageLoader::BlenderImageLoader(BL::Image b_image,
 {
 }
 
-bool BlenderImageLoader::load_metadata(const ImageDeviceFeatures &, ImageMetaData &metadata)
+bool BlenderImageLoader::load_metadata(const ImageDeviceFeatures & /*features*/,
+                                       ImageMetaData &metadata)
 {
   if (b_image.source() != BL::Image::source_TILED) {
     /* Image sequence might have different dimensions, and hence needs to be handled in a special
@@ -256,7 +257,8 @@ BlenderPointDensityLoader::BlenderPointDensityLoader(BL::Depsgraph b_depsgraph,
 {
 }
 
-bool BlenderPointDensityLoader::load_metadata(const ImageDeviceFeatures &, ImageMetaData &metadata)
+bool BlenderPointDensityLoader::load_metadata(const ImageDeviceFeatures & /*features*/,
+                                              ImageMetaData &metadata)
 {
   metadata.channels = 4;
   metadata.width = b_node.resolution();
@@ -266,10 +268,10 @@ bool BlenderPointDensityLoader::load_metadata(const ImageDeviceFeatures &, Image
   return true;
 }
 
-bool BlenderPointDensityLoader::load_pixels(const ImageMetaData &,
+bool BlenderPointDensityLoader::load_pixels(const ImageMetaData & /*metadata*/,
                                             void *pixels,
-                                            const size_t,
-                                            const bool)
+                                            const size_t /*pixels_size*/,
+                                            const bool /*associate_alpha*/)
 {
   int length;
   b_node.calc_point_density(b_depsgraph, &length, (float **)&pixels);

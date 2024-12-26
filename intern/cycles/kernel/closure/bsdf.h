@@ -19,8 +19,6 @@
 #include "kernel/closure/bsdf_hair.h"
 #include "kernel/closure/bsdf_principled_hair_chiang.h"
 #include "kernel/closure/bsdf_principled_hair_huang.h"
-#include "kernel/closure/bssrdf.h"
-#include "kernel/closure/volume.h"
 // clang-format on
 
 CCL_NAMESPACE_BEGIN
@@ -429,10 +427,12 @@ ccl_device_inline int bsdf_label(const KernelGlobals kg,
       break;
 #  ifdef __PRINCIPLED_HAIR__
     case CLOSURE_BSDF_HAIR_CHIANG_ID:
-      if (bsdf_is_transmission(sc, wo))
+      if (bsdf_is_transmission(sc, wo)) {
         label = LABEL_TRANSMIT | LABEL_GLOSSY;
-      else
+      }
+      else {
         label = LABEL_REFLECT | LABEL_GLOSSY;
+      }
       break;
     case CLOSURE_BSDF_HAIR_HUANG_ID:
       label = LABEL_REFLECT | LABEL_GLOSSY;

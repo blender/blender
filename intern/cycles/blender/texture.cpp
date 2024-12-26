@@ -4,6 +4,8 @@
 
 #include "blender/texture.h"
 
+#include "util/math.h"
+
 CCL_NAMESPACE_BEGIN
 
 namespace {

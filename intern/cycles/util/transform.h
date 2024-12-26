@@ -5,7 +5,7 @@
 #pragma once
 
 #ifndef __KERNEL_GPU__
-#  include <string.h>
+#  include <cstring>
 #endif
 
 #include "util/math.h"
@@ -19,7 +19,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Affine transformation, stored as 4x3 matrix. */
 
-typedef struct Transform {
+struct Transform {
   float4 x, y, z;
 
 #ifndef __KERNEL_GPU__
@@ -32,15 +32,15 @@ typedef struct Transform {
     return *(&x + i);
   }
 #endif
-} Transform;
+};
 
 /* Transform decomposed in rotation/translation/scale. we use the same data
  * structure as Transform, and tightly pack decomposition into it. first the
  * rotation (4), then translation (3), then 3x3 scale matrix (9). */
 
-typedef struct DecomposedTransform {
+struct DecomposedTransform {
   float4 x, y, z, w;
-} DecomposedTransform;
+};
 
 CCL_NAMESPACE_END
 
@@ -334,7 +334,7 @@ ccl_device_inline void transform_set_column(Transform *t, int column, float3 val
   t->z[column] = value.z;
 }
 
-Transform transform_transposed_inverse(const Transform &a);
+Transform transform_transposed_inverse(const Transform &tfm);
 
 ccl_device_inline bool transform_uniform_scale(const Transform &tfm, float &scale)
 {
@@ -393,7 +393,7 @@ ccl_device_inline float4 quat_interpolate(float4 q1, float4 q2, float t)
   /* Optix and MetalRT are using linear interpolation to interpolate motion transformations. */
 #if defined(__KERNEL_GPU_RAYTRACING__)
   return normalize((1.0f - t) * q1 + t * q2);
-#else  /* defined(__KERNEL_GPU_RAYTRACING__) */
+#else /* defined(__KERNEL_GPU_RAYTRACING__) */
   /* NOTE: this does not ensure rotation around shortest angle, q1 and q2
    * are assumed to be matched already in transform_motion_decompose */
   float costheta = dot(q1, q2);
@@ -404,13 +404,12 @@ ccl_device_inline float4 quat_interpolate(float4 q1, float4 q2, float t)
     /* linear interpolation in degenerate case */
     return normalize((1.0f - t) * q1 + t * q2);
   }
-  else {
-    /* slerp */
-    float theta = acosf(clamp(costheta, -1.0f, 1.0f));
-    float4 qperp = normalize(q2 - q1 * costheta);
-    float thetap = theta * t;
-    return q1 * cosf(thetap) + qperp * sinf(thetap);
-  }
+  /* slerp */
+  float theta = acosf(clamp(costheta, -1.0f, 1.0f));
+  float4 qperp = normalize(q2 - q1 * costheta);
+  float thetap = theta * t;
+  return q1 * cosf(thetap) + qperp * sinf(thetap);
+
 #endif /* defined(__KERNEL_GPU_RAYTRACING__) */
 }
 
@@ -428,7 +427,7 @@ ccl_device_inline Transform transform_inverse(const Transform tfm)
     transform_inverse_cpu_avx2(tfm, itfm);
     return itfm;
   }
-  else if (system_cpu_support_sse42()) {
+  if (system_cpu_support_sse42()) {
     Transform itfm;
     transform_inverse_cpu_sse42(tfm, itfm);
     return itfm;

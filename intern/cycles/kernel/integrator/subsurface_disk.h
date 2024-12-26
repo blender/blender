@@ -4,6 +4,8 @@
 
 #include "kernel/bvh/bvh.h"
 
+#include "kernel/closure/bssrdf.h"
+
 #include "kernel/geom/object.h"
 
 #include "kernel/integrator/guiding.h"

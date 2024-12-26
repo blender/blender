@@ -5,12 +5,8 @@
 #include "integrator/pass_accessor.h"
 
 #include "session/buffers.h"
-#include "util/log.h"
 
-// clang-format off
-#include "kernel/device/cpu/compat.h"
-#include "kernel/types.h"
-// clang-format on
+#include "util/log.h"
 
 CCL_NAMESPACE_BEGIN
 

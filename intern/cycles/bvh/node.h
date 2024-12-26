@@ -45,7 +45,7 @@ class BVHNode {
   }
   virtual void print(int depth = 0) const = 0;
 
-  inline void set_aligned_space(const Transform &aligned_space)
+  void set_aligned_space(const Transform &aligned_space)
   {
     is_unaligned = true;
     if (this->aligned_space == nullptr) {
@@ -56,7 +56,7 @@ class BVHNode {
     }
   }
 
-  inline Transform get_aligned_space() const
+  Transform get_aligned_space() const
   {
     if (aligned_space == nullptr) {
       return transform_identity();
@@ -64,7 +64,7 @@ class BVHNode {
     return *aligned_space;
   }
 
-  inline bool has_unaligned() const
+  bool has_unaligned() const
   {
     if (is_leaf()) {
       return false;
@@ -90,33 +90,25 @@ class BVHNode {
 
   // Properties.
   BoundBox bounds;
-  uint visibility;
+  uint visibility = 0;
 
-  bool is_unaligned;
+  bool is_unaligned = false;
 
   /* TODO(sergey): Can be stored as 3x3 matrix, but better to have some
    * utilities and type defines in util_transform first.
    */
-  Transform *aligned_space;
+  Transform *aligned_space = nullptr;
 
-  float time_from, time_to;
+  float time_from = 0.0f, time_to = 1.0f;
 
  protected:
-  explicit BVHNode(const BoundBox &bounds)
-      : bounds(bounds),
-        visibility(0),
-        is_unaligned(false),
-        aligned_space(nullptr),
-        time_from(0.0f),
-        time_to(1.0f)
-  {
-  }
+  explicit BVHNode(const BoundBox &bounds) : bounds(bounds) {}
 
   explicit BVHNode(const BVHNode &other)
       : bounds(other.bounds),
         visibility(other.visibility),
         is_unaligned(other.is_unaligned),
-        aligned_space(nullptr),
+
         time_from(other.time_from),
         time_to(other.time_to)
   {
@@ -177,20 +169,20 @@ class InnerNode : public BVHNode {
     num_children_ = 2;
   }
 
-  bool is_leaf() const
+  bool is_leaf() const override
   {
     return false;
   }
-  int num_children() const
+  int num_children() const override
   {
     return num_children_;
   }
-  BVHNode *get_child(int i) const
+  BVHNode *get_child(int i) const override
   {
     assert(i >= 0 && i < num_children_);
     return children[i];
   }
-  void print(int depth) const;
+  void print(int depth) const override;
 
   int num_children_;
   BVHNode *children[kNumMaxChildren];
@@ -213,25 +205,25 @@ class LeafNode : public BVHNode {
     this->visibility = visibility;
   }
 
-  LeafNode(const LeafNode &other) : BVHNode(other), lo(other.lo), hi(other.hi) {}
+  LeafNode(const LeafNode &other) = default;
 
-  bool is_leaf() const
+  bool is_leaf() const override
   {
     return true;
   }
-  int num_children() const
+  int num_children() const override
   {
     return 0;
   }
-  BVHNode *get_child(int) const
+  BVHNode *get_child(int /*i*/) const override
   {
     return nullptr;
   }
-  int num_triangles() const
+  int num_triangles() const override
   {
     return hi - lo;
   }
-  void print(int depth) const;
+  void print(int depth) const override;
 
   int lo;
   int hi;

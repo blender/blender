@@ -25,8 +25,9 @@ class Object;
 class Progress;
 class Stats;
 
-#define BVH_ALIGN 4096
-#define TRI_NODE_SIZE 3
+#define BVH_ALIGN 4096   // NOLINT
+#define TRI_NODE_SIZE 3  // NOLINT
+
 /* Packed BVH
  *
  * BVH stored as it will be used for traversal on the rendering device. */
@@ -72,7 +73,7 @@ class BVH {
                      const vector<Geometry *> &geometry,
                      const vector<Object *> &objects,
                      Device *device);
-  virtual ~BVH() {}
+  virtual ~BVH() = default;
 
   virtual void replace_geometry(const vector<Geometry *> &geometry,
                                 const vector<Object *> &objects)

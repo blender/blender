@@ -31,9 +31,7 @@ ccl_device_inline float3 triangle_normal(KernelGlobals kg, ccl_private ShaderDat
   if (object_negative_scale_applied(sd->object_flag)) {
     return normalize(cross(v2 - v0, v1 - v0));
   }
-  else {
-    return normalize(cross(v1 - v0, v2 - v0));
-  }
+  return normalize(cross(v1 - v0, v2 - v0));
 }
 
 /* Point and normal on triangle. */
@@ -178,31 +176,30 @@ ccl_device float triangle_attribute_float(KernelGlobals kg,
     }
 
 #ifdef __RAY_DIFFERENTIALS__
-    if (dx)
+    if (dx) {
       *dx = sd->du.dx * f1 + sd->dv.dx * f2 - (sd->du.dx + sd->dv.dx) * f0;
-    if (dy)
+    }
+    if (dy) {
       *dy = sd->du.dy * f1 + sd->dv.dy * f2 - (sd->du.dy + sd->dv.dy) * f0;
+    }
 #endif
 
     return sd->u * f1 + sd->v * f2 + (1.0f - sd->u - sd->v) * f0;
   }
-  else {
 #ifdef __RAY_DIFFERENTIALS__
-    if (dx)
-      *dx = 0.0f;
-    if (dy)
-      *dy = 0.0f;
+  if (dx) {
+    *dx = 0.0f;
+  }
+  if (dy) {
+    *dy = 0.0f;
+  }
 #endif
 
-    if (desc.element & (ATTR_ELEMENT_FACE | ATTR_ELEMENT_OBJECT | ATTR_ELEMENT_MESH)) {
-      const int offset = (desc.element == ATTR_ELEMENT_FACE) ? desc.offset + sd->prim :
-                                                               desc.offset;
-      return kernel_data_fetch(attributes_float, offset);
-    }
-    else {
-      return 0.0f;
-    }
+  if (desc.element & (ATTR_ELEMENT_FACE | ATTR_ELEMENT_OBJECT | ATTR_ELEMENT_MESH)) {
+    const int offset = (desc.element == ATTR_ELEMENT_FACE) ? desc.offset + sd->prim : desc.offset;
+    return kernel_data_fetch(attributes_float, offset);
   }
+  return 0.0f;
 }
 
 ccl_device float2 triangle_attribute_float2(KernelGlobals kg,
@@ -229,31 +226,30 @@ ccl_device float2 triangle_attribute_float2(KernelGlobals kg,
     }
 
 #ifdef __RAY_DIFFERENTIALS__
-    if (dx)
+    if (dx) {
       *dx = sd->du.dx * f1 + sd->dv.dx * f2 - (sd->du.dx + sd->dv.dx) * f0;
-    if (dy)
+    }
+    if (dy) {
       *dy = sd->du.dy * f1 + sd->dv.dy * f2 - (sd->du.dy + sd->dv.dy) * f0;
+    }
 #endif
 
     return sd->u * f1 + sd->v * f2 + (1.0f - sd->u - sd->v) * f0;
   }
-  else {
 #ifdef __RAY_DIFFERENTIALS__
-    if (dx)
-      *dx = make_float2(0.0f, 0.0f);
-    if (dy)
-      *dy = make_float2(0.0f, 0.0f);
+  if (dx) {
+    *dx = make_float2(0.0f, 0.0f);
+  }
+  if (dy) {
+    *dy = make_float2(0.0f, 0.0f);
+  }
 #endif
 
-    if (desc.element & (ATTR_ELEMENT_FACE | ATTR_ELEMENT_OBJECT | ATTR_ELEMENT_MESH)) {
-      const int offset = (desc.element == ATTR_ELEMENT_FACE) ? desc.offset + sd->prim :
-                                                               desc.offset;
-      return kernel_data_fetch(attributes_float2, offset);
-    }
-    else {
-      return make_float2(0.0f, 0.0f);
-    }
+  if (desc.element & (ATTR_ELEMENT_FACE | ATTR_ELEMENT_OBJECT | ATTR_ELEMENT_MESH)) {
+    const int offset = (desc.element == ATTR_ELEMENT_FACE) ? desc.offset + sd->prim : desc.offset;
+    return kernel_data_fetch(attributes_float2, offset);
   }
+  return make_float2(0.0f, 0.0f);
 }
 
 ccl_device float3 triangle_attribute_float3(KernelGlobals kg,
@@ -280,31 +276,30 @@ ccl_device float3 triangle_attribute_float3(KernelGlobals kg,
     }
 
 #ifdef __RAY_DIFFERENTIALS__
-    if (dx)
+    if (dx) {
       *dx = sd->du.dx * f1 + sd->dv.dx * f2 - (sd->du.dx + sd->dv.dx) * f0;
-    if (dy)
+    }
+    if (dy) {
       *dy = sd->du.dy * f1 + sd->dv.dy * f2 - (sd->du.dy + sd->dv.dy) * f0;
+    }
 #endif
 
     return sd->u * f1 + sd->v * f2 + (1.0f - sd->u - sd->v) * f0;
   }
-  else {
 #ifdef __RAY_DIFFERENTIALS__
-    if (dx)
-      *dx = make_float3(0.0f, 0.0f, 0.0f);
-    if (dy)
-      *dy = make_float3(0.0f, 0.0f, 0.0f);
+  if (dx) {
+    *dx = make_float3(0.0f, 0.0f, 0.0f);
+  }
+  if (dy) {
+    *dy = make_float3(0.0f, 0.0f, 0.0f);
+  }
 #endif
 
-    if (desc.element & (ATTR_ELEMENT_FACE | ATTR_ELEMENT_OBJECT | ATTR_ELEMENT_MESH)) {
-      const int offset = (desc.element == ATTR_ELEMENT_FACE) ? desc.offset + sd->prim :
-                                                               desc.offset;
-      return kernel_data_fetch(attributes_float3, offset);
-    }
-    else {
-      return make_float3(0.0f, 0.0f, 0.0f);
-    }
+  if (desc.element & (ATTR_ELEMENT_FACE | ATTR_ELEMENT_OBJECT | ATTR_ELEMENT_MESH)) {
+    const int offset = (desc.element == ATTR_ELEMENT_FACE) ? desc.offset + sd->prim : desc.offset;
+    return kernel_data_fetch(attributes_float3, offset);
   }
+  return make_float3(0.0f, 0.0f, 0.0f);
 }
 
 ccl_device float4 triangle_attribute_float4(KernelGlobals kg,
@@ -343,31 +338,30 @@ ccl_device float4 triangle_attribute_float4(KernelGlobals kg,
     }
 
 #ifdef __RAY_DIFFERENTIALS__
-    if (dx)
+    if (dx) {
       *dx = sd->du.dx * f1 + sd->dv.dx * f2 - (sd->du.dx + sd->dv.dx) * f0;
-    if (dy)
+    }
+    if (dy) {
       *dy = sd->du.dy * f1 + sd->dv.dy * f2 - (sd->du.dy + sd->dv.dy) * f0;
+    }
 #endif
 
     return sd->u * f1 + sd->v * f2 + (1.0f - sd->u - sd->v) * f0;
   }
-  else {
 #ifdef __RAY_DIFFERENTIALS__
-    if (dx)
-      *dx = zero_float4();
-    if (dy)
-      *dy = zero_float4();
+  if (dx) {
+    *dx = zero_float4();
+  }
+  if (dy) {
+    *dy = zero_float4();
+  }
 #endif
 
-    if (desc.element & (ATTR_ELEMENT_FACE | ATTR_ELEMENT_OBJECT | ATTR_ELEMENT_MESH)) {
-      const int offset = (desc.element == ATTR_ELEMENT_FACE) ? desc.offset + sd->prim :
-                                                               desc.offset;
-      return kernel_data_fetch(attributes_float4, offset);
-    }
-    else {
-      return zero_float4();
-    }
+  if (desc.element & (ATTR_ELEMENT_FACE | ATTR_ELEMENT_OBJECT | ATTR_ELEMENT_MESH)) {
+    const int offset = (desc.element == ATTR_ELEMENT_FACE) ? desc.offset + sd->prim : desc.offset;
+    return kernel_data_fetch(attributes_float4, offset);
   }
+  return zero_float4();
 }
 
 CCL_NAMESPACE_END

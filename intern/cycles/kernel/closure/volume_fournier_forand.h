@@ -12,12 +12,12 @@ CCL_NAMESPACE_BEGIN
 
 /* FOURNIER-FORAND CLOSURE */
 
-typedef struct FournierForandVolume {
+struct FournierForandVolume {
   SHADER_CLOSURE_VOLUME_BASE;
 
   /* Precomputed coefficients, based on B and IOR */
   float c1, c2, c3;
-} FournierForandVolume;
+};
 static_assert(sizeof(ShaderVolumeClosure) >= sizeof(FournierForandVolume),
               "FournierForandVolume is too large!");
 

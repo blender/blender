@@ -5,7 +5,6 @@
 #pragma once
 
 #include "kernel/svm/noise.h"
-#include "kernel/svm/util.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -33,9 +32,7 @@ ccl_device_noinline float noise_fbm(
     return normalize ? mix(0.5f * sum / maxamp + 0.5f, 0.5f * sum2 / (maxamp + amp) + 0.5f, rmd) :
                        mix(sum, sum2, rmd);
   }
-  else {
-    return normalize ? 0.5f * sum / maxamp + 0.5f : sum;
-  }
+  return normalize ? 0.5f * sum / maxamp + 0.5f : sum;
 }
 
 ccl_device_noinline float noise_fbm(
@@ -60,9 +57,7 @@ ccl_device_noinline float noise_fbm(
     return normalize ? mix(0.5f * sum / maxamp + 0.5f, 0.5f * sum2 / (maxamp + amp) + 0.5f, rmd) :
                        mix(sum, sum2, rmd);
   }
-  else {
-    return normalize ? 0.5f * sum / maxamp + 0.5f : sum;
-  }
+  return normalize ? 0.5f * sum / maxamp + 0.5f : sum;
 }
 
 ccl_device_noinline float noise_fbm(
@@ -87,9 +82,7 @@ ccl_device_noinline float noise_fbm(
     return normalize ? mix(0.5f * sum / maxamp + 0.5f, 0.5f * sum2 / (maxamp + amp) + 0.5f, rmd) :
                        mix(sum, sum2, rmd);
   }
-  else {
-    return normalize ? 0.5f * sum / maxamp + 0.5f : sum;
-  }
+  return normalize ? 0.5f * sum / maxamp + 0.5f : sum;
 }
 
 ccl_device_noinline float noise_fbm(
@@ -114,9 +107,7 @@ ccl_device_noinline float noise_fbm(
     return normalize ? mix(0.5f * sum / maxamp + 0.5f, 0.5f * sum2 / (maxamp + amp) + 0.5f, rmd) :
                        mix(sum, sum2, rmd);
   }
-  else {
-    return normalize ? 0.5f * sum / maxamp + 0.5f : sum;
-  }
+  return normalize ? 0.5f * sum / maxamp + 0.5f : sum;
 }
 
 /* Multifractal */
@@ -321,9 +312,7 @@ ccl_device_noinline float noise_hybrid_multi_fractal(
   float weight = 1.0f;
 
   for (int i = 0; (weight > 0.001f) && (i <= float_to_int(detail)); i++) {
-    if (weight > 1.0f) {
-      weight = 1.0f;
-    }
+    weight = fminf(weight, 1.0f);
 
     float signal = (snoise_1d(p) + offset) * pwr;
     pwr *= roughness;
@@ -334,9 +323,7 @@ ccl_device_noinline float noise_hybrid_multi_fractal(
 
   float rmd = detail - floorf(detail);
   if ((rmd != 0.0f) && (weight > 0.001f)) {
-    if (weight > 1.0f) {
-      weight = 1.0f;
-    }
+    weight = fminf(weight, 1.0f);
     float signal = (snoise_1d(p) + offset) * pwr;
     value += rmd * weight * signal;
   }
@@ -352,9 +339,7 @@ ccl_device_noinline float noise_hybrid_multi_fractal(
   float weight = 1.0f;
 
   for (int i = 0; (weight > 0.001f) && (i <= float_to_int(detail)); i++) {
-    if (weight > 1.0f) {
-      weight = 1.0f;
-    }
+    weight = fminf(weight, 1.0f);
 
     float signal = (snoise_2d(p) + offset) * pwr;
     pwr *= roughness;
@@ -365,9 +350,7 @@ ccl_device_noinline float noise_hybrid_multi_fractal(
 
   float rmd = detail - floorf(detail);
   if ((rmd != 0.0f) && (weight > 0.001f)) {
-    if (weight > 1.0f) {
-      weight = 1.0f;
-    }
+    weight = fminf(weight, 1.0f);
     float signal = (snoise_2d(p) + offset) * pwr;
     value += rmd * weight * signal;
   }
@@ -383,9 +366,7 @@ ccl_device_noinline float noise_hybrid_multi_fractal(
   float weight = 1.0f;
 
   for (int i = 0; (weight > 0.001f) && (i <= float_to_int(detail)); i++) {
-    if (weight > 1.0f) {
-      weight = 1.0f;
-    }
+    weight = fminf(weight, 1.0f);
 
     float signal = (snoise_3d(p) + offset) * pwr;
     pwr *= roughness;
@@ -396,9 +377,7 @@ ccl_device_noinline float noise_hybrid_multi_fractal(
 
   float rmd = detail - floorf(detail);
   if ((rmd != 0.0f) && (weight > 0.001f)) {
-    if (weight > 1.0f) {
-      weight = 1.0f;
-    }
+    weight = fminf(weight, 1.0f);
     float signal = (snoise_3d(p) + offset) * pwr;
     value += rmd * weight * signal;
   }
@@ -414,9 +393,7 @@ ccl_device_noinline float noise_hybrid_multi_fractal(
   float weight = 1.0f;
 
   for (int i = 0; (weight > 0.001f) && (i <= float_to_int(detail)); i++) {
-    if (weight > 1.0f) {
-      weight = 1.0f;
-    }
+    weight = fminf(weight, 1.0f);
 
     float signal = (snoise_4d(p) + offset) * pwr;
     pwr *= roughness;
@@ -427,9 +404,7 @@ ccl_device_noinline float noise_hybrid_multi_fractal(
 
   float rmd = detail - floorf(detail);
   if ((rmd != 0.0f) && (weight > 0.001f)) {
-    if (weight > 1.0f) {
-      weight = 1.0f;
-    }
+    weight = fminf(weight, 1.0f);
     float signal = (snoise_4d(p) + offset) * pwr;
     value += rmd * weight * signal;
   }

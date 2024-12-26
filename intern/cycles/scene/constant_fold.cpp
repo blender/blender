@@ -155,12 +155,12 @@ bool ConstantFolder::try_bypass_or_make_constant(ShaderInput *input, bool clamp)
   if (input->type() != output->type()) {
     return false;
   }
-  else if (!input->link) {
+  if (!input->link) {
     if (input->type() == SocketType::FLOAT) {
       make_constant_clamp(node->get_float(input->socket_type), clamp);
       return true;
     }
-    else if (SocketType::is_float3(input->type())) {
+    if (SocketType::is_float3(input->type())) {
       make_constant_clamp(node->get_float3(input->socket_type), clamp);
       return true;
     }
@@ -187,7 +187,7 @@ bool ConstantFolder::is_zero(ShaderInput *input) const
     if (input->type() == SocketType::FLOAT) {
       return node->get_float(input->socket_type) == 0.0f;
     }
-    else if (SocketType::is_float3(input->type())) {
+    if (SocketType::is_float3(input->type())) {
       return node->get_float3(input->socket_type) == zero_float3();
     }
   }
@@ -201,7 +201,7 @@ bool ConstantFolder::is_one(ShaderInput *input) const
     if (input->type() == SocketType::FLOAT) {
       return node->get_float(input->socket_type) == 1.0f;
     }
-    else if (SocketType::is_float3(input->type())) {
+    if (SocketType::is_float3(input->type())) {
       return node->get_float3(input->socket_type) == one_float3();
     }
   }

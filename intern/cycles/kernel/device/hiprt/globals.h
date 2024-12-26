@@ -9,10 +9,10 @@
 #include "kernel/types.h"
 
 #include "kernel/integrator/state.h"
-#include "kernel/util/profiler.h"
+#include "kernel/util/profiler.h"  // IWYU pragma: export
 
-#include "util/color.h"
-#include "util/texture.h"
+#include "util/color.h"    // IWYU pragma: export
+#include "util/texture.h"  // IWYU pragma: export
 
 #define HIPRT_SHARED_STACK
 
@@ -41,7 +41,7 @@ struct KernelGlobalsGPU {
 #endif
 };
 
-typedef ccl_global KernelGlobalsGPU *ccl_restrict KernelGlobals;
+using KernelGlobals = ccl_global KernelGlobalsGPU *ccl_restrict;
 
 #if defined(HIPRT_SHARED_STACK)
 

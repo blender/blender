@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0 */
 
 #include "hydra/curves.h"
+#include "hydra/attribute.h"
 #include "hydra/geometry.inl"
 #include "scene/hair.h"
 
@@ -26,7 +27,7 @@ HdCyclesCurves::HdCyclesCurves(const SdfPath &rprimId
 {
 }
 
-HdCyclesCurves::~HdCyclesCurves() {}
+HdCyclesCurves::~HdCyclesCurves() = default;
 
 HdDirtyBits HdCyclesCurves::GetInitialDirtyBitsMask() const
 {

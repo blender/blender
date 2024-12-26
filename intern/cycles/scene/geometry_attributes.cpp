@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: Apache-2.0 */
 
 #include "bvh/bvh.h"
-#include "bvh/bvh2.h"
 
 #include "device/device.h"
 
@@ -14,22 +13,15 @@
 #include "scene/light.h"
 #include "scene/mesh.h"
 #include "scene/object.h"
-#include "scene/pointcloud.h"
 #include "scene/scene.h"
 #include "scene/shader.h"
 #include "scene/shader_nodes.h"
-#include "scene/stats.h"
-#include "scene/volume.h"
 
-#include "subd/patch_table.h"
 #include "subd/split.h"
-
-#include "kernel/osl/globals.h"
 
 #include "util/foreach.h"
 #include "util/log.h"
 #include "util/progress.h"
-#include "util/task.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -55,7 +47,7 @@ bool Geometry::need_attribute(Scene *scene, AttributeStandard std)
 
 bool Geometry::need_attribute(Scene * /*scene*/, ustring name)
 {
-  if (name == ustring()) {
+  if (name.empty()) {
     return false;
   }
 
@@ -155,7 +147,7 @@ static void emit_attribute_mapping(
   }
 }
 
-void GeometryManager::update_svm_attributes(Device *,
+void GeometryManager::update_svm_attributes(Device * /*unused*/,
                                             DeviceScene *dscene,
                                             Scene *scene,
                                             vector<AttributeRequestSet> &geom_attributes,
@@ -176,9 +168,12 @@ void GeometryManager::update_svm_attributes(Device *,
     foreach (AttributeRequest &req, geom_attributes[i].requests) {
       if (req.std != ATTR_STD_NONE &&
           scene->shader_manager->get_attribute_id(req.std) != (uint64_t)req.std)
+      {
         attr_count += 2;
-      else
+      }
+      else {
         attr_count += 1;
+      }
     }
 #else
     const size_t attr_count = geom_attributes[i].size();

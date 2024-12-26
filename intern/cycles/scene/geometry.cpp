@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: Apache-2.0 */
 
 #include "bvh/bvh.h"
-#include "bvh/bvh2.h"
 
 #include "device/device.h"
 
@@ -185,7 +184,7 @@ GeometryManager::GeometryManager()
   need_flags_update = true;
 }
 
-GeometryManager::~GeometryManager() {}
+GeometryManager::~GeometryManager() = default;
 
 void GeometryManager::update_osl_globals(Device *device, Scene *scene)
 {
@@ -804,7 +803,7 @@ void GeometryManager::device_update(Device *device,
       Mesh *mesh = static_cast<Mesh *>(geom);
       if (mesh->need_tesselation()) {
         string msg = "Tessellating ";
-        if (mesh->name == "") {
+        if (mesh->name.empty()) {
           msg += string_printf("%u/%u", (uint)(i + 1), (uint)total_tess_needed);
         }
         else {

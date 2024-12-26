@@ -8,8 +8,8 @@
  * domain. The author hereby disclaims copyright to this source code.
  */
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 
 #include "util/math.h"
 #include "util/murmurhash.h"
@@ -88,6 +88,9 @@ uint32_t util_murmur_hash3(const void *key, int len, uint32_t seed)
       k1 = ROTL32(k1, 15);
       k1 *= c2;
       h1 ^= k1;
+      ATTR_FALLTHROUGH;
+    default:
+      break;
   }
 
   h1 ^= len;

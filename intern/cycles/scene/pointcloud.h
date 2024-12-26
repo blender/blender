@@ -45,14 +45,14 @@ class PointCloud : public Geometry {
 
   /* Constructor/Destructor */
   PointCloud();
-  ~PointCloud();
+  ~PointCloud() override;
 
   /* Geometry */
-  void clear(const bool preserver_shaders = false) override;
+  void clear(const bool preserve_shaders = false) override;
 
   void resize(int numpoints);
   void reserve(int numpoints);
-  void add_point(float3 loc, float radius, int shader = 0);
+  void add_point(float3 co, float radius, int shader = 0);
 
   void copy_center_to_motion_step(const int motion_step);
 

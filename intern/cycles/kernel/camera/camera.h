@@ -425,9 +425,7 @@ ccl_device_inline float camera_distance(KernelGlobals kg, float3 P)
     float3 camD = make_float3(cameratoworld.x.z, cameratoworld.y.z, cameratoworld.z.z);
     return fabsf(dot((P - camP), camD));
   }
-  else {
-    return len(P - camP);
-  }
+  return len(P - camP);
 }
 
 ccl_device_inline float camera_z_depth(KernelGlobals kg, float3 P)
@@ -436,11 +434,9 @@ ccl_device_inline float camera_z_depth(KernelGlobals kg, float3 P)
     Transform worldtocamera = kernel_data.cam.worldtocamera;
     return transform_point(&worldtocamera, P).z;
   }
-  else {
-    Transform cameratoworld = kernel_data.cam.cameratoworld;
-    float3 camP = make_float3(cameratoworld.x.w, cameratoworld.y.w, cameratoworld.z.w);
-    return len(P - camP);
-  }
+  Transform cameratoworld = kernel_data.cam.cameratoworld;
+  float3 camP = make_float3(cameratoworld.x.w, cameratoworld.y.w, cameratoworld.z.w);
+  return len(P - camP);
 }
 
 ccl_device_inline float3 camera_direction_from_point(KernelGlobals kg, float3 P)
@@ -451,10 +447,8 @@ ccl_device_inline float3 camera_direction_from_point(KernelGlobals kg, float3 P)
     float3 camD = make_float3(cameratoworld.x.z, cameratoworld.y.z, cameratoworld.z.z);
     return -camD;
   }
-  else {
-    float3 camP = make_float3(cameratoworld.x.w, cameratoworld.y.w, cameratoworld.z.w);
-    return normalize(camP - P);
-  }
+  float3 camP = make_float3(cameratoworld.x.w, cameratoworld.y.w, cameratoworld.z.w);
+  return normalize(camP - P);
 }
 
 ccl_device_inline float3 camera_world_to_ndc(KernelGlobals kg,
@@ -463,25 +457,26 @@ ccl_device_inline float3 camera_world_to_ndc(KernelGlobals kg,
 {
   if (kernel_data.cam.type != CAMERA_PANORAMA) {
     /* perspective / ortho */
-    if (sd->object == PRIM_NONE && kernel_data.cam.type == CAMERA_PERSPECTIVE)
+    if (sd->object == PRIM_NONE && kernel_data.cam.type == CAMERA_PERSPECTIVE) {
       P += camera_position(kg);
+    }
 
     ProjectionTransform tfm = kernel_data.cam.worldtondc;
     return transform_perspective(&tfm, P);
   }
-  else {
-    /* panorama */
-    Transform tfm = kernel_data.cam.worldtocamera;
+  /* panorama */
+  Transform tfm = kernel_data.cam.worldtocamera;
 
-    if (sd->object != OBJECT_NONE)
-      P = normalize(transform_point(&tfm, P));
-    else
-      P = normalize(transform_direction(&tfm, P));
-
-    float2 uv = direction_to_panorama(&kernel_data.cam, P);
-
-    return make_float3(uv.x, uv.y, 0.0f);
+  if (sd->object != OBJECT_NONE) {
+    P = normalize(transform_point(&tfm, P));
   }
+  else {
+    P = normalize(transform_direction(&tfm, P));
+  }
+
+  float2 uv = direction_to_panorama(&kernel_data.cam, P);
+
+  return make_float3(uv.x, uv.y, 0.0f);
 }
 
 CCL_NAMESPACE_END

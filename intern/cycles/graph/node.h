@@ -9,8 +9,8 @@
 #include "graph/node_type.h"
 
 #include "util/array.h"
-#include "util/map.h"
 #include "util/param.h"
+#include "util/types.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -150,9 +150,9 @@ struct Node {
   /* generic values operations */
   bool has_default_value(const SocketType &input) const;
   void set_default_value(const SocketType &input);
-  bool equals_value(const Node &other, const SocketType &input) const;
-  void copy_value(const SocketType &input, const Node &other, const SocketType &other_input);
-  void set_value(const SocketType &input, const Node &other, const SocketType &other_input);
+  bool equals_value(const Node &other, const SocketType &socket) const;
+  void copy_value(const SocketType &socket, const Node &other, const SocketType &other_socket);
+  void set_value(const SocketType &socket, const Node &other, const SocketType &other_socket);
 
   /* equals */
   bool equals(const Node &other) const;

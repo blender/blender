@@ -8,10 +8,12 @@
 #include "device/device.h"
 #include "device/memory.h"
 #include "device/queue.h"
+
 #include "integrator/pass_accessor_gpu.h"
+
 #include "session/buffers.h"
+
 #include "util/log.h"
-#include "util/progress.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -22,7 +24,7 @@ DenoiserGPU::DenoiserGPU(Device *denoiser_device, const DenoiseParams &params)
   DCHECK(denoiser_queue_);
 }
 
-DenoiserGPU::~DenoiserGPU()
+DenoiserGPU::~DenoiserGPU()  // NOLINT
 {
   /* Explicit implementation, to allow forward declaration of Device in the header. */
 }

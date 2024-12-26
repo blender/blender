@@ -7,7 +7,6 @@
 #include <cstring>
 #include <vector>
 
-#include "util/aligned_malloc.h"
 #include "util/guarded_allocator.h"
 
 CCL_NAMESPACE_BEGIN
@@ -20,7 +19,7 @@ CCL_NAMESPACE_BEGIN
 template<typename value_type, typename allocator_type = GuardedAllocator<value_type>>
 class vector : public std::vector<value_type, allocator_type> {
  public:
-  typedef std::vector<value_type, allocator_type> BaseClass;
+  using BaseClass = std::vector<value_type, allocator_type>;
 
   /* Inherit all constructors from base class. */
   using BaseClass::vector;

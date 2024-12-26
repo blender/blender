@@ -599,10 +599,7 @@ ccl_device_inline float fast_ierff(float x)
 {
   /* From: Approximating the `erfinv` function by Mike Giles. */
   /* To avoid trouble at the limit, clamp input to 1-epsilon. */
-  float a = fabsf(x);
-  if (a > 0.99999994f) {
-    a = 0.99999994f;
-  }
+  float a = min(fabsf(x), 0.99999994f);
   float w = -fast_logf((1.0f - a) * (1.0f + a)), p;
   if (w < 5.0f) {
     w = w - 2.5f;

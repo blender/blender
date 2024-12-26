@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: Apache-2.0 */
 
 #include "scene/volume.h"
-#include "scene/colorspace.h"
 #include "scene/image.h"
 #include "scene/image_vdb.h"
 #include "scene/object.h"
@@ -11,7 +10,6 @@
 #include "blender/sync.h"
 #include "blender/util.h"
 
-#include "BKE_volume.hh"
 #include "BKE_volume_grid.hh"
 
 CCL_NAMESPACE_BEGIN
@@ -26,7 +24,7 @@ class BlenderSmokeLoader : public ImageLoader {
         *static_cast<const ::Mesh *>(b_ob.data().ptr.data), texspace_loc, texspace_size);
   }
 
-  bool load_metadata(const ImageDeviceFeatures &, ImageMetaData &metadata) override
+  bool load_metadata(const ImageDeviceFeatures & /*features*/, ImageMetaData &metadata) override
   {
     if (!b_domain) {
       return false;
@@ -71,7 +69,10 @@ class BlenderSmokeLoader : public ImageLoader {
     return true;
   }
 
-  bool load_pixels(const ImageMetaData &, void *pixels, const size_t, const bool) override
+  bool load_pixels(const ImageMetaData & /*metadata*/,
+                   void *pixels,
+                   const size_t /*pixels_size*/,
+                   const bool /*associate_alpha*/) override
   {
     if (!b_domain) {
       return false;

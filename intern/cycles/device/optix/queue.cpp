@@ -7,8 +7,6 @@
 #  include "device/optix/queue.h"
 #  include "device/optix/device_impl.h"
 
-#  include "util/time.h"
-
 #  define __KERNEL_OPTIX__
 #  include "kernel/device/optix/globals.h"
 

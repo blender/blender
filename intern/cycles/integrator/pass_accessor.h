@@ -6,8 +6,6 @@
 
 #include "scene/pass.h"
 #include "util/half.h"
-#include "util/string.h"
-#include "util/types.h"
 
 CCL_NAMESPACE_BEGIN
 

@@ -18,10 +18,10 @@ class BVHMulti : public BVH {
   BVHMulti(const BVHParams &params,
            const vector<Geometry *> &geometry,
            const vector<Object *> &objects);
-  virtual ~BVHMulti();
+  ~BVHMulti() override;
 
-  virtual void replace_geometry(const vector<Geometry *> &geometry,
-                                const vector<Object *> &objects);
+  void replace_geometry(const vector<Geometry *> &geometry,
+                        const vector<Object *> &objects) override;
 };
 
 CCL_NAMESPACE_END

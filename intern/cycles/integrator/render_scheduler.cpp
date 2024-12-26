@@ -6,8 +6,8 @@
 
 #include "session/session.h"
 #include "session/tile.h"
+
 #include "util/log.h"
-#include "util/math.h"
 #include "util/time.h"
 
 CCL_NAMESPACE_BEGIN

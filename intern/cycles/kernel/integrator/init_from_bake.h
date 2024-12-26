@@ -49,7 +49,6 @@ ccl_device_inline void bake_jitter_barycentric(ccl_private float &u,
     rand_filter = hash_float2_to_float2(rand_filter);
   }
   /* Retries exceeded, give up and just use center value. */
-  return;
 }
 
 /* Offset towards center of triangle to avoid ray-tracing precision issues. */
@@ -231,7 +230,7 @@ ccl_device bool integrator_init_from_bake(KernelGlobals kg,
       film_write_pass_float3(buffer + kernel_data.film.pass_position, P);
       return true;
     }
-    else if (kernel_data.film.pass_normal != PASS_UNUSED && !(shader_flags & SD_HAS_BUMP)) {
+    if (kernel_data.film.pass_normal != PASS_UNUSED && !(shader_flags & SD_HAS_BUMP)) {
       film_write_pass_float3(buffer + kernel_data.film.pass_normal, N);
       return true;
     }

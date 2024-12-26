@@ -67,7 +67,7 @@ static void shader_print_errors(const char *task, const char *log, const char *c
   LOG(ERROR) << log;
 }
 
-static int compile_shader_program(void)
+static int compile_shader_program()
 {
   const struct Shader {
     const char *source;

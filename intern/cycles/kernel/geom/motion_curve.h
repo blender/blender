@@ -37,8 +37,9 @@ ccl_device_inline void motion_curve_keys_for_step_linear(KernelGlobals kg,
   }
   else {
     /* center step is not stored in this array */
-    if (step > numsteps)
+    if (step > numsteps) {
       step--;
+    }
 
     offset += step * numverts;
 
@@ -95,8 +96,9 @@ ccl_device_inline void motion_curve_keys_for_step(KernelGlobals kg,
   }
   else {
     /* center step is not stored in this array */
-    if (step > numsteps)
+    if (step > numsteps) {
       step--;
+    }
 
     offset += step * numverts;
 

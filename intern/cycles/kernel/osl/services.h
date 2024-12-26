@@ -50,10 +50,7 @@ struct KernelGlobalsCPU;
 struct OSLTextureHandle : public OIIO::RefCnt {
   enum Type { OIIO, SVM, IES, BEVEL, AO };
 
-  OSLTextureHandle(Type type, const vector<int4> &svm_slots)
-      : type(type), svm_slots(svm_slots), oiio_handle(nullptr), processor(nullptr)
-  {
-  }
+  OSLTextureHandle(Type type, const vector<int4> &svm_slots) : type(type), svm_slots(svm_slots) {}
 
   OSLTextureHandle(Type type = OIIO, int svm_slot = -1)
       : OSLTextureHandle(type, {make_int4(0, svm_slot, -1, -1)})
@@ -61,23 +58,19 @@ struct OSLTextureHandle : public OIIO::RefCnt {
   }
 
   OSLTextureHandle(const ImageHandle &handle)
-      : type(SVM),
-        svm_slots(handle.get_svm_slots()),
-        oiio_handle(nullptr),
-        processor(nullptr),
-        handle(handle)
+      : type(SVM), svm_slots(handle.get_svm_slots()), handle(handle)
   {
   }
 
   Type type;
   vector<int4> svm_slots;
-  OSL::TextureSystem::TextureHandle *oiio_handle;
-  ColorSpaceProcessor *processor;
+  OSL::TextureSystem::TextureHandle *oiio_handle = nullptr;
+  ColorSpaceProcessor *processor = nullptr;
   ImageHandle handle;
 };
 
-typedef OIIO::intrusive_ptr<OSLTextureHandle> OSLTextureHandleRef;
-typedef OIIO::unordered_map_concurrent<OSLUStringHash, OSLTextureHandleRef> OSLTextureHandleMap;
+using OSLTextureHandleRef = OIIO::intrusive_ptr<OSLTextureHandle>;
+using OSLTextureHandleMap = OIIO::unordered_map_concurrent<OSLUStringHash, OSLTextureHandleRef>;
 
 /* OSL Render Services
  *
@@ -86,7 +79,7 @@ typedef OIIO::unordered_map_concurrent<OSLUStringHash, OSLTextureHandleRef> OSLT
 class OSLRenderServices : public OSL::RendererServices {
  public:
   OSLRenderServices(OSL::TextureSystem *texture_system, int device_type);
-  ~OSLRenderServices();
+  ~OSLRenderServices() override;
 
   static void register_closures(OSL::ShadingSystem *ss);
 
@@ -120,7 +113,7 @@ class OSLRenderServices : public OSL::RendererServices {
   bool get_matrix(OSL::ShaderGlobals *sg, OSL::Matrix44 &result, OSLUStringHash from) override;
   bool get_inverse_matrix(OSL::ShaderGlobals *sg,
                           OSL::Matrix44 &result,
-                          OSLUStringHash from) override;
+                          OSLUStringHash to) override;
 
   bool get_array_attribute(OSL::ShaderGlobals *sg,
                            bool derivatives,

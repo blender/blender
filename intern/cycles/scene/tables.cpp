@@ -21,10 +21,10 @@ LookupTables::LookupTables()
 
 LookupTables::~LookupTables()
 {
-  assert(lookup_tables.size() == 0);
+  assert(lookup_tables.empty());
 }
 
-void LookupTables::device_update(Device *, DeviceScene *dscene, Scene *scene)
+void LookupTables::device_update(Device * /*unused*/, DeviceScene *dscene, Scene *scene)
 {
   if (!need_update()) {
     return;
@@ -38,14 +38,14 @@ void LookupTables::device_update(Device *, DeviceScene *dscene, Scene *scene)
 
   VLOG_INFO << "Total " << lookup_tables.size() << " lookup tables.";
 
-  if (lookup_tables.size() > 0) {
+  if (!lookup_tables.empty()) {
     dscene->lookup_table.copy_to_device();
   }
 
   need_update_ = false;
 }
 
-void LookupTables::device_free(Device *, DeviceScene *dscene)
+void LookupTables::device_free(Device * /*unused*/, DeviceScene *dscene)
 {
   dscene->lookup_table.free();
 }
@@ -62,7 +62,7 @@ static size_t round_up_to_multiple(size_t size, size_t chunk)
 
 size_t LookupTables::add_table(DeviceScene *dscene, vector<float> &data)
 {
-  assert(data.size() > 0);
+  assert(!data.empty());
 
   need_update_ = true;
 
@@ -78,9 +78,7 @@ size_t LookupTables::add_table(DeviceScene *dscene, vector<float> &data)
       lookup_tables.insert(table, new_table);
       break;
     }
-    else {
-      new_table.offset = table->offset + table->size;
-    }
+    new_table.offset = table->offset + table->size;
   }
 
   if (table == lookup_tables.end()) {
@@ -91,7 +89,7 @@ size_t LookupTables::add_table(DeviceScene *dscene, vector<float> &data)
 
   /* copy table data and return offset */
   float *dtable = dscene->lookup_table.data();
-  memcpy(dtable + new_table.offset, &data[0], sizeof(float) * data.size());
+  memcpy(dtable + new_table.offset, data.data(), sizeof(float) * data.size());
 
   return new_table.offset;
 }

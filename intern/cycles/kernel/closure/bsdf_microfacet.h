@@ -29,23 +29,23 @@ enum MicrofacetFresnel {
   F82_TINT,
 };
 
-typedef struct FresnelThinFilm {
+struct FresnelThinFilm {
   float thickness;
   float ior;
-} FresnelThinFilm;
+};
 
-typedef struct FresnelDielectricTint {
+struct FresnelDielectricTint {
   FresnelThinFilm thin_film;
 
   Spectrum reflection_tint;
   Spectrum transmission_tint;
-} FresnelDielectricTint;
+};
 
-typedef struct FresnelConductor {
+struct FresnelConductor {
   Spectrum n, k;
-} FresnelConductor;
+};
 
-typedef struct FresnelGeneralizedSchlick {
+struct FresnelGeneralizedSchlick {
   FresnelThinFilm thin_film;
 
   Spectrum reflection_tint;
@@ -54,16 +54,16 @@ typedef struct FresnelGeneralizedSchlick {
   Spectrum f0, f90;
   /* Negative exponent signals a special case where the real Fresnel is remapped to F0...F90. */
   float exponent;
-} FresnelGeneralizedSchlick;
+};
 
-typedef struct FresnelF82Tint {
+struct FresnelF82Tint {
   /* Perpendicular reflectivity. */
   Spectrum f0;
   /* Precomputed (1-cos)^6 factor for edge tint. */
   Spectrum b;
-} FresnelF82Tint;
+};
 
-typedef struct MicrofacetBsdf {
+struct MicrofacetBsdf {
   SHADER_CLOSURE_BASE;
 
   float alpha_x, alpha_y, ior;
@@ -80,7 +80,7 @@ typedef struct MicrofacetBsdf {
   ccl_private void *fresnel;
 
   float3 T;
-} MicrofacetBsdf;
+};
 
 static_assert(sizeof(ShaderClosure) >= sizeof(MicrofacetBsdf), "MicrofacetBsdf is too large!");
 
@@ -464,17 +464,15 @@ ccl_device_inline float bsdf_lambda_from_sqr_alpha_tan_n(float sqr_alpha_tan_n)
     /* Equation 72. */
     return 0.5f * (sqrtf(1.0f + sqr_alpha_tan_n) - 1.0f);
   }
-  else {
-    kernel_assert(m_type == MicrofacetType::BECKMANN);
-    /* Approximation from below Equation 69. */
-    if (sqr_alpha_tan_n < 0.39f) {
-      /* Equivalent to a >= 1.6f, but also handles sqr_alpha_tan_n == 0.0f cleanly. */
-      return 0.0f;
-    }
-
-    const float a = inversesqrtf(sqr_alpha_tan_n);
-    return ((0.396f * a - 1.259f) * a + 1.0f) / ((2.181f * a + 3.535f) * a);
+  kernel_assert(m_type == MicrofacetType::BECKMANN);
+  /* Approximation from below Equation 69. */
+  if (sqr_alpha_tan_n < 0.39f) {
+    /* Equivalent to a >= 1.6f, but also handles sqr_alpha_tan_n == 0.0f cleanly. */
+    return 0.0f;
   }
+
+  const float a = inversesqrtf(sqr_alpha_tan_n);
+  return ((0.396f * a - 1.259f) * a + 1.0f) / ((2.181f * a + 3.535f) * a);
 }
 
 template<MicrofacetType m_type> ccl_device_inline float bsdf_lambda(float alpha2, float cos_N)
@@ -511,10 +509,8 @@ template<MicrofacetType m_type> ccl_device_inline float bsdf_D(float alpha2, flo
   if (m_type == MicrofacetType::BECKMANN) {
     return 1.0f / (expf(one_minus_cos_NH2 / (cos_NH2 * alpha2)) * M_PI_F * alpha2 * sqr(cos_NH2));
   }
-  else {
-    kernel_assert(m_type == MicrofacetType::GGX);
-    return alpha2 / (M_PI_F * sqr(one_minus_cos_NH2 + alpha2 * cos_NH2));
-  }
+  kernel_assert(m_type == MicrofacetType::GGX);
+  return alpha2 / (M_PI_F * sqr(one_minus_cos_NH2 + alpha2 * cos_NH2));
 }
 
 template<MicrofacetType m_type>
@@ -528,10 +524,8 @@ ccl_device_inline float bsdf_aniso_D(float alpha_x, float alpha_y, float3 H)
   if (m_type == MicrofacetType::BECKMANN) {
     return expf(-(sqr(H.x) + sqr(H.y)) / cos_NH2) / (M_PI_F * alpha2 * sqr(cos_NH2));
   }
-  else {
-    kernel_assert(m_type == MicrofacetType::GGX);
-    return M_1_PI_F / (alpha2 * sqr(len_squared(H)));
-  }
+  kernel_assert(m_type == MicrofacetType::GGX);
+  return M_1_PI_F / (alpha2 * sqr(len_squared(H)));
 }
 
 /* Do not set `SD_BSDF_HAS_EVAL` flag if the squared roughness is below a certain threshold. */

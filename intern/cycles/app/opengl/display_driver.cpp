@@ -6,7 +6,6 @@
 #include "app/opengl/shader.h"
 
 #include "util/log.h"
-#include "util/string.h"
 
 #include <SDL.h>
 #include <epoxy/gl.h>
@@ -23,7 +22,7 @@ OpenGLDisplayDriver::OpenGLDisplayDriver(const std::function<bool()> &gl_context
 {
 }
 
-OpenGLDisplayDriver::~OpenGLDisplayDriver() {}
+OpenGLDisplayDriver::~OpenGLDisplayDriver() = default;
 
 /* --------------------------------------------------------------------
  * Update procedure.
@@ -61,8 +60,15 @@ bool OpenGLDisplayDriver::update_begin(const Params &params, int texture_width, 
   if (texture_.width != texture_width || texture_.height != texture_height) {
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture_.gl_id);
-    glTexImage2D(
-        GL_TEXTURE_2D, 0, GL_RGBA16F, texture_width, texture_height, 0, GL_RGBA, GL_HALF_FLOAT, 0);
+    glTexImage2D(GL_TEXTURE_2D,
+                 0,
+                 GL_RGBA16F,
+                 texture_width,
+                 texture_height,
+                 0,
+                 GL_RGBA,
+                 GL_HALF_FLOAT,
+                 nullptr);
     texture_.width = texture_width;
     texture_.height = texture_height;
     glBindTexture(GL_TEXTURE_2D, 0);
@@ -84,7 +90,7 @@ bool OpenGLDisplayDriver::update_begin(const Params &params, int texture_width, 
   if (texture_.buffer_width != buffer_width || texture_.buffer_height != buffer_height) {
     const size_t size_in_bytes = sizeof(half4) * buffer_width * buffer_height;
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, texture_.gl_pbo_id);
-    glBufferData(GL_PIXEL_UNPACK_BUFFER, size_in_bytes, 0, GL_DYNAMIC_DRAW);
+    glBufferData(GL_PIXEL_UNPACK_BUFFER, size_in_bytes, nullptr, GL_DYNAMIC_DRAW);
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 
     texture_.buffer_width = buffer_width;
@@ -225,7 +231,7 @@ void OpenGLDisplayDriver::draw(const Params &params)
   glEnableVertexAttribArray(position_attribute);
 
   glVertexAttribPointer(
-      texcoord_attribute, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (const GLvoid *)0);
+      texcoord_attribute, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (const GLvoid *)nullptr);
   glVertexAttribPointer(position_attribute,
                         2,
                         GL_FLOAT,
@@ -341,7 +347,7 @@ void OpenGLDisplayDriver::texture_update_if_needed()
 
   glBindBuffer(GL_PIXEL_UNPACK_BUFFER, texture_.gl_pbo_id);
   glTexSubImage2D(
-      GL_TEXTURE_2D, 0, 0, 0, texture_.width, texture_.height, GL_RGBA, GL_HALF_FLOAT, 0);
+      GL_TEXTURE_2D, 0, 0, 0, texture_.width, texture_.height, GL_RGBA, GL_HALF_FLOAT, nullptr);
   glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 
   texture_.need_update = false;

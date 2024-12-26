@@ -24,8 +24,8 @@ class MetalKernelContext {
     {}
 
     /* texture fetch adapter functions */
-    typedef uint64_t ccl_gpu_tex_object_2D;
-    typedef uint64_t ccl_gpu_tex_object_3D;
+    using ccl_gpu_tex_object_2D = uint64_t;
+    using ccl_gpu_tex_object_3D = uint64_t;
 
     template<typename T>
     inline __attribute__((__always_inline__))

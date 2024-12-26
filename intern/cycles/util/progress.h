@@ -22,25 +22,9 @@ class Progress {
  public:
   Progress()
   {
-    pixel_samples = 0;
-    total_pixel_samples = 0;
-    current_tile_sample = 0;
-    rendered_tiles = 0;
-    denoised_tiles = 0;
     start_time = time_dt();
     render_start_time = time_dt();
-    time_limit = 0.0;
-    end_time = 0.0;
     status = "Initializing";
-    substatus = "";
-    sync_status = "";
-    sync_substatus = "";
-    update_cb = nullptr;
-    cancel = false;
-    cancel_message = "";
-    error = false;
-    error_message = "";
-    cancel_cb = nullptr;
   }
 
   Progress(Progress &progress)
@@ -92,8 +76,9 @@ class Progress {
 
   bool get_cancel() const
   {
-    if (!cancel && cancel_cb)
+    if (!cancel && cancel_cb) {
       cancel_cb();
+    }
 
     return cancel;
   }
@@ -205,9 +190,9 @@ class Progress {
       double progress_percent = (double)pixel_samples / (double)total_pixel_samples;
       if (time_limit != 0.0) {
         double time_since_render_start = time_dt() - render_start_time;
-        progress_percent = max(progress_percent, time_since_render_start / time_limit);
+        progress_percent = fmax(progress_percent, time_since_render_start / time_limit);
       }
-      return min(1.0, progress_percent);
+      return fmin(1.0, progress_percent);
     }
     return 0.0;
   }
@@ -306,7 +291,7 @@ class Progress {
   {
     thread_scoped_lock lock(progress_mutex);
 
-    if (sync_status != "") {
+    if (!sync_status.empty()) {
       status_ = sync_status;
       substatus_ = sync_substatus;
     }
@@ -341,18 +326,18 @@ class Progress {
    * This makes the progress estimate more accurate when tiles with different sizes are used.
    *
    * total_pixel_samples is the total amount of pixel samples that will be rendered. */
-  uint64_t pixel_samples, total_pixel_samples;
+  uint64_t pixel_samples = 0, total_pixel_samples = 0;
   /* Stores the current sample count of the last tile that called the update function.
    * It's used to display the sample count if only one tile is active. */
-  int current_tile_sample;
+  int current_tile_sample = 0;
   /* Stores the number of tiles that's already finished.
    * Used to determine whether all but the last tile are finished rendering,
    * in which case the current_tile_sample is displayed. */
-  int rendered_tiles, denoised_tiles;
+  int rendered_tiles = 0, denoised_tiles = 0;
 
-  double start_time, render_start_time, time_limit;
+  double start_time = 0.0, render_start_time = 0.0, time_limit = 0.0;
   /* End time written when render is done, so it doesn't keep increasing on redraws. */
-  double end_time;
+  double end_time = 0.0;
 
   string status;
   string substatus;
@@ -360,10 +345,10 @@ class Progress {
   string sync_status;
   string sync_substatus;
 
-  volatile bool cancel;
+  volatile bool cancel = false;
   string cancel_message;
 
-  volatile bool error;
+  volatile bool error = false;
   string error_message;
 };
 

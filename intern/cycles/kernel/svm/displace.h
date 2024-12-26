@@ -72,8 +72,9 @@ ccl_device_noinline void svm_node_set_bump(KernelGlobals kg,
     float strength = stack_load_float(stack, strength_offset);
     float scale = stack_load_float(stack, scale_offset);
 
-    if (invert)
+    if (invert) {
       scale *= -1.0f;
+    }
 
     strength = max(strength, 0.0f);
 

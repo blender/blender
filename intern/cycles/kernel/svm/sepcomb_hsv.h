@@ -50,12 +50,15 @@ ccl_device_noinline int svm_node_separate_hsv(KernelGlobals kg,
   /* Convert to HSV */
   color = rgb_to_hsv(color);
 
-  if (stack_valid(hue_out))
+  if (stack_valid(hue_out)) {
     stack_store_float(stack, hue_out, color.x);
-  if (stack_valid(saturation_out))
+  }
+  if (stack_valid(saturation_out)) {
     stack_store_float(stack, saturation_out, color.y);
-  if (stack_valid(value_out))
+  }
+  if (stack_valid(value_out)) {
     stack_store_float(stack, value_out, color.z);
+  }
   return offset;
 }
 

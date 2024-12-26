@@ -5,8 +5,10 @@
 #pragma once
 
 #include "integrator/adaptive_sampling.h"
-#include "integrator/denoiser.h" /* For DenoiseParams. */
+#include "integrator/denoiser.h"
+
 #include "session/buffers.h"
+
 #include "util/string.h"
 
 CCL_NAMESPACE_BEGIN
@@ -78,7 +80,7 @@ class RenderWork {
 
   /* Conversion to bool, to simplify checks about whether there is anything to be done for this
    * work. */
-  inline operator bool() const
+  operator bool() const
   {
     return path_trace.num_samples || adaptive_sampling.filter || display.update || tile.denoise ||
            tile.write || full.write;
@@ -240,7 +242,7 @@ class RenderScheduler {
 
   /* Calculate how many samples there are to be rendered for the very first path trace after reset.
    */
-  int get_num_samples_during_navigation(int resolution_divier) const;
+  int get_num_samples_during_navigation(int resolution_divider) const;
 
   /* Whether adaptive sampling convergence check and filter is to happen. */
   bool work_need_adaptive_filter() const;
@@ -288,7 +290,7 @@ class RenderScheduler {
    * takes to perform task on the final resolution. */
   class TimeWithAverage {
    public:
-    inline void reset()
+    void reset()
     {
       total_wall_time_ = 0.0;
 
@@ -298,24 +300,24 @@ class RenderScheduler {
       last_sample_time_ = 0.0;
     }
 
-    inline void add_wall(double time)
+    void add_wall(double time)
     {
       total_wall_time_ += time;
     }
 
-    inline void add_average(double time, int num_measurements = 1)
+    void add_average(double time, int num_measurements = 1)
     {
       average_time_accumulator_ += time;
       num_average_times_ += num_measurements;
       last_sample_time_ = time / num_measurements;
     }
 
-    inline double get_wall() const
+    double get_wall() const
     {
       return total_wall_time_;
     }
 
-    inline double get_average() const
+    double get_average() const
     {
       if (num_average_times_ == 0) {
         return 0;
@@ -323,12 +325,12 @@ class RenderScheduler {
       return average_time_accumulator_ / num_average_times_;
     }
 
-    inline double get_last_sample_time() const
+    double get_last_sample_time() const
     {
       return last_sample_time_;
     }
 
-    inline void reset_average()
+    void reset_average()
     {
       average_time_accumulator_ = 0.0;
       num_average_times_ = 0;

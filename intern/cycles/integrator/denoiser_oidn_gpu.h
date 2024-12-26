@@ -21,12 +21,12 @@ class OIDNDenoiserGPU : public DenoiserGPU {
   class State;
 
   OIDNDenoiserGPU(Device *denoiser_device, const DenoiseParams &params);
-  ~OIDNDenoiserGPU();
+  ~OIDNDenoiserGPU() override;
 
-  virtual bool denoise_buffer(const BufferParams &buffer_params,
-                              RenderBuffers *render_buffers,
-                              const int num_samples,
-                              bool allow_inplace_modification) override;
+  bool denoise_buffer(const BufferParams &buffer_params,
+                      RenderBuffers *render_buffers,
+                      const int num_samples,
+                      bool allow_inplace_modification) override;
 
   static bool is_device_supported(const DeviceInfo &device);
 
@@ -36,18 +36,18 @@ class OIDNDenoiserGPU : public DenoiserGPU {
     ASYNC,
   };
 
-  virtual uint get_device_type_mask() const override;
+  uint get_device_type_mask() const override;
 
   /* Create OIDN denoiser descriptor if needed.
    * Will do nothing if the current OIDN descriptor is usable for the given parameters.
    * If the OIDN denoiser descriptor did re-allocate here it is left unconfigured. */
-  virtual bool denoise_create_if_needed(DenoiseContext &context) override;
+  bool denoise_create_if_needed(DenoiseContext &context) override;
 
   /* Configure existing OIDN denoiser descriptor for the use for the given task. */
-  virtual bool denoise_configure_if_needed(DenoiseContext &context) override;
+  bool denoise_configure_if_needed(DenoiseContext &context) override;
 
   /* Run configured denoiser. */
-  virtual bool denoise_run(const DenoiseContext &context, const DenoisePass &pass) override;
+  bool denoise_run(const DenoiseContext &context, const DenoisePass &pass) override;
 
   OIDNFilter create_filter();
   bool commit_and_execute_filter(OIDNFilter filter, ExecMode mode = ExecMode::SYNC);

@@ -13,7 +13,7 @@
 #include "scene/integrator.h"
 #include "scene/scene.h"
 #include "session/session.h"
-#include "util/algorithm.h"
+
 #include "util/foreach.h"
 #include "util/log.h"
 #include "util/path.h"
@@ -320,7 +320,7 @@ TileManager::TileManager()
                            to_string(tile_manager_id);
 }
 
-TileManager::~TileManager() {}
+TileManager::~TileManager() = default;
 
 int TileManager::compute_render_tile_size(const int suggested_tile_size) const
 {
@@ -438,7 +438,7 @@ const Tile &TileManager::get_current_tile() const
   return tile_state_.current_tile;
 }
 
-const int2 TileManager::get_size() const
+int2 TileManager::get_size() const
 {
   return make_int2(buffer_params_.width, buffer_params_.height);
 }

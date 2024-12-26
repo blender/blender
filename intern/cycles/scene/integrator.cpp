@@ -164,7 +164,7 @@ NODE_DEFINE(Integrator)
 
 Integrator::Integrator() : Node(get_node_type()) {}
 
-Integrator::~Integrator() {}
+Integrator::~Integrator() = default;
 
 void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 {
@@ -338,7 +338,7 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
   clear_modified();
 }
 
-void Integrator::device_free(Device *, DeviceScene *dscene, bool force_free)
+void Integrator::device_free(Device * /*unused*/, DeviceScene *dscene, bool force_free)
 {
   dscene->sample_pattern_lut.free_if_need_realloc(force_free);
 }

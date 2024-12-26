@@ -48,12 +48,15 @@ ccl_device_noinline void svm_node_separate_color(KernelGlobals kg,
   svm_unpack_node_uchar3(
       results_stack_offsets, &red_stack_offset, &green_stack_offset, &blue_stack_offset);
 
-  if (stack_valid(red_stack_offset))
+  if (stack_valid(red_stack_offset)) {
     stack_store_float(stack, red_stack_offset, color.x);
-  if (stack_valid(green_stack_offset))
+  }
+  if (stack_valid(green_stack_offset)) {
     stack_store_float(stack, green_stack_offset, color.y);
-  if (stack_valid(blue_stack_offset))
+  }
+  if (stack_valid(blue_stack_offset)) {
     stack_store_float(stack, blue_stack_offset, color.z);
+  }
 }
 
 CCL_NAMESPACE_END

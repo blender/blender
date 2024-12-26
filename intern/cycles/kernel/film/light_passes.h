@@ -4,11 +4,11 @@
 
 #pragma once
 
-#include "kernel/film/adaptive_sampling.h"
 #include "kernel/film/write.h"
 
 #include "kernel/integrator/shadow_catcher.h"
 
+#include "kernel/sample/pattern.h"
 #include "util/atomic.h"
 
 CCL_NAMESPACE_BEGIN

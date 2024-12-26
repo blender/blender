@@ -18,17 +18,17 @@ class HdCyclesCamera final : public PXR_NS::HdCamera {
   HdCyclesCamera(const PXR_NS::SdfPath &sprimId);
   ~HdCyclesCamera() override;
 
-  void ApplyCameraSettings(PXR_NS::HdRenderParam *renderParam, CCL_NS::Camera *targetCamera) const;
+  void ApplyCameraSettings(PXR_NS::HdRenderParam *renderParam, CCL_NS::Camera *cam) const;
 
   static void ApplyCameraSettings(PXR_NS::HdRenderParam *renderParam,
-                                  const PXR_NS::GfCamera &cameraData,
+                                  const PXR_NS::GfCamera &dataUnconformedWindow,
                                   PXR_NS::CameraUtilConformWindowPolicy windowPolicy,
-                                  CCL_NS::Camera *targetCamera);
+                                  CCL_NS::Camera *cam);
   static void ApplyCameraSettings(PXR_NS::HdRenderParam *renderParam,
                                   const PXR_NS::GfMatrix4d &worldToViewMatrix,
                                   const PXR_NS::GfMatrix4d &projectionMatrix,
                                   const std::vector<PXR_NS::GfVec4d> &clipPlanes,
-                                  CCL_NS::Camera *targetCamera);
+                                  CCL_NS::Camera *cam);
 
   PXR_NS::HdDirtyBits GetInitialDirtyBitsMask() const override;
 

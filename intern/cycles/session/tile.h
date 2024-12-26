@@ -29,7 +29,7 @@ class Tile {
   int window_x = 0, window_y = 0;
   int window_width = 0, window_height = 0;
 
-  Tile() {}
+  Tile() = default;
 };
 
 /* --------------------------------------------------------------------
@@ -62,17 +62,17 @@ class TileManager {
 
   void set_temp_dir(const string &temp_dir);
 
-  inline int get_num_tiles() const
+  int get_num_tiles() const
   {
     return tile_state_.num_tiles;
   }
 
-  inline bool has_multiple_tiles() const
+  bool has_multiple_tiles() const
   {
     return tile_state_.num_tiles > 1;
   }
 
-  inline int get_tile_overscan() const
+  int get_tile_overscan() const
   {
     return overscan_;
   }
@@ -81,7 +81,7 @@ class TileManager {
   bool done();
 
   const Tile &get_current_tile() const;
-  const int2 get_size() const;
+  int2 get_size() const;
 
   /* Write render buffer of a tile to a file on disk.
    *
@@ -95,7 +95,7 @@ class TileManager {
   void finish_write_tiles();
 
   /* Check whether any tile has been written to disk. */
-  inline bool has_written_tiles() const
+  bool has_written_tiles() const
   {
     return write_state_.num_tiles_written != 0;
   }

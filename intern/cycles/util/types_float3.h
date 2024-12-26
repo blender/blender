@@ -142,7 +142,7 @@ ccl_device_inline int4 make_int4(const float3 f)
 /* Metal has native packed_float3. */
 #elif defined(__KERNEL_CUDA__) || defined(__KERNEL_HIP__) || defined(__KERNEL_ONEAPI__)
 /* CUDA, HIP and oneAPI float3 are already packed. */
-typedef float3 packed_float3;
+using packed_float3 = float3;
 #else
 struct packed_float3 {
   ccl_device_inline_method packed_float3() = default;

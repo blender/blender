@@ -4,14 +4,9 @@
 
 #pragma once
 
-#include "kernel/camera/projection.h"
-
-#include "kernel/bvh/bvh.h"
-
 #include "kernel/closure/alloc.h"
 #include "kernel/closure/bsdf_diffuse.h"
 #include "kernel/closure/bssrdf.h"
-#include "kernel/closure/volume.h"
 
 #include "kernel/integrator/intersect_volume_stack.h"
 #include "kernel/integrator/path_state.h"

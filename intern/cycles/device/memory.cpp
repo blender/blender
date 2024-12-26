@@ -21,12 +21,12 @@ device_memory::device_memory(Device *device, const char *_name, MemoryType type)
       name_storage(_name),
       device(device),
       device_pointer(0),
-      host_pointer(0),
-      shared_pointer(0),
+      host_pointer(nullptr),
+      shared_pointer(nullptr),
       shared_counter(0),
       original_device_ptr(0),
       original_device_size(0),
-      original_device(0),
+      original_device(nullptr),
       need_realloc_(false),
       modified(false)
 {
@@ -35,14 +35,14 @@ device_memory::device_memory(Device *device, const char *_name, MemoryType type)
 
 device_memory::~device_memory()
 {
-  assert(shared_pointer == 0);
+  assert(shared_pointer == nullptr);
   assert(shared_counter == 0);
 }
 
 void *device_memory::host_alloc(size_t size)
 {
   if (!size) {
-    return 0;
+    return nullptr;
   }
 
   void *ptr = util_aligned_malloc(size, MIN_ALIGNMENT_CPU_DATA_TYPES);
@@ -61,8 +61,8 @@ void device_memory::host_free()
 {
   if (host_pointer) {
     util_guarded_mem_free(memory_size());
-    util_aligned_free((void *)host_pointer);
-    host_pointer = 0;
+    util_aligned_free(host_pointer);
+    host_pointer = nullptr;
   }
 }
 

@@ -3,7 +3,6 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#include "hydra/attribute.h"
 #include "hydra/geometry.h"
 #include "hydra/instancer.h"
 #include "hydra/material.h"
@@ -89,7 +88,7 @@ void HdCyclesGeometry<Base, CyclesBase>::Sync(HdSceneDelegate *sceneDelegate,
                          sceneDelegate->GetMaterialId(Base::GetId()));
 #endif
 
-    const auto material = static_cast<const HdCyclesMaterial *>(
+    const auto *const material = static_cast<const HdCyclesMaterial *>(
         sceneDelegate->GetRenderIndex().GetSprim(HdPrimTypeTokens->material,
                                                  Base::GetMaterialId()));
 
@@ -120,8 +119,9 @@ void HdCyclesGeometry<Base, CyclesBase>::Sync(HdSceneDelegate *sceneDelegate,
   }
 
   if (HdChangeTracker::IsTransformDirty(*dirtyBits, id) ||
-      HdChangeTracker::IsInstancerDirty(*dirtyBits, id)) {
-    const auto instancer = static_cast<HdCyclesInstancer *>(
+      HdChangeTracker::IsInstancerDirty(*dirtyBits, id))
+  {
+    auto *const instancer = static_cast<HdCyclesInstancer *>(
         sceneDelegate->GetRenderIndex().GetInstancer(Base::GetInstancerId()));
 
     // Make sure the first object attribute is the instanceId
@@ -244,7 +244,8 @@ HdInterpolation HdCyclesGeometry<Base, CyclesBase>::GetPrimvarInterpolation(
 {
   for (int i = 0; i < HdInterpolationCount; ++i) {
     for (const HdPrimvarDescriptor &desc :
-         Base::GetPrimvarDescriptors(sceneDelegate, static_cast<HdInterpolation>(i))) {
+         Base::GetPrimvarDescriptors(sceneDelegate, static_cast<HdInterpolation>(i)))
+    {
       if (desc.name == name) {
         return static_cast<HdInterpolation>(i);
       }

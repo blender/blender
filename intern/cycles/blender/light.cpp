@@ -178,7 +178,7 @@ void BlenderSync::sync_background_light(BL::SpaceView3D &b_v3d, bool use_portal)
     if (sample_as_light || use_portal) {
       /* test if we need to sync */
       Light *light;
-      ObjectKey key(b_world, 0, b_world, false);
+      ObjectKey key(b_world, nullptr, b_world, false);
 
       if (light_map.add_or_update(&light, b_world, b_world, key) || world_recalc ||
           b_world.ptr.data != world_map)

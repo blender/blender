@@ -12,8 +12,8 @@
 #include "device/denoise.h"
 #include "device/memory.h"
 
-#include "util/list.h"
 #include "util/log.h"
+#include "util/profiling.h"
 #include "util/stats.h"
 #include "util/string.h"
 #include "util/texture.h"
@@ -333,25 +333,19 @@ class GPUDevice : public Device {
   GPUDevice(const DeviceInfo &info_, Stats &stats_, Profiler &profiler_, bool headless_)
       : Device(info_, stats_, profiler_, headless_),
         texture_info(this, "texture_info", MEM_GLOBAL),
-        need_texture_info(false),
-        can_map_host(false),
-        map_host_used(0),
-        map_host_limit(0),
-        device_texture_headroom(0),
-        device_working_headroom(0),
+
         device_mem_map(),
-        device_mem_map_mutex(),
-        move_texture_to_host(false),
-        device_mem_in_use(0)
+        device_mem_map_mutex()
+
   {
   }
 
  public:
-  virtual ~GPUDevice() noexcept(false);
+  ~GPUDevice() noexcept(false) override;
 
   /* For GPUs that can use bindless textures in some way or another. */
   device_vector<TextureInfo> texture_info;
-  bool need_texture_info;
+  bool need_texture_info = false;
   /* Returns true if the texture info was copied to the device (meaning, some more
    * re-initialization might be needed). */
   virtual bool load_texture_info();
@@ -360,28 +354,28 @@ class GPUDevice : public Device {
   /* Memory allocation, only accessed through device_memory. */
   friend class device_memory;
 
-  bool can_map_host;
-  size_t map_host_used;
-  size_t map_host_limit;
-  size_t device_texture_headroom;
-  size_t device_working_headroom;
-  typedef unsigned long long texMemObject;
-  typedef unsigned long long arrayMemObject;
+  bool can_map_host = false;
+  size_t map_host_used = 0;
+  size_t map_host_limit = 0;
+  size_t device_texture_headroom = 0;
+  size_t device_working_headroom = 0;
+  using texMemObject = unsigned long long;
+  using arrayMemObject = unsigned long long;
   struct Mem {
-    Mem() : texobject(0), array(0), use_mapped_host(false) {}
+    Mem() = default;
 
-    texMemObject texobject;
-    arrayMemObject array;
+    texMemObject texobject = 0;
+    arrayMemObject array = 0;
 
     /* If true, a mapped host memory in shared_pointer is being used. */
-    bool use_mapped_host;
+    bool use_mapped_host = false;
   };
-  typedef map<device_memory *, Mem> MemMap;
+  using MemMap = map<device_memory *, Mem>;
   MemMap device_mem_map;
   thread_mutex device_mem_map_mutex;
-  bool move_texture_to_host;
+  bool move_texture_to_host = false;
   /* Simple counter which will try to track amount of used device memory */
-  size_t device_mem_in_use;
+  size_t device_mem_in_use = 0;
 
   virtual void init_host_memory(size_t preferred_texture_headroom = 0,
                                 size_t preferred_working_headroom = 0);

@@ -9,7 +9,9 @@
 
 #include "kernel/closure/alloc.h"
 #include "kernel/closure/bsdf.h"
+#include "kernel/closure/bssrdf.h"
 #include "kernel/closure/emissive.h"
+#include "kernel/closure/volume.h"
 
 #include "kernel/geom/object.h"
 

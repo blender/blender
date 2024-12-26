@@ -37,9 +37,7 @@ ccl_device_inline Transform object_fetch_transform(KernelGlobals kg,
   if (type == OBJECT_INVERSE_TRANSFORM) {
     return kernel_data_fetch(objects, object).itfm;
   }
-  else {
-    return kernel_data_fetch(objects, object).tfm;
-  }
+  return kernel_data_fetch(objects, object).tfm;
 }
 
 /* Lamp to world space transformation */
@@ -49,9 +47,7 @@ ccl_device_inline Transform lamp_fetch_transform(KernelGlobals kg, int lamp, boo
   if (inverse) {
     return kernel_data_fetch(lights, lamp).itfm;
   }
-  else {
-    return kernel_data_fetch(lights, lamp).tfm;
-  }
+  return kernel_data_fetch(lights, lamp).tfm;
 }
 
 /* Object to world space transformation for motion vectors */
@@ -91,20 +87,21 @@ ccl_device_inline Transform object_fetch_transform_motion_test(KernelGlobals kg,
     /* if we do motion blur */
     Transform tfm = object_fetch_transform_motion(kg, object, time);
 
-    if (itfm)
+    if (itfm) {
       *itfm = transform_inverse(tfm);
+    }
 
     return tfm;
   }
-  else
+
 #endif /* __OBJECT_MOTION__ */
-  {
-    Transform tfm = object_fetch_transform(kg, object, OBJECT_TRANSFORM);
-    if (itfm)
-      *itfm = object_fetch_transform(kg, object, OBJECT_INVERSE_TRANSFORM);
 
-    return tfm;
+  Transform tfm = object_fetch_transform(kg, object, OBJECT_TRANSFORM);
+  if (itfm) {
+    *itfm = object_fetch_transform(kg, object, OBJECT_INVERSE_TRANSFORM);
   }
+
+  return tfm;
 }
 
 /* Get transform matrix for shading point. */
@@ -257,8 +254,9 @@ ccl_device_inline void object_inverse_dir_transform(KernelGlobals kg,
 
 ccl_device_inline float3 object_location(KernelGlobals kg, ccl_private const ShaderData *sd)
 {
-  if (sd->object == OBJECT_NONE)
+  if (sd->object == OBJECT_NONE) {
     return make_float3(0.0f, 0.0f, 0.0f);
+  }
 
 #ifdef __OBJECT_MOTION__
   if (sd->object_flag & SD_OBJECT_MOTION) {
@@ -274,8 +272,9 @@ ccl_device_inline float3 object_location(KernelGlobals kg, ccl_private const Sha
 
 ccl_device_inline float3 object_color(KernelGlobals kg, int object)
 {
-  if (object == OBJECT_NONE)
+  if (object == OBJECT_NONE) {
     return make_float3(0.0f, 0.0f, 0.0f);
+  }
 
   ccl_global const KernelObject *kobject = &kernel_data_fetch(objects, object);
   return make_float3(kobject->color[0], kobject->color[1], kobject->color[2]);
@@ -285,8 +284,9 @@ ccl_device_inline float3 object_color(KernelGlobals kg, int object)
 
 ccl_device_inline float object_alpha(KernelGlobals kg, int object)
 {
-  if (object == OBJECT_NONE)
+  if (object == OBJECT_NONE) {
     return 0.0f;
+  }
 
   return kernel_data_fetch(objects, object).alpha;
 }
@@ -295,8 +295,9 @@ ccl_device_inline float object_alpha(KernelGlobals kg, int object)
 
 ccl_device_inline float object_pass_id(KernelGlobals kg, int object)
 {
-  if (object == OBJECT_NONE)
+  if (object == OBJECT_NONE) {
     return 0.0f;
+  }
 
   return kernel_data_fetch(objects, object).pass_id;
 }
@@ -305,8 +306,9 @@ ccl_device_inline float object_pass_id(KernelGlobals kg, int object)
 
 ccl_device_inline int lamp_lightgroup(KernelGlobals kg, int lamp)
 {
-  if (lamp == LAMP_NONE)
+  if (lamp == LAMP_NONE) {
     return LIGHTGROUP_NONE;
+  }
 
   return kernel_data_fetch(lights, lamp).lightgroup;
 }
@@ -315,8 +317,9 @@ ccl_device_inline int lamp_lightgroup(KernelGlobals kg, int lamp)
 
 ccl_device_inline int object_lightgroup(KernelGlobals kg, int object)
 {
-  if (object == OBJECT_NONE)
+  if (object == OBJECT_NONE) {
     return LIGHTGROUP_NONE;
+  }
 
   return kernel_data_fetch(objects, object).lightgroup;
 }
@@ -325,8 +328,9 @@ ccl_device_inline int object_lightgroup(KernelGlobals kg, int object)
 
 ccl_device_inline float lamp_random_number(KernelGlobals kg, int lamp)
 {
-  if (lamp == LAMP_NONE)
+  if (lamp == LAMP_NONE) {
     return 0.0f;
+  }
 
   return kernel_data_fetch(lights, lamp).random;
 }
@@ -335,8 +339,9 @@ ccl_device_inline float lamp_random_number(KernelGlobals kg, int lamp)
 
 ccl_device_inline float object_random_number(KernelGlobals kg, int object)
 {
-  if (object == OBJECT_NONE)
+  if (object == OBJECT_NONE) {
     return 0.0f;
+  }
 
   return kernel_data_fetch(objects, object).random_number;
 }
@@ -345,8 +350,9 @@ ccl_device_inline float object_random_number(KernelGlobals kg, int object)
 
 ccl_device_inline int object_particle_id(KernelGlobals kg, int object)
 {
-  if (object == OBJECT_NONE)
+  if (object == OBJECT_NONE) {
     return 0;
+  }
 
   return kernel_data_fetch(objects, object).particle_index;
 }
@@ -355,8 +361,9 @@ ccl_device_inline int object_particle_id(KernelGlobals kg, int object)
 
 ccl_device_inline float3 object_dupli_generated(KernelGlobals kg, int object)
 {
-  if (object == OBJECT_NONE)
+  if (object == OBJECT_NONE) {
     return make_float3(0.0f, 0.0f, 0.0f);
+  }
 
   ccl_global const KernelObject *kobject = &kernel_data_fetch(objects, object);
   return make_float3(
@@ -367,8 +374,9 @@ ccl_device_inline float3 object_dupli_generated(KernelGlobals kg, int object)
 
 ccl_device_inline float3 object_dupli_uv(KernelGlobals kg, int object)
 {
-  if (object == OBJECT_NONE)
+  if (object == OBJECT_NONE) {
     return make_float3(0.0f, 0.0f, 0.0f);
+  }
 
   ccl_global const KernelObject *kobject = &kernel_data_fetch(objects, object);
   return make_float3(kobject->dupli_uv[0], kobject->dupli_uv[1], 0.0f);
@@ -378,8 +386,9 @@ ccl_device_inline float3 object_dupli_uv(KernelGlobals kg, int object)
 
 ccl_device_inline uint object_patch_map_offset(KernelGlobals kg, int object)
 {
-  if (object == OBJECT_NONE)
+  if (object == OBJECT_NONE) {
     return 0;
+  }
 
   return kernel_data_fetch(objects, object).patch_map_offset;
 }
@@ -415,16 +424,18 @@ ccl_device int shader_pass_id(KernelGlobals kg, ccl_private const ShaderData *sd
 
 ccl_device_inline float object_cryptomatte_id(KernelGlobals kg, int object)
 {
-  if (object == OBJECT_NONE)
+  if (object == OBJECT_NONE) {
     return 0.0f;
+  }
 
   return kernel_data_fetch(objects, object).cryptomatte_object;
 }
 
 ccl_device_inline float object_cryptomatte_asset_id(KernelGlobals kg, int object)
 {
-  if (object == OBJECT_NONE)
+  if (object == OBJECT_NONE) {
     return 0;
+  }
 
   return kernel_data_fetch(objects, object).cryptomatte_asset;
 }

@@ -28,18 +28,18 @@ ccl_device float point_attribute_float(KernelGlobals kg,
                                        ccl_private float *dy)
 {
 #  ifdef __RAY_DIFFERENTIALS__
-  if (dx)
+  if (dx) {
     *dx = 0.0f;
-  if (dy)
+  }
+  if (dy) {
     *dy = 0.0f;
+  }
 #  endif
 
   if (desc.element == ATTR_ELEMENT_VERTEX) {
     return kernel_data_fetch(attributes_float, desc.offset + sd->prim);
   }
-  else {
-    return 0.0f;
-  }
+  return 0.0f;
 }
 
 ccl_device float2 point_attribute_float2(KernelGlobals kg,
@@ -49,18 +49,18 @@ ccl_device float2 point_attribute_float2(KernelGlobals kg,
                                          ccl_private float2 *dy)
 {
 #  ifdef __RAY_DIFFERENTIALS__
-  if (dx)
+  if (dx) {
     *dx = make_float2(0.0f, 0.0f);
-  if (dy)
+  }
+  if (dy) {
     *dy = make_float2(0.0f, 0.0f);
+  }
 #  endif
 
   if (desc.element == ATTR_ELEMENT_VERTEX) {
     return kernel_data_fetch(attributes_float2, desc.offset + sd->prim);
   }
-  else {
-    return make_float2(0.0f, 0.0f);
-  }
+  return make_float2(0.0f, 0.0f);
 }
 
 ccl_device float3 point_attribute_float3(KernelGlobals kg,
@@ -70,18 +70,18 @@ ccl_device float3 point_attribute_float3(KernelGlobals kg,
                                          ccl_private float3 *dy)
 {
 #  ifdef __RAY_DIFFERENTIALS__
-  if (dx)
+  if (dx) {
     *dx = make_float3(0.0f, 0.0f, 0.0f);
-  if (dy)
+  }
+  if (dy) {
     *dy = make_float3(0.0f, 0.0f, 0.0f);
+  }
 #  endif
 
   if (desc.element == ATTR_ELEMENT_VERTEX) {
     return kernel_data_fetch(attributes_float3, desc.offset + sd->prim);
   }
-  else {
-    return make_float3(0.0f, 0.0f, 0.0f);
-  }
+  return make_float3(0.0f, 0.0f, 0.0f);
 }
 
 ccl_device float4 point_attribute_float4(KernelGlobals kg,
@@ -91,18 +91,18 @@ ccl_device float4 point_attribute_float4(KernelGlobals kg,
                                          ccl_private float4 *dy)
 {
 #  ifdef __RAY_DIFFERENTIALS__
-  if (dx)
+  if (dx) {
     *dx = zero_float4();
-  if (dy)
+  }
+  if (dy) {
     *dy = zero_float4();
+  }
 #  endif
 
   if (desc.element == ATTR_ELEMENT_VERTEX) {
     return kernel_data_fetch(attributes_float4, desc.offset + sd->prim);
   }
-  else {
-    return zero_float4();
-  }
+  return zero_float4();
 }
 
 /* Point position */
@@ -136,12 +136,11 @@ ccl_device float point_radius(KernelGlobals kg, ccl_private const ShaderData *sd
     if (sd->object_flag & SD_OBJECT_TRANSFORM_APPLIED) {
       return r;
     }
-    else {
-      const float normalized_r = r * (1.0f / M_SQRT3_F);
-      float3 dir = make_float3(normalized_r, normalized_r, normalized_r);
-      object_dir_transform(kg, sd, &dir);
-      return len(dir);
-    }
+
+    const float normalized_r = r * (1.0f / M_SQRT3_F);
+    float3 dir = make_float3(normalized_r, normalized_r, normalized_r);
+    object_dir_transform(kg, sd, &dir);
+    return len(dir);
   }
 
   return 0.0f;

@@ -10,10 +10,12 @@
 #  include "device/cuda/device_impl.h"
 #  include "device/device.h"
 
-#  include "integrator/denoiser_oidn_gpu.h"
+#  include "integrator/denoiser_oidn_gpu.h"  // IWYU pragma: keep
 
 #  include "util/string.h"
-#  include "util/windows.h"
+#  ifdef _WIN32
+#    include "util/windows.h"
+#  endif
 #endif /* WITH_CUDA */
 
 CCL_NAMESPACE_BEGIN
@@ -182,6 +184,7 @@ void device_cuda_info(vector<DeviceInfo> &devices)
     cuDeviceGetAttribute(&timeout_attr, CU_DEVICE_ATTRIBUTE_KERNEL_EXEC_TIMEOUT, num);
     cuDeviceGetAttribute(&preempt_attr, CU_DEVICE_ATTRIBUTE_COMPUTE_PREEMPTION_SUPPORTED, num);
 
+#  ifdef _WIN32
     /* The CUDA driver reports compute preemption as not being available on
      * Windows 10 even when it is, due to an issue in application profiles.
      * Detect case where we expect it to be available and override. */
@@ -189,6 +192,7 @@ void device_cuda_info(vector<DeviceInfo> &devices)
       VLOG_INFO << "Assuming device has compute preemption on Windows 10.";
       preempt_attr = 1;
     }
+#  endif
 
     if (timeout_attr && !preempt_attr) {
       VLOG_INFO << "Device is recognized as display.";
@@ -202,9 +206,10 @@ void device_cuda_info(vector<DeviceInfo> &devices)
     }
     VLOG_INFO << "Added device \"" << info.description << "\" with id \"" << info.id << "\".";
 
-    if (info.denoisers & DENOISER_OPENIMAGEDENOISE)
+    if (info.denoisers & DENOISER_OPENIMAGEDENOISE) {
       VLOG_INFO << "Device with id \"" << info.id << "\" supports "
                 << denoiserTypeToHumanReadable(DENOISER_OPENIMAGEDENOISE) << ".";
+    }
   }
 
   if (!display_devices.empty()) {
@@ -232,7 +237,7 @@ string device_cuda_capabilities()
     return string("Error getting devices: ") + cuewErrorString(result);
   }
 
-  string capabilities = "";
+  string capabilities;
   for (int num = 0; num < count; num++) {
     char name[256];
     if (cuDeviceGetName(name, 256, num) != CUDA_SUCCESS) {

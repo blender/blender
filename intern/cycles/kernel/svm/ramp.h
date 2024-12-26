@@ -42,8 +42,9 @@ ccl_device_inline float float_ramp_lookup(
 
   float a = fetch_float(kg, offset + i);
 
-  if (interpolate && t > 0.0f)
+  if (interpolate && t > 0.0f) {
     a = (1.0f - t) * a + t * fetch_float(kg, offset + i + 1);
+  }
 
   return a;
 }
@@ -74,8 +75,9 @@ ccl_device_inline float4 rgb_ramp_lookup(
 
   float4 a = fetch_node_float(kg, offset + i);
 
-  if (interpolate && t > 0.0f)
+  if (interpolate && t > 0.0f) {
     a = (1.0f - t) * a + t * fetch_node_float(kg, offset + i + 1);
+  }
 
   return a;
 }
@@ -93,10 +95,12 @@ ccl_device_noinline int svm_node_rgb_ramp(
   float fac = stack_load_float(stack, fac_offset);
   float4 color = rgb_ramp_lookup(kg, offset, fac, interpolate, false, table_size);
 
-  if (stack_valid(color_offset))
+  if (stack_valid(color_offset)) {
     stack_store_float3(stack, color_offset, make_float3(color));
-  if (stack_valid(alpha_offset))
+  }
+  if (stack_valid(alpha_offset)) {
     stack_store_float(stack, alpha_offset, color.w);
+  }
 
   offset += table_size;
   return offset;

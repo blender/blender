@@ -37,7 +37,7 @@ template<typename T> struct kernel_array {
   int width = 0;
 };
 
-typedef struct KernelGlobalsCPU {
+struct KernelGlobalsCPU {
 #define KERNEL_DATA_ARRAY(type, name) kernel_array<type> name;
 #include "kernel/data_arrays.h"
 
@@ -66,9 +66,9 @@ typedef struct KernelGlobalsCPU {
   /* **** Run-time data ****  */
 
   ProfilingState profiler;
-} KernelGlobalsCPU;
+};
 
-typedef const KernelGlobalsCPU *ccl_restrict KernelGlobals;
+using KernelGlobals = const KernelGlobalsCPU *;
 
 /* Abstraction macros */
 #define kernel_data_fetch(name, index) (kg->name.fetch(index))

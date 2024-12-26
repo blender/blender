@@ -10,7 +10,7 @@
 #  include "bvh/params.h"
 
 #  ifdef WITH_HIP_DYNLOAD
-#    include "hiprtew.h"
+#    include <hiprtew.h>
 #  else
 #    include <hiprt/hiprt_types.h>
 #  endif
@@ -48,7 +48,7 @@ class BVHHIPRT : public BVH {
            const vector<Object *> &objects,
            Device *in_device);
 
-  virtual ~BVHHIPRT();
+  ~BVHHIPRT() override;
 
  private:
   Device *device;

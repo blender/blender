@@ -6,7 +6,9 @@
 
 #ifdef WITH_OSL
 /* So no context pollution happens from indirectly included windows.h */
-#  include "util/windows.h"
+#  ifdef _WIN32
+#    include "util/windows.h"
+#  endif
 #  include <OSL/oslexec.h>
 #endif
 
@@ -133,7 +135,7 @@ class Shader : public Node {
 #endif
 
   Shader();
-  ~Shader();
+  ~Shader() override;
 
   /* Estimate emission of this shader based on the shader graph. This works only in very simple
    * cases. But it helps improve light importance sampling in common cases.
@@ -227,7 +229,7 @@ class ShaderManager {
 
   uint32_t update_flags;
 
-  typedef unordered_map<ustring, uint64_t> AttributeIDMap;
+  using AttributeIDMap = unordered_map<ustring, uint64_t>;
   AttributeIDMap unique_attribute_id;
 
   static thread_mutex lookup_table_mutex;

@@ -11,15 +11,15 @@
 /* Standard Integer Types */
 
 #if !defined(__KERNEL_GPU__)
-#  include <cstdint>
+#  include <cstdint>  // IWYU pragma: export
 #  include <cstdio>
 #endif
 
 #include "util/defines.h"
 
 #ifndef __KERNEL_GPU__
-#  include "util/optimization.h"
-#  include "util/simd.h"
+#  include "util/optimization.h"  // IWYU pragma: export
+#  include "util/simd.h"          // IWYU pragma: export
 #endif
 
 CCL_NAMESPACE_BEGIN

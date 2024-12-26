@@ -18,7 +18,6 @@
 #include "scene/shader.h"
 #include "scene/shader_graph.h"
 #include "scene/shader_nodes.h"
-#include "scene/volume.h"
 
 #include "util/foreach.h"
 #include "util/hash.h"
@@ -38,16 +37,15 @@ bool BlenderSync::BKE_object_is_modified(BL::Object &b_ob)
     /* multi-user and dupli metaballs are fused, can't instance */
     return true;
   }
-  else if (ccl::BKE_object_is_modified(b_ob, b_scene, preview)) {
+  if (ccl::BKE_object_is_modified(b_ob, b_scene, preview)) {
     /* modifiers */
     return true;
   }
-  else {
-    /* object level material links */
-    for (BL::MaterialSlot &b_slot : b_ob.material_slots) {
-      if (b_slot.link() == BL::MaterialSlot::link_OBJECT) {
-        return true;
-      }
+
+  /* object level material links */
+  for (BL::MaterialSlot &b_slot : b_ob.material_slots) {
+    if (b_slot.link() == BL::MaterialSlot::link_OBJECT) {
+      return true;
     }
   }
 
@@ -665,8 +663,9 @@ void BlenderSync::sync_objects(BL::Depsgraph &b_depsgraph,
     procedural_map.post_sync();
   }
 
-  if (motion)
+  if (motion) {
     geometry_motion_synced.clear();
+  }
 }
 
 void BlenderSync::sync_motion(BL::RenderSettings &b_render,

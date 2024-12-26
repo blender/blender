@@ -4,6 +4,10 @@
 
 #ifdef WITH_METAL
 
+#  include <chrono>
+#  include <thread>
+#  include <vector>
+
 #  include "scene/hair.h"
 #  include "scene/mesh.h"
 #  include "scene/object.h"
@@ -1058,14 +1062,12 @@ bool BVHMetal::build_TLAS(Progress &progress,
       if (it != instance_mapping.end()) {
         return it->second;
       }
-      else {
-        int blas_index = (int)[all_blas count];
-        instance_mapping[blas] = blas_index;
-        if (@available(macos 12.0, *)) {
-          [all_blas addObject:(blas ? blas->accel_struct : null_BLAS)];
-        }
-        return blas_index;
+      int blas_index = (int)[all_blas count];
+      instance_mapping[blas] = blas_index;
+      if (@available(macos 12.0, *)) {
+        [all_blas addObject:(blas ? blas->accel_struct : null_BLAS)];
       }
+      return blas_index;
     };
 
     MTLResourceOptions storage_mode;
@@ -1180,7 +1182,7 @@ bool BVHMetal::build_TLAS(Progress &progress,
           for (int i = 0; i < key_count; i++) {
             float *t = (float *)&motion_transforms[motion_transform_index++];
             /* Transpose transform */
-            auto src = (float const *)&keys[i];
+            const auto *src = (float const *)&keys[i];
             for (int i = 0; i < 12; i++) {
               t[i] = src[(i / 3) + 4 * (i % 3)];
             }
@@ -1192,7 +1194,7 @@ bool BVHMetal::build_TLAS(Progress &progress,
           float *t = (float *)&motion_transforms[motion_transform_index++];
           if (ob->get_geometry()->is_instanced()) {
             /* Transpose transform */
-            auto src = (float const *)&ob->get_tfm();
+            const auto *src = (float const *)&ob->get_tfm();
             for (int i = 0; i < 12; i++) {
               t[i] = src[(i / 3) + 4 * (i % 3)];
             }
@@ -1217,7 +1219,7 @@ bool BVHMetal::build_TLAS(Progress &progress,
         float *t = (float *)&desc.transformationMatrix;
         if (ob->get_geometry()->is_instanced()) {
           /* Transpose transform */
-          auto src = (float const *)&ob->get_tfm();
+          const auto *src = (float const *)&ob->get_tfm();
           for (int i = 0; i < 12; i++) {
             t[i] = src[(i / 3) + 4 * (i % 3)];
           }
@@ -1328,9 +1330,7 @@ bool BVHMetal::build(Progress &progress,
     if (!params.top_level) {
       return build_BLAS(progress, mtl_device, queue, refit);
     }
-    else {
-      return build_TLAS(progress, mtl_device, queue, refit);
-    }
+    return build_TLAS(progress, mtl_device, queue, refit);
   }
 }
 

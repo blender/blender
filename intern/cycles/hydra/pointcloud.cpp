@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0 */
 
 #include "hydra/pointcloud.h"
+#include "hydra/attribute.h"
 #include "hydra/geometry.inl"
 #include "scene/pointcloud.h"
 
@@ -26,7 +27,7 @@ HdCyclesPoints::HdCyclesPoints(const SdfPath &rprimId
 {
 }
 
-HdCyclesPoints::~HdCyclesPoints() {}
+HdCyclesPoints::~HdCyclesPoints() = default;
 
 HdDirtyBits HdCyclesPoints::GetInitialDirtyBitsMask() const
 {

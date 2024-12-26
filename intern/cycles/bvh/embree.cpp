@@ -26,9 +26,6 @@
 
 #  include "bvh/embree.h"
 
-#  include "kernel/device/cpu/bvh.h"
-#  include "kernel/globals.h"
-
 #  include "scene/hair.h"
 #  include "scene/mesh.h"
 #  include "scene/object.h"
@@ -48,7 +45,7 @@ static_assert(Object::MAX_MOTION_STEPS == Geometry::MAX_MOTION_STEPS,
 
 static size_t unaccounted_mem = 0;
 
-static bool rtc_memory_monitor_func(void *userPtr, const ssize_t bytes, const bool)
+static bool rtc_memory_monitor_func(void *userPtr, const ssize_t bytes, const bool /*unused*/)
 {
   Stats *stats = (Stats *)userPtr;
   if (stats) {
@@ -71,7 +68,7 @@ static bool rtc_memory_monitor_func(void *userPtr, const ssize_t bytes, const bo
   return true;
 }
 
-static void rtc_error_func(void *, enum RTCError, const char *str)
+static void rtc_error_func(void * /*unused*/, enum RTCError /*unused*/, const char *str)
 {
   VLOG_WARNING << str;
 }
@@ -165,8 +162,9 @@ void BVHEmbree::build(Progress &progress,
       add_object(ob, i);
     }
     ++i;
-    if (progress.get_cancel())
+    if (progress.get_cancel()) {
       return;
+    }
   }
 
   if (progress.get_cancel()) {
@@ -221,8 +219,9 @@ RTCError BVHEmbree::offload_scenes_to_gpu(const vector<RTCScene> &scenes)
     /* In case of any errors from Embree, we should stop
      * the execution and propagate the error. */
     RTCError error_code = rtcGetDeviceError(rtc_device);
-    if (error_code != RTC_ERROR_NONE)
+    if (error_code != RTC_ERROR_NONE) {
       return error_code;
+    }
   }
   return RTC_ERROR_NONE;
 }
@@ -484,7 +483,7 @@ void BVHEmbree::set_curve_vertex_buffer(RTCGeometry geom_id, const Hair *hair, c
 
   /* Copy the CV data to Embree */
   const int t_mid = (num_motion_steps - 1) / 2;
-  const float *curve_radius = &hair->get_curve_radius()[0];
+  const float *curve_radius = hair->get_curve_radius().data();
   for (int t = 0; t < num_motion_steps; ++t) {
     // As float4 and float3 are no longer interchangeable the 2 types need to be
     // handled separately. Attributes are float4s where the radius is stored in w and
@@ -503,7 +502,7 @@ void BVHEmbree::set_curve_vertex_buffer(RTCGeometry geom_id, const Hair *hair, c
     if (rtc_verts) {
       const size_t num_curves = hair->num_curves();
       if (t == t_mid || attr_mP == nullptr) {
-        const float3 *verts = &hair->get_curve_keys()[0];
+        const float3 *verts = hair->get_curve_keys().data();
         pack_motion_verts<float3>(num_curves, hair, verts, curve_radius, rtc_verts);
       }
       else {

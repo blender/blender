@@ -4,6 +4,9 @@
 
 #pragma once
 
+#include "util/defines.h"
+#include "util/transform.h"
+
 CCL_NAMESPACE_BEGIN
 
 /* Custom cross and dot implementations that match Embree bit for bit.
@@ -39,7 +42,7 @@ ccl_device_forceinline float transform_inverse_dot(const float3 a_, const float3
   return dot(a_, b_);
 }
 
-ccl_device_forceinline Transform transform_inverse_impl(const Transform tfm)
+ccl_device_forceinline struct Transform transform_inverse_impl(const struct Transform tfm)
 {
   /* This implementation matches the one in Embree exactly, to ensure consistent
    * results with the ray intersection of instances. */
@@ -74,7 +77,7 @@ ccl_device_forceinline Transform transform_inverse_impl(const Transform tfm)
   const float3 inverse_z = transform_inverse_cross(x, y) / det;
 
   /* Compute translation and fill transform. */
-  Transform itfm;
+  struct Transform itfm;
   itfm.x = make_float4(inverse_x, -transform_inverse_dot(inverse_x, w));
   itfm.y = make_float4(inverse_y, -transform_inverse_dot(inverse_y, w));
   itfm.z = make_float4(inverse_z, -transform_inverse_dot(inverse_z, w));

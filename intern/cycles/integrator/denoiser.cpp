@@ -10,7 +10,9 @@
 #ifdef WITH_OPENIMAGEDENOISE
 #  include "integrator/denoiser_oidn_gpu.h"
 #endif
-#include "integrator/denoiser_optix.h"
+#ifdef WITH_OPTIX
+#  include "integrator/denoiser_optix.h"
+#endif
 #include "session/buffers.h"
 
 #include "util/log.h"

@@ -12,7 +12,6 @@
 
 #include "util/algorithm.h"
 #include "util/foreach.h"
-#include "util/hash.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -27,9 +26,7 @@ CCL_NAMESPACE_END
 
 /* specializations of TopologyRefinerFactory for ccl::Mesh */
 
-namespace OpenSubdiv {
-namespace OPENSUBDIV_VERSION {
-namespace Far {
+namespace OpenSubdiv::v3_6_0::Far {
 template<>
 bool TopologyRefinerFactory<ccl::Mesh>::resizeComponentTopology(TopologyRefiner &refiner,
                                                                 ccl::Mesh const &mesh)
@@ -138,9 +135,7 @@ void TopologyRefinerFactory<ccl::Mesh>::reportInvalidTopology(TopologyError /*er
                                                               ccl::Mesh const & /*mesh*/)
 {
 }
-} /* namespace Far */
-} /* namespace OPENSUBDIV_VERSION */
-} /* namespace OpenSubdiv */
+}  // namespace OpenSubdiv::v3_6_0::Far
 
 CCL_NAMESPACE_BEGIN
 
@@ -151,9 +146,9 @@ using namespace OpenSubdiv;
 template<typename T> struct OsdValue {
   T value;
 
-  OsdValue() {}
+  OsdValue() = default;
 
-  void Clear(void * = 0)
+  void Clear(void * /*unused*/ = nullptr)
   {
     memset(&value, 0, sizeof(T));
   }
@@ -174,14 +169,14 @@ template<> void OsdValue<uchar4>::AddWithWeight(OsdValue<uchar4> const &src, flo
 /* class for holding OpenSubdiv data used during tessellation */
 
 class OsdData {
-  Mesh *mesh;
+  Mesh *mesh = nullptr;
   vector<OsdValue<float3>> verts;
-  Far::TopologyRefiner *refiner;
-  Far::PatchTable *patch_table;
-  Far::PatchMap *patch_map;
+  Far::TopologyRefiner *refiner = nullptr;
+  Far::PatchTable *patch_table = nullptr;
+  Far::PatchMap *patch_map = nullptr;
 
  public:
-  OsdData() : mesh(nullptr), refiner(nullptr), patch_table(nullptr), patch_map(nullptr) {}
+  OsdData() = default;
 
   ~OsdData()
   {
@@ -231,7 +226,7 @@ class OsdData {
     }
 
     if (num_local_points) {
-      patch_table->ComputeLocalPointValues(&verts[0], &verts[num_refiner_verts]);
+      patch_table->ComputeLocalPointValues(verts.data(), &verts[num_refiner_verts]);
     }
 
     /* create patch map */
@@ -254,15 +249,15 @@ class OsdData {
       for (int i = 0; i < refiner->GetMaxLevel(); i++) {
         char *dest = src + refiner->GetLevel(i).GetNumVertices() * attr.data_sizeof();
 
-        if (attr.same_storage(attr.type, TypeFloat)) {
+        if (ccl::Attribute::same_storage(attr.type, TypeFloat)) {
           primvar_refiner.Interpolate(i + 1, (OsdValue<float> *)src, (OsdValue<float> *&)dest);
         }
-        else if (attr.same_storage(attr.type, TypeFloat2)) {
+        else if (ccl::Attribute::same_storage(attr.type, TypeFloat2)) {
           primvar_refiner.Interpolate(i + 1, (OsdValue<float2> *)src, (OsdValue<float2> *&)dest);
           // float3 is not interchangeable with float4 and so needs to be handled
           // separately
         }
-        else if (attr.same_storage(attr.type, TypeFloat4)) {
+        else if (ccl::Attribute::same_storage(attr.type, TypeFloat4)) {
           primvar_refiner.Interpolate(i + 1, (OsdValue<float4> *)src, (OsdValue<float4> *&)dest);
         }
         else {
@@ -273,28 +268,28 @@ class OsdData {
       }
 
       if (num_local_points) {
-        if (attr.same_storage(attr.type, TypeFloat)) {
+        if (ccl::Attribute::same_storage(attr.type, TypeFloat)) {
           patch_table->ComputeLocalPointValues(
-              (OsdValue<float> *)&attr.buffer[0],
+              (OsdValue<float> *)attr.buffer.data(),
               (OsdValue<float> *)&attr.buffer[num_refiner_verts * attr.data_sizeof()]);
         }
-        else if (attr.same_storage(attr.type, TypeFloat2)) {
+        else if (ccl::Attribute::same_storage(attr.type, TypeFloat2)) {
           patch_table->ComputeLocalPointValues(
-              (OsdValue<float2> *)&attr.buffer[0],
+              (OsdValue<float2> *)attr.buffer.data(),
               (OsdValue<float2> *)&attr.buffer[num_refiner_verts * attr.data_sizeof()]);
         }
-        else if (attr.same_storage(attr.type, TypeFloat4)) {
+        else if (ccl::Attribute::same_storage(attr.type, TypeFloat4)) {
           // float3 is not interchangeable with float4 and so needs to be handled
           // separately
           patch_table->ComputeLocalPointValues(
-              (OsdValue<float4> *)&attr.buffer[0],
+              (OsdValue<float4> *)attr.buffer.data(),
               (OsdValue<float4> *)&attr.buffer[num_refiner_verts * attr.data_sizeof()]);
         }
         else {
           // float3 is not interchangeable with float4 and so needs to be handled
           // separately
           patch_table->ComputeLocalPointValues(
-              (OsdValue<float3> *)&attr.buffer[0],
+              (OsdValue<float3> *)attr.buffer.data(),
               (OsdValue<float3> *)&attr.buffer[num_refiner_verts * attr.data_sizeof()]);
         }
       }
@@ -350,10 +345,10 @@ class OsdData {
 struct OsdPatch : Patch {
   OsdData *osd_data;
 
-  OsdPatch() {}
+  OsdPatch() = default;
   OsdPatch(OsdData *data) : osd_data(data) {}
 
-  void eval(float3 *P, float3 *dPdu, float3 *dPdv, float3 *N, float u, float v)
+  void eval(float3 *P, float3 *dPdu, float3 *dPdv, float3 *N, float u, float v) override
   {
     const Far::PatchTable::PatchHandle *handle = osd_data->patch_map->FindPatch(
         patch_index, (double)u, (double)v);
@@ -365,24 +360,28 @@ struct OsdPatch : Patch {
     Far::ConstIndexArray cv = osd_data->patch_table->GetPatchVertices(*handle);
 
     float3 du, dv;
-    if (P)
+    if (P) {
       *P = zero_float3();
+    }
     du = zero_float3();
     dv = zero_float3();
 
     for (int i = 0; i < cv.size(); i++) {
       float3 p = osd_data->verts[cv[i]].value;
 
-      if (P)
+      if (P) {
         *P += p * p_weights[i];
+      }
       du += p * du_weights[i];
       dv += p * dv_weights[i];
     }
 
-    if (dPdu)
+    if (dPdu) {
       *dPdu = du;
-    if (dPdv)
+    }
+    if (dPdv) {
       *dPdv = dv;
+    }
     if (N) {
       *N = cross(du, dv);
 

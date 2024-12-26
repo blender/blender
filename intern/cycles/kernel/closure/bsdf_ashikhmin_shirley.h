@@ -152,10 +152,12 @@ ccl_device int bsdf_ashikhmin_shirley_sample(ccl_private const ShaderClosure *sc
   /* get x,y basis on the surface for anisotropy */
   float3 X, Y;
 
-  if (n_x == n_y)
+  if (n_x == n_y) {
     make_orthonormals(N, &X, &Y);
-  else
+  }
+  else {
     make_orthonormals_tangent(N, bsdf->T, &X, &Y);
+  }
 
   /* sample spherical coords for h in tangent space */
   float phi;
@@ -194,8 +196,9 @@ ccl_device int bsdf_ashikhmin_shirley_sample(ccl_private const ShaderClosure *sc
   /* half vector to world space */
   float3 H = to_global(h, X, Y, N);
   float HdotI = dot(H, wi);
-  if (HdotI < 0.0f)
+  if (HdotI < 0.0f) {
     H = -H;
+  }
 
   /* reflect wi on H to get wo */
   *wo = -wi + (2.0f * HdotI) * H;

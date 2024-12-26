@@ -5,10 +5,10 @@
 #pragma once
 
 #ifdef WITH_OPENIMAGEDENOISE
-#  include <OpenImageDenoise/oidn.hpp>
+#  include <OpenImageDenoise/oidn.hpp>  // IWYU pragma: export
 #endif
 
-#include "util/system.h"
+#include "util/system.h"  // IWYU pragma: keep
 
 CCL_NAMESPACE_BEGIN
 

@@ -10,14 +10,14 @@
 
 CCL_NAMESPACE_BEGIN
 
-typedef struct OrenNayarBsdf {
+struct OrenNayarBsdf {
   SHADER_CLOSURE_BASE;
 
   float roughness;
   float a;
   float b;
   Spectrum multiscatter_term;
-} OrenNayarBsdf;
+};
 
 static_assert(sizeof(ShaderClosure) >= sizeof(OrenNayarBsdf), "OrenNayarBsdf is too large!");
 
@@ -48,8 +48,9 @@ ccl_device Spectrum bsdf_oren_nayar_get_intensity(ccl_private const ShaderClosur
   float nv = max(dot(n, v), 0.0f);
   float t = dot(l, v) - nl * nv;
 
-  if (t > 0.0f)
+  if (t > 0.0f) {
     t /= max(nl, nv) + FLT_MIN;
+  }
 
   const float single_scatter = bsdf->a + bsdf->b * t;
 
@@ -92,10 +93,8 @@ ccl_device Spectrum bsdf_oren_nayar_eval(ccl_private const ShaderClosure *sc,
     *pdf = cosNO * M_1_PI_F;
     return bsdf_oren_nayar_get_intensity(sc, bsdf->N, wi, wo);
   }
-  else {
-    *pdf = 0.0f;
-    return zero_spectrum();
-  }
+  *pdf = 0.0f;
+  return zero_spectrum();
 }
 
 ccl_device int bsdf_oren_nayar_sample(ccl_private const ShaderClosure *sc,

@@ -27,23 +27,22 @@ class VDBImageLoader : public ImageLoader {
   VDBImageLoader(openvdb::GridBase::ConstPtr grid_, const string &grid_name);
 #endif
   VDBImageLoader(const string &grid_name);
-  ~VDBImageLoader();
+  ~VDBImageLoader() override;
 
-  virtual bool load_metadata(const ImageDeviceFeatures &features,
-                             ImageMetaData &metadata) override;
+  bool load_metadata(const ImageDeviceFeatures &features, ImageMetaData &metadata) override;
 
-  virtual bool load_pixels(const ImageMetaData &metadata,
-                           void *pixels,
-                           const size_t pixels_size,
-                           const bool associate_alpha) override;
+  bool load_pixels(const ImageMetaData &metadata,
+                   void *pixels,
+                   const size_t pixels_size,
+                   const bool associate_alpha) override;
 
-  virtual string name() const override;
+  string name() const override;
 
-  virtual bool equals(const ImageLoader &other) const override;
+  bool equals(const ImageLoader &other) const override;
 
-  virtual void cleanup() override;
+  void cleanup() override;
 
-  virtual bool is_vdb_loader() const override;
+  bool is_vdb_loader() const override;
 
 #ifdef WITH_OPENVDB
   openvdb::GridBase::ConstPtr get_grid();

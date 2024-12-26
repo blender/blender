@@ -22,8 +22,6 @@
 #include "util/log.h"
 #include "util/transform.h"
 
-#include "kernel/tables.h"
-
 #include "kernel/svm/color_util.h"
 #include "kernel/svm/mapping_util.h"
 #include "kernel/svm/math_util.h"
@@ -65,7 +63,7 @@ CCL_NAMESPACE_BEGIN
   mapping_projection_enum.insert("sphere", TextureMapping::SPHERE); \
   SOCKET_ENUM(tex_mapping.projection, "Projection", mapping_projection_enum, TextureMapping::FLAT);
 
-TextureMapping::TextureMapping() {}
+TextureMapping::TextureMapping() = default;
 
 Transform TextureMapping::compute_transform()
 {
@@ -635,17 +633,17 @@ static float2 sky_spherical_coordinates(float3 dir)
   return make_float2(acosf(dir.z), atan2f(dir.x, dir.y));
 }
 
-typedef struct SunSky {
+struct SunSky {
   /* sun direction in spherical and cartesian */
   float theta, phi;
 
   /* Parameter */
   float radiance_x, radiance_y, radiance_z;
   float config_x[9], config_y[9], config_z[9], nishita_data[10];
-} SunSky;
+};
 
 /* Preetham model */
-static float sky_perez_function(float lam[6], float theta, float gamma)
+static float sky_perez_function(const float lam[6], float theta, float gamma)
 {
   return (1.0f + lam[0] * expf(lam[1] / cosf(theta))) *
          (1.0f + lam[2] * expf(lam[3] * gamma) + lam[4] * cosf(gamma) * cosf(gamma));
@@ -1885,7 +1883,7 @@ NODE_DEFINE(PointDensityTextureNode)
 
 PointDensityTextureNode::PointDensityTextureNode() : ShaderNode(get_node_type()) {}
 
-PointDensityTextureNode::~PointDensityTextureNode() {}
+PointDensityTextureNode::~PointDensityTextureNode() = default;
 
 ShaderNode *PointDensityTextureNode::clone(ShaderGraph *graph) const
 {
@@ -2069,11 +2067,11 @@ MappingNode::MappingNode() : ShaderNode(get_node_type()) {}
 void MappingNode::constant_fold(const ConstantFolder &folder)
 {
   if (folder.all_inputs_constant()) {
-    float3 result = svm_mapping((NodeMappingType)mapping_type, vector, location, rotation, scale);
+    float3 result = svm_mapping(mapping_type, vector, location, rotation, scale);
     folder.make_constant(result);
   }
   else {
-    folder.fold_mapping((NodeMappingType)mapping_type);
+    folder.fold_mapping(mapping_type);
   }
 }
 
@@ -4198,7 +4196,7 @@ void UVMapNode::attributes(Shader *shader, AttributeRequestSet *attributes)
   if (shader->has_surface) {
     if (!from_dupli) {
       if (!output("UV")->links.empty()) {
-        if (attribute != "") {
+        if (!attribute.empty()) {
           attributes->add(attribute);
         }
         else {
@@ -4232,7 +4230,7 @@ void UVMapNode::compile(SVMCompiler &compiler)
       compiler.add_node(texco_node, NODE_TEXCO_DUPLI_UV, compiler.stack_assign(out));
     }
     else {
-      if (attribute != "") {
+      if (!attribute.empty()) {
         attr = compiler.attribute(attribute);
       }
       else {
@@ -4803,9 +4801,9 @@ void VolumeInfoNode::expand(ShaderGraph *graph)
   }
 }
 
-void VolumeInfoNode::compile(SVMCompiler &) {}
+void VolumeInfoNode::compile(SVMCompiler & /*compiler*/) {}
 
-void VolumeInfoNode::compile(OSLCompiler &) {}
+void VolumeInfoNode::compile(OSLCompiler & /*compiler*/) {}
 
 NODE_DEFINE(VertexColorNode)
 {
@@ -4823,7 +4821,7 @@ VertexColorNode::VertexColorNode() : ShaderNode(get_node_type()) {}
 void VertexColorNode::attributes(Shader *shader, AttributeRequestSet *attributes)
 {
   if (!(output("Color")->links.empty() && output("Alpha")->links.empty())) {
-    if (layer_name != "") {
+    if (!layer_name.empty()) {
       attributes->add_standard(layer_name);
     }
     else {
@@ -4839,7 +4837,7 @@ void VertexColorNode::compile(SVMCompiler &compiler)
   ShaderOutput *alpha_out = output("Alpha");
   int layer_id = 0;
 
-  if (layer_name != "") {
+  if (!layer_name.empty()) {
     layer_id = compiler.attribute(layer_name);
   }
   else {
@@ -7414,15 +7412,13 @@ OSLNode *OSLNode::create(ShaderGraph *graph, size_t num_inputs, const OSLNode *f
     node->set_owner(graph);
     return node;
   }
-  else {
-    /* copy input default values and node type for cloning */
-    memcpy(node_memory + node_size, (char *)from + node_size, inputs_size);
+  /* copy input default values and node type for cloning */
+  memcpy(node_memory + node_size, (char *)from + node_size, inputs_size);
 
-    OSLNode *node = new (node_memory) OSLNode(*from);
-    node->type = new NodeType(*(from->type));
-    node->set_owner(from->owner);
-    return node;
-  }
+  OSLNode *node = new (node_memory) OSLNode(*from);
+  node->type = new NodeType(*(from->type));
+  node->set_owner(from->owner);
+  return node;
 }
 
 char *OSLNode::input_default_value()
@@ -7446,7 +7442,7 @@ void OSLNode::add_output(ustring name, SocketType::Type socket_type)
   const_cast<NodeType *>(type)->register_output(name, name, socket_type);
 }
 
-void OSLNode::compile(SVMCompiler &)
+void OSLNode::compile(SVMCompiler & /*compiler*/)
 {
   /* doesn't work for SVM, obviously ... */
 }

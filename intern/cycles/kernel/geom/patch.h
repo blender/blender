@@ -12,15 +12,13 @@
 
 #include "kernel/geom/object.h"
 
-#include "kernel/util/colorspace.h"
-
 #include "util/color.h"
 
 CCL_NAMESPACE_BEGIN
 
-typedef struct PatchHandle {
+struct PatchHandle {
   int array_index, patch_index, vert_index;
-} PatchHandle;
+};
 
 ccl_device_inline int patch_map_resolve_quadrant(float median,
                                                  ccl_private float *u,
@@ -87,9 +85,7 @@ patch_map_find_patch(KernelGlobals kg, int object, int patch, float u, float v)
 
       return handle;
     }
-    else {
-      node = index;
-    }
+    node = index;
 
     median = delta;
   }
@@ -167,9 +163,7 @@ ccl_device_inline float patch_eval_param_fraction(uint patch_bits)
   if (non_quad_root) {
     return 1.0f / (float)(1 << (depth - 1));
   }
-  else {
-    return 1.0f / (float)(1 << depth);
-  }
+  return 1.0f / (float)(1 << depth);
 }
 
 ccl_device_inline void patch_eval_normalize_coords(uint patch_bits,
@@ -194,7 +188,7 @@ ccl_device_inline void patch_eval_normalize_coords(uint patch_bits,
 
 ccl_device_inline int patch_eval_indices(KernelGlobals kg,
                                          ccl_private const PatchHandle *handle,
-                                         int channel,
+                                         int /*channel*/,
                                          int indices[PATCH_MAX_CONTROL_VERTS])
 {
   int index_base = kernel_data_fetch(patches, handle->array_index + 2) + handle->vert_index;
@@ -330,10 +324,12 @@ ccl_device float2 patch_eval_float2(KernelGlobals kg,
       kg, sd->object, patch, u, v, channel, indices, weights, weights_du, weights_dv);
 
   float2 val = make_float2(0.0f, 0.0f);
-  if (du)
+  if (du) {
     *du = make_float2(0.0f, 0.0f);
-  if (dv)
+  }
+  if (dv) {
     *dv = make_float2(0.0f, 0.0f);
+  }
 
   for (int i = 0; i < num_control; i++) {
     float2 v = kernel_data_fetch(attributes_float2, offset + indices[i]);
@@ -410,10 +406,12 @@ ccl_device float4 patch_eval_float4(KernelGlobals kg,
       kg, sd->object, patch, u, v, channel, indices, weights, weights_du, weights_dv);
 
   float4 val = zero_float4();
-  if (du)
+  if (du) {
     *du = zero_float4();
-  if (dv)
+  }
+  if (dv) {
     *dv = zero_float4();
+  }
 
   for (int i = 0; i < num_control; i++) {
     float4 v = kernel_data_fetch(attributes_float4, offset + indices[i]);
@@ -449,10 +447,12 @@ ccl_device float4 patch_eval_uchar4(KernelGlobals kg,
       kg, sd->object, patch, u, v, channel, indices, weights, weights_du, weights_dv);
 
   float4 val = zero_float4();
-  if (du)
+  if (du) {
     *du = zero_float4();
-  if (dv)
+  }
+  if (dv) {
     *dv = zero_float4();
+  }
 
   for (int i = 0; i < num_control; i++) {
     float4 v = color_srgb_to_linear_v4(

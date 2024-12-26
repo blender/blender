@@ -68,9 +68,9 @@ ccl_device_forceinline bool projection_inverse_impl(ccl_private float R[4][4],
 
   /* backward substitution */
   for (int i = 3; i >= 0; --i) {
-    float f;
+    float f = M[i][i];
 
-    if (UNLIKELY((f = M[i][i]) == 0.0f)) {
+    if (UNLIKELY(f == 0.0f)) {
       return false;
     }
 

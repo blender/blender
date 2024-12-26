@@ -5,7 +5,9 @@
 #pragma once
 
 #include <cstddef>
-#include <memory>
+
+#include "util/defines.h"
+#include "util/guarded_allocator.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -13,28 +15,28 @@ CCL_NAMESPACE_BEGIN
 template<int SIZE, typename T> class ccl_try_align(16) StackAllocator
 {
  public:
-  typedef size_t size_type;
-  typedef ptrdiff_t difference_type;
-  typedef T *pointer;
-  typedef const T *const_pointer;
-  typedef T &reference;
-  typedef const T &const_reference;
-  typedef T value_type;
+  using size_type = size_t;
+  using difference_type = ptrdiff_t;
+  using pointer = T *;
+  using const_pointer = const T *;
+  using reference = T &;
+  using const_reference = const T &;
+  using value_type = T;
 
   /* Allocator construction/destruction. */
 
   StackAllocator() : pointer_(0), use_stack_(true) {}
 
-  StackAllocator(const StackAllocator &) : pointer_(0), use_stack_(true) {}
+  StackAllocator(const StackAllocator & /*unused*/) : pointer_(0), use_stack_(true) {}
 
   template<class U>
-  StackAllocator(const StackAllocator<SIZE, U> &) : pointer_(0), use_stack_(false)
+  StackAllocator(const StackAllocator<SIZE, U> & /*unused*/) : pointer_(0), use_stack_(false)
   {
   }
 
   /* Memory allocation/deallocation. */
 
-  T *allocate(size_t n, const void *hint = 0)
+  T *allocate(size_t n, const void *hint = nullptr)
   {
     (void)hint;
     if (n == 0) {
@@ -93,7 +95,7 @@ template<int SIZE, typename T> class ccl_try_align(16) StackAllocator
   void construct(T * p, const T &val)
   {
     if (p != nullptr) {
-      new ((T *)p) T(val);
+      new (p) T(val);
     }
   }
 
@@ -112,27 +114,27 @@ template<int SIZE, typename T> class ccl_try_align(16) StackAllocator
   /* Rebind to other type of allocator. */
 
   template<class U> struct rebind {
-    typedef StackAllocator<SIZE, U> other;
+    using other = StackAllocator<SIZE, U>;
   };
 
   /* Operators */
 
-  template<class U> inline StackAllocator &operator=(const StackAllocator<SIZE, U> &)
+  template<class U> StackAllocator &operator=(const StackAllocator<SIZE, U> & /*unused*/)
   {
     return *this;
   }
 
-  StackAllocator<SIZE, T> &operator=(const StackAllocator &)
+  StackAllocator<SIZE, T> &operator=(const StackAllocator & /*unused*/)
   {
     return *this;
   }
 
-  inline bool operator==(StackAllocator const & /*other*/) const
+  bool operator==(StackAllocator const & /*other*/) const
   {
     return true;
   }
 
-  inline bool operator!=(StackAllocator const &other) const
+  bool operator!=(StackAllocator const &other) const
   {
     return !operator==(other);
   }

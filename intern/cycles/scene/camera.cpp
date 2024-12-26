@@ -14,7 +14,7 @@
 #include "util/foreach.h"
 #include "util/log.h"
 #include "util/math_cdf.h"
-#include "util/task.h"
+#include "util/tbb.h"
 #include "util/time.h"
 #include "util/vector.h"
 
@@ -34,9 +34,7 @@ static float shutter_curve_eval(float x, array<float> &shutter_curve)
   if (index < shutter_curve.size() - 1) {
     return mix(shutter_curve[index], shutter_curve[index + 1], frac);
   }
-  else {
-    return shutter_curve[shutter_curve.size() - 1];
-  }
+  return shutter_curve[shutter_curve.size() - 1];
 }
 
 NODE_DEFINE(Camera)
@@ -190,7 +188,7 @@ Camera::Camera() : Node(get_node_type())
   memset((void *)&kernel_camera, 0, sizeof(kernel_camera));
 }
 
-Camera::~Camera() {}
+Camera::~Camera() = default;
 
 void Camera::compute_auto_viewplane()
 {

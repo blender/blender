@@ -7,16 +7,13 @@
 #include "util/math.h"
 #include "util/types.h"
 
-#if !defined(__KERNEL_GPU__) && defined(__KERNEL_SSE2__)
-#  include "util/simd.h"
-#endif
-
 CCL_NAMESPACE_BEGIN
 
 ccl_device uchar float_to_byte(float val)
 {
-  return ((val <= 0.0f) ? 0 :
-                          ((val > (1.0f - 0.5f / 255.0f)) ? 255 : (uchar)((255.0f * val) + 0.5f)));
+  return ((val <= 0.0f) ?
+              0 :
+              ((val > (1.0f - 0.5f / 255.0f)) ? 255 : (uchar)((255.0f * val) + 0.5f)));  // NOLINT
 }
 
 ccl_device float byte_to_float(uchar val)
@@ -63,9 +60,7 @@ ccl_device float color_srgb_to_linear(float c)
   if (c < 0.04045f) {
     return (c < 0.0f) ? 0.0f : c * (1.0f / 12.92f);
   }
-  else {
-    return powf((c + 0.055f) * (1.0f / 1.055f), 2.4f);
-  }
+  return powf((c + 0.055f) * (1.0f / 1.055f), 2.4f);
 }
 
 ccl_device float color_linear_to_srgb(float c)
@@ -73,9 +68,7 @@ ccl_device float color_linear_to_srgb(float c)
   if (c < 0.0031308f) {
     return (c < 0.0f) ? 0.0f : c * 12.92f;
   }
-  else {
-    return 1.055f * powf(c, 1.0f / 2.4f) - 0.055f;
-  }
+  return 1.055f * powf(c, 1.0f / 2.4f) - 0.055f;
 }
 
 ccl_device float3 rgb_to_hsv(float3 rgb)

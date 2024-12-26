@@ -7,7 +7,6 @@
 #include "device/cpu/kernel.h"
 #include "device/device.h"
 
-#include "kernel/film/write.h"
 #include "kernel/integrator/path_state.h"
 
 #include "integrator/pass_accessor_cpu.h"
@@ -16,8 +15,6 @@
 #include "scene/scene.h"
 #include "session/buffers.h"
 
-#include "util/atomic.h"
-#include "util/log.h"
 #include "util/tbb.h"
 
 CCL_NAMESPACE_BEGIN
@@ -45,7 +42,7 @@ static inline CPUKernelThreadGlobals *kernel_thread_globals_get(
 PathTraceWorkCPU::PathTraceWorkCPU(Device *device,
                                    Film *film,
                                    DeviceScene *device_scene,
-                                   bool *cancel_requested_flag)
+                                   const bool *cancel_requested_flag)
     : PathTraceWork(device, film, device_scene, cancel_requested_flag),
       kernels_(Device::get_cpu_kernels())
 {
@@ -232,7 +229,7 @@ int PathTraceWorkCPU::adaptive_sampling_converge_filter_count_active(float thres
   /* Check convergency and do x-filter in a single `parallel_for`, to reduce threading overhead. */
   local_arena.execute([&]() {
     parallel_for(full_y, full_y + height, [&](int y) {
-      CPUKernelThreadGlobals *kernel_globals = &kernel_thread_globals_[0];
+      CPUKernelThreadGlobals *kernel_globals = kernel_thread_globals_.data();
 
       bool row_converged = true;
       uint num_row_pixels_active = 0;
@@ -257,7 +254,7 @@ int PathTraceWorkCPU::adaptive_sampling_converge_filter_count_active(float thres
   if (num_active_pixels) {
     local_arena.execute([&]() {
       parallel_for(full_x, full_x + width, [&](int x) {
-        CPUKernelThreadGlobals *kernel_globals = &kernel_thread_globals_[0];
+        CPUKernelThreadGlobals *kernel_globals = kernel_thread_globals_.data();
         kernels_.adaptive_sampling_filter_y(
             kernel_globals, render_buffer, x, full_y, height, offset, stride);
       });
@@ -279,7 +276,7 @@ void PathTraceWorkCPU::cryptomatte_postproces()
   /* Check convergency and do x-filter in a single `parallel_for`, to reduce threading overhead. */
   local_arena.execute([&]() {
     parallel_for(0, height, [&](int y) {
-      CPUKernelThreadGlobals *kernel_globals = &kernel_thread_globals_[0];
+      CPUKernelThreadGlobals *kernel_globals = kernel_thread_globals_.data();
       int pixel_index = y * width;
 
       for (int x = 0; x < width; ++x, ++pixel_index) {
@@ -334,7 +331,9 @@ void PathTraceWorkCPU::guiding_init_kernel_globals(void *guiding_field,
 }
 
 void PathTraceWorkCPU::guiding_push_sample_data_to_global_storage(
-    KernelGlobalsCPU *kg, IntegratorStateCPU *state, ccl_global float *ccl_restrict render_buffer)
+    KernelGlobalsCPU *kg,
+    IntegratorStateCPU *state,
+    ccl_global const float *ccl_restrict render_buffer)
 {
 #  ifdef WITH_CYCLES_DEBUG
   if (VLOG_WORK_IS_ON) {

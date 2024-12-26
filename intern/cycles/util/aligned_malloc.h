@@ -4,12 +4,12 @@
 
 #pragma once
 
-#include "util/types.h"
+#include <cstddef>
 
 CCL_NAMESPACE_BEGIN
 
 /* Minimum alignment needed by all CPU native data types (SSE, AVX). */
-#define MIN_ALIGNMENT_CPU_DATA_TYPES 16
+#define MIN_ALIGNMENT_CPU_DATA_TYPES 16  // NOLINT
 
 /* Allocate block of size bytes at least aligned to a given value. */
 void *util_aligned_malloc(size_t size, int alignment);

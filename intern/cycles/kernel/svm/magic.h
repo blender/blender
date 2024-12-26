@@ -111,10 +111,12 @@ ccl_device_noinline int svm_node_tex_magic(
 
   float3 color = svm_magic(co, scale, depth, distortion);
 
-  if (stack_valid(fac_offset))
+  if (stack_valid(fac_offset)) {
     stack_store_float(stack, fac_offset, average(color));
-  if (stack_valid(color_offset))
+  }
+  if (stack_valid(color_offset)) {
     stack_store_float3(stack, color_offset, color);
+  }
   return offset;
 }
 

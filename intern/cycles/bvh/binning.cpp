@@ -9,7 +9,7 @@
 
 #include "bvh/binning.h"
 
-#include <stdlib.h>
+#include <cstdlib>
 
 #include "util/algorithm.h"
 #include "util/boundbox.h"
@@ -44,12 +44,10 @@ __forceinline int get_best_dimension(const float4 &bestSAH)
   if (bestSAH.x == minSAH) {
     return 0;
   }
-  else if (bestSAH.y == minSAH) {
+  if (bestSAH.y == minSAH) {
     return 1;
   }
-  else {
-    return 2;
-  }
+  return 2;
 }
 
 /* BVH Object Binning */

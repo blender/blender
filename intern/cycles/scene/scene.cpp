@@ -13,6 +13,7 @@
 #include "scene/curves.h"
 #include "scene/devicescene.h"
 #include "scene/film.h"
+#include "scene/hair.h"
 #include "scene/integrator.h"
 #include "scene/light.h"
 #include "scene/mesh.h"
@@ -72,8 +73,8 @@ Scene::Scene(const SceneParams &params_, Device *device)
   background = create_node<Background>();
   integrator = create_node<Integrator>();
 
-  film->add_default(this);
-  shader_manager->add_default(this);
+  ccl::Film::add_default(this);
+  ccl::ShaderManager::add_default(this);
 }
 
 Scene::~Scene()
@@ -364,12 +365,10 @@ Scene::MotionType Scene::need_motion() const
   if (integrator->get_motion_blur()) {
     return MOTION_BLUR;
   }
-  else if (Pass::contains(passes, PASS_MOTION)) {
+  if (Pass::contains(passes, PASS_MOTION)) {
     return MOTION_PASS;
   }
-  else {
-    return MOTION_NONE;
-  }
+  return MOTION_NONE;
 }
 
 float Scene::motion_shutter_time()
@@ -377,9 +376,7 @@ float Scene::motion_shutter_time()
   if (need_motion() == Scene::MOTION_PASS) {
     return 2.0f;
   }
-  else {
-    return camera->get_shuttertime();
-  }
+  return camera->get_shuttertime();
 }
 
 bool Scene::need_global_attribute(AttributeStandard std)
@@ -387,14 +384,14 @@ bool Scene::need_global_attribute(AttributeStandard std)
   if (std == ATTR_STD_UV) {
     return Pass::contains(passes, PASS_UV);
   }
-  else if (std == ATTR_STD_MOTION_VERTEX_POSITION) {
+  if (std == ATTR_STD_MOTION_VERTEX_POSITION) {
     return need_motion() != MOTION_NONE;
   }
-  else if (std == ATTR_STD_MOTION_VERTEX_NORMAL) {
+  if (std == ATTR_STD_MOTION_VERTEX_NORMAL) {
     return need_motion() == MOTION_BLUR;
   }
-  else if (std == ATTR_STD_VOLUME_VELOCITY || std == ATTR_STD_VOLUME_VELOCITY_X ||
-           std == ATTR_STD_VOLUME_VELOCITY_Y || std == ATTR_STD_VOLUME_VELOCITY_Z)
+  if (std == ATTR_STD_VOLUME_VELOCITY || std == ATTR_STD_VOLUME_VELOCITY_X ||
+      std == ATTR_STD_VOLUME_VELOCITY_Y || std == ATTR_STD_VOLUME_VELOCITY_Z)
   {
     return need_motion() != MOTION_NONE;
   }
@@ -434,7 +431,7 @@ bool Scene::need_reset(const bool check_camera)
 void Scene::reset()
 {
   shader_manager->reset(this);
-  shader_manager->add_default(this);
+  ccl::ShaderManager::add_default(this);
 
   /* ensure all objects are updated */
   camera->tag_modified();
@@ -909,10 +906,10 @@ template<> void Scene::delete_node_impl(ParticleSystem *node)
   particle_system_manager->tag_update(this);
 }
 
-template<> void Scene::delete_node_impl(Shader *shader)
+template<> void Scene::delete_node_impl(Shader *node)
 {
   /* don't delete unused shaders, not supported */
-  shader->clear_reference_count();
+  node->clear_reference_count();
 }
 
 template<> void Scene::delete_node_impl(Procedural *node)

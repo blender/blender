@@ -29,7 +29,7 @@ class BVHOptiX : public BVH {
            const vector<Geometry *> &geometry,
            const vector<Object *> &objects,
            Device *device);
-  virtual ~BVHOptiX();
+  ~BVHOptiX() override;
 };
 
 CCL_NAMESPACE_END

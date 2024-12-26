@@ -6,8 +6,6 @@
 
 #include "kernel/types.h"
 
-#include "kernel/closure/volume_util.h"
-
 #include "kernel/closure/volume_draine.h"
 #include "kernel/closure/volume_fournier_forand.h"
 #include "kernel/closure/volume_henyey_greenstein.h"

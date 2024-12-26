@@ -13,7 +13,6 @@
 #include "util/string.h"
 #include "util/texture.h"
 #include "util/types.h"
-#include "util/vector.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -239,7 +238,7 @@ class device_memory {
   size_t data_depth;
   MemoryType type;
   const char *name;
-  std::string name_storage;
+  string name_storage;
 
   /* Pointers. */
   Device *device;
@@ -256,6 +255,16 @@ class device_memory {
 
   bool is_resident(Device *sub_device) const;
 
+  /* No copying and allowed.
+   *
+   * This is because device implementation might need to register device memory in an allocation
+   * map of some sort and use pointer as a key to identify blocks. Moving data from one place to
+   * another bypassing device allocation routines will make those maps hard to maintain. */
+  device_memory(const device_memory &) = delete;
+  device_memory(device_memory &&other) noexcept = delete;
+  device_memory &operator=(const device_memory &) = delete;
+  device_memory &operator=(device_memory &&) = delete;
+
  protected:
   friend class Device;
   friend class GPUDevice;
@@ -268,16 +277,6 @@ class device_memory {
 
   /* Only create through subclasses. */
   device_memory(Device *device, const char *name, MemoryType type);
-
-  /* No copying and allowed.
-   *
-   * This is because device implementation might need to register device memory in an allocation
-   * map of some sort and use pointer as a key to identify blocks. Moving data from one place to
-   * another bypassing device allocation routines will make those maps hard to maintain. */
-  device_memory(const device_memory &) = delete;
-  device_memory(device_memory &&other) noexcept = delete;
-  device_memory &operator=(const device_memory &) = delete;
-  device_memory &operator=(device_memory &&) = delete;
 
   /* Host allocation on the device. All host_pointer memory should be
    * allocated with these functions, for devices that support using
@@ -317,7 +316,7 @@ template<typename T> class device_only_memory : public device_memory {
 
   device_only_memory(device_only_memory &&other) noexcept : device_memory(std::move(other)) {}
 
-  virtual ~device_only_memory()
+  ~device_only_memory() override
   {
     free();
   }
@@ -377,7 +376,7 @@ template<typename T> class device_vector : public device_memory {
     assert(data_elements > 0);
   }
 
-  virtual ~device_vector()
+  ~device_vector() override
   {
     free();
   }
@@ -614,7 +613,7 @@ class device_texture : public device_memory {
                  ImageDataType image_data_type,
                  InterpolationType interpolation,
                  ExtensionType extension);
-  ~device_texture();
+  ~device_texture() override;
 
   void *alloc(const size_t width, const size_t height, const size_t depth = 0);
   void copy_to_device();

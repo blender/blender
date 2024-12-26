@@ -19,7 +19,7 @@ CCL_NAMESPACE_BEGIN
  * For example, how wide BVH tree is, in terms of number of children
  * per node.
  */
-typedef KernelBVHLayout BVHLayout;
+using BVHLayout = KernelBVHLayout;
 
 /* Type of BVH, in terms whether it is supported dynamic updates of meshes
  * or whether modifying geometry requires full BVH rebuild.
@@ -47,7 +47,7 @@ enum BVHType {
  *
  * Bit-flags are the BVH_LAYOUT_* values.
  */
-typedef int BVHLayoutMask;
+using BVHLayoutMask = int;
 
 /* Get human readable name of BVH layout. */
 const char *bvh_layout_name(BVHLayout layout);
@@ -186,7 +186,7 @@ class BVHParams {
 
 class BVHReference {
  public:
-  __forceinline BVHReference() {}
+  __forceinline BVHReference() = default;
 
   __forceinline BVHReference(const BoundBox &bounds_,
                              int prim_index_,
@@ -308,7 +308,7 @@ struct BVHSpatialBin {
   int enter;
   int exit;
 
-  __forceinline BVHSpatialBin() {}
+  __forceinline BVHSpatialBin() = default;
 };
 
 /* BVH Spatial Storage

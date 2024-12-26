@@ -17,9 +17,6 @@
 #  include "bvh/bvh.h"
 #  include "bvh/params.h"
 
-#  include "util/string.h"
-#  include "util/thread.h"
-#  include "util/types.h"
 #  include "util/vector.h"
 
 CCL_NAMESPACE_BEGIN
@@ -33,7 +30,7 @@ class BVHEmbree : public BVH {
   void build(Progress &progress,
              Stats *stats,
              RTCDevice rtc_device,
-             const bool isSyclEmbreeDevice = false);
+             const bool rtc_device_is_sycl_ = false);
   void refit(Progress &progress);
 
 #  if defined(WITH_EMBREE_GPU) && RTC_VERSION >= 40302
@@ -49,7 +46,7 @@ class BVHEmbree : public BVH {
   BVHEmbree(const BVHParams &params,
             const vector<Geometry *> &geometry,
             const vector<Object *> &objects);
-  virtual ~BVHEmbree();
+  ~BVHEmbree() override;
 
   void add_object(Object *ob, int i);
   void add_instance(Object *ob, int i);

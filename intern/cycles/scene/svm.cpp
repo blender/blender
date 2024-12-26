@@ -23,9 +23,9 @@ CCL_NAMESPACE_BEGIN
 
 /* Shader Manager */
 
-SVMShaderManager::SVMShaderManager() {}
+SVMShaderManager::SVMShaderManager() = default;
 
-SVMShaderManager::~SVMShaderManager() {}
+SVMShaderManager::~SVMShaderManager() = default;
 
 void SVMShaderManager::reset(Scene * /*scene*/) {}
 
@@ -651,7 +651,7 @@ void SVMCompiler::generate_multi_closure(ShaderNode *root_node,
        * as exclusive deps of one or the other closure, since the need to
        * execute them for AOV writing is not dependent on the closure
        * weights. */
-      if (state->aov_nodes.size()) {
+      if (!state->aov_nodes.empty()) {
         set_intersection(state->aov_nodes.begin(),
                          state->aov_nodes.end(),
                          cl1deps.begin(),
@@ -961,7 +961,7 @@ SVMCompiler::Summary::Summary()
 
 string SVMCompiler::Summary::full_report() const
 {
-  string report = "";
+  string report;
   report += string_printf("Number of SVM nodes: %d\n", num_svm_nodes);
   report += string_printf("Peak stack usage:    %d\n", peak_stack_usage);
 

@@ -8,7 +8,6 @@
 
 #include "util/half.h"
 #include "util/thread.h"
-#include "util/types.h"
 #include "util/unique_ptr.h"
 
 CCL_NAMESPACE_BEGIN

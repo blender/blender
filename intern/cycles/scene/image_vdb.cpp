@@ -28,7 +28,7 @@ struct NumChannelsOp {
   int num_channels = 0;
 
   template<typename GridType, typename FloatGridType, typename FloatDataType, int channels>
-  bool operator()(const openvdb::GridBase::ConstPtr &)
+  bool operator()(const openvdb::GridBase::ConstPtr & /*unused*/)
   {
     num_channels = channels;
     return true;
@@ -136,7 +136,7 @@ VDBImageLoader::VDBImageLoader(openvdb::GridBase::ConstPtr grid_, const string &
 
 VDBImageLoader::VDBImageLoader(const string &grid_name) : grid_name(grid_name) {}
 
-VDBImageLoader::~VDBImageLoader() {}
+VDBImageLoader::~VDBImageLoader() = default;
 
 bool VDBImageLoader::load_metadata(const ImageDeviceFeatures &features, ImageMetaData &metadata)
 {
@@ -247,7 +247,10 @@ bool VDBImageLoader::load_metadata(const ImageDeviceFeatures &features, ImageMet
 #endif
 }
 
-bool VDBImageLoader::load_pixels(const ImageMetaData &, void *pixels, const size_t, const bool)
+bool VDBImageLoader::load_pixels(const ImageMetaData & /*metadata*/,
+                                 void *pixels,
+                                 const size_t /*pixels_size*/,
+                                 const bool /*associate_alpha*/)
 {
 #ifdef WITH_OPENVDB
 #  ifdef WITH_NANOVDB

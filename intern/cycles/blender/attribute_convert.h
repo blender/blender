@@ -4,12 +4,11 @@
 
 #pragma once
 
-#include "util/array.h"
 #include "util/color.h"
 #include "util/param.h"
 #include "util/types.h"
 
-#include "BLI_math_color.hh"
+#include "BLI_color.hh"
 #include "BLI_math_quaternion_types.hh"
 #include "BLI_math_vector_types.hh"
 

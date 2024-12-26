@@ -8,14 +8,22 @@
 #include "bvh/bvh.h"
 
 #include "bvh/bvh2.h"
-#include "bvh/embree.h"
-#include "bvh/hiprt.h"
-#include "bvh/metal.h"
 #include "bvh/multi.h"
-#include "bvh/optix.h"
+
+#ifdef WITH_EMBREE
+#  include "bvh/embree.h"
+#endif
+#ifdef WITH_HIPRT
+#  include "bvh/hiprt.h"
+#endif
+#ifdef WITH_METAL
+#  include "bvh/metal.h"
+#endif
+#ifdef WITH_OPTIX
+#  include "bvh/optix.h"
+#endif
 
 #include "util/log.h"
-#include "util/progress.h"
 
 CCL_NAMESPACE_BEGIN
 

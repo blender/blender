@@ -294,7 +294,7 @@ Hair::Hair() : Geometry(get_node_type(), Geometry::HAIR)
   curve_shape = CURVE_RIBBON;
 }
 
-Hair::~Hair() {}
+Hair::~Hair() = default;
 
 void Hair::resize_curves(int numcurves, int numkeys)
 {
@@ -350,7 +350,7 @@ void Hair::copy_center_to_motion_step(const int motion_step)
 {
   Attribute *attr_mP = attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
   if (attr_mP) {
-    float3 *keys = &curve_keys[0];
+    float3 *keys = curve_keys.data();
     size_t numkeys = curve_keys.size();
     memcpy(attr_mP->data_float3() + motion_step * numkeys, keys, sizeof(float3) * numkeys);
   }
@@ -598,9 +598,7 @@ bool Hair::update_shadow_transparency(Device *device, Scene *scene, Progress &pr
       attributes.remove(attr);
       return true;
     }
-    else {
-      return false;
-    }
+    return false;
   }
 
   string msg = string_printf("Computing Shadow Transparency %s", name.c_str());

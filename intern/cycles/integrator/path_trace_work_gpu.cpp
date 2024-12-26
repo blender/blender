@@ -3,17 +3,17 @@
  * SPDX-License-Identifier: Apache-2.0 */
 
 #include "integrator/path_trace_work_gpu.h"
-#include "integrator/path_trace_display.h"
 
 #include "device/device.h"
 
 #include "integrator/pass_accessor_gpu.h"
+#include "integrator/path_trace_display.h"
+
 #include "scene/scene.h"
 #include "session/buffers.h"
+
 #include "util/log.h"
 #include "util/string.h"
-#include "util/tbb.h"
-#include "util/time.h"
 
 #include "kernel/types.h"
 
@@ -77,7 +77,7 @@ static size_t estimate_single_state_size(const uint kernel_features)
 PathTraceWorkGPU::PathTraceWorkGPU(Device *device,
                                    Film *film,
                                    DeviceScene *device_scene,
-                                   bool *cancel_requested_flag)
+                                   const bool *cancel_requested_flag)
     : PathTraceWork(device, film, device_scene, cancel_requested_flag),
       queue_(device->gpu_queue_create()),
       integrator_state_soa_kernel_features_(0),
@@ -486,7 +486,7 @@ bool PathTraceWorkGPU::enqueue_path_iteration()
         enqueue_path_iteration(DEVICE_KERNEL_INTEGRATOR_INTERSECT_SHADOW);
         return true;
       }
-      else if (queue_counter->num_queued[DEVICE_KERNEL_INTEGRATOR_SHADE_SHADOW]) {
+      if (queue_counter->num_queued[DEVICE_KERNEL_INTEGRATOR_SHADE_SHADOW]) {
         enqueue_path_iteration(DEVICE_KERNEL_INTEGRATOR_SHADE_SHADOW);
         return true;
       }
@@ -842,14 +842,14 @@ bool PathTraceWorkGPU::enqueue_work_tiles(bool &finished)
     }
 
     /* If we couldn't get any more tiles, we're done. */
-    if (work_tiles.size() == 0 && num_paths == 0) {
+    if (work_tiles.empty() && num_paths == 0) {
       finished = true;
       return false;
     }
   }
 
   /* Initialize paths from work tiles. */
-  if (work_tiles.size() == 0) {
+  if (work_tiles.empty()) {
     return false;
   }
 

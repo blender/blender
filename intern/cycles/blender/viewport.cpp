@@ -7,8 +7,6 @@
 
 #include "scene/pass.h"
 
-#include "util/log.h"
-
 CCL_NAMESPACE_BEGIN
 
 BlenderViewportParameters::BlenderViewportParameters()

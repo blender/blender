@@ -448,7 +448,7 @@ static void add_subd_polygons(CachedData &cached_data, const SubDSchemaData &dat
     }
 
     shader.push_back_reserved(current_shader);
-    subd_smooth.push_back_reserved(1);
+    subd_smooth.push_back_reserved(true);
     subd_ptex_offset.push_back_reserved(ptex_offset);
 
     ptex_offset += (num_corners == 4 ? 1 : num_corners);
@@ -667,7 +667,7 @@ static void read_points_data(CachedData &cached_data, const PointsSchemaData &da
     }
     a_radius.push_back_slow(radius * data.radius_scale);
 
-    a_shader.push_back_slow((int)0);
+    a_shader.push_back_slow(0);
   }
 
   cached_data.points.add_data(a_positions, time);

@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include "util/string.h"
 #include "util/vector.h"
 
 CCL_NAMESPACE_BEGIN

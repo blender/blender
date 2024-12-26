@@ -128,22 +128,20 @@ static void build_patch_map(PackedPatchTable &table,
           node->set_child(quadrant, handle_index + offset, true);
           break;
         }
+        /* travel down the child node of the corresponding quadrant */
+        if (!(node->children[quadrant] & PATCH_MAP_NODE_IS_SET)) {
+          /* create a new branch in the quadrant */
+          quadtree.push_back(PatchMapQuadNode());
+
+          int idx = (int)quadtree.size() - 1;
+          node->set_child(quadrant, idx * 4 + offset, false);
+
+          node = &quadtree[idx];
+        }
         else {
-          /* travel down the child node of the corresponding quadrant */
-          if (!(node->children[quadrant] & PATCH_MAP_NODE_IS_SET)) {
-            /* create a new branch in the quadrant */
-            quadtree.push_back(PatchMapQuadNode());
-
-            int idx = (int)quadtree.size() - 1;
-            node->set_child(quadrant, idx * 4 + offset, false);
-
-            node = &quadtree[idx];
-          }
-          else {
-            /* travel down an existing branch */
-            uint idx = node->children[quadrant] & PATCH_MAP_NODE_INDEX_MASK;
-            node = &(quadtree[(idx - offset) / 4]);
-          }
+          /* travel down an existing branch */
+          uint idx = node->children[quadrant] & PATCH_MAP_NODE_INDEX_MASK;
+          node = &(quadtree[(idx - offset) / 4]);
         }
       }
     }

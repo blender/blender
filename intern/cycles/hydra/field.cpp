@@ -50,7 +50,7 @@ HdCyclesField::HdCyclesField(const SdfPath &bprimId, const TfToken & /*typeId*/)
 {
 }
 
-HdCyclesField::~HdCyclesField() {}
+HdCyclesField::~HdCyclesField() = default;
 
 HdDirtyBits HdCyclesField::GetInitialDirtyBitsMask() const
 {

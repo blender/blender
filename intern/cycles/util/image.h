@@ -61,20 +61,20 @@ template<> inline uchar util_image_cast_from_float(float value)
   if (value < 0.0f) {
     return 0;
   }
-  else if (value > (1.0f - 0.5f / 255.0f)) {
+  if (value > (1.0f - 0.5f / 255.0f)) {
     return 255;
   }
-  return (uchar)((255.0f * value) + 0.5f);
+  return (uchar)((255.0f * value) + 0.5f);  // NOLINT
 }
 template<> inline uint16_t util_image_cast_from_float(float value)
 {
   if (value < 0.0f) {
     return 0;
   }
-  else if (value > (1.0f - 0.5f / 65535.0f)) {
+  if (value > (1.0f - 0.5f / 65535.0f)) {
     return 65535;
   }
-  return (uint16_t)((65535.0f * value) + 0.5f);
+  return (uint16_t)((65535.0f * value) + 0.5f);  // NOLINT
 }
 template<> inline half util_image_cast_from_float(float value)
 {

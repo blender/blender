@@ -168,7 +168,7 @@ bool OSLRenderServices::get_matrix(OSL::ShaderGlobals *sg,
 
       return true;
     }
-    else if (sd->type == PRIMITIVE_LAMP) {
+    if (sd->type == PRIMITIVE_LAMP) {
       const Transform tfm = lamp_fetch_transform(kg, sd->lamp, false);
       copy_matrix(result, tfm);
 
@@ -208,7 +208,7 @@ bool OSLRenderServices::get_inverse_matrix(OSL::ShaderGlobals *sg,
 
       return true;
     }
-    else if (sd->type == PRIMITIVE_LAMP) {
+    if (sd->type == PRIMITIVE_LAMP) {
       const Transform itfm = lamp_fetch_transform(kg, sd->lamp, true);
       copy_matrix(result, itfm);
 
@@ -231,19 +231,19 @@ bool OSLRenderServices::get_matrix(OSL::ShaderGlobals *sg,
     copy_matrix(result, kernel_data.cam.ndctoworld);
     return true;
   }
-  else if (from == u_raster) {
+  if (from == u_raster) {
     copy_matrix(result, kernel_data.cam.rastertoworld);
     return true;
   }
-  else if (from == u_screen) {
+  if (from == u_screen) {
     copy_matrix(result, kernel_data.cam.screentoworld);
     return true;
   }
-  else if (from == u_camera) {
+  if (from == u_camera) {
     copy_matrix(result, kernel_data.cam.cameratoworld);
     return true;
   }
-  else if (from == u_world) {
+  if (from == u_world) {
     result.makeIdentity();
     return true;
   }
@@ -263,19 +263,19 @@ bool OSLRenderServices::get_inverse_matrix(OSL::ShaderGlobals *sg,
     copy_matrix(result, kernel_data.cam.worldtondc);
     return true;
   }
-  else if (to == u_raster) {
+  if (to == u_raster) {
     copy_matrix(result, kernel_data.cam.worldtoraster);
     return true;
   }
-  else if (to == u_screen) {
+  if (to == u_screen) {
     copy_matrix(result, kernel_data.cam.worldtoscreen);
     return true;
   }
-  else if (to == u_camera) {
+  if (to == u_camera) {
     copy_matrix(result, kernel_data.cam.worldtocamera);
     return true;
   }
-  else if (to == u_world) {
+  if (to == u_world) {
     result.makeIdentity();
     return true;
   }
@@ -300,7 +300,7 @@ bool OSLRenderServices::get_matrix(OSL::ShaderGlobals *sg,
 
       return true;
     }
-    else if (sd->type == PRIMITIVE_LAMP) {
+    if (sd->type == PRIMITIVE_LAMP) {
       const Transform tfm = lamp_fetch_transform(kg, sd->lamp, false);
       copy_matrix(result, tfm);
 
@@ -328,7 +328,7 @@ bool OSLRenderServices::get_inverse_matrix(OSL::ShaderGlobals *sg,
 
       return true;
     }
-    else if (sd->type == PRIMITIVE_LAMP) {
+    if (sd->type == PRIMITIVE_LAMP) {
       const Transform itfm = lamp_fetch_transform(kg, sd->lamp, true);
       copy_matrix(result, itfm);
 
@@ -350,15 +350,15 @@ bool OSLRenderServices::get_matrix(OSL::ShaderGlobals *sg,
     copy_matrix(result, kernel_data.cam.ndctoworld);
     return true;
   }
-  else if (from == u_raster) {
+  if (from == u_raster) {
     copy_matrix(result, kernel_data.cam.rastertoworld);
     return true;
   }
-  else if (from == u_screen) {
+  if (from == u_screen) {
     copy_matrix(result, kernel_data.cam.screentoworld);
     return true;
   }
-  else if (from == u_camera) {
+  if (from == u_camera) {
     copy_matrix(result, kernel_data.cam.cameratoworld);
     return true;
   }
@@ -377,15 +377,15 @@ bool OSLRenderServices::get_inverse_matrix(OSL::ShaderGlobals *sg,
     copy_matrix(result, kernel_data.cam.worldtondc);
     return true;
   }
-  else if (to == u_raster) {
+  if (to == u_raster) {
     copy_matrix(result, kernel_data.cam.worldtoraster);
     return true;
   }
-  else if (to == u_screen) {
+  if (to == u_screen) {
     copy_matrix(result, kernel_data.cam.worldtoscreen);
     return true;
   }
-  else if (to == u_camera) {
+  if (to == u_camera) {
     copy_matrix(result, kernel_data.cam.worldtocamera);
     return true;
   }
@@ -426,7 +426,7 @@ static bool set_attribute_float2(float2 f[3], TypeDesc type, bool derivatives, v
     }
     return true;
   }
-  else if (type == TypePoint || type == TypeVector || type == TypeNormal || type == TypeColor) {
+  if (type == TypePoint || type == TypeVector || type == TypeNormal || type == TypeColor) {
     float *fval = (float *)val;
 
     fval[0] = f[0].x;
@@ -445,7 +445,7 @@ static bool set_attribute_float2(float2 f[3], TypeDesc type, bool derivatives, v
 
     return true;
   }
-  else if (type == TypeFloat) {
+  if (type == TypeFloat) {
     float *fval = (float *)val;
     fval[0] = average(f[0]);
 
@@ -495,7 +495,7 @@ static bool set_attribute_float3(float3 f[3], TypeDesc type, bool derivatives, v
     }
     return true;
   }
-  else if (type == TypePoint || type == TypeVector || type == TypeNormal || type == TypeColor) {
+  if (type == TypePoint || type == TypeVector || type == TypeNormal || type == TypeColor) {
     float *fval = (float *)val;
 
     fval[0] = f[0].x;
@@ -514,7 +514,7 @@ static bool set_attribute_float3(float3 f[3], TypeDesc type, bool derivatives, v
 
     return true;
   }
-  else if (type == TypeFloat) {
+  if (type == TypeFloat) {
     float *fval = (float *)val;
     fval[0] = average(f[0]);
 
@@ -570,7 +570,7 @@ static bool set_attribute_float4(float4 f[3], TypeDesc type, bool derivatives, v
     }
     return true;
   }
-  else if (type == TypePoint || type == TypeVector || type == TypeNormal || type == TypeColor) {
+  if (type == TypePoint || type == TypeVector || type == TypeNormal || type == TypeColor) {
     fval[0] = f[0].x;
     fval[1] = f[0].y;
     fval[2] = f[0].z;
@@ -586,7 +586,7 @@ static bool set_attribute_float4(float4 f[3], TypeDesc type, bool derivatives, v
     }
     return true;
   }
-  else if (type == TypeFloat) {
+  if (type == TypeFloat) {
     fval[0] = average(make_float3(f[0]));
 
     if (derivatives) {
@@ -611,7 +611,7 @@ static bool set_attribute_float4(float4 f, TypeDesc type, bool derivatives, void
 }
 #endif
 
-static bool set_attribute_float(float f[3], TypeDesc type, bool derivatives, void *val)
+static bool set_attribute_float(const float f[3], TypeDesc type, bool derivatives, void *val)
 {
   if (type == TypeFloatArray4) {
     float *fval = (float *)val;
@@ -633,7 +633,7 @@ static bool set_attribute_float(float f[3], TypeDesc type, bool derivatives, voi
     }
     return true;
   }
-  else if (type == TypePoint || type == TypeVector || type == TypeNormal || type == TypeColor) {
+  if (type == TypePoint || type == TypeVector || type == TypeNormal || type == TypeColor) {
     float *fval = (float *)val;
     fval[0] = f[0];
     fval[1] = f[0];
@@ -651,7 +651,7 @@ static bool set_attribute_float(float f[3], TypeDesc type, bool derivatives, voi
 
     return true;
   }
-  else if (type == TypeFloat) {
+  if (type == TypeFloat) {
     float *fval = (float *)val;
     fval[0] = f[0];
 
@@ -775,22 +775,20 @@ static bool get_object_attribute(const KernelGlobalsCPU *kg,
     }
     return set_attribute_float3(fval, type, derivatives, val);
   }
-  else if (desc.type == NODE_ATTR_FLOAT2) {
+  if (desc.type == NODE_ATTR_FLOAT2) {
 #ifdef __VOLUME__
     if (primitive_is_volume_attribute(sd, desc)) {
       assert(!"Float2 attribute not support for volumes");
       return false;
     }
-    else
+
 #endif
-    {
-      float2 fval[3];
-      fval[0] = primitive_surface_attribute_float2(
-          kg, sd, desc, (derivatives) ? &fval[1] : nullptr, (derivatives) ? &fval[2] : nullptr);
-      return set_attribute_float2(fval, type, derivatives, val);
-    }
+    float2 fval[3];
+    fval[0] = primitive_surface_attribute_float2(
+        kg, sd, desc, (derivatives) ? &fval[1] : nullptr, (derivatives) ? &fval[2] : nullptr);
+    return set_attribute_float2(fval, type, derivatives, val);
   }
-  else if (desc.type == NODE_ATTR_FLOAT) {
+  if (desc.type == NODE_ATTR_FLOAT) {
     float fval[3];
 #ifdef __VOLUME__
     if (primitive_is_volume_attribute(sd, desc)) {
@@ -805,7 +803,7 @@ static bool get_object_attribute(const KernelGlobalsCPU *kg,
     }
     return set_attribute_float(fval, type, derivatives, val);
   }
-  else if (desc.type == NODE_ATTR_FLOAT4 || desc.type == NODE_ATTR_RGBA) {
+  if (desc.type == NODE_ATTR_FLOAT4 || desc.type == NODE_ATTR_RGBA) {
     float4 fval[3];
 #ifdef __VOLUME__
     if (primitive_is_volume_attribute(sd, desc)) {
@@ -820,13 +818,11 @@ static bool get_object_attribute(const KernelGlobalsCPU *kg,
     }
     return set_attribute_float4(fval, type, derivatives, val);
   }
-  else if (desc.type == NODE_ATTR_MATRIX) {
+  if (desc.type == NODE_ATTR_MATRIX) {
     Transform tfm = primitive_attribute_matrix(kg, desc);
     return set_attribute_matrix(tfm, type, val);
   }
-  else {
-    return false;
-  }
+  return false;
 }
 
 bool OSLRenderServices::get_object_standard_attribute(const KernelGlobalsCPU *kg,
@@ -843,95 +839,94 @@ bool OSLRenderServices::get_object_standard_attribute(const KernelGlobalsCPU *kg
     float3 f = object_location(kg, sd);
     return set_attribute_float3(f, type, derivatives, val);
   }
-  else if (name == u_object_color) {
+  if (name == u_object_color) {
     float3 f = object_color(kg, sd->object);
     return set_attribute_float3(f, type, derivatives, val);
   }
-  else if (name == u_object_alpha) {
+  if (name == u_object_alpha) {
     float f = object_alpha(kg, sd->object);
     return set_attribute_float(f, type, derivatives, val);
   }
-  else if (name == u_object_index) {
+  if (name == u_object_index) {
     float f = object_pass_id(kg, sd->object);
     return set_attribute_float(f, type, derivatives, val);
   }
-  else if (name == u_object_is_light) {
+  if (name == u_object_is_light) {
     float f = (sd->type & PRIMITIVE_LAMP) != 0;
     return set_attribute_float(f, type, derivatives, val);
   }
-  else if (name == u_geom_dupli_generated) {
+  if (name == u_geom_dupli_generated) {
     float3 f = object_dupli_generated(kg, sd->object);
     return set_attribute_float3(f, type, derivatives, val);
   }
-  else if (name == u_geom_dupli_uv) {
+  if (name == u_geom_dupli_uv) {
     float3 f = object_dupli_uv(kg, sd->object);
     return set_attribute_float3(f, type, derivatives, val);
   }
-  else if (name == u_material_index) {
+  if (name == u_material_index) {
     float f = shader_pass_id(kg, sd);
     return set_attribute_float(f, type, derivatives, val);
   }
-  else if (name == u_object_random) {
+  if (name == u_object_random) {
     float f = object_random_number(kg, sd->object);
     return set_attribute_float(f, type, derivatives, val);
   }
 
   /* Particle Attributes */
-  else if (name == u_particle_index) {
+  if (name == u_particle_index) {
     int particle_id = object_particle_id(kg, sd->object);
     float f = particle_index(kg, particle_id);
     return set_attribute_float(f, type, derivatives, val);
   }
-  else if (name == u_particle_random) {
+  if (name == u_particle_random) {
     int particle_id = object_particle_id(kg, sd->object);
     float f = hash_uint2_to_float(particle_index(kg, particle_id), 0);
     return set_attribute_float(f, type, derivatives, val);
   }
-
-  else if (name == u_particle_age) {
+  if (name == u_particle_age) {
     int particle_id = object_particle_id(kg, sd->object);
     float f = particle_age(kg, particle_id);
     return set_attribute_float(f, type, derivatives, val);
   }
-  else if (name == u_particle_lifetime) {
+  if (name == u_particle_lifetime) {
     int particle_id = object_particle_id(kg, sd->object);
     float f = particle_lifetime(kg, particle_id);
     return set_attribute_float(f, type, derivatives, val);
   }
-  else if (name == u_particle_location) {
+  if (name == u_particle_location) {
     int particle_id = object_particle_id(kg, sd->object);
     float3 f = particle_location(kg, particle_id);
     return set_attribute_float3(f, type, derivatives, val);
   }
 #if 0 /* unsupported */
-  else if (name == u_particle_rotation) {
+  if (name == u_particle_rotation) {
     int particle_id = object_particle_id(kg, sd->object);
     float4 f = particle_rotation(kg, particle_id);
     return set_attribute_float4(f, type, derivatives, val);
   }
 #endif
-  else if (name == u_particle_size) {
+  if (name == u_particle_size) {
     int particle_id = object_particle_id(kg, sd->object);
     float f = particle_size(kg, particle_id);
     return set_attribute_float(f, type, derivatives, val);
   }
-  else if (name == u_particle_velocity) {
+  if (name == u_particle_velocity) {
     int particle_id = object_particle_id(kg, sd->object);
     float3 f = particle_velocity(kg, particle_id);
     return set_attribute_float3(f, type, derivatives, val);
   }
-  else if (name == u_particle_angular_velocity) {
+  if (name == u_particle_angular_velocity) {
     int particle_id = object_particle_id(kg, sd->object);
     float3 f = particle_angular_velocity(kg, particle_id);
     return set_attribute_float3(f, type, derivatives, val);
   }
 
   /* Geometry Attributes */
-  else if (name == u_geom_numpolyvertices) {
+  if (name == u_geom_numpolyvertices) {
     return set_attribute_int(3, type, derivatives, val);
   }
-  else if ((name == u_geom_trianglevertices || name == u_geom_polyvertices) &&
-           sd->type & PRIMITIVE_TRIANGLE)
+  if ((name == u_geom_trianglevertices || name == u_geom_polyvertices) &&
+      sd->type & PRIMITIVE_TRIANGLE)
   {
     float3 P[3];
 
@@ -950,64 +945,60 @@ bool OSLRenderServices::get_object_standard_attribute(const KernelGlobalsCPU *kg
 
     return set_attribute_float3_3(P, type, derivatives, val);
   }
-  else if (name == u_geom_name) {
+  if (name == u_geom_name) {
     ustring object_name = kg->osl->object_names[sd->object];
     return set_attribute_string(object_name, type, derivatives, val);
   }
-  else if (name == u_is_smooth) {
+  if (name == u_is_smooth) {
     float f = ((sd->shader & SHADER_SMOOTH_NORMAL) != 0);
     return set_attribute_float(f, type, derivatives, val);
   }
 #ifdef __HAIR__
   /* Hair Attributes */
-  else if (name == u_is_curve) {
+  if (name == u_is_curve) {
     float f = (sd->type & PRIMITIVE_CURVE) != 0;
     return set_attribute_float(f, type, derivatives, val);
   }
-  else if (name == u_curve_thickness) {
+  if (name == u_curve_thickness) {
     float f = curve_thickness(kg, sd);
     return set_attribute_float(f, type, derivatives, val);
   }
-  else if (name == u_curve_tangent_normal) {
+  if (name == u_curve_tangent_normal) {
     float3 f = curve_tangent_normal(kg, sd);
     return set_attribute_float3(f, type, derivatives, val);
   }
-  else if (name == u_curve_random) {
+  if (name == u_curve_random) {
     float f = curve_random(kg, sd);
     return set_attribute_float(f, type, derivatives, val);
   }
 #endif
 #ifdef __POINTCLOUD__
   /* point attributes */
-  else if (name == u_is_point) {
+  if (name == u_is_point) {
     float f = (sd->type & PRIMITIVE_POINT) != 0;
     return set_attribute_float(f, type, derivatives, val);
   }
-  else if (name == u_point_radius) {
+  if (name == u_point_radius) {
     float f = point_radius(kg, sd);
     return set_attribute_float(f, type, derivatives, val);
   }
-  else if (name == u_point_position) {
+  if (name == u_point_position) {
     float3 f = point_position(kg, sd);
     return set_attribute_float3(f, type, derivatives, val);
   }
-  else if (name == u_point_random) {
+  if (name == u_point_random) {
     float f = point_random(kg, sd);
     return set_attribute_float(f, type, derivatives, val);
   }
 #endif
-  else if (name == u_normal_map_normal) {
+  if (name == u_normal_map_normal) {
     if (sd->type & PRIMITIVE_TRIANGLE) {
       float3 f = triangle_smooth_normal_unnormalized(kg, sd, sd->Ng, sd->prim, sd->u, sd->v);
       return set_attribute_float3(f, type, derivatives, val);
     }
-    else {
-      return false;
-    }
+    return false;
   }
-  else {
-    return get_background_attribute(kg, sd, name, type, derivatives, val);
-  }
+  return get_background_attribute(kg, sd, name, type, derivatives, val);
 }
 
 bool OSLRenderServices::get_background_attribute(const KernelGlobalsCPU *kg,
@@ -1022,14 +1013,14 @@ bool OSLRenderServices::get_background_attribute(const KernelGlobalsCPU *kg,
     float f = sd->ray_length;
     return set_attribute_float(f, type, derivatives, val);
   }
-  else if (name == u_path_ray_depth) {
+  if (name == u_path_ray_depth) {
     /* Ray Depth */
     const IntegratorStateCPU *state = sd->osl_path_state;
     const IntegratorShadowStateCPU *shadow_state = sd->osl_shadow_path_state;
     int f = (state) ? state->path.bounce : (shadow_state) ? shadow_state->shadow_path.bounce : 0;
     return set_attribute_int(f, type, derivatives, val);
   }
-  else if (name == u_path_diffuse_depth) {
+  if (name == u_path_diffuse_depth) {
     /* Diffuse Ray Depth */
     const IntegratorStateCPU *state = sd->osl_path_state;
     const IntegratorShadowStateCPU *shadow_state = sd->osl_shadow_path_state;
@@ -1038,7 +1029,7 @@ bool OSLRenderServices::get_background_attribute(const KernelGlobalsCPU *kg,
                              0;
     return set_attribute_int(f, type, derivatives, val);
   }
-  else if (name == u_path_glossy_depth) {
+  if (name == u_path_glossy_depth) {
     /* Glossy Ray Depth */
     const IntegratorStateCPU *state = sd->osl_path_state;
     const IntegratorShadowStateCPU *shadow_state = sd->osl_shadow_path_state;
@@ -1047,7 +1038,7 @@ bool OSLRenderServices::get_background_attribute(const KernelGlobalsCPU *kg,
                              0;
     return set_attribute_int(f, type, derivatives, val);
   }
-  else if (name == u_path_transmission_depth) {
+  if (name == u_path_transmission_depth) {
     /* Transmission Ray Depth */
     const IntegratorStateCPU *state = sd->osl_path_state;
     const IntegratorShadowStateCPU *shadow_state = sd->osl_shadow_path_state;
@@ -1056,7 +1047,7 @@ bool OSLRenderServices::get_background_attribute(const KernelGlobalsCPU *kg,
                              0;
     return set_attribute_int(f, type, derivatives, val);
   }
-  else if (name == u_path_transparent_depth) {
+  if (name == u_path_transparent_depth) {
     /* Transparent Ray Depth */
     const IntegratorStateCPU *state = sd->osl_path_state;
     const IntegratorShadowStateCPU *shadow_state = sd->osl_shadow_path_state;
@@ -1065,7 +1056,7 @@ bool OSLRenderServices::get_background_attribute(const KernelGlobalsCPU *kg,
                              0;
     return set_attribute_int(f, type, derivatives, val);
   }
-  else if (name == u_ndc) {
+  if (name == u_ndc) {
     /* NDC coordinates with special exception for orthographic projection. */
     OSLThreadData *tdata = kg->osl_tdata;
     OSL::ShaderGlobals *globals = &tdata->globals;
@@ -1093,9 +1084,8 @@ bool OSLRenderServices::get_background_attribute(const KernelGlobalsCPU *kg,
 
     return set_attribute_float3(ndc, type, derivatives, val);
   }
-  else {
-    return false;
-  }
+
+  return false;
 }
 
 bool OSLRenderServices::get_attribute(OSL::ShaderGlobals *sg,
@@ -1143,10 +1133,9 @@ bool OSLRenderServices::get_attribute(ShaderData *sd,
   if (desc.offset != ATTR_STD_NOT_FOUND) {
     return get_object_attribute(kg, sd, desc, type, derivatives, val);
   }
-  else {
-    /* not found in attribute, check standard object info */
-    return get_object_standard_attribute(kg, sd, name, type, derivatives, val);
-  }
+
+  /* not found in attribute, check standard object info */
+  return get_object_standard_attribute(kg, sd, name, type, derivatives, val);
 }
 
 bool OSLRenderServices::get_userdata(
@@ -1254,9 +1243,7 @@ bool OSLRenderServices::good(OSL::TextureSystem::TextureHandle *texture_handle)
     OSL::TextureSystem *ts = m_texturesys;
     return ts->good(handle->oiio_handle);
   }
-  else {
-    return true;
-  }
+  return true;
 }
 
 bool OSLRenderServices::texture(OSLUStringHash filename,
@@ -1622,12 +1609,12 @@ bool OSLRenderServices::environment(OSLUStringHash filename,
 bool OSLRenderServices::get_texture_info(OSLUStringHash filename,
                                          TextureHandle *texture_handle,
                                          TexturePerthread *texture_thread_info,
-                                         OSL::ShaderGlobals *,
+                                         OSL::ShaderGlobals * /*sg*/,
                                          int subimage,
                                          OSLUStringHash dataname,
                                          TypeDesc datatype,
                                          void *data,
-                                         OSLUStringHash *)
+                                         OSLUStringHash * /*errormessage*/)
 #elif OSL_LIBRARY_VERSION_CODE >= 11100
 bool OSLRenderServices::get_texture_info(OSLUStringHash filename,
                                          TextureHandle *texture_handle,
@@ -1662,12 +1649,10 @@ bool OSLRenderServices::get_texture_info(OSL::ShaderGlobals *,
     return ts->get_texture_info(
         handle->oiio_handle, texture_thread_info, subimage, to_ustring(dataname), datatype, data);
   }
-  else
+
 #endif
-  {
-    return ts->get_texture_info(
-        to_ustring(filename), subimage, to_ustring(dataname), datatype, data);
-  }
+  return ts->get_texture_info(
+      to_ustring(filename), subimage, to_ustring(dataname), datatype, data);
 }
 
 int OSLRenderServices::pointcloud_search(OSL::ShaderGlobals *sg,
@@ -1787,48 +1772,47 @@ bool OSLRenderServices::getmessage(OSL::ShaderGlobals *sg,
     if (name == u_hit) {
       return set_attribute_int(tracedata->hit, type, derivatives, val);
     }
-    else if (tracedata->hit) {
+    if (tracedata->hit) {
       if (name == u_hitdist) {
         float f[3] = {tracedata->isect.t, 0.0f, 0.0f};
         return set_attribute_float(f, type, derivatives, val);
       }
-      else {
-        ShaderData *sd = &tracedata->sd;
-        const KernelGlobalsCPU *kg = sd->osl_globals;
 
-        if (!tracedata->setup) {
-          /* lazy shader data setup */
-          shader_setup_from_ray(kg, sd, &tracedata->ray, &tracedata->isect);
-          tracedata->setup = true;
-        }
+      ShaderData *sd = &tracedata->sd;
+      const KernelGlobalsCPU *kg = sd->osl_globals;
 
-        if (name == u_N) {
-          return set_attribute_float3(sd->N, type, derivatives, val);
-        }
-        else if (name == u_Ng) {
-          return set_attribute_float3(sd->Ng, type, derivatives, val);
-        }
-        else if (name == u_P) {
-          const differential3 dP = differential_from_compact(sd->Ng, sd->dP);
-          float3 f[3] = {sd->P, dP.dx, dP.dy};
-          return set_attribute_float3(f, type, derivatives, val);
-        }
-        else if (name == u_I) {
-          const differential3 dI = differential_from_compact(sd->wi, sd->dI);
-          float3 f[3] = {sd->wi, dI.dx, dI.dy};
-          return set_attribute_float3(f, type, derivatives, val);
-        }
-        else if (name == u_u) {
-          float f[3] = {sd->u, sd->du.dx, sd->du.dy};
-          return set_attribute_float(f, type, derivatives, val);
-        }
-        else if (name == u_v) {
-          float f[3] = {sd->v, sd->dv.dx, sd->dv.dy};
-          return set_attribute_float(f, type, derivatives, val);
-        }
-
-        return get_attribute(sd, derivatives, u_empty, type, name, val);
+      if (!tracedata->setup) {
+        /* lazy shader data setup */
+        shader_setup_from_ray(kg, sd, &tracedata->ray, &tracedata->isect);
+        tracedata->setup = true;
       }
+
+      if (name == u_N) {
+        return set_attribute_float3(sd->N, type, derivatives, val);
+      }
+      if (name == u_Ng) {
+        return set_attribute_float3(sd->Ng, type, derivatives, val);
+      }
+      if (name == u_P) {
+        const differential3 dP = differential_from_compact(sd->Ng, sd->dP);
+        float3 f[3] = {sd->P, dP.dx, dP.dy};
+        return set_attribute_float3(f, type, derivatives, val);
+      }
+      if (name == u_I) {
+        const differential3 dI = differential_from_compact(sd->wi, sd->dI);
+        float3 f[3] = {sd->wi, dI.dx, dI.dy};
+        return set_attribute_float3(f, type, derivatives, val);
+      }
+      if (name == u_u) {
+        float f[3] = {sd->u, sd->du.dx, sd->du.dy};
+        return set_attribute_float(f, type, derivatives, val);
+      }
+      if (name == u_v) {
+        float f[3] = {sd->v, sd->dv.dx, sd->dv.dy};
+        return set_attribute_float(f, type, derivatives, val);
+      }
+
+      return get_attribute(sd, derivatives, u_empty, type, name, val);
     }
   }
 

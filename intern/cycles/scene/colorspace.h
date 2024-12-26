@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include "util/map.h"
 #include "util/param.h"
 
 CCL_NAMESPACE_BEGIN
@@ -50,7 +49,7 @@ class ColorSpaceManager {
   static void init_fallback_config();
 
  private:
-  static void is_builtin_colorspace(ustring colorspace, bool &is_no_op, bool &is_srgb);
+  static void is_builtin_colorspace(ustring colorspace, bool &is_scene_linear, bool &is_srgb);
 };
 
 CCL_NAMESPACE_END

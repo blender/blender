@@ -5,7 +5,6 @@
 #pragma once
 
 #include "kernel/globals.h"
-#include "kernel/tables.h"
 
 #include "kernel/sample/sobol_burley.h"
 #include "kernel/sample/tabulated_sobol.h"
@@ -38,7 +37,7 @@ ccl_device_forceinline uint3 blue_noise_indexing(KernelGlobals kg, uint pixel_in
     /* One sequence per pixel, using the length mask optimization. */
     return make_uint3(sample, pixel_index, kernel_data.integrator.sobol_index_mask);
   }
-  else if (kernel_data.integrator.sampling_pattern == SAMPLING_PATTERN_BLUE_NOISE_PURE) {
+  if (kernel_data.integrator.sampling_pattern == SAMPLING_PATTERN_BLUE_NOISE_PURE) {
     /* For blue-noise samples, we use a single sequence (seed 0) with each pixel receiving
      * a section of it.
      * The total length is expected to get very large (effectively pixel count times sample count),
@@ -46,7 +45,7 @@ ccl_device_forceinline uint3 blue_noise_indexing(KernelGlobals kg, uint pixel_in
     pixel_index *= kernel_data.integrator.blue_noise_sequence_length;
     return make_uint3(sample + pixel_index, 0, 0xffffffff);
   }
-  else if (kernel_data.integrator.sampling_pattern == SAMPLING_PATTERN_BLUE_NOISE_FIRST) {
+  if (kernel_data.integrator.sampling_pattern == SAMPLING_PATTERN_BLUE_NOISE_FIRST) {
     /* The "first" pattern uses a 1SPP blue-noise sequence for the first sample, and a separate
      * N-1 SPP sequence for the remaining pixels. The purpose of this is to get blue-noise
      * properties during viewport navigation, which will generally use 1 SPP.
@@ -55,15 +54,11 @@ ccl_device_forceinline uint3 blue_noise_indexing(KernelGlobals kg, uint pixel_in
     if (sample == 0) {
       return make_uint3(pixel_index, 0x0cd0519f, 0xffffffff);
     }
-    else {
-      pixel_index *= kernel_data.integrator.blue_noise_sequence_length;
-      return make_uint3((sample - 1) + pixel_index, 0, 0xffffffff);
-    }
+    pixel_index *= kernel_data.integrator.blue_noise_sequence_length;
+    return make_uint3((sample - 1) + pixel_index, 0, 0xffffffff);
   }
-  else {
-    kernel_assert(false);
-    return make_uint3(0, 0, 0);
-  }
+  kernel_assert(false);
+  return make_uint3(0, 0, 0);
 }
 
 ccl_device_forceinline float path_rng_1D(KernelGlobals kg,
@@ -150,19 +145,18 @@ ccl_device_inline uint path_rng_pixel_init(KernelGlobals kg,
     /* The white-noise samplers use a random per-pixel hash to generate independent sequences. */
     return hash_iqnt2d(x, y) ^ kernel_data.integrator.seed;
   }
-  else {
-    /* The blue-noise samplers use a single sequence for all pixels, but offset the index within
-     * the sequence for each pixel. We use a hierarchically shuffled 2D morton curve to determine
-     * each pixel's offset along the sequence.
-     *
-     * Based on:
-     * https://psychopath.io/post/2022_07_24_owen_scrambling_based_dithered_blue_noise_sampling.
-     *
-     * TODO(lukas): Use a precomputed Hilbert curve to avoid directionality bias in the noise
-     * distribution. We can just precompute a small-ish tile and repeat it in morton code order.
-     */
-    return nested_uniform_scramble_base4(morton2d(x, y), kernel_data.integrator.seed);
-  }
+
+  /* The blue-noise samplers use a single sequence for all pixels, but offset the index within
+   * the sequence for each pixel. We use a hierarchically shuffled 2D morton curve to determine
+   * each pixel's offset along the sequence.
+   *
+   * Based on:
+   * https://psychopath.io/post/2022_07_24_owen_scrambling_based_dithered_blue_noise_sampling.
+   *
+   * TODO(lukas): Use a precomputed Hilbert curve to avoid directionality bias in the noise
+   * distribution. We can just precompute a small-ish tile and repeat it in morton code order.
+   */
+  return nested_uniform_scramble_base4(morton2d(x, y), kernel_data.integrator.seed);
 }
 
 /**

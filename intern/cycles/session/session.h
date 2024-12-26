@@ -17,7 +17,6 @@
 #include "util/stats.h"
 #include "util/thread.h"
 #include "util/unique_ptr.h"
-#include "util/vector.h"
 
 CCL_NAMESPACE_BEGIN
 

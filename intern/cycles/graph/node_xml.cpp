@@ -92,7 +92,7 @@ void xml_read_node(XMLReader &reader, Node *node, xml_node xml_node)
         break;
       }
       case SocketType::INT: {
-        node->set(socket, (int)atoi(attr.value()));
+        node->set(socket, atoi(attr.value()));
         break;
       }
       case SocketType::UINT: {
@@ -110,7 +110,7 @@ void xml_read_node(XMLReader &reader, Node *node, xml_node xml_node)
         array<int> value;
         value.resize(tokens.size());
         for (size_t i = 0; i < value.size(); i++) {
-          value[i] = (int)atoi(attr.value());
+          value[i] = atoi(attr.value());
         }
         node->set(socket, value);
         break;

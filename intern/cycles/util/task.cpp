@@ -5,7 +5,6 @@
 #include "util/task.h"
 #include "util/foreach.h"
 #include "util/log.h"
-#include "util/system.h"
 #include "util/time.h"
 
 CCL_NAMESPACE_BEGIN
@@ -123,17 +122,17 @@ DedicatedTaskPool::~DedicatedTaskPool()
   delete worker_thread;
 }
 
-void DedicatedTaskPool::push(TaskRunFunction &&task, bool front)
+void DedicatedTaskPool::push(TaskRunFunction &&run, bool front)
 {
   num_increase();
 
   /* add task to queue */
   queue_mutex.lock();
   if (front) {
-    queue.emplace_front(std::move(task));
+    queue.emplace_front(std::move(run));
   }
   else {
-    queue.emplace_back(std::move(task));
+    queue.emplace_back(std::move(run));
   }
 
   queue_cond.notify_one();
@@ -234,7 +233,7 @@ void DedicatedTaskPool::clear()
 
 string TaskPool::Summary::full_report() const
 {
-  string report = "";
+  string report;
   report += string_printf("Total time:    %f\n", time_total);
   report += string_printf("Tasks handled: %d\n", num_tasks_handled);
   return report;

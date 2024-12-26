@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#include <stdio.h>
+#include <cstdio>
 
 #include "device/device.h"
 #include "scene/camera.h"
@@ -13,13 +13,14 @@
 
 #include "util/args.h"
 #include "util/foreach.h"
-#include "util/image.h"
 #include "util/log.h"
 #include "util/path.h"
 #include "util/progress.h"
 #include "util/string.h"
-#include "util/time.h"
-#include "util/transform.h"
+#ifdef WITH_CYCLES_STANDALONE_GUI
+#  include "util/time.h"
+#  include "util/transform.h"
+#endif
 #include "util/unique_ptr.h"
 #include "util/version.h"
 
@@ -76,12 +77,12 @@ static void session_print_status()
   double progress = options.session->progress.get_progress();
   options.session->progress.get_status(status, substatus);
 
-  if (substatus != "") {
+  if (!substatus.empty()) {
     status += ": " + substatus;
   }
 
   /* print status */
-  status = string_printf("Progress %05.2f   %s", (double)progress * 100, status.c_str());
+  status = string_printf("Progress %05.2f   %s", progress * 100, status.c_str());
   session_print(status);
 }
 
@@ -194,8 +195,9 @@ static void display_info(Progress &progress)
   progress.get_status(status, substatus);
   double progress_val = progress.get_progress();
 
-  if (substatus != "")
+  if (!substatus.empty()) {
     status += ": " + substatus;
+  }
 
   interactive = options.interactive ? "On" : "Off";
 
@@ -209,14 +211,15 @@ static void display_info(Progress &progress)
       status.c_str(),
       total_time,
       latency,
-      (double)progress_val * 100,
+      progress_val * 100,
       sample_time,
       interactive.c_str());
 
   window_display_info(str.c_str());
 
-  if (options.show_help)
+  if (options.show_help) {
     window_display_help();
+  }
 }
 
 static void display()
@@ -275,40 +278,48 @@ static void resize(int width, int height)
 static void keyboard(unsigned char key)
 {
   /* Toggle help */
-  if (key == 'h')
+  if (key == 'h') {
     options.show_help = !(options.show_help);
 
-  /* Reset */
-  else if (key == 'r')
+    /* Reset */
+  }
+  else if (key == 'r') {
     options.session->reset(options.session_params, session_buffer_params());
 
-  /* Cancel */
-  else if (key == 27)  // escape
+    /* Cancel */
+  }
+  else if (key == 27) {  // escape
     options.session->progress.set_cancel("Canceled");
 
-  /* Pause */
+    /* Pause */
+  }
   else if (key == 'p') {
     options.pause = !options.pause;
     options.session->set_pause(options.pause);
   }
 
   /* Interactive Mode */
-  else if (key == 'i')
+  else if (key == 'i') {
     options.interactive = !(options.interactive);
 
-  /* Navigation */
+    /* Navigation */
+  }
   else if (options.interactive && (key == 'w' || key == 'a' || key == 's' || key == 'd')) {
     Transform matrix = options.session->scene->camera->get_matrix();
     float3 translate;
 
-    if (key == 'w')
+    if (key == 'w') {
       translate = make_float3(0.0f, 0.0f, 0.1f);
-    else if (key == 's')
+    }
+    else if (key == 's') {
       translate = make_float3(0.0f, 0.0f, -0.1f);
-    else if (key == 'a')
+    }
+    else if (key == 'a') {
       translate = make_float3(-0.1f, 0.0f, 0.0f);
-    else if (key == 'd')
+    }
+    else if (key == 'd') {
       translate = make_float3(0.1f, 0.0f, 0.0f);
+    }
 
     matrix = matrix * transform_translate(translate);
 
@@ -368,14 +379,14 @@ static void options_parse(int argc, const char **argv)
   options.session_params.tile_size = 0;
 
   /* device names */
-  string device_names = "";
+  string device_names;
   string devicename = "CPU";
   bool list = false;
 
   /* List devices for which support is compiled in. */
   vector<DeviceType> types = Device::available_types();
   foreach (DeviceType type, types) {
-    if (device_names != "") {
+    if (!device_names.empty()) {
       device_names += ", ";
     }
 
@@ -476,7 +487,7 @@ static void options_parse(int argc, const char **argv)
     printf("%s\n", CYCLES_VERSION_STRING);
     exit(EXIT_SUCCESS);
   }
-  else if (help || options.filepath == "") {
+  else if (help || options.filepath.empty()) {
     ap.usage();
     exit(EXIT_SUCCESS);
   }
@@ -529,7 +540,7 @@ static void options_parse(int argc, const char **argv)
     fprintf(stderr, "Invalid number of samples: %d\n", options.session_params.samples);
     exit(EXIT_FAILURE);
   }
-  else if (options.filepath == "") {
+  else if (options.filepath.empty()) {
     fprintf(stderr, "No file path specified\n");
     exit(EXIT_FAILURE);
   }

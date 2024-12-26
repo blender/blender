@@ -4,13 +4,11 @@
 
 #pragma once
 
-#include "MEM_guardedalloc.h"
-
-#include "RNA_access.hh"
 #include "RNA_blender_cpp.hh"
-#include "RNA_types.hh"
 
-#include "scene/film.h"
+#include "kernel/types.h"
+
+#include "util/param.h"
 
 CCL_NAMESPACE_BEGIN
 
