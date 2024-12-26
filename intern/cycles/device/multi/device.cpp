@@ -14,7 +14,6 @@
 
 #include "scene/geometry.h"
 
-#include "util/foreach.h"
 #include "util/list.h"
 #include "util/map.h"
 
@@ -36,7 +35,7 @@ class MultiDevice : public Device {
   MultiDevice(const DeviceInfo &info, Stats &stats, Profiler &profiler, bool headless)
       : Device(info, stats, profiler, headless)
   {
-    foreach (const DeviceInfo &subinfo, info.multi_devices) {
+    for (const DeviceInfo &subinfo : info.multi_devices) {
       /* Always add CPU devices at the back since GPU devices can change
        * host memory pointers, which CPU uses as device pointer. */
       SubDevice *sub;
@@ -55,7 +54,7 @@ class MultiDevice : public Device {
     }
 
     /* Build a list of peer islands for the available render devices */
-    foreach (SubDevice &sub, devices) {
+    for (SubDevice &sub : devices) {
       /* First ensure that every device is in at least once peer island */
       if (sub.peer_island_index < 0) {
         peer_islands.emplace_back();
@@ -68,7 +67,7 @@ class MultiDevice : public Device {
       }
 
       /* Second check peer access between devices and fill up the islands accordingly */
-      foreach (SubDevice &peer_sub, devices) {
+      for (SubDevice &peer_sub : devices) {
         if (peer_sub.peer_island_index < 0 &&
             peer_sub.device->info.type == sub.device->info.type &&
             peer_sub.device->check_peer_access(sub.device))
@@ -82,16 +81,18 @@ class MultiDevice : public Device {
 
   ~MultiDevice() override
   {
-    foreach (SubDevice &sub, devices)
+    for (SubDevice &sub : devices) {
       delete sub.device;
+    }
   }
 
   const string &error_message() override
   {
     error_msg.clear();
 
-    foreach (SubDevice &sub, devices)
+    for (SubDevice &sub : devices) {
       error_msg += sub.device->error_message();
+    }
 
     return error_msg;
   }
@@ -100,7 +101,7 @@ class MultiDevice : public Device {
   {
     BVHLayoutMask bvh_layout_mask = BVH_LAYOUT_ALL;
     BVHLayoutMask bvh_layout_mask_all = BVH_LAYOUT_NONE;
-    foreach (const SubDevice &sub_device, devices) {
+    for (const SubDevice &sub_device : devices) {
       BVHLayoutMask device_bvh_layout_mask = sub_device.device->get_bvh_layout_mask(
           kernel_features);
       bvh_layout_mask &= device_bvh_layout_mask;
@@ -150,20 +151,22 @@ class MultiDevice : public Device {
 
   bool load_kernels(const uint kernel_features) override
   {
-    foreach (SubDevice &sub, devices)
+    for (SubDevice &sub : devices) {
       if (!sub.device->load_kernels(kernel_features)) {
         return false;
       }
+    }
 
     return true;
   }
 
   bool load_osl_kernels() override
   {
-    foreach (SubDevice &sub, devices)
+    for (SubDevice &sub : devices) {
       if (!sub.device->load_osl_kernels()) {
         return false;
       }
+    }
 
     return true;
   }
@@ -190,13 +193,13 @@ class MultiDevice : public Device {
 
     vector<BVHMulti *> geom_bvhs;
     geom_bvhs.reserve(bvh->geometry.size());
-    foreach (Geometry *geom, bvh->geometry) {
+    for (Geometry *geom : bvh->geometry) {
       geom_bvhs.push_back(static_cast<BVHMulti *>(geom->bvh));
     }
 
     /* Broadcast acceleration structure build to all render devices */
     size_t i = 0;
-    foreach (SubDevice &sub, devices) {
+    for (SubDevice &sub : devices) {
       /* Change geometry BVH pointers to the sub BVH */
       for (size_t k = 0; k < bvh->geometry.size(); ++k) {
         bvh->geometry[k]->bvh = geom_bvhs[k]->sub_bvhs[i];
@@ -266,7 +269,7 @@ class MultiDevice : public Device {
 
   bool is_resident(device_ptr key, Device *sub_device) override
   {
-    foreach (SubDevice &sub, devices) {
+    for (SubDevice &sub : devices) {
       if (sub.device == sub_device) {
         return find_matching_mem_device(key, sub)->device == sub_device;
       }
@@ -281,7 +284,7 @@ class MultiDevice : public Device {
     /* Get the memory owner of this key (first try current device, then peer devices) */
     SubDevice *owner_sub = &sub;
     if (owner_sub->ptr_map.find(key) == owner_sub->ptr_map.end()) {
-      foreach (SubDevice *island_sub, peer_islands[sub.peer_island_index]) {
+      for (SubDevice *island_sub : peer_islands[sub.peer_island_index]) {
         if (island_sub != owner_sub && island_sub->ptr_map.find(key) != island_sub->ptr_map.end())
         {
           owner_sub = island_sub;
@@ -297,7 +300,7 @@ class MultiDevice : public Device {
 
     /* Get the memory owner of this key or the device with the lowest memory usage when new */
     SubDevice *owner_sub = island.front();
-    foreach (SubDevice *island_sub, island) {
+    for (SubDevice *island_sub : island) {
       if (key ? (island_sub->ptr_map.find(key) != island_sub->ptr_map.end()) :
                 (island_sub->device->stats.mem_used < owner_sub->device->stats.mem_used))
       {
@@ -307,7 +310,7 @@ class MultiDevice : public Device {
     return owner_sub;
   }
 
-  inline device_ptr find_matching_mem(device_ptr key, SubDevice &sub)
+  device_ptr find_matching_mem(device_ptr key, SubDevice &sub)
   {
     return find_matching_mem_device(key, sub)->ptr_map[key];
   }
@@ -318,7 +321,7 @@ class MultiDevice : public Device {
 
     assert(mem.type == MEM_READ_ONLY || mem.type == MEM_READ_WRITE || mem.type == MEM_DEVICE_ONLY);
     /* The remaining memory types can be distributed across devices */
-    foreach (const vector<SubDevice *> &island, peer_islands) {
+    for (const vector<SubDevice *> &island : peer_islands) {
       SubDevice *owner_sub = find_suitable_mem_device(key, island);
       mem.device = owner_sub->device;
       mem.device_pointer = 0;
@@ -340,7 +343,7 @@ class MultiDevice : public Device {
     size_t existing_size = mem.device_size;
 
     /* The tile buffers are allocated on each device (see below), so copy to all of them */
-    foreach (const vector<SubDevice *> &island, peer_islands) {
+    for (const vector<SubDevice *> &island : peer_islands) {
       SubDevice *owner_sub = find_suitable_mem_device(existing_key, island);
       mem.device = owner_sub->device;
       mem.device_pointer = (existing_key) ? owner_sub->ptr_map[existing_key] : 0;
@@ -351,7 +354,7 @@ class MultiDevice : public Device {
 
       if (mem.type == MEM_GLOBAL || mem.type == MEM_TEXTURE) {
         /* Need to create texture objects and update pointer in kernel globals on all devices */
-        foreach (SubDevice *island_sub, island) {
+        for (SubDevice *island_sub : island) {
           if (island_sub != owner_sub) {
             island_sub->device->mem_copy_to(mem);
           }
@@ -369,7 +372,7 @@ class MultiDevice : public Device {
     device_ptr key = mem.device_pointer;
     size_t i = 0, sub_h = h / devices.size();
 
-    foreach (SubDevice &sub, devices) {
+    for (SubDevice &sub : devices) {
       size_t sy = y + i * sub_h;
       size_t sh = (i == (size_t)devices.size() - 1) ? h - sub_h * i : sub_h;
 
@@ -391,7 +394,7 @@ class MultiDevice : public Device {
     device_ptr key = (existing_key) ? existing_key : unique_key++;
     size_t existing_size = mem.device_size;
 
-    foreach (const vector<SubDevice *> &island, peer_islands) {
+    for (const vector<SubDevice *> &island : peer_islands) {
       SubDevice *owner_sub = find_suitable_mem_device(existing_key, island);
       mem.device = owner_sub->device;
       mem.device_pointer = (existing_key) ? owner_sub->ptr_map[existing_key] : 0;
@@ -412,7 +415,7 @@ class MultiDevice : public Device {
     size_t existing_size = mem.device_size;
 
     /* Free memory that was allocated for all devices (see above) on each device */
-    foreach (const vector<SubDevice *> &island, peer_islands) {
+    for (const vector<SubDevice *> &island : peer_islands) {
       SubDevice *owner_sub = find_matching_mem_device(key, *island.front());
       mem.device = owner_sub->device;
       mem.device_pointer = owner_sub->ptr_map[key];
@@ -423,7 +426,7 @@ class MultiDevice : public Device {
 
       if (mem.type == MEM_TEXTURE) {
         /* Free texture objects on all devices */
-        foreach (SubDevice *island_sub, island) {
+        for (SubDevice *island_sub : island) {
           if (island_sub != owner_sub) {
             island_sub->device->mem_free(mem);
           }
@@ -439,15 +442,16 @@ class MultiDevice : public Device {
 
   void const_copy_to(const char *name, void *host, size_t size) override
   {
-    foreach (SubDevice &sub, devices)
+    for (SubDevice &sub : devices) {
       sub.device->const_copy_to(name, host, size);
+    }
   }
 
   int device_number(Device *sub_device) override
   {
     int i = 0;
 
-    foreach (SubDevice &sub, devices) {
+    for (SubDevice &sub : devices) {
       if (sub.device == sub_device) {
         return i;
       }
@@ -459,7 +463,7 @@ class MultiDevice : public Device {
 
   void foreach_device(const std::function<void(Device *)> &callback) override
   {
-    foreach (SubDevice &sub, devices) {
+    for (SubDevice &sub : devices) {
       sub.device->foreach_device(callback);
     }
   }

@@ -31,7 +31,6 @@
 #  include "scene/object.h"
 #  include "scene/pointcloud.h"
 
-#  include "util/foreach.h"
 #  include "util/log.h"
 #  include "util/progress.h"
 #  include "util/stats.h"
@@ -145,7 +144,7 @@ void BVHEmbree::build(Progress &progress,
   rtcSetSceneBuildQuality(scene, build_quality);
 
   int i = 0;
-  foreach (Object *ob, objects) {
+  for (Object *ob : objects) {
     if (params.top_level) {
       if (!ob->is_traceable()) {
         ++i;
@@ -688,7 +687,7 @@ void BVHEmbree::refit(Progress &progress)
 
   /* Update all vertex buffers, then tell Embree to rebuild/-fit the BVHs. */
   unsigned geom_id = 0;
-  foreach (Object *ob, objects) {
+  for (Object *ob : objects) {
     if (!params.top_level || (ob->is_traceable() && !ob->get_geometry()->is_instanced())) {
       Geometry *geom = ob->get_geometry();
 

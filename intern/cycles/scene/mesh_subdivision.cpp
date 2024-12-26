@@ -11,7 +11,6 @@
 #include "subd/split.h"
 
 #include "util/algorithm.h"
-#include "util/foreach.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -417,7 +416,7 @@ void Mesh::tessellate(DiagSplit *split)
     subdivision_type = SUBDIVISION_LINEAR;
 
     /* force disable attribute subdivision for same reason as above */
-    foreach (Attribute &attr, subd_attributes.attributes) {
+    for (Attribute &attr : subd_attributes.attributes) {
       attr.flags &= ~ATTR_SUBDIVIDED;
     }
   }
@@ -566,7 +565,7 @@ void Mesh::tessellate(DiagSplit *split)
   }
 
   /* interpolate center points for attributes */
-  foreach (Attribute &attr, subd_attributes.attributes) {
+  for (Attribute &attr : subd_attributes.attributes) {
 #ifdef WITH_OPENSUBDIV
     if (subdivision_type == SUBDIVISION_CATMULL_CLARK && attr.flags & ATTR_SUBDIVIDED) {
       if (attr.element == ATTR_ELEMENT_CORNER || attr.element == ATTR_ELEMENT_CORNER_BYTE) {

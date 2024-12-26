@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0 */
 
 #include "graph/node_type.h"
-#include "util/foreach.h"
+
 #include "util/transform.h"
 
 CCL_NAMESPACE_BEGIN
@@ -181,7 +181,7 @@ void NodeType::register_output(ustring name, ustring ui_name, SocketType::Type t
 
 const SocketType *NodeType::find_input(ustring name) const
 {
-  foreach (const SocketType &socket, inputs) {
+  for (const SocketType &socket : inputs) {
     if (socket.name == name) {
       return &socket;
     }
@@ -192,7 +192,7 @@ const SocketType *NodeType::find_input(ustring name) const
 
 const SocketType *NodeType::find_output(ustring name) const
 {
-  foreach (const SocketType &socket, outputs) {
+  for (const SocketType &socket : outputs) {
     if (socket.name == name) {
       return &socket;
     }

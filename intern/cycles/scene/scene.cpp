@@ -29,7 +29,6 @@
 #include "scene/volume.h"
 #include "session/session.h"
 
-#include "util/foreach.h"
 #include "util/guarded_allocator.h"
 #include "util/log.h"
 #include "util/progress.h"
@@ -97,18 +96,24 @@ void Scene::free_memory(bool final)
    * Similarly, we first delete all nodes and their associated device data, and then the managers
    * and their associated device data.
    */
-  foreach (Procedural *p, procedurals)
+  for (Procedural *p : procedurals) {
     delete p;
-  foreach (Object *o, objects)
+  }
+  for (Object *o : objects) {
     delete o;
-  foreach (Geometry *g, geometry)
+  }
+  for (Geometry *g : geometry) {
     delete g;
-  foreach (ParticleSystem *p, particle_systems)
+  }
+  for (ParticleSystem *p : particle_systems) {
     delete p;
-  foreach (Light *l, lights)
+  }
+  for (Light *l : lights) {
     delete l;
-  foreach (Pass *p, passes)
+  }
+  for (Pass *p : passes) {
     delete p;
+  }
 
   geometry.clear();
   objects.clear();
@@ -134,8 +139,9 @@ void Scene::free_memory(bool final)
 
   /* Delete Shaders after every other nodes to ensure that we do not try to decrement the reference
    * count on some dangling pointer. */
-  foreach (Shader *s, shaders)
+  for (Shader *s : shaders) {
     delete s;
+  }
 
   shaders.clear();
 
@@ -491,7 +497,7 @@ void Scene::update_kernel_features()
   bool has_caustics_caster = false;
   bool has_caustics_light = false;
 
-  foreach (Object *object, objects) {
+  for (Object *object : objects) {
     if (object->get_is_caustics_caster()) {
       has_caustics_caster = true;
     }
@@ -529,7 +535,7 @@ void Scene::update_kernel_features()
     }
   }
 
-  foreach (Light *light, lights) {
+  for (Light *light : lights) {
     if (light->get_use_caustics()) {
       has_caustics_light = true;
     }

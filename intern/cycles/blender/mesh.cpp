@@ -19,7 +19,7 @@
 
 #include "util/algorithm.h"
 #include "util/disjoint_set.h"
-#include "util/foreach.h"
+
 #include "util/hash.h"
 #include "util/log.h"
 #include "util/math.h"

@@ -19,7 +19,6 @@
 
 #include "subd/split.h"
 
-#include "util/foreach.h"
 #include "util/log.h"
 #include "util/progress.h"
 
@@ -35,7 +34,7 @@ bool Geometry::need_attribute(Scene *scene, AttributeStandard std)
     return true;
   }
 
-  foreach (Node *node, used_shaders) {
+  for (Node *node : used_shaders) {
     Shader *shader = static_cast<Shader *>(node);
     if (shader->attributes.find(std)) {
       return true;
@@ -51,7 +50,7 @@ bool Geometry::need_attribute(Scene * /*scene*/, ustring name)
     return false;
   }
 
-  foreach (Node *node, used_shaders) {
+  for (Node *node : used_shaders) {
     Shader *shader = static_cast<Shader *>(node);
     if (shader->attributes.find(name)) {
       return true;
@@ -65,7 +64,7 @@ AttributeRequestSet Geometry::needed_attributes()
 {
   AttributeRequestSet result;
 
-  foreach (Node *node, used_shaders) {
+  for (Node *node : used_shaders) {
     Shader *shader = static_cast<Shader *>(node);
     result.add(shader->attributes);
   }
@@ -75,7 +74,7 @@ AttributeRequestSet Geometry::needed_attributes()
 
 bool Geometry::has_voxel_attributes() const
 {
-  foreach (const Attribute &attr, attributes.attributes) {
+  for (const Attribute &attr : attributes.attributes) {
     if (attr.element == ATTR_ELEMENT_VOXEL) {
       return true;
     }
@@ -165,7 +164,7 @@ void GeometryManager::update_svm_attributes(Device * /*unused*/,
 
 #ifdef WITH_OSL
     size_t attr_count = 0;
-    foreach (AttributeRequest &req, geom_attributes[i].requests) {
+    for (AttributeRequest &req : geom_attributes[i].requests) {
       if (req.std != ATTR_STD_NONE &&
           scene->shader_manager->get_attribute_id(req.std) != (uint64_t)req.std)
       {
@@ -214,7 +213,7 @@ void GeometryManager::update_svm_attributes(Device * /*unused*/,
     /* set geometry attributes */
     size_t index = geom->attr_map_offset;
 
-    foreach (AttributeRequest &req, attributes.requests) {
+    for (AttributeRequest &req : attributes.requests) {
       uint64_t id;
       if (req.std == ATTR_STD_NONE) {
         id = scene->shader_manager->get_attribute_id(req.name);
@@ -247,7 +246,7 @@ void GeometryManager::update_svm_attributes(Device * /*unused*/,
     if (attributes.size() > 0) {
       size_t index = object->attr_map_offset;
 
-      foreach (AttributeRequest &req, attributes.requests) {
+      for (AttributeRequest &req : attributes.requests) {
         uint64_t id;
         if (req.std == ATTR_STD_NONE) {
           id = scene->shader_manager->get_attribute_id(req.name);
@@ -495,7 +494,7 @@ void GeometryManager::device_update_attributes(Device *device,
     geom->index = i;
     scene->need_global_attributes(geom_attributes[i]);
 
-    foreach (Node *node, geom->get_used_shaders()) {
+    for (Node *node : geom->get_used_shaders()) {
       Shader *shader = static_cast<Shader *>(node);
       geom_attributes[i].add(shader->attributes);
     }
@@ -554,7 +553,7 @@ void GeometryManager::device_update_attributes(Device *device,
   for (size_t i = 0; i < scene->geometry.size(); i++) {
     Geometry *geom = scene->geometry[i];
     AttributeRequestSet &attributes = geom_attributes[i];
-    foreach (AttributeRequest &req, attributes.requests) {
+    for (AttributeRequest &req : attributes.requests) {
       Attribute *attr = geom->attributes.find(req);
 
       update_attribute_element_size(geom,
@@ -585,7 +584,7 @@ void GeometryManager::device_update_attributes(Device *device,
   for (size_t i = 0; i < scene->objects.size(); i++) {
     Object *object = scene->objects[i];
 
-    foreach (Attribute &attr, object_attribute_values[i].attributes) {
+    for (Attribute &attr : object_attribute_values[i].attributes) {
       update_attribute_element_size(object->geometry,
                                     &attr,
                                     ATTR_PRIM_GEOMETRY,
@@ -625,7 +624,7 @@ void GeometryManager::device_update_attributes(Device *device,
 
     /* todo: we now store std and name attributes from requests even if
      * they actually refer to the same mesh attributes, optimize */
-    foreach (AttributeRequest &req, attributes.requests) {
+    for (AttributeRequest &req : attributes.requests) {
       Attribute *attr = geom->attributes.find(req);
 
       if (attr) {
@@ -686,7 +685,7 @@ void GeometryManager::device_update_attributes(Device *device,
     AttributeRequestSet &attributes = object_attributes[i];
     AttributeSet &values = object_attribute_values[i];
 
-    foreach (AttributeRequest &req, attributes.requests) {
+    for (AttributeRequest &req : attributes.requests) {
       Attribute *attr = values.find(req);
 
       if (attr) {

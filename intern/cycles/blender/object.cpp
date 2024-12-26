@@ -19,7 +19,6 @@
 #include "scene/shader_graph.h"
 #include "scene/shader_nodes.h"
 
-#include "util/foreach.h"
 #include "util/hash.h"
 #include "util/log.h"
 #include "util/task.h"
@@ -420,7 +419,7 @@ bool BlenderSync::sync_object_attributes(BL::DepsgraphObjectInstance &b_instance
   }
 
   /* Update attribute values. */
-  foreach (AttributeRequest &req, requests.requests) {
+  for (AttributeRequest &req : requests.requests) {
     ustring name = req.name;
 
     std::string real_name;
@@ -732,7 +731,7 @@ void BlenderSync::sync_motion(BL::RenderSettings &b_render,
   }
 
   /* note iteration over motion_times set happens in sorted order */
-  foreach (float relative_time, motion_times) {
+  for (float relative_time : motion_times) {
     /* center time is already handled. */
     if (relative_time == 0.0f) {
       continue;

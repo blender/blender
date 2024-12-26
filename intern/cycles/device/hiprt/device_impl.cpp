@@ -7,7 +7,6 @@
 #  include "device/hiprt/device_impl.h"
 #  include "kernel/device/hiprt/globals.h"
 
-#  include "util/foreach.h"
 #  include "util/log.h"
 #  include "util/md5.h"
 #  include "util/path.h"
@@ -882,7 +881,7 @@ hiprtScene HIPRTDevice::build_tlas(BVHHIPRT *bvh,
   custom_prim_info_offset.alloc(num_object);
   prim_time_offset.alloc(num_object);
 
-  foreach (Object *ob, objects) {
+  for (Object *ob : objects) {
     uint32_t mask = 0;
     if (ob->is_traceable()) {
       mask = ob->visibility_for_tracing();

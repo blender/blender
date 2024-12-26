@@ -6,7 +6,6 @@
 #include "scene/scene.h"
 #include "scene/stats.h"
 
-#include "util/foreach.h"
 #include "util/progress.h"
 
 CCL_NAMESPACE_BEGIN
@@ -42,7 +41,7 @@ void ProceduralManager::update(Scene *scene, Progress &progress)
     }
   });
 
-  foreach (Procedural *procedural, scene->procedurals) {
+  for (Procedural *procedural : scene->procedurals) {
     if (progress.get_cancel()) {
       return;
     }

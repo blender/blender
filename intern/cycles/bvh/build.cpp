@@ -20,7 +20,7 @@
 #include "scene/scene.h"
 
 #include "util/algorithm.h"
-#include "util/foreach.h"
+
 #include "util/log.h"
 #include "util/progress.h"
 #include "util/stack_allocator.h"
@@ -411,7 +411,7 @@ void BVHBuild::add_references(BVHRange &root)
   /* reserve space for references */
   size_t num_alloc_references = 0;
 
-  foreach (Object *ob, objects) {
+  for (Object *ob : objects) {
     if (params.top_level) {
       if (!ob->is_traceable()) {
         continue;
@@ -434,7 +434,7 @@ void BVHBuild::add_references(BVHRange &root)
   BoundBox bounds = BoundBox::empty, center = BoundBox::empty;
   int i = 0;
 
-  foreach (Object *ob, objects) {
+  for (Object *ob : objects) {
     if (params.top_level) {
       if (!ob->is_traceable()) {
         ++i;

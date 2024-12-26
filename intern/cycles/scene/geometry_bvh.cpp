@@ -17,7 +17,6 @@
 #include "scene/shader.h"
 #include "scene/shader_nodes.h"
 
-#include "util/foreach.h"
 #include "util/log.h"
 #include "util/progress.h"
 

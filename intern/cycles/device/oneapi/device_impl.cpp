@@ -10,7 +10,6 @@
 
 #  include "device/oneapi/device_impl.h"
 
-#  include "util/foreach.h"
 #  include "util/log.h"
 
 #  ifdef WITH_EMBREE_GPU
@@ -138,8 +137,9 @@ OneapiDevice::~OneapiDevice()
   usm_free(device_queue_, kg_memory_);
   usm_free(device_queue_, kg_memory_device_);
 
-  for (ConstMemMap::iterator mt = const_mem_map_.begin(); mt != const_mem_map_.end(); mt++)
+  for (ConstMemMap::iterator mt = const_mem_map_.begin(); mt != const_mem_map_.end(); mt++) {
     delete mt->second;
+  }
 
   if (device_queue_) {
     free_queue(device_queue_);

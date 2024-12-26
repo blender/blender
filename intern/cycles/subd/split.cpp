@@ -10,7 +10,7 @@
 #include "subd/split.h"
 
 #include "util/algorithm.h"
-#include "util/foreach.h"
+
 #include "util/hash.h"
 #include "util/math.h"
 #include "util/types.h"
@@ -596,7 +596,7 @@ void DiagSplit::post_split()
 
   /* All patches are now split, and all T values known. */
 
-  foreach (Edge &edge, edges) {
+  for (Edge &edge : edges) {
     if (edge.second_vert_index < 0) {
       edge.second_vert_index = alloc_verts(edge.T - 1);
     }
@@ -619,7 +619,7 @@ void DiagSplit::post_split()
   using edge_stitch_verts_map_t = unordered_map<pair<int, int>, int, pair_hasher>;
   edge_stitch_verts_map_t edge_stitch_verts_map;
 
-  foreach (Edge &edge, edges) {
+  for (Edge &edge : edges) {
     if (edge.is_stitch_edge) {
       if (edge.stitch_edge_T == 0) {
         edge.stitch_edge_T = edge.T;
@@ -633,7 +633,7 @@ void DiagSplit::post_split()
   }
 
   /* Set start and end indices for edges generated from a split. */
-  foreach (Edge &edge, edges) {
+  for (Edge &edge : edges) {
     if (edge.start_vert_index < 0) {
       /* Fix up offsets. */
       if (edge.top_indices_decrease) {
@@ -655,7 +655,7 @@ void DiagSplit::post_split()
   int vert_offset = params.mesh->verts.size();
 
   /* Add verts to stitching map. */
-  foreach (const Edge &edge, edges) {
+  for (const Edge &edge : edges) {
     if (edge.is_stitch_edge) {
       int second_stitch_vert_index = edge_stitch_verts_map[edge.stitch_edge_key];
 

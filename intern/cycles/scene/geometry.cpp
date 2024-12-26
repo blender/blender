@@ -28,7 +28,6 @@
 #  include "kernel/osl/globals.h"
 #endif
 
-#include "util/foreach.h"
 #include "util/log.h"
 #include "util/progress.h"
 #include "util/task.h"
@@ -133,7 +132,7 @@ bool Geometry::is_instanced() const
 
 bool Geometry::has_true_displacement() const
 {
-  foreach (Node *node, used_shaders) {
+  for (Node *node : used_shaders) {
     Shader *shader = static_cast<Shader *>(node);
     if (shader->has_displacement && shader->get_displacement_method() != DISPLACE_BUMP) {
       return true;
@@ -155,7 +154,7 @@ void Geometry::tag_update(Scene *scene, bool rebuild)
     scene->light_manager->tag_update(scene, LightManager::MESH_NEED_REBUILD);
   }
   else {
-    foreach (Node *node, used_shaders) {
+    for (Node *node : used_shaders) {
       Shader *shader = static_cast<Shader *>(node);
       if (shader->emission_sampling != EMISSION_SAMPLING_NONE) {
         scene->light_manager->tag_update(scene, LightManager::EMISSIVE_MESH_MODIFIED);
@@ -214,7 +213,7 @@ void GeometryManager::update_osl_globals(Device *device, Scene *scene)
 static void update_device_flags_attribute(uint32_t &device_update_flags,
                                           const AttributeSet &attributes)
 {
-  foreach (const Attribute &attr, attributes.attributes) {
+  for (const Attribute &attr : attributes.attributes) {
     if (!attr.modified) {
       continue;
     }
@@ -284,7 +283,7 @@ void GeometryManager::geom_calc_offset(Scene *scene, BVHLayout bvh_layout)
   size_t face_size = 0;
   size_t corner_size = 0;
 
-  foreach (Geometry *geom, scene->geometry) {
+  for (Geometry *geom : scene->geometry) {
     bool prim_offset_changed = false;
 
     if (geom->is_mesh() || geom->is_volume()) {
@@ -367,7 +366,7 @@ void GeometryManager::device_update_preprocess(Device *device, Scene *scene, Pro
   /* Update flags. */
   bool volume_images_updated = false;
 
-  foreach (Geometry *geom, scene->geometry) {
+  for (Geometry *geom : scene->geometry) {
     geom->has_volume = false;
 
     update_attribute_realloc_flags(device_update_flags, geom->attributes);
@@ -377,7 +376,7 @@ void GeometryManager::device_update_preprocess(Device *device, Scene *scene, Pro
       update_attribute_realloc_flags(device_update_flags, mesh->subd_attributes);
     }
 
-    foreach (Node *node, geom->get_used_shaders()) {
+    for (Node *node : geom->get_used_shaders()) {
       Shader *shader = static_cast<Shader *>(node);
       if (shader->has_volume) {
         geom->has_volume = true;
@@ -615,7 +614,7 @@ void GeometryManager::device_update_displacement_images(Device *device,
 #ifdef WITH_OSL
   bool has_osl_node = false;
 #endif
-  foreach (Geometry *geom, scene->geometry) {
+  for (Geometry *geom : scene->geometry) {
     if (geom->is_modified()) {
       /* Geometry-level check for hair shadow transparency.
        * This matches the logic in the `Hair::update_shadow_transparency()`, avoiding access to
@@ -626,14 +625,14 @@ void GeometryManager::device_update_displacement_images(Device *device,
         need_shadow_transparency = hair->need_shadow_transparency();
       }
 
-      foreach (Node *node, geom->get_used_shaders()) {
+      for (Node *node : geom->get_used_shaders()) {
         Shader *shader = static_cast<Shader *>(node);
         const bool is_true_displacement = (shader->has_displacement &&
                                            shader->get_displacement_method() != DISPLACE_BUMP);
         if (!is_true_displacement && !need_shadow_transparency) {
           continue;
         }
-        foreach (ShaderNode *node, shader->graph->nodes) {
+        for (ShaderNode *node : shader->graph->nodes) {
 #ifdef WITH_OSL
           if (node->special_type == SHADER_SPECIAL_TYPE_OSL) {
             has_osl_node = true;
@@ -663,7 +662,7 @@ void GeometryManager::device_update_displacement_images(Device *device,
   }
 #endif
 
-  foreach (int slot, bump_images) {
+  for (int slot : bump_images) {
     pool.push([image_manager, device, scene, slot, &progress] {
       image_manager->device_update_slot(device, scene, slot, progress);
     });
@@ -678,12 +677,12 @@ void GeometryManager::device_update_volume_images(Device *device, Scene *scene, 
   ImageManager *image_manager = scene->image_manager;
   set<int> volume_images;
 
-  foreach (Geometry *geom, scene->geometry) {
+  for (Geometry *geom : scene->geometry) {
     if (!geom->is_modified()) {
       continue;
     }
 
-    foreach (Attribute &attr, geom->attributes.attributes) {
+    for (Attribute &attr : geom->attributes.attributes) {
       if (attr.element != ATTR_ELEMENT_VOXEL) {
         continue;
       }
@@ -700,7 +699,7 @@ void GeometryManager::device_update_volume_images(Device *device, Scene *scene, 
     }
   }
 
-  foreach (int slot, volume_images) {
+  for (int slot : volume_images) {
     pool.push([image_manager, device, scene, slot, &progress] {
       image_manager->device_update_slot(device, scene, slot, progress);
     });
@@ -730,7 +729,7 @@ void GeometryManager::device_update(Device *device,
       }
     });
 
-    foreach (Geometry *geom, scene->geometry) {
+    for (Geometry *geom : scene->geometry) {
       if (geom->is_modified()) {
         if (geom->is_mesh() || geom->is_volume()) {
           Mesh *mesh = static_cast<Mesh *>(geom);
@@ -795,7 +794,7 @@ void GeometryManager::device_update(Device *device,
     dicing_camera->update(scene);
 
     size_t i = 0;
-    foreach (Geometry *geom, scene->geometry) {
+    for (Geometry *geom : scene->geometry) {
       if (!(geom->is_modified() && geom->is_mesh())) {
         continue;
       }
@@ -888,7 +887,7 @@ void GeometryManager::device_update(Device *device,
       }
     });
 
-    foreach (Geometry *geom, scene->geometry) {
+    for (Geometry *geom : scene->geometry) {
       if (geom->is_modified()) {
         if (geom->is_mesh()) {
           Mesh *mesh = static_cast<Mesh *>(geom);
@@ -952,7 +951,7 @@ void GeometryManager::device_update(Device *device,
     TaskPool pool;
 
     size_t i = 0;
-    foreach (Geometry *geom, scene->geometry) {
+    for (Geometry *geom : scene->geometry) {
       if (geom->is_modified() || geom->need_update_bvh_for_offset) {
         need_update_scene_bvh = true;
         pool.push([geom, device, dscene, scene, &progress, i, num_bvh] {
@@ -969,7 +968,7 @@ void GeometryManager::device_update(Device *device,
     VLOG_WORK << "Objects BVH build pool statistics:\n" << summary.full_report();
   }
 
-  foreach (Shader *shader, scene->shaders) {
+  for (Shader *shader : scene->shaders) {
     shader->need_update_uvs = false;
     shader->need_update_attribute = false;
     shader->need_update_displacement = false;
@@ -985,7 +984,7 @@ void GeometryManager::device_update(Device *device,
         scene->update_stats->geometry.times.add_entry({"device_update (compute bounds)", time});
       }
     });
-    foreach (Object *object, scene->objects) {
+    for (Object *object : scene->objects) {
       object->compute_bounds(motion_blur);
     }
   }
@@ -1026,7 +1025,7 @@ void GeometryManager::device_update(Device *device,
 
   /* unset flags */
 
-  foreach (Geometry *geom, scene->geometry) {
+  for (Geometry *geom : scene->geometry) {
     geom->clear_modified();
     geom->attributes.clear_modified();
 
@@ -1127,7 +1126,7 @@ bool GeometryManager::need_update() const
 
 void GeometryManager::collect_statistics(const Scene *scene, RenderStats *stats)
 {
-  foreach (Geometry *geometry, scene->geometry) {
+  for (Geometry *geometry : scene->geometry) {
     stats->mesh.geometry.add_entry(
         NamedSizeEntry(string(geometry->name.c_str()), geometry->get_total_size_in_bytes()));
   }

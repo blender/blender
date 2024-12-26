@@ -9,8 +9,6 @@
 #include "blender/sync.h"
 #include "blender/util.h"
 
-#include "util/foreach.h"
-
 CCL_NAMESPACE_BEGIN
 
 /* Utilities */

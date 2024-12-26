@@ -5,7 +5,6 @@
 #include "scene/constant_fold.h"
 #include "scene/shader_graph.h"
 
-#include "util/foreach.h"
 #include "util/log.h"
 
 CCL_NAMESPACE_BEGIN
@@ -20,7 +19,7 @@ ConstantFolder::ConstantFolder(ShaderGraph *graph,
 
 bool ConstantFolder::all_inputs_constant() const
 {
-  foreach (ShaderInput *input, node->inputs) {
+  for (ShaderInput *input : node->inputs) {
     if (input->link) {
       return false;
     }
@@ -34,7 +33,7 @@ void ConstantFolder::make_constant(float value) const
   VLOG_DEBUG << "Folding " << node->name << "::" << output->name() << " to constant (" << value
              << ").";
 
-  foreach (ShaderInput *sock, output->links) {
+  for (ShaderInput *sock : output->links) {
     sock->set(value);
     sock->constant_folded_in = true;
   }
@@ -47,7 +46,7 @@ void ConstantFolder::make_constant(float3 value) const
   VLOG_DEBUG << "Folding " << node->name << "::" << output->name() << " to constant " << value
              << ".";
 
-  foreach (ShaderInput *sock, output->links) {
+  for (ShaderInput *sock : output->links) {
     sock->set(value);
     sock->constant_folded_in = true;
   }
@@ -60,7 +59,7 @@ void ConstantFolder::make_constant(int value) const
   VLOG_DEBUG << "Folding " << node->name << "::" << output->name() << " to constant (" << value
              << ").";
 
-  foreach (ShaderInput *sock, output->links) {
+  for (ShaderInput *sock : output->links) {
     sock->set(value);
     sock->constant_folded_in = true;
   }
@@ -124,7 +123,7 @@ void ConstantFolder::bypass(ShaderOutput *new_output) const
 
   graph->disconnect(output);
 
-  foreach (ShaderInput *sock, outputs) {
+  for (ShaderInput *sock : outputs) {
     graph->connect(new_output, sock);
   }
 }
@@ -171,7 +170,7 @@ bool ConstantFolder::try_bypass_or_make_constant(ShaderInput *input, bool clamp)
   }
   else {
     /* disconnect other inputs if we can't fully bypass due to clamp */
-    foreach (ShaderInput *other, node->inputs) {
+    for (ShaderInput *other : node->inputs) {
       if (other != input && other->link) {
         graph->disconnect(other);
       }

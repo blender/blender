@@ -6,8 +6,6 @@
 #include "blender/session.h"
 #include "blender/util.h"
 
-#include "util/foreach.h"
-
 CCL_NAMESPACE_BEGIN
 
 enum ComputeDevice {
@@ -63,7 +61,7 @@ void static adjust_device_info_from_preferences(DeviceInfo &info, PointerRNA cpr
 void static adjust_device_info(DeviceInfo &device, PointerRNA cpreferences, bool preview)
 {
   adjust_device_info_from_preferences(device, cpreferences);
-  foreach (DeviceInfo &info, device.multi_devices) {
+  for (DeviceInfo &info : device.multi_devices) {
     adjust_device_info_from_preferences(info, cpreferences);
 
     /* There is an accumulative logic here, because Multi-devices are supported only for
@@ -139,7 +137,7 @@ DeviceInfo blender_device_info(BL::Preferences &b_preferences,
     RNA_BEGIN (&cpreferences, device, "devices") {
       if (get_boolean(device, "use")) {
         string id = get_string(device, "id");
-        foreach (DeviceInfo &info, devices) {
+        for (DeviceInfo &info : devices) {
           if (info.id == id) {
             used_devices.push_back(info);
             break;

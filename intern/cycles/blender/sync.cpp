@@ -28,7 +28,7 @@
 #include "integrator/denoiser.h"
 
 #include "util/debug.h"
-#include "util/foreach.h"
+
 #include "util/hash.h"
 #include "util/log.h"
 

@@ -8,7 +8,6 @@
 #include <algorithm>
 #include <cctype>
 
-#include "util/foreach.h"
 #include "util/string.h"
 #include "util/types_float4.h"
 

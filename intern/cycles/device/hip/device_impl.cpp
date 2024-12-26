@@ -12,7 +12,6 @@
 #  include "device/hip/device_impl.h"
 
 #  include "util/debug.h"
-#  include "util/foreach.h"
 #  include "util/log.h"
 #  include "util/md5.h"
 #  include "util/path.h"

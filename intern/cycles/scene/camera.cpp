@@ -11,7 +11,6 @@
 
 #include "device/device.h"
 
-#include "util/foreach.h"
 #include "util/log.h"
 #include "util/math_cdf.h"
 #include "util/tbb.h"

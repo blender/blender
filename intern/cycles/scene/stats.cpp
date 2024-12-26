@@ -5,7 +5,7 @@
 #include "scene/stats.h"
 #include "scene/object.h"
 #include "util/algorithm.h"
-#include "util/foreach.h"
+
 #include "util/string.h"
 
 CCL_NAMESPACE_BEGIN
@@ -69,7 +69,7 @@ string NamedSizeStats::full_report(int indent_level)
                           string_human_readable_size(total_size).c_str(),
                           string_human_readable_number(total_size).c_str());
   sort(entries.begin(), entries.end(), namedSizeEntryComparator);
-  foreach (const NamedSizeEntry &entry, entries) {
+  for (const NamedSizeEntry &entry : entries) {
     result += string_printf("%s%-32s %s (%s)\n",
                             double_indent.c_str(),
                             entry.name.c_str(),
@@ -86,7 +86,7 @@ string NamedTimeStats::full_report(int indent_level)
   string result;
   result += string_printf("%sTotal time: %fs\n", indent.c_str(), total_time);
   sort(entries.begin(), entries.end(), namedTimeEntryComparator);
-  foreach (const NamedTimeEntry &entry, entries) {
+  for (const NamedTimeEntry &entry : entries) {
     result += string_printf(
         "%s%-40s %fs\n", double_indent.c_str(), entry.name.c_str(), entry.time);
   }
@@ -111,7 +111,7 @@ NamedNestedSampleStats &NamedNestedSampleStats::add_entry(const string &name_, u
 void NamedNestedSampleStats::update_sum()
 {
   sum_samples = self_samples;
-  foreach (NamedNestedSampleStats &entry, entries) {
+  for (NamedNestedSampleStats &entry : entries) {
     entry.update_sum();
     sum_samples += entry.sum_samples;
   }
@@ -140,7 +140,7 @@ string NamedNestedSampleStats::full_report(int indent_level, uint64_t total_samp
   string result = indent + info;
 
   sort(entries.begin(), entries.end(), namedTimeSampleEntryComparator);
-  foreach (NamedNestedSampleStats &entry, entries) {
+  for (NamedNestedSampleStats &entry : entries) {
     result += entry.full_report(indent_level + 1, total_samples);
   }
   return result;
@@ -174,7 +174,7 @@ string NamedSampleCountStats::full_report(int indent_level)
   sorted_entries.reserve(entries.size());
 
   uint64_t total_hits = 0, total_samples = 0;
-  foreach (entry_map::const_reference entry, entries) {
+  for (entry_map::const_reference entry : entries) {
     const NamedSampleCountPair &pair = entry.second;
 
     total_hits += pair.hits;
@@ -187,7 +187,7 @@ string NamedSampleCountStats::full_report(int indent_level)
   sort(sorted_entries.begin(), sorted_entries.end(), namedSampleCountPairComparator);
 
   string result;
-  foreach (const NamedSampleCountPair &entry, sorted_entries) {
+  for (const NamedSampleCountPair &entry : sorted_entries) {
     const double seconds = entry.samples * 0.001;
     const double relative = ((double)entry.samples) / (entry.hits * avg_samples_per_hit);
 
@@ -266,7 +266,7 @@ void RenderStats::collect_profiling(Scene *scene, Profiler &prof)
   light.add_entry("Shader Evaluation", prof.get_event(PROFILING_SHADE_LIGHT_EVAL));
 
   shaders.entries.clear();
-  foreach (Shader *shader, scene->shaders) {
+  for (Shader *shader : scene->shaders) {
     uint64_t samples, hits;
     if (prof.get_shader(shader->id, samples, hits)) {
       shaders.add(shader->name, samples, hits);
@@ -274,7 +274,7 @@ void RenderStats::collect_profiling(Scene *scene, Profiler &prof)
   }
 
   objects.entries.clear();
-  foreach (Object *object, scene->objects) {
+  for (Object *object : scene->objects) {
     uint64_t samples, hits;
     if (prof.get_object(object->get_device_index(), samples, hits)) {
       objects.add(object->name, samples, hits);

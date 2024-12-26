@@ -15,7 +15,7 @@
 #include "scene/tables.h"
 
 #include "util/algorithm.h"
-#include "util/foreach.h"
+
 #include "util/math.h"
 #include "util/math_cdf.h"
 #include "util/time.h"
@@ -426,7 +426,7 @@ void Film::device_free(Device * /*device*/, DeviceScene * /*dscene*/, Scene *sce
 int Film::get_aov_offset(Scene *scene, string name, bool &is_color)
 {
   int offset_color = 0, offset_value = 0;
-  foreach (const Pass *pass, scene->passes) {
+  for (const Pass *pass : scene->passes) {
     if (pass->get_name() == name) {
       if (pass->get_type() == PASS_AOV_VALUE) {
         is_color = false;
@@ -453,7 +453,7 @@ bool Film::update_lightgroups(Scene *scene)
 {
   map<ustring, int> lightgroups;
   int i = 0;
-  foreach (const Pass *pass, scene->passes) {
+  for (const Pass *pass : scene->passes) {
     ustring lightgroup = pass->get_lightgroup();
     if (!lightgroup.empty()) {
       if (!lightgroups.count(lightgroup)) {
@@ -578,8 +578,9 @@ void Film::update_passes(Scene *scene, bool add_sample_count_pass)
 
   if (have_uv_pass != prev_have_uv_pass) {
     scene->geometry_manager->tag_update(scene, GeometryManager::UV_PASS_NEEDED);
-    foreach (Shader *shader, scene->shaders)
+    for (Shader *shader : scene->shaders) {
       shader->need_update_uvs = true;
+    }
   }
   if (have_motion_pass != prev_have_motion_pass) {
     scene->geometry_manager->tag_update(scene, GeometryManager::MOTION_PASS_NEEDED);

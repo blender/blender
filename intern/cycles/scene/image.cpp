@@ -10,7 +10,6 @@
 #include "scene/scene.h"
 #include "scene/stats.h"
 
-#include "util/foreach.h"
 #include "util/image.h"
 #include "util/image_impl.h"
 #include "util/log.h"
@@ -71,7 +70,7 @@ ImageHandle::ImageHandle(const ImageHandle &other)
     : tile_slots(other.tile_slots), manager(other.manager)
 {
   /* Increase image user count. */
-  foreach (const size_t slot, tile_slots) {
+  for (const size_t slot : tile_slots) {
     manager->add_image_user(slot);
   }
 }
@@ -82,7 +81,7 @@ ImageHandle &ImageHandle::operator=(const ImageHandle &other)
   manager = other.manager;
   tile_slots = other.tile_slots;
 
-  foreach (const size_t slot, tile_slots) {
+  for (const size_t slot : tile_slots) {
     manager->add_image_user(slot);
   }
 
@@ -96,7 +95,7 @@ ImageHandle::~ImageHandle()
 
 void ImageHandle::clear()
 {
-  foreach (const size_t slot, tile_slots) {
+  for (const size_t slot : tile_slots) {
     manager->remove_image_user(slot);
   }
 
@@ -387,7 +386,7 @@ ImageHandle ImageManager::add_image(const string &filename,
   ImageHandle handle;
   handle.manager = this;
 
-  foreach (int tile, tiles) {
+  for (int tile : tiles) {
     string tile_filename = filename;
 
     /* Since we don't have information about the exact tile format used in this code location,
@@ -922,7 +921,7 @@ void ImageManager::device_free(Device *device)
 
 void ImageManager::collect_statistics(RenderStats *stats)
 {
-  foreach (const Image *image, images) {
+  for (const Image *image : images) {
     if (!image) {
       /* Image may have been freed due to lack of users. */
       continue;

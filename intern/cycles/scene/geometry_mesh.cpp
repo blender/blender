@@ -22,7 +22,6 @@
 #include "subd/patch_table.h"
 #include "subd/split.h"
 
-#include "util/foreach.h"
 #include "util/progress.h"
 
 CCL_NAMESPACE_BEGIN
@@ -44,7 +43,7 @@ void GeometryManager::device_update_mesh(Device * /*unused*/,
 
   size_t patch_size = 0;
 
-  foreach (Geometry *geom, scene->geometry) {
+  for (Geometry *geom : scene->geometry) {
     if (geom->is_mesh() || geom->is_volume()) {
       Mesh *mesh = static_cast<Mesh *>(geom);
 
@@ -93,7 +92,7 @@ void GeometryManager::device_update_mesh(Device * /*unused*/,
                                dscene->tri_patch.need_realloc() ||
                                dscene->tri_patch_uv.need_realloc();
 
-    foreach (Geometry *geom, scene->geometry) {
+    for (Geometry *geom : scene->geometry) {
       if (geom->is_mesh() || geom->is_volume()) {
         Mesh *mesh = static_cast<Mesh *>(geom);
 
@@ -144,7 +143,7 @@ void GeometryManager::device_update_mesh(Device * /*unused*/,
                                dscene->curves.need_realloc() ||
                                dscene->curve_segments.need_realloc();
 
-    foreach (Geometry *geom, scene->geometry) {
+    for (Geometry *geom : scene->geometry) {
       if (geom->is_hair()) {
         Hair *hair = static_cast<Hair *>(geom);
 
@@ -178,7 +177,7 @@ void GeometryManager::device_update_mesh(Device * /*unused*/,
     float4 *points = dscene->points.alloc(point_size);
     uint *points_shader = dscene->points_shader.alloc(point_size);
 
-    foreach (Geometry *geom, scene->geometry) {
+    for (Geometry *geom : scene->geometry) {
       if (geom->is_pointcloud()) {
         PointCloud *pointcloud = static_cast<PointCloud *>(geom);
         pointcloud->pack(
@@ -198,7 +197,7 @@ void GeometryManager::device_update_mesh(Device * /*unused*/,
 
     uint *patch_data = dscene->patches.alloc(patch_size);
 
-    foreach (Geometry *geom, scene->geometry) {
+    for (Geometry *geom : scene->geometry) {
       if (geom->is_mesh()) {
         Mesh *mesh = static_cast<Mesh *>(geom);
         mesh->pack_patches(&patch_data[mesh->patch_offset]);

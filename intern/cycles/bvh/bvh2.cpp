@@ -16,7 +16,6 @@
 #include "bvh/node.h"
 #include "bvh/unaligned.h"
 
-#include "util/foreach.h"
 #include "util/progress.h"
 
 CCL_NAMESPACE_BEGIN
@@ -505,7 +504,7 @@ void BVH2::pack_instances(size_t nodes_size, size_t leaf_nodes_size)
   size_t pack_leaf_nodes_offset = leaf_nodes_size;
   size_t object_offset = 0;
 
-  foreach (Geometry *geom, geometry) {
+  for (Geometry *geom : geometry) {
     BVH2 *bvh = static_cast<BVH2 *>(geom->bvh);
 
     if (geom->need_build_bvh(params.bvh_layout)) {
@@ -541,7 +540,7 @@ void BVH2::pack_instances(size_t nodes_size, size_t leaf_nodes_size)
   unordered_map<Geometry *, int> geometry_map;
 
   /* merge */
-  foreach (Object *ob, objects) {
+  for (Object *ob : objects) {
     Geometry *geom = ob->get_geometry();
 
     /* We assume that if mesh doesn't need own BVH it was already included

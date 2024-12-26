@@ -8,7 +8,6 @@
 #include "scene/mesh.h"
 #include "scene/pointcloud.h"
 
-#include "util/foreach.h"
 #include "util/log.h"
 #include "util/transform.h"
 
@@ -495,10 +494,11 @@ Attribute *AttributeSet::add(ustring name, TypeDesc type, AttributeElement eleme
 
 Attribute *AttributeSet::find(ustring name) const
 {
-  foreach (const Attribute &attr, attributes)
+  for (const Attribute &attr : attributes) {
     if (attr.name == name) {
       return (Attribute *)&attr;
     }
+  }
 
   return nullptr;
 }
@@ -676,10 +676,11 @@ Attribute *AttributeSet::add(AttributeStandard std, ustring name)
 
 Attribute *AttributeSet::find(AttributeStandard std) const
 {
-  foreach (const Attribute &attr, attributes)
+  for (const Attribute &attr : attributes) {
     if (attr.std == std) {
       return (Attribute *)&attr;
     }
+  }
 
   return nullptr;
 }
@@ -746,7 +747,7 @@ void AttributeSet::remove(list<Attribute>::iterator it)
 
 void AttributeSet::resize(bool reserve_only)
 {
-  foreach (Attribute &attr, attributes) {
+  for (Attribute &attr : attributes) {
     attr.resize(geometry, prim, reserve_only);
   }
 }
@@ -784,7 +785,7 @@ void AttributeSet::update(AttributeSet &&new_attributes)
   }
 
   /* Add or update old_attributes based on the new_attributes. */
-  foreach (Attribute &attr, new_attributes.attributes) {
+  for (Attribute &attr : new_attributes.attributes) {
     Attribute *nattr = add(attr.name, attr.type, attr.element);
     nattr->std = attr.std;
     nattr->set_data_from(std::move(attr));
@@ -796,7 +797,7 @@ void AttributeSet::update(AttributeSet &&new_attributes)
 
 void AttributeSet::clear_modified()
 {
-  foreach (Attribute &attr, attributes) {
+  for (Attribute &attr : attributes) {
     attr.modified = false;
   }
 
@@ -887,7 +888,7 @@ bool AttributeRequestSet::modified(const AttributeRequestSet &other)
 
 void AttributeRequestSet::add(ustring name)
 {
-  foreach (AttributeRequest &req, requests) {
+  for (AttributeRequest &req : requests) {
     if (req.name == name) {
       return;
     }
@@ -898,17 +899,18 @@ void AttributeRequestSet::add(ustring name)
 
 void AttributeRequestSet::add(AttributeStandard std)
 {
-  foreach (AttributeRequest &req, requests)
+  for (AttributeRequest &req : requests) {
     if (req.std == std) {
       return;
     }
+  }
 
   requests.push_back(AttributeRequest(std));
 }
 
 void AttributeRequestSet::add(AttributeRequestSet &reqs)
 {
-  foreach (AttributeRequest &req, reqs.requests) {
+  for (AttributeRequest &req : reqs.requests) {
     if (req.std == ATTR_STD_NONE) {
       add(req.name);
     }
@@ -936,20 +938,22 @@ void AttributeRequestSet::add_standard(ustring name)
 
 bool AttributeRequestSet::find(ustring name)
 {
-  foreach (AttributeRequest &req, requests)
+  for (AttributeRequest &req : requests) {
     if (req.name == name) {
       return true;
     }
+  }
 
   return false;
 }
 
 bool AttributeRequestSet::find(AttributeStandard std)
 {
-  foreach (AttributeRequest &req, requests)
+  for (AttributeRequest &req : requests) {
     if (req.std == std) {
       return true;
     }
+  }
 
   return false;
 }

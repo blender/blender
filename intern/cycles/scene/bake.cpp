@@ -10,8 +10,6 @@
 #include "scene/stats.h"
 #include "session/buffers.h"
 
-#include "util/foreach.h"
-
 CCL_NAMESPACE_BEGIN
 
 bool BakeManager::get_baking() const

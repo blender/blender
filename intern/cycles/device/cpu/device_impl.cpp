@@ -37,7 +37,6 @@
 
 #include "session/buffers.h"
 
-#include "util/foreach.h"
 #include "util/guiding.h"
 #include "util/log.h"
 #include "util/progress.h"

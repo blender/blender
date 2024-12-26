@@ -20,7 +20,6 @@
 #  include "kernel/osl/services.h"
 
 #  include "util/aligned_malloc.h"
-#  include "util/foreach.h"
 #  include "util/log.h"
 #  include "util/md5.h"
 #  include "util/path.h"
@@ -120,7 +119,7 @@ void OSLShaderManager::device_update_specific(Device *device,
 
   /* compile each shader to OSL shader groups */
   TaskPool task_pool;
-  foreach (Shader *shader, scene->shaders) {
+  for (Shader *shader : scene->shaders) {
     assert(shader->graph);
 
     auto compile = [this, scene, shader, background_shader](Device *sub_device) {
@@ -140,7 +139,7 @@ void OSLShaderManager::device_update_specific(Device *device,
   }
 
   /* collect shader groups from all shaders */
-  foreach (Shader *shader, scene->shaders) {
+  for (Shader *shader : scene->shaders) {
     device->foreach_device([shader, background_shader](Device *sub_device) {
       OSLGlobals *og = (OSLGlobals *)sub_device->get_cpu_osl_memory();
 
@@ -172,8 +171,9 @@ void OSLShaderManager::device_update_specific(Device *device,
     og->use = true;
   });
 
-  foreach (Shader *shader, scene->shaders)
+  for (Shader *shader : scene->shaders) {
     shader->clear_modified();
+  }
 
   update_flags = UPDATE_NONE;
 
@@ -763,7 +763,7 @@ string OSLCompiler::compatible_name(ShaderNode *node, ShaderInput *input)
   }
 
   /* if output exists with the same name, add "In" suffix */
-  foreach (ShaderOutput *output, node->outputs) {
+  for (ShaderOutput *output : node->outputs) {
     if (input->name() == output->name()) {
       sname += "In";
       break;
@@ -784,7 +784,7 @@ string OSLCompiler::compatible_name(ShaderNode *node, ShaderOutput *output)
   }
 
   /* if input exists with the same name, add "Out" suffix */
-  foreach (ShaderInput *input, node->inputs) {
+  for (ShaderInput *input : node->inputs) {
     if (input->name() == output->name()) {
       sname += "Out";
       break;
@@ -843,7 +843,7 @@ void OSLCompiler::add(ShaderNode *node, const char *name, bool isfilepath)
   }
 
   /* pass in fixed parameter values */
-  foreach (ShaderInput *input, node->inputs) {
+  for (ShaderInput *input : node->inputs) {
     if (!input->link) {
       /* checks to untangle graphs */
       if (node_skip_input(node, input)) {
@@ -904,7 +904,7 @@ void OSLCompiler::add(ShaderNode *node, const char *name, bool isfilepath)
   }
 
   /* link inputs to other nodes */
-  foreach (ShaderInput *input, node->inputs) {
+  for (ShaderInput *input : node->inputs) {
     if (input->link) {
       if (node_skip_input(node, input)) {
         continue;
@@ -1208,10 +1208,11 @@ void OSLCompiler::find_dependencies(ShaderNodeSet &dependencies, ShaderInput *in
   ShaderNode *node = (input->link) ? input->link->parent : nullptr;
 
   if (node != nullptr && dependencies.find(node) == dependencies.end()) {
-    foreach (ShaderInput *in, node->inputs)
+    for (ShaderInput *in : node->inputs) {
       if (!node_skip_input(node, in)) {
         find_dependencies(dependencies, in);
       }
+    }
 
     dependencies.insert(node);
   }
@@ -1225,16 +1226,17 @@ void OSLCompiler::generate_nodes(const ShaderNodeSet &nodes)
   do {
     nodes_done = true;
 
-    foreach (ShaderNode *node, nodes) {
+    for (ShaderNode *node : nodes) {
       if (done.find(node) == done.end()) {
         bool inputs_done = true;
 
-        foreach (ShaderInput *input, node->inputs)
+        for (ShaderInput *input : node->inputs) {
           if (!node_skip_input(node, input)) {
             if (input->link && done.find(input->link->parent) == done.end()) {
               inputs_done = false;
             }
           }
+        }
 
         if (inputs_done) {
           node->compile(*this);

@@ -5,7 +5,6 @@
 #include "graph/node.h"
 #include "graph/node_type.h"
 
-#include "util/foreach.h"
 #include "util/md5.h"
 #include "util/param.h"
 #include "util/transform.h"
@@ -29,7 +28,7 @@ Node::Node(const NodeType *type_, ustring name_) : name(name_), type(type_)
   }
 
   /* initialize default values */
-  foreach (const SocketType &socket, type->inputs) {
+  for (const SocketType &socket : type->inputs) {
     set_default_value(socket);
   }
 }
@@ -563,7 +562,7 @@ bool Node::equals(const Node &other) const
 {
   assert(type == other.type);
 
-  foreach (const SocketType &socket, type->inputs) {
+  for (const SocketType &socket : type->inputs) {
     if (!equals_value(other, socket)) {
       return false;
     }
@@ -610,7 +609,7 @@ void Node::hash(MD5Hash &md5)
 {
   md5.append(type->name.string());
 
-  foreach (const SocketType &socket, type->inputs) {
+  for (const SocketType &socket : type->inputs) {
     md5.append(socket.name.string());
 
     switch (socket.type) {
@@ -713,7 +712,7 @@ template<typename T> size_t array_size_in_bytes(const Node *node, const SocketTy
 size_t Node::get_total_size_in_bytes() const
 {
   size_t total_size = 0;
-  foreach (const SocketType &socket, type->inputs) {
+  for (const SocketType &socket : type->inputs) {
     switch (socket.type) {
       case SocketType::BOOLEAN:
       case SocketType::FLOAT:
@@ -798,7 +797,7 @@ void Node::set_owner(const NodeOwner *owner_)
 
 void Node::dereference_all_used_nodes()
 {
-  foreach (const SocketType &socket, type->inputs) {
+  for (const SocketType &socket : type->inputs) {
     if (socket.type == SocketType::NODE) {
       Node *node = get_socket_value<Node *>(this, socket);
 

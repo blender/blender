@@ -4,7 +4,6 @@
 
 #include <algorithm>
 
-#include "util/foreach.h"
 #include "util/ies.h"
 #include "util/math.h"
 #include "util/string.h"

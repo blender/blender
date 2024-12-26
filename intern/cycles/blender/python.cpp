@@ -15,7 +15,7 @@
 #include "session/merge.h"
 
 #include "util/debug.h"
-#include "util/foreach.h"
+
 #include "util/guiding.h"
 #include "util/md5.h"
 #include "util/openimagedenoise.h"
@@ -897,7 +897,7 @@ static PyObject *get_device_types_func(PyObject * /*self*/, PyObject * /*args*/)
   vector<DeviceType> device_types = Device::available_types();
   bool has_cuda = false, has_optix = false, has_hip = false, has_metal = false, has_oneapi = false,
        has_hiprt = false;
-  foreach (DeviceType device_type, device_types) {
+  for (DeviceType device_type : device_types) {
     has_cuda |= (device_type == DEVICE_CUDA);
     has_optix |= (device_type == DEVICE_OPTIX);
     has_hip |= (device_type == DEVICE_HIP);

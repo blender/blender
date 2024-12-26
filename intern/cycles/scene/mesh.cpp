@@ -15,7 +15,6 @@
 #include "subd/patch_table.h"
 #include "subd/split.h"
 
-#include "util/foreach.h"
 #include "util/log.h"
 #include "util/set.h"
 

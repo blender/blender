@@ -11,7 +11,6 @@
 #include "scene/scene.h"
 #include "scene/shader.h"
 
-#include "util/foreach.h"
 #include "util/map.h"
 #include "util/progress.h"
 #include "util/set.h"
@@ -237,7 +236,7 @@ bool GeometryManager::displace(Device *device, Scene *scene, Mesh *mesh, Progres
 
   bool need_recompute_vertex_normals = false;
 
-  foreach (Node *node, mesh->get_used_shaders()) {
+  for (Node *node : mesh->get_used_shaders()) {
     Shader *shader = static_cast<Shader *>(node);
     if (shader->has_displacement && shader->get_displacement_method() == DISPLACE_TRUE) {
       need_recompute_vertex_normals = true;

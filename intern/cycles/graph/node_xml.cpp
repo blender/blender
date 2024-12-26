@@ -7,7 +7,6 @@
 #  include "graph/node_xml.h"
 #  include "graph/node.h"
 
-#  include "util/foreach.h"
 #  include "util/string.h"
 #  include "util/transform.h"
 
@@ -50,7 +49,7 @@ void xml_read_node(XMLReader &reader, Node *node, xml_node xml_node)
     node->name = ustring(name_attr.value());
   }
 
-  foreach (const SocketType &socket, node->type->inputs) {
+  for (const SocketType &socket : node->type->inputs) {
     if (socket.type == SocketType::CLOSURE || socket.type == SocketType::UNDEFINED) {
       continue;
     }
@@ -240,7 +239,7 @@ xml_node xml_write_node(Node *node, xml_node xml_root)
 
   xml_node.append_attribute("name") = node->name.c_str();
 
-  foreach (const SocketType &socket, node->type->inputs) {
+  for (const SocketType &socket : node->type->inputs) {
     if (socket.type == SocketType::CLOSURE || socket.type == SocketType::UNDEFINED) {
       continue;
     }

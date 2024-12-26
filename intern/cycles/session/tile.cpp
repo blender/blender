@@ -14,7 +14,6 @@
 #include "scene/scene.h"
 #include "session/session.h"
 
-#include "util/foreach.h"
 #include "util/log.h"
 #include "util/path.h"
 #include "util/string.h"

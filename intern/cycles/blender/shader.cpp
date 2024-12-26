@@ -16,7 +16,6 @@
 #include "blender/texture.h"
 #include "blender/util.h"
 
-#include "util/foreach.h"
 #include "util/set.h"
 #include "util/string.h"
 #include "util/task.h"
@@ -1474,7 +1473,7 @@ void BlenderSync::resolve_view_layer_attributes(Shader *shader,
 {
   bool updated = false;
 
-  foreach (ShaderNode *node, graph->nodes) {
+  for (ShaderNode *node : graph->nodes) {
     if (node->is_a(AttributeNode::node_type)) {
       AttributeNode *attr_node = static_cast<AttributeNode *>(node);
 
@@ -1496,7 +1495,7 @@ void BlenderSync::resolve_view_layer_attributes(Shader *shader,
         /* Replace all outgoing links, using appropriate output types. */
         float val_avg = (value.x + value.y + value.z) / 3.0f;
 
-        foreach (ShaderOutput *output, node->outputs) {
+        for (ShaderOutput *output : node->outputs) {
           float val_float;
           float3 val_float3;
 
@@ -1509,7 +1508,7 @@ void BlenderSync::resolve_view_layer_attributes(Shader *shader,
             val_float3 = make_float3(value);
           }
 
-          foreach (ShaderInput *sock, output->links) {
+          for (ShaderInput *sock : output->links) {
             if (sock->type() == SocketType::FLOAT) {
               sock->set(val_float);
             }
@@ -1633,7 +1632,7 @@ void BlenderSync::sync_materials(BL::Depsgraph &b_depsgraph, bool update_all)
 
   pool.wait_work();
 
-  foreach (Shader *shader, updated_shaders) {
+  for (Shader *shader : updated_shaders) {
     shader->tag_update(scene);
   }
 }

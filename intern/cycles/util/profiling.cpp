@@ -5,7 +5,6 @@
 #include <cassert>
 #include <thread>
 
-#include "util/foreach.h"
 #include "util/profiling.h"
 
 CCL_NAMESPACE_BEGIN
@@ -23,7 +22,7 @@ void Profiler::run()
   auto start_time = std::chrono::system_clock::now();
   while (!do_stop_worker) {
     thread_scoped_lock lock(mutex);
-    foreach (ProfilingState *state, states) {
+    for (ProfilingState *state : states) {
       uint32_t cur_event = state->event;
       int32_t cur_shader = state->shader;
       int32_t cur_object = state->object;

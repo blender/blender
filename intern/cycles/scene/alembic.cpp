@@ -14,7 +14,6 @@
 #include "scene/scene.h"
 #include "scene/shader.h"
 
-#include "util/foreach.h"
 #include "util/log.h"
 #include "util/progress.h"
 #include "util/transform.h"
@@ -397,7 +396,7 @@ static void concatenate_xform_samples(const MatrixSampleMap &parent_samples,
     union_of_samples.insert(pair.first);
   }
 
-  foreach (chrono_t time, union_of_samples) {
+  for (chrono_t time : union_of_samples) {
     M44d parent_matrix = get_interpolated_matrix_for_time(parent_samples, time);
     M44d local_matrix = get_interpolated_matrix_for_time(local_samples, time);
 
@@ -698,10 +697,10 @@ AttributeRequestSet AlembicObject::get_requested_attributes()
   Geometry *geometry = object->get_geometry();
   assert(geometry);
 
-  foreach (Node *node, geometry->get_used_shaders()) {
+  for (Node *node : geometry->get_used_shaders()) {
     Shader *shader = static_cast<Shader *>(node);
 
-    foreach (const AttributeRequest &attr, shader->attributes.requests) {
+    for (const AttributeRequest &attr : shader->attributes.requests) {
       if (!attr.name.empty()) {
         requested_attributes.add(attr.name);
       }
@@ -797,7 +796,7 @@ AlembicProcedural::~AlembicProcedural()
   ccl::set<Object *> objects_set;
   ccl::set<AlembicObject *> abc_objects_set;
 
-  foreach (Node *node, objects) {
+  for (Node *node : objects) {
     AlembicObject *abc_object = static_cast<AlembicObject *>(node);
 
     if (abc_object->get_object()) {
@@ -835,7 +834,7 @@ void AlembicProcedural::generate(Scene *scene, Progress &progress)
   bool need_shader_updates = false;
   bool need_data_updates = false;
 
-  foreach (Node *object_node, objects) {
+  for (Node *object_node : objects) {
     AlembicObject *object = static_cast<AlembicObject *>(object_node);
 
     if (object->is_modified()) {
@@ -853,7 +852,7 @@ void AlembicProcedural::generate(Scene *scene, Progress &progress)
     }
 
     /* Check for changes in shaders (e.g. newly requested attributes). */
-    foreach (Node *shader_node, object->get_used_shaders()) {
+    for (Node *shader_node : object->get_used_shaders()) {
       Shader *shader = static_cast<Shader *>(shader_node);
 
       if (shader->need_update_geometry()) {
@@ -938,7 +937,7 @@ void AlembicProcedural::generate(Scene *scene, Progress &progress)
 
   build_caches(progress);
 
-  foreach (Node *node, objects) {
+  for (Node *node : objects) {
     AlembicObject *object = static_cast<AlembicObject *>(node);
 
     if (progress.get_cancel()) {
@@ -985,7 +984,7 @@ void AlembicProcedural::tag_update(Scene *scene)
 
 AlembicObject *AlembicProcedural::get_or_create_object(const ustring &path)
 {
-  foreach (Node *node, objects) {
+  for (Node *node : objects) {
     AlembicObject *object = static_cast<AlembicObject *>(node);
 
     if (object->get_path() == path) {
@@ -1005,7 +1004,7 @@ void AlembicProcedural::load_objects(Progress &progress)
 {
   unordered_map<string, AlembicObject *> object_map;
 
-  foreach (Node *node, objects) {
+  for (Node *node : objects) {
     AlembicObject *object = static_cast<AlembicObject *>(node);
 
     /* only consider newly added objects */
@@ -1058,7 +1057,7 @@ void AlembicProcedural::load_objects(Progress &progress)
   }
 
   /* Share geometries between instances. */
-  foreach (Node *node, objects) {
+  for (Node *node : objects) {
     AlembicObject *abc_object = static_cast<AlembicObject *>(node);
 
     if (abc_object->instance_of) {

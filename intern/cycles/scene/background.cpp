@@ -12,7 +12,6 @@
 #include "scene/shader_nodes.h"
 #include "scene/stats.h"
 
-#include "util/foreach.h"
 #include "util/math.h"
 #include "util/time.h"
 

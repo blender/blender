@@ -12,8 +12,6 @@
 #include "blender/sync.h"
 #include "blender/util.h"
 
-#include "util/foreach.h"
-
 #include "DNA_pointcloud_types.h"
 
 #include "BKE_attribute.hh"
@@ -220,7 +218,7 @@ void BlenderSync::sync_pointcloud(PointCloud *pointcloud, BObjectInfo &b_ob_info
   }
 
   pointcloud->attributes.clear();
-  foreach (Attribute &attr, new_pointcloud.attributes.attributes) {
+  for (Attribute &attr : new_pointcloud.attributes.attributes) {
     pointcloud->attributes.attributes.push_back(std::move(attr));
   }
 

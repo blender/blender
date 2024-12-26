@@ -7,7 +7,6 @@
 #include "scene/scene.h"
 #include "scene/stats.h"
 
-#include "util/foreach.h"
 #include "util/log.h"
 #include "util/progress.h"
 

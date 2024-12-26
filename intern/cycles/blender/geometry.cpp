@@ -12,7 +12,6 @@
 #include "blender/sync.h"
 #include "blender/util.h"
 
-#include "util/foreach.h"
 #include "util/task.h"
 
 CCL_NAMESPACE_BEGIN
@@ -130,7 +129,7 @@ Geometry *BlenderSync::sync_geometry(BL::Depsgraph &b_depsgraph,
        * because the shader needs different geometry attributes. */
       bool attribute_recalc = false;
 
-      foreach (Node *node, geom->get_used_shaders()) {
+      for (Node *node : geom->get_used_shaders()) {
         Shader *shader = static_cast<Shader *>(node);
         if (shader->need_update_geometry()) {
           attribute_recalc = true;

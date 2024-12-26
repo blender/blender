@@ -4,7 +4,6 @@
 
 #include "scene/curves.h"
 
-#include "util/foreach.h"
 #include "util/math.h"
 
 CCL_NAMESPACE_BEGIN

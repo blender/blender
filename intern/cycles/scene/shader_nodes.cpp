@@ -18,7 +18,7 @@
 #include "sky_model.h"
 
 #include "util/color.h"
-#include "util/foreach.h"
+
 #include "util/log.h"
 #include "util/transform.h"
 
@@ -326,8 +326,8 @@ void ImageTextureNode::cull_tiles(Scene *scene, ShaderGraph *graph)
   /* TODO(lukas): This is quite inefficient. A fairly simple improvement would
    * be to have a cache in each mesh that is indexed by attribute.
    * Additionally, building a graph-to-meshes list once could help. */
-  foreach (Geometry *geom, scene->geometry) {
-    foreach (Node *node, geom->get_used_shaders()) {
+  for (Geometry *geom : scene->geometry) {
+    for (Node *node : geom->get_used_shaders()) {
       Shader *shader = static_cast<Shader *>(node);
       if (shader->graph == graph) {
         geom->get_uv_tiles(attribute, used_tiles);
@@ -336,7 +336,7 @@ void ImageTextureNode::cull_tiles(Scene *scene, ShaderGraph *graph)
   }
 
   array<int> new_tiles;
-  foreach (int tile, tiles) {
+  for (int tile : tiles) {
     if (used_tiles.count(tile)) {
       new_tiles.push_back_slow(tile);
     }

@@ -7,8 +7,6 @@
 #include "device/device.h"
 #include "session/buffers.h"
 
-#include "util/foreach.h"
-
 CCL_NAMESPACE_BEGIN
 
 /* --------------------------------------------------------------------

@@ -19,7 +19,6 @@
 
 #include "integrator/shader_eval.h"
 
-#include "util/foreach.h"
 #include "util/hash.h"
 #include "util/log.h"
 #include "util/path.h"
@@ -220,14 +219,14 @@ LightManager::LightManager()
 
 LightManager::~LightManager()
 {
-  foreach (IESSlot *slot, ies_slots) {
+  for (IESSlot *slot : ies_slots) {
     delete slot;
   }
 }
 
 bool LightManager::has_background_light(Scene *scene)
 {
-  foreach (Light *light, scene->lights) {
+  for (Light *light : scene->lights) {
     if (light->light_type == LIGHT_BACKGROUND && light->is_enabled) {
       return true;
     }
@@ -242,7 +241,7 @@ void LightManager::test_enabled_lights(Scene *scene)
    * got portals or not).
    */
   bool has_portal = false, has_background = false;
-  foreach (Light *light, scene->lights) {
+  for (Light *light : scene->lights) {
     light->is_enabled = light->has_contribution(scene);
     has_portal |= light->is_portal;
     has_background |= light->light_type == LIGHT_BACKGROUND;
@@ -261,7 +260,7 @@ void LightManager::test_enabled_lights(Scene *scene)
     if (disable_mis) {
       VLOG_INFO << "Background MIS has been disabled.\n";
     }
-    foreach (Light *light, scene->lights) {
+    for (Light *light : scene->lights) {
       if (light->light_type == LIGHT_BACKGROUND) {
         light->is_enabled = !disable_mis;
         background_enabled = !disable_mis;
@@ -298,7 +297,7 @@ void LightManager::device_update_distribution(Device * /*unused*/,
 
   const int num_lights = kintegrator->num_lights;
   const size_t max_num_triangles = std::numeric_limits<int>::max() - 1 - kintegrator->num_lights;
-  foreach (Object *object, scene->objects) {
+  for (Object *object : scene->objects) {
     if (progress.get_cancel()) {
       return;
     }
@@ -344,7 +343,7 @@ void LightManager::device_update_distribution(Device * /*unused*/,
   size_t offset = 0;
   int j = 0;
 
-  foreach (Object *object, scene->objects) {
+  for (Object *object : scene->objects) {
     if (progress.get_cancel()) {
       return;
     }
@@ -421,7 +420,7 @@ void LightManager::device_update_distribution(Device * /*unused*/,
 
   if (num_lights > 0) {
     float lightarea = (totarea > 0.0f) ? totarea / num_lights : 1.0f;
-    foreach (Light *light, scene->lights) {
+    for (Light *light : scene->lights) {
       if (!light->is_enabled) {
         continue;
       }
@@ -951,7 +950,7 @@ void LightManager::device_update_background(Device *device,
   bool background_mis = false;
 
   /* find background light */
-  foreach (Light *light, scene->lights) {
+  for (Light *light : scene->lights) {
     if (light->light_type == LIGHT_BACKGROUND && light->is_enabled) {
       background_light = light;
       background_mis |= light->use_mis;
@@ -976,7 +975,7 @@ void LightManager::device_update_background(Device *device,
   Shader *shader = scene->background->get_shader(scene);
   int num_suns = 0;
   float sun_average_radiance = 0.0f;
-  foreach (ShaderNode *node, shader->graph->nodes) {
+  for (ShaderNode *node : shader->graph->nodes) {
     if (node->type == EnvironmentTextureNode::get_node_type()) {
       EnvironmentTextureNode *env = (EnvironmentTextureNode *)node;
       if (!env->handle.empty()) {
@@ -1125,7 +1124,7 @@ void LightManager::device_update_lights(DeviceScene *dscene, Scene *scene)
   size_t num_distant_lights = 0;
   bool use_light_mis = false;
 
-  foreach (Light *light, scene->lights) {
+  for (Light *light : scene->lights) {
     if (light->is_enabled) {
       num_lights++;
 
@@ -1165,7 +1164,7 @@ void LightManager::device_update_lights(DeviceScene *dscene, Scene *scene)
   int light_index = 0;
   int portal_index = num_lights;
 
-  foreach (Light *light, scene->lights) {
+  for (Light *light : scene->lights) {
     /* Consider moving portals update to their own function
      * keeping this one more manageable. */
     if (light->is_portal) {
@@ -1560,7 +1559,7 @@ void LightManager::remove_ies(int slot)
 void LightManager::device_update_ies(DeviceScene *dscene)
 {
   /* Clear empty slots. */
-  foreach (IESSlot *slot, ies_slots) {
+  for (IESSlot *slot : ies_slots) {
     if (slot->users == 0) {
       slot->hash = 0;
       slot->ies.clear();
@@ -1581,7 +1580,7 @@ void LightManager::device_update_ies(DeviceScene *dscene)
 
   if (!ies_slots.empty()) {
     int packed_size = 0;
-    foreach (IESSlot *slot, ies_slots) {
+    for (IESSlot *slot : ies_slots) {
       packed_size += slot->ies.packed_size();
     }
 

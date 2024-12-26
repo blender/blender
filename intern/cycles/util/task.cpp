@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0 */
 
 #include "util/task.h"
-#include "util/foreach.h"
+
 #include "util/log.h"
 #include "util/time.h"
 

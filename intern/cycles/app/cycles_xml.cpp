@@ -22,7 +22,6 @@
 #include "scene/shader_graph.h"
 #include "scene/shader_nodes.h"
 
-#include "util/foreach.h"
 #include "util/path.h"
 #include "util/projection.h"
 #include "util/transform.h"
@@ -71,8 +70,9 @@ static bool xml_read_int_array(vector<int> &value, xml_node node, const char *na
     vector<string> tokens;
     string_split(tokens, attr.value());
 
-    foreach (const string &token, tokens)
+    for (const string &token : tokens) {
       value.push_back(atoi(token.c_str()));
+    }
 
     return true;
   }
@@ -100,8 +100,9 @@ static bool xml_read_float_array(vector<float> &value, xml_node node, const char
     vector<string> tokens;
     string_split(tokens, attr.value());
 
-    foreach (const string &token, tokens)
+    for (const string &token : tokens) {
       value.push_back((float)atof(token.c_str()));
+    }
 
     return true;
   }
@@ -251,10 +252,11 @@ static void xml_read_shader_graph(XMLReadState &state, Shader *shader, xml_node 
         if (graph_reader.node_map.find(from_node_name) != graph_reader.node_map.end()) {
           ShaderNode *fromnode = (ShaderNode *)graph_reader.node_map[from_node_name];
 
-          foreach (ShaderOutput *out, fromnode->outputs)
+          for (ShaderOutput *out : fromnode->outputs) {
             if (string_iequals(out->socket_type.name.string(), from_socket_name.string())) {
               output = out;
             }
+          }
 
           if (!output) {
             fprintf(stderr,
@@ -270,10 +272,11 @@ static void xml_read_shader_graph(XMLReadState &state, Shader *shader, xml_node 
         if (graph_reader.node_map.find(to_node_name) != graph_reader.node_map.end()) {
           ShaderNode *tonode = (ShaderNode *)graph_reader.node_map[to_node_name];
 
-          foreach (ShaderInput *in, tonode->inputs)
+          for (ShaderInput *in : tonode->inputs) {
             if (string_iequals(in->socket_type.name.string(), to_socket_name.string())) {
               input = in;
             }
+          }
 
           if (!input) {
             fprintf(stderr,
@@ -691,7 +694,7 @@ static void xml_read_state(XMLReadState &state, xml_node node)
   if (xml_read_string(&shadername, node, "shader")) {
     bool found = false;
 
-    foreach (Shader *shader, state.scene->shaders) {
+    for (Shader *shader : state.scene->shaders) {
       if (shader->name == shadername) {
         state.shader = shader;
         found = true;
@@ -710,7 +713,7 @@ static void xml_read_state(XMLReadState &state, xml_node node)
   if (xml_read_string(&objectname, node, "object")) {
     bool found = false;
 
-    foreach (Object *object, state.scene->objects) {
+    for (Object *object : state.scene->objects) {
       if (object->name == objectname) {
         state.object = object;
         found = true;

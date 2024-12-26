@@ -49,7 +49,6 @@ set(SRC_HEADERS
   deque.h
   disjoint_set.h
   guarded_allocator.cpp
-  foreach.h
   guarded_allocator.h
   guiding.h
   half.h

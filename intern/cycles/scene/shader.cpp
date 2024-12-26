@@ -20,7 +20,6 @@
 #include "scene/svm.h"
 #include "scene/tables.h"
 
-#include "util/foreach.h"
 #include "util/log.h"
 #include "util/murmurhash.h"
 #include "util/transform.h"
@@ -236,7 +235,7 @@ static float3 output_estimate_emission(ShaderOutput *output, bool &is_constant)
       estimate = zero_float3();
     }
 
-    foreach (const ShaderInput *in, node->inputs) {
+    for (const ShaderInput *in : node->inputs) {
       if (in->type() == SocketType::CLOSURE && in->link) {
         estimate += output_estimate_emission(in->link, is_constant);
       }
@@ -255,7 +254,7 @@ void Shader::estimate_emission()
   /* If the shader has AOVs, they need to be evaluated, so we can't skip the shader. */
   emission_is_constant = true;
 
-  foreach (ShaderNode *node, graph->nodes) {
+  for (ShaderNode *node : graph->nodes) {
     if (node->special_type == SHADER_SPECIAL_TYPE_OUTPUT_AOV) {
       emission_is_constant = false;
     }
@@ -350,9 +349,9 @@ void Shader::tag_update(Scene *scene)
   if (!has_surface && !has_volume) {
     /* If we need to output surface AOVs, add a Transparent BSDF so that the
      * surface shader runs. */
-    foreach (ShaderNode *node, graph->nodes) {
+    for (ShaderNode *node : graph->nodes) {
       if (node->special_type == SHADER_SPECIAL_TYPE_OUTPUT_AOV) {
-        foreach (const ShaderInput *in, node->inputs) {
+        for (const ShaderInput *in : node->inputs) {
           if (in->link) {
             TransparentBsdfNode *transparent = graph->create_node<TransparentBsdfNode>();
             graph->add(transparent);
@@ -376,7 +375,7 @@ void Shader::tag_update(Scene *scene)
   AttributeRequestSet prev_attributes = attributes;
 
   attributes.clear();
-  foreach (ShaderNode *node, graph->nodes) {
+  for (ShaderNode *node : graph->nodes) {
     node->attributes(this, &attributes);
   }
 
@@ -500,7 +499,7 @@ void ShaderManager::device_update(Device *device,
   }
 
   uint id = 0;
-  foreach (Shader *shader, scene->shaders) {
+  for (Shader *shader : scene->shaders) {
     shader->id = id++;
   }
 
@@ -529,7 +528,7 @@ void ShaderManager::device_update_common(Device * /*device*/,
   bool has_volumes = false;
   bool has_transparent_shadow = false;
 
-  foreach (Shader *shader, scene->shaders) {
+  for (Shader *shader : scene->shaders) {
     uint flag = 0;
 
     if (shader->emission_sampling == EMISSION_SAMPLING_FRONT) {
@@ -743,7 +742,7 @@ uint ShaderManager::get_graph_kernel_features(ShaderGraph *graph)
 {
   uint kernel_features = 0;
 
-  foreach (ShaderNode *node, graph->nodes) {
+  for (ShaderNode *node : graph->nodes) {
     kernel_features |= node->get_feature();
     if (node->special_type == SHADER_SPECIAL_TYPE_CLOSURE) {
       BsdfBaseNode *bsdf_node = static_cast<BsdfBaseNode *>(node);
@@ -818,7 +817,7 @@ string ShaderManager::get_cryptomatte_materials(Scene *scene)
 {
   string manifest = "{";
   unordered_set<ustring> materials;
-  foreach (Shader *shader, scene->shaders) {
+  for (Shader *shader : scene->shaders) {
     if (materials.count(shader->name)) {
       continue;
     }

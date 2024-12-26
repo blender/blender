@@ -17,7 +17,6 @@
 #include "scene/stats.h"
 #include "scene/volume.h"
 
-#include "util/foreach.h"
 #include "util/log.h"
 #include "util/map.h"
 #include "util/murmurhash.h"
@@ -236,7 +235,7 @@ void Object::tag_update(Scene *scene)
       flag |= ObjectManager::VISIBILITY_MODIFIED;
     }
 
-    foreach (Node *node, geometry->get_used_shaders()) {
+    for (Node *node : geometry->get_used_shaders()) {
       Shader *shader = static_cast<Shader *>(node);
       if (shader->emission_sampling != EMISSION_SAMPLING_NONE) {
         scene->light_manager->tag_update(scene, LightManager::EMISSIVE_MESH_MODIFIED);
@@ -301,7 +300,7 @@ float Object::compute_volume_step_size() const
   /* Compute step rate from shaders. */
   float step_rate = FLT_MAX;
 
-  foreach (Node *node, mesh->get_used_shaders()) {
+  for (Node *node : mesh->get_used_shaders()) {
     Shader *shader = static_cast<Shader *>(node);
     if (shader->has_volume) {
       if ((shader->get_heterogeneous_volume() && shader->has_volume_spatial_varying) ||
@@ -322,7 +321,7 @@ float Object::compute_volume_step_size() const
   if (geometry->is_volume()) {
     Volume *volume = static_cast<Volume *>(geometry);
 
-    foreach (Attribute &attr, volume->attributes.attributes) {
+    for (Attribute &attr : volume->attributes.attributes) {
       if (attr.element == ATTR_ELEMENT_VOXEL) {
         ImageHandle &handle = attr.data_voxel();
         const ImageMetaData &metadata = handle.metadata();
@@ -404,7 +403,7 @@ bool Object::usable_as_light() const
    * iterate all geometry shaders twice (when counting and when calculating
    * triangle area.
    */
-  foreach (Node *node, geom->get_used_shaders()) {
+  for (Node *node : geom->get_used_shaders()) {
     Shader *shader = static_cast<Shader *>(node);
     if (shader->emission_sampling != EMISSION_SAMPLING_NONE) {
       return true;
@@ -651,7 +650,7 @@ void ObjectManager::device_update_prim_offsets(Device *device, DeviceScene *dsce
   /* On MetalRT, primitive / curve segment offsets can't be baked at BVH build time. Intersection
    * handlers need to apply the offset manually. */
   uint *object_prim_offset = dscene->object_prim_offset.alloc(scene->objects.size());
-  foreach (Object *ob, scene->objects) {
+  for (Object *ob : scene->objects) {
     uint32_t prim_offset = 0;
     if (Geometry *const geom = ob->geometry) {
       if (geom->is_hair()) {
@@ -695,7 +694,7 @@ void ObjectManager::device_update_transforms(DeviceScene *dscene, Scene *scene, 
     uint *motion_offsets = state.motion_offset.resize(scene->objects.size());
     uint motion_offset = 0;
 
-    foreach (Object *ob, scene->objects) {
+    for (Object *ob : scene->objects) {
       *motion_offsets = motion_offset;
       motion_offsets++;
 
@@ -711,7 +710,7 @@ void ObjectManager::device_update_transforms(DeviceScene *dscene, Scene *scene, 
    * 0 is dummy particle, index starts at 1.
    */
   int numparticles = 1;
-  foreach (ParticleSystem *psys, scene->particle_systems) {
+  for (ParticleSystem *psys : scene->particle_systems) {
     state.particle_offset[psys] = numparticles;
     numparticles += psys->particles.size();
   }
@@ -794,7 +793,7 @@ void ObjectManager::device_update(Device *device,
     });
 
     int index = 0;
-    foreach (Object *object, scene->objects) {
+    for (Object *object : scene->objects) {
       object->index = index++;
 
       /* this is a bit too broad, however a bigger refactor might be needed to properly separate
@@ -840,7 +839,7 @@ void ObjectManager::device_update(Device *device,
     apply_static_transforms(dscene, scene, progress);
   }
 
-  foreach (Object *object, scene->objects) {
+  for (Object *object : scene->objects) {
     object->clear_modified();
   }
 }
@@ -882,7 +881,7 @@ void ObjectManager::device_update_flags(Device * /*unused*/,
   /* Object volume intersection. */
   vector<Object *> volume_objects;
   bool has_volume_objects = false;
-  foreach (Object *object, scene->objects) {
+  for (Object *object : scene->objects) {
     if (object->geometry->has_volume) {
       /* If the bounds are not valid it is not always possible to calculate the volume step, and
        * the step size is not needed for the displacement. So, delay calculation of the volume
@@ -901,12 +900,12 @@ void ObjectManager::device_update_flags(Device * /*unused*/,
     }
   }
 
-  foreach (Object *object, scene->objects) {
+  for (Object *object : scene->objects) {
     if (object->geometry->has_volume) {
       object_flag[object->index] |= SD_OBJECT_HAS_VOLUME;
       object_flag[object->index] &= ~SD_OBJECT_HAS_VOLUME_ATTRIBUTES;
 
-      foreach (Attribute &attr, object->geometry->attributes.attributes) {
+      for (Attribute &attr : object->geometry->attributes.attributes) {
         if (attr.element == ATTR_ELEMENT_VOXEL) {
           object_flag[object->index] |= SD_OBJECT_HAS_VOLUME_ATTRIBUTES;
         }
@@ -925,7 +924,7 @@ void ObjectManager::device_update_flags(Device * /*unused*/,
 
     if (bounds_valid) {
       object->intersects_volume = false;
-      foreach (Object *volume_object, volume_objects) {
+      for (Object *volume_object : volume_objects) {
         if (object == volume_object) {
           continue;
         }
@@ -964,7 +963,7 @@ void ObjectManager::device_update_geom_offsets(Device * /*unused*/,
 
   bool update = false;
 
-  foreach (Object *object, scene->objects) {
+  for (Object *object : scene->objects) {
     Geometry *geom = object->geometry;
 
     if (geom->is_mesh()) {
@@ -1021,7 +1020,7 @@ void ObjectManager::apply_static_transforms(DeviceScene *dscene, Scene *scene, P
   bool apply_to_motion = need_motion != Scene::MOTION_PASS;
   int i = 0;
 
-  foreach (Object *object, scene->objects) {
+  for (Object *object : scene->objects) {
     map<Geometry *, int>::iterator it = geometry_users.find(object->geometry);
 
     if (it == geometry_users.end()) {
@@ -1039,7 +1038,7 @@ void ObjectManager::apply_static_transforms(DeviceScene *dscene, Scene *scene, P
   uint *object_flag = dscene->object_flag.data();
 
   /* apply transforms for objects with single user geometry */
-  foreach (Object *object, scene->objects) {
+  for (Object *object : scene->objects) {
     /* Annoying feedback loop here: we can't use is_instanced() because
      * it'll use uninitialized transform_applied flag.
      *
@@ -1122,7 +1121,7 @@ string ObjectManager::get_cryptomatte_objects(Scene *scene)
   string manifest = "{";
 
   unordered_set<ustring> objects;
-  foreach (Object *object, scene->objects) {
+  for (Object *object : scene->objects) {
     if (objects.count(object->name)) {
       continue;
     }
@@ -1138,7 +1137,7 @@ string ObjectManager::get_cryptomatte_assets(Scene *scene)
 {
   string manifest = "{";
   unordered_set<ustring> assets;
-  foreach (Object *ob, scene->objects) {
+  for (Object *ob : scene->objects) {
     if (assets.count(ob->asset_name)) {
       continue;
     }

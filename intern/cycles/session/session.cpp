@@ -20,7 +20,6 @@
 #include "session/output_driver.h"
 #include "session/session.h"
 
-#include "util/foreach.h"
 #include "util/log.h"
 #include "util/math.h"
 #include "util/task.h"

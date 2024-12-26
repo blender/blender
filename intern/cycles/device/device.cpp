@@ -24,7 +24,6 @@
 #  include <hiprtew.h>
 #endif
 
-#include "util/foreach.h"
 #include "util/log.h"
 #include "util/math.h"
 #include "util/string.h"
@@ -230,7 +229,7 @@ vector<DeviceInfo> Device::available_devices(uint mask)
       devices_initialized_mask |= DEVICE_MASK_CUDA;
     }
     if (mask & DEVICE_MASK_CUDA) {
-      foreach (DeviceInfo &info, cuda_devices) {
+      for (DeviceInfo &info : cuda_devices) {
         devices.push_back(info);
       }
     }
@@ -245,7 +244,7 @@ vector<DeviceInfo> Device::available_devices(uint mask)
       }
       devices_initialized_mask |= DEVICE_MASK_OPTIX;
     }
-    foreach (DeviceInfo &info, optix_devices) {
+    for (DeviceInfo &info : optix_devices) {
       devices.push_back(info);
     }
   }
@@ -259,7 +258,7 @@ vector<DeviceInfo> Device::available_devices(uint mask)
       }
       devices_initialized_mask |= DEVICE_MASK_HIP;
     }
-    foreach (DeviceInfo &info, hip_devices) {
+    for (DeviceInfo &info : hip_devices) {
       devices.push_back(info);
     }
   }
@@ -273,7 +272,7 @@ vector<DeviceInfo> Device::available_devices(uint mask)
       }
       devices_initialized_mask |= DEVICE_MASK_ONEAPI;
     }
-    foreach (DeviceInfo &info, oneapi_devices) {
+    for (DeviceInfo &info : oneapi_devices) {
       devices.push_back(info);
     }
   }
@@ -284,7 +283,7 @@ vector<DeviceInfo> Device::available_devices(uint mask)
       device_cpu_info(cpu_devices);
       devices_initialized_mask |= DEVICE_MASK_CPU;
     }
-    foreach (DeviceInfo &info, cpu_devices) {
+    for (DeviceInfo &info : cpu_devices) {
       devices.push_back(info);
     }
   }
@@ -297,7 +296,7 @@ vector<DeviceInfo> Device::available_devices(uint mask)
       }
       devices_initialized_mask |= DEVICE_MASK_METAL;
     }
-    foreach (DeviceInfo &info, metal_devices) {
+    for (DeviceInfo &info : metal_devices) {
       devices.push_back(info);
     }
   }
@@ -401,7 +400,7 @@ DeviceInfo Device::get_multi_device(const vector<DeviceInfo> &subdevices,
   info.use_hardware_raytracing = false;
   info.denoisers = DENOISER_ALL;
 
-  foreach (const DeviceInfo &device, subdevices) {
+  for (const DeviceInfo &device : subdevices) {
     /* Ensure CPU device does not slow down GPU. */
     if (device.type == DEVICE_CPU && subdevices.size() > 1) {
       if (background) {
@@ -561,7 +560,7 @@ void GPUDevice::move_textures_to_host(size_t size, bool for_texture)
     bool max_is_image = false;
 
     thread_scoped_lock lock(device_mem_map_mutex);
-    foreach (MemMap::value_type &pair, device_mem_map) {
+    for (MemMap::value_type &pair : device_mem_map) {
       device_memory &mem = *pair.first;
       Mem *cmem = &pair.second;
 

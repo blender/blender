@@ -16,7 +16,7 @@
 #include "scene/scene.h"
 
 #include "util/color.h"
-#include "util/foreach.h"
+
 #include "util/hash.h"
 #include "util/log.h"
 

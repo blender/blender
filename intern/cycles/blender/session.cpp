@@ -21,7 +21,6 @@
 #include "session/buffers.h"
 #include "session/session.h"
 
-#include "util/foreach.h"
 #include "util/hash.h"
 #include "util/log.h"
 #include "util/murmurhash.h"
