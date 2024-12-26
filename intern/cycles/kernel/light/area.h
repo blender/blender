@@ -6,6 +6,8 @@
 
 #include "kernel/light/common.h"
 
+#include "util/math_intersect.h"
+
 CCL_NAMESPACE_BEGIN
 
 /* Importance sampling.

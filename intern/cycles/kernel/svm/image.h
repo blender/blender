@@ -4,6 +4,17 @@
 
 #pragma once
 
+#include "kernel/globals.h"
+#include "kernel/image.h"
+
+#include "kernel/camera/projection.h"
+
+#include "kernel/geom/object.h"
+
+#include "kernel/svm/util.h"
+
+#include "util/color.h"
+
 CCL_NAMESPACE_BEGIN
 
 ccl_device float4 svm_image_texture(KernelGlobals kg, int id, float x, float y, uint flags)

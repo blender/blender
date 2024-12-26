@@ -4,8 +4,6 @@
 
 #pragma once
 
-#include "kernel/integrator/path_state.h"
-
 #include "kernel/light/distant.h"
 #include "kernel/light/light.h"
 #include "kernel/light/sample.h"

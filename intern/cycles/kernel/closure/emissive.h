@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include "kernel/types.h"
+
 CCL_NAMESPACE_BEGIN
 
 /* BACKGROUND CLOSURE */

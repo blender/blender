@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "kernel/globals.h"
+
 CCL_NAMESPACE_BEGIN
 
 /* IES Light */

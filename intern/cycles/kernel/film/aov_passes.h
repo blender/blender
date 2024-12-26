@@ -4,8 +4,6 @@
 
 #pragma once
 
-#include "kernel/geom/geom.h"
-
 #include "kernel/film/write.h"
 
 CCL_NAMESPACE_BEGIN

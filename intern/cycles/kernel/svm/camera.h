@@ -4,6 +4,10 @@
 
 #pragma once
 
+#include "kernel/globals.h"
+
+#include "kernel/svm/util.h"
+
 CCL_NAMESPACE_BEGIN
 
 ccl_device_noinline void svm_node_camera(KernelGlobals kg,

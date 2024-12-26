@@ -9,6 +9,8 @@
 
 #include "kernel/integrator/shadow_catcher.h"
 
+#include "util/atomic.h"
+
 CCL_NAMESPACE_BEGIN
 
 /* --------------------------------------------------------------------

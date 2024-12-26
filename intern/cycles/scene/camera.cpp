@@ -18,10 +18,6 @@
 #include "util/time.h"
 #include "util/vector.h"
 
-/* needed for calculating differentials */
-#include "kernel/device/cpu/compat.h"
-#include "kernel/device/cpu/globals.h"
-
 #include "kernel/camera/camera.h"
 
 CCL_NAMESPACE_BEGIN

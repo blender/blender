@@ -4,6 +4,11 @@
 
 #pragma once
 
+#include "kernel/tables.h"
+#include "kernel/types.h"
+
+#include "kernel/svm/types.h"
+
 CCL_NAMESPACE_BEGIN
 
 ccl_device void svm_vector_math(ccl_private float *value,

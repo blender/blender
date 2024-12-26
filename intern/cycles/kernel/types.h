@@ -4,6 +4,10 @@
 
 #pragma once
 
+#ifndef __KERNEL_GPU__
+#  include "kernel/device/cpu/compat.h"
+#endif
+
 #if (!defined(__KERNEL_GPU__) || (defined(__KERNEL_ONEAPI__) && defined(WITH_EMBREE_GPU))) && \
     defined(WITH_EMBREE)
 #  if EMBREE_MAJOR_VERSION == 4
@@ -20,13 +24,8 @@
 #  include <TargetConditionals.h>
 #endif
 
-#include "util/math.h"
-#include "util/math_fast.h"
-#include "util/math_intersect.h"
 #include "util/projection.h"
 #include "util/static_assert.h"
-#include "util/texture.h"
-#include "util/transform.h"
 
 #include "kernel/svm/types.h"
 

@@ -2,6 +2,14 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
+#pragma once
+
+#include "kernel/globals.h"
+
+#include "kernel/geom/attribute.h"
+#include "kernel/geom/motion_point.h"
+#include "kernel/geom/object.h"
+
 CCL_NAMESPACE_BEGIN
 
 /* Point Primitive

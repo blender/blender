@@ -11,20 +11,14 @@
 #  pragma GCC diagnostic ignored "-Wuninitialized"
 #endif
 
-#include <string.h>
+#include <cstring>
 
 #include "scene/colorspace.h"
-#include "scene/mesh.h"
 #include "scene/object.h"
-#include "scene/pointcloud.h"
-#include "scene/scene.h"
 
-#include "util/foreach.h"
 #include "util/log.h"
 #include "util/string.h"
 
-#include "kernel/device/cpu/compat.h"
-#include "kernel/device/cpu/globals.h"
 #include "kernel/device/cpu/image.h"
 
 #include "kernel/osl/globals.h"
@@ -32,18 +26,18 @@
 #include "kernel/osl/types.h"
 
 #include "kernel/integrator/state.h"
-#include "kernel/integrator/state_flow.h"
 
-#include "kernel/geom/geom.h"
+#include "kernel/geom/primitive.h"
+#include "kernel/geom/shader_data.h"
 
 #include "kernel/bvh/bvh.h"
 
 #include "kernel/camera/camera.h"
-#include "kernel/camera/projection.h"
 
-#include "kernel/integrator/path_state.h"
+#include "kernel/svm/ao.h"
+#include "kernel/svm/bevel.h"
 
-#include "kernel/svm/svm.h"
+#include "kernel/util/ies.h"
 
 CCL_NAMESPACE_BEGIN
 

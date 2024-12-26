@@ -4,6 +4,16 @@
 
 #pragma once
 
+#include "kernel/globals.h"
+
+#include "kernel/geom/attribute.h"
+#include "kernel/geom/object.h"
+#include "kernel/geom/primitive.h"
+
+#include "kernel/svm/util.h"
+
+#include "kernel/util/differential.h"
+
 CCL_NAMESPACE_BEGIN
 
 /* Bump Eval Nodes */

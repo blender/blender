@@ -4,6 +4,9 @@
 
 #pragma once
 
+#include "kernel/svm/math_util.h"
+#include "kernel/svm/util.h"
+
 CCL_NAMESPACE_BEGIN
 
 ccl_device_noinline void svm_node_gamma(ccl_private ShaderData *sd,

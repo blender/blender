@@ -7,7 +7,11 @@
 #include "kernel/bvh/types.h"
 #include "kernel/bvh/util.h"
 
-#include "kernel/integrator/state_util.h"
+#include "kernel/geom/curve_intersect.h"
+#include "kernel/geom/motion_triangle_intersect.h"
+#include "kernel/geom/object.h"
+#include "kernel/geom/point_intersect.h"
+#include "kernel/geom/triangle_intersect.h"
 
 /* Device specific acceleration structures for ray tracing. */
 

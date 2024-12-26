@@ -4,8 +4,7 @@
 
 #pragma once
 
-#include "kernel/device/cpu/compat.h"
-#include "kernel/device/cpu/globals.h"
+#include "kernel/globals.h"
 
 CCL_NAMESPACE_BEGIN
 

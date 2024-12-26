@@ -2,7 +2,10 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
+#include "kernel/globals.h"
+
 #include "kernel/sample/util.h"
+
 #include "util/hash.h"
 
 #pragma once

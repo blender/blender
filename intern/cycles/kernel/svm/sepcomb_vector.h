@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "kernel/svm/util.h"
+
 CCL_NAMESPACE_BEGIN
 
 /* Vector combine / separate, used for the RGB and XYZ nodes */

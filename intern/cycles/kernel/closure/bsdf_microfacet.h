@@ -8,10 +8,10 @@
 #pragma once
 
 #include "kernel/closure/bsdf_util.h"
-
-#include "kernel/sample/pattern.h"
-
+#include "kernel/sample/mapping.h"
 #include "kernel/util/lookup_table.h"
+
+#include "util/math_fast.h"
 
 CCL_NAMESPACE_BEGIN
 

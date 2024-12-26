@@ -8,8 +8,12 @@
 #pragma once
 
 #ifndef __KERNEL_GPU__
-#  include <fenv.h>
+#  include <cfenv>
 #endif
+
+#include "kernel/types.h"
+
+#include "kernel/closure/bsdf_util.h"
 
 #include "kernel/util/colorspace.h"
 

@@ -4,6 +4,9 @@
 
 #pragma once
 
+#include "util/math_fast.h"
+#include "util/projection.h"
+
 CCL_NAMESPACE_BEGIN
 
 /* Given a random number, sample a direction that makes an angle of theta with direction D. */

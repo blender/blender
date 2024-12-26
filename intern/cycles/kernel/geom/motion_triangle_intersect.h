@@ -15,6 +15,16 @@
 
 #pragma once
 
+#include "kernel/globals.h"
+#include "kernel/types.h"
+
+#include "kernel/geom/motion_triangle.h"
+#include "kernel/geom/object.h"
+
+#include "kernel/sample/lcg.h"
+
+#include "util/math_intersect.h"
+
 CCL_NAMESPACE_BEGIN
 
 /**

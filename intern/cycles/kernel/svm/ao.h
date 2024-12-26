@@ -4,7 +4,15 @@
 
 #pragma once
 
+#include "kernel/globals.h"
+
+#include "kernel/integrator/path_state.h"
+
 #include "kernel/bvh/bvh.h"
+
+#include "kernel/sample/mapping.h"
+
+#include "kernel/svm/util.h"
 
 CCL_NAMESPACE_BEGIN
 

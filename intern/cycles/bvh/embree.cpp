@@ -27,8 +27,7 @@
 #  include "bvh/embree.h"
 
 #  include "kernel/device/cpu/bvh.h"
-#  include "kernel/device/cpu/compat.h"
-#  include "kernel/device/cpu/globals.h"
+#  include "kernel/globals.h"
 
 #  include "scene/hair.h"
 #  include "scene/mesh.h"

@@ -9,7 +9,17 @@
 
 #pragma once
 
+#include "kernel/globals.h"
+
 #include "kernel/camera/projection.h"
+
+#include "kernel/geom/attribute.h"
+#include "kernel/geom/curve.h"
+#include "kernel/geom/object.h"
+#include "kernel/geom/point.h"
+#include "kernel/geom/subd_triangle.h"
+#include "kernel/geom/triangle.h"
+#include "kernel/geom/volume.h"
 
 CCL_NAMESPACE_BEGIN
 

@@ -4,6 +4,10 @@
 
 #pragma once
 
+#include "kernel/types.h"
+
+#include "kernel/closure/alloc.h"
+
 CCL_NAMESPACE_BEGIN
 
 typedef struct RayPortalClosure {

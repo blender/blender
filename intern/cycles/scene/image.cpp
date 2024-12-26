@@ -14,11 +14,9 @@
 #include "util/image.h"
 #include "util/image_impl.h"
 #include "util/log.h"
-#include "util/path.h"
 #include "util/progress.h"
 #include "util/task.h"
 #include "util/texture.h"
-#include "util/unique_ptr.h"
 
 #ifdef WITH_OSL
 #  include <OSL/oslexec.h>

@@ -7,6 +7,12 @@
 
 #pragma once
 
+#include "kernel/geom/motion_triangle.h"
+#include "kernel/geom/object.h"
+#include "kernel/geom/triangle.h"
+#include "kernel/svm/util.h"
+#include "kernel/util/differential.h"
+
 CCL_NAMESPACE_BEGIN
 
 /* Wireframe Node */

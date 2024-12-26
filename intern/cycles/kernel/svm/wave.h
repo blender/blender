@@ -4,6 +4,9 @@
 
 #pragma once
 
+#include "kernel/svm/fractal_noise.h"
+#include "kernel/svm/util.h"
+
 CCL_NAMESPACE_BEGIN
 
 /* Wave */

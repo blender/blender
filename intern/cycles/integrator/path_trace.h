@@ -14,7 +14,7 @@
 
 #include "session/buffers.h"
 
-#include "util/guiding.h"
+#include "util/guiding.h"  // IWYU pragma: keep
 #include "util/thread.h"
 #include "util/unique_ptr.h"
 #include "util/vector.h"

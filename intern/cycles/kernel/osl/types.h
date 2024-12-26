@@ -8,6 +8,9 @@
 #  include <OSL/oslversion.h>
 #endif
 
+#include "util/defines.h"
+#include "util/types_float3.h"
+
 CCL_NAMESPACE_BEGIN
 
 #if defined(__KERNEL_GPU__)

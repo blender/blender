@@ -12,12 +12,6 @@
 #  pragma GCC diagnostic ignored "-Wuninitialized"
 #endif
 
-#include "util/half.h"
-#include "util/math.h"
-#include "util/simd.h"
-#include "util/texture.h"
-#include "util/types.h"
-
 /* On x86_64, versions of GLIBC < 2.16 have an issue where `expf` is
  * much slower than the double version. This was fixed in GLIBC 2.16. */
 #if !defined(__KERNEL_GPU__) && defined(__x86_64__) && defined(__x86_64__) && \

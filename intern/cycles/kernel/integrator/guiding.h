@@ -4,6 +4,9 @@
 
 #pragma once
 
+#include "kernel/globals.h"
+#include "kernel/types.h"
+
 #include "kernel/closure/alloc.h"
 #include "kernel/closure/bsdf.h"
 #include "kernel/film/write.h"

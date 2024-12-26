@@ -5,6 +5,7 @@
 #pragma once
 
 #include "kernel/svm/noise.h"
+#include "kernel/svm/util.h"
 
 CCL_NAMESPACE_BEGIN
 

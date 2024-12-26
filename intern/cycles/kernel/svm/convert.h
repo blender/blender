@@ -4,6 +4,10 @@
 
 #pragma once
 
+#include "kernel/svm/util.h"
+
+#include "kernel/util/colorspace.h"
+
 CCL_NAMESPACE_BEGIN
 
 /* Conversion Nodes */

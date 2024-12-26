@@ -2,6 +2,12 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
+#pragma once
+
+#include "kernel/globals.h"
+
+#include "kernel/bvh/util.h"
+
 CCL_NAMESPACE_BEGIN
 
 /* Motion Point Primitive

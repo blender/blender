@@ -4,11 +4,10 @@
 
 #pragma once
 
+#include "kernel/types.h"
+
 #include "device/device.h"
 #include "device/memory.h"
-
-#include "util/types.h"
-#include "util/vector.h"
 
 CCL_NAMESPACE_BEGIN
 

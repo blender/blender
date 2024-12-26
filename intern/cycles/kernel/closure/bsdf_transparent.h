@@ -7,6 +7,10 @@
 
 #pragma once
 
+#include "kernel/types.h"
+
+#include "kernel/closure/alloc.h"
+
 CCL_NAMESPACE_BEGIN
 
 ccl_device void bsdf_transparent_setup(ccl_private ShaderData *sd,

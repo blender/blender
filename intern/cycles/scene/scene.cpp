@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#include <stdlib.h>
+#include <cstdlib>
 
 #include "bvh/bvh.h"
 #include "device/device.h"

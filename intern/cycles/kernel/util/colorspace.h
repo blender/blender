@@ -4,6 +4,10 @@
 
 #pragma once
 
+#include "kernel/globals.h"
+
+#include "util/types_spectrum.h"
+
 CCL_NAMESPACE_BEGIN
 
 ccl_device float3 xyz_to_rgb(KernelGlobals kg, float3 xyz)

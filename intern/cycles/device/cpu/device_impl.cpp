@@ -28,8 +28,7 @@
 #include "device/device.h"
 
 // clang-format off
-#include "kernel/device/cpu/compat.h"
-#include "kernel/device/cpu/globals.h"
+#include "kernel/globals.h"
 #include "kernel/device/cpu/kernel.h"
 #include "kernel/types.h"
 

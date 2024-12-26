@@ -9,6 +9,8 @@
 #include "kernel/integrator/surface_shader.h"
 #include "kernel/integrator/volume_stack.h"
 
+#include "kernel/geom/shader_data.h"
+
 CCL_NAMESPACE_BEGIN
 
 ccl_device_inline bool shadow_intersections_has_remaining(const uint num_hits)

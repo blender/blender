@@ -4,6 +4,10 @@
 
 #pragma once
 
+#include "kernel/globals.h"
+
+#include "kernel/integrator/state.h"
+
 #include "kernel/util/colorspace.h"
 
 #ifdef __KERNEL_GPU__

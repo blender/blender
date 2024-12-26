@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "kernel/globals.h"
+
 #include "kernel/integrator/state.h"
 
 #include "kernel/util/differential.h"

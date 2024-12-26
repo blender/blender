@@ -4,6 +4,14 @@
 
 #pragma once
 
+#include "kernel/image.h"
+
+#include "kernel/svm/util.h"
+
+#include "kernel/util/colorspace.h"
+
+#include "util/color.h"
+
 CCL_NAMESPACE_BEGIN
 
 /* Sky texture */

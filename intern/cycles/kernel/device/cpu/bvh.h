@@ -29,8 +29,6 @@
 #include "kernel/integrator/state_util.h"
 #include "kernel/sample/lcg.h"
 
-#include "util/vector.h"
-
 CCL_NAMESPACE_BEGIN
 
 #ifdef __KERNEL_ONEAPI__

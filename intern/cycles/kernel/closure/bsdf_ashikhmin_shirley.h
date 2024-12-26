@@ -16,6 +16,10 @@
 
 #pragma once
 
+#include "kernel/types.h"
+
+#include "kernel/closure/bsdf_microfacet.h"
+
 CCL_NAMESPACE_BEGIN
 
 ccl_device int bsdf_ashikhmin_shirley_setup(ccl_private MicrofacetBsdf *bsdf)

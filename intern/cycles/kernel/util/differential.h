@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "kernel/types.h"
+
 CCL_NAMESPACE_BEGIN
 
 /* See "Tracing Ray Differentials", Homan Igehy, 1999. */

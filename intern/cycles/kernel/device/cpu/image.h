@@ -4,9 +4,14 @@
 
 #pragma once
 
+#include "kernel/device/cpu/compat.h"
+#include "kernel/device/cpu/globals.h"
+
 #ifdef WITH_NANOVDB
 #  include "kernel/util/nanovdb.h"
 #endif
+
+#include "util/half.h"
 
 CCL_NAMESPACE_BEGIN
 

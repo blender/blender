@@ -6,6 +6,7 @@
 #include "scene/mesh.h"
 #include "scene/object.h"
 
+#include "util/math_fast.h"
 #include "util/progress.h"
 
 CCL_NAMESPACE_BEGIN

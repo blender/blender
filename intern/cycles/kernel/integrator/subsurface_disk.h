@@ -2,7 +2,14 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
+#include "kernel/bvh/bvh.h"
+
+#include "kernel/geom/object.h"
+
 #include "kernel/integrator/guiding.h"
+#include "kernel/integrator/path_state.h"
+
+#include "kernel/util/differential.h"
 
 CCL_NAMESPACE_BEGIN
 

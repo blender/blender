@@ -4,15 +4,11 @@
 
 #pragma once
 
-#include "kernel/camera/projection.h"
-
 #include "kernel/film/light_passes.h"
 
 #include "kernel/integrator/guiding.h"
 #include "kernel/integrator/path_state.h"
 #include "kernel/integrator/shadow_catcher.h"
-
-#include "kernel/geom/geom.h"
 
 #include "kernel/light/light.h"
 

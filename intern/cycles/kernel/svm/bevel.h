@@ -5,8 +5,18 @@
 #pragma once
 
 #include "kernel/bvh/bvh.h"
+
+#include "kernel/geom/motion_triangle.h"
+#include "kernel/geom/motion_triangle_shader.h"
+#include "kernel/geom/triangle.h"
+#include "kernel/geom/triangle_intersect.h"
+
+#include "kernel/integrator/path_state.h"
+
 #include "kernel/sample/mapping.h"
 #include "kernel/sample/pattern.h"
+
+#include "kernel/svm/util.h"
 
 CCL_NAMESPACE_BEGIN
 

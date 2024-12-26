@@ -2,23 +2,14 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#include "util/math.h"
 #include "util/string.h"
-#include "util/system.h"
 
 #include "util/array.h"
 #include "util/hash.h"
-#include "util/task.h"
-
-#include "kernel/device/cpu/compat.h"
-#include "kernel/device/cpu/globals.h"
-
-#include "kernel/sample/lcg.h"
-#include "kernel/sample/mapping.h"
-
-#include "kernel/util/colorspace.h"
+#include "util/tbb.h"
 
 #include "kernel/closure/bsdf_microfacet.h"
+#include "kernel/sample/sobol_burley.h"
 
 #include <iostream>
 

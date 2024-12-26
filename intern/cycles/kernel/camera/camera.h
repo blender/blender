@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "kernel/globals.h"
+
 #include "kernel/camera/projection.h"
 #include "kernel/sample/mapping.h"
 #include "kernel/util/differential.h"

@@ -6,11 +6,11 @@
 
 #pragma once
 
-#include "kernel/tables.h"
 #include "kernel/types.h"
-#include "kernel/util/profiling.h"
+#include "kernel/util/profiler.h"
 
-#include "util/guiding.h"
+#include "util/guiding.h"  // IWYU pragma: keep
+#include "util/texture.h"  // IWYU pragma: keep
 
 CCL_NAMESPACE_BEGIN
 

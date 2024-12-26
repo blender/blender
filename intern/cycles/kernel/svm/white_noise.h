@@ -4,6 +4,9 @@
 
 #pragma once
 
+#include "kernel/svm/util.h"
+#include "util/hash.h"
+
 CCL_NAMESPACE_BEGIN
 
 ccl_device_noinline void svm_node_tex_white_noise(KernelGlobals kg,

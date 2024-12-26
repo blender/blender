@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "kernel/globals.h"
+
 #include "kernel/light/light.h"
 #include "kernel/light/triangle.h"
 

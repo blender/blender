@@ -5,6 +5,7 @@
 #pragma once
 
 #include "kernel/svm/color_util.h"
+#include "kernel/svm/util.h"
 
 CCL_NAMESPACE_BEGIN
 

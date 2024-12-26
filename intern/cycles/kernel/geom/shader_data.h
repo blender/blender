@@ -8,6 +8,14 @@
 
 #pragma once
 
+#include "kernel/globals.h"
+
+#include "kernel/geom/curve_intersect.h"
+#include "kernel/geom/motion_triangle_shader.h"
+#include "kernel/geom/object.h"
+#include "kernel/geom/point_intersect.h"
+#include "kernel/geom/triangle_intersect.h"
+
 #include "kernel/util/differential.h"
 
 CCL_NAMESPACE_BEGIN

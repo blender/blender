@@ -2,11 +2,10 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#include "kernel/camera/projection.h"
-
 #include "kernel/bvh/bvh.h"
 
 #include "kernel/integrator/guiding.h"
+#include "kernel/integrator/path_state.h"
 
 #include "util/color.h"
 

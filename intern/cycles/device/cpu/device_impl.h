@@ -24,14 +24,13 @@
 #include "device/memory.h"
 
 // clang-format off
-#include "kernel/device/cpu/compat.h"
 #include "kernel/device/cpu/kernel.h"
-#include "kernel/device/cpu/globals.h"
+#include "kernel/globals.h"
 
 #include "kernel/osl/globals.h"
 // clang-format on
 
-#include "util/guiding.h"
+#include "util/guiding.h"  // IWYU pragma: keep
 #include "util/unique_ptr.h"
 
 CCL_NAMESPACE_BEGIN

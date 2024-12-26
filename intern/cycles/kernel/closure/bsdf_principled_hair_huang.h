@@ -8,9 +8,13 @@
 
 #pragma once
 
+#include "kernel/types.h"
+
+#include "kernel/closure/bsdf_microfacet.h"
+#include "kernel/closure/bsdf_principled_hair_chiang.h"
+#include "kernel/closure/bsdf_transparent.h"
 #include "kernel/closure/bsdf_util.h"
 #include "kernel/sample/lcg.h"
-#include "kernel/util/colorspace.h"
 
 CCL_NAMESPACE_BEGIN
 

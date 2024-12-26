@@ -100,4 +100,4 @@ template<> inline half util_image_multiply_native(half a, half b)
 
 CCL_NAMESPACE_END
 
-#include "util/image_impl.h"
+#include "util/image_impl.h"  // IWYU pragma: export

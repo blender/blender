@@ -6,6 +6,8 @@
 
 #include "kernel/film/aov_passes.h"
 
+#include "kernel/svm/util.h"
+
 CCL_NAMESPACE_BEGIN
 
 ccl_device_inline bool svm_node_aov_check(const uint32_t path_flag,

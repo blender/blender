@@ -2,13 +2,17 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
+/* Constant Globals */
+
 #pragma once
 
 #include "kernel/types.h"
 
 #include "kernel/integrator/state.h"
+#include "kernel/util/profiler.h"
 
-#include "kernel/util/profiling.h"
+#include "util/color.h"
+#include "util/texture.h"
 
 #define HIPRT_SHARED_STACK
 

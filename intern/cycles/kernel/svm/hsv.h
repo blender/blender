@@ -4,6 +4,10 @@
 
 #pragma once
 
+#include "kernel/svm/util.h"
+
+#include "util/color.h"
+
 CCL_NAMESPACE_BEGIN
 
 ccl_device_noinline void svm_node_hsv(KernelGlobals kg,

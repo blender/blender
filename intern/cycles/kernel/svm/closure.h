@@ -9,6 +9,13 @@
 #include "kernel/closure/bsdf_util.h"
 #include "kernel/closure/emissive.h"
 
+#include "kernel/geom/curve.h"
+#include "kernel/geom/object.h"
+#include "kernel/geom/primitive.h"
+
+#include "kernel/svm/math_util.h"
+#include "kernel/svm/util.h"
+
 #include "kernel/util/colorspace.h"
 
 CCL_NAMESPACE_BEGIN

@@ -4,6 +4,14 @@
 
 #pragma once
 
+#include "kernel/geom/curve.h"
+#include "kernel/geom/primitive.h"
+
+#include "kernel/svm/attribute.h"
+#include "kernel/svm/util.h"
+
+#include "util/hash.h"
+
 CCL_NAMESPACE_BEGIN
 
 /* Geometry Node */

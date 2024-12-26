@@ -4,7 +4,16 @@
 
 #pragma once
 
-#include "kernel/geom/geom.h"
+#include "kernel/globals.h"
+
+#include "kernel/light/common.h"
+
+#include "kernel/geom/motion_triangle.h"
+#include "kernel/geom/object.h"
+#include "kernel/geom/triangle.h"
+
+#include "util/math_fast.h"
+#include "util/math_intersect.h"
 
 CCL_NAMESPACE_BEGIN
 

@@ -4,8 +4,12 @@
 
 #pragma once
 
+#include "kernel/globals.h"
+#include "kernel/tables.h"
+
 #include "kernel/sample/sobol_burley.h"
 #include "kernel/sample/tabulated_sobol.h"
+
 #include "util/hash.h"
 
 CCL_NAMESPACE_BEGIN

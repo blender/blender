@@ -23,7 +23,6 @@
 #include "util/foreach.h"
 #include "util/log.h"
 #include "util/murmurhash.h"
-#include "util/task.h"
 #include "util/transform.h"
 
 #ifdef WITH_OCIO

@@ -7,6 +7,10 @@
 
 #pragma once
 
+#include "kernel/types.h"
+
+#include "util/math_fast.h"
+
 CCL_NAMESPACE_BEGIN
 
 typedef struct HairBsdf {

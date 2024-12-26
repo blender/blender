@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include "util/types.h"
+
 CCL_NAMESPACE_BEGIN
 
 #define NANOVDB_USE_SINGLE_ROOT_KEY

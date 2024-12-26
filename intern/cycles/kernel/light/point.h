@@ -6,6 +6,8 @@
 
 #include "kernel/light/common.h"
 
+#include "util/math_intersect.h"
+
 CCL_NAMESPACE_BEGIN
 
 ccl_device_inline bool point_light_sample(const ccl_global KernelLight *klight,

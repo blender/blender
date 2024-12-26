@@ -14,7 +14,8 @@
 #include "kernel/device/cpu/compat.h"
 
 #ifndef KERNEL_STUB
-#    include "kernel/device/cpu/globals.h"
+#    include "kernel/globals.h"
+
 #    include "kernel/device/cpu/image.h"
 
 #    include "kernel/integrator/state.h"

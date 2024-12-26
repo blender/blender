@@ -13,12 +13,17 @@
 
 #include "kernel/light/sample.h"
 
+#include "kernel/geom/motion_triangle.h"
+#include "kernel/geom/triangle.h"
+
 #include "kernel/integrator/mnee.h"
 
 #include "kernel/integrator/guiding.h"
 #include "kernel/integrator/shadow_linking.h"
 #include "kernel/integrator/subsurface.h"
 #include "kernel/integrator/volume_stack.h"
+
+#include "util/math_intersect.h"
 
 CCL_NAMESPACE_BEGIN
 

@@ -6,10 +6,9 @@
 
 /* CPU Kernel Interface */
 
-#include "util/half.h"
-#include "util/types.h"
-
 #include "kernel/types.h"
+
+#include "util/half.h"
 
 CCL_NAMESPACE_BEGIN
 

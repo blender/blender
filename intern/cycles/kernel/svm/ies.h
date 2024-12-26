@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "kernel/svm/util.h"
+
 #include "kernel/util/ies.h"
 
 CCL_NAMESPACE_BEGIN

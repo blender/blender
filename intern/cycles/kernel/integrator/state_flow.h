@@ -4,7 +4,11 @@
 
 #pragma once
 
+#include "kernel/globals.h"
 #include "kernel/types.h"
+
+#include "kernel/integrator/state.h"
+
 #include "util/atomic.h"
 
 CCL_NAMESPACE_BEGIN

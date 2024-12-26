@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "kernel/svm/util.h"
+
 CCL_NAMESPACE_BEGIN
 
 /* NOTE: svm_ramp.h, svm_ramp_util.h and node_ramp_util.h must stay consistent */

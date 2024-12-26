@@ -15,6 +15,12 @@
 
 #pragma once
 
+#include "kernel/globals.h"
+#include "kernel/types.h"
+
+#include "kernel/geom/motion_triangle.h"
+#include "kernel/geom/motion_triangle_intersect.h"
+
 CCL_NAMESPACE_BEGIN
 
 /* Setup of motion triangle specific parts of ShaderData, moved into this one

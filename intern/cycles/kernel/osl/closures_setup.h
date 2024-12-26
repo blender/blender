@@ -13,6 +13,8 @@
 
 #include "kernel/geom/object.h"
 
+#include "kernel/osl/types.h"
+
 CCL_NAMESPACE_BEGIN
 
 #define OSL_CLOSURE_STRUCT_BEGIN(Upper, lower) \

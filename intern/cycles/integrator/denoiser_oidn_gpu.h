@@ -7,9 +7,7 @@
 #if defined(WITH_OPENIMAGEDENOISE)
 
 #  include "integrator/denoiser_gpu.h"
-#  include "util/openimagedenoise.h"
-#  include "util/thread.h"
-#  include "util/unique_ptr.h"
+#  include "util/openimagedenoise.h"  // IWYU pragma: keep
 
 CCL_NAMESPACE_BEGIN
 

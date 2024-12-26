@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "kernel/types.h"
+
 #include "kernel/closure/volume_util.h"
 
 CCL_NAMESPACE_BEGIN

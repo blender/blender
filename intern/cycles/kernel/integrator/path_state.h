@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "kernel/integrator/state.h"
+
 #include "kernel/sample/pattern.h"
 
 CCL_NAMESPACE_BEGIN

@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include "util/defines.h"
+
 CCL_NAMESPACE_BEGIN
 
 /* Multiple importance sampling utilities. */

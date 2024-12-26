@@ -2,9 +2,13 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifdef __MNEE__
+#pragma once
 
-#  include "kernel/light/sample.h"
+#include "kernel/geom/motion_triangle.h"
+#include "kernel/geom/shader_data.h"
+#include "kernel/geom/triangle.h"
+
+#include "kernel/light/sample.h"
 
 /*
  * Manifold Next Event Estimation
@@ -37,15 +41,15 @@
  *  https://cg.ivd.kit.edu/english/HSLT.php
  */
 
-#  define MNEE_MAX_ITERATIONS 64
-#  define MNEE_MAX_INTERSECTION_COUNT 10
-#  define MNEE_SOLVER_THRESHOLD 0.001f
-#  define MNEE_MINIMUM_STEP_SIZE 0.0001f
-#  define MNEE_MAX_CAUSTIC_CASTERS 6
-#  define MNEE_MIN_DISTANCE 0.001f
-#  define MNEE_MIN_PROGRESS_DISTANCE 0.0001f
-#  define MNEE_MIN_DETERMINANT 0.0001f
-#  define MNEE_PROJECTION_DISTANCE_MULTIPLIER 2.f
+#define MNEE_MAX_ITERATIONS 64
+#define MNEE_MAX_INTERSECTION_COUNT 10
+#define MNEE_SOLVER_THRESHOLD 0.001f
+#define MNEE_MINIMUM_STEP_SIZE 0.0001f
+#define MNEE_MAX_CAUSTIC_CASTERS 6
+#define MNEE_MIN_DISTANCE 0.001f
+#define MNEE_MIN_PROGRESS_DISTANCE 0.0001f
+#define MNEE_MIN_DETERMINANT 0.0001f
+#define MNEE_PROJECTION_DISTANCE_MULTIPLIER 2.f
 
 CCL_NAMESPACE_BEGIN
 
@@ -239,13 +243,13 @@ ccl_device_forceinline void mnee_setup_manifold_vertex(KernelGlobals kg,
 
 /* Compute constraint derivatives. */
 
-#  if defined(__KERNEL_METAL__)
+#if defined(__KERNEL_METAL__)
 /* Temporary workaround for front-end compilation bug (incorrect MNEE rendering when this is
  * inlined). */
 __attribute__((noinline))
-#  else
+#else
 ccl_device_forceinline
-#  endif
+#endif
 bool mnee_compute_constraint_derivatives(
     int vertex_count,
     ccl_private ManifoldVertex *vertices,
@@ -1072,5 +1076,3 @@ ccl_device_forceinline int kernel_path_mnee_sample(KernelGlobals kg,
 }
 
 CCL_NAMESPACE_END
-
-#endif /* __MNEE__ */

@@ -20,6 +20,10 @@
 
 #pragma once
 
+#include "kernel/svm/util.h"
+
+#include "util/hash.h"
+
 CCL_NAMESPACE_BEGIN
 
 /* The original Gabor noise paper specifies that the impulses count for each cell should be
@@ -202,9 +206,9 @@ ccl_device float3 compute_3d_orientation(float3 orientation, float isotropy, flo
   }
 
   /* Compute the orientation in spherical coordinates. */
-  float inclination = acos(orientation.z);
+  float inclination = acosf(orientation.z);
   float azimuth = (orientation.y < 0.0f ? -1.0f : 1.0f) *
-                  acos(orientation.x / len(make_float2(orientation.x, orientation.y)));
+                  acosf(orientation.x / len(make_float2(orientation.x, orientation.y)));
 
   /* For isotropic noise, add a random orientation amount, while for anisotropic noise, use the
    * base orientation. Linearly interpolate between the two cases using the isotropy factor. Note
@@ -350,7 +354,7 @@ ccl_device_noinline int svm_node_tex_gabor(KernelGlobals kg,
   /* Compute the phase based on equation (9) in Tricard's paper. But remap the phase into the
    * [0, 1] range. */
   if (stack_valid(phase_stack_offset)) {
-    float phase = (atan2(phasor.y, phasor.x) + M_PI_F) / (2.0f * M_PI_F);
+    float phase = (atan2f(phasor.y, phasor.x) + M_PI_F) / (2.0f * M_PI_F);
     stack_store_float(stack, phase_stack_offset, phase);
   }
 

@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include "kernel/types.h"
+
 #include "kernel/sample/mapping.h"
 #include "kernel/util/colorspace.h"
 

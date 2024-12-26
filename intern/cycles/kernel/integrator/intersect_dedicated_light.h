@@ -5,10 +5,13 @@
 #pragma once
 
 #include "kernel/bvh/bvh.h"
+
 #include "kernel/integrator/path_state.h"
 #include "kernel/integrator/shade_surface.h"
 #include "kernel/integrator/shadow_linking.h"
+
 #include "kernel/light/light.h"
+
 #include "kernel/sample/lcg.h"
 
 CCL_NAMESPACE_BEGIN

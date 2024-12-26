@@ -4,6 +4,9 @@
 
 #pragma once
 
+#include "kernel/globals.h"
+#include "kernel/types.h"
+
 CCL_NAMESPACE_BEGIN
 
 ccl_device_inline bool intersection_ray_valid(ccl_private const Ray *ray)

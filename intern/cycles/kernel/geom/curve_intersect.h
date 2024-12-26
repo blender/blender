@@ -6,6 +6,10 @@
 
 #pragma once
 
+#include "kernel/geom/curve.h"
+#include "kernel/geom/motion_curve.h"
+#include "kernel/geom/object.h"
+
 CCL_NAMESPACE_BEGIN
 
 /* Curve primitive intersection functions.

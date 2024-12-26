@@ -6,6 +6,14 @@
 
 #pragma once
 
+#include "kernel/globals.h"
+#include "kernel/types.h"
+
+#include "kernel/geom/attribute.h"
+#include "kernel/geom/patch.h"
+
+#include "kernel/util/colorspace.h"
+
 CCL_NAMESPACE_BEGIN
 
 /* UV coords of triangle within patch */

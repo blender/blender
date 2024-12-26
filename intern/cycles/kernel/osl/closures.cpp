@@ -16,8 +16,7 @@
 #include "util/math.h"
 #include "util/param.h"
 
-#include "kernel/device/cpu/compat.h"
-#include "kernel/device/cpu/globals.h"
+#include "kernel/globals.h"
 
 #include "kernel/geom/object.h"
 #include "kernel/util/differential.h"

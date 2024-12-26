@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
+#include "kernel/types.h"
+
 #ifndef KERNEL_DATA_ARRAY
 #  define KERNEL_DATA_ARRAY(type, name)
 #endif

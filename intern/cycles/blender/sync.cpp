@@ -30,7 +30,6 @@
 #include "util/foreach.h"
 #include "util/hash.h"
 #include "util/log.h"
-#include "util/openimagedenoise.h"
 
 CCL_NAMESPACE_BEGIN
 

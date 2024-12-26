@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include "kernel/integrator/path_state.h"
 #include "kernel/integrator/surface_shader.h"
 
 #include "kernel/light/distribution.h"
@@ -14,7 +13,8 @@
 #  include "kernel/light/tree.h"
 #endif
 
-#include "kernel/sample/mapping.h"
+#include "kernel/geom/shader_data.h"
+
 #include "kernel/sample/mis.h"
 
 CCL_NAMESPACE_BEGIN

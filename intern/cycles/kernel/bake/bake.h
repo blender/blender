@@ -4,11 +4,13 @@
 
 #pragma once
 
+#include "kernel/globals.h"
+
 #include "kernel/camera/projection.h"
 #include "kernel/integrator/displacement_shader.h"
 #include "kernel/integrator/surface_shader.h"
 
-#include "kernel/geom/geom.h"
+#include "kernel/geom/object.h"
 
 #include "kernel/util/colorspace.h"
 

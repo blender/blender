@@ -6,6 +6,8 @@
 
 #include "kernel/light/common.h"
 
+#include "util/math_intersect.h"
+
 CCL_NAMESPACE_BEGIN
 
 /* Transform vector to spot light's local coordinate system. */

@@ -8,10 +8,13 @@
 #include "kernel/film/light_passes.h"
 
 #include "kernel/integrator/guiding.h"
+#include "kernel/integrator/intersect_closest.h"
 #include "kernel/integrator/surface_shader.h"
 
 #include "kernel/light/light.h"
 #include "kernel/light/sample.h"
+
+#include "kernel/geom/shader_data.h"
 
 CCL_NAMESPACE_BEGIN
 

@@ -24,9 +24,6 @@
 #include "scene/shader_graph.h"
 #include "scene/shader_nodes.h"
 
-#include "subd/patch.h"
-#include "subd/split.h"
-
 #include "util/foreach.h"
 #include "util/path.h"
 #include "util/projection.h"

@@ -4,6 +4,9 @@
 
 #pragma once
 
+#include "kernel/geom/object.h"
+#include "kernel/svm/util.h"
+
 CCL_NAMESPACE_BEGIN
 
 /* Vector Transform */

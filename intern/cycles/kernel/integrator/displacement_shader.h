@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include "kernel/globals.h"
+
 #ifdef __SVM__
 #  include "kernel/svm/svm.h"
 #endif

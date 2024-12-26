@@ -4,6 +4,12 @@
 
 #pragma once
 
+#include "kernel/globals.h"
+#include "kernel/types.h"
+
+#include "kernel/geom/motion_point.h"
+#include "kernel/geom/object.h"
+
 CCL_NAMESPACE_BEGIN
 
 /* Point primitive intersection functions. */

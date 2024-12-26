@@ -9,7 +9,7 @@
 #include "scene/tabulated_sobol.h"
 #include "util/hash.h"
 
-#include <math.h>
+#include <cmath>
 #include <vector>
 
 CCL_NAMESPACE_BEGIN

@@ -6,7 +6,23 @@
  * Adapted code from Open Shading Language. */
 
 #include "kernel/tables.h"
+
+#include "kernel/geom/attribute.h"
+#include "kernel/geom/curve.h"
+#include "kernel/geom/object.h"
+#include "kernel/geom/point.h"
+#include "kernel/geom/primitive.h"
+#include "kernel/geom/triangle.h"
+
+#include "kernel/svm/math_util.h"
+#include "kernel/svm/noise.h"
+
+#include "kernel/util/colorspace.h"
 #include "kernel/util/differential.h"
+#include "kernel/util/ies.h"
+
+#include "util/hash.h"
+#include "util/transform.h"
 
 #include "kernel/osl/osl.h"
 
@@ -254,9 +270,6 @@ ccl_device_extern ccl_private OSLClosure *osl_allocate_weighted_closure_componen
 
 /* Utilities */
 
-#include "kernel/svm/math_util.h"
-#include "kernel/util/colorspace.h"
-
 ccl_device_extern void osl_error(ccl_private ShaderGlobals *sg, const char *format, void *args) {}
 
 ccl_device_extern void osl_printf(ccl_private ShaderGlobals *sg, const char *format, void *args) {}
@@ -428,9 +441,6 @@ ccl_device_extern bool osl_transformc(ccl_private ShaderGlobals *sg,
 }
 
 /* Matrix Utilities */
-
-#include "kernel/geom/object.h"
-#include "util/transform.h"
 
 ccl_device_forceinline void copy_matrix(ccl_private float *res, const Transform &tfm)
 {
@@ -805,8 +815,6 @@ ccl_device_extern float osl_determinant_fm(ccl_private const float *m)
 #endif
 
 /* Attributes */
-
-#include "kernel/geom/geom.h"
 
 typedef long long TypeDesc;
 
@@ -1312,9 +1320,6 @@ ccl_device_extern bool osl_bind_interpolated_param(ccl_private ShaderGlobals *sg
 
 /* Noise */
 
-#include "kernel/svm/noise.h"
-#include "util/hash.h"
-
 ccl_device_extern uint osl_hash_ii(int x)
 {
   return hash_uint(x);
@@ -1561,8 +1566,6 @@ OSL_NOISE_IMPL(osl_noise, noise)
 OSL_NOISE_IMPL(osl_snoise, snoise)
 
 /* Texturing */
-
-#include "kernel/util/ies.h"
 
 ccl_device_extern ccl_private OSLTextureOptions *osl_get_texture_options(
     ccl_private ShaderGlobals *sg)

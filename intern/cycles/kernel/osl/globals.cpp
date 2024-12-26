@@ -4,9 +4,7 @@
 
 #include <OSL/oslexec.h>
 
-#include "kernel/device/cpu/compat.h"
-#include "kernel/device/cpu/globals.h"
-
+#include "kernel/globals.h"
 #include "kernel/types.h"
 
 #include "kernel/osl/globals.h"

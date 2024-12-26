@@ -7,6 +7,10 @@
 
 #pragma once
 
+#include "kernel/types.h"
+
+#include "util/hash.h"
+
 CCL_NAMESPACE_BEGIN
 
 /* **** Perlin Noise **** */

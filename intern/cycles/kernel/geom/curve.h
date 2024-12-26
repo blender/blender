@@ -4,6 +4,11 @@
 
 #pragma once
 
+#include "kernel/globals.h"
+
+#include "kernel/geom/attribute.h"
+#include "kernel/geom/motion_curve.h"
+
 CCL_NAMESPACE_BEGIN
 
 /* Curve Primitive

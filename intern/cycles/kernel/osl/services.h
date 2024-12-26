@@ -16,6 +16,8 @@
 #include <OSL/oslexec.h>
 #include <OSL/rendererservices.h>
 
+#include <OpenImageIO/unordered_map_concurrent.h>
+
 #include "scene/image.h"
 
 #include "kernel/osl/compat.h"

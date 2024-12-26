@@ -4,6 +4,11 @@
 
 #pragma once
 
+#include "kernel/types.h"
+
+#include "kernel/closure/alloc.h"
+#include "kernel/closure/bsdf_diffuse.h"
+
 CCL_NAMESPACE_BEGIN
 
 typedef struct Bssrdf {

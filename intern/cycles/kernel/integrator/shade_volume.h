@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include "kernel/film/data_passes.h"
 #include "kernel/film/denoising_passes.h"
 #include "kernel/film/light_passes.h"
 
@@ -18,7 +17,7 @@
 #include "kernel/light/light.h"
 #include "kernel/light/sample.h"
 
-#include "util/color.h"
+#include "kernel/geom/shader_data.h"
 
 CCL_NAMESPACE_BEGIN
 

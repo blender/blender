@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "kernel/svm/util.h"
+
 CCL_NAMESPACE_BEGIN
 
 ccl_device_noinline int svm_node_normal(KernelGlobals kg,

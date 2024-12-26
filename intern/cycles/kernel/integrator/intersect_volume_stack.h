@@ -5,7 +5,10 @@
 #pragma once
 
 #include "kernel/bvh/bvh.h"
-#include "kernel/geom/geom.h"
+
+#include "kernel/geom/shader_data.h"
+
+#include "kernel/integrator/intersect_closest.h"
 #include "kernel/integrator/volume_stack.h"
 
 CCL_NAMESPACE_BEGIN

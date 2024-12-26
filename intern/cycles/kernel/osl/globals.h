@@ -8,15 +8,11 @@
 
 #  include <OSL/oslexec.h>
 
-#  include <OpenImageIO/refcnt.h>
-#  include <OpenImageIO/unordered_map_concurrent.h>
-
 #  include "kernel/osl/compat.h"
+#  include "kernel/types.h"
 
 #  include "util/map.h"
 #  include "util/param.h"
-#  include "util/thread.h"
-#  include "util/unique_ptr.h"
 #  include "util/vector.h"
 
 #  ifndef WIN32

@@ -219,6 +219,7 @@ set(SRC_KERNEL_SVM_HEADERS
   svm/tex_coord.h
   svm/fractal_noise.h
   svm/types.h
+  svm/util.h
   svm/value.h
   svm/vector_rotate.h
   svm/vector_transform.h
@@ -240,7 +241,6 @@ if(WITH_CYCLES_OSL)
 endif()
 
 set(SRC_KERNEL_GEOM_HEADERS
-  geom/geom.h
   geom/attribute.h
   geom/curve.h
   geom/curve_intersect.h
@@ -357,12 +357,14 @@ set(SRC_KERNEL_UTIL_HEADERS
   util/ies.h
   util/lookup_table.h
   util/nanovdb.h
-  util/profiling.h
+  util/profiler.h
 )
 
 set(SRC_KERNEL_TYPES_HEADERS
   data_arrays.h
   data_template.h
+  globals.h
+  image.h
   tables.h
   types.h
 )

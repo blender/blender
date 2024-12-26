@@ -12,9 +12,10 @@
  * Holds all variables to execute and use OSL shaders from the kernel.
  */
 
+#include "kernel/osl/closures_setup.h"
 #include "kernel/osl/types.h"
 
-#include "kernel/osl/closures_setup.h"
+#include "kernel/util/differential.h"
 
 CCL_NAMESPACE_BEGIN
 

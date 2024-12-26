@@ -7,7 +7,12 @@
 
 #pragma once
 
+#include "kernel/globals.h"
+
 #include "kernel/svm/math_util.h"
+#include "kernel/svm/util.h"
+
+#include "kernel/util/colorspace.h"
 
 CCL_NAMESPACE_BEGIN
 

@@ -33,7 +33,7 @@
 #include "util/types.h"
 
 #ifdef __PATH_GUIDING__
-#  include "util/guiding.h"
+#  include "util/guiding.h"  // IWYU pragma: keep
 #endif
 
 #pragma once

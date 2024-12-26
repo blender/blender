@@ -4,6 +4,10 @@
 
 #pragma once
 
+#include "kernel/svm/types.h"
+
+#include "util/color.h"
+
 CCL_NAMESPACE_BEGIN
 
 ccl_device float3 svm_mix_blend(float t, float3 col1, float3 col2)

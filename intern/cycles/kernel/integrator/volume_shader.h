@@ -6,10 +6,8 @@
 
 #pragma once
 
-#include "kernel/closure/alloc.h"
-#include "kernel/closure/bsdf.h"
-#include "kernel/closure/bsdf_util.h"
-#include "kernel/closure/emissive.h"
+#include "kernel/geom/attribute.h"
+#include "kernel/geom/shader_data.h"
 
 #ifdef __SVM__
 #  include "kernel/svm/svm.h"
@@ -17,6 +15,10 @@
 #ifdef __OSL__
 #  include "kernel/osl/osl.h"
 #endif
+
+#include "kernel/film/light_passes.h"
+
+#include "kernel/integrator/guiding.h"
 
 CCL_NAMESPACE_BEGIN
 

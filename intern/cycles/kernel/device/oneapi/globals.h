@@ -2,11 +2,17 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
+/* Constant Globals */
+
 #pragma once
 
-#include "kernel/integrator/state.h"
 #include "kernel/types.h"
-#include "kernel/util/profiling.h"
+
+#include "kernel/integrator/state.h"
+#include "kernel/util/profiler.h"
+
+#include "util/color.h"
+#include "util/texture.h"
 
 CCL_NAMESPACE_BEGIN
 

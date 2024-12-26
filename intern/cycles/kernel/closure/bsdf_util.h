@@ -7,6 +7,10 @@
 
 #pragma once
 
+#include "kernel/types.h"
+
+#include "kernel/util/colorspace.h"
+
 #include "util/color.h"
 
 CCL_NAMESPACE_BEGIN

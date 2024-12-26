@@ -5,8 +5,12 @@
 #pragma once
 
 #include "kernel/camera/camera.h"
-#include "kernel/geom/geom.h"
-#include "kernel/sample/mapping.h"
+
+#include "kernel/geom/object.h"
+#include "kernel/geom/primitive.h"
+
+#include "kernel/svm/attribute.h"
+#include "kernel/svm/util.h"
 
 CCL_NAMESPACE_BEGIN
 

@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "kernel/geom/geom.h"
+#include "kernel/closure/bsdf.h"
 
 #include "kernel/film/write.h"
 

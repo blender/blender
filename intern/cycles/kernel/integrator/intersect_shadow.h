@@ -4,6 +4,15 @@
 
 #pragma once
 
+#include "kernel/globals.h"
+#include "kernel/types.h"
+
+#include "kernel/bvh/bvh.h"
+
+#include "kernel/integrator/state.h"
+#include "kernel/integrator/state_flow.h"
+#include "kernel/integrator/state_util.h"
+
 CCL_NAMESPACE_BEGIN
 
 /* Visibility for the shadow ray. */

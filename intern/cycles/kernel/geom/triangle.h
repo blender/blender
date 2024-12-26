@@ -10,6 +10,10 @@
 
 #pragma once
 
+#include "kernel/globals.h"
+
+#include "kernel/geom/object.h"
+
 #include "util/color.h"
 
 CCL_NAMESPACE_BEGIN

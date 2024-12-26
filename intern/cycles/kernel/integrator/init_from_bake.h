@@ -14,8 +14,6 @@
 
 #include "kernel/sample/pattern.h"
 
-#include "kernel/geom/geom.h"
-
 CCL_NAMESPACE_BEGIN
 
 /* In order to perform anti-aliasing during baking, we jitter the input barycentric coordinates

@@ -9,7 +9,9 @@
  * https://tizianzeltner.com/projects/Zeltner2022Practical/
  */
 
-#include "kernel/closure/bsdf_util.h"
+#include "kernel/sample/mapping.h"
+
+#include "kernel/util/lookup_table.h"
 
 CCL_NAMESPACE_BEGIN
 

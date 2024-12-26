@@ -4,9 +4,11 @@
 
 #pragma once
 
-#include "kernel/geom/geom.h"
+#include "kernel/geom/object.h"
 
 #include "kernel/light/common.h"
+
+#include "util/math_fast.h"
 
 CCL_NAMESPACE_BEGIN
 
