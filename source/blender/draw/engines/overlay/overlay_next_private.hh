@@ -64,7 +64,7 @@ struct BoneInstanceData {
     mat44[0] = ob_mat[0] * radius;
     mat44[1] = ob_mat[1] * radius;
     mat44[2] = ob_mat[2] * radius;
-    mat44[3] = float4(blender::math::transform_point(ob_mat, pos));
+    mat44[3] = float4(blender::math::transform_point(ob_mat, pos), 0.0f);
     set_color(color);
   }
 
