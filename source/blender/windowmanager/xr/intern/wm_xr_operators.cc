@@ -17,6 +17,8 @@
 #include "BLI_math_vector.h"
 #include "BLI_time.h"
 
+#include "BLT_translation.hh"
+
 #include "BKE_context.hh"
 #include "BKE_global.hh"
 #include "BKE_idprop.hh"
@@ -1112,6 +1114,8 @@ static int wm_xr_navigation_fly_modal(bContext *C, wmOperator *op, const wmEvent
 
 static void WM_OT_xr_navigation_fly(wmOperatorType *ot)
 {
+  PropertyRNA *prop;
+
   /* Identifiers. */
   ot->name = "XR Navigation Fly";
   ot->idname = "WM_OT_xr_navigation_fly";
@@ -1156,7 +1160,9 @@ static void WM_OT_xr_navigation_fly(wmOperatorType *ot)
   static const float default_speed_p0[2] = {0.0f, 0.0f};
   static const float default_speed_p1[2] = {1.0f, 1.0f};
 
-  RNA_def_enum(ot->srna, "mode", fly_modes, XR_FLY_VIEWER_FORWARD, "Mode", "Fly mode");
+  prop = RNA_def_enum(ot->srna, "mode", fly_modes, XR_FLY_VIEWER_FORWARD, "Mode", "Fly mode");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_NAVIGATION);
+
   RNA_def_boolean(
       ot->srna, "lock_location_z", false, "Lock Elevation", "Prevent changes to viewer elevation");
   RNA_def_boolean(ot->srna,
