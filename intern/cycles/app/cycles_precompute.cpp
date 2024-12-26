@@ -26,6 +26,8 @@ CCL_NAMESPACE_BEGIN
 
 static float precompute_ggx_E(float rough, float mu, float3 rand)
 {
+  KernelGlobalsCPU kg;
+
   MicrofacetBsdf bsdf;
   bsdf.weight = one_float3();
   bsdf.sample_weight = 1.0f;
@@ -40,7 +42,8 @@ static float precompute_ggx_E(float rough, float mu, float3 rand)
   Spectrum eval;
   float pdf = 0.0f, sampled_eta;
   float2 sampled_roughness;
-  bsdf_microfacet_ggx_sample((ShaderClosure *)&bsdf,
+  bsdf_microfacet_ggx_sample(&kg,
+                             (ShaderClosure *)&bsdf,
                              make_float3(0.0f, 0.0f, 1.0f),
                              make_float3(sqrtf(1.0f - sqr(mu)), 0.0f, mu),
                              rand,
@@ -57,6 +60,8 @@ static float precompute_ggx_E(float rough, float mu, float3 rand)
 
 static float precompute_ggx_glass_E(float rough, float mu, float eta, float3 rand)
 {
+  KernelGlobalsCPU kg;
+
   MicrofacetBsdf bsdf;
   bsdf.weight = one_float3();
   bsdf.sample_weight = 1.0f;
@@ -71,7 +76,8 @@ static float precompute_ggx_glass_E(float rough, float mu, float eta, float3 ran
   Spectrum eval;
   float pdf = 0.0f, sampled_eta;
   float2 sampled_roughness;
-  bsdf_microfacet_ggx_sample((ShaderClosure *)&bsdf,
+  bsdf_microfacet_ggx_sample(&kg,
+                             (ShaderClosure *)&bsdf,
                              make_float3(0.0f, 0.0f, 1.0f),
                              make_float3(sqrtf(1.0f - sqr(mu)), 0.0f, mu),
                              rand,
@@ -89,6 +95,8 @@ static float precompute_ggx_glass_E(float rough, float mu, float eta, float3 ran
 static float precompute_ggx_gen_schlick_s(
     float rough, float mu, float eta, float exponent, float3 rand)
 {
+  KernelGlobalsCPU kg;
+
   MicrofacetBsdf bsdf;
   bsdf.weight = one_float3();
   bsdf.sample_weight = 1.0f;
@@ -113,7 +121,8 @@ static float precompute_ggx_gen_schlick_s(
   Spectrum eval;
   float pdf = 0.0f, sampled_eta;
   float2 sampled_roughness;
-  bsdf_microfacet_ggx_sample((ShaderClosure *)&bsdf,
+  bsdf_microfacet_ggx_sample(&kg,
+                             (ShaderClosure *)&bsdf,
                              make_float3(0.0f, 0.0f, 1.0f),
                              make_float3(sqrtf(1.0f - sqr(mu)), 0.0f, mu),
                              rand,

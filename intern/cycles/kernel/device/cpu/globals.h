@@ -33,15 +33,15 @@ template<typename T> struct kernel_array {
     return data[index];
   }
 
-  T *data;
-  int width;
+  T *data = nullptr;
+  int width = 0;
 };
 
 typedef struct KernelGlobalsCPU {
 #define KERNEL_DATA_ARRAY(type, name) kernel_array<type> name;
 #include "kernel/data_arrays.h"
 
-  KernelData data;
+  KernelData data = {};
 
 #ifdef __OSL__
   /* On the CPU, we also have the OSL globals here. Most data structures are shared
