@@ -9,6 +9,8 @@
 #include "BLI_math_vector.h"
 #include "BLI_mempool.h"
 
+#include "BLT_translation.hh"
+
 #include "BKE_attribute.hh"
 #include "BKE_context.hh"
 #include "BKE_curves.hh"
@@ -1337,6 +1339,7 @@ void CURVES_OT_draw(wmOperatorType *ot)
                                 "Error distance threshold (in object units)",
                                 0.0001f,
                                 10.0f);
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_AMOUNT);
   RNA_def_property_ui_range(prop, 0.0, 10, 1, 4);
 
   RNA_def_enum(ot->srna,
