@@ -323,7 +323,9 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
     TaskPool pool;
     for (int j = 0; j < NUM_TAB_SOBOL_PATTERNS; ++j) {
       float4 *sequence = directions + j * sequence_size;
-      pool.push(function_bind(&tabulated_sobol_generate_4D, sequence, sequence_size, j));
+      pool.push([sequence, sequence_size, j] {
+        tabulated_sobol_generate_4D(sequence, sequence_size, j);
+      });
     }
     pool.wait_work();
 

@@ -43,7 +43,7 @@ class SVMShaderManager : public ShaderManager {
  protected:
   void device_update_shader(Scene *scene,
                             Shader *shader,
-                            Progress *progress,
+                            Progress &progress,
                             array<int4> *svm_nodes);
 };
 

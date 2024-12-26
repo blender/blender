@@ -76,7 +76,7 @@ void Profiler::start()
 {
   assert(worker == NULL);
   do_stop_worker = false;
-  worker = new thread(function_bind(&Profiler::run, this));
+  worker = new thread([this] { run(); });
 }
 
 void Profiler::stop()

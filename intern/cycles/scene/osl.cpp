@@ -130,7 +130,7 @@ void OSLShaderManager::device_update_specific(Device *device,
       compiler.compile(shader);
     };
 
-    task_pool.push(function_bind(&Device::foreach_device, device, compile));
+    task_pool.push([device, compile] { device->foreach_device(compile); });
   }
   task_pool.wait_work();
 

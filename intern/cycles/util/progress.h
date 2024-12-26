@@ -5,13 +5,14 @@
 #ifndef __UTIL_PROGRESS_H__
 #define __UTIL_PROGRESS_H__
 
+#include <functional>
+
 /* Progress
  *
  * Simple class to communicate progress status messages, timing information,
  * update notifications from a job running in another thread. All methods
  * except for the constructor/destructor are thread safe. */
 
-#include "util/function.h"
 #include "util/string.h"
 #include "util/thread.h"
 #include "util/time.h"
@@ -35,12 +36,12 @@ class Progress {
     substatus = "";
     sync_status = "";
     sync_substatus = "";
-    update_cb = function_null;
+    update_cb = nullptr;
     cancel = false;
     cancel_message = "";
     error = false;
     error_message = "";
-    cancel_cb = function_null;
+    cancel_cb = nullptr;
   }
 
   Progress(Progress &progress)
@@ -104,7 +105,7 @@ class Progress {
     return cancel_message;
   }
 
-  void set_cancel_callback(function<void()> function)
+  void set_cancel_callback(std::function<void()> function)
   {
     cancel_cb = function;
   }
@@ -326,7 +327,7 @@ class Progress {
     }
   }
 
-  void set_update_callback(function<void()> function)
+  void set_update_callback(std::function<void()> function)
   {
     update_cb = function;
   }
@@ -334,8 +335,8 @@ class Progress {
  protected:
   mutable thread_mutex progress_mutex;
   mutable thread_mutex update_mutex;
-  function<void()> update_cb;
-  function<void()> cancel_cb;
+  std::function<void()> update_cb = nullptr;
+  std::function<void()> cancel_cb = nullptr;
 
   /* pixel_samples counts how many samples have been rendered over all pixel, not just per pixel.
    * This makes the progress estimate more accurate when tiles with different sizes are used.

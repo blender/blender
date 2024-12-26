@@ -12,7 +12,6 @@
 #include "device/device.h"
 
 #include "util/foreach.h"
-#include "util/function.h"
 #include "util/log.h"
 #include "util/math_cdf.h"
 #include "util/task.h"
@@ -506,12 +505,13 @@ void Camera::device_update(Device * /*device*/, DeviceScene *dscene, Scene *scen
   scene->lookup_tables->remove_table(&shutter_table_offset);
   if (kernel_camera.shuttertime != -1.0f) {
     vector<float> shutter_table;
-    util_cdf_inverted(SHUTTER_TABLE_SIZE,
-                      0.0f,
-                      1.0f,
-                      function_bind(shutter_curve_eval, _1, shutter_curve),
-                      false,
-                      shutter_table);
+    util_cdf_inverted(
+        SHUTTER_TABLE_SIZE,
+        0.0f,
+        1.0f,
+        [this](float x) { return shutter_curve_eval(x, shutter_curve); },
+        false,
+        shutter_table);
     shutter_table_offset = scene->lookup_tables->add_table(dscene, shutter_table);
     kernel_camera.shutter_table_offset = (int)shutter_table_offset;
   }

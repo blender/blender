@@ -13,7 +13,6 @@
 
 #include "util/args.h"
 #include "util/foreach.h"
-#include "util/function.h"
 #include "util/image.h"
 #include "util/log.h"
 #include "util/path.h"
@@ -144,11 +143,12 @@ static void session_init()
   }
 
   if (options.session_params.background && !options.quiet) {
-    options.session->progress.set_update_callback(function_bind(&session_print_status));
+    options.session->progress.set_update_callback([] { session_print_status(); });
   }
 #ifdef WITH_CYCLES_STANDALONE_GUI
-  else
-    options.session->progress.set_update_callback(function_bind(&window_redraw));
+  else {
+    options.session->progress.set_update_callback([] { window_redraw(); });
+  }
 #endif
 
   /* load scene */

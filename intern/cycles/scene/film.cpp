@@ -73,12 +73,13 @@ static vector<float> filter_table(FilterType type, float width)
    * consider either making FILTER_TABLE_SIZE odd value or sample full filter.
    */
 
-  util_cdf_inverted(FILTER_TABLE_SIZE,
-                    0.0f,
-                    width * 0.5f,
-                    function_bind(filter_func, _1, width),
-                    true,
-                    filter_table);
+  util_cdf_inverted(
+      FILTER_TABLE_SIZE,
+      0.0f,
+      width * 0.5f,
+      [filter_func, width](float x) { return filter_func(x, width); },
+      true,
+      filter_table);
 
   return filter_table;
 }

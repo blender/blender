@@ -4,8 +4,8 @@
 
 #include "device/multi/device.h"
 
-#include <sstream>
-#include <stdlib.h>
+#include <cstdlib>
+#include <functional>
 
 #include "bvh/multi.h"
 
@@ -459,7 +459,7 @@ class MultiDevice : public Device {
     return -1;
   }
 
-  virtual void foreach_device(const function<void(Device *)> &callback) override
+  void foreach_device(const std::function<void(Device *)> &callback) override
   {
     foreach (SubDevice &sub, devices) {
       sub.device->foreach_device(callback);

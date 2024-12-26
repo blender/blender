@@ -5,14 +5,14 @@
 #ifndef __DEVICE_H__
 #define __DEVICE_H__
 
-#include <stdlib.h>
+#include <cstdlib>
+#include <functional>
 
 #include "bvh/params.h"
 
 #include "device/denoise.h"
 #include "device/memory.h"
 
-#include "util/function.h"
 #include "util/list.h"
 #include "util/log.h"
 #include "util/stats.h"
@@ -280,7 +280,7 @@ class Device {
   /* Run given callback for every individual device which will be handling rendering.
    * For the single device the callback is called for the device itself. For the multi-device the
    * callback is only called for the sub-devices. */
-  virtual void foreach_device(const function<void(Device *)> &callback)
+  virtual void foreach_device(const std::function<void(Device *)> &callback)
   {
     callback(this);
   }

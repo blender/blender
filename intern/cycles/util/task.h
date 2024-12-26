@@ -16,7 +16,7 @@ CCL_NAMESPACE_BEGIN
 class TaskPool;
 class TaskScheduler;
 
-typedef function<void(void)> TaskRunFunction;
+using TaskRunFunction = std::function<void()>;
 
 /* Task Pool
  *
@@ -93,8 +93,7 @@ class TaskScheduler {
  *
  * Like a TaskPool, but will launch one dedicated thread to execute all tasks.
  *
- * The run callback that actually executes the task may be created like this:
- * function_bind(&MyClass::task_execute, this, _1, _2) */
+ * The run callback can be a lambda without arguments. */
 
 class DedicatedTaskPool {
  public:

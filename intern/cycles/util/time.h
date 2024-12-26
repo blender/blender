@@ -5,7 +5,8 @@
 #ifndef __UTIL_TIME_H__
 #define __UTIL_TIME_H__
 
-#include "util/function.h"
+#include <functional>
+
 #include "util/string.h"
 
 CCL_NAMESPACE_BEGIN
@@ -51,7 +52,7 @@ class scoped_timer {
 
 class scoped_callback_timer {
  public:
-  using callback_type = function<void(double)>;
+  using callback_type = std::function<void(double)>;
 
   explicit scoped_callback_timer(callback_type cb) : cb(cb) {}
 

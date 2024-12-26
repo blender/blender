@@ -675,15 +675,15 @@ bool ImageManager::file_load_image(Image *img, int texture_limit)
   return true;
 }
 
-void ImageManager::device_load_image(Device *device, Scene *scene, size_t slot, Progress *progress)
+void ImageManager::device_load_image(Device *device, Scene *scene, size_t slot, Progress &progress)
 {
-  if (progress->get_cancel()) {
+  if (progress.get_cancel()) {
     return;
   }
 
   Image *img = images[slot];
 
-  progress->set_status("Updating Images", "Loading " + img->loader->name());
+  progress.set_status("Updating Images", "Loading " + img->loader->name());
 
   const int texture_limit = scene->params.texture_limit;
 
@@ -858,8 +858,9 @@ void ImageManager::device_update(Device *device, Scene *scene, Progress &progres
       device_free_image(device, slot);
     }
     else if (img && img->need_load) {
-      pool.push(
-          function_bind(&ImageManager::device_load_image, this, device, scene, slot, &progress));
+      pool.push([this, device, scene, slot, &progress] {
+        device_load_image(device, scene, slot, progress);
+      });
     }
   }
 
@@ -871,7 +872,7 @@ void ImageManager::device_update(Device *device, Scene *scene, Progress &progres
 void ImageManager::device_update_slot(Device *device,
                                       Scene *scene,
                                       size_t slot,
-                                      Progress *progress)
+                                      Progress &progress)
 {
   Image *img = images[slot];
   assert(img != NULL);
@@ -896,8 +897,9 @@ void ImageManager::device_load_builtin(Device *device, Scene *scene, Progress &p
   for (size_t slot = 0; slot < images.size(); slot++) {
     Image *img = images[slot];
     if (img && img->need_load && img->builtin) {
-      pool.push(
-          function_bind(&ImageManager::device_load_image, this, device, scene, slot, &progress));
+      pool.push([this, device, scene, slot, &progress] {
+        device_load_image(device, scene, slot, progress);
+      });
     }
   }
 

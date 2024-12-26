@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <functional>
+
 #include "integrator/denoiser.h"
 #include "integrator/guiding.h"
 #include "integrator/pass_accessor.h"
@@ -12,7 +14,6 @@
 
 #include "session/buffers.h"
 
-#include "util/function.h"
 #include "util/guiding.h"
 #include "util/thread.h"
 #include "util/unique_ptr.h"
@@ -181,7 +182,7 @@ class PathTrace {
    * It is supposed to be cheaper than buffer update/write, hence can be called more often.
    * Additionally, it might be called form the middle of wavefront (meaning, it is not guaranteed
    * that the buffer is "uniformly" sampled at the moment of this callback). */
-  function<void(void)> progress_update_cb;
+  std::function<void(void)> progress_update_cb;
 
  protected:
   /* Actual implementation of the rendering pipeline.

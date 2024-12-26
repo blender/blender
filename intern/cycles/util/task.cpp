@@ -109,7 +109,7 @@ DedicatedTaskPool::DedicatedTaskPool()
   do_exit = false;
   num = 0;
 
-  worker_thread = new thread(function_bind(&DedicatedTaskPool::thread_run, this));
+  worker_thread = new thread([this] { thread_run(); });
 }
 
 DedicatedTaskPool::~DedicatedTaskPool()

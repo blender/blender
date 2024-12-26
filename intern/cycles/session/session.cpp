@@ -24,7 +24,6 @@
 #include "session/session.h"
 
 #include "util/foreach.h"
-#include "util/function.h"
 #include "util/log.h"
 #include "util/math.h"
 #include "util/task.h"
@@ -75,7 +74,7 @@ Session::Session(const SessionParams &params_, const SceneParams &scene_params)
   };
 
   /* Create session thread. */
-  session_thread_ = new thread(function_bind(&Session::thread_run, this));
+  session_thread_ = new thread([this] { thread_run(); });
 }
 
 Session::~Session()

@@ -5,6 +5,8 @@
 #ifndef __SESSION_H__
 #define __SESSION_H__
 
+#include <functional>
+
 #include "device/device.h"
 #include "integrator/render_scheduler.h"
 #include "scene/shader.h"
@@ -119,7 +121,7 @@ class Session {
   /* Callback is invoked by tile manager whenever on-dist tiles storage file is closed after
    * writing. Allows an engine integration to keep track of those files without worry about
    * transferring the information when it needs to re-create session during rendering. */
-  function<void(string_view)> full_buffer_written_cb;
+  std::function<void(string_view)> full_buffer_written_cb;
 
   explicit Session(const SessionParams &params, const SceneParams &scene_params);
   ~Session();

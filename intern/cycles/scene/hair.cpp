@@ -628,11 +628,16 @@ bool Hair::update_shadow_transparency(Device *device, Scene *scene, Progress &pr
   /* Evaluate shader on device. */
   ShaderEval shader_eval(device, progress);
   bool is_fully_opaque = false;
-  shader_eval.eval(SHADER_EVAL_CURVE_SHADOW_TRANSPARENCY,
-                   num_keys(),
-                   1,
-                   function_bind(&fill_shader_input, this, object_index, _1),
-                   function_bind(&read_shader_output, attr_data, is_fully_opaque, _1));
+  shader_eval.eval(
+      SHADER_EVAL_CURVE_SHADOW_TRANSPARENCY,
+      num_keys(),
+      1,
+      [this, object_index](device_vector<KernelShaderEvalInput> &d_input) {
+        return fill_shader_input(this, object_index, d_input);
+      },
+      [attr_data, &is_fully_opaque](const device_vector<float> &d_output) {
+        read_shader_output(attr_data, is_fully_opaque, d_output);
+      });
 
   if (is_fully_opaque) {
     attributes.remove(attr);

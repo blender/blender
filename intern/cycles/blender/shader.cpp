@@ -1614,7 +1614,7 @@ void BlenderSync::sync_materials(BL::Depsgraph &b_depsgraph, bool update_all)
        * right before compiling.
        */
       if (!preview) {
-        pool.push(function_bind(&ShaderGraph::simplify, graph, scene));
+        pool.push([graph, scene = scene] { graph->simplify(scene); });
         /* NOTE: Update shaders out of the threads since those routines
          * are accessing and writing to a global context.
          */

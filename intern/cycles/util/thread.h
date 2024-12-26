@@ -21,8 +21,6 @@
  * functionality requires RTTI, which is disabled for OSL kernel. */
 #include <tbb/spin_mutex.h>
 
-#include "util/function.h"
-
 CCL_NAMESPACE_BEGIN
 
 typedef std::mutex thread_mutex;
@@ -35,14 +33,14 @@ typedef std::condition_variable thread_condition_variable;
  */
 class thread {
  public:
-  thread(function<void()> run_cb);
+  thread(std::function<void()> run_cb);
   ~thread();
 
   static void *run(void *arg);
   bool join();
 
  protected:
-  function<void()> run_cb_;
+  std::function<void()> run_cb_;
 #if defined(__APPLE__) || defined(__linux__) && !defined(__GLIBC__)
   pthread_t pthread_id;
 #else

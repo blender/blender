@@ -665,8 +665,9 @@ void GeometryManager::device_update_displacement_images(Device *device,
 #endif
 
   foreach (int slot, bump_images) {
-    pool.push(function_bind(
-        &ImageManager::device_update_slot, image_manager, device, scene, slot, &progress));
+    pool.push([image_manager, device, scene, slot, &progress] {
+      image_manager->device_update_slot(device, scene, slot, progress);
+    });
   }
   pool.wait_work();
 }
@@ -701,8 +702,9 @@ void GeometryManager::device_update_volume_images(Device *device, Scene *scene, 
   }
 
   foreach (int slot, volume_images) {
-    pool.push(function_bind(
-        &ImageManager::device_update_slot, image_manager, device, scene, slot, &progress));
+    pool.push([image_manager, device, scene, slot, &progress] {
+      image_manager->device_update_slot(device, scene, slot, progress);
+    });
   }
   pool.wait_work();
 }
@@ -954,8 +956,9 @@ void GeometryManager::device_update(Device *device,
     foreach (Geometry *geom, scene->geometry) {
       if (geom->is_modified() || geom->need_update_bvh_for_offset) {
         need_update_scene_bvh = true;
-        pool.push(function_bind(
-            &Geometry::compute_bvh, geom, device, dscene, &scene->params, &progress, i, num_bvh));
+        pool.push([geom, device, dscene, scene, &progress, i, num_bvh] {
+          geom->compute_bvh(device, dscene, &scene->params, &progress, i, num_bvh);
+        });
         if (geom->need_build_bvh(bvh_layout)) {
           i++;
         }

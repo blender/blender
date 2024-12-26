@@ -22,7 +22,6 @@
 #include "util/algorithm.h"
 #include "util/color.h"
 #include "util/foreach.h"
-#include "util/function.h"
 #include "util/hash.h"
 #include "util/log.h"
 #include "util/murmurhash.h"
@@ -124,8 +123,8 @@ void BlenderSession::create_session()
 
   /* create session */
   session = new Session(session_params, scene_params);
-  session->progress.set_update_callback(function_bind(&BlenderSession::tag_redraw, this));
-  session->progress.set_cancel_callback(function_bind(&BlenderSession::test_cancel, this));
+  session->progress.set_update_callback([this] { tag_redraw(); });
+  session->progress.set_cancel_callback([this] { test_cancel(); });
   session->set_pause(session_pause);
 
   /* create scene */
@@ -509,7 +508,7 @@ void BlenderSession::render_frame_finish()
 
   /* Clear output driver. */
   session->set_output_driver(nullptr);
-  session->full_buffer_written_cb = function_null;
+  session->full_buffer_written_cb = nullptr;
 
   /* The display driver is the source of drawing context for both drawing and possible graphics
    * interoperability objects in the path trace. Once the frame is finished the OpenGL context
@@ -755,8 +754,7 @@ void BlenderSession::bake(BL::Depsgraph &b_depsgraph_,
     /* Update session. */
     session->reset(session_params, buffer_params);
 
-    session->progress.set_update_callback(
-        function_bind(&BlenderSession::update_bake_progress, this));
+    session->progress.set_update_callback([this] { update_bake_progress(); });
   }
 
   /* Perform bake. Check cancel to avoid crash with incomplete scene data. */

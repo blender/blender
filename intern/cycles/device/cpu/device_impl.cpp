@@ -42,7 +42,6 @@
 
 #include "util/debug.h"
 #include "util/foreach.h"
-#include "util/function.h"
 #include "util/guiding.h"
 #include "util/log.h"
 #include "util/map.h"

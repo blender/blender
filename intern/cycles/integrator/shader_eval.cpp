@@ -24,8 +24,8 @@ ShaderEval::ShaderEval(Device *device, Progress &progress) : device_(device), pr
 bool ShaderEval::eval(const ShaderEvalType type,
                       const int max_num_inputs,
                       const int num_channels,
-                      const function<int(device_vector<KernelShaderEvalInput> &)> &fill_input,
-                      const function<void(device_vector<float> &)> &read_output)
+                      const std::function<int(device_vector<KernelShaderEvalInput> &)> &fill_input,
+                      const std::function<void(device_vector<float> &)> &read_output)
 {
   bool first_device = true;
   bool success = true;

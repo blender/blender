@@ -17,8 +17,8 @@ CCL_NAMESPACE_BEGIN
  * OpenGLDisplayDriver.
  */
 
-OpenGLDisplayDriver::OpenGLDisplayDriver(const function<bool()> &gl_context_enable,
-                                         const function<void()> &gl_context_disable)
+OpenGLDisplayDriver::OpenGLDisplayDriver(const std::function<bool()> &gl_context_enable,
+                                         const std::function<void()> &gl_context_disable)
     : gl_context_enable_(gl_context_enable), gl_context_disable_(gl_context_disable)
 {
 }

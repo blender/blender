@@ -5,12 +5,12 @@
 #pragma once
 
 #include <atomic>
+#include <functional>
 
 #include "app/opengl/shader.h"
 
 #include "session/display_driver.h"
 
-#include "util/function.h"
 #include "util/unique_ptr.h"
 
 CCL_NAMESPACE_BEGIN
@@ -19,8 +19,8 @@ class OpenGLDisplayDriver : public DisplayDriver {
  public:
   /* Callbacks for enabling and disabling the OpenGL context. Must be provided to support enabling
    * the context on the Cycles render thread independent of the main thread. */
-  OpenGLDisplayDriver(const function<bool()> &gl_context_enable,
-                      const function<void()> &gl_context_disable);
+  OpenGLDisplayDriver(const std::function<bool()> &gl_context_enable,
+                      const std::function<void()> &gl_context_disable);
   ~OpenGLDisplayDriver();
 
   virtual void graphics_interop_activate() override;
@@ -111,8 +111,8 @@ class OpenGLDisplayDriver : public DisplayDriver {
 
   float2 zoom_ = make_float2(1.0f, 1.0f);
 
-  function<bool()> gl_context_enable_ = nullptr;
-  function<void()> gl_context_disable_ = nullptr;
+  std::function<bool()> gl_context_enable_ = nullptr;
+  std::function<void()> gl_context_disable_ = nullptr;
 };
 
 CCL_NAMESPACE_END

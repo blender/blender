@@ -182,11 +182,16 @@ bool GeometryManager::displace(Device *device, Scene *scene, Mesh *mesh, Progres
 
   /* Evaluate shader on device. */
   ShaderEval shader_eval(device, progress);
-  if (!shader_eval.eval(SHADER_EVAL_DISPLACE,
-                        num_verts,
-                        3,
-                        function_bind(&fill_shader_input, scene, mesh, object_index, _1),
-                        function_bind(&read_shader_output, scene, mesh, _1)))
+  if (!shader_eval.eval(
+          SHADER_EVAL_DISPLACE,
+          num_verts,
+          3,
+          [scene, mesh, object_index](device_vector<KernelShaderEvalInput> &d_input) {
+            return fill_shader_input(scene, mesh, object_index, d_input);
+          },
+          [scene, mesh](const device_vector<float> &d_output) {
+            read_shader_output(scene, mesh, d_output);
+          }))
   {
     return false;
   }

@@ -31,10 +31,10 @@ void SVMShaderManager::reset(Scene * /*scene*/) {}
 
 void SVMShaderManager::device_update_shader(Scene *scene,
                                             Shader *shader,
-                                            Progress *progress,
+                                            Progress &progress,
                                             array<int4> *svm_nodes)
 {
-  if (progress->get_cancel()) {
+  if (progress.get_cancel()) {
     return;
   }
   assert(shader->graph);
@@ -77,12 +77,9 @@ void SVMShaderManager::device_update_specific(Device *device,
   TaskPool task_pool;
   vector<array<int4>> shader_svm_nodes(num_shaders);
   for (int i = 0; i < num_shaders; i++) {
-    task_pool.push(function_bind(&SVMShaderManager::device_update_shader,
-                                 this,
-                                 scene,
-                                 scene->shaders[i],
-                                 &progress,
-                                 &shader_svm_nodes[i]));
+    task_pool.push([this, scene, &progress, &shader_svm_nodes, i] {
+      device_update_shader(scene, scene->shaders[i], progress, &shader_svm_nodes[i]);
+    });
   }
   task_pool.wait_work();
 

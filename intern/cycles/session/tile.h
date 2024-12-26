@@ -4,7 +4,10 @@
 
 #pragma once
 
+#include <functional>
+
 #include "session/buffers.h"
+
 #include "util/image.h"
 #include "util/string.h"
 #include "util/unique_ptr.h"
@@ -36,7 +39,7 @@ class Tile {
 class TileManager {
  public:
   /* This callback is invoked by whenever on-dist tiles storage file is closed after writing. */
-  function<void(string_view)> full_buffer_written_cb;
+  std::function<void(string_view)> full_buffer_written_cb;
 
   TileManager();
   ~TileManager();
