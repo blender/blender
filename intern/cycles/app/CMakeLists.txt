@@ -103,8 +103,22 @@ if(WITH_CYCLES_STANDALONE)
 
   if(APPLE)
     if(WITH_CYCLES_STANDALONE_GUI)
-      set_property(TARGET cycles APPEND_STRING PROPERTY LINK_FLAGS
-        " -framework Cocoa -framework CoreAudio -framework AudioUnit -framework AudioToolbox -framework ForceFeedback -framework CoreVideo")
+      # Frameworks used by SDL.
+      string(CONCAT _cycles_sdl_frameworks
+        " -framework AudioToolbox"
+        " -framework AudioUnit"
+        " -framework Cocoa"
+        " -framework CoreAudio"
+        " -framework CoreHaptics"
+        " -framework CoreVideo"
+        " -framework ForceFeedback"
+        " -framework GameController"
+      )
+      set_property(
+          TARGET cycles
+          APPEND PROPERTY LINK_FLAGS
+          "${_cycles_sdl_frameworks}"
+      )
     endif()
   endif()
 
