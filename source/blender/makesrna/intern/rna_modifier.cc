@@ -9021,6 +9021,7 @@ static void rna_def_modifier_grease_pencil_lineart(BlenderRNA *brna)
                            "Shadow Region Filtering",
                            "Select feature lines that comes from lit or shaded regions. Will not "
                            "affect cast shadow and light contour since they are at the border.");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_GPENCIL);
   RNA_def_property_update(prop, 0, "rna_Modifier_dependency_update");
 
   prop = RNA_def_property(srna, "silhouette_filtering", PROP_ENUM, PROP_NONE);
