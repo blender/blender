@@ -14,9 +14,7 @@
 #include <OpenImageIO/strutil.h>
 #include <OpenImageIO/sysutil.h>
 
-OIIO_NAMESPACE_USING
-
-#include <stdio.h>
+#include <cstdio>
 
 #include <sys/stat.h>
 
@@ -38,7 +36,6 @@ OIIO_NAMESPACE_USING
 #  include <shlwapi.h>
 #endif
 
-#include "util/map.h"
 #include "util/windows.h"
 
 CCL_NAMESPACE_BEGIN
@@ -344,8 +341,8 @@ string path_get(const string &sub)
     return special;
   }
 
-  if (cached_path == "") {
-    cached_path = path_dirname(Sysutil::this_program_path());
+  if (cached_path.empty()) {
+    cached_path = path_dirname(OIIO::Sysutil::this_program_path());
   }
 
   return path_join(cached_path, sub);
@@ -353,8 +350,8 @@ string path_get(const string &sub)
 
 string path_user_get(const string &sub)
 {
-  if (cached_user_path == "") {
-    cached_user_path = path_dirname(Sysutil::this_program_path());
+  if (cached_user_path.empty()) {
+    cached_user_path = path_dirname(OIIO::Sysutil::this_program_path());
   }
 
   return path_join(cached_user_path, sub);

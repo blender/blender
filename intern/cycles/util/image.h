@@ -13,7 +13,10 @@
 
 CCL_NAMESPACE_BEGIN
 
-OIIO_NAMESPACE_USING
+using OIIO::AutoStride;
+using OIIO::ImageInput;
+using OIIO::ImageOutput;
+using OIIO::ImageSpec;
 
 template<typename T>
 void util_image_resize_pixels(const vector<T> &input_pixels,

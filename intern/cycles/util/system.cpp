@@ -3,14 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0 */
 
 #include "util/system.h"
-
-#include "util/log.h"
 #include "util/string.h"
-#include "util/types.h"
-
-#include <OpenImageIO/sysutil.h>
-
-OIIO_NAMESPACE_USING
 
 #ifdef _WIN32
 #  if (!defined(FREE_WINDOWS))

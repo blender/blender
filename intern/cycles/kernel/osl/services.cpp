@@ -1156,22 +1156,20 @@ bool OSLRenderServices::get_userdata(
 }
 
 #if OSL_LIBRARY_VERSION_CODE >= 11304
-TextureSystem::TextureHandle *OSLRenderServices::get_texture_handle(OSLUStringHash filename,
-                                                                    OSL::ShadingContext *context,
-                                                                    const TextureOpt *opt)
+OSL::TextureSystem::TextureHandle *OSLRenderServices::get_texture_handle(
+    OSLUStringHash filename, OSL::ShadingContext *context, const OSL::TextureOpt *opt)
 {
   return get_texture_handle(to_ustring(filename), context, opt);
 }
 
-TextureSystem::TextureHandle *OSLRenderServices::get_texture_handle(OSL::ustring filename,
-                                                                    OSL::ShadingContext *,
-                                                                    const TextureOpt *)
+OSL::TextureSystem::TextureHandle *OSLRenderServices::get_texture_handle(
+    OSL::ustring filename, OSL::ShadingContext * /*context*/, const OSL::TextureOpt * /*options*/)
 #elif OSL_LIBRARY_VERSION_CODE >= 11100
-TextureSystem::TextureHandle *OSLRenderServices::get_texture_handle(OSLUStringHash filename,
-                                                                    OSL::ShadingContext *)
+OSL::TextureSystem::TextureHandle *OSLRenderServices::get_texture_handle(OSLUStringHash filename,
+                                                                         OSL::ShadingContext *)
 #else
 
-TextureSystem::TextureHandle *OSLRenderServices::get_texture_handle(OSLUStringHash filename)
+OSL::TextureSystem::TextureHandle *OSLRenderServices::get_texture_handle(OSLUStringHash filename)
 #endif
 {
   OSLTextureHandleMap::iterator it = textures.find(filename);
@@ -1180,13 +1178,13 @@ TextureSystem::TextureHandle *OSLRenderServices::get_texture_handle(OSLUStringHa
     /* For non-OIIO textures, just return a pointer to our own OSLTextureHandle. */
     if (it != textures.end()) {
       if (it->second->type != OSLTextureHandle::OIIO) {
-        return reinterpret_cast<TextureSystem::TextureHandle *>(it->second.get());
+        return reinterpret_cast<OSL::TextureSystem::TextureHandle *>(it->second.get());
       }
     }
 
     /* Get handle from OpenImageIO. */
     OSL::TextureSystem *ts = m_texturesys;
-    TextureSystem::TextureHandle *handle = ts->get_texture_handle(to_ustring(filename));
+    OSL::TextureSystem::TextureHandle *handle = ts->get_texture_handle(to_ustring(filename));
     if (handle == nullptr) {
       return nullptr;
     }
@@ -1199,57 +1197,56 @@ TextureSystem::TextureHandle *OSLRenderServices::get_texture_handle(OSLUStringHa
 
     /* Assign OIIO texture handle and return. */
     it->second->oiio_handle = handle;
-    return reinterpret_cast<TextureSystem::TextureHandle *>(it->second.get());
+    return reinterpret_cast<OSL::TextureSystem::TextureHandle *>(it->second.get());
   }
-  else {
-    /* Construct GPU texture handle for existing textures. */
-    if (it != textures.end()) {
-      switch (it->second->type) {
-        case OSLTextureHandle::OIIO:
-          return nullptr;
-        case OSLTextureHandle::SVM:
-          if (!it->second->handle.empty() && it->second->handle.get_manager() != image_manager) {
-            it.clear();
-            break;
-          }
-          return reinterpret_cast<TextureSystem::TextureHandle *>(OSL_TEXTURE_HANDLE_TYPE_SVM |
-                                                                  it->second->svm_slots[0].y);
-        case OSLTextureHandle::IES:
-          if (!it->second->handle.empty() && it->second->handle.get_manager() != image_manager) {
-            it.clear();
-            break;
-          }
-          return reinterpret_cast<TextureSystem::TextureHandle *>(OSL_TEXTURE_HANDLE_TYPE_IES |
-                                                                  it->second->svm_slots[0].y);
-        case OSLTextureHandle::AO:
-          return reinterpret_cast<TextureSystem::TextureHandle *>(
-              OSL_TEXTURE_HANDLE_TYPE_AO_OR_BEVEL | 1);
-        case OSLTextureHandle::BEVEL:
-          return reinterpret_cast<TextureSystem::TextureHandle *>(
-              OSL_TEXTURE_HANDLE_TYPE_AO_OR_BEVEL | 2);
-      }
-    }
 
-    if (!image_manager) {
-      return nullptr;
+  /* Construct GPU texture handle for existing textures. */
+  if (it != textures.end()) {
+    switch (it->second->type) {
+      case OSLTextureHandle::OIIO:
+        return nullptr;
+      case OSLTextureHandle::SVM:
+        if (!it->second->handle.empty() && it->second->handle.get_manager() != image_manager) {
+          it.clear();
+          break;
+        }
+        return reinterpret_cast<OSL::TextureSystem::TextureHandle *>(OSL_TEXTURE_HANDLE_TYPE_SVM |
+                                                                     it->second->svm_slots[0].y);
+      case OSLTextureHandle::IES:
+        if (!it->second->handle.empty() && it->second->handle.get_manager() != image_manager) {
+          it.clear();
+          break;
+        }
+        return reinterpret_cast<OSL::TextureSystem::TextureHandle *>(OSL_TEXTURE_HANDLE_TYPE_IES |
+                                                                     it->second->svm_slots[0].y);
+      case OSLTextureHandle::AO:
+        return reinterpret_cast<OSL::TextureSystem::TextureHandle *>(
+            OSL_TEXTURE_HANDLE_TYPE_AO_OR_BEVEL | 1);
+      case OSLTextureHandle::BEVEL:
+        return reinterpret_cast<OSL::TextureSystem::TextureHandle *>(
+            OSL_TEXTURE_HANDLE_TYPE_AO_OR_BEVEL | 2);
     }
-
-    /* Load new textures using SVM image manager. */
-    ImageHandle handle = image_manager->add_image(filename.string(), ImageParams());
-    if (handle.empty()) {
-      return nullptr;
-    }
-
-    if (!textures.insert(filename, new OSLTextureHandle(handle))) {
-      return nullptr;
-    }
-
-    return reinterpret_cast<TextureSystem::TextureHandle *>(OSL_TEXTURE_HANDLE_TYPE_SVM |
-                                                            handle.svm_slot());
   }
+
+  if (!image_manager) {
+    return nullptr;
+  }
+
+  /* Load new textures using SVM image manager. */
+  ImageHandle handle = image_manager->add_image(filename.string(), ImageParams());
+  if (handle.empty()) {
+    return nullptr;
+  }
+
+  if (!textures.insert(filename, new OSLTextureHandle(handle))) {
+    return nullptr;
+  }
+
+  return reinterpret_cast<OSL::TextureSystem::TextureHandle *>(OSL_TEXTURE_HANDLE_TYPE_SVM |
+                                                               handle.svm_slot());
 }
 
-bool OSLRenderServices::good(TextureSystem::TextureHandle *texture_handle)
+bool OSLRenderServices::good(OSL::TextureSystem::TextureHandle *texture_handle)
 {
   OSLTextureHandle *handle = (OSLTextureHandle *)texture_handle;
 
@@ -1265,7 +1262,7 @@ bool OSLRenderServices::good(TextureSystem::TextureHandle *texture_handle)
 bool OSLRenderServices::texture(OSLUStringHash filename,
                                 TextureHandle *texture_handle,
                                 TexturePerthread *texture_thread_info,
-                                TextureOpt &options,
+                                OSL::TextureOpt &options,
                                 OSL::ShaderGlobals *sg,
                                 float s,
                                 float t,
@@ -1450,7 +1447,7 @@ bool OSLRenderServices::texture(OSLUStringHash filename,
 bool OSLRenderServices::texture3d(OSLUStringHash filename,
                                   TextureHandle *texture_handle,
                                   TexturePerthread *texture_thread_info,
-                                  TextureOpt &options,
+                                  OSL::TextureOpt &options,
                                   OSL::ShaderGlobals *sg,
                                   const OSL::Vec3 &P,
                                   const OSL::Vec3 &dPdx,
@@ -1564,7 +1561,7 @@ bool OSLRenderServices::texture3d(OSLUStringHash filename,
 bool OSLRenderServices::environment(OSLUStringHash filename,
                                     TextureHandle *texture_handle,
                                     TexturePerthread *thread_info,
-                                    TextureOpt &options,
+                                    OSL::TextureOpt &options,
                                     OSL::ShaderGlobals *sg,
                                     const OSL::Vec3 &R,
                                     const OSL::Vec3 &dRdx,

@@ -13,7 +13,19 @@
 
 CCL_NAMESPACE_BEGIN
 
-OIIO_NAMESPACE_USING
+using OIIO::ParamValue;
+
+using OIIO::TypeColor;
+using OIIO::TypeDesc;
+using OIIO::TypeFloat;
+using OIIO::TypeFloat4;
+using OIIO::TypeInt;
+using OIIO::TypeMatrix;
+using OIIO::TypeNormal;
+using OIIO::TypePoint;
+using OIIO::TypeString;
+using OIIO::TypeUnknown;
+using OIIO::TypeVector;
 
 static constexpr TypeDesc TypeFloat2(TypeDesc::FLOAT, TypeDesc::VEC2);
 static constexpr TypeDesc TypeRGBA(TypeDesc::FLOAT, TypeDesc::VEC4, TypeDesc::COLOR);
@@ -21,5 +33,8 @@ static constexpr TypeDesc TypeFloatArray4(TypeDesc::FLOAT,
                                           TypeDesc::SCALAR,
                                           TypeDesc::NOSEMANTICS,
                                           4);
+
+using OIIO::ustring;
+using OIIO::ustringhash;
 
 CCL_NAMESPACE_END

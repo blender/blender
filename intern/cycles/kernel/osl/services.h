@@ -191,25 +191,25 @@ class OSLRenderServices : public OSL::RendererServices {
                   bool derivatives) override;
 
 #if OSL_LIBRARY_VERSION_CODE >= 11304
-  TextureSystem::TextureHandle *get_texture_handle(OSL::ustring filename,
-                                                   OSL::ShadingContext *context,
-                                                   const TextureOpt *options) override;
-  TextureSystem::TextureHandle *get_texture_handle(OSLUStringHash filename,
-                                                   OSL::ShadingContext *context,
-                                                   const TextureOpt *options) override;
+  OSL::TextureSystem::TextureHandle *get_texture_handle(OSL::ustring filename,
+                                                        OSL::ShadingContext *context,
+                                                        const OSL::TextureOpt *options) override;
+  OSL::TextureSystem::TextureHandle *get_texture_handle(OSLUStringHash filename,
+                                                        OSL::ShadingContext *context,
+                                                        const OSL::TextureOpt *options) override;
 #elif OSL_LIBRARY_VERSION_CODE >= 11100
-  TextureSystem::TextureHandle *get_texture_handle(OSLUStringHash filename,
-                                                   OSL::ShadingContext *context) override;
+  OSL::TextureSystem::TextureHandle *get_texture_handle(OSLUStringHash filename,
+                                                        OSL::ShadingContext *context) override;
 #else
-  TextureSystem::TextureHandle *get_texture_handle(OSLUStringHash filename) override;
+  OSL::TextureSystem::TextureHandle *get_texture_handle(OSLUStringHash filename) override;
 #endif
 
-  bool good(TextureSystem::TextureHandle *texture_handle) override;
+  bool good(OSL::TextureSystem::TextureHandle *texture_handle) override;
 
   bool texture(OSLUStringHash filename,
-               TextureSystem::TextureHandle *texture_handle,
+               OSL::TextureSystem::TextureHandle *texture_handle,
                TexturePerthread *texture_thread_info,
-               TextureOpt &options,
+               OSL::TextureOpt &options,
                OSL::ShaderGlobals *sg,
                float s,
                float t,
@@ -226,7 +226,7 @@ class OSLRenderServices : public OSL::RendererServices {
   bool texture3d(OSLUStringHash filename,
                  TextureHandle *texture_handle,
                  TexturePerthread *texture_thread_info,
-                 TextureOpt &options,
+                 OSL::TextureOpt &options,
                  OSL::ShaderGlobals *sg,
                  const OSL::Vec3 &P,
                  const OSL::Vec3 &dPdx,
@@ -242,7 +242,7 @@ class OSLRenderServices : public OSL::RendererServices {
   bool environment(OSLUStringHash filename,
                    TextureHandle *texture_handle,
                    TexturePerthread *texture_thread_info,
-                   TextureOpt &options,
+                   OSL::TextureOpt &options,
                    OSL::ShaderGlobals *sg,
                    const OSL::Vec3 &R,
                    const OSL::Vec3 &dRdx,

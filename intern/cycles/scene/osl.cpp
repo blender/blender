@@ -262,7 +262,7 @@ void OSLShaderManager::texture_system_init()
   thread_scoped_lock lock(ts_shared_mutex);
 
   if (ts_shared_users++ == 0) {
-    ts_shared = TextureSystem::create(true);
+    ts_shared = OSL::TextureSystem::create(true);
 
     ts_shared->attribute("automip", 1);
     ts_shared->attribute("autotile", 64);
