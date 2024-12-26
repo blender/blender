@@ -2,11 +2,14 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#include "graph/node_xml.h"
+#ifdef WITH_PUGIXML
 
-#include "util/foreach.h"
-#include "util/string.h"
-#include "util/transform.h"
+#  include "graph/node_xml.h"
+#  include "graph/node.h"
+
+#  include "util/foreach.h"
+#  include "util/string.h"
+#  include "util/transform.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -433,3 +436,5 @@ xml_node xml_write_node(Node *node, xml_node xml_root)
 }
 
 CCL_NAMESPACE_END
+
+#endif /* WITH_PUGIXML */
