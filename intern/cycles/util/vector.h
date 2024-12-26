@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __UTIL_VECTOR_H__
-#define __UTIL_VECTOR_H__
+#pragma once
 
 #include <cstring>
 #include <vector>
@@ -41,5 +40,3 @@ class vector : public std::vector<value_type, allocator_type> {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __UTIL_VECTOR_H__ */

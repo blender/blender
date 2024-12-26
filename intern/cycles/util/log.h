@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __UTIL_LOGGING_H__
-#define __UTIL_LOGGING_H__
+#pragma once
 
 #if defined(WITH_CYCLES_LOGGING) && !defined(__KERNEL_GPU__)
 #  include <gflags/gflags.h>
@@ -92,5 +91,3 @@ std::ostream &operator<<(std::ostream &os, const int2 &value);
 std::ostream &operator<<(std::ostream &os, const float3 &value);
 
 CCL_NAMESPACE_END
-
-#endif /* __UTIL_LOGGING_H__ */

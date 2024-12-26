@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __BLENDER_OBJECT_CULL_H__
-#define __BLENDER_OBJECT_CULL_H__
+#pragma once
 
 #include "blender/sync.h"
 #include "util/types.h"
@@ -32,5 +31,3 @@ class BlenderObjectCulling {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __BLENDER_OBJECT_CULL_H__ */

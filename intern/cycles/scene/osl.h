@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __OSL_H__
-#define __OSL_H__
+#pragma once
 
 #include "util/array.h"
 #include "util/set.h"
@@ -183,5 +182,3 @@ class OSLCompiler {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __OSL_H__ */

@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __UTIL_IMAGE_IMPL_H__
-#define __UTIL_IMAGE_IMPL_H__
+#pragma once
 
 #include "util/algorithm.h"
 #include "util/half.h"
@@ -159,5 +158,3 @@ void util_image_resize_pixels(const vector<T> &input_pixels,
 }
 
 CCL_NAMESPACE_END
-
-#endif /* __UTIL_IMAGE_IMPL_H__ */

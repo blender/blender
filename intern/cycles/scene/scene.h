@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __SCENE_H__
-#define __SCENE_H__
+#pragma once
 
 #include "bvh/params.h"
 
@@ -330,5 +329,3 @@ template<> void Scene::delete_nodes(const set<Procedural *> &nodes, const NodeOw
 template<> void Scene::delete_nodes(const set<Pass *> &nodes, const NodeOwner *owner);
 
 CCL_NAMESPACE_END
-
-#endif /*  __SCENE_H__ */

@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __ATTRIBUTE_H__
-#define __ATTRIBUTE_H__
+#pragma once
 
 #include "scene/image.h"
 
@@ -267,5 +266,3 @@ class AttributeRequestSet {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __ATTRIBUTE_H__ */

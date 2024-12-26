@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __OSL_GLOBALS_H__
-#define __OSL_GLOBALS_H__
+#pragma once
 
 #ifdef WITH_OSL
 
@@ -93,5 +92,3 @@ struct OSLThreadData {
 CCL_NAMESPACE_END
 
 #endif
-
-#endif /* __OSL_GLOBALS_H__ */

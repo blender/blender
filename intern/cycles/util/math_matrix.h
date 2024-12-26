@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __UTIL_MATH_MATRIX_H__
-#define __UTIL_MATH_MATRIX_H__
+#pragma once
 
 CCL_NAMESPACE_BEGIN
 
@@ -440,5 +439,3 @@ ccl_device_inline void math_matrix_hsum(float *A, int n, const float4 *ccl_restr
 #undef MAT
 
 CCL_NAMESPACE_END
-
-#endif /* __UTIL_MATH_MATRIX_H__ */

@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __LIGHT_H__
-#define __LIGHT_H__
+#pragma once
 
 #include "kernel/types.h"
 
@@ -170,5 +169,3 @@ class LightManager {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __LIGHT_H__ */

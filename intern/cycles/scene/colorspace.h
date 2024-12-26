@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __COLORSPACE_H__
-#define __COLORSPACE_H__
+#pragma once
 
 #include "util/map.h"
 #include "util/param.h"
@@ -55,5 +54,3 @@ class ColorSpaceManager {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __COLORSPACE_H__ */

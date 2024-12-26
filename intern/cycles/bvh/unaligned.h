@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __BVH_UNALIGNED_H__
-#define __BVH_UNALIGNED_H__
+#pragma once
 
 #include "util/vector.h"
 
@@ -57,5 +56,3 @@ class BVHUnaligned {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __BVH_UNALIGNED_H__ */

@@ -4,10 +4,7 @@
 
 #pragma once
 
-#ifndef __POINTCLOUD_H__
-#  define __POINTCLOUD_H__
-
-#  include "scene/geometry.h"
+#include "scene/geometry.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -98,5 +95,3 @@ class PointCloud : public Geometry {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __POINTCLOUD_H__ */

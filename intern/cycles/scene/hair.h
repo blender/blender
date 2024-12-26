@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __HAIR_H__
-#define __HAIR_H__
+#pragma once
 
 #include "scene/geometry.h"
 
@@ -150,5 +149,3 @@ class Hair : public Geometry {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __HAIR_H__ */

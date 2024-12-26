@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __BVH_MULTI_H__
-#define __BVH_MULTI_H__
+#pragma once
 
 #include "bvh/bvh.h"
 #include "bvh/params.h"
@@ -26,5 +25,3 @@ class BVHMulti : public BVH {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __BVH_MULTI_H__ */

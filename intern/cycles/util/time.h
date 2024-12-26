@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __UTIL_TIME_H__
-#define __UTIL_TIME_H__
+#pragma once
 
 #include <functional>
 
@@ -74,5 +73,3 @@ string time_human_readable_from_seconds(const double seconds);
 double time_human_readable_to_seconds(const string &str);
 
 CCL_NAMESPACE_END
-
-#endif

@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __BLENDER_ID_MAP_H__
-#define __BLENDER_ID_MAP_H__
+#pragma once
 
 #include <string.h>
 
@@ -310,5 +309,3 @@ struct ParticleSystemKey {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __BLENDER_ID_MAP_H__ */

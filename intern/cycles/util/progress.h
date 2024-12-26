@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __UTIL_PROGRESS_H__
-#define __UTIL_PROGRESS_H__
+#pragma once
 
 #include <functional>
 
@@ -369,5 +368,3 @@ class Progress {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __UTIL_PROGRESS_H__ */

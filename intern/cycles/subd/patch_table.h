@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __SUBD_PATCH_TABLE_H__
-#define __SUBD_PATCH_TABLE_H__
+#pragma once
 
 #include "util/array.h"
 #include "util/types.h"
@@ -48,5 +47,3 @@ struct PackedPatchTable {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __SUBD_PATCH_TABLE_H__ */

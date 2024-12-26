@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __CAMERA_H__
-#define __CAMERA_H__
+#pragma once
 
 #include "kernel/types.h"
 
@@ -218,5 +217,3 @@ class Camera : public Node {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __CAMERA_H__ */

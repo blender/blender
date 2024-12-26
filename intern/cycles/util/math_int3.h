@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __UTIL_MATH_INT3_H__
-#define __UTIL_MATH_INT3_H__
+#pragma once
 
 #ifndef __UTIL_MATH_H__
 #  error "Do not include this file directly, include util/types.h instead."
@@ -83,5 +82,3 @@ ccl_device_inline int3 operator-(const int3 a, const int3 b)
 #endif /* !__KERNEL_METAL__ */
 
 CCL_NAMESPACE_END
-
-#endif /* __UTIL_MATH_INT3_H__ */

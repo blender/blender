@@ -3,8 +3,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __UTIL_MATH_INT4_H__
-#define __UTIL_MATH_INT4_H__
+#pragma once
 
 #ifndef __UTIL_MATH_H__
 #  error "Do not include this file directly, include util/types.h instead."
@@ -291,5 +290,3 @@ template<size_t i0> ccl_device_forceinline int4 shuffle(const int4 b)
 #endif
 
 CCL_NAMESPACE_END
-
-#endif /* __UTIL_MATH_INT4_H__ */

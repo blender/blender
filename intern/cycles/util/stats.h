@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __UTIL_STATS_H__
-#define __UTIL_STATS_H__
+#pragma once
 
 #include "util/atomic.h"
 #include "util/profiling.h"
@@ -34,5 +33,3 @@ class Stats {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __UTIL_STATS_H__ */

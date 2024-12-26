@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __CURVES_H__
-#define __CURVES_H__
+#pragma once
 
 #include "util/array.h"
 #include "util/types.h"
@@ -45,5 +44,3 @@ class ParticleCurveData {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __CURVES_H__ */

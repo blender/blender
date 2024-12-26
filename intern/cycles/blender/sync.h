@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __BLENDER_SYNC_H__
-#define __BLENDER_SYNC_H__
+#pragma once
 
 #include "MEM_guardedalloc.h"
 #include "RNA_access.hh"
@@ -288,5 +287,3 @@ class BlenderSync {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __BLENDER_SYNC_H__ */

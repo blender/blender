@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __UTIL_TYPES_USHORT4_H__
-#define __UTIL_TYPES_USHORT4_H__
+#pragma once
 
 #ifndef __UTIL_TYPES_H__
 #  error "Do not include this file directly, include util/types.h instead."
@@ -20,5 +19,3 @@ struct ushort4 {
 #endif
 
 CCL_NAMESPACE_END
-
-#endif /* __UTIL_TYPES_USHORT4_H__ */

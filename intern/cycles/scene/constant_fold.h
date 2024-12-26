@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __CONSTANT_FOLD_H__
-#define __CONSTANT_FOLD_H__
+#pragma once
 
 #include "kernel/svm/types.h"
 #include "util/types.h"
@@ -61,5 +60,3 @@ class ConstantFolder {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __CONSTANT_FOLD_H__ */

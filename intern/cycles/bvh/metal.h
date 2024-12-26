@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __BVH_METAL_H__
-#define __BVH_METAL_H__
+#pragma once
 
 #ifdef WITH_METAL
 
@@ -19,5 +18,3 @@ BVH *bvh_metal_create(const BVHParams &params,
 CCL_NAMESPACE_END
 
 #endif /* WITH_METAL */
-
-#endif /* __BVH_METAL_H__ */

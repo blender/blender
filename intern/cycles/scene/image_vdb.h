@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __IMAGE_VDB__
-#define __IMAGE_VDB__
+#pragma once
 
 #ifdef WITH_OPENVDB
 #  include <openvdb/openvdb.h>
@@ -63,5 +62,3 @@ class VDBImageLoader : public ImageLoader {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __IMAGE_VDB__ */

@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __SUBD_PATCH_H__
-#define __SUBD_PATCH_H__
+#pragma once
 
 #include "util/boundbox.h"
 #include "util/types.h"
@@ -45,5 +44,3 @@ class BicubicPatch : public Patch {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __SUBD_PATCH_H__ */

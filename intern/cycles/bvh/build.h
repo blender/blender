@@ -5,8 +5,7 @@
  *
  * Adapted code from NVIDIA Corporation. */
 
-#ifndef __BVH_BUILD_H__
-#define __BVH_BUILD_H__
+#pragma once
 
 #include <float.h>
 
@@ -130,5 +129,3 @@ class BVHBuild {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __BVH_BUILD_H__ */

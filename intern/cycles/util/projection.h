@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __UTIL_PROJECTION_H__
-#define __UTIL_PROJECTION_H__
+#pragma once
 
 #include "util/transform.h"
 
@@ -279,5 +278,3 @@ ccl_device_inline ProjectionTransform projection_orthographic(float znear, float
 #endif /* __KERNEL_GPU__ */
 
 CCL_NAMESPACE_END
-
-#endif /* __UTIL_PROJECTION_H__ */

@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __OBJECT_H__
-#define __OBJECT_H__
+#pragma once
 
 #include "graph/node.h"
 
@@ -196,5 +195,3 @@ class ObjectManager {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __OBJECT_H__ */

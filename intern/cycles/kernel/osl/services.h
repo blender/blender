@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __OSL_SERVICES_H__
-#define __OSL_SERVICES_H__
+#pragma once
 
 /* OSL Render Services
  *
@@ -368,5 +367,3 @@ class OSLRenderServices : public OSL::RendererServices {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __OSL_SERVICES_H__ */

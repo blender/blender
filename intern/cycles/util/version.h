@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __UTIL_VERSION_H__
-#define __UTIL_VERSION_H__
+#pragma once
 
 /* Cycles version number */
 
@@ -19,5 +18,3 @@ CCL_NAMESPACE_BEGIN
   CYCLES_MAKE_VERSION_STRING(CYCLES_VERSION_MAJOR, CYCLES_VERSION_MINOR, CYCLES_VERSION_PATCH)
 
 CCL_NAMESPACE_END
-
-#endif /* __UTIL_VERSION_H__ */

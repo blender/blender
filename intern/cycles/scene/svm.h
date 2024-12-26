@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __SVM_H__
-#define __SVM_H__
+#pragma once
 
 #include "scene/attribute.h"
 #include "scene/shader.h"
@@ -232,5 +231,3 @@ class SVMCompiler {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __SVM_H__ */

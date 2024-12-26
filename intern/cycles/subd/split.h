@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __SUBD_SPLIT_H__
-#define __SUBD_SPLIT_H__
+#pragma once
 
 /* DiagSplit: Parallel, Crack-free, Adaptive Tessellation for Micro-polygon Rendering
  * Splits up patches and determines edge tessellation factors for dicing. Patch
@@ -59,5 +58,3 @@ class DiagSplit {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __SUBD_SPLIT_H__ */

@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __UTIL_TYPES_UCHAR2_IMPL_H__
-#define __UTIL_TYPES_UCHAR2_IMPL_H__
+#pragma once
 
 #ifndef __UTIL_TYPES_H__
 #  error "Do not include this file directly, include util/types.h instead."
@@ -36,5 +35,3 @@ ccl_device_inline uchar2 make_uchar2(uchar x, uchar y)
 #endif /* __KERNEL_NATIVE_VECTOR_TYPES__ */
 
 CCL_NAMESPACE_END
-
-#endif /* __UTIL_TYPES_UCHAR2_IMPL_H__ */

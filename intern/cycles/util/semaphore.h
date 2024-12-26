@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __UTIL_SEMAPHORE_H__
-#define __UTIL_SEMAPHORE_H__
+#pragma once
 
 #include "util/thread.h"
 
@@ -43,5 +42,3 @@ class thread_counting_semaphore {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __UTIL_SEMAPHORE_H__ */

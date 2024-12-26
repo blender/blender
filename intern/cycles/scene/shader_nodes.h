@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __NODES_H__
-#define __NODES_H__
+#pragma once
 
 #include "graph/node.h"
 #include "scene/image.h"
@@ -1695,5 +1694,3 @@ class VectorDisplacementNode : public ShaderNode {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __NODES_H__ */

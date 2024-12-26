@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __UTIL_ATOMIC_H__
-#define __UTIL_ATOMIC_H__
+#pragma once
 
 #ifndef __KERNEL_GPU__
 
@@ -311,5 +310,3 @@ ccl_device_inline int atomic_load_local(int *p)
 #  endif /* __KERNEL_ONEAPI__ */
 
 #endif /* __KERNEL_GPU__ */
-
-#endif /* __UTIL_ATOMIC_H__ */

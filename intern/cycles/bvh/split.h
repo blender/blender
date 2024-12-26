@@ -5,8 +5,7 @@
  *
  * Adapted code from NVIDIA Corporation. */
 
-#ifndef __BVH_SPLIT_H__
-#define __BVH_SPLIT_H__
+#pragma once
 
 #include "bvh/build.h"
 #include "bvh/params.h"
@@ -234,5 +233,3 @@ class BVHMixedSplit {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __BVH_SPLIT_H__ */

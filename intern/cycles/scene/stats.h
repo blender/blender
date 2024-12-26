@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __RENDER_STATS_H__
-#define __RENDER_STATS_H__
+#pragma once
 
 #include "scene/scene.h"
 
@@ -215,5 +214,3 @@ class SceneUpdateStats {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __RENDER_STATS_H__ */

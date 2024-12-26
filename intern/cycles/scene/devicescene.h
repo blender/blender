@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __DEVICESCENE_H__
-#define __DEVICESCENE_H__
+#pragma once
 
 #include "device/device.h"
 #include "device/memory.h"
@@ -98,5 +97,3 @@ class DeviceScene {
 };
 
 CCL_NAMESPACE_END
-
-#endif /*  __DEVICESCENE_H__ */

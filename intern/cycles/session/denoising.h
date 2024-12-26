@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __DENOISING_H__
-#define __DENOISING_H__
+#pragma once
 
 /* TODO(sergey): Make it explicit and clear when something is a denoiser, its pipeline or
  * parameters. Currently it is an annoying mixture of terms used interchangeably. */
@@ -169,5 +168,3 @@ class DenoiseTask {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __DENOISING_H__ */

@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __UTIL_MATH_CDF_H__
-#define __UTIL_MATH_CDF_H__
+#pragma once
 
 #include "util/algorithm.h"
 #include "util/math.h"
@@ -61,5 +60,3 @@ void util_cdf_inverted(const int resolution,
 }
 
 CCL_NAMESPACE_END
-
-#endif /* __UTIL_MATH_H_CDF__ */

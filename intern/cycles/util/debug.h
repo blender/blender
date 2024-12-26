@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __UTIL_DEBUG_H__
-#define __UTIL_DEBUG_H__
+#pragma once
 
 #include <cassert>
 
@@ -145,5 +144,3 @@ inline DebugFlags &DebugFlags()
 }
 
 CCL_NAMESPACE_END
-
-#endif /* __UTIL_DEBUG_H__ */

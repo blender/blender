@@ -21,8 +21,7 @@
  * The individual functions give references were applicable.
  */
 
-#ifndef __UTIL_FAST_MATH__
-#define __UTIL_FAST_MATH__
+#pragma once
 
 CCL_NAMESPACE_BEGIN
 
@@ -640,5 +639,3 @@ ccl_device_inline float fast_inv_cbrtf(float x)
 }
 
 CCL_NAMESPACE_END
-
-#endif /* __UTIL_FAST_MATH__ */

@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __UTIL_PARAM_H__
-#define __UTIL_PARAM_H__
+#pragma once
 
 /* Parameter value lists from OpenImageIO are used to store custom properties
  * on various data, which can then later be used in shaders. */
@@ -24,5 +23,3 @@ static constexpr TypeDesc TypeFloatArray4(TypeDesc::FLOAT,
                                           4);
 
 CCL_NAMESPACE_END
-
-#endif /* __UTIL_PARAM_H__ */

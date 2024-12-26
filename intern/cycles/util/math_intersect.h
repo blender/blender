@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __UTIL_MATH_INTERSECT_H__
-#define __UTIL_MATH_INTERSECT_H__
+#pragma once
 
 CCL_NAMESPACE_BEGIN
 
@@ -441,5 +440,3 @@ ccl_device_inline bool ray_cone_intersect(const float3 axis,
 }
 
 CCL_NAMESPACE_END
-
-#endif /* __UTIL_MATH_INTERSECT_H__ */

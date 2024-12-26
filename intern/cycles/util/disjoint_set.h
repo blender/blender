@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __UTIL_DISJOINT_SET_H__
-#define __UTIL_DISJOINT_SET_H__
+#pragma once
 
 #include "util/array.h"
 #include <utility>
@@ -59,5 +58,3 @@ class DisjointSet {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __UTIL_DISJOINT_SET_H__ */

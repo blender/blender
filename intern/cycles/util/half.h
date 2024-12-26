@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __UTIL_HALF_H__
-#define __UTIL_HALF_H__
+#pragma once
 
 #include "util/math.h"
 #include "util/types.h"
@@ -177,5 +176,3 @@ ccl_device_inline half4 float4_to_half4_display(const float4 f)
 }
 
 CCL_NAMESPACE_END
-
-#endif /* __UTIL_HALF_H__ */

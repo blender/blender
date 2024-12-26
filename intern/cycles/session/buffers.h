@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __BUFFERS_H__
-#define __BUFFERS_H__
+#pragma once
 
 #include "device/memory.h"
 #include "graph/node.h"
@@ -185,5 +184,3 @@ void render_buffers_host_copy_denoised(RenderBuffers *dst,
                                        const size_t src_offset = 0);
 
 CCL_NAMESPACE_END
-
-#endif /* __BUFFERS_H__ */

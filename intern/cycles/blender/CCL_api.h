@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __CCL_API_H__
-#define __CCL_API_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -20,5 +19,3 @@ void CCL_logging_verbosity_set(int verbosity);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __CCL_API_H__ */

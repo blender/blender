@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __DEVICE_MEMORY_H__
-#define __DEVICE_MEMORY_H__
+#pragma once
 
 /* Device Memory
  *
@@ -631,5 +630,3 @@ class device_texture : public device_memory {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __DEVICE_MEMORY_H__ */

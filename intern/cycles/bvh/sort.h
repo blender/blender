@@ -5,8 +5,7 @@
  *
  * Adapted code from NVIDIA Corporation. */
 
-#ifndef __BVH_SORT_H__
-#define __BVH_SORT_H__
+#pragma once
 
 #include <cstddef>
 
@@ -24,5 +23,3 @@ void bvh_reference_sort(int start,
                         const Transform *aligned_space = nullptr);
 
 CCL_NAMESPACE_END
-
-#endif /* __BVH_SORT_H__ */

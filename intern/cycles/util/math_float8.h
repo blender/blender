@@ -3,8 +3,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __UTIL_MATH_FLOAT8_H__
-#define __UTIL_MATH_FLOAT8_H__
+#pragma once
 
 #ifndef __UTIL_MATH_H__
 #  error "Do not include this file directly, include util/types.h instead."
@@ -479,5 +478,3 @@ template<size_t i> ccl_device_forceinline float extract(const vfloat8 a)
 #endif
 
 CCL_NAMESPACE_END
-
-#endif /* __UTIL_MATH_FLOAT8_H__ */

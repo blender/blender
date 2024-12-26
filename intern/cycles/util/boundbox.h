@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __UTIL_BOUNDBOX_H__
-#define __UTIL_BOUNDBOX_H__
+#pragma once
 
 #include <float.h>
 #include <math.h>
@@ -262,5 +261,3 @@ class BoundBox2D {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __UTIL_BOUNDBOX_H__ */

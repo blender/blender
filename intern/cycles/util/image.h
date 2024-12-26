@@ -2,15 +2,14 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __UTIL_IMAGE_H__
-#  define __UTIL_IMAGE_H__
+#pragma once
 
 /* OpenImageIO is used for all image file reading and writing. */
 
-#  include <OpenImageIO/imageio.h>
+#include <OpenImageIO/imageio.h>
 
-#  include "util/half.h"
-#  include "util/vector.h"
+#include "util/half.h"
+#include "util/vector.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -100,7 +99,5 @@ template<> inline half util_image_multiply_native(half a, half b)
 }
 
 CCL_NAMESPACE_END
-
-#endif /* __UTIL_IMAGE_H__ */
 
 #include "util/image_impl.h"

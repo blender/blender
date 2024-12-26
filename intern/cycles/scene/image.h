@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __IMAGE_H__
-#define __IMAGE_H__
+#pragma once
 
 #include "device/memory.h"
 
@@ -240,5 +239,3 @@ class ImageManager {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __IMAGE_H__ */

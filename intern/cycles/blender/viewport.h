@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __BLENDER_VIEWPORT_H__
-#define __BLENDER_VIEWPORT_H__
+#pragma once
 
 #include "MEM_guardedalloc.h"
 
@@ -47,5 +46,3 @@ class BlenderViewportParameters {
 };
 
 CCL_NAMESPACE_END
-
-#endif

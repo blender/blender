@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __BLENDER_ATTRIBUTE_CONVERT_H__
-#define __BLENDER_ATTRIBUTE_CONVERT_H__
+#pragma once
 
 #include "util/array.h"
 #include "util/color.h"
@@ -97,5 +96,3 @@ template<> struct AttributeConverter<blender::math::Quaternion> {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __BLENDER_ATTRIBUTE_CONVERT_H__ */

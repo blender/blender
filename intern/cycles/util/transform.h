@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __UTIL_TRANSFORM_H__
-#define __UTIL_TRANSFORM_H__
+#pragma once
 
 #ifndef __KERNEL_GPU__
 #  include <string.h>
@@ -537,5 +536,3 @@ Transform transform_from_viewplane(BoundBox2D &viewplane);
 #define transform_direction_transposed_auto transform_direction_transposed
 
 CCL_NAMESPACE_END
-
-#endif /* __UTIL_TRANSFORM_H__ */

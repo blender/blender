@@ -5,8 +5,7 @@
  *
  * Adapted code from NVIDIA Corporation. */
 
-#ifndef __BVH_H__
-#define __BVH_H__
+#pragma once
 
 #include "bvh/params.h"
 #include "util/array.h"
@@ -89,5 +88,3 @@ class BVH {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __BVH_H__ */

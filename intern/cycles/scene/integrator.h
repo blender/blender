@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __INTEGRATOR_H__
-#define __INTEGRATOR_H__
+#pragma once
 
 #include "kernel/types.h"
 
@@ -127,5 +126,3 @@ class Integrator : public Node {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __INTEGRATOR_H__ */

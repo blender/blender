@@ -3,8 +3,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __UTIL_SIMD_TYPES_H__
-#define __UTIL_SIMD_TYPES_H__
+#pragma once
 
 #include <limits>
 #include <stdint.h>
@@ -481,5 +480,3 @@ __forceinline uint64_t bitscan(uint64_t value)
 #endif
 
 CCL_NAMESPACE_END
-
-#endif /* __UTIL_SIMD_TYPES_H__ */

@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __UTIL_ALIGNED_MALLOC_H__
-#define __UTIL_ALIGNED_MALLOC_H__
+#pragma once
 
 #include "util/types.h"
 
@@ -34,5 +33,3 @@ template<typename T> void util_aligned_delete(T *t)
 }
 
 CCL_NAMESPACE_END
-
-#endif /* __UTIL_ALIGNED_MALLOC_H__ */

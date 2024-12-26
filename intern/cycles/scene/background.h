@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __BACKGROUND_H__
-#define __BACKGROUND_H__
+#pragma once
 
 #include "graph/node.h"
 
@@ -45,5 +44,3 @@ class Background : public Node {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __BACKGROUND_H__ */

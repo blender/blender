@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __FILM_H__
-#define __FILM_H__
+#pragma once
 
 #include "scene/pass.h"
 #include "util/string.h"
@@ -86,5 +85,3 @@ class Film : public Node {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __FILM_H__ */

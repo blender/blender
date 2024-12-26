@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __UTIL_STACK_ALLOCATOR_H__
-#define __UTIL_STACK_ALLOCATOR_H__
+#pragma once
 
 #include <cstddef>
 #include <memory>
@@ -11,8 +10,7 @@
 CCL_NAMESPACE_BEGIN
 
 /* Stack allocator for the use with STL. */
-template<int SIZE, typename T> class ccl_try_align(16) StackAllocator
-{
+template<int SIZE, typename T> class ccl_try_align(16) StackAllocator {
  public:
   typedef size_t size_type;
   typedef ptrdiff_t difference_type;
@@ -60,7 +58,7 @@ template<int SIZE, typename T> class ccl_try_align(16) StackAllocator
     return mem;
   }
 
-  void deallocate(T * p, size_t n)
+  void deallocate(T *p, size_t n)
   {
     if (p == nullptr) {
       return;
@@ -79,7 +77,7 @@ template<int SIZE, typename T> class ccl_try_align(16) StackAllocator
 
   /* Address of an reference. */
 
-  T *address(T & x) const
+  T *address(T &x) const
   {
     return &x;
   }
@@ -91,14 +89,14 @@ template<int SIZE, typename T> class ccl_try_align(16) StackAllocator
 
   /* Object construction/destruction. */
 
-  void construct(T * p, const T &val)
+  void construct(T *p, const T &val)
   {
     if (p != nullptr) {
       new ((T *)p) T(val);
     }
   }
 
-  void destroy(T * p)
+  void destroy(T *p)
   {
     p->~T();
   }
@@ -145,5 +143,3 @@ template<int SIZE, typename T> class ccl_try_align(16) StackAllocator
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __UTIL_STACK_ALLOCATOR_H__ */

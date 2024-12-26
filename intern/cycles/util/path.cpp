@@ -6,6 +6,7 @@
 #include "util/algorithm.h"
 #include "util/map.h"
 #include "util/md5.h"
+#include "util/set.h"
 #include "util/string.h"
 #include "util/vector.h"
 

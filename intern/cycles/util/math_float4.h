@@ -3,8 +3,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __UTIL_MATH_FLOAT4_H__
-#define __UTIL_MATH_FLOAT4_H__
+#pragma once
 
 #ifndef __UTIL_MATH_H__
 #  error "Do not include this file directly, include util/types.h instead."
@@ -611,5 +610,3 @@ ccl_device_inline float4 power(float4 v, float e)
 }
 
 CCL_NAMESPACE_END
-
-#endif /* __UTIL_MATH_FLOAT4_H__ */

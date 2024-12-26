@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __GRAPH_H__
-#define __GRAPH_H__
+#pragma once
 
 #include "graph/node.h"
 #include "graph/node_type.h"
@@ -174,7 +173,7 @@ class ShaderNode : public Node {
   /* Simplify settings used by artists to the ones which are simpler to
    * evaluate in the kernel but keep the final result unchanged.
    */
-  virtual void simplify_settings(Scene * /*scene*/){};
+  virtual void simplify_settings(Scene * /*scene*/) {};
 
   virtual bool has_surface_emission()
   {
@@ -362,5 +361,3 @@ class ShaderGraph : public NodeOwner {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __GRAPH_H__ */

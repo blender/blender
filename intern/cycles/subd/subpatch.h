@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __SUBD_SUBPATCH_H__
-#define __SUBD_SUBPATCH_H__
+#pragma once
 
 #include "util/map.h"
 #include "util/types.h"
@@ -203,5 +202,3 @@ inline int Subpatch::get_vert_along_edge(int edge, int n) const
 }
 
 CCL_NAMESPACE_END
-
-#endif /* __SUBD_SUBPATCH_H__ */

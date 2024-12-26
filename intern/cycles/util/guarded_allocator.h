@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __UTIL_GUARDED_ALLOCATOR_H__
-#define __UTIL_GUARDED_ALLOCATOR_H__
+#pragma once
 
 #include <cstddef>
 #include <cstdlib>
@@ -163,5 +162,3 @@ size_t util_guarded_get_mem_peak();
   } while (false)
 
 CCL_NAMESPACE_END
-
-#endif /* __UTIL_GUARDED_ALLOCATOR_H__ */

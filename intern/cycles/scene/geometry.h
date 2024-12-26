@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __GEOMETRY_H__
-#define __GEOMETRY_H__
+#pragma once
 
 #include "graph/node.h"
 
@@ -296,5 +295,3 @@ class GeometryManager {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __GEOMETRY_H__ */

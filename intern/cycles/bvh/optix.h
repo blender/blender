@@ -3,8 +3,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __BVH_OPTIX_H__
-#define __BVH_OPTIX_H__
+#pragma once
 
 #ifdef WITH_OPTIX
 
@@ -36,5 +35,3 @@ class BVHOptiX : public BVH {
 CCL_NAMESPACE_END
 
 #endif /* WITH_OPTIX */
-
-#endif /* __BVH_OPTIX_H__ */

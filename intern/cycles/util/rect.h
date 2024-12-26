@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __UTIL_RECT_H__
-#define __UTIL_RECT_H__
+#pragma once
 
 #include "util/types.h"
 
@@ -59,5 +58,3 @@ ccl_device_inline int rect_size(int4 rect)
 }
 
 CCL_NAMESPACE_END
-
-#endif /* __UTIL_RECT_H__ */

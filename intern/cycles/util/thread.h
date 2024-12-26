@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __UTIL_THREAD_H__
-#define __UTIL_THREAD_H__
+#pragma once
 
 #include <condition_variable>
 #include <functional>
@@ -70,5 +69,3 @@ class thread_scoped_spin_lock {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __UTIL_THREAD_H__ */

@@ -10,8 +10,7 @@
  * code, with minor code modifications done to remove some unused code and
  * change code style. */
 
-#ifndef __UTIL_MD5_H__
-#define __UTIL_MD5_H__
+#pragma once
 
 #include "util/string.h"
 #include "util/types.h"
@@ -40,5 +39,3 @@ class MD5Hash {
 string util_md5_string(const string &str);
 
 CCL_NAMESPACE_END
-
-#endif /* __UTIL_MD5_H__ */

@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __BLENDER_IMAGE_H__
-#define __BLENDER_IMAGE_H__
+#pragma once
 
 #include "RNA_blender_cpp.hh"
 
@@ -51,5 +50,3 @@ class BlenderPointDensityLoader : public ImageLoader {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __BLENDER_IMAGE_H__ */

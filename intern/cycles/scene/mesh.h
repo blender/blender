@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __MESH_H__
-#define __MESH_H__
+#pragma once
 
 #include "graph/node.h"
 
@@ -250,5 +249,3 @@ class Mesh : public Geometry {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __MESH_H__ */

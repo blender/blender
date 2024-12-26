@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __UTIL_ARRAY_H__
-#define __UTIL_ARRAY_H__
+#pragma once
 
 #include <cassert>
 #include <cstring>
@@ -304,5 +303,3 @@ template<typename T, size_t alignment = MIN_ALIGNMENT_CPU_DATA_TYPES> class arra
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __UTIL_ARRAY_H__ */

@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __UTIL_TASK_H__
-#define __UTIL_TASK_H__
+#pragma once
 
 #include "util/list.h"
 #include "util/string.h"
@@ -131,5 +130,3 @@ class DedicatedTaskPool {
 };
 
 CCL_NAMESPACE_END
-
-#endif

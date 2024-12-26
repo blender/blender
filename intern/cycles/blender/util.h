@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __BLENDER_UTIL_H__
-#define __BLENDER_UTIL_H__
+#pragma once
 
 #include "scene/mesh.h"
 #include "scene/scene.h"
@@ -779,5 +778,3 @@ class EdgeMap {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __BLENDER_UTIL_H__ */

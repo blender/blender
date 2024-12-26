@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __DEVICE_H__
-#define __DEVICE_H__
+#pragma once
 
 #include <cstdlib>
 #include <functional>
@@ -414,5 +413,3 @@ class GPUDevice : public Device {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __DEVICE_H__ */

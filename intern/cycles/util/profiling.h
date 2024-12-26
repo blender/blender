@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __UTIL_PROFILING_H__
-#define __UTIL_PROFILING_H__
+#pragma once
 
 #include <atomic>
 
@@ -168,5 +167,3 @@ class ProfilingWithShaderHelper : public ProfilingHelper {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __UTIL_PROFILING_H__ */

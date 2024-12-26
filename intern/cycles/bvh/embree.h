@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __BVH_EMBREE_H__
-#define __BVH_EMBREE_H__
+#pragma once
 
 #ifdef WITH_EMBREE
 
@@ -73,5 +72,3 @@ class BVHEmbree : public BVH {
 CCL_NAMESPACE_END
 
 #endif /* WITH_EMBREE */
-
-#endif /* __BVH_EMBREE_H__ */

@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __SHADER_H__
-#define __SHADER_H__
+#pragma once
 
 #ifdef WITH_OSL
 /* So no context pollution happens from indirectly included windows.h */
@@ -258,5 +257,3 @@ class ShaderManager {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __SHADER_H__ */

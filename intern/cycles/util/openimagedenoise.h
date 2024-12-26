@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __UTIL_OPENIMAGEDENOISE_H__
-#define __UTIL_OPENIMAGEDENOISE_H__
+#pragma once
 
 #ifdef WITH_OPENIMAGEDENOISE
 #  include <OpenImageDenoise/oidn.hpp>
@@ -31,5 +30,3 @@ static inline bool openimagedenoise_supported()
 }
 
 CCL_NAMESPACE_END
-
-#endif /* __UTIL_OPENIMAGEDENOISE_H__ */

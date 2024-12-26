@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __LIGHT_TREE_H__
-#define __LIGHT_TREE_H__
+#pragma once
 
 #include "scene/light.h"
 #include "scene/scene.h"
@@ -456,5 +455,3 @@ class LightTree {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __LIGHT_TREE_H__ */

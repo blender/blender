@@ -5,8 +5,7 @@
  *
  * Adapted code from NVIDIA Corporation. */
 
-#ifndef __BVH_PARAMS_H__
-#define __BVH_PARAMS_H__
+#pragma once
 
 #include "util/boundbox.h"
 #include "util/vector.h"
@@ -333,5 +332,3 @@ struct BVHSpatialStorage {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __BVH_PARAMS_H__ */

@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __IMAGE_OIIO__
-#define __IMAGE_OIIO__
+#pragma once
 
 #include "scene/image.h"
 
@@ -32,5 +31,3 @@ class OIIOImageLoader : public ImageLoader {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __IMAGE_OIIO__ */

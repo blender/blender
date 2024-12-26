@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __BLENDER_SESSION_H__
-#define __BLENDER_SESSION_H__
+#pragma once
 
 #include "MEM_guardedalloc.h"
 
@@ -152,5 +151,3 @@ class BlenderSession {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __BLENDER_SESSION_H__ */

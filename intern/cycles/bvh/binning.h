@@ -5,8 +5,7 @@
  *
  * Adapted code from Intel Corporation. */
 
-#ifndef __BVH_BINNING_H__
-#define __BVH_BINNING_H__
+#pragma once
 
 #include "bvh/params.h"
 #include "bvh/unaligned.h"
@@ -99,5 +98,3 @@ class BVHObjectBinning : public BVHRange {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __BVH_BINNING_H__ */

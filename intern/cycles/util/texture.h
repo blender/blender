@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __UTIL_TEXTURE_H__
-#define __UTIL_TEXTURE_H__
+#pragma once
 
 #include "util/transform.h"
 
@@ -87,5 +86,3 @@ typedef struct TextureInfo {
 } TextureInfo;
 
 CCL_NAMESPACE_END
-
-#endif /* __UTIL_TEXTURE_H__ */

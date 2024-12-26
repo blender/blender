@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __UTIL_OPENVDB_H__
-#define __UTIL_OPENVDB_H__
+#pragma once
 
 #ifdef WITH_OPENVDB
 #  include <openvdb/openvdb.h>
@@ -52,5 +51,3 @@ bool grid_type_operation(const openvdb::GridBase::ConstPtr &grid, OpType &&op)
 };  // namespace openvdb
 
 #endif
-
-#endif /* __UTIL_OPENVDB_H__ */

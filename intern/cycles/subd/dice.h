@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __SUBD_DICE_H__
-#define __SUBD_DICE_H__
+#pragma once
 
 /* DX11 like EdgeDice implementation, with different tessellation factors for
  * each edge for watertight tessellation, with subpatch remapping to work with
@@ -87,5 +86,3 @@ class QuadDice : public EdgeDice {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __SUBD_DICE_H__ */

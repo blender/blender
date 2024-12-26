@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __UTIL_HASH_H__
-#define __UTIL_HASH_H__
+#pragma once
 
 #include "util/math.h"
 #include "util/types.h"
@@ -542,5 +541,3 @@ static inline uint hash_string(const char *str)
 #endif
 
 CCL_NAMESPACE_END
-
-#endif /* __UTIL_HASH_H__ */

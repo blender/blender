@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __UTIL_TYPES_SPECTRUM_H__
-#define __UTIL_TYPES_SPECTRUM_H__
+#pragma once
 
 #ifndef __UTIL_TYPES_H__
 #  error "Do not include this file directly, include util/types.h instead."
@@ -31,5 +30,3 @@ using PackedSpectrum = PACKED_SPECTRUM_DATA_TYPE;
 #define GET_SPECTRUM_CHANNEL(v, i) (((ccl_private float *)(&(v)))[i])
 
 CCL_NAMESPACE_END
-
-#endif /* __UTIL_TYPES_SPECTRUM_H__ */
