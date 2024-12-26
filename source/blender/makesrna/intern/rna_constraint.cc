@@ -1673,6 +1673,7 @@ static void rna_def_constraint_size_like(BlenderRNA *brna)
       prop,
       "Additive",
       "Use addition instead of multiplication to combine scale (2.7 compatibility)");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_CONSTRAINT);
   RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
 
   RNA_define_lib_overridable(false);
