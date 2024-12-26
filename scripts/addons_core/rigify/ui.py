@@ -217,6 +217,7 @@ class DATA_PT_rigify_advanced(bpy.types.Panel):
 # noinspection PyPep8Naming
 class DATA_PT_rigify_samples(bpy.types.Panel):
     bl_label = "Samples"
+    bl_translation_context = i18n_contexts.id_armature
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
     bl_context = "data"
