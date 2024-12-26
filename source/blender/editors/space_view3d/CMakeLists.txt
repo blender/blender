@@ -10,7 +10,6 @@ set(INC
   ../../makesrna
   ../../modifiers
   ../../nodes
-  ../../render
   ../../../../intern/mantaflow/extern
 
   # RNA_prototypes.hh
@@ -90,6 +89,7 @@ set(LIB
   PRIVATE bf::gpu
   PRIVATE bf::imbuf
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::render
   PRIVATE bf::windowmanager
 )
 

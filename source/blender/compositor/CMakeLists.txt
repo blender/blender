@@ -10,7 +10,6 @@ set(INC
   ../gpu/intern
   ../makesrna
   ../nodes
-  ../render
   ../render/intern
 )
 
@@ -148,7 +147,7 @@ set(LIB
   PRIVATE bf::functions
   PRIVATE bf::gpu
   PRIVATE bf::imbuf
-  bf_render
+  PRIVATE bf::render
   PRIVATE bf::blenlib
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc

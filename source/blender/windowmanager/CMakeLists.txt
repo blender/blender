@@ -13,7 +13,6 @@ set(INC
   ../imbuf/movie
   ../makesrna
   ../nodes
-  ../render
   ../sequencer
   ../../../intern/memutil
 
@@ -107,6 +106,7 @@ set(LIB
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::animrig
+  PRIVATE bf::render
   bf_sequencer
   bf_intern_ghost
   bf_compositor

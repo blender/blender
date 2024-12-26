@@ -11,7 +11,6 @@ set(INC
   ../../geometry
   ../../makesrna
   ../../nodes
-  ../../render
 
   # RNA_prototypes.hh
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
@@ -59,6 +58,7 @@ set(LIB
   PRIVATE bf::intern::guardedalloc
   bf_compositor
   PRIVATE bf::extern::fmtlib
+  PRIVATE bf::render
   PRIVATE bf::windowmanager
 )
 

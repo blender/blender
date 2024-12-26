@@ -8,7 +8,6 @@ set(INC
   ../../draw
   ../../geometry
   ../../makesrna
-  ../../render
   # RNA_prototypes.hh
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
@@ -68,6 +67,7 @@ set(LIB
   PRIVATE bf::imbuf
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::render
   PRIVATE bf::windowmanager
 )
 

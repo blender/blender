@@ -9,7 +9,6 @@ set(INC
   ../imbuf/movie
   ../makesrna
   ../nodes
-  ../render
   ../sequencer
 
   # RNA_prototypes.hh
@@ -66,6 +65,7 @@ set(LIB
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::extern::fmtlib
   PRIVATE bf::intern::memutil
+  PRIVATE bf::render
   PRIVATE bf::windowmanager
 )
 

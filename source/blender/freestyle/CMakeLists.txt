@@ -541,6 +541,7 @@ set(LIB
 
   ${PYTHON_LINKFLAGS}
   ${PYTHON_LIBRARIES}
+  PRIVATE bf::render
 )
 
 set(INC
@@ -548,7 +549,6 @@ set(INC
   ../makesrna
   ../python
   ../python/intern
-  ../render
   ../render/intern
 
   # RNA_prototypes.hh

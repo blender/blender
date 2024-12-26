@@ -5,7 +5,6 @@
 set(INC
   ../include
   ../../makesrna
-  ../../render
 )
 
 set(INC_SYS
@@ -28,6 +27,7 @@ set(LIB
   PRIVATE bf::dna
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::render
   PRIVATE bf::windowmanager
 )
 

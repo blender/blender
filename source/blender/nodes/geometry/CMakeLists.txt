@@ -12,7 +12,6 @@ set(INC
   ../../imbuf/movie
   ../../makesrna
   ../../modifiers
-  ../../render
   ../../io/common
   ../../io/ply
   ../../io/stl
@@ -256,6 +255,7 @@ set(LIB
   PRIVATE bf::intern::atomic
   PRIVATE bf::extern::fmtlib
   PRIVATE bf::extern::xxhash
+  PRIVATE bf::render
   PRIVATE bf::windowmanager
 )
 

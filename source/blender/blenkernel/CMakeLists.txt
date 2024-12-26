@@ -11,7 +11,6 @@ set(INC
   ../modifiers
   ../nodes
   ../nodes/geometry/include
-  ../render
   ../sequencer
   ../shader_fx
   ../simulation
@@ -575,6 +574,7 @@ set(LIB
   bf_intern_opensubdiv  # Uses stub when disabled.
   bf_modifiers
   bf_nodes
+  PRIVATE bf::render
   bf_rna
   bf_shader_fx
   bf_simulation

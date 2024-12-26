@@ -8,7 +8,6 @@ set(INC
   ../intern
   ../../editors/include
   ../../makesrna
-  ../../render
   ../../compositor
   ../../compositor/algorithms
   ../../compositor/cached_resources
@@ -132,6 +131,7 @@ set(LIB
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::extern::fmtlib
   bf_compositor
+  PRIVATE bf::render
   PRIVATE bf::windowmanager
 )
 

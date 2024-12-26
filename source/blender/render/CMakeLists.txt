@@ -4,7 +4,7 @@
 
 
 set(INC
-  .
+  PUBLIC .
   intern
   ../compositor
   ../compositor/cached_resources
@@ -99,3 +99,4 @@ if(WITH_HYDRA)
 endif()
 
 blender_add_lib_nolist(bf_render "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+add_library(bf::render ALIAS bf_render)

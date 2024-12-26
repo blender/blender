@@ -10,7 +10,6 @@ set(INC
   ../../makesrna
   ../../modifiers
   ../../python
-  ../../render
   ../../shader_fx
 
   # RNA_prototypes.hh
@@ -70,7 +69,7 @@ set(LIB
   PRIVATE bf::imbuf
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
-  bf_render
+  PRIVATE bf::render
   PRIVATE bf::windowmanager
 )
 

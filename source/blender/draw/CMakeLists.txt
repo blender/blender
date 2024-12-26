@@ -11,7 +11,6 @@ set(INC
   ../gpu/intern
   ../makesrna
   ../nodes
-  ../render
   ../render/intern
   ../compositor
   ../compositor/algorithms
@@ -310,6 +309,7 @@ set(LIB
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   bf_compositor
+  PRIVATE bf::render
   PRIVATE bf::windowmanager
   PRIVATE bf::intern::atomic
   PRIVATE bf::extern::fmtlib
