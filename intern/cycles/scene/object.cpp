@@ -512,8 +512,7 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
 
   if (geom->is_mesh() || geom->is_pointcloud()) {
     /* TODO: why only mesh? */
-    Mesh *mesh = static_cast<Mesh *>(geom);
-    if (mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION)) {
+    if (geom->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION)) {
       flag |= SD_OBJECT_HAS_VERTEX_MOTION;
     }
   }
