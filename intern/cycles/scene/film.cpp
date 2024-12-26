@@ -44,7 +44,7 @@ static float filter_func_blackman_harris(float v, float width)
 static vector<float> filter_table(FilterType type, float width)
 {
   vector<float> filter_table(FILTER_TABLE_SIZE);
-  float (*filter_func)(float, float) = NULL;
+  float (*filter_func)(float, float) = nullptr;
 
   switch (type) {
     case FILTER_BOX:

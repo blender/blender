@@ -327,7 +327,7 @@ string CUDADevice::compile_kernel(const string &common_cflags,
 
   /* Compile. */
   const char *const nvcc = cuewCompilerPath();
-  if (nvcc == NULL) {
+  if (nvcc == nullptr) {
     set_error(
         "CUDA nvcc compiler not found. "
         "Install CUDA toolkit in default location.");
@@ -758,8 +758,8 @@ void CUDADevice::tex_alloc(device_texture &mem)
       return;
   }
 
-  Mem *cmem = NULL;
-  CUarray array_3d = NULL;
+  Mem *cmem = nullptr;
+  CUarray array_3d = nullptr;
   size_t src_pitch = mem.data_width * dsize * mem.data_elements;
   size_t dst_pitch = src_pitch;
 
@@ -907,7 +907,7 @@ void CUDADevice::tex_alloc(device_texture &mem)
     thread_scoped_lock lock(device_mem_map_mutex);
     cmem = &device_mem_map[&mem];
 
-    cuda_assert(cuTexObjectCreate(&cmem->texobject, &resDesc, &texDesc, NULL));
+    cuda_assert(cuTexObjectCreate(&cmem->texobject, &resDesc, &texDesc, nullptr));
 
     texture_info[slot].data = (uint64_t)cmem->texobject;
   }

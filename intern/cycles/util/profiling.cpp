@@ -9,11 +9,11 @@
 
 CCL_NAMESPACE_BEGIN
 
-Profiler::Profiler() : do_stop_worker(true), worker(NULL) {}
+Profiler::Profiler() : do_stop_worker(true), worker(nullptr) {}
 
 Profiler::~Profiler()
 {
-  assert(worker == NULL);
+  assert(worker == nullptr);
 }
 
 void Profiler::run()
@@ -54,7 +54,7 @@ void Profiler::run()
 
 void Profiler::reset(int num_shaders, int num_objects)
 {
-  bool running = (worker != NULL);
+  bool running = (worker != nullptr);
   if (running) {
     stop();
   }
@@ -74,19 +74,19 @@ void Profiler::reset(int num_shaders, int num_objects)
 
 void Profiler::start()
 {
-  assert(worker == NULL);
+  assert(worker == nullptr);
   do_stop_worker = false;
   worker = new thread([this] { run(); });
 }
 
 void Profiler::stop()
 {
-  if (worker != NULL) {
+  if (worker != nullptr) {
     do_stop_worker = true;
 
     worker->join();
     delete worker;
-    worker = NULL;
+    worker = nullptr;
   }
 }
 
@@ -131,13 +131,13 @@ void Profiler::remove_state(ProfilingState *state)
 
 uint64_t Profiler::get_event(ProfilingEvent event)
 {
-  assert(worker == NULL);
+  assert(worker == nullptr);
   return event_samples[event];
 }
 
 bool Profiler::get_shader(int shader, uint64_t &samples, uint64_t &hits)
 {
-  assert(worker == NULL);
+  assert(worker == nullptr);
   if (shader_samples[shader] == 0) {
     return false;
   }
@@ -148,7 +148,7 @@ bool Profiler::get_shader(int shader, uint64_t &samples, uint64_t &hits)
 
 bool Profiler::get_object(int object, uint64_t &samples, uint64_t &hits)
 {
-  assert(worker == NULL);
+  assert(worker == nullptr);
   if (object_samples[object] == 0) {
     return false;
   }

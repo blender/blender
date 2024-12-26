@@ -484,7 +484,7 @@ static inline string get_enum_identifier(PointerRNA &ptr, const char *name)
   const char *identifier = "";
   int value = RNA_property_enum_get(&ptr, prop);
 
-  RNA_property_enum_identifier(NULL, &ptr, prop, value, &identifier);
+  RNA_property_enum_identifier(nullptr, &ptr, prop, value, &identifier);
 
   return string(identifier);
 }
@@ -496,13 +496,13 @@ static inline void set_enum(PointerRNA &ptr, const char *name, int value)
 
 static inline void set_enum(PointerRNA &ptr, const char *name, const string &identifier)
 {
-  RNA_enum_set_identifier(NULL, &ptr, name, identifier.c_str());
+  RNA_enum_set_identifier(nullptr, &ptr, name, identifier.c_str());
 }
 
 static inline string get_string(PointerRNA &ptr, const char *name)
 {
   char cstrbuf[1024];
-  char *cstr = RNA_string_get_alloc(&ptr, name, cstrbuf, sizeof(cstrbuf), NULL);
+  char *cstr = RNA_string_get_alloc(&ptr, name, cstrbuf, sizeof(cstrbuf), nullptr);
   string str(cstr);
   if (cstr != cstrbuf) {
     MEM_freeN(cstr);
@@ -539,7 +539,7 @@ static inline string blender_absolute_path(BL::BlendData &b_data, BL::ID &b_id, 
 
 static inline string get_text_datablock_content(const PointerRNA &ptr)
 {
-  if (ptr.data == NULL) {
+  if (ptr.data == nullptr) {
     return "";
   }
 

@@ -48,7 +48,7 @@ template<typename K, typename T, typename Flags = uint> class id_map {
       return data;
     }
 
-    return NULL;
+    return nullptr;
   }
 
   void set_recalc(const BL::ID &id)
@@ -79,7 +79,7 @@ template<typename K, typename T, typename Flags = uint> class id_map {
   /* Add new data. */
   void add(const K &key, T *data)
   {
-    assert(find(key) == NULL);
+    assert(find(key) == nullptr);
     b_map[key] = data;
     used(data);
   }
@@ -144,7 +144,7 @@ template<typename K, typename T, typename Flags = uint> class id_map {
 
   void set_default(T *data)
   {
-    b_map[NULL] = data;
+    b_map[nullptr] = data;
   }
 
   void post_sync(bool do_delete = true)

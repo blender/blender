@@ -183,10 +183,10 @@ ccl_device_inline float background_portal_pdf(
                             inv_extent_u,
                             inv_extent_v,
                             dir,
-                            NULL,
-                            NULL,
-                            NULL,
-                            NULL,
+                            nullptr,
+                            nullptr,
+                            nullptr,
+                            nullptr,
                             is_round))
       continue;
 
@@ -341,7 +341,7 @@ ccl_device_inline float3 background_light_sample(KernelGlobals kg,
     D = background_portal_sample(kg, P, rand, num_portals, &portal, pdf);
     if (num_portals > 1) {
       /* Ignore the chosen portal, its pdf is already included. */
-      *pdf += background_portal_pdf(kg, P, D, portal, NULL);
+      *pdf += background_portal_pdf(kg, P, D, portal, nullptr);
     }
 
     /* Skip MIS if this is the only method. */
@@ -383,7 +383,7 @@ ccl_device_inline float3 background_light_sample(KernelGlobals kg,
 
   /* MIS weighting. */
   if (method != 0 && portal_method_pdf != 0.0f) {
-    *pdf += portal_method_pdf * background_portal_pdf(kg, P, D, -1, NULL);
+    *pdf += portal_method_pdf * background_portal_pdf(kg, P, D, -1, nullptr);
   }
   if (method != 1 && sun_method_pdf != 0.0f) {
     *pdf += sun_method_pdf * background_sun_pdf(kg, D);

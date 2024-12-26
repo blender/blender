@@ -65,9 +65,9 @@ struct SbtRecord {
 
 class OptiXDevice : public CUDADevice {
  public:
-  OptixDeviceContext context = NULL;
+  OptixDeviceContext context = nullptr;
 
-  OptixModule optix_module = NULL; /* All necessary OptiX kernels are in one module. */
+  OptixModule optix_module = nullptr; /* All necessary OptiX kernels are in one module. */
   OptixModule builtin_modules[2] = {};
   OptixPipeline pipelines[NUM_PIPELINES] = {};
   OptixProgramGroup groups[NUM_PROGRAM_GROUPS] = {};

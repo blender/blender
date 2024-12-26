@@ -30,8 +30,8 @@ class BVHObjectBinning : public BVHRange {
 
   BVHObjectBinning(const BVHRange &job,
                    BVHReference *prims,
-                   const BVHUnaligned *unaligned_heuristic = NULL,
-                   const Transform *aligned_space = NULL);
+                   const BVHUnaligned *unaligned_heuristic = nullptr,
+                   const Transform *aligned_space = nullptr);
 
   void split(BVHReference *prims, BVHObjectBinning &left_o, BVHObjectBinning &right_o) const;
 
@@ -89,7 +89,7 @@ class BVHObjectBinning : public BVHRange {
 
   __forceinline BoundBox get_prim_bounds(const BVHReference &prim) const
   {
-    if (aligned_space_ == NULL) {
+    if (aligned_space_ == nullptr) {
       return prim.bounds();
     }
     else {

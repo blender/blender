@@ -39,7 +39,7 @@ struct ccl_align(8) LayerClosure
  * later if it succeeded. */
 ccl_device_forceinline void osl_zero_albedo(float3 *layer_albedo)
 {
-  if (layer_albedo != NULL) {
+  if (layer_albedo != nullptr) {
     *layer_albedo = zero_float3();
   }
 }
@@ -305,7 +305,7 @@ ccl_device void osl_closure_dielectric_bsdf_setup(KernelGlobals kg,
   fresnel->thin_film.ior = closure->thinfilm_ior;
   bsdf_microfacet_setup_fresnel_dielectric_tint(kg, bsdf, sd, fresnel, preserve_energy);
 
-  if (layer_albedo != NULL) {
+  if (layer_albedo != nullptr) {
     if (has_reflection && !has_transmission) {
       *layer_albedo = bsdf_albedo(kg, sd, (ccl_private ShaderClosure *)bsdf, true, false);
     }
@@ -456,7 +456,7 @@ ccl_device void osl_closure_generalized_schlick_bsdf_setup(
   fresnel->thin_film.ior = closure->thinfilm_ior;
   bsdf_microfacet_setup_fresnel_generalized_schlick(kg, bsdf, sd, fresnel, preserve_energy);
 
-  if (layer_albedo != NULL) {
+  if (layer_albedo != nullptr) {
     if (has_reflection && !has_transmission) {
       *layer_albedo = bsdf_albedo(kg, sd, (ccl_private ShaderClosure *)bsdf, true, false);
     }
@@ -528,7 +528,7 @@ ccl_device void osl_closure_microfacet_setup(KernelGlobals kg,
     }
   }
 
-  if (layer_albedo != NULL) {
+  if (layer_albedo != nullptr) {
     if (closure->refract == 0) {
       *layer_albedo = bsdf_albedo(kg, sd, (ccl_private ShaderClosure *)bsdf, true, false);
     }
@@ -649,7 +649,7 @@ ccl_device void osl_closure_microfacet_multi_ggx_aniso_setup(
   sd->flag |= bsdf_microfacet_ggx_setup(bsdf);
   bsdf_microfacet_setup_fresnel_constant(kg, bsdf, sd, rgb_to_spectrum(closure->color));
 
-  if (layer_albedo != NULL) {
+  if (layer_albedo != nullptr) {
     *layer_albedo = bsdf_albedo(kg, sd, (ccl_private ShaderClosure *)bsdf, true, false);
   }
 }
@@ -709,7 +709,7 @@ ccl_device void osl_closure_sheen_setup(KernelGlobals kg,
   if (sheen_flag) {
     sd->flag |= sheen_flag;
 
-    if (layer_albedo != NULL) {
+    if (layer_albedo != nullptr) {
       *layer_albedo = bsdf->weight;
     }
   }

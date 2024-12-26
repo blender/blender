@@ -288,15 +288,15 @@ ccl_device bool ray_quad_intersect(float3 ray_P,
   }
   /* Store the result. */
   /* TODO(sergey): Check whether we can avoid some checks here. */
-  if (isect_P != NULL)
+  if (isect_P != nullptr)
     *isect_P = hit;
-  if (isect_t != NULL)
+  if (isect_t != nullptr)
     *isect_t = t;
 
   /* NOTE: Return barycentric coordinates in the same notation as Embree and OptiX. */
-  if (isect_u != NULL)
+  if (isect_u != nullptr)
     *isect_u = v + 0.5f;
-  if (isect_v != NULL)
+  if (isect_v != nullptr)
     *isect_v = -u - v;
 
   return true;

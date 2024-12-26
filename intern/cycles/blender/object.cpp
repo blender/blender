@@ -170,7 +170,7 @@ Object *BlenderSync::sync_object(BL::Depsgraph &b_depsgraph,
   BObjectInfo b_ob_info{b_ob, is_instance ? b_instance.instance_object() : b_ob, b_ob.data()};
   const bool motion = motion_time != 0.0f;
   /*const*/ Transform tfm = get_transform(b_ob.matrix_world());
-  int *persistent_id = NULL;
+  int *persistent_id = nullptr;
   BL::Array<int, OBJECT_PERSISTENT_ID_SIZE> persistent_id_array;
   if (is_instance) {
     persistent_id_array = b_instance.persistent_id();
@@ -185,7 +185,7 @@ Object *BlenderSync::sync_object(BL::Depsgraph &b_depsgraph,
   /* light is handled separately */
   if (!motion && object_is_light(b_ob)) {
     if (!show_lights) {
-      return NULL;
+      return nullptr;
     }
 
     /* TODO: don't use lights for excluded layers used as mask layer,
@@ -202,17 +202,17 @@ Object *BlenderSync::sync_object(BL::Depsgraph &b_depsgraph,
                  use_portal);
     }
 
-    return NULL;
+    return nullptr;
   }
 
   /* only interested in object that we can create geometry from */
   if (!object_is_geometry(b_ob_info)) {
-    return NULL;
+    return nullptr;
   }
 
   /* Perform object culling. */
   if (culling.test(scene, b_ob, tfm)) {
-    return NULL;
+    return nullptr;
   }
 
   /* Visibility flags for both parent and child. */
@@ -240,12 +240,12 @@ Object *BlenderSync::sync_object(BL::Depsgraph &b_depsgraph,
 
   /* Don't export completely invisible objects. */
   if (visibility == 0) {
-    return NULL;
+    return nullptr;
   }
 
   /* Use task pool only for non-instances, since sync_dupli_particle accesses
    * geometry. This restriction should be removed for better performance. */
-  TaskPool *object_geom_task_pool = (is_instance) ? NULL : geom_task_pool;
+  TaskPool *object_geom_task_pool = (is_instance) ? nullptr : geom_task_pool;
 
   /* key to lookup object */
   ObjectKey key(b_parent, persistent_id, b_ob_info.real_object, use_particle_hair);
@@ -435,7 +435,7 @@ bool BlenderSync::sync_object_attributes(BL::DepsgraphObjectInstance &b_instance
       float4 value = lookup_instance_property(b_instance, real_name, use_instancer);
 
       /* Try finding the existing attribute value. */
-      ParamValue *param = NULL;
+      ParamValue *param = nullptr;
 
       for (size_t i = 0; i < attributes.size(); i++) {
         if (attributes[i].name() == name) {
@@ -628,7 +628,7 @@ void BlenderSync::sync_objects(BL::Depsgraph &b_depsgraph,
                     show_lights,
                     culling,
                     &use_portal,
-                    sync_hair ? NULL : &geom_task_pool);
+                    sync_hair ? nullptr : &geom_task_pool);
       }
     }
 

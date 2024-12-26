@@ -45,9 +45,9 @@ BlenderSession::BlenderSession(BL::RenderEngine &b_engine,
                                BL::Preferences &b_userpref,
                                BL::BlendData &b_data,
                                bool preview_osl)
-    : session(NULL),
-      scene(NULL),
-      sync(NULL),
+    : session(nullptr),
+      scene(nullptr),
+      sync(nullptr),
       b_engine(b_engine),
       b_userpref(b_userpref),
       b_data(b_data),
@@ -59,7 +59,7 @@ BlenderSession::BlenderSession(BL::RenderEngine &b_engine,
       width(0),
       height(0),
       preview_osl(preview_osl),
-      python_thread_state(NULL),
+      python_thread_state(nullptr),
       use_developer_ui(b_userpref.experimental().use_cycles_debug() &&
                        b_userpref.view().show_developer_ui())
 {
@@ -77,9 +77,9 @@ BlenderSession::BlenderSession(BL::RenderEngine &b_engine,
                                BL::RegionView3D &b_rv3d,
                                int width,
                                int height)
-    : session(NULL),
-      scene(NULL),
-      sync(NULL),
+    : session(nullptr),
+      scene(nullptr),
+      sync(nullptr),
       b_engine(b_engine),
       b_userpref(b_userpref),
       b_data(b_data),
@@ -91,7 +91,7 @@ BlenderSession::BlenderSession(BL::RenderEngine &b_engine,
       width(width),
       height(height),
       preview_osl(false),
-      python_thread_state(NULL),
+      python_thread_state(nullptr),
       use_developer_ui(b_userpref.experimental().use_cycles_debug() &&
                        b_userpref.view().show_developer_ui())
 {
@@ -181,7 +181,7 @@ void BlenderSession::reset_session(BL::BlendData &b_data, BL::Depsgraph &b_depsg
     height = render_resolution_y(b_render);
   }
 
-  bool is_new_session = (session == NULL);
+  bool is_new_session = (session == nullptr);
   if (is_new_session) {
     /* Initialize session and remember it was just created so not to
      * re-create it below.
@@ -353,7 +353,7 @@ void BlenderSession::render(BL::Depsgraph &b_depsgraph_)
       b_v3d, b_rv3d, scene->camera, width, height);
 
   /* temporary render result to find needed passes and views */
-  BL::RenderResult b_rr = b_engine.begin_result(0, 0, 1, 1, b_view_layer.name().c_str(), NULL);
+  BL::RenderResult b_rr = b_engine.begin_result(0, 0, 1, 1, b_view_layer.name().c_str(), nullptr);
   BL::RenderResult::layers_iterator b_single_rlay;
   b_rr.layers.begin(b_single_rlay);
   BL::RenderLayer b_rlay = *b_single_rlay;

@@ -23,14 +23,14 @@ void time_sleep(double t);
 
 class scoped_timer {
  public:
-  explicit scoped_timer(double *value = NULL) : value_(value)
+  explicit scoped_timer(double *value = nullptr) : value_(value)
   {
     time_start_ = time_dt();
   }
 
   ~scoped_timer()
   {
-    if (value_ != NULL) {
+    if (value_ != nullptr) {
       *value_ = get_time();
     }
   }

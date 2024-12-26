@@ -50,7 +50,7 @@ void BVH2::build(Progress &progress, Stats *)
   BVHNode *bvh2_root = bvh_build.run();
 
   if (progress.get_cancel()) {
-    if (bvh2_root != NULL) {
+    if (bvh2_root != nullptr) {
       bvh2_root->deleteSubtree();
     }
     return;
@@ -64,7 +64,7 @@ void BVH2::build(Progress &progress, Stats *)
   }
 
   if (progress.get_cancel()) {
-    if (root != NULL) {
+    if (root != nullptr) {
       root->deleteSubtree();
     }
     return;
@@ -528,13 +528,13 @@ void BVH2::pack_instances(size_t nodes_size, size_t leaf_nodes_size)
     pack.prim_time.resize(prim_index_size);
   }
 
-  int *pack_prim_index = (pack.prim_index.size()) ? &pack.prim_index[0] : NULL;
-  int *pack_prim_type = (pack.prim_type.size()) ? &pack.prim_type[0] : NULL;
-  int *pack_prim_object = (pack.prim_object.size()) ? &pack.prim_object[0] : NULL;
-  uint *pack_prim_visibility = (pack.prim_visibility.size()) ? &pack.prim_visibility[0] : NULL;
-  int4 *pack_nodes = (pack.nodes.size()) ? &pack.nodes[0] : NULL;
-  int4 *pack_leaf_nodes = (pack.leaf_nodes.size()) ? &pack.leaf_nodes[0] : NULL;
-  float2 *pack_prim_time = (pack.prim_time.size()) ? &pack.prim_time[0] : NULL;
+  int *pack_prim_index = (pack.prim_index.size()) ? &pack.prim_index[0] : nullptr;
+  int *pack_prim_type = (pack.prim_type.size()) ? &pack.prim_type[0] : nullptr;
+  int *pack_prim_object = (pack.prim_object.size()) ? &pack.prim_object[0] : nullptr;
+  uint *pack_prim_visibility = (pack.prim_visibility.size()) ? &pack.prim_visibility[0] : nullptr;
+  int4 *pack_nodes = (pack.nodes.size()) ? &pack.nodes[0] : nullptr;
+  int4 *pack_leaf_nodes = (pack.leaf_nodes.size()) ? &pack.leaf_nodes[0] : nullptr;
+  float2 *pack_prim_time = (pack.prim_time.size()) ? &pack.prim_time[0] : nullptr;
 
   unordered_map<Geometry *, int> geometry_map;
 
@@ -582,14 +582,14 @@ void BVH2::pack_instances(size_t nodes_size, size_t leaf_nodes_size)
       int *bvh_prim_index = &bvh->pack.prim_index[0];
       int *bvh_prim_type = &bvh->pack.prim_type[0];
       uint *bvh_prim_visibility = &bvh->pack.prim_visibility[0];
-      float2 *bvh_prim_time = bvh->pack.prim_time.size() ? &bvh->pack.prim_time[0] : NULL;
+      float2 *bvh_prim_time = bvh->pack.prim_time.size() ? &bvh->pack.prim_time[0] : nullptr;
 
       for (size_t i = 0; i < bvh_prim_index_size; i++) {
         pack_prim_index[pack_prim_index_offset] = bvh_prim_index[i] + geom_prim_offset;
         pack_prim_type[pack_prim_index_offset] = bvh_prim_type[i];
         pack_prim_visibility[pack_prim_index_offset] = bvh_prim_visibility[i];
         pack_prim_object[pack_prim_index_offset] = 0;  // unused for instances
-        if (bvh_prim_time != NULL) {
+        if (bvh_prim_time != nullptr) {
           pack_prim_time[pack_prim_index_offset] = bvh_prim_time[i];
         }
         pack_prim_index_offset++;

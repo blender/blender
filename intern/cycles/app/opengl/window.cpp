@@ -341,7 +341,7 @@ void window_main_loop(const char *title,
       window_display();
     }
 
-    SDL_WaitEventTimeout(NULL, 100);
+    SDL_WaitEventTimeout(nullptr, 100);
   }
 
   SDL_GL_DeleteContext(V.gl_context);

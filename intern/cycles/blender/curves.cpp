@@ -285,10 +285,10 @@ static void ExportCurveSegments(Scene *scene, Hair *hair, ParticleCurveData *CDa
     return;
   }
 
-  Attribute *attr_normal = NULL;
-  Attribute *attr_intercept = NULL;
-  Attribute *attr_length = NULL;
-  Attribute *attr_random = NULL;
+  Attribute *attr_normal = nullptr;
+  Attribute *attr_intercept = nullptr;
+  Attribute *attr_length = nullptr;
+  Attribute *attr_random = nullptr;
 
   if (hair->need_attribute(scene, ATTR_STD_VERTEX_NORMAL)) {
     attr_normal = hair->attributes.add(ATTR_STD_VERTEX_NORMAL);
@@ -356,11 +356,11 @@ static void ExportCurveSegments(Scene *scene, Hair *hair, ParticleCurveData *CDa
         num_curve_keys++;
       }
 
-      if (attr_length != NULL) {
+      if (attr_length != nullptr) {
         attr_length->add(CData->curve_length[curve]);
       }
 
-      if (attr_random != NULL) {
+      if (attr_random != nullptr) {
         attr_random->add(hash_uint2_to_float(num_curves, 0));
       }
 
@@ -833,8 +833,8 @@ static void export_hair_curves(Scene *scene,
   int *curve_shader = hair->get_curve_shader().data();
 
   /* Add requested attributes. */
-  float *attr_intercept = NULL;
-  float *attr_length = NULL;
+  float *attr_intercept = nullptr;
+  float *attr_length = nullptr;
 
   if (hair->need_attribute(scene, ATTR_STD_VERTEX_NORMAL)) {
     /* Get geometry normals. */

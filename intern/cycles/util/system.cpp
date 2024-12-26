@@ -74,7 +74,7 @@ string system_cpu_brand_string()
   /* Get from system on macOS. */
   char modelname[512] = "";
   size_t bufferlen = 512;
-  if (sysctlbyname("machdep.cpu.brand_string", &modelname, &bufferlen, NULL, 0) == 0) {
+  if (sysctlbyname("machdep.cpu.brand_string", &modelname, &bufferlen, nullptr, 0) == 0) {
     return modelname;
   }
 #elif (defined(WIN32) || defined(__x86_64__) || defined(__i386__)) && !defined(_M_ARM64)
@@ -241,7 +241,7 @@ size_t system_physical_ram()
 #elif defined(__APPLE__)
   uint64_t ram = 0;
   size_t len = sizeof(ram);
-  if (sysctlbyname("hw.memsize", &ram, &len, NULL, 0) == 0) {
+  if (sysctlbyname("hw.memsize", &ram, &len, nullptr, 0) == 0) {
     return ram;
   }
   return 0;

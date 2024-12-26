@@ -31,7 +31,7 @@ struct BVHReferenceCompare {
 
   __forceinline BoundBox get_prim_bounds(const BVHReference &prim) const
   {
-    return (aligned_space != NULL) ?
+    return (aligned_space != nullptr) ?
                unaligned_heuristic->compute_aligned_prim_boundbox(prim, *aligned_space) :
                prim.bounds();
   }

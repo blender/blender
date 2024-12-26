@@ -524,7 +524,7 @@ id<MTLFunction> MetalKernelPipeline::make_intersection_function(const char *func
     desc.constantValues = GetConstantValues();
   }
 
-  NSError *error = NULL;
+  NSError *error = nullptr;
   id<MTLFunction> rt_intersection_function = [mtlLibrary newFunctionWithDescriptor:desc
                                                                              error:&error];
 
@@ -546,7 +546,7 @@ void MetalKernelPipeline::compile()
   const std::string function_name = std::string("cycles_metal_") +
                                     device_kernel_as_string(device_kernel);
 
-  NSError *error = NULL;
+  NSError *error = nullptr;
 
   MTLFunctionDescriptor *func_desc = [MTLIntersectionFunctionDescriptor functionDescriptor];
   func_desc.name = [@(function_name.c_str()) copy];

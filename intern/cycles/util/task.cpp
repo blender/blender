@@ -29,7 +29,7 @@ void TaskPool::wait_work(Summary *stats)
 {
   tbb_group.wait();
 
-  if (stats != NULL) {
+  if (stats != nullptr) {
     stats->time_total = time_dt() - start_time;
     stats->num_tasks_handled = num_tasks_pushed;
   }

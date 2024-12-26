@@ -44,7 +44,7 @@ static void decasteljau_bicubic(
   /* interpolate over v */
   decasteljau_cubic(P, dv, v, ucp);
   if (du) {
-    decasteljau_cubic(du, NULL, v, utn);
+    decasteljau_cubic(du, nullptr, v, utn);
   }
 }
 

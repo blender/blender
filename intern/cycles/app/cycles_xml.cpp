@@ -48,7 +48,8 @@ struct XMLReadState : public XMLReader {
   float dicing_rate; /* Current dicing rate. */
   Object *object;    /* Current object. */
 
-  XMLReadState() : scene(NULL), smooth(false), shader(NULL), dicing_rate(1.0f), object(NULL)
+  XMLReadState()
+      : scene(nullptr), smooth(false), shader(nullptr), dicing_rate(1.0f), object(nullptr)
   {
     tfm = transform_identity();
   }
@@ -251,8 +252,8 @@ static void xml_read_shader_graph(XMLReadState &state, Shader *shader, xml_node 
         ustring to_socket_name(to_tokens[1]);
 
         /* find nodes and sockets */
-        ShaderOutput *output = NULL;
-        ShaderInput *input = NULL;
+        ShaderOutput *output = nullptr;
+        ShaderInput *input = nullptr;
 
         if (graph_reader.node_map.find(from_node_name) != graph_reader.node_map.end()) {
           ShaderNode *fromnode = (ShaderNode *)graph_reader.node_map[from_node_name];
@@ -304,7 +305,7 @@ static void xml_read_shader_graph(XMLReadState &state, Shader *shader, xml_node 
       continue;
     }
 
-    ShaderNode *snode = NULL;
+    ShaderNode *snode = nullptr;
 
 #ifdef WITH_OSL
     if (node_name == "osl_shader") {
@@ -353,7 +354,7 @@ static void xml_read_shader_graph(XMLReadState &state, Shader *shader, xml_node 
         fprintf(stderr, "Node type \"%s\" is not a shader node.\n", node_type->name.c_str());
         continue;
       }
-      else if (node_type->create == NULL) {
+      else if (node_type->create == nullptr) {
         fprintf(stderr, "Can't create abstract node type \"%s\".\n", node_type->name.c_str());
         continue;
       }

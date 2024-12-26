@@ -285,7 +285,7 @@ static ShaderNode *add_node(Scene *scene,
                             BL::ShaderNodeTree &b_ntree,
                             BL::ShaderNode &b_node)
 {
-  ShaderNode *node = NULL;
+  ShaderNode *node = nullptr;
 
   /* existing blender nodes */
   if (b_node.is_a(&RNA_ShaderNodeRGBCurve)) {
@@ -1369,7 +1369,7 @@ static void add_nodes(Scene *scene,
       }
     }
     else {
-      ShaderNode *node = NULL;
+      ShaderNode *node = nullptr;
 
       if (b_node.ptr.data == output_node.ptr.data) {
         node = graph->output();
@@ -1430,7 +1430,7 @@ static void add_nodes(Scene *scene,
     if (output_it != output_map.end())
       output = output_it->second;
 
-    /* either socket may be NULL when the node was not exported, typically
+    /* either socket may be nullptr when the node was not exported, typically
      * because the node type is not supported */
     if (output != nullptr) {
       ShaderOutput *output = output_it->second;

@@ -1438,7 +1438,7 @@ NODE_DEFINE(IESLightNode)
 
 IESLightNode::IESLightNode() : TextureNode(get_node_type())
 {
-  light_manager = NULL;
+  light_manager = nullptr;
   slot = -1;
 }
 
@@ -1446,7 +1446,7 @@ ShaderNode *IESLightNode::clone(ShaderGraph *graph) const
 {
   IESLightNode *node = graph->create_node<IESLightNode>(*this);
 
-  node->light_manager = NULL;
+  node->light_manager = nullptr;
   node->slot = -1;
 
   return node;
@@ -2180,8 +2180,8 @@ bool ConvertNode::register_types()
                            from,
                            SOCKET_OFFSETOF(ConvertNode, value_float),
                            SocketType::zero_default_value(),
-                           NULL,
-                           NULL,
+                           nullptr,
+                           nullptr,
                            SocketType::LINKABLE);
       type->register_output(to_value_name, to_value_name, to);
 
@@ -2433,7 +2433,7 @@ void BsdfNode::compile(SVMCompiler &compiler,
 
 void BsdfNode::compile(SVMCompiler &compiler)
 {
-  compile(compiler, NULL, NULL);
+  compile(compiler, nullptr, nullptr);
 }
 
 void BsdfNode::compile(OSLCompiler & /*compiler*/)
@@ -2797,7 +2797,7 @@ SheenBsdfNode::SheenBsdfNode() : BsdfNode(get_node_type())
 void SheenBsdfNode::compile(SVMCompiler &compiler)
 {
   closure = distribution;
-  BsdfNode::compile(compiler, input("Roughness"), NULL);
+  BsdfNode::compile(compiler, input("Roughness"), nullptr);
 }
 
 void SheenBsdfNode::compile(OSLCompiler &compiler)
@@ -2927,23 +2927,24 @@ void PrincipledBsdfNode::simplify_settings(Scene * /* scene */)
 bool PrincipledBsdfNode::has_surface_transparent()
 {
   ShaderInput *alpha_in = input("Alpha");
-  return (alpha_in->link != NULL || alpha < (1.0f - CLOSURE_WEIGHT_CUTOFF));
+  return (alpha_in->link != nullptr || alpha < (1.0f - CLOSURE_WEIGHT_CUTOFF));
 }
 
 bool PrincipledBsdfNode::has_surface_emission()
 {
   ShaderInput *emission_color_in = input("Emission Color");
   ShaderInput *emission_strength_in = input("Emission Strength");
-  return (emission_color_in->link != NULL || reduce_max(emission_color) > CLOSURE_WEIGHT_CUTOFF) &&
-         (emission_strength_in->link != NULL || emission_strength > CLOSURE_WEIGHT_CUTOFF);
+  return (emission_color_in->link != nullptr ||
+          reduce_max(emission_color) > CLOSURE_WEIGHT_CUTOFF) &&
+         (emission_strength_in->link != nullptr || emission_strength > CLOSURE_WEIGHT_CUTOFF);
 }
 
 bool PrincipledBsdfNode::has_surface_bssrdf()
 {
   ShaderInput *subsurface_weight_in = input("Subsurface Weight");
   ShaderInput *subsurface_scale_in = input("Subsurface Scale");
-  return (subsurface_weight_in->link != NULL || subsurface_weight > CLOSURE_WEIGHT_CUTOFF) &&
-         (subsurface_scale_in->link != NULL || subsurface_scale != 0.0f);
+  return (subsurface_weight_in->link != nullptr || subsurface_weight > CLOSURE_WEIGHT_CUTOFF) &&
+         (subsurface_scale_in->link != nullptr || subsurface_scale != 0.0f);
 }
 
 void PrincipledBsdfNode::attributes(Shader *shader, AttributeRequestSet *attributes)
@@ -3084,7 +3085,7 @@ TranslucentBsdfNode::TranslucentBsdfNode() : BsdfNode(get_node_type())
 
 void TranslucentBsdfNode::compile(SVMCompiler &compiler)
 {
-  BsdfNode::compile(compiler, NULL, NULL);
+  BsdfNode::compile(compiler, nullptr, nullptr);
 }
 
 void TranslucentBsdfNode::compile(OSLCompiler &compiler)
@@ -3113,7 +3114,7 @@ TransparentBsdfNode::TransparentBsdfNode() : BsdfNode(get_node_type())
 
 void TransparentBsdfNode::compile(SVMCompiler &compiler)
 {
-  BsdfNode::compile(compiler, NULL, NULL);
+  BsdfNode::compile(compiler, nullptr, nullptr);
 }
 
 void TransparentBsdfNode::compile(OSLCompiler &compiler)
@@ -3145,7 +3146,7 @@ RayPortalBsdfNode::RayPortalBsdfNode() : BsdfNode(get_node_type())
 
 void RayPortalBsdfNode::compile(SVMCompiler &compiler)
 {
-  BsdfNode::compile(compiler, NULL, NULL, input("Position"), input("Direction"));
+  BsdfNode::compile(compiler, nullptr, nullptr, input("Position"), input("Direction"));
 }
 
 void RayPortalBsdfNode::compile(OSLCompiler &compiler)
@@ -7025,8 +7026,8 @@ void BumpNode::constant_fold(const ConstantFolder &folder)
   ShaderInput *height_in = input("Height");
   ShaderInput *normal_in = input("Normal");
 
-  if (height_in->link == NULL) {
-    if (normal_in->link == NULL) {
+  if (height_in->link == nullptr) {
+    if (normal_in->link == nullptr) {
       GeometryNode *geom = folder.graph->create_node<GeometryNode>();
       folder.graph->add(geom);
       folder.bypass(geom->output("Normal"));
@@ -7437,7 +7438,7 @@ void OSLNode::add_input(ustring name, SocketType::Type socket_type, const int fl
   char *memory = input_default_value();
   size_t offset = memory - (char *)this;
   const_cast<NodeType *>(type)->register_input(
-      name, name, socket_type, offset, memory, NULL, NULL, flags | SocketType::LINKABLE);
+      name, name, socket_type, offset, memory, nullptr, nullptr, flags | SocketType::LINKABLE);
 }
 
 void OSLNode::add_output(ustring name, SocketType::Type socket_type)

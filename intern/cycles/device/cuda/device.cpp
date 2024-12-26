@@ -38,7 +38,7 @@ bool device_cuda_init()
       VLOG_INFO << "Found precompiled kernels";
       result = true;
     }
-    else if (cuewCompilerPath() != NULL) {
+    else if (cuewCompilerPath() != nullptr) {
       VLOG_INFO << "Found CUDA compiler " << cuewCompilerPath();
       result = true;
     }

@@ -113,7 +113,7 @@ NODE_DEFINE(Object)
 
 Object::Object() : Node(get_node_type())
 {
-  particle_system = NULL;
+  particle_system = nullptr;
   particle_index = 0;
   attr_map_offset = 0;
   bounds = BoundBox::empty;
@@ -682,8 +682,8 @@ void ObjectManager::device_update_transforms(DeviceScene *dscene, Scene *scene, 
   state.objects = dscene->objects.alloc(scene->objects.size());
   state.object_flag = dscene->object_flag.alloc(scene->objects.size());
   state.object_volume_step = dscene->object_volume_step.alloc(scene->objects.size());
-  state.object_motion = NULL;
-  state.object_motion_pass = NULL;
+  state.object_motion = nullptr;
+  state.object_motion_pass = nullptr;
 
   if (state.need_motion == Scene::MOTION_PASS) {
     state.object_motion_pass = dscene->object_motion_pass.alloc(OBJECT_MOTION_PASS_SIZE *

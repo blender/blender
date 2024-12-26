@@ -14,7 +14,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-/* Not actually used, just a NULL pointer that gets passed everywhere, which we
+/* Not actually used, just a nullptr pointer that gets passed everywhere, which we
  * hope gets optimized out by the compiler. */
 struct KernelGlobalsGPU {
   int unused[1];

@@ -71,7 +71,7 @@ Device *Device::create(const DeviceInfo &info, Stats &stats, Profiler &profiler,
     return device_multi_create(info, stats, profiler, headless);
   }
 
-  Device *device = NULL;
+  Device *device = nullptr;
 
   switch (info.type) {
     case DEVICE_CPU:
@@ -115,7 +115,7 @@ Device *Device::create(const DeviceInfo &info, Stats &stats, Profiler &profiler,
       break;
   }
 
-  if (device == NULL) {
+  if (device == nullptr) {
     device = device_dummy_create(info, stats, profiler, headless);
   }
 
@@ -553,7 +553,7 @@ void GPUDevice::move_textures_to_host(size_t size, bool for_texture)
 
   while (size > 0) {
     /* Find suitable memory allocation to move. */
-    device_memory *max_mem = NULL;
+    device_memory *max_mem = nullptr;
     size_t max_size = 0;
     bool max_is_image = false;
 
@@ -711,7 +711,7 @@ GPUDevice::Mem *GPUDevice::generic_alloc(device_memory &mem, size_t pitch_paddin
   stats.mem_alloc(size);
 
   if (!mem.device_pointer) {
-    return NULL;
+    return nullptr;
   }
 
   /* Insert into map of allocations. */

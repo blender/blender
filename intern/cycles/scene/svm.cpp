@@ -156,8 +156,8 @@ SVMCompiler::SVMCompiler(Scene *scene) : scene(scene)
 {
   max_stack_use = 0;
   current_type = SHADER_TYPE_SURFACE;
-  current_shader = NULL;
-  current_graph = NULL;
+  current_shader = nullptr;
+  current_graph = nullptr;
   background = false;
   mix_weight_offset = SVM_STACK_INVALID;
   bump_state_offset = SVM_STACK_INVALID;
@@ -427,8 +427,8 @@ void SVMCompiler::find_dependencies(ShaderNodeSet &dependencies,
                                     ShaderInput *input,
                                     ShaderNode *skip_node)
 {
-  ShaderNode *node = (input->link) ? input->link->parent : NULL;
-  if (node != NULL && done.find(node) == done.end() && node != skip_node &&
+  ShaderNode *node = (input->link) ? input->link->parent : nullptr;
+  if (node != nullptr && done.find(node) == done.end() && node != skip_node &&
       dependencies.find(node) == dependencies.end())
   {
     foreach (ShaderInput *in, node->inputs) {
@@ -504,7 +504,7 @@ void SVMCompiler::generate_closure_node(ShaderNode *node, CompilerState *state)
 
   /* execute dependencies for closure */
   foreach (ShaderInput *in, node->inputs) {
-    if (in->link != NULL) {
+    if (in->link != nullptr) {
       ShaderNodeSet dependencies;
       find_dependencies(dependencies, state->nodes_done, in);
       generate_svm_nodes(dependencies, state);
@@ -571,7 +571,7 @@ void SVMCompiler::find_aov_nodes_and_dependencies(ShaderNodeSet &aov_nodes,
       if (aov_node->offset >= 0) {
         aov_nodes.insert(aov_node);
         foreach (ShaderInput *in, node->inputs) {
-          if (in->link != NULL) {
+          if (in->link != nullptr) {
             find_dependencies(aov_nodes, state->nodes_done, in);
           }
         }
@@ -755,7 +755,7 @@ void SVMCompiler::compile_type(Shader *shader, ShaderGraph *graph, ShaderType ty
 
   /* get input in output node */
   ShaderNode *output = graph->output();
-  ShaderInput *clin = NULL;
+  ShaderInput *clin = nullptr;
 
   switch (type) {
     case SHADER_TYPE_SURFACE:
@@ -880,7 +880,7 @@ void SVMCompiler::compile(Shader *shader, array<int4> &svm_nodes, int index, Sum
 
   /* finalize */
   {
-    scoped_timer timer((summary != NULL) ? &summary->time_finalize : NULL);
+    scoped_timer timer((summary != nullptr) ? &summary->time_finalize : nullptr);
     shader->graph->finalize(scene, has_bump, shader->get_displacement_method() == DISPLACE_BOTH);
   }
 
@@ -900,7 +900,7 @@ void SVMCompiler::compile(Shader *shader, array<int4> &svm_nodes, int index, Sum
 
   /* generate bump shader */
   if (has_bump) {
-    scoped_timer timer((summary != NULL) ? &summary->time_generate_bump : NULL);
+    scoped_timer timer((summary != nullptr) ? &summary->time_generate_bump : nullptr);
     compile_type(shader, shader->graph, SHADER_TYPE_BUMP);
     svm_nodes[index].y = svm_nodes.size();
     svm_nodes.append(current_svm_nodes);
@@ -908,7 +908,7 @@ void SVMCompiler::compile(Shader *shader, array<int4> &svm_nodes, int index, Sum
 
   /* generate surface shader */
   {
-    scoped_timer timer((summary != NULL) ? &summary->time_generate_surface : NULL);
+    scoped_timer timer((summary != nullptr) ? &summary->time_generate_surface : nullptr);
     compile_type(shader, shader->graph, SHADER_TYPE_SURFACE);
     /* only set jump offset if there's no bump shader, as the bump shader will fall thru to this
      * one if it exists */
@@ -920,7 +920,7 @@ void SVMCompiler::compile(Shader *shader, array<int4> &svm_nodes, int index, Sum
 
   /* generate volume shader */
   {
-    scoped_timer timer((summary != NULL) ? &summary->time_generate_volume : NULL);
+    scoped_timer timer((summary != nullptr) ? &summary->time_generate_volume : nullptr);
     compile_type(shader, shader->graph, SHADER_TYPE_VOLUME);
     svm_nodes[index].z = svm_nodes.size();
     svm_nodes.append(current_svm_nodes);
@@ -928,14 +928,14 @@ void SVMCompiler::compile(Shader *shader, array<int4> &svm_nodes, int index, Sum
 
   /* generate displacement shader */
   {
-    scoped_timer timer((summary != NULL) ? &summary->time_generate_displacement : NULL);
+    scoped_timer timer((summary != nullptr) ? &summary->time_generate_displacement : nullptr);
     compile_type(shader, shader->graph, SHADER_TYPE_DISPLACEMENT);
     svm_nodes[index].w = svm_nodes.size();
     svm_nodes.append(current_svm_nodes);
   }
 
   /* Fill in summary information. */
-  if (summary != NULL) {
+  if (summary != nullptr) {
     summary->time_total = time_dt() - time_start;
     summary->peak_stack_usage = max_stack_use;
     summary->num_svm_nodes = svm_nodes.size() - start_num_svm_nodes;

@@ -82,7 +82,7 @@ static int compile_shader_program(void)
     string source_str = shaders[i].source;
     const char *c_str = source_str.c_str();
 
-    glShaderSource(shader, 1, &c_str, NULL);
+    glShaderSource(shader, 1, &c_str, nullptr);
     glCompileShader(shader);
 
     GLint compile_status;

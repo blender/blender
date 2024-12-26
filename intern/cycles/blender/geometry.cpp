@@ -94,7 +94,7 @@ Geometry *BlenderSync::sync_geometry(BL::Depsgraph &b_depsgraph,
 
   /* Test if we need to sync. */
   bool sync = true;
-  if (geom == NULL) {
+  if (geom == nullptr) {
     /* Add new geometry if it did not exist yet. */
     if (geom_type == Geometry::HAIR) {
       geom = scene->create_node<Hair>();

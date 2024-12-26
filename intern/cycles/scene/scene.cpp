@@ -37,16 +37,16 @@ CCL_NAMESPACE_BEGIN
 
 Scene::Scene(const SceneParams &params_, Device *device)
     : name("Scene"),
-      bvh(NULL),
-      default_surface(NULL),
-      default_volume(NULL),
-      default_light(NULL),
-      default_background(NULL),
-      default_empty(NULL),
+      bvh(nullptr),
+      default_surface(nullptr),
+      default_volume(nullptr),
+      default_light(nullptr),
+      default_background(nullptr),
+      default_empty(nullptr),
       device(device),
       dscene(device),
       params(params_),
-      update_stats(NULL),
+      update_stats(nullptr),
       kernels_loaded(false),
       /* TODO(sergey): Check if it's indeed optimal value for the split kernel. */
       max_closure_global(1)
@@ -84,7 +84,7 @@ Scene::~Scene()
 void Scene::free_memory(bool final)
 {
   delete bvh;
-  bvh = NULL;
+  bvh = nullptr;
 
   /* The order of deletion is important to make sure data is freed based on possible dependencies
    * as the Nodes' reference counts are decremented in the destructors:

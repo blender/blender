@@ -266,14 +266,14 @@ ccl_device_inline ccl_private Bssrdf *bssrdf_alloc(ccl_private ShaderData *sd, S
 {
   float sample_weight = fabsf(average(weight));
   if (sample_weight < CLOSURE_WEIGHT_CUTOFF) {
-    return NULL;
+    return nullptr;
   }
 
   ccl_private Bssrdf *bssrdf = (ccl_private Bssrdf *)closure_alloc(
       sd, sizeof(Bssrdf), CLOSURE_NONE_ID, weight);
 
-  if (bssrdf == NULL) {
-    return NULL;
+  if (bssrdf == nullptr) {
+    return nullptr;
   }
 
   bssrdf->sample_weight = sample_weight;

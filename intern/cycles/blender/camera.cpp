@@ -327,32 +327,32 @@ static void blender_camera_viewplane(BlenderCamera *bcam,
   /* sensor fitting */
   if (bcam->sensor_fit == BlenderCamera::AUTO) {
     horizontal_fit = (xratio > yratio);
-    if (sensor_size != NULL) {
+    if (sensor_size != nullptr) {
       *sensor_size = bcam->sensor_width;
     }
   }
   else if (bcam->sensor_fit == BlenderCamera::HORIZONTAL) {
     horizontal_fit = true;
-    if (sensor_size != NULL) {
+    if (sensor_size != nullptr) {
       *sensor_size = bcam->sensor_width;
     }
   }
   else {
     horizontal_fit = false;
-    if (sensor_size != NULL) {
+    if (sensor_size != nullptr) {
       *sensor_size = bcam->sensor_height;
     }
   }
 
   if (horizontal_fit) {
-    if (aspectratio != NULL) {
+    if (aspectratio != nullptr) {
       *aspectratio = xratio / yratio;
     }
     xaspect = *aspectratio;
     yaspect = 1.0f;
   }
   else {
-    if (aspectratio != NULL) {
+    if (aspectratio != nullptr) {
       *aspectratio = yratio / xratio;
     }
     xaspect = 1.0f;
@@ -363,14 +363,14 @@ static void blender_camera_viewplane(BlenderCamera *bcam,
   if (bcam->type == CAMERA_ORTHOGRAPHIC) {
     xaspect = xaspect * bcam->ortho_scale / (*aspectratio * 2.0f);
     yaspect = yaspect * bcam->ortho_scale / (*aspectratio * 2.0f);
-    if (aspectratio != NULL) {
+    if (aspectratio != nullptr) {
       *aspectratio = bcam->ortho_scale / 2.0f;
     }
   }
 
   if (bcam->type == CAMERA_PANORAMA) {
     /* Set viewplane for panoramic camera. */
-    if (viewplane != NULL) {
+    if (viewplane != nullptr) {
       *viewplane = bcam->pano_viewplane;
 
       /* Modify viewplane for camera shift. */
@@ -388,7 +388,7 @@ static void blender_camera_viewplane(BlenderCamera *bcam,
   }
   else {
     /* set viewplane */
-    if (viewplane != NULL) {
+    if (viewplane != nullptr) {
       viewplane->left = -xaspect;
       viewplane->right = xaspect;
       viewplane->bottom = -yaspect;
@@ -680,7 +680,7 @@ void BlenderSync::sync_camera_motion(
 
     blender_camera_from_object(&bcam, b_engine, b_ob);
     float aspectratio, sensor_size;
-    blender_camera_viewplane(&bcam, width, height, NULL, &aspectratio, &sensor_size);
+    blender_camera_viewplane(&bcam, width, height, nullptr, &aspectratio, &sensor_size);
     /* TODO(sergey): De-duplicate calculation with camera sync. */
     float fov = 2.0f * atanf((0.5f * sensor_size) / bcam.lens / aspectratio);
     if (fov != cam->get_fov()) {

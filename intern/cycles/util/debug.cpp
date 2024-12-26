@@ -23,7 +23,7 @@ void DebugFlags::CPU::reset()
 #define STRINGIFY(x) #x
 #define CHECK_CPU_FLAGS(flag, env) \
   do { \
-    flag = (getenv(env) == NULL); \
+    flag = (getenv(env) == nullptr); \
     if (!flag) { \
       VLOG_INFO << "Disabling " << STRINGIFY(flag) << " instruction set."; \
     } \
@@ -55,21 +55,21 @@ DebugFlags::Metal::Metal()
 
 void DebugFlags::CUDA::reset()
 {
-  if (getenv("CYCLES_CUDA_ADAPTIVE_COMPILE") != NULL) {
+  if (getenv("CYCLES_CUDA_ADAPTIVE_COMPILE") != nullptr) {
     adaptive_compile = true;
   }
 }
 
 void DebugFlags::HIP::reset()
 {
-  if (getenv("CYCLES_HIP_ADAPTIVE_COMPILE") != NULL) {
+  if (getenv("CYCLES_HIP_ADAPTIVE_COMPILE") != nullptr) {
     adaptive_compile = true;
   }
 }
 
 void DebugFlags::Metal::reset()
 {
-  if (getenv("CYCLES_METAL_ADAPTIVE_COMPILE") != NULL) {
+  if (getenv("CYCLES_METAL_ADAPTIVE_COMPILE") != nullptr) {
     adaptive_compile = true;
   }
 

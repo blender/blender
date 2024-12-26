@@ -14,7 +14,7 @@ ccl_device_inline bool svm_node_aov_check(const uint32_t path_flag,
   bool is_primary = (path_flag & PATH_RAY_TRANSPARENT_BACKGROUND) &&
                     (!(path_flag & PATH_RAY_SINGLE_PASS_DONE));
 
-  return ((render_buffer != NULL) && is_primary);
+  return ((render_buffer != nullptr) && is_primary);
 }
 
 template<uint node_feature_mask, typename ConstIntegratorGenericState>

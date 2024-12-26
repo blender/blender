@@ -100,7 +100,7 @@ struct SocketType {
 struct NodeType {
   enum Type { NONE, SHADER };
 
-  explicit NodeType(Type type = NONE, const NodeType *base = NULL);
+  explicit NodeType(Type type = NONE, const NodeType *base = nullptr);
   ~NodeType();
 
   void register_input(ustring name,
@@ -108,8 +108,8 @@ struct NodeType {
                       SocketType::Type type,
                       int struct_offset,
                       const void *default_value,
-                      const NodeEnum *enum_values = NULL,
-                      const NodeType *node_type = NULL,
+                      const NodeEnum *enum_values = nullptr,
+                      const NodeType *node_type = nullptr,
                       int flags = 0,
                       int extra_flags = 0);
   void register_output(ustring name, ustring ui_name, SocketType::Type type);
@@ -129,7 +129,7 @@ struct NodeType {
   static NodeType *add(const char *name,
                        CreateFunc create,
                        Type type = NONE,
-                       const NodeType *base = NULL);
+                       const NodeType *base = nullptr);
   static const NodeType *find(ustring name);
   static unordered_map<ustring, NodeType> &types();
 };
@@ -184,8 +184,8 @@ struct NodeType {
                          TYPE, \
                          SOCKET_OFFSETOF(T, name), \
                          &defval, \
-                         NULL, \
-                         NULL, \
+                         nullptr, \
+                         nullptr, \
                          flags, \
                          ##__VA_ARGS__); \
   }
@@ -224,19 +224,19 @@ struct NodeType {
                          SOCKET_OFFSETOF(T, name), \
                          &defval, \
                          &values, \
-                         NULL, \
+                         nullptr, \
                          ##__VA_ARGS__); \
   }
 #define SOCKET_NODE(name, ui_name, node_type, ...) \
   { \
-    static Node *defval = NULL; \
+    static Node *defval = nullptr; \
     assert(SOCKET_SIZEOF(T, name) == sizeof(Node *)); \
     type->register_input(ustring(#name), \
                          ustring(ui_name), \
                          SocketType::NODE, \
                          SOCKET_OFFSETOF(T, name), \
                          &defval, \
-                         NULL, \
+                         nullptr, \
                          node_type, \
                          ##__VA_ARGS__); \
   }
@@ -284,7 +284,7 @@ struct NodeType {
                          SocketType::NODE_ARRAY, \
                          SOCKET_OFFSETOF(T, name), \
                          &defval, \
-                         NULL, \
+                         nullptr, \
                          node_type, \
                          ##__VA_ARGS__); \
   }
@@ -353,9 +353,9 @@ struct NodeType {
                        ustring(ui_name), \
                        SocketType::CLOSURE, \
                        0, \
-                       NULL, \
-                       NULL, \
-                       NULL, \
+                       nullptr, \
+                       nullptr, \
+                       nullptr, \
                        SocketType::LINKABLE, \
                        ##__VA_ARGS__)
 

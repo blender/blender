@@ -75,7 +75,7 @@ class IESTextParser {
 
   bool eof()
   {
-    return (data == NULL) || (data[0] == '\0');
+    return (data == nullptr) || (data[0] == '\0');
   }
 
   bool has_error()
@@ -92,7 +92,7 @@ class IESTextParser {
     char *old_data = data;
     double val = strtod(data, &data);
     if (data == old_data) {
-      data = NULL;
+      data = nullptr;
       error = true;
       return 0.0;
     }
@@ -108,7 +108,7 @@ class IESTextParser {
     char *old_data = data;
     long val = strtol(data, &data, 10);
     if (data == old_data) {
-      data = NULL;
+      data = nullptr;
       error = true;
       return 0;
     }

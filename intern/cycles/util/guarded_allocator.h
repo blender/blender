@@ -39,7 +39,7 @@ template<typename T> class GuardedAllocator {
     size_t size = n * sizeof(T);
     util_guarded_mem_alloc(size);
     if (n == 0) {
-      return NULL;
+      return nullptr;
     }
     T *mem;
 #ifdef WITH_BLENDER_GUARDEDALLOC
@@ -52,7 +52,7 @@ template<typename T> class GuardedAllocator {
 #else
     mem = (T *)malloc(size);
 #endif
-    if (mem == NULL) {
+    if (mem == nullptr) {
       throw std::bad_alloc();
     }
     return mem;
@@ -61,7 +61,7 @@ template<typename T> class GuardedAllocator {
   void deallocate(T *p, size_t n)
   {
     util_guarded_mem_free(n * sizeof(T));
-    if (p != NULL) {
+    if (p != nullptr) {
 #ifdef WITH_BLENDER_GUARDEDALLOC
       MEM_freeN(p);
 #else

@@ -21,7 +21,7 @@ bool BlenderOutputDriver::read_render_tile(const Tile &tile)
                                                  tile.view.c_str());
 
   /* Can happen if the intersected rectangle gives 0 width or height. */
-  if (b_rr.ptr.data == NULL) {
+  if (b_rr.ptr.data == nullptr) {
     return false;
   }
 
@@ -77,7 +77,7 @@ void BlenderOutputDriver::write_render_tile(const Tile &tile)
                                                  tile.view.c_str());
 
   /* Can happen if the intersected rectangle gives 0 width or height. */
-  if (b_rr.ptr.data == NULL) {
+  if (b_rr.ptr.data == nullptr) {
     return;
   }
 

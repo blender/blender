@@ -69,7 +69,7 @@ ccl_device void kernel_background_evaluate(KernelGlobals kg,
   const uint32_t path_flag = PATH_RAY_EMISSION | PATH_RAY_IMPORTANCE_BAKE;
   surface_shader_eval<KERNEL_FEATURE_NODE_MASK_SURFACE_LIGHT &
                       ~(KERNEL_FEATURE_NODE_RAYTRACE | KERNEL_FEATURE_NODE_LIGHT_PATH)>(
-      kg, INTEGRATOR_STATE_NULL, &sd, NULL, path_flag);
+      kg, INTEGRATOR_STATE_NULL, &sd, nullptr, path_flag);
   Spectrum color = surface_shader_background(&sd);
 
 #ifdef __KERNEL_DEBUG_NAN__
@@ -105,7 +105,7 @@ ccl_device void kernel_curve_shadow_transparency_evaluate(
   /* Evaluate transparency. */
   surface_shader_eval<KERNEL_FEATURE_NODE_MASK_SURFACE_SHADOW &
                       ~(KERNEL_FEATURE_NODE_RAYTRACE | KERNEL_FEATURE_NODE_LIGHT_PATH)>(
-      kg, INTEGRATOR_STATE_NULL, &sd, NULL, PATH_RAY_SHADOW);
+      kg, INTEGRATOR_STATE_NULL, &sd, nullptr, PATH_RAY_SHADOW);
 
   /* Write output. */
   output[offset] = clamp(average(surface_shader_transparency(kg, &sd)), 0.0f, 1.0f);

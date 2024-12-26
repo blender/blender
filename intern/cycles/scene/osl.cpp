@@ -36,7 +36,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Shared Texture and Shading System */
 
-OSL::TextureSystem *OSLShaderManager::ts_shared = NULL;
+OSL::TextureSystem *OSLShaderManager::ts_shared = nullptr;
 int OSLShaderManager::ts_shared_users = 0;
 thread_mutex OSLShaderManager::ts_shared_mutex;
 
@@ -229,8 +229,8 @@ void OSLShaderManager::device_free(Device *device, DeviceScene *dscene, Scene *s
     OSLGlobals *og = (OSLGlobals *)sub_device->get_cpu_osl_memory();
 
     og->use = false;
-    og->ss = NULL;
-    og->ts = NULL;
+    og->ss = nullptr;
+    og->ts = nullptr;
 
     og->surface_state.clear();
     og->volume_state.clear();
@@ -281,7 +281,7 @@ void OSLShaderManager::texture_system_free()
   if (--ts_shared_users == 0) {
     ts_shared->invalidate_all(true);
     OSL::TextureSystem::destroy(ts_shared);
-    ts_shared = NULL;
+    ts_shared = nullptr;
   }
 }
 
@@ -447,13 +447,13 @@ static string shader_filepath_hash(const string &filepath, uint64_t modified_tim
 const char *OSLShaderManager::shader_test_loaded(const string &hash)
 {
   map<string, OSLShaderInfo>::iterator it = loaded_shaders.find(hash);
-  return (it == loaded_shaders.end()) ? NULL : it->first.c_str();
+  return (it == loaded_shaders.end()) ? nullptr : it->first.c_str();
 }
 
 OSLShaderInfo *OSLShaderManager::shader_loaded_info(const string &hash)
 {
   map<string, OSLShaderInfo>::iterator it = loaded_shaders.find(hash);
-  return (it == loaded_shaders.end()) ? NULL : &it->second;
+  return (it == loaded_shaders.end()) ? nullptr : &it->second;
 }
 
 const char *OSLShaderManager::shader_load_filepath(string filepath)
@@ -495,7 +495,7 @@ const char *OSLShaderManager::shader_load_filepath(string filepath)
     }
     else {
       /* unknown file */
-      return NULL;
+      return nullptr;
     }
 
     /* test if we have loaded this .OSO already */
@@ -513,7 +513,7 @@ const char *OSLShaderManager::shader_load_filepath(string filepath)
     fprintf(stderr, "Cycles shader graph: failed to read file %s\n", filepath.c_str());
     OSLShaderInfo info;
     loaded_shaders[bytecode_hash] = info; /* to avoid repeat tries */
-    return NULL;
+    return nullptr;
   }
 
   return shader_load_bytecode(bytecode_hash, bytecode);
@@ -550,7 +550,7 @@ OSLNode *OSLShaderManager::osl_node(ShaderGraph *graph,
                                     const std::string &bytecode)
 {
   if (!manager->use_osl()) {
-    return NULL;
+    return nullptr;
   }
 
   /* create query */
@@ -567,7 +567,7 @@ OSLNode *OSLShaderManager::osl_node(ShaderGraph *graph,
   }
 
   if (!hash) {
-    return NULL;
+    return nullptr;
   }
 
   OSLShaderInfo *info = osl_manager->shader_loaded_info(hash);
@@ -718,7 +718,7 @@ OSLCompiler::OSLCompiler(OSLShaderManager *manager, OSL::ShadingSystem *ss, Scen
       ss(ss)
 {
   current_type = SHADER_TYPE_SURFACE;
-  current_shader = NULL;
+  current_shader = nullptr;
   background = false;
 }
 
@@ -811,7 +811,7 @@ void OSLCompiler::add(ShaderNode *node, const char *name, bool isfilepath)
   if (isfilepath) {
     name = manager->shader_load_filepath(name);
 
-    if (name == NULL)
+    if (name == nullptr)
       return;
   }
 
@@ -1167,9 +1167,9 @@ void OSLCompiler::parameter_attribute(const char *name, ustring s)
 
 void OSLCompiler::find_dependencies(ShaderNodeSet &dependencies, ShaderInput *input)
 {
-  ShaderNode *node = (input->link) ? input->link->parent : NULL;
+  ShaderNode *node = (input->link) ? input->link->parent : nullptr;
 
-  if (node != NULL && dependencies.find(node) == dependencies.end()) {
+  if (node != nullptr && dependencies.find(node) == dependencies.end()) {
     foreach (ShaderInput *in, node->inputs)
       if (!node_skip_input(node, in))
         find_dependencies(dependencies, in);
@@ -1277,7 +1277,7 @@ void OSLCompiler::compile(Shader *shader)
 {
   if (shader->is_modified()) {
     ShaderGraph *graph = shader->graph;
-    ShaderNode *output = (graph) ? graph->output() : NULL;
+    ShaderNode *output = (graph) ? graph->output() : nullptr;
 
     bool has_bump = (shader->get_displacement_method() != DISPLACE_TRUE) &&
                     output->input("Surface")->link && output->input("Displacement")->link;

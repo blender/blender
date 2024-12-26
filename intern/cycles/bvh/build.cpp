@@ -62,7 +62,7 @@ void BVHBuild::add_reference_triangles(BoundBox &root,
                                        int object_index)
 {
   const PrimitiveType primitive_type = mesh->primitive_type();
-  const Attribute *attr_mP = NULL;
+  const Attribute *attr_mP = nullptr;
   if (mesh->has_motion_blur()) {
     attr_mP = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
   }
@@ -70,7 +70,7 @@ void BVHBuild::add_reference_triangles(BoundBox &root,
   for (uint j = 0; j < num_triangles; j++) {
     Mesh::Triangle t = mesh->get_triangle(j);
     const float3 *verts = &mesh->verts[0];
-    if (attr_mP == NULL) {
+    if (attr_mP == nullptr) {
       BoundBox bounds = BoundBox::empty;
       t.bounds_grow(verts, bounds);
       if (bounds.valid() && t.valid(verts)) {
@@ -148,7 +148,7 @@ void BVHBuild::add_reference_triangles(BoundBox &root,
 
 void BVHBuild::add_reference_curves(BoundBox &root, BoundBox &center, Hair *hair, int object_index)
 {
-  const Attribute *curve_attr_mP = NULL;
+  const Attribute *curve_attr_mP = nullptr;
   if (hair->has_motion_blur()) {
     curve_attr_mP = hair->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
   }
@@ -160,7 +160,7 @@ void BVHBuild::add_reference_curves(BoundBox &root, BoundBox &center, Hair *hair
     const Hair::Curve curve = hair->get_curve(j);
     const float *curve_radius = &hair->get_curve_radius()[0];
     for (int k = 0; k < curve.num_keys - 1; k++) {
-      if (curve_attr_mP == NULL) {
+      if (curve_attr_mP == nullptr) {
         /* Really simple logic for static hair. */
         BoundBox bounds = BoundBox::empty;
         curve.bounds_grow(k, &hair->get_curve_keys()[0], curve_radius, bounds);
@@ -263,7 +263,7 @@ void BVHBuild::add_reference_points(BoundBox &root,
                                     PointCloud *pointcloud,
                                     int i)
 {
-  const Attribute *point_attr_mP = NULL;
+  const Attribute *point_attr_mP = nullptr;
   if (pointcloud->has_motion_blur()) {
     point_attr_mP = pointcloud->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
   }
@@ -271,10 +271,10 @@ void BVHBuild::add_reference_points(BoundBox &root,
   const float3 *points_data = &pointcloud->points[0];
   const float *radius_data = &pointcloud->radius[0];
   const size_t num_points = pointcloud->num_points();
-  const float4 *motion_data = (point_attr_mP) ? point_attr_mP->data_float4() : NULL;
+  const float4 *motion_data = (point_attr_mP) ? point_attr_mP->data_float4() : nullptr;
   const size_t num_steps = pointcloud->get_motion_steps();
 
-  if (point_attr_mP == NULL) {
+  if (point_attr_mP == nullptr) {
     /* Really simple logic for static points. */
     for (uint j = 0; j < num_points; j++) {
       const PointCloud::Point point = pointcloud->get_point(j);
@@ -478,7 +478,7 @@ BVHNode *BVHBuild::run()
   add_references(root);
 
   if (progress.get_cancel()) {
-    return NULL;
+    return nullptr;
   }
 
   /* init spatial splits */
@@ -524,7 +524,7 @@ BVHNode *BVHBuild::run()
   }
   else {
     /* Perform multithreaded binning build. */
-    BVHObjectBinning rootbin(root, (references.size()) ? &references[0] : NULL);
+    BVHObjectBinning rootbin(root, (references.size()) ? &references[0] : nullptr);
     rootnode = build_node(rootbin, 0);
     task_pool.wait_work();
   }
@@ -536,7 +536,7 @@ BVHNode *BVHBuild::run()
   if (rootnode) {
     if (progress.get_cancel()) {
       rootnode->deleteSubtree();
-      rootnode = NULL;
+      rootnode = nullptr;
       VLOG_WORK << "BVH build canceled.";
     }
     else {
@@ -544,7 +544,7 @@ BVHNode *BVHBuild::run()
       rootnode->update_visibility();
       rootnode->update_time();
     }
-    if (rootnode != NULL) {
+    if (rootnode != nullptr) {
       VLOG_WORK << "BVH build statistics:\n"
                 << "  Build time: " << time_dt() - build_start_time << "\n"
                 << "  Total number of nodes: "
@@ -788,7 +788,7 @@ BVHNode *BVHBuild::build_node(const BVHRange &range,
    */
   progress_update();
   if (progress.get_cancel()) {
-    return NULL;
+    return nullptr;
   }
 
   /* Small enough or too deep => create leaf. */
@@ -999,7 +999,7 @@ BVHNode *BVHBuild::create_leaf_node(const BVHRange &range, const vector<BVHRefer
    * TODO(sergey): With some pointer trickery we can write directly to the
    * destination buffers for the non-spatial split BVH.
    */
-  BVHNode *leaves[PRIMITIVE_NUM + 1] = {NULL};
+  BVHNode *leaves[PRIMITIVE_NUM + 1] = {nullptr};
   int num_leaves = 0;
   size_t start_index = 0;
   vector<int, LeafStackAllocator> local_prim_type, local_prim_index, local_prim_object;
@@ -1137,7 +1137,7 @@ BVHNode *BVHBuild::create_leaf_node(const BVHRange &range, const vector<BVHRefer
     /* Only create object leaf nodes if there are objects or no other
      * nodes created.
      */
-    const BVHReference *ref = (ob_num) ? &object_references[0] : NULL;
+    const BVHReference *ref = (ob_num) ? &object_references[0] : nullptr;
     leaves[num_leaves] = create_object_leaf_nodes(ref, start_index + num_new_leaf_data, ob_num);
     ++num_leaves;
   }

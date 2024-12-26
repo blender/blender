@@ -49,7 +49,7 @@ class BVHNode {
   inline void set_aligned_space(const Transform &aligned_space)
   {
     is_unaligned = true;
-    if (this->aligned_space == NULL) {
+    if (this->aligned_space == nullptr) {
       this->aligned_space = new Transform(aligned_space);
     }
     else {
@@ -59,7 +59,7 @@ class BVHNode {
 
   inline Transform get_aligned_space() const
   {
-    if (aligned_space == NULL) {
+    if (aligned_space == nullptr) {
       return transform_identity();
     }
     return *aligned_space;
@@ -107,7 +107,7 @@ class BVHNode {
       : bounds(bounds),
         visibility(0),
         is_unaligned(false),
-        aligned_space(NULL),
+        aligned_space(nullptr),
         time_from(0.0f),
         time_to(1.0f)
   {
@@ -117,11 +117,11 @@ class BVHNode {
       : bounds(other.bounds),
         visibility(other.visibility),
         is_unaligned(other.is_unaligned),
-        aligned_space(NULL),
+        aligned_space(nullptr),
         time_from(other.time_from),
         time_to(other.time_to)
   {
-    if (other.aligned_space != NULL) {
+    if (other.aligned_space != nullptr) {
       assert(other.is_unaligned);
       aligned_space = new Transform();
       *aligned_space = *other.aligned_space;
@@ -159,7 +159,7 @@ class InnerNode : public BVHNode {
     time_from = FLT_MAX;
     time_to = -FLT_MAX;
     for (int i = 0; i < num_children; ++i) {
-      assert(children[i] != NULL);
+      assert(children[i] != nullptr);
       visibility |= children[i]->visibility;
       this->children[i] = children[i];
       time_from = min(time_from, children[i]->time_from);
@@ -170,7 +170,7 @@ class InnerNode : public BVHNode {
 
   /* NOTE: This function is only used during binary BVH builder, and it's
    * supposed to be configured to have 2 children which will be filled-in in a
-   * bit. But this is important to have children reset to NULL. */
+   * bit. But this is important to have children reset to nullptr. */
   explicit InnerNode(const BoundBox &bounds) : BVHNode(bounds), num_children_(0)
   {
     reset_unused_children();
@@ -200,7 +200,7 @@ class InnerNode : public BVHNode {
   void reset_unused_children()
   {
     for (int i = num_children_; i < kNumMaxChildren; ++i) {
-      children[i] = NULL;
+      children[i] = nullptr;
     }
   }
 };
@@ -226,7 +226,7 @@ class LeafNode : public BVHNode {
   }
   BVHNode *get_child(int) const
   {
-    return NULL;
+    return nullptr;
   }
   int num_triangles() const
   {

@@ -72,7 +72,7 @@ ccl_device float svm_ao(
     ray.dD = differential_zero_compact();
 
     if (flags & NODE_AO_ONLY_LOCAL) {
-      if (!scene_intersect_local(kg, &ray, NULL, sd->object, NULL, 0)) {
+      if (!scene_intersect_local(kg, &ray, nullptr, sd->object, nullptr, 0)) {
         unoccluded++;
       }
     }

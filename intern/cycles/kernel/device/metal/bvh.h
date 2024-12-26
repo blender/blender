@@ -86,9 +86,9 @@ ccl_device_forceinline bool curve_ribbon_accept(
   if (!(kernel_data_fetch(object_flag, object) & SD_OBJECT_TRANSFORM_APPLIED)) {
     float3 idir;
 #  if defined(__METALRT_MOTION__)
-    bvh_instance_motion_push(NULL, object, ray, &ray_P, &ray_D, &idir);
+    bvh_instance_motion_push(nullptr, object, ray, &ray_P, &ray_D, &idir);
 #  else
-    bvh_instance_push(NULL, object, ray, &ray_P, &ray_D, &idir);
+    bvh_instance_push(nullptr, object, ray, &ray_P, &ray_D, &idir);
 #  endif
   }
 
@@ -131,9 +131,9 @@ ccl_device_forceinline float curve_ribbon_v(
   if (!(kernel_data_fetch(object_flag, object) & SD_OBJECT_TRANSFORM_APPLIED)) {
     float3 idir;
 #  if defined(__METALRT_MOTION__)
-    bvh_instance_motion_push(NULL, object, ray, &ray_P, &ray_D, &idir);
+    bvh_instance_motion_push(nullptr, object, ray, &ray_P, &ray_D, &idir);
 #  else
-    bvh_instance_push(NULL, object, ray, &ray_P, &ray_D, &idir);
+    bvh_instance_push(nullptr, object, ray, &ray_P, &ray_D, &idir);
 #  endif
   }
 
@@ -235,14 +235,14 @@ ccl_device_intersect bool scene_intersect(KernelGlobals kg,
     if (!(kernel_data_fetch(object_flag, object) & SD_OBJECT_TRANSFORM_APPLIED)) {
       float3 idir;
 #  if defined(__METALRT_MOTION__)
-      bvh_instance_motion_push(NULL, object, ray, &r.origin, &r.direction, &idir);
+      bvh_instance_motion_push(nullptr, object, ray, &r.origin, &r.direction, &idir);
 #  else
-      bvh_instance_push(NULL, object, ray, &r.origin, &r.direction, &idir);
+      bvh_instance_push(nullptr, object, ray, &r.origin, &r.direction, &idir);
 #  endif
     }
 
     if (prim_type & PRIMITIVE_POINT) {
-      if (!point_intersect(NULL,
+      if (!point_intersect(nullptr,
                            isect,
                            r.origin,
                            r.direction,

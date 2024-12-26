@@ -202,7 +202,7 @@ ccl_device_forceinline float3 primitive_uv(KernelGlobals kg, ccl_private const S
   if (desc.offset == ATTR_STD_NOT_FOUND)
     return make_float3(0.0f, 0.0f, 0.0f);
 
-  float2 uv = primitive_surface_attribute_float2(kg, sd, desc, NULL, NULL);
+  float2 uv = primitive_surface_attribute_float2(kg, sd, desc, nullptr, nullptr);
   return make_float3(uv.x, uv.y, 1.0f);
 }
 
@@ -220,8 +220,8 @@ ccl_device bool primitive_ptex(KernelGlobals kg,
   if (desc_face_id.offset == ATTR_STD_NOT_FOUND || desc_uv.offset == ATTR_STD_NOT_FOUND)
     return false;
 
-  float3 uv3 = primitive_surface_attribute_float3(kg, sd, desc_uv, NULL, NULL);
-  float face_id_f = primitive_surface_attribute_float(kg, sd, desc_face_id, NULL, NULL);
+  float3 uv3 = primitive_surface_attribute_float3(kg, sd, desc_uv, nullptr, nullptr);
+  float face_id_f = primitive_surface_attribute_float(kg, sd, desc_face_id, nullptr, nullptr);
 
   *uv = make_float2(uv3.x, uv3.y);
   *face_id = (int)face_id_f;
@@ -246,7 +246,7 @@ ccl_device float3 primitive_tangent(KernelGlobals kg, ccl_private ShaderData *sd
   const AttributeDescriptor desc = find_attribute(kg, sd, ATTR_STD_GENERATED);
 
   if (desc.offset != ATTR_STD_NOT_FOUND) {
-    float3 data = primitive_surface_attribute_float3(kg, sd, desc, NULL, NULL);
+    float3 data = primitive_surface_attribute_float3(kg, sd, desc, nullptr, nullptr);
     data = make_float3(-(data.y - 0.5f), (data.x - 0.5f), 0.0f);
     object_normal_transform(kg, sd, &data);
     return cross(sd->N, normalize(cross(data, sd->N)));
@@ -306,9 +306,10 @@ ccl_device_forceinline float4 primitive_motion_vector(KernelGlobals kg,
 
 #if defined(__HAIR__) || defined(__POINTCLOUD__)
     if (is_curve_or_point) {
-      motion_pre = make_float3(primitive_surface_attribute_float4(kg, sd, desc, NULL, NULL));
+      motion_pre = make_float3(primitive_surface_attribute_float4(kg, sd, desc, nullptr, nullptr));
       desc.offset += numverts;
-      motion_post = make_float3(primitive_surface_attribute_float4(kg, sd, desc, NULL, NULL));
+      motion_post = make_float3(
+          primitive_surface_attribute_float4(kg, sd, desc, nullptr, nullptr));
 
       /* Curve */
       if ((sd->object_flag & SD_OBJECT_HAS_VERTEX_MOTION) == 0) {
@@ -322,14 +323,14 @@ ccl_device_forceinline float4 primitive_motion_vector(KernelGlobals kg,
     {
       /* Triangle */
       if (subd_triangle_patch(kg, sd->prim) == ~0) {
-        motion_pre = triangle_attribute_float3(kg, sd, desc, NULL, NULL);
+        motion_pre = triangle_attribute_float3(kg, sd, desc, nullptr, nullptr);
         desc.offset += numverts;
-        motion_post = triangle_attribute_float3(kg, sd, desc, NULL, NULL);
+        motion_post = triangle_attribute_float3(kg, sd, desc, nullptr, nullptr);
       }
       else {
-        motion_pre = subd_triangle_attribute_float3(kg, sd, desc, NULL, NULL);
+        motion_pre = subd_triangle_attribute_float3(kg, sd, desc, nullptr, nullptr);
         desc.offset += numverts;
-        motion_post = subd_triangle_attribute_float3(kg, sd, desc, NULL, NULL);
+        motion_post = subd_triangle_attribute_float3(kg, sd, desc, nullptr, nullptr);
       }
     }
   }

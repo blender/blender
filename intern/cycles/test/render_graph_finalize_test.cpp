@@ -48,7 +48,7 @@ template<typename T> class ShaderNodeBuilder {
   template<typename V> ShaderNodeBuilder &set(const string &input_name, V value)
   {
     ShaderInput *input_socket = node_->input(input_name.c_str());
-    EXPECT_NE((void *)NULL, input_socket);
+    EXPECT_NE((void *)nullptr, input_socket);
     input_socket->set(value);
     return *this;
   }
@@ -56,7 +56,7 @@ template<typename T> class ShaderNodeBuilder {
   template<typename V> ShaderNodeBuilder &set_param(const string &input_name, V value)
   {
     const SocketType *input_socket = node_->type->find_input(ustring(input_name.c_str()));
-    EXPECT_NE((void *)NULL, input_socket);
+    EXPECT_NE((void *)nullptr, input_socket);
     node_->set(*input_socket, value);
     return *this;
   }
@@ -77,14 +77,14 @@ class ShaderGraphBuilder {
   {
     map<string, ShaderNode *>::iterator it = node_map_.find(name);
     if (it == node_map_.end()) {
-      return NULL;
+      return nullptr;
     }
     return it->second;
   }
 
   template<typename T> ShaderGraphBuilder &add_node(const T &node)
   {
-    EXPECT_EQ(find_node(node.name()), (void *)NULL);
+    EXPECT_EQ(find_node(node.name()), (void *)nullptr);
     graph_->add(node.node());
     node_map_[node.name()] = node.node();
     return *this;
@@ -98,13 +98,13 @@ class ShaderGraphBuilder {
     EXPECT_EQ(tokens_from.size(), 2);
     EXPECT_EQ(tokens_to.size(), 2);
     ShaderNode *node_from = find_node(tokens_from[0]), *node_to = find_node(tokens_to[0]);
-    EXPECT_NE((void *)NULL, node_from);
-    EXPECT_NE((void *)NULL, node_to);
+    EXPECT_NE((void *)nullptr, node_from);
+    EXPECT_NE((void *)nullptr, node_to);
     EXPECT_NE(node_from, node_to);
     ShaderOutput *socket_from = node_from->output(tokens_from[1].c_str());
     ShaderInput *socket_to = node_to->input(tokens_to[1].c_str());
-    EXPECT_NE((void *)NULL, socket_from);
-    EXPECT_NE((void *)NULL, socket_to);
+    EXPECT_NE((void *)nullptr, socket_from);
+    EXPECT_NE((void *)nullptr, socket_to);
     graph_->connect(socket_from, socket_to);
     return *this;
   }

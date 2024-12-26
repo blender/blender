@@ -33,7 +33,7 @@ MetalDeviceQueue::MetalDeviceQueue(MetalDevice *device)
     shared_event_id_ = 1;
 
     /* Shareable event listener */
-    event_queue_ = dispatch_queue_create("com.cycles.metal.event_queue", NULL);
+    event_queue_ = dispatch_queue_create("com.cycles.metal.event_queue", nullptr);
     shared_event_listener_ = [[MTLSharedEventListener alloc] initWithDispatchQueue:event_queue_];
 
     wait_semaphore_ = dispatch_semaphore_create(0);

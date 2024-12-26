@@ -167,7 +167,7 @@ bool OSLRenderServices::get_matrix(OSL::ShaderGlobals *sg,
         tfm = object_get_transform(kg, sd);
       }
       else {
-        tfm = object_fetch_transform_motion_test(kg, object, time, NULL);
+        tfm = object_fetch_transform_motion_test(kg, object, time, nullptr);
       }
 #else
       const Transform tfm = object_get_transform(kg, sd);
@@ -779,7 +779,7 @@ static bool get_object_attribute(const KernelGlobalsCPU *kg,
     {
       memset(fval, 0, sizeof(fval));
       fval[0] = primitive_surface_attribute_float3(
-          kg, sd, desc, (derivatives) ? &fval[1] : NULL, (derivatives) ? &fval[2] : NULL);
+          kg, sd, desc, (derivatives) ? &fval[1] : nullptr, (derivatives) ? &fval[2] : nullptr);
     }
     return set_attribute_float3(fval, type, derivatives, val);
   }
@@ -794,7 +794,7 @@ static bool get_object_attribute(const KernelGlobalsCPU *kg,
     {
       float2 fval[3];
       fval[0] = primitive_surface_attribute_float2(
-          kg, sd, desc, (derivatives) ? &fval[1] : NULL, (derivatives) ? &fval[2] : NULL);
+          kg, sd, desc, (derivatives) ? &fval[1] : nullptr, (derivatives) ? &fval[2] : nullptr);
       return set_attribute_float2(fval, type, derivatives, val);
     }
   }
@@ -809,7 +809,7 @@ static bool get_object_attribute(const KernelGlobalsCPU *kg,
 #endif
     {
       fval[0] = primitive_surface_attribute_float(
-          kg, sd, desc, (derivatives) ? &fval[1] : NULL, (derivatives) ? &fval[2] : NULL);
+          kg, sd, desc, (derivatives) ? &fval[1] : nullptr, (derivatives) ? &fval[2] : nullptr);
     }
     return set_attribute_float(fval, type, derivatives, val);
   }
@@ -824,7 +824,7 @@ static bool get_object_attribute(const KernelGlobalsCPU *kg,
 #endif
     {
       fval[0] = primitive_surface_attribute_float4(
-          kg, sd, desc, (derivatives) ? &fval[1] : NULL, (derivatives) ? &fval[2] : NULL);
+          kg, sd, desc, (derivatives) ? &fval[1] : nullptr, (derivatives) ? &fval[2] : nullptr);
     }
     return set_attribute_float4(fval, type, derivatives, val);
   }
@@ -1113,7 +1113,7 @@ bool OSLRenderServices::get_attribute(OSL::ShaderGlobals *sg,
                                       OSLUStringHash name,
                                       void *val)
 {
-  if (sg == NULL || sg->renderstate == NULL) {
+  if (sg == nullptr || sg->renderstate == nullptr) {
     return false;
   }
 
@@ -1195,8 +1195,8 @@ TextureSystem::TextureHandle *OSLRenderServices::get_texture_handle(OSLUStringHa
     /* Get handle from OpenImageIO. */
     OSL::TextureSystem *ts = m_texturesys;
     TextureSystem::TextureHandle *handle = ts->get_texture_handle(to_ustring(filename));
-    if (handle == NULL) {
-      return NULL;
+    if (handle == nullptr) {
+      return nullptr;
     }
 
     /* Insert new OSLTextureHandle if needed. */
@@ -1214,7 +1214,7 @@ TextureSystem::TextureHandle *OSLRenderServices::get_texture_handle(OSLUStringHa
     if (it != textures.end()) {
       switch (it->second->type) {
         case OSLTextureHandle::OIIO:
-          return NULL;
+          return nullptr;
         case OSLTextureHandle::SVM:
           if (!it->second->handle.empty() && it->second->handle.get_manager() != image_manager) {
             it.clear();
@@ -1239,17 +1239,17 @@ TextureSystem::TextureHandle *OSLRenderServices::get_texture_handle(OSLUStringHa
     }
 
     if (!image_manager) {
-      return NULL;
+      return nullptr;
     }
 
     /* Load new textures using SVM image manager. */
     ImageHandle handle = image_manager->add_image(filename.string(), ImageParams());
     if (handle.empty()) {
-      return NULL;
+      return nullptr;
     }
 
     if (!textures.insert(filename, new OSLTextureHandle(handle))) {
-      return NULL;
+      return nullptr;
     }
 
     return reinterpret_cast<TextureSystem::TextureHandle *>(OSL_TEXTURE_HANDLE_TYPE_SVM |
@@ -1394,7 +1394,7 @@ bool OSLRenderServices::texture(OSLUStringHash filename,
       OSL::TextureSystem *ts = m_texturesys;
 
       if (handle && handle->oiio_handle) {
-        if (texture_thread_info == NULL) {
+        if (texture_thread_info == nullptr) {
           OSLThreadData *tdata = kernel_globals->osl_tdata;
           texture_thread_info = tdata->oiio_thread_info;
         }
@@ -1502,7 +1502,7 @@ bool OSLRenderServices::texture3d(OSLUStringHash filename,
       OSL::TextureSystem *ts = m_texturesys;
 
       if (handle && handle->oiio_handle) {
-        if (texture_thread_info == NULL) {
+        if (texture_thread_info == nullptr) {
           ShaderData *sd = (ShaderData *)(sg->renderstate);
           KernelGlobals kernel_globals = sd->osl_globals;
           OSLThreadData *tdata = kernel_globals->osl_tdata;
@@ -1588,7 +1588,7 @@ bool OSLRenderServices::environment(OSLUStringHash filename,
   bool status = false;
 
   if (handle && handle->oiio_handle) {
-    if (thread_info == NULL) {
+    if (thread_info == nullptr) {
       ShaderData *sd = (ShaderData *)(sg->renderstate);
       KernelGlobals kernel_globals = sd->osl_globals;
       OSLThreadData *tdata = kernel_globals->osl_tdata;

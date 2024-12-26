@@ -362,7 +362,7 @@ ccl_device_inline
   bsdf_eval_init(bsdf_eval, zero_spectrum());
 
   float pdf = _surface_shader_bsdf_eval_mis(
-      kg, sd, wo, NULL, bsdf_eval, 0.0f, 0.0f, light_shader_flags);
+      kg, sd, wo, nullptr, bsdf_eval, 0.0f, 0.0f, light_shader_flags);
 
   /* If the light does not use MIS, then it is only sampled via NEE, so the probability of hitting
    * the light using BSDF sampling is zero. */
@@ -1193,7 +1193,7 @@ ccl_device void surface_shader_eval(KernelGlobals kg,
     else {
       ccl_private DiffuseBsdf *bsdf = (ccl_private DiffuseBsdf *)bsdf_alloc(
           sd, sizeof(DiffuseBsdf), make_spectrum(0.8f));
-      if (bsdf != NULL) {
+      if (bsdf != nullptr) {
         bsdf->N = sd->N;
         sd->flag |= bsdf_diffuse_setup(bsdf);
       }

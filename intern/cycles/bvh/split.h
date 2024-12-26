@@ -35,8 +35,8 @@ class BVHObjectSplit {
                  const BVHRange &range,
                  vector<BVHReference> &references,
                  float nodeSAH,
-                 const BVHUnaligned *unaligned_heuristic = NULL,
-                 const Transform *aligned_space = NULL);
+                 const BVHUnaligned *unaligned_heuristic = nullptr,
+                 const Transform *aligned_space = nullptr);
 
   void split(BVHRange &left, BVHRange &right, const BVHRange &range);
 
@@ -48,7 +48,7 @@ class BVHObjectSplit {
 
   __forceinline BoundBox get_prim_bounds(const BVHReference &prim) const
   {
-    if (aligned_space_ == NULL) {
+    if (aligned_space_ == nullptr) {
       return prim.bounds();
     }
     else {
@@ -65,14 +65,14 @@ class BVHSpatialSplit {
   int dim;
   float pos;
 
-  BVHSpatialSplit() : sah(FLT_MAX), dim(0), pos(0.0f), storage_(NULL), references_(NULL) {}
+  BVHSpatialSplit() : sah(FLT_MAX), dim(0), pos(0.0f), storage_(nullptr), references_(nullptr) {}
   BVHSpatialSplit(const BVHBuild &builder,
                   BVHSpatialStorage *storage,
                   const BVHRange &range,
                   vector<BVHReference> &references,
                   float nodeSAH,
-                  const BVHUnaligned *unaligned_heuristic = NULL,
-                  const Transform *aligned_space = NULL);
+                  const BVHUnaligned *unaligned_heuristic = nullptr,
+                  const Transform *aligned_space = nullptr);
 
   void split(BVHBuild *builder, BVHRange &left, BVHRange &right, const BVHRange &range);
 
@@ -146,7 +146,7 @@ class BVHSpatialSplit {
 
   __forceinline BoundBox get_prim_bounds(const BVHReference &prim) const
   {
-    if (aligned_space_ == NULL) {
+    if (aligned_space_ == nullptr) {
       return prim.bounds();
     }
     else {
@@ -156,7 +156,7 @@ class BVHSpatialSplit {
 
   __forceinline float3 get_unaligned_point(const float3 &point) const
   {
-    if (aligned_space_ == NULL) {
+    if (aligned_space_ == nullptr) {
       return point;
     }
     else {
@@ -187,10 +187,10 @@ class BVHMixedSplit {
                               const BVHRange &range,
                               vector<BVHReference> &references,
                               int level,
-                              const BVHUnaligned *unaligned_heuristic = NULL,
-                              const Transform *aligned_space = NULL)
+                              const BVHUnaligned *unaligned_heuristic = nullptr,
+                              const Transform *aligned_space = nullptr)
   {
-    if (aligned_space == NULL) {
+    if (aligned_space == nullptr) {
       bounds = range.bounds();
     }
     else {

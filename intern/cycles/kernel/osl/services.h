@@ -50,7 +50,7 @@ struct OSLTextureHandle : public OIIO::RefCnt {
   enum Type { OIIO, SVM, IES, BEVEL, AO };
 
   OSLTextureHandle(Type type, const vector<int4> &svm_slots)
-      : type(type), svm_slots(svm_slots), oiio_handle(NULL), processor(NULL)
+      : type(type), svm_slots(svm_slots), oiio_handle(nullptr), processor(nullptr)
   {
   }
 

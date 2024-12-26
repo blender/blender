@@ -886,7 +886,7 @@ ccl_device_forceinline bool mnee_path_contribution(KernelGlobals kg,
 
     /* Evaluate shader nodes at solution vi. */
     surface_shader_eval<KERNEL_FEATURE_NODE_MASK_SURFACE_SHADOW>(
-        kg, state, sd_mnee, NULL, PATH_RAY_DIFFUSE, true);
+        kg, state, sd_mnee, nullptr, PATH_RAY_DIFFUSE, true);
 
     /* Set light looking direction. */
     wo = (vi == vertex_count - 1) ? (light_fixed_direction ? ls->D : ls->P - v.p) :
@@ -980,7 +980,7 @@ ccl_device_forceinline int kernel_path_mnee_sample(KernelGlobals kg,
 
       /* Last bool argument is the MNEE flag (for TINY_MAX_CLOSURE cap in kernel_shader.h). */
       surface_shader_eval<KERNEL_FEATURE_NODE_MASK_SURFACE_SHADOW>(
-          kg, state, sd_mnee, NULL, PATH_RAY_DIFFUSE, true);
+          kg, state, sd_mnee, nullptr, PATH_RAY_DIFFUSE, true);
 
       /* Get and sample refraction bsdf */
       bool found_refractive_microfacet_bsdf = false;

@@ -52,7 +52,7 @@ typedef ccl_global KernelGlobalsGPU *ccl_restrict KernelGlobals;
     kg->global_stack_buffer = stack_buffer;
 #else
 #  define HIPRT_INIT_KERNEL_GLOBAL() \
-    KernelGlobals kg = NULL; \
+    KernelGlobals kg = nullptr; \
     kg->global_stack_buffer = stack_buffer;
 #endif
 

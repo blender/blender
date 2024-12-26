@@ -14,7 +14,7 @@ ccl_device ccl_private ShaderClosure *closure_alloc(ccl_private ShaderData *sd,
   kernel_assert(size <= sizeof(ShaderClosure));
 
   if (sd->num_closure_left == 0) {
-    return NULL;
+    return nullptr;
   }
 
   ccl_private ShaderClosure *sc = &sd->closure[sd->num_closure];
@@ -42,7 +42,7 @@ ccl_device ccl_private void *closure_alloc_extra(ccl_private ShaderData *sd, int
     /* Remove previous closure if it was allocated. */
     sd->num_closure--;
     sd->num_closure_left++;
-    return NULL;
+    return nullptr;
   }
 
   sd->num_closure_left -= num_extra;
@@ -69,7 +69,7 @@ ccl_device_inline ccl_private ShaderClosure *bsdf_alloc(ccl_private ShaderData *
   if (volume_valid || sample_weight >= CLOSURE_WEIGHT_CUTOFF) {
     ccl_private ShaderClosure *sc = closure_alloc(sd, size, CLOSURE_NONE_ID, weight);
     if (!sc) {
-      return NULL;
+      return nullptr;
     }
 
     sc->sample_weight = sample_weight;
@@ -77,7 +77,7 @@ ccl_device_inline ccl_private ShaderClosure *bsdf_alloc(ccl_private ShaderData *
     return sc;
   }
 
-  return NULL;
+  return nullptr;
 }
 
 CCL_NAMESPACE_END

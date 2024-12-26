@@ -83,7 +83,7 @@ class SVMCompiler {
   };
 
   SVMCompiler(Scene *scene);
-  void compile(Shader *shader, array<int4> &svm_nodes, int index, Summary *summary = NULL);
+  void compile(Shader *shader, array<int4> &svm_nodes, int index, Summary *summary = nullptr);
 
   int stack_assign(ShaderOutput *output);
   int stack_assign(ShaderInput *input);
@@ -201,7 +201,7 @@ class SVMCompiler {
   void find_dependencies(ShaderNodeSet &dependencies,
                          const ShaderNodeSet &done,
                          ShaderInput *input,
-                         ShaderNode *skip_node = NULL);
+                         ShaderNode *skip_node = nullptr);
   void find_aov_nodes_and_dependencies(ShaderNodeSet &aov_nodes,
                                        ShaderGraph *graph,
                                        CompilerState *state);

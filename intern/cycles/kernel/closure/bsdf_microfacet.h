@@ -75,7 +75,7 @@ typedef struct MicrofacetBsdf {
   float energy_scale;
 
   /* Fresnel model to apply, as well as the extra data for it.
-   * For NONE and DIELECTRIC, no extra storage is needed, so the pointer is NULL for them. */
+   * For NONE and DIELECTRIC, no extra storage is needed, so the pointer is nullptr for them. */
   int fresnel_type;
   ccl_private void *fresnel;
 

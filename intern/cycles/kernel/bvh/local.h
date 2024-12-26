@@ -55,10 +55,10 @@ ccl_device_inline
   int object = OBJECT_NONE;
   float isect_t = ray->tmax;
 
-  if (local_isect != NULL) {
+  if (local_isect != nullptr) {
     local_isect->num_hits = 0;
   }
-  kernel_assert((local_isect == NULL) == (max_hits == 0));
+  kernel_assert((local_isect == nullptr) == (max_hits == 0));
 
   const int object_flag = kernel_data_fetch(object_flag, local_object);
   if (!(object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {

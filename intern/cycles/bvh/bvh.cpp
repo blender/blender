@@ -136,7 +136,7 @@ BVH *BVH::create(const BVHParams &params,
       break;
   }
   LOG(DFATAL) << "Requested unsupported BVH layout.";
-  return NULL;
+  return nullptr;
 }
 
 CCL_NAMESPACE_END

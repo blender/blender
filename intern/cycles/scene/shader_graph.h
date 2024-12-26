@@ -69,7 +69,7 @@ class ShaderInput {
   ShaderInput(const SocketType &socket_type_, ShaderNode *parent_)
       : socket_type(socket_type_),
         parent(parent_),
-        link(NULL),
+        link(nullptr),
         stack_offset(SVM_STACK_INVALID),
         constant_folded_in(false)
   {

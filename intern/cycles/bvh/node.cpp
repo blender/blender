@@ -153,7 +153,9 @@ struct DumpTraversalContext {
   int id;
 };
 
-void dump_subtree(DumpTraversalContext *context, const BVHNode *node, const BVHNode *parent = NULL)
+void dump_subtree(DumpTraversalContext *context,
+                  const BVHNode *node,
+                  const BVHNode *parent = nullptr)
 {
   if (node->is_leaf()) {
     fprintf(context->stream,
@@ -167,7 +169,7 @@ void dump_subtree(DumpTraversalContext *context, const BVHNode *node, const BVHN
             node,
             context->id);
   }
-  if (parent != NULL) {
+  if (parent != nullptr) {
     fprintf(context->stream, "  node_%p -> node_%p;\n", parent, node);
   }
   context->id += 1;
@@ -182,7 +184,7 @@ void BVHNode::dump_graph(const char *filename)
 {
   DumpTraversalContext context;
   context.stream = fopen(filename, "w");
-  if (context.stream == NULL) {
+  if (context.stream == nullptr) {
     return;
   }
   context.id = 0;

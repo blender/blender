@@ -24,12 +24,12 @@ CCL_NAMESPACE_BEGIN
 
 template<typename T, size_t alignment = MIN_ALIGNMENT_CPU_DATA_TYPES> class array {
  public:
-  array() : data_(NULL), datasize_(0), capacity_(0) {}
+  array() : data_(nullptr), datasize_(0), capacity_(0) {}
 
   explicit array(size_t newsize)
   {
     if (newsize == 0) {
-      data_ = NULL;
+      data_ = nullptr;
       datasize_ = 0;
       capacity_ = 0;
     }
@@ -43,7 +43,7 @@ template<typename T, size_t alignment = MIN_ALIGNMENT_CPU_DATA_TYPES> class arra
   array(const array &from)
   {
     if (from.datasize_ == 0) {
-      data_ = NULL;
+      data_ = nullptr;
       datasize_ = 0;
       capacity_ = 0;
     }
@@ -111,7 +111,7 @@ template<typename T, size_t alignment = MIN_ALIGNMENT_CPU_DATA_TYPES> class arra
       datasize_ = from.datasize_;
       capacity_ = from.capacity_;
 
-      from.data_ = NULL;
+      from.data_ = nullptr;
       from.datasize_ = 0;
       from.capacity_ = 0;
     }
@@ -128,7 +128,7 @@ template<typename T, size_t alignment = MIN_ALIGNMENT_CPU_DATA_TYPES> class arra
   T *steal_pointer()
   {
     T *ptr = data_;
-    data_ = NULL;
+    data_ = nullptr;
     clear();
     return ptr;
   }
@@ -141,12 +141,12 @@ template<typename T, size_t alignment = MIN_ALIGNMENT_CPU_DATA_TYPES> class arra
     else if (newsize != datasize_) {
       if (newsize > capacity_) {
         T *newdata = mem_allocate(newsize);
-        if (newdata == NULL) {
+        if (newdata == nullptr) {
           /* Allocation failed, likely out of memory. */
           clear();
-          return NULL;
+          return nullptr;
         }
-        else if (data_ != NULL) {
+        else if (data_ != nullptr) {
           mem_copy(newdata, data_, ((datasize_ < newsize) ? datasize_ : newsize));
           mem_free(data_, capacity_);
         }
@@ -172,9 +172,9 @@ template<typename T, size_t alignment = MIN_ALIGNMENT_CPU_DATA_TYPES> class arra
 
   void clear()
   {
-    if (data_ != NULL) {
+    if (data_ != nullptr) {
       mem_free(data_, capacity_);
-      data_ = NULL;
+      data_ = nullptr;
     }
     datasize_ = 0;
     capacity_ = 0;
@@ -230,7 +230,7 @@ template<typename T, size_t alignment = MIN_ALIGNMENT_CPU_DATA_TYPES> class arra
   {
     if (newcapacity > capacity_) {
       T *newdata = mem_allocate(newcapacity);
-      if (data_ != NULL) {
+      if (data_ != nullptr) {
         mem_copy(newdata, data_, ((datasize_ < newcapacity) ? datasize_ : newcapacity));
         mem_free(data_, capacity_);
       }
@@ -273,10 +273,10 @@ template<typename T, size_t alignment = MIN_ALIGNMENT_CPU_DATA_TYPES> class arra
   inline T *mem_allocate(size_t N)
   {
     if (N == 0) {
-      return NULL;
+      return nullptr;
     }
     T *mem = (T *)util_aligned_malloc(sizeof(T) * N, alignment);
-    if (mem != NULL) {
+    if (mem != nullptr) {
       util_guarded_mem_alloc(sizeof(T) * N);
     }
     else {
@@ -287,7 +287,7 @@ template<typename T, size_t alignment = MIN_ALIGNMENT_CPU_DATA_TYPES> class arra
 
   inline void mem_free(T *mem, size_t N)
   {
-    if (mem != NULL) {
+    if (mem != nullptr) {
       util_guarded_mem_free(sizeof(T) * N);
       util_aligned_free(mem);
     }

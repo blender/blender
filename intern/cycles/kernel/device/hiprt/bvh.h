@@ -92,7 +92,7 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals kg,
   float3 dir = bvh_clamp_direction(ray->D);
   float3 idir = bvh_inverse_direction(dir);
 
-  if (local_isect != NULL) {
+  if (local_isect != nullptr) {
     local_isect->num_hits = 0;
   }
 

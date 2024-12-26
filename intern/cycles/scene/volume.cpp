@@ -639,7 +639,7 @@ void GeometryManager::create_volume_mesh(const Scene *scene, Volume *volume, Pro
   progress.set_status("Updating Mesh", msg);
 
   /* Find shader and compute padding based on volume shader interpolation settings. */
-  Shader *volume_shader = NULL;
+  Shader *volume_shader = nullptr;
   int pad_size = 0;
 
   for (Node *node : volume->get_used_shaders()) {

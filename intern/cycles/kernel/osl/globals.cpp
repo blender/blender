@@ -18,7 +18,7 @@ void OSLGlobals::thread_init(KernelGlobalsCPU *kg, OSLGlobals *osl_globals, cons
 {
   /* no osl used? */
   if (!osl_globals->use) {
-    kg->osl = NULL;
+    kg->osl = nullptr;
     return;
   }
 
@@ -53,9 +53,9 @@ void OSLGlobals::thread_free(KernelGlobalsCPU *kg)
 
   delete tdata;
 
-  kg->osl = NULL;
-  kg->osl_ss = NULL;
-  kg->osl_tdata = NULL;
+  kg->osl = nullptr;
+  kg->osl_ss = nullptr;
+  kg->osl_tdata = nullptr;
 }
 
 CCL_NAMESPACE_END

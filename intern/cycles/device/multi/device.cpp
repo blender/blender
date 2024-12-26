@@ -261,7 +261,7 @@ class MultiDevice : public Device {
     /* Always return the OSL memory of the CPU device (this works since the constructor above
      * guarantees that CPU devices are always added to the back). */
     if (devices.size() > 1 && devices.back().device->info.type != DEVICE_CPU) {
-      return NULL;
+      return nullptr;
     }
     return devices.back().device->get_cpu_osl_memory();
   }

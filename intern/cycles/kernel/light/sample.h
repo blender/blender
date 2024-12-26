@@ -67,7 +67,7 @@ light_sample_shader_eval(KernelGlobals kg,
     /* No proper path flag, we're evaluating this for all closures. that's
      * weak but we'd have to do multiple evaluations otherwise. */
     surface_shader_eval<KERNEL_FEATURE_NODE_MASK_SURFACE_LIGHT>(
-        kg, state, emission_sd, NULL, PATH_RAY_EMISSION);
+        kg, state, emission_sd, nullptr, PATH_RAY_EMISSION);
 
     /* Evaluate closures. */
     if (ls->type == LIGHT_BACKGROUND) {

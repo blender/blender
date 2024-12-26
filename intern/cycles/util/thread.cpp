@@ -37,14 +37,14 @@ void *thread::run(void *arg)
 {
   thread *self = (thread *)(arg);
   self->run_cb_();
-  return NULL;
+  return nullptr;
 }
 
 bool thread::join()
 {
   joined_ = true;
 #if defined(__APPLE__) || defined(__linux__) && !defined(__GLIBC__)
-  return pthread_join(pthread_id, NULL) == 0;
+  return pthread_join(pthread_id, nullptr) == 0;
 #else
   try {
     std_thread.join();

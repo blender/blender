@@ -311,8 +311,6 @@ ccl_device_forceinline uchar4 make_uchar4(const uchar x,
 #define sqrtf(x) trigmode::sqrt(float(x))
 #define logf(x) trigmode::log(float(x))
 
-#define NULL 0
-
 #define __device__
 
 #ifdef __METALRT__

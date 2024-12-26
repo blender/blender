@@ -202,7 +202,7 @@ extern "C" __global__ void __anyhit__kernel_optix_shadow_all_hit()
 
   /* If no transparent shadows, all light is blocked and we can stop immediately. */
   if (num_hits >= max_hits ||
-      !(intersection_get_shader_flags(NULL, prim, type) & SD_HAS_TRANSPARENT_SHADOW))
+      !(intersection_get_shader_flags(nullptr, prim, type) & SD_HAS_TRANSPARENT_SHADOW))
   {
     optixSetPayload_5(true);
     return optixTerminateRay();
@@ -411,7 +411,8 @@ ccl_device_inline void optix_intersection_curve(const int prim, const int type)
   Intersection isect;
   isect.t = optixGetRayTmax();
 
-  if (curve_intersect(NULL, &isect, ray_P, ray_D, ray_tmin, isect.t, object, prim, time, type)) {
+  if (curve_intersect(nullptr, &isect, ray_P, ray_D, ray_tmin, isect.t, object, prim, time, type))
+  {
     static_assert(PRIMITIVE_ALL < 128, "Values >= 128 are reserved for OptiX internal use");
     optixReportIntersection(isect.t,
                             type & PRIMITIVE_ALL,
@@ -459,7 +460,8 @@ extern "C" __global__ void __intersection__point()
   Intersection isect;
   isect.t = optixGetRayTmax();
 
-  if (point_intersect(NULL, &isect, ray_P, ray_D, ray_tmin, isect.t, object, prim, time, type)) {
+  if (point_intersect(nullptr, &isect, ray_P, ray_D, ray_tmin, isect.t, object, prim, time, type))
+  {
     static_assert(PRIMITIVE_ALL < 128, "Values >= 128 are reserved for OptiX internal use");
     optixReportIntersection(isect.t, type & PRIMITIVE_ALL);
   }

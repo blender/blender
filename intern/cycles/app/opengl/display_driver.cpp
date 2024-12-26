@@ -351,7 +351,7 @@ void OpenGLDisplayDriver::vertex_buffer_update(const Params &params)
 {
   /* Invalidate old contents - avoids stalling if the buffer is still waiting in queue to be
    * rendered. */
-  glBufferData(GL_ARRAY_BUFFER, 16 * sizeof(float), NULL, GL_STREAM_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, 16 * sizeof(float), nullptr, GL_STREAM_DRAW);
 
   float *vpointer = reinterpret_cast<float *>(glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY));
   if (!vpointer) {

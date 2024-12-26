@@ -67,7 +67,7 @@ const char *name_from_type(ImageDataType type)
 
 /* Image Handle */
 
-ImageHandle::ImageHandle() : manager(NULL) {}
+ImageHandle::ImageHandle() : manager(nullptr) {}
 
 ImageHandle::ImageHandle(const ImageHandle &other)
     : tile_slots(other.tile_slots), manager(other.manager)
@@ -103,7 +103,7 @@ void ImageHandle::clear()
   }
 
   tile_slots.clear();
-  manager = NULL;
+  manager = nullptr;
 }
 
 bool ImageHandle::empty() const
@@ -175,36 +175,36 @@ vector<int4> ImageHandle::get_svm_slots() const
 device_texture *ImageHandle::image_memory(const int tile_index) const
 {
   if (tile_index >= tile_slots.size()) {
-    return NULL;
+    return nullptr;
   }
 
   ImageManager::Image *img = manager->images[tile_slots[tile_index]];
-  return img ? img->mem : NULL;
+  return img ? img->mem : nullptr;
 }
 
 VDBImageLoader *ImageHandle::vdb_loader(const int tile_index) const
 {
   if (tile_index >= tile_slots.size()) {
-    return NULL;
+    return nullptr;
   }
 
   ImageManager::Image *img = manager->images[tile_slots[tile_index]];
 
-  if (img == NULL) {
-    return NULL;
+  if (img == nullptr) {
+    return nullptr;
   }
 
   ImageLoader *loader = img->loader;
 
-  if (loader == NULL) {
-    return NULL;
+  if (loader == nullptr) {
+    return nullptr;
   }
 
   if (loader->is_vdb_loader()) {
     return dynamic_cast<VDBImageLoader *>(loader);
   }
 
-  return NULL;
+  return nullptr;
 }
 
 ImageManager *ImageHandle::get_manager() const
@@ -289,7 +289,7 @@ int ImageLoader::get_tile_number() const
 
 bool ImageLoader::equals(const ImageLoader *a, const ImageLoader *b)
 {
-  if (a == NULL && b == NULL) {
+  if (a == nullptr && b == nullptr) {
     return true;
   }
   else {
@@ -307,7 +307,7 @@ bool ImageLoader::is_vdb_loader() const
 ImageManager::ImageManager(const DeviceInfo &info)
 {
   need_update_ = true;
-  osl_texture_system = NULL;
+  osl_texture_system = nullptr;
   animation_frame = 0;
 
   /* Set image limits */
@@ -473,7 +473,7 @@ size_t ImageManager::add_image_slot(ImageLoader *loader,
   img->need_load = !(osl_texture_system && !img->loader->osl_filepath().empty());
   img->builtin = builtin;
   img->users = 1;
-  img->mem = NULL;
+  img->mem = nullptr;
 
   images[slot] = img;
 
@@ -550,7 +550,7 @@ bool ImageManager::file_load_image(Image *img, int texture_limit)
     pixels = (StorageType *)img->mem->alloc(width, height, depth);
   }
 
-  if (pixels == NULL) {
+  if (pixels == nullptr) {
     /* Could be that we've run out of memory. */
     return false;
   }
@@ -697,7 +697,7 @@ void ImageManager::device_load_image(Device *device, Scene *scene, size_t slot, 
   if (img->mem) {
     thread_scoped_lock device_lock(device_mutex);
     delete img->mem;
-    img->mem = NULL;
+    img->mem = nullptr;
   }
 
   img->mem = new device_texture(
@@ -797,7 +797,7 @@ void ImageManager::device_load_image(Device *device, Scene *scene, size_t slot, 
     thread_scoped_lock device_lock(device_mutex);
     void *pixels = img->mem->alloc(img->metadata.byte_size, 0);
 
-    if (pixels != NULL) {
+    if (pixels != nullptr) {
       img->loader->load_pixels(img->metadata, pixels, img->metadata.byte_size, false);
     }
   }
@@ -816,7 +816,7 @@ void ImageManager::device_load_image(Device *device, Scene *scene, size_t slot, 
 void ImageManager::device_free_image(Device *, size_t slot)
 {
   Image *img = images[slot];
-  if (img == NULL) {
+  if (img == nullptr) {
     return;
   }
 
@@ -836,7 +836,7 @@ void ImageManager::device_free_image(Device *, size_t slot)
 
   delete img->loader;
   delete img;
-  images[slot] = NULL;
+  images[slot] = nullptr;
 }
 
 void ImageManager::device_update(Device *device, Scene *scene, Progress &progress)
@@ -875,7 +875,7 @@ void ImageManager::device_update_slot(Device *device,
                                       Progress &progress)
 {
   Image *img = images[slot];
-  assert(img != NULL);
+  assert(img != nullptr);
 
   if (img->users == 0) {
     device_free_image(device, slot);

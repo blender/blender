@@ -502,7 +502,7 @@ Attribute *AttributeSet::find(ustring name) const
       return (Attribute *)&attr;
     }
 
-  return NULL;
+  return nullptr;
 }
 
 void AttributeSet::remove(ustring name)
@@ -523,7 +523,7 @@ void AttributeSet::remove(ustring name)
 
 Attribute *AttributeSet::add(AttributeStandard std, ustring name)
 {
-  Attribute *attr = NULL;
+  Attribute *attr = nullptr;
 
   if (name == ustring()) {
     name = Attribute::standard_name(std);
@@ -683,7 +683,7 @@ Attribute *AttributeSet::find(AttributeStandard std) const
       return (Attribute *)&attr;
     }
 
-  return NULL;
+  return nullptr;
 }
 
 Attribute *AttributeSet::find_matching(const Attribute &other)

@@ -139,16 +139,16 @@ struct CCLIntersectContext : public RTCIntersectContext,
   {
     kg = kg_;
     type = type_;
-    ray = NULL;
+    ray = nullptr;
     max_hits = numhit_t(1);
     num_hits = numhit_t(0);
     num_recorded_hits = numhit_t(0);
     throughput = 1.0f;
     opaque_hit = false;
-    isect_s = NULL;
-    local_isect = NULL;
+    isect_s = nullptr;
+    local_isect = nullptr;
     local_object_id = -1;
-    lcg_state = NULL;
+    lcg_state = nullptr;
   }
 };
 #endif
@@ -721,7 +721,7 @@ ccl_device_intersect bool kernel_embree_intersect(KernelGlobals kg,
   CCLFirstHitContext ctx;
   rtcInitRayQueryContext(&ctx);
 #  ifdef __KERNEL_ONEAPI__
-  /* NOTE(sirgienko): Cycles GPU back-ends passes NULL to KernelGlobals and
+  /* NOTE(sirgienko): Cycles GPU back-ends passes nullptr to KernelGlobals and
    * uses global device allocation (CUDA, Optix, HIP) or passes all needed data
    * as a class context (Metal, oneAPI). So we need to pass this context here
    * in order to have an access to it later in Embree filter functions on GPU. */
@@ -772,7 +772,7 @@ ccl_device_intersect bool kernel_embree_intersect_local(KernelGlobals kg,
   CCLLocalContext ctx;
   rtcInitRayQueryContext(&ctx);
 #    ifdef __KERNEL_ONEAPI__
-  /* NOTE(sirgienko): Cycles GPU back-ends passes NULL to KernelGlobals and
+  /* NOTE(sirgienko): Cycles GPU back-ends passes nullptr to KernelGlobals and
    * uses global device allocation (CUDA, Optix, HIP) or passes all needed data
    * as a class context (Metal, oneAPI). So we need to pass this context here
    * in order to have an access to it later in Embree filter functions on GPU. */
@@ -861,7 +861,7 @@ ccl_device_intersect bool kernel_embree_intersect_shadow_all(KernelGlobals kg,
   CCLShadowContext ctx;
   rtcInitRayQueryContext(&ctx);
 #    ifdef __KERNEL_ONEAPI__
-  /* NOTE(sirgienko): Cycles GPU back-ends passes NULL to KernelGlobals and
+  /* NOTE(sirgienko): Cycles GPU back-ends passes nullptr to KernelGlobals and
    * uses global device allocation (CUDA, Optix, HIP) or passes all needed data
    * as a class context (Metal, oneAPI). So we need to pass this context here
    * in order to have an access to it later in Embree filter functions on GPU. */
@@ -913,7 +913,7 @@ ccl_device_intersect uint kernel_embree_intersect_volume(KernelGlobals kg,
   CCLVolumeContext ctx;
   rtcInitRayQueryContext(&ctx);
 #    ifdef __KERNEL_ONEAPI__
-  /* NOTE(sirgienko) Cycles GPU back-ends passes NULL to KernelGlobals and
+  /* NOTE(sirgienko) Cycles GPU back-ends passes nullptr to KernelGlobals and
    * uses global device allocation (CUDA, Optix, HIP) or passes all needed data
    * as a class context (Metal, oneAPI). So we need to pass this context here
    * in order to have an access to it later in Embree filter functions on GPU. */

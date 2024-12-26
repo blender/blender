@@ -13,7 +13,7 @@ CCL_NAMESPACE_BEGIN
 
 NODE_ABSTRACT_DEFINE(Procedural)
 {
-  NodeType *type = NodeType::add("procedural_base", NULL);
+  NodeType *type = NodeType::add("procedural_base", nullptr);
   return type;
 }
 

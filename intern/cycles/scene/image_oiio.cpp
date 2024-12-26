@@ -169,7 +169,7 @@ bool OIIOImageLoader::load_pixels(const ImageMetaData &metadata,
                                   const size_t,
                                   const bool associate_alpha)
 {
-  unique_ptr<ImageInput> in = NULL;
+  unique_ptr<ImageInput> in = nullptr;
 
   /* NOTE: Error logging is done in meta data acquisition. */
   if (!path_exists(filepath.string()) || path_is_directory(filepath.string())) {

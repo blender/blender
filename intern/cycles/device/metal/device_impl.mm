@@ -561,7 +561,7 @@ void MetalDevice::compile_and_load(int device_id, MetalPipelineType pso_type)
 
     double starttime = time_dt();
 
-    NSError *error = NULL;
+    NSError *error = nullptr;
     id<MTLLibrary> mtlLibrary = [mtlDevice newLibraryWithSource:@(source.c_str())
                                                         options:options
                                                           error:&error];

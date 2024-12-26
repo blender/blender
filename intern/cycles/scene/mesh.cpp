@@ -188,9 +188,9 @@ Mesh::Mesh(const NodeType *node_type, Type geom_type_)
   num_ngons = 0;
 
   subdivision_type = SUBDIVISION_NONE;
-  subd_params = NULL;
+  subd_params = nullptr;
 
-  patch_table = NULL;
+  patch_table = nullptr;
 }
 
 Mesh::Mesh() : Mesh(get_node_type(), Geometry::MESH) {}
@@ -277,7 +277,7 @@ void Mesh::clear_non_sockets()
   vert_stitching_map.clear();
 
   delete patch_table;
-  patch_table = NULL;
+  patch_table = nullptr;
 }
 
 void Mesh::clear(bool preserve_shaders, bool preserve_voxel_data)
@@ -425,7 +425,7 @@ void Mesh::copy_center_to_motion_step(const int motion_step)
     Attribute *attr_mN = attributes.find(ATTR_STD_MOTION_VERTEX_NORMAL);
     Attribute *attr_N = attributes.find(ATTR_STD_VERTEX_NORMAL);
     float3 *P = &verts[0];
-    float3 *N = (attr_N) ? attr_N->data_float3() : NULL;
+    float3 *N = (attr_N) ? attr_N->data_float3() : nullptr;
     size_t numverts = verts.size();
 
     memcpy(attr_mP->data_float3() + motion_step * numverts, P, sizeof(float3) * numverts);
@@ -735,7 +735,7 @@ void Mesh::pack_shaders(Scene *scene, uint *tri_shader)
 void Mesh::pack_normals(packed_float3 *vnormal)
 {
   Attribute *attr_vN = attributes.find(ATTR_STD_VERTEX_NORMAL);
-  if (attr_vN == NULL) {
+  if (attr_vN == nullptr) {
     /* Happens on objects with just hair. */
     return;
   }

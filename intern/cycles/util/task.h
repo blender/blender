@@ -46,7 +46,7 @@ class TaskPool {
 
   void push(TaskRunFunction &&task);
 
-  void wait_work(Summary *stats = NULL); /* work and wait until all tasks are done */
+  void wait_work(Summary *stats = nullptr); /* work and wait until all tasks are done */
   void cancel(); /* cancel all tasks and wait until they are no longer executing */
 
   static bool canceled(); /* For worker threads, test if current task pool canceled. */

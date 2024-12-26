@@ -43,7 +43,7 @@ ccl_device_inline Spectrum integrate_transparent_surface_shadow(KernelGlobals kg
   /* Evaluate shader. */
   if (!(shadow_sd->flag & SD_HAS_ONLY_VOLUME)) {
     surface_shader_eval<KERNEL_FEATURE_NODE_MASK_SURFACE_SHADOW>(
-        kg, state, shadow_sd, NULL, PATH_RAY_SHADOW);
+        kg, state, shadow_sd, nullptr, PATH_RAY_SHADOW);
   }
 
 #  ifdef __VOLUME__

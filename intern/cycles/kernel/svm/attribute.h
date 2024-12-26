@@ -97,7 +97,7 @@ ccl_device_noinline void svm_node_attr(KernelGlobals kg,
 
   /* Surface. */
   if (desc.type == NODE_ATTR_FLOAT) {
-    float f = primitive_surface_attribute_float(kg, sd, desc, NULL, NULL);
+    float f = primitive_surface_attribute_float(kg, sd, desc, nullptr, nullptr);
     if (type == NODE_ATTR_OUTPUT_FLOAT) {
       stack_store_float(stack, out_offset, f);
     }
@@ -109,7 +109,7 @@ ccl_device_noinline void svm_node_attr(KernelGlobals kg,
     }
   }
   else if (desc.type == NODE_ATTR_FLOAT2) {
-    float2 f = primitive_surface_attribute_float2(kg, sd, desc, NULL, NULL);
+    float2 f = primitive_surface_attribute_float2(kg, sd, desc, nullptr, nullptr);
     if (type == NODE_ATTR_OUTPUT_FLOAT) {
       stack_store_float(stack, out_offset, f.x);
     }
@@ -121,7 +121,7 @@ ccl_device_noinline void svm_node_attr(KernelGlobals kg,
     }
   }
   else if (desc.type == NODE_ATTR_FLOAT4 || desc.type == NODE_ATTR_RGBA) {
-    float4 f = primitive_surface_attribute_float4(kg, sd, desc, NULL, NULL);
+    float4 f = primitive_surface_attribute_float4(kg, sd, desc, nullptr, nullptr);
     if (type == NODE_ATTR_OUTPUT_FLOAT) {
       stack_store_float(stack, out_offset, average(make_float3(f)));
     }
@@ -133,7 +133,7 @@ ccl_device_noinline void svm_node_attr(KernelGlobals kg,
     }
   }
   else {
-    float3 f = primitive_surface_attribute_float3(kg, sd, desc, NULL, NULL);
+    float3 f = primitive_surface_attribute_float3(kg, sd, desc, nullptr, nullptr);
     if (type == NODE_ATTR_OUTPUT_FLOAT) {
       stack_store_float(stack, out_offset, average(f));
     }
@@ -202,7 +202,7 @@ ccl_device_noinline void svm_node_attr_bump_dx(KernelGlobals kg,
   /* Surface */
   if (desc.type == NODE_ATTR_FLOAT) {
     float dx;
-    float f = primitive_surface_attribute_float(kg, sd, desc, &dx, NULL);
+    float f = primitive_surface_attribute_float(kg, sd, desc, &dx, nullptr);
     if (type == NODE_ATTR_OUTPUT_FLOAT) {
       stack_store_float(stack, out_offset, f + dx);
     }
@@ -215,7 +215,7 @@ ccl_device_noinline void svm_node_attr_bump_dx(KernelGlobals kg,
   }
   else if (desc.type == NODE_ATTR_FLOAT2) {
     float2 dx;
-    float2 f = primitive_surface_attribute_float2(kg, sd, desc, &dx, NULL);
+    float2 f = primitive_surface_attribute_float2(kg, sd, desc, &dx, nullptr);
     if (type == NODE_ATTR_OUTPUT_FLOAT) {
       stack_store_float(stack, out_offset, f.x + dx.x);
     }
@@ -228,7 +228,7 @@ ccl_device_noinline void svm_node_attr_bump_dx(KernelGlobals kg,
   }
   else if (desc.type == NODE_ATTR_FLOAT4 || desc.type == NODE_ATTR_RGBA) {
     float4 dx;
-    float4 f = primitive_surface_attribute_float4(kg, sd, desc, &dx, NULL);
+    float4 f = primitive_surface_attribute_float4(kg, sd, desc, &dx, nullptr);
     if (type == NODE_ATTR_OUTPUT_FLOAT) {
       stack_store_float(stack, out_offset, average(make_float3(f + dx)));
     }
@@ -241,7 +241,7 @@ ccl_device_noinline void svm_node_attr_bump_dx(KernelGlobals kg,
   }
   else {
     float3 dx;
-    float3 f = primitive_surface_attribute_float3(kg, sd, desc, &dx, NULL);
+    float3 f = primitive_surface_attribute_float3(kg, sd, desc, &dx, nullptr);
     if (type == NODE_ATTR_OUTPUT_FLOAT) {
       stack_store_float(stack, out_offset, average(f + dx));
     }
@@ -300,7 +300,7 @@ ccl_device_noinline void svm_node_attr_bump_dy(KernelGlobals kg,
   /* Surface */
   if (desc.type == NODE_ATTR_FLOAT) {
     float dy;
-    float f = primitive_surface_attribute_float(kg, sd, desc, NULL, &dy);
+    float f = primitive_surface_attribute_float(kg, sd, desc, nullptr, &dy);
     if (type == NODE_ATTR_OUTPUT_FLOAT) {
       stack_store_float(stack, out_offset, f + dy);
     }
@@ -313,7 +313,7 @@ ccl_device_noinline void svm_node_attr_bump_dy(KernelGlobals kg,
   }
   else if (desc.type == NODE_ATTR_FLOAT2) {
     float2 dy;
-    float2 f = primitive_surface_attribute_float2(kg, sd, desc, NULL, &dy);
+    float2 f = primitive_surface_attribute_float2(kg, sd, desc, nullptr, &dy);
     if (type == NODE_ATTR_OUTPUT_FLOAT) {
       stack_store_float(stack, out_offset, f.x + dy.x);
     }
@@ -326,7 +326,7 @@ ccl_device_noinline void svm_node_attr_bump_dy(KernelGlobals kg,
   }
   else if (desc.type == NODE_ATTR_FLOAT4 || desc.type == NODE_ATTR_RGBA) {
     float4 dy;
-    float4 f = primitive_surface_attribute_float4(kg, sd, desc, NULL, &dy);
+    float4 f = primitive_surface_attribute_float4(kg, sd, desc, nullptr, &dy);
     if (type == NODE_ATTR_OUTPUT_FLOAT) {
       stack_store_float(stack, out_offset, average(make_float3(f + dy)));
     }
@@ -339,7 +339,7 @@ ccl_device_noinline void svm_node_attr_bump_dy(KernelGlobals kg,
   }
   else {
     float3 dy;
-    float3 f = primitive_surface_attribute_float3(kg, sd, desc, NULL, &dy);
+    float3 f = primitive_surface_attribute_float3(kg, sd, desc, nullptr, &dy);
     if (type == NODE_ATTR_OUTPUT_FLOAT) {
       stack_store_float(stack, out_offset, average(f + dy));
     }

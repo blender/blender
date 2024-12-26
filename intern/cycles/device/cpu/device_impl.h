@@ -47,7 +47,7 @@ class CPUDevice : public Device {
   OSLGlobals osl_globals;
 #endif
 #ifdef WITH_EMBREE
-  RTCScene embree_scene = NULL;
+  RTCScene embree_scene = nullptr;
   RTCDevice embree_device;
 #endif
 #ifdef WITH_PATH_GUIDING

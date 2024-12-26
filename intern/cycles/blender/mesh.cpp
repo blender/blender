@@ -43,14 +43,14 @@ template<bool is_subd> struct MikkMeshWrapper {
                   const Mesh *mesh,
                   float3 *tangent,
                   float *tangent_sign)
-      : mesh(mesh), uv(NULL), orco(NULL), tangent(tangent), tangent_sign(tangent_sign)
+      : mesh(mesh), uv(nullptr), orco(nullptr), tangent(tangent), tangent_sign(tangent_sign)
   {
     const AttributeSet &attributes = is_subd ? mesh->subd_attributes : mesh->attributes;
 
     Attribute *attr_vN = attributes.find(ATTR_STD_VERTEX_NORMAL);
     vertex_normal = attr_vN->data_float3();
 
-    if (layer_name == NULL) {
+    if (layer_name == nullptr) {
       Attribute *attr_orco = attributes.find(ATTR_STD_GENERATED);
 
       if (attr_orco) {
@@ -62,7 +62,7 @@ template<bool is_subd> struct MikkMeshWrapper {
     }
     else {
       Attribute *attr_uv = attributes.find(ustring(layer_name));
-      if (attr_uv != NULL) {
+      if (attr_uv != nullptr) {
         uv = attr_uv->data_float2();
       }
     }
@@ -120,12 +120,12 @@ template<bool is_subd> struct MikkMeshWrapper {
   {
     /* TODO: Check whether introducing a template boolean in order to
      * turn this into a constexpr is worth it. */
-    if (uv != NULL) {
+    if (uv != nullptr) {
       const int corner_index = CornerIndex(face_num, vert_num);
       float2 tfuv = uv[corner_index];
       return mikk::float3(tfuv.x, tfuv.y, 1.0f);
     }
-    else if (orco != NULL) {
+    else if (orco != nullptr) {
       const int vertex_index = VertexIndex(face_num, vert_num);
       const float2 uv = map_to_sphere((orco[vertex_index] + orco_loc) * inv_orco_size);
       return mikk::float3(uv.x, uv.y, 1.0f);
@@ -165,7 +165,7 @@ template<bool is_subd> struct MikkMeshWrapper {
   {
     const int corner_index = CornerIndex(face_num, vert_num);
     tangent[corner_index] = make_float3(T.x, T.y, T.z);
-    if (tangent_sign != NULL) {
+    if (tangent_sign != nullptr) {
       tangent_sign[corner_index] = orientation ? 1.0f : -1.0f;
     }
   }
@@ -191,7 +191,7 @@ static void mikk_compute_tangents(
   AttributeSet &attributes = is_subd ? mesh->subd_attributes : mesh->attributes;
   Attribute *attr;
   ustring name;
-  if (layer_name != NULL) {
+  if (layer_name != nullptr) {
     name = ustring((string(layer_name) + ".tangent").c_str());
   }
   else {
@@ -205,11 +205,11 @@ static void mikk_compute_tangents(
   }
   float3 *tangent = attr->data_float3();
   /* Create bitangent sign attribute. */
-  float *tangent_sign = NULL;
+  float *tangent_sign = nullptr;
   if (need_sign) {
     Attribute *attr_sign;
     ustring name_sign;
-    if (layer_name != NULL) {
+    if (layer_name != nullptr) {
       name_sign = ustring((string(layer_name) + ".tangent_sign").c_str());
     }
     else {
@@ -458,7 +458,7 @@ static void attr_create_uv_map(Scene *scene,
       /* NOTE: We create temporary UV layer if its needed for tangent but
        * wasn't requested by other nodes in shaders.
        */
-      Attribute *uv_attr = NULL;
+      Attribute *uv_attr = nullptr;
       if (need_uv || need_tangent) {
         if (active_render) {
           uv_attr = mesh->attributes.add(uv_std, uv_name);
@@ -487,14 +487,14 @@ static void attr_create_uv_map(Scene *scene,
         mikk_compute_tangents(b_mesh, uv_name.c_str(), mesh, need_sign, active_render);
       }
       /* Remove temporarily created UV attribute. */
-      if (!need_uv && uv_attr != NULL) {
+      if (!need_uv && uv_attr != nullptr) {
         mesh->attributes.remove(uv_attr);
       }
     }
   }
   else if (mesh->need_attribute(scene, ATTR_STD_UV_TANGENT)) {
     bool need_sign = mesh->need_attribute(scene, ATTR_STD_UV_TANGENT_SIGN);
-    mikk_compute_tangents(b_mesh, NULL, mesh, need_sign, true);
+    mikk_compute_tangents(b_mesh, nullptr, mesh, need_sign, true);
     if (!mesh->need_attribute(scene, ATTR_STD_GENERATED)) {
       mesh->attributes.remove(ATTR_STD_GENERATED);
     }
@@ -529,7 +529,7 @@ static void attr_create_subd_uv_map(Scene *scene,
       const bool need_tangent = mesh->need_attribute(scene, tangent_name) ||
                                 (active_render && mesh->need_attribute(scene, tangent_std));
 
-      Attribute *uv_attr = NULL;
+      Attribute *uv_attr = nullptr;
 
       /* UV map */
       if (need_uv || need_tangent) {
@@ -565,14 +565,14 @@ static void attr_create_subd_uv_map(Scene *scene,
         mikk_compute_tangents(b_mesh, uv_name.c_str(), mesh, need_sign, active_render);
       }
       /* Remove temporarily created UV attribute. */
-      if (!need_uv && uv_attr != NULL) {
+      if (!need_uv && uv_attr != nullptr) {
         mesh->subd_attributes.remove(uv_attr);
       }
     }
   }
   else if (mesh->need_attribute(scene, ATTR_STD_UV_TANGENT)) {
     bool need_sign = mesh->need_attribute(scene, ATTR_STD_UV_TANGENT_SIGN);
-    mikk_compute_tangents(b_mesh, NULL, mesh, need_sign, true);
+    mikk_compute_tangents(b_mesh, nullptr, mesh, need_sign, true);
     if (!mesh->need_attribute(scene, ATTR_STD_GENERATED)) {
       mesh->subd_attributes.remove(ATTR_STD_GENERATED);
     }
@@ -1234,7 +1234,7 @@ void BlenderSync::sync_mesh_motion(BL::Depsgraph b_depsgraph,
     }
     /* Load vertex data from mesh. */
     float3 *mP = attr_mP->data_float3() + motion_step * numverts;
-    float3 *mN = (attr_mN) ? attr_mN->data_float3() + motion_step * numverts : NULL;
+    float3 *mN = (attr_mN) ? attr_mN->data_float3() + motion_step * numverts : nullptr;
 
     /* NOTE: We don't copy more that existing amount of vertices to prevent
      * possible memory corruption.
@@ -1270,7 +1270,7 @@ void BlenderSync::sync_mesh_motion(BL::Depsgraph b_depsgraph,
         /* motion, fill up previous steps that we might have skipped because
          * they had no motion, but we need them anyway now */
         float3 *P = &mesh->get_verts()[0];
-        float3 *N = (attr_N) ? attr_N->data_float3() : NULL;
+        float3 *N = (attr_N) ? attr_N->data_float3() : nullptr;
         for (int step = 0; step < motion_step; step++) {
           memcpy(attr_mP->data_float3() + step * numverts, P, sizeof(float3) * numverts);
           if (attr_mN) {
@@ -1284,7 +1284,7 @@ void BlenderSync::sync_mesh_motion(BL::Depsgraph b_depsgraph,
         VLOG_WARNING << "Topology differs, discarding motion blur for object " << ob_name
                      << " at time " << motion_step;
         memcpy(mP, &mesh->get_verts()[0], sizeof(float3) * numverts);
-        if (mN != NULL) {
+        if (mN != nullptr) {
           memcpy(mN, attr_N->data_float3(), sizeof(float3) * numverts);
         }
       }

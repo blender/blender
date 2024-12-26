@@ -52,10 +52,10 @@ void HdCyclesDisplayDriver::gl_context_create()
                                0,
                                64,
                                64,
-                               NULL,
-                               NULL,
-                               GetModuleHandle(NULL),
-                               NULL));
+                               nullptr,
+                               nullptr,
+                               GetModuleHandle(nullptr),
+                               nullptr));
 
     int pixelFormat = GetPixelFormat(wglGetCurrentDC());
     PIXELFORMATDESCRIPTOR pfd = {sizeof(pfd)};

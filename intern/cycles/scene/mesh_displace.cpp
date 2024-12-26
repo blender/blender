@@ -142,7 +142,7 @@ static void read_shader_output(const Scene *scene,
         /* Avoid illegal vertex coordinates. */
         off = ensure_finite(off);
         mesh_verts[t.v[j]] += off;
-        if (attr_mP != NULL) {
+        if (attr_mP != nullptr) {
           for (int step = 0; step < num_motion_steps - 1; step++) {
             float3 *mP = attr_mP->data_float3() + step * num_verts;
             mP[t.v[j]] += off;

@@ -92,7 +92,7 @@ Shader::Shader() : Node(get_node_type())
 {
   pass_id = 0;
 
-  graph = NULL;
+  graph = nullptr;
 
   has_surface = false;
   has_surface_transparent = false;
@@ -313,7 +313,7 @@ void Shader::set_graph(ShaderGraph *graph_)
 
   /* Store info here before graph optimization to make sure that
    * nodes that get optimized away still count. */
-  has_volume_connected = (graph->output()->input("Volume")->link != NULL);
+  has_volume_connected = (graph->output()->input("Volume")->link != nullptr);
 }
 
 void Shader::tag_update(Scene *scene)
@@ -777,7 +777,7 @@ uint ShaderManager::get_kernel_features(Scene *scene)
     /* Gather requested features from all the nodes from the graph nodes. */
     kernel_features |= get_graph_kernel_features(shader->graph);
     ShaderNode *output_node = shader->graph->output();
-    if (output_node->input("Displacement")->link != NULL) {
+    if (output_node->input("Displacement")->link != nullptr) {
       kernel_features |= KERNEL_FEATURE_NODE_BUMP;
       if (shader->get_displacement_method() == DISPLACE_BOTH) {
         kernel_features |= KERNEL_FEATURE_NODE_BUMP_STATE;

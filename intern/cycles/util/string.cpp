@@ -200,7 +200,7 @@ string string_to_lower(const string &s)
 
 wstring string_to_wstring(const string &str)
 {
-  const int length_wc = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), str.length(), NULL, 0);
+  const int length_wc = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), str.length(), nullptr, 0);
   wstring str_wc(length_wc, 0);
   MultiByteToWideChar(CP_UTF8, 0, str.c_str(), str.length(), &str_wc[0], length_wc);
   return str_wc;
@@ -208,23 +208,26 @@ wstring string_to_wstring(const string &str)
 
 string string_from_wstring(const wstring &str)
 {
-  int length_mb = WideCharToMultiByte(CP_UTF8, 0, str.c_str(), str.size(), NULL, 0, NULL, NULL);
+  int length_mb = WideCharToMultiByte(
+      CP_UTF8, 0, str.c_str(), str.size(), nullptr, 0, nullptr, nullptr);
   string str_mb(length_mb, 0);
-  WideCharToMultiByte(CP_UTF8, 0, str.c_str(), str.size(), &str_mb[0], length_mb, NULL, NULL);
+  WideCharToMultiByte(
+      CP_UTF8, 0, str.c_str(), str.size(), &str_mb[0], length_mb, nullptr, nullptr);
   return str_mb;
 }
 
 string string_to_ansi(const string &str)
 {
-  const int length_wc = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), str.length(), NULL, 0);
+  const int length_wc = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), str.length(), nullptr, 0);
   wstring str_wc(length_wc, 0);
   MultiByteToWideChar(CP_UTF8, 0, str.c_str(), str.length(), &str_wc[0], length_wc);
 
   int length_mb = WideCharToMultiByte(
-      CP_ACP, 0, str_wc.c_str(), str_wc.size(), NULL, 0, NULL, NULL);
+      CP_ACP, 0, str_wc.c_str(), str_wc.size(), nullptr, 0, nullptr, nullptr);
 
   string str_mb(length_mb, 0);
-  WideCharToMultiByte(CP_ACP, 0, str_wc.c_str(), str_wc.size(), &str_mb[0], length_mb, NULL, NULL);
+  WideCharToMultiByte(
+      CP_ACP, 0, str_wc.c_str(), str_wc.size(), &str_mb[0], length_mb, nullptr, nullptr);
 
   return str_mb;
 }

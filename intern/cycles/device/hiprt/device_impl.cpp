@@ -59,9 +59,9 @@ BVHLayoutMask HIPRTDevice::get_bvh_layout_mask(const uint /* kernel_features */)
 
 HIPRTDevice::HIPRTDevice(const DeviceInfo &info, Stats &stats, Profiler &profiler, bool headless)
     : HIPDevice(info, stats, profiler, headless),
-      hiprt_context(NULL),
-      scene(NULL),
-      functions_table(NULL),
+      hiprt_context(nullptr),
+      scene(nullptr),
+      functions_table(nullptr),
       scratch_buffer_size(0),
       scratch_buffer(this, "scratch_buffer", MEM_DEVICE_ONLY),
       prim_visibility(this, "prim_visibility", MEM_GLOBAL),
@@ -196,7 +196,7 @@ string HIPRTDevice::compile_kernel(const uint kernel_features, const char *name,
 #  endif
 
   const char *const hipcc = hipewCompilerPath();
-  if (hipcc == NULL) {
+  if (hipcc == nullptr) {
     set_error(
         "HIP hipcc compiler not found. "
         "Install HIP toolkit in default location.");
@@ -532,9 +532,9 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_curve_blas(BVHHIPRT *bvh, Hair *hai
   const PrimitiveType primitive_type = hair->primitive_type();
   const size_t num_curves = hair->num_curves();
   const size_t num_segments = hair->num_segments();
-  const Attribute *curve_attr_mP = NULL;
+  const Attribute *curve_attr_mP = nullptr;
 
-  if (curve_attr_mP == NULL || bvh->params.num_motion_curve_steps == 0) {
+  if (curve_attr_mP == nullptr || bvh->params.num_motion_curve_steps == 0) {
 
     bvh->custom_prim_info.resize(num_segments);
     bvh->custom_primitive_bound.alloc(num_segments);
@@ -555,7 +555,7 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_curve_blas(BVHHIPRT *bvh, Hair *hai
     const float *curve_radius = &hair->get_curve_radius()[0];
     int first_key = curve.first_key;
     for (int k = 0; k < curve.num_keys - 1; k++) {
-      if (curve_attr_mP == NULL) {
+      if (curve_attr_mP == nullptr) {
         float3 current_keys[4];
         current_keys[0] = curve_keys[max(first_key + k - 1, first_key)];
         current_keys[1] = curve_keys[first_key + k];
@@ -668,7 +668,7 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_point_blas(BVHHIPRT *bvh, PointClou
 {
   hiprtGeometryBuildInput geom_input;
 
-  const Attribute *point_attr_mP = NULL;
+  const Attribute *point_attr_mP = nullptr;
   if (pointcloud->has_motion_blur()) {
     point_attr_mP = pointcloud->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
   }
@@ -676,12 +676,12 @@ hiprtGeometryBuildInput HIPRTDevice::prepare_point_blas(BVHHIPRT *bvh, PointClou
   const float3 *points_data = pointcloud->get_points().data();
   const float *radius_data = pointcloud->get_radius().data();
   const size_t num_points = pointcloud->num_points();
-  const float4 *motion_data = (point_attr_mP) ? point_attr_mP->data_float4() : NULL;
+  const float4 *motion_data = (point_attr_mP) ? point_attr_mP->data_float4() : nullptr;
   const size_t num_steps = pointcloud->get_motion_steps();
 
   int num_bounds = 0;
 
-  if (point_attr_mP == NULL) {
+  if (point_attr_mP == nullptr) {
     bvh->custom_prim_info.resize(num_points);
     bvh->custom_primitive_bound.alloc(num_points);
     for (uint j = 0; j < num_points; j++) {

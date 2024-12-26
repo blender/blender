@@ -120,7 +120,7 @@ HIPDevice::HIPDevice(const DeviceInfo &info, Stats &stats, Profiler &profiler, b
   hip_assert(hipRuntimeGetVersion(&hipRuntimeVersion));
 
   /* Pop context set by hipCtxCreate. */
-  hipCtxPopCurrent(NULL);
+  hipCtxPopCurrent(nullptr);
 }
 
 HIPDevice::~HIPDevice()
@@ -306,7 +306,7 @@ string HIPDevice::compile_kernel(const uint kernel_features, const char *name, c
 
   /* Compile. */
   const char *const hipcc = hipewCompilerPath();
-  if (hipcc == NULL) {
+  if (hipcc == nullptr) {
     set_error(
         "HIP hipcc compiler not found. "
         "Install HIP toolkit in default location.");
@@ -715,8 +715,8 @@ void HIPDevice::tex_alloc(device_texture &mem)
       return;
   }
 
-  Mem *cmem = NULL;
-  hArray array_3d = NULL;
+  Mem *cmem = nullptr;
+  hArray array_3d = nullptr;
   size_t src_pitch = mem.data_width * dsize * mem.data_elements;
   size_t dst_pitch = src_pitch;
 
@@ -863,7 +863,7 @@ void HIPDevice::tex_alloc(device_texture &mem)
     thread_scoped_lock lock(device_mem_map_mutex);
     cmem = &device_mem_map[&mem];
 
-    if (hipTexObjectCreate(&cmem->texobject, &resDesc, &texDesc, NULL) != hipSuccess) {
+    if (hipTexObjectCreate(&cmem->texobject, &resDesc, &texDesc, nullptr) != hipSuccess) {
       set_error(
           "Failed to create texture. Maximum GPU texture size or available GPU memory was likely "
           "exceeded.");

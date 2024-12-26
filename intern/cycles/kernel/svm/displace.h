@@ -171,7 +171,7 @@ ccl_device_noinline int svm_node_vector_displacement(
       const AttributeDescriptor attr = find_attribute(kg, sd, node.z);
       float3 tangent;
       if (attr.offset != ATTR_STD_NOT_FOUND) {
-        tangent = primitive_surface_attribute_float3(kg, sd, attr, NULL, NULL);
+        tangent = primitive_surface_attribute_float3(kg, sd, attr, nullptr, nullptr);
       }
       else {
         tangent = normalize(sd->dPdu);
@@ -180,7 +180,7 @@ ccl_device_noinline int svm_node_vector_displacement(
       float3 bitangent = safe_normalize(cross(normal, tangent));
       const AttributeDescriptor attr_sign = find_attribute(kg, sd, node.w);
       if (attr_sign.offset != ATTR_STD_NOT_FOUND) {
-        float sign = primitive_surface_attribute_float(kg, sd, attr_sign, NULL, NULL);
+        float sign = primitive_surface_attribute_float(kg, sd, attr_sign, nullptr, nullptr);
         bitangent *= sign;
       }
 

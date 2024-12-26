@@ -16,7 +16,7 @@ HIPContextScope::HIPContextScope(HIPDevice *device) : device(device)
 
 HIPContextScope::~HIPContextScope()
 {
-  hip_device_assert(device, hipCtxPopCurrent(NULL));
+  hip_device_assert(device, hipCtxPopCurrent(nullptr));
 }
 
 #  ifndef WITH_HIP_DYNLOAD

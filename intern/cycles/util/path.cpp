@@ -164,7 +164,7 @@ class directory_iterator {
  public:
   class path_info {
    public:
-    explicit path_info(const string &path) : path_(path), entry_(NULL) {}
+    explicit path_info(const string &path) : path_(path), entry_(nullptr) {}
 
     string path()
     {
@@ -181,11 +181,11 @@ class directory_iterator {
     const struct dirent *entry_;
   };
 
-  directory_iterator() : path_info_(""), name_list_(NULL), num_entries_(-1), cur_entry_(-1) {}
+  directory_iterator() : path_info_(""), name_list_(nullptr), num_entries_(-1), cur_entry_(-1) {}
 
   explicit directory_iterator(const string &path) : path_(path), path_info_(path_), cur_entry_(0)
   {
-    num_entries_ = scandir(path.c_str(), &name_list_, NULL, alphasort);
+    num_entries_ = scandir(path.c_str(), &name_list_, nullptr, alphasort);
     if (num_entries_ < 0) {
       perror("scandir");
     }
@@ -250,14 +250,14 @@ class directory_iterator {
 
   void destroy_name_list()
   {
-    if (name_list_ == NULL) {
+    if (name_list_ == nullptr) {
       return;
     }
     for (int i = 0; i < num_entries_; ++i) {
       free(name_list_[i]);
     }
     free(name_list_);
-    name_list_ = NULL;
+    name_list_ = nullptr;
   }
 
   string path_;
@@ -297,13 +297,13 @@ static char *path_specials(const string &sub)
     env_source_path = getenv("CYCLES_KERNEL_PATH");
     env_init = true;
   }
-  if (env_shader_path != NULL && sub == "shader") {
+  if (env_shader_path != nullptr && sub == "shader") {
     return env_shader_path;
   }
-  else if (env_source_path != NULL && sub == "source") {
+  else if (env_source_path != nullptr && sub == "source") {
     return env_source_path;
   }
-  return NULL;
+  return nullptr;
 }
 
 #if defined(__linux__) || defined(__APPLE__)
@@ -315,7 +315,7 @@ static string path_xdg_cache_get()
   }
   else {
     home = getenv("HOME");
-    if (home == NULL) {
+    if (home == nullptr) {
       home = getpwuid(getuid())->pw_dir;
     }
     return path_join(string(home), ".cache");
@@ -339,7 +339,7 @@ void path_init(const string &path, const string &user_path)
 string path_get(const string &sub)
 {
   char *special = path_specials(sub);
-  if (special != NULL) {
+  if (special != nullptr) {
     return special;
   }
 

@@ -284,9 +284,9 @@ ccl_device
           ccl_private MicrofacetBsdf *bsdf = (ccl_private MicrofacetBsdf *)bsdf_alloc(
               sd, sizeof(MicrofacetBsdf), metallic * weight);
           ccl_private FresnelF82Tint *fresnel =
-              (bsdf != NULL) ?
+              (bsdf != nullptr) ?
                   (ccl_private FresnelF82Tint *)closure_alloc_extra(sd, sizeof(FresnelF82Tint)) :
-                  NULL;
+                  nullptr;
 
           if (bsdf && fresnel) {
             bsdf->N = valid_reflection_N;
@@ -314,9 +314,9 @@ ccl_device
           ccl_private MicrofacetBsdf *bsdf = (ccl_private MicrofacetBsdf *)bsdf_alloc(
               sd, sizeof(MicrofacetBsdf), transmission_weight * weight);
           ccl_private FresnelGeneralizedSchlick *fresnel =
-              (bsdf != NULL) ? (ccl_private FresnelGeneralizedSchlick *)closure_alloc_extra(
-                                   sd, sizeof(FresnelGeneralizedSchlick)) :
-                               NULL;
+              (bsdf != nullptr) ? (ccl_private FresnelGeneralizedSchlick *)closure_alloc_extra(
+                                      sd, sizeof(FresnelGeneralizedSchlick)) :
+                                  nullptr;
 
           if (bsdf && fresnel) {
             bsdf->N = valid_reflection_N;
@@ -362,9 +362,9 @@ ccl_device
         ccl_private MicrofacetBsdf *bsdf = (ccl_private MicrofacetBsdf *)bsdf_alloc(
             sd, sizeof(MicrofacetBsdf), weight);
         ccl_private FresnelGeneralizedSchlick *fresnel =
-            (bsdf != NULL) ? (ccl_private FresnelGeneralizedSchlick *)closure_alloc_extra(
-                                 sd, sizeof(FresnelGeneralizedSchlick)) :
-                             NULL;
+            (bsdf != nullptr) ? (ccl_private FresnelGeneralizedSchlick *)closure_alloc_extra(
+                                    sd, sizeof(FresnelGeneralizedSchlick)) :
+                                nullptr;
 
         if (bsdf && fresnel) {
           bsdf->N = valid_reflection_N;
@@ -487,7 +487,7 @@ ccl_device
       ccl_private MicrofacetBsdf *bsdf = (ccl_private MicrofacetBsdf *)bsdf_alloc(
           sd, sizeof(MicrofacetBsdf), rgb_to_spectrum(make_float3(mix_weight)));
 
-      if (bsdf != NULL) {
+      if (bsdf != nullptr) {
         uint base_ior_offset, edge_tint_k_offset, rotation_offset, tangent_offset;
         svm_unpack_node_uchar4(
             node.z, &base_ior_offset, &edge_tint_k_offset, &rotation_offset, &tangent_offset);
@@ -673,9 +673,9 @@ ccl_device
       ccl_private MicrofacetBsdf *bsdf = (ccl_private MicrofacetBsdf *)bsdf_alloc(
           sd, sizeof(MicrofacetBsdf), make_spectrum(mix_weight));
       ccl_private FresnelGeneralizedSchlick *fresnel =
-          (bsdf != NULL) ? (ccl_private FresnelGeneralizedSchlick *)closure_alloc_extra(
-                               sd, sizeof(FresnelGeneralizedSchlick)) :
-                           NULL;
+          (bsdf != nullptr) ? (ccl_private FresnelGeneralizedSchlick *)closure_alloc_extra(
+                                  sd, sizeof(FresnelGeneralizedSchlick)) :
+                              nullptr;
 
       if (bsdf && fresnel) {
         bsdf->N = maybe_ensure_valid_specular_reflection(sd, N);
@@ -787,7 +787,7 @@ ccl_device
       const AttributeDescriptor attr_descr_random = find_attribute(kg, sd, data_node2.y);
       float random = 0.0f;
       if (attr_descr_random.offset != ATTR_STD_NOT_FOUND) {
-        random = primitive_surface_attribute_float(kg, sd, attr_descr_random, NULL, NULL);
+        random = primitive_surface_attribute_float(kg, sd, attr_descr_random, nullptr, nullptr);
       }
       else {
         random = stack_load_float_default(stack, random_ofs, data_node3.y);
@@ -914,7 +914,7 @@ ccl_device
           if (bsdf->aspect_ratio != 1.0f) {
             /* Align ellipse major axis with the curve normal direction. */
             const AttributeDescriptor attr_descr_normal = find_attribute(kg, sd, shared_ofs2);
-            bsdf->N = curve_attribute_float3(kg, sd, attr_descr_normal, NULL, NULL);
+            bsdf->N = curve_attribute_float3(kg, sd, attr_descr_normal, nullptr, nullptr);
           }
 
           bsdf->roughness = roughness;

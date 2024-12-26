@@ -172,9 +172,9 @@ void NodeType::register_output(ustring name, ustring ui_name, SocketType::Type t
   socket.ui_name = ui_name;
   socket.type = type;
   socket.struct_offset = 0;
-  socket.default_value = NULL;
-  socket.enum_values = NULL;
-  socket.node_type = NULL;
+  socket.default_value = nullptr;
+  socket.enum_values = nullptr;
+  socket.node_type = nullptr;
   socket.flags = SocketType::LINKABLE;
   outputs.push_back(socket);
 }
@@ -187,7 +187,7 @@ const SocketType *NodeType::find_input(ustring name) const
     }
   }
 
-  return NULL;
+  return nullptr;
 }
 
 const SocketType *NodeType::find_output(ustring name) const
@@ -198,7 +198,7 @@ const SocketType *NodeType::find_output(ustring name) const
     }
   }
 
-  return NULL;
+  return nullptr;
 }
 
 /* Node Type Registry */
@@ -216,7 +216,7 @@ NodeType *NodeType::add(const char *name_, CreateFunc create_, Type type_, const
   if (types().find(name) != types().end()) {
     fprintf(stderr, "Node type %s registered twice!\n", name_);
     assert(0);
-    return NULL;
+    return nullptr;
   }
 
   types()[name] = NodeType(type_, base_);
@@ -230,7 +230,7 @@ NodeType *NodeType::add(const char *name_, CreateFunc create_, Type type_, const
 const NodeType *NodeType::find(ustring name)
 {
   unordered_map<ustring, NodeType>::iterator it = types().find(name);
-  return (it == types().end()) ? NULL : &it->second;
+  return (it == types().end()) ? nullptr : &it->second;
 }
 
 CCL_NAMESPACE_END

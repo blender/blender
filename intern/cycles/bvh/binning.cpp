@@ -65,7 +65,7 @@ BVHObjectBinning::BVHObjectBinning(const BVHRange &job,
       unaligned_heuristic_(unaligned_heuristic),
       aligned_space_(aligned_space)
 {
-  if (aligned_space_ == NULL) {
+  if (aligned_space_ == nullptr) {
     bounds_ = bounds();
     cent_bounds_ = cent_bounds();
   }

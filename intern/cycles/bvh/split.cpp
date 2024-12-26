@@ -100,7 +100,7 @@ void BVHObjectSplit::split(BVHRange &left, BVHRange &right, const BVHRange &rang
 
   BoundBox effective_left_bounds, effective_right_bounds;
   const int num_right = range.size() - this->num_left;
-  if (aligned_space_ == NULL) {
+  if (aligned_space_ == nullptr) {
     effective_left_bounds = left_bounds;
     effective_right_bounds = right_bounds;
   }
@@ -141,7 +141,7 @@ BVHSpatialSplit::BVHSpatialSplit(const BVHBuild &builder,
 {
   /* initialize bins. */
   BoundBox range_bounds;
-  if (aligned_space == NULL) {
+  if (aligned_space == nullptr) {
     range_bounds = range.bounds();
   }
   else {
@@ -321,7 +321,7 @@ void BVHSpatialSplit::split(BVHBuild *builder,
   if (new_refs.size() != 0) {
     refs.insert(refs.begin() + (right_end - new_refs.size()), new_refs.begin(), new_refs.end());
   }
-  if (aligned_space_ != NULL) {
+  if (aligned_space_ != nullptr) {
     left_bounds = right_bounds = BoundBox::empty;
     for (int i = left_start; i < left_end - left_start; ++i) {
       BoundBox prim_boundbox = references_->at(i).bounds();
@@ -391,7 +391,7 @@ void BVHSpatialSplit::split_curve_primitive(const Hair *hair,
   float3 v0 = hair->get_curve_keys()[k0];
   float3 v1 = hair->get_curve_keys()[k1];
 
-  if (tfm != NULL) {
+  if (tfm != nullptr) {
     v0 = transform_point(tfm, v0);
     v1 = transform_point(tfm, v1);
   }
@@ -439,7 +439,7 @@ void BVHSpatialSplit::split_point_primitive(const PointCloud *pointcloud,
   float3 point = pointcloud->get_points()[prim_index];
   float radius = pointcloud->get_radius()[prim_index];
 
-  if (tfm != NULL) {
+  if (tfm != nullptr) {
     point = transform_point(tfm, point);
   }
   point = get_unaligned_point(point);
@@ -460,7 +460,7 @@ void BVHSpatialSplit::split_triangle_reference(const BVHReference &ref,
                                                BoundBox &left_bounds,
                                                BoundBox &right_bounds)
 {
-  split_triangle_primitive(mesh, NULL, ref.prim_index(), dim, pos, left_bounds, right_bounds);
+  split_triangle_primitive(mesh, nullptr, ref.prim_index(), dim, pos, left_bounds, right_bounds);
 }
 
 void BVHSpatialSplit::split_curve_reference(const BVHReference &ref,
@@ -471,7 +471,7 @@ void BVHSpatialSplit::split_curve_reference(const BVHReference &ref,
                                             BoundBox &right_bounds)
 {
   split_curve_primitive(hair,
-                        NULL,
+                        nullptr,
                         ref.prim_index(),
                         PRIMITIVE_UNPACK_SEGMENT(ref.prim_type()),
                         dim,
@@ -487,7 +487,8 @@ void BVHSpatialSplit::split_point_reference(const BVHReference &ref,
                                             BoundBox &left_bounds,
                                             BoundBox &right_bounds)
 {
-  split_point_primitive(pointcloud, NULL, ref.prim_index(), dim, pos, left_bounds, right_bounds);
+  split_point_primitive(
+      pointcloud, nullptr, ref.prim_index(), dim, pos, left_bounds, right_bounds);
 }
 
 void BVHSpatialSplit::split_object_reference(

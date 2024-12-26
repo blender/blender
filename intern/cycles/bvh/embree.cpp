@@ -98,8 +98,8 @@ BVHEmbree::BVHEmbree(const BVHParams &params_,
                      const vector<Geometry *> &geometry_,
                      const vector<Object *> &objects_)
     : BVH(params_, geometry_, objects_),
-      scene(NULL),
-      rtc_device(NULL),
+      scene(nullptr),
+      rtc_device(nullptr),
       build_quality(RTC_BUILD_QUALITY_REFIT)
 {
   SIMD_SET_FLUSH_TO_ZERO;
@@ -121,14 +121,14 @@ void BVHEmbree::build(Progress &progress,
   rtc_device_is_sycl = rtc_device_is_sycl_;
   assert(rtc_device);
 
-  rtcSetDeviceErrorFunction(rtc_device, rtc_error_func, NULL);
+  rtcSetDeviceErrorFunction(rtc_device, rtc_error_func, nullptr);
   rtcSetDeviceMemoryMonitorFunction(rtc_device, rtc_memory_monitor_func, stats);
 
   progress.set_substatus("Building BVH");
 
   if (scene) {
     rtcReleaseScene(scene);
-    scene = NULL;
+    scene = nullptr;
   }
 
   const bool dynamic = params.bvh_type == BVH_TYPE_DYNAMIC;
@@ -256,7 +256,7 @@ void BVHEmbree::add_object(Object *ob, int i)
 void BVHEmbree::add_instance(Object *ob, int i)
 {
   BVHEmbree *instance_bvh = (BVHEmbree *)(ob->get_geometry()->bvh);
-  assert(instance_bvh != NULL);
+  assert(instance_bvh != nullptr);
 
   const size_t num_object_motion_steps = ob->use_motion() ? ob->get_motion().size() : 1;
   const size_t num_motion_steps = min(num_object_motion_steps, (size_t)RTC_MAX_TIME_STEP_COUNT);
@@ -303,7 +303,7 @@ void BVHEmbree::add_triangles(const Object *ob, const Mesh *mesh, int i)
 {
   size_t prim_offset = mesh->prim_offset;
 
-  const Attribute *attr_mP = NULL;
+  const Attribute *attr_mP = nullptr;
   size_t num_motion_steps = 1;
   if (mesh->has_motion_blur()) {
     attr_mP = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
@@ -363,7 +363,7 @@ void BVHEmbree::add_triangles(const Object *ob, const Mesh *mesh, int i)
 
 void BVHEmbree::set_tri_vertex_buffer(RTCGeometry geom_id, const Mesh *mesh, const bool update)
 {
-  const Attribute *attr_mP = NULL;
+  const Attribute *attr_mP = nullptr;
   size_t num_motion_steps = 1;
   int t_mid = 0;
   if (mesh->has_motion_blur()) {
@@ -463,7 +463,7 @@ void pack_motion_verts(size_t num_curves,
 
 void BVHEmbree::set_curve_vertex_buffer(RTCGeometry geom_id, const Hair *hair, const bool update)
 {
-  const Attribute *attr_mP = NULL;
+  const Attribute *attr_mP = nullptr;
   size_t num_motion_steps = 1;
   if (hair->has_motion_blur()) {
     attr_mP = hair->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
@@ -503,7 +503,7 @@ void BVHEmbree::set_curve_vertex_buffer(RTCGeometry geom_id, const Hair *hair, c
     assert(rtc_verts);
     if (rtc_verts) {
       const size_t num_curves = hair->num_curves();
-      if (t == t_mid || attr_mP == NULL) {
+      if (t == t_mid || attr_mP == nullptr) {
         const float3 *verts = &hair->get_curve_keys()[0];
         pack_motion_verts<float3>(num_curves, hair, verts, curve_radius, rtc_verts);
       }
@@ -524,7 +524,7 @@ void BVHEmbree::set_point_vertex_buffer(RTCGeometry geom_id,
                                         const PointCloud *pointcloud,
                                         const bool update)
 {
-  const Attribute *attr_mP = NULL;
+  const Attribute *attr_mP = nullptr;
   size_t num_motion_steps = 1;
   if (pointcloud->has_motion_blur()) {
     attr_mP = pointcloud->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
@@ -554,7 +554,7 @@ void BVHEmbree::set_point_vertex_buffer(RTCGeometry geom_id,
 
     assert(rtc_verts);
     if (rtc_verts) {
-      if (t == t_mid || attr_mP == NULL) {
+      if (t == t_mid || attr_mP == nullptr) {
         /* Pack the motion points into a float4 as [x y z radius]. */
         const float3 *verts = pointcloud->get_points().data();
         for (size_t j = 0; j < num_points; ++j) {
@@ -582,7 +582,7 @@ void BVHEmbree::add_points(const Object *ob, const PointCloud *pointcloud, int i
 {
   size_t prim_offset = pointcloud->prim_offset;
 
-  const Attribute *attr_mP = NULL;
+  const Attribute *attr_mP = nullptr;
   size_t num_motion_steps = 1;
   if (pointcloud->has_motion_blur()) {
     attr_mP = pointcloud->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
@@ -618,7 +618,7 @@ void BVHEmbree::add_curves(const Object *ob, const Hair *hair, int i)
 {
   size_t prim_offset = hair->curve_segment_offset;
 
-  const Attribute *attr_mP = NULL;
+  const Attribute *attr_mP = nullptr;
   size_t num_motion_steps = 1;
   if (hair->has_motion_blur()) {
     attr_mP = hair->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);

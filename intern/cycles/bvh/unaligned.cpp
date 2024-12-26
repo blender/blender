@@ -101,14 +101,14 @@ BoundBox BVHUnaligned::compute_aligned_boundbox(const BVHObjectBinning &range,
                                                 BoundBox *cent_bounds) const
 {
   BoundBox bounds = BoundBox::empty;
-  if (cent_bounds != NULL) {
+  if (cent_bounds != nullptr) {
     *cent_bounds = BoundBox::empty;
   }
   for (int i = range.start(); i < range.end(); ++i) {
     const BVHReference &ref = references[i];
     BoundBox ref_bounds = compute_aligned_prim_boundbox(ref, aligned_space);
     bounds.grow(ref_bounds);
-    if (cent_bounds != NULL) {
+    if (cent_bounds != nullptr) {
       cent_bounds->grow(ref_bounds.center2());
     }
   }
@@ -121,14 +121,14 @@ BoundBox BVHUnaligned::compute_aligned_boundbox(const BVHRange &range,
                                                 BoundBox *cent_bounds) const
 {
   BoundBox bounds = BoundBox::empty;
-  if (cent_bounds != NULL) {
+  if (cent_bounds != nullptr) {
     *cent_bounds = BoundBox::empty;
   }
   for (int i = range.start(); i < range.end(); ++i) {
     const BVHReference &ref = references[i];
     BoundBox ref_bounds = compute_aligned_prim_boundbox(ref, aligned_space);
     bounds.grow(ref_bounds);
-    if (cent_bounds != NULL) {
+    if (cent_bounds != nullptr) {
       cent_bounds->grow(ref_bounds.center2());
     }
   }

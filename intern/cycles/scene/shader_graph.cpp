@@ -50,13 +50,13 @@ void ShaderInput::disconnect()
   if (link) {
     link->links.erase(remove(link->links.begin(), link->links.end(), this), link->links.end());
   }
-  link = NULL;
+  link = nullptr;
 }
 
 void ShaderOutput::disconnect()
 {
   foreach (ShaderInput *sock, links) {
-    sock->link = NULL;
+    sock->link = nullptr;
   }
 
   links.clear();
@@ -104,7 +104,7 @@ ShaderInput *ShaderNode::input(const char *name)
     }
   }
 
-  return NULL;
+  return nullptr;
 }
 
 ShaderOutput *ShaderNode::output(const char *name)
@@ -114,7 +114,7 @@ ShaderOutput *ShaderNode::output(const char *name)
       return socket;
     }
 
-  return NULL;
+  return nullptr;
 }
 
 ShaderInput *ShaderNode::input(ustring name)
@@ -125,7 +125,7 @@ ShaderInput *ShaderNode::input(ustring name)
     }
   }
 
-  return NULL;
+  return nullptr;
 }
 
 ShaderOutput *ShaderNode::output(ustring name)
@@ -135,12 +135,12 @@ ShaderOutput *ShaderNode::output(ustring name)
       return socket;
     }
 
-  return NULL;
+  return nullptr;
 }
 
 void ShaderNode::remove_input(ShaderInput *input)
 {
-  assert(input->link == NULL);
+  assert(input->link == nullptr);
   delete input;
   inputs.erase(remove(inputs.begin(), inputs.end(), input), inputs.end());
 }
@@ -186,13 +186,13 @@ bool ShaderNode::equals(const ShaderNode &other)
   /* Compare linkable input sockets */
   for (int i = 0; i < inputs.size(); ++i) {
     ShaderInput *input_a = inputs[i], *input_b = other.inputs[i];
-    if (input_a->link == NULL && input_b->link == NULL) {
+    if (input_a->link == nullptr && input_b->link == nullptr) {
       /* Unconnected inputs are expected to have the same value. */
       if (!Node::equals_value(other, input_a->socket_type)) {
         return false;
       }
     }
-    else if (input_a->link != NULL && input_b->link != NULL) {
+    else if (input_a->link != nullptr && input_b->link != nullptr) {
       /* Expect links are to come from the same exact socket. */
       if (input_a->link != input_b->link) {
         return false;
@@ -389,10 +389,10 @@ void ShaderGraph::finalize(Scene *scene, bool do_bump, bool bump_in_object_space
     /* todo: make this work when surface and volume closures are tangled up */
 
     if (surface_in->link) {
-      transform_multi_closure(surface_in->link->parent, NULL, false);
+      transform_multi_closure(surface_in->link->parent, nullptr, false);
     }
     if (volume_in->link) {
-      transform_multi_closure(volume_in->link->parent, NULL, true);
+      transform_multi_closure(volume_in->link->parent, nullptr, true);
     }
 
     finalized = true;
@@ -402,9 +402,9 @@ void ShaderGraph::finalize(Scene *scene, bool do_bump, bool bump_in_object_space
 void ShaderGraph::find_dependencies(ShaderNodeSet &dependencies, ShaderInput *input)
 {
   /* find all nodes that this input depends on directly and indirectly */
-  ShaderNode *node = (input->link) ? input->link->parent : NULL;
+  ShaderNode *node = (input->link) ? input->link->parent : nullptr;
 
-  if (node != NULL && dependencies.find(node) == dependencies.end()) {
+  if (node != nullptr && dependencies.find(node) == dependencies.end()) {
     foreach (ShaderInput *in, node->inputs)
       find_dependencies(dependencies, in);
 
@@ -544,7 +544,7 @@ void ShaderGraph::constant_fold(Scene *scene)
   ShaderNodeSet done, scheduled;
   queue<ShaderNode *> traverse_queue;
 
-  bool has_displacement = (output()->input("Displacement")->link != NULL);
+  bool has_displacement = (output()->input("Displacement")->link != nullptr);
 
   /* Schedule nodes which doesn't have any dependencies. */
   foreach (ShaderNode *node, nodes) {
@@ -656,7 +656,7 @@ void ShaderGraph::deduplicate_nodes()
       continue;
     }
     /* Try to merge this node with another one. */
-    ShaderNode *merge_with = NULL;
+    ShaderNode *merge_with = nullptr;
     foreach (ShaderNode *other_node, candidates[node->type->name]) {
       if (node != other_node && node->equals(*other_node)) {
         merge_with = other_node;
@@ -664,7 +664,7 @@ void ShaderGraph::deduplicate_nodes()
       }
     }
     /* If found an equivalent, merge; otherwise keep node for later merges */
-    if (merge_with != NULL) {
+    if (merge_with != nullptr) {
       for (int i = 0; i < node->outputs.size(); ++i) {
         relink(node, node->outputs[i], merge_with->outputs[i]);
       }
@@ -687,7 +687,7 @@ void ShaderGraph::verify_volume_output()
 {
   /* Check whether we can optimize the whole volume graph out. */
   ShaderInput *volume_in = output()->input("Volume");
-  if (volume_in->link == NULL) {
+  if (volume_in->link == nullptr) {
     return;
   }
   bool has_valid_volume = false;
@@ -706,7 +706,7 @@ void ShaderGraph::verify_volume_output()
       break;
     }
     foreach (ShaderInput *input, node->inputs) {
-      if (input->link == NULL) {
+      if (input->link == nullptr) {
         continue;
       }
       if (scheduled.find(input->link->parent) != scheduled.end()) {
@@ -812,7 +812,7 @@ void ShaderGraph::clean(Scene *scene)
         ShaderOutput *from = to->link;
 
         if (from) {
-          to->link = NULL;
+          to->link = nullptr;
           from->links.erase(remove(from->links.begin(), from->links.end(), to), from->links.end());
         }
       }
@@ -847,9 +847,9 @@ void ShaderGraph::default_inputs(bool do_osl)
   /* nodes can specify default texture coordinates, for now we give
    * everything the position by default, except for the sky texture */
 
-  GeometryNode *geom = NULL;
-  TextureCoordinateNode *texco = NULL;
-  VectorTransformNode *normal_transform = NULL;
+  GeometryNode *geom = nullptr;
+  TextureCoordinateNode *texco = nullptr;
+  VectorTransformNode *normal_transform = nullptr;
 
   foreach (ShaderNode *node, nodes) {
     foreach (ShaderInput *input, node->inputs) {
@@ -1218,7 +1218,7 @@ void ShaderGraph::dump_graph(const char *filename)
 {
   FILE *fd = fopen(filename, "w");
 
-  if (fd == NULL) {
+  if (fd == nullptr) {
     printf("Error opening file for dumping the graph: %s\n", filename);
     return;
   }

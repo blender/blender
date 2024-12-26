@@ -1551,7 +1551,7 @@ class SetNormalNode : public ShaderNode {
 
 class OSLNode final : public ShaderNode {
  public:
-  static OSLNode *create(ShaderGraph *graph, size_t num_inputs, const OSLNode *from = NULL);
+  static OSLNode *create(ShaderGraph *graph, size_t num_inputs, const OSLNode *from = nullptr);
   ~OSLNode();
 
   static void operator delete(void *ptr)

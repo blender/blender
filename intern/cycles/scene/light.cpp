@@ -948,7 +948,7 @@ void LightManager::device_update_background(Device *device,
 {
   KernelIntegrator *kintegrator = &dscene->data.integrator;
   KernelBackground *kbackground = &dscene->data.background;
-  Light *background_light = NULL;
+  Light *background_light = nullptr;
 
   bool background_mis = false;
 

@@ -113,33 +113,33 @@ OptiXDevice::~OptiXDevice()
   launch_params.free();
 
   /* Unload modules. */
-  if (optix_module != NULL) {
+  if (optix_module != nullptr) {
     optixModuleDestroy(optix_module);
   }
   for (int i = 0; i < 2; ++i) {
-    if (builtin_modules[i] != NULL) {
+    if (builtin_modules[i] != nullptr) {
       optixModuleDestroy(builtin_modules[i]);
     }
   }
   for (int i = 0; i < NUM_PIPELINES; ++i) {
-    if (pipelines[i] != NULL) {
+    if (pipelines[i] != nullptr) {
       optixPipelineDestroy(pipelines[i]);
     }
   }
   for (int i = 0; i < NUM_PROGRAM_GROUPS; ++i) {
-    if (groups[i] != NULL) {
+    if (groups[i] != nullptr) {
       optixProgramGroupDestroy(groups[i]);
     }
   }
 
 #  ifdef WITH_OSL
   for (const OptixModule &module : osl_modules) {
-    if (module != NULL) {
+    if (module != nullptr) {
       optixModuleDestroy(module);
     }
   }
   for (const OptixProgramGroup &group : osl_groups) {
-    if (group != NULL) {
+    if (group != nullptr) {
       optixProgramGroupDestroy(group);
     }
   }
@@ -249,40 +249,40 @@ bool OptiXDevice::load_kernels(const uint kernel_features)
   const CUDAContextScope scope(this);
 
   /* Unload existing OptiX module and pipelines first. */
-  if (optix_module != NULL) {
+  if (optix_module != nullptr) {
     optixModuleDestroy(optix_module);
-    optix_module = NULL;
+    optix_module = nullptr;
   }
   for (int i = 0; i < 2; ++i) {
-    if (builtin_modules[i] != NULL) {
+    if (builtin_modules[i] != nullptr) {
       optixModuleDestroy(builtin_modules[i]);
-      builtin_modules[i] = NULL;
+      builtin_modules[i] = nullptr;
     }
   }
   for (int i = 0; i < NUM_PIPELINES; ++i) {
-    if (pipelines[i] != NULL) {
+    if (pipelines[i] != nullptr) {
       optixPipelineDestroy(pipelines[i]);
-      pipelines[i] = NULL;
+      pipelines[i] = nullptr;
     }
   }
   for (int i = 0; i < NUM_PROGRAM_GROUPS; ++i) {
-    if (groups[i] != NULL) {
+    if (groups[i] != nullptr) {
       optixProgramGroupDestroy(groups[i]);
-      groups[i] = NULL;
+      groups[i] = nullptr;
     }
   }
 
 #  ifdef WITH_OSL
   /* Recreating base OptiX module invalidates all OSL modules too, since they link against it. */
   for (const OptixModule &module : osl_modules) {
-    if (module != NULL) {
+    if (module != nullptr) {
       optixModuleDestroy(module);
     }
   }
   osl_modules.clear();
 
   for (const OptixProgramGroup &group : osl_groups) {
-    if (group != NULL) {
+    if (group != nullptr) {
       optixProgramGroupDestroy(group);
     }
   }
@@ -772,15 +772,15 @@ bool OptiXDevice::load_osl_kernels()
   }
 
   for (OptixModule &module : osl_modules) {
-    if (module != NULL) {
+    if (module != nullptr) {
       optixModuleDestroy(module);
-      module = NULL;
+      module = nullptr;
     }
   }
   for (OptixProgramGroup &group : osl_groups) {
-    if (group != NULL) {
+    if (group != nullptr) {
       optixProgramGroupDestroy(group);
-      group = NULL;
+      group = nullptr;
     }
   }
 
@@ -919,7 +919,7 @@ bool OptiXDevice::load_osl_kernels()
     optix_assert(optixSbtRecordPackHeader(groups[i], &sbt_data[i]));
   }
   for (size_t i = 0; i < osl_groups.size(); ++i) {
-    if (osl_groups[i] != NULL) {
+    if (osl_groups[i] != nullptr) {
       optix_assert(optixSbtRecordPackHeader(osl_groups[i], &sbt_data[NUM_PROGRAM_GROUPS + i]));
     }
     else {
@@ -952,7 +952,7 @@ bool OptiXDevice::load_osl_kernels()
     pipeline_groups.push_back(groups[PG_RGEN_EVAL_CURVE_SHADOW_TRANSPARENCY]);
 
     for (const OptixProgramGroup &group : osl_groups) {
-      if (group != NULL) {
+      if (group != nullptr) {
         pipeline_groups.push_back(group);
       }
     }
@@ -978,7 +978,7 @@ bool OptiXDevice::load_osl_kernels()
 #    endif
     }
     for (size_t i = 0; i < osl_groups.size(); ++i) {
-      if (osl_groups[i] != NULL) {
+      if (osl_groups[i] != nullptr) {
 #    if OPTIX_ABI_VERSION >= 84
         optix_assert(optixProgramGroupGetStackSize(
             osl_groups[i], &osl_stack_size[i], pipelines[PIP_SHADE]));
@@ -1010,7 +1010,7 @@ void *OptiXDevice::get_cpu_osl_memory()
 #  ifdef WITH_OSL
   return &osl_globals;
 #  else
-  return NULL;
+  return nullptr;
 #  endif
 }
 
@@ -1087,7 +1087,7 @@ bool OptiXDevice::build_optix_bvh(BVHOptiX *bvh,
 
   OptixTraversableHandle out_handle = 0;
   optix_assert(optixAccelBuild(context,
-                               NULL,
+                               nullptr,
                                &options,
                                &build_input,
                                1,
@@ -1096,12 +1096,12 @@ bool OptiXDevice::build_optix_bvh(BVHOptiX *bvh,
                                out_data.device_pointer,
                                sizes.outputSizeInBytes,
                                &out_handle,
-                               use_fast_trace_bvh ? &compacted_size_prop : NULL,
+                               use_fast_trace_bvh ? &compacted_size_prop : nullptr,
                                use_fast_trace_bvh ? 1 : 0));
   bvh->traversable_handle = static_cast<uint64_t>(out_handle);
 
   /* Wait for all operations to finish. */
-  cuda_assert(cuStreamSynchronize(NULL));
+  cuda_assert(cuStreamSynchronize(nullptr));
 
   /* Compact acceleration structure to save memory (do not do this in viewport for faster builds).
    */
@@ -1122,12 +1122,16 @@ bool OptiXDevice::build_optix_bvh(BVHOptiX *bvh,
         return !have_error();
       }
 
-      optix_assert(optixAccelCompact(
-          context, NULL, out_handle, compacted_data.device_pointer, compacted_size, &out_handle));
+      optix_assert(optixAccelCompact(context,
+                                     nullptr,
+                                     out_handle,
+                                     compacted_data.device_pointer,
+                                     compacted_size,
+                                     &out_handle));
       bvh->traversable_handle = static_cast<uint64_t>(out_handle);
 
       /* Wait for compaction to finish. */
-      cuda_assert(cuStreamSynchronize(NULL));
+      cuda_assert(cuStreamSynchronize(nullptr));
 
       std::swap(out_data.device_size, compacted_data.device_size);
       std::swap(out_data.device_pointer, compacted_data.device_pointer);

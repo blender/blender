@@ -41,7 +41,7 @@ NODE_DEFINE(Background)
 
 Background::Background() : Node(get_node_type())
 {
-  shader = NULL;
+  shader = nullptr;
 }
 
 Background::~Background()

@@ -213,10 +213,10 @@ void xml_read_node(XMLReader &reader, Node *node, xml_node xml_node)
           map<ustring, Node *>::iterator it = reader.node_map.find(ustring(tokens[i]));
           if (it != reader.node_map.end()) {
             Node *value_node = it->second;
-            value[i] = (value_node->is_a(socket.node_type)) ? value_node : NULL;
+            value[i] = (value_node->is_a(socket.node_type)) ? value_node : nullptr;
           }
           else {
-            value[i] = NULL;
+            value[i] = nullptr;
           }
         }
         node->set(socket, value);

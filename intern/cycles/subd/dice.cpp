@@ -14,8 +14,8 @@ CCL_NAMESPACE_BEGIN
 
 EdgeDice::EdgeDice(const SubdParams &params_) : params(params_)
 {
-  mesh_P = NULL;
-  mesh_N = NULL;
+  mesh_P = nullptr;
+  mesh_N = nullptr;
   vert_offset = 0;
 
   params.mesh->attributes.add(ATTR_STD_VERTEX_NORMAL);
@@ -48,7 +48,7 @@ void EdgeDice::set_vert(Patch *patch, int index, float2 uv)
 {
   float3 P, N;
 
-  patch->eval(&P, NULL, NULL, &N, uv.x, uv.y);
+  patch->eval(&P, nullptr, nullptr, &N, uv.x, uv.y);
 
   assert(index < params.mesh->verts.size());
 
@@ -134,7 +134,7 @@ float3 QuadDice::eval_projected(Subpatch &sub, float u, float v)
   float2 uv = map_uv(sub, u, v);
   float3 P;
 
-  sub.patch->eval(&P, NULL, NULL, NULL, uv.x, uv.y);
+  sub.patch->eval(&P, nullptr, nullptr, nullptr, uv.x, uv.y);
   if (params.camera) {
     P = transform_perspective(&params.camera->worldtoraster, P);
   }

@@ -40,7 +40,7 @@ CCL_NAMESPACE_BEGIN
 
 NODE_ABSTRACT_DEFINE(Geometry)
 {
-  NodeType *type = NodeType::add("geometry_base", NULL);
+  NodeType *type = NodeType::add("geometry_base", nullptr);
 
   SOCKET_UINT(motion_steps, "Motion Steps", 3);
   SOCKET_BOOLEAN(use_motion_blur, "Use Motion Blur", false);
@@ -63,7 +63,7 @@ Geometry::Geometry(const NodeType *node_type, const Type type)
   has_volume = false;
   has_surface_bssrdf = false;
 
-  bvh = NULL;
+  bvh = nullptr;
   attr_map_offset = 0;
   prim_offset = 0;
 }

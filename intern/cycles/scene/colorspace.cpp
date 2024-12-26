@@ -39,7 +39,7 @@ ColorSpaceProcessor *ColorSpaceManager::get_processor(ustring colorspace)
   assert(colorspace != u_colorspace_srgb && colorspace != u_colorspace_auto);
 
   if (colorspace == u_colorspace_raw) {
-    return NULL;
+    return nullptr;
   }
 
   OCIO::ConstConfigRcPtr config = nullptr;
@@ -52,7 +52,7 @@ ColorSpaceProcessor *ColorSpaceManager::get_processor(ustring colorspace)
   }
 
   if (!config) {
-    return NULL;
+    return nullptr;
   }
 
   /* Cache processor until free_memory(), memory overhead is expected to be
@@ -74,7 +74,7 @@ ColorSpaceProcessor *ColorSpaceManager::get_processor(ustring colorspace)
 #else
   /* No OpenColorIO. */
   (void)colorspace;
-  return NULL;
+  return nullptr;
 #endif
 }
 

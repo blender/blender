@@ -360,7 +360,7 @@ ccl_device_inline bool subsurface_random_walk(KernelGlobals kg,
       ray.self.object = OBJECT_NONE;
       ray.self.prim = PRIM_NONE;
     }
-    scene_intersect_local<true>(kg, &ray, &ss_isect, object, NULL, 1);
+    scene_intersect_local<true>(kg, &ray, &ss_isect, object, nullptr, 1);
     hit = (ss_isect.num_hits > 0);
 
     if (hit) {
@@ -390,13 +390,14 @@ ccl_device_inline bool subsurface_random_walk(KernelGlobals kg,
     Spectrum pdf = subsurface_random_walk_pdf(sigma_t, t, hit, &transmittance);
     if (bounce > 0) {
       /* Compute PDF just like we do for classic sampling, but with the stretched sigma_t. */
-      Spectrum guided_pdf = subsurface_random_walk_pdf(forward_stretching * sigma_t, t, hit, NULL);
+      Spectrum guided_pdf = subsurface_random_walk_pdf(
+          forward_stretching * sigma_t, t, hit, nullptr);
 
       if (have_opposite_interface) {
         /* First step of MIS: Depending on geometry we might have two methods for guided
          * sampling, so perform MIS between them. */
         Spectrum back_pdf = subsurface_random_walk_pdf(
-            backward_stretching * sigma_t, t, hit, NULL);
+            backward_stretching * sigma_t, t, hit, nullptr);
         guided_pdf = mix(
             guided_pdf * forward_pdf_factor, back_pdf * backward_pdf_factor, backward_fraction);
       }

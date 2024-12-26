@@ -62,7 +62,7 @@ ccl_device_inline void shaderdata_to_shaderglobals(KernelGlobals kg,
   globals->shader2common = sd;
   globals->object2common = sd;
 
-  /* must be set to NULL before execute */
+  /* must be set to nullptr before execute */
   globals->Ci = nullptr;
 }
 
@@ -134,7 +134,7 @@ ccl_device void flatten_closure_tree(KernelGlobals kg,
                                 path_flag, \
                                 weight * comp->weight, \
                                 reinterpret_cast<ccl_private const Upper##Closure *>(comp + 1), \
-                                (layer_stack_level >= 0) ? &albedo : NULL); \
+                                (layer_stack_level >= 0) ? &albedo : nullptr); \
     if (layer_stack_level >= 0) { \
       layer_albedo += albedo; \
     } \

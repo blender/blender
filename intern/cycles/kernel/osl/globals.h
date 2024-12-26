@@ -38,9 +38,9 @@ class ColorSpaceProcessor;
 struct OSLGlobals {
   OSLGlobals()
   {
-    ss = NULL;
-    ts = NULL;
-    services = NULL;
+    ss = nullptr;
+    ts = nullptr;
+    services = nullptr;
     use = false;
   }
 

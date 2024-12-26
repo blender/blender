@@ -473,7 +473,7 @@ ccl_device_inline bool volume_shader_eval_entry(KernelGlobals kg,
 #  endif
   {
 #  ifdef __SVM__
-    svm_eval_nodes<node_feature_mask, SHADER_TYPE_VOLUME>(kg, state, sd, NULL, path_flag);
+    svm_eval_nodes<node_feature_mask, SHADER_TYPE_VOLUME>(kg, state, sd, nullptr, path_flag);
 #  endif
   }
 

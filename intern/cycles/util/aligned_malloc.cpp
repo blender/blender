@@ -40,7 +40,7 @@ void *util_aligned_malloc(size_t size, int alignment)
     /* Non-zero means allocation error
      * either no allocation or bad alignment value.
      */
-    return NULL;
+    return nullptr;
   }
   return result;
 #else /* This is for Linux. */
@@ -51,7 +51,7 @@ void *util_aligned_malloc(size_t size, int alignment)
 void util_aligned_free(void *ptr)
 {
 #if defined(WITH_BLENDER_GUARDEDALLOC)
-  if (ptr != NULL) {
+  if (ptr != nullptr) {
     MEM_freeN(ptr);
   }
 #elif defined(_WIN32)

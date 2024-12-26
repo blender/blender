@@ -321,7 +321,7 @@ void *CPUDevice::get_cpu_osl_memory()
 #ifdef WITH_OSL
   return &osl_globals;
 #else
-  return NULL;
+  return nullptr;
 #endif
 }
 

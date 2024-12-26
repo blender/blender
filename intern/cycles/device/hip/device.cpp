@@ -41,7 +41,7 @@ bool device_hip_init()
       VLOG_INFO << "Found precompiled kernels";
       result = true;
     }
-    else if (hipewCompilerPath() != NULL) {
+    else if (hipewCompilerPath() != nullptr) {
       VLOG_INFO << "Found HIPCC " << hipewCompilerPath();
       result = true;
     }

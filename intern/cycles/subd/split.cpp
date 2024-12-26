@@ -29,7 +29,7 @@ float3 DiagSplit::to_world(Patch *patch, float2 uv)
 {
   float3 P;
 
-  patch->eval(&P, NULL, NULL, NULL, uv.x, uv.y);
+  patch->eval(&P, nullptr, nullptr, nullptr, uv.x, uv.y);
   if (params.camera) {
     P = transform_point(&params.objecttoworld, P);
   }

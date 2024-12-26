@@ -39,7 +39,7 @@ template<int SIZE, typename T> class ccl_try_align(16) StackAllocator
   {
     (void)hint;
     if (n == 0) {
-      return NULL;
+      return nullptr;
     }
     if (pointer_ + n >= SIZE || use_stack_ == false) {
       size_t size = n * sizeof(T);
@@ -50,7 +50,7 @@ template<int SIZE, typename T> class ccl_try_align(16) StackAllocator
 #else
       mem = (T *)malloc(size);
 #endif
-      if (mem == NULL) {
+      if (mem == nullptr) {
         throw std::bad_alloc();
       }
       return mem;
@@ -62,7 +62,7 @@ template<int SIZE, typename T> class ccl_try_align(16) StackAllocator
 
   void deallocate(T * p, size_t n)
   {
-    if (p == NULL) {
+    if (p == nullptr) {
       return;
     }
     if (p < data_ || p >= data_ + SIZE) {
@@ -93,7 +93,7 @@ template<int SIZE, typename T> class ccl_try_align(16) StackAllocator
 
   void construct(T * p, const T &val)
   {
-    if (p != NULL) {
+    if (p != nullptr) {
       new ((T *)p) T(val);
     }
   }

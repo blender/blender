@@ -40,11 +40,11 @@ class BVHUnaligned {
   BoundBox compute_aligned_boundbox(const BVHObjectBinning &range,
                                     const BVHReference *references,
                                     const Transform &aligned_space,
-                                    BoundBox *cent_bounds = NULL) const;
+                                    BoundBox *cent_bounds = nullptr) const;
   BoundBox compute_aligned_boundbox(const BVHRange &range,
                                     const BVHReference *references,
                                     const Transform &aligned_space,
-                                    BoundBox *cent_bounds = NULL) const;
+                                    BoundBox *cent_bounds = nullptr) const;
 
   /* Calculate affine transform for node packing.
    * Bounds will be in the range of 0..1.
