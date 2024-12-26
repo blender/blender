@@ -50,11 +50,6 @@ class STLExportTest : public BlendfileLoadingBaseTest {
  protected:
   STLExportTest()
   {
-    _params = {};
-    _params.forward_axis = IO_AXIS_Y;
-    _params.up_axis = IO_AXIS_Z;
-    _params.global_scale = 1.0f;
-    _params.apply_modifiers = true;
     _params.ascii_format = true;
   }
   void SetUp() override

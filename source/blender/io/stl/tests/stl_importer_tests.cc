@@ -30,10 +30,6 @@ class stl_importer_test : public BlendfileLoadingBaseTest {
   {
     params.forward_axis = IO_AXIS_NEGATIVE_Z;
     params.up_axis = IO_AXIS_Y;
-    params.use_facet_normal = false;
-    params.use_scene_unit = false;
-    params.global_scale = 1.0f;
-    params.use_mesh_validate = true;
   }
 
   void import_and_check(const char *path, const Expectation &expect)
