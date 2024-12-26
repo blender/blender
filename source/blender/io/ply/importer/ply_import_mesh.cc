@@ -72,12 +72,12 @@ Mesh *convert_ply_to_mesh(PlyData &data, const PLYImportParams &params)
   }
 
   /* Vertex colors */
-  if (!data.vertex_colors.is_empty() && params.vertex_colors != PLY_VERTEX_COLOR_NONE) {
+  if (!data.vertex_colors.is_empty() && params.vertex_colors != ePLYVertexColorMode::None) {
     /* Create a data layer for vertex colors and set them. */
     bke::SpanAttributeWriter colors = attributes.lookup_or_add_for_write_span<ColorGeometry4f>(
         "Col", bke::AttrDomain::Point);
 
-    if (params.vertex_colors == PLY_VERTEX_COLOR_SRGB) {
+    if (params.vertex_colors == ePLYVertexColorMode::sRGB) {
       for (const int i : data.vertex_colors.index_range()) {
         srgb_to_linearrgb_v4(colors.span[i], data.vertex_colors[i]);
       }

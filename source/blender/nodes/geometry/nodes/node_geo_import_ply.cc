@@ -33,7 +33,7 @@ static void node_geo_exec(GeoNodeExecParams params)
     return;
   }
 
-  PLYImportParams import_params{};
+  PLYImportParams import_params;
   STRNCPY(import_params.filepath, path.c_str());
   import_params.import_attributes = true;
 
@@ -42,7 +42,7 @@ static void node_geo_exec(GeoNodeExecParams params)
   BLI_SCOPED_DEFER([&]() { BKE_reports_free(&reports); })
   import_params.reports = &reports;
 
-  Mesh *mesh = PLY_import_mesh(&import_params);
+  Mesh *mesh = PLY_import_mesh(import_params);
 
   LISTBASE_FOREACH (Report *, report, &(import_params.reports)->list) {
     NodeWarningType type;
