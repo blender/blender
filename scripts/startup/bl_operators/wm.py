@@ -2684,6 +2684,7 @@ class BatchRenameAction(bpy.types.PropertyGroup):
     # Used when `type == 'STRIP'`.
     strip_chars: EnumProperty(
         name="Strip Characters",
+        translation_context=i18n_contexts.id_text,
         options={'ENUM_FLAG'},
         items=(
             ('SPACE', "Spaces", ""),
