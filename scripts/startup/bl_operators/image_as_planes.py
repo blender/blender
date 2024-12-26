@@ -22,6 +22,7 @@ from bpy.props import (
 
 from bpy.app.translations import (
     pgettext_tip as tip_,
+    contexts as i18n_contexts,
 )
 from mathutils import Vector
 
@@ -355,6 +356,7 @@ class TextureProperties_MixIn:
 
     extension: EnumProperty(
         name="Extension",
+        translation_context=i18n_contexts.id_image,
         items=(
             ('CLIP', "Clip", "Clip to image size and set exterior pixels as transparent"),
             ('EXTEND', "Extend", "Extend by repeating edge pixels of the image"),
