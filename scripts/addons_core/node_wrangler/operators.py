@@ -592,6 +592,7 @@ class NWMergeNodes(Operator, NWBase):
 
     mode: EnumProperty(
         name="Mode",
+        translation_context=i18n_contexts.id_nodetree,
         description="All possible blend types, boolean operations and math operations",
         items=blend_types + [op for op in geo_combine_operations if op not in blend_types] + [op for op in operations if op not in blend_types],
     )
@@ -1000,6 +1001,7 @@ class NWBatchChangeNodes(Operator, NWBase):
     )
     operation: EnumProperty(
         name="Operation",
+        translation_context=i18n_contexts.id_nodetree,
         items=operations + navs,
     )
 
