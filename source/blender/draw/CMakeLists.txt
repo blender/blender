@@ -10,7 +10,6 @@ set(INC
   ../editors/space_view3d
   ../gpu/intern
   ../makesrna
-  ../nodes
   ../render/intern
   ../compositor
   ../compositor/algorithms
@@ -309,6 +308,7 @@ set(LIB
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   bf_compositor
+  PRIVATE bf::nodes
   PRIVATE bf::render
   PRIVATE bf::windowmanager
   PRIVATE bf::intern::atomic

@@ -46,7 +46,6 @@ set(INC
   ../../blenlib
   ../../makesdna
   ../../makesrna
-  ../../nodes
   ../../io/usd
   ../../gpu/intern
   ../../python/intern
@@ -77,6 +76,7 @@ set(LIB
   PRIVATE bf::imbuf
   PRIVATE bf::intern::clog
   bf_io_usd
+  PRIVATE bf::nodes
 )
 
 set(SRC

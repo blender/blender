@@ -13,7 +13,6 @@ set(INC
   ../gpu/intern
   ../imbuf/movie
   ../makesrna
-  ../nodes
   ../sequencer
   ../simulation
   ../../../intern/mikktspace
@@ -67,6 +66,7 @@ set(LIB
   PRIVATE bf::intern::guardedalloc
   bf_compositor
   PRIVATE bf::intern::atomic
+  PRIVATE bf::nodes
   PRIVATE bf::windowmanager
 )
 

@@ -10,7 +10,6 @@ set(INC
   ../../bmesh/intern
   ../../editors/include
   ../../makesrna
-  ../../nodes
 )
 
 set(INC_SYS
@@ -59,6 +58,7 @@ set(LIB
   PRIVATE bf::intern::guardedalloc
   bf_io_common
   PRIVATE bf::extern::fmtlib
+  PRIVATE bf::nodes
   PRIVATE bf::windowmanager
 )
 

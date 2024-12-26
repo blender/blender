@@ -32,8 +32,6 @@ set(INC
   metal/kernels
   shaders/infos
 
-  # For node muting stuff.
-  ../nodes
 
   # For shader includes
   shaders/common
@@ -387,6 +385,7 @@ set(LIB
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::extern::fmtlib
+  PRIVATE bf::nodes
 )
 
 # Select Backend source based on availability

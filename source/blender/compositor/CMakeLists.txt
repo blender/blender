@@ -9,7 +9,6 @@ set(INC
   utilities
   ../gpu/intern
   ../makesrna
-  ../nodes
   ../render/intern
 )
 
@@ -147,6 +146,7 @@ set(LIB
   PRIVATE bf::functions
   PRIVATE bf::gpu
   PRIVATE bf::imbuf
+  PRIVATE bf::nodes
   PRIVATE bf::render
   PRIVATE bf::blenlib
   PRIVATE bf::dna

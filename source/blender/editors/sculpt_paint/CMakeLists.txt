@@ -13,7 +13,6 @@ set(INC
   ../../draw
   ../../geometry
   ../../makesrna
-  ../../nodes
   ../../../../intern/eigen
   # RNA_prototypes.hh
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
@@ -186,6 +185,7 @@ set(LIB
   PRIVATE bf::intern::atomic
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::nodes
   PRIVATE bf::render
   PRIVATE bf::windowmanager
 )

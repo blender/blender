@@ -10,7 +10,6 @@ set(INC
   ../../draw
   ../../imbuf/movie
   ../../makesrna
-  ../../nodes
   ../../python
   ../../../../intern/ghost
   # RNA_prototypes.hh
@@ -108,6 +107,7 @@ set(LIB
   PRIVATE bf::imbuf
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::animrig
+  PRIVATE bf::nodes
   PRIVATE bf::render
   PRIVATE bf::windowmanager
 )

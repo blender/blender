@@ -46,7 +46,7 @@ add_subdirectory(shader)
 add_subdirectory(texture)
 
 set(INC
-  .
+  PUBLIC .
   composite
   function
   geometry
@@ -208,6 +208,7 @@ if(WITH_OPENVDB)
 endif()
 
 blender_add_lib(bf_nodes "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+add_library(bf::nodes ALIAS bf_nodes)
 
 # RNA_prototypes.hh
 add_dependencies(bf_nodes bf_rna)

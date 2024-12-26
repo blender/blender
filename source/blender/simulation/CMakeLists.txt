@@ -6,7 +6,6 @@ set(INC
   .
   intern
   ../makesrna
-  ../nodes
 )
 
 set(INC_SYS
@@ -34,6 +33,7 @@ set(LIB
   PRIVATE bf::functions
   PRIVATE bf::imbuf
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::nodes
 )
 
 

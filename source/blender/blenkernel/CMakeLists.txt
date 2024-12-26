@@ -9,7 +9,6 @@ set(INC
   ../ikplugin
   ../makesrna
   ../modifiers
-  ../nodes
   ../nodes/geometry/include
   ../sequencer
   ../shader_fx
@@ -573,7 +572,7 @@ set(LIB
   bf_intern_mikktspace
   bf_intern_opensubdiv  # Uses stub when disabled.
   bf_modifiers
-  bf_nodes
+  PRIVATE bf::nodes
   PRIVATE bf::render
   bf_rna
   bf_shader_fx

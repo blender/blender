@@ -46,7 +46,6 @@ set(INC
   ../common
   ../../editors/include
   ../../makesrna
-  ../../nodes
   ../../python/intern
   ../../../../intern/utfconv
   # RNA_prototypes.hh
@@ -202,6 +201,7 @@ set(LIB
   PRIVATE bf::intern::guardedalloc
   bf_io_common
   PRIVATE bf::extern::fmtlib
+  PRIVATE bf::nodes
   PRIVATE bf::windowmanager
 )
 
