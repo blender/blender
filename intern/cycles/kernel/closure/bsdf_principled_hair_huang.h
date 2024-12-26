@@ -10,7 +10,7 @@
 
 #include "kernel/closure/bsdf_util.h"
 #include "kernel/sample/lcg.h"
-#include "kernel/util/color.h"
+#include "kernel/util/colorspace.h"
 
 CCL_NAMESPACE_BEGIN
 

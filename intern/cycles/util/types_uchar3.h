@@ -4,9 +4,7 @@
 
 #pragma once
 
-#ifndef __UTIL_TYPES_H__
-#  error "Do not include this file directly, include util/types.h instead."
-#endif
+#include "util/types_base.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -15,12 +13,27 @@ struct uchar3 {
   uchar x, y, z;
 
 #  ifndef __KERNEL_GPU__
-  __forceinline uchar operator[](int i) const;
-  __forceinline uchar &operator[](int i);
+  __forceinline uchar operator[](int i) const
+  {
+    util_assert(i >= 0);
+    util_assert(i < 3);
+    return *(&x + i);
+  }
+
+  __forceinline uchar &operator[](int i)
+  {
+    util_assert(i >= 0);
+    util_assert(i < 3);
+    return *(&x + i);
+  }
 #  endif
 };
 
-ccl_device_inline uchar3 make_uchar3(uchar x, uchar y, uchar z);
+ccl_device_inline uchar3 make_uchar3(uchar x, uchar y, uchar z)
+{
+  uchar3 a = {x, y, z};
+  return a;
+}
 #endif /* __KERNEL_NATIVE_VECTOR_TYPES__ */
 
 CCL_NAMESPACE_END

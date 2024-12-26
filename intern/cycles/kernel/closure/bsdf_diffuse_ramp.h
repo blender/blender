@@ -8,7 +8,7 @@
 #pragma once
 
 #include "kernel/sample/mapping.h"
-#include "kernel/util/color.h"
+#include "kernel/util/colorspace.h"
 
 CCL_NAMESPACE_BEGIN
 

@@ -4,9 +4,9 @@
 
 #pragma once
 
-#ifndef __UTIL_MATH_H__
-#  error "Do not include this file directly, include util/types.h instead."
-#endif
+#include "util/math_base.h"
+#include "util/types_float2.h"
+#include "util/types_float4.h"
 
 CCL_NAMESPACE_BEGIN
 

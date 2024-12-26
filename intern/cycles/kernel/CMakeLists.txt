@@ -352,7 +352,7 @@ set(SRC_KERNEL_SAMPLE_HEADERS
 )
 
 set(SRC_KERNEL_UTIL_HEADERS
-  util/color.h
+  util/colorspace.h
   util/differential.h
   util/ies.h
   util/lookup_table.h
@@ -390,6 +390,7 @@ set(SRC_UTIL_HEADERS
   ../util/half.h
   ../util/hash.h
   ../util/math.h
+  ../util/math_base.h
   ../util/math_fast.h
   ../util/math_intersect.h
   ../util/math_float2.h
@@ -409,35 +410,22 @@ set(SRC_UTIL_HEADERS
   ../util/transform_inverse.h
   ../util/texture.h
   ../util/types.h
+  ../util/types_base.h
   ../util/types_float2.h
-  ../util/types_float2_impl.h
   ../util/types_float3.h
-  ../util/types_float3_impl.h
   ../util/types_float4.h
-  ../util/types_float4_impl.h
   ../util/types_float8.h
-  ../util/types_float8_impl.h
   ../util/types_int2.h
-  ../util/types_int2_impl.h
   ../util/types_int3.h
-  ../util/types_int3_impl.h
   ../util/types_int4.h
-  ../util/types_int4_impl.h
   ../util/types_int8.h
-  ../util/types_int8_impl.h
   ../util/types_spectrum.h
   ../util/types_uchar2.h
-  ../util/types_uchar2_impl.h
   ../util/types_uchar3.h
-  ../util/types_uchar3_impl.h
   ../util/types_uchar4.h
-  ../util/types_uchar4_impl.h
   ../util/types_uint2.h
-  ../util/types_uint2_impl.h
   ../util/types_uint3.h
-  ../util/types_uint3_impl.h
   ../util/types_uint4.h
-  ../util/types_uint4_impl.h
   ../util/types_ushort4.h
 )
 

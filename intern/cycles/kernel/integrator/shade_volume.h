@@ -18,6 +18,8 @@
 #include "kernel/light/light.h"
 #include "kernel/light/sample.h"
 
+#include "util/color.h"
+
 CCL_NAMESPACE_BEGIN
 
 #ifdef __VOLUME__

@@ -45,8 +45,6 @@
 
 #include "kernel/svm/svm.h"
 
-#include "kernel/util/color.h"
-
 CCL_NAMESPACE_BEGIN
 
 /* RenderServices implementation */

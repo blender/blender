@@ -4,9 +4,7 @@
 
 #pragma once
 
-#ifndef __UTIL_MATH_H__
-#  error "Do not include this file directly, include util/types.h instead."
-#endif
+#include "util/types_int3.h"
 
 CCL_NAMESPACE_BEGIN
 

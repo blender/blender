@@ -4,9 +4,7 @@
 
 #pragma once
 
-#ifndef __UTIL_TYPES_H__
-#  error "Do not include this file directly, include util/types.h instead."
-#endif
+#include "util/defines.h"
 
 CCL_NAMESPACE_BEGIN
 

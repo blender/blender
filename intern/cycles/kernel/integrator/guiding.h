@@ -8,6 +8,8 @@
 #include "kernel/closure/bsdf.h"
 #include "kernel/film/write.h"
 
+#include "util/color.h"
+
 CCL_NAMESPACE_BEGIN
 
 /* Utilities. */

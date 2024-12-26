@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __UTIL_COLOR_H__
-#define __UTIL_COLOR_H__
+#pragma once
 
 #include "util/math.h"
 #include "util/types.h"
@@ -351,6 +350,67 @@ ccl_device float3 color_highlight_uncompress(float3 color)
   return exp(color) - one_float3();
 }
 
-CCL_NAMESPACE_END
+/* Color division */
 
-#endif /* __UTIL_COLOR_H__ */
+ccl_device_inline Spectrum safe_invert_color(Spectrum a)
+{
+  FOREACH_SPECTRUM_CHANNEL (i) {
+    GET_SPECTRUM_CHANNEL(a, i) = (GET_SPECTRUM_CHANNEL(a, i) != 0.0f) ?
+                                     1.0f / GET_SPECTRUM_CHANNEL(a, i) :
+                                     0.0f;
+  }
+
+  return a;
+}
+
+/* Returns `a/b`, and replace the channel value with `fallback` if `b == 0`. */
+ccl_device_inline Spectrum safe_divide_color(Spectrum a, Spectrum b, const float fallback = 0.0f)
+{
+  FOREACH_SPECTRUM_CHANNEL (i) {
+    GET_SPECTRUM_CHANNEL(a, i) = (GET_SPECTRUM_CHANNEL(b, i) != 0.0f) ?
+                                     GET_SPECTRUM_CHANNEL(a, i) / GET_SPECTRUM_CHANNEL(b, i) :
+                                     fallback;
+  }
+
+  return a;
+}
+
+ccl_device_inline float3 safe_divide_even_color(float3 a, float3 b)
+{
+  float x, y, z;
+
+  x = (b.x != 0.0f) ? a.x / b.x : 0.0f;
+  y = (b.y != 0.0f) ? a.y / b.y : 0.0f;
+  z = (b.z != 0.0f) ? a.z / b.z : 0.0f;
+
+  /* try to get gray even if b is zero */
+  if (b.x == 0.0f) {
+    if (b.y == 0.0f) {
+      x = z;
+      y = z;
+    }
+    else if (b.z == 0.0f) {
+      x = y;
+      z = y;
+    }
+    else {
+      x = 0.5f * (y + z);
+    }
+  }
+  else if (b.y == 0.0f) {
+    if (b.z == 0.0f) {
+      y = x;
+      z = x;
+    }
+    else {
+      y = 0.5f * (x + z);
+    }
+  }
+  else if (b.z == 0.0f) {
+    z = 0.5f * (x + y);
+  }
+
+  return make_float3(x, y, z);
+}
+
+CCL_NAMESPACE_END

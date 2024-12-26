@@ -23,6 +23,13 @@
 
 #pragma once
 
+#include "util/math_base.h"
+#include "util/math_float3.h"
+#include "util/math_float4.h"
+#include "util/math_int4.h"
+#include "util/types_float3.h"
+#include "util/types_float4.h"
+
 CCL_NAMESPACE_BEGIN
 
 ccl_device_inline float madd(const float a, const float b, const float c)
@@ -91,8 +98,9 @@ ccl_device float fast_sinf(float x)
   x = madd(qf, -1.2816720341285448015e-12f * 4, x);
   x = M_PI_2_F - (M_PI_2_F - x); /* Crush denormals */
   float s = x * x;
-  if ((q & 1) != 0)
+  if ((q & 1) != 0) {
     x = -x;
+  }
   /* This polynomial approximation has very low error on [-pi/2,+pi/2]
    * 1.19209e-07 max error in total over [-2pi,+2pi]. */
   float u = 2.6083159809786593541503e-06f;
@@ -468,9 +476,7 @@ ccl_device_inline float fast_expm1f(float x)
     x = 1.0f - (1.0f - x); /* Crush denormals. */
     return madd(0.5f, x * x, x);
   }
-  else {
-    return fast_expf(x) - 1.0f;
-  }
+  return fast_expf(x) - 1.0f;
 }
 
 ccl_device float fast_sinhf(float x)
@@ -482,17 +488,15 @@ ccl_device float fast_sinhf(float x)
     float e = fast_expf(a);
     return copysignf(0.5f * e - 0.5f / e, x);
   }
-  else {
-    a = 1.0f - (1.0f - a); /* Crush denorms. */
-    float a2 = a * a;
-    /* Degree 7 polynomial generated with sollya. */
-    /* Examined 2130706434 values of sinh on [-1,1]: 1.19209e-07 max error. */
-    float r = 2.03945513931e-4f;
-    r = madd(r, a2, 8.32990277558e-3f);
-    r = madd(r, a2, 0.1666673421859f);
-    r = madd(r * a, a2, a);
-    return copysignf(r, x);
-  }
+  a = 1.0f - (1.0f - a); /* Crush denorms. */
+  float a2 = a * a;
+  /* Degree 7 polynomial generated with sollya. */
+  /* Examined 2130706434 values of sinh on [-1,1]: 1.19209e-07 max error. */
+  float r = 2.03945513931e-4f;
+  r = madd(r, a2, 8.32990277558e-3f);
+  r = madd(r, a2, 0.1666673421859f);
+  r = madd(r * a, a2, a);
+  return copysignf(r, x);
 }
 
 ccl_device_inline float fast_coshf(float x)
@@ -516,10 +520,12 @@ ccl_device_inline float fast_tanhf(float x)
 
 ccl_device float fast_safe_powf(float x, float y)
 {
-  if (y == 0)
+  if (y == 0) {
     return 1.0f; /* x^1=1 */
-  if (x == 0)
+  }
+  if (x == 0) {
     return 0.0f; /* 0^y=0 */
+  }
   float sign = 1.0f;
   if (x < 0.0f) {
     /* if x is negative, only deal with integer powers

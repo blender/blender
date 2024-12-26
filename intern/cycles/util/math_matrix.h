@@ -4,6 +4,11 @@
 
 #pragma once
 
+#include "util/atomic.h"
+#include "util/math_base.h"
+#include "util/math_float3.h"
+#include "util/math_float4.h"
+
 CCL_NAMESPACE_BEGIN
 
 #define MAT(A, size, row, col) A[(row) * (size) + (col)]
@@ -92,7 +97,7 @@ ccl_device_inline void math_vec3_add(ccl_private float3 *v, int n, ccl_private f
 }
 
 ccl_device_inline void math_vec3_add_strided(
-    ccl_global float3 *v, int n, ccl_private float *x, float3 w, int stride)
+    ccl_global float3 *v, int n, ccl_private const float *x, float3 w, int stride)
 {
   for (int i = 0; i < n; i++) {
     ccl_global float *elem = (ccl_global float *)(v + i * stride);
@@ -215,16 +220,18 @@ ccl_device_inline void math_trimatrix_vec3_solve(ccl_global float *A,
   /* Use forward substitution to solve L*b = y, replacing y by b. */
   for (int row = 0; row < n; row++) {
     float3 sum = VECS(y, row, stride);
-    for (int col = 0; col < row; col++)
+    for (int col = 0; col < row; col++) {
       sum -= MATHS(A, row, col, stride) * VECS(y, col, stride);
+    }
     VECS(y, row, stride) = sum / MATHS(A, row, row, stride);
   }
 
   /* Use backward substitution to solve Lt*S = b, replacing b by S. */
   for (int row = n - 1; row >= 0; row--) {
     float3 sum = VECS(y, row, stride);
-    for (int col = row + 1; col < n; col++)
+    for (int col = row + 1; col < n; col++) {
       sum -= MATHS(A, col, row, stride) * VECS(y, col, stride);
+    }
     VECS(y, row, stride) = sum / MATHS(A, row, row, stride);
   }
 }
@@ -430,7 +437,7 @@ ccl_device_inline void math_matrix_hsum(float *A, int n, const float4 *ccl_restr
 {
   for (int row = 0; row < n; row++) {
     for (int col = 0; col <= row; col++) {
-      MAT(A, n, row, col) = reduce_add(MAT(B, n, row, col))[0];
+      MAT(A, n, row, col) = reduce_add(MAT(B, n, row, col));
     }
   }
 }

@@ -12,5 +12,6 @@ using std::remove;
 using std::sort;
 using std::stable_sort;
 using std::swap;
+using std::upper_bound;
 
 CCL_NAMESPACE_END

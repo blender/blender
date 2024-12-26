@@ -43,6 +43,7 @@ set(SRC_HEADERS
   array.h
   atomic.h
   boundbox.h
+  color.h
   debug.h
   defines.h
   deque.h
@@ -60,6 +61,7 @@ set(SRC_HEADERS
   log.h
   map.h
   math.h
+  math_base.h
   math_cdf.h
   math_fast.h
   math_intersect.h
@@ -101,35 +103,22 @@ set(SRC_HEADERS
   transform.h
   transform_inverse.h
   types.h
+  types_base.h
   types_float2.h
-  types_float2_impl.h
   types_float3.h
-  types_float3_impl.h
   types_float4.h
-  types_float4_impl.h
   types_float8.h
-  types_float8_impl.h
   types_int2.h
-  types_int2_impl.h
   types_int3.h
-  types_int3_impl.h
   types_int4.h
-  types_int4_impl.h
   types_int8.h
-  types_int8_impl.h
   types_spectrum.h
   types_uchar2.h
-  types_uchar2_impl.h
   types_uchar3.h
-  types_uchar3_impl.h
   types_uchar4.h
-  types_uchar4_impl.h
   types_uint2.h
-  types_uint2_impl.h
   types_uint3.h
-  types_uint3_impl.h
   types_uint4.h
-  types_uint4_impl.h
   types_ushort4.h
   unique_ptr.h
   vector.h

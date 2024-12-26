@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include "util/color.h"
+
 CCL_NAMESPACE_BEGIN
 
 /* Compute fresnel reflectance for perpendicular (aka S-) and parallel (aka P-) polarized light.

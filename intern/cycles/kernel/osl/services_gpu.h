@@ -255,7 +255,7 @@ ccl_device_extern ccl_private OSLClosure *osl_allocate_weighted_closure_componen
 /* Utilities */
 
 #include "kernel/svm/math_util.h"
-#include "kernel/util/color.h"
+#include "kernel/util/colorspace.h"
 
 ccl_device_extern void osl_error(ccl_private ShaderGlobals *sg, const char *format, void *args) {}
 

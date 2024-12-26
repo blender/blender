@@ -4,8 +4,7 @@
 
 #pragma once
 
-#include "util/algorithm.h"
-#include "util/math.h"
+#include "util/math_base.h"
 #include "util/vector.h"
 
 CCL_NAMESPACE_BEGIN

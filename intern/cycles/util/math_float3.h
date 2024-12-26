@@ -5,9 +5,10 @@
 
 #pragma once
 
-#ifndef __UTIL_MATH_H__
-#  error "Do not include this file directly, include util/types.h instead."
-#endif
+#include "util/math_base.h"
+#include "util/math_float4.h"
+#include "util/types_float3.h"
+#include "util/types_float4.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -384,10 +385,10 @@ ccl_device_inline float3 reflect(const float3 incident, const float3 unit_normal
 ccl_device_inline float3 refract(const float3 incident, const float3 normal, const float eta)
 {
   float k = 1.0f - eta * eta * (1.0f - dot(normal, incident) * dot(normal, incident));
-  if (k < 0.0f)
+  if (k < 0.0f) {
     return zero_float3();
-  else
-    return eta * incident - (eta * dot(normal, incident) + sqrt(k)) * normal;
+  }
+  return eta * incident - (eta * dot(normal, incident) + sqrt(k)) * normal;
 }
 
 ccl_device_inline float3 faceforward(const float3 vector,
@@ -498,13 +499,128 @@ ccl_device_inline bool isfinite_safe(float3 v)
 
 ccl_device_inline float3 ensure_finite(float3 v)
 {
-  if (!isfinite_safe(v.x))
+  if (!isfinite_safe(v.x)) {
     v.x = 0.0f;
-  if (!isfinite_safe(v.y))
+  }
+  if (!isfinite_safe(v.y)) {
     v.y = 0.0f;
-  if (!isfinite_safe(v.z))
+  }
+  if (!isfinite_safe(v.z)) {
     v.z = 0.0f;
+  }
   return v;
+}
+
+/* Triangle */
+
+ccl_device_inline float triangle_area(ccl_private const float3 &v1,
+                                      ccl_private const float3 &v2,
+                                      ccl_private const float3 &v3)
+{
+  return len(cross(v3 - v2, v1 - v2)) * 0.5f;
+}
+
+/* Orthonormal vectors */
+
+ccl_device_inline void make_orthonormals(const float3 N,
+                                         ccl_private float3 *a,
+                                         ccl_private float3 *b)
+{
+#if 0
+  if (fabsf(N.y) >= 0.999f) {
+    *a = make_float3(1, 0, 0);
+    *b = make_float3(0, 0, 1);
+    return;
+  }
+  if (fabsf(N.z) >= 0.999f) {
+    *a = make_float3(1, 0, 0);
+    *b = make_float3(0, 1, 0);
+    return;
+  }
+#endif
+
+  if (N.x != N.y || N.x != N.z) {
+    *a = make_float3(N.z - N.y, N.x - N.z, N.y - N.x);  //(1,1,1)x N
+  }
+  else {
+    *a = make_float3(N.z - N.y, N.x + N.z, -N.y - N.x);  //(-1,1,1)x N
+  }
+
+  *a = normalize(*a);
+  *b = cross(N, *a);
+}
+
+/* Rotation of point around axis and angle */
+
+ccl_device_inline float3 rotate_around_axis(float3 p, float3 axis, float angle)
+{
+  float costheta = cosf(angle);
+  float sintheta = sinf(angle);
+  float3 r;
+
+  r.x = ((costheta + (1 - costheta) * axis.x * axis.x) * p.x) +
+        (((1 - costheta) * axis.x * axis.y - axis.z * sintheta) * p.y) +
+        (((1 - costheta) * axis.x * axis.z + axis.y * sintheta) * p.z);
+
+  r.y = (((1 - costheta) * axis.x * axis.y + axis.z * sintheta) * p.x) +
+        ((costheta + (1 - costheta) * axis.y * axis.y) * p.y) +
+        (((1 - costheta) * axis.y * axis.z - axis.x * sintheta) * p.z);
+
+  r.z = (((1 - costheta) * axis.x * axis.z - axis.y * sintheta) * p.x) +
+        (((1 - costheta) * axis.y * axis.z + axis.x * sintheta) * p.y) +
+        ((costheta + (1 - costheta) * axis.z * axis.z) * p.z);
+
+  return r;
+}
+
+/* Calculate the angle between the two vectors a and b.
+ * The usual approach `acos(dot(a, b))` has severe precision issues for small angles,
+ * which are avoided by this method.
+ * Based on "Mangled Angles" from https://people.eecs.berkeley.edu/~wkahan/Mindless.pdf
+ */
+ccl_device_inline float precise_angle(float3 a, float3 b)
+{
+  return 2.0f * atan2f(len(a - b), len(a + b));
+}
+
+/* Tangent of the angle between vectors a and b. */
+ccl_device_inline float tan_angle(float3 a, float3 b)
+{
+  return len(cross(a, b)) / dot(a, b);
+}
+
+/* projections */
+ccl_device_inline float2 map_to_tube(const float3 co)
+{
+  float len, u, v;
+  len = sqrtf(co.x * co.x + co.y * co.y);
+  if (len > 0.0f) {
+    u = (1.0f - (atan2f(co.x / len, co.y / len) / M_PI_F)) * 0.5f;
+    v = (co.z + 1.0f) * 0.5f;
+  }
+  else {
+    u = v = 0.0f;
+  }
+  return make_float2(u, v);
+}
+
+ccl_device_inline float2 map_to_sphere(const float3 co)
+{
+  float l = dot(co, co);
+  float u, v;
+  if (l > 0.0f) {
+    if (UNLIKELY(co.x == 0.0f && co.y == 0.0f)) {
+      u = 0.0f; /* Otherwise domain error. */
+    }
+    else {
+      u = (0.5f - atan2f(co.x, co.y) * M_1_2PI_F);
+    }
+    v = 1.0f - safe_acosf(co.z / sqrtf(l)) * M_1_PI_F;
+  }
+  else {
+    u = v = 0.0f;
+  }
+  return make_float2(u, v);
 }
 
 CCL_NAMESPACE_END

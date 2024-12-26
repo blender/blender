@@ -8,6 +8,8 @@
 
 #include "kernel/integrator/guiding.h"
 
+#include "util/color.h"
+
 CCL_NAMESPACE_BEGIN
 
 #ifdef __SUBSURFACE__

@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "util/color.h"
+
 CCL_NAMESPACE_BEGIN
 
 /* --------------------------------------------------------------------

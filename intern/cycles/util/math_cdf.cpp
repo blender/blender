@@ -4,8 +4,9 @@
 
 #include "util/math_cdf.h"
 
+#include <cassert>
+
 #include "util/algorithm.h"
-#include "util/math.h"
 
 CCL_NAMESPACE_BEGIN
 

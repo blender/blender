@@ -4,8 +4,6 @@
 
 #pragma once
 
-#include "util/color.h"
-
 CCL_NAMESPACE_BEGIN
 
 ccl_device float3 xyz_to_rgb(KernelGlobals kg, float3 xyz)

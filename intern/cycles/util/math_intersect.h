@@ -4,6 +4,10 @@
 
 #pragma once
 
+#include "util/math_float2.h"
+#include "util/math_float3.h"
+#include "util/math_float4.h"
+
 CCL_NAMESPACE_BEGIN
 
 /* Ray Intersection */
@@ -287,16 +291,20 @@ ccl_device bool ray_quad_intersect(float3 ray_P,
   }
   /* Store the result. */
   /* TODO(sergey): Check whether we can avoid some checks here. */
-  if (isect_P != nullptr)
+  if (isect_P != nullptr) {
     *isect_P = hit;
-  if (isect_t != nullptr)
+  }
+  if (isect_t != nullptr) {
     *isect_t = t;
+  }
 
   /* NOTE: Return barycentric coordinates in the same notation as Embree and OptiX. */
-  if (isect_u != nullptr)
+  if (isect_u != nullptr) {
     *isect_u = v + 0.5f;
-  if (isect_v != nullptr)
+  }
+  if (isect_v != nullptr) {
     *isect_v = -u - v;
+  }
 
   return true;
 }

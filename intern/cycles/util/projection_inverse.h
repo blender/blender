@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "util/defines.h"
+
 CCL_NAMESPACE_BEGIN
 
 ccl_device_forceinline bool projection_inverse_impl(ccl_private float R[4][4],

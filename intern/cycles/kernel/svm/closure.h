@@ -9,7 +9,7 @@
 #include "kernel/closure/bsdf_util.h"
 #include "kernel/closure/emissive.h"
 
-#include "kernel/util/color.h"
+#include "kernel/util/colorspace.h"
 
 CCL_NAMESPACE_BEGIN
 

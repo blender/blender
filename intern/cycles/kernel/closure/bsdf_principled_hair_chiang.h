@@ -11,7 +11,7 @@
 #  include <fenv.h>
 #endif
 
-#include "kernel/util/color.h"
+#include "kernel/util/colorspace.h"
 
 CCL_NAMESPACE_BEGIN
 
