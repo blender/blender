@@ -2813,33 +2813,58 @@ static void image_viewer_create_views(const RenderData *rd, Image *ima)
   }
 }
 
+/* Returns true if the views of the given image match the actives views in the given render data.
+ * Returns false otherwise to indicate that the image views should be recreated to make them match
+ * the render data. */
+static bool image_views_match_render_views(const Image *image, const RenderData *render_data)
+{
+  /* The number of views in the image do not match the number of active views in the render
+   * data. */
+  const int number_of_active_views = BKE_scene_multiview_num_views_get(render_data);
+  if (BLI_listbase_count(&image->views) != number_of_active_views) {
+    return false;
+  }
+
+  /* If the render data is not multi-view, then a single unnamed view should exist in the image,
+   * otherwise, the views don't match. We don't have to check that a single view exist, since this
+   * is handled by the check above for the number of views. */
+  if (!(render_data->scemode & R_MULTIVIEW)) {
+    const ImageView *image_view = static_cast<ImageView *>(image->views.first);
+    /* If the view is unnamed, the views match, otherwise, they don't. */
+    return image_view->name[0] == '\0';
+  }
+
+  /* The render data is multi-view, so we need to check that for every view in the image, a
+   * corresponding active render view with the same name exists, noting that they may not
+   * necessarily be in the same order. */
+  LISTBASE_FOREACH (ImageView *, image_view, &image->views) {
+    SceneRenderView *scene_render_view = static_cast<SceneRenderView *>(
+        BLI_findstring(&render_data->views, image_view->name, offsetof(SceneRenderView, name)));
+    /* A render view doesn't exist for that image view with the same name, so the views don't
+     * match. */
+    if (!scene_render_view) {
+      return false;
+    }
+
+    /* A render view exists for that image view with the same name, but it is disabled, so the
+     * views don't match. */
+    if (!BKE_scene_multiview_is_render_view_active(render_data, scene_render_view)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 void BKE_image_ensure_viewer_views(const RenderData *rd, Image *ima, ImageUser *iuser)
 {
-  bool do_reset;
-  const bool is_multiview = (rd->scemode & R_MULTIVIEW) != 0;
-
   BLI_thread_lock(LOCK_DRAW_IMAGE);
 
   if (!BKE_scene_multiview_is_stereo3d(rd)) {
     iuser->flag &= ~IMA_SHOW_STEREO;
   }
 
-  /* see if all scene render views are in the image view list */
-  do_reset = (BKE_scene_multiview_num_views_get(rd) != BLI_listbase_count(&ima->views));
-
-  /* multiview also needs to be sure all the views are synced */
-  if (is_multiview && !do_reset) {
-    LISTBASE_FOREACH (ImageView *, iv, &ima->views) {
-      SceneRenderView *srv = static_cast<SceneRenderView *>(
-          BLI_findstring(&rd->views, iv->name, offsetof(SceneRenderView, name)));
-      if ((srv == nullptr) || (BKE_scene_multiview_is_render_view_active(rd, srv) == false)) {
-        do_reset = true;
-        break;
-      }
-    }
-  }
-
-  if (do_reset) {
+  if (!image_views_match_render_views(ima, rd)) {
     BLI_mutex_lock(static_cast<ThreadMutex *>(ima->runtime.cache_mutex));
 
     image_free_cached_frames(ima);
