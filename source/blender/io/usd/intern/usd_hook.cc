@@ -6,13 +6,17 @@
 
 #include "usd.hh"
 #include "usd_asset_utils.hh"
+#include "usd_reader_prim.hh"
+#include "usd_reader_stage.hh"
 #include "usd_writer_material.hh"
 
+#include "BLI_map.hh"
 #include "BLI_utildefines.h"
+#include "BLI_vector.hh"
 
-#include "BKE_idtype.hh"
 #include "BKE_report.hh"
 
+#include "DNA_material_types.h"
 #include "DNA_windowmanager_types.h"
 
 #include "RNA_access.hh"
@@ -53,6 +57,7 @@ using namespace boost;
 namespace blender::io::usd {
 
 using USDHookList = std::list<std::unique_ptr<USDHook>>;
+using ImportedPrimMap = Map<std::string, Vector<PointerRNA>>;
 
 /* USD hook type declarations */
 static USDHookList &hook_list()
@@ -195,7 +200,7 @@ struct USDMaterialExportContext {
    * to the export directory if exporting textures is enabled in the export options.  The
    * function may return an empty string in case of an error.
    */
-  std::string export_texture(PYTHON_NS::object obj)
+  std::string export_texture(PYTHON_NS::object obj) const
   {
     ID *id;
     if (!pyrna_id_FromPyObject(obj.ptr(), &id)) {
@@ -602,15 +607,43 @@ void call_material_export_hooks(pxr::UsdStageRefPtr stage,
   on_material_export.call();
 }
 
-void call_import_hooks(pxr::UsdStageRefPtr stage,
-                       const ImportedPrimMap &prim_map,
-                       ReportList *reports)
+void call_import_hooks(USDStageReader *archive, ReportList *reports)
 {
   if (hook_list().empty()) {
     return;
   }
 
-  OnImportInvoker on_import(stage, prim_map, reports);
+  const Vector<USDPrimReader *> &readers = archive->readers();
+  const ImportSettings &settings = archive->settings();
+  ImportedPrimMap prim_map;
+
+  /* Resize based on the typical scenario where there will be both Object and Data entries
+   * in the map in addition to each material. */
+  prim_map.reserve((readers.size() * 2) + settings.usd_path_to_mat_name.size());
+
+  for (const USDPrimReader *reader : readers) {
+    if (!reader) {
+      continue;
+    }
+
+    Object *ob = reader->object();
+
+    prim_map.lookup_or_add_default(reader->object_prim_path())
+        .append(RNA_id_pointer_create(&ob->id));
+    if (ob->data) {
+      prim_map.lookup_or_add_default(reader->data_prim_path())
+          .append(RNA_id_pointer_create(static_cast<ID *>(ob->data)));
+    }
+  }
+
+  settings.usd_path_to_mat_name.foreach_item(
+      [&](const std::string &path, const std::string &name) {
+        if (Material *mat = settings.mat_name_to_mat.lookup_default(name, nullptr)) {
+          prim_map.lookup_or_add_default(path).append(RNA_id_pointer_create(&mat->id));
+        }
+      });
+
+  OnImportInvoker on_import(archive->stage(), prim_map, reports);
   on_import.call();
 }
 
