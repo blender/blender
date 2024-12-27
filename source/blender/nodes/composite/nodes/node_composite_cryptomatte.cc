@@ -987,9 +987,15 @@ class LegacyCryptoMatteOperation : public BaseCryptoMatteOperation {
   Vector<Result> get_layers() override
   {
     Vector<Result> layers;
-    /* Add all textures of all inputs except the first input, which is the input image. */
+    /* Add all valid results of all inputs except the first input, which is the input image. */
     for (const bNodeSocket *socket : bnode().input_sockets().drop_front(1)) {
-      layers.append(get_input(socket->identifier));
+      const Result input = get_input(socket->identifier);
+      if (input.is_single_value()) {
+        /* If this Cryptomatte layer is not valid, because it is not an image, then all later
+         * Cryptomatte layers can't be used even if they were valid. */
+        break;
+      }
+      layers.append(input);
     }
     return layers;
   }
