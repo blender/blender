@@ -946,6 +946,7 @@ static void rna_def_uv_sculpt(BlenderRNA *brna)
   prop = RNA_def_property(srna, "curve_preset", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, rna_enum_brush_curve_preset_items);
   RNA_def_property_ui_text(prop, "Strength Curve Preset", "");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_CURVE_LEGACY);
   RNA_def_property_enum_funcs(prop, nullptr, "rna_UvSculpt_curve_preset_set", nullptr);
   RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, nullptr);
 }
