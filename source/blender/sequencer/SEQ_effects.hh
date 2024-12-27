@@ -35,7 +35,6 @@ enum {
 
 struct SeqEffectHandle {
   bool multithreaded;
-  bool supports_mask;
 
   /* constructors & destructor */
   /* init is _only_ called on first creation */

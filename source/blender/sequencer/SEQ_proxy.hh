@@ -17,6 +17,7 @@ struct Scene;
 struct SeqIndexBuildContext;
 struct SeqRenderData;
 struct Sequence;
+struct bContext;
 struct wmJob;
 struct wmJobWorkerStatus;
 

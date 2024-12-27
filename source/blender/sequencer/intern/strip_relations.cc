@@ -32,7 +32,7 @@
 #include "SEQ_time.hh"
 #include "SEQ_utils.hh"
 
-#include "effects.hh"
+#include "effects/effects.hh"
 #include "image_cache.hh"
 #include "utils.hh"
 

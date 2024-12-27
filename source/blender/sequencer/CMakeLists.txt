@@ -43,8 +43,20 @@ set(SRC
   intern/channels.cc
   intern/disk_cache.cc
   intern/disk_cache.hh
-  intern/effects.cc
-  intern/effects.hh
+  intern/effects/effects.cc
+  intern/effects/effects.hh
+  intern/effects/vse_effect_add_sub_mul.cc
+  intern/effects/vse_effect_adjustment.cc
+  intern/effects/vse_effect_blend.cc
+  intern/effects/vse_effect_cross.cc
+  intern/effects/vse_effect_gaussian_blur.cc
+  intern/effects/vse_effect_glow.cc
+  intern/effects/vse_effect_multi_camera.cc
+  intern/effects/vse_effect_solid_color.cc
+  intern/effects/vse_effect_speed.cc
+  intern/effects/vse_effect_text.cc
+  intern/effects/vse_effect_transform.cc
+  intern/effects/vse_effect_wipe.cc
   intern/image_cache.cc
   intern/image_cache.hh
   intern/iterator.cc
