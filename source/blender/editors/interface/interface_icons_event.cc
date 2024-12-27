@@ -286,7 +286,12 @@ void icon_draw_rect_input(const float x,
     icon_draw_rect_input_text(&rect, BLI_STR_UTF8_DOWNWARDS_ARROW, aspect, alpha, inverted);
   }
   else if (icon_id == ICON_EVENT_SPACEKEY) {
-    icon_draw_rect_input_text(&rect, IFACE_("Space"), aspect, alpha, inverted, ICON_KEY_EMPTY3);
+    icon_draw_rect_input_text(&rect,
+                              CTX_IFACE_(BLT_I18NCONTEXT_UI_EVENTS, "Space"),
+                              aspect,
+                              alpha,
+                              inverted,
+                              ICON_KEY_EMPTY3);
   }
   else if (icon_id == ICON_EVENT_MOUSE_4) {
     icon_draw_rect_input_text(

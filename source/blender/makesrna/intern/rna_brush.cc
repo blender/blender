@@ -2625,6 +2625,7 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, sculpt_stroke_method_items);
   RNA_def_property_enum_funcs(prop, nullptr, nullptr, "rna_Brush_stroke_itemf");
   RNA_def_property_ui_text(prop, "Stroke Method", "");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_GPENCIL);
   RNA_def_property_update(prop, 0, "rna_Brush_stroke_update");
 
   prop = RNA_def_property(srna, "sculpt_plane", PROP_ENUM, PROP_NONE);
@@ -3585,6 +3586,7 @@ static void rna_def_brush(BlenderRNA *brna)
   RNA_def_property_boolean_sdna(prop, nullptr, "flag", BRUSH_SPACE);
   RNA_def_property_ui_text(
       prop, "Space", "Limit brush application to the distance specified by spacing");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_GPENCIL);
   RNA_def_property_update(prop, 0, "rna_Brush_update");
 
   prop = RNA_def_property(srna, "use_line", PROP_BOOLEAN, PROP_NONE);
