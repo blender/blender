@@ -99,7 +99,6 @@ set(SRC_HEADERS
   thread.h
   time.h
   transform.h
-  transform_inverse.h
   types.h
   types_base.h
   types_float2.h
