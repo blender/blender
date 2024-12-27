@@ -187,7 +187,8 @@ void USDArmatureWriter::do_write(HierarchyContext &context)
   if (usd_export_context_.export_params.export_animation) {
     /* Use the action name as the animation name. */
     const animrig::Action *action = animrig::get_action(context.object->id);
-    const pxr::TfToken anim_name(make_safe_name(action->id.name + 2, allow_unicode));
+    const pxr::TfToken anim_name(action ? make_safe_name(action->id.name + 2, allow_unicode) :
+                                          "Action");
 
     /* Create the skeleton animation primitive as a child of the skeleton. */
     pxr::SdfPath anim_path = usd_export_context_.usd_path.AppendChild(anim_name);
