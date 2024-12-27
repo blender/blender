@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 set(INC
-  .
+  PUBLIC .
   intern
   ../animrig
   ../imbuf/movie
@@ -123,6 +123,7 @@ if(WITH_AUDASPACE)
 endif()
 
 blender_add_lib(bf_sequencer "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+add_library(bf::sequencer ALIAS bf_sequencer)
 
 # RNA_prototypes.hh
 add_dependencies(bf_sequencer bf_rna)

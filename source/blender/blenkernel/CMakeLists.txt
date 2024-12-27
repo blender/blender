@@ -9,7 +9,6 @@ set(INC
   ../makesrna
   ../modifiers
   ../nodes/geometry/include
-  ../sequencer
   ../shader_fx
   ../simulation
   ../../../intern/eigen
@@ -574,6 +573,7 @@ set(LIB
   PRIVATE bf::nodes
   PRIVATE bf::render
   bf_rna
+  PRIVATE bf::sequencer
   bf_shader_fx
   bf_simulation
   PRIVATE bf::extern::fmtlib

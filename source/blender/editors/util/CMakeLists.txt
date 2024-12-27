@@ -6,7 +6,6 @@ set(INC
   ../include
   ../space_sequencer
   ../../makesrna
-  ../../sequencer
   # RNA_prototypes.hh
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
@@ -115,6 +114,7 @@ set(LIB
   PRIVATE bf::imbuf
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::sequencer
   PRIVATE bf::windowmanager
 )
 

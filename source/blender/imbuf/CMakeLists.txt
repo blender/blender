@@ -8,7 +8,6 @@ set(INC
   PUBLIC .
   ./movie
   ../makesrna
-  ../sequencer
   ../../../intern/memutil
 )
 
@@ -82,6 +81,7 @@ set(LIB
   PRIVATE bf::extern::nanosvg
 
   ${JPEG_LIBRARIES}
+  PRIVATE bf::sequencer
 )
 
 if(WITH_IMAGE_OPENEXR)

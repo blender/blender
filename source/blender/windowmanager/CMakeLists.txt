@@ -11,7 +11,6 @@ set(INC
   ../draw
   ../imbuf/movie
   ../makesrna
-  ../sequencer
   ../../../intern/memutil
 
   # RNA_prototypes.hh
@@ -107,7 +106,7 @@ set(LIB
   PRIVATE bf::animrig
   PRIVATE bf::nodes
   PRIVATE bf::render
-  bf_sequencer
+  PRIVATE bf::sequencer
   bf_intern_ghost
   bf_compositor
 )

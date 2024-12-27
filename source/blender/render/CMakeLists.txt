@@ -13,7 +13,6 @@ set(INC
   ../gpu/intern
   ../imbuf/movie
   ../makesrna
-  ../sequencer
   ../simulation
   ../../../intern/mikktspace
   ../../../intern/mantaflow/extern
@@ -67,6 +66,7 @@ set(LIB
   bf_compositor
   PRIVATE bf::intern::atomic
   PRIVATE bf::nodes
+  PRIVATE bf::sequencer
   PRIVATE bf::windowmanager
 )
 

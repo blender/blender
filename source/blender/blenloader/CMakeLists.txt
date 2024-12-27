@@ -8,7 +8,6 @@ set(INC
   ../editors/include
   ../imbuf/movie
   ../makesrna
-  ../sequencer
 
   # RNA_prototypes.hh
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
@@ -66,6 +65,7 @@ set(LIB
   PRIVATE bf::intern::memutil
   PRIVATE bf::nodes
   PRIVATE bf::render
+  PRIVATE bf::sequencer
   PRIVATE bf::windowmanager
 )
 

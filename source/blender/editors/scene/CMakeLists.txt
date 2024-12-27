@@ -5,7 +5,6 @@
 set(INC
   ../include
   ../../makesrna
-  ../../sequencer
 )
 
 set(INC_SYS
@@ -24,6 +23,7 @@ set(LIB
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::sequencer
   PRIVATE bf::windowmanager
 )
 
