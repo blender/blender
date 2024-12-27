@@ -512,8 +512,8 @@ void WM_window_title(wmWindowManager *wm, wmWindow *win, const char *title)
   const char *filename = BLI_path_basename(filepath);
 
   const bool has_filepath = filepath[0] != '\0';
-  const bool include_filepath = has_filepath && (filepath != filename) &&
-                                (GHOST_SetPath(handle, filepath) == GHOST_kFailure);
+  const bool native_filepath_display = GHOST_SetPath(handle, filepath) == GHOST_kSuccess;
+  const bool include_filepath = has_filepath && (filepath != filename) && !native_filepath_display;
 
   std::string str;
   if (!wm->file_saved) {
