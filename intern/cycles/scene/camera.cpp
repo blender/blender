@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
+#include <algorithm>
+
 #include "scene/camera.h"
 #include "scene/mesh.h"
 #include "scene/object.h"
@@ -514,7 +516,7 @@ void Camera::device_update(Device * /*device*/, DeviceScene *dscene, Scene *scen
   size_t num_motion_steps = kernel_camera_motion.size();
   if (num_motion_steps) {
     DecomposedTransform *camera_motion = dscene->camera_motion.alloc(num_motion_steps);
-    memcpy(camera_motion, kernel_camera_motion.data(), sizeof(*camera_motion) * num_motion_steps);
+    std::copy_n(kernel_camera_motion.data(), num_motion_steps, camera_motion);
     dscene->camera_motion.copy_to_device();
   }
   else {
@@ -779,8 +781,7 @@ float Camera::world_to_raster_size(float3 P)
     float3 D = transform_point(&worldtocamera, P);
     float dist = len(D);
 
-    Ray ray;
-    memset(&ray, 0, sizeof(ray));
+    Ray ray = {};
 
     /* Distortion can become so great that the results become meaningless, there
      * may be a better way to do this, but calculating differentials from the

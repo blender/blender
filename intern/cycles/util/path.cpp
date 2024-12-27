@@ -54,7 +54,7 @@ typedef struct _stat path_stat_t;
 #    define S_ISDIR(x) (((x) & _S_IFDIR) == _S_IFDIR)
 #  endif
 #else
-typedef struct stat path_stat_t;
+using path_stat_t = struct stat;
 #endif
 
 static string cached_path;

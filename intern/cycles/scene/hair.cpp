@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
+#include <algorithm>
+
 #include "bvh/bvh.h"
 
 #include "scene/curves.h"
@@ -352,7 +354,7 @@ void Hair::copy_center_to_motion_step(const int motion_step)
   if (attr_mP) {
     float3 *keys = curve_keys.data();
     size_t numkeys = curve_keys.size();
-    memcpy(attr_mP->data_float3() + motion_step * numkeys, keys, sizeof(float3) * numkeys);
+    std::copy_n(keys, numkeys, attr_mP->data_float3() + motion_step * numkeys);
   }
 }
 

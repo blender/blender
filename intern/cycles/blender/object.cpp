@@ -449,7 +449,7 @@ bool BlenderSync::sync_object_attributes(BL::DepsgraphObjectInstance &b_instance
         changed = true;
         attributes.push_back(new_param);
       }
-      else if (memcmp(param->data(), &value, sizeof(value)) != 0) {
+      else if (!(param->get<float4>() == value)) {
         changed = true;
         *param = new_param;
       }

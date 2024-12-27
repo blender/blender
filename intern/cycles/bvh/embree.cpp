@@ -565,7 +565,7 @@ void BVHEmbree::set_point_vertex_buffer(RTCGeometry geom_id,
         /* Motion blur is already packed as [x y z radius]. */
         int t_ = (t > t_mid) ? (t - 1) : t;
         const float4 *verts = &attr_mP->data_float4()[t_ * num_points];
-        memcpy(rtc_verts, verts, sizeof(float4) * num_points);
+        std::copy_n(verts, num_points, rtc_verts);
       }
     }
 

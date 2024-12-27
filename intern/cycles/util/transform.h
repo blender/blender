@@ -224,13 +224,13 @@ ccl_device_inline Transform operator*(const Transform a, const Transform b)
 }
 #endif
 
-#ifndef __KERNEL_GPU__
-
 ccl_device_inline Transform transform_zero()
 {
   Transform zero = {zero_float4(), zero_float4(), zero_float4()};
   return zero;
 }
+
+#ifndef __KERNEL_GPU__
 
 ccl_device_inline void print_transform(const char *label, const Transform &t)
 {
@@ -299,7 +299,7 @@ ccl_device_inline Transform transform_identity()
 
 ccl_device_inline bool operator==(const Transform &A, const Transform &B)
 {
-  return memcmp(&A, &B, sizeof(Transform)) == 0;
+  return A.x == B.x && A.y == B.y && A.z == B.z;
 }
 
 ccl_device_inline bool operator!=(const Transform &A, const Transform &B)
@@ -518,7 +518,7 @@ class BoundBox2D;
 
 ccl_device_inline bool operator==(const DecomposedTransform &A, const DecomposedTransform &B)
 {
-  return memcmp(&A, &B, sizeof(DecomposedTransform)) == 0;
+  return A.x == B.x && A.y == B.y && A.z == B.z && A.w == B.w;
 }
 
 float4 transform_to_quat(const Transform &tfm);

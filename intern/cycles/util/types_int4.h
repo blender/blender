@@ -77,6 +77,11 @@ ccl_device_inline int4 make_int4(int i)
 #endif
 }
 
+ccl_device_inline int4 zero_int4()
+{
+  return make_int4(0);
+}
+
 ccl_device_inline void print_int4(ccl_private const char *label, const int4 a)
 {
 #ifdef __KERNEL_PRINTF__

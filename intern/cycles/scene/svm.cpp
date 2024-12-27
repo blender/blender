@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
+#include <algorithm>
+
 #include "device/device.h"
 
 #include "scene/background.h"
@@ -124,7 +126,7 @@ void SVMShaderManager::device_update_specific(Device *device,
   for (int i = 0; i < num_shaders; i++) {
     int shader_size = shader_svm_nodes[i].size() - 1;
 
-    memcpy(svm_nodes, &shader_svm_nodes[i][1], sizeof(int4) * shader_size);
+    std::copy_n(&shader_svm_nodes[i][1], shader_size, svm_nodes);
     svm_nodes += shader_size;
   }
 

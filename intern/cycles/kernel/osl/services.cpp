@@ -46,13 +46,13 @@ CCL_NAMESPACE_BEGIN
 static void copy_matrix(OSL::Matrix44 &m, const Transform &tfm)
 {
   ProjectionTransform t = projection_transpose(ProjectionTransform(tfm));
-  memcpy((void *)&m, &t, sizeof(m));
+  memcpy((float *)&m, (const float *)&t, sizeof(m));
 }
 
 static void copy_matrix(OSL::Matrix44 &m, const ProjectionTransform &tfm)
 {
   ProjectionTransform t = projection_transpose(tfm);
-  memcpy((void *)&m, &t, sizeof(m));
+  memcpy((float *)&m, (const float *)&t, sizeof(m));
 }
 
 /* static ustrings */
@@ -743,7 +743,9 @@ static bool get_object_attribute(const KernelGlobalsCPU *kg,
     else
 #endif
     {
-      memset(fval, 0, sizeof(fval));
+      fval[0] = zero_float3();
+      fval[1] = zero_float3();
+      fval[2] = zero_float3();
       fval[0] = primitive_surface_attribute_float3(
           kg, sd, desc, (derivatives) ? &fval[1] : nullptr, (derivatives) ? &fval[2] : nullptr);
     }
@@ -781,7 +783,9 @@ static bool get_object_attribute(const KernelGlobalsCPU *kg,
     float4 fval[3];
 #ifdef __VOLUME__
     if (primitive_is_volume_attribute(sd, desc)) {
-      memset(fval, 0, sizeof(fval));
+      fval[0] = zero_float4();
+      fval[1] = zero_float4();
+      fval[2] = zero_float4();
       fval[0] = primitive_volume_attribute_float4(kg, sd, desc);
     }
     else

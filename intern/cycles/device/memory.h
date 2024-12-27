@@ -618,7 +618,7 @@ class device_texture : public device_memory {
   void *alloc(const size_t width, const size_t height, const size_t depth = 0);
   void copy_to_device();
 
-  uint slot;
+  uint slot = 0;
   TextureInfo info;
 
  protected:

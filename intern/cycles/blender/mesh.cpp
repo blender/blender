@@ -2,6 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
+#include <algorithm>
 #include <optional>
 
 #include "blender/attribute_convert.h"
@@ -1265,12 +1266,12 @@ void BlenderSync::sync_mesh_motion(BL::Depsgraph b_depsgraph,
         VLOG_DEBUG << "Filling deformation motion for object " << ob_name;
         /* motion, fill up previous steps that we might have skipped because
          * they had no motion, but we need them anyway now */
-        float3 *P = mesh->get_verts().data();
-        float3 *N = (attr_N) ? attr_N->data_float3() : nullptr;
+        const float3 *P = mesh->get_verts().data();
+        const float3 *N = (attr_N) ? attr_N->data_float3() : nullptr;
         for (int step = 0; step < motion_step; step++) {
-          memcpy(attr_mP->data_float3() + step * numverts, P, sizeof(float3) * numverts);
+          std::copy_n(P, numverts, attr_mP->data_float3() + step * numverts);
           if (attr_mN) {
-            memcpy(attr_mN->data_float3() + step * numverts, N, sizeof(float3) * numverts);
+            std::copy_n(N, numverts, attr_mN->data_float3() + step * numverts);
           }
         }
       }
@@ -1279,9 +1280,11 @@ void BlenderSync::sync_mesh_motion(BL::Depsgraph b_depsgraph,
       if (b_verts_num != numverts) {
         VLOG_WARNING << "Topology differs, discarding motion blur for object " << ob_name
                      << " at time " << motion_step;
-        memcpy(mP, mesh->get_verts().data(), sizeof(float3) * numverts);
+        const float3 *P = mesh->get_verts().data();
+        const float3 *N = (attr_N) ? attr_N->data_float3() : nullptr;
+        std::copy_n(P, numverts, mP);
         if (mN != nullptr) {
-          memcpy(mN, attr_N->data_float3(), sizeof(float3) * numverts);
+          std::copy_n(N, numverts, mN);
         }
       }
     }

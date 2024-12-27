@@ -193,7 +193,6 @@ device_texture::device_texture(Device *device,
       return;
   }
 
-  memset(&info, 0, sizeof(info));
   info.data_type = image_data_type;
   info.interpolation = interpolation;
   info.extension = extension;

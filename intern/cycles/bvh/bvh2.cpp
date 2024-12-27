@@ -5,6 +5,8 @@
  *
  * Adapted code from NVIDIA Corporation. */
 
+#include <algorithm>
+
 #include "bvh/bvh2.h"
 
 #include "scene/hair.h"
@@ -107,24 +109,24 @@ BVHNode *BVH2::widen_children_nodes(const BVHNode *root)
 void BVH2::pack_leaf(const BVHStackEntry &e, const LeafNode *leaf)
 {
   assert(e.idx + BVH_NODE_LEAF_SIZE <= pack.leaf_nodes.size());
-  float4 data[BVH_NODE_LEAF_SIZE];
-  memset(data, 0, sizeof(data));
+  int4 data[BVH_NODE_LEAF_SIZE];
+  std::fill_n(data, BVH_NODE_LEAF_SIZE, zero_int4());
   if (leaf->num_triangles() == 1 && pack.prim_index[leaf->lo] == -1) {
     /* object */
-    data[0].x = __int_as_float(~(leaf->lo));
-    data[0].y = __int_as_float(0);
+    data[0].x = ~(leaf->lo);
+    data[0].y = 0;
   }
   else {
     /* triangle */
-    data[0].x = __int_as_float(leaf->lo);
-    data[0].y = __int_as_float(leaf->hi);
+    data[0].x = leaf->lo;
+    data[0].y = leaf->hi;
   }
-  data[0].z = __uint_as_float(leaf->visibility);
+  data[0].z = leaf->visibility;
   if (leaf->num_triangles() != 0) {
-    data[0].w = __uint_as_float(pack.prim_type[leaf->lo]);
+    data[0].w = pack.prim_type[leaf->lo];
   }
 
-  memcpy(&pack.leaf_nodes[e.idx], data, sizeof(float4) * BVH_NODE_LEAF_SIZE);
+  std::copy_n(data, BVH_NODE_LEAF_SIZE, &pack.leaf_nodes[e.idx]);
 }
 
 void BVH2::pack_inner(const BVHStackEntry &e, const BVHStackEntry &e0, const BVHStackEntry &e1)
@@ -179,7 +181,7 @@ void BVH2::pack_aligned_node(int idx,
                 __float_as_int(b1.max.z)),
   };
 
-  memcpy(&pack.nodes[idx], data, sizeof(int4) * BVH_NODE_SIZE);
+  std::copy_n(data, BVH_NODE_SIZE, &pack.nodes[idx]);
 }
 
 void BVH2::pack_unaligned_inner(const BVHStackEntry &e,
@@ -211,22 +213,20 @@ void BVH2::pack_unaligned_node(int idx,
   assert(c0 < 0 || c0 < pack.nodes.size());
   assert(c1 < 0 || c1 < pack.nodes.size());
 
-  float4 data[BVH_UNALIGNED_NODE_SIZE];
+  int4 data[BVH_UNALIGNED_NODE_SIZE];
   Transform space0 = BVHUnaligned::compute_node_transform(b0, aligned_space0);
   Transform space1 = BVHUnaligned::compute_node_transform(b1, aligned_space1);
-  data[0] = make_float4(__int_as_float(visibility0 | PATH_RAY_NODE_UNALIGNED),
-                        __int_as_float(visibility1 | PATH_RAY_NODE_UNALIGNED),
-                        __int_as_float(c0),
-                        __int_as_float(c1));
+  data[0] = make_int4(
+      visibility0 | PATH_RAY_NODE_UNALIGNED, visibility1 | PATH_RAY_NODE_UNALIGNED, c0, c1);
 
-  data[1] = space0.x;
-  data[2] = space0.y;
-  data[3] = space0.z;
-  data[4] = space1.x;
-  data[5] = space1.y;
-  data[6] = space1.z;
+  data[1] = __float4_as_int4(space0.x);
+  data[2] = __float4_as_int4(space0.y);
+  data[3] = __float4_as_int4(space0.z);
+  data[4] = __float4_as_int4(space1.x);
+  data[5] = __float4_as_int4(space1.y);
+  data[6] = __float4_as_int4(space1.z);
 
-  memcpy(&pack.nodes[idx], data, sizeof(float4) * BVH_UNALIGNED_NODE_SIZE);
+  std::copy_n(data, BVH_UNALIGNED_NODE_SIZE, &pack.nodes[idx]);
 }
 
 void BVH2::pack_nodes(const BVHNode *root)
@@ -323,12 +323,12 @@ void BVH2::refit_node(int idx, bool leaf, BoundBox &bbox, uint &visibility)
     refit_primitives(c0, c1, bbox, visibility);
 
     /* TODO(sergey): De-duplicate with pack_leaf(). */
-    float4 leaf_data[BVH_NODE_LEAF_SIZE];
-    leaf_data[0].x = __int_as_float(c0);
-    leaf_data[0].y = __int_as_float(c1);
-    leaf_data[0].z = __uint_as_float(visibility);
-    leaf_data[0].w = __uint_as_float(data[0].w);
-    memcpy(&pack.leaf_nodes[idx], leaf_data, sizeof(float4) * BVH_NODE_LEAF_SIZE);
+    int4 leaf_data[BVH_NODE_LEAF_SIZE];
+    leaf_data[0].x = c0;
+    leaf_data[0].y = c1;
+    leaf_data[0].z = visibility;
+    leaf_data[0].w = data[0].w;
+    std::copy_n(leaf_data, BVH_NODE_LEAF_SIZE, &pack.leaf_nodes[idx]);
   }
   else {
     assert(idx + BVH_NODE_SIZE <= pack.nodes.size());
@@ -628,7 +628,7 @@ void BVH2::pack_instances(size_t nodes_size, size_t leaf_nodes_size)
           nsize_bbox = 0;
         }
 
-        memcpy(pack_nodes + pack_nodes_offset, bvh_nodes + i, nsize_bbox * sizeof(int4));
+        std::copy_n(bvh_nodes + i, nsize_bbox, pack_nodes + pack_nodes_offset);
 
         /* Modify offsets into arrays */
         int4 data = bvh_nodes[i + nsize_bbox];
@@ -639,9 +639,9 @@ void BVH2::pack_instances(size_t nodes_size, size_t leaf_nodes_size)
         /* Usually this copies nothing, but we better
          * be prepared for possible node size extension.
          */
-        memcpy(&pack_nodes[pack_nodes_offset + nsize_bbox + 1],
-               &bvh_nodes[i + nsize_bbox + 1],
-               sizeof(int4) * (nsize - (nsize_bbox + 1)));
+        std::copy_n(&bvh_nodes[i + nsize_bbox + 1],
+                    (nsize - (nsize_bbox + 1)),
+                    &pack_nodes[pack_nodes_offset + nsize_bbox + 1]);
 
         pack_nodes_offset += nsize;
         i += nsize;

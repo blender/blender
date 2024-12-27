@@ -19,7 +19,7 @@ enum {
 /* Interpolation types for textures
  * CUDA also use texture space to store other objects. */
 enum InterpolationType {
-  INTERPOLATION_NONE = -1,
+  INTERPOLATION_NONE = ~0,
   INTERPOLATION_LINEAR = 0,
   INTERPOLATION_CLOSEST = 1,
   INTERPOLATION_CUBIC = 2,
@@ -75,16 +75,19 @@ enum ExtensionType {
 
 struct TextureInfo {
   /* Pointer, offset or texture depending on device. */
-  uint64_t data;
+  uint64_t data = 0;
   /* Data Type */
-  uint data_type;
+  uint data_type = IMAGE_DATA_NUM_TYPES;
   /* Interpolation and extension type. */
-  uint interpolation, extension;
+  uint interpolation = INTERPOLATION_NONE;
+  uint extension = EXTENSION_REPEAT;
   /* Dimensions. */
-  uint width, height, depth;
+  uint width = 0;
+  uint height = 0;
+  uint depth = 0;
   /* Transform for 3D textures. */
-  uint use_transform_3d;
-  Transform transform_3d;
+  uint use_transform_3d = false;
+  Transform transform_3d = transform_zero();
 };
 
 CCL_NAMESPACE_END

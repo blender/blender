@@ -360,15 +360,22 @@ static inline void render_add_metadata(BL::RenderResult &b_rr, string name, stri
 
 static inline Transform get_transform(const BL::Array<float, 16> &array)
 {
-  ProjectionTransform projection;
+  /* Convert from Blender column major to Cycles row major, assume it's an affine transform that
+   * does not need the last row. */
+  return make_transform(array[0],
+                        array[4],
+                        array[8],
+                        array[12],
 
-  /* We assume both types to be just 16 floats, and transpose because blender
-   * use column major matrix order while we use row major. */
-  memcpy((void *)&projection, &array, sizeof(float) * 16);
-  projection = projection_transpose(projection);
+                        array[1],
+                        array[5],
+                        array[9],
+                        array[13],
 
-  /* Drop last row, matrix is assumed to be affine transform. */
-  return projection_to_transform(projection);
+                        array[2],
+                        array[6],
+                        array[10],
+                        array[14]);
 }
 
 static inline float2 get_float2(const BL::Array<float, 2> &array)

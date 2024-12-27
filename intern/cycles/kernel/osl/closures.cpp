@@ -144,9 +144,9 @@ void osl_eval_nodes<SHADER_TYPE_SURFACE>(const KernelGlobalsCPU *kg,
         assert(found);
 
         differential3 tmp_dP;
-        memcpy(&sd->P, data, sizeof(float) * 3);
-        memcpy(&tmp_dP.dx, data + 3, sizeof(float) * 3);
-        memcpy(&tmp_dP.dy, data + 6, sizeof(float) * 3);
+        sd->P = make_float3(data[0], data[1], data[2]);
+        tmp_dP.dx = make_float3(data[3], data[4], data[5]);
+        tmp_dP.dy = make_float3(data[6], data[7], data[8]);
 
         object_position_transform(kg, sd, &sd->P);
         object_dir_transform(kg, sd, &tmp_dP.dx);

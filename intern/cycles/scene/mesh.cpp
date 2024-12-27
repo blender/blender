@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
+#include <algorithm>
+
 #include "bvh/build.h"
 #include "bvh/bvh.h"
 
@@ -425,9 +427,9 @@ void Mesh::copy_center_to_motion_step(const int motion_step)
     float3 *N = (attr_N) ? attr_N->data_float3() : nullptr;
     size_t numverts = verts.size();
 
-    memcpy(attr_mP->data_float3() + motion_step * numverts, P, sizeof(float3) * numverts);
+    std::copy_n(P, numverts, attr_mP->data_float3() + motion_step * numverts);
     if (attr_mN) {
-      memcpy(attr_mN->data_float3() + motion_step * numverts, N, sizeof(float3) * numverts);
+      std::copy_n(N, numverts, attr_mN->data_float3() + motion_step * numverts);
     }
   }
 }
@@ -585,7 +587,7 @@ void Mesh::add_vertex_normals()
     float3 *vN = attr_vN->data_float3();
 
     /* compute vertex normals */
-    memset(vN, 0, verts.size() * sizeof(float3));
+    std::fill_n(vN, verts.size(), zero_float3());
 
     for (size_t i = 0; i < triangles_size; i++) {
       for (size_t j = 0; j < 3; j++) {
@@ -618,7 +620,7 @@ void Mesh::add_vertex_normals()
       float3 *mN = attr_mN->data_float3() + step * verts.size();
 
       /* compute */
-      memset(mN, 0, verts.size() * sizeof(float3));
+      std::fill_n(mN, verts.size(), zero_float3());
 
       for (size_t i = 0; i < triangles_size; i++) {
         Triangle tri = get_triangle(i);
@@ -648,7 +650,7 @@ void Mesh::add_vertex_normals()
     float3 *vN = attr_vN->data_float3();
 
     /* compute vertex normals */
-    memset(vN, 0, verts.size() * sizeof(float3));
+    std::fill_n(vN, verts.size(), zero_float3());
 
     for (size_t i = 0; i < get_num_subd_faces(); i++) {
       SubdFace face = get_subd_face(i);
@@ -689,16 +691,16 @@ void Mesh::add_undisplaced()
   float3 *data = attr->data_float3();
 
   /* copy verts */
-  size_t size = attr->buffer_size(this, ATTR_PRIM_GEOMETRY);
+  size_t size = attr->buffer_size(this, ATTR_PRIM_GEOMETRY) / sizeof(float3);
 
   /* Center points for ngons aren't stored in Mesh::verts but are included in size since they will
    * be calculated later, we subtract them from size here so we don't have an overflow while
    * copying.
    */
-  size -= num_ngons * attr->data_sizeof();
+  size -= num_ngons;
 
   if (size) {
-    memcpy(data, verts.data(), size);
+    std::copy_n(verts.data(), size, data);
   }
 }
 

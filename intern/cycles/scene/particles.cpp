@@ -54,7 +54,7 @@ void ParticleSystemManager::device_update_particles(Device * /*unused*/,
   KernelParticle *kparticles = dscene->particles.alloc(num_particles);
 
   /* dummy particle */
-  memset(kparticles, 0, sizeof(KernelParticle));
+  *kparticles = KernelParticle{};
 
   int i = 1;
   for (size_t j = 0; j < scene->particle_systems.size(); j++) {

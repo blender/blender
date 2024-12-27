@@ -638,8 +638,7 @@ static void xml_read_mesh(const XMLReadState &state, xml_node node)
    * coordinates as generated coordinates if requested */
   if (mesh->need_attribute(state.scene, ATTR_STD_GENERATED)) {
     Attribute *attr = mesh->attributes.add(ATTR_STD_GENERATED);
-    memcpy(
-        attr->data_float3(), mesh->get_verts().data(), sizeof(float3) * mesh->get_verts().size());
+    std::copy_n(mesh->get_verts().data(), mesh->get_verts().size(), attr->data_float3());
   }
 }
 

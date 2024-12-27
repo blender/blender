@@ -226,16 +226,7 @@ class BVHReference {
     return time_to_;
   }
 
-  BVHReference &operator=(const BVHReference &arg)
-  {
-    if (&arg != this) {
-      /* TODO(sergey): Check if it is still faster to memcpy() with
-       * modern compilers.
-       */
-      memcpy((void *)this, &arg, sizeof(BVHReference));
-    }
-    return *this;
-  }
+  BVHReference &operator=(const BVHReference &arg) = default;
 
  protected:
   BoundBox rbounds;

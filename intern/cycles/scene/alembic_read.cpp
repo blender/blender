@@ -2,8 +2,10 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#include "scene/alembic_read.h"
+#include <algorithm>
+
 #include "scene/alembic.h"
+#include "scene/alembic_read.h"
 #include "scene/mesh.h"
 
 #include "util/color.h"
@@ -112,7 +114,7 @@ static void compute_vertex_normals(CachedData &cache, double current_time)
 
   array<char> attr_data(vertices->size() * sizeof(float3));
   float3 *attr_ptr = reinterpret_cast<float3 *>(attr_data.data());
-  memset(attr_ptr, 0, vertices->size() * sizeof(float3));
+  std::fill_n(attr_ptr, vertices->size(), zero_float3());
 
   for (size_t t = 0; t < triangles->size(); ++t) {
     const int3 tri_int3 = triangles->data()[t];
