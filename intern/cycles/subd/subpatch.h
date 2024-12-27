@@ -108,6 +108,9 @@ class Subpatch {
         return inner_grid_vert_offset + ((Mu - 1) * (Mv - 1) - 1) - n * (Mu - 1);
       case 3:
         return inner_grid_vert_offset + (Mu - 2) - n;
+      default:
+        assert(0);
+        break;
     }
 
     return -1;

@@ -27,7 +27,7 @@ ccl_device_noinline int svm_node_tex_coord(KernelGlobals kg,
   uint type = node.y;
   uint out_offset = node.z;
 
-  switch (type) {
+  switch ((NodeTexCoord)type) {
     case NODE_TEXCO_OBJECT: {
       data = sd->P;
       if (node.w == 0) {
@@ -117,7 +117,7 @@ ccl_device_noinline int svm_node_tex_coord_bump_dx(KernelGlobals kg,
   uint type = node.y;
   uint out_offset = node.z;
 
-  switch (type) {
+  switch ((NodeTexCoord)type) {
     case NODE_TEXCO_OBJECT: {
       data = svm_node_bump_P_dx(sd);
       if (node.w == 0) {
@@ -210,7 +210,7 @@ ccl_device_noinline int svm_node_tex_coord_bump_dy(KernelGlobals kg,
   uint type = node.y;
   uint out_offset = node.z;
 
-  switch (type) {
+  switch ((NodeTexCoord)type) {
     case NODE_TEXCO_OBJECT: {
       data = svm_node_bump_P_dy(sd);
       if (node.w == 0) {

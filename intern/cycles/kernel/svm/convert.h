@@ -19,7 +19,7 @@ ccl_device_noinline void svm_node_convert(KernelGlobals kg,
                                           uint from,
                                           uint to)
 {
-  switch (type) {
+  switch ((NodeConvert)type) {
     case NODE_CONVERT_FI: {
       float f = stack_load_float(stack, from);
       stack_store_int(stack, to, float_to_int(f));

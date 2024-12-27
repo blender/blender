@@ -21,7 +21,7 @@ ccl_device_noinline void svm_node_light_path(KernelGlobals kg,
 {
   float info = 0.0f;
 
-  switch (type) {
+  switch ((NodeLightPath)type) {
     case NODE_LP_camera:
       info = (path_flag & PATH_RAY_CAMERA) ? 1.0f : 0.0f;
       break;
@@ -111,7 +111,7 @@ ccl_device_noinline void svm_node_light_falloff(ccl_private ShaderData *sd,
   float strength = stack_load_float(stack, strength_offset);
   uint type = node.y;
 
-  switch (type) {
+  switch ((NodeLightFalloff)type) {
     case NODE_LIGHT_FALLOFF_QUADRATIC:
       break;
     case NODE_LIGHT_FALLOFF_LINEAR:

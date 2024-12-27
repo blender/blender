@@ -1082,6 +1082,9 @@ ccl_device_noinline int svm_node_tex_voronoi(KernelGlobals kg,
         case 4:
           distance = fractal_voronoi_distance_to_edge(params, make_float4(coord, w));
           break;
+        default:
+          kernel_assert(0);
+          break;
       }
 
       svm_voronoi_output(stack_offsets, stack, distance, zero_float3(), zero_float3(), 0.0f, 0.0f);
@@ -1101,6 +1104,9 @@ ccl_device_noinline int svm_node_tex_voronoi(KernelGlobals kg,
           break;
         case 4:
           radius = voronoi_n_sphere_radius(params, make_float4(coord, w));
+          break;
+        default:
+          kernel_assert(0);
           break;
       }
 
@@ -1150,6 +1156,9 @@ ccl_device_noinline int svm_node_tex_voronoi(KernelGlobals kg,
                                   ((params.feature == NODE_VORONOI_F2) ? 2.0f : 1.0f);
             output = fractal_voronoi_x_fx(params, make_float4(coord, w));
           }
+          break;
+        default:
+          kernel_assert(0);
           break;
       }
 

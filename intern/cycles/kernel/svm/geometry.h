@@ -159,7 +159,7 @@ ccl_device_noinline void svm_node_particle_info(KernelGlobals kg,
                                                 uint type,
                                                 uint out_offset)
 {
-  switch (type) {
+  switch ((NodeParticleInfo)type) {
     case NODE_INFO_PAR_INDEX: {
       int particle_id = object_particle_id(kg, sd->object);
       stack_store_float(stack, out_offset, particle_index(kg, particle_id));
@@ -224,7 +224,7 @@ ccl_device_noinline void svm_node_hair_info(KernelGlobals kg,
   float data;
   float3 data3;
 
-  switch (type) {
+  switch ((NodeHairInfo)type) {
     case NODE_INFO_CURVE_IS_STRAND: {
       data = (sd->type & PRIMITIVE_CURVE) != 0;
       stack_store_float(stack, out_offset, data);
@@ -260,7 +260,7 @@ ccl_device_noinline void svm_node_point_info(KernelGlobals kg,
                                              uint type,
                                              uint out_offset)
 {
-  switch (type) {
+  switch ((NodePointInfo)type) {
     case NODE_INFO_POINT_POSITION:
       stack_store_float3(stack, out_offset, point_position(kg, sd));
       break;

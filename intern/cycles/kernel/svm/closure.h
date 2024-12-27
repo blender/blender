@@ -1099,6 +1099,10 @@ ccl_device_noinline void svm_node_closure_volume(KernelGlobals kg,
           sd->flag |= volume_draine_setup(draine);
         }
       } break;
+      default: {
+        kernel_assert(0);
+        break;
+      }
     }
   }
 
