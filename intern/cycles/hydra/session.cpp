@@ -72,7 +72,6 @@ HdCyclesSession::HdCyclesSession(const SessionParams &params)
     graph->connect(objectNode->output("Color"), diffuseNode->input("Color"));
     graph->connect(diffuseNode->output("BSDF"), graph->output()->input("Surface"));
 
-#if 1
     // Create the instanceId AOV output
     const ustring instanceId(HdAovTokens->instanceId.GetString());
 
@@ -85,7 +84,6 @@ HdCyclesSession::HdCyclesSession(const SessionParams &params)
     graph->add(instanceIdNode);
 
     graph->connect(instanceIdNode->output("Fac"), aovNode->input("Value"));
-#endif
 
     scene->default_surface->set_graph(graph);
     scene->default_surface->tag_update(scene);

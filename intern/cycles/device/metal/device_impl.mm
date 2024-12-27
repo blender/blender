@@ -399,11 +399,6 @@ string MetalDevice::preprocess_source(MetalPipelineType pso_type,
     global_defines += "#define __KERNEL_USE_DATA_CONSTANTS__\n";
   }
 
-#  if 0
-  metal_printf("================\n%s================\n",
-               global_defines.c_str());
-#  endif
-
   if (source) {
     *source = global_defines + *source;
   }
@@ -489,11 +484,6 @@ void MetalDevice::refresh_source_and_kernels_md5(MetalPipelineType pso_type)
 
 #  undef KERNEL_STRUCT_MEMBER
 #  undef KERNEL_STRUCT_MEMBER_DONT_SPECIALIZE
-
-#  if 0
-    metal_printf("================\n%s================\n",
-                constant_values.c_str());
-#  endif
   }
 
   MD5Hash md5;

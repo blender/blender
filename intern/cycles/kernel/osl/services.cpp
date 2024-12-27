@@ -460,19 +460,6 @@ static bool set_attribute_float2(float2 f[3], TypeDesc type, bool derivatives, v
   return false;
 }
 
-#if 0
-static bool set_attribute_float2(float2 f, TypeDesc type, bool derivatives, void *val)
-{
-  float2 fv[3];
-
-  fv[0] = f;
-  fv[1] = make_float2(0.0f, 0.0f);
-  fv[2] = make_float2(0.0f, 0.0f);
-
-  return set_attribute_float2(fv, type, derivatives, val);
-}
-#endif
-
 static bool set_attribute_float3(float3 f[3], TypeDesc type, bool derivatives, void *val)
 {
   if (type == TypeFloatArray4) {
@@ -597,19 +584,6 @@ static bool set_attribute_float4(float4 f[3], TypeDesc type, bool derivatives, v
   }
   return false;
 }
-
-#if 0
-static bool set_attribute_float4(float4 f, TypeDesc type, bool derivatives, void *val)
-{
-  float4 fv[3];
-
-  fv[0] = f;
-  fv[1] = zero_float4();
-  fv[2] = zero_float4();
-
-  return set_attribute_float4(fv, type, derivatives, val);
-}
-#endif
 
 static bool set_attribute_float(const float f[3], TypeDesc type, bool derivatives, void *val)
 {

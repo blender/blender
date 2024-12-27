@@ -216,7 +216,6 @@ void HdCyclesMaterial::Sync(HdSceneDelegate *sceneDelegate,
   if (dirtyResource || dirtyParams) {
     value = sceneDelegate->GetMaterialResource(id);
 
-#if 1
     const HdMaterialNetwork2 *network = nullptr;
     std::unique_ptr<HdMaterialNetwork2> networkConverted;
     if (value.IsHolding<HdMaterialNetwork2>()) {
@@ -234,11 +233,11 @@ void HdCyclesMaterial::Sync(HdSceneDelegate *sceneDelegate,
       }
       else {
         networkConverted = std::make_unique<HdMaterialNetwork2>();
-#  if PXR_VERSION >= 2205
+#if PXR_VERSION >= 2205
         *networkConverted = HdConvertToHdMaterialNetwork2(networkOld);
-#  else
+#else
         HdMaterialNetwork2ConvertFromHdMaterialNetworkMap(networkOld, networkConverted.get());
-#  endif
+#endif
         network = networkConverted.get();
       }
     }
@@ -255,7 +254,6 @@ void HdCyclesMaterial::Sync(HdSceneDelegate *sceneDelegate,
         PopulateShaderGraph(*network);
       }
     }
-#endif
   }
 
   if (_shader->is_modified()) {

@@ -609,6 +609,8 @@ static void xml_read_mesh(const XMLReadState &state, xml_node node)
       Attribute *attr = mesh->subd_attributes.add(ATTR_STD_UV);
       float3 *fdata = attr->data_float3();
 
+      /* TODO: Implement various face-varying interpolation modes and make it
+       * a property of Mesh. */
 #if 0
       if (subdivide_uvs) {
         attr->flags |= ATTR_SUBDIVIDED;

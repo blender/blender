@@ -790,13 +790,6 @@ bool BVHMetal::build_BLAS_pointcloud(Progress &progress,
       [aabbBuf didModifyRange:NSMakeRange(0, aabbBuf.length)];
     }
 
-#  if 0
-    for (size_t i=0; i<num_aabbs && i < 400; i++) {
-      MTLAxisAlignedBoundingBox& bb = aabb_data[i];
-      printf("  %d:   %.1f,%.1f,%.1f -- %.1f,%.1f,%.1f\n", int(i), bb.min.x, bb.min.y, bb.min.z, bb.max.x, bb.max.y, bb.max.z);
-    }
-#  endif
-
     MTLAccelerationStructureGeometryDescriptor *geomDesc;
     if (motion_blur) {
       std::vector<MTLMotionKeyframeData *> aabb_ptrs;
