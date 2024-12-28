@@ -562,7 +562,7 @@ set(LIB
   PRIVATE bf::gpu
   bf_ikplugin
   PRIVATE bf::imbuf
-  bf::imbuf_movie
+  PRIVATE bf::imbuf::movie
   PRIVATE bf::intern::clog
   bf_intern_ghost
   PRIVATE bf::intern::guardedalloc

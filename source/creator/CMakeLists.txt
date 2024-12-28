@@ -4,7 +4,6 @@
 
 set(INC
   ../blender/editors/include
-  ../blender/imbuf/movie
   ../blender/io/usd
   ../blender/makesrna
 )
@@ -17,6 +16,7 @@ set(LIB
   PRIVATE bf::dna
   PRIVATE bf::gpu
   PRIVATE bf::imbuf
+  PRIVATE bf::imbuf::movie
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::render

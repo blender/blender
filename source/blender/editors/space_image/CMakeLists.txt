@@ -6,7 +6,6 @@ set(INC
   ../asset
   ../include
   ../../draw
-  ../../imbuf/movie
   ../../makesrna
 
   # RNA_prototypes.hh
@@ -40,6 +39,7 @@ set(LIB
   bf_editor_uvedit
   PRIVATE bf::gpu
   PRIVATE bf::imbuf
+  PRIVATE bf::imbuf::movie
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::render

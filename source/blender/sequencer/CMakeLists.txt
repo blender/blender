@@ -6,7 +6,6 @@ set(INC
   PUBLIC .
   intern
   ../animrig
-  ../imbuf/movie
   ../makesrna
 
   # RNA_prototypes.hh
@@ -98,6 +97,7 @@ set(LIB
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   PRIVATE bf::imbuf
+  PRIVATE bf::imbuf::movie
   PRIVATE bf::intern::atomic
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc

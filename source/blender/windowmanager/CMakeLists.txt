@@ -9,7 +9,6 @@ set(INC
   ../compositor
   ../editors/include
   ../draw
-  ../imbuf/movie
   ../makesrna
   ../../../intern/memutil
 
@@ -101,6 +100,7 @@ set(LIB
   PRIVATE bf::extern::fmtlib
   PRIVATE bf::gpu
   PRIVATE bf::imbuf
+  PRIVATE bf::imbuf::movie
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::animrig

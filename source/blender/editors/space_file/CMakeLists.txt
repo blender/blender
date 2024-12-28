@@ -5,7 +5,6 @@
 set(INC
   ../asset
   ../include
-  ../../imbuf/movie
   ../../makesrna
 
   # RNA_prototypes.hh
@@ -46,6 +45,7 @@ set(LIB
   PRIVATE bf::dna
   PRIVATE bf::gpu
   PRIVATE bf::imbuf
+  PRIVATE bf::imbuf::movie
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::extern::fmtlib
   PRIVATE bf::intern::atomic

@@ -11,7 +11,6 @@ set(INC
   ../draw
   ../draw/intern
   ../gpu/intern
-  ../imbuf/movie
   ../makesrna
   ../simulation
   ../../../intern/mikktspace
@@ -62,6 +61,7 @@ set(LIB
   PRIVATE bf::extern::fmtlib
   PRIVATE bf::gpu
   PRIVATE bf::imbuf
+  PRIVATE bf::imbuf::movie
   PRIVATE bf::intern::guardedalloc
   bf_compositor
   PRIVATE bf::intern::atomic

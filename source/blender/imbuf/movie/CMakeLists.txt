@@ -4,7 +4,6 @@
 
 set(INC
   PUBLIC .
-  ..
 )
 
 set(INC_SYS
@@ -29,10 +28,9 @@ set(SRC
 )
 
 set(LIB
-  PRIVATE bf_blenkernel
   PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
-  PRIVATE bf_imbuf
+  PUBLIC  bf::imbuf
   PRIVATE bf::intern::guardedalloc
 )
 
@@ -64,7 +62,7 @@ if(WITH_AUDASPACE)
 endif()
 
 blender_add_lib(bf_imbuf_movie "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
-add_library(bf::imbuf_movie ALIAS bf_imbuf_movie)
+add_library(bf::imbuf::movie ALIAS bf_imbuf_movie)
 
 if(WITH_GTESTS AND WITH_CODEC_FFMPEG)
   set(TEST_SRC
