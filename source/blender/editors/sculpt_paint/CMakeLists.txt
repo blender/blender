@@ -10,7 +10,6 @@ set(INC
   ../uvedit
   ../../blenlib
   ../../draw
-  ../../geometry
   ../../makesrna
   ../../../../intern/eigen
   # RNA_prototypes.hh
@@ -180,6 +179,7 @@ set(LIB
   PRIVATE bf::dna
   PRIVATE bf::extern::fmtlib
   PRIVATE bf::functions
+  PRIVATE bf::geometry
   PRIVATE bf::gpu
   PRIVATE bf::imbuf
   PRIVATE bf::intern::atomic

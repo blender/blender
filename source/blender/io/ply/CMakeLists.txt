@@ -8,7 +8,6 @@ set(INC
   importer
   intern
   ../common
-  ../../geometry
   ../../makesrna
 )
 
@@ -52,6 +51,7 @@ set(LIB
   PRIVATE bf::bmesh
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
+  PRIVATE bf::geometry
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   bf_io_common

@@ -6,7 +6,6 @@ set(INC
   ../include
   ../uvedit
   ../../draw
-  ../../geometry
   ../../makesrna
   # RNA_prototypes.hh
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
@@ -63,6 +62,7 @@ set(LIB
   PRIVATE bf::dna
   PRIVATE bf::extern::fmtlib
   PRIVATE bf::functions
+  PRIVATE bf::geometry
   PRIVATE bf::gpu
   PRIVATE bf::imbuf
   PRIVATE bf::intern::clog

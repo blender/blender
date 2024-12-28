@@ -4,7 +4,6 @@
 
 set(INC
   ../include
-  ../../geometry
   ../../makesrna
 
   # RNA_prototypes.hh
@@ -38,6 +37,7 @@ set(LIB
   PRIVATE bf::extern::curve_fit_nd
   PRIVATE bf::extern::fmtlib
   PRIVATE bf::functions
+  PRIVATE bf::geometry
   PRIVATE bf::gpu
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc

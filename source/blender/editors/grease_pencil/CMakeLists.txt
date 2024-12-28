@@ -6,7 +6,6 @@ set(INC
   ../include
   ../../makesrna
   ../../../../extern/curve_fit_nd
-  ../../geometry
   ../sculpt_paint
   ../../modifiers/intern/lineart
   # RNA_prototypes.hh
@@ -48,6 +47,7 @@ set(LIB
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   PRIVATE bf::functions
+  PRIVATE bf::geometry
   PRIVATE bf::gpu
   PRIVATE bf::imbuf
   PRIVATE bf::intern::guardedalloc

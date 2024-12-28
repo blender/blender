@@ -6,7 +6,6 @@ set(INC
   .
   ../common
   ../../editors/include
-  ../../geometry
   ../../makesdna
   ../../makesrna
   ../../../../intern/guardedalloc
@@ -34,6 +33,7 @@ set(LIB
   PRIVATE bf::dna
   PRIVATE bf::extern::nanosvg
   PRIVATE bf::functions
+  PRIVATE bf::geometry
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::windowmanager

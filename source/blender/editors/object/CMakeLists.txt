@@ -4,7 +4,6 @@
 
 set(INC
   ../include
-  ../../geometry
   ../../ikplugin
   ../../makesrna
   ../../modifiers
@@ -65,6 +64,7 @@ set(LIB
   bf_editor_grease_pencil
   PRIVATE bf::extern::fmtlib
   PRIVATE bf::functions
+  PRIVATE bf::geometry
   PRIVATE bf::gpu
   PRIVATE bf::imbuf
   PRIVATE bf::intern::clog
