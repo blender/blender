@@ -5,7 +5,6 @@
 set(INC
   ../asset
   ../include
-  ../../draw
   ../../makesrna
 
   # RNA_prototypes.hh
@@ -36,6 +35,7 @@ set(LIB
   PRIVATE bf::bmesh
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
+  PRIVATE bf::draw
   bf_editor_uvedit
   PRIVATE bf::gpu
   PRIVATE bf::imbuf

@@ -5,7 +5,6 @@
 set(INC
   ../asset
   ../include
-  ../../draw
   ../../makesrna
   ../../modifiers
   ../../../../intern/mantaflow/extern
@@ -81,6 +80,7 @@ set(LIB
   PRIVATE bf::bmesh
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
+  PRIVATE bf::draw
   bf_editor_curves
   bf_editor_lattice
   bf_editor_mesh

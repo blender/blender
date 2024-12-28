@@ -8,7 +8,6 @@ set(INC
   gizmo/intern
   ../compositor
   ../editors/include
-  ../draw
   ../makesrna
   ../../../intern/memutil
 
@@ -95,6 +94,7 @@ set(LIB
   PRIVATE bf::bmesh
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
+  PRIVATE bf::draw
   bf_editor_screen
   bf_editor_undo
   PRIVATE bf::extern::fmtlib

@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 set(INC
-  .
+  PUBLIC .
   intern
 
   ../editors/include
@@ -845,6 +845,7 @@ if(WITH_TBB)
 endif()
 
 blender_add_lib(bf_draw "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+add_library(bf::draw ALIAS bf_draw)
 
 
 if(WITH_GTESTS)

@@ -4,7 +4,6 @@
 
 set(INC
   ../include
-  ../../draw
   ../../makesrna
 
   # RNA_prototypes.hh
@@ -53,6 +52,7 @@ set(LIB
   PRIVATE bf::blentranslation
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
+  PRIVATE bf::draw
   bf_editor_interface
   bf_editor_util
   PRIVATE bf::gpu

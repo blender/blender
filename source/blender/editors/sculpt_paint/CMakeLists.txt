@@ -9,7 +9,6 @@ set(INC
   ../include
   ../uvedit
   ../../blenlib
-  ../../draw
   ../../makesrna
   ../../../../intern/eigen
   # RNA_prototypes.hh
@@ -177,6 +176,7 @@ set(LIB
   PRIVATE bf::bmesh
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
+  PRIVATE bf::draw
   PRIVATE bf::extern::fmtlib
   PRIVATE bf::functions
   PRIVATE bf::geometry

@@ -4,7 +4,6 @@
 
 set(INC
   PUBLIC .
-  ../draw
   ../editors/include
   ../makesrna
 
@@ -56,6 +55,7 @@ set(LIB
   PRIVATE bf::bmesh
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
+  PRIVATE bf::draw
   PRIVATE bf::gpu
   PRIVATE bf::imbuf
   PRIVATE bf::imbuf::movie

@@ -4,7 +4,6 @@
 
 set(INC
   PUBLIC .
-  ../draw
   ../ikplugin
   ../makesrna
   ../modifiers
@@ -556,7 +555,7 @@ set(LIB
   PRIVATE bf::bmesh
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
-  bf_draw
+  PRIVATE bf::draw
   PRIVATE bf::extern::curve_fit_nd
   PRIVATE bf::functions
   PRIVATE bf::gpu

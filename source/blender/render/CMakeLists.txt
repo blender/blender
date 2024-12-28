@@ -8,7 +8,6 @@ set(INC
   intern
   ../compositor
   ../compositor/cached_resources
-  ../draw
   ../draw/intern
   ../gpu/intern
   ../makesrna
@@ -58,6 +57,7 @@ set(LIB
   PRIVATE bf::blentranslation
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
+  PRIVATE bf::draw
   PRIVATE bf::extern::fmtlib
   PRIVATE bf::gpu
   PRIVATE bf::imbuf

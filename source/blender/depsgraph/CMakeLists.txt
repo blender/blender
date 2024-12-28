@@ -5,7 +5,6 @@
 set(INC
   PUBLIC .
   ../animrig
-  ../draw
   ../makesrna
   ../modifiers
   # RNA_prototypes.hh
@@ -151,6 +150,7 @@ set(LIB
   PRIVATE bf::blenlib
   PRIVATE bf::bmesh
   PRIVATE bf::dna
+  PRIVATE bf::draw
   PRIVATE bf::functions
   PRIVATE bf::intern::atomic
   PRIVATE bf::intern::guardedalloc
