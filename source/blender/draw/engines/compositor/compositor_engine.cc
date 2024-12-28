@@ -75,6 +75,12 @@ class Context : public compositor::Context {
     return true;
   }
 
+  eCompositorDenoiseQaulity get_denoise_quality() const override
+  {
+    return static_cast<eCompositorDenoiseQaulity>(
+        this->get_render_data().compositor_denoise_preview_quality);
+  }
+
   bool use_file_output() const override
   {
     return false;

@@ -9217,6 +9217,21 @@ static void def_cmp_denoise(StructRNA *srna)
        "passes are noisy using extra processing time."},
       {0, nullptr, 0, nullptr, nullptr}};
 
+  static const EnumPropertyItem quality_items[] = {
+      {CMP_NODE_DENOISE_QUALITY_SCENE,
+       "FOLLOW_SCENE",
+       0,
+       "Follow Scene",
+       "Use the scene's denoising quality setting"},
+      {CMP_NODE_DENOISE_QUALITY_HIGH, "HIGH", 0, "High", "High quality"},
+      {CMP_NODE_DENOISE_QUALITY_BALANCED,
+       "BALANCED",
+       0,
+       "Balanced",
+       "Balanced between performance and quality"},
+      {CMP_NODE_DENOISE_QUALITY_FAST, "FAST", 0, "Fast", "High perfomance"},
+      {0, nullptr, 0, nullptr, nullptr}};
+
   RNA_def_struct_sdna_from(srna, "NodeDenoise", "storage");
 
   prop = RNA_def_property(srna, "use_hdr", PROP_BOOLEAN, PROP_NONE);
@@ -9229,6 +9244,12 @@ static void def_cmp_denoise(StructRNA *srna)
   RNA_def_property_enum_items(prop, prefilter_items);
   RNA_def_property_enum_default(prop, CMP_NODE_DENOISE_PREFILTER_ACCURATE);
   RNA_def_property_ui_text(prop, "", "Denoising prefilter");
+  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+  prop = RNA_def_property(srna, "quality", PROP_ENUM, PROP_NONE);
+  RNA_def_property_enum_items(prop, quality_items);
+  RNA_def_property_enum_default(prop, CMP_NODE_DENOISE_QUALITY_SCENE);
+  RNA_def_property_ui_text(prop, "", "Denoising quality");
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 

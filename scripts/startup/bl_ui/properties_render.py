@@ -763,9 +763,37 @@ class CompositorPerformanceButtonsPanel:
         col.prop(rd, "compositor_precision", text="Precision")
 
 
+class CompositorDenoisePerformanceButtonsPanel:
+    bl_label = "Denoise Nodes"
+
+    def draw(self, context):
+        layout = self.layout
+        scene = context.scene
+        rd = scene.render
+
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        col = layout.column()
+        row = col.row()
+
+        col.prop(rd, "compositor_denoise_preview_quality", text="Preview Quality")
+        col.prop(rd, "compositor_denoise_final_quality", text="Final Quality")
+
+
 class RENDER_PT_eevee_performance_compositor(RenderButtonsPanel, CompositorPerformanceButtonsPanel, Panel):
     bl_options = {'DEFAULT_CLOSED'}
     bl_parent_id = "RENDER_PT_eevee_performance"
+    COMPAT_ENGINES = {
+        'BLENDER_EEVEE_NEXT',
+        'BLENDER_WORKBENCH',
+    }
+
+
+class RENDER_PT_eevee_performance_compositor_denoise_settings(
+        RenderButtonsPanel, CompositorDenoisePerformanceButtonsPanel, Panel):
+    bl_options = {'DEFAULT_CLOSED'}
+    bl_parent_id = "RENDER_PT_eevee_performance_compositor"
     COMPAT_ENGINES = {
         'BLENDER_EEVEE_NEXT',
         'BLENDER_WORKBENCH',
@@ -1044,6 +1072,7 @@ classes = (
     RENDER_PT_eevee_performance_memory,
     RENDER_PT_eevee_performance_viewport,
     RENDER_PT_eevee_performance_compositor,
+    RENDER_PT_eevee_performance_compositor_denoise_settings,
 
 
     RENDER_PT_gpencil,
