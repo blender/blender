@@ -9,6 +9,7 @@
 
 #include "util/boundbox.h"
 #include "util/types.h"
+#include "util/unique_ptr.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -31,10 +32,7 @@ class BVHParams;
 
 class BVHNode {
  public:
-  virtual ~BVHNode()
-  {
-    delete aligned_space;
-  }
+  virtual ~BVHNode() = default;
 
   virtual bool is_leaf() const = 0;
   virtual int num_children() const = 0;
@@ -49,7 +47,7 @@ class BVHNode {
   {
     is_unaligned = true;
     if (this->aligned_space == nullptr) {
-      this->aligned_space = new Transform(aligned_space);
+      this->aligned_space = make_unique<Transform>(aligned_space);
     }
     else {
       *this->aligned_space = aligned_space;
@@ -80,7 +78,6 @@ class BVHNode {
   // Subtree functions
   int getSubtreeSize(BVH_STAT stat = BVH_STAT_NODE_COUNT) const;
   float computeSubtreeSAHCost(const BVHParams &p, const float probability = 1.0f) const;
-  void deleteSubtree();
 
   uint update_visibility();
   void update_time();
@@ -97,7 +94,7 @@ class BVHNode {
   /* TODO(sergey): Can be stored as 3x3 matrix, but better to have some
    * utilities and type defines in util_transform first.
    */
-  Transform *aligned_space = nullptr;
+  unique_ptr<Transform> aligned_space;
 
   float time_from = 0.0f, time_to = 1.0f;
 
@@ -114,8 +111,7 @@ class BVHNode {
   {
     if (other.aligned_space != nullptr) {
       assert(other.is_unaligned);
-      aligned_space = new Transform();
-      *aligned_space = *other.aligned_space;
+      aligned_space = make_unique<Transform>(*other.aligned_space);
     }
     else {
       assert(!other.is_unaligned);
@@ -127,13 +123,9 @@ class InnerNode : public BVHNode {
  public:
   static constexpr int kNumMaxChildren = 8;
 
-  InnerNode(const BoundBox &bounds, BVHNode *child0, BVHNode *child1)
+  InnerNode(const BoundBox &bounds, unique_ptr<BVHNode> &&child0, unique_ptr<BVHNode> &&child1)
       : BVHNode(bounds), num_children_(2)
   {
-    children[0] = child0;
-    children[1] = child1;
-    reset_unused_children();
-
     if (child0 && child1) {
       visibility = child0->visibility | child1->visibility;
     }
@@ -141,30 +133,16 @@ class InnerNode : public BVHNode {
       /* Happens on build cancel. */
       visibility = 0;
     }
-  }
 
-  InnerNode(const BoundBox &bounds, BVHNode **children, const int num_children)
-      : BVHNode(bounds), num_children_(num_children)
-  {
-    visibility = 0;
-    time_from = FLT_MAX;
-    time_to = -FLT_MAX;
-    for (int i = 0; i < num_children; ++i) {
-      assert(children[i] != nullptr);
-      visibility |= children[i]->visibility;
-      this->children[i] = children[i];
-      time_from = min(time_from, children[i]->time_from);
-      time_to = max(time_to, children[i]->time_to);
-    }
-    reset_unused_children();
+    children[0] = std::move(child0);
+    children[1] = std::move(child1);
   }
 
   /* NOTE: This function is only used during binary BVH builder, and it's
    * supposed to be configured to have 2 children which will be filled-in in a
-   * bit. But this is important to have children reset to nullptr. */
+   * bit. */
   explicit InnerNode(const BoundBox &bounds) : BVHNode(bounds), num_children_(0)
   {
-    reset_unused_children();
     visibility = 0;
     num_children_ = 2;
   }
@@ -180,20 +158,12 @@ class InnerNode : public BVHNode {
   BVHNode *get_child(const int i) const override
   {
     assert(i >= 0 && i < num_children_);
-    return children[i];
+    return children[i].get();
   }
   void print(const int depth) const override;
 
   int num_children_;
-  BVHNode *children[kNumMaxChildren];
-
- protected:
-  void reset_unused_children()
-  {
-    for (int i = num_children_; i < kNumMaxChildren; ++i) {
-      children[i] = nullptr;
-    }
-  }
+  unique_ptr<BVHNode> children[kNumMaxChildren];
 };
 
 class LeafNode : public BVHNode {

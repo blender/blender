@@ -101,13 +101,13 @@ void device_optix_info(const vector<DeviceInfo> &cuda_devices, vector<DeviceInfo
 #endif
 }
 
-Device *device_optix_create(const DeviceInfo &info,
-                            Stats &stats,
-                            Profiler &profiler,
-                            bool headless)
+unique_ptr<Device> device_optix_create(const DeviceInfo &info,
+                                       Stats &stats,
+                                       Profiler &profiler,
+                                       bool headless)
 {
 #ifdef WITH_OPTIX
-  return new OptiXDevice(info, stats, profiler, headless);
+  return make_unique<OptiXDevice>(info, stats, profiler, headless);
 #else
   (void)info;
   (void)stats;

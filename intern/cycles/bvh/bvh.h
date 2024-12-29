@@ -10,6 +10,7 @@
 #include "bvh/params.h"
 #include "util/array.h"
 #include "util/types.h"
+#include "util/unique_ptr.h"
 #include "util/vector.h"
 
 CCL_NAMESPACE_BEGIN
@@ -69,10 +70,10 @@ class BVH {
   vector<Geometry *> geometry;
   vector<Object *> objects;
 
-  static BVH *create(const BVHParams &params,
-                     const vector<Geometry *> &geometry,
-                     const vector<Object *> &objects,
-                     Device *device);
+  static unique_ptr<BVH> create(const BVHParams &params,
+                                const vector<Geometry *> &geometry,
+                                const vector<Object *> &objects,
+                                Device *device);
   virtual ~BVH() = default;
 
   virtual void replace_geometry(const vector<Geometry *> &geometry,

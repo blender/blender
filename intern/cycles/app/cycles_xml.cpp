@@ -224,7 +224,7 @@ static void xml_read_shader_graph(XMLReadState &state, Shader *shader, const xml
 {
   xml_read_node(state, shader, graph_node);
 
-  ShaderGraph *graph = new ShaderGraph();
+  unique_ptr<ShaderGraph> graph = make_unique<ShaderGraph>();
 
   /* local state, shader nodes can't link to nodes outside the shader graph */
   XMLReader graph_reader;
@@ -307,7 +307,7 @@ static void xml_read_shader_graph(XMLReadState &state, Shader *shader, const xml
 
 #ifdef WITH_OSL
     if (node_name == "osl_shader") {
-      ShaderManager *manager = state.scene->shader_manager;
+      ShaderManager *manager = state.scene->shader_manager.get();
 
       if (manager->use_osl()) {
         std::string filepath;
@@ -317,7 +317,7 @@ static void xml_read_shader_graph(XMLReadState &state, Shader *shader, const xml
             filepath = path_join(state.base, filepath);
           }
 
-          snode = OSLShaderManager::osl_node(graph, manager, filepath, "");
+          snode = OSLShaderManager::osl_node(graph.get(), manager, filepath, "");
 
           if (!snode) {
             fprintf(stderr, "Failed to create OSL node from \"%s\".\n", filepath.c_str());
@@ -358,7 +358,7 @@ static void xml_read_shader_graph(XMLReadState &state, Shader *shader, const xml
       }
 
       snode = (ShaderNode *)node_type->create(node_type);
-      snode->set_owner(graph);
+      snode->set_owner(graph.get());
     }
 
     xml_read_node(graph_reader, snode, node);
@@ -380,7 +380,7 @@ static void xml_read_shader_graph(XMLReadState &state, Shader *shader, const xml
     }
   }
 
-  shader->set_graph(graph);
+  shader->set_graph(std::move(graph));
   shader->tag_update(state.scene);
 }
 

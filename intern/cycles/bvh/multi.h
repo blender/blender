@@ -7,19 +7,20 @@
 #include "bvh/bvh.h"
 #include "bvh/params.h"
 
+#include <util/unique_ptr.h>
+#include <util/vector.h>
+
 CCL_NAMESPACE_BEGIN
 
 class BVHMulti : public BVH {
  public:
-  vector<BVH *> sub_bvhs;
+  vector<unique_ptr<BVH>> sub_bvhs;
 
- protected:
-  friend class BVH;
   BVHMulti(const BVHParams &params,
            const vector<Geometry *> &geometry,
            const vector<Object *> &objects);
-  ~BVHMulti() override;
 
+ protected:
   void replace_geometry(const vector<Geometry *> &geometry,
                         const vector<Object *> &objects) override;
 };

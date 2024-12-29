@@ -145,12 +145,12 @@ void PathTraceWorkGPU::alloc_integrator_soa()
   if ((kernel_features & (feature)) && (integrator_state_gpu_.parent_struct.name == nullptr)) { \
     string name_str = string_printf("%sintegrator_state_" #parent_struct "_" #name, \
                                     shadow ? "shadow_" : ""); \
-    device_only_memory<type> *array = new device_only_memory<type>(device_, name_str.c_str()); \
+    auto array = make_unique<device_only_memory<type>>(device_, name_str.c_str()); \
     array->alloc_to_device(max_num_paths_); \
-    integrator_state_soa_.emplace_back(array); \
     memcpy(&integrator_state_gpu_.parent_struct.name, \
            &array->device_pointer, \
            sizeof(array->device_pointer)); \
+    integrator_state_soa_.emplace_back(std::move(array)); \
   }
 #ifdef __INTEGRATOR_GPU_PACKED_STATE__
 #  define KERNEL_STRUCT_MEMBER_PACKED(parent_struct, type, name, feature) \
@@ -174,12 +174,12 @@ void PathTraceWorkGPU::alloc_integrator_soa()
   { \
     string name_str = string_printf( \
         "%sintegrator_state_" #name "_%d", shadow ? "shadow_" : "", array_index); \
-    device_only_memory<type> *array = new device_only_memory<type>(device_, name_str.c_str()); \
+    auto array = make_unique<device_only_memory<type>>(device_, name_str.c_str()); \
     array->alloc_to_device(max_num_paths_); \
-    integrator_state_soa_.emplace_back(array); \
     memcpy(&integrator_state_gpu_.parent_struct[array_index].name, \
            &array->device_pointer, \
            sizeof(array->device_pointer)); \
+    integrator_state_soa_.emplace_back(std::move(array)); \
   }
 #define KERNEL_STRUCT_END(name) \
   (void)array_index; \

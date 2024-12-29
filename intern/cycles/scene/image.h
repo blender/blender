@@ -11,6 +11,7 @@
 #include "util/string.h"
 #include "util/thread.h"
 #include "util/transform.h"
+#include "util/unique_ptr.h"
 #include "util/vector.h"
 
 CCL_NAMESPACE_BEGIN
@@ -166,8 +167,10 @@ class ImageManager {
   ImageHandle add_image(const string &filename,
                         const ImageParams &params,
                         const array<int> &tiles);
-  ImageHandle add_image(ImageLoader *loader, const ImageParams &params, const bool builtin = true);
-  ImageHandle add_image(const vector<ImageLoader *> &loaders, const ImageParams &params);
+  ImageHandle add_image(unique_ptr<ImageLoader> &&loader,
+                        const ImageParams &params,
+                        const bool builtin = true);
+  ImageHandle add_image(vector<unique_ptr<ImageLoader>> &&loaders, const ImageParams &params);
 
   void device_update(Device *device, Scene *scene, Progress &progress);
   void device_update_slot(Device *device, Scene *scene, const size_t slot, Progress &progress);
@@ -188,7 +191,7 @@ class ImageManager {
   struct Image {
     ImageParams params;
     ImageMetaData metadata;
-    ImageLoader *loader;
+    unique_ptr<ImageLoader> loader;
 
     float frame;
     bool need_metadata;
@@ -196,7 +199,7 @@ class ImageManager {
     bool builtin;
 
     string mem_name;
-    device_texture *mem;
+    unique_ptr<device_texture> mem;
 
     int users;
     thread_mutex mutex;
@@ -211,10 +214,12 @@ class ImageManager {
   thread_mutex images_mutex;
   int animation_frame;
 
-  vector<Image *> images;
+  vector<unique_ptr<Image>> images;
   void *osl_texture_system;
 
-  size_t add_image_slot(ImageLoader *loader, const ImageParams &params, const bool builtin);
+  size_t add_image_slot(unique_ptr<ImageLoader> &&loader,
+                        const ImageParams &params,
+                        const bool builtin);
   void add_image_user(const size_t slot);
   void remove_image_user(const size_t slot);
 

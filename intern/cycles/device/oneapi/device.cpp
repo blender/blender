@@ -75,13 +75,13 @@ bool device_oneapi_init()
 #endif
 }
 
-Device *device_oneapi_create(const DeviceInfo &info,
-                             Stats &stats,
-                             Profiler &profiler,
-                             bool headless)
+unique_ptr<Device> device_oneapi_create(const DeviceInfo &info,
+                                        Stats &stats,
+                                        Profiler &profiler,
+                                        bool headless)
 {
 #ifdef WITH_ONEAPI
-  return new OneapiDevice(info, stats, profiler, headless);
+  return make_unique<OneapiDevice>(info, stats, profiler, headless);
 #else
   (void)info;
   (void)stats;

@@ -10,12 +10,16 @@
 #include "scene/geometry.h"
 #include "scene/shader.h"
 
+#include "subd/dice.h"
+#include "subd/patch_table.h"
+
 #include "util/array.h"
 #include "util/boundbox.h"
 #include "util/map.h"
 #include "util/param.h"
 #include "util/set.h"
 #include "util/types.h"
+#include "util/unique_ptr.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -31,7 +35,6 @@ class SceneParams;
 class AttributeRequest;
 struct SubdParams;
 class DiagSplit;
-struct PackedPatchTable;
 
 /* Mesh */
 
@@ -155,7 +158,7 @@ class Mesh : public Geometry {
   AttributeSet subd_attributes;
 
  private:
-  PackedPatchTable *patch_table;
+  unique_ptr<PackedPatchTable> patch_table;
   /* BVH */
   size_t vert_offset;
 
@@ -179,12 +182,11 @@ class Mesh : public Geometry {
   friend class GeometryManager;
   friend class ObjectManager;
 
-  SubdParams *subd_params = nullptr;
+  unique_ptr<SubdParams> subd_params;
 
  public:
   /* Functions */
   Mesh();
-  ~Mesh() override;
 
   void resize_mesh(const int numverts, const int numtris);
   void reserve_mesh(const int numverts, const int numtris);

@@ -7,6 +7,7 @@
 #include <cassert>
 
 #include "util/thread.h"
+#include "util/unique_ptr.h"
 #include "util/vector.h"
 
 CCL_NAMESPACE_BEGIN
@@ -104,7 +105,7 @@ class Profiler {
   vector<uint64_t> object_hits;
 
   volatile bool do_stop_worker;
-  thread *worker;
+  unique_ptr<thread> worker;
 
   thread_mutex mutex;
   vector<ProfilingState *> states;

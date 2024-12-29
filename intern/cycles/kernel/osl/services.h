@@ -22,10 +22,6 @@
 
 #include "kernel/osl/compat.h"
 
-#ifdef WITH_PTEX
-class PtexCache;
-#endif
-
 CCL_NAMESPACE_BEGIN
 
 class Scene;
@@ -47,7 +43,7 @@ struct ThreadKernelGlobalsCPU;
  * NOTE: The svm_slots array contains a compressed mapping of tile to svm_slot pairs
  * stored as follows: x:tile_a, y:svm_slot_a, z:tile_b, w:svm_slot_b etc. */
 
-struct OSLTextureHandle : public OIIO::RefCnt {
+struct OSLTextureHandle {
   enum Type { OIIO, SVM, IES, BEVEL, AO };
 
   OSLTextureHandle(Type type, const vector<int4> &svm_slots) : type(type), svm_slots(svm_slots) {}
@@ -69,8 +65,7 @@ struct OSLTextureHandle : public OIIO::RefCnt {
   ImageHandle handle;
 };
 
-using OSLTextureHandleRef = OIIO::intrusive_ptr<OSLTextureHandle>;
-using OSLTextureHandleMap = OIIO::unordered_map_concurrent<OSLUStringHash, OSLTextureHandleRef>;
+using OSLTextureHandleMap = OIIO::unordered_map_concurrent<OSLUStringHash, OSLTextureHandle>;
 
 /* OSL Render Services
  *

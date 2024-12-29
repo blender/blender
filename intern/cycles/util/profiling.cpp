@@ -9,7 +9,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-Profiler::Profiler() : do_stop_worker(true), worker(nullptr) {}
+Profiler::Profiler() : do_stop_worker(true) {}
 
 Profiler::~Profiler()
 {
@@ -76,7 +76,7 @@ void Profiler::start()
 {
   assert(worker == nullptr);
   do_stop_worker = false;
-  worker = new thread([this] { run(); });
+  worker = make_unique<thread>([this] { run(); });
 }
 
 void Profiler::stop()
@@ -85,8 +85,7 @@ void Profiler::stop()
     do_stop_worker = true;
 
     worker->join();
-    delete worker;
-    worker = nullptr;
+    worker.reset();
   }
 }
 

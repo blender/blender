@@ -5,6 +5,7 @@
 #pragma once
 
 #include "util/string.h"
+#include "util/unique_ptr.h"
 #include "util/vector.h"
 
 CCL_NAMESPACE_BEGIN
@@ -16,10 +17,10 @@ class Stats;
 
 bool device_cuda_init();
 
-Device *device_cuda_create(const DeviceInfo &info,
-                           Stats &stats,
-                           Profiler &profiler,
-                           bool headless);
+unique_ptr<Device> device_cuda_create(const DeviceInfo &info,
+                                      Stats &stats,
+                                      Profiler &profiler,
+                                      bool headless);
 
 void device_cuda_info(vector<DeviceInfo> &devices);
 

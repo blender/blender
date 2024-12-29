@@ -15,6 +15,7 @@
 #include "util/ies.h"
 #include "util/thread.h"
 #include "util/types.h"
+#include "util/unique_ptr.h"
 #include "util/vector.h"
 
 CCL_NAMESPACE_BEGIN
@@ -117,7 +118,6 @@ class LightManager {
   bool need_update_background;
 
   LightManager();
-  ~LightManager();
 
   /* IES texture management */
   int add_ies(const string &content);
@@ -159,7 +159,7 @@ class LightManager {
     int users;
   };
 
-  vector<IESSlot *> ies_slots;
+  vector<unique_ptr<IESSlot>> ies_slots;
   thread_mutex ies_mutex;
 
   bool last_background_enabled;

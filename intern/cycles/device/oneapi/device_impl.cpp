@@ -137,9 +137,7 @@ OneapiDevice::~OneapiDevice()
   usm_free(device_queue_, kg_memory_);
   usm_free(device_queue_, kg_memory_device_);
 
-  for (ConstMemMap::iterator mt = const_mem_map_.begin(); mt != const_mem_map_.end(); mt++) {
-    delete mt->second;
-  }
+  const_mem_map_.clear();
 
   if (device_queue_) {
     free_queue(device_queue_);
@@ -548,12 +546,14 @@ void OneapiDevice::const_copy_to(const char *name, void *host, const size_t size
   device_vector<uchar> *data;
 
   if (i == const_mem_map_.end()) {
-    data = new device_vector<uchar>(this, name, MEM_READ_ONLY);
-    data->alloc(size);
-    const_mem_map_.insert(ConstMemMap::value_type(name, data));
+    unique_ptr<device_vector<uchar>> data_ptr = make_unique<device_vector<uchar>>(
+        this, name, MEM_READ_ONLY);
+    data_ptr->alloc(size);
+    data = data_ptr.get();
+    const_mem_map_.insert(ConstMemMap::value_type(name, std::move(data)));
   }
   else {
-    data = i->second;
+    data = i->second.get();
   }
 
   assert(data->memory_size() <= size);

@@ -94,24 +94,24 @@ BVH::BVH(const BVHParams &params_,
 {
 }
 
-BVH *BVH::create(const BVHParams &params,
-                 const vector<Geometry *> &geometry,
-                 const vector<Object *> &objects,
-                 Device *device)
+unique_ptr<BVH> BVH::create(const BVHParams &params,
+                            const vector<Geometry *> &geometry,
+                            const vector<Object *> &objects,
+                            Device *device)
 {
   switch (params.bvh_layout) {
     case BVH_LAYOUT_BVH2:
-      return new BVH2(params, geometry, objects);
+      return make_unique<BVH2>(params, geometry, objects);
     case BVH_LAYOUT_EMBREE:
     case BVH_LAYOUT_EMBREEGPU:
 #ifdef WITH_EMBREE
-      return new BVHEmbree(params, geometry, objects);
+      return make_unique<BVHEmbree>(params, geometry, objects);
 #else
       break;
 #endif
     case BVH_LAYOUT_OPTIX:
 #ifdef WITH_OPTIX
-      return new BVHOptiX(params, geometry, objects, device);
+      return make_unique<BVHOptiX>(params, geometry, objects, device);
 #else
       (void)device;
       break;
@@ -125,7 +125,7 @@ BVH *BVH::create(const BVHParams &params,
 #endif
     case BVH_LAYOUT_HIPRT:
 #ifdef WITH_HIPRT
-      return new BVHHIPRT(params, geometry, objects, device);
+      return make_unique<BVHHIPRT>(params, geometry, objects, device);
 #else
       (void)device;
       break;
@@ -138,7 +138,7 @@ BVH *BVH::create(const BVHParams &params,
     case BVH_LAYOUT_MULTI_METAL_EMBREE:
     case BVH_LAYOUT_MULTI_HIPRT_EMBREE:
     case BVH_LAYOUT_MULTI_EMBREEGPU_EMBREE:
-      return new BVHMulti(params, geometry, objects);
+      return make_unique<BVHMulti>(params, geometry, objects);
     case BVH_LAYOUT_NONE:
     case BVH_LAYOUT_ALL:
       break;

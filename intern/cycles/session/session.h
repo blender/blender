@@ -107,10 +107,10 @@ class SessionParams {
 
 class Session {
  public:
-  Device *device;
+  unique_ptr<Device> device;
   /* Denoiser device. Could be the same as the path trace device. */
-  Device *denoise_device;
-  Scene *scene;
+  unique_ptr<Device> denoise_device_;
+  unique_ptr<Scene> scene;
   Progress progress;
   SessionParams params;
   Stats stats;
@@ -208,10 +208,16 @@ class Session {
 
   int2 get_effective_tile_size() const;
 
+  /* Get device used for denoising, may be the same as render device. */
+  Device *denoise_device()
+  {
+    return (denoise_device_) ? denoise_device_.get() : device.get();
+  }
+
   /* Session thread that performs rendering tasks decoupled from the thread
    * controlling the sessions. The thread is created and destroyed along with
    * the session. */
-  thread *session_thread_ = nullptr;
+  unique_ptr<thread> session_thread_ = nullptr;
   thread_condition_variable session_thread_cond_;
   thread_mutex session_thread_mutex_;
   enum {

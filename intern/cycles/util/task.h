@@ -8,6 +8,7 @@
 #include "util/string.h"
 #include "util/tbb.h"
 #include "util/thread.h"
+#include "util/unique_ptr.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -83,7 +84,7 @@ class TaskScheduler {
   static int active_num_threads;
 
 #ifdef WITH_TBB_GLOBAL_CONTROL
-  static tbb::global_control *global_control;
+  static unique_ptr<tbb::global_control> global_control;
 #endif
 };
 
@@ -125,7 +126,7 @@ class DedicatedTaskPool {
   bool do_cancel;
   bool do_exit;
 
-  thread *worker_thread;
+  unique_ptr<thread> worker_thread;
 };
 
 CCL_NAMESPACE_END

@@ -41,8 +41,6 @@ class BVHEmbree : public BVH {
 
   RTCScene scene;
 
- protected:
-  friend class BVH;
   BVHEmbree(const BVHParams &params,
             const vector<Geometry *> &geometry,
             const vector<Object *> &objects);

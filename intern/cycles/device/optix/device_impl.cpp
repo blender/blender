@@ -1584,7 +1584,7 @@ void OptiXDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
         continue;
       }
 
-      BVHOptiX *const blas = static_cast<BVHOptiX *>(ob->get_geometry()->bvh);
+      BVHOptiX *const blas = static_cast<BVHOptiX *>(ob->get_geometry()->bvh.get());
       OptixTraversableHandle handle = blas->traversable_handle;
       if (handle == 0) {
         continue;
@@ -1658,15 +1658,16 @@ void OptiXDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
         motion_transform_offset += motion_transform_size;
 
         /* Allocate host side memory for motion transform and fill it with transform data. */
-        OptixSRTMotionTransform &motion_transform = *reinterpret_cast<OptixSRTMotionTransform *>(
-            new uint8_t[motion_transform_size]);
-        motion_transform.child = handle;
-        motion_transform.motionOptions.numKeys = ob->get_motion().size();
-        motion_transform.motionOptions.flags = OPTIX_MOTION_FLAG_NONE;
-        motion_transform.motionOptions.timeBegin = 0.0f;
-        motion_transform.motionOptions.timeEnd = 1.0f;
+        array<uint8_t> motion_transform_storage(motion_transform_size);
+        OptixSRTMotionTransform *motion_transform = reinterpret_cast<OptixSRTMotionTransform *>(
+            motion_transform_storage.data());
+        motion_transform->child = handle;
+        motion_transform->motionOptions.numKeys = ob->get_motion().size();
+        motion_transform->motionOptions.flags = OPTIX_MOTION_FLAG_NONE;
+        motion_transform->motionOptions.timeBegin = 0.0f;
+        motion_transform->motionOptions.timeEnd = 1.0f;
 
-        OptixSRTData *const srt_data = motion_transform.srtData;
+        OptixSRTData *const srt_data = motion_transform->srtData;
         array<DecomposedTransform> decomp(ob->get_motion().size());
         transform_motion_decompose(
             decomp.data(), ob->get_motion().data(), ob->get_motion().size());
@@ -1703,8 +1704,9 @@ void OptiXDevice::build_bvh(BVH *bvh, Progress &progress, bool refit)
         }
 
         /* Upload motion transform to GPU. */
-        cuMemcpyHtoD(motion_transform_gpu, &motion_transform, motion_transform_size);
-        delete[] reinterpret_cast<uint8_t *>(&motion_transform);
+        cuMemcpyHtoD(motion_transform_gpu, motion_transform, motion_transform_size);
+        motion_transform = nullptr;
+        motion_transform_storage.clear();
 
         /* Get traversable handle to motion transform. */
         optixConvertPointerToTraversableHandle(context,

@@ -38,7 +38,7 @@
 CCL_NAMESPACE_BEGIN
 
 struct Options {
-  Session *session;
+  unique_ptr<Session> session;
   Scene *scene;
   string filepath;
   int width, height;
@@ -99,12 +99,12 @@ static BufferParams &session_buffer_params()
 
 static void scene_init()
 {
-  options.scene = options.session->scene;
+  options.scene = options.session->scene.get();
 
   /* Read XML or USD */
 #ifdef WITH_USD
   if (!string_endswith(string_to_lower(options.filepath), ".xml")) {
-    HD_CYCLES_NS::HdCyclesFileReader::read(options.session, options.filepath.c_str());
+    HD_CYCLES_NS::HdCyclesFileReader::read(options.session.get(), options.filepath.c_str());
   }
   else
 #endif
@@ -129,7 +129,7 @@ static void scene_init()
 static void session_init()
 {
   options.output_pass = "combined";
-  options.session = new Session(options.session_params, options.scene_params);
+  options.session = make_unique<Session>(options.session_params, options.scene_params);
 
 #ifdef WITH_CYCLES_STANDALONE_GUI
   if (!options.session_params.background) {
@@ -167,8 +167,7 @@ static void session_init()
 static void session_exit()
 {
   if (options.session) {
-    delete options.session;
-    options.session = nullptr;
+    options.session.reset();
   }
 
   if (options.session_params.background && !options.quiet) {

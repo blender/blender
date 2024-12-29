@@ -121,17 +121,17 @@ void BlenderSession::create_session()
   start_resize_time = 0.0;
 
   /* create session */
-  session = new Session(session_params, scene_params);
+  session = make_unique<Session>(session_params, scene_params);
   session->progress.set_update_callback([this] { tag_redraw(); });
   session->progress.set_cancel_callback([this] { test_cancel(); });
   session->set_pause(session_pause);
 
   /* create scene */
-  scene = session->scene;
+  scene = session->scene.get();
   scene->name = b_scene.name();
 
   /* create sync */
-  sync = new BlenderSync(
+  sync = make_unique<BlenderSync>(
       b_engine, b_data, b_scene, scene, !background, use_developer_ui, session->progress);
   BL::Object b_camera_override(b_engine.camera_override());
   if (b_v3d) {
@@ -222,8 +222,7 @@ void BlenderSession::reset_session(BL::BlendData &b_data, BL::Depsgraph &b_depsg
 
   if (is_new_session) {
     /* Sync object should be re-created for new scene. */
-    delete sync;
-    sync = new BlenderSync(
+    sync = make_unique<BlenderSync>(
         b_engine, b_data, b_scene, scene, !background, use_developer_ui, session->progress);
   }
   else {
@@ -255,11 +254,8 @@ void BlenderSession::free_session()
     session->cancel(true);
   }
 
-  delete sync;
-  sync = nullptr;
-
-  delete session;
-  session = nullptr;
+  sync.reset();
+  session.reset();
 
   display_driver_ = nullptr;
 }
@@ -491,8 +487,7 @@ void BlenderSession::render_frame_finish()
   if (!b_render.use_persistent_data()) {
     /* Free the sync object so that it can properly dereference nodes from the scene graph before
      * the graph is freed. */
-    delete sync;
-    sync = nullptr;
+    sync.reset();
 
     session->device_free();
   }
@@ -877,7 +872,7 @@ void BlenderSession::draw(BL::SpaceImageEditor &space_image)
       return;
     }
 
-    Scene *scene = session->scene;
+    Scene *scene = session->scene.get();
 
     const thread_scoped_lock lock(scene->mutex);
 

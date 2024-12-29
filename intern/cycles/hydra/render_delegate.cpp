@@ -415,7 +415,7 @@ HdAovDescriptor HdCyclesDelegate::GetDefaultAovDescriptor(const TfToken &name) c
 
 HdRenderSettingDescriptorList HdCyclesDelegate::GetRenderSettingDescriptors() const
 {
-  Scene *const scene = _renderParam->session->scene;
+  Scene *const scene = _renderParam->session->scene.get();
 
   HdRenderSettingDescriptorList descriptors;
 
@@ -446,7 +446,7 @@ HdRenderSettingDescriptorList HdCyclesDelegate::GetRenderSettingDescriptors() co
 
 void HdCyclesDelegate::SetRenderSetting(const PXR_NS::TfToken &key, const PXR_NS::VtValue &value)
 {
-  Scene *const scene = _renderParam->session->scene;
+  Scene *const scene = _renderParam->session->scene.get();
   Session *const session = _renderParam->session;
 
   if (key == HdCyclesRenderSettingsTokens->stageMetersPerUnit) {
@@ -482,7 +482,7 @@ void HdCyclesDelegate::SetRenderSetting(const PXR_NS::TfToken &key, const PXR_NS
 
 VtValue HdCyclesDelegate::GetRenderSetting(const TfToken &key) const
 {
-  Scene *const scene = _renderParam->session->scene;
+  Scene *const scene = _renderParam->session->scene.get();
   Session *const session = _renderParam->session;
 
   if (key == HdCyclesRenderSettingsTokens->stageMetersPerUnit) {

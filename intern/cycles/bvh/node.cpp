@@ -92,17 +92,6 @@ int BVHNode::getSubtreeSize(BVH_STAT stat) const
   return cnt;
 }
 
-void BVHNode::deleteSubtree()
-{
-  for (int i = 0; i < num_children(); i++) {
-    if (get_child(i)) {
-      get_child(i)->deleteSubtree();
-    }
-  }
-
-  delete this;
-}
-
 float BVHNode::computeSubtreeSAHCost(const BVHParams &p, const float probability) const
 {
   float SAH = probability * p.cost(num_children(), num_triangles());
@@ -120,8 +109,8 @@ uint BVHNode::update_visibility()
 {
   if (!is_leaf() && visibility == 0) {
     InnerNode *inner = (InnerNode *)this;
-    BVHNode *child0 = inner->children[0];
-    BVHNode *child1 = inner->children[1];
+    BVHNode *child0 = inner->children[0].get();
+    BVHNode *child1 = inner->children[1].get();
 
     visibility = child0->update_visibility() | child1->update_visibility();
   }
@@ -133,8 +122,8 @@ void BVHNode::update_time()
 {
   if (!is_leaf()) {
     InnerNode *inner = (InnerNode *)this;
-    BVHNode *child0 = inner->children[0];
-    BVHNode *child1 = inner->children[1];
+    BVHNode *child0 = inner->children[0].get();
+    BVHNode *child1 = inner->children[1].get();
     child0->update_time();
     child1->update_time();
     time_from = min(child0->time_from, child1->time_from);

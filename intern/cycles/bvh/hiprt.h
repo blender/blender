@@ -41,8 +41,6 @@ class BVHHIPRT : public BVH {
   device_vector<int> triangle_index;
   device_vector<float> vertex_data;
 
- protected:
-  friend class BVH;
   BVHHIPRT(const BVHParams &params,
            const vector<Geometry *> &geometry,
            const vector<Object *> &objects,

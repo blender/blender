@@ -119,7 +119,7 @@ ImageMetaData ImageHandle::metadata()
     return ImageMetaData();
   }
 
-  ImageManager::Image *img = manager->images[tile_slots.front()];
+  ImageManager::Image *img = manager->images[tile_slots.front()].get();
   manager->load_image_metadata(img);
   return img->metadata;
 }
@@ -131,7 +131,7 @@ int ImageHandle::svm_slot(const int tile_index) const
   }
 
   if (manager->osl_texture_system) {
-    ImageManager::Image *img = manager->images[tile_slots[tile_index]];
+    ImageManager::Image *img = manager->images[tile_slots[tile_index]].get();
     if (!img->loader->osl_filepath().empty()) {
       return -1;
     }
@@ -175,8 +175,8 @@ device_texture *ImageHandle::image_memory(const int tile_index) const
     return nullptr;
   }
 
-  ImageManager::Image *img = manager->images[tile_slots[tile_index]];
-  return img ? img->mem : nullptr;
+  ImageManager::Image *img = manager->images[tile_slots[tile_index]].get();
+  return img ? img->mem.get() : nullptr;
 }
 
 VDBImageLoader *ImageHandle::vdb_loader(const int tile_index) const
@@ -185,13 +185,13 @@ VDBImageLoader *ImageHandle::vdb_loader(const int tile_index) const
     return nullptr;
   }
 
-  ImageManager::Image *img = manager->images[tile_slots[tile_index]];
+  ImageManager::Image *img = manager->images[tile_slots[tile_index]].get();
 
   if (img == nullptr) {
     return nullptr;
   }
 
-  ImageLoader *loader = img->loader;
+  ImageLoader *loader = img->loader.get();
 
   if (loader == nullptr) {
     return nullptr;
@@ -371,7 +371,7 @@ void ImageManager::load_image_metadata(Image *img)
 
 ImageHandle ImageManager::add_image(const string &filename, const ImageParams &params)
 {
-  const size_t slot = add_image_slot(new OIIOImageLoader(filename), params, false);
+  const size_t slot = add_image_slot(make_unique<OIIOImageLoader>(filename), params, false);
 
   ImageHandle handle;
   handle.tile_slots.push_back(slot);
@@ -398,18 +398,18 @@ ImageHandle ImageManager::add_image(const string &filename,
       const int v = ((tile - 1001) / 10);
       string_replace(tile_filename, "<UVTILE>", string_printf("u%d_v%d", u + 1, v + 1));
     }
-    const size_t slot = add_image_slot(new OIIOImageLoader(tile_filename), params, false);
+    const size_t slot = add_image_slot(make_unique<OIIOImageLoader>(tile_filename), params, false);
     handle.tile_slots.push_back(slot);
   }
 
   return handle;
 }
 
-ImageHandle ImageManager::add_image(ImageLoader *loader,
+ImageHandle ImageManager::add_image(unique_ptr<ImageLoader> &&loader,
                                     const ImageParams &params,
                                     const bool builtin)
 {
-  const size_t slot = add_image_slot(loader, params, builtin);
+  const size_t slot = add_image_slot(std::move(loader), params, builtin);
 
   ImageHandle handle;
   handle.tile_slots.push_back(slot);
@@ -417,12 +417,14 @@ ImageHandle ImageManager::add_image(ImageLoader *loader,
   return handle;
 }
 
-ImageHandle ImageManager::add_image(const vector<ImageLoader *> &loaders,
+ImageHandle ImageManager::add_image(vector<unique_ptr<ImageLoader>> &&loaders,
                                     const ImageParams &params)
 {
   ImageHandle handle;
-  for (ImageLoader *loader : loaders) {
-    const size_t slot = add_image_slot(loader, params, true);
+  for (unique_ptr<ImageLoader> &loader : loaders) {
+    unique_ptr<ImageLoader> local_loader;
+    std::swap(loader, local_loader);
+    const size_t slot = add_image_slot(std::move(local_loader), params, true);
     handle.tile_slots.push_back(slot);
   }
 
@@ -430,21 +432,19 @@ ImageHandle ImageManager::add_image(const vector<ImageLoader *> &loaders,
   return handle;
 }
 
-size_t ImageManager::add_image_slot(ImageLoader *loader,
+size_t ImageManager::add_image_slot(unique_ptr<ImageLoader> &&loader,
                                     const ImageParams &params,
                                     const bool builtin)
 {
-  Image *img;
   size_t slot;
 
   const thread_scoped_lock device_lock(images_mutex);
 
   /* Find existing image. */
   for (slot = 0; slot < images.size(); slot++) {
-    img = images[slot];
-    if (img && ImageLoader::equals(img->loader, loader) && img->params == params) {
+    Image *img = images[slot].get();
+    if (img && ImageLoader::equals(img->loader.get(), loader.get()) && img->params == params) {
       img->users++;
-      delete loader;
       return slot;
     }
   }
@@ -461,16 +461,16 @@ size_t ImageManager::add_image_slot(ImageLoader *loader,
   }
 
   /* Add new image. */
-  img = new Image();
+  unique_ptr<Image> img = make_unique<Image>();
   img->params = params;
-  img->loader = loader;
+  img->loader = std::move(loader);
   img->need_metadata = true;
   img->need_load = !(osl_texture_system && !img->loader->osl_filepath().empty());
   img->builtin = builtin;
   img->users = 1;
   img->mem = nullptr;
 
-  images[slot] = img;
+  images[slot] = std::move(img);
 
   need_update_ = true;
 
@@ -480,7 +480,7 @@ size_t ImageManager::add_image_slot(ImageLoader *loader,
 void ImageManager::add_image_user(const size_t slot)
 {
   const thread_scoped_lock device_lock(images_mutex);
-  Image *image = images[slot];
+  Image *image = images[slot].get();
   assert(image && image->users >= 1);
 
   image->users++;
@@ -489,7 +489,7 @@ void ImageManager::add_image_user(const size_t slot)
 void ImageManager::remove_image_user(const size_t slot)
 {
   const thread_scoped_lock device_lock(images_mutex);
-  Image *image = images[slot];
+  Image *image = images[slot].get();
   assert(image && image->users >= 1);
 
   /* decrement user count */
@@ -681,7 +681,7 @@ void ImageManager::device_load_image(Device *device,
     return;
   }
 
-  Image *img = images[slot];
+  Image *img = images[slot].get();
 
   progress.set_status("Updating Images", "Loading " + img->loader->name());
 
@@ -696,11 +696,10 @@ void ImageManager::device_load_image(Device *device,
   /* Free previous texture in slot. */
   if (img->mem) {
     const thread_scoped_lock device_lock(device_mutex);
-    delete img->mem;
-    img->mem = nullptr;
+    img->mem.reset();
   }
 
-  img->mem = new device_texture(
+  img->mem = make_unique<device_texture>(
       device, img->mem_name.c_str(), slot, type, img->params.interpolation, img->params.extension);
   img->mem->info.use_transform_3d = img->metadata.use_transform_3d;
   img->mem->info.transform_3d = img->metadata.transform_3d;
@@ -815,7 +814,7 @@ void ImageManager::device_load_image(Device *device,
 
 void ImageManager::device_free_image(Device * /*unused*/, size_t slot)
 {
-  Image *img = images[slot];
+  Image *img = images[slot].get();
   if (img == nullptr) {
     return;
   }
@@ -831,12 +830,10 @@ void ImageManager::device_free_image(Device * /*unused*/, size_t slot)
 
   if (img->mem) {
     const thread_scoped_lock device_lock(device_mutex);
-    delete img->mem;
+    img->mem.reset();
   }
 
-  delete img->loader;
-  delete img;
-  images[slot] = nullptr;
+  images[slot].reset();
 }
 
 void ImageManager::device_update(Device *device, Scene *scene, Progress &progress)
@@ -853,7 +850,7 @@ void ImageManager::device_update(Device *device, Scene *scene, Progress &progres
 
   TaskPool pool;
   for (size_t slot = 0; slot < images.size(); slot++) {
-    Image *img = images[slot];
+    Image *img = images[slot].get();
     if (img && img->users == 0) {
       device_free_image(device, slot);
     }
@@ -874,7 +871,7 @@ void ImageManager::device_update_slot(Device *device,
                                       const size_t slot,
                                       Progress &progress)
 {
-  Image *img = images[slot];
+  Image *img = images[slot].get();
   assert(img != nullptr);
 
   if (img->users == 0) {
@@ -895,7 +892,7 @@ void ImageManager::device_load_builtin(Device *device, Scene *scene, Progress &p
 
   TaskPool pool;
   for (size_t slot = 0; slot < images.size(); slot++) {
-    Image *img = images[slot];
+    Image *img = images[slot].get();
     if (img && img->need_load && img->builtin) {
       pool.push([this, device, scene, slot, &progress] {
         device_load_image(device, scene, slot, progress);
@@ -909,7 +906,7 @@ void ImageManager::device_load_builtin(Device *device, Scene *scene, Progress &p
 void ImageManager::device_free_builtin(Device *device)
 {
   for (size_t slot = 0; slot < images.size(); slot++) {
-    Image *img = images[slot];
+    Image *img = images[slot].get();
     if (img && img->builtin) {
       device_free_image(device, slot);
     }
@@ -926,7 +923,7 @@ void ImageManager::device_free(Device *device)
 
 void ImageManager::collect_statistics(RenderStats *stats)
 {
-  for (const Image *image : images) {
+  for (const unique_ptr<Image> &image : images) {
     if (!image) {
       /* Image may have been freed due to lack of users. */
       continue;

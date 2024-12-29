@@ -288,9 +288,9 @@ void BlenderSession::builtin_images_load()
    * happen is really weak, and likely to break in the future. We should find
    * a better solution to hand over the data directly to the image manager
    * instead of through callbacks whose timing is difficult to control. */
-  ImageManager *manager = session->scene->image_manager;
-  Device *device = session->device;
-  manager->device_load_builtin(device, session->scene, session->progress);
+  ImageManager *manager = session->scene->image_manager.get();
+  Device *device = session->device.get();
+  manager->device_load_builtin(device, session->scene.get(), session->progress);
 }
 
 string BlenderPointDensityLoader::name() const

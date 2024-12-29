@@ -287,7 +287,10 @@ class Device {
   }
 
   /* static */
-  static Device *create(const DeviceInfo &info, Stats &stats, Profiler &profiler, bool headless);
+  static unique_ptr<Device> create(const DeviceInfo &info,
+                                   Stats &stats,
+                                   Profiler &profiler,
+                                   bool headless);
 
   static DeviceType type_from_string(const char *name);
   static string string_from_type(DeviceType type);

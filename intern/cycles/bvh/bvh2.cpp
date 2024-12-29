@@ -48,26 +48,17 @@ void BVH2::build(Progress &progress, Stats * /*unused*/)
                      pack.prim_time,
                      params,
                      progress);
-  BVHNode *bvh2_root = bvh_build.run();
+  unique_ptr<BVHNode> bvh2_root = bvh_build.run();
 
   if (progress.get_cancel()) {
-    if (bvh2_root != nullptr) {
-      bvh2_root->deleteSubtree();
-    }
     return;
   }
 
   /* BVH builder returns tree in a binary mode (with two children per inner
    * node. Need to adopt that for a wider BVH implementations. */
-  BVHNode *root = widen_children_nodes(bvh2_root);
-  if (root != bvh2_root) {
-    bvh2_root->deleteSubtree();
-  }
+  const unique_ptr<BVHNode> root = widen_children_nodes(std::move(bvh2_root));
 
   if (progress.get_cancel()) {
-    if (root != nullptr) {
-      root->deleteSubtree();
-    }
     return;
   }
 
@@ -76,16 +67,12 @@ void BVH2::build(Progress &progress, Stats * /*unused*/)
   pack_primitives();
 
   if (progress.get_cancel()) {
-    root->deleteSubtree();
     return;
   }
 
   /* pack nodes */
   progress.set_substatus("Packing BVH nodes");
-  pack_nodes(root);
-
-  /* free build nodes */
-  root->deleteSubtree();
+  pack_nodes(root.get());
 }
 
 void BVH2::refit(Progress &progress)
@@ -101,9 +88,9 @@ void BVH2::refit(Progress &progress)
   refit_nodes();
 }
 
-BVHNode *BVH2::widen_children_nodes(const BVHNode *root)
+unique_ptr<BVHNode> BVH2::widen_children_nodes(unique_ptr<BVHNode> &&root)
 {
-  return const_cast<BVHNode *>(root);
+  return std::move(root);
 }
 
 void BVH2::pack_leaf(const BVHStackEntry &e, const LeafNode *leaf)
@@ -508,7 +495,7 @@ void BVH2::pack_instances(size_t nodes_size, size_t leaf_nodes_size)
   size_t object_offset = 0;
 
   for (Geometry *geom : geometry) {
-    BVH2 *bvh = static_cast<BVH2 *>(geom->bvh);
+    BVH2 *bvh = static_cast<BVH2 *>(geom->bvh.get());
 
     if (geom->need_build_bvh(params.bvh_layout)) {
       prim_index_size += bvh->pack.prim_index.size();
@@ -564,7 +551,7 @@ void BVH2::pack_instances(size_t nodes_size, size_t leaf_nodes_size)
       continue;
     }
 
-    BVH2 *bvh = static_cast<BVH2 *>(geom->bvh);
+    BVH2 *bvh = static_cast<BVH2 *>(geom->bvh.get());
 
     const int noffset = nodes_offset;
     const int noffset_leaf = nodes_leaf_offset;

@@ -14,7 +14,6 @@
 #include "scene/scene.h"
 #include "scene/shader_graph.h"
 
-#include "subd/patch_table.h"
 #include "subd/split.h"
 
 #include "util/log.h"
@@ -156,14 +155,14 @@ SubdParams *Mesh::get_subd_params()
   }
 
   if (!subd_params) {
-    subd_params = new SubdParams(this);
+    subd_params = make_unique<SubdParams>(this);
   }
 
   subd_params->dicing_rate = subd_dicing_rate;
   subd_params->max_level = subd_max_level;
   subd_params->objecttoworld = subd_objecttoworld;
 
-  return subd_params;
+  return subd_params.get();
 }
 
 bool Mesh::need_tesselation()
@@ -187,18 +186,9 @@ Mesh::Mesh(const NodeType *node_type, Type geom_type_)
   num_ngons = 0;
 
   subdivision_type = SUBDIVISION_NONE;
-  subd_params = nullptr;
-
-  patch_table = nullptr;
 }
 
 Mesh::Mesh() : Mesh(get_node_type(), Geometry::MESH) {}
-
-Mesh::~Mesh()
-{
-  delete patch_table;
-  delete subd_params;
-}
 
 void Mesh::resize_mesh(const int numverts, const int numtris)
 {
@@ -275,8 +265,7 @@ void Mesh::clear_non_sockets()
   vert_to_stitching_key_map.clear();
   vert_stitching_map.clear();
 
-  delete patch_table;
-  patch_table = nullptr;
+  patch_table.reset();
 }
 
 void Mesh::clear(bool preserve_shaders, bool preserve_voxel_data)

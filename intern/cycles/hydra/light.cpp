@@ -190,7 +190,7 @@ void HdCyclesLight::Sync(HdSceneDelegate *sceneDelegate,
 
 void HdCyclesLight::PopulateShaderGraph(HdSceneDelegate *sceneDelegate)
 {
-  auto *graph = new ShaderGraph();
+  unique_ptr<ShaderGraph> graph = make_unique<ShaderGraph>();
   ShaderNode *outputNode = nullptr;
 
   if (_lightType == HdPrimTypeTokens->domeLight) {
@@ -347,7 +347,7 @@ void HdCyclesLight::PopulateShaderGraph(HdSceneDelegate *sceneDelegate)
   }
 
   Shader *const shader = _light->get_shader();
-  shader->set_graph(graph);
+  shader->set_graph(std::move(graph));
   shader->tag_update((Scene *)_light->get_owner());
 
   shader->has_surface_spatial_varying = hasSpatialVarying;

@@ -117,10 +117,11 @@ class Scene : public NodeOwner {
   map<ustring, int> lightgroups;
 
   /* data */
-  BVH *bvh;
+  unique_ptr<BVH> bvh;
+  unique_ptr<LookupTables> lookup_tables;
+
   Camera *camera;
   Camera *dicing_camera;
-  LookupTables *lookup_tables;
   Film *film;
   Background *background;
   Integrator *integrator;
@@ -135,14 +136,14 @@ class Scene : public NodeOwner {
   vector<Procedural *> procedurals;
 
   /* data managers */
-  ImageManager *image_manager;
-  LightManager *light_manager;
-  ShaderManager *shader_manager;
-  GeometryManager *geometry_manager;
-  ObjectManager *object_manager;
-  ParticleSystemManager *particle_system_manager;
-  BakeManager *bake_manager;
-  ProceduralManager *procedural_manager;
+  unique_ptr<ImageManager> image_manager;
+  unique_ptr<LightManager> light_manager;
+  unique_ptr<ShaderManager> shader_manager;
+  unique_ptr<GeometryManager> geometry_manager;
+  unique_ptr<ObjectManager> object_manager;
+  unique_ptr<ParticleSystemManager> particle_system_manager;
+  unique_ptr<BakeManager> bake_manager;
+  unique_ptr<ProceduralManager> procedural_manager;
 
   /* default shaders */
   Shader *default_surface;
@@ -162,7 +163,7 @@ class Scene : public NodeOwner {
   thread_mutex mutex;
 
   /* scene update statistics */
-  SceneUpdateStats *update_stats;
+  unique_ptr<SceneUpdateStats> update_stats;
 
   Scene(const SceneParams &params, Device *device);
   ~Scene() override;

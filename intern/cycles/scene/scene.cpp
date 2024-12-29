@@ -37,7 +37,6 @@ CCL_NAMESPACE_BEGIN
 
 Scene ::Scene(const SceneParams &params_, Device *device)
     : name("Scene"),
-      bvh(nullptr),
       default_surface(nullptr),
       default_volume(nullptr),
       default_light(nullptr),
@@ -57,18 +56,18 @@ Scene ::Scene(const SceneParams &params_, Device *device)
   shader_manager = ShaderManager::create(
       device->info.has_osl ? params.shadingsystem : SHADINGSYSTEM_SVM, device);
 
-  light_manager = new LightManager();
-  geometry_manager = new GeometryManager();
-  object_manager = new ObjectManager();
-  image_manager = new ImageManager(device->info);
-  particle_system_manager = new ParticleSystemManager();
-  bake_manager = new BakeManager();
-  procedural_manager = new ProceduralManager();
+  light_manager = make_unique<LightManager>();
+  geometry_manager = make_unique<GeometryManager>();
+  object_manager = make_unique<ObjectManager>();
+  image_manager = make_unique<ImageManager>(device->info);
+  particle_system_manager = make_unique<ParticleSystemManager>();
+  bake_manager = make_unique<BakeManager>();
+  procedural_manager = make_unique<ProceduralManager>();
 
   /* Create nodes after managers, since create_node() can tag the managers. */
   camera = create_node<Camera>();
   dicing_camera = create_node<Camera>();
-  lookup_tables = new LookupTables();
+  lookup_tables = make_unique<LookupTables>();
   film = create_node<Film>();
   background = create_node<Background>();
   integrator = create_node<Integrator>();
@@ -84,8 +83,7 @@ Scene::~Scene()
 
 void Scene::free_memory(bool final)
 {
-  delete bvh;
-  bvh = nullptr;
+  bvh.reset();
 
   /* The order of deletion is important to make sure data is freed based on
    * possible dependencies as the Nodes' reference counts are decremented in the
@@ -170,16 +168,16 @@ void Scene::free_memory(bool final)
   }
 
   if (final) {
-    delete lookup_tables;
-    delete object_manager;
-    delete geometry_manager;
-    delete shader_manager;
-    delete light_manager;
-    delete particle_system_manager;
-    delete image_manager;
-    delete bake_manager;
-    delete update_stats;
-    delete procedural_manager;
+    lookup_tables.reset();
+    object_manager.reset();
+    geometry_manager.reset();
+    shader_manager.reset();
+    light_manager.reset();
+    particle_system_manager.reset();
+    image_manager.reset();
+    bake_manager.reset();
+    update_stats.reset();
+    procedural_manager.reset();
   }
 }
 
@@ -472,7 +470,7 @@ void Scene::collect_statistics(RenderStats *stats)
 void Scene::enable_update_stats()
 {
   if (!update_stats) {
-    update_stats = new SceneUpdateStats();
+    update_stats = make_unique<SceneUpdateStats>();
   }
 }
 

@@ -1146,8 +1146,8 @@ OSL::TextureSystem::TextureHandle *OSLRenderServices::get_texture_handle(OSLUStr
   if (device_type_ == DEVICE_CPU) {
     /* For non-OIIO textures, just return a pointer to our own OSLTextureHandle. */
     if (it != textures.end()) {
-      if (it->second->type != OSLTextureHandle::OIIO) {
-        return reinterpret_cast<OSL::TextureSystem::TextureHandle *>(it->second.get());
+      if (it->second.type != OSLTextureHandle::OIIO) {
+        return (OSL::TextureSystem::TextureHandle *)(&it->second);
       }
     }
 
@@ -1160,34 +1160,36 @@ OSL::TextureSystem::TextureHandle *OSLRenderServices::get_texture_handle(OSLUStr
 
     /* Insert new OSLTextureHandle if needed. */
     if (it == textures.end()) {
-      textures.insert(filename, new OSLTextureHandle(OSLTextureHandle::OIIO));
+      textures.insert(filename, OSLTextureHandle(OSLTextureHandle::OIIO));
       it = textures.find(filename);
     }
 
-    /* Assign OIIO texture handle and return. */
-    it->second->oiio_handle = handle;
-    return reinterpret_cast<OSL::TextureSystem::TextureHandle *>(it->second.get());
+    /* Assign OIIO texture handle and return.
+     * OIIO::unordered_map_concurrent always returns a const handle even if the underlying
+     * std::unordered_map supports updating values just fine. */
+    const_cast<OSLTextureHandle &>(it->second).oiio_handle = handle;
+    return (OSL::TextureSystem::TextureHandle *)(&it->second);
   }
 
   /* Construct GPU texture handle for existing textures. */
   if (it != textures.end()) {
-    switch (it->second->type) {
+    switch (it->second.type) {
       case OSLTextureHandle::OIIO:
         return nullptr;
       case OSLTextureHandle::SVM:
-        if (!it->second->handle.empty() && it->second->handle.get_manager() != image_manager) {
+        if (!it->second.handle.empty() && it->second.handle.get_manager() != image_manager) {
           it.clear();
           break;
         }
         return reinterpret_cast<OSL::TextureSystem::TextureHandle *>(OSL_TEXTURE_HANDLE_TYPE_SVM |
-                                                                     it->second->svm_slots[0].y);
+                                                                     it->second.svm_slots[0].y);
       case OSLTextureHandle::IES:
-        if (!it->second->handle.empty() && it->second->handle.get_manager() != image_manager) {
+        if (!it->second.handle.empty() && it->second.handle.get_manager() != image_manager) {
           it.clear();
           break;
         }
         return reinterpret_cast<OSL::TextureSystem::TextureHandle *>(OSL_TEXTURE_HANDLE_TYPE_IES |
-                                                                     it->second->svm_slots[0].y);
+                                                                     it->second.svm_slots[0].y);
       case OSLTextureHandle::AO:
         return reinterpret_cast<OSL::TextureSystem::TextureHandle *>(
             OSL_TEXTURE_HANDLE_TYPE_AO_OR_BEVEL | 1);
@@ -1207,7 +1209,7 @@ OSL::TextureSystem::TextureHandle *OSLRenderServices::get_texture_handle(OSLUStr
     return nullptr;
   }
 
-  if (!textures.insert(filename, new OSLTextureHandle(handle))) {
+  if (!textures.insert(filename, OSLTextureHandle(handle))) {
     return nullptr;
   }
 

@@ -43,22 +43,26 @@ Session::Session(const SessionParams &params_, const SceneParams &scene_params)
     progress.set_error(device->error_message());
   }
 
-  scene = new Scene(scene_params, device);
+  scene = make_unique<Scene>(scene_params, device.get());
 
   if (params.device == params.denoise_device) {
-    denoise_device = device;
+    /* Reuse render device. */
   }
   else {
-    denoise_device = Device::create(params.denoise_device, stats, profiler, params_.headless);
+    denoise_device_ = Device::create(params.denoise_device, stats, profiler, params_.headless);
 
-    if (denoise_device->have_error()) {
-      progress.set_error(denoise_device->error_message());
+    if (denoise_device_->have_error()) {
+      progress.set_error(denoise_device_->error_message());
     }
   }
 
   /* Configure path tracer. */
-  path_trace_ = make_unique<PathTrace>(
-      device, denoise_device, scene->film, &scene->dscene, render_scheduler_, tile_manager_);
+  path_trace_ = make_unique<PathTrace>(device.get(),
+                                       denoise_device(),
+                                       scene->film,
+                                       &scene->dscene,
+                                       render_scheduler_,
+                                       tile_manager_);
   path_trace_->set_progress(&progress);
   path_trace_->progress_update_cb = [&]() { update_status_time(); };
 
@@ -70,7 +74,7 @@ Session::Session(const SessionParams &params_, const SceneParams &scene_params)
   };
 
   /* Create session thread. */
-  session_thread_ = new thread([this] { thread_run(); });
+  session_thread_ = make_unique<thread>([this] { thread_run(); });
 }
 
 Session::~Session()
@@ -87,7 +91,7 @@ Session::~Session()
 
   /* Destroy session thread. */
   session_thread_->join();
-  delete session_thread_;
+  session_thread_.reset();
 
   /* Destroy path tracer, before the device. This is needed because destruction might need to
    * access device for device memory free.
@@ -96,11 +100,9 @@ Session::~Session()
   path_trace_.reset();
 
   /* Destroy scene and device. */
-  delete scene;
-  if (denoise_device != device) {
-    delete denoise_device;
-  }
-  delete device;
+  scene.reset();
+  denoise_device_.reset();
+  device.reset();
 
   /* Stop task scheduler. */
   TaskScheduler::exit();
@@ -345,7 +347,7 @@ RenderWork Session::run_update_for_next_iteration()
 
   /* Update path guiding. */
   {
-    const GuidingParams guiding_params = scene->integrator->get_guiding_params(device);
+    const GuidingParams guiding_params = scene->integrator->get_guiding_params(device.get());
     const bool guiding_reset = (guiding_params.use) ? scene->need_reset(false) : false;
     path_trace_->set_guiding_params(guiding_params, guiding_reset);
   }
@@ -537,11 +539,11 @@ void Session::do_delayed_reset()
    * tile results. It is safe to use generic update function here which checks for changes since
    * changes in tile settings re-creates session, which ensures film is fully updated on tile
    * changes. */
-  scene->film->update_passes(scene, tile_manager_.has_multiple_tiles());
+  scene->film->update_passes(scene.get(), tile_manager_.has_multiple_tiles());
 
   /* Update for new state of scene and passes. */
   buffer_params_.update_passes(scene->passes);
-  tile_manager_.update(buffer_params_, scene);
+  tile_manager_.update(buffer_params_, scene.get());
 
   /* Update temp directory on reset.
    * This potentially allows to finish the existing rendering with a previously configure
@@ -755,7 +757,7 @@ void Session::collect_statistics(RenderStats *render_stats)
 {
   scene->collect_statistics(render_stats);
   if (params.use_profiling && (params.device.type == DEVICE_CPU)) {
-    render_stats->collect_profiling(scene, profiler);
+    render_stats->collect_profiling(scene.get(), profiler);
   }
 }
 

@@ -23,8 +23,6 @@ class BVHOptiX : public BVH {
   unique_ptr<device_only_memory<char>> as_data;
   unique_ptr<device_only_memory<char>> motion_transform_data;
 
- protected:
-  friend class BVH;
   BVHOptiX(const BVHParams &params,
            const vector<Geometry *> &geometry,
            const vector<Object *> &objects,

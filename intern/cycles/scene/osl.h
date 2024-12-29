@@ -8,6 +8,7 @@
 #include "util/set.h"
 #include "util/string.h"
 #include "util/thread.h"
+#include "util/unique_ptr.h"
 
 #include "scene/shader.h"
 #include "scene/shader_graph.h"
@@ -107,7 +108,7 @@ class OSLShaderManager : public ShaderManager {
   static int ts_shared_users;
 
   static OSL::ErrorHandler errhandler;
-  static map<int, OSL::ShadingSystem *> ss_shared;
+  static map<int, unique_ptr<OSL::ShadingSystem>> ss_shared;
   static thread_mutex ss_shared_mutex;
   static thread_mutex ss_mutex;
   static int ss_shared_users;

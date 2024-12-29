@@ -708,8 +708,7 @@ MetalDevice::MetalMem *MetalDevice::generic_alloc(device_memory &mem)
     std::lock_guard<std::recursive_mutex> lock(metal_mem_map_mutex);
 
     assert(metal_mem_map.count(&mem) == 0); /* assert against double-alloc */
-    MetalMem *mmem = new MetalMem;
-    metal_mem_map[&mem] = std::unique_ptr<MetalMem>(mmem);
+    unique_ptr<MetalMem> mmem = make_unique<MetalMem>();
 
     mmem->mem = &mem;
     mmem->mtlBuffer = metal_buffer;
@@ -724,7 +723,7 @@ MetalDevice::MetalMem *MetalDevice::generic_alloc(device_memory &mem)
 
     /* encode device_pointer as (MetalMem*) in order to handle resource relocation and device
      * pointer recalculation */
-    mem.device_pointer = device_ptr(mmem);
+    mem.device_pointer = device_ptr(mmem.get());
 
     if (metal_buffer.storageMode == MTLResourceStorageModeShared) {
       /* Replace host pointer with our host allocation. */
@@ -743,12 +742,15 @@ MetalDevice::MetalMem *MetalDevice::generic_alloc(device_memory &mem)
       mmem->use_UMA = false;
     }
 
+    MetalMem *mmem_ptr = mmem.get();
+    metal_mem_map[&mem] = std::move(mmem);
+
     if (max_working_set_exceeded()) {
       set_error("System is out of GPU memory");
       return nullptr;
     }
 
-    return mmem;
+    return mmem_ptr;
   }
 }
 
@@ -1252,10 +1254,10 @@ void MetalDevice::tex_alloc(device_texture &mem)
     stats.mem_alloc(size);
 
     std::lock_guard<std::recursive_mutex> lock(metal_mem_map_mutex);
-    MetalMem *mmem = new MetalMem;
-    metal_mem_map[&mem] = std::unique_ptr<MetalMem>(mmem);
+    unique_ptr<MetalMem> mmem = make_unique<MetalMem>();
     mmem->mem = &mem;
     mmem->mtlTexture = mtlTexture;
+    metal_mem_map[&mem] = std::move(mmem);
 
     /* Resize once */
     const uint slot = mem.slot;

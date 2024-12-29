@@ -11,6 +11,7 @@
 #include "scene/scene.h"
 #include "session/session.h"
 
+#include "util/unique_ptr.h"
 #include "util/vector.h"
 
 CCL_NAMESPACE_BEGIN
@@ -72,9 +73,9 @@ class BlenderSession {
   void update_bake_progress();
 
   bool background;
-  Session *session;
+  unique_ptr<Session> session;
   Scene *scene;
-  BlenderSync *sync;
+  unique_ptr<BlenderSync> sync;
   double last_redraw_time;
 
   BL::RenderEngine b_engine;

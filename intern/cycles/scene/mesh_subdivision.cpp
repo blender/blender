@@ -170,19 +170,12 @@ template<> void OsdValue<uchar4>::AddWithWeight(const OsdValue<uchar4> &src, con
 class OsdData {
   Mesh *mesh = nullptr;
   vector<OsdValue<float3>> verts;
-  Far::TopologyRefiner *refiner = nullptr;
-  Far::PatchTable *patch_table = nullptr;
-  Far::PatchMap *patch_map = nullptr;
+  unique_ptr<Far::TopologyRefiner> refiner;
+  unique_ptr<Far::PatchTable> patch_table;
+  unique_ptr<Far::PatchMap> patch_map;
 
  public:
   OsdData() = default;
-
-  ~OsdData()
-  {
-    delete refiner;
-    delete patch_table;
-    delete patch_map;
-  }
 
   void build_from_mesh(Mesh *mesh_)
   {
@@ -195,8 +188,8 @@ class OsdData {
     options.SetVtxBoundaryInterpolation(Sdc::Options::VTX_BOUNDARY_EDGE_ONLY);
 
     /* create refiner */
-    refiner = Far::TopologyRefinerFactory<Mesh>::Create(
-        *mesh, Far::TopologyRefinerFactory<Mesh>::Options(type, options));
+    refiner.reset(Far::TopologyRefinerFactory<Mesh>::Create(
+        *mesh, Far::TopologyRefinerFactory<Mesh>::Options(type, options)));
 
     /* adaptive refinement */
     const int max_isolation = calculate_max_isolation();
@@ -206,7 +199,7 @@ class OsdData {
     Far::PatchTableFactory::Options patch_options;
     patch_options.endCapType = Far::PatchTableFactory::Options::ENDCAP_GREGORY_BASIS;
 
-    patch_table = Far::PatchTableFactory::Create(*refiner, patch_options);
+    patch_table.reset(Far::PatchTableFactory::Create(*refiner, patch_options));
 
     /* interpolate verts */
     const int num_refiner_verts = refiner->GetNumVerticesTotal();
@@ -229,7 +222,7 @@ class OsdData {
     }
 
     /* create patch map */
-    patch_map = new Far::PatchMap(*patch_table);
+    patch_map = make_unique<Far::PatchMap>(*patch_table);
   }
 
   void subdivide_attribute(Attribute &attr)
@@ -668,9 +661,8 @@ void Mesh::tessellate(DiagSplit *split)
 #ifdef WITH_OPENSUBDIV
   /* pack patch tables */
   if (need_packed_patch_table) {
-    delete patch_table;
-    patch_table = new PackedPatchTable;
-    patch_table->pack(osd_data.patch_table);
+    patch_table = make_unique<PackedPatchTable>();
+    patch_table->pack(osd_data.patch_table.get());
   }
 #endif
 }

@@ -62,10 +62,13 @@ bool device_cuda_init()
 #endif /* WITH_CUDA_DYNLOAD */
 }
 
-Device *device_cuda_create(const DeviceInfo &info, Stats &stats, Profiler &profiler, bool headless)
+unique_ptr<Device> device_cuda_create(const DeviceInfo &info,
+                                      Stats &stats,
+                                      Profiler &profiler,
+                                      bool headless)
 {
 #ifdef WITH_CUDA
-  return new CUDADevice(info, stats, profiler, headless);
+  return make_unique<CUDADevice>(info, stats, profiler, headless);
 #else
   (void)info;
   (void)stats;

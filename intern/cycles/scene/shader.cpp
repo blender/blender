@@ -119,11 +119,6 @@ Shader::Shader() : Node(get_node_type())
   need_update_displacement = true;
 }
 
-Shader::~Shader()
-{
-  delete graph;
-}
-
 static float3 output_estimate_emission(ShaderOutput *output, bool &is_constant)
 {
   /* Only supports a few nodes for now, not arbitrary shader graphs. */
@@ -280,7 +275,7 @@ void Shader::estimate_emission()
   }
 }
 
-void Shader::set_graph(ShaderGraph *graph_)
+void Shader::set_graph(unique_ptr<ShaderGraph> &&graph_)
 {
   /* do this here already so that we can detect if mesh or object attributes
    * are needed, since the node attribute callbacks check if their sockets
@@ -304,8 +299,7 @@ void Shader::set_graph(ShaderGraph *graph_)
   }
 
   /* assign graph */
-  delete graph;
-  graph = graph_;
+  graph = std::move(graph_);
 
   /* Store info here before graph optimization to make sure that
    * nodes that get optimized away still count. */
@@ -432,21 +426,21 @@ ShaderManager::ShaderManager()
 
 ShaderManager::~ShaderManager() = default;
 
-ShaderManager *ShaderManager::create(const int shadingsystem, Device *device)
+unique_ptr<ShaderManager> ShaderManager::create(const int shadingsystem, Device *device)
 {
-  ShaderManager *manager;
+  unique_ptr<ShaderManager> manager;
 
   (void)shadingsystem; /* Ignored when built without OSL. */
   (void)device;
 
 #ifdef WITH_OSL
   if (shadingsystem == SHADINGSYSTEM_OSL) {
-    manager = new OSLShaderManager(device);
+    manager = make_unique<OSLShaderManager>(device);
   }
   else
 #endif
   {
-    manager = new SVMShaderManager();
+    manager = make_unique<SVMShaderManager>();
   }
 
   return manager;
@@ -661,7 +655,7 @@ void ShaderManager::add_default(Scene *scene)
 {
   /* default surface */
   {
-    ShaderGraph *graph = new ShaderGraph();
+    unique_ptr<ShaderGraph> graph = make_unique<ShaderGraph>();
 
     DiffuseBsdfNode *diffuse = graph->create_node<DiffuseBsdfNode>();
     diffuse->set_color(make_float3(0.8f, 0.8f, 0.8f));
@@ -671,7 +665,7 @@ void ShaderManager::add_default(Scene *scene)
 
     Shader *shader = scene->create_node<Shader>();
     shader->name = "default_surface";
-    shader->set_graph(graph);
+    shader->set_graph(std::move(graph));
     shader->reference();
     scene->default_surface = shader;
     shader->tag_update(scene);
@@ -679,7 +673,7 @@ void ShaderManager::add_default(Scene *scene)
 
   /* default volume */
   {
-    ShaderGraph *graph = new ShaderGraph();
+    unique_ptr<ShaderGraph> graph = make_unique<ShaderGraph>();
 
     PrincipledVolumeNode *principled = graph->create_node<PrincipledVolumeNode>();
     graph->add(principled);
@@ -688,7 +682,7 @@ void ShaderManager::add_default(Scene *scene)
 
     Shader *shader = scene->create_node<Shader>();
     shader->name = "default_volume";
-    shader->set_graph(graph);
+    shader->set_graph(std::move(graph));
     scene->default_volume = shader;
     shader->tag_update(scene);
     /* No default reference for the volume to avoid compiling volume kernels if there are no
@@ -697,7 +691,7 @@ void ShaderManager::add_default(Scene *scene)
 
   /* default light */
   {
-    ShaderGraph *graph = new ShaderGraph();
+    unique_ptr<ShaderGraph> graph = make_unique<ShaderGraph>();
 
     EmissionNode *emission = graph->create_node<EmissionNode>();
     emission->set_color(make_float3(0.8f, 0.8f, 0.8f));
@@ -708,7 +702,7 @@ void ShaderManager::add_default(Scene *scene)
 
     Shader *shader = scene->create_node<Shader>();
     shader->name = "default_light";
-    shader->set_graph(graph);
+    shader->set_graph(std::move(graph));
     shader->reference();
     scene->default_light = shader;
     shader->tag_update(scene);
@@ -716,11 +710,11 @@ void ShaderManager::add_default(Scene *scene)
 
   /* default background */
   {
-    ShaderGraph *graph = new ShaderGraph();
+    unique_ptr<ShaderGraph> graph = make_unique<ShaderGraph>();
 
     Shader *shader = scene->create_node<Shader>();
     shader->name = "default_background";
-    shader->set_graph(graph);
+    shader->set_graph(std::move(graph));
     shader->reference();
     scene->default_background = shader;
     shader->tag_update(scene);
@@ -728,11 +722,11 @@ void ShaderManager::add_default(Scene *scene)
 
   /* default empty */
   {
-    ShaderGraph *graph = new ShaderGraph();
+    unique_ptr<ShaderGraph> graph = make_unique<ShaderGraph>();
 
     Shader *shader = scene->create_node<Shader>();
     shader->name = "default_empty";
-    shader->set_graph(graph);
+    shader->set_graph(std::move(graph));
     shader->reference();
     scene->default_empty = shader;
     shader->tag_update(scene);
@@ -772,7 +766,7 @@ uint ShaderManager::get_kernel_features(Scene *scene)
     }
 
     /* Gather requested features from all the nodes from the graph nodes. */
-    kernel_features |= get_graph_kernel_features(shader->graph);
+    kernel_features |= get_graph_kernel_features(shader->graph.get());
     ShaderNode *output_node = shader->graph->output();
     if (output_node->input("Displacement")->link != nullptr) {
       kernel_features |= KERNEL_FEATURE_NODE_BUMP;

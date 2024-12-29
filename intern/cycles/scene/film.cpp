@@ -473,8 +473,8 @@ bool Film::update_lightgroups(Scene *scene)
 void Film::update_passes(Scene *scene, bool add_sample_count_pass)
 {
   const Background *background = scene->background;
-  const BakeManager *bake_manager = scene->bake_manager;
-  const ObjectManager *object_manager = scene->object_manager;
+  const BakeManager *bake_manager = scene->bake_manager.get();
+  const ObjectManager *object_manager = scene->object_manager.get();
   Integrator *integrator = scene->integrator;
 
   if (!is_modified() && !object_manager->need_update() && !integrator->is_modified() &&

@@ -65,7 +65,7 @@ void Geometry::compute_bvh(Device *device,
 
       bvh->replace_geometry(geometry, objects);
 
-      device->build_bvh(bvh, *progress, true);
+      device->build_bvh(bvh.get(), *progress, true);
     }
     else {
       progress->set_status(msg, "Building BVH");
@@ -82,9 +82,8 @@ void Geometry::compute_bvh(Device *device,
       bparams.bvh_type = params->bvh_type;
       bparams.curve_subdivisions = params->curve_subdivisions();
 
-      delete bvh;
       bvh = BVH::create(bparams, geometry, objects, device);
-      MEM_GUARDED_CALL(progress, device->build_bvh, bvh, *progress, false);
+      MEM_GUARDED_CALL(progress, device->build_bvh, bvh.get(), *progress, false);
     }
   }
 
@@ -119,9 +118,10 @@ void GeometryManager::device_update_bvh(Device *device,
                          (bparams.bvh_layout == BVHLayout::BVH_LAYOUT_OPTIX ||
                           bparams.bvh_layout == BVHLayout::BVH_LAYOUT_METAL);
 
-  BVH *bvh = scene->bvh;
-  if (!scene->bvh) {
-    bvh = scene->bvh = BVH::create(bparams, scene->geometry, scene->objects, device);
+  BVH *bvh = scene->bvh.get();
+  if (bvh == nullptr) {
+    scene->bvh = BVH::create(bparams, scene->geometry, scene->objects, device);
+    bvh = scene->bvh.get();
   }
 
   device->build_bvh(bvh, progress, can_refit);

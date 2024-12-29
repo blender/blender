@@ -210,11 +210,11 @@ static void sync_smoke_volume(
 
     Attribute *attr = volume->attributes.add(std);
 
-    ImageLoader *loader = new BlenderSmokeLoader(b_ob_info.real_object, std);
+    unique_ptr<ImageLoader> loader = make_unique<BlenderSmokeLoader>(b_ob_info.real_object, std);
     ImageParams params;
     params.frame = frame;
 
-    attr->data_voxel() = scene->image_manager->add_image(loader, params);
+    attr->data_voxel() = scene->image_manager->add_image(std::move(loader), params);
   }
 }
 
@@ -343,12 +343,12 @@ static void sync_volume_object(BL::BlendData &b_data,
                             volume->attributes.add(std) :
                             volume->attributes.add(name, TypeFloat, ATTR_ELEMENT_VOXEL);
 
-      ImageLoader *loader = new BlenderVolumeLoader(
+      unique_ptr<ImageLoader> loader = make_unique<BlenderVolumeLoader>(
           b_data, b_volume, name.string(), b_render.precision());
       ImageParams params;
       params.frame = b_volume.grids.frame();
 
-      attr->data_voxel() = scene->image_manager->add_image(loader, params, false);
+      attr->data_voxel() = scene->image_manager->add_image(std::move(loader), params, false);
     }
   }
 }

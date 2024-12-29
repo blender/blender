@@ -13,17 +13,10 @@ BVHMulti::BVHMulti(const BVHParams &params_,
 {
 }
 
-BVHMulti::~BVHMulti()
-{
-  for (BVH *bvh : sub_bvhs) {
-    delete bvh;
-  }
-}
-
 void BVHMulti::replace_geometry(const vector<Geometry *> &geometry,
                                 const vector<Object *> &objects)
 {
-  for (BVH *bvh : sub_bvhs) {
+  for (unique_ptr<BVH> &bvh : sub_bvhs) {
     bvh->replace_geometry(geometry, objects);
   }
 }

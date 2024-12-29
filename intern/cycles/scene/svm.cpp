@@ -911,7 +911,7 @@ void SVMCompiler::compile(Shader *shader,
   /* generate bump shader */
   if (has_bump) {
     const scoped_timer timer((summary != nullptr) ? &summary->time_generate_bump : nullptr);
-    compile_type(shader, shader->graph, SHADER_TYPE_BUMP);
+    compile_type(shader, shader->graph.get(), SHADER_TYPE_BUMP);
     svm_nodes[index].y = svm_nodes.size();
     svm_nodes.append(current_svm_nodes);
   }
@@ -919,7 +919,7 @@ void SVMCompiler::compile(Shader *shader,
   /* generate surface shader */
   {
     const scoped_timer timer((summary != nullptr) ? &summary->time_generate_surface : nullptr);
-    compile_type(shader, shader->graph, SHADER_TYPE_SURFACE);
+    compile_type(shader, shader->graph.get(), SHADER_TYPE_SURFACE);
     /* only set jump offset if there's no bump shader, as the bump shader will fall thru to this
      * one if it exists */
     if (!has_bump) {
@@ -931,7 +931,7 @@ void SVMCompiler::compile(Shader *shader,
   /* generate volume shader */
   {
     const scoped_timer timer((summary != nullptr) ? &summary->time_generate_volume : nullptr);
-    compile_type(shader, shader->graph, SHADER_TYPE_VOLUME);
+    compile_type(shader, shader->graph.get(), SHADER_TYPE_VOLUME);
     svm_nodes[index].z = svm_nodes.size();
     svm_nodes.append(current_svm_nodes);
   }
@@ -940,7 +940,7 @@ void SVMCompiler::compile(Shader *shader,
   {
     const scoped_timer timer((summary != nullptr) ? &summary->time_generate_displacement :
                                                     nullptr);
-    compile_type(shader, shader->graph, SHADER_TYPE_DISPLACEMENT);
+    compile_type(shader, shader->graph.get(), SHADER_TYPE_DISPLACEMENT);
     svm_nodes[index].w = svm_nodes.size();
     svm_nodes.append(current_svm_nodes);
   }

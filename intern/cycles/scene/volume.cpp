@@ -626,9 +626,9 @@ static void merge_scalar_grids_for_velocity(const Scene *scene, Volume *volume)
 
   /* Make an attribute for it. */
   Attribute *attr = volume->attributes.add(ATTR_STD_VOLUME_VELOCITY);
-  ImageLoader *loader = new VDBImageLoader(vecgrid, "merged_velocity");
+  unique_ptr<ImageLoader> loader = make_unique<VDBImageLoader>(vecgrid, "merged_velocity");
   const ImageParams params;
-  attr->data_voxel() = scene->image_manager->add_image(loader, params);
+  attr->data_voxel() = scene->image_manager->add_image(std::move(loader), params);
 }
 #endif
 

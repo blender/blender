@@ -42,12 +42,12 @@ class DummyDevice : public Device {
   void const_copy_to(const char * /*name*/, void * /*host*/, size_t /*size*/) override {}
 };
 
-Device *device_dummy_create(const DeviceInfo &info,
-                            Stats &stats,
-                            Profiler &profiler,
-                            bool headless)
+unique_ptr<Device> device_dummy_create(const DeviceInfo &info,
+                                       Stats &stats,
+                                       Profiler &profiler,
+                                       bool headless)
 {
-  return new DummyDevice(info, stats, profiler, headless);
+  return make_unique<DummyDevice>(info, stats, profiler, headless);
 }
 
 CCL_NAMESPACE_END

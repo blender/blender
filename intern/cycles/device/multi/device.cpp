@@ -23,7 +23,7 @@ class MultiDevice : public Device {
  public:
   struct SubDevice {
     Stats stats;
-    Device *device;
+    unique_ptr<Device> device;
     map<device_ptr, device_ptr> ptr_map;
     int peer_island_index = -1;
   };
@@ -70,19 +70,12 @@ class MultiDevice : public Device {
       for (SubDevice &peer_sub : devices) {
         if (peer_sub.peer_island_index < 0 &&
             peer_sub.device->info.type == sub.device->info.type &&
-            peer_sub.device->check_peer_access(sub.device))
+            peer_sub.device->check_peer_access(sub.device.get()))
         {
           peer_sub.peer_island_index = sub.peer_island_index;
           peer_islands[sub.peer_island_index].push_back(&peer_sub);
         }
       }
-    }
-  }
-
-  ~MultiDevice() override
-  {
-    for (SubDevice &sub : devices) {
-      delete sub.device;
     }
   }
 
@@ -191,10 +184,12 @@ class MultiDevice : public Device {
     BVHMulti *const bvh_multi = static_cast<BVHMulti *>(bvh);
     bvh_multi->sub_bvhs.resize(devices.size());
 
-    vector<BVHMulti *> geom_bvhs;
+    /* Temporarily move ownership of BVH on geometry to this vector, to swap
+     * it for each sub device. Need to find a better way to handle this. */
+    vector<unique_ptr<BVH>> geom_bvhs;
     geom_bvhs.reserve(bvh->geometry.size());
     for (Geometry *geom : bvh->geometry) {
-      geom_bvhs.push_back(static_cast<BVHMulti *>(geom->bvh));
+      geom_bvhs.push_back(std::move(geom->bvh));
     }
 
     /* Broadcast acceleration structure build to all render devices */
@@ -202,7 +197,9 @@ class MultiDevice : public Device {
     for (SubDevice &sub : devices) {
       /* Change geometry BVH pointers to the sub BVH */
       for (size_t k = 0; k < bvh->geometry.size(); ++k) {
-        bvh->geometry[k]->bvh = geom_bvhs[k]->sub_bvhs[i];
+        bvh->geometry[k]->bvh.release();  // NOLINT: was not actually the owner
+        bvh->geometry[k]->bvh.reset(
+            static_cast<BVHMulti *>(geom_bvhs[k].get())->sub_bvhs[i].get());
       }
 
       if (!bvh_multi->sub_bvhs[i]) {
@@ -244,16 +241,18 @@ class MultiDevice : public Device {
           continue;
         }
 
-        bvh_multi->sub_bvhs[i] = BVH::create(params, bvh->geometry, bvh->objects, sub.device);
+        bvh_multi->sub_bvhs[i] = BVH::create(
+            params, bvh->geometry, bvh->objects, sub.device.get());
       }
 
-      sub.device->build_bvh(bvh_multi->sub_bvhs[i], progress, refit);
+      sub.device->build_bvh(bvh_multi->sub_bvhs[i].get(), progress, refit);
       i++;
     }
 
-    /* Change geometry BVH pointers back to the multi BVH. */
+    /* Change BVH ownership back to Geometry. */
     for (size_t k = 0; k < bvh->geometry.size(); ++k) {
-      bvh->geometry[k]->bvh = geom_bvhs[k];
+      bvh->geometry[k]->bvh.release();  // NOLINT: was not actually the owner
+      bvh->geometry[k]->bvh = std::move(geom_bvhs[k]);
     }
   }
 
@@ -270,8 +269,8 @@ class MultiDevice : public Device {
   bool is_resident(device_ptr key, Device *sub_device) override
   {
     for (SubDevice &sub : devices) {
-      if (sub.device == sub_device) {
-        return find_matching_mem_device(key, sub)->device == sub_device;
+      if (sub.device.get() == sub_device) {
+        return find_matching_mem_device(key, sub)->device.get() == sub_device;
       }
     }
     return false;
@@ -323,7 +322,7 @@ class MultiDevice : public Device {
     /* The remaining memory types can be distributed across devices */
     for (const vector<SubDevice *> &island : peer_islands) {
       SubDevice *owner_sub = find_suitable_mem_device(key, island);
-      mem.device = owner_sub->device;
+      mem.device = owner_sub->device.get();
       mem.device_pointer = 0;
       mem.device_size = 0;
 
@@ -345,7 +344,7 @@ class MultiDevice : public Device {
     /* The tile buffers are allocated on each device (see below), so copy to all of them */
     for (const vector<SubDevice *> &island : peer_islands) {
       SubDevice *owner_sub = find_suitable_mem_device(existing_key, island);
-      mem.device = owner_sub->device;
+      mem.device = owner_sub->device.get();
       mem.device_pointer = (existing_key) ? owner_sub->ptr_map[existing_key] : 0;
       mem.device_size = existing_size;
 
@@ -371,14 +370,15 @@ class MultiDevice : public Device {
       device_memory &mem, const size_t y, size_t w, const size_t h, size_t elem) override
   {
     device_ptr key = mem.device_pointer;
-    size_t i = 0, sub_h = h / devices.size();
+    const size_t sub_h = h / devices.size();
+    size_t i = 0;
 
     for (SubDevice &sub : devices) {
       size_t sy = y + i * sub_h;
       size_t sh = (i == (size_t)devices.size() - 1) ? h - sub_h * i : sub_h;
 
       SubDevice *owner_sub = find_matching_mem_device(key, sub);
-      mem.device = owner_sub->device;
+      mem.device = owner_sub->device.get();
       mem.device_pointer = owner_sub->ptr_map[key];
 
       owner_sub->device->mem_copy_from(mem, sy, w, sh, elem);
@@ -397,7 +397,7 @@ class MultiDevice : public Device {
 
     for (const vector<SubDevice *> &island : peer_islands) {
       SubDevice *owner_sub = find_suitable_mem_device(existing_key, island);
-      mem.device = owner_sub->device;
+      mem.device = owner_sub->device.get();
       mem.device_pointer = (existing_key) ? owner_sub->ptr_map[existing_key] : 0;
       mem.device_size = existing_size;
 
@@ -418,7 +418,7 @@ class MultiDevice : public Device {
     /* Free memory that was allocated for all devices (see above) on each device */
     for (const vector<SubDevice *> &island : peer_islands) {
       SubDevice *owner_sub = find_matching_mem_device(key, *island.front());
-      mem.device = owner_sub->device;
+      mem.device = owner_sub->device.get();
       mem.device_pointer = owner_sub->ptr_map[key];
       mem.device_size = existing_size;
 
@@ -453,7 +453,7 @@ class MultiDevice : public Device {
     int i = 0;
 
     for (SubDevice &sub : devices) {
-      if (sub.device == sub_device) {
+      if (sub.device.get() == sub_device) {
         return i;
       }
       i++;
@@ -470,12 +470,12 @@ class MultiDevice : public Device {
   }
 };
 
-Device *device_multi_create(const DeviceInfo &info,
-                            Stats &stats,
-                            Profiler &profiler,
-                            bool headless)
+unique_ptr<Device> device_multi_create(const DeviceInfo &info,
+                                       Stats &stats,
+                                       Profiler &profiler,
+                                       bool headless)
 {
-  return new MultiDevice(info, stats, profiler, headless);
+  return make_unique<MultiDevice>(info, stats, profiler, headless);
 }
 
 CCL_NAMESPACE_END

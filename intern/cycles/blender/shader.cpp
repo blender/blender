@@ -803,7 +803,7 @@ static ShaderNode *add_node(Scene *scene,
       /* create script node */
       BL::ShaderNodeScript b_script_node(b_node);
 
-      ShaderManager *manager = scene->shader_manager;
+      ShaderManager *manager = scene->shader_manager.get();
       const string bytecode_hash = b_script_node.bytecode_hash();
 
       if (!bytecode_hash.empty()) {
@@ -864,18 +864,19 @@ static ShaderNode *add_node(Scene *scene,
         const int image_frame = image_user_frame_number(b_image_user, b_image, scene_frame);
         if (b_image_source != BL::Image::source_TILED) {
           image->handle = scene->image_manager->add_image(
-              new BlenderImageLoader(b_image, image_frame, 0, b_engine.is_preview()),
+              make_unique<BlenderImageLoader>(b_image, image_frame, 0, b_engine.is_preview()),
               image->image_params());
         }
         else {
-          vector<ImageLoader *> loaders;
+          vector<unique_ptr<ImageLoader>> loaders;
           loaders.reserve(image->get_tiles().size());
           for (const int tile_number : image->get_tiles()) {
-            loaders.push_back(
-                new BlenderImageLoader(b_image, image_frame, tile_number, b_engine.is_preview()));
+            loaders.push_back(make_unique<BlenderImageLoader>(
+                b_image, image_frame, tile_number, b_engine.is_preview()));
           }
 
-          image->handle = scene->image_manager->add_image(loaders, image->image_params());
+          image->handle = scene->image_manager->add_image(std::move(loaders),
+                                                          image->image_params());
         }
       }
       else {
@@ -910,7 +911,7 @@ static ShaderNode *add_node(Scene *scene,
         const int scene_frame = b_scene.frame_current();
         const int image_frame = image_user_frame_number(b_image_user, b_image, scene_frame);
         env->handle = scene->image_manager->add_image(
-            new BlenderImageLoader(b_image, image_frame, 0, b_engine.is_preview()),
+            make_unique<BlenderImageLoader>(b_image, image_frame, 0, b_engine.is_preview()),
             env->image_params());
       }
       else {
@@ -1075,7 +1076,7 @@ static ShaderNode *add_node(Scene *scene,
     point_density->set_space((NodeTexVoxelSpace)b_point_density_node.space());
     point_density->set_interpolation(get_image_interpolation(b_point_density_node));
     point_density->handle = scene->image_manager->add_image(
-        new BlenderPointDensityLoader(b_depsgraph, b_point_density_node),
+        make_unique<BlenderPointDensityLoader>(b_depsgraph, b_point_density_node),
         point_density->image_params());
 
     b_point_density_node.cache_point_density(b_depsgraph);
@@ -1575,7 +1576,7 @@ void BlenderSync::sync_materials(BL::Depsgraph &b_depsgraph, bool update_all)
     if (shader_map.add_or_update(&shader, b_mat) || update_all ||
         scene_attr_needs_recalc(shader, b_depsgraph))
     {
-      ShaderGraph *graph = new ShaderGraph();
+      unique_ptr<ShaderGraph> graph = make_unique<ShaderGraph>();
 
       shader->name = b_mat.name().c_str();
       shader->set_pass_id(b_mat.pass_index());
@@ -1584,7 +1585,7 @@ void BlenderSync::sync_materials(BL::Depsgraph &b_depsgraph, bool update_all)
       if (b_mat.use_nodes() && b_mat.node_tree()) {
         BL::ShaderNodeTree b_ntree(b_mat.node_tree());
 
-        add_nodes(scene, b_engine, b_data, b_depsgraph, b_scene, graph, b_ntree);
+        add_nodes(scene, b_engine, b_data, b_depsgraph, b_scene, graph.get(), b_ntree);
       }
       else {
         DiffuseBsdfNode *diffuse = graph->create_node<DiffuseBsdfNode>();
@@ -1595,7 +1596,7 @@ void BlenderSync::sync_materials(BL::Depsgraph &b_depsgraph, bool update_all)
         graph->connect(diffuse->output("BSDF"), out->input("Surface"));
       }
 
-      resolve_view_layer_attributes(shader, graph, b_depsgraph);
+      resolve_view_layer_attributes(shader, graph.get(), b_depsgraph);
 
       /* settings */
       PointerRNA cmat = RNA_pointer_get(&b_mat.ptr, "cycles");
@@ -1608,7 +1609,7 @@ void BlenderSync::sync_materials(BL::Depsgraph &b_depsgraph, bool update_all)
       shader->set_volume_step_rate(get_float(cmat, "volume_step_rate"));
       shader->set_displacement_method(get_displacement_method(b_mat));
 
-      shader->set_graph(graph);
+      shader->set_graph(std::move(graph));
 
       /* By simplifying the shader graph as soon as possible, some
        * redundant shader nodes might be removed which prevents loading
@@ -1620,7 +1621,7 @@ void BlenderSync::sync_materials(BL::Depsgraph &b_depsgraph, bool update_all)
        * right before compiling.
        */
       if (!preview) {
-        pool.push([graph, scene = scene] { graph->simplify(scene); });
+        pool.push([graph = shader->graph.get(), scene = scene] { graph->simplify(scene); });
         /* NOTE: Update shaders out of the threads since those routines
          * are accessing and writing to a global context.
          */
@@ -1660,7 +1661,7 @@ void BlenderSync::sync_world(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d,
       viewport_parameters.shader_modified(new_viewport_parameters) ||
       scene_attr_needs_recalc(shader, b_depsgraph))
   {
-    ShaderGraph *graph = new ShaderGraph();
+    unique_ptr<ShaderGraph> graph = make_unique<ShaderGraph>();
 
     /* create nodes */
     if (new_viewport_parameters.use_scene_world && b_world && b_world.use_nodes() &&
@@ -1668,7 +1669,7 @@ void BlenderSync::sync_world(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d,
     {
       BL::ShaderNodeTree b_ntree(b_world.node_tree());
 
-      add_nodes(scene, b_engine, b_data, b_depsgraph, b_scene, graph, b_ntree);
+      add_nodes(scene, b_engine, b_data, b_depsgraph, b_scene, graph.get(), b_ntree);
 
       /* volume */
       PointerRNA cworld = RNA_pointer_get(&b_world.ptr, "cycles");
@@ -1758,9 +1759,9 @@ void BlenderSync::sync_world(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d,
       background->set_visibility(visibility);
     }
 
-    resolve_view_layer_attributes(shader, graph, b_depsgraph);
+    resolve_view_layer_attributes(shader, graph.get(), b_depsgraph);
 
-    shader->set_graph(graph);
+    shader->set_graph(std::move(graph));
     shader->tag_update(scene);
   }
 
@@ -1829,7 +1830,7 @@ void BlenderSync::sync_lights(BL::Depsgraph &b_depsgraph, bool update_all)
     if (shader_map.add_or_update(&shader, b_light) || update_all ||
         scene_attr_needs_recalc(shader, b_depsgraph))
     {
-      ShaderGraph *graph = new ShaderGraph();
+      unique_ptr<ShaderGraph> graph = make_unique<ShaderGraph>();
 
       /* create nodes */
       if (b_light.use_nodes() && b_light.node_tree()) {
@@ -1837,7 +1838,7 @@ void BlenderSync::sync_lights(BL::Depsgraph &b_depsgraph, bool update_all)
 
         BL::ShaderNodeTree b_ntree(b_light.node_tree());
 
-        add_nodes(scene, b_engine, b_data, b_depsgraph, b_scene, graph, b_ntree);
+        add_nodes(scene, b_engine, b_data, b_depsgraph, b_scene, graph.get(), b_ntree);
       }
       else {
         EmissionNode *emission = graph->create_node<EmissionNode>();
@@ -1849,9 +1850,9 @@ void BlenderSync::sync_lights(BL::Depsgraph &b_depsgraph, bool update_all)
         graph->connect(emission->output("Emission"), out->input("Surface"));
       }
 
-      resolve_view_layer_attributes(shader, graph, b_depsgraph);
+      resolve_view_layer_attributes(shader, graph.get(), b_depsgraph);
 
-      shader->set_graph(graph);
+      shader->set_graph(std::move(graph));
       shader->tag_update(scene);
     }
   }

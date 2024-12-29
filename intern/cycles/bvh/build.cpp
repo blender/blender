@@ -473,7 +473,7 @@ void BVHBuild::add_references(BVHRange &root)
 
 /* Build */
 
-BVHNode *BVHBuild::run()
+unique_ptr<BVHNode> BVHBuild::run()
 {
   BVHRange root;
 
@@ -517,7 +517,7 @@ BVHNode *BVHBuild::run()
   }
 
   /* build recursively */
-  BVHNode *rootnode;
+  unique_ptr<BVHNode> rootnode;
 
   if (params.use_spatial_split) {
     /* Perform multithreaded spatial split build. */
@@ -538,8 +538,7 @@ BVHNode *BVHBuild::run()
   /* delete if we canceled */
   if (rootnode) {
     if (progress.get_cancel()) {
-      rootnode->deleteSubtree();
-      rootnode = nullptr;
+      rootnode.reset();
       VLOG_WORK << "BVH build canceled.";
     }
     else {
@@ -601,10 +600,10 @@ void BVHBuild::thread_build_node(InnerNode *inner,
   }
 
   /* build nodes */
-  BVHNode *node = build_node(range, level);
+  unique_ptr<BVHNode> node = build_node(range, level);
 
   /* set child in inner node */
-  inner->children[child] = node;
+  inner->children[child] = std::move(node);
 
   /* update progress */
   if (range.size() < THREAD_TASK_SIZE) {
@@ -631,10 +630,10 @@ void BVHBuild::thread_build_spatial_split_node(InnerNode *inner,
   BVHSpatialStorage *local_storage = &spatial_storage.local();
 
   /* build nodes */
-  BVHNode *node = build_node(range, references, level, local_storage);
+  unique_ptr<BVHNode> node = build_node(range, references, level, local_storage);
 
   /* set child in inner node */
-  inner->children[child] = node;
+  inner->children[child] = std::move(node);
 }
 
 bool BVHBuild::range_within_max_leaf_size(const BVHRange &range,
@@ -693,7 +692,7 @@ bool BVHBuild::range_within_max_leaf_size(const BVHRange &range,
 }
 
 /* multithreaded binning builder */
-BVHNode *BVHBuild::build_node(const BVHObjectBinning &range, const int level)
+unique_ptr<BVHNode> BVHBuild::build_node(const BVHObjectBinning &range, const int level)
 {
   const size_t size = range.size();
   const float leafSAH = params.sah_primitive_cost * range.leafSAH;
@@ -756,20 +755,21 @@ BVHNode *BVHBuild::build_node(const BVHObjectBinning &range, const int level)
   }
 
   /* Create inner node. */
-  InnerNode *inner;
+  unique_ptr<InnerNode> inner;
   if (range.size() < THREAD_TASK_SIZE) {
     /* local build */
-    BVHNode *leftnode = build_node(left, level + 1);
-    BVHNode *rightnode = build_node(right, level + 1);
+    unique_ptr<BVHNode> leftnode = build_node(left, level + 1);
+    unique_ptr<BVHNode> rightnode = build_node(right, level + 1);
 
-    inner = new InnerNode(bounds, leftnode, rightnode);
+    inner = make_unique<InnerNode>(bounds, std::move(leftnode), std::move(rightnode));
   }
   else {
     /* Threaded build */
-    inner = new InnerNode(bounds);
+    inner = make_unique<InnerNode>(bounds);
+    InnerNode *inner_ptr = inner.get();
 
-    task_pool.push([=] { thread_build_node(inner, 0, left, level + 1); });
-    task_pool.push([=] { thread_build_node(inner, 1, right, level + 1); });
+    task_pool.push([=] { thread_build_node(inner_ptr, 0, left, level + 1); });
+    task_pool.push([=] { thread_build_node(inner_ptr, 1, right, level + 1); });
   }
 
   if (do_unalinged_split) {
@@ -780,10 +780,10 @@ BVHNode *BVHBuild::build_node(const BVHObjectBinning &range, const int level)
 }
 
 /* multithreaded spatial split builder */
-BVHNode *BVHBuild::build_node(const BVHRange &range,
-                              vector<BVHReference> &references,
-                              const int level,
-                              BVHSpatialStorage *storage)
+unique_ptr<BVHNode> BVHBuild::build_node(const BVHRange &range,
+                                         vector<BVHReference> &references,
+                                         const int level,
+                                         BVHSpatialStorage *storage)
 {
   /* Update progress.
    *
@@ -857,7 +857,7 @@ BVHNode *BVHBuild::build_node(const BVHRange &range,
   }
 
   /* Create inner node. */
-  InnerNode *inner;
+  unique_ptr<InnerNode> inner;
   if (range.size() < THREAD_TASK_SIZE) {
     /* Local build. */
 
@@ -866,16 +866,16 @@ BVHNode *BVHBuild::build_node(const BVHRange &range,
                                           references.begin() + right.end());
     right.set_start(0);
 
-    BVHNode *leftnode = build_node(left, references, level + 1, storage);
+    unique_ptr<BVHNode> leftnode = build_node(left, references, level + 1, storage);
 
     /* Build right node. */
-    BVHNode *rightnode = build_node(right, right_references, level + 1, storage);
+    unique_ptr<BVHNode> rightnode = build_node(right, right_references, level + 1, storage);
 
-    inner = new InnerNode(bounds, leftnode, rightnode);
+    inner = make_unique<InnerNode>(bounds, std::move(leftnode), std::move(rightnode));
   }
   else {
     /* Threaded build. */
-    inner = new InnerNode(bounds);
+    inner = make_unique<InnerNode>(bounds);
 
     vector<BVHReference> left_references(references.begin() + left.start(),
                                          references.begin() + left.end());
@@ -883,13 +883,15 @@ BVHNode *BVHBuild::build_node(const BVHRange &range,
                                           references.begin() + right.end());
     right.set_start(0);
 
+    InnerNode *inner_ptr = inner.get();
+
     /* Create tasks for left and right nodes, using copy for most arguments and
      * move for reference to avoid memory copies. */
     task_pool.push([=, refs = std::move(left_references)]() mutable {
-      thread_build_spatial_split_node(inner, 0, left, refs, level + 1);
+      thread_build_spatial_split_node(inner_ptr, 0, left, refs, level + 1);
     });
     task_pool.push([=, refs = std::move(right_references)]() mutable {
-      thread_build_spatial_split_node(inner, 1, right, refs, level + 1);
+      thread_build_spatial_split_node(inner_ptr, 1, right, refs, level + 1);
     });
   }
 
@@ -902,13 +904,13 @@ BVHNode *BVHBuild::build_node(const BVHRange &range,
 
 /* Create Nodes */
 
-BVHNode *BVHBuild::create_object_leaf_nodes(const BVHReference *ref,
-                                            const int start,
-                                            const int num)
+unique_ptr<BVHNode> BVHBuild::create_object_leaf_nodes(const BVHReference *ref,
+                                                       const int start,
+                                                       const int num)
 {
   if (num == 0) {
     const BoundBox bounds = BoundBox::empty;
-    return new LeafNode(bounds, 0, 0, 0);
+    return make_unique<LeafNode>(bounds, 0, 0, 0);
   }
   if (num == 1) {
     assert(start < prim_type.size());
@@ -920,27 +922,33 @@ BVHNode *BVHBuild::create_object_leaf_nodes(const BVHReference *ref,
     }
 
     const uint visibility = objects[ref->prim_object()]->visibility_for_tracing();
-    BVHNode *leaf_node = new LeafNode(ref->bounds(), visibility, start, start + 1);
+    unique_ptr<BVHNode> leaf_node = make_unique<LeafNode>(
+        ref->bounds(), visibility, start, start + 1);
     leaf_node->time_from = ref->time_from();
     leaf_node->time_to = ref->time_to();
     return leaf_node;
   }
 
   const int mid = num / 2;
-  BVHNode *leaf0 = create_object_leaf_nodes(ref, start, mid);
-  BVHNode *leaf1 = create_object_leaf_nodes(ref + mid, start + mid, num - mid);
+  unique_ptr<BVHNode> leaf0 = create_object_leaf_nodes(ref, start, mid);
+  unique_ptr<BVHNode> leaf1 = create_object_leaf_nodes(ref + mid, start + mid, num - mid);
 
   BoundBox bounds = BoundBox::empty;
   bounds.grow(leaf0->bounds);
   bounds.grow(leaf1->bounds);
 
-  BVHNode *inner_node = new InnerNode(bounds, leaf0, leaf1);
-  inner_node->time_from = min(leaf0->time_from, leaf1->time_from);
-  inner_node->time_to = max(leaf0->time_to, leaf1->time_to);
+  const float time_from = min(leaf0->time_from, leaf1->time_from);
+  const float time_to = max(leaf0->time_to, leaf1->time_to);
+
+  unique_ptr<BVHNode> inner_node = make_unique<InnerNode>(
+      bounds, std::move(leaf0), std::move(leaf1));
+  inner_node->time_from = time_from;
+  inner_node->time_to = time_to;
   return inner_node;
 }
 
-BVHNode *BVHBuild::create_leaf_node(const BVHRange &range, const vector<BVHReference> &references)
+unique_ptr<BVHNode> BVHBuild::create_leaf_node(const BVHRange &range,
+                                               const vector<BVHReference> &references)
 {
   /* This is a bit over-allocating here (considering leaf size into account),
    * but chunk-based re-allocation in vector makes it difficult to use small
@@ -1006,7 +1014,7 @@ BVHNode *BVHBuild::create_leaf_node(const BVHRange &range, const vector<BVHRefer
    * TODO(sergey): With some pointer trickery we can write directly to the
    * destination buffers for the non-spatial split BVH.
    */
-  BVHNode *leaves[PRIMITIVE_NUM + 1] = {nullptr};
+  unique_ptr<BVHNode> leaves[PRIMITIVE_NUM + 1];
   int num_leaves = 0;
   size_t start_index = 0;
   vector<int, LeafStackAllocator> local_prim_type;
@@ -1038,7 +1046,8 @@ BVHNode *BVHBuild::create_leaf_node(const BVHRange &range, const vector<BVHRefer
           alignment_found = unaligned_heuristic.compute_aligned_space(p_ref[i][j], &aligned_space);
         }
       }
-      LeafNode *leaf_node = new LeafNode(bounds[i], visibility[i], start_index, start_index + num);
+      unique_ptr<LeafNode> leaf_node = make_unique<LeafNode>(
+          bounds[i], visibility[i], start_index, start_index + num);
       if (true) {
         float time_from = 1.0f;
         float time_to = 0.0f;
@@ -1062,7 +1071,7 @@ BVHNode *BVHBuild::create_leaf_node(const BVHRange &range, const vector<BVHRefer
         /* Set alignment space. */
         leaf_node->set_aligned_space(aligned_space);
       }
-      leaves[num_leaves++] = leaf_node;
+      leaves[num_leaves++] = std::move(leaf_node);
       start_index += num;
     }
   }
@@ -1139,7 +1148,7 @@ BVHNode *BVHBuild::create_leaf_node(const BVHRange &range, const vector<BVHRefer
    * index.
    */
   for (int i = 0; i < num_leaves; ++i) {
-    LeafNode *leaf = (LeafNode *)leaves[i];
+    LeafNode *leaf = (LeafNode *)leaves[i].get();
     leaf->lo += start_index;
     leaf->hi += start_index;
   }
@@ -1162,27 +1171,31 @@ BVHNode *BVHBuild::create_leaf_node(const BVHRange &range, const vector<BVHRefer
      * In all the rest cases we'll be creating intermediate inner node with
      * an appropriate bounding box.
      */
-    return leaves[0];
+    return std::move(leaves[0]);
   }
   if (num_leaves == 2) {
-    return new InnerNode(range.bounds(), leaves[0], leaves[1]);
+    return make_unique<InnerNode>(range.bounds(), std::move(leaves[0]), std::move(leaves[1]));
   }
   if (num_leaves == 3) {
     const BoundBox inner_bounds = merge(leaves[1]->bounds, leaves[2]->bounds);
-    BVHNode *inner = new InnerNode(inner_bounds, leaves[1], leaves[2]);
-    return new InnerNode(range.bounds(), leaves[0], inner);
+    unique_ptr<BVHNode> inner = make_unique<InnerNode>(
+        inner_bounds, std::move(leaves[1]), std::move(leaves[2]));
+    return make_unique<InnerNode>(range.bounds(), std::move(leaves[0]), std::move(inner));
   }
 
   /* Should be doing more branches if more primitive types added. */
   assert(num_leaves <= 5);
   const BoundBox inner_bounds_a = merge(leaves[0]->bounds, leaves[1]->bounds);
   const BoundBox inner_bounds_b = merge(leaves[2]->bounds, leaves[3]->bounds);
-  BVHNode *inner_a = new InnerNode(inner_bounds_a, leaves[0], leaves[1]);
-  BVHNode *inner_b = new InnerNode(inner_bounds_b, leaves[2], leaves[3]);
+  unique_ptr<BVHNode> inner_a = make_unique<InnerNode>(
+      inner_bounds_a, std::move(leaves[0]), std::move(leaves[1]));
+  unique_ptr<BVHNode> inner_b = make_unique<InnerNode>(
+      inner_bounds_b, std::move(leaves[2]), std::move(leaves[3]));
   const BoundBox inner_bounds_c = merge(inner_a->bounds, inner_b->bounds);
-  BVHNode *inner_c = new InnerNode(inner_bounds_c, inner_a, inner_b);
+  unique_ptr<BVHNode> inner_c = make_unique<InnerNode>(
+      inner_bounds_c, std::move(inner_a), std::move(inner_b));
   if (num_leaves == 5) {
-    return new InnerNode(range.bounds(), inner_c, leaves[4]);
+    return make_unique<InnerNode>(range.bounds(), std::move(inner_c), std::move(leaves[4]));
   }
   return inner_c;
 
@@ -1213,7 +1226,7 @@ void BVHBuild::rotate(BVHNode *node, const int max_depth)
 
   /* rotate all children first */
   for (size_t c = 0; c < 2; c++) {
-    rotate(parent->children[c], max_depth - 1);
+    rotate(parent->children[c].get(), max_depth - 1);
   }
 
   /* compute current area of all children */
@@ -1237,7 +1250,7 @@ void BVHBuild::rotate(BVHNode *node, const int max_depth)
       continue;
     }
 
-    InnerNode *child = (InnerNode *)parent->children[c];
+    InnerNode *child = (InnerNode *)parent->children[c].get();
     const BoundBox &other = (c == 0) ? bounds1 : bounds0;
 
     /* transpose child bounds */
@@ -1272,7 +1285,7 @@ void BVHBuild::rotate(BVHNode *node, const int max_depth)
   assert(best_target != -1);
 
   /* perform the best found tree rotation */
-  InnerNode *child = (InnerNode *)parent->children[best_child];
+  InnerNode *child = (InnerNode *)parent->children[best_child].get();
 
   swap(parent->children[best_other], child->children[best_target]);
   child->bounds = merge(child->children[0]->bounds, child->children[1]->bounds);

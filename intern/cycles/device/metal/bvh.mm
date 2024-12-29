@@ -1101,7 +1101,7 @@ bool BVHMetal::build_TLAS(Progress &progress,
     for (Object *ob : objects) {
       /* Skip non-traceable objects */
       const Geometry *geom = ob->get_geometry();
-      const BVHMetal *blas = static_cast<const BVHMetal *>(geom->bvh);
+      const BVHMetal *blas = static_cast<const BVHMetal *>(geom->bvh.get());
       if (!blas || !blas->accel_struct || !ob->is_traceable()) {
         /* Place a degenerate instance, to ensure [[instance_id]] equals ob->get_device_index()
          * in our intersection functions */

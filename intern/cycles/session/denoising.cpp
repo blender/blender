@@ -614,7 +614,7 @@ DenoiserPipeline::DenoiserPipeline(DeviceInfo &denoiser_device_info, const Denoi
   device_cpu_info(cpu_devices);
   cpu_device = device_cpu_create(cpu_devices[0], device->stats, device->profiler, true);
 
-  denoiser = Denoiser::create(device, cpu_device, params);
+  denoiser = Denoiser::create(device.get(), cpu_device.get(), params);
   if (denoiser) {
     denoiser->load_kernels(nullptr);
   }
@@ -623,7 +623,7 @@ DenoiserPipeline::DenoiserPipeline(DeviceInfo &denoiser_device_info, const Denoi
 DenoiserPipeline::~DenoiserPipeline()
 {
   denoiser.reset();
-  delete device;
+  device.reset();
   TaskScheduler::exit();
 }
 
@@ -645,7 +645,7 @@ bool DenoiserPipeline::run()
     }
 
     /* Execute task. */
-    DenoiseTask task(device, this, frame);
+    DenoiseTask task(device.get(), this, frame);
     if (!task.load()) {
       error = task.error;
       return false;

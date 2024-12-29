@@ -217,13 +217,6 @@ LightManager::LightManager()
   last_background_resolution = 0;
 }
 
-LightManager::~LightManager()
-{
-  for (IESSlot *slot : ies_slots) {
-    delete slot;
-  }
-}
-
 bool LightManager::has_background_light(Scene *scene)
 {
   for (Light *light : scene->lights) {
@@ -1534,7 +1527,7 @@ int LightManager::add_ies(const string &content)
 
   /* If there's no free slot, add one. */
   if (slot == ies_slots.size()) {
-    ies_slots.push_back(new IESSlot());
+    ies_slots.push_back(make_unique<IESSlot>());
   }
 
   ies_slots[slot]->ies.load(content);
@@ -1569,7 +1562,7 @@ void LightManager::remove_ies(const int slot)
 void LightManager::device_update_ies(DeviceScene *dscene)
 {
   /* Clear empty slots. */
-  for (IESSlot *slot : ies_slots) {
+  for (const unique_ptr<IESSlot> &slot : ies_slots) {
     if (slot->users == 0) {
       slot->hash = 0;
       slot->ies.clear();
@@ -1583,14 +1576,12 @@ void LightManager::device_update_ies(DeviceScene *dscene)
       /* If the preceding slot has users, we found the new end of the table. */
       break;
     }
-    /* The slot will be past the new end of the table, so free it. */
-    delete ies_slots[slot_end - 1];
   }
   ies_slots.resize(slot_end);
 
   if (!ies_slots.empty()) {
     int packed_size = 0;
-    for (IESSlot *slot : ies_slots) {
+    for (const unique_ptr<IESSlot> &slot : ies_slots) {
       packed_size += slot->ies.packed_size();
     }
 

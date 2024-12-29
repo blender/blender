@@ -99,7 +99,7 @@ class Geometry : public Node {
   static const uint MAX_MOTION_STEPS = 129;
 
   /* BVH */
-  BVH *bvh;
+  unique_ptr<BVH> bvh;
   size_t attr_map_offset;
   size_t prim_offset;
 

@@ -20,13 +20,8 @@ struct KernelExecutionInfo {
 /* OneapiDeviceQueue */
 
 OneapiDeviceQueue::OneapiDeviceQueue(OneapiDevice *device)
-    : DeviceQueue(device), oneapi_device_(device), kernel_context_(nullptr)
+    : DeviceQueue(device), oneapi_device_(device)
 {
-}
-
-OneapiDeviceQueue::~OneapiDeviceQueue()
-{
-  delete kernel_context_;
 }
 
 int OneapiDeviceQueue::num_concurrent_states(const size_t state_size) const
@@ -60,7 +55,9 @@ void OneapiDeviceQueue::init_execution()
   void *kg_dptr = oneapi_device_->kernel_globals_device_pointer();
   assert(device_queue);
   assert(kg_dptr);
-  kernel_context_ = new KernelContext{device_queue, kg_dptr, 0};
+  kernel_context_ = make_unique<KernelContext>();
+  kernel_context_->queue = device_queue;
+  kernel_context_->kernel_globals = kg_dptr;
 
   debug_init_execution();
 }
@@ -88,7 +85,7 @@ bool OneapiDeviceQueue::enqueue(DeviceKernel kernel,
 
   /* Call the oneAPI kernel DLL to launch the requested kernel. */
   bool is_finished_ok = oneapi_device_->enqueue_kernel(
-      kernel_context_, kernel, kernel_global_size, kernel_local_size, args);
+      kernel_context_.get(), kernel, kernel_global_size, kernel_local_size, args);
 
   if (is_finished_ok == false) {
     oneapi_device_->set_error("oneAPI kernel \"" + std::string(device_kernel_as_string(kernel)) +

@@ -11,6 +11,8 @@
 
 #  include "kernel/device/oneapi/kernel.h"
 
+#  include "util/unique_ptr.h"
+
 CCL_NAMESPACE_BEGIN
 
 class OneapiDevice;
@@ -20,7 +22,6 @@ class device_memory;
 class OneapiDeviceQueue : public DeviceQueue {
  public:
   explicit OneapiDeviceQueue(OneapiDevice *device);
-  ~OneapiDeviceQueue();
 
   int num_concurrent_states(const size_t state_size) const override;
 
@@ -47,7 +48,7 @@ class OneapiDeviceQueue : public DeviceQueue {
 
  protected:
   OneapiDevice *oneapi_device_;
-  KernelContext *kernel_context_;
+  unique_ptr<KernelContext> kernel_context_;
 };
 
 CCL_NAMESPACE_END

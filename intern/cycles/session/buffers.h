@@ -11,6 +11,8 @@
 #include "kernel/types.h"
 
 #include "util/string.h"
+#include "util/unique_ptr.h"
+#include "util/vector.h"
 
 CCL_NAMESPACE_BEGIN
 

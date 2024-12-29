@@ -264,7 +264,7 @@ void BlenderSync::sync_data(BL::RenderSettings &b_render,
                             const DeviceInfo &denoise_device_info)
 {
   /* For auto refresh images. */
-  ImageManager *image_manager = scene->image_manager;
+  ImageManager *image_manager = scene->image_manager.get();
   const int frame = b_scene.frame_current();
   const bool auto_refresh_update = image_manager->set_animation_frame_update(frame);
 

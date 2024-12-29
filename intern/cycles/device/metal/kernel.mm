@@ -130,7 +130,7 @@ struct ShaderCache {
 
   static bool running;
   std::condition_variable cond_var;
-  std::deque<MetalKernelPipeline *> request_queue;
+  std::deque<unique_ptr<MetalKernelPipeline>> request_queue;
   std::vector<std::thread> compile_threads;
   std::atomic_int incomplete_requests = 0;
   std::atomic_int incomplete_specialization_requests = 0;
@@ -190,7 +190,7 @@ void ShaderCache::compile_thread_func()
   while (running) {
 
     /* wait for / acquire next request */
-    MetalKernelPipeline *pipeline;
+    unique_ptr<MetalKernelPipeline> pipeline;
     {
       thread_scoped_lock lock(cache_mutex);
       cond_var.wait(lock, [&] { return !running || !request_queue.empty(); });
@@ -198,7 +198,7 @@ void ShaderCache::compile_thread_func()
         continue;
       }
 
-      pipeline = request_queue.front();
+      pipeline = std::move(request_queue.front());
       request_queue.pop_front();
     }
 
@@ -233,7 +233,7 @@ void ShaderCache::compile_thread_func()
           }
         }
       }
-      collection.push_back(unique_ptr<MetalKernelPipeline>(pipeline));
+      collection.push_back(std::move(pipeline));
     }
     incomplete_requests--;
     if (pso_type != PSO_GENERIC) {
@@ -334,7 +334,7 @@ void ShaderCache::load_kernel(DeviceKernel device_kernel,
     incomplete_specialization_requests++;
   }
 
-  MetalKernelPipeline *pipeline = new MetalKernelPipeline;
+  unique_ptr<MetalKernelPipeline> pipeline = make_unique<MetalKernelPipeline>();
 
   /* Keep track of the originating device's ID so that we can cancel requests if the device ceases
    * to be active. */
@@ -359,7 +359,7 @@ void ShaderCache::load_kernel(DeviceKernel device_kernel,
 
   {
     thread_scoped_lock lock(cache_mutex);
-    request_queue.push_back(pipeline);
+    request_queue.push_back(std::move(pipeline));
   }
   cond_var.notify_one();
 }

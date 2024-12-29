@@ -62,7 +62,10 @@ void Device::build_bvh(BVH *bvh, Progress &progress, bool refit)
   }
 }
 
-Device *Device::create(const DeviceInfo &info, Stats &stats, Profiler &profiler, bool headless)
+unique_ptr<Device> Device::create(const DeviceInfo &info,
+                                  Stats &stats,
+                                  Profiler &profiler,
+                                  bool headless)
 {
   if (!info.multi_devices.empty()) {
     /* Always create a multi device when info contains multiple devices.
@@ -71,7 +74,7 @@ Device *Device::create(const DeviceInfo &info, Stats &stats, Profiler &profiler,
     return device_multi_create(info, stats, profiler, headless);
   }
 
-  Device *device = nullptr;
+  unique_ptr<Device> device;
 
   switch (info.type) {
     case DEVICE_CPU:

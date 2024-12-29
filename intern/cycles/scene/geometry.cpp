@@ -61,7 +61,6 @@ Geometry::Geometry(const NodeType *node_type, const Type type)
   has_volume = false;
   has_surface_bssrdf = false;
 
-  bvh = nullptr;
   attr_map_offset = 0;
   prim_offset = 0;
 }
@@ -69,7 +68,6 @@ Geometry::Geometry(const NodeType *node_type, const Type type)
 Geometry::~Geometry()
 {
   dereference_all_used_nodes();
-  delete bvh;
 }
 
 void Geometry::clear(bool preserve_shaders)
@@ -188,7 +186,7 @@ GeometryManager::~GeometryManager() = default;
 void GeometryManager::update_osl_globals(Device *device, Scene *scene)
 {
 #ifdef WITH_OSL
-  OSLGlobals *og = (OSLGlobals *)device->get_cpu_osl_memory();
+  OSLGlobals *og = device->get_cpu_osl_memory();
   if (og == nullptr) {
     /* Can happen when rendering with multiple GPUs, but no CPU (in which case the name maps filled
      * below are not used anyway) */
@@ -503,8 +501,7 @@ void GeometryManager::device_update_preprocess(Device *device, Scene *scene, Pro
   if (device_update_flags & (DEVICE_MESH_DATA_NEEDS_REALLOC | DEVICE_CURVE_DATA_NEEDS_REALLOC |
                              DEVICE_POINT_DATA_NEEDS_REALLOC))
   {
-    delete scene->bvh;
-    scene->bvh = nullptr;
+    scene->bvh.reset();
 
     dscene->bvh_nodes.tag_realloc();
     dscene->bvh_leaf_nodes.tag_realloc();
@@ -609,7 +606,7 @@ void GeometryManager::device_update_displacement_images(Device *device,
 {
   progress.set_status("Updating Displacement Images");
   TaskPool pool;
-  ImageManager *image_manager = scene->image_manager;
+  ImageManager *image_manager = scene->image_manager.get();
   set<int> bump_images;
 #ifdef WITH_OSL
   bool has_osl_node = false;
@@ -674,7 +671,7 @@ void GeometryManager::device_update_volume_images(Device *device, Scene *scene, 
 {
   progress.set_status("Updating Volume Images");
   TaskPool pool;
-  ImageManager *image_manager = scene->image_manager;
+  ImageManager *image_manager = scene->image_manager.get();
   set<int> volume_images;
 
   for (Geometry *geom : scene->geometry) {
@@ -1098,7 +1095,7 @@ void GeometryManager::device_free(Device *device, DeviceScene *dscene, bool forc
   dscene->data.bvh.bvh_layout = BVH_LAYOUT_NONE;
 
 #ifdef WITH_OSL
-  OSLGlobals *og = (OSLGlobals *)device->get_cpu_osl_memory();
+  OSLGlobals *og = device->get_cpu_osl_memory();
 
   if (og) {
     og->object_name_map.clear();

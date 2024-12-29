@@ -40,7 +40,7 @@ int OSLShaderManager::ts_shared_users = 0;
 thread_mutex OSLShaderManager::ts_shared_mutex;
 
 OSL::ErrorHandler OSLShaderManager::errhandler;
-map<int, OSL::ShadingSystem *> OSLShaderManager::ss_shared;
+map<int, unique_ptr<OSL::ShadingSystem>> OSLShaderManager::ss_shared;
 int OSLShaderManager::ss_shared_users = 0;
 thread_mutex OSLShaderManager::ss_shared_mutex;
 
@@ -123,7 +123,7 @@ void OSLShaderManager::device_update_specific(Device *device,
     assert(shader->graph);
 
     auto compile = [this, scene, shader, background_shader](Device *sub_device) {
-      OSL::ShadingSystem *ss = ss_shared[sub_device->info.type];
+      OSL::ShadingSystem *ss = ss_shared[sub_device->info.type].get();
 
       OSLCompiler compiler(this, ss, scene);
       compiler.background = (shader == background_shader);
@@ -162,7 +162,7 @@ void OSLShaderManager::device_update_specific(Device *device,
   /* setup shader engine */
   device->foreach_device([](Device *sub_device) {
     OSLGlobals *og = sub_device->get_cpu_osl_memory();
-    OSL::ShadingSystem *ss = ss_shared[sub_device->info.type];
+    OSL::ShadingSystem *ss = ss_shared[sub_device->info.type].get();
 
     og->ss = ss;
     og->ts = ts_shared;
@@ -181,9 +181,8 @@ void OSLShaderManager::device_update_specific(Device *device,
   for (const auto &[device_type, ss] : ss_shared) {
     OSLRenderServices *services = static_cast<OSLRenderServices *>(ss->renderer());
 
-    services->textures.insert(OSLUStringHash("@ao"), new OSLTextureHandle(OSLTextureHandle::AO));
-    services->textures.insert(OSLUStringHash("@bevel"),
-                              new OSLTextureHandle(OSLTextureHandle::BEVEL));
+    services->textures.insert(OSLUStringHash("@ao"), OSLTextureHandle(OSLTextureHandle::AO));
+    services->textures.insert(OSLUStringHash("@bevel"), OSLTextureHandle(OSLTextureHandle::BEVEL));
   }
 
   device_update_common(device, dscene, scene, progress);
@@ -207,7 +206,7 @@ void OSLShaderManager::device_update_specific(Device *device,
      *
      * It is used in "OSLRenderServices::get_texture_handle" called during optimization below to
      * load images for the GPU. */
-    OSLRenderServices::image_manager = scene->image_manager;
+    OSLRenderServices::image_manager = scene->image_manager.get();
 
     for (const auto &[device_type, ss] : ss_shared) {
       ss->optimize_all_groups();
@@ -247,7 +246,7 @@ void OSLShaderManager::device_free(Device *device, DeviceScene *dscene, Scene *s
     OSLRenderServices *services = static_cast<OSLRenderServices *>(ss->renderer());
 
     for (auto it = services->textures.begin(); it != services->textures.end(); ++it) {
-      if (it->second->handle.get_manager() == scene->image_manager) {
+      if (it->second.handle.get_manager() == scene->image_manager.get()) {
         /* Don't lock again, since the iterator already did so. */
         services->textures.erase(it->first, false);
         it.clear();
@@ -313,7 +312,8 @@ void OSLShaderManager::shading_system_init()
       const string shader_path = path_get("shader");
 #  endif
 
-      OSL::ShadingSystem *ss = new OSL::ShadingSystem(services, ts_shared, &errhandler);
+      unique_ptr<OSL::ShadingSystem> ss = make_unique<OSL::ShadingSystem>(
+          services, ts_shared, &errhandler);
       ss->attribute("lockgeom", 1);
       ss->attribute("commonspace", "world");
       ss->attribute("searchpath:shader", shader_path);
@@ -373,9 +373,9 @@ void OSLShaderManager::shading_system_init()
       const int nraytypes = sizeof(raytypes) / sizeof(raytypes[0]);
       ss->attribute("raytypes", TypeDesc(TypeDesc::STRING, nraytypes), (const void *)raytypes);
 
-      OSLRenderServices::register_closures(ss);
+      OSLRenderServices::register_closures(ss.get());
 
-      ss_shared[device_type] = ss;
+      ss_shared[device_type] = std::move(ss);
     }
   });
 
@@ -389,11 +389,9 @@ void OSLShaderManager::shading_system_free()
 
   device_->foreach_device([](Device * /*sub_device*/) {
     if (--ss_shared_users == 0) {
-      for (const auto &[device_type, ss] : ss_shared) {
+      for (auto &[device_type, ss] : ss_shared) {
         OSLRenderServices *services = static_cast<OSLRenderServices *>(ss->renderer());
-
-        delete ss;
-
+        ss.reset();
         util_aligned_delete(services);
       }
 
@@ -424,9 +422,8 @@ bool OSLShaderManager::osl_compile(const string &inputfile, const string &output
   static thread_mutex osl_compiler_mutex;
   const thread_scoped_lock lock(osl_compiler_mutex);
 
-  OSL::OSLCompiler *compiler = new OSL::OSLCompiler(&OSL::ErrorHandler::default_handler());
-  const bool ok = compiler->compile(string_view(inputfile), options, string_view(stdosl_path));
-  delete compiler;
+  OSL::OSLCompiler compiler = OSL::OSLCompiler(&OSL::ErrorHandler::default_handler());
+  const bool ok = compiler.compile(string_view(inputfile), options, string_view(stdosl_path));
 
   return ok;
 }
@@ -718,8 +715,8 @@ void OSLShaderManager::osl_image_slots(Device *device,
 
   for (OSLRenderServices *services : services_shared) {
     for (auto it = services->textures.begin(); it != services->textures.end(); ++it) {
-      if (it->second->handle.get_manager() == image_manager) {
-        const int slot = it->second->handle.svm_slot();
+      if (it->second.handle.get_manager() == image_manager) {
+        const int slot = it->second.handle.svm_slot();
         image_slots.insert(slot);
       }
     }
@@ -1327,7 +1324,7 @@ OSL::ShaderGroupRef OSLCompiler::compile_type(Shader *shader, ShaderGraph *graph
 void OSLCompiler::compile(Shader *shader)
 {
   if (shader->is_modified()) {
-    ShaderGraph *graph = shader->graph;
+    ShaderGraph *graph = shader->graph.get();
     ShaderNode *output = (graph) ? graph->output() : nullptr;
 
     const bool has_bump = (shader->get_displacement_method() != DISPLACE_TRUE) &&
@@ -1352,10 +1349,10 @@ void OSLCompiler::compile(Shader *shader)
 
     /* generate surface shader */
     if (shader->reference_count() && graph && output->input("Surface")->link) {
-      shader->osl_surface_ref = compile_type(shader, shader->graph, SHADER_TYPE_SURFACE);
+      shader->osl_surface_ref = compile_type(shader, shader->graph.get(), SHADER_TYPE_SURFACE);
 
       if (has_bump) {
-        shader->osl_surface_bump_ref = compile_type(shader, shader->graph, SHADER_TYPE_BUMP);
+        shader->osl_surface_bump_ref = compile_type(shader, shader->graph.get(), SHADER_TYPE_BUMP);
       }
       else {
         shader->osl_surface_bump_ref = OSL::ShaderGroupRef();
@@ -1370,7 +1367,7 @@ void OSLCompiler::compile(Shader *shader)
 
     /* generate volume shader */
     if (shader->reference_count() && graph && output->input("Volume")->link) {
-      shader->osl_volume_ref = compile_type(shader, shader->graph, SHADER_TYPE_VOLUME);
+      shader->osl_volume_ref = compile_type(shader, shader->graph.get(), SHADER_TYPE_VOLUME);
       shader->has_volume = true;
     }
     else {
@@ -1379,7 +1376,8 @@ void OSLCompiler::compile(Shader *shader)
 
     /* generate displacement shader */
     if (shader->reference_count() && graph && output->input("Displacement")->link) {
-      shader->osl_displacement_ref = compile_type(shader, shader->graph, SHADER_TYPE_DISPLACEMENT);
+      shader->osl_displacement_ref = compile_type(
+          shader, shader->graph.get(), SHADER_TYPE_DISPLACEMENT);
       shader->has_displacement = true;
     }
     else {
@@ -1395,8 +1393,8 @@ void OSLCompiler::parameter_texture(const char *name, ustring filename, ustring 
 {
   /* Textured loaded through the OpenImageIO texture cache. For this
    * case we need to do runtime color space conversion. */
-  OSLTextureHandle *handle = new OSLTextureHandle(OSLTextureHandle::OIIO);
-  handle->processor = ColorSpaceManager::get_processor(colorspace);
+  OSLTextureHandle handle(OSLTextureHandle::OIIO);
+  handle.processor = ColorSpaceManager::get_processor(colorspace);
   services->textures.insert(OSLUStringHash(filename), handle);
   parameter(name, filename);
 }
@@ -1409,7 +1407,7 @@ void OSLCompiler::parameter_texture(const char *name, const ImageHandle &handle)
    * render sessions as the render services are shared. */
   const ustring filename(string_printf("@svm%d", texture_shared_unique_id++).c_str());
   services->textures.insert(OSLUStringHash(filename),
-                            new OSLTextureHandle(OSLTextureHandle::SVM, handle.get_svm_slots()));
+                            OSLTextureHandle(OSLTextureHandle::SVM, handle.get_svm_slots()));
   parameter(name, filename);
 }
 
@@ -1418,7 +1416,7 @@ void OSLCompiler::parameter_texture_ies(const char *name, const int svm_slot)
   /* IES light textures stored in SVM. */
   const ustring filename(string_printf("@svm%d", texture_shared_unique_id++).c_str());
   services->textures.insert(OSLUStringHash(filename),
-                            new OSLTextureHandle(OSLTextureHandle::IES, svm_slot));
+                            OSLTextureHandle(OSLTextureHandle::IES, svm_slot));
   parameter(name, filename);
 }
 

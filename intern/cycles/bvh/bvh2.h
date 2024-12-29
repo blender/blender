@@ -11,6 +11,7 @@
 #include "bvh/params.h"
 
 #include "util/types.h"
+#include "util/unique_ptr.h"
 #include "util/vector.h"
 
 CCL_NAMESPACE_BEGIN
@@ -36,20 +37,18 @@ struct BVHStackEntry {
  */
 class BVH2 : public BVH {
  public:
+  BVH2(const BVHParams &params,
+       const vector<Geometry *> &geometry,
+       const vector<Object *> &objects);
+
   void build(Progress &progress, Stats *stats);
   void refit(Progress &progress);
 
   PackedBVH pack;
 
  protected:
-  /* constructor */
-  friend class BVH;
-  BVH2(const BVHParams &params,
-       const vector<Geometry *> &geometry,
-       const vector<Object *> &objects);
-
   /* Building process. */
-  virtual BVHNode *widen_children_nodes(const BVHNode *root);
+  virtual unique_ptr<BVHNode> widen_children_nodes(unique_ptr<BVHNode> &&root);
 
   /* pack */
   void pack_nodes(const BVHNode *root);

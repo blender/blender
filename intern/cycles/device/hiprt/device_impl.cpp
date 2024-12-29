@@ -894,7 +894,7 @@ hiprtScene HIPRTDevice::build_tlas(BVHHIPRT *bvh,
     Geometry *geom = ob->get_geometry();
     bool transform_applied = geom->transform_applied;
 
-    BVHHIPRT *current_bvh = static_cast<BVHHIPRT *>(geom->bvh);
+    BVHHIPRT *current_bvh = static_cast<BVHHIPRT *>(geom->bvh.get());
     bool is_valid_geometry = current_bvh->geom_input.geomType != hiprtInvalidValue;
     hiprtGeometry hiprt_geom_current = current_bvh->hiprt_geom;
 

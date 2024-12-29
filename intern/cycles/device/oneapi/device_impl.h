@@ -9,6 +9,7 @@
 #  include "kernel/device/oneapi/kernel.h"
 
 #  include "util/map.h"
+#  include "util/unique_ptr.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -28,7 +29,7 @@ class OneapiDevice : public GPUDevice {
   vector<RTCScene> all_embree_scenes;
 #    endif
 #  endif
-  using ConstMemMap = map<string, device_vector<uchar> *>;
+  using ConstMemMap = map<string, unique_ptr<device_vector<uchar>>>;
   ConstMemMap const_mem_map_;
   void *kg_memory_;
   void *kg_memory_device_;

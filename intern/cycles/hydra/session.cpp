@@ -28,7 +28,7 @@ const std::unordered_map<TfToken, PassType, TfToken::HashFunctor> kAovToPass = {
 }  // namespace
 
 SceneLock::SceneLock(const HdRenderParam *renderParam)
-    : scene(static_cast<const HdCyclesSession *>(renderParam)->session->scene),
+    : scene(static_cast<const HdCyclesSession *>(renderParam)->session->scene.get()),
       sceneLock(scene->mutex)
 {
 }
@@ -43,11 +43,11 @@ HdCyclesSession::HdCyclesSession(Session *session_, const bool keep_nodes)
 HdCyclesSession::HdCyclesSession(const SessionParams &params)
     : session(new Session(params, SceneParams())), keep_nodes(false), _ownCyclesSession(true)
 {
-  Scene *const scene = session->scene;
+  Scene *const scene = session->scene.get();
 
   // Create background with ambient light
   {
-    ShaderGraph *graph = new ShaderGraph();
+    unique_ptr<ShaderGraph> graph = make_unique<ShaderGraph>();
 
     BackgroundNode *bgNode = graph->create_node<BackgroundNode>();
     bgNode->set_color(one_float3());
@@ -55,13 +55,13 @@ HdCyclesSession::HdCyclesSession(const SessionParams &params)
 
     graph->connect(bgNode->output("Background"), graph->output()->input("Surface"));
 
-    scene->default_background->set_graph(graph);
+    scene->default_background->set_graph(std::move(graph));
     scene->default_background->tag_update(scene);
   }
 
   // Wire up object color in default surface material
   {
-    ShaderGraph *graph = new ShaderGraph();
+    unique_ptr<ShaderGraph> graph = make_unique<ShaderGraph>();
 
     ObjectInfoNode *objectNode = graph->create_node<ObjectInfoNode>();
     graph->add(objectNode);
@@ -85,7 +85,7 @@ HdCyclesSession::HdCyclesSession(const SessionParams &params)
 
     graph->connect(instanceIdNode->output("Fac"), aovNode->input("Value"));
 
-    scene->default_surface->set_graph(graph);
+    scene->default_surface->set_graph(std::move(graph));
     scene->default_surface->tag_update(scene);
   }
 }
@@ -99,7 +99,7 @@ HdCyclesSession::~HdCyclesSession()
 
 void HdCyclesSession::UpdateScene()
 {
-  Scene *const scene = session->scene;
+  Scene *const scene = session->scene.get();
 
   // Update background depending on presence of a background light
   if (scene->light_manager->need_update()) {
@@ -135,7 +135,7 @@ void HdCyclesSession::UpdateScene()
 
 void HdCyclesSession::SyncAovBindings(const HdRenderPassAovBindingVector &aovBindings)
 {
-  Scene *const scene = session->scene;
+  Scene *const scene = session->scene.get();
 
   // Delete all existing passes
   scene->delete_nodes(set<Pass *>(scene->passes.begin(), scene->passes.end()));

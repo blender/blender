@@ -415,7 +415,7 @@ void HdCyclesMaterial::PopulateShaderGraph(const HdMaterialNetwork2 &networkMap)
 {
   _nodes.clear();
 
-  auto *graph = new ShaderGraph();
+  unique_ptr<ShaderGraph> graph = make_unique<ShaderGraph>();
 
   // Iterate all the nodes first and build a complete but unconnected graph with parameters set
   for (const auto &nodeEntry : networkMap.nodes) {
@@ -448,7 +448,7 @@ void HdCyclesMaterial::PopulateShaderGraph(const HdMaterialNetwork2 &networkMap)
       // If it's a native Cycles' node-type, just do the lookup now.
       if (const NodeType *nodeType = NodeType::find(cyclesType)) {
         nodeDesc.node = static_cast<ShaderNode *>(nodeType->create(nodeType));
-        nodeDesc.node->set_owner(graph);
+        nodeDesc.node->set_owner(graph.get());
 
         graph->add(nodeDesc.node);
 
@@ -474,7 +474,7 @@ void HdCyclesMaterial::PopulateShaderGraph(const HdMaterialNetwork2 &networkMap)
       continue;
     }
 
-    UpdateConnections(nodeIt->second, nodeEntry.second, nodePath, graph);
+    UpdateConnections(nodeIt->second, nodeEntry.second, nodePath, graph.get());
   }
 
   // Finally connect the terminals to the graph output (Surface, Volume, Displacement)
@@ -556,7 +556,7 @@ void HdCyclesMaterial::PopulateShaderGraph(const HdMaterialNetwork2 &networkMap)
     graph->connect(instanceIdNode->output("Fac"), aovNode->input("Value"));
   }
 
-  _shader->set_graph(graph);
+  _shader->set_graph(std::move(graph));
 }
 
 void HdCyclesMaterial::Finalize(HdRenderParam *renderParam)

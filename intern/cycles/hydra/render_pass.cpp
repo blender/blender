@@ -74,7 +74,7 @@ void HdCyclesRenderPass::ResetConverged()
 void HdCyclesRenderPass::_Execute(const HdRenderPassStateSharedPtr &renderPassState,
                                   const TfTokenVector & /*renderTags*/)
 {
-  Scene *const scene = _renderParam->session->scene;
+  Scene *const scene = _renderParam->session->scene.get();
   Session *const session = _renderParam->session;
 
   if (session->progress.get_cancel()) {

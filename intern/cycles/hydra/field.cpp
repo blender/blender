@@ -79,7 +79,7 @@ void HdCyclesField::Sync(HdSceneDelegate *sceneDelegate,
       value = sceneDelegate->Get(id, _tokens->fieldName);
 #  endif
       if (value.IsHolding<TfToken>()) {
-        ImageLoader *const loader = new HdCyclesVolumeLoader(
+        unique_ptr<ImageLoader> loader = make_unique<HdCyclesVolumeLoader>(
             filename, value.UncheckedGet<TfToken>().GetString());
 
         const SceneLock lock(renderParam);
@@ -87,7 +87,7 @@ void HdCyclesField::Sync(HdSceneDelegate *sceneDelegate,
         ImageParams params;
         params.frame = 0.0f;
 
-        _handle = lock.scene->image_manager->add_image(loader, params, false);
+        _handle = lock.scene->image_manager->add_image(std::move(loader), params, false);
       }
     }
   }

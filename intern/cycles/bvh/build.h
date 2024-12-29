@@ -14,6 +14,7 @@
 
 #include "util/array.h"
 #include "util/task.h"
+#include "util/unique_ptr.h"
 #include "util/vector.h"
 
 CCL_NAMESPACE_BEGIN
@@ -45,7 +46,7 @@ class BVHBuild {
            Progress &progress);
   ~BVHBuild();
 
-  BVHNode *run();
+  unique_ptr<BVHNode> run();
 
  protected:
   friend class BVHMixedSplit;
@@ -70,13 +71,16 @@ class BVHBuild {
   void add_references(BVHRange &root);
 
   /* Building. */
-  BVHNode *build_node(const BVHRange &range,
-                      vector<BVHReference> &references,
-                      const int level,
-                      BVHSpatialStorage *storage);
-  BVHNode *build_node(const BVHObjectBinning &range, const int level);
-  BVHNode *create_leaf_node(const BVHRange &range, const vector<BVHReference> &references);
-  BVHNode *create_object_leaf_nodes(const BVHReference *ref, const int start, const int num);
+  unique_ptr<BVHNode> build_node(const BVHRange &range,
+                                 vector<BVHReference> &references,
+                                 const int level,
+                                 BVHSpatialStorage *storage);
+  unique_ptr<BVHNode> build_node(const BVHObjectBinning &range, const int level);
+  unique_ptr<BVHNode> create_leaf_node(const BVHRange &range,
+                                       const vector<BVHReference> &references);
+  unique_ptr<BVHNode> create_object_leaf_nodes(const BVHReference *ref,
+                                               const int start,
+                                               const int num);
 
   bool range_within_max_leaf_size(const BVHRange &range,
                                   const vector<BVHReference> &references) const;

@@ -22,6 +22,7 @@
 #include "util/string.h"
 #include "util/thread.h"
 #include "util/types.h"
+#include "util/unique_ptr.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -71,7 +72,7 @@ class Shader : public Node {
   NODE_DECLARE
 
   /* shader graph */
-  ShaderGraph *graph;
+  unique_ptr<ShaderGraph> graph;
 
   NODE_SOCKET_API(int, pass_id)
 
@@ -135,7 +136,6 @@ class Shader : public Node {
 #endif
 
   Shader();
-  ~Shader() override;
 
   /* Estimate emission of this shader based on the shader graph. This works only in very simple
    * cases. But it helps improve light importance sampling in common cases.
@@ -144,7 +144,7 @@ class Shader : public Node {
    * entirely for a light. */
   void estimate_emission();
 
-  void set_graph(ShaderGraph *graph);
+  void set_graph(unique_ptr<ShaderGraph> &&graph);
   void tag_update(Scene *scene);
   void tag_used(Scene *scene);
 
@@ -176,7 +176,7 @@ class ShaderManager {
     UPDATE_NONE = 0u,
   };
 
-  static ShaderManager *create(const int shadingsystem, Device *device);
+  static unique_ptr<ShaderManager> create(const int shadingsystem, Device *device);
   virtual ~ShaderManager();
 
   virtual void reset(Scene *scene) = 0;

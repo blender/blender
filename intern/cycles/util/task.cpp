@@ -55,7 +55,7 @@ bool TaskPool::canceled()
 thread_mutex TaskScheduler::mutex;
 int TaskScheduler::users = 0;
 int TaskScheduler::active_num_threads = 0;
-tbb::global_control *TaskScheduler::global_control = nullptr;
+unique_ptr<tbb::global_control> TaskScheduler::global_control;
 
 void TaskScheduler::init(const int num_threads)
 {
@@ -69,8 +69,8 @@ void TaskScheduler::init(const int num_threads)
   if (num_threads > 0) {
     /* Automatic number of threads. */
     VLOG_INFO << "Overriding number of TBB threads to " << num_threads << ".";
-    global_control = new tbb::global_control(tbb::global_control::max_allowed_parallelism,
-                                             num_threads);
+    global_control = make_unique<tbb::global_control>(tbb::global_control::max_allowed_parallelism,
+                                                      num_threads);
     active_num_threads = num_threads;
   }
   else {
@@ -83,8 +83,7 @@ void TaskScheduler::exit()
   const thread_scoped_lock lock(mutex);
   users--;
   if (users == 0) {
-    delete global_control;
-    global_control = nullptr;
+    global_control.reset();
     active_num_threads = 0;
   }
 }
@@ -108,7 +107,7 @@ DedicatedTaskPool::DedicatedTaskPool()
   do_exit = false;
   num = 0;
 
-  worker_thread = new thread([this] { thread_run(); });
+  worker_thread = make_unique<thread>([this] { thread_run(); });
 }
 
 DedicatedTaskPool::~DedicatedTaskPool()
@@ -119,7 +118,7 @@ DedicatedTaskPool::~DedicatedTaskPool()
   queue_cond.notify_all();
 
   worker_thread->join();
-  delete worker_thread;
+  worker_thread.reset();
 }
 
 void DedicatedTaskPool::push(TaskRunFunction &&run, bool front)

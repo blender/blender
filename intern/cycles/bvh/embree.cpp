@@ -252,7 +252,7 @@ void BVHEmbree::add_object(Object *ob, const int i)
 
 void BVHEmbree::add_instance(Object *ob, const int i)
 {
-  BVHEmbree *instance_bvh = (BVHEmbree *)(ob->get_geometry()->bvh);
+  BVHEmbree *instance_bvh = static_cast<BVHEmbree *>(ob->get_geometry()->bvh.get());
   assert(instance_bvh != nullptr);
 
   const size_t num_object_motion_steps = ob->use_motion() ? ob->get_motion().size() : 1;
