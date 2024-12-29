@@ -2,13 +2,14 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
+#include "kernel/device/cpu/globals.h"
+
 #include "integrator/shader_eval.h"
 
 #include "device/device.h"
 #include "device/queue.h"
 
 #include "device/cpu/kernel.h"
-#include "device/cpu/kernel_thread_globals.h"
 
 #include "util/log.h"
 #include "util/progress.h"
@@ -80,7 +81,7 @@ bool ShaderEval::eval_cpu(Device *device,
                           device_vector<float> &output,
                           const int64_t work_size)
 {
-  vector<CPUKernelThreadGlobals> kernel_thread_globals;
+  vector<ThreadKernelGlobalsCPU> kernel_thread_globals;
   device->get_cpu_kernel_thread_globals(kernel_thread_globals);
 
   /* Find required kernel function. */
@@ -101,7 +102,7 @@ bool ShaderEval::eval_cpu(Device *device,
       }
 
       const int thread_index = tbb::this_task_arena::current_thread_index();
-      const KernelGlobalsCPU *kg = &kernel_thread_globals[thread_index];
+      const ThreadKernelGlobalsCPU *kg = &kernel_thread_globals[thread_index];
 
       switch (type) {
         case SHADER_EVAL_DISPLACE:

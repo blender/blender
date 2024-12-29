@@ -483,12 +483,12 @@ const CPUKernels &Device::get_cpu_kernels()
 }
 
 void Device::get_cpu_kernel_thread_globals(
-    vector<CPUKernelThreadGlobals> & /*kernel_thread_globals*/)
+    vector<ThreadKernelGlobalsCPU> & /*kernel_thread_globals*/)
 {
   LOG(FATAL) << "Device does not support CPU kernels.";
 }
 
-void *Device::get_cpu_osl_memory()
+OSLGlobals *Device::get_cpu_osl_memory()
 {
   return nullptr;
 }

@@ -4,9 +4,9 @@
 
 #pragma once
 
+#include "kernel/device/cpu/globals.h"
 #include "kernel/integrator/state.h"
 
-#include "device/cpu/kernel_thread_globals.h"
 #include "device/queue.h"
 
 #include "integrator/path_trace_work.h"
@@ -16,7 +16,7 @@
 CCL_NAMESPACE_BEGIN
 
 struct KernelWorkTile;
-struct KernelGlobalsCPU;
+struct ThreadKernelGlobalsCPU;
 struct IntegratorStateCPU;
 
 class CPUKernels;
@@ -63,7 +63,7 @@ class PathTraceWorkCPU : public PathTraceWork {
 
   /* Pushes the collected training data/samples of a path to the global sample storage.
    * This function is called at the end of a random walk/path generation. */
-  void guiding_push_sample_data_to_global_storage(KernelGlobalsCPU *kg,
+  void guiding_push_sample_data_to_global_storage(ThreadKernelGlobalsCPU *kg,
                                                   IntegratorStateCPU *state,
                                                   const ccl_global float *ccl_restrict
                                                       render_buffer);
@@ -71,7 +71,7 @@ class PathTraceWorkCPU : public PathTraceWork {
 
  protected:
   /* Core path tracing routine. Renders given work time on the given queue. */
-  void render_samples_full_pipeline(KernelGlobalsCPU *kernel_globals,
+  void render_samples_full_pipeline(ThreadKernelGlobalsCPU *kernel_globals,
                                     const KernelWorkTile &work_tile,
                                     const int samples_num);
 
@@ -83,7 +83,7 @@ class PathTraceWorkCPU : public PathTraceWork {
    * More specifically, the `kernel_globals_` is local to each threads and nobody else is
    * accessing it, but some "localization" is required to decouple from kernel globals stored
    * on the device level. */
-  vector<CPUKernelThreadGlobals> kernel_thread_globals_;
+  vector<ThreadKernelGlobalsCPU> kernel_thread_globals_;
 };
 
 CCL_NAMESPACE_END

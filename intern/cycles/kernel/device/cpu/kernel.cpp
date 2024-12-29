@@ -43,6 +43,8 @@
 /* do nothing */
 #endif
 
+#include "kernel/device/cpu/globals.h"
+
 #include "kernel/device/cpu/kernel.h"
 #define KERNEL_ARCH cpu
 #include "kernel/device/cpu/kernel_arch_impl.h"

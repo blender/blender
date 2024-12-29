@@ -1006,7 +1006,7 @@ bool OptiXDevice::load_osl_kernels()
 #  endif
 }
 
-void *OptiXDevice::get_cpu_osl_memory()
+OSLGlobals *OptiXDevice::get_cpu_osl_memory()
 {
 #  ifdef WITH_OSL
   return &osl_globals;

@@ -19,8 +19,6 @@ CCL_NAMESPACE_BEGIN
 
 static float precompute_ggx_E(const float rough, const float mu, const float3 rand)
 {
-  KernelGlobalsCPU kg;
-
   MicrofacetBsdf bsdf;
   bsdf.weight = one_float3();
   bsdf.sample_weight = 1.0f;
@@ -36,7 +34,7 @@ static float precompute_ggx_E(const float rough, const float mu, const float3 ra
   float pdf = 0.0f;
   float sampled_eta;
   float2 sampled_roughness;
-  bsdf_microfacet_ggx_sample(&kg,
+  bsdf_microfacet_ggx_sample(nullptr,
                              (ShaderClosure *)&bsdf,
                              make_float3(0.0f, 0.0f, 1.0f),
                              make_float3(sqrtf(1.0f - sqr(mu)), 0.0f, mu),
@@ -57,8 +55,6 @@ static float precompute_ggx_glass_E(const float rough,
                                     const float eta,
                                     const float3 rand)
 {
-  KernelGlobalsCPU kg;
-
   MicrofacetBsdf bsdf;
   bsdf.weight = one_float3();
   bsdf.sample_weight = 1.0f;
@@ -74,7 +70,7 @@ static float precompute_ggx_glass_E(const float rough,
   float pdf = 0.0f;
   float sampled_eta;
   float2 sampled_roughness;
-  bsdf_microfacet_ggx_sample(&kg,
+  bsdf_microfacet_ggx_sample(nullptr,
                              (ShaderClosure *)&bsdf,
                              make_float3(0.0f, 0.0f, 1.0f),
                              make_float3(sqrtf(1.0f - sqr(mu)), 0.0f, mu),
@@ -93,8 +89,6 @@ static float precompute_ggx_glass_E(const float rough,
 static float precompute_ggx_gen_schlick_s(
     const float rough, const float mu, const float eta, const float exponent, const float3 rand)
 {
-  KernelGlobalsCPU kg;
-
   MicrofacetBsdf bsdf;
   bsdf.weight = one_float3();
   bsdf.sample_weight = 1.0f;
@@ -120,7 +114,7 @@ static float precompute_ggx_gen_schlick_s(
   float pdf = 0.0f;
   float sampled_eta;
   float2 sampled_roughness;
-  bsdf_microfacet_ggx_sample(&kg,
+  bsdf_microfacet_ggx_sample(nullptr,
                              (ShaderClosure *)&bsdf,
                              make_float3(0.0f, 0.0f, 1.0f),
                              make_float3(sqrtf(1.0f - sqr(mu)), 0.0f, mu),

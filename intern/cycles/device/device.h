@@ -28,8 +28,10 @@ class BVH;
 class DeviceQueue;
 class Progress;
 class CPUKernels;
-class CPUKernelThreadGlobals;
 class Scene;
+
+struct OSLGlobals;
+struct ThreadKernelGlobalsCPU;
 
 /* Device Types */
 
@@ -216,9 +218,9 @@ class Device {
   static const CPUKernels &get_cpu_kernels();
   /* Get kernel globals to pass to kernels. */
   virtual void get_cpu_kernel_thread_globals(
-      vector<CPUKernelThreadGlobals> & /*kernel_thread_globals*/);
+      vector<ThreadKernelGlobalsCPU> & /*kernel_thread_globals*/);
   /* Get OpenShadingLanguage memory buffer. */
-  virtual void *get_cpu_osl_memory();
+  virtual OSLGlobals *get_cpu_osl_memory();
 
   /* Acceleration structure building. */
   virtual void build_bvh(BVH *bvh, Progress &progress, bool refit);

@@ -25,7 +25,6 @@
 #endif
 
 #include "device/cpu/kernel.h"
-#include "device/cpu/kernel_thread_globals.h"
 
 #include "device/device.h"
 
@@ -56,9 +55,6 @@ CPUDevice::CPUDevice(const DeviceInfo &info_, Stats &stats_, Profiler &profiler_
     info.cpu_threads = TaskScheduler::max_concurrency();
   }
 
-#ifdef WITH_OSL
-  kernel_globals.osl = &osl_globals;
-#endif
 #ifdef WITH_EMBREE
   embree_device = rtcNewDevice("verbose=0");
 #endif
@@ -296,19 +292,19 @@ void *CPUDevice::get_guiding_device() const
 }
 
 void CPUDevice::get_cpu_kernel_thread_globals(
-    vector<CPUKernelThreadGlobals> &kernel_thread_globals)
+    vector<ThreadKernelGlobalsCPU> &kernel_thread_globals)
 {
   /* Ensure latest texture info is loaded into kernel globals before returning. */
   load_texture_info();
 
   kernel_thread_globals.clear();
-  void *osl_memory = get_cpu_osl_memory();
+  OSLGlobals *osl_globals = get_cpu_osl_memory();
   for (int i = 0; i < info.cpu_threads; i++) {
-    kernel_thread_globals.emplace_back(kernel_globals, osl_memory, profiler, i);
+    kernel_thread_globals.emplace_back(kernel_globals, osl_globals, profiler, i);
   }
 }
 
-void *CPUDevice::get_cpu_osl_memory()
+OSLGlobals *CPUDevice::get_cpu_osl_memory()
 {
 #ifdef WITH_OSL
   return &osl_globals;

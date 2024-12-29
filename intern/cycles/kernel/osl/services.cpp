@@ -148,7 +148,7 @@ bool OSLRenderServices::get_matrix(OSL::ShaderGlobals *sg,
    * a concept of shader space, so we just use object space for both. */
   if (xform) {
     const ShaderData *sd = (const ShaderData *)xform;
-    const KernelGlobalsCPU *kg = sd->osl_globals;
+    const ThreadKernelGlobalsCPU *kg = sd->osl_globals;
     const int object = sd->object;
 
     if (object != OBJECT_NONE) {
@@ -188,7 +188,7 @@ bool OSLRenderServices::get_inverse_matrix(OSL::ShaderGlobals *sg,
    * a concept of shader space, so we just use object space for both. */
   if (xform) {
     const ShaderData *sd = (const ShaderData *)xform;
-    const KernelGlobalsCPU *kg = sd->osl_globals;
+    const ThreadKernelGlobalsCPU *kg = sd->osl_globals;
     const int object = sd->object;
 
     if (object != OBJECT_NONE) {
@@ -225,7 +225,7 @@ bool OSLRenderServices::get_matrix(OSL::ShaderGlobals *sg,
                                    const float time)
 {
   ShaderData *sd = (ShaderData *)(sg->renderstate);
-  const KernelGlobalsCPU *kg = sd->osl_globals;
+  const ThreadKernelGlobalsCPU *kg = sd->osl_globals;
 
   if (from == u_ndc) {
     copy_matrix(result, kernel_data.cam.ndctoworld);
@@ -257,7 +257,7 @@ bool OSLRenderServices::get_inverse_matrix(OSL::ShaderGlobals *sg,
                                            const float time)
 {
   ShaderData *sd = (ShaderData *)(sg->renderstate);
-  const KernelGlobalsCPU *kg = sd->osl_globals;
+  const ThreadKernelGlobalsCPU *kg = sd->osl_globals;
 
   if (to == u_ndc) {
     copy_matrix(result, kernel_data.cam.worldtondc);
@@ -291,7 +291,7 @@ bool OSLRenderServices::get_matrix(OSL::ShaderGlobals *sg,
    * a concept of shader space, so we just use object space for both. */
   if (xform) {
     const ShaderData *sd = (const ShaderData *)xform;
-    const KernelGlobalsCPU *kg = sd->osl_globals;
+    const ThreadKernelGlobalsCPU *kg = sd->osl_globals;
     const int object = sd->object;
 
     if (object != OBJECT_NONE) {
@@ -319,7 +319,7 @@ bool OSLRenderServices::get_inverse_matrix(OSL::ShaderGlobals *sg,
    * a concept of shader space, so we just use object space for both. */
   if (xform) {
     const ShaderData *sd = (const ShaderData *)xform;
-    const KernelGlobalsCPU *kg = sd->osl_globals;
+    const ThreadKernelGlobalsCPU *kg = sd->osl_globals;
     const int object = sd->object;
 
     if (object != OBJECT_NONE) {
@@ -344,7 +344,7 @@ bool OSLRenderServices::get_matrix(OSL::ShaderGlobals *sg,
                                    OSLUStringHash from)
 {
   ShaderData *sd = (ShaderData *)(sg->renderstate);
-  const KernelGlobalsCPU *kg = sd->osl_globals;
+  const ThreadKernelGlobalsCPU *kg = sd->osl_globals;
 
   if (from == u_ndc) {
     copy_matrix(result, kernel_data.cam.ndctoworld);
@@ -371,7 +371,7 @@ bool OSLRenderServices::get_inverse_matrix(OSL::ShaderGlobals *sg,
                                            OSLUStringHash to)
 {
   ShaderData *sd = (ShaderData *)(sg->renderstate);
-  const KernelGlobalsCPU *kg = sd->osl_globals;
+  const ThreadKernelGlobalsCPU *kg = sd->osl_globals;
 
   if (to == u_ndc) {
     copy_matrix(result, kernel_data.cam.worldtondc);
@@ -727,7 +727,7 @@ static bool set_attribute_matrix(const Transform &tfm, const TypeDesc type, void
   return false;
 }
 
-static bool get_object_attribute(const KernelGlobalsCPU *kg,
+static bool get_object_attribute(const ThreadKernelGlobalsCPU *kg,
                                  ShaderData *sd,
                                  const AttributeDescriptor &desc,
                                  const TypeDesc &type,
@@ -803,7 +803,7 @@ static bool get_object_attribute(const KernelGlobalsCPU *kg,
   return false;
 }
 
-bool OSLRenderServices::get_object_standard_attribute(const KernelGlobalsCPU *kg,
+bool OSLRenderServices::get_object_standard_attribute(const ThreadKernelGlobalsCPU *kg,
                                                       ShaderData *sd,
                                                       OSLUStringHash name,
                                                       const TypeDesc type,
@@ -924,7 +924,7 @@ bool OSLRenderServices::get_object_standard_attribute(const KernelGlobalsCPU *kg
     return set_attribute_float3_3(P, type, derivatives, val);
   }
   if (name == u_geom_name) {
-    const ustring object_name = kg->osl->object_names[sd->object];
+    const ustring object_name = kg->osl.globals->object_names[sd->object];
     return set_attribute_string(object_name, type, derivatives, val);
   }
   if (name == u_is_smooth) {
@@ -979,7 +979,7 @@ bool OSLRenderServices::get_object_standard_attribute(const KernelGlobalsCPU *kg
   return get_background_attribute(kg, sd, name, type, derivatives, val);
 }
 
-bool OSLRenderServices::get_background_attribute(const KernelGlobalsCPU *kg,
+bool OSLRenderServices::get_background_attribute(const ThreadKernelGlobalsCPU *kg,
                                                  ShaderData *sd,
                                                  OSLUStringHash name,
                                                  const TypeDesc type,
@@ -1038,8 +1038,7 @@ bool OSLRenderServices::get_background_attribute(const KernelGlobalsCPU *kg,
   }
   if (name == u_ndc) {
     /* NDC coordinates with special exception for orthographic projection. */
-    OSLThreadData *tdata = kg->osl_tdata;
-    OSL::ShaderGlobals *globals = &tdata->globals;
+    OSL::ShaderGlobals *globals = &kg->osl.shader_globals;
     float3 ndc[3];
 
     if ((globals->raytype & PATH_RAY_CAMERA) && sd->object == OBJECT_NONE &&
@@ -1090,14 +1089,15 @@ bool OSLRenderServices::get_attribute(ShaderData *sd,
                                       OSLUStringHash name,
                                       void *val)
 {
-  const KernelGlobalsCPU *kg = sd->osl_globals;
+  const ThreadKernelGlobalsCPU *kg = sd->osl_globals;
   int object;
 
   /* lookup of attribute on another object */
   if (object_name != u_empty) {
-    const OSLGlobals::ObjectNameMap::iterator it = kg->osl->object_name_map.find(object_name);
+    const OSLGlobals::ObjectNameMap::iterator it = kg->osl.globals->object_name_map.find(
+        object_name);
 
-    if (it == kg->osl->object_name_map.end()) {
+    if (it == kg->osl.globals->object_name_map.end()) {
       return false;
     }
 
@@ -1246,7 +1246,7 @@ bool OSLRenderServices::texture(OSLUStringHash filename,
   OSLTextureHandle *handle = (OSLTextureHandle *)texture_handle;
   const OSLTextureHandle::Type texture_type = (handle) ? handle->type : OSLTextureHandle::OIIO;
   ShaderData *sd = (ShaderData *)(sg->renderstate);
-  KernelGlobals kernel_globals = sd->osl_globals;
+  const ThreadKernelGlobalsCPU *kernel_globals = sd->osl_globals;
   bool status = false;
 
   switch (texture_type) {
@@ -1351,8 +1351,7 @@ bool OSLRenderServices::texture(OSLUStringHash filename,
 
       if (handle && handle->oiio_handle) {
         if (texture_thread_info == nullptr) {
-          OSLThreadData *tdata = kernel_globals->osl_tdata;
-          texture_thread_info = tdata->oiio_thread_info;
+          texture_thread_info = kernel_globals->osl.oiio_thread_info;
         }
 
         status = ts->texture(handle->oiio_handle,
@@ -1460,9 +1459,8 @@ bool OSLRenderServices::texture3d(OSLUStringHash filename,
       if (handle && handle->oiio_handle) {
         if (texture_thread_info == nullptr) {
           ShaderData *sd = (ShaderData *)(sg->renderstate);
-          KernelGlobals kernel_globals = sd->osl_globals;
-          OSLThreadData *tdata = kernel_globals->osl_tdata;
-          texture_thread_info = tdata->oiio_thread_info;
+          const ThreadKernelGlobalsCPU *kernel_globals = sd->osl_globals;
+          texture_thread_info = kernel_globals->osl.oiio_thread_info;
         }
 
         status = ts->texture3d(handle->oiio_handle,
@@ -1546,9 +1544,8 @@ bool OSLRenderServices::environment(OSLUStringHash filename,
   if (handle && handle->oiio_handle) {
     if (thread_info == nullptr) {
       ShaderData *sd = (ShaderData *)(sg->renderstate);
-      KernelGlobals kernel_globals = sd->osl_globals;
-      OSLThreadData *tdata = kernel_globals->osl_tdata;
-      thread_info = tdata->oiio_thread_info;
+      const ThreadKernelGlobalsCPU *kernel_globals = sd->osl_globals;
+      thread_info = kernel_globals->osl.oiio_thread_info;
     }
 
     status = ts->environment(handle->oiio_handle,
@@ -1726,7 +1723,7 @@ bool OSLRenderServices::trace(TraceOpt &options,
   tracedata->hit = false;
   tracedata->sd.osl_globals = sd->osl_globals;
 
-  const KernelGlobalsCPU *kg = sd->osl_globals;
+  const ThreadKernelGlobalsCPU *kg = sd->osl_globals;
 
   /* Can't ray-trace from shaders like displacement, before BVH exists. */
   if (kernel_data.bvh.bvh_layout == BVH_LAYOUT_NONE) {
@@ -1759,7 +1756,7 @@ bool OSLRenderServices::getmessage(OSL::ShaderGlobals *sg,
       }
 
       ShaderData *sd = &tracedata->sd;
-      const KernelGlobalsCPU *kg = sd->osl_globals;
+      const ThreadKernelGlobalsCPU *kg = sd->osl_globals;
 
       if (!tracedata->setup) {
         /* lazy shader data setup */

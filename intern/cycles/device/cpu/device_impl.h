@@ -85,8 +85,8 @@ class CPUDevice : public Device {
   void *get_guiding_device() const override;
 
   void get_cpu_kernel_thread_globals(
-      vector<CPUKernelThreadGlobals> &kernel_thread_globals) override;
-  void *get_cpu_osl_memory() override;
+      vector<ThreadKernelGlobalsCPU> &kernel_thread_globals) override;
+  OSLGlobals *get_cpu_osl_memory() override;
 
  protected:
   bool load_kernels(uint /*kernel_features*/) override;

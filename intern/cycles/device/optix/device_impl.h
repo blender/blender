@@ -115,7 +115,7 @@ class OptiXDevice : public CUDADevice {
 
   unique_ptr<DeviceQueue> gpu_queue_create() override;
 
-  void *get_cpu_osl_memory() override;
+  OSLGlobals *get_cpu_osl_memory() override;
 };
 
 CCL_NAMESPACE_END

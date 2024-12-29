@@ -284,7 +284,7 @@ ccl_device_forceinline void kernel_embree_filter_intersection_func_impl(
 #ifdef __KERNEL_ONEAPI__
   KernelGlobalsGPU *kg = nullptr;
 #else
-  const KernelGlobalsCPU *kg = ctx->kg;
+  const ThreadKernelGlobalsCPU *kg = ctx->kg;
 #endif
   const Ray *cray = ctx->ray;
 
@@ -324,7 +324,7 @@ ccl_device_forceinline void kernel_embree_filter_occluded_shadow_all_func_impl(
 #ifdef __KERNEL_ONEAPI__
   KernelGlobalsGPU *kg = nullptr;
 #else
-  const KernelGlobalsCPU *kg = ctx->kg;
+  const ThreadKernelGlobalsCPU *kg = ctx->kg;
 #endif
   const Ray *cray = ctx->ray;
 
@@ -438,7 +438,7 @@ ccl_device_forceinline void kernel_embree_filter_occluded_local_func_impl(
 #ifdef __KERNEL_ONEAPI__
   KernelGlobalsGPU *kg = nullptr;
 #else
-  const KernelGlobalsCPU *kg = ctx->kg;
+  const ThreadKernelGlobalsCPU *kg = ctx->kg;
 #endif
   const Ray *cray = ctx->ray;
 
@@ -541,7 +541,7 @@ ccl_device_forceinline void kernel_embree_filter_occluded_volume_all_func_impl(
 #ifdef __KERNEL_ONEAPI__
   KernelGlobalsGPU *kg = nullptr;
 #else
-  const KernelGlobalsCPU *kg = ctx->kg;
+  const ThreadKernelGlobalsCPU *kg = ctx->kg;
 #endif
   const Ray *cray = ctx->ray;
 
@@ -622,7 +622,7 @@ ccl_device void kernel_embree_filter_func_backface_cull(const RTCFilterFunctionN
   }
 
   CCLIntersectContext *ctx = ((CCLIntersectContext *)args->context);
-  const KernelGlobalsCPU *kg = ctx->kg;
+  const ThreadKernelGlobalsCPU *kg = ctx->kg;
   const Ray *cray = ctx->ray;
 
   if (kernel_embree_is_self_intersection(

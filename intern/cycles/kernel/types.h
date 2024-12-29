@@ -1191,7 +1191,7 @@ struct ccl_align(16) ShaderData
 #  ifdef __KERNEL_GPU__
   ccl_private uint8_t *osl_closure_pool;
 #  else
-  const struct KernelGlobalsCPU *osl_globals;
+  const struct ThreadKernelGlobalsCPU *osl_globals;
   const struct IntegratorStateCPU *osl_path_state;
   const struct IntegratorShadowStateCPU *osl_shadow_path_state;
 #  endif

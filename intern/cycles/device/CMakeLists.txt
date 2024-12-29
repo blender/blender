@@ -33,8 +33,6 @@ set(SRC_CPU
   cpu/kernel.cpp
   cpu/kernel.h
   cpu/kernel_function.h
-  cpu/kernel_thread_globals.cpp
-  cpu/kernel_thread_globals.h
 )
 
 set(SRC_CUDA

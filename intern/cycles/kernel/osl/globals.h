@@ -23,6 +23,7 @@ CCL_NAMESPACE_BEGIN
 
 class OSLRenderServices;
 class ColorSpaceProcessor;
+struct ThreadKernelGlobalsCPU;
 
 /* OSL Globals
  *
@@ -38,12 +39,6 @@ struct OSLGlobals {
     services = nullptr;
     use = false;
   }
-
-  /* per thread data */
-  static void thread_init(struct KernelGlobalsCPU *kg,
-                          OSLGlobals *osl_globals,
-                          const int thread_index);
-  static void thread_free(struct KernelGlobalsCPU *kg);
 
   bool use;
 
@@ -78,11 +73,27 @@ struct OSLTraceData {
 
 /* thread key for thread specific data lookup */
 struct OSLThreadData {
-  OSL::ShaderGlobals globals;
-  OSL::PerThreadInfo *osl_thread_info;
-  OSLTraceData tracedata;
-  OSL::ShadingContext *context;
-  OIIO::TextureSystem::Perthread *oiio_thread_info;
+  /* Global Data */
+  OSLGlobals *globals = nullptr;
+  OSL::ShadingSystem *ss = nullptr;
+
+  /* Per-thread data. */
+  int thread_index = -1;
+
+  mutable OSL::ShaderGlobals shader_globals;
+  mutable OSLTraceData tracedata;
+
+  OSL::PerThreadInfo *osl_thread_info = nullptr;
+  OSL::ShadingContext *context = nullptr;
+  OIIO::TextureSystem::Perthread *oiio_thread_info = nullptr;
+
+  OSLThreadData(OSLGlobals *globals, const int thread_index);
+  ~OSLThreadData();
+
+  OSLThreadData(OSLThreadData &other) = delete;
+  OSLThreadData(OSLThreadData &&other) noexcept;
+  OSLThreadData &operator=(const OSLThreadData &other) = delete;
+  OSLThreadData &operator=(OSLThreadData &&other) = delete;
 };
 
 CCL_NAMESPACE_END

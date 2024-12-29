@@ -13,6 +13,7 @@ set(INC_SYS
 )
 
 set(SRC_KERNEL_DEVICE_CPU
+  device/cpu/globals.cpp
   device/cpu/kernel.cpp
   device/cpu/kernel_sse42.cpp
   device/cpu/kernel_avx2.cpp

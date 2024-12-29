@@ -30,7 +30,7 @@ CCL_NAMESPACE_BEGIN
 
 class Scene;
 struct ShaderData;
-struct KernelGlobalsCPU;
+struct ThreadKernelGlobalsCPU;
 
 /* OSL Texture Handle
  *
@@ -276,13 +276,13 @@ class OSLRenderServices : public OSL::RendererServices {
                         void *data) override;
 #endif
 
-  static bool get_background_attribute(const KernelGlobalsCPU *kg,
+  static bool get_background_attribute(const ThreadKernelGlobalsCPU *kg,
                                        ShaderData *sd,
                                        OSLUStringHash name,
                                        const TypeDesc type,
                                        bool derivatives,
                                        void *val);
-  static bool get_object_standard_attribute(const KernelGlobalsCPU *kg,
+  static bool get_object_standard_attribute(const ThreadKernelGlobalsCPU *kg,
                                             ShaderData *sd,
                                             OSLUStringHash name,
                                             const TypeDesc type,

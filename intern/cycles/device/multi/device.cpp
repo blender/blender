@@ -257,7 +257,7 @@ class MultiDevice : public Device {
     }
   }
 
-  void *get_cpu_osl_memory() override
+  OSLGlobals *get_cpu_osl_memory() override
   {
     /* Always return the OSL memory of the CPU device (this works since the constructor above
      * guarantees that CPU devices are always added to the back). */

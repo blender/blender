@@ -141,7 +141,7 @@ void OSLShaderManager::device_update_specific(Device *device,
   /* collect shader groups from all shaders */
   for (Shader *shader : scene->shaders) {
     device->foreach_device([shader, background_shader](Device *sub_device) {
-      OSLGlobals *og = (OSLGlobals *)sub_device->get_cpu_osl_memory();
+      OSLGlobals *og = sub_device->get_cpu_osl_memory();
 
       /* push state to array for lookup */
       og->surface_state.push_back(shader->osl_surface_ref);
@@ -161,7 +161,7 @@ void OSLShaderManager::device_update_specific(Device *device,
 
   /* setup shader engine */
   device->foreach_device([](Device *sub_device) {
-    OSLGlobals *og = (OSLGlobals *)sub_device->get_cpu_osl_memory();
+    OSLGlobals *og = sub_device->get_cpu_osl_memory();
     OSL::ShadingSystem *ss = ss_shared[sub_device->info.type];
 
     og->ss = ss;
@@ -228,7 +228,7 @@ void OSLShaderManager::device_free(Device *device, DeviceScene *dscene, Scene *s
 
   /* clear shader engine */
   device->foreach_device([](Device *sub_device) {
-    OSLGlobals *og = (OSLGlobals *)sub_device->get_cpu_osl_memory();
+    OSLGlobals *og = sub_device->get_cpu_osl_memory();
 
     og->use = false;
     og->ss = nullptr;
@@ -712,7 +712,7 @@ void OSLShaderManager::osl_image_slots(Device *device,
 {
   set<OSLRenderServices *> services_shared;
   device->foreach_device([&services_shared](Device *sub_device) {
-    OSLGlobals *og = (OSLGlobals *)sub_device->get_cpu_osl_memory();
+    OSLGlobals *og = sub_device->get_cpu_osl_memory();
     services_shared.insert(og->services);
   });
 

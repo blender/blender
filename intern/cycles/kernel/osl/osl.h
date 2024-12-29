@@ -172,7 +172,7 @@ ccl_device void flatten_closure_tree(KernelGlobals kg,
 #ifndef __KERNEL_GPU__
 
 template<ShaderType type>
-void osl_eval_nodes(const KernelGlobalsCPU *kg,
+void osl_eval_nodes(const ThreadKernelGlobalsCPU *kg,
                     const void *state,
                     ShaderData *sd,
                     uint32_t path_flag);
