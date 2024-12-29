@@ -16,7 +16,7 @@ ccl_device void svm_node_combine_vector(ccl_private ShaderData *sd,
                                         uint vector_index,
                                         uint out_offset)
 {
-  float vector = stack_load_float(stack, in_offset);
+  const float vector = stack_load_float(stack, in_offset);
 
   if (stack_valid(out_offset)) {
     stack_store_float(stack, out_offset + vector_index, vector);
@@ -29,7 +29,7 @@ ccl_device void svm_node_separate_vector(ccl_private ShaderData *sd,
                                          uint vector_index,
                                          uint out_offset)
 {
-  float3 vector = stack_load_float3(stack, ivector_offset);
+  const float3 vector = stack_load_float3(stack, ivector_offset);
 
   if (stack_valid(out_offset)) {
     if (vector_index == 0) {

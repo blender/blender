@@ -20,7 +20,7 @@ struct NodeEnum {
   }
   void insert(const char *x, int y)
   {
-    ustring ustr_x(x);
+    const ustring ustr_x(x);
 
     left[ustr_x] = y;
     right[y] = ustr_x;

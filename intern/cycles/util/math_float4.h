@@ -38,7 +38,7 @@ ccl_device_inline int4 cast(const float4 a)
 ccl_device_inline float4 operator-(const float4 &a)
 {
 #  ifdef __KERNEL_SSE__
-  __m128 mask = _mm_castsi128_ps(_mm_set1_epi32(0x80000000));
+  const __m128 mask = _mm_castsi128_ps(_mm_set1_epi32(0x80000000));
   return float4(_mm_xor_ps(a.m128, mask));
 #  else
   return make_float4(-a.x, -a.y, -a.z, -a.w);
@@ -176,7 +176,7 @@ ccl_device_inline bool operator==(const float4 a, const float4 b)
 #  endif
 }
 
-ccl_device_inline const float4 operator^(const float4 a, const float4 b)
+ccl_device_inline float4 operator^(const float4 a, const float4 b)
 {
 #  ifdef __KERNEL_SSE__
   return float4(_mm_xor_ps(a.m128, b.m128));
@@ -212,7 +212,7 @@ ccl_device_inline float4 clamp(const float4 a, const float4 mn, const float4 mx)
 }
 #endif /* !__KERNEL_METAL__*/
 
-ccl_device_inline const float4 madd(const float4 a, const float4 b, const float4 c)
+ccl_device_inline float4 madd(const float4 a, const float4 b, const float4 c)
 {
 #ifdef __KERNEL_SSE__
 #  ifdef __KERNEL_NEON__
@@ -368,7 +368,7 @@ ccl_device_inline float dot(const float4 a, const float4 b)
 {
 #  if defined(__KERNEL_SSE42__) && defined(__KERNEL_SSE__)
 #    if defined(__KERNEL_NEON__)
-  __m128 t = vmulq_f32(a, b);
+  const __m128 t = vmulq_f32(a, b);
   return vaddvq_f32(t);
 #    else
   return _mm_cvtss_f32(_mm_dp_ps(a, b, 0xFF));
@@ -450,7 +450,7 @@ ccl_device_inline float4 normalize(const float4 a)
 
 ccl_device_inline float4 safe_normalize(const float4 a)
 {
-  float t = len(a);
+  const float t = len(a);
   return (t != 0.0f) ? a / t : a;
 }
 
@@ -559,7 +559,7 @@ ccl_device_inline float4 mask(const int4 mask, const float4 a)
   return select(mask, a, zero_float4());
 }
 
-ccl_device_inline float4 load_float4(ccl_private const float *v)
+ccl_device_inline float4 load_float4(const ccl_private float *v)
 {
 #  ifdef __KERNEL_SSE__
   return float4(_mm_loadu_ps(v));

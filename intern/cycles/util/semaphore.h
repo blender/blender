@@ -30,7 +30,7 @@ class thread_counting_semaphore {
 
   void release()
   {
-    thread_scoped_lock lock(mutex);
+    const thread_scoped_lock lock(mutex);
     count++;
     condition.notify_one();
   }

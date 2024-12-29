@@ -27,20 +27,20 @@ ccl_device int bsdf_diffuse_setup(ccl_private DiffuseBsdf *bsdf)
   return SD_BSDF | SD_BSDF_HAS_EVAL;
 }
 
-ccl_device Spectrum bsdf_diffuse_eval(ccl_private const ShaderClosure *sc,
+ccl_device Spectrum bsdf_diffuse_eval(const ccl_private ShaderClosure *sc,
                                       const float3 wi,
                                       const float3 wo,
                                       ccl_private float *pdf)
 {
-  ccl_private const DiffuseBsdf *bsdf = (ccl_private const DiffuseBsdf *)sc;
-  float3 N = bsdf->N;
+  const ccl_private DiffuseBsdf *bsdf = (const ccl_private DiffuseBsdf *)sc;
+  const float3 N = bsdf->N;
 
-  float cosNO = fmaxf(dot(N, wo), 0.0f) * M_1_PI_F;
+  const float cosNO = fmaxf(dot(N, wo), 0.0f) * M_1_PI_F;
   *pdf = cosNO;
   return make_spectrum(cosNO);
 }
 
-ccl_device int bsdf_diffuse_sample(ccl_private const ShaderClosure *sc,
+ccl_device int bsdf_diffuse_sample(const ccl_private ShaderClosure *sc,
                                    float3 Ng,
                                    float3 wi,
                                    float2 rand,
@@ -48,8 +48,8 @@ ccl_device int bsdf_diffuse_sample(ccl_private const ShaderClosure *sc,
                                    ccl_private float3 *wo,
                                    ccl_private float *pdf)
 {
-  ccl_private const DiffuseBsdf *bsdf = (ccl_private const DiffuseBsdf *)sc;
-  float3 N = bsdf->N;
+  const ccl_private DiffuseBsdf *bsdf = (const ccl_private DiffuseBsdf *)sc;
+  const float3 N = bsdf->N;
 
   // distribution over the hemisphere
   sample_cos_hemisphere(N, rand, wo, pdf);
@@ -72,20 +72,20 @@ ccl_device int bsdf_translucent_setup(ccl_private DiffuseBsdf *bsdf)
   return SD_BSDF | SD_BSDF_HAS_EVAL | SD_BSDF_HAS_TRANSMISSION;
 }
 
-ccl_device Spectrum bsdf_translucent_eval(ccl_private const ShaderClosure *sc,
+ccl_device Spectrum bsdf_translucent_eval(const ccl_private ShaderClosure *sc,
                                           const float3 wi,
                                           const float3 wo,
                                           ccl_private float *pdf)
 {
-  ccl_private const DiffuseBsdf *bsdf = (ccl_private const DiffuseBsdf *)sc;
-  float3 N = bsdf->N;
+  const ccl_private DiffuseBsdf *bsdf = (const ccl_private DiffuseBsdf *)sc;
+  const float3 N = bsdf->N;
 
-  float cosNO = fmaxf(-dot(N, wo), 0.0f) * M_1_PI_F;
+  const float cosNO = fmaxf(-dot(N, wo), 0.0f) * M_1_PI_F;
   *pdf = cosNO;
   return make_spectrum(cosNO);
 }
 
-ccl_device int bsdf_translucent_sample(ccl_private const ShaderClosure *sc,
+ccl_device int bsdf_translucent_sample(const ccl_private ShaderClosure *sc,
                                        float3 Ng,
                                        float3 wi,
                                        float2 rand,
@@ -93,8 +93,8 @@ ccl_device int bsdf_translucent_sample(ccl_private const ShaderClosure *sc,
                                        ccl_private float3 *wo,
                                        ccl_private float *pdf)
 {
-  ccl_private const DiffuseBsdf *bsdf = (ccl_private const DiffuseBsdf *)sc;
-  float3 N = bsdf->N;
+  const ccl_private DiffuseBsdf *bsdf = (const ccl_private DiffuseBsdf *)sc;
+  const float3 N = bsdf->N;
 
   // we are viewing the surface from the right side - send a ray out with cosine
   // distribution over the hemisphere

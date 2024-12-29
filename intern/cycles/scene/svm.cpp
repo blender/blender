@@ -59,7 +59,7 @@ void SVMShaderManager::device_update_specific(Device *device,
     return;
   }
 
-  scoped_callback_timer timer([scene](double time) {
+  const scoped_callback_timer timer([scene](double time) {
     if (scene->update_stats) {
       scene->update_stats->svm.times.add_entry({"device_update", time});
     }
@@ -69,7 +69,7 @@ void SVMShaderManager::device_update_specific(Device *device,
 
   VLOG_INFO << "Total " << num_shaders << " shaders.";
 
-  double start_time = time_dt();
+  const double start_time = time_dt();
 
   /* test if we need to update */
   device_free(device, dscene, scene);
@@ -111,7 +111,7 @@ void SVMShaderManager::device_update_specific(Device *device,
      * Each compiled shader starts with a jump node that has offsets local
      * to the shader, so copy those and add the offset into the global node list. */
     int4 &global_jump_node = svm_nodes[shader->id];
-    int4 &local_jump_node = shader_svm_nodes[i][0];
+    const int4 &local_jump_node = shader_svm_nodes[i][0];
 
     global_jump_node.x = NODE_SHADER_JUMP;
     global_jump_node.y = local_jump_node.y - 1 + node_offset;
@@ -124,7 +124,7 @@ void SVMShaderManager::device_update_specific(Device *device,
   /* Copy the nodes of each shader into the correct location. */
   svm_nodes += num_shaders;
   for (int i = 0; i < num_shaders; i++) {
-    int shader_size = shader_svm_nodes[i].size() - 1;
+    const int shader_size = shader_svm_nodes[i].size() - 1;
 
     std::copy_n(&shader_svm_nodes[i][1], shader_size, svm_nodes);
     svm_nodes += shader_size;
@@ -236,7 +236,7 @@ int SVMCompiler::stack_find_offset(SocketType::Type type)
 
 void SVMCompiler::stack_clear_offset(SocketType::Type type, int offset)
 {
-  int size = stack_size(type);
+  const int size = stack_size(type);
 
   for (int i = 0; i < size; i++) {
     active_stack.users[offset + i]--;
@@ -323,7 +323,7 @@ void SVMCompiler::stack_link(ShaderInput *input, ShaderOutput *output)
 
     output->stack_offset = input->link->stack_offset;
 
-    int size = stack_size(output->type());
+    const int size = stack_size(output->type());
 
     for (int i = 0; i < size; i++) {
       active_stack.users[output->stack_offset + i]++;
@@ -421,7 +421,7 @@ uint SVMCompiler::attribute(AttributeStandard std)
 
 uint SVMCompiler::attribute_standard(ustring name)
 {
-  AttributeStandard std = Attribute::name_standard(name.c_str());
+  const AttributeStandard std = Attribute::name_standard(name.c_str());
   return (std) ? attribute(std) : attribute(name);
 }
 
@@ -614,12 +614,14 @@ void SVMCompiler::generate_multi_closure(ShaderNode *root_node,
       /* execute shared dependencies. this is needed to allow skipping
        * of zero weight closures and their dependencies later, so we
        * ensure that they only skip dependencies that are unique to them */
-      ShaderNodeSet cl1deps, cl2deps, shareddeps;
+      ShaderNodeSet cl1deps;
+      ShaderNodeSet cl2deps;
+      ShaderNodeSet shareddeps;
 
       find_dependencies(cl1deps, state->nodes_done, cl1in);
       find_dependencies(cl2deps, state->nodes_done, cl2in);
 
-      ShaderNodeIDComparator node_id_comp;
+      const ShaderNodeIDComparator node_id_comp;
       set_intersection(cl1deps.begin(),
                        cl1deps.end(),
                        cl2deps.begin(),
@@ -687,7 +689,7 @@ void SVMCompiler::generate_multi_closure(ShaderNode *root_node,
          */
         svm_node_types_used[NODE_JUMP_IF_ONE] = true;
         current_svm_nodes.push_back_slow(make_int4(NODE_JUMP_IF_ONE, 0, stack_assign(facin), 0));
-        int node_jump_skip_index = current_svm_nodes.size() - 1;
+        const int node_jump_skip_index = current_svm_nodes.size() - 1;
 
         generate_multi_closure(root_node, cl1in->link->parent, state);
 
@@ -703,7 +705,7 @@ void SVMCompiler::generate_multi_closure(ShaderNode *root_node,
          */
         svm_node_types_used[NODE_JUMP_IF_ZERO] = true;
         current_svm_nodes.push_back_slow(make_int4(NODE_JUMP_IF_ZERO, 0, stack_assign(facin), 0));
-        int node_jump_skip_index = current_svm_nodes.size() - 1;
+        const int node_jump_skip_index = current_svm_nodes.size() - 1;
 
         generate_multi_closure(root_node, cl2in->link->parent, state);
 
@@ -876,16 +878,16 @@ void SVMCompiler::compile(Shader *shader, array<int4> &svm_nodes, int index, Sum
 
   /* copy graph for shader with bump mapping */
   ShaderNode *output = shader->graph->output();
-  int start_num_svm_nodes = svm_nodes.size();
+  const int start_num_svm_nodes = svm_nodes.size();
 
   const double time_start = time_dt();
 
-  bool has_bump = (shader->get_displacement_method() != DISPLACE_TRUE) &&
-                  output->input("Surface")->link && output->input("Displacement")->link;
+  const bool has_bump = (shader->get_displacement_method() != DISPLACE_TRUE) &&
+                        output->input("Surface")->link && output->input("Displacement")->link;
 
   /* finalize */
   {
-    scoped_timer timer((summary != nullptr) ? &summary->time_finalize : nullptr);
+    const scoped_timer timer((summary != nullptr) ? &summary->time_finalize : nullptr);
     shader->graph->finalize(scene, has_bump, shader->get_displacement_method() == DISPLACE_BOTH);
   }
 
@@ -905,7 +907,7 @@ void SVMCompiler::compile(Shader *shader, array<int4> &svm_nodes, int index, Sum
 
   /* generate bump shader */
   if (has_bump) {
-    scoped_timer timer((summary != nullptr) ? &summary->time_generate_bump : nullptr);
+    const scoped_timer timer((summary != nullptr) ? &summary->time_generate_bump : nullptr);
     compile_type(shader, shader->graph, SHADER_TYPE_BUMP);
     svm_nodes[index].y = svm_nodes.size();
     svm_nodes.append(current_svm_nodes);
@@ -913,7 +915,7 @@ void SVMCompiler::compile(Shader *shader, array<int4> &svm_nodes, int index, Sum
 
   /* generate surface shader */
   {
-    scoped_timer timer((summary != nullptr) ? &summary->time_generate_surface : nullptr);
+    const scoped_timer timer((summary != nullptr) ? &summary->time_generate_surface : nullptr);
     compile_type(shader, shader->graph, SHADER_TYPE_SURFACE);
     /* only set jump offset if there's no bump shader, as the bump shader will fall thru to this
      * one if it exists */
@@ -925,7 +927,7 @@ void SVMCompiler::compile(Shader *shader, array<int4> &svm_nodes, int index, Sum
 
   /* generate volume shader */
   {
-    scoped_timer timer((summary != nullptr) ? &summary->time_generate_volume : nullptr);
+    const scoped_timer timer((summary != nullptr) ? &summary->time_generate_volume : nullptr);
     compile_type(shader, shader->graph, SHADER_TYPE_VOLUME);
     svm_nodes[index].z = svm_nodes.size();
     svm_nodes.append(current_svm_nodes);
@@ -933,7 +935,8 @@ void SVMCompiler::compile(Shader *shader, array<int4> &svm_nodes, int index, Sum
 
   /* generate displacement shader */
   {
-    scoped_timer timer((summary != nullptr) ? &summary->time_generate_displacement : nullptr);
+    const scoped_timer timer((summary != nullptr) ? &summary->time_generate_displacement :
+                                                    nullptr);
     compile_type(shader, shader->graph, SHADER_TYPE_DISPLACEMENT);
     svm_nodes[index].w = svm_nodes.size();
     svm_nodes.append(current_svm_nodes);

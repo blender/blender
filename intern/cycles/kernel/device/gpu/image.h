@@ -59,7 +59,7 @@ ccl_device float cubic_h1(float a)
 
 /* Fast bicubic texture lookup using 4 bilinear lookups, adapted from CUDA samples. */
 template<typename T>
-ccl_device_noinline T kernel_tex_image_interp_bicubic(ccl_global const TextureInfo &info,
+ccl_device_noinline T kernel_tex_image_interp_bicubic(const ccl_global TextureInfo &info,
                                                       float x,
                                                       float y)
 {
@@ -90,7 +90,7 @@ ccl_device_noinline T kernel_tex_image_interp_bicubic(ccl_global const TextureIn
 /* Fast tricubic texture lookup using 8 trilinear lookups. */
 template<typename T>
 ccl_device_noinline T
-kernel_tex_image_interp_tricubic(ccl_global const TextureInfo &info, float x, float y, float z)
+kernel_tex_image_interp_tricubic(const ccl_global TextureInfo &info, float x, float y, float z)
 {
   ccl_gpu_tex_object_3D tex = (ccl_gpu_tex_object_3D)info.data;
 
@@ -221,11 +221,11 @@ kernel_tex_image_interp_tricubic_nanovdb(ccl_private Acc &acc, float x, float y,
 #  if defined(__KERNEL_METAL__)
 template<typename OutT, typename T>
 __attribute__((noinline)) OutT kernel_tex_image_interp_nanovdb(
-    ccl_global const TextureInfo &info, float x, float y, float z, uint interpolation)
+    const ccl_global TextureInfo &info, float x, float y, float z, uint interpolation)
 #  else
 template<typename OutT, typename T>
 ccl_device_noinline OutT kernel_tex_image_interp_nanovdb(
-    ccl_global const TextureInfo &info, float x, float y, float z, uint interpolation)
+    const ccl_global TextureInfo &info, float x, float y, float z, uint interpolation)
 #  endif
 {
   using namespace nanovdb;
@@ -252,7 +252,7 @@ ccl_device_noinline OutT kernel_tex_image_interp_nanovdb(
 
 ccl_device float4 kernel_tex_image_interp(KernelGlobals kg, int id, float x, float y)
 {
-  ccl_global const TextureInfo &info = kernel_data_fetch(texture_info, id);
+  const ccl_global TextureInfo &info = kernel_data_fetch(texture_info, id);
 
   /* float4, byte4, ushort4 and half4 */
   const int texture_type = info.data_type;
@@ -288,7 +288,7 @@ ccl_device float4 kernel_tex_image_interp_3d(KernelGlobals kg,
                                              float3 P,
                                              InterpolationType interp)
 {
-  ccl_global const TextureInfo &info = kernel_data_fetch(texture_info, id);
+  const ccl_global TextureInfo &info = kernel_data_fetch(texture_info, id);
 
   if (info.use_transform_3d) {
     P = transform_point(&info.transform_3d, P);

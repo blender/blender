@@ -35,7 +35,7 @@ void ProceduralManager::update(Scene *scene, Progress &progress)
 
   progress.set_status("Updating Procedurals");
 
-  scoped_callback_timer timer([scene](double time) {
+  const scoped_callback_timer timer([scene](double time) {
     if (scene->update_stats) {
       scene->update_stats->procedurals.times.add_entry({"update", time});
     }

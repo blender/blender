@@ -17,8 +17,8 @@ ccl_device_noinline int svm_node_normal(KernelGlobals kg,
                                         int offset)
 {
   /* read extra data */
-  uint4 node1 = read_node(kg, &offset);
-  float3 normal = stack_load_float3(stack, in_normal_offset);
+  const uint4 node1 = read_node(kg, &offset);
+  const float3 normal = stack_load_float3(stack, in_normal_offset);
 
   float3 direction;
   direction.x = __int_as_float(node1.x);

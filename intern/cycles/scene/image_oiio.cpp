@@ -110,7 +110,7 @@ static void oiio_load_pixels(const ImageMetaData &metadata,
   }
 
   if (depth <= 1) {
-    size_t scanlinesize = width * components * sizeof(StorageType);
+    const size_t scanlinesize = width * components * sizeof(StorageType);
     in->read_image(0,
                    0,
                    0,
@@ -126,7 +126,7 @@ static void oiio_load_pixels(const ImageMetaData &metadata,
   }
 
   if (components > 4) {
-    size_t dimensions = width * height;
+    const size_t dimensions = width * height;
     for (size_t i = dimensions - 1, pixel = 0; pixel < dimensions; pixel++, i--) {
       pixels[i * 4 + 3] = tmppixels[i * components + 3];
       pixels[i * 4 + 2] = tmppixels[i * components + 2];
@@ -143,10 +143,10 @@ static void oiio_load_pixels(const ImageMetaData &metadata,
 
     const size_t num_pixels = width * height * depth;
     for (size_t i = num_pixels - 1, pixel = 0; pixel < num_pixels; pixel++, i--) {
-      float c = util_image_cast_to_float(pixels[i * 4 + 0]);
-      float m = util_image_cast_to_float(pixels[i * 4 + 1]);
-      float y = util_image_cast_to_float(pixels[i * 4 + 2]);
-      float k = util_image_cast_to_float(pixels[i * 4 + 3]);
+      const float c = util_image_cast_to_float(pixels[i * 4 + 0]);
+      const float m = util_image_cast_to_float(pixels[i * 4 + 1]);
+      const float y = util_image_cast_to_float(pixels[i * 4 + 2]);
+      const float k = util_image_cast_to_float(pixels[i * 4 + 3]);
       pixels[i * 4 + 0] = util_image_cast_from_float<StorageType>((1.0f - c) * (1.0f - k));
       pixels[i * 4 + 1] = util_image_cast_from_float<StorageType>((1.0f - m) * (1.0f - k));
       pixels[i * 4 + 2] = util_image_cast_from_float<StorageType>((1.0f - y) * (1.0f - k));
@@ -155,7 +155,7 @@ static void oiio_load_pixels(const ImageMetaData &metadata,
   }
 
   if (components == 4 && associate_alpha) {
-    size_t dimensions = width * height;
+    const size_t dimensions = width * height;
     for (size_t i = dimensions - 1, pixel = 0; pixel < dimensions; pixel++, i--) {
       const StorageType alpha = pixels[i * 4 + 3];
       pixels[i * 4 + 0] = util_image_multiply_native(pixels[i * 4 + 0], alpha);

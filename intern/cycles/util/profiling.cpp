@@ -23,9 +23,9 @@ void Profiler::run()
   while (!do_stop_worker) {
     thread_scoped_lock lock(mutex);
     for (ProfilingState *state : states) {
-      uint32_t cur_event = state->event;
-      int32_t cur_shader = state->shader;
-      int32_t cur_object = state->object;
+      const uint32_t cur_event = state->event;
+      const int32_t cur_shader = state->shader;
+      const int32_t cur_object = state->object;
 
       /* The state reads/writes should be atomic, but just to be sure
        * check the values for validity anyways. */
@@ -54,7 +54,7 @@ void Profiler::run()
 
 void Profiler::reset(int num_shaders, int num_objects)
 {
-  bool running = (worker != nullptr);
+  const bool running = (worker != nullptr);
   if (running) {
     stop();
   }
@@ -92,7 +92,7 @@ void Profiler::stop()
 
 void Profiler::add_state(ProfilingState *state)
 {
-  thread_scoped_lock lock(mutex);
+  const thread_scoped_lock lock(mutex);
 
   /* Add the ProfilingState from the list of sampled states. */
   assert(std::find(states.begin(), states.end(), state) == states.end());
@@ -111,7 +111,7 @@ void Profiler::add_state(ProfilingState *state)
 
 void Profiler::remove_state(ProfilingState *state)
 {
-  thread_scoped_lock lock(mutex);
+  const thread_scoped_lock lock(mutex);
 
   /* Remove the ProfilingState from the list of sampled states. */
   states.erase(std::remove(states.begin(), states.end(), state), states.end());

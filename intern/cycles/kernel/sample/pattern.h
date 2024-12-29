@@ -74,7 +74,7 @@ ccl_device_forceinline float path_rng_1D(KernelGlobals kg,
     return tabulated_sobol_sample_1D(kg, sample, rng_pixel, dimension);
   }
 
-  uint3 index = blue_noise_indexing(kg, rng_pixel, sample);
+  const uint3 index = blue_noise_indexing(kg, rng_pixel, sample);
   return sobol_burley_sample_1D(index.x, dimension, index.y, index.z);
 }
 
@@ -91,7 +91,7 @@ ccl_device_forceinline float2 path_rng_2D(KernelGlobals kg,
     return tabulated_sobol_sample_2D(kg, sample, rng_pixel, dimension);
   }
 
-  uint3 index = blue_noise_indexing(kg, rng_pixel, sample);
+  const uint3 index = blue_noise_indexing(kg, rng_pixel, sample);
   return sobol_burley_sample_2D(index.x, dimension, index.y, index.z);
 }
 
@@ -108,7 +108,7 @@ ccl_device_forceinline float3 path_rng_3D(KernelGlobals kg,
     return tabulated_sobol_sample_3D(kg, sample, rng_pixel, dimension);
   }
 
-  uint3 index = blue_noise_indexing(kg, rng_pixel, sample);
+  const uint3 index = blue_noise_indexing(kg, rng_pixel, sample);
   return sobol_burley_sample_3D(index.x, dimension, index.y, index.z);
 }
 
@@ -125,7 +125,7 @@ ccl_device_forceinline float4 path_rng_4D(KernelGlobals kg,
     return tabulated_sobol_sample_4D(kg, sample, rng_pixel, dimension);
   }
 
-  uint3 index = blue_noise_indexing(kg, rng_pixel, sample);
+  const uint3 index = blue_noise_indexing(kg, rng_pixel, sample);
   return sobol_burley_sample_4D(index.x, dimension, index.y, index.z);
 }
 

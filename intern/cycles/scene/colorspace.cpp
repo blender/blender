@@ -57,7 +57,7 @@ ColorSpaceProcessor *ColorSpaceManager::get_processor(ustring colorspace)
 
   /* Cache processor until free_memory(), memory overhead is expected to be
    * small and the processor is likely to be reused. */
-  thread_scoped_lock cache_processors_lock(cache_processors_mutex);
+  const thread_scoped_lock cache_processors_lock(cache_processors_mutex);
   if (cached_processors.find(colorspace) == cached_processors.end()) {
     try {
       cached_processors[colorspace] = config->getProcessor(colorspace.c_str(), "scene_linear");
@@ -101,7 +101,7 @@ bool ColorSpaceManager::colorspace_is_data(ustring colorspace)
   }
 
   try {
-    OCIO::ConstColorSpaceRcPtr space = config->getColorSpace(colorspace.c_str());
+    const OCIO::ConstColorSpaceRcPtr space = config->getColorSpace(colorspace.c_str());
     return space && space->isData();
   }
   catch (const OCIO::Exception &) {
@@ -139,7 +139,7 @@ ustring ColorSpaceManager::detect_known_colorspace(ustring colorspace,
   /* Use OpenColorIO. */
 #ifdef WITH_OCIO
   {
-    thread_scoped_lock cache_lock(cache_colorspaces_mutex);
+    const thread_scoped_lock cache_lock(cache_colorspaces_mutex);
     /* Cached lookup. */
     if (cached_colorspaces.find(colorspace) != cached_colorspaces.end()) {
       return cached_colorspaces[colorspace];
@@ -147,10 +147,11 @@ ustring ColorSpaceManager::detect_known_colorspace(ustring colorspace,
   }
 
   /* Detect if it matches a simple builtin colorspace. */
-  bool is_scene_linear, is_srgb;
+  bool is_scene_linear;
+  bool is_srgb;
   is_builtin_colorspace(colorspace, is_scene_linear, is_srgb);
 
-  thread_scoped_lock cache_lock(cache_colorspaces_mutex);
+  const thread_scoped_lock cache_lock(cache_colorspaces_mutex);
   if (is_scene_linear) {
     VLOG_INFO << "Colorspace " << colorspace.string() << " is no-op";
     cached_colorspaces[colorspace] = u_colorspace_raw;
@@ -207,11 +208,11 @@ void ColorSpaceManager::is_builtin_colorspace(ustring colorspace,
     return;
   }
 
-  OCIO::ConstCPUProcessorRcPtr device_processor = processor->getDefaultCPUProcessor();
+  const OCIO::ConstCPUProcessorRcPtr device_processor = processor->getDefaultCPUProcessor();
   is_scene_linear = true;
   is_srgb = true;
   for (int i = 0; i < 256; i++) {
-    float v = i / 255.0f;
+    const float v = i / 255.0f;
 
     float cR[3] = {v, 0, 0};
     float cG[3] = {0, v, 0};
@@ -245,7 +246,7 @@ void ColorSpaceManager::is_builtin_colorspace(ustring colorspace,
       break;
     }
 
-    float out_v = average(make_float3(cW[0], cW[1], cW[2]));
+    const float out_v = average(make_float3(cW[0], cW[1], cW[2]));
     if (!compare_floats(v, out_v, 1e-6f, 64)) {
       is_scene_linear = false;
     }
@@ -287,20 +288,20 @@ inline void processor_apply_pixels_rgba(const OCIO::Processor *processor,
   /* TODO: implement faster version for when we know the conversion
    * is a simple matrix transform between linear spaces. In that case
    * un-premultiply is not needed. */
-  OCIO::ConstCPUProcessorRcPtr device_processor = processor->getDefaultCPUProcessor();
+  const OCIO::ConstCPUProcessorRcPtr device_processor = processor->getDefaultCPUProcessor();
 
   /* Process large images in chunks to keep temporary memory requirement down. */
   const size_t chunk_size = std::min((size_t)(16 * 1024 * 1024), num_pixels);
   vector<float4> float_pixels(chunk_size);
 
   for (size_t j = 0; j < num_pixels; j += chunk_size) {
-    size_t width = std::min(chunk_size, num_pixels - j);
+    const size_t width = std::min(chunk_size, num_pixels - j);
 
     for (size_t i = 0; i < width; i++) {
       float4 value = cast_to_float4(pixels + 4 * (j + i));
 
       if (!(value.w <= 0.0f || value.w == 1.0f)) {
-        float inv_alpha = 1.0f / value.w;
+        const float inv_alpha = 1.0f / value.w;
         value.x *= inv_alpha;
         value.y *= inv_alpha;
         value.z *= inv_alpha;
@@ -309,7 +310,7 @@ inline void processor_apply_pixels_rgba(const OCIO::Processor *processor,
       float_pixels[i] = value;
     }
 
-    OCIO::PackedImageDesc desc((float *)float_pixels.data(), width, 1, 4);
+    const OCIO::PackedImageDesc desc((float *)float_pixels.data(), width, 1, 4);
     device_processor->apply(desc);
 
     for (size_t i = 0; i < width; i++) {
@@ -335,14 +336,14 @@ inline void processor_apply_pixels_grayscale(const OCIO::Processor *processor,
                                              T *pixels,
                                              size_t num_pixels)
 {
-  OCIO::ConstCPUProcessorRcPtr device_processor = processor->getDefaultCPUProcessor();
+  const OCIO::ConstCPUProcessorRcPtr device_processor = processor->getDefaultCPUProcessor();
 
   /* Process large images in chunks to keep temporary memory requirement down. */
   const size_t chunk_size = std::min((size_t)(16 * 1024 * 1024), num_pixels);
   vector<float> float_pixels(chunk_size * 3);
 
   for (size_t j = 0; j < num_pixels; j += chunk_size) {
-    size_t width = std::min(chunk_size, num_pixels - j);
+    const size_t width = std::min(chunk_size, num_pixels - j);
 
     /* Convert to 3 channels, since that's the minimum required by OpenColorIO. */
     {
@@ -356,7 +357,7 @@ inline void processor_apply_pixels_grayscale(const OCIO::Processor *processor,
       }
     }
 
-    OCIO::PackedImageDesc desc((float *)float_pixels.data(), width, 1, 3);
+    const OCIO::PackedImageDesc desc((float *)float_pixels.data(), width, 1, 3);
     device_processor->apply(desc);
 
     {
@@ -421,7 +422,7 @@ void ColorSpaceManager::to_scene_linear(ColorSpaceProcessor *processor_,
   const OCIO::Processor *processor = (const OCIO::Processor *)processor_;
 
   if (processor) {
-    OCIO::ConstCPUProcessorRcPtr device_processor = processor->getDefaultCPUProcessor();
+    const OCIO::ConstCPUProcessorRcPtr device_processor = processor->getDefaultCPUProcessor();
     if (channels == 1) {
       float3 rgb = make_float3(pixel[0], pixel[0], pixel[0]);
       device_processor->applyRGB(&rgb.x);
@@ -438,8 +439,8 @@ void ColorSpaceManager::to_scene_linear(ColorSpaceProcessor *processor_,
       else {
         /* Un-associate and associate alpha since color management should not
          * be affected by transparency. */
-        float alpha = pixel[3];
-        float inv_alpha = 1.0f / alpha;
+        const float alpha = pixel[3];
+        const float inv_alpha = 1.0f / alpha;
 
         pixel[0] *= inv_alpha;
         pixel[1] *= inv_alpha;

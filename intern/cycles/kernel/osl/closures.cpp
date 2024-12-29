@@ -104,7 +104,7 @@ void osl_eval_nodes<SHADER_TYPE_SURFACE>(const KernelGlobalsCPU *kg,
   OSL::ShadingSystem *ss = (OSL::ShadingSystem *)kg->osl_ss;
   OSL::ShaderGlobals *globals = &tdata->globals;
   OSL::ShadingContext *octx = tdata->context;
-  int shader = sd->shader & SHADER_MASK;
+  const int shader = sd->shader & SHADER_MASK;
 
   if (sd->object == OBJECT_NONE && sd->lamp == LAMP_NONE) {
     /* background */
@@ -134,12 +134,12 @@ void osl_eval_nodes<SHADER_TYPE_SURFACE>(const KernelGlobalsCPU *kg,
       /* set state as if undisplaced */
       if (sd->flag & SD_HAS_DISPLACEMENT) {
         float data[9];
-        bool found = kg->osl->services->get_attribute(sd,
-                                                      true,
-                                                      OSLRenderServices::u_empty,
-                                                      TypeVector,
-                                                      OSLRenderServices::u_geom_undisplaced,
-                                                      data);
+        const bool found = kg->osl->services->get_attribute(sd,
+                                                            true,
+                                                            OSLRenderServices::u_empty,
+                                                            TypeVector,
+                                                            OSLRenderServices::u_geom_undisplaced,
+                                                            data);
         (void)found;
         assert(found);
 
@@ -234,7 +234,7 @@ void osl_eval_nodes<SHADER_TYPE_VOLUME>(const KernelGlobalsCPU *kg,
   OSL::ShadingSystem *ss = (OSL::ShadingSystem *)kg->osl_ss;
   OSL::ShaderGlobals *globals = &tdata->globals;
   OSL::ShadingContext *octx = tdata->context;
-  int shader = sd->shader & SHADER_MASK;
+  const int shader = sd->shader & SHADER_MASK;
 
   if (kg->osl->volume_state[shader]) {
 #if OSL_LIBRARY_VERSION_CODE >= 11304
@@ -281,7 +281,7 @@ void osl_eval_nodes<SHADER_TYPE_DISPLACEMENT>(const KernelGlobalsCPU *kg,
   OSL::ShadingSystem *ss = (OSL::ShadingSystem *)kg->osl_ss;
   OSL::ShaderGlobals *globals = &tdata->globals;
   OSL::ShadingContext *octx = tdata->context;
-  int shader = sd->shader & SHADER_MASK;
+  const int shader = sd->shader & SHADER_MASK;
 
   if (kg->osl->displacement_state[shader]) {
 #if OSL_LIBRARY_VERSION_CODE >= 11304

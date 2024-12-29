@@ -76,7 +76,7 @@ CCL_NAMESPACE_END
 #  define __KERNEL_PRINTF__
 #endif
 
-ccl_device_inline void print_float(ccl_private const char *label, const float a)
+ccl_device_inline void print_float(const ccl_private char *label, const float a)
 {
 #ifdef __KERNEL_PRINTF__
   printf("%s: %.8f\n", label, (double)a);

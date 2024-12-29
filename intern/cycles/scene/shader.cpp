@@ -341,7 +341,7 @@ void Shader::tag_update(Scene *scene)
    * e.g. surface attributes when there is only a volume shader. this could
    * be more fine grained but it's better than nothing */
   OutputNode *output = graph->output();
-  bool prev_has_volume = has_volume;
+  const bool prev_has_volume = has_volume;
   has_surface = has_surface || output->input("Surface")->link;
   has_volume = has_volume || output->input("Volume")->link;
   has_displacement = has_displacement || output->input("Displacement")->link;
@@ -372,7 +372,7 @@ void Shader::tag_update(Scene *scene)
    * and may not be so great for interactive rendering where you temporarily
    * disconnect a node */
 
-  AttributeRequestSet prev_attributes = attributes;
+  const AttributeRequestSet prev_attributes = attributes;
 
   attributes.clear();
   for (ShaderNode *node : graph->nodes) {
@@ -454,16 +454,16 @@ ShaderManager *ShaderManager::create(int shadingsystem, Device *device)
 
 uint64_t ShaderManager::get_attribute_id(ustring name)
 {
-  thread_scoped_spin_lock lock(attribute_lock_);
+  const thread_scoped_spin_lock lock(attribute_lock_);
 
   /* get a unique id for each name, for SVM attribute lookup */
-  AttributeIDMap::iterator it = unique_attribute_id.find(name);
+  const AttributeIDMap::iterator it = unique_attribute_id.find(name);
 
   if (it != unique_attribute_id.end()) {
     return it->second;
   }
 
-  uint64_t id = ATTR_STD_NUM + unique_attribute_id.size();
+  const uint64_t id = ATTR_STD_NUM + unique_attribute_id.size();
   unique_attribute_id[name] = id;
   return id;
 }
@@ -598,7 +598,8 @@ void ShaderManager::device_update_common(Device * /*device*/,
       flag |= SD_HAS_CONSTANT_EMISSION;
     }
 
-    uint32_t cryptomatte_id = util_murmur_hash3(shader->name.c_str(), shader->name.length(), 0);
+    const uint32_t cryptomatte_id = util_murmur_hash3(
+        shader->name.c_str(), shader->name.length(), 0);
 
     /* regular shader */
     kshader->flags = flag;
@@ -822,7 +823,8 @@ string ShaderManager::get_cryptomatte_materials(Scene *scene)
       continue;
     }
     materials.insert(shader->name);
-    uint32_t cryptomatte_id = util_murmur_hash3(shader->name.c_str(), shader->name.length(), 0);
+    const uint32_t cryptomatte_id = util_murmur_hash3(
+        shader->name.c_str(), shader->name.length(), 0);
     manifest += string_printf("\"%s\":\"%08x\",", shader->name.c_str(), cryptomatte_id);
   }
   manifest[manifest.size() - 1] = '}';
@@ -857,7 +859,7 @@ static bool to_scene_linear_transform(OCIO::ConstConfigRcPtr &config,
     return false;
   }
 
-  OCIO::ConstCPUProcessorRcPtr device_processor = processor->getDefaultCPUProcessor();
+  const OCIO::ConstCPUProcessorRcPtr device_processor = processor->getDefaultCPUProcessor();
   if (!device_processor) {
     return false;
   }

@@ -164,7 +164,7 @@ void GeometryManager::update_svm_attributes(Device * /*unused*/,
 
 #ifdef WITH_OSL
     size_t attr_count = 0;
-    for (AttributeRequest &req : geom_attributes[i].requests) {
+    for (const AttributeRequest &req : geom_attributes[i].requests) {
       if (req.std != ATTR_STD_NONE &&
           scene->shader_manager->get_attribute_id(req.std) != (uint64_t)req.std)
       {
@@ -290,14 +290,14 @@ void GeometryManager::update_attribute_element_offset(Geometry *geom,
     type = mattr->type;
 
     /* store attribute data in arrays */
-    size_t size = mattr->element_size(geom, prim);
+    const size_t size = mattr->element_size(geom, prim);
 
-    AttributeElement &element = desc.element;
+    const AttributeElement &element = desc.element;
     int &offset = desc.offset;
 
     if (mattr->element == ATTR_ELEMENT_VOXEL) {
       /* store slot in offset value */
-      ImageHandle &handle = mattr->data_voxel();
+      const ImageHandle &handle = mattr->data_voxel();
       offset = handle.svm_slot();
     }
     else if (mattr->element == ATTR_ELEMENT_CORNER_BYTE) {
@@ -450,7 +450,7 @@ static void update_attribute_element_size(Geometry *geom,
                                           size_t *attr_uchar4_size)
 {
   if (mattr) {
-    size_t size = mattr->element_size(geom, prim);
+    const size_t size = mattr->element_size(geom, prim);
 
     if (mattr->element == ATTR_ELEMENT_VOXEL) {
       /* pass */
@@ -513,7 +513,7 @@ void GeometryManager::device_update_attributes(Device *device,
   for (size_t i = 0; i < scene->objects.size(); i++) {
     Object *object = scene->objects[i];
     Geometry *geom = object->geometry;
-    size_t geom_idx = geom->index;
+    const size_t geom_idx = geom->index;
 
     assert(geom_idx < scene->geometry.size() && scene->geometry[geom_idx] == geom);
 
@@ -524,7 +524,7 @@ void GeometryManager::device_update_attributes(Device *device,
     AttributeSet &values = object_attribute_values[i];
 
     for (size_t j = 0; j < object->attributes.size(); j++) {
-      ParamValue &param = object->attributes[j];
+      const ParamValue &param = object->attributes[j];
 
       /* add attributes that are requested and not already handled by the mesh */
       if (geom_requests.find(param.name()) && !geom->attributes.find(param.name())) {

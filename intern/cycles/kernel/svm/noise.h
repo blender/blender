@@ -27,16 +27,16 @@ ccl_device_inline float negate_if(float val, int condition)
 
 ccl_device float grad1(int hash, float x)
 {
-  int h = hash & 15;
-  float g = 1 + (h & 7);
+  const int h = hash & 15;
+  const float g = 1 + (h & 7);
   return negate_if(g, h & 8) * x;
 }
 
 ccl_device_noinline_cpu float perlin_1d(float x)
 {
   int X;
-  float fx = floorfrac(x, &X);
-  float u = fade(fx);
+  const float fx = floorfrac(x, &X);
+  const float u = fade(fx);
 
   return mix(grad1(hash_uint(X), fx), grad1(hash_uint(X + 1), fx - 1.0f), u);
 }
@@ -277,14 +277,14 @@ ccl_device_noinline_cpu float perlin_4d(float x, float y, float z, float w)
  */
 ccl_device_inline float4 bi_mix(float4 p, float4 f)
 {
-  float4 g = mix(p, shuffle<2, 3, 2, 3>(p), shuffle<0>(f));
+  const float4 g = mix(p, shuffle<2, 3, 2, 3>(p), shuffle<0>(f));
   return mix(g, shuffle<1>(g), shuffle<1>(f));
 }
 
 ccl_device_inline float4 fade(const float4 t)
 {
-  float4 a = madd(t, make_float4(6.0f), make_float4(-15.0f));
-  float4 b = madd(t, a, make_float4(10.0f));
+  const float4 a = madd(t, make_float4(6.0f), make_float4(-15.0f));
+  const float4 b = madd(t, a, make_float4(10.0f));
   return (t * t) * (t * b);
 }
 
@@ -293,9 +293,9 @@ ccl_device_inline float4 fade(const float4 t)
 
 ccl_device_inline float4 grad(const int4 hash, const float4 x, const float4 y)
 {
-  int4 h = hash & 7;
-  float4 u = select(h < 4, x, y);
-  float4 v = 2.0f * select(h < 4, y, x);
+  const int4 h = hash & 7;
+  const float4 u = select(h < 4, x, y);
+  const float4 v = 2.0f * select(h < 4, y, x);
   return negate_if_nth_bit(u, h, 0) + negate_if_nth_bit(v, h, 1);
 }
 
@@ -314,20 +314,20 @@ ccl_device_inline float4 grad(const int4 hash, const float4 x, const float4 y)
 ccl_device_noinline_cpu float perlin_2d(float x, float y)
 {
   int4 XY;
-  float4 fxy = floorfrac(make_float4(x, y, 0.0f, 0.0f), &XY);
-  float4 uv = fade(fxy);
+  const float4 fxy = floorfrac(make_float4(x, y, 0.0f, 0.0f), &XY);
+  const float4 uv = fade(fxy);
 
-  int4 XY1 = XY + make_int4(1);
-  int4 X = shuffle<0, 0, 0, 0>(XY, XY1);
-  int4 Y = shuffle<0, 2, 0, 2>(shuffle<1, 1, 1, 1>(XY, XY1));
+  const int4 XY1 = XY + make_int4(1);
+  const int4 X = shuffle<0, 0, 0, 0>(XY, XY1);
+  const int4 Y = shuffle<0, 2, 0, 2>(shuffle<1, 1, 1, 1>(XY, XY1));
 
-  int4 h = hash_int4_2(X, Y);
+  const int4 h = hash_int4_2(X, Y);
 
-  float4 fxy1 = fxy - make_float4(1.0f);
-  float4 fx = shuffle<0, 0, 0, 0>(fxy, fxy1);
-  float4 fy = shuffle<0, 2, 0, 2>(shuffle<1, 1, 1, 1>(fxy, fxy1));
+  const float4 fxy1 = fxy - make_float4(1.0f);
+  const float4 fx = shuffle<0, 0, 0, 0>(fxy, fxy1);
+  const float4 fy = shuffle<0, 2, 0, 2>(shuffle<1, 1, 1, 1>(fxy, fxy1));
 
-  float4 g = grad(h, fx, fy);
+  const float4 g = grad(h, fx, fy);
 
   return extract<0>(bi_mix(g, uv));
 }
@@ -367,8 +367,8 @@ ccl_device_noinline_cpu float perlin_2d(float x, float y)
  */
 ccl_device_inline float4 tri_mix(float4 p, float4 q, float4 f)
 {
-  float4 s = mix(p, q, shuffle<0>(f));
-  float4 g = mix(s, shuffle<2, 3, 2, 3>(s), shuffle<1>(f));
+  const float4 s = mix(p, q, shuffle<0>(f));
+  const float4 g = mix(s, shuffle<2, 3, 2, 3>(s), shuffle<1>(f));
   return mix(g, shuffle<1>(g), shuffle<2>(f));
 }
 
@@ -381,20 +381,20 @@ ccl_device_inline float4 tri_mix(float4 p, float4 q, float4 f)
 
 ccl_device_inline float4 grad(const int4 hash, const float4 x, const float4 y, const float4 z)
 {
-  int4 h = hash & 15;
-  float4 u = select(h < 8, x, y);
-  float4 vt = select((h == 12) | (h == 14), x, z);
-  float4 v = select(h < 4, y, vt);
+  const int4 h = hash & 15;
+  const float4 u = select(h < 8, x, y);
+  const float4 vt = select((h == 12) | (h == 14), x, z);
+  const float4 v = select(h < 4, y, vt);
   return negate_if_nth_bit(u, h, 0) + negate_if_nth_bit(v, h, 1);
 }
 
 ccl_device_inline float4
 grad(const int4 hash, const float4 x, const float4 y, const float4 z, const float4 w)
 {
-  int4 h = hash & 31;
-  float4 u = select(h < 24, x, y);
-  float4 v = select(h < 16, y, z);
-  float4 s = select(h < 8, z, w);
+  const int4 h = hash & 31;
+  const float4 u = select(h < 24, x, y);
+  const float4 v = select(h < 16, y, z);
+  const float4 s = select(h < 8, z, w);
   return negate_if_nth_bit(u, h, 0) + negate_if_nth_bit(v, h, 1) + negate_if_nth_bit(s, h, 2);
 }
 
@@ -431,22 +431,22 @@ ccl_device_inline float4 quad_mix(float4 p, float4 q, float4 r, float4 s, float4
 ccl_device_noinline_cpu float perlin_3d(float x, float y, float z)
 {
   int4 XYZ;
-  float4 fxyz = floorfrac(make_float4(x, y, z, 0.0f), &XYZ);
-  float4 uvw = fade(fxyz);
+  const float4 fxyz = floorfrac(make_float4(x, y, z, 0.0f), &XYZ);
+  const float4 uvw = fade(fxyz);
 
-  int4 XYZ1 = XYZ + make_int4(1);
-  int4 Y = shuffle<1, 1, 1, 1>(XYZ, XYZ1);
-  int4 Z = shuffle<0, 2, 0, 2>(shuffle<2, 2, 2, 2>(XYZ, XYZ1));
+  const int4 XYZ1 = XYZ + make_int4(1);
+  const int4 Y = shuffle<1, 1, 1, 1>(XYZ, XYZ1);
+  const int4 Z = shuffle<0, 2, 0, 2>(shuffle<2, 2, 2, 2>(XYZ, XYZ1));
 
-  int4 h1 = hash_int4_3(shuffle<0>(XYZ), Y, Z);
-  int4 h2 = hash_int4_3(shuffle<0>(XYZ1), Y, Z);
+  const int4 h1 = hash_int4_3(shuffle<0>(XYZ), Y, Z);
+  const int4 h2 = hash_int4_3(shuffle<0>(XYZ1), Y, Z);
 
-  float4 fxyz1 = fxyz - make_float4(1.0f);
-  float4 fy = shuffle<1, 1, 1, 1>(fxyz, fxyz1);
-  float4 fz = shuffle<0, 2, 0, 2>(shuffle<2, 2, 2, 2>(fxyz, fxyz1));
+  const float4 fxyz1 = fxyz - make_float4(1.0f);
+  const float4 fy = shuffle<1, 1, 1, 1>(fxyz, fxyz1);
+  const float4 fz = shuffle<0, 2, 0, 2>(shuffle<2, 2, 2, 2>(fxyz, fxyz1));
 
-  float4 g1 = grad(h1, shuffle<0>(fxyz), fy, fz);
-  float4 g2 = grad(h2, shuffle<0>(fxyz1), fy, fz);
+  const float4 g1 = grad(h1, shuffle<0>(fxyz), fy, fz);
+  const float4 g2 = grad(h2, shuffle<0>(fxyz1), fy, fz);
 
   return extract<0>(tri_mix(g1, g2, uvw));
 }
@@ -485,28 +485,28 @@ ccl_device_noinline_cpu float perlin_3d(float x, float y, float z)
 ccl_device_noinline_cpu float perlin_4d(float x, float y, float z, float w)
 {
   int4 XYZW;
-  float4 fxyzw = floorfrac(make_float4(x, y, z, w), &XYZW);
-  float4 uvws = fade(fxyzw);
+  const float4 fxyzw = floorfrac(make_float4(x, y, z, w), &XYZW);
+  const float4 uvws = fade(fxyzw);
 
-  int4 XYZW1 = XYZW + make_int4(1);
-  int4 Y = shuffle<1, 1, 1, 1>(XYZW, XYZW1);
-  int4 Z = shuffle<0, 2, 0, 2>(shuffle<2, 2, 2, 2>(XYZW, XYZW1));
+  const int4 XYZW1 = XYZW + make_int4(1);
+  const int4 Y = shuffle<1, 1, 1, 1>(XYZW, XYZW1);
+  const int4 Z = shuffle<0, 2, 0, 2>(shuffle<2, 2, 2, 2>(XYZW, XYZW1));
 
-  int4 h1 = hash_int4_4(shuffle<0>(XYZW), Y, Z, shuffle<3>(XYZW));
-  int4 h2 = hash_int4_4(shuffle<0>(XYZW1), Y, Z, shuffle<3>(XYZW));
+  const int4 h1 = hash_int4_4(shuffle<0>(XYZW), Y, Z, shuffle<3>(XYZW));
+  const int4 h2 = hash_int4_4(shuffle<0>(XYZW1), Y, Z, shuffle<3>(XYZW));
 
-  int4 h3 = hash_int4_4(shuffle<0>(XYZW), Y, Z, shuffle<3>(XYZW1));
-  int4 h4 = hash_int4_4(shuffle<0>(XYZW1), Y, Z, shuffle<3>(XYZW1));
+  const int4 h3 = hash_int4_4(shuffle<0>(XYZW), Y, Z, shuffle<3>(XYZW1));
+  const int4 h4 = hash_int4_4(shuffle<0>(XYZW1), Y, Z, shuffle<3>(XYZW1));
 
-  float4 fxyzw1 = fxyzw - make_float4(1.0f);
-  float4 fy = shuffle<1, 1, 1, 1>(fxyzw, fxyzw1);
-  float4 fz = shuffle<0, 2, 0, 2>(shuffle<2, 2, 2, 2>(fxyzw, fxyzw1));
+  const float4 fxyzw1 = fxyzw - make_float4(1.0f);
+  const float4 fy = shuffle<1, 1, 1, 1>(fxyzw, fxyzw1);
+  const float4 fz = shuffle<0, 2, 0, 2>(shuffle<2, 2, 2, 2>(fxyzw, fxyzw1));
 
-  float4 g1 = grad(h1, shuffle<0>(fxyzw), fy, fz, shuffle<3>(fxyzw));
-  float4 g2 = grad(h2, shuffle<0>(fxyzw1), fy, fz, shuffle<3>(fxyzw));
+  const float4 g1 = grad(h1, shuffle<0>(fxyzw), fy, fz, shuffle<3>(fxyzw));
+  const float4 g2 = grad(h2, shuffle<0>(fxyzw1), fy, fz, shuffle<3>(fxyzw));
 
-  float4 g3 = grad(h3, shuffle<0>(fxyzw), fy, fz, shuffle<3>(fxyzw1));
-  float4 g4 = grad(h4, shuffle<0>(fxyzw1), fy, fz, shuffle<3>(fxyzw1));
+  const float4 g3 = grad(h3, shuffle<0>(fxyzw), fy, fz, shuffle<3>(fxyzw1));
+  const float4 g4 = grad(h4, shuffle<0>(fxyzw1), fy, fz, shuffle<3>(fxyzw1));
 
   return extract<0>(quad_mix(g1, g2, g3, g4, uvws));
 }
@@ -688,7 +688,7 @@ ccl_device_inline float noise_scale4(float result)
 
 ccl_device_inline float snoise_1d(float p)
 {
-  float precision_correction = 0.5f * float(fabsf(p) >= 1000000.0f);
+  const float precision_correction = 0.5f * float(fabsf(p) >= 1000000.0f);
   /* Repeat Perlin noise texture every 100000.0 on each axis to prevent floating point
    * representation issues. */
   /* The 1D variant of fmod is called fmodf. */
@@ -704,8 +704,8 @@ ccl_device_inline float noise_1d(float p)
 
 ccl_device_inline float snoise_2d(float2 p)
 {
-  float2 precision_correction = 0.5f * make_float2(float(fabsf(p.x) >= 1000000.0f),
-                                                   float(fabsf(p.y) >= 1000000.0f));
+  const float2 precision_correction = 0.5f * make_float2(float(fabsf(p.x) >= 1000000.0f),
+                                                         float(fabsf(p.y) >= 1000000.0f));
   /* Repeat Perlin noise texture every 100000.0f on each axis to prevent floating point
    * representation issues. This causes discontinuities every 100000.0f, however at such scales
    * this usually shouldn't be noticeable. */
@@ -721,9 +721,9 @@ ccl_device_inline float noise_2d(float2 p)
 
 ccl_device_inline float snoise_3d(float3 p)
 {
-  float3 precision_correction = 0.5f * make_float3(float(fabsf(p.x) >= 1000000.0f),
-                                                   float(fabsf(p.y) >= 1000000.0f),
-                                                   float(fabsf(p.z) >= 1000000.0f));
+  const float3 precision_correction = 0.5f * make_float3(float(fabsf(p.x) >= 1000000.0f),
+                                                         float(fabsf(p.y) >= 1000000.0f),
+                                                         float(fabsf(p.z) >= 1000000.0f));
   /* Repeat Perlin noise texture every 100000.0f on each axis to prevent floating point
    * representation issues. This causes discontinuities every 100000.0f, however at such scales
    * this usually shouldn't be noticeable. */
@@ -739,10 +739,10 @@ ccl_device_inline float noise_3d(float3 p)
 
 ccl_device_inline float snoise_4d(float4 p)
 {
-  float4 precision_correction = 0.5f * make_float4(float(fabsf(p.x) >= 1000000.0f),
-                                                   float(fabsf(p.y) >= 1000000.0f),
-                                                   float(fabsf(p.z) >= 1000000.0f),
-                                                   float(fabsf(p.w) >= 1000000.0f));
+  const float4 precision_correction = 0.5f * make_float4(float(fabsf(p.x) >= 1000000.0f),
+                                                         float(fabsf(p.y) >= 1000000.0f),
+                                                         float(fabsf(p.z) >= 1000000.0f),
+                                                         float(fabsf(p.w) >= 1000000.0f));
   /* Repeat Perlin noise texture every 100000.0f on each axis to prevent floating point
    * representation issues. This causes discontinuities every 100000.0f, however at such scales
    * this usually shouldn't be noticeable. */

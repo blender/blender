@@ -89,18 +89,18 @@ ccl_device_inline uint4 read_node(KernelGlobals kg, ccl_private int *const offse
 
 ccl_device_inline float4 read_node_float(KernelGlobals kg, ccl_private int *const offset)
 {
-  uint4 node = kernel_data_fetch(svm_nodes, *offset);
-  float4 f = make_float4(__uint_as_float(node.x),
-                         __uint_as_float(node.y),
-                         __uint_as_float(node.z),
-                         __uint_as_float(node.w));
+  const uint4 node = kernel_data_fetch(svm_nodes, *offset);
+  const float4 f = make_float4(__uint_as_float(node.x),
+                               __uint_as_float(node.y),
+                               __uint_as_float(node.z),
+                               __uint_as_float(node.w));
   (*offset)++;
   return f;
 }
 
 ccl_device_inline float4 fetch_node_float(KernelGlobals kg, const int offset)
 {
-  uint4 node = kernel_data_fetch(svm_nodes, offset);
+  const uint4 node = kernel_data_fetch(svm_nodes, offset);
   return make_float4(__uint_as_float(node.x),
                      __uint_as_float(node.y),
                      __uint_as_float(node.z),

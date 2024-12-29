@@ -189,7 +189,8 @@ bool ShaderNode::equals(const ShaderNode &other)
 
   /* Compare linkable input sockets */
   for (int i = 0; i < inputs.size(); ++i) {
-    ShaderInput *input_a = inputs[i], *input_b = other.inputs[i];
+    ShaderInput *input_a = inputs[i];
+    ShaderInput *input_b = other.inputs[i];
     if (input_a->link == nullptr && input_b->link == nullptr) {
       /* Unconnected inputs are expected to have the same value. */
       if (!Node::equals_value(other, input_a->socket_type)) {
@@ -329,7 +330,7 @@ void ShaderGraph::relink(ShaderInput *from, ShaderInput *to)
 void ShaderGraph::relink(ShaderOutput *from, ShaderOutput *to)
 {
   /* Copy because disconnect modifies this list. */
-  vector<ShaderInput *> outputs = from->links;
+  const vector<ShaderInput *> outputs = from->links;
 
   for (ShaderInput *sock : outputs) {
     disconnect(sock);
@@ -344,7 +345,7 @@ void ShaderGraph::relink(ShaderNode *node, ShaderOutput *from, ShaderOutput *to)
   simplified = false;
 
   /* Copy because disconnect modifies this list */
-  vector<ShaderInput *> outputs = from->links;
+  const vector<ShaderInput *> outputs = from->links;
 
   /* Bypass node by moving all links from "from" to "to" */
   for (ShaderInput *sock : node->inputs) {
@@ -485,7 +486,7 @@ void ShaderGraph::remove_proxy_nodes()
       }
       else {
         /* Copy because disconnect modifies this list */
-        vector<ShaderInput *> links(output->links);
+        const vector<ShaderInput *> links(output->links);
 
         for (ShaderInput *to : links) {
           /* Remove any auto-convert nodes too if they lead to
@@ -494,7 +495,7 @@ void ShaderGraph::remove_proxy_nodes()
 
           if (tonode->special_type == SHADER_SPECIAL_TYPE_AUTOCONVERT) {
             bool all_links_removed = true;
-            vector<ShaderInput *> links = tonode->outputs[0]->links;
+            const vector<ShaderInput *> links = tonode->outputs[0]->links;
 
             for (ShaderInput *autoin : links) {
               if (autoin->flags() & SocketType::DEFAULT_LINK_MASK) {
@@ -546,10 +547,11 @@ void ShaderGraph::remove_proxy_nodes()
  */
 void ShaderGraph::constant_fold(Scene *scene)
 {
-  ShaderNodeSet done, scheduled;
+  ShaderNodeSet done;
+  ShaderNodeSet scheduled;
   queue<ShaderNode *> traverse_queue;
 
-  bool has_displacement = (output()->input("Displacement")->link != nullptr);
+  const bool has_displacement = (output()->input("Displacement")->link != nullptr);
 
   /* Schedule nodes which doesn't have any dependencies. */
   for (ShaderNode *node : nodes) {
@@ -584,7 +586,7 @@ void ShaderGraph::constant_fold(Scene *scene)
         }
       }
       /* Optimize current node. */
-      ConstantFolder folder(this, node, output, scene);
+      const ConstantFolder folder(this, node, output, scene);
       node->constant_fold(folder);
     }
   }
@@ -621,7 +623,8 @@ void ShaderGraph::deduplicate_nodes()
    *   already deduplicated.
    */
 
-  ShaderNodeSet scheduled, done;
+  ShaderNodeSet scheduled;
+  ShaderNodeSet done;
   map<ustring, ShaderNodeSet> candidates;
   queue<ShaderNode *> traverse_queue;
   int num_deduplicated = 0;
@@ -964,10 +967,10 @@ void ShaderGraph::refine_bump_nodes()
       for (ShaderNode *node : nodes_bump) {
         node->bump = SHADER_BUMP_CENTER;
       }
-      for (NodePair &pair : nodes_dx) {
+      for (const NodePair &pair : nodes_dx) {
         pair.second->bump = SHADER_BUMP_DX;
       }
-      for (NodePair &pair : nodes_dy) {
+      for (const NodePair &pair : nodes_dy) {
         pair.second->bump = SHADER_BUMP_DY;
       }
 
@@ -979,10 +982,10 @@ void ShaderGraph::refine_bump_nodes()
       connect(out_dy, node->input("SampleY"));
 
       /* Add generated nodes. */
-      for (NodePair &pair : nodes_dx) {
+      for (const NodePair &pair : nodes_dx) {
         add(pair.second);
       }
-      for (NodePair &pair : nodes_dy) {
+      for (const NodePair &pair : nodes_dy) {
         add(pair.second);
       }
 
@@ -1033,13 +1036,13 @@ void ShaderGraph::bump_from_displacement(bool use_object_space)
 
   /* mark nodes to indicate they are use for bump computation, so
    * that any texture coordinates are shifted by dx/dy when sampling */
-  for (NodePair &pair : nodes_center) {
+  for (const NodePair &pair : nodes_center) {
     pair.second->bump = SHADER_BUMP_CENTER;
   }
-  for (NodePair &pair : nodes_dx) {
+  for (const NodePair &pair : nodes_dx) {
     pair.second->bump = SHADER_BUMP_DX;
   }
-  for (NodePair &pair : nodes_dy) {
+  for (const NodePair &pair : nodes_dy) {
     pair.second->bump = SHADER_BUMP_DY;
   }
 
@@ -1090,13 +1093,13 @@ void ShaderGraph::bump_from_displacement(bool use_object_space)
 
   /* finally, add the copied nodes to the graph. we can't do this earlier
    * because we would create dependency cycles in the above loop */
-  for (NodePair &pair : nodes_center) {
+  for (const NodePair &pair : nodes_center) {
     add(pair.second);
   }
-  for (NodePair &pair : nodes_dx) {
+  for (const NodePair &pair : nodes_dx) {
     add(pair.second);
   }
-  for (NodePair &pair : nodes_dy) {
+  for (const NodePair &pair : nodes_dy) {
     add(pair.second);
   }
 }
@@ -1112,7 +1115,8 @@ void ShaderGraph::transform_multi_closure(ShaderNode *node, ShaderOutput *weight
     ShaderInput *fin = node->input("Fac");
     ShaderInput *cl1in = node->input("Closure1");
     ShaderInput *cl2in = node->input("Closure2");
-    ShaderOutput *weight1_out, *weight2_out;
+    ShaderOutput *weight1_out;
+    ShaderOutput *weight2_out;
 
     if (fin) {
       /* mix closure: add node to mix closure weights */
@@ -1157,7 +1161,7 @@ void ShaderGraph::transform_multi_closure(ShaderNode *node, ShaderOutput *weight
     }
 
     /* already has a weight connected to it? add weights */
-    float weight_value = node->get_float(weight_in->socket_type);
+    const float weight_value = node->get_float(weight_in->socket_type);
     if (weight_in->link || weight_value != 0.0f) {
       MathNode *math_node = create_node<MathNode>();
       add(math_node);
@@ -1196,7 +1200,7 @@ int ShaderGraph::get_num_closures()
 {
   int num_closures = 0;
   for (ShaderNode *node : nodes) {
-    ClosureType closure_type = node->get_closure_type();
+    const ClosureType closure_type = node->get_closure_type();
     if (closure_type == CLOSURE_NONE_ID) {
       continue;
     }

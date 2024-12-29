@@ -30,7 +30,7 @@ ccl_device int volume_fournier_forand_setup(ccl_private FournierForandVolume *vo
   /* clamp backscatter fraction to avoid delta function */
   B = min(fabsf(B), 0.5f - 1e-3f);
   IOR = max(IOR, 1.0f + 1e-3f);
-  float3 coeffs = phase_fournier_forand_coeffs(B, IOR);
+  const float3 coeffs = phase_fournier_forand_coeffs(B, IOR);
   volume->c1 = coeffs.x;
   volume->c2 = coeffs.y;
   volume->c3 = coeffs.z;
@@ -38,29 +38,29 @@ ccl_device int volume_fournier_forand_setup(ccl_private FournierForandVolume *vo
   return SD_SCATTER;
 }
 
-ccl_device Spectrum volume_fournier_forand_eval(ccl_private const ShaderData *sd,
-                                                ccl_private const ShaderVolumeClosure *svc,
+ccl_device Spectrum volume_fournier_forand_eval(const ccl_private ShaderData *sd,
+                                                const ccl_private ShaderVolumeClosure *svc,
                                                 float3 wo,
                                                 ccl_private float *pdf)
 {
-  ccl_private const FournierForandVolume *volume = (ccl_private const FournierForandVolume *)svc;
+  const ccl_private FournierForandVolume *volume = (const ccl_private FournierForandVolume *)svc;
   const float3 coeffs = make_float3(volume->c1, volume->c2, volume->c3);
 
   /* note that wi points towards the viewer */
-  float cos_theta = dot(-sd->wi, wo);
+  const float cos_theta = dot(-sd->wi, wo);
   *pdf = phase_fournier_forand(cos_theta, coeffs);
 
   return make_spectrum(*pdf);
 }
 
-ccl_device int volume_fournier_forand_sample(ccl_private const ShaderData *sd,
-                                             ccl_private const ShaderVolumeClosure *svc,
+ccl_device int volume_fournier_forand_sample(const ccl_private ShaderData *sd,
+                                             const ccl_private ShaderVolumeClosure *svc,
                                              float2 rand,
                                              ccl_private Spectrum *eval,
                                              ccl_private float3 *wo,
                                              ccl_private float *pdf)
 {
-  ccl_private const FournierForandVolume *volume = (ccl_private const FournierForandVolume *)svc;
+  const ccl_private FournierForandVolume *volume = (const ccl_private FournierForandVolume *)svc;
   const float3 coeffs = make_float3(volume->c1, volume->c2, volume->c3);
 
   /* note that wi points towards the viewer and so is used negated */

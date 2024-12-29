@@ -73,12 +73,12 @@ Geometry *BlenderSync::sync_geometry(BL::Depsgraph &b_depsgraph,
                                      TaskPool *task_pool)
 {
   /* Test if we can instance or if the object is modified. */
-  Geometry::Type geom_type = determine_geom_type(b_ob_info, use_particle_hair);
-  BL::ID b_key_id = (b_ob_info.is_real_object_data() &&
-                     BKE_object_is_modified(b_ob_info.real_object)) ?
-                        b_ob_info.real_object :
-                        b_ob_info.object_data;
-  GeometryKey key(b_key_id.ptr.data, geom_type);
+  const Geometry::Type geom_type = determine_geom_type(b_ob_info, use_particle_hair);
+  BL::ID const b_key_id = (b_ob_info.is_real_object_data() &&
+                           BKE_object_is_modified(b_ob_info.real_object)) ?
+                              b_ob_info.real_object :
+                              b_ob_info.object_data;
+  const GeometryKey key(b_key_id.ptr.data, geom_type);
 
   /* Find shader indices. */
   array<Node *> used_shaders = find_used_shaders(b_ob_info.iter_object);
@@ -210,7 +210,7 @@ void BlenderSync::sync_geometry_motion(BL::Depsgraph &b_depsgraph,
   }
 
   /* Find time matching motion step required by geometry. */
-  int motion_step = geom->motion_step(motion_time);
+  const int motion_step = geom->motion_step(motion_time);
   if (motion_step < 0) {
     return;
   }

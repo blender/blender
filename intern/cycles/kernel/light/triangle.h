@@ -34,8 +34,8 @@ ccl_device_inline bool triangle_world_space_vertices(
 
   if (!(object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
 #ifdef __OBJECT_MOTION__
-    float object_time = (time >= 0.0f) ? time : 0.5f;
-    Transform tfm = object_fetch_transform_motion_test(kg, object, object_time, nullptr);
+    const float object_time = (time >= 0.0f) ? time : 0.5f;
+    const Transform tfm = object_fetch_transform_motion_test(kg, object, object_time, nullptr);
 #else
     Transform tfm = object_fetch_transform(kg, object, OBJECT_TRANSFORM);
 #endif
@@ -49,7 +49,7 @@ ccl_device_inline bool triangle_world_space_vertices(
 
 ccl_device_inline float triangle_light_pdf_area_sampling(const float3 Ng, const float3 I, float t)
 {
-  float cos_pi = fabsf(dot(Ng, I));
+  const float cos_pi = fabsf(dot(Ng, I));
 
   if (cos_pi == 0.0f) {
     return 0.0f;
@@ -59,7 +59,7 @@ ccl_device_inline float triangle_light_pdf_area_sampling(const float3 Ng, const 
 }
 
 ccl_device_forceinline float triangle_light_pdf(KernelGlobals kg,
-                                                ccl_private const ShaderData *sd,
+                                                const ccl_private ShaderData *sd,
                                                 float t)
 {
   /* A naive heuristic to decide between costly solid angle sampling
@@ -67,7 +67,7 @@ ccl_device_forceinline float triangle_light_pdf(KernelGlobals kg,
    * to the length of the edges of the triangle. */
 
   float3 V[3];
-  bool has_motion = triangle_world_space_vertices(kg, sd->object, sd->prim, sd->time, V);
+  const bool has_motion = triangle_world_space_vertices(kg, sd->object, sd->prim, sd->time, V);
 
   const float3 e0 = V[1] - V[0];
   const float3 e1 = V[2] - V[0];
@@ -136,7 +136,7 @@ ccl_device_forceinline bool triangle_light_sample(KernelGlobals kg,
    * to the length of the edges of the triangle. */
 
   float3 V[3];
-  bool has_motion = triangle_world_space_vertices(kg, object, prim, time, V);
+  const bool has_motion = triangle_world_space_vertices(kg, object, prim, time, V);
 
   const float3 e0 = V[1] - V[0];
   const float3 e1 = V[2] - V[0];
@@ -198,7 +198,8 @@ ccl_device_forceinline bool triangle_light_sample(KernelGlobals kg,
     /* Select a random sub-area of the spherical triangle and calculate the third vertex C_ of that
      * new triangle. */
     const float A_hat = rand.x * solid_angle;
-    float sin_phi, cos_phi;
+    float sin_phi;
+    float cos_phi;
     fast_sincosf(A_hat - alpha, &sin_phi, &cos_phi);
     const float u = cos_phi - cos_alpha;
     const float v = sin_phi + sin_alpha * cos_c;

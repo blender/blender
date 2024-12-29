@@ -43,9 +43,10 @@ struct BVHReferenceCompare {
    */
   __forceinline int compare(const BVHReference &ra, const BVHReference &rb) const
   {
-    BoundBox ra_bounds = get_prim_bounds(ra), rb_bounds = get_prim_bounds(rb);
-    float ca = ra_bounds.min[dim] + ra_bounds.max[dim];
-    float cb = rb_bounds.min[dim] + rb_bounds.max[dim];
+    BoundBox ra_bounds = get_prim_bounds(ra);
+    BoundBox rb_bounds = get_prim_bounds(rb);
+    const float ca = ra_bounds.min[dim] + ra_bounds.max[dim];
+    const float cb = rb_bounds.min[dim] + rb_bounds.max[dim];
 
     if (ca < cb) {
       return -1;
@@ -94,7 +95,8 @@ static void bvh_reference_sort_threaded(TaskPool *task_pool,
                                         const int job_end,
                                         const BVHReferenceCompare &compare)
 {
-  int start = job_start, end = job_end;
+  int start = job_start;
+  int end = job_end;
   bool have_work = (start < end);
   while (have_work) {
     const int count = job_end - job_start;
@@ -108,8 +110,9 @@ static void bvh_reference_sort_threaded(TaskPool *task_pool,
     /* Single QSort step.
      * Use median-of-three method for the pivot point.
      */
-    int left = start, right = end;
-    int center = (left + right) >> 1;
+    int left = start;
+    int right = end;
+    const int center = (left + right) >> 1;
     if (compare.compare(data[left], data[center]) > 0) {
       swap(data[left], data[center]);
     }
@@ -120,7 +123,7 @@ static void bvh_reference_sort_threaded(TaskPool *task_pool,
       swap(data[center], data[right]);
     }
     swap(data[center], data[right - 1]);
-    BVHReference median = data[right - 1];
+    const BVHReference median = data[right - 1];
     do {
       while (compare.compare(data[left], median) < 0) {
         ++left;
@@ -169,7 +172,7 @@ void bvh_reference_sort(int start,
                         const Transform *aligned_space)
 {
   const int count = end - start;
-  BVHReferenceCompare compare(dim, unaligned_heuristic, aligned_space);
+  const BVHReferenceCompare compare(dim, unaligned_heuristic, aligned_space);
   if (count < BVH_SORT_THRESHOLD) {
     /* It is important to not use any mutex if array is small enough,
      * otherwise we end up in situation when we're going to sleep far

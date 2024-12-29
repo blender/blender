@@ -126,14 +126,16 @@ static const char *PyC_UnicodeAsBytes(PyObject *py_str, PyObject **coerce)
 
 static PyObject *init_func(PyObject * /*self*/, PyObject *args)
 {
-  PyObject *path, *user_path;
+  PyObject *path;
+  PyObject *user_path;
   int headless;
 
   if (!PyArg_ParseTuple(args, "OOi", &path, &user_path, &headless)) {
     return nullptr;
   }
 
-  PyObject *path_coerce = nullptr, *user_path_coerce = nullptr;
+  PyObject *path_coerce = nullptr;
+  PyObject *user_path_coerce = nullptr;
   path_init(PyC_UnicodeAsBytes(path, &path_coerce),
             PyC_UnicodeAsBytes(user_path, &user_path_coerce));
   Py_XDECREF(path_coerce);
@@ -158,7 +160,13 @@ static PyObject *exit_func(PyObject * /*self*/, PyObject * /*args*/)
 
 static PyObject *create_func(PyObject * /*self*/, PyObject *args)
 {
-  PyObject *pyengine, *pypreferences, *pydata, *pyscreen, *pyregion, *pyv3d, *pyrv3d;
+  PyObject *pyengine;
+  PyObject *pypreferences;
+  PyObject *pydata;
+  PyObject *pyscreen;
+  PyObject *pyregion;
+  PyObject *pyv3d;
+  PyObject *pyrv3d;
   int preview_osl;
 
   if (!PyArg_ParseTuple(args,
@@ -178,26 +186,26 @@ static PyObject *create_func(PyObject * /*self*/, PyObject *args)
   /* RNA */
   ID *bScreen = (ID *)PyLong_AsVoidPtr(pyscreen);
 
-  PointerRNA engineptr = RNA_pointer_create(
+  const PointerRNA engineptr = RNA_pointer_create(
       nullptr, &RNA_RenderEngine, PyLong_AsVoidPtr(pyengine));
   BL::RenderEngine engine(engineptr);
 
-  PointerRNA preferencesptr = RNA_pointer_create(
+  const PointerRNA preferencesptr = RNA_pointer_create(
       nullptr, &RNA_Preferences, PyLong_AsVoidPtr(pypreferences));
   BL::Preferences preferences(preferencesptr);
 
-  PointerRNA dataptr = RNA_main_pointer_create((Main *)PyLong_AsVoidPtr(pydata));
+  const PointerRNA dataptr = RNA_main_pointer_create((Main *)PyLong_AsVoidPtr(pydata));
   BL::BlendData data(dataptr);
 
-  PointerRNA regionptr = RNA_pointer_create(
+  const PointerRNA regionptr = RNA_pointer_create(
       bScreen, &RNA_Region, pylong_as_voidptr_typesafe(pyregion));
   BL::Region region(regionptr);
 
-  PointerRNA v3dptr = RNA_pointer_create(
+  const PointerRNA v3dptr = RNA_pointer_create(
       bScreen, &RNA_SpaceView3D, pylong_as_voidptr_typesafe(pyv3d));
   BL::SpaceView3D v3d(v3dptr);
 
-  PointerRNA rv3dptr = RNA_pointer_create(
+  const PointerRNA rv3dptr = RNA_pointer_create(
       bScreen, &RNA_RegionView3D, pylong_as_voidptr_typesafe(pyrv3d));
   BL::RegionView3D rv3d(rv3dptr);
 
@@ -206,8 +214,8 @@ static PyObject *create_func(PyObject * /*self*/, PyObject *args)
 
   if (rv3d) {
     /* interactive viewport session */
-    int width = region.width();
-    int height = region.height();
+    const int width = region.width();
+    const int height = region.height();
 
     session = new BlenderSession(engine, preferences, data, v3d, rv3d, width, height);
   }
@@ -228,7 +236,8 @@ static PyObject *free_func(PyObject * /*self*/, PyObject *value)
 
 static PyObject *render_func(PyObject * /*self*/, PyObject *args)
 {
-  PyObject *pysession, *pydepsgraph;
+  PyObject *pysession;
+  PyObject *pydepsgraph;
 
   if (!PyArg_ParseTuple(args, "OO", &pysession, &pydepsgraph)) {
     return nullptr;
@@ -236,7 +245,7 @@ static PyObject *render_func(PyObject * /*self*/, PyObject *args)
 
   BlenderSession *session = (BlenderSession *)PyLong_AsVoidPtr(pysession);
 
-  PointerRNA depsgraphptr = RNA_pointer_create(
+  const PointerRNA depsgraphptr = RNA_pointer_create(
       nullptr, &RNA_Depsgraph, (ID *)PyLong_AsVoidPtr(pydepsgraph));
   BL::Depsgraph b_depsgraph(depsgraphptr);
 
@@ -272,7 +281,10 @@ static PyObject *render_frame_finish_func(PyObject * /*self*/, PyObject *args)
 
 static PyObject *draw_func(PyObject * /*self*/, PyObject *args)
 {
-  PyObject *py_session, *py_graph, *py_screen, *py_space_image;
+  PyObject *py_session;
+  PyObject *py_graph;
+  PyObject *py_screen;
+  PyObject *py_space_image;
 
   if (!PyArg_ParseTuple(args, "OOOO", &py_session, &py_graph, &py_screen, &py_space_image)) {
     return nullptr;
@@ -282,7 +294,7 @@ static PyObject *draw_func(PyObject * /*self*/, PyObject *args)
 
   ID *b_screen = (ID *)PyLong_AsVoidPtr(py_screen);
 
-  PointerRNA b_space_image_ptr = RNA_pointer_create(
+  const PointerRNA b_space_image_ptr = RNA_pointer_create(
       b_screen, &RNA_SpaceImageEditor, pylong_as_voidptr_typesafe(py_space_image));
   BL::SpaceImageEditor b_space_image(b_space_image_ptr);
 
@@ -294,9 +306,13 @@ static PyObject *draw_func(PyObject * /*self*/, PyObject *args)
 /* pixel_array and result passed as pointers */
 static PyObject *bake_func(PyObject * /*self*/, PyObject *args)
 {
-  PyObject *pysession, *pydepsgraph, *pyobject;
+  PyObject *pysession;
+  PyObject *pydepsgraph;
+  PyObject *pyobject;
   const char *pass_type;
-  int pass_filter, width, height;
+  int pass_filter;
+  int width;
+  int height;
 
   if (!PyArg_ParseTuple(args,
                         "OOOsiii",
@@ -313,11 +329,11 @@ static PyObject *bake_func(PyObject * /*self*/, PyObject *args)
 
   BlenderSession *session = (BlenderSession *)PyLong_AsVoidPtr(pysession);
 
-  PointerRNA depsgraphptr = RNA_pointer_create(
+  const PointerRNA depsgraphptr = RNA_pointer_create(
       nullptr, &RNA_Depsgraph, PyLong_AsVoidPtr(pydepsgraph));
   BL::Depsgraph b_depsgraph(depsgraphptr);
 
-  PointerRNA objectptr = RNA_id_pointer_create((ID *)PyLong_AsVoidPtr(pyobject));
+  const PointerRNA objectptr = RNA_id_pointer_create((ID *)PyLong_AsVoidPtr(pyobject));
   BL::Object b_object(objectptr);
 
   python_thread_state_save(&session->python_thread_state);
@@ -331,7 +347,10 @@ static PyObject *bake_func(PyObject * /*self*/, PyObject *args)
 
 static PyObject *view_draw_func(PyObject * /*self*/, PyObject *args)
 {
-  PyObject *pysession, *pygraph, *pyv3d, *pyrv3d;
+  PyObject *pysession;
+  PyObject *pygraph;
+  PyObject *pyv3d;
+  PyObject *pyrv3d;
 
   if (!PyArg_ParseTuple(args, "OOOO", &pysession, &pygraph, &pyv3d, &pyrv3d)) {
     return nullptr;
@@ -352,7 +371,9 @@ static PyObject *view_draw_func(PyObject * /*self*/, PyObject *args)
 
 static PyObject *reset_func(PyObject * /*self*/, PyObject *args)
 {
-  PyObject *pysession, *pydata, *pydepsgraph;
+  PyObject *pysession;
+  PyObject *pydata;
+  PyObject *pydepsgraph;
 
   if (!PyArg_ParseTuple(args, "OOO", &pysession, &pydata, &pydepsgraph)) {
     return nullptr;
@@ -360,10 +381,10 @@ static PyObject *reset_func(PyObject * /*self*/, PyObject *args)
 
   BlenderSession *session = (BlenderSession *)PyLong_AsVoidPtr(pysession);
 
-  PointerRNA dataptr = RNA_main_pointer_create((Main *)PyLong_AsVoidPtr(pydata));
+  const PointerRNA dataptr = RNA_main_pointer_create((Main *)PyLong_AsVoidPtr(pydata));
   BL::BlendData b_data(dataptr);
 
-  PointerRNA depsgraphptr = RNA_pointer_create(
+  const PointerRNA depsgraphptr = RNA_pointer_create(
       nullptr, &RNA_Depsgraph, PyLong_AsVoidPtr(pydepsgraph));
   BL::Depsgraph b_depsgraph(depsgraphptr);
 
@@ -378,7 +399,8 @@ static PyObject *reset_func(PyObject * /*self*/, PyObject *args)
 
 static PyObject *sync_func(PyObject * /*self*/, PyObject *args)
 {
-  PyObject *pysession, *pydepsgraph;
+  PyObject *pysession;
+  PyObject *pydepsgraph;
 
   if (!PyArg_ParseTuple(args, "OO", &pysession, &pydepsgraph)) {
     return nullptr;
@@ -386,7 +408,7 @@ static PyObject *sync_func(PyObject * /*self*/, PyObject *args)
 
   BlenderSession *session = (BlenderSession *)PyLong_AsVoidPtr(pysession);
 
-  PointerRNA depsgraphptr = RNA_pointer_create(
+  const PointerRNA depsgraphptr = RNA_pointer_create(
       nullptr, &RNA_Depsgraph, PyLong_AsVoidPtr(pydepsgraph));
   BL::Depsgraph b_depsgraph(depsgraphptr);
 
@@ -406,7 +428,7 @@ static PyObject *available_devices_func(PyObject * /*self*/, PyObject *args)
     return nullptr;
   }
 
-  DeviceType type = Device::type_from_string(type_name);
+  const DeviceType type = Device::type_from_string(type_name);
   /* "NONE" is defined by the add-on, see: `CyclesPreferences.get_device_types`. */
   if ((type == DEVICE_NONE) && (strcmp(type_name, "NONE") != 0)) {
     PyErr_Format(PyExc_ValueError, "Device \"%s\" not known.", type_name);
@@ -420,8 +442,8 @@ static PyObject *available_devices_func(PyObject * /*self*/, PyObject *args)
   PyObject *ret = PyTuple_New(devices.size());
 
   for (size_t i = 0; i < devices.size(); i++) {
-    DeviceInfo &device = devices[i];
-    string type_name = Device::string_from_type(device.type);
+    const DeviceInfo &device = devices[i];
+    const string type_name = Device::string_from_type(device.type);
     PyObject *device_tuple = PyTuple_New(7);
     PyTuple_SET_ITEM(device_tuple, 0, pyunicode_from_string(device.description.c_str()));
     PyTuple_SET_ITEM(device_tuple, 1, pyunicode_from_string(type_name.c_str()));
@@ -441,7 +463,9 @@ static PyObject *available_devices_func(PyObject * /*self*/, PyObject *args)
 
 static PyObject *osl_update_node_func(PyObject * /*self*/, PyObject *args)
 {
-  PyObject *pydata, *pynodegroup, *pynode;
+  PyObject *pydata;
+  PyObject *pynodegroup;
+  PyObject *pynode;
   const char *filepath = nullptr;
 
   if (!PyArg_ParseTuple(args, "OOOs", &pydata, &pynodegroup, &pynode, &filepath)) {
@@ -449,15 +473,15 @@ static PyObject *osl_update_node_func(PyObject * /*self*/, PyObject *args)
   }
 
   /* RNA */
-  PointerRNA dataptr = RNA_main_pointer_create((Main *)PyLong_AsVoidPtr(pydata));
+  const PointerRNA dataptr = RNA_main_pointer_create((Main *)PyLong_AsVoidPtr(pydata));
   BL::BlendData b_data(dataptr);
 
-  PointerRNA nodeptr = RNA_pointer_create(
+  const PointerRNA nodeptr = RNA_pointer_create(
       (ID *)PyLong_AsVoidPtr(pynodegroup), &RNA_ShaderNodeScript, PyLong_AsVoidPtr(pynode));
   BL::ShaderNodeScript b_node(nodeptr);
 
   /* update bytecode hash */
-  string bytecode = b_node.bytecode();
+  const string bytecode = b_node.bytecode();
 
   if (!bytecode.empty()) {
     MD5Hash md5;
@@ -690,7 +714,8 @@ static PyObject *osl_update_node_func(PyObject * /*self*/, PyObject *args)
 
 static PyObject *osl_compile_func(PyObject * /*self*/, PyObject *args)
 {
-  const char *inputfile = nullptr, *outputfile = nullptr;
+  const char *inputfile = nullptr;
+  const char *outputfile = nullptr;
 
   if (!PyArg_ParseTuple(args, "ss", &inputfile, &outputfile)) {
     return nullptr;
@@ -707,7 +732,7 @@ static PyObject *osl_compile_func(PyObject * /*self*/, PyObject *args)
 
 static PyObject *system_info_func(PyObject * /*self*/, PyObject * /*value*/)
 {
-  string system_info = Device::device_capabilities();
+  const string system_info = Device::device_capabilities();
   return pyunicode_from_string(system_info.c_str());
 }
 
@@ -744,8 +769,11 @@ static PyObject *denoise_func(PyObject * /*self*/, PyObject *args, PyObject *key
 {
   static const char *keyword_list[] = {
       "preferences", "scene", "view_layer", "input", "output", nullptr};
-  PyObject *pypreferences, *pyscene, *pyviewlayer;
-  PyObject *pyinput, *pyoutput = nullptr;
+  PyObject *pypreferences;
+  PyObject *pyscene;
+  PyObject *pyviewlayer;
+  PyObject *pyinput;
+  PyObject *pyoutput = nullptr;
 
   if (!PyArg_ParseTupleAndKeywords(args,
                                    keywords,
@@ -761,19 +789,19 @@ static PyObject *denoise_func(PyObject * /*self*/, PyObject *args, PyObject *key
   }
 
   /* Get device specification from preferences and scene. */
-  PointerRNA preferencesptr = RNA_pointer_create(
+  const PointerRNA preferencesptr = RNA_pointer_create(
       nullptr, &RNA_Preferences, PyLong_AsVoidPtr(pypreferences));
   BL::Preferences b_preferences(preferencesptr);
 
-  PointerRNA sceneptr = RNA_id_pointer_create((ID *)PyLong_AsVoidPtr(pyscene));
+  const PointerRNA sceneptr = RNA_id_pointer_create((ID *)PyLong_AsVoidPtr(pyscene));
   BL::Scene b_scene(sceneptr);
 
   DeviceInfo preferences_device;
-  DeviceInfo pathtrace_device = blender_device_info(
+  const DeviceInfo pathtrace_device = blender_device_info(
       b_preferences, b_scene, true, true, preferences_device);
 
   /* Get denoising parameters from view layer. */
-  PointerRNA viewlayerptr = RNA_pointer_create(
+  const PointerRNA viewlayerptr = RNA_pointer_create(
       (ID *)PyLong_AsVoidPtr(pyscene), &RNA_ViewLayer, PyLong_AsVoidPtr(pyviewlayer));
   BL::ViewLayer b_view_layer(viewlayerptr);
 
@@ -782,7 +810,8 @@ static PyObject *denoise_func(PyObject * /*self*/, PyObject *args, PyObject *key
   params.use = true;
 
   /* Parse file paths list. */
-  vector<string> input, output;
+  vector<string> input;
+  vector<string> output;
 
   if (!image_parse_filepaths(pyinput, input)) {
     return nullptr;
@@ -826,7 +855,8 @@ static PyObject *denoise_func(PyObject * /*self*/, PyObject *args, PyObject *key
 static PyObject *merge_func(PyObject * /*self*/, PyObject *args, PyObject *keywords)
 {
   static const char *keyword_list[] = {"input", "output", nullptr};
-  PyObject *pyinput, *pyoutput = nullptr;
+  PyObject *pyinput;
+  PyObject *pyoutput = nullptr;
 
   if (!PyArg_ParseTupleAndKeywords(
           args, keywords, "OO", (char **)keyword_list, &pyinput, &pyoutput))
@@ -845,7 +875,7 @@ static PyObject *merge_func(PyObject * /*self*/, PyObject *args, PyObject *keywo
     PyErr_SetString(PyExc_ValueError, "Output must be a string.");
     return nullptr;
   }
-  string output = PyUnicode_AsUTF8(pyoutput);
+  const string output = PyUnicode_AsUTF8(pyoutput);
 
   /* Merge. */
   ImageMerger merger;
@@ -867,8 +897,8 @@ static PyObject *debug_flags_update_func(PyObject * /*self*/, PyObject *args)
     return nullptr;
   }
 
-  PointerRNA sceneptr = RNA_id_pointer_create((ID *)PyLong_AsVoidPtr(pyscene));
-  BL::Scene b_scene(sceneptr);
+  const PointerRNA sceneptr = RNA_id_pointer_create((ID *)PyLong_AsVoidPtr(pyscene));
+  const BL::Scene b_scene(sceneptr);
 
   debug_flags_sync_from_scene(b_scene);
 
@@ -894,10 +924,14 @@ static PyObject *enable_print_stats_func(PyObject * /*self*/, PyObject * /*args*
 
 static PyObject *get_device_types_func(PyObject * /*self*/, PyObject * /*args*/)
 {
-  vector<DeviceType> device_types = Device::available_types();
-  bool has_cuda = false, has_optix = false, has_hip = false, has_metal = false, has_oneapi = false,
-       has_hiprt = false;
-  for (DeviceType device_type : device_types) {
+  const vector<DeviceType> device_types = Device::available_types();
+  bool has_cuda = false;
+  bool has_optix = false;
+  bool has_hip = false;
+  bool has_metal = false;
+  bool has_oneapi = false;
+  bool has_hiprt = false;
+  for (const DeviceType device_type : device_types) {
     has_cuda |= (device_type == DEVICE_CUDA);
     has_optix |= (device_type == DEVICE_OPTIX);
     has_hip |= (device_type == DEVICE_HIP);
@@ -1020,7 +1054,7 @@ void *CCL_python_module_init()
    *               accurate, but there's nothing in OSL API which we
    *               might use to get version in runtime.
    */
-  int curversion = OSL_LIBRARY_VERSION_CODE;
+  const int curversion = OSL_LIBRARY_VERSION_CODE;
   PyModule_AddObjectRef(mod, "with_osl", Py_True);
   PyModule_AddObject(
       mod,

@@ -69,26 +69,26 @@ static int validate_enum_value(int value, int num_values, int default_value)
 
 static DisplacementMethod get_displacement_method(BL::Material &b_mat)
 {
-  int value = b_mat.displacement_method();
+  const int value = b_mat.displacement_method();
   return (DisplacementMethod)validate_enum_value(value, DISPLACE_NUM_METHODS, DISPLACE_BUMP);
 }
 
 template<typename NodeType> static InterpolationType get_image_interpolation(NodeType &b_node)
 {
-  int value = b_node.interpolation();
+  const int value = b_node.interpolation();
   return (InterpolationType)validate_enum_value(
       value, INTERPOLATION_NUM_TYPES, INTERPOLATION_LINEAR);
 }
 
 template<typename NodeType> static ExtensionType get_image_extension(NodeType &b_node)
 {
-  int value = b_node.extension();
+  const int value = b_node.extension();
   return (ExtensionType)validate_enum_value(value, EXTENSION_NUM_TYPES, EXTENSION_REPEAT);
 }
 
 static ImageAlphaType get_image_alpha_type(BL::Image &b_image)
 {
-  int value = b_image.alpha_mode();
+  const int value = b_image.alpha_mode();
   return (ImageAlphaType)validate_enum_value(value, IMAGE_ALPHA_NUM_TYPES, IMAGE_ALPHA_AUTO);
 }
 
@@ -127,7 +127,7 @@ static ustring blender_attribute_name_add_type(const string &name, BlenderAttrib
 
 BlenderAttributeType blender_attribute_name_split_type(ustring name, string *r_real_name)
 {
-  string_view sname(name);
+  const string_view sname(name);
 
   if (sname.substr(0, object_attr_prefix.size()) == object_attr_prefix) {
     *r_real_name = sname.substr(object_attr_prefix.size());
@@ -290,7 +290,8 @@ static ShaderNode *add_node(Scene *scene,
     BL::CurveMapping mapping(b_curve_node.mapping());
     RGBCurvesNode *curves = graph->create_node<RGBCurvesNode>();
     array<float3> curve_mapping_curves;
-    float min_x, max_x;
+    float min_x;
+    float max_x;
     curvemapping_color_to_array(mapping, curve_mapping_curves, RAMP_TABLE_SIZE, true);
     curvemapping_minmax(mapping, 4, &min_x, &max_x);
     curves->set_min_x(min_x);
@@ -304,7 +305,8 @@ static ShaderNode *add_node(Scene *scene,
     BL::CurveMapping mapping(b_curve_node.mapping());
     VectorCurvesNode *curves = graph->create_node<VectorCurvesNode>();
     array<float3> curve_mapping_curves;
-    float min_x, max_x;
+    float min_x;
+    float max_x;
     curvemapping_color_to_array(mapping, curve_mapping_curves, RAMP_TABLE_SIZE, false);
     curvemapping_minmax(mapping, 3, &min_x, &max_x);
     curves->set_min_x(min_x);
@@ -318,7 +320,8 @@ static ShaderNode *add_node(Scene *scene,
     BL::CurveMapping mapping(b_curve_node.mapping());
     FloatCurveNode *curve = graph->create_node<FloatCurveNode>();
     array<float> curve_mapping_curve;
-    float min_x, max_x;
+    float min_x;
+    float max_x;
     curvemapping_float_to_array(mapping, curve_mapping_curve, RAMP_TABLE_SIZE);
     curvemapping_minmax(mapping, 1, &min_x, &max_x);
     curve->set_min_x(min_x);
@@ -801,14 +804,14 @@ static ShaderNode *add_node(Scene *scene,
       BL::ShaderNodeScript b_script_node(b_node);
 
       ShaderManager *manager = scene->shader_manager;
-      string bytecode_hash = b_script_node.bytecode_hash();
+      const string bytecode_hash = b_script_node.bytecode_hash();
 
       if (!bytecode_hash.empty()) {
         node = OSLShaderManager::osl_node(
             graph, manager, "", bytecode_hash, b_script_node.bytecode());
       }
       else {
-        string absolute_filepath = blender_absolute_path(
+        const string absolute_filepath = blender_absolute_path(
             b_data, b_ntree, b_script_node.filepath());
         node = OSLShaderManager::osl_node(graph, manager, absolute_filepath, "");
       }
@@ -832,7 +835,7 @@ static ShaderNode *add_node(Scene *scene,
     get_tex_mapping(image, b_texture_mapping);
 
     if (b_image) {
-      BL::Image::source_enum b_image_source = b_image.source();
+      const BL::Image::source_enum b_image_source = b_image.source();
       PointerRNA colorspace_ptr = b_image.colorspace_settings().ptr;
       image->set_colorspace(ustring(get_enum_identifier(colorspace_ptr, "name")));
 
@@ -857,8 +860,8 @@ static ShaderNode *add_node(Scene *scene,
          * also store frame number as well, so there's no differences in handling
          * builtin names for packed images and movies
          */
-        int scene_frame = b_scene.frame_current();
-        int image_frame = image_user_frame_number(b_image_user, b_image, scene_frame);
+        const int scene_frame = b_scene.frame_current();
+        const int image_frame = image_user_frame_number(b_image_user, b_image, scene_frame);
         if (b_image_source != BL::Image::source_TILED) {
           image->handle = scene->image_manager->add_image(
               new BlenderImageLoader(b_image, image_frame, 0, b_engine.is_preview()),
@@ -867,7 +870,7 @@ static ShaderNode *add_node(Scene *scene,
         else {
           vector<ImageLoader *> loaders;
           loaders.reserve(image->get_tiles().size());
-          for (int tile_number : image->get_tiles()) {
+          for (const int tile_number : image->get_tiles()) {
             loaders.push_back(
                 new BlenderImageLoader(b_image, image_frame, tile_number, b_engine.is_preview()));
           }
@@ -876,7 +879,7 @@ static ShaderNode *add_node(Scene *scene,
         }
       }
       else {
-        ustring filename = ustring(
+        const ustring filename = ustring(
             image_user_file_path(b_data, b_image_user, b_image, b_scene.frame_current()));
         image->set_filename(filename);
       }
@@ -895,7 +898,7 @@ static ShaderNode *add_node(Scene *scene,
     get_tex_mapping(env, b_texture_mapping);
 
     if (b_image) {
-      BL::Image::source_enum b_image_source = b_image.source();
+      const BL::Image::source_enum b_image_source = b_image.source();
       PointerRNA colorspace_ptr = b_image.colorspace_settings().ptr;
       env->set_colorspace(ustring(get_enum_identifier(colorspace_ptr, "name")));
       env->set_animated(is_image_animated(b_image_source, b_image_user));
@@ -904,8 +907,8 @@ static ShaderNode *add_node(Scene *scene,
       const bool is_builtin = image_is_builtin(b_image, b_engine);
 
       if (is_builtin) {
-        int scene_frame = b_scene.frame_current();
-        int image_frame = image_user_frame_number(b_image_user, b_image, scene_frame);
+        const int scene_frame = b_scene.frame_current();
+        const int image_frame = image_user_frame_number(b_image_user, b_image, scene_frame);
         env->handle = scene->image_manager->add_image(
             new BlenderImageLoader(b_image, image_frame, 0, b_engine.is_preview()),
             env->image_params());
@@ -1085,7 +1088,8 @@ static ShaderNode *add_node(Scene *scene,
      */
     BL::Object b_ob(b_point_density_node.object());
     if (b_ob) {
-      float3 loc, size;
+      float3 loc;
+      float3 size;
       point_density_texture_space(b_depsgraph, b_point_density_node, loc, size);
       point_density->set_tfm(transform_translate(-loc) * transform_scale(size) *
                              transform_inverse(get_transform(b_ob.matrix_world())));
@@ -1252,7 +1256,7 @@ static void add_nodes(Scene *scene,
   PtrOutputMap output_map;
 
   /* find the node to use for output if there are multiple */
-  BL::ShaderNode output_node = b_ntree.get_output_node(
+  const BL::ShaderNode output_node = b_ntree.get_output_node(
       BL::ShaderNodeOutputMaterial::target_CYCLES);
 
   /* add nodes */
@@ -1261,7 +1265,7 @@ static void add_nodes(Scene *scene,
       /* replace muted node with internal links */
       for (BL::NodeLink &b_link : b_node.internal_links) {
         BL::NodeSocket to_socket(b_link.to_socket());
-        SocketType::Type to_socket_type = convert_socket_type(to_socket);
+        const SocketType::Type to_socket_type = convert_socket_type(to_socket);
         if (to_socket_type == SocketType::UNDEFINED) {
           continue;
         }
@@ -1291,14 +1295,15 @@ static void add_nodes(Scene *scene,
         b_group_ntree = BL::ShaderNodeTree(((BL::ShaderNodeCustomGroup)(b_node)).node_tree());
       }
 
-      ProxyMap group_proxy_input_map, group_proxy_output_map;
+      ProxyMap group_proxy_input_map;
+      ProxyMap group_proxy_output_map;
 
       /* Add a proxy node for each socket
        * Do this even if the node group has no internal tree,
        * so that links have something to connect to and assert won't fail.
        */
       for (BL::NodeSocket &b_input : b_node.inputs) {
-        SocketType::Type input_type = convert_socket_type(b_input);
+        const SocketType::Type input_type = convert_socket_type(b_input);
         if (input_type == SocketType::UNDEFINED) {
           continue;
         }
@@ -1314,7 +1319,7 @@ static void add_nodes(Scene *scene,
         set_default_value(proxy->inputs[0], b_input, b_data, b_ntree);
       }
       for (BL::NodeSocket &b_output : b_node.outputs) {
-        SocketType::Type output_type = convert_socket_type(b_output);
+        const SocketType::Type output_type = convert_socket_type(b_output);
         if (output_type == SocketType::UNDEFINED) {
           continue;
         }
@@ -1343,7 +1348,7 @@ static void add_nodes(Scene *scene,
     else if (b_node.is_a(&RNA_NodeGroupInput)) {
       /* map each socket to a proxy node */
       for (BL::NodeSocket &b_output : b_node.outputs) {
-        ProxyMap::const_iterator proxy_it = proxy_input_map.find(b_output.identifier());
+        const ProxyMap::const_iterator proxy_it = proxy_input_map.find(b_output.identifier());
         if (proxy_it != proxy_input_map.end()) {
           ConvertNode *proxy = proxy_it->second;
 
@@ -1357,7 +1362,7 @@ static void add_nodes(Scene *scene,
       if (b_output_node.is_active_output()) {
         /* map each socket to a proxy node */
         for (BL::NodeSocket &b_input : b_node.inputs) {
-          ProxyMap::const_iterator proxy_it = proxy_output_map.find(b_input.identifier());
+          const ProxyMap::const_iterator proxy_it = proxy_output_map.find(b_input.identifier());
           if (proxy_it != proxy_output_map.end()) {
             ConvertNode *proxy = proxy_it->second;
 
@@ -1422,11 +1427,11 @@ static void add_nodes(Scene *scene,
       continue;
     }
     /* get blender link data */
-    BL::NodeSocket b_from_sock = b_link.from_socket();
-    BL::NodeSocket b_to_sock = b_link.to_socket();
+    const BL::NodeSocket b_from_sock = b_link.from_socket();
+    const BL::NodeSocket b_to_sock = b_link.to_socket();
 
     ShaderOutput *output = nullptr;
-    PtrOutputMap::iterator output_it = output_map.find(b_from_sock.ptr.data);
+    const PtrOutputMap::iterator output_it = output_map.find(b_from_sock.ptr.data);
     if (output_it != output_map.end()) {
       output = output_it->second;
     }
@@ -1478,13 +1483,13 @@ void BlenderSync::resolve_view_layer_attributes(Shader *shader,
       AttributeNode *attr_node = static_cast<AttributeNode *>(node);
 
       std::string real_name;
-      BlenderAttributeType type = blender_attribute_name_split_type(attr_node->get_attribute(),
-                                                                    &real_name);
+      const BlenderAttributeType type = blender_attribute_name_split_type(
+          attr_node->get_attribute(), &real_name);
 
       if (type == BL::ShaderNodeAttribute::attribute_type_VIEW_LAYER) {
         /* Look up the value. */
-        BL::ViewLayer b_layer = b_depsgraph.view_layer_eval();
-        BL::Scene b_scene = b_depsgraph.scene_eval();
+        const BL::ViewLayer b_layer = b_depsgraph.view_layer_eval();
+        const BL::Scene b_scene = b_depsgraph.scene_eval();
         float4 value;
 
         BKE_view_layer_find_rgba_attribute((::Scene *)b_scene.ptr.data,
@@ -1493,7 +1498,7 @@ void BlenderSync::resolve_view_layer_attributes(Shader *shader,
                                            &value.x);
 
         /* Replace all outgoing links, using appropriate output types. */
-        float val_avg = (value.x + value.y + value.z) / 3.0f;
+        const float val_avg = (value.x + value.y + value.z) / 3.0f;
 
         for (ShaderOutput *output : node->outputs) {
           float val_float;
@@ -1647,7 +1652,7 @@ void BlenderSync::sync_world(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d,
 
   BL::World b_world = view_layer.world_override ? view_layer.world_override : b_scene.world();
 
-  BlenderViewportParameters new_viewport_parameters(b_v3d, use_developer_ui);
+  const BlenderViewportParameters new_viewport_parameters(b_v3d, use_developer_ui);
 
   Shader *shader = scene->default_background;
 

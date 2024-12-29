@@ -227,7 +227,7 @@ ustring Node::get_string(const SocketType &input) const
   }
   if (input.type == SocketType::ENUM) {
     const NodeEnum &enm = *input.enum_values;
-    int intvalue = get_socket_value<int>(this, input);
+    const int intvalue = get_socket_value<int>(this, input);
     return (enm.exists(intvalue)) ? enm[intvalue] : ustring();
   }
   assert(0);
@@ -363,7 +363,7 @@ void Node::copy_value(const SocketType &socket, const Node &other, const SocketT
       case SocketType::NODE_ARRAY: {
         copy_array<void *>(this, socket, &other, other_socket);
 
-        array<Node *> &node_array = get_socket_value<array<Node *>>(this, socket);
+        const array<Node *> &node_array = get_socket_value<array<Node *>>(this, socket);
 
         for (Node *node : node_array) {
           node->reference();
@@ -884,7 +884,7 @@ void Node::set_if_different(const SocketType &input, array<Node *> &value)
     }
   }
 
-  array<Node *> &old_nodes = get_socket_value<array<Node *>>(this, input);
+  const array<Node *> &old_nodes = get_socket_value<array<Node *>>(this, input);
   for (Node *old_node : old_nodes) {
     old_node->dereference();
   }

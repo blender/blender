@@ -82,7 +82,7 @@ static bool rtc_progress_func(void *user_ptr, const double n)
     return true;
   }
 
-  string msg = string_printf("Building BVH %.0f%%", n * 100.0);
+  const string msg = string_printf("Building BVH %.0f%%", n * 100.0);
   progress->set_substatus(msg);
   progress_start_time = time_dt();
 
@@ -298,7 +298,7 @@ void BVHEmbree::add_instance(Object *ob, int i)
 
 void BVHEmbree::add_triangles(const Object *ob, const Mesh *mesh, int i)
 {
-  size_t prim_offset = mesh->prim_offset;
+  const size_t prim_offset = mesh->prim_offset;
 
   const Attribute *attr_mP = nullptr;
   size_t num_motion_steps = 1;
@@ -382,7 +382,7 @@ void BVHEmbree::set_tri_vertex_buffer(RTCGeometry geom_id, const Mesh *mesh, con
       verts = mesh->get_verts().data();
     }
     else {
-      int t_ = (t > t_mid) ? (t - 1) : t;
+      const int t_ = (t > t_mid) ? (t - 1) : t;
       verts = &attr_mP->data_float3()[t_ * num_verts];
     }
 
@@ -442,7 +442,7 @@ void pack_motion_verts(size_t num_curves,
                        float4 *rtc_verts)
 {
   for (size_t j = 0; j < num_curves; ++j) {
-    Hair::Curve c = hair->get_curve(j);
+    const Hair::Curve c = hair->get_curve(j);
     int fk = c.first_key;
     int k = 1;
     for (; k < c.num_keys + 1; ++k, ++fk) {
@@ -505,7 +505,7 @@ void BVHEmbree::set_curve_vertex_buffer(RTCGeometry geom_id, const Hair *hair, c
         pack_motion_verts<float3>(num_curves, hair, verts, curve_radius, rtc_verts);
       }
       else {
-        int t_ = (t > t_mid) ? (t - 1) : t;
+        const int t_ = (t > t_mid) ? (t - 1) : t;
         const float4 *verts = &attr_mP->data_float4()[t_ * num_keys];
         pack_motion_verts<float4>(num_curves, hair, verts, curve_radius, rtc_verts);
       }
@@ -563,7 +563,7 @@ void BVHEmbree::set_point_vertex_buffer(RTCGeometry geom_id,
       }
       else {
         /* Motion blur is already packed as [x y z radius]. */
-        int t_ = (t > t_mid) ? (t - 1) : t;
+        const int t_ = (t > t_mid) ? (t - 1) : t;
         const float4 *verts = &attr_mP->data_float4()[t_ * num_points];
         std::copy_n(verts, num_points, rtc_verts);
       }
@@ -577,7 +577,7 @@ void BVHEmbree::set_point_vertex_buffer(RTCGeometry geom_id,
 
 void BVHEmbree::add_points(const Object *ob, const PointCloud *pointcloud, int i)
 {
-  size_t prim_offset = pointcloud->prim_offset;
+  const size_t prim_offset = pointcloud->prim_offset;
 
   const Attribute *attr_mP = nullptr;
   size_t num_motion_steps = 1;
@@ -588,7 +588,7 @@ void BVHEmbree::add_points(const Object *ob, const PointCloud *pointcloud, int i
     }
   }
 
-  enum RTCGeometryType type = RTC_GEOMETRY_TYPE_SPHERE_POINT;
+  const enum RTCGeometryType type = RTC_GEOMETRY_TYPE_SPHERE_POINT;
 
   RTCGeometry geom_id = rtcNewGeometry(rtc_device, type);
 
@@ -613,7 +613,7 @@ void BVHEmbree::add_points(const Object *ob, const PointCloud *pointcloud, int i
 
 void BVHEmbree::add_curves(const Object *ob, const Hair *hair, int i)
 {
-  size_t prim_offset = hair->curve_segment_offset;
+  const size_t prim_offset = hair->curve_segment_offset;
 
   const Attribute *attr_mP = nullptr;
   size_t num_motion_steps = 1;
@@ -630,14 +630,14 @@ void BVHEmbree::add_curves(const Object *ob, const Hair *hair, int i)
   const size_t num_curves = hair->num_curves();
   size_t num_segments = 0;
   for (size_t j = 0; j < num_curves; ++j) {
-    Hair::Curve c = hair->get_curve(j);
+    const Hair::Curve c = hair->get_curve(j);
     assert(c.num_segments() > 0);
     num_segments += c.num_segments();
   }
 
-  enum RTCGeometryType type = (hair->curve_shape == CURVE_RIBBON ?
-                                   RTC_GEOMETRY_TYPE_FLAT_CATMULL_ROM_CURVE :
-                                   RTC_GEOMETRY_TYPE_ROUND_CATMULL_ROM_CURVE);
+  const enum RTCGeometryType type = (hair->curve_shape == CURVE_RIBBON ?
+                                         RTC_GEOMETRY_TYPE_FLAT_CATMULL_ROM_CURVE :
+                                         RTC_GEOMETRY_TYPE_ROUND_CATMULL_ROM_CURVE);
 
   RTCGeometry geom_id = rtcNewGeometry(rtc_device, type);
   rtcSetGeometryTessellationRate(geom_id, params.curve_subdivisions + 1);
@@ -645,7 +645,7 @@ void BVHEmbree::add_curves(const Object *ob, const Hair *hair, int i)
       geom_id, RTC_BUFFER_TYPE_INDEX, 0, RTC_FORMAT_UINT, sizeof(int), num_segments);
   size_t rtc_index = 0;
   for (size_t j = 0; j < num_curves; ++j) {
-    Hair::Curve c = hair->get_curve(j);
+    const Hair::Curve c = hair->get_curve(j);
     for (size_t k = 0; k < c.num_segments(); ++k) {
       rtc_indices[rtc_index] = c.first_key + k;
       /* Room for extra CVs at Catmull-Rom splines. */

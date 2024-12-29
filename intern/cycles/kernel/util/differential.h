@@ -20,9 +20,9 @@ ccl_device void differential_transfer(ccl_private differential3 *surface_dP,
   /* ray differential transfer through homogeneous medium, to
    * compute dPdx/dy at a shading point from the incoming ray */
 
-  float3 tmp = ray_D / dot(ray_D, surface_Ng);
-  float3 tmpx = ray_dP.dx + ray_t * ray_dD.dx;
-  float3 tmpy = ray_dP.dy + ray_t * ray_dD.dy;
+  const float3 tmp = ray_D / dot(ray_D, surface_Ng);
+  const float3 tmpx = ray_dP.dx + ray_t * ray_dD.dx;
+  const float3 tmpy = ray_dP.dy + ray_t * ray_dD.dy;
 
   surface_dP->dx = tmpx - dot(tmpx, surface_Ng) * tmp;
   surface_dP->dy = tmpy - dot(tmpy, surface_Ng) * tmp;
@@ -49,9 +49,9 @@ ccl_device void differential_dudv(ccl_private differential *du,
    * mainly used for differentials of arbitrary mesh attributes. */
 
   /* find most stable axis to project to 2D */
-  float xn = fabsf(Ng.x);
-  float yn = fabsf(Ng.y);
-  float zn = fabsf(Ng.z);
+  const float xn = fabsf(Ng.x);
+  const float yn = fabsf(Ng.y);
+  const float zn = fabsf(Ng.z);
 
   if (zn < xn || zn < yn) {
     if (yn < xn || yn < zn) {
@@ -140,7 +140,8 @@ ccl_device_forceinline float differential_transfer_compact(const float ray_dP,
 
 ccl_device_forceinline differential3 differential_from_compact(const float3 D, const float dD)
 {
-  float3 dx, dy;
+  float3 dx;
+  float3 dy;
   make_orthonormals(D, &dx, &dy);
 
   differential3 d;

@@ -217,7 +217,7 @@ ccl_device_inline vint8 &operator>>=(vint8 &a, const int32_t b)
 }
 
 #  ifdef __KERNEL_AVX__
-ccl_device_forceinline const vint8 srl(const vint8 a, const int32_t b)
+const ccl_device_forceinline vint8 srl(const vint8 a, const int32_t b)
 {
   return vint8(_mm256_srli_epi32(a.m256, b));
 }
@@ -304,32 +304,32 @@ ccl_device_inline vfloat8 cast(const vint8 a)
 }
 
 #ifdef __KERNEL_AVX__
-template<size_t i> ccl_device_forceinline const vint8 shuffle(const vint8 a)
+template<size_t i> const ccl_device_forceinline vint8 shuffle(const vint8 a)
 {
   return vint8(
       _mm256_castps_si256(_mm256_permute_ps(_mm256_castsi256_ps(a), _MM_SHUFFLE(i, i, i, i))));
 }
 
-template<size_t i0, size_t i1> ccl_device_forceinline const vint8 shuffle(const vint8 a)
+template<size_t i0, size_t i1> const ccl_device_forceinline vint8 shuffle(const vint8 a)
 {
   return vint8(_mm256_permute2f128_si256(a, a, (i1 << 4) | (i0 << 0)));
 }
 
 template<size_t i0, size_t i1>
-ccl_device_forceinline const vint8 shuffle(const vint8 a, const vint8 b)
+const ccl_device_forceinline vint8 shuffle(const vint8 a, const vint8 b)
 {
   return vint8(_mm256_permute2f128_si256(a, b, (i1 << 4) | (i0 << 0)));
 }
 
 template<size_t i0, size_t i1, size_t i2, size_t i3>
-ccl_device_forceinline const vint8 shuffle(const vint8 a)
+const ccl_device_forceinline vint8 shuffle(const vint8 a)
 {
   return vint8(
       _mm256_castps_si256(_mm256_permute_ps(_mm256_castsi256_ps(a), _MM_SHUFFLE(i3, i2, i1, i0))));
 }
 
 template<size_t i0, size_t i1, size_t i2, size_t i3>
-ccl_device_forceinline const vint8 shuffle(const vint8 a, const vint8 b)
+const ccl_device_forceinline vint8 shuffle(const vint8 a, const vint8 b)
 {
   return vint8(_mm256_castps_si256(_mm256_shuffle_ps(
       _mm256_castsi256_ps(a), _mm256_castsi256_ps(b), _MM_SHUFFLE(i3, i2, i1, i0))));

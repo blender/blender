@@ -141,7 +141,7 @@ void Film::device_update(Device *device, DeviceScene *dscene, Scene *scene)
     return;
   }
 
-  scoped_callback_timer timer([scene](double time) {
+  const scoped_callback_timer timer([scene](double time) {
     if (scene->update_stats) {
       scene->update_stats->film.times.add_entry({"update", time});
     }
@@ -425,7 +425,8 @@ void Film::device_free(Device * /*device*/, DeviceScene * /*dscene*/, Scene *sce
 
 int Film::get_aov_offset(Scene *scene, string name, bool &is_color)
 {
-  int offset_color = 0, offset_value = 0;
+  int offset_color = 0;
+  int offset_value = 0;
   for (const Pass *pass : scene->passes) {
     if (pass->get_name() == name) {
       if (pass->get_type() == PASS_AOV_VALUE) {
@@ -454,7 +455,7 @@ bool Film::update_lightgroups(Scene *scene)
   map<ustring, int> lightgroups;
   int i = 0;
   for (const Pass *pass : scene->passes) {
-    ustring lightgroup = pass->get_lightgroup();
+    const ustring lightgroup = pass->get_lightgroup();
     if (!lightgroup.empty()) {
       if (!lightgroups.count(lightgroup)) {
         lightgroups[lightgroup] = i++;

@@ -41,7 +41,7 @@ void OIIOOutputDriver::write_render_tile(const Tile &tile)
   const int width = tile.size.x;
   const int height = tile.size.y;
 
-  ImageSpec spec(width, height, 4, TypeDesc::FLOAT);
+  const ImageSpec spec(width, height, 4, TypeDesc::FLOAT);
   if (!image_output->open(filepath_, spec)) {
     log_("Failed to create image file");
     return;

@@ -193,7 +193,7 @@ static inline void curvemapping_to_array(BL::CurveMapping &cumap, array<float> &
   const int full_size = size + 1;
   data.resize(full_size);
   for (int i = 0; i < full_size; i++) {
-    float t = float(i) / float(size);
+    const float t = float(i) / float(size);
     data[i] = cumap.evaluate(curve, t);
   }
 }
@@ -202,7 +202,8 @@ static inline void curvemapping_float_to_array(BL::CurveMapping &cumap,
                                                array<float> &data,
                                                int size)
 {
-  float min = 0.0f, max = 1.0f;
+  float min = 0.0f;
+  float max = 1.0f;
 
   curvemapping_minmax(cumap, 1, &min, &max);
 
@@ -216,7 +217,7 @@ static inline void curvemapping_float_to_array(BL::CurveMapping &cumap,
   data.resize(full_size);
 
   for (int i = 0; i < full_size; i++) {
-    float t = min + float(i) / float(size) * range;
+    const float t = min + float(i) / float(size) * range;
     data[i] = cumap.evaluate(map, t);
   }
 }
@@ -226,7 +227,8 @@ static inline void curvemapping_color_to_array(BL::CurveMapping &cumap,
                                                int size,
                                                bool rgb_curve)
 {
-  float min_x = 0.0f, max_x = 1.0f;
+  float min_x = 0.0f;
+  float max_x = 1.0f;
 
   /* TODO(sergey): There is no easy way to automatically guess what is
    * the range to be used here for the case when mapping is applied on
@@ -264,7 +266,7 @@ static inline void curvemapping_color_to_array(BL::CurveMapping &cumap,
   }
   else {
     for (int i = 0; i < full_size; i++) {
-      float t = min_x + float(i) / float(size) * range_x;
+      const float t = min_x + float(i) / float(size) * range_x;
       data[i] = make_float3(
           cumap.evaluate(mapR, t), cumap.evaluate(mapG, t), cumap.evaluate(mapB, t));
     }
@@ -491,7 +493,7 @@ static inline string get_enum_identifier(PointerRNA &ptr, const char *name)
 {
   PropertyRNA *prop = RNA_struct_find_property(&ptr, name);
   const char *identifier = "";
-  int value = RNA_property_enum_get(&ptr, prop);
+  const int value = RNA_property_enum_get(&ptr, prop);
 
   RNA_property_enum_identifier(nullptr, &ptr, prop, value, &identifier);
 
@@ -565,7 +567,8 @@ static inline string get_text_datablock_content(const PointerRNA &ptr)
 
 static inline void mesh_texture_space(const ::Mesh &b_mesh, float3 &loc, float3 &size)
 {
-  float texspace_location[3], texspace_size[3];
+  float texspace_location[3];
+  float texspace_size[3];
   BKE_mesh_texspace_get(const_cast<::Mesh *>(&b_mesh), texspace_location, texspace_size);
 
   loc = make_float3(texspace_location[0], texspace_location[1], texspace_location[2]);
@@ -688,7 +691,7 @@ static inline Mesh::SubdivisionType object_subdivision_type(BL::Object &b_ob,
 
   if (cobj.data && !b_ob.modifiers.empty() && experimental) {
     BL::Modifier mod = b_ob.modifiers[b_ob.modifiers.length() - 1];
-    bool enabled = preview ? mod.show_viewport() : mod.show_render();
+    const bool enabled = preview ? mod.show_viewport() : mod.show_render();
 
     if (enabled && mod.type() == BL::Modifier::type_SUBSURF &&
         RNA_boolean_get(&cobj, "use_adaptive_subdivision"))

@@ -154,7 +154,7 @@ ccl_device_inline float3 operator/=(float3 &a, const float3 b)
 
 ccl_device_inline float3 operator/=(float3 &a, float f)
 {
-  float invf = 1.0f / f;
+  const float invf = 1.0f / f;
   return a = a * invf;
 }
 
@@ -266,7 +266,7 @@ ccl_device_inline float3 cross(const float3 a, const float3 b)
 ccl_device_inline float3 normalize(const float3 a)
 {
 #  if defined(__KERNEL_SSE42__) && defined(__KERNEL_SSE__)
-  __m128 norm = _mm_sqrt_ps(_mm_dp_ps(a.m128, a.m128, 0x7F));
+  const __m128 norm = _mm_sqrt_ps(_mm_dp_ps(a.m128, a.m128, 0x7F));
   return float3(_mm_div_ps(a.m128, norm));
 #  else
   return a / len(a);
@@ -384,7 +384,7 @@ ccl_device_inline float3 reflect(const float3 incident, const float3 unit_normal
 
 ccl_device_inline float3 refract(const float3 incident, const float3 normal, const float eta)
 {
-  float k = 1.0f - eta * eta * (1.0f - dot(normal, incident) * dot(normal, incident));
+  const float k = 1.0f - eta * eta * (1.0f - dot(normal, incident) * dot(normal, incident));
   if (k < 0.0f) {
     return zero_float3();
   }
@@ -401,26 +401,26 @@ ccl_device_inline float3 faceforward(const float3 vector,
 
 ccl_device_inline float3 project(const float3 v, const float3 v_proj)
 {
-  float len_squared = dot(v_proj, v_proj);
+  const float len_squared = dot(v_proj, v_proj);
   return (len_squared != 0.0f) ? (dot(v, v_proj) / len_squared) * v_proj : zero_float3();
 }
 
 ccl_device_inline float3 normalize_len(const float3 a, ccl_private float *t)
 {
   *t = len(a);
-  float x = 1.0f / *t;
+  const float x = 1.0f / *t;
   return a * x;
 }
 
 ccl_device_inline float3 safe_normalize(const float3 a)
 {
-  float t = len(a);
+  const float t = len(a);
   return (t != 0.0f) ? a * (1.0f / t) : a;
 }
 
 ccl_device_inline float3 safe_normalize_fallback(const float3 a, const float3 fallback)
 {
-  float t = len(a);
+  const float t = len(a);
   return (t != 0.0f) ? a * (1.0f / t) : fallback;
 }
 
@@ -513,9 +513,9 @@ ccl_device_inline float3 ensure_finite(float3 v)
 
 /* Triangle */
 
-ccl_device_inline float triangle_area(ccl_private const float3 &v1,
-                                      ccl_private const float3 &v2,
-                                      ccl_private const float3 &v3)
+ccl_device_inline float triangle_area(const ccl_private float3 &v1,
+                                      const ccl_private float3 &v2,
+                                      const ccl_private float3 &v3)
 {
   return len(cross(v3 - v2, v1 - v2)) * 0.5f;
 }
@@ -554,8 +554,8 @@ ccl_device_inline void make_orthonormals(const float3 N,
 
 ccl_device_inline float3 rotate_around_axis(float3 p, float3 axis, float angle)
 {
-  float costheta = cosf(angle);
-  float sintheta = sinf(angle);
+  const float costheta = cosf(angle);
+  const float sintheta = sinf(angle);
   float3 r;
 
   r.x = ((costheta + (1 - costheta) * axis.x * axis.x) * p.x) +
@@ -592,7 +592,9 @@ ccl_device_inline float tan_angle(float3 a, float3 b)
 /* projections */
 ccl_device_inline float2 map_to_tube(const float3 co)
 {
-  float len, u, v;
+  float len;
+  float u;
+  float v;
   len = sqrtf(co.x * co.x + co.y * co.y);
   if (len > 0.0f) {
     u = (1.0f - (atan2f(co.x / len, co.y / len) / M_PI_F)) * 0.5f;
@@ -606,8 +608,9 @@ ccl_device_inline float2 map_to_tube(const float3 co)
 
 ccl_device_inline float2 map_to_sphere(const float3 co)
 {
-  float l = dot(co, co);
-  float u, v;
+  const float l = dot(co, co);
+  float u;
+  float v;
   if (l > 0.0f) {
     if (UNLIKELY(co.x == 0.0f && co.y == 0.0f)) {
       u = 0.0f; /* Otherwise domain error. */

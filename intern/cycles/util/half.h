@@ -79,7 +79,7 @@ ccl_device_inline half float_to_half_image(float f)
   uint sign_bit = u & 0x80000000;
   sign_bit >>= 16;
   /* Exponent. */
-  uint exponent_bits = u & 0x7f800000;
+  const uint exponent_bits = u & 0x7f800000;
   /* Non-sign bits. */
   uint value_bits = u & 0x7fffffff;
   value_bits >>= 13;     /* Align mantissa on MSB. */
@@ -152,13 +152,13 @@ ccl_device_inline half4 float4_to_half4_display(const float4 f)
 {
 #ifdef __KERNEL_SSE__
   /* CPU: SSE and AVX. */
-  float4 x = min(max(f, make_float4(0.0f)), make_float4(65504.0f));
+  const float4 x = min(max(f, make_float4(0.0f)), make_float4(65504.0f));
 #  ifdef __KERNEL_AVX2__
   int4 rpack = int4(_mm_cvtps_ph(x, 0));
 #  else
-  int4 absolute = cast(x) & make_int4(0x7FFFFFFF);
-  int4 Z = absolute + make_int4(0xC8000000);
-  int4 result = andnot(absolute < make_int4(0x38800000), Z);
+  const int4 absolute = cast(x) & make_int4(0x7FFFFFFF);
+  const int4 Z = absolute + make_int4(0xC8000000);
+  const int4 result = andnot(absolute < make_int4(0x38800000), Z);
   int4 rshift = (result >> 13) & make_int4(0x7FFF);
   int4 rpack = int4(_mm_packs_epi32(rshift, rshift));
 #  endif

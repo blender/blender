@@ -101,7 +101,7 @@ uint32_t util_murmur_hash3(const void *key, int len, uint32_t seed)
 /* This is taken from the cryptomatte specification 1.0 */
 float util_hash_to_float(uint32_t hash)
 {
-  uint32_t mantissa = hash & ((1 << 23) - 1);
+  const uint32_t mantissa = hash & ((1 << 23) - 1);
   uint32_t exponent = (hash >> 23) & ((1 << 8) - 1);
   exponent = max(exponent, (uint32_t)1);
   exponent = min(exponent, (uint32_t)254);

@@ -193,7 +193,7 @@ ccl_device_inline int4 &operator>>=(int4 &a, const int32_t b)
 }
 
 #  ifdef __KERNEL_SSE__
-ccl_device_forceinline const int4 srl(const int4 a, const int32_t b)
+ccl_device_forceinline int4 srl(const int4 a, const int32_t b)
 {
   return int4(_mm_srli_epi32(a.m128, b));
 }

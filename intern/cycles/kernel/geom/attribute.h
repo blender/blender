@@ -92,7 +92,7 @@ find_attribute(KernelGlobals kg, int object, int prim, int type, uint64_t id)
 }
 
 ccl_device_inline AttributeDescriptor find_attribute(KernelGlobals kg,
-                                                     ccl_private const ShaderData *sd,
+                                                     const ccl_private ShaderData *sd,
                                                      uint64_t id)
 {
   return find_attribute(kg, sd->object, sd->prim, sd->type, id);

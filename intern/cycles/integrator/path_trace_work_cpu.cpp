@@ -333,7 +333,7 @@ void PathTraceWorkCPU::guiding_init_kernel_globals(void *guiding_field,
 void PathTraceWorkCPU::guiding_push_sample_data_to_global_storage(
     KernelGlobalsCPU *kg,
     IntegratorStateCPU *state,
-    ccl_global const float *ccl_restrict render_buffer)
+    const ccl_global float *ccl_restrict render_buffer)
 {
 #  ifdef WITH_CYCLES_DEBUG
   if (VLOG_WORK_IS_ON) {

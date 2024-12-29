@@ -110,8 +110,9 @@ class Hair : public Geometry {
   /* Curves */
   Curve get_curve(size_t i) const
   {
-    int first = curve_first_key[i];
-    int next_first = (i + 1 < curve_first_key.size()) ? curve_first_key[i + 1] : curve_keys.size();
+    const int first = curve_first_key[i];
+    const int next_first = (i + 1 < curve_first_key.size()) ? curve_first_key[i + 1] :
+                                                              curve_keys.size();
 
     Curve curve = {first, next_first - first};
     return curve;

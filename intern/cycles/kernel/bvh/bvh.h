@@ -93,7 +93,7 @@ CCL_NAMESPACE_BEGIN
 #  endif
 
 ccl_device_intersect bool scene_intersect(KernelGlobals kg,
-                                          ccl_private const Ray *ray,
+                                          const ccl_private Ray *ray,
                                           const uint visibility,
                                           ccl_private Intersection *isect)
 {
@@ -138,7 +138,7 @@ ccl_device_intersect bool scene_intersect(KernelGlobals kg,
 }
 
 ccl_device_intersect bool scene_intersect_shadow(KernelGlobals kg,
-                                                 ccl_private const Ray *ray,
+                                                 const ccl_private Ray *ray,
                                                  const uint visibility)
 {
   Intersection isect;
@@ -161,7 +161,7 @@ ccl_device_intersect bool scene_intersect_shadow(KernelGlobals kg,
 
 template<bool single_hit = false>
 ccl_device_intersect bool scene_intersect_local(KernelGlobals kg,
-                                                ccl_private const Ray *ray,
+                                                const ccl_private Ray *ray,
                                                 ccl_private LocalIntersection *local_isect,
                                                 int local_object,
                                                 ccl_private uint *lcg_state,
@@ -227,7 +227,7 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals kg,
 
 ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals kg,
                                                      IntegratorShadowState state,
-                                                     ccl_private const Ray *ray,
+                                                     const ccl_private Ray *ray,
                                                      uint visibility,
                                                      uint max_hits,
                                                      ccl_private uint *num_recorded_hits,
@@ -296,7 +296,7 @@ ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals kg,
 #    endif
 
 ccl_device_intersect bool scene_intersect_volume(KernelGlobals kg,
-                                                 ccl_private const Ray *ray,
+                                                 const ccl_private Ray *ray,
                                                  ccl_private Intersection *isect,
                                                  const uint visibility)
 {
@@ -345,7 +345,7 @@ ccl_device_intersect bool scene_intersect_volume(KernelGlobals kg,
 #    endif
 
 ccl_device_intersect uint scene_intersect_volume(KernelGlobals kg,
-                                                 ccl_private const Ray *ray,
+                                                 const ccl_private Ray *ray,
                                                  ccl_private Intersection *isect,
                                                  const uint max_hits,
                                                  const uint visibility)

@@ -157,7 +157,7 @@ void Object::update_motion()
 
 void Object::compute_bounds(bool motion_blur)
 {
-  BoundBox mbounds = geometry->bounds;
+  const BoundBox mbounds = geometry->bounds;
 
   if (motion_blur && use_motion()) {
     array<DecomposedTransform> decomp(motion.size());
@@ -355,7 +355,7 @@ float Object::compute_volume_step_size() const
         }
         else if (volume->get_object_space()) {
           /* User specified step size in object space. */
-          float3 size = make_float3(voxel_step_size, voxel_step_size, voxel_step_size);
+          const float3 size = make_float3(voxel_step_size, voxel_step_size, voxel_step_size);
           voxel_step_size = reduce_min(fabs(transform_direction(&tfm, size)));
         }
 
@@ -473,15 +473,15 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
   uint flag = 0;
 
   /* Compute transformations. */
-  Transform tfm = ob->tfm;
-  Transform itfm = transform_inverse(tfm);
+  const Transform tfm = ob->tfm;
+  const Transform itfm = transform_inverse(tfm);
 
-  float3 color = ob->color;
-  float pass_id = ob->pass_id;
-  float random_number = (float)ob->random_id * (1.0f / (float)0xFFFFFFFF);
-  int particle_index = (ob->particle_system) ?
-                           ob->particle_index + state->particle_offset[ob->particle_system] :
-                           0;
+  const float3 color = ob->color;
+  const float pass_id = ob->pass_id;
+  const float random_number = (float)ob->random_id * (1.0f / (float)0xFFFFFFFF);
+  const int particle_index = (ob->particle_system) ?
+                                 ob->particle_index + state->particle_offset[ob->particle_system] :
+                                 0;
 
   kobject.tfm = tfm;
   kobject.itfm = itfm;
@@ -532,7 +532,8 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
     ob->update_motion();
 
     /* Compute motion transforms. */
-    Transform tfm_pre, tfm_post;
+    Transform tfm_pre;
+    Transform tfm_post;
     if (ob->use_motion()) {
       tfm_pre = ob->motion[0];
       tfm_post = ob->motion[ob->motion.size() - 1];
@@ -550,7 +551,7 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
       tfm_post = tfm_post * itfm;
     }
 
-    int motion_pass_offset = ob->index * OBJECT_MOTION_PASS_SIZE;
+    const int motion_pass_offset = ob->index * OBJECT_MOTION_PASS_SIZE;
     object_motion_pass[motion_pass_offset + 0] = tfm_pre;
     object_motion_pass[motion_pass_offset + 1] = tfm_post;
   }
@@ -575,7 +576,7 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
   kobject.dupli_generated[2] = ob->dupli_generated[2];
   kobject.dupli_uv[0] = ob->dupli_uv[0];
   kobject.dupli_uv[1] = ob->dupli_uv[1];
-  int totalsteps = geom->get_motion_steps();
+  const int totalsteps = geom->get_motion_steps();
   kobject.numsteps = (totalsteps - 1) / 2;
   kobject.numverts = (geom->is_mesh() || geom->is_volume()) ?
                          static_cast<Mesh *>(geom)->get_verts().size() :
@@ -586,8 +587,9 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
   kobject.attribute_map_offset = 0;
 
   if (ob->asset_name_is_modified() || update_all) {
-    uint32_t hash_name = util_murmur_hash3(ob->name.c_str(), ob->name.length(), 0);
-    uint32_t hash_asset = util_murmur_hash3(ob->asset_name.c_str(), ob->asset_name.length(), 0);
+    const uint32_t hash_name = util_murmur_hash3(ob->name.c_str(), ob->name.length(), 0);
+    const uint32_t hash_asset = util_murmur_hash3(
+        ob->asset_name.c_str(), ob->asset_name.length(), 0);
     kobject.cryptomatte_object = util_hash_to_float(hash_name);
     kobject.cryptomatte_asset = util_hash_to_float(hash_asset);
   }
@@ -638,7 +640,7 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
 void ObjectManager::device_update_prim_offsets(Device *device, DeviceScene *dscene, Scene *scene)
 {
   if (!scene->integrator->get_use_light_tree()) {
-    BVHLayoutMask layout_mask = device->get_bvh_layout_mask(dscene->data.kernel_features);
+    const BVHLayoutMask layout_mask = device->get_bvh_layout_mask(dscene->data.kernel_features);
     if (layout_mask != BVH_LAYOUT_METAL && layout_mask != BVH_LAYOUT_MULTI_METAL &&
         layout_mask != BVH_LAYOUT_MULTI_METAL_EMBREE && layout_mask != BVH_LAYOUT_HIPRT &&
         layout_mask != BVH_LAYOUT_MULTI_HIPRT && layout_mask != BVH_LAYOUT_MULTI_HIPRT_EMBREE)
@@ -660,7 +662,7 @@ void ObjectManager::device_update_prim_offsets(Device *device, DeviceScene *dsce
         prim_offset = geom->prim_offset;
       }
     }
-    uint obj_index = ob->get_device_index();
+    const uint obj_index = ob->get_device_index();
     object_prim_offset[obj_index] = prim_offset;
   }
 
@@ -786,7 +788,7 @@ void ObjectManager::device_update(Device *device,
 
   {
     /* Assign object IDs. */
-    scoped_callback_timer timer([scene](double time) {
+    const scoped_callback_timer timer([scene](double time) {
       if (scene->update_stats) {
         scene->update_stats->object.times.add_entry({"device_update (assign index)", time});
       }
@@ -810,7 +812,7 @@ void ObjectManager::device_update(Device *device,
 
   {
     /* set object transform matrices, before applying static transforms */
-    scoped_callback_timer timer([scene](double time) {
+    const scoped_callback_timer timer([scene](double time) {
       if (scene->update_stats) {
         scene->update_stats->object.times.add_entry(
             {"device_update (copy objects to device)", time});
@@ -828,7 +830,7 @@ void ObjectManager::device_update(Device *device,
   /* prepare for static BVH building */
   /* todo: do before to support getting object level coords? */
   if (scene->params.bvh_type == BVH_TYPE_STATIC) {
-    scoped_callback_timer timer([scene](double time) {
+    const scoped_callback_timer timer([scene](double time) {
       if (scene->update_stats) {
         scene->update_stats->object.times.add_entry(
             {"device_update (apply static transforms)", time});
@@ -854,7 +856,7 @@ void ObjectManager::device_update_flags(Device * /*unused*/,
     return;
   }
 
-  scoped_callback_timer timer([scene](double time) {
+  const scoped_callback_timer timer([scene](double time) {
     if (scene->update_stats) {
       scene->update_stats->object.times.add_entry({"device_update_flags", time});
     }
@@ -905,7 +907,7 @@ void ObjectManager::device_update_flags(Device * /*unused*/,
       object_flag[object->index] |= SD_OBJECT_HAS_VOLUME;
       object_flag[object->index] &= ~SD_OBJECT_HAS_VOLUME_ATTRIBUTES;
 
-      for (Attribute &attr : object->geometry->attributes.attributes) {
+      for (const Attribute &attr : object->geometry->attributes.attributes) {
         if (attr.element == ATTR_ELEMENT_VOXEL) {
           object_flag[object->index] |= SD_OBJECT_HAS_VOLUME_ATTRIBUTES;
         }
@@ -969,9 +971,10 @@ void ObjectManager::device_update_geom_offsets(Device * /*unused*/,
     if (geom->is_mesh()) {
       Mesh *mesh = static_cast<Mesh *>(geom);
       if (mesh->patch_table) {
-        uint patch_map_offset = 2 * (mesh->patch_table_offset + mesh->patch_table->total_size() -
-                                     mesh->patch_table->num_nodes * PATCH_NODE_SIZE) -
-                                mesh->patch_offset;
+        const uint patch_map_offset = 2 * (mesh->patch_table_offset +
+                                           mesh->patch_table->total_size() -
+                                           mesh->patch_table->num_nodes * PATCH_NODE_SIZE) -
+                                      mesh->patch_offset;
 
         if (kobjects[object->index].patch_map_offset != patch_map_offset) {
           kobjects[object->index].patch_map_offset = patch_map_offset;
@@ -1015,13 +1018,13 @@ void ObjectManager::apply_static_transforms(DeviceScene *dscene, Scene *scene, P
 
   /* counter geometry users */
   map<Geometry *, int> geometry_users;
-  Scene::MotionType need_motion = scene->need_motion();
-  bool motion_blur = need_motion == Scene::MOTION_BLUR;
-  bool apply_to_motion = need_motion != Scene::MOTION_PASS;
+  const Scene::MotionType need_motion = scene->need_motion();
+  const bool motion_blur = need_motion == Scene::MOTION_BLUR;
+  const bool apply_to_motion = need_motion != Scene::MOTION_PASS;
   int i = 0;
 
   for (Object *object : scene->objects) {
-    map<Geometry *, int>::iterator it = geometry_users.find(object->geometry);
+    const map<Geometry *, int>::iterator it = geometry_users.find(object->geometry);
 
     if (it == geometry_users.end()) {
       geometry_users[object->geometry] = 1;
@@ -1126,7 +1129,7 @@ string ObjectManager::get_cryptomatte_objects(Scene *scene)
       continue;
     }
     objects.insert(object->name);
-    uint32_t hash_name = util_murmur_hash3(object->name.c_str(), object->name.length(), 0);
+    const uint32_t hash_name = util_murmur_hash3(object->name.c_str(), object->name.length(), 0);
     manifest += string_printf("\"%s\":\"%08x\",", object->name.c_str(), hash_name);
   }
   manifest[manifest.size() - 1] = '}';
@@ -1142,7 +1145,8 @@ string ObjectManager::get_cryptomatte_assets(Scene *scene)
       continue;
     }
     assets.insert(ob->asset_name);
-    uint32_t hash_asset = util_murmur_hash3(ob->asset_name.c_str(), ob->asset_name.length(), 0);
+    const uint32_t hash_asset = util_murmur_hash3(
+        ob->asset_name.c_str(), ob->asset_name.length(), 0);
     manifest += string_printf("\"%s\":\"%08x\",", ob->asset_name.c_str(), hash_asset);
   }
   manifest[manifest.size() - 1] = '}';

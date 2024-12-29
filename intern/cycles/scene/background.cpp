@@ -53,7 +53,7 @@ void Background::device_update(Device *device, DeviceScene *dscene, Scene *scene
     return;
   }
 
-  scoped_callback_timer timer([scene](double time) {
+  const scoped_callback_timer timer([scene](double time) {
     if (scene->update_stats) {
       scene->update_stats->background.times.add_entry({"device_update", time});
     }

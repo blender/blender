@@ -27,16 +27,16 @@ ccl_device float3 svm_mix_mul(float t, float3 col1, float3 col2)
 
 ccl_device float3 svm_mix_screen(float t, float3 col1, float3 col2)
 {
-  float tm = 1.0f - t;
-  float3 one = make_float3(1.0f, 1.0f, 1.0f);
-  float3 tm3 = make_float3(tm, tm, tm);
+  const float tm = 1.0f - t;
+  const float3 one = make_float3(1.0f, 1.0f, 1.0f);
+  const float3 tm3 = make_float3(tm, tm, tm);
 
   return one - (tm3 + t * (one - col2)) * (one - col1);
 }
 
 ccl_device float3 svm_mix_overlay(float t, float3 col1, float3 col2)
 {
-  float tm = 1.0f - t;
+  const float tm = 1.0f - t;
 
   float3 outcol = col1;
 
@@ -71,7 +71,7 @@ ccl_device float3 svm_mix_sub(float t, float3 col1, float3 col2)
 
 ccl_device float3 svm_mix_div(float t, float3 col1, float3 col2)
 {
-  float tm = 1.0f - t;
+  const float tm = 1.0f - t;
 
   float3 outcol = col1;
 
@@ -163,7 +163,8 @@ ccl_device float3 svm_mix_dodge(float t, float3 col1, float3 col2)
 
 ccl_device float3 svm_mix_burn(float t, float3 col1, float3 col2)
 {
-  float tmp, tm = 1.0f - t;
+  float tmp;
+  const float tm = 1.0f - t;
 
   float3 outcol = col1;
 
@@ -225,12 +226,12 @@ ccl_device float3 svm_mix_hue(float t, float3 col1, float3 col2)
 {
   float3 outcol = col1;
 
-  float3 hsv2 = rgb_to_hsv(col2);
+  const float3 hsv2 = rgb_to_hsv(col2);
 
   if (hsv2.y != 0.0f) {
     float3 hsv = rgb_to_hsv(outcol);
     hsv.x = hsv2.x;
-    float3 tmp = hsv_to_rgb(hsv);
+    const float3 tmp = hsv_to_rgb(hsv);
 
     outcol = interp(outcol, tmp, t);
   }
@@ -240,14 +241,14 @@ ccl_device float3 svm_mix_hue(float t, float3 col1, float3 col2)
 
 ccl_device float3 svm_mix_sat(float t, float3 col1, float3 col2)
 {
-  float tm = 1.0f - t;
+  const float tm = 1.0f - t;
 
   float3 outcol = col1;
 
   float3 hsv = rgb_to_hsv(outcol);
 
   if (hsv.y != 0.0f) {
-    float3 hsv2 = rgb_to_hsv(col2);
+    const float3 hsv2 = rgb_to_hsv(col2);
 
     hsv.y = tm * hsv.y + t * hsv2.y;
     outcol = hsv_to_rgb(hsv);
@@ -258,10 +259,10 @@ ccl_device float3 svm_mix_sat(float t, float3 col1, float3 col2)
 
 ccl_device float3 svm_mix_val(float t, float3 col1, float3 col2)
 {
-  float tm = 1.0f - t;
+  const float tm = 1.0f - t;
 
   float3 hsv = rgb_to_hsv(col1);
-  float3 hsv2 = rgb_to_hsv(col2);
+  const float3 hsv2 = rgb_to_hsv(col2);
 
   hsv.z = tm * hsv.z + t * hsv2.z;
 
@@ -271,13 +272,13 @@ ccl_device float3 svm_mix_val(float t, float3 col1, float3 col2)
 ccl_device float3 svm_mix_color(float t, float3 col1, float3 col2)
 {
   float3 outcol = col1;
-  float3 hsv2 = rgb_to_hsv(col2);
+  const float3 hsv2 = rgb_to_hsv(col2);
 
   if (hsv2.y != 0.0f) {
     float3 hsv = rgb_to_hsv(outcol);
     hsv.x = hsv2.x;
     hsv.y = hsv2.y;
-    float3 tmp = hsv_to_rgb(hsv);
+    const float3 tmp = hsv_to_rgb(hsv);
 
     outcol = interp(outcol, tmp, t);
   }
@@ -287,10 +288,10 @@ ccl_device float3 svm_mix_color(float t, float3 col1, float3 col2)
 
 ccl_device float3 svm_mix_soft(float t, float3 col1, float3 col2)
 {
-  float tm = 1.0f - t;
+  const float tm = 1.0f - t;
 
-  float3 one = make_float3(1.0f, 1.0f, 1.0f);
-  float3 scr = one - (one - col2) * (one - col1);
+  const float3 one = make_float3(1.0f, 1.0f, 1.0f);
+  const float3 scr = one - (one - col2) * (one - col1);
 
   return tm * col1 + t * ((one - col1) * col2 * col1 + col1 * scr);
 }
@@ -355,14 +356,14 @@ ccl_device_noinline_cpu float3 svm_mix(NodeMix type, float t, float3 c1, float3 
 
 ccl_device_noinline_cpu float3 svm_mix_clamped_factor(NodeMix type, float t, float3 c1, float3 c2)
 {
-  float fac = saturatef(t);
+  const float fac = saturatef(t);
   return svm_mix(type, fac, c1, c2);
 }
 
 ccl_device_inline float3 svm_brightness_contrast(float3 color, float brightness, float contrast)
 {
-  float a = 1.0f + contrast;
-  float b = brightness - contrast * 0.5f;
+  const float a = 1.0f + contrast;
+  const float b = brightness - contrast * 0.5f;
 
   color.x = max(a * color.x + b, 0.0f);
   color.y = max(a * color.y + b, 0.0f);

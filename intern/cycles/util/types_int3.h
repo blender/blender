@@ -89,7 +89,7 @@ ccl_device_inline int3 make_int3(int i)
 #endif
 }
 
-ccl_device_inline void print_int3(ccl_private const char *label, const int3 a)
+ccl_device_inline void print_int3(const ccl_private char *label, const int3 a)
 {
 #ifdef __KERNEL_PRINTF__
   printf("%s: %d %d %d\n", label, a.x, a.y, a.z);

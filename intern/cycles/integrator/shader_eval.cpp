@@ -47,7 +47,7 @@ bool ShaderEval::eval(const ShaderEvalType type,
     DCHECK_LE(output.size(), input.size());
 
     input.alloc(max_num_inputs);
-    int num_points = fill_input(input);
+    int const num_points = fill_input(input);
     if (num_points == 0) {
       return;
     }
@@ -148,14 +148,14 @@ bool ShaderEval::eval_gpu(Device *device,
    * TODO: query appropriate size from device. */
   const int32_t chunk_size = 65536;
 
-  device_ptr d_input = input.device_pointer;
+  const device_ptr d_input = input.device_pointer;
   device_ptr d_output = output.device_pointer;
 
   assert(work_size <= 0x7fffffff);
   for (int32_t d_offset = 0; d_offset < int32_t(work_size); d_offset += chunk_size) {
     int32_t d_work_size = std::min(chunk_size, int32_t(work_size) - d_offset);
 
-    DeviceKernelArguments args(&d_input, &d_output, &d_offset, &d_work_size);
+    const DeviceKernelArguments args(&d_input, &d_output, &d_offset, &d_work_size);
 
     queue->enqueue(kernel, d_work_size, args);
     queue->synchronize();

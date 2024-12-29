@@ -26,7 +26,7 @@ ccl_device_inline
 #endif
     bool
     BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals kg,
-                                ccl_private const Ray *ray,
+                                const ccl_private Ray *ray,
                                 ccl_private LocalIntersection *local_isect,
                                 int local_object,
                                 ccl_private uint *lcg_state,
@@ -221,7 +221,7 @@ ccl_device_inline
 }
 
 ccl_device_inline bool BVH_FUNCTION_NAME(KernelGlobals kg,
-                                         ccl_private const Ray *ray,
+                                         const ccl_private Ray *ray,
                                          ccl_private LocalIntersection *local_isect,
                                          int local_object,
                                          ccl_private uint *lcg_state,

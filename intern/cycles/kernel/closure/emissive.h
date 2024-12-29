@@ -42,7 +42,7 @@ ccl_device void emission_setup(ccl_private ShaderData *sd, const Spectrum weight
  * the PDF computed by sample(). */
 ccl_device float emissive_pdf(const float3 Ng, const float3 wi)
 {
-  float cosNI = fabsf(dot(Ng, wi));
+  const float cosNI = fabsf(dot(Ng, wi));
   return (cosNI > 0.0f) ? 1.0f : 0.0f;
 }
 
@@ -54,7 +54,7 @@ ccl_device void emissive_sample(
 
 ccl_device Spectrum emissive_simple_eval(const float3 Ng, const float3 wi)
 {
-  float res = emissive_pdf(Ng, wi);
+  const float res = emissive_pdf(Ng, wi);
 
   return make_spectrum(res);
 }

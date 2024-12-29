@@ -30,14 +30,14 @@ int blender_device_threads(BL::Scene &b_scene)
   return 0;
 }
 
-void static adjust_device_info_from_preferences(DeviceInfo &info, PointerRNA cpreferences)
+static void adjust_device_info_from_preferences(DeviceInfo &info, PointerRNA cpreferences)
 {
   if (!get_boolean(cpreferences, "peer_memory")) {
     info.has_peer_memory = false;
   }
 
   if (info.type == DEVICE_METAL) {
-    MetalRTSetting use_metalrt = (MetalRTSetting)get_enum(
+    const MetalRTSetting use_metalrt = (MetalRTSetting)get_enum(
         cpreferences, "metalrt", METALRT_NUM_SETTINGS, METALRT_AUTO);
 
     info.use_hardware_raytracing = info.use_metalrt_by_default;
@@ -58,7 +58,7 @@ void static adjust_device_info_from_preferences(DeviceInfo &info, PointerRNA cpr
   }
 }
 
-void static adjust_device_info(DeviceInfo &device, PointerRNA cpreferences, bool preview)
+static void adjust_device_info(DeviceInfo &device, PointerRNA cpreferences, bool preview)
 {
   adjust_device_info_from_preferences(device, cpreferences);
   for (DeviceInfo &info : device.multi_devices) {
@@ -109,7 +109,7 @@ DeviceInfo blender_device_info(BL::Preferences &b_preferences,
   preferences_device = cpu_device;
 
   /* Test if we are using GPU devices. */
-  ComputeDevice compute_device = (ComputeDevice)get_enum(
+  const ComputeDevice compute_device = (ComputeDevice)get_enum(
       cpreferences, "compute_device_type", COMPUTE_DEVICE_NUM, COMPUTE_DEVICE_CPU);
 
   if (compute_device != COMPUTE_DEVICE_CPU) {
@@ -130,14 +130,14 @@ DeviceInfo blender_device_info(BL::Preferences &b_preferences,
     else if (compute_device == COMPUTE_DEVICE_ONEAPI) {
       mask |= DEVICE_MASK_ONEAPI;
     }
-    vector<DeviceInfo> devices = Device::available_devices(mask);
+    const vector<DeviceInfo> devices = Device::available_devices(mask);
 
     /* Match device preferences and available devices. */
     vector<DeviceInfo> used_devices;
     RNA_BEGIN (&cpreferences, device, "devices") {
       if (get_boolean(device, "use")) {
-        string id = get_string(device, "id");
-        for (DeviceInfo &info : devices) {
+        const string id = get_string(device, "id");
+        for (const DeviceInfo &info : devices) {
           if (info.id == id) {
             used_devices.push_back(info);
             break;
@@ -148,7 +148,7 @@ DeviceInfo blender_device_info(BL::Preferences &b_preferences,
     RNA_END;
 
     if (!used_devices.empty()) {
-      int threads = blender_device_threads(b_scene);
+      const int threads = blender_device_threads(b_scene);
       preferences_device = Device::get_multi_device(used_devices, threads, background);
     }
   }
@@ -161,13 +161,13 @@ DeviceInfo blender_device_info(BL::Preferences &b_preferences,
   DeviceInfo device;
 
   if (BlenderSession::device_override != DEVICE_MASK_ALL) {
-    vector<DeviceInfo> devices = Device::available_devices(BlenderSession::device_override);
+    const vector<DeviceInfo> devices = Device::available_devices(BlenderSession::device_override);
 
     if (devices.empty()) {
       device = Device::dummy_device("Found no Cycles device of the specified type");
     }
     else {
-      int threads = blender_device_threads(b_scene);
+      const int threads = blender_device_threads(b_scene);
       device = Device::get_multi_device(devices, threads, background);
     }
     adjust_device_info(device, cpreferences, preview);

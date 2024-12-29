@@ -34,7 +34,7 @@ class Progress {
 
   Progress &operator=(Progress &progress)
   {
-    thread_scoped_lock lock(progress.progress_mutex);
+    const thread_scoped_lock lock(progress.progress_mutex);
 
     progress.get_status(status, substatus);
 
@@ -69,7 +69,7 @@ class Progress {
   /* cancel */
   void set_cancel(const string &cancel_message_)
   {
-    thread_scoped_lock lock(progress_mutex);
+    const thread_scoped_lock lock(progress_mutex);
     cancel_message = cancel_message_;
     cancel = true;
   }
@@ -85,7 +85,7 @@ class Progress {
 
   string get_cancel_message() const
   {
-    thread_scoped_lock lock(progress_mutex);
+    const thread_scoped_lock lock(progress_mutex);
     return cancel_message;
   }
 
@@ -97,7 +97,7 @@ class Progress {
   /* error */
   void set_error(const string &error_message_)
   {
-    thread_scoped_lock lock(progress_mutex);
+    const thread_scoped_lock lock(progress_mutex);
     error_message = error_message_;
     error = true;
     /* If error happens we also stop rendering. */
@@ -112,7 +112,7 @@ class Progress {
 
   string get_error_message() const
   {
-    thread_scoped_lock lock(progress_mutex);
+    const thread_scoped_lock lock(progress_mutex);
     return error_message;
   }
 
@@ -120,7 +120,7 @@ class Progress {
 
   void set_start_time()
   {
-    thread_scoped_lock lock(progress_mutex);
+    const thread_scoped_lock lock(progress_mutex);
 
     start_time = time_dt();
     end_time = 0.0;
@@ -128,21 +128,21 @@ class Progress {
 
   void set_render_start_time()
   {
-    thread_scoped_lock lock(progress_mutex);
+    const thread_scoped_lock lock(progress_mutex);
 
     render_start_time = time_dt();
   }
 
   void set_time_limit(double time_limit_)
   {
-    thread_scoped_lock lock(progress_mutex);
+    const thread_scoped_lock lock(progress_mutex);
 
     time_limit = time_limit_;
   }
 
   void add_skip_time(const scoped_timer &start_timer, bool only_render)
   {
-    double skip_time = time_dt() - start_timer.get_start();
+    const double skip_time = time_dt() - start_timer.get_start();
 
     render_start_time += skip_time;
     if (!only_render) {
@@ -152,9 +152,9 @@ class Progress {
 
   void get_time(double &total_time_, double &render_time_) const
   {
-    thread_scoped_lock lock(progress_mutex);
+    const thread_scoped_lock lock(progress_mutex);
 
-    double time = (end_time > 0) ? end_time : time_dt();
+    const double time = (end_time > 0) ? end_time : time_dt();
 
     total_time_ = time - start_time;
     render_time_ = time - render_start_time;
@@ -167,7 +167,7 @@ class Progress {
 
   void reset_sample()
   {
-    thread_scoped_lock lock(progress_mutex);
+    const thread_scoped_lock lock(progress_mutex);
 
     pixel_samples = 0;
     current_tile_sample = 0;
@@ -177,19 +177,19 @@ class Progress {
 
   void set_total_pixel_samples(uint64_t total_pixel_samples_)
   {
-    thread_scoped_lock lock(progress_mutex);
+    const thread_scoped_lock lock(progress_mutex);
 
     total_pixel_samples = total_pixel_samples_;
   }
 
   double get_progress() const
   {
-    thread_scoped_lock lock(progress_mutex);
+    const thread_scoped_lock lock(progress_mutex);
 
     if (pixel_samples > 0) {
       double progress_percent = (double)pixel_samples / (double)total_pixel_samples;
       if (time_limit != 0.0) {
-        double time_since_render_start = time_dt() - render_start_time;
+        const double time_since_render_start = time_dt() - render_start_time;
         progress_percent = fmax(progress_percent, time_since_render_start / time_limit);
       }
       return fmin(1.0, progress_percent);
@@ -199,7 +199,7 @@ class Progress {
 
   void add_samples(uint64_t pixel_samples_, int tile_sample)
   {
-    thread_scoped_lock lock(progress_mutex);
+    const thread_scoped_lock lock(progress_mutex);
 
     pixel_samples += pixel_samples_;
     current_tile_sample = tile_sample;
@@ -213,7 +213,7 @@ class Progress {
 
   void add_finished_tile(bool denoised)
   {
-    thread_scoped_lock lock(progress_mutex);
+    const thread_scoped_lock lock(progress_mutex);
 
     if (denoised) {
       denoised_tiles++;
@@ -225,7 +225,7 @@ class Progress {
 
   int get_current_sample() const
   {
-    thread_scoped_lock lock(progress_mutex);
+    const thread_scoped_lock lock(progress_mutex);
     /* Note that the value here always belongs to the last tile that updated,
      * so it's only useful if there is only one active tile. */
     return current_tile_sample;
@@ -233,13 +233,13 @@ class Progress {
 
   int get_rendered_tiles() const
   {
-    thread_scoped_lock lock(progress_mutex);
+    const thread_scoped_lock lock(progress_mutex);
     return rendered_tiles;
   }
 
   int get_denoised_tiles() const
   {
-    thread_scoped_lock lock(progress_mutex);
+    const thread_scoped_lock lock(progress_mutex);
     return denoised_tiles;
   }
 
@@ -248,7 +248,7 @@ class Progress {
   void set_status(const string &status_, const string &substatus_ = "")
   {
     {
-      thread_scoped_lock lock(progress_mutex);
+      const thread_scoped_lock lock(progress_mutex);
       status = status_;
       substatus = substatus_;
     }
@@ -259,7 +259,7 @@ class Progress {
   void set_substatus(const string &substatus_)
   {
     {
-      thread_scoped_lock lock(progress_mutex);
+      const thread_scoped_lock lock(progress_mutex);
       substatus = substatus_;
     }
 
@@ -269,7 +269,7 @@ class Progress {
   void set_sync_status(const string &status_, const string &substatus_ = "")
   {
     {
-      thread_scoped_lock lock(progress_mutex);
+      const thread_scoped_lock lock(progress_mutex);
       sync_status = status_;
       sync_substatus = substatus_;
     }
@@ -280,7 +280,7 @@ class Progress {
   void set_sync_substatus(const string &substatus_)
   {
     {
-      thread_scoped_lock lock(progress_mutex);
+      const thread_scoped_lock lock(progress_mutex);
       sync_substatus = substatus_;
     }
 
@@ -289,7 +289,7 @@ class Progress {
 
   void get_status(string &status_, string &substatus_) const
   {
-    thread_scoped_lock lock(progress_mutex);
+    const thread_scoped_lock lock(progress_mutex);
 
     if (!sync_status.empty()) {
       status_ = sync_status;
@@ -306,7 +306,7 @@ class Progress {
   void set_update()
   {
     if (update_cb) {
-      thread_scoped_lock lock(update_mutex);
+      const thread_scoped_lock lock(update_mutex);
       update_cb();
     }
   }

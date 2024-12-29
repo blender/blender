@@ -191,7 +191,7 @@ class BVHMixedSplit {
           range, &references.at(0), *aligned_space);
     }
     /* find split candidates. */
-    float area = bounds.safe_area();
+    const float area = bounds.safe_area();
 
     leafSAH = area * builder->params.primitive_cost(range.size());
     nodeSAH = area * builder->params.node_cost(2);

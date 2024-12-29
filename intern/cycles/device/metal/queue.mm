@@ -335,7 +335,7 @@ void MetalDeviceQueue::init_execution()
 
 bool MetalDeviceQueue::enqueue(DeviceKernel kernel,
                                const int work_size,
-                               DeviceKernelArguments const &args)
+                               const DeviceKernelArguments &args)
 {
   @autoreleasepool {
     update_capture(kernel);

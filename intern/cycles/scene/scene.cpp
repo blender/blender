@@ -35,7 +35,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-Scene::Scene(const SceneParams &params_, Device *device)
+Scene ::Scene(const SceneParams &params_, Device *device)
     : name("Scene"),
       bvh(nullptr),
       default_surface(nullptr),
@@ -48,7 +48,8 @@ Scene::Scene(const SceneParams &params_, Device *device)
       params(params_),
       update_stats(nullptr),
       kernels_loaded(false),
-      /* TODO(sergey): Check if it's indeed optimal value for the split kernel. */
+      /* TODO(sergey): Check if it's indeed optimal value for the split kernel.
+       */
       max_closure_global(1)
 {
   memset((void *)&dscene.data, 0, sizeof(dscene.data));
@@ -86,15 +87,16 @@ void Scene::free_memory(bool final)
   delete bvh;
   bvh = nullptr;
 
-  /* The order of deletion is important to make sure data is freed based on possible dependencies
-   * as the Nodes' reference counts are decremented in the destructors:
+  /* The order of deletion is important to make sure data is freed based on
+   * possible dependencies as the Nodes' reference counts are decremented in the
+   * destructors:
    *
    * - Procedurals can create and hold pointers to any other types.
    * - Objects can hold pointers to Geometries and ParticleSystems
    * - Lights and Geometries can hold pointers to Shaders.
    *
-   * Similarly, we first delete all nodes and their associated device data, and then the managers
-   * and their associated device data.
+   * Similarly, we first delete all nodes and their associated device data, and
+   * then the managers and their associated device data.
    */
   for (Procedural *p : procedurals) {
     delete p;
@@ -137,15 +139,16 @@ void Scene::free_memory(bool final)
     delete integrator;
   }
 
-  /* Delete Shaders after every other nodes to ensure that we do not try to decrement the reference
-   * count on some dangling pointer. */
+  /* Delete Shaders after every other nodes to ensure that we do not try to
+   * decrement the reference count on some dangling pointer. */
   for (Shader *s : shaders) {
     delete s;
   }
 
   shaders.clear();
 
-  /* Now that all nodes have been deleted, we can safely delete managers and device data. */
+  /* Now that all nodes have been deleted, we can safely delete managers and
+   * device data. */
   if (device) {
     object_manager->device_free(device, &dscene, true);
     geometry_manager->device_free(device, &dscene, true);
@@ -186,13 +189,13 @@ void Scene::device_update(Device *device_, Progress &progress)
     device = device_;
   }
 
-  bool print_stats = need_data_update();
+  const bool print_stats = need_data_update();
 
   if (update_stats) {
     update_stats->clear();
   }
 
-  scoped_callback_timer timer([this, print_stats](double time) {
+  const scoped_callback_timer timer([this, print_stats](double time) {
     if (update_stats) {
       update_stats->scene.times.add_entry({"device_update", time});
 
@@ -208,7 +211,8 @@ void Scene::device_update(Device *device_, Progress &progress)
    * - Image manager uploads images used by shaders.
    * - Camera may be used for adaptive subdivision.
    * - Displacement shader must have all shader data available.
-   * - Light manager needs lookup tables and final mesh data to compute emission CDF.
+   * - Light manager needs lookup tables and final mesh data to compute emission
+   * CDF.
    * - Lookup tables are done a second time to handle film tables
    */
 
@@ -355,8 +359,8 @@ void Scene::device_update(Device *device_, Progress &progress)
   device->optimize_for_scene(this);
 
   if (print_stats) {
-    size_t mem_used = util_guarded_get_mem_used();
-    size_t mem_peak = util_guarded_get_mem_peak();
+    const size_t mem_used = util_guarded_get_mem_used();
+    const size_t mem_peak = util_guarded_get_mem_peak();
 
     VLOG_INFO << "System memory statistics after full device sync:\n"
               << "  Usage: " << string_human_readable_number(mem_used) << " ("
@@ -478,13 +482,13 @@ void Scene::update_kernel_features()
     return;
   }
 
-  thread_scoped_lock scene_lock(mutex);
+  const thread_scoped_lock scene_lock(mutex);
 
   /* These features are not being tweaked as often as shaders,
    * so could be done selective magic for the viewport as well. */
   uint kernel_features = shader_manager->get_kernel_features(this);
 
-  bool use_motion = need_motion() == Scene::MotionType::MOTION_BLUR;
+  const bool use_motion = need_motion() == Scene::MotionType::MOTION_BLUR;
   kernel_features |= KERNEL_FEATURE_PATH_TRACING;
   if (params.hair_shape == CURVE_THICK) {
     kernel_features |= KERNEL_FEATURE_HAIR_THICK;
@@ -568,7 +572,8 @@ void Scene::update_kernel_features()
 
   dscene.data.kernel_features = kernel_features;
 
-  /* Currently viewport render is faster with higher max_closures, needs investigating. */
+  /* Currently viewport render is faster with higher max_closures, needs
+   * investigating. */
   const uint max_closures = (params.background) ? get_max_closure_count() : MAX_CLOSURE;
   dscene.data.max_closures = max_closures;
   dscene.data.max_shaders = shaders.size();
@@ -628,7 +633,7 @@ bool Scene::load_kernels(Progress &progress)
   if (!kernels_loaded || loaded_kernel_features != kernel_features) {
     progress.set_status("Loading render kernels (may take a few minutes the first time)");
 
-    scoped_timer timer;
+    const scoped_timer timer;
 
     log_kernel_features(kernel_features);
     if (!device->load_kernels(kernel_features)) {
@@ -662,7 +667,7 @@ int Scene::get_max_closure_count()
   for (int i = 0; i < shaders.size(); i++) {
     Shader *shader = shaders[i];
     if (shader->reference_count()) {
-      int num_closures = shader->graph->get_num_closures();
+      const int num_closures = shader->graph->get_num_closures();
       max_closures = max(max_closures, num_closures);
     }
   }
@@ -687,13 +692,14 @@ int Scene::get_volume_stack_size() const
   int volume_stack_size = 0;
 
   /* Space for background volume and terminator.
-   * Don't do optional here because camera ray initialization expects that there is space for
-   * at least those elements (avoiding extra condition to check if there is actual volume or not).
+   * Don't do optional here because camera ray initialization expects that there
+   * is space for at least those elements (avoiding extra condition to check if
+   * there is actual volume or not).
    */
   volume_stack_size += 2;
 
-  /* Quick non-expensive check. Can over-estimate maximum possible nested level, but does not
-   * require expensive calculation during pre-processing. */
+  /* Quick non-expensive check. Can over-estimate maximum possible nested level,
+   * but does not require expensive calculation during pre-processing. */
   bool has_volume_object = false;
   for (const Object *object : objects) {
     if (!object->get_geometry()->has_volume) {
@@ -701,10 +707,12 @@ int Scene::get_volume_stack_size() const
     }
 
     if (object->intersects_volume) {
-      /* Object intersects another volume, assume it's possible to go deeper in the stack. */
-      /* TODO(sergey): This might count nesting twice (A intersects B and B intersects A), but
-       * can't think of a computationally cheap algorithm. Dividing my 2 doesn't work because of
-       * Venn diagram example with 3 circles. */
+      /* Object intersects another volume, assume it's possible to go deeper in
+       * the stack. */
+      /* TODO(sergey): This might count nesting twice (A intersects B and B
+       * intersects A), but can't think of a computationally cheap algorithm.
+       * Dividing my 2 doesn't work because of Venn diagram example with 3
+       * circles. */
       ++volume_stack_size;
     }
     else if (!has_volume_object) {

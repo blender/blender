@@ -116,7 +116,7 @@ void window_display_help()
   glColor3f(0.8f, 0.8f, 0.8f);
 #endif
 
-  string info = string("Cycles Renderer ") + CYCLES_VERSION_STRING;
+  const string info = string("Cycles Renderer ") + CYCLES_VERSION_STRING;
 
   window_display_text(x1 + 20, y2 - 20, info.c_str());
   window_display_text(x1 + 20, y2 - 40, "(C) 2011-2016 Blender Foundation");

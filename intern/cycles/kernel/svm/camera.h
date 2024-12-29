@@ -21,7 +21,7 @@ ccl_device_noinline void svm_node_camera(KernelGlobals kg,
   float zdepth;
   float3 vector;
 
-  Transform tfm = kernel_data.cam.worldtocamera;
+  const Transform tfm = kernel_data.cam.worldtocamera;
   vector = transform_point(&tfm, sd->P);
   zdepth = vector.z;
   distance = len(vector);

@@ -103,8 +103,8 @@ struct LightTreeMeasure {
       return 0.0f;
     }
 
-    float area = bbox.area();
-    float area_measure = area == 0 ? len(bbox.size()) : area;
+    const float area = bbox.area();
+    const float area_measure = area == 0 ? len(bbox.size()) : area;
     return energy * area_measure * bcone.calculate_measure();
   }
 

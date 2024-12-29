@@ -123,7 +123,7 @@ DenoiseParams get_effective_denoise_params(Device *denoiser_device,
     single_denoiser_device = cpu_fallback_device;
   }
 
-  bool is_cpu_denoiser_device = single_denoiser_device->info.type == DEVICE_CPU;
+  const bool is_cpu_denoiser_device = single_denoiser_device->info.type == DEVICE_CPU;
   if (is_cpu_denoiser_device == false) {
     if (use_optix_denoiser(single_denoiser_device, effective_denoise_params) ||
         use_gpu_oidn_denoiser(single_denoiser_device, effective_denoise_params))
@@ -149,7 +149,7 @@ unique_ptr<Denoiser> Denoiser::create(Device *denoiser_device,
   const DenoiseParams effective_denoiser_params = get_effective_denoise_params(
       denoiser_device, cpu_fallback_device, params, single_denoiser_device);
 
-  bool is_cpu_denoiser_device = single_denoiser_device->info.type == DEVICE_CPU;
+  const bool is_cpu_denoiser_device = single_denoiser_device->info.type == DEVICE_CPU;
   if (is_cpu_denoiser_device == false) {
 #ifdef WITH_OPTIX
     if (use_optix_denoiser(single_denoiser_device, effective_denoiser_params)) {

@@ -64,7 +64,9 @@ ccl_device_inline bool motion_triangle_intersect(KernelGlobals kg,
   float3 verts[3];
   motion_triangle_vertices(kg, object, prim, time, verts);
   /* Ray-triangle intersection, unoptimized. */
-  float t, u, v;
+  float t;
+  float u;
+  float v;
   if (ray_triangle_intersect(P, dir, tmin, tmax, verts[0], verts[1], verts[2], &u, &v, &t)) {
 #ifdef __VISIBILITY_FLAG__
     /* Visibility flag test. we do it here under the assumption
@@ -108,7 +110,9 @@ ccl_device_inline bool motion_triangle_intersect_local(KernelGlobals kg,
   float3 verts[3];
   motion_triangle_vertices(kg, object, prim, time, verts);
   /* Ray-triangle intersection, unoptimized. */
-  float t, u, v;
+  float t;
+  float u;
+  float v;
   if (!ray_triangle_intersect(P, dir, tmin, tmax, verts[0], verts[1], verts[2], &u, &v, &t)) {
     return false;
   }

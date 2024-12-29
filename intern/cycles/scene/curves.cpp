@@ -43,13 +43,13 @@ void curvebounds(float *lower, float *upper, float3 *p, int dim)
   float exb = p2[dim];
 
   if (ta >= 0.0f) {
-    float t2 = ta * ta;
-    float t3 = t2 * ta;
+    const float t2 = ta * ta;
+    const float t3 = t2 * ta;
     exa = curve_coef[3] * t3 + curve_coef[2] * t2 + curve_coef[1] * ta + curve_coef[0];
   }
   if (tb >= 0.0f) {
-    float t2 = tb * tb;
-    float t3 = t2 * tb;
+    const float t2 = tb * tb;
+    const float t3 = t2 * tb;
     exb = curve_coef[3] * t3 + curve_coef[2] * t2 + curve_coef[1] * tb + curve_coef[0];
   }
 

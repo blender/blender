@@ -91,7 +91,7 @@ ccl_device_forceinline bool integrator_intersect_terminate(KernelGlobals kg,
 ccl_device_forceinline void integrator_split_shadow_catcher(
     KernelGlobals kg,
     IntegratorState state,
-    ccl_private const Intersection *ccl_restrict isect,
+    const ccl_private Intersection *ccl_restrict isect,
     ccl_global float *ccl_restrict render_buffer)
 {
   /* Test if we hit a shadow catcher object, and potentially split the path to continue tracing two
@@ -215,7 +215,7 @@ template<DeviceKernel current_kernel>
 ccl_device_forceinline void integrator_intersect_next_kernel(
     KernelGlobals kg,
     IntegratorState state,
-    ccl_private const Intersection *ccl_restrict isect,
+    const ccl_private Intersection *ccl_restrict isect,
     ccl_global float *ccl_restrict render_buffer,
     const bool hit)
 {
@@ -293,7 +293,7 @@ template<DeviceKernel current_kernel>
 ccl_device_forceinline void integrator_intersect_next_kernel_after_volume(
     KernelGlobals kg,
     IntegratorState state,
-    ccl_private const Intersection *ccl_restrict isect,
+    const ccl_private Intersection *ccl_restrict isect,
     ccl_global float *ccl_restrict render_buffer)
 {
   if (isect->prim != PRIM_NONE) {
@@ -399,7 +399,8 @@ ccl_device void integrator_intersect_closest(KernelGlobals kg,
       from_caustic_caster = (object_flags & SD_OBJECT_CAUSTICS_CASTER);
     }
 
-    bool has_receiver_ancestor = INTEGRATOR_STATE(state, path, mnee) & PATH_MNEE_RECEIVER_ANCESTOR;
+    const bool has_receiver_ancestor = INTEGRATOR_STATE(state, path, mnee) &
+                                       PATH_MNEE_RECEIVER_ANCESTOR;
     INTEGRATOR_STATE_WRITE(state, path, mnee) &= ~PATH_MNEE_CULL_LIGHT_CONNECTION;
     if (from_caustic_caster && has_receiver_ancestor) {
       INTEGRATOR_STATE_WRITE(state, path, mnee) |= PATH_MNEE_CULL_LIGHT_CONNECTION;

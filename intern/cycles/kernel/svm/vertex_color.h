@@ -17,16 +17,16 @@ ccl_device_noinline void svm_node_vertex_color(KernelGlobals kg,
                                                uint color_offset,
                                                uint alpha_offset)
 {
-  AttributeDescriptor descriptor = find_attribute(kg, sd, layer_id);
+  const AttributeDescriptor descriptor = find_attribute(kg, sd, layer_id);
   if (descriptor.offset != ATTR_STD_NOT_FOUND) {
     if (descriptor.type == NODE_ATTR_FLOAT4 || descriptor.type == NODE_ATTR_RGBA) {
-      float4 vertex_color = primitive_surface_attribute_float4(
+      const float4 vertex_color = primitive_surface_attribute_float4(
           kg, sd, descriptor, nullptr, nullptr);
       stack_store_float3(stack, color_offset, make_float3(vertex_color));
       stack_store_float(stack, alpha_offset, vertex_color.w);
     }
     else {
-      float3 vertex_color = primitive_surface_attribute_float3(
+      const float3 vertex_color = primitive_surface_attribute_float3(
           kg, sd, descriptor, nullptr, nullptr);
       stack_store_float3(stack, color_offset, vertex_color);
       stack_store_float(stack, alpha_offset, 1.0f);
@@ -45,7 +45,7 @@ ccl_device_noinline void svm_node_vertex_color_bump_dx(KernelGlobals kg,
                                                        uint color_offset,
                                                        uint alpha_offset)
 {
-  AttributeDescriptor descriptor = find_attribute(kg, sd, layer_id);
+  const AttributeDescriptor descriptor = find_attribute(kg, sd, layer_id);
   if (descriptor.offset != ATTR_STD_NOT_FOUND) {
     if (descriptor.type == NODE_ATTR_FLOAT4 || descriptor.type == NODE_ATTR_RGBA) {
       float4 dx;
@@ -75,7 +75,7 @@ ccl_device_noinline void svm_node_vertex_color_bump_dy(KernelGlobals kg,
                                                        uint color_offset,
                                                        uint alpha_offset)
 {
-  AttributeDescriptor descriptor = find_attribute(kg, sd, layer_id);
+  const AttributeDescriptor descriptor = find_attribute(kg, sd, layer_id);
   if (descriptor.offset != ATTR_STD_NOT_FOUND) {
     if (descriptor.type == NODE_ATTR_FLOAT4 || descriptor.type == NODE_ATTR_RGBA) {
       float4 dy;

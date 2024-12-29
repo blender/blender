@@ -42,7 +42,7 @@ class BoundBox {
 
   __forceinline void grow(const float3 &pt, float border)
   {
-    float3 shift = make_float3(border, border, border);
+    const float3 shift = make_float3(border, border, border);
     min = ccl::min(pt - shift, min);
     max = ccl::max(pt + shift, max);
   }
@@ -66,7 +66,7 @@ class BoundBox {
   __forceinline void grow_safe(const float3 &pt, float border)
   {
     if (isfinite(pt.x) && isfinite(pt.y) && isfinite(pt.z) && isfinite(border)) {
-      float3 shift = make_float3(border, border, border);
+      const float3 shift = make_float3(border, border, border);
       min = ccl::min(pt - shift, min);
       max = ccl::max(pt + shift, max);
     }
@@ -105,7 +105,7 @@ class BoundBox {
 
   __forceinline float half_area() const
   {
-    float3 d = max - min;
+    const float3 d = max - min;
     return (d.x * d.z + d.y * d.z + d.x * d.y);
   }
 
@@ -150,7 +150,8 @@ class BoundBox {
 
   __forceinline bool intersects(const BoundBox &other)
   {
-    float3 center_diff = center() - other.center(), total_size = (size() + other.size()) * 0.5f;
+    const float3 center_diff = center() - other.center();
+    const float3 total_size = (size() + other.size()) * 0.5f;
     return fabsf(center_diff.x) <= total_size.x && fabsf(center_diff.y) <= total_size.y &&
            fabsf(center_diff.z) <= total_size.z;
   }

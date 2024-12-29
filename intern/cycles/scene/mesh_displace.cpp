@@ -19,12 +19,12 @@ CCL_NAMESPACE_BEGIN
 
 static float3 compute_face_normal(const Mesh::Triangle &t, float3 *verts)
 {
-  float3 v0 = verts[t.v[0]];
-  float3 v1 = verts[t.v[1]];
-  float3 v2 = verts[t.v[2]];
+  const float3 v0 = verts[t.v[0]];
+  const float3 v1 = verts[t.v[1]];
+  const float3 v2 = verts[t.v[2]];
 
-  float3 norm = cross(v1 - v0, v2 - v0);
-  float normlen = len(norm);
+  const float3 norm = cross(v1 - v0, v2 - v0);
+  const float normlen = len(norm);
 
   if (normlen == 0.0f) {
     return make_float3(1.0f, 0.0f, 0.0f);
@@ -49,10 +49,10 @@ static int fill_shader_input(const Scene *scene,
   const int num_verts = mesh_verts.size();
   vector<bool> done(num_verts, false);
 
-  int num_triangles = mesh->num_triangles();
+  const int num_triangles = mesh->num_triangles();
   for (int i = 0; i < num_triangles; i++) {
-    Mesh::Triangle t = mesh->get_triangle(i);
-    int shader_index = mesh_shaders[i];
+    const Mesh::Triangle t = mesh->get_triangle(i);
+    const int shader_index = mesh_shaders[i];
     Shader *shader = (shader_index < mesh_used_shaders.size()) ?
                          static_cast<Shader *>(mesh_used_shaders[shader_index]) :
                          scene->default_surface;
@@ -69,9 +69,10 @@ static int fill_shader_input(const Scene *scene,
       done[t.v[j]] = true;
 
       /* set up object, primitive and barycentric coordinates */
-      int object = object_index;
-      int prim = mesh->prim_offset + i;
-      float u, v;
+      const int object = object_index;
+      const int prim = mesh->prim_offset + i;
+      float u;
+      float v;
 
       switch (j) {
         case 0:
@@ -108,7 +109,7 @@ static void read_shader_output(const Scene *scene,
 {
   const array<int> &mesh_shaders = mesh->get_shader();
   const array<Node *> &mesh_used_shaders = mesh->get_used_shaders();
-  array<float3> &mesh_verts = mesh->get_verts();
+  const array<float3> &mesh_verts = mesh->get_verts();
 
   const int num_verts = mesh_verts.size();
   const int num_motion_steps = mesh->get_motion_steps();
@@ -118,10 +119,10 @@ static void read_shader_output(const Scene *scene,
   int d_output_index = 0;
 
   Attribute *attr_mP = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
-  int num_triangles = mesh->num_triangles();
+  const int num_triangles = mesh->num_triangles();
   for (int i = 0; i < num_triangles; i++) {
-    Mesh::Triangle t = mesh->get_triangle(i);
-    int shader_index = mesh_shaders[i];
+    const Mesh::Triangle t = mesh->get_triangle(i);
+    const int shader_index = mesh_shaders[i];
     Shader *shader = (shader_index < mesh_used_shaders.size()) ?
                          static_cast<Shader *>(mesh_used_shaders[shader_index]) :
                          scene->default_surface;
@@ -166,7 +167,7 @@ bool GeometryManager::displace(Device *device, Scene *scene, Mesh *mesh, Progres
     return false;
   }
 
-  string msg = string_printf("Computing Displacement %s", mesh->name.c_str());
+  const string msg = string_printf("Computing Displacement %s", mesh->name.c_str());
   progress.set_status("Updating Mesh", msg);
 
   /* find object index. todo: is arbitrary */
@@ -197,20 +198,20 @@ bool GeometryManager::displace(Device *device, Scene *scene, Mesh *mesh, Progres
 
   /* stitch */
   unordered_set<int> stitch_keys;
-  for (pair<int, int> i : mesh->vert_to_stitching_key_map) {
+  for (const pair<int, int> i : mesh->vert_to_stitching_key_map) {
     stitch_keys.insert(i.second); /* stitching index */
   }
 
   using map_it_t = unordered_multimap<int, int>::iterator;
 
-  for (int key : stitch_keys) {
-    pair<map_it_t, map_it_t> verts = mesh->vert_stitching_map.equal_range(key);
+  for (const int key : stitch_keys) {
+    const pair<map_it_t, map_it_t> verts = mesh->vert_stitching_map.equal_range(key);
 
     float3 pos = zero_float3();
     int num = 0;
 
     for (map_it_t v = verts.first; v != verts.second; ++v) {
-      int vert = v->second;
+      const int vert = v->second;
 
       pos += mesh->verts[vert];
       num++;
@@ -245,11 +246,11 @@ bool GeometryManager::displace(Device *device, Scene *scene, Mesh *mesh, Progres
   }
 
   if (need_recompute_vertex_normals) {
-    bool flip = mesh->transform_negative_scaled;
+    const bool flip = mesh->transform_negative_scaled;
     vector<bool> tri_has_true_disp(num_triangles, false);
 
     for (size_t i = 0; i < num_triangles; i++) {
-      int shader_index = mesh->shader[i];
+      const int shader_index = mesh->shader[i];
       Shader *shader = (shader_index < mesh->used_shaders.size()) ?
                            static_cast<Shader *>(mesh->used_shaders[shader_index]) :
                            scene->default_surface;
@@ -282,15 +283,16 @@ bool GeometryManager::displace(Device *device, Scene *scene, Mesh *mesh, Progres
     for (size_t i = 0; i < num_triangles; i++) {
       if (tri_has_true_disp[i]) {
         for (size_t j = 0; j < 3; j++) {
-          int vert = mesh->get_triangle(i).v[j];
+          const int vert = mesh->get_triangle(i).v[j];
           vN[vert] += fN[i];
 
           /* add face normals to stitched vertices */
           if (!stitch_keys.empty()) {
-            map_it_t key = mesh->vert_to_stitching_key_map.find(vert);
+            const map_it_t key = mesh->vert_to_stitching_key_map.find(vert);
 
             if (key != mesh->vert_to_stitching_key_map.end()) {
-              pair<map_it_t, map_it_t> verts = mesh->vert_stitching_map.equal_range(key->second);
+              const pair<map_it_t, map_it_t> verts = mesh->vert_stitching_map.equal_range(
+                  key->second);
 
               for (map_it_t v = verts.first; v != verts.second; ++v) {
                 if (v->second == vert) {
@@ -311,7 +313,7 @@ bool GeometryManager::displace(Device *device, Scene *scene, Mesh *mesh, Progres
     for (size_t i = 0; i < num_triangles; i++) {
       if (tri_has_true_disp[i]) {
         for (size_t j = 0; j < 3; j++) {
-          int vert = mesh->get_triangle(i).v[j];
+          const int vert = mesh->get_triangle(i).v[j];
 
           if (done[vert]) {
             continue;
@@ -351,16 +353,16 @@ bool GeometryManager::displace(Device *device, Scene *scene, Mesh *mesh, Progres
         for (size_t i = 0; i < num_triangles; i++) {
           if (tri_has_true_disp[i]) {
             for (size_t j = 0; j < 3; j++) {
-              int vert = mesh->get_triangle(i).v[j];
-              float3 fN = compute_face_normal(mesh->get_triangle(i), mP);
+              const int vert = mesh->get_triangle(i).v[j];
+              const float3 fN = compute_face_normal(mesh->get_triangle(i), mP);
               mN[vert] += fN;
 
               /* add face normals to stitched vertices */
               if (!stitch_keys.empty()) {
-                map_it_t key = mesh->vert_to_stitching_key_map.find(vert);
+                const map_it_t key = mesh->vert_to_stitching_key_map.find(vert);
 
                 if (key != mesh->vert_to_stitching_key_map.end()) {
-                  pair<map_it_t, map_it_t> verts = mesh->vert_stitching_map.equal_range(
+                  const pair<map_it_t, map_it_t> verts = mesh->vert_stitching_map.equal_range(
                       key->second);
 
                   for (map_it_t v = verts.first; v != verts.second; ++v) {
@@ -382,7 +384,7 @@ bool GeometryManager::displace(Device *device, Scene *scene, Mesh *mesh, Progres
         for (size_t i = 0; i < num_triangles; i++) {
           if (tri_has_true_disp[i]) {
             for (size_t j = 0; j < 3; j++) {
-              int vert = mesh->get_triangle(i).v[j];
+              const int vert = mesh->get_triangle(i).v[j];
 
               if (done[vert]) {
                 continue;

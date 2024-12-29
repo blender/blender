@@ -21,14 +21,19 @@ ccl_device_noinline void svm_node_set_bump(KernelGlobals kg,
                                            ccl_private float *stack,
                                            uint4 node)
 {
-  uint out_offset, bump_state_offset, dummy;
+  uint out_offset;
+  uint bump_state_offset;
+  uint dummy;
   svm_unpack_node_uchar4(node.w, &out_offset, &bump_state_offset, &dummy, &dummy);
 
 #ifdef __RAY_DIFFERENTIALS__
   IF_KERNEL_NODES_FEATURE(BUMP)
   {
     /* get normal input */
-    uint normal_offset, scale_offset, invert, use_object_space;
+    uint normal_offset;
+    uint scale_offset;
+    uint invert;
+    uint use_object_space;
     svm_unpack_node_uchar4(node.y, &normal_offset, &scale_offset, &invert, &use_object_space);
 
     float3 normal_in = stack_valid(normal_offset) ? stack_load_float3(stack, normal_offset) :
@@ -52,22 +57,25 @@ ccl_device_noinline void svm_node_set_bump(KernelGlobals kg,
     }
 
     /* get surface tangents from normal */
-    float3 Rx = cross(dP.dy, normal_in);
-    float3 Ry = cross(normal_in, dP.dx);
+    const float3 Rx = cross(dP.dy, normal_in);
+    const float3 Ry = cross(normal_in, dP.dx);
 
     /* get bump values */
-    uint c_offset, x_offset, y_offset, strength_offset;
+    uint c_offset;
+    uint x_offset;
+    uint y_offset;
+    uint strength_offset;
     svm_unpack_node_uchar4(node.z, &c_offset, &x_offset, &y_offset, &strength_offset);
 
-    float h_c = stack_load_float(stack, c_offset);
-    float h_x = stack_load_float(stack, x_offset);
-    float h_y = stack_load_float(stack, y_offset);
+    const float h_c = stack_load_float(stack, c_offset);
+    const float h_x = stack_load_float(stack, x_offset);
+    const float h_y = stack_load_float(stack, y_offset);
 
     /* compute surface gradient and determinant */
-    float det = dot(dP.dx, Rx);
-    float3 surfgrad = (h_x - h_c) * Rx + (h_y - h_c) * Ry;
+    const float det = dot(dP.dx, Rx);
+    const float3 surfgrad = (h_x - h_c) * Rx + (h_y - h_c) * Ry;
 
-    float absdet = fabsf(det);
+    const float absdet = fabsf(det);
 
     float strength = stack_load_float(stack, strength_offset);
     float scale = stack_load_float(stack, scale_offset);
@@ -109,7 +117,7 @@ ccl_device void svm_node_set_displacement(KernelGlobals kg,
 {
   IF_KERNEL_NODES_FEATURE(BUMP)
   {
-    float3 dP = stack_load_float3(stack, fac_offset);
+    const float3 dP = stack_load_float3(stack, fac_offset);
     sd->P += dP;
   }
 }
@@ -122,15 +130,19 @@ ccl_device_noinline void svm_node_displacement(KernelGlobals kg,
 {
   IF_KERNEL_NODES_FEATURE(BUMP)
   {
-    uint height_offset, midlevel_offset, scale_offset, normal_offset;
+    uint height_offset;
+    uint midlevel_offset;
+    uint scale_offset;
+    uint normal_offset;
     svm_unpack_node_uchar4(
         node.y, &height_offset, &midlevel_offset, &scale_offset, &normal_offset);
 
-    float height = stack_load_float(stack, height_offset);
-    float midlevel = stack_load_float(stack, midlevel_offset);
-    float scale = stack_load_float(stack, scale_offset);
-    float3 normal = stack_valid(normal_offset) ? stack_load_float3(stack, normal_offset) : sd->N;
-    uint space = node.w;
+    const float height = stack_load_float(stack, height_offset);
+    const float midlevel = stack_load_float(stack, midlevel_offset);
+    const float scale = stack_load_float(stack, scale_offset);
+    const float3 normal = stack_valid(normal_offset) ? stack_load_float3(stack, normal_offset) :
+                                                       sd->N;
+    const uint space = node.w;
 
     float3 dP = normal;
 
@@ -156,18 +168,21 @@ template<uint node_feature_mask>
 ccl_device_noinline int svm_node_vector_displacement(
     KernelGlobals kg, ccl_private ShaderData *sd, ccl_private float *stack, uint4 node, int offset)
 {
-  uint4 data_node = read_node(kg, &offset);
-  uint vector_offset, midlevel_offset, scale_offset, displacement_offset;
+  const uint4 data_node = read_node(kg, &offset);
+  uint vector_offset;
+  uint midlevel_offset;
+  uint scale_offset;
+  uint displacement_offset;
   svm_unpack_node_uchar4(
       node.y, &vector_offset, &midlevel_offset, &scale_offset, &displacement_offset);
 
   IF_KERNEL_NODES_FEATURE(BUMP)
   {
-    uint space = data_node.x;
+    const uint space = data_node.x;
 
-    float3 vector = stack_load_float3(stack, vector_offset);
-    float midlevel = stack_load_float(stack, midlevel_offset);
-    float scale = stack_load_float(stack, scale_offset);
+    const float3 vector = stack_load_float3(stack, vector_offset);
+    const float midlevel = stack_load_float(stack, midlevel_offset);
+    const float scale = stack_load_float(stack, scale_offset);
     float3 dP = (vector - make_float3(midlevel, midlevel, midlevel)) * scale;
 
     if (space == NODE_NORMAL_MAP_TANGENT) {
@@ -187,7 +202,7 @@ ccl_device_noinline int svm_node_vector_displacement(
       float3 bitangent = safe_normalize(cross(normal, tangent));
       const AttributeDescriptor attr_sign = find_attribute(kg, sd, node.w);
       if (attr_sign.offset != ATTR_STD_NOT_FOUND) {
-        float sign = primitive_surface_attribute_float(kg, sd, attr_sign, nullptr, nullptr);
+        const float sign = primitive_surface_attribute_float(kg, sd, attr_sign, nullptr, nullptr);
         bitangent *= sign;
       }
 

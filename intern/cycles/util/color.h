@@ -23,7 +23,9 @@ ccl_device float byte_to_float(uchar val)
 
 ccl_device uchar4 color_float_to_byte(float3 c)
 {
-  uchar r, g, b;
+  uchar r;
+  uchar g;
+  uchar b;
 
   r = float_to_byte(c.x);
   g = float_to_byte(c.y);
@@ -34,7 +36,10 @@ ccl_device uchar4 color_float_to_byte(float3 c)
 
 ccl_device uchar4 color_float4_to_uchar4(float4 c)
 {
-  uchar r, g, b, a;
+  uchar r;
+  uchar g;
+  uchar b;
+  uchar a;
 
   r = float_to_byte(c.x);
   g = float_to_byte(c.y);
@@ -73,7 +78,12 @@ ccl_device float color_linear_to_srgb(float c)
 
 ccl_device float3 rgb_to_hsv(float3 rgb)
 {
-  float cmax, cmin, h, s, v, cdelta;
+  float cmax;
+  float cmin;
+  float h;
+  float s;
+  float v;
+  float cdelta;
   float3 c;
 
   cmax = fmaxf(rgb.x, fmaxf(rgb.y, rgb.z));
@@ -91,7 +101,7 @@ ccl_device float3 rgb_to_hsv(float3 rgb)
   }
 
   if (s != 0.0f) {
-    float3 cmax3 = make_float3(cmax, cmax, cmax);
+    const float3 cmax3 = make_float3(cmax, cmax, cmax);
     c = (cmax3 - rgb) / cdelta;
 
     if (rgb.x == cmax) {
@@ -119,7 +129,14 @@ ccl_device float3 rgb_to_hsv(float3 rgb)
 
 ccl_device float3 hsv_to_rgb(float3 hsv)
 {
-  float i, f, p, q, t, h, s, v;
+  float i;
+  float f;
+  float p;
+  float q;
+  float t;
+  float h;
+  float s;
+  float v;
   float3 rgb;
 
   h = hsv.x;
@@ -167,7 +184,11 @@ ccl_device float3 hsv_to_rgb(float3 hsv)
 
 ccl_device float3 rgb_to_hsl(float3 rgb)
 {
-  float cmax, cmin, h, s, l;
+  float cmax;
+  float cmin;
+  float h;
+  float s;
+  float l;
 
   cmax = fmaxf(rgb.x, fmaxf(rgb.y, rgb.z));
   cmin = min(rgb.x, min(rgb.y, rgb.z));
@@ -177,7 +198,7 @@ ccl_device float3 rgb_to_hsl(float3 rgb)
     h = s = 0.0f; /* achromatic */
   }
   else {
-    float cdelta = cmax - cmin;
+    const float cdelta = cmax - cmin;
     s = l > 0.5f ? cdelta / (2.0f - cmax - cmin) : cdelta / (cmax + cmin);
     if (cmax == rgb.x) {
       h = (rgb.y - rgb.z) / cdelta + (rgb.y < rgb.z ? 6.0f : 0.0f);
@@ -196,7 +217,13 @@ ccl_device float3 rgb_to_hsl(float3 rgb)
 
 ccl_device float3 hsl_to_rgb(float3 hsl)
 {
-  float nr, ng, nb, chroma, h, s, l;
+  float nr;
+  float ng;
+  float nb;
+  float chroma;
+  float h;
+  float s;
+  float l;
 
   h = hsl.x;
   s = hsl.y;
@@ -217,7 +244,8 @@ ccl_device float3 hsl_to_rgb(float3 hsl)
 
 ccl_device float3 xyY_to_xyz(float x, float y, float Y)
 {
-  float X, Z;
+  float X;
+  float Z;
 
   if (y != 0.0f) {
     X = (x / y) * Y;
@@ -257,10 +285,10 @@ template<unsigned exp, unsigned e2coeff> ccl_device_inline float4 fastpow_sse2(c
 /* Improve x ^ 1.0f/5.0f solution with Newton-Raphson method */
 ccl_device_inline float4 improve_5throot_solution_sse2(const float4 &old_result, const float4 &x)
 {
-  float4 approx2 = old_result * old_result;
-  float4 approx4 = approx2 * approx2;
-  float4 t = x / approx4;
-  float4 summ = madd(make_float4(4.0f), old_result, t);
+  const float4 approx2 = old_result * old_result;
+  const float4 approx4 = approx2 * approx2;
+  const float4 t = x / approx4;
+  const float4 summ = madd(make_float4(4.0f), old_result, t);
   return summ * make_float4(1.0f / 5.0f);
 }
 
@@ -275,8 +303,8 @@ ccl_device_inline float4 fastpow24_sse2(const float4 &arg)
   /* 0x4F55A7FB = 2^(127/(4/5) - 127) * 0.994^(1/(4/5)) */
   float4 x = fastpow_sse2<0x3F4CCCCD, 0x4F55A7FB>(
       arg);  // error max = 0.17  avg = 0.0018    |avg| = 0.05
-  float4 arg2 = arg * arg;
-  float4 arg4 = arg2 * arg2;
+  const float4 arg2 = arg * arg;
+  const float4 arg4 = arg2 * arg2;
 
   /* error max = 0.018     avg = 0.0031    |avg| = 0.0031 */
   x = improve_5throot_solution_sse2(x, arg4);
@@ -290,10 +318,10 @@ ccl_device_inline float4 fastpow24_sse2(const float4 &arg)
 
 ccl_device float4 color_srgb_to_linear_sse2(const float4 &c)
 {
-  int4 cmp = c < make_float4(0.04045f);
-  float4 lt = max(c * make_float4(1.0f / 12.92f), make_float4(0.0f));
-  float4 gtebase = (c + make_float4(0.055f)) * make_float4(1.0f / 1.055f); /* fma */
-  float4 gte = fastpow24_sse2(gtebase);
+  const int4 cmp = c < make_float4(0.04045f);
+  const float4 lt = max(c * make_float4(1.0f / 12.92f), make_float4(0.0f));
+  const float4 gtebase = (c + make_float4(0.055f)) * make_float4(1.0f / 1.055f); /* fma */
+  const float4 gte = fastpow24_sse2(gtebase);
   return select(cmp, lt, gte);
 }
 #endif /* __KERNEL_SSE2__ */
@@ -370,7 +398,9 @@ ccl_device_inline Spectrum safe_divide_color(Spectrum a, Spectrum b, const float
 
 ccl_device_inline float3 safe_divide_even_color(float3 a, float3 b)
 {
-  float x, y, z;
+  float x;
+  float y;
+  float z;
 
   x = (b.x != 0.0f) ? a.x / b.x : 0.0f;
   y = (b.y != 0.0f) ? a.y / b.y : 0.0f;

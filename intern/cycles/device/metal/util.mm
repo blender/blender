@@ -75,7 +75,7 @@ int MetalInfo::optimal_sort_partition_elements()
   return 65536;
 }
 
-vector<id<MTLDevice>> const &MetalInfo::get_usable_devices()
+const vector<id<MTLDevice>> &MetalInfo::get_usable_devices()
 {
   static vector<id<MTLDevice>> usable_devices;
   static bool already_enumerated = false;

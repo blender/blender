@@ -57,7 +57,7 @@ ccl_device_forceinline bool projection_inverse_impl(ccl_private float R[4][4],
     }
 
     for (int j = i + 1; j < 4; j++) {
-      float f = M[j][i] / M[i][i];
+      const float f = M[j][i] / M[i][i];
 
       for (int k = 0; k < 4; k++) {
         M[j][k] -= f * M[i][k];

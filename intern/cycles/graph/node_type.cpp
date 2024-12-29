@@ -99,23 +99,23 @@ void *SocketType::zero_default_value()
 
 ustring SocketType::type_name(Type type)
 {
-  static ustring names[] = {ustring("undefined"),
+  static const ustring names[] = {ustring("undefined"),
 
-                            ustring("boolean"),       ustring("float"),
-                            ustring("int"),           ustring("uint"),
-                            ustring("uint64"),        ustring("color"),
-                            ustring("vector"),        ustring("point"),
-                            ustring("normal"),        ustring("point2"),
-                            ustring("closure"),       ustring("string"),
-                            ustring("enum"),          ustring("transform"),
-                            ustring("node"),
+                                  ustring("boolean"),       ustring("float"),
+                                  ustring("int"),           ustring("uint"),
+                                  ustring("uint64"),        ustring("color"),
+                                  ustring("vector"),        ustring("point"),
+                                  ustring("normal"),        ustring("point2"),
+                                  ustring("closure"),       ustring("string"),
+                                  ustring("enum"),          ustring("transform"),
+                                  ustring("node"),
 
-                            ustring("array_boolean"), ustring("array_float"),
-                            ustring("array_int"),     ustring("array_color"),
-                            ustring("array_vector"),  ustring("array_point"),
-                            ustring("array_normal"),  ustring("array_point2"),
-                            ustring("array_string"),  ustring("array_transform"),
-                            ustring("array_node")};
+                                  ustring("array_boolean"), ustring("array_float"),
+                                  ustring("array_int"),     ustring("array_color"),
+                                  ustring("array_vector"),  ustring("array_point"),
+                                  ustring("array_normal"),  ustring("array_point2"),
+                                  ustring("array_string"),  ustring("array_transform"),
+                                  ustring("array_node")};
 
   constexpr size_t num_names = sizeof(names) / sizeof(*names);
   static_assert(num_names == NUM_TYPES);
@@ -211,7 +211,7 @@ unordered_map<ustring, NodeType> &NodeType::types()
 
 NodeType *NodeType::add(const char *name_, CreateFunc create_, Type type_, const NodeType *base_)
 {
-  ustring name(name_);
+  const ustring name(name_);
 
   if (types().find(name) != types().end()) {
     fprintf(stderr, "Node type %s registered twice!\n", name_);
@@ -229,7 +229,7 @@ NodeType *NodeType::add(const char *name_, CreateFunc create_, Type type_, const
 
 const NodeType *NodeType::find(ustring name)
 {
-  unordered_map<ustring, NodeType>::iterator it = types().find(name);
+  const unordered_map<ustring, NodeType>::iterator it = types().find(name);
   return (it == types().end()) ? nullptr : &it->second;
 }
 

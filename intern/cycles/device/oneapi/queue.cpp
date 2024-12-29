@@ -67,7 +67,7 @@ void OneapiDeviceQueue::init_execution()
 
 bool OneapiDeviceQueue::enqueue(DeviceKernel kernel,
                                 const int signed_kernel_work_size,
-                                DeviceKernelArguments const &_args)
+                                const DeviceKernelArguments &_args)
 {
   if (oneapi_device_->have_error()) {
     return false;

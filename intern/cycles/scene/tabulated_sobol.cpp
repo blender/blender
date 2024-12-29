@@ -17,7 +17,7 @@ void tabulated_sobol_generate_4D(float4 points[], int size, int rng_seed)
    * These permute the order we visit the strata in, which is what
    * makes the code below produce the scrambled Sobol sequence.  Other
    * choices are also possible, but result in different sequences. */
-  static uint xors[4][32] = {
+  static const uint xors[4][32] = {
       {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
       {0x00000000, 0x00000001, 0x00000001, 0x00000007, 0x00000001, 0x00000013, 0x00000015,
@@ -49,13 +49,13 @@ void tabulated_sobol_generate_4D(float4 points[], int size, int rng_seed)
   /* Subdivide the domain into smaller and smaller strata, filling in new
    * points as we go. */
   for (int log_N = 0, N = 1; N < size; log_N++, N *= 2) {
-    float strata_count = (float)(N * 2);
+    const float strata_count = (float)(N * 2);
     for (int i = 0; i < N && (N + i) < size; i++) {
       /* Find the strata that are already occupied in this cell. */
-      uint occupied_x_stratum = (uint)(points[i ^ xors[0][log_N]].x * strata_count);
-      uint occupied_y_stratum = (uint)(points[i ^ xors[1][log_N]].y * strata_count);
-      uint occupied_z_stratum = (uint)(points[i ^ xors[2][log_N]].z * strata_count);
-      uint occupied_w_stratum = (uint)(points[i ^ xors[3][log_N]].w * strata_count);
+      const uint occupied_x_stratum = (uint)(points[i ^ xors[0][log_N]].x * strata_count);
+      const uint occupied_y_stratum = (uint)(points[i ^ xors[1][log_N]].y * strata_count);
+      const uint occupied_z_stratum = (uint)(points[i ^ xors[2][log_N]].z * strata_count);
+      const uint occupied_w_stratum = (uint)(points[i ^ xors[3][log_N]].w * strata_count);
 
       /* Generate a new point in the unoccupied strata. */
       points[N + i].x = ((float)(occupied_x_stratum ^ 1) + hash_hp_float(rng_i++)) / strata_count;

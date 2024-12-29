@@ -18,7 +18,7 @@ CCL_NAMESPACE_BEGIN
  * it. Returns whether a dot was found. */
 static bool split_last_dot(string &in, string &suffix)
 {
-  size_t pos = in.rfind(".");
+  const size_t pos = in.rfind(".");
   if (pos == string::npos) {
     return false;
   }
@@ -99,13 +99,13 @@ bool DenoiseImageLayer::detect_denoising_channels()
   input_to_image_channel.resize(INPUT_NUM_CHANNELS, -1);
 
   for (const ChannelMapping &mapping : input_channels()) {
-    vector<string>::iterator i = find(channels.begin(), channels.end(), mapping.name);
+    const vector<string>::iterator i = find(channels.begin(), channels.end(), mapping.name);
     if (i == channels.end()) {
       return false;
     }
 
-    size_t input_channel = mapping.channel;
-    size_t layer_channel = i - channels.begin();
+    const size_t input_channel = mapping.channel;
+    const size_t layer_channel = i - channels.begin();
     input_to_image_channel[input_channel] = layer_to_image_channel[layer_channel];
   }
 
@@ -114,13 +114,13 @@ bool DenoiseImageLayer::detect_denoising_channels()
   output_to_image_channel.resize(OUTPUT_NUM_CHANNELS, -1);
 
   for (const ChannelMapping &mapping : output_channels()) {
-    vector<string>::iterator i = find(channels.begin(), channels.end(), mapping.name);
+    const vector<string>::iterator i = find(channels.begin(), channels.end(), mapping.name);
     if (i == channels.end()) {
       return false;
     }
 
-    size_t output_channel = mapping.channel;
-    size_t layer_channel = i - channels.begin();
+    const size_t output_channel = mapping.channel;
+    const size_t layer_channel = i - channels.begin();
     output_to_image_channel[output_channel] = layer_to_image_channel[layer_channel];
   }
 
@@ -145,7 +145,7 @@ bool DenoiseImageLayer::match_channels(const std::vector<string> &channelnames,
 
   for (int i = 0; i < output_to_image_channel.size(); i++) {
     const string &channel = channelnames[output_to_image_channel[i]];
-    std::vector<string>::const_iterator frame_channel = find(
+    const std::vector<string>::const_iterator frame_channel = find(
         neighbor_channelnames.begin(), neighbor_channelnames.end(), channel);
 
     if (frame_channel == neighbor_channelnames.end()) {
@@ -175,7 +175,7 @@ DenoiseTask::~DenoiseTask()
 bool DenoiseTask::load_input_pixels(int layer)
 {
   /* Load center image */
-  DenoiseImageLayer &image_layer = image.layers[layer];
+  const DenoiseImageLayer &image_layer = image.layers[layer];
 
   float *buffer_data = buffers.buffer.data();
   image.read_pixels(image_layer, buffers.params, buffer_data);
@@ -205,7 +205,7 @@ static void add_pass(vector<Pass *> &passes, PassType type, PassMode mode = Pass
 
 bool DenoiseTask::load()
 {
-  string center_filepath = denoiser->input[frame];
+  const string center_filepath = denoiser->input[frame];
   if (!image.load(center_filepath, error)) {
     return false;
   }
@@ -275,7 +275,8 @@ bool DenoiseTask::exec()
     /* Copy denoised pixels from device. */
     buffers.buffer.copy_from_device();
 
-    float *result = buffers.buffer.data(), *out = image.pixels.data();
+    float *result = buffers.buffer.data();
+    float *out = image.pixels.data();
 
     const DenoiseImageLayer &layer = image.layers[current_layer];
     const int *output_to_image_channel = layer.output_to_image_channel.data();
@@ -283,8 +284,8 @@ bool DenoiseTask::exec()
     for (int y = 0; y < image.height; y++) {
       for (int x = 0; x < image.width; x++, result += buffers.params.pass_stride) {
         for (int j = 0; j < OUTPUT_NUM_CHANNELS; j++) {
-          int offset = buffers.params.get_pass_offset(PASS_COMBINED, PassMode::DENOISED);
-          int image_channel = output_to_image_channel[j];
+          const int offset = buffers.params.get_pass_offset(PASS_COMBINED, PassMode::DENOISED);
+          const int image_channel = output_to_image_channel[j];
           out[image.num_channels * x + image_channel] = result[offset + j];
         }
       }
@@ -299,7 +300,7 @@ bool DenoiseTask::exec()
 
 bool DenoiseTask::save()
 {
-  bool ok = image.save_output(denoiser->output[frame], error);
+  const bool ok = image.save_output(denoiser->output[frame], error);
   free();
   return ok;
 }
@@ -350,7 +351,9 @@ bool DenoiseImage::parse_channels(const ImageSpec &in_spec, string &error)
    * Channels that can't be parsed are directly passed through to the output. */
   map<string, DenoiseImageLayer> file_layers;
   for (int i = 0; i < channels.size(); i++) {
-    string layer, pass, channel;
+    string layer;
+    string pass;
+    string channel;
     if (parse_channel_name(channels[i], layer, pass, channel, multiview_channels)) {
       file_layers[layer].channels.push_back(pass + "." + channel);
       file_layers[layer].layer_to_image_channel.push_back(i);
@@ -376,7 +379,7 @@ bool DenoiseImage::parse_channels(const ImageSpec &in_spec, string &error)
     /* If the sample value isn't set yet, check if there is a layer-specific one in the input file.
      */
     if (layer.samples < 1) {
-      string sample_string = in_spec.get_string_attribute("cycles." + name + ".samples", "");
+      const string sample_string = in_spec.get_string_attribute("cycles." + name + ".samples", "");
       if (!sample_string.empty()) {
         if (!sscanf(sample_string.c_str(), "%d", &layer.samples)) {
           error = "Failed to parse samples metadata: " + sample_string;
@@ -408,26 +411,26 @@ void DenoiseImage::read_pixels(const DenoiseImageLayer &layer,
 
   for (int i = 0; i < width * height; i++) {
     for (int j = 0; j < 3; ++j) {
-      int offset = params.get_pass_offset(PASS_COMBINED);
-      int image_channel = input_to_image_channel[INPUT_NOISY_IMAGE + j];
+      const int offset = params.get_pass_offset(PASS_COMBINED);
+      const int image_channel = input_to_image_channel[INPUT_NOISY_IMAGE + j];
       input_pixels[i * params.pass_stride + offset + j] =
           pixels[((size_t)i) * num_channels + image_channel];
     }
     for (int j = 0; j < 3; ++j) {
-      int offset = params.get_pass_offset(PASS_DENOISING_NORMAL);
-      int image_channel = input_to_image_channel[INPUT_DENOISING_NORMAL + j];
+      const int offset = params.get_pass_offset(PASS_DENOISING_NORMAL);
+      const int image_channel = input_to_image_channel[INPUT_DENOISING_NORMAL + j];
       input_pixels[i * params.pass_stride + offset + j] =
           pixels[((size_t)i) * num_channels + image_channel];
     }
     for (int j = 0; j < 3; ++j) {
-      int offset = params.get_pass_offset(PASS_DENOISING_ALBEDO);
-      int image_channel = input_to_image_channel[INPUT_DENOISING_ALBEDO + j];
+      const int offset = params.get_pass_offset(PASS_DENOISING_ALBEDO);
+      const int image_channel = input_to_image_channel[INPUT_DENOISING_ALBEDO + j];
       input_pixels[i * params.pass_stride + offset + j] =
           pixels[((size_t)i) * num_channels + image_channel];
     }
     for (int j = 0; j < 4; ++j) {
-      int offset = params.get_pass_offset(PASS_MOTION);
-      int image_channel = input_to_image_channel[INPUT_MOTION + j];
+      const int offset = params.get_pass_offset(PASS_MOTION);
+      const int image_channel = input_to_image_channel[INPUT_MOTION + j];
       input_pixels[i * params.pass_stride + offset + j] =
           pixels[((size_t)i) * num_channels + image_channel];
     }
@@ -453,8 +456,8 @@ bool DenoiseImage::read_previous_pixels(const DenoiseImageLayer &layer,
 
   for (int i = 0; i < width * height; i++) {
     for (int j = 0; j < 3; ++j) {
-      int offset = params.get_pass_offset(PASS_DENOISING_PREVIOUS);
-      int image_channel = output_to_image_channel[j];
+      const int offset = params.get_pass_offset(PASS_DENOISING_PREVIOUS);
+      const int image_channel = output_to_image_channel[j];
       input_pixels[i * params.pass_stride + offset + j] =
           neighbor_pixels[((size_t)i) * num_channels + image_channel];
     }
@@ -490,7 +493,7 @@ bool DenoiseImage::load(const string &in_filepath, string &error)
     return false;
   }
 
-  size_t num_pixels = (size_t)width * (size_t)height;
+  const size_t num_pixels = (size_t)width * (size_t)height;
   pixels.resize(num_pixels * num_channels);
 
   /* Read all channels into buffer. Reading all channels at once is faster
@@ -541,7 +544,7 @@ bool DenoiseImage::save_output(const string &out_filepath, string &error)
 
   /* Ensure that the output frame contains sample information even if the input didn't. */
   for (int i = 0; i < layers.size(); i++) {
-    string name = "cycles." + layers[i].name + ".samples";
+    const string name = "cycles." + layers[i].name + ".samples";
     if (!out_spec.find_attribute(name, TypeDesc::STRING)) {
       out_spec.attribute(name, TypeDesc::STRING, string_printf("%d", layers[i].samples));
     }
@@ -553,9 +556,9 @@ bool DenoiseImage::save_output(const string &out_filepath, string &error)
 
   /* Write to temporary file path, so we denoise images in place and don't
    * risk destroying files when something goes wrong in file saving. */
-  string extension = OIIO::Filesystem::extension(out_filepath);
-  string unique_name = ".denoise-tmp-" + OIIO::Filesystem::unique_path();
-  string tmp_filepath = out_filepath + unique_name + extension;
+  const string extension = OIIO::Filesystem::extension(out_filepath);
+  const string unique_name = ".denoise-tmp-" + OIIO::Filesystem::unique_path();
+  const string tmp_filepath = out_filepath + unique_name + extension;
   unique_ptr<ImageOutput> out(ImageOutput::create(tmp_filepath));
 
   if (!out) {
@@ -628,7 +631,7 @@ bool DenoiserPipeline::run()
 {
   assert(input.size() == output.size());
 
-  int num_frames = output.size();
+  const int num_frames = output.size();
 
   if (!denoiser) {
     error = "Failed to create denoiser";

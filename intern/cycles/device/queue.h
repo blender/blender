@@ -129,7 +129,7 @@ class DeviceQueue {
    * Return false if there was an error executing this or a previous kernel. */
   virtual bool enqueue(DeviceKernel kernel,
                        const int work_size,
-                       DeviceKernelArguments const &args) = 0;
+                       const DeviceKernelArguments &args) = 0;
 
   /* Wait unit all enqueued kernels have finished execution.
    * Return false if there was an error executing any of the enqueued kernels. */

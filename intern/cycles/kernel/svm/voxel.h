@@ -16,7 +16,10 @@ template<uint node_feature_mask>
 ccl_device_noinline int svm_node_tex_voxel(
     KernelGlobals kg, ccl_private ShaderData *sd, ccl_private float *stack, uint4 node, int offset)
 {
-  uint co_offset, density_out_offset, color_out_offset, space;
+  uint co_offset;
+  uint density_out_offset;
+  uint color_out_offset;
+  uint space;
   svm_unpack_node_uchar4(node.z, &co_offset, &density_out_offset, &color_out_offset, &space);
 
   float4 r = zero_float4();
@@ -24,7 +27,7 @@ ccl_device_noinline int svm_node_tex_voxel(
 #ifdef __VOLUME__
   IF_KERNEL_NODES_FEATURE(VOLUME)
   {
-    int id = node.y;
+    const int id = node.y;
     float3 co = stack_load_float3(stack, co_offset);
     if (space == NODE_TEX_VOXEL_SPACE_OBJECT) {
       co = volume_normalized_position(kg, sd, co);

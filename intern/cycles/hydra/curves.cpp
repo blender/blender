@@ -109,7 +109,7 @@ void HdCyclesCurves::PopulatePoints(HdSceneDelegate *sceneDelegate)
 
 void HdCyclesCurves::PopulateWidths(HdSceneDelegate *sceneDelegate)
 {
-  VtValue value = GetPrimvar(sceneDelegate, HdTokens->widths);
+  const VtValue value = GetPrimvar(sceneDelegate, HdTokens->widths);
   const HdInterpolation interpolation = GetPrimvarInterpolation(sceneDelegate, HdTokens->widths);
 
   if (!value.IsHolding<VtFloatArray>()) {
@@ -162,7 +162,7 @@ void HdCyclesCurves::PopulatePrimvars(HdSceneDelegate *sceneDelegate)
         continue;
       }
 
-      VtValue value = GetPrimvar(sceneDelegate, desc.name);
+      const VtValue value = GetPrimvar(sceneDelegate, desc.name);
       if (value.IsEmpty()) {
         continue;
       }
@@ -197,7 +197,7 @@ void HdCyclesCurves::PopulateTopology(HdSceneDelegate *sceneDelegate)
   // Clear geometry before populating it again with updated topology
   _geom->clear(true);
 
-  HdBasisCurvesTopology topology = GetBasisCurvesTopology(sceneDelegate);
+  const HdBasisCurvesTopology topology = GetBasisCurvesTopology(sceneDelegate);
 
   _geom->reserve_curves(topology.GetNumCurves(), topology.CalculateNeededNumberOfControlPoints());
 

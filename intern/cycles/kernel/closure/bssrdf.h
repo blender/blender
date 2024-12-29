@@ -29,7 +29,7 @@ static_assert(sizeof(ShaderClosure) >= sizeof(Bssrdf), "Bssrdf is too large!");
 
 ccl_device float bssrdf_dipole_compute_Rd(float alpha_prime, float fourthirdA)
 {
-  float s = sqrtf(3.0f * (1.0f - alpha_prime));
+  const float s = sqrtf(3.0f * (1.0f - alpha_prime));
   return 0.5f * alpha_prime * (1.0f + expf(-fourthirdA * s)) * expf(-s);
 }
 
@@ -45,7 +45,8 @@ ccl_device float bssrdf_dipole_compute_alpha_prime(float rd, float fourthirdA)
 
   float x0 = 0.0f;
   float x1 = 1.0f;
-  float xmid, fmid;
+  float xmid;
+  float fmid;
 
   constexpr const int max_num_iterations = 12;
   for (int i = 0; i < max_num_iterations; ++i) {
@@ -141,8 +142,8 @@ ccl_device float bssrdf_burley_eval(const float d, float r)
    * - This is normalized diffuse model, so the equation is multiplied
    *   by `2*pi`, which also matches `cdf()`.
    */
-  float exp_r_3_d = expf(-r / (3.0f * d));
-  float exp_r_d = exp_r_3_d * exp_r_3_d * exp_r_3_d;
+  const float exp_r_3_d = expf(-r / (3.0f * d));
+  const float exp_r_d = exp_r_3_d * exp_r_3_d * exp_r_3_d;
   return (exp_r_d + exp_r_3_d) / (4.0f * d);
 }
 
@@ -178,10 +179,10 @@ ccl_device_forceinline float bssrdf_burley_root_find(float xi)
   }
   /* Solve against scaled radius. */
   for (int i = 0; i < max_iteration_count; i++) {
-    float exp_r_3 = expf(-r / 3.0f);
-    float exp_r = exp_r_3 * exp_r_3 * exp_r_3;
-    float f = 1.0f - 0.25f * exp_r - 0.75f * exp_r_3 - xi;
-    float f_ = 0.25f * exp_r + 0.25f * exp_r_3;
+    const float exp_r_3 = expf(-r / 3.0f);
+    const float exp_r = exp_r_3 * exp_r_3 * exp_r_3;
+    const float f = 1.0f - 0.25f * exp_r - 0.75f * exp_r_3 - xi;
+    const float f_ = 0.25f * exp_r + 0.25f * exp_r_3;
 
     if (fabsf(f) < tolerance || f_ == 0.0f) {
       break;
@@ -260,7 +261,7 @@ ccl_device_forceinline Spectrum bssrdf_eval(const Spectrum radius, float r)
 
 ccl_device_forceinline float bssrdf_pdf(const Spectrum radius, float r)
 {
-  Spectrum pdf = bssrdf_eval(radius, r);
+  const Spectrum pdf = bssrdf_eval(radius, r);
   return reduce_add(pdf) / bssrdf_num_channels(radius);
 }
 
@@ -268,7 +269,7 @@ ccl_device_forceinline float bssrdf_pdf(const Spectrum radius, float r)
 
 ccl_device_inline ccl_private Bssrdf *bssrdf_alloc(ccl_private ShaderData *sd, Spectrum weight)
 {
-  float sample_weight = fabsf(average(weight));
+  const float sample_weight = fabsf(average(weight));
   if (sample_weight < CLOSURE_WEIGHT_CUTOFF) {
     return nullptr;
   }

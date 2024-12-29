@@ -21,7 +21,7 @@ HIPRTDeviceQueue::HIPRTDeviceQueue(HIPRTDevice *device)
 
 bool HIPRTDeviceQueue::enqueue(DeviceKernel kernel,
                                const int work_size,
-                               DeviceKernelArguments const &args)
+                               const DeviceKernelArguments &args)
 {
   if (hiprt_device_->have_error()) {
     return false;

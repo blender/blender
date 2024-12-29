@@ -24,8 +24,8 @@ ccl_device_noinline int svm_node_tex_coord(KernelGlobals kg,
                                            int offset)
 {
   float3 data = zero_float3();
-  uint type = node.y;
-  uint out_offset = node.z;
+  const uint type = node.y;
+  const uint out_offset = node.z;
 
   switch ((NodeTexCoord)type) {
     case NODE_TEXCO_OBJECT: {
@@ -50,7 +50,7 @@ ccl_device_noinline int svm_node_tex_coord(KernelGlobals kg,
       break;
     }
     case NODE_TEXCO_CAMERA: {
-      Transform tfm = kernel_data.cam.worldtocamera;
+      const Transform tfm = kernel_data.cam.worldtocamera;
 
       if (sd->object != OBJECT_NONE) {
         data = transform_point(&tfm, sd->P);
@@ -114,8 +114,8 @@ ccl_device_noinline int svm_node_tex_coord_bump_dx(KernelGlobals kg,
 {
 #ifdef __RAY_DIFFERENTIALS__
   float3 data = zero_float3();
-  uint type = node.y;
-  uint out_offset = node.z;
+  const uint type = node.y;
+  const uint out_offset = node.z;
 
   switch ((NodeTexCoord)type) {
     case NODE_TEXCO_OBJECT: {
@@ -140,7 +140,7 @@ ccl_device_noinline int svm_node_tex_coord_bump_dx(KernelGlobals kg,
       break;
     }
     case NODE_TEXCO_CAMERA: {
-      Transform tfm = kernel_data.cam.worldtocamera;
+      const Transform tfm = kernel_data.cam.worldtocamera;
 
       if (sd->object != OBJECT_NONE) {
         data = transform_point(&tfm, svm_node_bump_P_dx(sd));
@@ -207,8 +207,8 @@ ccl_device_noinline int svm_node_tex_coord_bump_dy(KernelGlobals kg,
 {
 #ifdef __RAY_DIFFERENTIALS__
   float3 data = zero_float3();
-  uint type = node.y;
-  uint out_offset = node.z;
+  const uint type = node.y;
+  const uint out_offset = node.z;
 
   switch ((NodeTexCoord)type) {
     case NODE_TEXCO_OBJECT: {
@@ -233,7 +233,7 @@ ccl_device_noinline int svm_node_tex_coord_bump_dy(KernelGlobals kg,
       break;
     }
     case NODE_TEXCO_CAMERA: {
-      Transform tfm = kernel_data.cam.worldtocamera;
+      const Transform tfm = kernel_data.cam.worldtocamera;
 
       if (sd->object != OBJECT_NONE) {
         data = transform_point(&tfm, svm_node_bump_P_dy(sd));
@@ -296,13 +296,16 @@ ccl_device_noinline void svm_node_normal_map(KernelGlobals kg,
                                              ccl_private float *stack,
                                              uint4 node)
 {
-  uint color_offset, strength_offset, normal_offset, space;
+  uint color_offset;
+  uint strength_offset;
+  uint normal_offset;
+  uint space;
   svm_unpack_node_uchar4(node.y, &color_offset, &strength_offset, &normal_offset, &space);
 
   float3 color = stack_load_float3(stack, color_offset);
   color = 2.0f * make_float3(color.x - 0.5f, color.y - 0.5f, color.z - 0.5f);
 
-  bool is_backfacing = (sd->flag & SD_BACKFACING) != 0;
+  const bool is_backfacing = (sd->flag & SD_BACKFACING) != 0;
   float3 N;
   float strength = stack_load_float(stack, strength_offset);
   if (space == NODE_NORMAL_MAP_TANGENT) {
@@ -324,8 +327,8 @@ ccl_device_noinline void svm_node_normal_map(KernelGlobals kg,
     }
 
     /* get _unnormalized_ interpolated normal and tangent */
-    float3 tangent = primitive_surface_attribute_float3(kg, sd, attr, nullptr, nullptr);
-    float sign = primitive_surface_attribute_float(kg, sd, attr_sign, nullptr, nullptr);
+    const float3 tangent = primitive_surface_attribute_float3(kg, sd, attr, nullptr, nullptr);
+    const float sign = primitive_surface_attribute_float(kg, sd, attr_sign, nullptr, nullptr);
     float3 normal;
 
     if (sd->shader & SHADER_SMOOTH_NORMAL) {
@@ -347,7 +350,7 @@ ccl_device_noinline void svm_node_normal_map(KernelGlobals kg,
     color.z = mix(1.0f, color.z, saturatef(strength));
 
     /* apply normal map */
-    float3 B = sign * cross(normal, tangent);
+    const float3 B = sign * cross(normal, tangent);
     N = safe_normalize(to_global(color, tangent, B, normal));
 
     /* transform to world space */
@@ -399,7 +402,9 @@ ccl_device_noinline void svm_node_tangent(KernelGlobals kg,
                                           ccl_private float *stack,
                                           uint4 node)
 {
-  uint tangent_offset, direction_type, axis;
+  uint tangent_offset;
+  uint direction_type;
+  uint axis;
   svm_unpack_node_uchar3(node.y, &tangent_offset, &direction_type, &axis);
 
   float3 tangent;
@@ -407,7 +412,7 @@ ccl_device_noinline void svm_node_tangent(KernelGlobals kg,
   const AttributeDescriptor desc = find_attribute(kg, sd, node.z);
   if (desc.offset != ATTR_STD_NOT_FOUND) {
     if (desc.type == NODE_ATTR_FLOAT2) {
-      float2 value = primitive_surface_attribute_float2(kg, sd, desc, nullptr, nullptr);
+      const float2 value = primitive_surface_attribute_float2(kg, sd, desc, nullptr, nullptr);
       attribute_value.x = value.x;
       attribute_value.y = value.y;
       attribute_value.z = 0.0f;

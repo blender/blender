@@ -59,7 +59,7 @@ bool BlenderSync::object_is_geometry(BObjectInfo &b_ob_info)
     return false;
   }
 
-  BL::Object::type_enum type = b_ob_info.iter_object.type();
+  const BL::Object::type_enum type = b_ob_info.iter_object.type();
 
   if (type == BL::Object::type_VOLUME || type == BL::Object::type_CURVES ||
       type == BL::Object::type_POINTCLOUD)
@@ -73,7 +73,7 @@ bool BlenderSync::object_is_geometry(BObjectInfo &b_ob_info)
 
 bool BlenderSync::object_can_have_geometry(BL::Object &b_ob)
 {
-  BL::Object::type_enum type = b_ob.type();
+  const BL::Object::type_enum type = b_ob.type();
   switch (type) {
     case BL::Object::type_MESH:
     case BL::Object::type_CURVE:
@@ -118,7 +118,7 @@ void BlenderSync::sync_object_motion_init(BL::Object &b_parent, BL::Object &b_ob
   int motion_steps = 0;
   bool use_motion_blur = false;
 
-  Scene::MotionType need_motion = scene->need_motion();
+  const Scene::MotionType need_motion = scene->need_motion();
   if (need_motion == Scene::MOTION_BLUR) {
     motion_steps = object_motion_steps(b_parent, b_ob, Object::MAX_MOTION_STEPS);
     if (motion_steps && object_use_deform_motion(b_parent, b_ob)) {
@@ -214,7 +214,7 @@ Object *BlenderSync::sync_object(BL::Depsgraph &b_depsgraph,
 
   /* Visibility flags for both parent and child. */
   PointerRNA cobject = RNA_pointer_get(&b_ob.ptr, "cycles");
-  bool use_holdout = b_parent.holdout_get(PointerRNA_NULL, b_view_layer);
+  const bool use_holdout = b_parent.holdout_get(PointerRNA_NULL, b_view_layer);
   uint visibility = object_ray_visibility(b_ob) & PATH_RAY_ALL_VISIBILITY;
 
   if (b_parent.ptr.data != b_ob.ptr.data) {
@@ -229,8 +229,8 @@ Object *BlenderSync::sync_object(BL::Depsgraph &b_depsgraph,
 #endif
 
   /* Clear camera visibility for indirect only objects. */
-  bool use_indirect_only = !use_holdout &&
-                           b_parent.indirect_only_get(PointerRNA_NULL, b_view_layer);
+  const bool use_indirect_only = !use_holdout &&
+                                 b_parent.indirect_only_get(PointerRNA_NULL, b_view_layer);
   if (use_indirect_only) {
     visibility &= ~PATH_RAY_CAMERA;
   }
@@ -245,7 +245,7 @@ Object *BlenderSync::sync_object(BL::Depsgraph &b_depsgraph,
   TaskPool *object_geom_task_pool = (is_instance) ? nullptr : geom_task_pool;
 
   /* key to lookup object */
-  ObjectKey key(b_parent, persistent_id, b_ob_info.real_object, use_particle_hair);
+  const ObjectKey key(b_parent, persistent_id, b_ob_info.real_object, use_particle_hair);
   Object *object;
 
   /* motion vector case */
@@ -254,7 +254,7 @@ Object *BlenderSync::sync_object(BL::Depsgraph &b_depsgraph,
 
     if (object && object->use_motion()) {
       /* Set transform at matching motion time step. */
-      int time_index = object->motion_step(motion_time);
+      const int time_index = object->motion_step(motion_time);
       if (time_index >= 0) {
         array<Transform> motion = object->get_motion();
         motion[time_index] = tfm;
@@ -293,11 +293,11 @@ Object *BlenderSync::sync_object(BL::Depsgraph &b_depsgraph,
 
   object->set_is_shadow_catcher(b_ob.is_shadow_catcher() || b_parent.is_shadow_catcher());
 
-  float shadow_terminator_shading_offset = get_float(cobject, "shadow_terminator_offset");
+  const float shadow_terminator_shading_offset = get_float(cobject, "shadow_terminator_offset");
   object->set_shadow_terminator_shading_offset(shadow_terminator_shading_offset);
 
-  float shadow_terminator_geometry_offset = get_float(cobject,
-                                                      "shadow_terminator_geometry_offset");
+  const float shadow_terminator_geometry_offset = get_float(cobject,
+                                                            "shadow_terminator_geometry_offset");
   object->set_shadow_terminator_geometry_offset(shadow_terminator_geometry_offset);
 
   float ao_distance = get_float(cobject, "ao_distance");
@@ -307,10 +307,10 @@ Object *BlenderSync::sync_object(BL::Depsgraph &b_depsgraph,
   }
   object->set_ao_distance(ao_distance);
 
-  bool is_caustics_caster = get_boolean(cobject, "is_caustics_caster");
+  const bool is_caustics_caster = get_boolean(cobject, "is_caustics_caster");
   object->set_is_caustics_caster(is_caustics_caster);
 
-  bool is_caustics_receiver = get_boolean(cobject, "is_caustics_receiver");
+  const bool is_caustics_receiver = get_boolean(cobject, "is_caustics_receiver");
   object->set_is_caustics_receiver(is_caustics_receiver);
 
   object->set_is_bake_target(b_ob_info.real_object == b_bake_target);
@@ -419,16 +419,16 @@ bool BlenderSync::sync_object_attributes(BL::DepsgraphObjectInstance &b_instance
   }
 
   /* Update attribute values. */
-  for (AttributeRequest &req : requests.requests) {
-    ustring name = req.name;
+  for (const AttributeRequest &req : requests.requests) {
+    const ustring name = req.name;
 
     std::string real_name;
-    BlenderAttributeType type = blender_attribute_name_split_type(name, &real_name);
+    const BlenderAttributeType type = blender_attribute_name_split_type(name, &real_name);
 
     if (type == BL::ShaderNodeAttribute::attribute_type_OBJECT ||
         type == BL::ShaderNodeAttribute::attribute_type_INSTANCER)
     {
-      bool use_instancer = (type == BL::ShaderNodeAttribute::attribute_type_INSTANCER);
+      const bool use_instancer = (type == BL::ShaderNodeAttribute::attribute_type_INSTANCER);
       float4 value = lookup_instance_property(b_instance, real_name, use_instancer);
 
       /* Try finding the existing attribute value. */
@@ -442,7 +442,7 @@ bool BlenderSync::sync_object_attributes(BL::DepsgraphObjectInstance &b_instance
       }
 
       /* Replace or add the value. */
-      ParamValue new_param(name, TypeFloat4, 1, &value);
+      const ParamValue new_param(name, TypeFloat4, 1, &value);
       assert(new_param.datasize() == sizeof(value));
 
       if (!param) {
@@ -514,7 +514,7 @@ void BlenderSync::sync_procedural(BL::Object &b_ob,
   procedural->set_prefetch_cache_size(cache_file.prefetch_cache_size());
 
   /* create or update existing AlembicObjects */
-  ustring object_path = ustring(b_mesh_cache.object_path());
+  const ustring object_path = ustring(b_mesh_cache.object_path());
 
   AlembicObject *abc_object = procedural->get_or_create_object(object_path);
 
@@ -546,7 +546,7 @@ void BlenderSync::sync_objects(BL::Depsgraph &b_depsgraph,
   TaskPool geom_task_pool;
 
   /* layer data */
-  bool motion = motion_time != 0.0f;
+  const bool motion = motion_time != 0.0f;
 
   if (!motion) {
     /* prepare for sync */
@@ -685,14 +685,14 @@ void BlenderSync::sync_motion(BL::RenderSettings &b_render,
     b_cam = b_override;
   }
 
-  int frame_center = b_scene.frame_current();
-  float subframe_center = b_scene.frame_subframe();
+  const int frame_center = b_scene.frame_current();
+  const float subframe_center = b_scene.frame_subframe();
   float frame_center_delta = 0.0f;
 
   if (scene->need_motion() != Scene::MOTION_PASS &&
       scene->camera->get_motion_position() != MOTION_POSITION_CENTER)
   {
-    float shuttertime = scene->camera->get_shuttertime();
+    const float shuttertime = scene->camera->get_shuttertime();
     if (scene->camera->get_motion_position() == MOTION_POSITION_END) {
       frame_center_delta = -shuttertime * 0.5f;
     }
@@ -701,9 +701,9 @@ void BlenderSync::sync_motion(BL::RenderSettings &b_render,
       frame_center_delta = shuttertime * 0.5f;
     }
 
-    float time = frame_center + subframe_center + frame_center_delta;
-    int frame = (int)floorf(time);
-    float subframe = time - frame;
+    const float time = frame_center + subframe_center + frame_center_delta;
+    const int frame = (int)floorf(time);
+    const float subframe = time - frame;
     python_thread_state_restore(python_thread_state);
     b_engine.frame_set(frame, subframe);
     python_thread_state_save(python_thread_state);
@@ -716,7 +716,7 @@ void BlenderSync::sync_motion(BL::RenderSettings &b_render,
   /* Insert motion times from camera. Motion times from other objects
    * have already been added in a sync_objects call. */
   if (b_cam) {
-    uint camera_motion_steps = object_motion_steps(b_cam, b_cam);
+    const uint camera_motion_steps = object_motion_steps(b_cam, b_cam);
     for (size_t step = 0; step < camera_motion_steps; step++) {
       motion_times.insert(scene->camera->motion_time(step));
     }
@@ -731,7 +731,7 @@ void BlenderSync::sync_motion(BL::RenderSettings &b_render,
   }
 
   /* note iteration over motion_times set happens in sorted order */
-  for (float relative_time : motion_times) {
+  for (const float relative_time : motion_times) {
     /* center time is already handled. */
     if (relative_time == 0.0f) {
       continue;
@@ -740,13 +740,13 @@ void BlenderSync::sync_motion(BL::RenderSettings &b_render,
     VLOG_WORK << "Synchronizing motion for the relative time " << relative_time << ".";
 
     /* fixed shutter time to get previous and next frame for motion pass */
-    float shuttertime = scene->motion_shutter_time();
+    const float shuttertime = scene->motion_shutter_time();
 
     /* compute frame and subframe time */
-    float time = frame_center + subframe_center + frame_center_delta +
-                 relative_time * shuttertime * 0.5f;
-    int frame = (int)floorf(time);
-    float subframe = time - frame;
+    const float time = frame_center + subframe_center + frame_center_delta +
+                       relative_time * shuttertime * 0.5f;
+    const int frame = (int)floorf(time);
+    const float subframe = time - frame;
 
     /* change frame */
     python_thread_state_restore(python_thread_state);

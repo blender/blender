@@ -21,7 +21,7 @@ CCL_NAMESPACE_BEGIN
 struct KernelGlobalsGPU {
   int unused[1];
 };
-using KernelGlobals = ccl_global const KernelGlobalsGPU *ccl_restrict;
+using KernelGlobals = const ccl_global KernelGlobalsGPU *ccl_restrict;
 
 struct KernelParamsCUDA {
   /* Global scene data and textures */

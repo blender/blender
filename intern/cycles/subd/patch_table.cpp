@@ -76,7 +76,7 @@ static void build_patch_map(PackedPatchTable &table,
   int num_faces = 0;
 
   for (int array = 0; array < table.num_arrays; array++) {
-    Far::ConstPatchParamArray params = patch_table->GetPatchParams(array);
+    const Far::ConstPatchParamArray params = patch_table->GetPatchParams(array);
 
     for (int j = 0; j < patch_table->GetNumPatches(array); j++) {
       num_faces = max(num_faces, (int)params[j].GetFaceId());
@@ -94,12 +94,12 @@ static void build_patch_map(PackedPatchTable &table,
 
   /* populate the quadtree from the FarPatchArrays sub-patches */
   for (int array = 0; array < table.num_arrays; array++) {
-    Far::ConstPatchParamArray params = patch_table->GetPatchParams(array);
+    const Far::ConstPatchParamArray params = patch_table->GetPatchParams(array);
 
     for (int i = 0; i < patch_table->GetNumPatches(array); i++, handle_index += PATCH_HANDLE_SIZE)
     {
       const Far::PatchParam &param = params[i];
-      unsigned short depth = param.GetDepth();
+      const unsigned short depth = param.GetDepth();
 
       PatchMapQuadNode *node = &quadtree[params[i].GetFaceId()];
 
@@ -111,13 +111,13 @@ static void build_patch_map(PackedPatchTable &table,
 
       int u = param.GetU();
       int v = param.GetV();
-      int pdepth = param.NonQuadRoot() ? depth - 2 : depth - 1;
+      const int pdepth = param.NonQuadRoot() ? depth - 2 : depth - 1;
       int half = 1 << pdepth;
 
       for (int j = 0; j < depth; j++) {
-        int delta = half >> 1;
+        const int delta = half >> 1;
 
-        int quadrant = resolve_quadrant(half, u, v);
+        const int quadrant = resolve_quadrant(half, u, v);
         assert(quadrant >= 0);
 
         half = delta;
@@ -133,14 +133,14 @@ static void build_patch_map(PackedPatchTable &table,
           /* create a new branch in the quadrant */
           quadtree.push_back(PatchMapQuadNode());
 
-          int idx = (int)quadtree.size() - 1;
+          const int idx = (int)quadtree.size() - 1;
           node->set_child(quadrant, idx * 4 + offset, false);
 
           node = &quadtree[idx];
         }
         else {
           /* travel down an existing branch */
-          uint idx = node->children[quadrant] & PATCH_MAP_NODE_INDEX_MASK;
+          const uint idx = node->children[quadrant] & PATCH_MAP_NODE_INDEX_MASK;
           node = &(quadtree[(idx - offset) / 4]);
         }
       }
@@ -149,7 +149,7 @@ static void build_patch_map(PackedPatchTable &table,
 
   /* copy into table */
   assert(table.table.size() == table.total_size());
-  uint map_offset = table.total_size();
+  const uint map_offset = table.total_size();
 
   table.num_nodes = quadtree.size() * 4;
   table.table.resize(table.total_size());
@@ -185,8 +185,8 @@ void PackedPatchTable::pack(Far::PatchTable *patch_table, int offset)
   num_arrays = patch_table->GetNumPatchArrays();
 
   for (int i = 0; i < num_arrays; i++) {
-    int patches = patch_table->GetNumPatches(i);
-    int num_control = patch_table->GetPatchArrayDescriptor(i).GetNumControlVertices();
+    const int patches = patch_table->GetNumPatches(i);
+    const int num_control = patch_table->GetPatchArrayDescriptor(i).GetNumControlVertices();
 
     num_patches += patches;
     num_indices += patches * num_control;
@@ -208,7 +208,7 @@ void PackedPatchTable::pack(Far::PatchTable *patch_table, int offset)
     *(array++) = (index - data) + offset;
     *(array++) = (param - data) + offset;
 
-    Far::ConstIndexArray indices = patch_table->GetPatchArrayVertices(i);
+    const Far::ConstIndexArray indices = patch_table->GetPatchArrayVertices(i);
 
     for (int j = 0; j < indices.size(); j++) {
       *(index++) = indices[j];
@@ -216,8 +216,8 @@ void PackedPatchTable::pack(Far::PatchTable *patch_table, int offset)
 
     const Far::PatchParamTable &param_table = patch_table->GetPatchParamTable();
 
-    int num_control = patch_table->GetPatchArrayDescriptor(i).GetNumControlVertices();
-    int patches = patch_table->GetNumPatches(i);
+    const int num_control = patch_table->GetPatchArrayDescriptor(i).GetNumControlVertices();
+    const int patches = patch_table->GetNumPatches(i);
 
     for (int j = 0; j < patches; j++, current_param++) {
       *(param++) = param_table[current_param].field0;

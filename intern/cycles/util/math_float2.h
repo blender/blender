@@ -48,7 +48,7 @@ ccl_device_inline float2 operator/(float f, const float2 a)
 
 ccl_device_inline float2 operator/(const float2 a, float f)
 {
-  float invf = 1.0f / f;
+  const float invf = 1.0f / f;
   return make_float2(a.x * invf, a.y * invf);
 }
 
@@ -99,7 +99,7 @@ ccl_device_inline float2 operator/=(float2 &a, const float2 b)
 
 ccl_device_inline float2 operator/=(float2 &a, float f)
 {
-  float invf = 1.0f / f;
+  const float invf = 1.0f / f;
   return a = a * invf;
 }
 
@@ -165,7 +165,7 @@ ccl_device_inline float len_squared(const float2 a)
 
 ccl_device_inline float2 safe_normalize(const float2 a)
 {
-  float t = len(a);
+  const float t = len(a);
   return (t != 0.0f) ? a / t : a;
 }
 

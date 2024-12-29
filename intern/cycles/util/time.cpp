@@ -47,7 +47,7 @@ double time_dt()
 void time_sleep(double t)
 {
   /* get whole seconds */
-  int s = (int)t;
+  const int s = (int)t;
 
   if (s >= 1) {
     sleep(s);
@@ -57,7 +57,7 @@ void time_sleep(double t)
   }
 
   /* get microseconds */
-  int us = (int)(t * 1e6);
+  const int us = (int)(t * 1e6);
   if (us > 0) {
     usleep(us);
   }

@@ -111,7 +111,7 @@ void HdCyclesPoints::PopulatePoints(HdSceneDelegate *sceneDelegate)
 
 void HdCyclesPoints::PopulateWidths(HdSceneDelegate *sceneDelegate)
 {
-  VtValue value = GetPrimvar(sceneDelegate, HdTokens->widths);
+  const VtValue value = GetPrimvar(sceneDelegate, HdTokens->widths);
   const HdInterpolation interpolation = GetPrimvarInterpolation(sceneDelegate, HdTokens->widths);
 
   if (!value.IsHolding<VtFloatArray>()) {
@@ -162,7 +162,7 @@ void HdCyclesPoints::PopulatePrimvars(HdSceneDelegate *sceneDelegate)
         continue;
       }
 
-      VtValue value = GetPrimvar(sceneDelegate, desc.name);
+      const VtValue value = GetPrimvar(sceneDelegate, desc.name);
       if (value.IsEmpty()) {
         continue;
       }

@@ -38,14 +38,15 @@ static void attr_create_motion_from_velocity(PointCloud *pointcloud,
   }
 
   /* Only export previous and next frame, we don't have any in between data. */
-  float motion_times[2] = {-1.0f, 1.0f};
+  const float motion_times[2] = {-1.0f, 1.0f};
   for (int step = 0; step < 2; step++) {
     const float relative_time = motion_times[step] * 0.5f * motion_scale;
     float4 *mP = attr_mP->data_float4() + step * num_points;
 
     for (int i = 0; i < num_points; i++) {
-      float3 Pi = P[i] + make_float3(b_attribute[i][0], b_attribute[i][1], b_attribute[i][2]) *
-                             relative_time;
+      const float3 Pi = P[i] +
+                        make_float3(b_attribute[i][0], b_attribute[i][1], b_attribute[i][2]) *
+                            relative_time;
       mP[i] = make_float4(Pi, radius[i]);
     }
   }
@@ -185,7 +186,7 @@ static void export_pointcloud_motion(PointCloud *pointcloud,
 
 void BlenderSync::sync_pointcloud(PointCloud *pointcloud, BObjectInfo &b_ob_info)
 {
-  size_t old_numpoints = pointcloud->num_points();
+  const size_t old_numpoints = pointcloud->num_points();
 
   array<Node *> used_shaders = pointcloud->get_used_shaders();
 
@@ -193,7 +194,7 @@ void BlenderSync::sync_pointcloud(PointCloud *pointcloud, BObjectInfo &b_ob_info
   new_pointcloud.set_used_shaders(used_shaders);
 
   /* TODO: add option to filter out points in the view layer. */
-  BL::PointCloud b_pointcloud(b_ob_info.object_data);
+  const BL::PointCloud b_pointcloud(b_ob_info.object_data);
   /* Motion blur attribute is relative to seconds, we need it relative to frames. */
   const bool need_motion = object_need_motion_attribute(b_ob_info, scene);
   const float motion_scale = (need_motion) ?
@@ -239,7 +240,7 @@ void BlenderSync::sync_pointcloud_motion(PointCloud *pointcloud,
   /* Export deformed coordinates. */
   if (ccl::BKE_object_is_deform_modified(b_ob_info, b_scene, preview)) {
     /* PointCloud object. */
-    BL::PointCloud b_pointcloud(b_ob_info.object_data);
+    const BL::PointCloud b_pointcloud(b_ob_info.object_data);
     export_pointcloud_motion(
         pointcloud, *static_cast<const ::PointCloud *>(b_pointcloud.ptr.data), motion_step);
   }

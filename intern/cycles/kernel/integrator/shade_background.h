@@ -67,7 +67,7 @@ ccl_device_inline void integrate_background(KernelGlobals kg,
   bool eval_background = true;
   float transparent = 0.0f;
 
-  int path_flag = INTEGRATOR_STATE(state, path, flag);
+  const int path_flag = INTEGRATOR_STATE(state, path, flag);
   const bool is_transparent_background_ray = kernel_data.background.transparent &&
                                              (path_flag & PATH_RAY_TRANSPARENT_BACKGROUND);
 
@@ -166,7 +166,7 @@ ccl_device_inline void integrate_distant_lights(KernelGlobals kg,
       /* TODO: does aliasing like this break automatic SoA in CUDA? */
       ShaderDataTinyStorage emission_sd_storage;
       ccl_private ShaderData *emission_sd = AS_SHADER_DATA(&emission_sd_storage);
-      Spectrum light_eval = light_sample_shader_eval(kg, state, emission_sd, &ls, ray_time);
+      const Spectrum light_eval = light_sample_shader_eval(kg, state, emission_sd, &ls, ray_time);
       if (is_zero(light_eval)) {
         continue;
       }

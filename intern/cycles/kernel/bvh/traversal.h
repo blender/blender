@@ -22,7 +22,7 @@
  */
 
 ccl_device_noinline bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals kg,
-                                                     ccl_private const Ray *ray,
+                                                     const ccl_private Ray *ray,
                                                      ccl_private Intersection *isect,
                                                      const uint visibility)
 {
@@ -260,7 +260,7 @@ ccl_device_noinline bool BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals kg,
 }
 
 ccl_device_inline bool BVH_FUNCTION_NAME(KernelGlobals kg,
-                                         ccl_private const Ray *ray,
+                                         const ccl_private Ray *ray,
                                          ccl_private Intersection *isect,
                                          const uint visibility)
 {

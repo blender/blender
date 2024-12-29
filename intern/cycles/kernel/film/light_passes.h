@@ -23,7 +23,7 @@ CCL_NAMESPACE_BEGIN
  * them separately. */
 
 ccl_device_inline void bsdf_eval_init(ccl_private BsdfEval *eval,
-                                      ccl_private const ShaderClosure *sc,
+                                      const ccl_private ShaderClosure *sc,
                                       const float3 wo,
                                       Spectrum value)
 {
@@ -54,7 +54,7 @@ ccl_device_inline void bsdf_eval_init(ccl_private BsdfEval *eval, Spectrum value
 }
 
 ccl_device_inline void bsdf_eval_accum(ccl_private BsdfEval *eval,
-                                       ccl_private const ShaderClosure *sc,
+                                       const ccl_private ShaderClosure *sc,
                                        const float3 wo,
                                        Spectrum value)
 {
@@ -97,19 +97,19 @@ ccl_device_inline void bsdf_eval_mul(ccl_private BsdfEval *eval, Spectrum value)
   eval->sum *= value;
 }
 
-ccl_device_inline Spectrum bsdf_eval_sum(ccl_private const BsdfEval *eval)
+ccl_device_inline Spectrum bsdf_eval_sum(const ccl_private BsdfEval *eval)
 {
   return eval->sum;
 }
 
-ccl_device_inline Spectrum bsdf_eval_pass_diffuse_weight(ccl_private const BsdfEval *eval)
+ccl_device_inline Spectrum bsdf_eval_pass_diffuse_weight(const ccl_private BsdfEval *eval)
 {
   /* Ratio of diffuse weight to recover proportions for writing to render pass.
    * We assume reflection, transmission and volume scatter to be exclusive. */
   return safe_divide(eval->diffuse, eval->sum);
 }
 
-ccl_device_inline Spectrum bsdf_eval_pass_glossy_weight(ccl_private const BsdfEval *eval)
+ccl_device_inline Spectrum bsdf_eval_pass_glossy_weight(const ccl_private BsdfEval *eval)
 {
   /* Ratio of glossy weight to recover proportions for writing to render pass.
    * We assume reflection, transmission and volume scatter to be exclusive. */
@@ -136,9 +136,9 @@ ccl_device_forceinline void film_clamp_light(KernelGlobals kg, ccl_private Spect
   *L = ensure_finite(*L);
 
 #ifdef __CLAMP_SAMPLE__
-  float limit = (bounce > 0) ? kernel_data.integrator.sample_clamp_indirect :
-                               kernel_data.integrator.sample_clamp_direct;
-  float sum = reduce_add(fabs(*L));
+  const float limit = (bounce > 0) ? kernel_data.integrator.sample_clamp_indirect :
+                                     kernel_data.integrator.sample_clamp_direct;
+  const float sum = reduce_add(fabs(*L));
   if (sum > limit) {
     *L *= limit / sum;
   }

@@ -152,7 +152,7 @@ ccl_device_inline bool operator==(const vfloat8 a, const vfloat8 b)
 #endif
 }
 
-ccl_device_inline const vfloat8 operator^(const vfloat8 a, const vfloat8 b)
+ccl_device_inline vfloat8 operator^(const vfloat8 a, const vfloat8 b)
 {
 #ifdef __KERNEL_AVX__
   return vfloat8(_mm256_xor_ps(a.m256, b.m256));
@@ -432,7 +432,7 @@ ccl_device_forceinline float4 high(const vfloat8 a)
 }
 
 template<int i0, int i1, int i2, int i3, int i4, int i5, int i6, int i7>
-ccl_device_forceinline const vfloat8 shuffle(const vfloat8 a)
+ccl_device_forceinline vfloat8 shuffle(const vfloat8 a)
 {
 #  ifdef __KERNEL_AVX__
   return vfloat8(_mm256_permutevar_ps(a, _mm256_set_epi32(i7, i6, i5, i4, i3, i2, i1, i0)));
@@ -442,7 +442,7 @@ ccl_device_forceinline const vfloat8 shuffle(const vfloat8 a)
 }
 
 template<size_t i0, size_t i1, size_t i2, size_t i3>
-ccl_device_forceinline const vfloat8 shuffle(const vfloat8 a, const vfloat8 b)
+ccl_device_forceinline vfloat8 shuffle(const vfloat8 a, const vfloat8 b)
 {
 #  ifdef __KERNEL_AVX__
   return vfloat8(_mm256_shuffle_ps(a, b, _MM_SHUFFLE(i3, i2, i1, i0)));
@@ -453,15 +453,15 @@ ccl_device_forceinline const vfloat8 shuffle(const vfloat8 a, const vfloat8 b)
 }
 
 template<size_t i0, size_t i1, size_t i2, size_t i3>
-ccl_device_forceinline const vfloat8 shuffle(const vfloat8 a)
+ccl_device_forceinline vfloat8 shuffle(const vfloat8 a)
 {
   return shuffle<i0, i1, i2, i3>(a, a);
 }
-template<size_t i0> ccl_device_forceinline const vfloat8 shuffle(const vfloat8 a, const vfloat8 b)
+template<size_t i0> ccl_device_forceinline vfloat8 shuffle(const vfloat8 a, const vfloat8 b)
 {
   return shuffle<i0, i0, i0, i0>(a, b);
 }
-template<size_t i0> ccl_device_forceinline const vfloat8 shuffle(const vfloat8 a)
+template<size_t i0> ccl_device_forceinline vfloat8 shuffle(const vfloat8 a)
 {
   return shuffle<i0>(a, a);
 }

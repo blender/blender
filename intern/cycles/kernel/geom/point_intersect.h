@@ -91,8 +91,8 @@ ccl_device_forceinline bool point_intersect(KernelGlobals kg,
 
 ccl_device_inline void point_shader_setup(KernelGlobals kg,
                                           ccl_private ShaderData *sd,
-                                          ccl_private const Intersection *isect,
-                                          ccl_private const Ray *ray)
+                                          const ccl_private Intersection *isect,
+                                          const ccl_private Ray *ray)
 {
   sd->shader = kernel_data_fetch(points_shader, isect->prim);
   sd->P = ray->P + ray->D * isect->t;

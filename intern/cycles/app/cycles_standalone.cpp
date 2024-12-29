@@ -57,7 +57,7 @@ static void session_print(const string &str)
 
   /* add spaces to overwrite longer previous print */
   static int maxlen = 0;
-  int len = str.size();
+  const int len = str.size();
   maxlen = max(len, maxlen);
 
   for (int i = len; i < maxlen; i++) {
@@ -70,10 +70,11 @@ static void session_print(const string &str)
 
 static void session_print_status()
 {
-  string status, substatus;
+  string status;
+  string substatus;
 
   /* get status */
-  double progress = options.session->progress.get_progress();
+  const double progress = options.session->progress.get_progress();
   options.session->progress.get_status(status, substatus);
 
   if (!substatus.empty()) {
@@ -181,18 +182,21 @@ static void display_info(Progress &progress)
 {
   static double latency = 0.0;
   static double last = 0;
-  double elapsed = time_dt();
-  string str, interactive;
+  const double elapsed = time_dt();
+  string str;
+  string interactive;
 
   latency = (elapsed - last);
   last = elapsed;
 
-  double total_time, sample_time;
-  string status, substatus;
+  double total_time;
+  double sample_time;
+  string status;
+  string substatus;
 
   progress.get_time(total_time, sample_time);
   progress.get_status(status, substatus);
-  double progress_val = progress.get_progress();
+  const double progress_val = progress.get_progress();
 
   if (!substatus.empty()) {
     status += ": " + substatus;
@@ -235,16 +239,16 @@ static void motion(int x, int y, int button)
 
     /* Translate */
     if (button == 0) {
-      float3 translate = make_float3(x * 0.01f, -(y * 0.01f), 0.0f);
+      const float3 translate = make_float3(x * 0.01f, -(y * 0.01f), 0.0f);
       matrix = matrix * transform_translate(translate);
     }
 
     /* Rotate */
     else if (button == 2) {
-      float4 r1 = make_float4((float)x * 0.1f, 0.0f, 1.0f, 0.0f);
+      const float4 r1 = make_float4((float)x * 0.1f, 0.0f, 1.0f, 0.0f);
       matrix = matrix * transform_rotate(DEG2RADF(r1.x), make_float3(r1.y, r1.z, r1.w));
 
-      float4 r2 = make_float4(y * 0.1f, 1.0f, 0.0f, 0.0f);
+      const float4 r2 = make_float4(y * 0.1f, 1.0f, 0.0f, 0.0f);
       matrix = matrix * transform_rotate(DEG2RADF(r2.x), make_float3(r2.y, r2.z, r2.w));
     }
 
@@ -383,8 +387,8 @@ static void options_parse(int argc, const char **argv)
   bool list = false;
 
   /* List devices for which support is compiled in. */
-  vector<DeviceType> types = Device::available_types();
-  for (DeviceType type : types) {
+  const vector<DeviceType> types = Device::available_types();
+  for (const DeviceType type : types) {
     if (!device_names.empty()) {
       device_names += ", ";
     }
@@ -397,7 +401,10 @@ static void options_parse(int argc, const char **argv)
 
   /* parse options */
   ArgParse ap;
-  bool help = false, profile = false, debug = false, version = false;
+  bool help = false;
+  bool profile = false;
+  bool debug = false;
+  bool version = false;
   int verbosity = 1;
 
   ap.options("Usage: cycles [options] file.xml",
@@ -470,10 +477,10 @@ static void options_parse(int argc, const char **argv)
   }
 
   if (list) {
-    vector<DeviceInfo> devices = Device::available_devices();
+    const vector<DeviceInfo> devices = Device::available_devices();
     printf("Devices:\n");
 
-    for (DeviceInfo &info : devices) {
+    for (const DeviceInfo &info : devices) {
       printf("    %-10s%s%s\n",
              Device::string_from_type(info.type).c_str(),
              info.description.c_str(),
@@ -509,7 +516,7 @@ static void options_parse(int argc, const char **argv)
   }
 
   /* find matching device */
-  DeviceType device_type = Device::type_from_string(devicename.c_str());
+  const DeviceType device_type = Device::type_from_string(devicename.c_str());
   vector<DeviceInfo> devices = Device::available_devices(DEVICE_MASK(device_type));
 
   bool device_available = false;
@@ -564,7 +571,7 @@ int main(int argc, const char **argv)
 #ifdef WITH_CYCLES_STANDALONE_GUI
   }
   else {
-    string title = "Cycles: " + path_filename(options.filepath);
+    const string title = "Cycles: " + path_filename(options.filepath);
 
     /* init/exit are callback so they run while GL is initialized */
     window_main_loop(title.c_str(),

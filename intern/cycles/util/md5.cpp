@@ -84,7 +84,10 @@ CCL_NAMESPACE_BEGIN
 
 void MD5Hash::process(const uint8_t *data /*[64]*/)
 {
-  uint32_t a = abcd[0], b = abcd[1], c = abcd[2], d = abcd[3];
+  uint32_t a = abcd[0];
+  uint32_t b = abcd[1];
+  uint32_t c = abcd[2];
+  uint32_t d = abcd[3];
   uint32_t t;
   /* Define storage for little-endian or both types of CPUs. */
   uint32_t xbuf[16];
@@ -258,8 +261,8 @@ void MD5Hash::append(const uint8_t *data, int nbytes)
 {
   const uint8_t *p = data;
   int left = nbytes;
-  int offset = (count[0] >> 3) & 63;
-  uint32_t nbits = (uint32_t)(nbytes << 3);
+  const int offset = (count[0] >> 3) & 63;
+  const uint32_t nbits = (uint32_t)(nbytes << 3);
 
   if (nbytes <= 0) {
     return;
@@ -274,7 +277,7 @@ void MD5Hash::append(const uint8_t *data, int nbytes)
 
   /* Process an initial partial block. */
   if (offset) {
-    int copy = (offset + nbytes > 64 ? 64 - offset : nbytes);
+    const int copy = (offset + nbytes > 64 ? 64 - offset : nbytes);
 
     memcpy(buf + offset, p, copy);
     if (offset + copy < 64) {
@@ -321,7 +324,7 @@ bool MD5Hash::append_file(const string &filepath)
     append(buffer, n);
   } while (n == buffer_size);
 
-  bool success = (ferror(f) == 0);
+  const bool success = (ferror(f) == 0);
 
   fclose(f);
 

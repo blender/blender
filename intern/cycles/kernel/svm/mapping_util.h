@@ -15,7 +15,7 @@ CCL_NAMESPACE_BEGIN
 ccl_device float3
 svm_mapping(NodeMappingType type, float3 vector, float3 location, float3 rotation, float3 scale)
 {
-  Transform rotationTransform = euler_to_transform(rotation);
+  const Transform rotationTransform = euler_to_transform(rotation);
   switch (type) {
     case NODE_MAPPING_TYPE_POINT:
       return transform_direction(&rotationTransform, (vector * scale)) + location;

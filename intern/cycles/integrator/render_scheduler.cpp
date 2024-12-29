@@ -197,7 +197,8 @@ bool RenderScheduler::render_work_reschedule_on_converge(RenderWork &render_work
 
   state_.path_trace_finished = true;
 
-  bool denoiser_delayed, denoiser_ready_to_display;
+  bool denoiser_delayed;
+  bool denoiser_ready_to_display;
   render_work.tile.denoise = work_need_denoise(denoiser_delayed, denoiser_ready_to_display);
 
   render_work.display.update = work_need_update_display(denoiser_delayed);
@@ -355,7 +356,8 @@ RenderWork RenderScheduler::get_render_work()
   render_work.adaptive_sampling.threshold = work_adaptive_threshold();
   render_work.adaptive_sampling.reset = false;
 
-  bool denoiser_delayed, denoiser_ready_to_display;
+  bool denoiser_delayed;
+  bool denoiser_ready_to_display;
   render_work.tile.denoise = work_need_denoise(denoiser_delayed, denoiser_ready_to_display);
 
   render_work.tile.write = done();
@@ -839,7 +841,7 @@ int RenderScheduler::get_num_samples_to_path_trace() const
     return 1;
   }
 
-  int num_samples_per_update = calculate_num_samples_per_update();
+  const int num_samples_per_update = calculate_num_samples_per_update();
   const int path_trace_start_sample = get_start_sample_to_path_trace();
 
   /* Round number of samples to a power of two, so that division of path states into tiles goes in

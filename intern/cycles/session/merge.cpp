@@ -96,7 +96,7 @@ static MergeChannelOp parse_channel_operation(const string &pass_name)
  * into the part before it. Returns whether a dot was found. */
 static bool split_last_dot(string &in, string &suffix)
 {
-  size_t pos = in.rfind(".");
+  const size_t pos = in.rfind(".");
   if (pos == string::npos) {
     return false;
   }
@@ -151,7 +151,8 @@ static bool parse_channels(const ImageSpec &in_spec,
     pass.offset = i;
     pass.merge_offset = i;
 
-    string layername, channelname;
+    string layername;
+    string channelname;
     if (parse_channel_name(
             pass.channel_name, layername, pass.name, channelname, multiview_channels))
     {
@@ -196,7 +197,7 @@ static bool parse_channels(const ImageSpec &in_spec,
       layer.samples = 1;
     }
     else if (layer.samples < 1) {
-      string sample_string = in_spec.get_string_attribute("cycles." + name + ".samples", "");
+      const string sample_string = in_spec.get_string_attribute("cycles." + name + ".samples", "");
       if (!sample_string.empty()) {
         if (!sscanf(sample_string.c_str(), "%d", &layer.samples)) {
           error = "Failed to parse samples metadata: " + sample_string;
@@ -284,7 +285,7 @@ static void merge_render_time(ImageSpec &spec,
   double time = 0.0;
 
   for (const MergeImage &image : images) {
-    string time_str = image.in->spec().get_string_attribute(name, "");
+    const string time_str = image.in->spec().get_string_attribute(name, "");
     time += time_human_readable_to_seconds(time_str);
   }
 
@@ -301,11 +302,11 @@ static void merge_layer_render_time(ImageSpec &spec,
                                     const string &time_name,
                                     const bool average)
 {
-  string name = "cycles." + layer_name + "." + time_name;
+  const string name = "cycles." + layer_name + "." + time_name;
   double time = 0.0;
 
   for (const MergeImage &image : images) {
-    string time_str = image.in->spec().get_string_attribute(name, "");
+    const string time_str = image.in->spec().get_string_attribute(name, "");
     time += time_human_readable_to_seconds(time_str);
   }
 
@@ -336,7 +337,7 @@ static void merge_channels_metadata(vector<MergeImage> &images, ImageSpec &out_s
             [&pass](const auto &channel_name) { return pass.channel_name == channel_name; });
 
         if (channel != out_spec.channelnames.end()) {
-          int index = distance(out_spec.channelnames.begin(), channel);
+          const int index = distance(out_spec.channelnames.begin(), channel);
           pass.merge_offset = index;
 
           /* First image wins for channels that can't be averaged or summed. */
@@ -360,8 +361,8 @@ static void merge_channels_metadata(vector<MergeImage> &images, ImageSpec &out_s
   merge_render_time(out_spec, images, "RenderTime", false);
 
   map<string, int> layer_num_samples;
-  for (MergeImage &image : images) {
-    for (MergeImageLayer &layer : image.layers) {
+  for (const MergeImage &image : images) {
+    for (const MergeImageLayer &layer : image.layers) {
       if (!layer.name.empty()) {
         layer_num_samples[layer.name] += layer.samples;
       }
@@ -369,7 +370,7 @@ static void merge_channels_metadata(vector<MergeImage> &images, ImageSpec &out_s
   }
 
   for (const auto &[layer_name, layer_samples] : layer_num_samples) {
-    string name = "cycles." + layer_name + ".samples";
+    const string name = "cycles." + layer_name + ".samples";
     out_spec.attribute(name, TypeDesc::STRING, to_string(layer_samples));
 
     merge_layer_render_time(out_spec, images, layer_name, "total_time", false);
@@ -477,9 +478,9 @@ static bool save_output(const string &filepath,
 {
   /* Write to temporary file path, so we merge images in place and don't
    * risk destroying files when something goes wrong in file saving. */
-  string extension = OIIO::Filesystem::extension(filepath);
-  string unique_name = ".merge-tmp-" + OIIO::Filesystem::unique_path();
-  string tmp_filepath = filepath + unique_name + extension;
+  const string extension = OIIO::Filesystem::extension(filepath);
+  const string unique_name = ".merge-tmp-" + OIIO::Filesystem::unique_path();
+  const string tmp_filepath = filepath + unique_name + extension;
   unique_ptr<ImageOutput> out(ImageOutput::create(tmp_filepath));
 
   if (!out) {
@@ -527,7 +528,7 @@ static void read_layer_samples(vector<MergeImage> &images,
     const ImageSpec &in_spec = image.in->spec();
 
     for (auto &layer : image.layers) {
-      bool initialize = (layer_samples.count(layer.name) == 0);
+      const bool initialize = (layer_samples.count(layer.name) == 0);
       auto &current_layer_samples = layer_samples[layer.name];
 
       if (initialize) {

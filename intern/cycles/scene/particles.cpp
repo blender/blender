@@ -62,7 +62,7 @@ void ParticleSystemManager::device_update_particles(Device * /*unused*/,
 
     for (size_t k = 0; k < psys->particles.size(); k++) {
       /* pack in texture */
-      Particle &pa = psys->particles[k];
+      const Particle &pa = psys->particles[k];
 
       kparticles[i].index = pa.index;
       kparticles[i].age = pa.age;
@@ -93,7 +93,7 @@ void ParticleSystemManager::device_update(Device *device,
     return;
   }
 
-  scoped_callback_timer timer([scene](double time) {
+  const scoped_callback_timer timer([scene](double time) {
     if (scene->update_stats) {
       scene->update_stats->particles.times.add_entry({"device_update", time});
     }

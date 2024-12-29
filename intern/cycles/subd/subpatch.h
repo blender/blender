@@ -83,9 +83,9 @@ class Subpatch {
     Mu = fmax(Mu, 2);
     Mv = fmax(Mv, 2);
 
-    int inner_triangles = (Mu - 2) * (Mv - 2) * 2;
-    int edge_triangles = edge_u0.T + edge_u1.T + edge_v0.T + edge_v1.T + (Mu - 2) * 2 +
-                         (Mv - 2) * 2;
+    const int inner_triangles = (Mu - 2) * (Mv - 2) * 2;
+    const int edge_triangles = edge_u0.T + edge_u1.T + edge_v0.T + edge_v1.T + (Mu - 2) * 2 +
+                               (Mv - 2) * 2;
 
     return inner_triangles + edge_triangles;
   }

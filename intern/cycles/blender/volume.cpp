@@ -48,7 +48,7 @@ class BlenderSmokeLoader : public ImageLoader {
       return false;
     }
 
-    int3 resolution = get_int3(b_domain.domain_resolution());
+    const int3 resolution = get_int3(b_domain.domain_resolution());
     int amplify = (b_domain.use_noise()) ? b_domain.noise_scale() : 1;
 
     /* Velocity and heat data is always low-resolution. */
@@ -78,8 +78,9 @@ class BlenderSmokeLoader : public ImageLoader {
       return false;
     }
 #ifdef WITH_FLUID
-    int3 resolution = get_int3(b_domain.domain_resolution());
-    int length, amplify = (b_domain.use_noise()) ? b_domain.noise_scale() : 1;
+    const int3 resolution = get_int3(b_domain.domain_resolution());
+    int length;
+    int amplify = (b_domain.use_noise()) ? b_domain.noise_scale() : 1;
 
     /* Velocity and heat data is always low-resolution. */
     if (attribute == ATTR_STD_VOLUME_VELOCITY || attribute == ATTR_STD_VOLUME_HEAT) {
@@ -191,16 +192,16 @@ static void sync_smoke_volume(
 
   volume->set_velocity_scale(velocity_scale);
 
-  AttributeStandard attributes[] = {ATTR_STD_VOLUME_DENSITY,
-                                    ATTR_STD_VOLUME_COLOR,
-                                    ATTR_STD_VOLUME_FLAME,
-                                    ATTR_STD_VOLUME_HEAT,
-                                    ATTR_STD_VOLUME_TEMPERATURE,
-                                    ATTR_STD_VOLUME_VELOCITY,
-                                    ATTR_STD_NONE};
+  const AttributeStandard attributes[] = {ATTR_STD_VOLUME_DENSITY,
+                                          ATTR_STD_VOLUME_COLOR,
+                                          ATTR_STD_VOLUME_FLAME,
+                                          ATTR_STD_VOLUME_HEAT,
+                                          ATTR_STD_VOLUME_TEMPERATURE,
+                                          ATTR_STD_VOLUME_VELOCITY,
+                                          ATTR_STD_NONE};
 
   for (int i = 0; attributes[i] != ATTR_STD_NONE; i++) {
-    AttributeStandard std = attributes[i];
+    const AttributeStandard std = attributes[i];
     if (!volume->need_attribute(scene, std)) {
       continue;
     }
@@ -296,7 +297,7 @@ static void sync_volume_object(BL::BlendData &b_data,
 
   /* Find grid with matching name. */
   for (BL::VolumeGrid &b_grid : b_volume.grids) {
-    ustring name = ustring(b_grid.name());
+    const ustring name = ustring(b_grid.name());
     AttributeStandard std = ATTR_STD_NONE;
 
     if (name == Attribute::standard_name(ATTR_STD_VOLUME_DENSITY)) {

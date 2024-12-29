@@ -217,7 +217,7 @@ vector<DeviceInfo> Device::available_devices(uint mask)
   /* Lazy initialize devices. On some platforms OpenCL or CUDA drivers can
    * be broken and cause crashes when only trying to get device info, so
    * we don't want to do any initialization until the user chooses to. */
-  thread_scoped_lock lock(device_mutex);
+  const thread_scoped_lock lock(device_mutex);
   vector<DeviceInfo> devices;
 
 #if defined(WITH_CUDA) || defined(WITH_OPTIX)
@@ -283,7 +283,7 @@ vector<DeviceInfo> Device::available_devices(uint mask)
       device_cpu_info(cpu_devices);
       devices_initialized_mask |= DEVICE_MASK_CPU;
     }
-    for (DeviceInfo &info : cpu_devices) {
+    for (const DeviceInfo &info : cpu_devices) {
       devices.push_back(info);
     }
   }
@@ -296,7 +296,7 @@ vector<DeviceInfo> Device::available_devices(uint mask)
       }
       devices_initialized_mask |= DEVICE_MASK_METAL;
     }
-    for (DeviceInfo &info : metal_devices) {
+    for (const DeviceInfo &info : metal_devices) {
       devices.push_back(info);
     }
   }
@@ -315,7 +315,7 @@ DeviceInfo Device::dummy_device(const string &error_msg)
 
 string Device::device_capabilities(uint mask)
 {
-  thread_scoped_lock lock(device_mutex);
+  const thread_scoped_lock lock(device_mutex);
   string capabilities;
 
   if (mask & DEVICE_MASK_CPU) {
@@ -404,8 +404,8 @@ DeviceInfo Device::get_multi_device(const vector<DeviceInfo> &subdevices,
     /* Ensure CPU device does not slow down GPU. */
     if (device.type == DEVICE_CPU && subdevices.size() > 1) {
       if (background) {
-        int orig_cpu_threads = (threads) ? threads : TaskScheduler::max_concurrency();
-        int cpu_threads = max(orig_cpu_threads - (subdevices.size() - 1), size_t(0));
+        const int orig_cpu_threads = (threads) ? threads : TaskScheduler::max_concurrency();
+        const int cpu_threads = max(orig_cpu_threads - (subdevices.size() - 1), size_t(0));
 
         VLOG_INFO << "CPU render threads reduced from " << orig_cpu_threads << " to "
                   << cpu_threads << ", to dedicate to GPU.";
@@ -478,7 +478,7 @@ unique_ptr<DeviceQueue> Device::gpu_queue_create()
 const CPUKernels &Device::get_cpu_kernels()
 {
   /* Initialize CPU kernels once and reuse. */
-  static CPUKernels kernels;
+  static const CPUKernels kernels;
   return kernels;
 }
 
@@ -513,8 +513,8 @@ void GPUDevice::init_host_memory(size_t preferred_texture_headroom,
   /* Limit amount of host mapped memory, because allocating too much can
    * cause system instability. Leave at least half or 4 GB of system
    * memory free, whichever is smaller. */
-  size_t default_limit = 4 * 1024 * 1024 * 1024LL;
-  size_t system_ram = system_physical_ram();
+  const size_t default_limit = 4 * 1024 * 1024 * 1024LL;
+  const size_t system_ram = system_physical_ram();
 
   if (system_ram > 0) {
     if (system_ram / 2 > default_limit) {
@@ -570,9 +570,9 @@ void GPUDevice::move_textures_to_host(size_t size, bool for_texture)
         continue;
       }
 
-      bool is_texture = (mem.type == MEM_TEXTURE || mem.type == MEM_GLOBAL) &&
-                        (&mem != &texture_info);
-      bool is_image = is_texture && (mem.data_height > 1);
+      const bool is_texture = (mem.type == MEM_TEXTURE || mem.type == MEM_GLOBAL) &&
+                              (&mem != &texture_info);
+      const bool is_image = is_texture && (mem.data_height > 1);
 
       /* Can't move this type of memory. */
       if (!is_texture || cmem->array) {
@@ -600,7 +600,7 @@ void GPUDevice::move_textures_to_host(size_t size, bool for_texture)
       VLOG_WORK << "Move memory from device to host: " << max_mem->name;
 
       static thread_mutex move_mutex;
-      thread_scoped_lock lock(move_mutex);
+      const thread_scoped_lock lock(move_mutex);
 
       any_device_moving_textures_to_host = true;
 
@@ -631,7 +631,7 @@ void GPUDevice::move_textures_to_host(size_t size, bool for_texture)
 GPUDevice::Mem *GPUDevice::generic_alloc(device_memory &mem, size_t pitch_padding)
 {
   void *device_pointer = nullptr;
-  size_t size = mem.memory_size() + pitch_padding;
+  const size_t size = mem.memory_size() + pitch_padding;
 
   bool mem_alloc_result = false;
   const char *status = "";
@@ -643,12 +643,14 @@ GPUDevice::Mem *GPUDevice::generic_alloc(device_memory &mem, size_t pitch_paddin
    * If there is not enough room for working memory, we will try to move
    * textures to host memory, assuming the performance impact would have
    * been worse for working memory. */
-  bool is_texture = (mem.type == MEM_TEXTURE || mem.type == MEM_GLOBAL) && (&mem != &texture_info);
-  bool is_image = is_texture && (mem.data_height > 1);
+  const bool is_texture = (mem.type == MEM_TEXTURE || mem.type == MEM_GLOBAL) &&
+                          (&mem != &texture_info);
+  const bool is_image = is_texture && (mem.data_height > 1);
 
-  size_t headroom = (is_texture) ? device_texture_headroom : device_working_headroom;
+  const size_t headroom = (is_texture) ? device_texture_headroom : device_working_headroom;
 
-  size_t total = 0, free = 0;
+  size_t total = 0;
+  size_t free = 0;
   get_device_memory_info(total, free);
 
   /* Move textures to host memory if needed. */
@@ -717,7 +719,7 @@ GPUDevice::Mem *GPUDevice::generic_alloc(device_memory &mem, size_t pitch_paddin
   }
 
   /* Insert into map of allocations. */
-  thread_scoped_lock lock(device_mem_map_mutex);
+  const thread_scoped_lock lock(device_mem_map_mutex);
   Mem *cmem = &device_mem_map[&mem];
   if (shared_pointer != nullptr) {
     /* Replace host pointer with our host allocation. Only works if
@@ -754,7 +756,7 @@ GPUDevice::Mem *GPUDevice::generic_alloc(device_memory &mem, size_t pitch_paddin
 void GPUDevice::generic_free(device_memory &mem)
 {
   if (mem.device_pointer) {
-    thread_scoped_lock lock(device_mem_map_mutex);
+    const thread_scoped_lock lock(device_mem_map_mutex);
     DCHECK(device_mem_map.find(&mem) != device_mem_map.end());
     const Mem &cmem = device_mem_map[&mem];
 
@@ -798,7 +800,7 @@ void GPUDevice::generic_copy_to(device_memory &mem)
   /* If use_mapped_host of mem is false, the current device only uses device memory allocated by
    * backend device allocation regardless of mem.host_pointer and mem.shared_pointer, and should
    * copy data from mem.host_pointer. */
-  thread_scoped_lock lock(device_mem_map_mutex);
+  const thread_scoped_lock lock(device_mem_map_mutex);
   if (!device_mem_map[&mem].use_mapped_host || mem.host_pointer != mem.shared_pointer) {
     copy_host_to_device((void *)mem.device_pointer, mem.host_pointer, mem.memory_size());
   }

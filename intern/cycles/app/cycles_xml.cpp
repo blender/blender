@@ -52,7 +52,7 @@ struct XMLReadState : public XMLReader {
 
 static bool xml_read_int(int *value, xml_node node, const char *name)
 {
-  xml_attribute attr = node.attribute(name);
+  const xml_attribute attr = node.attribute(name);
 
   if (attr) {
     *value = atoi(attr.value());
@@ -64,7 +64,7 @@ static bool xml_read_int(int *value, xml_node node, const char *name)
 
 static bool xml_read_int_array(vector<int> &value, xml_node node, const char *name)
 {
-  xml_attribute attr = node.attribute(name);
+  const xml_attribute attr = node.attribute(name);
 
   if (attr) {
     vector<string> tokens;
@@ -82,7 +82,7 @@ static bool xml_read_int_array(vector<int> &value, xml_node node, const char *na
 
 static bool xml_read_float(float *value, xml_node node, const char *name)
 {
-  xml_attribute attr = node.attribute(name);
+  const xml_attribute attr = node.attribute(name);
 
   if (attr) {
     *value = (float)atof(attr.value());
@@ -94,7 +94,7 @@ static bool xml_read_float(float *value, xml_node node, const char *name)
 
 static bool xml_read_float_array(vector<float> &value, xml_node node, const char *name)
 {
-  xml_attribute attr = node.attribute(name);
+  const xml_attribute attr = node.attribute(name);
 
   if (attr) {
     vector<string> tokens;
@@ -151,7 +151,7 @@ static bool xml_read_float4(float4 *value, xml_node node, const char *name)
 
 static bool xml_read_string(string *str, xml_node node, const char *name)
 {
-  xml_attribute attr = node.attribute(name);
+  const xml_attribute attr = node.attribute(name);
 
   if (attr) {
     *str = attr.value();
@@ -163,7 +163,7 @@ static bool xml_read_string(string *str, xml_node node, const char *name)
 
 static bool xml_equal_string(xml_node node, const char *name, const char *value)
 {
-  xml_attribute attr = node.attribute(name);
+  const xml_attribute attr = node.attribute(name);
 
   if (attr) {
     return string_iequals(attr.value(), value);
@@ -178,7 +178,8 @@ static void xml_read_camera(XMLReadState &state, xml_node node)
 {
   Camera *cam = state.scene->camera;
 
-  int width = -1, height = -1;
+  int width = -1;
+  int height = -1;
   xml_read_int(&width, node, "width");
   xml_read_int(&height, node, "height");
 
@@ -205,7 +206,7 @@ static void xml_read_alembic(XMLReadState &state, xml_node graph_node)
     if (string_iequals(node.name(), "object")) {
       string path;
       if (xml_read_string(&path, node, "path")) {
-        ustring object_path(path, 0);
+        const ustring object_path(path, 0);
         AlembicObject *object = proc->get_or_create_object(object_path);
 
         array<Node *> used_shaders = object->get_used_shaders();
@@ -234,16 +235,17 @@ static void xml_read_shader_graph(XMLReadState &state, Shader *shader, xml_node 
 
     if (node_name == "connect") {
       /* connect nodes */
-      vector<string> from_tokens, to_tokens;
+      vector<string> from_tokens;
+      vector<string> to_tokens;
 
       string_split(from_tokens, node.attribute("from").value());
       string_split(to_tokens, node.attribute("to").value());
 
       if (from_tokens.size() == 2 && to_tokens.size() == 2) {
-        ustring from_node_name(from_tokens[0]);
-        ustring from_socket_name(from_tokens[1]);
-        ustring to_node_name(to_tokens[0]);
-        ustring to_socket_name(to_tokens[1]);
+        const ustring from_node_name(from_tokens[0]);
+        const ustring from_socket_name(from_tokens[1]);
+        const ustring to_node_name(to_tokens[0]);
+        const ustring to_socket_name(to_tokens[1]);
 
         /* find nodes and sockets */
         ShaderOutput *output = nullptr;
@@ -363,12 +365,12 @@ static void xml_read_shader_graph(XMLReadState &state, Shader *shader, xml_node 
 
     if (node_name == "image_texture") {
       ImageTextureNode *img = (ImageTextureNode *)snode;
-      ustring filename(path_join(state.base, img->get_filename().string()));
+      const ustring filename(path_join(state.base, img->get_filename().string()));
       img->set_filename(filename);
     }
     else if (node_name == "environment_texture") {
       EnvironmentTextureNode *env = (EnvironmentTextureNode *)snode;
-      ustring filename(path_join(state.base, env->get_filename().string()));
+      const ustring filename(path_join(state.base, env->get_filename().string()));
       env->set_filename(filename);
     }
 
@@ -434,8 +436,8 @@ static void xml_read_mesh(const XMLReadState &state, xml_node node)
   mesh->set_used_shaders(used_shaders);
 
   /* read state */
-  int shader = 0;
-  bool smooth = state.smooth;
+  const int shader = 0;
+  const bool smooth = state.smooth;
 
   /* read vertices and polygons */
   vector<float3> P;
@@ -443,7 +445,8 @@ static void xml_read_mesh(const XMLReadState &state, xml_node node)
   vector<float> UV;
   vector<float> T;  /* UV tangents */
   vector<float> TS; /* UV tangent signs */
-  vector<int> verts, nverts;
+  vector<int> verts;
+  vector<int> nverts;
 
   xml_read_float3_array(P, node, "P");
   xml_read_int_array(verts, node, "verts");
@@ -475,9 +478,9 @@ static void xml_read_mesh(const XMLReadState &state, xml_node node)
 
     for (size_t i = 0; i < nverts.size(); i++) {
       for (int j = 0; j < nverts[i] - 2; j++) {
-        int v0 = verts[index_offset];
-        int v1 = verts[index_offset + j + 1];
-        int v2 = verts[index_offset + j + 2];
+        const int v0 = verts[index_offset];
+        const int v1 = verts[index_offset + j + 1];
+        const int v2 = verts[index_offset + j + 2];
 
         assert(v0 < (int)P.size());
         assert(v1 < (int)P.size());
@@ -512,9 +515,9 @@ static void xml_read_mesh(const XMLReadState &state, xml_node node)
       index_offset = 0;
       for (size_t i = 0; i < nverts.size(); i++) {
         for (int j = 0; j < nverts[i] - 2; j++) {
-          int v0 = index_offset;
-          int v1 = index_offset + j + 1;
-          int v2 = index_offset + j + 2;
+          const int v0 = index_offset;
+          const int v1 = index_offset + j + 1;
+          const int v2 = index_offset + j + 2;
 
           assert(v0 * 2 + 1 < (int)UV.size());
           assert(v1 * 2 + 1 < (int)UV.size());
@@ -539,9 +542,9 @@ static void xml_read_mesh(const XMLReadState &state, xml_node node)
       index_offset = 0;
       for (size_t i = 0; i < nverts.size(); i++) {
         for (int j = 0; j < nverts[i] - 2; j++) {
-          int v0 = index_offset;
-          int v1 = index_offset + j + 1;
-          int v2 = index_offset + j + 2;
+          const int v0 = index_offset;
+          const int v1 = index_offset + j + 1;
+          const int v2 = index_offset + j + 2;
 
           assert(v0 * 3 + 2 < (int)T.size());
           assert(v1 * 3 + 2 < (int)T.size());
@@ -565,9 +568,9 @@ static void xml_read_mesh(const XMLReadState &state, xml_node node)
       index_offset = 0;
       for (size_t i = 0; i < nverts.size(); i++) {
         for (int j = 0; j < nverts[i] - 2; j++) {
-          int v0 = index_offset;
-          int v1 = index_offset + j + 1;
-          int v2 = index_offset + j + 2;
+          const int v0 = index_offset;
+          const int v1 = index_offset + j + 1;
+          const int v2 = index_offset + j + 2;
 
           assert(v0 < (int)TS.size());
           assert(v1 < (int)TS.size());
@@ -661,7 +664,7 @@ static void xml_read_transform(xml_node node, Transform &tfm)
   if (node.attribute("matrix")) {
     vector<float> matrix;
     if (xml_read_float_array(matrix, node, "matrix") && matrix.size() == 16) {
-      ProjectionTransform projection = *(ProjectionTransform *)matrix.data();
+      const ProjectionTransform projection = *(ProjectionTransform *)matrix.data();
       tfm = tfm * projection_to_transform(projection_transpose(projection));
     }
   }
@@ -830,14 +833,14 @@ static void xml_read_include(XMLReadState &state, const string &src)
   xml_document doc;
   xml_parse_result parse_result;
 
-  string path = path_join(state.base, src);
+  const string path = path_join(state.base, src);
   parse_result = doc.load_file(path.c_str());
 
   if (parse_result) {
     XMLReadState substate = state;
     substate.base = path_dirname(path);
 
-    xml_node cycles = doc.child("cycles");
+    const xml_node cycles = doc.child("cycles");
     xml_read_scene(substate, cycles);
   }
   else {

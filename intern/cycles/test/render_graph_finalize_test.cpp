@@ -75,7 +75,7 @@ class ShaderGraphBuilder {
 
   ShaderNode *find_node(const string &name)
   {
-    map<string, ShaderNode *>::iterator it = node_map_.find(name);
+    const map<string, ShaderNode *>::iterator it = node_map_.find(name);
     if (it == node_map_.end()) {
       return nullptr;
     }
@@ -92,12 +92,14 @@ class ShaderGraphBuilder {
 
   ShaderGraphBuilder &add_connection(const string &from, const string &to)
   {
-    vector<string> tokens_from, tokens_to;
+    vector<string> tokens_from;
+    vector<string> tokens_to;
     string_split(tokens_from, from, "::");
     string_split(tokens_to, to, "::");
     EXPECT_EQ(tokens_from.size(), 2);
     EXPECT_EQ(tokens_to.size(), 2);
-    ShaderNode *node_from = find_node(tokens_from[0]), *node_to = find_node(tokens_to[0]);
+    ShaderNode *node_from = find_node(tokens_from[0]);
+    ShaderNode *node_to = find_node(tokens_to[0]);
     EXPECT_NE((void *)nullptr, node_from);
     EXPECT_NE((void *)nullptr, node_to);
     EXPECT_NE(node_from, node_to);

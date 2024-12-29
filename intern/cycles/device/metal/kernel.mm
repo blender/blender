@@ -107,7 +107,7 @@ struct ShaderCache {
   void load_kernel(DeviceKernel kernel, MetalDevice *device, MetalPipelineType pso_type);
 
   bool should_load_kernel(DeviceKernel device_kernel,
-                          MetalDevice const *device,
+                          const MetalDevice *device,
                           MetalPipelineType pso_type);
 
   void wait_for_all();
@@ -243,7 +243,7 @@ void ShaderCache::compile_thread_func()
 }
 
 bool ShaderCache::should_load_kernel(DeviceKernel device_kernel,
-                                     MetalDevice const *device,
+                                     const MetalDevice *device,
                                      MetalPipelineType pso_type)
 {
   if (!running) {
@@ -435,7 +435,7 @@ bool MetalKernelPipeline::should_use_binary_archive() const
   return false;
 }
 
-static MTLFunctionConstantValues *GetConstantValues(KernelData const *data = nullptr)
+static MTLFunctionConstantValues *GetConstantValues(const KernelData *data = nullptr)
 {
   MTLFunctionConstantValues *constant_values = [MTLFunctionConstantValues new];
 
@@ -870,7 +870,7 @@ int MetalDeviceKernels::num_incomplete_specialization_requests()
   return total;
 }
 
-int MetalDeviceKernels::get_loaded_kernel_count(MetalDevice const *device,
+int MetalDeviceKernels::get_loaded_kernel_count(const MetalDevice *device,
                                                 MetalPipelineType pso_type)
 {
   auto *shader_cache = get_shader_cache(device->mtlDevice);
@@ -883,7 +883,7 @@ int MetalDeviceKernels::get_loaded_kernel_count(MetalDevice const *device,
   return loaded_count;
 }
 
-bool MetalDeviceKernels::should_load_kernels(MetalDevice const *device, MetalPipelineType pso_type)
+bool MetalDeviceKernels::should_load_kernels(const MetalDevice *device, MetalPipelineType pso_type)
 {
   return get_loaded_kernel_count(device, pso_type) != DEVICE_KERNEL_NUM;
 }

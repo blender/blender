@@ -115,7 +115,7 @@ class UsdToCyclesTexture : public UsdToCyclesMapping {
     if (value) {
       // Remap UsdUVTexture.wrapS and UsdUVTexture.wrapT to cycles_image_texture.extension
       if (name == CyclesMaterialTokens->wrapS || name == CyclesMaterialTokens->wrapT) {
-        std::string valueString = VtValue::Cast<std::string>(*value).Get<std::string>();
+        const std::string valueString = VtValue::Cast<std::string>(*value).Get<std::string>();
 
         // A value of 'repeat' in USD is equivalent to 'periodic' in Cycles
         if (valueString == "repeat") {

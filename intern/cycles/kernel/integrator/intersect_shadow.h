@@ -31,7 +31,7 @@ ccl_device_forceinline uint integrate_intersect_shadow_visibility(KernelGlobals 
 
 ccl_device bool integrate_intersect_shadow_opaque(KernelGlobals kg,
                                                   IntegratorShadowState state,
-                                                  ccl_private const Ray *ray,
+                                                  const ccl_private Ray *ray,
                                                   const uint visibility)
 {
   /* Mask which will pick only opaque visibility bits from the `visibility`.
@@ -111,7 +111,7 @@ ccl_device_inline void sort_shadow_intersections(IntegratorShadowState state, ui
 
 ccl_device bool integrate_intersect_shadow_transparent(KernelGlobals kg,
                                                        IntegratorShadowState state,
-                                                       ccl_private const Ray *ray,
+                                                       const ccl_private Ray *ray,
                                                        const uint visibility)
 {
   /* Limit the number hits to the max transparent bounces allowed and the size that we

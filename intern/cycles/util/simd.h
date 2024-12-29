@@ -128,7 +128,8 @@ static struct StepTy {
 #if (defined(__aarch64__) || defined(_M_ARM64)) && !defined(_MM_SET_FLUSH_ZERO_MODE)
 __forceinline int set_fz(uint32_t flag)
 {
-  uint64_t old_fpcr, new_fpcr;
+  uint64_t old_fpcr;
+  uint64_t new_fpcr;
   __get_fpcr(old_fpcr);
   new_fpcr = old_fpcr | (1ULL << flag);
   __set_fpcr(new_fpcr);
@@ -414,7 +415,7 @@ __forceinline uint32_t __bsr(const uint32_t x)
 
 __forceinline uint32_t __btc(const uint32_t x, const uint32_t bit)
 {
-  uint32_t mask = 1U << bit;
+  const uint32_t mask = 1U << bit;
   return x & (~mask);
 }
 
@@ -440,7 +441,7 @@ __forceinline uint32_t __bsr(const uint64_t x)
 
 __forceinline uint64_t __btc(const uint64_t x, const uint32_t bit)
 {
-  uint64_t mask = 1UL << bit;
+  const uint64_t mask = 1UL << bit;
   return x & (~mask);
 }
 

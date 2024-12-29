@@ -46,15 +46,15 @@ ccl_device_inline void triangle_point_normal(KernelGlobals kg,
 {
   /* load triangle vertices */
   const uint3 tri_vindex = kernel_data_fetch(tri_vindex, prim);
-  float3 v0 = kernel_data_fetch(tri_verts, tri_vindex.x);
-  float3 v1 = kernel_data_fetch(tri_verts, tri_vindex.y);
-  float3 v2 = kernel_data_fetch(tri_verts, tri_vindex.z);
+  const float3 v0 = kernel_data_fetch(tri_verts, tri_vindex.x);
+  const float3 v1 = kernel_data_fetch(tri_verts, tri_vindex.y);
+  const float3 v2 = kernel_data_fetch(tri_verts, tri_vindex.z);
 
   /* compute point */
-  float w = 1.0f - u - v;
+  const float w = 1.0f - u - v;
   *P = (w * v0 + u * v1 + v * v2);
   /* get object flags */
-  int object_flag = kernel_data_fetch(object_flag, object);
+  const int object_flag = kernel_data_fetch(object_flag, object);
   /* compute normal */
   if (object_negative_scale_applied(object_flag)) {
     *Ng = normalize(cross(v2 - v0, v1 - v0));
@@ -101,17 +101,17 @@ triangle_smooth_normal(KernelGlobals kg, float3 Ng, int prim, float u, float v)
   /* load triangle vertices */
   const uint3 tri_vindex = kernel_data_fetch(tri_vindex, prim);
 
-  float3 n0 = kernel_data_fetch(tri_vnormal, tri_vindex.x);
-  float3 n1 = kernel_data_fetch(tri_vnormal, tri_vindex.y);
-  float3 n2 = kernel_data_fetch(tri_vnormal, tri_vindex.z);
+  const float3 n0 = kernel_data_fetch(tri_vnormal, tri_vindex.x);
+  const float3 n1 = kernel_data_fetch(tri_vnormal, tri_vindex.y);
+  const float3 n2 = kernel_data_fetch(tri_vnormal, tri_vindex.z);
 
-  float3 N = safe_normalize((1.0f - u - v) * n0 + u * n1 + v * n2);
+  const float3 N = safe_normalize((1.0f - u - v) * n0 + u * n1 + v * n2);
 
   return is_zero(N) ? Ng : N;
 }
 
 ccl_device_inline float3 triangle_smooth_normal_unnormalized(
-    KernelGlobals kg, ccl_private const ShaderData *sd, float3 Ng, int prim, float u, float v)
+    KernelGlobals kg, const ccl_private ShaderData *sd, float3 Ng, int prim, float u, float v)
 {
   /* load triangle vertices */
   const uint3 tri_vindex = kernel_data_fetch(tri_vindex, prim);
@@ -127,7 +127,7 @@ ccl_device_inline float3 triangle_smooth_normal_unnormalized(
     object_inverse_normal_transform(kg, sd, &n2);
   }
 
-  float3 N = (1.0f - u - v) * n0 + u * n1 + v * n2;
+  const float3 N = (1.0f - u - v) * n0 + u * n1 + v * n2;
 
   return is_zero(N) ? Ng : N;
 }
@@ -153,13 +153,15 @@ ccl_device_inline void triangle_dPdudv(KernelGlobals kg,
 /* Reading attributes on various triangle elements */
 
 ccl_device float triangle_attribute_float(KernelGlobals kg,
-                                          ccl_private const ShaderData *sd,
+                                          const ccl_private ShaderData *sd,
                                           const AttributeDescriptor desc,
                                           ccl_private float *dx,
                                           ccl_private float *dy)
 {
   if (desc.element & (ATTR_ELEMENT_VERTEX | ATTR_ELEMENT_VERTEX_MOTION | ATTR_ELEMENT_CORNER)) {
-    float f0, f1, f2;
+    float f0;
+    float f1;
+    float f2;
 
     if (desc.element & (ATTR_ELEMENT_VERTEX | ATTR_ELEMENT_VERTEX_MOTION)) {
       const uint3 tri_vindex = kernel_data_fetch(tri_vindex, sd->prim);
@@ -203,13 +205,15 @@ ccl_device float triangle_attribute_float(KernelGlobals kg,
 }
 
 ccl_device float2 triangle_attribute_float2(KernelGlobals kg,
-                                            ccl_private const ShaderData *sd,
+                                            const ccl_private ShaderData *sd,
                                             const AttributeDescriptor desc,
                                             ccl_private float2 *dx,
                                             ccl_private float2 *dy)
 {
   if (desc.element & (ATTR_ELEMENT_VERTEX | ATTR_ELEMENT_VERTEX_MOTION | ATTR_ELEMENT_CORNER)) {
-    float2 f0, f1, f2;
+    float2 f0;
+    float2 f1;
+    float2 f2;
 
     if (desc.element & (ATTR_ELEMENT_VERTEX | ATTR_ELEMENT_VERTEX_MOTION)) {
       const uint3 tri_vindex = kernel_data_fetch(tri_vindex, sd->prim);
@@ -253,13 +257,15 @@ ccl_device float2 triangle_attribute_float2(KernelGlobals kg,
 }
 
 ccl_device float3 triangle_attribute_float3(KernelGlobals kg,
-                                            ccl_private const ShaderData *sd,
+                                            const ccl_private ShaderData *sd,
                                             const AttributeDescriptor desc,
                                             ccl_private float3 *dx,
                                             ccl_private float3 *dy)
 {
   if (desc.element & (ATTR_ELEMENT_VERTEX | ATTR_ELEMENT_VERTEX_MOTION | ATTR_ELEMENT_CORNER)) {
-    float3 f0, f1, f2;
+    float3 f0;
+    float3 f1;
+    float3 f2;
 
     if (desc.element & (ATTR_ELEMENT_VERTEX | ATTR_ELEMENT_VERTEX_MOTION)) {
       const uint3 tri_vindex = kernel_data_fetch(tri_vindex, sd->prim);
@@ -303,7 +309,7 @@ ccl_device float3 triangle_attribute_float3(KernelGlobals kg,
 }
 
 ccl_device float4 triangle_attribute_float4(KernelGlobals kg,
-                                            ccl_private const ShaderData *sd,
+                                            const ccl_private ShaderData *sd,
                                             const AttributeDescriptor desc,
                                             ccl_private float4 *dx,
                                             ccl_private float4 *dy)
@@ -311,7 +317,9 @@ ccl_device float4 triangle_attribute_float4(KernelGlobals kg,
   if (desc.element & (ATTR_ELEMENT_VERTEX | ATTR_ELEMENT_VERTEX_MOTION | ATTR_ELEMENT_CORNER |
                       ATTR_ELEMENT_CORNER_BYTE))
   {
-    float4 f0, f1, f2;
+    float4 f0;
+    float4 f1;
+    float4 f2;
 
     if (desc.element & (ATTR_ELEMENT_VERTEX | ATTR_ELEMENT_VERTEX_MOTION)) {
       const uint3 tri_vindex = kernel_data_fetch(tri_vindex, sd->prim);

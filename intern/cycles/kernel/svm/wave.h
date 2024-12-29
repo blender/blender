@@ -78,15 +78,24 @@ ccl_device_noinline_cpu float svm_wave(NodeWaveType type,
 ccl_device_noinline int svm_node_tex_wave(
     KernelGlobals kg, ccl_private ShaderData *sd, ccl_private float *stack, uint4 node, int offset)
 {
-  uint4 node2 = read_node(kg, &offset);
-  uint4 node3 = read_node(kg, &offset);
+  const uint4 node2 = read_node(kg, &offset);
+  const uint4 node3 = read_node(kg, &offset);
 
   /* RNA properties */
-  uint type_offset, bands_dir_offset, rings_dir_offset, profile_offset;
+  uint type_offset;
+  uint bands_dir_offset;
+  uint rings_dir_offset;
+  uint profile_offset;
   /* Inputs, Outputs */
-  uint co_offset, scale_offset, distortion_offset, detail_offset, dscale_offset, droughness_offset,
-      phase_offset;
-  uint color_offset, fac_offset;
+  uint co_offset;
+  uint scale_offset;
+  uint distortion_offset;
+  uint detail_offset;
+  uint dscale_offset;
+  uint droughness_offset;
+  uint phase_offset;
+  uint color_offset;
+  uint fac_offset;
 
   svm_unpack_node_uchar4(
       node.y, &type_offset, &bands_dir_offset, &rings_dir_offset, &profile_offset);
@@ -95,24 +104,24 @@ ccl_device_noinline int svm_node_tex_wave(
       node.w, &detail_offset, &dscale_offset, &droughness_offset, &phase_offset);
   svm_unpack_node_uchar2(node2.x, &color_offset, &fac_offset);
 
-  float3 co = stack_load_float3(stack, co_offset);
-  float scale = stack_load_float_default(stack, scale_offset, node2.y);
-  float distortion = stack_load_float_default(stack, distortion_offset, node2.z);
-  float detail = stack_load_float_default(stack, detail_offset, node2.w);
-  float dscale = stack_load_float_default(stack, dscale_offset, node3.x);
-  float droughness = stack_load_float_default(stack, droughness_offset, node3.y);
-  float phase = stack_load_float_default(stack, phase_offset, node3.z);
+  const float3 co = stack_load_float3(stack, co_offset);
+  const float scale = stack_load_float_default(stack, scale_offset, node2.y);
+  const float distortion = stack_load_float_default(stack, distortion_offset, node2.z);
+  const float detail = stack_load_float_default(stack, detail_offset, node2.w);
+  const float dscale = stack_load_float_default(stack, dscale_offset, node3.x);
+  const float droughness = stack_load_float_default(stack, droughness_offset, node3.y);
+  const float phase = stack_load_float_default(stack, phase_offset, node3.z);
 
-  float f = svm_wave((NodeWaveType)type_offset,
-                     (NodeWaveBandsDirection)bands_dir_offset,
-                     (NodeWaveRingsDirection)rings_dir_offset,
-                     (NodeWaveProfile)profile_offset,
-                     co * scale,
-                     distortion,
-                     detail,
-                     dscale,
-                     droughness,
-                     phase);
+  const float f = svm_wave((NodeWaveType)type_offset,
+                           (NodeWaveBandsDirection)bands_dir_offset,
+                           (NodeWaveRingsDirection)rings_dir_offset,
+                           (NodeWaveProfile)profile_offset,
+                           co * scale,
+                           distortion,
+                           detail,
+                           dscale,
+                           droughness,
+                           phase);
 
   if (stack_valid(fac_offset)) {
     stack_store_float(stack, fac_offset, f);

@@ -364,11 +364,13 @@ VtDictionary HdCyclesDelegate::GetRenderStats() const
   const Stats &stats = _renderParam->session->stats;
   const Progress &progress = _renderParam->session->progress;
 
-  double totalTime, renderTime;
+  double totalTime;
+  double renderTime;
   progress.get_time(totalTime, renderTime);
-  double fractionDone = progress.get_progress();
+  const double fractionDone = progress.get_progress();
 
-  std::string status, substatus;
+  std::string status;
+  std::string substatus;
   progress.get_status(status, substatus);
   if (!substatus.empty()) {
     status += " | " + substatus;
@@ -469,7 +471,7 @@ void HdCyclesDelegate::SetRenderSetting(const PXR_NS::TfToken &key, const PXR_NS
   else {
     const std::string &keyString = key.GetString();
     if (keyString.rfind("cycles:integrator:", 0) == 0) {
-      ustring socketName(keyString, sizeof("cycles:integrator:") - 1);
+      const ustring socketName(keyString, sizeof("cycles:integrator:") - 1);
       if (const SocketType *socket = scene->integrator->type->find_input(socketName)) {
         SetNodeValue(scene->integrator, *socket, value);
         ++_settingsVersion;
@@ -504,7 +506,7 @@ VtValue HdCyclesDelegate::GetRenderSetting(const TfToken &key) const
 
   const std::string &keyString = key.GetString();
   if (keyString.rfind("cycles:integrator:", 0) == 0) {
-    ustring socketName(keyString, sizeof("cycles:integrator:") - 1);
+    const ustring socketName(keyString, sizeof("cycles:integrator:") - 1);
     if (const SocketType *socket = scene->integrator->type->find_input(socketName)) {
       return GetNodeValue(scene->integrator, *socket);
     }

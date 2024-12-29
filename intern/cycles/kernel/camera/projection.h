@@ -22,16 +22,16 @@ ccl_device float2 direction_to_equirectangular_range(float3 dir, float4 range)
     return zero_float2();
   }
 
-  float u = (atan2f(dir.y, dir.x) - range.y) / range.x;
-  float v = (acosf(dir.z / len(dir)) - range.w) / range.z;
+  const float u = (atan2f(dir.y, dir.x) - range.y) / range.x;
+  const float v = (acosf(dir.z / len(dir)) - range.w) / range.z;
 
   return make_float2(u, v);
 }
 
 ccl_device float3 equirectangular_range_to_direction(float u, float v, float4 range)
 {
-  float phi = range.x * u + range.y;
-  float theta = range.z * v + range.w;
+  const float phi = range.x * u + range.y;
+  const float theta = range.z * v + range.w;
   return spherical_to_direction(theta, phi);
 }
 
@@ -85,13 +85,13 @@ ccl_device float3 fisheye_equidistant_to_direction(float u, float v, float fov)
   u = (u - 0.5f) * 2.0f;
   v = (v - 0.5f) * 2.0f;
 
-  float r = sqrtf(u * u + v * v);
+  const float r = sqrtf(u * u + v * v);
 
   if (r > 1.0f) {
     return zero_float3();
   }
 
-  float theta = r * fov * 0.5f;
+  const float theta = r * fov * 0.5f;
 
   return fisheye_to_direction(theta, u, v, r);
 }
@@ -111,14 +111,14 @@ fisheye_equisolid_to_direction(float u, float v, float lens, float fov, float wi
   u = (u - 0.5f) * width;
   v = (v - 0.5f) * height;
 
-  float rmax = 2.0f * lens * sinf(fov * 0.25f);
-  float r = sqrtf(u * u + v * v);
+  const float rmax = 2.0f * lens * sinf(fov * 0.25f);
+  const float r = sqrtf(u * u + v * v);
 
   if (r > rmax) {
     return zero_float3();
   }
 
-  float theta = 2.0f * asinf(r / (2.0f * lens));
+  const float theta = 2.0f * asinf(r / (2.0f * lens));
 
   return fisheye_to_direction(theta, u, v, r);
 }
@@ -129,10 +129,10 @@ ccl_device_inline float3 fisheye_lens_polynomial_to_direction(
   u = (u - 0.5f) * width;
   v = (v - 0.5f) * height;
 
-  float r = sqrtf(u * u + v * v);
-  float r2 = r * r;
-  float4 rr = make_float4(r, r2, r2 * r, r2 * r2);
-  float theta = -(coeff0 + dot(coeffs, rr));
+  const float r = sqrtf(u * u + v * v);
+  const float r2 = r * r;
+  const float4 rr = make_float4(r, r2, r2 * r, r2 * r2);
+  const float theta = -(coeff0 + dot(coeffs, rr));
 
   if (fabsf(theta) > 0.5f * fov) {
     return zero_float3();
@@ -164,7 +164,8 @@ ccl_device float2 direction_to_fisheye_lens_polynomial(
      *  r_n+1 = r_n - F(r_n) / F'(r_n)
      *  The addition in the implementation is due to canceling of signs.
      * \{ */
-    const float old_r = r, r2 = r * r;
+    const float old_r = r;
+    const float r2 = r * r;
     const float F_r = theta - (coeff0 + dot(coeffs, make_float4(r, r2, r2 * r, r2 * r2)));
     const float dF_r = dot(diff_coeffs, make_float4(1.0f, r, r2, r2 * r));
     r += F_r / dF_r;
@@ -197,7 +198,7 @@ ccl_device float3 mirrorball_to_direction(float u, float v)
   dir.y = -sqrtf(max(1.0f - dir.x * dir.x - dir.z * dir.z, 0.0f));
 
   /* reflection */
-  float3 I = make_float3(0.0f, -1.0f, 0.0f);
+  const float3 I = make_float3(0.0f, -1.0f, 0.0f);
 
   return 2.0f * dot(dir, I) * dir - I;
 }
@@ -207,13 +208,13 @@ ccl_device float2 direction_to_mirrorball(float3 dir)
   /* inverse of mirrorball_to_direction */
   dir.y -= 1.0f;
 
-  float div = 2.0f * sqrtf(max(-0.5f * dir.y, 0.0f));
+  const float div = 2.0f * sqrtf(max(-0.5f * dir.y, 0.0f));
   if (div > 0.0f) {
     dir /= div;
   }
 
-  float u = 0.5f * (dir.x + 1.0f);
-  float v = 0.5f * (dir.z + 1.0f);
+  const float u = 0.5f * (dir.x + 1.0f);
+  const float v = 0.5f * (dir.z + 1.0f);
 
   return make_float2(u, v);
 }
@@ -230,8 +231,8 @@ ccl_device float3 equiangular_cubemap_face_to_direction(float u, float v)
 
 ccl_device float2 direction_to_equiangular_cubemap_face(float3 dir)
 {
-  float u = 0.5f - atan2f(dir.y, dir.x) * 2.0f / M_PI_F;
-  float v = atan2f(dir.z, dir.x) * 2.0f / M_PI_F + 0.5f;
+  const float u = 0.5f - atan2f(dir.y, dir.x) * 2.0f / M_PI_F;
+  const float v = atan2f(dir.z, dir.x) * 2.0f / M_PI_F + 0.5f;
 
   return make_float2(u, v);
 }
@@ -301,23 +302,23 @@ ccl_device_inline void spherical_stereo_transform(ccl_constant KernelCamera *cam
   kernel_assert(interocular_offset != 0.0f);
 
   if (cam->pole_merge_angle_to > 0.0f) {
-    const float pole_merge_angle_from = cam->pole_merge_angle_from,
-                pole_merge_angle_to = cam->pole_merge_angle_to;
-    float altitude = fabsf(safe_asinf((*D).z));
+    const float pole_merge_angle_from = cam->pole_merge_angle_from;
+    const float pole_merge_angle_to = cam->pole_merge_angle_to;
+    const float altitude = fabsf(safe_asinf((*D).z));
     if (altitude > pole_merge_angle_to) {
       interocular_offset = 0.0f;
     }
     else if (altitude > pole_merge_angle_from) {
-      float fac = (altitude - pole_merge_angle_from) /
-                  (pole_merge_angle_to - pole_merge_angle_from);
-      float fade = cosf(fac * M_PI_2_F);
+      const float fac = (altitude - pole_merge_angle_from) /
+                        (pole_merge_angle_to - pole_merge_angle_from);
+      const float fade = cosf(fac * M_PI_2_F);
       interocular_offset *= fade;
     }
   }
 
-  float3 up = make_float3(0.0f, 0.0f, 1.0f);
-  float3 side = normalize(cross(*D, up));
-  float3 stereo_offset = side * interocular_offset;
+  const float3 up = make_float3(0.0f, 0.0f, 1.0f);
+  const float3 side = normalize(cross(*D, up));
+  const float3 stereo_offset = side * interocular_offset;
 
   *P += stereo_offset;
 
@@ -326,7 +327,7 @@ ccl_device_inline void spherical_stereo_transform(ccl_constant KernelCamera *cam
   const float convergence_distance = cam->convergence_distance;
 
   if (convergence_distance != FLT_MAX) {
-    float3 screen_offset = convergence_distance * (*D);
+    const float3 screen_offset = convergence_distance * (*D);
     *D = normalize(screen_offset - stereo_offset);
   }
 }

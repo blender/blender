@@ -25,7 +25,7 @@ void util_cdf_evaluate(
     cdf[i + 1] = cdf[i] + fabsf(y);
   }
   /* Normalize the CDF. */
-  float fac = (cdf[resolution] == 0.0f) ? 0.0f : 1.0f / cdf[resolution];
+  const float fac = (cdf[resolution] == 0.0f) ? 0.0f : 1.0f / cdf[resolution];
   for (int i = 0; i <= resolution; i++) {
     cdf[i] *= fac;
   }

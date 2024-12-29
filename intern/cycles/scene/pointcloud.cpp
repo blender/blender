@@ -23,7 +23,7 @@ void PointCloud::Point::bounds_grow(const float3 *points,
                                     const Transform &aligned_space,
                                     BoundBox &bounds) const
 {
-  float3 P = transform_point(&aligned_space, points[index]);
+  const float3 P = transform_point(&aligned_space, points[index]);
   bounds.grow(P, radius[index]);
 }
 
@@ -143,13 +143,13 @@ void PointCloud::copy_center_to_motion_step(const int motion_step)
   Attribute *attr_mP = attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
   if (attr_mP) {
     float3 *points_data = points.data();
-    size_t numpoints = points.size();
+    const size_t numpoints = points.size();
     float *radius_data = radius.data();
 
     float4 *attrib_P = attr_mP->data_float4() + motion_step * numpoints;
     for (int i = 0; i < numpoints; i++) {
-      float3 P = points_data[i];
-      float r = radius_data[i];
+      const float3 P = points_data[i];
+      const float r = radius_data[i];
       attrib_P[i] = make_float4(P, r);
     }
   }
@@ -174,7 +174,7 @@ void PointCloud::get_uv_tiles(ustring map, unordered_set<int> &tiles)
 void PointCloud::compute_bounds()
 {
   BoundBox bnds = BoundBox::empty;
-  size_t numpoints = points.size();
+  const size_t numpoints = points.size();
 
   if (numpoints > 0) {
     for (size_t i = 0; i < numpoints; i++) {
@@ -183,7 +183,7 @@ void PointCloud::compute_bounds()
 
     Attribute *attr = attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
     if (use_motion_blur && attr) {
-      size_t steps_size = points.size() * (motion_steps - 1);
+      const size_t steps_size = points.size() * (motion_steps - 1);
       float4 *point_steps = attr->data_float4();
 
       for (size_t i = 0; i < steps_size; i++) {
@@ -200,7 +200,7 @@ void PointCloud::compute_bounds()
       }
 
       if (use_motion_blur && attr) {
-        size_t steps_size = points.size() * (motion_steps - 1);
+        const size_t steps_size = points.size() * (motion_steps - 1);
         float4 *point_steps = attr->data_float4();
 
         for (size_t i = 0; i < steps_size; i++) {
@@ -221,15 +221,15 @@ void PointCloud::compute_bounds()
 void PointCloud::apply_transform(const Transform &tfm, const bool apply_to_motion)
 {
   /* compute uniform scale */
-  float3 c0 = transform_get_column(&tfm, 0);
-  float3 c1 = transform_get_column(&tfm, 1);
-  float3 c2 = transform_get_column(&tfm, 2);
-  float scalar = powf(fabsf(dot(cross(c0, c1), c2)), 1.0f / 3.0f);
+  const float3 c0 = transform_get_column(&tfm, 0);
+  const float3 c1 = transform_get_column(&tfm, 1);
+  const float3 c2 = transform_get_column(&tfm, 2);
+  const float scalar = powf(fabsf(dot(cross(c0, c1), c2)), 1.0f / 3.0f);
 
   /* apply transform to curve keys */
   for (size_t i = 0; i < points.size(); i++) {
-    float3 co = transform_point(&tfm, points[i]);
-    float r = radius[i] * scalar;
+    const float3 co = transform_point(&tfm, points[i]);
+    const float r = radius[i] * scalar;
 
     /* scale for curve radius is only correct for uniform scale
      */
@@ -242,12 +242,12 @@ void PointCloud::apply_transform(const Transform &tfm, const bool apply_to_motio
 
     if (attr) {
       /* apply transform to motion curve keys */
-      size_t steps_size = points.size() * (motion_steps - 1);
+      const size_t steps_size = points.size() * (motion_steps - 1);
       float4 *point_steps = attr->data_float4();
 
       for (size_t i = 0; i < steps_size; i++) {
-        float3 co = transform_point(&tfm, make_float3(point_steps[i]));
-        float radius = point_steps[i].w * scalar;
+        const float3 co = transform_point(&tfm, make_float3(point_steps[i]));
+        const float radius = point_steps[i].w * scalar;
 
         /* scale for curve radius is only correct for uniform
          * scale */
@@ -260,7 +260,7 @@ void PointCloud::apply_transform(const Transform &tfm, const bool apply_to_motio
 
 void PointCloud::pack(Scene *scene, float4 *packed_points, uint *packed_shader)
 {
-  size_t numpoints = points.size();
+  const size_t numpoints = points.size();
   float3 *points_data = points.data();
   float *radius_data = radius.data();
   int *shader_data = shader.data();

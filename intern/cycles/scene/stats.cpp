@@ -131,12 +131,12 @@ string NamedNestedSampleStats::full_report(int indent_level, uint64_t total_samp
   const double sum_seconds = sum_samples * 0.001;
   const double self_percent = 100 * ((double)self_samples) / total_samples;
   const double self_seconds = self_samples * 0.001;
-  string info = string_printf("%-32s: Total %3.2f%% (%.2fs), Self %3.2f%% (%.2fs)\n",
-                              name.c_str(),
-                              sum_percent,
-                              sum_seconds,
-                              self_percent,
-                              self_seconds);
+  const string info = string_printf("%-32s: Total %3.2f%% (%.2fs), Self %3.2f%% (%.2fs)\n",
+                                    name.c_str(),
+                                    sum_percent,
+                                    sum_seconds,
+                                    self_percent,
+                                    self_seconds);
   string result = indent + info;
 
   sort(entries.begin(), entries.end(), namedTimeSampleEntryComparator);
@@ -157,7 +157,7 @@ NamedSampleCountStats::NamedSampleCountStats() = default;
 
 void NamedSampleCountStats::add(const ustring &name, uint64_t samples, uint64_t hits)
 {
-  entry_map::iterator entry = entries.find(name);
+  const entry_map::iterator entry = entries.find(name);
   if (entry != entries.end()) {
     entry->second.samples += samples;
     entry->second.hits += hits;
@@ -173,7 +173,8 @@ string NamedSampleCountStats::full_report(int indent_level)
   vector<NamedSampleCountPair> sorted_entries;
   sorted_entries.reserve(entries.size());
 
-  uint64_t total_hits = 0, total_samples = 0;
+  uint64_t total_hits = 0;
+  uint64_t total_samples = 0;
   for (entry_map::const_reference entry : entries) {
     const NamedSampleCountPair &pair = entry.second;
 
@@ -267,7 +268,8 @@ void RenderStats::collect_profiling(Scene *scene, Profiler &prof)
 
   shaders.entries.clear();
   for (Shader *shader : scene->shaders) {
-    uint64_t samples, hits;
+    uint64_t samples;
+    uint64_t hits;
     if (prof.get_shader(shader->id, samples, hits)) {
       shaders.add(shader->name, samples, hits);
     }
@@ -275,7 +277,8 @@ void RenderStats::collect_profiling(Scene *scene, Profiler &prof)
 
   objects.entries.clear();
   for (Object *object : scene->objects) {
-    uint64_t samples, hits;
+    uint64_t samples;
+    uint64_t hits;
     if (prof.get_object(object->get_device_index(), samples, hits)) {
       objects.add(object->name, samples, hits);
     }

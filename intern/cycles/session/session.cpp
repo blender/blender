@@ -80,7 +80,7 @@ Session::~Session()
 
   /* Signal session thread to end. */
   {
-    thread_scoped_lock session_thread_lock(session_thread_mutex_);
+    const thread_scoped_lock session_thread_lock(session_thread_mutex_);
     session_thread_state_ = SESSION_THREAD_END;
   }
   session_thread_cond_.notify_all();
@@ -110,7 +110,7 @@ void Session::start()
 {
   {
     /* Signal session thread to start rendering. */
-    thread_scoped_lock session_thread_lock(session_thread_mutex_);
+    const thread_scoped_lock session_thread_lock(session_thread_mutex_);
     if (session_thread_state_ == SESSION_THREAD_RENDER) {
       /* Already rendering, nothing to do. */
       return;
@@ -140,7 +140,7 @@ void Session::cancel(bool quick)
 
     /* Signal unpause in case the render was paused. */
     {
-      thread_scoped_lock pause_lock(pause_mutex_);
+      const thread_scoped_lock pause_lock(pause_mutex_);
       pause_ = false;
     }
     pause_cond_.notify_all();
@@ -164,7 +164,8 @@ void Session::run_main_render_loop()
 
     if (!render_work) {
       if (VLOG_INFO_IS_ON) {
-        double total_time, render_time;
+        double total_time;
+        double render_time;
         progress.get_time(total_time, render_time);
         VLOG_INFO << "Rendering in main loop is done in " << render_time << " seconds.";
         VLOG_INFO << path_trace_->full_report();
@@ -199,7 +200,7 @@ void Session::run_main_render_loop()
       /* buffers mutex is locked entirely while rendering each
        * sample, and released/reacquired on each iteration to allow
        * reset and draw in between */
-      thread_scoped_lock buffers_lock(buffers_mutex_);
+      const thread_scoped_lock buffers_lock(buffers_mutex_);
 
       /* update status and timing */
       update_status_time();
@@ -247,7 +248,7 @@ void Session::thread_run()
 
     /* Go back from rendering to waiting. */
     {
-      thread_scoped_lock session_thread_lock(session_thread_mutex_);
+      const thread_scoped_lock session_thread_lock(session_thread_mutex_);
       if (session_thread_state_ == SESSION_THREAD_RENDER) {
         session_thread_state_ = SESSION_THREAD_WAIT;
       }
@@ -292,7 +293,7 @@ void Session::thread_render()
 
 bool Session::is_session_thread_rendering()
 {
-  thread_scoped_lock session_thread_lock(session_thread_mutex_);
+  const thread_scoped_lock session_thread_lock(session_thread_mutex_);
   return (session_thread_state_ == SESSION_THREAD_RENDER);
 }
 
@@ -308,11 +309,11 @@ RenderWork Session::run_update_for_next_iteration()
 
   /* Perform delayed reset if requested. */
   {
-    thread_scoped_lock reset_lock(delayed_reset_.mutex);
+    const thread_scoped_lock reset_lock(delayed_reset_.mutex);
     if (delayed_reset_.do_reset) {
       did_reset = true;
 
-      thread_scoped_lock buffers_lock(buffers_mutex_);
+      const thread_scoped_lock buffers_lock(buffers_mutex_);
       do_delayed_reset();
 
       /* After reset make sure the tile manager is at the first big tile. */
@@ -369,7 +370,7 @@ RenderWork Session::run_update_for_next_iteration()
   }
 
   if (render_work) {
-    scoped_timer update_timer;
+    const scoped_timer update_timer;
 
     if (switched_to_new_tile) {
       BufferParams tile_params = buffer_params_;
@@ -457,7 +458,7 @@ bool Session::run_wait_for_work(const RenderWork &render_work)
   /* Only leave the loop when rendering is not paused. But even if the current render is
    * un-paused but there is nothing to render keep waiting until new work is added. */
   while (!progress.get_cancel()) {
-    scoped_timer pause_timer;
+    const scoped_timer pause_timer;
 
     if (!pause_ && (render_work || new_work_added_ || delayed_reset_.do_reset)) {
       break;
@@ -564,8 +565,8 @@ void Session::do_delayed_reset()
 void Session::reset(const SessionParams &session_params, const BufferParams &buffer_params)
 {
   {
-    thread_scoped_lock reset_lock(delayed_reset_.mutex);
-    thread_scoped_lock pause_lock(pause_mutex_);
+    const thread_scoped_lock reset_lock(delayed_reset_.mutex);
+    const thread_scoped_lock pause_lock(pause_mutex_);
 
     delayed_reset_.do_reset = true;
     delayed_reset_.session_params = session_params;
@@ -586,7 +587,7 @@ void Session::set_samples(int samples)
   params.samples = samples;
 
   {
-    thread_scoped_lock pause_lock(pause_mutex_);
+    const thread_scoped_lock pause_lock(pause_mutex_);
     new_work_added_ = true;
   }
 
@@ -602,7 +603,7 @@ void Session::set_time_limit(double time_limit)
   params.time_limit = time_limit;
 
   {
-    thread_scoped_lock pause_lock(pause_mutex_);
+    const thread_scoped_lock pause_lock(pause_mutex_);
     new_work_added_ = true;
   }
 
@@ -614,7 +615,7 @@ void Session::set_pause(bool pause)
   bool notify = false;
 
   {
-    thread_scoped_lock pause_lock(pause_mutex_);
+    const thread_scoped_lock pause_lock(pause_mutex_);
 
     if (pause != pause_) {
       pause_ = pause;
@@ -649,7 +650,8 @@ double Session::get_estimated_remaining_time() const
     return 0.0;
   }
 
-  double total_time, render_time;
+  double total_time;
+  double render_time;
   progress.get_time(total_time, render_time);
   double remaining = (1.0 - (double)completed) * (render_time / (double)completed);
 
@@ -696,7 +698,8 @@ static string status_append(const string &status, const string &suffix)
 
 void Session::update_status_time(bool show_pause, bool show_done)
 {
-  string status, substatus;
+  string status;
+  string substatus;
 
   const int current_tile = progress.get_rendered_tiles();
   const int num_tiles = tile_manager_.get_num_tiles();

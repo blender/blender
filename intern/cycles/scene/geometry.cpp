@@ -95,7 +95,7 @@ int Geometry::motion_step(float time) const
     int attr_step = 0;
 
     for (int step = 0; step < motion_steps; step++) {
-      float step_time = motion_time(step);
+      const float step_time = motion_time(step);
       if (step_time == time) {
         return attr_step;
       }
@@ -218,7 +218,7 @@ static void update_device_flags_attribute(uint32_t &device_update_flags,
       continue;
     }
 
-    AttrKernelDataType kernel_type = Attribute::kernel_type(attr);
+    const AttrKernelDataType kernel_type = Attribute::kernel_type(attr);
 
     switch (kernel_type) {
       case AttrKernelDataType::FLOAT: {
@@ -302,7 +302,7 @@ void GeometryManager::geom_calc_offset(Scene *scene, BVHLayout bvh_layout)
       tri_size += mesh->num_triangles();
 
       if (mesh->get_num_subd_faces()) {
-        Mesh::SubdFace last = mesh->get_subd_face(mesh->get_num_subd_faces() - 1);
+        const Mesh::SubdFace last = mesh->get_subd_face(mesh->get_num_subd_faces() - 1);
         patch_size += (last.ptex_offset + last.num_ptex_faces()) * 8;
 
         /* patch tables are stored in same array so include them in patch_size */
@@ -355,7 +355,7 @@ void GeometryManager::device_update_preprocess(Device *device, Scene *scene, Pro
 
   uint32_t device_update_flags = 0;
 
-  scoped_callback_timer timer([scene](double time) {
+  const scoped_callback_timer timer([scene](double time) {
     if (scene->update_stats) {
       scene->update_stats->geometry.times.add_entry({"device_update_preprocess", time});
     }
@@ -662,7 +662,7 @@ void GeometryManager::device_update_displacement_images(Device *device,
   }
 #endif
 
-  for (int slot : bump_images) {
+  for (const int slot : bump_images) {
     pool.push([image_manager, device, scene, slot, &progress] {
       image_manager->device_update_slot(device, scene, slot, progress);
     });
@@ -687,7 +687,7 @@ void GeometryManager::device_update_volume_images(Device *device, Scene *scene, 
         continue;
       }
 
-      ImageHandle &handle = attr.data_voxel();
+      const ImageHandle &handle = attr.data_voxel();
       /* We can build directly from OpenVDB data structures, no need to
        * load such images early. */
       if (!handle.vdb_loader()) {
@@ -699,7 +699,7 @@ void GeometryManager::device_update_volume_images(Device *device, Scene *scene, 
     }
   }
 
-  for (int slot : volume_images) {
+  for (const int slot : volume_images) {
     pool.push([image_manager, device, scene, slot, &progress] {
       image_manager->device_update_slot(device, scene, slot, progress);
     });
@@ -723,7 +723,7 @@ void GeometryManager::device_update(Device *device,
   size_t total_tess_needed = 0;
 
   {
-    scoped_callback_timer timer([scene](double time) {
+    const scoped_callback_timer timer([scene](double time) {
       if (scene->update_stats) {
         scene->update_stats->geometry.times.add_entry({"device_update (normals)", time});
       }
@@ -781,7 +781,7 @@ void GeometryManager::device_update(Device *device,
 
   /* Tessellate meshes that are using subdivision */
   if (total_tess_needed) {
-    scoped_callback_timer timer([scene](double time) {
+    const scoped_callback_timer timer([scene](double time) {
       if (scene->update_stats) {
         scene->update_stats->geometry.times.add_entry(
             {"device_update (adaptive subdivision)", time});
@@ -831,7 +831,7 @@ void GeometryManager::device_update(Device *device,
 
   /* Update images needed for true displacement. */
   if (true_displacement_used || curve_shadow_transparency_used) {
-    scoped_callback_timer timer([scene](double time) {
+    const scoped_callback_timer timer([scene](double time) {
       if (scene->update_stats) {
         scene->update_stats->geometry.times.add_entry(
             {"device_update (displacement: load images)", time});
@@ -848,7 +848,7 @@ void GeometryManager::device_update(Device *device,
       scene->params.bvh_layout, device->get_bvh_layout_mask(dscene->data.kernel_features));
   geom_calc_offset(scene, bvh_layout);
   if (true_displacement_used || curve_shadow_transparency_used) {
-    scoped_callback_timer timer([scene](double time) {
+    const scoped_callback_timer timer([scene](double time) {
       if (scene->update_stats) {
         scene->update_stats->geometry.times.add_entry(
             {"device_update (displacement: copy meshes to device)", time});
@@ -861,7 +861,7 @@ void GeometryManager::device_update(Device *device,
   }
 
   {
-    scoped_callback_timer timer([scene](double time) {
+    const scoped_callback_timer timer([scene](double time) {
       if (scene->update_stats) {
         scene->update_stats->geometry.times.add_entry({"device_update (attributes)", time});
       }
@@ -881,7 +881,7 @@ void GeometryManager::device_update(Device *device,
     /* Copy constant data needed by shader evaluation. */
     device->const_copy_to("data", &dscene->data, sizeof(dscene->data));
 
-    scoped_callback_timer timer([scene](double time) {
+    const scoped_callback_timer timer([scene](double time) {
       if (scene->update_stats) {
         scene->update_stats->geometry.times.add_entry({"device_update (displacement)", time});
       }
@@ -921,7 +921,7 @@ void GeometryManager::device_update(Device *device,
 
   /* Device re-update after displacement. */
   if (displacement_done || curve_shadow_transparency_done) {
-    scoped_callback_timer timer([scene](double time) {
+    const scoped_callback_timer timer([scene](double time) {
       if (scene->update_stats) {
         scene->update_stats->geometry.times.add_entry(
             {"device_update (displacement: attributes)", time});
@@ -943,7 +943,7 @@ void GeometryManager::device_update(Device *device,
   bool need_update_scene_bvh = (scene->bvh == nullptr ||
                                 (update_flags & (TRANSFORM_MODIFIED | VISIBILITY_MODIFIED)) != 0);
   {
-    scoped_callback_timer timer([scene](double time) {
+    const scoped_callback_timer timer([scene](double time) {
       if (scene->update_stats) {
         scene->update_stats->geometry.times.add_entry({"device_update (build object BVHs)", time});
       }
@@ -974,12 +974,12 @@ void GeometryManager::device_update(Device *device,
     shader->need_update_displacement = false;
   }
 
-  Scene::MotionType need_motion = scene->need_motion();
-  bool motion_blur = need_motion == Scene::MOTION_BLUR;
+  const Scene::MotionType need_motion = scene->need_motion();
+  const bool motion_blur = need_motion == Scene::MOTION_BLUR;
 
   /* Update objects. */
   {
-    scoped_callback_timer timer([scene](double time) {
+    const scoped_callback_timer timer([scene](double time) {
       if (scene->update_stats) {
         scene->update_stats->geometry.times.add_entry({"device_update (compute bounds)", time});
       }
@@ -994,7 +994,7 @@ void GeometryManager::device_update(Device *device,
   }
 
   if (need_update_scene_bvh) {
-    scoped_callback_timer timer([scene](double time) {
+    const scoped_callback_timer timer([scene](double time) {
       if (scene->update_stats) {
         scene->update_stats->geometry.times.add_entry({"device_update (build scene BVH)", time});
       }
@@ -1011,7 +1011,7 @@ void GeometryManager::device_update(Device *device,
       scene->params.bvh_layout, device->get_bvh_layout_mask(dscene->data.kernel_features));
 
   {
-    scoped_callback_timer timer([scene](double time) {
+    const scoped_callback_timer timer([scene](double time) {
       if (scene->update_stats) {
         scene->update_stats->geometry.times.add_entry(
             {"device_update (copy meshes to device)", time});

@@ -52,8 +52,8 @@ static void shade_background_pixels(Device *device,
 
         for (int y = 0; y < height; y++) {
           for (int x = 0; x < width; x++) {
-            float u = (x + 0.5f) / width;
-            float v = (y + 0.5f) / height;
+            float const u = (x + 0.5f) / width;
+            float const v = (y + 0.5f) / height;
 
             KernelShaderEvalInput in;
             in.object = OBJECT_NONE;
@@ -240,7 +240,8 @@ void LightManager::test_enabled_lights(Scene *scene)
    * needed for finer-tuning of settings (for example, check whether we've
    * got portals or not).
    */
-  bool has_portal = false, has_background = false;
+  bool has_portal = false;
+  bool has_background = false;
   for (Light *light : scene->lights) {
     light->is_enabled = light->has_contribution(scene);
     has_portal |= light->is_portal;
@@ -308,10 +309,10 @@ void LightManager::device_update_distribution(Device * /*unused*/,
 
     /* Count emissive triangles. */
     Mesh *mesh = static_cast<Mesh *>(object->get_geometry());
-    int mesh_num_triangles = static_cast<int>(mesh->num_triangles());
+    const int mesh_num_triangles = static_cast<int>(mesh->num_triangles());
 
     for (int i = 0; i < mesh_num_triangles; i++) {
-      int shader_index = mesh->get_shader()[i];
+      const int shader_index = mesh->get_shader()[i];
       Shader *shader = (shader_index < mesh->get_used_shaders().size()) ?
                            static_cast<Shader *>(mesh->get_used_shaders()[shader_index]) :
                            scene->default_surface;
@@ -354,9 +355,9 @@ void LightManager::device_update_distribution(Device * /*unused*/,
     }
     /* Sum area. */
     Mesh *mesh = static_cast<Mesh *>(object->get_geometry());
-    bool transform_applied = mesh->transform_applied;
-    Transform tfm = object->get_tfm();
-    int object_id = j;
+    const bool transform_applied = mesh->transform_applied;
+    const Transform tfm = object->get_tfm();
+    const int object_id = j;
     int shader_flag = 0;
 
     if (!(object->get_visibility() & PATH_RAY_CAMERA)) {
@@ -378,9 +379,9 @@ void LightManager::device_update_distribution(Device * /*unused*/,
       shader_flag |= SHADER_EXCLUDE_SHADOW_CATCHER;
     }
 
-    size_t mesh_num_triangles = mesh->num_triangles();
+    const size_t mesh_num_triangles = mesh->num_triangles();
     for (size_t i = 0; i < mesh_num_triangles; i++) {
-      int shader_index = mesh->get_shader()[i];
+      const int shader_index = mesh->get_shader()[i];
       Shader *shader = (shader_index < mesh->get_used_shaders().size()) ?
                            static_cast<Shader *>(mesh->get_used_shaders()[shader_index]) :
                            scene->default_surface;
@@ -392,7 +393,7 @@ void LightManager::device_update_distribution(Device * /*unused*/,
         distribution[offset].mesh_light.object_id = object_id;
         offset++;
 
-        Mesh::Triangle t = mesh->get_triangle(i);
+        const Mesh::Triangle t = mesh->get_triangle(i);
         if (!t.valid(mesh->get_verts().data())) {
           continue;
         }
@@ -419,7 +420,7 @@ void LightManager::device_update_distribution(Device * /*unused*/,
   int light_index = 0;
 
   if (num_lights > 0) {
-    float lightarea = (totarea > 0.0f) ? totarea / num_lights : 1.0f;
+    const float lightarea = (totarea > 0.0f) ? totarea / num_lights : 1.0f;
     for (Light *light : scene->lights) {
       if (!light->is_enabled) {
         continue;
@@ -536,7 +537,7 @@ static void light_tree_leaf_emitters_copy_and_flatten(LightTreeFlatten &flatten,
 {
   /* Convert emitters to kernel representation. */
   for (int i = 0; i < node.get_leaf().num_emitters; i++) {
-    int emitter_index = i + node.get_leaf().first_emitter_index;
+    const int emitter_index = i + node.get_leaf().first_emitter_index;
     const LightTreeEmitter &emitter = flatten.emitters[emitter_index];
     KernelLightTreeEmitter &kemitter = kemitters[emitter_index];
 
@@ -633,7 +634,8 @@ static int light_tree_flatten(LightTreeFlatten &flatten,
 {
   /* Convert both inner nodes and primitives to device representation. */
   const int node_index = next_node_index++;
-  int left_child = -1, right_child = -1;
+  int left_child = -1;
+  int right_child = -1;
 
   if (node->is_leaf() || node->is_distant()) {
     light_tree_leaf_emitters_copy_and_flatten(flatten, *node, knodes, kemitters, next_node_index);
@@ -697,7 +699,9 @@ static std::pair<int, LightTreeMeasure> light_tree_specialize_nodes_flatten(
   assert(!node->is_instance());
 
   /* Convert inner nodes to device representation, specialized for light linking. */
-  int node_index, left_child = -1, right_child = -1;
+  int node_index;
+  int left_child = -1;
+  int right_child = -1;
 
   LightTreeNode new_node(LightTreeMeasure::empty, node->bit_trail);
 
@@ -901,10 +905,10 @@ void LightManager::device_update_tree(Device * /*unused*/,
 static void background_cdf(
     int start, int end, int res_x, int res_y, const vector<float3> *pixels, float2 *cond_cdf)
 {
-  int cdf_width = res_x + 1;
+  const int cdf_width = res_x + 1;
   /* Conditional CDFs (rows, U direction). */
   for (int i = start; i < end; i++) {
-    float sin_theta = sinf(M_PI_F * (i + 0.5f) / res_y);
+    const float sin_theta = sinf(M_PI_F * (i + 0.5f) / res_y);
     float3 env_color = (*pixels)[i * res_x];
     float ave_luminance = average(fabs(env_color));
 
@@ -979,7 +983,7 @@ void LightManager::device_update_background(Device *device,
     if (node->type == EnvironmentTextureNode::get_node_type()) {
       EnvironmentTextureNode *env = (EnvironmentTextureNode *)node;
       if (!env->handle.empty()) {
-        ImageMetaData metadata = env->handle.metadata();
+        const ImageMetaData metadata = env->handle.metadata();
         environment_res.x = max(environment_res.x, (int)metadata.width);
         environment_res.y = max(environment_res.y, (int)metadata.height);
       }
@@ -1003,15 +1007,15 @@ void LightManager::device_update_background(Device *device,
         }
 
         /* Determine sun direction from lat/long and texture mapping. */
-        float latitude = sky->get_sun_elevation();
-        float longitude = sky->get_sun_rotation() + M_PI_2_F;
+        const float latitude = sky->get_sun_elevation();
+        const float longitude = sky->get_sun_rotation() + M_PI_2_F;
         float3 sun_direction = make_float3(
             cosf(latitude) * cosf(longitude), cosf(latitude) * sinf(longitude), sinf(latitude));
-        Transform sky_transform = transform_inverse(sky->tex_mapping.compute_transform());
+        const Transform sky_transform = transform_inverse(sky->tex_mapping.compute_transform());
         sun_direction = transform_direction(&sky_transform, sun_direction);
 
         /* Pack sun direction and size. */
-        float half_angle = sky->get_sun_size() * 0.5f;
+        const float half_angle = sky->get_sun_size() * 0.5f;
         kbackground->sun = make_float4(sun_direction, half_angle);
 
         /* empirical value */
@@ -1062,11 +1066,11 @@ void LightManager::device_update_background(Device *device,
   }
 
   /* build row distributions and column distribution for the infinite area environment light */
-  int cdf_width = res.x + 1;
+  const int cdf_width = res.x + 1;
   float2 *marg_cdf = dscene->light_background_marginal_cdf.alloc(res.y + 1);
   float2 *cond_cdf = dscene->light_background_conditional_cdf.alloc(cdf_width * res.y);
 
-  double time_start = time_dt();
+  const double time_start = time_dt();
 
   /* Create CDF in parallel. */
   const int rows_per_task = divide_up(10240, res.x);
@@ -1084,10 +1088,10 @@ void LightManager::device_update_background(Device *device,
     marg_cdf[i].y = marg_cdf[i - 1].y + marg_cdf[i - 1].x / res.y;
   }
 
-  float cdf_total = marg_cdf[res.y - 1].y + marg_cdf[res.y - 1].x / res.y;
+  const float cdf_total = marg_cdf[res.y - 1].y + marg_cdf[res.y - 1].x / res.y;
   marg_cdf[res.y].x = cdf_total;
 
-  float map_average_radiance = cdf_total * M_PI_2_F;
+  const float map_average_radiance = cdf_total * M_PI_2_F;
   if (sun_average_radiance > 0.0f) {
     /* The weighting here is just a heuristic that was empirically determined.
      * The sun's average radiance is much higher than the map's average radiance,
@@ -1170,12 +1174,13 @@ void LightManager::device_update_lights(DeviceScene *dscene, Scene *scene)
     if (light->is_portal) {
       assert(light->light_type == LIGHT_AREA);
 
-      float3 extentu = light->get_axisu() * (light->sizeu * light->size);
-      float3 extentv = light->get_axisv() * (light->sizev * light->size);
+      const float3 extentu = light->get_axisu() * (light->sizeu * light->size);
+      const float3 extentv = light->get_axisv() * (light->sizev * light->size);
 
-      float len_u, len_v;
-      float3 axis_u = normalize_len(extentu, &len_u);
-      float3 axis_v = normalize_len(extentv, &len_v);
+      float len_u;
+      float len_v;
+      const float3 axis_u = normalize_len(extentu, &len_u);
+      const float3 axis_v = normalize_len(extentv, &len_v);
       float area = len_u * len_v;
       if (light->ellipse) {
         area *= M_PI_4_F;
@@ -1186,7 +1191,7 @@ void LightManager::device_update_lights(DeviceScene *dscene, Scene *scene)
         invarea = -invarea;
       }
 
-      float3 dir = safe_normalize(light->get_dir());
+      const float3 dir = safe_normalize(light->get_dir());
 
       klights[portal_index].co = light->get_co();
       klights[portal_index].area.axis_u = axis_u;
@@ -1208,7 +1213,7 @@ void LightManager::device_update_lights(DeviceScene *dscene, Scene *scene)
 
     Shader *shader = (light->shader) ? light->shader : scene->default_light;
     int shader_id = scene->shader_manager->get_shader_id(shader);
-    float random = (float)light->random_id * (1.0f / (float)0xFFFFFFFF);
+    const float random = (float)light->random_id * (1.0f / (float)0xFFFFFFFF);
 
     if (!light->cast_shadow) {
       shader_id &= ~SHADER_CAST_SHADOW;
@@ -1241,13 +1246,13 @@ void LightManager::device_update_lights(DeviceScene *dscene, Scene *scene)
     if (light->light_type == LIGHT_POINT || light->light_type == LIGHT_SPOT) {
       shader_id &= ~SHADER_AREA_LIGHT;
 
-      float radius = light->size;
-      float invarea = (radius == 0.0f)   ? 1.0f / 4.0f :
-                      (light->normalize) ? 1.0f / (4.0f * M_PI_F * radius * radius) :
-                                           1.0f;
+      const float radius = light->size;
+      const float invarea = (radius == 0.0f)   ? 1.0f / 4.0f :
+                            (light->normalize) ? 1.0f / (4.0f * M_PI_F * radius * radius) :
+                                                 1.0f;
 
       /* Convert radiant flux to radiance or radiant intensity. */
-      float eval_fac = invarea * M_1_PI_F;
+      const float eval_fac = invarea * M_1_PI_F;
 
       if (light->use_mis && radius > 0.0f) {
         shader_id |= SHADER_USE_MIS;
@@ -1261,8 +1266,8 @@ void LightManager::device_update_lights(DeviceScene *dscene, Scene *scene)
     else if (light->light_type == LIGHT_DISTANT) {
       shader_id &= ~SHADER_AREA_LIGHT;
 
-      float3 dir = safe_normalize(light->get_dir());
-      float angle = light->angle / 2.0f;
+      const float3 dir = safe_normalize(light->get_dir());
+      const float angle = light->angle / 2.0f;
 
       if (light->use_mis && angle > 0.0f) {
         shader_id |= SHADER_USE_MIS;
@@ -1283,7 +1288,7 @@ void LightManager::device_update_lights(DeviceScene *dscene, Scene *scene)
                                                                  0.5f / sinf(0.5f * angle);
     }
     else if (light->light_type == LIGHT_BACKGROUND) {
-      uint visibility = scene->background->get_visibility();
+      const uint visibility = scene->background->get_visibility();
 
       dscene->data.background.light_index = light_index;
 
@@ -1304,13 +1309,14 @@ void LightManager::device_update_lights(DeviceScene *dscene, Scene *scene)
       }
     }
     else if (light->light_type == LIGHT_AREA) {
-      float light_size = light->size;
-      float3 extentu = light->get_axisu() * (light->sizeu * light_size);
-      float3 extentv = light->get_axisv() * (light->sizev * light_size);
+      const float light_size = light->size;
+      const float3 extentu = light->get_axisu() * (light->sizeu * light_size);
+      const float3 extentv = light->get_axisv() * (light->sizev * light_size);
 
-      float len_u, len_v;
-      float3 axis_u = normalize_len(extentu, &len_u);
-      float3 axis_v = normalize_len(extentv, &len_v);
+      float len_u;
+      float len_v;
+      const float3 axis_u = normalize_len(extentu, &len_u);
+      const float3 axis_v = normalize_len(extentv, &len_v);
       float area = len_u * len_v;
       if (light->ellipse) {
         area *= M_PI_4_F;
@@ -1333,7 +1339,7 @@ void LightManager::device_update_lights(DeviceScene *dscene, Scene *scene)
                                               3.0f / powf(half_spread, 3.0f)) :
                                          FLT_MAX;
 
-      float3 dir = safe_normalize(light->get_dir());
+      const float3 dir = safe_normalize(light->get_dir());
 
       if (light->use_mis && area != 0.0f && light->spread > 0.0f) {
         shader_id |= SHADER_USE_MIS;
@@ -1414,7 +1420,7 @@ void LightManager::device_update(Device *device,
     return;
   }
 
-  scoped_callback_timer timer([scene](double time) {
+  const scoped_callback_timer timer([scene](double time) {
     if (scene->update_stats) {
       scene->update_stats->light.times.add_entry({"device_update", time});
     }
@@ -1502,9 +1508,9 @@ int LightManager::add_ies_from_file(const string &filename)
 
 int LightManager::add_ies(const string &content)
 {
-  uint hash = hash_string(content.c_str());
+  const uint hash = hash_string(content.c_str());
 
-  thread_scoped_lock ies_lock(ies_mutex);
+  const thread_scoped_lock ies_lock(ies_mutex);
 
   /* Check whether this IES already has a slot. */
   size_t slot;
@@ -1539,7 +1545,7 @@ int LightManager::add_ies(const string &content)
 
 void LightManager::remove_ies(int slot)
 {
-  thread_scoped_lock ies_lock(ies_mutex);
+  const thread_scoped_lock ies_lock(ies_mutex);
 
   if (slot < 0 || slot >= ies_slots.size()) {
     assert(false);
@@ -1591,7 +1597,7 @@ void LightManager::device_update_ies(DeviceScene *dscene)
 
     int offset = ies_slots.size();
     for (int i = 0; i < ies_slots.size(); i++) {
-      int size = ies_slots[i]->ies.packed_size();
+      const int size = ies_slots[i]->ies.packed_size();
       if (size > 0) {
         data[i] = __int_as_float(offset);
         ies_slots[i]->ies.pack(data + offset);

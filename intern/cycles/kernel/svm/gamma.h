@@ -16,7 +16,7 @@ ccl_device_noinline void svm_node_gamma(ccl_private ShaderData *sd,
                                         uint out_color)
 {
   float3 color = stack_load_float3(stack, in_color);
-  float gamma = stack_load_float(stack, in_gamma);
+  const float gamma = stack_load_float(stack, in_gamma);
 
   color = svm_math_gamma_color(color, gamma);
 

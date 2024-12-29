@@ -47,7 +47,7 @@ ccl_device_inline void volume_shader_merge_closures(ccl_private ShaderData *sd)
       sci->weight += scj->weight;
       sci->sample_weight += scj->sample_weight;
 
-      int size = sd->num_closure - (j + 1);
+      const int size = sd->num_closure - (j + 1);
       if (size > 0) {
         for (int k = 0; k < size; k++) {
           scj[k] = scj[k + 1];
@@ -63,16 +63,16 @@ ccl_device_inline void volume_shader_merge_closures(ccl_private ShaderData *sd)
 
 ccl_device_inline void volume_shader_copy_phases(ccl_private ShaderVolumePhases *ccl_restrict
                                                      phases,
-                                                 ccl_private const ShaderData *ccl_restrict sd)
+                                                 const ccl_private ShaderData *ccl_restrict sd)
 {
   phases->num_closure = 0;
 
   for (int i = 0; i < sd->num_closure; i++) {
-    ccl_private const ShaderClosure *from_sc = &sd->closure[i];
+    const ccl_private ShaderClosure *from_sc = &sd->closure[i];
     if (CLOSURE_IS_VOLUME_SCATTER(from_sc->type)) {
       /* ShaderVolumeClosure is a subset of ShaderClosure, so this is fine for all volume scatter
        * closures. */
-      phases->closure[phases->num_closure++] = *((ccl_private const ShaderVolumeClosure *)from_sc);
+      phases->closure[phases->num_closure++] = *((const ccl_private ShaderVolumeClosure *)from_sc);
       if (phases->num_closure >= MAX_VOLUME_CLOSURE) {
         break;
       }
@@ -110,16 +110,16 @@ ccl_device_inline void volume_shader_prepare_guiding(KernelGlobals kg,
     float sum = 0.0f;
 
     for (phase_id = 0; phase_id < num_phases; phase_id++) {
-      ccl_private const ShaderVolumeClosure *svc = &phases->closure[phase_id];
+      const ccl_private ShaderVolumeClosure *svc = &phases->closure[phase_id];
       sum += svc->sample_weight;
     }
 
-    float r = rand_phase_guiding * sum;
+    const float r = rand_phase_guiding * sum;
     float partial_sum = 0.0f;
 
     for (phase_id = 0; phase_id < num_phases; phase_id++) {
-      ccl_private const ShaderVolumeClosure *svc = &phases->closure[phase_id];
-      float next_sum = partial_sum + svc->sample_weight;
+      const ccl_private ShaderVolumeClosure *svc = &phases->closure[phase_id];
+      const float next_sum = partial_sum + svc->sample_weight;
 
       if (r <= next_sum) {
         /* Rescale to reuse. */
@@ -136,7 +136,7 @@ ccl_device_inline void volume_shader_prepare_guiding(KernelGlobals kg,
   }
 
   /* Init guiding for selected phase function. */
-  ccl_private const ShaderVolumeClosure *svc = &phases->closure[phase_id];
+  const ccl_private ShaderVolumeClosure *svc = &phases->closure[phase_id];
   const float phase_g = volume_phase_get_g(svc);
   if (!guiding_phase_init(kg, state, P, D, phase_g, rand_phase_guiding)) {
     state->guiding.use_volume_guiding = false;
@@ -157,8 +157,8 @@ ccl_device_inline void volume_shader_prepare_guiding(KernelGlobals kg,
 /* Randomly sample a volume phase function proportional to ShaderClosure.sample_weight. */
 /* TODO: this isn't quite correct, we don't weight anisotropy properly depending on color channels,
  * even if this is perhaps not a common case */
-ccl_device_inline ccl_private const ShaderVolumeClosure *volume_shader_phase_pick(
-    ccl_private const ShaderVolumePhases *phases, ccl_private float2 *rand_phase)
+const ccl_device_inline ccl_private ShaderVolumeClosure *volume_shader_phase_pick(
+    const ccl_private ShaderVolumePhases *phases, ccl_private float2 *rand_phase)
 {
   int sampled = 0;
 
@@ -186,17 +186,17 @@ ccl_device_inline ccl_private const ShaderVolumeClosure *volume_shader_phase_pic
   return &phases->closure[sampled];
 }
 
-ccl_device_inline float _volume_shader_phase_eval_mis(ccl_private const ShaderData *sd,
-                                                      ccl_private const ShaderVolumePhases *phases,
+ccl_device_inline float _volume_shader_phase_eval_mis(const ccl_private ShaderData *sd,
+                                                      const ccl_private ShaderVolumePhases *phases,
                                                       const float3 wo,
                                                       ccl_private BsdfEval *result_eval,
                                                       float sum_pdf,
                                                       float sum_sample_weight)
 {
   for (int i = 0; i < phases->num_closure; i++) {
-    ccl_private const ShaderVolumeClosure *svc = &phases->closure[i];
+    const ccl_private ShaderVolumeClosure *svc = &phases->closure[i];
     float phase_pdf = 0.0f;
-    Spectrum eval = volume_phase_eval(sd, svc, wo, &phase_pdf);
+    const Spectrum eval = volume_phase_eval(sd, svc, wo, &phase_pdf);
 
     if (phase_pdf != 0.0f) {
       bsdf_eval_accum(result_eval, eval * svc->sample_weight);
@@ -211,13 +211,13 @@ ccl_device_inline float _volume_shader_phase_eval_mis(ccl_private const ShaderDa
 }
 
 ccl_device float volume_shader_phase_eval(KernelGlobals kg,
-                                          ccl_private const ShaderData *sd,
-                                          ccl_private const ShaderVolumeClosure *svc,
+                                          const ccl_private ShaderData *sd,
+                                          const ccl_private ShaderVolumeClosure *svc,
                                           const float3 wo,
                                           ccl_private BsdfEval *phase_eval)
 {
   float phase_pdf = 0.0f;
-  Spectrum eval = volume_phase_eval(sd, svc, wo, &phase_pdf);
+  const Spectrum eval = volume_phase_eval(sd, svc, wo, &phase_pdf);
 
   if (phase_pdf != 0.0f) {
     bsdf_eval_accum(phase_eval, eval);
@@ -228,8 +228,8 @@ ccl_device float volume_shader_phase_eval(KernelGlobals kg,
 
 ccl_device float volume_shader_phase_eval(KernelGlobals kg,
                                           IntegratorState state,
-                                          ccl_private const ShaderData *sd,
-                                          ccl_private const ShaderVolumePhases *phases,
+                                          const ccl_private ShaderData *sd,
+                                          const ccl_private ShaderVolumePhases *phases,
                                           const float3 wo,
                                           ccl_private BsdfEval *phase_eval,
                                           const uint light_shader_flags)
@@ -258,8 +258,8 @@ ccl_device float volume_shader_phase_eval(KernelGlobals kg,
 #  ifdef __PATH_GUIDING__
 ccl_device int volume_shader_phase_guided_sample(KernelGlobals kg,
                                                  IntegratorState state,
-                                                 ccl_private const ShaderData *sd,
-                                                 ccl_private const ShaderVolumeClosure *svc,
+                                                 const ccl_private ShaderData *sd,
+                                                 const ccl_private ShaderVolumeClosure *svc,
                                                  const float2 rand_phase,
                                                  ccl_private BsdfEval *phase_eval,
                                                  ccl_private float3 *wo,
@@ -333,9 +333,9 @@ ccl_device int volume_shader_phase_guided_sample(KernelGlobals kg,
 #  endif
 
 ccl_device int volume_shader_phase_sample(KernelGlobals kg,
-                                          ccl_private const ShaderData *sd,
-                                          ccl_private const ShaderVolumePhases *phases,
-                                          ccl_private const ShaderVolumeClosure *svc,
+                                          const ccl_private ShaderData *sd,
+                                          const ccl_private ShaderVolumePhases *phases,
+                                          const ccl_private ShaderVolumeClosure *svc,
                                           float2 rand_phase,
                                           ccl_private BsdfEval *phase_eval,
                                           ccl_private float3 *wo,
@@ -346,7 +346,7 @@ ccl_device int volume_shader_phase_sample(KernelGlobals kg,
   Spectrum eval = zero_spectrum();
 
   *pdf = 0.0f;
-  int label = volume_phase_sample(sd, svc, rand_phase, &eval, wo, pdf);
+  const int label = volume_phase_sample(sd, svc, rand_phase, &eval, wo, pdf);
 
   if (*pdf != 0.0f) {
     bsdf_eval_init(phase_eval, eval);
@@ -365,7 +365,7 @@ ccl_device_inline void volume_shader_motion_blur(KernelGlobals kg,
     return;
   }
 
-  AttributeDescriptor v_desc = find_attribute(kg, sd, ATTR_STD_VOLUME_VELOCITY);
+  const AttributeDescriptor v_desc = find_attribute(kg, sd, ATTR_STD_VOLUME_VELOCITY);
   kernel_assert(v_desc.offset != ATTR_STD_NOT_FOUND);
 
   const float3 P = sd->P;

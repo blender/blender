@@ -115,7 +115,7 @@ ccl_device_inline int4 make_int4(const float4 f)
 #endif
 }
 
-ccl_device_inline void print_float4(ccl_private const char *label, const float4 a)
+ccl_device_inline void print_float4(const ccl_private char *label, const float4 a)
 {
 #ifdef __KERNEL_PRINTF__
   printf("%s: %.8f %.8f %.8f %.8f\n", label, (double)a.x, (double)a.y, (double)a.z, (double)a.w);

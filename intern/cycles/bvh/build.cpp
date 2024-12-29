@@ -66,7 +66,7 @@ void BVHBuild::add_reference_triangles(BoundBox &root,
   }
   const size_t num_triangles = mesh->num_triangles();
   for (uint j = 0; j < num_triangles; j++) {
-    Mesh::Triangle t = mesh->get_triangle(j);
+    const Mesh::Triangle t = mesh->get_triangle(j);
     const float3 *verts = mesh->verts.data();
     if (attr_mP == nullptr) {
       BoundBox bounds = BoundBox::empty;
@@ -163,7 +163,7 @@ void BVHBuild::add_reference_curves(BoundBox &root, BoundBox &center, Hair *hair
         BoundBox bounds = BoundBox::empty;
         curve.bounds_grow(k, hair->get_curve_keys().data(), curve_radius, bounds);
         if (bounds.valid()) {
-          int packed_type = PRIMITIVE_PACK_SEGMENT(primitive_type, k);
+          const int packed_type = PRIMITIVE_PACK_SEGMENT(primitive_type, k);
           references.push_back(BVHReference(bounds, j, object_index, packed_type));
           root.grow(bounds);
           center.grow(bounds.center2());
@@ -184,7 +184,7 @@ void BVHBuild::add_reference_curves(BoundBox &root, BoundBox &center, Hair *hair
           curve.bounds_grow(k, key_steps + step * num_keys, bounds);
         }
         if (bounds.valid()) {
-          int packed_type = PRIMITIVE_PACK_SEGMENT(primitive_type, k);
+          const int packed_type = PRIMITIVE_PACK_SEGMENT(primitive_type, k);
           references.push_back(BVHReference(bounds, j, object_index, packed_type));
           root.grow(bounds);
           center.grow(bounds.center2());
@@ -240,7 +240,7 @@ void BVHBuild::add_reference_curves(BoundBox &root, BoundBox &center, Hair *hair
           bounds.grow(curr_bounds);
           if (bounds.valid()) {
             const float prev_time = (float)(bvh_step - 1) * num_bvh_steps_inv_1;
-            int packed_type = PRIMITIVE_PACK_SEGMENT(primitive_type, k);
+            const int packed_type = PRIMITIVE_PACK_SEGMENT(primitive_type, k);
             references.push_back(
                 BVHReference(bounds, j, object_index, packed_type, prev_time, curr_time));
             root.grow(bounds);
@@ -322,14 +322,14 @@ void BVHBuild::add_reference_points(BoundBox &root,
        * Will be reused later to avoid duplicated work on
        * calculating BVH time step boundbox.
        */
-      float4 prev_key = point.motion_key(
+      const float4 prev_key = point.motion_key(
           points_data, radius_data, point_steps, num_points, num_steps, 0.0f, j);
       BoundBox prev_bounds = BoundBox::empty;
       point.bounds_grow(prev_key, prev_bounds);
       /* Create all primitive time steps, */
       for (int bvh_step = 1; bvh_step < num_bvh_steps; ++bvh_step) {
         const float curr_time = (float)(bvh_step)*num_bvh_steps_inv_1;
-        float4 curr_key = point.motion_key(
+        const float4 curr_key = point.motion_key(
             points_data, radius_data, point_steps, num_points, num_steps, curr_time, j);
         BoundBox curr_bounds = BoundBox::empty;
         point.bounds_grow(curr_key, curr_bounds);
@@ -379,7 +379,8 @@ void BVHBuild::add_reference_object(BoundBox &root, BoundBox &center, Object *ob
 
 static size_t count_curve_segments(Hair *hair)
 {
-  size_t num = 0, num_curves = hair->num_curves();
+  size_t num = 0;
+  const size_t num_curves = hair->num_curves();
 
   for (size_t i = 0; i < num_curves; i++) {
     num += hair->get_curve(i).num_keys - 1;
@@ -431,7 +432,8 @@ void BVHBuild::add_references(BVHRange &root)
   references.reserve(num_alloc_references);
 
   /* add references from objects */
-  BoundBox bounds = BoundBox::empty, center = BoundBox::empty;
+  BoundBox bounds = BoundBox::empty;
+  BoundBox center = BoundBox::empty;
   int i = 0;
 
   for (Object *ob : objects) {
@@ -522,7 +524,7 @@ BVHNode *BVHBuild::run()
   }
   else {
     /* Perform multithreaded binning build. */
-    BVHObjectBinning rootbin(root, (!references.empty()) ? references.data() : nullptr);
+    const BVHObjectBinning rootbin(root, (!references.empty()) ? references.data() : nullptr);
     rootnode = build_node(rootbin, 0);
     task_pool.wait_work();
   }
@@ -575,10 +577,11 @@ void BVHBuild::progress_update()
     return;
   }
 
-  double progress_start = (double)progress_count / (double)progress_total;
-  double duplicates = (double)(progress_total - progress_original_total) / (double)progress_total;
+  const double progress_start = (double)progress_count / (double)progress_total;
+  const double duplicates = (double)(progress_total - progress_original_total) /
+                            (double)progress_total;
 
-  string msg = string_printf(
+  const string msg = string_printf(
       "Building BVH %.0f%%, duplicates %.0f%%", progress_start * 100.0, duplicates * 100.0);
 
   progress.set_substatus(msg);
@@ -604,7 +607,7 @@ void BVHBuild::thread_build_node(InnerNode *inner,
   if (range.size() < THREAD_TASK_SIZE) {
     /*rotate(node, INT_MAX, 5);*/
 
-    thread_scoped_lock lock(build_mutex);
+    const thread_scoped_lock lock(build_mutex);
 
     progress_count += range.size();
     progress_update();
@@ -634,9 +637,9 @@ void BVHBuild::thread_build_spatial_split_node(InnerNode *inner,
 bool BVHBuild::range_within_max_leaf_size(const BVHRange &range,
                                           const vector<BVHReference> &references) const
 {
-  size_t size = range.size();
-  size_t max_leaf_size = max(max(params.max_triangle_leaf_size, params.max_curve_leaf_size),
-                             params.max_point_leaf_size);
+  const size_t size = range.size();
+  const size_t max_leaf_size = max(max(params.max_triangle_leaf_size, params.max_curve_leaf_size),
+                                   params.max_point_leaf_size);
 
   if (size > max_leaf_size) {
     return false;
@@ -689,10 +692,10 @@ bool BVHBuild::range_within_max_leaf_size(const BVHRange &range,
 /* multithreaded binning builder */
 BVHNode *BVHBuild::build_node(const BVHObjectBinning &range, int level)
 {
-  size_t size = range.size();
-  float leafSAH = params.sah_primitive_cost * range.leafSAH;
-  float splitSAH = params.sah_node_cost * range.bounds().half_area() +
-                   params.sah_primitive_cost * range.splitSAH;
+  const size_t size = range.size();
+  const float leafSAH = params.sah_primitive_cost * range.leafSAH;
+  const float splitSAH = params.sah_node_cost * range.bounds().half_area() +
+                         params.sah_primitive_cost * range.splitSAH;
 
   /* Have at least one inner node on top level, for performance and correct
    * visibility tests, since object instances do not check visibility flag.
@@ -732,7 +735,8 @@ BVHNode *BVHBuild::build_node(const BVHObjectBinning &range, int level)
   }
 
   /* Perform split. */
-  BVHObjectBinning left, right;
+  BVHObjectBinning left;
+  BVHObjectBinning right;
   if (do_unalinged_split) {
     unaligned_range.split(references.data(), left, right);
   }
@@ -806,9 +810,9 @@ BVHNode *BVHBuild::build_node(const BVHRange &range,
       return create_leaf_node(range, references);
     }
   }
-  float leafSAH = params.sah_primitive_cost * split.leafSAH;
-  float splitSAH = params.sah_node_cost * range.bounds().half_area() +
-                   params.sah_primitive_cost * split.nodeSAH;
+  const float leafSAH = params.sah_primitive_cost * split.leafSAH;
+  const float splitSAH = params.sah_node_cost * range.bounds().half_area() +
+                         params.sah_primitive_cost * split.nodeSAH;
 
   BVHMixedSplit unaligned_split;
   float unalignedSplitSAH = FLT_MAX;
@@ -830,7 +834,8 @@ BVHNode *BVHBuild::build_node(const BVHRange &range,
   }
 
   /* Do split. */
-  BVHRange left, right;
+  BVHRange left;
+  BVHRange right;
   if (do_unalinged_split) {
     unaligned_split.split(this, left, right, range);
   }
@@ -897,7 +902,7 @@ BVHNode *BVHBuild::build_node(const BVHRange &range,
 BVHNode *BVHBuild::create_object_leaf_nodes(const BVHReference *ref, int start, int num)
 {
   if (num == 0) {
-    BoundBox bounds = BoundBox::empty;
+    const BoundBox bounds = BoundBox::empty;
     return new LeafNode(bounds, 0, 0, 0);
   }
   if (num == 1) {
@@ -916,7 +921,7 @@ BVHNode *BVHBuild::create_object_leaf_nodes(const BVHReference *ref, int start, 
     return leaf_node;
   }
 
-  int mid = num / 2;
+  const int mid = num / 2;
   BVHNode *leaf0 = create_object_leaf_nodes(ref, start, mid);
   BVHNode *leaf1 = create_object_leaf_nodes(ref + mid, start + mid, num - mid);
 
@@ -970,7 +975,7 @@ BVHNode *BVHBuild::create_leaf_node(const BVHRange &range, const vector<BVHRefer
   for (int i = 0; i < range.size(); i++) {
     const BVHReference &ref = references[range.start() + i];
     if (ref.prim_index() != -1) {
-      uint32_t type_index = PRIMITIVE_INDEX(ref.prim_type() & PRIMITIVE_ALL);
+      const uint32_t type_index = PRIMITIVE_INDEX(ref.prim_type() & PRIMITIVE_ALL);
       p_ref[type_index].push_back(ref);
       p_type[type_index].push_back(ref.prim_type());
       p_index[type_index].push_back(ref.prim_index());
@@ -999,7 +1004,9 @@ BVHNode *BVHBuild::create_leaf_node(const BVHRange &range, const vector<BVHRefer
   BVHNode *leaves[PRIMITIVE_NUM + 1] = {nullptr};
   int num_leaves = 0;
   size_t start_index = 0;
-  vector<int, LeafStackAllocator> local_prim_type, local_prim_index, local_prim_object;
+  vector<int, LeafStackAllocator> local_prim_type;
+  vector<int, LeafStackAllocator> local_prim_index;
+  vector<int, LeafStackAllocator> local_prim_object;
   vector<float2, LeafTimeStackAllocator> local_prim_time;
   local_prim_type.resize(num_new_prims);
   local_prim_index.resize(num_new_prims);
@@ -1008,7 +1015,7 @@ BVHNode *BVHBuild::create_leaf_node(const BVHRange &range, const vector<BVHRefer
     local_prim_time.resize(num_new_prims);
   }
   for (int i = 0; i < PRIMITIVE_NUM; ++i) {
-    int num = (int)p_type[i].size();
+    const int num = (int)p_type[i].size();
     if (num != 0) {
       assert(p_type[i].size() == p_index[i].size());
       assert(p_type[i].size() == p_object[i].size());
@@ -1028,7 +1035,8 @@ BVHNode *BVHBuild::create_leaf_node(const BVHRange &range, const vector<BVHRefer
       }
       LeafNode *leaf_node = new LeafNode(bounds[i], visibility[i], start_index, start_index + num);
       if (true) {
-        float time_from = 1.0f, time_to = 0.0f;
+        float time_from = 1.0f;
+        float time_to = 0.0f;
         for (int j = 0; j < num; ++j) {
           const BVHReference &ref = p_ref[i][j];
           time_from = min(time_from, ref.time_from());
@@ -1042,8 +1050,8 @@ BVHNode *BVHBuild::create_leaf_node(const BVHRange &range, const vector<BVHRefer
         leaf_node->bounds = BoundBox::empty;
         for (int j = 0; j < num; ++j) {
           const BVHReference &ref = p_ref[i][j];
-          BoundBox ref_bounds = unaligned_heuristic.compute_aligned_prim_boundbox(ref,
-                                                                                  aligned_space);
+          const BoundBox ref_bounds = unaligned_heuristic.compute_aligned_prim_boundbox(
+              ref, aligned_space);
           leaf_node->bounds.grow(ref_bounds);
         }
         /* Set alignment space. */
@@ -1074,8 +1082,8 @@ BVHNode *BVHBuild::create_leaf_node(const BVHRange &range, const vector<BVHRefer
        * advance.
        */
       if (range_end >= prim_type.capacity()) {
-        float progress = (float)progress_count / (float)progress_total;
-        float factor = (1.0f - progress);
+        const float progress = (float)progress_count / (float)progress_total;
+        const float factor = (1.0f - progress);
         const size_t reserve = (size_t)(range_end + (float)range_end * factor);
         prim_type.reserve(reserve);
         prim_index.reserve(reserve);
@@ -1155,18 +1163,18 @@ BVHNode *BVHBuild::create_leaf_node(const BVHRange &range, const vector<BVHRefer
     return new InnerNode(range.bounds(), leaves[0], leaves[1]);
   }
   if (num_leaves == 3) {
-    BoundBox inner_bounds = merge(leaves[1]->bounds, leaves[2]->bounds);
+    const BoundBox inner_bounds = merge(leaves[1]->bounds, leaves[2]->bounds);
     BVHNode *inner = new InnerNode(inner_bounds, leaves[1], leaves[2]);
     return new InnerNode(range.bounds(), leaves[0], inner);
   }
 
   /* Should be doing more branches if more primitive types added. */
   assert(num_leaves <= 5);
-  BoundBox inner_bounds_a = merge(leaves[0]->bounds, leaves[1]->bounds);
-  BoundBox inner_bounds_b = merge(leaves[2]->bounds, leaves[3]->bounds);
+  const BoundBox inner_bounds_a = merge(leaves[0]->bounds, leaves[1]->bounds);
+  const BoundBox inner_bounds_b = merge(leaves[2]->bounds, leaves[3]->bounds);
   BVHNode *inner_a = new InnerNode(inner_bounds_a, leaves[0], leaves[1]);
   BVHNode *inner_b = new InnerNode(inner_bounds_b, leaves[2], leaves[3]);
-  BoundBox inner_bounds_c = merge(inner_a->bounds, inner_b->bounds);
+  const BoundBox inner_bounds_c = merge(inner_a->bounds, inner_b->bounds);
   BVHNode *inner_c = new InnerNode(inner_bounds_c, inner_a, inner_b);
   if (num_leaves == 5) {
     return new InnerNode(range.bounds(), inner_c, leaves[4]);
@@ -1204,17 +1212,19 @@ void BVHBuild::rotate(BVHNode *node, int max_depth)
   }
 
   /* compute current area of all children */
-  BoundBox bounds0 = parent->children[0]->bounds;
-  BoundBox bounds1 = parent->children[1]->bounds;
+  const BoundBox bounds0 = parent->children[0]->bounds;
+  const BoundBox bounds1 = parent->children[1]->bounds;
 
-  float area0 = bounds0.half_area();
-  float area1 = bounds1.half_area();
+  const float area0 = bounds0.half_area();
+  const float area1 = bounds1.half_area();
   float4 child_area = make_float4(area0, area1, 0.0f, 0.0f);
 
   /* find best rotation. we pick a target child of a first child, and swap
    * this with an other child. we perform the best such swap. */
   float best_cost = FLT_MAX;
-  int best_child = -1, best_target = -1, best_other = -1;
+  int best_child = -1;
+  int best_target = -1;
+  int best_other = -1;
 
   for (size_t c = 0; c < 2; c++) {
     /* ignore leaf nodes as we cannot descent into */
@@ -1223,15 +1233,15 @@ void BVHBuild::rotate(BVHNode *node, int max_depth)
     }
 
     InnerNode *child = (InnerNode *)parent->children[c];
-    BoundBox &other = (c == 0) ? bounds1 : bounds0;
+    const BoundBox &other = (c == 0) ? bounds1 : bounds0;
 
     /* transpose child bounds */
-    BoundBox target0 = child->children[0]->bounds;
-    BoundBox target1 = child->children[1]->bounds;
+    const BoundBox target0 = child->children[0]->bounds;
+    const BoundBox target1 = child->children[1]->bounds;
 
     /* compute cost for both possible swaps */
-    float cost0 = merge(other, target1).half_area() - child_area[c];
-    float cost1 = merge(target0, other).half_area() - child_area[c];
+    const float cost0 = merge(other, target1).half_area() - child_area[c];
+    const float cost1 = merge(target0, other).half_area() - child_area[c];
 
     if (min(cost0, cost1) < best_cost) {
       best_child = (int)c;

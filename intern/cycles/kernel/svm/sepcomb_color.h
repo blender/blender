@@ -16,16 +16,18 @@ ccl_device_noinline void svm_node_combine_color(KernelGlobals kg,
                                                 uint inputs_stack_offsets,
                                                 uint result_stack_offset)
 {
-  uint red_stack_offset, green_stack_offset, blue_stack_offset;
+  uint red_stack_offset;
+  uint green_stack_offset;
+  uint blue_stack_offset;
   svm_unpack_node_uchar3(
       inputs_stack_offsets, &red_stack_offset, &green_stack_offset, &blue_stack_offset);
 
-  float r = stack_load_float(stack, red_stack_offset);
-  float g = stack_load_float(stack, green_stack_offset);
-  float b = stack_load_float(stack, blue_stack_offset);
+  const float r = stack_load_float(stack, red_stack_offset);
+  const float g = stack_load_float(stack, green_stack_offset);
+  const float b = stack_load_float(stack, blue_stack_offset);
 
   /* Combine, and convert back to RGB */
-  float3 color = svm_combine_color((NodeCombSepColorType)color_type, make_float3(r, g, b));
+  const float3 color = svm_combine_color((NodeCombSepColorType)color_type, make_float3(r, g, b));
 
   if (stack_valid(result_stack_offset)) {
     stack_store_float3(stack, result_stack_offset, color);
@@ -44,7 +46,9 @@ ccl_device_noinline void svm_node_separate_color(KernelGlobals kg,
   /* Convert color space */
   color = svm_separate_color((NodeCombSepColorType)color_type, color);
 
-  uint red_stack_offset, green_stack_offset, blue_stack_offset;
+  uint red_stack_offset;
+  uint green_stack_offset;
+  uint blue_stack_offset;
   svm_unpack_node_uchar3(
       results_stack_offsets, &red_stack_offset, &green_stack_offset, &blue_stack_offset);
 

@@ -13,7 +13,7 @@ CCL_NAMESPACE_BEGIN
 template<uint node_feature_mask, typename ConstIntegratorGenericState>
 ccl_device_noinline void svm_node_light_path(KernelGlobals kg,
                                              ConstIntegratorGenericState state,
-                                             ccl_private const ShaderData *sd,
+                                             const ccl_private ShaderData *sd,
                                              ccl_private float *stack,
                                              uint type,
                                              uint out_offset,
@@ -104,12 +104,14 @@ ccl_device_noinline void svm_node_light_falloff(ccl_private ShaderData *sd,
                                                 ccl_private float *stack,
                                                 uint4 node)
 {
-  uint strength_offset, out_offset, smooth_offset;
+  uint strength_offset;
+  uint out_offset;
+  uint smooth_offset;
 
   svm_unpack_node_uchar3(node.z, &strength_offset, &smooth_offset, &out_offset);
 
   float strength = stack_load_float(stack, strength_offset);
-  uint type = node.y;
+  const uint type = node.y;
 
   switch ((NodeLightFalloff)type) {
     case NODE_LIGHT_FALLOFF_QUADRATIC:
@@ -122,10 +124,10 @@ ccl_device_noinline void svm_node_light_falloff(ccl_private ShaderData *sd,
       break;
   }
 
-  float smooth = stack_load_float(stack, smooth_offset);
+  const float smooth = stack_load_float(stack, smooth_offset);
 
   if (smooth > 0.0f) {
-    float squared = sd->ray_length * sd->ray_length;
+    const float squared = sd->ray_length * sd->ray_length;
     /* Distant lamps set the ray length to FLT_MAX, which causes squared to overflow. */
     if (isfinite(squared)) {
       strength *= squared / (smooth + squared);

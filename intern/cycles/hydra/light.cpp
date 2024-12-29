@@ -208,7 +208,7 @@ void HdCyclesLight::PopulateShaderGraph(HdSceneDelegate *sceneDelegate)
     const SdfPath &id = GetId();
     value = sceneDelegate->GetLightParamValue(id, TfToken("falloff"));
     if (!value.IsEmpty()) {
-      std::string strVal = value.Get<string>();
+      const std::string strVal = value.Get<string>();
       if (strVal == "Constant" || strVal == "Linear" || strVal == "Quadratic") {
         LightFalloffNode *lfoNode = graph->create_node<LightFalloffNode>();
         lfoNode->set_strength(1.f);

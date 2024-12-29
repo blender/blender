@@ -38,8 +38,8 @@ ccl_device void shader_setup_object_transforms(KernelGlobals kg,
  * global memory as we write it to shader-data. */
 ccl_device_inline void shader_setup_from_ray(KernelGlobals kg,
                                              ccl_private ShaderData *ccl_restrict sd,
-                                             ccl_private const Ray *ccl_restrict ray,
-                                             ccl_private const Intersection *ccl_restrict isect)
+                                             const ccl_private Ray *ccl_restrict ray,
+                                             const ccl_private Intersection *ccl_restrict isect)
 {
   /* Read intersection data into shader globals.
    *
@@ -105,7 +105,7 @@ ccl_device_inline void shader_setup_from_ray(KernelGlobals kg,
   sd->flag = kernel_data_fetch(shaders, (sd->shader & SHADER_MASK)).flags;
 
   /* backfacing test */
-  bool backfacing = (dot(sd->Ng, sd->wi) < 0.0f);
+  const bool backfacing = (dot(sd->Ng, sd->wi) < 0.0f);
 
   if (backfacing) {
     sd->flag |= SD_BACKFACING;
@@ -224,7 +224,7 @@ ccl_device_inline void shader_setup_from_sample(KernelGlobals kg,
 
   /* backfacing test */
   if (sd->prim != PRIM_NONE) {
-    bool backfacing = (dot(sd->Ng, sd->wi) < 0.0f);
+    const bool backfacing = (dot(sd->Ng, sd->wi) < 0.0f);
 
     if (backfacing) {
       sd->flag |= SD_BACKFACING;
@@ -255,7 +255,9 @@ ccl_device void shader_setup_from_displace(KernelGlobals kg,
                                            float u,
                                            float v)
 {
-  float3 P, Ng, I = zero_float3();
+  float3 P;
+  float3 Ng;
+  const float3 I = zero_float3();
   int shader;
 
   triangle_point_normal(kg, object, prim, u, v, &P, &Ng, &shader);
@@ -310,12 +312,12 @@ ccl_device void shader_setup_from_curve(KernelGlobals kg,
 #  endif
 
   /* Get control points. */
-  KernelCurve kcurve = kernel_data_fetch(curves, prim);
+  const KernelCurve kcurve = kernel_data_fetch(curves, prim);
 
-  int k0 = kcurve.first_key + PRIMITIVE_UNPACK_SEGMENT(sd->type);
-  int k1 = k0 + 1;
-  int ka = max(k0 - 1, kcurve.first_key);
-  int kb = min(k1 + 1, kcurve.first_key + kcurve.num_keys - 1);
+  const int k0 = kcurve.first_key + PRIMITIVE_UNPACK_SEGMENT(sd->type);
+  const int k1 = k0 + 1;
+  const int ka = max(k0 - 1, kcurve.first_key);
+  const int kb = min(k1 + 1, kcurve.first_key + kcurve.num_keys - 1);
 
   float4 P_curve[4];
 
@@ -405,7 +407,7 @@ ccl_device_inline void shader_setup_from_background(KernelGlobals kg,
 #ifdef __VOLUME__
 ccl_device_inline void shader_setup_from_volume(KernelGlobals kg,
                                                 ccl_private ShaderData *ccl_restrict sd,
-                                                ccl_private const Ray *ccl_restrict ray,
+                                                const ccl_private Ray *ccl_restrict ray,
                                                 const int object)
 {
 

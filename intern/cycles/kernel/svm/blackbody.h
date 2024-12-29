@@ -25,7 +25,7 @@ ccl_device_noinline void svm_node_blackbody(KernelGlobals kg,
                                             uint col_offset)
 {
   /* Input */
-  float temperature = stack_load_float(stack, temperature_offset);
+  const float temperature = stack_load_float(stack, temperature_offset);
 
   float3 color_rgb = rec709_to_rgb(kg, svm_math_blackbody_color_rec709(temperature));
   color_rgb = max(color_rgb, zero_float3());

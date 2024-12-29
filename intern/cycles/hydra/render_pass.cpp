@@ -25,7 +25,7 @@
 HDCYCLES_NAMESPACE_OPEN_SCOPE
 
 HdCyclesRenderPass::HdCyclesRenderPass(HdRenderIndex *index,
-                                       HdRprimCollection const &collection,
+                                       const HdRprimCollection &collection,
                                        HdCyclesSession *renderParam)
     : HdRenderPass(index, collection), _renderParam(renderParam)
 {
@@ -97,8 +97,9 @@ void HdCyclesRenderPass::_Execute(const HdRenderPassStateSharedPtr &renderPassSt
 
       if (renderDelegate->IsDisplaySupported()) {
         // Update display pass to the first requested color AOV
-        HdRenderPassAovBinding displayAovBinding = !aovBindings.empty() ? aovBindings.front() :
-                                                                          HdRenderPassAovBinding();
+        const HdRenderPassAovBinding displayAovBinding = !aovBindings.empty() ?
+                                                             aovBindings.front() :
+                                                             HdRenderPassAovBinding();
         if (displayAovBinding.aovName == HdAovTokens->color && displayAovBinding.renderBuffer) {
           _renderParam->SetDisplayAovBinding(displayAovBinding);
         }

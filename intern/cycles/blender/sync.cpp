@@ -106,15 +106,15 @@ void BlenderSync::sync_recalc(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d
     PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
     bool dicing_prop_changed = false;
 
-    float updated_dicing_rate = preview ? RNA_float_get(&cscene, "preview_dicing_rate") :
-                                          RNA_float_get(&cscene, "dicing_rate");
+    const float updated_dicing_rate = preview ? RNA_float_get(&cscene, "preview_dicing_rate") :
+                                                RNA_float_get(&cscene, "dicing_rate");
 
     if (dicing_rate != updated_dicing_rate) {
       dicing_rate = updated_dicing_rate;
       dicing_prop_changed = true;
     }
 
-    int updated_max_subdivisions = RNA_int_get(&cscene, "max_subdivisions");
+    const int updated_max_subdivisions = RNA_int_get(&cscene, "max_subdivisions");
 
     if (max_subdivisions != updated_max_subdivisions) {
       max_subdivisions = updated_max_subdivisions;
@@ -129,7 +129,7 @@ void BlenderSync::sync_recalc(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d
         if (geom->is_mesh()) {
           Mesh *mesh = static_cast<Mesh *>(geom);
           if (mesh->get_subdivision_type() != Mesh::SUBDIVISION_NONE) {
-            PointerRNA id_ptr = RNA_id_pointer_create((::ID *)iter.first.id);
+            const PointerRNA id_ptr = RNA_id_pointer_create((::ID *)iter.first.id);
             geometry_map.set_recalc(BL::ID(id_ptr));
           }
         }
@@ -149,12 +149,12 @@ void BlenderSync::sync_recalc(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d
 
     /* Material */
     if (b_id.is_a(&RNA_Material)) {
-      BL::Material b_mat(b_id);
+      const BL::Material b_mat(b_id);
       shader_map.set_recalc(b_mat);
     }
     /* Light */
     else if (b_id.is_a(&RNA_Light)) {
-      BL::Light b_light(b_id);
+      const BL::Light b_light(b_id);
       shader_map.set_recalc(b_light);
     }
     /* Object */
@@ -180,14 +180,14 @@ void BlenderSync::sync_recalc(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d
           if (updated_geometry ||
               (object_subdivision_type(b_ob, preview, experimental) != Mesh::SUBDIVISION_NONE))
           {
-            BL::ID key = BKE_object_is_modified(b_ob) ? b_ob : b_ob.data();
+            BL::ID const key = BKE_object_is_modified(b_ob) ? b_ob : b_ob.data();
             geometry_map.set_recalc(key);
 
             /* Sync all contained geometry instances as well when the object changed.. */
-            map<void *, set<BL::ID>>::const_iterator instance_geometries =
+            const map<void *, set<BL::ID>>::const_iterator instance_geometries =
                 instance_geometries_by_object.find(b_ob.ptr.data);
             if (instance_geometries != instance_geometries_by_object.end()) {
-              for (BL::ID geometry : instance_geometries->second) {
+              for (BL::ID const geometry : instance_geometries->second) {
                 geometry_map.set_recalc(geometry);
               }
             }
@@ -220,12 +220,12 @@ void BlenderSync::sync_recalc(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d
     }
     /* Mesh */
     else if (b_id.is_a(&RNA_Mesh)) {
-      BL::Mesh b_mesh(b_id);
+      const BL::Mesh b_mesh(b_id);
       geometry_map.set_recalc(b_mesh);
     }
     /* World */
     else if (b_id.is_a(&RNA_World)) {
-      BL::World b_world(b_id);
+      const BL::World b_world(b_id);
       if (world_map == b_world.ptr.data) {
         world_recalc = true;
       }
@@ -237,13 +237,13 @@ void BlenderSync::sync_recalc(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d
     }
     /* Volume */
     else if (b_id.is_a(&RNA_Volume)) {
-      BL::Volume b_volume(b_id);
+      const BL::Volume b_volume(b_id);
       geometry_map.set_recalc(b_volume);
     }
   }
 
   if (b_v3d) {
-    BlenderViewportParameters new_viewport_parameters(b_v3d, use_developer_ui);
+    const BlenderViewportParameters new_viewport_parameters(b_v3d, use_developer_ui);
 
     if (viewport_parameters.shader_modified(new_viewport_parameters)) {
       world_recalc = true;
@@ -272,7 +272,7 @@ void BlenderSync::sync_data(BL::RenderSettings &b_render,
     return;
   }
 
-  scoped_timer timer;
+  const scoped_timer timer;
 
   BL::ViewLayer b_view_layer = b_depsgraph.view_layer_eval();
 
@@ -330,8 +330,8 @@ void BlenderSync::sync_integrator(BL::ViewLayer &b_view_layer,
   integrator->set_transparent_max_bounce(get_int(cscene, "transparent_max_bounces"));
 
   integrator->set_volume_max_steps(get_int(cscene, "volume_max_steps"));
-  float volume_step_rate = (preview) ? get_float(cscene, "volume_preview_step_rate") :
-                                       get_float(cscene, "volume_step_rate");
+  const float volume_step_rate = (preview) ? get_float(cscene, "volume_preview_step_rate") :
+                                             get_float(cscene, "volume_step_rate");
   integrator->set_volume_step_rate(volume_step_rate);
 
   integrator->set_caustics_reflective(get_boolean(cscene, "caustics_reflective"));
@@ -358,7 +358,7 @@ void BlenderSync::sync_integrator(BL::ViewLayer &b_view_layer,
     integrator->set_motion_blur(view_layer.use_motion_blur);
   }
 
-  bool use_light_tree = get_boolean(cscene, "use_light_tree");
+  const bool use_light_tree = get_boolean(cscene, "use_light_tree");
   integrator->set_use_light_tree(use_light_tree);
   integrator->set_light_sampling_threshold(get_float(cscene, "light_sampling_threshold"));
 
@@ -422,7 +422,7 @@ void BlenderSync::sync_integrator(BL::ViewLayer &b_view_layer,
   }
 
   float scrambling_distance = get_float(cscene, "scrambling_distance");
-  bool auto_scrambling_distance = get_boolean(cscene, "auto_scrambling_distance");
+  const bool auto_scrambling_distance = get_boolean(cscene, "auto_scrambling_distance");
   if (auto_scrambling_distance) {
     if (samples == 0) {
       /* If samples is 0, then viewport rendering is set to render infinitely. In that case we
@@ -442,7 +442,7 @@ void BlenderSync::sync_integrator(BL::ViewLayer &b_view_layer,
   }
 
   /* Only use scrambling distance in the viewport if user wants to. */
-  bool preview_scrambling_distance = get_boolean(cscene, "preview_scrambling_distance");
+  const bool preview_scrambling_distance = get_boolean(cscene, "preview_scrambling_distance");
   if ((preview && !preview_scrambling_distance) ||
       sampling_pattern != SAMPLING_PATTERN_TABULATED_SOBOL)
   {
@@ -483,10 +483,10 @@ void BlenderSync::sync_integrator(BL::ViewLayer &b_view_layer,
     integrator->set_volume_guiding_probability(get_float(cscene, "volume_guiding_probability"));
     integrator->set_use_guiding_direct_light(get_boolean(cscene, "use_guiding_direct_light"));
     integrator->set_use_guiding_mis_weights(get_boolean(cscene, "use_guiding_mis_weights"));
-    GuidingDistributionType guiding_distribution_type = (GuidingDistributionType)get_enum(
+    const GuidingDistributionType guiding_distribution_type = (GuidingDistributionType)get_enum(
         cscene, "guiding_distribution_type", GUIDING_NUM_TYPES, GUIDING_TYPE_PARALLAX_AWARE_VMM);
     integrator->set_guiding_distribution_type(guiding_distribution_type);
-    GuidingDirectionalSamplingType guiding_directional_sampling_type =
+    const GuidingDirectionalSamplingType guiding_directional_sampling_type =
         (GuidingDirectionalSamplingType)get_enum(cscene,
                                                  "guiding_directional_sampling_type",
                                                  GUIDING_DIRECTIONAL_SAMPLING_NUM_TYPES,
@@ -542,8 +542,9 @@ void BlenderSync::sync_film(BL::ViewLayer &b_view_layer, BL::SpaceView3D &b_v3d)
   film->set_exposure(get_float(cscene, "film_exposure"));
   film->set_filter_type(
       (FilterType)get_enum(cscene, "pixel_filter_type", FILTER_NUM_TYPES, FILTER_BLACKMAN_HARRIS));
-  float filter_width = (film->get_filter_type() == FILTER_BOX) ? 1.0f :
-                                                                 get_float(cscene, "filter_width");
+  const float filter_width = (film->get_filter_type() == FILTER_BOX) ?
+                                 1.0f :
+                                 get_float(cscene, "filter_width");
   film->set_filter_width(filter_width);
 
   if (b_scene.world()) {
@@ -597,13 +598,13 @@ void BlenderSync::sync_view_layer(BL::ViewLayer &b_view_layer)
 
   /* Sample override. */
   PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
-  int use_layer_samples = get_enum(cscene, "use_layer_samples");
+  const int use_layer_samples = get_enum(cscene, "use_layer_samples");
 
   view_layer.bound_samples = (use_layer_samples == 1);
   view_layer.samples = 0;
 
   if (use_layer_samples != 2) {
-    int samples = b_view_layer.samples();
+    const int samples = b_view_layer.samples();
     view_layer.samples = samples;
   }
 }
@@ -634,7 +635,7 @@ void BlenderSync::sync_images()
 
 static bool get_known_pass_type(BL::RenderPass &b_pass, PassType &type, PassMode &mode)
 {
-  string name = b_pass.name();
+  const string name = b_pass.name();
 #define MAP_PASS(passname, passtype, noisy) \
   if (name == passname) { \
     type = passtype; \
@@ -721,7 +722,7 @@ static Pass *pass_add(Scene *scene,
 void BlenderSync::sync_render_passes(BL::RenderLayer &b_rlay, BL::ViewLayer &b_view_layer)
 {
   /* Delete all existing passes. */
-  set<Pass *> clear_passes(scene->passes.begin(), scene->passes.end());
+  const set<Pass *> clear_passes(scene->passes.begin(), scene->passes.end());
   scene->delete_nodes(clear_passes);
 
   /* Always add combined pass. */
@@ -729,7 +730,7 @@ void BlenderSync::sync_render_passes(BL::RenderLayer &b_rlay, BL::ViewLayer &b_v
 
   /* Cryptomatte stores two ID/weight pairs per RGBA layer.
    * User facing parameter is the number of pairs. */
-  int crypto_depth = divide_up(min(16, b_view_layer.pass_cryptomatte_depth()), 2);
+  const int crypto_depth = divide_up(min(16, b_view_layer.pass_cryptomatte_depth()), 2);
   scene->film->set_cryptomatte_depth(crypto_depth);
   CryptomatteType cryptomatte_passes = CRYPT_NONE;
   if (b_view_layer.use_pass_cryptomatte_object()) {
@@ -753,8 +754,8 @@ void BlenderSync::sync_render_passes(BL::RenderLayer &b_rlay, BL::ViewLayer &b_v
       continue;
     }
 
-    string name = b_aov.name();
-    PassType type = (b_aov.type() == BL::AOV::type_COLOR) ? PASS_AOV_COLOR : PASS_AOV_VALUE;
+    const string name = b_aov.name();
+    const PassType type = (b_aov.type() == BL::AOV::type_COLOR) ? PASS_AOV_COLOR : PASS_AOV_VALUE;
 
     pass_add(scene, type, name.c_str());
     expected_passes.insert(name);
@@ -768,7 +769,7 @@ void BlenderSync::sync_render_passes(BL::RenderLayer &b_rlay, BL::ViewLayer &b_v
   {
     BL::Lightgroup b_lightgroup(*b_lightgroup_iter);
 
-    string name = string_printf("Combined_%s", b_lightgroup.name().c_str());
+    const string name = string_printf("Combined_%s", b_lightgroup.name().c_str());
 
     Pass *pass = pass_add(scene, PASS_COMBINED, name.c_str(), PassMode::NOISY);
     pass->set_lightgroup(ustring(b_lightgroup.name()));
@@ -925,9 +926,9 @@ SessionParams BlenderSync::get_session_params(BL::RenderEngine &b_engine,
       b_preferences, b_scene, params.background, b_engine.is_preview(), params.denoise_device);
 
   /* samples */
-  int samples = get_int(cscene, "samples");
-  int preview_samples = get_int(cscene, "preview_samples");
-  int sample_offset = get_int(cscene, "sample_offset");
+  const int samples = get_int(cscene, "samples");
+  const int preview_samples = get_int(cscene, "preview_samples");
+  const int sample_offset = get_int(cscene, "sample_offset");
 
   if (background) {
     params.samples = samples;

@@ -79,7 +79,7 @@ static int compile_shader_program()
   for (int i = 0; i < 2; i++) {
     const GLuint shader = glCreateShader(shaders[i].type);
 
-    string source_str = shaders[i].source;
+    const string source_str = shaders[i].source;
     const char *c_str = source_str.c_str();
 
     glShaderSource(shader, 1, &c_str, nullptr);

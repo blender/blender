@@ -28,7 +28,7 @@ struct KernelGlobalsGPU {
   int unused[1];
 };
 
-using KernelGlobals = ccl_global const KernelGlobalsGPU *ccl_restrict;
+using KernelGlobals = const ccl_global KernelGlobalsGPU *ccl_restrict;
 
 /* Abstraction macros */
 #define kernel_data launch_params_metal.data

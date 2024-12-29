@@ -18,15 +18,15 @@ ccl_device_noinline int svm_node_combine_hsv(KernelGlobals kg,
                                              uint value_in,
                                              int offset)
 {
-  uint4 node1 = read_node(kg, &offset);
-  uint color_out = node1.y;
+  const uint4 node1 = read_node(kg, &offset);
+  const uint color_out = node1.y;
 
-  float hue = stack_load_float(stack, hue_in);
-  float saturation = stack_load_float(stack, saturation_in);
-  float value = stack_load_float(stack, value_in);
+  const float hue = stack_load_float(stack, hue_in);
+  const float saturation = stack_load_float(stack, saturation_in);
+  const float value = stack_load_float(stack, value_in);
 
   /* Combine, and convert back to RGB */
-  float3 color = hsv_to_rgb(make_float3(hue, saturation, value));
+  const float3 color = hsv_to_rgb(make_float3(hue, saturation, value));
 
   if (stack_valid(color_out)) {
     stack_store_float3(stack, color_out, color);
@@ -42,8 +42,8 @@ ccl_device_noinline int svm_node_separate_hsv(KernelGlobals kg,
                                               uint saturation_out,
                                               int offset)
 {
-  uint4 node1 = read_node(kg, &offset);
-  uint value_out = node1.y;
+  const uint4 node1 = read_node(kg, &offset);
+  const uint value_out = node1.y;
 
   float3 color = stack_load_float3(stack, color_in);
 

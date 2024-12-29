@@ -41,7 +41,7 @@ ccl_device_inline float2 make_float2(float x, float y)
 }
 #endif /* __KERNEL_NATIVE_VECTOR_TYPES__ */
 
-ccl_device_inline void print_float2(ccl_private const char *label, const float2 a)
+ccl_device_inline void print_float2(const ccl_private char *label, const float2 a)
 {
 #ifdef __KERNEL_PRINTF__
   printf("%s: %.8f %.8f\n", label, (double)a.x, (double)a.y);

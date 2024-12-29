@@ -99,7 +99,7 @@ ccl_device_inline vfloat8 make_vfloat8(const float4 a, const float4 b)
 #endif
 }
 
-ccl_device_inline void print_vfloat8(ccl_private const char *label, const vfloat8 a)
+ccl_device_inline void print_vfloat8(const ccl_private char *label, const vfloat8 a)
 {
 #ifdef __KERNEL_PRINTF__
   printf("%s: %.8f %.8f %.8f %.8f %.8f %.8f %.8f %.8f\n",

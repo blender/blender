@@ -22,17 +22,17 @@ ccl_device float3 background_map_sample(KernelGlobals kg, float2 rand, ccl_priva
   /* for the following, the CDF values are actually a pair of floats, with the
    * function value as X and the actual CDF as Y.  The last entry's function
    * value is the CDF total. */
-  int res_x = kernel_data.background.map_res_x;
-  int res_y = kernel_data.background.map_res_y;
-  int cdf_width = res_x + 1;
+  const int res_x = kernel_data.background.map_res_x;
+  const int res_y = kernel_data.background.map_res_y;
+  const int cdf_width = res_x + 1;
 
   /* This is basically std::lower_bound as used by PBRT. */
   int first = 0;
   int count = res_y;
 
   while (count > 0) {
-    int step = count >> 1;
-    int middle = first + step;
+    const int step = count >> 1;
+    const int middle = first + step;
 
     if (kernel_data_fetch(light_background_marginal_cdf, middle).y < rand.y) {
       first = middle + 1;
@@ -43,23 +43,23 @@ ccl_device float3 background_map_sample(KernelGlobals kg, float2 rand, ccl_priva
     }
   }
 
-  int index_v = max(0, first - 1);
+  const int index_v = max(0, first - 1);
   kernel_assert(index_v >= 0 && index_v < res_y);
 
-  float2 cdf_v = kernel_data_fetch(light_background_marginal_cdf, index_v);
-  float2 cdf_next_v = kernel_data_fetch(light_background_marginal_cdf, index_v + 1);
-  float2 cdf_last_v = kernel_data_fetch(light_background_marginal_cdf, res_y);
+  const float2 cdf_v = kernel_data_fetch(light_background_marginal_cdf, index_v);
+  const float2 cdf_next_v = kernel_data_fetch(light_background_marginal_cdf, index_v + 1);
+  const float2 cdf_last_v = kernel_data_fetch(light_background_marginal_cdf, res_y);
 
   /* importance-sampled V direction */
-  float dv = inverse_lerp(cdf_v.y, cdf_next_v.y, rand.y);
-  float v = (index_v + dv) / res_y;
+  const float dv = inverse_lerp(cdf_v.y, cdf_next_v.y, rand.y);
+  const float v = (index_v + dv) / res_y;
 
   /* This is basically std::lower_bound as used by PBRT. */
   first = 0;
   count = res_x;
   while (count > 0) {
-    int step = count >> 1;
-    int middle = first + step;
+    const int step = count >> 1;
+    const int middle = first + step;
 
     if (kernel_data_fetch(light_background_conditional_cdf, index_v * cdf_width + middle).y <
         rand.x)
@@ -72,23 +72,23 @@ ccl_device float3 background_map_sample(KernelGlobals kg, float2 rand, ccl_priva
     }
   }
 
-  int index_u = max(0, first - 1);
+  const int index_u = max(0, first - 1);
   kernel_assert(index_u >= 0 && index_u < res_x);
 
-  float2 cdf_u = kernel_data_fetch(light_background_conditional_cdf,
-                                   index_v * cdf_width + index_u);
-  float2 cdf_next_u = kernel_data_fetch(light_background_conditional_cdf,
-                                        index_v * cdf_width + index_u + 1);
-  float2 cdf_last_u = kernel_data_fetch(light_background_conditional_cdf,
-                                        index_v * cdf_width + res_x);
+  const float2 cdf_u = kernel_data_fetch(light_background_conditional_cdf,
+                                         index_v * cdf_width + index_u);
+  const float2 cdf_next_u = kernel_data_fetch(light_background_conditional_cdf,
+                                              index_v * cdf_width + index_u + 1);
+  const float2 cdf_last_u = kernel_data_fetch(light_background_conditional_cdf,
+                                              index_v * cdf_width + res_x);
 
   /* importance-sampled U direction */
-  float du = inverse_lerp(cdf_u.y, cdf_next_u.y, rand.x);
-  float u = (index_u + du) / res_x;
+  const float du = inverse_lerp(cdf_u.y, cdf_next_u.y, rand.x);
+  const float u = (index_u + du) / res_x;
 
   /* compute pdf */
-  float sin_theta = sinf(M_PI_F * v);
-  float denom = (M_2PI_F * M_PI_F * sin_theta) * cdf_last_u.x * cdf_last_v.x;
+  const float sin_theta = sinf(M_PI_F * v);
+  const float denom = (M_2PI_F * M_PI_F * sin_theta) * cdf_last_u.x * cdf_last_v.x;
 
   if (sin_theta == 0.0f || denom == 0.0f) {
     *pdf = 0.0f;
@@ -106,35 +106,35 @@ ccl_device float3 background_map_sample(KernelGlobals kg, float2 rand, ccl_priva
  */
 ccl_device float background_map_pdf(KernelGlobals kg, float3 direction)
 {
-  float2 uv = direction_to_equirectangular(direction);
-  int res_x = kernel_data.background.map_res_x;
-  int res_y = kernel_data.background.map_res_y;
-  int cdf_width = res_x + 1;
+  const float2 uv = direction_to_equirectangular(direction);
+  const int res_x = kernel_data.background.map_res_x;
+  const int res_y = kernel_data.background.map_res_y;
+  const int cdf_width = res_x + 1;
 
-  float sin_theta = sinf(uv.y * M_PI_F);
+  const float sin_theta = sinf(uv.y * M_PI_F);
 
   if (sin_theta == 0.0f) {
     return 0.0f;
   }
 
-  int index_u = clamp(float_to_int(uv.x * res_x), 0, res_x - 1);
-  int index_v = clamp(float_to_int(uv.y * res_y), 0, res_y - 1);
+  const int index_u = clamp(float_to_int(uv.x * res_x), 0, res_x - 1);
+  const int index_v = clamp(float_to_int(uv.y * res_y), 0, res_y - 1);
 
   /* pdfs in V direction */
-  float2 cdf_last_u = kernel_data_fetch(light_background_conditional_cdf,
-                                        index_v * cdf_width + res_x);
-  float2 cdf_last_v = kernel_data_fetch(light_background_marginal_cdf, res_y);
+  const float2 cdf_last_u = kernel_data_fetch(light_background_conditional_cdf,
+                                              index_v * cdf_width + res_x);
+  const float2 cdf_last_v = kernel_data_fetch(light_background_marginal_cdf, res_y);
 
-  float denom = (M_2PI_F * M_PI_F * sin_theta) * cdf_last_u.x * cdf_last_v.x;
+  const float denom = (M_2PI_F * M_PI_F * sin_theta) * cdf_last_u.x * cdf_last_v.x;
 
   if (denom == 0.0f) {
     return 0.0f;
   }
 
   /* pdfs in U direction */
-  float2 cdf_u = kernel_data_fetch(light_background_conditional_cdf,
-                                   index_v * cdf_width + index_u);
-  float2 cdf_v = kernel_data_fetch(light_background_marginal_cdf, index_v);
+  const float2 cdf_u = kernel_data_fetch(light_background_conditional_cdf,
+                                         index_v * cdf_width + index_u);
+  const float2 cdf_v = kernel_data_fetch(light_background_marginal_cdf, index_v);
 
   return (cdf_u.x * cdf_v.x) / denom;
 }
@@ -142,7 +142,7 @@ ccl_device float background_map_pdf(KernelGlobals kg, float3 direction)
 ccl_device_inline bool background_portal_data_fetch_and_check_side(
     KernelGlobals kg, float3 P, int index, ccl_private float3 *lightpos, ccl_private float3 *dir)
 {
-  int portal = kernel_data.integrator.portal_offset + index;
+  const int portal = kernel_data.integrator.portal_offset + index;
   const ccl_global KernelLight *klight = &kernel_data_fetch(lights, portal);
 
   *lightpos = klight->co;
@@ -167,7 +167,8 @@ ccl_device_inline float background_portal_pdf(
       continue;
     }
 
-    float3 lightpos, dir;
+    float3 lightpos;
+    float3 dir;
     if (!background_portal_data_fetch_and_check_side(kg, P, p, &lightpos, &dir)) {
       continue;
     }
@@ -178,7 +179,7 @@ ccl_device_inline float background_portal_pdf(
     }
     num_possible++;
 
-    int portal = kernel_data.integrator.portal_offset + p;
+    const int portal = kernel_data.integrator.portal_offset + p;
     const ccl_global KernelLight *klight = &kernel_data_fetch(lights, portal);
 
     const float3 axis_u = klight->area.axis_u;
@@ -188,7 +189,7 @@ ccl_device_inline float background_portal_pdf(
     const float3 inv_extent_u = axis_u / len_u;
     const float3 inv_extent_v = axis_v / len_v;
 
-    bool is_round = (klight->area.invarea < 0.0f);
+    const bool is_round = (klight->area.invarea < 0.0f);
 
     if (!ray_quad_intersect(P,
                             direction,
@@ -209,7 +210,7 @@ ccl_device_inline float background_portal_pdf(
 
     if (is_round) {
       float t;
-      float3 D = normalize_len(lightpos - P, &t);
+      const float3 D = normalize_len(lightpos - P, &t);
       portal_pdf += fabsf(klight->area.invarea) * light_pdf_area_to_solid_angle(dir, -D, t);
     }
     else {
@@ -230,7 +231,8 @@ ccl_device int background_num_possible_portals(KernelGlobals kg, float3 P)
 {
   int num_possible_portals = 0;
   for (int p = 0; p < kernel_data.integrator.num_portals; p++) {
-    float3 lightpos, dir;
+    float3 lightpos;
+    float3 dir;
     if (background_portal_data_fetch_and_check_side(kg, P, p, &lightpos, &dir)) {
       num_possible_portals++;
     }
@@ -255,20 +257,21 @@ ccl_device float3 background_portal_sample(KernelGlobals kg,
    */
   for (int p = 0; p < kernel_data.integrator.num_portals; p++) {
     /* Search for the sampled portal. */
-    float3 lightpos, dir;
+    float3 lightpos;
+    float3 dir;
     if (!background_portal_data_fetch_and_check_side(kg, P, p, &lightpos, &dir)) {
       continue;
     }
 
     if (portal == 0) {
       /* p is the portal to be sampled. */
-      int portal = kernel_data.integrator.portal_offset + p;
+      const int portal = kernel_data.integrator.portal_offset + p;
       const ccl_global KernelLight *klight = &kernel_data_fetch(lights, portal);
       const float3 axis_u = klight->area.axis_u;
       const float3 axis_v = klight->area.axis_v;
       const float len_u = klight->area.len_u;
       const float len_v = klight->area.len_v;
-      bool is_round = (klight->area.invarea < 0.0f);
+      const bool is_round = (klight->area.invarea < 0.0f);
 
       float3 D;
       if (is_round) {
@@ -344,7 +347,7 @@ ccl_device_inline float3 background_light_sample(KernelGlobals kg,
    * Therefore, we pick portals if rand.x is between 0 and portal_method_pdf,
    * sun if rand.x is between portal_method_pdf and (portal_method_pdf + sun_method_pdf)
    * and map if rand.x is between (portal_method_pdf + sun_method_pdf) and 1. */
-  float sun_method_cdf = portal_method_pdf + sun_method_pdf;
+  const float sun_method_cdf = portal_method_pdf + sun_method_pdf;
 
   int method = 0;
   float3 D;

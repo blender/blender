@@ -51,7 +51,7 @@ void GeometryManager::device_update_mesh(Device * /*unused*/,
       tri_size += mesh->num_triangles();
 
       if (mesh->get_num_subd_faces()) {
-        Mesh::SubdFace last = mesh->get_subd_face(mesh->get_num_subd_faces() - 1);
+        const Mesh::SubdFace last = mesh->get_subd_face(mesh->get_num_subd_faces() - 1);
         patch_size += (last.ptex_offset + last.num_ptex_faces()) * 8;
 
         /* patch tables are stored in same array so include them in patch_size */
@@ -147,10 +147,10 @@ void GeometryManager::device_update_mesh(Device * /*unused*/,
       if (geom->is_hair()) {
         Hair *hair = static_cast<Hair *>(geom);
 
-        bool curve_keys_co_modified = hair->curve_radius_is_modified() ||
-                                      hair->curve_keys_is_modified();
-        bool curve_data_modified = hair->curve_shader_is_modified() ||
-                                   hair->curve_first_key_is_modified();
+        const bool curve_keys_co_modified = hair->curve_radius_is_modified() ||
+                                            hair->curve_keys_is_modified();
+        const bool curve_data_modified = hair->curve_shader_is_modified() ||
+                                         hair->curve_first_key_is_modified();
 
         if (!curve_keys_co_modified && !curve_data_modified && !copy_all_data) {
           continue;

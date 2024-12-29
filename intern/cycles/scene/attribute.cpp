@@ -66,7 +66,7 @@ void Attribute::add(const float &f)
   assert(data_sizeof() == sizeof(float));
 
   char *data = (char *)&f;
-  size_t size = sizeof(f);
+  const size_t size = sizeof(f);
 
   for (size_t i = 0; i < size; i++) {
     buffer.push_back(data[i]);
@@ -80,7 +80,7 @@ void Attribute::add(const uchar4 &f)
   assert(data_sizeof() == sizeof(uchar4));
 
   char *data = (char *)&f;
-  size_t size = sizeof(f);
+  const size_t size = sizeof(f);
 
   for (size_t i = 0; i < size; i++) {
     buffer.push_back(data[i]);
@@ -94,7 +94,7 @@ void Attribute::add(const float2 &f)
   assert(data_sizeof() == sizeof(float2));
 
   char *data = (char *)&f;
-  size_t size = sizeof(f);
+  const size_t size = sizeof(f);
 
   for (size_t i = 0; i < size; i++) {
     buffer.push_back(data[i]);
@@ -108,7 +108,7 @@ void Attribute::add(const float3 &f)
   assert(data_sizeof() == sizeof(float3));
 
   char *data = (char *)&f;
-  size_t size = sizeof(f);
+  const size_t size = sizeof(f);
 
   for (size_t i = 0; i < size; i++) {
     buffer.push_back(data[i]);
@@ -122,7 +122,7 @@ void Attribute::add(const Transform &f)
   assert(data_sizeof() == sizeof(Transform));
 
   char *data = (char *)&f;
-  size_t size = sizeof(f);
+  const size_t size = sizeof(f);
 
   for (size_t i = 0; i < size; i++) {
     buffer.push_back(data[i]);
@@ -133,7 +133,7 @@ void Attribute::add(const Transform &f)
 
 void Attribute::add(const char *data)
 {
-  size_t size = data_sizeof();
+  const size_t size = data_sizeof();
 
   for (size_t i = 0; i < size; i++) {
     buffer.push_back(data[i]);
@@ -443,8 +443,10 @@ void Attribute::get_uv_tiles(Geometry *geom,
   const int num = element_size(geom, prim);
   const float2 *uv = data_float2();
   for (int i = 0; i < num; i++, uv++) {
-    float u = uv->x, v = uv->y;
-    int x = (int)u, y = (int)v;
+    const float u = uv->x;
+    const float v = uv->y;
+    int x = (int)u;
+    int y = (int)v;
 
     if (x < 0 || y < 0 || x >= 10) {
       continue;
@@ -813,7 +815,7 @@ void AttributeSet::tag_modified(const Attribute &attr)
                                       attr.std != ATTR_STD_VERTEX_NORMAL);
 
   if (modifies_device_array) {
-    AttrKernelDataType kernel_type = Attribute::kernel_type(attr);
+    const AttrKernelDataType kernel_type = Attribute::kernel_type(attr);
     modified_flag |= (1u << kernel_type);
   }
 }
@@ -888,7 +890,7 @@ bool AttributeRequestSet::modified(const AttributeRequestSet &other)
 
 void AttributeRequestSet::add(ustring name)
 {
-  for (AttributeRequest &req : requests) {
+  for (const AttributeRequest &req : requests) {
     if (req.name == name) {
       return;
     }
@@ -899,7 +901,7 @@ void AttributeRequestSet::add(ustring name)
 
 void AttributeRequestSet::add(AttributeStandard std)
 {
-  for (AttributeRequest &req : requests) {
+  for (const AttributeRequest &req : requests) {
     if (req.std == std) {
       return;
     }
@@ -910,7 +912,7 @@ void AttributeRequestSet::add(AttributeStandard std)
 
 void AttributeRequestSet::add(AttributeRequestSet &reqs)
 {
-  for (AttributeRequest &req : reqs.requests) {
+  for (const AttributeRequest &req : reqs.requests) {
     if (req.std == ATTR_STD_NONE) {
       add(req.name);
     }
@@ -926,7 +928,7 @@ void AttributeRequestSet::add_standard(ustring name)
     return;
   }
 
-  AttributeStandard std = Attribute::name_standard(name.c_str());
+  const AttributeStandard std = Attribute::name_standard(name.c_str());
 
   if (std) {
     add(std);
@@ -938,7 +940,7 @@ void AttributeRequestSet::add_standard(ustring name)
 
 bool AttributeRequestSet::find(ustring name)
 {
-  for (AttributeRequest &req : requests) {
+  for (const AttributeRequest &req : requests) {
     if (req.name == name) {
       return true;
     }
@@ -949,7 +951,7 @@ bool AttributeRequestSet::find(ustring name)
 
 bool AttributeRequestSet::find(AttributeStandard std)
 {
-  for (AttributeRequest &req : requests) {
+  for (const AttributeRequest &req : requests) {
     if (req.std == std) {
       return true;
     }

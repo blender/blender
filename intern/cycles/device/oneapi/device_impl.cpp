@@ -688,7 +688,7 @@ bool OneapiDevice::create_queue(SyclQueue *&external_queue,
     (void)embree_device_pointer;
 #  endif
   }
-  catch (sycl::exception const &e) {
+  catch (const sycl::exception &e) {
     finished_correct = false;
     oneapi_error_string_ = e.what();
   }
@@ -784,7 +784,7 @@ bool OneapiDevice::usm_memcpy(SyclQueue *queue_, void *dest, void *src, size_t n
     return true;
 #  endif
   }
-  catch (sycl::exception const &e) {
+  catch (const sycl::exception &e) {
     oneapi_error_string_ = e.what();
     return false;
   }
@@ -817,7 +817,7 @@ bool OneapiDevice::usm_memset(SyclQueue *queue_,
 #  endif
     return true;
   }
-  catch (sycl::exception const &e) {
+  catch (const sycl::exception &e) {
     oneapi_error_string_ = e.what();
     return false;
   }
@@ -831,7 +831,7 @@ bool OneapiDevice::queue_synchronize(SyclQueue *queue_)
     queue->wait_and_throw();
     return true;
   }
-  catch (sycl::exception const &e) {
+  catch (const sycl::exception &e) {
     oneapi_error_string_ = e.what();
     return false;
   }
@@ -899,16 +899,16 @@ void OneapiDevice::get_adjusted_global_and_local_sizes(SyclQueue *queue,
                                                        size_t &kernel_local_size)
 {
   assert(queue);
-  const static size_t preferred_work_group_size_intersect = 128;
-  const static size_t preferred_work_group_size_shading = 256;
-  const static size_t preferred_work_group_size_shading_simd8 = 64;
+  static const size_t preferred_work_group_size_intersect = 128;
+  static const size_t preferred_work_group_size_shading = 256;
+  static const size_t preferred_work_group_size_shading_simd8 = 64;
   /* Shader evaluation kernels seems to use some amount of shared memory, so better
    * to avoid usage of maximum work group sizes for them. */
-  const static size_t preferred_work_group_size_shader_evaluation = 256;
+  static const size_t preferred_work_group_size_shader_evaluation = 256;
   /* NOTE(@nsirgien): 1024 currently may lead to issues with cryptomatte kernels, so
    * for now their work-group size is restricted to 512. */
-  const static size_t preferred_work_group_size_cryptomatte = 512;
-  const static size_t preferred_work_group_size_default = 1024;
+  static const size_t preferred_work_group_size_cryptomatte = 512;
+  static const size_t preferred_work_group_size_default = 1024;
 
   const sycl::device &device = reinterpret_cast<sycl::queue *>(queue)->get_device();
   const size_t max_work_group_size = device.get_info<sycl::info::device::max_work_group_size>();

@@ -59,7 +59,7 @@ tbb::global_control *TaskScheduler::global_control = nullptr;
 
 void TaskScheduler::init(int num_threads)
 {
-  thread_scoped_lock lock(mutex);
+  const thread_scoped_lock lock(mutex);
   /* Multiple cycles instances can use this task scheduler, sharing the same
    * threads, so we keep track of the number of users. */
   ++users;
@@ -80,7 +80,7 @@ void TaskScheduler::init(int num_threads)
 
 void TaskScheduler::exit()
 {
-  thread_scoped_lock lock(mutex);
+  const thread_scoped_lock lock(mutex);
   users--;
   if (users == 0) {
     delete global_control;
@@ -96,7 +96,7 @@ void TaskScheduler::free_memory()
 
 int TaskScheduler::max_concurrency()
 {
-  thread_scoped_lock lock(mutex);
+  const thread_scoped_lock lock(mutex);
   return (users > 0) ? active_num_threads : tbb::this_task_arena::max_concurrency();
 }
 
@@ -165,7 +165,7 @@ bool DedicatedTaskPool::canceled()
 
 void DedicatedTaskPool::num_decrease(int done)
 {
-  thread_scoped_lock num_lock(num_mutex);
+  const thread_scoped_lock num_lock(num_mutex);
   num -= done;
 
   assert(num >= 0);
@@ -176,7 +176,7 @@ void DedicatedTaskPool::num_decrease(int done)
 
 void DedicatedTaskPool::num_increase()
 {
-  thread_scoped_lock num_lock(num_mutex);
+  const thread_scoped_lock num_lock(num_mutex);
   num++;
   num_cond.notify_all();
 }
@@ -222,7 +222,7 @@ void DedicatedTaskPool::clear()
   thread_scoped_lock queue_lock(queue_mutex);
 
   /* erase all tasks from the queue */
-  int done = queue.size();
+  const int done = queue.size();
   queue.clear();
 
   queue_lock.unlock();

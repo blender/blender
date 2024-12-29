@@ -149,7 +149,7 @@ bool OSLRenderServices::get_matrix(OSL::ShaderGlobals *sg,
   if (xform) {
     const ShaderData *sd = (const ShaderData *)xform;
     const KernelGlobalsCPU *kg = sd->osl_globals;
-    int object = sd->object;
+    const int object = sd->object;
 
     if (object != OBJECT_NONE) {
 #ifdef __OBJECT_MOTION__
@@ -189,7 +189,7 @@ bool OSLRenderServices::get_inverse_matrix(OSL::ShaderGlobals *sg,
   if (xform) {
     const ShaderData *sd = (const ShaderData *)xform;
     const KernelGlobalsCPU *kg = sd->osl_globals;
-    int object = sd->object;
+    const int object = sd->object;
 
     if (object != OBJECT_NONE) {
 #ifdef __OBJECT_MOTION__
@@ -292,7 +292,7 @@ bool OSLRenderServices::get_matrix(OSL::ShaderGlobals *sg,
   if (xform) {
     const ShaderData *sd = (const ShaderData *)xform;
     const KernelGlobalsCPU *kg = sd->osl_globals;
-    int object = sd->object;
+    const int object = sd->object;
 
     if (object != OBJECT_NONE) {
       const Transform tfm = object_get_transform(kg, sd);
@@ -320,7 +320,7 @@ bool OSLRenderServices::get_inverse_matrix(OSL::ShaderGlobals *sg,
   if (xform) {
     const ShaderData *sd = (const ShaderData *)xform;
     const KernelGlobalsCPU *kg = sd->osl_globals;
-    int object = sd->object;
+    const int object = sd->object;
 
     if (object != OBJECT_NONE) {
       const Transform tfm = object_get_inverse_transform(kg, sd);
@@ -797,7 +797,7 @@ static bool get_object_attribute(const KernelGlobalsCPU *kg,
     return set_attribute_float4(fval, type, derivatives, val);
   }
   if (desc.type == NODE_ATTR_MATRIX) {
-    Transform tfm = primitive_attribute_matrix(kg, desc);
+    const Transform tfm = primitive_attribute_matrix(kg, desc);
     return set_attribute_matrix(tfm, type, val);
   }
   return false;
@@ -814,66 +814,66 @@ bool OSLRenderServices::get_object_standard_attribute(const KernelGlobalsCPU *kg
 
   /* Object Attributes */
   if (name == u_object_location) {
-    float3 f = object_location(kg, sd);
+    const float3 f = object_location(kg, sd);
     return set_attribute_float3(f, type, derivatives, val);
   }
   if (name == u_object_color) {
-    float3 f = object_color(kg, sd->object);
+    const float3 f = object_color(kg, sd->object);
     return set_attribute_float3(f, type, derivatives, val);
   }
   if (name == u_object_alpha) {
-    float f = object_alpha(kg, sd->object);
+    const float f = object_alpha(kg, sd->object);
     return set_attribute_float(f, type, derivatives, val);
   }
   if (name == u_object_index) {
-    float f = object_pass_id(kg, sd->object);
+    const float f = object_pass_id(kg, sd->object);
     return set_attribute_float(f, type, derivatives, val);
   }
   if (name == u_object_is_light) {
-    float f = (sd->type & PRIMITIVE_LAMP) != 0;
+    const float f = (sd->type & PRIMITIVE_LAMP) != 0;
     return set_attribute_float(f, type, derivatives, val);
   }
   if (name == u_geom_dupli_generated) {
-    float3 f = object_dupli_generated(kg, sd->object);
+    const float3 f = object_dupli_generated(kg, sd->object);
     return set_attribute_float3(f, type, derivatives, val);
   }
   if (name == u_geom_dupli_uv) {
-    float3 f = object_dupli_uv(kg, sd->object);
+    const float3 f = object_dupli_uv(kg, sd->object);
     return set_attribute_float3(f, type, derivatives, val);
   }
   if (name == u_material_index) {
-    float f = shader_pass_id(kg, sd);
+    const float f = shader_pass_id(kg, sd);
     return set_attribute_float(f, type, derivatives, val);
   }
   if (name == u_object_random) {
-    float f = object_random_number(kg, sd->object);
+    const float f = object_random_number(kg, sd->object);
     return set_attribute_float(f, type, derivatives, val);
   }
 
   /* Particle Attributes */
   if (name == u_particle_index) {
-    int particle_id = object_particle_id(kg, sd->object);
-    float f = particle_index(kg, particle_id);
+    const int particle_id = object_particle_id(kg, sd->object);
+    const float f = particle_index(kg, particle_id);
     return set_attribute_float(f, type, derivatives, val);
   }
   if (name == u_particle_random) {
-    int particle_id = object_particle_id(kg, sd->object);
-    float f = hash_uint2_to_float(particle_index(kg, particle_id), 0);
+    const int particle_id = object_particle_id(kg, sd->object);
+    const float f = hash_uint2_to_float(particle_index(kg, particle_id), 0);
     return set_attribute_float(f, type, derivatives, val);
   }
   if (name == u_particle_age) {
-    int particle_id = object_particle_id(kg, sd->object);
-    float f = particle_age(kg, particle_id);
+    const int particle_id = object_particle_id(kg, sd->object);
+    const float f = particle_age(kg, particle_id);
     return set_attribute_float(f, type, derivatives, val);
   }
   if (name == u_particle_lifetime) {
-    int particle_id = object_particle_id(kg, sd->object);
-    float f = particle_lifetime(kg, particle_id);
+    const int particle_id = object_particle_id(kg, sd->object);
+    const float f = particle_lifetime(kg, particle_id);
     return set_attribute_float(f, type, derivatives, val);
   }
   if (name == u_particle_location) {
-    int particle_id = object_particle_id(kg, sd->object);
-    float3 f = particle_location(kg, particle_id);
+    const int particle_id = object_particle_id(kg, sd->object);
+    const float3 f = particle_location(kg, particle_id);
     return set_attribute_float3(f, type, derivatives, val);
   }
 #if 0 /* unsupported */
@@ -884,18 +884,18 @@ bool OSLRenderServices::get_object_standard_attribute(const KernelGlobalsCPU *kg
   }
 #endif
   if (name == u_particle_size) {
-    int particle_id = object_particle_id(kg, sd->object);
-    float f = particle_size(kg, particle_id);
+    const int particle_id = object_particle_id(kg, sd->object);
+    const float f = particle_size(kg, particle_id);
     return set_attribute_float(f, type, derivatives, val);
   }
   if (name == u_particle_velocity) {
-    int particle_id = object_particle_id(kg, sd->object);
-    float3 f = particle_velocity(kg, particle_id);
+    const int particle_id = object_particle_id(kg, sd->object);
+    const float3 f = particle_velocity(kg, particle_id);
     return set_attribute_float3(f, type, derivatives, val);
   }
   if (name == u_particle_angular_velocity) {
-    int particle_id = object_particle_id(kg, sd->object);
-    float3 f = particle_angular_velocity(kg, particle_id);
+    const int particle_id = object_particle_id(kg, sd->object);
+    const float3 f = particle_angular_velocity(kg, particle_id);
     return set_attribute_float3(f, type, derivatives, val);
   }
 
@@ -924,54 +924,54 @@ bool OSLRenderServices::get_object_standard_attribute(const KernelGlobalsCPU *kg
     return set_attribute_float3_3(P, type, derivatives, val);
   }
   if (name == u_geom_name) {
-    ustring object_name = kg->osl->object_names[sd->object];
+    const ustring object_name = kg->osl->object_names[sd->object];
     return set_attribute_string(object_name, type, derivatives, val);
   }
   if (name == u_is_smooth) {
-    float f = ((sd->shader & SHADER_SMOOTH_NORMAL) != 0);
+    const float f = ((sd->shader & SHADER_SMOOTH_NORMAL) != 0);
     return set_attribute_float(f, type, derivatives, val);
   }
 #ifdef __HAIR__
   /* Hair Attributes */
   if (name == u_is_curve) {
-    float f = (sd->type & PRIMITIVE_CURVE) != 0;
+    const float f = (sd->type & PRIMITIVE_CURVE) != 0;
     return set_attribute_float(f, type, derivatives, val);
   }
   if (name == u_curve_thickness) {
-    float f = curve_thickness(kg, sd);
+    const float f = curve_thickness(kg, sd);
     return set_attribute_float(f, type, derivatives, val);
   }
   if (name == u_curve_tangent_normal) {
-    float3 f = curve_tangent_normal(kg, sd);
+    const float3 f = curve_tangent_normal(kg, sd);
     return set_attribute_float3(f, type, derivatives, val);
   }
   if (name == u_curve_random) {
-    float f = curve_random(kg, sd);
+    const float f = curve_random(kg, sd);
     return set_attribute_float(f, type, derivatives, val);
   }
 #endif
 #ifdef __POINTCLOUD__
   /* point attributes */
   if (name == u_is_point) {
-    float f = (sd->type & PRIMITIVE_POINT) != 0;
+    const float f = (sd->type & PRIMITIVE_POINT) != 0;
     return set_attribute_float(f, type, derivatives, val);
   }
   if (name == u_point_radius) {
-    float f = point_radius(kg, sd);
+    const float f = point_radius(kg, sd);
     return set_attribute_float(f, type, derivatives, val);
   }
   if (name == u_point_position) {
-    float3 f = point_position(kg, sd);
+    const float3 f = point_position(kg, sd);
     return set_attribute_float3(f, type, derivatives, val);
   }
   if (name == u_point_random) {
-    float f = point_random(kg, sd);
+    const float f = point_random(kg, sd);
     return set_attribute_float(f, type, derivatives, val);
   }
 #endif
   if (name == u_normal_map_normal) {
     if (sd->type & PRIMITIVE_TRIANGLE) {
-      float3 f = triangle_smooth_normal_unnormalized(kg, sd, sd->Ng, sd->prim, sd->u, sd->v);
+      const float3 f = triangle_smooth_normal_unnormalized(kg, sd, sd->Ng, sd->prim, sd->u, sd->v);
       return set_attribute_float3(f, type, derivatives, val);
     }
     return false;
@@ -988,50 +988,52 @@ bool OSLRenderServices::get_background_attribute(const KernelGlobalsCPU *kg,
 {
   if (name == u_path_ray_length) {
     /* Ray Length */
-    float f = sd->ray_length;
+    const float f = sd->ray_length;
     return set_attribute_float(f, type, derivatives, val);
   }
   if (name == u_path_ray_depth) {
     /* Ray Depth */
     const IntegratorStateCPU *state = sd->osl_path_state;
     const IntegratorShadowStateCPU *shadow_state = sd->osl_shadow_path_state;
-    int f = (state) ? state->path.bounce : (shadow_state) ? shadow_state->shadow_path.bounce : 0;
+    const int f = (state)        ? state->path.bounce :
+                  (shadow_state) ? shadow_state->shadow_path.bounce :
+                                   0;
     return set_attribute_int(f, type, derivatives, val);
   }
   if (name == u_path_diffuse_depth) {
     /* Diffuse Ray Depth */
     const IntegratorStateCPU *state = sd->osl_path_state;
     const IntegratorShadowStateCPU *shadow_state = sd->osl_shadow_path_state;
-    int f = (state)        ? state->path.diffuse_bounce :
-            (shadow_state) ? shadow_state->shadow_path.diffuse_bounce :
-                             0;
+    const int f = (state)        ? state->path.diffuse_bounce :
+                  (shadow_state) ? shadow_state->shadow_path.diffuse_bounce :
+                                   0;
     return set_attribute_int(f, type, derivatives, val);
   }
   if (name == u_path_glossy_depth) {
     /* Glossy Ray Depth */
     const IntegratorStateCPU *state = sd->osl_path_state;
     const IntegratorShadowStateCPU *shadow_state = sd->osl_shadow_path_state;
-    int f = (state)        ? state->path.glossy_bounce :
-            (shadow_state) ? shadow_state->shadow_path.glossy_bounce :
-                             0;
+    const int f = (state)        ? state->path.glossy_bounce :
+                  (shadow_state) ? shadow_state->shadow_path.glossy_bounce :
+                                   0;
     return set_attribute_int(f, type, derivatives, val);
   }
   if (name == u_path_transmission_depth) {
     /* Transmission Ray Depth */
     const IntegratorStateCPU *state = sd->osl_path_state;
     const IntegratorShadowStateCPU *shadow_state = sd->osl_shadow_path_state;
-    int f = (state)        ? state->path.transmission_bounce :
-            (shadow_state) ? shadow_state->shadow_path.transmission_bounce :
-                             0;
+    const int f = (state)        ? state->path.transmission_bounce :
+                  (shadow_state) ? shadow_state->shadow_path.transmission_bounce :
+                                   0;
     return set_attribute_int(f, type, derivatives, val);
   }
   if (name == u_path_transparent_depth) {
     /* Transparent Ray Depth */
     const IntegratorStateCPU *state = sd->osl_path_state;
     const IntegratorShadowStateCPU *shadow_state = sd->osl_shadow_path_state;
-    int f = (state)        ? state->path.transparent_bounce :
-            (shadow_state) ? shadow_state->shadow_path.transparent_bounce :
-                             0;
+    const int f = (state)        ? state->path.transparent_bounce :
+                  (shadow_state) ? shadow_state->shadow_path.transparent_bounce :
+                                   0;
     return set_attribute_int(f, type, derivatives, val);
   }
   if (name == u_ndc) {
@@ -1093,7 +1095,7 @@ bool OSLRenderServices::get_attribute(ShaderData *sd,
 
   /* lookup of attribute on another object */
   if (object_name != u_empty) {
-    OSLGlobals::ObjectNameMap::iterator it = kg->osl->object_name_map.find(object_name);
+    const OSLGlobals::ObjectNameMap::iterator it = kg->osl->object_name_map.find(object_name);
 
     if (it == kg->osl->object_name_map.end()) {
       return false;
@@ -1200,7 +1202,7 @@ OSL::TextureSystem::TextureHandle *OSLRenderServices::get_texture_handle(OSLUStr
   }
 
   /* Load new textures using SVM image manager. */
-  ImageHandle handle = image_manager->add_image(filename.string(), ImageParams());
+  const ImageHandle handle = image_manager->add_image(filename.string(), ImageParams());
   if (handle.empty()) {
     return nullptr;
   }
@@ -1242,7 +1244,7 @@ bool OSLRenderServices::texture(OSLUStringHash filename,
                                 OSLUStringHash *errormessage)
 {
   OSLTextureHandle *handle = (OSLTextureHandle *)texture_handle;
-  OSLTextureHandle::Type texture_type = (handle) ? handle->type : OSLTextureHandle::OIIO;
+  const OSLTextureHandle::Type texture_type = (handle) ? handle->type : OSLTextureHandle::OIIO;
   ShaderData *sd = (ShaderData *)(sg->renderstate);
   KernelGlobals kernel_globals = sd->osl_globals;
   bool status = false;
@@ -1254,9 +1256,9 @@ bool OSLRenderServices::texture(OSLUStringHash filename,
       if (nchannels >= 3) {
         const IntegratorStateCPU *state = sd->osl_path_state;
         if (state) {
-          int num_samples = (int)s;
-          float radius = t;
-          float3 N = svm_bevel(kernel_globals, state, sd, radius, num_samples);
+          const int num_samples = (int)s;
+          const float radius = t;
+          const float3 N = svm_bevel(kernel_globals, state, sd, radius, num_samples);
           result[0] = N.x;
           result[1] = N.y;
           result[2] = N.z;
@@ -1271,9 +1273,9 @@ bool OSLRenderServices::texture(OSLUStringHash filename,
       /* AO shader hack. */
       const IntegratorStateCPU *state = sd->osl_path_state;
       if (state) {
-        int num_samples = (int)s;
-        float radius = t;
-        float3 N = make_float3(dsdx, dtdx, dsdy);
+        const int num_samples = (int)s;
+        const float radius = t;
+        const float3 N = make_float3(dsdx, dtdx, dsdy);
         int flags = 0;
         if ((int)dtdy) {
           flags |= NODE_AO_INSIDE;
@@ -1298,10 +1300,10 @@ bool OSLRenderServices::texture(OSLUStringHash filename,
       }
       else {
         /* Packed tiled texture. */
-        int tx = (int)s;
-        int ty = (int)t;
-        int tile = 1001 + 10 * ty + tx;
-        for (int4 tile_node : handle->svm_slots) {
+        const int tx = (int)s;
+        const int ty = (int)t;
+        const int tile = 1001 + 10 * ty + tx;
+        for (const int4 &tile_node : handle->svm_slots) {
           if (tile_node.x == tile) {
             id = tile_node.y;
             break;
@@ -1426,7 +1428,7 @@ bool OSLRenderServices::texture3d(OSLUStringHash filename,
                                   OSLUStringHash *errormessage)
 {
   OSLTextureHandle *handle = (OSLTextureHandle *)texture_handle;
-  OSLTextureHandle::Type texture_type = (handle) ? handle->type : OSLTextureHandle::OIIO;
+  const OSLTextureHandle::Type texture_type = (handle) ? handle->type : OSLTextureHandle::OIIO;
   bool status = false;
 
   switch (texture_type) {
@@ -1434,8 +1436,8 @@ bool OSLRenderServices::texture3d(OSLUStringHash filename,
       /* Packed texture. */
       ShaderData *sd = (ShaderData *)(sg->renderstate);
       KernelGlobals kernel_globals = sd->osl_globals;
-      int slot = handle->svm_slots[0].y;
-      float3 P_float3 = make_float3(P.x, P.y, P.z);
+      const int slot = handle->svm_slots[0].y;
+      const float3 P_float3 = make_float3(P.x, P.y, P.z);
       float4 rgba = kernel_tex_image_interp_3d(kernel_globals, slot, P_float3, INTERPOLATION_NONE);
 
       result[0] = rgba[0];
@@ -1732,7 +1734,7 @@ bool OSLRenderServices::trace(TraceOpt &options,
   }
 
   /* Ray-trace, leaving out shadow opaque to avoid early exit. */
-  uint visibility = PATH_RAY_ALL_VISIBILITY - PATH_RAY_SHADOW_OPAQUE;
+  const uint visibility = PATH_RAY_ALL_VISIBILITY - PATH_RAY_SHADOW_OPAQUE;
   tracedata->hit = scene_intersect(kg, &ray, visibility, &tracedata->isect);
   return tracedata->hit;
 }

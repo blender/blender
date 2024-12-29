@@ -214,8 +214,8 @@ void BVH2::pack_unaligned_node(int idx,
   assert(c1 < 0 || c1 < pack.nodes.size());
 
   int4 data[BVH_UNALIGNED_NODE_SIZE];
-  Transform space0 = BVHUnaligned::compute_node_transform(b0, aligned_space0);
-  Transform space1 = BVHUnaligned::compute_node_transform(b1, aligned_space1);
+  const Transform space0 = BVHUnaligned::compute_node_transform(b0, aligned_space0);
+  const Transform space1 = BVHUnaligned::compute_node_transform(b1, aligned_space1);
   data[0] = make_int4(
       visibility0 | PATH_RAY_NODE_UNALIGNED, visibility1 | PATH_RAY_NODE_UNALIGNED, c0, c1);
 
@@ -256,7 +256,8 @@ void BVH2::pack_nodes(const BVHNode *root)
     pack.leaf_nodes.resize(num_leaf_nodes * BVH_NODE_LEAF_SIZE);
   }
 
-  int nextNodeIdx = 0, nextLeafNodeIdx = 0;
+  int nextNodeIdx = 0;
+  int nextLeafNodeIdx = 0;
 
   vector<BVHStackEntry> stack;
   stack.reserve(BVHParams::MAX_DEPTH * 2);
@@ -269,7 +270,7 @@ void BVH2::pack_nodes(const BVHNode *root)
   }
 
   while (!stack.empty()) {
-    BVHStackEntry e = stack.back();
+    const BVHStackEntry e = stack.back();
     stack.pop_back();
 
     if (e.node->is_leaf()) {
@@ -338,14 +339,16 @@ void BVH2::refit_node(int idx, bool leaf, BoundBox &bbox, uint &visibility)
     const int c0 = data[0].z;
     const int c1 = data[0].w;
     /* refit inner node, set bbox from children */
-    BoundBox bbox0 = BoundBox::empty, bbox1 = BoundBox::empty;
-    uint visibility0 = 0, visibility1 = 0;
+    BoundBox bbox0 = BoundBox::empty;
+    BoundBox bbox1 = BoundBox::empty;
+    uint visibility0 = 0;
+    uint visibility1 = 0;
 
     refit_node((c0 < 0) ? -c0 - 1 : c0, (c0 < 0), bbox0, visibility0);
     refit_node((c1 < 0) ? -c1 - 1 : c1, (c1 < 0), bbox1, visibility1);
 
     if (is_unaligned) {
-      Transform aligned_space = transform_identity();
+      const Transform aligned_space = transform_identity();
       pack_unaligned_node(
           idx, aligned_space, aligned_space, bbox0, bbox1, c0, c1, visibility0, visibility1);
     }
@@ -365,8 +368,8 @@ void BVH2::refit_primitives(int start, int end, BoundBox &bbox, uint &visibility
 {
   /* Refit range of primitives. */
   for (int prim = start; prim < end; prim++) {
-    int pidx = pack.prim_index[prim];
-    int tob = pack.prim_object[prim];
+    const int pidx = pack.prim_index[prim];
+    const int tob = pack.prim_object[prim];
     Object *ob = objects[tob];
 
     if (pidx == -1) {
@@ -378,9 +381,9 @@ void BVH2::refit_primitives(int start, int end, BoundBox &bbox, uint &visibility
       if (pack.prim_type[prim] & PRIMITIVE_CURVE) {
         /* Curves. */
         const Hair *hair = static_cast<const Hair *>(ob->get_geometry());
-        int prim_offset = (params.top_level) ? hair->prim_offset : 0;
-        Hair::Curve curve = hair->get_curve(pidx - prim_offset);
-        int k = PRIMITIVE_UNPACK_SEGMENT(pack.prim_type[prim]);
+        const int prim_offset = (params.top_level) ? hair->prim_offset : 0;
+        const Hair::Curve curve = hair->get_curve(pidx - prim_offset);
+        const int k = PRIMITIVE_UNPACK_SEGMENT(pack.prim_type[prim]);
 
         curve.bounds_grow(k, hair->get_curve_keys().data(), hair->get_curve_radius().data(), bbox);
 
@@ -389,8 +392,8 @@ void BVH2::refit_primitives(int start, int end, BoundBox &bbox, uint &visibility
           Attribute *attr = hair->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
 
           if (attr) {
-            size_t hair_size = hair->get_curve_keys().size();
-            size_t steps = hair->get_motion_steps() - 1;
+            const size_t hair_size = hair->get_curve_keys().size();
+            const size_t steps = hair->get_motion_steps() - 1;
             float3 *key_steps = attr->data_float3();
 
             for (size_t i = 0; i < steps; i++) {
@@ -403,10 +406,10 @@ void BVH2::refit_primitives(int start, int end, BoundBox &bbox, uint &visibility
       else if (pack.prim_type[prim] & PRIMITIVE_POINT) {
         /* Points. */
         const PointCloud *pointcloud = static_cast<const PointCloud *>(ob->get_geometry());
-        int prim_offset = (params.top_level) ? pointcloud->prim_offset : 0;
+        const int prim_offset = (params.top_level) ? pointcloud->prim_offset : 0;
         const float3 *points = pointcloud->points.data();
         const float *radius = pointcloud->radius.data();
-        PointCloud::Point point = pointcloud->get_point(pidx - prim_offset);
+        const PointCloud::Point point = pointcloud->get_point(pidx - prim_offset);
 
         point.bounds_grow(points, radius, bbox);
 
@@ -415,8 +418,8 @@ void BVH2::refit_primitives(int start, int end, BoundBox &bbox, uint &visibility
           Attribute *attr = pointcloud->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
 
           if (attr) {
-            size_t pointcloud_size = pointcloud->points.size();
-            size_t steps = pointcloud->get_motion_steps() - 1;
+            const size_t pointcloud_size = pointcloud->points.size();
+            const size_t steps = pointcloud->get_motion_steps() - 1;
             float3 *point_steps = attr->data_float3();
 
             for (size_t i = 0; i < steps; i++) {
@@ -428,8 +431,8 @@ void BVH2::refit_primitives(int start, int end, BoundBox &bbox, uint &visibility
       else {
         /* Triangles. */
         const Mesh *mesh = static_cast<const Mesh *>(ob->get_geometry());
-        int prim_offset = (params.top_level) ? mesh->prim_offset : 0;
-        Mesh::Triangle triangle = mesh->get_triangle(pidx - prim_offset);
+        const int prim_offset = (params.top_level) ? mesh->prim_offset : 0;
+        const Mesh::Triangle triangle = mesh->get_triangle(pidx - prim_offset);
         const float3 *vpos = mesh->verts.data();
 
         triangle.bounds_grow(vpos, bbox);
@@ -439,8 +442,8 @@ void BVH2::refit_primitives(int start, int end, BoundBox &bbox, uint &visibility
           Attribute *attr = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
 
           if (attr) {
-            size_t mesh_size = mesh->verts.size();
-            size_t steps = mesh->motion_steps - 1;
+            const size_t mesh_size = mesh->verts.size();
+            const size_t steps = mesh->motion_steps - 1;
             float3 *vert_steps = attr->data_float3();
 
             for (size_t i = 0; i < steps; i++) {
@@ -465,7 +468,7 @@ void BVH2::pack_primitives()
   /* Fill in all the arrays. */
   for (unsigned int i = 0; i < tidx_size; i++) {
     if (pack.prim_index[i] != -1) {
-      int tob = pack.prim_object[i];
+      const int tob = pack.prim_object[i];
       Object *ob = objects[tob];
       pack.prim_visibility[i] = ob->visibility_for_tracing();
     }
@@ -553,19 +556,19 @@ void BVH2::pack_instances(size_t nodes_size, size_t leaf_nodes_size)
 
     /* if mesh already added once, don't add it again, but used set
      * node offset for this object */
-    unordered_map<Geometry *, int>::iterator it = geometry_map.find(geom);
+    const unordered_map<Geometry *, int>::iterator it = geometry_map.find(geom);
 
     if (geometry_map.find(geom) != geometry_map.end()) {
-      int noffset = it->second;
+      const int noffset = it->second;
       pack.object_node[object_offset++] = noffset;
       continue;
     }
 
     BVH2 *bvh = static_cast<BVH2 *>(geom->bvh);
 
-    int noffset = nodes_offset;
-    int noffset_leaf = nodes_leaf_offset;
-    int geom_prim_offset = geom->prim_offset;
+    const int noffset = nodes_offset;
+    const int noffset_leaf = nodes_leaf_offset;
+    const int geom_prim_offset = geom->prim_offset;
 
     /* fill in node indexes for instances */
     if (bvh->pack.root_index == -1) {
@@ -579,7 +582,7 @@ void BVH2::pack_instances(size_t nodes_size, size_t leaf_nodes_size)
 
     /* merge primitive, object and triangle indexes */
     if (bvh->pack.prim_index.size()) {
-      size_t bvh_prim_index_size = bvh->pack.prim_index.size();
+      const size_t bvh_prim_index_size = bvh->pack.prim_index.size();
       int *bvh_prim_index = bvh->pack.prim_index.data();
       int *bvh_prim_type = bvh->pack.prim_type.data();
       uint *bvh_prim_visibility = bvh->pack.prim_visibility.data();
@@ -600,7 +603,7 @@ void BVH2::pack_instances(size_t nodes_size, size_t leaf_nodes_size)
     /* merge nodes */
     if (bvh->pack.leaf_nodes.size()) {
       int4 *leaf_nodes_offset = bvh->pack.leaf_nodes.data();
-      size_t leaf_nodes_offset_size = bvh->pack.leaf_nodes.size();
+      const size_t leaf_nodes_offset_size = bvh->pack.leaf_nodes.size();
       for (size_t i = 0, j = 0; i < leaf_nodes_offset_size; i += BVH_NODE_LEAF_SIZE, j++) {
         int4 data = leaf_nodes_offset[i];
         data.x += prim_offset;
@@ -615,10 +618,11 @@ void BVH2::pack_instances(size_t nodes_size, size_t leaf_nodes_size)
 
     if (bvh->pack.nodes.size()) {
       int4 *bvh_nodes = bvh->pack.nodes.data();
-      size_t bvh_nodes_size = bvh->pack.nodes.size();
+      const size_t bvh_nodes_size = bvh->pack.nodes.size();
 
       for (size_t i = 0; i < bvh_nodes_size;) {
-        size_t nsize, nsize_bbox;
+        size_t nsize;
+        size_t nsize_bbox;
         if (bvh_nodes[i].x & PATH_RAY_NODE_UNALIGNED) {
           nsize = BVH_UNALIGNED_NODE_SIZE;
           nsize_bbox = 0;

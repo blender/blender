@@ -88,8 +88,10 @@ ccl_device_inline bool cylinder_intersect(const float3 cylinder_start,
 {
   /* Calculate quadratic equation to solve. */
   const float rl = 1.0f / len(cylinder_end - cylinder_start);
-  const float3 P0 = cylinder_start, dP = (cylinder_end - cylinder_start) * rl;
-  const float3 O = -P0, dO = ray_D;
+  const float3 P0 = cylinder_start;
+  const float3 dP = (cylinder_end - cylinder_start) * rl;
+  const float3 O = -P0;
+  const float3 dO = ray_D;
 
   const float dOdO = dot(dO, dO);
   const float OdO = dot(dO, O);
@@ -320,8 +322,10 @@ ccl_device bool curve_intersect_recursive(const float3 ray_P,
 
       /* Intersect with outer cylinder. */
       float2 tc_outer;
-      float u_outer0, u_outer1;
-      float3 Ng_outer0, Ng_outer1;
+      float u_outer0;
+      float u_outer1;
+      float3 Ng_outer0;
+      float3 Ng_outer1;
       valid = cylinder_intersect(make_float3(P0),
                                  make_float3(P3),
                                  r_outer,
@@ -355,8 +359,10 @@ ccl_device bool curve_intersect_recursive(const float3 ray_P,
 
       /* Intersect with inner cylinder. */
       float2 tc_inner;
-      float u_inner0, u_inner1;
-      float3 Ng_inner0, Ng_inner1;
+      float u_inner0;
+      float u_inner1;
+      float3 Ng_inner0;
+      float3 Ng_inner1;
       const bool valid_inner = cylinder_intersect(make_float3(P0),
                                                   make_float3(P3),
                                                   r_inner,
@@ -383,13 +389,13 @@ ccl_device bool curve_intersect_recursive(const float3 ray_P,
 
       /* Subtract the inner interval from the current hit interval. */
       const float eps = 0.001f;
-      float2 tp0 = make_float2(tp.x, min(tp.y, tc_inner.x));
-      float2 tp1 = make_float2(max(tp.x, tc_inner.y), tp.y);
+      const float2 tp0 = make_float2(tp.x, min(tp.y, tc_inner.x));
+      const float2 tp1 = make_float2(max(tp.x, tc_inner.y), tp.y);
       /* The X component should be less than the Y component for a valid intersection,
        * but due to precision issues, the X component can sometimes be greater than
        * Y by a small amount, leading to missing intersections. */
-      bool valid0 = valid && ((tp0.x - tp0.y) < eps);
-      bool valid1 = valid && ((tp1.x - tp1.y) < eps);
+      const bool valid0 = valid && ((tp0.x - tp0.y) < eps);
+      const bool valid1 = valid && ((tp1.x - tp1.y) < eps);
       if (!(valid0 || valid1)) {
         continue;
       }
@@ -540,7 +546,7 @@ ccl_device_inline float4 ribbon_to_ray_space(const float3 ray_space[3],
                                              const float3 ray_org,
                                              const float4 P4)
 {
-  float3 P = make_float3(P4) - ray_org;
+  const float3 P = make_float3(P4) - ray_org;
   return make_float4(dot(ray_space[0], P), dot(ray_space[1], P), dot(ray_space[2], P), P4.w);
 }
 
@@ -595,14 +601,16 @@ ccl_device_inline bool ribbon_intersect(const float3 ray_org,
       const float3 up1 = make_float3(p1) - wn1;
 
       /* Intersect quad. */
-      float vu, vv, vt;
+      float vu;
+      float vv;
+      float vt;
       bool valid0 = ribbon_intersect_quad(ray_tmin, ray_tmax, lp0, lp1, up1, up0, &vu, &vv, &vt);
 
       if (valid0) {
         /* ignore self intersections */
         const float avoidance_factor = 2.0f;
         if (avoidance_factor != 0.0f) {
-          float r = mix(p0.w, p1.w, vu);
+          const float r = mix(p0.w, p1.w, vu);
           valid0 = vt > avoidance_factor * r * ray_D_invlen;
         }
 
@@ -639,12 +647,12 @@ ccl_device_forceinline bool curve_intersect(KernelGlobals kg,
 {
   const bool is_motion = (type & PRIMITIVE_MOTION);
 
-  KernelCurve kcurve = kernel_data_fetch(curves, prim);
+  const KernelCurve kcurve = kernel_data_fetch(curves, prim);
 
-  int k0 = kcurve.first_key + PRIMITIVE_UNPACK_SEGMENT(type);
-  int k1 = k0 + 1;
-  int ka = max(k0 - 1, kcurve.first_key);
-  int kb = min(k1 + 1, kcurve.first_key + kcurve.num_keys - 1);
+  const int k0 = kcurve.first_key + PRIMITIVE_UNPACK_SEGMENT(type);
+  const int k1 = k0 + 1;
+  const int ka = max(k0 - 1, kcurve.first_key);
+  const int kb = min(k1 + 1, kcurve.first_key + kcurve.num_keys - 1);
 
   float4 curve[4];
   if (!is_motion) {
@@ -695,12 +703,12 @@ ccl_device_inline void curve_shader_setup(KernelGlobals kg,
     D = safe_normalize_len(D, &t);
   }
 
-  KernelCurve kcurve = kernel_data_fetch(curves, isect_prim);
+  const KernelCurve kcurve = kernel_data_fetch(curves, isect_prim);
 
-  int k0 = kcurve.first_key + PRIMITIVE_UNPACK_SEGMENT(sd->type);
-  int k1 = k0 + 1;
-  int ka = max(k0 - 1, kcurve.first_key);
-  int kb = min(k1 + 1, kcurve.first_key + kcurve.num_keys - 1);
+  const int k0 = kcurve.first_key + PRIMITIVE_UNPACK_SEGMENT(sd->type);
+  const int k1 = k0 + 1;
+  const int ka = max(k0 - 1, kcurve.first_key);
+  const int kb = min(k1 + 1, kcurve.first_key + kcurve.num_keys - 1);
 
   float4 P_curve[4];
 

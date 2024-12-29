@@ -191,7 +191,7 @@ bool metalrt_shadow_all_hit(
     const float2 barycentrics,
     const float ray_tmax,
     const float t = 0.0f,
-    ccl_private const Ray *ray = nullptr)
+    const ccl_private Ray *ray = nullptr)
 {
 #  ifdef __SHADOW_RECORD_ALL__
   float u = barycentrics.x;
@@ -390,7 +390,7 @@ inline TReturnType metalrt_visibility_test(
     uint prim,
     const float u,
     const float t = 0.0f,
-    ccl_private const Ray *ray = nullptr)
+    const ccl_private Ray *ray = nullptr)
 {
   TReturnType result;
 
@@ -436,7 +436,7 @@ inline TReturnType metalrt_visibility_test_shadow(
     uint prim,
     const float u,
     const float t = 0.0f,
-    ccl_private const Ray *ray = nullptr)
+    const ccl_private Ray *ray = nullptr)
 {
   TReturnType result;
 

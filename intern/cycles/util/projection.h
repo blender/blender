@@ -10,8 +10,8 @@ CCL_NAMESPACE_BEGIN
 
 ccl_device float2 direction_to_spherical(float3 dir)
 {
-  float theta = safe_acosf(dir.z);
-  float phi = atan2f(dir.y, dir.x);
+  const float theta = safe_acosf(dir.z);
+  const float phi = atan2f(dir.y, dir.x);
 
   return make_float2(theta, phi);
 }
@@ -91,22 +91,22 @@ CCL_NAMESPACE_BEGIN
 
 /* Functions */
 
-ccl_device_inline float3 transform_perspective(ccl_private const ProjectionTransform *t,
+ccl_device_inline float3 transform_perspective(const ccl_private ProjectionTransform *t,
                                                const float3 a)
 {
-  float4 b = make_float4(a.x, a.y, a.z, 1.0f);
-  float3 c = make_float3(dot(t->x, b), dot(t->y, b), dot(t->z, b));
-  float w = dot(t->w, b);
+  const float4 b = make_float4(a.x, a.y, a.z, 1.0f);
+  const float3 c = make_float3(dot(t->x, b), dot(t->y, b), dot(t->z, b));
+  const float w = dot(t->w, b);
 
   return (w != 0.0f) ? c / w : zero_float3();
 }
 
-ccl_device_inline float3 transform_perspective_direction(ccl_private const ProjectionTransform *t,
+ccl_device_inline float3 transform_perspective_direction(const ccl_private ProjectionTransform *t,
                                                          const float3 a)
 {
-  float3 c = make_float3(a.x * t->x.x + a.y * t->x.y + a.z * t->x.z,
-                         a.x * t->y.x + a.y * t->y.y + a.z * t->y.z,
-                         a.x * t->z.x + a.y * t->z.y + a.z * t->z.z);
+  const float3 c = make_float3(a.x * t->x.x + a.y * t->x.y + a.z * t->x.z,
+                               a.x * t->y.x + a.y * t->y.y + a.z * t->y.z,
+                               a.x * t->z.x + a.y * t->z.y + a.z * t->z.z);
 
   return c;
 }
@@ -206,7 +206,8 @@ ccl_device_inline ProjectionTransform projection_transpose(const ProjectionTrans
 ccl_device_inline ProjectionTransform projection_inverse(const ProjectionTransform tfm)
 {
   ProjectionTransform tfmR = projection_identity();
-  float M[4][4], R[4][4];
+  float M[4][4];
+  float R[4][4];
 
   memcpy(R, (const float *)&tfmR, sizeof(R));
   memcpy(M, (const float *)&tfm, sizeof(M));
@@ -223,7 +224,7 @@ ccl_device_inline ProjectionTransform projection_inverse(const ProjectionTransfo
 ccl_device_inline ProjectionTransform operator*(const ProjectionTransform a,
                                                 const ProjectionTransform b)
 {
-  ProjectionTransform c = projection_transpose(b);
+  const ProjectionTransform c = projection_transpose(b);
   ProjectionTransform t;
 
   t.x = make_float4(dot(a.x, c.x), dot(a.x, c.y), dot(a.x, c.z), dot(a.x, c.w));
@@ -258,19 +259,19 @@ ccl_device_inline void print_projection(const char *label, const ProjectionTrans
 
 ccl_device_inline ProjectionTransform projection_perspective(float fov, float n, float f)
 {
-  ProjectionTransform persp = make_projection(
+  const ProjectionTransform persp = make_projection(
       1, 0, 0, 0, 0, 1, 0, 0, 0, 0, f / (f - n), -f * n / (f - n), 0, 0, 1, 0);
 
-  float inv_angle = 1.0f / tanf(0.5f * fov);
+  const float inv_angle = 1.0f / tanf(0.5f * fov);
 
-  Transform scale = transform_scale(inv_angle, inv_angle, 1);
+  const Transform scale = transform_scale(inv_angle, inv_angle, 1);
 
   return scale * persp;
 }
 
 ccl_device_inline ProjectionTransform projection_orthographic(float znear, float zfar)
 {
-  Transform t = transform_scale(1.0f, 1.0f, 1.0f / (zfar - znear));
+  const Transform t = transform_scale(1.0f, 1.0f, 1.0f / (zfar - znear));
 
   return ProjectionTransform(t);
 }

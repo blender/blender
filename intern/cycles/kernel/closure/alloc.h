@@ -38,7 +38,7 @@ ccl_device ccl_private void *closure_alloc_extra(ccl_private ShaderData *sd, int
    *
    * This lets us keep the same fast array iteration over closures, as we
    * found linked list iteration and iteration with skipping to be slower. */
-  int num_extra = ((size + sizeof(ShaderClosure) - 1) / sizeof(ShaderClosure));
+  const int num_extra = ((size + sizeof(ShaderClosure) - 1) / sizeof(ShaderClosure));
 
   if (num_extra > sd->num_closure_left) {
     /* Remove previous closure if it was allocated. */

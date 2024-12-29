@@ -104,7 +104,7 @@ VtMatrix4dArray HdCyclesInstancer::ComputeInstanceTransforms(const SdfPath &prot
   VtMatrix4dArray transforms;
   transforms.reserve(instanceIndices.size());
 
-  for (int index : instanceIndices) {
+  for (const int index : instanceIndices) {
     GfMatrix4d transform = instanceTransform;
 
     if (index < _translate.size()) {

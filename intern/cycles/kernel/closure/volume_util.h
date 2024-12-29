@@ -12,10 +12,11 @@ CCL_NAMESPACE_BEGIN
 /* Given a random number, sample a direction that makes an angle of theta with direction D. */
 ccl_device float3 phase_sample_direction(float3 D, float cos_theta, float rand)
 {
-  float phi = M_2PI_F * rand;
-  float3 dir = spherical_cos_to_direction(cos_theta, phi);
+  const float phi = M_2PI_F * rand;
+  const float3 dir = spherical_cos_to_direction(cos_theta, phi);
 
-  float3 T, B;
+  float3 T;
+  float3 B;
   make_orthonormals(D, &T, &B);
   return to_global(dir, T, B, D);
 }
@@ -102,15 +103,20 @@ ccl_device float phase_draine_sample_cos(float g, float alpha, float rand)
     const float inv_u = -fast_inv_cbrtf(b_2 + sqrtf(sqr(b_2) + sqr(inv_alpha) * inv_alpha));
     return 1 / inv_u - inv_u / alpha;
   }
-  const float g2 = sqr(g), g3 = g * g2, g4 = sqr(g2), g6 = g2 * g4;
+  const float g2 = sqr(g);
+  const float g3 = g * g2;
+  const float g4 = sqr(g2);
+  const float g6 = g2 * g4;
   const float pgp1_2 = sqr(1 + g2);
-  const float T1a = alpha * (g4 - 1), T1a3 = sqr(T1a) * T1a;
+  const float T1a = alpha * (g4 - 1);
+  const float T1a3 = sqr(T1a) * T1a;
   const float T2 = -1296 * (g2 - 1) * (alpha - alpha * g2) * T1a * (4 * g2 + alpha * pgp1_2);
   const float T9 = 2 + g2 + g3 * (1 + 2 * g2) * (2 * rand - 1);
   const float T3 = 3 * g2 * (1 + g * (2 * rand - 1)) + alpha * T9;
   const float T4a = 432 * T1a3 + T2 + 432 * (alpha * (1 - g2)) * sqr(T3);
   const float T10 = alpha * (2 * g4 - g2 - g6);
-  const float T4b = 144 * T10, T4b3 = sqr(T4b) * T4b;
+  const float T4b = 144 * T10;
+  const float T4b3 = sqr(T4b) * T4b;
   const float T4 = T4a + sqrtf(-4 * T4b3 + sqr(T4a));
   const float inv_T4p3 = fast_inv_cbrtf(T4);
   const float T8 = 48 * M_CBRT2_F * T10;
@@ -139,7 +145,7 @@ phase_draine_sample(float3 D, float g, float alpha, float2 rand, ccl_private flo
 
 ccl_device float phase_fournier_forand_delta(float n, float sin_htheta_sqr)
 {
-  float u = 4 * sin_htheta_sqr;
+  const float u = 4 * sin_htheta_sqr;
   return u / (3 * sqr(n - 1));
 }
 
@@ -159,7 +165,8 @@ ccl_device_inline float3 phase_fournier_forand_coeffs(float B, float IOR)
 ccl_device_inline float phase_fournier_forand_impl(
     float cos_theta, float delta, float pow_delta_v, float v, float sin_htheta_sqr, float pf_coeff)
 {
-  const float m_delta = 1 - delta, m_pow_delta_v = 1 - pow_delta_v;
+  const float m_delta = 1 - delta;
+  const float m_pow_delta_v = 1 - pow_delta_v;
 
   float pf;
   if (fabsf(m_delta) < 1e-3f) {
@@ -182,7 +189,8 @@ ccl_device float phase_fournier_forand(float cos_theta, float3 coeffs)
     return 0.0f;
   }
 
-  const float n = coeffs.x, v = coeffs.y;
+  const float n = coeffs.x;
+  const float v = coeffs.y;
   const float pf_coeff = coeffs.z * (1.0f / (16.0f * M_PI_F));
   const float sin_htheta_sqr = 0.5f * (1 - cos_theta); /* sin^2(theta / 2)*/
   const float delta = phase_fournier_forand_delta(n, sin_htheta_sqr);
@@ -192,7 +200,8 @@ ccl_device float phase_fournier_forand(float cos_theta, float3 coeffs)
 
 ccl_device float phase_fournier_forand_newton(float rand, float3 coeffs)
 {
-  const float n = coeffs.x, v = coeffs.y;
+  const float n = coeffs.x;
+  const float v = coeffs.y;
   const float cdf_coeff = coeffs.z * (1.0f / 8.0f);
   const float pf_coeff = coeffs.z * (1.0f / (16.0f * M_PI_F));
 
@@ -201,7 +210,8 @@ ccl_device float phase_fournier_forand_newton(float rand, float3 coeffs)
     const float sin_htheta_sqr = 0.5f * (1 - cos_theta); /* sin^2(theta / 2)*/
     const float delta = phase_fournier_forand_delta(n, sin_htheta_sqr);
     const float pow_delta_v = powf(delta, v);
-    const float m_delta = 1 - delta, m_pow_delta_v = 1 - pow_delta_v;
+    const float m_delta = 1 - delta;
+    const float m_pow_delta_v = 1 - pow_delta_v;
 
     /* Evaluate CDF and phase functions */
     float cdf;
@@ -237,7 +247,7 @@ ccl_device float3 phase_fournier_forand_sample(float3 D,
                                                float2 rand,
                                                ccl_private float *pdf)
 {
-  float cos_theta = phase_fournier_forand_newton(rand.x, coeffs);
+  const float cos_theta = phase_fournier_forand_newton(rand.x, coeffs);
   *pdf = phase_fournier_forand(cos_theta, coeffs);
 
   return phase_sample_direction(D, cos_theta, rand.y);

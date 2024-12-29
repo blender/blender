@@ -29,28 +29,28 @@ ccl_device int volume_draine_setup(ccl_private DraineVolume *volume)
   return SD_SCATTER;
 }
 
-ccl_device Spectrum volume_draine_eval(ccl_private const ShaderData *sd,
-                                       ccl_private const ShaderVolumeClosure *svc,
+ccl_device Spectrum volume_draine_eval(const ccl_private ShaderData *sd,
+                                       const ccl_private ShaderVolumeClosure *svc,
                                        float3 wo,
                                        ccl_private float *pdf)
 {
-  ccl_private const DraineVolume *volume = (ccl_private const DraineVolume *)svc;
+  const ccl_private DraineVolume *volume = (const ccl_private DraineVolume *)svc;
 
   /* note that wi points towards the viewer */
-  float cos_theta = dot(-sd->wi, wo);
+  const float cos_theta = dot(-sd->wi, wo);
   *pdf = phase_draine(cos_theta, volume->g, volume->alpha);
 
   return make_spectrum(*pdf);
 }
 
-ccl_device int volume_draine_sample(ccl_private const ShaderData *sd,
-                                    ccl_private const ShaderVolumeClosure *svc,
+ccl_device int volume_draine_sample(const ccl_private ShaderData *sd,
+                                    const ccl_private ShaderVolumeClosure *svc,
                                     float2 rand,
                                     ccl_private Spectrum *eval,
                                     ccl_private float3 *wo,
                                     ccl_private float *pdf)
 {
-  ccl_private const DraineVolume *volume = (ccl_private const DraineVolume *)svc;
+  const ccl_private DraineVolume *volume = (const ccl_private DraineVolume *)svc;
 
   /* note that wi points towards the viewer and so is used negated */
   *wo = phase_draine_sample(-sd->wi, volume->g, volume->alpha, rand, pdf);

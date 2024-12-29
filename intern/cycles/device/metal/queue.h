@@ -32,7 +32,7 @@ class MetalDeviceQueue : public DeviceQueue {
 
   bool enqueue(DeviceKernel kernel,
                const int work_size,
-               DeviceKernelArguments const &args) override;
+               const DeviceKernelArguments &args) override;
 
   bool synchronize() override;
 

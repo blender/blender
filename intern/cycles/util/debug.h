@@ -131,8 +131,8 @@ class DebugFlags {
   DebugFlags() = default;
 
  public:
-  explicit DebugFlags(DebugFlags const & /*other*/) = delete;
-  void operator=(DebugFlags const & /*other*/) = delete;
+  explicit DebugFlags(const DebugFlags & /*other*/) = delete;
+  void operator=(const DebugFlags & /*other*/) = delete;
 };
 
 using DebugFlagsRef = DebugFlags &;

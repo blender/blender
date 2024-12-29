@@ -334,14 +334,14 @@ ccl_device_inline uint uint16_unpack_from_uint_1(const uint i)
 /* Versions of functions which are safe for fast math. */
 ccl_device_inline bool isnan_safe(float f)
 {
-  unsigned int x = __float_as_uint(f);
+  const unsigned int x = __float_as_uint(f);
   return (x << 1) > 0xff000000u;
 }
 
 ccl_device_inline bool isfinite_safe(float f)
 {
   /* By IEEE 754 rule, 2*Inf equals Inf */
-  unsigned int x = __float_as_uint(f);
+  const unsigned int x = __float_as_uint(f);
   return (f == f) && (x == 0 || x == (1u << 31) || (f != 2.0f * f)) && !((x << 1) > 0xff000000u);
 }
 #endif
@@ -377,7 +377,7 @@ ccl_device_inline float smoothstep(float edge0, float edge1, float x)
     result = 1.0f;
   }
   else {
-    float t = (x - edge0) / (edge1 - edge0);
+    const float t = (x - edge0) / (edge1 - edge0);
     result = (3.0f - 2.0f * t) * (t * t);
   }
   return result;
@@ -409,7 +409,7 @@ ccl_device_inline int floor_to_int(float f)
 
 ccl_device_inline float floorfrac(float x, ccl_private int *i)
 {
-  float f = floorf(x);
+  const float f = floorf(x);
   *i = float_to_int(f);
   return x - f;
 }
@@ -427,7 +427,7 @@ ccl_device_inline float fractf(float x)
 /* Adapted from `godot-engine` math_funcs.h. */
 ccl_device_inline float wrapf(float value, float max, float min)
 {
-  float range = max - min;
+  const float range = max - min;
   return (range != 0.0f) ? value - (range * floorf((value - min) / range)) : min;
 }
 
@@ -439,7 +439,7 @@ ccl_device_inline float pingpongf(float a, float b)
 ccl_device_inline float smoothminf(float a, float b, float k)
 {
   if (k != 0.0f) {
-    float h = fmaxf(k - fabsf(a - b), 0.0f) / k;
+    const float h = fmaxf(k - fabsf(a - b), 0.0f) / k;
     return fminf(a, b) - h * h * h * k * (1.0f / 6.0f);
   }
   return fminf(a, b);
@@ -483,7 +483,7 @@ ccl_device_inline float smoothstepf(float f)
   if (f >= 1.0f) {
     return 1.0f;
   }
-  float ff = f * f;
+  const float ff = f * f;
   return (3.0f * ff - 2.0f * ff * f);
 }
 
@@ -859,8 +859,8 @@ template<typename T> struct Interval {
 
 /* Computes the intersection of two intervals. */
 template<typename T>
-ccl_device_inline Interval<T> intervals_intersection(ccl_private const Interval<T> &first,
-                                                     ccl_private const Interval<T> &second)
+ccl_device_inline Interval<T> intervals_intersection(const ccl_private Interval<T> &first,
+                                                     const ccl_private Interval<T> &second)
 {
   return {max(first.min, second.min), min(first.max, second.max)};
 }

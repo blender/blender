@@ -36,7 +36,7 @@ ccl_device_inline bool rect_is_valid(int4 rect)
 /* Returns the local row-major index of the pixel inside the rect. */
 ccl_device_inline int coord_to_local_index(int4 rect, int x, int y)
 {
-  int w = rect.z - rect.x;
+  const int w = rect.z - rect.x;
   return (y - rect.y) * w + (x - rect.x);
 }
 
@@ -47,7 +47,7 @@ ccl_device_inline bool local_index_to_coord(int4 rect,
                                             ccl_private int *x,
                                             ccl_private int *y)
 {
-  int w = rect.z - rect.x;
+  const int w = rect.z - rect.x;
   *x = (idx % w) + rect.x;
   *y = (idx / w) + rect.y;
   return (*y < rect.w);

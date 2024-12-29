@@ -72,7 +72,7 @@ ccl_device bool ray_aligned_disk_intersect(float3 ray_P,
     return false;
   }
   /* Test if within radius. */
-  float3 P = ray_P + ray_D * t;
+  const float3 P = ray_P + ray_D * t;
   if (len_squared(P - disk_P) > disk_radius * disk_radius) {
     return false;
   }
@@ -96,12 +96,12 @@ ccl_device bool ray_disk_intersect(float3 ray_P,
   const float cos_angle = dot(disk_N, -ray_D);
   if (dp * cos_angle > 0.f)  // front of light
   {
-    float t = dp / cos_angle;
+    const float t = dp / cos_angle;
     if (t < 0.f) { /* Ray points away from the light. */
       return false;
     }
-    float3 P = ray_P + t * ray_D;
-    float3 T = P - disk_P;
+    const float3 P = ray_P + t * ray_D;
+    const float3 T = P - disk_P;
 
     if (dot(T, T) < sqr(disk_radius) && (t > ray_tmin && t < ray_tmax)) {
       *isect_P = ray_P + t * ray_D;
@@ -272,7 +272,7 @@ ccl_device bool ray_quad_intersect(float3 ray_P,
                                    bool ellipse)
 {
   /* Perform intersection test. */
-  float t = -(dot(ray_P, quad_n) - dot(quad_P, quad_n)) / dot(ray_D, quad_n);
+  const float t = -(dot(ray_P, quad_n) - dot(quad_P, quad_n)) / dot(ray_D, quad_n);
   if (!(t > ray_tmin && t < ray_tmax)) {
     return false;
   }
@@ -383,7 +383,8 @@ ccl_device_inline bool ray_infinite_cylinder_intersect(const float3 P,
   b = dot(P_proj, D_proj);
   const float c = dot(P_proj, P_proj) - 1.0f;
 
-  float tmin, tmax;
+  float tmin;
+  float tmax;
   const bool valid = solve_quadratic(a, 2.0f * b, c, tmin, tmax);
 
   *t_range = intervals_intersection(*t_range, {tmin + t_mid, tmax + t_mid});
@@ -424,7 +425,8 @@ ccl_device_inline bool ray_cone_intersect(const float3 axis,
   const float b = 2.0f * (AD * AP - cos_angle_sq * dot(D, P));
   const float c = sqr(AP) - cos_angle_sq * dot(P, P);
 
-  float tmin = 0.0f, tmax = FLT_MAX;
+  float tmin = 0.0f;
+  float tmax = FLT_MAX;
   bool valid = solve_quadratic(a, b, c, tmin, tmax);
 
   /* Check if the intersections are in the same hemisphere as the cone. */

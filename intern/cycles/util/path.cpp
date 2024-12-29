@@ -271,7 +271,7 @@ class directory_iterator {
 size_t find_last_slash(const string &path)
 {
   for (size_t i = 0; i < path.size(); ++i) {
-    size_t index = path.size() - 1 - i;
+    const size_t index = path.size() - 1 - i;
 #ifdef _WIN32
     if (path[index] == DIR_SEP || path[index] == DIR_SEP_ALT)
 #else
@@ -363,7 +363,7 @@ string path_cache_get(const string &sub)
   if (cached_xdg_cache_path.empty()) {
     cached_xdg_cache_path = path_xdg_cache_get();
   }
-  string result = path_join(cached_xdg_cache_path, "cycles");
+  const string result = path_join(cached_xdg_cache_path, "cycles");
   return path_join(result, sub);
 #else
   /* TODO(sergey): What that should be on Windows? */
@@ -377,7 +377,7 @@ string path_xdg_home_get(const string &sub = "");
 
 string path_filename(const string &path)
 {
-  size_t index = find_last_slash(path);
+  const size_t index = find_last_slash(path);
   if (index != string::npos) {
     /* Corner cases to match boost behavior. */
 #ifndef _WIN32
@@ -400,7 +400,7 @@ string path_filename(const string &path)
 
 string path_dirname(const string &path)
 {
-  size_t index = find_last_slash(path);
+  const size_t index = find_last_slash(path);
   if (index != string::npos) {
 #ifndef _WIN32
     if (index == 0 && path.size() > 1) {
@@ -591,14 +591,15 @@ bool path_is_directory(const string &path)
 static void path_files_md5_hash_recursive(MD5Hash &hash, const string &dir)
 {
   if (path_exists(dir)) {
-    directory_iterator it(dir), it_end;
+    directory_iterator it(dir);
+    const directory_iterator it_end;
 
     for (; it != it_end; ++it) {
       if (path_is_directory(it->path())) {
         path_files_md5_hash_recursive(hash, it->path());
       }
       else {
-        string filepath = it->path();
+        const string filepath = it->path();
 
         hash.append((const uint8_t *)filepath.c_str(), filepath.size());
         hash.append_file(filepath);
@@ -628,7 +629,7 @@ static bool create_directories_recursivey(const string &path)
     return false;
   }
 
-  string parent = path_dirname(path);
+  const string parent = path_dirname(path);
   if (!parent.empty() && parent != path) {
     if (!create_directories_recursivey(parent)) {
       return false;
@@ -645,7 +646,7 @@ static bool create_directories_recursivey(const string &path)
 
 void path_create_directories(const string &filepath)
 {
-  string path = path_dirname(filepath);
+  const string path = path_dirname(filepath);
   create_directories_recursivey(path);
 }
 
@@ -729,7 +730,8 @@ bool path_read_compressed_binary(const string &path, vector<uint8_t> &binary)
 
   binary.resize(full_size);
 
-  size_t err = ZSTD_decompress(binary.data(), binary.size(), compressed.data(), compressed.size());
+  const size_t err = ZSTD_decompress(
+      binary.data(), binary.size(), compressed.data(), compressed.size());
 
   return ZSTD_isError(err) == 0;
 }
@@ -743,7 +745,7 @@ bool path_read_text(const string &path, string &text)
   }
 
   const char *str = (const char *)binary.data();
-  size_t size = binary.size();
+  const size_t size = binary.size();
   text = string(str, size);
 
   return true;
@@ -758,7 +760,7 @@ bool path_read_compressed_text(const string &path, string &text)
   }
 
   const char *str = (const char *)binary.data();
-  size_t size = binary.size();
+  const size_t size = binary.size();
   text = string(str, size);
 
   return true;
@@ -878,7 +880,7 @@ static string path_source_replace_includes_recursive(const string &_source,
   /* Try to re-use processed file without spending time on replacing all
    * include directives again.
    */
-  SourceReplaceState::ProcessedMapping::iterator replaced_file = state->processed_files.find(
+  const SourceReplaceState::ProcessedMapping::iterator replaced_file = state->processed_files.find(
       source_filepath);
   if (replaced_file != state->processed_files.end()) {
     return replaced_file->second;
@@ -891,12 +893,14 @@ static string path_source_replace_includes_recursive(const string &_source,
   const size_t source_length = source.length();
   size_t index = 0;
   /* Information about where we are in the source. */
-  size_t line_number = 0, column_number = 1;
+  size_t line_number = 0;
+  size_t column_number = 1;
   /* Currently gathered non-preprocessor token.
    * Store as start/length rather than token itself to avoid overhead of
    * memory re-allocations on each character concatenation.
    */
-  size_t token_start = 0, token_length = 0;
+  size_t token_start = 0;
+  size_t token_length = 0;
   /* Denotes whether we're inside of preprocessor line, together with
    * preprocessor line itself.
    *
@@ -907,11 +911,11 @@ static string path_source_replace_includes_recursive(const string &_source,
   string preprocessor_line;
   /* Actual loop over the whole source. */
   while (index < source_length) {
-    char ch = source[index];
+    const char ch = source[index];
 
     if (ch == '\n') {
       if (inside_preprocessor) {
-        string block = path_source_handle_preprocessor(
+        const string block = path_source_handle_preprocessor(
             preprocessor_line, source_filepath, line_number, state);
 
         if (!block.empty()) {
@@ -983,7 +987,7 @@ FILE *path_fopen(const string &path, const string &mode)
 
 static void path_cache_kernel_mark_used(const string &path)
 {
-  std::time_t current_time = std::time(nullptr);
+  const std::time_t current_time = std::time(nullptr);
   OIIO::Filesystem::last_write_time(path, current_time);
 }
 
@@ -1001,13 +1005,14 @@ void path_cache_kernel_mark_added_and_clear_old(const string &new_path,
 {
   path_cache_kernel_mark_used(new_path);
 
-  string dir = path_dirname(new_path);
+  const string dir = path_dirname(new_path);
   if (!path_exists(dir)) {
     return;
   }
 
   /* Remove older kernels within the same directory. */
-  directory_iterator it(dir), it_end;
+  directory_iterator it(dir);
+  const directory_iterator it_end;
   vector<pair<std::time_t, string>> same_kernel_types;
 
   for (; it != it_end; ++it) {
@@ -1016,7 +1021,7 @@ void path_cache_kernel_mark_added_and_clear_old(const string &new_path,
       continue;
     }
 
-    std::time_t last_time = OIIO::Filesystem::last_write_time(path);
+    const std::time_t last_time = OIIO::Filesystem::last_write_time(path);
     same_kernel_types.emplace_back(last_time, path);
   }
 

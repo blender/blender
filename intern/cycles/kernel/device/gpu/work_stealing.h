@@ -11,7 +11,7 @@ CCL_NAMESPACE_BEGIN
  */
 
 /* Map global work index to tile, pixel X/Y and sample. */
-ccl_device_inline void get_work_pixel(ccl_global const KernelWorkTile *tile,
+ccl_device_inline void get_work_pixel(const ccl_global KernelWorkTile *tile,
                                       uint global_work_index,
                                       ccl_private uint *x,
                                       ccl_private uint *y,

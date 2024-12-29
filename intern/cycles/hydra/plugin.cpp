@@ -25,7 +25,7 @@ HdCyclesPlugin::HdCyclesPlugin()
 {
   const PlugPluginPtr plugin = PLUG_THIS_PLUGIN;
   // Initialize Cycles paths relative to the plugin resource path
-  std::string rootPath = PXR_NS::ArchAbsPath(plugin->GetResourcePath());
+  const std::string rootPath = PXR_NS::ArchAbsPath(plugin->GetResourcePath());
   CCL_NS::path_init(std::move(rootPath));
 
 #ifdef WITH_CYCLES_LOGGING

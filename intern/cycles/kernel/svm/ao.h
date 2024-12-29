@@ -49,7 +49,8 @@ ccl_device float svm_ao(
     N = -N;
   }
 
-  float3 T, B;
+  float3 T;
+  float3 B;
   make_orthonormals(N, &T, &B);
 
   /* TODO: support ray-tracing in shadow shader evaluation? */
@@ -61,8 +62,8 @@ ccl_device float svm_ao(
     const float2 rand_disk = path_branched_rng_2D(
         kg, &rng_state, sample, num_samples, PRNG_SURFACE_AO);
 
-    float2 d = sample_uniform_disk(rand_disk);
-    float3 D = make_float3(d.x, d.y, safe_sqrtf(1.0f - dot(d, d)));
+    const float2 d = sample_uniform_disk(rand_disk);
+    const float3 D = make_float3(d.x, d.y, safe_sqrtf(1.0f - dot(d, d)));
 
     /* Create ray. */
     Ray ray;
@@ -107,10 +108,15 @@ ccl_device_noinline
                 ccl_private float *stack,
                 uint4 node)
 {
-  uint flags, dist_offset, normal_offset, out_ao_offset;
+  uint flags;
+  uint dist_offset;
+  uint normal_offset;
+  uint out_ao_offset;
   svm_unpack_node_uchar4(node.y, &flags, &dist_offset, &normal_offset, &out_ao_offset);
 
-  uint color_offset, out_color_offset, samples;
+  uint color_offset;
+  uint out_color_offset;
+  uint samples;
   svm_unpack_node_uchar3(node.z, &color_offset, &out_color_offset, &samples);
 
   float ao = 1.0f;
@@ -132,7 +138,7 @@ ccl_device_noinline
   }
 
   if (stack_valid(out_color_offset)) {
-    float3 color = stack_load_float3(stack, color_offset);
+    const float3 color = stack_load_float3(stack, color_offset);
     stack_store_float3(stack, out_color_offset, ao * color);
   }
 }

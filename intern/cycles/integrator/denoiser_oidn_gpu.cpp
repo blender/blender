@@ -199,7 +199,7 @@ OIDNFilter OIDNDenoiserGPU::create_filter()
   const char *error_message = nullptr;
   OIDNFilter filter = oidnNewFilter(oidn_device_, "RT");
   if (filter == nullptr) {
-    OIDNError err = oidnGetDeviceError(oidn_device_, &error_message);
+    const OIDNError err = oidnGetDeviceError(oidn_device_, &error_message);
     if (OIDN_ERROR_NONE != err) {
       LOG(ERROR) << "OIDN error: " << error_message;
       set_error(error_message);

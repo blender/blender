@@ -45,7 +45,8 @@ ccl_device_inline float3 rectangle_sample(float3 ru, float3 rv, float2 rand)
 
 ccl_device float3 disk_light_sample(float3 n, float2 rand)
 {
-  float3 ru, rv;
+  float3 ru;
+  float3 rv;
 
   make_orthonormals(n, &ru, &rv);
 
@@ -54,7 +55,7 @@ ccl_device float3 disk_light_sample(float3 n, float2 rand)
 
 ccl_device float light_pdf_area_to_solid_angle(const float3 Ng, const float3 I, float t)
 {
-  float cos_pi = dot(Ng, I);
+  const float cos_pi = dot(Ng, I);
 
   if (cos_pi <= 0.0f) {
     return 0.0f;

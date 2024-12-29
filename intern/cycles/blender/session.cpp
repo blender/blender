@@ -180,7 +180,7 @@ void BlenderSession::reset_session(BL::BlendData &b_data, BL::Depsgraph &b_depsg
     height = render_resolution_y(b_render);
   }
 
-  bool is_new_session = (session == nullptr);
+  const bool is_new_session = (session == nullptr);
   if (is_new_session) {
     /* Initialize session and remember it was just created so not to
      * re-create it below.
@@ -244,7 +244,7 @@ void BlenderSession::reset_session(BL::BlendData &b_data, BL::Depsgraph &b_depsg
   start_resize_time = 0.0;
 
   {
-    thread_scoped_lock lock(draw_state_.mutex);
+    const thread_scoped_lock lock(draw_state_.mutex);
     draw_state_.last_pass_index = -1;
   }
 }
@@ -271,8 +271,9 @@ void BlenderSession::full_buffer_written(string_view filename)
 
 static void add_cryptomatte_layer(BL::RenderResult &b_rr, string name, string manifest)
 {
-  string identifier = string_printf("%08x", util_murmur_hash3(name.c_str(), name.length(), 0));
-  string prefix = "cryptomatte/" + identifier.substr(0, 7) + "/";
+  const string identifier = string_printf("%08x",
+                                          util_murmur_hash3(name.c_str(), name.length(), 0));
+  const string prefix = "cryptomatte/" + identifier.substr(0, 7) + "/";
 
   render_add_metadata(b_rr, prefix + "name", name);
   render_add_metadata(b_rr, prefix + "hash", "MurmurHash3_32");
@@ -283,7 +284,7 @@ static void add_cryptomatte_layer(BL::RenderResult &b_rr, string name, string ma
 void BlenderSession::stamp_view_layer_metadata(Scene *scene, const string &view_layer_name)
 {
   BL::RenderResult b_rr = b_engine.get_result();
-  string prefix = "cycles." + view_layer_name + ".";
+  const string prefix = "cycles." + view_layer_name + ".";
 
   /* Configured number of samples for the view layer. */
   b_rr.stamp_data_add_field((prefix + "samples").c_str(),
@@ -318,7 +319,8 @@ void BlenderSession::stamp_view_layer_metadata(Scene *scene, const string &view_
   }
 
   /* Store synchronization and bare-render times. */
-  double total_time, render_time;
+  double total_time;
+  double render_time;
   session->progress.get_time(total_time, render_time);
   b_rr.stamp_data_add_field((prefix + "total_time").c_str(),
                             time_human_readable_from_seconds(total_time).c_str());
@@ -358,7 +360,7 @@ void BlenderSession::render(BL::Depsgraph &b_depsgraph_)
   BL::RenderLayer b_rlay = *b_single_rlay;
 
   {
-    thread_scoped_lock lock(draw_state_.mutex);
+    const thread_scoped_lock lock(draw_state_.mutex);
     b_rlay_name = b_view_layer.name();
 
     /* Signal that the display pass is to be updated. */
@@ -472,7 +474,8 @@ void BlenderSession::render(BL::Depsgraph &b_depsgraph_)
    * file. */
   b_engine.tile_highlight_clear_all();
 
-  double total_time, render_time;
+  double total_time;
+  double render_time;
   session->progress.get_time(total_time, render_time);
   VLOG_INFO << "Total render time: " << total_time;
   VLOG_INFO << "Render time (without synchronization): " << render_time;
@@ -494,14 +497,14 @@ void BlenderSession::render_frame_finish()
     session->device_free();
   }
 
-  for (string_view filename : full_buffer_files_) {
+  for (const string_view filename : full_buffer_files_) {
     session->process_full_buffer_from_disk(filename);
     if (check_and_report_session_error()) {
       break;
     }
   }
 
-  for (string_view filename : full_buffer_files_) {
+  for (const string_view filename : full_buffer_files_) {
     path_remove(filename);
   }
 
@@ -865,7 +868,7 @@ void BlenderSession::draw(BL::SpaceImageEditor &space_image)
     return;
   }
 
-  thread_scoped_lock lock(draw_state_.mutex);
+  const thread_scoped_lock lock(draw_state_.mutex);
 
   const int pass_index = space_image.image_user().multilayer_pass();
   if (pass_index != draw_state_.last_pass_index) {
@@ -876,7 +879,7 @@ void BlenderSession::draw(BL::SpaceImageEditor &space_image)
 
     Scene *scene = session->scene;
 
-    thread_scoped_lock lock(scene->mutex);
+    const thread_scoped_lock lock(scene->mutex);
 
     const Pass *pass = Pass::find(scene->passes, b_display_pass.name());
     if (!pass) {
@@ -979,7 +982,7 @@ void BlenderSession::get_progress(double &progress, double &total_time, double &
 
 void BlenderSession::update_bake_progress()
 {
-  double progress = session->progress.get_progress();
+  const double progress = session->progress.get_progress();
 
   if (progress != last_progress) {
     b_engine.update_progress((float)progress);
@@ -989,12 +992,16 @@ void BlenderSession::update_bake_progress()
 
 void BlenderSession::update_status_progress()
 {
-  string timestatus, status, substatus;
+  string timestatus;
+  string status;
+  string substatus;
   string scene_status;
   double progress;
-  double total_time, remaining_time = 0, render_time;
-  float mem_used = (float)session->stats.mem_used / 1024.0f / 1024.0f;
-  float mem_peak = (float)session->stats.mem_peak / 1024.0f / 1024.0f;
+  double total_time;
+  double remaining_time = 0;
+  double render_time;
+  const float mem_used = (float)session->stats.mem_used / 1024.0f / 1024.0f;
+  const float mem_peak = (float)session->stats.mem_peak / 1024.0f / 1024.0f;
 
   get_status(status, substatus);
   get_progress(progress, total_time, render_time);
@@ -1029,7 +1036,7 @@ void BlenderSession::update_status_progress()
     }
   }
 
-  double current_time = time_dt();
+  const double current_time = time_dt();
   /* When rendering in a window, redraw the status at least once per second to keep the elapsed
    * and remaining time up-to-date. For headless rendering, only report when something
    * significant changes to keep the console output readable. */

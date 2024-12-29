@@ -72,7 +72,8 @@ void string_split(vector<string> &tokens,
                   const string &separators,
                   bool skip_empty_tokens)
 {
-  size_t token_start = 0, token_length = 0;
+  size_t token_start = 0;
+  size_t token_length = 0;
   for (size_t i = 0; i < str.size(); ++i) {
     const char ch = str[i];
     if (separators.find(ch) == string::npos) {
@@ -86,7 +87,7 @@ void string_split(vector<string> &tokens,
        * append current token to the list.
        */
       if (!skip_empty_tokens || token_length > 0) {
-        string token = str.substr(token_start, token_length);
+        const string token = str.substr(token_start, token_length);
         tokens.push_back(token);
       }
       token_start = i + 1;
@@ -95,7 +96,7 @@ void string_split(vector<string> &tokens,
   }
   /* Append token from the tail of the string if exists. */
   if (token_length) {
-    string token = str.substr(token_start, token_length);
+    const string token = str.substr(token_start, token_length);
     tokens.push_back(token);
   }
 }
@@ -132,7 +133,8 @@ string string_strip(const string &s)
 
 void string_replace(string &haystack, const string &needle, const string &other)
 {
-  size_t i = 0, index;
+  size_t i = 0;
+  size_t index;
   while ((index = haystack.find(needle, i)) != string::npos) {
     haystack.replace(index, needle.size(), other);
     i = index + other.size();

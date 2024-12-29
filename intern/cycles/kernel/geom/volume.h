@@ -26,7 +26,7 @@ CCL_NAMESPACE_BEGIN
 /* Return position normalized to 0..1 in mesh bounds */
 
 ccl_device_inline float3 volume_normalized_position(KernelGlobals kg,
-                                                    ccl_private const ShaderData *sd,
+                                                    const ccl_private ShaderData *sd,
                                                     float3 P)
 {
   /* todo: optimize this so it's just a single matrix multiplication when
@@ -36,7 +36,7 @@ ccl_device_inline float3 volume_normalized_position(KernelGlobals kg,
   object_inverse_position_transform(kg, sd, &P);
 
   if (desc.offset != ATTR_STD_NOT_FOUND) {
-    Transform tfm = primitive_attribute_matrix(kg, desc);
+    const Transform tfm = primitive_attribute_matrix(kg, desc);
     P = transform_point(&tfm, P);
   }
 
@@ -63,7 +63,7 @@ ccl_device float3 volume_attribute_value_to_float3(const float4 value)
 }
 
 ccl_device float4 volume_attribute_float4(KernelGlobals kg,
-                                          ccl_private const ShaderData *sd,
+                                          const ccl_private ShaderData *sd,
                                           const AttributeDescriptor desc)
 {
   if (desc.element & (ATTR_ELEMENT_OBJECT | ATTR_ELEMENT_MESH)) {
@@ -75,8 +75,8 @@ ccl_device float4 volume_attribute_float4(KernelGlobals kg,
      * common case where transform is translation/scale only. */
     float3 P = sd->P;
     object_inverse_position_transform(kg, sd, &P);
-    InterpolationType interp = (sd->flag & SD_VOLUME_CUBIC) ? INTERPOLATION_CUBIC :
-                                                              INTERPOLATION_NONE;
+    const InterpolationType interp = (sd->flag & SD_VOLUME_CUBIC) ? INTERPOLATION_CUBIC :
+                                                                    INTERPOLATION_NONE;
     return kernel_tex_image_interp_3d(kg, desc.offset, P, interp);
   }
   return zero_float4();

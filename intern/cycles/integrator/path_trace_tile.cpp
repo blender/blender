@@ -94,7 +94,7 @@ bool PathTraceTile::set_pass_pixels(const string_view pass_name,
 
   const PassAccessor::PassAccessInfo pass_access_info(*pass);
   PassAccessorCPU pass_accessor(pass_access_info, exposure, num_samples);
-  PassAccessor::Source source(pixels, num_channels);
+  const PassAccessor::Source source(pixels, num_channels);
 
   return path_trace_.set_render_tile_pixels(pass_accessor, source);
 }

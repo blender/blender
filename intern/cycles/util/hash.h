@@ -76,7 +76,9 @@ ccl_device_forceinline float uint_to_float_incl(uint n)
 
 ccl_device_inline uint hash_uint(uint kx)
 {
-  uint a, b, c;
+  uint a;
+  uint b;
+  uint c;
   a = b = c = 0xdeadbeef + (1 << 2) + 13;
 
   a += kx;
@@ -87,7 +89,9 @@ ccl_device_inline uint hash_uint(uint kx)
 
 ccl_device_inline uint hash_uint2(uint kx, uint ky)
 {
-  uint a, b, c;
+  uint a;
+  uint b;
+  uint c;
   a = b = c = 0xdeadbeef + (2 << 2) + 13;
 
   b += ky;
@@ -99,7 +103,9 @@ ccl_device_inline uint hash_uint2(uint kx, uint ky)
 
 ccl_device_inline uint hash_uint3(uint kx, uint ky, uint kz)
 {
-  uint a, b, c;
+  uint a;
+  uint b;
+  uint c;
   a = b = c = 0xdeadbeef + (3 << 2) + 13;
 
   c += kz;
@@ -112,7 +118,9 @@ ccl_device_inline uint hash_uint3(uint kx, uint ky, uint kz)
 
 ccl_device_inline uint hash_uint4(uint kx, uint ky, uint kz, uint kw)
 {
-  uint a, b, c;
+  uint a;
+  uint b;
+  uint c;
   a = b = c = 0xdeadbeef + (4 << 2) + 13;
 
   a += kx;
@@ -286,7 +294,9 @@ ccl_device_inline float2 hash_float4_to_float2(float4 k)
 
 ccl_device_inline int4 hash_int4(int4 kx)
 {
-  int4 a, b, c;
+  int4 a;
+  int4 b;
+  int4 c;
   a = b = c = make_int4(0xdeadbeef + (1 << 2) + 13);
 
   a += kx;
@@ -297,7 +307,9 @@ ccl_device_inline int4 hash_int4(int4 kx)
 
 ccl_device_inline int4 hash_int4_2(int4 kx, int4 ky)
 {
-  int4 a, b, c;
+  int4 a;
+  int4 b;
+  int4 c;
   a = b = c = make_int4(0xdeadbeef + (2 << 2) + 13);
 
   b += ky;
@@ -309,7 +321,9 @@ ccl_device_inline int4 hash_int4_2(int4 kx, int4 ky)
 
 ccl_device_inline int4 hash_int4_3(int4 kx, int4 ky, int4 kz)
 {
-  int4 a, b, c;
+  int4 a;
+  int4 b;
+  int4 c;
   a = b = c = make_int4(0xdeadbeef + (3 << 2) + 13);
 
   c += kz;
@@ -322,7 +336,9 @@ ccl_device_inline int4 hash_int4_3(int4 kx, int4 ky, int4 kz)
 
 ccl_device_inline int4 hash_int4_4(int4 kx, int4 ky, int4 kz, int4 kw)
 {
-  int4 a, b, c;
+  int4 a;
+  int4 b;
+  int4 c;
   a = b = c = make_int4(0xdeadbeef + (4 << 2) + 13);
 
   a += kx;
@@ -485,7 +501,7 @@ ccl_device_inline float hash_wang_seeded_float(uint i, uint seed)
 ccl_device_inline uint hash_shuffle_uint(uint i, uint length, uint seed)
 {
   i = i % length;
-  uint mask = (1 << (32 - count_leading_zeros(length - 1))) - 1;
+  const uint mask = (1 << (32 - count_leading_zeros(length - 1))) - 1;
 
   do {
     i ^= seed;
@@ -530,7 +546,8 @@ ccl_device_inline uint hash_iqnt2d(const uint x, const uint y)
 #ifndef __KERNEL_GPU__
 static inline uint hash_string(const char *str)
 {
-  uint i = 0, c;
+  uint i = 0;
+  uint c;
 
   while ((c = *str++)) {
     i = i * 37 + c;

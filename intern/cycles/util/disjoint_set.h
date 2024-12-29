@@ -30,7 +30,7 @@ class DisjointSet {
       root = parents[root];
     }
     while (parents[x] != root) {
-      size_t parent = parents[x];
+      const size_t parent = parents[x];
       parents[x] = root;
       x = parent;
     }

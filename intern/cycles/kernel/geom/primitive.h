@@ -30,7 +30,7 @@ CCL_NAMESPACE_BEGIN
  * heavy volume interpolation code. */
 
 ccl_device_forceinline float primitive_surface_attribute_float(KernelGlobals kg,
-                                                               ccl_private const ShaderData *sd,
+                                                               const ccl_private ShaderData *sd,
                                                                const AttributeDescriptor desc,
                                                                ccl_private float *dx,
                                                                ccl_private float *dy)
@@ -63,7 +63,7 @@ ccl_device_forceinline float primitive_surface_attribute_float(KernelGlobals kg,
 }
 
 ccl_device_forceinline float2 primitive_surface_attribute_float2(KernelGlobals kg,
-                                                                 ccl_private const ShaderData *sd,
+                                                                 const ccl_private ShaderData *sd,
                                                                  const AttributeDescriptor desc,
                                                                  ccl_private float2 *dx,
                                                                  ccl_private float2 *dy)
@@ -96,7 +96,7 @@ ccl_device_forceinline float2 primitive_surface_attribute_float2(KernelGlobals k
 }
 
 ccl_device_forceinline float3 primitive_surface_attribute_float3(KernelGlobals kg,
-                                                                 ccl_private const ShaderData *sd,
+                                                                 const ccl_private ShaderData *sd,
                                                                  const AttributeDescriptor desc,
                                                                  ccl_private float3 *dx,
                                                                  ccl_private float3 *dy)
@@ -129,7 +129,7 @@ ccl_device_forceinline float3 primitive_surface_attribute_float3(KernelGlobals k
 }
 
 ccl_device_forceinline float4 primitive_surface_attribute_float4(KernelGlobals kg,
-                                                                 ccl_private const ShaderData *sd,
+                                                                 const ccl_private ShaderData *sd,
                                                                  const AttributeDescriptor desc,
                                                                  ccl_private float4 *dx,
                                                                  ccl_private float4 *dy)
@@ -168,14 +168,14 @@ ccl_device_forceinline float4 primitive_surface_attribute_float4(KernelGlobals k
  * attributes for performance, mainly for GPU performance to avoid bringing in
  * heavy volume interpolation code. */
 
-ccl_device_forceinline bool primitive_is_volume_attribute(ccl_private const ShaderData *sd,
+ccl_device_forceinline bool primitive_is_volume_attribute(const ccl_private ShaderData *sd,
                                                           const AttributeDescriptor desc)
 {
   return sd->type == PRIMITIVE_VOLUME;
 }
 
 ccl_device_forceinline float primitive_volume_attribute_float(KernelGlobals kg,
-                                                              ccl_private const ShaderData *sd,
+                                                              const ccl_private ShaderData *sd,
                                                               const AttributeDescriptor desc)
 {
   if (primitive_is_volume_attribute(sd, desc)) {
@@ -185,7 +185,7 @@ ccl_device_forceinline float primitive_volume_attribute_float(KernelGlobals kg,
 }
 
 ccl_device_forceinline float3 primitive_volume_attribute_float3(KernelGlobals kg,
-                                                                ccl_private const ShaderData *sd,
+                                                                const ccl_private ShaderData *sd,
                                                                 const AttributeDescriptor desc)
 {
   if (primitive_is_volume_attribute(sd, desc)) {
@@ -195,7 +195,7 @@ ccl_device_forceinline float3 primitive_volume_attribute_float3(KernelGlobals kg
 }
 
 ccl_device_forceinline float4 primitive_volume_attribute_float4(KernelGlobals kg,
-                                                                ccl_private const ShaderData *sd,
+                                                                const ccl_private ShaderData *sd,
                                                                 const AttributeDescriptor desc)
 {
   if (primitive_is_volume_attribute(sd, desc)) {
@@ -207,7 +207,7 @@ ccl_device_forceinline float4 primitive_volume_attribute_float4(KernelGlobals kg
 
 /* Default UV coordinate */
 
-ccl_device_forceinline float3 primitive_uv(KernelGlobals kg, ccl_private const ShaderData *sd)
+ccl_device_forceinline float3 primitive_uv(KernelGlobals kg, const ccl_private ShaderData *sd)
 {
   const AttributeDescriptor desc = find_attribute(kg, sd, ATTR_STD_UV);
 
@@ -215,7 +215,7 @@ ccl_device_forceinline float3 primitive_uv(KernelGlobals kg, ccl_private const S
     return make_float3(0.0f, 0.0f, 0.0f);
   }
 
-  float2 uv = primitive_surface_attribute_float2(kg, sd, desc, nullptr, nullptr);
+  const float2 uv = primitive_surface_attribute_float2(kg, sd, desc, nullptr, nullptr);
   return make_float3(uv.x, uv.y, 1.0f);
 }
 
@@ -234,8 +234,9 @@ ccl_device bool primitive_ptex(KernelGlobals kg,
     return false;
   }
 
-  float3 uv3 = primitive_surface_attribute_float3(kg, sd, desc_uv, nullptr, nullptr);
-  float face_id_f = primitive_surface_attribute_float(kg, sd, desc_face_id, nullptr, nullptr);
+  const float3 uv3 = primitive_surface_attribute_float3(kg, sd, desc_uv, nullptr, nullptr);
+  const float face_id_f = primitive_surface_attribute_float(
+      kg, sd, desc_face_id, nullptr, nullptr);
 
   *uv = make_float2(uv3.x, uv3.y);
   *face_id = (int)face_id_f;
@@ -277,13 +278,13 @@ ccl_device float3 primitive_tangent(KernelGlobals kg, ccl_private ShaderData *sd
 /* Motion vector for motion pass */
 
 ccl_device_forceinline float4 primitive_motion_vector(KernelGlobals kg,
-                                                      ccl_private const ShaderData *sd)
+                                                      const ccl_private ShaderData *sd)
 {
   /* center position */
   float3 center;
 
 #if defined(__HAIR__) || defined(__POINTCLOUD__)
-  bool is_curve_or_point = sd->type & (PRIMITIVE_CURVE | PRIMITIVE_POINT);
+  const bool is_curve_or_point = sd->type & (PRIMITIVE_CURVE | PRIMITIVE_POINT);
   if (is_curve_or_point) {
     center = make_float3(0.0f, 0.0f, 0.0f);
 
@@ -308,7 +309,8 @@ ccl_device_forceinline float4 primitive_motion_vector(KernelGlobals kg,
     center = sd->P;
   }
 
-  float3 motion_pre = center, motion_post = center;
+  float3 motion_pre = center;
+  float3 motion_post = center;
 
   /* deformation motion */
   AttributeDescriptor desc = find_attribute(kg, sd, ATTR_STD_MOTION_VERTEX_POSITION);

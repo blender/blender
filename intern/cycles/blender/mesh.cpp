@@ -100,7 +100,7 @@ template<bool is_subd> struct MikkMeshWrapper {
 
   int VertexIndex(const int face_num, const int vert_num)
   {
-    int corner = CornerIndex(face_num, vert_num);
+    const int corner = CornerIndex(face_num, vert_num);
     if constexpr (is_subd) {
       return mesh->get_subd_face_corners()[corner];
     }
@@ -121,7 +121,7 @@ template<bool is_subd> struct MikkMeshWrapper {
      * turn this into a constexpr is worth it. */
     if (uv != nullptr) {
       const int corner_index = CornerIndex(face_num, vert_num);
-      float2 tfuv = uv[corner_index];
+      const float2 tfuv = uv[corner_index];
       return mikk::float3(tfuv.x, tfuv.y, 1.0f);
     }
     if (orco != nullptr) {
@@ -253,7 +253,7 @@ static void attr_create_motion_from_velocity(Mesh *mesh,
   }
 
   /* Only export previous and next frame, we don't have any in between data. */
-  float motion_times[2] = {-1.0f, 1.0f};
+  const float motion_times[2] = {-1.0f, 1.0f};
   for (int step = 0; step < 2; step++) {
     const float relative_time = motion_times[step] * 0.5f * motion_scale;
     float3 *mP = attr_mP->data_float3() + step * numverts;
@@ -440,9 +440,9 @@ static void attr_create_uv_map(Scene *scene,
   if (!blender_uv_names.empty()) {
     for (const ustring &uv_name : blender_uv_names) {
       const bool active_render = uv_name == render_name;
-      AttributeStandard uv_std = (active_render) ? ATTR_STD_UV : ATTR_STD_NONE;
-      AttributeStandard tangent_std = (active_render) ? ATTR_STD_UV_TANGENT : ATTR_STD_NONE;
-      ustring tangent_name = ustring((string(uv_name) + ".tangent").c_str());
+      const AttributeStandard uv_std = (active_render) ? ATTR_STD_UV : ATTR_STD_NONE;
+      const AttributeStandard tangent_std = (active_render) ? ATTR_STD_UV_TANGENT : ATTR_STD_NONE;
+      const ustring tangent_name = ustring((string(uv_name) + ".tangent").c_str());
 
       /* Denotes whether UV map was requested directly. */
       const bool need_uv = mesh->need_attribute(scene, uv_name) ||
@@ -477,10 +477,11 @@ static void attr_create_uv_map(Scene *scene,
 
       /* UV tangent */
       if (need_tangent) {
-        AttributeStandard sign_std = (active_render) ? ATTR_STD_UV_TANGENT_SIGN : ATTR_STD_NONE;
-        ustring sign_name = ustring((string(uv_name) + ".tangent_sign").c_str());
-        bool need_sign = (mesh->need_attribute(scene, sign_name) ||
-                          mesh->need_attribute(scene, sign_std));
+        const AttributeStandard sign_std = (active_render) ? ATTR_STD_UV_TANGENT_SIGN :
+                                                             ATTR_STD_NONE;
+        const ustring sign_name = ustring((string(uv_name) + ".tangent_sign").c_str());
+        const bool need_sign = (mesh->need_attribute(scene, sign_name) ||
+                                mesh->need_attribute(scene, sign_std));
         mikk_compute_tangents(b_mesh, uv_name.c_str(), mesh, need_sign, active_render);
       }
       /* Remove temporarily created UV attribute. */
@@ -490,7 +491,7 @@ static void attr_create_uv_map(Scene *scene,
     }
   }
   else if (mesh->need_attribute(scene, ATTR_STD_UV_TANGENT)) {
-    bool need_sign = mesh->need_attribute(scene, ATTR_STD_UV_TANGENT_SIGN);
+    const bool need_sign = mesh->need_attribute(scene, ATTR_STD_UV_TANGENT_SIGN);
     mikk_compute_tangents(b_mesh, nullptr, mesh, need_sign, true);
     if (!mesh->need_attribute(scene, ATTR_STD_GENERATED)) {
       mesh->attributes.remove(ATTR_STD_GENERATED);
@@ -515,9 +516,9 @@ static void attr_create_subd_uv_map(Scene *scene,
         CustomData_get_render_layer_name(&b_mesh.corner_data, CD_PROP_FLOAT2));
     for (const ustring &uv_name : blender_uv_names) {
       const bool active_render = uv_name == render_name;
-      AttributeStandard uv_std = (active_render) ? ATTR_STD_UV : ATTR_STD_NONE;
-      AttributeStandard tangent_std = (active_render) ? ATTR_STD_UV_TANGENT : ATTR_STD_NONE;
-      ustring tangent_name = ustring((string(uv_name) + ".tangent").c_str());
+      const AttributeStandard uv_std = (active_render) ? ATTR_STD_UV : ATTR_STD_NONE;
+      const AttributeStandard tangent_std = (active_render) ? ATTR_STD_UV_TANGENT : ATTR_STD_NONE;
+      const ustring tangent_name = ustring((string(uv_name) + ".tangent").c_str());
 
       /* Denotes whether UV map was requested directly. */
       const bool need_uv = mesh->need_attribute(scene, uv_name) ||
@@ -555,10 +556,11 @@ static void attr_create_subd_uv_map(Scene *scene,
 
       /* UV tangent */
       if (need_tangent) {
-        AttributeStandard sign_std = (active_render) ? ATTR_STD_UV_TANGENT_SIGN : ATTR_STD_NONE;
-        ustring sign_name = ustring((string(uv_name) + ".tangent_sign").c_str());
-        bool need_sign = (mesh->need_attribute(scene, sign_name) ||
-                          mesh->need_attribute(scene, sign_std));
+        const AttributeStandard sign_std = (active_render) ? ATTR_STD_UV_TANGENT_SIGN :
+                                                             ATTR_STD_NONE;
+        const ustring sign_name = ustring((string(uv_name) + ".tangent_sign").c_str());
+        const bool need_sign = (mesh->need_attribute(scene, sign_name) ||
+                                mesh->need_attribute(scene, sign_std));
         mikk_compute_tangents(b_mesh, uv_name.c_str(), mesh, need_sign, active_render);
       }
       /* Remove temporarily created UV attribute. */
@@ -568,7 +570,7 @@ static void attr_create_subd_uv_map(Scene *scene,
     }
   }
   else if (mesh->need_attribute(scene, ATTR_STD_UV_TANGENT)) {
-    bool need_sign = mesh->need_attribute(scene, ATTR_STD_UV_TANGENT_SIGN);
+    const bool need_sign = mesh->need_attribute(scene, ATTR_STD_UV_TANGENT_SIGN);
     mikk_compute_tangents(b_mesh, nullptr, mesh, need_sign, true);
     if (!mesh->need_attribute(scene, ATTR_STD_GENERATED)) {
       mesh->subd_attributes.remove(ATTR_STD_GENERATED);
@@ -618,7 +620,7 @@ static void attr_create_pointiness(Mesh *mesh,
   for (int vert_index = 0; vert_index < num_verts; ++vert_index) {
     sorted_vert_indeices[vert_index] = vert_index;
   }
-  VertexAverageComparator compare(mesh->get_verts());
+  const VertexAverageComparator compare(mesh->get_verts());
   sort(sorted_vert_indeices.begin(), sorted_vert_indeices.end(), compare);
   /* This array stores index of the original vertex for the given vertex
    * index.
@@ -692,9 +694,9 @@ static void attr_create_pointiness(Mesh *mesh,
       continue;
     }
     visited_edges.insert(v0, v1);
-    float3 co0 = make_float3(positions[v0][0], positions[v0][1], positions[v0][2]);
-    float3 co1 = make_float3(positions[v1][0], positions[v1][1], positions[v1][2]);
-    float3 edge = normalize(co1 - co0);
+    const float3 co0 = make_float3(positions[v0][0], positions[v0][1], positions[v0][2]);
+    const float3 co1 = make_float3(positions[v1][0], positions[v1][1], positions[v1][2]);
+    const float3 edge = normalize(co1 - co0);
     edge_accum[v0] += edge;
     edge_accum[v1] += -edge;
     ++counter[v0];
@@ -817,10 +819,11 @@ static void create_mesh(Scene *scene,
   const blender::Span<int> corner_verts = b_mesh.corner_verts();
   const blender::bke::AttributeAccessor b_attributes = b_mesh.attributes();
   const blender::bke::MeshNormalDomain normals_domain = b_mesh.normals_domain(true);
-  int numfaces = (!subdivision) ? b_mesh.corner_tris().size() : faces.size();
+  const int numfaces = (!subdivision) ? b_mesh.corner_tris().size() : faces.size();
 
-  bool use_corner_normals = normals_domain == blender::bke::MeshNormalDomain::Corner &&
-                            (mesh->get_subdivision_type() != Mesh::SUBDIVISION_CATMULL_CLARK);
+  const bool use_corner_normals = normals_domain == blender::bke::MeshNormalDomain::Corner &&
+                                  (mesh->get_subdivision_type() !=
+                                   Mesh::SUBDIVISION_CATMULL_CLARK);
 
   /* If no faces, create empty mesh. */
   if (faces.is_empty()) {
@@ -881,10 +884,12 @@ static void create_mesh(Scene *scene,
     Attribute *attr = attributes.add(ATTR_STD_GENERATED);
     attr->flags |= ATTR_SUBDIVIDED;
 
-    float3 loc, size;
+    float3 loc;
+    float3 size;
     mesh_texture_space(b_mesh, loc, size);
 
-    float texspace_location[3], texspace_size[3];
+    float texspace_location[3];
+    float texspace_size[3];
     BKE_mesh_texspace_get(const_cast<::Mesh *>(b_mesh.texcomesh ? b_mesh.texcomesh : &b_mesh),
                           texspace_location,
                           texspace_size);
@@ -1029,7 +1034,8 @@ static void create_mesh(Scene *scene,
     Attribute *attr = mesh->attributes.add(ATTR_STD_GENERATED_TRANSFORM);
     Transform *tfm = attr->data_transform();
 
-    float3 loc, size;
+    float3 loc;
+    float3 size;
     mesh_texture_space(b_mesh, loc, size);
 
     *tfm = transform_translate(-loc) * transform_scale(size);
@@ -1049,7 +1055,7 @@ static void create_subd_mesh(Scene *scene,
   BL::Object b_ob = b_ob_info.real_object;
 
   BL::SubsurfModifier subsurf_mod(b_ob.modifiers[b_ob.modifiers.length() - 1]);
-  bool subdivide_uvs = subsurf_mod.uv_smooth() != BL::SubsurfModifier::uv_smooth_NONE;
+  const bool subdivide_uvs = subsurf_mod.uv_smooth() != BL::SubsurfModifier::uv_smooth_NONE;
 
   create_mesh(scene, mesh, b_mesh, used_shaders, need_motion, motion_scale, true, subdivide_uvs);
 
@@ -1087,7 +1093,7 @@ static void create_subd_mesh(Scene *scene,
 
   /* set subd params */
   PointerRNA cobj = RNA_pointer_get(&b_ob.ptr, "cycles");
-  float subd_dicing_rate = max(0.1f, RNA_float_get(&cobj, "dicing_rate") * dicing_rate);
+  const float subd_dicing_rate = max(0.1f, RNA_float_get(&cobj, "dicing_rate") * dicing_rate);
 
   mesh->set_subd_dicing_rate(subd_dicing_rate);
   mesh->set_subd_max_level(max_subdivisions);
@@ -1116,7 +1122,7 @@ void BlenderSync::sync_mesh(BL::Depsgraph b_depsgraph, BObjectInfo &b_ob_info, M
     new_mesh.set_subdivision_type(subdivision_type);
 
     /* For some reason, meshes do not need this... */
-    bool need_undeformed = new_mesh.need_attribute(scene, ATTR_STD_GENERATED);
+    const bool need_undeformed = new_mesh.need_attribute(scene, ATTR_STD_GENERATED);
     BL::Mesh b_mesh = object_to_mesh(
         b_data, b_ob_info, b_depsgraph, need_undeformed, new_mesh.get_subdivision_type());
 
@@ -1174,11 +1180,11 @@ void BlenderSync::sync_mesh(BL::Depsgraph b_depsgraph, BObjectInfo &b_ob_info, M
   mesh->set_num_subd_faces(new_mesh.get_num_subd_faces());
 
   /* tag update */
-  bool rebuild = (mesh->triangles_is_modified()) || (mesh->subd_num_corners_is_modified()) ||
-                 (mesh->subd_shader_is_modified()) || (mesh->subd_smooth_is_modified()) ||
-                 (mesh->subd_ptex_offset_is_modified()) ||
-                 (mesh->subd_start_corner_is_modified()) ||
-                 (mesh->subd_face_corners_is_modified());
+  const bool rebuild = (mesh->triangles_is_modified()) || (mesh->subd_num_corners_is_modified()) ||
+                       (mesh->subd_shader_is_modified()) || (mesh->subd_smooth_is_modified()) ||
+                       (mesh->subd_ptex_offset_is_modified()) ||
+                       (mesh->subd_start_corner_is_modified()) ||
+                       (mesh->subd_face_corners_is_modified());
 
   mesh->tag_update(scene, rebuild);
 }
@@ -1189,7 +1195,7 @@ void BlenderSync::sync_mesh_motion(BL::Depsgraph b_depsgraph,
                                    int motion_step)
 {
   /* Skip if no vertices were exported. */
-  size_t numverts = mesh->get_verts().size();
+  const size_t numverts = mesh->get_verts().size();
   if (numverts == 0) {
     return;
   }

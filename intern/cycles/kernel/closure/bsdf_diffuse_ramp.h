@@ -26,17 +26,17 @@ static_assert(sizeof(ShaderClosure) >= sizeof(DiffuseRampBsdf), "DiffuseRampBsdf
 
 ccl_device float3 bsdf_diffuse_ramp_get_color(const float3 colors[8], float pos)
 {
-  int MAXCOLORS = 8;
+  const int MAXCOLORS = 8;
 
-  float npos = pos * (float)(MAXCOLORS - 1);
-  int ipos = float_to_int(npos);
+  const float npos = pos * (float)(MAXCOLORS - 1);
+  const int ipos = float_to_int(npos);
   if (ipos < 0) {
     return colors[0];
   }
   if (ipos >= (MAXCOLORS - 1)) {
     return colors[MAXCOLORS - 1];
   }
-  float offset = npos - (float)ipos;
+  const float offset = npos - (float)ipos;
   return colors[ipos] * (1.0f - offset) + colors[ipos + 1] * offset;
 }
 
@@ -48,15 +48,15 @@ ccl_device int bsdf_diffuse_ramp_setup(DiffuseRampBsdf *bsdf)
 
 ccl_device void bsdf_diffuse_ramp_blur(ccl_private ShaderClosure *sc, float roughness) {}
 
-ccl_device Spectrum bsdf_diffuse_ramp_eval(ccl_private const ShaderClosure *sc,
+ccl_device Spectrum bsdf_diffuse_ramp_eval(const ccl_private ShaderClosure *sc,
                                            const float3 wi,
                                            const float3 wo,
                                            ccl_private float *pdf)
 {
   const DiffuseRampBsdf *bsdf = (const DiffuseRampBsdf *)sc;
-  float3 N = bsdf->N;
+  const float3 N = bsdf->N;
 
-  float cosNO = fmaxf(dot(N, wo), 0.0f);
+  const float cosNO = fmaxf(dot(N, wo), 0.0f);
   if (cosNO >= 0.0f) {
     *pdf = cosNO * M_1_PI_F;
     return rgb_to_spectrum(bsdf_diffuse_ramp_get_color(bsdf->colors, cosNO) * M_1_PI_F);
@@ -65,7 +65,7 @@ ccl_device Spectrum bsdf_diffuse_ramp_eval(ccl_private const ShaderClosure *sc,
   return zero_spectrum();
 }
 
-ccl_device int bsdf_diffuse_ramp_sample(ccl_private const ShaderClosure *sc,
+ccl_device int bsdf_diffuse_ramp_sample(const ccl_private ShaderClosure *sc,
                                         float3 Ng,
                                         float3 wi,
                                         float2 rand,
@@ -74,7 +74,7 @@ ccl_device int bsdf_diffuse_ramp_sample(ccl_private const ShaderClosure *sc,
                                         ccl_private float *pdf)
 {
   const DiffuseRampBsdf *bsdf = (const DiffuseRampBsdf *)sc;
-  float3 N = bsdf->N;
+  const float3 N = bsdf->N;
 
   // distribution over the hemisphere
   sample_cos_hemisphere(N, rand, wo, pdf);

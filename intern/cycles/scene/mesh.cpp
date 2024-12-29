@@ -72,7 +72,7 @@ void Mesh::Triangle::verts_for_step(const float3 *verts,
     if (step > center_step) {
       step--;
     }
-    size_t offset = step * num_verts;
+    const size_t offset = step * num_verts;
     r_verts[0] = vert_steps[offset + v[0]];
     r_verts[1] = vert_steps[offset + v[1]];
     r_verts[2] = vert_steps[offset + v[2]];
@@ -101,9 +101,9 @@ bool Mesh::Triangle::valid(const float3 *verts) const
 
 float3 Mesh::SubdFace::normal(const Mesh *mesh) const
 {
-  float3 v0 = mesh->verts[mesh->subd_face_corners[start_corner + 0]];
-  float3 v1 = mesh->verts[mesh->subd_face_corners[start_corner + 1]];
-  float3 v2 = mesh->verts[mesh->subd_face_corners[start_corner + 2]];
+  const float3 v0 = mesh->verts[mesh->subd_face_corners[start_corner + 0]];
+  const float3 v1 = mesh->verts[mesh->subd_face_corners[start_corner + 1]];
+  const float3 v2 = mesh->verts[mesh->subd_face_corners[start_corner + 2]];
 
   return safe_normalize(cross(v1 - v0, v2 - v0));
 }
@@ -357,7 +357,7 @@ void Mesh::add_triangle(int v0, int v1, int v2, int shader_, bool smooth_)
 
 void Mesh::add_subd_face(const int *corners, int num_corners, int shader_, bool smooth_)
 {
-  int start_corner = subd_face_corners.size();
+  const int start_corner = subd_face_corners.size();
 
   for (int i = 0; i < num_corners; i++) {
     subd_face_corners.push_back_reserved(corners[i]);
@@ -367,7 +367,7 @@ void Mesh::add_subd_face(const int *corners, int num_corners, int shader_, bool 
   // cannot use get_num_subd_faces here as it holds the total number of subd_faces, but we do not
   // have the total amount of data yet
   if (subd_shader.size()) {
-    SubdFace s = get_subd_face(subd_shader.size() - 1);
+    const SubdFace s = get_subd_face(subd_shader.size() - 1);
     ptex_offset = s.ptex_offset + s.num_ptex_faces();
   }
 
@@ -425,7 +425,7 @@ void Mesh::copy_center_to_motion_step(const int motion_step)
     Attribute *attr_N = attributes.find(ATTR_STD_VERTEX_NORMAL);
     float3 *P = verts.data();
     float3 *N = (attr_N) ? attr_N->data_float3() : nullptr;
-    size_t numverts = verts.size();
+    const size_t numverts = verts.size();
 
     std::copy_n(P, numverts, attr_mP->data_float3() + motion_step * numverts);
     if (attr_mN) {
@@ -436,7 +436,8 @@ void Mesh::copy_center_to_motion_step(const int motion_step)
 
 void Mesh::get_uv_tiles(ustring map, unordered_set<int> &tiles)
 {
-  Attribute *attr, *subd_attr;
+  Attribute *attr;
+  Attribute *subd_attr;
 
   if (map.empty()) {
     attr = attributes.find(ATTR_STD_UV);
@@ -458,7 +459,7 @@ void Mesh::get_uv_tiles(ustring map, unordered_set<int> &tiles)
 void Mesh::compute_bounds()
 {
   BoundBox bnds = BoundBox::empty;
-  size_t verts_size = verts.size();
+  const size_t verts_size = verts.size();
 
   if (verts_size > 0) {
     for (size_t i = 0; i < verts_size; i++) {
@@ -467,7 +468,7 @@ void Mesh::compute_bounds()
 
     Attribute *attr = attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
     if (use_motion_blur && attr) {
-      size_t steps_size = verts.size() * (motion_steps - 1);
+      const size_t steps_size = verts.size() * (motion_steps - 1);
       float3 *vert_steps = attr->data_float3();
 
       for (size_t i = 0; i < steps_size; i++) {
@@ -484,7 +485,7 @@ void Mesh::compute_bounds()
       }
 
       if (use_motion_blur && attr) {
-        size_t steps_size = verts.size() * (motion_steps - 1);
+        const size_t steps_size = verts.size() * (motion_steps - 1);
         float3 *vert_steps = attr->data_float3();
 
         for (size_t i = 0; i < steps_size; i++) {
@@ -517,7 +518,7 @@ void Mesh::apply_transform(const Transform &tfm, const bool apply_to_motion)
     Attribute *attr = attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
 
     if (attr) {
-      size_t steps_size = verts.size() * (motion_steps - 1);
+      const size_t steps_size = verts.size() * (motion_steps - 1);
       float3 *vert_steps = attr->data_float3();
 
       for (size_t i = 0; i < steps_size; i++) {
@@ -528,8 +529,8 @@ void Mesh::apply_transform(const Transform &tfm, const bool apply_to_motion)
     Attribute *attr_N = attributes.find(ATTR_STD_MOTION_VERTEX_NORMAL);
 
     if (attr_N) {
-      Transform ntfm = transform_normal;
-      size_t steps_size = verts.size() * (motion_steps - 1);
+      const Transform ntfm = transform_normal;
+      const size_t steps_size = verts.size() * (motion_steps - 1);
       float3 *normal_steps = attr_N->data_float3();
 
       for (size_t i = 0; i < steps_size; i++) {
@@ -551,7 +552,7 @@ void Mesh::add_face_normals()
   float3 *fN = attr_fN->data_float3();
 
   /* compute face normals */
-  size_t triangles_size = num_triangles();
+  const size_t triangles_size = num_triangles();
 
   if (triangles_size) {
     float3 *verts_ptr = verts.data();
@@ -563,7 +564,7 @@ void Mesh::add_face_normals()
 
   /* expected to be in local space */
   if (transform_applied) {
-    Transform ntfm = transform_inverse(transform_normal);
+    const Transform ntfm = transform_inverse(transform_normal);
 
     for (size_t i = 0; i < triangles_size; i++) {
       fN[i] = normalize(transform_direction(&ntfm, fN[i]));
@@ -573,9 +574,9 @@ void Mesh::add_face_normals()
 
 void Mesh::add_vertex_normals()
 {
-  bool flip = transform_negative_scaled;
-  size_t verts_size = verts.size();
-  size_t triangles_size = num_triangles();
+  const bool flip = transform_negative_scaled;
+  const size_t verts_size = verts.size();
+  const size_t triangles_size = num_triangles();
 
   /* static vertex normals */
   if (!attributes.find(ATTR_STD_VERTEX_NORMAL) && triangles_size) {
@@ -623,8 +624,8 @@ void Mesh::add_vertex_normals()
       std::fill_n(mN, verts.size(), zero_float3());
 
       for (size_t i = 0; i < triangles_size; i++) {
-        Triangle tri = get_triangle(i);
-        float3 fN = tri.compute_normal(mP);
+        const Triangle tri = get_triangle(i);
+        const float3 fN = tri.compute_normal(mP);
         for (size_t j = 0; j < 3; j++) {
           mN[tri.v[j]] += fN;
         }
@@ -653,11 +654,11 @@ void Mesh::add_vertex_normals()
     std::fill_n(vN, verts.size(), zero_float3());
 
     for (size_t i = 0; i < get_num_subd_faces(); i++) {
-      SubdFace face = get_subd_face(i);
-      float3 fN = face.normal(this);
+      const SubdFace face = get_subd_face(i);
+      const float3 fN = face.normal(this);
 
       for (size_t j = 0; j < face.num_corners; j++) {
-        size_t corner = subd_face_corners[face.start_corner + j];
+        const size_t corner = subd_face_corners[face.start_corner + j];
         vN[corner] += fN;
       }
     }
@@ -710,7 +711,7 @@ void Mesh::pack_shaders(Scene *scene, uint *tri_shader)
   uint last_shader = -1;
   bool last_smooth = false;
 
-  size_t triangles_size = num_triangles();
+  const size_t triangles_size = num_triangles();
   const int *shader_ptr = shader.data();
   const bool *smooth_ptr = smooth.data();
 
@@ -739,11 +740,11 @@ void Mesh::pack_normals(packed_float3 *vnormal)
     return;
   }
 
-  bool do_transform = transform_applied;
-  Transform ntfm = transform_normal;
+  const bool do_transform = transform_applied;
+  const Transform ntfm = transform_normal;
 
   float3 *vN = attr_vN->data_float3();
-  size_t verts_size = verts.size();
+  const size_t verts_size = verts.size();
 
   if (do_transform) {
     for (size_t i = 0; i < verts_size; i++) {
@@ -762,8 +763,8 @@ void Mesh::pack_verts(packed_float3 *tri_verts,
                       uint *tri_patch,
                       float2 *tri_patch_uv)
 {
-  size_t verts_size = verts.size();
-  size_t triangles_size = num_triangles();
+  const size_t verts_size = verts.size();
+  const size_t triangles_size = num_triangles();
   const int *p_tris = triangles.data();
   int off = 0;
   if (verts_size && get_num_subd_faces()) {
@@ -797,7 +798,7 @@ void Mesh::pack_verts(packed_float3 *tri_verts,
 
 void Mesh::pack_patches(uint *patch_data)
 {
-  size_t num_faces = get_num_subd_faces();
+  const size_t num_faces = get_num_subd_faces();
   int ngons = 0;
 
   for (size_t f = 0; f < num_faces; f++) {

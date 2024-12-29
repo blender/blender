@@ -86,7 +86,7 @@ uint64_t OSLShaderManager::get_attribute_id(ustring name)
 uint64_t OSLShaderManager::get_attribute_id(AttributeStandard std)
 {
   /* if standard attribute, use geom: name convention */
-  ustring stdname(string("geom:") + string(Attribute::standard_name(std)));
+  const ustring stdname(string("geom:") + string(Attribute::standard_name(std)));
   return stdname.hash();
 }
 
@@ -99,7 +99,7 @@ void OSLShaderManager::device_update_specific(Device *device,
     return;
   }
 
-  scoped_callback_timer timer([scene](double time) {
+  const scoped_callback_timer timer([scene](double time) {
     if (scene->update_stats) {
       scene->update_stats->osl.times.add_entry({"device_update", time});
     }
@@ -200,7 +200,7 @@ void OSLShaderManager::device_update_specific(Device *device,
      * have issues with TLS data free accessing freed memory if task scheduler
      * is being freed after the Session is freed.
      */
-    thread_scoped_lock lock(ss_shared_mutex);
+    const thread_scoped_lock lock(ss_shared_mutex);
 
     /* Set current image manager during the lock, so that there is no conflict with other shader
      * manager instances.
@@ -261,7 +261,7 @@ void OSLShaderManager::device_free(Device *device, DeviceScene *dscene, Scene *s
 void OSLShaderManager::texture_system_init()
 {
   /* create texture system, shared between different renders to reduce memory usage */
-  thread_scoped_lock lock(ts_shared_mutex);
+  const thread_scoped_lock lock(ts_shared_mutex);
 
   if (ts_shared_users++ == 0) {
     ts_shared = OSL::TextureSystem::create(true);
@@ -278,7 +278,7 @@ void OSLShaderManager::texture_system_init()
 void OSLShaderManager::texture_system_free()
 {
   /* shared texture system decrease users and destroy if no longer used */
-  thread_scoped_lock lock(ts_shared_mutex);
+  const thread_scoped_lock lock(ts_shared_mutex);
 
   if (--ts_shared_users == 0) {
     ts_shared->invalidate_all(true);
@@ -290,7 +290,7 @@ void OSLShaderManager::texture_system_free()
 void OSLShaderManager::shading_system_init()
 {
   /* create shading system, shared between different renders to reduce memory usage */
-  thread_scoped_lock lock(ss_shared_mutex);
+  const thread_scoped_lock lock(ss_shared_mutex);
 
   device_->foreach_device([](Device *sub_device) {
     const DeviceType device_type = sub_device->info.type;
@@ -299,7 +299,6 @@ void OSLShaderManager::shading_system_init()
       /* Must use aligned new due to concurrent hash map. */
       OSLRenderServices *services = util_aligned_new<OSLRenderServices>(ts_shared, device_type);
 
-      string shader_path = path_get("shader");
 #  ifdef _WIN32
       /* Annoying thing, Cycles stores paths in UTF-8 codepage, so it can
        * operate with file paths with any character. This requires to use wide
@@ -309,7 +308,9 @@ void OSLShaderManager::shading_system_init()
        * - OSL can't be used when there's a multi-byte character in the path
        *   to the shaders folder.
        */
-      shader_path = string_to_ansi(shader_path);
+      const string shader_path = string_to_ansi(path_get("shader"));
+#  else
+      const string shader_path = path_get("shader");
 #  endif
 
       OSL::ShadingSystem *ss = new OSL::ShadingSystem(services, ts_shared, &errhandler);
@@ -384,7 +385,7 @@ void OSLShaderManager::shading_system_init()
 void OSLShaderManager::shading_system_free()
 {
   /* shared shading system decrease users and destroy if no longer used */
-  thread_scoped_lock lock(ss_shared_mutex);
+  const thread_scoped_lock lock(ss_shared_mutex);
 
   device_->foreach_device([](Device * /*sub_device*/) {
     if (--ss_shared_users == 0) {
@@ -405,14 +406,14 @@ bool OSLShaderManager::osl_compile(const string &inputfile, const string &output
 {
   vector<string> options;
   string stdosl_path;
-  string shader_path = path_get("shader");
+  const string shader_path = path_get("shader");
 
   /* Specify output file name. */
   options.push_back("-o");
   options.push_back(outputfile);
 
   /* Specify standard include path. */
-  string include_path_arg = string("-I") + shader_path;
+  const string include_path_arg = string("-I") + shader_path;
   options.push_back(include_path_arg);
 
   stdosl_path = path_join(shader_path, "stdcycles.h");
@@ -421,10 +422,10 @@ bool OSLShaderManager::osl_compile(const string &inputfile, const string &output
    *
    * Mutex protected because the OSL compiler does not appear to be thread safe, see #92503. */
   static thread_mutex osl_compiler_mutex;
-  thread_scoped_lock lock(osl_compiler_mutex);
+  const thread_scoped_lock lock(osl_compiler_mutex);
 
   OSL::OSLCompiler *compiler = new OSL::OSLCompiler(&OSL::ErrorHandler::default_handler());
-  bool ok = compiler->compile(string_view(inputfile), options, string_view(stdosl_path));
+  const bool ok = compiler->compile(string_view(inputfile), options, string_view(stdosl_path));
   delete compiler;
 
   return ok;
@@ -432,7 +433,7 @@ bool OSLShaderManager::osl_compile(const string &inputfile, const string &output
 
 bool OSLShaderManager::osl_query(OSL::OSLQuery &query, const string &filepath)
 {
-  string searchpath = path_user_get("shaders");
+  const string searchpath = path_user_get("shaders");
   return query.open(filepath, searchpath);
 }
 
@@ -448,26 +449,26 @@ static string shader_filepath_hash(const string &filepath, uint64_t modified_tim
 
 const char *OSLShaderManager::shader_test_loaded(const string &hash)
 {
-  map<string, OSLShaderInfo>::iterator it = loaded_shaders.find(hash);
+  const map<string, OSLShaderInfo>::iterator it = loaded_shaders.find(hash);
   return (it == loaded_shaders.end()) ? nullptr : it->first.c_str();
 }
 
 OSLShaderInfo *OSLShaderManager::shader_loaded_info(const string &hash)
 {
-  map<string, OSLShaderInfo>::iterator it = loaded_shaders.find(hash);
+  const map<string, OSLShaderInfo>::iterator it = loaded_shaders.find(hash);
   return (it == loaded_shaders.end()) ? nullptr : &it->second;
 }
 
 const char *OSLShaderManager::shader_load_filepath(string filepath)
 {
-  size_t len = filepath.size();
-  string extension = filepath.substr(len - 4);
+  const size_t len = filepath.size();
+  const string extension = filepath.substr(len - 4);
   uint64_t modified_time = path_modified_time(filepath);
 
   if (extension == ".osl") {
     /* .OSL File */
-    string osopath = filepath.substr(0, len - 4) + ".oso";
-    uint64_t oso_modified_time = path_modified_time(osopath);
+    const string osopath = filepath.substr(0, len - 4) + ".oso";
+    const uint64_t oso_modified_time = path_modified_time(osopath);
 
     /* test if we have loaded the corresponding .OSO already */
     if (oso_modified_time != 0) {
@@ -511,12 +512,12 @@ const char *OSLShaderManager::shader_load_filepath(string filepath)
   }
 
   /* read oso bytecode from file */
-  string bytecode_hash = shader_filepath_hash(filepath, modified_time);
+  const string bytecode_hash = shader_filepath_hash(filepath, modified_time);
   string bytecode;
 
   if (!path_read_text(filepath, bytecode)) {
     fprintf(stderr, "Cycles shader graph: failed to read file %s\n", filepath.c_str());
-    OSLShaderInfo info;
+    const OSLShaderInfo info;
     loaded_shaders[bytecode_hash] = info; /* to avoid repeat tries */
     return nullptr;
   }
@@ -598,7 +599,7 @@ OSLNode *OSLShaderManager::osl_node(ShaderGraph *graph,
   OSLNode *node = OSLNode::create(graph, num_inputs);
 
   /* add new sockets from parameters */
-  set<void *> used_sockets;
+  const set<void *> used_sockets;
 
   for (int i = 0; i < info->query.nparams(); i++) {
     const OSL::OSLQuery::Parameter *param = info->query.getparam(i);
@@ -853,7 +854,7 @@ void OSLCompiler::add(ShaderNode *node, const char *name, bool isfilepath)
         continue;
       }
 
-      string param_name = compatible_name(node, input);
+      const string param_name = compatible_name(node, input);
       const SocketType &socket = input->socket_type;
       switch (input->type()) {
         case SocketType::COLOR:
@@ -911,10 +912,10 @@ void OSLCompiler::add(ShaderNode *node, const char *name, bool isfilepath)
       }
 
       /* connect shaders */
-      string id_from = id(input->link->parent);
-      string id_to = id(node);
-      string param_from = compatible_name(input->link->parent, input->link);
-      string param_to = compatible_name(node, input);
+      const string id_from = id(input->link->parent);
+      const string id_to = id(node);
+      const string param_from = compatible_name(input->link->parent, input->link);
+      const string param_to = compatible_name(node, input);
 
       ss->ConnectShaders(*current_group, id_from, param_from, id_to, param_to);
     }
@@ -965,7 +966,7 @@ static TypeDesc array_typedesc(TypeDesc typedesc, int arraylength)
 
 void OSLCompiler::parameter(ShaderNode *node, const char *name)
 {
-  ustring uname = ustring(name);
+  const ustring uname = ustring(name);
   const SocketType &socket = *(node->type->find_input(uname));
 
   switch (socket.type) {
@@ -1023,7 +1024,7 @@ void OSLCompiler::parameter(ShaderNode *node, const char *name)
       break;
     }
     case SocketType::TRANSFORM: {
-      Transform value = node->get_transform(socket);
+      const Transform value = node->get_transform(socket);
       ProjectionTransform projection(value);
       projection = projection_transpose(projection);
       ss->Parameter(*current_group, uname, TypeMatrix, &projection);
@@ -1329,8 +1330,8 @@ void OSLCompiler::compile(Shader *shader)
     ShaderGraph *graph = shader->graph;
     ShaderNode *output = (graph) ? graph->output() : nullptr;
 
-    bool has_bump = (shader->get_displacement_method() != DISPLACE_TRUE) &&
-                    output->input("Surface")->link && output->input("Displacement")->link;
+    const bool has_bump = (shader->get_displacement_method() != DISPLACE_TRUE) &&
+                          output->input("Surface")->link && output->input("Displacement")->link;
 
     /* finalize */
     shader->graph->finalize(scene, has_bump, shader->get_displacement_method() == DISPLACE_BOTH);
@@ -1406,7 +1407,7 @@ void OSLCompiler::parameter_texture(const char *name, const ImageHandle &handle)
    * name, which ends up being used in OSLRenderServices::get_texture_handle
    * to get handle again. Note that this name must be unique between multiple
    * render sessions as the render services are shared. */
-  ustring filename(string_printf("@svm%d", texture_shared_unique_id++).c_str());
+  const ustring filename(string_printf("@svm%d", texture_shared_unique_id++).c_str());
   services->textures.insert(OSLUStringHash(filename),
                             new OSLTextureHandle(OSLTextureHandle::SVM, handle.get_svm_slots()));
   parameter(name, filename);
@@ -1415,7 +1416,7 @@ void OSLCompiler::parameter_texture(const char *name, const ImageHandle &handle)
 void OSLCompiler::parameter_texture_ies(const char *name, int svm_slot)
 {
   /* IES light textures stored in SVM. */
-  ustring filename(string_printf("@svm%d", texture_shared_unique_id++).c_str());
+  const ustring filename(string_printf("@svm%d", texture_shared_unique_id++).c_str());
   services->textures.insert(OSLUStringHash(filename),
                             new OSLTextureHandle(OSLTextureHandle::IES, svm_slot));
   parameter(name, filename);

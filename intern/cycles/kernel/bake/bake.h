@@ -18,7 +18,7 @@
 CCL_NAMESPACE_BEGIN
 
 ccl_device void kernel_displace_evaluate(KernelGlobals kg,
-                                         ccl_global const KernelShaderEvalInput *input,
+                                         const ccl_global KernelShaderEvalInput *input,
                                          ccl_global float *output,
                                          const int offset)
 {
@@ -52,7 +52,7 @@ ccl_device void kernel_displace_evaluate(KernelGlobals kg,
 }
 
 ccl_device void kernel_background_evaluate(KernelGlobals kg,
-                                           ccl_global const KernelShaderEvalInput *input,
+                                           const ccl_global KernelShaderEvalInput *input,
                                            ccl_global float *output,
                                            const int offset)
 {
@@ -84,7 +84,7 @@ ccl_device void kernel_background_evaluate(KernelGlobals kg,
   /* Ensure finite color, avoiding possible numerical instabilities in the path tracing kernels. */
   color = ensure_finite(color);
 
-  float3 color_rgb = spectrum_to_rgb(color);
+  const float3 color_rgb = spectrum_to_rgb(color);
 
   /* Write output. */
   output[offset * 3 + 0] += color_rgb.x;
@@ -94,7 +94,7 @@ ccl_device void kernel_background_evaluate(KernelGlobals kg,
 
 ccl_device void kernel_curve_shadow_transparency_evaluate(
     KernelGlobals kg,
-    ccl_global const KernelShaderEvalInput *input,
+    const ccl_global KernelShaderEvalInput *input,
     ccl_global float *output,
     const int offset)
 {

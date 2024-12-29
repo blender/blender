@@ -69,7 +69,7 @@ ccl_device void subsurface_random_walk_remap(const float albedo,
            blend * D * powf(atanf(E * albedo), F);
   *alpha = clamp(*alpha, 0.0f, 0.999999f);  // because of numerical precision
 
-  float sigma_t_prime = 1.0f / fmaxf(d, 1e-16f);
+  const float sigma_t_prime = 1.0f / fmaxf(d, 1e-16f);
   *sigma_t = sigma_t_prime / (1.0f - g);
 }
 
@@ -142,10 +142,11 @@ ccl_device_forceinline float diffusion_length_dwivedi(float alpha)
 
 ccl_device_forceinline float3 direction_from_cosine(float3 D, float cos_theta, float randv)
 {
-  float phi = M_2PI_F * randv;
-  float3 dir = spherical_cos_to_direction(cos_theta, phi);
+  const float phi = M_2PI_F * randv;
+  const float3 dir = spherical_cos_to_direction(cos_theta, phi);
 
-  float3 T, B;
+  float3 T;
+  float3 B;
   make_orthonormals(D, &T, &B);
   return to_global(dir, T, B, D);
 }
@@ -155,7 +156,7 @@ ccl_device_forceinline Spectrum subsurface_random_walk_pdf(Spectrum sigma_t,
                                                            bool hit,
                                                            ccl_private Spectrum *transmittance)
 {
-  Spectrum T = volume_color_transmittance(sigma_t, t);
+  const Spectrum T = volume_color_transmittance(sigma_t, t);
   if (transmittance) {
     *transmittance = T;
   }
@@ -200,10 +201,11 @@ ccl_device_inline bool subsurface_random_walk(KernelGlobals kg,
   const Spectrum radius = INTEGRATOR_STATE(state, subsurface, radius);
   const float anisotropy = INTEGRATOR_STATE(state, subsurface, anisotropy);
 
-  Spectrum sigma_t, alpha;
+  Spectrum sigma_t;
+  Spectrum alpha;
   Spectrum throughput = INTEGRATOR_STATE(state, path, throughput);
   subsurface_random_walk_coefficients(albedo, radius, anisotropy, &sigma_t, &alpha, &throughput);
-  Spectrum sigma_s = sigma_t * alpha;
+  const Spectrum sigma_s = sigma_t * alpha;
 
   /* Theoretically it should be better to use the exact alpha for the channel we're sampling at
    * each bounce, but in practice there doesn't seem to be a noticeable difference in exchange
@@ -238,10 +240,10 @@ ccl_device_inline bool subsurface_random_walk(KernelGlobals kg,
   const float guided_fraction = 1.0f - fmaxf(0.5f, powf(fabsf(anisotropy), 0.125f));
 
 #  ifdef SUBSURFACE_RANDOM_WALK_SIMILARITY_LEVEL
-  Spectrum sigma_s_star = sigma_s * (1.0f - anisotropy);
-  Spectrum sigma_t_star = sigma_t - sigma_s + sigma_s_star;
-  Spectrum sigma_t_org = sigma_t;
-  Spectrum sigma_s_org = sigma_s;
+  const Spectrum sigma_s_star = sigma_s * (1.0f - anisotropy);
+  const Spectrum sigma_t_star = sigma_t - sigma_s + sigma_s_star;
+  const Spectrum sigma_t_org = sigma_t;
+  const Spectrum sigma_s_org = sigma_s;
   const float anisotropy_org = anisotropy;
   const float guided_fraction_org = guided_fraction;
 #  endif
@@ -252,8 +254,10 @@ ccl_device_inline bool subsurface_random_walk(KernelGlobals kg,
 
 #  ifdef SUBSURFACE_RANDOM_WALK_SIMILARITY_LEVEL
     // shadow with local variables according to depth
-    float anisotropy, guided_fraction;
-    Spectrum sigma_s, sigma_t;
+    float anisotropy;
+    float guided_fraction;
+    Spectrum sigma_s;
+    Spectrum sigma_t;
     if (bounce <= SUBSURFACE_RANDOM_WALK_SIMILARITY_LEVEL) {
       anisotropy = anisotropy_org;
       guided_fraction = guided_fraction_org;
@@ -271,9 +275,9 @@ ccl_device_inline bool subsurface_random_walk(KernelGlobals kg,
     /* Sample color channel, use MIS with balance heuristic. */
     float rchannel = path_state_rng_1D(kg, &rng_state, PRNG_SUBSURFACE_COLOR_CHANNEL);
     Spectrum channel_pdf;
-    int channel = volume_sample_channel(alpha, throughput, &rchannel, &channel_pdf);
+    const int channel = volume_sample_channel(alpha, throughput, &rchannel, &channel_pdf);
     float sample_sigma_t = volume_channel_get(sigma_t, channel);
-    float randt = path_state_rng_1D(kg, &rng_state, PRNG_SUBSURFACE_SCATTER_DISTANCE);
+    const float randt = path_state_rng_1D(kg, &rng_state, PRNG_SUBSURFACE_SCATTER_DISTANCE);
 
     /* We need the result of the ray-cast to compute the full guided PDF, so just remember the
      * relevant terms to avoid recomputing them later. */
@@ -286,8 +290,8 @@ ccl_device_inline bool subsurface_random_walk(KernelGlobals kg,
     /* For the initial ray, we already know the direction, so just do classic distance sampling. */
     if (bounce > 0) {
       /* Decide whether we should use guided or classic sampling. */
-      bool guided = (path_state_rng_1D(kg, &rng_state, PRNG_SUBSURFACE_GUIDE_STRATEGY) <
-                     guided_fraction);
+      const bool guided = (path_state_rng_1D(kg, &rng_state, PRNG_SUBSURFACE_GUIDE_STRATEGY) <
+                           guided_fraction);
 
       /* Determine if we want to sample away from the incoming interface.
        * This only happens if we found a nearby opposite interface, and the probability for it
@@ -298,7 +302,7 @@ ccl_device_inline bool subsurface_random_walk(KernelGlobals kg,
         /* Compute distance of the random walk between the tangent plane at the starting point
          * and the assumed opposite interface (the parallel plane that contains the point we
          * found in our ray query for the opposite side). */
-        float x = clamp(dot(ray.P - P, -N), 0.0f, opposite_distance);
+        const float x = clamp(dot(ray.P - P, -N), 0.0f, opposite_distance);
         backward_fraction = 1.0f /
                             (1.0f + expf((opposite_distance - 2.0f * x) / diffusion_length));
         guide_backward = path_state_rng_1D(kg, &rng_state, PRNG_SUBSURFACE_GUIDE_DIRECTION) <
@@ -316,12 +320,13 @@ ccl_device_inline bool subsurface_random_walk(KernelGlobals kg,
         if (guide_backward) {
           cos_theta = -cos_theta;
         }
-        float3 newD = direction_from_cosine(N, cos_theta, rand_scatter.y);
+        const float3 newD = direction_from_cosine(N, cos_theta, rand_scatter.y);
         hg_pdf = phase_henyey_greenstein(dot(ray.D, newD), anisotropy);
         ray.D = newD;
       }
       else {
-        float3 newD = phase_henyey_greenstein_sample(ray.D, anisotropy, rand_scatter, &hg_pdf);
+        const float3 newD = phase_henyey_greenstein_sample(
+            ray.D, anisotropy, rand_scatter, &hg_pdf);
         cos_theta = dot(newD, N);
         ray.D = newD;
       }
@@ -399,7 +404,7 @@ ccl_device_inline bool subsurface_random_walk(KernelGlobals kg,
       if (have_opposite_interface) {
         /* First step of MIS: Depending on geometry we might have two methods for guided
          * sampling, so perform MIS between them. */
-        Spectrum back_pdf = subsurface_random_walk_pdf(
+        const Spectrum back_pdf = subsurface_random_walk_pdf(
             backward_stretching * sigma_t, t, hit, nullptr);
         guided_pdf = mix(
             guided_pdf * forward_pdf_factor, back_pdf * backward_pdf_factor, backward_fraction);

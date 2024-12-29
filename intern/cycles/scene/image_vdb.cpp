@@ -73,7 +73,7 @@ struct ToNanoOp {
 #      endif
 
         if constexpr (std::is_same_v<FloatGridType, openvdb::FloatGrid>) {
-          openvdb::FloatGrid floatgrid(*openvdb::gridConstPtrCast<GridType>(grid));
+          const openvdb::FloatGrid floatgrid(*openvdb::gridConstPtrCast<GridType>(grid));
           if (precision == 0) {
             nanogrid = createNanoGrid<openvdb::FloatGrid, nanovdb::FpN>(floatgrid);
           }
@@ -85,7 +85,7 @@ struct ToNanoOp {
           }
         }
         else if constexpr (std::is_same_v<FloatGridType, openvdb::Vec3fGrid>) {
-          openvdb::Vec3fGrid floatgrid(*openvdb::gridConstPtrCast<GridType>(grid));
+          const openvdb::Vec3fGrid floatgrid(*openvdb::gridConstPtrCast<GridType>(grid));
           nanogrid = createNanoGrid<openvdb::Vec3fGrid, nanovdb::Vec3f>(floatgrid,
                                                                         StatsMode::Disable);
         }

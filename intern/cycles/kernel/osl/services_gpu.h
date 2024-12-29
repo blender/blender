@@ -143,7 +143,7 @@ ccl_device_constant DeviceString u_path_transmission_depth = 1511340889232391762
 
 ccl_device_extern ccl_private OSLClosure *osl_mul_closure_color(ccl_private ShaderGlobals *sg,
                                                                 ccl_private OSLClosure *a,
-                                                                ccl_private const float3 *weight)
+                                                                const ccl_private float3 *weight)
 {
   if (*weight == zero_float3() || !a) {
     return nullptr;
@@ -249,7 +249,7 @@ ccl_device_extern ccl_private OSLClosure *osl_allocate_closure_component(
 }
 
 ccl_device_extern ccl_private OSLClosure *osl_allocate_weighted_closure_component(
-    ccl_private ShaderGlobals *sg, int id, int size, ccl_private const float3 *weight)
+    ccl_private ShaderGlobals *sg, int id, int size, const ccl_private float3 *weight)
 {
   ccl_private ShaderData *const sd = static_cast<ccl_private ShaderData *>(sg->renderstate);
 
@@ -480,12 +480,12 @@ ccl_device_forceinline void copy_matrix(ccl_private float *res, const Projection
   res[14] = tfm.z.w;
   res[15] = tfm.w.w;
 }
-ccl_device_forceinline Transform make_transform(ccl_private const float *m)
+ccl_device_forceinline Transform make_transform(const ccl_private float *m)
 {
   return make_transform(
       m[0], m[4], m[8], m[12], m[1], m[5], m[9], m[13], m[2], m[6], m[10], m[14]);
 }
-ccl_device_forceinline ProjectionTransform make_projection(ccl_private const float *m)
+ccl_device_forceinline ProjectionTransform make_projection(const ccl_private float *m)
 {
   return make_projection(m[0],
                          m[4],
@@ -506,15 +506,15 @@ ccl_device_forceinline ProjectionTransform make_projection(ccl_private const flo
 }
 
 ccl_device_extern void osl_mul_mmm(ccl_private float *res,
-                                   ccl_private const float *a,
-                                   ccl_private const float *b)
+                                   const ccl_private float *a,
+                                   const ccl_private float *b)
 {
   const ProjectionTransform tfm_a = make_projection(a);
   const ProjectionTransform tfm_b = make_projection(b);
   copy_matrix(res, tfm_a * tfm_b);
 }
 
-ccl_device_extern void osl_mul_mmf(ccl_private float *res, ccl_private const float *a, float b)
+ccl_device_extern void osl_mul_mmf(ccl_private float *res, const ccl_private float *a, float b)
 {
   for (int i = 0; i < 16; ++i) {
     res[i] = a[i] * b;
@@ -522,22 +522,22 @@ ccl_device_extern void osl_mul_mmf(ccl_private float *res, ccl_private const flo
 }
 
 ccl_device_extern void osl_div_mmm(ccl_private float *res,
-                                   ccl_private const float *a,
-                                   ccl_private const float *b)
+                                   const ccl_private float *a,
+                                   const ccl_private float *b)
 {
   const ProjectionTransform tfm_a = make_projection(a);
   const ProjectionTransform tfm_b = make_projection(b);
   copy_matrix(res, tfm_a * projection_inverse(tfm_b));
 }
 
-ccl_device_extern void osl_div_mmf(ccl_private float *res, ccl_private const float *a, float b)
+ccl_device_extern void osl_div_mmf(ccl_private float *res, const ccl_private float *a, float b)
 {
   for (int i = 0; i < 16; ++i) {
     res[i] = a[i] / b;
   }
 }
 
-ccl_device_extern void osl_div_mfm(ccl_private float *res, float a, ccl_private const float *b)
+ccl_device_extern void osl_div_mfm(ccl_private float *res, float a, const ccl_private float *b)
 {
   const ProjectionTransform tfm_b = make_projection(b);
   copy_matrix(res, projection_inverse(tfm_b));
@@ -556,16 +556,16 @@ ccl_device_extern void osl_div_m_ff(ccl_private float *res, float a, float b)
 }
 
 ccl_device_extern void osl_transform_vmv(ccl_private float3 *res,
-                                         ccl_private const float *m,
-                                         ccl_private const float3 *v)
+                                         const ccl_private float *m,
+                                         const ccl_private float3 *v)
 {
   const ProjectionTransform tfm_m = make_projection(m);
   *res = transform_perspective(&tfm_m, *v);
 }
 
 ccl_device_extern void osl_transform_dvmdv(ccl_private float3 *res,
-                                           ccl_private const float *m,
-                                           ccl_private const float3 *v)
+                                           const ccl_private float *m,
+                                           const ccl_private float3 *v)
 {
   for (int i = 0; i < 3; ++i) {
     osl_transform_vmv(res + i, m + i * 16, v + i);
@@ -573,16 +573,16 @@ ccl_device_extern void osl_transform_dvmdv(ccl_private float3 *res,
 }
 
 ccl_device_extern void osl_transformv_vmv(ccl_private float3 *res,
-                                          ccl_private const float *m,
-                                          ccl_private const float3 *v)
+                                          const ccl_private float *m,
+                                          const ccl_private float3 *v)
 {
   const Transform tfm_m = make_transform(m);
   *res = transform_direction(&tfm_m, *v);
 }
 
 ccl_device_extern void osl_transformv_dvmdv(ccl_private float3 *res,
-                                            ccl_private const float *m,
-                                            ccl_private const float3 *v)
+                                            const ccl_private float *m,
+                                            const ccl_private float3 *v)
 {
   for (int i = 0; i < 3; ++i) {
     osl_transformv_vmv(res + i, m + i * 16, v + i);
@@ -590,16 +590,16 @@ ccl_device_extern void osl_transformv_dvmdv(ccl_private float3 *res,
 }
 
 ccl_device_extern void osl_transformn_vmv(ccl_private float3 *res,
-                                          ccl_private const float *m,
-                                          ccl_private const float3 *v)
+                                          const ccl_private float *m,
+                                          const ccl_private float3 *v)
 {
   const Transform tfm_m = transform_inverse(make_transform(m));
   *res = transform_direction_transposed(&tfm_m, *v);
 }
 
 ccl_device_extern void osl_transformn_dvmdv(ccl_private float3 *res,
-                                            ccl_private const float *m,
-                                            ccl_private const float3 *v)
+                                            const ccl_private float *m,
+                                            const ccl_private float3 *v)
 {
   for (int i = 0; i < 3; ++i) {
     osl_transformn_vmv(res + i, m + i * 16, v + i);
@@ -803,9 +803,9 @@ ccl_device_extern bool osl_transform_triple_nonlinear(ccl_private ShaderGlobals 
   return osl_transform_triple(sg, p_in, p_in_derivs, p_out, p_out_derivs, from, to, vectype);
 }
 
-ccl_device_extern void osl_transpose_mm(ccl_private float *res, ccl_private const float *m)
+ccl_device_extern void osl_transpose_mm(ccl_private float *res, const ccl_private float *m)
 {
-  copy_matrix(res, *reinterpret_cast<ccl_private const ProjectionTransform *>(m));
+  copy_matrix(res, *reinterpret_cast<const ccl_private ProjectionTransform *>(m));
 }
 
 #if 0
@@ -1016,7 +1016,7 @@ ccl_device_inline bool set_attribute_float4(ccl_private float4 fval[3],
 
   return false;
 }
-ccl_device_inline bool set_attribute_matrix(ccl_private const Transform &tfm,
+ccl_device_inline bool set_attribute_matrix(const ccl_private Transform &tfm,
                                             TypeDesc type,
                                             ccl_private void *val)
 {
@@ -1335,12 +1335,12 @@ ccl_device_extern uint osl_hash_iff(float x, float y)
   return hash_uint2(__float_as_uint(x), __float_as_uint(y));
 }
 
-ccl_device_extern uint osl_hash_iv(ccl_private const float3 *v)
+ccl_device_extern uint osl_hash_iv(const ccl_private float3 *v)
 {
   return hash_uint3(__float_as_uint(v->x), __float_as_uint(v->y), __float_as_uint(v->z));
 }
 
-ccl_device_extern uint osl_hash_ivf(ccl_private const float3 *v, float w)
+ccl_device_extern uint osl_hash_ivf(const ccl_private float3 *v, float w)
 {
   return hash_uint4(
       __float_as_uint(v->x), __float_as_uint(v->y), __float_as_uint(v->z), __float_as_uint(w));
@@ -1678,10 +1678,10 @@ ccl_device_extern bool osl_texture3d(ccl_private ShaderGlobals *sg,
                                      DeviceString filename,
                                      ccl_private void *texture_handle,
                                      ccl_private OSLTextureOptions *opt,
-                                     ccl_private const float3 *P,
-                                     ccl_private const float3 *dPdx,
-                                     ccl_private const float3 *dPdy,
-                                     ccl_private const float3 *dPdz,
+                                     const ccl_private float3 *P,
+                                     const ccl_private float3 *dPdx,
+                                     const ccl_private float3 *dPdy,
+                                     const ccl_private float3 *dPdz,
                                      int nchannels,
                                      ccl_private float *result,
                                      ccl_private float *dresultds,
@@ -1721,9 +1721,9 @@ ccl_device_extern bool osl_environment(ccl_private ShaderGlobals *sg,
                                        DeviceString filename,
                                        ccl_private void *texture_handle,
                                        ccl_private OSLTextureOptions *opt,
-                                       ccl_private const float3 *R,
-                                       ccl_private const float3 *dRdx,
-                                       ccl_private const float3 *dRdy,
+                                       const ccl_private float3 *R,
+                                       const ccl_private float3 *dRdx,
+                                       const ccl_private float3 *dRdy,
                                        int nchannels,
                                        ccl_private float *result,
                                        ccl_private float *dresultds,
@@ -2122,7 +2122,7 @@ ccl_device_extern void osl_sincos_fff(float a, ccl_private float *b, ccl_private
 {
   sincos(a, b, c);
 }
-ccl_device_extern void osl_sincos_dfdff(ccl_private const float *a,
+ccl_device_extern void osl_sincos_dfdff(const ccl_private float *a,
                                         ccl_private float *b,
                                         ccl_private float *c)
 {
@@ -2130,7 +2130,7 @@ ccl_device_extern void osl_sincos_dfdff(ccl_private const float *a,
     sincos(a[i], b + i, c);
   }
 }
-ccl_device_extern void osl_sincos_dffdf(ccl_private const float *a,
+ccl_device_extern void osl_sincos_dffdf(const ccl_private float *a,
                                         ccl_private float *b,
                                         ccl_private float *c)
 {
@@ -2138,7 +2138,7 @@ ccl_device_extern void osl_sincos_dffdf(ccl_private const float *a,
     sincos(a[i], b, c + i);
   }
 }
-ccl_device_extern void osl_sincos_dfdfdf(ccl_private const float *a,
+ccl_device_extern void osl_sincos_dfdfdf(const ccl_private float *a,
                                          ccl_private float *b,
                                          ccl_private float *c)
 {
@@ -2146,7 +2146,7 @@ ccl_device_extern void osl_sincos_dfdfdf(ccl_private const float *a,
     sincos(a[i], b + i, c + i);
   }
 }
-ccl_device_extern void osl_sincos_vvv(ccl_private const float3 *a,
+ccl_device_extern void osl_sincos_vvv(const ccl_private float3 *a,
                                       ccl_private float3 *b,
                                       ccl_private float3 *c)
 {
@@ -2154,7 +2154,7 @@ ccl_device_extern void osl_sincos_vvv(ccl_private const float3 *a,
   sincos(a->y, &b->y, &c->y);
   sincos(a->z, &b->z, &c->z);
 }
-ccl_device_extern void osl_sincos_dvdvv(ccl_private const float3 *a,
+ccl_device_extern void osl_sincos_dvdvv(const ccl_private float3 *a,
                                         ccl_private float3 *b,
                                         ccl_private float3 *c)
 {
@@ -2164,7 +2164,7 @@ ccl_device_extern void osl_sincos_dvdvv(ccl_private const float3 *a,
     sincos(a[i].z, &b[i].z, &c->z);
   }
 }
-ccl_device_extern void osl_sincos_dvvdv(ccl_private const float3 *a,
+ccl_device_extern void osl_sincos_dvvdv(const ccl_private float3 *a,
                                         ccl_private float3 *b,
                                         ccl_private float3 *c)
 {
@@ -2174,7 +2174,7 @@ ccl_device_extern void osl_sincos_dvvdv(ccl_private const float3 *a,
     sincos(a[i].z, &b->z, &c[i].z);
   }
 }
-ccl_device_extern void osl_sincos_dvdvdv(ccl_private const float3 *a,
+ccl_device_extern void osl_sincos_dvdvdv(const ccl_private float3 *a,
                                          ccl_private float3 *b,
                                          ccl_private float3 *c)
 {
@@ -2268,7 +2268,7 @@ OSL_OP_IMPL_DVDV(osl_normalize, safe_normalize)
 
 ccl_device_extern void osl_calculatenormal(ccl_private float3 *res,
                                            ccl_private ShaderGlobals *sg,
-                                           ccl_private const float3 *p)
+                                           const ccl_private float3 *p)
 {
   if (sg->flipHandedness) {
     *res = cross(p[2], p[1]);
@@ -2278,17 +2278,17 @@ ccl_device_extern void osl_calculatenormal(ccl_private float3 *res,
   }
 }
 
-ccl_device_extern float osl_area(ccl_private const float3 *p)
+ccl_device_extern float osl_area(const ccl_private float3 *p)
 {
   return len(cross(p[2], p[1]));
 }
 
-ccl_device_extern float osl_filterwidth_fdf(ccl_private const float *x)
+ccl_device_extern float osl_filterwidth_fdf(const ccl_private float *x)
 {
   return sqrtf(x[1] * x[1] + x[2] * x[2]);
 }
 
-ccl_device_extern void osl_filterwidth_vdv(ccl_private float *res, ccl_private const float *x)
+ccl_device_extern void osl_filterwidth_vdv(ccl_private float *res, const ccl_private float *x)
 {
   for (int i = 0; i < 3; ++i) {
     res[i] = osl_filterwidth_fdf(x + i);

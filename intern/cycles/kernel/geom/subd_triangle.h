@@ -17,10 +17,10 @@ CCL_NAMESPACE_BEGIN
 /* UV coords of triangle within patch */
 
 ccl_device_inline void subd_triangle_patch_uv(KernelGlobals kg,
-                                              ccl_private const ShaderData *sd,
+                                              const ccl_private ShaderData *sd,
                                               float2 uv[3])
 {
-  uint3 tri_vindex = kernel_data_fetch(tri_vindex, sd->prim);
+  const uint3 tri_vindex = kernel_data_fetch(tri_vindex, sd->prim);
 
   uv[0] = kernel_data_fetch(tri_patch_uv, tri_vindex.x);
   uv[1] = kernel_data_fetch(tri_patch_uv, tri_vindex.y);
@@ -66,7 +66,7 @@ ccl_device_inline void subd_triangle_patch_corners(KernelGlobals kg, int patch, 
   data.z = kernel_data_fetch(patches, patch + 6);
   data.w = kernel_data_fetch(patches, patch + 7);
 
-  int num_corners = data.y & 0xffff;
+  const int num_corners = data.y & 0xffff;
 
   if (num_corners == 4) {
     /* quad */
@@ -77,7 +77,7 @@ ccl_device_inline void subd_triangle_patch_corners(KernelGlobals kg, int patch, 
   }
   else {
     /* ngon */
-    int c = data.y >> 16;
+    const int c = data.y >> 16;
 
     corners[0] = data.z + c;
     corners[1] = data.z + mod(c + 1, num_corners);
@@ -89,49 +89,51 @@ ccl_device_inline void subd_triangle_patch_corners(KernelGlobals kg, int patch, 
 /* Reading attributes on various subdivision triangle elements */
 
 ccl_device_noinline float subd_triangle_attribute_float(KernelGlobals kg,
-                                                        ccl_private const ShaderData *sd,
+                                                        const ccl_private ShaderData *sd,
                                                         const AttributeDescriptor desc,
                                                         ccl_private float *dx,
                                                         ccl_private float *dy)
 {
-  int patch = subd_triangle_patch(kg, sd->prim);
+  const int patch = subd_triangle_patch(kg, sd->prim);
 
 #ifdef __PATCH_EVAL__
   if (desc.flags & ATTR_SUBDIVIDED) {
     float2 uv[3];
     subd_triangle_patch_uv(kg, sd, uv);
 
-    float2 dpdu = uv[1] - uv[0];
-    float2 dpdv = uv[2] - uv[0];
+    const float2 dpdu = uv[1] - uv[0];
+    const float2 dpdv = uv[2] - uv[0];
 
     /* p is [s, t] */
-    float2 p = dpdu * sd->u + dpdv * sd->v + uv[0];
+    const float2 p = dpdu * sd->u + dpdv * sd->v + uv[0];
 
-    float a, dads, dadt;
+    float a;
+    float dads;
+    float dadt;
     a = patch_eval_float(kg, sd, desc.offset, patch, p.x, p.y, 0, &dads, &dadt);
 
 #  ifdef __RAY_DIFFERENTIALS__
     if (dx || dy) {
-      float dsdu = dpdu.x;
-      float dtdu = dpdu.y;
-      float dsdv = dpdv.x;
-      float dtdv = dpdv.y;
+      const float dsdu = dpdu.x;
+      const float dtdu = dpdu.y;
+      const float dsdv = dpdv.x;
+      const float dtdv = dpdv.y;
 
       if (dx) {
-        float dudx = sd->du.dx;
-        float dvdx = sd->dv.dx;
+        const float dudx = sd->du.dx;
+        const float dvdx = sd->dv.dx;
 
-        float dsdx = dsdu * dudx + dsdv * dvdx;
-        float dtdx = dtdu * dudx + dtdv * dvdx;
+        const float dsdx = dsdu * dudx + dsdv * dvdx;
+        const float dtdx = dtdu * dudx + dtdv * dvdx;
 
         *dx = dads * dsdx + dadt * dtdx;
       }
       if (dy) {
-        float dudy = sd->du.dy;
-        float dvdy = sd->dv.dy;
+        const float dudy = sd->du.dy;
+        const float dvdy = sd->dv.dy;
 
-        float dsdy = dsdu * dudy + dsdv * dvdy;
-        float dtdy = dtdu * dudy + dtdv * dvdy;
+        const float dsdy = dsdu * dudy + dsdv * dvdy;
+        const float dtdy = dtdu * dudy + dtdv * dvdy;
 
         *dy = dads * dsdy + dadt * dtdy;
       }
@@ -155,11 +157,11 @@ ccl_device_noinline float subd_triangle_attribute_float(KernelGlobals kg,
     float2 uv[3];
     subd_triangle_patch_uv(kg, sd, uv);
 
-    uint4 v = subd_triangle_patch_indices(kg, patch);
+    const uint4 v = subd_triangle_patch_indices(kg, patch);
 
-    float f0 = kernel_data_fetch(attributes_float, desc.offset + v.x);
+    const float f0 = kernel_data_fetch(attributes_float, desc.offset + v.x);
     float f1 = kernel_data_fetch(attributes_float, desc.offset + v.y);
-    float f2 = kernel_data_fetch(attributes_float, desc.offset + v.z);
+    const float f2 = kernel_data_fetch(attributes_float, desc.offset + v.z);
     float f3 = kernel_data_fetch(attributes_float, desc.offset + v.w);
 
     if (subd_triangle_patch_num_corners(kg, patch) != 4) {
@@ -167,9 +169,9 @@ ccl_device_noinline float subd_triangle_attribute_float(KernelGlobals kg,
       f3 = (f3 + f0) * 0.5f;
     }
 
-    float a = mix(mix(f0, f1, uv[0].x), mix(f3, f2, uv[0].x), uv[0].y);
-    float b = mix(mix(f0, f1, uv[1].x), mix(f3, f2, uv[1].x), uv[1].y);
-    float c = mix(mix(f0, f1, uv[2].x), mix(f3, f2, uv[2].x), uv[2].y);
+    const float a = mix(mix(f0, f1, uv[0].x), mix(f3, f2, uv[0].x), uv[0].y);
+    const float b = mix(mix(f0, f1, uv[1].x), mix(f3, f2, uv[1].x), uv[1].y);
+    const float c = mix(mix(f0, f1, uv[2].x), mix(f3, f2, uv[2].x), uv[2].y);
 
 #ifdef __RAY_DIFFERENTIALS__
     if (dx) {
@@ -189,9 +191,9 @@ ccl_device_noinline float subd_triangle_attribute_float(KernelGlobals kg,
     int corners[4];
     subd_triangle_patch_corners(kg, patch, corners);
 
-    float f0 = kernel_data_fetch(attributes_float, corners[0] + desc.offset);
+    const float f0 = kernel_data_fetch(attributes_float, corners[0] + desc.offset);
     float f1 = kernel_data_fetch(attributes_float, corners[1] + desc.offset);
-    float f2 = kernel_data_fetch(attributes_float, corners[2] + desc.offset);
+    const float f2 = kernel_data_fetch(attributes_float, corners[2] + desc.offset);
     float f3 = kernel_data_fetch(attributes_float, corners[3] + desc.offset);
 
     if (subd_triangle_patch_num_corners(kg, patch) != 4) {
@@ -199,9 +201,9 @@ ccl_device_noinline float subd_triangle_attribute_float(KernelGlobals kg,
       f3 = (f3 + f0) * 0.5f;
     }
 
-    float a = mix(mix(f0, f1, uv[0].x), mix(f3, f2, uv[0].x), uv[0].y);
-    float b = mix(mix(f0, f1, uv[1].x), mix(f3, f2, uv[1].x), uv[1].y);
-    float c = mix(mix(f0, f1, uv[2].x), mix(f3, f2, uv[2].x), uv[2].y);
+    const float a = mix(mix(f0, f1, uv[0].x), mix(f3, f2, uv[0].x), uv[0].y);
+    const float b = mix(mix(f0, f1, uv[1].x), mix(f3, f2, uv[1].x), uv[1].y);
+    const float c = mix(mix(f0, f1, uv[2].x), mix(f3, f2, uv[2].x), uv[2].y);
 
 #ifdef __RAY_DIFFERENTIALS__
     if (dx) {
@@ -235,50 +237,52 @@ ccl_device_noinline float subd_triangle_attribute_float(KernelGlobals kg,
 }
 
 ccl_device_noinline float2 subd_triangle_attribute_float2(KernelGlobals kg,
-                                                          ccl_private const ShaderData *sd,
+                                                          const ccl_private ShaderData *sd,
                                                           const AttributeDescriptor desc,
                                                           ccl_private float2 *dx,
                                                           ccl_private float2 *dy)
 {
-  int patch = subd_triangle_patch(kg, sd->prim);
+  const int patch = subd_triangle_patch(kg, sd->prim);
 
 #ifdef __PATCH_EVAL__
   if (desc.flags & ATTR_SUBDIVIDED) {
     float2 uv[3];
     subd_triangle_patch_uv(kg, sd, uv);
 
-    float2 dpdu = uv[1] - uv[0];
-    float2 dpdv = uv[2] - uv[0];
+    const float2 dpdu = uv[1] - uv[0];
+    const float2 dpdv = uv[2] - uv[0];
 
     /* p is [s, t] */
-    float2 p = dpdu * sd->u + dpdv * sd->v + uv[0];
+    const float2 p = dpdu * sd->u + dpdv * sd->v + uv[0];
 
-    float2 a, dads, dadt;
+    float2 a;
+    float2 dads;
+    float2 dadt;
 
     a = patch_eval_float2(kg, sd, desc.offset, patch, p.x, p.y, 0, &dads, &dadt);
 
 #  ifdef __RAY_DIFFERENTIALS__
     if (dx || dy) {
-      float dsdu = dpdu.x;
-      float dtdu = dpdu.y;
-      float dsdv = dpdv.x;
-      float dtdv = dpdv.y;
+      const float dsdu = dpdu.x;
+      const float dtdu = dpdu.y;
+      const float dsdv = dpdv.x;
+      const float dtdv = dpdv.y;
 
       if (dx) {
-        float dudx = sd->du.dx;
-        float dvdx = sd->dv.dx;
+        const float dudx = sd->du.dx;
+        const float dvdx = sd->dv.dx;
 
-        float dsdx = dsdu * dudx + dsdv * dvdx;
-        float dtdx = dtdu * dudx + dtdv * dvdx;
+        const float dsdx = dsdu * dudx + dsdv * dvdx;
+        const float dtdx = dtdu * dudx + dtdv * dvdx;
 
         *dx = dads * dsdx + dadt * dtdx;
       }
       if (dy) {
-        float dudy = sd->du.dy;
-        float dvdy = sd->dv.dy;
+        const float dudy = sd->du.dy;
+        const float dvdy = sd->dv.dy;
 
-        float dsdy = dsdu * dudy + dsdv * dvdy;
-        float dtdy = dtdu * dudy + dtdv * dvdy;
+        const float dsdy = dsdu * dudy + dsdv * dvdy;
+        const float dtdy = dtdu * dudy + dtdv * dvdy;
 
         *dy = dads * dsdy + dadt * dtdy;
       }
@@ -302,11 +306,11 @@ ccl_device_noinline float2 subd_triangle_attribute_float2(KernelGlobals kg,
     float2 uv[3];
     subd_triangle_patch_uv(kg, sd, uv);
 
-    uint4 v = subd_triangle_patch_indices(kg, patch);
+    const uint4 v = subd_triangle_patch_indices(kg, patch);
 
-    float2 f0 = kernel_data_fetch(attributes_float2, desc.offset + v.x);
+    const float2 f0 = kernel_data_fetch(attributes_float2, desc.offset + v.x);
     float2 f1 = kernel_data_fetch(attributes_float2, desc.offset + v.y);
-    float2 f2 = kernel_data_fetch(attributes_float2, desc.offset + v.z);
+    const float2 f2 = kernel_data_fetch(attributes_float2, desc.offset + v.z);
     float2 f3 = kernel_data_fetch(attributes_float2, desc.offset + v.w);
 
     if (subd_triangle_patch_num_corners(kg, patch) != 4) {
@@ -314,9 +318,9 @@ ccl_device_noinline float2 subd_triangle_attribute_float2(KernelGlobals kg,
       f3 = (f3 + f0) * 0.5f;
     }
 
-    float2 a = mix(mix(f0, f1, uv[0].x), mix(f3, f2, uv[0].x), uv[0].y);
-    float2 b = mix(mix(f0, f1, uv[1].x), mix(f3, f2, uv[1].x), uv[1].y);
-    float2 c = mix(mix(f0, f1, uv[2].x), mix(f3, f2, uv[2].x), uv[2].y);
+    const float2 a = mix(mix(f0, f1, uv[0].x), mix(f3, f2, uv[0].x), uv[0].y);
+    const float2 b = mix(mix(f0, f1, uv[1].x), mix(f3, f2, uv[1].x), uv[1].y);
+    const float2 c = mix(mix(f0, f1, uv[2].x), mix(f3, f2, uv[2].x), uv[2].y);
 
 #ifdef __RAY_DIFFERENTIALS__
     if (dx) {
@@ -336,7 +340,10 @@ ccl_device_noinline float2 subd_triangle_attribute_float2(KernelGlobals kg,
     int corners[4];
     subd_triangle_patch_corners(kg, patch, corners);
 
-    float2 f0, f1, f2, f3;
+    float2 f0;
+    float2 f1;
+    float2 f2;
+    float2 f3;
 
     f0 = kernel_data_fetch(attributes_float2, corners[0] + desc.offset);
     f1 = kernel_data_fetch(attributes_float2, corners[1] + desc.offset);
@@ -348,9 +355,9 @@ ccl_device_noinline float2 subd_triangle_attribute_float2(KernelGlobals kg,
       f3 = (f3 + f0) * 0.5f;
     }
 
-    float2 a = mix(mix(f0, f1, uv[0].x), mix(f3, f2, uv[0].x), uv[0].y);
-    float2 b = mix(mix(f0, f1, uv[1].x), mix(f3, f2, uv[1].x), uv[1].y);
-    float2 c = mix(mix(f0, f1, uv[2].x), mix(f3, f2, uv[2].x), uv[2].y);
+    const float2 a = mix(mix(f0, f1, uv[0].x), mix(f3, f2, uv[0].x), uv[0].y);
+    const float2 b = mix(mix(f0, f1, uv[1].x), mix(f3, f2, uv[1].x), uv[1].y);
+    const float2 c = mix(mix(f0, f1, uv[2].x), mix(f3, f2, uv[2].x), uv[2].y);
 
 #ifdef __RAY_DIFFERENTIALS__
     if (dx) {
@@ -385,49 +392,51 @@ ccl_device_noinline float2 subd_triangle_attribute_float2(KernelGlobals kg,
 }
 
 ccl_device_noinline float3 subd_triangle_attribute_float3(KernelGlobals kg,
-                                                          ccl_private const ShaderData *sd,
+                                                          const ccl_private ShaderData *sd,
                                                           const AttributeDescriptor desc,
                                                           ccl_private float3 *dx,
                                                           ccl_private float3 *dy)
 {
-  int patch = subd_triangle_patch(kg, sd->prim);
+  const int patch = subd_triangle_patch(kg, sd->prim);
 
 #ifdef __PATCH_EVAL__
   if (desc.flags & ATTR_SUBDIVIDED) {
     float2 uv[3];
     subd_triangle_patch_uv(kg, sd, uv);
 
-    float2 dpdu = uv[1] - uv[0];
-    float2 dpdv = uv[2] - uv[0];
+    const float2 dpdu = uv[1] - uv[0];
+    const float2 dpdv = uv[2] - uv[0];
 
     /* p is [s, t] */
-    float2 p = dpdu * sd->u + dpdv * sd->v + uv[0];
+    const float2 p = dpdu * sd->u + dpdv * sd->v + uv[0];
 
-    float3 a, dads, dadt;
+    float3 a;
+    float3 dads;
+    float3 dadt;
     a = patch_eval_float3(kg, sd, desc.offset, patch, p.x, p.y, 0, &dads, &dadt);
 
 #  ifdef __RAY_DIFFERENTIALS__
     if (dx || dy) {
-      float dsdu = dpdu.x;
-      float dtdu = dpdu.y;
-      float dsdv = dpdv.x;
-      float dtdv = dpdv.y;
+      const float dsdu = dpdu.x;
+      const float dtdu = dpdu.y;
+      const float dsdv = dpdv.x;
+      const float dtdv = dpdv.y;
 
       if (dx) {
-        float dudx = sd->du.dx;
-        float dvdx = sd->dv.dx;
+        const float dudx = sd->du.dx;
+        const float dvdx = sd->dv.dx;
 
-        float dsdx = dsdu * dudx + dsdv * dvdx;
-        float dtdx = dtdu * dudx + dtdv * dvdx;
+        const float dsdx = dsdu * dudx + dsdv * dvdx;
+        const float dtdx = dtdu * dudx + dtdv * dvdx;
 
         *dx = dads * dsdx + dadt * dtdx;
       }
       if (dy) {
-        float dudy = sd->du.dy;
-        float dvdy = sd->dv.dy;
+        const float dudy = sd->du.dy;
+        const float dvdy = sd->dv.dy;
 
-        float dsdy = dsdu * dudy + dsdv * dvdy;
-        float dtdy = dtdu * dudy + dtdv * dvdy;
+        const float dsdy = dsdu * dudy + dsdv * dvdy;
+        const float dtdy = dtdu * dudy + dtdv * dvdy;
 
         *dy = dads * dsdy + dadt * dtdy;
       }
@@ -451,11 +460,11 @@ ccl_device_noinline float3 subd_triangle_attribute_float3(KernelGlobals kg,
     float2 uv[3];
     subd_triangle_patch_uv(kg, sd, uv);
 
-    uint4 v = subd_triangle_patch_indices(kg, patch);
+    const uint4 v = subd_triangle_patch_indices(kg, patch);
 
-    float3 f0 = kernel_data_fetch(attributes_float3, desc.offset + v.x);
+    const float3 f0 = kernel_data_fetch(attributes_float3, desc.offset + v.x);
     float3 f1 = kernel_data_fetch(attributes_float3, desc.offset + v.y);
-    float3 f2 = kernel_data_fetch(attributes_float3, desc.offset + v.z);
+    const float3 f2 = kernel_data_fetch(attributes_float3, desc.offset + v.z);
     float3 f3 = kernel_data_fetch(attributes_float3, desc.offset + v.w);
 
     if (subd_triangle_patch_num_corners(kg, patch) != 4) {
@@ -463,9 +472,9 @@ ccl_device_noinline float3 subd_triangle_attribute_float3(KernelGlobals kg,
       f3 = (f3 + f0) * 0.5f;
     }
 
-    float3 a = mix(mix(f0, f1, uv[0].x), mix(f3, f2, uv[0].x), uv[0].y);
-    float3 b = mix(mix(f0, f1, uv[1].x), mix(f3, f2, uv[1].x), uv[1].y);
-    float3 c = mix(mix(f0, f1, uv[2].x), mix(f3, f2, uv[2].x), uv[2].y);
+    const float3 a = mix(mix(f0, f1, uv[0].x), mix(f3, f2, uv[0].x), uv[0].y);
+    const float3 b = mix(mix(f0, f1, uv[1].x), mix(f3, f2, uv[1].x), uv[1].y);
+    const float3 c = mix(mix(f0, f1, uv[2].x), mix(f3, f2, uv[2].x), uv[2].y);
 
 #ifdef __RAY_DIFFERENTIALS__
     if (dx) {
@@ -485,7 +494,10 @@ ccl_device_noinline float3 subd_triangle_attribute_float3(KernelGlobals kg,
     int corners[4];
     subd_triangle_patch_corners(kg, patch, corners);
 
-    float3 f0, f1, f2, f3;
+    float3 f0;
+    float3 f1;
+    float3 f2;
+    float3 f3;
 
     f0 = kernel_data_fetch(attributes_float3, corners[0] + desc.offset);
     f1 = kernel_data_fetch(attributes_float3, corners[1] + desc.offset);
@@ -497,9 +509,9 @@ ccl_device_noinline float3 subd_triangle_attribute_float3(KernelGlobals kg,
       f3 = (f3 + f0) * 0.5f;
     }
 
-    float3 a = mix(mix(f0, f1, uv[0].x), mix(f3, f2, uv[0].x), uv[0].y);
-    float3 b = mix(mix(f0, f1, uv[1].x), mix(f3, f2, uv[1].x), uv[1].y);
-    float3 c = mix(mix(f0, f1, uv[2].x), mix(f3, f2, uv[2].x), uv[2].y);
+    const float3 a = mix(mix(f0, f1, uv[0].x), mix(f3, f2, uv[0].x), uv[0].y);
+    const float3 b = mix(mix(f0, f1, uv[1].x), mix(f3, f2, uv[1].x), uv[1].y);
+    const float3 c = mix(mix(f0, f1, uv[2].x), mix(f3, f2, uv[2].x), uv[2].y);
 
 #ifdef __RAY_DIFFERENTIALS__
     if (dx) {
@@ -533,25 +545,27 @@ ccl_device_noinline float3 subd_triangle_attribute_float3(KernelGlobals kg,
 }
 
 ccl_device_noinline float4 subd_triangle_attribute_float4(KernelGlobals kg,
-                                                          ccl_private const ShaderData *sd,
+                                                          const ccl_private ShaderData *sd,
                                                           const AttributeDescriptor desc,
                                                           ccl_private float4 *dx,
                                                           ccl_private float4 *dy)
 {
-  int patch = subd_triangle_patch(kg, sd->prim);
+  const int patch = subd_triangle_patch(kg, sd->prim);
 
 #ifdef __PATCH_EVAL__
   if (desc.flags & ATTR_SUBDIVIDED) {
     float2 uv[3];
     subd_triangle_patch_uv(kg, sd, uv);
 
-    float2 dpdu = uv[1] - uv[0];
-    float2 dpdv = uv[2] - uv[0];
+    const float2 dpdu = uv[1] - uv[0];
+    const float2 dpdv = uv[2] - uv[0];
 
     /* p is [s, t] */
-    float2 p = dpdu * sd->u + dpdv * sd->v + uv[0];
+    const float2 p = dpdu * sd->u + dpdv * sd->v + uv[0];
 
-    float4 a, dads, dadt;
+    float4 a;
+    float4 dads;
+    float4 dadt;
     if (desc.type == NODE_ATTR_RGBA) {
       a = patch_eval_uchar4(kg, sd, desc.offset, patch, p.x, p.y, 0, &dads, &dadt);
     }
@@ -561,26 +575,26 @@ ccl_device_noinline float4 subd_triangle_attribute_float4(KernelGlobals kg,
 
 #  ifdef __RAY_DIFFERENTIALS__
     if (dx || dy) {
-      float dsdu = dpdu.x;
-      float dtdu = dpdu.y;
-      float dsdv = dpdv.x;
-      float dtdv = dpdv.y;
+      const float dsdu = dpdu.x;
+      const float dtdu = dpdu.y;
+      const float dsdv = dpdv.x;
+      const float dtdv = dpdv.y;
 
       if (dx) {
-        float dudx = sd->du.dx;
-        float dvdx = sd->dv.dx;
+        const float dudx = sd->du.dx;
+        const float dvdx = sd->dv.dx;
 
-        float dsdx = dsdu * dudx + dsdv * dvdx;
-        float dtdx = dtdu * dudx + dtdv * dvdx;
+        const float dsdx = dsdu * dudx + dsdv * dvdx;
+        const float dtdx = dtdu * dudx + dtdv * dvdx;
 
         *dx = dads * dsdx + dadt * dtdx;
       }
       if (dy) {
-        float dudy = sd->du.dy;
-        float dvdy = sd->dv.dy;
+        const float dudy = sd->du.dy;
+        const float dvdy = sd->dv.dy;
 
-        float dsdy = dsdu * dudy + dsdv * dvdy;
-        float dtdy = dtdu * dudy + dtdv * dvdy;
+        const float dsdy = dsdu * dudy + dsdv * dvdy;
+        const float dtdy = dtdu * dudy + dtdv * dvdy;
 
         *dy = dads * dsdy + dadt * dtdy;
       }
@@ -604,11 +618,11 @@ ccl_device_noinline float4 subd_triangle_attribute_float4(KernelGlobals kg,
     float2 uv[3];
     subd_triangle_patch_uv(kg, sd, uv);
 
-    uint4 v = subd_triangle_patch_indices(kg, patch);
+    const uint4 v = subd_triangle_patch_indices(kg, patch);
 
-    float4 f0 = kernel_data_fetch(attributes_float4, desc.offset + v.x);
+    const float4 f0 = kernel_data_fetch(attributes_float4, desc.offset + v.x);
     float4 f1 = kernel_data_fetch(attributes_float4, desc.offset + v.y);
-    float4 f2 = kernel_data_fetch(attributes_float4, desc.offset + v.z);
+    const float4 f2 = kernel_data_fetch(attributes_float4, desc.offset + v.z);
     float4 f3 = kernel_data_fetch(attributes_float4, desc.offset + v.w);
 
     if (subd_triangle_patch_num_corners(kg, patch) != 4) {
@@ -616,9 +630,9 @@ ccl_device_noinline float4 subd_triangle_attribute_float4(KernelGlobals kg,
       f3 = (f3 + f0) * 0.5f;
     }
 
-    float4 a = mix(mix(f0, f1, uv[0].x), mix(f3, f2, uv[0].x), uv[0].y);
-    float4 b = mix(mix(f0, f1, uv[1].x), mix(f3, f2, uv[1].x), uv[1].y);
-    float4 c = mix(mix(f0, f1, uv[2].x), mix(f3, f2, uv[2].x), uv[2].y);
+    const float4 a = mix(mix(f0, f1, uv[0].x), mix(f3, f2, uv[0].x), uv[0].y);
+    const float4 b = mix(mix(f0, f1, uv[1].x), mix(f3, f2, uv[1].x), uv[1].y);
+    const float4 c = mix(mix(f0, f1, uv[2].x), mix(f3, f2, uv[2].x), uv[2].y);
 
 #ifdef __RAY_DIFFERENTIALS__
     if (dx) {
@@ -638,7 +652,10 @@ ccl_device_noinline float4 subd_triangle_attribute_float4(KernelGlobals kg,
     int corners[4];
     subd_triangle_patch_corners(kg, patch, corners);
 
-    float4 f0, f1, f2, f3;
+    float4 f0;
+    float4 f1;
+    float4 f2;
+    float4 f3;
 
     if (desc.element == ATTR_ELEMENT_CORNER_BYTE) {
       f0 = color_srgb_to_linear_v4(
@@ -662,9 +679,9 @@ ccl_device_noinline float4 subd_triangle_attribute_float4(KernelGlobals kg,
       f3 = (f3 + f0) * 0.5f;
     }
 
-    float4 a = mix(mix(f0, f1, uv[0].x), mix(f3, f2, uv[0].x), uv[0].y);
-    float4 b = mix(mix(f0, f1, uv[1].x), mix(f3, f2, uv[1].x), uv[1].y);
-    float4 c = mix(mix(f0, f1, uv[2].x), mix(f3, f2, uv[2].x), uv[2].y);
+    const float4 a = mix(mix(f0, f1, uv[0].x), mix(f3, f2, uv[0].x), uv[0].y);
+    const float4 b = mix(mix(f0, f1, uv[1].x), mix(f3, f2, uv[1].x), uv[1].y);
+    const float4 c = mix(mix(f0, f1, uv[2].x), mix(f3, f2, uv[2].x), uv[2].y);
 
 #ifdef __RAY_DIFFERENTIALS__
     if (dx) {

@@ -108,7 +108,7 @@ ccl_device_inline float mat22_determinant(const float4 m)
 /* Inverse of a 2x2 matrix encoded in a row-major order float4 */
 ccl_device_inline float mat22_inverse(const float4 m, ccl_private float4 &m_inverse)
 {
-  float det = mat22_determinant(m);
+  const float det = mat22_determinant(m);
   if (fabsf(det) < MNEE_MIN_DETERMINANT) {
     return 0.f;
   }
@@ -122,8 +122,8 @@ ccl_device_forceinline void mnee_setup_manifold_vertex(KernelGlobals kg,
                                                        ccl_private ShaderClosure *bsdf,
                                                        const float eta,
                                                        const float2 n_offset,
-                                                       ccl_private const Ray *ray,
-                                                       ccl_private const Intersection *isect,
+                                                       const ccl_private Ray *ray,
+                                                       const ccl_private Intersection *isect,
                                                        ccl_private ShaderData *sd_vtx)
 {
   sd_vtx->object = (isect->object == OBJECT_NONE) ? kernel_data_fetch(prim_object, isect->prim) :
@@ -256,7 +256,7 @@ ccl_device_forceinline
 bool mnee_compute_constraint_derivatives(
     int vertex_count,
     ccl_private ManifoldVertex *vertices,
-    ccl_private const float3 &surface_sample_pos,
+     const ccl_private  float3 &surface_sample_pos,
     const bool light_fixed_direction,
     const float3 light_sample)
 {
@@ -291,24 +291,25 @@ bool mnee_compute_constraint_derivatives(
 
     /* Half vector. */
     float3 H = -(wi + eta * wo);
-    float ilh = 1.f / len(H);
+    const float ilh = 1.f / len(H);
     H *= ilh;
 
     ilo *= eta * ilh;
     ili *= ilh;
 
     /* Local shading frame. */
-    float dp_du_dot_n = dot(v.dp_du, v.n);
+    const float dp_du_dot_n = dot(v.dp_du, v.n);
     float3 s = v.dp_du - dp_du_dot_n * v.n;
-    float inv_len_s = 1.f / len(s);
+    const float inv_len_s = 1.f / len(s);
     s *= inv_len_s;
-    float3 t = cross(v.n, s);
+    const float3 t = cross(v.n, s);
 
-    float3 dH_du, dH_dv;
+    float3 dH_du;
+    float3 dH_dv;
 
     /* Constraint derivatives WRT previous vertex. */
     if (vi > 0) {
-      ccl_private ManifoldVertex &v_prev = vertices[vi - 1];
+      const ccl_private ManifoldVertex &v_prev = vertices[vi - 1];
       dH_du = (v_prev.dp_du - wi * dot(wi, v_prev.dp_du)) * ili;
       dH_dv = (v_prev.dp_dv - wi * dot(wi, v_prev.dp_dv)) * ili;
       dH_du -= H * dot(dH_du, H);
@@ -339,8 +340,8 @@ bool mnee_compute_constraint_derivatives(
     float3 ds_dv = -inv_len_s * (dot(v.dp_du, v.dn_dv) * v.n + dp_du_dot_n * v.dn_dv);
     ds_du -= s * dot(s, ds_du);
     ds_dv -= s * dot(s, ds_dv);
-    float3 dt_du = cross(v.dn_du, s) + cross(v.n, ds_du);
-    float3 dt_dv = cross(v.dn_dv, s) + cross(v.n, ds_dv);
+    const float3 dt_du = cross(v.dn_du, s) + cross(v.n, ds_du);
+    const float3 dt_dv = cross(v.dn_dv, s) + cross(v.n, ds_dv);
 
     v.b = make_float4(dot(dH_du, s) + dot(H, ds_du),
                       dot(dH_dv, s) + dot(H, ds_dv),
@@ -349,7 +350,7 @@ bool mnee_compute_constraint_derivatives(
 
     /* Constraint derivatives WRT next vertex. */
     if (vi < vertex_count - 1) {
-      ccl_private ManifoldVertex &v_next = vertices[vi + 1];
+      const ccl_private ManifoldVertex &v_next = vertices[vi + 1];
       dH_du = (v_next.dp_du - wo * dot(wo, v_next.dp_du)) * ilo;
       dH_dv = (v_next.dp_dv - wo * dot(wo, v_next.dp_dv)) * ilo;
       dH_du -= H * dot(dH_du, H);
@@ -388,7 +389,7 @@ ccl_device_forceinline bool mnee_solve_matrix_h_to_x(int vertex_count,
   C[0] = vertices[0].constraint;
 
   for (int k = 1; k < vertex_count; k++) {
-    float4 A = mat22_mult(vertices[k].a, Li[k - 1]);
+    const float4 A = mat22_mult(vertices[k].a, Li[k - 1]);
 
     Lk = vertices[k].b - mat22_mult(A, vertices[k - 1].c);
     if (mat22_inverse(Lk, Li[k]) == 0.f) {
@@ -408,9 +409,9 @@ ccl_device_forceinline bool mnee_solve_matrix_h_to_x(int vertex_count,
 
 /* Newton solver to walk on specular manifold. */
 ccl_device_forceinline bool mnee_newton_solver(KernelGlobals kg,
-                                               ccl_private const ShaderData *sd,
+                                               const ccl_private ShaderData *sd,
                                                ccl_private ShaderData *sd_vtx,
-                                               ccl_private const LightSample *ls,
+                                               const ccl_private LightSample *ls,
                                                const bool light_fixed_direction,
                                                int vertex_count,
                                                ccl_private ManifoldVertex *vertices)
@@ -464,7 +465,7 @@ ccl_device_forceinline bool mnee_newton_solver(KernelGlobals kg,
 
     /* Construct tentative new vertices and project back onto surface. */
     for (int vi = 0; vi < vertex_count; vi++) {
-      ccl_private ManifoldVertex &mv = vertices[vi];
+      const ccl_private ManifoldVertex &mv = vertices[vi];
 
       /* Tentative new position on linearized manifold (tangent plane). */
       float3 tentative_p = mv.p - beta * (dx[vi].x * mv.dp_du + dx[vi].y * mv.dp_dv);
@@ -487,7 +488,7 @@ ccl_device_forceinline bool mnee_newton_solver(KernelGlobals kg,
         projection_ray.P = sd->P;
       }
       else {
-        ccl_private const ManifoldVertex &pv = vertices[vi - 1];
+        const ccl_private ManifoldVertex &pv = vertices[vi - 1];
         projection_ray.self.object = pv.object;
         projection_ray.self.prim = pv.prim;
         projection_ray.P = pv.p;
@@ -497,7 +498,8 @@ ccl_device_forceinline bool mnee_newton_solver(KernelGlobals kg,
 
       bool projection_success = false;
       for (int isect_count = 0; isect_count < MNEE_MAX_INTERSECTION_COUNT; isect_count++) {
-        bool hit = scene_intersect(kg, &projection_ray, PATH_RAY_TRANSMIT, &projection_isect);
+        const bool hit = scene_intersect(
+            kg, &projection_ray, PATH_RAY_TRANSMIT, &projection_isect);
         if (!hit) {
           break;
         }
@@ -537,7 +539,7 @@ ccl_device_forceinline bool mnee_newton_solver(KernelGlobals kg,
     /* Check that tentative path is still transmissive. */
     if (!reduce_stepsize) {
       for (int vi = 0; vi < vertex_count; vi++) {
-        ccl_private ManifoldVertex &tv = tentative[vi];
+        const ccl_private ManifoldVertex &tv = tentative[vi];
 
         /* Direction toward surface sample. */
         const float3 wi = (vi == 0 ? sd->P : tentative[vi - 1].p) - tv.p;
@@ -584,10 +586,11 @@ ccl_device_forceinline float2
 mnee_sample_bsdf_dh(ClosureType type, float alpha_x, float alpha_y, float sample_u, float sample_v)
 {
   float alpha2;
-  float cos_phi, sin_phi;
+  float cos_phi;
+  float sin_phi;
 
   if (alpha_x == alpha_y) {
-    float phi = sample_v * M_2PI_F;
+    const float phi = sample_v * M_2PI_F;
     fast_sincosf(phi, &sin_phi, &cos_phi);
     alpha2 = alpha_x * alpha_x;
   }
@@ -597,8 +600,8 @@ mnee_sample_bsdf_dh(ClosureType type, float alpha_x, float alpha_y, float sample
       phi += M_PI_F;
     }
     fast_sincosf(phi, &sin_phi, &cos_phi);
-    float alpha_x2 = alpha_x * alpha_x;
-    float alpha_y2 = alpha_y * alpha_y;
+    const float alpha_x2 = alpha_x * alpha_x;
+    const float alpha_y2 = alpha_y * alpha_y;
     alpha2 = 1.f / (cos_phi * cos_phi / alpha_x2 + sin_phi * sin_phi / alpha_y2);
   }
 
@@ -610,8 +613,8 @@ mnee_sample_bsdf_dh(ClosureType type, float alpha_x, float alpha_y, float sample
   else { /* type == CLOSURE_BSDF_MICROFACET_GGX_REFRACTION_ID assumed */
     tan2_theta *= sample_u / (1.0f - sample_u);
   }
-  float cos2_theta = 1.0f / (1.0f + tan2_theta);
-  float sin_theta = safe_sqrtf(1.0f - cos2_theta);
+  const float cos2_theta = 1.0f / (1.0f + tan2_theta);
+  const float sin_theta = safe_sqrtf(1.0f - cos2_theta);
   return make_float2(cos_phi * sin_theta, sin_phi * sin_theta);
 }
 
@@ -628,14 +631,14 @@ ccl_device_forceinline Spectrum mnee_eval_bsdf_contribution(KernelGlobals kg,
 {
   ccl_private MicrofacetBsdf *bsdf = (ccl_private MicrofacetBsdf *)closure;
 
-  float cosNI = dot(bsdf->N, wi);
-  float cosNO = dot(bsdf->N, wo);
+  const float cosNI = dot(bsdf->N, wi);
+  const float cosNO = dot(bsdf->N, wo);
 
-  float3 Ht = normalize(-(bsdf->ior * wo + wi));
-  float cosHI = dot(Ht, wi);
+  const float3 Ht = normalize(-(bsdf->ior * wo + wi));
+  const float cosHI = dot(Ht, wi);
 
-  float alpha2 = bsdf->alpha_x * bsdf->alpha_y;
-  float cosThetaM = dot(bsdf->N, Ht);
+  const float alpha2 = bsdf->alpha_x * bsdf->alpha_y;
+  const float cosThetaM = dot(bsdf->N, Ht);
 
   /* Now calculate G1(i, m) and G1(o, m). */
   float G;
@@ -646,7 +649,8 @@ ccl_device_forceinline Spectrum mnee_eval_bsdf_contribution(KernelGlobals kg,
     G = bsdf_G<MicrofacetType::GGX>(alpha2, cosNI, cosNO);
   }
 
-  Spectrum reflectance, transmittance;
+  Spectrum reflectance;
+  Spectrum transmittance;
   microfacet_fresnel(kg, bsdf, cosHI, nullptr, &reflectance, &transmittance);
 
   /*
@@ -662,8 +666,8 @@ ccl_device_forceinline Spectrum mnee_eval_bsdf_contribution(KernelGlobals kg,
 }
 
 /* Compute transfer matrix determinant |T1| = |dx1/dxn| (and |dh/dx| in the process) */
-ccl_device_forceinline bool mnee_compute_transfer_matrix(ccl_private const ShaderData *sd,
-                                                         ccl_private const LightSample *ls,
+ccl_device_forceinline bool mnee_compute_transfer_matrix(const ccl_private ShaderData *sd,
+                                                         const ccl_private LightSample *ls,
                                                          const bool light_fixed_direction,
                                                          int vertex_count,
                                                          ccl_private ManifoldVertex *vertices,
@@ -697,19 +701,20 @@ ccl_device_forceinline bool mnee_compute_transfer_matrix(ccl_private const Shade
   /* Fill out constraint derivatives WRT light vertex param. */
 
   /* Local shading frame at last free vertex. */
-  int mi = vertex_count - 1;
-  ccl_private const ManifoldVertex &m = vertices[mi];
+  const int mi = vertex_count - 1;
+  const ccl_private ManifoldVertex &m = vertices[mi];
 
-  float3 s = normalize(m.dp_du - dot(m.dp_du, m.n) * m.n);
-  float3 t = cross(m.n, s);
+  const float3 s = normalize(m.dp_du - dot(m.dp_du, m.n) * m.n);
+  const float3 t = cross(m.n, s);
 
   /* Local differential geometry. */
-  float3 dp_du, dp_dv;
+  float3 dp_du;
+  float3 dp_dv;
   make_orthonormals(ls->Ng, &dp_du, &dp_dv);
 
   /* Direction toward surface sample. */
   float3 wi = vertex_count == 1 ? sd->P - m.p : vertices[mi - 1].p - m.p;
-  float ili = 1.f / len(wi);
+  const float ili = 1.f / len(wi);
   wi *= ili;
 
   /* Invert ior if coming from inside. */
@@ -723,19 +728,19 @@ ccl_device_forceinline bool mnee_compute_transfer_matrix(ccl_private const Shade
 
   if (light_fixed_direction) {
     /* Constant direction toward light sample. */
-    float3 wo = ls->D;
+    const float3 wo = ls->D;
 
     /* Half vector. */
     float3 H = -(wi + eta * wo);
-    float ilh = 1.f / len(H);
+    const float ilh = 1.f / len(H);
     H *= ilh;
 
-    float ilo = -eta * ilh;
+    const float ilo = -eta * ilh;
 
-    float cos_theta = dot(wo, m.n);
-    float sin_theta = sin_from_cos(cos_theta);
-    float cos_phi = dot(wo, s);
-    float sin_phi = sin_from_cos(cos_phi);
+    const float cos_theta = dot(wo, m.n);
+    const float sin_theta = sin_from_cos(cos_theta);
+    const float cos_phi = dot(wo, s);
+    const float sin_phi = sin_from_cos(cos_phi);
 
     /* Wo = (cos_phi * sin_theta) * s + (sin_phi * sin_theta) * t + cos_theta * n. */
     float3 dH_dtheta = ilo * (cos_theta * (cos_phi * s + sin_phi * t) - sin_theta * m.n);
@@ -759,7 +764,7 @@ ccl_device_forceinline bool mnee_compute_transfer_matrix(ccl_private const Shade
 
     /* Half vector. */
     float3 H = -(wi + eta * wo);
-    float ilh = 1.f / len(H);
+    const float ilh = 1.f / len(H);
     H *= ilh;
 
     ilo *= eta * ilh;
@@ -832,7 +837,7 @@ ccl_device_forceinline bool mnee_path_contribution(KernelGlobals kg,
                                                              1;
   INTEGRATOR_STATE_WRITE(state, path, bounce) = bounce + vertex_count;
 
-  Spectrum light_eval = light_sample_shader_eval(kg, state, sd_mnee, ls, sd->time);
+  const Spectrum light_eval = light_sample_shader_eval(kg, state, sd_mnee, ls, sd->time);
   bsdf_eval_mul(throughput, light_eval / ls->pdf);
 
   /* Generalized geometry term. */
@@ -872,14 +877,14 @@ ccl_device_forceinline bool mnee_path_contribution(KernelGlobals kg,
   float3 wi;
   float wi_len;
   for (int vi = 0; vi < vertex_count; vi++) {
-    ccl_private const ManifoldVertex &v = vertices[vi];
+    const ccl_private ManifoldVertex &v = vertices[vi];
 
     /* Check visibility. */
     probe_ray.D = normalize_len(v.p - probe_ray.P, &probe_ray.tmax);
     if (scene_intersect(kg, &probe_ray, PATH_RAY_TRANSMIT, &probe_isect)) {
-      int hit_object = (probe_isect.object == OBJECT_NONE) ?
-                           kernel_data_fetch(prim_object, probe_isect.prim) :
-                           probe_isect.object;
+      const int hit_object = (probe_isect.object == OBJECT_NONE) ?
+                                 kernel_data_fetch(prim_object, probe_isect.prim) :
+                                 probe_isect.object;
       /* Test whether the ray hit the appropriate object at its intended location. */
       if (hit_object != v.object || fabsf(probe_ray.tmax - probe_isect.t) > MNEE_MIN_DISTANCE) {
         return false;
@@ -926,7 +931,7 @@ ccl_device_forceinline bool mnee_path_contribution(KernelGlobals kg,
     /* Evaluate product term inside eq.6 at solution interface. vi
      * divided by corresponding sampled pdf:
      * fr(vi)_do / pdf_dh(vi) x |do/dh| x |n.wo / n.h| */
-    Spectrum bsdf_contribution = mnee_eval_bsdf_contribution(kg, v.bsdf, wi, wo);
+    const Spectrum bsdf_contribution = mnee_eval_bsdf_contribution(kg, v.bsdf, wi, wo);
     bsdf_eval_mul(throughput, bsdf_contribution);
   }
 
@@ -943,7 +948,7 @@ ccl_device_forceinline int kernel_path_mnee_sample(KernelGlobals kg,
                                                    IntegratorState state,
                                                    ccl_private ShaderData *sd,
                                                    ccl_private ShaderData *sd_mnee,
-                                                   ccl_private const RNGState *rng_state,
+                                                   const ccl_private RNGState *rng_state,
                                                    ccl_private LightSample *ls,
                                                    ccl_private BsdfEval *throughput)
 {
@@ -982,7 +987,7 @@ ccl_device_forceinline int kernel_path_mnee_sample(KernelGlobals kg,
 
   int vertex_count = 0;
   for (int isect_count = 0; isect_count < MNEE_MAX_INTERSECTION_COUNT; isect_count++) {
-    bool hit = scene_intersect(kg, &probe_ray, PATH_RAY_TRANSMIT, &probe_isect);
+    const bool hit = scene_intersect(kg, &probe_ray, PATH_RAY_TRANSMIT, &probe_isect);
     if (!hit) {
       break;
     }

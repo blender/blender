@@ -96,11 +96,11 @@ template<typename T> class GuardedAllocator {
     return *this;
   }
 
-  bool operator==(GuardedAllocator const & /*other*/) const
+  bool operator==(const GuardedAllocator & /*other*/) const
   {
     return true;
   }
-  bool operator!=(GuardedAllocator const &other) const
+  bool operator!=(const GuardedAllocator &other) const
   {
     return !operator==(other);
   }

@@ -129,12 +129,12 @@ template<int SIZE, typename T> class ccl_try_align(16) StackAllocator
     return *this;
   }
 
-  bool operator==(StackAllocator const & /*other*/) const
+  bool operator==(const StackAllocator & /*other*/) const
   {
     return true;
   }
 
-  bool operator!=(StackAllocator const &other) const
+  bool operator!=(const StackAllocator &other) const
   {
     return !operator==(other);
   }

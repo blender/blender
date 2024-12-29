@@ -90,14 +90,14 @@ ccl_device float fast_sinf(float x)
    * Examined 2173837240 values of sin: 0.00662760244 avg ULP diff, 2 max ULP,
    * 1.19209e-07 max error
    */
-  int q = fast_rint(x * M_1_PI_F);
-  float qf = (float)q;
+  const int q = fast_rint(x * M_1_PI_F);
+  const float qf = (float)q;
   x = madd(qf, -0.78515625f * 4, x);
   x = madd(qf, -0.00024187564849853515625f * 4, x);
   x = madd(qf, -3.7747668102383613586e-08f * 4, x);
   x = madd(qf, -1.2816720341285448015e-12f * 4, x);
   x = M_PI_2_F - (M_PI_2_F - x); /* Crush denormals */
-  float s = x * x;
+  const float s = x * x;
   if ((q & 1) != 0) {
     x = -x;
   }
@@ -118,14 +118,14 @@ ccl_device float fast_sinf(float x)
 ccl_device float fast_cosf(float x)
 {
   /* Same argument reduction as fast_sinf(). */
-  int q = fast_rint(x * M_1_PI_F);
-  float qf = (float)q;
+  const int q = fast_rint(x * M_1_PI_F);
+  const float qf = (float)q;
   x = madd(qf, -0.78515625f * 4, x);
   x = madd(qf, -0.00024187564849853515625f * 4, x);
   x = madd(qf, -3.7747668102383613586e-08f * 4, x);
   x = madd(qf, -1.2816720341285448015e-12f * 4, x);
   x = M_PI_2_F - (M_PI_2_F - x); /* Crush denormals. */
-  float s = x * x;
+  const float s = x * x;
   /* Polynomial from SLEEF's sincosf, max error is
    * 4.33127e-07 over [-2pi,2pi] (98% of values are "exact"). */
   float u = -2.71811842367242206819355e-07f;
@@ -144,14 +144,14 @@ ccl_device float fast_cosf(float x)
 ccl_device void fast_sincosf(float x, ccl_private float *sine, ccl_private float *cosine)
 {
   /* Same argument reduction as fast_sin. */
-  int q = fast_rint(x * M_1_PI_F);
-  float qf = (float)q;
+  const int q = fast_rint(x * M_1_PI_F);
+  const float qf = (float)q;
   x = madd(qf, -0.78515625f * 4, x);
   x = madd(qf, -0.00024187564849853515625f * 4, x);
   x = madd(qf, -3.7747668102383613586e-08f * 4, x);
   x = madd(qf, -1.2816720341285448015e-12f * 4, x);
   x = M_PI_2_F - (M_PI_2_F - x);  // crush denormals
-  float s = x * x;
+  const float s = x * x;
   /* NOTE: same exact polynomials as fast_sinf() and fast_cosf() above. */
   if ((q & 1) != 0) {
     x = -x;
@@ -187,8 +187,8 @@ ccl_device float fast_tanf(float x)
    * Note that we cannot apply the "denormal crush" trick everywhere because
    * we sometimes need to take the reciprocal of the polynomial
    */
-  int q = fast_rint(x * 2.0f * M_1_PI_F);
-  float qf = (float)q;
+  const int q = fast_rint(x * 2.0f * M_1_PI_F);
+  const float qf = (float)q;
   x = madd(qf, -0.78515625f * 2, x);
   x = madd(qf, -0.00024187564849853515625f * 2, x);
   x = madd(qf, -3.7747668102383613586e-08f * 2, x);
@@ -197,7 +197,7 @@ ccl_device float fast_tanf(float x)
     /* Crush denormals (only if we aren't inverting the result later). */
     x = M_PI_4_F - (M_PI_4_F - x);
   }
-  float s = x * x;
+  const float s = x * x;
   float u = 0.00927245803177356719970703f;
   u = madd(u, s, 0.00331984995864331722259521f);
   u = madd(u, s, 0.0242998078465461730957031f);
@@ -350,9 +350,9 @@ ccl_device float fast_log2f(float x)
   /* NOTE: clamp to avoid special cases and make result "safe" from large
    * negative values/NAN's. */
   x = clamp(x, FLT_MIN, FLT_MAX);
-  unsigned bits = __float_as_uint(x);
-  int exponent = (int)(bits >> 23) - 127;
-  float f = __uint_as_float((bits & 0x007FFFFF) | 0x3f800000) - 1.0f;
+  const unsigned bits = __float_as_uint(x);
+  const int exponent = (int)(bits >> 23) - 127;
+  const float f = __uint_as_float((bits & 0x007FFFFF) | 0x3f800000) - 1.0f;
   /* Examined 2130706432 values of log2 on [1.17549435e-38,3.40282347e+38]:
    * 0.0797524457 avg ULP diff, 3713596 max ULP, 7.62939e-06 max error.
    * ULP histogram:
@@ -360,8 +360,8 @@ ccl_device float fast_log2f(float x)
    *  1  =  2.29%
    *  2  =  0.11%
    */
-  float f2 = f * f;
-  float f4 = f2 * f2;
+  const float f2 = f * f;
+  const float f4 = f2 * f2;
   float hi = madd(f, -0.00931049621349f, 0.05206469089414f);
   float lo = madd(f, 0.47868480909345f, -0.72116591947498f);
   hi = madd(f, hi, -0.13753123777116f);
@@ -392,7 +392,7 @@ ccl_device float fast_logb(float x)
   /* Don't bother with denormals. */
   x = fabsf(x);
   x = clamp(x, FLT_MIN, FLT_MAX);
-  unsigned bits = __float_as_uint(x);
+  const unsigned bits = __float_as_uint(x);
   return (float)((int)(bits >> 23) - 127);
 }
 
@@ -401,7 +401,7 @@ ccl_device float fast_exp2f(float x)
   /* Clamp to safe range for final addition. */
   x = clamp(x, -126.0f, 126.0f);
   /* Range reduction. */
-  int m = (int)x;
+  const int m = (int)x;
   x -= m;
   x = 1.0f - (1.0f - x); /* Crush denormals (does not affect max ULPS!). */
   /* 5th degree polynomial generated with sollya
@@ -440,7 +440,7 @@ ccl_device float4 fast_exp2f4(float4 x)
   const float4 one = make_float4(1.0f);
   const float4 limit = make_float4(126.0f);
   x = clamp(x, -limit, limit);
-  int4 m = make_int4(x);
+  const int4 m = make_int4(x);
   x = one - (one - (x - make_float4(m)));
   float4 r = make_float4(1.33336498402e-3f);
   r = madd4(x, r, make_float4(9.810352697968e-3f));
@@ -485,11 +485,11 @@ ccl_device float fast_sinhf(float x)
   if (a > 1.0f) {
     /* Examined 53389559 values of sinh on [1,87.3300018]:
      * 33.6886442 avg ULP diff, 178 max ULP. */
-    float e = fast_expf(a);
+    const float e = fast_expf(a);
     return copysignf(0.5f * e - 0.5f / e, x);
   }
   a = 1.0f - (1.0f - a); /* Crush denorms. */
-  float a2 = a * a;
+  const float a2 = a * a;
   /* Degree 7 polynomial generated with sollya. */
   /* Examined 2130706434 values of sinh on [-1,1]: 1.19209e-07 max error. */
   float r = 2.03945513931e-4f;
@@ -504,7 +504,7 @@ ccl_device_inline float fast_coshf(float x)
   /* Examined 2237485550 values of cosh on [-87.3300018,87.3300018]:
    * 1.78256726 avg ULP diff, 178 max ULP.
    */
-  float e = fast_expf(fabsf(x));
+  const float e = fast_expf(fabsf(x));
   return 0.5f * e + 0.5f / e;
 }
 
@@ -514,7 +514,7 @@ ccl_device_inline float fast_tanhf(float x)
    * 3.12924e-06 max error.
    */
   /* NOTE: ULP error is high because of sub-optimal handling around the origin. */
-  float e = fast_expf(2.0f * fabsf(x));
+  const float e = fast_expf(2.0f * fabsf(x));
   return copysignf(1.0f - 2.0f / (1.0f + e), x);
 }
 
@@ -531,15 +531,15 @@ ccl_device float fast_safe_powf(float x, float y)
     /* if x is negative, only deal with integer powers
      * powf returns NaN for non-integers, we will return 0 instead.
      */
-    int ybits = __float_as_int(y) & 0x7fffffff;
+    const int ybits = __float_as_int(y) & 0x7fffffff;
     if (ybits >= 0x4b800000) {
       // always even int, keep positive
     }
     else if (ybits >= 0x3f800000) {
       /* Bigger than 1, check. */
-      int k = (ybits >> 23) - 127;    /* Get exponent. */
-      int j = ybits >> (23 - k);      /* Shift out possible fractional bits. */
-      if ((j << (23 - k)) == ybits) { /* rebuild number and check for a match. */
+      const int k = (ybits >> 23) - 127; /* Get exponent. */
+      const int j = ybits >> (23 - k);   /* Shift out possible fractional bits. */
+      if ((j << (23 - k)) == ybits) {    /* rebuild number and check for a match. */
         /* +1 for even, -1 for odd. */
         sign = __int_as_float(0x3f800000 | (j << 31));
       }
@@ -599,8 +599,9 @@ ccl_device_inline float fast_ierff(float x)
 {
   /* From: Approximating the `erfinv` function by Mike Giles. */
   /* To avoid trouble at the limit, clamp input to 1-epsilon. */
-  float a = min(fabsf(x), 0.99999994f);
-  float w = -fast_logf((1.0f - a) * (1.0f + a)), p;
+  const float a = min(fabsf(x), 0.99999994f);
+  float w = -fast_logf((1.0f - a) * (1.0f + a));
+  float p;
   if (w < 5.0f) {
     w = w - 2.5f;
     p = 2.81022636e-08f;

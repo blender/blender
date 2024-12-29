@@ -22,7 +22,7 @@ CCL_NAMESPACE_BEGIN
 /* Reading attributes on various point elements */
 
 ccl_device float point_attribute_float(KernelGlobals kg,
-                                       ccl_private const ShaderData *sd,
+                                       const ccl_private ShaderData *sd,
                                        const AttributeDescriptor desc,
                                        ccl_private float *dx,
                                        ccl_private float *dy)
@@ -43,7 +43,7 @@ ccl_device float point_attribute_float(KernelGlobals kg,
 }
 
 ccl_device float2 point_attribute_float2(KernelGlobals kg,
-                                         ccl_private const ShaderData *sd,
+                                         const ccl_private ShaderData *sd,
                                          const AttributeDescriptor desc,
                                          ccl_private float2 *dx,
                                          ccl_private float2 *dy)
@@ -64,7 +64,7 @@ ccl_device float2 point_attribute_float2(KernelGlobals kg,
 }
 
 ccl_device float3 point_attribute_float3(KernelGlobals kg,
-                                         ccl_private const ShaderData *sd,
+                                         const ccl_private ShaderData *sd,
                                          const AttributeDescriptor desc,
                                          ccl_private float3 *dx,
                                          ccl_private float3 *dy)
@@ -85,7 +85,7 @@ ccl_device float3 point_attribute_float3(KernelGlobals kg,
 }
 
 ccl_device float4 point_attribute_float4(KernelGlobals kg,
-                                         ccl_private const ShaderData *sd,
+                                         const ccl_private ShaderData *sd,
                                          const AttributeDescriptor desc,
                                          ccl_private float4 *dx,
                                          ccl_private float4 *dy)
@@ -107,7 +107,7 @@ ccl_device float4 point_attribute_float4(KernelGlobals kg,
 
 /* Point position */
 
-ccl_device float3 point_position(KernelGlobals kg, ccl_private const ShaderData *sd)
+ccl_device float3 point_position(KernelGlobals kg, const ccl_private ShaderData *sd)
 {
   if (sd->type & PRIMITIVE_POINT) {
     /* World space center. */
@@ -127,7 +127,7 @@ ccl_device float3 point_position(KernelGlobals kg, ccl_private const ShaderData 
 
 /* Point radius */
 
-ccl_device float point_radius(KernelGlobals kg, ccl_private const ShaderData *sd)
+ccl_device float point_radius(KernelGlobals kg, const ccl_private ShaderData *sd)
 {
   if (sd->type & PRIMITIVE_POINT) {
     /* World space radius. */
@@ -148,7 +148,7 @@ ccl_device float point_radius(KernelGlobals kg, ccl_private const ShaderData *sd
 
 /* Point random */
 
-ccl_device float point_random(KernelGlobals kg, ccl_private const ShaderData *sd)
+ccl_device float point_random(KernelGlobals kg, const ccl_private ShaderData *sd)
 {
   if (sd->type & PRIMITIVE_POINT) {
     const AttributeDescriptor desc = find_attribute(kg, sd, ATTR_STD_POINT_RANDOM);
@@ -162,7 +162,7 @@ ccl_device float point_random(KernelGlobals kg, ccl_private const ShaderData *sd
 /* Point location for motion pass, linear interpolation between keys and
  * ignoring radius because we do the same for the motion keys */
 
-ccl_device float3 point_motion_center_location(KernelGlobals kg, ccl_private const ShaderData *sd)
+ccl_device float3 point_motion_center_location(KernelGlobals kg, const ccl_private ShaderData *sd)
 {
   return make_float3(kernel_data_fetch(points, sd->prim));
 }

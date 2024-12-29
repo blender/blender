@@ -49,7 +49,7 @@ ccl_device_forceinline float sobol_burley(uint rev_bit_index,
   else {
     uint i = 0;
     while (rev_bit_index != 0) {
-      uint j = count_leading_zeros(rev_bit_index);
+      const uint j = count_leading_zeros(rev_bit_index);
       result ^= sobol_burley_table[dimension][i + j];
       i += j + 1;
 
@@ -97,7 +97,7 @@ ccl_device_forceinline float sobol_burley(uint rev_bit_index,
  * length.
  */
 ccl_device float sobol_burley_sample_1D(uint index,
-                                        uint const dimension,
+                                        const uint dimension,
                                         uint seed,
                                         uint shuffled_index_mask)
 {

@@ -107,7 +107,7 @@ ccl_device_inline float3 make_float3(float2 a, float b)
   return make_float3(a.x, a.y, b);
 }
 
-ccl_device_inline void print_float3(ccl_private const char *label, const float3 a)
+ccl_device_inline void print_float3(const ccl_private char *label, const float3 a)
 {
 #ifdef __KERNEL_PRINTF__
   printf("%s: %.8f %.8f %.8f\n", label, (double)a.x, (double)a.y, (double)a.z);

@@ -26,7 +26,7 @@ ccl_device_inline size_t film_write_cryptomatte_pass(ccl_global float *ccl_restr
 
 ccl_device_inline void film_write_data_passes(KernelGlobals kg,
                                               IntegratorState state,
-                                              ccl_private const ShaderData *sd,
+                                              const ccl_private ShaderData *sd,
                                               ccl_global float *ccl_restrict render_buffer)
 {
 #ifdef __PASSES__

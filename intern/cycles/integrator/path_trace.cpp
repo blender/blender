@@ -161,7 +161,7 @@ void PathTrace::render(const RenderWork &render_work)
 {
   /* Indicate that rendering has started and that it can be requested to cancel. */
   {
-    thread_scoped_lock lock(render_cancel_.mutex);
+    const thread_scoped_lock lock(render_cancel_.mutex);
     if (render_cancel_.is_requested) {
       return;
     }
@@ -173,7 +173,7 @@ void PathTrace::render(const RenderWork &render_work)
   /* Indicate that rendering has finished, making it so thread which requested `cancel()` can carry
    * on. */
   {
-    thread_scoped_lock lock(render_cancel_.mutex);
+    const thread_scoped_lock lock(render_cancel_.mutex);
     render_cancel_.is_rendering = false;
     render_cancel_.condition.notify_one();
   }
@@ -498,7 +498,7 @@ void PathTrace::set_denoiser_params(const DenoiseParams &params)
 
   Device *effective_denoise_device;
   Device *cpu_fallback_device = cpu_device_.get();
-  DenoiseParams effective_denoise_params = get_effective_denoise_params(
+  const DenoiseParams effective_denoise_params = get_effective_denoise_params(
       denoise_device_, cpu_fallback_device, params, effective_denoise_device);
 
   bool need_to_recreate_denoiser = false;
@@ -694,7 +694,7 @@ void PathTrace::update_display(const RenderWork &render_work)
   if (output_driver_) {
     VLOG_WORK << "Invoke buffer update callback.";
 
-    PathTraceTile tile(*this);
+    const PathTraceTile tile(*this);
     output_driver_->update_render_tile(tile);
   }
 
@@ -876,7 +876,7 @@ void PathTrace::tile_buffer_write()
     return;
   }
 
-  PathTraceTile tile(*this);
+  const PathTraceTile tile(*this);
   output_driver_->write_render_tile(tile);
 }
 
@@ -896,7 +896,7 @@ void PathTrace::tile_buffer_read()
   });
 
   /* Read (subset of) passes from output driver. */
-  PathTraceTile tile(*this);
+  const PathTraceTile tile(*this);
   if (output_driver_->read_render_tile(tile)) {
     /* Copy buffers to device again. */
     parallel_for_each(path_trace_works_, [](unique_ptr<PathTraceWork> &path_trace_work) {

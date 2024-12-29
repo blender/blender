@@ -74,7 +74,7 @@ void HIPDeviceQueue::init_execution()
 
 bool HIPDeviceQueue::enqueue(DeviceKernel kernel,
                              const int work_size,
-                             DeviceKernelArguments const &args)
+                             const DeviceKernelArguments &args)
 {
   if (hip_device_->have_error()) {
     return false;
