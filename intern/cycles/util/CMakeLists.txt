@@ -72,7 +72,6 @@ set(SRC_HEADERS
   math_int3.h
   math_int4.h
   math_int8.h
-  math_matrix.h
   md5.h
   murmurhash.h
   openimagedenoise.h
