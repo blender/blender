@@ -21,7 +21,7 @@ MAYSUDO = subprocess.run("command -v sudo || command -v doas",
                          shell=True,
                          stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE,
-                         text=True).stdout.rstrip('\n')
+                         universal_newlines=True).stdout.rstrip('\n')
 
 
 class LoggingColoredFormatter(logging.Formatter):
