@@ -948,16 +948,16 @@ static void read_edge_creases(Mesh *mesh,
     return;
   }
 
-  MutableSpan<int2> edges = mesh->edges_for_write();
+  const Span<int2> edges = mesh->edges_for_write();
   Map<OrderedEdge, int> edge_hash;
   edge_hash.reserve(edges.size());
-
-  float *creases = static_cast<float *>(CustomData_add_layer_named(
-      &mesh->edge_data, CD_PROP_FLOAT, CD_SET_DEFAULT, edges.size(), "crease_edge"));
-
   for (const int i : edges.index_range()) {
     edge_hash.add(edges[i], i);
   }
+
+  bke::MutableAttributeAccessor attributes = mesh->attributes_for_write();
+  bke::SpanAttributeWriter<float> creases = attributes.lookup_or_add_for_write_span<float>(
+      "crease_edge", bke::AttrDomain::Edge);
 
   for (int i = 0, s = 0, e = indices->size(); i < e; i += 2, s++) {
     int v1 = (*indices)[i];
@@ -967,7 +967,7 @@ static void read_edge_creases(Mesh *mesh,
       continue;
     }
 
-    creases[*index] = std::clamp((*sharpnesses)[s], 0.0f, 1.0f);
+    creases.span[*index] = std::clamp((*sharpnesses)[s], 0.0f, 1.0f);
   }
 }
 
