@@ -29,42 +29,47 @@ def update_cmake_config(oldfile, newfile):
         cmakefile.write_text(text)
 
 
-rpath = sys.argv[1]
-file = sys.argv[2]
-new_file = strip_lib_version(file)
+def main():
+    rpath = sys.argv[1]
+    file = sys.argv[2]
+    new_file = strip_lib_version(file)
 
-file = pathlib.Path(file)
-new_file = pathlib.Path(new_file)
+    file = pathlib.Path(file)
+    new_file = pathlib.Path(new_file)
 
-# Update cmake config files.
-update_cmake_config(file, new_file)
+    # Update cmake config files.
+    update_cmake_config(file, new_file)
 
-# Remove if symlink.
-if file.is_symlink():
-    os.remove(file)
-    sys.exit(0)
+    # Remove if symlink.
+    if file.is_symlink():
+        os.remove(file)
+        sys.exit(0)
 
-# Find existing rpaths and delete them one by one.
-p = subprocess.run(['otool', '-l', file], capture_output=True)
-tokens = p.stdout.split()
+    # Find existing rpaths and delete them one by one.
+    p = subprocess.run(['otool', '-l', file], capture_output=True)
+    tokens = p.stdout.split()
 
-for i, token in enumerate(tokens):
-    if token == b'LC_RPATH':
-        old_rpath = tokens[i + 4]
-        subprocess.run(['install_name_tool', '-delete_rpath', old_rpath, file])
+    for i, token in enumerate(tokens):
+        if token == b'LC_RPATH':
+            old_rpath = tokens[i + 4]
+            subprocess.run(['install_name_tool', '-delete_rpath', old_rpath, file])
 
-subprocess.run(['install_name_tool', '-add_rpath', rpath, file])
+    subprocess.run(['install_name_tool', '-add_rpath', rpath, file])
 
-# Strip version from dependencies.
-p = subprocess.run(['otool', '-L', file], capture_output=True)
-tokens = p.stdout.split()
-for i, token in enumerate(tokens):
-    token = token.decode("utf-8")
-    if token.startswith("@rpath"):
-        new_token = strip_lib_version(token)
-        subprocess.run(['install_name_tool', '-change', token, new_token, file])
+    # Strip version from dependencies.
+    p = subprocess.run(['otool', '-L', file], capture_output=True)
+    tokens = p.stdout.split()
+    for i, token in enumerate(tokens):
+        token = token.decode("utf-8")
+        if token.startswith("@rpath"):
+            new_token = strip_lib_version(token)
+            subprocess.run(['install_name_tool', '-change', token, new_token, file])
 
-# Strip version from library itself.
-new_id = '@rpath/' + new_file.name
-os.rename(file, new_file)
-subprocess.run(['install_name_tool', '-id', new_id, new_file])
+    # Strip version from library itself.
+    new_id = '@rpath/' + new_file.name
+    os.rename(file, new_file)
+    subprocess.run(['install_name_tool', '-id', new_id, new_file])
+
+
+if __name__ == "__main__":
+    main()
