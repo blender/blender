@@ -220,15 +220,6 @@ blender::gpu::Batch *DRW_cache_particles_get_edit_tip_points(Object *object,
                                                              PTCacheEdit *edit);
 blender::gpu::Batch *DRW_cache_particles_get_prim(int type);
 
-/* Curves */
-
-blender::gpu::Batch *DRW_cache_curves_surface_get(Object *ob);
-blender::gpu::Batch **DRW_cache_curves_surface_shaded_get(Object *ob,
-                                                          GPUMaterial **gpumat_array,
-                                                          uint gpumat_array_len);
-blender::gpu::Batch *DRW_cache_curves_face_wireframe_get(Object *ob);
-blender::gpu::Batch *DRW_cache_curves_edge_detection_get(Object *ob, bool *r_is_manifold);
-
 /* Volume */
 
 struct DRWVolumeGrid {
