@@ -967,7 +967,7 @@ static void read_edge_creases(Mesh *mesh,
       continue;
     }
 
-    creases[*index] = unit_float_to_uchar_clamp((*sharpnesses)[s]);
+    creases[*index] = std::clamp((*sharpnesses)[s], 0.0f, 1.0f);
   }
 }
 
