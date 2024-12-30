@@ -2163,12 +2163,23 @@ class CYCLES_RENDER_PT_debug(CyclesDebugButtonsPanel, Panel):
         row.prop(cscene, "debug_use_cpu_avx2", toggle=True)
         col.prop(cscene, "debug_bvh_layout", text="BVH")
 
+        import platform
+        is_macos = platform.system() == 'Darwin'
         col.separator()
 
-        col = layout.column(heading="CUDA")
-        col.prop(cscene, "debug_use_cuda_adaptive_compile")
-        col = layout.column(heading="OptiX")
-        col.prop(cscene, "debug_use_optix_debug", text="Module Debug")
+        if is_macos:
+            col = layout.column(heading="Metal")
+            col.prop(cscene, "debug_use_metal_adaptive_compile")
+        else:
+            col = layout.column(heading="CUDA")
+            col.prop(cscene, "debug_use_cuda_adaptive_compile")
+            col = layout.column(heading="OptiX")
+            col.prop(cscene, "debug_use_optix_debug", text="Module Debug")
+
+            col.separator()
+
+            col = layout.column(heading="HIP")
+            col.prop(cscene, "debug_use_hip_adaptive_compile")
 
         col.separator()
 

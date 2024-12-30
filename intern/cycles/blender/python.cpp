@@ -73,6 +73,8 @@ static void debug_flags_sync_from_scene(BL::Scene b_scene)
   flags.cpu.bvh_layout = (BVHLayout)get_enum(cscene, "debug_bvh_layout");
   /* Synchronize CUDA flags. */
   flags.cuda.adaptive_compile = get_boolean(cscene, "debug_use_cuda_adaptive_compile");
+  flags.hip.adaptive_compile = get_boolean(cscene, "debug_use_hip_adaptive_compile");
+  flags.metal.adaptive_compile = get_boolean(cscene, "debug_use_metal_adaptive_compile");
   /* Synchronize OptiX flags. */
   flags.optix.use_debug = get_boolean(cscene, "debug_use_optix_debug");
 }

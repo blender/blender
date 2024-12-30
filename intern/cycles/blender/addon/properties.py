@@ -1056,11 +1056,26 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
         default='EMBREE',
     )
 
-    debug_use_cuda_adaptive_compile: BoolProperty(name="Adaptive Compile", default=False)
+    adaptive_compile_description = "Compile the Cycles GPU kernel with only the feature set required for the current scene"
+
+    debug_use_cuda_adaptive_compile: BoolProperty(
+        name="Adaptive Compile",
+        description=adaptive_compile_description,
+        default=False)
 
     debug_use_optix_debug: BoolProperty(
         name="OptiX Module Debug",
         description="Load OptiX module in debug mode: lower logging verbosity level, enable validations, and lower optimization level",
+        default=False)
+
+    debug_use_hip_adaptive_compile: BoolProperty(
+        name="Adaptive Compile",
+        description=adaptive_compile_description,
+        default=False)
+
+    debug_use_metal_adaptive_compile: BoolProperty(
+        name="Adaptive Compile",
+        description=adaptive_compile_description,
         default=False)
 
     @classmethod
