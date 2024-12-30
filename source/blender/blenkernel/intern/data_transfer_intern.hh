@@ -15,6 +15,34 @@ struct CustomDataTransferLayerMap;
 struct ListBase;
 struct Object;
 
+/**
+ * Fake CD_LAYERS (those are actually 'real' data stored directly into elements' structs,
+ * or otherwise not (directly) accessible to usual CDLayer system).
+ */
+enum {
+  CD_FAKE = 1 << 8,
+
+  /* Vertices. */
+  CD_FAKE_MDEFORMVERT = CD_FAKE | CD_MDEFORMVERT, /* *sigh* due to how vgroups are stored :(. */
+  CD_FAKE_SHAPEKEY = CD_FAKE |
+                     CD_SHAPEKEY, /* Not available as real CD layer in non-bmesh context. */
+
+  /* Edges. */
+  CD_FAKE_SEAM = CD_FAKE | 100, /* UV seam flag for edges. */
+
+  /* Multiple types of mesh elements... */
+  CD_FAKE_UV =
+      CD_FAKE |
+      CD_PROP_FLOAT2, /* UV flag, because we handle both loop's UVs and face's textures. */
+
+  CD_FAKE_LNOR = CD_FAKE | 500,
+
+  CD_FAKE_SHARP = CD_FAKE | 200, /* Sharp flag for edges, smooth flag for faces. */
+
+  CD_FAKE_BWEIGHT = CD_FAKE | 300,
+  CD_FAKE_CREASE = CD_FAKE | 400,
+};
+
 float data_transfer_interp_float_do(int mix_mode, float val_dst, float val_src, float mix_factor);
 
 void data_transfer_layersmapping_add_item(ListBase *r_map,
