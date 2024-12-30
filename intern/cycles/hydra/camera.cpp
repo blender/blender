@@ -60,7 +60,7 @@ HdDirtyBits HdCyclesCamera::GetInitialDirtyBitsMask() const
 }
 
 void HdCyclesCamera::Sync(HdSceneDelegate *sceneDelegate,
-                          HdRenderParam *renderParam,
+                          HdRenderParam * /*renderParam*/,
                           HdDirtyBits *dirtyBits)
 {
   if (*dirtyBits == DirtyBits::Clean) {
@@ -320,7 +320,7 @@ void HdCyclesCamera::ApplyCameraSettings(HdRenderParam *renderParam,
 void HdCyclesCamera::ApplyCameraSettings(HdRenderParam *renderParam,
                                          const GfMatrix4d &worldToViewMatrix,
                                          const GfMatrix4d &projectionMatrix,
-                                         const std::vector<GfVec4d> &clipPlanes,
+                                         const std::vector<GfVec4d> & /*clipPlanes*/,
                                          Camera *cam)
 {
 #if PXR_VERSION >= 2102

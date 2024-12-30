@@ -58,7 +58,7 @@ class UsdToCyclesMapping {
 
   virtual std::string parameterName(const TfToken &name,
                                     const ShaderInput *inputConnection,
-                                    VtValue *value = nullptr) const
+                                    VtValue * /*value*/ = nullptr) const
   {
     // UsdNode.name -> Node.input
     // These all follow a simple pattern that we can just remap
@@ -177,7 +177,7 @@ class UsdToCycles {
 
     return nullptr;
   }
-  const UsdToCyclesMapping *findCycles(const ustring &cyclesNodeType)
+  const UsdToCyclesMapping *findCycles(const ustring & /*cyclesNodeType*/)
   {
     return nullptr;
   }

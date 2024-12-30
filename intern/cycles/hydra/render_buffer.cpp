@@ -25,7 +25,9 @@ void HdCyclesRenderBuffer::Finalize(HdRenderParam *renderParam)
   HdRenderBuffer::Finalize(renderParam);
 }
 
-bool HdCyclesRenderBuffer::Allocate(const GfVec3i &dimensions, HdFormat format, bool multiSampled)
+bool HdCyclesRenderBuffer::Allocate(const GfVec3i &dimensions,
+                                    HdFormat format,
+                                    bool /*multiSampled*/)
 {
   if (dimensions[2] != 1) {
     TF_RUNTIME_ERROR("HdCyclesRenderBuffer::Allocate called with dimensions that are not 2D.");

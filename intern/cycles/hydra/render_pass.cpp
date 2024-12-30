@@ -72,7 +72,7 @@ void HdCyclesRenderPass::ResetConverged()
 }
 
 void HdCyclesRenderPass::_Execute(const HdRenderPassStateSharedPtr &renderPassState,
-                                  const TfTokenVector &renderTags)
+                                  const TfTokenVector & /*renderTags*/)
 {
   Scene *const scene = _renderParam->session->scene;
   Session *const session = _renderParam->session;

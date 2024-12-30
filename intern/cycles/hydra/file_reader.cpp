@@ -27,17 +27,21 @@ HDCYCLES_NAMESPACE_OPEN_SCOPE
 /* Dummy task whose only purpose is to provide render tag tokens to the render index. */
 class DummyHdTask : public HdTask {
  public:
-  DummyHdTask(HdSceneDelegate *delegate, SdfPath const &id)
+  DummyHdTask(HdSceneDelegate * /*delegate*/, const SdfPath &id)
       : HdTask(id), tags({HdRenderTagTokens->geometry, HdRenderTagTokens->render})
   {
   }
 
  protected:
-  void Sync(HdSceneDelegate *delegate, HdTaskContext *ctx, HdDirtyBits *dirtyBits) override {}
+  void Sync(HdSceneDelegate * /*delegate*/,
+            HdTaskContext * /*ctx*/,
+            HdDirtyBits * /*dirtyBits*/) override
+  {
+  }
 
-  void Prepare(HdTaskContext *ctx, HdRenderIndex *render_index) override {}
+  void Prepare(HdTaskContext * /*ctx*/, HdRenderIndex * /*render_index*/) override {}
 
-  void Execute(HdTaskContext *ctx) override {}
+  void Execute(HdTaskContext * /*ctx*/) override {}
 
   const TfTokenVector &GetRenderTags() const override
   {

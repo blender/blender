@@ -46,7 +46,9 @@ class HdCyclesVolumeLoader : public VDBImageLoader {
 };
 #endif
 
-HdCyclesField::HdCyclesField(const SdfPath &bprimId, const TfToken &typeId) : HdField(bprimId) {}
+HdCyclesField::HdCyclesField(const SdfPath &bprimId, const TfToken & /*typeId*/) : HdField(bprimId)
+{
+}
 
 HdCyclesField::~HdCyclesField() {}
 

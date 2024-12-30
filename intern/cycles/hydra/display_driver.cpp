@@ -122,8 +122,8 @@ void HdCyclesDisplayDriver::gl_context_dispose()
 void HdCyclesDisplayDriver::next_tile_begin() {}
 
 bool HdCyclesDisplayDriver::update_begin(const Params &params,
-                                         int texture_width,
-                                         int texture_height)
+                                         int /*texture_width*/,
+                                         int /*texture_height*/)
 {
   if (!gl_context_enable()) {
     return false;

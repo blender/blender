@@ -44,7 +44,7 @@ bool HdCyclesPlugin::IsSupported() const
   return true;
 }
 #else
-bool HdCyclesPlugin::IsSupported(bool gpuEnabled) const
+bool HdCyclesPlugin::IsSupported(bool /*gpuEnabled*/) const
 {
   return true;
 }
