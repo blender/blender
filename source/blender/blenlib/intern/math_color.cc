@@ -682,7 +682,6 @@ void linearrgb_to_srgb_v3_v3(float srgb[3], const float linear[3])
 
 #endif /* BLI_HAVE_SSE2 */
 
-
 /* ************************************* other ************************************************* */
 
 void rgb_float_set_hue_float_offset(float rgb[3], float hue_offset)
