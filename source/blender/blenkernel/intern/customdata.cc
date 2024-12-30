@@ -62,7 +62,7 @@
 #include "CLG_log.h"
 
 /* only for customdata_data_transfer_interp_normal_normals */
-#include "data_transfer_intern.h"
+#include "data_transfer_intern.hh"
 
 using blender::Array;
 using blender::BitVector;

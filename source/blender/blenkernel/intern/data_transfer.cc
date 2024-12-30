@@ -34,7 +34,7 @@
 
 #include "DEG_depsgraph_query.hh"
 
-#include "data_transfer_intern.h"
+#include "data_transfer_intern.hh"
 
 void BKE_object_data_transfer_dttypes_to_cdmask(const int dtdata_types,
                                                 CustomData_MeshMasks *r_data_masks)

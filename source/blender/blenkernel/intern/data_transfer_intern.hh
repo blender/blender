@@ -10,17 +10,14 @@
 
 #include "BKE_customdata.hh" /* For cd_datatransfer_interp */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct CustomData;
 struct CustomDataTransferLayerMap;
 struct ListBase;
+struct Object;
 
 float data_transfer_interp_float_do(int mix_mode, float val_dst, float val_src, float mix_factor);
 
-void data_transfer_layersmapping_add_item(struct ListBase *r_map,
+void data_transfer_layersmapping_add_item(ListBase *r_map,
                                           int data_type,
                                           int mix_mode,
                                           float mix_factor,
@@ -38,17 +35,17 @@ void data_transfer_layersmapping_add_item(struct ListBase *r_map,
 
 /* Type-specific. */
 
-bool data_transfer_layersmapping_vgroups(struct ListBase *r_map,
+bool data_transfer_layersmapping_vgroups(ListBase *r_map,
                                          int mix_mode,
                                          float mix_factor,
                                          const float *mix_weights,
                                          int num_elem_dst,
                                          bool use_create,
                                          bool use_delete,
-                                         struct Object *ob_src,
-                                         struct Object *ob_dst,
-                                         const struct CustomData *cd_src,
-                                         struct CustomData *cd_dst,
+                                         Object *ob_src,
+                                         Object *ob_dst,
+                                         const CustomData *cd_src,
+                                         CustomData *cd_dst,
                                          bool use_dupref_dst,
                                          int fromlayers,
                                          int tolayers);
@@ -64,7 +61,3 @@ void customdata_data_transfer_interp_normal_normals(const CustomDataTransferLaye
                                                     const float *weights,
                                                     int count,
                                                     float mix_factor);
-
-#ifdef __cplusplus
-}
-#endif
