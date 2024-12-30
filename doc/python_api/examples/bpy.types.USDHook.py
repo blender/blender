@@ -328,7 +328,6 @@ class USDHookExample(bpy.types.USDHook):
         return True
 
 
-
 def register():
     bpy.utils.register_class(USDHookExample)
 
