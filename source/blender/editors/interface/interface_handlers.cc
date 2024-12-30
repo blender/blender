@@ -10683,7 +10683,7 @@ static int ui_handle_menu_event(bContext *C,
 
         copy_v2_v2_int(menu->grab_xy_prev, event->xy);
 
-        menu->popup_create_vars.event_xy -= mdiff;
+        menu->popup_create_vars.event_xy += mdiff;
 
         ui_popup_translate(region, mdiff);
       }
