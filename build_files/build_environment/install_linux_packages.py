@@ -17,6 +17,12 @@ DISTRO_ID_SUSE = "suse"
 DISTRO_ID_ARCH = "arch"
 
 
+MAYSUDO = subprocess.run("command -v sudo || command -v doas",
+                         shell=True,
+                         stdout=subprocess.PIPE,
+                         stderr=subprocess.PIPE,
+                         text=True).stdout.rstrip('\n')
+
 class LoggingColoredFormatter(logging.Formatter):
     """
     Logging colored formatter,.
@@ -994,7 +1000,7 @@ class PackageInstaller:
         # First dummy call to get user password for sudo. Otherwise the progress bar on actuall commands
         # makes it impossible for users to enter their password.
         if not self.settings.no_sudo:
-            subprocess.run(["sudo", "echo"], capture_output=True)
+            subprocess.run([MAYSUDO, "echo"], capture_output=True)
 
         p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         pbar = ProgressBar(is_known_limit=False)
@@ -1400,8 +1406,8 @@ class PackageInstallerDebian(PackageInstaller):
     _re_version = re.compile(_version_regex_base_pattern)
     _re_version_candidate = re.compile(r"Candidate:\s*" + _version_regex_base_pattern)
 
-    _install_command = ["sudo", "apt", "install", "-y"]
-    _update_command = ["sudo", "apt", "update"]
+    _install_command = [MAYSUDO, "apt", "install", "-y"]
+    _update_command = [MAYSUDO, "apt", "update"]
 
     def package_installed_version_get(self, package_distro_name):
         cmd = ["dpkg-query", "-W", "-f", "${Version}", package_distro_name]
@@ -1467,8 +1473,8 @@ class PackageInstallerFedora(PackageInstaller):
 
     _re_version = re.compile(r"Version\s*:\s*(?:[0-9]+:)?(?P<version>([0-9]+\.?)+([0-9]+)).*")
 
-    _install_command = ["sudo", "dnf", "install", "-y"]
-    _update_command = ["sudo", "dnf", "check-update"]
+    _install_command = [MAYSUDO, "dnf", "install", "-y"]
+    _update_command = [MAYSUDO, "dnf", "check-update"]
 
     def package_version_get(self, command):
         result = self.run_command(command)
@@ -1476,10 +1482,10 @@ class PackageInstallerFedora(PackageInstaller):
         return version["version"] if version is not None else None
 
     def package_installed_version_get(self, package_distro_name):
-        return self.package_version_get(["sudo", "dnf", "info", "--installed", package_distro_name])
+        return self.package_version_get([MAYSUDO, "dnf", "info", "--installed", package_distro_name])
 
     def package_query_version_get_impl(self, package_distro_name):
-        return self.package_version_get(["sudo", "dnf", "info", "--all", package_distro_name])
+        return self.package_version_get([MAYSUDO, "dnf", "info", "--all", package_distro_name])
 
     def package_name_version_gen(
             self,
@@ -1534,20 +1540,20 @@ class PackageInstallerSuse(PackageInstaller):
     _re_version = re.compile(r"Version\s*:\s*(?:[0-9]+:)?(?P<version>([0-9]+\.?)+([0-9]+)).*")
     _re_installed = re.compile(r"Installed\s*:\s*Yes")
 
-    _install_command = ["sudo", "zypper", "--non-interactive", "install"]
-    _update_command = ["sudo", "zypper", "refresh"]
+    _install_command = [MAYSUDO, "zypper", "--non-interactive", "install"]
+    _update_command = [MAYSUDO, "zypper", "refresh"]
 
     def package_version_get(self, command_result):
         version = self._re_version.search(str(command_result.stdout))
         return version["version"] if version is not None else None
 
     def package_installed_version_get(self, package_distro_name):
-        result = self.run_command(["sudo", "zypper", "info", package_distro_name])
+        result = self.run_command([MAYSUDO, "zypper", "info", package_distro_name])
         is_installed = self._re_installed.search(str(result.stdout))
         return self.package_version_get(result) if is_installed is not None else None
 
     def package_query_version_get_impl(self, package_distro_name):
-        result = self.run_command(["sudo", "zypper", "info", package_distro_name])
+        result = self.run_command([MAYSUDO, "zypper", "info", package_distro_name])
         return self.package_version_get(result)
 
     def package_name_version_gen(
@@ -1602,8 +1608,8 @@ class PackageInstallerArch(PackageInstaller):
 
     _re_version = re.compile(r"Version\s*:\s*(?:[0-9]+:)?(?P<version>([0-9]+\.?)+([0-9]+)).*")
 
-    _install_command = ["sudo", "pacman", "-S", "--needed", "--noconfirm"]
-    _update_command = ["sudo", "pacman", "-Sy"]
+    _install_command = [MAYSUDO, "pacman", "-S", "--needed", "--noconfirm"]
+    _update_command = [MAYSUDO, "pacman", "-Sy"]
 
     def package_version_get(self, command):
         result = self.run_command(command)
@@ -1739,7 +1745,7 @@ def argparse_create():
         "--no-sudo",
         dest="no_sudo",
         action='store_true',
-        help="Disable use of sudo (this script won't be able to do much then, will just print needed packages).",
+        help="Disable use of `sudo` or `doas` (this script won't be able to do much then, will just print needed packages).",
     )
     parser.add_argument(
         "--all",
@@ -1774,6 +1780,11 @@ def main():
     stdout_handler.setFormatter(LoggingColoredFormatter())
     logger.addHandler(stdout_handler)
     settings.logger = logger
+
+    if not settings.no_sudo and len(MAYSUDO) == 0:
+        logger.critical("`sudo` or `doas` commands are needed to escalate privileges,"
+                        " but they were not found.")
+        exit(42)
 
     distro_package_installer = (PackageInstaller(settings) if settings.show_deps
                                 else get_distro_package_installer(settings))
