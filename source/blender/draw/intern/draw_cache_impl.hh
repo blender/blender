@@ -183,12 +183,11 @@ blender::gpu::Batch *DRW_mesh_batch_cache_get_loose_edges(Mesh &mesh);
 blender::gpu::Batch *DRW_mesh_batch_cache_get_edge_detection(Mesh &mesh, bool *r_is_manifold);
 blender::gpu::Batch *DRW_mesh_batch_cache_get_surface(Mesh &mesh);
 blender::gpu::Batch *DRW_mesh_batch_cache_get_surface_edges(Object &object, Mesh &mesh);
-blender::gpu::Batch **DRW_mesh_batch_cache_get_surface_shaded(Object &object,
-                                                              Mesh &mesh,
-                                                              GPUMaterial **gpumat_array,
-                                                              uint gpumat_array_len);
+Span<gpu::Batch *> DRW_mesh_batch_cache_get_surface_shaded(Object &object,
+                                                           Mesh &mesh,
+                                                           Span<const GPUMaterial *> materials);
 
-blender::gpu::Batch **DRW_mesh_batch_cache_get_surface_texpaint(Object &object, Mesh &mesh);
+Span<gpu::Batch *> DRW_mesh_batch_cache_get_surface_texpaint(Object &object, Mesh &mesh);
 blender::gpu::Batch *DRW_mesh_batch_cache_get_surface_texpaint_single(Object &object, Mesh &mesh);
 blender::gpu::Batch *DRW_mesh_batch_cache_get_surface_vertpaint(Object &object, Mesh &mesh);
 blender::gpu::Batch *DRW_mesh_batch_cache_get_surface_sculpt(Object &object, Mesh &mesh);

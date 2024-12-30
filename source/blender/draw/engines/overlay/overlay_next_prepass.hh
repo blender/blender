@@ -204,13 +204,8 @@ class Prepass : Overlay {
         if (use_material_slot_selection_) {
           /* TODO(fclem): Improve the API. */
           const int materials_len = DRW_cache_object_material_count_get(ob_ref.object);
-          Array<GPUMaterial *> materials(materials_len);
-          materials.fill(nullptr);
-
-          gpu::Batch **geom_per_mat = DRW_cache_mesh_surface_shaded_get(
-              ob_ref.object, materials.data(), materials_len);
-
-          geom_list = {geom_per_mat, materials_len};
+          Array<GPUMaterial *> materials(materials_len, nullptr);
+          geom_list = DRW_cache_mesh_surface_shaded_get(ob_ref.object, materials);
         }
         else {
           geom_single = DRW_cache_mesh_surface_get(ob_ref.object);

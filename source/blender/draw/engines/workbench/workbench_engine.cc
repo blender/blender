@@ -50,12 +50,12 @@ class Instance {
   Vector<GPUMaterial *> dummy_gpu_materials_ = {1, nullptr, {}};
 
  public:
-  GPUMaterial **get_dummy_gpu_materials(int material_count)
+  Span<const GPUMaterial *> get_dummy_gpu_materials(int material_count)
   {
     if (material_count > dummy_gpu_materials_.size()) {
       dummy_gpu_materials_.resize(material_count, nullptr);
     }
-    return dummy_gpu_materials_.begin();
+    return dummy_gpu_materials_;
   };
 
   void init(Object *camera_ob = nullptr)
@@ -248,16 +248,16 @@ class Instance {
     if (object_state.use_per_material_batches) {
       const int material_count = DRW_cache_object_material_count_get(ob_ref.object);
 
-      gpu::Batch **batches;
+      Span<gpu::Batch *> batches;
       if (object_state.color_type == V3D_SHADING_TEXTURE_COLOR) {
         batches = DRW_cache_mesh_surface_texpaint_get(ob_ref.object);
       }
       else {
         batches = DRW_cache_object_surface_material_get(
-            ob_ref.object, this->get_dummy_gpu_materials(material_count), material_count);
+            ob_ref.object, this->get_dummy_gpu_materials(material_count));
       }
 
-      if (batches) {
+      if (!batches.is_empty()) {
         for (auto i : IndexRange(material_count)) {
           if (batches[i] == nullptr) {
             continue;

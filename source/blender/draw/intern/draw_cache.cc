@@ -36,6 +36,8 @@
 #include "draw_cache_impl.hh"
 #include "draw_manager_c.hh"
 
+using blender::Span;
+
 /* -------------------------------------------------------------------- */
 /** \name Internal Defines
  * \{ */
@@ -938,15 +940,14 @@ int DRW_cache_object_material_count_get(const Object *ob)
   return BKE_object_material_count_with_fallback_eval(ob);
 }
 
-blender::gpu::Batch **DRW_cache_object_surface_material_get(Object *ob,
-                                                            GPUMaterial **gpumat_array,
-                                                            uint gpumat_array_len)
+Span<blender::gpu::Batch *> DRW_cache_object_surface_material_get(
+    Object *ob, const Span<const GPUMaterial *> materials)
 {
   switch (ob->type) {
     case OB_MESH:
-      return DRW_cache_mesh_surface_shaded_get(ob, gpumat_array, gpumat_array_len);
+      return DRW_cache_mesh_surface_shaded_get(ob, materials);
     default:
-      return nullptr;
+      return {};
   }
 }
 
@@ -2860,17 +2861,15 @@ blender::gpu::Batch *DRW_cache_mesh_surface_edges_get(Object *ob)
   return DRW_mesh_batch_cache_get_surface_edges(*ob, *static_cast<Mesh *>(ob->data));
 }
 
-blender::gpu::Batch **DRW_cache_mesh_surface_shaded_get(Object *ob,
-                                                        GPUMaterial **gpumat_array,
-                                                        uint gpumat_array_len)
+Span<blender::gpu::Batch *> DRW_cache_mesh_surface_shaded_get(
+    Object *ob, const blender::Span<const GPUMaterial *> materials)
 {
   using namespace blender::draw;
   BLI_assert(ob->type == OB_MESH);
-  return DRW_mesh_batch_cache_get_surface_shaded(
-      *ob, *static_cast<Mesh *>(ob->data), gpumat_array, gpumat_array_len);
+  return DRW_mesh_batch_cache_get_surface_shaded(*ob, *static_cast<Mesh *>(ob->data), materials);
 }
 
-blender::gpu::Batch **DRW_cache_mesh_surface_texpaint_get(Object *ob)
+Span<blender::gpu::Batch *> DRW_cache_mesh_surface_texpaint_get(Object *ob)
 {
   using namespace blender::draw;
   BLI_assert(ob->type == OB_MESH);

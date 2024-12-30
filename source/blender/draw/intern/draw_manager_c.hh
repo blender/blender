@@ -253,8 +253,7 @@ namespace blender::draw {
 
 void DRW_mesh_get_attributes(const Object &object,
                              const Mesh &mesh,
-                             const GPUMaterial *const *gpumat_array,
-                             int gpumat_array_len,
+                             Span<const GPUMaterial *> materials,
                              DRW_Attributes *r_attrs,
                              DRW_MeshCDMask *r_cd_needed);
 
