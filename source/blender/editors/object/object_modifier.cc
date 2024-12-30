@@ -696,19 +696,7 @@ bool convert_psys_to_mesh(ReportList * /*reports*/,
     return false;
   }
 
-  /* add new mesh */
-  Object *obn = BKE_object_add(bmain, scene, view_layer, OB_MESH, nullptr);
-  Mesh *mesh = static_cast<Mesh *>(obn->data);
-
-  mesh->verts_num = verts_num;
-  mesh->edges_num = edges_num;
-
-  CustomData_add_layer_named(
-      &mesh->vert_data, CD_PROP_FLOAT3, CD_CONSTRUCT, verts_num, "position");
-  CustomData_add_layer_named(
-      &mesh->edge_data, CD_PROP_INT32_2D, CD_CONSTRUCT, mesh->edges_num, ".edge_verts");
-  CustomData_add_layer(&mesh->fdata_legacy, CD_MFACE, CD_SET_DEFAULT, 0);
-
+  Mesh *mesh = BKE_mesh_new_nomain(verts_num, edges_num, 0, 0);
   MutableSpan<float3> positions = mesh->vert_positions_for_write();
   MutableSpan<int2> edges = mesh->edges_for_write();
 
@@ -755,6 +743,9 @@ bool convert_psys_to_mesh(ReportList * /*reports*/,
   }
 
   select_vert.finish();
+
+  Object *obn = BKE_object_add(bmain, scene, view_layer, OB_MESH, nullptr);
+  BKE_mesh_nomain_to_mesh(mesh, static_cast<Mesh *>(obn->data), obn);
 
   DEG_relations_tag_update(bmain);
 
