@@ -41,8 +41,6 @@ BVHObjectSplit::BVHObjectSplit(BVHBuild *builder,
   const BVHReference *ref_ptr = &references_->at(range.start());
   float min_sah = FLT_MAX;
 
-  storage_->right_bounds.resize(range.size());
-
   for (int dim = 0; dim < 3; dim++) {
     /* Sort references. */
     bvh_reference_sort(range.start(),
@@ -51,6 +49,11 @@ BVHObjectSplit::BVHObjectSplit(BVHBuild *builder,
                        dim,
                        unaligned_heuristic_,
                        aligned_space_);
+
+    // Resize must be called after every bvh_reference_sort, as sorting may use a task pool for
+    // large ranges. This may cause another BVHObjectSplit to use and resize the storage on the
+    // same thread.
+    storage_->right_bounds.resize(range.size());
 
     /* sweep right to left and determine bounds. */
     BoundBox right_bounds = BoundBox::empty;
