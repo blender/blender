@@ -393,6 +393,11 @@ class Result {
    * template type. */
   template<typename T> T get_single_value() const;
 
+  /* Gets the single value stored in the result, if the result is not a single value, the given
+   * default value is returned. Assumes the result stores a value of the same type as the template
+   * type. */
+  template<typename T> T get_single_value_default(const T &default_value) const;
+
   /* Loads the pixel at the given texel coordinates. Assumes the result stores a value of the given
    * template type. If the CouldBeSingleValue template argument is true and the result is a single
    * value result, then that single value is returned for all texel coordinates. */
@@ -564,6 +569,14 @@ template<typename T> inline T Result::get_single_value() const
   else {
     return T(0);
   }
+}
+
+template<typename T> inline T Result::get_single_value_default(const T &default_value) const
+{
+  if (this->is_single_value()) {
+    return this->get_single_value<T>();
+  }
+  return default_value;
 }
 
 template<typename T, bool CouldBeSingleValue> inline T Result::load_pixel(const int2 &texel) const
