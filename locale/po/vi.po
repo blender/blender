@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'159424053bc2')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'eb39d81afa00')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-23 13:35+0000\n"
+"POT-Creation-Date: 2024-12-30 14:46+0000\n"
 "PO-Revision-Date: 2024-12-12 15:44+0000\n"
 "Last-Translator: Hoang Duy Tran <hoangduytran1960@googlemail.com>\n"
 "Language-Team: Vietnamese <https://translate.blender.org/projects/blender-ui/ui/vi/>\n"
@@ -34658,6 +34658,11 @@ msgid "Parent"
 msgstr "Phụ Huynh"
 
 
+msgctxt "Operator"
+msgid "Empty"
+msgstr "Trống Rỗng"
+
+
 msgctxt "Constraint"
 msgid "Track"
 msgstr "Giám Sát"
@@ -44812,6 +44817,18 @@ msgstr "Khử nhiễu hình ảnh và các lượt hướng dẫn cùng một l�
 
 msgid "Prefilter noisy guiding passes before denoising image. Improves quality when guiding passes are noisy using extra processing time."
 msgstr "Tiền xử lý thanh lọc các lượt nhiễu hướng dẫn trước đã, trước khi khử nhiễu hình ảnh. Phương pháp này cải thiện chất lượng của hình ảnh khi các lượt hướng dẫn nhiễu tạp, song sẽ tăng lượng thời gian xử lý lên."
+
+
+msgid "High quality"
+msgstr "Chất lượng cao"
+
+
+msgid "Balanced"
+msgstr "Cân Bằng"
+
+
+msgid "Balanced between performance and quality"
+msgstr "Cân bằng giữa hiệu suất hoạt động và chất lượng"
 
 
 msgid "HDR"
@@ -89527,6 +89544,22 @@ msgid "Panel containing UI elements"
 msgstr "Bảng có chứa các phần tử Giao Diện Người Dùng (UI)"
 
 
+msgid "Shadow Settings"
+msgstr "Sắp Đặt về Bóng Tối"
+
+
+msgid "SSAO Settings"
+msgstr "Sắp Đặt về SSAO"
+
+
+msgid "Render Pass"
+msgstr "Lượt Kết Xuất"
+
+
+msgid "Compositor"
+msgstr "Trình Tổng Hợp"
+
+
 msgid "Overlays"
 msgstr "Lớp Vẽ Lồng"
 
@@ -89649,22 +89682,6 @@ msgstr "Khả Năng Lựa Chọn & Tính Hữu Hình"
 
 msgid "Wire Color"
 msgstr "Màu của Dây"
-
-
-msgid "Shadow Settings"
-msgstr "Sắp Đặt về Bóng Tối"
-
-
-msgid "SSAO Settings"
-msgstr "Sắp Đặt về SSAO"
-
-
-msgid "Render Pass"
-msgstr "Lượt Kết Xuất"
-
-
-msgid "Compositor"
-msgstr "Trình Tổng Hợp"
 
 
 msgid "Chain Scaling"
@@ -96253,18 +96270,6 @@ msgstr "Chất Lượng Khử Nhiễu"
 
 msgid "Overall denoising quality when using OpenImageDenoise"
 msgstr "Chất lượng khử nhiễu tổng thể khi sử dụng OpenImageDenoise (Khử Nhiễu Hình Ảnh Mở)"
-
-
-msgid "High quality"
-msgstr "Chất lượng cao"
-
-
-msgid "Balanced"
-msgstr "Cân Bằng"
-
-
-msgid "Balanced between performance and quality"
-msgstr "Cân bằng giữa hiệu suất hoạt động và chất lượng"
 
 
 msgid "High performance"
@@ -124469,11 +124474,6 @@ msgstr "Khối Trước Đây"
 msgctxt "Operator"
 msgid "Next Block"
 msgstr "Khối Tiếp Theo"
-
-
-msgctxt "Operator"
-msgid "Empty"
-msgstr "Trống Rỗng"
 
 
 msgctxt "Operator"

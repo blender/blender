@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'159424053bc2')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'eb39d81afa00')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-23 13:35+0000\n"
-"PO-Revision-Date: 2024-12-23 11:56+0000\n"
+"POT-Creation-Date: 2024-12-30 14:46+0000\n"
+"PO-Revision-Date: 2024-12-29 14:56+0000\n"
 "Last-Translator: Fatih Alexandr <radix83@rambler.ru>\n"
 "Language-Team: Russian <https://translate.blender.org/projects/blender-ui/ui/ru/>\n"
 "Language: ru\n"
@@ -3170,6 +3170,10 @@ msgstr "Только связывать данные, а не добавлять
 
 msgid "Make paths of used library blendfiles relative to current blendfile"
 msgstr "Сделать пути к используемым blend-файлам библиотеки относительно текущего blend-файла"
+
+
+msgid "Clear the asset data on append (it is always kept for linked data)"
+msgstr "Очищать данные ассетов при добавлении (они всегда сохраняются для связанных данных)"
 
 
 msgid "Automatically select imported objects"
@@ -19968,6 +19972,18 @@ msgid "Selected Bold"
 msgstr "Выделение жирного шрифта"
 
 
+msgid "Whether the selected text is bold"
+msgstr "Является ли шрифт выделенного текста жирным"
+
+
+msgid "Selected Italic"
+msgstr "Выделение курсива"
+
+
+msgid "Whether the selected text is italics"
+msgstr "Является ли шрифт выделенного текста курсивом"
+
+
 msgid "X Offset"
 msgstr "Смещение X"
 
@@ -34528,6 +34544,10 @@ msgid "Use custom camera instead of the active camera"
 msgstr "Использовать пользовательскую камеру вместо активной камеры"
 
 
+msgid "Preserve Details"
+msgstr "Сохранять детали"
+
+
 msgid "Use Edge Mark"
 msgstr "Использовать ребро с меткой"
 
@@ -39900,6 +39920,18 @@ msgid "Prefilter noisy guiding passes before denoising image. Improves quality w
 msgstr "Предварительно отфильтровать шумные направляющие проходы перед шумоподавлением изображения. Улучшает качество, когда направляющие проходы с шумом, используя дополнительное время обработки."
 
 
+msgid "High quality"
+msgstr "Высокое качество"
+
+
+msgid "Balanced"
+msgstr "Баланс"
+
+
+msgid "Balanced between performance and quality"
+msgstr "Баланс между производительностью и качеством"
+
+
 msgid "HDR"
 msgstr "HDR"
 
@@ -43989,6 +44021,10 @@ msgid "Use shaders for all renderers and viewports, unless there exists a more s
 msgstr "Использовать шейдеры для всех рендереров и вьюпортов, если не существует более конкретного вывода"
 
 
+msgid "Use shaders for EEVEE renderer"
+msgstr "Использовать шейдеры для рендерера Eevee"
+
+
 msgid "Cycles"
 msgstr "Cycles"
 
@@ -45690,6 +45726,10 @@ msgstr "Коллекция эффектов объекта"
 msgctxt "Operator"
 msgid "Clear Useless Actions"
 msgstr "Очистить бесполезные действия"
+
+
+msgid "Export Keying Set to a Python script"
+msgstr "Экспортировать набор ключей в скрипт Python"
 
 
 msgctxt "Operator"
@@ -48659,6 +48699,10 @@ msgid "Set Active Keying Set"
 msgstr "Установить активный ключевой набор"
 
 
+msgid "Set a new active keying set"
+msgstr "Установить новый активный набор ключей"
+
+
 msgctxt "Operator"
 msgid "Add Empty Keying Set"
 msgstr "Добавить пустой ключевой набор"
@@ -49211,7 +49255,7 @@ msgstr "Выделить кратчайший путь между двумя к�
 
 msgctxt "Operator"
 msgid "Split"
-msgstr "Разрезать"
+msgstr "Разделить"
 
 
 msgid "Split off selected bones from connected unselected bones"
@@ -49389,12 +49433,36 @@ msgid "Save Asset Catalogs"
 msgstr "Сохранить каталоги ассетов"
 
 
+msgctxt "Operator"
+msgid "Clear Asset"
+msgstr "Очистить ассет"
+
+
 msgid "Delete all asset metadata and turn the selected asset data-blocks back into normal data-blocks"
 msgstr "Удалить все метаданные ассета и преобразовать выбранные блоки данных ассета обратно в обычные блоки данных"
 
 
+msgid "Ensure the data-block is saved, even when it is no longer marked as asset"
+msgstr "Убедитесь, что блок данных сохранён, даже если он больше не отмечен как ассет"
+
+
+msgctxt "Operator"
+msgid "Clear Single Asset"
+msgstr "Очистить один ассет"
+
+
+msgctxt "Operator"
+msgid "Mark as Asset"
+msgstr "Отметить как ассет"
+
+
 msgid "Enable easier reuse of selected data-blocks through the Asset Browser, with the help of customizable metadata (like previews, descriptions and tags)"
 msgstr "Упростить повторное использование выбранных блоков данных через браузер ассетов с поддержкой пользовательских метаданных (таких как превью, описания и теги)"
+
+
+msgctxt "Operator"
+msgid "Mark as Single Asset"
+msgstr "Отметить как отдельный ассет"
 
 
 msgid "Enable easier reuse of a data-block through the Asset Browser, with the help of customizable metadata (like previews, descriptions and tags)"
@@ -50697,6 +50765,11 @@ msgstr "Коллекция, из которой удаляются другие 
 
 
 msgctxt "Operator"
+msgid "Remove from All Collections"
+msgstr "Удалить из всех коллекций"
+
+
+msgctxt "Operator"
 msgid "Clear All"
 msgstr "Очистить всё"
 
@@ -51244,11 +51317,11 @@ msgstr "Направление цикличности для поверхнос�
 
 
 msgid "Cyclic U"
-msgstr "Зациклить по U"
+msgstr "Замкнуть по U"
 
 
 msgid "Cyclic V"
-msgstr "Цикл по V"
+msgstr "Замкнуть по V"
 
 
 msgctxt "Operator"
@@ -51415,7 +51488,7 @@ msgstr "Тип сплайна"
 
 
 msgid "Toggle Free/Align"
-msgstr "Переключить на свободную рукоятку или с выравниванием"
+msgstr "Переключить тип ручки на свободный или с выравниванием"
 
 
 msgid "Hide (un)selected control points"
@@ -51836,6 +51909,11 @@ msgstr "Подразделить выделенные сегменты"
 
 msgid "Switch direction of selected splines"
 msgstr "Переключить направление выделенных сплайнов"
+
+
+msgctxt "Operator"
+msgid "Extrude to Cursor or Add"
+msgstr "Экструдировать до курсора или добавить"
 
 
 msgid "Add a new control point (linked to only selected end-curve one, if any)"
@@ -54098,6 +54176,15 @@ msgid "Reset viewable area to show selected keyframe range"
 msgstr "Сбросить видимую область для отображения диапазона выделенных ключевых кадров"
 
 
+msgctxt "Operator"
+msgid "Bake Object Transform to Grease Pencil"
+msgstr "Запечь трансформацию объекта для Grease Pencil"
+
+
+msgid "Bake Grease Pencil object transform to Grease Pencil keyframes"
+msgstr "Запечь трансформацию объекта Grease Pencil в ключевые кадры Grease Pencil"
+
+
 msgid "Projection Type"
 msgstr "Тип проецирования"
 
@@ -54302,6 +54389,10 @@ msgid "Remove any keyframe that is a duplicate of the previous one"
 msgstr "Удалить все ключевые кадры, которые являются дубликатами предыдущих"
 
 
+msgid "Make a copy of the active Grease Pencil frame(s)"
+msgstr "Копировать активный кадр(ы) Grease Pencil"
+
+
 msgid "Duplicate all"
 msgstr "Дублировать всё"
 
@@ -54409,6 +54500,10 @@ msgstr "Создать копию активного слоя Grease Pencil"
 msgctxt "Operator"
 msgid "Duplicate Layer to New Object"
 msgstr "Дублировать слой в новый объект"
+
+
+msgid "Make a copy of the active Grease Pencil layer to selected object"
+msgstr "Копировать активный слой Grease Pencil для выделенного объекта"
 
 
 msgid "All Frames"
@@ -61301,6 +61396,10 @@ msgid "Copy Modifiers"
 msgstr "Копировать модификаторы"
 
 
+msgid "Copy Grease Pencil Effects"
+msgstr "Копировать эффекты Grease Pencil"
+
+
 msgctxt "Operator"
 msgid "Link Objects to Scene"
 msgstr "Связать объекты со сценой"
@@ -64518,8 +64617,20 @@ msgid "Interpolation factor between current brush weight, and keys' weights"
 msgstr "Коэффициент интерполяции между текущим весом кисти и весами ключей"
 
 
+msgid "Create a pose asset for each pose marker in this legacy pose library data-block"
+msgstr "Создать ассет позы для каждого маркера позы в этом устаревшем блоке данных библиотеки поз"
+
+
+msgid "Create a pose asset for each pose marker in the current action"
+msgstr "Создать ассет позы для каждого маркера позы в текущем действии"
+
+
 msgid "Create a new pose asset on the clipboard, to be pasted into an Asset Browser"
 msgstr "Создать новый ассет для поз в буфере обмена, который можно вставить в браузер ассетов"
+
+
+msgid "Create a new Action that contains the pose of the selected bones, and mark it as Asset. The asset will be stored in the current blend file"
+msgstr "Создать новое действие, содержащее позу выделенных костей, и отметить его как ассет. Ассет будет сохранён в текущем blend-файле"
 
 
 msgid "Activate New Action"
@@ -70909,6 +71020,10 @@ msgid "Select new objects"
 msgstr "Выделить новые объекты"
 
 
+msgid "Clear Asset Data"
+msgstr "Очистить данные ассета"
+
+
 msgid "Don't add asset meta-data or tags from the original data-block"
 msgstr "Не добавлять метаданные или теги ассетов из исходного блока данных"
 
@@ -73020,6 +73135,22 @@ msgid "Panel containing UI elements"
 msgstr "Панель содержит элементы интерфейса"
 
 
+msgid "Shadow Settings"
+msgstr "Настройки тени"
+
+
+msgid "SSAO Settings"
+msgstr "Настройки SSAO"
+
+
+msgid "Render Pass"
+msgstr "Проход рендера"
+
+
+msgid "Compositor"
+msgstr "Композитор"
+
+
 msgid "Overlays"
 msgstr "Наложения"
 
@@ -73098,22 +73229,6 @@ msgstr "Возможность выделения и видимость"
 
 msgid "Wire Color"
 msgstr "Цвет проволоки"
-
-
-msgid "Shadow Settings"
-msgstr "Настройки тени"
-
-
-msgid "SSAO Settings"
-msgstr "Настройки SSAO"
-
-
-msgid "Render Pass"
-msgstr "Проход рендера"
-
-
-msgid "Compositor"
-msgstr "Композитор"
 
 
 msgid "Bone Constraints"
@@ -78466,18 +78581,6 @@ msgid "Overall denoising quality when using OpenImageDenoise"
 msgstr "Общее качество шумоподавления при использовании OpenImageDenoise"
 
 
-msgid "High quality"
-msgstr "Высокое качество"
-
-
-msgid "Balanced"
-msgstr "Баланс"
-
-
-msgid "Balanced between performance and quality"
-msgstr "Баланс между производительностью и качеством"
-
-
 msgid "High performance"
 msgstr "Высокая производительность"
 
@@ -82254,9 +82357,17 @@ msgid "Text that will be displayed"
 msgstr "Отображаемый текст"
 
 
+msgid "Display text as bold"
+msgstr "Отображать текст жирным шрифтом"
+
+
 msgctxt "Sequence"
 msgid "Box"
 msgstr "Куб"
+
+
+msgid "Display text as italic"
+msgstr "Отображать текст курсивом"
 
 
 msgid "Display shadow behind text"
@@ -85849,7 +85960,7 @@ msgstr "Индекс слота материала этой кривой"
 
 
 msgid "Order U"
-msgstr "Упорядочить по U"
+msgstr "Упорядочить U"
 
 
 msgid "NURBS order in the U direction. Higher values make each point influence a greater area, but have worse performance."
@@ -88326,6 +88437,10 @@ msgstr "Повернуть объект к цели"
 
 msgid "Align rotation with the snapping target"
 msgstr "Повернуть объект по цели привязки"
+
+
+msgid "Absolute Increment Snap"
+msgstr "Привязка по абсолютной сетке"
 
 
 msgid "Absolute grid alignment while translating (based on the pivot center)"
@@ -92974,7 +93089,7 @@ msgstr "Долгота - Мин."
 
 
 msgid "Resolution Preview U"
-msgstr "Разрешение U во вьюпорте"
+msgstr "Разрешение - U во вьюпорте"
 
 
 msgid "Render U"
@@ -93019,6 +93134,16 @@ msgstr "Конечная точка"
 
 msgid "Interpolation Tilt"
 msgstr "Интерполяция - Наклон"
+
+
+msgctxt "Operator"
+msgid "Bold"
+msgstr "Жирный"
+
+
+msgctxt "Operator"
+msgid "Italic"
+msgstr "Курсив"
 
 
 msgid "Only Axis Aligned"
@@ -94892,6 +95017,11 @@ msgstr "Нет активных ассетов"
 
 
 msgctxt "Operator"
+msgid "Clear Asset (Set Fake User)"
+msgstr "Очистить ассет (установить фейк юзера)"
+
+
+msgctxt "Operator"
 msgid "Toggle Dope Sheet"
 msgstr "Переключить тип экспозиционного листа"
 
@@ -95971,6 +96101,10 @@ msgid "Active Editor"
 msgstr "Активный редактор"
 
 
+msgid "Only Active Keying Set"
+msgstr "Только активный набор ключей"
+
+
 msgid "Layered Recording"
 msgstr "Запись по слоям"
 
@@ -95980,7 +96114,7 @@ msgstr "Невозможно найти группу панели инструм
 
 
 msgid "Taper Start"
-msgstr "Заострение - Начало"
+msgstr "Сужение - Начало"
 
 
 msgid "Gizmos:"
@@ -96778,6 +96912,11 @@ msgstr "По атрибуту"
 
 
 msgctxt "Operator"
+msgid "Control Point Row"
+msgstr "Ряд контрольных точек"
+
+
+msgctxt "Operator"
 msgid "Set Color Attribute"
 msgstr "Установить атрибут цвета"
 
@@ -96940,6 +97079,11 @@ msgstr "Изменить ключевой набор…"
 msgctxt "Operator"
 msgid "Bake Action..."
 msgstr "Запечь действие…"
+
+
+msgctxt "Operator"
+msgid "Bake Object Transform to Grease Pencil..."
+msgstr "Запечь трансформацию объекта для Grease Pencil..."
 
 
 msgctxt "Operator"
@@ -97644,6 +97788,11 @@ msgstr "Удалить глобально"
 
 
 msgctxt "Operator"
+msgid "Insert Keyframe with Keying Set"
+msgstr "Вставить ключевой кадр с набором ключей"
+
+
+msgctxt "Operator"
 msgid "Add Active"
 msgstr "Сделать активными"
 
@@ -97887,12 +98036,12 @@ msgstr "В нижний регистр"
 
 msgctxt "Operator"
 msgid "Toggle Bold"
-msgstr "Переключить жирность шрифта"
+msgstr "Включить/выключить жирный шрифт"
 
 
 msgctxt "Operator"
 msgid "Toggle Italic"
-msgstr "Переключить курсивность шрифта"
+msgstr "Включить/выключить курсив шрифта"
 
 
 msgctxt "Operator"
@@ -99672,6 +99821,10 @@ msgid "Programming error: missing clear transform function or keying set name"
 msgstr "Ошибка в коде: отсутствует функция очистки трансформации или имя ключевого набора"
 
 
+msgid "Data-block is not marked as asset"
+msgstr "Блок данных не отмечен как ассет"
+
+
 msgid "No data-block selected that is marked as asset"
 msgstr "Не выбран блок данных, отмеченный как ассет"
 
@@ -99942,6 +100095,10 @@ msgstr "Нет активного кадра для удаления"
 
 msgid "Skin_light"
 msgstr "Skin_light"
+
+
+msgid "Bake Object Transform to Grease Pencil"
+msgstr "Запечь трансформацию объекта для Grease Pencil"
 
 
 msgid "Remove Loose Points"
@@ -104150,7 +104307,7 @@ msgstr "Радиус:"
 
 
 msgid "Tilt:"
-msgstr "Наклон:"
+msgstr "Наклон по оси:"
 
 
 msgid "Mean Weight:"
@@ -104162,7 +104319,7 @@ msgstr "Средний радиус:"
 
 
 msgid "Mean Tilt:"
-msgstr "Среднее кручение:"
+msgstr "Средний наклон по оси:"
 
 
 msgid "Dimensions:"
@@ -104222,7 +104379,7 @@ msgstr "Радиус контрольных точек кривой"
 
 
 msgid "Tilt of curve control points"
-msgstr "Кручение контрольных точек кривой"
+msgstr "Наклон по оси контрольных точек кривой"
 
 
 msgid "Normalize weights of active vertex (if affected groups are unlocked)"
@@ -104876,6 +105033,14 @@ msgid "Subdivision Surface modifier needs to be first to work with unwrap"
 msgstr "Модификатор подразделения поверхности должен быть первым, чтобы работать с развёрткой"
 
 
+msgid "Unwrap could not solve any island(s), edge seams may need to be added"
+msgstr "Оператор развёртки не смог обработать ни одного острова, возможно, необходимо добавить рёберные швы"
+
+
+msgid "Unwrap failed to solve %d of %d island(s), edge seams may need to be added"
+msgstr "Не удалось развернуть %d из %d островов, возможно, необходимо добавить рёберные швы"
+
+
 msgid "Freestyle: Mesh loading"
 msgstr "Freestyle: Загрузка меша"
 
@@ -104974,6 +105139,10 @@ msgstr "Меш '%s', Атрибут '%s' (домен %d, тип %d) не мог�
 
 msgid "USD export: Simple subdivision not supported, exporting subdivided mesh"
 msgstr "Экспорт USD: простое подразделение не поддерживается, экспортируется подразделённый меш"
+
+
+msgid "Asset data can only be assigned to assets. Use asset_mark() to mark as an asset."
+msgstr "Данные об ассетах могут быть назначены только ассетам. Используйте asset_mark(), чтобы пометить как ассет."
 
 
 msgid "Asset data cannot be None"
@@ -105714,6 +105883,16 @@ msgstr "Справа"
 msgctxt "UI_Events_KeyMaps"
 msgid "Fit"
 msgstr "Подогнать"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "Tilt CW"
+msgstr "Наклон по часовой"
+
+
+msgctxt "UI_Events_KeyMaps"
+msgid "Tilt CCW"
+msgstr "Наклон против часовой"
 
 
 msgctxt "UI_Events_KeyMaps"
@@ -107670,6 +107849,10 @@ msgstr "Повернуть острова для наилучшего вписа
 
 msgid "Pack UV Islands Field"
 msgstr "Поле упаковки UV-островков"
+
+
+msgid "Faces to participate in the unwrap operation"
+msgstr "Грани, которые примут участие в операции по развёртке"
 
 
 msgid "Edges to mark where the mesh is \"cut\" for the purposes of unwrapping"

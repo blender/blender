@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'159424053bc2')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'eb39d81afa00')\n"
 "Report-Msgid-Bugs-To: Ivan Paulos Tomé <ivan.paulos.tome@yandex.com>\n"
-"POT-Creation-Date: 2024-12-23 13:35+0000\n"
-"PO-Revision-Date: 2024-12-19 22:56+0000\n"
+"POT-Creation-Date: 2024-12-30 14:46+0000\n"
+"PO-Revision-Date: 2024-12-25 18:56+0000\n"
 "Last-Translator: Duarte Ramos <duarte.framos@gmail.com>\n"
 "Language-Team: Portuguese <https://translate.blender.org/projects/blender-ui/ui/pt/>\n"
 "Language: pt\n"
@@ -17732,6 +17732,38 @@ msgstr "Grupo de Camadas Grease Pencil"
 
 msgid "Group of Grease Pencil layers"
 msgstr "Grupo de camadas de Grease Pencil"
+
+
+msgid "Color tag 1"
+msgstr "Etiqueta de cor 1"
+
+
+msgid "Color tag 2"
+msgstr "Etiqueta de cor 2"
+
+
+msgid "Color tag 3"
+msgstr "Etiqueta de cor 3"
+
+
+msgid "Color tag 4"
+msgstr "Etiqueta de cor 4"
+
+
+msgid "Color tag 5"
+msgstr "Etiqueta de cor 5"
+
+
+msgid "Color tag 6"
+msgstr "Etiqueta de cor 6"
+
+
+msgid "Color tag 7"
+msgstr "Etiqueta de cor 7"
+
+
+msgid "Color tag 8"
+msgstr "Etiqueta de cor 8"
 
 
 msgid "Set layer group visibility"
@@ -44981,6 +45013,10 @@ msgstr "Remover ruído da imagem e passagens guia em simultâneo. Melhora qualid
 
 msgid "Prefilter noisy guiding passes before denoising image. Improves quality when guiding passes are noisy using extra processing time."
 msgstr "Usar pré-filtro em passagens guia com ruído antes de remoção de ruído da imagem. Melhora qualidade quando as passagens guia têm ruído usando tempo de processamento extra."
+
+
+msgid "High quality"
+msgstr "Alta qualidade."
 
 
 msgid "HDR"
@@ -75222,6 +75258,10 @@ msgid "Active Palette Color"
 msgstr "Cor activa da paleta"
 
 
+msgid "Render Pass"
+msgstr "Passo de renderização"
+
+
 msgid "Motion Tracking"
 msgstr "Captura de movimentos"
 
@@ -75240,10 +75280,6 @@ msgstr "Estereoscopia"
 
 msgid "Wire Color"
 msgstr "Cor dos cabos"
-
-
-msgid "Render Pass"
-msgstr "Passo de renderização"
 
 
 msgid "Bone Constraints"
@@ -78230,10 +78266,6 @@ msgstr "Usar divisões espaciais"
 
 msgid "Use BVH spatial splits: longer builder time, faster render"
 msgstr "Permite o uso de divisões espaciais para a hierarquia de volume circundante. O tempo de construção mais é mais longo, porém, a renderização é mais rápida."
-
-
-msgid "High quality"
-msgstr "Alta qualidade."
 
 
 msgid "Device to use for rendering"

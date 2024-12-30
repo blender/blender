@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'159424053bc2')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'eb39d81afa00')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-23 13:35+0000\n"
+"POT-Creation-Date: 2024-12-30 14:46+0000\n"
 "PO-Revision-Date: 2024-11-17 07:56+0000\n"
 "Last-Translator: Satoshi Yamasaki <yamyam@yo.rim.or.jp>\n"
 "Language-Team: Japanese <https://translate.blender.org/projects/blender-ui/ui/ja/>\n"
@@ -35040,6 +35040,11 @@ msgid "Parent"
 msgstr "ペアレント"
 
 
+msgctxt "Operator"
+msgid "Empty"
+msgstr "ブランク"
+
+
 msgctxt "Constraint"
 msgid "Track"
 msgstr "トラック"
@@ -45262,6 +45267,18 @@ msgid "Prefilter noisy guiding passes before denoising image. Improves quality w
 msgstr ""
 "画像のデノイズ前にノイズのあるガイドパスをプリフィルター処理します．\n"
 "ガイドパスにノイズが多い時，処理時間を追加し品質を向上します."
+
+
+msgid "High quality"
+msgstr "高品質"
+
+
+msgid "Balanced"
+msgstr "バランス"
+
+
+msgid "Balanced between performance and quality"
+msgstr "パフォーマンスと品質のバランスを取ります"
 
 
 msgid "HDR"
@@ -90331,6 +90348,22 @@ msgid "Panel containing UI elements"
 msgstr "UIの要素を含むパネル"
 
 
+msgid "Shadow Settings"
+msgstr "影の設定"
+
+
+msgid "SSAO Settings"
+msgstr "SSAO設定"
+
+
+msgid "Render Pass"
+msgstr "レンダーパス"
+
+
+msgid "Compositor"
+msgstr "コンポジター"
+
+
 msgid "Overlays"
 msgstr "オーバーレイ"
 
@@ -90453,22 +90486,6 @@ msgstr "選択可否と可視性"
 
 msgid "Wire Color"
 msgstr "ワイヤカラー"
-
-
-msgid "Shadow Settings"
-msgstr "影の設定"
-
-
-msgid "SSAO Settings"
-msgstr "SSAO設定"
-
-
-msgid "Render Pass"
-msgstr "レンダーパス"
-
-
-msgid "Compositor"
-msgstr "コンポジター"
 
 
 msgid "Chain Scaling"
@@ -97220,18 +97237,6 @@ msgstr "デノイズ品質"
 
 msgid "Overall denoising quality when using OpenImageDenoise"
 msgstr "OpenImageDeniser 使用時の全体的なデノイズの品質"
-
-
-msgid "High quality"
-msgstr "高品質"
-
-
-msgid "Balanced"
-msgstr "バランス"
-
-
-msgid "Balanced between performance and quality"
-msgstr "パフォーマンスと品質のバランスを取ります"
 
 
 msgid "High performance"
@@ -125703,11 +125708,6 @@ msgstr "前のブロック"
 msgctxt "Operator"
 msgid "Next Block"
 msgstr "次のブロック"
-
-
-msgctxt "Operator"
-msgid "Empty"
-msgstr "ブランク"
 
 
 msgctxt "Operator"

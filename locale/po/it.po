@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'159424053bc2')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'eb39d81afa00')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-23 13:35+0000\n"
+"POT-Creation-Date: 2024-12-30 14:46+0000\n"
 "PO-Revision-Date: 2024-12-18 18:56+0000\n"
 "Last-Translator: Alessandro Vecchio <alessandrovecchio1907@gmail.com>\n"
 "Language-Team: Italian <https://translate.blender.org/projects/blender-ui/ui/it/>\n"
@@ -29715,6 +29715,10 @@ msgid "Denoise"
 msgstr "Riduzione Rumore"
 
 
+msgid "High quality"
+msgstr "Alta qualità"
+
+
 msgid "Despeckle"
 msgstr "Smacchiatura"
 
@@ -47877,6 +47881,22 @@ msgid "Active Palette Color"
 msgstr "Colore Tavolozza Attivo"
 
 
+msgid "Shadow Settings"
+msgstr "Impostazioni Ombra"
+
+
+msgid "SSAO Settings"
+msgstr "Impostazioni SSAO"
+
+
+msgid "Render Pass"
+msgstr "Passaggi Render"
+
+
+msgid "Compositor"
+msgstr "Compositore"
+
+
 msgid "Overlays"
 msgstr "Sovrapposizioni"
 
@@ -47911,22 +47931,6 @@ msgstr "Auto-Mascheramento"
 
 msgid "Wire Color"
 msgstr "Colore Filo"
-
-
-msgid "Shadow Settings"
-msgstr "Impostazioni Ombra"
-
-
-msgid "SSAO Settings"
-msgstr "Impostazioni SSAO"
-
-
-msgid "Render Pass"
-msgstr "Passaggi Render"
-
-
-msgid "Compositor"
-msgstr "Compositore"
 
 
 msgid "Chain Scaling"
@@ -51082,10 +51086,6 @@ msgstr "Utilizza Curve BVH"
 
 msgid "Albedo"
 msgstr "Albedo"
-
-
-msgid "High quality"
-msgstr "Alta qualità"
 
 
 msgid "Device to use for rendering"

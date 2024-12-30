@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'159424053bc2')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'eb39d81afa00')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-23 13:35+0000\n"
-"PO-Revision-Date: 2024-12-19 07:56+0000\n"
+"POT-Creation-Date: 2024-12-30 14:46+0000\n"
+"PO-Revision-Date: 2024-12-30 02:56+0000\n"
 "Last-Translator: Gabriel Gazzán <gabcorreo@gmail.com>\n"
 "Language-Team: Spanish <https://translate.blender.org/projects/blender-ui/ui/es/>\n"
 "Language: es\n"
@@ -17731,6 +17731,10 @@ msgid "Group of Grease Pencil layers"
 msgstr "Grupo de capas de Grease Pencil"
 
 
+msgid "Reset color tag"
+msgstr "Restablecer etiqueta de color"
+
+
 msgid "Color tag 1"
 msgstr "Color 1"
 
@@ -34998,6 +35002,11 @@ msgid "Parent"
 msgstr "Asignar superior"
 
 
+msgctxt "Operator"
+msgid "Empty"
+msgstr "Vacío"
+
+
 msgctxt "Constraint"
 msgid "Track"
 msgstr "Rastreo"
@@ -43897,6 +43906,10 @@ msgid "Static Type"
 msgstr "Tipo estático"
 
 
+msgid "Legacy unique node type identifier, redundant with bl_idname property"
+msgstr "Identificador único obsoleto de tipo de nodo, redundante con la propiedad bl_idname property"
+
+
 msgid "Custom color of the node body"
 msgstr "Color presonalizado del cuerpo del nodo"
 
@@ -45178,6 +45191,18 @@ msgstr "Reducir el ruido de la imagen y las pasadas de guía en conjunto. Mejora
 
 msgid "Prefilter noisy guiding passes before denoising image. Improves quality when guiding passes are noisy using extra processing time."
 msgstr "Reducir el ruido de las pasadas de guía antes de reducir el ruido de la imagen. Mejora la calidad cuando las pasadas de guía presentan ruido, usando tiempo adicional de procesamiento."
+
+
+msgid "High quality"
+msgstr "Alta calidad"
+
+
+msgid "Balanced"
+msgstr "Balanceada"
+
+
+msgid "Balanced between performance and quality"
+msgstr "Un balance entre rendimiento y calidad"
 
 
 msgid "HDR"
@@ -49214,7 +49239,7 @@ msgstr "Permite definir el ángulo de giro en cada punto de control de una curva
 
 
 msgid "Set Geometry Name"
-msgstr "Definir nombre de la geometría"
+msgstr "Definir nombre de geometría"
 
 
 msgid "Set the name of a geometry for easier debugging"
@@ -82717,8 +82742,81 @@ msgstr "Intercambia las dos entradas del clip de efecto"
 
 
 msgctxt "Operator"
+msgid "Move cursor"
+msgstr "Mover cursor"
+
+
+msgid "Move cursor in text"
+msgstr "Mueve el cursor en el texto"
+
+
+msgid "Select Text"
+msgstr "Seleccionar texto"
+
+
+msgid "Select text while moving cursor"
+msgstr "Selecciona texto al mover el cursor"
+
+
+msgid "Set cursor position in text"
+msgstr "Define la posición del cursor en el texto"
+
+
+msgctxt "Operator"
+msgid "Delete Character"
+msgstr "Borrar caracter"
+
+
+msgid "Delete text at cursor position"
+msgstr "Borra el texto en la posición del cursor"
+
+
+msgctxt "Operator"
 msgid "Deselect All"
-msgstr "(De)seleccionar todo"
+msgstr "Deseleccionar todo"
+
+
+msgid "Deselect all characters"
+msgstr "Deselecciona todos los caracteres"
+
+
+msgid "Copy text to clipboard"
+msgstr "Copia texto al portapapeles"
+
+
+msgid "Cut text to clipboard"
+msgstr "Corta texto al portapapeles"
+
+
+msgctxt "Operator"
+msgid "Edit Text"
+msgstr "Editar texto"
+
+
+msgid "Toggle text editing"
+msgstr "Alterna la edición de texto"
+
+
+msgid "Paste text to clipboard"
+msgstr "Pega texto desde el portapapeles"
+
+
+msgctxt "Operator"
+msgid "Insert Character"
+msgstr "Insertar caracter"
+
+
+msgid "String to be inserted at cursor position"
+msgstr "Texto a ser insertado en la posición del cursor"
+
+
+msgctxt "Operator"
+msgid "Insert Line Break"
+msgstr "Insertar salto de línea"
+
+
+msgid "Select all characters"
+msgstr "Seleccionar todos los caracteres"
 
 
 msgctxt "Operator"
@@ -88300,7 +88398,7 @@ msgstr "Hace que el archivo actual sea el archivo de inicio predefinido"
 
 msgctxt "Operator"
 msgid "Save Blender File"
-msgstr "Guardar archivo de Blender"
+msgstr "Guardar"
 
 
 msgid "Save the current Blender file"
@@ -90071,6 +90169,22 @@ msgid "Panel containing UI elements"
 msgstr "Panel que contiene elementos de la interfaz"
 
 
+msgid "Shadow Settings"
+msgstr "Opciones de sombras"
+
+
+msgid "SSAO Settings"
+msgstr "Opciones OAEP"
+
+
+msgid "Render Pass"
+msgstr "Pasada de procesamiento"
+
+
+msgid "Compositor"
+msgstr "Nodos de composición"
+
+
 msgid "Overlays"
 msgstr "Sobreimpresos"
 
@@ -90197,22 +90311,6 @@ msgstr "Seleccionabilidad y visibilidad"
 
 msgid "Wire Color"
 msgstr "Color de estructuras"
-
-
-msgid "Shadow Settings"
-msgstr "Opciones de sombras"
-
-
-msgid "SSAO Settings"
-msgstr "Opciones OAEP"
-
-
-msgid "Render Pass"
-msgstr "Pasada de procesamiento"
-
-
-msgid "Compositor"
-msgstr "Nodos de composición"
 
 
 msgid "Chain Scaling"
@@ -93651,6 +93749,10 @@ msgid "No Override Auto Resync"
 msgstr "No resincronizar redefiniciones automáticamente"
 
 
+msgid "Disable library overrides automatic resync detection and process on file load (can be useful to help fixing broken files). Also see the `--disable-liboverride-auto-resync` command line option"
+msgstr "Deshabilita la detección y el procesamiento de la resincronización automática de redefiniciones de bibliotecas al cargar un archivo (puede resultar útil para ayudar a corregir archivos dañados). Ver también la opción `--disable-liboverride-auto-resync` de la línea de comandos"
+
+
 msgid "Asset Debug Info"
 msgstr "Información de depuración de recursos"
 
@@ -96825,18 +96927,6 @@ msgstr "Calidad de reducción de ruido"
 
 msgid "Overall denoising quality when using OpenImageDenoise"
 msgstr "Calidad general de la reducción de ruido al usar OpenImageDenoise"
-
-
-msgid "High quality"
-msgstr "Alta calidad"
-
-
-msgid "Balanced"
-msgstr "Balanceada"
-
-
-msgid "Balanced between performance and quality"
-msgstr "Un balance entre rendimiento y calidad"
 
 
 msgid "High performance"
@@ -108533,8 +108623,24 @@ msgid "Selected Strips"
 msgstr "Clips seleccionados"
 
 
+msgid "Selected text"
+msgstr "Texto seleccionado"
+
+
+msgid "Text strip editing selection"
+msgstr "Selección de edición del clip de texto"
+
+
 msgid "Text Strip"
 msgstr "Clip de texto"
+
+
+msgid "Text Strip Cursor"
+msgstr "Clip de texto - Cursor"
+
+
+msgid "Text strip editing cursor"
+msgstr "Cursor de edición del clip de texto"
 
 
 msgid "Transition Strip"
@@ -112956,6 +113062,24 @@ msgid "Action when 'Space' is pressed"
 msgstr "Acción cuando se presiona la 'barra espaciadora'"
 
 
+msgid "Toggle animation playback ('Shift-Space' for Tools or brush asset popup)"
+msgstr "Reproducir / Detener la animación ('Mayús-Espacio' para menú emergente de herramientas o pinceles)"
+
+
+msgid ""
+"Open the popup tool-bar or brush asset popup\n"
+"When holding 'Space' for the tool-bar popup:\n"
+"• Pressing the a tool shortcut switches to it immediately.\n"
+"• Dragging the cursor over a tool and releasing activates it (like a pie menu).\n"
+"For Play use 'Shift-Space'"
+msgstr ""
+"Al abrir el menú emergente de barra de herramientas o de pinceles\n"
+"Cuando la 'barra espaciadora' se mantenga pulsada:\n"
+"• Al presionar el atajo de una herramienta, ésta se activará inmediatamente.\n"
+"• Al posar el puntero sobre una herramienta y soltarla, ésta se activará (como en un menú circular).\n"
+"Para reproducir usar 'Mayús-Epacio'"
+
+
 msgid "Search"
 msgstr "Buscar"
 
@@ -115084,6 +115208,46 @@ msgstr "Editor de nodos"
 msgctxt "WindowManager"
 msgid "Node Generic"
 msgstr "Nodo - Genérico"
+
+
+msgctxt "WindowManager"
+msgid "Node Tool: Tweak"
+msgstr "Nodos - Herramienta: Retocar"
+
+
+msgctxt "WindowManager"
+msgid "Node Tool: Tweak (fallback)"
+msgstr "Nodos - Herramienta: Retocar (alternativa)"
+
+
+msgctxt "WindowManager"
+msgid "Node Tool: Select Box"
+msgstr "Nodos - Herramienta: Seleccionar (Marco)"
+
+
+msgctxt "WindowManager"
+msgid "Node Tool: Select Box (fallback)"
+msgstr "Nodos - Herramienta: Seleccionar (Marco) (alternativa)"
+
+
+msgctxt "WindowManager"
+msgid "Node Tool: Select Lasso"
+msgstr "Nodos - Herramienta: Seleccionar (Lazo)"
+
+
+msgctxt "WindowManager"
+msgid "Node Tool: Select Lasso (fallback)"
+msgstr "Nodos - Herramienta: Seleccionar (Lazo) (alternativa)"
+
+
+msgctxt "WindowManager"
+msgid "Node Tool: Select Circle"
+msgstr "Nodos - Herramienta: Seleccionar (Círculo)"
+
+
+msgctxt "WindowManager"
+msgid "Node Tool: Select Circle (fallback)"
+msgstr "Nodos - Herramienta: Seleccionar (Círculo) (alternativa)"
 
 
 msgctxt "WindowManager"
@@ -125209,11 +125373,6 @@ msgstr "Bloque siguiente"
 
 
 msgctxt "Operator"
-msgid "Empty"
-msgstr "Vacío"
-
-
-msgctxt "Operator"
 msgid "Point Cloud"
 msgstr "Nube de puntos"
 
@@ -131184,6 +131343,10 @@ msgstr "¿Borrar los objetos seleccionados?"
 
 msgid "SoundTrack"
 msgstr "Pista_sonido"
+
+
+msgid "Converted Layer"
+msgstr "Capa convertida"
 
 
 msgctxt "Light"

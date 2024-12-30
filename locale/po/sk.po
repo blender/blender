@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'159424053bc2')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'eb39d81afa00')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-23 13:35+0000\n"
-"PO-Revision-Date: 2024-12-17 07:02+0000\n"
+"POT-Creation-Date: 2024-12-30 14:46+0000\n"
+"PO-Revision-Date: 2024-12-24 07:32+0000\n"
 "Last-Translator: Jozef Matta <jozef.m923@gmail.com>\n"
 "Language-Team: Slovak <https://translate.blender.org/projects/blender-ui/ui/sk/>\n"
 "Language: sk\n"
@@ -17731,6 +17731,10 @@ msgid "Group of Grease Pencil layers"
 msgstr "Skupina vrstiev Grease Pencil"
 
 
+msgid "Reset color tag"
+msgstr "Resetovať príznak farby"
+
+
 msgid "Color tag 1"
 msgstr "Farebný príznak 1"
 
@@ -34998,6 +35002,11 @@ msgid "Parent"
 msgstr "Rodič"
 
 
+msgctxt "Operator"
+msgid "Empty"
+msgstr "Prázdne"
+
+
 msgctxt "Constraint"
 msgid "Track"
 msgstr "Stopa"
@@ -43897,6 +43906,10 @@ msgid "Static Type"
 msgstr "Statický typ"
 
 
+msgid "Legacy unique node type identifier, redundant with bl_idname property"
+msgstr "Starší jedinečný identifikátor typu uzla, nadbytočný s vlastnosťou bl_idname"
+
+
 msgid "Custom color of the node body"
 msgstr "Vlastná farba tela uzla"
 
@@ -45178,6 +45191,18 @@ msgstr "Odstránenie šumu obrázku a vodiace priechody spoločne. Zlepšuje kva
 
 msgid "Prefilter noisy guiding passes before denoising image. Improves quality when guiding passes are noisy using extra processing time."
 msgstr "Predbežné filtrovanie zašumených vodiacich prechodov pred odstránením šumu obrázku. Zlepšuje kvalitu, keď sú vodiace prechody zašumené, pričom sa využíva zvláštny čas spracovania."
+
+
+msgid "High quality"
+msgstr "Vysoká kvalita"
+
+
+msgid "Balanced"
+msgstr "Vyvážená"
+
+
+msgid "Balanced between performance and quality"
+msgstr "Vyvážený pomer medzi výkonom a kvalitou"
 
 
 msgid "HDR"
@@ -67379,7 +67404,7 @@ msgstr "Zmení výber všetkých viditeľných zostáv"
 
 
 msgid "Toggle box selection"
-msgstr "Prepnína výber poľom"
+msgstr "Prepína výber poľom"
 
 
 msgctxt "Operator"
@@ -82717,8 +82742,81 @@ msgstr "Prehodí dva vstupy pre efekt pásu"
 
 
 msgctxt "Operator"
+msgid "Move cursor"
+msgstr "Presunúť kurzor"
+
+
+msgid "Move cursor in text"
+msgstr "Presunie kurzor v texte"
+
+
+msgid "Select Text"
+msgstr "Vybrať text"
+
+
+msgid "Select text while moving cursor"
+msgstr "Výber textu pri presúvaní kurzora"
+
+
+msgid "Set cursor position in text"
+msgstr "Nastaví polohu kurzora v texte"
+
+
+msgctxt "Operator"
+msgid "Delete Character"
+msgstr "Odstrániť znak"
+
+
+msgid "Delete text at cursor position"
+msgstr "Odstráni text na pozícii kurzora"
+
+
+msgctxt "Operator"
 msgid "Deselect All"
 msgstr "Odznačiť všetko"
+
+
+msgid "Deselect all characters"
+msgstr "Zrušiť výber všetkých znakov"
+
+
+msgid "Copy text to clipboard"
+msgstr "Kopíruje text do schránky"
+
+
+msgid "Cut text to clipboard"
+msgstr "Vystrihne text do schránky"
+
+
+msgctxt "Operator"
+msgid "Edit Text"
+msgstr "Upraviť text"
+
+
+msgid "Toggle text editing"
+msgstr "Prepínač úpravy textu"
+
+
+msgid "Paste text to clipboard"
+msgstr "Prilepiť text do schránky"
+
+
+msgctxt "Operator"
+msgid "Insert Character"
+msgstr "Vložiť znak"
+
+
+msgid "String to be inserted at cursor position"
+msgstr "Reťazec pre vloženie na pozíciu kurzora"
+
+
+msgctxt "Operator"
+msgid "Insert Line Break"
+msgstr "Vložiť zalomenie riadku"
+
+
+msgid "Select all characters"
+msgstr "Vybrať všetky znaky"
 
 
 msgctxt "Operator"
@@ -90071,6 +90169,22 @@ msgid "Panel containing UI elements"
 msgstr "Panel obsahujúci prvky užívateľského rozhrania"
 
 
+msgid "Shadow Settings"
+msgstr "Nastavenie tieňa"
+
+
+msgid "SSAO Settings"
+msgstr "Nastavenie SSAO"
+
+
+msgid "Render Pass"
+msgstr "Prechod Prekreslenie"
+
+
+msgid "Compositor"
+msgstr "Kompozítor"
+
+
 msgid "Overlays"
 msgstr "Prekrytia"
 
@@ -90197,22 +90311,6 @@ msgstr "Výber a viditeľnosť"
 
 msgid "Wire Color"
 msgstr "Farba drôtu"
-
-
-msgid "Shadow Settings"
-msgstr "Nastavenie tieňa"
-
-
-msgid "SSAO Settings"
-msgstr "Nastavenie SSAO"
-
-
-msgid "Render Pass"
-msgstr "Prechod Prekreslenie"
-
-
-msgid "Compositor"
-msgstr "Kompozítor"
 
 
 msgid "Chain Scaling"
@@ -93651,6 +93749,10 @@ msgid "No Override Auto Resync"
 msgstr "Bez prepisu automatickej opätovnej synchronizácie"
 
 
+msgid "Disable library overrides automatic resync detection and process on file load (can be useful to help fixing broken files). Also see the `--disable-liboverride-auto-resync` command line option"
+msgstr "Zakáže automatickú detekciu prepisov knižnice a proces opätovnej synchronizácie pri načítaní súboru (môže byť užitočné na pomoc pri oprave poškodených súborov). Pozrite si tiež voľbu príkazového riadka `--disable-liboverride-auto-resync` (zakázať automatickú opätovnú synchronizáciu prepisu knižnice)"
+
+
 msgid "Asset Debug Info"
 msgstr "Informácie o ladení aktív"
 
@@ -96825,18 +96927,6 @@ msgstr "Kvalita odstránenia šumu"
 
 msgid "Overall denoising quality when using OpenImageDenoise"
 msgstr "Celková kvalita zníženia šumu pri použití OpenImageDenoise"
-
-
-msgid "High quality"
-msgstr "Vysoká kvalita"
-
-
-msgid "Balanced"
-msgstr "Vyvážená"
-
-
-msgid "Balanced between performance and quality"
-msgstr "Vyvážený pomer medzi výkonom a kvalitou"
 
 
 msgid "High performance"
@@ -108533,8 +108623,24 @@ msgid "Selected Strips"
 msgstr "Vybrané pásy"
 
 
+msgid "Selected text"
+msgstr "Vybraný text"
+
+
+msgid "Text strip editing selection"
+msgstr "Výber úpravy textového pásu"
+
+
 msgid "Text Strip"
 msgstr "Pás textu"
+
+
+msgid "Text Strip Cursor"
+msgstr "Kurzor textového pásu"
+
+
+msgid "Text strip editing cursor"
+msgstr "Kurzor na úpravu textového pásu"
 
 
 msgid "Transition Strip"
@@ -112956,6 +113062,24 @@ msgid "Action when 'Space' is pressed"
 msgstr "Akcia pri stlačení 'medzerníka'"
 
 
+msgid "Toggle animation playback ('Shift-Space' for Tools or brush asset popup)"
+msgstr "Prepínanie prehrávania animácie ('Shift+medzerník' pre nástroje alebo vyskakovacie okno pre prostriedky štetca)"
+
+
+msgid ""
+"Open the popup tool-bar or brush asset popup\n"
+"When holding 'Space' for the tool-bar popup:\n"
+"• Pressing the a tool shortcut switches to it immediately.\n"
+"• Dragging the cursor over a tool and releasing activates it (like a pie menu).\n"
+"For Play use 'Shift-Space'"
+msgstr ""
+"Otvorí vysúvací panel nástrojov alebo vysúvacie okno prostriedkov štetca\n"
+"Pridržaním 'medzerníka' pre vysúvacie okno panela nástrojov:\n"
+"• Stlačením klávesovej skratky nástroja sa naň okamžite prepnete.\n"
+"• Potiahnutím kurzora nad nástroj a jeho uvoľnením sa aktivuje (ako koláčová ponuka).\n"
+"Pre prehratie použite 'Shift+medzerník'"
+
+
 msgid "Search"
 msgstr "Vyhľadať"
 
@@ -113205,7 +113329,7 @@ msgstr "Nástroj 3D záberu: Vybrať kruhom (spätná väzba)"
 
 msgctxt "WindowManager"
 msgid "3D View Tool: Select Lasso"
-msgstr "Nástroj 3D záberu: Výber lasom"
+msgstr "Nástroj 3D záberu: Vybrať lasom"
 
 
 msgctxt "WindowManager"
@@ -115087,6 +115211,46 @@ msgstr "Všeobecný uzol"
 
 
 msgctxt "WindowManager"
+msgid "Node Tool: Tweak"
+msgstr "Nástroj uzla: Ladenie"
+
+
+msgctxt "WindowManager"
+msgid "Node Tool: Tweak (fallback)"
+msgstr "Nástroj uzla: Ladenie (spätná väzba)"
+
+
+msgctxt "WindowManager"
+msgid "Node Tool: Select Box"
+msgstr "Nástroj uzla: Vybrať poľom"
+
+
+msgctxt "WindowManager"
+msgid "Node Tool: Select Box (fallback)"
+msgstr "Nástroj uzla: Vybrať poľom (spätná väzba)"
+
+
+msgctxt "WindowManager"
+msgid "Node Tool: Select Lasso"
+msgstr "Nástroj uzla: Vybrať lasom"
+
+
+msgctxt "WindowManager"
+msgid "Node Tool: Select Lasso (fallback)"
+msgstr "Nástroj uzla: Vybrať lasom (spätná väzba)"
+
+
+msgctxt "WindowManager"
+msgid "Node Tool: Select Circle"
+msgstr "Nástroj uzla: Vybrať kruhom"
+
+
+msgctxt "WindowManager"
+msgid "Node Tool: Select Circle (fallback)"
+msgstr "Nástroj uzla: Vybrať kruhom (spätná väzba)"
+
+
+msgctxt "WindowManager"
 msgid "SequencerCommon"
 msgstr "Bežný radič sekvencií"
 
@@ -115133,12 +115297,12 @@ msgstr "Nástroj náhľadu radiča sekvencií: Ladenie (spätná väzba)"
 
 msgctxt "WindowManager"
 msgid "Sequencer Preview Tool: Select Box"
-msgstr "Nástroj náhľadu radiča sekvencií: Výber poľom"
+msgstr "Nástroj náhľadu radiča sekvencií: Vybrať poľom"
 
 
 msgctxt "WindowManager"
 msgid "Sequencer Preview Tool: Select Box (fallback)"
-msgstr "Nástroj náhľadu radiča sekvencií: Výber poľom (spätná väzba)"
+msgstr "Nástroj náhľadu radiča sekvencií: Vybrať poľom (spätná väzba)"
 
 
 msgctxt "WindowManager"
@@ -125209,11 +125373,6 @@ msgstr "Ďalší blok"
 
 
 msgctxt "Operator"
-msgid "Empty"
-msgstr "Prázdne"
-
-
-msgctxt "Operator"
 msgid "Point Cloud"
 msgstr "Mračno bodov"
 
@@ -131184,6 +131343,10 @@ msgstr "Odstrániť vybrané objekty?"
 
 msgid "SoundTrack"
 msgstr "ZvukovaStopa"
+
+
+msgid "Converted Layer"
+msgstr "Konvertovaná vrstva"
 
 
 msgctxt "Light"

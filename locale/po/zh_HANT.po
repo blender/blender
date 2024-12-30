@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'159424053bc2')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'eb39d81afa00')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-23 13:35+0000\n"
+"POT-Creation-Date: 2024-12-30 14:46+0000\n"
 "PO-Revision-Date: 2024-03-05 22:56+0000\n"
 "Last-Translator: 居樂行 <oscilloscope9705@gmail.com>\n"
 "Language-Team: Chinese (Traditional) <https://translate.blender.org/projects/blender-ui/ui/zh_Hant/>\n"
@@ -26299,6 +26299,10 @@ msgid "Scale the Z input when not using a z-buffer, controls maximum blur design
 msgstr "當並非使用 z 緩衝時縮放 Z 輸入，控制色彩白或輸入值 1 指定的的最大模糊"
 
 
+msgid "High quality"
+msgstr "高品質"
+
+
 msgid "Despeckle"
 msgstr "去斑點"
 
@@ -44575,6 +44579,14 @@ msgid "Palette Color"
 msgstr "色版色彩"
 
 
+msgid "Render Pass"
+msgstr "算繪通遞"
+
+
+msgid "Compositor"
+msgstr "合成器"
+
+
 msgid "Overlays"
 msgstr "疊層"
 
@@ -44609,14 +44621,6 @@ msgstr "作用中工具"
 
 msgid "Wire Color"
 msgstr "線色"
-
-
-msgid "Render Pass"
-msgstr "算繪通遞"
-
-
-msgid "Compositor"
-msgstr "合成器"
 
 
 msgid "Chain Scaling"
@@ -47652,10 +47656,6 @@ msgstr "使用 BVH 空間分割：較長的建置器時期，較快速的算繪"
 
 msgid "Denoiser"
 msgstr "降噪器"
-
-
-msgid "High quality"
-msgstr "高品質"
 
 
 msgid "Device to use for rendering"

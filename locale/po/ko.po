@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'159424053bc2')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'eb39d81afa00')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-23 13:35+0000\n"
+"POT-Creation-Date: 2024-12-30 14:46+0000\n"
 "PO-Revision-Date: 2023-11-14 19:14+0000\n"
 "Last-Translator: Lee YeonJoo <yzoo2@naver.com>\n"
 "Language-Team: Korean <https://translate.blender.org/projects/blender-ui/ui/ko/>\n"
@@ -31294,6 +31294,10 @@ msgid "Denoise"
 msgstr "디노이즈"
 
 
+msgid "High quality"
+msgstr "높은 품질"
+
+
 msgid "HDR"
 msgstr "HDR"
 
@@ -55678,6 +55682,18 @@ msgid "Panel containing UI elements"
 msgstr "UI 요소가 포함된 패널"
 
 
+msgid "Shadow Settings"
+msgstr "섀도우 설정"
+
+
+msgid "SSAO Settings"
+msgstr "SSAO 설정"
+
+
+msgid "Render Pass"
+msgstr "렌더 패스"
+
+
 msgid "Overlays"
 msgstr "오버레이"
 
@@ -55744,18 +55760,6 @@ msgstr "뷰 잠금"
 
 msgid "Wire Color"
 msgstr "와이어 컬러"
-
-
-msgid "Shadow Settings"
-msgstr "섀도우 설정"
-
-
-msgid "SSAO Settings"
-msgstr "SSAO 설정"
-
-
-msgid "Render Pass"
-msgstr "렌더 패스"
 
 
 msgid "Bone Constraints"
@@ -59975,10 +59979,6 @@ msgstr "BVH 공간 분할을 사용: 빌더 시간은 증가, 빠른 렌더링"
 
 msgid "Albedo"
 msgstr "알베도"
-
-
-msgid "High quality"
-msgstr "높은 품질"
 
 
 msgid "Device to use for rendering"

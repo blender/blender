@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'159424053bc2')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'eb39d81afa00')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-23 13:35+0000\n"
-"PO-Revision-Date: 2024-12-23 11:56+0000\n"
+"POT-Creation-Date: 2024-12-30 14:46+0000\n"
+"PO-Revision-Date: 2024-12-28 23:56+0000\n"
 "Last-Translator: Joan Pujolar <joan.pujolar@gmail.com>\n"
 "Language-Team: Catalan <https://translate.blender.org/projects/blender-ui/ui/ca/>\n"
 "Language: ca\n"
@@ -17731,6 +17731,10 @@ msgid "Group of Grease Pencil layers"
 msgstr "Agrupar totes les capes de Llapis de greix"
 
 
+msgid "Reset color tag"
+msgstr "Restablir etiqueta de color"
+
+
 msgid "Color tag 1"
 msgstr "Etiqueta de color 1"
 
@@ -19068,7 +19072,7 @@ msgstr "Arrel"
 
 msgctxt "Curves"
 msgid "Sharp"
-msgstr "Contrastat"
+msgstr "Sobtat"
 
 
 msgctxt "Curves"
@@ -20689,7 +20693,7 @@ msgstr "[Prefetch Cache Size]: Límit d'ús de memòria en megabytes per a la me
 
 
 msgid "Value by which to enlarge or shrink the object with respect to the world's origin (only applicable through a Transform Cache constraint)"
-msgstr "Valor pel qual s'amplia o s'encongeix l'objecte respecte de l'origen del món (només aplicable a través d'una restricció de transformació cau)"
+msgstr "Valor pel qual s'engrandeix o s'encongeix l'objecte respecte de l'origen del món (només aplicable a través d'una restricció de transformació cau)"
 
 
 msgid "Up"
@@ -28788,7 +28792,7 @@ msgstr "Usa marbre tou"
 
 
 msgid "Sharp"
-msgstr "Contrastat"
+msgstr "Sobtat"
 
 
 msgid "Use more clearly defined marble"
@@ -34998,6 +35002,11 @@ msgid "Parent"
 msgstr "Fer pare"
 
 
+msgctxt "Operator"
+msgid "Empty"
+msgstr "Buit"
+
+
 msgctxt "Constraint"
 msgid "Track"
 msgstr "Rastrejar"
@@ -35848,7 +35857,7 @@ msgstr "[Decimate]: Redueix la densitat de la geometria"
 
 
 msgid "Edge Split"
-msgstr "Escindir per arestes"
+msgstr "Escindir arestes"
 
 
 msgid "Split away joined faces at the edges"
@@ -41061,7 +41070,7 @@ msgstr "[Origin]: Desplaça l'origen i orientació de la deformació"
 
 
 msgid "Skin Modifier"
-msgstr "Modificador d'empellat"
+msgstr "Modificador empellar"
 
 
 msgid "Generate Skin"
@@ -43897,6 +43906,10 @@ msgid "Static Type"
 msgstr "Tipus estàtic"
 
 
+msgid "Legacy unique node type identifier, redundant with bl_idname property"
+msgstr "Identificador antic de tipus de node únic, redundant amb la propietat bl_idname"
+
+
 msgid "Custom color of the node body"
 msgstr "Color personalitzat del cos del node"
 
@@ -45178,6 +45191,18 @@ msgstr "Dessorolla imatges i passades guia alhora. Millora la qualitat quan les 
 
 msgid "Prefilter noisy guiding passes before denoising image. Improves quality when guiding passes are noisy using extra processing time."
 msgstr "[Accurate]: Prefiltra les passades guia polsoses abans de dessorollar la imatge. Millora la qualitat quan les passades guia tenen pols tot emprant el mínim temps de processament afegit."
+
+
+msgid "High quality"
+msgstr "Alta qualitat"
+
+
+msgid "Balanced"
+msgstr "Equilibrada"
+
+
+msgid "Balanced between performance and quality"
+msgstr "Equilibri entre rendiment i qualitat"
 
 
 msgid "HDR"
@@ -47497,7 +47522,7 @@ msgstr "Porta la geometria de la col·lecció ingressada a dins l'objecte modifi
 
 
 msgid "Convex Hull"
-msgstr "Funda convexa"
+msgstr "Casc convex"
 
 
 msgid "Create a mesh that encloses all points in the input geometry with the smallest number of points"
@@ -49614,7 +49639,7 @@ msgstr "Conforme"
 
 
 msgid "Uses LSCM (Least Squares Conformal Mapping). This usually gives a less accurate UV mapping than Angle Based, but works better for simpler objects"
-msgstr "Usa LSCM (mapejat conformel de mínims quadrats). Això normalment dóna un mapejat UV menys precís que e d'angle, però rutlla millor en objectes més simples"
+msgstr "Usa LSCM (mapejat conforme de mínims quadrats). Això normalment dóna un mapejat UV menys precís que e d'angle, però rutlla millor en objectes més simples"
 
 
 msgid "Vertex of Corner"
@@ -57477,7 +57502,7 @@ msgstr ""
 
 msgctxt "Operator"
 msgid "Hide Selected"
-msgstr "Amagar selecció"
+msgstr "Ocultar seleccionats"
 
 
 msgid "Tag selected bones to not be visible in Edit Mode"
@@ -59092,7 +59117,7 @@ msgstr "Usar mediana"
 
 
 msgid "Set origin to median point of selected bundles"
-msgstr "[Use]: Definir l'origen com a punt medià dels agregats seleccionats"
+msgstr "[Use]: Definir l'origen com a punt de mediana dels agregats seleccionats"
 
 
 msgctxt "Operator"
@@ -60375,7 +60400,7 @@ msgstr "Precuinar període"
 
 
 msgid "Edge Slide"
-msgstr "Corriment d'aresta"
+msgstr "Corriment d'arestes"
 
 
 msgid "Sequence Slide"
@@ -60723,7 +60748,7 @@ msgstr "[Separate]: Separa punts seleccionats dels punts no seleccionats connect
 
 msgctxt "Operator"
 msgid "Shade Flat"
-msgstr "Aspecte aplanat"
+msgstr "Aspecció aplanada"
 
 
 msgid "Set shading to flat"
@@ -68208,7 +68233,7 @@ msgstr "Sentit antihorari"
 
 msgctxt "Operator"
 msgid "Convex Hull"
-msgstr "Funda convexa"
+msgstr "Casc convex"
 
 
 msgid "Enclose selected vertices in a convex polyhedron"
@@ -68220,7 +68245,7 @@ msgstr "Eliminar no usats"
 
 
 msgid "Delete selected elements that are not used by the hull"
-msgstr "Elimina els elements seleccionats no usats per la funda"
+msgstr "Elimina els elements seleccionats no usats per el casc"
 
 
 msgid "Deselect Joined"
@@ -68252,7 +68277,7 @@ msgstr "Fer forats"
 
 
 msgid "Delete selected faces that are used by the hull"
-msgstr "[Make Holes]: Elimina les cares seleccionades que són de la funda"
+msgstr "[Make Holes]: Elimina les cares seleccionades que són del casc"
 
 
 msgid "Compare Materials"
@@ -68288,7 +68313,7 @@ msgstr "Usar cares existents"
 
 
 msgid "Skip hull triangles that are covered by a pre-existing face"
-msgstr "[Use Existing Faces]: Omet els triangles de la funda que estan coberts per una cara preexistent"
+msgstr "[Use Existing Faces]: Omet els triangles del casc que estan coberts per una cara preexistent"
 
 
 msgid "Compare UVs"
@@ -68375,7 +68400,7 @@ msgstr "[Delete Edge Loop]: Elimina un bucle d'arestes fusionant-ne les cares a 
 
 
 msgid "Face Split"
-msgstr "Separar cares"
+msgstr "Dividir cares"
 
 
 msgid "Split off face corners to maintain surrounding geometry"
@@ -68693,7 +68718,7 @@ msgstr "Extrudir regió i encongir/inflar"
 
 msgctxt "Operator"
 msgid "Extrude Repeat"
-msgstr "Extrusió de repetició"
+msgstr "Extrudir repetidament"
 
 
 msgid "Extrude selected vertices, edges or faces repeatedly"
@@ -69416,7 +69441,7 @@ msgstr "[Cap Endpoint]: Amplia el bucle al voltant dels punts finals"
 
 msgctxt "Operator"
 msgid "Offset Edge Slide"
-msgstr "Desplaçar arestes lliscant"
+msgstr "Desplaçar Corriment d'arestes"
 
 
 msgid "Offset edge loop slide"
@@ -74454,7 +74479,7 @@ msgstr "Origen a geometria"
 
 
 msgid "Calculate the center of geometry based on the current pivot point (median, otherwise bounding box)"
-msgstr "Calcula el centre de geometria basant-se en el punt de gir actual (medià, sinó capsa contenidora)"
+msgstr "Calcula el centre de geometria basant-se en el punt de pivot actual (mediana, altrament capsa contenidora)"
 
 
 msgid "Origin to 3D Cursor"
@@ -79365,7 +79390,7 @@ msgstr "Una superfície semblant a una malla que engloba (és a dir, sobrecobrei
 
 
 msgid "Mesh consisting of triangles only, allowing for more detailed interactions than convex hulls"
-msgstr "Malla consistent de triangles i prou, permetent interaccions més detallades que les de fundes convexes"
+msgstr "Malla consistent de triangles i prou, permetent interaccions més detallades que els cascs convexos"
 
 
 msgid "Compound Parent"
@@ -81116,16 +81141,16 @@ msgstr "Aleatoritzar posicions dels vèrtexs"
 
 msgctxt "Operator"
 msgid "Relax"
-msgstr "Distensió"
+msgstr "Destensar"
 
 
 msgid "Relax mesh"
-msgstr "Distendre malla"
+msgstr "Destensar malla"
 
 
 msgctxt "Operator"
 msgid "Relax Face Sets"
-msgstr "Relaxar jocs de cares"
+msgstr "Destensar jocs de cares"
 
 
 msgid "Smooth the edges of all the Face Sets"
@@ -81396,7 +81421,7 @@ msgstr "[Trim Polyline Gesture]: Executa una operació booleana sobre la malla i
 
 msgctxt "Operator"
 msgid "Grab UVs"
-msgstr "Agafar UVs"
+msgstr "Capturar UVs"
 
 
 msgid "Grab UVs"
@@ -81409,7 +81434,7 @@ msgstr "Invertir l'acció durant tot el traç"
 
 msgctxt "Operator"
 msgid "Pinch UVs"
-msgstr "Escanyar UVs"
+msgstr "Pinçar UVs"
 
 
 msgid "Pinch UVs"
@@ -81418,11 +81443,11 @@ msgstr "Pinçar UVs"
 
 msgctxt "Operator"
 msgid "Relax UVs"
-msgstr "Distendre UVs"
+msgstr "Destensar UVs"
 
 
 msgid "Relax UVs"
-msgstr "Distendre UVs"
+msgstr "Destensar UVs"
 
 
 msgid "Relax Method"
@@ -82717,8 +82742,81 @@ msgstr "[Swap Inputs]: Intercanvia les primeres dues ingressions pel segment d'e
 
 
 msgctxt "Operator"
+msgid "Move cursor"
+msgstr "Moure el cursor"
+
+
+msgid "Move cursor in text"
+msgstr "Moure cursor pel text"
+
+
+msgid "Select Text"
+msgstr "Seleccionar text"
+
+
+msgid "Select text while moving cursor"
+msgstr "Selecciona text en moure el cursor"
+
+
+msgid "Set cursor position in text"
+msgstr "Situar posició del cursor en el text"
+
+
+msgctxt "Operator"
+msgid "Delete Character"
+msgstr "Eliminar caràcter"
+
+
+msgid "Delete text at cursor position"
+msgstr "Elimina text per la posició del cursor"
+
+
+msgctxt "Operator"
 msgid "Deselect All"
 msgstr "Desselecciona-ho tot"
+
+
+msgid "Deselect all characters"
+msgstr "Desseleccionar tots els caràcters"
+
+
+msgid "Copy text to clipboard"
+msgstr "Copiar text a porta-retalls"
+
+
+msgid "Cut text to clipboard"
+msgstr "Retallar text seleccionat a porta-retalls"
+
+
+msgctxt "Operator"
+msgid "Edit Text"
+msgstr "Editar text"
+
+
+msgid "Toggle text editing"
+msgstr "Permutar edició de text"
+
+
+msgid "Paste text to clipboard"
+msgstr "Enganxar text a porta-retalls"
+
+
+msgctxt "Operator"
+msgid "Insert Character"
+msgstr "Inserir caràcter"
+
+
+msgid "String to be inserted at cursor position"
+msgstr "Cadena a inserir en la posició del cursor"
+
+
+msgctxt "Operator"
+msgid "Insert Line Break"
+msgstr "Inserir salt de línia"
+
+
+msgid "Select all characters"
+msgstr "Seleccionar tots els caràcters"
 
 
 msgctxt "Operator"
@@ -83556,7 +83654,7 @@ msgstr "[Edge Crease]: Canvia el cairat de les arestes"
 
 msgctxt "Operator"
 msgid "Edge Slide"
-msgstr "Escórrer aresta"
+msgstr "Corriment d'arestes"
 
 
 msgid "Correct UVs"
@@ -83881,7 +83979,7 @@ msgstr "[Vertex Crease]: Canvia el cairat de vèrtexs"
 
 msgctxt "Operator"
 msgid "Vertex Slide"
-msgstr "Escórrer vèrtex"
+msgstr "Corriment de vèrtexs"
 
 
 msgid "Slide a vertex along a mesh"
@@ -84792,7 +84890,7 @@ msgstr "Minimitzar estirament"
 
 
 msgid "Reduce UV stretching by relaxing angles"
-msgstr "[Minimize Stretch]: Redueix l'estirament d'UV distenent els angles"
+msgstr "[Minimize Stretch]: Redueix l'estirament d'UV destensant els angles"
 
 
 msgid "Blend factor between stretch minimized and original"
@@ -84941,7 +85039,7 @@ msgstr "Forma de contorn (convexa)"
 
 
 msgid "Uses convex hull"
-msgstr "Usa funda convexa"
+msgstr "Usa casc convex"
 
 
 msgid "Uses bounding boxes"
@@ -85398,7 +85496,7 @@ msgstr "Nombre d'interacions quan es fa servir el mètode \"Estirament mínim\""
 
 
 msgid "Unwrapping method (Angle Based usually gives better results than Conformal, while being somewhat slower)"
-msgstr "Mètode de desembolcallat (el Basat en l'angle normalment dona millors resultats que el Conformal, tot i ser una mica més lent)"
+msgstr "Mètode de desembolcallat (el Basat en l'angle normalment dona millors resultats que el Conforme, tot i ser una mica més lent)"
 
 
 msgid "Minimum Stretch"
@@ -86480,7 +86578,7 @@ msgstr "No conserva la relació pare/fill dels objectes"
 
 
 msgid "Value by which to enlarge or shrink the objects with respect to the world's origin"
-msgstr "Valor pel qual s'amplien o redueixen els objectes respecte de l'origen del món"
+msgstr "Valor pel qual s'engrandeixen o redueixen els objectes respecte de l'origen del món"
 
 
 msgid "Geometry Samples"
@@ -90071,6 +90169,22 @@ msgid "Panel containing UI elements"
 msgstr "Plafó que conté elements de la IU"
 
 
+msgid "Shadow Settings"
+msgstr "Paràmetres d'ombra"
+
+
+msgid "SSAO Settings"
+msgstr "Paràmetres de SSAO"
+
+
+msgid "Render Pass"
+msgstr "Passada de revelat"
+
+
+msgid "Compositor"
+msgstr "Compositador"
+
+
 msgid "Overlays"
 msgstr "Sobreimpressions"
 
@@ -90197,22 +90311,6 @@ msgstr "Seleccionabilitat i visibilitat"
 
 msgid "Wire Color"
 msgstr "Color de trama"
-
-
-msgid "Shadow Settings"
-msgstr "Paràmetres d'ombra"
-
-
-msgid "SSAO Settings"
-msgstr "Paràmetres de SSAO"
-
-
-msgid "Render Pass"
-msgstr "Passada de revelat"
-
-
-msgid "Compositor"
-msgstr "Compositador"
 
 
 msgid "Chain Scaling"
@@ -91530,7 +91628,7 @@ msgstr "Extrudir individualment"
 
 msgctxt "Operator"
 msgid "Offset Edge Loop Cut"
-msgstr "Extreure bucle d'aresta"
+msgstr "Desplaçar inserció de bucle d'aresta"
 
 
 msgctxt "Operator"
@@ -93651,6 +93749,10 @@ msgid "No Override Auto Resync"
 msgstr "No s'autoresincronitzen sobreseïments"
 
 
+msgid "Disable library overrides automatic resync detection and process on file load (can be useful to help fixing broken files). Also see the `--disable-liboverride-auto-resync` command line option"
+msgstr "Deshabilita en carregar el document el procés i detecció de resincronització automàtica de sobreseïments de biblioteca (pot ser útil per ajudar a reparar documents malmesos). Consulteu també l'opció d'indicador d'ordres `--disable-liboverride-auto-resync`"
+
+
 msgid "Asset Debug Info"
 msgstr "Info de depuració de recursos"
 
@@ -94390,7 +94492,7 @@ msgstr "Les tecles principals d'1 a 0 actuen com les del teclat numèric (útil 
 
 
 msgid "Continuous Grab"
-msgstr "Agafar continuat"
+msgstr "Captura continuada"
 
 
 msgid "Let the mouse wrap around the view boundaries so mouse movements are not limited by the screen size (used by transform, dragging of UI controls, etc.)"
@@ -96825,18 +96927,6 @@ msgstr "Qualitat de dessorollat"
 
 msgid "Overall denoising quality when using OpenImageDenoise"
 msgstr "La qualitat general del desorollat quan s'empra OpenImageDenoise"
-
-
-msgid "High quality"
-msgstr "Alta qualitat"
-
-
-msgid "Balanced"
-msgstr "Equilibrada"
-
-
-msgid "Balanced between performance and quality"
-msgstr "Equilibri entre rendiment i qualitat"
 
 
 msgid "High performance"
@@ -103159,7 +103249,7 @@ msgstr "Orígens individuals"
 
 
 msgid "Pivot around each selected island's own median point"
-msgstr "Pivota al voltant del punt mitjà de cada illa seleccionada"
+msgstr "Pivota al voltant del punt de mediana de cada illa seleccionada"
 
 
 msgid "Snapping Distance"
@@ -104093,7 +104183,7 @@ msgstr "Pivota al voltant del propi origen de cada objecte"
 
 
 msgid "Pivot around the median point of selected objects"
-msgstr "Pivota al voltant del punt mitjà dels objectes seleccionats"
+msgstr "Pivota al voltant del punt de mediana dels objectes seleccionats"
 
 
 msgid "Scopes to visualize movie clip statistics"
@@ -106595,7 +106685,7 @@ msgstr "Quants quadrets es mostraran al fons"
 
 
 msgid "Live Unwrap"
-msgstr "Desembolcallat en temps real"
+msgstr "Desembolcallat síncron"
 
 
 msgid "Continuously unwrap the selected UV island while transforming pinned vertices"
@@ -108533,8 +108623,24 @@ msgid "Selected Strips"
 msgstr "Segments seleccionats"
 
 
+msgid "Selected text"
+msgstr "Text seleccionat"
+
+
+msgid "Text strip editing selection"
+msgstr "Selecció d'edició de segment de text"
+
+
 msgid "Text Strip"
 msgstr "Segment text"
+
+
+msgid "Text Strip Cursor"
+msgstr "Cursor de segment de text"
+
+
+msgid "Text strip editing cursor"
+msgstr "Cursor d'edició de segment de text"
 
 
 msgid "Transition Strip"
@@ -112956,6 +113062,24 @@ msgid "Action when 'Space' is pressed"
 msgstr "Acció quan es pitja «espai»"
 
 
+msgid "Toggle animation playback ('Shift-Space' for Tools or brush asset popup)"
+msgstr "Permutar reproducció d'animació ('Maj+Espai' per a les Eines o recurs de pinzell emergent)"
+
+
+msgid ""
+"Open the popup tool-bar or brush asset popup\n"
+"When holding 'Space' for the tool-bar popup:\n"
+"• Pressing the a tool shortcut switches to it immediately.\n"
+"• Dragging the cursor over a tool and releasing activates it (like a pie menu).\n"
+"For Play use 'Shift-Space'"
+msgstr ""
+"Obre barra d'eines emergent o recurs de pinzell emergent\n"
+"Quan es manté 'espai' pitjat perquè emergeixi la barra de l'ena:\n"
+"• Pitjant la tecla-drecera de les eines hi canvia immediatament.\n"
+"• Arrossegant i amollant el cursor sobre una eina l'activa (com ara una rotonda).\n"
+"Per a reproduir usar 'Maj-Espaiat'"
+
+
 msgid "Search"
 msgstr "Cerca"
 
@@ -113410,12 +113534,12 @@ msgstr "Eina de vista 3D: Editar malla, Divisió de bucle (2a opció)"
 
 msgctxt "WindowManager"
 msgid "3D View Tool: Edit Mesh, Offset Edge Loop Cut"
-msgstr "Eina de vista 3D: Editar malla, Desplaçar aresta de divisió de bucle"
+msgstr "Eina de vista 3D: Editar malla, Desplaçar inserció de bucle d'aresta"
 
 
 msgctxt "WindowManager"
 msgid "3D View Tool: Edit Mesh, Offset Edge Loop Cut (fallback)"
-msgstr "Eina de vista 3D: Editar malla, Desplaçar aresta de divisió de bucle (2a opció)"
+msgstr "Eina de vista 3D: Editar malla, Desplaçar inserció de bucle d'aresta (2a opció)"
 
 
 msgctxt "WindowManager"
@@ -113480,22 +113604,22 @@ msgstr "Eina de vista 3D: Editar malla, Aleatoritzar (2a opció)"
 
 msgctxt "WindowManager"
 msgid "3D View Tool: Edit Mesh, Edge Slide"
-msgstr "Eina de vista 3D: Editar malla, Lliscar aresta"
+msgstr "Eina de vista 3D: Editar malla, Corriment d'arestes"
 
 
 msgctxt "WindowManager"
 msgid "3D View Tool: Edit Mesh, Edge Slide (fallback)"
-msgstr "Eina de vista 3D: Editar malla, Lliscar aresta (2a opció)"
+msgstr "Eina de vista 3D: Editar malla, Corriment d'arestes (2a opció)"
 
 
 msgctxt "WindowManager"
 msgid "3D View Tool: Edit Mesh, Vertex Slide"
-msgstr "Eina de vista 3D: Editar malla, Lliscar vèrtex"
+msgstr "Eina de vista 3D: Editar malla, Corriment de vèrtexs"
 
 
 msgctxt "WindowManager"
 msgid "3D View Tool: Edit Mesh, Vertex Slide (fallback)"
-msgstr "Eina de vista 3D: Editar malla, Lliscar vèrtexs (2a opció)"
+msgstr "Eina de vista 3D: Editar malla, Corriment de vèrtexs (2a opció)"
 
 
 msgctxt "WindowManager"
@@ -113750,12 +113874,12 @@ msgstr "Eina de vista 3D: Posa, Augmentar (2a opció)"
 
 msgctxt "WindowManager"
 msgid "3D View Tool: Pose, Relax"
-msgstr "Eina de vista 3D: Poses, Relaxar"
+msgstr "Eina de vista 3D: Poses, Destensar"
 
 
 msgctxt "WindowManager"
 msgid "3D View Tool: Pose, Relax (fallback)"
-msgstr "Eina de vista 3D: Posa, Relaxar (2a opció)"
+msgstr "Eina de vista 3D: Posa, Destensar (2a opció)"
 
 
 msgctxt "WindowManager"
@@ -115018,32 +115142,32 @@ msgstr "Eina d'edició d'imatges: UV, Arrencar regió (2a opció)"
 
 msgctxt "WindowManager"
 msgid "Image Editor Tool: Uv, Grab"
-msgstr "Eina d'edició d'imatges: UV, Agafar"
+msgstr "Eina d'edició d'imatges: UV, Capturar"
 
 
 msgctxt "WindowManager"
 msgid "Image Editor Tool: Uv, Grab (fallback)"
-msgstr "Eina d'edició d'imatges: Uv, Agafar (pla B)"
+msgstr "Eina d'edició d'imatges: Uv, Capturar (pla B)"
 
 
 msgctxt "WindowManager"
 msgid "Image Editor Tool: Uv, Relax"
-msgstr "Eina d'edició d'imatges: Uv, Distendre"
+msgstr "Eina d'edició d'imatges: Uv, Destensar"
 
 
 msgctxt "WindowManager"
 msgid "Image Editor Tool: Uv, Relax (fallback)"
-msgstr "Eina d'edició d'imatges: UV, Distendre (2a opció)"
+msgstr "Eina d'edició d'imatges: UV, Destensar (2a opció)"
 
 
 msgctxt "WindowManager"
 msgid "Image Editor Tool: Uv, Pinch"
-msgstr "Eina d'edició d'imatges: Uv, Escanyar"
+msgstr "Eina d'edició d'imatges: Uv, Pinçar"
 
 
 msgctxt "WindowManager"
 msgid "Image Editor Tool: Uv, Pinch (fallback)"
-msgstr "Eina d'edició d'imatges: Uv, Escanyar (pla B)"
+msgstr "Eina d'edició d'imatges: Uv, Pinçar (pla B)"
 
 
 msgctxt "WindowManager"
@@ -115084,6 +115208,46 @@ msgstr "Editor de nodes"
 msgctxt "WindowManager"
 msgid "Node Generic"
 msgstr "Node genèric"
+
+
+msgctxt "WindowManager"
+msgid "Node Tool: Tweak"
+msgstr "Eina de node: retocar"
+
+
+msgctxt "WindowManager"
+msgid "Node Tool: Tweak (fallback)"
+msgstr "Eina de node: retocar (pla B)"
+
+
+msgctxt "WindowManager"
+msgid "Node Tool: Select Box"
+msgstr "Eina de node: selecció de caixa"
+
+
+msgctxt "WindowManager"
+msgid "Node Tool: Select Box (fallback)"
+msgstr "Eina de node: selecció de caixa (pla B)"
+
+
+msgctxt "WindowManager"
+msgid "Node Tool: Select Lasso"
+msgstr "Eina de node: selecció de llaç"
+
+
+msgctxt "WindowManager"
+msgid "Node Tool: Select Lasso (fallback)"
+msgstr "Eina de node: selecció de llaç (pla B)"
+
+
+msgctxt "WindowManager"
+msgid "Node Tool: Select Circle"
+msgstr "Eina de node: selecció de cercle"
+
+
+msgctxt "WindowManager"
+msgid "Node Tool: Select Circle (fallback)"
+msgstr "Eina de node: selecció de cercle (pla B)"
 
 
 msgctxt "WindowManager"
@@ -115528,7 +115692,7 @@ msgstr "Lligam de node (desactivat)"
 
 msgctxt "WindowManager"
 msgid "Vert/Edge Slide"
-msgstr "Escórrer vèrtex/aresta"
+msgstr "Corriment de vèrtexs/arestes"
 
 
 msgctxt "WindowManager"
@@ -124855,7 +125019,7 @@ msgstr "Arrencar vèrtexs"
 
 msgctxt "Operator"
 msgid "Rip Vertices and Fill"
-msgstr "Arrencar vèrtexs i omplir"
+msgstr "Arrencar vèrtexs i emplenar"
 
 
 msgctxt "Operator"
@@ -125069,7 +125233,7 @@ msgstr "Cairats"
 
 msgctxt "Plural"
 msgid "Sharp"
-msgstr "Aguts"
+msgstr "Nítid"
 
 
 msgid "Seams"
@@ -125206,11 +125370,6 @@ msgstr "Bloc anterior"
 msgctxt "Operator"
 msgid "Next Block"
 msgstr "Bloc següent"
-
-
-msgctxt "Operator"
-msgid "Empty"
-msgstr "Buit"
 
 
 msgctxt "Operator"
@@ -125815,7 +125974,7 @@ msgstr "Suavitzar superfície"
 
 
 msgid "Relax Topology"
-msgstr "Distendre topologia"
+msgstr "Destensar topologia"
 
 
 msgid "Relax Face Sets"
@@ -128657,7 +128816,7 @@ msgstr "Extremar posa"
 
 
 msgid "Relax Pose"
-msgstr "Relaxar posa"
+msgstr "Destensar posa"
 
 
 msgid "Blend to Neighbor"
@@ -131184,6 +131343,10 @@ msgstr "Eliminar els objectes seleccionats?"
 
 msgid "SoundTrack"
 msgstr "Banda sonora"
+
+
+msgid "Converted Layer"
+msgstr "Capa convertida"
 
 
 msgctxt "Light"
@@ -136725,7 +136888,7 @@ msgstr "Definir base d'acoblament"
 
 
 msgid "Edge Slide: "
-msgstr "Aresta - Escórrer: "
+msgstr "Corriment d'arestes: "
 
 
 msgid "Opacity: %s"
@@ -136845,7 +137008,7 @@ msgstr "Usar el mode de transformació «TimeTranslate» enlloc del mode «Trans
 
 
 msgid "Vertex Slide: "
-msgstr "Vèrtex - escórrer: "
+msgstr "Corriment de vèrtexs: "
 
 
 msgid "(E)ven: %s, "
@@ -140095,7 +140258,7 @@ msgstr "No s'ha trobat cap vèrtex arrel vàlid (se'n necessita un per illa de m
 
 
 msgid "Hull error"
-msgstr "Error de funda"
+msgstr "Error de casc"
 
 
 msgid "Crease Inner"
@@ -142921,7 +143084,7 @@ msgstr "Especifica l'absorció d'energia per unitat de llargada en passar la llu
 
 
 msgid "The ratio of the minor axis to the major axis of an elliptical cross-section. Recommended values are 0.8~1 for Asian hair, 0.65~0.9 for Caucasian hair, 0.5~0.65 for African hair. The major axis is aligned with the curve normal, which is not supported in particle hair"
-msgstr "Relació entre l'eix menor i l'eix principal d'una secció transversal el·líptica. Els valors recomanats són 0,8~1 per als cabells asiàtics, 0,65~0,9 per als cabells caucàsics, 0,5~0,65 per al cabell africà. L'eix principal està alineat amb la normal de corba, cosa que no és compatible amb el pèl de partícules"
+msgstr "Relació entre l'eix menor i l'eix major d'una secció transversal el·líptica. Els valors recomanats són 0,8~1 per als cabells asiàtics, 0,65~0,9 per als cabells caucàsics, 0,5~0,65 per al cabell africà. L'eix principal està alineat a normal de corba, que no és compatible amb les partícules pèl"
 
 
 msgid "Hair roughness. A low value leads to a metallic look"

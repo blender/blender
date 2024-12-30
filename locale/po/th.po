@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'159424053bc2')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'eb39d81afa00')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-23 13:35+0000\n"
+"POT-Creation-Date: 2024-12-30 14:46+0000\n"
 "PO-Revision-Date: 2019-12-08 17:40+0700\n"
 "Last-Translator: gongpha <gongpha@gmail.com>\n"
 "Language-Team: Thai Translation Team <gongpha@gmail.com>\n"
@@ -2288,6 +2288,10 @@ msgid "RGB Curves"
 msgstr "เส้นโค้ง RGB"
 
 
+msgid "High quality"
+msgstr "คุณภาพสูง"
+
+
 msgid "-1 is original image only, 0 is exact 50/50 mix, 1 is processed image only"
 msgstr "-1 คือ ภาพต้นฉบับเท่านั้น, 0 คือ ผสมแน่นอน 50/50, 1 คือ ภาพที่ผ่านการประมวลผลเท่านั้น"
 
@@ -3488,10 +3492,6 @@ msgstr "แปลอินเตอร์เฟส"
 
 msgid "Password"
 msgstr "รหัสผ่าน"
-
-
-msgid "High quality"
-msgstr "คุณภาพสูง"
 
 
 msgid "View layer name"

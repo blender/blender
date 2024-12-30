@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'159424053bc2')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'eb39d81afa00')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-23 13:35+0000\n"
+"POT-Creation-Date: 2024-12-30 14:46+0000\n"
 "PO-Revision-Date: 2012-09-07 22:32+0100\n"
 "Last-Translator: Nikola Radovanovic <cobisimo@gmail.com>\n"
 "Language-Team: Nikola Radovanovic\n"
@@ -11026,6 +11026,10 @@ msgid "Z-Scale"
 msgstr "Z-uvećanje"
 
 
+msgid "High quality"
+msgstr "Visok kvalitet"
+
+
 msgid "Neighbor"
 msgstr "Susedi"
 
@@ -21271,10 +21275,6 @@ msgstr "Koristi prostornu podele"
 
 msgid "Use BVH spatial splits: longer builder time, faster render"
 msgstr "Koristi BVH prostorne podele: duže traje priprema ali je brži rendering"
-
-
-msgid "High quality"
-msgstr "Visok kvalitet"
 
 
 msgid "Device to use for rendering"

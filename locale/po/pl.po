@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'159424053bc2')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'eb39d81afa00')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-23 13:35+0000\n"
+"POT-Creation-Date: 2024-12-30 14:46+0000\n"
 "PO-Revision-Date: 2024-11-23 15:56+0000\n"
 "Last-Translator: Kacper Madej <cacperkacper@yahoo.com>\n"
 "Language-Team: Polish <https://translate.blender.org/projects/blender-ui/ui/pl/>\n"
@@ -11511,6 +11511,11 @@ msgid "Parent"
 msgstr "Rodzic"
 
 
+msgctxt "Operator"
+msgid "Empty"
+msgstr "Pusty"
+
+
 msgid "Quick Setup"
 msgstr "Szybkie ustawienia"
 
@@ -16633,6 +16638,14 @@ msgid "Palette Color"
 msgstr "Kolor palety"
 
 
+msgid "Shadow Settings"
+msgstr "Ustawienia cienia"
+
+
+msgid "Compositor"
+msgstr "Kompozytor"
+
+
 msgid "Motion Tracking"
 msgstr "Śledzenie ruchu"
 
@@ -16659,14 +16672,6 @@ msgstr "Orientacje przekształcenia"
 
 msgid "Active Tool"
 msgstr "Aktywne narzędzie"
-
-
-msgid "Shadow Settings"
-msgstr "Ustawienia cienia"
-
-
-msgid "Compositor"
-msgstr "Kompozytor"
 
 
 msgid "Aperture"
@@ -21522,11 +21527,6 @@ msgstr "Tekst atrybutu"
 msgctxt "Operator"
 msgid "Viewport Render Animation"
 msgstr "Renderuj animację rzutni"
-
-
-msgctxt "Operator"
-msgid "Empty"
-msgstr "Pusty"
 
 
 msgctxt "Operator"

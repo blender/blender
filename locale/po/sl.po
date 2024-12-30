@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'159424053bc2')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'eb39d81afa00')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-23 13:35+0000\n"
-"PO-Revision-Date: 2024-12-22 18:35+0000\n"
+"POT-Creation-Date: 2024-12-30 14:46+0000\n"
+"PO-Revision-Date: 2024-12-30 14:39+0000\n"
 "Last-Translator: Gorazd Gorup <gorupgorazd@gmail.com>\n"
 "Language-Team: Slovenian <https://translate.blender.org/projects/blender-ui/ui/sl/>\n"
 "Language: sl\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=4; plural=n%100==1 ? 0 : n%100==2 ? 1 : n%100==3 || n%100==4 ? 2 : 3;\n"
-"X-Generator: Weblate 5.8.3"
+"X-Generator: Weblate 5.9.2"
 
 
 msgid "Shader AOV"
@@ -15008,7 +15008,7 @@ msgstr "Ponavljanje"
 
 
 msgid "Frame Start"
-msgstr "Okvirji: Začetek"
+msgstr "Začetek okvirjev"
 
 
 msgid "Grease Pencil Group"
@@ -19641,6 +19641,10 @@ msgid "Show Status Bar"
 msgstr "Pokaži vrstico stanja"
 
 
+msgid "Show status bar"
+msgstr "Pokaže vrstico stanja"
+
+
 msgid "All 3D Viewports"
 msgstr "Vsi 3D pogledi"
 
@@ -23680,6 +23684,11 @@ msgid "Parent"
 msgstr "Starševstvo"
 
 
+msgctxt "Operator"
+msgid "Empty"
+msgstr "Prazno"
+
+
 msgctxt "Constraint"
 msgid "Track"
 msgstr "Sledenje"
@@ -25024,6 +25033,10 @@ msgid "Vertex Indices"
 msgstr "Indeksi oglišč"
 
 
+msgid "Bound"
+msgstr "Povezano"
+
+
 msgid "Anchor Weights"
 msgstr "Sidrne uteži"
 
@@ -25264,52 +25277,152 @@ msgid "Bake Start"
 msgstr "Začetek peke"
 
 
+msgid "Start frame of the ocean baking"
+msgstr "Začetni okvir peke morja"
+
+
+msgid "Method of modifying geometry"
+msgstr "Metoda modificiranja geometrije"
+
+
+msgid "Generate ocean surface geometry at the specified resolution"
+msgstr "Generira površinsko geometrijo morja pri dani ločljivosti"
+
+
+msgid "Displace existing geometry according to simulation"
+msgstr "Odmakne obstoječo geometrijo glede na simulacijo"
+
+
 msgid "Invert Spray"
 msgstr "Obrni pršenje"
+
+
+msgid "Invert the spray direction map"
+msgstr "Obrne teksturo smeri pršenja"
+
+
+msgid "Ocean is Cached"
+msgstr "Morje je predpomnjeno"
+
+
+msgid "Whether the ocean is using cached data or simulating"
+msgstr "Ali to morje uporablja predpomnjene podatke ali simulacijo"
 
 
 msgid "Random Seed"
 msgstr "Seme naključja"
 
 
+msgid "Seed of the random generator"
+msgstr "Seme za generator naključnih števil"
+
+
+msgid "Repetitions of the generated surface in X"
+msgstr "Ponovitve generirane površine po X"
+
+
+msgid "Repetitions of the generated surface in Y"
+msgstr "Ponovitve generirane površine po Y"
+
+
 msgid "Render Resolution"
 msgstr "Ločljivost upodobitve"
+
+
+msgid "Resolution of the generated surface for rendering and baking"
+msgstr "Ločljivost generirane površine za upodabljanje in peko"
 
 
 msgid "Sharpen peak"
 msgstr "Naostri vrh"
 
 
+msgid "Peak sharpening for 'JONSWAP' and 'TMA' models"
+msgstr "Ostrenje vrhov za modela 'JONSWAP' in 'TMA'"
+
+
+msgid "Surface scale factor (does not affect the height of the waves)"
+msgstr "Faktor skaliranja površine (ne vpliva na višino valov)"
+
+
 msgid "Spatial Size"
 msgstr "Prostorska velikost"
+
+
+msgid "Size of the simulation domain (in meters), and of the generated geometry (in BU)"
+msgstr "Velikost simulacijske domene (v metrih) in generirane geometrije (v Blenderjevih enotah)"
 
 
 msgid "Spectrum"
 msgstr "Spekter"
 
 
+msgid "Spectrum to use"
+msgstr "Spekter, ki naj se uporabi"
+
+
 msgid "Turbulent Ocean"
 msgstr "Burno morje"
+
+
+msgid "Use for turbulent seas with foam"
+msgstr "Namenjeno razburkanemu morju s peno"
 
 
 msgid "Established Ocean"
 msgstr "Ustaljeno morje"
 
 
+msgid "Use for a large area, established ocean (Pierson-Moskowitz method)"
+msgstr "Uporabno za obširnejše, ustaljeno morje oziroma ocean (metoda Pierson-Moskowitz)"
+
+
+msgid "Established Ocean (Sharp Peaks)"
+msgstr "Ustaljeno morje (ostri vrhovi)"
+
+
+msgid "Use for established oceans ('JONSWAP', Pierson-Moskowitz method) with peak sharpening"
+msgstr "Uporabno za ustaljena morja oziroma oceane ('JONSWAP', metoda Pierson-Moskowitz) z ostrenjem vrhov"
+
+
 msgid "Shallow Water"
 msgstr "Plitka voda"
+
+
+msgid "Use for shallow water ('JONSWAP', 'TMA' - Texel-Marsen-Arsloe method)"
+msgstr "Uporabno za plitko vodo ('JONSWAP', 'TMA' - metoda Texel-Marsen-Arsloe)"
 
 
 msgid "Spray Map"
 msgstr "Tekstura pršca"
 
 
+msgid "Name of the vertex color layer used for the spray direction map"
+msgstr "Ime plasti barve oglišč, ki se uporabi za teksturo smeri pršenja"
+
+
+msgid "Current time of the simulation"
+msgstr "Trenutni čas simulacije"
+
+
 msgid "Generate Foam"
 msgstr "Generiraj peno"
 
 
+msgid "Generate foam mask as a vertex color channel"
+msgstr "Generira masko pene v obliki kanala barv oglišč"
+
+
 msgid "Generate Normals"
 msgstr "Generiraj normale"
+
+
+msgid "Output normals for bump mapping - disabling can speed up performance if it's not needed"
+msgstr "Proizvede normale za slikanje izboklin - če tega ne potrebujete, izklopite, saj je tako učinkoviteje"
+
+
+msgid "Generate Spray Map"
+msgstr "Generiraj teksturo pršca"
 
 
 msgid "Viewport Resolution"
@@ -26330,6 +26443,10 @@ msgid "Stabilize Scale"
 msgstr "Stabiliziraj skaliranje"
 
 
+msgid "Bundle"
+msgstr "Sveženj"
+
+
 msgid "Has Bundle"
 msgstr "Ima sveženj"
 
@@ -26870,6 +26987,10 @@ msgid "Color Spill"
 msgstr "Barvno razlivanje"
 
 
+msgid "Unspill"
+msgstr "Popravi razlivanje"
+
+
 msgid "Combine HSVA"
 msgstr "Združi HSVA"
 
@@ -27068,6 +27189,10 @@ msgstr "Odstranitev šuma"
 
 msgid "Denoising prefilter"
 msgstr "Razšumni predfilter"
+
+
+msgid "Balanced"
+msgstr "Uravnoteženo"
 
 
 msgid "HDR"
@@ -29412,6 +29537,10 @@ msgid "Point Info"
 msgstr "Informacije o točki"
 
 
+msgid "Bytecode"
+msgstr "Bitna koda"
+
+
 msgid "Shader to RGB"
 msgstr "Senčilnik v RGB"
 
@@ -29862,13 +29991,153 @@ msgstr "Poveži praznico z obrisom"
 
 
 msgctxt "Operator"
+msgid "Console Autocomplete"
+msgstr "Samodokončanje v konzoli"
+
+
+msgid "Print a message when the terminal initializes"
+msgstr "Ko se terminal zažene, naj se izpiše naslovno sporočilo"
+
+
+msgctxt "Operator"
+msgid "Console Banner"
+msgstr "Naslovnica konzole"
+
+
+msgid "Copy the console contents for use in a script"
+msgstr "Kopira vsebino konzole za lepljenje v program"
+
+
+msgctxt "Operator"
+msgid "Copy to Clipboard (as Script)"
+msgstr "Kopiraj v odložišče (kot program)"
+
+
+msgid "Execute the current console line as a Python expression"
+msgstr "Izvede trenutno ukazno vrstico kot izraz v Pythonu"
+
+
+msgctxt "Operator"
+msgid "Console Execute"
+msgstr "Izvrši konzolno vrstico"
+
+
+msgid "Set the current language for this console"
+msgstr "Nastavi trenutni jezik konzole"
+
+
+msgctxt "Operator"
+msgid "Console Language"
+msgstr "Jezik konzole"
+
+
+msgid "Add a target to the constraint"
+msgstr "Doda tarčo v omejevalnik"
+
+
+msgctxt "Operator"
+msgid "Add Target"
+msgstr "Dodaj tarčo"
+
+
+msgctxt "Operator"
+msgid "Disable and Keep Transform"
+msgstr "Onemogoči in ohrani transformacijo"
+
+
+msgid "Normalize weights of all target bones"
+msgstr "Normalizira uteži vseh tarčnih kosti"
+
+
+msgctxt "Operator"
 msgid "Normalize Weights"
 msgstr "Normaliziraj uteži"
+
+
+msgid "Remove the target from the constraint"
+msgstr "Odstrani tarčo iz omejevalnika"
+
+
+msgctxt "Operator"
+msgid "Remove Target"
+msgstr "Odstrani tarčo"
+
+
+msgctxt "Operator"
+msgid "Denoise Animation"
+msgstr "Odstrani šum iz animacije"
+
+
+msgctxt "Operator"
+msgid "Merge Images"
+msgstr "Združi slike"
+
+
+msgid "Enable nodes on a material, world or light"
+msgstr "Omogoči vozlišča v materialu, svetu ali luči"
+
+
+msgctxt "Operator"
+msgid "Use Nodes"
+msgstr "Uporabi vozlišča"
+
+
+msgid "Save a BVH motion capture file from an armature"
+msgstr "Shrani datoteko z obrisanim gibanjem, pridobljenim s skeleta, v formatu BVH"
+
+
+msgctxt "Operator"
+msgid "Export BVH"
+msgstr "Izvozi BVH"
+
+
+msgid "Write a FBX file"
+msgstr "Zapiše datoteko v formatu FBX"
+
+
+msgctxt "Operator"
+msgid "Export FBX"
+msgstr "Izvozi FBX"
+
+
+msgid "Export scene as glTF 2.0 file"
+msgstr "Izvozi sceno kot datoteko v formatu glTF različica 2.0"
+
+
+msgctxt "Operator"
+msgid "Export glTF 2.0"
+msgstr "Izvozi glTF 2.0"
+
+
+msgid "Turn off this extension"
+msgstr "Izklopi to razširitev"
+
+
+msgctxt "Operator"
+msgid "Disable extension"
+msgstr "Onemogoči razširitev"
+
+
+msgid "Turn on this extension"
+msgstr "Vklopi to razširitev"
+
+
+msgctxt "Operator"
+msgid "Enable Extension"
+msgstr "Omogoči razširitev"
+
+
+msgid "Download and install the extension"
+msgstr "Prenese in namesti razširitev"
 
 
 msgctxt "Operator"
 msgid "Install Extension"
 msgstr "Namesti razširitev"
+
+
+msgid "Install extensions from files into a locally managed repository"
+msgstr "Namesti razširitve iz datotek v lokalni repozitorij"
 
 
 msgctxt "Operator"
@@ -29902,6 +30171,42 @@ msgstr "Osveži oddaljeno"
 
 msgid "Allow internet access. Blender may access configured online extension repositories. Installed third party add-ons may access the internet for their own functionality"
 msgstr "Dovoli dostop do interneta. Blender lahko dostopa do nastavljenih spletnih repozitorijev razširitev. Nameščeni dodatki tretjih oseb lahko dostopajo do interneta"
+
+
+msgid "Load a BVH motion capture file"
+msgstr "Naloži datoteko formata BVH s podatki o zajetem gibanju"
+
+
+msgctxt "Operator"
+msgid "Import BVH"
+msgstr "Uvozi BVH"
+
+
+msgid "Load a SVG file"
+msgstr "Naloži datoteko formata SVG"
+
+
+msgctxt "Operator"
+msgid "Import SVG"
+msgstr "Uvozi SVG"
+
+
+msgid "Load a FBX file"
+msgstr "Naloži datoteko formata FBX"
+
+
+msgctxt "Operator"
+msgid "Import FBX"
+msgstr "Uvozi FBX"
+
+
+msgid "Load a glTF 2.0 file"
+msgstr "Naloži datoteko v formatu glTF različica 2.0"
+
+
+msgctxt "Operator"
+msgid "Import glTF 2.0"
+msgstr "Uvozi glTF 2.0"
 
 
 msgctxt "Operator"
@@ -30120,6 +30425,15 @@ msgid "Install Theme..."
 msgstr "Namesti temo ..."
 
 
+msgid "Play back rendered frames/movies using an external player"
+msgstr "Z zunanjim predvajalnikom predvaja upodobljene okvirje/posnetke"
+
+
+msgctxt "Operator"
+msgid "Play Rendered Animation"
+msgstr "Predvajaj upodobljeno animacijo"
+
+
 msgctxt "Operator"
 msgid "Bake to Keyframes"
 msgstr "Zapeci v ključne okvirje"
@@ -30192,6 +30506,10 @@ msgid "Randomize"
 msgstr "Razporedi naključno"
 
 
+msgid "Rename multiple items at once"
+msgstr "Preimenuje več elementov hkrati"
+
+
 msgctxt "Operator"
 msgid "Batch Rename"
 msgstr "Preimenuj več hkrati"
@@ -30257,6 +30575,10 @@ msgid "Batch-Generate Previews"
 msgstr "Generira paket predogledov"
 
 
+msgid "Generate system information, saved into a text file"
+msgstr "Pridobi informacije o sistemu in jih shrani v besedilno datoteko"
+
+
 msgctxt "Operator"
 msgid "Save System Info"
 msgstr "Shrani sistemske informacije"
@@ -30270,6 +30592,10 @@ msgstr "Orodna vrstica"
 msgctxt "Operator"
 msgid "Fallback Tool Pie Menu"
 msgstr "Rezervni krožni meni orodja"
+
+
+msgid "Open a website in the web browser"
+msgstr "Odpre spletno mesto v spletnem brskalniku"
 
 
 msgid "Open a preset website in the web browser"
@@ -30288,6 +30614,11 @@ msgstr "Zapeci ključne okvirje"
 msgctxt "Operator"
 msgid "Clean Keyframes"
 msgstr "Počisti ključne okvirje"
+
+
+msgctxt "Operator"
+msgid "Select Keyframes"
+msgstr "Izberi ključne okvirje"
 
 
 msgctxt "Operator"
@@ -30473,6 +30804,11 @@ msgstr "Usmeri v izbor"
 
 
 msgctxt "Operator"
+msgid "Change Frame"
+msgstr "Spremeni okvir"
+
+
+msgctxt "Operator"
 msgid "Bake Channels"
 msgstr "Zapeci kanale"
 
@@ -30480,6 +30816,11 @@ msgstr "Zapeci kanale"
 msgctxt "Operator"
 msgid "Remove Empty Animation Data"
 msgstr "Odstrani prazne animacije"
+
+
+msgctxt "Operator"
+msgid "Mouse Click on Channels"
+msgstr "Miškin klik na kanale"
 
 
 msgctxt "Operator"
@@ -30778,6 +31119,10 @@ msgid "Reveal Hidden"
 msgstr "Razkrij skrito"
 
 
+msgid "Row"
+msgstr "Vrstica"
+
+
 msgctxt "Operator"
 msgid "Clear Roll"
 msgstr "Počisti zasuk"
@@ -30933,6 +31278,11 @@ msgstr "Razvrstitev datotek"
 msgctxt "Operator"
 msgid "New Asset Catalog"
 msgstr "Nov katalog sredstev"
+
+
+msgctxt "Operator"
+msgid "Redo Catalog Edits"
+msgstr "Obnovi ureditev kataloga"
 
 
 msgctxt "Operator"
@@ -31184,9 +31534,38 @@ msgid "Zoom In"
 msgstr "Približevanje"
 
 
+msgid "Zoom in the view"
+msgstr "Približa pogled"
+
+
+msgid "Cursor location in screen coordinates"
+msgstr "Lega kazalca v koordinatah zaslona"
+
+
 msgctxt "Operator"
 msgid "Zoom Out"
 msgstr "Oddaljevanje"
+
+
+msgid "Zoom out the view"
+msgstr "Oddalji pogled"
+
+
+msgid "Cursor location in normalized (0.0 to 1.0) coordinates"
+msgstr "Lega kazalca je v normaliziranih koordinatah (med 0.0 in 1.0)"
+
+
+msgctxt "Operator"
+msgid "View Zoom Ratio"
+msgstr "Razmerje zuma v pogledu"
+
+
+msgid "Set the zoom ratio (based on clip size)"
+msgstr "Nastavi razmerje zuma (glede na rezalno velikost)"
+
+
+msgid "Zoom ratio, 1.0 is 1:1, higher is zoomed in, lower is zoomed out"
+msgstr "Razmerje zuma. 1.0 pomeni 1:1, višja vrednost predstavlja približevanje, nižja vrednost pa oddaljevanje"
 
 
 msgctxt "Operator"
@@ -31194,14 +31573,56 @@ msgid "Create New Collection"
 msgstr "Ustvari novo zbirko"
 
 
+msgid "Create an object collection from selected objects"
+msgstr "Ustvari zbirko objektov iz izbranih objektov"
+
+
+msgid "Name of the new collection"
+msgstr "Ime nove zbirke"
+
+
 msgctxt "Operator"
 msgid "Export All"
 msgstr "Izvozi vse"
 
 
+msgid "Invoke all configured exporters on this collection"
+msgstr "Aktivira vse nastavljene izvoznike nad to zbirko"
+
+
+msgctxt "Operator"
+msgid "Add Exporter"
+msgstr "Dodaj izvoznik"
+
+
+msgid "Add Exporter"
+msgstr "Dodaj izvoznik"
+
+
+msgid "FileHandler idname"
+msgstr "FileHandler idname"
+
+
 msgctxt "Operator"
 msgid "Export"
 msgstr "Izvozi"
+
+
+msgid "Invoke the export operation"
+msgstr "Izvede operacijo izvoznika"
+
+
+msgid "Exporter index"
+msgstr "Indeks izvoznika"
+
+
+msgctxt "Operator"
+msgid "Remove Exporter"
+msgstr "Odstrani izvoznik"
+
+
+msgid "Remove Exporter"
+msgstr "Odstrani izvoznik"
 
 
 msgctxt "Operator"
@@ -31387,6 +31808,10 @@ msgid "Add Duplicate"
 msgstr "Dodaj dvojnik"
 
 
+msgid "Init"
+msgstr "Inicializacija"
+
+
 msgid "Resize"
 msgstr "Spremeni velikost"
 
@@ -31526,7 +31951,11 @@ msgstr "Izvleci proti kazalcu ali dodaj"
 
 msgctxt "Operator"
 msgid "Redo"
-msgstr "Ponovi"
+msgstr "Obnovi"
+
+
+msgid "Redo previous action"
+msgstr "Obnovi prejšnje dejanje"
 
 
 msgctxt "Operator"
@@ -31534,9 +31963,17 @@ msgid "Undo"
 msgstr "Razveljavi"
 
 
+msgid "Undo previous action"
+msgstr "Razveljavi prejšnje dejanje"
+
+
 msgctxt "Operator"
 msgid "Undo History"
 msgstr "Zgodovina razveljavitev"
+
+
+msgid "Redo specific action in history"
+msgstr "Obnovi določeno dejanje iz preteklosti"
 
 
 msgid "Item"
@@ -31545,7 +31982,11 @@ msgstr "Element"
 
 msgctxt "Operator"
 msgid "Undo and Redo"
-msgstr "Razveljavitev in ponovitev"
+msgstr "Razveljavitev in obnovitev"
+
+
+msgid "Null"
+msgstr "Null"
 
 
 msgid "Active Scene Collections"
@@ -31641,6 +32082,10 @@ msgid "Automatically Pack Resources"
 msgstr "Samodejno zapakiraj vire"
 
 
+msgid "Automatically pack all external files into the .blend file"
+msgstr "Samodejno zapakira vse zunanje datoteke v datoteko .blend"
+
+
 msgctxt "Operator"
 msgid "Add Bookmark"
 msgstr "Dodaj zaznamek"
@@ -31679,6 +32124,15 @@ msgid "Install"
 msgstr "Namesti"
 
 
+msgctxt "Operator"
+msgid "Increment Number in Filename"
+msgstr "Povečaj številčenje datoteke"
+
+
+msgid "Increment number in filename"
+msgstr "Povečuje število v imenu datoteke"
+
+
 msgid "Increment"
 msgstr "Inkrement"
 
@@ -31688,9 +32142,43 @@ msgid "Find Missing Files"
 msgstr "Poišči pogrešane datoteke"
 
 
+msgid "Try to find missing external files"
+msgstr "Poskusi najti pogrešane zunanje datoteke"
+
+
+msgid "Find All"
+msgstr "Najdi vse"
+
+
+msgid "Find all files in the search path (not just missing)"
+msgstr "Poišče vse datoteke na iskalni poti (ne samo pogrešanih)"
+
+
+msgctxt "Operator"
+msgid "Toggle Hide Dot Files"
+msgstr "Preklopi vidnost skritih datotek"
+
+
+msgid "Toggle hide hidden dot files"
+msgstr "Preklopi vidnost datotek, katerih imena se začnejo s piko"
+
+
+msgctxt "Operator"
+msgid "Highlight File"
+msgstr "Poudari datoteko"
+
+
+msgid "Highlight selected file(s)"
+msgstr "Poudari izbrane datoteke"
+
+
 msgctxt "Operator"
 msgid "Make Paths Absolute"
 msgstr "Pretvori poti v absolutne"
+
+
+msgid "Make all paths to external files absolute"
+msgstr "Vse poti do zunanjih datotek pretvori v absolutne"
 
 
 msgctxt "Operator"
@@ -31698,9 +32186,35 @@ msgid "Make Paths Relative"
 msgstr "Pretvori poti v relativne"
 
 
+msgid "Make all paths to external files relative to current .blend"
+msgstr "Vse poti do zunanjih datotek pretvori v relativne glede na trenutno datoteko .blend"
+
+
+msgctxt "Operator"
+msgid "Execute File"
+msgstr "Izvrši datoteko"
+
+
+msgid "Perform the current execute action for the file under the cursor (e.g. open the file)"
+msgstr "Izvede izvršilno dejanje nad datoteko pod kazalcem (npr. jo odpre)"
+
+
+msgctxt "Operator"
+msgid "Next Folder"
+msgstr "Naslednji imenik"
+
+
+msgid "Move to next folder"
+msgstr "Preide na naslednji imenik"
+
+
 msgctxt "Operator"
 msgid "Pack Resources"
 msgstr "Zapakiraj vire"
+
+
+msgid "Pack all used external files into this .blend"
+msgstr "Zapakira vse uporabljene zunanje datoteke v to datoteko .blend"
 
 
 msgctxt "Operator"
@@ -31708,9 +32222,62 @@ msgid "Pack Linked Libraries"
 msgstr "Zapakiraj povezane knjižnice"
 
 
+msgid "Store all data-blocks linked from other .blend files in the current .blend file. Library references are preserved so the linked data-blocks can be unpacked again"
+msgstr "Shrani vse povezane podatkovne bloke iz drugih datotek .blend v trenutno datoteko .blend. Knjižnični sklici se ohranijo, tako da je možno povezane podatkovne bloke ponovno razpakirati"
+
+
+msgctxt "Operator"
+msgid "Parent Directory"
+msgstr "Starševski imenik"
+
+
+msgid "Move to parent directory"
+msgstr "Preide na starševski imenik"
+
+
+msgctxt "Operator"
+msgid "Previous Folder"
+msgstr "Prejšnji imenik"
+
+
+msgid "Move to previous folder"
+msgstr "Preide na prejšnji imenik"
+
+
+msgctxt "Operator"
+msgid "Refresh File List"
+msgstr "Osveži seznam datotek"
+
+
+msgid "Refresh the file list"
+msgstr "Osveži seznam datotek"
+
+
+msgctxt "Operator"
+msgid "Rename File or Directory"
+msgstr "Preimenuj datoteko ali imenik"
+
+
+msgid "Rename file or file directory"
+msgstr "Preimenuje datoteko ali imenik"
+
+
 msgctxt "Operator"
 msgid "Report Missing Files"
 msgstr "Prijavi pogrešane datoteke"
+
+
+msgid "Report all missing external files"
+msgstr "Prijavi vse pogrešane zunanje datoteke"
+
+
+msgctxt "Operator"
+msgid "Reset Recent"
+msgstr "Ponastavi nedavne"
+
+
+msgid "Reset recent files"
+msgstr "Ponastavi nedavne datoteke"
 
 
 msgid "Previous"
@@ -31726,9 +32293,35 @@ msgid "Unpack Resources"
 msgstr "Razpakiraj vire"
 
 
+msgid "Unpack all files packed into this .blend to external ones"
+msgstr "Razpakira vse datoteke, zapakirane v tej datoteki .blend, v zunanje datoteke"
+
+
 msgctxt "Operator"
 msgid "Unpack Linked Libraries"
 msgstr "Razpakiraj povezane knjižnice"
+
+
+msgid "Restore all packed linked data-blocks to their original locations"
+msgstr "Obnovi vse zapakirane povezane podatkovne bloke na njihove prvotne lokacije"
+
+
+msgctxt "Operator"
+msgid "Bake All"
+msgstr "Zapeci vse"
+
+
+msgid "Bake Entire Fluid Simulation"
+msgstr "Zapeče celo simulacijo kapljevine"
+
+
+msgctxt "Operator"
+msgid "Bake Data"
+msgstr "Zapeci podatke"
+
+
+msgid "Bake Fluid Data"
+msgstr "Zapeci podatke kapljevine"
 
 
 msgctxt "Operator"
@@ -32594,6 +33187,10 @@ msgstr "Preobrni štirikotno mozaičenje"
 msgctxt "Operator"
 msgid "Inset Faces"
 msgstr "Vloži lica"
+
+
+msgid "Outset"
+msgstr "Izložiti"
 
 
 msgctxt "Operator"
@@ -33554,6 +34151,10 @@ msgid "Primitive"
 msgstr "Primitiv"
 
 
+msgid "Sets the object interaction mode"
+msgstr "Nastavi način rokovanja z objektom"
+
+
 msgctxt "Operator"
 msgid "Set Active Modifier"
 msgstr "Nastavi aktivni modifikator"
@@ -33988,6 +34589,31 @@ msgid "Manage Unused Data"
 msgstr "Upravljaj z nerabljenimi podatki"
 
 
+msgid "Open a window to manage unused data"
+msgstr "Odpre okno, prek katerega je mogoče upravljati z nerabljenimi podatki"
+
+
+msgctxt "Operator"
+msgid "Purge All"
+msgstr "Prečisti vse"
+
+
+msgid "Clear all orphaned data-blocks without any users from the file"
+msgstr "Iz datoteke pobriše vse osirotele podatke, ki jih ne uporablja noben uporabnik"
+
+
+msgid "Linked Data-blocks"
+msgstr "Povezani podatkovni bloki"
+
+
+msgid "Include unused linked data-blocks into deletion"
+msgstr "Vključi nerabljene povezane podatkovne bloke v izbris"
+
+
+msgid "Local Data-blocks"
+msgstr "Lokalni podatkovni bloki"
+
+
 msgctxt "Operator"
 msgid "Show Active"
 msgstr "Pokaži aktivno"
@@ -34213,6 +34839,18 @@ msgid "Render"
 msgstr "Upodobi"
 
 
+msgid "Render active scene"
+msgstr "Upodobi aktivno sceno"
+
+
+msgid "Render Layer"
+msgstr "Upodabljalna plast"
+
+
+msgid "Toggle show render view"
+msgstr "Preklopi prikaz upodobitve"
+
+
 msgid "Hinge"
 msgstr "Tečaj"
 
@@ -34296,6 +34934,15 @@ msgstr "Odmik okvirja"
 
 
 msgctxt "Operator"
+msgid "Redo Last"
+msgstr "Obnovi zadnje"
+
+
+msgid "Display parameters for last action performed"
+msgstr "Prikaže parametre za nazadnje izvedeno dejanje"
+
+
+msgctxt "Operator"
 msgid "Region Alpha"
 msgstr "Neprosojnost področja"
 
@@ -34310,9 +34957,17 @@ msgid "Toggle Quad View"
 msgstr "Preklopi četverni pogled"
 
 
+msgid "Display menu for previous actions performed"
+msgstr "Prikaže meni za predhodno izvedena dejanja"
+
+
 msgctxt "Operator"
 msgid "Repeat Last"
 msgstr "Ponovi zadnje"
+
+
+msgid "Repeat last action"
+msgstr "Ponovi zadnje dejanje"
 
 
 msgctxt "Operator"
@@ -34325,9 +34980,17 @@ msgid "Save Screenshot"
 msgstr "Zajemi sliko okna"
 
 
+msgid "Capture a picture of the whole Blender window"
+msgstr "Zajame sliko celega Blenderjevega okna"
+
+
 msgctxt "Operator"
 msgid "Save Screenshot (Editor)"
 msgstr "Zajemi sliko urejevalnika"
+
+
+msgid "Capture a picture of an editor"
+msgstr "Zajame sliko enega urejevalnika"
 
 
 msgctxt "Operator"
@@ -34347,6 +35010,10 @@ msgstr "Počisti prostorske podatke"
 
 msgid "Remove unused settings for invisible editors"
 msgstr "Odstrani nerabljene nastavitve nevidnih urejevalnikov"
+
+
+msgid "Edit user preferences and system settings"
+msgstr "Uredi uporabniške in sistemske nastavitve"
 
 
 msgid "Editing"
@@ -34376,6 +35043,10 @@ msgstr "Eksperimentalno"
 msgctxt "Operator"
 msgid "Cycle Workspace"
 msgstr "Preklopi delovni prostor"
+
+
+msgid "Cycle through workspaces"
+msgstr "Gre krožno čez delovne prostore"
 
 
 msgctxt "Operator"
@@ -34795,13 +35466,57 @@ msgid "Update Animation Cache"
 msgstr "Posodobi animacijski predpomnilnik"
 
 
+msgid "Update the audio animation cache"
+msgstr "Posodobi predpomnilnik zvočne animacije"
+
+
 msgctxt "Operator"
 msgid "Mixdown"
 msgstr "Sploščitev"
 
 
+msgid "Mix the scene's audio to a sound file"
+msgstr "Zmeša zvok iz scene v zvočno datoteko"
+
+
 msgid "Sample accuracy, important for animation data (the lower the value, the more accurate)"
 msgstr "Točnost vzorčenja. Pomembna za animacijske podatke (nižja je vrednost, bolj točna je)"
+
+
+msgid "Bitrate in kbit/s"
+msgstr "Bitna hitrost v kbit/s"
+
+
+msgid "Single audio channel"
+msgstr "Enojni zvočni kanal"
+
+
+msgid "Stereo audio channels"
+msgstr "Stereo zvočni kanali"
+
+
+msgid "Stereo with LFE channel"
+msgstr "Stereo s kanalom LFE"
+
+
+msgid "4 channel surround sound"
+msgstr "Prostorski zvok s 4 kanali"
+
+
+msgid "5 channel surround sound"
+msgstr "Prostorski zvok s 5 kanali"
+
+
+msgid "5.1 surround sound"
+msgstr "Prostorski zvok 5.1"
+
+
+msgid "6.1 surround sound"
+msgstr "Prostorski zvok 6.1"
+
+
+msgid "7.1 surround sound"
+msgstr "Prostorski zvok 7.1"
 
 
 msgid "Advanced Audio Coding"
@@ -34812,17 +35527,120 @@ msgid "Dolby Digital ATRAC 3"
 msgstr "Dolby Digital ATRAC 3"
 
 
+msgid "Free Lossless Audio Codec"
+msgstr "Free Lossless Audio Codec"
+
+
+msgid "MPEG-1 Audio Layer II"
+msgstr "MPEG-1 Audio Layer II"
+
+
+msgid "MPEG-2 Audio Layer III"
+msgstr "MPEG-2 Audio Layer III"
+
+
+msgid "Pulse Code Modulation (RAW)"
+msgstr "Impulzno kodna modulacija (RAW)"
+
+
+msgid "Xiph.Org Vorbis Codec"
+msgstr "Kodek Xiph.Org Vorbis"
+
+
+msgid "File format"
+msgstr "Datotečni format"
+
+
 msgid "MKV"
 msgstr "MKV"
+
+
+msgid "Xiph.Org Ogg Container"
+msgstr "Xiph.Org Ogg Container"
+
+
+msgid "Waveform Audio File Format"
+msgstr "Zvočni format Waveform"
+
+
+msgid "Sample format"
+msgstr "Fomat vzorčenja"
+
+
+msgid "8-bit unsigned"
+msgstr "8-bitno nepredznačeno"
+
+
+msgid "16-bit signed"
+msgstr "16-bitno predznačeno"
+
+
+msgid "24-bit signed"
+msgstr "24-bitno predznačeno"
+
+
+msgid "32-bit signed"
+msgstr "32-bitno predznačeno"
+
+
+msgid "32-bit floating-point"
+msgstr "32-bitna plavajoča vejica"
+
+
+msgid "64-bit floating-point"
+msgstr "64-bitna plavajoča vejica"
+
+
+msgid "Sample rate in samples/s"
+msgstr "Hitrost vzorčenja v vzorcih/s"
 
 
 msgid "Split channels"
 msgstr "Loči kanale"
 
 
+msgid "Each channel will be rendered into a mono file"
+msgstr "Vsak kanal bo izgotovljen v datoteko mono"
+
+
+msgctxt "Operator"
+msgid "Open Sound"
+msgstr "Odpri zvok"
+
+
+msgid "Load a sound file"
+msgstr "Naloži zvočno datoteko"
+
+
 msgctxt "Operator"
 msgid "Open Sound Mono"
 msgstr "Odpri mono zvok"
+
+
+msgid "Load a sound file as mono"
+msgstr "Naloži zvočno datoteko kot mono"
+
+
+msgid "Mixdown the sound to mono"
+msgstr "Splošči zvok v mono"
+
+
+msgctxt "Operator"
+msgid "Pack Sound"
+msgstr "Zapakiraj zvok"
+
+
+msgid "Pack the sound into the current blend file"
+msgstr "Zapakiraj zvok v trenutno datoteko blend"
+
+
+msgctxt "Operator"
+msgid "Unpack Sound"
+msgstr "Razpakiraj zvok"
+
+
+msgid "Unpack the sound to the samples filename"
+msgstr "Razpakiraj zvok v datoteko vzorcev"
 
 
 msgctxt "Operator"
@@ -35232,6 +36050,11 @@ msgid "Object"
 msgstr "Objekt"
 
 
+msgctxt "Mesh"
+msgid "Winding"
+msgstr "Usmeritev"
+
+
 msgctxt "Operator"
 msgid "Select Split"
 msgstr "Izberi razcepljene"
@@ -35272,6 +36095,26 @@ msgstr "Zvari"
 
 msgid "Page"
 msgstr "Stran"
+
+
+msgctxt "Operator"
+msgid "Scroll Left"
+msgstr "Zadrsaj levo"
+
+
+msgctxt "Operator"
+msgid "Scroll Right"
+msgstr "Zadrsaj dol"
+
+
+msgctxt "Operator"
+msgid "Scroll Up"
+msgstr "Zadrsaj gor"
+
+
+msgctxt "Operator"
+msgid "Scroller Activate"
+msgstr "Aktiviraj drsnik"
 
 
 msgctxt "Operator"
@@ -35468,28 +36311,120 @@ msgid "Zoom Camera 1:1"
 msgstr "Zumiraj kamero 1:1"
 
 
+msgid "Export current scene in an Alembic archive"
+msgstr "Izvozi trenutno sceno v arhiv Alembic"
+
+
+msgid "Apply Subdivision Surface"
+msgstr "Nanesi delitev površine"
+
+
+msgid "Export subdivision surfaces as meshes"
+msgstr "Izvozi delitve površine kot mreže"
+
+
+msgid "Run as Background Job"
+msgstr "Izvedi kot opravilo v ozadju"
+
+
 msgid "Curves as Mesh"
 msgstr "Krivulje kot mreža"
 
 
+msgid "Export Custom Properties"
+msgstr "Izvozi lastnosti po meri"
+
+
+msgid "Export custom properties to Alembic .userProperties"
+msgstr "Izvozi lastnosti po meri v Alembicov atribut .userProperties"
+
+
 msgid "Export Hair"
-msgstr "Izvozi lase"
+msgstr "Izvozi dlake"
+
+
+msgid "Exports hair particle systems as animated curves"
+msgstr "Izvozi dlačne sisteme delcev kot animirane krivulje"
 
 
 msgid "Export Particles"
 msgstr "Izvozi delce"
 
 
+msgid "Exports non-hair particle systems"
+msgstr "Izvozi sisteme delcev, ki niso lasje"
+
+
+msgid "Export per face shading group assignments"
+msgstr "Izvozi skupinske nanose senčenja za vsako lice posebej"
+
+
 msgid "Flatten Hierarchy"
 msgstr "Razpusti hierarhijo"
+
+
+msgid "Do not preserve objects' parent/children relationship"
+msgstr "Ne ohrani starševstva/sinovstva objektov"
+
+
+msgid "Value by which to enlarge or shrink the objects with respect to the world's origin"
+msgstr "Vrednost, po kateri naj se objekti razširijo ali skrčijo glede na izhodišče sveta"
+
+
+msgid "Geometry Samples"
+msgstr "Vzorci geometrije"
+
+
+msgid "Number of times per frame object data are sampled"
+msgstr "Kolikokrat na okvir naj se vzorči podatke objektov"
+
+
+msgid "Export normals"
+msgstr "Izvozi normale"
+
+
+msgid "Export undeformed mesh vertex coordinates"
+msgstr "Izvozi nedeformirane koordinate mrežnih oglišč"
+
+
+msgid "Selected Objects Only"
+msgstr "Samo izbrani objekti"
+
+
+msgid "Export only selected objects"
+msgstr "Izvozi samo izbrane objekte"
+
+
+msgid "Shutter Close"
+msgstr "Zapiranje zaklopa"
+
+
+msgid "Time at which the shutter is closed"
+msgstr "Čas, pri katerem je zaklop zaprt"
 
 
 msgid "Shutter Open"
 msgstr "Odpiranje zaklopa"
 
 
+msgid "Time at which the shutter is open"
+msgstr "Čas, pri katerem je zaklop odprt"
+
+
+msgid "Use Subdivision Schema"
+msgstr "Uporabi delilno shemo"
+
+
+msgid "Export meshes using Alembic's subdivision schema"
+msgstr "Izvozi mreže z Alembicovo delilno shemo"
+
+
 msgid "Use Instancing"
 msgstr "Uporabi primerke"
+
+
+msgid "Load an Alembic archive"
+msgstr "Naloži datoteko z arhivom formata Alembic"
 
 
 msgctxt "Operator"
@@ -35505,6 +36440,70 @@ msgid "Instance Collections"
 msgstr "Ustvari primerke zbirk"
 
 
+msgid "Grease Pencils"
+msgstr "Grease Pencili"
+
+
+msgid "Sequence Strips"
+msgstr "Sekvenčni trakovi"
+
+
+msgid "Action Clips"
+msgstr "Akcijski izrezki"
+
+
+msgctxt "Operator"
+msgid "Call Asset Shelf Popover"
+msgstr "Prikliči pojavno polico s sredstvi"
+
+
+msgid "Open a predefined asset shelf in a popup"
+msgstr "Odpre vnaprej določeno polico s sredstvi v pojavnem oknu"
+
+
+msgid "Asset Shelf Name"
+msgstr "Ime police s sredstvi"
+
+
+msgid "Identifier of the asset shelf to display"
+msgstr "Identifikator police s sredstvi, ki naj se prikaže"
+
+
+msgctxt "Operator"
+msgid "Call Menu"
+msgstr "Prikliči meni"
+
+
+msgid "Open a predefined menu"
+msgstr "Odpre vnaprej določen meni"
+
+
+msgid "Name of the menu"
+msgstr "Naziv menija"
+
+
+msgctxt "Operator"
+msgid "Call Pie Menu"
+msgstr "Prikliči krožni meni"
+
+
+msgid "Open a predefined pie menu"
+msgstr "Odpre vnaprej določen krožni meni"
+
+
+msgid "Name of the pie menu"
+msgstr "Naziv krožnega menija"
+
+
+msgctxt "Operator"
+msgid "Call Panel"
+msgstr "Prikliči ploščo"
+
+
+msgid "Open a predefined panel"
+msgstr "Odpre vnaprej določeno ploščo"
+
+
 msgid "Keep Open"
 msgstr "Ohrani odprto"
 
@@ -35512,6 +36511,10 @@ msgstr "Ohrani odprto"
 msgctxt "Operator"
 msgid "Clear Recent Files List"
 msgstr "Počisti seznam nedavnih datotek"
+
+
+msgid "Clear the recent files list"
+msgstr "Počisti seznam nedavno odprtih datotek"
 
 
 msgid "Remove"
@@ -35531,12 +36534,36 @@ msgid "Export COLLADA (Legacy)"
 msgstr "Izvozi COLLADA (zastarelo)"
 
 
+msgid "Save a Collada file"
+msgstr "Shrani datoteko v formatu Collada"
+
+
+msgid "Only Selected UV Map"
+msgstr "Samo izbrana preslikava UV"
+
+
+msgid "Export only the selected UV Map"
+msgstr "Izvozi samo izbrano preslikavo UV"
+
+
+msgid "Apply Global Orientation"
+msgstr "Nanesi globalno usmerjenost"
+
+
+msgid "Deform Bones Only"
+msgstr "Samo deformacijske kosti"
+
+
 msgid "Decomposed"
 msgstr "Razgrajeno"
 
 
 msgid "Geom"
 msgstr "Geom"
+
+
+msgid "Arm"
+msgstr "Roka"
 
 
 msgid "Extra"
@@ -35548,9 +36575,21 @@ msgid "Import COLLADA (Legacy)"
 msgstr "Uvozi COLLADA (zastarelo)"
 
 
+msgid "Load a Collada file"
+msgstr "Naloži datoteko v formatu Collada"
+
+
+msgid "Auto Connect"
+msgstr "Samodejno poveži"
+
+
 msgctxt "Operator"
 msgid "Export All Collections"
 msgstr "Izvozi vse zbirke"
+
+
+msgid "Invoke all configured exporters for all collections"
+msgstr "Aktivira vse nastavljene izvoznike nad vsemi zbirkami"
 
 
 msgid "Context Attributes"
@@ -35580,8 +36619,16 @@ msgid "Export Grease Pencil to PDF"
 msgstr "Izvozi Grease Pencil v PDF"
 
 
+msgid "Include only active frame"
+msgstr "Upošteva samo aktivni okvir"
+
+
 msgid "Export Grease Pencil to SVG"
 msgstr "Izvozi Grease Pencil v SVG"
+
+
+msgid "Import SVG into Grease Pencil"
+msgstr "Uvozi sliko SVG kot objekt tipa Grease Pencil"
 
 
 msgctxt "Operator"
@@ -35600,6 +36647,14 @@ msgstr "Pomnilniška statistika"
 
 msgid "Print memory statistics to the console"
 msgstr "Izpiše pomnilniške statistične podatke v konzolo"
+
+
+msgid "Save the scene to a Wavefront OBJ file"
+msgstr "Shrani sceno v datoteko formata Wavefront OBJ"
+
+
+msgid "Load a Wavefront OBJ scene"
+msgstr "Naloži sceno formata Wavefront OBJ"
 
 
 msgctxt "Operator"
@@ -35632,6 +36687,14 @@ msgid "Restore Operator Defaults"
 msgstr "Obnovi privzete nastavitve"
 
 
+msgid "Save the scene to a PLY file"
+msgstr "Shrani sceno v datoteko formata PLY"
+
+
+msgid "Import an PLY file as an object"
+msgstr "Uvozi datoteko formata PLY kot objekt"
+
+
 msgctxt "Operator"
 msgid "Clear Data-Block Previews"
 msgstr "Počisti predoglede blokov"
@@ -35639,6 +36702,10 @@ msgstr "Počisti predoglede blokov"
 
 msgid "Clear data-block previews (only for some types like objects, materials, textures, etc.)"
 msgstr "Počisti predoglede podatkovnih blokov (mogoče le za nekatere vrste podatkov, kot so objekti, materiali, teksture itd.)"
+
+
+msgid "All Types"
+msgstr "Vse vrste"
 
 
 msgctxt "Operator"
@@ -35696,6 +36763,10 @@ msgid "Load Factory Settings"
 msgstr "Naloži tovarniške nastavitve"
 
 
+msgid "Load factory default startup file and preferences. To make changes permanent, use \"Save Startup File\" and \"Save Preferences\""
+msgstr "Naloži tovarniško privzeto zagonsko datoteko in nastavitve. Spremembe lahko uveljavite za stalno tako, da izberete \"Shrani kot zagonsko datoteko\" in \"Shrani nastavitve\""
+
+
 msgctxt "Operator"
 msgid "Load Factory Preferences"
 msgstr "Naloži tovarniške nastavitve"
@@ -35703,6 +36774,23 @@ msgstr "Naloži tovarniške nastavitve"
 
 msgid "Open the default file"
 msgstr "Odpre privzeto datoteko"
+
+
+msgid "Factory Startup"
+msgstr "Tovarniška zagonska datoteka"
+
+
+msgid "Load the default ('factory startup') blend file. This is independent of the normal start-up file that the user can save"
+msgstr "Naloži privzeto ('tovarniško zagonsko') datoteko blend. To je neodvisno od normalne zagonske datoteke, ki jo lahko uporabnik shrani"
+
+
+msgctxt "Operator"
+msgid "Load Preferences"
+msgstr "Naloži nastavitve"
+
+
+msgid "Load last saved preferences"
+msgstr "Naloži nazadnje shranjene nastavitve"
 
 
 msgctxt "Operator"
@@ -35732,8 +36820,16 @@ msgid "Simple redraw timer to test the speed of updating the interface"
 msgstr "Preprost časomer za merjenje hitrosti posodabljanja grafičnega vmesnika"
 
 
+msgid "Number of times to redraw"
+msgstr "Kolikokrat naj grafični vmesnik ponovno izriše"
+
+
 msgid "Time Limit"
 msgstr "Časovna omejitev"
+
+
+msgid "Seconds to run the test for (override iterations)"
+msgstr "Koliko sekund naj traja test (povozi iteracije)"
 
 
 msgid "Draw Region"
@@ -35785,11 +36881,11 @@ msgstr "Predvajanje animacije"
 
 
 msgid "Undo/Redo"
-msgstr "Razveljavi / ponovi"
+msgstr "Razveljavi / obnovi"
 
 
 msgid "Undo and redo"
-msgstr "Razveljavi in ponovi"
+msgstr "Razveljavi in obnovi"
 
 
 msgctxt "Operator"
@@ -35801,6 +36897,14 @@ msgid "Reload the saved file"
 msgstr "Ponovno naloži shranjeno datoteko"
 
 
+msgid "Add external feature set (rigs, metarigs, ui templates)"
+msgstr "Doda zunanji nabor funkcionalnosti (okostja, meta okostja, predloge uporabniškega vmesnika)"
+
+
+msgid "Remove external feature set (rigs, metarigs, ui templates)"
+msgstr "Odstrani zunanji nabor funkcionalnosti (okostja, meta okostja, predloge uporabniškega vmesnika)"
+
+
 msgid "Save the current file in the desired location"
 msgstr "Shrani trenutno datoteko na želeno lokacijo"
 
@@ -35809,17 +36913,33 @@ msgid "Compress"
 msgstr "Stisni"
 
 
+msgid "Write compressed .blend file"
+msgstr "Zapiše stisnjeno datoteko .blend"
+
+
 msgid "Save Copy"
 msgstr "Shrani kopijo"
+
+
+msgid "Save a copy of the actual working state but does not make saved file active"
+msgstr "Shrani kopijo dejanskega delovnega stanja, vendar shranjene datoteke ne odpre v programu"
 
 
 msgid "Remap Relative"
 msgstr "Preslikaj relativne"
 
 
+msgid "Remap relative paths when saving to a different directory"
+msgstr "Preslika relativne poti, ko shranjuje v drug imenik"
+
+
 msgctxt "Operator"
 msgid "Save Startup File"
 msgstr "Shrani kot zagonsko datoteko"
+
+
+msgid "Make the current file the default startup file"
+msgstr "Nastavi, da se trenutna datoteka privzeto odpre ob zagonu"
 
 
 msgctxt "Operator"
@@ -35831,6 +36951,10 @@ msgid "Save the current Blender file"
 msgstr "Shrani trenutno datoteko Blenderja"
 
 
+msgid "Exit Blender after saving"
+msgstr "Shrani delo in nato zapre Blender"
+
+
 msgid "Save the current Blender file with a numerically incremented name that does not overwrite any existing files"
 msgstr "Shrani trenutno datoteko Blenderja v novo datoteko s povečanim števcem v imenu, da ne prepiše obstoječih datotek"
 
@@ -35840,9 +36964,60 @@ msgid "Save Preferences"
 msgstr "Shrani nastavitve"
 
 
+msgid "Make the current preferences default"
+msgstr "Nastavi trenutne nastavitve za privzete"
+
+
 msgctxt "Operator"
 msgid "Search Menu"
-msgstr "Iskalni meni"
+msgstr "Išči meni"
+
+
+msgid "Pop-up a search over all menus in the current context"
+msgstr "Izvede iskanje po vseh menijih v trenutnem kontekstu"
+
+
+msgctxt "Operator"
+msgid "Search Operator"
+msgstr "Išči operator"
+
+
+msgid "Pop-up a search over all available operators in current context"
+msgstr "Izvede iskanje po vseh razpoložljivih operatorjih v trenutnem kontekstu"
+
+
+msgctxt "Operator"
+msgid "Search Single Menu"
+msgstr "Išči en meni"
+
+
+msgid "Pop-up a search for a menu in current context"
+msgstr "Izvede iskanje za meni v trenutnem kontekstu"
+
+
+msgid "Initial Query"
+msgstr "Začetna poizvedba"
+
+
+msgid "Query to insert into the search box"
+msgstr "Poizvedba, ki naj se vnese v iskalno polje"
+
+
+msgid "Menu Name"
+msgstr "Ime menija"
+
+
+msgid "Menu to search in"
+msgstr "Meni, v katerem naj se išče"
+
+
+msgctxt "Operator"
+msgid "Set Stereo 3D"
+msgstr "Nastavi stereo 3D"
+
+
+msgid "Toggle 3D stereo support for current window (or change the display mode)"
+msgstr "Preklopi podporo za stereo 3D v trenutnem oknu (ali spremeni način prikaza)"
 
 
 msgid "Anaglyph Type"
@@ -35873,20 +37048,64 @@ msgid "Interlace"
 msgstr "Prepletaj"
 
 
+msgid "Render views for left and right eyes interlaced in a single image (3D-ready monitor is required)"
+msgstr "Upodobi pogleda za levo in desno oko prepleteno v eni sami sliki (za to potrebujete monitor s podporo za 3D)"
+
+
 msgid "Time Sequential"
 msgstr "Časovna zaporednost"
+
+
+msgid "Render alternate eyes (also known as page flip, quad buffer support in the graphic card is required)"
+msgstr "Upodobi enkrat za eno, drugič za drugo oko (temu se reče tudi \"page flip\"). Za to funkcionalnost mora grafična kartica podpirati štirikratni medpomnilnik."
 
 
 msgid "Side-by-Side"
 msgstr "Eno ob drugem"
 
 
+msgid "Render views for left and right eyes side-by-side"
+msgstr "Upodobi pogleda za levo in desno oko enega ob drugem"
+
+
 msgid "Top-Bottom"
 msgstr "Zgoraj-spodaj"
 
 
+msgid "Render views for left and right eyes one above another"
+msgstr "Upodobi pogleda za levo in desno oko enega nad drugim"
+
+
+msgid "Interlace Type"
+msgstr "Vrsta prepletanja"
+
+
+msgid "Row Interleaved"
+msgstr "Vrstično prepletanje"
+
+
+msgid "Column Interleaved"
+msgstr "Stolpčno prepletanje"
+
+
+msgid "Checkerboard Interleaved"
+msgstr "Šahovnično prepletanje"
+
+
+msgid "Swap Left/Right"
+msgstr "Zamenjaj levo / desno"
+
+
+msgid "Swap left and right stereo channels"
+msgstr "Zamenja levi in desni stereo kanal"
+
+
 msgid "Cross-Eyed"
 msgstr "Prekrižano"
+
+
+msgid "Right eye should see left image and vice versa"
+msgstr "Desno oko naj vidi levo sliko in obratno"
 
 
 msgctxt "Operator"
@@ -35907,8 +37126,78 @@ msgid "Open a window with information about Blender"
 msgstr "Odpre okno z informacijami o Blenderju"
 
 
+msgctxt "Operator"
+msgid "Export STL"
+msgstr "Izvozi STL"
+
+
+msgid "Save the scene to an STL file"
+msgstr "Shrani sceno v datoteko formata STL"
+
+
+msgid "Batch Export"
+msgstr "Skupinski izvoz"
+
+
+msgid "Export each object to a separate file"
+msgstr "Vsak objekt izvozi v ločeno datoteko"
+
+
+msgid "Apply current scene's unit (as defined by unit scale) to exported data"
+msgstr "Na izvožene podatke nanese enoto trenutne scene (definirano s skaliranjem enote)"
+
+
+msgctxt "Operator"
+msgid "Import STL"
+msgstr "Uvozi STL"
+
+
+msgid "Import an STL file as an object"
+msgstr "Uvozi datoteko format STL kot objekt"
+
+
+msgid "Facet Normals"
+msgstr "Površinske normale"
+
+
+msgid "Use (import) facet normals (note that this will still give flat shading)"
+msgstr "Uporabi (uvožene) površinske normale (to bo še zmerom povzročilo plosko senčenje)"
+
+
+msgid "Validate Mesh"
+msgstr "Potrdi mrežo"
+
+
+msgid "Brush type identifier for which the most appropriate tool will be looked up"
+msgstr "Identifikator vrste čopiča, za katero se bo izbralo najprimernejše orodje"
+
+
+msgid "Set Fallback"
+msgstr "Nastavi rezervo"
+
+
+msgid "Set the fallback tool instead of the primary tool"
+msgstr "Nastavi rezervno orodje, ki naj se uporabi namesto primarnega orodja"
+
+
 msgid "Cycle"
 msgstr "Obhodi"
+
+
+msgid "Cycle through tools in this group"
+msgstr "Krožno gre čez vsa orodja v tej skupini"
+
+
+msgid "Identifier of the tool"
+msgstr "Identifikator orodja"
+
+
+msgid "Set the fallback tool instead of the primary"
+msgstr "Nastavi rezervno orodje namesto primarnega"
+
+
+msgid "Include tool subgroups"
+msgstr "Vključi orodne podskupine"
 
 
 msgid "Index in Toolbar"
@@ -36056,12 +37345,58 @@ msgid "Instancing"
 msgstr "Primerki"
 
 
+msgctxt "Operator"
+msgid "Import USD"
+msgstr "Uvozi USD"
+
+
+msgid "Import USD stage into current scene"
+msgstr "V trenutno sceno uvozi prizorišče v formatu USD (Universal Scene Descriptor)"
+
+
+msgid "Do not import USD custom attributes"
+msgstr "Ne uvozi prilagojenih atributov iz formata USD"
+
+
 msgid "Create Collection"
 msgstr "Ustvari zbirko"
 
 
+msgid "Import USD Preview"
+msgstr "Predogled uvoza USD"
+
+
 msgid "Material Purpose"
 msgstr "Namen materiala"
+
+
+msgid "File Name Collision"
+msgstr "Križanje imen datotek"
+
+
+msgid "Behavior when the name of an imported texture file conflicts with an existing file"
+msgstr "Kaj naj se zgodi, ko ime uvožene teksture sovpada z obstoječo datoteko"
+
+
+msgid "Use Existing"
+msgstr "Uporabi obstoječe"
+
+
+msgid "If a file with the same name already exists, use that instead of copying"
+msgstr "Če datoteka z istim imenom že obstaja, uporabi le-to, namesto da jo kopira"
+
+
+msgid "Overwrite existing files"
+msgstr "Prepiše obstoječe datoteke"
+
+
+msgctxt "Operator"
+msgid "Close Window"
+msgstr "Zapri okno"
+
+
+msgid "Close the current window"
+msgstr "Zapre trenutno okno"
 
 
 msgctxt "Operator"
@@ -36069,14 +37404,55 @@ msgid "Toggle Window Fullscreen"
 msgstr "Preklopi celozaslonski način"
 
 
+msgid "Toggle the current window full-screen"
+msgstr "Preklopi, ali naj trenutno okno zasede cel zaslon"
+
+
 msgctxt "Operator"
 msgid "New Window"
 msgstr "Novo okno"
 
 
+msgid "Create a new window"
+msgstr "Ustvari novo okno"
+
+
 msgctxt "Operator"
 msgid "New Main Window"
 msgstr "Novo glavno okno"
+
+
+msgid "Create a new main window with its own workspace and scene selection"
+msgstr "Ustvari novo glavno okno, ki ima svoja lastna delovni prostor in izbor scen"
+
+
+msgctxt "Operator"
+msgid "XR Navigation Fly"
+msgstr "Letenje XR"
+
+
+msgid "Move/turn relative to the VR viewer or controller"
+msgstr "Premika/obrača relativno na pogled ali krmilnik VR"
+
+
+msgid "Lock Direction"
+msgstr "Zakleni smer"
+
+
+msgid "Limit movement to viewer's initial direction"
+msgstr "Omeji gibanje v začetni smeri gledalca"
+
+
+msgid "Lock Elevation"
+msgstr "Zakleni višino"
+
+
+msgid "Prevent changes to viewer elevation"
+msgstr "Prepreči dvigovanje/spuščanje gledalca"
+
+
+msgid "Fly mode"
+msgstr "Način letenja"
 
 
 msgid "Move along navigation forward axis"
@@ -36491,6 +37867,22 @@ msgid "Panel containing UI elements"
 msgstr "Plošča, ki vsebuje elemente uporabniškega vmesnika"
 
 
+msgid "Shadow Settings"
+msgstr "Nastavitve senc"
+
+
+msgid "SSAO Settings"
+msgstr "Nastavitve SSAO"
+
+
+msgid "Render Pass"
+msgstr "Obhod upodabljanja"
+
+
+msgid "Compositor"
+msgstr "Stavitelj slik"
+
+
 msgid "Overlays"
 msgstr "Pomagala"
 
@@ -36597,22 +37989,6 @@ msgstr "Izbirljivost in vidnost"
 
 msgid "Wire Color"
 msgstr "Barva žice"
-
-
-msgid "Shadow Settings"
-msgstr "Nastavitve senc"
-
-
-msgid "SSAO Settings"
-msgstr "Nastavitve SSAO"
-
-
-msgid "Render Pass"
-msgstr "Obhod upodabljanja"
-
-
-msgid "Compositor"
-msgstr "Stavitelj slik"
 
 
 msgid "Chain Scaling"
@@ -37070,6 +38446,11 @@ msgstr "Razparaj področje"
 
 
 msgctxt "Operator"
+msgid "Grab"
+msgstr "Primi"
+
+
+msgctxt "Operator"
 msgid "Brush"
 msgstr "Čopič"
 
@@ -37432,6 +38813,10 @@ msgstr "Rezilo"
 
 msgid "Find & Replace"
 msgstr "Najdi in zamenjaj"
+
+
+msgid "Auto Keyframing"
+msgstr "Samodejno vstavljanje ključev"
 
 
 msgid "Playback"
@@ -38903,10 +40288,6 @@ msgid "Albedo and Normal"
 msgstr "Albedo in normale"
 
 
-msgid "Balanced"
-msgstr "Uravnoteženo"
-
-
 msgid "GPU Compute"
 msgstr "GPE"
 
@@ -39239,6 +40620,10 @@ msgstr "Obreži na območje po meri"
 
 msgid "Lock Interface"
 msgstr "Zakleni vmesnik"
+
+
+msgid "Lock interface during rendering in favor of giving more memory to the renderer"
+msgstr "Med upodabljanjem zaklene vmesnik, da lahko upodabljalnik razpolaga z več spomina"
 
 
 msgid "Persistent Data"
@@ -40356,6 +41741,10 @@ msgstr "Zakleni oznake"
 
 msgid "Lock Object Modes"
 msgstr "Zakleni načine objektov"
+
+
+msgid "Restrict selection to objects using the same mode as the active object, to prevent accidental mode switch when selecting"
+msgstr "Omeji izbiro na objekte, ki so v enakem načinu kot aktivni objekt. S tem preprečite nenamerno preklapljanje načina pri izbiranju"
 
 
 msgid "Plane Axis"
@@ -42883,16 +44272,64 @@ msgid "Bug"
 msgstr "Hrošč"
 
 
+msgid "Report a bug with pre-filled version information"
+msgstr "Prijavi hrošča, pri čemer že sam izpolni informacije o različici programa"
+
+
 msgid "Release Notes"
 msgstr "Opombe ob izdaji"
+
+
+msgid "Read about what's new in this version of Blender"
+msgstr "Preberite si, kaj je novega v tej različici Blenderja"
 
 
 msgid "User Manual"
 msgstr "Uporabniški priročnik"
 
 
+msgid "The reference manual for this version of Blender"
+msgstr "Priročnik za to različico Blenderja"
+
+
+msgid "Python API Reference"
+msgstr "Napotilo za Python API"
+
+
+msgid "The API reference manual for this version of Blender"
+msgstr "Referenčni priročnik API-ja za to različico Blenderja"
+
+
+msgid "Development Fund"
+msgstr "Razvijalski sklad"
+
+
+msgid "The donation program to support maintenance and improvements"
+msgstr "Donacijski program, s katerim podpiramo vzdrževanje in nadgrajevanje"
+
+
+msgid "Blender's official web-site"
+msgstr "Blenderjevo uradno spletišče"
+
+
 msgid "Credits"
 msgstr "Zasluge"
+
+
+msgid "Lists committers to Blender's source code"
+msgstr "Izpiše vse, ki so prispevali uveljavitve k Blenderjevi izvorni kodi"
+
+
+msgid "Extensions Platform"
+msgstr "Platforma razširitev"
+
+
+msgid "Online directory of free and open source extensions"
+msgstr "Spletno zbirališče brezplačnih in odprtokodnih razširitev"
+
+
+msgid "Fallback Tool"
+msgstr "Rezervno orodje"
 
 
 msgid "Mesh(es)"
@@ -42911,6 +44348,10 @@ msgid "Volume(s)"
 msgstr "Volumen/i"
 
 
+msgid "Grease Pencil(s)"
+msgstr "Grease Pencil/i"
+
+
 msgid "Armature(s)"
 msgstr "Skelet/i"
 
@@ -42921,6 +44362,10 @@ msgstr "Kontrolna/e rešetka/e"
 
 msgid "Light(s)"
 msgstr "Luč/i"
+
+
+msgid "Light Probe(s)"
+msgstr "Svetlobna/e sonda/e"
 
 
 msgid "Camera(s)"
@@ -49089,11 +50534,6 @@ msgstr "Naslednji blok"
 
 
 msgctxt "Operator"
-msgid "Empty"
-msgstr "Prazno"
-
-
-msgctxt "Operator"
 msgid "Point Cloud"
 msgstr "Oblak točk"
 
@@ -51055,7 +52495,7 @@ msgstr "Vrednost"
 
 
 msgid "Redo"
-msgstr "Ponovi"
+msgstr "Obnovi"
 
 
 msgid "OK"

@@ -1,18 +1,18 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'159424053bc2')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'eb39d81afa00')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-23 13:35+0000\n"
-"PO-Revision-Date: 2023-12-21 01:55+0000\n"
-"Last-Translator: Lisa <blendergirl@tutanota.com>\n"
+"POT-Creation-Date: 2024-12-30 14:46+0000\n"
+"PO-Revision-Date: 2024-12-30 14:39+0000\n"
+"Last-Translator: Sander Spolspoel <sander@sworl.be>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.0.1"
+"X-Generator: Weblate 5.9.2"
 
 
 msgid "Shader AOV"
@@ -57,6 +57,14 @@ msgstr "Lijst van AOV's"
 
 msgid "Collection of AOVs"
 msgstr "Collectie van AOV's"
+
+
+msgid "F-Curves"
+msgstr "F-Curves"
+
+
+msgid "F-Curve Groups"
+msgstr "F-Curve groepen"
 
 
 msgid "Action F-Curves"
@@ -235,24 +243,88 @@ msgid "Influence"
 msgstr "Invloed"
 
 
+msgid "How much of this layer is used when blending into the lower layers"
+msgstr "Hoeveel wordt van deze laag getoond wanneer je'm mengt met lagen eronder"
+
+
 msgid "Mix Mode"
 msgstr "Mixmodus"
+
+
+msgid "How animation of this layer is blended into the lower layers"
+msgstr "Hoe de animatie van deze laag gemengd wordt met lagen eronder"
 
 
 msgid "Replace"
 msgstr "Vervangen"
 
 
+msgid "Channels in this layer override the same channels from underlying layers"
+msgstr "Kanalen in deze laag overschrijven dezelfde kanalen van onderliggende lagen"
+
+
+msgid "Channels in this layer are added to underlying layers as sequential operations"
+msgstr "Kanalen in deze laag worden toegevoegd aan onderliggende lagen als opeenvolgende operaties"
+
+
 msgid "Add"
 msgstr "Toevoegen"
+
+
+msgid "Channels in this layer are added to underlying layers on a per-channel basis"
+msgstr "Kanalen in deze laag worden per kanaal toegevoegd aan onderliggende lagen"
 
 
 msgid "Subtract"
 msgstr "Aftrekken"
 
 
+msgid "Channels in this layer are subtracted to underlying layers on a per-channel basis"
+msgstr "Kanalen in deze laag worden per kanaal afgetrokken van onderliggende lagen"
+
+
 msgid "Multiply"
 msgstr "Vermenigvuldigen"
+
+
+msgid "Channels in this layer are multiplied with underlying layers on a per-channel basis"
+msgstr "Kanalen in deze laag worden per kanaal vermenigvuldigd met onderliggende lagen"
+
+
+msgid "Strips"
+msgstr "Strook"
+
+
+msgid "The list of strips that are on this animation layer"
+msgstr "De lijst met stroken van deze animatielaag"
+
+
+msgid "Action Pose Markers"
+msgstr "Actieve Pose Markeerpunt"
+
+
+msgid "Collection of timeline markers"
+msgstr "Verzameling van tijdlijn markeerpunten"
+
+
+msgid "Active Pose Marker"
+msgstr "Actieve Markeerpunt"
+
+
+msgid "Active pose marker for this action"
+msgstr "Actief pose markeerpunt voor deze actie"
+
+
+msgid "Active Pose Marker Index"
+msgstr "Index van de actieve Pose Marker"
+
+
+msgid "Index of active pose marker"
+msgstr "Index van actieve pose markeerpunt"
+
+
+msgid "Identifier for a set of channels in this Action, that can be used by a data-block to specify what it gets animated by"
+msgstr "Aanduiding voor een reeks kanalen in deze actie, die kan worden gebruikt door een gegevensblok om aan te geven waar het door wordt geanimeerd"
 
 
 msgid "Active"
@@ -260,8 +332,23 @@ msgstr "Actief"
 
 
 msgctxt "ID"
+msgid "Brush"
+msgstr "Penseel"
+
+
+msgctxt "ID"
+msgid "Cache File"
+msgstr "Cachebestand"
+
+
+msgctxt "ID"
 msgid "Collection"
 msgstr "Collectie"
+
+
+msgctxt "ID"
+msgid "Library"
+msgstr "Bibliotheek"
 
 
 msgctxt "ID"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'159424053bc2')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'eb39d81afa00')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-23 13:35+0000\n"
+"POT-Creation-Date: 2024-12-30 14:46+0000\n"
 "PO-Revision-Date: 2024-04-29 13:36+0000\n"
 "Last-Translator: Zdeněk Doležal <Griperis@outlook.cz>\n"
 "Language-Team: Czech <https://translate.blender.org/projects/blender-ui/ui/cs/>\n"
@@ -17129,6 +17129,10 @@ msgid "Z-Scale"
 msgstr "Z měřítko"
 
 
+msgid "High quality"
+msgstr "Vysoká kvalita"
+
+
 msgid "Despeckle"
 msgstr "Odstranit uzly"
 
@@ -31358,6 +31362,14 @@ msgid "Restrict"
 msgstr "Omezit"
 
 
+msgid "Shadow Settings"
+msgstr "Nastavení Stínů"
+
+
+msgid "SSAO Settings"
+msgstr "Nastavení SSAO"
+
+
 msgid "Overlays"
 msgstr "Překrytí"
 
@@ -31404,14 +31416,6 @@ msgstr "Aktivní nástroj"
 
 msgid "View Lock"
 msgstr "Zámek zobrazení"
-
-
-msgid "Shadow Settings"
-msgstr "Nastavení Stínů"
-
-
-msgid "SSAO Settings"
-msgstr "Nastavení SSAO"
 
 
 msgid "Chain Scaling"
@@ -33898,10 +33902,6 @@ msgstr "Použít Prostorové Rozdělení"
 
 msgid "Denoiser"
 msgstr "Odšumění"
-
-
-msgid "High quality"
-msgstr "Vysoká kvalita"
 
 
 msgid "Device to use for rendering"

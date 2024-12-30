@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'159424053bc2')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'eb39d81afa00')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-23 13:35+0000\n"
+"POT-Creation-Date: 2024-12-30 14:46+0000\n"
 "PO-Revision-Date: 2024-12-10 23:56+0000\n"
 "Last-Translator: bitigchi <bitigchi@me.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
@@ -30234,6 +30234,11 @@ msgid "Parent"
 msgstr "Ebeveyn"
 
 
+msgctxt "Operator"
+msgid "Empty"
+msgstr "Boş"
+
+
 msgid "Clone Layer"
 msgstr "Klon Katmanı"
 
@@ -39415,6 +39420,18 @@ msgstr "Gürültü giderici ön filtre"
 
 msgid "No prefiltering, use when guiding passes are noise-free"
 msgstr "Ön filtreleme yok, kılavuz geçişleri gürültüsüz olduğunda kullanın"
+
+
+msgid "High quality"
+msgstr "Yüksek kalite"
+
+
+msgid "Balanced"
+msgstr "Dengeli"
+
+
+msgid "Balanced between performance and quality"
+msgstr "Performans ve kalite arasında denge"
 
 
 msgid "HDR"
@@ -79698,6 +79715,22 @@ msgid "Panel containing UI elements"
 msgstr "UI öğelerini içeren panel"
 
 
+msgid "Shadow Settings"
+msgstr "Gölge Ayarları"
+
+
+msgid "SSAO Settings"
+msgstr "SSAO Ayarları"
+
+
+msgid "Render Pass"
+msgstr "Render Geçişi"
+
+
+msgid "Compositor"
+msgstr "Dizgici"
+
+
 msgid "Overlays"
 msgstr "Kaplamalar"
 
@@ -79808,22 +79841,6 @@ msgstr "Seçilebilirlik ve Görünürlük"
 
 msgid "Wire Color"
 msgstr "Tel Rengi"
-
-
-msgid "Shadow Settings"
-msgstr "Gölge Ayarları"
-
-
-msgid "SSAO Settings"
-msgstr "SSAO Ayarları"
-
-
-msgid "Render Pass"
-msgstr "Render Geçişi"
-
-
-msgid "Compositor"
-msgstr "Dizgici"
 
 
 msgid "Chain Scaling"
@@ -85690,18 +85707,6 @@ msgstr "Gürültü Giderici Ön Filtre"
 
 msgid "Overall denoising quality when using OpenImageDenoise"
 msgstr "OpenImageDenoise kullanıldığında genel gürültü giderme kalitesi"
-
-
-msgid "High quality"
-msgstr "Yüksek kalite"
-
-
-msgid "Balanced"
-msgstr "Dengeli"
-
-
-msgid "Balanced between performance and quality"
-msgstr "Performans ve kalite arasında denge"
 
 
 msgid "High performance"
@@ -111933,11 +111938,6 @@ msgstr "Önceki Blok"
 msgctxt "Operator"
 msgid "Next Block"
 msgstr "Sonraki Blok"
-
-
-msgctxt "Operator"
-msgid "Empty"
-msgstr "Boş"
 
 
 msgctxt "Operator"
