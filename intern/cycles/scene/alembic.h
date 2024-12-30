@@ -461,8 +461,9 @@ class AlembicObject : public Node {
  */
 class AlembicProcedural : public Procedural {
   Alembic::AbcGeom::IArchive archive;
-  bool objects_loaded;
-  Scene *scene_;
+  bool objects_loaded = false;
+  bool objects_modified = false;
+  Scene *scene_ = nullptr;
 
  public:
   NODE_DECLARE
@@ -488,9 +489,6 @@ class AlembicProcedural : public Procedural {
 
   /* The frame rate used for rendering in units of frames per second. */
   NODE_SOCKET_API(float, frame_rate)
-
-  /* List of AlembicObjects to render. */
-  NODE_SOCKET_API_ARRAY(array<Node *>, objects)
 
   /* Set the default radius to use for curves when the Alembic Curves Schemas do not have radius
    * information. */
@@ -528,9 +526,6 @@ class AlembicProcedural : public Procedural {
   AlembicObject *get_or_create_object(const ustring &path);
 
  private:
-  /* Add an object to our list of objects, and tag the socket as modified. */
-  void add_object(AlembicObject *object);
-
   /* Load the data for all the objects whose data has not yet been loaded. */
   void load_objects(Progress &progress);
 

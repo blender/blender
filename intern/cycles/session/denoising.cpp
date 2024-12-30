@@ -194,13 +194,15 @@ bool DenoiseTask::load_input_pixels(const int layer)
 
 /* Task stages */
 
-static void add_pass(vector<Pass *> &passes, PassType type, PassMode mode = PassMode::NOISY)
+static void add_pass(unique_ptr_vector<Pass> &passes,
+                     PassType type,
+                     PassMode mode = PassMode::NOISY)
 {
-  Pass *pass = new Pass();
+  unique_ptr<Pass> pass = make_unique<Pass>();
   pass->set_type(type);
   pass->set_mode(mode);
 
-  passes.push_back(pass);
+  passes.push_back(std::move(pass));
 }
 
 bool DenoiseTask::load()
@@ -227,7 +229,7 @@ bool DenoiseTask::load()
   denoiser->denoiser->set_params(params);
 
   /* Allocate device buffer. */
-  vector<Pass *> passes;
+  unique_ptr_vector<Pass> passes;
   add_pass(passes, PassType::PASS_COMBINED);
   add_pass(passes, PassType::PASS_DENOISING_ALBEDO);
   add_pass(passes, PassType::PASS_DENOISING_NORMAL);
@@ -244,9 +246,7 @@ bool DenoiseTask::load()
   buffer_params.full_height = image.height;
   buffer_params.update_passes(passes);
 
-  for (Pass *pass : passes) {
-    delete pass;
-  }
+  passes.clear();
 
   buffers.reset(buffer_params);
 

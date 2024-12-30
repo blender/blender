@@ -9,12 +9,12 @@
 
 #include "kernel/types.h"
 
-#include "util/list.h"
 #include "util/map.h"
 #include "util/param.h"
 #include "util/set.h"
 #include "util/string.h"
 #include "util/types.h"
+#include "util/unique_ptr_vector.h"
 #include "util/vector.h"
 
 CCL_NAMESPACE_BEGIN
@@ -146,7 +146,7 @@ class ShaderOutput {
 class ShaderNode : public Node {
  public:
   explicit ShaderNode(const NodeType *type);
-  ~ShaderNode() override;
+  ShaderNode(const ShaderNode &other);
 
   void create_inputs_outputs(const NodeType *type);
   void remove_input(ShaderInput *input);
@@ -205,13 +205,15 @@ class ShaderNode : public Node {
   {
     return false;
   }
-  vector<ShaderInput *> inputs;
-  vector<ShaderOutput *> outputs;
+  unique_ptr_vector<ShaderInput> inputs;
+  unique_ptr_vector<ShaderOutput> outputs;
 
-  int id;          /* index in graph node array */
-  ShaderBump bump; /* for bump mapping utility */
-
-  ShaderNodeSpecialType special_type; /* special node type */
+  /* index in graph node array */
+  int id = -1;
+  /* for bump mapping utility */
+  ShaderBump bump = SHADER_BUMP_NONE;
+  /* special node type */
+  ShaderNodeSpecialType special_type = SHADER_SPECIAL_TYPE_NONE;
 
   /* ** Selective nodes compilation ** */
 
@@ -290,7 +292,7 @@ using ShaderNodeMap = map<ShaderNode *, ShaderNode *, ShaderNodeIDComparator>;
 
 class ShaderGraph : public NodeOwner {
  public:
-  list<ShaderNode *> nodes;
+  unique_ptr_vector<ShaderNode> nodes;
   size_t num_node_ids;
   bool finalized;
   bool simplified;
@@ -299,7 +301,6 @@ class ShaderGraph : public NodeOwner {
   ShaderGraph();
   ~ShaderGraph() override;
 
-  ShaderNode *add(ShaderNode *node);
   OutputNode *output();
 
   void connect(ShaderOutput *from, ShaderInput *to);
@@ -318,25 +319,38 @@ class ShaderGraph : public NodeOwner {
 
   void dump_graph(const char *filename);
 
-  /* This function is used to create a node of a specified type instead of
-   * calling 'new', and sets the graph as the owner of the node.
-   */
+  /* Create node from class and add it to the shader graph. */
   template<typename T, typename... Args> T *create_node(Args &&...args)
   {
-    T *node = new T(args...);
-    node->set_owner(this);
-    return node;
+    unique_ptr<T> node = make_unique<T>(args...);
+    T *node_ptr = node.get();
+    this->add_node(std::move(node));
+    return node_ptr;
   }
 
-  /* This function is used to delete a node created and owned by the graph. */
-  template<typename T> void delete_node(T *node)
+  /* Create OSL node from class and add it to the shader graph. */
+  template<typename T, typename... Args> T *create_osl_node(void *node_memory, Args &&...args)
   {
-    assert(node->get_owner() == this);
-    delete node;
+    T *node_ptr = new (node_memory) T(args...);
+    unique_ptr<T> node(node_ptr);
+    this->add_node(std::move(node));
+    return node_ptr;
+  }
+
+  /* Create node from node type and add it to the shader graph. */
+  ShaderNode *create_node(const NodeType *node_type)
+  {
+    unique_ptr<Node> node = node_type->create(node_type);
+    unique_ptr<ShaderNode> shader_node(static_cast<ShaderNode *>(node.release()));
+    ShaderNode *shader_node_ptr = shader_node.get();
+    this->add_node(std::move(shader_node));
+    return shader_node_ptr;
   }
 
  protected:
   using NodePair = pair<ShaderNode *const, ShaderNode *>;
+
+  void add_node(unique_ptr<ShaderNode> &&node);
 
   void find_dependencies(ShaderNodeSet &dependencies, ShaderInput *input);
   void clear_nodes();

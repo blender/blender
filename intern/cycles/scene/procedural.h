@@ -6,6 +6,8 @@
 
 #include "graph/node.h"
 
+#include "util/unique_ptr_vector.h"
+
 CCL_NAMESPACE_BEGIN
 
 class Progress;
@@ -31,17 +33,22 @@ class Procedural : public Node, public NodeOwner {
   /* Create a node and set this Procedural as the owner. */
   template<typename T> T *create_node()
   {
-    T *node = new T();
+    unique_ptr<T> node = make_unique<T>();
+    T *node_ptr = node.get();
     node->set_owner(this);
-    return node;
+    nodes.push_back(std::move(node));
+    return node_ptr;
   }
 
   /* Delete a Node created and owned by this Procedural. */
   template<typename T> void delete_node(T *node)
   {
     assert(node->get_owner() == this);
-    delete node;
+    nodes.erase(node);
   }
+
+ protected:
+  unique_ptr_vector<Node> nodes;
 };
 
 class ProceduralManager {

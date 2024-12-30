@@ -14,8 +14,6 @@
 #include "scene/stats.h"
 #include "scene/tables.h"
 
-#include "util/algorithm.h"
-
 #include "util/math.h"
 #include "util/math_cdf.h"
 #include "util/time.h"
@@ -612,31 +610,29 @@ void Film::add_auto_pass(Scene *scene, PassType type, const char *name)
 
 void Film::add_auto_pass(Scene *scene, PassType type, PassMode mode, const char *name)
 {
-  Pass *pass = new Pass();
+  unique_ptr<Pass> pass = make_unique<Pass>();
   pass->set_type(type);
   pass->set_mode(mode);
   pass->set_name(ustring((name) ? name : ""));
   pass->is_auto_ = true;
 
   pass->set_owner(scene);
-  scene->passes.push_back(pass);
+  scene->passes.push_back(std::move(pass));
 }
 
 void Film::remove_auto_passes(Scene *scene)
 {
   /* Remove all passes which were automatically created. */
-  vector<Pass *> new_passes;
+  unique_ptr_vector<Pass> new_passes;
 
-  for (Pass *pass : scene->passes) {
+  for (size_t i = 0; i < scene->passes.size(); i++) {
+    unique_ptr<Pass> pass = scene->passes.steal(i);
     if (!pass->is_auto_) {
-      new_passes.push_back(pass);
-    }
-    else {
-      delete pass;
+      new_passes.push_back(std::move(pass));
     }
   }
 
-  scene->passes = new_passes;
+  scene->passes = std::move(new_passes);
 }
 
 static bool compare_pass_order(const Pass *a, const Pass *b)
@@ -662,9 +658,11 @@ static bool compare_pass_order(const Pass *a, const Pass *b)
 void Film::finalize_passes(Scene *scene, const bool use_denoise)
 {
   /* Remove duplicate passes. */
-  vector<Pass *> new_passes;
+  unique_ptr_vector<Pass> new_passes;
 
-  for (Pass *pass : scene->passes) {
+  for (size_t i = 0; i < scene->passes.size(); i++) {
+    unique_ptr<Pass> pass = scene->passes.steal(i);
+
     /* Disable denoising on passes if denoising is disabled, or if the
      * pass does not support it. */
     pass->set_mode((use_denoise && pass->get_info().support_denoise) ? pass->get_mode() :
@@ -696,19 +694,16 @@ void Film::finalize_passes(Scene *scene, const bool use_denoise)
     }
 
     if (!duplicate_found) {
-      new_passes.push_back(pass);
-    }
-    else {
-      delete pass;
+      new_passes.push_back(std::move(pass));
     }
   }
 
   /* Order from by components and type, This is required to for AOVs and cryptomatte passes,
    * which the kernel assumes to be in order. Note this must use stable sort so cryptomatte
    * passes remain in the right order. */
-  stable_sort(new_passes.begin(), new_passes.end(), compare_pass_order);
+  new_passes.stable_sort(compare_pass_order);
 
-  scene->passes = new_passes;
+  scene->passes = std::move(new_passes);
 }
 
 uint Film::get_kernel_features(const Scene *scene) const

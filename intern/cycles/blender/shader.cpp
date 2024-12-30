@@ -1124,7 +1124,6 @@ static ShaderNode *add_node(Scene *scene,
 
   if (node) {
     node->name = b_node.name();
-    graph->add(node);
   }
 
   return node;
@@ -1277,8 +1276,6 @@ static void add_nodes(Scene *scene,
          * input socket, so this needs to be a multimap. */
         input_map.emplace(b_link.from_socket().ptr.data, proxy->inputs[0]);
         output_map[b_link.to_socket().ptr.data] = proxy->outputs[0];
-
-        graph->add(proxy);
       }
     }
     else if (b_node.is_a(&RNA_ShaderNodeGroup) || b_node.is_a(&RNA_NodeCustomGroup) ||
@@ -1310,7 +1307,6 @@ static void add_nodes(Scene *scene,
         }
 
         ConvertNode *proxy = graph->create_node<ConvertNode>(input_type, input_type, true);
-        graph->add(proxy);
 
         /* register the proxy node for internal binding */
         group_proxy_input_map[b_input.identifier()] = proxy;
@@ -1326,7 +1322,6 @@ static void add_nodes(Scene *scene,
         }
 
         ConvertNode *proxy = graph->create_node<ConvertNode>(output_type, output_type, true);
-        graph->add(proxy);
 
         /* register the proxy node for internal binding */
         group_proxy_output_map[b_output.identifier()] = proxy;
@@ -1590,7 +1585,6 @@ void BlenderSync::sync_materials(BL::Depsgraph &b_depsgraph, bool update_all)
       else {
         DiffuseBsdfNode *diffuse = graph->create_node<DiffuseBsdfNode>();
         diffuse->set_color(get_float3(b_mat.diffuse_color()));
-        graph->add(diffuse);
 
         ShaderNode *out = graph->output();
         graph->connect(diffuse->output("BSDF"), out->input("Surface"));
@@ -1681,7 +1675,6 @@ void BlenderSync::sync_world(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d,
     else if (new_viewport_parameters.use_scene_world && b_world) {
       BackgroundNode *background = graph->create_node<BackgroundNode>();
       background->set_color(get_float3(b_world.color()));
-      graph->add(background);
 
       ShaderNode *out = graph->output();
       graph->connect(background->output("Background"), out->input("Surface"));
@@ -1696,14 +1689,10 @@ void BlenderSync::sync_world(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d,
       }
 
       BackgroundNode *background = graph->create_node<BackgroundNode>();
-      graph->add(background);
-
       LightPathNode *light_path = graph->create_node<LightPathNode>();
-      graph->add(light_path);
 
       MixNode *mix_scene_with_background = graph->create_node<MixNode>();
       mix_scene_with_background->set_color2(world_color);
-      graph->add(mix_scene_with_background);
 
       EnvironmentTextureNode *texture_environment = graph->create_node<EnvironmentTextureNode>();
       texture_environment->set_tex_mapping_type(TextureMapping::VECTOR);
@@ -1711,7 +1700,6 @@ void BlenderSync::sync_world(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d,
       rotation_z[2] = new_viewport_parameters.studiolight_rotate_z;
       texture_environment->set_tex_mapping_rotation(rotation_z);
       texture_environment->set_filename(new_viewport_parameters.studiolight_path);
-      graph->add(texture_environment);
 
       MixNode *mix_intensity = graph->create_node<MixNode>();
       mix_intensity->set_mix_type(NODE_MIX_MUL);
@@ -1719,16 +1707,13 @@ void BlenderSync::sync_world(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d,
       mix_intensity->set_color2(make_float3(new_viewport_parameters.studiolight_intensity,
                                             new_viewport_parameters.studiolight_intensity,
                                             new_viewport_parameters.studiolight_intensity));
-      graph->add(mix_intensity);
 
       TextureCoordinateNode *texture_coordinate = graph->create_node<TextureCoordinateNode>();
-      graph->add(texture_coordinate);
 
       MixNode *mix_background_with_environment = graph->create_node<MixNode>();
       mix_background_with_environment->set_fac(
           new_viewport_parameters.studiolight_background_alpha);
       mix_background_with_environment->set_color1(world_color);
-      graph->add(mix_background_with_environment);
 
       ShaderNode *out = graph->output();
 
@@ -1844,7 +1829,6 @@ void BlenderSync::sync_lights(BL::Depsgraph &b_depsgraph, bool update_all)
         EmissionNode *emission = graph->create_node<EmissionNode>();
         emission->set_color(one_float3());
         emission->set_strength(1.0f);
-        graph->add(emission);
 
         ShaderNode *out = graph->output();
         graph->connect(emission->output("Emission"), out->input("Surface"));

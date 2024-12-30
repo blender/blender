@@ -10,6 +10,7 @@
 
 #include "util/array.h"
 #include "util/string.h"
+#include "util/unique_ptr.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -451,7 +452,7 @@ class ConvertNode : public ShaderNode {
 
   static const int MAX_TYPE = 13;
   static bool register_types();
-  static Node *create(const NodeType *type);
+  static unique_ptr<Node> create(const NodeType *type);
   static const NodeType *node_types[MAX_TYPE][MAX_TYPE];
   static bool initialized;
 };

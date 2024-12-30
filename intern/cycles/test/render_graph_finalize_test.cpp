@@ -85,7 +85,6 @@ class ShaderGraphBuilder {
   template<typename T> ShaderGraphBuilder &add_node(const T &node)
   {
     EXPECT_EQ(find_node(node.name()), (void *)nullptr);
-    graph_->add(node.node());
     node_map_[node.name()] = node.node();
     return *this;
   }

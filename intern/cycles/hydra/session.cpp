@@ -51,7 +51,6 @@ HdCyclesSession::HdCyclesSession(const SessionParams &params)
 
     BackgroundNode *bgNode = graph->create_node<BackgroundNode>();
     bgNode->set_color(one_float3());
-    graph->add(bgNode);
 
     graph->connect(bgNode->output("Background"), graph->output()->input("Surface"));
 
@@ -64,10 +63,8 @@ HdCyclesSession::HdCyclesSession(const SessionParams &params)
     unique_ptr<ShaderGraph> graph = make_unique<ShaderGraph>();
 
     ObjectInfoNode *objectNode = graph->create_node<ObjectInfoNode>();
-    graph->add(objectNode);
 
     DiffuseBsdfNode *diffuseNode = graph->create_node<DiffuseBsdfNode>();
-    graph->add(diffuseNode);
 
     graph->connect(objectNode->output("Color"), diffuseNode->input("Color"));
     graph->connect(diffuseNode->output("BSDF"), graph->output()->input("Surface"));
@@ -77,11 +74,9 @@ HdCyclesSession::HdCyclesSession(const SessionParams &params)
 
     OutputAOVNode *aovNode = graph->create_node<OutputAOVNode>();
     aovNode->set_name(instanceId);
-    graph->add(aovNode);
 
     AttributeNode *instanceIdNode = graph->create_node<AttributeNode>();
     instanceIdNode->set_attribute(instanceId);
-    graph->add(instanceIdNode);
 
     graph->connect(instanceIdNode->output("Fac"), aovNode->input("Value"));
 
@@ -138,7 +133,8 @@ void HdCyclesSession::SyncAovBindings(const HdRenderPassAovBindingVector &aovBin
   Scene *const scene = session->scene.get();
 
   // Delete all existing passes
-  scene->delete_nodes(set<Pass *>(scene->passes.begin(), scene->passes.end()));
+  const vector<Pass *> &scene_passes = scene->passes;
+  scene->delete_nodes(set<Pass *>(scene_passes.begin(), scene_passes.end()));
 
   // Update passes with requested AOV bindings
   _aovBindings = aovBindings;

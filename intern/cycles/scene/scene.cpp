@@ -96,30 +96,11 @@ void Scene::free_memory(bool final)
    * Similarly, we first delete all nodes and their associated device data, and
    * then the managers and their associated device data.
    */
-  for (Procedural *p : procedurals) {
-    delete p;
-  }
-  for (Object *o : objects) {
-    delete o;
-  }
-  for (Geometry *g : geometry) {
-    delete g;
-  }
-  for (ParticleSystem *p : particle_systems) {
-    delete p;
-  }
-  for (Light *l : lights) {
-    delete l;
-  }
-  for (Pass *p : passes) {
-    delete p;
-  }
-
-  geometry.clear();
+  procedurals.clear();
   objects.clear();
+  geometry.clear();
   lights.clear();
   particle_systems.clear();
-  procedurals.clear();
   passes.clear();
 
   if (device) {
@@ -130,19 +111,20 @@ void Scene::free_memory(bool final)
   }
 
   if (final) {
-    delete camera;
-    delete dicing_camera;
-    delete film;
-    delete background;
-    delete integrator;
+    cameras.clear();
+    integrators.clear();
+    films.clear();
+    backgrounds.clear();
+
+    camera = nullptr;
+    dicing_camera = nullptr;
+    integrator = nullptr;
+    film = nullptr;
+    background = nullptr;
   }
 
   /* Delete Shaders after every other nodes to ensure that we do not try to
    * decrement the reference count on some dangling pointer. */
-  for (Shader *s : shaders) {
-    delete s;
-  }
-
   shaders.clear();
 
   /* Now that all nodes have been deleted, we can safely delete managers and
@@ -756,84 +738,93 @@ void Scene::tag_shadow_catcher_modified()
 
 template<> Light *Scene::create_node<Light>()
 {
-  Light *node = new Light();
+  unique_ptr<Light> node = make_unique<Light>();
+  Light *node_ptr = node.get();
   node->set_owner(this);
-  lights.push_back(node);
+  lights.push_back(std::move(node));
   light_manager->tag_update(this, LightManager::LIGHT_ADDED);
-  return node;
+  return node_ptr;
 }
 
 template<> Mesh *Scene::create_node<Mesh>()
 {
-  Mesh *node = new Mesh();
+  unique_ptr<Mesh> node = make_unique<Mesh>();
+  Mesh *node_ptr = node.get();
   node->set_owner(this);
-  geometry.push_back(node);
+  geometry.push_back(std::move(node));
   geometry_manager->tag_update(this, GeometryManager::MESH_ADDED);
-  return node;
+  return node_ptr;
 }
 
 template<> Hair *Scene::create_node<Hair>()
 {
-  Hair *node = new Hair();
+  unique_ptr<Hair> node = make_unique<Hair>();
+  Hair *node_ptr = node.get();
   node->set_owner(this);
-  geometry.push_back(node);
+  geometry.push_back(std::move(node));
   geometry_manager->tag_update(this, GeometryManager::HAIR_ADDED);
-  return node;
+  return node_ptr;
 }
 
 template<> Volume *Scene::create_node<Volume>()
 {
-  Volume *node = new Volume();
+  unique_ptr<Volume> node = make_unique<Volume>();
+  Volume *node_ptr = node.get();
   node->set_owner(this);
-  geometry.push_back(node);
+  geometry.push_back(std::move(node));
   geometry_manager->tag_update(this, GeometryManager::MESH_ADDED);
-  return node;
+  return node_ptr;
 }
 
 template<> PointCloud *Scene::create_node<PointCloud>()
 {
-  PointCloud *node = new PointCloud();
+  unique_ptr<PointCloud> node = make_unique<PointCloud>();
+  PointCloud *node_ptr = node.get();
   node->set_owner(this);
-  geometry.push_back(node);
+  geometry.push_back(std::move(node));
   geometry_manager->tag_update(this, GeometryManager::POINT_ADDED);
-  return node;
+  return node_ptr;
 }
 
 template<> Object *Scene::create_node<Object>()
 {
-  Object *node = new Object();
+  unique_ptr<Object> node = make_unique<Object>();
+  Object *node_ptr = node.get();
   node->set_owner(this);
-  objects.push_back(node);
+  objects.push_back(std::move(node));
   object_manager->tag_update(this, ObjectManager::OBJECT_ADDED);
-  return node;
+  return node_ptr;
 }
 
 template<> ParticleSystem *Scene::create_node<ParticleSystem>()
 {
-  ParticleSystem *node = new ParticleSystem();
+  unique_ptr<ParticleSystem> node = make_unique<ParticleSystem>();
+  ParticleSystem *node_ptr = node.get();
   node->set_owner(this);
-  particle_systems.push_back(node);
+  particle_systems.push_back(std::move(node));
   particle_system_manager->tag_update(this);
-  return node;
+  return node_ptr;
 }
 
 template<> Shader *Scene::create_node<Shader>()
 {
-  Shader *node = new Shader();
+  unique_ptr<Shader> node = make_unique<Shader>();
+  Shader *node_ptr = node.get();
   node->set_owner(this);
-  shaders.push_back(node);
+  shaders.push_back(std::move(node));
   shader_manager->tag_update(this, ShaderManager::SHADER_ADDED);
-  return node;
+  return node_ptr;
 }
 
 template<> AlembicProcedural *Scene::create_node<AlembicProcedural>()
 {
 #ifdef WITH_ALEMBIC
-  AlembicProcedural *node = new AlembicProcedural();
+  unique_ptr<AlembicProcedural> node = make_unique<AlembicProcedural>();
+  AlembicProcedural *node_ptr = node.get();
   node->set_owner(this);
-  procedurals.push_back(node);
+  procedurals.push_back(std::move(node));
   procedural_manager->tag_update();
-  return node;
+  return node_ptr;
 #else
   return nullptr;
 #endif
@@ -841,59 +832,89 @@ template<> AlembicProcedural *Scene::create_node<AlembicProcedural>()
 
 template<> Pass *Scene::create_node<Pass>()
 {
-  Pass *node = new Pass();
+  unique_ptr<Pass> node = make_unique<Pass>();
+  Pass *node_ptr = node.get();
   node->set_owner(this);
-  passes.push_back(node);
+  passes.push_back(std::move(node));
   film->tag_modified();
-  return node;
+  return node_ptr;
 }
 
-template<typename T> void delete_node_from_array(vector<T> &nodes, T node)
+template<> Camera *Scene::create_node<Camera>()
 {
-  for (size_t i = 0; i < nodes.size(); ++i) {
-    if (nodes[i] == node) {
-      std::swap(nodes[i], nodes[nodes.size() - 1]);
-      break;
-    }
-  }
-
-  nodes.resize(nodes.size() - 1);
-
-  delete node;
+  unique_ptr<Camera> node = make_unique<Camera>();
+  Camera *node_ptr = node.get();
+  node->set_owner(this);
+  cameras.push_back(std::move(node));
+  return node_ptr;
 }
 
-template<> void Scene::delete_node_impl(Light *node)
+template<> Integrator *Scene::create_node<Integrator>()
 {
-  delete_node_from_array(lights, node);
+  unique_ptr<Integrator> node = make_unique<Integrator>();
+  Integrator *node_ptr = node.get();
+  node->set_owner(this);
+  integrators.push_back(std::move(node));
+  return node_ptr;
+}
+
+template<> Background *Scene::create_node<Background>()
+{
+  unique_ptr<Background> node = make_unique<Background>();
+  Background *node_ptr = node.get();
+  node->set_owner(this);
+  backgrounds.push_back(std::move(node));
+  return node_ptr;
+}
+
+template<> Film *Scene::create_node<Film>()
+{
+  unique_ptr<Film> node = make_unique<Film>();
+  Film *node_ptr = node.get();
+  node->set_owner(this);
+  films.push_back(std::move(node));
+  return node_ptr;
+}
+
+template<> void Scene::delete_node(Light *node)
+{
+  assert(node->get_owner() == this);
+  lights.erase_by_swap(node);
   light_manager->tag_update(this, LightManager::LIGHT_REMOVED);
 }
 
-template<> void Scene::delete_node_impl(Mesh *node)
+template<> void Scene::delete_node(Mesh *node)
 {
-  delete_node_from_array(geometry, static_cast<Geometry *>(node));
+  assert(node->get_owner() == this);
+  geometry.erase_by_swap(node);
   geometry_manager->tag_update(this, GeometryManager::MESH_REMOVED);
 }
 
-template<> void Scene::delete_node_impl(Hair *node)
+template<> void Scene::delete_node(Hair *node)
 {
-  delete_node_from_array(geometry, static_cast<Geometry *>(node));
+  assert(node->get_owner() == this);
+  geometry.erase_by_swap(node);
   geometry_manager->tag_update(this, GeometryManager::HAIR_REMOVED);
 }
 
-template<> void Scene::delete_node_impl(Volume *node)
+template<> void Scene::delete_node(Volume *node)
 {
-  delete_node_from_array(geometry, static_cast<Geometry *>(node));
+  assert(node->get_owner() == this);
+  geometry.erase_by_swap(node);
   geometry_manager->tag_update(this, GeometryManager::MESH_REMOVED);
 }
 
-template<> void Scene::delete_node_impl(PointCloud *node)
+template<> void Scene::delete_node(PointCloud *node)
 {
-  delete_node_from_array(geometry, static_cast<Geometry *>(node));
+  assert(node->get_owner() == this);
+  geometry.erase_by_swap(node);
   geometry_manager->tag_update(this, GeometryManager::POINT_REMOVED);
 }
 
-template<> void Scene::delete_node_impl(Geometry *node)
+template<> void Scene::delete_node(Geometry *node)
 {
+  assert(node->get_owner() == this);
+
   uint flag;
   if (node->is_hair()) {
     flag = GeometryManager::HAIR_REMOVED;
@@ -902,95 +923,91 @@ template<> void Scene::delete_node_impl(Geometry *node)
     flag = GeometryManager::MESH_REMOVED;
   }
 
-  delete_node_from_array(geometry, node);
+  geometry.erase_by_swap(node);
   geometry_manager->tag_update(this, flag);
 }
 
-template<> void Scene::delete_node_impl(Object *node)
+template<> void Scene::delete_node(Object *node)
 {
-  delete_node_from_array(objects, node);
+  assert(node->get_owner() == this);
+  objects.erase_by_swap(node);
   object_manager->tag_update(this, ObjectManager::OBJECT_REMOVED);
 }
 
-template<> void Scene::delete_node_impl(ParticleSystem *node)
+template<> void Scene::delete_node(ParticleSystem *node)
 {
-  delete_node_from_array(particle_systems, node);
+  assert(node->get_owner() == this);
+  particle_systems.erase_by_swap(node);
   particle_system_manager->tag_update(this);
 }
 
-template<> void Scene::delete_node_impl(Shader *node)
+template<> void Scene::delete_node(Shader *node)
 {
+  assert(node->get_owner() == this);
   /* don't delete unused shaders, not supported */
   node->clear_reference_count();
 }
 
-template<> void Scene::delete_node_impl(Procedural *node)
+template<> void Scene::delete_node(Procedural *node)
 {
-  delete_node_from_array(procedurals, node);
+  assert(node->get_owner() == this);
+  procedurals.erase_by_swap(node);
   procedural_manager->tag_update();
 }
 
-template<> void Scene::delete_node_impl(AlembicProcedural *node)
+template<> void Scene::delete_node(AlembicProcedural *node)
 {
 #ifdef WITH_ALEMBIC
-  delete_node_impl(static_cast<Procedural *>(node));
+  delete_node(static_cast<Procedural *>(node));
 #else
   (void)node;
 #endif
 }
 
-template<> void Scene::delete_node_impl(Pass *node)
+template<> void Scene::delete_node(Pass *node)
 {
-  delete_node_from_array(passes, node);
+  assert(node->get_owner() == this);
+  passes.erase_by_swap(node);
   film->tag_modified();
 }
 
-template<typename T>
-static void remove_nodes_in_set(const set<T *> &nodes_set,
-                                vector<T *> &nodes_array,
-                                const NodeOwner *owner)
+template<typename T> static void assert_same_owner(const set<T *> &nodes, const NodeOwner *owner)
 {
-  size_t new_size = nodes_array.size();
-
-  for (size_t i = 0; i < new_size; ++i) {
-    T *node = nodes_array[i];
-
-    if (nodes_set.find(node) != nodes_set.end()) {
-      std::swap(nodes_array[i], nodes_array[new_size - 1]);
-
-      assert(node->get_owner() == owner);
-      delete node;
-
-      i -= 1;
-      new_size -= 1;
-    }
-  }
-
-  nodes_array.resize(new_size);
+#ifdef NDEBUG
+  (void)nodes;
   (void)owner;
+#else
+  for (const T *node : nodes) {
+    assert(node->get_owner() == owner);
+  }
+#endif
 }
 
 template<> void Scene::delete_nodes(const set<Light *> &nodes, const NodeOwner *owner)
 {
-  remove_nodes_in_set(nodes, lights, owner);
+  assert_same_owner(nodes, owner);
+  lights.erase_in_set(nodes);
   light_manager->tag_update(this, LightManager::LIGHT_REMOVED);
 }
 
 template<> void Scene::delete_nodes(const set<Geometry *> &nodes, const NodeOwner *owner)
 {
-  remove_nodes_in_set(nodes, geometry, owner);
+  assert_same_owner(nodes, owner);
+  geometry.erase_in_set(nodes);
   geometry_manager->tag_update(this, GeometryManager::GEOMETRY_REMOVED);
 }
 
 template<> void Scene::delete_nodes(const set<Object *> &nodes, const NodeOwner *owner)
 {
-  remove_nodes_in_set(nodes, objects, owner);
+  assert_same_owner(nodes, owner);
+  objects.erase_in_set(nodes);
   object_manager->tag_update(this, ObjectManager::OBJECT_REMOVED);
 }
 
 template<> void Scene::delete_nodes(const set<ParticleSystem *> &nodes, const NodeOwner *owner)
 {
-  remove_nodes_in_set(nodes, particle_systems, owner);
+  assert_same_owner(nodes, owner);
+  particle_systems.erase_in_set(nodes);
   particle_system_manager->tag_update(this);
 }
 
@@ -1004,13 +1021,15 @@ template<> void Scene::delete_nodes(const set<Shader *> &nodes, const NodeOwner 
 
 template<> void Scene::delete_nodes(const set<Procedural *> &nodes, const NodeOwner *owner)
 {
-  remove_nodes_in_set(nodes, procedurals, owner);
+  assert_same_owner(nodes, owner);
+  procedurals.erase_in_set(nodes);
   procedural_manager->tag_update();
 }
 
 template<> void Scene::delete_nodes(const set<Pass *> &nodes, const NodeOwner *owner)
 {
-  remove_nodes_in_set(nodes, passes, owner);
+  assert_same_owner(nodes, owner);
+  passes.erase_in_set(nodes);
   film->tag_modified();
 }
 

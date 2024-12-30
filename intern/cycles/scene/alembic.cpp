@@ -16,6 +16,7 @@
 
 #include "util/log.h"
 #include "util/progress.h"
+#include "util/set.h"
 #include "util/transform.h"
 #include "util/vector.h"
 
@@ -752,7 +753,7 @@ static void update_attributes(AttributeSet &attributes,
       continue;
     }
 
-    const ccl::array<char> &attr_data = result.get_data();
+    const array<char> &attr_data = result.get_data();
 
     /* weak way of detecting if the topology has changed
      * todo: reuse code from device_update patch */
@@ -790,8 +791,6 @@ NODE_DEFINE(AlembicProcedural)
   SOCKET_FLOAT(default_radius, "Default Radius", 0.01f);
   SOCKET_FLOAT(scale, "Scale", 1.0f);
 
-  SOCKET_NODE_ARRAY(objects, "Objects", AlembicObject::get_node_type());
-
   SOCKET_BOOLEAN(use_prefetch, "Use Prefetch", true);
   SOCKET_INT(prefetch_cache_size, "Prefetch Cache Size", 4096);
 
@@ -810,7 +809,7 @@ AlembicProcedural::~AlembicProcedural()
   ccl::set<Object *> objects_set;
   const ccl::set<AlembicObject *> abc_objects_set;
 
-  for (Node *node : objects) {
+  for (Node *node : nodes) {
     AlembicObject *abc_object = static_cast<AlembicObject *>(node);
 
     if (abc_object->get_object()) {
@@ -842,13 +841,14 @@ void AlembicProcedural::generate(Scene *scene, Progress &progress)
 
   if (frame < start_frame || frame > end_frame) {
     clear_modified();
+    objects_modified = false;
     return;
   }
 
   bool need_shader_updates = false;
   bool need_data_updates = false;
 
-  for (Node *object_node : objects) {
+  for (Node *object_node : nodes) {
     AlembicObject *object = static_cast<AlembicObject *>(object_node);
 
     if (object->is_modified()) {
@@ -876,7 +876,7 @@ void AlembicProcedural::generate(Scene *scene, Progress &progress)
     }
   }
 
-  if (!is_modified() && !need_shader_updates && !need_data_updates) {
+  if (!(is_modified() || objects_modified) && !need_shader_updates && !need_data_updates) {
     return;
   }
 
@@ -901,11 +901,12 @@ void AlembicProcedural::generate(Scene *scene, Progress &progress)
       filepath.clear();
       layers.clear();
       clear_modified();
+      objects_modified = false;
       return;
     }
   }
 
-  if (!objects_loaded || objects_is_modified()) {
+  if (!objects_loaded || objects_modified) {
     load_objects(progress);
     objects_loaded = true;
   }
@@ -913,7 +914,7 @@ void AlembicProcedural::generate(Scene *scene, Progress &progress)
   const chrono_t frame_time = (chrono_t)((frame - frame_offset) / frame_rate);
 
   /* Clear the subdivision caches as the data is stored differently. */
-  for (Node *node : objects) {
+  for (Node *node : nodes) {
     AlembicObject *object = static_cast<AlembicObject *>(node);
 
     if (object->schema_type != AlembicObject::SUBD) {
@@ -927,7 +928,7 @@ void AlembicProcedural::generate(Scene *scene, Progress &progress)
 
   if (use_prefetch_is_modified()) {
     if (!use_prefetch) {
-      for (Node *node : objects) {
+      for (Node *node : nodes) {
         AlembicObject *object = static_cast<AlembicObject *>(node);
         object->clear_cache();
       }
@@ -938,7 +939,7 @@ void AlembicProcedural::generate(Scene *scene, Progress &progress)
     /* Check whether the current memory usage fits in the new requested size,
      * abort the render if it is any higher. */
     size_t memory_used = 0ul;
-    for (Node *node : objects) {
+    for (Node *node : nodes) {
       AlembicObject *object = static_cast<AlembicObject *>(node);
       memory_used += object->get_cached_data().memory_used();
     }
@@ -951,7 +952,7 @@ void AlembicProcedural::generate(Scene *scene, Progress &progress)
 
   build_caches(progress);
 
-  for (Node *node : objects) {
+  for (Node *node : nodes) {
     AlembicObject *object = static_cast<AlembicObject *>(node);
 
     if (progress.get_cancel()) {
@@ -983,12 +984,7 @@ void AlembicProcedural::generate(Scene *scene, Progress &progress)
   }
 
   clear_modified();
-}
-
-void AlembicProcedural::add_object(AlembicObject *object)
-{
-  objects.push_back_slow(object);
-  tag_objects_modified();
+  objects_modified = false;
 }
 
 void AlembicProcedural::tag_update(Scene *scene)
@@ -998,7 +994,7 @@ void AlembicProcedural::tag_update(Scene *scene)
 
 AlembicObject *AlembicProcedural::get_or_create_object(const ustring &path)
 {
-  for (Node *node : objects) {
+  for (Node *node : nodes) {
     AlembicObject *object = static_cast<AlembicObject *>(node);
 
     if (object->get_path() == path) {
@@ -1008,8 +1004,7 @@ AlembicObject *AlembicProcedural::get_or_create_object(const ustring &path)
 
   AlembicObject *object = create_node<AlembicObject>();
   object->set_path(path);
-
-  add_object(object);
+  objects_modified = true;
 
   return object;
 }
@@ -1018,7 +1013,7 @@ void AlembicProcedural::load_objects(Progress &progress)
 {
   unordered_map<string, AlembicObject *> object_map;
 
-  for (Node *node : objects) {
+  for (Node *node : nodes) {
     AlembicObject *object = static_cast<AlembicObject *>(node);
 
     /* only consider newly added objects */
@@ -1071,7 +1066,7 @@ void AlembicProcedural::load_objects(Progress &progress)
   }
 
   /* Share geometries between instances. */
-  for (Node *node : objects) {
+  for (Node *node : nodes) {
     AlembicObject *abc_object = static_cast<AlembicObject *>(node);
 
     if (abc_object->instance_of) {
@@ -1498,7 +1493,7 @@ void AlembicProcedural::build_caches(Progress &progress)
 {
   size_t memory_used = 0;
 
-  for (Node *node : objects) {
+  for (Node *node : nodes) {
     AlembicObject *object = static_cast<AlembicObject *>(node);
 
     if (progress.get_cancel()) {

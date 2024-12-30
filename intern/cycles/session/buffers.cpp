@@ -129,7 +129,7 @@ void BufferParams::update_passes()
   }
 }
 
-void BufferParams::update_passes(const vector<Pass *> &scene_passes)
+void BufferParams::update_passes(const unique_ptr_vector<Pass> &scene_passes)
 {
   passes.clear();
 

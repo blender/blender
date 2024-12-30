@@ -447,11 +447,7 @@ void HdCyclesMaterial::PopulateShaderGraph(const HdMaterialNetwork2 &networkMap)
 
       // If it's a native Cycles' node-type, just do the lookup now.
       if (const NodeType *nodeType = NodeType::find(cyclesType)) {
-        nodeDesc.node = static_cast<ShaderNode *>(nodeType->create(nodeType));
-        nodeDesc.node->set_owner(graph.get());
-
-        graph->add(nodeDesc.node);
-
+        nodeDesc.node = graph->create_node(nodeType);
         _nodes.emplace(nodePath, nodeDesc);
       }
       else {
@@ -547,11 +543,9 @@ void HdCyclesMaterial::PopulateShaderGraph(const HdMaterialNetwork2 &networkMap)
 
     OutputAOVNode *aovNode = graph->create_node<OutputAOVNode>();
     aovNode->set_name(instanceId);
-    graph->add(aovNode);
 
     AttributeNode *instanceIdNode = graph->create_node<AttributeNode>();
     instanceIdNode->set_attribute(instanceId);
-    graph->add(instanceIdNode);
 
     graph->connect(instanceIdNode->output("Fac"), aovNode->input("Value"));
   }

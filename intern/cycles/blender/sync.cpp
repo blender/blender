@@ -722,8 +722,8 @@ static Pass *pass_add(Scene *scene,
 void BlenderSync::sync_render_passes(BL::RenderLayer &b_rlay, BL::ViewLayer &b_view_layer)
 {
   /* Delete all existing passes. */
-  const set<Pass *> clear_passes(scene->passes.begin(), scene->passes.end());
-  scene->delete_nodes(clear_passes);
+  const vector<Pass *> &scene_passes = scene->passes;
+  scene->delete_nodes(set<Pass *>(scene_passes.begin(), scene_passes.end()));
 
   /* Always add combined pass. */
   pass_add(scene, PASS_COMBINED, "Combined");

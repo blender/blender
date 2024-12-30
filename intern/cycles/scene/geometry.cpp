@@ -1123,7 +1123,7 @@ bool GeometryManager::need_update() const
 
 void GeometryManager::collect_statistics(const Scene *scene, RenderStats *stats)
 {
-  for (Geometry *geometry : scene->geometry) {
+  for (const Geometry *geometry : scene->geometry) {
     stats->mesh.geometry.add_entry(
         NamedSizeEntry(string(geometry->name.c_str()), geometry->get_total_size_in_bytes()));
   }

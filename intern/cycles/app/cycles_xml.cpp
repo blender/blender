@@ -357,8 +357,7 @@ static void xml_read_shader_graph(XMLReadState &state, Shader *shader, const xml
         continue;
       }
 
-      snode = (ShaderNode *)node_type->create(node_type);
-      snode->set_owner(graph.get());
+      snode = graph->create_node(node_type);
     }
 
     xml_read_node(graph_reader, snode, node);
@@ -373,11 +372,6 @@ static void xml_read_shader_graph(XMLReadState &state, Shader *shader, const xml
       const ustring filename(path_join(state.base, env->get_filename().string()));
       env->set_filename(filename);
     }
-
-    if (snode) {
-      /* add to graph */
-      graph->add(snode);
-    }
   }
 
   shader->set_graph(std::move(graph));
@@ -386,9 +380,8 @@ static void xml_read_shader_graph(XMLReadState &state, Shader *shader, const xml
 
 static void xml_read_shader(XMLReadState &state, const xml_node node)
 {
-  Shader *shader = new Shader();
+  Shader *shader = state.scene->create_node<Shader>();
   xml_read_shader_graph(state, shader, node);
-  state.scene->shaders.push_back(shader);
 }
 
 /* Background */
@@ -415,14 +408,12 @@ static Mesh *xml_add_mesh(Scene *scene, const Transform &tfm, Object *object)
   }
 
   /* Create mesh */
-  Mesh *mesh = new Mesh();
-  scene->geometry.push_back(mesh);
+  Mesh *mesh = scene->create_node<Mesh>();
 
   /* Create object. */
-  object = new Object();
+  object = scene->create_node<Object>();
   object->set_geometry(mesh);
   object->set_tfm(tfm);
-  scene->objects.push_back(object);
 
   return mesh;
 }
@@ -649,12 +640,10 @@ static void xml_read_mesh(const XMLReadState &state, const xml_node node)
 
 static void xml_read_light(XMLReadState &state, const xml_node node)
 {
-  Light *light = new Light();
+  Light *light = state.scene->create_node<Light>();
 
   light->set_shader(state.shader);
   xml_read_node(state, light, node);
-
-  state.scene->lights.push_back(light);
 }
 
 /* Transform */
@@ -748,17 +737,14 @@ static void xml_read_object(XMLReadState &state, const xml_node node)
   Scene *scene = state.scene;
 
   /* create mesh */
-  Mesh *mesh = new Mesh();
-  scene->geometry.push_back(mesh);
+  Mesh *mesh = scene->create_node<Mesh>();
 
   /* create object */
-  Object *object = new Object();
+  Object *object = scene->create_node<Object>();
   object->set_geometry(mesh);
   object->set_tfm(state.tfm);
 
   xml_read_node(state, object, node);
-
-  scene->objects.push_back(object);
 }
 
 /* Scene */

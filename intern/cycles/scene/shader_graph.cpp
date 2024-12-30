@@ -66,35 +66,27 @@ void ShaderOutput::disconnect()
 
 ShaderNode::ShaderNode(const NodeType *type) : Node(type)
 {
-  name = type->name;
-  id = -1;
-  bump = SHADER_BUMP_NONE;
-  special_type = SHADER_SPECIAL_TYPE_NONE;
-
   create_inputs_outputs(type);
 }
 
-ShaderNode::~ShaderNode()
+ShaderNode::ShaderNode(const ShaderNode &other)
+    : Node(other.type), bump(other.bump), special_type(other.special_type)
 {
-  for (ShaderInput *socket : inputs) {
-    delete socket;
-  }
-
-  for (ShaderOutput *socket : outputs) {
-    delete socket;
-  }
+  /* Inputs and outputs are recreated, no links to other nodes will remain. */
+  name = other.name;
+  create_inputs_outputs(type);
 }
 
 void ShaderNode::create_inputs_outputs(const NodeType *type)
 {
   for (const SocketType &socket : type->inputs) {
     if (socket.flags & SocketType::LINKABLE) {
-      inputs.push_back(new ShaderInput(socket, this));
+      inputs.push_back(make_unique<ShaderInput>(socket, this));
     }
   }
 
   for (const SocketType &socket : type->outputs) {
-    outputs.push_back(new ShaderOutput(socket, this));
+    outputs.push_back(make_unique<ShaderOutput>(socket, this));
   }
 }
 
@@ -145,8 +137,7 @@ ShaderOutput *ShaderNode::output(ustring name)
 void ShaderNode::remove_input(ShaderInput *input)
 {
   assert(input->link == nullptr);
-  delete input;
-  inputs.erase(remove(inputs.begin(), inputs.end(), input), inputs.end());
+  inputs.erase(input);
 }
 
 void ShaderNode::attributes(Shader *shader, AttributeRequestSet *attributes)
@@ -221,7 +212,7 @@ ShaderGraph::ShaderGraph()
   finalized = false;
   simplified = false;
   num_node_ids = 0;
-  add(create_node<OutputNode>());
+  create_node<OutputNode>();
 }
 
 ShaderGraph::~ShaderGraph()
@@ -229,19 +220,19 @@ ShaderGraph::~ShaderGraph()
   clear_nodes();
 }
 
-ShaderNode *ShaderGraph::add(ShaderNode *node)
+void ShaderGraph::add_node(unique_ptr<ShaderNode> &&node)
 {
   assert(!finalized);
   simplified = false;
 
+  node->set_owner(this);
   node->id = num_node_ids++;
-  nodes.push_back(node);
-  return node;
+  nodes.push_back(std::move(node));
 }
 
 OutputNode *ShaderGraph::output()
 {
-  return (OutputNode *)nodes.front();
+  return static_cast<OutputNode *>(nodes[0]);
 }
 
 void ShaderGraph::connect(ShaderOutput *from, ShaderInput *to)
@@ -276,7 +267,7 @@ void ShaderGraph::connect(ShaderOutput *from, ShaderInput *to)
       emission->from_auto_conversion = true;
       emission->set_color(one_float3());
       emission->set_strength(1.0f);
-      convert = add(emission);
+      convert = emission;
       /* Connect float inputs to Strength to save an additional Value->Color conversion. */
       if (from->type() == SocketType::FLOAT) {
         convert_in = convert->input("Strength");
@@ -286,7 +277,7 @@ void ShaderGraph::connect(ShaderOutput *from, ShaderInput *to)
       }
     }
     else {
-      convert = add(create_node<ConvertNode>(from->type(), to->type(), true));
+      convert = create_node<ConvertNode>(from->type(), to->type(), true);
       convert_in = convert->inputs[0];
     }
 
@@ -420,9 +411,6 @@ void ShaderGraph::find_dependencies(ShaderNodeSet &dependencies, ShaderInput *in
 
 void ShaderGraph::clear_nodes()
 {
-  for (ShaderNode *node : nodes) {
-    delete_node(node);
-  }
   nodes.clear();
 }
 
@@ -435,13 +423,6 @@ void ShaderGraph::copy_nodes(ShaderNodeSet &nodes, ShaderNodeMap &nnodemap)
   for (ShaderNode *node : nodes) {
     ShaderNode *nnode = node->clone(this);
     nnodemap[node] = nnode;
-
-    /* create new inputs and outputs to recreate links and ensure
-     * that we still point to valid SocketType if the NodeType
-     * changed in cloning, as it does for OSL nodes */
-    nnode->inputs.clear();
-    nnode->outputs.clear();
-    nnode->create_inputs_outputs(nnode->type);
   }
 
   /* recreate links */
@@ -525,18 +506,16 @@ void ShaderGraph::remove_proxy_nodes()
 
   /* remove nodes */
   if (any_node_removed) {
-    list<ShaderNode *> newnodes;
+    unique_ptr_vector<ShaderNode> newnodes;
 
-    for (ShaderNode *node : nodes) {
+    for (size_t i = 0; i < nodes.size(); i++) {
+      unique_ptr<ShaderNode> node = nodes.steal(i);
       if (!removed[node->id]) {
-        newnodes.push_back(node);
-      }
-      else {
-        delete_node(node);
+        newnodes.push_back(std::move(node));
       }
     }
 
-    nodes = newnodes;
+    nodes = std::move(newnodes);
   }
 }
 
@@ -596,7 +575,7 @@ void ShaderGraph::constant_fold(Scene *scene)
    * that happens to ensure there is still a valid graph for displacement.
    */
   if (has_displacement && !output()->input("Displacement")->link) {
-    ColorNode *value = (ColorNode *)add(create_node<ColorNode>());
+    ColorNode *value = create_node<ColorNode>();
     value->set_value(output()->get_displacement());
 
     connect(value->output("Color"), output()->input("Displacement"));
@@ -828,24 +807,25 @@ void ShaderGraph::clean(Scene *scene)
   }
 
   /* remove unused nodes */
-  list<ShaderNode *> newnodes;
+  unique_ptr_vector<ShaderNode> newnodes;
 
-  for (ShaderNode *node : nodes) {
+  for (size_t i = 0; i < nodes.size(); i++) {
+    unique_ptr<ShaderNode> node = nodes.steal(i);
     if (visited[node->id]) {
-      newnodes.push_back(node);
-    }
-    else {
-      delete_node(node);
+      newnodes.push_back(std::move(node));
     }
   }
 
-  nodes = newnodes;
+  nodes = std::move(newnodes);
 }
 
 void ShaderGraph::expand()
 {
-  /* Call expand on all nodes, to generate additional nodes. */
-  for (ShaderNode *node : nodes) {
+  /* Call expand on all nodes, to generate additional nodes.
+   * No range based for loop because we modify the vector, and want to expand
+   * newly generated nodes too. */
+  for (size_t i = 0; i < nodes.size(); i++) {
+    ShaderNode *node = nodes[i];
     node->expand(this);
   }
 }
@@ -859,7 +839,9 @@ void ShaderGraph::default_inputs(bool do_osl)
   TextureCoordinateNode *texco = nullptr;
   VectorTransformNode *normal_transform = nullptr;
 
-  for (ShaderNode *node : nodes) {
+  for (size_t i = 0; i < nodes.size(); i++) {
+    ShaderNode *node = nodes[i];
+
     for (ShaderInput *input : node->inputs) {
       if (!input->link && (!(input->flags() & SocketType::OSL_INTERNAL) || do_osl)) {
         if (input->flags() & SocketType::LINK_TEXTURE_GENERATED) {
@@ -928,16 +910,6 @@ void ShaderGraph::default_inputs(bool do_osl)
       }
     }
   }
-
-  if (geom) {
-    add(geom);
-  }
-  if (texco) {
-    add(texco);
-  }
-  if (normal_transform) {
-    add(normal_transform);
-  }
 }
 
 void ShaderGraph::refine_bump_nodes()
@@ -947,7 +919,10 @@ void ShaderGraph::refine_bump_nodes()
    * input to the inputs "center","dx" and "dy" What is in "bump" input is moved
    * to "center" input. */
 
-  for (ShaderNode *node : nodes) {
+  /* No range based for loop because we modify the vector. */
+  for (int i = 0; i < nodes.size(); i++) {
+    ShaderNode *node = nodes[i];
+
     if (node->special_type == SHADER_SPECIAL_TYPE_BUMP && node->input("Height")->link) {
       ShaderInput *bump_input = node->input("Height");
       ShaderNodeSet nodes_bump;
@@ -980,14 +955,6 @@ void ShaderGraph::refine_bump_nodes()
 
       connect(out_dx, node->input("SampleX"));
       connect(out_dy, node->input("SampleY"));
-
-      /* Add generated nodes. */
-      for (const NodePair &pair : nodes_dx) {
-        add(pair.second);
-      }
-      for (const NodePair &pair : nodes_dy) {
-        add(pair.second);
-      }
 
       /* Connect what is connected is bump to sample-center input. */
       connect(out, node->input("SampleCenter"));
@@ -1050,10 +1017,10 @@ void ShaderGraph::bump_from_displacement(bool use_object_space)
    * output, so it can finally set the shader normal, note we are only doing
    * this for bump from displacement, this will be the only bump allowed to
    * overwrite the shader normal */
-  ShaderNode *set_normal = add(create_node<SetNormalNode>());
+  ShaderNode *set_normal = create_node<SetNormalNode>();
 
   /* add bump node and connect copied graphs to it */
-  BumpNode *bump = (BumpNode *)add(create_node<BumpNode>());
+  BumpNode *bump = create_node<BumpNode>();
   bump->set_use_object_space(use_object_space);
   bump->set_distance(1.0f);
 
@@ -1063,15 +1030,15 @@ void ShaderGraph::bump_from_displacement(bool use_object_space)
   ShaderOutput *out_dy = nodes_dy[out->parent]->output(out->name());
 
   /* convert displacement vector to height */
-  VectorMathNode *dot_center = (VectorMathNode *)add(create_node<VectorMathNode>());
-  VectorMathNode *dot_dx = (VectorMathNode *)add(create_node<VectorMathNode>());
-  VectorMathNode *dot_dy = (VectorMathNode *)add(create_node<VectorMathNode>());
+  VectorMathNode *dot_center = create_node<VectorMathNode>();
+  VectorMathNode *dot_dx = create_node<VectorMathNode>();
+  VectorMathNode *dot_dy = create_node<VectorMathNode>();
 
   dot_center->set_math_type(NODE_VECTOR_MATH_DOT_PRODUCT);
   dot_dx->set_math_type(NODE_VECTOR_MATH_DOT_PRODUCT);
   dot_dy->set_math_type(NODE_VECTOR_MATH_DOT_PRODUCT);
 
-  GeometryNode *geom = (GeometryNode *)add(create_node<GeometryNode>());
+  GeometryNode *geom = create_node<GeometryNode>();
   connect(geom->output("Normal"), bump->input("Normal"));
   connect(geom->output("Normal"), dot_center->input("Vector2"));
   connect(geom->output("Normal"), dot_dx->input("Vector2"));
@@ -1090,18 +1057,6 @@ void ShaderGraph::bump_from_displacement(bool use_object_space)
 
   /* connect to output node */
   connect(set_normal->output("Normal"), output()->input("Normal"));
-
-  /* finally, add the copied nodes to the graph. we can't do this earlier
-   * because we would create dependency cycles in the above loop */
-  for (const NodePair &pair : nodes_center) {
-    add(pair.second);
-  }
-  for (const NodePair &pair : nodes_dx) {
-    add(pair.second);
-  }
-  for (const NodePair &pair : nodes_dy) {
-    add(pair.second);
-  }
 }
 
 void ShaderGraph::transform_multi_closure(ShaderNode *node, ShaderOutput *weight_out, bool volume)
@@ -1121,7 +1076,6 @@ void ShaderGraph::transform_multi_closure(ShaderNode *node, ShaderOutput *weight
     if (fin) {
       /* mix closure: add node to mix closure weights */
       MixClosureWeightNode *mix_node = create_node<MixClosureWeightNode>();
-      add(mix_node);
       ShaderInput *fac_in = mix_node->input("Fac");
       ShaderInput *weight_in = mix_node->input("Weight");
 
@@ -1164,7 +1118,6 @@ void ShaderGraph::transform_multi_closure(ShaderNode *node, ShaderOutput *weight
     const float weight_value = node->get_float(weight_in->socket_type);
     if (weight_in->link || weight_value != 0.0f) {
       MathNode *math_node = create_node<MathNode>();
-      add(math_node);
 
       if (weight_in->link) {
         connect(weight_in->link, math_node->input("Value1"));
@@ -1214,8 +1167,8 @@ int ShaderGraph::get_num_closures()
       num_closures += 12;
     }
     else if (CLOSURE_IS_VOLUME(closure_type)) {
-      /* TODO(sergey): Verify this is still needed, since we have special minimized volume storage
-       * for the volume steps. */
+      /* TODO(sergey): Verify this is still needed, since we have special minimized volume
+       * storage for the volume steps. */
       num_closures += MAX_VOLUME_STACK_SIZE;
     }
     else if (closure_type == CLOSURE_BSDF_PHYSICAL_CONDUCTOR ||

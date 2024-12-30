@@ -2147,9 +2147,9 @@ void RGBToBWNode::compile(OSLCompiler &compiler)
 const NodeType *ConvertNode::node_types[ConvertNode::MAX_TYPE][ConvertNode::MAX_TYPE];
 bool ConvertNode::initialized = ConvertNode::register_types();
 
-Node *ConvertNode::create(const NodeType *type)
+unique_ptr<Node> ConvertNode::create(const NodeType *type)
 {
-  return new ConvertNode(type->inputs[0].type, type->outputs[0].type);
+  return make_unique<ConvertNode>(type->inputs[0].type, type->outputs[0].type);
 }
 
 bool ConvertNode::register_types()
@@ -4778,7 +4778,6 @@ void VolumeInfoNode::expand(ShaderGraph *graph)
   if (!color_out->links.empty()) {
     AttributeNode *attr = graph->create_node<AttributeNode>();
     attr->set_attribute(ustring("color"));
-    graph->add(attr);
     graph->relink(color_out, attr->output("Color"));
   }
 
@@ -4786,7 +4785,6 @@ void VolumeInfoNode::expand(ShaderGraph *graph)
   if (!density_out->links.empty()) {
     AttributeNode *attr = graph->create_node<AttributeNode>();
     attr->set_attribute(ustring("density"));
-    graph->add(attr);
     graph->relink(density_out, attr->output("Fac"));
   }
 
@@ -4794,7 +4792,6 @@ void VolumeInfoNode::expand(ShaderGraph *graph)
   if (!flame_out->links.empty()) {
     AttributeNode *attr = graph->create_node<AttributeNode>();
     attr->set_attribute(ustring("flame"));
-    graph->add(attr);
     graph->relink(flame_out, attr->output("Fac"));
   }
 
@@ -4802,7 +4799,6 @@ void VolumeInfoNode::expand(ShaderGraph *graph)
   if (!temperature_out->links.empty()) {
     AttributeNode *attr = graph->create_node<AttributeNode>();
     attr->set_attribute(ustring("temperature"));
-    graph->add(attr);
     graph->relink(temperature_out, attr->output("Fac"));
   }
 }
@@ -6403,7 +6399,6 @@ void MapRangeNode::expand(ShaderGraph *graph)
     if (!result_out->links.empty()) {
       ClampNode *clamp_node = graph->create_node<ClampNode>();
       clamp_node->set_clamp_type(NODE_CLAMP_RANGE);
-      graph->add(clamp_node);
       graph->relink(result_out, clamp_node->output("Result"));
       graph->connect(result_out, clamp_node->input("Value"));
       if (input("To Min")->link) {
@@ -6706,7 +6701,6 @@ void MathNode::expand(ShaderGraph *graph)
       clamp_node->set_clamp_type(NODE_CLAMP_MINMAX);
       clamp_node->set_min(0.0f);
       clamp_node->set_max(1.0f);
-      graph->add(clamp_node);
       graph->relink(result_out, clamp_node->output("Result"));
       graph->connect(result_out, clamp_node->input("Value"));
     }
@@ -7033,7 +7027,6 @@ void BumpNode::constant_fold(const ConstantFolder &folder)
   if (height_in->link == nullptr) {
     if (normal_in->link == nullptr) {
       GeometryNode *geom = folder.graph->create_node<GeometryNode>();
-      folder.graph->add(geom);
       folder.bypass(geom->output("Normal"));
     }
     else {
@@ -7415,16 +7408,13 @@ OSLNode *OSLNode::create(ShaderGraph *graph, const size_t num_inputs, const OSLN
   memset(node_memory, 0, node_size + inputs_size);
 
   if (!from) {
-    OSLNode *node = new (node_memory) OSLNode();
-    node->set_owner(graph);
-    return node;
+    return graph->create_osl_node<OSLNode>(node_memory);
   }
   /* copy input default values and node type for cloning */
   memcpy(node_memory + node_size, (char *)from + node_size, inputs_size);
 
-  OSLNode *node = new (node_memory) OSLNode(*from);
+  OSLNode *node = graph->create_osl_node<OSLNode>(node_memory, *from);
   node->type = new NodeType(*(from->type));
-  node->set_owner(from->owner);
   return node;
 }
 

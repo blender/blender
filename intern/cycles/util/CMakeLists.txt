@@ -118,6 +118,7 @@ set(SRC_HEADERS
   types_uint4.h
   types_ushort4.h
   unique_ptr.h
+  unique_ptr_vector.h
   vector.h
   version.h
   windows.h

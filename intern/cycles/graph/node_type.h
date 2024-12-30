@@ -8,6 +8,7 @@
 #include "util/array.h"  // IWYU pragma: keep
 #include "util/map.h"
 #include "util/param.h"
+#include "util/unique_ptr.h"
 #include "util/vector.h"
 
 CCL_NAMESPACE_BEGIN
@@ -116,7 +117,7 @@ struct NodeType {
   const SocketType *find_input(ustring name) const;
   const SocketType *find_output(ustring name) const;
 
-  using CreateFunc = Node *(*)(const NodeType *);
+  using CreateFunc = unique_ptr<Node> (*)(const NodeType *);
 
   ustring name;
   Type type;
@@ -141,14 +142,14 @@ struct NodeType {
 #define NODE_DECLARE \
   static const NodeType *get_node_type(); \
   template<typename T> static const NodeType *register_type(); \
-  static Node *create(const NodeType *type); \
+  static unique_ptr<Node> create(const NodeType *type); \
   static const NodeType *node_type;
 
 #define NODE_DEFINE(structname) \
   const NodeType *structname::node_type = structname::register_type<structname>(); \
-  Node *structname::create(const NodeType *) \
+  unique_ptr<Node> structname::create(const NodeType *) \
   { \
-    return new structname(); \
+    return make_unique<structname>(); \
   } \
   const NodeType *structname::get_node_type() \
   { \

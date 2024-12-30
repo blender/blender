@@ -14,6 +14,8 @@
 #include "util/param.h"
 #include "util/string.h"
 #include "util/thread.h"
+#include "util/unique_ptr.h"
+#include "util/unique_ptr_vector.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -127,13 +129,17 @@ class Scene : public NodeOwner {
   Integrator *integrator;
 
   /* data lists */
-  vector<Object *> objects;
-  vector<Geometry *> geometry;
-  vector<Shader *> shaders;
-  vector<Light *> lights;
-  vector<ParticleSystem *> particle_systems;
-  vector<Pass *> passes;
-  vector<Procedural *> procedurals;
+  unique_ptr_vector<Background> backgrounds;
+  unique_ptr_vector<Film> films;
+  unique_ptr_vector<Integrator> integrators;
+  unique_ptr_vector<Camera> cameras;
+  unique_ptr_vector<Shader> shaders;
+  unique_ptr_vector<Pass> passes;
+  unique_ptr_vector<ParticleSystem> particle_systems;
+  unique_ptr_vector<Light> lights;
+  unique_ptr_vector<Geometry> geometry;
+  unique_ptr_vector<Object> objects;
+  unique_ptr_vector<Procedural> procedurals;
 
   /* data managers */
   unique_ptr<ImageManager> image_manager;
@@ -199,12 +205,7 @@ class Scene : public NodeOwner {
    * node array (e.g. Scene::geometry for Geometry nodes) and tag the appropriate
    * manager for an update.
    */
-  template<typename T, typename... Args> T *create_node(Args &&...args)
-  {
-    T *node = new T(args...);
-    node->set_owner(this);
-    return node;
-  }
+  template<typename T, typename... Args> T *create_node(Args &&.../*args*/) = delete;
 
   /* This function is used to delete a node from the scene instead of calling 'delete'
    * and manually removing the node from the data array. It also tags the
@@ -212,20 +213,7 @@ class Scene : public NodeOwner {
    * the owner of the node. Calling this function on a node not owned by the scene
    * will likely cause a crash which we want in order to detect such cases.
    */
-  template<typename T> void delete_node(T *node)
-  {
-    assert(node->get_owner() == this);
-    delete_node_impl(node);
-  }
-
-  /* Same as above, but specify the actual owner.
-   */
-  template<typename T> void delete_node(T *node, const NodeOwner *owner)
-  {
-    assert(node->get_owner() == owner);
-    delete_node_impl(node);
-    (void)owner;
-  }
+  template<typename T> void delete_node(T *node) = delete;
 
   /* Remove all nodes in the set from the appropriate data arrays, and tag the
    * specific managers for an update. This assumes that the scene owns the nodes.
@@ -263,69 +251,42 @@ class Scene : public NodeOwner {
 
   /* Get size of a volume stack needed to render this scene. */
   int get_volume_stack_size() const;
-
-  template<typename T> void delete_node_impl(T *node)
-  {
-    delete node;
-  }
 };
 
 template<> Light *Scene::create_node<Light>();
-
 template<> Mesh *Scene::create_node<Mesh>();
-
 template<> Object *Scene::create_node<Object>();
-
 template<> Hair *Scene::create_node<Hair>();
-
 template<> Volume *Scene::create_node<Volume>();
-
 template<> PointCloud *Scene::create_node<PointCloud>();
-
 template<> ParticleSystem *Scene::create_node<ParticleSystem>();
-
 template<> Shader *Scene::create_node<Shader>();
-
 template<> AlembicProcedural *Scene::create_node<AlembicProcedural>();
-
 template<> Pass *Scene::create_node<Pass>();
+template<> Camera *Scene::create_node<Camera>();
+template<> Background *Scene::create_node<Background>();
+template<> Film *Scene::create_node<Film>();
+template<> Integrator *Scene::create_node<Integrator>();
 
-template<> void Scene::delete_node_impl(Light *node);
-
-template<> void Scene::delete_node_impl(Mesh *node);
-
-template<> void Scene::delete_node_impl(Volume *node);
-
-template<> void Scene::delete_node_impl(PointCloud *node);
-
-template<> void Scene::delete_node_impl(Hair *node);
-
-template<> void Scene::delete_node_impl(Geometry *node);
-
-template<> void Scene::delete_node_impl(Object *node);
-
-template<> void Scene::delete_node_impl(ParticleSystem *node);
-
-template<> void Scene::delete_node_impl(Shader *node);
-
-template<> void Scene::delete_node_impl(Procedural *node);
-
-template<> void Scene::delete_node_impl(AlembicProcedural *node);
-
-template<> void Scene::delete_node_impl(Pass *node);
+template<> void Scene::delete_node(Light *node);
+template<> void Scene::delete_node(Mesh *node);
+template<> void Scene::delete_node(Volume *node);
+template<> void Scene::delete_node(PointCloud *node);
+template<> void Scene::delete_node(Hair *node);
+template<> void Scene::delete_node(Geometry *node);
+template<> void Scene::delete_node(Object *node);
+template<> void Scene::delete_node(ParticleSystem *node);
+template<> void Scene::delete_node(Shader *node);
+template<> void Scene::delete_node(Procedural *node);
+template<> void Scene::delete_node(AlembicProcedural *node);
+template<> void Scene::delete_node(Pass *node);
 
 template<> void Scene::delete_nodes(const set<Light *> &nodes, const NodeOwner *owner);
-
 template<> void Scene::delete_nodes(const set<Geometry *> &nodes, const NodeOwner *owner);
-
 template<> void Scene::delete_nodes(const set<Object *> &nodes, const NodeOwner *owner);
-
 template<> void Scene::delete_nodes(const set<ParticleSystem *> &nodes, const NodeOwner *owner);
-
 template<> void Scene::delete_nodes(const set<Shader *> &nodes, const NodeOwner *owner);
-
 template<> void Scene::delete_nodes(const set<Procedural *> &nodes, const NodeOwner *owner);
-
 template<> void Scene::delete_nodes(const set<Pass *> &nodes, const NodeOwner *owner);
 
 CCL_NAMESPACE_END

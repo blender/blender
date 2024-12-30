@@ -5,11 +5,12 @@
 #pragma once
 
 #include "scene/pass.h"
-#include "util/string.h"
 
 #include "kernel/types.h"
 
 #include "graph/node.h"
+
+#include "util/string.h"
 
 CCL_NAMESPACE_BEGIN
 

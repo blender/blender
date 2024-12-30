@@ -348,7 +348,6 @@ void Shader::tag_update(Scene *scene)
         for (const ShaderInput *in : node->inputs) {
           if (in->link) {
             TransparentBsdfNode *transparent = graph->create_node<TransparentBsdfNode>();
-            graph->add(transparent);
             graph->connect(transparent->output("BSDF"), output->input("Surface"));
             has_surface = true;
             break;
@@ -659,7 +658,6 @@ void ShaderManager::add_default(Scene *scene)
 
     DiffuseBsdfNode *diffuse = graph->create_node<DiffuseBsdfNode>();
     diffuse->set_color(make_float3(0.8f, 0.8f, 0.8f));
-    graph->add(diffuse);
 
     graph->connect(diffuse->output("BSDF"), graph->output()->input("Surface"));
 
@@ -676,7 +674,6 @@ void ShaderManager::add_default(Scene *scene)
     unique_ptr<ShaderGraph> graph = make_unique<ShaderGraph>();
 
     PrincipledVolumeNode *principled = graph->create_node<PrincipledVolumeNode>();
-    graph->add(principled);
 
     graph->connect(principled->output("Volume"), graph->output()->input("Volume"));
 
@@ -696,7 +693,6 @@ void ShaderManager::add_default(Scene *scene)
     EmissionNode *emission = graph->create_node<EmissionNode>();
     emission->set_color(make_float3(0.8f, 0.8f, 0.8f));
     emission->set_strength(0.0f);
-    graph->add(emission);
 
     graph->connect(emission->output("Emission"), graph->output()->input("Surface"));
 

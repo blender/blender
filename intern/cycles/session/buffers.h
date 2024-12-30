@@ -117,7 +117,7 @@ class BufferParams : public Node {
    * The `update_passes()` without parameters updates offsets and strides which are stored outside
    * of the passes. */
   void update_passes();
-  void update_passes(const vector<Pass *> &scene_passes);
+  void update_passes(const unique_ptr_vector<Pass> &scene_passes);
 
   /* Returns PASS_UNUSED if there is no such pass in the buffer. */
   int get_pass_offset(PassType type, PassMode mode = PassMode::NOISY) const;
