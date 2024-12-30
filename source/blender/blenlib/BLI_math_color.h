@@ -128,16 +128,6 @@ MINLINE void premul_float_to_straight_uchar(unsigned char *result, const float c
  * \{ */
 
 /**
- * If the requested RGB shade contains a negative weight for
- * one of the primaries, it lies outside the color gamut
- * accessible from the given triple of primaries.  Desaturate
- * it by adding white, equal quantities of R, G, and B, enough
- * to make RGB all positive. The function returns 1 if the
- * components were modified, zero otherwise.
- */
-int constrain_rgb(float *r, float *g, float *b);
-void minmax_rgb(short c[3]);
-/**
  * Clamp `hsv` to usable values.
  */
 void hsv_clamp_v(float hsv[3], float v_max);

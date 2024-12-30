@@ -682,46 +682,6 @@ void linearrgb_to_srgb_v3_v3(float srgb[3], const float linear[3])
 
 #endif /* BLI_HAVE_SSE2 */
 
-void minmax_rgb(short c[3])
-{
-  if (c[0] > 255) {
-    c[0] = 255;
-  }
-  else if (c[0] < 0) {
-    c[0] = 0;
-  }
-
-  if (c[1] > 255) {
-    c[1] = 255;
-  }
-  else if (c[1] < 0) {
-    c[1] = 0;
-  }
-
-  if (c[2] > 255) {
-    c[2] = 255;
-  }
-  else if (c[2] < 0) {
-    c[2] = 0;
-  }
-}
-
-int constrain_rgb(float *r, float *g, float *b)
-{
-  /* Amount of white needed */
-  const float w = -min_ffff(0.0f, *r, *g, *b);
-
-  /* Add just enough white to make r, g, b all positive. */
-  if (w > 0.0f) {
-    *r += w;
-    *g += w;
-    *b += w;
-
-    return 1; /* Color modified to fit RGB gamut */
-  }
-
-  return 0; /* Color within RGB gamut */
-}
 
 /* ************************************* other ************************************************* */
 
