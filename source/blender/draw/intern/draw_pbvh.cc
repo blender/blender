@@ -1890,9 +1890,8 @@ Span<gpu::Batch *> DrawCacheImpl::ensure_tris_batches(const Object &object,
    * arrays when its map is changed. */
   Vector<Span<gpu::VertBuf *>> attr_vbos;
   for (const AttributeRequest &attr : request.attributes) {
-    const Span<gpu::VertBuf *> vbos = attribute_vbos_.lookup(attr).vbos;
-    if (!vbos.is_empty()) {
-      attr_vbos.append(vbos);
+    if (const AttributeData *attr_data = attribute_vbos_.lookup_ptr(attr)) {
+      attr_vbos.append(attr_data->vbos);
     }
   }
 
