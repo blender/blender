@@ -384,7 +384,7 @@ ccl_device Spectrum bsdf_hair_huang_eval_residual(KernelGlobals kg,
                                                   ccl_private const ShaderClosure *sc,
                                                   const float3 wi,
                                                   const float3 wo,
-                                                  uint rng_quadrature)
+                                                  ccl_private uint *rng_quadrature)
 {
   ccl_private HuangHairBSDF *bsdf = (ccl_private HuangHairBSDF *)sc;
 
@@ -420,8 +420,8 @@ ccl_device Spectrum bsdf_hair_huang_eval_residual(KernelGlobals kg,
     const float3 wmi_ = sphg_dir(0.0f, gamma_mi, b);
 
     /* Sample `wh1`. */
-    const float2 sample1 = make_float2(lcg_step_float(&rng_quadrature),
-                                       lcg_step_float(&rng_quadrature));
+    const float2 sample1 = make_float2(lcg_step_float(rng_quadrature),
+                                       lcg_step_float(rng_quadrature));
 
     const float3 wh1 = sample_wh(kg, roughness, wi, wmi, sample1);
     const float cos_hi1 = dot(wi, wh1);
@@ -486,8 +486,8 @@ ccl_device Spectrum bsdf_hair_huang_eval_residual(KernelGlobals kg,
     /* TRT and beyond. */
     if (bsdf->extra->TRT > 0.0f) {
       /* Sample `wh2`. */
-      const float2 sample2 = make_float2(lcg_step_float(&rng_quadrature),
-                                         lcg_step_float(&rng_quadrature));
+      const float2 sample2 = make_float2(lcg_step_float(rng_quadrature),
+                                         lcg_step_float(rng_quadrature));
       const float3 wh2 = sample_wh(kg, roughness, -wt, wmt, sample2);
       const float cos_hi2 = dot(-wt, wh2);
       if (!(cos_hi2 > 0.0f)) {
@@ -777,7 +777,7 @@ ccl_device int bsdf_hair_huang_sample(const KernelGlobals kg,
 }
 
 ccl_device Spectrum bsdf_hair_huang_eval(KernelGlobals kg,
-                                         ccl_private const ShaderData *sd,
+                                         ccl_private ShaderData *sd,
                                          ccl_private const ShaderClosure *sc,
                                          const float3 wo,
                                          ccl_private float *pdf)
@@ -859,7 +859,7 @@ ccl_device Spectrum bsdf_hair_huang_eval(KernelGlobals kg,
   const float projected_area = cos_theta(local_I) * dh;
 
   return (bsdf_hair_huang_eval_r(kg, sc, local_I, local_O) +
-          bsdf_hair_huang_eval_residual(kg, sc, local_I, local_O, sd->lcg_state)) /
+          bsdf_hair_huang_eval_residual(kg, sc, local_I, local_O, &sd->lcg_state)) /
          projected_area;
 }
 
