@@ -75,6 +75,7 @@ ccl_device_inline void path_state_init_integrator(KernelGlobals kg,
 
   INTEGRATOR_STATE_WRITE(state, isect, object) = OBJECT_NONE;
   INTEGRATOR_STATE_WRITE(state, isect, prim) = PRIM_NONE;
+  INTEGRATOR_STATE_WRITE(state, isect, type) = PRIMITIVE_NONE;
 
   if (kernel_data.kernel_features & KERNEL_FEATURE_VOLUME) {
     INTEGRATOR_STATE_ARRAY_WRITE(state, volume_stack, 0, object) = OBJECT_NONE;
