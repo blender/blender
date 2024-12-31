@@ -163,6 +163,10 @@ unique_ptr<Denoiser> Denoiser::create(Device *denoiser_device,
 #endif
   }
 
+  if (!openimagedenoise_supported()) {
+    return nullptr;
+  }
+
   /* Used preference CPU when possible, and fallback on CPU fallback device otherwise. */
   return make_unique<OIDNDenoiser>(is_cpu_denoiser_device ? single_denoiser_device :
                                                             cpu_fallback_device,

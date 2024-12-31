@@ -614,7 +614,9 @@ DenoiserPipeline::DenoiserPipeline(DeviceInfo &denoiser_device_info, const Denoi
   cpu_device = device_cpu_create(cpu_devices[0], device->stats, device->profiler, true);
 
   denoiser = Denoiser::create(device, cpu_device, params);
-  denoiser->load_kernels(nullptr);
+  if (denoiser) {
+    denoiser->load_kernels(nullptr);
+  }
 }
 
 DenoiserPipeline::~DenoiserPipeline()
@@ -629,6 +631,11 @@ bool DenoiserPipeline::run()
   assert(input.size() == output.size());
 
   int num_frames = output.size();
+
+  if (!denoiser) {
+    error = "Failed to create denoiser";
+    return false;
+  }
 
   for (int frame = 0; frame < num_frames; frame++) {
     /* Skip empty output paths. */

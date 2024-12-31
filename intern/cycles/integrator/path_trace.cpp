@@ -540,17 +540,21 @@ void PathTrace::set_denoiser_params(const DenoiseParams &params)
     denoiser_ = Denoiser::create(
         effective_denoise_device, cpu_fallback_device, effective_denoise_params);
 
-    /* Only take into account the "immediate" cancel to have interactive rendering responding to
-     * navigation as quickly as possible, but allow to run denoiser after user hit Escape key while
-     * doing offline rendering. */
-    denoiser_->is_cancelled_cb = [this]() { return render_cancel_.is_requested; };
+    if (denoiser_) {
+      /* Only take into account the "immediate" cancel to have interactive rendering responding to
+       * navigation as quickly as possible, but allow to run denoiser after user hit Escape key
+       * while doing offline rendering. */
+      denoiser_->is_cancelled_cb = [this]() { return render_cancel_.is_requested; };
+    }
   }
 
   /* Use actual parameters, if available */
-  if (denoise_device_)
+  if (denoise_device_ && denoiser_) {
     render_scheduler_.set_denoiser_params(denoiser_->get_params());
-  else
+  }
+  else {
     render_scheduler_.set_denoiser_params(effective_denoise_params);
+  }
 }
 
 void PathTrace::set_adaptive_sampling(const AdaptiveSampling &adaptive_sampling)
@@ -1041,7 +1045,7 @@ void PathTrace::process_full_buffer_from_disk(string_view filename)
 
   render_state_.has_denoised_result = false;
 
-  if (denoise_params.use) {
+  if (denoise_params.use && denoiser_) {
     progress_set_status(layer_view_name, "Denoising");
 
     /* If GPU should be used is not based on file metadata. */
