@@ -1351,7 +1351,6 @@ class HydraRenderEngine(RenderEngine):
             if self.engine_ptr:
                 import _bpy_hydra
                 _bpy_hydra.engine_free(self.engine_ptr)
-        super().__del__()
 
     def get_render_settings(self, engine_type: str):
         """
