@@ -55,7 +55,7 @@ class Instance {
     if (material_count > dummy_gpu_materials_.size()) {
       dummy_gpu_materials_.resize(material_count, nullptr);
     }
-    return dummy_gpu_materials_;
+    return dummy_gpu_materials_.as_span().slice(IndexRange(material_count));
   };
 
   void init(Object *camera_ob = nullptr)
