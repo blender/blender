@@ -120,15 +120,15 @@ def compile_list(severity: str) -> None:
     for module in modules.values():
         buglist_str = (", ".join(module.buglist))
         buglist_len = len(module.buglist)
+        full_url = base_url + severity_labelid[severity] + "%2c" + module.labelid
         if buglist_len > 0:
             total += buglist_len
-            full_url = base_url + severity_labelid[severity] + "%2c" + module.labelid
             if not module.buglist or severity != "High":
                 print(f"- [{module.name}]({full_url}): *{buglist_len}*")
             else:
                 print(f"- [{module.name}]({full_url}): *{buglist_len}* _{buglist_str}_")
         else:
-            modules_with_no_bugs.append(module.name)
+            modules_with_no_bugs.append(f"[{module.name}]({full_url})")
 
     print(f"- {', '.join(modules_with_no_bugs)}: *0*")
     print()
