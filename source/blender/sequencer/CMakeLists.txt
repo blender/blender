@@ -4,9 +4,7 @@
 
 set(INC
   PUBLIC .
-  intern
-  ../animrig
-
+  PRIVATE intern
 )
 
 set(INC_SYS
@@ -86,6 +84,7 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf::animrig
   PRIVATE bf::blenfont
   PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
