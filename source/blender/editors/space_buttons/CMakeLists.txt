@@ -4,10 +4,7 @@
 
 set(INC
   ../include
-  ../../makesrna
 
-  # RNA_prototypes.hh
-  ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 
 set(INC_SYS
@@ -31,6 +28,7 @@ set(LIB
   PRIVATE bf::dna
   PRIVATE bf::gpu
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::rna
   PRIVATE bf::windowmanager
 )
 
@@ -46,5 +44,3 @@ endif()
 
 blender_add_lib(bf_editor_space_buttons "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
-# RNA_prototypes.hh dna_type_offsets.h
-add_dependencies(bf_editor_space_buttons bf_rna)

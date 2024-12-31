@@ -7,10 +7,7 @@ set(INC
   ..
   ../intern
   ../../editors/include
-  ../../makesrna
   ../../../../intern/sky/include
-  # RNA_prototypes.hh
-  ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 
 set(INC_SYS
@@ -135,6 +132,7 @@ set(LIB
   bf_intern_sky
   bf_nodes
   PRIVATE bf::render
+  PRIVATE bf::rna
   PRIVATE bf::windowmanager
 )
 
@@ -181,5 +179,3 @@ blender_add_lib(bf_nodes_shader "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
 blender_set_target_unity_build(bf_nodes_shader 10)
 
-# RNA_prototypes.hh
-add_dependencies(bf_nodes_shader bf_rna)

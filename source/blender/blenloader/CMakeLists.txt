@@ -5,10 +5,7 @@
 set(INC
   PUBLIC .
   ../editors/include
-  ../makesrna
 
-  # RNA_prototypes.hh
-  ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 
 set(INC_SYS
@@ -65,6 +62,7 @@ set(LIB
   PRIVATE bf::intern::memutil
   PRIVATE bf::nodes
   PRIVATE bf::render
+  PRIVATE bf::rna
   PRIVATE bf::sequencer
   PRIVATE bf::windowmanager
 )
@@ -91,8 +89,6 @@ endif()
 blender_add_lib(bf_blenloader "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 add_library(bf::blenloader ALIAS bf_blenloader)
 
-# RNA_prototypes.hh
-add_dependencies(bf_blenloader bf_rna)
 
 if(WITH_GTESTS)
   # Utility functions for test also used by other tests.

@@ -7,7 +7,6 @@ set(INC
   ../common
   ../../editors/include
   ../../makesdna
-  ../../makesrna
   ../../../../intern/guardedalloc
   ../../../../intern/utfconv
   ../../../../extern/fmtlib/include
@@ -36,6 +35,7 @@ set(LIB
   PRIVATE bf::geometry
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::rna
   PRIVATE bf::windowmanager
   PRIVATE extern_fmtlib
   bf_io_common

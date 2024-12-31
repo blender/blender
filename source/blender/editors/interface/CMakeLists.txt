@@ -6,11 +6,8 @@ set(INC
   .
   ../asset
   ../include
-  ../../makesrna
   ../../python
   ../../../../intern/ghost
-  # RNA_prototypes.hh
-  ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 
 set(INC_SYS
@@ -109,6 +106,7 @@ set(LIB
   PRIVATE bf::animrig
   PRIVATE bf::nodes
   PRIVATE bf::render
+  PRIVATE bf::rna
   PRIVATE bf::windowmanager
 )
 
@@ -130,8 +128,6 @@ endif()
 
 blender_add_lib(bf_editor_interface "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
-# RNA_prototypes.hh
-add_dependencies(bf_editor_interface bf_rna)
 
 if(WITH_GTESTS)
   set(TEST_INC

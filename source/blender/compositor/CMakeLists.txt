@@ -8,7 +8,6 @@ set(INC
   cached_resources
   utilities
   ../gpu/intern
-  ../makesrna
   ../render/intern
 )
 
@@ -151,6 +150,7 @@ set(LIB
   PRIVATE bf::blenlib
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::rna
 )
 
 set(GLSL_SRC

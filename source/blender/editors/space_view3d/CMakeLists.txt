@@ -5,12 +5,9 @@
 set(INC
   ../asset
   ../include
-  ../../makesrna
   ../../modifiers
   ../../../../intern/mantaflow/extern
 
-  # RNA_prototypes.hh
-  ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 
 set(INC_SYS
@@ -90,6 +87,7 @@ set(LIB
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::nodes
   PRIVATE bf::render
+  PRIVATE bf::rna
   PRIVATE bf::windowmanager
 )
 
@@ -108,5 +106,3 @@ endif()
 
 blender_add_lib(bf_editor_space_view3d "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
-# RNA_prototypes.hh
-add_dependencies(bf_editor_space_view3d bf_rna)

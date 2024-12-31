@@ -45,11 +45,8 @@ set(INC
   .
   ../common
   ../../editors/include
-  ../../makesrna
   ../../python/intern
   ../../../../intern/utfconv
-  # RNA_prototypes.hh
-  ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 
 set(INC_SYS
@@ -202,6 +199,7 @@ set(LIB
   bf_io_common
   PRIVATE bf::extern::fmtlib
   PRIVATE bf::nodes
+  PRIVATE bf::rna
   PRIVATE bf::windowmanager
 )
 
@@ -233,8 +231,6 @@ endif()
 
 blender_add_lib(bf_io_usd "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
-# RNA_prototypes.hh
-add_dependencies(bf_io_usd bf_rna)
 
 if(COMMAND target_precompile_headers)
   target_precompile_headers(bf_io_usd PRIVATE intern/usd_precomp.hh)

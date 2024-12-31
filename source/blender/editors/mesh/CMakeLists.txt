@@ -5,9 +5,6 @@
 set(INC
   ../include
   ../uvedit
-  ../../makesrna
-  # RNA_prototypes.hh
-  ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 
 set(INC_SYS
@@ -68,6 +65,7 @@ set(LIB
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::render
+  PRIVATE bf::rna
   PRIVATE bf::windowmanager
 )
 
@@ -85,5 +83,3 @@ endif()
 
 blender_add_lib(bf_editor_mesh "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
-# RNA_prototypes.hh
-add_dependencies(bf_editor_mesh bf_rna)

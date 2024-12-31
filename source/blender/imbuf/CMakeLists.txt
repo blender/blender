@@ -7,7 +7,6 @@ add_subdirectory(movie)
 set(INC
   PUBLIC .
   ./movie
-  ../makesrna
   ../../../intern/memutil
 )
 
@@ -81,6 +80,7 @@ set(LIB
   PRIVATE bf::extern::nanosvg
 
   ${JPEG_LIBRARIES}
+  PRIVATE bf::rna
   PRIVATE bf::sequencer
 )
 

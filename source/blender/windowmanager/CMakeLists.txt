@@ -8,11 +8,8 @@ set(INC
   gizmo/intern
   ../compositor
   ../editors/include
-  ../makesrna
   ../../../intern/memutil
 
-  # RNA_prototypes.hh
-  ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 set(INC_SYS
 )
@@ -106,6 +103,7 @@ set(LIB
   PRIVATE bf::animrig
   PRIVATE bf::nodes
   PRIVATE bf::render
+  PRIVATE bf::rna
   PRIVATE bf::sequencer
   bf_intern_ghost
   bf_compositor
@@ -205,8 +203,6 @@ endif()
 blender_add_lib_nolist(bf_windowmanager "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 add_library(bf::windowmanager ALIAS bf_windowmanager)
 
-# RNA_prototypes.hh
-add_dependencies(bf_windowmanager bf_rna)
 
 if(WITH_GTESTS)
   set(TEST_INC

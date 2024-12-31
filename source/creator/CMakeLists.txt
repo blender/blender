@@ -5,7 +5,6 @@
 set(INC
   ../blender/editors/include
   ../blender/io/usd
-  ../blender/makesrna
 )
 
 set(LIB
@@ -20,6 +19,7 @@ set(LIB
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::render
+  PRIVATE bf::rna
   PRIVATE bf::windowmanager
 )
 

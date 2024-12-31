@@ -4,12 +4,9 @@
 
 set(INC
   ../include
-  ../../makesrna
   ../../../../extern/curve_fit_nd
   ../sculpt_paint
   ../../modifiers/intern/lineart
-  # RNA_prototypes.hh
-  ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 
 set(INC_SYS
@@ -52,13 +49,13 @@ set(LIB
   PRIVATE bf::imbuf
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::intern::clog
+  PRIVATE bf::rna
   PRIVATE bf::windowmanager
   extern_curve_fit_nd
   extern_fmtlib
 )
 
 blender_add_lib(bf_editor_grease_pencil "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
-add_dependencies(bf_editor_curves bf_rna)
 
 if(WITH_GTESTS)
   set(TEST_SRC

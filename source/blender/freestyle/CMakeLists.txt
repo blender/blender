@@ -542,17 +542,15 @@ set(LIB
   ${PYTHON_LINKFLAGS}
   ${PYTHON_LIBRARIES}
   PRIVATE bf::render
+  PRIVATE bf::rna
 )
 
 set(INC
   .
-  ../makesrna
   ../python
   ../python/intern
   ../render/intern
 
-  # RNA_prototypes.hh
-  ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 
 set(INC_SYS
@@ -582,5 +580,3 @@ if(COMMAND target_precompile_headers)
   target_precompile_headers(bf_freestyle PRIVATE FRS_precomp.h)
 endif()
 
-# RNA_prototypes.hh
-add_dependencies(bf_freestyle bf_rna)

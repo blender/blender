@@ -4,7 +4,6 @@
 
 set(INC
   PUBLIC .
-  ../makesrna
   ../../../intern/locale
 )
 
@@ -25,6 +24,7 @@ set(LIB
   PRIVATE bf::dna
   PRIVATE bf::imbuf
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::rna
 )
 
 if(WITH_INTERNATIONAL)

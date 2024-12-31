@@ -9,10 +9,7 @@ set(INC
   ../include
   ../uvedit
   ../../blenlib
-  ../../makesrna
   ../../../../intern/eigen
-  # RNA_prototypes.hh
-  ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 
 set(INC_SYS
@@ -187,6 +184,7 @@ set(LIB
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::nodes
   PRIVATE bf::render
+  PRIVATE bf::rna
   PRIVATE bf::windowmanager
 )
 
@@ -224,5 +222,3 @@ if(WITH_TBB AND MSVC_CLANG)
 endif()
 
 blender_add_lib(bf_editor_sculpt_paint "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
-# RNA_prototypes.hh
-add_dependencies(bf_editor_sculpt_paint bf_rna)

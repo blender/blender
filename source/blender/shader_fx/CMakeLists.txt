@@ -6,10 +6,7 @@ set(INC
   .
   intern
   ../editors/include
-  ../makesrna
   ../../../intern/eigen
-  # RNA_prototypes.hh
-  ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 
 set(INC_SYS
@@ -45,11 +42,10 @@ set(LIB
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::render
+  PRIVATE bf::rna
   PRIVATE bf::windowmanager
 )
 
 
 blender_add_lib(bf_shader_fx "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
-# RNA_prototypes.hh
-add_dependencies(bf_shader_fx bf_rna)

@@ -4,7 +4,6 @@
 
 set(INC
   .
-  ../../makesrna
 )
 
 set(INC_SYS
@@ -37,6 +36,7 @@ set(LIB
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::extern::fmtlib
+  PRIVATE bf::rna
 )
 
 blender_add_lib(bf_io_common "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")

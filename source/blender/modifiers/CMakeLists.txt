@@ -7,11 +7,8 @@ set(INC
   intern
   intern/lineart
   ../editors/include
-  ../makesrna
   ../../../intern/eigen
 
-  # RNA_prototypes.hh
-  ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 
 set(INC_SYS
@@ -145,6 +142,7 @@ set(LIB
   PRIVATE bf::extern::fmtlib
   PRIVATE bf::nodes
   PRIVATE bf::render
+  PRIVATE bf::rna
   PRIVATE bf::windowmanager
 )
 
@@ -244,5 +242,3 @@ endif()
 
 blender_add_lib(bf_modifiers "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
-# RNA_prototypes.hh
-add_dependencies(bf_modifiers bf_rna)
