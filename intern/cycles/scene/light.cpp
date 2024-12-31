@@ -1324,14 +1324,17 @@ void LightManager::device_update_lights(DeviceScene *dscene, Scene *scene)
         invarea = -invarea;
       }
 
-      const float half_spread = 0.5f * light->spread;
+      const float half_spread = 0.5f * fmaxf(light->spread, 0.0f);
       const float tan_half_spread = light->spread == M_PI_F ? FLT_MAX : tanf(half_spread);
       /* Normalization computed using:
        * integrate cos(x) * (1 - tan(x) / tan(a)) * sin(x) from x = 0 to a, a being half_spread.
        * Divided by tan_half_spread to simplify the attenuation computation in `area.h`. */
       /* Using third-order Taylor expansion at small angles for better accuracy. */
-      const float normalize_spread = half_spread > 0.05f ? 1.0f / (tan_half_spread - half_spread) :
-                                                           3.0f / powf(half_spread, 3.0f);
+      const float normalize_spread = (half_spread > 0.0f) ?
+                                         (half_spread > 0.05f ?
+                                              1.0f / (tan_half_spread - half_spread) :
+                                              3.0f / powf(half_spread, 3.0f)) :
+                                         FLT_MAX;
 
       float3 dir = safe_normalize(light->get_dir());
 

@@ -542,26 +542,36 @@ bool LightTree::should_split(LightTreeEmitter *emitters,
   float total_cost = 0.0f;
   float min_cost = FLT_MAX;
   for (int dim = 0; dim < 3; dim++) {
-    /* If the centroid bounding box is 0 along a given dimension and the node measure is already
-     * computed, skip it. */
-    if (centroid_bbox.size()[dim] == 0.0f && dim != 0) {
-      continue;
-    }
-
-    const float inv_extent = 1 / (centroid_bbox.size()[dim]);
-
-    /* Fill in buckets with emitters. */
     std::array<LightTreeBucket, LightTreeBucket::num_buckets> buckets;
-    for (int i = start; i < end; i++) {
-      const LightTreeEmitter *emitter = emitters + i;
+    float inv_extent;
 
-      /* Place emitter into the appropriate bucket, where the centroid box is split into equal
-       * partitions. */
-      int bucket_idx = LightTreeBucket::num_buckets *
-                       (emitter->centroid[dim] - centroid_bbox.min[dim]) * inv_extent;
-      bucket_idx = clamp(bucket_idx, 0, LightTreeBucket::num_buckets - 1);
+    if (centroid_bbox.size()[dim] == 0.0f) {
+      /* If the centroid bounding box is 0 along a given dimension and the node measure is
+       * already computed, skip it. */
+      if (dim != 0) {
+        continue;
+      }
 
-      buckets[bucket_idx].add(*emitter);
+      /* Degenerate case, everything in the same bucket. */
+      inv_extent = FLT_MAX;
+      for (int i = start; i < end; i++) {
+        buckets[0].add(emitters[i]);
+      }
+    }
+    else {
+      /* Fill in buckets with emitters. */
+      inv_extent = 1 / (centroid_bbox.size()[dim]);
+      for (int i = start; i < end; i++) {
+        const LightTreeEmitter *emitter = emitters + i;
+
+        /* Place emitter into the appropriate bucket, where the centroid box is split into equal
+         * partitions. */
+        int bucket_idx = LightTreeBucket::num_buckets *
+                         (emitter->centroid[dim] - centroid_bbox.min[dim]) * inv_extent;
+        bucket_idx = clamp(bucket_idx, 0, LightTreeBucket::num_buckets - 1);
+
+        buckets[bucket_idx].add(*emitter);
+      }
     }
 
     /* Precompute the left bucket measure cumulatively. */
