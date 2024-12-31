@@ -55,6 +55,7 @@ class CyclesRender(bpy.types.RenderEngine):
 
     def __del__(self):
         engine.free(self)
+        super().__del__()
 
     # final render
     def update(self, data, depsgraph):

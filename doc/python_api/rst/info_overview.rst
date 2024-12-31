@@ -206,7 +206,7 @@ must always be called, otherwise Blender's internal initialization won't happen 
 
       def __del__(self):
          ...
-         super.__del__()
+         super().__del__()
 
 .. note::
 
