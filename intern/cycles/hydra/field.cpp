@@ -31,7 +31,9 @@ class HdCyclesVolumeLoader : public VDBImageLoader {
     const bool delay_load = false;
     try {
       openvdb::io::File file(filePath);
+#  ifdef OPENVDB_USE_DELAYED_LOADING
       file.setCopyMaxBytes(0);
+#  endif
       if (file.open(delay_load)) {
         grid = file.readGrid(gridName);
       }
