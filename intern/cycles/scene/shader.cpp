@@ -21,6 +21,7 @@
 #include "scene/tables.h"
 
 #include "util/foreach.h"
+#include "util/log.h"
 #include "util/murmurhash.h"
 #include "util/task.h"
 #include "util/transform.h"
@@ -904,7 +905,15 @@ void ShaderManager::init_xyz_transforms()
 
 #ifdef WITH_OCIO
   /* Get from OpenColorO config if it has the required roles. */
-  OCIO::ConstConfigRcPtr config = OCIO::GetCurrentConfig();
+  OCIO::ConstConfigRcPtr config = nullptr;
+  try {
+    config = OCIO::GetCurrentConfig();
+  }
+  catch (OCIO::Exception &exception) {
+    VLOG_WARNING << "OCIO config error: " << exception.what();
+    return;
+  }
+
   if (!(config && config->hasRole("scene_linear"))) {
     return;
   }

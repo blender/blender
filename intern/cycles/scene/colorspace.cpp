@@ -42,7 +42,15 @@ ColorSpaceProcessor *ColorSpaceManager::get_processor(ustring colorspace)
     return NULL;
   }
 
-  OCIO::ConstConfigRcPtr config = OCIO::GetCurrentConfig();
+  OCIO::ConstConfigRcPtr config = nullptr;
+  try {
+    config = OCIO::GetCurrentConfig();
+  }
+  catch (OCIO::Exception &exception) {
+    VLOG_WARNING << "OCIO config error: " << exception.what();
+    return nullptr;
+  }
+
   if (!config) {
     return NULL;
   }
@@ -79,7 +87,15 @@ bool ColorSpaceManager::colorspace_is_data(ustring colorspace)
   }
 
 #ifdef WITH_OCIO
-  OCIO::ConstConfigRcPtr config = OCIO::GetCurrentConfig();
+  OCIO::ConstConfigRcPtr config = nullptr;
+  try {
+    config = OCIO::GetCurrentConfig();
+  }
+  catch (OCIO::Exception &exception) {
+    VLOG_WARNING << "OCIO config error: " << exception.what();
+    return false;
+  }
+
   if (!config) {
     return false;
   }
@@ -149,7 +165,15 @@ ustring ColorSpaceManager::detect_known_colorspace(ustring colorspace,
 
     /* Verify if we can convert from the requested color space. */
     if (!get_processor(colorspace)) {
-      OCIO::ConstConfigRcPtr config = OCIO::GetCurrentConfig();
+      OCIO::ConstConfigRcPtr config = nullptr;
+      try {
+        config = OCIO::GetCurrentConfig();
+      }
+      catch (OCIO::Exception &exception) {
+        VLOG_WARNING << "OCIO config error: " << exception.what();
+        return u_colorspace_raw;
+      }
+
       if (!config || !config->getColorSpace(colorspace.c_str())) {
         VLOG_WARNING << "Colorspace " << colorspace.c_str() << " not found, using raw instead";
       }
