@@ -279,7 +279,7 @@ bool vert_has_face_set(const SubdivCCG &subdiv_ccg,
 bool vert_has_face_set(const int face_set_offset, const BMVert &vert, const int face_set)
 {
   if (face_set_offset == -1) {
-    return false;
+    return face_set == SCULPT_FACE_SET_NONE;
   }
   BMIter iter;
   BMFace *face;
