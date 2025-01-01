@@ -80,10 +80,10 @@ class ZCombineOperation : public NodeOperation {
 
   void execute_single_value()
   {
-    const float4 first_color = get_input("Image").get_color_value();
-    const float4 second_color = get_input("Image_001").get_color_value();
-    const float first_z_value = get_input("Z").get_float_value();
-    const float second_z_value = get_input("Z_001").get_float_value();
+    const float4 first_color = get_input("Image").get_single_value<float4>();
+    const float4 second_color = get_input("Image_001").get_single_value<float4>();
+    const float first_z_value = get_input("Z").get_single_value<float>();
+    const float second_z_value = get_input("Z_001").get_single_value<float>();
 
     /* Mix between the first and second images using a mask such that the image with the object
      * closer to the camera is returned. The mask value is then 1, and thus returns the first image

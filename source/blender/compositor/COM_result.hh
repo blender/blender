@@ -300,23 +300,6 @@ class Result {
    * for more information. */
   RealizationOptions &get_realization_options();
 
-  /* Returns the single value of the result. */
-  float get_float_value() const;
-  float4 get_vector_value() const;
-  float4 get_color_value() const;
-  float2 get_float2_value() const;
-  float3 get_float3_value() const;
-  int2 get_int2_value() const;
-
-  /* Returns the single value of the result, but returns a default value if the result is not a
-   * single value result. */
-  float get_float_value_default(float default_value) const;
-  float4 get_vector_value_default(const float4 &default_value) const;
-  float4 get_color_value_default(const float4 &default_value) const;
-  float2 get_float2_value_default(const float2 &default_value) const;
-  float3 get_float3_value_default(const float3 &default_value) const;
-  int2 get_int2_value_default(const int2 &default_value) const;
-
   /* Set the single value of the result to the given value, which also involves setting the single
    * pixel in the texture to that value. See the class description for more information. */
   void set_float_value(float value);

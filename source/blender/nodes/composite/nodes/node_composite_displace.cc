@@ -189,15 +189,15 @@ class DisplaceOperation : public NodeOperation {
 
     const Result &input_displacement = get_input("Vector");
     if (input_displacement.is_single_value() &&
-        math::is_zero(input_displacement.get_vector_value()))
+        math::is_zero(input_displacement.get_single_value<float4>()))
     {
       return true;
     }
 
     const Result &input_x_scale = get_input("X Scale");
     const Result &input_y_scale = get_input("Y Scale");
-    if (input_x_scale.is_single_value() && input_x_scale.get_float_value() == 0.0f &&
-        input_y_scale.is_single_value() && input_y_scale.get_float_value() == 0.0f)
+    if (input_x_scale.is_single_value() && input_x_scale.get_single_value<float>() == 0.0f &&
+        input_y_scale.is_single_value() && input_y_scale.get_single_value<float>() == 0.0f)
     {
       return true;
     }

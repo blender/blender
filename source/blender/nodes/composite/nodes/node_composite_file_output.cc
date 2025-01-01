@@ -713,7 +713,7 @@ class FileOutputOperation : public NodeOperation {
         float *buffer = static_cast<float *>(MEM_malloc_arrayN(
             size_t(size.x) * size.y, sizeof(float), "File Output Inflated Buffer."));
 
-        const float value = result.get_float_value();
+        const float value = result.get_single_value<float>();
         parallel_for(
             size, [&](const int2 texel) { buffer[int64_t(texel.y) * size.x + texel.x] = value; });
         return buffer;
@@ -723,8 +723,9 @@ class FileOutputOperation : public NodeOperation {
         float *buffer = static_cast<float *>(MEM_malloc_arrayN(
             size_t(size.x) * size.y, sizeof(float[4]), "File Output Inflated Buffer."));
 
-        const float4 value = result.type() == ResultType::Color ? result.get_color_value() :
-                                                                  result.get_vector_value();
+        const float4 value = result.type() == ResultType::Color ?
+                                 result.get_single_value<float4>() :
+                                 result.get_single_value<float4>();
         parallel_for(size, [&](const int2 texel) {
           copy_v4_v4(buffer + ((int64_t(texel.y) * size.x + texel.x) * 4), value);
         });

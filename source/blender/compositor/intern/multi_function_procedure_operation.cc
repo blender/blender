@@ -75,13 +75,13 @@ static void add_single_value_parameter(mf::ParamsBuilder &parameter_builder, con
   BLI_assert(input.is_single_value());
   switch (input.type()) {
     case ResultType::Float:
-      parameter_builder.add_readonly_single_input_value(input.get_float_value());
+      parameter_builder.add_readonly_single_input_value(input.get_single_value<float>());
       return;
     case ResultType::Color:
-      parameter_builder.add_readonly_single_input_value(input.get_color_value());
+      parameter_builder.add_readonly_single_input_value(input.get_single_value<float4>());
       return;
     case ResultType::Vector:
-      parameter_builder.add_readonly_single_input_value(input.get_vector_value());
+      parameter_builder.add_readonly_single_input_value(input.get_single_value<float4>());
       return;
     default:
       /* Other types are internal and needn't be handled by operations. */

@@ -101,7 +101,7 @@ class ConvertKuwaharaOperation : public NodeOperation {
      * is enabled, since summed area tables are less precise. */
     Result &size_input = get_input("Size");
     if (!node_storage(bnode()).high_precision &&
-        (!size_input.is_single_value() || size_input.get_float_value() > 5.0f))
+        (!size_input.is_single_value() || size_input.get_single_value<float>() > 5.0f))
     {
       this->execute_classic_summed_area_table();
     }
@@ -130,7 +130,7 @@ class ConvertKuwaharaOperation : public NodeOperation {
 
     Result &size_input = get_input("Size");
     if (size_input.is_single_value()) {
-      GPU_shader_uniform_1i(shader, "size", int(size_input.get_float_value()));
+      GPU_shader_uniform_1i(shader, "size", int(size_input.get_single_value<float>()));
     }
     else {
       size_input.bind_as_texture(shader, "size_tx");
@@ -195,7 +195,7 @@ class ConvertKuwaharaOperation : public NodeOperation {
 
     Result &size_input = get_input("Size");
     if (size_input.is_single_value()) {
-      GPU_shader_uniform_1i(shader, "size", int(size_input.get_float_value()));
+      GPU_shader_uniform_1i(shader, "size", int(size_input.get_single_value<float>()));
     }
     else {
       size_input.bind_as_texture(shader, "size_tx");
@@ -345,7 +345,7 @@ class ConvertKuwaharaOperation : public NodeOperation {
 
     Result &size_input = get_input("Size");
     if (size_input.is_single_value()) {
-      GPU_shader_uniform_1f(shader, "size", size_input.get_float_value());
+      GPU_shader_uniform_1f(shader, "size", size_input.get_single_value<float>());
     }
     else {
       size_input.bind_as_texture(shader, "size_tx");

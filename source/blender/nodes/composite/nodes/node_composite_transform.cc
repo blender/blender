@@ -68,10 +68,10 @@ class TransformOperation : public NodeOperation {
     Result &input = get_input("Image");
     Result &output = get_result("Image");
 
-    const float2 translation = float2(get_input("X").get_float_value_default(0.0f),
-                                      get_input("Y").get_float_value_default(0.0f));
-    const math::AngleRadian rotation = get_input("Angle").get_float_value_default(0.0f);
-    const float2 scale = float2(get_input("Scale").get_float_value_default(1.0f));
+    const float2 translation = float2(get_input("X").get_single_value_default(0.0f),
+                                      get_input("Y").get_single_value_default(0.0f));
+    const math::AngleRadian rotation = get_input("Angle").get_single_value_default(0.0f);
+    const float2 scale = float2(get_input("Scale").get_single_value_default(1.0f));
     const float3x3 transformation = math::from_loc_rot_scale<float3x3>(
         translation, rotation, scale);
 

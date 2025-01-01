@@ -422,7 +422,7 @@ class BlurOperation : public NodeOperation {
 
   float2 compute_blur_radius()
   {
-    const float size = math::clamp(get_input("Size").get_float_value_default(1.0f), 0.0f, 1.0f);
+    const float size = math::clamp(get_input("Size").get_single_value_default(1.0f), 0.0f, 1.0f);
 
     if (!node_storage(bnode()).relative) {
       return float2(node_storage(bnode()).sizex, node_storage(bnode()).sizey) * size;

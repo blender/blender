@@ -70,12 +70,12 @@ class CompositeOperation : public NodeOperation {
     const Result &image = get_input("Image");
     const Result &alpha = get_input("Alpha");
 
-    float4 color = image.get_color_value();
+    float4 color = image.get_single_value<float4>();
     if (ignore_alpha()) {
       color.w = 1.0f;
     }
     else if (node().input_by_identifier("Alpha")->is_logically_linked()) {
-      color.w = alpha.get_float_value();
+      color.w = alpha.get_single_value<float>();
     }
 
     const Domain domain = compute_domain();

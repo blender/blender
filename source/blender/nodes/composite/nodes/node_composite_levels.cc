@@ -91,7 +91,7 @@ class LevelsOperation : public NodeOperation {
     }
 
     mean_result.allocate_single_value();
-    const float3 input = float3(get_input("Image").get_color_value());
+    const float3 input = float3(get_input("Image").get_single_value<float4>());
 
     switch (get_channel()) {
       case CMP_NODE_LEVLES_RED:

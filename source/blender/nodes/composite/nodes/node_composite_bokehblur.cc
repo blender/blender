@@ -359,7 +359,7 @@ class BokehBlurOperation : public NodeOperation {
 
     /* The [0, 10] range of the size is arbitrary and is merely in place to avoid very long
      * computations of the bokeh blur. */
-    const float size = math::clamp(get_input("Size").get_float_value_default(1.0f), 0.0f, 10.0f);
+    const float size = math::clamp(get_input("Size").get_single_value_default(1.0f), 0.0f, 10.0f);
 
     /* The 100 divisor is arbitrary and was chosen using visual judgment. */
     return size * (max_size / 100.0f);
@@ -379,7 +379,7 @@ class BokehBlurOperation : public NodeOperation {
     /* This input is, in fact, a boolean mask. If it is zero, no blurring will take place.
      * Otherwise, the blurring will take place ignoring the value of the input entirely. */
     const Result &bounding_box = get_input("Bounding box");
-    if (bounding_box.is_single_value() && bounding_box.get_float_value() == 0.0) {
+    if (bounding_box.is_single_value() && bounding_box.get_single_value<float>() == 0.0) {
       return true;
     }
 

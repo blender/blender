@@ -195,16 +195,16 @@ class ScaleOperation : public NodeOperation {
   /* Scale by the input factors. */
   float2 get_scale_relative()
   {
-    return float2(get_input("X").get_float_value_default(1.0f),
-                  get_input("Y").get_float_value_default(1.0f));
+    return float2(get_input("X").get_single_value_default(1.0f),
+                  get_input("Y").get_single_value_default(1.0f));
   }
 
   /* Scale such that the new size matches the input absolute size. */
   float2 get_scale_absolute()
   {
     const float2 input_size = float2(get_input("Image").domain().size);
-    const float2 absolute_size = float2(get_input("X").get_float_value_default(1.0f),
-                                        get_input("Y").get_float_value_default(1.0f));
+    const float2 absolute_size = float2(get_input("X").get_single_value_default(1.0f),
+                                        get_input("Y").get_single_value_default(1.0f));
     return absolute_size / input_size;
   }
 
