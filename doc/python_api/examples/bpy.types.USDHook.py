@@ -6,7 +6,7 @@ This example shows an implementation of ``USDHook`` to extend USD
 export and import functionality.
 
 Callback Function API
-*********************
+---------------------
 
 One may optionally define any or all of the following callback functions
 in the ``USDHook`` subclass.
@@ -94,7 +94,7 @@ Returns:
 
 
 Context Classes
-***************
+---------------
 
 Instances of the following built-in classes are provided as arguments to the callbacks.
 
@@ -153,13 +153,13 @@ be copied to a local destination.
 
 
 Errors
-******
+------
 
 Exceptions raised by these functions will be reported in Blender with the exception details printed to the console.
 
 
 Example Code
-************
+------------
 
 The ``USDHookExample`` class in the example below implements the following functions:
 
