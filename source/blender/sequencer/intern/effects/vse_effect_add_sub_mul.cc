@@ -17,246 +17,149 @@
 /* -------------------------------------------------------------------- */
 /* Color Add Effect */
 
-static void do_add_effect_byte(float fac, int x, int y, uchar *rect1, uchar *rect2, uchar *out)
-{
-  uchar *cp1 = rect1;
-  uchar *cp2 = rect2;
-  uchar *rt = out;
-
-  int temp_fac = int(256.0f * fac);
-
-  for (int i = 0; i < y; i++) {
-    for (int j = 0; j < x; j++) {
-      const int temp_fac2 = temp_fac * int(cp2[3]);
-      rt[0] = min_ii(cp1[0] + ((temp_fac2 * cp2[0]) >> 16), 255);
-      rt[1] = min_ii(cp1[1] + ((temp_fac2 * cp2[1]) >> 16), 255);
-      rt[2] = min_ii(cp1[2] + ((temp_fac2 * cp2[2]) >> 16), 255);
-      rt[3] = cp1[3];
-
-      cp1 += 4;
-      cp2 += 4;
-      rt += 4;
+struct AddEffectOp {
+  template<typename T> void apply(const T *src1, const T *src2, T *dst, int64_t size) const
+  {
+    const float fac = this->factor;
+    int ifac = int(256.0f * fac);
+    for (int64_t idx = 0; idx < size; idx++) {
+      if constexpr (std::is_same_v<T, uchar>) {
+        const int f = ifac * int(src2[3]);
+        dst[0] = min_ii(src1[0] + ((f * src2[0]) >> 16), 255);
+        dst[1] = min_ii(src1[1] + ((f * src2[1]) >> 16), 255);
+        dst[2] = min_ii(src1[2] + ((f * src2[2]) >> 16), 255);
+      }
+      else {
+        const float f = (1.0f - (src1[3] * (1.0f - fac))) * src2[3];
+        dst[0] = src1[0] + f * src2[0];
+        dst[1] = src1[1] + f * src2[1];
+        dst[2] = src1[2] + f * src2[2];
+      }
+      dst[3] = src1[3];
+      src1 += 4;
+      src2 += 4;
+      dst += 4;
     }
   }
-}
+  float factor;
+};
 
-static void do_add_effect_float(float fac, int x, int y, float *rect1, float *rect2, float *out)
+static ImBuf *do_add_effect(const SeqRenderData *context,
+                            Sequence * /*seq*/,
+                            float /*timeline_frame*/,
+                            float fac,
+                            ImBuf *src1,
+                            ImBuf *src2)
 {
-  float *rt1 = rect1;
-  float *rt2 = rect2;
-  float *rt = out;
-
-  for (int i = 0; i < y; i++) {
-    for (int j = 0; j < x; j++) {
-      const float temp_fac = (1.0f - (rt1[3] * (1.0f - fac))) * rt2[3];
-      rt[0] = rt1[0] + temp_fac * rt2[0];
-      rt[1] = rt1[1] + temp_fac * rt2[1];
-      rt[2] = rt1[2] + temp_fac * rt2[2];
-      rt[3] = rt1[3];
-
-      rt1 += 4;
-      rt2 += 4;
-      rt += 4;
-    }
-  }
-}
-
-static void do_add_effect(const SeqRenderData *context,
-                          Sequence * /*seq*/,
-                          float /*timeline_frame*/,
-                          float fac,
-                          const ImBuf *ibuf1,
-                          const ImBuf *ibuf2,
-                          int start_line,
-                          int total_lines,
-                          ImBuf *out)
-{
-  if (out->float_buffer.data) {
-    float *rect1 = nullptr, *rect2 = nullptr, *rect_out = nullptr;
-
-    slice_get_float_buffers(context, ibuf1, ibuf2, out, start_line, &rect1, &rect2, &rect_out);
-
-    do_add_effect_float(fac, context->rectx, total_lines, rect1, rect2, rect_out);
-  }
-  else {
-    uchar *rect1 = nullptr, *rect2 = nullptr, *rect_out = nullptr;
-
-    slice_get_byte_buffers(context, ibuf1, ibuf2, out, start_line, &rect1, &rect2, &rect_out);
-
-    do_add_effect_byte(fac, context->rectx, total_lines, rect1, rect2, rect_out);
-  }
+  ImBuf *dst = prepare_effect_imbufs(context, src1, src2);
+  AddEffectOp op;
+  op.factor = fac;
+  apply_effect_op(op, src1, src2, dst);
+  return dst;
 }
 
 /* -------------------------------------------------------------------- */
 /* Color Subtract Effect */
 
-static void do_sub_effect_byte(float fac, int x, int y, uchar *rect1, uchar *rect2, uchar *out)
-{
-  uchar *cp1 = rect1;
-  uchar *cp2 = rect2;
-  uchar *rt = out;
-
-  int temp_fac = int(256.0f * fac);
-
-  for (int i = 0; i < y; i++) {
-    for (int j = 0; j < x; j++) {
-      const int temp_fac2 = temp_fac * int(cp2[3]);
-      rt[0] = max_ii(cp1[0] - ((temp_fac2 * cp2[0]) >> 16), 0);
-      rt[1] = max_ii(cp1[1] - ((temp_fac2 * cp2[1]) >> 16), 0);
-      rt[2] = max_ii(cp1[2] - ((temp_fac2 * cp2[2]) >> 16), 0);
-      rt[3] = cp1[3];
-
-      cp1 += 4;
-      cp2 += 4;
-      rt += 4;
+struct SubEffectOp {
+  template<typename T> void apply(const T *src1, const T *src2, T *dst, int64_t size) const
+  {
+    const float fac = this->factor;
+    int ifac = int(256.0f * fac);
+    for (int64_t idx = 0; idx < size; idx++) {
+      if constexpr (std::is_same_v<T, uchar>) {
+        const int f = ifac * int(src2[3]);
+        dst[0] = max_ii(src1[0] - ((f * src2[0]) >> 16), 0);
+        dst[1] = max_ii(src1[1] - ((f * src2[1]) >> 16), 0);
+        dst[2] = max_ii(src1[2] - ((f * src2[2]) >> 16), 0);
+      }
+      else {
+        const float f = (1.0f - (src1[3] * (1.0f - fac))) * src2[3];
+        dst[0] = max_ff(src1[0] - f * src2[0], 0.0f);
+        dst[1] = max_ff(src1[1] - f * src2[1], 0.0f);
+        dst[2] = max_ff(src1[2] - f * src2[2], 0.0f);
+      }
+      dst[3] = src1[3];
+      src1 += 4;
+      src2 += 4;
+      dst += 4;
     }
   }
-}
+  float factor;
+};
 
-static void do_sub_effect_float(float fac, int x, int y, float *rect1, float *rect2, float *out)
+static ImBuf *do_sub_effect(const SeqRenderData *context,
+                            Sequence * /*seq*/,
+                            float /*timeline_frame*/,
+                            float fac,
+                            ImBuf *src1,
+                            ImBuf *src2)
 {
-  float *rt1 = rect1;
-  float *rt2 = rect2;
-  float *rt = out;
-
-  float mfac = 1.0f - fac;
-
-  for (int i = 0; i < y; i++) {
-    for (int j = 0; j < x; j++) {
-      const float temp_fac = (1.0f - (rt1[3] * mfac)) * rt2[3];
-      rt[0] = max_ff(rt1[0] - temp_fac * rt2[0], 0.0f);
-      rt[1] = max_ff(rt1[1] - temp_fac * rt2[1], 0.0f);
-      rt[2] = max_ff(rt1[2] - temp_fac * rt2[2], 0.0f);
-      rt[3] = rt1[3];
-
-      rt1 += 4;
-      rt2 += 4;
-      rt += 4;
-    }
-  }
-}
-
-static void do_sub_effect(const SeqRenderData *context,
-                          Sequence * /*seq*/,
-                          float /*timeline_frame*/,
-                          float fac,
-                          const ImBuf *ibuf1,
-                          const ImBuf *ibuf2,
-                          int start_line,
-                          int total_lines,
-                          ImBuf *out)
-{
-  if (out->float_buffer.data) {
-    float *rect1 = nullptr, *rect2 = nullptr, *rect_out = nullptr;
-
-    slice_get_float_buffers(context, ibuf1, ibuf2, out, start_line, &rect1, &rect2, &rect_out);
-
-    do_sub_effect_float(fac, context->rectx, total_lines, rect1, rect2, rect_out);
-  }
-  else {
-    uchar *rect1 = nullptr, *rect2 = nullptr, *rect_out = nullptr;
-
-    slice_get_byte_buffers(context, ibuf1, ibuf2, out, start_line, &rect1, &rect2, &rect_out);
-
-    do_sub_effect_byte(fac, context->rectx, total_lines, rect1, rect2, rect_out);
-  }
+  ImBuf *dst = prepare_effect_imbufs(context, src1, src2);
+  SubEffectOp op;
+  op.factor = fac;
+  apply_effect_op(op, src1, src2, dst);
+  return dst;
 }
 
 /* -------------------------------------------------------------------- */
 /* Multiply Effect */
 
-static void do_mul_effect_byte(float fac, int x, int y, uchar *rect1, uchar *rect2, uchar *out)
-{
-  uchar *rt1 = rect1;
-  uchar *rt2 = rect2;
-  uchar *rt = out;
-
-  int temp_fac = int(256.0f * fac);
-
-  /* Formula:
-   * `fac * (a * b) + (1 - fac) * a => fac * a * (b - 1) + axaux = c * px + py * s;` // + centx
-   * `yaux = -s * px + c * py;` // + centy */
-
-  for (int i = 0; i < y; i++) {
-    for (int j = 0; j < x; j++) {
-      rt[0] = rt1[0] + ((temp_fac * rt1[0] * (rt2[0] - 255)) >> 16);
-      rt[1] = rt1[1] + ((temp_fac * rt1[1] * (rt2[1] - 255)) >> 16);
-      rt[2] = rt1[2] + ((temp_fac * rt1[2] * (rt2[2] - 255)) >> 16);
-      rt[3] = rt1[3] + ((temp_fac * rt1[3] * (rt2[3] - 255)) >> 16);
-
-      rt1 += 4;
-      rt2 += 4;
-      rt += 4;
+struct MulEffectOp {
+  template<typename T> void apply(const T *src1, const T *src2, T *dst, int64_t size) const
+  {
+    const float fac = this->factor;
+    int ifac = int(256.0f * fac);
+    for (int64_t idx = 0; idx < size; idx++) {
+      /* Formula: `fac * (a * b) + (1-fac) * a => fac * a * (b - 1) + a` */
+      if constexpr (std::is_same_v<T, uchar>) {
+        dst[0] = src1[0] + ((ifac * src1[0] * (src2[0] - 255)) >> 16);
+        dst[1] = src1[1] + ((ifac * src1[1] * (src2[1] - 255)) >> 16);
+        dst[2] = src1[2] + ((ifac * src1[2] * (src2[2] - 255)) >> 16);
+        dst[3] = src1[3] + ((ifac * src1[3] * (src2[3] - 255)) >> 16);
+      }
+      else {
+        dst[0] = src1[0] + fac * src1[0] * (src2[0] - 1.0f);
+        dst[1] = src1[1] + fac * src1[1] * (src2[1] - 1.0f);
+        dst[2] = src1[2] + fac * src1[2] * (src2[2] - 1.0f);
+        dst[3] = src1[3] + fac * src1[3] * (src2[3] - 1.0f);
+      }
+      src1 += 4;
+      src2 += 4;
+      dst += 4;
     }
   }
-}
+  float factor;
+};
 
-static void do_mul_effect_float(float fac, int x, int y, float *rect1, float *rect2, float *out)
+static ImBuf *do_mul_effect(const SeqRenderData *context,
+                            Sequence * /*seq*/,
+                            float /*timeline_frame*/,
+                            float fac,
+                            ImBuf *src1,
+                            ImBuf *src2)
 {
-  float *rt1 = rect1;
-  float *rt2 = rect2;
-  float *rt = out;
-
-  /* Formula:
-   * `fac * (a * b) + (1 - fac) * a => fac * a * (b - 1) + a`. */
-
-  for (int i = 0; i < y; i++) {
-    for (int j = 0; j < x; j++) {
-      rt[0] = rt1[0] + fac * rt1[0] * (rt2[0] - 1.0f);
-      rt[1] = rt1[1] + fac * rt1[1] * (rt2[1] - 1.0f);
-      rt[2] = rt1[2] + fac * rt1[2] * (rt2[2] - 1.0f);
-      rt[3] = rt1[3] + fac * rt1[3] * (rt2[3] - 1.0f);
-
-      rt1 += 4;
-      rt2 += 4;
-      rt += 4;
-    }
-  }
-}
-
-static void do_mul_effect(const SeqRenderData *context,
-                          Sequence * /*seq*/,
-                          float /*timeline_frame*/,
-                          float fac,
-                          const ImBuf *ibuf1,
-                          const ImBuf *ibuf2,
-                          int start_line,
-                          int total_lines,
-                          ImBuf *out)
-{
-  if (out->float_buffer.data) {
-    float *rect1 = nullptr, *rect2 = nullptr, *rect_out = nullptr;
-
-    slice_get_float_buffers(context, ibuf1, ibuf2, out, start_line, &rect1, &rect2, &rect_out);
-
-    do_mul_effect_float(fac, context->rectx, total_lines, rect1, rect2, rect_out);
-  }
-  else {
-    uchar *rect1 = nullptr, *rect2 = nullptr, *rect_out = nullptr;
-
-    slice_get_byte_buffers(context, ibuf1, ibuf2, out, start_line, &rect1, &rect2, &rect_out);
-
-    do_mul_effect_byte(fac, context->rectx, total_lines, rect1, rect2, rect_out);
-  }
+  ImBuf *dst = prepare_effect_imbufs(context, src1, src2);
+  MulEffectOp op;
+  op.factor = fac;
+  apply_effect_op(op, src1, src2, dst);
+  return dst;
 }
 
 void add_effect_get_handle(SeqEffectHandle &rval)
 {
-  rval.multithreaded = true;
-  rval.execute_slice = do_add_effect;
+  rval.execute = do_add_effect;
   rval.early_out = early_out_mul_input2;
 }
 
 void sub_effect_get_handle(SeqEffectHandle &rval)
 {
-  rval.multithreaded = true;
-  rval.execute_slice = do_sub_effect;
+  rval.execute = do_sub_effect;
   rval.early_out = early_out_mul_input2;
 }
 
 void mul_effect_get_handle(SeqEffectHandle &rval)
 {
-  rval.multithreaded = true;
-  rval.execute_slice = do_mul_effect;
+  rval.execute = do_mul_effect;
   rval.early_out = early_out_mul_input2;
 }

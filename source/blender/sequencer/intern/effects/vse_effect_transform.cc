@@ -130,20 +130,19 @@ static void transform_image(int x,
   }
 }
 
-static void do_transform_effect(const SeqRenderData *context,
-                                Sequence *seq,
-                                float /*timeline_frame*/,
-                                float /*fac*/,
-                                const ImBuf *ibuf1,
-                                const ImBuf * /*ibuf2*/,
-                                int start_line,
-                                int total_lines,
-                                ImBuf *out)
+static ImBuf *do_transform_effect(const SeqRenderData *context,
+                                  Sequence *seq,
+                                  float /*timeline_frame*/,
+                                  float /*fac*/,
+                                  ImBuf *src1,
+                                  ImBuf * /*src2*/)
 {
-  TransformVars *transform = (TransformVars *)seq->effectdata;
-  float scale_x, scale_y, translate_x, translate_y, rotate_radians;
+  ImBuf *dst = prepare_effect_imbufs(context, src1, nullptr);
+
+  const TransformVars *transform = (TransformVars *)seq->effectdata;
 
   /* Scale */
+  float scale_x, scale_y;
   if (transform->uniform_scale) {
     scale_x = scale_y = transform->ScalexIni;
   }
@@ -152,10 +151,11 @@ static void do_transform_effect(const SeqRenderData *context,
     scale_y = transform->ScaleyIni;
   }
 
-  int x = context->rectx;
-  int y = context->recty;
+  const int x = context->rectx;
+  const int y = context->recty;
 
   /* Translate */
+  float translate_x, translate_y;
   if (!transform->percent) {
     /* Compensate text size for preview render size. */
     double proxy_size_comp = context->scene->r.size / 100.0;
@@ -172,28 +172,31 @@ static void do_transform_effect(const SeqRenderData *context,
   }
 
   /* Rotate */
-  rotate_radians = DEG2RADF(transform->rotIni);
+  float rotate_radians = DEG2RADF(transform->rotIni);
 
-  transform_image(x,
-                  y,
-                  start_line,
-                  total_lines,
-                  ibuf1,
-                  out,
-                  scale_x,
-                  scale_y,
-                  translate_x,
-                  translate_y,
-                  rotate_radians,
-                  transform->interpolation);
+  blender::threading::parallel_for(
+      blender::IndexRange(dst->y), 32, [&](blender::IndexRange y_range) {
+        transform_image(x,
+                        y,
+                        y_range.first(),
+                        y_range.size(),
+                        src1,
+                        dst,
+                        scale_x,
+                        scale_y,
+                        translate_x,
+                        translate_y,
+                        rotate_radians,
+                        transform->interpolation);
+      });
+  return dst;
 }
 
 void transform_effect_get_handle(SeqEffectHandle &rval)
 {
-  rval.multithreaded = true;
   rval.init = init_transform_effect;
   rval.num_inputs = num_inputs_transform;
   rval.free = free_transform_effect;
   rval.copy = copy_transform_effect;
-  rval.execute_slice = do_transform_effect;
+  rval.execute = do_transform_effect;
 }

@@ -734,94 +734,6 @@ static ImBuf *seq_render_preprocess_ibuf(const SeqRenderData *context,
   return ibuf;
 }
 
-struct RenderEffectInitData {
-  SeqEffectHandle *sh;
-  const SeqRenderData *context;
-  Sequence *seq;
-  float timeline_frame, fac;
-  ImBuf *ibuf1, *ibuf2;
-
-  ImBuf *out;
-};
-
-struct RenderEffectThread {
-  SeqEffectHandle *sh;
-  const SeqRenderData *context;
-  Sequence *seq;
-  float timeline_frame, fac;
-  ImBuf *ibuf1, *ibuf2;
-
-  ImBuf *out;
-  int start_line, tot_line;
-};
-
-static void render_effect_execute_init_handle(void *handle_v,
-                                              int start_line,
-                                              int tot_line,
-                                              void *init_data_v)
-{
-  RenderEffectThread *handle = (RenderEffectThread *)handle_v;
-  RenderEffectInitData *init_data = (RenderEffectInitData *)init_data_v;
-
-  handle->sh = init_data->sh;
-  handle->context = init_data->context;
-  handle->seq = init_data->seq;
-  handle->timeline_frame = init_data->timeline_frame;
-  handle->fac = init_data->fac;
-  handle->ibuf1 = init_data->ibuf1;
-  handle->ibuf2 = init_data->ibuf2;
-  handle->out = init_data->out;
-
-  handle->start_line = start_line;
-  handle->tot_line = tot_line;
-}
-
-static void *render_effect_execute_do_thread(void *thread_data_v)
-{
-  RenderEffectThread *thread_data = (RenderEffectThread *)thread_data_v;
-
-  thread_data->sh->execute_slice(thread_data->context,
-                                 thread_data->seq,
-                                 thread_data->timeline_frame,
-                                 thread_data->fac,
-                                 thread_data->ibuf1,
-                                 thread_data->ibuf2,
-                                 thread_data->start_line,
-                                 thread_data->tot_line,
-                                 thread_data->out);
-
-  return nullptr;
-}
-
-ImBuf *seq_render_effect_execute_threaded(SeqEffectHandle *sh,
-                                          const SeqRenderData *context,
-                                          Sequence *seq,
-                                          float timeline_frame,
-                                          float fac,
-                                          ImBuf *ibuf1,
-                                          ImBuf *ibuf2)
-{
-  RenderEffectInitData init_data;
-  ImBuf *out = sh->init_execution(context, ibuf1, ibuf2);
-
-  init_data.sh = sh;
-  init_data.context = context;
-  init_data.seq = seq;
-  init_data.timeline_frame = timeline_frame;
-  init_data.fac = fac;
-  init_data.ibuf1 = ibuf1;
-  init_data.ibuf2 = ibuf2;
-  init_data.out = out;
-
-  IMB_processor_apply_threaded(out->y,
-                               sizeof(RenderEffectThread),
-                               &init_data,
-                               render_effect_execute_init_handle,
-                               render_effect_execute_do_thread);
-
-  return out;
-}
-
 static ImBuf *seq_render_effect_strip_impl(const SeqRenderData *context,
                                            SeqRenderState *state,
                                            Sequence *seq,
@@ -841,7 +753,7 @@ static ImBuf *seq_render_effect_strip_impl(const SeqRenderData *context,
   input[0] = seq->seq1;
   input[1] = seq->seq2;
 
-  if (!sh.execute && !(sh.execute_slice && sh.init_execution)) {
+  if (!sh.execute) {
     /* effect not supported in this version... */
     out = IMB_allocImBuf(context->rectx, context->recty, 32, IB_rect);
     return out;
@@ -888,13 +800,7 @@ static ImBuf *seq_render_effect_strip_impl(const SeqRenderData *context,
       }
 
       if (ibuf[0] && (ibuf[1] || SEQ_effect_get_num_inputs(seq->type) == 1)) {
-        if (sh.multithreaded) {
-          out = seq_render_effect_execute_threaded(
-              &sh, context, seq, timeline_frame, fac, ibuf[0], ibuf[1]);
-        }
-        else {
-          out = sh.execute(context, seq, timeline_frame, fac, ibuf[0], ibuf[1]);
-        }
+        out = sh.execute(context, seq, timeline_frame, fac, ibuf[0], ibuf[1]);
       }
       break;
     case StripEarlyOut::UseInput1:
@@ -1903,22 +1809,10 @@ static ImBuf *seq_render_strip_stack_apply_effect(
   int swap_input = seq_must_swap_input_in_blend_mode(seq);
 
   if (swap_input) {
-    if (sh.multithreaded) {
-      out = seq_render_effect_execute_threaded(
-          &sh, context, seq, timeline_frame, fac, ibuf2, ibuf1);
-    }
-    else {
-      out = sh.execute(context, seq, timeline_frame, fac, ibuf2, ibuf1);
-    }
+    out = sh.execute(context, seq, timeline_frame, fac, ibuf2, ibuf1);
   }
   else {
-    if (sh.multithreaded) {
-      out = seq_render_effect_execute_threaded(
-          &sh, context, seq, timeline_frame, fac, ibuf1, ibuf2);
-    }
-    else {
-      out = sh.execute(context, seq, timeline_frame, fac, ibuf1, ibuf2);
-    }
+    out = sh.execute(context, seq, timeline_frame, fac, ibuf1, ibuf2);
   }
 
   return out;

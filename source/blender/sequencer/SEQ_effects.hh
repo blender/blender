@@ -34,8 +34,6 @@ enum {
 };
 
 struct SeqEffectHandle {
-  bool multithreaded;
-
   /* constructors & destructor */
   /* init is _only_ called on first creation */
   void (*init)(Sequence *seq);
@@ -62,29 +60,13 @@ struct SeqEffectHandle {
                           float timeline_frame,
                           float *fac);
 
-  /* execute the effect
-   * sequence effects are only required to either support
-   * float-rects or byte-rects
-   * (mixed cases are handled one layer up...) */
-
+  /* execute the effect */
   ImBuf *(*execute)(const SeqRenderData *context,
                     Sequence *seq,
                     float timeline_frame,
                     float fac,
                     ImBuf *ibuf1,
                     ImBuf *ibuf2);
-
-  ImBuf *(*init_execution)(const SeqRenderData *context, ImBuf *ibuf1, ImBuf *ibuf2);
-
-  void (*execute_slice)(const SeqRenderData *context,
-                        Sequence *seq,
-                        float timeline_frame,
-                        float fac,
-                        const ImBuf *ibuf1,
-                        const ImBuf *ibuf2,
-                        int start_line,
-                        int total_lines,
-                        ImBuf *out);
 };
 
 SeqEffectHandle SEQ_effect_handle_get(Sequence *seq);

@@ -27,44 +27,6 @@
 
 using namespace blender;
 
-void slice_get_byte_buffers(const SeqRenderData *context,
-                            const ImBuf *ibuf1,
-                            const ImBuf *ibuf2,
-                            const ImBuf *out,
-                            int start_line,
-                            uchar **rect1,
-                            uchar **rect2,
-                            uchar **rect_out)
-{
-  int offset = 4 * start_line * context->rectx;
-
-  *rect1 = ibuf1->byte_buffer.data + offset;
-  *rect_out = out->byte_buffer.data + offset;
-
-  if (ibuf2) {
-    *rect2 = ibuf2->byte_buffer.data + offset;
-  }
-}
-
-void slice_get_float_buffers(const SeqRenderData *context,
-                             const ImBuf *ibuf1,
-                             const ImBuf *ibuf2,
-                             const ImBuf *out,
-                             int start_line,
-                             float **rect1,
-                             float **rect2,
-                             float **rect_out)
-{
-  int offset = 4 * start_line * context->rectx;
-
-  *rect1 = ibuf1->float_buffer.data + offset;
-  *rect_out = out->float_buffer.data + offset;
-
-  if (ibuf2) {
-    *rect2 = ibuf2->float_buffer.data + offset;
-  }
-}
-
 ImBuf *prepare_effect_imbufs(const SeqRenderData *context,
                              ImBuf *ibuf1,
                              ImBuf *ibuf2,
@@ -199,18 +161,11 @@ void get_default_fac_fade(const Scene *scene,
   *fac = math::clamp(*fac, 0.0f, 1.0f);
 }
 
-static ImBuf *init_execution(const SeqRenderData *context, ImBuf *ibuf1, ImBuf *ibuf2)
-{
-  ImBuf *out = prepare_effect_imbufs(context, ibuf1, ibuf2);
-  return out;
-}
-
 SeqEffectHandle get_sequence_effect_impl(int seq_type)
 {
   SeqEffectHandle rval;
   int sequence_type = seq_type;
 
-  rval.multithreaded = false;
   rval.init = init_noop;
   rval.num_inputs = num_inputs_default;
   rval.load = load_noop;
@@ -218,8 +173,6 @@ SeqEffectHandle get_sequence_effect_impl(int seq_type)
   rval.early_out = early_out_noop;
   rval.get_default_fac = get_default_fac_noop;
   rval.execute = nullptr;
-  rval.init_execution = init_execution;
-  rval.execute_slice = nullptr;
   rval.copy = nullptr;
 
   switch (sequence_type) {
@@ -344,7 +297,7 @@ int SEQ_effect_get_num_inputs(int seq_type)
   SeqEffectHandle rval = get_sequence_effect_impl(seq_type);
 
   int count = rval.num_inputs();
-  if (rval.execute || (rval.execute_slice && rval.init_execution)) {
+  if (rval.execute) {
     return count;
   }
   return 0;
