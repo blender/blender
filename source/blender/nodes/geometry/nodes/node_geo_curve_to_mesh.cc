@@ -115,8 +115,10 @@ static void node_geo_exec(GeoNodeExecParams params)
     if (geometry_set.has_curves()) {
       const Curves &curves = *geometry_set.get_curves();
       Mesh *mesh = curve_to_mesh(curves.geometry.wrap(), profile_set, fill_caps, attribute_filter);
-      mesh->mat = static_cast<Material **>(MEM_dupallocN(curves.mat));
-      mesh->totcol = curves.totcol;
+      if (mesh != nullptr) {
+        mesh->mat = static_cast<Material **>(MEM_dupallocN(curves.mat));
+        mesh->totcol = curves.totcol;
+      }
       geometry_set.replace_mesh(mesh);
     }
     if (geometry_set.has_grease_pencil()) {
