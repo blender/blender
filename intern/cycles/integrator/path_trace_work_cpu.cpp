@@ -56,9 +56,9 @@ void PathTraceWorkCPU::init_execution()
 }
 
 void PathTraceWorkCPU::render_samples(RenderStatistics &statistics,
-                                      int start_sample,
-                                      int samples_num,
-                                      int sample_offset)
+                                      const int start_sample,
+                                      const int samples_num,
+                                      const int sample_offset)
 {
   const int64_t image_width = effective_buffer_params_.width;
   const int64_t image_height = effective_buffer_params_.height;
@@ -163,7 +163,7 @@ void PathTraceWorkCPU::render_samples_full_pipeline(KernelGlobalsCPU *kernel_glo
 
 void PathTraceWorkCPU::copy_to_display(PathTraceDisplay *display,
                                        PassMode pass_mode,
-                                       int num_samples)
+                                       const int num_samples)
 {
   half4 *rgba_half = display->map_texture_buffer();
   if (!rgba_half) {
@@ -211,7 +211,8 @@ bool PathTraceWorkCPU::zero_render_buffers()
   return true;
 }
 
-int PathTraceWorkCPU::adaptive_sampling_converge_filter_count_active(float threshold, bool reset)
+int PathTraceWorkCPU::adaptive_sampling_converge_filter_count_active(const float threshold,
+                                                                     bool reset)
 {
   const int full_x = effective_buffer_params_.full_x;
   const int full_y = effective_buffer_params_.full_y;

@@ -20,11 +20,11 @@ CCL_NAMESPACE_BEGIN
  * - if this is used, we are not tempted to use inefficient operations
  * - aligned allocation for CPU native data types */
 
-template<typename T, size_t alignment = MIN_ALIGNMENT_CPU_DATA_TYPES> class array {
+template<typename T, const size_t alignment = MIN_ALIGNMENT_CPU_DATA_TYPES> class array {
  public:
   array() : data_(nullptr), datasize_(0), capacity_(0) {}
 
-  explicit array(size_t newsize)
+  explicit array(const size_t newsize)
   {
     if (newsize == 0) {
       data_ = nullptr;
@@ -131,7 +131,7 @@ template<typename T, size_t alignment = MIN_ALIGNMENT_CPU_DATA_TYPES> class arra
     return ptr;
   }
 
-  T *resize(size_t newsize)
+  T *resize(const size_t newsize)
   {
     if (newsize == 0) {
       clear();
@@ -156,7 +156,7 @@ template<typename T, size_t alignment = MIN_ALIGNMENT_CPU_DATA_TYPES> class arra
     return data_;
   }
 
-  T *resize(size_t newsize, const T &value)
+  T *resize(const size_t newsize, const T &value)
   {
     size_t oldsize = size();
     resize(newsize);
@@ -224,7 +224,7 @@ template<typename T, size_t alignment = MIN_ALIGNMENT_CPU_DATA_TYPES> class arra
     return data_ + datasize_;
   }
 
-  void reserve(size_t newcapacity)
+  void reserve(const size_t newcapacity)
   {
     if (newcapacity > capacity_) {
       T *newdata = mem_allocate(newcapacity);
@@ -268,7 +268,7 @@ template<typename T, size_t alignment = MIN_ALIGNMENT_CPU_DATA_TYPES> class arra
   }
 
  protected:
-  T *mem_allocate(size_t N)
+  T *mem_allocate(const size_t N)
   {
     if (N == 0) {
       return nullptr;
@@ -283,7 +283,7 @@ template<typename T, size_t alignment = MIN_ALIGNMENT_CPU_DATA_TYPES> class arra
     return mem;
   }
 
-  void mem_free(T *mem, size_t N)
+  void mem_free(T *mem, const size_t N)
   {
     if (mem != nullptr) {
       util_guarded_mem_free(sizeof(T) * N);

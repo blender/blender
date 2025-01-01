@@ -336,7 +336,7 @@ ccl_device int volume_shader_phase_sample(KernelGlobals kg,
                                           const ccl_private ShaderData *sd,
                                           const ccl_private ShaderVolumePhases *phases,
                                           const ccl_private ShaderVolumeClosure *svc,
-                                          float2 rand_phase,
+                                          const float2 rand_phase,
                                           ccl_private BsdfEval *phase_eval,
                                           ccl_private float3 *wo,
                                           ccl_private float *pdf,
@@ -425,7 +425,7 @@ ccl_device_inline void volume_shader_motion_blur(KernelGlobals kg,
 
 /* Volume Evaluation */
 
-template<const bool shadow, uint node_feature_mask, typename ConstIntegratorGenericState>
+template<const bool shadow, const uint node_feature_mask, typename ConstIntegratorGenericState>
 ccl_device_inline bool volume_shader_eval_entry(KernelGlobals kg,
                                                 ConstIntegratorGenericState state,
                                                 ccl_private ShaderData *ccl_restrict sd,

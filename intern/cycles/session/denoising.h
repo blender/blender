@@ -141,7 +141,7 @@ class DenoiseImage {
 
 class DenoiseTask {
  public:
-  DenoiseTask(Device *device, DenoiserPipeline *denoiser, int frame);
+  DenoiseTask(Device *device, DenoiserPipeline *denoiser, const int frame);
   ~DenoiseTask();
 
   /* Task stages */
@@ -167,7 +167,7 @@ class DenoiseTask {
   RenderBuffers buffers;
 
   /* Task handling */
-  bool load_input_pixels(int layer);
+  bool load_input_pixels(const int layer);
 };
 
 CCL_NAMESPACE_END

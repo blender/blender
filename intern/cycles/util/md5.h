@@ -21,7 +21,7 @@ class MD5Hash {
   MD5Hash();
   ~MD5Hash();
 
-  void append(const uint8_t *data, int nbytes);
+  void append(const uint8_t *data, const int nbytes);
   void append(const string &str);
   bool append_file(const string &filepath);
   string get_hex();

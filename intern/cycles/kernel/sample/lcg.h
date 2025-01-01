@@ -26,7 +26,7 @@ template<class T> ccl_device float lcg_step_float(T rng)
   return (float)*rng * (1.0f / (float)0xFFFFFFFF);
 }
 
-ccl_device uint lcg_init(uint seed)
+ccl_device uint lcg_init(const uint seed)
 {
   uint rng = seed;
   lcg_step_uint(&rng);

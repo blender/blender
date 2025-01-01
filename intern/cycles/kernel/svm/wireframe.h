@@ -20,8 +20,8 @@ CCL_NAMESPACE_BEGIN
 ccl_device_inline float wireframe(KernelGlobals kg,
                                   ccl_private ShaderData *sd,
                                   const differential3 dP,
-                                  float size,
-                                  int pixel_size,
+                                  const float size,
+                                  const int pixel_size,
                                   ccl_private float3 *P)
 {
 #if defined(__HAIR__) || defined(__POINTCLOUD__)
@@ -81,7 +81,7 @@ ccl_device_inline float wireframe(KernelGlobals kg,
 ccl_device_noinline void svm_node_wireframe(KernelGlobals kg,
                                             ccl_private ShaderData *sd,
                                             ccl_private float *stack,
-                                            uint4 node)
+                                            const uint4 node)
 {
   const uint in_size = node.y;
   const uint out_fac = node.z;

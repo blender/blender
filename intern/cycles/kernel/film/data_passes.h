@@ -16,9 +16,9 @@
 CCL_NAMESPACE_BEGIN
 
 ccl_device_inline size_t film_write_cryptomatte_pass(ccl_global float *ccl_restrict buffer,
-                                                     size_t depth,
-                                                     float id,
-                                                     float matte_weight)
+                                                     const size_t depth,
+                                                     const float id,
+                                                     const float matte_weight)
 {
   film_write_cryptomatte_slots(buffer, depth * 2, id, matte_weight);
   return depth * 4;

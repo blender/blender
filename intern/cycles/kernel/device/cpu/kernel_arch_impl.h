@@ -162,12 +162,12 @@ void KERNEL_FUNCTION_FULL_NAME(shader_eval_curve_shadow_transparency)(
 bool KERNEL_FUNCTION_FULL_NAME(adaptive_sampling_convergence_check)(
     const KernelGlobalsCPU *kg,
     ccl_global float *render_buffer,
-    int x,
-    int y,
-    float threshold,
-    int reset,
-    int offset,
-    int stride)
+    const int x,
+    const int y,
+    const float threshold,
+    const int reset,
+    const int offset,
+    const int stride)
 {
 #ifdef KERNEL_STUB
   STUB_ASSERT(KERNEL_ARCH, adaptive_sampling_convergence_check);
@@ -180,11 +180,11 @@ bool KERNEL_FUNCTION_FULL_NAME(adaptive_sampling_convergence_check)(
 
 void KERNEL_FUNCTION_FULL_NAME(adaptive_sampling_filter_x)(const KernelGlobalsCPU *kg,
                                                            ccl_global float *render_buffer,
-                                                           int y,
-                                                           int start_x,
-                                                           int width,
-                                                           int offset,
-                                                           int stride)
+                                                           const int y,
+                                                           const int start_x,
+                                                           const int width,
+                                                           const int offset,
+                                                           const int stride)
 {
 #ifdef KERNEL_STUB
   STUB_ASSERT(KERNEL_ARCH, adaptive_sampling_filter_x);
@@ -195,11 +195,11 @@ void KERNEL_FUNCTION_FULL_NAME(adaptive_sampling_filter_x)(const KernelGlobalsCP
 
 void KERNEL_FUNCTION_FULL_NAME(adaptive_sampling_filter_y)(const KernelGlobalsCPU *kg,
                                                            ccl_global float *render_buffer,
-                                                           int x,
-                                                           int start_y,
-                                                           int height,
-                                                           int offset,
-                                                           int stride)
+                                                           const int x,
+                                                           const int start_y,
+                                                           const int height,
+                                                           const int offset,
+                                                           const int stride)
 {
 #ifdef KERNEL_STUB
   STUB_ASSERT(KERNEL_ARCH, adaptive_sampling_filter_y);
@@ -214,7 +214,7 @@ void KERNEL_FUNCTION_FULL_NAME(adaptive_sampling_filter_y)(const KernelGlobalsCP
 
 void KERNEL_FUNCTION_FULL_NAME(cryptomatte_postprocess)(const KernelGlobalsCPU *kg,
                                                         ccl_global float *render_buffer,
-                                                        int pixel_index)
+                                                        const int pixel_index)
 {
 #ifdef KERNEL_STUB
   STUB_ASSERT(KERNEL_ARCH, cryptomatte_postprocess);

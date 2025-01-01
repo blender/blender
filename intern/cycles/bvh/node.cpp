@@ -103,7 +103,7 @@ void BVHNode::deleteSubtree()
   delete this;
 }
 
-float BVHNode::computeSubtreeSAHCost(const BVHParams &p, float probability) const
+float BVHNode::computeSubtreeSAHCost(const BVHParams &p, const float probability) const
 {
   float SAH = probability * p.cost(num_children(), num_triangles());
 
@@ -194,7 +194,7 @@ void BVHNode::dump_graph(const char *filename)
 
 /* Inner Node */
 
-void InnerNode::print(int depth) const
+void InnerNode::print(const int depth) const
 {
   for (int i = 0; i < depth; i++) {
     printf("  ");
@@ -210,7 +210,7 @@ void InnerNode::print(int depth) const
   }
 }
 
-void LeafNode::print(int depth) const
+void LeafNode::print(const int depth) const
 {
   for (int i = 0; i < depth; i++) {
     printf("  ");

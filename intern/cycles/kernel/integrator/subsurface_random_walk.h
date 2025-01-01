@@ -28,7 +28,7 @@ CCL_NAMESPACE_BEGIN
 
 ccl_device void subsurface_random_walk_remap(const float albedo,
                                              const float d,
-                                             float g,
+                                             const float g,
                                              ccl_private float *sigma_t,
                                              ccl_private float *alpha)
 {
@@ -120,13 +120,17 @@ ccl_device void subsurface_random_walk_coefficients(const Spectrum albedo,
  * https://iliyan.com/publications/RenderingCourse2020
  */
 
-ccl_device_forceinline float eval_phase_dwivedi(float v, float phase_log, float cos_theta)
+ccl_device_forceinline float eval_phase_dwivedi(const float v,
+                                                const float phase_log,
+                                                const float cos_theta)
 {
   /* Eq. 9 from [2] using precomputed log((v + 1) / (v - 1)) */
   return 1.0f / ((v - cos_theta) * phase_log);
 }
 
-ccl_device_forceinline float sample_phase_dwivedi(float v, float phase_log, float rand)
+ccl_device_forceinline float sample_phase_dwivedi(const float v,
+                                                  const float phase_log,
+                                                  const float rand)
 {
   /* Based on Eq. 10 from [2]: `v - (v + 1) * pow((v - 1) / (v + 1), rand)`
    * Since we're already pre-computing `phase_log = log((v + 1) / (v - 1))` for the evaluation,
@@ -134,13 +138,15 @@ ccl_device_forceinline float sample_phase_dwivedi(float v, float phase_log, floa
   return v - (v + 1.0f) * expf(-rand * phase_log);
 }
 
-ccl_device_forceinline float diffusion_length_dwivedi(float alpha)
+ccl_device_forceinline float diffusion_length_dwivedi(const float alpha)
 {
   /* Eq. 67 from [3] */
   return 1.0f / sqrtf(1.0f - powf(alpha, 2.44294f - 0.0215813f * alpha + 0.578637f / alpha));
 }
 
-ccl_device_forceinline float3 direction_from_cosine(float3 D, float cos_theta, float randv)
+ccl_device_forceinline float3 direction_from_cosine(const float3 D,
+                                                    const float cos_theta,
+                                                    const float randv)
 {
   const float phi = M_2PI_F * randv;
   const float3 dir = spherical_cos_to_direction(cos_theta, phi);
@@ -152,7 +158,7 @@ ccl_device_forceinline float3 direction_from_cosine(float3 D, float cos_theta, f
 }
 
 ccl_device_forceinline Spectrum subsurface_random_walk_pdf(Spectrum sigma_t,
-                                                           float t,
+                                                           const float t,
                                                            bool hit,
                                                            ccl_private Spectrum *transmittance)
 {

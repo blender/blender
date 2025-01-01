@@ -19,8 +19,8 @@ class BlenderObjectCulling {
   bool test(Scene *scene, BL::Object &b_ob, Transform &tfm);
 
  private:
-  bool test_camera(Scene *scene, float3 bb[8]);
-  bool test_distance(Scene *scene, float3 bb[8]);
+  bool test_camera(Scene *scene, const float3 bb[8]);
+  bool test_distance(Scene *scene, const float3 bb[8]);
 
   bool use_scene_camera_cull_;
   bool use_camera_cull_;

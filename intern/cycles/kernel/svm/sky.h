@@ -16,7 +16,10 @@ CCL_NAMESPACE_BEGIN
 
 /* Sky texture */
 
-ccl_device float sky_angle_between(float thetav, float phiv, float theta, float phi)
+ccl_device float sky_angle_between(const float thetav,
+                                   const float phiv,
+                                   const float theta,
+                                   const float phi)
 {
   const float cospsi = sinf(thetav) * sinf(theta) * cosf(phi - phiv) + cosf(thetav) * cosf(theta);
   return safe_acosf(cospsi);
@@ -26,7 +29,9 @@ ccl_device float sky_angle_between(float thetav, float phiv, float theta, float 
  * "A Practical Analytic Model for Daylight"
  * A. J. Preetham, Peter Shirley, Brian Smits
  */
-ccl_device float sky_perez_function(const ccl_private float *lam, float theta, float gamma)
+ccl_device float sky_perez_function(const ccl_private float *lam,
+                                    const float theta,
+                                    const float gamma)
 {
   const float ctheta = cosf(theta);
   const float cgamma = cosf(gamma);
@@ -36,12 +41,12 @@ ccl_device float sky_perez_function(const ccl_private float *lam, float theta, f
 }
 
 ccl_device float3 sky_radiance_preetham(KernelGlobals kg,
-                                        float3 dir,
-                                        float sunphi,
-                                        float suntheta,
-                                        float radiance_x,
-                                        float radiance_y,
-                                        float radiance_z,
+                                        const float3 dir,
+                                        const float sunphi,
+                                        const float suntheta,
+                                        const float radiance_x,
+                                        const float radiance_y,
+                                        const float radiance_z,
                                         ccl_private float *config_x,
                                         ccl_private float *config_y,
                                         ccl_private float *config_z)
@@ -72,8 +77,8 @@ ccl_device float3 sky_radiance_preetham(KernelGlobals kg,
  * Lukas Hosek, Alexander Wilkie
  */
 ccl_device float sky_radiance_internal(const ccl_private float *configuration,
-                                       float theta,
-                                       float gamma)
+                                       const float theta,
+                                       const float gamma)
 {
   const float ctheta = cosf(theta);
   const float cgamma = cosf(gamma);
@@ -91,12 +96,12 @@ ccl_device float sky_radiance_internal(const ccl_private float *configuration,
 }
 
 ccl_device float3 sky_radiance_hosek(KernelGlobals kg,
-                                     float3 dir,
-                                     float sunphi,
-                                     float suntheta,
-                                     float radiance_x,
-                                     float radiance_y,
-                                     float radiance_z,
+                                     const float3 dir,
+                                     const float sunphi,
+                                     const float suntheta,
+                                     const float radiance_x,
+                                     const float radiance_y,
+                                     const float radiance_z,
                                      ccl_private float *config_x,
                                      ccl_private float *config_y,
                                      ccl_private float *config_z)
@@ -122,18 +127,18 @@ ccl_device float3 sky_radiance_hosek(KernelGlobals kg,
 }
 
 /* Nishita improved sky model */
-ccl_device float3 geographical_to_direction(float lat, float lon)
+ccl_device float3 geographical_to_direction(const float lat, const float lon)
 {
   return spherical_to_direction(lat - M_PI_2_F, lon - M_PI_2_F);
 }
 
 ccl_device float3 sky_radiance_nishita(KernelGlobals kg,
-                                       float3 dir,
-                                       uint32_t path_flag,
-                                       float3 pixel_bottom,
-                                       float3 pixel_top,
+                                       const float3 dir,
+                                       const uint32_t path_flag,
+                                       const float3 pixel_bottom,
+                                       const float3 pixel_top,
                                        const ccl_private float *nishita_data,
-                                       uint texture_id)
+                                       const uint texture_id)
 {
   /* definitions */
   const float sun_elevation = nishita_data[0];
@@ -208,9 +213,9 @@ ccl_device float3 sky_radiance_nishita(KernelGlobals kg,
 
 ccl_device_noinline int svm_node_tex_sky(KernelGlobals kg,
                                          ccl_private ShaderData *sd,
-                                         uint32_t path_flag,
+                                         const uint32_t path_flag,
                                          ccl_private float *stack,
-                                         uint4 node,
+                                         const uint4 node,
                                          int offset)
 {
   /* Load data */

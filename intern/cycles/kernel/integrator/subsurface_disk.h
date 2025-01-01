@@ -23,7 +23,9 @@ CCL_NAMESPACE_BEGIN
  * http://library.imageworks.com/pdfs/imageworks-library-BSSRDF-sampling.pdf
  */
 
-ccl_device_inline Spectrum subsurface_disk_eval(const Spectrum radius, float disk_r, float r)
+ccl_device_inline Spectrum subsurface_disk_eval(const Spectrum radius,
+                                                const float disk_r,
+                                                const float r)
 {
   const Spectrum eval = bssrdf_eval(radius, r);
   const float pdf = bssrdf_pdf(radius, disk_r);

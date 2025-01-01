@@ -17,8 +17,8 @@ using WindowKeyboardFunc = void (*)(unsigned char);
 using WindowMotionFunc = void (*)(int, int, int);
 
 void window_main_loop(const char *title,
-                      int width,
-                      int height,
+                      const int width,
+                      const int height,
                       WindowInitFunc initf,
                       WindowExitFunc exitf,
                       WindowResizeFunc resize,

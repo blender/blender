@@ -39,9 +39,9 @@ ccl_device_inline float bsdf_oren_nayar_G(const float cosTheta)
 }
 
 ccl_device Spectrum bsdf_oren_nayar_get_intensity(const ccl_private ShaderClosure *sc,
-                                                  float3 n,
-                                                  float3 v,
-                                                  float3 l)
+                                                  const float3 n,
+                                                  const float3 v,
+                                                  const float3 l)
 {
   const ccl_private OrenNayarBsdf *bsdf = (const ccl_private OrenNayarBsdf *)sc;
   const float nl = max(dot(n, l), 0.0f);
@@ -98,9 +98,9 @@ ccl_device Spectrum bsdf_oren_nayar_eval(const ccl_private ShaderClosure *sc,
 }
 
 ccl_device int bsdf_oren_nayar_sample(const ccl_private ShaderClosure *sc,
-                                      float3 Ng,
-                                      float3 wi,
-                                      float2 rand,
+                                      const float3 Ng,
+                                      const float3 wi,
+                                      const float2 rand,
                                       ccl_private Spectrum *eval,
                                       ccl_private float3 *wo,
                                       ccl_private float *pdf)

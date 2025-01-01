@@ -40,7 +40,7 @@ ccl_device int volume_fournier_forand_setup(ccl_private FournierForandVolume *vo
 
 ccl_device Spectrum volume_fournier_forand_eval(const ccl_private ShaderData *sd,
                                                 const ccl_private ShaderVolumeClosure *svc,
-                                                float3 wo,
+                                                const float3 wo,
                                                 ccl_private float *pdf)
 {
   const ccl_private FournierForandVolume *volume = (const ccl_private FournierForandVolume *)svc;
@@ -55,7 +55,7 @@ ccl_device Spectrum volume_fournier_forand_eval(const ccl_private ShaderData *sd
 
 ccl_device int volume_fournier_forand_sample(const ccl_private ShaderData *sd,
                                              const ccl_private ShaderVolumeClosure *svc,
-                                             float2 rand,
+                                             const float2 rand,
                                              ccl_private Spectrum *eval,
                                              ccl_private float3 *wo,
                                              ccl_private float *pdf)

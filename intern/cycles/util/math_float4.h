@@ -54,7 +54,7 @@ ccl_device_inline float4 operator*(const float4 a, const float4 b)
 #  endif
 }
 
-ccl_device_inline float4 operator*(const float4 a, float f)
+ccl_device_inline float4 operator*(const float4 a, const float f)
 {
 #  if defined(__KERNEL_SSE__)
   return a * make_float4(f);
@@ -68,7 +68,7 @@ ccl_device_inline float4 operator*(float f, const float4 a)
   return a * f;
 }
 
-ccl_device_inline float4 operator/(const float4 a, float f)
+ccl_device_inline float4 operator/(const float4 a, const float f)
 {
   return a * (1.0f / f);
 }
@@ -125,7 +125,7 @@ ccl_device_inline float4 operator*=(float4 &a, const float4 b)
   return a = a * b;
 }
 
-ccl_device_inline float4 operator*=(float4 &a, float f)
+ccl_device_inline float4 operator*=(float4 &a, const float f)
 {
   return a = a * f;
 }
@@ -135,7 +135,7 @@ ccl_device_inline float4 operator/=(float4 &a, const float4 b)
   return a = a / b;
 }
 
-ccl_device_inline float4 operator/=(float4 &a, float f)
+ccl_device_inline float4 operator/=(float4 &a, const float f)
 {
   return a = a / f;
 }
@@ -243,7 +243,8 @@ ccl_device_inline float4 msub(const float4 a, const float4 b, const float4 c)
 }
 
 #ifdef __KERNEL_SSE__
-template<size_t i0, size_t i1, size_t i2, size_t i3> __forceinline float4 shuffle(const float4 a)
+template<size_t i0, const size_t i1, const size_t i2, const size_t i3>
+__forceinline float4 shuffle(const float4 a)
 {
 #  ifdef __KERNEL_NEON__
   return float4(shuffle_neon<float32x4_t, i0, i1, i2, i3>(a.m128));
@@ -275,7 +276,7 @@ template<> __forceinline float4 shuffle<1, 1, 3, 3>(const float4 a)
 }
 #  endif /* __KERNEL_SSE3__ */
 
-template<size_t i0, size_t i1, size_t i2, size_t i3>
+template<size_t i0, const size_t i1, const size_t i2, const size_t i3>
 __forceinline float4 shuffle(const float4 a, const float4 b)
 {
 #  ifdef __KERNEL_NEON__
@@ -501,7 +502,7 @@ ccl_device_inline float4 floorfrac(const float4 x, ccl_private int4 *i)
 #  endif
 }
 
-ccl_device_inline float4 mix(const float4 a, const float4 b, float t)
+ccl_device_inline float4 mix(const float4 a, const float4 b, const float t)
 {
   return a + t * (b - a);
 }
@@ -516,12 +517,12 @@ ccl_device_inline float4 saturate(const float4 a)
   return make_float4(saturatef(a.x), saturatef(a.y), saturatef(a.z), saturatef(a.w));
 }
 
-ccl_device_inline float4 exp(float4 v)
+ccl_device_inline float4 exp(const float4 v)
 {
   return make_float4(expf(v.x), expf(v.y), expf(v.z), expf(v.z));
 }
 
-ccl_device_inline float4 log(float4 v)
+ccl_device_inline float4 log(const float4 v)
 {
   return make_float4(logf(v.x), logf(v.y), logf(v.z), logf(v.z));
 }
@@ -583,37 +584,38 @@ ccl_device_inline float4 safe_divide(const float4 a, const float4 b)
                      (b.w != 0.0f) ? a.w / b.w : 0.0f);
 }
 
-ccl_device_inline bool isfinite_safe(float4 v)
+ccl_device_inline bool isfinite_safe(const float4 v)
 {
   return isfinite_safe(v.x) && isfinite_safe(v.y) && isfinite_safe(v.z) && isfinite_safe(v.w);
 }
 
-ccl_device_inline float4 ensure_finite(float4 v)
+ccl_device_inline float4 ensure_finite(const float4 v)
 {
-  if (!isfinite_safe(v.x)) {
-    v.x = 0.0f;
+  float4 r = v;
+  if (!isfinite_safe(r.x)) {
+    r.x = 0.0f;
   }
-  if (!isfinite_safe(v.y)) {
-    v.y = 0.0f;
+  if (!isfinite_safe(r.y)) {
+    r.y = 0.0f;
   }
-  if (!isfinite_safe(v.z)) {
-    v.z = 0.0f;
+  if (!isfinite_safe(r.z)) {
+    r.z = 0.0f;
   }
-  if (!isfinite_safe(v.w)) {
-    v.w = 0.0f;
+  if (!isfinite_safe(r.w)) {
+    r.w = 0.0f;
   }
-  return v;
+  return r;
 }
 
 /* Consistent name for this would be pow, but HIP compiler crashes in name mangling. */
-ccl_device_inline float4 power(float4 v, float e)
+ccl_device_inline float4 power(const float4 v, const float e)
 {
   return make_float4(powf(v.x, e), powf(v.y, e), powf(v.z, e), powf(v.w, e));
 }
 
 #if !defined(__KERNEL_METAL__) && !defined(__KERNEL_ONEAPI__)
 /* Int/Float conversion */
-ccl_device_inline int4 __float4_as_int4(float4 f)
+ccl_device_inline int4 __float4_as_int4(const float4 f)
 {
 #  ifdef __KERNEL_SSE__
   return int4(_mm_castps_si128(f.m128));
@@ -623,7 +625,7 @@ ccl_device_inline int4 __float4_as_int4(float4 f)
 #  endif
 }
 
-ccl_device_inline float4 __int4_as_float4(int4 i)
+ccl_device_inline float4 __int4_as_float4(const int4 i)
 {
 #  ifdef __KERNEL_SSE__
   return float4(_mm_castsi128_ps(i.m128));

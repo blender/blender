@@ -76,15 +76,15 @@ OrientationBounds merge(const OrientationBounds &cone_a, const OrientationBounds
   return OrientationBounds({new_axis, theta_o, theta_e});
 }
 
-LightTreeEmitter::LightTreeEmitter(Object *object, int object_id) : object_id(object_id)
+LightTreeEmitter::LightTreeEmitter(Object *object, const int object_id) : object_id(object_id)
 {
   centroid = object->bounds.center();
   light_set_membership = object->get_light_set_membership();
 }
 
 LightTreeEmitter::LightTreeEmitter(Scene *scene,
-                                   int prim_id,
-                                   int object_id,
+                                   const int prim_id,
+                                   const int object_id,
                                    bool need_transformation)
     : prim_id(prim_id), object_id(object_id)
 {
@@ -252,7 +252,7 @@ static void sort_leaf(const int start, const int end, LightTreeEmitter *emitters
   }
 }
 
-bool LightTree::triangle_usable_as_light(Mesh *mesh, int prim_id)
+bool LightTree::triangle_usable_as_light(Mesh *mesh, const int prim_id)
 {
   const int shader_index = mesh->get_shader()[prim_id];
   if (shader_index < mesh->get_used_shaders().size()) {
@@ -264,7 +264,7 @@ bool LightTree::triangle_usable_as_light(Mesh *mesh, int prim_id)
   return false;
 }
 
-void LightTree::add_mesh(Scene *scene, Mesh *mesh, int object_id)
+void LightTree::add_mesh(Scene *scene, Mesh *mesh, const int object_id)
 {
   const size_t mesh_num_triangles = mesh->num_triangles();
   for (size_t i = 0; i < mesh_num_triangles; i++) {
@@ -277,7 +277,7 @@ void LightTree::add_mesh(Scene *scene, Mesh *mesh, int object_id)
 LightTree::LightTree(Scene *scene,
                      DeviceScene *dscene,
                      Progress &progress,
-                     uint max_lights_in_leaf)
+                     const uint max_lights_in_leaf)
     : progress_(progress), max_lights_in_leaf_(max_lights_in_leaf)
 {
   KernelIntegrator *kintegrator = &dscene->data.integrator;

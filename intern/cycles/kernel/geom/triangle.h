@@ -36,10 +36,10 @@ ccl_device_inline float3 triangle_normal(KernelGlobals kg, ccl_private ShaderDat
 
 /* Point and normal on triangle. */
 ccl_device_inline void triangle_point_normal(KernelGlobals kg,
-                                             int object,
-                                             int prim,
-                                             float u,
-                                             float v,
+                                             const int object,
+                                             const int prim,
+                                             const float u,
+                                             const float v,
                                              ccl_private float3 *P,
                                              ccl_private float3 *Ng,
                                              ccl_private int *shader)
@@ -68,7 +68,7 @@ ccl_device_inline void triangle_point_normal(KernelGlobals kg,
 
 /* Triangle vertex locations */
 
-ccl_device_inline void triangle_vertices(KernelGlobals kg, int prim, float3 P[3])
+ccl_device_inline void triangle_vertices(KernelGlobals kg, const int prim, float3 P[3])
 {
   const uint3 tri_vindex = kernel_data_fetch(tri_vindex, prim);
   P[0] = kernel_data_fetch(tri_verts, tri_vindex.x);
@@ -79,7 +79,7 @@ ccl_device_inline void triangle_vertices(KernelGlobals kg, int prim, float3 P[3]
 /* Triangle vertex locations and vertex normals */
 
 ccl_device_inline void triangle_vertices_and_normals(KernelGlobals kg,
-                                                     int prim,
+                                                     const int prim,
                                                      float3 P[3],
                                                      float3 N[3])
 {
@@ -96,7 +96,7 @@ ccl_device_inline void triangle_vertices_and_normals(KernelGlobals kg,
 /* Interpolate smooth vertex normal from vertices */
 
 ccl_device_inline float3
-triangle_smooth_normal(KernelGlobals kg, float3 Ng, int prim, float u, float v)
+triangle_smooth_normal(KernelGlobals kg, const float3 Ng, const int prim, const float u, float v)
 {
   /* load triangle vertices */
   const uint3 tri_vindex = kernel_data_fetch(tri_vindex, prim);
@@ -110,8 +110,12 @@ triangle_smooth_normal(KernelGlobals kg, float3 Ng, int prim, float u, float v)
   return is_zero(N) ? Ng : N;
 }
 
-ccl_device_inline float3 triangle_smooth_normal_unnormalized(
-    KernelGlobals kg, const ccl_private ShaderData *sd, float3 Ng, int prim, float u, float v)
+ccl_device_inline float3 triangle_smooth_normal_unnormalized(KernelGlobals kg,
+                                                             const ccl_private ShaderData *sd,
+                                                             const float3 Ng,
+                                                             const int prim,
+                                                             const float u,
+                                                             float v)
 {
   /* load triangle vertices */
   const uint3 tri_vindex = kernel_data_fetch(tri_vindex, prim);
@@ -135,7 +139,7 @@ ccl_device_inline float3 triangle_smooth_normal_unnormalized(
 /* Ray differentials on triangle */
 
 ccl_device_inline void triangle_dPdudv(KernelGlobals kg,
-                                       int prim,
+                                       const int prim,
                                        ccl_private float3 *dPdu,
                                        ccl_private float3 *dPdv)
 {

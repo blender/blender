@@ -39,7 +39,7 @@ void PathTraceDisplay::mark_texture_updated()
  * Update procedure.
  */
 
-bool PathTraceDisplay::update_begin(int texture_width, int texture_height)
+bool PathTraceDisplay::update_begin(const int texture_width, const int texture_height)
 {
   DCHECK(!update_state_.is_active);
 
@@ -91,8 +91,11 @@ int2 PathTraceDisplay::get_texture_size() const
  * Texture update from CPU buffer.
  */
 
-void PathTraceDisplay::copy_pixels_to_texture(
-    const half4 *rgba_pixels, int texture_x, int texture_y, int pixels_width, int pixels_height)
+void PathTraceDisplay::copy_pixels_to_texture(const half4 *rgba_pixels,
+                                              const int texture_x,
+                                              const int texture_y,
+                                              const int pixels_width,
+                                              const int pixels_height)
 {
   DCHECK(update_state_.is_active);
 

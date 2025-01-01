@@ -462,7 +462,7 @@ ccl_device Spectrum bsdf_microfacet_estimate_albedo(KernelGlobals kg,
  * Eric Heitz, JCGT Vol. 3, No. 2, 2014.
  * https://jcgt.org/published/0003/02/03/ */
 template<MicrofacetType m_type>
-ccl_device_inline float bsdf_lambda_from_sqr_alpha_tan_n(float sqr_alpha_tan_n)
+ccl_device_inline float bsdf_lambda_from_sqr_alpha_tan_n(const float sqr_alpha_tan_n)
 {
   if (m_type == MicrofacetType::GGX) {
     /* Equation 72. */
@@ -479,33 +479,36 @@ ccl_device_inline float bsdf_lambda_from_sqr_alpha_tan_n(float sqr_alpha_tan_n)
   return ((0.396f * a - 1.259f) * a + 1.0f) / ((2.181f * a + 3.535f) * a);
 }
 
-template<MicrofacetType m_type> ccl_device_inline float bsdf_lambda(float alpha2, float cos_N)
+template<MicrofacetType m_type>
+ccl_device_inline float bsdf_lambda(const float alpha2, const float cos_N)
 {
   return bsdf_lambda_from_sqr_alpha_tan_n<m_type>(alpha2 * fmaxf(1.0f / sqr(cos_N) - 1.0f, 0.0f));
 }
 
 template<MicrofacetType m_type>
-ccl_device_inline float bsdf_aniso_lambda(float alpha_x, float alpha_y, float3 V)
+ccl_device_inline float bsdf_aniso_lambda(const float alpha_x, const float alpha_y, const float3 V)
 {
   const float sqr_alpha_tan_n = (sqr(alpha_x * V.x) + sqr(alpha_y * V.y)) / sqr(V.z);
   return bsdf_lambda_from_sqr_alpha_tan_n<m_type>(sqr_alpha_tan_n);
 }
 
 /* Mono-directional shadowing-masking term. */
-template<MicrofacetType m_type> ccl_device_inline float bsdf_G(float alpha2, float cos_N)
+template<MicrofacetType m_type>
+ccl_device_inline float bsdf_G(const float alpha2, const float cos_N)
 {
   return 1.0f / (1.0f + bsdf_lambda<m_type>(alpha2, cos_N));
 }
 
 /* Combined shadowing-masking term. */
 template<MicrofacetType m_type>
-ccl_device_inline float bsdf_G(float alpha2, float cos_NI, float cos_NO)
+ccl_device_inline float bsdf_G(const float alpha2, const float cos_NI, const float cos_NO)
 {
   return 1.0f / (1.0f + bsdf_lambda<m_type>(alpha2, cos_NI) + bsdf_lambda<m_type>(alpha2, cos_NO));
 }
 
 /* Normal distribution function. */
-template<MicrofacetType m_type> ccl_device_inline float bsdf_D(float alpha2, float cos_NH)
+template<MicrofacetType m_type>
+ccl_device_inline float bsdf_D(const float alpha2, const float cos_NH)
 {
   const float cos_NH2 = min(sqr(cos_NH), 1.0f);
   const float one_minus_cos_NH2 = 1.0f - cos_NH2;
@@ -518,7 +521,7 @@ template<MicrofacetType m_type> ccl_device_inline float bsdf_D(float alpha2, flo
 }
 
 template<MicrofacetType m_type>
-ccl_device_inline float bsdf_aniso_D(float alpha_x, float alpha_y, float3 H)
+ccl_device_inline float bsdf_aniso_D(const float alpha_x, const float alpha_y, float3 H)
 {
   H /= make_float3(alpha_x, alpha_y, 1.0f);
 
@@ -635,8 +638,8 @@ ccl_device Spectrum bsdf_microfacet_eval(KernelGlobals kg,
 template<MicrofacetType m_type>
 ccl_device int bsdf_microfacet_sample(KernelGlobals kg,
                                       const ccl_private ShaderClosure *sc,
-                                      float3 Ng,
-                                      float3 wi,
+                                      const float3 Ng,
+                                      const float3 wi,
                                       const float3 rand,
                                       ccl_private Spectrum *eval,
                                       ccl_private float3 *wo,
@@ -965,7 +968,7 @@ ccl_device int bsdf_microfacet_ggx_glass_setup(ccl_private MicrofacetBsdf *bsdf)
   return SD_BSDF | SD_BSDF_HAS_TRANSMISSION | bsdf_microfacet_eval_flag(bsdf);
 }
 
-ccl_device void bsdf_microfacet_blur(ccl_private ShaderClosure *sc, float roughness)
+ccl_device void bsdf_microfacet_blur(ccl_private ShaderClosure *sc, const float roughness)
 {
   ccl_private MicrofacetBsdf *bsdf = (ccl_private MicrofacetBsdf *)sc;
 
@@ -986,8 +989,8 @@ ccl_device Spectrum bsdf_microfacet_ggx_eval(KernelGlobals kg,
 
 ccl_device int bsdf_microfacet_ggx_sample(KernelGlobals kg,
                                           const ccl_private ShaderClosure *sc,
-                                          float3 Ng,
-                                          float3 wi,
+                                          const float3 Ng,
+                                          const float3 wi,
                                           const float3 rand,
                                           ccl_private Spectrum *eval,
                                           ccl_private float3 *wo,
@@ -1052,8 +1055,8 @@ ccl_device Spectrum bsdf_microfacet_beckmann_eval(KernelGlobals kg,
 
 ccl_device int bsdf_microfacet_beckmann_sample(KernelGlobals kg,
                                                const ccl_private ShaderClosure *sc,
-                                               float3 Ng,
-                                               float3 wi,
+                                               const float3 Ng,
+                                               const float3 wi,
                                                const float3 rand,
                                                ccl_private Spectrum *eval,
                                                ccl_private float3 *wo,

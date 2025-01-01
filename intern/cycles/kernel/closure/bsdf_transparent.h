@@ -15,7 +15,7 @@ CCL_NAMESPACE_BEGIN
 
 ccl_device void bsdf_transparent_setup(ccl_private ShaderData *sd,
                                        const Spectrum weight,
-                                       uint32_t path_flag)
+                                       const uint32_t path_flag)
 {
   /* Check cutoff weight. */
   const float sample_weight = fabsf(average(weight));
@@ -71,8 +71,8 @@ ccl_device Spectrum bsdf_transparent_eval(const ccl_private ShaderClosure *sc,
 }
 
 ccl_device int bsdf_transparent_sample(const ccl_private ShaderClosure *sc,
-                                       float3 Ng,
-                                       float3 wi,
+                                       const float3 Ng,
+                                       const float3 wi,
                                        ccl_private Spectrum *eval,
                                        ccl_private float3 *wo,
                                        ccl_private float *pdf)

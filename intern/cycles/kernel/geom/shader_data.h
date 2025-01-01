@@ -24,7 +24,7 @@ CCL_NAMESPACE_BEGIN
 
 ccl_device void shader_setup_object_transforms(KernelGlobals kg,
                                                ccl_private ShaderData *ccl_restrict sd,
-                                               float time)
+                                               const float time)
 {
 #ifdef __OBJECT_MOTION__
   if (sd->object_flag & SD_OBJECT_MOTION) {
@@ -132,15 +132,15 @@ ccl_device_inline void shader_setup_from_sample(KernelGlobals kg,
                                                 const float3 P,
                                                 const float3 Ng,
                                                 const float3 I,
-                                                int shader,
-                                                int object,
-                                                int prim,
-                                                float u,
-                                                float v,
-                                                float t,
-                                                float time,
+                                                const int shader,
+                                                const int object,
+                                                const int prim,
+                                                const float u,
+                                                const float v,
+                                                const float t,
+                                                const float time,
                                                 bool object_space,
-                                                int lamp)
+                                                const int lamp)
 {
   /* vectors */
   sd->P = P;
@@ -250,10 +250,10 @@ ccl_device_inline void shader_setup_from_sample(KernelGlobals kg,
 
 ccl_device void shader_setup_from_displace(KernelGlobals kg,
                                            ccl_private ShaderData *ccl_restrict sd,
-                                           int object,
-                                           int prim,
-                                           float u,
-                                           float v)
+                                           const int object,
+                                           const int prim,
+                                           const float u,
+                                           const float v)
 {
   float3 P;
   float3 Ng;
@@ -286,10 +286,10 @@ ccl_device void shader_setup_from_displace(KernelGlobals kg,
 #ifdef __HAIR__
 ccl_device void shader_setup_from_curve(KernelGlobals kg,
                                         ccl_private ShaderData *ccl_restrict sd,
-                                        int object,
-                                        int prim,
-                                        int segment,
-                                        float u)
+                                        const int object,
+                                        const int prim,
+                                        const int segment,
+                                        const float u)
 {
   /* Primitive */
   sd->type = PRIMITIVE_PACK_SEGMENT(PRIMITIVE_CURVE_THICK, segment);

@@ -12,7 +12,7 @@ CCL_NAMESPACE_BEGIN
 #define MIN_ALIGNMENT_CPU_DATA_TYPES 16  // NOLINT
 
 /* Allocate block of size bytes at least aligned to a given value. */
-void *util_aligned_malloc(size_t size, int alignment);
+void *util_aligned_malloc(const size_t size, const int alignment);
 
 /* Free memory allocated by util_aligned_malloc. */
 void util_aligned_free(void *ptr);

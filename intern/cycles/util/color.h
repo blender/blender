@@ -9,19 +9,19 @@
 
 CCL_NAMESPACE_BEGIN
 
-ccl_device uchar float_to_byte(float val)
+ccl_device uchar float_to_byte(const float val)
 {
   return ((val <= 0.0f) ?
               0 :
               ((val > (1.0f - 0.5f / 255.0f)) ? 255 : (uchar)((255.0f * val) + 0.5f)));  // NOLINT
 }
 
-ccl_device float byte_to_float(uchar val)
+ccl_device float byte_to_float(const uchar val)
 {
   return val * (1.0f / 255.0f);
 }
 
-ccl_device uchar4 color_float_to_byte(float3 c)
+ccl_device uchar4 color_float_to_byte(const float3 c)
 {
   uchar r;
   uchar g;
@@ -34,7 +34,7 @@ ccl_device uchar4 color_float_to_byte(float3 c)
   return make_uchar4(r, g, b, 0);
 }
 
-ccl_device uchar4 color_float4_to_uchar4(float4 c)
+ccl_device uchar4 color_float4_to_uchar4(const float4 c)
 {
   uchar r;
   uchar g;
@@ -49,18 +49,18 @@ ccl_device uchar4 color_float4_to_uchar4(float4 c)
   return make_uchar4(r, g, b, a);
 }
 
-ccl_device_inline float3 color_byte_to_float(uchar4 c)
+ccl_device_inline float3 color_byte_to_float(const uchar4 c)
 {
   return make_float3(c.x * (1.0f / 255.0f), c.y * (1.0f / 255.0f), c.z * (1.0f / 255.0f));
 }
 
-ccl_device_inline float4 color_uchar4_to_float4(uchar4 c)
+ccl_device_inline float4 color_uchar4_to_float4(const uchar4 c)
 {
   return make_float4(
       c.x * (1.0f / 255.0f), c.y * (1.0f / 255.0f), c.z * (1.0f / 255.0f), c.w * (1.0f / 255.0f));
 }
 
-ccl_device float color_srgb_to_linear(float c)
+ccl_device float color_srgb_to_linear(const float c)
 {
   if (c < 0.04045f) {
     return (c < 0.0f) ? 0.0f : c * (1.0f / 12.92f);
@@ -68,7 +68,7 @@ ccl_device float color_srgb_to_linear(float c)
   return powf((c + 0.055f) * (1.0f / 1.055f), 2.4f);
 }
 
-ccl_device float color_linear_to_srgb(float c)
+ccl_device float color_linear_to_srgb(const float c)
 {
   if (c < 0.0031308f) {
     return (c < 0.0f) ? 0.0f : c * 12.92f;
@@ -76,7 +76,7 @@ ccl_device float color_linear_to_srgb(float c)
   return 1.055f * powf(c, 1.0f / 2.4f) - 0.055f;
 }
 
-ccl_device float3 rgb_to_hsv(float3 rgb)
+ccl_device float3 rgb_to_hsv(const float3 rgb)
 {
   float cmax;
   float cmin;
@@ -127,7 +127,7 @@ ccl_device float3 rgb_to_hsv(float3 rgb)
   return make_float3(h, s, v);
 }
 
-ccl_device float3 hsv_to_rgb(float3 hsv)
+ccl_device float3 hsv_to_rgb(const float3 hsv)
 {
   float i;
   float f;
@@ -182,7 +182,7 @@ ccl_device float3 hsv_to_rgb(float3 hsv)
   return rgb;
 }
 
-ccl_device float3 rgb_to_hsl(float3 rgb)
+ccl_device float3 rgb_to_hsl(const float3 rgb)
 {
   float cmax;
   float cmin;
@@ -215,7 +215,7 @@ ccl_device float3 rgb_to_hsl(float3 rgb)
   return make_float3(h, s, l);
 }
 
-ccl_device float3 hsl_to_rgb(float3 hsl)
+ccl_device float3 hsl_to_rgb(const float3 hsl)
 {
   float nr;
   float ng;
@@ -242,7 +242,7 @@ ccl_device float3 hsl_to_rgb(float3 hsl)
   return make_float3((nr - 0.5f) * chroma + l, (ng - 0.5f) * chroma + l, (nb - 0.5f) * chroma + l);
 }
 
-ccl_device float3 xyY_to_xyz(float x, float y, float Y)
+ccl_device float3 xyY_to_xyz(const float x, const float y, float Y)
 {
   float X;
   float Z;
@@ -326,25 +326,25 @@ ccl_device float4 color_srgb_to_linear_sse2(const float4 &c)
 }
 #endif /* __KERNEL_SSE2__ */
 
-ccl_device float3 color_srgb_to_linear_v3(float3 c)
+ccl_device float3 color_srgb_to_linear_v3(const float3 c)
 {
   return make_float3(
       color_srgb_to_linear(c.x), color_srgb_to_linear(c.y), color_srgb_to_linear(c.z));
 }
 
-ccl_device float3 color_linear_to_srgb_v3(float3 c)
+ccl_device float3 color_linear_to_srgb_v3(const float3 c)
 {
   return make_float3(
       color_linear_to_srgb(c.x), color_linear_to_srgb(c.y), color_linear_to_srgb(c.z));
 }
 
-ccl_device float4 color_linear_to_srgb_v4(float4 c)
+ccl_device float4 color_linear_to_srgb_v4(const float4 c)
 {
   return make_float4(
       color_linear_to_srgb(c.x), color_linear_to_srgb(c.y), color_linear_to_srgb(c.z), c.w);
 }
 
-ccl_device float4 color_srgb_to_linear_v4(float4 c)
+ccl_device float4 color_srgb_to_linear_v4(const float4 c)
 {
 #ifdef __KERNEL_SSE2__
   float4 r = c;
@@ -366,7 +366,7 @@ ccl_device float3 color_highlight_compress(float3 color, ccl_private float3 *var
   return log(color);
 }
 
-ccl_device float3 color_highlight_uncompress(float3 color)
+ccl_device float3 color_highlight_uncompress(const float3 color)
 {
   return exp(color) - one_float3();
 }
@@ -396,7 +396,7 @@ ccl_device_inline Spectrum safe_divide_color(Spectrum a, Spectrum b, const float
   return a;
 }
 
-ccl_device_inline float3 safe_divide_even_color(float3 a, float3 b)
+ccl_device_inline float3 safe_divide_even_color(const float3 a, const float3 b)
 {
   float x;
   float y;

@@ -55,7 +55,7 @@ bool LookupTables::need_update() const
   return need_update_;
 }
 
-static size_t round_up_to_multiple(size_t size, size_t chunk)
+static size_t round_up_to_multiple(const size_t size, const size_t chunk)
 {
   return ((size + chunk - 1) / chunk) * chunk;
 }

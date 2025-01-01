@@ -79,7 +79,7 @@ template<>
 void osl_eval_nodes<SHADER_TYPE_SURFACE>(const KernelGlobalsCPU *kg,
                                          const void *state,
                                          ShaderData *sd,
-                                         uint32_t path_flag)
+                                         const uint32_t path_flag)
 {
   /* setup shader globals from shader data */
   OSLThreadData *tdata = kg->osl_tdata;
@@ -209,7 +209,7 @@ template<>
 void osl_eval_nodes<SHADER_TYPE_VOLUME>(const KernelGlobalsCPU *kg,
                                         const void *state,
                                         ShaderData *sd,
-                                        uint32_t path_flag)
+                                        const uint32_t path_flag)
 {
   /* setup shader globals from shader data */
   OSLThreadData *tdata = kg->osl_tdata;
@@ -262,7 +262,7 @@ template<>
 void osl_eval_nodes<SHADER_TYPE_DISPLACEMENT>(const KernelGlobalsCPU *kg,
                                               const void *state,
                                               ShaderData *sd,
-                                              uint32_t path_flag)
+                                              const uint32_t path_flag)
 {
   /* setup shader globals from shader data */
   OSLThreadData *tdata = kg->osl_tdata;

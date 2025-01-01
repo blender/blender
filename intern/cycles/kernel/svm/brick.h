@@ -19,16 +19,16 @@ ccl_device_inline float brick_noise(uint n) /* fast integer noise */
   return 0.5f * ((float)nn / 1073741824.0f);
 }
 
-ccl_device_noinline_cpu float2 svm_brick(float3 p,
-                                         float mortar_size,
-                                         float mortar_smooth,
-                                         float bias,
+ccl_device_noinline_cpu float2 svm_brick(const float3 p,
+                                         const float mortar_size,
+                                         const float mortar_smooth,
+                                         const float bias,
                                          float brick_width,
-                                         float row_height,
-                                         float offset_amount,
-                                         int offset_frequency,
-                                         float squash_amount,
-                                         int squash_frequency)
+                                         const float row_height,
+                                         const float offset_amount,
+                                         const int offset_frequency,
+                                         const float squash_amount,
+                                         const int squash_frequency)
 {
   int bricknum;
   int rownum;
@@ -66,8 +66,11 @@ ccl_device_noinline_cpu float2 svm_brick(float3 p,
   return make_float2(tint, mortar);
 }
 
-ccl_device_noinline int svm_node_tex_brick(
-    KernelGlobals kg, ccl_private ShaderData *sd, ccl_private float *stack, uint4 node, int offset)
+ccl_device_noinline int svm_node_tex_brick(KernelGlobals kg,
+                                           ccl_private ShaderData *sd,
+                                           ccl_private float *stack,
+                                           const uint4 node,
+                                           int offset)
 {
   const uint4 node2 = read_node(kg, &offset);
   const uint4 node3 = read_node(kg, &offset);

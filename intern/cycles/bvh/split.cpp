@@ -25,7 +25,7 @@ BVHObjectSplit::BVHObjectSplit(BVHBuild *builder,
                                BVHSpatialStorage *storage,
                                const BVHRange &range,
                                vector<BVHReference> &references,
-                               float nodeSAH,
+                               const float nodeSAH,
                                const BVHUnaligned *unaligned_heuristic,
                                const Transform *aligned_space)
     : sah(FLT_MAX),
@@ -130,7 +130,7 @@ BVHSpatialSplit::BVHSpatialSplit(const BVHBuild &builder,
                                  BVHSpatialStorage *storage,
                                  const BVHRange &range,
                                  vector<BVHReference> &references,
-                                 float nodeSAH,
+                                 const float nodeSAH,
                                  const BVHUnaligned *unaligned_heuristic,
                                  const Transform *aligned_space)
     : sah(FLT_MAX),
@@ -343,9 +343,9 @@ void BVHSpatialSplit::split(BVHBuild *builder,
 
 void BVHSpatialSplit::split_triangle_primitive(const Mesh *mesh,
                                                const Transform *tfm,
-                                               int prim_index,
-                                               int dim,
-                                               float pos,
+                                               const int prim_index,
+                                               const int dim,
+                                               const float pos,
                                                BoundBox &left_bounds,
                                                BoundBox &right_bounds)
 {
@@ -382,10 +382,10 @@ void BVHSpatialSplit::split_triangle_primitive(const Mesh *mesh,
 
 void BVHSpatialSplit::split_curve_primitive(const Hair *hair,
                                             const Transform *tfm,
-                                            int prim_index,
-                                            int segment_index,
-                                            int dim,
-                                            float pos,
+                                            const int prim_index,
+                                            const int segment_index,
+                                            const int dim,
+                                            const float pos,
                                             BoundBox &left_bounds,
                                             BoundBox &right_bounds)
 {
@@ -433,9 +433,9 @@ void BVHSpatialSplit::split_curve_primitive(const Hair *hair,
 
 void BVHSpatialSplit::split_point_primitive(const PointCloud *pointcloud,
                                             const Transform *tfm,
-                                            int prim_index,
-                                            int dim,
-                                            float pos,
+                                            const int prim_index,
+                                            const int dim,
+                                            const float pos,
                                             BoundBox &left_bounds,
                                             BoundBox &right_bounds)
 {
@@ -460,8 +460,8 @@ void BVHSpatialSplit::split_point_primitive(const PointCloud *pointcloud,
 
 void BVHSpatialSplit::split_triangle_reference(const BVHReference &ref,
                                                const Mesh *mesh,
-                                               int dim,
-                                               float pos,
+                                               const int dim,
+                                               const float pos,
                                                BoundBox &left_bounds,
                                                BoundBox &right_bounds)
 {
@@ -470,8 +470,8 @@ void BVHSpatialSplit::split_triangle_reference(const BVHReference &ref,
 
 void BVHSpatialSplit::split_curve_reference(const BVHReference &ref,
                                             const Hair *hair,
-                                            int dim,
-                                            float pos,
+                                            const int dim,
+                                            const float pos,
                                             BoundBox &left_bounds,
                                             BoundBox &right_bounds)
 {
@@ -487,8 +487,8 @@ void BVHSpatialSplit::split_curve_reference(const BVHReference &ref,
 
 void BVHSpatialSplit::split_point_reference(const BVHReference &ref,
                                             const PointCloud *pointcloud,
-                                            int dim,
-                                            float pos,
+                                            const int dim,
+                                            const float pos,
                                             BoundBox &left_bounds,
                                             BoundBox &right_bounds)
 {
@@ -496,8 +496,11 @@ void BVHSpatialSplit::split_point_reference(const BVHReference &ref,
       pointcloud, nullptr, ref.prim_index(), dim, pos, left_bounds, right_bounds);
 }
 
-void BVHSpatialSplit::split_object_reference(
-    const Object *object, int dim, float pos, BoundBox &left_bounds, BoundBox &right_bounds)
+void BVHSpatialSplit::split_object_reference(const Object *object,
+                                             const int dim,
+                                             const float pos,
+                                             BoundBox &left_bounds,
+                                             BoundBox &right_bounds)
 {
   Geometry *geom = object->get_geometry();
 
@@ -531,8 +534,8 @@ void BVHSpatialSplit::split_reference(const BVHBuild &builder,
                                       BVHReference &left,
                                       BVHReference &right,
                                       const BVHReference &ref,
-                                      int dim,
-                                      float pos)
+                                      const int dim,
+                                      const float pos)
 {
   /* Initialize bounding-boxes. */
   BoundBox left_bounds = BoundBox::empty;

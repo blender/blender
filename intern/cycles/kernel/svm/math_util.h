@@ -15,9 +15,9 @@ CCL_NAMESPACE_BEGIN
 ccl_device void svm_vector_math(ccl_private float *value,
                                 ccl_private float3 *vector,
                                 NodeVectorMathType type,
-                                float3 a,
-                                float3 b,
-                                float3 c,
+                                const float3 a,
+                                const float3 b,
+                                const float3 c,
                                 float param1)
 {
   switch (type) {
@@ -108,7 +108,7 @@ ccl_device void svm_vector_math(ccl_private float *value,
   }
 }
 
-ccl_device float svm_math(NodeMathType type, float a, float b, float c)
+ccl_device float svm_math(NodeMathType type, const float a, float b, const float c)
 {
   switch (type) {
     case NODE_MATH_ADD:
@@ -198,7 +198,7 @@ ccl_device float svm_math(NodeMathType type, float a, float b, float c)
   }
 }
 
-ccl_device float3 svm_math_blackbody_color_rec709(float t)
+ccl_device float3 svm_math_blackbody_color_rec709(const float t)
 {
   /* Calculate color in range 800..12000 using an approximation
    * a/x+bx+c for R and G and ((at + b)t + c)t + d) for B.
@@ -232,7 +232,7 @@ ccl_device float3 svm_math_blackbody_color_rec709(float t)
                      ((b[0] * t + b[1]) * t + b[2]) * t + b[3]);
 }
 
-ccl_device_inline float3 svm_math_gamma_color(float3 color, float gamma)
+ccl_device_inline float3 svm_math_gamma_color(float3 color, const float gamma)
 {
   if (gamma == 0.0f) {
     return make_float3(1.0f, 1.0f, 1.0f);
@@ -251,7 +251,7 @@ ccl_device_inline float3 svm_math_gamma_color(float3 color, float gamma)
   return color;
 }
 
-ccl_device float3 svm_math_wavelength_color_xyz(float lambda_nm)
+ccl_device float3 svm_math_wavelength_color_xyz(const float lambda_nm)
 {
   float ii = (lambda_nm - 380.0f) * (1.0f / 5.0f);  // scaled 0..80
   const int i = float_to_int(ii);

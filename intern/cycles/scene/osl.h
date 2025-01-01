@@ -128,12 +128,12 @@ class OSLCompiler {
 
   void parameter(ShaderNode *node, const char *name);
 
-  void parameter(const char *name, float f);
-  void parameter_color(const char *name, float3 f);
-  void parameter_vector(const char *name, float3 f);
-  void parameter_normal(const char *name, float3 f);
-  void parameter_point(const char *name, float3 f);
-  void parameter(const char *name, int f);
+  void parameter(const char *name, const float f);
+  void parameter_color(const char *name, const float3 f);
+  void parameter_vector(const char *name, const float3 f);
+  void parameter_normal(const char *name, const float3 f);
+  void parameter_point(const char *name, const float3 f);
+  void parameter(const char *name, const int f);
   void parameter(const char *name, const char *s);
   void parameter(const char *name, ustring str);
   void parameter(const char *name, const Transform &tfm);
@@ -145,7 +145,7 @@ class OSLCompiler {
 
   void parameter_texture(const char *name, ustring filename, ustring colorspace);
   void parameter_texture(const char *name, const ImageHandle &handle);
-  void parameter_texture_ies(const char *name, int svm_slot);
+  void parameter_texture_ies(const char *name, const int svm_slot);
 
   ShaderType output_type()
   {

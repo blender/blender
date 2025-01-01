@@ -89,12 +89,12 @@ CCL_NAMESPACE_BEGIN
 
 #if !defined(__HIP__) && !defined(__KERNEL_ONEAPI__)
 #  ifdef _WIN32
-ccl_device_inline float fmaxf(float a, float b)
+ccl_device_inline float fmaxf(const float a, const float b)
 {
   return (a > b) ? a : b;
 }
 
-ccl_device_inline float fminf(float a, float b)
+ccl_device_inline float fminf(const float a, const float b)
 {
   return (a < b) ? a : b;
 }
@@ -112,37 +112,37 @@ using std::sqrt;
 #    define isnan(x) sycl::isnan((x))
 #  endif
 
-ccl_device_inline int abs(int x)
+ccl_device_inline int abs(const int x)
 {
   return (x > 0) ? x : -x;
 }
 
-ccl_device_inline int max(int a, int b)
+ccl_device_inline int max(const int a, const int b)
 {
   return (a > b) ? a : b;
 }
 
-ccl_device_inline int min(int a, int b)
+ccl_device_inline int min(const int a, const int b)
 {
   return (a < b) ? a : b;
 }
 
-ccl_device_inline uint32_t max(uint32_t a, uint32_t b)
+ccl_device_inline uint32_t max(const uint32_t a, const uint32_t b)
 {
   return (a > b) ? a : b;
 }
 
-ccl_device_inline uint32_t min(uint32_t a, uint32_t b)
+ccl_device_inline uint32_t min(const uint32_t a, const uint32_t b)
 {
   return (a < b) ? a : b;
 }
 
-ccl_device_inline uint64_t max(uint64_t a, uint64_t b)
+ccl_device_inline uint64_t max(const uint64_t a, const uint64_t b)
 {
   return (a > b) ? a : b;
 }
 
-ccl_device_inline uint64_t min(uint64_t a, uint64_t b)
+ccl_device_inline uint64_t min(const uint64_t a, const uint64_t b)
 {
   return (a < b) ? a : b;
 }
@@ -166,22 +166,22 @@ ccl_device_inline typename std::enable_if_t<std::is_same_v<T, size_t>, T> min(T 
   return (a < b) ? a : b;
 }
 
-ccl_device_inline float max(float a, float b)
+ccl_device_inline float max(const float a, const float b)
 {
   return (a > b) ? a : b;
 }
 
-ccl_device_inline float min(float a, float b)
+ccl_device_inline float min(const float a, const float b)
 {
   return (a < b) ? a : b;
 }
 
-ccl_device_inline double max(double a, double b)
+ccl_device_inline double max(const double a, const double b)
 {
   return (a > b) ? a : b;
 }
 
-ccl_device_inline double min(double a, double b)
+ccl_device_inline double min(const double a, const double b)
 {
   return (a < b) ? a : b;
 }
@@ -203,12 +203,12 @@ template<typename T> ccl_device_inline T max4(const T &a, const T &b, const T &c
 }
 #endif /* __KERNEL_GPU__ */
 
-ccl_device_inline float min4(float a, float b, float c, float d)
+ccl_device_inline float min4(const float a, const float b, float c, const float d)
 {
   return min(min(a, b), min(c, d));
 }
 
-ccl_device_inline float max4(float a, float b, float c, float d)
+ccl_device_inline float max4(const float a, const float b, float c, const float d)
 {
   return max(max(a, b), max(c, d));
 }
@@ -216,7 +216,7 @@ ccl_device_inline float max4(float a, float b, float c, float d)
 #if !defined(__KERNEL_METAL__) && !defined(__KERNEL_ONEAPI__)
 /* Int/Float conversion */
 
-ccl_device_inline int as_int(uint i)
+ccl_device_inline int as_int(const uint i)
 {
   union {
     uint ui;
@@ -226,7 +226,7 @@ ccl_device_inline int as_int(uint i)
   return u.i;
 }
 
-ccl_device_inline uint as_uint(int i)
+ccl_device_inline uint as_uint(const int i)
 {
   union {
     uint ui;
@@ -236,7 +236,7 @@ ccl_device_inline uint as_uint(int i)
   return u.ui;
 }
 
-ccl_device_inline uint as_uint(float f)
+ccl_device_inline uint as_uint(const float f)
 {
   union {
     uint i;
@@ -247,7 +247,7 @@ ccl_device_inline uint as_uint(float f)
 }
 
 #  ifndef __HIP__
-ccl_device_inline int __float_as_int(float f)
+ccl_device_inline int __float_as_int(const float f)
 {
   union {
     int i;
@@ -257,7 +257,7 @@ ccl_device_inline int __float_as_int(float f)
   return u.i;
 }
 
-ccl_device_inline float __int_as_float(int i)
+ccl_device_inline float __int_as_float(const int i)
 {
   union {
     int i;
@@ -267,7 +267,7 @@ ccl_device_inline float __int_as_float(int i)
   return u.f;
 }
 
-ccl_device_inline uint __float_as_uint(float f)
+ccl_device_inline uint __float_as_uint(const float f)
 {
   union {
     uint i;
@@ -277,7 +277,7 @@ ccl_device_inline uint __float_as_uint(float f)
   return u.i;
 }
 
-ccl_device_inline float __uint_as_float(uint i)
+ccl_device_inline float __uint_as_float(const uint i)
 {
   union {
     uint i;
@@ -291,12 +291,12 @@ ccl_device_inline float __uint_as_float(uint i)
 #endif /* !defined(__KERNEL_METAL__) */
 
 #if defined(__KERNEL_METAL__)
-ccl_device_forceinline bool isnan_safe(float f)
+ccl_device_forceinline bool isnan_safe(const float f)
 {
   return isnan(f);
 }
 
-ccl_device_forceinline bool isfinite_safe(float f)
+ccl_device_forceinline bool isfinite_safe(const float f)
 {
   return isfinite(f);
 }
@@ -332,13 +332,13 @@ ccl_device_inline uint uint16_unpack_from_uint_1(const uint i)
 }
 
 /* Versions of functions which are safe for fast math. */
-ccl_device_inline bool isnan_safe(float f)
+ccl_device_inline bool isnan_safe(const float f)
 {
   const unsigned int x = __float_as_uint(f);
   return (x << 1) > 0xff000000u;
 }
 
-ccl_device_inline bool isfinite_safe(float f)
+ccl_device_inline bool isfinite_safe(const float f)
 {
   /* By IEEE 754 rule, 2*Inf equals Inf */
   const unsigned int x = __float_as_uint(f);
@@ -346,28 +346,28 @@ ccl_device_inline bool isfinite_safe(float f)
 }
 #endif
 
-ccl_device_inline float ensure_finite(float v)
+ccl_device_inline float ensure_finite(const float v)
 {
   return isfinite_safe(v) ? v : 0.0f;
 }
 
 #if !defined(__KERNEL_METAL__)
-ccl_device_inline int clamp(int a, int mn, int mx)
+ccl_device_inline int clamp(const int a, const int mn, const int mx)
 {
   return min(max(a, mn), mx);
 }
 
-ccl_device_inline float clamp(float a, float mn, float mx)
+ccl_device_inline float clamp(const float a, const float mn, const float mx)
 {
   return min(max(a, mn), mx);
 }
 
-ccl_device_inline float mix(float a, float b, float t)
+ccl_device_inline float mix(const float a, const float b, float t)
 {
   return a + t * (b - a);
 }
 
-ccl_device_inline float smoothstep(float edge0, float edge1, float x)
+ccl_device_inline float smoothstep(const float edge0, const float edge1, const float x)
 {
   float result;
   if (x < edge0) {
@@ -386,57 +386,57 @@ ccl_device_inline float smoothstep(float edge0, float edge1, float x)
 #endif /* !defined(__KERNEL_METAL__) */
 
 #if defined(__KERNEL_CUDA__)
-ccl_device_inline float saturatef(float a)
+ccl_device_inline float saturatef(const float a)
 {
   return __saturatef(a);
 }
 #elif !defined(__KERNEL_METAL__)
-ccl_device_inline float saturatef(float a)
+ccl_device_inline float saturatef(const float a)
 {
   return clamp(a, 0.0f, 1.0f);
 }
 #endif /* __KERNEL_CUDA__ */
 
-ccl_device_inline int float_to_int(float f)
+ccl_device_inline int float_to_int(const float f)
 {
   return (int)f;
 }
 
-ccl_device_inline int floor_to_int(float f)
+ccl_device_inline int floor_to_int(const float f)
 {
   return float_to_int(floorf(f));
 }
 
-ccl_device_inline float floorfrac(float x, ccl_private int *i)
+ccl_device_inline float floorfrac(const float x, ccl_private int *i)
 {
   const float f = floorf(x);
   *i = float_to_int(f);
   return x - f;
 }
 
-ccl_device_inline int ceil_to_int(float f)
+ccl_device_inline int ceil_to_int(const float f)
 {
   return float_to_int(ceilf(f));
 }
 
-ccl_device_inline float fractf(float x)
+ccl_device_inline float fractf(const float x)
 {
   return x - floorf(x);
 }
 
 /* Adapted from `godot-engine` math_funcs.h. */
-ccl_device_inline float wrapf(float value, float max, float min)
+ccl_device_inline float wrapf(const float value, const float max, const float min)
 {
   const float range = max - min;
   return (range != 0.0f) ? value - (range * floorf((value - min) / range)) : min;
 }
 
-ccl_device_inline float pingpongf(float a, float b)
+ccl_device_inline float pingpongf(const float a, const float b)
 {
   return (b != 0.0f) ? fabsf(fractf((a - b) / (b * 2.0f)) * b * 2.0f - b) : 0.0f;
 }
 
-ccl_device_inline float smoothminf(float a, float b, float k)
+ccl_device_inline float smoothminf(const float a, const float b, float k)
 {
   if (k != 0.0f) {
     const float h = fmaxf(k - fabsf(a - b), 0.0f) / k;
@@ -445,12 +445,12 @@ ccl_device_inline float smoothminf(float a, float b, float k)
   return fminf(a, b);
 }
 
-ccl_device_inline float signf(float f)
+ccl_device_inline float signf(const float f)
 {
   return (f < 0.0f) ? -1.0f : 1.0f;
 }
 
-ccl_device_inline float nonzerof(float f, float eps)
+ccl_device_inline float nonzerof(const float f, const float eps)
 {
   if (fabsf(f) < eps) {
     return signf(f) * eps;
@@ -467,7 +467,7 @@ ccl_device_inline float compatible_atan2(const float y, const float x)
 }
 
 /* `signum` function testing for zero. Matches GLSL and OSL functions. */
-ccl_device_inline float compatible_signf(float f)
+ccl_device_inline float compatible_signf(const float f)
 {
   if (f == 0.0f) {
     return 0.0f;
@@ -475,7 +475,7 @@ ccl_device_inline float compatible_signf(float f)
   return signf(f);
 }
 
-ccl_device_inline float smoothstepf(float f)
+ccl_device_inline float smoothstepf(const float f)
 {
   if (f <= 0.0f) {
     return 0.0f;
@@ -487,18 +487,18 @@ ccl_device_inline float smoothstepf(float f)
   return (3.0f * ff - 2.0f * ff * f);
 }
 
-ccl_device_inline int mod(int x, int m)
+ccl_device_inline int mod(const int x, const int m)
 {
   return (x % m + m) % m;
 }
 
-ccl_device_inline float inverse_lerp(float a, float b, float x)
+ccl_device_inline float inverse_lerp(const float a, const float b, float x)
 {
   return (x - a) / (b - a);
 }
 
 /* Cubic interpolation between b and c, a and d are the previous and next point. */
-ccl_device_inline float cubic_interp(float a, float b, float c, float d, float x)
+ccl_device_inline float cubic_interp(const float a, const float b, float c, const float d, float x)
 {
   return 0.5f *
              (((d + 3.0f * (b - c) - a) * x + (2.0f * a - 5.0f * b + 4.0f * c - d)) * x +
@@ -509,12 +509,12 @@ ccl_device_inline float cubic_interp(float a, float b, float c, float d, float x
 
 /* NaN-safe math ops */
 
-ccl_device_inline float safe_sqrtf(float f)
+ccl_device_inline float safe_sqrtf(const float f)
 {
   return sqrtf(max(f, 0.0f));
 }
 
-ccl_device_inline float inversesqrtf(float f)
+ccl_device_inline float inversesqrtf(const float f)
 {
 #if defined(__KERNEL_METAL__)
   return (f > 0.0f) ? rsqrt(f) : 0.0f;
@@ -523,17 +523,17 @@ ccl_device_inline float inversesqrtf(float f)
 #endif
 }
 
-ccl_device float safe_asinf(float a)
+ccl_device float safe_asinf(const float a)
 {
   return asinf(clamp(a, -1.0f, 1.0f));
 }
 
-ccl_device float safe_acosf(float a)
+ccl_device float safe_acosf(const float a)
 {
   return acosf(clamp(a, -1.0f, 1.0f));
 }
 
-ccl_device float compatible_powf(float x, float y)
+ccl_device float compatible_powf(const float x, const float y)
 {
 #ifdef __KERNEL_GPU__
   if (y == 0.0f) /* x^0 -> 1, including 0^0 */
@@ -552,7 +552,7 @@ ccl_device float compatible_powf(float x, float y)
   return powf(x, y);
 }
 
-ccl_device float safe_powf(float a, float b)
+ccl_device float safe_powf(const float a, const float b)
 {
   if (UNLIKELY(a < 0.0f && b != float_to_int(b))) {
     return 0.0f;
@@ -561,12 +561,12 @@ ccl_device float safe_powf(float a, float b)
   return compatible_powf(a, b);
 }
 
-ccl_device float safe_divide(float a, float b)
+ccl_device float safe_divide(const float a, const float b)
 {
   return (b != 0.0f) ? a / b : 0.0f;
 }
 
-ccl_device float safe_logf(float a, float b)
+ccl_device float safe_logf(const float a, const float b)
 {
   if (UNLIKELY(a <= 0.0f || b <= 0.0f)) {
     return 0.0f;
@@ -575,17 +575,17 @@ ccl_device float safe_logf(float a, float b)
   return safe_divide(logf(a), logf(b));
 }
 
-ccl_device float safe_modulo(float a, float b)
+ccl_device float safe_modulo(const float a, const float b)
 {
   return (b != 0.0f) ? fmodf(a, b) : 0.0f;
 }
 
-ccl_device float safe_floored_modulo(float a, float b)
+ccl_device float safe_floored_modulo(const float a, const float b)
 {
   return (b != 0.0f) ? a - floorf(a / b) * b : 0.0f;
 }
 
-ccl_device_inline float sqr(float a)
+ccl_device_inline float sqr(const float a)
 {
   return a * a;
 }
@@ -612,18 +612,18 @@ ccl_device_inline float one_minus_cos(const float angle)
   return angle > 0.02f ? 1.0f - cosf(angle) : 0.5f * sqr(angle);
 }
 
-ccl_device_inline float pow20(float a)
+ccl_device_inline float pow20(const float a)
 {
   return sqr(sqr(sqr(sqr(a)) * a));
 }
 
-ccl_device_inline float pow22(float a)
+ccl_device_inline float pow22(const float a)
 {
   return sqr(a * sqr(sqr(sqr(a)) * a));
 }
 
 #ifdef __KERNEL_METAL__
-ccl_device_inline float lgammaf(float x)
+ccl_device_inline float lgammaf(const float x)
 {
   /* Nemes, Gergő (2010), "New asymptotic expansion for the Gamma function", Archiv der Mathematik
    */
@@ -636,29 +636,29 @@ ccl_device_inline float lgammaf(float x)
 }
 #endif
 
-ccl_device_inline float beta(float x, float y)
+ccl_device_inline float beta(const float x, const float y)
 {
   return expf(lgammaf(x) + lgammaf(y) - lgammaf(x + y));
 }
 
-ccl_device_inline float xor_signmask(float x, int y)
+ccl_device_inline float xor_signmask(const float x, const int y)
 {
   return __int_as_float(__float_as_int(x) ^ y);
 }
 
-ccl_device float bits_to_01(uint bits)
+ccl_device float bits_to_01(const uint bits)
 {
   return bits * (1.0f / (float)0xFFFFFFFF);
 }
 
 #if !defined(__KERNEL_GPU__)
 #  if defined(__GNUC__)
-ccl_device_inline uint popcount(uint x)
+ccl_device_inline uint popcount(const uint x)
 {
   return __builtin_popcount(x);
 }
 #  else
-ccl_device_inline uint popcount(uint x)
+ccl_device_inline uint popcount(const uint x)
 {
   /* TODO(Stefan): pop-count intrinsic for Windows with fallback for older CPUs. */
   uint i = x;
@@ -677,7 +677,7 @@ ccl_device_inline uint popcount(uint x)
 #  define popcount(x) __popc(x)
 #endif
 
-ccl_device_inline uint count_leading_zeros(uint x)
+ccl_device_inline uint count_leading_zeros(const uint x)
 {
 #if defined(__KERNEL_CUDA__) || defined(__KERNEL_OPTIX__) || defined(__KERNEL_HIP__)
   return __clz(x);
@@ -697,7 +697,7 @@ ccl_device_inline uint count_leading_zeros(uint x)
 #endif
 }
 
-ccl_device_inline uint count_trailing_zeros(uint x)
+ccl_device_inline uint count_trailing_zeros(const uint x)
 {
 #if defined(__KERNEL_CUDA__) || defined(__KERNEL_OPTIX__) || defined(__KERNEL_HIP__)
   return (__ffs(x) - 1);
@@ -717,7 +717,7 @@ ccl_device_inline uint count_trailing_zeros(uint x)
 #endif
 }
 
-ccl_device_inline uint find_first_set(uint x)
+ccl_device_inline uint find_first_set(const uint x)
 {
 #if defined(__KERNEL_CUDA__) || defined(__KERNEL_OPTIX__) || defined(__KERNEL_HIP__)
   return __ffs(x);
@@ -739,7 +739,10 @@ ccl_device_inline uint find_first_set(uint x)
  * https://randomascii.wordpress.com/2012/02/25/comparing-floating-point-numbers-2012-edition/
  */
 
-ccl_device_inline bool compare_floats(float a, float b, float abs_diff, int ulp_diff)
+ccl_device_inline bool compare_floats(const float a,
+                                      const float b,
+                                      float abs_diff,
+                                      const int ulp_diff)
 {
   if (fabsf(a - b) < abs_diff) {
     return true;
@@ -753,13 +756,13 @@ ccl_device_inline bool compare_floats(float a, float b, float abs_diff, int ulp_
 }
 
 /* Return value which is greater than the given one and is a power of two. */
-ccl_device_inline uint next_power_of_two(uint x)
+ccl_device_inline uint next_power_of_two(const uint x)
 {
   return x == 0 ? 1 : 1 << (32 - count_leading_zeros(x));
 }
 
 /* Return value which is lower than the given one and is a power of two. */
-ccl_device_inline uint prev_power_of_two(uint x)
+ccl_device_inline uint prev_power_of_two(const uint x)
 {
   return x < 2 ? x : 1 << (31 - count_leading_zeros(x - 1));
 }

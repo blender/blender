@@ -123,18 +123,18 @@ ccl_device_inline float3 transform_direction_transposed(const ccl_private Transf
   return make_float3(dot(x, a), dot(y, a), dot(z, a));
 }
 
-ccl_device_inline Transform make_transform(float a,
-                                           float b,
-                                           float c,
-                                           float d,
-                                           float e,
-                                           float f,
-                                           float g,
-                                           float h,
-                                           float i,
-                                           float j,
-                                           float k,
-                                           float l)
+ccl_device_inline Transform make_transform(const float a,
+                                           const float b,
+                                           const float c,
+                                           const float d,
+                                           const float e,
+                                           const float f,
+                                           const float g,
+                                           const float h,
+                                           const float i,
+                                           const float j,
+                                           const float k,
+                                           const float l)
 {
   Transform t;
 
@@ -192,7 +192,7 @@ ccl_device_inline Transform euler_to_transform(const float3 euler)
 }
 
 /* Constructs a coordinate frame from a normalized normal. */
-ccl_device_inline Transform make_transform_frame(float3 N)
+ccl_device_inline Transform make_transform_frame(const float3 N)
 {
   const float3 dx0 = cross(make_float3(1.0f, 0.0f, 0.0f), N);
   const float3 dx1 = cross(make_float3(0.0f, 1.0f, 0.0f), N);
@@ -234,27 +234,27 @@ ccl_device_inline void print_transform(const char *label, const Transform &t)
   printf("\n");
 }
 
-ccl_device_inline Transform transform_translate(float3 t)
+ccl_device_inline Transform transform_translate(const float3 t)
 {
   return make_transform(1, 0, 0, t.x, 0, 1, 0, t.y, 0, 0, 1, t.z);
 }
 
-ccl_device_inline Transform transform_translate(float x, float y, float z)
+ccl_device_inline Transform transform_translate(const float x, const float y, float z)
 {
   return transform_translate(make_float3(x, y, z));
 }
 
-ccl_device_inline Transform transform_scale(float3 s)
+ccl_device_inline Transform transform_scale(const float3 s)
 {
   return make_transform(s.x, 0, 0, 0, 0, s.y, 0, 0, 0, 0, s.z, 0);
 }
 
-ccl_device_inline Transform transform_scale(float x, float y, float z)
+ccl_device_inline Transform transform_scale(const float x, const float y, float z)
 {
   return transform_scale(make_float3(x, y, z));
 }
 
-ccl_device_inline Transform transform_rotate(float angle, float3 axis)
+ccl_device_inline Transform transform_rotate(const float angle, float3 axis)
 {
   const float s = sinf(angle);
   const float c = cosf(angle);
@@ -279,7 +279,7 @@ ccl_device_inline Transform transform_rotate(float angle, float3 axis)
 }
 
 /* Euler is assumed to be in XYZ order. */
-ccl_device_inline Transform transform_euler(float3 euler)
+ccl_device_inline Transform transform_euler(const float3 euler)
 {
   return transform_rotate(euler.z, make_float3(0.0f, 0.0f, 1.0f)) *
          transform_rotate(euler.y, make_float3(0.0f, 1.0f, 0.0f)) *
@@ -316,12 +316,12 @@ ccl_device_inline bool transform_equal_threshold(const Transform &A,
   return true;
 }
 
-ccl_device_inline float3 transform_get_column(const Transform *t, int column)
+ccl_device_inline float3 transform_get_column(const Transform *t, const int column)
 {
   return make_float3(t->x[column], t->y[column], t->z[column]);
 }
 
-ccl_device_inline void transform_set_column(Transform *t, int column, float3 value)
+ccl_device_inline void transform_set_column(Transform *t, const int column, const float3 value)
 {
   t->x[column] = value.x;
   t->y[column] = value.y;
@@ -382,7 +382,7 @@ ccl_device_inline Transform transform_empty()
 
 /* Motion Transform */
 
-ccl_device_inline float4 quat_interpolate(float4 q1, float4 q2, float t)
+ccl_device_inline float4 quat_interpolate(const float4 q1, const float4 q2, const float t)
 {
   /* Optix and MetalRT are using linear interpolation to interpolate motion transformations. */
 #if defined(__KERNEL_GPU_RAYTRACING__)
@@ -561,8 +561,8 @@ ccl_device_inline void transform_compose(ccl_private Transform *tfm,
 /* Interpolate from array of decomposed transforms. */
 ccl_device void transform_motion_array_interpolate(ccl_private Transform *tfm,
                                                    const ccl_global DecomposedTransform *motion,
-                                                   uint numsteps,
-                                                   float time)
+                                                   const uint numsteps,
+                                                   const float time)
 {
   /* Figure out which steps we need to interpolate. */
   const int maxstep = numsteps - 1;
@@ -604,7 +604,9 @@ ccl_device_inline bool operator==(const DecomposedTransform &A, const Decomposed
 }
 
 float4 transform_to_quat(const Transform &tfm);
-void transform_motion_decompose(DecomposedTransform *decomp, const Transform *motion, size_t size);
+void transform_motion_decompose(DecomposedTransform *decomp,
+                                const Transform *motion,
+                                const size_t size);
 Transform transform_from_viewplane(BoundBox2D &viewplane);
 
 #endif

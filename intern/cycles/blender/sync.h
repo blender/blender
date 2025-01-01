@@ -58,8 +58,8 @@ class BlenderSync {
                  BL::Depsgraph &b_depsgraph,
                  BL::SpaceView3D &b_v3d,
                  BL::Object &b_override,
-                 int width,
-                 int height,
+                 const int width,
+                 const int height,
                  void **python_thread_state,
                  const DeviceInfo &denoise_device_info);
   void sync_view_layer(BL::ViewLayer &b_view_layer);
@@ -69,10 +69,13 @@ class BlenderSync {
                        const DeviceInfo &denoise_device_info);
   void sync_camera(BL::RenderSettings &b_render,
                    BL::Object &b_override,
-                   int width,
-                   int height,
+                   const int width,
+                   const int height,
                    const char *viewname);
-  void sync_view(BL::SpaceView3D &b_v3d, BL::RegionView3D &b_rv3d, int width, int height);
+  void sync_view(BL::SpaceView3D &b_v3d,
+                 BL::RegionView3D &b_rv3d,
+                 const int width,
+                 const int height);
   int get_layer_samples()
   {
     return view_layer.samples;
@@ -94,8 +97,11 @@ class BlenderSync {
                                           BL::Scene &b_scene,
                                           bool background);
   static bool get_session_pause(BL::Scene &b_scene, bool background);
-  static BufferParams get_buffer_params(
-      BL::SpaceView3D &b_v3d, BL::RegionView3D &b_rv3d, Camera *cam, int width, int height);
+  static BufferParams get_buffer_params(BL::SpaceView3D &b_v3d,
+                                        BL::RegionView3D &b_rv3d,
+                                        Camera *cam,
+                                        const int width,
+                                        const int height);
 
   static DenoiseParams get_denoise_params(BL::Scene &b_scene,
                                           BL::ViewLayer &b_view_layer,
@@ -106,13 +112,15 @@ class BlenderSync {
   /* sync */
   void sync_lights(BL::Depsgraph &b_depsgraph, bool update_all);
   void sync_materials(BL::Depsgraph &b_depsgraph, bool update_all);
-  void sync_objects(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d, float motion_time = 0.0f);
+  void sync_objects(BL::Depsgraph &b_depsgraph,
+                    BL::SpaceView3D &b_v3d,
+                    const float motion_time = 0.0f);
   void sync_motion(BL::RenderSettings &b_render,
                    BL::Depsgraph &b_depsgraph,
                    BL::SpaceView3D &b_v3d,
                    BL::Object &b_override,
-                   int width,
-                   int height,
+                   const int width,
+                   const int height,
                    void **python_thread_state);
   void sync_film(BL::ViewLayer &b_view_layer, BL::SpaceView3D &b_v3d);
   void sync_view();
@@ -132,7 +140,7 @@ class BlenderSync {
   Object *sync_object(BL::Depsgraph &b_depsgraph,
                       BL::ViewLayer &b_view_layer,
                       BL::DepsgraphObjectInstance &b_instance,
-                      float motion_time,
+                      const float motion_time,
                       bool use_particle_hair,
                       bool show_lights,
                       BlenderObjectCulling &culling,
@@ -162,18 +170,26 @@ class BlenderSync {
                         BObjectInfo &b_ob_info,
                         Hair *hair,
                         int motion_step);
-  void sync_hair(Hair *hair, BObjectInfo &b_ob_info, bool motion, int motion_step = 0);
-  void sync_particle_hair(
-      Hair *hair, BL::Mesh &b_mesh, BObjectInfo &b_ob_info, bool motion, int motion_step = 0);
+  void sync_hair(Hair *hair, BObjectInfo &b_ob_info, bool motion, const int motion_step = 0);
+  void sync_particle_hair(Hair *hair,
+                          BL::Mesh &b_mesh,
+                          BObjectInfo &b_ob_info,
+                          bool motion,
+                          const int motion_step = 0);
   bool object_has_particle_hair(BL::Object b_ob);
 
   /* Point Cloud */
   void sync_pointcloud(PointCloud *pointcloud, BObjectInfo &b_ob_info);
-  void sync_pointcloud_motion(PointCloud *pointcloud, BObjectInfo &b_ob_info, int motion_step = 0);
+  void sync_pointcloud_motion(PointCloud *pointcloud,
+                              BObjectInfo &b_ob_info,
+                              const int motion_step = 0);
 
   /* Camera */
-  void sync_camera_motion(
-      BL::RenderSettings &b_render, BL::Object &b_ob, int width, int height, float motion_time);
+  void sync_camera_motion(BL::RenderSettings &b_render,
+                          BL::Object &b_ob,
+                          const int width,
+                          const int height,
+                          const float motion_time);
 
   /* Geometry */
   Geometry *sync_geometry(BL::Depsgraph &b_depsgraph,
@@ -185,7 +201,7 @@ class BlenderSync {
   void sync_geometry_motion(BL::Depsgraph &b_depsgraph,
                             BObjectInfo &b_ob_info,
                             Object *object,
-                            float motion_time,
+                            const float motion_time,
                             bool use_particle_hair,
                             TaskPool *task_pool);
 
@@ -193,7 +209,7 @@ class BlenderSync {
   void sync_light(BL::Object &b_parent,
                   int persistent_id[OBJECT_PERSISTENT_ID_SIZE],
                   BObjectInfo &b_ob_info,
-                  int random_id,
+                  const int random_id,
                   Transform &tfm,
                   bool *use_portal);
   void sync_background_light(BL::SpaceView3D &b_v3d, bool use_portal);

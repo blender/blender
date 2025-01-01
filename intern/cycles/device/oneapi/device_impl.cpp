@@ -151,7 +151,7 @@ bool OneapiDevice::check_peer_access(Device * /*peer_device*/)
   return false;
 }
 
-bool OneapiDevice::can_use_hardware_raytracing_for_features(uint requested_features) const
+bool OneapiDevice::can_use_hardware_raytracing_for_features(const uint requested_features) const
 {
   /* MNEE and Ray-trace kernels work correctly with Hardware Ray-tracing starting with Embree 4.1.
    */
@@ -163,7 +163,7 @@ bool OneapiDevice::can_use_hardware_raytracing_for_features(uint requested_featu
 #  endif
 }
 
-BVHLayoutMask OneapiDevice::get_bvh_layout_mask(uint requested_features) const
+BVHLayoutMask OneapiDevice::get_bvh_layout_mask(const uint requested_features) const
 {
   return (use_hardware_raytracing &&
           can_use_hardware_raytracing_for_features(requested_features)) ?
@@ -309,7 +309,7 @@ void OneapiDevice::get_device_memory_info(size_t &total, size_t &free)
   total = max_memory_on_device_;
 }
 
-bool OneapiDevice::alloc_device(void *&device_pointer, size_t size)
+bool OneapiDevice::alloc_device(void *&device_pointer, const size_t size)
 {
   bool allocation_success = false;
   device_pointer = usm_alloc_device(device_queue_, size);
@@ -335,7 +335,7 @@ void OneapiDevice::free_device(void *device_pointer)
   usm_free(device_queue_, device_pointer);
 }
 
-bool OneapiDevice::alloc_host(void *&shared_pointer, size_t size)
+bool OneapiDevice::alloc_host(void *&shared_pointer, const size_t size)
 {
   shared_pointer = usm_aligned_alloc_host(device_queue_, size, 64);
   return shared_pointer != nullptr;
@@ -353,7 +353,7 @@ void OneapiDevice::transform_host_pointer(void *&device_pointer, void *&shared_p
   device_pointer = shared_pointer;
 }
 
-void OneapiDevice::copy_host_to_device(void *device_pointer, void *host_pointer, size_t size)
+void OneapiDevice::copy_host_to_device(void *device_pointer, void *host_pointer, const size_t size)
 {
   usm_memcpy(device_queue_, device_pointer, host_pointer, size);
 }
@@ -428,7 +428,8 @@ void OneapiDevice::mem_copy_to(device_memory &mem)
   }
 }
 
-void OneapiDevice::mem_copy_from(device_memory &mem, size_t y, size_t w, size_t h, size_t elem)
+void OneapiDevice::mem_copy_from(
+    device_memory &mem, const size_t y, size_t w, const size_t h, size_t elem)
 {
   if (mem.type == MEM_TEXTURE || mem.type == MEM_GLOBAL) {
     assert(!"mem_copy_from not supported for textures.");
@@ -514,13 +515,15 @@ void OneapiDevice::mem_free(device_memory &mem)
   }
 }
 
-device_ptr OneapiDevice::mem_alloc_sub_ptr(device_memory &mem, size_t offset, size_t /*size*/)
+device_ptr OneapiDevice::mem_alloc_sub_ptr(device_memory &mem,
+                                           const size_t offset,
+                                           size_t /*size*/)
 {
   return reinterpret_cast<device_ptr>(reinterpret_cast<char *>(mem.device_pointer) +
                                       mem.memory_elements_size(offset));
 }
 
-void OneapiDevice::const_copy_to(const char *name, void *host, size_t size)
+void OneapiDevice::const_copy_to(const char *name, void *host, const size_t size)
 {
   assert(name);
 
@@ -623,7 +626,7 @@ bool OneapiDevice::should_use_graphics_interop()
   return false;
 }
 
-void *OneapiDevice::usm_aligned_alloc_host(size_t memory_size, size_t alignment)
+void *OneapiDevice::usm_aligned_alloc_host(const size_t memory_size, const size_t alignment)
 {
   assert(device_queue_);
   return usm_aligned_alloc_host(device_queue_, memory_size, alignment);
@@ -661,7 +664,7 @@ void OneapiDevice::check_usm(SyclQueue *queue_, const void *usm_ptr, bool allow_
 }
 
 bool OneapiDevice::create_queue(SyclQueue *&external_queue,
-                                int device_index,
+                                const int device_index,
                                 void *embree_device_pointer)
 {
   bool finished_correct = true;
@@ -702,7 +705,9 @@ void OneapiDevice::free_queue(SyclQueue *queue_)
   delete queue;
 }
 
-void *OneapiDevice::usm_aligned_alloc_host(SyclQueue *queue_, size_t memory_size, size_t alignment)
+void *OneapiDevice::usm_aligned_alloc_host(SyclQueue *queue_,
+                                           size_t memory_size,
+                                           const size_t alignment)
 {
   assert(queue_);
   sycl::queue *queue = reinterpret_cast<sycl::queue *>(queue_);
@@ -738,7 +743,7 @@ void OneapiDevice::usm_free(SyclQueue *queue_, void *usm_ptr)
   sycl::free(usm_ptr, *queue);
 }
 
-bool OneapiDevice::usm_memcpy(SyclQueue *queue_, void *dest, void *src, size_t num_bytes)
+bool OneapiDevice::usm_memcpy(SyclQueue *queue_, void *dest, void *src, const size_t num_bytes)
 {
   assert(queue_);
   /* sycl::queue::memcpy may crash if the queue is in an invalid state due to previous
@@ -793,7 +798,7 @@ bool OneapiDevice::usm_memcpy(SyclQueue *queue_, void *dest, void *src, size_t n
 bool OneapiDevice::usm_memset(SyclQueue *queue_,
                               void *usm_ptr,
                               unsigned char value,
-                              size_t num_bytes)
+                              const size_t num_bytes)
 {
   assert(queue_);
   /* sycl::queue::memset may crash if the queue is in an invalid state due to previous
@@ -881,8 +886,11 @@ void OneapiDevice::set_global_memory(SyclQueue *queue_,
 #  undef KERNEL_DATA_ARRAY
 }
 
-bool OneapiDevice::enqueue_kernel(
-    KernelContext *kernel_context, int kernel, size_t global_size, size_t local_size, void **args)
+bool OneapiDevice::enqueue_kernel(KernelContext *kernel_context,
+                                  const int kernel,
+                                  const size_t global_size,
+                                  const size_t local_size,
+                                  void **args)
 {
   return oneapi_enqueue_kernel(kernel_context,
                                kernel,

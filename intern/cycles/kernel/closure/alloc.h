@@ -9,7 +9,7 @@
 CCL_NAMESPACE_BEGIN
 
 ccl_device ccl_private ShaderClosure *closure_alloc(ccl_private ShaderData *sd,
-                                                    int size,
+                                                    const int size,
                                                     ClosureType type,
                                                     Spectrum weight)
 {
@@ -30,7 +30,7 @@ ccl_device ccl_private ShaderClosure *closure_alloc(ccl_private ShaderData *sd,
   return sc;
 }
 
-ccl_device ccl_private void *closure_alloc_extra(ccl_private ShaderData *sd, int size)
+ccl_device ccl_private void *closure_alloc_extra(ccl_private ShaderData *sd, const int size)
 {
   /* Allocate extra space for closure that need more parameters. We allocate
    * in chunks of sizeof(ShaderClosure) starting from the end of the closure
@@ -52,7 +52,7 @@ ccl_device ccl_private void *closure_alloc_extra(ccl_private ShaderData *sd, int
 }
 
 ccl_device_inline ccl_private ShaderClosure *bsdf_alloc(ccl_private ShaderData *sd,
-                                                        int size,
+                                                        const int size,
                                                         Spectrum weight)
 {
   kernel_assert(isfinite_safe(weight));

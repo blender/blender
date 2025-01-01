@@ -85,15 +85,15 @@ class ShaderInput {
     return socket_type.type;
   }
 
-  void set(float f)
+  void set(const float f)
   {
     ((Node *)parent)->set(socket_type, f);
   }
-  void set(float3 f)
+  void set(const float3 f)
   {
     ((Node *)parent)->set(socket_type, f);
   }
-  void set(int f)
+  void set(const int f)
   {
     ((Node *)parent)->set(socket_type, f);
   }

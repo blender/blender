@@ -16,7 +16,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Equirectangular coordinates <-> Cartesian direction */
 
-ccl_device float2 direction_to_equirectangular_range(float3 dir, float4 range)
+ccl_device float2 direction_to_equirectangular_range(const float3 dir, const float4 range)
 {
   if (is_zero(dir)) {
     return zero_float2();
@@ -28,24 +28,26 @@ ccl_device float2 direction_to_equirectangular_range(float3 dir, float4 range)
   return make_float2(u, v);
 }
 
-ccl_device float3 equirectangular_range_to_direction(float u, float v, float4 range)
+ccl_device float3 equirectangular_range_to_direction(const float u,
+                                                     const float v,
+                                                     const float4 range)
 {
   const float phi = range.x * u + range.y;
   const float theta = range.z * v + range.w;
   return spherical_to_direction(theta, phi);
 }
 
-ccl_device float2 direction_to_equirectangular(float3 dir)
+ccl_device float2 direction_to_equirectangular(const float3 dir)
 {
   return direction_to_equirectangular_range(dir, make_float4(-M_2PI_F, M_PI_F, -M_PI_F, M_PI_F));
 }
 
-ccl_device float3 equirectangular_to_direction(float u, float v)
+ccl_device float3 equirectangular_to_direction(const float u, const float v)
 {
   return equirectangular_range_to_direction(u, v, make_float4(-M_2PI_F, M_PI_F, -M_PI_F, M_PI_F));
 }
 
-ccl_device float2 direction_to_central_cylindrical(float3 dir, float4 range)
+ccl_device float2 direction_to_central_cylindrical(const float3 dir, const float4 range)
 {
   const float z = dir.z / len(make_float2(dir.x, dir.y));
   const float theta = atan2f(dir.y, dir.x);
@@ -54,7 +56,9 @@ ccl_device float2 direction_to_central_cylindrical(float3 dir, float4 range)
   return make_float2(u, v);
 }
 
-ccl_device float3 central_cylindrical_to_direction(float u, float v, float4 range)
+ccl_device float3 central_cylindrical_to_direction(const float u,
+                                                   const float v,
+                                                   const float4 range)
 {
   const float theta = mix(range.x, range.y, u);
   const float z = mix(range.z, range.w, v);
@@ -63,7 +67,10 @@ ccl_device float3 central_cylindrical_to_direction(float u, float v, float4 rang
 
 /* Fisheye <-> Cartesian direction */
 
-ccl_device_inline float3 fisheye_to_direction(float theta, float u, float v, float r)
+ccl_device_inline float3 fisheye_to_direction(const float theta,
+                                              const float u,
+                                              float v,
+                                              const float r)
 {
   float phi = safe_acosf(safe_divide(u, r));
   if (v < 0.0f) {
@@ -73,7 +80,7 @@ ccl_device_inline float3 fisheye_to_direction(float theta, float u, float v, flo
   return make_float3(cosf(theta), -cosf(phi) * sinf(theta), sinf(phi) * sinf(theta));
 }
 
-ccl_device float2 direction_to_fisheye_equidistant(float3 dir, float fov)
+ccl_device float2 direction_to_fisheye_equidistant(const float3 dir, const float fov)
 {
   const float r = atan2f(len(make_float2(dir.y, dir.z)), dir.x) / fov;
   const float2 uv = r * safe_normalize(make_float2(dir.y, dir.z));
@@ -96,7 +103,10 @@ ccl_device float3 fisheye_equidistant_to_direction(float u, float v, float fov)
   return fisheye_to_direction(theta, u, v, r);
 }
 
-ccl_device float2 direction_to_fisheye_equisolid(float3 dir, float lens, float width, float height)
+ccl_device float2 direction_to_fisheye_equisolid(const float3 dir,
+                                                 const float lens,
+                                                 const float width,
+                                                 const float height)
 {
   const float theta = safe_acosf(dir.x);
   const float r = 2.0f * lens * sinf(theta * 0.5f);
@@ -105,8 +115,8 @@ ccl_device float2 direction_to_fisheye_equisolid(float3 dir, float lens, float w
   return make_float2(0.5f - uv.x / width, uv.y / height + 0.5f);
 }
 
-ccl_device_inline float3
-fisheye_equisolid_to_direction(float u, float v, float lens, float fov, float width, float height)
+ccl_device_inline float3 fisheye_equisolid_to_direction(
+    float u, float v, float lens, const float fov, const float width, const float height)
 {
   u = (u - 0.5f) * width;
   v = (v - 0.5f) * height;
@@ -123,8 +133,13 @@ fisheye_equisolid_to_direction(float u, float v, float lens, float fov, float wi
   return fisheye_to_direction(theta, u, v, r);
 }
 
-ccl_device_inline float3 fisheye_lens_polynomial_to_direction(
-    float u, float v, float coeff0, float4 coeffs, float fov, float width, float height)
+ccl_device_inline float3 fisheye_lens_polynomial_to_direction(float u,
+                                                              float v,
+                                                              float coeff0,
+                                                              const float4 coeffs,
+                                                              const float fov,
+                                                              const float width,
+                                                              const float height)
 {
   u = (u - 0.5f) * width;
   v = (v - 0.5f) * height;
@@ -142,7 +157,7 @@ ccl_device_inline float3 fisheye_lens_polynomial_to_direction(
 }
 
 ccl_device float2 direction_to_fisheye_lens_polynomial(
-    float3 dir, float coeff0, float4 coeffs, float width, float height)
+    float3 dir, const float coeff0, const float4 coeffs, const float width, const float height)
 {
   const float theta = -safe_acosf(dir.x);
 
@@ -183,7 +198,7 @@ ccl_device float2 direction_to_fisheye_lens_polynomial(
 
 /* Mirror Ball <-> Cartesion direction */
 
-ccl_device float3 mirrorball_to_direction(float u, float v)
+ccl_device float3 mirrorball_to_direction(const float u, const float v)
 {
   /* point on sphere */
   float3 dir;
@@ -229,7 +244,7 @@ ccl_device float3 equiangular_cubemap_face_to_direction(float u, float v)
   return normalize(make_float3(1.0f, u, v));
 }
 
-ccl_device float2 direction_to_equiangular_cubemap_face(float3 dir)
+ccl_device float2 direction_to_equiangular_cubemap_face(const float3 dir)
 {
   const float u = 0.5f - atan2f(dir.y, dir.x) * 2.0f / M_PI_F;
   const float v = atan2f(dir.z, dir.x) * 2.0f / M_PI_F + 0.5f;
@@ -237,7 +252,9 @@ ccl_device float2 direction_to_equiangular_cubemap_face(float3 dir)
   return make_float2(u, v);
 }
 
-ccl_device_inline float3 panorama_to_direction(ccl_constant KernelCamera *cam, float u, float v)
+ccl_device_inline float3 panorama_to_direction(ccl_constant KernelCamera *cam,
+                                               const float u,
+                                               float v)
 {
   switch (cam->panorama_type) {
     case PANORAMA_EQUIRECTANGULAR:
@@ -265,7 +282,7 @@ ccl_device_inline float3 panorama_to_direction(ccl_constant KernelCamera *cam, f
   }
 }
 
-ccl_device_inline float2 direction_to_panorama(ccl_constant KernelCamera *cam, float3 dir)
+ccl_device_inline float2 direction_to_panorama(ccl_constant KernelCamera *cam, const float3 dir)
 {
   switch (cam->panorama_type) {
     case PANORAMA_EQUIRECTANGULAR:

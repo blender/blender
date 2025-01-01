@@ -99,7 +99,7 @@ ccl_device_forceinline float sobol_burley(uint rev_bit_index,
 ccl_device float sobol_burley_sample_1D(uint index,
                                         const uint dimension,
                                         uint seed,
-                                        uint shuffled_index_mask)
+                                        const uint shuffled_index_mask)
 {
   /* Include the dimension in the seed, so we get decorrelated
    * sequences for different dimensions via shuffling. */
@@ -126,7 +126,7 @@ ccl_device float sobol_burley_sample_1D(uint index,
 ccl_device float2 sobol_burley_sample_2D(uint index,
                                          const uint dimension_set,
                                          uint seed,
-                                         uint shuffled_index_mask)
+                                         const uint shuffled_index_mask)
 {
   /* Include the dimension set in the seed, so we get decorrelated
    * sequences for different dimension sets via shuffling. */
@@ -154,7 +154,7 @@ ccl_device float2 sobol_burley_sample_2D(uint index,
 ccl_device float3 sobol_burley_sample_3D(uint index,
                                          const uint dimension_set,
                                          uint seed,
-                                         uint shuffled_index_mask)
+                                         const uint shuffled_index_mask)
 {
   /* Include the dimension set in the seed, so we get decorrelated
    * sequences for different dimension sets via shuffling. */
@@ -183,7 +183,7 @@ ccl_device float3 sobol_burley_sample_3D(uint index,
 ccl_device float4 sobol_burley_sample_4D(uint index,
                                          const uint dimension_set,
                                          uint seed,
-                                         uint shuffled_index_mask)
+                                         const uint shuffled_index_mask)
 {
   /* Include the dimension set in the seed, so we get decorrelated
    * sequences for different dimension sets via shuffling. */

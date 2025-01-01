@@ -27,7 +27,7 @@ struct uint4 {
 #  endif
 };
 
-ccl_device_inline uint4 make_uint4(uint x, uint y, uint z, uint w)
+ccl_device_inline uint4 make_uint4(const uint x, const uint y, uint z, const uint w)
 {
   uint4 a = {x, y, z, w};
   return a;

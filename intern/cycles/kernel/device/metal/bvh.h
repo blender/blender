@@ -61,8 +61,13 @@ struct MetalRTIntersectionShadowAllPayload {
 };
 
 #ifdef __HAIR__
-ccl_device_forceinline bool curve_ribbon_accept(
-    KernelGlobals kg, float u, float t, const ccl_private Ray *ray, int object, int prim, int type)
+ccl_device_forceinline bool curve_ribbon_accept(KernelGlobals kg,
+                                                const float u,
+                                                float t,
+                                                const ccl_private Ray *ray,
+                                                const int object,
+                                                const int prim,
+                                                const int type)
 {
   KernelCurve kcurve = kernel_data_fetch(curves, prim);
 
@@ -97,8 +102,13 @@ ccl_device_forceinline bool curve_ribbon_accept(
   return t * len(ray_D) > avoidance_factor * r;
 }
 
-ccl_device_forceinline float curve_ribbon_v(
-    KernelGlobals kg, float u, float t, const ccl_private Ray *ray, int object, int prim, int type)
+ccl_device_forceinline float curve_ribbon_v(KernelGlobals kg,
+                                            const float u,
+                                            float t,
+                                            const ccl_private Ray *ray,
+                                            const int object,
+                                            const int prim,
+                                            const int type)
 {
 #  if defined(__METALRT_MOTION__)
   float time = ray->time;
@@ -307,9 +317,9 @@ template<bool single_hit = false>
 ccl_device_intersect bool scene_intersect_local(KernelGlobals kg,
                                                 const ccl_private Ray *ray,
                                                 ccl_private LocalIntersection *local_isect,
-                                                int local_object,
+                                                const int local_object,
                                                 ccl_private uint *lcg_state,
-                                                int max_hits)
+                                                const int max_hits)
 {
   uint primitive_id_offset = kernel_data_fetch(object_prim_offset, local_object);
 
@@ -455,8 +465,8 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals kg,
 ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals kg,
                                                      IntegratorShadowState state,
                                                      const ccl_private Ray *ray,
-                                                     uint visibility,
-                                                     uint max_hits,
+                                                     const uint visibility,
+                                                     const uint max_hits,
                                                      ccl_private uint *num_recorded_hits,
                                                      ccl_private float *throughput)
 {

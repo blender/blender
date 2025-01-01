@@ -23,7 +23,7 @@ struct BVHReferenceCompare {
   const BVHUnaligned *unaligned_heuristic;
   const Transform *aligned_space;
 
-  BVHReferenceCompare(int dim,
+  BVHReferenceCompare(const int dim,
                       const BVHUnaligned *unaligned_heuristic,
                       const Transform *aligned_space)
       : dim(dim), unaligned_heuristic(unaligned_heuristic), aligned_space(aligned_space)
@@ -164,10 +164,10 @@ static void bvh_reference_sort_threaded(TaskPool *task_pool,
   }
 }
 
-void bvh_reference_sort(int start,
-                        int end,
+void bvh_reference_sort(const int start,
+                        const int end,
                         BVHReference *data,
-                        int dim,
+                        const int dim,
                         const BVHUnaligned *unaligned_heuristic,
                         const Transform *aligned_space)
 {

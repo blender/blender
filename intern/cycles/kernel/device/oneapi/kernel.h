@@ -50,9 +50,9 @@ CYCLES_KERNEL_ONEAPI_EXPORT bool oneapi_zero_memory_on_device(SyclQueue *queue_,
 CYCLES_KERNEL_ONEAPI_EXPORT void oneapi_set_error_cb(OneAPIErrorCallback cb, void *user_ptr);
 CYCLES_KERNEL_ONEAPI_EXPORT size_t oneapi_suggested_gpu_kernel_size(const DeviceKernel kernel);
 CYCLES_KERNEL_ONEAPI_EXPORT bool oneapi_enqueue_kernel(KernelContext *context,
-                                                       int kernel,
-                                                       size_t global_size,
-                                                       size_t local_size,
+                                                       const int kernel,
+                                                       const size_t global_size,
+                                                       const size_t local_size,
                                                        const unsigned int kernel_features,
                                                        bool use_hardware_raytracing,
                                                        void **args);

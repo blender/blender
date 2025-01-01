@@ -484,7 +484,7 @@ void HIPDevice::get_device_memory_info(size_t &total, size_t &free)
   hipMemGetInfo(&free, &total);
 }
 
-bool HIPDevice::alloc_device(void *&device_pointer, size_t size)
+bool HIPDevice::alloc_device(void *&device_pointer, const size_t size)
 {
   HIPContextScope scope(this);
 
@@ -499,7 +499,7 @@ void HIPDevice::free_device(void *device_pointer)
   hip_assert(hipFree((hipDeviceptr_t)device_pointer));
 }
 
-bool HIPDevice::alloc_host(void *&shared_pointer, size_t size)
+bool HIPDevice::alloc_host(void *&shared_pointer, const size_t size)
 {
   HIPContextScope scope(this);
 
@@ -523,7 +523,7 @@ void HIPDevice::transform_host_pointer(void *&device_pointer, void *&shared_poin
   hip_assert(hipHostGetDevicePointer((hipDeviceptr_t *)&device_pointer, shared_pointer, 0));
 }
 
-void HIPDevice::copy_host_to_device(void *device_pointer, void *host_pointer, size_t size)
+void HIPDevice::copy_host_to_device(void *device_pointer, void *host_pointer, const size_t size)
 {
   const HIPContextScope scope(this);
 
@@ -561,7 +561,8 @@ void HIPDevice::mem_copy_to(device_memory &mem)
   }
 }
 
-void HIPDevice::mem_copy_from(device_memory &mem, size_t y, size_t w, size_t h, size_t elem)
+void HIPDevice::mem_copy_from(
+    device_memory &mem, const size_t y, size_t w, const size_t h, size_t elem)
 {
   if (mem.type == MEM_TEXTURE || mem.type == MEM_GLOBAL) {
     assert(!"mem_copy_from not supported for textures.");
@@ -615,12 +616,12 @@ void HIPDevice::mem_free(device_memory &mem)
   }
 }
 
-device_ptr HIPDevice::mem_alloc_sub_ptr(device_memory &mem, size_t offset, size_t /*size*/)
+device_ptr HIPDevice::mem_alloc_sub_ptr(device_memory &mem, const size_t offset, size_t /*size*/)
 {
   return (device_ptr)(((char *)mem.device_pointer) + mem.memory_elements_size(offset));
 }
 
-void HIPDevice::const_copy_to(const char *name, void *host, size_t size)
+void HIPDevice::const_copy_to(const char *name, void *host, const size_t size)
 {
   HIPContextScope scope(this);
   hipDeviceptr_t mem;
@@ -973,7 +974,8 @@ bool HIPDevice::get_device_attribute(hipDeviceAttribute_t attribute, int *value)
   return hipDeviceGetAttribute(value, attribute, hipDevice) == hipSuccess;
 }
 
-int HIPDevice::get_device_default_attribute(hipDeviceAttribute_t attribute, int default_value)
+int HIPDevice::get_device_default_attribute(hipDeviceAttribute_t attribute,
+                                            const int default_value)
 {
   int value = 0;
   if (!get_device_attribute(attribute, &value)) {

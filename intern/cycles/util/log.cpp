@@ -57,7 +57,7 @@ void util_logging_start()
 #endif
 }
 
-void util_logging_verbosity_set(int verbosity)
+void util_logging_verbosity_set(const int verbosity)
 {
 #ifdef WITH_CYCLES_LOGGING
   using CYCLES_GFLAGS_NAMESPACE::SetCommandLineOption;

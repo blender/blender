@@ -17,7 +17,7 @@ class PassAccessorGPU : public PassAccessor {
  public:
   PassAccessorGPU(DeviceQueue *queue,
                   const PassAccessInfo &pass_access_info,
-                  float exposure,
+                  const float exposure,
                   int num_samples);
 
  protected:

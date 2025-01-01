@@ -56,30 +56,39 @@ class BVHBuild {
   friend class BVHObjectBinning;
 
   /* Adding references. */
-  void add_reference_triangles(BoundBox &root, BoundBox &center, Mesh *mesh, int object_index);
-  void add_reference_curves(BoundBox &root, BoundBox &center, Hair *hair, int object_index);
-  void add_reference_points(BoundBox &root, BoundBox &center, PointCloud *pointcloud, int i);
-  void add_reference_geometry(BoundBox &root, BoundBox &center, Geometry *geom, int object_index);
-  void add_reference_object(BoundBox &root, BoundBox &center, Object *ob, int i);
+  void add_reference_triangles(BoundBox &root,
+                               BoundBox &center,
+                               Mesh *mesh,
+                               const int object_index);
+  void add_reference_curves(BoundBox &root, BoundBox &center, Hair *hair, const int object_index);
+  void add_reference_points(BoundBox &root, BoundBox &center, PointCloud *pointcloud, const int i);
+  void add_reference_geometry(BoundBox &root,
+                              BoundBox &center,
+                              Geometry *geom,
+                              const int object_index);
+  void add_reference_object(BoundBox &root, BoundBox &center, Object *ob, const int i);
   void add_references(BVHRange &root);
 
   /* Building. */
   BVHNode *build_node(const BVHRange &range,
                       vector<BVHReference> &references,
-                      int level,
+                      const int level,
                       BVHSpatialStorage *storage);
-  BVHNode *build_node(const BVHObjectBinning &range, int level);
+  BVHNode *build_node(const BVHObjectBinning &range, const int level);
   BVHNode *create_leaf_node(const BVHRange &range, const vector<BVHReference> &references);
-  BVHNode *create_object_leaf_nodes(const BVHReference *ref, int start, int num);
+  BVHNode *create_object_leaf_nodes(const BVHReference *ref, const int start, const int num);
 
   bool range_within_max_leaf_size(const BVHRange &range,
                                   const vector<BVHReference> &references) const;
 
   /* Threads. */
   enum { THREAD_TASK_SIZE = 4096 };
-  void thread_build_node(InnerNode *inner, int child, const BVHObjectBinning &range, int level);
+  void thread_build_node(InnerNode *inner,
+                         const int child,
+                         const BVHObjectBinning &range,
+                         const int level);
   void thread_build_spatial_split_node(InnerNode *inner,
-                                       int child,
+                                       const int child,
                                        const BVHRange &range,
                                        vector<BVHReference> &references,
                                        int level);
@@ -89,8 +98,8 @@ class BVHBuild {
   void progress_update();
 
   /* Tree rotations. */
-  void rotate(BVHNode *node, int max_depth);
-  void rotate(BVHNode *node, int max_depth, int iterations);
+  void rotate(BVHNode *node, const int max_depth);
+  void rotate(BVHNode *node, const int max_depth, const int iterations);
 
   /* Objects and primitive references. */
   vector<Object *> objects;

@@ -79,26 +79,29 @@ class SVMCompiler {
   };
 
   SVMCompiler(Scene *scene);
-  void compile(Shader *shader, array<int4> &svm_nodes, int index, Summary *summary = nullptr);
+  void compile(Shader *shader,
+               array<int4> &svm_nodes,
+               const int index,
+               Summary *summary = nullptr);
 
   int stack_assign(ShaderOutput *output);
   int stack_assign(ShaderInput *input);
   bool is_linked(ShaderInput *input);
   int stack_assign_if_linked(ShaderInput *input);
   int stack_assign_if_linked(ShaderOutput *output);
-  int stack_find_offset(int size);
+  int stack_find_offset(const int size);
   int stack_find_offset(SocketType::Type type);
-  void stack_clear_offset(SocketType::Type type, int offset);
+  void stack_clear_offset(SocketType::Type type, const int offset);
   void stack_link(ShaderInput *input, ShaderOutput *output);
 
-  void add_node(ShaderNodeType type, int a = 0, int b = 0, int c = 0);
-  void add_node(int a = 0, int b = 0, int c = 0, int d = 0);
+  void add_node(ShaderNodeType type, const int a = 0, const int b = 0, const int c = 0);
+  void add_node(const int a = 0, const int b = 0, const int c = 0, const int d = 0);
   void add_node(ShaderNodeType type, const float3 &f);
   void add_node(const float4 &f);
   uint attribute(ustring name);
   uint attribute(AttributeStandard std);
   uint attribute_standard(ustring name);
-  uint encode_uchar4(uint x, uint y = 0, uint z = 0, uint w = 0);
+  uint encode_uchar4(const uint x, const uint y = 0, const uint z = 0, const uint w = 0);
   uint closure_mix_weight_offset()
   {
     return mix_weight_offset;

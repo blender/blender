@@ -321,7 +321,7 @@ void ImageManager::set_osl_texture_system(void *texture_system)
   osl_texture_system = texture_system;
 }
 
-bool ImageManager::set_animation_frame_update(int frame)
+bool ImageManager::set_animation_frame_update(const int frame)
 {
   if (frame != animation_frame) {
     const thread_scoped_lock device_lock(images_mutex);
@@ -477,7 +477,7 @@ size_t ImageManager::add_image_slot(ImageLoader *loader,
   return slot;
 }
 
-void ImageManager::add_image_user(size_t slot)
+void ImageManager::add_image_user(const size_t slot)
 {
   const thread_scoped_lock device_lock(images_mutex);
   Image *image = images[slot];
@@ -486,7 +486,7 @@ void ImageManager::add_image_user(size_t slot)
   image->users++;
 }
 
-void ImageManager::remove_image_user(size_t slot)
+void ImageManager::remove_image_user(const size_t slot)
 {
   const thread_scoped_lock device_lock(images_mutex);
   Image *image = images[slot];
@@ -513,7 +513,7 @@ static bool image_associate_alpha(ImageManager::Image *img)
 }
 
 template<TypeDesc::BASETYPE FileFormat, typename StorageType>
-bool ImageManager::file_load_image(Image *img, int texture_limit)
+bool ImageManager::file_load_image(Image *img, const int texture_limit)
 {
   /* Ignore empty images. */
   if (!(img->metadata.channels > 0)) {
@@ -672,7 +672,10 @@ bool ImageManager::file_load_image(Image *img, int texture_limit)
   return true;
 }
 
-void ImageManager::device_load_image(Device *device, Scene *scene, size_t slot, Progress &progress)
+void ImageManager::device_load_image(Device *device,
+                                     Scene *scene,
+                                     const size_t slot,
+                                     Progress &progress)
 {
   if (progress.get_cancel()) {
     return;
@@ -868,7 +871,7 @@ void ImageManager::device_update(Device *device, Scene *scene, Progress &progres
 
 void ImageManager::device_update_slot(Device *device,
                                       Scene *scene,
-                                      size_t slot,
+                                      const size_t slot,
                                       Progress &progress)
 {
   Image *img = images[slot];

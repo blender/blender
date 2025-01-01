@@ -23,14 +23,14 @@ CCL_NAMESPACE_BEGIN
 
 ccl_device_inline bool triangle_intersect(KernelGlobals kg,
                                           ccl_private Intersection *isect,
-                                          float3 P,
-                                          float3 dir,
-                                          float tmin,
-                                          float tmax,
-                                          uint visibility,
-                                          int object,
-                                          int prim,
-                                          int prim_addr)
+                                          const float3 P,
+                                          const float3 dir,
+                                          const float tmin,
+                                          const float tmax,
+                                          const uint visibility,
+                                          const int object,
+                                          const int prim,
+                                          const int prim_addr)
 {
   const uint3 tri_vindex = kernel_data_fetch(tri_vindex, prim);
   const float3 tri_a = kernel_data_fetch(tri_verts, tri_vindex.x);
@@ -69,15 +69,15 @@ ccl_device_inline bool triangle_intersect(KernelGlobals kg,
 #ifdef __BVH_LOCAL__
 ccl_device_inline bool triangle_intersect_local(KernelGlobals kg,
                                                 ccl_private LocalIntersection *local_isect,
-                                                float3 P,
-                                                float3 dir,
-                                                int object,
-                                                int prim,
-                                                int prim_addr,
-                                                float tmin,
-                                                float tmax,
+                                                const float3 P,
+                                                const float3 dir,
+                                                const int object,
+                                                const int prim,
+                                                const int prim_addr,
+                                                const float tmin,
+                                                const float tmax,
                                                 ccl_private uint *lcg_state,
-                                                int max_hits)
+                                                const int max_hits)
 {
   const uint3 tri_vindex = kernel_data_fetch(tri_vindex, prim);
   const float3 tri_a = kernel_data_fetch(tri_verts, tri_vindex.x);

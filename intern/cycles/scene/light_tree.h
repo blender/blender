@@ -189,8 +189,11 @@ struct LightTreeEmitter {
 
   LightTreeMeasure measure;
 
-  LightTreeEmitter(Object *object, int object_id); /* Mesh emitter. */
-  LightTreeEmitter(Scene *scene, int prim_id, int object_id, bool need_transformation = false);
+  LightTreeEmitter(Object *object, const int object_id); /* Mesh emitter. */
+  LightTreeEmitter(Scene *scene,
+                   const int prim_id,
+                   const int object_id,
+                   bool need_transformation = false);
 
   __forceinline bool is_mesh() const
   {
@@ -402,7 +405,7 @@ class LightTree {
     right = 1,
   };
 
-  LightTree(Scene *scene, DeviceScene *dscene, Progress &progress, uint max_lights_in_leaf);
+  LightTree(Scene *scene, DeviceScene *dscene, Progress &progress, const uint max_lights_in_leaf);
 
   /* Returns a pointer to the root node. */
   LightTreeNode *build(Scene *scene, DeviceScene *dscene);
@@ -432,10 +435,10 @@ class LightTree {
 
   void recursive_build(Child child,
                        LightTreeNode *inner,
-                       int start,
-                       int end,
+                       const int start,
+                       const int end,
                        LightTreeEmitter *emitters,
-                       uint bit_trail,
+                       const uint bit_trail,
                        int depth);
 
   bool should_split(LightTreeEmitter *emitters,
@@ -447,10 +450,10 @@ class LightTree {
                     int &split_dim);
 
   /* Check whether the light tree can use this triangle as light-emissive. */
-  bool triangle_usable_as_light(Mesh *mesh, int prim_id);
+  bool triangle_usable_as_light(Mesh *mesh, const int prim_id);
 
   /* Add all the emissive triangles of a mesh to the light tree. */
-  void add_mesh(Scene *scene, Mesh *mesh, int object_id);
+  void add_mesh(Scene *scene, Mesh *mesh, const int object_id);
 };
 
 CCL_NAMESPACE_END

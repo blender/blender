@@ -108,21 +108,21 @@ class RenderScheduler {
 
   /* Start sample for path tracing.
    * The scheduler will schedule work using this sample as the first one. */
-  void set_start_sample(int start_sample);
+  void set_start_sample(const int start_sample);
   int get_start_sample() const;
 
   /* Number of samples to render, starting from start sample.
    * The scheduler will schedule work in the range of
    * [start_sample, start_sample + num_samples - 1], inclusively. */
-  void set_num_samples(int num_samples);
+  void set_num_samples(const int num_samples);
   int get_num_samples() const;
 
-  void set_sample_offset(int sample_offset);
+  void set_sample_offset(const int sample_offset);
   int get_sample_offset() const;
 
   /* Time limit for the path tracing tasks, in minutes.
    * Zero disables the limit. */
-  void set_time_limit(double time_limit);
+  void set_time_limit(const double time_limit);
   double get_time_limit() const;
 
   /* Get sample up to which rendering has been done.
@@ -145,7 +145,7 @@ class RenderScheduler {
 
   /* Reset scheduler, indicating that rendering will happen from scratch.
    * Resets current rendered state, as well as scheduling information. */
-  void reset(const BufferParams &buffer_params, int num_samples, int sample_offset);
+  void reset(const BufferParams &buffer_params, const int num_samples, const int sample_offset);
 
   /* Reset scheduler upon switching to a next tile.
    * Will keep the same number of samples and full-frame render parameters, but will reset progress
@@ -180,12 +180,16 @@ class RenderScheduler {
   void report_work_begin(const RenderWork &render_work);
 
   /* Report time (in seconds) which corresponding part of work took. */
-  void report_path_trace_time(const RenderWork &render_work, double time, bool is_cancelled);
-  void report_path_trace_occupancy(const RenderWork &render_work, float occupancy);
-  void report_adaptive_filter_time(const RenderWork &render_work, double time, bool is_cancelled);
-  void report_denoise_time(const RenderWork &render_work, double time);
-  void report_display_update_time(const RenderWork &render_work, double time);
-  void report_rebalance_time(const RenderWork &render_work, double time, bool balance_changed);
+  void report_path_trace_time(const RenderWork &render_work, const double time, bool is_cancelled);
+  void report_path_trace_occupancy(const RenderWork &render_work, const float occupancy);
+  void report_adaptive_filter_time(const RenderWork &render_work,
+                                   const double time,
+                                   bool is_cancelled);
+  void report_denoise_time(const RenderWork &render_work, const double time);
+  void report_display_update_time(const RenderWork &render_work, const double time);
+  void report_rebalance_time(const RenderWork &render_work,
+                             const double time,
+                             bool balance_changed);
 
   /* Generate full multi-line report of the rendering process, including rendering parameters,
    * times, and so on. */
@@ -228,7 +232,8 @@ class RenderScheduler {
    * number of samples and later in the render, updates happen less often but device occupancy
    * goes higher. */
   double guess_display_update_interval_in_seconds() const;
-  double guess_display_update_interval_in_seconds_for_num_samples(int num_rendered_samples) const;
+  double guess_display_update_interval_in_seconds_for_num_samples(
+      const int num_rendered_samples) const;
   double guess_display_update_interval_in_seconds_for_num_samples_no_limit(
       int num_rendered_samples) const;
 
@@ -242,7 +247,7 @@ class RenderScheduler {
 
   /* Calculate how many samples there are to be rendered for the very first path trace after reset.
    */
-  int get_num_samples_during_navigation(int resolution_divider) const;
+  int get_num_samples_during_navigation(const int resolution_divider) const;
 
   /* Whether adaptive sampling convergence check and filter is to happen. */
   bool work_need_adaptive_filter() const;
@@ -300,12 +305,12 @@ class RenderScheduler {
       last_sample_time_ = 0.0;
     }
 
-    void add_wall(double time)
+    void add_wall(const double time)
     {
       total_wall_time_ += time;
     }
 
-    void add_average(double time, int num_measurements = 1)
+    void add_average(const double time, const int num_measurements = 1)
     {
       average_time_accumulator_ += time;
       num_average_times_ += num_measurements;
@@ -467,15 +472,19 @@ class RenderScheduler {
    * desired one. This call assumes linear dependency of render time from number of pixels
    * (quadratic dependency from the resolution divider): resolution divider of 2 brings render time
    * down by a factor of 4. */
-  int calculate_resolution_divider_for_time(double desired_time, double actual_time);
+  int calculate_resolution_divider_for_time(const double desired_time, const double actual_time);
 
   /* If the number of samples per rendering progression should be limited because of path guiding
    * being activated or is still inside its training phase */
   int limit_samples_per_update_ = 0;
 };
 
-int calculate_resolution_divider_for_resolution(int width, int height, int resolution);
+int calculate_resolution_divider_for_resolution(const int width,
+                                                const int height,
+                                                const int resolution);
 
-int calculate_resolution_for_divider(int width, int height, int resolution_divider);
+int calculate_resolution_for_divider(const int width,
+                                     const int height,
+                                     const int resolution_divider);
 
 CCL_NAMESPACE_END

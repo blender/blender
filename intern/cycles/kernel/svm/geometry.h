@@ -19,8 +19,8 @@ CCL_NAMESPACE_BEGIN
 ccl_device_noinline void svm_node_geometry(KernelGlobals kg,
                                            ccl_private ShaderData *sd,
                                            ccl_private float *stack,
-                                           uint type,
-                                           uint out_offset)
+                                           const uint type,
+                                           const uint out_offset)
 {
   float3 data;
 
@@ -55,8 +55,8 @@ ccl_device_noinline void svm_node_geometry(KernelGlobals kg,
 ccl_device_noinline void svm_node_geometry_bump_dx(KernelGlobals kg,
                                                    ccl_private ShaderData *sd,
                                                    ccl_private float *stack,
-                                                   uint type,
-                                                   uint out_offset)
+                                                   const uint type,
+                                                   const uint out_offset)
 {
 #ifdef __RAY_DIFFERENTIALS__
   float3 data;
@@ -82,8 +82,8 @@ ccl_device_noinline void svm_node_geometry_bump_dx(KernelGlobals kg,
 ccl_device_noinline void svm_node_geometry_bump_dy(KernelGlobals kg,
                                                    ccl_private ShaderData *sd,
                                                    ccl_private float *stack,
-                                                   uint type,
-                                                   uint out_offset)
+                                                   const uint type,
+                                                   const uint out_offset)
 {
 #ifdef __RAY_DIFFERENTIALS__
   float3 data;
@@ -111,8 +111,8 @@ ccl_device_noinline void svm_node_geometry_bump_dy(KernelGlobals kg,
 ccl_device_noinline void svm_node_object_info(KernelGlobals kg,
                                               ccl_private ShaderData *sd,
                                               ccl_private float *stack,
-                                              uint type,
-                                              uint out_offset)
+                                              const uint type,
+                                              const uint out_offset)
 {
   float data;
 
@@ -156,8 +156,8 @@ ccl_device_noinline void svm_node_object_info(KernelGlobals kg,
 ccl_device_noinline void svm_node_particle_info(KernelGlobals kg,
                                                 ccl_private ShaderData *sd,
                                                 ccl_private float *stack,
-                                                uint type,
-                                                uint out_offset)
+                                                const uint type,
+                                                const uint out_offset)
 {
   switch ((NodeParticleInfo)type) {
     case NODE_INFO_PAR_INDEX: {
@@ -218,8 +218,8 @@ ccl_device_noinline void svm_node_particle_info(KernelGlobals kg,
 ccl_device_noinline void svm_node_hair_info(KernelGlobals kg,
                                             ccl_private ShaderData *sd,
                                             ccl_private float *stack,
-                                            uint type,
-                                            uint out_offset)
+                                            const uint type,
+                                            const uint out_offset)
 {
   float data;
   float3 data3;
@@ -257,8 +257,8 @@ ccl_device_noinline void svm_node_hair_info(KernelGlobals kg,
 ccl_device_noinline void svm_node_point_info(KernelGlobals kg,
                                              ccl_private ShaderData *sd,
                                              ccl_private float *stack,
-                                             uint type,
-                                             uint out_offset)
+                                             const uint type,
+                                             const uint out_offset)
 {
   switch ((NodePointInfo)type) {
     case NODE_INFO_POINT_POSITION:

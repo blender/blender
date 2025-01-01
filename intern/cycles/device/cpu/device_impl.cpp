@@ -178,12 +178,12 @@ void CPUDevice::mem_free(device_memory &mem)
   }
 }
 
-device_ptr CPUDevice::mem_alloc_sub_ptr(device_memory &mem, size_t offset, size_t /*size*/)
+device_ptr CPUDevice::mem_alloc_sub_ptr(device_memory &mem, const size_t offset, size_t /*size*/)
 {
   return (device_ptr)(((char *)mem.device_pointer) + mem.memory_elements_size(offset));
 }
 
-void CPUDevice::const_copy_to(const char *name, void *host, size_t size)
+void CPUDevice::const_copy_to(const char *name, void *host, const size_t size)
 {
 #ifdef WITH_EMBREE
   if (strcmp(name, "data") == 0) {

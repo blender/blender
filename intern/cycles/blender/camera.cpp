@@ -310,8 +310,8 @@ static Transform blender_camera_matrix(const Transform &tfm,
 }
 
 static void blender_camera_viewplane(BlenderCamera *bcam,
-                                     int width,
-                                     int height,
+                                     const int width,
+                                     const int height,
                                      BoundBox2D *viewplane,
                                      float *aspectratio,
                                      float *sensor_size)
@@ -412,8 +412,8 @@ static void blender_camera_viewplane(BlenderCamera *bcam,
 
 static void blender_camera_sync(Camera *cam,
                                 BlenderCamera *bcam,
-                                int width,
-                                int height,
+                                const int width,
+                                const int height,
                                 const char *viewname,
                                 PointerRNA *cscene)
 {
@@ -577,8 +577,8 @@ static MotionPosition blender_motion_blur_position_type_to_cycles(
 
 void BlenderSync::sync_camera(BL::RenderSettings &b_render,
                               BL::Object &b_override,
-                              int width,
-                              int height,
+                              const int width,
+                              const int height,
                               const char *viewname)
 {
   BlenderCamera bcam(b_render);
@@ -647,8 +647,11 @@ void BlenderSync::sync_camera(BL::RenderSettings &b_render,
   }
 }
 
-void BlenderSync::sync_camera_motion(
-    BL::RenderSettings &b_render, BL::Object &b_ob, int width, int height, float motion_time)
+void BlenderSync::sync_camera_motion(BL::RenderSettings &b_render,
+                                     BL::Object &b_ob,
+                                     const int width,
+                                     const int height,
+                                     const float motion_time)
 {
   if (!b_ob) {
     return;
@@ -711,8 +714,8 @@ static void blender_camera_view_subset(BL::RenderEngine &b_engine,
                                        BL::Object &b_ob,
                                        BL::SpaceView3D &b_v3d,
                                        BL::RegionView3D &b_rv3d,
-                                       int width,
-                                       int height,
+                                       const int width,
+                                       const int height,
                                        BoundBox2D *view_box,
                                        BoundBox2D *cam_box,
                                        float *view_aspect);
@@ -722,8 +725,8 @@ static void blender_camera_from_view(BlenderCamera *bcam,
                                      BL::Scene &b_scene,
                                      BL::SpaceView3D &b_v3d,
                                      BL::RegionView3D &b_rv3d,
-                                     int width,
-                                     int height,
+                                     const int width,
+                                     const int height,
                                      bool skip_panorama = false)
 {
   /* 3d view parameters */
@@ -809,8 +812,8 @@ static void blender_camera_view_subset(BL::RenderEngine &b_engine,
                                        BL::Object &b_ob,
                                        BL::SpaceView3D &b_v3d,
                                        BL::RegionView3D &b_rv3d,
-                                       int width,
-                                       int height,
+                                       const int width,
+                                       const int height,
                                        BoundBox2D *view_box,
                                        BoundBox2D *cam_box,
                                        float *view_aspect)
@@ -848,8 +851,8 @@ static void blender_camera_border_subset(BL::RenderEngine &b_engine,
                                          BL::SpaceView3D &b_v3d,
                                          BL::RegionView3D &b_rv3d,
                                          BL::Object &b_ob,
-                                         int width,
-                                         int height,
+                                         const int width,
+                                         const int height,
                                          const BoundBox2D &border,
                                          BoundBox2D *result)
 {
@@ -880,8 +883,8 @@ static void blender_camera_border(BlenderCamera *bcam,
                                   BL::Scene &b_scene,
                                   BL::SpaceView3D &b_v3d,
                                   BL::RegionView3D &b_rv3d,
-                                  int width,
-                                  int height)
+                                  const int width,
+                                  const int height)
 {
   bool is_camera_view;
 
@@ -950,8 +953,8 @@ static void blender_camera_border(BlenderCamera *bcam,
 
 void BlenderSync::sync_view(BL::SpaceView3D &b_v3d,
                             BL::RegionView3D &b_rv3d,
-                            int width,
-                            int height)
+                            const int width,
+                            const int height)
 {
   BL::RenderSettings b_render_settings(b_scene.render());
   BlenderCamera bcam(b_render_settings);
@@ -975,8 +978,11 @@ void BlenderSync::sync_view(BL::SpaceView3D &b_v3d,
   }
 }
 
-BufferParams BlenderSync::get_buffer_params(
-    BL::SpaceView3D &b_v3d, BL::RegionView3D &b_rv3d, Camera *cam, int width, int height)
+BufferParams BlenderSync::get_buffer_params(BL::SpaceView3D &b_v3d,
+                                            BL::RegionView3D &b_rv3d,
+                                            Camera *cam,
+                                            const int width,
+                                            const int height)
 {
   BufferParams params;
   bool use_border = false;

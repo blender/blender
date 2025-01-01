@@ -15,24 +15,24 @@ CCL_NAMESPACE_BEGIN
 
 /* **** Perlin Noise **** */
 
-ccl_device float fade(float t)
+ccl_device float fade(const float t)
 {
   return t * t * t * (t * (t * 6.0f - 15.0f) + 10.0f);
 }
 
-ccl_device_inline float negate_if(float val, int condition)
+ccl_device_inline float negate_if(const float val, const int condition)
 {
   return (condition) ? -val : val;
 }
 
-ccl_device float grad1(int hash, float x)
+ccl_device float grad1(const int hash, const float x)
 {
   const int h = hash & 15;
   const float g = 1 + (h & 7);
   return negate_if(g, h & 8) * x;
 }
 
-ccl_device_noinline_cpu float perlin_1d(float x)
+ccl_device_noinline_cpu float perlin_1d(const float x)
 {
   int X;
   const float fx = floorfrac(x, &X);
@@ -61,7 +61,8 @@ ccl_device_noinline_cpu float perlin_1d(float x)
  * v0          v1
  *
  */
-ccl_device float bi_mix(float v0, float v1, float v2, float v3, float x, float y)
+ccl_device float bi_mix(
+    const float v0, const float v1, const float v2, const float v3, const float x, float y)
 {
   float x1 = 1.0f - x;
   return (1.0f - y) * (v0 * x1 + v1 * x) + y * (v2 * x1 + v3 * x);
@@ -85,7 +86,7 @@ ccl_device float bi_mix(float v0, float v1, float v2, float v3, float x, float y
  *          @ + + + + + + @
  *        v0               v1
  */
-ccl_device float tri_mix(float v0,
+ccl_device float tri_mix(const float v0,
                          float v1,
                          float v2,
                          float v3,
@@ -93,9 +94,9 @@ ccl_device float tri_mix(float v0,
                          float v5,
                          float v6,
                          float v7,
-                         float x,
-                         float y,
-                         float z)
+                         const float x,
+                         const float y,
+                         const float z)
 {
   float x1 = 1.0f - x;
   float y1 = 1.0f - y;
@@ -104,7 +105,7 @@ ccl_device float tri_mix(float v0,
          z * (y1 * (v4 * x1 + v5 * x) + y * (v6 * x1 + v7 * x));
 }
 
-ccl_device float quad_mix(float v0,
+ccl_device float quad_mix(const float v0,
                           float v1,
                           float v2,
                           float v3,
@@ -120,17 +121,17 @@ ccl_device float quad_mix(float v0,
                           float v13,
                           float v14,
                           float v15,
-                          float x,
-                          float y,
-                          float z,
-                          float w)
+                          const float x,
+                          const float y,
+                          const float z,
+                          const float w)
 {
   return mix(tri_mix(v0, v1, v2, v3, v4, v5, v6, v7, x, y, z),
              tri_mix(v8, v9, v10, v11, v12, v13, v14, v15, x, y, z),
              w);
 }
 
-ccl_device float grad2(int hash, float x, float y)
+ccl_device float grad2(const int hash, const float x, float y)
 {
   int h = hash & 7;
   float u = h < 4 ? x : y;
@@ -138,7 +139,7 @@ ccl_device float grad2(int hash, float x, float y)
   return negate_if(u, h & 1) + negate_if(v, h & 2);
 }
 
-ccl_device float grad3(int hash, float x, float y, float z)
+ccl_device float grad3(const int hash, const float x, float y, const float z)
 {
   int h = hash & 15;
   float u = h < 8 ? x : y;
@@ -147,7 +148,7 @@ ccl_device float grad3(int hash, float x, float y, float z)
   return negate_if(u, h & 1) + negate_if(v, h & 2);
 }
 
-ccl_device float grad4(int hash, float x, float y, float z, float w)
+ccl_device float grad4(const int hash, const float x, float y, const float z, float w)
 {
   int h = hash & 31;
   float u = h < 24 ? x : y;
@@ -156,7 +157,7 @@ ccl_device float grad4(int hash, float x, float y, float z, float w)
   return negate_if(u, h & 1) + negate_if(v, h & 2) + negate_if(s, h & 4);
 }
 
-ccl_device_noinline_cpu float perlin_2d(float x, float y)
+ccl_device_noinline_cpu float perlin_2d(const float x, const float y)
 {
   int X;
   int Y;
@@ -177,7 +178,7 @@ ccl_device_noinline_cpu float perlin_2d(float x, float y)
   return r;
 }
 
-ccl_device_noinline_cpu float perlin_3d(float x, float y, float z)
+ccl_device_noinline_cpu float perlin_3d(const float x, const float y, float z)
 {
   int X;
   int Y;
@@ -205,7 +206,7 @@ ccl_device_noinline_cpu float perlin_3d(float x, float y, float z)
   return r;
 }
 
-ccl_device_noinline_cpu float perlin_4d(float x, float y, float z, float w)
+ccl_device_noinline_cpu float perlin_4d(const float x, const float y, float z, const float w)
 {
   int X;
   int Y;
@@ -275,7 +276,7 @@ ccl_device_noinline_cpu float perlin_4d(float x, float y, float z, float w)
  * v0          v2          g0
  *
  */
-ccl_device_inline float4 bi_mix(float4 p, float4 f)
+ccl_device_inline float4 bi_mix(const float4 p, const float4 f)
 {
   const float4 g = mix(p, shuffle<2, 3, 2, 3>(p), shuffle<0>(f));
   return mix(g, shuffle<1>(g), shuffle<1>(f));
@@ -311,7 +312,7 @@ ccl_device_inline float4 grad(const int4 hash, const float4 x, const float4 y)
  *               |__________________________|
  *
  */
-ccl_device_noinline_cpu float perlin_2d(float x, float y)
+ccl_device_noinline_cpu float perlin_2d(const float x, const float y)
 {
   int4 XY;
   const float4 fxy = floorfrac(make_float4(x, y, 0.0f, 0.0f), &XY);
@@ -365,7 +366,7 @@ ccl_device_noinline_cpu float perlin_2d(float x, float y)
  *          @ + + + + + + @                  @
  *        v0               v4                 s0
  */
-ccl_device_inline float4 tri_mix(float4 p, float4 q, float4 f)
+ccl_device_inline float4 tri_mix(const float4 p, const float4 q, float4 f)
 {
   const float4 s = mix(p, q, shuffle<0>(f));
   const float4 g = mix(s, shuffle<2, 3, 2, 3>(s), shuffle<1>(f));
@@ -404,7 +405,8 @@ grad(const int4 hash, const float4 x, const float4 y, const float4 z, const floa
  * between two trilinear interpolations.
  *
  */
-ccl_device_inline float4 quad_mix(float4 p, float4 q, float4 r, float4 s, float4 f)
+ccl_device_inline float4
+quad_mix(const float4 p, const float4 q, float4 r, const float4 s, float4 f)
 {
   return mix(tri_mix(p, q, f), tri_mix(r, s, f), shuffle<3>(f));
 }
@@ -428,7 +430,7 @@ ccl_device_inline float4 quad_mix(float4 p, float4 q, float4 r, float4 s, float4
  *     v7      (1, 1, 1)
  *
  */
-ccl_device_noinline_cpu float perlin_3d(float x, float y, float z)
+ccl_device_noinline_cpu float perlin_3d(const float x, const float y, float z)
 {
   int4 XYZ;
   const float4 fxyz = floorfrac(make_float4(x, y, z, 0.0f), &XYZ);
@@ -482,7 +484,7 @@ ccl_device_noinline_cpu float perlin_3d(float x, float y, float z)
  *     v15    (1, 1, 1, 1)
  *
  */
-ccl_device_noinline_cpu float perlin_4d(float x, float y, float z, float w)
+ccl_device_noinline_cpu float perlin_4d(const float x, const float y, float z, const float w)
 {
   int4 XYZW;
   const float4 fxyzw = floorfrac(make_float4(x, y, z, w), &XYZW);
@@ -543,7 +545,7 @@ grad(const vint8 hash, const vfloat8 x, const vfloat8 y, const vfloat8 z, const 
  *    low and high float4 from s.
  *
  */
-ccl_device_inline float4 quad_mix(vfloat8 p, vfloat8 q, float4 f)
+ccl_device_inline float4 quad_mix(vfloat8 p, vfloat8 q, const float4 f)
 {
   float4 fv = shuffle<3>(f);
   vfloat8 s = mix(p, q, make_vfloat8(fv, fv));
@@ -566,7 +568,7 @@ ccl_device_inline float4 quad_mix(vfloat8 p, vfloat8 q, float4 f)
  *                 |__________________________|
  *
  */
-ccl_device_noinline_cpu float perlin_3d(float x, float y, float z)
+ccl_device_noinline_cpu float perlin_3d(const float x, const float y, float z)
 {
   int4 XYZ;
   float4 fxyz = floorfrac(make_float4(x, y, z, 0.0f), &XYZ);
@@ -618,7 +620,7 @@ ccl_device_noinline_cpu float perlin_3d(float x, float y, float z)
  *     v15    (1, 1, 1, 1)
  *
  */
-ccl_device_noinline_cpu float perlin_4d(float x, float y, float z, float w)
+ccl_device_noinline_cpu float perlin_4d(const float x, const float y, float z, const float w)
 {
   int4 XYZW;
   float4 fxyzw = floorfrac(make_float4(x, y, z, w), &XYZW);
@@ -664,22 +666,22 @@ ccl_device_noinline_cpu float perlin_4d(float x, float y, float z, float w)
  * The scale values were computed experimentally by the OSL developers.
  */
 
-ccl_device_inline float noise_scale1(float result)
+ccl_device_inline float noise_scale1(const float result)
 {
   return 0.2500f * result;
 }
 
-ccl_device_inline float noise_scale2(float result)
+ccl_device_inline float noise_scale2(const float result)
 {
   return 0.6616f * result;
 }
 
-ccl_device_inline float noise_scale3(float result)
+ccl_device_inline float noise_scale3(const float result)
 {
   return 0.9820f * result;
 }
 
-ccl_device_inline float noise_scale4(float result)
+ccl_device_inline float noise_scale4(const float result)
 {
   return 0.8344f * result;
 }
@@ -697,7 +699,7 @@ ccl_device_inline float snoise_1d(float p)
   return noise_scale1(perlin_1d(p));
 }
 
-ccl_device_inline float noise_1d(float p)
+ccl_device_inline float noise_1d(const float p)
 {
   return 0.5f * snoise_1d(p) + 0.5f;
 }
@@ -714,7 +716,7 @@ ccl_device_inline float snoise_2d(float2 p)
   return noise_scale2(perlin_2d(p.x, p.y));
 }
 
-ccl_device_inline float noise_2d(float2 p)
+ccl_device_inline float noise_2d(const float2 p)
 {
   return 0.5f * snoise_2d(p) + 0.5f;
 }
@@ -732,7 +734,7 @@ ccl_device_inline float snoise_3d(float3 p)
   return noise_scale3(perlin_3d(p.x, p.y, p.z));
 }
 
-ccl_device_inline float noise_3d(float3 p)
+ccl_device_inline float noise_3d(const float3 p)
 {
   return 0.5f * snoise_3d(p) + 0.5f;
 }
@@ -751,7 +753,7 @@ ccl_device_inline float snoise_4d(float4 p)
   return noise_scale4(perlin_4d(p.x, p.y, p.z, p.w));
 }
 
-ccl_device_inline float noise_4d(float4 p)
+ccl_device_inline float noise_4d(const float4 p)
 {
   return 0.5f * snoise_4d(p) + 0.5f;
 }

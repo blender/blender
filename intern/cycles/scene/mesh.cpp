@@ -33,9 +33,9 @@ void Mesh::Triangle::bounds_grow(const float3 *verts, BoundBox &bounds) const
 
 void Mesh::Triangle::motion_verts(const float3 *verts,
                                   const float3 *vert_steps,
-                                  size_t num_verts,
-                                  size_t num_steps,
-                                  float time,
+                                  const size_t num_verts,
+                                  const size_t num_steps,
+                                  const float time,
                                   float3 r_verts[3]) const
 {
   /* Figure out which steps we need to fetch and their interpolation factor. */
@@ -55,8 +55,8 @@ void Mesh::Triangle::motion_verts(const float3 *verts,
 
 void Mesh::Triangle::verts_for_step(const float3 *verts,
                                     const float3 *vert_steps,
-                                    size_t num_verts,
-                                    size_t num_steps,
+                                    const size_t num_verts,
+                                    const size_t num_steps,
                                     size_t step,
                                     float3 r_verts[3]) const
 {
@@ -200,7 +200,7 @@ Mesh::~Mesh()
   delete subd_params;
 }
 
-void Mesh::resize_mesh(int numverts, int numtris)
+void Mesh::resize_mesh(const int numverts, const int numtris)
 {
   verts.resize(numverts);
   triangles.resize(numtris * 3);
@@ -215,7 +215,7 @@ void Mesh::resize_mesh(int numverts, int numtris)
   attributes.resize();
 }
 
-void Mesh::reserve_mesh(int numverts, int numtris)
+void Mesh::reserve_mesh(const int numverts, const int numtris)
 {
   /* reserve space to add verts and triangles later */
   verts.reserve(numverts);
@@ -231,7 +231,7 @@ void Mesh::reserve_mesh(int numverts, int numtris)
   attributes.resize(true);
 }
 
-void Mesh::resize_subd_faces(int numfaces, int num_ngons_, int numcorners)
+void Mesh::resize_subd_faces(const int numfaces, const int num_ngons_, int numcorners)
 {
   subd_start_corner.resize(numfaces);
   subd_num_corners.resize(numfaces);
@@ -245,7 +245,7 @@ void Mesh::resize_subd_faces(int numfaces, int num_ngons_, int numcorners)
   subd_attributes.resize();
 }
 
-void Mesh::reserve_subd_faces(int numfaces, int num_ngons_, int numcorners)
+void Mesh::reserve_subd_faces(const int numfaces, const int num_ngons_, int numcorners)
 {
   subd_start_corner.reserve(numfaces);
   subd_num_corners.reserve(numfaces);
@@ -259,7 +259,7 @@ void Mesh::reserve_subd_faces(int numfaces, int num_ngons_, int numcorners)
   subd_attributes.resize(true);
 }
 
-void Mesh::reserve_subd_creases(size_t num_creases)
+void Mesh::reserve_subd_creases(const size_t num_creases)
 {
   subd_creases_edge.reserve(num_creases * 2);
   subd_creases_weight.reserve(num_creases);
@@ -315,7 +315,7 @@ void Mesh::clear(bool preserve_shaders)
   clear(preserve_shaders, false);
 }
 
-void Mesh::add_vertex(float3 P)
+void Mesh::add_vertex(const float3 P)
 {
   verts.push_back_reserved(P);
   tag_verts_modified();
@@ -326,7 +326,7 @@ void Mesh::add_vertex(float3 P)
   }
 }
 
-void Mesh::add_vertex_slow(float3 P)
+void Mesh::add_vertex_slow(const float3 P)
 {
   verts.push_back_slow(P);
   tag_verts_modified();
@@ -337,7 +337,7 @@ void Mesh::add_vertex_slow(float3 P)
   }
 }
 
-void Mesh::add_triangle(int v0, int v1, int v2, int shader_, bool smooth_)
+void Mesh::add_triangle(const int v0, const int v1, const int v2, const int shader_, bool smooth_)
 {
   triangles.push_back_reserved(v0);
   triangles.push_back_reserved(v1);
@@ -355,7 +355,10 @@ void Mesh::add_triangle(int v0, int v1, int v2, int shader_, bool smooth_)
   }
 }
 
-void Mesh::add_subd_face(const int *corners, int num_corners, int shader_, bool smooth_)
+void Mesh::add_subd_face(const int *corners,
+                         const int num_corners,
+                         const int shader_,
+                         bool smooth_)
 {
   const int start_corner = subd_face_corners.size();
 
@@ -385,7 +388,7 @@ void Mesh::add_subd_face(const int *corners, int num_corners, int shader_, bool 
   tag_subd_ptex_offset_modified();
 }
 
-Mesh::SubdFace Mesh::get_subd_face(size_t index) const
+Mesh::SubdFace Mesh::get_subd_face(const size_t index) const
 {
   Mesh::SubdFace s;
   s.shader = subd_shader[index];
@@ -396,7 +399,7 @@ Mesh::SubdFace Mesh::get_subd_face(size_t index) const
   return s;
 }
 
-void Mesh::add_edge_crease(int v0, int v1, float weight)
+void Mesh::add_edge_crease(const int v0, const int v1, const float weight)
 {
   subd_creases_edge.push_back_slow(v0);
   subd_creases_edge.push_back_slow(v1);
@@ -407,7 +410,7 @@ void Mesh::add_edge_crease(int v0, int v1, float weight)
   tag_subd_creases_weight_modified();
 }
 
-void Mesh::add_vertex_crease(int v, float weight)
+void Mesh::add_vertex_crease(const int v, const float weight)
 {
   subd_vert_creases.push_back_slow(v);
   subd_vert_creases_weight.push_back_slow(weight);

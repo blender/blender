@@ -62,7 +62,7 @@ static GPUShader *compile_fallback_shader()
   return shader;
 }
 
-GPUShader *BlenderFallbackDisplayShader::bind(int width, int height)
+GPUShader *BlenderFallbackDisplayShader::bind(const int width, const int height)
 {
   create_shader_if_needed();
 
@@ -474,8 +474,8 @@ void BlenderDisplayDriver::next_tile_begin()
 }
 
 bool BlenderDisplayDriver::update_begin(const Params &params,
-                                        int texture_width,
-                                        int texture_height)
+                                        const int texture_width,
+                                        const int texture_height)
 {
   /* Note that it's the responsibility of BlenderDisplayDriver to ensure updating and drawing
    * the texture does not happen at the same time. This is achieved indirectly.
@@ -645,7 +645,7 @@ void BlenderDisplayDriver::clear()
   need_clear_ = true;
 }
 
-void BlenderDisplayDriver::set_zoom(float zoom_x, float zoom_y)
+void BlenderDisplayDriver::set_zoom(const float zoom_x, const float zoom_y)
 {
   zoom_ = make_float2(zoom_x, zoom_y);
 }
@@ -655,8 +655,8 @@ void BlenderDisplayDriver::set_zoom(float zoom_x, float zoom_y)
  *
  * NOTE: The buffer needs to be bound. */
 static void vertex_draw(const DisplayDriver::Params &params,
-                        int texcoord_attribute,
-                        int position_attribute)
+                        const int texcoord_attribute,
+                        const int position_attribute)
 {
   const int x = params.full_offset.x;
   const int y = params.full_offset.y;

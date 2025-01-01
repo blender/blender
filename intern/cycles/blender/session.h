@@ -33,7 +33,7 @@ class BlenderSession {
                  BL::BlendData &b_data,
                  BL::SpaceView3D &b_v3d,
                  BL::RegionView3D &b_rv3d,
-                 int width,
+                 const int width,
                  int height);
 
   ~BlenderSession();
@@ -62,7 +62,7 @@ class BlenderSession {
 
   /* drawing */
   void draw(BL::SpaceImageEditor &space_image);
-  void view_draw(int w, int h);
+  void view_draw(const int w, const int h);
   void tag_redraw();
   void tag_update();
   void get_status(string &status, string &substatus);

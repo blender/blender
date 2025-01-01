@@ -133,7 +133,7 @@ class Progress {
     render_start_time = time_dt();
   }
 
-  void set_time_limit(double time_limit_)
+  void set_time_limit(const double time_limit_)
   {
     const thread_scoped_lock lock(progress_mutex);
 
@@ -175,7 +175,7 @@ class Progress {
     denoised_tiles = 0;
   }
 
-  void set_total_pixel_samples(uint64_t total_pixel_samples_)
+  void set_total_pixel_samples(const uint64_t total_pixel_samples_)
   {
     const thread_scoped_lock lock(progress_mutex);
 
@@ -197,7 +197,7 @@ class Progress {
     return 0.0;
   }
 
-  void add_samples(uint64_t pixel_samples_, int tile_sample)
+  void add_samples(const uint64_t pixel_samples_, int tile_sample)
   {
     const thread_scoped_lock lock(progress_mutex);
 
@@ -205,7 +205,7 @@ class Progress {
     current_tile_sample = tile_sample;
   }
 
-  void add_samples_update(uint64_t pixel_samples_, int tile_sample)
+  void add_samples_update(const uint64_t pixel_samples_, int tile_sample)
   {
     add_samples(pixel_samples_, tile_sample);
     set_update();

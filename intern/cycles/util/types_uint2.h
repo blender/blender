@@ -27,7 +27,7 @@ struct uint2 {
 #  endif
 };
 
-ccl_device_inline uint2 make_uint2(uint x, uint y)
+ccl_device_inline uint2 make_uint2(const uint x, const uint y)
 {
   uint2 a = {x, y};
   return a;

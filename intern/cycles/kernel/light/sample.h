@@ -25,7 +25,7 @@ light_sample_shader_eval(KernelGlobals kg,
                          IntegratorState state,
                          ccl_private ShaderData *ccl_restrict emission_sd,
                          ccl_private LightSample *ccl_restrict ls,
-                         float time)
+                         const float time)
 {
   /* setup shading at emitter */
   Spectrum eval = zero_spectrum();
@@ -118,7 +118,7 @@ ccl_device_inline bool light_sample_terminate(KernelGlobals kg,
  * point. */
 
 ccl_device_inline float3 shadow_ray_smooth_surface_offset(
-    KernelGlobals kg, const ccl_private ShaderData *ccl_restrict sd, float3 Ng)
+    KernelGlobals kg, const ccl_private ShaderData *ccl_restrict sd, const float3 Ng)
 {
   float3 V[3];
   float3 N[3];
@@ -175,7 +175,7 @@ ccl_device_inline float3 shadow_ray_smooth_surface_offset(
 
 ccl_device_inline float3 shadow_ray_offset(KernelGlobals kg,
                                            const ccl_private ShaderData *ccl_restrict sd,
-                                           float3 L,
+                                           const float3 L,
                                            ccl_private bool *r_skip_self)
 {
   float3 P = sd->P;

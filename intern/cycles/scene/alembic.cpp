@@ -245,7 +245,7 @@ size_t CachedData::memory_used() const
   return mem_used;
 }
 
-static M44d convert_yup_zup(const M44d &mtx, float scale_mult)
+static M44d convert_yup_zup(const M44d &mtx, const float scale_mult)
 {
   V3d scale;
   V3d shear;
@@ -416,7 +416,7 @@ static void concatenate_xform_samples(const MatrixSampleMap &parent_samples,
   }
 }
 
-static Transform make_transform(const M44d &a, float scale)
+static Transform make_transform(const M44d &a, const float scale)
 {
   M44d m = convert_yup_zup(a, scale);
   Transform trans;
@@ -724,7 +724,9 @@ AttributeRequestSet AlembicObject::get_requested_attributes()
 
 /* Update existing attributes and remove any attribute not in the cached_data, those attributes
  * were added by Cycles (e.g. face normals) */
-static void update_attributes(AttributeSet &attributes, CachedData &cached_data, double frame_time)
+static void update_attributes(AttributeSet &attributes,
+                              CachedData &cached_data,
+                              const double frame_time)
 {
   set<Attribute *> cached_attributes;
 

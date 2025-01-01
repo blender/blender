@@ -14,9 +14,9 @@ CCL_NAMESPACE_BEGIN
 
 ccl_device_noinline void svm_node_fresnel(ccl_private ShaderData *sd,
                                           ccl_private float *stack,
-                                          uint ior_offset,
-                                          uint ior_value,
-                                          uint node)
+                                          const uint ior_offset,
+                                          const uint ior_value,
+                                          const uint node)
 {
   uint normal_offset;
   uint out_offset;
@@ -38,7 +38,7 @@ ccl_device_noinline void svm_node_fresnel(ccl_private ShaderData *sd,
 
 ccl_device_noinline void svm_node_layer_weight(ccl_private ShaderData *sd,
                                                ccl_private float *stack,
-                                               uint4 node)
+                                               const uint4 node)
 {
   const uint blend_offset = node.y;
   const uint blend_value = node.z;

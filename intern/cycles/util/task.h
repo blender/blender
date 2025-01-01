@@ -69,7 +69,7 @@ class TaskPool {
  */
 class TaskScheduler {
  public:
-  static void init(int num_threads = 0);
+  static void init(const int num_threads = 0);
   static void exit();
   static void free_memory();
 
@@ -106,7 +106,7 @@ class DedicatedTaskPool {
   bool canceled(); /* for worker thread, test if canceled */
 
  protected:
-  void num_decrease(int done);
+  void num_decrease(const int done);
   void num_increase();
 
   void thread_run();

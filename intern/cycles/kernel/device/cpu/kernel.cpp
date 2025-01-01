@@ -61,7 +61,10 @@ void kernel_const_copy(KernelGlobalsCPU *kg, const char *name, void *host, size_
   }
 }
 
-void kernel_global_memory_copy(KernelGlobalsCPU *kg, const char *name, void *mem, size_t size)
+void kernel_global_memory_copy(KernelGlobalsCPU *kg,
+                               const char *name,
+                               void *mem,
+                               const size_t size)
 {
   if (false) {
   }

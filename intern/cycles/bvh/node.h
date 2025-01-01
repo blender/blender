@@ -38,12 +38,12 @@ class BVHNode {
 
   virtual bool is_leaf() const = 0;
   virtual int num_children() const = 0;
-  virtual BVHNode *get_child(int i) const = 0;
+  virtual BVHNode *get_child(const int i) const = 0;
   virtual int num_triangles() const
   {
     return 0;
   }
-  virtual void print(int depth = 0) const = 0;
+  virtual void print(const int depth = 0) const = 0;
 
   void set_aligned_space(const Transform &aligned_space)
   {
@@ -79,7 +79,7 @@ class BVHNode {
 
   // Subtree functions
   int getSubtreeSize(BVH_STAT stat = BVH_STAT_NODE_COUNT) const;
-  float computeSubtreeSAHCost(const BVHParams &p, float probability = 1.0f) const;
+  float computeSubtreeSAHCost(const BVHParams &p, const float probability = 1.0f) const;
   void deleteSubtree();
 
   uint update_visibility();
@@ -177,12 +177,12 @@ class InnerNode : public BVHNode {
   {
     return num_children_;
   }
-  BVHNode *get_child(int i) const override
+  BVHNode *get_child(const int i) const override
   {
     assert(i >= 0 && i < num_children_);
     return children[i];
   }
-  void print(int depth) const override;
+  void print(const int depth) const override;
 
   int num_children_;
   BVHNode *children[kNumMaxChildren];
@@ -198,7 +198,7 @@ class InnerNode : public BVHNode {
 
 class LeafNode : public BVHNode {
  public:
-  LeafNode(const BoundBox &bounds, uint visibility, int lo, int hi)
+  LeafNode(const BoundBox &bounds, const uint visibility, const int lo, const int hi)
       : BVHNode(bounds), lo(lo), hi(hi)
   {
     this->bounds = bounds;
@@ -223,7 +223,7 @@ class LeafNode : public BVHNode {
   {
     return hi - lo;
   }
-  void print(int depth) const override;
+  void print(const int depth) const override;
 
   int lo;
   int hi;

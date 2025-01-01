@@ -27,13 +27,13 @@ class WorkTileScheduler {
    *
    * Affects the scheduled work size: the work size will be as big as possible, but will not exceed
    * this number of states. */
-  void set_max_num_path_states(int max_num_path_states);
+  void set_max_num_path_states(const int max_num_path_states);
 
   /* Scheduling will happen for pixels within a big tile denotes by its parameters. */
   void reset(const BufferParams &buffer_params,
-             int sample_start,
-             int samples_num,
-             int sample_offset,
+             const int sample_start,
+             const int samples_num,
+             const int sample_offset,
              float scrambling_distance);
 
   /* Get work for a device.

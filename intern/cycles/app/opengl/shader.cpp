@@ -137,7 +137,7 @@ int OpenGLShader::get_tex_coord_attrib_location()
   return tex_coord_attribute_location_;
 }
 
-void OpenGLShader::bind(int width, int height)
+void OpenGLShader::bind(const int width, const int height)
 {
   create_shader_if_needed();
 

@@ -194,7 +194,7 @@ int SVMCompiler::stack_size(SocketType::Type type)
   return size;
 }
 
-int SVMCompiler::stack_find_offset(int size)
+int SVMCompiler::stack_find_offset(const int size)
 {
   int offset = -1;
 
@@ -234,7 +234,7 @@ int SVMCompiler::stack_find_offset(SocketType::Type type)
   return stack_find_offset(stack_size(type));
 }
 
-void SVMCompiler::stack_clear_offset(SocketType::Type type, int offset)
+void SVMCompiler::stack_clear_offset(SocketType::Type type, const int offset)
 {
   const int size = stack_size(type);
 
@@ -375,7 +375,7 @@ void SVMCompiler::stack_clear_temporary(ShaderNode *node)
   }
 }
 
-uint SVMCompiler::encode_uchar4(uint x, uint y, uint z, uint w)
+uint SVMCompiler::encode_uchar4(const uint x, const uint y, uint z, const uint w)
 {
   assert(x <= 255);
   assert(y <= 255);
@@ -385,12 +385,12 @@ uint SVMCompiler::encode_uchar4(uint x, uint y, uint z, uint w)
   return (x) | (y << 8) | (z << 16) | (w << 24);
 }
 
-void SVMCompiler::add_node(int a, int b, int c, int d)
+void SVMCompiler::add_node(const int a, const int b, int c, const int d)
 {
   current_svm_nodes.push_back_slow(make_int4(a, b, c, d));
 }
 
-void SVMCompiler::add_node(ShaderNodeType type, int a, int b, int c)
+void SVMCompiler::add_node(ShaderNodeType type, const int a, int b, const int c)
 {
   svm_node_types_used[type] = true;
   current_svm_nodes.push_back_slow(make_int4(type, a, b, c));
@@ -871,7 +871,10 @@ void SVMCompiler::compile_type(Shader *shader, ShaderGraph *graph, ShaderType ty
   }
 }
 
-void SVMCompiler::compile(Shader *shader, array<int4> &svm_nodes, int index, Summary *summary)
+void SVMCompiler::compile(Shader *shader,
+                          array<int4> &svm_nodes,
+                          const int index,
+                          Summary *summary)
 {
   svm_node_types_used[NODE_SHADER_JUMP] = true;
   svm_nodes.push_back_slow(make_int4(NODE_SHADER_JUMP, 0, 0, 0));

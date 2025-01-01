@@ -63,7 +63,8 @@ struct ccl_try_align(32) vint8
 #endif
 };
 
-ccl_device_inline vint8 make_vint8(int a, int b, int c, int d, int e, int f, int g, int h)
+ccl_device_inline vint8
+make_vint8(const int a, const int b, int c, const int d, int e, const int f, int g, const int h)
 {
 #ifdef __KERNEL_AVX__
   return vint8(_mm256_set_epi32(h, g, f, e, d, c, b, a));
@@ -72,7 +73,7 @@ ccl_device_inline vint8 make_vint8(int a, int b, int c, int d, int e, int f, int
 #endif
 }
 
-ccl_device_inline vint8 make_vint8(int i)
+ccl_device_inline vint8 make_vint8(const int i)
 {
 #ifdef __KERNEL_AVX__
   return vint8(_mm256_set1_epi32(i));

@@ -34,7 +34,7 @@ __forceinline float &float2::operator[](int i)
 }
 #  endif
 
-ccl_device_inline float2 make_float2(float x, float y)
+ccl_device_inline float2 make_float2(const float x, const float y)
 {
   float2 a = {x, y};
   return a;

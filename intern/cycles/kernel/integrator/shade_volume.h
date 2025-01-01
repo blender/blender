@@ -356,9 +356,9 @@ ccl_device_inline bool volume_equiangular_valid_ray_segment(KernelGlobals kg,
 /* Emission */
 
 ccl_device Spectrum volume_emission_integrate(ccl_private VolumeShaderCoefficients *coeff,
-                                              int closure_flag,
+                                              const int closure_flag,
                                               Spectrum transmittance,
-                                              float t)
+                                              const float t)
 {
   /* integral E * exp(-sigma_t * t) from 0 to t = E * (1 - exp(-sigma_t * t))/sigma_t
    * this goes to E * t as sigma_t goes to zero

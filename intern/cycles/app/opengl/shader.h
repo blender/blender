@@ -21,7 +21,7 @@ class OpenGLShader {
   int get_position_attrib_location();
   int get_tex_coord_attrib_location();
 
-  void bind(int width, int height);
+  void bind(const int width, const int height);
   void unbind();
 
  protected:

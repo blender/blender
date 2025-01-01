@@ -231,7 +231,8 @@ ccl_device_inline void surface_shader_validate_bsdf_sample(const KernelGlobals k
 }
 #endif
 
-ccl_device_forceinline bool _surface_shader_exclude(ClosureType type, uint light_shader_flags)
+ccl_device_forceinline bool _surface_shader_exclude(ClosureType type,
+                                                    const uint light_shader_flags)
 {
   if (!(light_shader_flags & SHADER_EXCLUDE_ANY)) {
     return false;
@@ -1072,7 +1073,7 @@ ccl_device float3 surface_shader_bssrdf_normal(const ccl_private ShaderData *sd)
 /* Constant emission optimization */
 
 ccl_device bool surface_shader_constant_emission(KernelGlobals kg,
-                                                 int shader,
+                                                 const int shader,
                                                  ccl_private Spectrum *eval)
 {
   const int shader_index = shader & SHADER_MASK;
@@ -1155,7 +1156,7 @@ ccl_device void surface_shader_eval(KernelGlobals kg,
                                     ConstIntegratorGenericState state,
                                     ccl_private ShaderData *ccl_restrict sd,
                                     ccl_global float *ccl_restrict buffer,
-                                    uint32_t path_flag,
+                                    const uint32_t path_flag,
                                     bool use_caustics_storage = false)
 {
   /* If path is being terminated, we are tracing a shadow ray or evaluating

@@ -16,7 +16,7 @@ double time_dt();
 
 /* Sleep for the specified number of seconds. */
 
-void time_sleep(double t);
+void time_sleep(const double t);
 
 /* Scoped timer. */
 

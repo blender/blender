@@ -29,8 +29,8 @@ class Hair : public Geometry {
                      const float *curve_radius,
                      BoundBox &bounds) const;
     void bounds_grow(const int k, const float4 *keys, BoundBox &bounds) const;
-    void bounds_grow(float4 keys[4], BoundBox &bounds) const;
-    void bounds_grow(float3 keys[4], BoundBox &bounds) const;
+    void bounds_grow(const float4 keys[4], BoundBox &bounds) const;
+    void bounds_grow(const float3 keys[4], BoundBox &bounds) const;
     void bounds_grow(const int k,
                      const float3 *curve_keys,
                      const float *curve_radius,
@@ -40,18 +40,18 @@ class Hair : public Geometry {
     void motion_keys(const float3 *curve_keys,
                      const float *curve_radius,
                      const float4 *key_steps,
-                     size_t num_curve_keys,
-                     size_t num_steps,
-                     float time,
+                     const size_t num_curve_keys,
+                     const size_t num_steps,
+                     const float time,
                      size_t k0,
                      size_t k1,
                      float4 r_keys[2]) const;
     void cardinal_motion_keys(const float3 *curve_keys,
                               const float *curve_radius,
                               const float4 *key_steps,
-                              size_t num_curve_keys,
-                              size_t num_steps,
-                              float time,
+                              const size_t num_curve_keys,
+                              const size_t num_steps,
+                              const float time,
                               size_t k0,
                               size_t k1,
                               size_t k2,
@@ -61,18 +61,18 @@ class Hair : public Geometry {
     void keys_for_step(const float3 *curve_keys,
                        const float *curve_radius,
                        const float4 *key_steps,
-                       size_t num_curve_keys,
-                       size_t num_steps,
-                       size_t step,
+                       const size_t num_curve_keys,
+                       const size_t num_steps,
+                       const size_t step,
                        size_t k0,
                        size_t k1,
                        float4 r_keys[2]) const;
     void cardinal_keys_for_step(const float3 *curve_keys,
                                 const float *curve_radius,
                                 const float4 *key_steps,
-                                size_t num_curve_keys,
-                                size_t num_steps,
-                                size_t step,
+                                const size_t num_curve_keys,
+                                const size_t num_steps,
+                                const size_t step,
                                 size_t k0,
                                 size_t k1,
                                 size_t k2,
@@ -97,10 +97,10 @@ class Hair : public Geometry {
   /* Geometry */
   void clear(bool preserve_shaders = false) override;
 
-  void resize_curves(int numcurves, int numkeys);
-  void reserve_curves(int numcurves, int numkeys);
-  void add_curve_key(float3 co, float radius);
-  void add_curve(int first_key, int shader);
+  void resize_curves(const int numcurves, const int numkeys);
+  void reserve_curves(const int numcurves, const int numkeys);
+  void add_curve_key(const float3 co, const float radius);
+  void add_curve(const int first_key, const int shader);
 
   void copy_center_to_motion_step(const int motion_step);
 
@@ -108,7 +108,7 @@ class Hair : public Geometry {
   void apply_transform(const Transform &tfm, const bool apply_to_motion) override;
 
   /* Curves */
-  Curve get_curve(size_t i) const
+  Curve get_curve(const size_t i) const
   {
     const int first = curve_first_key[i];
     const int next_first = (i + 1 < curve_first_key.size()) ? curve_first_key[i + 1] :

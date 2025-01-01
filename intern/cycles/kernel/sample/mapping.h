@@ -65,7 +65,7 @@ ccl_device void make_orthonormals_safe_tangent(const float3 N,
 
 /* sample direction with cosine weighted distributed in hemisphere */
 ccl_device_inline void sample_cos_hemisphere(const float3 N,
-                                             float2 rand_in,
+                                             const float2 rand_in,
                                              ccl_private float3 *wo,
                                              ccl_private float *pdf)
 {
@@ -104,7 +104,7 @@ ccl_device_inline void sample_uniform_hemisphere(const float3 N,
   *pdf = M_1_2PI_F;
 }
 
-ccl_device_inline float pdf_uniform_cone(const float3 N, float3 D, float angle)
+ccl_device_inline float pdf_uniform_cone(const float3 N, const float3 D, const float angle)
 {
   const float z = precise_angle(N, D);
   if (z < angle) {
@@ -181,7 +181,7 @@ ccl_device float3 sample_uniform_sphere(const float2 rand)
 }
 
 /* sample point in unit polygon with given number of corners and rotation */
-ccl_device float2 regular_polygon_sample(float corners, float rotation, const float2 rand)
+ccl_device float2 regular_polygon_sample(const float corners, float rotation, const float2 rand)
 {
   float u = rand.x;
   float v = rand.y;

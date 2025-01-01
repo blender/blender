@@ -12,9 +12,9 @@ CCL_NAMESPACE_BEGIN
 
 ccl_device void svm_node_combine_vector(ccl_private ShaderData *sd,
                                         ccl_private float *stack,
-                                        uint in_offset,
-                                        uint vector_index,
-                                        uint out_offset)
+                                        const uint in_offset,
+                                        const uint vector_index,
+                                        const uint out_offset)
 {
   const float vector = stack_load_float(stack, in_offset);
 
@@ -25,9 +25,9 @@ ccl_device void svm_node_combine_vector(ccl_private ShaderData *sd,
 
 ccl_device void svm_node_separate_vector(ccl_private ShaderData *sd,
                                          ccl_private float *stack,
-                                         uint ivector_offset,
-                                         uint vector_index,
-                                         uint out_offset)
+                                         const uint ivector_offset,
+                                         const uint vector_index,
+                                         const uint out_offset)
 {
   const float3 vector = stack_load_float3(stack, ivector_offset);
 

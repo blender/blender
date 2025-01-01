@@ -29,7 +29,7 @@ ParticleCurveData::ParticleCurveData() = default;
 
 ParticleCurveData::~ParticleCurveData() = default;
 
-static float shaperadius(float shape, float root, float tip, float time)
+static float shaperadius(const float shape, const float root, const float tip, const float time)
 {
   assert(time >= 0.0f);
   assert(time <= 1.0f);
@@ -155,7 +155,7 @@ static bool ObtainCacheParticleUV(Hair *hair,
                                   BL::Object *b_ob,
                                   ParticleCurveData *CData,
                                   bool background,
-                                  int uv_num)
+                                  const int uv_num)
 {
   if (!(hair && b_mesh && b_ob && CData)) {
     return false;
@@ -225,7 +225,7 @@ static bool ObtainCacheParticleVcol(Hair *hair,
                                     BL::Object *b_ob,
                                     ParticleCurveData *CData,
                                     bool background,
-                                    int vcol_num)
+                                    const int vcol_num)
 {
   if (!(hair && b_mesh && b_ob && CData)) {
     return false;
@@ -391,7 +391,10 @@ static void ExportCurveSegments(Scene *scene, Hair *hair, ParticleCurveData *CDa
   }
 }
 
-static float4 CurveSegmentMotionCV(ParticleCurveData *CData, int sys, int curve, int curvekey)
+static float4 CurveSegmentMotionCV(ParticleCurveData *CData,
+                                   const int sys,
+                                   const int curve,
+                                   const int curvekey)
 {
   const float3 ickey_loc = CData->curvekey_co[curvekey];
   const float curve_time = CData->curvekey_time[curvekey];
@@ -412,7 +415,10 @@ static float4 CurveSegmentMotionCV(ParticleCurveData *CData, int sys, int curve,
   return mP;
 }
 
-static float4 LerpCurveSegmentMotionCV(ParticleCurveData *CData, int sys, int curve, float step)
+static float4 LerpCurveSegmentMotionCV(ParticleCurveData *CData,
+                                       const int sys,
+                                       const int curve,
+                                       const float step)
 {
   assert(step >= 0.0f);
   assert(step <= 1.0f);
@@ -434,8 +440,8 @@ static float4 LerpCurveSegmentMotionCV(ParticleCurveData *CData, int sys, int cu
 }
 
 static void export_hair_motion_validate_attribute(Hair *hair,
-                                                  int motion_step,
-                                                  int num_motion_keys,
+                                                  const int motion_step,
+                                                  const int num_motion_keys,
                                                   bool have_motion)
 {
   Attribute *attr_mP = hair->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
@@ -462,7 +468,7 @@ static void export_hair_motion_validate_attribute(Hair *hair,
   }
 }
 
-static void ExportCurveSegmentsMotion(Hair *hair, ParticleCurveData *CData, int motion_step)
+static void ExportCurveSegmentsMotion(Hair *hair, ParticleCurveData *CData, const int motion_step)
 {
   /* find attribute */
   Attribute *attr_mP = hair->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
@@ -562,7 +568,7 @@ bool BlenderSync::object_has_particle_hair(BL::Object b_ob)
 
 /* Old particle hair. */
 void BlenderSync::sync_particle_hair(
-    Hair *hair, BL::Mesh &b_mesh, BObjectInfo &b_ob_info, bool motion, int motion_step)
+    Hair *hair, BL::Mesh &b_mesh, BObjectInfo &b_ob_info, bool motion, const int motion_step)
 {
   if (!b_ob_info.is_real_object_data()) {
     return;
@@ -932,7 +938,7 @@ static void export_hair_curves(Scene *scene,
 
 static void export_hair_curves_motion(Hair *hair,
                                       const blender::bke::CurvesGeometry &b_curves,
-                                      int motion_step)
+                                      const int motion_step)
 {
   /* Find or add attribute. */
   Attribute *attr_mP = hair->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
@@ -1005,7 +1011,7 @@ static void export_hair_curves_motion(Hair *hair,
 }
 
 /* Hair object. */
-void BlenderSync::sync_hair(Hair *hair, BObjectInfo &b_ob_info, bool motion, int motion_step)
+void BlenderSync::sync_hair(Hair *hair, BObjectInfo &b_ob_info, bool motion, const int motion_step)
 {
   /* Motion blur attribute is relative to seconds, we need it relative to frames. */
   const bool need_motion = object_need_motion_attribute(b_ob_info, scene);
@@ -1078,7 +1084,7 @@ void BlenderSync::sync_hair(BL::Depsgraph b_depsgraph, BObjectInfo &b_ob_info, H
 void BlenderSync::sync_hair_motion(BL::Depsgraph b_depsgraph,
                                    BObjectInfo &b_ob_info,
                                    Hair *hair,
-                                   int motion_step)
+                                   const int motion_step)
 {
   /* Skip if nothing exported. */
   if (hair->num_keys() == 0) {

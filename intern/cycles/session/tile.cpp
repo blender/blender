@@ -332,7 +332,7 @@ int TileManager::compute_render_tile_size(const int suggested_tile_size) const
   return min(computed_tile_size, MAX_TILE_SIZE);
 }
 
-void TileManager::reset_scheduling(const BufferParams &params, int2 tile_size)
+void TileManager::reset_scheduling(const BufferParams &params, const int2 tile_size)
 {
   VLOG_WORK << "Using tile size of " << tile_size;
 
@@ -404,7 +404,7 @@ bool TileManager::next()
   return true;
 }
 
-Tile TileManager::get_tile_for_index(int index) const
+Tile TileManager::get_tile_for_index(const int index) const
 {
   /* TODO(sergey): Consider using hilbert spiral, or. maybe, even configurable. Not sure this
    * brings a lot of value since this is only applicable to BIG tiles. */

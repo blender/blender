@@ -7,7 +7,7 @@ CCL_NAMESPACE_BEGIN
 /* For oneAPI implementation we do manual lookup and interpolation. */
 /* TODO: share implementation with ../cpu/image.h. */
 
-template<typename T> ccl_device_forceinline T tex_fetch(const TextureInfo &info, int index)
+template<typename T> ccl_device_forceinline T tex_fetch(const TextureInfo &info, const int index)
 {
   return reinterpret_cast<ccl_global T *>(info.data)[index];
 }
@@ -21,12 +21,12 @@ ccl_device_inline int svm_image_texture_wrap_periodic(int x, int width)
   return x;
 }
 
-ccl_device_inline int svm_image_texture_wrap_clamp(int x, int width)
+ccl_device_inline int svm_image_texture_wrap_clamp(const int x, const int width)
 {
   return clamp(x, 0, width - 1);
 }
 
-ccl_device_inline int svm_image_texture_wrap_mirror(int x, int width)
+ccl_device_inline int svm_image_texture_wrap_mirror(const int x, const int width)
 {
   const int m = abs(x + (x < 0)) % (2 * width);
   if (m >= width) {
@@ -35,7 +35,10 @@ ccl_device_inline int svm_image_texture_wrap_mirror(int x, int width)
   return m;
 }
 
-ccl_device_inline float4 svm_image_texture_read(const TextureInfo &info, int x, int y, int z)
+ccl_device_inline float4 svm_image_texture_read(const TextureInfo &info,
+                                                const int x,
+                                                int y,
+                                                const int z)
 {
   const int data_offset = x + info.width * y + info.width * info.height * z;
   const int texture_type = info.data_type;
@@ -81,7 +84,7 @@ ccl_device_inline float4 svm_image_texture_read(const TextureInfo &info, int x, 
   return make_float4(f, f, f, 1.0f);
 }
 
-ccl_device_inline float4 svm_image_texture_read_2d(int id, int x, int y)
+ccl_device_inline float4 svm_image_texture_read_2d(const int id, int x, int y)
 {
   const TextureInfo &info = kernel_data_fetch(texture_info, id);
 
@@ -107,7 +110,7 @@ ccl_device_inline float4 svm_image_texture_read_2d(int id, int x, int y)
   return svm_image_texture_read(info, x, y, 0);
 }
 
-ccl_device_inline float4 svm_image_texture_read_3d(int id, int x, int y, int z)
+ccl_device_inline float4 svm_image_texture_read_3d(const int id, int x, int y, int z)
 {
   const TextureInfo &info = kernel_data_fetch(texture_info, id);
 
@@ -136,7 +139,7 @@ ccl_device_inline float4 svm_image_texture_read_3d(int id, int x, int y, int z)
   return svm_image_texture_read(info, x, y, z);
 }
 
-static float svm_image_texture_frac(float x, int *ix)
+static float svm_image_texture_frac(const float x, int *ix)
 {
   int i = float_to_int(x) - ((x < 0.0f) ? 1 : 0);
   *ix = i;
@@ -152,7 +155,7 @@ static float svm_image_texture_frac(float x, int *ix)
   } \
   (void)0
 
-ccl_device float4 kernel_tex_image_interp(KernelGlobals kg, int id, float x, float y)
+ccl_device float4 kernel_tex_image_interp(KernelGlobals kg, const int id, float x, float y)
 {
   const TextureInfo &info = kernel_data_fetch(texture_info, id);
 
@@ -200,7 +203,7 @@ ccl_device float4 kernel_tex_image_interp(KernelGlobals kg, int id, float x, flo
 #ifdef WITH_NANOVDB
 template<typename TexT, typename OutT> struct NanoVDBInterpolator {
 
-  static ccl_always_inline float read(float r)
+  static ccl_always_inline float read(const float r)
   {
     return r;
   }
@@ -211,14 +214,16 @@ template<typename TexT, typename OutT> struct NanoVDBInterpolator {
   }
 
   template<typename Acc>
-  static ccl_always_inline OutT interp_3d_closest(const Acc &acc, float x, float y, float z)
+  static ccl_always_inline OutT
+  interp_3d_closest(const Acc &acc, const float x, float y, const float z)
   {
     const nanovdb::Coord coord(int32_t(rintf(x)), int32_t(rintf(y)), int32_t(rintf(z)));
     return read(acc.getValue(coord));
   }
 
   template<typename Acc>
-  static ccl_always_inline OutT interp_3d_linear(const Acc &acc, float x, float y, float z)
+  static ccl_always_inline OutT
+  interp_3d_linear(const Acc &acc, const float x, float y, const float z)
   {
     int ix, iy, iz;
     const float tx = svm_image_texture_frac(x - 0.5f, &ix);
@@ -244,7 +249,8 @@ template<typename TexT, typename OutT> struct NanoVDBInterpolator {
 
   /* Tricubic b-spline interpolation. */
   template<typename Acc>
-  static ccl_always_inline OutT interp_3d_cubic(const Acc &acc, float x, float y, float z)
+  static ccl_always_inline OutT
+  interp_3d_cubic(const Acc &acc, const float x, float y, const float z)
   {
     int ix, iy, iz;
     int nix, niy, niz;
@@ -294,7 +300,7 @@ template<typename TexT, typename OutT> struct NanoVDBInterpolator {
   }
 
   static ccl_always_inline OutT
-  interp_3d(const TextureInfo &info, float x, float y, float z, int interp)
+  interp_3d(const TextureInfo &info, const float x, float y, const float z, const int interp)
   {
     using namespace nanovdb;
 
@@ -318,7 +324,10 @@ template<typename TexT, typename OutT> struct NanoVDBInterpolator {
 };
 #endif /* WITH_NANOVDB */
 
-ccl_device float4 kernel_tex_image_interp_3d(KernelGlobals kg, int id, float3 P, int interp)
+ccl_device float4 kernel_tex_image_interp_3d(KernelGlobals kg,
+                                             const int id,
+                                             float3 P,
+                                             const int interp)
 {
   const TextureInfo &info = kernel_data_fetch(texture_info, id);
 

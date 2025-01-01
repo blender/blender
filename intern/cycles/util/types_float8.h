@@ -69,7 +69,7 @@ struct ccl_try_align(32) vfloat8
 #endif
 };
 
-ccl_device_inline vfloat8 make_vfloat8(float f)
+ccl_device_inline vfloat8 make_vfloat8(const float f)
 {
 #ifdef __KERNEL_AVX__
   vfloat8 r(_mm256_set1_ps(f));
@@ -79,8 +79,14 @@ ccl_device_inline vfloat8 make_vfloat8(float f)
   return r;
 }
 
-ccl_device_inline vfloat8
-make_vfloat8(float a, float b, float c, float d, float e, float f, float g, float h)
+ccl_device_inline vfloat8 make_vfloat8(const float a,
+                                       const float b,
+                                       float c,
+                                       const float d,
+                                       float e,
+                                       const float f,
+                                       float g,
+                                       const float h)
 {
 #ifdef __KERNEL_AVX__
   vfloat8 r(_mm256_setr_ps(a, b, c, d, e, f, g, h));

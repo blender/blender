@@ -40,7 +40,7 @@ class BoundBox {
     max = ccl::max(pt, max);
   }
 
-  __forceinline void grow(const float3 &pt, float border)
+  __forceinline void grow(const float3 &pt, const float border)
   {
     const float3 shift = make_float3(border, border, border);
     min = ccl::min(pt - shift, min);
@@ -63,7 +63,7 @@ class BoundBox {
     }
   }
 
-  __forceinline void grow_safe(const float3 &pt, float border)
+  __forceinline void grow_safe(const float3 &pt, const float border)
   {
     if (isfinite(pt.x) && isfinite(pt.y) && isfinite(pt.z) && isfinite(border)) {
       const float3 shift = make_float3(border, border, border);
@@ -248,7 +248,7 @@ class BoundBox2D {
     return result;
   }
 
-  BoundBox2D clamp(float mn = 0.0f, float mx = 1.0f)
+  BoundBox2D clamp(const float mn = 0.0f, const float mx = 1.0f)
   {
     BoundBox2D result;
 

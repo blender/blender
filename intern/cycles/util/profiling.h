@@ -72,7 +72,7 @@ class Profiler {
   Profiler();
   ~Profiler();
 
-  void reset(int num_shaders, int num_objects);
+  void reset(const int num_shaders, const int num_objects);
 
   void start();
   void stop();
@@ -81,8 +81,8 @@ class Profiler {
   void remove_state(ProfilingState *state);
 
   uint64_t get_event(ProfilingEvent event);
-  bool get_shader(int shader, uint64_t &samples, uint64_t &hits);
-  bool get_object(int object, uint64_t &samples, uint64_t &hits);
+  bool get_shader(const int shader, uint64_t &samples, uint64_t &hits);
+  bool get_object(const int object, uint64_t &samples, uint64_t &hits);
 
   bool active() const;
 
@@ -146,7 +146,7 @@ class ProfilingWithShaderHelper : public ProfilingHelper {
     state->shader = -1;
   }
 
-  void set_shader(int object, int shader)
+  void set_shader(const int object, const int shader)
   {
     if (state->active) {
       state->shader = shader;

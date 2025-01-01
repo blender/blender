@@ -15,7 +15,7 @@ CCL_NAMESPACE_BEGIN
 void BlenderSync::sync_light(BL::Object &b_parent,
                              int persistent_id[OBJECT_PERSISTENT_ID_SIZE],
                              BObjectInfo &b_ob_info,
-                             int random_id,
+                             const int random_id,
                              Transform &tfm,
                              bool *use_portal)
 {

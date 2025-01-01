@@ -432,7 +432,7 @@ ShaderManager::ShaderManager()
 
 ShaderManager::~ShaderManager() = default;
 
-ShaderManager *ShaderManager::create(int shadingsystem, Device *device)
+ShaderManager *ShaderManager::create(const int shadingsystem, Device *device)
 {
   ShaderManager *manager;
 
@@ -804,12 +804,12 @@ void ShaderManager::free_memory()
   ColorSpaceManager::free_memory();
 }
 
-float ShaderManager::linear_rgb_to_gray(float3 c)
+float ShaderManager::linear_rgb_to_gray(const float3 c)
 {
   return dot(c, rgb_to_y);
 }
 
-float3 ShaderManager::rec709_to_scene_linear(float3 c)
+float3 ShaderManager::rec709_to_scene_linear(const float3 c)
 {
   return to_local(c, rec709_to_r, rec709_to_g, rec709_to_b);
 }
@@ -972,7 +972,7 @@ void ShaderManager::init_xyz_transforms()
 size_t ShaderManager::ensure_bsdf_table_impl(DeviceScene *dscene,
                                              Scene *scene,
                                              const float *table,
-                                             size_t n)
+                                             const size_t n)
 {
   /* Since the BSDF tables are static arrays, we can use their address to identify them. */
   if (!(bsdf_tables.count(table))) {

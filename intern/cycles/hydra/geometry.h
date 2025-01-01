@@ -47,7 +47,7 @@ template<typename Base, typename CyclesBase> class HdCyclesGeometry : public Bas
  private:
   void Initialize(PXR_NS::HdRenderParam *renderParam);
 
-  void InitializeInstance(int index);
+  void InitializeInstance(const int index);
 
   PXR_NS::GfMatrix4d _geomTransform;
 };

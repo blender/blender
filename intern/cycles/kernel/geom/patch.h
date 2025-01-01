@@ -20,7 +20,7 @@ struct PatchHandle {
   int array_index, patch_index, vert_index;
 };
 
-ccl_device_inline int patch_map_resolve_quadrant(float median,
+ccl_device_inline int patch_map_resolve_quadrant(const float median,
                                                  ccl_private float *u,
                                                  ccl_private float *v)
 {
@@ -52,7 +52,7 @@ ccl_device_inline int patch_map_resolve_quadrant(float median,
 /* retrieve PatchHandle from patch coords */
 
 ccl_device_inline PatchHandle
-patch_map_find_patch(KernelGlobals kg, int object, int patch, float u, float v)
+patch_map_find_patch(KernelGlobals kg, const int object, const int patch, float u, float v)
 {
   PatchHandle handle;
 
@@ -97,7 +97,7 @@ patch_map_find_patch(KernelGlobals kg, int object, int patch, float u, float v)
   return handle;
 }
 
-ccl_device_inline void patch_eval_bspline_weights(float t,
+ccl_device_inline void patch_eval_bspline_weights(const float t,
                                                   ccl_private float *point,
                                                   ccl_private float *deriv)
 {
@@ -119,7 +119,7 @@ ccl_device_inline void patch_eval_bspline_weights(float t,
   deriv[3] = 0.5f * t2;
 }
 
-ccl_device_inline void patch_eval_adjust_boundary_weights(uint bits,
+ccl_device_inline void patch_eval_adjust_boundary_weights(const uint bits,
                                                           ccl_private float *s,
                                                           ccl_private float *t)
 {
@@ -150,12 +150,12 @@ ccl_device_inline void patch_eval_adjust_boundary_weights(uint bits,
   }
 }
 
-ccl_device_inline int patch_eval_depth(uint patch_bits)
+ccl_device_inline int patch_eval_depth(const uint patch_bits)
 {
   return (patch_bits & 0xf);
 }
 
-ccl_device_inline float patch_eval_param_fraction(uint patch_bits)
+ccl_device_inline float patch_eval_param_fraction(const uint patch_bits)
 {
   const bool non_quad_root = (patch_bits >> 4) & 0x1;
   const int depth = patch_eval_depth(patch_bits);
@@ -166,7 +166,7 @@ ccl_device_inline float patch_eval_param_fraction(uint patch_bits)
   return 1.0f / (float)(1 << depth);
 }
 
-ccl_device_inline void patch_eval_normalize_coords(uint patch_bits,
+ccl_device_inline void patch_eval_normalize_coords(const uint patch_bits,
                                                    ccl_private float *u,
                                                    ccl_private float *v)
 {
@@ -247,11 +247,11 @@ ccl_device_inline void patch_eval_basis(KernelGlobals kg,
 /* generic function for evaluating indices and weights from patch coords */
 
 ccl_device_inline int patch_eval_control_verts(KernelGlobals kg,
-                                               int object,
-                                               int patch,
-                                               float u,
-                                               float v,
-                                               int channel,
+                                               const int object,
+                                               const int patch,
+                                               const float u,
+                                               const float v,
+                                               const int channel,
                                                int indices[PATCH_MAX_CONTROL_VERTS],
                                                float weights[PATCH_MAX_CONTROL_VERTS],
                                                float weights_du[PATCH_MAX_CONTROL_VERTS],
@@ -270,11 +270,11 @@ ccl_device_inline int patch_eval_control_verts(KernelGlobals kg,
 
 ccl_device float patch_eval_float(KernelGlobals kg,
                                   const ccl_private ShaderData *sd,
-                                  int offset,
-                                  int patch,
-                                  float u,
-                                  float v,
-                                  int channel,
+                                  const int offset,
+                                  const int patch,
+                                  const float u,
+                                  const float v,
+                                  const int channel,
                                   ccl_private float *du,
                                   ccl_private float *dv)
 {
@@ -311,11 +311,11 @@ ccl_device float patch_eval_float(KernelGlobals kg,
 
 ccl_device float2 patch_eval_float2(KernelGlobals kg,
                                     const ccl_private ShaderData *sd,
-                                    int offset,
-                                    int patch,
-                                    float u,
-                                    float v,
-                                    int channel,
+                                    const int offset,
+                                    const int patch,
+                                    const float u,
+                                    const float v,
+                                    const int channel,
                                     ccl_private float2 *du,
                                     ccl_private float2 *dv)
 {
@@ -352,11 +352,11 @@ ccl_device float2 patch_eval_float2(KernelGlobals kg,
 
 ccl_device float3 patch_eval_float3(KernelGlobals kg,
                                     const ccl_private ShaderData *sd,
-                                    int offset,
-                                    int patch,
-                                    float u,
-                                    float v,
-                                    int channel,
+                                    const int offset,
+                                    const int patch,
+                                    const float u,
+                                    const float v,
+                                    const int channel,
                                     ccl_private float3 *du,
                                     ccl_private float3 *dv)
 {
@@ -393,11 +393,11 @@ ccl_device float3 patch_eval_float3(KernelGlobals kg,
 
 ccl_device float4 patch_eval_float4(KernelGlobals kg,
                                     const ccl_private ShaderData *sd,
-                                    int offset,
-                                    int patch,
-                                    float u,
-                                    float v,
-                                    int channel,
+                                    const int offset,
+                                    const int patch,
+                                    const float u,
+                                    const float v,
+                                    const int channel,
                                     ccl_private float4 *du,
                                     ccl_private float4 *dv)
 {
@@ -434,11 +434,11 @@ ccl_device float4 patch_eval_float4(KernelGlobals kg,
 
 ccl_device float4 patch_eval_uchar4(KernelGlobals kg,
                                     const ccl_private ShaderData *sd,
-                                    int offset,
-                                    int patch,
-                                    float u,
-                                    float v,
-                                    int channel,
+                                    const int offset,
+                                    const int patch,
+                                    const float u,
+                                    const float v,
+                                    const int channel,
                                     ccl_private float4 *du,
                                     ccl_private float4 *dv)
 {

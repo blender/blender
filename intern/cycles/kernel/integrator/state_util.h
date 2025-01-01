@@ -174,7 +174,7 @@ ccl_device_forceinline void integrator_state_read_isect(
 
 #ifdef __VOLUME__
 ccl_device_forceinline VolumeStack integrator_state_read_volume_stack(ConstIntegratorState state,
-                                                                      int i)
+                                                                      const int i)
 {
   VolumeStack entry = {INTEGRATOR_STATE_ARRAY(state, volume_stack, i, object),
                        INTEGRATOR_STATE_ARRAY(state, volume_stack, i, shader)};
@@ -182,7 +182,7 @@ ccl_device_forceinline VolumeStack integrator_state_read_volume_stack(ConstInteg
 }
 
 ccl_device_forceinline void integrator_state_write_volume_stack(IntegratorState state,
-                                                                int i,
+                                                                const int i,
                                                                 VolumeStack entry)
 {
   INTEGRATOR_STATE_ARRAY_WRITE(state, volume_stack, i, object) = entry.object;
@@ -235,7 +235,7 @@ ccl_device_forceinline void integrator_state_copy_volume_stack(KernelGlobals kg,
 }
 
 ccl_device_forceinline VolumeStack
-integrator_state_read_shadow_volume_stack(ConstIntegratorShadowState state, int i)
+integrator_state_read_shadow_volume_stack(ConstIntegratorShadowState state, const int i)
 {
   VolumeStack entry = {INTEGRATOR_STATE_ARRAY(state, shadow_volume_stack, i, object),
                        INTEGRATOR_STATE_ARRAY(state, shadow_volume_stack, i, shader)};
@@ -251,7 +251,7 @@ ccl_device_forceinline bool integrator_state_shadow_volume_stack_is_empty(
 }
 
 ccl_device_forceinline void integrator_state_write_shadow_volume_stack(IntegratorShadowState state,
-                                                                       int i,
+                                                                       const int i,
                                                                        VolumeStack entry)
 {
   INTEGRATOR_STATE_ARRAY_WRITE(state, shadow_volume_stack, i, object) = entry.object;

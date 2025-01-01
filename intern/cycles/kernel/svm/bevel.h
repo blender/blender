@@ -25,7 +25,7 @@ CCL_NAMESPACE_BEGIN
  * far as I can tell has no closed form solution. So we get an iterative solution
  * instead with newton-raphson. */
 
-ccl_device float svm_bevel_cubic_eval(const float radius, float r)
+ccl_device float svm_bevel_cubic_eval(const float radius, const float r)
 {
   const float Rm = radius;
 
@@ -41,13 +41,13 @@ ccl_device float svm_bevel_cubic_eval(const float radius, float r)
   return (10.0f * num) / (Rm5 * M_PI_F);
 }
 
-ccl_device float svm_bevel_cubic_pdf(const float radius, float r)
+ccl_device float svm_bevel_cubic_pdf(const float radius, const float r)
 {
   return svm_bevel_cubic_eval(radius, r);
 }
 
 /* solve 10x^2 - 20x^3 + 15x^4 - 4x^5 - xi == 0 */
-ccl_device_forceinline float svm_bevel_cubic_quintic_root_find(float xi)
+ccl_device_forceinline float svm_bevel_cubic_quintic_root_find(const float xi)
 {
   /* newton-raphson iteration, usually succeeds in 2-4 iterations, except
    * outside 0.02 ... 0.98 where it can go up to 10, so overall performance
@@ -76,7 +76,7 @@ ccl_device_forceinline float svm_bevel_cubic_quintic_root_find(float xi)
 }
 
 ccl_device void svm_bevel_cubic_sample(const float radius,
-                                       float xi,
+                                       const float xi,
                                        ccl_private float *r,
                                        ccl_private float *h)
 {
@@ -104,8 +104,8 @@ ccl_device float3 svm_bevel(
     KernelGlobals kg,
     ConstIntegratorState state,
     ccl_private ShaderData *sd,
-    float radius,
-    int num_samples)
+    const float radius,
+    const int num_samples)
 {
   /* Early out if no sampling needed. */
   if (radius <= 0.0f || num_samples < 1 || sd->object == OBJECT_NONE) {
@@ -300,7 +300,7 @@ ccl_device_noinline
                    ConstIntegratorGenericState state,
                    ccl_private ShaderData *sd,
                    ccl_private float *stack,
-                   uint4 node)
+                   const uint4 node)
 {
   uint num_samples;
   uint radius_offset;

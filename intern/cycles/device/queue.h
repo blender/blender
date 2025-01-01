@@ -65,7 +65,7 @@ struct DeviceKernelArguments {
   {
     add(FLOAT32, value, sizeof(float));
   }
-  void add(const Type type, const void *value, size_t size)
+  void add(const Type type, const void *value, const size_t size)
   {
     assert(count < MAX_ARGS);
 

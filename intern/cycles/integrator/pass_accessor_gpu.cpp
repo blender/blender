@@ -12,8 +12,8 @@ CCL_NAMESPACE_BEGIN
 
 PassAccessorGPU::PassAccessorGPU(DeviceQueue *queue,
                                  const PassAccessInfo &pass_access_info,
-                                 float exposure,
-                                 int num_samples)
+                                 const float exposure,
+                                 const int num_samples)
     : PassAccessor(pass_access_info, exposure, num_samples), queue_(queue)
 {
 }

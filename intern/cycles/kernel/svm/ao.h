@@ -28,8 +28,8 @@ ccl_device float svm_ao(
     ccl_private ShaderData *sd,
     float3 N,
     float max_dist,
-    int num_samples,
-    int flags)
+    const int num_samples,
+    const int flags)
 {
   if (flags & NODE_AO_GLOBAL_RADIUS) {
     max_dist = kernel_data.integrator.ao_bounces_distance;
@@ -106,7 +106,7 @@ ccl_device_noinline
                 ConstIntegratorGenericState state,
                 ccl_private ShaderData *sd,
                 ccl_private float *stack,
-                uint4 node)
+                const uint4 node)
 {
   uint flags;
   uint dist_offset;

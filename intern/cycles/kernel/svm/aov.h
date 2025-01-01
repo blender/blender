@@ -24,7 +24,7 @@ ccl_device void svm_node_aov_color(KernelGlobals kg,
                                    ConstIntegratorGenericState state,
                                    ccl_private ShaderData *sd,
                                    ccl_private float *stack,
-                                   uint4 node,
+                                   const uint4 node,
                                    ccl_global float *render_buffer)
 {
   IF_KERNEL_NODES_FEATURE(AOV)
@@ -39,7 +39,7 @@ ccl_device void svm_node_aov_value(KernelGlobals kg,
                                    ConstIntegratorGenericState state,
                                    ccl_private ShaderData *sd,
                                    ccl_private float *stack,
-                                   uint4 node,
+                                   const uint4 node,
                                    ccl_global float *render_buffer)
 {
   IF_KERNEL_NODES_FEATURE(AOV)

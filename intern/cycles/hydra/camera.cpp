@@ -14,7 +14,7 @@
 HDCYCLES_NAMESPACE_OPEN_SCOPE
 
 extern Transform convert_transform(const GfMatrix4d &matrix);
-Transform convert_camera_transform(const GfMatrix4d &matrix, float metersPerUnit)
+Transform convert_camera_transform(const GfMatrix4d &matrix, const float metersPerUnit)
 {
   Transform t = convert_transform(matrix);
   // Flip Z axis

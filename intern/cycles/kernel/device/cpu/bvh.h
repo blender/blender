@@ -252,7 +252,7 @@ ccl_device_inline void kernel_embree_convert_sss_hit(KernelGlobals kg,
                                                      const RTCRay *ray,
                                                      const RTCHit *hit,
                                                      Intersection *isect,
-                                                     int object,
+                                                     const int object,
                                                      const intptr_t prim_offset)
 {
   isect->u = hit->u;
@@ -760,9 +760,9 @@ ccl_device_intersect bool kernel_embree_intersect(KernelGlobals kg,
 ccl_device_intersect bool kernel_embree_intersect_local(KernelGlobals kg,
                                                         const ccl_private Ray *ray,
                                                         ccl_private LocalIntersection *local_isect,
-                                                        int local_object,
+                                                        const int local_object,
                                                         ccl_private uint *lcg_state,
-                                                        int max_hits)
+                                                        const int max_hits)
 {
   const bool has_bvh = !(kernel_data_fetch(object_flag, local_object) &
                          SD_OBJECT_TRANSFORM_APPLIED);
@@ -850,8 +850,8 @@ ccl_device_intersect bool kernel_embree_intersect_local(KernelGlobals kg,
 ccl_device_intersect bool kernel_embree_intersect_shadow_all(KernelGlobals kg,
                                                              IntegratorShadowState state,
                                                              const ccl_private Ray *ray,
-                                                             uint visibility,
-                                                             uint max_hits,
+                                                             const uint visibility,
+                                                             const uint max_hits,
                                                              ccl_private uint *num_recorded_hits,
                                                              ccl_private float *throughput)
 {

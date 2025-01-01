@@ -62,8 +62,8 @@ string string_to_ansi(const string &str);
 #endif
 
 /* Make a string from a size in bytes in human readable form. */
-string string_human_readable_size(size_t size);
+string string_human_readable_size(const size_t size);
 /* Make a string from a unit-less quantity in human readable form. */
-string string_human_readable_number(size_t num);
+string string_human_readable_number(const size_t num);
 
 CCL_NAMESPACE_END

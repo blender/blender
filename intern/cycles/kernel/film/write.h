@@ -40,7 +40,8 @@ ccl_device_forceinline ccl_global float *film_pass_pixel_render_buffer_shadow(
 
 /* Accumulate in passes. */
 
-ccl_device_inline void film_write_pass_float(ccl_global float *ccl_restrict buffer, float value)
+ccl_device_inline void film_write_pass_float(ccl_global float *ccl_restrict buffer,
+                                             const float value)
 {
 #ifdef __ATOMIC_PASS_WRITE__
   atomic_add_and_fetch_float(buffer, value);
@@ -49,7 +50,8 @@ ccl_device_inline void film_write_pass_float(ccl_global float *ccl_restrict buff
 #endif
 }
 
-ccl_device_inline void film_write_pass_float3(ccl_global float *ccl_restrict buffer, float3 value)
+ccl_device_inline void film_write_pass_float3(ccl_global float *ccl_restrict buffer,
+                                              const float3 value)
 {
 #ifdef __ATOMIC_PASS_WRITE__
   ccl_global float *buf_x = buffer + 0;
@@ -72,7 +74,8 @@ ccl_device_inline void film_write_pass_spectrum(ccl_global float *ccl_restrict b
   film_write_pass_float3(buffer, spectrum_to_rgb(value));
 }
 
-ccl_device_inline void film_write_pass_float4(ccl_global float *ccl_restrict buffer, float4 value)
+ccl_device_inline void film_write_pass_float4(ccl_global float *ccl_restrict buffer,
+                                              const float4 value)
 {
 #ifdef __ATOMIC_PASS_WRITE__
   ccl_global float *buf_x = buffer + 0;
@@ -96,13 +99,13 @@ ccl_device_inline void film_write_pass_float4(ccl_global float *ccl_restrict buf
  * to this pixel and no atomics are needed. */
 
 ccl_device_inline void film_overwrite_pass_float(ccl_global float *ccl_restrict buffer,
-                                                 float value)
+                                                 const float value)
 {
   *buffer = value;
 }
 
 ccl_device_inline void film_overwrite_pass_float3(ccl_global float *ccl_restrict buffer,
-                                                  float3 value)
+                                                  const float3 value)
 {
   buffer[0] = value.x;
   buffer[1] = value.y;

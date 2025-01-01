@@ -8,7 +8,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-uint32_t util_murmur_hash3(const void *key, int len, uint32_t seed);
-float util_hash_to_float(uint32_t hash);
+uint32_t util_murmur_hash3(const void *key, const int len, const uint32_t seed);
+float util_hash_to_float(const uint32_t hash);
 
 CCL_NAMESPACE_END

@@ -212,7 +212,7 @@ vector<DeviceType> Device::available_types()
   return types;
 }
 
-vector<DeviceInfo> Device::available_devices(uint mask)
+vector<DeviceInfo> Device::available_devices(const uint mask)
 {
   /* Lazy initialize devices. On some platforms OpenCL or CUDA drivers can
    * be broken and cause crashes when only trying to get device info, so
@@ -313,7 +313,7 @@ DeviceInfo Device::dummy_device(const string &error_msg)
   return info;
 }
 
-string Device::device_capabilities(uint mask)
+string Device::device_capabilities(const uint mask)
 {
   const thread_scoped_lock lock(device_mutex);
   string capabilities;
@@ -375,7 +375,7 @@ string Device::device_capabilities(uint mask)
 }
 
 DeviceInfo Device::get_multi_device(const vector<DeviceInfo> &subdevices,
-                                    int threads,
+                                    const int threads,
                                     bool background)
 {
   assert(!subdevices.empty());
@@ -507,8 +507,8 @@ bool GPUDevice::load_texture_info()
   return false;
 }
 
-void GPUDevice::init_host_memory(size_t preferred_texture_headroom,
-                                 size_t preferred_working_headroom)
+void GPUDevice::init_host_memory(const size_t preferred_texture_headroom,
+                                 const size_t preferred_working_headroom)
 {
   /* Limit amount of host mapped memory, because allocating too much can
    * cause system instability. Leave at least half or 4 GB of system
@@ -628,7 +628,7 @@ void GPUDevice::move_textures_to_host(size_t size, bool for_texture)
   load_texture_info();
 }
 
-GPUDevice::Mem *GPUDevice::generic_alloc(device_memory &mem, size_t pitch_padding)
+GPUDevice::Mem *GPUDevice::generic_alloc(device_memory &mem, const size_t pitch_padding)
 {
   void *device_pointer = nullptr;
   const size_t size = mem.memory_size() + pitch_padding;

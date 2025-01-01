@@ -12,12 +12,12 @@ CCL_NAMESPACE_BEGIN
 
 /* Ray Intersection */
 
-ccl_device bool ray_sphere_intersect(float3 ray_P,
-                                     float3 ray_D,
-                                     float ray_tmin,
-                                     float ray_tmax,
-                                     float3 sphere_P,
-                                     float sphere_radius,
+ccl_device bool ray_sphere_intersect(const float3 ray_P,
+                                     const float3 ray_D,
+                                     const float ray_tmin,
+                                     const float ray_tmax,
+                                     const float3 sphere_P,
+                                     const float sphere_radius,
                                      ccl_private float3 *isect_P,
                                      ccl_private float *isect_t)
 {
@@ -50,12 +50,12 @@ ccl_device bool ray_sphere_intersect(float3 ray_P,
   return false;
 }
 
-ccl_device bool ray_aligned_disk_intersect(float3 ray_P,
-                                           float3 ray_D,
-                                           float ray_tmin,
-                                           float ray_tmax,
-                                           float3 disk_P,
-                                           float disk_radius,
+ccl_device bool ray_aligned_disk_intersect(const float3 ray_P,
+                                           const float3 ray_D,
+                                           const float ray_tmin,
+                                           const float ray_tmax,
+                                           const float3 disk_P,
+                                           const float disk_radius,
                                            ccl_private float3 *isect_P,
                                            ccl_private float *isect_t)
 {
@@ -81,13 +81,13 @@ ccl_device bool ray_aligned_disk_intersect(float3 ray_P,
   return true;
 }
 
-ccl_device bool ray_disk_intersect(float3 ray_P,
-                                   float3 ray_D,
-                                   float ray_tmin,
-                                   float ray_tmax,
-                                   float3 disk_P,
-                                   float3 disk_N,
-                                   float disk_radius,
+ccl_device bool ray_disk_intersect(const float3 ray_P,
+                                   const float3 ray_D,
+                                   const float ray_tmin,
+                                   const float ray_tmax,
+                                   const float3 disk_P,
+                                   const float3 disk_N,
+                                   const float disk_radius,
                                    ccl_private float3 *isect_P,
                                    ccl_private float *isect_t)
 {
@@ -257,14 +257,14 @@ ccl_device_forceinline bool ray_triangle_intersect_self(const float3 ray_P,
  * If ellipse is true, hits outside the ellipse that's enclosed by the
  * quad are rejected.
  */
-ccl_device bool ray_quad_intersect(float3 ray_P,
-                                   float3 ray_D,
-                                   float ray_tmin,
-                                   float ray_tmax,
-                                   float3 quad_P,
-                                   float3 inv_quad_u,
-                                   float3 inv_quad_v,
-                                   float3 quad_n,
+ccl_device bool ray_quad_intersect(const float3 ray_P,
+                                   const float3 ray_D,
+                                   const float ray_tmin,
+                                   const float ray_tmax,
+                                   const float3 quad_P,
+                                   const float3 inv_quad_u,
+                                   const float3 inv_quad_v,
+                                   const float3 quad_n,
                                    ccl_private float3 *isect_P,
                                    ccl_private float *isect_t,
                                    ccl_private float *isect_u,

@@ -656,8 +656,8 @@ ccl_device_inline bool volume_intersection_filter(const hiprtRay &ray,
     return false;
 }
 
-HIPRT_DEVICE bool intersectFunc(uint geomType,
-                                uint rayType,
+HIPRT_DEVICE bool intersectFunc(const uint geomType,
+                                const uint rayType,
                                 const hiprtFuncTableHeader &tableHeader,
                                 const hiprtRay &ray,
                                 void *payload,
@@ -685,8 +685,8 @@ HIPRT_DEVICE bool intersectFunc(uint geomType,
   return false;
 }
 
-HIPRT_DEVICE bool filterFunc(uint geomType,
-                             uint rayType,
+HIPRT_DEVICE bool filterFunc(const uint geomType,
+                             const uint rayType,
                              const hiprtFuncTableHeader &tableHeader,
                              const hiprtRay &ray,
                              void *payload,

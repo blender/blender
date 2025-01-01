@@ -57,7 +57,10 @@ BVHLayoutMask HIPRTDevice::get_bvh_layout_mask(const uint /* kernel_features */)
   return BVH_LAYOUT_HIPRT;
 }
 
-HIPRTDevice::HIPRTDevice(const DeviceInfo &info, Stats &stats, Profiler &profiler, bool headless)
+HIPRTDevice::HIPRTDevice(const DeviceInfo &info,
+                         Stats &stats,
+                         Profiler &profiler,
+                         const bool headless)
     : HIPDevice(info, stats, profiler, headless),
       hiprt_context(nullptr),
       scene(nullptr),
@@ -377,7 +380,7 @@ bool HIPRTDevice::load_kernels(const uint kernel_features)
   return (result == hipSuccess);
 }
 
-void HIPRTDevice::const_copy_to(const char *name, void *host, size_t size)
+void HIPRTDevice::const_copy_to(const char *name, void *host, const size_t size)
 {
   HIPContextScope scope(this);
   hipDeviceptr_t mem;

@@ -32,15 +32,15 @@ void util_image_resize_pixels(const vector<T> &input_pixels,
 /* Cast input pixel from unknown storage to float. */
 template<typename T> inline float util_image_cast_to_float(T value);
 
-template<> inline float util_image_cast_to_float(float value)
+template<> inline float util_image_cast_to_float(const float value)
 {
   return value;
 }
-template<> inline float util_image_cast_to_float(uchar value)
+template<> inline float util_image_cast_to_float(const uchar value)
 {
   return (float)value / 255.0f;
 }
-template<> inline float util_image_cast_to_float(uint16_t value)
+template<> inline float util_image_cast_to_float(const uint16_t value)
 {
   return (float)value / 65535.0f;
 }
@@ -50,13 +50,13 @@ template<> inline float util_image_cast_to_float(half value)
 }
 
 /* Cast float value to output pixel type. */
-template<typename T> inline T util_image_cast_from_float(float value);
+template<typename T> inline T util_image_cast_from_float(const float value);
 
-template<> inline float util_image_cast_from_float(float value)
+template<> inline float util_image_cast_from_float(const float value)
 {
   return value;
 }
-template<> inline uchar util_image_cast_from_float(float value)
+template<> inline uchar util_image_cast_from_float(const float value)
 {
   if (value < 0.0f) {
     return 0;
@@ -66,7 +66,7 @@ template<> inline uchar util_image_cast_from_float(float value)
   }
   return (uchar)((255.0f * value) + 0.5f);  // NOLINT
 }
-template<> inline uint16_t util_image_cast_from_float(float value)
+template<> inline uint16_t util_image_cast_from_float(const float value)
 {
   if (value < 0.0f) {
     return 0;
@@ -76,7 +76,7 @@ template<> inline uint16_t util_image_cast_from_float(float value)
   }
   return (uint16_t)((65535.0f * value) + 0.5f);  // NOLINT
 }
-template<> inline half util_image_cast_from_float(float value)
+template<> inline half util_image_cast_from_float(const float value)
 {
   return float_to_half_image(value);
 }
@@ -84,15 +84,15 @@ template<> inline half util_image_cast_from_float(float value)
 /* Multiply image pixels in native data format. */
 template<typename T> inline T util_image_multiply_native(T a, T b);
 
-template<> inline float util_image_multiply_native(float a, float b)
+template<> inline float util_image_multiply_native(const float a, const float b)
 {
   return a * b;
 }
-template<> inline uchar util_image_multiply_native(uchar a, uchar b)
+template<> inline uchar util_image_multiply_native(const uchar a, const uchar b)
 {
   return ((uint32_t)a * (uint32_t)b) / 255;
 }
-template<> inline uint16_t util_image_multiply_native(uint16_t a, uint16_t b)
+template<> inline uint16_t util_image_multiply_native(const uint16_t a, const uint16_t b)
 {
   return ((uint32_t)a * (uint32_t)b) / 65535;
 }

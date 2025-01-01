@@ -631,7 +631,7 @@ TEST_F(RenderGraph, constant_fold_part_mix_sub_same_fac_1)
  */
 static void build_mix_partial_test_graph(ShaderGraphBuilder &builder,
                                          NodeMix type,
-                                         float3 constval)
+                                         const float3 constval)
 {
   builder
       .add_attribute("Attribute")
@@ -1022,7 +1022,7 @@ TEST_F(RenderGraph, constant_fold_math_clamp)
  */
 static void build_math_partial_test_graph(ShaderGraphBuilder &builder,
                                           NodeMathType type,
-                                          float constval)
+                                          const float constval)
 {
   builder
       .add_attribute("Attribute")
@@ -1192,7 +1192,7 @@ TEST_F(RenderGraph, constant_fold_vector_math)
  */
 static void build_vecmath_partial_test_graph(ShaderGraphBuilder &builder,
                                              NodeVectorMathType type,
-                                             float3 constval)
+                                             const float3 constval)
 {
   builder
       .add_attribute("Attribute")
@@ -1289,7 +1289,7 @@ TEST_F(RenderGraph, constant_fold_bump_no_input)
   graph.finalize(scene);
 }
 
-template<class T> void init_test_curve(array<T> &buffer, T start, T end, int steps)
+template<class T> void init_test_curve(array<T> &buffer, T start, T end, const int steps)
 {
   buffer.resize(steps);
 

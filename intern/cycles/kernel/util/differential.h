@@ -12,10 +12,10 @@ CCL_NAMESPACE_BEGIN
 
 ccl_device void differential_transfer(ccl_private differential3 *surface_dP,
                                       const differential3 ray_dP,
-                                      float3 ray_D,
+                                      const float3 ray_D,
                                       const differential3 ray_dD,
-                                      float3 surface_Ng,
-                                      float ray_t)
+                                      const float3 surface_Ng,
+                                      const float ray_t)
 {
   /* ray differential transfer through homogeneous medium, to
    * compute dPdx/dy at a shading point from the incoming ray */
@@ -42,7 +42,7 @@ ccl_device void differential_dudv(ccl_private differential *du,
                                   float3 dPdu,
                                   float3 dPdv,
                                   differential3 dP,
-                                  float3 Ng)
+                                  const float3 Ng)
 {
   /* now we have dPdx/dy from the ray differential transfer, and dPdu/dv
    * from the primitive, we can compute dudx/dy and dvdx/dy. these are
@@ -152,10 +152,10 @@ ccl_device_forceinline differential3 differential_from_compact(const float3 D, c
 
 ccl_device void differential_dudv_compact(ccl_private differential *du,
                                           ccl_private differential *dv,
-                                          float3 dPdu,
-                                          float3 dPdv,
-                                          float dP,
-                                          float3 Ng)
+                                          const float3 dPdu,
+                                          const float3 dPdv,
+                                          const float dP,
+                                          const float3 Ng)
 {
   /* TODO: can we speed this up? */
   differential_dudv(du, dv, dPdu, dPdv, differential_from_compact(Ng, dP), Ng);

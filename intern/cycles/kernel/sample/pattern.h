@@ -31,7 +31,9 @@ CCL_NAMESPACE_BEGIN
  *    x,y over x,z.
  */
 
-ccl_device_forceinline uint3 blue_noise_indexing(KernelGlobals kg, uint pixel_index, uint sample)
+ccl_device_forceinline uint3 blue_noise_indexing(KernelGlobals kg,
+                                                 uint pixel_index,
+                                                 const uint sample)
 {
   if (kernel_data.integrator.sampling_pattern == SAMPLING_PATTERN_SOBOL_BURLEY) {
     /* One sequence per pixel, using the length mask optimization. */
@@ -62,9 +64,9 @@ ccl_device_forceinline uint3 blue_noise_indexing(KernelGlobals kg, uint pixel_in
 }
 
 ccl_device_forceinline float path_rng_1D(KernelGlobals kg,
-                                         uint rng_pixel,
-                                         uint sample,
-                                         int dimension)
+                                         const uint rng_pixel,
+                                         const uint sample,
+                                         const int dimension)
 {
 #ifdef __DEBUG_CORRELATION__
   return (float)drand48();
@@ -79,9 +81,9 @@ ccl_device_forceinline float path_rng_1D(KernelGlobals kg,
 }
 
 ccl_device_forceinline float2 path_rng_2D(KernelGlobals kg,
-                                          uint rng_pixel,
-                                          int sample,
-                                          int dimension)
+                                          const uint rng_pixel,
+                                          const int sample,
+                                          const int dimension)
 {
 #ifdef __DEBUG_CORRELATION__
   return make_float2((float)drand48(), (float)drand48());
@@ -96,9 +98,9 @@ ccl_device_forceinline float2 path_rng_2D(KernelGlobals kg,
 }
 
 ccl_device_forceinline float3 path_rng_3D(KernelGlobals kg,
-                                          uint rng_pixel,
-                                          int sample,
-                                          int dimension)
+                                          const uint rng_pixel,
+                                          const int sample,
+                                          const int dimension)
 {
 #ifdef __DEBUG_CORRELATION__
   return make_float3((float)drand48(), (float)drand48(), (float)drand48());
@@ -113,9 +115,9 @@ ccl_device_forceinline float3 path_rng_3D(KernelGlobals kg,
 }
 
 ccl_device_forceinline float4 path_rng_4D(KernelGlobals kg,
-                                          uint rng_pixel,
-                                          int sample,
-                                          int dimension)
+                                          const uint rng_pixel,
+                                          const int sample,
+                                          const int dimension)
 {
 #ifdef __DEBUG_CORRELATION__
   return make_float4((float)drand48(), (float)drand48(), (float)drand48(), (float)drand48());
@@ -163,7 +165,7 @@ ccl_device_inline uint path_rng_pixel_init(KernelGlobals kg,
  * Splits samples into two different classes, A and B, which can be
  * compared for variance estimation.
  */
-ccl_device_inline bool sample_is_class_A(int pattern, int sample)
+ccl_device_inline bool sample_is_class_A(const int pattern, const int sample)
 {
 #if 0
   if (!(pattern == SAMPLING_PATTERN_TABULATED_SOBOL || pattern == SAMPLING_PATTERN_SOBOL_BURLEY)) {

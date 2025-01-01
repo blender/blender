@@ -13,7 +13,7 @@ CCL_NAMESPACE_BEGIN
 struct TileSize {
   TileSize() = default;
 
-  TileSize(int width, int height, int num_samples)
+  TileSize(const int width, const int height, const int num_samples)
       : width(width), height(height), num_samples(num_samples)
   {
   }

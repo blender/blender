@@ -29,13 +29,13 @@ static float filter_func_box(float /*v*/, float /*width*/)
   return 1.0f;
 }
 
-static float filter_func_gaussian(float v, float width)
+static float filter_func_gaussian(float v, const float width)
 {
   v *= 6.0f / width;
   return expf(-2.0f * v * v);
 }
 
-static float filter_func_blackman_harris(float v, float width)
+static float filter_func_blackman_harris(float v, const float width)
 {
   v = M_2PI_F * (v / width + 0.5f);
   return 0.35875f - 0.48829f * cosf(v) + 0.14128f * cosf(2.0f * v) - 0.01168f * cosf(3.0f * v);
@@ -77,7 +77,7 @@ static vector<float> filter_table(FilterType type, float width)
       FILTER_TABLE_SIZE,
       0.0f,
       width * 0.5f,
-      [filter_func, width](float x) { return filter_func(x, width); },
+      [filter_func, width](const float x) { return filter_func(x, width); },
       true,
       filter_table);
 

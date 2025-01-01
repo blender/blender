@@ -20,7 +20,9 @@ CCL_NAMESPACE_BEGIN
 
 /* Light info. */
 
-ccl_device_inline bool light_select_reached_max_bounces(KernelGlobals kg, int index, int bounce)
+ccl_device_inline bool light_select_reached_max_bounces(KernelGlobals kg,
+                                                        const int index,
+                                                        const int bounce)
 {
   return (bounce > kernel_data_fetch(lights, index).max_bounces);
 }

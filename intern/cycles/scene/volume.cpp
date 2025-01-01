@@ -92,9 +92,9 @@ const float3 quads_normals[6] = {
     make_float3(0.0f, 0.0f, 1.0f),
 };
 
-static int add_vertex(int3 v,
+static int add_vertex(const int3 v,
                       vector<int3> &vertices,
-                      int3 res,
+                      const int3 res,
                       unordered_map<size_t, int> &used_verts)
 {
   const size_t vert_key = v.x + v.y * (res.x + 1) + v.z * (res.x + 1) * (res.y + 1);
@@ -110,12 +110,12 @@ static int add_vertex(int3 v,
   return vertex_offset;
 }
 
-static void create_quad(int3 corners[8],
+static void create_quad(const int3 corners[8],
                         vector<int3> &vertices,
                         vector<QuadData> &quads,
-                        int3 res,
+                        const int3 res,
                         unordered_map<size_t, int> &used_verts,
-                        int face_index)
+                        const int face_index)
 {
   QuadData quad;
   quad.v0 = add_vertex(corners[quads_indices[face_index][0]], vertices, res, used_verts);
@@ -150,10 +150,10 @@ class VolumeMeshBuilder {
   VolumeMeshBuilder();
 
 #ifdef WITH_OPENVDB
-  void add_grid(openvdb::GridBase::ConstPtr grid, bool do_clipping, float volume_clipping);
+  void add_grid(openvdb::GridBase::ConstPtr grid, bool do_clipping, const float volume_clipping);
 #endif
 
-  void add_padding(int pad_size);
+  void add_padding(const int pad_size);
 
   void create_mesh(vector<float3> &vertices,
                    vector<int> &indices,
@@ -174,7 +174,7 @@ class VolumeMeshBuilder {
 
 #ifdef WITH_OPENVDB
   template<typename GridType>
-  void merge_grid(openvdb::GridBase::ConstPtr grid, bool do_clipping, float volume_clipping)
+  void merge_grid(openvdb::GridBase::ConstPtr grid, bool do_clipping, const float volume_clipping)
   {
     typename GridType::ConstPtr typed_grid = openvdb::gridConstPtrCast<GridType>(grid);
 
@@ -205,7 +205,7 @@ VolumeMeshBuilder::VolumeMeshBuilder()
 #ifdef WITH_OPENVDB
 void VolumeMeshBuilder::add_grid(openvdb::GridBase::ConstPtr grid,
                                  bool do_clipping,
-                                 float volume_clipping)
+                                 const float volume_clipping)
 {
   /* set the transform of our grid from the first one */
   if (first_grid) {
@@ -257,7 +257,7 @@ void VolumeMeshBuilder::add_grid(openvdb::GridBase::ConstPtr grid,
 }
 #endif
 
-void VolumeMeshBuilder::add_padding(int pad_size)
+void VolumeMeshBuilder::add_padding(const int pad_size)
 {
 #ifdef WITH_OPENVDB
   openvdb::tools::dilateActiveValues(
@@ -439,7 +439,7 @@ bool VolumeMeshBuilder::empty_grid() const
 #ifdef WITH_OPENVDB
 template<typename GridType>
 static openvdb::GridBase::ConstPtr openvdb_grid_from_device_texture(device_texture *image_memory,
-                                                                    float volume_clipping,
+                                                                    const float volume_clipping,
                                                                     Transform transform_3d)
 {
   using ValueType = typename GridType::ValueType;
@@ -500,7 +500,7 @@ static openvdb::GridBase::ConstPtr openvdb_grid_from_device_texture(device_textu
 }
 
 static int estimate_required_velocity_padding(openvdb::GridBase::ConstPtr grid,
-                                              float velocity_scale)
+                                              const float velocity_scale)
 {
   /* TODO: we may need to also find outliers and clamp them to avoid adding too much padding. */
   openvdb::math::Extrema extrema;

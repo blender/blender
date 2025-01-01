@@ -54,7 +54,7 @@ class TileManager {
    * Only touches scheduling-related state of the tile manager. */
   /* TODO(sergey): Consider using tile area instead of exact size to help dealing with extreme
    * cases of stretched renders. */
-  void reset_scheduling(const BufferParams &params, int2 tile_size);
+  void reset_scheduling(const BufferParams &params, const int2 tile_size);
 
   /* Update for the known buffer passes and scene parameters.
    * Will store all parameters needed for buffers access outside of the scene graph. */
@@ -122,7 +122,7 @@ class TileManager {
  protected:
   /* Get tile configuration for its index.
    * The tile index must be within [0, state_.tile_state_). */
-  Tile get_tile_for_index(int index) const;
+  Tile get_tile_for_index(const int index) const;
 
   bool open_tile_output();
   bool close_tile_output();

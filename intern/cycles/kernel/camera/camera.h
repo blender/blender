@@ -231,8 +231,8 @@ ccl_device void camera_sample_orthographic(KernelGlobals kg,
 /* Panorama Camera */
 
 ccl_device_inline float3 camera_panorama_direction(ccl_constant KernelCamera *cam,
-                                                   float x,
-                                                   float y)
+                                                   const float x,
+                                                   const float y)
 {
   const ProjectionTransform rastertocamera = cam->rastertocamera;
   const float3 Pcamera = transform_perspective(&rastertocamera, make_float3(x, y, 0.0f));
@@ -346,8 +346,8 @@ ccl_device_inline void camera_sample_panorama(ccl_constant KernelCamera *cam,
 /* Common */
 
 ccl_device_inline void camera_sample(KernelGlobals kg,
-                                     int x,
-                                     int y,
+                                     const int x,
+                                     const int y,
                                      const float2 filter_uv,
                                      const float time,
                                      const float2 lens_uv,
@@ -418,7 +418,7 @@ ccl_device_inline float3 camera_position(KernelGlobals kg)
   return make_float3(cameratoworld.x.w, cameratoworld.y.w, cameratoworld.z.w);
 }
 
-ccl_device_inline float camera_distance(KernelGlobals kg, float3 P)
+ccl_device_inline float camera_distance(KernelGlobals kg, const float3 P)
 {
   const Transform cameratoworld = kernel_data.cam.cameratoworld;
   const float3 camP = make_float3(cameratoworld.x.w, cameratoworld.y.w, cameratoworld.z.w);
@@ -430,7 +430,7 @@ ccl_device_inline float camera_distance(KernelGlobals kg, float3 P)
   return len(P - camP);
 }
 
-ccl_device_inline float camera_z_depth(KernelGlobals kg, float3 P)
+ccl_device_inline float camera_z_depth(KernelGlobals kg, const float3 P)
 {
   if (kernel_data.cam.type != CAMERA_PANORAMA) {
     const Transform worldtocamera = kernel_data.cam.worldtocamera;
@@ -441,7 +441,7 @@ ccl_device_inline float camera_z_depth(KernelGlobals kg, float3 P)
   return len(P - camP);
 }
 
-ccl_device_inline float3 camera_direction_from_point(KernelGlobals kg, float3 P)
+ccl_device_inline float3 camera_direction_from_point(KernelGlobals kg, const float3 P)
 {
   const Transform cameratoworld = kernel_data.cam.cameratoworld;
 

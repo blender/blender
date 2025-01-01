@@ -74,7 +74,8 @@ class OneapiDevice : public GPUDevice {
 
   void mem_copy_to(device_memory &mem) override;
 
-  void mem_copy_from(device_memory &mem, size_t y, size_t w, size_t h, size_t elem) override;
+  void mem_copy_from(
+      device_memory &mem, const size_t y, size_t w, const size_t h, size_t elem) override;
 
   void mem_copy_from(device_memory &mem)
   {
@@ -85,7 +86,7 @@ class OneapiDevice : public GPUDevice {
 
   void mem_free(device_memory &mem) override;
 
-  device_ptr mem_alloc_sub_ptr(device_memory &mem, size_t offset, size_t /*size*/) override;
+  device_ptr mem_alloc_sub_ptr(device_memory &mem, const size_t offset, size_t /*size*/) override;
 
   void const_copy_to(const char *name, void *host, const size_t size) override;
 
@@ -104,7 +105,7 @@ class OneapiDevice : public GPUDevice {
 
   /* NOTE(@nsirgien): Create this methods to avoid some compilation problems on Windows with host
    * side compilation (MSVC). */
-  void *usm_aligned_alloc_host(size_t memory_size, size_t alignment);
+  void *usm_aligned_alloc_host(const size_t memory_size, const size_t alignment);
   void usm_free(void *usm_ptr);
 
   static char *device_capabilities();
@@ -120,9 +121,9 @@ class OneapiDevice : public GPUDevice {
                          const char *memory_name,
                          void *memory_device_pointer);
   bool enqueue_kernel(KernelContext *kernel_context,
-                      int kernel,
-                      size_t global_size,
-                      size_t local_size,
+                      const int kernel,
+                      const size_t global_size,
+                      const size_t local_size,
                       void **args);
   void get_adjusted_global_and_local_sizes(SyclQueue *queue,
                                            const DeviceKernel kernel,
@@ -133,13 +134,13 @@ class OneapiDevice : public GPUDevice {
  protected:
   bool can_use_hardware_raytracing_for_features(const uint requested_features) const;
   void check_usm(SyclQueue *queue, const void *usm_ptr, bool allow_host);
-  bool create_queue(SyclQueue *&external_queue, int device_index, void *embree_device);
+  bool create_queue(SyclQueue *&external_queue, const int device_index, void *embree_device);
   void free_queue(SyclQueue *queue);
-  void *usm_aligned_alloc_host(SyclQueue *queue, size_t memory_size, size_t alignment);
-  void *usm_alloc_device(SyclQueue *queue, size_t memory_size);
+  void *usm_aligned_alloc_host(SyclQueue *queue, const size_t memory_size, const size_t alignment);
+  void *usm_alloc_device(SyclQueue *queue, const size_t memory_size);
   void usm_free(SyclQueue *queue, void *usm_ptr);
-  bool usm_memcpy(SyclQueue *queue, void *dest, void *src, size_t num_bytes);
-  bool usm_memset(SyclQueue *queue, void *usm_ptr, unsigned char value, size_t num_bytes);
+  bool usm_memcpy(SyclQueue *queue, void *dest, void *src, const size_t num_bytes);
+  bool usm_memset(SyclQueue *queue, void *usm_ptr, unsigned char value, const size_t num_bytes);
 };
 
 CCL_NAMESPACE_END

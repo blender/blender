@@ -13,9 +13,9 @@ CCL_NAMESPACE_BEGIN
 ccl_device_noinline void svm_node_camera(KernelGlobals kg,
                                          ccl_private ShaderData *sd,
                                          ccl_private float *stack,
-                                         uint out_vector,
-                                         uint out_zdepth,
-                                         uint out_distance)
+                                         const uint out_vector,
+                                         const uint out_zdepth,
+                                         const uint out_distance)
 {
   float distance;
   float zdepth;

@@ -145,22 +145,22 @@ class BVHParams {
   }
 
   /* SAH costs */
-  __forceinline float cost(int num_nodes, int num_primitives) const
+  __forceinline float cost(const int num_nodes, const int num_primitives) const
   {
     return node_cost(num_nodes) + primitive_cost(num_primitives);
   }
 
-  __forceinline float primitive_cost(int n) const
+  __forceinline float primitive_cost(const int n) const
   {
     return n * sah_primitive_cost;
   }
 
-  __forceinline float node_cost(int n) const
+  __forceinline float node_cost(const int n) const
   {
     return n * sah_node_cost;
   }
 
-  __forceinline bool small_enough_for_leaf(int size, int level)
+  __forceinline bool small_enough_for_leaf(const int size, const int level)
   {
     return (size <= min_leaf_size || level >= MAX_DEPTH);
   }
@@ -189,9 +189,9 @@ class BVHReference {
   __forceinline BVHReference() = default;
 
   __forceinline BVHReference(const BoundBox &bounds_,
-                             int prim_index_,
-                             int prim_object_,
-                             int prim_type,
+                             const int prim_index_,
+                             const int prim_object_,
+                             const int prim_type,
                              float time_from = 0.0f,
                              float time_to = 1.0f)
       : rbounds(bounds_), time_from_(time_from), time_to_(time_to)
@@ -261,7 +261,7 @@ class BVHRange {
     rbounds.max.w = __int_as_float(size_);
   }
 
-  __forceinline void set_start(int start_)
+  __forceinline void set_start(const int start_)
   {
     rbounds.min.w = __int_as_float(start_);
   }

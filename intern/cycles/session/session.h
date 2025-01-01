@@ -138,8 +138,8 @@ class Session {
 
   void set_pause(bool pause);
 
-  void set_samples(int samples);
-  void set_time_limit(double time_limit);
+  void set_samples(const int samples);
+  void set_time_limit(const double time_limit);
 
   void set_output_driver(unique_ptr<OutputDriver> driver);
   void set_display_driver(unique_ptr<DisplayDriver> driver);
@@ -200,7 +200,7 @@ class Session {
 
   void run_main_render_loop();
 
-  bool update_scene(int width, int height);
+  bool update_scene(const int width, const int height);
 
   void update_status_time(bool show_pause = false, bool show_done = false);
 

@@ -257,7 +257,7 @@ MD5Hash::MD5Hash()
 
 MD5Hash::~MD5Hash() = default;
 
-void MD5Hash::append(const uint8_t *data, int nbytes)
+void MD5Hash::append(const uint8_t *data, const int nbytes)
 {
   const uint8_t *p = data;
   int left = nbytes;

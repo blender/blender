@@ -304,7 +304,7 @@ void PathTrace::update_allocated_work_buffer_params()
                                });
 }
 
-static BufferParams scale_buffer_params(const BufferParams &params, int resolution_divider)
+static BufferParams scale_buffer_params(const BufferParams &params, const int resolution_divider)
 {
   BufferParams scaled_params = params;
 

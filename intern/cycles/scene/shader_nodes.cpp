@@ -150,7 +150,7 @@ bool TextureMapping::skip()
   return true;
 }
 
-void TextureMapping::compile(SVMCompiler &compiler, int offset_in, int offset_out)
+void TextureMapping::compile(SVMCompiler &compiler, const int offset_in, const int offset_out)
 {
   compiler.add_node(NODE_TEXTURE_MAPPING, offset_in, offset_out);
 
@@ -189,7 +189,9 @@ int TextureMapping::compile_begin(SVMCompiler &compiler, ShaderInput *vector_in)
   return compiler.stack_assign(vector_in);
 }
 
-void TextureMapping::compile_end(SVMCompiler &compiler, ShaderInput *vector_in, int vector_offset)
+void TextureMapping::compile_end(SVMCompiler &compiler,
+                                 ShaderInput *vector_in,
+                                 const int vector_offset)
 {
   if (!skip()) {
     compiler.stack_clear_offset(vector_in->type(), vector_offset);
@@ -628,7 +630,7 @@ void EnvironmentTextureNode::compile(OSLCompiler &compiler)
 
 /* Sky Texture */
 
-static float2 sky_spherical_coordinates(float3 dir)
+static float2 sky_spherical_coordinates(const float3 dir)
 {
   return make_float2(acosf(dir.z), atan2f(dir.x, dir.y));
 }
@@ -643,13 +645,15 @@ struct SunSky {
 };
 
 /* Preetham model */
-static float sky_perez_function(const float lam[6], float theta, float gamma)
+static float sky_perez_function(const float lam[6], float theta, const float gamma)
 {
   return (1.0f + lam[0] * expf(lam[1] / cosf(theta))) *
          (1.0f + lam[2] * expf(lam[3] * gamma) + lam[4] * cosf(gamma) * cosf(gamma));
 }
 
-static void sky_texture_precompute_preetham(SunSky *sunsky, float3 dir, float turbidity)
+static void sky_texture_precompute_preetham(SunSky *sunsky,
+                                            const float3 dir,
+                                            const float turbidity)
 {
   /*
    * We re-use the SunSky struct of the new model, to avoid extra variables
@@ -713,9 +717,9 @@ static void sky_texture_precompute_preetham(SunSky *sunsky, float3 dir, float tu
 
 /* Hosek / Wilkie */
 static void sky_texture_precompute_hosek(SunSky *sunsky,
-                                         float3 dir,
+                                         const float3 dir,
                                          float turbidity,
-                                         float ground_albedo)
+                                         const float ground_albedo)
 {
   /* Calculate Sun Direction and save coordinates */
   const float2 spherical = sky_spherical_coordinates(dir);
@@ -755,13 +759,13 @@ static void sky_texture_precompute_hosek(SunSky *sunsky,
 /* Nishita improved */
 static void sky_texture_precompute_nishita(SunSky *sunsky,
                                            bool sun_disc,
-                                           float sun_size,
-                                           float sun_intensity,
-                                           float sun_elevation,
-                                           float sun_rotation,
-                                           float altitude,
-                                           float air_density,
-                                           float dust_density)
+                                           const float sun_size,
+                                           const float sun_intensity,
+                                           const float sun_elevation,
+                                           const float sun_rotation,
+                                           const float altitude,
+                                           const float air_density,
+                                           const float dust_density)
 {
   /* sample 2 sun pixels */
   float pixel_bottom[3];
@@ -7071,7 +7075,7 @@ void CurvesNode::constant_fold(const ConstantFolder &folder, ShaderInput *value_
 }
 
 void CurvesNode::compile(SVMCompiler &compiler,
-                         int type,
+                         const int type,
                          ShaderInput *value_in,
                          ShaderOutput *value_out)
 {
@@ -7400,7 +7404,7 @@ ShaderNode *OSLNode::clone(ShaderGraph *graph) const
   return OSLNode::create(graph, this->inputs.size(), this);
 }
 
-OSLNode *OSLNode::create(ShaderGraph *graph, size_t num_inputs, const OSLNode *from)
+OSLNode *OSLNode::create(ShaderGraph *graph, const size_t num_inputs, const OSLNode *from)
 {
   /* allocate space for the node itself and parameters, aligned to 16 bytes
    * assuming that's the most parameter types need */

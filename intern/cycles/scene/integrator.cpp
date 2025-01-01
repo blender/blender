@@ -342,7 +342,7 @@ void Integrator::device_free(Device * /*unused*/, DeviceScene *dscene, bool forc
   dscene->sample_pattern_lut.free_if_need_realloc(force_free);
 }
 
-void Integrator::tag_update(Scene *scene, uint32_t flag)
+void Integrator::tag_update(Scene *scene, const uint32_t flag)
 {
   if (flag & UPDATE_ALL) {
     tag_modified();

@@ -74,8 +74,8 @@ BlenderSession::BlenderSession(BL::RenderEngine &b_engine,
                                BL::BlendData &b_data,
                                BL::SpaceView3D &b_v3d,
                                BL::RegionView3D &b_rv3d,
-                               int width,
-                               int height)
+                               const int width,
+                               const int height)
     : session(nullptr),
       scene(nullptr),
       sync(nullptr),
@@ -899,7 +899,7 @@ void BlenderSession::draw(BL::SpaceImageEditor &space_image)
   session->draw();
 }
 
-void BlenderSession::view_draw(int w, int h)
+void BlenderSession::view_draw(const int w, const int h)
 {
   /* pause in redraw in case update is not being called due to final render */
   session->set_pause(BlenderSync::get_session_pause(b_scene, background));

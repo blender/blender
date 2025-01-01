@@ -10,7 +10,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-bool system_windows_version_at_least(int major, int build)
+bool system_windows_version_at_least(const int major, const int build)
 {
 #ifdef _WIN32
   HMODULE hMod = ::GetModuleHandleW(L"ntdll.dll");

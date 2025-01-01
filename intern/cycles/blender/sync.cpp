@@ -258,8 +258,8 @@ void BlenderSync::sync_data(BL::RenderSettings &b_render,
                             BL::Depsgraph &b_depsgraph,
                             BL::SpaceView3D &b_v3d,
                             BL::Object &b_override,
-                            int width,
-                            int height,
+                            const int width,
+                            const int height,
                             void **python_thread_state,
                             const DeviceInfo &denoise_device_info)
 {

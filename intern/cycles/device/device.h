@@ -173,7 +173,7 @@ class Device {
     fprintf(stderr, "%s\n", error.c_str());
     fflush(stderr);
   }
-  virtual BVHLayoutMask get_bvh_layout_mask(uint kernel_features) const = 0;
+  virtual BVHLayoutMask get_bvh_layout_mask(const uint kernel_features) const = 0;
 
   /* statistics */
   Stats &stats;
@@ -181,7 +181,7 @@ class Device {
   bool headless = true;
 
   /* constant memory */
-  virtual void const_copy_to(const char *name, void *host, size_t size) = 0;
+  virtual void const_copy_to(const char *name, void *host, const size_t size) = 0;
 
   /* load/compile kernels, must be called before adding tasks */
   virtual bool load_kernels(uint /*kernel_features*/)
@@ -290,11 +290,11 @@ class Device {
   static DeviceType type_from_string(const char *name);
   static string string_from_type(DeviceType type);
   static vector<DeviceType> available_types();
-  static vector<DeviceInfo> available_devices(uint device_type_mask = DEVICE_MASK_ALL);
+  static vector<DeviceInfo> available_devices(const uint device_type_mask = DEVICE_MASK_ALL);
   static DeviceInfo dummy_device(const string &error_msg = "");
-  static string device_capabilities(uint device_type_mask = DEVICE_MASK_ALL);
+  static string device_capabilities(const uint device_type_mask = DEVICE_MASK_ALL);
   static DeviceInfo get_multi_device(const vector<DeviceInfo> &subdevices,
-                                     int threads,
+                                     const int threads,
                                      bool background);
 
   /* Tag devices lists for update. */
@@ -310,7 +310,8 @@ class Device {
 
   virtual void mem_alloc(device_memory &mem) = 0;
   virtual void mem_copy_to(device_memory &mem) = 0;
-  virtual void mem_copy_from(device_memory &mem, size_t y, size_t w, size_t h, size_t elem) = 0;
+  virtual void mem_copy_from(
+      device_memory &mem, const size_t y, size_t w, const size_t h, size_t elem) = 0;
   virtual void mem_zero(device_memory &mem) = 0;
   virtual void mem_free(device_memory &mem) = 0;
 
@@ -377,24 +378,24 @@ class GPUDevice : public Device {
   /* Simple counter which will try to track amount of used device memory */
   size_t device_mem_in_use = 0;
 
-  virtual void init_host_memory(size_t preferred_texture_headroom = 0,
+  virtual void init_host_memory(const size_t preferred_texture_headroom = 0,
                                 size_t preferred_working_headroom = 0);
-  virtual void move_textures_to_host(size_t size, bool for_texture);
+  virtual void move_textures_to_host(const size_t size, bool for_texture);
 
   /* Allocation, deallocation and copy functions, with corresponding
    * support of device/host allocations. */
-  virtual GPUDevice::Mem *generic_alloc(device_memory &mem, size_t pitch_padding = 0);
+  virtual GPUDevice::Mem *generic_alloc(device_memory &mem, const size_t pitch_padding = 0);
   virtual void generic_free(device_memory &mem);
   virtual void generic_copy_to(device_memory &mem);
 
   /* total - amount of device memory, free - amount of available device memory */
   virtual void get_device_memory_info(size_t &total, size_t &free) = 0;
 
-  virtual bool alloc_device(void *&device_pointer, size_t size) = 0;
+  virtual bool alloc_device(void *&device_pointer, const size_t size) = 0;
 
   virtual void free_device(void *device_pointer) = 0;
 
-  virtual bool alloc_host(void *&shared_pointer, size_t size) = 0;
+  virtual bool alloc_host(void *&shared_pointer, const size_t size) = 0;
 
   virtual void free_host(void *shared_pointer) = 0;
 
@@ -403,7 +404,9 @@ class GPUDevice : public Device {
    * address transformation is possible and `false` otherwise. */
   virtual void transform_host_pointer(void *&device_pointer, void *&shared_pointer) = 0;
 
-  virtual void copy_host_to_device(void *device_pointer, void *host_pointer, size_t size) = 0;
+  virtual void copy_host_to_device(void *device_pointer,
+                                   void *host_pointer,
+                                   const size_t size) = 0;
 };
 
 CCL_NAMESPACE_END

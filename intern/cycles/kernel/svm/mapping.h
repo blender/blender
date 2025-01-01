@@ -14,9 +14,9 @@ CCL_NAMESPACE_BEGIN
 ccl_device_noinline void svm_node_mapping(KernelGlobals kg,
                                           ccl_private ShaderData *sd,
                                           ccl_private float *stack,
-                                          uint type,
-                                          uint inputs_stack_offsets,
-                                          uint result_stack_offset)
+                                          const uint type,
+                                          const uint inputs_stack_offsets,
+                                          const uint result_stack_offset)
 {
   uint vector_stack_offset;
   uint location_stack_offset;
@@ -42,8 +42,8 @@ ccl_device_noinline void svm_node_mapping(KernelGlobals kg,
 ccl_device_noinline int svm_node_texture_mapping(KernelGlobals kg,
                                                  ccl_private ShaderData *sd,
                                                  ccl_private float *stack,
-                                                 uint vec_offset,
-                                                 uint out_offset,
+                                                 const uint vec_offset,
+                                                 const uint out_offset,
                                                  int offset)
 {
   const float3 v = stack_load_float3(stack, vec_offset);
@@ -61,8 +61,8 @@ ccl_device_noinline int svm_node_texture_mapping(KernelGlobals kg,
 ccl_device_noinline int svm_node_min_max(KernelGlobals kg,
                                          ccl_private ShaderData *sd,
                                          ccl_private float *stack,
-                                         uint vec_offset,
-                                         uint out_offset,
+                                         const uint vec_offset,
+                                         const uint out_offset,
                                          int offset)
 {
   const float3 v = stack_load_float3(stack, vec_offset);

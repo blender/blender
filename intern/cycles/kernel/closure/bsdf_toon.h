@@ -38,7 +38,9 @@ ccl_device int bsdf_diffuse_toon_setup(ccl_private ToonBsdf *bsdf)
   return bsdf_toon_setup_common(bsdf);
 }
 
-ccl_device float bsdf_toon_get_intensity(float max_angle, float smooth, float angle)
+ccl_device float bsdf_toon_get_intensity(const float max_angle,
+                                         const float smooth,
+                                         const float angle)
 {
   float is;
 
@@ -55,7 +57,7 @@ ccl_device float bsdf_toon_get_intensity(float max_angle, float smooth, float an
   return is;
 }
 
-ccl_device float bsdf_toon_get_sample_angle(float max_angle, float smooth)
+ccl_device float bsdf_toon_get_sample_angle(const float max_angle, const float smooth)
 {
   return fminf(max_angle + smooth, M_PI_2_F);
 }
@@ -86,9 +88,9 @@ ccl_device Spectrum bsdf_diffuse_toon_eval(const ccl_private ShaderClosure *sc,
 }
 
 ccl_device int bsdf_diffuse_toon_sample(const ccl_private ShaderClosure *sc,
-                                        float3 Ng,
-                                        float3 wi,
-                                        float2 rand,
+                                        const float3 Ng,
+                                        const float3 wi,
+                                        const float2 rand,
                                         ccl_private Spectrum *eval,
                                         ccl_private float3 *wo,
                                         ccl_private float *pdf)
@@ -150,9 +152,9 @@ ccl_device Spectrum bsdf_glossy_toon_eval(const ccl_private ShaderClosure *sc,
 }
 
 ccl_device int bsdf_glossy_toon_sample(const ccl_private ShaderClosure *sc,
-                                       float3 Ng,
-                                       float3 wi,
-                                       float2 rand,
+                                       const float3 Ng,
+                                       const float3 wi,
+                                       const float2 rand,
                                        ccl_private Spectrum *eval,
                                        ccl_private float3 *wo,
                                        ccl_private float *pdf)

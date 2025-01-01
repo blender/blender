@@ -27,7 +27,7 @@ struct OSLShadingSystem;
 
 /* Array for kernel data, with size to be able to assert on invalid data access. */
 template<typename T> struct kernel_array {
-  const ccl_always_inline T &fetch(int index) const
+  const ccl_always_inline T &fetch(const int index) const
   {
     kernel_assert(index >= 0 && index < width);
     return data[index];

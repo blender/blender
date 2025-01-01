@@ -226,7 +226,7 @@ RTCError BVHEmbree::offload_scenes_to_gpu(const vector<RTCScene> &scenes)
 }
 #  endif
 
-void BVHEmbree::add_object(Object *ob, int i)
+void BVHEmbree::add_object(Object *ob, const int i)
 {
   Geometry *geom = ob->get_geometry();
 
@@ -250,7 +250,7 @@ void BVHEmbree::add_object(Object *ob, int i)
   }
 }
 
-void BVHEmbree::add_instance(Object *ob, int i)
+void BVHEmbree::add_instance(Object *ob, const int i)
 {
   BVHEmbree *instance_bvh = (BVHEmbree *)(ob->get_geometry()->bvh);
   assert(instance_bvh != nullptr);
@@ -296,7 +296,7 @@ void BVHEmbree::add_instance(Object *ob, int i)
   rtcReleaseGeometry(geom_id);
 }
 
-void BVHEmbree::add_triangles(const Object *ob, const Mesh *mesh, int i)
+void BVHEmbree::add_triangles(const Object *ob, const Mesh *mesh, const int i)
 {
   const size_t prim_offset = mesh->prim_offset;
 
@@ -435,7 +435,7 @@ void BVHEmbree::set_tri_vertex_buffer(RTCGeometry geom_id, const Mesh *mesh, con
  * Packs the hair motion curve data control variables (CVs) into float4s as [x y z radius]
  */
 template<typename T>
-void pack_motion_verts(size_t num_curves,
+void pack_motion_verts(const size_t num_curves,
                        const Hair *hair,
                        const T *verts,
                        const float *curve_radius,
@@ -575,7 +575,7 @@ void BVHEmbree::set_point_vertex_buffer(RTCGeometry geom_id,
   }
 }
 
-void BVHEmbree::add_points(const Object *ob, const PointCloud *pointcloud, int i)
+void BVHEmbree::add_points(const Object *ob, const PointCloud *pointcloud, const int i)
 {
   const size_t prim_offset = pointcloud->prim_offset;
 
@@ -611,7 +611,7 @@ void BVHEmbree::add_points(const Object *ob, const PointCloud *pointcloud, int i
   rtcReleaseGeometry(geom_id);
 }
 
-void BVHEmbree::add_curves(const Object *ob, const Hair *hair, int i)
+void BVHEmbree::add_curves(const Object *ob, const Hair *hair, const int i)
 {
   const size_t prim_offset = hair->curve_segment_offset;
 

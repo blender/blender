@@ -105,7 +105,7 @@ struct NodeType {
   void register_input(ustring name,
                       ustring ui_name,
                       SocketType::Type type,
-                      int struct_offset,
+                      const int struct_offset,
                       const void *default_value,
                       const NodeEnum *enum_values = nullptr,
                       const NodeType *node_type = nullptr,

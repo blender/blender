@@ -28,9 +28,9 @@ ccl_device_inline
     BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals kg,
                                 const ccl_private Ray *ray,
                                 ccl_private LocalIntersection *local_isect,
-                                int local_object,
+                                const int local_object,
                                 ccl_private uint *lcg_state,
-                                int max_hits)
+                                const int max_hits)
 {
   /* todo:
    * - test if pushing distance on the stack helps (for non shadow rays)
@@ -223,9 +223,9 @@ ccl_device_inline
 ccl_device_inline bool BVH_FUNCTION_NAME(KernelGlobals kg,
                                          const ccl_private Ray *ray,
                                          ccl_private LocalIntersection *local_isect,
-                                         int local_object,
+                                         const int local_object,
                                          ccl_private uint *lcg_state,
-                                         int max_hits)
+                                         const int max_hits)
 {
   return BVH_FUNCTION_FULL_NAME(BVH)(kg, ray, local_isect, local_object, lcg_state, max_hits);
 }

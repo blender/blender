@@ -13,10 +13,10 @@ class BVHReference;
 class BVHUnaligned;
 struct Transform;
 
-void bvh_reference_sort(int start,
-                        int end,
+void bvh_reference_sort(const int start,
+                        const int end,
                         BVHReference *data,
-                        int dim,
+                        const int dim,
                         const BVHUnaligned *unaligned_heuristic = nullptr,
                         const Transform *aligned_space = nullptr);
 

@@ -28,8 +28,8 @@ CCL_NAMESPACE_BEGIN
 
 static void shade_background_pixels(Device *device,
                                     DeviceScene *dscene,
-                                    int width,
-                                    int height,
+                                    const int width,
+                                    const int height,
                                     vector<float3> &pixels,
                                     Progress &progress)
 {
@@ -902,8 +902,12 @@ void LightManager::device_update_tree(Device * /*unused*/,
   dscene->triangle_to_tree.copy_to_device();
 }
 
-static void background_cdf(
-    int start, int end, int res_x, int res_y, const vector<float3> *pixels, float2 *cond_cdf)
+static void background_cdf(int start,
+                           const int end,
+                           const int res_x,
+                           const int res_y,
+                           const vector<float3> *pixels,
+                           float2 *cond_cdf)
 {
   const int cdf_width = res_x + 1;
   /* Conditional CDFs (rows, U direction). */
@@ -1543,7 +1547,7 @@ int LightManager::add_ies(const string &content)
   return slot;
 }
 
-void LightManager::remove_ies(int slot)
+void LightManager::remove_ies(const int slot)
 {
   const thread_scoped_lock ies_lock(ies_mutex);
 

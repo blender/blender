@@ -21,8 +21,8 @@ static_assert(sizeof(ShaderClosure) >= sizeof(RayPortalClosure), "RayPortalClosu
 
 ccl_device void bsdf_ray_portal_setup(ccl_private ShaderData *sd,
                                       const Spectrum weight,
-                                      uint32_t path_flag,
-                                      float3 position,
+                                      const uint32_t path_flag,
+                                      const float3 position,
                                       float3 direction)
 {
   /* Check cutoff weight. */

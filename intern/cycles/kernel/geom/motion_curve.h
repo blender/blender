@@ -23,11 +23,11 @@ CCL_NAMESPACE_BEGIN
 
 ccl_device_inline void motion_curve_keys_for_step_linear(KernelGlobals kg,
                                                          int offset,
-                                                         int numverts,
-                                                         int numsteps,
+                                                         const int numverts,
+                                                         const int numsteps,
                                                          int step,
-                                                         int k0,
-                                                         int k1,
+                                                         const int k0,
+                                                         const int k1,
                                                          float4 keys[2])
 {
   if (step == numsteps) {
@@ -49,8 +49,12 @@ ccl_device_inline void motion_curve_keys_for_step_linear(KernelGlobals kg,
 }
 
 /* return 2 curve key locations */
-ccl_device_inline void motion_curve_keys_linear(
-    KernelGlobals kg, int object, float time, int k0, int k1, float4 keys[2])
+ccl_device_inline void motion_curve_keys_linear(KernelGlobals kg,
+                                                const int object,
+                                                const float time,
+                                                const int k0,
+                                                const int k1,
+                                                float4 keys[2])
 {
   /* get motion info */
   const int numsteps = kernel_data_fetch(objects, object).numsteps;
@@ -78,13 +82,13 @@ ccl_device_inline void motion_curve_keys_linear(
 
 ccl_device_inline void motion_curve_keys_for_step(KernelGlobals kg,
                                                   int offset,
-                                                  int numverts,
-                                                  int numsteps,
+                                                  const int numverts,
+                                                  const int numsteps,
                                                   int step,
-                                                  int k0,
-                                                  int k1,
-                                                  int k2,
-                                                  int k3,
+                                                  const int k0,
+                                                  const int k1,
+                                                  const int k2,
+                                                  const int k3,
                                                   float4 keys[4])
 {
   if (step == numsteps) {
@@ -110,8 +114,14 @@ ccl_device_inline void motion_curve_keys_for_step(KernelGlobals kg,
 }
 
 /* return 2 curve key locations */
-ccl_device_inline void motion_curve_keys(
-    KernelGlobals kg, int object, float time, int k0, int k1, int k2, int k3, float4 keys[4])
+ccl_device_inline void motion_curve_keys(KernelGlobals kg,
+                                         const int object,
+                                         const float time,
+                                         const int k0,
+                                         const int k1,
+                                         const int k2,
+                                         const int k3,
+                                         float4 keys[4])
 {
   /* get motion info */
   const int numsteps = kernel_data_fetch(objects, object).numsteps;

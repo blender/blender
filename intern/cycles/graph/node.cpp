@@ -56,37 +56,37 @@ void Node::set(const SocketType &input, bool value)
   set_if_different(input, value);
 }
 
-void Node::set(const SocketType &input, int value)
+void Node::set(const SocketType &input, const int value)
 {
   assert((input.type == SocketType::INT || input.type == SocketType::ENUM));
   set_if_different(input, value);
 }
 
-void Node::set(const SocketType &input, uint value)
+void Node::set(const SocketType &input, const uint value)
 {
   assert(input.type == SocketType::UINT);
   set_if_different(input, value);
 }
 
-void Node::set(const SocketType &input, uint64_t value)
+void Node::set(const SocketType &input, const uint64_t value)
 {
   assert(input.type == SocketType::UINT64);
   set_if_different(input, value);
 }
 
-void Node::set(const SocketType &input, float value)
+void Node::set(const SocketType &input, const float value)
 {
   assert(input.type == SocketType::FLOAT);
   set_if_different(input, value);
 }
 
-void Node::set(const SocketType &input, float2 value)
+void Node::set(const SocketType &input, const float2 value)
 {
   assert(input.type == SocketType::POINT2);
   set_if_different(input, value);
 }
 
-void Node::set(const SocketType &input, float3 value)
+void Node::set(const SocketType &input, const float3 value)
 {
   assert(is_socket_float3(input));
   set_if_different(input, value);

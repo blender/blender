@@ -30,7 +30,7 @@ double time_dt()
   return (double)counter / (double)frequency;
 }
 
-void time_sleep(double t)
+void time_sleep(const double t)
 {
   Sleep((int)(t * 1000));
 }

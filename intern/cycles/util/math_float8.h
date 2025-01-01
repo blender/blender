@@ -130,12 +130,12 @@ ccl_device_inline vfloat8 operator*=(vfloat8 a, const vfloat8 b)
   return a = a * b;
 }
 
-ccl_device_inline vfloat8 operator*=(vfloat8 a, float f)
+ccl_device_inline vfloat8 operator*=(vfloat8 a, const float f)
 {
   return a = a * f;
 }
 
-ccl_device_inline vfloat8 operator/=(vfloat8 a, float f)
+ccl_device_inline vfloat8 operator/=(vfloat8 a, const float f)
 {
   return a = a / f;
 }
@@ -295,7 +295,7 @@ ccl_device_inline vfloat8 fabs(const vfloat8 a)
 #endif
 }
 
-ccl_device_inline vfloat8 mix(const vfloat8 a, const vfloat8 b, float t)
+ccl_device_inline vfloat8 mix(const vfloat8 a, const vfloat8 b, const float t)
 {
   return a + t * (b - a);
 }
@@ -333,7 +333,7 @@ ccl_device_inline float dot(const vfloat8 a, const vfloat8 b)
 #endif
 }
 
-ccl_device_inline vfloat8 pow(vfloat8 v, float e)
+ccl_device_inline vfloat8 pow(vfloat8 v, const float e)
 {
   return make_vfloat8(powf(v.a, e),
                       powf(v.b, e),
@@ -431,7 +431,14 @@ ccl_device_forceinline float4 high(const vfloat8 a)
 #  endif
 }
 
-template<int i0, int i1, int i2, int i3, int i4, int i5, int i6, int i7>
+template<int i0,
+         const int i1,
+         const int i2,
+         const int i3,
+         const int i4,
+         const int i5,
+         const int i6,
+         const int i7>
 ccl_device_forceinline vfloat8 shuffle(const vfloat8 a)
 {
 #  ifdef __KERNEL_AVX__
@@ -441,7 +448,7 @@ ccl_device_forceinline vfloat8 shuffle(const vfloat8 a)
 #  endif
 }
 
-template<size_t i0, size_t i1, size_t i2, size_t i3>
+template<size_t i0, const size_t i1, const size_t i2, const size_t i3>
 ccl_device_forceinline vfloat8 shuffle(const vfloat8 a, const vfloat8 b)
 {
 #  ifdef __KERNEL_AVX__
@@ -452,7 +459,7 @@ ccl_device_forceinline vfloat8 shuffle(const vfloat8 a, const vfloat8 b)
 #  endif
 }
 
-template<size_t i0, size_t i1, size_t i2, size_t i3>
+template<size_t i0, const size_t i1, const size_t i2, const size_t i3>
 ccl_device_forceinline vfloat8 shuffle(const vfloat8 a)
 {
   return shuffle<i0, i1, i2, i3>(a, a);

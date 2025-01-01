@@ -181,7 +181,7 @@ static void window_display()
   window_opengl_context_disable();
 }
 
-static void window_reshape(int width, int height)
+static void window_reshape(const int width, const int height)
 {
   if (V.width != width || V.height != height) {
     if (V.resize) {
@@ -209,7 +209,7 @@ static bool window_keyboard(unsigned char key)
   return false;
 }
 
-static void window_mouse(int button, int state, int x, int y)
+static void window_mouse(const int button, const int state, const int x, int y)
 {
   if (button == SDL_BUTTON_LEFT) {
     if (state == SDL_MOUSEBUTTONDOWN) {
@@ -233,7 +233,7 @@ static void window_mouse(int button, int state, int x, int y)
   }
 }
 
-static void window_motion(int x, int y)
+static void window_motion(const int x, const int y)
 {
   const int but = V.mouseBut0 ? 0 : 2;
   const int distX = x - V.mouseX;
@@ -261,8 +261,8 @@ void window_opengl_context_disable()
 }
 
 void window_main_loop(const char *title,
-                      int width,
-                      int height,
+                      const int width,
+                      const int height,
                       WindowInitFunc initf,
                       WindowExitFunc exitf,
                       WindowResizeFunc resize,

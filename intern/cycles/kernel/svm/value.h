@@ -13,8 +13,8 @@ CCL_NAMESPACE_BEGIN
 ccl_device void svm_node_value_f(KernelGlobals kg,
                                  ccl_private ShaderData *sd,
                                  ccl_private float *stack,
-                                 uint ivalue,
-                                 uint out_offset)
+                                 const uint ivalue,
+                                 const uint out_offset)
 {
   stack_store_float(stack, out_offset, __uint_as_float(ivalue));
 }
@@ -22,7 +22,7 @@ ccl_device void svm_node_value_f(KernelGlobals kg,
 ccl_device int svm_node_value_v(KernelGlobals kg,
                                 ccl_private ShaderData *sd,
                                 ccl_private float *stack,
-                                uint out_offset,
+                                const uint out_offset,
                                 int offset)
 {
   /* read extra data */

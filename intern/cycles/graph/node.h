@@ -94,12 +94,12 @@ struct Node {
 
   /* set values */
   void set(const SocketType &input, bool value);
-  void set(const SocketType &input, int value);
-  void set(const SocketType &input, uint value);
-  void set(const SocketType &input, uint64_t value);
-  void set(const SocketType &input, float value);
-  void set(const SocketType &input, float2 value);
-  void set(const SocketType &input, float3 value);
+  void set(const SocketType &input, const int value);
+  void set(const SocketType &input, const uint value);
+  void set(const SocketType &input, const uint64_t value);
+  void set(const SocketType &input, const float value);
+  void set(const SocketType &input, const float2 value);
+  void set(const SocketType &input, const float3 value);
   void set(const SocketType &input, const char *value);
   void set(const SocketType &input, ustring value);
   void set(const SocketType &input, const Transform &value);

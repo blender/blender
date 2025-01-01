@@ -13,8 +13,11 @@ CCL_NAMESPACE_BEGIN
  * sampler.
  */
 template<uint node_feature_mask>
-ccl_device_noinline int svm_node_tex_voxel(
-    KernelGlobals kg, ccl_private ShaderData *sd, ccl_private float *stack, uint4 node, int offset)
+ccl_device_noinline int svm_node_tex_voxel(KernelGlobals kg,
+                                           ccl_private ShaderData *sd,
+                                           ccl_private float *stack,
+                                           const uint4 node,
+                                           int offset)
 {
   uint co_offset;
   uint density_out_offset;

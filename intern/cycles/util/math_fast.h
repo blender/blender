@@ -65,7 +65,7 @@ ccl_device_inline float4 madd4(const float4 a, const float4 b, const float4 c)
  */
 
 /* Round to nearest integer, returning as an int. */
-ccl_device_inline int fast_rint(float x)
+ccl_device_inline int fast_rint(const float x)
 {
   /* used by sin/cos/tan range reduction. */
 #ifdef __KERNEL_SSE42__
@@ -215,7 +215,7 @@ ccl_device float fast_tanf(float x)
  *
  * Adapted from http://devmaster.net/posts/9648/fast-and-accurate-sine-cosine#comment-76773
  */
-ccl_device float fast_sinpif(float x)
+ccl_device float fast_sinpif(const float x)
 {
   /* Fast trick to strip the integral part off, so our domain is [-1, 1]. */
   const float z = x - ((x + 25165824.0f) - 25165824.0f);
@@ -251,12 +251,12 @@ ccl_device float fast_sinpif(float x)
 }
 
 /* Fast approximate cos(x*M_PI) with ~0.1% absolute error. */
-ccl_device_inline float fast_cospif(float x)
+ccl_device_inline float fast_cospif(const float x)
 {
   return fast_sinpif(x + 0.5f);
 }
 
-ccl_device float fast_acosf(float x)
+ccl_device float fast_acosf(const float x)
 {
   const float f = fabsf(x);
   /* clamp and crush denormals. */
@@ -273,7 +273,7 @@ ccl_device float fast_acosf(float x)
   return x < 0 ? M_PI_F - a : a;
 }
 
-ccl_device float fast_asinf(float x)
+ccl_device float fast_asinf(const float x)
 {
   /* Based on acosf approximation above.
    * Max error is 4.51133e-05 (ULPS are higher because we are consistently off
@@ -287,7 +287,7 @@ ccl_device float fast_asinf(float x)
   return copysignf(a, x);
 }
 
-ccl_device float fast_atanf(float x)
+ccl_device float fast_atanf(const float x)
 {
   const float a = fabsf(x);
   const float k = a > 1.0f ? 1 / a : a;
@@ -306,7 +306,7 @@ ccl_device float fast_atanf(float x)
   return copysignf(r, x);
 }
 
-ccl_device float fast_atan2f(float y, float x)
+ccl_device float fast_atan2f(const float y, const float x)
 {
   /* Based on atan approximation above.
    *
@@ -336,7 +336,7 @@ ccl_device float fast_atan2f(float y, float x)
 }
 
 /* Same as precise_angle, but using fast_atan2f. Still much better that acos(dot(a, b)). */
-ccl_device_inline float vector_angle(float3 a, float3 b)
+ccl_device_inline float vector_angle(const float3 a, const float3 b)
 {
   return 2.0f * fast_atan2f(len(a - b), len(a + b));
 }
@@ -371,7 +371,7 @@ ccl_device float fast_log2f(float x)
   return ((f4 * hi) + (f * lo)) + exponent;
 }
 
-ccl_device_inline float fast_logf(float x)
+ccl_device_inline float fast_logf(const float x)
 {
   /* Examined 2130706432 values of logf on [1.17549435e-38,3.40282347e+38]:
    * 0.313865375 avg ULP diff, 5148137 max ULP, 7.62939e-06 max error.
@@ -379,7 +379,7 @@ ccl_device_inline float fast_logf(float x)
   return fast_log2f(x) * M_LN2_F;
 }
 
-ccl_device_inline float fast_log10(float x)
+ccl_device_inline float fast_log10(const float x)
 {
   /* Examined 2130706432 values of log10f on [1.17549435e-38,3.40282347e+38]:
    * 0.631237033 avg ULP diff, 4471615 max ULP, 3.8147e-06 max error.
@@ -423,7 +423,7 @@ ccl_device float fast_exp2f(float x)
   return __uint_as_float(__float_as_uint(r) + ((unsigned)m << 23));
 }
 
-ccl_device_inline float fast_expf(float x)
+ccl_device_inline float fast_expf(const float x)
 {
   /* Examined 2237485550 values of exp on [-87.3300018,87.3300018]:
    * 2.6666452 avg ULP diff, 230 max ULP.
@@ -451,18 +451,18 @@ ccl_device float4 fast_exp2f4(float4 x)
   return __int4_as_float4(__float4_as_int4(r) + (m << 23));
 }
 
-ccl_device_inline float4 fast_expf4(float4 x)
+ccl_device_inline float4 fast_expf4(const float4 x)
 {
   return fast_exp2f4(x / M_LN2_F);
 }
 #else
-ccl_device_inline float4 fast_expf4(float4 x)
+ccl_device_inline float4 fast_expf4(const float4 x)
 {
   return make_float4(fast_expf(x.x), fast_expf(x.y), fast_expf(x.z), fast_expf(x.w));
 }
 #endif
 
-ccl_device_inline float fast_exp10(float x)
+ccl_device_inline float fast_exp10(const float x)
 {
   /* Examined 2217701018 values of exp10 on [-37.9290009,37.9290009]:
    * 2.71732409 avg ULP diff, 232 max ULP.
@@ -479,7 +479,7 @@ ccl_device_inline float fast_expm1f(float x)
   return fast_expf(x) - 1.0f;
 }
 
-ccl_device float fast_sinhf(float x)
+ccl_device float fast_sinhf(const float x)
 {
   float a = fabsf(x);
   if (a > 1.0f) {
@@ -499,7 +499,7 @@ ccl_device float fast_sinhf(float x)
   return copysignf(r, x);
 }
 
-ccl_device_inline float fast_coshf(float x)
+ccl_device_inline float fast_coshf(const float x)
 {
   /* Examined 2237485550 values of cosh on [-87.3300018,87.3300018]:
    * 1.78256726 avg ULP diff, 178 max ULP.
@@ -508,7 +508,7 @@ ccl_device_inline float fast_coshf(float x)
   return 0.5f * e + 0.5f / e;
 }
 
-ccl_device_inline float fast_tanhf(float x)
+ccl_device_inline float fast_tanhf(const float x)
 {
   /* Examined 4278190080 values of tanh on [-3.40282347e+38,3.40282347e+38]:
    * 3.12924e-06 max error.
@@ -518,7 +518,7 @@ ccl_device_inline float fast_tanhf(float x)
   return copysignf(1.0f - 2.0f / (1.0f + e), x);
 }
 
-ccl_device float fast_safe_powf(float x, float y)
+ccl_device float fast_safe_powf(const float x, const float y)
 {
   if (y == 0) {
     return 1.0f; /* x^1=1 */
@@ -560,7 +560,7 @@ ccl_device float fast_safe_powf(float x, float y)
  * bsdf_microfacet.h.
  */
 
-ccl_device_inline float fast_erff(float x)
+ccl_device_inline float fast_erff(const float x)
 {
   /* Examined 1082130433 values of erff on [0,4]: 1.93715e-06 max error. */
   /* Abramowitz and Stegun, 7.1.28. */
@@ -584,7 +584,7 @@ ccl_device_inline float fast_erff(float x)
   return copysignf(1.0f - 1.0f / v, x);
 }
 
-ccl_device_inline float fast_erfcf(float x)
+ccl_device_inline float fast_erfcf(const float x)
 {
   /* Examined 2164260866 values of erfcf on [-4,4]: 1.90735e-06 max error.
    *
@@ -595,7 +595,7 @@ ccl_device_inline float fast_erfcf(float x)
   return 1.0f - fast_erff(x);
 }
 
-ccl_device_inline float fast_ierff(float x)
+ccl_device_inline float fast_ierff(const float x)
 {
   /* From: Approximating the `erfinv` function by Mike Giles. */
   /* To avoid trouble at the limit, clamp input to 1-epsilon. */
@@ -630,7 +630,7 @@ ccl_device_inline float fast_ierff(float x)
 }
 
 /* Fast inverse cube root for positive x, with two Newton iterations to improve accuracy. */
-ccl_device_inline float fast_inv_cbrtf(float x)
+ccl_device_inline float fast_inv_cbrtf(const float x)
 {
   util_assert(x >= 0.0f);
 

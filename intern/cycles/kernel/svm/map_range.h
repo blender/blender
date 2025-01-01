@@ -10,7 +10,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Map Range Node */
 
-ccl_device_inline float smootherstep(float edge0, float edge1, float x)
+ccl_device_inline float smootherstep(const float edge0, const float edge1, float x)
 {
   x = clamp(safe_divide((x - edge0), (edge1 - edge0)), 0.0f, 1.0f);
   return x * x * x * (x * (x * 6.0f - 15.0f) + 10.0f);
@@ -19,9 +19,9 @@ ccl_device_inline float smootherstep(float edge0, float edge1, float x)
 ccl_device_noinline int svm_node_map_range(KernelGlobals kg,
                                            ccl_private ShaderData *sd,
                                            ccl_private float *stack,
-                                           uint value_stack_offset,
-                                           uint parameters_stack_offsets,
-                                           uint results_stack_offsets,
+                                           const uint value_stack_offset,
+                                           const uint parameters_stack_offsets,
+                                           const uint results_stack_offsets,
                                            int offset)
 {
   uint from_min_stack_offset;
@@ -86,10 +86,10 @@ ccl_device_noinline int svm_node_map_range(KernelGlobals kg,
 ccl_device_noinline int svm_node_vector_map_range(KernelGlobals kg,
                                                   ccl_private ShaderData *sd,
                                                   ccl_private float *stack,
-                                                  uint value_stack_offset,
-                                                  uint parameters_stack_offsets,
-                                                  uint results_stack_offsets,
-                                                  int offset)
+                                                  const uint value_stack_offset,
+                                                  const uint parameters_stack_offsets,
+                                                  const uint results_stack_offsets,
+                                                  const int offset)
 {
   uint from_min_stack_offset;
   uint from_max_stack_offset;

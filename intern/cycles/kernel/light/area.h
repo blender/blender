@@ -16,7 +16,7 @@ CCL_NAMESPACE_BEGIN
  * Carlos Urena et al.
  *
  * NOTE: light_p is modified when sample_coord is true. */
-ccl_device_inline float area_light_rect_sample(float3 P,
+ccl_device_inline float area_light_rect_sample(const float3 P,
                                                ccl_private float3 *light_p,
                                                const float3 axis_u,
                                                const float len_u,

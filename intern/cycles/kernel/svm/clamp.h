@@ -13,9 +13,9 @@ CCL_NAMESPACE_BEGIN
 ccl_device_noinline int svm_node_clamp(KernelGlobals kg,
                                        ccl_private ShaderData *sd,
                                        ccl_private float *stack,
-                                       uint value_stack_offset,
-                                       uint parameters_stack_offsets,
-                                       uint result_stack_offset,
+                                       const uint value_stack_offset,
+                                       const uint parameters_stack_offsets,
+                                       const uint result_stack_offset,
                                        int offset)
 {
   uint min_stack_offset;

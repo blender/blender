@@ -62,7 +62,7 @@ struct ccl_try_align(16) float4
 #  endif
 };
 
-ccl_device_inline float4 make_float4(float x, float y, float z, float w)
+ccl_device_inline float4 make_float4(const float x, const float y, float z, const float w)
 {
 #  ifdef __KERNEL_SSE__
   return float4(_mm_set_ps(w, z, y, x));
@@ -73,7 +73,7 @@ ccl_device_inline float4 make_float4(float x, float y, float z, float w)
 
 #endif /* __KERNEL_NATIVE_VECTOR_TYPES__ */
 
-ccl_device_inline float4 make_float4(float f)
+ccl_device_inline float4 make_float4(const float f)
 {
 #ifdef __KERNEL_SSE__
   return float4(_mm_set1_ps(f));
@@ -82,12 +82,12 @@ ccl_device_inline float4 make_float4(float f)
 #endif
 }
 
-ccl_device_inline float4 make_float4(float3 a, float b)
+ccl_device_inline float4 make_float4(const float3 a, const float b)
 {
   return make_float4(a.x, a.y, a.z, b);
 }
 
-ccl_device_inline float4 make_float4(float3 a)
+ccl_device_inline float4 make_float4(const float3 a)
 {
   return make_float4(a.x, a.y, a.z, 1.0f);
 }
@@ -101,7 +101,7 @@ ccl_device_inline float4 make_float4(const int4 i)
 #endif
 }
 
-ccl_device_inline float3 make_float3(float4 a)
+ccl_device_inline float3 make_float3(const float4 a)
 {
   return make_float3(a.x, a.y, a.z);
 }

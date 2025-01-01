@@ -109,9 +109,9 @@ class OptiXDevice : public CUDADevice {
   void release_bvh(BVH *bvh) override;
   void free_bvh_memory_delayed();
 
-  void const_copy_to(const char *name, void *host, size_t size) override;
+  void const_copy_to(const char *name, void *host, const size_t size) override;
 
-  void update_launch_params(size_t offset, void *data, size_t data_size);
+  void update_launch_params(const size_t offset, void *data, const size_t data_size);
 
   unique_ptr<DeviceQueue> gpu_queue_create() override;
 

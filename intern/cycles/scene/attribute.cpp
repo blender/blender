@@ -15,8 +15,11 @@ CCL_NAMESPACE_BEGIN
 
 /* Attribute */
 
-Attribute::Attribute(
-    ustring name, TypeDesc type, AttributeElement element, Geometry *geom, AttributePrimitive prim)
+Attribute::Attribute(ustring name,
+                     const TypeDesc type,
+                     AttributeElement element,
+                     Geometry *geom,
+                     AttributePrimitive prim)
     : name(name), std(ATTR_STD_NONE), type(type), element(element), flags(0), modified(true)
 {
   /* string and matrix not supported! */
@@ -54,7 +57,7 @@ void Attribute::resize(Geometry *geom, AttributePrimitive prim, bool reserve_onl
   }
 }
 
-void Attribute::resize(size_t num_elements)
+void Attribute::resize(const size_t num_elements)
 {
   if (element != ATTR_ELEMENT_VOXEL) {
     buffer.resize(num_elements * data_sizeof(), 0);
@@ -283,7 +286,7 @@ size_t Attribute::buffer_size(Geometry *geom, AttributePrimitive prim) const
   return element_size(geom, prim) * data_sizeof();
 }
 
-bool Attribute::same_storage(TypeDesc a, TypeDesc b)
+bool Attribute::same_storage(const TypeDesc a, const TypeDesc b)
 {
   if (a == b) {
     return true;
@@ -302,7 +305,7 @@ void Attribute::zero_data(void *dst)
   memset(dst, 0, data_sizeof());
 }
 
-void Attribute::add_with_weight(void *dst, void *src, float weight)
+void Attribute::add_with_weight(void *dst, void *src, const float weight)
 {
   if (element == ATTR_ELEMENT_CORNER_BYTE) {
     for (int i = 0; i < 4; i++) {
@@ -474,7 +477,7 @@ AttributeSet::AttributeSet(Geometry *geometry, AttributePrimitive prim)
 
 AttributeSet::~AttributeSet() = default;
 
-Attribute *AttributeSet::add(ustring name, TypeDesc type, AttributeElement element)
+Attribute *AttributeSet::add(ustring name, const TypeDesc type, AttributeElement element)
 {
   Attribute *attr = find(name);
 

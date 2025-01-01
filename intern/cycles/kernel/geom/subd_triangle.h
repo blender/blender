@@ -29,7 +29,7 @@ ccl_device_inline void subd_triangle_patch_uv(KernelGlobals kg,
 
 /* Vertex indices of patch */
 
-ccl_device_inline uint4 subd_triangle_patch_indices(KernelGlobals kg, int patch)
+ccl_device_inline uint4 subd_triangle_patch_indices(KernelGlobals kg, const int patch)
 {
   uint4 indices;
 
@@ -43,21 +43,23 @@ ccl_device_inline uint4 subd_triangle_patch_indices(KernelGlobals kg, int patch)
 
 /* Originating face for patch */
 
-ccl_device_inline uint subd_triangle_patch_face(KernelGlobals kg, int patch)
+ccl_device_inline uint subd_triangle_patch_face(KernelGlobals kg, const int patch)
 {
   return kernel_data_fetch(patches, patch + 4);
 }
 
 /* Number of corners on originating face */
 
-ccl_device_inline uint subd_triangle_patch_num_corners(KernelGlobals kg, int patch)
+ccl_device_inline uint subd_triangle_patch_num_corners(KernelGlobals kg, const int patch)
 {
   return kernel_data_fetch(patches, patch + 5) & 0xffff;
 }
 
 /* Indices of the four corners that are used by the patch */
 
-ccl_device_inline void subd_triangle_patch_corners(KernelGlobals kg, int patch, int corners[4])
+ccl_device_inline void subd_triangle_patch_corners(KernelGlobals kg,
+                                                   const int patch,
+                                                   int corners[4])
 {
   uint4 data;
 

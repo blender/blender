@@ -25,12 +25,12 @@ class TextureMapping {
   TextureMapping();
   Transform compute_transform();
   bool skip();
-  void compile(SVMCompiler &compiler, int offset_in, int offset_out);
+  void compile(SVMCompiler &compiler, const int offset_in, const int offset_out);
   int compile(SVMCompiler &compiler, ShaderInput *vector_in);
   void compile(OSLCompiler &compiler);
 
   int compile_begin(SVMCompiler &compiler, ShaderInput *vector_in);
-  void compile_end(SVMCompiler &compiler, ShaderInput *vector_in, int vector_offset);
+  void compile_end(SVMCompiler &compiler, ShaderInput *vector_in, const int vector_offset);
 
   float3 translation;
   float3 rotation;
@@ -1502,7 +1502,10 @@ class CurvesNode : public ShaderNode {
  protected:
   using ShaderNode::constant_fold;
   void constant_fold(const ConstantFolder &folder, ShaderInput *value_in);
-  void compile(SVMCompiler &compiler, int type, ShaderInput *value_in, ShaderOutput *value_out);
+  void compile(SVMCompiler &compiler,
+               const int type,
+               ShaderInput *value_in,
+               ShaderOutput *value_out);
   void compile(OSLCompiler &compiler, const char *name);
 };
 
@@ -1550,7 +1553,9 @@ class SetNormalNode : public ShaderNode {
 
 class OSLNode final : public ShaderNode {
  public:
-  static OSLNode *create(ShaderGraph *graph, size_t num_inputs, const OSLNode *from = nullptr);
+  static OSLNode *create(ShaderGraph *graph,
+                         const size_t num_inputs,
+                         const OSLNode *from = nullptr);
   ~OSLNode() override;
 
   static void operator delete(void *ptr)

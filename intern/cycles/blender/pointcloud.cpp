@@ -136,7 +136,7 @@ static void export_pointcloud(Scene *scene,
 
 static void export_pointcloud_motion(PointCloud *pointcloud,
                                      const ::PointCloud &b_pointcloud,
-                                     int motion_step)
+                                     const int motion_step)
 {
   /* Find or add attribute. */
   Attribute *attr_mP = pointcloud->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
@@ -230,7 +230,7 @@ void BlenderSync::sync_pointcloud(PointCloud *pointcloud, BObjectInfo &b_ob_info
 
 void BlenderSync::sync_pointcloud_motion(PointCloud *pointcloud,
                                          BObjectInfo &b_ob_info,
-                                         int motion_step)
+                                         const int motion_step)
 {
   /* Skip if nothing exported. */
   if (pointcloud->num_points() == 0) {

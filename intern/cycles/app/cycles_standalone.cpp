@@ -232,7 +232,7 @@ static void display()
   display_info(options.session->progress);
 }
 
-static void motion(int x, int y, int button)
+static void motion(const int x, const int y, int button)
 {
   if (options.interactive) {
     Transform matrix = options.session->scene->camera->get_matrix();
@@ -261,7 +261,7 @@ static void motion(int x, int y, int button)
   }
 }
 
-static void resize(int width, int height)
+static void resize(const int width, const int height)
 {
   options.width = width;
   options.height = height;
@@ -362,7 +362,7 @@ static void keyboard(unsigned char key)
 }
 #endif
 
-static int files_parse(int argc, const char *argv[])
+static int files_parse(const int argc, const char *argv[])
 {
   if (argc > 0) {
     options.filepath = argv[0];
@@ -371,7 +371,7 @@ static int files_parse(int argc, const char *argv[])
   return 0;
 }
 
-static void options_parse(int argc, const char **argv)
+static void options_parse(const int argc, const char **argv)
 {
   options.width = 1024;
   options.height = 512;
@@ -556,7 +556,7 @@ CCL_NAMESPACE_END
 
 using namespace ccl;
 
-int main(int argc, const char **argv)
+int main(const int argc, const char **argv)
 {
   util_logging_init(argv[0]);
   path_init();

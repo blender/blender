@@ -39,7 +39,7 @@ device_memory::~device_memory()
   assert(shared_counter == 0);
 }
 
-void *device_memory::host_alloc(size_t size)
+void *device_memory::host_alloc(const size_t size)
 {
   if (!size) {
     return nullptr;
@@ -86,7 +86,7 @@ void device_memory::device_copy_to()
   }
 }
 
-void device_memory::device_copy_from(size_t y, size_t w, size_t h, size_t elem)
+void device_memory::device_copy_from(const size_t y, const size_t w, size_t h, const size_t elem)
 {
   assert(type != MEM_TEXTURE && type != MEM_READ_ONLY && type != MEM_GLOBAL);
   device->mem_copy_from(*this, y, w, h, elem);
@@ -105,7 +105,7 @@ bool device_memory::device_is_cpu()
 }
 
 void device_memory::swap_device(Device *new_device,
-                                size_t new_device_size,
+                                const size_t new_device_size,
                                 device_ptr new_device_ptr)
 {
   original_device = device;
@@ -131,7 +131,8 @@ bool device_memory::is_resident(Device *sub_device) const
 
 /* Device Sub `ptr`. */
 
-device_sub_ptr::device_sub_ptr(device_memory &mem, size_t offset, size_t size) : device(mem.device)
+device_sub_ptr::device_sub_ptr(device_memory &mem, const size_t offset, const size_t size)
+    : device(mem.device)
 {
   ptr = device->mem_alloc_sub_ptr(mem, offset, size);
 }

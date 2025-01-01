@@ -55,7 +55,7 @@ struct BVHMetalBuildThrottler {
   }
 
   /* Block until we're safely able to wire the requested resources. */
-  void acquire(size_t bytes_to_be_wired)
+  void acquire(const size_t bytes_to_be_wired)
   {
     bool throttled = false;
     while (true) {
@@ -89,7 +89,7 @@ struct BVHMetalBuildThrottler {
   }
 
   /* Notify of resources that have stopped being wired. */
-  void release(size_t bytes_just_unwired)
+  void release(const size_t bytes_just_unwired)
   {
     thread_scoped_lock lock(mutex);
     wired_memory -= bytes_just_unwired;

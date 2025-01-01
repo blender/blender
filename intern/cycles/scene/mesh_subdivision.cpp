@@ -152,13 +152,13 @@ template<typename T> struct OsdValue {
     memset(&value, 0, sizeof(T));
   }
 
-  void AddWithWeight(const OsdValue<T> &src, float weight)
+  void AddWithWeight(const OsdValue<T> &src, const float weight)
   {
     value += src.value * weight;
   }
 };
 
-template<> void OsdValue<uchar4>::AddWithWeight(const OsdValue<uchar4> &src, float weight)
+template<> void OsdValue<uchar4>::AddWithWeight(const OsdValue<uchar4> &src, const float weight)
 {
   for (int i = 0; i < 4; i++) {
     value[i] += (uchar)(src.value[i] * weight);
@@ -347,7 +347,7 @@ struct OsdPatch : Patch {
   OsdPatch() = default;
   OsdPatch(OsdData *data) : osd_data(data) {}
 
-  void eval(float3 *P, float3 *dPdu, float3 *dPdv, float3 *N, float u, float v) override
+  void eval(float3 *P, float3 *dPdu, float3 *dPdv, float3 *N, const float u, float v) override
   {
     const Far::PatchTable::PatchHandle *handle = osd_data->patch_map->FindPatch(
         patch_index, (double)u, (double)v);

@@ -50,16 +50,16 @@ class Mesh : public Geometry {
 
     void motion_verts(const float3 *verts,
                       const float3 *vert_steps,
-                      size_t num_verts,
-                      size_t num_steps,
-                      float time,
+                      const size_t num_verts,
+                      const size_t num_steps,
+                      const float time,
                       float3 r_verts[3]) const;
 
     void verts_for_step(const float3 *verts,
                         const float3 *vert_steps,
-                        size_t num_verts,
-                        size_t num_steps,
-                        size_t step,
+                        const size_t num_verts,
+                        const size_t num_steps,
+                        const size_t step,
                         float3 r_verts[3]) const;
 
     float3 compute_normal(const float3 *verts) const;
@@ -67,7 +67,7 @@ class Mesh : public Geometry {
     bool valid(const float3 *verts) const;
   };
 
-  Triangle get_triangle(size_t i) const
+  Triangle get_triangle(const size_t i) const
   {
     Triangle tri = {{triangles[i * 3 + 0], triangles[i * 3 + 1], triangles[i * 3 + 2]}};
     return tri;
@@ -102,7 +102,7 @@ class Mesh : public Geometry {
     float crease;
   };
 
-  SubdEdgeCrease get_subd_crease(size_t i) const
+  SubdEdgeCrease get_subd_crease(const size_t i) const
   {
     SubdEdgeCrease s;
     s.v[0] = subd_creases_edge[i * 2];
@@ -186,19 +186,19 @@ class Mesh : public Geometry {
   Mesh();
   ~Mesh() override;
 
-  void resize_mesh(int numverts, int numtris);
-  void reserve_mesh(int numverts, int numtris);
-  void resize_subd_faces(int numfaces, int num_ngons, int numcorners);
-  void reserve_subd_faces(int numfaces, int num_ngons, int numcorners);
-  void reserve_subd_creases(size_t num_creases);
+  void resize_mesh(const int numverts, const int numtris);
+  void reserve_mesh(const int numverts, const int numtris);
+  void resize_subd_faces(const int numfaces, const int num_ngons, const int numcorners);
+  void reserve_subd_faces(const int numfaces, const int num_ngons, const int numcorners);
+  void reserve_subd_creases(const size_t num_creases);
   void clear_non_sockets();
   void clear(bool preserve_shaders = false) override;
-  void add_vertex(float3 P);
-  void add_vertex_slow(float3 P);
-  void add_triangle(int v0, int v1, int v2, int shader, bool smooth);
-  void add_subd_face(const int *corners, int num_corners, int shader_, bool smooth_);
-  void add_edge_crease(int v0, int v1, float weight);
-  void add_vertex_crease(int v, float weight);
+  void add_vertex(const float3 P);
+  void add_vertex_slow(const float3 P);
+  void add_triangle(const int v0, const int v1, const int v2, const int shader, bool smooth);
+  void add_subd_face(const int *corners, const int num_corners, const int shader_, bool smooth_);
+  void add_edge_crease(const int v0, const int v1, const float weight);
+  void add_vertex_crease(const int v, const float weight);
 
   void copy_center_to_motion_step(const int motion_step);
 
@@ -222,7 +222,7 @@ class Mesh : public Geometry {
 
   void tessellate(DiagSplit *split);
 
-  SubdFace get_subd_face(size_t index) const;
+  SubdFace get_subd_face(const size_t index) const;
 
   SubdParams *get_subd_params();
 
@@ -231,7 +231,7 @@ class Mesh : public Geometry {
     return num_subd_faces;
   }
 
-  void set_num_subd_faces(size_t num_subd_faces_)
+  void set_num_subd_faces(const size_t num_subd_faces_)
   {
     num_subd_faces = num_subd_faces_;
   }

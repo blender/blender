@@ -17,9 +17,9 @@ struct CryptoPassBufferElement {
 };
 
 ccl_device_inline void film_write_cryptomatte_slots(ccl_global float *buffer,
-                                                    int num_slots,
-                                                    float id,
-                                                    float weight)
+                                                    const int num_slots,
+                                                    const float id,
+                                                    const float weight)
 {
   kernel_assert(id != ID_NONE);
   if (weight == 0.0f) {
@@ -63,7 +63,7 @@ ccl_device_inline void film_write_cryptomatte_slots(ccl_global float *buffer,
   }
 }
 
-ccl_device_inline void film_sort_cryptomatte_slots(ccl_global float *buffer, int num_slots)
+ccl_device_inline void film_sort_cryptomatte_slots(ccl_global float *buffer, const int num_slots)
 {
   ccl_global CryptoPassBufferElement *id_buffer = (ccl_global CryptoPassBufferElement *)buffer;
   for (int slot = 1; slot < num_slots; ++slot) {
@@ -84,7 +84,7 @@ ccl_device_inline void film_sort_cryptomatte_slots(ccl_global float *buffer, int
 /* post-sorting for Cryptomatte */
 ccl_device_inline void film_cryptomatte_post(KernelGlobals kg,
                                              ccl_global float *render_buffer,
-                                             int pixel_index)
+                                             const int pixel_index)
 {
   const int pass_stride = kernel_data.film.pass_stride;
   const uint64_t render_buffer_offset = (uint64_t)pixel_index * pass_stride;

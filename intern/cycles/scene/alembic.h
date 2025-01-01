@@ -153,7 +153,7 @@ template<typename T> class DataStore {
 
   /* Get the data for the specified time.
    * Return nullptr if there is no data or if the data for this time was already loaded. */
-  CacheLookupResult<T> data_for_time(double time)
+  CacheLookupResult<T> data_for_time(const double time)
   {
     if (size() == 0) {
       return CacheLookupResult<T>::no_data_found_for_time();
@@ -178,7 +178,7 @@ template<typename T> class DataStore {
 
   /* get the data for the specified time, but do not check if the data was already loaded for this
    * time return nullptr if there is no data */
-  CacheLookupResult<T> data_for_time_no_check(double time)
+  CacheLookupResult<T> data_for_time_no_check(const double time)
   {
     if (size() == 0) {
       return CacheLookupResult<T>::no_data_found_for_time();
@@ -208,13 +208,13 @@ template<typename T> class DataStore {
     data.push_back(data_);
   }
 
-  void reuse_data_for_last_time(double time)
+  void reuse_data_for_last_time(const double time)
   {
     const TimeIndexPair &data_index = index_data_map.back();
     index_data_map.push_back({time, data_index.source_time, data_index.index});
   }
 
-  void add_no_data(double time)
+  void add_no_data(const double time)
   {
     index_data_map.push_back({time, time, -1ul});
   }
@@ -243,7 +243,7 @@ template<typename T> class DataStore {
 
   /* Copy the data for the specified time to the node's socket. If there is no
    * data for this time or it was already loaded, do nothing. */
-  void copy_to_socket(double time, Node *node, const SocketType *socket)
+  void copy_to_socket(const double time, Node *node, const SocketType *socket)
   {
     CacheLookupResult<T> result = data_for_time(time);
 
@@ -273,7 +273,7 @@ template<typename T> class DataStore {
   }
 
  private:
-  const TimeIndexPair &get_index_for_time(double time) const
+  const TimeIndexPair &get_index_for_time(const double time) const
   {
     std::pair<size_t, Alembic::Abc::chrono_t> index_pair;
     index_pair = time_sampling.getNearIndex(time, index_data_map.size());
@@ -445,7 +445,7 @@ class AlembicObject : public Node {
 
   CachedData cached_data_;
 
-  void setup_transform_cache(CachedData &cached_data, float scale);
+  void setup_transform_cache(CachedData &cached_data, const float scale);
 
   AttributeRequestSet get_requested_attributes();
 };

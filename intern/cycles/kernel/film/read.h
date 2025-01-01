@@ -21,7 +21,7 @@ CCL_NAMESPACE_BEGIN
 /* The input buffer contains transparency = 1 - alpha, this converts it to
  * alpha. Also clamp since alpha might end up outside of 0..1 due to Russian
  * roulette. */
-ccl_device_forceinline float film_transparency_to_alpha(float transparency)
+ccl_device_forceinline float film_transparency_to_alpha(const float transparency)
 {
   return saturatef(1.0f - transparency);
 }
@@ -389,7 +389,7 @@ ccl_device_inline float3 film_calculate_shadow_catcher_denoised(
   return pixel;
 }
 
-ccl_device_inline float3 safe_divide_shadow_catcher(float3 a, float3 b)
+ccl_device_inline float3 safe_divide_shadow_catcher(const float3 a, const float3 b)
 {
   float x;
   float y;

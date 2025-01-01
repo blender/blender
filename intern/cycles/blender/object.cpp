@@ -154,7 +154,7 @@ void BlenderSync::sync_object_motion_init(BL::Object &b_parent, BL::Object &b_ob
 Object *BlenderSync::sync_object(BL::Depsgraph &b_depsgraph,
                                  BL::ViewLayer &b_view_layer,
                                  BL::DepsgraphObjectInstance &b_instance,
-                                 float motion_time,
+                                 const float motion_time,
                                  bool use_particle_hair,
                                  bool show_lights,
                                  BlenderObjectCulling &culling,
@@ -540,7 +540,7 @@ void BlenderSync::sync_procedural(BL::Object &b_ob,
 
 void BlenderSync::sync_objects(BL::Depsgraph &b_depsgraph,
                                BL::SpaceView3D &b_v3d,
-                               float motion_time)
+                               const float motion_time)
 {
   /* Task pool for multithreaded geometry sync. */
   TaskPool geom_task_pool;
@@ -671,8 +671,8 @@ void BlenderSync::sync_motion(BL::RenderSettings &b_render,
                               BL::Depsgraph &b_depsgraph,
                               BL::SpaceView3D &b_v3d,
                               BL::Object &b_override,
-                              int width,
-                              int height,
+                              const int width,
+                              const int height,
                               void **python_thread_state)
 {
   if (scene->need_motion() == Scene::MOTION_NONE) {

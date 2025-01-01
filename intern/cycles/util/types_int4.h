@@ -58,7 +58,7 @@ struct ccl_try_align(16) int4
 #  endif
 };
 
-ccl_device_inline int4 make_int4(int x, int y, int z, int w)
+ccl_device_inline int4 make_int4(const int x, const int y, int z, const int w)
 {
 #  ifdef __KERNEL_SSE__
   return int4(_mm_set_epi32(w, z, y, x));
@@ -68,7 +68,7 @@ ccl_device_inline int4 make_int4(int x, int y, int z, int w)
 }
 #endif /* __KERNEL_NATIVE_VECTOR_TYPES__ */
 
-ccl_device_inline int4 make_int4(int i)
+ccl_device_inline int4 make_int4(const int i)
 {
 #ifdef __KERNEL_SSE__
   return int4(_mm_set1_epi32(i));

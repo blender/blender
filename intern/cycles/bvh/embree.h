@@ -48,11 +48,12 @@ class BVHEmbree : public BVH {
             const vector<Object *> &objects);
   ~BVHEmbree() override;
 
-  void add_object(Object *ob, int i);
-  void add_instance(Object *ob, int i);
-  void add_curves(const Object *ob, const Hair *hair, int i);
-  void add_points(const Object *ob, const PointCloud *pointcloud, int i);
-  void add_triangles(const Object *ob, const Mesh *mesh, int i);
+ protected:
+  void add_object(Object *ob, const int i);
+  void add_instance(Object *ob, const int i);
+  void add_curves(const Object *ob, const Hair *hair, const int i);
+  void add_points(const Object *ob, const PointCloud *pointcloud, const int i);
+  void add_triangles(const Object *ob, const Mesh *mesh, const int i);
 
  private:
   void set_tri_vertex_buffer(RTCGeometry geom_id, const Mesh *mesh, const bool update);

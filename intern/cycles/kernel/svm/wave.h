@@ -16,11 +16,11 @@ ccl_device_noinline_cpu float svm_wave(NodeWaveType type,
                                        NodeWaveRingsDirection rings_dir,
                                        NodeWaveProfile profile,
                                        float3 p,
-                                       float distortion,
-                                       float detail,
-                                       float dscale,
-                                       float droughness,
-                                       float phase)
+                                       const float distortion,
+                                       const float detail,
+                                       const float dscale,
+                                       const float droughness,
+                                       const float phase)
 {
   /* Prevent precision issues on unit coordinates. */
   p = (p + 0.000001f) * 0.999999f;
@@ -75,8 +75,11 @@ ccl_device_noinline_cpu float svm_wave(NodeWaveType type,
   return fabsf(n - floorf(n + 0.5f)) * 2.0f;
 }
 
-ccl_device_noinline int svm_node_tex_wave(
-    KernelGlobals kg, ccl_private ShaderData *sd, ccl_private float *stack, uint4 node, int offset)
+ccl_device_noinline int svm_node_tex_wave(KernelGlobals kg,
+                                          ccl_private ShaderData *sd,
+                                          ccl_private float *stack,
+                                          const uint4 node,
+                                          int offset)
 {
   const uint4 node2 = read_node(kg, &offset);
   const uint4 node3 = read_node(kg, &offset);

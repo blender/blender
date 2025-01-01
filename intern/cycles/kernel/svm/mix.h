@@ -14,9 +14,9 @@ CCL_NAMESPACE_BEGIN
 ccl_device_noinline int svm_node_mix(KernelGlobals kg,
                                      ccl_private ShaderData *sd,
                                      ccl_private float *stack,
-                                     uint fac_offset,
-                                     uint c1_offset,
-                                     uint c2_offset,
+                                     const uint fac_offset,
+                                     const uint c1_offset,
+                                     const uint c2_offset,
                                      int offset)
 {
   /* read extra data */
@@ -33,9 +33,9 @@ ccl_device_noinline int svm_node_mix(KernelGlobals kg,
 
 ccl_device_noinline void svm_node_mix_color(ccl_private ShaderData *sd,
                                             ccl_private float *stack,
-                                            uint options,
-                                            uint input_offset,
-                                            uint result_offset)
+                                            const uint options,
+                                            const uint input_offset,
+                                            const uint result_offset)
 {
   uint use_clamp;
   uint blend_type;
@@ -62,9 +62,9 @@ ccl_device_noinline void svm_node_mix_color(ccl_private ShaderData *sd,
 
 ccl_device_noinline void svm_node_mix_float(ccl_private ShaderData *sd,
                                             ccl_private float *stack,
-                                            uint use_clamp,
-                                            uint input_offset,
-                                            uint result_offset)
+                                            const uint use_clamp,
+                                            const uint input_offset,
+                                            const uint result_offset)
 {
   uint fac_in_stack_offset;
   uint a_in_stack_offset;
@@ -85,8 +85,8 @@ ccl_device_noinline void svm_node_mix_float(ccl_private ShaderData *sd,
 
 ccl_device_noinline void svm_node_mix_vector(ccl_private ShaderData *sd,
                                              ccl_private float *stack,
-                                             uint input_offset,
-                                             uint result_offset)
+                                             const uint input_offset,
+                                             const uint result_offset)
 {
   uint use_clamp;
   uint fac_in_stack_offset;
@@ -107,8 +107,8 @@ ccl_device_noinline void svm_node_mix_vector(ccl_private ShaderData *sd,
 
 ccl_device_noinline void svm_node_mix_vector_non_uniform(ccl_private ShaderData *sd,
                                                          ccl_private float *stack,
-                                                         uint input_offset,
-                                                         uint result_offset)
+                                                         const uint input_offset,
+                                                         const uint result_offset)
 {
   uint use_clamp;
   uint fac_in_stack_offset;

@@ -97,7 +97,7 @@ void Hair::Curve::bounds_grow(const int k,
   bounds.grow(upper, mr);
 }
 
-void Hair::Curve::bounds_grow(float4 keys[4], BoundBox &bounds) const
+void Hair::Curve::bounds_grow(const float4 keys[4], BoundBox &bounds) const
 {
   float3 P[4] = {
       make_float3(keys[0]),
@@ -122,9 +122,9 @@ void Hair::Curve::bounds_grow(float4 keys[4], BoundBox &bounds) const
 void Hair::Curve::motion_keys(const float3 *curve_keys,
                               const float *curve_radius,
                               const float4 *key_steps,
-                              size_t num_curve_keys,
-                              size_t num_steps,
-                              float time,
+                              const size_t num_curve_keys,
+                              const size_t num_steps,
+                              const float time,
                               size_t k0,
                               size_t k1,
                               float4 r_keys[2]) const
@@ -148,9 +148,9 @@ void Hair::Curve::motion_keys(const float3 *curve_keys,
 void Hair::Curve::cardinal_motion_keys(const float3 *curve_keys,
                                        const float *curve_radius,
                                        const float4 *key_steps,
-                                       size_t num_curve_keys,
-                                       size_t num_steps,
-                                       float time,
+                                       const size_t num_curve_keys,
+                                       const size_t num_steps,
+                                       const float time,
                                        size_t k0,
                                        size_t k1,
                                        size_t k2,
@@ -196,8 +196,8 @@ void Hair::Curve::cardinal_motion_keys(const float3 *curve_keys,
 void Hair::Curve::keys_for_step(const float3 *curve_keys,
                                 const float *curve_radius,
                                 const float4 *key_steps,
-                                size_t num_curve_keys,
-                                size_t num_steps,
+                                const size_t num_curve_keys,
+                                const size_t num_steps,
                                 size_t step,
                                 size_t k0,
                                 size_t k1,
@@ -231,8 +231,8 @@ void Hair::Curve::keys_for_step(const float3 *curve_keys,
 void Hair::Curve::cardinal_keys_for_step(const float3 *curve_keys,
                                          const float *curve_radius,
                                          const float4 *key_steps,
-                                         size_t num_curve_keys,
-                                         size_t num_steps,
+                                         const size_t num_curve_keys,
+                                         const size_t num_steps,
                                          size_t step,
                                          size_t k0,
                                          size_t k1,
@@ -298,7 +298,7 @@ Hair::Hair() : Geometry(get_node_type(), Geometry::HAIR)
 
 Hair::~Hair() = default;
 
-void Hair::resize_curves(int numcurves, int numkeys)
+void Hair::resize_curves(const int numcurves, const int numkeys)
 {
   curve_keys.resize(numkeys);
   curve_radius.resize(numkeys);
@@ -308,7 +308,7 @@ void Hair::resize_curves(int numcurves, int numkeys)
   attributes.resize();
 }
 
-void Hair::reserve_curves(int numcurves, int numkeys)
+void Hair::reserve_curves(const int numcurves, const int numkeys)
 {
   curve_keys.reserve(numkeys);
   curve_radius.reserve(numkeys);
@@ -330,7 +330,7 @@ void Hair::clear(bool preserve_shaders)
   attributes.clear();
 }
 
-void Hair::add_curve_key(float3 co, float radius)
+void Hair::add_curve_key(const float3 co, const float radius)
 {
   curve_keys.push_back_reserved(co);
   curve_radius.push_back_reserved(radius);
@@ -339,7 +339,7 @@ void Hair::add_curve_key(float3 co, float radius)
   tag_curve_radius_modified();
 }
 
-void Hair::add_curve(int first_key, int shader)
+void Hair::add_curve(const int first_key, const int shader)
 {
   curve_first_key.push_back_reserved(first_key);
   curve_shader.push_back_reserved(shader);

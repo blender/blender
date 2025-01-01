@@ -11,7 +11,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-void tabulated_sobol_generate_4D(float4 points[], int size, int rng_seed)
+void tabulated_sobol_generate_4D(float4 points[], const int size, const int rng_seed)
 {
   /* Xor values for generating the (4D) Owen-scrambled Sobol sequence.
    * These permute the order we visit the strata in, which is what

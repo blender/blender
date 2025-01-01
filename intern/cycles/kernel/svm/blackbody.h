@@ -21,8 +21,8 @@ CCL_NAMESPACE_BEGIN
 ccl_device_noinline void svm_node_blackbody(KernelGlobals kg,
                                             ccl_private ShaderData *sd,
                                             ccl_private float *stack,
-                                            uint temperature_offset,
-                                            uint col_offset)
+                                            const uint temperature_offset,
+                                            const uint col_offset)
 {
   /* Input */
   const float temperature = stack_load_float(stack, temperature_offset);

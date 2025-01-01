@@ -57,7 +57,7 @@ BVHBuild::~BVHBuild() = default;
 void BVHBuild::add_reference_triangles(BoundBox &root,
                                        BoundBox &center,
                                        Mesh *mesh,
-                                       int object_index)
+                                       const int object_index)
 {
   const PrimitiveType primitive_type = mesh->primitive_type();
   const Attribute *attr_mP = nullptr;
@@ -144,7 +144,10 @@ void BVHBuild::add_reference_triangles(BoundBox &root,
   }
 }
 
-void BVHBuild::add_reference_curves(BoundBox &root, BoundBox &center, Hair *hair, int object_index)
+void BVHBuild::add_reference_curves(BoundBox &root,
+                                    BoundBox &center,
+                                    Hair *hair,
+                                    const int object_index)
 {
   const Attribute *curve_attr_mP = nullptr;
   if (hair->has_motion_blur()) {
@@ -259,7 +262,7 @@ void BVHBuild::add_reference_curves(BoundBox &root, BoundBox &center, Hair *hair
 void BVHBuild::add_reference_points(BoundBox &root,
                                     BoundBox &center,
                                     PointCloud *pointcloud,
-                                    int i)
+                                    const int i)
 {
   const Attribute *point_attr_mP = nullptr;
   if (pointcloud->has_motion_blur()) {
@@ -354,7 +357,7 @@ void BVHBuild::add_reference_points(BoundBox &root,
 void BVHBuild::add_reference_geometry(BoundBox &root,
                                       BoundBox &center,
                                       Geometry *geom,
-                                      int object_index)
+                                      const int object_index)
 {
   if (geom->is_mesh() || geom->is_volume()) {
     Mesh *mesh = static_cast<Mesh *>(geom);
@@ -370,7 +373,7 @@ void BVHBuild::add_reference_geometry(BoundBox &root,
   }
 }
 
-void BVHBuild::add_reference_object(BoundBox &root, BoundBox &center, Object *ob, int i)
+void BVHBuild::add_reference_object(BoundBox &root, BoundBox &center, Object *ob, const int i)
 {
   references.push_back(BVHReference(ob->bounds, -1, i, 0));
   root.grow(ob->bounds);
@@ -589,9 +592,9 @@ void BVHBuild::progress_update()
 }
 
 void BVHBuild::thread_build_node(InnerNode *inner,
-                                 int child,
+                                 const int child,
                                  const BVHObjectBinning &range,
-                                 int level)
+                                 const int level)
 {
   if (progress.get_cancel()) {
     return;
@@ -615,10 +618,10 @@ void BVHBuild::thread_build_node(InnerNode *inner,
 }
 
 void BVHBuild::thread_build_spatial_split_node(InnerNode *inner,
-                                               int child,
+                                               const int child,
                                                const BVHRange &range,
                                                vector<BVHReference> &references,
-                                               int level)
+                                               const int level)
 {
   if (progress.get_cancel()) {
     return;
@@ -690,7 +693,7 @@ bool BVHBuild::range_within_max_leaf_size(const BVHRange &range,
 }
 
 /* multithreaded binning builder */
-BVHNode *BVHBuild::build_node(const BVHObjectBinning &range, int level)
+BVHNode *BVHBuild::build_node(const BVHObjectBinning &range, const int level)
 {
   const size_t size = range.size();
   const float leafSAH = params.sah_primitive_cost * range.leafSAH;
@@ -779,7 +782,7 @@ BVHNode *BVHBuild::build_node(const BVHObjectBinning &range, int level)
 /* multithreaded spatial split builder */
 BVHNode *BVHBuild::build_node(const BVHRange &range,
                               vector<BVHReference> &references,
-                              int level,
+                              const int level,
                               BVHSpatialStorage *storage)
 {
   /* Update progress.
@@ -899,7 +902,9 @@ BVHNode *BVHBuild::build_node(const BVHRange &range,
 
 /* Create Nodes */
 
-BVHNode *BVHBuild::create_object_leaf_nodes(const BVHReference *ref, int start, int num)
+BVHNode *BVHBuild::create_object_leaf_nodes(const BVHReference *ref,
+                                            const int start,
+                                            const int num)
 {
   if (num == 0) {
     const BoundBox bounds = BoundBox::empty;
@@ -1186,7 +1191,7 @@ BVHNode *BVHBuild::create_leaf_node(const BVHRange &range, const vector<BVHRefer
 
 /* Tree Rotations */
 
-void BVHBuild::rotate(BVHNode *node, int max_depth, int iterations)
+void BVHBuild::rotate(BVHNode *node, const int max_depth, const int iterations)
 {
   /* In tested scenes, this resulted in slightly slower ray-tracing, so disabled
    * it for now. could be implementation bug, or depend on the scene. */
@@ -1197,7 +1202,7 @@ void BVHBuild::rotate(BVHNode *node, int max_depth, int iterations)
   }
 }
 
-void BVHBuild::rotate(BVHNode *node, int max_depth)
+void BVHBuild::rotate(BVHNode *node, const int max_depth)
 {
   /* nothing to rotate if we reached a leaf node. */
   if (node->is_leaf() || max_depth < 0) {

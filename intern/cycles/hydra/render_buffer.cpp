@@ -127,31 +127,31 @@ void HdCyclesRenderBuffer::SetResource(const VtValue &resource)
 namespace {
 
 struct SimpleConversion {
-  static float convert(float value)
+  static float convert(const float value)
   {
     return value;
   }
 };
 struct IdConversion {
-  static int32_t convert(float value)
+  static int32_t convert(const float value)
   {
     return static_cast<int32_t>(value) - 1;
   }
 };
 struct UInt8Conversion {
-  static uint8_t convert(float value)
+  static uint8_t convert(const float value)
   {
     return static_cast<uint8_t>(value * 255.f);
   }
 };
 struct SInt8Conversion {
-  static int8_t convert(float value)
+  static int8_t convert(const float value)
   {
     return static_cast<int8_t>(value * 127.f);
   }
 };
 struct HalfConversion {
-  static half convert(float value)
+  static half convert(const float value)
   {
     return float_to_half_image(value);
   }
@@ -160,10 +160,10 @@ struct HalfConversion {
 template<typename SrcT, typename DstT, typename Convertor = SimpleConversion>
 void writePixels(const SrcT *srcPtr,
                  const GfVec2i &srcSize,
-                 int srcChannelCount,
+                 const int srcChannelCount,
                  DstT *dstPtr,
                  const GfVec2i &dstSize,
-                 int dstChannelCount,
+                 const int dstChannelCount,
                  const Convertor &convertor = {})
 {
   const auto writeSize = GfVec2i(GfMin(srcSize[0], dstSize[0]), GfMin(srcSize[1], dstSize[1]));
@@ -185,7 +185,7 @@ void writePixels(const SrcT *srcPtr,
 void HdCyclesRenderBuffer::WritePixels(const float *srcPixels,
                                        const PXR_NS::GfVec2i &srcOffset,
                                        const GfVec2i &srcDims,
-                                       int srcChannels,
+                                       const int srcChannels,
                                        bool isId)
 {
   uint8_t *dstPixels = _data.data();

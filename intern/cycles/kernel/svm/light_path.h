@@ -15,9 +15,9 @@ ccl_device_noinline void svm_node_light_path(KernelGlobals kg,
                                              ConstIntegratorGenericState state,
                                              const ccl_private ShaderData *sd,
                                              ccl_private float *stack,
-                                             uint type,
-                                             uint out_offset,
-                                             uint32_t path_flag)
+                                             const uint type,
+                                             const uint out_offset,
+                                             const uint32_t path_flag)
 {
   float info = 0.0f;
 
@@ -102,7 +102,7 @@ ccl_device_noinline void svm_node_light_path(KernelGlobals kg,
 
 ccl_device_noinline void svm_node_light_falloff(ccl_private ShaderData *sd,
                                                 ccl_private float *stack,
-                                                uint4 node)
+                                                const uint4 node)
 {
   uint strength_offset;
   uint out_offset;

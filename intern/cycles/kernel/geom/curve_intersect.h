@@ -640,10 +640,10 @@ ccl_device_forceinline bool curve_intersect(KernelGlobals kg,
                                             const float3 ray_D,
                                             const float tmin,
                                             const float tmax,
-                                            int object,
-                                            int prim,
-                                            float time,
-                                            int type)
+                                            const int object,
+                                            const int prim,
+                                            const float time,
+                                            const int type)
 {
   const bool is_motion = (type & PRIMITIVE_MOTION);
 

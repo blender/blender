@@ -22,7 +22,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-BVHStackEntry::BVHStackEntry(const BVHNode *n, int i) : node(n), idx(i) {}
+BVHStackEntry::BVHStackEntry(const BVHNode *n, const int i) : node(n), idx(i) {}
 
 int BVHStackEntry::encodeIdx() const
 {
@@ -152,7 +152,7 @@ void BVH2::pack_aligned_inner(const BVHStackEntry &e,
                     e1.node->visibility);
 }
 
-void BVH2::pack_aligned_node(int idx,
+void BVH2::pack_aligned_node(const int idx,
                              const BoundBox &b0,
                              const BoundBox &b1,
                              int c0,
@@ -199,7 +199,7 @@ void BVH2::pack_unaligned_inner(const BVHStackEntry &e,
                       e1.node->visibility);
 }
 
-void BVH2::pack_unaligned_node(int idx,
+void BVH2::pack_unaligned_node(const int idx,
                                const Transform &aligned_space0,
                                const Transform &aligned_space1,
                                const BoundBox &b0,
@@ -312,7 +312,7 @@ void BVH2::refit_nodes()
   refit_node(0, (pack.root_index == -1) ? true : false, bbox, visibility);
 }
 
-void BVH2::refit_node(int idx, bool leaf, BoundBox &bbox, uint &visibility)
+void BVH2::refit_node(const int idx, bool leaf, BoundBox &bbox, uint &visibility)
 {
   if (leaf) {
     /* refit leaf node */
@@ -364,7 +364,7 @@ void BVH2::refit_node(int idx, bool leaf, BoundBox &bbox, uint &visibility)
 
 /* Refitting */
 
-void BVH2::refit_primitives(int start, int end, BoundBox &bbox, uint &visibility)
+void BVH2::refit_primitives(const int start, const int end, BoundBox &bbox, uint &visibility)
 {
   /* Refit range of primitives. */
   for (int prim = start; prim < end; prim++) {

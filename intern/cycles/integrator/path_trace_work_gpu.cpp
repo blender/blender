@@ -337,9 +337,9 @@ void PathTraceWorkGPU::init_execution()
 }
 
 void PathTraceWorkGPU::render_samples(RenderStatistics &statistics,
-                                      int start_sample,
-                                      int samples_num,
-                                      int sample_offset)
+                                      const int start_sample,
+                                      const int samples_num,
+                                      const int sample_offset)
 {
   /* Limit number of states for the tile and rely on a greedy scheduling of tiles. This allows to
    * add more work (because tiles are smaller, so there is higher chance that more paths will
@@ -965,7 +965,7 @@ bool PathTraceWorkGPU::should_use_graphics_interop()
 
 void PathTraceWorkGPU::copy_to_display(PathTraceDisplay *display,
                                        PassMode pass_mode,
-                                       int num_samples)
+                                       const int num_samples)
 {
   if (device_->have_error()) {
     /* Don't attempt to update GPU display if the device has errors: the error state will make
@@ -993,7 +993,7 @@ void PathTraceWorkGPU::copy_to_display(PathTraceDisplay *display,
 
 void PathTraceWorkGPU::copy_to_display_naive(PathTraceDisplay *display,
                                              PassMode pass_mode,
-                                             int num_samples)
+                                             const int num_samples)
 {
   const int full_x = effective_buffer_params_.full_x;
   const int full_y = effective_buffer_params_.full_y;
@@ -1034,7 +1034,7 @@ void PathTraceWorkGPU::copy_to_display_naive(PathTraceDisplay *display,
 
 bool PathTraceWorkGPU::copy_to_display_interop(PathTraceDisplay *display,
                                                PassMode pass_mode,
-                                               int num_samples)
+                                               const int num_samples)
 {
   if (!device_graphics_interop_) {
     device_graphics_interop_ = queue_->graphics_interop_create();
@@ -1070,7 +1070,7 @@ void PathTraceWorkGPU::destroy_gpu_resources(PathTraceDisplay *display)
 
 void PathTraceWorkGPU::get_render_tile_film_pixels(const PassAccessor::Destination &destination,
                                                    PassMode pass_mode,
-                                                   int num_samples)
+                                                   const int num_samples)
 {
   const KernelFilm &kfilm = device_scene_->data.film;
 
@@ -1084,7 +1084,8 @@ void PathTraceWorkGPU::get_render_tile_film_pixels(const PassAccessor::Destinati
   pass_accessor.get_render_tile_pixels(buffers_.get(), effective_buffer_params_, destination);
 }
 
-int PathTraceWorkGPU::adaptive_sampling_converge_filter_count_active(float threshold, bool reset)
+int PathTraceWorkGPU::adaptive_sampling_converge_filter_count_active(const float threshold,
+                                                                     bool reset)
 {
   const int num_active_pixels = adaptive_sampling_convergence_check_count_active(threshold, reset);
 
@@ -1097,7 +1098,8 @@ int PathTraceWorkGPU::adaptive_sampling_converge_filter_count_active(float thres
   return num_active_pixels;
 }
 
-int PathTraceWorkGPU::adaptive_sampling_convergence_check_count_active(float threshold, bool reset)
+int PathTraceWorkGPU::adaptive_sampling_convergence_check_count_active(const float threshold,
+                                                                       bool reset)
 {
   device_vector<uint> num_active_pixels(device_, "num_active_pixels", MEM_READ_WRITE);
   num_active_pixels.alloc(1);

@@ -29,7 +29,7 @@ std::map<int, MetalDevice *> MetalDevice::active_device_ids;
 
 /* Thread-safe device access for async work. Calling code must pass an appropriately scoped lock
  * to existing_devices_mutex to safeguard against destruction of the returned instance. */
-MetalDevice *MetalDevice::get_device_by_ID(int ID,
+MetalDevice *MetalDevice::get_device_by_ID(const int ID,
                                            thread_scoped_lock & /*existing_devices_mutex_lock*/)
 {
   auto it = active_device_ids.find(ID);
@@ -39,7 +39,7 @@ MetalDevice *MetalDevice::get_device_by_ID(int ID,
   return nullptr;
 }
 
-bool MetalDevice::is_device_cancelled(int ID)
+bool MetalDevice::is_device_cancelled(const int ID)
 {
   thread_scoped_lock lock(existing_devices_mutex);
   return get_device_by_ID(ID, lock) == nullptr;
@@ -495,7 +495,7 @@ void MetalDevice::refresh_source_and_kernels_md5(MetalPipelineType pso_type)
   kernels_md5[pso_type] = md5.get_hex();
 }
 
-void MetalDevice::compile_and_load(int device_id, MetalPipelineType pso_type)
+void MetalDevice::compile_and_load(const int device_id, MetalPipelineType pso_type)
 {
   @autoreleasepool {
     /* Thread-safe front-end compilation. Typically the MSL->AIR compilation can take a few
@@ -663,7 +663,7 @@ void MetalDevice::erase_allocation(device_memory &mem)
   }
 }
 
-bool MetalDevice::max_working_set_exceeded(size_t safety_margin) const
+bool MetalDevice::max_working_set_exceeded(const size_t safety_margin) const
 {
   /* We're allowed to allocate beyond the safe working set size, but then if all resources are made
    * resident we will get command buffer failures at render time. */
@@ -843,7 +843,8 @@ void MetalDevice::mem_copy_to(device_memory &mem)
   }
 }
 
-void MetalDevice::mem_copy_from(device_memory &mem, size_t y, size_t w, size_t h, size_t elem)
+void MetalDevice::mem_copy_from(
+    device_memory &mem, const size_t y, size_t w, const size_t h, size_t elem)
 {
   @autoreleasepool {
     if (mem.host_pointer) {
@@ -1002,7 +1003,7 @@ void MetalDevice::optimize_for_scene(Scene *scene)
   }
 }
 
-void MetalDevice::const_copy_to(const char *name, void *host, size_t size)
+void MetalDevice::const_copy_to(const char *name, void *host, const size_t size)
 {
   if (strcmp(name, "data") == 0) {
     assert(size == sizeof(KernelData));
@@ -1016,7 +1017,7 @@ void MetalDevice::const_copy_to(const char *name, void *host, size_t size)
   }
 
   auto update_launch_pointers =
-      [&](size_t offset, void *data, size_t data_size, size_t pointers_size) {
+      [&](size_t offset, void *data, const size_t data_size, const size_t pointers_size) {
         memcpy((uint8_t *)&launch_params + offset, data, data_size);
 
         MetalMem **mmem = (MetalMem **)data;

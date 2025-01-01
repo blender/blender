@@ -32,18 +32,18 @@ struct LightSample {
 
 /* Utilities */
 
-ccl_device_inline float3 ellipse_sample(float3 ru, float3 rv, float2 rand)
+ccl_device_inline float3 ellipse_sample(const float3 ru, const float3 rv, const float2 rand)
 {
   const float2 uv = sample_uniform_disk(rand);
   return ru * uv.x + rv * uv.y;
 }
 
-ccl_device_inline float3 rectangle_sample(float3 ru, float3 rv, float2 rand)
+ccl_device_inline float3 rectangle_sample(const float3 ru, const float3 rv, const float2 rand)
 {
   return ru * (2.0f * rand.x - 1.0f) + rv * (2.0f * rand.y - 1.0f);
 }
 
-ccl_device float3 disk_light_sample(float3 n, float2 rand)
+ccl_device float3 disk_light_sample(const float3 n, const float2 rand)
 {
   float3 ru;
   float3 rv;
@@ -53,7 +53,7 @@ ccl_device float3 disk_light_sample(float3 n, float2 rand)
   return ellipse_sample(ru, rv, rand);
 }
 
-ccl_device float light_pdf_area_to_solid_angle(const float3 Ng, const float3 I, float t)
+ccl_device float light_pdf_area_to_solid_angle(const float3 Ng, const float3 I, const float t)
 {
   const float cos_pi = dot(Ng, I);
 

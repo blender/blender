@@ -19,7 +19,7 @@ template<uint node_feature_mask>
 ccl_device_noinline void svm_node_set_bump(KernelGlobals kg,
                                            ccl_private ShaderData *sd,
                                            ccl_private float *stack,
-                                           uint4 node)
+                                           const uint4 node)
 {
   uint out_offset;
   uint bump_state_offset;
@@ -113,7 +113,7 @@ template<uint node_feature_mask>
 ccl_device void svm_node_set_displacement(KernelGlobals kg,
                                           ccl_private ShaderData *sd,
                                           ccl_private float *stack,
-                                          uint fac_offset)
+                                          const uint fac_offset)
 {
   IF_KERNEL_NODES_FEATURE(BUMP)
   {
@@ -126,7 +126,7 @@ template<uint node_feature_mask>
 ccl_device_noinline void svm_node_displacement(KernelGlobals kg,
                                                ccl_private ShaderData *sd,
                                                ccl_private float *stack,
-                                               uint4 node)
+                                               const uint4 node)
 {
   IF_KERNEL_NODES_FEATURE(BUMP)
   {
@@ -165,8 +165,11 @@ ccl_device_noinline void svm_node_displacement(KernelGlobals kg,
 }
 
 template<uint node_feature_mask>
-ccl_device_noinline int svm_node_vector_displacement(
-    KernelGlobals kg, ccl_private ShaderData *sd, ccl_private float *stack, uint4 node, int offset)
+ccl_device_noinline int svm_node_vector_displacement(KernelGlobals kg,
+                                                     ccl_private ShaderData *sd,
+                                                     ccl_private float *stack,
+                                                     const uint4 node,
+                                                     int offset)
 {
   const uint4 data_node = read_node(kg, &offset);
   uint vector_offset;

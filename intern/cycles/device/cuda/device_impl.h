@@ -74,13 +74,14 @@ class CUDADevice : public GPUDevice {
 
   void mem_copy_to(device_memory &mem) override;
 
-  void mem_copy_from(device_memory &mem, size_t y, size_t w, size_t h, size_t elem) override;
+  void mem_copy_from(
+      device_memory &mem, const size_t y, size_t w, const size_t h, size_t elem) override;
 
   void mem_zero(device_memory &mem) override;
 
   void mem_free(device_memory &mem) override;
 
-  device_ptr mem_alloc_sub_ptr(device_memory &mem, size_t offset, size_t /*size*/) override;
+  device_ptr mem_alloc_sub_ptr(device_memory &mem, const size_t offset, size_t /*size*/) override;
 
   void const_copy_to(const char *name, void *host, const size_t size) override;
 
@@ -101,7 +102,7 @@ class CUDADevice : public GPUDevice {
 
  protected:
   bool get_device_attribute(CUdevice_attribute attribute, int *value);
-  int get_device_default_attribute(CUdevice_attribute attribute, int default_value);
+  int get_device_default_attribute(CUdevice_attribute attribute, const int default_value);
 };
 
 CCL_NAMESPACE_END

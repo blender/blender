@@ -10,11 +10,11 @@
 
 CCL_NAMESPACE_BEGIN
 
-SkyLoader::SkyLoader(float sun_elevation,
-                     float altitude,
-                     float air_density,
-                     float dust_density,
-                     float ozone_density)
+SkyLoader::SkyLoader(const float sun_elevation,
+                     const float altitude,
+                     const float air_density,
+                     const float dust_density,
+                     const float ozone_density)
     : sun_elevation(sun_elevation),
       altitude(altitude),
       air_density(air_density),

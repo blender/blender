@@ -31,7 +31,7 @@ ccl_device int volume_draine_setup(ccl_private DraineVolume *volume)
 
 ccl_device Spectrum volume_draine_eval(const ccl_private ShaderData *sd,
                                        const ccl_private ShaderVolumeClosure *svc,
-                                       float3 wo,
+                                       const float3 wo,
                                        ccl_private float *pdf)
 {
   const ccl_private DraineVolume *volume = (const ccl_private DraineVolume *)svc;
@@ -45,7 +45,7 @@ ccl_device Spectrum volume_draine_eval(const ccl_private ShaderData *sd,
 
 ccl_device int volume_draine_sample(const ccl_private ShaderData *sd,
                                     const ccl_private ShaderVolumeClosure *svc,
-                                    float2 rand,
+                                    const float2 rand,
                                     ccl_private Spectrum *eval,
                                     ccl_private float3 *wo,
                                     ccl_private float *pdf)

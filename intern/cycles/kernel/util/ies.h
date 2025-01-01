@@ -11,13 +11,13 @@ CCL_NAMESPACE_BEGIN
 /* IES Light */
 
 ccl_device_inline float interpolate_ies_vertical(KernelGlobals kg,
-                                                 int ofs,
+                                                 const int ofs,
                                                  const bool wrap_vlow,
                                                  const bool wrap_vhigh,
-                                                 int v,
-                                                 int v_num,
-                                                 float v_frac,
-                                                 int h)
+                                                 const int v,
+                                                 const int v_num,
+                                                 const float v_frac,
+                                                 const int h)
 {
   /* Since lookups are performed in spherical coordinates, clamping the coordinates at the low end
    * of v (corresponding to the north pole) would result in artifacts. The proper way of dealing
@@ -48,7 +48,10 @@ ccl_device_inline float interpolate_ies_vertical(KernelGlobals kg,
   return cubic_interp(a, b, c, d, v_frac);
 }
 
-ccl_device_inline float kernel_ies_interp(KernelGlobals kg, int slot, float h_angle, float v_angle)
+ccl_device_inline float kernel_ies_interp(KernelGlobals kg,
+                                          const int slot,
+                                          const float h_angle,
+                                          const float v_angle)
 {
   /* Find offset of the IES data in the table. */
   int ofs = __float_as_int(kernel_data_fetch(ies, slot));

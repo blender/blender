@@ -12,9 +12,9 @@ CCL_NAMESPACE_BEGIN
 ccl_device_noinline void svm_node_math(KernelGlobals kg,
                                        ccl_private ShaderData *sd,
                                        ccl_private float *stack,
-                                       uint type,
-                                       uint inputs_stack_offsets,
-                                       uint result_stack_offset)
+                                       const uint type,
+                                       const uint inputs_stack_offsets,
+                                       const uint result_stack_offset)
 {
   uint a_stack_offset;
   uint b_stack_offset;
@@ -32,9 +32,9 @@ ccl_device_noinline void svm_node_math(KernelGlobals kg,
 ccl_device_noinline int svm_node_vector_math(KernelGlobals kg,
                                              ccl_private ShaderData *sd,
                                              ccl_private float *stack,
-                                             uint type,
-                                             uint inputs_stack_offsets,
-                                             uint outputs_stack_offsets,
+                                             const uint type,
+                                             const uint inputs_stack_offsets,
+                                             const uint outputs_stack_offsets,
                                              int offset)
 {
   uint value_stack_offset;

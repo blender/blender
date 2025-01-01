@@ -152,7 +152,9 @@ static void transform_decompose(DecomposedTransform *decomp, const Transform *tf
 #endif
 }
 
-void transform_motion_decompose(DecomposedTransform *decomp, const Transform *motion, size_t size)
+void transform_motion_decompose(DecomposedTransform *decomp,
+                                const Transform *motion,
+                                const size_t size)
 {
   /* Decompose and correct rotation. */
   for (size_t i = 0; i < size; i++) {

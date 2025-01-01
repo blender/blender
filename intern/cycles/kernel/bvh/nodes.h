@@ -10,8 +10,8 @@ CCL_NAMESPACE_BEGIN
 // TODO(sergey): Look into avoid use of full Transform and use 3x3 matrix and
 // 3-vector which might be faster.
 ccl_device_forceinline Transform bvh_unaligned_node_fetch_space(KernelGlobals kg,
-                                                                int node_addr,
-                                                                int child)
+                                                                const int node_addr,
+                                                                const int child)
 {
   Transform space;
   const int child_addr = node_addr + child * 3;
@@ -75,8 +75,8 @@ ccl_device_forceinline bool bvh_unaligned_node_intersect_child(KernelGlobals kg,
                                                                const float3 dir,
                                                                const float tmin,
                                                                const float tmax,
-                                                               int node_addr,
-                                                               int child,
+                                                               const int node_addr,
+                                                               const int child,
                                                                float dist[2])
 {
   Transform space = bvh_unaligned_node_fetch_space(kg, node_addr, child);

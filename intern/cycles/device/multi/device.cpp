@@ -97,7 +97,7 @@ class MultiDevice : public Device {
     return error_msg;
   }
 
-  BVHLayoutMask get_bvh_layout_mask(uint kernel_features) const override
+  BVHLayoutMask get_bvh_layout_mask(const uint kernel_features) const override
   {
     BVHLayoutMask bvh_layout_mask = BVH_LAYOUT_ALL;
     BVHLayoutMask bvh_layout_mask_all = BVH_LAYOUT_NONE;
@@ -367,7 +367,8 @@ class MultiDevice : public Device {
     stats.mem_alloc(mem.device_size - existing_size);
   }
 
-  void mem_copy_from(device_memory &mem, size_t y, size_t w, size_t h, size_t elem) override
+  void mem_copy_from(
+      device_memory &mem, const size_t y, size_t w, const size_t h, size_t elem) override
   {
     device_ptr key = mem.device_pointer;
     size_t i = 0, sub_h = h / devices.size();
@@ -440,7 +441,7 @@ class MultiDevice : public Device {
     stats.mem_free(existing_size);
   }
 
-  void const_copy_to(const char *name, void *host, size_t size) override
+  void const_copy_to(const char *name, void *host, const size_t size) override
   {
     for (SubDevice &sub : devices) {
       sub.device->const_copy_to(name, host, size);

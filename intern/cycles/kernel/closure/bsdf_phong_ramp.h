@@ -73,14 +73,14 @@ ccl_device Spectrum bsdf_phong_ramp_eval(const ccl_private ShaderClosure *sc,
   return zero_spectrum();
 }
 
-ccl_device_inline float phong_ramp_exponent_to_roughness(float exponent)
+ccl_device_inline float phong_ramp_exponent_to_roughness(const float exponent)
 {
   return sqrt(1.0f / ((exponent + 2.0f) / 2.0f));
 }
 
 ccl_device int bsdf_phong_ramp_sample(const ccl_private ShaderClosure *sc,
-                                      float3 Ng,
-                                      float3 wi,
+                                      const float3 Ng,
+                                      const float3 wi,
                                       const float2 rand,
                                       ccl_private Spectrum *eval,
                                       ccl_private float3 *wo,

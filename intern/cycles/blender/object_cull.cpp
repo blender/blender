@@ -79,7 +79,7 @@ bool BlenderObjectCulling::test(Scene *scene, BL::Object &b_ob, Transform &tfm)
 /* TODO(sergey): Not really optimal, consider approaches based on k-DOP in order
  * to reduce number of objects which are wrongly considered visible.
  */
-bool BlenderObjectCulling::test_camera(Scene *scene, float3 bb[8])
+bool BlenderObjectCulling::test_camera(Scene *scene, const float3 bb[8])
 {
   Camera *cam = scene->camera;
   const ProjectionTransform &worldtondc = cam->worldtondc;
@@ -109,7 +109,7 @@ bool BlenderObjectCulling::test_camera(Scene *scene, float3 bb[8])
           bb_max.x <= -camera_cull_margin_ || bb_max.y <= -camera_cull_margin_);
 }
 
-bool BlenderObjectCulling::test_distance(Scene *scene, float3 bb[8])
+bool BlenderObjectCulling::test_distance(Scene *scene, const float3 bb[8])
 {
   const float3 camera_position = transform_get_column(&scene->camera->get_matrix(), 3);
   float3 bb_min = make_float3(FLT_MAX, FLT_MAX, FLT_MAX);

@@ -8,7 +8,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-ccl_device float2 direction_to_spherical(float3 dir)
+ccl_device float2 direction_to_spherical(const float3 dir)
 {
   const float theta = safe_acosf(dir.z);
   const float phi = atan2f(dir.y, dir.x);
@@ -16,18 +16,18 @@ ccl_device float2 direction_to_spherical(float3 dir)
   return make_float2(theta, phi);
 }
 
-ccl_device float3 spherical_to_direction(float theta, float phi)
+ccl_device float3 spherical_to_direction(const float theta, const float phi)
 {
   return make_float3(sinf(theta) * cosf(phi), sinf(theta) * sinf(phi), cosf(theta));
 }
 
-ccl_device float3 spherical_cos_to_direction(float cos_theta, float phi)
+ccl_device float3 spherical_cos_to_direction(const float cos_theta, const float phi)
 {
   const float sin_theta = sin_from_cos(cos_theta);
   return make_float3(sin_theta * cosf(phi), sin_theta * sinf(phi), cos_theta);
 }
 
-ccl_device_inline float2 polar_to_cartesian(float r, float phi)
+ccl_device_inline float2 polar_to_cartesian(const float r, const float phi)
 {
   return make_float2(r * cosf(phi), r * sinf(phi));
 }
@@ -111,22 +111,22 @@ ccl_device_inline float3 transform_perspective_direction(const ccl_private Proje
   return c;
 }
 
-ccl_device_inline ProjectionTransform make_projection(float a,
-                                                      float b,
-                                                      float c,
-                                                      float d,
-                                                      float e,
-                                                      float f,
-                                                      float g,
-                                                      float h,
-                                                      float i,
-                                                      float j,
-                                                      float k,
-                                                      float l,
-                                                      float m,
-                                                      float n,
-                                                      float o,
-                                                      float p)
+ccl_device_inline ProjectionTransform make_projection(const float a,
+                                                      const float b,
+                                                      const float c,
+                                                      const float d,
+                                                      const float e,
+                                                      const float f,
+                                                      const float g,
+                                                      const float h,
+                                                      const float i,
+                                                      const float j,
+                                                      const float k,
+                                                      const float l,
+                                                      const float m,
+                                                      const float n,
+                                                      const float o,
+                                                      const float p)
 {
   ProjectionTransform t;
 
@@ -257,7 +257,9 @@ ccl_device_inline void print_projection(const char *label, const ProjectionTrans
   printf("\n");
 }
 
-ccl_device_inline ProjectionTransform projection_perspective(float fov, float n, float f)
+ccl_device_inline ProjectionTransform projection_perspective(const float fov,
+                                                             const float n,
+                                                             float f)
 {
   const ProjectionTransform persp = make_projection(
       1, 0, 0, 0, 0, 1, 0, 0, 0, 0, f / (f - n), -f * n / (f - n), 0, 0, 1, 0);
@@ -269,7 +271,7 @@ ccl_device_inline ProjectionTransform projection_perspective(float fov, float n,
   return scale * persp;
 }
 
-ccl_device_inline ProjectionTransform projection_orthographic(float znear, float zfar)
+ccl_device_inline ProjectionTransform projection_orthographic(const float znear, const float zfar)
 {
   const Transform t = transform_scale(1.0f, 1.0f, 1.0f / (zfar - znear));
 

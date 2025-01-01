@@ -33,7 +33,9 @@ void OpenGLDisplayDriver::next_tile_begin()
   /* Assuming no tiles used in interactive display. */
 }
 
-bool OpenGLDisplayDriver::update_begin(const Params &params, int texture_width, int texture_height)
+bool OpenGLDisplayDriver::update_begin(const Params &params,
+                                       const int texture_width,
+                                       const int texture_height)
 {
   /* Note that it's the responsibility of OpenGLDisplayDriver to ensure updating and drawing
    * the texture does not happen at the same time. This is achieved indirectly.

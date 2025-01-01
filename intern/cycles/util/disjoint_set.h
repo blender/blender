@@ -15,7 +15,7 @@ class DisjointSet {
   array<size_t> ranks;
 
  public:
-  DisjointSet(size_t size) : parents(size), ranks(size)
+  DisjointSet(const size_t size) : parents(size), ranks(size)
   {
     for (size_t i = 0; i < size; i++) {
       parents[i] = i;
@@ -37,7 +37,7 @@ class DisjointSet {
     return root;
   }
 
-  void join(size_t x, size_t y)
+  void join(const size_t x, const size_t y)
   {
     size_t x_root = find(x);
     size_t y_root = find(y);

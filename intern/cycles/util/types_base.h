@@ -44,27 +44,27 @@ using ushort = unsigned short;
 using device_ptr = uint64_t;
 #endif /* __KERNEL_GPU__ */
 
-ccl_device_inline size_t align_up(size_t offset, size_t alignment)
+ccl_device_inline size_t align_up(const size_t offset, const size_t alignment)
 {
   return (offset + alignment - 1) & ~(alignment - 1);
 }
 
-ccl_device_inline size_t divide_up(size_t x, size_t y)
+ccl_device_inline size_t divide_up(const size_t x, const size_t y)
 {
   return (x + y - 1) / y;
 }
 
-ccl_device_inline size_t round_up(size_t x, size_t multiple)
+ccl_device_inline size_t round_up(const size_t x, const size_t multiple)
 {
   return ((x + multiple - 1) / multiple) * multiple;
 }
 
-ccl_device_inline size_t round_down(size_t x, size_t multiple)
+ccl_device_inline size_t round_down(const size_t x, const size_t multiple)
 {
   return (x / multiple) * multiple;
 }
 
-ccl_device_inline bool is_power_of_two(size_t x)
+ccl_device_inline bool is_power_of_two(const size_t x)
 {
   return (x & (x - 1)) == 0;
 }

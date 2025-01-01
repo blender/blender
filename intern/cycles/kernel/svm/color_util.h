@@ -10,22 +10,22 @@
 
 CCL_NAMESPACE_BEGIN
 
-ccl_device float3 svm_mix_blend(float t, float3 col1, float3 col2)
+ccl_device float3 svm_mix_blend(const float t, const float3 col1, const float3 col2)
 {
   return interp(col1, col2, t);
 }
 
-ccl_device float3 svm_mix_add(float t, float3 col1, float3 col2)
+ccl_device float3 svm_mix_add(const float t, const float3 col1, const float3 col2)
 {
   return interp(col1, col1 + col2, t);
 }
 
-ccl_device float3 svm_mix_mul(float t, float3 col1, float3 col2)
+ccl_device float3 svm_mix_mul(const float t, const float3 col1, const float3 col2)
 {
   return interp(col1, col1 * col2, t);
 }
 
-ccl_device float3 svm_mix_screen(float t, float3 col1, float3 col2)
+ccl_device float3 svm_mix_screen(const float t, const float3 col1, const float3 col2)
 {
   const float tm = 1.0f - t;
   const float3 one = make_float3(1.0f, 1.0f, 1.0f);
@@ -34,7 +34,7 @@ ccl_device float3 svm_mix_screen(float t, float3 col1, float3 col2)
   return one - (tm3 + t * (one - col2)) * (one - col1);
 }
 
-ccl_device float3 svm_mix_overlay(float t, float3 col1, float3 col2)
+ccl_device float3 svm_mix_overlay(const float t, const float3 col1, const float3 col2)
 {
   const float tm = 1.0f - t;
 
@@ -64,12 +64,12 @@ ccl_device float3 svm_mix_overlay(float t, float3 col1, float3 col2)
   return outcol;
 }
 
-ccl_device float3 svm_mix_sub(float t, float3 col1, float3 col2)
+ccl_device float3 svm_mix_sub(const float t, const float3 col1, const float3 col2)
 {
   return interp(col1, col1 - col2, t);
 }
 
-ccl_device float3 svm_mix_div(float t, float3 col1, float3 col2)
+ccl_device float3 svm_mix_div(const float t, const float3 col1, const float3 col2)
 {
   const float tm = 1.0f - t;
 
@@ -88,27 +88,27 @@ ccl_device float3 svm_mix_div(float t, float3 col1, float3 col2)
   return outcol;
 }
 
-ccl_device float3 svm_mix_diff(float t, float3 col1, float3 col2)
+ccl_device float3 svm_mix_diff(const float t, const float3 col1, const float3 col2)
 {
   return interp(col1, fabs(col1 - col2), t);
 }
 
-ccl_device float3 svm_mix_exclusion(float t, float3 col1, float3 col2)
+ccl_device float3 svm_mix_exclusion(const float t, const float3 col1, const float3 col2)
 {
   return max(interp(col1, col1 + col2 - 2.0f * col1 * col2, t), zero_float3());
 }
 
-ccl_device float3 svm_mix_dark(float t, float3 col1, float3 col2)
+ccl_device float3 svm_mix_dark(const float t, const float3 col1, const float3 col2)
 {
   return interp(col1, min(col1, col2), t);
 }
 
-ccl_device float3 svm_mix_light(float t, float3 col1, float3 col2)
+ccl_device float3 svm_mix_light(const float t, const float3 col1, const float3 col2)
 {
   return interp(col1, max(col1, col2), t);
 }
 
-ccl_device float3 svm_mix_dodge(float t, float3 col1, float3 col2)
+ccl_device float3 svm_mix_dodge(const float t, const float3 col1, const float3 col2)
 {
   float3 outcol = col1;
 
@@ -161,7 +161,7 @@ ccl_device float3 svm_mix_dodge(float t, float3 col1, float3 col2)
   return outcol;
 }
 
-ccl_device float3 svm_mix_burn(float t, float3 col1, float3 col2)
+ccl_device float3 svm_mix_burn(const float t, const float3 col1, const float3 col2)
 {
   float tmp;
   const float tm = 1.0f - t;
@@ -222,7 +222,7 @@ ccl_device float3 svm_mix_burn(float t, float3 col1, float3 col2)
   return outcol;
 }
 
-ccl_device float3 svm_mix_hue(float t, float3 col1, float3 col2)
+ccl_device float3 svm_mix_hue(const float t, const float3 col1, const float3 col2)
 {
   float3 outcol = col1;
 
@@ -239,7 +239,7 @@ ccl_device float3 svm_mix_hue(float t, float3 col1, float3 col2)
   return outcol;
 }
 
-ccl_device float3 svm_mix_sat(float t, float3 col1, float3 col2)
+ccl_device float3 svm_mix_sat(const float t, const float3 col1, const float3 col2)
 {
   const float tm = 1.0f - t;
 
@@ -257,7 +257,7 @@ ccl_device float3 svm_mix_sat(float t, float3 col1, float3 col2)
   return outcol;
 }
 
-ccl_device float3 svm_mix_val(float t, float3 col1, float3 col2)
+ccl_device float3 svm_mix_val(const float t, const float3 col1, const float3 col2)
 {
   const float tm = 1.0f - t;
 
@@ -269,7 +269,7 @@ ccl_device float3 svm_mix_val(float t, float3 col1, float3 col2)
   return hsv_to_rgb(hsv);
 }
 
-ccl_device float3 svm_mix_color(float t, float3 col1, float3 col2)
+ccl_device float3 svm_mix_color(const float t, const float3 col1, const float3 col2)
 {
   float3 outcol = col1;
   const float3 hsv2 = rgb_to_hsv(col2);
@@ -286,7 +286,7 @@ ccl_device float3 svm_mix_color(float t, float3 col1, float3 col2)
   return outcol;
 }
 
-ccl_device float3 svm_mix_soft(float t, float3 col1, float3 col2)
+ccl_device float3 svm_mix_soft(const float t, const float3 col1, const float3 col2)
 {
   const float tm = 1.0f - t;
 
@@ -296,17 +296,20 @@ ccl_device float3 svm_mix_soft(float t, float3 col1, float3 col2)
   return tm * col1 + t * ((one - col1) * col2 * col1 + col1 * scr);
 }
 
-ccl_device float3 svm_mix_linear(float t, float3 col1, float3 col2)
+ccl_device float3 svm_mix_linear(const float t, const float3 col1, const float3 col2)
 {
   return col1 + t * (2.0f * col2 + make_float3(-1.0f, -1.0f, -1.0f));
 }
 
-ccl_device float3 svm_mix_clamp(float3 col)
+ccl_device float3 svm_mix_clamp(const float3 col)
 {
   return saturate(col);
 }
 
-ccl_device_noinline_cpu float3 svm_mix(NodeMix type, float t, float3 c1, float3 c2)
+ccl_device_noinline_cpu float3 svm_mix(NodeMix type,
+                                       const float t,
+                                       const float3 c1,
+                                       const float3 c2)
 {
   switch (type) {
     case NODE_MIX_BLEND:
@@ -354,13 +357,18 @@ ccl_device_noinline_cpu float3 svm_mix(NodeMix type, float t, float3 c1, float3 
   return make_float3(0.0f, 0.0f, 0.0f);
 }
 
-ccl_device_noinline_cpu float3 svm_mix_clamped_factor(NodeMix type, float t, float3 c1, float3 c2)
+ccl_device_noinline_cpu float3 svm_mix_clamped_factor(NodeMix type,
+                                                      const float t,
+                                                      const float3 c1,
+                                                      const float3 c2)
 {
   const float fac = saturatef(t);
   return svm_mix(type, fac, c1, c2);
 }
 
-ccl_device_inline float3 svm_brightness_contrast(float3 color, float brightness, float contrast)
+ccl_device_inline float3 svm_brightness_contrast(float3 color,
+                                                 const float brightness,
+                                                 const float contrast)
 {
   const float a = 1.0f + contrast;
   const float b = brightness - contrast * 0.5f;
@@ -372,7 +380,7 @@ ccl_device_inline float3 svm_brightness_contrast(float3 color, float brightness,
   return color;
 }
 
-ccl_device float3 svm_combine_color(NodeCombSepColorType type, float3 color)
+ccl_device float3 svm_combine_color(NodeCombSepColorType type, const float3 color)
 {
   switch (type) {
     case NODE_COMBSEP_COLOR_HSV:
@@ -385,7 +393,7 @@ ccl_device float3 svm_combine_color(NodeCombSepColorType type, float3 color)
   }
 }
 
-ccl_device float3 svm_separate_color(NodeCombSepColorType type, float3 color)
+ccl_device float3 svm_separate_color(NodeCombSepColorType type, const float3 color)
 {
   switch (type) {
     case NODE_COMBSEP_COLOR_HSV:

@@ -73,7 +73,10 @@ bool device_hip_init()
 #endif /* WITH_HIP_DYNLOAD */
 }
 
-Device *device_hip_create(const DeviceInfo &info, Stats &stats, Profiler &profiler, bool headless)
+Device *device_hip_create(const DeviceInfo &info,
+                          Stats &stats,
+                          Profiler &profiler,
+                          const bool headless)
 {
 #ifdef WITH_HIPRT
   if (info.use_hardware_raytracing) {

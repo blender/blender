@@ -27,7 +27,7 @@ CCL_NAMESPACE_BEGIN
 struct NumChannelsOp {
   int num_channels = 0;
 
-  template<typename GridType, typename FloatGridType, typename FloatDataType, int channels>
+  template<typename GridType, typename FloatGridType, typename FloatDataType, const int channels>
   bool operator()(const openvdb::GridBase::ConstPtr & /*unused*/)
   {
     num_channels = channels;
@@ -39,7 +39,7 @@ struct ToDenseOp {
   openvdb::CoordBBox bbox;
   void *pixels;
 
-  template<typename GridType, typename FloatGridType, typename FloatDataType, int channels>
+  template<typename GridType, typename FloatGridType, typename FloatDataType, const int channels>
   bool operator()(const openvdb::GridBase::ConstPtr &grid)
   {
     openvdb::tools::Dense<FloatDataType, openvdb::tools::LayoutXYZ> dense(bbox,
@@ -54,7 +54,7 @@ struct ToNanoOp {
   nanovdb::GridHandle<> nanogrid;
   int precision;
 
-  template<typename GridType, typename FloatGridType, typename FloatDataType, int channels>
+  template<typename GridType, typename FloatGridType, typename FloatDataType, const int channels>
   bool operator()(const openvdb::GridBase::ConstPtr &grid)
   {
     if constexpr (!std::is_same_v<GridType, openvdb::MaskGrid>) {

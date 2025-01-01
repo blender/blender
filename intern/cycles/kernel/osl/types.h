@@ -22,7 +22,7 @@ using DeviceString = ustring;
 using DeviceString = const char *;
 #endif
 
-ccl_device_inline DeviceString make_string(const char *str, size_t hash)
+ccl_device_inline DeviceString make_string(const char *str, const size_t hash)
 {
 #if defined(__KERNEL_GPU__)
   (void)str;

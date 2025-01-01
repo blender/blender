@@ -30,7 +30,7 @@ ccl_device void volume_extinction_setup(ccl_private ShaderData *sd, Spectrum wei
 
 ccl_device Spectrum volume_phase_eval(const ccl_private ShaderData *sd,
                                       const ccl_private ShaderVolumeClosure *svc,
-                                      float3 wo,
+                                      const float3 wo,
                                       ccl_private float *pdf)
 {
   switch (svc->type) {
@@ -51,7 +51,7 @@ ccl_device Spectrum volume_phase_eval(const ccl_private ShaderData *sd,
 
 ccl_device int volume_phase_sample(const ccl_private ShaderData *sd,
                                    const ccl_private ShaderVolumeClosure *svc,
-                                   float2 rand,
+                                   const float2 rand,
                                    ccl_private Spectrum *eval,
                                    ccl_private float3 *wo,
                                    ccl_private float *pdf)
@@ -129,12 +129,12 @@ ccl_device float volume_phase_get_g(const ccl_private ShaderVolumeClosure *svc)
  * unnecessary work in volumes and subsurface scattering. */
 #define VOLUME_THROUGHPUT_EPSILON 1e-6f
 
-ccl_device Spectrum volume_color_transmittance(Spectrum sigma, float t)
+ccl_device Spectrum volume_color_transmittance(Spectrum sigma, const float t)
 {
   return exp(-sigma * t);
 }
 
-ccl_device float volume_channel_get(Spectrum value, int channel)
+ccl_device float volume_channel_get(Spectrum value, const int channel)
 {
   return GET_SPECTRUM_CHANNEL(value, channel);
 }

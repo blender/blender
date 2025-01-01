@@ -25,7 +25,7 @@ using namespace OpenSubdiv;
 
 struct PatchMapQuadNode {
   /* sets all the children to point to the patch of index */
-  void set_child(int index)
+  void set_child(const int index)
   {
     for (int i = 0; i < 4; i++) {
       children[i] = index | PATCH_MAP_NODE_IS_SET | PATCH_MAP_NODE_IS_LEAF;
@@ -33,7 +33,7 @@ struct PatchMapQuadNode {
   }
 
   /* sets the child in quadrant to point to the node or patch of the given index */
-  void set_child(unsigned char quadrant, int index, bool is_leaf = true)
+  void set_child(unsigned char quadrant, const int index, bool is_leaf = true)
   {
     assert(quadrant < 4);
     children[quadrant] = index | PATCH_MAP_NODE_IS_SET | (is_leaf ? PATCH_MAP_NODE_IS_LEAF : 0);
@@ -174,7 +174,7 @@ size_t PackedPatchTable::total_size()
          num_patches * (PATCH_PARAM_SIZE + PATCH_HANDLE_SIZE) + num_nodes * PATCH_NODE_SIZE;
 }
 
-void PackedPatchTable::pack(Far::PatchTable *patch_table, int offset)
+void PackedPatchTable::pack(Far::PatchTable *patch_table, const int offset)
 {
   num_arrays = 0;
   num_patches = 0;
@@ -236,7 +236,7 @@ void PackedPatchTable::pack(Far::PatchTable *patch_table, int offset)
 #endif
 }
 
-void PackedPatchTable::copy_adjusting_offsets(uint *dest, int doffset)
+void PackedPatchTable::copy_adjusting_offsets(uint *dest, const int doffset)
 {
   uint *src = table.data();
 

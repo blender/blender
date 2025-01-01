@@ -42,7 +42,7 @@ static void xml_read_float_array(T &value, xml_attribute attr)
   }
 }
 
-void xml_read_node(XMLReader &reader, Node *node, xml_node xml_node)
+void xml_read_node(XMLReader &reader, Node *node, const xml_node xml_node)
 {
   const xml_attribute name_attr = xml_node.attribute("name");
   if (name_attr) {

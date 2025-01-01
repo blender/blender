@@ -26,7 +26,7 @@ struct BVHStackEntry {
   const BVHNode *node;
   int idx;
 
-  BVHStackEntry(const BVHNode *n = nullptr, int i = 0);
+  BVHStackEntry(const BVHNode *n = nullptr, const int i = 0);
   int encodeIdx() const;
 };
 
@@ -60,7 +60,7 @@ class BVH2 : public BVH {
   void pack_aligned_inner(const BVHStackEntry &e,
                           const BVHStackEntry &e0,
                           const BVHStackEntry &e1);
-  void pack_aligned_node(int idx,
+  void pack_aligned_node(const int idx,
                          const BoundBox &b0,
                          const BoundBox &b1,
                          int c0,
@@ -71,7 +71,7 @@ class BVH2 : public BVH {
   void pack_unaligned_inner(const BVHStackEntry &e,
                             const BVHStackEntry &e0,
                             const BVHStackEntry &e1);
-  void pack_unaligned_node(int idx,
+  void pack_unaligned_node(const int idx,
                            const Transform &aligned_space0,
                            const Transform &aligned_space1,
                            const BoundBox &b0,
@@ -83,17 +83,17 @@ class BVH2 : public BVH {
 
   /* refit */
   void refit_nodes();
-  void refit_node(int idx, bool leaf, BoundBox &bbox, uint &visibility);
+  void refit_node(const int idx, bool leaf, BoundBox &bbox, uint &visibility);
 
   /* Refit range of primitives. */
-  void refit_primitives(int start, int end, BoundBox &bbox, uint &visibility);
+  void refit_primitives(const int start, const int end, BoundBox &bbox, uint &visibility);
 
   /* triangles and strands */
   void pack_primitives();
-  void pack_triangle(int idx, float4 storage[3]);
+  void pack_triangle(const int idx, const float4 storage[3]);
 
   /* merge instance BVH's */
-  void pack_instances(size_t nodes_size, size_t leaf_nodes_size);
+  void pack_instances(const size_t nodes_size, const size_t leaf_nodes_size);
 };
 
 CCL_NAMESPACE_END

@@ -27,7 +27,7 @@ struct uint3 {
 #  endif
 };
 
-ccl_device_inline uint3 make_uint3(uint x, uint y, uint z)
+ccl_device_inline uint3 make_uint3(const uint x, const uint y, uint z)
 {
   uint3 a = {x, y, z};
   return a;
@@ -82,7 +82,7 @@ struct packed_uint3 {
 static_assert(sizeof(packed_uint3) == 12, "packed_uint3 expected to be exactly 12 bytes");
 #endif
 
-ccl_device_inline packed_uint3 make_packed_uint3(uint x, uint y, uint z)
+ccl_device_inline packed_uint3 make_packed_uint3(const uint x, const uint y, uint z)
 {
   packed_uint3 a = {x, y, z};
   return a;

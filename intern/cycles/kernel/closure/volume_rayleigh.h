@@ -25,7 +25,7 @@ ccl_device int volume_rayleigh_setup(ccl_private RayleighVolume *volume)
 }
 
 ccl_device Spectrum volume_rayleigh_eval(const ccl_private ShaderData *sd,
-                                         float3 wo,
+                                         const float3 wo,
                                          ccl_private float *pdf)
 {
   /* note that wi points towards the viewer */
@@ -36,7 +36,7 @@ ccl_device Spectrum volume_rayleigh_eval(const ccl_private ShaderData *sd,
 }
 
 ccl_device int volume_rayleigh_sample(const ccl_private ShaderData *sd,
-                                      float2 rand,
+                                      const float2 rand,
                                       ccl_private Spectrum *eval,
                                       ccl_private float3 *wo,
                                       ccl_private float *pdf)

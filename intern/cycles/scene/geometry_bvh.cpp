@@ -26,8 +26,8 @@ void Geometry::compute_bvh(Device *device,
                            DeviceScene *dscene,
                            SceneParams *params,
                            Progress *progress,
-                           size_t n,
-                           size_t total)
+                           const size_t n,
+                           const size_t total)
 {
   if (progress->get_cancel()) {
     return;

@@ -43,11 +43,11 @@ bool namedSampleCountPairComparator(const NamedSampleCountPair &a, const NamedSa
 
 NamedSizeEntry::NamedSizeEntry() : size(0) {}
 
-NamedSizeEntry::NamedSizeEntry(const string &name, size_t size) : name(name), size(size) {}
+NamedSizeEntry::NamedSizeEntry(const string &name, const size_t size) : name(name), size(size) {}
 
 NamedTimeEntry::NamedTimeEntry() : time(0) {}
 
-NamedTimeEntry::NamedTimeEntry(const string &name, double time) : name(name), time(time) {}
+NamedTimeEntry::NamedTimeEntry(const string &name, const double time) : name(name), time(time) {}
 
 /* Named size statistics. */
 
@@ -59,7 +59,7 @@ void NamedSizeStats::add_entry(const NamedSizeEntry &entry)
   entries.push_back(entry);
 }
 
-string NamedSizeStats::full_report(int indent_level)
+string NamedSizeStats::full_report(const int indent_level)
 {
   const string indent(indent_level * kIndentNumSpaces, ' ');
   const string double_indent = indent + indent;
@@ -79,7 +79,7 @@ string NamedSizeStats::full_report(int indent_level)
   return result;
 }
 
-string NamedTimeStats::full_report(int indent_level)
+string NamedTimeStats::full_report(const int indent_level)
 {
   const string indent(indent_level * kIndentNumSpaces, ' ');
   const string double_indent = indent + indent;
@@ -97,7 +97,7 @@ string NamedTimeStats::full_report(int indent_level)
 
 NamedNestedSampleStats::NamedNestedSampleStats() : self_samples(0), sum_samples(0) {}
 
-NamedNestedSampleStats::NamedNestedSampleStats(const string &name, uint64_t samples)
+NamedNestedSampleStats::NamedNestedSampleStats(const string &name, const uint64_t samples)
     : name(name), self_samples(samples), sum_samples(samples)
 {
 }
@@ -117,7 +117,7 @@ void NamedNestedSampleStats::update_sum()
   }
 }
 
-string NamedNestedSampleStats::full_report(int indent_level, uint64_t total_samples)
+string NamedNestedSampleStats::full_report(const int indent_level, uint64_t total_samples)
 {
   update_sum();
 
@@ -148,14 +148,16 @@ string NamedNestedSampleStats::full_report(int indent_level, uint64_t total_samp
 
 /* Named sample count pairs. */
 
-NamedSampleCountPair::NamedSampleCountPair(const ustring &name, uint64_t samples, uint64_t hits)
+NamedSampleCountPair::NamedSampleCountPair(const ustring &name,
+                                           const uint64_t samples,
+                                           const uint64_t hits)
     : name(name), samples(samples), hits(hits)
 {
 }
 
 NamedSampleCountStats::NamedSampleCountStats() = default;
 
-void NamedSampleCountStats::add(const ustring &name, uint64_t samples, uint64_t hits)
+void NamedSampleCountStats::add(const ustring &name, const uint64_t samples, const uint64_t hits)
 {
   const entry_map::iterator entry = entries.find(name);
   if (entry != entries.end()) {
@@ -166,7 +168,7 @@ void NamedSampleCountStats::add(const ustring &name, uint64_t samples, uint64_t 
   entries.emplace(name, NamedSampleCountPair(name, samples, hits));
 }
 
-string NamedSampleCountStats::full_report(int indent_level)
+string NamedSampleCountStats::full_report(const int indent_level)
 {
   const string indent(indent_level * kIndentNumSpaces, ' ');
 
@@ -203,7 +205,7 @@ string NamedSampleCountStats::full_report(int indent_level)
 
 MeshStats::MeshStats() = default;
 
-string MeshStats::full_report(int indent_level)
+string MeshStats::full_report(const int indent_level)
 {
   const string indent(indent_level * kIndentNumSpaces, ' ');
   string result;
@@ -215,7 +217,7 @@ string MeshStats::full_report(int indent_level)
 
 ImageStats::ImageStats() = default;
 
-string ImageStats::full_report(int indent_level)
+string ImageStats::full_report(const int indent_level)
 {
   const string indent(indent_level * kIndentNumSpaces, ' ');
   string result;
@@ -303,7 +305,7 @@ string RenderStats::full_report()
 
 NamedTimeStats::NamedTimeStats() : total_time(0.0) {}
 
-string UpdateTimeStats::full_report(int indent_level)
+string UpdateTimeStats::full_report(const int indent_level)
 {
   return times.full_report(indent_level + 1);
 }

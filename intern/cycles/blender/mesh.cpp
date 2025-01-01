@@ -1049,8 +1049,8 @@ static void create_subd_mesh(Scene *scene,
                              const array<Node *> &used_shaders,
                              const bool need_motion,
                              const float motion_scale,
-                             float dicing_rate,
-                             int max_subdivisions)
+                             const float dicing_rate,
+                             const int max_subdivisions)
 {
   BL::Object b_ob = b_ob_info.real_object;
 
@@ -1192,7 +1192,7 @@ void BlenderSync::sync_mesh(BL::Depsgraph b_depsgraph, BObjectInfo &b_ob_info, M
 void BlenderSync::sync_mesh_motion(BL::Depsgraph b_depsgraph,
                                    BObjectInfo &b_ob_info,
                                    Mesh *mesh,
-                                   int motion_step)
+                                   const int motion_step)
 {
   /* Skip if no vertices were exported. */
   const size_t numverts = mesh->get_verts().size();

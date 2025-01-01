@@ -10,7 +10,10 @@ CCL_NAMESPACE_BEGIN
 
 /* Magic */
 
-ccl_device_noinline_cpu float3 svm_magic(float3 p, float scale, int n, float distortion)
+ccl_device_noinline_cpu float3 svm_magic(const float3 p,
+                                         const float scale,
+                                         const int n,
+                                         float distortion)
 {
   /*
    * Prevent NaNs due to input p
@@ -95,8 +98,11 @@ ccl_device_noinline_cpu float3 svm_magic(float3 p, float scale, int n, float dis
   return make_float3(0.5f - x, 0.5f - y, 0.5f - z);
 }
 
-ccl_device_noinline int svm_node_tex_magic(
-    KernelGlobals kg, ccl_private ShaderData *sd, ccl_private float *stack, uint4 node, int offset)
+ccl_device_noinline int svm_node_tex_magic(KernelGlobals kg,
+                                           ccl_private ShaderData *sd,
+                                           ccl_private float *stack,
+                                           const uint4 node,
+                                           int offset)
 {
   uint depth;
   uint scale_offset;

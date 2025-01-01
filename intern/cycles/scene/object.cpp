@@ -252,12 +252,12 @@ bool Object::use_motion() const
   return (motion.size() > 1);
 }
 
-float Object::motion_time(int step) const
+float Object::motion_time(const int step) const
 {
   return (use_motion()) ? 2.0f * step / (motion.size() - 1) - 1.0f : 0.0f;
 }
 
-int Object::motion_step(float time) const
+int Object::motion_step(const float time) const
 {
   if (use_motion()) {
     for (size_t step = 0; step < motion.size(); step++) {
@@ -1081,7 +1081,7 @@ void ObjectManager::apply_static_transforms(DeviceScene *dscene, Scene *scene, P
   }
 }
 
-void ObjectManager::tag_update(Scene *scene, uint32_t flag)
+void ObjectManager::tag_update(Scene *scene, const uint32_t flag)
 {
   update_flags |= flag;
 

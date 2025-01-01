@@ -188,7 +188,7 @@ Geometry *BlenderSync::sync_geometry(BL::Depsgraph &b_depsgraph,
 void BlenderSync::sync_geometry_motion(BL::Depsgraph &b_depsgraph,
                                        BObjectInfo &b_ob_info,
                                        Object *object,
-                                       float motion_time,
+                                       const float motion_time,
                                        bool use_particle_hair,
                                        TaskPool *task_pool)
 {

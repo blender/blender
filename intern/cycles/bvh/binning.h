@@ -81,7 +81,7 @@ class BVHObjectBinning : public BVHRange {
   }
 
   /* compute the number of blocks occupied in one dimension. */
-  __forceinline int blocks(size_t a) const
+  __forceinline int blocks(const size_t a) const
   {
     return (int)((a + ((1LL << LOG_BLOCK_SIZE) - 1)) >> LOG_BLOCK_SIZE);
   }

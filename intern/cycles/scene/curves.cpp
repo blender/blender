@@ -10,7 +10,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Curve functions */
 
-void curvebounds(float *lower, float *upper, float3 *p, int dim)
+void curvebounds(float *lower, float *upper, float3 *p, const int dim)
 {
   float *p0 = &p[0].x;
   float *p1 = &p[1].x;

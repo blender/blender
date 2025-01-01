@@ -21,7 +21,7 @@ CCL_NAMESPACE_BEGIN
 
 ccl_device_inline void shaderdata_to_shaderglobals(KernelGlobals kg,
                                                    ccl_private ShaderData *sd,
-                                                   uint32_t path_flag,
+                                                   const uint32_t path_flag,
                                                    ccl_private ShaderGlobals *globals)
 {
   const differential3 dP = differential_from_compact(sd->Ng, sd->dP);
@@ -69,7 +69,7 @@ ccl_device_inline void shaderdata_to_shaderglobals(KernelGlobals kg,
 
 ccl_device void flatten_closure_tree(KernelGlobals kg,
                                      ccl_private ShaderData *sd,
-                                     uint32_t path_flag,
+                                     const uint32_t path_flag,
                                      const ccl_private OSLClosure *closure)
 {
   int stack_size = 0;
@@ -183,7 +183,7 @@ template<ShaderType type, typename ConstIntegratorGenericState>
 ccl_device_inline void osl_eval_nodes(KernelGlobals kg,
                                       ConstIntegratorGenericState state,
                                       ccl_private ShaderData *sd,
-                                      uint32_t path_flag)
+                                      const uint32_t path_flag)
 {
   ShaderGlobals globals;
   shaderdata_to_shaderglobals(kg, sd, path_flag, &globals);

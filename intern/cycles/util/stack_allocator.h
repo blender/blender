@@ -36,7 +36,7 @@ template<int SIZE, typename T> class ccl_try_align(16) StackAllocator
 
   /* Memory allocation/deallocation. */
 
-  T *allocate(size_t n, const void *hint = nullptr)
+  T *allocate(const size_t n, const void *hint = nullptr)
   {
     (void)hint;
     if (n == 0) {
@@ -61,7 +61,7 @@ template<int SIZE, typename T> class ccl_try_align(16) StackAllocator
     return mem;
   }
 
-  void deallocate(T * p, size_t n)
+  void deallocate(T * p, const size_t n)
   {
     if (p == nullptr) {
       return;

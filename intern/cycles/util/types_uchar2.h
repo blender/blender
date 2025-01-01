@@ -29,7 +29,7 @@ struct uchar2 {
 #  endif
 };
 
-ccl_device_inline uchar2 make_uchar2(uchar x, uchar y)
+ccl_device_inline uchar2 make_uchar2(const uchar x, const uchar y)
 {
   uchar2 a = {x, y};
   return a;

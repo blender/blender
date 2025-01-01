@@ -522,7 +522,7 @@ void CUDADevice::get_device_memory_info(size_t &total, size_t &free)
   cuMemGetInfo(&free, &total);
 }
 
-bool CUDADevice::alloc_device(void *&device_pointer, size_t size)
+bool CUDADevice::alloc_device(void *&device_pointer, const size_t size)
 {
   CUDAContextScope scope(this);
 
@@ -537,7 +537,7 @@ void CUDADevice::free_device(void *device_pointer)
   cuda_assert(cuMemFree((CUdeviceptr)device_pointer));
 }
 
-bool CUDADevice::alloc_host(void *&shared_pointer, size_t size)
+bool CUDADevice::alloc_host(void *&shared_pointer, const size_t size)
 {
   CUDAContextScope scope(this);
 
@@ -560,7 +560,7 @@ void CUDADevice::transform_host_pointer(void *&device_pointer, void *&shared_poi
   cuda_assert(cuMemHostGetDevicePointer_v2((CUdeviceptr *)&device_pointer, shared_pointer, 0));
 }
 
-void CUDADevice::copy_host_to_device(void *device_pointer, void *host_pointer, size_t size)
+void CUDADevice::copy_host_to_device(void *device_pointer, void *host_pointer, const size_t size)
 {
   const CUDAContextScope scope(this);
 
@@ -598,7 +598,8 @@ void CUDADevice::mem_copy_to(device_memory &mem)
   }
 }
 
-void CUDADevice::mem_copy_from(device_memory &mem, size_t y, size_t w, size_t h, size_t elem)
+void CUDADevice::mem_copy_from(
+    device_memory &mem, const size_t y, size_t w, const size_t h, size_t elem)
 {
   if (mem.type == MEM_TEXTURE || mem.type == MEM_GLOBAL) {
     assert(!"mem_copy_from not supported for textures.");
@@ -652,12 +653,12 @@ void CUDADevice::mem_free(device_memory &mem)
   }
 }
 
-device_ptr CUDADevice::mem_alloc_sub_ptr(device_memory &mem, size_t offset, size_t /*size*/)
+device_ptr CUDADevice::mem_alloc_sub_ptr(device_memory &mem, const size_t offset, size_t /*size*/)
 {
   return (device_ptr)(((char *)mem.device_pointer) + mem.memory_elements_size(offset));
 }
 
-void CUDADevice::const_copy_to(const char *name, void *host, size_t size)
+void CUDADevice::const_copy_to(const char *name, void *host, const size_t size)
 {
   CUDAContextScope scope(this);
   CUdeviceptr mem;
@@ -1008,7 +1009,7 @@ bool CUDADevice::get_device_attribute(CUdevice_attribute attribute, int *value)
   return cuDeviceGetAttribute(value, attribute, cuDevice) == CUDA_SUCCESS;
 }
 
-int CUDADevice::get_device_default_attribute(CUdevice_attribute attribute, int default_value)
+int CUDADevice::get_device_default_attribute(CUdevice_attribute attribute, const int default_value)
 {
   int value = 0;
   if (!get_device_attribute(attribute, &value)) {

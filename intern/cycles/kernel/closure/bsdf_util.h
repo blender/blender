@@ -20,7 +20,7 @@ CCL_NAMESPACE_BEGIN
  * Also returns the dot product of the refracted ray and the normal as `cos_theta_t`, as it is
  * used when computing the direction of the refracted ray. */
 ccl_device float2 fresnel_dielectric_polarized(float cos_theta_i,
-                                               float eta,
+                                               const float eta,
                                                ccl_private float *r_cos_theta_t,
                                                ccl_private float2 *r_phi)
 {
@@ -66,8 +66,8 @@ ccl_device float2 fresnel_dielectric_polarized(float cos_theta_i,
 }
 
 /* Compute fresnel reflectance for unpolarized light. */
-ccl_device_forceinline float fresnel_dielectric(float cos_theta_i,
-                                                float eta,
+ccl_device_forceinline float fresnel_dielectric(const float cos_theta_i,
+                                                const float eta,
                                                 ccl_private float *r_cos_theta_t)
 {
   return average(fresnel_dielectric_polarized(cos_theta_i, eta, r_cos_theta_t, nullptr));
@@ -83,7 +83,7 @@ ccl_device_inline float3 refract_angle(const float3 incident,
   return (inv_eta * dot(normal, incident) + cos_theta_t) * normal - inv_eta * incident;
 }
 
-ccl_device float fresnel_dielectric_cos(float cosi, float eta)
+ccl_device float fresnel_dielectric_cos(const float cosi, const float eta)
 {
   // compute fresnel reflectance without explicitly computing
   // the refracted direction
@@ -98,7 +98,7 @@ ccl_device float fresnel_dielectric_cos(float cosi, float eta)
   return 1.0f;  // TIR(no refracted component)
 }
 
-ccl_device Spectrum fresnel_conductor(float cosi, const Spectrum eta, const Spectrum k)
+ccl_device Spectrum fresnel_conductor(const float cosi, const Spectrum eta, const Spectrum k)
 {
   const Spectrum cosi2 = make_spectrum(cosi * cosi);
   const Spectrum one = make_spectrum(1.0f);
@@ -110,18 +110,18 @@ ccl_device Spectrum fresnel_conductor(float cosi, const Spectrum eta, const Spec
   return (Rparl2 + Rperp2) * 0.5f;
 }
 
-ccl_device float ior_from_F0(float f0)
+ccl_device float ior_from_F0(const float f0)
 {
   const float sqrt_f0 = sqrtf(clamp(f0, 0.0f, 0.99f));
   return (1.0f + sqrt_f0) / (1.0f - sqrt_f0);
 }
 
-ccl_device float F0_from_ior(float ior)
+ccl_device float F0_from_ior(const float ior)
 {
   return sqr((ior - 1.0f) / (ior + 1.0f));
 }
 
-ccl_device float schlick_fresnel(float u)
+ccl_device float schlick_fresnel(const float u)
 {
   const float m = clamp(1.0f - u, 0.0f, 1.0f);
   const float m2 = m * m;
@@ -129,9 +129,9 @@ ccl_device float schlick_fresnel(float u)
 }
 
 /* Calculate the fresnel color, which is a blend between white and the F0 color */
-ccl_device_forceinline Spectrum interpolate_fresnel_color(float3 L,
-                                                          float3 H,
-                                                          float ior,
+ccl_device_forceinline Spectrum interpolate_fresnel_color(const float3 L,
+                                                          const float3 H,
+                                                          const float ior,
                                                           Spectrum F0)
 {
   /* Compute the real Fresnel term and remap it from real_F0..1 to F0..1.
@@ -148,7 +148,7 @@ ccl_device_forceinline Spectrum interpolate_fresnel_color(float3 L,
 /* If the shading normal results in specular reflection in the lower hemisphere, raise the shading
  * normal towards the geometry normal so that the specular reflection is just above the surface.
  * Only used for glossy materials. */
-ccl_device float3 ensure_valid_specular_reflection(float3 Ng, float3 I, float3 N)
+ccl_device float3 ensure_valid_specular_reflection(const float3 Ng, const float3 I, float3 N)
 {
   const float3 R = 2 * dot(N, I) * N - I;
 
@@ -225,7 +225,8 @@ ccl_device float3 ensure_valid_specular_reflection(float3 Ng, float3 I, float3 N
 
 /* Do not call #ensure_valid_specular_reflection if the primitive type is curve or if the geometry
  * normal and the shading normal is the same. */
-ccl_device float3 maybe_ensure_valid_specular_reflection(ccl_private ShaderData *sd, float3 N)
+ccl_device float3 maybe_ensure_valid_specular_reflection(ccl_private ShaderData *sd,
+                                                         const float3 N)
 {
   if ((sd->flag & SD_USE_BUMP_MAP_CORRECTION) == 0) {
     return N;
@@ -288,7 +289,7 @@ ccl_device_inline Spectrum closure_layering_weight(const Spectrum layer_albedo,
  * transform and store them as a LUT that gets looked up here.
  * In practice, using the XYZ fit and converting the result from XYZ to RGB is easier.
  */
-ccl_device_inline Spectrum iridescence_lookup_sensitivity(float OPD, float shift)
+ccl_device_inline Spectrum iridescence_lookup_sensitivity(const float OPD, const float shift)
 {
   const float phase = M_2PI_F * OPD * 1e-9f;
   const float3 val = make_float3(5.4856e-13f, 4.4201e-13f, 5.2481e-13f);
@@ -300,8 +301,8 @@ ccl_device_inline Spectrum iridescence_lookup_sensitivity(float OPD, float shift
   return xyz / 1.0685e-7f;
 }
 
-ccl_device_inline float3
-iridescence_airy_summation(float T121, float R12, float R23, float OPD, float phi)
+ccl_device_inline float3 iridescence_airy_summation(
+    const float T121, const float R12, const float R23, const float OPD, const float phi)
 {
   if (R23 == 1.0f) {
     /* Shortcut for TIR on the bottom interface. */
@@ -328,7 +329,7 @@ ccl_device Spectrum fresnel_iridescence(KernelGlobals kg,
                                         float eta2,
                                         float eta3,
                                         float cos_theta_1,
-                                        float thickness,
+                                        const float thickness,
                                         ccl_private float *r_cos_theta_3)
 {
   /* For films below 30nm, the wave-optic-based Airy summation approach no longer applies,

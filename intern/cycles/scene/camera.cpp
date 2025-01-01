@@ -504,7 +504,7 @@ void Camera::device_update(Device * /*device*/, DeviceScene *dscene, Scene *scen
         SHUTTER_TABLE_SIZE,
         0.0f,
         1.0f,
-        [this](float x) { return shutter_curve_eval(x, shutter_curve); },
+        [this](const float x) { return shutter_curve_eval(x, shutter_curve); },
         false,
         shutter_table);
     shutter_table_offset = scene->lookup_tables->add_table(dscene, shutter_table);
@@ -568,7 +568,7 @@ void Camera::device_free(Device * /*device*/, DeviceScene *dscene, Scene *scene)
   dscene->camera_motion.free();
 }
 
-float3 Camera::transform_raster_to_world(float raster_x, float raster_y)
+float3 Camera::transform_raster_to_world(const float raster_x, const float raster_y)
 {
   float3 D;
   float3 P;
@@ -673,7 +673,7 @@ BoundBox Camera::viewplane_bounds_get()
   return bounds;
 }
 
-float Camera::world_to_raster_size(float3 P)
+float Camera::world_to_raster_size(const float3 P)
 {
   float res = 1.0f;
 
@@ -824,7 +824,7 @@ bool Camera::use_motion() const
   return motion.size() > 1;
 }
 
-void Camera::set_screen_size(int width_, int height_)
+void Camera::set_screen_size(const int width_, int height_)
 {
   if (width_ != width || height_ != height) {
     width = width_;
@@ -833,12 +833,12 @@ void Camera::set_screen_size(int width_, int height_)
   }
 }
 
-float Camera::motion_time(int step) const
+float Camera::motion_time(const int step) const
 {
   return (use_motion()) ? 2.0f * step / (motion.size() - 1) - 1.0f : 0.0f;
 }
 
-int Camera::motion_step(float time) const
+int Camera::motion_step(const float time) const
 {
   if (use_motion()) {
     for (int step = 0; step < motion.size(); step++) {

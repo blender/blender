@@ -13,9 +13,9 @@ CCL_NAMESPACE_BEGIN
 ccl_device_noinline void svm_node_vertex_color(KernelGlobals kg,
                                                ccl_private ShaderData *sd,
                                                ccl_private float *stack,
-                                               uint layer_id,
-                                               uint color_offset,
-                                               uint alpha_offset)
+                                               const uint layer_id,
+                                               const uint color_offset,
+                                               const uint alpha_offset)
 {
   const AttributeDescriptor descriptor = find_attribute(kg, sd, layer_id);
   if (descriptor.offset != ATTR_STD_NOT_FOUND) {
@@ -41,9 +41,9 @@ ccl_device_noinline void svm_node_vertex_color(KernelGlobals kg,
 ccl_device_noinline void svm_node_vertex_color_bump_dx(KernelGlobals kg,
                                                        ccl_private ShaderData *sd,
                                                        ccl_private float *stack,
-                                                       uint layer_id,
-                                                       uint color_offset,
-                                                       uint alpha_offset)
+                                                       const uint layer_id,
+                                                       const uint color_offset,
+                                                       const uint alpha_offset)
 {
   const AttributeDescriptor descriptor = find_attribute(kg, sd, layer_id);
   if (descriptor.offset != ATTR_STD_NOT_FOUND) {
@@ -71,9 +71,9 @@ ccl_device_noinline void svm_node_vertex_color_bump_dx(KernelGlobals kg,
 ccl_device_noinline void svm_node_vertex_color_bump_dy(KernelGlobals kg,
                                                        ccl_private ShaderData *sd,
                                                        ccl_private float *stack,
-                                                       uint layer_id,
-                                                       uint color_offset,
-                                                       uint alpha_offset)
+                                                       const uint layer_id,
+                                                       const uint color_offset,
+                                                       const uint alpha_offset)
 {
   const AttributeDescriptor descriptor = find_attribute(kg, sd, layer_id);
   if (descriptor.offset != ATTR_STD_NOT_FOUND) {

@@ -116,7 +116,7 @@ class Integrator : public Node {
   void device_update(Device *device, DeviceScene *dscene, Scene *scene);
   void device_free(Device *device, DeviceScene *dscene, bool force_free = false);
 
-  void tag_update(Scene *scene, uint32_t flag);
+  void tag_update(Scene *scene, const uint32_t flag);
 
   uint get_kernel_features() const;
 

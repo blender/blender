@@ -22,7 +22,9 @@ class HdCyclesDisplayDriver final : public CCL_NS::DisplayDriver {
  private:
   void next_tile_begin() override;
 
-  bool update_begin(const Params &params, int texture_width, int texture_height) override;
+  bool update_begin(const Params &params,
+                    const int texture_width,
+                    const int texture_height) override;
   void update_end() override;
 
   void flush() override;

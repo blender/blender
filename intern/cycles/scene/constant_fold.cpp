@@ -28,7 +28,7 @@ bool ConstantFolder::all_inputs_constant() const
   return true;
 }
 
-void ConstantFolder::make_constant(float value) const
+void ConstantFolder::make_constant(const float value) const
 {
   VLOG_DEBUG << "Folding " << node->name << "::" << output->name() << " to constant (" << value
              << ").";
@@ -41,7 +41,7 @@ void ConstantFolder::make_constant(float value) const
   graph->disconnect(output);
 }
 
-void ConstantFolder::make_constant(float3 value) const
+void ConstantFolder::make_constant(const float3 value) const
 {
   VLOG_DEBUG << "Folding " << node->name << "::" << output->name() << " to constant " << value
              << ".";
@@ -54,7 +54,7 @@ void ConstantFolder::make_constant(float3 value) const
   graph->disconnect(output);
 }
 
-void ConstantFolder::make_constant(int value) const
+void ConstantFolder::make_constant(const int value) const
 {
   VLOG_DEBUG << "Folding " << node->name << "::" << output->name() << " to constant (" << value
              << ").";
@@ -67,12 +67,12 @@ void ConstantFolder::make_constant(int value) const
   graph->disconnect(output);
 }
 
-void ConstantFolder::make_constant_clamp(float value, bool clamp) const
+void ConstantFolder::make_constant_clamp(const float value, bool clamp) const
 {
   make_constant(clamp ? saturatef(value) : value);
 }
 
-void ConstantFolder::make_constant_clamp(float3 value, bool clamp) const
+void ConstantFolder::make_constant_clamp(float3 value, const bool clamp) const
 {
   if (clamp) {
     value.x = saturatef(value.x);

@@ -271,7 +271,7 @@ template<typename T> inline float4 cast_to_float4(T *data)
                      util_image_cast_to_float(data[3]));
 }
 
-template<typename T> inline void cast_from_float4(T *data, float4 value)
+template<typename T> inline void cast_from_float4(T *data, const float4 value)
 {
   data[0] = util_image_cast_from_float<T>(value.x);
   data[1] = util_image_cast_from_float<T>(value.y);
@@ -283,7 +283,7 @@ template<typename T> inline void cast_from_float4(T *data, float4 value)
 template<typename T, bool compress_as_srgb = false>
 inline void processor_apply_pixels_rgba(const OCIO::Processor *processor,
                                         T *pixels,
-                                        size_t num_pixels)
+                                        const size_t num_pixels)
 {
   /* TODO: implement faster version for when we know the conversion
    * is a simple matrix transform between linear spaces. In that case
@@ -334,7 +334,7 @@ inline void processor_apply_pixels_rgba(const OCIO::Processor *processor,
 template<typename T, bool compress_as_srgb = false>
 inline void processor_apply_pixels_grayscale(const OCIO::Processor *processor,
                                              T *pixels,
-                                             size_t num_pixels)
+                                             const size_t num_pixels)
 {
   const OCIO::ConstCPUProcessorRcPtr device_processor = processor->getDefaultCPUProcessor();
 
@@ -378,7 +378,7 @@ inline void processor_apply_pixels_grayscale(const OCIO::Processor *processor,
 
 template<typename T>
 void ColorSpaceManager::to_scene_linear(
-    ustring colorspace, T *pixels, size_t num_pixels, bool is_rgba, bool compress_as_srgb)
+    ustring colorspace, T *pixels, const size_t num_pixels, bool is_rgba, bool compress_as_srgb)
 {
 #ifdef WITH_OCIO
   const OCIO::Processor *processor = (const OCIO::Processor *)get_processor(colorspace);
@@ -416,7 +416,7 @@ void ColorSpaceManager::to_scene_linear(
 
 void ColorSpaceManager::to_scene_linear(ColorSpaceProcessor *processor_,
                                         float *pixel,
-                                        int channels)
+                                        const int channels)
 {
 #ifdef WITH_OCIO
   const OCIO::Processor *processor = (const OCIO::Processor *)processor_;

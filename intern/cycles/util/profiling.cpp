@@ -52,7 +52,7 @@ void Profiler::run()
   }
 }
 
-void Profiler::reset(int num_shaders, int num_objects)
+void Profiler::reset(const int num_shaders, const int num_objects)
 {
   const bool running = (worker != nullptr);
   if (running) {
@@ -135,7 +135,7 @@ uint64_t Profiler::get_event(ProfilingEvent event)
   return event_samples[event];
 }
 
-bool Profiler::get_shader(int shader, uint64_t &samples, uint64_t &hits)
+bool Profiler::get_shader(const int shader, uint64_t &samples, uint64_t &hits)
 {
   assert(worker == nullptr);
   if (shader_samples[shader] == 0) {
@@ -146,7 +146,7 @@ bool Profiler::get_shader(int shader, uint64_t &samples, uint64_t &hits)
   return true;
 }
 
-bool Profiler::get_object(int object, uint64_t &samples, uint64_t &hits)
+bool Profiler::get_object(const int object, uint64_t &samples, uint64_t &hits)
 {
   assert(worker == nullptr);
   if (object_samples[object] == 0) {

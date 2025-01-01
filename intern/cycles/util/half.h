@@ -67,7 +67,7 @@ struct half4 {
  * Simplified float to half for fast sampling on processor without a native
  * instruction, and eliminating any NaN and inf values. */
 
-ccl_device_inline half float_to_half_image(float f)
+ccl_device_inline half float_to_half_image(const float f)
 {
 #if defined(__KERNEL_METAL__) || defined(__KERNEL_ONEAPI__)
   return half(min(f, 65504.0f));

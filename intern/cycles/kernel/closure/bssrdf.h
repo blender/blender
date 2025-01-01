@@ -27,13 +27,13 @@ static_assert(sizeof(ShaderClosure) >= sizeof(Bssrdf), "Bssrdf is too large!");
 
 /* Random Walk BSSRDF */
 
-ccl_device float bssrdf_dipole_compute_Rd(float alpha_prime, float fourthirdA)
+ccl_device float bssrdf_dipole_compute_Rd(const float alpha_prime, const float fourthirdA)
 {
   const float s = sqrtf(3.0f * (1.0f - alpha_prime));
   return 0.5f * alpha_prime * (1.0f + expf(-fourthirdA * s)) * expf(-s);
 }
 
-ccl_device float bssrdf_dipole_compute_alpha_prime(float rd, float fourthirdA)
+ccl_device float bssrdf_dipole_compute_alpha_prime(const float rd, const float fourthirdA)
 {
   /* Little Newton solver. */
   if (rd < 1e-4f) {
@@ -99,7 +99,7 @@ ccl_device void bssrdf_setup_radius(ccl_private Bssrdf *bssrdf, const ClosureTyp
 #define BURLEY_TRUNCATE 16.0f
 #define BURLEY_TRUNCATE_CDF 0.9963790093708328f  // cdf(BURLEY_TRUNCATE)
 
-ccl_device_inline float bssrdf_burley_fitting(float A)
+ccl_device_inline float bssrdf_burley_fitting(const float A)
 {
   /* Diffuse surface transmission, equation (6). */
   return 1.9f - A + 3.5f * (A - 0.8f) * (A - 0.8f);
@@ -126,7 +126,7 @@ ccl_device void bssrdf_burley_setup(ccl_private Bssrdf *bssrdf)
   bssrdf->radius = l / s;
 }
 
-ccl_device float bssrdf_burley_eval(const float d, float r)
+ccl_device float bssrdf_burley_eval(const float d, const float r)
 {
   const float Rm = BURLEY_TRUNCATE * d;
 
@@ -147,7 +147,7 @@ ccl_device float bssrdf_burley_eval(const float d, float r)
   return (exp_r_d + exp_r_3_d) / (4.0f * d);
 }
 
-ccl_device float bssrdf_burley_pdf(const float d, float r)
+ccl_device float bssrdf_burley_pdf(const float d, const float r)
 {
   if (r == 0.0f) {
     return 0.0f;
@@ -160,7 +160,7 @@ ccl_device float bssrdf_burley_pdf(const float d, float r)
  * Returns scaled radius, meaning the result is to be scaled up by d.
  * Since there's no closed form solution we do Newton-Raphson method to find it.
  */
-ccl_device_forceinline float bssrdf_burley_root_find(float xi)
+ccl_device_forceinline float bssrdf_burley_root_find(const float xi)
 {
   const float tolerance = 1e-6f;
   const int max_iteration_count = 10;
@@ -195,7 +195,7 @@ ccl_device_forceinline float bssrdf_burley_root_find(float xi)
 }
 
 ccl_device void bssrdf_burley_sample(const float d,
-                                     float xi,
+                                     const float xi,
                                      ccl_private float *r,
                                      ccl_private float *h)
 {
@@ -250,7 +250,7 @@ ccl_device void bssrdf_sample(const Spectrum radius,
   bssrdf_burley_sample(sampled_radius, xi, r, h);
 }
 
-ccl_device_forceinline Spectrum bssrdf_eval(const Spectrum radius, float r)
+ccl_device_forceinline Spectrum bssrdf_eval(const Spectrum radius, const float r)
 {
   Spectrum result;
   FOREACH_SPECTRUM_CHANNEL (i) {
@@ -259,7 +259,7 @@ ccl_device_forceinline Spectrum bssrdf_eval(const Spectrum radius, float r)
   return result;
 }
 
-ccl_device_forceinline float bssrdf_pdf(const Spectrum radius, float r)
+ccl_device_forceinline float bssrdf_pdf(const Spectrum radius, const float r)
 {
   const Spectrum pdf = bssrdf_eval(radius, r);
   return reduce_add(pdf) / bssrdf_num_channels(radius);
@@ -287,7 +287,7 @@ ccl_device_inline ccl_private Bssrdf *bssrdf_alloc(ccl_private ShaderData *sd, S
 
 ccl_device int bssrdf_setup(ccl_private ShaderData *sd,
                             ccl_private Bssrdf *bssrdf,
-                            int path_flag,
+                            const int path_flag,
                             ClosureType type)
 {
   /* Clamps protecting against bad/extreme and non physical values. */

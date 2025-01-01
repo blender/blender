@@ -437,7 +437,7 @@ bool OSLShaderManager::osl_query(OSL::OSLQuery &query, const string &filepath)
   return query.open(filepath, searchpath);
 }
 
-static string shader_filepath_hash(const string &filepath, uint64_t modified_time)
+static string shader_filepath_hash(const string &filepath, const uint64_t modified_time)
 {
   /* compute a hash from filepath and modified time to detect changes */
   MD5Hash md5;
@@ -956,7 +956,7 @@ void OSLCompiler::add(ShaderNode *node, const char *name, bool isfilepath)
   }
 }
 
-static TypeDesc array_typedesc(TypeDesc typedesc, int arraylength)
+static TypeDesc array_typedesc(const TypeDesc typedesc, const int arraylength)
 {
   return TypeDesc((TypeDesc::BASETYPE)typedesc.basetype,
                   (TypeDesc::AGGREGATE)typedesc.aggregate,
@@ -1123,32 +1123,32 @@ void OSLCompiler::parameter(ShaderNode *node, const char *name)
   }
 }
 
-void OSLCompiler::parameter(const char *name, float f)
+void OSLCompiler::parameter(const char *name, const float f)
 {
   ss->Parameter(*current_group, name, TypeFloat, &f);
 }
 
-void OSLCompiler::parameter_color(const char *name, float3 f)
+void OSLCompiler::parameter_color(const char *name, const float3 f)
 {
   ss->Parameter(*current_group, name, TypeColor, &f);
 }
 
-void OSLCompiler::parameter_point(const char *name, float3 f)
+void OSLCompiler::parameter_point(const char *name, const float3 f)
 {
   ss->Parameter(*current_group, name, TypePoint, &f);
 }
 
-void OSLCompiler::parameter_normal(const char *name, float3 f)
+void OSLCompiler::parameter_normal(const char *name, const float3 f)
 {
   ss->Parameter(*current_group, name, TypeNormal, &f);
 }
 
-void OSLCompiler::parameter_vector(const char *name, float3 f)
+void OSLCompiler::parameter_vector(const char *name, const float3 f)
 {
   ss->Parameter(*current_group, name, TypeVector, &f);
 }
 
-void OSLCompiler::parameter(const char *name, int f)
+void OSLCompiler::parameter(const char *name, const int f)
 {
   ss->Parameter(*current_group, name, TypeInt, &f);
 }
@@ -1413,7 +1413,7 @@ void OSLCompiler::parameter_texture(const char *name, const ImageHandle &handle)
   parameter(name, filename);
 }
 
-void OSLCompiler::parameter_texture_ies(const char *name, int svm_slot)
+void OSLCompiler::parameter_texture_ies(const char *name, const int svm_slot)
 {
   /* IES light textures stored in SVM. */
   const ustring filename(string_printf("@svm%d", texture_shared_unique_id++).c_str());

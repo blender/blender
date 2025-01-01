@@ -20,12 +20,12 @@ CCL_NAMESPACE_BEGIN
 
 /* Patch index for triangle, -1 if not subdivision triangle */
 
-ccl_device_inline uint subd_triangle_patch(KernelGlobals kg, int prim)
+ccl_device_inline uint subd_triangle_patch(KernelGlobals kg, const int prim)
 {
   return (prim != PRIM_NONE) ? kernel_data_fetch(tri_patch, prim) : ~0;
 }
 
-ccl_device_inline uint attribute_primitive_type(KernelGlobals kg, int prim, int type)
+ccl_device_inline uint attribute_primitive_type(KernelGlobals kg, const int prim, const int type)
 {
   if ((type & PRIMITIVE_TRIANGLE) && subd_triangle_patch(kg, prim) != ~0) {
     return ATTR_PRIM_SUBD;
@@ -42,13 +42,13 @@ ccl_device_inline AttributeDescriptor attribute_not_found()
 
 /* Find attribute based on ID */
 
-ccl_device_inline uint object_attribute_map_offset(KernelGlobals kg, int object)
+ccl_device_inline uint object_attribute_map_offset(KernelGlobals kg, const int object)
 {
   return kernel_data_fetch(objects, object).attribute_map_offset;
 }
 
-ccl_device_inline AttributeDescriptor
-find_attribute(KernelGlobals kg, int object, int prim, int type, uint64_t id)
+ccl_device_inline AttributeDescriptor find_attribute(
+    KernelGlobals kg, const int object, const int prim, const int type, const uint64_t id)
 {
   if (object == OBJECT_NONE) {
     return attribute_not_found();
@@ -93,7 +93,7 @@ find_attribute(KernelGlobals kg, int object, int prim, int type, uint64_t id)
 
 ccl_device_inline AttributeDescriptor find_attribute(KernelGlobals kg,
                                                      const ccl_private ShaderData *sd,
-                                                     uint64_t id)
+                                                     const uint64_t id)
 {
   return find_attribute(kg, sd->object, sd->prim, sd->type, id);
 }

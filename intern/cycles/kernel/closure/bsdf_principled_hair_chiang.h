@@ -43,26 +43,26 @@ static_assert(sizeof(ShaderClosure) >= sizeof(ChiangHairBSDF), "ChiangHairBSDF i
 
 /* Gives the change in direction in the normal plane for the given angles and p-th-order
  * scattering. */
-ccl_device_inline float delta_phi(int p, float gamma_o, float gamma_t)
+ccl_device_inline float delta_phi(const int p, const float gamma_o, const float gamma_t)
 {
   return 2.0f * p * gamma_t - 2.0f * gamma_o + p * M_PI_F;
 }
 
 /* Remaps the given angle to [-pi, pi]. */
-ccl_device_inline float wrap_angle(float a)
+ccl_device_inline float wrap_angle(const float a)
 {
   return (a + M_PI_F) - M_2PI_F * floorf((a + M_PI_F) / M_2PI_F) - M_PI_F;
 }
 
 /* Logistic distribution function. */
-ccl_device_inline float logistic(float x, float s)
+ccl_device_inline float logistic(const float x, const float s)
 {
   const float v = expf(-fabsf(x) / s);
   return v / (s * sqr(1.0f + v));
 }
 
 /* Logistic cumulative density function. */
-ccl_device_inline float logistic_cdf(float x, float s)
+ccl_device_inline float logistic_cdf(const float x, const float s)
 {
   const float arg = -x / s;
   /* expf() overflows if arg >= 89.0. */
@@ -94,7 +94,7 @@ ccl_device_inline float bessel_I0(float x)
 }
 
 /* Logarithm of the Bessel function of the first kind. */
-ccl_device_inline float log_bessel_I0(float x)
+ccl_device_inline float log_bessel_I0(const float x)
 {
   if (x > 12.0f) {
     /* log(1/x) == -log(x) if x > 0.
@@ -105,7 +105,7 @@ ccl_device_inline float log_bessel_I0(float x)
 }
 
 /* Logistic distribution limited to the interval [-pi, pi]. */
-ccl_device_inline float trimmed_logistic(float x, float s)
+ccl_device_inline float trimmed_logistic(const float x, const float s)
 {
   /* The logistic distribution is symmetric and centered around zero,
    * so logistic_cdf(x, s) = 1 - logistic_cdf(-x, s).
@@ -116,7 +116,7 @@ ccl_device_inline float trimmed_logistic(float x, float s)
 }
 
 /* Sampling function for the trimmed logistic function. */
-ccl_device_inline float sample_trimmed_logistic(float u, float s)
+ccl_device_inline float sample_trimmed_logistic(const float u, const float s)
 {
   const float cdf_minuspi = logistic_cdf(-M_PI_F, s);
   const float x = -s * logf(1.0f / (u * (1.0f - 2.0f * cdf_minuspi) + cdf_minuspi) - 1.0f);
@@ -125,7 +125,7 @@ ccl_device_inline float sample_trimmed_logistic(float u, float s)
 
 /* Azimuthal scattering function Np. */
 ccl_device_inline float azimuthal_scattering(
-    float phi, int p, float s, float gamma_o, float gamma_t)
+    float phi, const int p, const float s, float gamma_o, const float gamma_t)
 {
   const float phi_o = wrap_angle(phi - delta_phi(p, gamma_o, gamma_t));
   const float val = trimmed_logistic(phi_o, s);
@@ -133,8 +133,11 @@ ccl_device_inline float azimuthal_scattering(
 }
 
 /* Longitudinal scattering function Mp. */
-ccl_device_inline float longitudinal_scattering(
-    float sin_theta_i, float cos_theta_i, float sin_theta_o, float cos_theta_o, float v)
+ccl_device_inline float longitudinal_scattering(float sin_theta_i,
+                                                const float cos_theta_i,
+                                                const float sin_theta_o,
+                                                const float cos_theta_o,
+                                                const float v)
 {
   const float inv_v = 1.0f / v;
   const float cos_arg = cos_theta_i * cos_theta_o * inv_v;
@@ -192,8 +195,11 @@ ccl_device int bsdf_hair_chiang_setup(ccl_private ShaderData *sd, ccl_private Ch
 #endif /* __HAIR__ */
 
 /* Given the Fresnel term and transmittance, generate the attenuation terms for each bounce. */
-ccl_device_inline void hair_attenuation(
-    KernelGlobals kg, float f, Spectrum T, ccl_private Spectrum *Ap, ccl_private float *Ap_energy)
+ccl_device_inline void hair_attenuation(KernelGlobals kg,
+                                        const float f,
+                                        Spectrum T,
+                                        ccl_private Spectrum *Ap,
+                                        ccl_private float *Ap_energy)
 {
   /* Primary specular (R). */
   Ap[0] = make_spectrum(f);
@@ -225,9 +231,9 @@ ccl_device_inline void hair_attenuation(
 }
 
 /* Update sin_theta_o and cos_theta_o to account for scale tilt for each bounce. */
-ccl_device_inline void hair_alpha_angles(float sin_theta_o,
-                                         float cos_theta_o,
-                                         float alpha,
+ccl_device_inline void hair_alpha_angles(const float sin_theta_o,
+                                         const float cos_theta_o,
+                                         const float alpha,
                                          ccl_private float *angles)
 {
   const float sin_1alpha = sinf(alpha);
@@ -447,7 +453,7 @@ ccl_device int bsdf_hair_chiang_sample(KernelGlobals kg,
 }
 
 /* Implements Filter Glossy by capping the effective roughness. */
-ccl_device void bsdf_hair_chiang_blur(ccl_private ShaderClosure *sc, float roughness)
+ccl_device void bsdf_hair_chiang_blur(ccl_private ShaderClosure *sc, const float roughness)
 {
   ccl_private ChiangHairBSDF *bsdf = (ccl_private ChiangHairBSDF *)sc;
 

@@ -97,7 +97,7 @@ Device *device_oneapi_create(const DeviceInfo &info,
 #ifdef WITH_ONEAPI
 static void device_iterator_cb(const char *id,
                                const char *name,
-                               int num,
+                               const int num,
                                bool hwrt_support,
                                bool oidn_support,
                                void *user_ptr)

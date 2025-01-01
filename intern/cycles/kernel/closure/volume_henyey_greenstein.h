@@ -31,7 +31,7 @@ ccl_device int volume_henyey_greenstein_setup(ccl_private HenyeyGreensteinVolume
 
 ccl_device Spectrum volume_henyey_greenstein_eval(const ccl_private ShaderData *sd,
                                                   const ccl_private ShaderVolumeClosure *svc,
-                                                  float3 wo,
+                                                  const float3 wo,
                                                   ccl_private float *pdf)
 {
   const ccl_private HenyeyGreensteinVolume *volume = (const ccl_private HenyeyGreensteinVolume *)
@@ -46,7 +46,7 @@ ccl_device Spectrum volume_henyey_greenstein_eval(const ccl_private ShaderData *
 
 ccl_device int volume_henyey_greenstein_sample(const ccl_private ShaderData *sd,
                                                const ccl_private ShaderVolumeClosure *svc,
-                                               float2 rand,
+                                               const float2 rand,
                                                ccl_private Spectrum *eval,
                                                ccl_private float3 *wo,
                                                ccl_private float *pdf)

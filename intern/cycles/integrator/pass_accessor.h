@@ -44,7 +44,7 @@ class PassAccessor {
   class Destination {
    public:
     Destination() = default;
-    Destination(float *pixels, int num_components);
+    Destination(float *pixels, const int num_components);
     Destination(const PassType pass_type, half4 *pixels);
 
     /* Destination will be initialized with the number of components which is native for the given
@@ -86,7 +86,7 @@ class PassAccessor {
   class Source {
    public:
     Source() = default;
-    Source(const float *pixels, int num_components);
+    Source(const float *pixels, const int num_components);
 
     /* CPU-side pointers. only usable by the `PassAccessorCPU`. */
     const float *pixels = nullptr;
@@ -97,7 +97,9 @@ class PassAccessor {
     int offset = 0;
   };
 
-  PassAccessor(const PassAccessInfo &pass_access_info, float exposure, int num_samples);
+  PassAccessor(const PassAccessInfo &pass_access_info,
+               const float exposure,
+               const int num_samples);
 
   virtual ~PassAccessor() = default;
 

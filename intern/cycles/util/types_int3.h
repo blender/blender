@@ -65,7 +65,7 @@ struct ccl_try_align(16) int3
 #  endif
 };
 
-ccl_device_inline int3 make_int3(int x, int y, int z)
+ccl_device_inline int3 make_int3(const int x, const int y, int z)
 {
 #  if defined(__KERNEL_GPU__)
   return {x, y, z};
@@ -78,7 +78,7 @@ ccl_device_inline int3 make_int3(int x, int y, int z)
 
 #endif /* __KERNEL_NATIVE_VECTOR_TYPES__ */
 
-ccl_device_inline int3 make_int3(int i)
+ccl_device_inline int3 make_int3(const int i)
 {
 #if defined(__KERNEL_GPU__)
   return make_int3(i, i, i);
@@ -144,7 +144,7 @@ struct packed_int3 {
 static_assert(sizeof(packed_int3) == 12, "packed_int3 expected to be exactly 12 bytes");
 #endif
 
-ccl_device_inline packed_int3 make_packed_int3(int x, int y, int z)
+ccl_device_inline packed_int3 make_packed_int3(const int x, const int y, int z)
 {
   packed_int3 a = {x, y, z};
   return a;

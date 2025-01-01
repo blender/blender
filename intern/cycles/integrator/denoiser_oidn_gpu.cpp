@@ -492,12 +492,12 @@ bool OIDNDenoiserGPU::denoise_run(const DenoiseContext &context, const DenoisePa
 void OIDNDenoiserGPU::set_filter_pass(OIDNFilter filter,
                                       const char *name,
                                       device_ptr ptr,
-                                      int format,
-                                      int width,
-                                      int height,
-                                      size_t offset_in_bytes,
-                                      size_t pixel_stride_in_bytes,
-                                      size_t row_stride_in_bytes)
+                                      const int format,
+                                      const int width,
+                                      const int height,
+                                      const size_t offset_in_bytes,
+                                      const size_t pixel_stride_in_bytes,
+                                      const size_t row_stride_in_bytes)
 {
 #  if defined(OIDN_DEVICE_METAL) && defined(WITH_METAL)
   if (denoiser_device_->info.type == DEVICE_METAL) {

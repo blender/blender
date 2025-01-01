@@ -30,7 +30,7 @@ class BlenderDisplayShader {
   BlenderDisplayShader() = default;
   virtual ~BlenderDisplayShader() = default;
 
-  virtual GPUShader *bind(int width, int height) = 0;
+  virtual GPUShader *bind(const int width, const int height) = 0;
   virtual void unbind() = 0;
 
   /* Get attribute location for position and texture coordinate respectively.
@@ -52,7 +52,7 @@ class BlenderDisplayShader {
  * display space shader. */
 class BlenderFallbackDisplayShader : public BlenderDisplayShader {
  public:
-  GPUShader *bind(int width, int height) override;
+  GPUShader *bind(const int width, const int height) override;
   void unbind() override;
 
  protected:
@@ -74,7 +74,7 @@ class BlenderDisplaySpaceShader : public BlenderDisplayShader {
  public:
   BlenderDisplaySpaceShader(BL::RenderEngine &b_engine, BL::Scene &b_scene);
 
-  GPUShader *bind(int width, int height) override;
+  GPUShader *bind(const int width, const int height) override;
   void unbind() override;
 
  protected:
@@ -98,12 +98,14 @@ class BlenderDisplayDriver : public DisplayDriver {
 
   void clear() override;
 
-  void set_zoom(float zoom_x, float zoom_y);
+  void set_zoom(const float zoom_x, const float zoom_y);
 
  protected:
   void next_tile_begin() override;
 
-  bool update_begin(const Params &params, int texture_width, int texture_height) override;
+  bool update_begin(const Params &params,
+                    const int texture_width,
+                    const int texture_height) override;
   void update_end() override;
 
   half4 *map_texture_buffer() override;

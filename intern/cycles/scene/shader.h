@@ -176,7 +176,7 @@ class ShaderManager {
     UPDATE_NONE = 0u,
   };
 
-  static ShaderManager *create(int shadingsystem, Device *device);
+  static ShaderManager *create(const int shadingsystem, Device *device);
   virtual ~ShaderManager();
 
   virtual void reset(Scene *scene) = 0;
@@ -213,12 +213,12 @@ class ShaderManager {
 
   static void free_memory();
 
-  float linear_rgb_to_gray(float3 c);
-  float3 rec709_to_scene_linear(float3 c);
+  float linear_rgb_to_gray(const float3 c);
+  float3 rec709_to_scene_linear(const float3 c);
 
   string get_cryptomatte_materials(Scene *scene);
 
-  void tag_update(Scene *scene, uint32_t flag);
+  void tag_update(Scene *scene, const uint32_t flag);
 
   bool need_update() const;
 
@@ -241,7 +241,10 @@ class ShaderManager {
   {
     return ensure_bsdf_table_impl(dscene, scene, table, n);
   }
-  size_t ensure_bsdf_table_impl(DeviceScene *dscene, Scene *scene, const float *table, size_t n);
+  size_t ensure_bsdf_table_impl(DeviceScene *dscene,
+                                Scene *scene,
+                                const float *table,
+                                const size_t n);
 
   uint get_graph_kernel_features(ShaderGraph *graph);
 

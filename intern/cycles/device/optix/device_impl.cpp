@@ -1018,7 +1018,7 @@ void *OptiXDevice::get_cpu_osl_memory()
 bool OptiXDevice::build_optix_bvh(BVHOptiX *bvh,
                                   OptixBuildOperation operation,
                                   const OptixBuildInput &build_input,
-                                  uint16_t num_motion_steps)
+                                  const uint16_t num_motion_steps)
 {
   /* Allocate and build acceleration structures only one at a time, to prevent parallel builds
    * from running out of memory (since both original and compacted acceleration structure memory
@@ -1757,7 +1757,7 @@ void OptiXDevice::free_bvh_memory_delayed()
   delayed_free_bvh_memory.free_memory();
 }
 
-void OptiXDevice::const_copy_to(const char *name, void *host, size_t size)
+void OptiXDevice::const_copy_to(const char *name, void *host, const size_t size)
 {
   /* Set constant memory for CUDA module. */
   CUDADevice::const_copy_to(name, host, size);
@@ -1784,7 +1784,7 @@ void OptiXDevice::const_copy_to(const char *name, void *host, size_t size)
 #  undef KERNEL_DATA_ARRAY
 }
 
-void OptiXDevice::update_launch_params(size_t offset, void *data, size_t data_size)
+void OptiXDevice::update_launch_params(const size_t offset, void *data, const size_t data_size)
 {
   const CUDAContextScope scope(this);
 

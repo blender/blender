@@ -57,7 +57,7 @@ int TaskScheduler::users = 0;
 int TaskScheduler::active_num_threads = 0;
 tbb::global_control *TaskScheduler::global_control = nullptr;
 
-void TaskScheduler::init(int num_threads)
+void TaskScheduler::init(const int num_threads)
 {
   const thread_scoped_lock lock(mutex);
   /* Multiple cycles instances can use this task scheduler, sharing the same
@@ -163,7 +163,7 @@ bool DedicatedTaskPool::canceled()
   return do_cancel;
 }
 
-void DedicatedTaskPool::num_decrease(int done)
+void DedicatedTaskPool::num_decrease(const int done)
 {
   const thread_scoped_lock num_lock(num_mutex);
   num -= done;

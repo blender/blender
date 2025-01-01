@@ -17,7 +17,9 @@ CCL_NAMESPACE_BEGIN
 
 /* Background Light */
 
-ccl_device float3 background_map_sample(KernelGlobals kg, float2 rand, ccl_private float *pdf)
+ccl_device float3 background_map_sample(KernelGlobals kg,
+                                        const float2 rand,
+                                        ccl_private float *pdf)
 {
   /* for the following, the CDF values are actually a pair of floats, with the
    * function value as X and the actual CDF as Y.  The last entry's function
@@ -104,7 +106,7 @@ ccl_device float3 background_map_sample(KernelGlobals kg, float2 rand, ccl_priva
 /* TODO(sergey): Same as above, after the release we should consider using
  * 'noinline' for all devices.
  */
-ccl_device float background_map_pdf(KernelGlobals kg, float3 direction)
+ccl_device float background_map_pdf(KernelGlobals kg, const float3 direction)
 {
   const float2 uv = direction_to_equirectangular(direction);
   const int res_x = kernel_data.background.map_res_x;
@@ -139,8 +141,11 @@ ccl_device float background_map_pdf(KernelGlobals kg, float3 direction)
   return (cdf_u.x * cdf_v.x) / denom;
 }
 
-ccl_device_inline bool background_portal_data_fetch_and_check_side(
-    KernelGlobals kg, float3 P, int index, ccl_private float3 *lightpos, ccl_private float3 *dir)
+ccl_device_inline bool background_portal_data_fetch_and_check_side(KernelGlobals kg,
+                                                                   const float3 P,
+                                                                   const int index,
+                                                                   ccl_private float3 *lightpos,
+                                                                   ccl_private float3 *dir)
 {
   const int portal = kernel_data.integrator.portal_offset + index;
   const ccl_global KernelLight *klight = &kernel_data_fetch(lights, portal);
@@ -156,8 +161,11 @@ ccl_device_inline bool background_portal_data_fetch_and_check_side(
   return false;
 }
 
-ccl_device_inline float background_portal_pdf(
-    KernelGlobals kg, float3 P, float3 direction, int ignore_portal, ccl_private bool *is_possible)
+ccl_device_inline float background_portal_pdf(KernelGlobals kg,
+                                              const float3 P,
+                                              float3 direction,
+                                              const int ignore_portal,
+                                              ccl_private bool *is_possible)
 {
   float portal_pdf = 0.0f;
 
@@ -227,7 +235,7 @@ ccl_device_inline float background_portal_pdf(
   return (num_possible > 0) ? portal_pdf / num_possible : 0.0f;
 }
 
-ccl_device int background_num_possible_portals(KernelGlobals kg, float3 P)
+ccl_device int background_num_possible_portals(KernelGlobals kg, const float3 P)
 {
   int num_possible_portals = 0;
   for (int p = 0; p < kernel_data.integrator.num_portals; p++) {
@@ -241,9 +249,9 @@ ccl_device int background_num_possible_portals(KernelGlobals kg, float3 P)
 }
 
 ccl_device float3 background_portal_sample(KernelGlobals kg,
-                                           float3 P,
+                                           const float3 P,
                                            float2 rand,
-                                           int num_possible,
+                                           const int num_possible,
                                            ccl_private int *sampled_portal,
                                            ccl_private float *pdf)
 {
@@ -297,7 +305,7 @@ ccl_device float3 background_portal_sample(KernelGlobals kg,
 }
 
 ccl_device_inline float3 background_sun_sample(KernelGlobals kg,
-                                               float2 rand,
+                                               const float2 rand,
                                                ccl_private float *pdf)
 {
   const float3 N = make_float3(kernel_data.background.sun);
@@ -306,7 +314,7 @@ ccl_device_inline float3 background_sun_sample(KernelGlobals kg,
   return sample_uniform_cone(N, one_minus_cos(angle), rand, &unused, pdf);
 }
 
-ccl_device_inline float background_sun_pdf(KernelGlobals kg, float3 D)
+ccl_device_inline float background_sun_pdf(KernelGlobals kg, const float3 D)
 {
   const float3 N = make_float3(kernel_data.background.sun);
   const float angle = kernel_data.background.sun.w;
@@ -314,7 +322,7 @@ ccl_device_inline float background_sun_pdf(KernelGlobals kg, float3 D)
 }
 
 ccl_device_inline float3 background_light_sample(KernelGlobals kg,
-                                                 float3 P,
+                                                 const float3 P,
                                                  float2 rand,
                                                  ccl_private float *pdf)
 {
@@ -416,7 +424,7 @@ ccl_device_inline float3 background_light_sample(KernelGlobals kg,
   return D;
 }
 
-ccl_device float background_light_pdf(KernelGlobals kg, float3 P, float3 direction)
+ccl_device float background_light_pdf(KernelGlobals kg, const float3 P, float3 direction)
 {
   float portal_method_pdf = kernel_data.background.portal_weight;
   float sun_method_pdf = kernel_data.background.sun_weight;

@@ -59,7 +59,7 @@ static EmissionSampling get_emission_sampling(PointerRNA &ptr)
       ptr, "emission_sampling", EMISSION_SAMPLING_NUM, EMISSION_SAMPLING_AUTO);
 }
 
-static int validate_enum_value(int value, int num_values, int default_value)
+static int validate_enum_value(const int value, const int num_values, const int default_value)
 {
   if (value >= num_values) {
     return default_value;

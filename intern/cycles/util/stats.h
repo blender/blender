@@ -15,13 +15,13 @@ class Stats {
   Stats() : mem_used(0), mem_peak(0) {}
   explicit Stats(static_init_t /*unused*/) {}
 
-  void mem_alloc(size_t size)
+  void mem_alloc(const size_t size)
   {
     atomic_add_and_fetch_z(&mem_used, size);
     atomic_fetch_and_update_max_z(&mem_peak, mem_used);
   }
 
-  void mem_free(size_t size)
+  void mem_free(const size_t size)
   {
     assert(mem_used >= size);
     atomic_sub_and_fetch_z(&mem_used, size);

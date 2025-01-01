@@ -31,13 +31,13 @@ class ColorSpaceManager {
    * rendering. Must be a colorspace returned from detect_known_colorspace. */
   template<typename T>
   static void to_scene_linear(
-      ustring colorspace, T *pixels, size_t num_pixels, bool is_rgba, bool compress_as_srgb);
+      ustring colorspace, T *pixels, const size_t num_pixels, bool is_rgba, bool compress_as_srgb);
 
   /* Efficiently convert pixels to scene linear colorspace at render time,
    * for OSL where the image texture cache contains original pixels. The
    * handle is valid for the lifetime of the application. */
   static ColorSpaceProcessor *get_processor(ustring colorspace);
-  static void to_scene_linear(ColorSpaceProcessor *processor, float *pixel, int channels);
+  static void to_scene_linear(ColorSpaceProcessor *processor, float *pixel, const int channels);
 
   /* Clear memory when the application exits. Invalidates all processors. */
   static void free_memory();

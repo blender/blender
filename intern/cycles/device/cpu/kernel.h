@@ -56,29 +56,29 @@ class CPUKernels {
   using AdaptiveSamplingConvergenceCheckFunction =
       CPUKernelFunction<bool (*)(const KernelGlobalsCPU *kg,
                                  ccl_global float *render_buffer,
-                                 int x,
-                                 int y,
-                                 float threshold,
-                                 int reset,
-                                 int offset,
+                                 const int x,
+                                 const int y,
+                                 const float threshold,
+                                 const int reset,
+                                 const int offset,
                                  int stride)>;
 
   using AdaptiveSamplingFilterXFunction =
       CPUKernelFunction<void (*)(const KernelGlobalsCPU *kg,
                                  ccl_global float *render_buffer,
-                                 int y,
-                                 int start_x,
-                                 int width,
-                                 int offset,
+                                 const int y,
+                                 const int start_x,
+                                 const int width,
+                                 const int offset,
                                  int stride)>;
 
   using AdaptiveSamplingFilterYFunction =
       CPUKernelFunction<void (*)(const KernelGlobalsCPU *kg,
                                  ccl_global float *render_buffer,
-                                 int x,
-                                 int start_y,
-                                 int height,
-                                 int offset,
+                                 const int x,
+                                 const int start_y,
+                                 const int height,
+                                 const int offset,
                                  int stride)>;
 
   AdaptiveSamplingConvergenceCheckFunction adaptive_sampling_convergence_check;
@@ -89,7 +89,7 @@ class CPUKernels {
   /* Cryptomatte. */
 
   using CryptomattePostprocessFunction = CPUKernelFunction<void (*)(
-      const KernelGlobalsCPU *kg, ccl_global float *render_buffer, int pixel_index)>;
+      const KernelGlobalsCPU *kg, ccl_global float *render_buffer, const int pixel_index)>;
 
   CryptomattePostprocessFunction cryptomatte_postprocess;
 

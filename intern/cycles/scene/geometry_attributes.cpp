@@ -85,9 +85,9 @@ bool Geometry::has_voxel_attributes() const
 
 /* Generate a normal attribute map entry from an attribute descriptor. */
 static void emit_attribute_map_entry(AttributeMap *attr_map,
-                                     size_t index,
-                                     uint64_t id,
-                                     TypeDesc type,
+                                     const size_t index,
+                                     const uint64_t id,
+                                     const TypeDesc type,
                                      const AttributeDescriptor &desc)
 {
   attr_map[index].id = id;
@@ -119,9 +119,9 @@ static void emit_attribute_map_entry(AttributeMap *attr_map,
 /* Generate an attribute map end marker, optionally including a link to another map.
  * Links are used to connect object attribute maps to mesh attribute maps. */
 static void emit_attribute_map_terminator(AttributeMap *attr_map,
-                                          size_t index,
+                                          const size_t index,
                                           bool chain,
-                                          uint chain_link)
+                                          const uint chain_link)
 {
   for (int j = 0; j < ATTR_PRIM_TYPES; j++) {
     attr_map[index + j].id = ATTR_STD_NONE;
@@ -133,8 +133,11 @@ static void emit_attribute_map_terminator(AttributeMap *attr_map,
 }
 
 /* Generate all necessary attribute map entries from the attribute request. */
-static void emit_attribute_mapping(
-    AttributeMap *attr_map, size_t index, uint64_t id, AttributeRequest &req, Geometry *geom)
+static void emit_attribute_mapping(AttributeMap *attr_map,
+                                   const size_t index,
+                                   const uint64_t id,
+                                   AttributeRequest &req,
+                                   Geometry *geom)
 {
   emit_attribute_map_entry(attr_map, index, id, req.type, req.desc);
 

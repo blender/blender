@@ -21,7 +21,7 @@ CCL_NAMESPACE_BEGIN
 
 ccl_device AttributeDescriptor svm_node_attr_init(KernelGlobals kg,
                                                   ccl_private ShaderData *sd,
-                                                  uint4 node,
+                                                  const uint4 node,
                                                   ccl_private NodeAttributeOutputType *type,
                                                   ccl_private uint *out_offset)
 {
@@ -52,7 +52,7 @@ template<uint node_feature_mask>
 ccl_device_noinline void svm_node_attr(KernelGlobals kg,
                                        ccl_private ShaderData *sd,
                                        ccl_private float *stack,
-                                       uint4 node)
+                                       const uint4 node)
 {
   NodeAttributeOutputType type = NODE_ATTR_OUTPUT_FLOAT;
   uint out_offset = 0;
@@ -170,7 +170,7 @@ ccl_device_forceinline float3 svm_node_bump_P_dy(const ccl_private ShaderData *s
 ccl_device_noinline void svm_node_attr_bump_dx(KernelGlobals kg,
                                                ccl_private ShaderData *sd,
                                                ccl_private float *stack,
-                                               uint4 node)
+                                               const uint4 node)
 {
   NodeAttributeOutputType type = NODE_ATTR_OUTPUT_FLOAT;
   uint out_offset = 0;
@@ -268,7 +268,7 @@ ccl_device_noinline void svm_node_attr_bump_dx(KernelGlobals kg,
 ccl_device_noinline void svm_node_attr_bump_dy(KernelGlobals kg,
                                                ccl_private ShaderData *sd,
                                                ccl_private float *stack,
-                                               uint4 node)
+                                               const uint4 node)
 {
   NodeAttributeOutputType type = NODE_ATTR_OUTPUT_FLOAT;
   uint out_offset = 0;

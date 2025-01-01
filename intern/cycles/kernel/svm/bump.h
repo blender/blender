@@ -21,7 +21,7 @@ CCL_NAMESPACE_BEGIN
 ccl_device_noinline void svm_node_enter_bump_eval(KernelGlobals kg,
                                                   ccl_private ShaderData *sd,
                                                   ccl_private float *stack,
-                                                  uint offset)
+                                                  const uint offset)
 {
   /* save state */
   stack_store_float3(stack, offset + 0, sd->P);
@@ -50,7 +50,7 @@ ccl_device_noinline void svm_node_enter_bump_eval(KernelGlobals kg,
 ccl_device_noinline void svm_node_leave_bump_eval(KernelGlobals kg,
                                                   ccl_private ShaderData *sd,
                                                   ccl_private float *stack,
-                                                  uint offset)
+                                                  const uint offset)
 {
   /* restore state */
   sd->P = stack_load_float3(stack, offset + 0);

@@ -385,7 +385,7 @@ ccl_device void light_tree_emitter_importance(KernelGlobals kg,
                                               const float3 N_or_D,
                                               const float t,
                                               const bool has_transmission,
-                                              int emitter_index,
+                                              const int emitter_index,
                                               ccl_private float &max_importance,
                                               ccl_private float &min_importance)
 {
@@ -910,7 +910,7 @@ ccl_device float light_tree_pdf(KernelGlobals kg,
  * pdf from there. Otherwise compute from the current shading point. */
 ccl_device_inline float light_tree_pdf(KernelGlobals kg,
                                        float3 P,
-                                       float3 N,
+                                       const float3 N,
                                        const float dt,
                                        const int path_flag,
                                        const int emitter_object,

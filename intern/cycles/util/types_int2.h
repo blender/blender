@@ -29,7 +29,7 @@ struct int2 {
 #  endif
 };
 
-ccl_device_inline int2 make_int2(int x, int y)
+ccl_device_inline int2 make_int2(const int x, const int y)
 {
   int2 a = {x, y};
   return a;

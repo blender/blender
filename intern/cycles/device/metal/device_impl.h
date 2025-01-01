@@ -95,9 +95,9 @@ class MetalDevice : public Device {
   static thread_mutex existing_devices_mutex;
   static std::map<int, MetalDevice *> active_device_ids;
 
-  static bool is_device_cancelled(int device_id);
+  static bool is_device_cancelled(const int device_id);
 
-  static MetalDevice *get_device_by_ID(int device_idID,
+  static MetalDevice *get_device_by_ID(const int device_idID,
                                        thread_scoped_lock &existing_devices_mutex_lock);
 
   bool is_ready(string &status) const override;
@@ -144,12 +144,12 @@ class MetalDevice : public Device {
 
   void optimize_for_scene(Scene *scene) override;
 
-  static void compile_and_load(int device_id, MetalPipelineType pso_type);
+  static void compile_and_load(const int device_id, MetalPipelineType pso_type);
 
   /* ------------------------------------------------------------------ */
   /* low-level memory management */
 
-  bool max_working_set_exceeded(size_t safety_margin = 8 * 1024 * 1024) const;
+  bool max_working_set_exceeded(const size_t safety_margin = 8 * 1024 * 1024) const;
 
   MetalMem *generic_alloc(device_memory &mem);
 
@@ -165,15 +165,16 @@ class MetalDevice : public Device {
   {
     mem_copy_from(mem, -1, -1, -1, -1);
   }
-  void mem_copy_from(device_memory &mem, size_t y, size_t w, size_t h, size_t elem) override;
+  void mem_copy_from(
+      device_memory &mem, const size_t y, size_t w, const size_t h, size_t elem) override;
 
   void mem_zero(device_memory &mem) override;
 
   void mem_free(device_memory &mem) override;
 
-  device_ptr mem_alloc_sub_ptr(device_memory &mem, size_t offset, size_t /*size*/) override;
+  device_ptr mem_alloc_sub_ptr(device_memory &mem, const size_t offset, size_t /*size*/) override;
 
-  void const_copy_to(const char *name, void *host, size_t size) override;
+  void const_copy_to(const char *name, void *host, const size_t size) override;
 
   void global_alloc(device_memory &mem);
 

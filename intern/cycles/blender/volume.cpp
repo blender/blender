@@ -170,7 +170,7 @@ class BlenderSmokeLoader : public ImageLoader {
 };
 
 static void sync_smoke_volume(
-    BL::Scene &b_scene, Scene *scene, BObjectInfo &b_ob_info, Volume *volume, float frame)
+    BL::Scene &b_scene, Scene *scene, BObjectInfo &b_ob_info, Volume *volume, const float frame)
 {
   if (!b_ob_info.is_real_object_data()) {
     return;

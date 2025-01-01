@@ -59,7 +59,9 @@ CCL_NAMESPACE_BEGIN
  * real part of the phasor, we use the sine part instead, that is, the imaginary part of the
  * phasor, as suggested by Tavernier's paper in "Section 3.3. Instance stationarity and
  * normalization", to ensure a zero mean, which should help with normalization. */
-ccl_device float2 compute_2d_gabor_kernel(float2 position, float frequency, float orientation)
+ccl_device float2 compute_2d_gabor_kernel(const float2 position,
+                                          const float frequency,
+                                          const float orientation)
 {
   const float distance_squared = dot(position, position);
   const float hann_window = 0.5f + 0.5f * cosf(M_PI_F * distance_squared);
@@ -109,8 +111,11 @@ ccl_device float compute_2d_gabor_standard_deviation()
  * noise while it is random for isotropic noise. The original Gabor noise paper mentions that the
  * weights should be uniformly distributed in the [-1, 1] range, however, Tavernier's paper showed
  * that using a Bernoulli distribution yields better results, so that is what we do. */
-ccl_device float2 compute_2d_gabor_noise_cell(
-    float2 cell, float2 position, float frequency, float isotropy, float base_orientation)
+ccl_device float2 compute_2d_gabor_noise_cell(float2 cell,
+                                              const float2 position,
+                                              const float frequency,
+                                              const float isotropy,
+                                              const float base_orientation)
 
 {
   float2 noise = make_float2(0.0f, 0.0f);
@@ -147,10 +152,10 @@ ccl_device float2 compute_2d_gabor_noise_cell(
 
 /* Computes the Gabor noise value by dividing the space into a grid and evaluating the Gabor noise
  * in the space of each cell of the 3x3 cell neighborhood. */
-ccl_device float2 compute_2d_gabor_noise(float2 coordinates,
-                                         float frequency,
-                                         float isotropy,
-                                         float base_orientation)
+ccl_device float2 compute_2d_gabor_noise(const float2 coordinates,
+                                         const float frequency,
+                                         const float isotropy,
+                                         const float base_orientation)
 {
   const float2 cell_position = floor(coordinates);
   const float2 local_position = coordinates - cell_position;
@@ -173,7 +178,9 @@ ccl_device float2 compute_2d_gabor_noise(float2 coordinates,
  * (6) in the original Gabor noise paper computes the frequency vector using (cos(w_0), sin(w_0)),
  * which we also do in the 2D variant, however, for 3D, the orientation is already a unit frequency
  * vector, so we just need to scale it by the frequency value. */
-ccl_device float2 compute_3d_gabor_kernel(float3 position, float frequency, float3 orientation)
+ccl_device float2 compute_3d_gabor_kernel(const float3 position,
+                                          const float frequency,
+                                          const float3 orientation)
 {
   const float distance_squared = dot(position, position);
   const float hann_window = 0.5f + 0.5f * cosf(M_PI_F * distance_squared);
@@ -198,7 +205,9 @@ ccl_device float compute_3d_gabor_standard_deviation()
 /* Computes the orientation of the Gabor kernel such that it is constant for anisotropic
  * noise while it is random for isotropic noise. We randomize in spherical coordinates for a
  * uniform distribution. */
-ccl_device float3 compute_3d_orientation(float3 orientation, float isotropy, float4 seed)
+ccl_device float3 compute_3d_orientation(const float3 orientation,
+                                         const float isotropy,
+                                         const float4 seed)
 {
   /* Return the base orientation in case we are completely anisotropic. */
   if (isotropy == 0.0f) {
@@ -222,8 +231,11 @@ ccl_device float3 compute_3d_orientation(float3 orientation, float isotropy, flo
   return spherical_to_direction(inclination, azimuth);
 }
 
-ccl_device float2 compute_3d_gabor_noise_cell(
-    float3 cell, float3 position, float frequency, float isotropy, float3 base_orientation)
+ccl_device float2 compute_3d_gabor_noise_cell(float3 cell,
+                                              const float3 position,
+                                              const float frequency,
+                                              const float isotropy,
+                                              const float3 base_orientation)
 
 {
   float2 noise = make_float2(0.0f, 0.0f);
@@ -255,10 +267,10 @@ ccl_device float2 compute_3d_gabor_noise_cell(
 }
 
 /* Identical to compute_2d_gabor_noise but works in the 3D neighborhood of the noise. */
-ccl_device float2 compute_3d_gabor_noise(float3 coordinates,
-                                         float frequency,
-                                         float isotropy,
-                                         float3 base_orientation)
+ccl_device float2 compute_3d_gabor_noise(const float3 coordinates,
+                                         const float frequency,
+                                         const float isotropy,
+                                         const float3 base_orientation)
 {
   const float3 cell_position = floor(coordinates);
   const float3 local_position = coordinates - cell_position;
@@ -282,9 +294,9 @@ ccl_device float2 compute_3d_gabor_noise(float3 coordinates,
 ccl_device_noinline int svm_node_tex_gabor(KernelGlobals kg,
                                            ccl_private ShaderData *sd,
                                            ccl_private float *stack,
-                                           uint type,
-                                           uint stack_offsets_1,
-                                           uint stack_offsets_2,
+                                           const uint type,
+                                           const uint stack_offsets_1,
+                                           const uint stack_offsets_2,
                                            int offset)
 {
   uint coordinates_stack_offset;

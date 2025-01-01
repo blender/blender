@@ -29,7 +29,7 @@ struct uchar3 {
 #  endif
 };
 
-ccl_device_inline uchar3 make_uchar3(uchar x, uchar y, uchar z)
+ccl_device_inline uchar3 make_uchar3(const uchar x, const uchar y, uchar z)
 {
   uchar3 a = {x, y, z};
   return a;

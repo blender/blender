@@ -11,12 +11,12 @@ static Stats global_stats(Stats::static_init);
 
 /* Internal API. */
 
-void util_guarded_mem_alloc(size_t n)
+void util_guarded_mem_alloc(const size_t n)
 {
   global_stats.mem_alloc(n);
 }
 
-void util_guarded_mem_free(size_t n)
+void util_guarded_mem_free(const size_t n)
 {
   global_stats.mem_free(n);
 }

@@ -122,12 +122,12 @@ class LightManager {
   /* IES texture management */
   int add_ies(const string &content);
   int add_ies_from_file(const string &filename);
-  void remove_ies(int slot);
+  void remove_ies(const int slot);
 
   void device_update(Device *device, DeviceScene *dscene, Scene *scene, Progress &progress);
   void device_free(Device *device, DeviceScene *dscene, const bool free_background = true);
 
-  void tag_update(Scene *scene, uint32_t flag);
+  void tag_update(Scene *scene, const uint32_t flag);
 
   bool need_update() const;
 

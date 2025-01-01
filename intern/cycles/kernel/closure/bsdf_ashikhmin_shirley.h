@@ -32,7 +32,7 @@ ccl_device int bsdf_ashikhmin_shirley_setup(ccl_private MicrofacetBsdf *bsdf)
   return SD_BSDF | SD_BSDF_HAS_EVAL;
 }
 
-ccl_device void bsdf_ashikhmin_shirley_blur(ccl_private ShaderClosure *sc, float roughness)
+ccl_device void bsdf_ashikhmin_shirley_blur(ccl_private ShaderClosure *sc, const float roughness)
 {
   ccl_private MicrofacetBsdf *bsdf = (ccl_private MicrofacetBsdf *)sc;
 
@@ -40,7 +40,7 @@ ccl_device void bsdf_ashikhmin_shirley_blur(ccl_private ShaderClosure *sc, float
   bsdf->alpha_y = fmaxf(roughness, bsdf->alpha_y);
 }
 
-ccl_device_inline float bsdf_ashikhmin_shirley_roughness_to_exponent(float roughness)
+ccl_device_inline float bsdf_ashikhmin_shirley_roughness_to_exponent(const float roughness)
 {
   return 2.0f / (roughness * roughness) - 2.0f;
 }
@@ -117,8 +117,11 @@ ccl_device_forceinline Spectrum bsdf_ashikhmin_shirley_eval(const ccl_private Sh
   return make_spectrum(out);
 }
 
-ccl_device_inline void bsdf_ashikhmin_shirley_sample_first_quadrant(
-    float n_x, float n_y, const float2 rand, ccl_private float *phi, ccl_private float *cos_theta)
+ccl_device_inline void bsdf_ashikhmin_shirley_sample_first_quadrant(float n_x,
+                                                                    const float n_y,
+                                                                    const float2 rand,
+                                                                    ccl_private float *phi,
+                                                                    ccl_private float *cos_theta)
 {
   *phi = atanf(sqrtf((n_x + 1.0f) / (n_y + 1.0f)) * tanf(M_PI_2_F * rand.x));
   const float cos_phi = cosf(*phi);
@@ -127,8 +130,8 @@ ccl_device_inline void bsdf_ashikhmin_shirley_sample_first_quadrant(
 }
 
 ccl_device int bsdf_ashikhmin_shirley_sample(const ccl_private ShaderClosure *sc,
-                                             float3 Ng,
-                                             float3 wi,
+                                             const float3 Ng,
+                                             const float3 wi,
                                              float2 rand,
                                              ccl_private Spectrum *eval,
                                              ccl_private float3 *wo,

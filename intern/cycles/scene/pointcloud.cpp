@@ -35,9 +35,9 @@ void PointCloud::Point::bounds_grow(const float4 &point, BoundBox &bounds) const
 float4 PointCloud::Point::motion_key(const float3 *points,
                                      const float *radius,
                                      const float4 *point_steps,
-                                     size_t num_points,
-                                     size_t num_steps,
-                                     float time,
+                                     const size_t num_points,
+                                     const size_t num_steps,
+                                     const float time,
                                      size_t p) const
 {
   /* Figure out which steps we need to fetch and their
@@ -57,8 +57,8 @@ float4 PointCloud::Point::motion_key(const float3 *points,
 float4 PointCloud::Point::point_for_step(const float3 *points,
                                          const float *radius,
                                          const float4 *point_steps,
-                                         size_t num_points,
-                                         size_t num_steps,
+                                         const size_t num_points,
+                                         const size_t num_steps,
                                          size_t step,
                                          size_t p) const
 {
@@ -93,7 +93,7 @@ PointCloud::PointCloud() : Geometry(node_type, Geometry::POINTCLOUD) {}
 
 PointCloud::~PointCloud() = default;
 
-void PointCloud::resize(int numpoints)
+void PointCloud::resize(const int numpoints)
 {
   points.resize(numpoints);
   radius.resize(numpoints);
@@ -105,7 +105,7 @@ void PointCloud::resize(int numpoints)
   tag_shader_modified();
 }
 
-void PointCloud::reserve(int numpoints)
+void PointCloud::reserve(const int numpoints)
 {
   points.reserve(numpoints);
   radius.reserve(numpoints);
@@ -127,7 +127,7 @@ void PointCloud::clear(const bool preserve_shaders)
   tag_shader_modified();
 }
 
-void PointCloud::add_point(float3 co, float r, int shader_index)
+void PointCloud::add_point(const float3 co, const float r, const int shader_index)
 {
   points.push_back_reserved(co);
   radius.push_back_reserved(r);

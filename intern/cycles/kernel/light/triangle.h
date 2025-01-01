@@ -19,7 +19,7 @@ CCL_NAMESPACE_BEGIN
 
 /* returns true if the triangle is has motion blur or an instancing transform applied */
 ccl_device_inline bool triangle_world_space_vertices(
-    KernelGlobals kg, int object, int prim, float time, float3 V[3])
+    KernelGlobals kg, const int object, const int prim, const float time, float3 V[3])
 {
   bool has_motion = false;
   const int object_flag = kernel_data_fetch(object_flag, object);
@@ -47,7 +47,9 @@ ccl_device_inline bool triangle_world_space_vertices(
   return has_motion;
 }
 
-ccl_device_inline float triangle_light_pdf_area_sampling(const float3 Ng, const float3 I, float t)
+ccl_device_inline float triangle_light_pdf_area_sampling(const float3 Ng,
+                                                         const float3 I,
+                                                         const float t)
 {
   const float cos_pi = fabsf(dot(Ng, I));
 
@@ -60,7 +62,7 @@ ccl_device_inline float triangle_light_pdf_area_sampling(const float3 Ng, const 
 
 ccl_device_forceinline float triangle_light_pdf(KernelGlobals kg,
                                                 const ccl_private ShaderData *sd,
-                                                float t)
+                                                const float t)
 {
   /* A naive heuristic to decide between costly solid angle sampling
    * and simple area sampling, comparing the distance to the triangle plane
@@ -124,10 +126,10 @@ ccl_device_forceinline float triangle_light_pdf(KernelGlobals kg,
 
 template<bool in_volume_segment>
 ccl_device_forceinline bool triangle_light_sample(KernelGlobals kg,
-                                                  int prim,
-                                                  int object,
+                                                  const int prim,
+                                                  const int object,
                                                   const float2 rand,
-                                                  float time,
+                                                  const float time,
                                                   ccl_private LightSample *ls,
                                                   const float3 P)
 {

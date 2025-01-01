@@ -200,7 +200,7 @@ bool IESFile::parse(const string &ies)
   return !parser.has_error();
 }
 
-static bool angle_close(float a, float b)
+static bool angle_close(const float a, const float b)
 {
   return fabsf(a - b) < 1e-4f;
 }

@@ -83,7 +83,7 @@ ccl_device_inline bool bsdf_eval_is_zero(ccl_private BsdfEval *eval)
   return is_zero(eval->sum);
 }
 
-ccl_device_inline void bsdf_eval_mul(ccl_private BsdfEval *eval, float value)
+ccl_device_inline void bsdf_eval_mul(ccl_private BsdfEval *eval, const float value)
 {
   eval->diffuse *= value;
   eval->glossy *= value;
@@ -123,7 +123,9 @@ ccl_device_inline Spectrum bsdf_eval_pass_glossy_weight(const ccl_private BsdfEv
  * to render buffers instead of using per-thread memory, and to avoid the
  * impact of clamping on other contributions. */
 
-ccl_device_forceinline void film_clamp_light(KernelGlobals kg, ccl_private Spectrum *L, int bounce)
+ccl_device_forceinline void film_clamp_light(KernelGlobals kg,
+                                             ccl_private Spectrum *L,
+                                             const int bounce)
 {
 #ifdef __KERNEL_DEBUG_NAN__
   if (!isfinite_safe(*L)) {
@@ -156,8 +158,8 @@ ccl_device_forceinline void film_clamp_light(KernelGlobals kg, ccl_private Spect
 ccl_device_inline int film_write_sample(KernelGlobals kg,
                                         ConstIntegratorState state,
                                         ccl_global float *ccl_restrict render_buffer,
-                                        int sample,
-                                        int sample_offset)
+                                        const int sample,
+                                        const int sample_offset)
 {
   if (kernel_data.film.pass_sample_count == PASS_UNUSED) {
     return sample;

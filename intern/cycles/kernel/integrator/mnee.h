@@ -254,7 +254,7 @@ __attribute__((noinline))
 ccl_device_forceinline
 #endif
 bool mnee_compute_constraint_derivatives(
-    int vertex_count,
+  const int vertex_count,
     ccl_private ManifoldVertex *vertices,
      const ccl_private  float3 &surface_sample_pos,
     const bool light_fixed_direction,
@@ -373,7 +373,7 @@ bool mnee_compute_constraint_derivatives(
  *  to use for specular manifold walk
  * (See for example http://faculty.washington.edu/finlayso/ebook/algebraic/advanced/LUtri.htm
  *  for block tridiagonal matrix based linear system solve) */
-ccl_device_forceinline bool mnee_solve_matrix_h_to_x(int vertex_count,
+ccl_device_forceinline bool mnee_solve_matrix_h_to_x(const int vertex_count,
                                                      ccl_private ManifoldVertex *vertices,
                                                      ccl_private float2 *dx)
 {
@@ -413,7 +413,7 @@ ccl_device_forceinline bool mnee_newton_solver(KernelGlobals kg,
                                                ccl_private ShaderData *sd_vtx,
                                                const ccl_private LightSample *ls,
                                                const bool light_fixed_direction,
-                                               int vertex_count,
+                                               const int vertex_count,
                                                ccl_private ManifoldVertex *vertices)
 {
   float2 dx[MNEE_MAX_CAUSTIC_CASTERS];
@@ -582,8 +582,11 @@ ccl_device_forceinline bool mnee_newton_solver(KernelGlobals kg,
 }
 
 /* Sample bsdf in half-vector measure. */
-ccl_device_forceinline float2
-mnee_sample_bsdf_dh(ClosureType type, float alpha_x, float alpha_y, float sample_u, float sample_v)
+ccl_device_forceinline float2 mnee_sample_bsdf_dh(ClosureType type,
+                                                  const float alpha_x,
+                                                  const float alpha_y,
+                                                  const float sample_u,
+                                                  const float sample_v)
 {
   float alpha2;
   float cos_phi;
@@ -626,8 +629,8 @@ mnee_sample_bsdf_dh(ClosureType type, float alpha_x, float alpha_y, float sample
  * specular chain above: this allows us to simplify the bsdf weight */
 ccl_device_forceinline Spectrum mnee_eval_bsdf_contribution(KernelGlobals kg,
                                                             ccl_private ShaderClosure *closure,
-                                                            float3 wi,
-                                                            float3 wo)
+                                                            const float3 wi,
+                                                            const float3 wo)
 {
   ccl_private MicrofacetBsdf *bsdf = (ccl_private MicrofacetBsdf *)closure;
 
@@ -669,7 +672,7 @@ ccl_device_forceinline Spectrum mnee_eval_bsdf_contribution(KernelGlobals kg,
 ccl_device_forceinline bool mnee_compute_transfer_matrix(const ccl_private ShaderData *sd,
                                                          const ccl_private LightSample *ls,
                                                          const bool light_fixed_direction,
-                                                         int vertex_count,
+                                                         const int vertex_count,
                                                          ccl_private ManifoldVertex *vertices,
                                                          ccl_private float *dx1_dxlight,
                                                          ccl_private float *dh_dx)
@@ -800,7 +803,7 @@ ccl_device_forceinline bool mnee_path_contribution(KernelGlobals kg,
                                                    ccl_private ShaderData *sd_mnee,
                                                    ccl_private LightSample *ls,
                                                    const bool light_fixed_direction,
-                                                   int vertex_count,
+                                                   const int vertex_count,
                                                    ccl_private ManifoldVertex *vertices,
                                                    ccl_private BsdfEval *throughput)
 {

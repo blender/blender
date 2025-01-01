@@ -25,7 +25,7 @@ static float3 make_float3_from_yup(const V3f &v)
 /* get the sample times to load data for the given the start and end frame of the procedural */
 static set<chrono_t> get_relevant_sample_times(AlembicProcedural *proc,
                                                const TimeSampling &time_sampling,
-                                               size_t num_samples)
+                                               const size_t num_samples)
 {
   set<chrono_t> result;
 
@@ -90,7 +90,7 @@ static void read_data_loop(AlembicProcedural *proc,
 
 /* Compute the vertex normals in case none are present in the IPolyMeshSchema, this is mostly used
  * to avoid computing them in the GeometryManager in order to speed up data updates. */
-static void compute_vertex_normals(CachedData &cache, double current_time)
+static void compute_vertex_normals(CachedData &cache, const double current_time)
 {
   if (cache.vertices.size() == 0) {
     return;
@@ -139,7 +139,7 @@ static void compute_vertex_normals(CachedData &cache, double current_time)
 
 static void add_normals(const Int32ArraySamplePtr face_indices,
                         const IN3fGeomParam &normals,
-                        double time,
+                        const double time,
                         CachedData &cached_data)
 {
   switch (normals.getScope()) {
@@ -219,7 +219,9 @@ static void add_normals(const Int32ArraySamplePtr face_indices,
   }
 }
 
-static void add_positions(const P3fArraySamplePtr positions, double time, CachedData &cached_data)
+static void add_positions(const P3fArraySamplePtr positions,
+                          const double time,
+                          CachedData &cached_data)
 {
   if (!positions) {
     return;
@@ -238,7 +240,7 @@ static void add_positions(const P3fArraySamplePtr positions, double time, Cached
 
 static void add_triangles(const Int32ArraySamplePtr face_counts,
                           const Int32ArraySamplePtr face_indices,
-                          double time,
+                          const double time,
                           CachedData &cached_data,
                           const array<int> &polygon_to_shader)
 {
@@ -751,7 +753,7 @@ static void process_attribute(CachedData &cache,
                               CachedData::CachedAttribute &attribute,
                               GeometryScope scope,
                               const typename ITypedGeomParam<TRAIT>::Sample &sample,
-                              double time)
+                              const double time)
 {
   using abc_type = typename TRAIT::value_type;
   using cycles_type = typename value_type_converter<abc_type>::cycles_type;
@@ -819,7 +821,7 @@ static void process_uvs(CachedData &cache,
                         CachedData::CachedAttribute &attribute,
                         GeometryScope scope,
                         const IV2fGeomParam::Sample &sample,
-                        double time)
+                        const double time)
 {
   if (scope != kFacevaryingScope && scope != kVaryingScope && scope != kVertexScope) {
     return;

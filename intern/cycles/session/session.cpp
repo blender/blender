@@ -578,7 +578,7 @@ void Session::reset(const SessionParams &session_params, const BufferParams &buf
   pause_cond_.notify_all();
 }
 
-void Session::set_samples(int samples)
+void Session::set_samples(const int samples)
 {
   if (samples == params.samples) {
     return;
@@ -594,7 +594,7 @@ void Session::set_samples(int samples)
   pause_cond_.notify_all();
 }
 
-void Session::set_time_limit(double time_limit)
+void Session::set_time_limit(const double time_limit)
 {
   if (time_limit == params.time_limit) {
     return;
@@ -676,7 +676,7 @@ void Session::wait()
   }
 }
 
-bool Session::update_scene(int width, int height)
+bool Session::update_scene(const int width, const int height)
 {
   /* Update camera if dimensions changed for progressive render. the camera
    * knows nothing about progressive or cropped rendering, it just gets the

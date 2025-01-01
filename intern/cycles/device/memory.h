@@ -223,7 +223,7 @@ class device_memory {
   {
     return data_size * data_elements * datatype_size(data_type);
   }
-  size_t memory_elements_size(int elements)
+  size_t memory_elements_size(const int elements)
   {
     return elements * data_elements * datatype_size(data_type);
   }
@@ -250,7 +250,7 @@ class device_memory {
 
   virtual ~device_memory();
 
-  void swap_device(Device *new_device, size_t new_device_size, device_ptr new_device_ptr);
+  void swap_device(Device *new_device, const size_t new_device_size, device_ptr new_device_ptr);
   void restore_device();
 
   bool is_resident(Device *sub_device) const;
@@ -281,14 +281,14 @@ class device_memory {
   /* Host allocation on the device. All host_pointer memory should be
    * allocated with these functions, for devices that support using
    * the same pointer for host and device. */
-  void *host_alloc(size_t size);
+  void *host_alloc(const size_t size);
   void host_free();
 
   /* Device memory allocation and copying. */
   void device_alloc();
   void device_free();
   void device_copy_to();
-  void device_copy_from(size_t y, size_t w, size_t h, size_t elem);
+  void device_copy_from(const size_t y, const size_t w, size_t h, const size_t elem);
   void device_zero();
 
   bool device_is_cpu();
@@ -321,7 +321,7 @@ template<typename T> class device_only_memory : public device_memory {
     free();
   }
 
-  void alloc_to_device(size_t num, bool shrink_to_fit = true)
+  void alloc_to_device(const size_t num, bool shrink_to_fit = true)
   {
     size_t new_size = num;
     bool reallocate;
@@ -382,7 +382,7 @@ template<typename T> class device_vector : public device_memory {
   }
 
   /* Host memory allocation. */
-  T *alloc(size_t width, size_t height = 0, size_t depth = 0)
+  T *alloc(const size_t width, const size_t height = 0, const size_t depth = 0)
   {
     size_t new_size = size(width, height, depth);
 
@@ -404,7 +404,7 @@ template<typename T> class device_vector : public device_memory {
 
   /* Host memory resize. Only use this if the original data needs to be
    * preserved, it is faster to call alloc() if it can be discarded. */
-  T *resize(size_t width, size_t height = 0, size_t depth = 0)
+  T *resize(const size_t width, const size_t height = 0, const size_t depth = 0)
   {
     size_t new_size = size(width, height, depth);
 
@@ -549,7 +549,7 @@ template<typename T> class device_vector : public device_memory {
     device_copy_from(0, data_width, (data_height == 0) ? 1 : data_height, sizeof(T));
   }
 
-  void copy_from_device(size_t y, size_t w, size_t h)
+  void copy_from_device(const size_t y, const size_t w, size_t h)
   {
     device_copy_from(y, w, h, sizeof(T));
   }
@@ -568,7 +568,7 @@ template<typename T> class device_vector : public device_memory {
   }
 
  protected:
-  size_t size(size_t width, size_t height, size_t depth)
+  size_t size(const size_t width, const size_t height, const size_t depth)
   {
     return width * ((height == 0) ? 1 : height) * ((depth == 0) ? 1 : depth);
   }
@@ -585,7 +585,7 @@ template<typename T> class device_vector : public device_memory {
 
 class device_sub_ptr {
  public:
-  device_sub_ptr(device_memory &mem, size_t offset, size_t size);
+  device_sub_ptr(device_memory &mem, const size_t offset, const size_t size);
   ~device_sub_ptr();
 
   device_ptr operator*() const

@@ -84,12 +84,12 @@ void Geometry::clear(bool preserve_shaders)
   tag_modified();
 }
 
-float Geometry::motion_time(int step) const
+float Geometry::motion_time(const int step) const
 {
   return (motion_steps > 1) ? 2.0f * step / (motion_steps - 1) - 1.0f : 0.0f;
 }
 
-int Geometry::motion_step(float time) const
+int Geometry::motion_step(const float time) const
 {
   if (motion_steps > 1) {
     int attr_step = 0;
@@ -1109,7 +1109,7 @@ void GeometryManager::device_free(Device *device, DeviceScene *dscene, bool forc
 #endif
 }
 
-void GeometryManager::tag_update(Scene *scene, uint32_t flag)
+void GeometryManager::tag_update(Scene *scene, const uint32_t flag)
 {
   update_flags |= flag;
 

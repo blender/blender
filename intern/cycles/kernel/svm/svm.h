@@ -101,7 +101,7 @@ ccl_device void svm_eval_nodes(KernelGlobals kg,
                                ConstIntegratorGenericState state,
                                ccl_private ShaderData *sd,
                                ccl_global float *render_buffer,
-                               uint32_t path_flag)
+                               const uint32_t path_flag)
 {
   float stack[SVM_STACK_SIZE];
   Spectrum closure_weight;

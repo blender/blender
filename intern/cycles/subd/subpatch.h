@@ -25,7 +25,7 @@ class Subpatch {
 
     struct Edge *edge;
 
-    int get_vert_along_edge(int n) const;
+    int get_vert_along_edge(const int n) const;
   };
 
   /*
@@ -62,7 +62,7 @@ class Subpatch {
   {
   }
 
-  Subpatch(Patch *patch, float2 c00, float2 c01, float2 c11, float2 c10)
+  Subpatch(Patch *patch, const float2 c00, const float2 c01, const float2 c11, const float2 c10)
       : patch(patch), c00(c00), c01(c01), c11(c11), c10(c10)
   {
   }
@@ -90,9 +90,9 @@ class Subpatch {
     return inner_triangles + edge_triangles;
   }
 
-  int get_vert_along_edge(int e, int n) const;
+  int get_vert_along_edge(const int e, const int n) const;
 
-  int get_vert_along_grid_edge(int edge, int n) const
+  int get_vert_along_grid_edge(const int edge, const int n) const
   {
     int Mu = fmax(edge_u0.T, edge_u1.T);
     int Mv = fmax(edge_v0.T, edge_v1.T);
@@ -149,7 +149,7 @@ struct Edge {
 
   Edge() = default;
 
-  int get_vert_along_edge(int n) const
+  int get_vert_along_edge(const int n) const
   {
     assert(n >= 0 && n <= T);
 
@@ -164,9 +164,11 @@ struct Edge {
   }
 };
 
-inline int Subpatch::edge_t::get_vert_along_edge(int n) const
+inline int Subpatch::edge_t::get_vert_along_edge(const int n_relative) const
 {
-  assert(n >= 0 && n <= T);
+  assert(n_relative >= 0 && n_relative <= T);
+
+  int n = n_relative;
 
   if (!indices_decrease_along_edge && !sub_edges_created_in_reverse_order) {
     n = offset + n;
@@ -184,7 +186,7 @@ inline int Subpatch::edge_t::get_vert_along_edge(int n) const
   return edge->get_vert_along_edge(n);
 }
 
-inline int Subpatch::get_vert_along_edge(int edge, int n) const
+inline int Subpatch::get_vert_along_edge(const int edge, const int n) const
 {
   return edges[edge].get_vert_along_edge(n);
 }

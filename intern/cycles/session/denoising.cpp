@@ -160,7 +160,7 @@ bool DenoiseImageLayer::match_channels(const std::vector<string> &channelnames,
 
 /* Denoise Task */
 
-DenoiseTask::DenoiseTask(Device *device, DenoiserPipeline *denoiser, int frame)
+DenoiseTask::DenoiseTask(Device *device, DenoiserPipeline *denoiser, const int frame)
     : denoiser(denoiser), device(device), frame(frame), current_layer(0), buffers(device)
 {
 }
@@ -172,7 +172,7 @@ DenoiseTask::~DenoiseTask()
 
 /* Denoiser Operations */
 
-bool DenoiseTask::load_input_pixels(int layer)
+bool DenoiseTask::load_input_pixels(const int layer)
 {
   /* Load center image */
   const DenoiseImageLayer &image_layer = image.layers[layer];

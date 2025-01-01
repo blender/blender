@@ -17,7 +17,8 @@
 
 CCL_NAMESPACE_BEGIN
 
-ccl_device float4 svm_image_texture(KernelGlobals kg, int id, float x, float y, uint flags)
+ccl_device float4
+svm_image_texture(KernelGlobals kg, const int id, const float x, float y, const uint flags)
 {
   if (id == -1) {
     return make_float4(
@@ -40,7 +41,7 @@ ccl_device float4 svm_image_texture(KernelGlobals kg, int id, float x, float y, 
 }
 
 /* Remap coordinate from 0..1 box to -1..-1 */
-ccl_device_inline float3 texco_remap_square(float3 co)
+ccl_device_inline float3 texco_remap_square(const float3 co)
 {
   return (co - make_float3(0.5f, 0.5f, 0.5f)) * 2.0f;
 }
@@ -48,7 +49,7 @@ ccl_device_inline float3 texco_remap_square(float3 co)
 ccl_device_noinline int svm_node_tex_image(KernelGlobals kg,
                                            ccl_private ShaderData * /*sd*/,
                                            ccl_private float *stack,
-                                           uint4 node,
+                                           const uint4 node,
                                            int offset)
 {
   uint co_offset;
@@ -129,7 +130,7 @@ ccl_device_noinline int svm_node_tex_image(KernelGlobals kg,
 ccl_device_noinline void svm_node_tex_image_box(KernelGlobals kg,
                                                 ccl_private ShaderData *sd,
                                                 ccl_private float *stack,
-                                                uint4 node)
+                                                const uint4 node)
 {
   /* get object space normal */
   float3 N = sd->N;
@@ -236,7 +237,7 @@ ccl_device_noinline void svm_node_tex_image_box(KernelGlobals kg,
 ccl_device_noinline void svm_node_tex_environment(KernelGlobals kg,
                                                   ccl_private ShaderData * /*sd*/,
                                                   ccl_private float *stack,
-                                                  uint4 node)
+                                                  const uint4 node)
 {
   const uint id = node.y;
   uint co_offset;

@@ -33,7 +33,7 @@ class BVHObjectSplit {
                  BVHSpatialStorage *storage,
                  const BVHRange &range,
                  vector<BVHReference> &references,
-                 float nodeSAH,
+                 const float nodeSAH,
                  const BVHUnaligned *unaligned_heuristic = nullptr,
                  const Transform *aligned_space = nullptr);
 
@@ -67,7 +67,7 @@ class BVHSpatialSplit {
                   BVHSpatialStorage *storage,
                   const BVHRange &range,
                   vector<BVHReference> &references,
-                  float nodeSAH,
+                  const float nodeSAH,
                   const BVHUnaligned *unaligned_heuristic = nullptr,
                   const Transform *aligned_space = nullptr);
 
@@ -77,7 +77,7 @@ class BVHSpatialSplit {
                        BVHReference &left,
                        BVHReference &right,
                        const BVHReference &ref,
-                       int dim,
+                       const int dim,
                        float pos);
 
  protected:
@@ -94,24 +94,24 @@ class BVHSpatialSplit {
    */
   void split_triangle_primitive(const Mesh *mesh,
                                 const Transform *tfm,
-                                int prim_index,
-                                int dim,
-                                float pos,
+                                const int prim_index,
+                                const int dim,
+                                const float pos,
                                 BoundBox &left_bounds,
                                 BoundBox &right_bounds);
   void split_curve_primitive(const Hair *hair,
                              const Transform *tfm,
-                             int prim_index,
-                             int segment_index,
-                             int dim,
-                             float pos,
+                             const int prim_index,
+                             const int segment_index,
+                             const int dim,
+                             const float pos,
                              BoundBox &left_bounds,
                              BoundBox &right_bounds);
   void split_point_primitive(const PointCloud *pointcloud,
                              const Transform *tfm,
-                             int prim_index,
-                             int dim,
-                             float pos,
+                             const int prim_index,
+                             const int dim,
+                             const float pos,
                              BoundBox &left_bounds,
                              BoundBox &right_bounds);
 
@@ -122,24 +122,27 @@ class BVHSpatialSplit {
    */
   void split_triangle_reference(const BVHReference &ref,
                                 const Mesh *mesh,
-                                int dim,
-                                float pos,
+                                const int dim,
+                                const float pos,
                                 BoundBox &left_bounds,
                                 BoundBox &right_bounds);
   void split_curve_reference(const BVHReference &ref,
                              const Hair *hair,
-                             int dim,
-                             float pos,
+                             const int dim,
+                             const float pos,
                              BoundBox &left_bounds,
                              BoundBox &right_bounds);
   void split_point_reference(const BVHReference &ref,
                              const PointCloud *pointcloud,
-                             int dim,
-                             float pos,
+                             const int dim,
+                             const float pos,
                              BoundBox &left_bounds,
                              BoundBox &right_bounds);
-  void split_object_reference(
-      const Object *object, int dim, float pos, BoundBox &left_bounds, BoundBox &right_bounds);
+  void split_object_reference(const Object *object,
+                              const int dim,
+                              const float pos,
+                              BoundBox &left_bounds,
+                              BoundBox &right_bounds);
 
   __forceinline BoundBox get_prim_bounds(const BVHReference &prim) const
   {
@@ -179,7 +182,7 @@ class BVHMixedSplit {
                               BVHSpatialStorage *storage,
                               const BVHRange &range,
                               vector<BVHReference> &references,
-                              int level,
+                              const int level,
                               const BVHUnaligned *unaligned_heuristic = nullptr,
                               const Transform *aligned_space = nullptr)
   {

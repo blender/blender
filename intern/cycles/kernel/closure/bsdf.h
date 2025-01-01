@@ -59,7 +59,10 @@ ccl_device_inline float bsdf_get_roughness_pass_squared(const ccl_private Shader
 /* An additional term to smooth illumination on grazing angles when using bump mapping.
  * Based on "Taming the Shadow Terminator" by Matt Jen-Yuan Chiang,
  * Yining Karl Li and Brent Burley. */
-ccl_device_inline float bump_shadowing_term(int shader_flag, float3 Ng, float3 N, float3 I)
+ccl_device_inline float bump_shadowing_term(const int shader_flag,
+                                            float3 Ng,
+                                            const float3 N,
+                                            float3 I)
 {
   const float cosNI = dot(N, I);
   if (cosNI < 0.0f) {
@@ -570,7 +573,7 @@ ccl_device_inline
   return eval;
 }
 
-ccl_device void bsdf_blur(KernelGlobals kg, ccl_private ShaderClosure *sc, float roughness)
+ccl_device void bsdf_blur(KernelGlobals kg, ccl_private ShaderClosure *sc, const float roughness)
 {
   /* TODO: do we want to blur volume closures? */
 #if defined(__SVM__) || defined(__OSL__)

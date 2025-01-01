@@ -24,7 +24,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Closure Nodes */
 
-ccl_device_inline int svm_node_closure_bsdf_skip(KernelGlobals kg, int offset, uint type)
+ccl_device_inline int svm_node_closure_bsdf_skip(KernelGlobals kg, int offset, const uint type)
 {
   if (type == CLOSURE_BSDF_PRINCIPLED_ID) {
     /* Read all principled BSDF extra data to get the right offset. */
@@ -48,8 +48,8 @@ ccl_device
                           ccl_private ShaderData *sd,
                           ccl_private float *stack,
                           Spectrum closure_weight,
-                          uint4 node,
-                          uint32_t path_flag,
+                          const uint4 node,
+                          const uint32_t path_flag,
                           int offset)
 {
   uint type;
@@ -1055,7 +1055,7 @@ ccl_device_noinline void svm_node_closure_volume(KernelGlobals kg,
                                                  ccl_private ShaderData *sd,
                                                  ccl_private float *stack,
                                                  Spectrum closure_weight,
-                                                 uint4 node)
+                                                 const uint4 node)
 {
 #ifdef __VOLUME__
   /* Only sum extinction for volumes, variable is shared with surface transparency. */
@@ -1164,9 +1164,9 @@ template<ShaderType shader_type>
 ccl_device_noinline int svm_node_principled_volume(KernelGlobals kg,
                                                    ccl_private ShaderData *sd,
                                                    ccl_private float *stack,
-                                                   Spectrum closure_weight,
-                                                   uint4 node,
-                                                   uint32_t path_flag,
+                                                   const Spectrum closure_weight,
+                                                   const uint4 node,
+                                                   const uint32_t path_flag,
                                                    int offset)
 {
 #ifdef __VOLUME__
@@ -1295,7 +1295,7 @@ ccl_device_noinline void svm_node_closure_emission(KernelGlobals kg,
                                                    ccl_private ShaderData *sd,
                                                    ccl_private float *stack,
                                                    Spectrum closure_weight,
-                                                   uint4 node)
+                                                   const uint4 node)
 {
   const uint mix_weight_offset = node.y;
   Spectrum weight = closure_weight;
@@ -1320,7 +1320,7 @@ ccl_device_noinline void svm_node_closure_emission(KernelGlobals kg,
 ccl_device_noinline void svm_node_closure_background(ccl_private ShaderData *sd,
                                                      ccl_private float *stack,
                                                      Spectrum closure_weight,
-                                                     uint4 node)
+                                                     const uint4 node)
 {
   const uint mix_weight_offset = node.y;
   Spectrum weight = closure_weight;
@@ -1341,7 +1341,7 @@ ccl_device_noinline void svm_node_closure_background(ccl_private ShaderData *sd,
 ccl_device_noinline void svm_node_closure_holdout(ccl_private ShaderData *sd,
                                                   ccl_private float *stack,
                                                   Spectrum closure_weight,
-                                                  uint4 node)
+                                                  const uint4 node)
 {
   const uint mix_weight_offset = node.y;
 
@@ -1363,8 +1363,11 @@ ccl_device_noinline void svm_node_closure_holdout(ccl_private ShaderData *sd,
 
 /* Closure Nodes */
 
-ccl_device void svm_node_closure_set_weight(
-    ccl_private ShaderData *sd, ccl_private Spectrum *closure_weight, uint r, uint g, uint b)
+ccl_device void svm_node_closure_set_weight(ccl_private ShaderData *sd,
+                                            ccl_private Spectrum *closure_weight,
+                                            const uint r,
+                                            uint g,
+                                            const uint b)
 {
   *closure_weight = rgb_to_spectrum(
       make_float3(__uint_as_float(r), __uint_as_float(g), __uint_as_float(b)));
@@ -1373,7 +1376,7 @@ ccl_device void svm_node_closure_set_weight(
 ccl_device void svm_node_closure_weight(ccl_private ShaderData *sd,
                                         ccl_private float *stack,
                                         ccl_private Spectrum *closure_weight,
-                                        uint weight_offset)
+                                        const uint weight_offset)
 {
   *closure_weight = rgb_to_spectrum(stack_load_float3(stack, weight_offset));
 }
@@ -1382,7 +1385,7 @@ ccl_device_noinline void svm_node_emission_weight(KernelGlobals kg,
                                                   ccl_private ShaderData *sd,
                                                   ccl_private float *stack,
                                                   ccl_private Spectrum *closure_weight,
-                                                  uint4 node)
+                                                  const uint4 node)
 {
   const uint color_offset = node.y;
   const uint strength_offset = node.z;
@@ -1393,7 +1396,7 @@ ccl_device_noinline void svm_node_emission_weight(KernelGlobals kg,
 
 ccl_device_noinline void svm_node_mix_closure(ccl_private ShaderData *sd,
                                               ccl_private float *stack,
-                                              uint4 node)
+                                              const uint4 node)
 {
   /* fetch weight from blend input, previous mix closures,
    * and write to stack to be used by closure nodes later */
@@ -1424,8 +1427,8 @@ ccl_device_noinline void svm_node_mix_closure(ccl_private ShaderData *sd,
 ccl_device void svm_node_set_normal(KernelGlobals kg,
                                     ccl_private ShaderData *sd,
                                     ccl_private float *stack,
-                                    uint in_direction,
-                                    uint out_normal)
+                                    const uint in_direction,
+                                    const uint out_normal)
 {
   const float3 normal = stack_load_float3(stack, in_direction);
   sd->N = normal;

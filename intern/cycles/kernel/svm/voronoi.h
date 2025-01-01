@@ -1033,9 +1033,9 @@ template<uint node_feature_mask>
 ccl_device_noinline int svm_node_tex_voronoi(KernelGlobals kg,
                                              ccl_private ShaderData *sd,
                                              ccl_private float *stack,
-                                             uint dimensions,
-                                             uint feature,
-                                             uint metric,
+                                             const uint dimensions,
+                                             const uint feature,
+                                             const uint metric,
                                              int offset)
 {
   /* Read node defaults and stack offsets. */

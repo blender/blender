@@ -134,15 +134,15 @@ class Geometry : public Node {
 
   /* Convert between normalized -1..1 motion time and index in the
    * VERTEX_MOTION attribute. */
-  float motion_time(int step) const;
-  int motion_step(float time) const;
+  float motion_time(const int step) const;
+  int motion_step(const float time) const;
 
   /* BVH */
   void compute_bvh(Device *device,
                    DeviceScene *dscene,
                    SceneParams *params,
                    Progress *progress,
-                   size_t n,
+                   const size_t n,
                    size_t total);
 
   virtual PrimitiveType primitive_type() const = 0;
@@ -238,7 +238,7 @@ class GeometryManager {
   void device_free(Device *device, DeviceScene *dscene, bool force_free);
 
   /* Updates */
-  void tag_update(Scene *scene, uint32_t flag);
+  void tag_update(Scene *scene, const uint32_t flag);
 
   bool need_update() const;
 

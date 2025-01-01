@@ -21,8 +21,8 @@ CCL_NAMESPACE_BEGIN
 
 #ifdef __POINTCLOUD__
 
-ccl_device_inline float4
-motion_point_for_step(KernelGlobals kg, int offset, int numverts, int numsteps, int step, int prim)
+ccl_device_inline float4 motion_point_for_step(
+    KernelGlobals kg, int offset, const int numverts, const int numsteps, int step, const int prim)
 {
   if (step == numsteps) {
     /* center step: regular key location */
@@ -39,7 +39,10 @@ motion_point_for_step(KernelGlobals kg, int offset, int numverts, int numsteps, 
 }
 
 /* return 2 point key locations */
-ccl_device_inline float4 motion_point(KernelGlobals kg, int object, int prim, float time)
+ccl_device_inline float4 motion_point(KernelGlobals kg,
+                                      const int object,
+                                      const int prim,
+                                      const float time)
 {
   /* get motion info */
   const int numsteps = kernel_data_fetch(objects, object).numsteps;

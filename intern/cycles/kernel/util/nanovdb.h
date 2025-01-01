@@ -51,7 +51,7 @@ template<uint32_t LOG2DIM> struct Mask {
   ccl_static_constexpr uint32_t WORD_COUNT = SIZE >> 6;
   uint64_t mWords[WORD_COUNT];
 
-  ccl_device_inline_method bool isOff(uint32_t n) const ccl_global
+  ccl_device_inline_method bool isOff(const uint32_t n) const ccl_global
   {
     return 0 == (mWords[n >> 6] & (uint64_t(1) << (n & 63)));
   }
@@ -164,7 +164,7 @@ template<typename ChildT> struct alignas(NANOVDB_DATA_ALIGNMENT) RootNode {
 
 /* InternalNode */
 
-template<typename ChildT, uint32_t Log2Dim = ChildT::LOG2DIM + 1>
+template<typename ChildT, const uint32_t Log2Dim = ChildT::LOG2DIM + 1>
 struct alignas(NANOVDB_DATA_ALIGNMENT) InternalNode {
   using ValueType = typename ChildT::ValueType;
   using BuildType = typename ChildT::BuildType;
@@ -186,7 +186,7 @@ struct alignas(NANOVDB_DATA_ALIGNMENT) InternalNode {
 
   alignas(32) Tile mTable[1u << (3 * Log2Dim)];
 
-  const ccl_device_inline_method ccl_global ChildT *getChild(uint32_t n) const ccl_global
+  const ccl_device_inline_method ccl_global ChildT *getChild(const uint32_t n) const ccl_global
   {
     return PtrAdd<ChildT>(this, mTable[n].child);
   }
@@ -207,7 +207,7 @@ struct alignas(NANOVDB_DATA_ALIGNMENT) InternalNode {
 
 /* LeafData */
 
-template<typename ValueT, uint32_t LOG2DIM> struct alignas(NANOVDB_DATA_ALIGNMENT) LeafData {
+template<typename ValueT, const uint32_t LOG2DIM> struct alignas(NANOVDB_DATA_ALIGNMENT) LeafData {
   using ValueType = ValueT;
   using BuildType = ValueT;
 
@@ -222,7 +222,7 @@ template<typename ValueT, uint32_t LOG2DIM> struct alignas(NANOVDB_DATA_ALIGNMEN
   float mStdDevi;
   alignas(32) ValueType mValues[1u << 3 * LOG2DIM];
 
-  ccl_device_inline_method ValueType getValue(uint32_t i) const ccl_global
+  ccl_device_inline_method ValueType getValue(const uint32_t i) const ccl_global
   {
     return mValues[i];
   }
@@ -252,7 +252,7 @@ template<uint32_t LOG2DIM> struct alignas(NANOVDB_DATA_ALIGNMENT) LeafData<Fp16,
   LeafFnBase<LOG2DIM> base;
   alignas(32) uint16_t mCode[1u << 3 * LOG2DIM];
 
-  ccl_device_inline_method float getValue(uint32_t i) const ccl_global
+  ccl_device_inline_method float getValue(const uint32_t i) const ccl_global
   {
     return mCode[i] * base.mQuantum + base.mMinimum;
   }
@@ -268,7 +268,7 @@ template<uint32_t LOG2DIM> struct alignas(NANOVDB_DATA_ALIGNMENT) LeafData<FpN, 
 
   LeafFnBase<LOG2DIM> base;
 
-  ccl_device_inline_method float getValue(uint32_t i) const ccl_global
+  ccl_device_inline_method float getValue(const uint32_t i) const ccl_global
   {
     const int b = base.mFlags >> 5;
     uint32_t code = reinterpret_cast<const ccl_global uint32_t *>(this + 1)[i >> (5 - b)];
@@ -280,7 +280,8 @@ template<uint32_t LOG2DIM> struct alignas(NANOVDB_DATA_ALIGNMENT) LeafData<FpN, 
 
 /* LeafNode */
 
-template<typename BuildT, uint32_t Log2Dim = 3> struct alignas(NANOVDB_DATA_ALIGNMENT) LeafNode {
+template<typename BuildT, const uint32_t Log2Dim = 3>
+struct alignas(NANOVDB_DATA_ALIGNMENT) LeafNode {
   using DataType = LeafData<BuildT, Log2Dim>;
   using ValueType = typename DataType::ValueType;
   using BuildType = typename DataType::BuildType;
@@ -299,7 +300,7 @@ template<typename BuildT, uint32_t Log2Dim = 3> struct alignas(NANOVDB_DATA_ALIG
     return ((ijk.x & MASK) << (2 * LOG2DIM)) | ((ijk.y & MASK) << LOG2DIM) | (ijk.z & MASK);
   }
 
-  ccl_device_inline_method ValueType getValue(uint32_t offset) const ccl_global
+  ccl_device_inline_method ValueType getValue(const uint32_t offset) const ccl_global
   {
     return data.getValue(offset);
   }

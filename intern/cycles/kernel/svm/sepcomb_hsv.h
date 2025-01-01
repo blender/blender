@@ -13,9 +13,9 @@ CCL_NAMESPACE_BEGIN
 ccl_device_noinline int svm_node_combine_hsv(KernelGlobals kg,
                                              ccl_private ShaderData *sd,
                                              ccl_private float *stack,
-                                             uint hue_in,
-                                             uint saturation_in,
-                                             uint value_in,
+                                             const uint hue_in,
+                                             const uint saturation_in,
+                                             const uint value_in,
                                              int offset)
 {
   const uint4 node1 = read_node(kg, &offset);
@@ -37,9 +37,9 @@ ccl_device_noinline int svm_node_combine_hsv(KernelGlobals kg,
 ccl_device_noinline int svm_node_separate_hsv(KernelGlobals kg,
                                               ccl_private ShaderData *sd,
                                               ccl_private float *stack,
-                                              uint color_in,
-                                              uint hue_out,
-                                              uint saturation_out,
+                                              const uint color_in,
+                                              const uint hue_out,
+                                              const uint saturation_out,
                                               int offset)
 {
   const uint4 node1 = read_node(kg, &offset);

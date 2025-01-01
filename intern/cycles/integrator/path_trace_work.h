@@ -63,8 +63,8 @@ class PathTraceWork {
   /* Render given number of samples as a synchronous blocking call.
    * The samples are added to the render buffer associated with this work. */
   virtual void render_samples(RenderStatistics &statistics,
-                              int start_sample,
-                              int samples_num,
+                              const int start_sample,
+                              const int samples_num,
                               int sample_offset) = 0;
 
   /* Copy render result from this work to the corresponding place of the GPU display.
@@ -73,7 +73,9 @@ class PathTraceWork {
    * noisy pass mode will be passed here when it is known that the buffer does not have denoised
    * passes yet (because denoiser did not run). If the denoised pass is requested and denoiser is
    * not used then this function will fall-back to the noisy pass instead. */
-  virtual void copy_to_display(PathTraceDisplay *display, PassMode pass_mode, int num_samples) = 0;
+  virtual void copy_to_display(PathTraceDisplay *display,
+                               PassMode pass_mode,
+                               const int num_samples) = 0;
 
   virtual void destroy_gpu_resources(PathTraceDisplay *display) = 0;
 
@@ -120,7 +122,8 @@ class PathTraceWork {
 
   /* Perform convergence test on the render buffer, and filter the convergence mask.
    * Returns number of active pixels (the ones which did not converge yet). */
-  virtual int adaptive_sampling_converge_filter_count_active(float threshold, bool reset) = 0;
+  virtual int adaptive_sampling_converge_filter_count_active(const float threshold,
+                                                             bool reset) = 0;
 
   /* Run cryptomatte pass post-processing kernels. */
   virtual void cryptomatte_postproces() = 0;

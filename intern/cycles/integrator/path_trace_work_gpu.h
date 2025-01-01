@@ -33,18 +33,20 @@ class PathTraceWorkGPU : public PathTraceWork {
   void init_execution() override;
 
   void render_samples(RenderStatistics &statistics,
-                      int start_sample,
-                      int samples_num,
+                      const int start_sample,
+                      const int samples_num,
                       int sample_offset) override;
 
-  void copy_to_display(PathTraceDisplay *display, PassMode pass_mode, int num_samples) override;
+  void copy_to_display(PathTraceDisplay *display,
+                       PassMode pass_mode,
+                       const int num_samples) override;
   void destroy_gpu_resources(PathTraceDisplay *display) override;
 
   bool copy_render_buffers_from_device() override;
   bool copy_render_buffers_to_device() override;
   bool zero_render_buffers() override;
 
-  int adaptive_sampling_converge_filter_count_active(float threshold, bool reset) override;
+  int adaptive_sampling_converge_filter_count_active(const float threshold, bool reset) override;
   void cryptomatte_postproces() override;
 
  protected:
@@ -86,18 +88,20 @@ class PathTraceWorkGPU : public PathTraceWork {
 
   /* Naive implementation of the `copy_to_display()` which performs film conversion on the
    * device, then copies pixels to the host and pushes them to the `display`. */
-  void copy_to_display_naive(PathTraceDisplay *display, PassMode pass_mode, int num_samples);
+  void copy_to_display_naive(PathTraceDisplay *display, PassMode pass_mode, const int num_samples);
 
   /* Implementation of `copy_to_display()` which uses driver's OpenGL/GPU interoperability
    * functionality, avoiding copy of pixels to the host. */
-  bool copy_to_display_interop(PathTraceDisplay *display, PassMode pass_mode, int num_samples);
+  bool copy_to_display_interop(PathTraceDisplay *display,
+                               PassMode pass_mode,
+                               const int num_samples);
 
   /* Synchronously run film conversion kernel and store display result in the given destination. */
   void get_render_tile_film_pixels(const PassAccessor::Destination &destination,
                                    PassMode pass_mode,
                                    int num_samples);
 
-  int adaptive_sampling_convergence_check_count_active(float threshold, bool reset);
+  int adaptive_sampling_convergence_check_count_active(const float threshold, bool reset);
   void enqueue_adaptive_sampling_filter_x();
   void enqueue_adaptive_sampling_filter_y();
 

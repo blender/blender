@@ -14,7 +14,7 @@ class DeviceScene;
 class Progress;
 class Scene;
 
-void curvebounds(float *lower, float *upper, float3 *p, int dim);
+void curvebounds(float *lower, float *upper, float3 *p, const int dim);
 
 class ParticleCurveData {
 

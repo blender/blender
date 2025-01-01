@@ -151,7 +151,7 @@ static inline void free_object_to_mesh(BL::BlendData & /*data*/,
 static inline void colorramp_to_array(BL::ColorRamp &ramp,
                                       array<float3> &ramp_color,
                                       array<float> &ramp_alpha,
-                                      int size)
+                                      const int size)
 {
   const int full_size = size + 1;
   ramp_color.resize(full_size);
@@ -173,7 +173,7 @@ static inline void curvemap_minmax_curve(/*const*/ BL::CurveMap &curve, float *m
 }
 
 static inline void curvemapping_minmax(/*const*/ BL::CurveMapping &cumap,
-                                       int num_curves,
+                                       const int num_curves,
                                        float *min_x,
                                        float *max_x)
 {
@@ -186,7 +186,9 @@ static inline void curvemapping_minmax(/*const*/ BL::CurveMapping &cumap,
   }
 }
 
-static inline void curvemapping_to_array(BL::CurveMapping &cumap, array<float> &data, int size)
+static inline void curvemapping_to_array(BL::CurveMapping &cumap,
+                                         array<float> &data,
+                                         const int size)
 {
   cumap.update();
   BL::CurveMap curve = cumap.curves[0];
@@ -200,7 +202,7 @@ static inline void curvemapping_to_array(BL::CurveMapping &cumap, array<float> &
 
 static inline void curvemapping_float_to_array(BL::CurveMapping &cumap,
                                                array<float> &data,
-                                               int size)
+                                               const int size)
 {
   float min = 0.0f;
   float max = 1.0f;
@@ -224,7 +226,7 @@ static inline void curvemapping_float_to_array(BL::CurveMapping &cumap,
 
 static inline void curvemapping_color_to_array(BL::CurveMapping &cumap,
                                                array<float3> &data,
-                                               int size,
+                                               const int size,
                                                bool rgb_curve)
 {
   float min_x = 0.0f;
@@ -303,7 +305,7 @@ static inline int render_resolution_y(BL::RenderSettings &b_render)
 static inline string image_user_file_path(BL::BlendData &data,
                                           BL::ImageUser &iuser,
                                           BL::Image &ima,
-                                          int cfra)
+                                          const int cfra)
 {
   char filepath[1024];
   iuser.tile(0);
@@ -319,19 +321,23 @@ static inline string image_user_file_path(BL::BlendData &data,
   return string(filepath);
 }
 
-static inline int image_user_frame_number(BL::ImageUser &iuser, BL::Image &ima, int cfra)
+static inline int image_user_frame_number(BL::ImageUser &iuser, BL::Image &ima, const int cfra)
 {
   BKE_image_user_frame_calc(
       static_cast<Image *>(ima.ptr.data), static_cast<ImageUser *>(iuser.ptr.data), cfra);
   return iuser.frame_current();
 }
 
-static inline unsigned char *image_get_pixels_for_frame(BL::Image &image, int frame, int tile)
+static inline unsigned char *image_get_pixels_for_frame(BL::Image &image,
+                                                        const int frame,
+                                                        const int tile)
 {
   return BKE_image_get_pixels_for_frame(static_cast<Image *>(image.ptr.data), frame, tile);
 }
 
-static inline float *image_get_float_pixels_for_frame(BL::Image &image, int frame, int tile)
+static inline float *image_get_float_pixels_for_frame(BL::Image &image,
+                                                      const int frame,
+                                                      const int tile)
 {
   return BKE_image_get_float_pixels_for_frame(static_cast<Image *>(image.ptr.data), frame, tile);
 }
@@ -422,7 +428,7 @@ static inline float3 get_float3(PointerRNA &ptr, const char *name)
   return f;
 }
 
-static inline void set_float3(PointerRNA &ptr, const char *name, float3 value)
+static inline void set_float3(PointerRNA &ptr, const char *name, const float3 value)
 {
   RNA_float_set_array(&ptr, name, &value.x);
 }
@@ -434,7 +440,7 @@ static inline float4 get_float4(PointerRNA &ptr, const char *name)
   return f;
 }
 
-static inline void set_float4(PointerRNA &ptr, const char *name, float4 value)
+static inline void set_float4(PointerRNA &ptr, const char *name, const float4 value)
 {
   RNA_float_set_array(&ptr, name, &value.x);
 }
@@ -454,7 +460,7 @@ static inline float get_float(PointerRNA &ptr, const char *name)
   return RNA_float_get(&ptr, name);
 }
 
-static inline void set_float(PointerRNA &ptr, const char *name, float value)
+static inline void set_float(PointerRNA &ptr, const char *name, const float value)
 {
   RNA_float_set(&ptr, name, value);
 }
@@ -464,7 +470,7 @@ static inline int get_int(PointerRNA &ptr, const char *name)
   return RNA_int_get(&ptr, name);
 }
 
-static inline void set_int(PointerRNA &ptr, const char *name, int value)
+static inline void set_int(PointerRNA &ptr, const char *name, const int value)
 {
   RNA_int_set(&ptr, name, value);
 }
@@ -500,7 +506,7 @@ static inline string get_enum_identifier(PointerRNA &ptr, const char *name)
   return string(identifier);
 }
 
-static inline void set_enum(PointerRNA &ptr, const char *name, int value)
+static inline void set_enum(PointerRNA &ptr, const char *name, const int value)
 {
   RNA_enum_set(&ptr, name, value);
 }
