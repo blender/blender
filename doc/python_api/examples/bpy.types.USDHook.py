@@ -307,8 +307,8 @@ class USDHookExample(bpy.types.USDHook):
         source = surf_output.GetConnectedSource()
         # Get the shader prim from the source
         shader = UsdShade.Shader(source[0])
-        id = shader.GetShaderId()
-        if id != "ND_standard_surface_surfaceshader":
+        shader_id = shader.GetShaderId()
+        if shader_id != "ND_standard_surface_surfaceshader":
             return False
 
         color_attr = shader.GetInput("base_color")
