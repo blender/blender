@@ -44,7 +44,6 @@ PATHS_EXCLUDE = set(
     for p in
     (
         "tools/check_source/clang_array_check.py",
-        "tools/utils_ide/cmake_netbeans_project.py",
         "tools/utils_ide/cmake_qtcreator_project.py",
         "release/datafiles/blender_icons_geom.py",  # Uses `bpy` too much.
         "tests/utils/bl_run_operators.py",  # Uses `bpy` too much.
