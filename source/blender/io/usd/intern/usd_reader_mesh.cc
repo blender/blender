@@ -540,7 +540,8 @@ void USDMeshReader::process_normals_vertex_varying(Mesh *mesh)
   }
 
   BLI_STATIC_ASSERT(sizeof(normals_[0]) == sizeof(float3), "Expected float3 normals size");
-  BKE_mesh_set_custom_normals_from_verts(mesh, reinterpret_cast<float(*)[3]>(normals_.data()));
+  bke::mesh_set_custom_normals_from_verts(
+      *mesh, {reinterpret_cast<float3 *>(normals_.data()), int64_t(normals_.size())});
 }
 
 void USDMeshReader::process_normals_face_varying(Mesh *mesh) const
@@ -575,7 +576,7 @@ void USDMeshReader::process_normals_face_varying(Mesh *mesh) const
     }
   }
 
-  BKE_mesh_set_custom_normals(mesh, reinterpret_cast<float(*)[3]>(corner_normals.data()));
+  bke::mesh_set_custom_normals(*mesh, corner_normals);
 }
 
 void USDMeshReader::process_normals_uniform(Mesh *mesh) const
@@ -599,7 +600,7 @@ void USDMeshReader::process_normals_uniform(Mesh *mesh) const
     }
   }
 
-  BKE_mesh_set_custom_normals(mesh, reinterpret_cast<float(*)[3]>(corner_normals.data()));
+  bke::mesh_set_custom_normals(*mesh, corner_normals);
 }
 
 void USDMeshReader::read_mesh_sample(ImportSettings *settings,

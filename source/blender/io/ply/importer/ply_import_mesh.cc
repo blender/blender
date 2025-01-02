@@ -146,8 +146,7 @@ Mesh *convert_ply_to_mesh(PlyData &data, const PLYImportParams &params)
   }
 
   if (set_custom_normals_for_verts) {
-    BKE_mesh_set_custom_normals_from_verts(
-        mesh, reinterpret_cast<float(*)[3]>(data.vertex_normals.data()));
+    bke::mesh_set_custom_normals_from_verts(*mesh, data.vertex_normals);
   }
 
   /* Merge all vertices on the same location. */

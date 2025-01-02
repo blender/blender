@@ -109,7 +109,8 @@ static void rna_Mesh_normals_split_custom_set(Mesh *mesh,
                                               const float *normals,
                                               int normals_num)
 {
-  float(*corner_normals)[3] = (float(*)[3])normals;
+  using namespace blender;
+  float3 *corner_normals = (float3 *)normals;
   const int numloops = mesh->corners_num;
   if (normals_num != numloops * 3) {
     BKE_reportf(reports,
@@ -120,7 +121,7 @@ static void rna_Mesh_normals_split_custom_set(Mesh *mesh,
     return;
   }
 
-  BKE_mesh_set_custom_normals(mesh, corner_normals);
+  bke::mesh_set_custom_normals(*mesh, {corner_normals, numloops});
 
   DEG_id_tag_update(&mesh->id, 0);
 }
@@ -130,7 +131,8 @@ static void rna_Mesh_normals_split_custom_set_from_vertices(Mesh *mesh,
                                                             const float *normals,
                                                             int normals_num)
 {
-  float(*vert_normals)[3] = (float(*)[3])normals;
+  using namespace blender;
+  float3 *vert_normals = (float3 *)normals;
   const int numverts = mesh->verts_num;
   if (normals_num != numverts * 3) {
     BKE_reportf(reports,
@@ -141,7 +143,7 @@ static void rna_Mesh_normals_split_custom_set_from_vertices(Mesh *mesh,
     return;
   }
 
-  BKE_mesh_set_custom_normals_from_verts(mesh, vert_normals);
+  bke::mesh_set_custom_normals_from_verts(*mesh, {vert_normals, numverts});
 
   DEG_id_tag_update(&mesh->id, 0);
 }

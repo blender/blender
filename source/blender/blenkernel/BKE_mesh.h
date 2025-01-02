@@ -366,26 +366,6 @@ void BKE_mesh_normals_loop_to_vertex(int numVerts,
  */
 bool BKE_mesh_has_custom_loop_normals(Mesh *mesh);
 
-/**
- * Higher level functions hiding most of the code needed around call to
- * #normals_corner_custom_set().
- *
- * \param r_custom_loop_normals: is not const, since code will replace zero_v3 normals there
- * with automatically computed vectors.
- */
-void BKE_mesh_set_custom_normals(Mesh *mesh, float (*r_custom_loop_normals)[3]);
-void BKE_mesh_set_custom_normals_normalized(Mesh *mesh, float (*r_custom_loop_normals)[3]);
-/**
- * Higher level functions hiding most of the code needed around call to
- * #normals_corner_custom_set_from_verts().
- *
- * \param r_custom_vert_normals: is not const, since code will replace zero_v3 normals there
- * with automatically computed vectors.
- */
-void BKE_mesh_set_custom_normals_from_verts(Mesh *mesh, float (*r_custom_vert_normals)[3]);
-void BKE_mesh_set_custom_normals_from_verts_normalized(Mesh *mesh,
-                                                       float (*r_custom_vert_normals)[3]);
-
 /* *** mesh_evaluate.cc *** */
 
 float BKE_mesh_calc_area(const Mesh *mesh);

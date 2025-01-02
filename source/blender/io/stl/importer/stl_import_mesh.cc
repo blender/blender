@@ -74,7 +74,7 @@ Mesh *STLMeshHelper::to_mesh()
   bke::mesh_calc_edges(*mesh, false, false);
 
   if (use_custom_normals_ && loop_normals_.size() == mesh->corners_num) {
-    BKE_mesh_set_custom_normals(mesh, reinterpret_cast<float(*)[3]>(loop_normals_.data()));
+    bke::mesh_set_custom_normals(*mesh, loop_normals_);
   }
 
   return mesh;

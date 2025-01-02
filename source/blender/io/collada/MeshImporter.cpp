@@ -1130,7 +1130,7 @@ Object *MeshImporter::create_mesh_object(
 
 bool MeshImporter::write_geometry(const COLLADAFW::Geometry *geom)
 {
-
+  using namespace blender;
   if (geom->getType() != COLLADAFW::Geometry::GEO_TYPE_MESH) {
     /* TODO: report warning */
     fprintf(stderr, "Mesh type %s is not supported\n", bc_geomTypeToStr(geom->getType()));
@@ -1163,10 +1163,10 @@ bool MeshImporter::write_geometry(const COLLADAFW::Geometry *geom)
   blender::bke::mesh_calc_edges(*blender_mesh, false, false);
 
   /* We must apply custom normals after edges have been calculated, because
-   * BKE_mesh_set_custom_normals()'s internals expect mesh->medge to be populated
+   * bke::mesh_set_custom_normals()'s internals expect mesh->medge to be populated
    * and for the MLoops to have correct edge indices. */
   if (use_custom_normals && !loop_normals.is_empty()) {
-    /* BKE_mesh_set_custom_normals()'s internals also expect that each corner
+    /* bke::mesh_set_custom_normals()'s internals also expect that each corner
      * has a valid vertex index, which may not be the case due to the existing
      * logic in read_faces(). This check isn't necessary in the no-custom-normals
      * case because the invalid MLoops get stripped in a later step. */
@@ -1182,8 +1182,7 @@ bool MeshImporter::write_geometry(const COLLADAFW::Geometry *geom)
               int(loop_normals.size()));
     }
     else {
-      BKE_mesh_set_custom_normals(blender_mesh,
-                                  reinterpret_cast<float(*)[3]>(loop_normals.data()));
+      bke::mesh_set_custom_normals(*blender_mesh, loop_normals);
     }
   }
 
