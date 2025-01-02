@@ -57,6 +57,8 @@ class BlenderSync {
 
   void tag_update();
 
+  void set_bake_target(BL::Object &b_object);
+
   /* sync */
   void sync_recalc(BL::Depsgraph &b_depsgraph, BL::SpaceView3D &b_v3d);
   void sync_data(BL::RenderSettings &b_render,
@@ -223,6 +225,7 @@ class BlenderSync {
   BL::RenderEngine b_engine;
   BL::BlendData b_data;
   BL::Scene b_scene;
+  BL::Object b_bake_target;
 
   enum ShaderFlags { SHADER_WITH_LAYER_ATTRS };
 
