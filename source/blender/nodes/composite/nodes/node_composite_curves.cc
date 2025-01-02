@@ -59,7 +59,7 @@ class TimeCurveOperation : public NodeOperation {
     CurveMapping *curve_mapping = const_cast<CurveMapping *>(get_curve_mapping());
     BKE_curvemapping_init(curve_mapping);
     const float time = BKE_curvemapping_evaluateF(curve_mapping, 0, compute_normalized_time());
-    result.set_float_value(clamp_f(time, 0.0f, 1.0f));
+    result.set_single_value(clamp_f(time, 0.0f, 1.0f));
   }
 
   const CurveMapping *get_curve_mapping()

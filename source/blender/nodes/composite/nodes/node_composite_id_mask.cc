@@ -116,7 +116,7 @@ class IDMaskOperation : public NodeOperation {
     const float input_mask_value = get_input("ID value").get_single_value<float>();
     const float mask = int(round(input_mask_value)) == get_index() ? 1.0f : 0.0f;
     get_result("Alpha").allocate_single_value();
-    get_result("Alpha").set_float_value(mask);
+    get_result("Alpha").set_single_value(mask);
   }
 
   int get_index()

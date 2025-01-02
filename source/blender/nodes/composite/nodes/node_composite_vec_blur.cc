@@ -107,7 +107,7 @@ static Result compute_max_tile_velocity_cpu(Context &context, const Result &velo
   if (velocity_image.is_single_value()) {
     Result output = context.create_result(ResultType::Vector);
     output.allocate_single_value();
-    output.set_vector_value(velocity_image.get_single_value<float4>());
+    output.set_single_value(velocity_image.get_single_value<float4>());
     return output;
   }
 
@@ -199,7 +199,7 @@ static Result dilate_max_velocity_cpu(Context &context,
   if (max_tile_velocity.is_single_value()) {
     Result output = context.create_result(ResultType::Vector);
     output.allocate_single_value();
-    output.set_vector_value(max_tile_velocity.get_single_value<float4>());
+    output.set_single_value(max_tile_velocity.get_single_value<float4>());
     return output;
   }
 

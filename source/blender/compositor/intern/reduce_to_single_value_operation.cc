@@ -45,13 +45,13 @@ void ReduceToSingleValueOperation::execute()
   result.allocate_single_value();
   switch (result.type()) {
     case ResultType::Color:
-      result.set_color_value(pixel);
+      result.set_single_value(float4(pixel));
       break;
     case ResultType::Vector:
-      result.set_vector_value(pixel);
+      result.set_single_value(float4(pixel));
       break;
     case ResultType::Float:
-      result.set_float_value(*pixel);
+      result.set_single_value(*pixel);
       break;
     default:
       /* Other types are internal and needn't be handled by operations. */

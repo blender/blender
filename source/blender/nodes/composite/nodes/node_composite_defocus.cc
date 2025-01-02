@@ -311,7 +311,7 @@ class DefocusOperation : public NodeOperation {
 
     if (input_depth.is_single_value()) {
       output_radius.allocate_single_value();
-      output_radius.set_float_value(compute_radius(input_depth.get_single_value<float>()));
+      output_radius.set_single_value(compute_radius(input_depth.get_single_value<float>()));
       return output_radius;
     }
 
@@ -412,7 +412,7 @@ class DefocusOperation : public NodeOperation {
 
     if (input_depth.is_single_value()) {
       output_radius.allocate_single_value();
-      output_radius.set_float_value(compute_radius(input_depth.get_single_value<float>()));
+      output_radius.set_single_value(compute_radius(input_depth.get_single_value<float>()));
       return;
     }
 

@@ -37,7 +37,7 @@ class RGBOperation : public NodeOperation {
     const bNodeSocket *socket = static_cast<const bNodeSocket *>(bnode().outputs.first);
     float4 color = float4(static_cast<const bNodeSocketValueRGBA *>(socket->default_value)->value);
 
-    result.set_color_value(color);
+    result.set_single_value(color);
   }
 };
 

@@ -33,7 +33,7 @@ class ValueOperation : public NodeOperation {
     const bNodeSocket *socket = static_cast<bNodeSocket *>(bnode().outputs.first);
     float value = static_cast<bNodeSocketValueFloat *>(socket->default_value)->value;
 
-    result.set_float_value(value);
+    result.set_single_value(value);
   }
 };
 

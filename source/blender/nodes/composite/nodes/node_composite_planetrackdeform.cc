@@ -132,7 +132,7 @@ class PlaneTrackDeformOperation : public NodeOperation {
       }
       if (output_mask.should_compute()) {
         output_mask.allocate_single_value();
-        output_mask.set_float_value(1.0f);
+        output_mask.set_single_value(1.0f);
       }
       return;
     }

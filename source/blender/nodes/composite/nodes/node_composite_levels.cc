@@ -66,14 +66,14 @@ class LevelsOperation : public NodeOperation {
     Result &mean_result = get_result("Mean");
     if (mean_result.should_compute()) {
       mean_result.allocate_single_value();
-      mean_result.set_float_value(mean);
+      mean_result.set_single_value(mean);
     }
 
     Result &standard_deviation_result = get_result("Std Dev");
     if (standard_deviation_result.should_compute()) {
       const float standard_deviation = compute_standard_deviation(mean);
       standard_deviation_result.allocate_single_value();
-      standard_deviation_result.set_float_value(standard_deviation);
+      standard_deviation_result.set_single_value(standard_deviation);
     }
   }
 
@@ -82,7 +82,7 @@ class LevelsOperation : public NodeOperation {
     Result &standard_deviation_result = get_result("Std Dev");
     if (standard_deviation_result.should_compute()) {
       standard_deviation_result.allocate_single_value();
-      standard_deviation_result.set_float_value(0.0f);
+      standard_deviation_result.set_single_value(0.0f);
     }
 
     Result &mean_result = get_result("Mean");
@@ -95,21 +95,21 @@ class LevelsOperation : public NodeOperation {
 
     switch (get_channel()) {
       case CMP_NODE_LEVLES_RED:
-        mean_result.set_float_value(input.x);
+        mean_result.set_single_value(input.x);
         break;
       case CMP_NODE_LEVLES_GREEN:
-        mean_result.set_float_value(input.y);
+        mean_result.set_single_value(input.y);
         break;
       case CMP_NODE_LEVLES_BLUE:
-        mean_result.set_float_value(input.z);
+        mean_result.set_single_value(input.z);
         break;
       case CMP_NODE_LEVLES_LUMINANCE_BT709:
-        mean_result.set_float_value(math::dot(input, float3(luminance_coefficients_bt709_)));
+        mean_result.set_single_value(math::dot(input, float3(luminance_coefficients_bt709_)));
         break;
       case CMP_NODE_LEVLES_LUMINANCE: {
         float luminance_coefficients[3];
         IMB_colormanagement_get_luminance_coefficients(luminance_coefficients);
-        mean_result.set_float_value(math::dot(input, float3(luminance_coefficients)));
+        mean_result.set_single_value(math::dot(input, float3(luminance_coefficients)));
         break;
       }
       default:

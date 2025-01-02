@@ -152,7 +152,7 @@ class MapUVOperation : public NodeOperation {
 
     Result &output = get_result("Image");
     output.allocate_single_value();
-    output.set_color_value(result);
+    output.set_single_value(result);
   }
 
   void execute_cpu_nearest()

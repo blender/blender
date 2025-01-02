@@ -13,6 +13,7 @@
 #include "BLI_math_vector.h"
 #include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
+#include "BLI_utildefines.h"
 
 #include "GPU_shader.hh"
 #include "GPU_texture.hh"
@@ -300,15 +301,6 @@ class Result {
    * for more information. */
   RealizationOptions &get_realization_options();
 
-  /* Set the single value of the result to the given value, which also involves setting the single
-   * pixel in the texture to that value. See the class description for more information. */
-  void set_float_value(float value);
-  void set_vector_value(const float4 &value);
-  void set_color_value(const float4 &value);
-  void set_float2_value(const float2 &value);
-  void set_float3_value(const float3 &value);
-  void set_int2_value(const int2 &value);
-
   /* Set the value of initial_reference_count_, see that member for more details. This should be
    * called after constructing the result to declare the number of operations that needs it. */
   void set_initial_reference_count(int count);
@@ -380,6 +372,11 @@ class Result {
    * default value is returned. Assumes the result stores a value of the same type as the template
    * type. */
   template<typename T> T get_single_value_default(const T &default_value) const;
+
+  /* Sets the single value of the result to the given value, which also involves setting the single
+   * pixel in the texture to that value. See the class description for more information. Assumes
+   * the result stores a value of the given template type. */
+  template<typename T> void set_single_value(const T &value);
 
   /* Loads the pixel at the given texel coordinates. Assumes the result stores a value of the given
    * template type. If the CouldBeSingleValue template argument is true and the result is a single
@@ -535,18 +532,23 @@ template<typename T> inline T Result::get_single_value() const
   static_assert(Result::is_supported_type<T>());
 
   if constexpr (std::is_same_v<T, float>) {
+    BLI_assert(type_ == ResultType::Float);
     return float_value_;
   }
   else if constexpr (std::is_same_v<T, float2>) {
+    BLI_assert(type_ == ResultType::Float2);
     return float2_value_;
   }
   else if constexpr (std::is_same_v<T, float3>) {
+    BLI_assert(type_ == ResultType::Float3);
     return float3_value_;
   }
   else if constexpr (std::is_same_v<T, float4>) {
+    BLI_assert(ELEM(type_, ResultType::Color, ResultType::Vector));
     return color_value_;
   }
   else if constexpr (std::is_same_v<T, int2>) {
+    BLI_assert(type_ == ResultType::Int2);
     return int2_value_;
   }
   else {
@@ -560,6 +562,75 @@ template<typename T> inline T Result::get_single_value_default(const T &default_
     return this->get_single_value<T>();
   }
   return default_value;
+}
+
+template<typename T> inline void Result::set_single_value(const T &value)
+{
+  BLI_assert(this->is_allocated());
+  BLI_assert(this->is_single_value());
+  static_assert(Result::is_supported_type<T>());
+
+  if constexpr (std::is_same_v<T, float>) {
+    BLI_assert(type_ == ResultType::Float);
+    float_value_ = value;
+  }
+  else if constexpr (std::is_same_v<T, float2>) {
+    BLI_assert(type_ == ResultType::Float2);
+    float2_value_ = value;
+  }
+  else if constexpr (std::is_same_v<T, float3>) {
+    BLI_assert(type_ == ResultType::Float3);
+    float3_value_ = value;
+  }
+  else if constexpr (std::is_same_v<T, float4>) {
+    BLI_assert(ELEM(type_, ResultType::Color, ResultType::Vector));
+    color_value_ = value;
+  }
+  else if constexpr (std::is_same_v<T, int2>) {
+    BLI_assert(type_ == ResultType::Int2);
+    int2_value_ = value;
+  }
+
+  switch (storage_type_) {
+    case ResultStorageType::GPU:
+      if constexpr (Result::is_int_type<T>()) {
+        if constexpr (std::is_scalar_v<T>) {
+          GPU_texture_update(gpu_texture_, GPU_DATA_INT, &value);
+        }
+        else {
+          GPU_texture_update(gpu_texture_, GPU_DATA_INT, value);
+        }
+      }
+      else {
+        if constexpr (std::is_scalar_v<T>) {
+          GPU_texture_update(gpu_texture_, GPU_DATA_FLOAT, &value);
+        }
+        else {
+          GPU_texture_update(gpu_texture_, GPU_DATA_FLOAT, value);
+        }
+      }
+      break;
+    case ResultStorageType::FloatCPU:
+    case ResultStorageType::IntegerCPU:
+      if constexpr (Result::is_int_type<T>()) {
+        if constexpr (std::is_scalar_v<T>) {
+          Result::copy_pixel(
+              this->integer_texture(), &value, Result::get_type_channels_count<T>());
+        }
+        else {
+          Result::copy_pixel(this->integer_texture(), value, Result::get_type_channels_count<T>());
+        }
+      }
+      else {
+        if constexpr (std::is_scalar_v<T>) {
+          Result::copy_pixel(this->float_texture(), &value, Result::get_type_channels_count<T>());
+        }
+        else {
+          Result::copy_pixel(this->float_texture(), value, Result::get_type_channels_count<T>());
+        }
+      }
+      break;
+  }
 }
 
 template<typename T, bool CouldBeSingleValue> inline T Result::load_pixel(const int2 &texel) const

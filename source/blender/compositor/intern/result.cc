@@ -235,22 +235,22 @@ void Result::allocate_invalid()
   allocate_single_value();
   switch (type_) {
     case ResultType::Float:
-      set_float_value(0.0f);
+      set_single_value(0.0f);
       break;
     case ResultType::Vector:
-      set_vector_value(float4(0.0f));
+      set_single_value(float4(0.0f));
       break;
     case ResultType::Color:
-      set_color_value(float4(0.0f));
+      set_single_value(float4(0.0f));
       break;
     case ResultType::Float2:
-      set_float2_value(float2(0.0f));
+      set_single_value(float2(0.0f));
       break;
     case ResultType::Float3:
-      set_float3_value(float3(0.0f));
+      set_single_value(float3(0.0f));
       break;
     case ResultType::Int2:
-      set_int2_value(int2(0));
+      set_single_value(int2(0));
       break;
   }
 }
@@ -385,126 +385,6 @@ void Result::transform(const float3x3 &transformation)
 RealizationOptions &Result::get_realization_options()
 {
   return domain_.realization_options;
-}
-
-void Result::set_float_value(float value)
-{
-  BLI_assert(type_ == ResultType::Float);
-  BLI_assert(is_single_value_);
-  BLI_assert(this->is_allocated());
-
-  float_value_ = value;
-  switch (storage_type_) {
-    case ResultStorageType::GPU:
-      GPU_texture_update(gpu_texture_, GPU_DATA_FLOAT, &value);
-      break;
-    case ResultStorageType::FloatCPU:
-      *float_texture_ = value;
-      break;
-    case ResultStorageType::IntegerCPU:
-      BLI_assert_unreachable();
-      break;
-  }
-}
-
-void Result::set_vector_value(const float4 &value)
-{
-  BLI_assert(type_ == ResultType::Vector);
-  BLI_assert(is_single_value_);
-  BLI_assert(this->is_allocated());
-
-  vector_value_ = value;
-  switch (storage_type_) {
-    case ResultStorageType::GPU:
-      GPU_texture_update(gpu_texture_, GPU_DATA_FLOAT, value);
-      break;
-    case ResultStorageType::FloatCPU:
-      copy_v4_v4(float_texture_, value);
-      break;
-    case ResultStorageType::IntegerCPU:
-      BLI_assert_unreachable();
-      break;
-  }
-}
-
-void Result::set_color_value(const float4 &value)
-{
-  BLI_assert(type_ == ResultType::Color);
-  BLI_assert(is_single_value_);
-  BLI_assert(this->is_allocated());
-
-  color_value_ = value;
-  switch (storage_type_) {
-    case ResultStorageType::GPU:
-      GPU_texture_update(gpu_texture_, GPU_DATA_FLOAT, value);
-      break;
-    case ResultStorageType::FloatCPU:
-      copy_v4_v4(float_texture_, value);
-      break;
-    case ResultStorageType::IntegerCPU:
-      BLI_assert_unreachable();
-      break;
-  }
-}
-
-void Result::set_float2_value(const float2 &value)
-{
-  BLI_assert(type_ == ResultType::Float2);
-  BLI_assert(is_single_value_);
-  BLI_assert(this->is_allocated());
-
-  float2_value_ = value;
-  switch (storage_type_) {
-    case ResultStorageType::GPU:
-      GPU_texture_update(gpu_texture_, GPU_DATA_FLOAT, value);
-      break;
-    case ResultStorageType::FloatCPU:
-      copy_v2_v2(float_texture_, value);
-      break;
-    case ResultStorageType::IntegerCPU:
-      BLI_assert_unreachable();
-      break;
-  }
-}
-
-void Result::set_float3_value(const float3 &value)
-{
-  BLI_assert(type_ == ResultType::Float3);
-  BLI_assert(is_single_value_);
-  BLI_assert(this->is_allocated());
-
-  float3_value_ = value;
-  switch (storage_type_) {
-    case ResultStorageType::GPU:
-      GPU_texture_update(gpu_texture_, GPU_DATA_FLOAT, value);
-      break;
-    case ResultStorageType::FloatCPU:
-      copy_v3_v3(float_texture_, value);
-      break;
-    case ResultStorageType::IntegerCPU:
-      BLI_assert_unreachable();
-      break;
-  }
-}
-
-void Result::set_int2_value(const int2 &value)
-{
-  BLI_assert(type_ == ResultType::Int2);
-  BLI_assert(is_single_value_);
-  BLI_assert(this->is_allocated());
-
-  int2_value_ = value;
-  switch (storage_type_) {
-    case ResultStorageType::GPU:
-      GPU_texture_update(gpu_texture_, GPU_DATA_INT, value);
-      break;
-    case ResultStorageType::FloatCPU:
-      BLI_assert_unreachable();
-      break;
-    case ResultStorageType::IntegerCPU:
-      copy_v2_v2_int(integer_texture_, value);
-      break;
-  }
 }
 
 void Result::set_initial_reference_count(int count)

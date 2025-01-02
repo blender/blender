@@ -101,14 +101,14 @@ class ZCombineOperation : public NodeOperation {
       combined_color.w = use_alpha() ? math::max(second_color.w, first_color.w) : combined_color.w;
 
       combined.allocate_single_value();
-      combined.set_color_value(combined_color);
+      combined.set_single_value(combined_color);
     }
 
     Result &combined_z = get_result("Z");
     if (combined_z.should_compute()) {
       const float combined_z_value = math::interpolate(second_z_value, first_z_value, mix_factor);
       combined_z.allocate_single_value();
-      combined_z.set_float_value(combined_z_value);
+      combined_z.set_single_value(combined_z_value);
     }
   }
 

@@ -163,7 +163,7 @@ class ConvertColorSpaceOperation : public NodeOperation {
 
     Result &output_image = get_result("Image");
     output_image.allocate_single_value();
-    output_image.set_color_value(color);
+    output_image.set_single_value(color);
   }
 
   bool is_identity()
