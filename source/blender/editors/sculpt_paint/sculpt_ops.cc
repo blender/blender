@@ -828,6 +828,10 @@ static int mask_by_color_invoke(bContext *C, wmOperator *op, const wmEvent *even
     return OPERATOR_CANCELLED;
   }
 
+  if (std::holds_alternative<std::monostate>(ss.active_vert())) {
+    return OPERATOR_CANCELLED;
+  }
+
   BKE_sculpt_update_object_for_edit(depsgraph, &ob, false);
 
   /* Tools that are not brushes do not have the brush gizmo to update the vertex as the mouse move,
