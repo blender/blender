@@ -27,11 +27,7 @@ __all__ = (
     "init",
 )
 
-from typing import (
-    List,
-    Tuple,
-    Union,
-    # Proxies for `collections.abc`
+from collections.abc import (
     Callable,
     Iterator,
 )
@@ -86,7 +82,7 @@ def init(cmake_path: str) -> bool:
 
 def source_list(
         path: str,
-        filename_check: Union[Callable[[str], bool], None] = None,
+        filename_check: Callable[[str], bool] | None = None,
 ) -> Iterator[str]:
     for dirpath, dirnames, filenames in os.walk(path):
         # skip '.git'
@@ -133,8 +129,8 @@ def is_project_file(filename: str) -> bool:
 
 
 def cmake_advanced_info() -> (
-        Union[Tuple[List[str], List[Tuple[str, str]]],
-              Tuple[None, None]]
+        tuple[list[str], list[tuple[str, str]]] |
+        tuple[None, None]
 ):
     """ Extract includes and defines from cmake.
     """
@@ -216,15 +212,12 @@ def cmake_advanced_info() -> (
     return includes, defines
 
 
-def cmake_cache_var(var: str) -> Union[str, None]:
-    def l_strip_gen(cache_file):
-        for l in cache_file:
-            yield l.strip()
-
+def cmake_cache_var(var: str) -> str | None:
     with open(os.path.join(CMAKE_DIR, "CMakeCache.txt"), encoding='utf-8') as cache_file:
         lines = [
-            l_strip for l_strip in l_strip_gen(cache_file)
-            if l_strip and not l_strip.startswith(("//", "#"))
+            l_strip for l in cache_file
+            if (l_strip := l.strip())
+            if not l_strip.startswith(("//", "#"))
         ]
 
     for l in lines:
@@ -233,7 +226,7 @@ def cmake_cache_var(var: str) -> Union[str, None]:
     return None
 
 
-def cmake_compiler_defines() -> Union[List[str], None]:
+def cmake_compiler_defines() -> list[str] | None:
     compiler = cmake_cache_var("CMAKE_C_COMPILER")  # could do CXX too
 
     if compiler is None:
@@ -255,5 +248,5 @@ def cmake_compiler_defines() -> Union[List[str], None]:
     return lines
 
 
-def project_name_get() -> Union[str, None]:
+def project_name_get() -> str | None:
     return cmake_cache_var("CMAKE_PROJECT_NAME")
