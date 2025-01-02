@@ -137,6 +137,7 @@ set(SRC
   cached_resources/COM_van_vliet_gaussian_coefficients.hh
 
   utilities/COM_utilities_diagonals.hh
+  utilities/COM_utilities_type_conversion.hh
 )
 
 set(LIB

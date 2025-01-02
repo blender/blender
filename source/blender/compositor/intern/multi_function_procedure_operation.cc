@@ -38,6 +38,7 @@
 #include "COM_result.hh"
 #include "COM_scheduler.hh"
 #include "COM_utilities.hh"
+#include "COM_utilities_type_conversion.hh"
 
 namespace blender::compositor {
 
@@ -290,54 +291,70 @@ mf::Variable *MultiFunctionProcedureOperation::get_multi_function_input_variable
 static mf::MultiFunction *get_conversion_function(const ResultType variable_type,
                                                   const ResultType expected_type)
 {
-  /* No conversion needed. */
-  if (expected_type == variable_type) {
-    return nullptr;
-  }
+  static auto float_to_vector_function = mf::build::SI1_SO<float, float4>(
+      "Float To Vector", float_to_vector, mf::build::exec_presets::AllSpanOrSingle());
+  static auto float_to_color_function = mf::build::SI1_SO<float, float4>(
+      "Float To Color", float_to_color, mf::build::exec_presets::AllSpanOrSingle());
+  static auto vector_to_float_function = mf::build::SI1_SO<float4, float>(
+      "Vector To Float", vector_to_float, mf::build::exec_presets::AllSpanOrSingle());
+  static auto vector_to_color_function = mf::build::SI1_SO<float4, float4>(
+      "Vector To Color", vector_to_color, mf::build::exec_presets::AllSpanOrSingle());
+  static auto color_to_float_function = mf::build::SI1_SO<float4, float>(
+      "Color To Float", color_to_float, mf::build::exec_presets::AllSpanOrSingle());
+  static auto color_to_vector_function = mf::build::SI1_SO<float4, float4>(
+      "Color To Vector", color_to_vector, mf::build::exec_presets::AllSpanOrSingle());
 
-  if (variable_type == ResultType::Float && expected_type == ResultType::Vector) {
-    static auto float_to_vector_function = mf::build::SI1_SO<float, float4>(
-        "Float To Vector",
-        [](const float &input) -> float4 { return float4(float3(input), 1.0f); },
-        mf::build::exec_presets::AllSpanOrSingle());
-    return &float_to_vector_function;
-  }
-
-  if (variable_type == ResultType::Float && expected_type == ResultType::Color) {
-    static auto float_to_color_function = mf::build::SI1_SO<float, float4>(
-        "Float To Color",
-        [](const float &input) -> float4 { return float4(float3(input), 1.0f); },
-        mf::build::exec_presets::AllSpanOrSingle());
-    return &float_to_color_function;
-  }
-
-  if (variable_type == ResultType::Vector && expected_type == ResultType::Float) {
-    static auto vector_to_float_function = mf::build::SI1_SO<float4, float>(
-        "Vector To Float",
-        [](const float4 &input) -> float { return (input.x + input.y + input.z) / 3.0f; },
-        mf::build::exec_presets::AllSpanOrSingle());
-    return &vector_to_float_function;
-  }
-
-  if (variable_type == ResultType::Vector && expected_type == ResultType::Color) {
-    static auto vector_to_color_function = mf::build::SI1_SO<float4, float4>(
-        "Vector To Color",
-        [](const float4 &input) -> float4 { return float4(input.xyz(), 1.0f); },
-        mf::build::exec_presets::AllSpanOrSingle());
-    return &vector_to_color_function;
-  }
-
-  if (variable_type == ResultType::Color && expected_type == ResultType::Float) {
-    static auto color_to_float_function = mf::build::SI1_SO<float4, float>(
-        "Color To Float",
-        [](const float4 &input) -> float { return (input.x + input.y + input.z) / 3.0f; },
-        mf::build::exec_presets::AllSpanOrSingle());
-    return &color_to_float_function;
-  }
-
-  if (variable_type == ResultType::Color && expected_type == ResultType::Vector) {
-    /* No conversion needed. */
-    return nullptr;
+  switch (variable_type) {
+    case ResultType::Float:
+      switch (expected_type) {
+        case ResultType::Vector:
+          return &float_to_vector_function;
+        case ResultType::Color:
+          return &float_to_color_function;
+        case ResultType::Float:
+          /* Same type, no conversion needed. */
+          return nullptr;
+        case ResultType::Float2:
+        case ResultType::Float3:
+        case ResultType::Int2:
+          /* Types are not user facing, so we needn't implement them. */
+          break;
+      }
+    case ResultType::Vector:
+      switch (expected_type) {
+        case ResultType::Float:
+          return &vector_to_float_function;
+        case ResultType::Color:
+          return &vector_to_color_function;
+        case ResultType::Vector:
+          /* Same type, no conversion needed. */
+          return nullptr;
+        case ResultType::Float2:
+        case ResultType::Float3:
+        case ResultType::Int2:
+          /* Types are not user facing, so we needn't implement them. */
+          break;
+      }
+    case ResultType::Color:
+      switch (expected_type) {
+        case ResultType::Float:
+          return &color_to_float_function;
+        case ResultType::Vector:
+          return &color_to_vector_function;
+        case ResultType::Color:
+          /* Same type, no conversion needed. */
+          return nullptr;
+        case ResultType::Float2:
+        case ResultType::Float3:
+        case ResultType::Int2:
+          /* Types are not user facing, so we needn't implement them. */
+          break;
+      }
+    case ResultType::Float2:
+    case ResultType::Float3:
+    case ResultType::Int2:
+      /* Types are not user facing, so we needn't implement them. */
+      break;
   }
 
   BLI_assert_unreachable();
