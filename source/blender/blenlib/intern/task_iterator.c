@@ -84,7 +84,7 @@ void BLI_task_parallel_mempool(BLI_mempool *mempool,
     }
 
     if (use_userdata_chunk) {
-      if (settings->func_free != NULL) {
+      if (settings->func_free != NULL && userdata_chunk != NULL) {
         /* `func_free` should only free data that was created during execution of `func`. */
         settings->func_free(userdata, userdata_chunk);
       }
@@ -138,7 +138,7 @@ void BLI_task_parallel_mempool(BLI_mempool *mempool,
           settings->func_reduce(
               userdata, userdata_chunk, mempool_iterator_data[i].tls.userdata_chunk);
         }
-        if (settings->func_free) {
+        if (settings->func_free && mempool_iterator_data[i].tls.userdata_chunk != NULL) {
           settings->func_free(userdata, mempool_iterator_data[i].tls.userdata_chunk);
         }
       }
