@@ -734,17 +734,26 @@ void GeometryManager::device_update(Device *device,
         if (geom->is_mesh() || geom->is_volume()) {
           Mesh *mesh = static_cast<Mesh *>(geom);
 
-          /* Update normals. */
-          mesh->add_face_normals();
-          mesh->add_vertex_normals();
-
           if (mesh->need_attribute(scene, ATTR_STD_POSITION_UNDISPLACED)) {
             mesh->add_undisplaced();
           }
 
-          /* Test if we need tessellation. */
+          /* Test if we need tessellation and setup normals if required. */
           if (mesh->need_tesselation()) {
             total_tess_needed++;
+            /* OPENSUBDIV Catmull-Clark does not make use of input normals and will overwrite them.
+             */
+#ifdef WITH_OPENSUBDIV
+            if (mesh->get_subdivision_type() != Mesh::SUBDIVISION_CATMULL_CLARK)
+#endif
+            {
+              mesh->add_face_normals();
+              mesh->add_vertex_normals();
+            }
+          }
+          else {
+            mesh->add_face_normals();
+            mesh->add_vertex_normals();
           }
 
           /* Test if we need displacement. */
