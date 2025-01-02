@@ -64,7 +64,7 @@ def runScriptInBlender(blender_directory, script):
     return process.returncode == 0
 
 
-class SceiptUnitTesting(unittest.TestCase):
+class ScriptUnitTesting(unittest.TestCase):
     def checkScript(self, script):
         # Parse arguments which are not handled by unit testing framework.
         args = parseArguments()
