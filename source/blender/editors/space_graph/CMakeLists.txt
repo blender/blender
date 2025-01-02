@@ -56,4 +56,3 @@ endif()
 
 
 blender_add_lib(bf_editor_space_graph "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
-

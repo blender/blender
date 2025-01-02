@@ -373,4 +373,3 @@ if(WITH_HYDRA)
 endif()
 
 blender_add_lib(bf_python "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
-

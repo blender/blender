@@ -235,7 +235,7 @@ set(SRC
 set(INC
   PUBLIC .
 # RNA_prototypes.hh
-  PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/../../makesrna/  
+  PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/../../makesrna/
   PUBLIC ..
   ../../animrig
   ../../asset_system

@@ -145,4 +145,3 @@ set(LIB
 
 
 blender_add_lib(bf_editor_space_outliner "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
-

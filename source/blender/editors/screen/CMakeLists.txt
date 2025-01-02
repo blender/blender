@@ -57,4 +57,3 @@ if(WITH_HEADLESS)
 endif()
 
 blender_add_lib(bf_editor_screen "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
-

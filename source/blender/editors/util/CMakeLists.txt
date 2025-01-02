@@ -125,4 +125,3 @@ if(WITH_PYTHON)
 endif()
 
 blender_add_lib(bf_editor_util "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
-

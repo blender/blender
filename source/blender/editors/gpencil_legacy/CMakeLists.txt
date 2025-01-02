@@ -40,4 +40,3 @@ set(LIB
 
 
 blender_add_lib(bf_editor_gpencil_legacy "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
-

@@ -87,4 +87,3 @@ if(WITH_FREESTYLE)
 endif()
 
 blender_add_lib(bf_editor_space_file "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
-

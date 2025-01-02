@@ -52,4 +52,3 @@ if(WITH_CODEC_SNDFILE)
 endif()
 
 blender_add_lib(bf_editor_sound "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
-

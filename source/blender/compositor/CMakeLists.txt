@@ -40,7 +40,7 @@ set(SRC
   COM_simple_operation.hh
   COM_static_cache_manager.hh
   COM_texture_pool.hh
-  COM_utilities.hh  
+  COM_utilities.hh
 
   intern/COM_compositor.cc
   intern/compile_state.cc
@@ -136,7 +136,7 @@ set(SRC
   cached_resources/COM_symmetric_separable_blur_weights.hh
   cached_resources/COM_van_vliet_gaussian_coefficients.hh
 
-  utilities/COM_utilities_diagonals.hh  
+  utilities/COM_utilities_diagonals.hh
 )
 
 set(LIB

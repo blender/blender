@@ -82,4 +82,3 @@ if(WITH_EXPERIMENTAL_FEATURES)
 endif()
 
 blender_add_lib(bf_editor_object "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
-

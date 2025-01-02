@@ -63,4 +63,3 @@ set(LIB
 )
 
 blender_add_lib(bf_nodes_texture "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
-

@@ -69,4 +69,3 @@ if(WITH_OPENVDB)
 endif()
 
 blender_add_lib(bf_editor_space_spreadsheet "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
-

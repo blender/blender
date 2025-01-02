@@ -37,4 +37,3 @@ set(LIB
 )
 
 blender_add_lib(bf_editor_geometry "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
-

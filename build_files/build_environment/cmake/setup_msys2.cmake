@@ -11,7 +11,7 @@
 ##################################################################################################
 
 macro(download_package package_name)
-  # this will 
+  # this will
   # 1 - download the required package from either the upstream location or blender mirror depending on MSYS2_USE_UPSTREAM_PACKAGES
   # 2 - Set a global variable [package_name]_FILE to point to the downloaded file
   # 3 - Verify the hash if FORCE_CHECK_HASH is on
@@ -53,7 +53,7 @@ macro(download_package package_name)
 endmacro()
 
 # Note we use URL here rather than URI as the deps checker will check all *_URI vars for package/license/homepage requirements
-# since none of this will end up on end users systems the requirements are not as strict  
+# since none of this will end up on end users systems the requirements are not as strict
 set(MSYS2_BASE_URL https://repo.msys2.org/distrib/x86_64/msys2-base-x86_64-20221028.tar.xz)
 set(MSYS2_BASE_HASH 545cc6a4c36bb98058f2b2945c5d06de523516db)
 

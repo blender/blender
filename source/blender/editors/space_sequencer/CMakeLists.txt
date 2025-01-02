@@ -78,4 +78,3 @@ endif()
 
 
 blender_add_lib(bf_editor_space_sequencer "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
-

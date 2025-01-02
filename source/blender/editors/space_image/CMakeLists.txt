@@ -62,4 +62,3 @@ endif()
 
 
 blender_add_lib(bf_editor_space_image "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
-

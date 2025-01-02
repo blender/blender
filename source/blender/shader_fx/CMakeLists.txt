@@ -48,4 +48,3 @@ set(LIB
 
 
 blender_add_lib(bf_shader_fx "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
-

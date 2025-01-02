@@ -53,4 +53,3 @@ set(LIB
 
 
 blender_add_lib(bf_editor_armature "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
-

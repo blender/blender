@@ -91,4 +91,3 @@ if(WITH_TBB)
 endif()
 
 blender_add_lib(bf_editor_space_node "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
-

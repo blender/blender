@@ -82,4 +82,3 @@ if(WITH_GMP)
 endif()
 
 blender_add_lib(bf_editor_mesh "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
-

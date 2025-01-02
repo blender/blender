@@ -105,4 +105,3 @@ if(WITH_XR_OPENXR)
 endif()
 
 blender_add_lib(bf_editor_space_view3d "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
-

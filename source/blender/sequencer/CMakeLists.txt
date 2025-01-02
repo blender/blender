@@ -121,4 +121,3 @@ endif()
 
 blender_add_lib(bf_sequencer "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 add_library(bf::sequencer ALIAS bf_sequencer)
-
