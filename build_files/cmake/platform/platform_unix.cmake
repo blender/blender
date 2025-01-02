@@ -138,8 +138,10 @@ find_package_wrapper(Epoxy REQUIRED)
 # find_package_wrapper(TIFF REQUIRED)
 find_package(TIFF)
 # CMake 3.28.1 defines this, it doesn't seem to be used, hide by default in the UI.
-if(DEFINED tiff_DIR)
-  mark_as_advanced(tiff_DIR)
+# NOTE(@ideasman42): this doesn't seem to be important,
+# on my system it's not-found even when the TIFF library is.
+if(DEFINED Tiff_DIR)
+  mark_as_advanced(Tiff_DIR)
 endif()
 
 if(WITH_VULKAN_BACKEND)

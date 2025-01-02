@@ -109,4 +109,9 @@ find_package_handle_standard_args(HIP
     REQUIRED_VARS HIP_HIPCC_EXECUTABLE
     VERSION_VAR HIP_VERSION)
 
+mark_as_advanced(
+  HIP_HIPCC_EXECUTABLE
+  HIP_LINKER_EXECUTABLE
+)
+
 unset(_hip_SEARCH_DIRS)
