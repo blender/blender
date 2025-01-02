@@ -129,8 +129,7 @@ def is_project_file(filename: str) -> bool:
 
 
 def cmake_advanced_info() -> (
-        tuple[list[str], list[tuple[str, str]]] |
-        tuple[None, None]
+        tuple[list[str], list[tuple[str, str]]] | None
 ):
     """ Extract includes and defines from cmake.
     """
@@ -138,7 +137,7 @@ def cmake_advanced_info() -> (
     make_exe = cmake_cache_var("CMAKE_MAKE_PROGRAM")
     if make_exe is None:
         print("Make command not found: CMAKE_MAKE_PROGRAM")
-        return None, None
+        return None
 
     make_exe_basename = os.path.basename(make_exe)
 
@@ -164,7 +163,7 @@ def cmake_advanced_info() -> (
 
     if not exists(project_path):
         print("Generating Eclipse Project File Failed: %r not found" % project_path)
-        return None, None
+        return None
 
     from xml.dom.minidom import parse
     tree = parse(project_path)
