@@ -672,7 +672,7 @@ void BlenderSession::bake(BL::Depsgraph &b_depsgraph_,
   b_depsgraph = b_depsgraph_;
 
   /* Initialize bake manager, before we load the baking kernels. */
-  scene->bake_manager->set(scene, b_object.name());
+  scene->bake_manager->set_baking(scene, true);
 
   session->set_display_driver(nullptr);
   session->set_output_driver(make_unique<BlenderOutputDriver>(b_engine));
@@ -680,6 +680,7 @@ void BlenderSession::bake(BL::Depsgraph &b_depsgraph_,
 
   /* Sync scene. */
   BL::Object b_camera_override(b_engine.camera_override());
+  sync->set_bake_target(b_object);
   sync->sync_camera(b_render, b_camera_override, width, height, "");
   sync->sync_data(
       b_render, b_depsgraph, b_v3d, b_camera_override, width, height, &python_thread_state);
@@ -702,8 +703,8 @@ void BlenderSession::bake(BL::Depsgraph &b_depsgraph_,
    * other way, in that case Blender will report a warning afterwards. */
   Object *bake_object = nullptr;
   if (!session->progress.get_cancel()) {
-    foreach (Object *ob, scene->objects) {
-      if (ob->name == b_object.name()) {
+    for (Object *ob : scene->objects) {
+      if (ob->get_is_bake_target()) {
         bake_object = ob;
         break;
       }

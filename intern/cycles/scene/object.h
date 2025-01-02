@@ -59,6 +59,8 @@ class Object : public Node {
   NODE_SOCKET_API(bool, is_caustics_caster)
   NODE_SOCKET_API(bool, is_caustics_receiver)
 
+  NODE_SOCKET_API(bool, is_bake_target)
+
   NODE_SOCKET_API(float3, dupli_generated)
   NODE_SOCKET_API(float2, dupli_uv)
 
