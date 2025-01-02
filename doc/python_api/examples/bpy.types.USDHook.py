@@ -51,7 +51,8 @@ Called after the USD import finalizes.
 
 Args:
 
-- ``import_context`` (`USDSceneImportContext`_): Provides access to the stage and a map associating USD prim paths and Blender IDs
+- ``import_context`` (`USDSceneImportContext`_):
+  Provides access to the stage and a map associating USD prim paths and Blender IDs
 
 Returns:
 
@@ -72,15 +73,15 @@ Returns:
 
 - ``True`` if the hook can convert the material or ``False`` otherwise
 
-If any hook returns ``True`` from ``material_import_poll``, the USD importer will skip standard ``USD Preview Surface`` or
-``MaterialX`` import and invoke the hook's `on_material_import`_ method to convert the material instead.
+If any hook returns ``True`` from ``material_import_poll``, the USD importer will skip standard ``USD Preview Surface``
+or ``MaterialX`` import and invoke the hook's `on_material_import`_ method to convert the material instead.
 
 on_material_import
 ^^^^^^^^^^^^^^^^^^
 
 Called for each material that is imported, to allow converting the USD material to nodes on the Blender material.
-To ensure that this function gets called, the hook must also implement the ``material_import_poll()`` callback to return
-``True`` for the given USD material.
+To ensure that this function gets called, the hook must also implement the ``material_import_poll()``
+callback to return ``True`` for the given USD material.
 
 Args:
 
@@ -119,9 +120,10 @@ Methods:
 - ``get_stage()``: returns the USD stage to be saved
 - ``export_texture(image: bpy.types.Image)``: Returns the USD asset path for the given texture image
 
-The ``export_texture`` function will save in-memory images and may copy texture assets, depending on the current USD export options.
-For example, by default calling ``export_texture(/foo/bar.png)`` will copy the file to a ``textures`` directory next to the exported
-USD and will return the relative path ``./textures/bar.png``.
+The ``export_texture`` function will save in-memory images and may copy texture assets,
+depending on the current USD export options.
+For example, by default calling ``export_texture(/foo/bar.png)`` will copy the file to a ``textures``
+directory next to the exported USD and will return the relative path ``./textures/bar.png``.
 
 
 USDSceneImportContext
@@ -131,8 +133,9 @@ Argument for `on_import`_.
 
 Methods:
 
-- ``get_prim_map()`` returns a ``dict`` where the key is an imported USD Prim path and the value a ``list`` of the IDs created by the imported prim
-- ``get_stage()`` returns the USD stage which was imported
+- ``get_prim_map()`` returns a ``dict`` where the key is an imported USD Prim path and the value a ``list``
+  of the IDs created by the imported prim.
+- ``get_stage()`` returns the USD stage which was imported.
 
 
 USDMaterialImportContext
@@ -142,14 +145,18 @@ Argument for `material_import_poll`_ and `on_material_import`_.
 
 Methods:
 
-- ``get_stage()``: returns the USD stage to be saved
-- ``import_texture(asset_path: str)``: for the given USD texture asset path, returns a ``tuple[str, bool]``, containing the asset's local path and a bool indicating whether the path references a temporary file
+- ``get_stage()``:
+  returns the USD stage to be saved.
+- ``import_texture(asset_path: str)``:
+  for the given USD texture asset path, returns a ``tuple[str, bool]``,
+  containing the asset's local path and a bool indicating whether the path references a temporary file.
 
-The ``import_texture`` function may copy the texture to the local file system if the given asset path is a package-relative path for a
-USDZ archive, depending on the current USD ``Import Textures`` options.  When the ``Import Textures`` mode is ``Packed``, the texture
-is saved to a temporary location and the second element of the returned tuple is ``True``, indicating that the file is temporary, in which
-case it may be necessary to pack the image.  The original asset path will be returned unchanged if it's already a local file or if it could not
-be copied to a local destination.
+The ``import_texture`` function may copy the texture to the local file system if the given asset path is a
+package-relative path for a USDZ archive, depending on the current USD ``Import Textures`` options.
+When the ``Import Textures`` mode is ``Packed``, the texture is saved to a temporary location and the
+second element of the returned tuple is ``True``, indicating that the file is temporary, in which
+case it may be necessary to pack the image. The original asset path will be returned unchanged if it's
+already a local file or if it could not be copied to a local destination.
 
 
 Errors
