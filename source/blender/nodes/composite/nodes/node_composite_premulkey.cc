@@ -78,7 +78,7 @@ static void node_build_multi_function(blender::nodes::NodeMultiFunctionBuilder &
   static auto unpremultiply_function = mf::build::SI1_SO<float4, float4>(
       "Alpha Convert Unpremultiply",
       [](const float4 &color) -> float4 {
-        if (color.w == 0.0f || color.w == 1.0f) {
+        if (ELEM(color.w, 0.0f, 1.0f)) {
           return color;
         }
         return float4(color.xyz() / color.w, color.w);

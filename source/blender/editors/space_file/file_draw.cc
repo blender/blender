@@ -519,7 +519,7 @@ static std::tuple<int, int, float> preview_image_scaled_dimensions_get(const int
   float scale;
   float scaledx, scaledy;
   if (((ui_imbx > layout.prv_w) || (ui_imby > layout.prv_h)) ||
-      (((ui_imbx < layout.prv_w) || (ui_imby < layout.prv_h))))
+      ((ui_imbx < layout.prv_w) || (ui_imby < layout.prv_h)))
   {
     if (image_width > image_height) {
       scaledx = float(layout.prv_w);

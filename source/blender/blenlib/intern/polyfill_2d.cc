@@ -143,7 +143,7 @@ struct PolyFill {
   uint32_t tris_num;
 
 #ifdef USE_KDTREE
-  struct KDTree2D kdtree;
+  KDTree2D kdtree;
 #endif
 };
 

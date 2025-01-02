@@ -26,7 +26,7 @@ bool test_vcodec(const AVCodec *codec, AVPixelFormat pixelformat)
       ctx->pix_fmt = pixelformat;
       ctx->width = 720;
       ctx->height = 576;
-      int open = avcodec_open2(ctx, codec, NULL);
+      int open = avcodec_open2(ctx, codec, nullptr);
       if (open >= 0) {
         avcodec_free_context(&ctx);
         result = true;
@@ -50,7 +50,7 @@ bool test_acodec(const AVCodec *codec, AVSampleFormat fmt)
       av_channel_layout_from_mask(&ctx->ch_layout, AV_CH_LAYOUT_MONO);
 #endif
       ctx->bit_rate = 128000;
-      int open = avcodec_open2(ctx, codec, NULL);
+      int open = avcodec_open2(ctx, codec, nullptr);
       if (open >= 0) {
         avcodec_free_context(&ctx);
         result = true;

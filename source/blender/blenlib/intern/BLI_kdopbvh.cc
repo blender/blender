@@ -130,7 +130,7 @@ struct BVHRayCastData {
   BVHTreeRay ray;
 
 #ifdef USE_KDOPBVH_WATERTIGHT
-  struct IsectRayPrecalc isect_precalc;
+  IsectRayPrecalc isect_precalc;
 #endif
 
   /* initialized by bvhtree_ray_cast_data_precalc */
@@ -142,7 +142,7 @@ struct BVHRayCastData {
 };
 
 struct BVHNearestProjectedData {
-  struct DistProjectedAABBPrecalc precalc;
+  DistProjectedAABBPrecalc precalc;
   bool closest_axis[3];
   BVHTree_NearestProjectedCallback callback;
   void *userdata;
@@ -759,7 +759,7 @@ static void non_recursive_bvh_div_nodes_task_cb(void *__restrict userdata,
       break;
     }
   }
-  parent->node_num = (char)k;
+  parent->node_num = char(k);
 }
 
 /**
@@ -908,10 +908,10 @@ BVHTree *BLI_bvhtree_new(int maxsize, float epsilon, char tree_type, char axis)
     /* Allocate arrays */
     numnodes = maxsize + implicit_needed_branches(tree_type, maxsize) + tree_type;
 
-    tree->nodes = MEM_cnew_array<BVHNode *>((size_t)numnodes, "BVHNodes");
-    tree->nodebv = MEM_cnew_array<float>((size_t)(axis * numnodes), "BVHNodeBV");
-    tree->nodechild = MEM_cnew_array<BVHNode *>((size_t)(tree_type * numnodes), "BVHNodeBV");
-    tree->nodearray = MEM_cnew_array<BVHNode>((size_t)numnodes, "BVHNodeArray");
+    tree->nodes = MEM_cnew_array<BVHNode *>(size_t(numnodes), "BVHNodes");
+    tree->nodebv = MEM_cnew_array<float>(size_t(axis * numnodes), "BVHNodeBV");
+    tree->nodechild = MEM_cnew_array<BVHNode *>(size_t(tree_type * numnodes), "BVHNodeBV");
+    tree->nodearray = MEM_cnew_array<BVHNode>(size_t(numnodes), "BVHNodeArray");
 
     if (UNLIKELY((!tree->nodes) || (!tree->nodebv) || (!tree->nodechild) || (!tree->nodearray))) {
       goto fail;
@@ -1350,7 +1350,7 @@ BVHTreeOverlap *BLI_bvhtree_overlap_ex(
   size_t total = 0;
   BVHTreeOverlap *overlap = nullptr, *to = nullptr;
   BVHOverlapData_Shared data_shared;
-  BVHOverlapData_Thread *data = BLI_array_alloca(data, (size_t)thread_num);
+  BVHOverlapData_Thread *data = BLI_array_alloca(data, size_t(thread_num));
   axis_t start_axis, stop_axis;
 
   /* check for compatibility of both trees (can't compare 14-DOP with 18-DOP) */
@@ -1418,12 +1418,12 @@ BVHTreeOverlap *BLI_bvhtree_overlap_ex(
         MEM_mallocN(sizeof(BVHTreeOverlap) * total, "BVHTreeOverlap"));
 
     for (j = 0; j < thread_num; j++) {
-      uint count = (uint)BLI_stack_count(data[j].overlap);
+      uint count = uint(BLI_stack_count(data[j].overlap));
       BLI_stack_pop_n(data[j].overlap, to, count);
       BLI_stack_free(data[j].overlap);
       to += count;
     }
-    *r_overlap_num = (uint)total;
+    *r_overlap_num = uint(total);
   }
 
   return overlap;
@@ -1520,11 +1520,11 @@ int *BLI_bvhtree_intersect_plane(const BVHTree *tree, float plane[4], uint *r_in
     total = BLI_stack_count(data.intersect);
     if (total) {
       intersect = static_cast<int *>(MEM_mallocN(sizeof(int) * total, __func__));
-      BLI_stack_pop_n(data.intersect, intersect, (uint)total);
+      BLI_stack_pop_n(data.intersect, intersect, uint(total));
     }
     BLI_stack_free(data.intersect);
   }
-  *r_intersect_num = (uint)total;
+  *r_intersect_num = uint(total);
   return intersect;
 }
 
@@ -2342,7 +2342,7 @@ int BLI_bvhtree_find_nearest_projected(const BVHTree *tree,
   const BVHNode *root = tree->nodes[tree->leaf_num];
   if (root != nullptr) {
     BVHNearestProjectedData *data = (BVHNearestProjectedData *)alloca(
-        sizeof(*data) + (sizeof(*clip_plane) * (size_t)max_ii(1, clip_plane_len)));
+        sizeof(*data) + (sizeof(*clip_plane) * size_t(max_ii(1, clip_plane_len))));
 
     dist_squared_to_projected_aabb_precalc(&data->precalc, projmat, winsize, mval);
 

@@ -85,7 +85,7 @@ void BLI_covariance_m_vn_ex(const int n,
    */
   const float covfac = 1.0f / float(use_sample_correction ? cos_vn_num - 1 : cos_vn_num);
 
-  memset(r_covmat, 0, sizeof(*r_covmat) * (size_t)(n * n));
+  memset(r_covmat, 0, sizeof(*r_covmat) * size_t(n * n));
 
   CovarianceData data{};
   data.cos_vn = cos_vn;

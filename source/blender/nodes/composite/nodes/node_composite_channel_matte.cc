@@ -165,7 +165,7 @@ class ChannelMatteShaderNode : public ShaderNode {
     GPUNodeStack *inputs = get_inputs_array();
     GPUNodeStack *outputs = get_outputs_array();
 
-    const float color_space = static_cast<int>(get_color_space(bnode()));
+    const float color_space = int(get_color_space(bnode()));
     const float matte_channel = get_matte_channel(bnode());
     const float2 limit_channels = float2(get_limit_channels(bnode()));
     const float max_limit = get_max_limit(bnode());

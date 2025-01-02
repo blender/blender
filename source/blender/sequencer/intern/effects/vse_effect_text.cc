@@ -109,7 +109,7 @@ static int seq_load_font_file(const std::string &path)
   return fontid;
 }
 
-static int seq_load_font_mem(const std::string &name, const unsigned char *data, int data_size)
+static int seq_load_font_mem(const std::string &name, const uchar *data, int data_size)
 {
   std::lock_guard lock(g_font_map.mutex);
   int fontid = g_font_map.name_to_mem_font_id.add_or_modify(

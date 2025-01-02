@@ -284,10 +284,14 @@ int ffmpeg_deinterlace(
 {
   int i, ret;
 
-  if (pix_fmt != AV_PIX_FMT_YUV420P && pix_fmt != AV_PIX_FMT_YUVJ420P &&
-      pix_fmt != AV_PIX_FMT_YUV422P && pix_fmt != AV_PIX_FMT_YUVJ422P &&
-      pix_fmt != AV_PIX_FMT_YUV444P && pix_fmt != AV_PIX_FMT_YUV411P &&
-      pix_fmt != AV_PIX_FMT_GRAY8)
+  if (!ELEM(pix_fmt,
+            AV_PIX_FMT_YUV420P,
+            AV_PIX_FMT_YUVJ420P,
+            AV_PIX_FMT_YUV422P,
+            AV_PIX_FMT_YUVJ422P,
+            AV_PIX_FMT_YUV444P,
+            AV_PIX_FMT_YUV411P,
+            AV_PIX_FMT_GRAY8))
   {
     return -1;
   }

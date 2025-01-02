@@ -4054,7 +4054,7 @@ static BHead *find_bhead_from_idname(FileData *fd, const char *idname)
   }
 #ifdef USE_GHASH_BHEAD
   char id_name_old[MAX_ID_NAME];
-  BLI_strncpy(id_name_old, idname, sizeof(id_name_old));
+  STRNCPY(id_name_old, idname);
   *reinterpret_cast<short *>(id_name_old) = id_code_old;
   return static_cast<BHead *>(BLI_ghash_lookup(fd->bhead_idname_hash, id_name_old));
 #else

@@ -307,7 +307,7 @@ void VKTexture::update_sub(
    * other cases we unpack the rows to reduce the size of the staging buffer and data transfer. */
   const uint texture_unpack_row_length =
       context.state_manager_get().texture_unpack_row_length_get();
-  if (texture_unpack_row_length == 0 || texture_unpack_row_length == extent.x) {
+  if (ELEM(texture_unpack_row_length, 0, extent.x)) {
     convert_host_to_device(
         staging_buffer.mapped_memory_get(), data, sample_len, format, format_, device_format_);
   }
