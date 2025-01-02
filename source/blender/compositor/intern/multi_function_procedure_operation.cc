@@ -324,6 +324,7 @@ static mf::MultiFunction *get_conversion_function(const ResultType variable_type
           /* Types are not user facing, so we needn't implement them. */
           break;
       }
+      break;
     case ResultType::Vector:
       switch (expected_type) {
         case ResultType::Float:
@@ -339,6 +340,7 @@ static mf::MultiFunction *get_conversion_function(const ResultType variable_type
           /* Types are not user facing, so we needn't implement them. */
           break;
       }
+      break;
     case ResultType::Color:
       switch (expected_type) {
         case ResultType::Float:
@@ -354,6 +356,7 @@ static mf::MultiFunction *get_conversion_function(const ResultType variable_type
           /* Types are not user facing, so we needn't implement them. */
           break;
       }
+      break;
     case ResultType::Float2:
     case ResultType::Float3:
     case ResultType::Int2:

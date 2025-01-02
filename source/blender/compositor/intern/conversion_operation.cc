@@ -84,6 +84,7 @@ const char *ConversionOperation::get_conversion_shader_name()
           /* Types are not user facing, so we needn't implement them. */
           break;
       }
+      break;
     case ResultType::Vector:
       switch (this->get_result().type()) {
         case ResultType::Float:
@@ -99,6 +100,7 @@ const char *ConversionOperation::get_conversion_shader_name()
           /* Types are not user facing, so we needn't implement them. */
           break;
       }
+      break;
     case ResultType::Color:
       switch (this->get_result().type()) {
         case ResultType::Float:
@@ -114,6 +116,7 @@ const char *ConversionOperation::get_conversion_shader_name()
           /* Types are not user facing, so we needn't implement them. */
           break;
       }
+      break;
     case ResultType::Float2:
     case ResultType::Float3:
     case ResultType::Int2:
@@ -145,6 +148,7 @@ void ConversionOperation::execute_single(const Result &input, Result &output)
           /* Types are not user facing, so we needn't implement them. */
           break;
       }
+      break;
     case ResultType::Vector:
       switch (this->get_result().type()) {
         case ResultType::Float:
@@ -162,6 +166,7 @@ void ConversionOperation::execute_single(const Result &input, Result &output)
           /* Types are not user facing, so we needn't implement them. */
           break;
       }
+      break;
     case ResultType::Color:
       switch (this->get_result().type()) {
         case ResultType::Float:
@@ -179,6 +184,7 @@ void ConversionOperation::execute_single(const Result &input, Result &output)
           /* Types are not user facing, so we needn't implement them. */
           break;
       }
+      break;
     case ResultType::Float2:
     case ResultType::Float3:
     case ResultType::Int2:
@@ -213,6 +219,7 @@ void ConversionOperation::execute_cpu(const Result &input, Result &output)
           /* Types are not user facing, so we needn't implement them. */
           break;
       }
+      break;
     case ResultType::Vector:
       switch (this->get_result().type()) {
         case ResultType::Float:
@@ -234,6 +241,7 @@ void ConversionOperation::execute_cpu(const Result &input, Result &output)
           /* Types are not user facing, so we needn't implement them. */
           break;
       }
+      break;
     case ResultType::Color:
       switch (this->get_result().type()) {
         case ResultType::Float:
@@ -255,6 +263,7 @@ void ConversionOperation::execute_cpu(const Result &input, Result &output)
           /* Types are not user facing, so we needn't implement them. */
           break;
       }
+      break;
     case ResultType::Float2:
     case ResultType::Float3:
     case ResultType::Int2:
