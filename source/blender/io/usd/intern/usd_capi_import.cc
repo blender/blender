@@ -49,6 +49,7 @@
 #include "WM_types.hh"
 
 #include <pxr/usd/usd/stage.h>
+#include <pxr/usd/usdGeom/metrics.h>
 
 #include <fmt/core.h>
 
@@ -191,6 +192,11 @@ static void import_startjob(void *customdata, wmJobWorkerStatus *worker_status)
     return;
   }
 
+  double scene_scale = data->params.scale;
+  if (data->params.apply_unit_conversion_scale) {
+    scene_scale *= pxr::UsdGeomGetStageMetersPerUnit(stage);
+  }
+
   /* Set up the stage for animated data. */
   if (data->params.set_frame_range) {
     data->scene->r.sfra = stage->GetStartTimeCode();
@@ -202,7 +208,7 @@ static void import_startjob(void *customdata, wmJobWorkerStatus *worker_status)
 
   /* Callback function to lazily create a cache file when converting
    * time varying data. */
-  auto get_cache_file = [data]() {
+  auto get_cache_file = [data, scene_scale]() {
     if (!data->cache_file) {
       data->cache_file = static_cast<CacheFile *>(
           BKE_cachefile_add(data->bmain, BLI_path_basename(data->filepath)));
@@ -213,7 +219,7 @@ static void import_startjob(void *customdata, wmJobWorkerStatus *worker_status)
       id_us_min(&data->cache_file->id);
 
       data->cache_file->is_sequence = data->params.is_sequence;
-      data->cache_file->scale = data->params.scale;
+      data->cache_file->scale = scene_scale;
       STRNCPY(data->cache_file->filepath, data->filepath);
     }
     return data->cache_file;

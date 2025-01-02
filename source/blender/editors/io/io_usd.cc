@@ -192,6 +192,30 @@ const EnumPropertyItem rna_enum_usd_mtl_purpose_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
+const EnumPropertyItem rna_enum_usd_convert_scene_units_items[] = {
+    {USD_SCENE_UNITS_METERS, "METERS", 0, "Meters", "Scene meters per unit to 1.0"},
+    {USD_SCENE_UNITS_KILOMETERS, "KILOMETERS", 0, "Kilometers", "Scene meters per unit to 1000.0"},
+    {USD_SCENE_UNITS_CENTIMETERS,
+     "CENTIMETERS",
+     0,
+     "Centimeters",
+     "Scene meters per unit to 0.01"},
+    {USD_SCENE_UNITS_MILLIMETERS,
+     "MILLIMETERS",
+     0,
+     "Millimeters",
+     "Scene meters per unit to 0.001"},
+    {USD_SCENE_UNITS_INCHES, "INCHES", 0, "Inches", "Scene meters per unit to 0.0254"},
+    {USD_SCENE_UNITS_FEET, "FEET", 0, "Feet", "Scene meters per unit to 0.3048"},
+    {USD_SCENE_UNITS_YARDS, "YARDS", 0, "Yards", "Scene meters per unit to 0.9144"},
+    {USD_SCENE_UNITS_CUSTOM,
+     "CUSTOM",
+     0,
+     "Custom",
+     "Specify a custom scene meters per unit value"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
 /* Stored in the wmOperator's customdata field to indicate it should run as a background job.
  * This is set when the operator is invoked, and not set when it is only executed. */
 struct eUSDOperatorOptions {
@@ -331,6 +355,10 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
     }
   }
 
+  const eUSDSceneUnits convert_scene_units = eUSDSceneUnits(
+      RNA_enum_get(op->ptr, "convert_scene_units"));
+  const float meters_per_unit = RNA_float_get(op->ptr, "meters_per_unit");
+
   char root_prim_path[FILE_MAX];
   RNA_string_get(op->ptr, "root_prim_path", root_prim_path);
   process_prim_path(root_prim_path);
@@ -388,6 +416,8 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
 
   params.usdz_downscale_size = usdz_downscale_size;
   params.usdz_downscale_custom_size = usdz_downscale_custom_size;
+  params.convert_scene_units = convert_scene_units;
+  params.custom_meters_per_unit = meters_per_unit;
 
   params.merge_parent_xform = merge_parent_xform;
 
@@ -438,6 +468,12 @@ static void wm_usd_export_draw(bContext *C, wmOperator *op)
       uiItemR(col, ptr, "export_global_forward_selection", UI_ITEM_NONE, std::nullopt, ICON_NONE);
       uiItemR(col, ptr, "export_global_up_selection", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     }
+
+    uiItemR(col, ptr, "convert_scene_units", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    if (eUSDSceneUnits(RNA_enum_get(ptr, "convert_scene_units")) == USD_SCENE_UNITS_CUSTOM) {
+      uiItemR(col, ptr, "meters_per_unit", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    }
+
     uiItemR(col, ptr, "xform_op_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
     col = uiLayoutColumn(panel, false);
@@ -857,6 +893,23 @@ void WM_OT_usd_export(wmOperatorType *ot)
                   "Merge USD primitives with their Xform parent if possible. USD does not allow "
                   "nested UsdGeomGprims, intermediary Xform prims will be defined to keep the USD "
                   "file valid when encountering object hierarchies.");
+
+  RNA_def_enum(ot->srna,
+               "convert_scene_units",
+               rna_enum_usd_convert_scene_units_items,
+               eUSDSceneUnits::USD_SCENE_UNITS_METERS,
+               "Units",
+               "Set the USD Stage meters per unit to the chosen measurement, or a custom value");
+
+  RNA_def_float(ot->srna,
+                "meters_per_unit",
+                1.0f,
+                0.0001f,
+                1000.0f,
+                "Meters Per Unit",
+                "Custom value for meters per unit in the USD Stage",
+                0.0001f,
+                1000.0f);
 }
 
 /* ====== USD Import ====== */
@@ -964,6 +1017,8 @@ static int wm_usd_import_exec(bContext *C, wmOperator *op)
   const eUSDTexNameCollisionMode tex_name_collision_mode = eUSDTexNameCollisionMode(
       RNA_enum_get(op->ptr, "tex_name_collision_mode"));
 
+  const bool apply_unit_conversion_scale = RNA_boolean_get(op->ptr, "apply_unit_conversion_scale");
+
   USDImportParams params{};
   params.prim_path_mask = prim_path_mask;
   params.scale = scale;
@@ -1014,6 +1069,8 @@ static int wm_usd_import_exec(bContext *C, wmOperator *op)
 
   STRNCPY(params.import_textures_dir, import_textures_dir);
 
+  params.apply_unit_conversion_scale = apply_unit_conversion_scale;
+
   /* Switch out of edit mode to avoid being stuck in it (#54326). */
   Object *obedit = CTX_data_edit_object(C);
   if (obedit) {
@@ -1052,6 +1109,7 @@ static void wm_usd_import_draw(bContext *C, wmOperator *op)
     uiItemR(col, ptr, "create_collection", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiItemR(col, ptr, "relative_path", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
+    uiItemR(col, ptr, "apply_unit_conversion_scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiItemR(col, ptr, "scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiItemR(col, ptr, "light_intensity_scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiItemR(col, ptr, "attr_import_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
@@ -1346,6 +1404,14 @@ void WM_OT_usd_import(wmOperatorType *ot)
                   "Merge parent Xform",
                   "Allow USD primitives to merge with their Xform parent "
                   "if they are the only child in the hierarchy");
+
+  RNA_def_boolean(
+      ot->srna,
+      "apply_unit_conversion_scale",
+      true,
+      "Apply Unit Conversion Scale",
+      "Scale the scene objects by the USD stage's meters per unit value. "
+      "This scaling is applied in addition to the value specified in the Scale option");
 }
 
 namespace blender::ed::io {

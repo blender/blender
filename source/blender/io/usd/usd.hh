@@ -113,6 +113,17 @@ enum eUSDTexExportMode {
   USD_TEX_EXPORT_NEW_PATH,
 };
 
+typedef enum eUSDSceneUnits {
+  USD_SCENE_UNITS_CUSTOM = -1,
+  USD_SCENE_UNITS_METERS = 0,
+  USD_SCENE_UNITS_KILOMETERS = 1,
+  USD_SCENE_UNITS_CENTIMETERS = 2,
+  USD_SCENE_UNITS_MILLIMETERS = 3,
+  USD_SCENE_UNITS_INCHES = 4,
+  USD_SCENE_UNITS_FEET = 5,
+  USD_SCENE_UNITS_YARDS = 6,
+} eUSDSceneUnits;
+
 struct USDExportParams {
   bool export_animation = false;
   bool selected_objects_only = false;
@@ -169,6 +180,9 @@ struct USDExportParams {
   char collection[MAX_IDPROP_NAME] = "";
   char custom_properties_namespace[MAX_IDPROP_NAME] = "";
 
+  eUSDSceneUnits convert_scene_units = eUSDSceneUnits::USD_SCENE_UNITS_METERS;
+  float custom_meters_per_unit = 1.0f;
+
   /** Communication structure between the wmJob management code and the worker code. Currently used
    * to generate safely reports from the worker thread. */
   wmJobWorkerStatus *worker_status = nullptr;
@@ -222,6 +236,8 @@ struct USDImportParams {
   char import_textures_dir[768]; /* FILE_MAXDIR */
   eUSDTexNameCollisionMode tex_name_collision_mode;
   eUSDAttrImportMode attr_import_mode;
+
+  bool apply_unit_conversion_scale;
 
   /**
    * Communication structure between the wmJob management code and the worker code. Currently used
@@ -319,5 +335,7 @@ void USD_register_hook(std::unique_ptr<USDHook> hook);
  */
 void USD_unregister_hook(USDHook *hook);
 USDHook *USD_find_hook_name(const char idname[]);
+
+double get_meters_per_unit(const USDExportParams *params);
 
 };  // namespace blender::io::usd

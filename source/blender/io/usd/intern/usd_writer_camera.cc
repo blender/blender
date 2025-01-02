@@ -58,6 +58,9 @@ static void camera_sensor_size_for_render(const Camera *camera,
 
 void USDCameraWriter::do_write(HierarchyContext &context)
 {
+  const double meters_per_unit = get_meters_per_unit(&usd_export_context_.export_params);
+  const float unit_scale = float(1.0 / meters_per_unit);
+
   pxr::UsdTimeCode timecode = get_export_time_code();
   pxr::UsdGeomCamera usd_camera = pxr::UsdGeomCamera::Define(usd_export_context_.stage,
                                                              usd_export_context_.usd_path);
@@ -75,7 +78,7 @@ void USDCameraWriter::do_write(HierarchyContext &context)
    * tenth_unit_to_millimeters = 1000 * unit_to_tenth_unit
    *                           = 100 * stage_meters_per_unit
    */
-  const float tenth_unit_to_mm = 100.0f * scene->unit.scale_length;
+  const float tenth_unit_to_mm = float(100.0 * meters_per_unit * scene->unit.scale_length);
 
   float sensor_size, aperture_x, aperture_y;
   camera_sensor_size_for_render(camera, &scene->r, &sensor_size, &aperture_x, &aperture_y);
@@ -101,7 +104,7 @@ void USDCameraWriter::do_write(HierarchyContext &context)
                 timecode,
                 usd_value_writer_);
   set_attribute(usd_camera.CreateClippingRangeAttr(pxr::VtValue(), true),
-                pxr::GfVec2f(camera->clip_start, camera->clip_end),
+                pxr::GfVec2f(camera->clip_start * unit_scale, camera->clip_end * unit_scale),
                 timecode,
                 usd_value_writer_);
 
@@ -113,7 +116,7 @@ void USDCameraWriter::do_write(HierarchyContext &context)
                   timecode,
                   usd_value_writer_);
     set_attribute(usd_camera.CreateFocusDistanceAttr(pxr::VtValue(), true),
-                  focus_distance,
+                  focus_distance * unit_scale,
                   timecode,
                   usd_value_writer_);
   }

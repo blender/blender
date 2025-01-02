@@ -1176,6 +1176,47 @@ class USDExportTest(AbstractUSDTest):
 
         self.assertTupleEqual(expected, actual)
 
+    def test_export_units(self):
+        """Test specifying stage meters per unit on export."""
+        bpy.ops.wm.open_mainfile(filepath=str(self.testdir / "empty.blend"))
+        export_path = self.tempdir / "usd_export_units_test_cm.usda"
+
+        self.export_and_validate(
+            filepath=str(export_path),
+            convert_scene_units='CENTIMETERS'
+        )
+
+        # Verify that meters per unit were set correctly
+        stage = Usd.Stage.Open(str(export_path))
+        mpu = UsdGeom.GetStageMetersPerUnit(stage)
+        self.assertEqual(mpu, 0.01)
+
+        # Export with default meters units.
+        export_path = self.tempdir / "usd_export_units_test_default.usda"
+
+        self.export_and_validate(
+            filepath=str(export_path)
+        )
+
+        # Verify that meters per unit were set correctly
+        stage = Usd.Stage.Open(str(export_path))
+        mpu = UsdGeom.GetStageMetersPerUnit(stage)
+        self.assertEqual(mpu, 1.0)
+
+        # Export with custom meters per unit.
+        export_path = self.tempdir / "usd_export_units_test_custom.usda"
+
+        self.export_and_validate(
+            filepath=str(export_path),
+            convert_scene_units='CUSTOM',
+            meters_per_unit=0.1,
+        )
+
+        # Verify that meters per unit were set correctly
+        stage = Usd.Stage.Open(str(export_path))
+        mpu = UsdGeom.GetStageMetersPerUnit(stage)
+        self.assertAlmostEqual(mpu, 0.1)
+
     def test_texture_export_hook(self):
         """Exporting textures from on_material_export USD hook."""
 

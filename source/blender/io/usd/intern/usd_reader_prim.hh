@@ -62,6 +62,9 @@ struct ImportSettings {
   double stage_meters_per_unit = 1.0;
 
   pxr::SdfPath skip_prefix{};
+
+  /* Combined user-specified and unit conversion scales. */
+  double scene_scale = 1.0;
 };
 
 /* Most generic USD Reader. */

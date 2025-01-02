@@ -187,6 +187,10 @@ USDStageReader::USDStageReader(pxr::UsdStageRefPtr stage,
   find_prefix_to_skip(stage_, settings_);
   settings_.get_cache_file = get_cache_file_fn;
   settings_.stage_meters_per_unit = pxr::UsdGeomGetStageMetersPerUnit(stage);
+  settings_.scene_scale = params.scale;
+  if (params.apply_unit_conversion_scale) {
+    settings_.scene_scale *= settings_.stage_meters_per_unit;
+  }
 }
 
 USDStageReader::~USDStageReader()
