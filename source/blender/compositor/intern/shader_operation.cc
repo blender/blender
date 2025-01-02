@@ -208,8 +208,10 @@ static const char *get_set_function_name(ResultType type)
       return "set_rgb";
     case ResultType::Color:
       return "set_rgba";
-    default:
-      /* Other types are internal and needn't be handled by operations. */
+    case ResultType::Float2:
+    case ResultType::Float3:
+    case ResultType::Int2:
+      /* Those types are internal and needn't be handled by operations. */
       break;
   }
 
@@ -288,8 +290,10 @@ static const char *get_store_function_name(ResultType type)
       return "node_compositor_store_output_vector";
     case ResultType::Color:
       return "node_compositor_store_output_color";
-    default:
-      /* Other types are internal and needn't be handled by operations. */
+    case ResultType::Float2:
+    case ResultType::Float3:
+    case ResultType::Int2:
+      /* Those types are internal and needn't be handled by operations. */
       break;
   }
 
@@ -383,8 +387,10 @@ static const char *glsl_store_expression_from_result_type(ResultType type)
       return "vec4(vector, 0.0)";
     case ResultType::Color:
       return "color";
-    default:
-      /* Other types are internal and needn't be handled by operations. */
+    case ResultType::Float2:
+    case ResultType::Float3:
+    case ResultType::Int2:
+      /* Those types are internal and needn't be handled by operations. */
       break;
   }
 
@@ -449,8 +455,10 @@ void ShaderOperation::generate_code_for_outputs(ShaderCreateInfo &shader_create_
       case ResultType::Color:
         store_color_function << case_code.str();
         break;
-      default:
-        /* Other types are internal and needn't be handled by operations. */
+      case ResultType::Float2:
+      case ResultType::Float3:
+      case ResultType::Int2:
+        /* Those types are internal and needn't be handled by operations. */
         BLI_assert_unreachable();
         break;
     }
@@ -476,8 +484,10 @@ static const char *glsl_type_from_result_type(ResultType type)
       return "vec3";
     case ResultType::Color:
       return "vec4";
-    default:
-      /* Other types are internal and needn't be handled by operations. */
+    case ResultType::Float2:
+    case ResultType::Float3:
+    case ResultType::Int2:
+      /* Those types are internal and needn't be handled by operations. */
       break;
   }
 
@@ -496,8 +506,10 @@ static const char *glsl_swizzle_from_result_type(ResultType type)
       return "xyz";
     case ResultType::Color:
       return "rgba";
-    default:
-      /* Other types are internal and needn't be handled by operations. */
+    case ResultType::Float2:
+    case ResultType::Float3:
+    case ResultType::Int2:
+      /* Those types are internal and needn't be handled by operations. */
       break;
   }
 

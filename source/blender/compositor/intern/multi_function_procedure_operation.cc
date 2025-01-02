@@ -61,8 +61,10 @@ static const CPPType &get_cpp_type(ResultType type)
     case ResultType::Vector:
     case ResultType::Color:
       return CPPType::get<float4>();
-    default:
-      /* Other types are internal and needn't be handled by operations. */
+    case ResultType::Float2:
+    case ResultType::Float3:
+    case ResultType::Int2:
+      /* Those types are internal and needn't be handled by operations. */
       break;
   }
 
@@ -84,8 +86,10 @@ static void add_single_value_parameter(mf::ParamsBuilder &parameter_builder, con
     case ResultType::Vector:
       parameter_builder.add_readonly_single_input_value(input.get_single_value<float4>());
       return;
-    default:
-      /* Other types are internal and needn't be handled by operations. */
+    case ResultType::Float2:
+    case ResultType::Float3:
+    case ResultType::Int2:
+      /* Those types are internal and needn't be handled by operations. */
       BLI_assert_unreachable();
       break;
   }

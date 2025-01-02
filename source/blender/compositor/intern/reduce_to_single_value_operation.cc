@@ -53,8 +53,10 @@ void ReduceToSingleValueOperation::execute()
     case ResultType::Float:
       result.set_single_value(*pixel);
       break;
-    default:
-      /* Other types are internal and needn't be handled by operations. */
+    case ResultType::Float2:
+    case ResultType::Float3:
+    case ResultType::Int2:
+      /* Those types are internal and needn't be handled by operations. */
       BLI_assert_unreachable();
       break;
   }
