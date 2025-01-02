@@ -1118,10 +1118,12 @@ void BlenderSync::sync_mesh(BL::Depsgraph b_depsgraph, BObjectInfo &b_ob_info, M
   if (view_layer.use_surfaces) {
     /* Adaptive subdivision setup. Not for baking since that requires
      * exact mapping to the Blender mesh. */
-    if (!scene->bake_manager->get_baking()) {
-      new_mesh.set_subdivision_type(
-          object_subdivision_type(b_ob_info.real_object, preview, experimental));
-    }
+    Mesh::SubdivisionType subdivision_type = (b_ob_info.real_object != b_bake_target) ?
+                                                 object_subdivision_type(b_ob_info.real_object,
+                                                                         preview,
+                                                                         experimental) :
+                                                 Mesh::SUBDIVISION_NONE;
+    new_mesh.set_subdivision_type(subdivision_type);
 
     /* For some reason, meshes do not need this... */
     bool need_undeformed = new_mesh.need_attribute(scene, ATTR_STD_GENERATED);
