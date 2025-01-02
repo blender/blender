@@ -597,6 +597,8 @@ static void sequencer_preprocess_transform_crop(
 
 static void multiply_ibuf(ImBuf *ibuf, const float fmul, const bool multiply_alpha)
 {
+  BLI_assert_msg(ibuf->channels == 0 || ibuf->channels == 4,
+                 "Sequencer only supports 4 channel images");
   const size_t pixel_count = IMB_get_rect_len(ibuf);
   if (ibuf->byte_buffer.data != nullptr) {
     threading::parallel_for(IndexRange(pixel_count), 64 * 1024, [&](IndexRange range) {

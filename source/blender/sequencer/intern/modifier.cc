@@ -126,6 +126,10 @@ template<typename T> static void apply_modifier_op(T &op, ImBuf *ibuf, const ImB
   if (ibuf == nullptr) {
     return;
   }
+  BLI_assert_msg(ibuf->channels == 0 || ibuf->channels == 4,
+                 "Sequencer only supports 4 channel images");
+  BLI_assert_msg(mask == nullptr || mask->channels == 0 || mask->channels == 4,
+                 "Sequencer only supports 4 channel images");
 
   threading::parallel_for(IndexRange(size_t(ibuf->x) * ibuf->y), 32 * 1024, [&](IndexRange range) {
     uchar *image_byte = ibuf->byte_buffer.data;

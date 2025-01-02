@@ -119,6 +119,12 @@ void wipe_effect_get_handle(SeqEffectHandle &rval);
 template<typename OpT>
 static void apply_effect_op(const OpT &op, const ImBuf *src1, const ImBuf *src2, ImBuf *dst)
 {
+  BLI_assert_msg(src1->channels == 0 || src1->channels == 4,
+                 "Sequencer only supports 4 channel images");
+  BLI_assert_msg(src2->channels == 0 || src2->channels == 4,
+                 "Sequencer only supports 4 channel images");
+  BLI_assert_msg(dst->channels == 0 || dst->channels == 4,
+                 "Sequencer only supports 4 channel images");
   blender::threading::parallel_for(
       blender::IndexRange(size_t(dst->x) * dst->y), 32 * 1024, [&](blender::IndexRange range) {
         int64_t offset = range.first() * 4;
