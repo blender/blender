@@ -42,6 +42,9 @@ const char *GHOST_SystemPathsUnix::getSystemDir(int /*version*/, const char *ver
   return nullptr;
 }
 
+/**
+ * See doc-string & code-comments for #BLI_dir_home which matches this functionality.
+ */
 static const char *home_dir_get()
 {
   const char *home_dir = getenv("HOME");
@@ -128,7 +131,10 @@ const char *GHOST_SystemPathsUnix::getUserSpecialDir(GHOST_TUserSpecialDirTypes 
       }
 
       /* If `XDG_CACHE_HOME` is not set, then `$HOME/.cache is used`. */
-      const char *home_dir = getenv("HOME");
+      const char *home_dir = home_dir_get();
+      if (home_dir == nullptr) {
+        return nullptr;
+      }
       path = string(home_dir) + "/.cache";
       return path.c_str();
     }
