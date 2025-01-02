@@ -143,7 +143,7 @@ Argument for `material_import_poll`_ and `on_material_import`_.
 Methods:
 
 - ``get_stage()``: returns the USD stage to be saved
-- ``import_texture(asset_path: str)`: for the given USD texture asset path, returns a ``tuple[str, bool]``, containing the asset's local path and a bool indicating whether the path references a temporary file
+- ``import_texture(asset_path: str)``: for the given USD texture asset path, returns a ``tuple[str, bool]``, containing the asset's local path and a bool indicating whether the path references a temporary file
 
 The ``import_texture`` function may copy the texture to the local file system if the given asset path is a package-relative path for a
 USDZ archive, depending on the current USD ``Import Textures`` options.  When the ``Import Textures`` mode is ``Packed``, the texture
