@@ -58,7 +58,7 @@ struct RangeTask {
 
   ~RangeTask()
   {
-    if (settings->func_free != nullptr) {
+    if (settings->func_free != nullptr && userdata_chunk != nullptr) {
       settings->func_free(userdata, userdata_chunk);
     }
     MEM_SAFE_FREE(userdata_chunk);
@@ -127,7 +127,7 @@ void BLI_task_parallel_range(const int start,
   for (int i = start; i < stop; i++) {
     func(userdata, i, &tls);
   }
-  if (settings->func_free != nullptr) {
+  if (settings->func_free != nullptr && settings->userdata_chunk != nullptr) {
     settings->func_free(userdata, settings->userdata_chunk);
   }
 }
