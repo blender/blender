@@ -9,6 +9,7 @@ set(INC
   ../common
   ../../bmesh/intern
   ../../editors/include
+  ../../makesrna
 )
 
 set(INC_SYS
@@ -58,7 +59,6 @@ set(LIB
   bf_io_common
   PRIVATE bf::extern::fmtlib
   PRIVATE bf::nodes
-  PRIVATE bf::rna
   PRIVATE bf::windowmanager
 )
 

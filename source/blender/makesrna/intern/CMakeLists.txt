@@ -233,10 +233,8 @@ set(SRC
 )
 
 set(INC
-  PUBLIC .
-# RNA_prototypes.hh
-  PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/../../makesrna/
-  PUBLIC ..
+  .
+  ..
   ../../animrig
   ../../asset_system
   ../../blenfont
@@ -267,6 +265,10 @@ set(INC
   ../../../../extern/fmtlib/include
   ../../../../intern/memutil
   ../../../../intern/mantaflow/extern
+
+
+  # RNA_prototypes.hh
+  ${CMAKE_CURRENT_BINARY_DIR}/../../makesrna/
 )
 
 set(INC_SYS
@@ -505,4 +507,3 @@ set(LIB
 )
 
 blender_add_lib(bf_rna "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
-add_library(bf::rna ALIAS bf_rna)

@@ -5,10 +5,13 @@
 set(INC
   ../include
   ../../ikplugin
+  ../../makesrna
   ../../modifiers
   ../../python
   ../../shader_fx
 
+  # RNA_prototypes.hh
+  ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 
 set(INC_SYS
@@ -67,7 +70,6 @@ set(LIB
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::render
-  PRIVATE bf::rna
   PRIVATE bf::windowmanager
 )
 
@@ -82,3 +84,6 @@ if(WITH_EXPERIMENTAL_FEATURES)
 endif()
 
 blender_add_lib(bf_editor_object "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+
+# RNA_prototypes.hh
+add_dependencies(bf_editor_object bf_rna)

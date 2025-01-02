@@ -7,11 +7,14 @@ set(INC
   ..
   ../intern
   ../../editors/include
+  ../../makesrna
   ../../compositor
   ../../compositor/algorithms
   ../../compositor/cached_resources
   ../../compositor/utilities
 
+  # RNA_prototypes.hh
+  ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 
 set(INC_SYS
@@ -129,7 +132,6 @@ set(LIB
   PRIVATE bf::extern::fmtlib
   bf_compositor
   PRIVATE bf::render
-  PRIVATE bf::rna
   PRIVATE bf::windowmanager
 )
 
@@ -168,3 +170,6 @@ endif()
 blender_add_lib(bf_nodes_composite "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
 blender_set_target_unity_build(bf_nodes_composite 10)
+
+# RNA_prototypes.hh
+add_dependencies(bf_nodes_composite bf_rna)

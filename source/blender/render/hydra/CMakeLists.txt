@@ -45,9 +45,12 @@ set(INC
   ../../../../intern/guardedalloc
   ../../blenlib
   ../../makesdna
+  ../../makesrna
   ../../io/usd
   ../../gpu/intern
   ../../python/intern
+  # RNA_prototypes.hh
+  ${CMAKE_BINARY_DIR}/source/blender/makesrna
   ..
 )
 
@@ -74,7 +77,6 @@ set(LIB
   PRIVATE bf::intern::clog
   bf_io_usd
   PRIVATE bf::nodes
-  PRIVATE bf::rna
 )
 
 set(SRC
@@ -98,3 +100,6 @@ set(SRC
 )
 
 blender_add_lib(bf_render_hydra "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+
+# RNA_prototypes.hh
+add_dependencies(bf_render_hydra bf_rna)

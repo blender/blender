@@ -5,6 +5,7 @@
 set(INC
   PUBLIC .
   ../ikplugin
+  ../makesrna
   ../modifiers
   ../nodes/geometry/include
   ../shader_fx
@@ -18,6 +19,8 @@ set(INC
   ../../../intern/mikktspace
   ../../../intern/opensubdiv
 
+  # RNA_prototypes.hh
+  ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 
 set(INC_SYS
@@ -568,7 +571,7 @@ set(LIB
   bf_modifiers
   PRIVATE bf::nodes
   PRIVATE bf::render
-  PRIVATE bf::rna
+  bf_rna
   PRIVATE bf::sequencer
   bf_shader_fx
   bf_simulation
@@ -797,6 +800,8 @@ endif()
 blender_add_lib(bf_blenkernel "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 add_library(bf::blenkernel ALIAS bf_blenkernel)
 
+# RNA_prototypes.hh
+add_dependencies(bf_blenkernel bf_rna)
 
 
 if(WITH_GTESTS)

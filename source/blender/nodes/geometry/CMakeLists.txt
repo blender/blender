@@ -8,11 +8,14 @@ set(INC
   include
   ../intern
   ../../editors/include
+  ../../makesrna
   ../../modifiers
   ../../io/common
   ../../io/ply
   ../../io/stl
   ../../io/wavefront_obj
+  # RNA_prototypes.hh
+  ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 
 set(INC_SYS
@@ -252,7 +255,6 @@ set(LIB
   PRIVATE bf::extern::fmtlib
   PRIVATE bf::extern::xxhash
   PRIVATE bf::render
-  PRIVATE bf::rna
   PRIVATE bf::windowmanager
 )
 
@@ -351,3 +353,6 @@ blender_add_lib(bf_nodes_geometry "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 target_link_libraries(bf_nodes_geometry_generated bf_nodes_geometry)
 
 blender_set_target_unity_build(bf_nodes_geometry 10)
+
+# RNA_prototypes.hh
+add_dependencies(bf_nodes_geometry bf_rna)

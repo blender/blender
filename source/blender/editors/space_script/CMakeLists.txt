@@ -4,6 +4,7 @@
 
 set(INC
   ../include
+  ../../makesrna
 
 )
 
@@ -26,7 +27,6 @@ set(LIB
   PRIVATE bf::dna
   PRIVATE bf::gpu
   PRIVATE bf::intern::guardedalloc
-  PRIVATE bf::rna
   PRIVATE bf::windowmanager
 )
 

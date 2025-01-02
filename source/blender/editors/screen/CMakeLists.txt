@@ -5,7 +5,10 @@
 set(INC
   ../asset
   ../include
+  ../../makesrna
   ../../../../extern/fmtlib/include
+  # RNA_prototypes.hh
+  ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 
 set(INC_SYS
@@ -47,7 +50,6 @@ set(LIB
   PRIVATE bf::imbuf
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::extern::fmtlib
-  PRIVATE bf::rna
   PRIVATE bf::sequencer
   PRIVATE bf::windowmanager
 )
@@ -57,3 +59,6 @@ if(WITH_HEADLESS)
 endif()
 
 blender_add_lib(bf_editor_screen "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+
+# RNA_prototypes.hh
+add_dependencies(bf_editor_screen bf_rna)

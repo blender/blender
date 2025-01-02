@@ -56,8 +56,11 @@ set(INC
   ../animrig
   ../editors/include
   ../depsgraph
+  ../makesrna
   ../modifiers
 
+  # RNA_prototypes.hh
+  ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 
 set(INC_SYS
@@ -148,7 +151,6 @@ set(LIB
   PRIVATE bf::extern::fmtlib
   PRIVATE bf::extern::xxhash
   PRIVATE bf::render
-  PRIVATE bf::rna
   PRIVATE bf::windowmanager
 )
 
@@ -207,3 +209,6 @@ endif()
 
 blender_add_lib(bf_nodes "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 add_library(bf::nodes ALIAS bf_nodes)
+
+# RNA_prototypes.hh
+add_dependencies(bf_nodes bf_rna)

@@ -5,6 +5,9 @@
 set(INC
   ../include
   ../space_sequencer
+  ../../makesrna
+  # RNA_prototypes.hh
+  ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 
 set(INC_SYS
@@ -111,7 +114,6 @@ set(LIB
   PRIVATE bf::imbuf
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
-  PRIVATE bf::rna
   PRIVATE bf::sequencer
   PRIVATE bf::windowmanager
 )
@@ -125,3 +127,6 @@ if(WITH_PYTHON)
 endif()
 
 blender_add_lib(bf_editor_util "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
+
+# RNA_prototypes.hh
+add_dependencies(bf_editor_util bf_rna)

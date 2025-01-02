@@ -7,7 +7,10 @@ set(INC
   intern
 
   ../editors/include
+  ../makesrna
   ../../../extern/fmtlib/include
+  # RNA_prototypes.hh
+  ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 
 set(INC_SYS
@@ -63,7 +66,6 @@ set(LIB
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::intern::atomic
   PRIVATE bf::intern::clog
-  PRIVATE bf::rna
   PRIVATE bf::windowmanager
 )
 

@@ -4,6 +4,7 @@
 
 set(INC
   .
+  ../../makesrna
 )
 
 set(INC_SYS
@@ -44,7 +45,6 @@ set(LIB
   PRIVATE bf::gpu
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
-  PRIVATE bf::rna
 )
 
 # NOTE: use irrespective of `WITH_OPENGL_BACKEND` as the `bgl` module uses this for constants.

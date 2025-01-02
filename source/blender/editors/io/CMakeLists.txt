@@ -12,6 +12,7 @@ set(INC
   ../../io/stl
   ../../io/usd
   ../../io/wavefront_obj
+  ../../makesrna
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 
@@ -55,7 +56,6 @@ set(LIB
   PRIVATE bf::extern::fmtlib
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::intern::clog
-  PRIVATE bf::rna
   PRIVATE bf::windowmanager
 )
 

@@ -8,6 +8,7 @@ set(INC
   cached_resources
   utilities
   ../gpu/intern
+  ../makesrna
   ../render/intern
 )
 
@@ -40,7 +41,7 @@ set(SRC
   COM_simple_operation.hh
   COM_static_cache_manager.hh
   COM_texture_pool.hh
-  COM_utilities.hh
+  COM_utilities.hh  
 
   intern/COM_compositor.cc
   intern/compile_state.cc
@@ -151,7 +152,6 @@ set(LIB
   PRIVATE bf::blenlib
   PRIVATE bf::dna
   PRIVATE bf::intern::guardedalloc
-  PRIVATE bf::rna
 )
 
 set(GLSL_SRC

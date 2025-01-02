@@ -6,6 +6,7 @@ set(INC
   .
   ../common
   ../../editors/include
+  ../../makesrna
   ../../../../intern/utfconv
 )
 
@@ -91,7 +92,6 @@ set(LIB
 
   ${ALEMBIC_LIBRARIES}
   ${OPENEXR_LIBRARIES}
-  PRIVATE bf::rna
   PRIVATE bf::windowmanager
 )
 

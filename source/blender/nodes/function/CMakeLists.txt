@@ -7,6 +7,7 @@ set(INC
   ..
   ../intern
   ../../editors/include
+  ../../makesrna
 )
 
 set(INC_SYS
@@ -70,7 +71,6 @@ set(LIB
   PRIVATE bf::dna
   PRIVATE bf::functions
   PRIVATE bf::intern::guardedalloc
-  PRIVATE bf::rna
   PRIVATE bf::windowmanager
 )
 

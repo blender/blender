@@ -4,7 +4,10 @@
 
 set(INC
   ../include
+  ../../makesrna
   ../../../../extern/fmtlib/include
+  # RNA_prototypes.hh
+  ${CMAKE_BINARY_DIR}/source/blender/makesrna
 )
 
 set(INC_SYS
@@ -43,7 +46,6 @@ set(LIB
   PRIVATE bf::gpu
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
-  PRIVATE bf::rna
   PRIVATE bf::sequencer
   PRIVATE bf::windowmanager
 )
@@ -54,6 +56,8 @@ endif()
 
 blender_add_lib(bf_editor_animation "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
+# RNA_prototypes.hh
+add_dependencies(bf_editor_animation bf_rna)
 
 if(WITH_GTESTS)
   set(TEST_SRC
