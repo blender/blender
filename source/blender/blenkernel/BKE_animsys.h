@@ -313,8 +313,6 @@ void BKE_animsys_evaluate_all_animation(struct Main *main,
 
 /**
  * Evaluate Action (F-Curve Bag).
- *
- * Note that this is only used for either legacy Actions or for evaluation of the NLA.
  */
 void animsys_evaluate_action(struct PointerRNA *ptr,
                              struct bAction *act,

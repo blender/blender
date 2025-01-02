@@ -14,6 +14,7 @@
 
 #include <stdbool.h>
 
+#include "BKE_action.hh"
 #include "BLI_listbase.h"
 
 #ifdef __cplusplus
@@ -28,15 +29,20 @@ struct PoseBackup;
  * The backup is owned by the caller, and should be freed with `BKE_pose_backup_free()`.
  */
 struct PoseBackup *BKE_pose_backup_create_selected_bones(
-    const struct Object *ob, const struct bAction *action) ATTR_WARN_UNUSED_RESULT;
+    const struct Object *ob,
+    const struct bAction *action,
+    blender::animrig::slot_handle_t slot_handle) ATTR_WARN_UNUSED_RESULT;
 
 /**
  * Create a backup of those bones that are animated in the given action.
  *
  * The backup is owned by the caller, and should be freed with `BKE_pose_backup_free()`.
  */
-struct PoseBackup *BKE_pose_backup_create_all_bones(
-    const struct Object *ob, const struct bAction *action) ATTR_WARN_UNUSED_RESULT;
+struct PoseBackup *BKE_pose_backup_create_all_bones(const struct Object *ob,
+                                                    const struct bAction *action,
+                                                    blender::animrig::slot_handle_t slot_handle)
+    ATTR_WARN_UNUSED_RESULT;
+
 bool BKE_pose_backup_is_selection_relevant(const struct PoseBackup *pose_backup);
 void BKE_pose_backup_restore(const struct PoseBackup *pbd);
 void BKE_pose_backup_free(struct PoseBackup *pbd);
@@ -47,7 +53,9 @@ void BKE_pose_backup_free(struct PoseBackup *pbd);
  * The backup is owned by the Object, and there can be only one backup at a time.
  * It should be freed with `BKE_pose_backup_clear(ob)`.
  */
-void BKE_pose_backup_create_on_object(struct Object *ob, const struct bAction *action);
+void BKE_pose_backup_create_on_object(struct Object *ob,
+                                      const struct bAction *action,
+                                      blender::animrig::slot_handle_t slot_handle);
 
 /**
  * Restore the pose backup owned by this OBject.
