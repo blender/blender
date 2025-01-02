@@ -39,7 +39,7 @@ ImBuf *prepare_effect_imbufs(const SeqRenderData *context,
   int base_flags = uninitialized_pixels ? IB_uninitialized_pixels : 0;
 
   if (!ibuf1 && !ibuf2) {
-    /* hmmm, global float option ? */
+    /* Hmm, global float option? */
     out = IMB_allocImBuf(x, y, 32, IB_rect | base_flags);
   }
   else if ((ibuf1 && ibuf1->float_buffer.data) || (ibuf2 && ibuf2->float_buffer.data)) {

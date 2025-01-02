@@ -52,7 +52,7 @@ struct ImportSettings {
    * converted by invoking the 'on_material_import' USD hook.
    * This map is updated by readers during stage traversal. */
   mutable blender::Map<std::string, Material *> usd_path_to_mat_for_hook{};
-  /* Set of paths to USD material prims that can be converted by the
+  /* Set of paths to USD material primitives that can be converted by the
    * 'on_material_import' USD hook. For efficiency this set should
    * be populated prior to stage traversal. */
   mutable blender::Set<std::string> mat_import_hook_sources{};

@@ -283,17 +283,17 @@ enum {
   G_FILE_COMPRESS = (1 << 1),
 
   /**
-   * When in background mode, do not automatically build a depsgraph when loading a blendfile.
+   * When in background mode, do not automatically build a depsgraph when loading a blend-file.
    * Typically set by the `--disable-depsgraph-on-file-load` command-line argument.
    *
    * NOTE: This is a temporary option, it is intended to be removed in blender 5.0.
    * The default behavior will then be changed to never automatically generate a depsgraph on
-   * fileload when in background mode.
+   * file-load when in background mode.
    */
   G_BACKGROUND_NO_DEPSGRAPH = 1 << 2,
 
   /**
-   * Do not perform automatic resync of library overrides on blendfile load.
+   * Do not perform automatic resync of library overrides on blend-file load.
    *
    * NOTE: runtime version of #UserDef_Experimental.no_override_auto_resync, both values are OR'ed
    * together.

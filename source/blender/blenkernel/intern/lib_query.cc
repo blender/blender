@@ -754,16 +754,18 @@ static void lib_query_unused_ids_untag_id(ID &id, UnusedIDsData &data)
   }
 }
 
-/* Certain corner-cases require to consider an ID as used, even if there are no 'real' refcounting
- * usages of these. */
+/**
+ * Certain corner-cases require to consider an ID as used,
+ * even if there are no 'real' reference-counting usages of these.
+ */
 static bool lib_query_unused_ids_has_exception_user(ID &id, UnusedIDsData &data)
 {
   switch (GS(id.name)) {
     case ID_OB: {
       /* FIXME: This is a workaround until Object usages are handled more soundly.
        *
-       * Historically, only refcounting Object usages were the Collection ones. All other
-       * references (e.g. as Constraints or Modifiers targets) did not increase their usercount.
+       * Historically, only reference-counting Object usages were the Collection ones. All other
+       * references (e.g. as Constraints or Modifiers targets) did not increase their user-count.
        *
        * This is not entirely true anymore (e.g. some type-agnostic ID usages like IDPointer custom
        * properties do refcount Object ones too), but there are still many Object usages that
@@ -771,7 +773,7 @@ static bool lib_query_unused_ids_has_exception_user(ID &id, UnusedIDsData &data)
        *
        * This becomes a problem with linked data, as in that case instancing of linked Objects in
        * the scene is not enforced (to avoid cluttering the scene), which leaves some actually used
-       * linked objects with a `0` usercount.
+       * linked objects with a `0` user-count.
        *
        * So this is a special check to consider linked objects as used also in case some other
        * used ID uses them.

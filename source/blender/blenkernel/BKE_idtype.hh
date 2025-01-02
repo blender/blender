@@ -156,7 +156,7 @@ struct IDTypeInfo {
   /**
    * The user visible name for this data-block, also used as default name for a new data-block.
    *
-   * \note: Also used for the 'filepath' ID type part when listing IDs in library blendfiles
+   * \note: Also used for the 'filepath' ID type part when listing IDs in library blend-files
    * (`my_blendfile.blend/<IDType.name>/my_id_name`, e.g. `boat-v001.blend/Collection/PR-boat` for
    * the `GRPR-boat` Collection ID in `boat-v001.blend`).
    */

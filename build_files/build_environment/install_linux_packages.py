@@ -60,14 +60,14 @@ class Package:
         # There is no version check performed here, and a single missing package will fail the whole thing.
         # Used for the basic sets of build packages and dependencies that can be assumed always available,
         # with stable enough API that the version does not matter (to some extent, it is expected to work with
-        # any recent distro version at least).
+        # any recent distribution version at least).
         "is_group",
         # Whether Blender can build without this package or not.
         # Note: In case of group packages, all sub-packages inherit from the value of the root group package.
         "is_mandatory",
-        # Exact version currently used for pre-built libraries and buildbot builds.
+        # Exact version currently used for pre-built libraries and build-bot builds.
         "version",
-        # Ideal version of the package (if possible, prioritize a package of that version), `version` shoudl match it.
+        # Ideal version of the package (if possible, prioritize a package of that version), `version` should match it.
         "version_short",
         # Minimal (included)/maximal (excluded) assumed supported version range.
         # Package outside of that range won't be installed.
@@ -76,7 +76,7 @@ class Package:
         "version_installed",
         # Other Packages that depend/are only installed if the 'parent' one is valid.
         "sub_packages",
-        # A mapping from distro name key to distro package name value.
+        # A mapping from distribution name key to distribution package name value.
         # Value may either be:
         #   - A package name string.
         #   - A callback taking the Package and an iterable of its parents as parameters, and returning a string.

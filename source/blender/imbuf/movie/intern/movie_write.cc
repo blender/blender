@@ -228,7 +228,7 @@ static AVFrame *generate_video_frame(MovieWriter *context, const ImBuf *image)
   const size_t linesize_dst = rgb_frame->linesize[0];
   if (use_float) {
     /* Float image: need to split up the image into a planar format,
-     * because libswscale does not support RGBA->YUV conversions from
+     * because `libswscale` does not support RGBA->YUV conversions from
      * packed float formats. */
     BLI_assert_msg(rgb_frame->linesize[1] == linesize_dst &&
                        rgb_frame->linesize[2] == linesize_dst &&

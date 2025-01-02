@@ -94,7 +94,7 @@ struct LineInfo {
 struct TextVarsRuntime {
   Vector<LineInfo> lines;
 
-  rcti text_boundbox; /* Boundbox used for box drawing and selection. */
+  rcti text_boundbox; /* Bound-box used for box drawing and selection. */
   int line_height;
   int font_descender;
   int character_count;

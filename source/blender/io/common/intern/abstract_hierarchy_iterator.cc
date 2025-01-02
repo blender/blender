@@ -757,7 +757,7 @@ bool AbstractHierarchyIterator::mark_as_weak_export(const Object * /*object*/) c
 bool AbstractHierarchyIterator::should_visit_dupli_object(const DupliObject *dupli_object) const
 {
   /* Do not visit dupli objects if their `no_draw` flag is set (things like custom bone shapes) or
-   * if they are metaballs. */
+   * if they are meta-balls. */
   if (dupli_object->no_draw || dupli_object->ob->type == OB_MBALL) {
     return false;
   }

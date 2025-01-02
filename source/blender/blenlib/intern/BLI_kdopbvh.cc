@@ -77,11 +77,11 @@ struct BVHNode {
 /* keep under 26 bytes for speed purposes */
 struct BVHTree {
   BVHNode **nodes;
-  BVHNode *nodearray;  /* pre-alloc branch nodes */
-  BVHNode **nodechild; /* pre-alloc children for nodes */
-  float *nodebv;       /* pre-alloc bounding-volumes for nodes */
+  BVHNode *nodearray;  /* Pre-allocate branch nodes. */
+  BVHNode **nodechild; /* Pre-allocate children for nodes. */
+  float *nodebv;       /* Pre-allocate bounding-volumes for nodes. */
   float epsilon;       /* Epsilon is used for inflation of the K-DOP. */
-  int leaf_num;        /* leafs */
+  int leaf_num;        /* Leafs. */
   int branch_num;
   axis_t start_axis, stop_axis; /* bvhtree_kdop_axes array indices according to axis */
   axis_t axis;                  /* KDOP type (6 => OBB, 7 => AABB, ...) */
@@ -624,7 +624,7 @@ static int implicit_leafs_index(const BVHBuildHelper *data, const int depth, con
  *
  * An implicit tree is a tree where its structure is implied,
  * thus there is no need to store child pointers or indexes.
- * It's possible to find the position of the child or the parent with simple maths
+ * It's possible to find the position of the child or the parent with simple math
  * (multiplication and addition).
  * This type of tree is for example used on heaps..
  * where node N has its child at indices N*2 and N*2+1.

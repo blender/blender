@@ -1657,11 +1657,11 @@ DerivedMesh *subsurf_make_derived_from_derived(DerivedMesh *dm,
 
     /* It is quite possible there is a much better place to do this. It
      * depends a bit on how rigorously we expect this function to never
-     * be called in editmode. In semi-theory we could share a single
-     * cache, but the handles used inside and outside editmode are not
+     * be called in edit-mode. In semi-theory we could share a single
+     * cache, but the handles used inside and outside edit-mode are not
      * the same so we would need some way of converting them. Its probably
      * not worth the effort. But then why am I even writing this long
-     * comment that no one will read? Hmmm. - zr
+     * comment that no one will read? Hmm. - zr
      *
      * Addendum: we can't really ensure that this is never called in edit
      * mode, so now we have a parameter to verify it. - brecht

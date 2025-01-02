@@ -2132,20 +2132,27 @@ static float2 compute_2d_gabor_kernel(const float2 position,
   return windowed_gaussian_envelope * phasor;
 }
 
-/* Computes the approximate standard deviation of the zero mean normal distribution representing
+/**
+ * Computes the approximate standard deviation of the zero mean normal distribution representing
  * the amplitude distribution of the noise based on Equation (9) in the original Gabor noise paper.
  * For simplicity, the Hann window is ignored and the orientation is fixed since the variance is
  * orientation invariant. We start integrating the squared Gabor kernel with respect to x:
  *
- *   \int_{-\infty}^{-\infty} (e^{- \pi (x^2 + y^2)} cos(2 \pi f_0 x))^2 dx
+ * \code{.tex}
+ * \int_{-\infty}^{-\infty} (e^{- \pi (x^2 + y^2)} cos(2 \pi f_0 x))^2 dx
+ * \endcode
  *
  * Which gives:
  *
- *  \frac{(e^{2 \pi f_0^2}-1) e^{-2 \pi y^2 - 2 pi f_0^2}}{2^\frac{3}{2}}
+ * \code{.tex}
+ * \frac{(e^{2 \pi f_0^2}-1) e^{-2 \pi y^2 - 2 pi f_0^2}}{2^\frac{3}{2}}
+ * \endcode
  *
  * Then we similarly integrate with respect to y to get:
  *
- *  \frac{1 - e^{-2 \pi f_0^2}}{4}
+ * \code{.tex}
+ * \frac{1 - e^{-2 \pi f_0^2}}{4}
+ * \endcode
  *
  * Secondly, we note that the second moment of the weights distribution is 0.5 since it is a
  * fair Bernoulli distribution. So the final standard deviation expression is square root the
@@ -2155,7 +2162,9 @@ static float2 compute_2d_gabor_kernel(const float2 position,
  * converges to an upper limit as the frequency approaches infinity, so we replace the expression
  * with the following limit:
  *
- *  \lim_{x \to \infty} \frac{1 - e^{-2 \pi f_0^2}}{4}
+ * \code{.tex}
+ * \lim_{x \to \infty} \frac{1 - e^{-2 \pi f_0^2}}{4}
+ * \endcode
  *
  * To get an approximation of 0.25. */
 static float compute_2d_gabor_standard_deviation()

@@ -104,12 +104,12 @@ defs_precalc = {
 import sys
 
 if 0:
-    # Examples with LLVM as the root dir: '/dsk/src/llvm'
+    # Examples with LLVM as the root dir: `/dsk/src/llvm`.
 
-    # path containing 'clang/__init__.py'
+    # Path containing `clang/__init__.py`.
     CLANG_BIND_DIR = "/dsk/src/llvm/tools/clang/bindings/python"
 
-    # path containing libclang.so
+    # Path containing `libclang.so`.
     CLANG_LIB_DIR = "/opt/llvm/lib"
 else:
     import os

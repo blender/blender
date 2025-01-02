@@ -79,7 +79,8 @@ static double compute_scaled_poles_variance(const std::array<std::complex<double
   return variance.real();
 }
 
-/* Computes the partial derivative with respect to the scale factor at the given scale factor of
+/**
+ *  Computes the partial derivative with respect to the scale factor at the given scale factor of
  * the variance of the Gaussian filter represented by the given poles scaled by the given scale
  * factor. This is based on the partial derivative with respect to the scale factor of Equation
  * (20) in Van Vliet's paper.
@@ -87,13 +88,16 @@ static double compute_scaled_poles_variance(const std::array<std::complex<double
  * The derivative is not listed in the paper, but was computed manually as the sum of the following
  * for each of the poles:
  *
- *   \frac{
- *     2a^\frac{1}{x}e^\frac{ib}{x} (e^\frac{ib}{x}+a^\frac{1}{x}) (\ln(a)-ib)
- *   }{
- *     x^2 (a^\frac{1}{x}-e^\frac{ib}{x})^3
- *   }
+ * \code{.tex}
+ * \frac{
+ *   2a^\frac{1}{x}e^\frac{ib}{x} (e^\frac{ib}{x}+a^\frac{1}{x}) (\ln(a)-ib)
+ * }{
+ *   x^2 (a^\frac{1}{x}-e^\frac{ib}{x})^3
+ * }
+ * \endcode
  *
- * Where "x" is the scale factor, "a" is the magnitude of the pole, and "b" is its phase. */
+ * Where "x" is the scale factor, "a" is the magnitude of the pole, and "b" is its phase.
+ */
 static double compute_scaled_poles_variance_derivative(
     const std::array<std::complex<double>, 4> &poles, double scale_factor)
 {
@@ -247,7 +251,8 @@ static double compute_feedforward_coefficient(const double4 &feedback_coefficien
   return 1.0 + math::reduce_add(feedback_coefficients);
 }
 
-/* Computes the residue of the partial fraction of the transfer function of the given causal poles
+/**
+ * Computes the residue of the partial fraction of the transfer function of the given causal poles
  * and gain for the given target pole. This essentially evaluates Equation (3.41) in Oppenheim's
  * book, where d_k is the target pole and assuming the transfer function is in the form given in
  * Equation (3.39), where d_k are the poles. See the following derivation for the gain value.
@@ -259,22 +264,29 @@ static double compute_feedforward_coefficient(const double4 &feedback_coefficien
  *
  * Start from the causal term of Equation (3):
  *
- *   H_+(z) = \prod_{i=1}^N \frac{d_i - 1}{d_i - z^{-1}}
+ * \code{.tex}
+ * H_+(z) = \prod_{i=1}^N \frac{d_i - 1}{d_i - z^{-1}}
+ * \endcode
  *
  * Divide by d_i:
  *
- *   H_+(z) = \prod_{i=1}^N \frac{1 - d_i^{-1}}{1 - d_i^{-1}z^{-1}}
+ * \code{.tex}
+ * H_+(z) = \prod_{i=1}^N \frac{1 - d_i^{-1}}{1 - d_i^{-1}z^{-1}}
+ * \endcode
  *
  * Move the numerator to its own product:
  *
- *   H_+(z) = \prod_{i=1}^N 1 - d_i^{-1} \prod_{i=1}^N \frac{1}{1 - d_i^{-1}z^{-1}}
+ * \code{.tex}
+ * H_+(z) = \prod_{i=1}^N 1 - d_i^{-1} \prod_{i=1}^N \frac{1}{1 - d_i^{-1}z^{-1}}
+ * \endcode
  *
  * And we reach the same form as Equation (3.39). Where the first product term is b0 / a0 and is
  * also the given gain value, which is also the same as the feedforward coefficient denoted by
  * the alpha in Equation (12). Further d_i^{-1} in our derivation is the same as d_k in Equation
  * (3.39), the discrepancy in the inverse operator is the fact that Van Vliet's derivation assume
  * non causal poles, while Oppenheim's assume causal poles, which are inverse of each other as can
- * be seen in the compute_causal_poles function. */
+ * be seen in the compute_causal_poles function.
+ */
 static std::complex<double> compute_partial_fraction_residue(
     const std::array<std::complex<double>, 4> &poles,
     const std::complex<double> &target_pole,
@@ -343,7 +355,8 @@ static void compute_second_order_section(const std::complex<double> &pole,
                                                   non_causal_feedforward_2);
 }
 
-/* The IIR filter difference equation relies on previous outputs to compute new outputs, those
+/**
+   The IIR filter difference equation relies on previous outputs to compute new outputs, those
  * previous outputs are not really defined at the start of the filter. To do Neumann boundary
  * condition, we initialize the previous output with a special value that is a function of the
  * boundary value. This special value is computed by multiply the boundary value with a coefficient
@@ -356,21 +369,28 @@ static void compute_second_order_section(const std::complex<double> &pole,
  * Start by the difference equation where b_i are the feedforward coefficients and a_i are the
  * feedback coefficients:
  *
- *   y[n] = \sum_{i = 0}^3 b_i x[n - i] - \sum_{i = 0}^3 a_i y[n - i]
+ * \code{.tex}
+ * y[n] = \sum_{i = 0}^3 b_i x[n - i] - \sum_{i = 0}^3 a_i y[n - i]
+ * \endcode
  *
  * Assume all outputs are y and all inputs are x, which is the boundary value:
  *
- *   y = \sum_{i = 0}^3 b_i x - \sum_{i = 0}^3 a_i y
+ * \code{.tex}
+ * y = \sum_{i = 0}^3 b_i x - \sum_{i = 0}^3 a_i y
+ * \endcode
  *
  * Now rearrange to compute y:
  *
- *   y = x \sum_{i = 0}^3 b_i - y \sum_{i = 0}^3 a_i
- *   y + y \sum_{i = 0}^3 a_i = x \sum_{i = 0}^3 b_i
- *   y (1 + \sum_{i = 0}^3 a_i) = x \sum_{i = 0}^3 b_i
- *   y = x \cdot \frac{\sum_{i = 0}^3 b_i}{1 + \sum_{i = 0}^3 a_i}
+ * \code{.tex}
+ * y = x \sum_{i = 0}^3 b_i - y \sum_{i = 0}^3 a_i
+ * y + y \sum_{i = 0}^3 a_i = x \sum_{i = 0}^3 b_i
+ * y (1 + \sum_{i = 0}^3 a_i) = x \sum_{i = 0}^3 b_i
+ * y = x \cdot \frac{\sum_{i = 0}^3 b_i}{1 + \sum_{i = 0}^3 a_i}
+ * \endcode
  *
  * So our coefficient is the value that is multiplied by the boundary value x. Had x been zero,
- * that is, we are doing Dirichlet boundary condition, the equations still hold. */
+ * that is, we are doing Dirichlet boundary condition, the equations still hold.
+ */
 static double compute_boundary_coefficient(const double2 &feedback_coefficients,
                                            const double2 &feedforward_coefficients)
 {
