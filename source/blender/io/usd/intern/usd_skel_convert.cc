@@ -964,12 +964,9 @@ void import_skeleton(Main *bmain,
   }
 }
 
-void import_mesh_skel_bindings(Main *bmain,
-                               Object *mesh_obj,
-                               const pxr::UsdPrim &prim,
-                               ReportList *reports)
+void import_mesh_skel_bindings(Object *mesh_obj, const pxr::UsdPrim &prim, ReportList *reports)
 {
-  if (!(bmain && mesh_obj && mesh_obj->type == OB_MESH && prim)) {
+  if (!(mesh_obj && mesh_obj->type == OB_MESH && prim)) {
     return;
   }
 
