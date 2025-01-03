@@ -14,6 +14,8 @@
 
 #include "BLI_utildefines.h"
 
+#include "BLT_translation.hh"
+
 #include "RNA_access.hh"
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
@@ -3186,6 +3188,7 @@ static void rna_def_property(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, rna_enum_property_subtype_items);
   RNA_def_property_enum_funcs(prop, "rna_Property_subtype_get", nullptr, nullptr);
   RNA_def_property_ui_text(prop, "Subtype", "Semantic interpretation of the property");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_UNIT);
 
   prop = RNA_def_property(srna, "srna", PROP_POINTER, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
@@ -3197,6 +3200,7 @@ static void rna_def_property(BlenderRNA *brna)
   prop = RNA_def_property(srna, "unit", PROP_ENUM, PROP_NONE);
   RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_enum_items(prop, rna_enum_property_unit_items);
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_UNIT);
   RNA_def_property_enum_funcs(prop, "rna_Property_unit_get", nullptr, nullptr);
   RNA_def_property_ui_text(prop, "Unit", "Type of units for this property");
 

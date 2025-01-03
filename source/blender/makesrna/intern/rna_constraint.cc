@@ -1652,6 +1652,7 @@ static void rna_def_constraint_size_like(BlenderRNA *brna)
   RNA_def_property_float_default(prop, 1.0f);
   RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, 3);
   RNA_def_property_ui_text(prop, "Power", "Raise the target's scale to the specified power");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_CONSTRAINT);
   RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
 
   prop = RNA_def_property(srna, "use_make_uniform", PROP_BOOLEAN, PROP_NONE);

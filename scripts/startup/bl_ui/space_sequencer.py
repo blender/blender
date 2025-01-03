@@ -99,7 +99,7 @@ def draw_color_balance(layout, color_balance):
         box = col.box()
         split = box.split(factor=0.35)
         col = split.column(align=True)
-        col.label(text="Power")
+        col.label(text="Power", text_ctxt=i18n_contexts.id_movieclip)
         col.separator()
         col.separator()
         col.prop(color_balance, "power", text="")

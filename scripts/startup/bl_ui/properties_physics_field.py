@@ -5,6 +5,9 @@
 from bpy.types import (
     Panel,
 )
+from bpy.app.translations import (
+    contexts as i18n_contexts,
+)
 from bl_ui.properties_physics_common import (
     basic_force_field_settings_ui,
     basic_force_field_falloff_ui,
@@ -262,7 +265,7 @@ class PHYSICS_PT_field_falloff_angular(PhysicButtonsPanel, Panel):
         field = ob.field
 
         col = flow.column()
-        col.prop(field, "radial_falloff", text="Power")
+        col.prop(field, "radial_falloff", text="Power", text_ctxt=i18n_contexts.id_particlesettings)
 
         col = flow.column()
         col.prop(field, "use_radial_min", text="Use Min Angle")
@@ -305,7 +308,7 @@ class PHYSICS_PT_field_falloff_radial(PhysicButtonsPanel, Panel):
         field = ob.field
 
         col = flow.column()
-        col.prop(field, "radial_falloff", text="Power")
+        col.prop(field, "radial_falloff", text="Power", text_ctxt=i18n_contexts.id_particlesettings)
 
         col = flow.column()
         col.prop(field, "use_radial_min", text="Use Minimum")
