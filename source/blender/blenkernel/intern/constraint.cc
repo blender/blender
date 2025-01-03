@@ -822,8 +822,10 @@ static inline void unit_ct_matrix_nullsafe(bConstraintTarget *ct)
 
 /* This function should be used for the get_target_matrix member of all
  * constraints that are not picky about what happens to their target matrix.
+ *
+ * \returns whether the constraint has a valid target.
  */
-static void default_get_tarmat(Depsgraph * /*depsgraph*/,
+static bool default_get_tarmat(Depsgraph * /*depsgraph*/,
                                bConstraint *con,
                                bConstraintOb *cob,
                                bConstraintTarget *ct,
@@ -831,7 +833,7 @@ static void default_get_tarmat(Depsgraph * /*depsgraph*/,
 {
   if (!VALID_CONS_TARGET(ct)) {
     unit_ct_matrix_nullsafe(ct);
-    return;
+    return false;
   }
 
   constraint_target_to_mat4(ct->tar,
@@ -842,11 +844,12 @@ static void default_get_tarmat(Depsgraph * /*depsgraph*/,
                             ct->space,
                             con->flag,
                             con->headtail);
+  return true;
 }
 
 /* This is a variant that extracts full transformation from B-Bone segments.
  */
-static void default_get_tarmat_full_bbone(Depsgraph * /*depsgraph*/,
+static bool default_get_tarmat_full_bbone(Depsgraph * /*depsgraph*/,
                                           bConstraint *con,
                                           bConstraintOb *cob,
                                           bConstraintTarget *ct,
@@ -854,7 +857,7 @@ static void default_get_tarmat_full_bbone(Depsgraph * /*depsgraph*/,
 {
   if (!VALID_CONS_TARGET(ct)) {
     unit_ct_matrix_nullsafe(ct);
-    return;
+    return false;
   }
 
   constraint_target_to_mat4(ct->tar,
@@ -865,6 +868,7 @@ static void default_get_tarmat_full_bbone(Depsgraph * /*depsgraph*/,
                             ct->space,
                             con->flag | CONSTRAINT_BBONE_SHAPE_FULL,
                             con->headtail);
+  return true;
 }
 
 /* This following macro should be used for all standard single-target *_get_tars functions
@@ -1395,7 +1399,7 @@ static void kinematic_flush_tars(bConstraint *con, ListBase *list, bool no_copy)
   }
 }
 
-static void kinematic_get_tarmat(Depsgraph * /*depsgraph*/,
+static bool kinematic_get_tarmat(Depsgraph * /*depsgraph*/,
                                  bConstraint *con,
                                  bConstraintOb *cob,
                                  bConstraintTarget *ct,
@@ -1412,21 +1416,21 @@ static void kinematic_get_tarmat(Depsgraph * /*depsgraph*/,
                               ct->space,
                               con->flag,
                               con->headtail);
-    return;
+    return true;
   }
 
   if (!ct) {
-    return;
+    return false;
   }
   if ((data->flag & CONSTRAINT_IK_AUTO) == 0) {
     unit_m4(ct->matrix);
-    return;
+    return false;
   }
 
   Object *ob = cob->ob;
   if (ob == nullptr) {
     unit_m4(ct->matrix);
-    return;
+    return false;
   }
 
   float vec[3];
@@ -1434,6 +1438,8 @@ static void kinematic_get_tarmat(Depsgraph * /*depsgraph*/,
   mul_v3_m4v3(vec, ob->object_to_world().ptr(), data->grabtarget);
   copy_m4_m4(ct->matrix, ob->object_to_world().ptr());
   copy_v3_v3(ct->matrix[3], vec);
+
+  return true;
 }
 
 static bConstraintTypeInfo CTI_KINEMATIC = {
@@ -1497,7 +1503,7 @@ static void followpath_flush_tars(bConstraint *con, ListBase *list, bool no_copy
   }
 }
 
-static void followpath_get_tarmat(Depsgraph * /*depsgraph*/,
+static bool followpath_get_tarmat(Depsgraph * /*depsgraph*/,
                                   bConstraint *con,
                                   bConstraintOb * /*cob*/,
                                   bConstraintTarget *ct,
@@ -1507,7 +1513,7 @@ static void followpath_get_tarmat(Depsgraph * /*depsgraph*/,
 
   if (!VALID_CONS_TARGET(ct) || ct->tar->type != OB_CURVES_LEGACY) {
     unit_ct_matrix_nullsafe(ct);
-    return;
+    return false;
   }
 
   Curve *cu = static_cast<Curve *>(ct->tar->data);
@@ -1523,7 +1529,7 @@ static void followpath_get_tarmat(Depsgraph * /*depsgraph*/,
   if (ct->tar->runtime->curve_cache == nullptr ||
       ct->tar->runtime->curve_cache->anim_path_accum_length == nullptr)
   {
-    return;
+    return false;
   }
 
   float quat[4];
@@ -1558,7 +1564,7 @@ static void followpath_get_tarmat(Depsgraph * /*depsgraph*/,
                          &radius,
                          nullptr))
   {
-    return;
+    return false;
   }
 
   float totmat[4][4];
@@ -1580,6 +1586,7 @@ static void followpath_get_tarmat(Depsgraph * /*depsgraph*/,
   copy_v3_v3(totmat[3], vec);
 
   mul_m4_m4m4(ct->matrix, ct->tar->object_to_world().ptr(), totmat);
+  return true;
 }
 
 static void followpath_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *targets)
@@ -2543,7 +2550,7 @@ static void pycon_id_looper(bConstraint *con, ConstraintIDFunc func, void *userd
 }
 
 /* Whether this approach is maintained remains to be seen (aligorith) */
-static void pycon_get_tarmat(Depsgraph * /*depsgraph*/,
+static bool pycon_get_tarmat(Depsgraph * /*depsgraph*/,
                              bConstraint *con,
                              bConstraintOb *cob,
                              bConstraintTarget *ct,
@@ -2555,12 +2562,12 @@ static void pycon_get_tarmat(Depsgraph * /*depsgraph*/,
 
   if (!VALID_CONS_TARGET(ct)) {
     unit_ct_matrix_nullsafe(ct);
-    return;
+    return false;
   }
 
   if (ct->tar->type == OB_CURVES_LEGACY && ct->tar->runtime->curve_cache == nullptr) {
     unit_m4(ct->matrix);
-    return;
+    return false;
   }
 
   /* firstly calculate the matrix the normal way, then let the py-function override
@@ -2581,6 +2588,7 @@ static void pycon_get_tarmat(Depsgraph * /*depsgraph*/,
     BPY_pyconstraint_target(data, ct);
   }
 #endif
+  return true;
 }
 
 static void pycon_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *targets)
@@ -2658,7 +2666,7 @@ static void armdef_id_looper(bConstraint *con, ConstraintIDFunc func, void *user
 }
 
 /* Compute the world space pose matrix of the target bone. */
-static void armdef_get_tarmat(Depsgraph * /*depsgraph*/,
+static bool armdef_get_tarmat(Depsgraph * /*depsgraph*/,
                               bConstraint * /*con*/,
                               bConstraintOb * /*cob*/,
                               bConstraintTarget *ct,
@@ -2666,16 +2674,17 @@ static void armdef_get_tarmat(Depsgraph * /*depsgraph*/,
 {
   if (!VALID_CONS_TARGET(ct) || ct->tar->type != OB_ARMATURE) {
     unit_ct_matrix_nullsafe(ct);
-    return;
+    return false;
   }
 
   bPoseChannel *pchan = BKE_pose_channel_find_name(ct->tar->pose, ct->subtarget);
   if (pchan == nullptr) {
     unit_m4(ct->matrix);
-    return;
+    return false;
   }
 
   mul_m4_m4m4(ct->matrix, ct->tar->object_to_world().ptr(), pchan->pose_mat);
+  return true;
 }
 
 static void armdef_accumulate_matrix(const float obmat[4][4],
@@ -2916,7 +2925,7 @@ static void actcon_flush_tars(bConstraint *con, ListBase *list, bool no_copy)
   }
 }
 
-static void actcon_get_tarmat(Depsgraph *depsgraph,
+static bool actcon_get_tarmat(Depsgraph *depsgraph,
                               bConstraint *con,
                               bConstraintOb *cob,
                               bConstraintTarget *ct,
@@ -2926,12 +2935,12 @@ static void actcon_get_tarmat(Depsgraph *depsgraph,
 
   if (!data->act) {
     /* Without an Action, this constraint cannot do anything. */
-    return;
+    return false;
   }
 
   const bool use_eval_time = data->flag & ACTCON_USE_EVAL_TIME;
   if (!VALID_CONS_TARGET(ct) && !use_eval_time) {
-    return;
+    return false;
   }
 
   float tempmat[4][4], vec[3];
@@ -3052,7 +3061,10 @@ static void actcon_get_tarmat(Depsgraph *depsgraph,
   else {
     /* behavior undefined... */
     puts("Error: unknown owner type for Action Constraint");
+    return false;
   }
+
+  return true;
 }
 
 static void actcon_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *targets)
@@ -3943,7 +3955,7 @@ static void clampto_flush_tars(bConstraint *con, ListBase *list, bool no_copy)
   }
 }
 
-static void clampto_get_tarmat(Depsgraph * /*depsgraph*/,
+static bool clampto_get_tarmat(Depsgraph * /*depsgraph*/,
                                bConstraint * /*con*/,
                                bConstraintOb * /*cob*/,
                                bConstraintTarget *ct,
@@ -3953,6 +3965,7 @@ static void clampto_get_tarmat(Depsgraph * /*depsgraph*/,
    * might end up calling this...
    */
   unit_ct_matrix_nullsafe(ct);
+  return false;
 }
 
 static void clampto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *targets)
@@ -4342,7 +4355,7 @@ static void shrinkwrap_flush_tars(bConstraint *con, ListBase *list, bool no_copy
   }
 }
 
-static void shrinkwrap_get_tarmat(Depsgraph * /*depsgraph*/,
+static bool shrinkwrap_get_tarmat(Depsgraph * /*depsgraph*/,
                                   bConstraint *con,
                                   bConstraintOb *cob,
                                   bConstraintTarget *ct,
@@ -4351,7 +4364,7 @@ static void shrinkwrap_get_tarmat(Depsgraph * /*depsgraph*/,
   bShrinkwrapConstraint *scon = (bShrinkwrapConstraint *)con->data;
 
   if (!VALID_CONS_TARGET(ct) || ct->tar->type != OB_MESH) {
-    return;
+    return false;
   }
 
   bool fail = false;
@@ -4370,7 +4383,7 @@ static void shrinkwrap_get_tarmat(Depsgraph * /*depsgraph*/,
   if (!BKE_shrinkwrap_init_tree(
           &tree, target_eval, scon->shrinkType, scon->shrinkMode, do_track_normal))
   {
-    return;
+    return false;
   }
 
   BLI_space_transform_from_matrices(&transform, cob->matrix, ct->tar->object_to_world().ptr());
@@ -4508,6 +4521,8 @@ static void shrinkwrap_get_tarmat(Depsgraph * /*depsgraph*/,
     mul_mat3_m4_v3(cob->matrix, track_no);
     damptrack_do_transform(ct->matrix, track_no, scon->trackAxis);
   }
+
+  return true;
 }
 
 static void shrinkwrap_evaluate(bConstraint * /*con*/, bConstraintOb *cob, ListBase *targets)
@@ -4768,7 +4783,7 @@ static void splineik_flush_tars(bConstraint *con, ListBase *list, bool no_copy)
   }
 }
 
-static void splineik_get_tarmat(Depsgraph * /*depsgraph*/,
+static bool splineik_get_tarmat(Depsgraph * /*depsgraph*/,
                                 bConstraint * /*con*/,
                                 bConstraintOb * /*cob*/,
                                 bConstraintTarget *ct,
@@ -4778,6 +4793,7 @@ static void splineik_get_tarmat(Depsgraph * /*depsgraph*/,
    * might end up calling this...
    */
   unit_ct_matrix_nullsafe(ct);
+  return false;
 }
 
 static bConstraintTypeInfo CTI_SPLINEIK = {
