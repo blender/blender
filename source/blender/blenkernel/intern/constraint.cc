@@ -813,6 +813,13 @@ static bConstraintTypeInfo CTI_CONSTRNAME = {
 };
 #endif
 
+static inline void unit_ct_matrix_nullsafe(bConstraintTarget *ct)
+{
+  if (ct) {
+    unit_m4(ct->matrix);
+  }
+}
+
 /* This function should be used for the get_target_matrix member of all
  * constraints that are not picky about what happens to their target matrix.
  */
@@ -822,19 +829,19 @@ static void default_get_tarmat(Depsgraph * /*depsgraph*/,
                                bConstraintTarget *ct,
                                float /*ctime*/)
 {
-  if (VALID_CONS_TARGET(ct)) {
-    constraint_target_to_mat4(ct->tar,
-                              ct->subtarget,
-                              cob,
-                              ct->matrix,
-                              CONSTRAINT_SPACE_WORLD,
-                              ct->space,
-                              con->flag,
-                              con->headtail);
+  if (!VALID_CONS_TARGET(ct)) {
+    unit_ct_matrix_nullsafe(ct);
+    return;
   }
-  else if (ct) {
-    unit_m4(ct->matrix);
-  }
+
+  constraint_target_to_mat4(ct->tar,
+                            ct->subtarget,
+                            cob,
+                            ct->matrix,
+                            CONSTRAINT_SPACE_WORLD,
+                            ct->space,
+                            con->flag,
+                            con->headtail);
 }
 
 /* This is a variant that extracts full transformation from B-Bone segments.
@@ -845,19 +852,19 @@ static void default_get_tarmat_full_bbone(Depsgraph * /*depsgraph*/,
                                           bConstraintTarget *ct,
                                           float /*ctime*/)
 {
-  if (VALID_CONS_TARGET(ct)) {
-    constraint_target_to_mat4(ct->tar,
-                              ct->subtarget,
-                              cob,
-                              ct->matrix,
-                              CONSTRAINT_SPACE_WORLD,
-                              ct->space,
-                              con->flag | CONSTRAINT_BBONE_SHAPE_FULL,
-                              con->headtail);
+  if (!VALID_CONS_TARGET(ct)) {
+    unit_ct_matrix_nullsafe(ct);
+    return;
   }
-  else if (ct) {
-    unit_m4(ct->matrix);
-  }
+
+  constraint_target_to_mat4(ct->tar,
+                            ct->subtarget,
+                            cob,
+                            ct->matrix,
+                            CONSTRAINT_SPACE_WORLD,
+                            ct->space,
+                            con->flag | CONSTRAINT_BBONE_SHAPE_FULL,
+                            con->headtail);
 }
 
 /* This following macro should be used for all standard single-target *_get_tars functions
@@ -1405,26 +1412,28 @@ static void kinematic_get_tarmat(Depsgraph * /*depsgraph*/,
                               ct->space,
                               con->flag,
                               con->headtail);
+    return;
   }
-  else if (ct) {
-    if (data->flag & CONSTRAINT_IK_AUTO) {
-      Object *ob = cob->ob;
 
-      if (ob == nullptr) {
-        unit_m4(ct->matrix);
-      }
-      else {
-        float vec[3];
-        /* move grabtarget into world space */
-        mul_v3_m4v3(vec, ob->object_to_world().ptr(), data->grabtarget);
-        copy_m4_m4(ct->matrix, ob->object_to_world().ptr());
-        copy_v3_v3(ct->matrix[3], vec);
-      }
-    }
-    else {
-      unit_m4(ct->matrix);
-    }
+  if (!ct) {
+    return;
   }
+  if ((data->flag & CONSTRAINT_IK_AUTO) == 0) {
+    unit_m4(ct->matrix);
+    return;
+  }
+
+  Object *ob = cob->ob;
+  if (ob == nullptr) {
+    unit_m4(ct->matrix);
+    return;
+  }
+
+  float vec[3];
+  /* move grabtarget into world space */
+  mul_v3_m4v3(vec, ob->object_to_world().ptr(), data->grabtarget);
+  copy_m4_m4(ct->matrix, ob->object_to_world().ptr());
+  copy_v3_v3(ct->matrix[3], vec);
 }
 
 static bConstraintTypeInfo CTI_KINEMATIC = {
@@ -1496,76 +1505,81 @@ static void followpath_get_tarmat(Depsgraph * /*depsgraph*/,
 {
   bFollowPathConstraint *data = static_cast<bFollowPathConstraint *>(con->data);
 
-  if (VALID_CONS_TARGET(ct) && (ct->tar->type == OB_CURVES_LEGACY)) {
-    Curve *cu = static_cast<Curve *>(ct->tar->data);
-    float vec[4], radius;
-    float curvetime;
+  if (!VALID_CONS_TARGET(ct) || ct->tar->type != OB_CURVES_LEGACY) {
+    unit_ct_matrix_nullsafe(ct);
+    return;
+  }
 
-    unit_m4(ct->matrix);
+  Curve *cu = static_cast<Curve *>(ct->tar->data);
+  float vec[4], radius;
+  float curvetime;
 
-    /* NOTE: when creating constraints that follow path, the curve gets the CU_PATH set now,
-     * currently for paths to work it needs to go through the bevlist/displist system (ton)
-     */
+  unit_m4(ct->matrix);
 
-    if (ct->tar->runtime->curve_cache && ct->tar->runtime->curve_cache->anim_path_accum_length) {
-      float quat[4];
-      if ((data->followflag & FOLLOWPATH_STATIC) == 0) {
-        /* animated position along curve depending on time */
-        curvetime = cu->ctime - data->offset;
+  /* NOTE: when creating constraints that follow path, the curve gets the CU_PATH set now,
+   * currently for paths to work it needs to go through the bevlist/displist system (ton)
+   */
 
-        /* ctime is now a proper var setting of Curve which gets set by Animato like any other var
-         * that's animated, but this will only work if it actually is animated...
-         *
-         * we divide the curvetime calculated in the previous step by the length of the path,
-         * to get a time factor. */
-        curvetime /= cu->pathlen;
+  if (ct->tar->runtime->curve_cache == nullptr ||
+      ct->tar->runtime->curve_cache->anim_path_accum_length == nullptr)
+  {
+    return;
+  }
 
-        Nurb *nu = static_cast<Nurb *>(cu->nurb.first);
-        if (!(nu && nu->flagu & CU_NURB_CYCLIC) && cu->flag & CU_PATH_CLAMP) {
-          /* If curve is not cyclic, clamp to the begin/end points if the curve clamp option is on.
-           */
-          CLAMP(curvetime, 0.0f, 1.0f);
-        }
-      }
-      else {
-        /* fixed position along curve */
-        curvetime = data->offset_fac;
-      }
+  float quat[4];
+  if (data->followflag & FOLLOWPATH_STATIC) {
+    /* fixed position along curve */
+    curvetime = data->offset_fac;
+  }
+  else {
+    /* animated position along curve depending on time */
+    curvetime = cu->ctime - data->offset;
 
-      if (BKE_where_on_path(ct->tar,
-                            curvetime,
-                            vec,
-                            nullptr,
-                            (data->followflag & FOLLOWPATH_FOLLOW) ? quat : nullptr,
-                            &radius,
-                            nullptr))
-      {
-        float totmat[4][4];
-        unit_m4(totmat);
+    /* ctime is now a proper var setting of Curve which gets set by Animato like any other var
+     * that's animated, but this will only work if it actually is animated...
+     *
+     * we divide the curvetime calculated in the previous step by the length of the path,
+     * to get a time factor. */
+    curvetime /= cu->pathlen;
 
-        if (data->followflag & FOLLOWPATH_FOLLOW) {
-          quat_apply_track(quat,
-                           std::clamp<short>(data->trackflag, 0, 5),
-                           std::clamp<short>(data->upflag, 0, 2));
-          quat_to_mat4(totmat, quat);
-        }
-
-        if (data->followflag & FOLLOWPATH_RADIUS) {
-          float tmat[4][4], rmat[4][4];
-          scale_m4_fl(tmat, radius);
-          mul_m4_m4m4(rmat, tmat, totmat);
-          copy_m4_m4(totmat, rmat);
-        }
-
-        copy_v3_v3(totmat[3], vec);
-
-        mul_m4_m4m4(ct->matrix, ct->tar->object_to_world().ptr(), totmat);
-      }
+    Nurb *nu = static_cast<Nurb *>(cu->nurb.first);
+    if (!(nu && nu->flagu & CU_NURB_CYCLIC) && cu->flag & CU_PATH_CLAMP) {
+      /* If curve is not cyclic, clamp to the begin/end points if the curve clamp option is on.
+       */
+      CLAMP(curvetime, 0.0f, 1.0f);
     }
   }
-  else if (ct) {
-    unit_m4(ct->matrix);
+
+  if (!BKE_where_on_path(ct->tar,
+                         curvetime,
+                         vec,
+                         nullptr,
+                         (data->followflag & FOLLOWPATH_FOLLOW) ? quat : nullptr,
+                         &radius,
+                         nullptr))
+  {
+    return;
   }
+
+  float totmat[4][4];
+  unit_m4(totmat);
+
+  if (data->followflag & FOLLOWPATH_FOLLOW) {
+    quat_apply_track(
+        quat, std::clamp<short>(data->trackflag, 0, 5), std::clamp<short>(data->upflag, 0, 2));
+    quat_to_mat4(totmat, quat);
+  }
+
+  if (data->followflag & FOLLOWPATH_RADIUS) {
+    float tmat[4][4], rmat[4][4];
+    scale_m4_fl(tmat, radius);
+    mul_m4_m4m4(rmat, tmat, totmat);
+    copy_m4_m4(totmat, rmat);
+  }
+
+  copy_v3_v3(totmat[3], vec);
+
+  mul_m4_m4m4(ct->matrix, ct->tar->object_to_world().ptr(), totmat);
 }
 
 static void followpath_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *targets)
@@ -2539,34 +2553,34 @@ static void pycon_get_tarmat(Depsgraph * /*depsgraph*/,
   bPythonConstraint *data = static_cast<bPythonConstraint *>(con->data);
 #endif
 
-  if (VALID_CONS_TARGET(ct)) {
-    if (ct->tar->type == OB_CURVES_LEGACY && ct->tar->runtime->curve_cache == nullptr) {
-      unit_m4(ct->matrix);
-      return;
-    }
+  if (!VALID_CONS_TARGET(ct)) {
+    unit_ct_matrix_nullsafe(ct);
+    return;
+  }
 
-    /* firstly calculate the matrix the normal way, then let the py-function override
-     * this matrix if it needs to do so
-     */
-    constraint_target_to_mat4(ct->tar,
-                              ct->subtarget,
-                              cob,
-                              ct->matrix,
-                              CONSTRAINT_SPACE_WORLD,
-                              ct->space,
-                              con->flag,
-                              con->headtail);
+  if (ct->tar->type == OB_CURVES_LEGACY && ct->tar->runtime->curve_cache == nullptr) {
+    unit_m4(ct->matrix);
+    return;
+  }
+
+  /* firstly calculate the matrix the normal way, then let the py-function override
+   * this matrix if it needs to do so
+   */
+  constraint_target_to_mat4(ct->tar,
+                            ct->subtarget,
+                            cob,
+                            ct->matrix,
+                            CONSTRAINT_SPACE_WORLD,
+                            ct->space,
+                            con->flag,
+                            con->headtail);
 
 /* only execute target calculation if allowed */
 #ifdef WITH_PYTHON
-    if (G.f & G_FLAG_SCRIPT_AUTOEXEC) {
-      BPY_pyconstraint_target(data, ct);
-    }
+  if (G.f & G_FLAG_SCRIPT_AUTOEXEC) {
+    BPY_pyconstraint_target(data, ct);
+  }
 #endif
-  }
-  else if (ct) {
-    unit_m4(ct->matrix);
-  }
 }
 
 static void pycon_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *targets)
@@ -2650,18 +2664,18 @@ static void armdef_get_tarmat(Depsgraph * /*depsgraph*/,
                               bConstraintTarget *ct,
                               float /*ctime*/)
 {
-  if (ct != nullptr) {
-    if (ct->tar && ct->tar->type == OB_ARMATURE) {
-      bPoseChannel *pchan = BKE_pose_channel_find_name(ct->tar->pose, ct->subtarget);
-
-      if (pchan != nullptr) {
-        mul_m4_m4m4(ct->matrix, ct->tar->object_to_world().ptr(), pchan->pose_mat);
-        return;
-      }
-    }
-
-    unit_m4(ct->matrix);
+  if (!VALID_CONS_TARGET(ct) || ct->tar->type != OB_ARMATURE) {
+    unit_ct_matrix_nullsafe(ct);
+    return;
   }
+
+  bPoseChannel *pchan = BKE_pose_channel_find_name(ct->tar->pose, ct->subtarget);
+  if (pchan == nullptr) {
+    unit_m4(ct->matrix);
+    return;
+  }
+
+  mul_m4_m4m4(ct->matrix, ct->tar->object_to_world().ptr(), pchan->pose_mat);
 }
 
 static void armdef_accumulate_matrix(const float obmat[4][4],
@@ -2915,127 +2929,129 @@ static void actcon_get_tarmat(Depsgraph *depsgraph,
     return;
   }
 
-  if (VALID_CONS_TARGET(ct) || data->flag & ACTCON_USE_EVAL_TIME) {
-    float tempmat[4][4], vec[3];
-    float s, t;
-    short axis;
+  const bool use_eval_time = data->flag & ACTCON_USE_EVAL_TIME;
+  if (!VALID_CONS_TARGET(ct) && !use_eval_time) {
+    return;
+  }
 
-    /* initialize return matrix */
-    unit_m4(ct->matrix);
+  float tempmat[4][4], vec[3];
+  float s, t;
+  short axis;
 
-    /* Skip targets if we're using local float property to set action time */
-    if (data->flag & ACTCON_USE_EVAL_TIME) {
-      s = data->eval_time;
+  /* initialize return matrix */
+  unit_m4(ct->matrix);
+
+  /* Skip targets if we're using local float property to set action time */
+  if (use_eval_time) {
+    s = data->eval_time;
+  }
+  else {
+    /* get the transform matrix of the target */
+    constraint_target_to_mat4(ct->tar,
+                              ct->subtarget,
+                              cob,
+                              tempmat,
+                              CONSTRAINT_SPACE_WORLD,
+                              ct->space,
+                              con->flag,
+                              con->headtail);
+
+    /* determine where in transform range target is */
+    /* data->type is mapped as follows for backwards compatibility:
+     * 00,01,02 - rotation (it used to be like this)
+     * 10,11,12 - scaling
+     * 20,21,22 - location
+     */
+    if (data->type < 10) {
+      /* extract rotation (is in whatever space target should be in) */
+      mat4_to_eul(vec, tempmat);
+      mul_v3_fl(vec, RAD2DEGF(1.0f)); /* rad -> deg */
+      axis = data->type;
+    }
+    else if (data->type < 20) {
+      /* extract scaling (is in whatever space target should be in) */
+      mat4_to_size(vec, tempmat);
+      axis = data->type - 10;
     }
     else {
-      /* get the transform matrix of the target */
-      constraint_target_to_mat4(ct->tar,
-                                ct->subtarget,
-                                cob,
-                                tempmat,
-                                CONSTRAINT_SPACE_WORLD,
-                                ct->space,
-                                con->flag,
-                                con->headtail);
-
-      /* determine where in transform range target is */
-      /* data->type is mapped as follows for backwards compatibility:
-       * 00,01,02 - rotation (it used to be like this)
-       * 10,11,12 - scaling
-       * 20,21,22 - location
-       */
-      if (data->type < 10) {
-        /* extract rotation (is in whatever space target should be in) */
-        mat4_to_eul(vec, tempmat);
-        mul_v3_fl(vec, RAD2DEGF(1.0f)); /* rad -> deg */
-        axis = data->type;
-      }
-      else if (data->type < 20) {
-        /* extract scaling (is in whatever space target should be in) */
-        mat4_to_size(vec, tempmat);
-        axis = data->type - 10;
-      }
-      else {
-        /* extract location */
-        copy_v3_v3(vec, tempmat[3]);
-        axis = data->type - 20;
-      }
-
-      BLI_assert(uint(axis) < 3);
-
-      /* Convert the target's value into a [0, 1] value that's later used to find the Action frame
-       * to apply. This compares to the min/max boundary values first, before doing the
-       * normalization by the (max-min) range, to get predictable, valid values when that range is
-       * zero. */
-      const float range = data->max - data->min;
-      if ((range == 0.0f) || (ushort(axis) > 2)) {
-        s = 0.0f;
-      }
-      else {
-        s = (vec[axis] - data->min) / range;
-      }
+      /* extract location */
+      copy_v3_v3(vec, tempmat[3]);
+      axis = data->type - 20;
     }
 
-    CLAMP(s, 0, 1);
-    t = (s * (data->end - data->start)) + data->start;
-    const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(depsgraph,
-                                                                                      t);
+    BLI_assert(uint(axis) < 3);
 
-    if (G.debug & G_DEBUG) {
-      printf("do Action Constraint %s - Ob %s Pchan %s\n",
-             con->name,
-             cob->ob->id.name + 2,
-             (cob->pchan) ? cob->pchan->name : nullptr);
-    }
-
-    /* Get the appropriate information from the action */
-    if (cob->type == CONSTRAINT_OBTYPE_OBJECT || (data->flag & ACTCON_BONE_USE_OBJECT_ACTION)) {
-      Object workob;
-
-      /* evaluate using workob */
-      /* FIXME: we don't have any consistent standards on limiting effects on object... */
-      what_does_obaction(cob->ob,
-                         &workob,
-                         nullptr,
-                         data->act,
-                         data->action_slot_handle,
-                         nullptr,
-                         &anim_eval_context);
-      BKE_object_to_mat4(&workob, ct->matrix);
-    }
-    else if (cob->type == CONSTRAINT_OBTYPE_BONE) {
-      Object workob;
-      bPose pose = {{nullptr}};
-      bPoseChannel *pchan, *tchan;
-
-      /* make a copy of the bone of interest in the temp pose before evaluating action,
-       * so that it can get set - we need to manually copy over a few settings,
-       * including rotation order, otherwise this fails. */
-      pchan = cob->pchan;
-
-      tchan = BKE_pose_channel_ensure(&pose, pchan->name);
-      tchan->rotmode = pchan->rotmode;
-
-      /* evaluate action using workob (it will only set the PoseChannel in question) */
-      what_does_obaction(cob->ob,
-                         &workob,
-                         &pose,
-                         data->act,
-                         data->action_slot_handle,
-                         pchan->name,
-                         &anim_eval_context);
-
-      /* convert animation to matrices for use here */
-      BKE_pchan_calc_mat(tchan);
-      copy_m4_m4(ct->matrix, tchan->chan_mat);
-
-      /* Clean up */
-      BKE_pose_free_data(&pose);
+    /* Convert the target's value into a [0, 1] value that's later used to find the Action frame
+     * to apply. This compares to the min/max boundary values first, before doing the
+     * normalization by the (max-min) range, to get predictable, valid values when that range is
+     * zero. */
+    const float range = data->max - data->min;
+    if ((range == 0.0f) || (ushort(axis) > 2)) {
+      s = 0.0f;
     }
     else {
-      /* behavior undefined... */
-      puts("Error: unknown owner type for Action Constraint");
+      s = (vec[axis] - data->min) / range;
     }
+  }
+
+  CLAMP(s, 0, 1);
+  t = (s * (data->end - data->start)) + data->start;
+  const AnimationEvalContext anim_eval_context = BKE_animsys_eval_context_construct(depsgraph, t);
+
+  if (G.debug & G_DEBUG) {
+    printf("do Action Constraint %s - Ob %s Pchan %s\n",
+           con->name,
+           cob->ob->id.name + 2,
+           (cob->pchan) ? cob->pchan->name : nullptr);
+  }
+
+  /* Get the appropriate information from the action */
+  if (cob->type == CONSTRAINT_OBTYPE_OBJECT || (data->flag & ACTCON_BONE_USE_OBJECT_ACTION)) {
+    Object workob;
+
+    /* evaluate using workob */
+    /* FIXME: we don't have any consistent standards on limiting effects on object... */
+    what_does_obaction(cob->ob,
+                       &workob,
+                       nullptr,
+                       data->act,
+                       data->action_slot_handle,
+                       nullptr,
+                       &anim_eval_context);
+    BKE_object_to_mat4(&workob, ct->matrix);
+  }
+  else if (cob->type == CONSTRAINT_OBTYPE_BONE) {
+    Object workob;
+    bPose pose = {{nullptr}};
+    bPoseChannel *pchan, *tchan;
+
+    /* make a copy of the bone of interest in the temp pose before evaluating action,
+     * so that it can get set - we need to manually copy over a few settings,
+     * including rotation order, otherwise this fails. */
+    pchan = cob->pchan;
+
+    tchan = BKE_pose_channel_ensure(&pose, pchan->name);
+    tchan->rotmode = pchan->rotmode;
+
+    /* evaluate action using workob (it will only set the PoseChannel in question) */
+    what_does_obaction(cob->ob,
+                       &workob,
+                       &pose,
+                       data->act,
+                       data->action_slot_handle,
+                       pchan->name,
+                       &anim_eval_context);
+
+    /* convert animation to matrices for use here */
+    BKE_pchan_calc_mat(tchan);
+    copy_m4_m4(ct->matrix, tchan->chan_mat);
+
+    /* Clean up */
+    BKE_pose_free_data(&pose);
+  }
+  else {
+    /* behavior undefined... */
+    puts("Error: unknown owner type for Action Constraint");
   }
 }
 
@@ -3936,9 +3952,7 @@ static void clampto_get_tarmat(Depsgraph * /*depsgraph*/,
   /* technically, this isn't really needed for evaluation, but we don't know what else
    * might end up calling this...
    */
-  if (ct) {
-    unit_m4(ct->matrix);
-  }
+  unit_ct_matrix_nullsafe(ct);
 }
 
 static void clampto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *targets)
@@ -4336,160 +4350,163 @@ static void shrinkwrap_get_tarmat(Depsgraph * /*depsgraph*/,
 {
   bShrinkwrapConstraint *scon = (bShrinkwrapConstraint *)con->data;
 
-  if (VALID_CONS_TARGET(ct) && (ct->tar->type == OB_MESH)) {
+  if (!VALID_CONS_TARGET(ct) || ct->tar->type != OB_MESH) {
+    return;
+  }
 
-    bool fail = false;
-    float co[3] = {0.0f, 0.0f, 0.0f};
-    bool track_normal = false;
-    float track_no[3] = {0.0f, 0.0f, 0.0f};
+  bool fail = false;
+  float co[3] = {0.0f, 0.0f, 0.0f};
+  bool track_normal = false;
+  float track_no[3] = {0.0f, 0.0f, 0.0f};
 
-    SpaceTransform transform;
-    Mesh *target_eval = BKE_object_get_evaluated_mesh(ct->tar);
+  SpaceTransform transform;
+  Mesh *target_eval = BKE_object_get_evaluated_mesh(ct->tar);
 
-    copy_m4_m4(ct->matrix, cob->matrix);
+  copy_m4_m4(ct->matrix, cob->matrix);
 
-    bool do_track_normal = (scon->flag & CON_SHRINKWRAP_TRACK_NORMAL) != 0;
-    ShrinkwrapTreeData tree;
+  bool do_track_normal = (scon->flag & CON_SHRINKWRAP_TRACK_NORMAL) != 0;
+  ShrinkwrapTreeData tree;
 
-    if (BKE_shrinkwrap_init_tree(
-            &tree, target_eval, scon->shrinkType, scon->shrinkMode, do_track_normal))
-    {
-      BLI_space_transform_from_matrices(&transform, cob->matrix, ct->tar->object_to_world().ptr());
+  if (!BKE_shrinkwrap_init_tree(
+          &tree, target_eval, scon->shrinkType, scon->shrinkMode, do_track_normal))
+  {
+    return;
+  }
 
-      switch (scon->shrinkType) {
-        case MOD_SHRINKWRAP_NEAREST_SURFACE:
-        case MOD_SHRINKWRAP_NEAREST_VERTEX:
-        case MOD_SHRINKWRAP_TARGET_PROJECT: {
-          BVHTreeNearest nearest;
+  BLI_space_transform_from_matrices(&transform, cob->matrix, ct->tar->object_to_world().ptr());
 
-          nearest.index = -1;
-          nearest.dist_sq = FLT_MAX;
+  switch (scon->shrinkType) {
+    case MOD_SHRINKWRAP_NEAREST_SURFACE:
+    case MOD_SHRINKWRAP_NEAREST_VERTEX:
+    case MOD_SHRINKWRAP_TARGET_PROJECT: {
+      BVHTreeNearest nearest;
 
-          BLI_space_transform_apply(&transform, co);
+      nearest.index = -1;
+      nearest.dist_sq = FLT_MAX;
 
-          BKE_shrinkwrap_find_nearest_surface(&tree, &nearest, co, scon->shrinkType);
+      BLI_space_transform_apply(&transform, co);
 
-          if (nearest.index < 0) {
-            fail = true;
-            break;
-          }
+      BKE_shrinkwrap_find_nearest_surface(&tree, &nearest, co, scon->shrinkType);
 
-          if (scon->shrinkType != MOD_SHRINKWRAP_NEAREST_VERTEX) {
-            if (do_track_normal) {
-              track_normal = true;
-              BKE_shrinkwrap_compute_smooth_normal(
-                  &tree, nullptr, nearest.index, nearest.co, nearest.no, track_no);
-              BLI_space_transform_invert_normal(&transform, track_no);
-            }
+      if (nearest.index < 0) {
+        fail = true;
+        break;
+      }
 
-            BKE_shrinkwrap_snap_point_to_surface(&tree,
-                                                 nullptr,
-                                                 scon->shrinkMode,
-                                                 nearest.index,
-                                                 nearest.co,
-                                                 nearest.no,
-                                                 scon->dist,
-                                                 co,
-                                                 co);
-          }
-          else {
-            const float dist = len_v3v3(co, nearest.co);
-
-            if (dist != 0.0f) {
-              interp_v3_v3v3(
-                  co, co, nearest.co, (dist - scon->dist) / dist); /* linear interpolation */
-            }
-          }
-
-          BLI_space_transform_invert(&transform, co);
-          break;
+      if (scon->shrinkType != MOD_SHRINKWRAP_NEAREST_VERTEX) {
+        if (do_track_normal) {
+          track_normal = true;
+          BKE_shrinkwrap_compute_smooth_normal(
+              &tree, nullptr, nearest.index, nearest.co, nearest.no, track_no);
+          BLI_space_transform_invert_normal(&transform, track_no);
         }
-        case MOD_SHRINKWRAP_PROJECT: {
-          BVHTreeRayHit hit;
 
-          float mat[4][4];
-          float no[3] = {0.0f, 0.0f, 0.0f};
+        BKE_shrinkwrap_snap_point_to_surface(&tree,
+                                             nullptr,
+                                             scon->shrinkMode,
+                                             nearest.index,
+                                             nearest.co,
+                                             nearest.no,
+                                             scon->dist,
+                                             co,
+                                             co);
+      }
+      else {
+        const float dist = len_v3v3(co, nearest.co);
 
-          /* TODO: should use FLT_MAX.. but normal projection doesn't yet supports it. */
-          hit.index = -1;
-          hit.dist = (scon->projLimit == 0.0f) ? BVH_RAYCAST_DIST_MAX : scon->projLimit;
-
-          switch (scon->projAxis) {
-            case OB_POSX:
-            case OB_POSY:
-            case OB_POSZ:
-              no[scon->projAxis - OB_POSX] = 1.0f;
-              break;
-            case OB_NEGX:
-            case OB_NEGY:
-            case OB_NEGZ:
-              no[scon->projAxis - OB_NEGX] = -1.0f;
-              break;
-          }
-
-          /* Transform normal into requested space */
-          /* Note that in this specific case, we need to keep scaling in non-parented 'local2world'
-           * object case, because SpaceTransform also takes it into account when handling normals.
-           * See #42447. */
-          unit_m4(mat);
-          BKE_constraint_mat_convertspace(
-              cob->ob, cob->pchan, cob, mat, CONSTRAINT_SPACE_LOCAL, scon->projAxisSpace, true);
-          invert_m4(mat);
-          mul_mat3_m4_v3(mat, no);
-
-          if (normalize_v3(no) < FLT_EPSILON) {
-            fail = true;
-            break;
-          }
-
-          char cull_mode = scon->flag & CON_SHRINKWRAP_PROJECT_CULL_MASK;
-
-          BKE_shrinkwrap_project_normal(cull_mode, co, no, 0.0f, &transform, &tree, &hit);
-
-          if (scon->flag & CON_SHRINKWRAP_PROJECT_OPPOSITE) {
-            float inv_no[3];
-            negate_v3_v3(inv_no, no);
-
-            if ((scon->flag & CON_SHRINKWRAP_PROJECT_INVERT_CULL) && (cull_mode != 0)) {
-              cull_mode ^= CON_SHRINKWRAP_PROJECT_CULL_MASK;
-            }
-
-            BKE_shrinkwrap_project_normal(cull_mode, co, inv_no, 0.0f, &transform, &tree, &hit);
-          }
-
-          if (hit.index < 0) {
-            fail = true;
-            break;
-          }
-
-          if (do_track_normal) {
-            track_normal = true;
-            BKE_shrinkwrap_compute_smooth_normal(
-                &tree, &transform, hit.index, hit.co, hit.no, track_no);
-          }
-
-          BKE_shrinkwrap_snap_point_to_surface(
-              &tree, &transform, scon->shrinkMode, hit.index, hit.co, hit.no, scon->dist, co, co);
-          break;
+        if (dist != 0.0f) {
+          interp_v3_v3v3(
+              co, co, nearest.co, (dist - scon->dist) / dist); /* linear interpolation */
         }
       }
 
-      BKE_shrinkwrap_free_tree(&tree);
-
-      if (fail == true) {
-        /* Don't move the point */
-        zero_v3(co);
-      }
-
-      /* co is in local object coordinates, change it to global and update target position */
-      mul_m4_v3(cob->matrix, co);
-      copy_v3_v3(ct->matrix[3], co);
-
-      if (track_normal) {
-        mul_mat3_m4_v3(cob->matrix, track_no);
-        damptrack_do_transform(ct->matrix, track_no, scon->trackAxis);
-      }
+      BLI_space_transform_invert(&transform, co);
+      break;
     }
+    case MOD_SHRINKWRAP_PROJECT: {
+      BVHTreeRayHit hit;
+
+      float mat[4][4];
+      float no[3] = {0.0f, 0.0f, 0.0f};
+
+      /* TODO: should use FLT_MAX.. but normal projection doesn't yet supports it. */
+      hit.index = -1;
+      hit.dist = (scon->projLimit == 0.0f) ? BVH_RAYCAST_DIST_MAX : scon->projLimit;
+
+      switch (scon->projAxis) {
+        case OB_POSX:
+        case OB_POSY:
+        case OB_POSZ:
+          no[scon->projAxis - OB_POSX] = 1.0f;
+          break;
+        case OB_NEGX:
+        case OB_NEGY:
+        case OB_NEGZ:
+          no[scon->projAxis - OB_NEGX] = -1.0f;
+          break;
+      }
+
+      /* Transform normal into requested space */
+      /* Note that in this specific case, we need to keep scaling in non-parented 'local2world'
+       * object case, because SpaceTransform also takes it into account when handling normals.
+       * See #42447. */
+      unit_m4(mat);
+      BKE_constraint_mat_convertspace(
+          cob->ob, cob->pchan, cob, mat, CONSTRAINT_SPACE_LOCAL, scon->projAxisSpace, true);
+      invert_m4(mat);
+      mul_mat3_m4_v3(mat, no);
+
+      if (normalize_v3(no) < FLT_EPSILON) {
+        fail = true;
+        break;
+      }
+
+      char cull_mode = scon->flag & CON_SHRINKWRAP_PROJECT_CULL_MASK;
+
+      BKE_shrinkwrap_project_normal(cull_mode, co, no, 0.0f, &transform, &tree, &hit);
+
+      if (scon->flag & CON_SHRINKWRAP_PROJECT_OPPOSITE) {
+        float inv_no[3];
+        negate_v3_v3(inv_no, no);
+
+        if ((scon->flag & CON_SHRINKWRAP_PROJECT_INVERT_CULL) && (cull_mode != 0)) {
+          cull_mode ^= CON_SHRINKWRAP_PROJECT_CULL_MASK;
+        }
+
+        BKE_shrinkwrap_project_normal(cull_mode, co, inv_no, 0.0f, &transform, &tree, &hit);
+      }
+
+      if (hit.index < 0) {
+        fail = true;
+        break;
+      }
+
+      if (do_track_normal) {
+        track_normal = true;
+        BKE_shrinkwrap_compute_smooth_normal(
+            &tree, &transform, hit.index, hit.co, hit.no, track_no);
+      }
+
+      BKE_shrinkwrap_snap_point_to_surface(
+          &tree, &transform, scon->shrinkMode, hit.index, hit.co, hit.no, scon->dist, co, co);
+      break;
+    }
+  }
+
+  BKE_shrinkwrap_free_tree(&tree);
+
+  if (fail) {
+    /* Don't move the point */
+    zero_v3(co);
+  }
+
+  /* co is in local object coordinates, change it to global and update target position */
+  mul_m4_v3(cob->matrix, co);
+  copy_v3_v3(ct->matrix[3], co);
+
+  if (track_normal) {
+    mul_mat3_m4_v3(cob->matrix, track_no);
+    damptrack_do_transform(ct->matrix, track_no, scon->trackAxis);
   }
 }
 
@@ -4760,9 +4777,7 @@ static void splineik_get_tarmat(Depsgraph * /*depsgraph*/,
   /* technically, this isn't really needed for evaluation, but we don't know what else
    * might end up calling this...
    */
-  if (ct) {
-    unit_m4(ct->matrix);
-  }
+  unit_ct_matrix_nullsafe(ct);
 }
 
 static bConstraintTypeInfo CTI_SPLINEIK = {
