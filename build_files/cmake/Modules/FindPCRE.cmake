@@ -42,13 +42,13 @@ find_library(PCRE_LIBRARY
     ${_pcre_SEARCH_DIRS}
   PATH_SUFFIXES
     lib64 lib
-  )
+)
 
 # handle the QUIETLY and REQUIRED arguments and set PCRE_FOUND to TRUE if
 # all listed variables are TRUE
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(PCRE DEFAULT_MSG
-    PCRE_LIBRARY PCRE_INCLUDE_DIR)
+  PCRE_LIBRARY PCRE_INCLUDE_DIR)
 
 # With 'make deps' precompiled libs, opencollada ships with a copy of libpcre
 # but not the headers, ${PCRE_LIBRARY} will be valid in this case

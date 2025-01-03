@@ -752,7 +752,7 @@ target_link_libraries(bf_gpu PUBLIC
 )
 
 if(WITH_OPENGL_BACKEND AND UNIX)
-target_link_libraries(bf_gpu PUBLIC rt)
+  target_link_libraries(bf_gpu PUBLIC rt)
 endif()
 
 if(WITH_OPENCOLORIO)

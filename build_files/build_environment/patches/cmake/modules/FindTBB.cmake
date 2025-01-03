@@ -41,7 +41,7 @@ FIND_LIBRARY(TBB_LIBRARY
     ${_tbb_SEARCH_DIRS}
   PATH_SUFFIXES
     lib64 lib
-  )
+)
 
 # handle the QUIETLY and REQUIRED arguments and set TBB_FOUND to TRUE if
 # all listed variables are TRUE

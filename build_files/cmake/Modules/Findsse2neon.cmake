@@ -37,7 +37,7 @@ find_path(SSE2NEON_INCLUDE_DIR
 # all listed variables are TRUE
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(sse2neon DEFAULT_MSG
-    SSE2NEON_INCLUDE_DIR)
+  SSE2NEON_INCLUDE_DIR)
 
 if(SSE2NEON_FOUND)
   set(SSE2NEON_INCLUDE_DIRS ${SSE2NEON_INCLUDE_DIR})

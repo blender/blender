@@ -889,7 +889,7 @@ if(WITH_CYCLES OR WITH_GPU_RENDER_TESTS)
           )
         endforeach()
       endif()
-    unset(_gpu_render_tests_arguments)
+      unset(_gpu_render_tests_arguments)
     endif()
   endif()
 endif()
@@ -928,15 +928,15 @@ if(WITH_GPU_COMPOSITOR_TESTS)
     message(WARNING "Disabling compositor tests because OIIO oiiotool does not exist")
   else()
     set(compositor_tests
-        color
-        converter
-        filter
-        input
-        output
-        vector
+      color
+      converter
+      filter
+      input
+      output
+      vector
 
-        multiple_node_setups
-      )
+      multiple_node_setups
+    )
 
     if(WITH_LIBMV)
       list(APPEND compositor_tests distort matte)
@@ -997,7 +997,7 @@ foreach(geo_node_test ${geo_node_tests})
         ${file}
         --python ${TEST_PYTHON_DIR}/geo_node_test.py
       )
-      endforeach()
+    endforeach()
   else()
     message(STATUS "Directory named ${TEST_SRC_DIR}/modeling/geometry_nodes/${geo_node_test}/ Not Found, disabling test.")
   endif()

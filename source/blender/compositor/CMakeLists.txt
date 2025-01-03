@@ -41,7 +41,7 @@ set(SRC
   COM_simple_operation.hh
   COM_static_cache_manager.hh
   COM_texture_pool.hh
-  COM_utilities.hh  
+  COM_utilities.hh
 
   intern/COM_compositor.cc
   intern/compile_state.cc

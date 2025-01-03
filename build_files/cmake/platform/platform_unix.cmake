@@ -1019,7 +1019,7 @@ if(CMAKE_COMPILER_IS_GNUCC)
     unset(LD_VERSION)
   endif()
 
-# CLang is the same as GCC for now.
+  # CLang is the same as GCC for now.
 elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
   set(PLATFORM_CFLAGS "-pipe -fPIC -funsigned-char -fno-strict-aliasing -ffp-contract=off")
 
@@ -1065,7 +1065,7 @@ elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
     unset(LLD_BIN)
   endif()
 
-# Intel C++ Compiler
+  # Intel C++ Compiler
 elseif(CMAKE_C_COMPILER_ID STREQUAL "Intel")
   # think these next two are broken
   find_program(XIAR xiar)

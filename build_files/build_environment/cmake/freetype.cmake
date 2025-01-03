@@ -14,7 +14,7 @@ set(FREETYPE_EXTRA_ARGS
   -DPC_BROTLIDEC_LIBDIR=${LIBDIR}/brotli/lib
   -DZLIB_LIBRARY=${LIBDIR}/zlib/lib/${ZLIB_LIBRARY}
   -DZLIB_INCLUDE_DIR=${LIBDIR}/zlib/include
-  )
+)
 
 ExternalProject_Add(external_freetype
   URL file://${PACKAGE_DIR}/${FREETYPE_FILE}
@@ -38,19 +38,19 @@ add_dependencies(
 
 if(WIN32)
   if(BUILD_MODE STREQUAL Release)
-  ExternalProject_Add_Step(external_freetype after_install
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-      ${LIBDIR}/freetype
-      ${HARVEST_TARGET}/freetype
+    ExternalProject_Add_Step(external_freetype after_install
+      COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${LIBDIR}/freetype
+        ${HARVEST_TARGET}/freetype
 
-    # `harfbuzz` *NEEDS* to find `freetype.lib` and will not be convinced to take
-    # alternative names so just give it what it wants.
-    COMMAND ${CMAKE_COMMAND} -E copy
-      ${LIBDIR}/freetype/lib/freetype2st.lib
-      ${LIBDIR}/freetype/lib/freetype.lib
+      # `harfbuzz` *NEEDS* to find `freetype.lib` and will not be convinced to take
+      # alternative names so just give it what it wants.
+      COMMAND ${CMAKE_COMMAND} -E copy
+        ${LIBDIR}/freetype/lib/freetype2st.lib
+        ${LIBDIR}/freetype/lib/freetype.lib
 
-    DEPENDEES install
-  )
+      DEPENDEES install
+    )
   endif()
 else()
   harvest(external_freetype freetype/include freetype/include "*.h")

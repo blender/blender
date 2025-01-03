@@ -55,13 +55,13 @@ find_library(OPENJPEG_LIBRARY
     ${_openjpeg_SEARCH_DIRS}
   PATH_SUFFIXES
     lib64 lib
-  )
+)
 
 # handle the QUIETLY and REQUIRED arguments and set OPENJPEG_FOUND to TRUE if
 # all listed variables are TRUE
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(OpenJPEG DEFAULT_MSG
-    OPENJPEG_LIBRARY OPENJPEG_INCLUDE_DIR)
+  OPENJPEG_LIBRARY OPENJPEG_INCLUDE_DIR)
 
 if(OPENJPEG_FOUND)
   set(OPENJPEG_LIBRARIES ${OPENJPEG_LIBRARY})

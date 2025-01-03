@@ -115,9 +115,9 @@ if(WITH_CYCLES_STANDALONE)
         " -framework GameController"
       )
       set_property(
-          TARGET cycles
-          APPEND PROPERTY LINK_FLAGS
-          "${_cycles_sdl_frameworks}"
+        TARGET cycles
+        APPEND PROPERTY LINK_FLAGS
+        "${_cycles_sdl_frameworks}"
       )
     endif()
   endif()

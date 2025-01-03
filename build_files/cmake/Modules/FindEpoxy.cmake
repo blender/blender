@@ -40,7 +40,7 @@ find_library(Epoxy_LIBRARY
 # all listed variables are TRUE
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(Epoxy DEFAULT_MSG
-    Epoxy_LIBRARY Epoxy_INCLUDE_DIR)
+  Epoxy_LIBRARY Epoxy_INCLUDE_DIR)
 
 if(Epoxy_FOUND)
   set(Epoxy_INCLUDE_DIRS ${Epoxy_INCLUDE_DIR})

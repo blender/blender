@@ -47,13 +47,13 @@ find_library(POTRACE_LIBRARY
     ${_potrace_SEARCH_DIRS}
   PATH_SUFFIXES
     lib64 lib
-  )
+)
 
 # handle the QUIETLY and REQUIRED arguments and set POTRACE_FOUND to TRUE if
 # all listed variables are TRUE
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(Potrace DEFAULT_MSG
-    POTRACE_LIBRARY POTRACE_INCLUDE_DIR)
+  POTRACE_LIBRARY POTRACE_INCLUDE_DIR)
 
 if(POTRACE_FOUND)
   set(POTRACE_LIBRARIES ${POTRACE_LIBRARY})
