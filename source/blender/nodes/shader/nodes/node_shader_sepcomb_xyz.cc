@@ -227,7 +227,7 @@ void register_node_type_sh_combxyz()
   static blender::bke::bNodeType ntype;
 
   sh_fn_node_type_base(&ntype, SH_NODE_COMBXYZ, "Combine XYZ", NODE_CLASS_CONVERTER);
-  ntype.enum_name_legacy = "COMBINE_XYZ";
+  ntype.enum_name_legacy = "COMBXYZ";
   ntype.declare = file_ns::sh_node_combxyz_declare;
   ntype.gpu_fn = file_ns::gpu_shader_combxyz;
   ntype.build_multi_function = file_ns::sh_node_combxyz_build_multi_function;
