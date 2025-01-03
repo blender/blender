@@ -650,6 +650,14 @@ static void update_duplicate_loc_rot_constraint_settings(Object *ob,
 
     min_vec[0] = max_vec[0] * -1;
     max_vec[0] = min_x_copy * -1;
+
+    /* Also flip the enabled axis checkboxes accordingly. */
+    const bool use_max_x = (limit->flag & LIMIT_XMAX);
+    const bool use_min_x = (limit->flag & LIMIT_XMIN);
+    limit->flag |= use_max_x ? LIMIT_XMIN : 0;
+    limit->flag &= (use_max_x && !use_min_x) ? ~LIMIT_XMAX : limit->flag;
+    limit->flag |= use_min_x ? LIMIT_XMAX : 0;
+    limit->flag &= (use_min_x && !use_max_x) ? ~LIMIT_XMIN : limit->flag;
   }
 
   /* convert back to the settings space */
