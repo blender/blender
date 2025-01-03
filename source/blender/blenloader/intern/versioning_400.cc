@@ -75,6 +75,7 @@
 #include "BKE_paint.hh"
 #include "BKE_scene.hh"
 #include "BKE_screen.hh"
+#include "BKE_texture.h"
 #include "BKE_tracking.h"
 
 #include "MOV_enums.hh"
@@ -3595,6 +3596,14 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
       if (ntree->type != NTREE_CUSTOM) {
         LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
           if (node->type == SH_NODE_TEX_NOISE) {
+            if (!node->storage) {
+              NodeTexNoise *tex = MEM_cnew<NodeTexNoise>(__func__);
+              BKE_texture_mapping_default(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
+              BKE_texture_colormapping_default(&tex->base.color_mapping);
+              tex->dimensions = 3;
+              tex->type = SHD_NOISE_FBM;
+              node->storage = tex;
+            }
             ((NodeTexNoise *)node->storage)->normalize = true;
           }
         }
