@@ -137,7 +137,7 @@ def detect_manual_uv_wrapping(blender_shader_node, group_path):
     result = {}
 
     comb = previous_node(NodeSocket(blender_shader_node.inputs['Vector'], group_path))
-    if comb.node is None or comb.node.type != 'COMBXYZ':
+    if comb.node is None or comb.node.type != 'COMBINE_XYZ':
         return None
 
     for soc in ['X', 'Y']:

@@ -1101,7 +1101,7 @@ def detect_anisotropy_nodes(
     if not separate_xyz_node.inputs[0].is_linked:
         return False, None
     anisotropy_multiply_add_node = separate_xyz_node.inputs[0].links[0].from_node
-    if anisotropy_multiply_add_node.type != "VECT_MATH":
+    if anisotropy_multiply_add_node.type != "VECTOR_MATH":
         return False, None
     if anisotropy_multiply_add_node.operation != "MULTIPLY_ADD":
         return False, None
