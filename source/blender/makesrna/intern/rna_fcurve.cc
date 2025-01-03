@@ -1078,7 +1078,7 @@ static void rna_FModifierStepped_frame_end_set(PointerRNA *ptr, float value)
 }
 
 static BezTriple *rna_FKeyframe_points_insert(
-    ID *id, FCurve *fcu, Main *bmain, float frame, float value, int keyframe_type, int flag)
+    ID *id, FCurve *fcu, Main *bmain, float frame, float value, int flag, int keyframe_type)
 {
   using namespace blender::animrig;
   KeyframeSettings settings = get_keyframe_settings(false);
