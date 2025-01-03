@@ -256,7 +256,7 @@ bool OptiXDenoiser::denoise_create_if_needed(DenoiseContext &context)
   denoiser_options.guideAlbedo = context.use_pass_albedo;
   denoiser_options.guideNormal = context.use_pass_normal;
 
-  OptixDenoiserModelKind model = OPTIX_DENOISER_MODEL_KIND_HDR;
+  OptixDenoiserModelKind model = OPTIX_DENOISER_MODEL_KIND_AOV;
   if (context.use_pass_motion) {
     model = OPTIX_DENOISER_MODEL_KIND_TEMPORAL;
   }
