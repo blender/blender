@@ -598,6 +598,7 @@ from types import (
 
 _BPY_STRUCT_FAKE = "bpy_struct"
 _BPY_PROP_COLLECTION_FAKE = "bpy_prop_collection"
+_BPY_PROP_COLLECTION_IDPROP_FAKE = "bpy_prop_collection_idprop"
 
 if _BPY_PROP_COLLECTION_FAKE:
     _BPY_PROP_COLLECTION_ID = ":class:`{:s}`".format(_BPY_PROP_COLLECTION_FAKE)
@@ -1869,6 +1870,13 @@ def pyrna2sphinx(basepath):
             fake_bpy_type(
                 "bpy.types", class_value, _BPY_PROP_COLLECTION_FAKE,
                 "built-in class used for all collections.", use_subclasses=False,
+            )
+
+        if _BPY_PROP_COLLECTION_IDPROP_FAKE:
+            class_value = bpy.data.objects.__class__
+            fake_bpy_type(
+                "bpy.types", class_value, _BPY_PROP_COLLECTION_IDPROP_FAKE,
+                "built-in class used for user defined collections.", use_subclasses=False,
             )
 
     # Operators.
