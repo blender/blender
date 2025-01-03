@@ -987,8 +987,7 @@ template<typename T> constexpr int Result::get_type_channels_count()
 
 template<typename T> constexpr bool Result::is_supported_type()
 {
-  return std::is_same_v<T, float> || std::is_same_v<T, float2> || std::is_same_v<T, float3> ||
-         std::is_same_v<T, float4> || std::is_same_v<T, int2>;
+  return is_same_any_v<T, float, float2, float3, float4, int2>;
 }
 
 template<typename T> inline int64_t Result::get_pixel_index(const int2 &texel) const

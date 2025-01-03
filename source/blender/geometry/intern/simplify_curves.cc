@@ -126,9 +126,7 @@ void curve_simplify(const Span<float3> positions,
 {
   bke::attribute_math::convert_to_static_type(attribute_data.type(), [&](auto dummy) {
     using T = decltype(dummy);
-    if constexpr (std::is_same_v<T, float> || std::is_same_v<T, float2> ||
-                  std::is_same_v<T, float3>)
-    {
+    if constexpr (is_same_any_v<T, float, float2, float3>) {
       curve_simplify(positions, cyclic, epsilon, attribute_data.typed<T>(), points_to_delete);
     }
   });
@@ -152,9 +150,7 @@ IndexMask simplify_curve_attribute(const Span<float3> positions,
     const IndexRange points = points_by_curve[curve_i];
     bke::attribute_math::convert_to_static_type(attribute_data.type(), [&](auto dummy) {
       using T = decltype(dummy);
-      if constexpr (std::is_same_v<T, float> || std::is_same_v<T, float2> ||
-                    std::is_same_v<T, float3>)
-      {
+      if constexpr (is_same_any_v<T, float, float2, float3>) {
         curve_simplify(positions.slice(points),
                        cyclic[curve_i],
                        epsilon,
