@@ -3,11 +3,11 @@
  * SPDX-License-Identifier: Apache-2.0 */
 
 #include "device/hip/device.h"
+#include "device/device.h"
 
 #include "util/log.h"
 
 #ifdef WITH_HIP
-#  include "device/device.h"
 #  include "device/hip/device_impl.h"
 
 #  include "integrator/denoiser_oidn_gpu.h"  // IWYU pragma: keep

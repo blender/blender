@@ -4,8 +4,8 @@
  * SPDX-License-Identifier: Apache-2.0 */
 
 #include "device/optix/device.h"
-
 #include "device/cuda/device.h"
+#include "device/device.h"
 
 #ifdef WITH_OSL
 #  include <OSL/oslconfig.h>

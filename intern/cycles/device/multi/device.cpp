@@ -3,14 +3,13 @@
  * SPDX-License-Identifier: Apache-2.0 */
 
 #include "device/multi/device.h"
+#include "device/device.h"
+#include "device/queue.h"
 
 #include <cstdlib>
 #include <functional>
 
 #include "bvh/multi.h"
-
-#include "device/device.h"
-#include "device/queue.h"
 
 #include "scene/geometry.h"
 

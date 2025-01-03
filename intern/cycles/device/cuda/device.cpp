@@ -3,12 +3,12 @@
  * SPDX-License-Identifier: Apache-2.0 */
 
 #include "device/cuda/device.h"
+#include "device/device.h"
 
 #include "util/log.h"
 
 #ifdef WITH_CUDA
 #  include "device/cuda/device_impl.h"
-#  include "device/device.h"
 
 #  include "integrator/denoiser_oidn_gpu.h"  // IWYU pragma: keep
 

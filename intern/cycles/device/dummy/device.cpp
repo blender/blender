@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: Apache-2.0 */
 
 #include "device/dummy/device.h"
-
 #include "device/device.h"
 #include "device/queue.h"
 

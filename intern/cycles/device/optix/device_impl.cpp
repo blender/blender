@@ -813,7 +813,6 @@ bool OptiXDevice::load_osl_kernels()
                                                  ptx_data.size(),
                                                  nullptr,
                                                  nullptr,
-                                                 ,
                                                  &osl_modules.back());
 #    else
     const OptixResult result = optixModuleCreateFromPTX(context,
