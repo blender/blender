@@ -192,9 +192,9 @@ have a new instance for every redraw.
 Some other types, like :class:`bpy.types.Operator`, have an even more complex internal handling,
 which can lead to several instantiations for a single operator execution.
 
-There are a few cases where defining ``__init__()`` and ``__del__()`` does make sense,
-e.g. when sub-classing a :class:`bpy.types.RenderEngine`. When doing so, the parent matching function
-must always be called, otherwise Blender's internal initialization won't happen properly:
+There are a few cases where defining ``__init__()`` does make sense, e.g. when sub-classing a
+:class:`bpy.types.RenderEngine`. When doing so, the parent matching function must always be called,
+otherwise Blender's internal initialization won't happen properly:
 
 .. code-block:: python
 
@@ -204,17 +204,12 @@ must always be called, otherwise Blender's internal initialization won't happen 
          super().__init__(*args, **kwargs)
          ...
 
-      def __del__(self):
-         ...
-         super().__del__()
-
 .. note::
 
    Calling the parent's ``__init__()`` function is a hard requirement since Blender 4.4.
    The 'generic' signature is the recommended one here, as Blender internal BPY code is typically
    the only caller of these functions. The actual arguments passed to the constructor are fully
    internal data, and may change depending on the implementation.
-
 
 .. note::
 
@@ -223,6 +218,21 @@ must always be called, otherwise Blender's internal initialization won't happen 
    Doing so presents a very high risk of crashes or otherwise corruption of Blender internal data.
    But if defined, it must take the same two generic positional and keyword arguments,
    and call the parent's ``__new__()`` with them if actually creating a new object.
+
+.. note::
+
+   Due to internal
+   `CPython implementation details <https://discuss.python.org/t/cpython-usage-of-tp-finalize/64100>`__,
+   C++-defined Blender types do not define or use a ``__del__()`` (aka ``tp_finalize()``) destructor
+   currently.
+   As this function
+   `does not exist if not explicitely defined <https://stackoverflow.com/questions/36722390/python-3-super-del>`__,
+   that means that calling ``super().__del__()`` in the ``__del__()`` function of a sub-class will
+   fail with the following error:
+   ``AttributeError: 'super' object has no attribute '__del__'``.
+   If a call to the MRO 'parent' destructor is needed for some reason, the caller code must ensure
+   that the destructor does exist, e.g. using something like that:
+   ``getattr(super(), "__del__", lambda self: None)(self)``
 
 
 .. _info_overview_registration:
