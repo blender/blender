@@ -414,32 +414,12 @@ static bool pass_left_to_right(const bNodeTree &tree,
         }
         const bNode *input_node = zone->input_node;
         const bNode *output_node = node;
-        const auto *storage = static_cast<const NodeGeometryForeachGeometryElementOutput *>(
-            node->storage);
         const int src_index = input_node->input_socket(0).index_in_tree();
         for (const bNodeSocket *output_socket : output_node->output_sockets()) {
           if (output_socket->type == SOCK_GEOMETRY) {
             const int dst_index = output_socket->index_in_tree();
             r_potential_data_by_socket[dst_index] |= r_potential_data_by_socket[src_index];
           }
-        }
-
-        /* Propagate references from the inside to the outside. Like in the repeat zone, new
-         * references created in the zone stay local inside the zone and are not propagated to the
-         * outside. Instead, the foreach-element output node creates new references. */
-        const BitVector<> outside_references = get_references_coming_from_outside_zone(
-            *zone, r_potential_data_by_socket, r_potential_reference_by_socket);
-        for (const int item_i : IndexRange(storage->generation_items.items_num)) {
-          const int src_index =
-              node->input_socket(storage->main_items.items_num + item_i).index_in_tree();
-          const int dst_index =
-              node->output_socket(1 + storage->main_items.items_num + item_i).index_in_tree();
-          bits::inplace_or_masked(r_potential_data_by_socket[dst_index],
-                                  outside_references,
-                                  r_potential_data_by_socket[src_index]);
-          bits::inplace_or_masked(r_potential_reference_by_socket[dst_index],
-                                  outside_references,
-                                  r_potential_reference_by_socket[src_index]);
         }
         break;
       }
