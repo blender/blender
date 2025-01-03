@@ -1421,6 +1421,12 @@ static std::optional<std::string> ui_but_event_property_operator_string(const bC
           prop = RNA_struct_find_property(ptr, prop_id);
           prop_index = -1;
 
+          if (prop_enum_value == -1) {
+            /* Get the current value for Editor menu. #100652 */
+            prop_enum_value = RNA_property_enum_get(ptr, prop);
+            prop_enum_value_ok = (prop_enum_value != -1);
+          }
+
           opnames = ctx_enum_opnames_for_Area_ui_type;
           opnames_len = ARRAY_SIZE(ctx_enum_opnames_for_Area_ui_type);
           prop_enum_value_id = "space_type";
