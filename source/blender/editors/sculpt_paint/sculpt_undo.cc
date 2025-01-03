@@ -228,13 +228,10 @@ struct StepData {
   float3 pivot_pos;
   float4 pivot_rot;
 
-  /* Geometry modification operations.
-   *
-   * Original geometry is stored before some modification is run and is used to restore state of
-   * the object when undoing the operation
-   *
-   * Modified geometry is stored after the modification and is used to redo the modification. */
+  /* Geometry modification operations. */
+  /* Original geometry is stored before the modification and is restored from when undoing. */
   NodeGeometry geometry_original;
+  /* Modified geometry is stored after the modification and is restored from when redoing. */
   NodeGeometry geometry_modified;
 
   bool applied;
@@ -2097,25 +2094,23 @@ void register_type(UndoType *ut)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Undo for changes happening on a base mesh for multires sculpting.
+/** \name Multires + Base Mesh Undo
  *
- * Use this for multires operators which changes base mesh and which are to be
- * possible. Example of such operators is Apply Base.
+ * Example of a relevant operator is Apply Base.
  *
  * Usage:
  *
  *   static int operator_exec((bContext *C, wmOperator *op) {
  *
- *      ED_sculpt_undo_push_mixed_begin(C, op->type->name);
+ *      ed::sculpt_paint::undo::push_multires_mesh_begin(C, op->type->name);
  *      // Modify base mesh.
- *      ED_sculpt_undo_push_mixed_end(C, op->type->name);
+ *      ed::sculpt_paint::undo::push_multires_mesh_end(C, op->type->name);
  *
  *      return OPERATOR_FINISHED;
  *   }
  *
- * If object is not in sculpt mode or sculpt does not happen on multires then
- * regular ED_undo_push() is used.
- * *
+ * If object is not in Sculpt mode or there is no active multires object, ED_undo_push is used
+ * instead.
  * \{ */
 
 static bool use_multires_mesh(bContext *C)
