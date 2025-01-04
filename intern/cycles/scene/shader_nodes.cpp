@@ -376,7 +376,6 @@ void ImageTextureNode::compile(SVMCompiler &compiler)
   /* All tiles have the same metadata. */
   const ImageMetaData metadata = handle.metadata();
   const bool compress_as_srgb = metadata.compress_as_srgb;
-  const ustring known_colorspace = metadata.colorspace;
 
   const int vector_offset = tex_mapping.compile_begin(compiler, vector_in);
   uint flags = 0;
@@ -578,7 +577,6 @@ void EnvironmentTextureNode::compile(SVMCompiler &compiler)
 
   const ImageMetaData metadata = handle.metadata();
   const bool compress_as_srgb = metadata.compress_as_srgb;
-  const ustring known_colorspace = metadata.colorspace;
 
   const int vector_offset = tex_mapping.compile_begin(compiler, vector_in);
   uint flags = 0;
