@@ -222,16 +222,6 @@ def blender_ext_cmd(python_args: Sequence[str]) -> Sequence[str]:
 # Call JSON.
 #
 
-def non_blocking_call(cmd: Sequence[str]) -> subprocess.Popen[bytes]:
-    # pylint: disable-next=consider-using-with
-    ps = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-    stdout = ps.stdout
-    assert stdout is not None
-    # Needed so whatever is available can be read (without waiting).
-    file_handle_make_non_blocking(stdout)
-    return ps
-
-
 def command_output_from_json_0(
         args: Sequence[str],
         use_idle: bool,
@@ -239,63 +229,70 @@ def command_output_from_json_0(
         python_args: Sequence[str],
 ) -> Generator[InfoItemSeq, bool, None]:
     cmd = [*blender_ext_cmd(python_args), *args, "--output-type=JSON_0"]
-    ps = non_blocking_call(cmd)
-    stdout = ps.stdout
-    assert stdout is not None
-    chunk_list = []
-    request_exit_signal_sent = False
+    # Note that the context-manager isn't used to wait until the process is finished as
+    # the function only finishes when `poll()` is not none, it's just use to ensure file-handles
+    # are closed before this function exits, this only seems to be a problem on WIN32.
+    with subprocess.Popen(cmd, stdout=subprocess.PIPE) as ps:
+        stdout = ps.stdout
+        assert stdout is not None
 
-    while True:
-        # It's possible this is multiple chunks.
-        try:
-            chunk = stdout.read()
-        except Exception as ex:
-            if not file_handle_non_blocking_is_error_blocking(ex):
-                raise ex
-            chunk = b''
+        # Needed so whatever is available can be read (without waiting).
+        file_handle_make_non_blocking(stdout)
 
-        json_messages = []
+        chunk_list = []
+        request_exit_signal_sent = False
 
-        if not chunk:
-            if ps.poll() is not None:
-                break
-            if use_idle:
-                time.sleep(IDLE_WAIT_ON_READ)
-        elif (chunk_zero_index := chunk.find(b'\0')) == -1:
-            chunk_list.append(chunk)
-        else:
-            # Extract contiguous data from `chunk_list`.
-            chunk_list.append(chunk[:chunk_zero_index])
+        while True:
+            # It's possible this is multiple chunks.
+            try:
+                chunk = stdout.read()
+            except Exception as ex:
+                if not file_handle_non_blocking_is_error_blocking(ex):
+                    raise ex
+                chunk = b''
 
-            json_bytes_list = [b''.join(chunk_list)]
-            chunk_list.clear()
+            json_messages = []
 
-            # There may be data afterwards, even whole chunks.
-            if chunk_zero_index + 1 != len(chunk):
-                chunk = chunk[chunk_zero_index + 1:]
-                # Add whole chunks.
-                while (chunk_zero_index := chunk.find(b'\0')) != -1:
-                    json_bytes_list.append(chunk[:chunk_zero_index])
+            if not chunk:
+                if ps.poll() is not None:
+                    break
+                if use_idle:
+                    time.sleep(IDLE_WAIT_ON_READ)
+            elif (chunk_zero_index := chunk.find(b'\0')) == -1:
+                chunk_list.append(chunk)
+            else:
+                # Extract contiguous data from `chunk_list`.
+                chunk_list.append(chunk[:chunk_zero_index])
+
+                json_bytes_list = [b''.join(chunk_list)]
+                chunk_list.clear()
+
+                # There may be data afterwards, even whole chunks.
+                if chunk_zero_index + 1 != len(chunk):
                     chunk = chunk[chunk_zero_index + 1:]
-                if chunk:
-                    chunk_list.append(chunk)
+                    # Add whole chunks.
+                    while (chunk_zero_index := chunk.find(b'\0')) != -1:
+                        json_bytes_list.append(chunk[:chunk_zero_index])
+                        chunk = chunk[chunk_zero_index + 1:]
+                    if chunk:
+                        chunk_list.append(chunk)
 
-            request_exit = False
+                request_exit = False
 
-            for json_bytes in json_bytes_list:
-                json_data = json.loads(json_bytes.decode("utf-8"))
+                for json_bytes in json_bytes_list:
+                    json_data = json.loads(json_bytes.decode("utf-8"))
 
-                assert len(json_data) == 2
-                assert isinstance(json_data[0], str)
+                    assert len(json_data) == 2
+                    assert isinstance(json_data[0], str)
 
-                json_messages.append((json_data[0], json_data[1]))
+                    json_messages.append((json_data[0], json_data[1]))
 
-        # Yield even when `json_messages`, otherwise this generator can block.
-        # It also means a request to exit might not be responded to soon enough.
-        request_exit = yield json_messages
-        if request_exit and not request_exit_signal_sent:
-            ps.send_signal(signal.SIGINT)
-            request_exit_signal_sent = True
+            # Yield even when `json_messages`, otherwise this generator can block.
+            # It also means a request to exit might not be responded to soon enough.
+            request_exit = yield json_messages
+            if request_exit and not request_exit_signal_sent:
+                ps.send_signal(signal.SIGINT)
+                request_exit_signal_sent = True
 
 
 # -----------------------------------------------------------------------------
