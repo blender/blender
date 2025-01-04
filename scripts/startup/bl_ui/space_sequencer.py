@@ -1776,6 +1776,7 @@ class SEQUENCER_PT_effect_text_shadow(SequencerButtonsPanel, Panel):
 
 class SEQUENCER_PT_effect_text_box(SequencerButtonsPanel, Panel):
     bl_label = "Box"
+    bl_translation_context = i18n_contexts.id_sequence
     bl_options = {"DEFAULT_CLOSED"}
     bl_category = "Strip"
     bl_parent_id = "SEQUENCER_PT_effect_text_style"
