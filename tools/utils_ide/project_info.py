@@ -171,7 +171,7 @@ def cmake_advanced_info() -> (
     # Enable to check on nicer XML.
     use_pretty_xml = False
     if use_pretty_xml:
-        with open(".cproject_pretty", 'w') as fh:
+        with open(".cproject_pretty", 'w', encoding="utf-8") as fh:
             fh.write(tree.toprettyxml(indent="    ", newl=""))
 
     ELEMENT_NODE = tree.ELEMENT_NODE

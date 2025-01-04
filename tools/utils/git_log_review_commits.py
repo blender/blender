@@ -57,6 +57,7 @@ class _GetchWindows:
 
     def __init__(self):
         import msvcrt
+        del msvcrt
 
     def __call__(self):
         import msvcrt

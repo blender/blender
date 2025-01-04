@@ -10,11 +10,6 @@ __all__ = (
 
 import os
 
-from collections.abc import (
-    Callable,
-    Iterator,
-)
-
 PATHS: tuple[str, ...] = (
     "build_files",
     "doc",

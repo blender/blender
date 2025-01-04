@@ -112,7 +112,7 @@ def main() -> int:
     try:
         with open(output_cc_file, "r", encoding="utf-8") as fh:
             old_generated_code = fh.read()
-    except:
+    except Exception:
         old_generated_code = ""
     new_generated_code = "\n".join(include_lines + decl_lines + [""] + func_lines)
 

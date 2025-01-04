@@ -104,23 +104,22 @@ def convert_tabs_to_spaces(files: Sequence[str]) -> None:
         print("TabExpand", f)
         with open(f, 'r', encoding="utf-8") as fh:
             data = fh.read()
-            if False:
-                # Simple 4 space
-                data = data.expandtabs(4)
-            else:
-                # Complex 2 space
-                # because some comments have tabs for alignment.
-                def handle(l: str) -> str:
-                    ls = l.lstrip("\t")
-                    d = len(l) - len(ls)
-                    if d != 0:
-                        return ("  " * d) + ls.expandtabs(4)
-                    else:
-                        return l.expandtabs(4)
+            # Simple 4 space (but we're using 2 spaces).
+            # `data = data.expandtabs(4)`
 
-                lines = data.splitlines(keepends=True)
-                lines = [handle(l) for l in lines]
-                data = "".join(lines)
+            # Complex 2 space
+            # because some comments have tabs for alignment.
+            def handle(l: str) -> str:
+                ls = l.lstrip("\t")
+                d = len(l) - len(ls)
+                if d != 0:
+                    return ("  " * d) + ls.expandtabs(4)
+                else:
+                    return l.expandtabs(4)
+
+            lines = data.splitlines(keepends=True)
+            lines = [handle(l) for l in lines]
+            data = "".join(lines)
         with open(f, 'w', encoding="utf-8") as fh:
             fh.write(data)
 
