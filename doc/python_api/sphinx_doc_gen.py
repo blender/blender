@@ -36,6 +36,9 @@ Sphinx: PDF generation
     cd doc/python_api/sphinx-out
     make
 """
+__all__ = (
+    "main",
+)
 
 import os
 import sys

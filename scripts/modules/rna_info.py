@@ -4,6 +4,15 @@
 
 # classes for extracting info from blenders internal classes
 
+__all__ = (
+    "BuildRNAInfo",
+    "InfoFunctionRNA",
+    "InfoOperatorRNA",
+    "InfoPropertyRNA",
+    "InfoStructRNA",
+    "rna_id_ignore",
+)
+
 import bpy
 
 # use to strip python paths
