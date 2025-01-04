@@ -2365,7 +2365,7 @@ bke::GeometrySet realize_instances(bke::GeometrySet geometry_set,
                           new_geometry_set);
 
   const int64_t total_points_num = get_final_points_num(gather_info.r_tasks);
-  /* This doesn't have to be exact at all, it's just a rough estimate ot make decisions about
+  /* This doesn't have to be exact at all, it's just a rough estimate to make decisions about
    * multi-threading (overhead). */
   const int64_t approximate_used_bytes_num = total_points_num * 32;
   threading::memory_bandwidth_bound_task(approximate_used_bytes_num, [&]() {

@@ -1268,7 +1268,7 @@ static ChannelDriver *idriver_to_cdriver(IpoDriver *idriver)
     /* this should be ok for all types here... */
     cdriver->type = DRIVER_TYPE_AVERAGE;
 
-    /* what to store depends on the 'blocktype' - object or posechannel */
+    /* What to store depends on the `blocktype` - object or pose-channel. */
     if (idriver->blocktype == ID_AR) { /* PoseChannel */
       if (idriver->adrcode == OB_ROT_DIFF) {
         /* Rotational Difference requires a special type of variable */

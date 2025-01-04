@@ -325,7 +325,7 @@ void wm_drags_exit(wmWindowManager *wm, wmWindow *win)
     WM_cursor_modal_restore(win);
   }
 
-  /* Active area should always redraw, even if cancelled. */
+  /* Active area should always redraw, even if canceled. */
   int event_xy_target[2];
   wmWindow *target_win = WM_window_find_under_cursor(win, win->eventstate->xy, event_xy_target);
   if (target_win) {

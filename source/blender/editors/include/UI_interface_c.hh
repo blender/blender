@@ -2660,8 +2660,8 @@ void uiTemplateCryptoPicker(uiLayout *layout,
                             blender::StringRefNull propname,
                             int icon);
 /**
- * \todo for now, grouping of layers is determined by dividing up the length of
- * the array of layer bitflags
+ * TODO: for now, grouping of layers is determined by dividing up the length of
+ * the array of layer bit-flags.
  */
 void uiTemplateLayers(uiLayout *layout,
                       PointerRNA *ptr,

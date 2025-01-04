@@ -248,7 +248,7 @@ void parent_set(Object *ob, Object *parent, int type, const char *substr);
 std::string drop_named_material_tooltip(bContext *C, const char *name, const int mval[2]);
 std::string drop_geometry_nodes_tooltip(bContext *C, PointerRNA *properties, const int mval[2]);
 
-/* bitflags for enter/exit editmode */
+/** Bit-flags for enter/exit edit-mode. */
 enum {
   EM_FREEDATA = (1 << 0),
   EM_NO_CONTEXT = (1 << 1),
@@ -380,7 +380,7 @@ ListBase *constraint_active_list(Object *ob);
 ListBase *pose_constraint_list(const bContext *C);
 /**
  * Find the list that a given constraint belongs to,
- * and/or also get the posechannel this is from (if applicable).
+ * and/or also get the pose-channel this is from (if applicable).
  */
 ListBase *constraint_list_from_constraint(Object *ob, bConstraint *con, bPoseChannel **r_pchan);
 /**

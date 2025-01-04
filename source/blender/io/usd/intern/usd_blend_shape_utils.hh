@@ -84,7 +84,7 @@ void ensure_blend_shape_skeleton(pxr::UsdStageRefPtr stage, pxr::UsdPrim &mesh_p
  *
  * \param stage: The stage
  * \param skel_path: Path to the skeleton
- * \param mesh_paths: Paths to one or more mesh prims bound to the skeleton
+ * \param mesh_paths: Paths to one or more mesh primitives bound to the skeleton
  */
 void remap_blend_shape_anim(pxr::UsdStageRefPtr stage,
                             const pxr::SdfPath &skel_path,

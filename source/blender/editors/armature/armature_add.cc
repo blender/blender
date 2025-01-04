@@ -651,7 +651,7 @@ static void update_duplicate_loc_rot_constraint_settings(Object *ob,
     min_vec[0] = max_vec[0] * -1;
     max_vec[0] = min_x_copy * -1;
 
-    /* Also flip the enabled axis checkboxes accordingly. */
+    /* Also flip the enabled axis check-boxes accordingly. */
     const bool use_max_x = (limit->flag & LIMIT_XMAX);
     const bool use_min_x = (limit->flag & LIMIT_XMIN);
     limit->flag |= use_max_x ? LIMIT_XMIN : 0;
@@ -1051,7 +1051,7 @@ static void copy_pchan(EditBone *src_bone, EditBone *dst_bone, Object *src_ob, O
 
     chanold = BKE_pose_channel_ensure(src_ob->pose, src_bone->name);
     if (chanold) {
-      /* WARNING: this creates a new posechannel, but there will not be an attached bone
+      /* WARNING: this creates a new pose-channel, but there will not be an attached bone
        * yet as the new bones created here are still 'EditBones' not 'Bones'.
        */
       channew = BKE_pose_channel_ensure(dst_ob->pose, dst_bone->name);

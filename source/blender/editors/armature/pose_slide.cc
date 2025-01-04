@@ -133,7 +133,7 @@ struct tPoseSlideOp {
   ARegion *region;
   /** len of the PoseSlideObject array. */
 
-  /** links between posechannels and f-curves for all the pose objects. */
+  /** Links between pose-channels and f-curves for all the pose objects. */
   ListBase pfLinks;
   /** binary tree for quicker searching for keyframes (when applicable) */
   AnimKeylist *keylist;

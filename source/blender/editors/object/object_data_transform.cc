@@ -627,7 +627,7 @@ void data_xform_by_mat4(XFormObjectData *xod_base, const float mat[4][4])
       break;
     }
     case ID_MB: {
-      /* Metaballs are a special case, edit-mode and object mode data is shared. */
+      /* Meta-balls are a special case, edit-mode and object mode data is shared. */
       MetaBall *mb = (MetaBall *)xod_base->id;
       XFormObjectData_MetaBall *xod = (XFormObjectData_MetaBall *)xod_base;
       metaball_coords_and_quats_apply_with_mat4(mb, xod->elem_array, mat);
@@ -729,7 +729,7 @@ void data_xform_restore(XFormObjectData *xod_base)
       break;
     }
     case ID_MB: {
-      /* Metaballs are a special case, edit-mode and object mode data is shared. */
+      /* Meta-balls are a special case, edit-mode and object mode data is shared. */
       MetaBall *mb = (MetaBall *)xod_base->id;
       XFormObjectData_MetaBall *xod = (XFormObjectData_MetaBall *)xod_base;
       metaball_coords_and_quats_apply(mb, xod->elem_array);

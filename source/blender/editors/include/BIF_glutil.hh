@@ -200,6 +200,7 @@ void ED_draw_imbuf_ctx_clipping(const bContext *C,
 int ED_draw_imbuf_method(const ImBuf *ibuf);
 
 /**
- * Don't move to `GPU_immediate_util.hh` because this uses user-prefs and isn't very low level.
+ * Don't move to `GPU_immediate_util.hh`
+ * because this uses user-preferences and isn't very low level.
  */
 void immDrawBorderCorners(unsigned int pos, const rcti *border, float zoomx, float zoomy);

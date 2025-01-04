@@ -3637,7 +3637,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
   }
 
   if (is_undo) {
-    /* This idmap will store uids of all IDs ending up in the new main, whether they are newly
+    /* This idmap will store UIDs of all IDs ending up in the new main, whether they are newly
      * read, or re-used from the old main. */
     fd->new_idmap_uid = BKE_main_idmap_create(
         static_cast<Main *>(fd->mainlist->first), false, nullptr, MAIN_IDMAP_TYPE_UID);

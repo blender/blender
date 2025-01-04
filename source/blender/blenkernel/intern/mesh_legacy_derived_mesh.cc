@@ -315,7 +315,7 @@ static DerivedMesh *cdDM_from_mesh_ex(Mesh *mesh, const CustomData_MeshMasks *ma
 
   cddata_masks.lmask &= ~CD_MASK_MDISPS;
 
-  /* this does a referenced copy, with an exception for fluidsim */
+  /* This does a referenced copy, with an exception for fluid-simulation. */
 
   DM_init(dm,
           DM_TYPE_CDDM,

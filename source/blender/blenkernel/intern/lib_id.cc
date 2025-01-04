@@ -1410,7 +1410,7 @@ void *BKE_libblock_alloc_in_lib(Main *bmain,
 
     /* We also need to ensure a valid `session_uid` for some non-main data (like embedded IDs).
      * IDs not allocated however should not need those (this would e.g. avoid generating session
-     * uids for depsgraph evaluated IDs, if it was using this function). */
+     * UIDs for depsgraph evaluated IDs, if it was using this function). */
     if ((flag & LIB_ID_CREATE_NO_ALLOCATE) == 0) {
       BKE_lib_libblock_session_uid_ensure(id);
     }

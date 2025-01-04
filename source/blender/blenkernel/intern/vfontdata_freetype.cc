@@ -6,7 +6,7 @@
 /** \file
  * \ingroup bke
  *
- * This code parses the Freetype font outline data to chains of Blender's bezier-triples.
+ * This code parses the FreeType font outline data to chains of Blender's bezier-triples.
  * Additional information can be found at the bottom of this file.
  *
  * Code that uses exotic character maps is present but commented out.

@@ -157,7 +157,7 @@ def build_info(
             continue
         del args_orig
 
-        # join args incase they are not.
+        # Join arguments in case they are not.
         args_str = " ".join(args)
         args_str = args_str.replace(" -isystem", " -I")
         args_str = args_str.replace(" -D ", " -D")
@@ -202,7 +202,7 @@ def build_defines_as_source() -> str:
         '#defines A=B\n#define....'
     """
     import subprocess
-    # works for both gcc and clang
+    # Works for both GCC and CLANG.
     cmd = (cmake_cache_var_or_exit("CMAKE_C_COMPILER"), "-dM", "-E", "-")
     process = subprocess.Popen(
         cmd,
@@ -236,7 +236,7 @@ def process_make_non_blocking(proc: subprocess.Popen[Any]) -> subprocess.Popen[A
     return proc
 
 
-# could be moved elsewhere!, this just happens to be used by scripts that also
+# Could be moved elsewhere!, this just happens to be used by scripts that also
 # use this module.
 def queue_processes(
         process_funcs: Sequence[tuple[Callable[..., subprocess.Popen[Any]], tuple[Any, ...]]],
@@ -245,7 +245,8 @@ def queue_processes(
         sleep: float = 0.1,
         process_finalize: Callable[[subprocess.Popen[Any], bytes, bytes], int | None] | None = None,
 ) -> None:
-    """ Takes a list of function arg pairs, each function must return a process
+    """
+    Takes a list of function argument pairs, each function must return a process.
     """
 
     if job_total == -1:

@@ -1550,7 +1550,7 @@ MTLRenderPassDescriptor *MTLFrameBuffer::bake_render_pass_descriptor(bool load_c
 
   /* If Frame-buffer has been modified, regenerate descriptor. */
   if (is_dirty_) {
-    /* Clear all configs. */
+    /* Clear all configurations. */
     for (int config = 0; config < 3; config++) {
       descriptor_dirty_[config] = true;
     }

@@ -50,7 +50,7 @@ struct MPathTarget {
 
   /* Original (Source Objects) */
   Object *ob;          /* source object */
-  bPoseChannel *pchan; /* source posechannel (if applicable) */
+  bPoseChannel *pchan; /* source pose-channel (if applicable) */
 
   /* "Evaluated" Copies (these come from the background evaluated copy
    * that provide all the coordinates we want to save off). */

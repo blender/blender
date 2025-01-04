@@ -745,7 +745,7 @@ static eSnapTargetOP snap_target_select_from_spacetype(TransInfo *t)
         }
       }
       else if (ELEM(obedit_type, OB_ARMATURE, OB_CURVES_LEGACY, OB_SURF, OB_LATTICE, OB_MBALL)) {
-        /* Temporary limited to edit mode armature, curves, surfaces, lattices, and metaballs. */
+        /* Temporary limited to edit mode armature, curves, surfaces, lattices, and meta-balls. */
         ret |= SCE_SNAP_TARGET_NOT_SELECTED;
       }
     }

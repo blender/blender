@@ -55,7 +55,7 @@ bool DriverDescriptor::determine_relations_needed()
     return true;
   }
 
-  /* Drivers on Booleans and Enums (when used as bitflags) can write to the same memory location,
+  /* Drivers on Booleans and Enums (when used as bit-flags) can write to the same memory location,
    * so they need relations between each other. */
   return ELEM(RNA_property_type(property_rna_), PROP_BOOLEAN, PROP_ENUM);
 }

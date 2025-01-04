@@ -75,8 +75,8 @@ class MTLFrameBuffer : public FrameBuffer {
 
   /**
    * Whether a clear is pending -- Used to toggle between clear and load FB configurations
-   * (without dirtying the state) - Frame-buffer load config is used if no `GPU_clear_*` command
-   * was issued after binding the #FrameBuffer.
+   * (without dirtying the state) - Frame-buffer load configuration is used if no `GPU_clear_*`
+   * command was issued after binding the #FrameBuffer.
    */
   bool has_pending_clear_;
 
@@ -88,7 +88,7 @@ class MTLFrameBuffer : public FrameBuffer {
    * [1] = LOAD CONFIG -- Used if bound, but no clear is required.
    * [2] = CUSTOM CONFIG -- When using GPU_framebuffer_bind_ex to manually specify
    * load-store configuration for optimal bandwidth utilization.
-   * -- We cache these different configs to avoid re-generation --
+   * -- We cache these different configurations to avoid re-generation --
    */
   enum {
     MTL_FB_CONFIG_CLEAR = 0,
@@ -108,7 +108,7 @@ class MTLFrameBuffer : public FrameBuffer {
   /** Whether the primary Frame-buffer attachment is an SRGB target or not. */
   bool srgb_;
 
-  /** Default width/height represent raw size of active framebuffer attachments.
+  /** Default width/height represent raw size of active frame-buffer attachments.
    * For consistency with OpenGL backend, as width_/height_ can affect viewport and scissor
    * size, we need to track this differently to ensure viewport state does not get reset.
    * This size is only used to reset viewport/scissor regions when viewports and scissor are
@@ -120,7 +120,7 @@ class MTLFrameBuffer : public FrameBuffer {
 
  public:
   /**
-   * Create a conventional framebuffer to attach texture to.
+   * Create a conventional frame-buffer to attach texture to.
    */
   MTLFrameBuffer(MTLContext *ctx, const char *name);
 

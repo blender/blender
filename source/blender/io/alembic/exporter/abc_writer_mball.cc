@@ -35,14 +35,14 @@ bool ABCMetaballWriter::is_supported(const HierarchyContext *context) const
 
 bool ABCMetaballWriter::check_is_animated(const HierarchyContext & /*context*/) const
 {
-  /* We assume that metaballs are always animated, as the current object may
+  /* We assume that meta-balls are always animated, as the current object may
    * not be animated but another ball in the same group may be. */
   return true;
 }
 
 bool ABCMetaballWriter::export_as_subdivision_surface(Object * /*ob_eval*/) const
 {
-  /* Metaballs should be exported to subdivision surfaces, if the export options allow. */
+  /* Meta-balls should be exported to subdivision surfaces, if the export options allow. */
   return true;
 }
 

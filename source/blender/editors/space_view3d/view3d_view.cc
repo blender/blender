@@ -1103,7 +1103,8 @@ void VIEW3D_OT_localview(wmOperatorType *ot)
 
   /* api callbacks */
   ot->exec = localview_exec;
-  ot->flag = OPTYPE_UNDO; /* localview changes object layer bitflags */
+  /* Use undo because local-view changes object layer bit-flags. */
+  ot->flag = OPTYPE_UNDO;
 
   ot->poll = ED_operator_view3d_active;
 

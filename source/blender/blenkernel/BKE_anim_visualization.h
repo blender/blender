@@ -49,7 +49,8 @@ void animviz_free_motionpath(struct bMotionPath *mpath);
  *
  * \param scene: Current scene (for frame ranges, etc.)
  * \param ob: Object to add paths for (must be provided)
- * \param pchan: Posechannel to add paths for (optional; if not provided, object-paths are assumed)
+ * \param pchan: Pose-channel to add paths for
+ * (optional; if not provided, object-paths are assumed).
  */
 struct bMotionPath *animviz_verify_motionpaths(struct ReportList *reports,
                                                struct Scene *scene,

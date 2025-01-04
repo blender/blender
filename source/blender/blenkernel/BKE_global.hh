@@ -263,7 +263,7 @@ enum {
   G_DEBUG_SIMDATA = (1 << 15),               /* sim debug data display */
   G_DEBUG_GPU = (1 << 16),                   /* gpu debug */
   G_DEBUG_IO = (1 << 17),                    /* IO Debugging (for Collada, ...). */
-  G_DEBUG_GPU_FORCE_WORKAROUNDS = (1 << 18), /* force gpu workarounds bypassing detections. */
+  G_DEBUG_GPU_FORCE_WORKAROUNDS = (1 << 18), /* Force GPU workarounds bypassing detection. */
   G_DEBUG_GPU_COMPILE_SHADERS = (1 << 19),   /* Compile all statically defined shaders. . */
   G_DEBUG_GPU_RENDERDOC = (1 << 20),         /* Enable RenderDoc integration. */
   G_DEBUG_XR = (1 << 21),                    /* XR/OpenXR messages */

@@ -70,7 +70,7 @@ class GLContext : public Context {
   /** VBO for missing vertex attribute binding. Avoid undefined behavior on some implementation. */
   GLuint default_attr_vbo_;
 
-  /** Used for debugging purpose. Bitflags of all bound slots. */
+  /** Used for debugging purpose. Bit-flags of all bound slots. */
   uint16_t bound_ubo_slots;
   uint16_t bound_ssbo_slots;
 

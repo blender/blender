@@ -325,8 +325,8 @@ static int file_browse_invoke(bContext *C, wmOperator *op, const wmEvent *event)
   fbo->is_userdef = is_userdef;
   op->customdata = fbo;
 
-  /* Normally ED_fileselect_get_params would handle this but we need to because of stupid
-   * user-prefs exception. - campbell */
+  /* NOTE(@ideasman42): Normally #ED_fileselect_get_params would handle this
+   * but we need to because of stupid user-preferences exception. */
   if ((prop_relpath = RNA_struct_find_property(op->ptr, "relative_path"))) {
     if (!RNA_property_is_set(op->ptr, prop_relpath)) {
       bool is_relative = (U.flag & USER_RELPATHS) != 0;

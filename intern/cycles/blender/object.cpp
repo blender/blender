@@ -33,7 +33,7 @@ bool BlenderSync::BKE_object_is_modified(BL::Object &b_ob)
 {
   /* test if we can instance or if the object is modified */
   if (b_ob.type() == BL::Object::type_META) {
-    /* multi-user and dupli metaballs are fused, can't instance */
+    /* Multi-user and dupli meta-balls are fused, can't instance. */
     return true;
   }
   if (ccl::BKE_object_is_modified(b_ob, b_scene, preview)) {

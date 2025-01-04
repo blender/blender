@@ -168,9 +168,11 @@ def cmake_advanced_info() -> (
     from xml.dom.minidom import parse
     tree = parse(project_path)
 
-    # to check on nicer xml
-    # f = open(".cproject_pretty", 'w')
-    # f.write(tree.toprettyxml(indent="    ", newl=""))
+    # Enable to check on nicer XML.
+    use_pretty_xml = False
+    if use_pretty_xml:
+        with open(".cproject_pretty", 'w') as fh:
+            fh.write(tree.toprettyxml(indent="    ", newl=""))
 
     ELEMENT_NODE = tree.ELEMENT_NODE
 
@@ -187,12 +189,6 @@ def cmake_advanced_info() -> (
 
                 moduleId = substorage.attributes["moduleId"].value
 
-                # org.eclipse.cdt.core.settings
-                # org.eclipse.cdt.core.language.mapping
-                # org.eclipse.cdt.core.externalSettings
-                # org.eclipse.cdt.core.pathentry
-                # org.eclipse.cdt.make.core.buildtargets
-
                 if moduleId == "org.eclipse.cdt.core.pathentry":
                     for path in substorage.childNodes:
                         if path.nodeType != ELEMENT_NODE:
@@ -200,10 +196,10 @@ def cmake_advanced_info() -> (
                         kind = path.attributes["kind"].value
 
                         if kind == "mac":
-                            # <pathentry kind="mac" name="PREFIX" path="" value="&quot;/opt/blender25&quot;"/>
+                            # `<pathentry kind="mac" name="PREFIX" path="" value="&quot;/opt/blender25&quot;"/>`
                             defines.append((path.attributes["name"].value, path.attributes["value"].value))
                         elif kind == "inc":
-                            # <pathentry include="/data/src/blender/blender/source/blender/editors/include" kind="inc" path="" system="true"/>
+                            # `<pathentry include="/path/to/include" kind="inc" path="" system="true"/>`
                             includes.append(path.attributes["include"].value)
                         else:
                             pass
