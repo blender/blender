@@ -103,6 +103,7 @@ class VIEWLAYER_PT_workbench_layer_passes_data(ViewLayerButtonsPanel, Panel):
 
 class VIEWLAYER_PT_eevee_next_layer_passes_light(ViewLayerButtonsPanel, Panel):
     bl_label = "Light"
+    bl_translation_context = i18n_contexts.render_layer
     bl_parent_id = "VIEWLAYER_PT_layer_passes"
     COMPAT_ENGINES = {'BLENDER_EEVEE_NEXT'}
 
@@ -116,15 +117,15 @@ class VIEWLAYER_PT_eevee_next_layer_passes_light(ViewLayerButtonsPanel, Panel):
         view_layer_eevee = view_layer.eevee
 
         col = layout.column(heading="Diffuse", align=True)
-        col.prop(view_layer, "use_pass_diffuse_direct", text="Light")
+        col.prop(view_layer, "use_pass_diffuse_direct", text="Light", text_ctxt=i18n_contexts.render_layer)
         col.prop(view_layer, "use_pass_diffuse_color", text="Color")
 
         col = layout.column(heading="Specular", align=True)
-        col.prop(view_layer, "use_pass_glossy_direct", text="Light")
+        col.prop(view_layer, "use_pass_glossy_direct", text="Light", text_ctxt=i18n_contexts.render_layer)
         col.prop(view_layer, "use_pass_glossy_color", text="Color")
 
         col = layout.column(heading="Volume", heading_ctxt=i18n_contexts.id_id, align=True)
-        col.prop(view_layer_eevee, "use_pass_volume_direct", text="Light")
+        col.prop(view_layer_eevee, "use_pass_volume_direct", text="Light", text_ctxt=i18n_contexts.render_layer)
 
         col = layout.column(heading="Other", align=True)
         col.prop(view_layer, "use_pass_emit", text="Emission")

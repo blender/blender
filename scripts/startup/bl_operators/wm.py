@@ -1562,6 +1562,7 @@ class WM_OT_properties_edit(Operator):
     id_type: EnumProperty(
         name="ID Type",
         items=rna_id_type_items,
+        translation_context=i18n_contexts.id_id,
         default='OBJECT',
     )
 
@@ -2764,6 +2765,7 @@ class WM_OT_batch_rename(Operator):
             ('SCENE', "Scenes", ""),
             ('BRUSH', "Brushes", ""),
         ),
+        translation_context=i18n_contexts.id_id,
         description="Type of data to rename",
     )
 
