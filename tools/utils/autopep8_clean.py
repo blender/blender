@@ -3,6 +3,11 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+__all__ = (
+    "main",
+)
+
+
 import subprocess
 import os
 from os.path import join

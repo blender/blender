@@ -10,6 +10,9 @@ Example usage:
 
     python ./issues_module_listing.py --severity High
 """
+__all__ = (
+    "main",
+)
 
 import argparse
 import dataclasses

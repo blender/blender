@@ -28,6 +28,9 @@ config = [
     ("rmb_action", ('TWEAK', 'FALLBACK_TOOL')),
 ]
 """
+__all__ = (
+    "main",
+)
 
 import os
 import sys

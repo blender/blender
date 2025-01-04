@@ -5,6 +5,15 @@
 
 # Simple module for inspecting GITEA users, pulls and issues.
 
+__all__ = (
+    "git_username_detect",
+    "gitea_json_activities_get",
+    "gitea_json_issue_events_filter",
+    "gitea_json_issue_get",
+    "gitea_json_issues_search",
+    "gitea_user_get",
+)
+
 import datetime
 import json
 import urllib.error

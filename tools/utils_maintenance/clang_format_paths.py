@@ -11,6 +11,9 @@ While it can be called directly, you may prefer to run this from Blender's root 
    make format
 
 """
+__all__ = (
+    "main",
+)
 
 import argparse
 import multiprocessing

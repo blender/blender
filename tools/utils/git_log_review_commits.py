@@ -12,6 +12,9 @@ Example usage:
 
    ./git_log_review_commits.py --source=../../.. --range=HEAD~40..HEAD --filter=BUGFIX
 """
+__all__ = (
+    "main",
+)
 
 
 class _Getch:

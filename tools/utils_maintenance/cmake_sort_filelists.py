@@ -8,6 +8,9 @@ Sorts CMake path lists
 - Don't cross blank newline boundaries.
 - Don't cross different path prefix boundaries.
 """
+__all__ = (
+    "main",
+)
 
 import os
 import sys

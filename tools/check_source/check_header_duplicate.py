@@ -14,6 +14,9 @@ Then restore the headers to their original state:
 
     python3 check_header_duplicate.py --restore
 """
+__all__ = (
+    "main",
+)
 
 import os
 import sys

@@ -12,6 +12,10 @@ Example usage:
   python3 tools/utils_api/bpy_introspect_ui.py
 """
 
+__all__ = (
+    "main",
+)
+
 import sys
 ModuleType = type(sys)
 

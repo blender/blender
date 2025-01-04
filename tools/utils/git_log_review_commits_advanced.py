@@ -29,6 +29,10 @@ To exclude all commits from some given files, by sha1 or by commit message (from
 
 """
 
+__all__ = (
+    "main",
+)
+
 import os
 import sys
 import io

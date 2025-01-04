@@ -14,6 +14,9 @@ You may pass the markdown text as an argument, e.g.
 
 check_docs_code_layout.py --markdown=markdown.txt
 """
+__all__ = (
+    "main",
+)
 
 import os
 import argparse

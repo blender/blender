@@ -11,6 +11,10 @@
 # * 403 Client Error: That means the token doesn't have the right scope.
 # * 500 Server Error: The token is invalid.
 
+__all__ = (
+    "main",
+)
+
 import logging
 import os
 import requests

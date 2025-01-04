@@ -16,6 +16,9 @@ Piping from the standard-input is also supported:
 
 The text is printed to the standard output.
 """
+__all__ = (
+    "main",
+)
 
 import argparse
 import multiprocessing

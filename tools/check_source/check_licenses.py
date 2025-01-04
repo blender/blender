@@ -9,6 +9,10 @@ https://spdx.org/licenses/
 
 This can be activated by calling "make check_licenses" from Blenders root directory.
 """
+__all__ = (
+    "main",
+)
+
 
 import os
 import argparse

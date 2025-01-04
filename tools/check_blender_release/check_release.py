@@ -4,6 +4,9 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 # Usage: ./check_release.py -- ../path/to/release/folder
+__all__ = (
+    "main",
+)
 
 import unittest
 

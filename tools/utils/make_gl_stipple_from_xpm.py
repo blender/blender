@@ -4,6 +4,9 @@
 
 # Converts 32x32 XPM images written be the gimp to GL stipples
 # takes XPM files as arguments, prints out C style definitions.
+__all__ = (
+    "main",
+)
 
 import sys
 import os

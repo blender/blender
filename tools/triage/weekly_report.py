@@ -15,6 +15,10 @@ Example usage:
 
     python ./weekly_report.py --username mano-wii
 """
+__all__ = (
+    "main",
+)
+
 
 import argparse
 import datetime

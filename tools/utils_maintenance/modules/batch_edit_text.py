@@ -2,6 +2,10 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+__all__ = (
+    "run",
+)
+
 from collections.abc import (
     Callable,
     Iterator,

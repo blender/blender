@@ -2,6 +2,15 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+__all__ = (
+    "BUILD_DIR",
+    "IGNORE_CMAKE",
+    "IGNORE_SOURCE",
+    "IGNORE_SOURCE_MISSING",
+    "SOURCE_DIR",
+    "UTF8_CHECK",
+)
+
 import os
 
 IGNORE_SOURCE = (

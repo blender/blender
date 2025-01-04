@@ -13,6 +13,9 @@ Script for checking source code spelling.
 
 Currently only python source is checked.
 """
+__all__ = (
+    "main",
+)
 
 import os
 import argparse

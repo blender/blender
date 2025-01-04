@@ -2,6 +2,12 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+__all__ = (
+    "PATHS",
+    "PATHS_EXCLUDE",
+    "SOURCE_DIR",
+)
+
 import os
 from typing import (
     Any,

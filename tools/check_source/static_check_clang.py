@@ -13,6 +13,10 @@ cd {BUILD_DIR}
 python ../blender/tools/check_source/static_check_clang.py --match=".*" --checks=struct_comments
 
 """
+__all__ = (
+    "main",
+)
+
 
 import argparse
 import os

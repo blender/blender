@@ -13,6 +13,10 @@ Example use a custom range:
    authors_git_gen.py --source=/src/blender --range=SHA1..HEAD
 """
 
+__all__ = (
+    "main",
+)
+
 # NOTE: this shares the basic structure with `credits_git_gen.py`,
 # however details differ enough for them to be separate scripts.
 # Improvements to this script may apply there too.

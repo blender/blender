@@ -10,6 +10,15 @@
 # and https://pypi.org/project/blender-asset-tracer/
 # -----------------------------------------------------------------------------
 
+__all__ = (
+    "open_blend",
+
+    # Expose for `wrapper_type` argument to `open_blend`.
+    "BlendFile",
+    "BlendFileRaw",
+)
+
+
 import gzip
 import logging
 import os
