@@ -38,10 +38,14 @@ static uiBlock *curve_profile_presets_fn(bContext *C, ARegion *region, void *cb_
 
   for (const auto &item :
        {std::pair<StringRef, eCurveProfilePresets>(IFACE_("Default"), PROF_PRESET_LINE),
-        std::pair<StringRef, eCurveProfilePresets>(IFACE_("Support Loops"), PROF_PRESET_SUPPORTS),
-        std::pair<StringRef, eCurveProfilePresets>(IFACE_("Cornice Molding"), PROF_PRESET_CORNICE),
-        std::pair<StringRef, eCurveProfilePresets>(IFACE_("Crown Molding"), PROF_PRESET_CROWN),
-        std::pair<StringRef, eCurveProfilePresets>(IFACE_("Steps"), PROF_PRESET_STEPS)})
+        std::pair<StringRef, eCurveProfilePresets>(
+            CTX_IFACE_(BLT_I18NCONTEXT_ID_MESH, "Support Loops"), PROF_PRESET_SUPPORTS),
+        std::pair<StringRef, eCurveProfilePresets>(
+            CTX_IFACE_(BLT_I18NCONTEXT_ID_MESH, "Cornice Molding"), PROF_PRESET_CORNICE),
+        std::pair<StringRef, eCurveProfilePresets>(
+            CTX_IFACE_(BLT_I18NCONTEXT_ID_MESH, "Crown Molding"), PROF_PRESET_CROWN),
+        std::pair<StringRef, eCurveProfilePresets>(CTX_IFACE_(BLT_I18NCONTEXT_ID_MESH, "Steps"),
+                                                   PROF_PRESET_STEPS)})
   {
     uiBut *but = uiDefIconTextBut(block,
                                   UI_BTYPE_BUT_MENU,

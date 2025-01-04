@@ -9477,6 +9477,7 @@ static void rna_def_modifier_grease_pencil_noise(BlenderRNA *brna)
   prop = RNA_def_property(srna, "random_mode", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "noise_mode");
   RNA_def_property_enum_items(prop, modifier_noise_random_mode_items);
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_GPENCIL);
   RNA_def_property_ui_text(prop, "Mode", "Where to perform randomization");
 
   RNA_define_lib_overridable(false);
