@@ -1041,10 +1041,6 @@ class NODE_PT_annotation(AnnotationDataPanel, Panel):
         return snode is not None and snode.node_tree is not None
 
 
-def node_draw_tree_view(_layout, _context):
-    pass
-
-
 # Adapt properties editor panel to display in node editor. We have to
 # copy the class rather than inherit due to the way bpy registration works.
 def node_panel(cls):

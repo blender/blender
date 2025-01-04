@@ -562,29 +562,6 @@ class DATA_PT_custom_props_camera(CameraButtonsPanel, PropertyPanel, Panel):
     _property_type = bpy.types.Camera
 
 
-def draw_display_safe_settings(layout, safe_data, settings):
-    show_safe_areas = settings.show_safe_areas
-    show_safe_center = settings.show_safe_center
-
-    layout.use_property_split = True
-
-    col = layout.column()
-    col.active = show_safe_areas
-
-    sub = col.column()
-    sub.prop(safe_data, "title", slider=True)
-    sub.prop(safe_data, "action", slider=True)
-
-    col.separator()
-
-    col.prop(settings, "show_safe_center", text="Center-Cut Safe Areas")
-
-    sub = col.column()
-    sub.active = show_safe_areas and show_safe_center
-    sub.prop(safe_data, "title_center", slider=True)
-    sub.prop(safe_data, "action_center", slider=True)
-
-
 classes = (
     CAMERA_PT_presets,
     CAMERA_PT_safe_areas_presets,

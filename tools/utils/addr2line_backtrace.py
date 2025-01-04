@@ -100,8 +100,6 @@ def addr2line_fn(arg_pair: tuple[tuple[str, str, bool], Sequence[str]]) -> Seque
 
 
 def argparse_create() -> argparse.ArgumentParser:
-    import argparse
-
     # When `--help` or no arguments are given, print this help.
     epilog = "This is typically used from the output of a stack-trace on Linux/Unix."
 

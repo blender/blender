@@ -651,20 +651,6 @@ def undocumented_message(module_name, type_name, identifier):
     return "Undocumented, consider `contributing <https://developer.blender.org/>`__."
 
 
-def range_str(val):
-    """
-    Converts values to strings for the range directive.
-    (unused function it seems)
-    """
-    if val < -10000000:
-        return "-inf"
-    if val > 10000000:
-        return "inf"
-    if type(val) == float:
-        return "{:g}".format(val)
-    return str(val)
-
-
 def example_extract_docstring(filepath):
     """
     Return (text, line_no, line_no_has_content) where:
