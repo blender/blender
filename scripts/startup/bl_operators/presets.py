@@ -193,14 +193,17 @@ class AddPresetBase:
                     file_preset = open(filepath, "w", encoding="utf-8")
                     file_preset.write("import bpy\n")
 
+                    namespace_globals = {"bpy": bpy}
+                    namespace_locals = {}
+
                     if hasattr(self, "preset_defines"):
                         for rna_path in self.preset_defines:
-                            exec(rna_path)
+                            exec(rna_path, namespace_globals, namespace_locals)
                             file_preset.write("{:s}\n".format(rna_path))
                         file_preset.write("\n")
 
                     for rna_path in self.preset_values:
-                        value = eval(rna_path)
+                        value = eval(rna_path, namespace_globals, namespace_locals)
                         rna_recursive_attr_expand(value, rna_path, 1)
 
                     file_preset.close()
