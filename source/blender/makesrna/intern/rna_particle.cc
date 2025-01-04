@@ -2800,6 +2800,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, part_draw_as_items);
   RNA_def_property_enum_funcs(prop, nullptr, nullptr, "rna_Particle_draw_as_itemf");
   RNA_def_property_ui_text(prop, "Particle Display", "How particles are displayed in viewport");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_PARTICLESETTINGS);
   RNA_def_property_update(prop, 0, "rna_Particle_redo");
 
   prop = RNA_def_property(srna, "render_type", PROP_ENUM, PROP_NONE);

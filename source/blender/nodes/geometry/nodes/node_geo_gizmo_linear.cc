@@ -37,18 +37,21 @@ static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 
 static void node_rna(StructRNA *srna)
 {
+  PropertyRNA *prop;
+
   RNA_def_node_enum(srna,
                     "color_id",
                     "Color",
                     "",
                     rna_enum_geometry_nodes_gizmo_color_items,
                     NOD_storage_enum_accessors(color_id));
-  RNA_def_node_enum(srna,
-                    "draw_style",
-                    "Draw Style",
-                    "",
-                    rna_enum_geometry_nodes_linear_gizmo_draw_style_items,
-                    NOD_storage_enum_accessors(draw_style));
+  prop = RNA_def_node_enum(srna,
+                           "draw_style",
+                           "Draw Style",
+                           "",
+                           rna_enum_geometry_nodes_linear_gizmo_draw_style_items,
+                           NOD_storage_enum_accessors(draw_style));
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_NODETREE);
 }
 
 static void node_register()
