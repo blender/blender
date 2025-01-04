@@ -891,7 +891,7 @@ mark_as_advanced(WITH_SYSTEM_PYTHON_TESTS)
 # which may differ from the OS default python version.
 # And it would set that global 'python3 exec path' CMake value for all CMake scripts, which could have
 # unexpected and dangerous side effects.
-# So this has to be set explicitely for all builders.
+# So this has to be set explicitly for all builders.
 set(TEST_SYSTEM_PYTHON_EXE "" CACHE PATH "Python executable used to run 'system python' tests")
 mark_as_advanced(TEST_SYSTEM_PYTHON_EXE)
 

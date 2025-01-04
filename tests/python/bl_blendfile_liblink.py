@@ -263,7 +263,7 @@ class TestBlendLibLinkIndirect(TestBlendLibLinkHelper):
         assert mesh.library is not None
         assert mesh.use_fake_user is False
         assert mesh.users == 0
-        # IDs explicitely linked by the user are forcefully considered directly linked.
+        # IDs explicitly linked by the user are forcefully considered directly linked.
         assert mesh.is_library_indirect is False
 
         ob = bpy.data.objects.new("LocalMesh", mesh)
@@ -685,7 +685,7 @@ class TestBlendLibDataLibrariesLoadLibOverride(TestBlendLibDataLibrariesLoad):
         assert bpy.data.objects[-1].library is not None
         assert bpy.data.collections[-1].library is not None
 
-        # Only explicitely linked data gets a liboverride, without any handling of hierarchy/dependencies.
+        # Only explicitly linked data gets a liboverride, without any handling of hierarchy/dependencies.
         assert bpy.data.collections[0].library is None
         assert bpy.data.collections[0].is_runtime_data is False
         assert bpy.data.collections[0].override_library is not None
@@ -703,7 +703,7 @@ class TestBlendLibDataLibrariesLoadLibOverride(TestBlendLibDataLibrariesLoad):
         assert bpy.data.objects[-1].library is not None
         assert bpy.data.collections[-1].library is not None
 
-        # Only explicitely linked data gets a liboverride, without any handling of hierarchy/dependencies.
+        # Only explicitly linked data gets a liboverride, without any handling of hierarchy/dependencies.
         assert bpy.data.collections[1].library is None
         assert bpy.data.collections[1].is_runtime_data is False
         assert bpy.data.collections[1].override_library is not None
@@ -721,7 +721,7 @@ class TestBlendLibDataLibrariesLoadLibOverride(TestBlendLibDataLibrariesLoad):
         assert bpy.data.objects[-1].library is not None
         assert bpy.data.collections[-1].library is not None
 
-        # Only explicitely linked data gets a liboverride, without any handling of hierarchy/dependencies.
+        # Only explicitly linked data gets a liboverride, without any handling of hierarchy/dependencies.
         assert bpy.data.collections[1].library is None
         assert bpy.data.collections[1].is_runtime_data is False
         assert bpy.data.collections[1].override_library is not None
@@ -742,7 +742,7 @@ class TestBlendLibDataLibrariesLoadLibOverride(TestBlendLibDataLibrariesLoad):
         assert bpy.data.objects[-1].library is not None
         assert bpy.data.collections[-1].library is not None
 
-        # Only explicitely linked data gets a liboverride, without any handling of hierarchy/dependencies.
+        # Only explicitly linked data gets a liboverride, without any handling of hierarchy/dependencies.
         assert bpy.data.collections[0].library is None
         assert bpy.data.collections[0].is_runtime_data is True
         assert bpy.data.collections[0].override_library is not None
@@ -764,7 +764,7 @@ class TestBlendLibDataLibrariesLoadLibOverride(TestBlendLibDataLibrariesLoad):
         assert bpy.data.objects[-1].library is not None
         assert bpy.data.collections[-1].library is not None
 
-        # Only explicitely linked data gets a liboverride, without any handling of hierarchy/dependencies.
+        # Only explicitly linked data gets a liboverride, without any handling of hierarchy/dependencies.
         assert bpy.data.collections[0].library is None
         assert bpy.data.collections[0].is_runtime_data is True
         assert bpy.data.collections[0].override_library is not None
@@ -786,7 +786,7 @@ class TestBlendLibDataLibrariesLoadLibOverride(TestBlendLibDataLibrariesLoad):
         assert bpy.data.objects[-1].library is not None
         assert bpy.data.collections[-1].library is not None
 
-        # Only explicitely linked data gets a liboverride, without any handling of hierarchy/dependencies.
+        # Only explicitly linked data gets a liboverride, without any handling of hierarchy/dependencies.
         assert bpy.data.collections[1].library is None
         assert bpy.data.collections[1].is_runtime_data is False
         assert bpy.data.collections[1].override_library is not None

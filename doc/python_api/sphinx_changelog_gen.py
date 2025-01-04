@@ -26,7 +26,7 @@ blender --background --factory-startup --python doc/python_api/sphinx_changelog_
 
 # Api comparison can also run without blender,
 # will by default generate changeloig between the last two available versions listed in the index,
-# unless input files are provided explicitely:
+# unless input files are provided explicitly:
 python doc/python_api/sphinx_changelog_gen.py -- \
         --indexpath="path/to/api/docs/api_dump_index.json" \
         changelog --filepath-in-from blender_api_2_63_0.json \

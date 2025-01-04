@@ -1110,7 +1110,7 @@ static const char arg_handle_disable_depsgraph_on_file_load_doc[] =
     "\tBackround mode: Do not systematically build and evaluate ViewLayers' dependency graphs\n"
     "\twhen loading a blendfile in background mode (`-b` or `-c` options).\n"
     "\n"
-    "\tScripts requiring evaluated data then need to explicitely ensure that\n"
+    "\tScripts requiring evaluated data then need to explicitly ensure that\n"
     "\tan evaluated depsgraph is available\n"
     "\t(e.g. by calling `depsgraph = context.evaluated_depsgraph_get()`).\n"
     "\n"
