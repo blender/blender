@@ -151,7 +151,7 @@ struct BPyContextTempOverride {
   PyObject *py_state_context_dict;
 };
 
-static void bpy_rna_context_temp_override__tp_dealloc(BPyContextTempOverride *self)
+static void bpy_rna_context_temp_override_dealloc(BPyContextTempOverride *self)
 {
   PyObject_DEL(self);
 }
@@ -480,7 +480,7 @@ static PyObject *bpy_rna_context_temp_override_exit(BPyContextTempOverride *self
 #  pragma GCC diagnostic ignored "-Wcast-function-type"
 #endif
 
-static PyMethodDef bpy_rna_context_temp_override__tp_methods[] = {
+static PyMethodDef bpy_rna_context_temp_override_methods[] = {
     {"__enter__", (PyCFunction)bpy_rna_context_temp_override_enter, METH_NOARGS},
     {"__exit__", (PyCFunction)bpy_rna_context_temp_override_exit, METH_VARARGS},
     {nullptr},
@@ -495,7 +495,7 @@ static PyTypeObject BPyContextTempOverride_Type = {
     /*tp_name*/ "ContextTempOverride",
     /*tp_basicsize*/ sizeof(BPyContextTempOverride),
     /*tp_itemsize*/ 0,
-    /*tp_dealloc*/ (destructor)bpy_rna_context_temp_override__tp_dealloc,
+    /*tp_dealloc*/ (destructor)bpy_rna_context_temp_override_dealloc,
     /*tp_vectorcall_offset*/ 0,
     /*tp_getattr*/ nullptr,
     /*tp_setattr*/ nullptr,
@@ -518,7 +518,7 @@ static PyTypeObject BPyContextTempOverride_Type = {
     /*tp_weaklistoffset*/ 0,
     /*tp_iter*/ nullptr,
     /*tp_iternext*/ nullptr,
-    /*tp_methods*/ bpy_rna_context_temp_override__tp_methods,
+    /*tp_methods*/ bpy_rna_context_temp_override_methods,
     /*tp_members*/ nullptr,
     /*tp_getset*/ nullptr,
     /*tp_base*/ nullptr,
