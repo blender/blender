@@ -103,7 +103,11 @@ class OSLShaderManager : public ShaderManager {
   Device *device_;
   map<string, OSLShaderInfo> loaded_shaders;
 
+#  if OIIO_VERSION_MAJOR >= 3
+  static std::shared_ptr<OSL::TextureSystem> ts_shared;
+#  else
   static OSL::TextureSystem *ts_shared;
+#  endif
   static thread_mutex ts_shared_mutex;
   static int ts_shared_users;
 

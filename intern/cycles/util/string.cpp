@@ -104,23 +104,34 @@ void string_split(vector<string> &tokens,
 bool string_startswith(const string_view s, const string_view start)
 {
   const size_t len = start.size();
-
   if (len > s.size()) {
     return false;
   }
 
-  return strncmp(s.c_str(), start.data(), len) == 0;
+  for (size_t i = 0; i < len; i++) {
+    if (s[i] != start[i]) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 bool string_endswith(const string_view s, const string_view end)
 {
   const size_t len = end.size();
-
   if (len > s.size()) {
     return false;
   }
 
-  return strncmp(s.c_str() + s.size() - len, end.data(), len) == 0;
+  const size_t offset = s.size() - len;
+  for (size_t i = 0; i < len; i++) {
+    if (s[offset + i] != end[i]) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 string string_strip(const string &s)

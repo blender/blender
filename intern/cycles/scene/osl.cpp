@@ -35,7 +35,11 @@ CCL_NAMESPACE_BEGIN
 
 /* Shared Texture and Shading System */
 
+#  if OIIO_VERSION_MAJOR >= 3
+std::shared_ptr<OSL::TextureSystem> OSLShaderManager::ts_shared;
+#  else
 OSL::TextureSystem *OSLShaderManager::ts_shared = nullptr;
+#  endif
 int OSLShaderManager::ts_shared_users = 0;
 thread_mutex OSLShaderManager::ts_shared_mutex;
 
@@ -111,7 +115,11 @@ void OSLShaderManager::device_update_specific(Device *device,
 
   /* set texture system (only on CPU devices, since GPU devices cannot use OIIO) */
   if (device->info.type == DEVICE_CPU) {
+#  if OIIO_VERSION_MAJOR >= 3
+    scene->image_manager->set_osl_texture_system((void *)ts_shared.get());
+#  else
     scene->image_manager->set_osl_texture_system((void *)ts_shared);
+#  endif
   }
 
   /* create shaders */
@@ -165,7 +173,11 @@ void OSLShaderManager::device_update_specific(Device *device,
     OSL::ShadingSystem *ss = ss_shared[sub_device->info.type].get();
 
     og->ss = ss;
+#  if OIIO_VERSION_MAJOR >= 3
+    og->ts = ts_shared.get();
+#  else
     og->ts = ts_shared;
+#  endif
     og->services = static_cast<OSLRenderServices *>(ss->renderer());
 
     og->use = true;
@@ -281,8 +293,13 @@ void OSLShaderManager::texture_system_free()
 
   if (--ts_shared_users == 0) {
     ts_shared->invalidate_all(true);
+#  if OIIO_VERSION_MAJOR >= 3
+    OSL::TextureSystem::destroy(ts_shared);
+    ts_shared.reset();
+#  else
     OSL::TextureSystem::destroy(ts_shared);
     ts_shared = nullptr;
+#  endif
   }
 }
 
@@ -296,7 +313,12 @@ void OSLShaderManager::shading_system_init()
 
     if (ss_shared_users++ == 0 || ss_shared.find(device_type) == ss_shared.end()) {
       /* Must use aligned new due to concurrent hash map. */
+#  if OIIO_VERSION_MAJOR >= 3
+      OSLRenderServices *services = util_aligned_new<OSLRenderServices>(ts_shared.get(),
+                                                                        device_type);
+#  else
       OSLRenderServices *services = util_aligned_new<OSLRenderServices>(ts_shared, device_type);
+#  endif
 
 #  ifdef _WIN32
       /* Annoying thing, Cycles stores paths in UTF-8 codepage, so it can
@@ -312,8 +334,13 @@ void OSLShaderManager::shading_system_init()
       const string shader_path = path_get("shader");
 #  endif
 
+#  if OIIO_VERSION_MAJOR >= 3
+      unique_ptr<OSL::ShadingSystem> ss = make_unique<OSL::ShadingSystem>(
+          services, ts_shared.get(), &errhandler);
+#  else
       unique_ptr<OSL::ShadingSystem> ss = make_unique<OSL::ShadingSystem>(
           services, ts_shared, &errhandler);
+#  endif
       ss->attribute("lockgeom", 1);
       ss->attribute("commonspace", "world");
       ss->attribute("searchpath:shader", shader_path);

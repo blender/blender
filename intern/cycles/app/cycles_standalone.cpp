@@ -361,13 +361,16 @@ static void keyboard(unsigned char key)
 }
 #endif
 
-static int files_parse(const int argc, const char *argv[])
+static void parse_int(OIIO::cspan<const char *> argv, int *i)
 {
-  if (argc > 0) {
-    options.filepath = argv[0];
-  }
+  assert(argv.size() == 2);
+  *i = atoi(argv[1]);
+}
 
-  return 0;
+static void parse_string(OIIO::cspan<const char *> argv, std::string *s)
+{
+  assert(argv.size() == 2);
+  *s = argv[1];
 }
 
 static void options_parse(const int argc, const char **argv)
@@ -406,67 +409,51 @@ static void options_parse(const int argc, const char **argv)
   bool version = false;
   int verbosity = 1;
 
-  ap.options("Usage: cycles [options] file.xml",
-             "%*",
-             files_parse,
-             "",
-             "--device %s",
-             &devicename,
-             ("Devices to use: " + device_names).c_str(),
+  ap.usage("cycles [options] file.xml");
+  ap.arg("filename").hidden().action([&](auto argv) { options.filepath = argv[0]; });
+  ap.arg("--device %s:DEVICE").help("Devices to use: " + device_names).action([&](auto argv) {
+    parse_string(argv, &devicename);
+  });
 #ifdef WITH_OSL
-             "--shadingsys %s",
-             &ssname,
-             "Shading system to use: svm, osl",
+  ap.arg("--shadingsys %s:SHADINGSYSTEM")
+      .help("Shading system to use: svm, osl")
+      .action([&](auto argv) { parse_string(argv, &ssname); });
 #endif
-             "--background",
-             &options.session_params.background,
-             "Render in background, without user interface",
-             "--quiet",
-             &options.quiet,
-             "In background mode, don't print progress messages",
-             "--samples %d",
-             &options.session_params.samples,
-             "Number of samples to render",
-             "--output %s",
-             &options.output_filepath,
-             "File path to write output image",
-             "--threads %d",
-             &options.session_params.threads,
-             "CPU Rendering Threads",
-             "--width  %d",
-             &options.width,
-             "Window width in pixel",
-             "--height %d",
-             &options.height,
-             "Window height in pixel",
-             "--tile-size %d",
-             &options.session_params.tile_size,
-             "Tile size in pixels",
-             "--list-devices",
-             &list,
-             "List information about all available devices",
-             "--profile",
-             &profile,
-             "Enable profile logging",
+  ap.arg("--background", &options.session_params.background)
+      .help("Render in background, without user interface");
+  ap.arg("--quiet", &options.quiet).help("In background mode, don't print progress messages");
+  ap.arg("--samples %d:SAMPLES").help("Number of samples to render").action([&](auto argv) {
+    parse_int(argv, &options.session_params.samples);
+  });
+  ap.arg("--output %s:OUTPUT").help("File path to write output image").action([&](auto argv) {
+    parse_string(argv, &options.output_filepath);
+  });
+  ap.arg("--threads %d:THREADS").help("CPU Rendering Threads").action([&](auto argv) {
+    parse_int(argv, &options.session_params.threads);
+  });
+  ap.arg("--width %d:WIDTH").help("Image width in pixelx").action([&](auto argv) {
+    parse_int(argv, &options.width);
+  });
+  ap.arg("--height %d:HEIGHT").help("Image height in pixel").action([&](auto argv) {
+    parse_int(argv, &options.height);
+  });
+  ap.arg("--tile-size %d:TILE_SIZE").help("Tile size in pixels").action([&](auto argv) {
+    parse_int(argv, &options.session_params.tile_size);
+  });
+  ap.arg("--list-devices", &list).help("List information about all available devices");
+  ap.arg("--profile", &profile).help("Enable profile logging");
 #ifdef WITH_CYCLES_LOGGING
-             "--debug",
-             &debug,
-             "Enable debug logging",
-             "--verbose %d",
-             &verbosity,
-             "Set verbosity of the logger",
+  ap.arg("--debug", &debug).help("Enable debug logging");
+  ap.arg("--verbose %d:VERBOSE").help("Set verbosity of the logger").action([&](auto argv) {
+    parse_int(argv, &verbosity);
+  });
 #endif
-             "--help",
-             &help,
-             "Print help message",
-             "--version",
-             &version,
-             "Print version number",
-             nullptr);
+  ap.arg("--help", &help).help("Print help message");
+  ap.arg("--version", &version).help("Print version number");
 
-  if (ap.parse(argc, argv) < 0) {
+  if (ap.parse_args(argc, argv) < 0) {
     fprintf(stderr, "%s\n", ap.geterror().c_str());
-    ap.usage();
+    ap.print_help();
     exit(EXIT_FAILURE);
   }
 
@@ -493,7 +480,7 @@ static void options_parse(const int argc, const char **argv)
     exit(EXIT_SUCCESS);
   }
   else if (help || options.filepath.empty()) {
-    ap.usage();
+    ap.print_help();
     exit(EXIT_SUCCESS);
   }
 
