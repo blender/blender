@@ -942,6 +942,7 @@ static void rna_def_curvemapping(BlenderRNA *brna)
   RNA_def_property_enum_bitflag_sdna(prop, nullptr, "flag");
   RNA_def_property_enum_items(prop, prop_extend_items);
   RNA_def_property_ui_text(prop, "Extend", "Extrapolate the curve or extend it horizontally");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_CURVE_LEGACY);
   RNA_def_property_update(prop, 0, "rna_CurveMapping_extend_update");
 
   prop = RNA_def_property(srna, "curves", PROP_COLLECTION, PROP_NONE);

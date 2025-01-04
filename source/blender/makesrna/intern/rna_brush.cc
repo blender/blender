@@ -1725,6 +1725,7 @@ static void rna_def_gpencil_options(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, rna_enum_gpencil_fill_extend_modes_items);
   RNA_def_property_ui_text(
       prop, "Closure Mode", "Types of stroke extensions used for closing gaps");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_GPENCIL);
   RNA_def_parameter_clear_flags(prop, PROP_ANIMATABLE, ParameterFlag(0));
   RNA_def_property_update(prop, 0, "rna_BrushGpencilSettings_update");
 

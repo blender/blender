@@ -624,6 +624,7 @@ static void rna_def_volume(BlenderRNA *brna)
   RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
   RNA_def_property_enum_items(prop, sequence_mode_items);
   RNA_def_property_ui_text(prop, "Sequence Mode", "Sequence playback mode");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_SEQUENCE);
   RNA_def_property_update(prop, 0, "rna_Volume_update_filepath");
 
   /* Grids */
