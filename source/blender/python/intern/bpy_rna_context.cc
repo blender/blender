@@ -153,7 +153,23 @@ struct BPyContextTempOverride {
 
 static void bpy_rna_context_temp_override__tp_dealloc(BPyContextTempOverride *self)
 {
-  PyObject_DEL(self);
+  PyObject_GC_UnTrack(self);
+  Py_CLEAR(self->py_state_context_dict);
+  PyObject_GC_Del(self);
+}
+
+static int bpy_rna_context_temp_override_traverse(BPyContextTempOverride *self,
+                                                  visitproc visit,
+                                                  void *arg)
+{
+  Py_VISIT(self->py_state_context_dict);
+  return 0;
+}
+
+static int bpy_rna_context_temp_override_clear(BPyContextTempOverride *self)
+{
+  Py_CLEAR(self->py_state_context_dict);
+  return 0;
 }
 
 static PyObject *bpy_rna_context_temp_override_enter(BPyContextTempOverride *self)
@@ -470,7 +486,6 @@ static PyObject *bpy_rna_context_temp_override_exit(BPyContextTempOverride *self
     Py_DECREF(context_dict_test);
   }
   CTX_py_state_pop(C, &self->py_state);
-  Py_CLEAR(self->py_state_context_dict);
 
   Py_RETURN_NONE;
 }
@@ -510,10 +525,10 @@ static PyTypeObject BPyContextTempOverride_Type = {
     /*tp_getattro*/ nullptr,
     /*tp_setattro*/ nullptr,
     /*tp_as_buffer*/ nullptr,
-    /*tp_flags*/ Py_TPFLAGS_DEFAULT,
+    /*tp_flags*/ Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC,
     /*tp_doc*/ nullptr,
-    /*tp_traverse*/ nullptr,
-    /*tp_clear*/ nullptr,
+    /*tp_traverse*/ (traverseproc)bpy_rna_context_temp_override_traverse,
+    /*tp_clear*/ (inquiry)bpy_rna_context_temp_override_clear,
     /*tp_richcompare*/ nullptr,
     /*tp_weaklistoffset*/ 0,
     /*tp_iter*/ nullptr,
@@ -695,7 +710,8 @@ static PyObject *bpy_context_temp_override(PyObject *self, PyObject *args, PyObj
     ctx_temp.region_is_set = true;
   }
 
-  BPyContextTempOverride *ret = PyObject_New(BPyContextTempOverride, &BPyContextTempOverride_Type);
+  BPyContextTempOverride *ret = PyObject_GC_New(BPyContextTempOverride,
+                                                &BPyContextTempOverride_Type);
   ret->context = C;
   ret->ctx_temp = ctx_temp;
   memset(&ret->ctx_init, 0, sizeof(ret->ctx_init));
@@ -703,6 +719,8 @@ static PyObject *bpy_context_temp_override(PyObject *self, PyObject *args, PyObj
   ret->ctx_temp_orig.screen = nullptr;
 
   ret->py_state_context_dict = kwds;
+
+  PyObject_GC_Track(ret);
 
   return (PyObject *)ret;
 }
