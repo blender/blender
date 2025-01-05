@@ -142,13 +142,22 @@ class OSLRenderServices : public OSL::RendererServices {
                         const float radius,
                         const int max_points,
                         bool sort,
+#if OSL_LIBRARY_VERSION_CODE >= 11400
+                        int *out_indices,
+#else
                         size_t *out_indices,
+#endif
                         float *out_distances,
                         int derivs_offset) override;
 
   int pointcloud_get(OSL::ShaderGlobals *sg,
                      OSLUStringHash filename,
+#if OSL_LIBRARY_VERSION_CODE >= 11400
+                     const int *indices,
+#else
                      size_t *indices,
+#endif
+
                      const int count,
                      OSLUStringHash attr_name,
                      const TypeDesc attr_type,

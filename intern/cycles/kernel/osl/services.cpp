@@ -1640,7 +1640,11 @@ int OSLRenderServices::pointcloud_search(OSL::ShaderGlobals *sg,
                                          const float radius,
                                          const int max_points,
                                          bool sort,
+#if OSL_LIBRARY_VERSION_CODE >= 11400
+                                         int *indices,
+#else
                                          size_t *out_indices,
+#endif
                                          float *out_distances,
                                          const int derivs_offset)
 {
@@ -1649,7 +1653,11 @@ int OSLRenderServices::pointcloud_search(OSL::ShaderGlobals *sg,
 
 int OSLRenderServices::pointcloud_get(OSL::ShaderGlobals *sg,
                                       OSLUStringHash filename,
+#if OSL_LIBRARY_VERSION_CODE >= 11400
+                                      const int *indices,
+#else
                                       size_t *indices,
+#endif
                                       const int count,
                                       OSLUStringHash attr_name,
                                       const TypeDesc attr_type,

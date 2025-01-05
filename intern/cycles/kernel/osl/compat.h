@@ -10,7 +10,11 @@ CCL_NAMESPACE_BEGIN
 
 #if OSL_LIBRARY_VERSION_CODE >= 11302
 using OSLUStringHash = OSL::ustringhash;
+#  if OSL_LIBRARY_VERSION_CODE >= 11400
+using OSLUStringRep = OSL::ustringhash;
+#  else
 using OSLUStringRep = OSL::ustringrep;
+#  endif
 
 static inline OSL::ustring to_ustring(OSLUStringHash h)
 {
