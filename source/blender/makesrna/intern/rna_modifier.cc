@@ -6315,6 +6315,7 @@ static void rna_def_modifier_remesh(BlenderRNA *brna)
   prop = RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_items(prop, mode_items);
   RNA_def_property_ui_text(prop, "Mode", "");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_MODIFIER);
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
   prop = RNA_def_property(srna, "scale", PROP_FLOAT, PROP_NONE);

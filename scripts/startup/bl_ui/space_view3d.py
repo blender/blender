@@ -3643,7 +3643,7 @@ class VIEW3D_MT_sculpt(Menu):
         layout.separator()
 
         sculpt_filters_types = [
-            ('SMOOTH', iface_("Smooth")),
+            ('SMOOTH', iface_("Smooth", i18n_contexts.operator_default)),
             ('SURFACE_SMOOTH', iface_("Surface Smooth")),
             ('INFLATE', iface_("Inflate")),
             ('RELAX', iface_("Relax Topology")),

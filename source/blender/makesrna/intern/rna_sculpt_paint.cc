@@ -1258,6 +1258,7 @@ static void rna_def_particle_edit(BlenderRNA *brna)
   RNA_def_property_enum_items(prop, rna_enum_particle_edit_hair_brush_items);
   RNA_def_property_enum_funcs(
       prop, nullptr, "rna_ParticleEdit_tool_set", "rna_ParticleEdit_tool_itemf");
+  RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_OPERATOR_DEFAULT);
   RNA_def_property_ui_text(prop, "Tool", "");
 
   prop = RNA_def_property(srna, "select_mode", PROP_ENUM, PROP_NONE);

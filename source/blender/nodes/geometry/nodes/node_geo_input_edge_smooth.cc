@@ -8,7 +8,7 @@ namespace blender::nodes::node_geo_input_edge_smooth_cc {
 
 static void node_declare(NodeDeclarationBuilder &b)
 {
-  b.add_output<decl::Bool>("Smooth").field_source();
+  b.add_output<decl::Bool>("Smooth").field_source().translation_context(BLT_I18NCONTEXT_ID_MESH);
 }
 
 static void node_geo_exec(GeoNodeExecParams params)
