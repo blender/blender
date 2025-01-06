@@ -596,8 +596,8 @@ BLI_NOINLINE static void ensure_vbos_allocated_grids(const Object &object,
     if (!vbos[i]) {
       vbos[i] = GPU_vertbuf_create_with_format(format);
     }
-    const int verts_per_grid = use_flat_layout[i] ? square_i(subdiv_ccg.grid_area - 1) * 4 :
-                                                    square_i(subdiv_ccg.grid_area);
+    const int verts_per_grid = use_flat_layout[i] ? square_i(subdiv_ccg.grid_size - 1) * 4 :
+                                                    square_i(subdiv_ccg.grid_size);
     const int verts_num = nodes[i].grids().size() * verts_per_grid;
     GPU_vertbuf_data_alloc(*vbos[i], verts_num);
   });
