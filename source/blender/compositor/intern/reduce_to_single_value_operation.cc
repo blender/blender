@@ -29,12 +29,12 @@ void ReduceToSingleValueOperation::execute()
 {
   Result &input = get_input();
 
-  float *pixel = nullptr;
+  void *pixel = nullptr;
   bool need_to_free_pixel = false;
   if (context().use_gpu()) {
     /* Make sure any prior writes to the texture are reflected before downloading it. */
     GPU_memory_barrier(GPU_BARRIER_TEXTURE_UPDATE);
-    pixel = static_cast<float *>(GPU_texture_read(input, GPU_DATA_FLOAT, 0));
+    pixel = GPU_texture_read(input, GPU_DATA_FLOAT, 0);
     need_to_free_pixel = true;
   }
   else {
@@ -45,13 +45,16 @@ void ReduceToSingleValueOperation::execute()
   result.allocate_single_value();
   switch (result.type()) {
     case ResultType::Color:
-      result.set_single_value(float4(pixel));
+      result.set_single_value(float4(static_cast<float *>(pixel)));
       break;
     case ResultType::Vector:
-      result.set_single_value(float4(pixel));
+      result.set_single_value(float4(static_cast<float *>(pixel)));
       break;
     case ResultType::Float:
-      result.set_single_value(*pixel);
+      result.set_single_value(*static_cast<float *>(pixel));
+      break;
+    case ResultType::Int:
+      result.set_single_value(*static_cast<int *>(pixel));
       break;
     case ResultType::Float2:
     case ResultType::Float3:

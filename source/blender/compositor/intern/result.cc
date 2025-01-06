@@ -45,6 +45,8 @@ eGPUTextureFormat Result::gpu_texture_format(ResultType type, ResultPrecision pr
           return GPU_RG16F;
         case ResultType::Float3:
           return GPU_RGB16F;
+        case ResultType::Int:
+          return GPU_R16I;
         case ResultType::Int2:
           return GPU_RG16I;
       }
@@ -60,6 +62,8 @@ eGPUTextureFormat Result::gpu_texture_format(ResultType type, ResultPrecision pr
           return GPU_RG32F;
         case ResultType::Float3:
           return GPU_RGB32F;
+        case ResultType::Int:
+          return GPU_R32I;
         case ResultType::Int2:
           return GPU_RG32I;
       }
@@ -80,6 +84,7 @@ eGPUTextureFormat Result::gpu_texture_format(eGPUTextureFormat format, ResultPre
         case GPU_RG16F:
         case GPU_RGB16F:
         case GPU_RGBA16F:
+        case GPU_R16I:
         case GPU_RG16I:
           return format;
 
@@ -91,6 +96,8 @@ eGPUTextureFormat Result::gpu_texture_format(eGPUTextureFormat format, ResultPre
           return GPU_RGB16F;
         case GPU_RGBA32F:
           return GPU_RGBA16F;
+        case GPU_R32I:
+          return GPU_R16I;
         case GPU_RG32I:
           return GPU_RG16I;
         default:
@@ -104,6 +111,7 @@ eGPUTextureFormat Result::gpu_texture_format(eGPUTextureFormat format, ResultPre
         case GPU_RG32F:
         case GPU_RGB32F:
         case GPU_RGBA32F:
+        case GPU_R32I:
         case GPU_RG32I:
           return format;
 
@@ -115,6 +123,8 @@ eGPUTextureFormat Result::gpu_texture_format(eGPUTextureFormat format, ResultPre
           return GPU_RGB32F;
         case GPU_RGBA16F:
           return GPU_RGBA32F;
+        case GPU_R16I:
+          return GPU_R32I;
         case GPU_RG16I:
           return GPU_RG32I;
         default:
@@ -134,12 +144,14 @@ ResultPrecision Result::precision(eGPUTextureFormat format)
     case GPU_RG16F:
     case GPU_RGB16F:
     case GPU_RGBA16F:
+    case GPU_R16I:
     case GPU_RG16I:
       return ResultPrecision::Half;
     case GPU_R32F:
     case GPU_RG32F:
     case GPU_RGB32F:
     case GPU_RGBA32F:
+    case GPU_R32I:
     case GPU_RG32I:
       return ResultPrecision::Full;
     default:
@@ -165,6 +177,9 @@ ResultType Result::type(eGPUTextureFormat format)
     case GPU_RGBA16F:
     case GPU_RGBA32F:
       return ResultType::Color;
+    case GPU_R16I:
+    case GPU_R32I:
+      return ResultType::Int;
     case GPU_RG16I:
     case GPU_RG32I:
       return ResultType::Int2;
@@ -248,6 +263,9 @@ void Result::allocate_invalid()
       break;
     case ResultType::Float3:
       set_single_value(float3(0.0f));
+      break;
+    case ResultType::Int:
+      set_single_value(0);
       break;
     case ResultType::Int2:
       set_single_value(int2(0));
@@ -553,6 +571,7 @@ void Result::allocate_data(int2 size, bool from_pool)
             int64_t(size.x) * int64_t(size.y), this->channels_count() * sizeof(float), __func__));
         storage_type_ = ResultStorageType::FloatCPU;
         break;
+      case ResultType::Int:
       case ResultType::Int2:
         integer_texture_ = static_cast<int *>(MEM_malloc_arrayN(
             int64_t(size.x) * int64_t(size.y), this->channels_count() * sizeof(int), __func__));

@@ -33,6 +33,7 @@ enum class ResultType : uint8_t {
    * can encode two 2D vectors, one 3D vector with the last component ignored, or other dimensional
    * data. */
   Float,
+  Int,
   Vector,
   Color,
 
@@ -142,6 +143,7 @@ class Result {
     float4 color_value_ = float4(0.0f);
     float2 float2_value_;
     float3 float3_value_;
+    int int_value_;
     int2 int2_value_;
   };
   /* The domain of the result. This only matters if the result was a texture. See the discussion in
@@ -364,6 +366,10 @@ class Result {
   /* Returns a reference to the allocate integer data. */
   int *integer_texture() const;
 
+  /* Returns a reference to the allocated CPU data. The returned data is untyped, use the
+   * float_texture() or the integer_texture() methods for typed data. */
+  void *data() const;
+
   /* Gets the single value stored in the result. Assumes the result stores a value of the given
    * template type. */
   template<typename T> T get_single_value() const;
@@ -501,6 +507,7 @@ inline int64_t Result::channels_count() const
 {
   switch (type_) {
     case ResultType::Float:
+    case ResultType::Int:
       return 1;
     case ResultType::Float2:
     case ResultType::Int2:
@@ -526,6 +533,21 @@ inline int *Result::integer_texture() const
   return integer_texture_;
 }
 
+inline void *Result::data() const
+{
+  switch (storage_type_) {
+    case ResultStorageType::FloatCPU:
+      return this->float_texture();
+    case ResultStorageType::IntegerCPU:
+      return this->integer_texture();
+    case ResultStorageType::GPU:
+      break;
+  }
+
+  BLI_assert_unreachable();
+  return nullptr;
+}
+
 template<typename T> inline T Result::get_single_value() const
 {
   BLI_assert(this->is_single_value());
@@ -534,6 +556,10 @@ template<typename T> inline T Result::get_single_value() const
   if constexpr (std::is_same_v<T, float>) {
     BLI_assert(type_ == ResultType::Float);
     return float_value_;
+  }
+  else if constexpr (std::is_same_v<T, int>) {
+    BLI_assert(type_ == ResultType::Int);
+    return int_value_;
   }
   else if constexpr (std::is_same_v<T, float2>) {
     BLI_assert(type_ == ResultType::Float2);
@@ -573,6 +599,10 @@ template<typename T> inline void Result::set_single_value(const T &value)
   if constexpr (std::is_same_v<T, float>) {
     BLI_assert(type_ == ResultType::Float);
     float_value_ = value;
+  }
+  else if constexpr (std::is_same_v<T, int>) {
+    BLI_assert(type_ == ResultType::Int);
+    int_value_ = value;
   }
   else if constexpr (std::is_same_v<T, float2>) {
     BLI_assert(type_ == ResultType::Float2);
@@ -987,7 +1017,7 @@ template<typename T> constexpr int Result::get_type_channels_count()
 
 template<typename T> constexpr bool Result::is_supported_type()
 {
-  return is_same_any_v<T, float, float2, float3, float4, int2>;
+  return is_same_any_v<T, float, int, float2, float3, float4, int2>;
 }
 
 template<typename T> inline int64_t Result::get_pixel_index(const int2 &texel) const
@@ -1059,6 +1089,9 @@ inline void Result::copy_pixel(float *target, const float *source, const int cha
 inline void Result::copy_pixel(int *target, const int *source, const int channels_count)
 {
   switch (channels_count) {
+    case 1:
+      *target = *source;
+      break;
     case 2:
       copy_v2_v2_int(target, source);
       break;
@@ -1084,6 +1117,7 @@ inline void Result::copy_pixel(float *target, const float *source) const
     case ResultType::Color:
       copy_v4_v4(target, source);
       break;
+    case ResultType::Int:
     case ResultType::Int2:
       BLI_assert_unreachable();
       break;

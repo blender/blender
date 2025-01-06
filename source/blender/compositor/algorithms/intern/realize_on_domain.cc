@@ -34,6 +34,7 @@ static const char *get_realization_shader(Result &input,
         return "compositor_realize_on_domain_bicubic_vector";
       case ResultType::Float:
         return "compositor_realize_on_domain_bicubic_float";
+      case ResultType::Int:
       case ResultType::Int2:
       case ResultType::Float2:
       case ResultType::Float3:
@@ -49,6 +50,7 @@ static const char *get_realization_shader(Result &input,
         return "compositor_realize_on_domain_vector";
       case ResultType::Float:
         return "compositor_realize_on_domain_float";
+      case ResultType::Int:
       case ResultType::Int2:
       case ResultType::Float2:
       case ResultType::Float3:

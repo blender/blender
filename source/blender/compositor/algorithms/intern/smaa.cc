@@ -1426,6 +1426,7 @@ static float3 get_luminance_coefficients(ResultType type)
     case ResultType::Float3:
       /* GPU module does not support float3 outputs. */
       break;
+    case ResultType::Int:
     case ResultType::Int2:
       /* SMAA does not support integer types. */
       break;
@@ -1596,6 +1597,7 @@ static const char *get_blend_shader_name(ResultType type)
     case ResultType::Float3:
       /* GPU module does not support float3 outputs. */
       break;
+    case ResultType::Int:
     case ResultType::Int2:
       /* SMAA does not support integer types. */
       break;
@@ -1674,6 +1676,9 @@ static void compute_single_value(Result &input, Result &output)
       break;
     case ResultType::Float3:
       output.set_single_value(input.get_single_value<float3>());
+      break;
+    case ResultType::Int:
+      output.set_single_value(input.get_single_value<int>());
       break;
     case ResultType::Int2:
       output.set_single_value(input.get_single_value<int2>());

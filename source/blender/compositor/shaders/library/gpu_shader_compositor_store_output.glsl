@@ -17,6 +17,13 @@ void node_compositor_store_output_float(const float id, float value, out float o
   out_value = value;
 }
 
+/* GPUMaterial doesn't support int, so it is passed as a float. */
+void node_compositor_store_output_int(const float id, float value, out float out_value)
+{
+  store_int(floatBitsToUint(id), value);
+  out_value = value;
+}
+
 void node_compositor_store_output_vector(const float id, vec3 vector, out vec3 out_vector)
 {
   store_vector(floatBitsToUint(id), vector);

@@ -204,6 +204,9 @@ static const char *get_set_function_name(ResultType type)
   switch (type) {
     case ResultType::Float:
       return "set_value";
+    case ResultType::Int:
+      /* GPUMaterial doesn't support int, so it is passed as a float. */
+      return "set_value";
     case ResultType::Vector:
       return "set_rgb";
     case ResultType::Color:
@@ -286,6 +289,8 @@ static const char *get_store_function_name(ResultType type)
   switch (type) {
     case ResultType::Float:
       return "node_compositor_store_output_float";
+    case ResultType::Int:
+      return "node_compositor_store_output_int";
     case ResultType::Vector:
       return "node_compositor_store_output_vector";
     case ResultType::Color:
@@ -376,13 +381,17 @@ void ShaderOperation::generate_code(void *thunk,
   shader_create_info.compute_source_generated += "}\n";
 }
 
-/* Texture storers in the shader always take a vec4 as an argument, so encode each type in a vec4
- * appropriately. */
+/* Texture storers in the shader always take a [i]vec4 as an argument, so encode each type in an
+ * [i]vec4 appropriately. */
 static const char *glsl_store_expression_from_result_type(ResultType type)
 {
   switch (type) {
     case ResultType::Float:
       return "vec4(value)";
+    case ResultType::Int:
+      /* GPUMaterial doesn't support int, so it is passed as a float, and we need to convert it
+       * back to int before writing it. */
+      return "ivec4(int(value))";
     case ResultType::Vector:
       return "vec4(vector, 0.0)";
     case ResultType::Color:
@@ -398,18 +407,41 @@ static const char *glsl_store_expression_from_result_type(ResultType type)
   return nullptr;
 }
 
+static ImageType gpu_image_type_from_result_type(const ResultType type)
+{
+  switch (type) {
+    case ResultType::Float:
+    case ResultType::Vector:
+    case ResultType::Color:
+      return ImageType::FLOAT_2D;
+    case ResultType::Int:
+      return ImageType::INT_2D;
+    case ResultType::Float2:
+    case ResultType::Float3:
+    case ResultType::Int2:
+      /* Those types are internal and needn't be handled by operations. */
+      break;
+  }
+
+  BLI_assert_unreachable();
+  return ImageType::FLOAT_2D;
+}
+
 void ShaderOperation::generate_code_for_outputs(ShaderCreateInfo &shader_create_info)
 {
   const std::string store_float_function_header = "void store_float(const uint id, float value)";
+  /* GPUMaterial doesn't support int, so it is passed as a float. */
+  const std::string store_int_function_header = "void store_int(const uint id, float value)";
   const std::string store_vector_function_header = "void store_vector(const uint id, vec3 vector)";
   const std::string store_color_function_header = "void store_color(const uint id, vec4 color)";
 
-  /* The store functions are used by the node_compositor_store_output_[float|vector|color]
+  /* The store functions are used by the node_compositor_store_output_[float|int|vector|color]
    * functions but are only defined later as part of the compute source, so they need to be forward
    * declared.
    * NOTE(Metal): Metal does not require forward declarations. */
   if (GPU_backend_get_type() != GPU_BACKEND_METAL) {
     shader_create_info.typedef_source_generated += store_float_function_header + ";\n";
+    shader_create_info.typedef_source_generated += store_int_function_header + ";\n";
     shader_create_info.typedef_source_generated += store_vector_function_header + ";\n";
     shader_create_info.typedef_source_generated += store_color_function_header + ";\n";
   }
@@ -418,10 +450,12 @@ void ShaderOperation::generate_code_for_outputs(ShaderCreateInfo &shader_create_
    * opening the function with a curly bracket followed by opening a switch statement in each of
    * the functions. */
   std::stringstream store_float_function;
+  std::stringstream store_int_function;
   std::stringstream store_vector_function;
   std::stringstream store_color_function;
   const std::string store_function_start = "\n{\n  switch (id) {\n";
   store_float_function << store_float_function_header << store_function_start;
+  store_int_function << store_int_function_header << store_function_start;
   store_vector_function << store_vector_function_header << store_function_start;
   store_color_function << store_color_function_header << store_function_start;
 
@@ -432,7 +466,7 @@ void ShaderOperation::generate_code_for_outputs(ShaderCreateInfo &shader_create_
     shader_create_info.image(0,
                              result.get_gpu_texture_format(),
                              Qualifier::WRITE,
-                             ImageType::FLOAT_2D,
+                             gpu_image_type_from_result_type(result.type()),
                              output_identifier,
                              Frequency::PASS);
 
@@ -448,6 +482,9 @@ void ShaderOperation::generate_code_for_outputs(ShaderCreateInfo &shader_create_
     switch (result.type()) {
       case ResultType::Float:
         store_float_function << case_code.str();
+        break;
+      case ResultType::Int:
+        store_int_function << case_code.str();
         break;
       case ResultType::Vector:
         store_vector_function << case_code.str();
@@ -467,10 +504,12 @@ void ShaderOperation::generate_code_for_outputs(ShaderCreateInfo &shader_create_
   /* Close the previously opened switch statement as well as the function itself. */
   const std::string store_function_end = "  }\n}\n\n";
   store_float_function << store_function_end;
+  store_int_function << store_function_end;
   store_vector_function << store_function_end;
   store_color_function << store_function_end;
 
   shader_create_info.compute_source_generated += store_float_function.str() +
+                                                 store_int_function.str() +
                                                  store_vector_function.str() +
                                                  store_color_function.str();
 }
@@ -479,6 +518,9 @@ static const char *glsl_type_from_result_type(ResultType type)
 {
   switch (type) {
     case ResultType::Float:
+      return "float";
+    case ResultType::Int:
+      /* GPUMaterial doesn't support int, so it is passed as a float. */
       return "float";
     case ResultType::Vector:
       return "vec3";
@@ -495,12 +537,13 @@ static const char *glsl_type_from_result_type(ResultType type)
   return nullptr;
 }
 
-/* Texture loaders in the shader always return a vec4, so a swizzle is needed to retrieve the
+/* Texture loaders in the shader always return an [i]vec4, so a swizzle is needed to retrieve the
  * actual value for each type. */
 static const char *glsl_swizzle_from_result_type(ResultType type)
 {
   switch (type) {
     case ResultType::Float:
+    case ResultType::Int:
       return "x";
     case ResultType::Vector:
       return "xyz";
@@ -529,7 +572,11 @@ void ShaderOperation::generate_code_for_inputs(GPUMaterial *material,
 
   /* Add a texture sampler for each of the inputs with the same name as the attribute. */
   LISTBASE_FOREACH (GPUMaterialAttribute *, attribute, &attributes) {
-    shader_create_info.sampler(0, ImageType::FLOAT_2D, attribute->name, Frequency::PASS);
+    const InputDescriptor &input_descriptor = get_input_descriptor(attribute->name);
+    shader_create_info.sampler(0,
+                               gpu_image_type_from_result_type(input_descriptor.type),
+                               attribute->name,
+                               Frequency::PASS);
   }
 
   /* Declare a struct called var_attrs that includes an appropriately typed member for each of the
@@ -551,14 +598,16 @@ void ShaderOperation::generate_code_for_inputs(GPUMaterial *material,
   shader_create_info.typedef_source("gpu_shader_compositor_texture_utilities.glsl");
 
   /* Initialize each member of the previously declared struct by loading its corresponding texture
-   * with an appropriate swizzle for its type. */
+   * with an appropriate swizzle and cast for its type. */
   std::stringstream initialize_attributes;
   LISTBASE_FOREACH (GPUMaterialAttribute *, attribute, &attributes) {
     const InputDescriptor &input_descriptor = get_input_descriptor(attribute->name);
     const std::string swizzle = glsl_swizzle_from_result_type(input_descriptor.type);
-    initialize_attributes << "var_attrs.v" << attribute->id << " = "
+    const std::string type = glsl_type_from_result_type(input_descriptor.type);
+    initialize_attributes << "var_attrs.v" << attribute->id << " = " << type << "("
                           << "texture_load(" << attribute->name
-                          << ", ivec2(gl_GlobalInvocationID.xy))." << swizzle << ";\n";
+                          << ", ivec2(gl_GlobalInvocationID.xy))." << swizzle << ")"
+                          << ";\n";
   }
   initialize_attributes << "\n";
 

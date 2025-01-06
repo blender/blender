@@ -58,6 +58,8 @@ ResultType get_node_socket_result_type(const bNodeSocket *socket)
   switch (socket->type) {
     case SOCK_FLOAT:
       return ResultType::Float;
+    case SOCK_INT:
+      return ResultType::Int;
     case SOCK_VECTOR:
       return ResultType::Vector;
     case SOCK_RGBA:
