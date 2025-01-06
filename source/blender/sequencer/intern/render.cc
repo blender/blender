@@ -514,6 +514,9 @@ static bool is_strip_covering_screen(const SeqRenderData *context, const Strip *
     x1 = xmid + (x1 - xmid) * x_aspect;
   }
   StripScreenQuad quad = get_strip_screen_quad(context, seq);
+  if (quad.is_empty()) {
+    return false; /* Strip is zero size. */
+  }
   StripScreenQuad screen{float2(x0, y0), float2(x1, y0), float2(x0, y1), float2(x1, y1)};
 
   return is_quad_a_inside_b(screen, quad);
