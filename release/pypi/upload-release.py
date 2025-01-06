@@ -7,6 +7,7 @@ import argparse
 import glob
 import pathlib
 import subprocess
+import sys
 import tempfile
 import urllib.request
 import zipfile
