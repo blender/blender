@@ -5,6 +5,10 @@
 # Simple script to check mash validate code.
 # XXX Should be extended with many more "wrong cases"!
 
+__all__ = (
+    "main",
+)
+
 import bpy
 
 import random

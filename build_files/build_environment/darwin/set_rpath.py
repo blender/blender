@@ -5,6 +5,10 @@
 
 # macOS utility to remove all `rpaths` and add a new one.
 
+__all__ = (
+    "main",
+)
+
 import os
 import pathlib
 import re

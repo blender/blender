@@ -2,7 +2,13 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-# ./blender.bin --background --python tests/python/bl_blendfile_liblink.py
+"""
+./blender.bin --background --python tests/python/bl_blendfile_liblink.py
+"""
+__all__ = (
+    "main",
+)
+
 import bpy
 import os
 import sys

@@ -7,6 +7,10 @@
 #
 # only error checked for here is a segfault.
 
+__all__ = (
+    "main",
+)
+
 import bpy
 import sys
 

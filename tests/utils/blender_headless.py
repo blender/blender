@@ -39,6 +39,10 @@ WAYLAND Environment Variables:
 
 Currently only WAYLAND is supported, other systems could be added.
 """
+__all__ = (
+    "main",
+)
+
 import subprocess
 import sys
 import signal

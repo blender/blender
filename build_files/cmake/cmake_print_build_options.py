@@ -2,17 +2,19 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-# Simple utility that prints all WITH_* options in a CMakeLists.txt
-# Called by 'make help_features'
+# Simple utility that prints all `WITH_*` options in a `CMakeLists.txt`.
+# Called by `make help_features`.
+
+__all__ = (
+    "main",
+)
 
 import re
 import sys
 
 from typing import (
-    Union,
+    Optional,
 )
-
-cmakelists_file = sys.argv[-1]
 
 
 def count_backslashes_before_pos(file_data: str, pos: int) -> int:
@@ -26,7 +28,7 @@ def count_backslashes_before_pos(file_data: str, pos: int) -> int:
     return slash_count
 
 
-def extract_cmake_string_at_pos(file_data: str, pos_beg: int) -> Union[str, None]:
+def extract_cmake_string_at_pos(file_data: str, pos_beg: int) -> Optional[str]:
     assert file_data[pos_beg - 1] == '"'
 
     pos = pos_beg
@@ -73,19 +75,23 @@ def extract_cmake_string_at_pos(file_data: str, pos_beg: int) -> Union[str, None
     return text
 
 
-def main() -> None:
+def main() -> int:
+    cmakelists_file = sys.argv[-1]
+
     options = []
     with open(cmakelists_file, 'r', encoding="utf-8") as fh:
         file_data = fh.read()
-        for m in re.finditer(r"^\s*option\s*\(\s*(WITH_[a-zA-Z0-9_]+)\s+(\")", file_data, re.MULTILINE):
-            option_name = m.group(1)
-            option_descr = extract_cmake_string_at_pos(file_data, m.span(2)[1])
-            if option_descr is None:
-                # Possibly a parsing error, at least show something.
-                option_descr = "(UNDOCUMENTED)"
-            options.append("{:s}: {:s}".format(option_name, option_descr))
+
+    for m in re.finditer(r"^\s*option\s*\(\s*(WITH_[a-zA-Z0-9_]+)\s+(\")", file_data, re.MULTILINE):
+        option_name = m.group(1)
+        option_descr = extract_cmake_string_at_pos(file_data, m.span(2)[1])
+        if option_descr is None:
+            # Possibly a parsing error, at least show something.
+            option_descr = "(UNDOCUMENTED)"
+        options.append("{:s}: {:s}".format(option_name, option_descr))
 
     print('\n'.join(options))
+    return 0
 
 
 if __name__ == "__main__":

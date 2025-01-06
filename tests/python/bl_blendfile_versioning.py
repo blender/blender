@@ -9,6 +9,10 @@
 #
 # This needs to be investigated!
 
+__all__ = (
+    "main",
+)
+
 import os
 import platform
 import sys

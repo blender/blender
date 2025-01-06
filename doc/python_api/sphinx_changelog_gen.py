@@ -53,6 +53,9 @@ API dump format:
 ]
 
 """
+__all__ = (
+    "main",
+)
 
 import json
 import os

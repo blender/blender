@@ -7,6 +7,9 @@
 """
 ./blender.bin --background --factory-startup --python tests/python/bl_load_addons.py
 """
+__all__ = (
+    "main",
+)
 
 import bpy
 import addon_utils
