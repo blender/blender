@@ -35,6 +35,10 @@
 #  include "util/progress.h"
 #  include "util/stats.h"
 
+#  if EMBREE_MAJOR_VERSION < 4
+#    include "kernel/device/cpu/bvh.h"
+#  endif
+
 CCL_NAMESPACE_BEGIN
 
 static_assert(Object::MAX_MOTION_STEPS <= RTC_MAX_TIME_STEP_COUNT,
