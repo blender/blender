@@ -724,7 +724,7 @@ endif()
 # PipeWire is intended to use the system library.
 if(WITH_PIPEWIRE)
   find_package(PkgConfig)
-  pkg_check_modules(PIPEWIRE libpipewire-0.3)
+  pkg_check_modules(PIPEWIRE libpipewire-0.3>=1.1.0)
   set_and_warn_library_found("PipeWire" PIPEWIRE_FOUND WITH_PIPEWIRE)
 endif()
 
