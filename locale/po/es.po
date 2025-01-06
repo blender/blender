@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'eb39d81afa00')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'96c6f543ecc7')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-30 14:46+0000\n"
-"PO-Revision-Date: 2024-12-30 02:56+0000\n"
+"POT-Creation-Date: 2025-01-06 10:26+0000\n"
+"PO-Revision-Date: 2025-01-05 01:56+0000\n"
 "Last-Translator: Gabriel Gazzán <gabcorreo@gmail.com>\n"
 "Language-Team: Spanish <https://translate.blender.org/projects/blender-ui/ui/es/>\n"
 "Language: es\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.8.3"
+"X-Generator: Weblate 5.9.2"
 
 
 msgid "Shader AOV"
@@ -20253,7 +20253,7 @@ msgstr "Trata a cada color de un píxel como a un vector individual de desplazam
 
 
 msgid "Connected Only"
-msgstr "Sólo conectada"
+msgstr "Sólo conectados"
 
 
 msgid "Affect only topologically connected elements"
@@ -27133,15 +27133,15 @@ msgstr "Interpolar el pelo usando B-splines"
 
 
 msgid "Use Modifier Stack"
-msgstr "Usar lista de modificadores"
+msgstr "Usar pila de modificadores"
 
 
 msgid "Emit particles from mesh with modifiers applied (must use same subdivision surface level for viewport and render for correct results)"
-msgstr "Emite partículas desde la malla con sus modificadores aplicados (para resultados correctos se debe usar el mismo nivel de subdivisiones para la vista y el procesamiento)"
+msgstr "Emite partículas desde la malla con sus modificadores ya aplicados (para resultados correctos se deberá usar el mismo nivel de subdivisiones para la vista y el procesamiento)"
 
 
 msgid "Mass from Size"
-msgstr "Masa a partir de tamaño"
+msgstr "Masa a partir del tamaño"
 
 
 msgid "Multiply mass by particle size"
@@ -33666,31 +33666,31 @@ msgstr "Decaimiento lineal"
 
 
 msgid "Restrict View"
-msgstr "Impedir visibilidad"
+msgstr "Visibilidad en vista"
 
 
 msgid "Restrict visibility in the viewport"
-msgstr "Impide la visibilidad en las vistas 3D"
+msgstr "Controla la visibilidad en la vista"
 
 
 msgid "Restrict Render"
-msgstr "Impedir procesamiento"
+msgstr "Visibilidad en procesamiento"
 
 
 msgid "Restrict renderability"
-msgstr "Impide la visibilidad durante el procesamiento"
+msgstr "Controla la visibilidad durante el procesamiento"
 
 
 msgid "Restrict Select"
-msgstr "Impedir selección"
+msgstr "Seleccionabilidad"
 
 
 msgid "Restrict selection in the viewport"
-msgstr "Impide la selección en las vistas 3D"
+msgstr "Controla la seleccionabilidad en la vista"
 
 
 msgid "Invert the mask black/white"
-msgstr "Invertir el blanco y negro de la máscara"
+msgstr "Invierte el efecto de la máscara"
 
 
 msgid "Unique name of layer"
@@ -44702,7 +44702,7 @@ msgstr "Recortar por color"
 
 
 msgid "Create matte using a given color, for green or blue screen footage"
-msgstr "Permite crear un mate usando un color indicado, para uso con material filmado sobre pantalla verde o azul"
+msgstr "Permite crear un mate usando un color indicado, para uso con películas filmadas sobre pantalla verde o azul"
 
 
 msgid "H"
@@ -45193,6 +45193,14 @@ msgid "Prefilter noisy guiding passes before denoising image. Improves quality w
 msgstr "Reducir el ruido de las pasadas de guía antes de reducir el ruido de la imagen. Mejora la calidad cuando las pasadas de guía presentan ruido, usando tiempo adicional de procesamiento."
 
 
+msgid "Denoising quality"
+msgstr "Calidad de reducción de ruido"
+
+
+msgid "Use the scene's denoising quality setting"
+msgstr "Usar las opciones de reducción de ruido de la escena"
+
+
 msgid "High quality"
 msgstr "Alta calidad"
 
@@ -45203,6 +45211,10 @@ msgstr "Balanceada"
 
 msgid "Balanced between performance and quality"
 msgstr "Un balance entre rendimiento y calidad"
+
+
+msgid "High perfomance"
+msgstr "Alto rendimiento"
 
 
 msgid "HDR"
@@ -46309,7 +46321,7 @@ msgstr "Distorsión de película"
 
 
 msgid "Remove lens distortion from footage, using motion tracking camera lens settings"
-msgstr "Permite revertir la distorsión de lente de un material filmado, usando las opciones de lente de cámara del rastreo de movimiento"
+msgstr "Permite revertir la distorsión de lente de una película, usando las opciones de lente de cámara del rastreo de movimiento"
 
 
 msgid "Distortion to use to filter image"
@@ -46385,7 +46397,7 @@ msgstr "Deformar con rastreo plano"
 
 
 msgid "Replace flat planes in footage by another image, detected by plane tracks from motion tracking"
-msgstr "Permite reemplazar planos en el material filmado por otra imagen, éstos serán detectados a partir de los rastreos planos del rastreo de movimiento"
+msgstr "Permite reemplazar planos en una película por otra imagen, éstos serán detectados a partir de los rastreos planos del rastreo de movimiento"
 
 
 msgid "Posterize"
@@ -46545,7 +46557,7 @@ msgstr "Estabilización 2D"
 
 
 msgid "Stabilize footage using 2D stabilization motion tracking settings"
-msgstr "Permite estabilizar material filmado, usando las opciones de estabilización 2D del rastreo de movimiento"
+msgstr "Permite estabilizar una película, usando las opciones de estabilización 2D del rastreo de movimiento"
 
 
 msgid "Method to use to filter stabilization"
@@ -47114,6 +47126,10 @@ msgstr "Verdadero cuando la primer entrada es más oscura"
 
 msgid "Euler to Rotation"
 msgstr "Euler a rotación"
+
+
+msgid "Find In String"
+msgstr "Buscar en texto"
 
 
 msgid "Float to Integer"
@@ -47735,10 +47751,6 @@ msgstr "Define el tipo de asa para los puntos de control de la curva Bezier"
 
 msgid "Whether to update left and right handles"
 msgstr "Define si actualizar las asas izquierdas y derechas"
-
-
-msgid "Curve Spiral"
-msgstr "Espiral (curva)"
 
 
 msgid "Generate a poly spline in a spiral shape"
@@ -52131,7 +52143,7 @@ msgstr "Identificador único para el mapeo de conectores"
 
 
 msgid "Linked"
-msgstr "Vinculados"
+msgstr "Vinculado"
 
 
 msgid "True if the socket is connected"
@@ -66032,11 +66044,11 @@ msgstr "Permite extraer trazos de Grease Pencil a partir de una imagen"
 
 
 msgid "Trace Frame"
-msgstr "Rastrear fotograma"
+msgstr "Trazar fotograma"
 
 
 msgid "Used to trace only one frame of the image sequence, set to zero to trace all"
-msgstr "Usado para rastrear un solo fotograma de la secuencia de imágenes, cero para rastrear todos"
+msgstr "Permite trazar un solo fotograma de la secuencia de imágenes, usar 0 para trazar todos"
 
 
 msgid "Determines if trace simple image or full sequence"
@@ -67695,20 +67707,20 @@ msgstr "Restablece a cero la influencia de esfumado"
 
 msgctxt "Operator"
 msgid "Clear Restrict View"
-msgstr "Eliminar restricción visibilidad"
+msgstr "Mostrar nuevamente todas en la vista"
 
 
 msgid "Reveal temporarily hidden mask layers"
-msgstr "Vuelve a mostrar temporalmente las capas de máscara ocultas"
+msgstr "Vuelve a mostrar las capas de máscara temporalmente ocultas"
 
 
 msgctxt "Operator"
 msgid "Set Restrict View"
-msgstr "Impedir visibilidad"
+msgstr "Ocultar en vista"
 
 
 msgid "Temporarily hide mask layers"
-msgstr "Oculta temporalmente las cápas de máscara"
+msgstr "Oculta temporalmente capas de máscara"
 
 
 msgctxt "Operator"
@@ -67730,7 +67742,7 @@ msgstr "Agregar capa máscara"
 
 
 msgid "Add new mask layer for masking"
-msgstr "Agrega una nueva capa de máscara para enmascarar"
+msgstr "Agrega una nueva capa de máscara"
 
 
 msgid "Name of new mask layer"
@@ -68770,7 +68782,7 @@ msgstr "Crea un nuevo objeto a partir del conjunto de caras seleccionado"
 
 
 msgid "Add Boundary Loop"
-msgstr "Agregar un bucle limítrofe"
+msgstr "Agregar bucle limítrofe"
 
 
 msgid "Add an extra edge loop to better preserve the shape when applying a subdivision surface modifier"
@@ -69854,7 +69866,7 @@ msgstr "Modo de dimensiones"
 
 
 msgid "Major/Minor"
-msgstr "Mayor/Menor"
+msgstr "Mayor / Menor"
 
 
 msgid "Use the major/minor radii for torus dimensions"
@@ -70060,11 +70072,11 @@ msgstr "Selecciona elementos basándose en el atributo booleano activo"
 
 msgctxt "Operator"
 msgid "Select By Pole Count"
-msgstr "Seleccionar por cantidad de polos"
+msgstr "Seleccionar polos por cantidad"
 
 
 msgid "Select vertices at poles by the number of connected edges. In edge and face mode the geometry connected to the vertices is selected"
-msgstr "Seleccionar los vértices en los polos según la cantidad de bordes conectados. En los modos de borde y cara, la geometría conectada a los vértices será seleccionada"
+msgstr "Seleccionar vértices polares, según la cantidad de bordes que allí confluyan. En los modos de borde y cara, se seleccionará la geometría correspondiente conectada a los polos"
 
 
 msgid "Exclude Non Manifold"
@@ -70076,7 +70088,7 @@ msgstr "Excluir los polos no desplegables"
 
 
 msgid "Pole Count"
-msgstr "Cantidad de polos"
+msgstr "Cantidad en polos"
 
 
 msgid "Type of comparison to make"
@@ -72721,7 +72733,7 @@ msgstr "Ubicación de referencia con respecto a la cual alinear"
 
 
 msgid "Scene Origin"
-msgstr "Origen de escena"
+msgstr "Origen de la escena"
 
 
 msgid "Use the scene origin as the position for the selected objects to align to"
@@ -81008,7 +81020,7 @@ msgstr "Usar opciones de la escena"
 
 msgctxt "Operator"
 msgid "Mask From Cavity"
-msgstr "Máscara a desde cavidad"
+msgstr "Máscara desde cavidades"
 
 
 msgid "Creates a mask based on the curvature of the surface"
@@ -81195,11 +81207,11 @@ msgstr "Borra el desplazamiento del modificador Multi-resolución"
 
 msgctxt "Operator"
 msgid "Rebuild BVH"
-msgstr "Rehacer BVH"
+msgstr "Recrear BVH"
 
 
 msgid "Recalculate the sculpt BVH to improve performance"
-msgstr "Recalcula la BVH de la escultura para mejorar el rendimiento"
+msgstr "Recalcula la BVH de la escultura para mejorar su rendimiento"
 
 
 msgctxt "Operator"
@@ -88699,6 +88711,30 @@ msgid "Convert orientation axis to a different convention to match other applica
 msgstr "Convertir la orientación de los ejes a una convención distinta, para que coincidan con los de otras aplicaciones"
 
 
+msgid "Meters"
+msgstr "Metros"
+
+
+msgid "Kilometers"
+msgstr "Kilómetros"
+
+
+msgid "Centimeters"
+msgstr "Centímetros"
+
+
+msgid "Inches"
+msgstr "Pulgadas"
+
+
+msgid "Feet"
+msgstr "Pies"
+
+
+msgid "Yards"
+msgstr "Yardas"
+
+
 msgid "Convert World Material"
 msgstr "Convertir material del entorno"
 
@@ -90544,6 +90580,10 @@ msgstr "Rendimiento"
 
 msgid "Acceleration Structure"
 msgstr "Estructura de aceleración"
+
+
+msgid "Denoise Nodes"
+msgstr "Nodos de reducción de ruido"
 
 
 msgid "Final Render"
@@ -99440,6 +99480,22 @@ msgstr "Mínimo Y de la región"
 
 msgid "Minimum Y value for the render region"
 msgstr "Valor mínimo en Y de la región de procesamiento"
+
+
+msgid "Compositor Final Denoise Quality"
+msgstr "Calidad final de reducción de ruido del compositor"
+
+
+msgid "The quality used by denoise nodes during the compositing of final renders if the nodes' quality option is set to Follow Scene"
+msgstr "La calidad usada por los nodos de reducción de ruido durante la composición del procesamiento final, en caso de que la opción de calidad de los nodos se encontrara establecida en De la escena"
+
+
+msgid "Compositor Preview Denoise Quality"
+msgstr "Calidad de previsualización de reducción de ruido del compositor"
+
+
+msgid "The quality used by denoise nodes during viewport and interactive compositing if the nodes' quality option is set to Follow Scene"
+msgstr "La calidad usada por los nodos de reducción de ruido durante la composición interactiva en las vistas, en caso de que la opción de calidad de los nodos se encontrara establecida en De la escena"
 
 
 msgid "Compositor Device"
@@ -114549,22 +114605,22 @@ msgstr "Esculpido - Expandir modal"
 
 msgctxt "WindowManager"
 msgid "Toggle Preserve State"
-msgstr "Alternar preservar estado"
+msgstr "Preservar estado"
 
 
 msgctxt "WindowManager"
 msgid "Toggle Gradient"
-msgstr "Alternar gradiente"
+msgstr "Gradiente"
 
 
 msgctxt "WindowManager"
 msgid "Geodesic recursion step"
-msgstr "Intervalos recursión geodésico"
+msgstr "Interv recursión geodésico"
 
 
 msgctxt "WindowManager"
 msgid "Topology recursion Step"
-msgstr "Intervalos recursión topológico"
+msgstr "Interv recursión topológico"
 
 
 msgctxt "WindowManager"
@@ -114574,22 +114630,22 @@ msgstr "Mover origen"
 
 msgctxt "WindowManager"
 msgid "Geodesic Falloff"
-msgstr "Decaimiento geodésico"
+msgstr "Dec geodésico"
 
 
 msgctxt "WindowManager"
 msgid "Topology Falloff"
-msgstr "Decaimiento topológico"
+msgstr "Dec topológico"
 
 
 msgctxt "WindowManager"
 msgid "Diagonals Falloff"
-msgstr "Decaimiento diagonal"
+msgstr "Dec diagonal"
 
 
 msgctxt "WindowManager"
 msgid "Spherical Falloff"
-msgstr "Decaimiento esférico"
+msgstr "Dec esférico"
 
 
 msgctxt "WindowManager"
@@ -116563,10 +116619,6 @@ msgid "BVH"
 msgstr "BVH"
 
 
-msgid "Module Debug"
-msgstr "Depuración de módulo"
-
-
 msgid "Viewport BVH"
 msgstr "BVH en vistas"
 
@@ -116641,6 +116693,10 @@ msgstr "Extrusión"
 
 msgid "Clear Image"
 msgstr "Limpiar imagen"
+
+
+msgid "Module Debug"
+msgstr "Depuración de módulo"
 
 
 msgid "Cycles built without Embree support"
@@ -120978,6 +121034,14 @@ msgid "Jittered Shadows"
 msgstr "Sombras alteradas"
 
 
+msgid "Preview Quality"
+msgstr "Calidad previsualización"
+
+
+msgid "Final Quality"
+msgstr "Calidad final"
+
+
 msgid "Shadow Pool"
 msgstr "Sombras"
 
@@ -121085,7 +121149,7 @@ msgstr "Multiplicar  R"
 
 
 msgid "Enable the Color Ramp first"
-msgstr "Habilitar antes la rampa de color"
+msgstr "Activar antes la rampa de color"
 
 
 msgid "Tiles"
@@ -124686,7 +124750,7 @@ msgstr "Topología dinámica"
 
 msgctxt "Operator"
 msgid "Transfer Sculpt Mode"
-msgstr "Transferir modo de Esculpido"
+msgstr "Transferir modo Esculpido"
 
 
 msgctxt "Operator"
@@ -124796,7 +124860,7 @@ msgstr "Rebanar máscara a nuevo objeto"
 
 msgctxt "Operator"
 msgid "Mask from Cavity"
-msgstr "Máscara desde cavidad"
+msgstr "Máscara desde cavidades"
 
 
 msgctxt "Operator"
@@ -127129,7 +127193,7 @@ msgstr "Se fusionaron %d ID de la base de datos de '%s' en la base de datos de '
 
 
 msgid "MaskLayer"
-msgstr "Capa de máscara"
+msgstr "capa_máscara"
 
 
 msgid "masks"
@@ -127433,10 +127497,6 @@ msgid "Original Mode"
 msgstr "Modo original"
 
 
-msgid "Kilometers"
-msgstr "Kilómetros"
-
-
 msgid "100 Meters"
 msgstr "Hectómetros"
 
@@ -127445,16 +127505,8 @@ msgid "10 Meters"
 msgstr "Decámetros"
 
 
-msgid "Meters"
-msgstr "Metros"
-
-
 msgid "10 Centimeters"
 msgstr "Decímetros"
-
-
-msgid "Centimeters"
-msgstr "Centímetros"
 
 
 msgid "Micrometers"
@@ -127479,18 +127531,6 @@ msgstr "Furlongs"
 
 msgid "Chains"
 msgstr "Cadenas"
-
-
-msgid "Yards"
-msgstr "Yardas"
-
-
-msgid "Feet"
-msgstr "Pies"
-
-
-msgid "Inches"
-msgstr "Pulgadas"
 
 
 msgid "Thou"
@@ -132662,10 +132702,6 @@ msgid "Fluid: Could not use default cache directory '%s', please define a valid 
 msgstr "Fluido: no fue posible usar directorio de caché predefinido '%s', por favor definir manualmente una ruta de caché válida"
 
 
-msgid "Fluid: %s complete! (%.2f)"
-msgstr "Fluido: ¡%s completado! (%.2f)"
-
-
 msgid "Fluid: %s failed: %s"
 msgstr "Fluido: %s fallido: %s"
 
@@ -137128,10 +137164,6 @@ msgid " | [Ctrl] - Increments active"
 msgstr " | [Ctrl] - Incrementa el activo"
 
 
-msgid " | Ctrl - Hold for 10% increments"
-msgstr " | Ctrl - Mantener en incrementos del 10%"
-
-
 msgid "Unpack File"
 msgstr "Desempacar archivo"
 
@@ -140569,6 +140601,10 @@ msgid "Prefilter:"
 msgstr "Prefiltrado:"
 
 
+msgid "Quality:"
+msgstr "Calidad:"
+
+
 msgid "Disabled, built without OpenImageDenoise"
 msgstr "Deshabilitado, compilado sin soporte para OpenImageDenoise"
 
@@ -140848,6 +140884,10 @@ msgid "B"
 msgstr "B"
 
 
+msgid "First Found"
+msgstr "Primera ocurrencia"
+
+
 msgctxt "NodeTree"
 msgid "Unknown"
 msgstr "Desconocido"
@@ -140887,7 +140927,7 @@ msgstr "Determinante"
 
 
 msgid "The string to find in the input string"
-msgstr "El texto a buscar en la cadena de entrada"
+msgstr "El texto a buscar en el texto de entrada"
 
 
 msgid "The string to replace each match with"

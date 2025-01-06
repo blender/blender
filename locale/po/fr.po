@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'eb39d81afa00')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'96c6f543ecc7')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-30 14:46+0000\n"
-"PO-Revision-Date: 2024-12-26 17:56+0000\n"
+"POT-Creation-Date: 2025-01-06 10:26+0000\n"
+"PO-Revision-Date: 2025-01-02 15:56+0000\n"
 "Last-Translator: Damien Picard <dam.pic@free.fr>\n"
 "Language-Team: French <https://translate.blender.org/projects/blender-ui/ui/fr/>\n"
 "Language: fr\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n > 1;\n"
-"X-Generator: Weblate 5.8.3"
+"X-Generator: Weblate 5.9.2"
 
 
 msgid "Shader AOV"
@@ -45195,6 +45195,14 @@ msgid "Prefilter noisy guiding passes before denoising image. Improves quality w
 msgstr "Préfiltrer les passes guides bruitées avant de débruiter l’image. Améliore la qualité quand les passes guides sont bruitées, en augmentant le temps de calcul."
 
 
+msgid "Denoising quality"
+msgstr "Qualité de débruitage"
+
+
+msgid "Use the scene's denoising quality setting"
+msgstr "Utiliser les réglages de qualité de débruitage de la scène"
+
+
 msgid "High quality"
 msgstr "Haute qualité"
 
@@ -45205,6 +45213,10 @@ msgstr "Équilibrée"
 
 msgid "Balanced between performance and quality"
 msgstr "Équilibrée entre performance et qualité"
+
+
+msgid "High perfomance"
+msgstr "Haute performance"
 
 
 msgid "HDR"
@@ -47118,6 +47130,10 @@ msgid "Euler to Rotation"
 msgstr "Euler vers Rotation"
 
 
+msgid "Find In String"
+msgstr "Trouver dans le texte"
+
+
 msgid "Float to Integer"
 msgstr "Flottant vers entier"
 
@@ -47737,10 +47753,6 @@ msgstr "Définir le type de poignées pour les points de contrôle d’une courb
 
 msgid "Whether to update left and right handles"
 msgstr "S’il faut mettre à jour les poignées de gauche et de droite"
-
-
-msgid "Curve Spiral"
-msgstr "Courbe spirale"
 
 
 msgid "Generate a poly spline in a spiral shape"
@@ -88701,6 +88713,30 @@ msgid "Convert orientation axis to a different convention to match other applica
 msgstr "Convertir l’axe d’orientation dans une convention différente, pour fonctionner avec d’autres applications"
 
 
+msgid "Meters"
+msgstr "Mètres"
+
+
+msgid "Kilometers"
+msgstr "Kilomètres"
+
+
+msgid "Centimeters"
+msgstr "Centimètres"
+
+
+msgid "Inches"
+msgstr "Pouces"
+
+
+msgid "Feet"
+msgstr "Pieds"
+
+
+msgid "Yards"
+msgstr "Verges"
+
+
 msgid "Convert World Material"
 msgstr "Convertir le matériau du monde"
 
@@ -90546,6 +90582,10 @@ msgstr "Performance"
 
 msgid "Acceleration Structure"
 msgstr "Structure accélératrice"
+
+
+msgid "Denoise Nodes"
+msgstr "Nœuds de débruitage"
 
 
 msgid "Final Render"
@@ -99442,6 +99482,22 @@ msgstr "Région Y minimum"
 
 msgid "Minimum Y value for the render region"
 msgstr "Valeur minimum en Y pour la région de rendu"
+
+
+msgid "Compositor Final Denoise Quality"
+msgstr "Qualité de débruitage finale du compositeur"
+
+
+msgid "The quality used by denoise nodes during the compositing of final renders if the nodes' quality option is set to Follow Scene"
+msgstr "Qualité utilisée par les nœuds de débruitage lors du compositing des rendus finaux si l’option de qualité des nœuds est définie à « Comme la scène »"
+
+
+msgid "Compositor Preview Denoise Quality"
+msgstr "Qualité de débruitage de prévis. du compositeur"
+
+
+msgid "The quality used by denoise nodes during viewport and interactive compositing if the nodes' quality option is set to Follow Scene"
+msgstr "Qualité utilisée par les nœuds de débruitage lors du compositing interactif et dans la vue 3D si l’option de qualité des nœuds est définie à « Comme la scène »"
 
 
 msgid "Compositor Device"
@@ -116565,10 +116621,6 @@ msgid "BVH"
 msgstr "BVH"
 
 
-msgid "Module Debug"
-msgstr "Débug module"
-
-
 msgid "Viewport BVH"
 msgstr "BVH vues 3D"
 
@@ -116643,6 +116695,10 @@ msgstr "Extrusion"
 
 msgid "Clear Image"
 msgstr "Vider l’image"
+
+
+msgid "Module Debug"
+msgstr "Débug module"
 
 
 msgid "Cycles built without Embree support"
@@ -120978,6 +121034,14 @@ msgstr "Reprojection temporelle"
 
 msgid "Jittered Shadows"
 msgstr "Ombres agitées"
+
+
+msgid "Preview Quality"
+msgstr "Qualité prévis"
+
+
+msgid "Final Quality"
+msgstr "Qualité finale"
 
 
 msgid "Shadow Pool"
@@ -127435,10 +127499,6 @@ msgid "Original Mode"
 msgstr "Mode original"
 
 
-msgid "Kilometers"
-msgstr "Kilomètres"
-
-
 msgid "100 Meters"
 msgstr "Hectomètres"
 
@@ -127447,16 +127507,8 @@ msgid "10 Meters"
 msgstr "Décamètres"
 
 
-msgid "Meters"
-msgstr "Mètres"
-
-
 msgid "10 Centimeters"
 msgstr "Décimètres"
-
-
-msgid "Centimeters"
-msgstr "Centimètres"
 
 
 msgid "Micrometers"
@@ -127481,18 +127533,6 @@ msgstr "Furlongs"
 
 msgid "Chains"
 msgstr "Chaînes"
-
-
-msgid "Yards"
-msgstr "Verges"
-
-
-msgid "Feet"
-msgstr "Pieds"
-
-
-msgid "Inches"
-msgstr "Pouces"
 
 
 msgid "Thou"
@@ -132664,10 +132704,6 @@ msgid "Fluid: Could not use default cache directory '%s', please define a valid 
 msgstr "Fluide : impossible d’utiliser le dossier de cache par défaut « %s », veuillez définir un chemin de cache valide manuellement"
 
 
-msgid "Fluid: %s complete! (%.2f)"
-msgstr "Fluide : %s terminé ! (%.2f)"
-
-
 msgid "Fluid: %s failed: %s"
 msgstr "Fluide : %s a échoué : %s"
 
@@ -137130,10 +137166,6 @@ msgid " | [Ctrl] - Increments active"
 msgstr " | [Ctrl] - Incréments activés"
 
 
-msgid " | Ctrl - Hold for 10% increments"
-msgstr " | Ctrl - Maintenir pour incréments de 10%"
-
-
 msgid "Unpack File"
 msgstr "Dépaqueter le fichier"
 
@@ -140571,6 +140603,10 @@ msgid "Prefilter:"
 msgstr "Préfiltrage :"
 
 
+msgid "Quality:"
+msgstr "Qualité :"
+
+
 msgid "Disabled, built without OpenImageDenoise"
 msgstr "Désactivé, compilé sans OpenImageDenoise"
 
@@ -140749,7 +140785,7 @@ msgstr "Les axes secondaire et primaire doivent être différents"
 
 
 msgid "Equal Axes"
-msgstr "Axes égaux"
+msgstr "Axes identiques"
 
 
 msgid "Column 1 Row 1"
@@ -140848,6 +140884,10 @@ msgstr "A"
 msgctxt "NodeTree"
 msgid "B"
 msgstr "B"
+
+
+msgid "First Found"
+msgstr "Première occurence"
 
 
 msgctxt "NodeTree"

@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'eb39d81afa00')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'96c6f543ecc7')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-30 14:46+0000\n"
-"PO-Revision-Date: 2024-12-28 09:56+0000\n"
+"POT-Creation-Date: 2025-01-06 10:26+0000\n"
+"PO-Revision-Date: 2025-01-06 09:56+0000\n"
 "Last-Translator: Ye Gui <ziweidao@foxmail.com>\n"
 "Language-Team: Chinese (Simplified Han script) <https://translate.blender.org/projects/blender-ui/ui/zh_Hans/>\n"
 "Language: zh_HANS\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 5.8.3\n"
+"X-Generator: Weblate 5.9.2\n"
 "<<<<<< .minX-Generator: Poedit 1.6.9\n"
 "=====X-Generator: Poedit 1.6.9"
 
@@ -82,7 +82,7 @@ msgstr "函数曲线组"
 
 
 msgid "Groupings of F-Curves for display purposes, in e.g. the dopesheet and graph editor"
-msgstr "用于显示目的的函数曲线组，例如，在动画摄影表和曲线编辑器中"
+msgstr "用于显示用途的函数曲线组，例如，在动画摄影表和曲线编辑器中"
 
 
 msgid "Collection of F-Curves for a specific action slot, on a specific strip"
@@ -98,7 +98,7 @@ msgstr "槽的动画通道"
 
 
 msgid "For each action slot, a list of animation channels that are meant for that slot"
-msgstr "(For each)遍历动作槽，为该槽指定的动画通道列表"
+msgstr "For each 遍历动作槽，为该槽指定的动画通道列表"
 
 
 msgid "Action F-Curves"
@@ -1679,7 +1679,7 @@ msgstr "目录简单名称"
 
 
 msgid "Simple name of the asset's catalog, for debugging and data recovery purposes"
-msgstr "用于调试和数据恢复目的的资产目录的简单名称"
+msgstr "用于调试和数据恢复用途的资产目录的简单名称"
 
 
 msgid "Copyright"
@@ -2100,7 +2100,7 @@ msgstr "蜡笔图层的属性"
 
 
 msgid "Is Internal"
-msgstr "是内部"
+msgstr "是内部的"
 
 
 msgid "The attribute is meant for internal use by Blender"
@@ -9181,7 +9181,7 @@ msgstr "覆写受控制的轴向上的缩放来保持体积严格不变"
 
 
 msgid "Uniform"
-msgstr "均衡"
+msgstr "均匀"
 
 
 msgid "Volume is preserved when the object is scaled uniformly. Deviations from uniform scale on non-free axes are passed through."
@@ -13520,7 +13520,7 @@ msgstr "半径上的衰减能量"
 
 
 msgid "Radial falloff power (real gravitational falloff = 2)"
-msgstr "半径上的衰减能量(真实重力的衰减=2)"
+msgstr "半径上的衰减能量 (真实重力的衰减 = 2)"
 
 
 msgid "Maximum Radial Distance"
@@ -13612,7 +13612,7 @@ msgstr "纹理模式"
 
 
 msgid "How the texture effect is calculated (RGB and Curl need a RGB texture, else Gradient will be used instead)"
-msgstr "纹理影响的计算方式 ( RGB 与旋量需要一个 RGB 纹理, 否则将使用渐变)"
+msgstr "纹理影响的计算方式 (RGB 与旋量需要一个 RGB 纹理, 否则将使用渐变)"
 
 
 msgid "Curl"
@@ -14828,7 +14828,7 @@ msgstr "精度"
 
 
 msgid "Smoke Grid Resolution"
-msgstr "烟雾的网格精度"
+msgstr "烟雾的栅格精度"
 
 
 msgid "Domain Type"
@@ -14860,15 +14860,15 @@ msgstr "导出Mantaflow脚本"
 
 
 msgid "Generate and export Mantaflow script from current domain settings during bake. This is only needed if you plan to analyze the cache (e.g. view grids, velocity vectors, particles) in Mantaflow directly (outside of Blender) after baking the simulation."
-msgstr "在烘焙期间从当前域设置生成和导出Mantaflow脚本。只有在烘焙模拟后直接（在 Blender 外部）分析流体流中的缓存（比如视图网格、速度矢量、粒子）时，才需要这样做。"
+msgstr "在烘焙期间从当前域设置生成和导出Mantaflow脚本。只有在烘焙模拟后直接（在 Blender 外部）分析流体流中的缓存（比如视图栅格、速度矢量、粒子）时，才需要这样做。"
 
 
 msgid "Flame Grid"
-msgstr "火焰网格"
+msgstr "火焰栅格"
 
 
 msgid "Smoke flame grid"
-msgstr "烟火网格"
+msgstr "烟火栅格"
 
 
 msgid "Minimum temperature of the flames (higher value results in faster rising flames)"
@@ -15076,11 +15076,11 @@ msgstr "引导速度因子(值越高，引导速度越大)"
 
 
 msgid "Heat Grid"
-msgstr "热度网格"
+msgstr "热度栅格"
 
 
 msgid "Smoke heat grid"
-msgstr "烟雾热度网格"
+msgstr "烟雾热度栅格"
 
 
 msgid "Emitter"
@@ -15224,7 +15224,7 @@ msgstr "数据位深"
 
 
 msgid "Bit depth for fluid particles and grids (lower bit values reduce file size)"
-msgstr "流体粒子和网格的位深 (调低位深可减小文件大小)"
+msgstr "流体粒子和栅格的位深 (调低位深可减小文件大小)"
 
 
 msgid "Particle (narrow) band width (higher value results in thicker band and more particles)"
@@ -15497,7 +15497,7 @@ msgstr "电热半径"
 
 
 msgid "Radius to compute potential for each cell (higher values are slower but create smoother potential grids)"
-msgstr "为每个单元格计算电势的半径(值越高越慢，但会创建更平滑的电势网格)"
+msgstr "为每个单元格计算电势的半径(值越高越慢，但会创建更平滑的电势栅格)"
 
 
 msgid "Trapped Air Sampling"
@@ -15549,11 +15549,11 @@ msgstr "此模拟中允许的最大流体粒子数"
 
 
 msgid "Temperature Grid"
-msgstr "温度网格"
+msgstr "温度栅格"
 
 
 msgid "Smoke temperature grid, range 0 to 1 represents 0 to 1000K"
-msgstr "烟雾温度网格, 范围 0 到 1 表示 0 到 1000K"
+msgstr "烟雾温度栅格, 范围 0 到 1 表示 0 到 1000K"
 
 
 msgid "Time Scale"
@@ -18401,7 +18401,7 @@ msgstr "Rigify 绑定名称"
 
 
 msgid "Optional. If specified, this name will be used for the newly generated rig, widget collection and script. Otherwise, a name is generated based on the name of the metarig object by replacing 'metarig' with 'rig', 'META' with 'RIG', or prefixing with 'RIG-'. When updating an already generated rig its name is never changed"
-msgstr "可选的，如果指定，此名称将用于新生成的绑定，小部件集合和脚本，否则将基于元骨骼物体的名称生成，用 'rig' 替代 'metarig'，'RIG'替代 'META'，或者前缀为'RIG-'. 更新已生成的绑定时，其名称永远不会更改"
+msgstr "可选的，如果指定，此名称将用于新生成的绑定，小部件集合和脚本，否则将基于元骨骼物体的名称生成，用 'rig' 替代 'metarig'，'RIG' 替代 'META'，或者前缀为 'RIG-'. 更新已生成的绑定时，其名称永远不会更改"
 
 
 msgid "Rigify Target Rig UI"
@@ -23944,7 +23944,7 @@ msgstr "扩张半径"
 
 
 msgid "Radius in grid sample to search valid grid samples to copy into invalid grid samples"
-msgstr "网格采样的半径，用于搜索要复制到无效网格采样的有效网格采样"
+msgstr "栅格采样的半径，用于搜索要复制到无效栅格采样的有效栅格采样"
 
 
 msgid "Dilation Threshold"
@@ -23952,7 +23952,7 @@ msgstr "扩张阈值"
 
 
 msgid "Ratio of front-facing surface hits under which a grid sample will reuse neighbors grid sample lighting"
-msgstr "前向面的命中比率在此比率下，网格采样将重新使用相邻网格采样的光照"
+msgstr "前向面的命中比率在此比率下，栅格采样将重新使用相邻栅格采样的光照"
 
 
 msgid "Search Distance"
@@ -23984,7 +23984,7 @@ msgstr "法向偏移"
 
 
 msgid "Offset sampling of the irradiance grid in the surface normal direction to reduce light bleeding"
-msgstr "在表面法线方向上对辐射网格进行偏移采样，以减少漏光"
+msgstr "在表面法线方向上对辐射栅格进行偏移采样，以减少漏光"
 
 
 msgid "Resolution X"
@@ -24040,7 +24040,7 @@ msgstr "视图偏移"
 
 
 msgid "Offset sampling of the irradiance grid in the viewing direction to reduce light bleeding"
-msgstr "将辐射网格在视线方向进行偏移采样，以减少漏光"
+msgstr "将辐射栅格在视线方向进行偏移采样，以减少漏光"
 
 
 msgid "Mask data-block defining mask for compositing"
@@ -24629,11 +24629,11 @@ msgstr "用于体积计算的物体空间中的体素大小。值越低，细节
 
 
 msgid "Skin Vertices"
-msgstr "皮肤顶点"
+msgstr "蒙皮顶点"
 
 
 msgid "All skin vertices"
-msgstr "全部表皮的顶点"
+msgstr "全部蒙皮顶点"
 
 
 msgid "Texture Space Mesh"
@@ -25705,7 +25705,7 @@ msgstr "元素的运动路径"
 
 
 msgid "Name of parent bone in case of a bone parenting relation"
-msgstr "父级骨骼名称, 用于顶点父子关系中"
+msgstr "父级骨骼名称, 用于骨骼父子关系中"
 
 
 msgid "Parent Type"
@@ -26979,7 +26979,7 @@ msgstr "拖拽"
 
 
 msgid "A multiplier for physics timestep (1.0 means one frame = 1/25 seconds)"
-msgstr "物理时步倍值 (1.0表示1帧=1/25秒)"
+msgstr "物理时步倍值 (1.0表示1帧 = 1/25秒)"
 
 
 msgid "Timestep"
@@ -30406,7 +30406,7 @@ msgstr "输入配置, 包括按键功能映射表"
 
 
 msgid "Indicates that a keyconfig was defined by the user"
-msgstr "由用户自定义键设置"
+msgstr "表示由用户定义键设置"
 
 
 msgid "Key Maps"
@@ -30486,7 +30486,7 @@ msgstr "键位映射表被定义为记录用于响应促动器的模态事件"
 
 
 msgid "Keymap is defined by the user"
-msgstr "用户自定义按键功能映射表"
+msgstr "用户定义按键功能映射表"
 
 
 msgid "Items"
@@ -35006,7 +35006,7 @@ msgstr "父级"
 
 msgctxt "Operator"
 msgid "Empty"
-msgstr "空白蜡笔"
+msgstr "空物体"
 
 
 msgctxt "Constraint"
@@ -35103,7 +35103,7 @@ msgstr "网格边线集合"
 
 
 msgid "Mesh Loop"
-msgstr "循环网格"
+msgstr "网格循环"
 
 
 msgid "Loop in a Mesh data-block"
@@ -35131,7 +35131,7 @@ msgstr "边线编号"
 
 
 msgid "Index of this loop"
-msgstr "此循环结构的顶点编号"
+msgstr "此循环结构的编号"
 
 
 msgid "The normal direction of the face corner, taking into account sharp faces, sharp edges, and custom normal data"
@@ -39650,7 +39650,7 @@ msgstr "活动时间线段编号"
 
 
 msgid "Custom Range"
-msgstr "自定义区间"
+msgstr "自定义范围"
 
 
 msgid "Define a custom range of frames to use in modifier"
@@ -40931,7 +40931,7 @@ msgstr "渲染步数"
 
 
 msgid "Number of steps in the revolution"
-msgstr "步进精度"
+msgstr "回转的步数"
 
 
 msgid "Offset the revolution along its axis"
@@ -45195,6 +45195,14 @@ msgid "Prefilter noisy guiding passes before denoising image. Improves quality w
 msgstr "在图像降噪之前，预先过滤嘈杂的引导通道。当引导通道有噪点时，使用额外的处理时间，提高质量。"
 
 
+msgid "Denoising quality"
+msgstr "降噪品质"
+
+
+msgid "Use the scene's denoising quality setting"
+msgstr "使用场景的降噪品质设置"
+
+
 msgid "High quality"
 msgstr "高品质"
 
@@ -45205,6 +45213,10 @@ msgstr "均衡"
 
 msgid "Balanced between performance and quality"
 msgstr "兼顾性能和品质"
+
+
+msgid "High perfomance"
+msgstr "高性能"
 
 
 msgid "HDR"
@@ -46071,7 +46083,7 @@ msgstr "比较"
 
 
 msgid "1 if (A == B) within tolerance C else 0"
-msgstr "如果在容差 C 内(A=B)则返回1，否则返回0"
+msgstr "如果在容差 C 内(A == B)则返回1，否则返回0"
 
 
 msgctxt "NodeTree"
@@ -46963,7 +46975,7 @@ msgstr "当两个输入值中至少一个为真时输出真值"
 
 
 msgid "Opposite of the input"
-msgstr "输出与输入值相反的结果"
+msgstr "与输入值相反"
 
 
 msgid "Not And"
@@ -47116,6 +47128,10 @@ msgstr "当第一个输入更暗时为真"
 
 msgid "Euler to Rotation"
 msgstr "欧拉 转换为 旋转"
+
+
+msgid "Find In String"
+msgstr "在字符串中查找"
 
 
 msgid "Float to Integer"
@@ -47528,7 +47544,7 @@ msgstr "凸壳"
 
 
 msgid "Create a mesh that encloses all points in the input geometry with the smallest number of points"
-msgstr "使用最小点数创建一个包围输入几何体全部顶点的网格"
+msgstr "使用最小点数创建一个包围输入几何体全部点的网格"
 
 
 msgid "Corners of Edge"
@@ -47737,10 +47753,6 @@ msgstr "对贝塞尔曲线的控制点设置控制柄类型"
 
 msgid "Whether to update left and right handles"
 msgstr "是否更新左右手柄"
-
-
-msgid "Curve Spiral"
-msgstr "曲线螺旋"
 
 
 msgid "Generate a poly spline in a spiral shape"
@@ -57646,7 +57658,7 @@ msgstr "选择子级"
 
 
 msgid "Extend the selection"
-msgstr "扩展选项"
+msgstr "扩展选中项"
 
 
 msgid "Deselect those bones at the boundary of each selection region"
@@ -57960,20 +57972,20 @@ msgstr "重做上一步被撤销的资产目录编辑操作"
 
 msgctxt "Operator"
 msgid "Undo Catalog Edits"
-msgstr "撤消目录编辑"
+msgstr "撤销目录编辑"
 
 
 msgid "Undo the last edit to the asset catalogs"
-msgstr "撤消资产目录的最后一次编辑"
+msgstr "撤销资产目录的最后一次编辑"
 
 
 msgctxt "Operator"
 msgid "Store undo snapshot for asset catalog edits"
-msgstr "存储资产目录编辑的撤消快照"
+msgstr "存储资产目录编辑的撤销快照"
 
 
 msgid "Store the current state of the asset catalogs in the undo buffer"
-msgstr "将资产目录的当前状态存储在撤消缓存中"
+msgstr "将资产目录的当前状态存储在撤销缓存中"
 
 
 msgctxt "Operator"
@@ -61788,7 +61800,7 @@ msgstr "一般量化位"
 
 
 msgid "Quantization bits for generic values like weights or joints (0 = no quantization)"
-msgstr "权重或关节等通用值的量化位数（0=无量化）"
+msgstr "权重或关节等通用值的量化位数（0 = 无量化）"
 
 
 msgid "Draco mesh compression"
@@ -68852,7 +68864,7 @@ msgstr "栅格填充"
 
 
 msgid "Fill grid from two loops"
-msgstr "根据两组循环边填充网格"
+msgstr "根据两组循环边填充栅格"
 
 
 msgid "Vertex that is the corner of the grid"
@@ -68872,7 +68884,7 @@ msgstr "简单混合"
 
 
 msgid "Use simple interpolation of grid vertices"
-msgstr "使用网格顶点的简单插值"
+msgstr "使用栅格顶点的简单插值"
 
 
 msgctxt "Operator"
@@ -70008,7 +70020,7 @@ msgstr "将变换坐标轴对齐至物体的局部空间上"
 
 
 msgid "Align the transformation axes to average normal of selected elements (bone Y axis for pose mode)"
-msgstr "将变换坐标轴对其至选择元素的平均法线(姿态模式下为骨骼的 Y 轴)"
+msgstr "将变换坐标轴对齐至选择元素的平均法线(姿态模式下为骨骼的 Y 轴)"
 
 
 msgid "Gimbal"
@@ -70062,7 +70074,7 @@ msgstr "基于活动布尔属性选择元素"
 
 msgctxt "Operator"
 msgid "Select By Pole Count"
-msgstr "按极点数选择"
+msgstr "按极点边数选择"
 
 
 msgid "Select vertices at poles by the number of connected edges. In edge and face mode the geometry connected to the vertices is selected"
@@ -70078,7 +70090,7 @@ msgstr "排除非流形极点"
 
 
 msgid "Pole Count"
-msgstr "极点数"
+msgstr "极点边数"
 
 
 msgid "Type of comparison to make"
@@ -74268,7 +74280,7 @@ msgstr "复制修改器到选中项"
 
 
 msgid "Copy the modifier from the active object to all selected objects"
-msgstr "从活动物体复制粒子修改器到所选物体"
+msgstr "从活动物体复制修改器到所有选中的物体"
 
 
 msgctxt "Operator"
@@ -85065,7 +85077,7 @@ msgstr "活动 UDIM"
 
 
 msgid "Pack islands to active UDIM image tile or UDIM grid tile where 2D cursor is located"
-msgstr "将孤岛拼排到2D游标位置的活动UDIM图像分块或UDIM网格分块"
+msgstr "将孤岛拼排到2D游标位置的活动UDIM图像分块或UDIM栅格分块"
 
 
 msgid "Original bounding box"
@@ -88701,6 +88713,30 @@ msgid "Convert orientation axis to a different convention to match other applica
 msgstr "转换轴向到其它程序匹配的轴向"
 
 
+msgid "Meters"
+msgstr "米"
+
+
+msgid "Kilometers"
+msgstr "千米"
+
+
+msgid "Centimeters"
+msgstr "厘米"
+
+
+msgid "Inches"
+msgstr "英寸"
+
+
+msgid "Feet"
+msgstr "英尺"
+
+
+msgid "Yards"
+msgstr "码"
+
+
 msgid "Convert World Material"
 msgstr "转换世界材质"
 
@@ -88714,7 +88750,7 @@ msgstr "命名空间"
 
 
 msgid "If set, add the given namespace as a prefix to exported custom property names. This only applies to property names that do not already have a prefix (e.g., it would apply to name 'bar' but not 'foo:bar') and does not apply to blender object and data names which are always exported in the 'userProperties:blender' namespace"
-msgstr "如果设置，导出自定义属性名称时添加给定的命名空间作为前缀。仅适用于尚未具有前缀的属性名称 (比如，名称'bar'会应用此名称，但'foo:bar'就不会)并且不适用于总是在 'userProperties:blender' 命名空间中导出的Blender物体和数据名称"
+msgstr "如果设置，导出自定义属性名称时添加给定的命名空间作为前缀。仅适用于尚未具有前缀的属性名称 (比如，名称'bar'会应用此名称，但'foo:bar'就不会) 并且不适用于总是在 'userProperties:blender' 命名空间中导出的Blender物体和数据名称"
 
 
 msgid "Use Settings for"
@@ -89175,7 +89211,7 @@ msgstr "材质用途"
 
 
 msgid "Attempt to import materials with the given purpose. If no material with this purpose is bound to the primitive, fall back on loading any other bound material"
-msgstr "尝试导入具有特定目的的材质。如果没有用于此目的的材质绑定到基元，则在加载任何其他绑定的材质时回退"
+msgstr "尝试导入具有特定用途的材质。如果没有用于此用途的材质绑定到基元，则在加载任何其他绑定的材质时回退"
 
 
 msgid "All Purpose"
@@ -90546,6 +90582,10 @@ msgstr "性能"
 
 msgid "Acceleration Structure"
 msgstr "加速架构"
+
+
+msgid "Denoise Nodes"
+msgstr "降噪节点"
 
 
 msgid "Final Render"
@@ -93876,7 +93916,7 @@ msgstr "在着色器节点编辑器中启用预览"
 
 
 msgid "Undo Legacy"
-msgstr "撤消(旧版)"
+msgstr "旧版撤销"
 
 
 msgid "Use legacy undo (slower than the new default one, but may be more stable in some cases)"
@@ -99444,6 +99484,22 @@ msgid "Minimum Y value for the render region"
 msgstr "为框选渲染设置 Y 轴的最小值"
 
 
+msgid "Compositor Final Denoise Quality"
+msgstr "合成器最终降噪品质"
+
+
+msgid "The quality used by denoise nodes during the compositing of final renders if the nodes' quality option is set to Follow Scene"
+msgstr "如果节点的品质选项设置为跟随场景，则降噪节点在合成最终渲染时将使用此处品质设置"
+
+
+msgid "Compositor Preview Denoise Quality"
+msgstr "合成器预览降噪品质"
+
+
+msgid "The quality used by denoise nodes during viewport and interactive compositing if the nodes' quality option is set to Follow Scene"
+msgstr "如果节点的品质选项设置为跟随场景，则降噪节点在视口和交互式合成中将使用此处品质设置"
+
+
 msgid "Compositor Device"
 msgstr "合成器设备"
 
@@ -101200,7 +101256,7 @@ msgstr "辐射池尺寸"
 
 
 msgid "Size of the irradiance pool, a bigger pool size allows for more irradiance grid in the scene but might not fit into GPU memory and decrease performance"
-msgstr "辐射池的大小，池越大场景中的辐照度网格就越多，但可能不适合GPU显存并会降低性能"
+msgstr "辐射池的大小，池越大场景中的辐照度栅格就越多，但可能不适合GPU显存并会降低性能"
 
 
 msgid "16 MB"
@@ -106903,7 +106959,7 @@ msgstr "布尔值"
 
 
 msgid "Color Value"
-msgstr "颜色的明度"
+msgstr "颜色值"
 
 
 msgid "Float Value"
@@ -113173,9 +113229,9 @@ msgstr ""
 "在拖动时激活一些饼菜单，\n"
 "允许点击相同的键获得其他操作选项。\n"
 "\n"
-"• 在3D 视图中点击 Tab 可切换编辑模式，拖动切换模式菜单。\n"
-"• 在3D 视图中点击 Z 可切换线框，拖动以切换绘制模式。\n"
-"• 在3D 视图中点击波浪号进行第一人称导航，拖动选择视图轴向"
+"• 在3D视图中点击 Tab 可切换编辑模式，拖动切换模式菜单。\n"
+"• 在3D视图中点击 Z 可切换线框，拖动以切换绘制模式。\n"
+"• 在3D视图中点击波浪号进行第一人称导航，拖动选择视图轴向"
 
 
 msgid "Region Toggle Pie"
@@ -114541,7 +114597,7 @@ msgstr "绘画笔画模态"
 
 
 msgid "Cancel and undo a stroke in progress"
-msgstr "取消和撤消正在进行的笔画"
+msgstr "取消和撤销正在进行的笔画"
 
 
 msgctxt "WindowManager"
@@ -116565,10 +116621,6 @@ msgid "BVH"
 msgstr "BVH"
 
 
-msgid "Module Debug"
-msgstr "模块调试"
-
-
 msgid "Viewport BVH"
 msgstr "视图BVH"
 
@@ -116643,6 +116695,10 @@ msgstr "挤出"
 
 msgid "Clear Image"
 msgstr "清空图像"
+
+
+msgid "Module Debug"
+msgstr "模块调试"
 
 
 msgid "Cycles built without Embree support"
@@ -120676,7 +120732,7 @@ msgstr "火焰烟雾"
 
 
 msgid "Temperature Maximum"
-msgstr "最高温度"
+msgstr "温度最大值"
 
 
 msgid "Particle Radius"
@@ -120978,6 +121034,14 @@ msgstr "时序重投影"
 
 msgid "Jittered Shadows"
 msgstr "抖动阴影"
+
+
+msgid "Preview Quality"
+msgstr "预览品质"
+
+
+msgid "Final Quality"
+msgstr "最终品质"
 
 
 msgid "Shadow Pool"
@@ -124257,7 +124321,7 @@ msgstr "按侧选面"
 
 msgctxt "Operator"
 msgid "Poles by Count"
-msgstr "按数量选极点"
+msgstr "按边数选极点"
 
 
 msgctxt "Operator"
@@ -127435,10 +127499,6 @@ msgid "Original Mode"
 msgstr "原始模式"
 
 
-msgid "Kilometers"
-msgstr "千米"
-
-
 msgid "100 Meters"
 msgstr "百米"
 
@@ -127447,16 +127507,8 @@ msgid "10 Meters"
 msgstr "十米"
 
 
-msgid "Meters"
-msgstr "米"
-
-
 msgid "10 Centimeters"
 msgstr "分米"
-
-
-msgid "Centimeters"
-msgstr "厘米"
 
 
 msgid "Micrometers"
@@ -127481,18 +127533,6 @@ msgstr "浪"
 
 msgid "Chains"
 msgstr "链"
-
-
-msgid "Yards"
-msgstr "码"
-
-
-msgid "Feet"
-msgstr "英尺"
-
-
-msgid "Inches"
-msgstr "英寸"
 
 
 msgid "Thou"
@@ -128100,19 +128140,19 @@ msgstr "无法创建辐射 Atla 纹理"
 
 
 msgid "Error: Malformed irradiance grid data"
-msgstr "错误：畸形的辐射网格数据"
+msgstr "错误：畸形的辐射栅格数据"
 
 
 msgid "Error: Too many irradiance grids in the scene"
-msgstr "错误：场景中辐射网格过多"
+msgstr "错误：场景中辐射栅格过多"
 
 
 msgid "Error: Too many grid visible"
-msgstr "错误：可见网格过多"
+msgstr "错误：可见栅格过多"
 
 
 msgid "Error: Irradiance grid allocation failed"
-msgstr "错误：辐射网格分配失败"
+msgstr "错误：辐射栅格分配失败"
 
 
 msgid "Error: Could not allocate irradiance staging texture"
@@ -132664,10 +132704,6 @@ msgid "Fluid: Could not use default cache directory '%s', please define a valid 
 msgstr "流体: 无法使用默认缓存目录 '%s', 请手动指定一个有效缓存路径"
 
 
-msgid "Fluid: %s complete! (%.2f)"
-msgstr "流体: %s 完成! (%.2f)"
-
-
 msgid "Fluid: %s failed: %s"
 msgstr "流体: %s 失败: %s"
 
@@ -134766,7 +134802,7 @@ msgstr "骨骼:%s/%s"
 
 
 msgid "Layers:%s | Frames:%s | Strokes:%s | Points:%s"
-msgstr "层: %s | 帧: %s | 笔画: %s | 点: %s"
+msgstr "层:%s | 帧:%s | 笔画:%s | 点:%s"
 
 
 msgid "Verts:%s | Tris:%s"
@@ -137095,15 +137131,15 @@ msgstr "无法使用零面积的面"
 
 
 msgid "Checking validity of current .blend file *BEFORE* undo step"
-msgstr "检查当前 .blend 文件在撤消步骤 *之前* 的有效性"
+msgstr "检查当前 .blend 文件在撤销步骤 *之前* 的有效性"
 
 
 msgid "Checking validity of current .blend file *AFTER* undo step"
-msgstr "检查当前 .blend 文件在撤消步骤 *之后* 的有效性"
+msgstr "检查当前 .blend 文件在撤销步骤 *之后* 的有效性"
 
 
 msgid "Undo disabled at startup in background-mode (call `ed.undo_push()` to explicitly initialize the undo-system)"
-msgstr "在后台模式下启动时撤消禁用。(调用 `ed.undo_push()`，显式初始化该撤消系统)"
+msgstr "在后台模式下启动时撤销禁用。(调用 `ed.undo_push()`，显式初始化该撤销系统)"
 
 
 msgid "[E] - Disable overshoot"
@@ -137128,10 +137164,6 @@ msgstr "Shift - 长按控制精度"
 
 msgid " | [Ctrl] - Increments active"
 msgstr " | [Ctrl] - 启用增量"
-
-
-msgid " | Ctrl - Hold for 10% increments"
-msgstr " | Ctrl - 长按启用 10% 增量"
 
 
 msgid "Unpack File"
@@ -140224,7 +140256,7 @@ msgstr "轴物体"
 
 
 msgid "Steps Viewport"
-msgstr "步长 视图"
+msgstr "步数 视图"
 
 
 msgid "Stretch UVs"
@@ -140571,6 +140603,10 @@ msgid "Prefilter:"
 msgstr "预过滤:"
 
 
+msgid "Quality:"
+msgstr "品质:"
+
+
 msgid "Disabled, built without OpenImageDenoise"
 msgstr "已禁用, 未使用OpenImageDenoise编译"
 
@@ -140848,6 +140884,10 @@ msgstr "A"
 msgctxt "NodeTree"
 msgid "B"
 msgstr "B"
+
+
+msgid "First Found"
+msgstr "首次发现"
 
 
 msgctxt "NodeTree"
@@ -145781,7 +145821,7 @@ msgstr "豪撒语 (Hausa)"
 
 
 msgid "Kazakh (Қазақша)"
-msgstr "哈萨克语 (қазақша)"
+msgstr "哈萨克语 (Қазақша)"
 
 
 msgid "Abkhaz (Аԥсуа бызшәа)"

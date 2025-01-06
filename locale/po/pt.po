@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'eb39d81afa00')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'96c6f543ecc7')\n"
 "Report-Msgid-Bugs-To: Ivan Paulos Tomé <ivan.paulos.tome@yandex.com>\n"
-"POT-Creation-Date: 2024-12-30 14:46+0000\n"
-"PO-Revision-Date: 2024-12-25 18:56+0000\n"
+"POT-Creation-Date: 2025-01-06 10:26+0000\n"
+"PO-Revision-Date: 2025-01-02 23:56+0000\n"
 "Last-Translator: Duarte Ramos <duarte.framos@gmail.com>\n"
 "Language-Team: Portuguese <https://translate.blender.org/projects/blender-ui/ui/pt/>\n"
 "Language: pt\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n > 1;\n"
-"X-Generator: Weblate 5.8.3\n"
+"X-Generator: Weblate 5.9.2\n"
 "X-Poedit-SourceCharset: utf-8\n"
 "X-Poedit-Language: Portuguese\n"
 "X-Poedit-Country: PORTUGAL"
@@ -17734,6 +17734,10 @@ msgid "Group of Grease Pencil layers"
 msgstr "Grupo de camadas de Grease Pencil"
 
 
+msgid "Reset color tag"
+msgstr "Repor etiqueta de cor"
+
+
 msgid "Color tag 1"
 msgstr "Etiqueta de cor 1"
 
@@ -18223,6 +18227,10 @@ msgstr "Marcadores de pose"
 
 msgid "Markers specific to this action, for labeling poses"
 msgstr "Marcadores específicos para esta ação, para rotular poses."
+
+
+msgid "The list of slots in this Action"
+msgstr "A lista de compartimentos nesta Acção"
 
 
 msgid "Cyclic Animation"
@@ -20223,6 +20231,10 @@ msgid "Occlusion"
 msgstr "Ocultação"
 
 
+msgid "Only affect vertices that are not occluded by other faces (slower performance)"
+msgstr "Afectar apenas vértices que não estão ocultos por outras faces (reduz desempenho)"
+
+
 msgid "Collide with objects during the simulation"
 msgstr "Colidir com objectos durante a simulação"
 
@@ -20407,6 +20419,10 @@ msgid "Use Paint"
 msgstr "Usar Tinta"
 
 
+msgid "Use this brush in Grease Pencil drawing mode"
+msgstr "Usar este pincel no modo de desenho Grease Pencil"
+
+
 msgid "Use this brush in texture paint mode"
 msgstr "Usa este pincel no modo de pintura de texturas."
 
@@ -20577,6 +20593,10 @@ msgstr "Ajustar Força ao Espaçamento"
 
 msgid "Automatically adjust strength to give consistent results for different spacings"
 msgstr "Ajusta automaticamente a força para fornecer resultados consistentes para espaçamentos diferentes."
+
+
+msgid "Use this brush in Grease Pencil vertex color mode"
+msgstr "Usar este pincel no modo de cor de vértices de Grease Pencil"
 
 
 msgid "Use Pressure for Wet Mix"
@@ -21758,6 +21778,10 @@ msgid "Horizontal Alignment"
 msgstr "Alinhamento Horizontal"
 
 
+msgid "Text horizontal alignment from the object or text box center"
+msgstr "Alinhamento horizontal do texto a partir do centro do objecto ou caixa de texto"
+
+
 msgid "Align text to the left"
 msgstr "Alinha o texto à esquerda."
 
@@ -22724,6 +22748,10 @@ msgstr "Define como os traços são ordenados no espaço 3D (para objects sem ex
 
 msgid "2D Layers"
 msgstr "Camadas 2D"
+
+
+msgid "Display strokes using Grease Pencil layers to define order"
+msgstr "Mostrar traços usando camadas Grease Pencil para definir a ordem"
 
 
 msgid "3D Location"
@@ -24149,8 +24177,16 @@ msgid "Grease Pencil Settings"
 msgstr "Definições para lápis de cera"
 
 
+msgid "Grease Pencil color settings for material"
+msgstr "Definições de cor Grease Pencil para material"
+
+
 msgid "Is Grease Pencil"
 msgstr "É Grease Pencil"
+
+
+msgid "True if this material has Grease Pencil data"
+msgstr "Verdadeiro se este material contém dados Grease Pencil"
 
 
 msgid "Line Color"
@@ -24857,6 +24893,10 @@ msgid "Global scene frame number at which this movie starts playing (affects all
 msgstr "Número de fotograma da cena global no qual este filme começar a reproduzir (afeta todos os dados associados com um clipe)."
 
 
+msgid "Grease Pencil data for this movie clip"
+msgstr "Dados de Grease Pencil para este clipe de filme"
+
+
 msgid "Width and height in pixels, zero when image data can't be loaded"
 msgstr "Largura e altura em pixeis, zero quando os dados de imagem não podem ser carregados"
 
@@ -24893,12 +24933,24 @@ msgid "The node tree label"
 msgstr "O rótulo da árvore de nós."
 
 
+msgid "Use Group Interface"
+msgstr "Uaar Interface de Grupo"
+
+
+msgid "Determines the visibility of some UI elements related to node groups"
+msgstr "Determina a visibilidade de alguns elementos do interface de utilizador relacionados com grupos de nós"
+
+
 msgid "Color Tag"
 msgstr "Etiqueta de Cor"
 
 
 msgid "Color tag of the node group which influences the header color"
 msgstr "Etiqueta colorida do grupo de nós que influencia a cor do cabeçalho"
+
+
+msgid "Default color tag for new nodes and node groups"
+msgstr "Etiqueta de cor padrão para novos nós e grupos de nós"
 
 
 msgid "Attribute"
@@ -25971,6 +26023,10 @@ msgstr "Usar alfa"
 
 msgid "Use alpha blending instead of alpha test (can produce sorting artifacts)"
 msgstr "Usar mistura de alfa em vez de teste de alfa (pode produzir artefactos de ordenação)"
+
+
+msgid "Lights affect Grease Pencil object"
+msgstr "Luzes afectam o objecto Grease Pencil"
 
 
 msgid "Scale to Face Sizes"
@@ -27586,6 +27642,10 @@ msgstr "As definições de espaço de cor na qual o editor de sequências está 
 
 msgid "Show Subframe"
 msgstr "Mostrar sub-fotogramas"
+
+
+msgid "Display and allow setting fractional frame values for the current frame"
+msgstr "Mostrar e permitir definir valores fracionais de fotogramas para o fotograma actual"
 
 
 msgid "Simulation Frame End"
@@ -29218,6 +29278,14 @@ msgid "Maintained by community developers"
 msgstr "Mantido por desenvolvedores da comunidade."
 
 
+msgid "Testing"
+msgstr "Em Testes"
+
+
+msgid "Newly contributed scripts (excluded from release builds)"
+msgstr "Scripts recentemente contribuídos (excluídos de lançamentos)"
+
+
 msgid "Addon Tags"
 msgstr "Etiquetas da Adição"
 
@@ -30002,8 +30070,20 @@ msgid "Codec"
 msgstr "Codificador"
 
 
+msgid "Compression codec settings for OpenEXR"
+msgstr "Definições de codec de compressão para OpenEXR"
+
+
 msgid "No compression"
 msgstr "Sem compressão."
+
+
+msgid "ZIP"
+msgstr "ZIP"
+
+
+msgid "Lossless zip compression of 16 row image blocks"
+msgstr "Compressão sem perdas ZIP de blocos de imagem de 16 linhas"
 
 
 msgid "DWAA (lossy)"
@@ -47545,10 +47625,6 @@ msgstr "Definir o tipo de manípulo para os pontos de controlo de uma curva bezi
 
 msgid "Whether to update left and right handles"
 msgstr "Se deve actualizar os manípulos direitos e esquerdos"
-
-
-msgid "Curve Spiral"
-msgstr "Espiral Curva"
 
 
 msgid "Generate a poly spline in a spiral shape"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'eb39d81afa00')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'96c6f543ecc7')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-30 14:46+0000\n"
+"POT-Creation-Date: 2025-01-06 10:26+0000\n"
 "PO-Revision-Date: 2024-11-17 07:56+0000\n"
 "Last-Translator: Satoshi Yamasaki <yamyam@yo.rim.or.jp>\n"
 "Language-Team: Japanese <https://translate.blender.org/projects/blender-ui/ui/ja/>\n"
@@ -47846,10 +47846,6 @@ msgid "Whether to update left and right handles"
 msgstr "左右のハンドルを更新するかどうか"
 
 
-msgid "Curve Spiral"
-msgstr "カーブスパイラル"
-
-
 msgid "Generate a poly spline in a spiral shape"
 msgstr "らせん形状のポリスプラインを生成します"
 
@@ -88847,6 +88843,30 @@ msgid "Convert orientation axis to a different convention to match other applica
 msgstr "他のアプリケーションと合わせるため，座標軸を別の仕様に変換します"
 
 
+msgid "Meters"
+msgstr "メートル"
+
+
+msgid "Kilometers"
+msgstr "キロメートル"
+
+
+msgid "Centimeters"
+msgstr "センチメートル"
+
+
+msgid "Inches"
+msgstr "インチ"
+
+
+msgid "Feet"
+msgstr "フィート"
+
+
+msgid "Yards"
+msgstr "ヤード"
+
+
 msgid "Convert World Material"
 msgstr "ワールドマテリアルを変換"
 
@@ -116947,10 +116967,6 @@ msgid "BVH"
 msgstr "BVH"
 
 
-msgid "Module Debug"
-msgstr "モジュールデバッグ"
-
-
 msgid "Viewport BVH"
 msgstr "ビューポートBVH"
 
@@ -117025,6 +117041,10 @@ msgstr "押し出し"
 
 msgid "Clear Image"
 msgstr "画像をクリア"
+
+
+msgid "Module Debug"
+msgstr "モジュールデバッグ"
 
 
 msgid "Cycles built without Embree support"
@@ -127729,10 +127749,6 @@ msgid "Original Mode"
 msgstr "オリジナルモード"
 
 
-msgid "Kilometers"
-msgstr "キロメートル"
-
-
 msgid "100 Meters"
 msgstr "100メートル"
 
@@ -127741,16 +127757,8 @@ msgid "10 Meters"
 msgstr "10メートル"
 
 
-msgid "Meters"
-msgstr "メートル"
-
-
 msgid "10 Centimeters"
 msgstr "10センチメートル"
-
-
-msgid "Centimeters"
-msgstr "センチメートル"
 
 
 msgid "Micrometers"
@@ -127775,18 +127783,6 @@ msgstr "ハロン"
 
 msgid "Chains"
 msgstr "チェーン"
-
-
-msgid "Yards"
-msgstr "ヤード"
-
-
-msgid "Feet"
-msgstr "フィート"
-
-
-msgid "Inches"
-msgstr "インチ"
 
 
 msgid "Thou"
@@ -132928,10 +132924,6 @@ msgid "Fluid: Could not use default cache directory '%s', please define a valid 
 msgstr "流体：デフォルトのキャッシュディレクトリ「%s」が使用不可．有効なキャッシュパスを手動設定してください"
 
 
-msgid "Fluid: %s complete! (%.2f)"
-msgstr "流体：%s が完了 (%.2f)"
-
-
 msgid "Fluid: %s failed: %s"
 msgstr "流体：%s が失敗: %s"
 
@@ -137366,10 +137358,6 @@ msgstr "[Shift] - ホールドで高精度"
 
 msgid " | [Ctrl] - Increments active"
 msgstr " | [Ctrl] - 増減操作が有効"
-
-
-msgid " | Ctrl - Hold for 10% increments"
-msgstr " | [Ctrl] - ホールドで10％ずつ増減"
 
 
 msgid "Unpack File"

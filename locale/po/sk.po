@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'eb39d81afa00')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'96c6f543ecc7')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-30 14:46+0000\n"
-"PO-Revision-Date: 2024-12-24 07:32+0000\n"
+"POT-Creation-Date: 2025-01-06 10:26+0000\n"
+"PO-Revision-Date: 2024-12-31 12:56+0000\n"
 "Last-Translator: Jozef Matta <jozef.m923@gmail.com>\n"
 "Language-Team: Slovak <https://translate.blender.org/projects/blender-ui/ui/sk/>\n"
 "Language: sk\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
-"X-Generator: Weblate 5.8.3"
+"X-Generator: Weblate 5.9.2"
 
 
 msgid "Shader AOV"
@@ -45193,6 +45193,14 @@ msgid "Prefilter noisy guiding passes before denoising image. Improves quality w
 msgstr "Predbežné filtrovanie zašumených vodiacich prechodov pred odstránením šumu obrázku. Zlepšuje kvalitu, keď sú vodiace prechody zašumené, pričom sa využíva zvláštny čas spracovania."
 
 
+msgid "Denoising quality"
+msgstr "Kvalita odstránenia šumu"
+
+
+msgid "Use the scene's denoising quality setting"
+msgstr "Použije nastavenie kvality odstránenia šumu scény"
+
+
 msgid "High quality"
 msgstr "Vysoká kvalita"
 
@@ -45203,6 +45211,10 @@ msgstr "Vyvážená"
 
 msgid "Balanced between performance and quality"
 msgstr "Vyvážený pomer medzi výkonom a kvalitou"
+
+
+msgid "High perfomance"
+msgstr "Vysoký výkon"
 
 
 msgid "HDR"
@@ -47116,6 +47128,10 @@ msgid "Euler to Rotation"
 msgstr "Euler k rotácii"
 
 
+msgid "Find In String"
+msgstr "Nájsť v reťazci"
+
+
 msgid "Float to Integer"
 msgstr "Pohyblivá čiarka na celé číslo"
 
@@ -47735,10 +47751,6 @@ msgstr "Nastaví typ manipulátora pre riadiace body Bézierovej krivky"
 
 msgid "Whether to update left and right handles"
 msgstr "Určuje, či sa majú aktualizovať ľavé a pravé manipulátory"
-
-
-msgid "Curve Spiral"
-msgstr "Špirála krivky"
 
 
 msgid "Generate a poly spline in a spiral shape"
@@ -88699,6 +88711,30 @@ msgid "Convert orientation axis to a different convention to match other applica
 msgstr "Konvertuje os orientácie na inú konvenciu, aby zodpovedala iným aplikáciám"
 
 
+msgid "Meters"
+msgstr "Metre"
+
+
+msgid "Kilometers"
+msgstr "Kilometre"
+
+
+msgid "Centimeters"
+msgstr "Centimetre"
+
+
+msgid "Inches"
+msgstr "Palce"
+
+
+msgid "Feet"
+msgstr "Stopa"
+
+
+msgid "Yards"
+msgstr "Yardy"
+
+
 msgid "Convert World Material"
 msgstr "Konvertovať materiál sveta"
 
@@ -90544,6 +90580,10 @@ msgstr "Výkon"
 
 msgid "Acceleration Structure"
 msgstr "Štruktúra zrýchlenia"
+
+
+msgid "Denoise Nodes"
+msgstr "Uzly odstránenia šumu"
 
 
 msgid "Final Render"
@@ -99440,6 +99480,22 @@ msgstr "Minimálne Y oblasti"
 
 msgid "Minimum Y value for the render region"
 msgstr "Minimálna hodnota Y pre oblasť prekreslenia"
+
+
+msgid "Compositor Final Denoise Quality"
+msgstr "Kvalita kompozítora finálneho odstránenia šumu"
+
+
+msgid "The quality used by denoise nodes during the compositing of final renders if the nodes' quality option is set to Follow Scene"
+msgstr "Kvalita, ktorú používajú uzly odstránenie šumu počas kompozície finálneho prekresľovania, ak je možnosť kvality uzlov nastavená na hodnotu Sledovať scénu"
+
+
+msgid "Compositor Preview Denoise Quality"
+msgstr "Kvalita náhľadu kompozítora odstránenia šumu"
+
+
+msgid "The quality used by denoise nodes during viewport and interactive compositing if the nodes' quality option is set to Follow Scene"
+msgstr "Kvalita používaná uzlami odstránenia šumu počas zobrazenia a interaktívnej kompozície, ak je možnosť kvality uzlov nastavená na hodnotu Sledovať scénu"
 
 
 msgid "Compositor Device"
@@ -116563,10 +116619,6 @@ msgid "BVH"
 msgstr "BVH"
 
 
-msgid "Module Debug"
-msgstr "Ladenie modulu"
-
-
 msgid "Viewport BVH"
 msgstr "Záberu BVH"
 
@@ -116641,6 +116693,10 @@ msgstr "Vysunutie"
 
 msgid "Clear Image"
 msgstr "Vymazať obrázok"
+
+
+msgid "Module Debug"
+msgstr "Ladenie modulu"
 
 
 msgid "Cycles built without Embree support"
@@ -120976,6 +121032,14 @@ msgstr "Časová opätovná projekcia"
 
 msgid "Jittered Shadows"
 msgstr "Chvejúce sa tiene"
+
+
+msgid "Preview Quality"
+msgstr "Kvality náhľadu"
+
+
+msgid "Final Quality"
+msgstr "Finálna kvalita"
 
 
 msgid "Shadow Pool"
@@ -127433,10 +127497,6 @@ msgid "Original Mode"
 msgstr "Pôvodný režim"
 
 
-msgid "Kilometers"
-msgstr "Kilometre"
-
-
 msgid "100 Meters"
 msgstr "100 metrov"
 
@@ -127445,16 +127505,8 @@ msgid "10 Meters"
 msgstr "10 metrov"
 
 
-msgid "Meters"
-msgstr "Metre"
-
-
 msgid "10 Centimeters"
 msgstr "10 centimetrov"
-
-
-msgid "Centimeters"
-msgstr "Centimetre"
 
 
 msgid "Micrometers"
@@ -127479,18 +127531,6 @@ msgstr "Furlongy"
 
 msgid "Chains"
 msgstr "Reťaze"
-
-
-msgid "Yards"
-msgstr "Yardy"
-
-
-msgid "Feet"
-msgstr "Stopa"
-
-
-msgid "Inches"
-msgstr "Palce"
 
 
 msgid "Thou"
@@ -132662,10 +132702,6 @@ msgid "Fluid: Could not use default cache directory '%s', please define a valid 
 msgstr "Kvapalina: Nepodarilo sa použiť predvolený priečinok vyrovnávacej pamäte '%s', definujte, prosím, platnú cestu zásobníka manuálne"
 
 
-msgid "Fluid: %s complete! (%.2f)"
-msgstr "Kvapalina: %s dokončené! (%.2f)"
-
-
 msgid "Fluid: %s failed: %s"
 msgstr "Kvapalina: %s zlyhala: %s"
 
@@ -137128,10 +137164,6 @@ msgid " | [Ctrl] - Increments active"
 msgstr " | [Ctrl] - Zvýšenie aktív"
 
 
-msgid " | Ctrl - Hold for 10% increments"
-msgstr " | Ctrl - pridržať na 10% krokov"
-
-
 msgid "Unpack File"
 msgstr "Rozbaliť súbor"
 
@@ -140569,6 +140601,10 @@ msgid "Prefilter:"
 msgstr "Predbežný filter:"
 
 
+msgid "Quality:"
+msgstr "Kvalita:"
+
+
 msgid "Disabled, built without OpenImageDenoise"
 msgstr "Zakázané, vytvorené bez OpenImageDenoise"
 
@@ -140846,6 +140882,10 @@ msgstr "A"
 msgctxt "NodeTree"
 msgid "B"
 msgstr "B"
+
+
+msgid "First Found"
+msgstr "Prvý nájdený"
 
 
 msgctxt "NodeTree"

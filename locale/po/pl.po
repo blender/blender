@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'eb39d81afa00')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'96c6f543ecc7')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-30 14:46+0000\n"
+"POT-Creation-Date: 2025-01-06 10:26+0000\n"
 "PO-Revision-Date: 2024-11-23 15:56+0000\n"
 "Last-Translator: Kacper Madej <cacperkacper@yahoo.com>\n"
 "Language-Team: Polish <https://translate.blender.org/projects/blender-ui/ui/pl/>\n"
@@ -16481,6 +16481,30 @@ msgid "Export USD"
 msgstr "Eksportuj USD"
 
 
+msgid "Meters"
+msgstr "Metry"
+
+
+msgid "Kilometers"
+msgstr "Kilometry"
+
+
+msgid "Centimeters"
+msgstr "Centymetry"
+
+
+msgid "Inches"
+msgstr "Cale"
+
+
+msgid "Feet"
+msgstr "Stopy"
+
+
+msgid "Yards"
+msgstr "Jardy"
+
+
 msgid "Subdivision"
 msgstr "Podział"
 
@@ -22025,10 +22049,6 @@ msgid "Original Mode"
 msgstr "Tryb oryginalny"
 
 
-msgid "Kilometers"
-msgstr "Kilometry"
-
-
 msgid "100 Meters"
 msgstr "100 metrów"
 
@@ -22037,16 +22057,8 @@ msgid "10 Meters"
 msgstr "10 metrów"
 
 
-msgid "Meters"
-msgstr "Metry"
-
-
 msgid "10 Centimeters"
 msgstr "10 centymetrów"
-
-
-msgid "Centimeters"
-msgstr "Centymetry"
 
 
 msgid "Micrometers"
@@ -22071,18 +22083,6 @@ msgstr "Furlongi"
 
 msgid "Chains"
 msgstr "Łańcuchy"
-
-
-msgid "Yards"
-msgstr "Jardy"
-
-
-msgid "Feet"
-msgstr "Stopy"
-
-
-msgid "Inches"
-msgstr "Cale"
 
 
 msgid "Square Kilometers"

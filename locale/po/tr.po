@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'eb39d81afa00')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'96c6f543ecc7')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-30 14:46+0000\n"
+"POT-Creation-Date: 2025-01-06 10:26+0000\n"
 "PO-Revision-Date: 2024-12-10 23:56+0000\n"
 "Last-Translator: bitigchi <bitigchi@me.com>\n"
 "Language-Team: Turkish <https://translate.blender.org/projects/blender-ui/ui/tr/>\n"
@@ -41656,10 +41656,6 @@ msgid "Whether to update left and right handles"
 msgstr "Sol ve sağ tutamaçların güncellenip güncellenmeyeceği"
 
 
-msgid "Curve Spiral"
-msgstr "Eğri Spiral"
-
-
 msgid "Generate a poly spline in a spiral shape"
 msgstr "Spiral bir şekilde çokgen bir spline oluşturun"
 
@@ -78457,6 +78453,26 @@ msgid "Convert Orientation"
 msgstr "Yönlendirmeyi Dönüştür"
 
 
+msgid "Meters"
+msgstr "Metreler"
+
+
+msgid "Kilometers"
+msgstr "Kilometreler"
+
+
+msgid "Centimeters"
+msgstr "Santimetre"
+
+
+msgid "Inches"
+msgstr "İnç"
+
+
+msgid "Yards"
+msgstr "Metre"
+
+
 msgid "Convert World Material"
 msgstr "Dünya Malzemesini Dönüştür"
 
@@ -103733,10 +103749,6 @@ msgid "BVH"
 msgstr "BVH"
 
 
-msgid "Module Debug"
-msgstr "Modül Hata Ayıklaması"
-
-
 msgid "Viewport BVH"
 msgstr "Görünüm BVH"
 
@@ -103811,6 +103823,10 @@ msgstr "Ekstrüzyon"
 
 msgid "Clear Image"
 msgstr "Net Görüntü"
+
+
+msgid "Module Debug"
+msgstr "Modül Hata Ayıklaması"
 
 
 msgid "Cycles built without Embree support"
@@ -113633,10 +113649,6 @@ msgid "Original Mode"
 msgstr "Orijinal Mod"
 
 
-msgid "Kilometers"
-msgstr "Kilometreler"
-
-
 msgid "100 Meters"
 msgstr "100 Metre"
 
@@ -113645,16 +113657,8 @@ msgid "10 Meters"
 msgstr "10 Metre"
 
 
-msgid "Meters"
-msgstr "Metreler"
-
-
 msgid "10 Centimeters"
 msgstr "10 Santimetre"
-
-
-msgid "Centimeters"
-msgstr "Santimetre"
 
 
 msgid "Micrometers"
@@ -113679,14 +113683,6 @@ msgstr "Furlonglar"
 
 msgid "Chains"
 msgstr "Zincirler"
-
-
-msgid "Yards"
-msgstr "Metre"
-
-
-msgid "Inches"
-msgstr "İnç"
 
 
 msgid "Thou"
@@ -118129,10 +118125,6 @@ msgid "Fluid: Could not create cache directory '%s', reset to default '%s'"
 msgstr "Akışkan: '%s' önbellek dizini oluşturulamadı, varsayılan '%s' değerine sıfırlandı"
 
 
-msgid "Fluid: %s complete! (%.2f)"
-msgstr "Sıvı: %s tamamlandı! (%.2f)"
-
-
 msgid "Fluid: %s failed: %s"
 msgstr "Sıvı: %s başarısız oldu: %s"
 
@@ -122021,10 +122013,6 @@ msgstr "Shift - Hassasiyet için basılı tutun"
 
 msgid " | [Ctrl] - Increments active"
 msgstr " | [Ctrl] - Aktif artışlar"
-
-
-msgid " | Ctrl - Hold for 10% increments"
-msgstr " | Ctrl - %10'luk artışlarla basılı tutun"
 
 
 msgid "Unpack File"

@@ -1,10 +1,10 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'eb39d81afa00')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'96c6f543ecc7')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-30 14:46+0000\n"
-"PO-Revision-Date: 2024-12-28 23:56+0000\n"
+"POT-Creation-Date: 2025-01-06 10:26+0000\n"
+"PO-Revision-Date: 2025-01-05 18:56+0000\n"
 "Last-Translator: Joan Pujolar <joan.pujolar@gmail.com>\n"
 "Language-Team: Catalan <https://translate.blender.org/projects/blender-ui/ui/ca/>\n"
 "Language: ca\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.8.3"
+"X-Generator: Weblate 5.9.2"
 
 
 msgid "Shader AOV"
@@ -905,7 +905,7 @@ msgstr "Expandeix aquesta caixa en una llista de totes les metatecles de funcion
 
 
 msgid "Show Principled naming tags"
-msgstr "Mostrar etiquetes d'anomenament postulat"
+msgstr "Mostrar etiquetes de nomenclatura postulada"
 
 
 msgid "Expand this box into a list of all naming tags for principled texture setup"
@@ -6089,7 +6089,7 @@ msgstr "[F-Stop]: Número de relació focal (els nombres més baixos donen més 
 
 
 msgid "Ratio"
-msgstr "Relació"
+msgstr "Ràtio"
 
 
 msgid "Distortion to simulate anamorphic lens bokeh"
@@ -9647,7 +9647,7 @@ msgstr "No escalar endins l'eix Y"
 
 
 msgid "Fit Curve"
-msgstr "Ajustar a corba"
+msgstr "Encabir a corba"
 
 
 msgid "Scale the bones to fit the entire length of the curve"
@@ -12677,7 +12677,7 @@ msgstr "Rapidesa de codificació"
 
 
 msgid "Tradeoff between encoding speed and compression ratio"
-msgstr "[Encoding Speed]: Equilibri entre la rapidesa de codificació i la taxa de compressió"
+msgstr "[Encoding Speed]: Equilibri entre la rapidesa de codificació i la ràtio de compressió"
 
 
 msgid "Slowest"
@@ -14234,7 +14234,7 @@ msgstr "Filtre d'extensió"
 
 
 msgid "UNIX shell-like filename patterns matching, supports wildcards ('*') and list of patterns separated by ';'"
-msgstr "[Extension Filter]: Detecció de patrons similars de noms de document als del shell d'UNIX, admet comodins («*») i llista de patrons separats per «;»"
+msgstr "[Extension Filter]: Detecció de patrons similars de noms de document als del Shell d'UNIX, admet comodins («*») i llista de patrons separats per «;»"
 
 
 msgid "Filter ID Types"
@@ -14902,11 +14902,11 @@ msgstr "[Vorticity]: Vorticitat addicional per a les flames"
 
 
 msgid "FLIP Ratio"
-msgstr "Quocient FLIP"
+msgstr "Ràtio FLIP"
 
 
 msgid "PIC/FLIP Ratio. A value of 1.0 will result in a completely FLIP based simulation. Use a lower value for simulations which should produce smaller splashes."
-msgstr "[FLIP Ratio]: Quocient PIC/FLIP. Un valor d'1,0 resultarà en una simulació basada totalment en FLIP. Useu un valor inferior per a les simulacions que han de produir esquitxos més petits."
+msgstr "[FLIP Ratio]: Ràtio PIC/FLIP. Un valor d'1,0 resultarà en una simulació basada totalment en FLIP. Useu un valor inferior per a les simulacions que han de produir esquitxos més petits."
 
 
 msgid "Fluid Collection"
@@ -18559,7 +18559,7 @@ msgstr "Radi d'àrea"
 
 
 msgid "Ratio between the brush radius and the radius that is going to be used to sample the area center"
-msgstr "[Area Radius]: Proporció entre el radi del pinzell i el radi que s'utilitzarà per mostrejar l'àrea central"
+msgstr "[Area Radius]: Ràtio entre el radi del pinzell i el radi que s'utilitzarà per mostrejar l'àrea central"
 
 
 msgid "Auto-Smooth"
@@ -19155,11 +19155,11 @@ msgstr "Lliscar"
 
 
 msgid "Dash Ratio"
-msgstr "Fracció de guionet"
+msgstr "Ràtio de guionet"
 
 
 msgid "Ratio of samples in a cycle that the brush is enabled"
-msgstr "[Dash Ratio]: Relació de mostres dins un cicle en el qual el pinzell està activat"
+msgstr "[Dash Ratio]: Ràtio de mostres dins un cicle en el qual el pinzell està activat"
 
 
 msgid "Dash Length"
@@ -19226,7 +19226,7 @@ msgstr "Escalar"
 
 
 msgid "Poisson ratio for elastic deformation. Higher values preserve volume more, but also lead to more bulging."
-msgstr "[Tri-Scale Grab]: Relació de Poisson per a la deformació elàstica. Els valors més alts preserven més el volum, però també ocasionen més protuberàncies."
+msgstr "[Tri-Scale Grab]: Ràtio de Poisson per a la deformació elàstica. Els valors més alts preserven més el volum, però també ocasionen més protuberàncies."
 
 
 msgid "Falloff Angle"
@@ -19648,7 +19648,7 @@ msgstr "Radi normal"
 
 
 msgid "Ratio between the brush radius and the radius that is going to be used to sample the normal"
-msgstr "[Normal Radius]: Relació entre el radi del pinzell i el radi que s'utilitzarà per a mostrejar la normal"
+msgstr "[Normal Radius]: Ràtio entre el radi del pinzell i el radi que s'utilitzarà per a mostrejar la normal"
 
 
 msgid "Normal Weight"
@@ -20629,7 +20629,7 @@ msgstr "Radi de pintura d'impregnació"
 
 
 msgid "Ratio between the brush radius and the radius that is going to be used to sample the color to blend in wet paint"
-msgstr "[Wet Paint Radius]: Relació entre el radi del pinzell i el radi que s'utilitzarà per a mostrejar el color per gradualitzar la pintura d'impregnació"
+msgstr "[Wet Paint Radius]: Ràtio entre el radi del pinzell i el radi que s'utilitzarà per a mostrejar el color per gradualitzar la pintura d'impregnació"
 
 
 msgid "Wet Persistence"
@@ -21192,7 +21192,7 @@ msgstr "Mostrar les àrees segures de centre i baixa"
 
 
 msgid "Show safe areas to fit content in a different aspect ratio"
-msgstr "[Show Center-Cut Safe Areas]: Mostra les àrees segures per ajustar el contingut a una relació d'aspecte diferent"
+msgstr "[Show Center-Cut Safe Areas]: Mostra les àrees segures per ajustar el contingut a una ràtio d'aspecte diferent"
 
 
 msgid "Show Sensor Size"
@@ -22552,11 +22552,11 @@ msgstr "Les siluetes i les arestes exteriors es troben del costat extern de la g
 
 
 msgid "Silhouettes and border edges are shifted by a user-defined ratio"
-msgstr "Les siluetes i les arestes exteriors es desplacen per una ratio definida per la usuària"
+msgstr "Les siluetes i les arestes exteriors es desplacen per una ràtio definida per la usuària"
 
 
 msgid "Thickness Ratio"
-msgstr "Relació de gruix"
+msgstr "Ràtio de gruix"
 
 
 msgid "A number between 0 (inside) and 1 (outside) specifying the relative position of stroke thickness"
@@ -23950,7 +23950,7 @@ msgstr "Llindar de dilatació"
 
 
 msgid "Ratio of front-facing surface hits under which a grid sample will reuse neighbors grid sample lighting"
-msgstr "Relació d'impactes en superfície d'orientació frontal sota de la qual una mostra de quadrícula reutilitzarà la il·luminació de mostres de quadrícula de veïnes"
+msgstr "Ràtio d'impactes en superfície d'orientació frontal sota de la qual una mostra de quadrícula reutilitzarà la il·luminació de mostres de quadrícula de veïnes"
 
 
 msgid "Search Distance"
@@ -24030,7 +24030,7 @@ msgstr "Llindar del validesa"
 
 
 msgid "Ratio of front-facing surface hits under which a grid sample will not be considered for lighting"
-msgstr "Relació d'impactes en superfície d'encarament frontal per sota de la qual la mostra de quadrícula no serà considerada per a la il·luminació"
+msgstr "Ràtio d'impactes en superfície d'encarament frontal per sota de la qual la mostra de quadrícula no serà considerada per a la il·luminació"
 
 
 msgid "View Bias"
@@ -24795,7 +24795,7 @@ msgstr "Normals de vèrtexs"
 
 
 msgid "The normal direction of each vertex, defined as the average of the surrounding face normals"
-msgstr "[Vertex Normals]: La direcció normal de cada vèrtex, definida com la mitjana de les normals de la cares circumdant"
+msgstr "[Vertex Normals]: La direcció normal de cada vèrtex, definida com la mitjana de les normals de les cares circumdant"
 
 
 msgid "Vertices"
@@ -35729,7 +35729,7 @@ msgstr "[Mesh Sequence Cache]: Deforma la malla o corba usant una memòria cau d
 
 
 msgid "Normal Edit"
-msgstr "Edició de normal"
+msgstr "Edició de normals"
 
 
 msgid "Modify the direction of the surface normals"
@@ -36321,7 +36321,7 @@ msgstr "[Fixed Count]: Duplica l'objecte el nombre de vegades definit"
 
 
 msgid "Fit Length"
-msgstr "Ajusta la longitud"
+msgstr "Encabir la longitud"
 
 
 msgid "Duplicate the object as many times as fits in a certain length"
@@ -37597,7 +37597,7 @@ msgstr "Nombre de vegades que es redueix la geometria (només de-subdividir)"
 
 
 msgid "Ratio of triangles to reduce to (collapse only)"
-msgstr "Relació de triangles a reduir a (només aglutinar)"
+msgstr "Ràtio de triangles a reduir a (només aglutinar)"
 
 
 msgid "Axis of symmetry"
@@ -40400,7 +40400,7 @@ msgstr "[Directional]: Les normals «segueixen» (apunten a) l'objecte referent"
 
 
 msgid "Lock Polygon Normals"
-msgstr "Bloquejar normals del polígon"
+msgstr "Blocar normals del polígon"
 
 
 msgid "Do not flip polygons when their normals are not consistent with their newly computed custom vertex normals"
@@ -40837,7 +40837,7 @@ msgstr "Sistema de partícules controlat per aquest modificador"
 
 
 msgid "Remesh Modifier"
-msgstr "Modificador Remallat"
+msgstr "Modificador Remallar"
 
 
 msgid "Generate a new surface with regular topology that follows the shape of the input mesh"
@@ -40873,7 +40873,7 @@ msgstr "[Octree Depth]: Resolució de l'octree; els valors més alts donen detal
 
 
 msgid "The ratio of the largest dimension of the model over the size of the grid"
-msgstr "Relació de la dimensió més gran del model sobre la mida de la graella"
+msgstr "La ràtio de la dimensió més gran del model sobre la mida de la graella"
 
 
 msgid "Sharpness"
@@ -41146,7 +41146,7 @@ msgstr "Caire de xamfrà"
 
 
 msgid "Assign a crease to the edges making up the rim"
-msgstr "[Rim Crease]: Assigna un cairat a les arestes que conformen el xamfrà"
+msgstr "[Rim Crease]: Assigna un cairat a les arestes que conformen la vorada"
 
 
 msgid "Vertex Group Invert"
@@ -41158,19 +41158,19 @@ msgstr "[Vertex Group Invert]: Inverteix la influència del grup de vèrtexs"
 
 
 msgid "Material Offset"
-msgstr "Alternar material"
+msgstr "Diferenciar material"
 
 
 msgid "Offset material index of generated faces"
-msgstr "[Material Offset]: Desplaça l'índex del material de les cares generades"
+msgstr "[Material Offset]: Diferencia l'índex del material de les cares generades"
 
 
 msgid "Rim Material Offset"
-msgstr "Alternar material de xamfrà"
+msgstr "Diferenciació de material del bastiment"
 
 
 msgid "Offset material index of generated rim faces"
-msgstr "[Rim Material Offset]: Desplaça l'índex del material de les cares de xamfrà generades"
+msgstr "[Rim Material Offset]: Diferencia l'índex del material de les cares de vorada generades"
 
 
 msgctxt "Mesh"
@@ -41246,15 +41246,15 @@ msgstr "Grup de vèrtexs de xamfrà"
 
 
 msgid "Vertex group that the generated rim geometry will be weighted to"
-msgstr "[Rim Vertex Group]: Grup de vèrtex al qual es ponderarà la geometria del xamfrà generada"
+msgstr "[Rim Vertex Group]: Grup de vèrtex al qual es ponderarà la geometria de vorada generada"
 
 
 msgid "Shell Vertex Group"
-msgstr "Grup de vèrtexs de closca"
+msgstr "Grup de vèrtexs del cos"
 
 
 msgid "Vertex group that the generated shell geometry will be weighted to"
-msgstr "[Shell Vertex Group]: Grup de vèrtex al qual es ponderarà la geometria de closca generada"
+msgstr "[Shell Vertex Group]: Grup de vèrtex al qual es ponderarà la geometria de cos generada"
 
 
 msgid "Selects the used algorithm"
@@ -41274,7 +41274,7 @@ msgstr "Egressa una malla polivalent fins i tot si la malla base és no-polivale
 
 
 msgid "Thickness of the shell"
-msgstr "Gruix de closca"
+msgstr "Gruix de cos"
 
 
 msgid "Offset clamp based on geometry scale"
@@ -41330,11 +41330,11 @@ msgstr "[Fill Rim]: Crea bucles d'arestes entre les superfícies interior i exte
 
 
 msgid "Only Rim"
-msgstr "Només xamfrà"
+msgstr "Només bastiment"
 
 
 msgid "Only add the rim to the original data"
-msgstr "[Only Rim]: Afegeix només el xamfrà a les dades originals"
+msgstr "[Only Rim]: Afegeix només la vorada a les dades originals"
 
 
 msgid "Angle Clamp"
@@ -41518,7 +41518,7 @@ msgstr "Aspecte X"
 
 
 msgid "Horizontal aspect ratio (only used for camera projectors)"
-msgstr "[Aspect X]: Relació d'aspecte horitzontal (només s'usa per a projectors de càmera)"
+msgstr "[Aspect X]: Ràtio d'aspecte horitzontal (només s'usa per a projectors de càmera)"
 
 
 msgid "Aspect Y"
@@ -41526,7 +41526,7 @@ msgstr "Aspecte Y"
 
 
 msgid "Vertical aspect ratio (only used for camera projectors)"
-msgstr "[Aspect Y]: Relació d'aspecte vertical (només s'usa per a projectors de càmera)"
+msgstr "[Aspect Y]: Ràtio d'aspecte vertical (només s'usa per a projectors de càmera)"
 
 
 msgid "Number of Projectors"
@@ -42177,7 +42177,7 @@ msgstr "[Keep Sharp]: Manté els cantells aguts segons còmput per a normals esc
 
 
 msgid "Weighting Mode"
-msgstr "Mode pesos"
+msgstr "Mode de pesos"
 
 
 msgid "Weighted vertex normal mode to use"
@@ -42689,11 +42689,11 @@ msgstr "Segon coeficient de distorsió Nuke de segon ordre"
 
 
 msgid "Pixel Aspect Ratio"
-msgstr "Relació d'aspecte de píxels"
+msgstr "Ràtio d'aspecte de píxels"
 
 
 msgid "Pixel aspect ratio"
-msgstr "[Pixel aspect ratio]"
+msgstr "Ràtio d'aspecte de píxels"
 
 
 msgid "Principal Point"
@@ -45193,6 +45193,14 @@ msgid "Prefilter noisy guiding passes before denoising image. Improves quality w
 msgstr "[Accurate]: Prefiltra les passades guia polsoses abans de dessorollar la imatge. Millora la qualitat quan les passades guia tenen pols tot emprant el mínim temps de processament afegit."
 
 
+msgid "Denoising quality"
+msgstr "Qualitat de dessorollat"
+
+
+msgid "Use the scene's denoising quality setting"
+msgstr "Empra el paràmetre de qualitat de dessorrolat de l'escena"
+
+
 msgid "High quality"
 msgstr "Alta qualitat"
 
@@ -45203,6 +45211,10 @@ msgstr "Equilibrada"
 
 msgid "Balanced between performance and quality"
 msgstr "Equilibri entre rendiment i qualitat"
+
+
+msgid "High perfomance"
+msgstr "Alt rendiment"
 
 
 msgid "HDR"
@@ -47116,6 +47128,10 @@ msgid "Euler to Rotation"
 msgstr "Euler a rotació"
 
 
+msgid "Find In String"
+msgstr "Cercar a la cadena"
+
+
 msgid "Float to Integer"
 msgstr "Flotant a enter"
 
@@ -47737,10 +47753,6 @@ msgid "Whether to update left and right handles"
 msgstr "Si s'han d'actualitzar les nanses a esquerra i dreta"
 
 
-msgid "Curve Spiral"
-msgstr "Espiral de corba"
-
-
 msgid "Generate a poly spline in a spiral shape"
 msgstr "[Curve Spiral]: Genera un poli-spline en forma espiral"
 
@@ -48231,7 +48243,7 @@ msgstr "Interpolació lineal"
 
 
 msgid "No interpolation (sample closest texel)"
-msgstr "Sense interpolació (mostreja el texel més pròxim)"
+msgstr "Sense interpolació (mostreja el tèxel més pròxim)"
 
 
 msgid "Cubic interpolation"
@@ -51536,7 +51548,7 @@ msgstr "Refracció"
 
 
 msgid "For a given incident vector A, surface normal B and ratio of indices of refraction, Ior, refract returns the refraction vector, R"
-msgstr "[Refract]: Per a un vector incident donat A, la superfície normal B i relació d'índexs de refracció, Ior, refract retorna el vector de refracció, R"
+msgstr "[Refract]: Per a un vector incident donat A, la superfície normal B i ràtio d'índexs de refracció, Ior, refract retorna el vector de refracció, R"
 
 
 msgctxt "NodeTree"
@@ -53656,7 +53668,7 @@ msgstr "Editar imatge externament"
 
 
 msgid "Create mesh plane(s) from image files with the appropriate aspect ratio"
-msgstr "Crea malles pla a partir de documents d'imatge amb la relació d'aspecte que toca"
+msgstr "Crea malles pla a partir de documents d'imatge amb la ràtio d'aspecte que toca"
 
 
 msgctxt "Operator"
@@ -58273,7 +58285,7 @@ msgstr "Aspecte d'imatge"
 
 
 msgid "When using an image texture, adjust the stencil size to fit the image aspect ratio"
-msgstr "En usar una imatge textura, ajusta la mida de la plantilla per encaixar amb la relació d'aspecte de la imatge"
+msgstr "En usar una imatge textura, ajusta la mida de la plantilla per encaixar amb la ràtio d'aspecte de la imatge"
 
 
 msgid "Modify Mask Stencil"
@@ -59415,15 +59427,15 @@ msgstr "Ubicació del cursor en coordenades normalitzades (de 0.0 a 1.0)"
 
 msgctxt "Operator"
 msgid "View Zoom Ratio"
-msgstr "Veure relació de zoom"
+msgstr "Veure ràtio de zoom"
 
 
 msgid "Set the zoom ratio (based on clip size)"
-msgstr "[View Zoom Ratio]: Especifica la relació de zoom (basada en la mida del vídeo)"
+msgstr "[View Zoom Ratio]: Especifica la ràtio de zoom (basada en la mida del vídeo)"
 
 
 msgid "Zoom ratio, 1.0 is 1:1, higher is zoomed in, lower is zoomed out"
-msgstr "Relació de zoom, 1,0 és 1:1, més gran acosta o amplia, menor allunya"
+msgstr "Ràtio de zoom, 1,0 és 1:1, més gran acosta o amplia, menor allunya"
 
 
 msgctxt "Operator"
@@ -61878,15 +61890,15 @@ msgstr "Simplificació de malla agressiva"
 
 
 msgid "Aggressively simplify to the target ratio disregarding quality"
-msgstr "Simplifica agressivament a la proporció buscada sense tenir en compte la qualitat"
+msgstr "Simplifica agressivament a la ràtio buscada sense tenir en compte la qualitat"
 
 
 msgid "Mesh Simplification Ratio"
-msgstr "Proporció de simplificació de malla"
+msgstr "Ràtio de simplificació de malla"
 
 
 msgid "Simplify meshes targeting triangle count ratio"
-msgstr "Simplifica les malles recorrent a les proporcions de nombres de triangles"
+msgstr "Simplifica les malles recorrent a la ràtio de nombres de triangles"
 
 
 msgid "Lock Mesh Border Vertices"
@@ -63960,7 +63972,7 @@ msgstr "[Decimate Keyframes]: Delma corbes-F suprimint les fotofites que influei
 
 
 msgid "The ratio of keyframes to remove"
-msgstr "La taxa de fotofites a suprimir"
+msgstr "La ràtio de fotofites a suprimir"
 
 
 msgid "Which mode to use for decimation"
@@ -64538,7 +64550,7 @@ msgstr "Freqüència màxima"
 
 
 msgid "Cutoff frequency of a low-pass filter that is applied to the audio data"
-msgstr "[Highest Frequency]: Freqüència de tall d'un filtre passada baixa que s'aplica a les dades d'àudio"
+msgstr "[Highest Frequency]: Freqüència de tall d'un filtre passabaix que s'aplica a les dades d'àudio"
 
 
 msgid "Lowest Frequency"
@@ -67080,7 +67092,7 @@ msgstr "Allunya la imatge (centrat al voltant del cursor 2D)"
 
 
 msgid "Set zoom ratio of the view"
-msgstr "Defineix la relació de zoom de la vista"
+msgstr "Defineix la ràtio de zoom de la vista"
 
 
 msgid "Starting frame for the animation"
@@ -69113,7 +69125,7 @@ msgstr "Els angles s'acoblen en relació al tall d'aresta previ"
 
 
 msgid "Angle Snap Increment"
-msgstr "Angle d'acoblament incremental"
+msgstr "Increment d'acoblament angular"
 
 
 msgid "The angle snap increment used when in constrained angle mode"
@@ -69532,7 +69544,7 @@ msgstr "Força d'esferització"
 
 
 msgid "Ratio of spherized normal to original normal"
-msgstr "[Spherize Strength]: Quocient de normal esferitzada per normal original"
+msgstr "[Spherize Strength]: Ràtio de normal esferitzada per normal original"
 
 
 msgid "Target location to which normals will point"
@@ -81102,7 +81114,7 @@ msgstr "Quants caires i valls s'intensifiquen"
 
 
 msgid "Smooth Ratio"
-msgstr "Relació de suavitzat"
+msgstr "Ràtio de suavitzat"
 
 
 msgid "How much smoothing is applied to polished surfaces"
@@ -82864,11 +82876,11 @@ msgstr "Enquadrar vista de seqüenciador en els segments seleccionades"
 
 msgctxt "Operator"
 msgid "Sequencer View Zoom Ratio"
-msgstr "Relació d'enquadrament de la vista del seqüenciador"
+msgstr "Ràtio d'enquadrament de la vista del seqüenciador"
 
 
 msgid "Change zoom ratio of sequencer preview"
-msgstr "Canvia la relació de zoom de la vista prèvia del seqüenciador"
+msgstr "Canvia la ràtio de zoom de la vista prèvia del seqüenciador"
 
 
 msgctxt "Operator"
@@ -84564,7 +84576,7 @@ msgstr "Aspecte correcte"
 
 
 msgid "Take image aspect ratio into account"
-msgstr "[Correct Aspect]: Mapejat que inclou la relació d'aspecte de la imatge"
+msgstr "[Correct Aspect]: Mapejat que inclou la ràtio d'aspecte de la imatge"
 
 
 msgid "Method to calculate rotation angle"
@@ -84627,7 +84639,7 @@ msgstr "Retalla les coordenades UV als límits després de desembolcallar"
 
 
 msgid "Map UVs taking image aspect ratio into account"
-msgstr "[Correct Aspect]: Mapeja UVs tenint en compte la relació d'aspecte de la imatge"
+msgstr "[Correct Aspect]: Mapeja UVs tenint en compte la ràtio d'aspecte de la imatge"
 
 
 msgid "Cube Size"
@@ -88699,6 +88711,30 @@ msgid "Convert orientation axis to a different convention to match other applica
 msgstr "Converteix l'eix d'orientació a una convenció diferent perquè quadri amb altres aplicacions"
 
 
+msgid "Meters"
+msgstr "Metres"
+
+
+msgid "Kilometers"
+msgstr "Quilòmetres"
+
+
+msgid "Centimeters"
+msgstr "Centímetres"
+
+
+msgid "Inches"
+msgstr "Polzades"
+
+
+msgid "Feet"
+msgstr "Peus"
+
+
+msgid "Yards"
+msgstr "Iardes"
+
+
 msgid "Convert World Material"
 msgstr "Convertir material món"
 
@@ -90544,6 +90580,10 @@ msgstr "Rendiment"
 
 msgid "Acceleration Structure"
 msgstr "Estructura d'acceleració"
+
+
+msgid "Denoise Nodes"
+msgstr "Nodes de dessorollat"
 
 
 msgid "Final Render"
@@ -93766,7 +93806,7 @@ msgstr "Dades vinculades totes directes"
 
 
 msgid "Forces all linked data to be considered as directly linked. Workaround for current issues/limitations in BAT (Blender studio pipeline tool)"
-msgstr "[All Linked Data Direct]: Força que totes les dades vinculades es considerin directament vinculades . Circumsolució per als problemes/limitacions actuals del BAT (eina de via de producció d'il·luminació d'estudi de Blender)"
+msgstr "[All Linked Data Direct]: Força que totes les dades vinculades es considerin directament vinculades . Circumval·lació dels problemes/limitacions actuals del BAT (eina de via de producció d'il·luminació d'estudi de Blender)"
 
 
 msgid "No Asset Indexing"
@@ -99442,6 +99482,22 @@ msgid "Minimum Y value for the render region"
 msgstr "Valor Y mínim per a la regió de revelat"
 
 
+msgid "Compositor Final Denoise Quality"
+msgstr "Qualitat final de dessorollat per compositador"
+
+
+msgid "The quality used by denoise nodes during the compositing of final renders if the nodes' quality option is set to Follow Scene"
+msgstr "La qualitat emprada per nodes de dessorollat durant la compositació de revelats finals si l'opció de qualitat dels nodes està posada a Seguir escena"
+
+
+msgid "Compositor Preview Denoise Quality"
+msgstr "Previsionat de qualitat de dessorollat per compositador"
+
+
+msgid "The quality used by denoise nodes during viewport and interactive compositing if the nodes' quality option is set to Follow Scene"
+msgstr "La qualitat emprada per nodes de dessorollat durant la compositació interactiva i de mirador si l'opció de qualitat dels nodes està posada a Seguir escena"
+
+
 msgid "Compositor Device"
 msgstr "Dispositiu compositador"
 
@@ -99662,7 +99718,7 @@ msgstr "Aspecte de píxel X"
 
 
 msgid "Horizontal aspect ratio - for anamorphic or non-square pixel output"
-msgstr "Relació d'aspecte horitzontal - per a l'egressió de píxels anamòrfics o no quadrats"
+msgstr "Ràtio d'aspecte horitzontal - per a l'egressió de píxels anamòrfics o no quadrats"
 
 
 msgid "Pixel Aspect Y"
@@ -99670,7 +99726,7 @@ msgstr "Aspecte de píxel Y"
 
 
 msgid "Vertical aspect ratio - for anamorphic or non-square pixel output"
-msgstr "Relació d'aspecte vertical - per a l'egressió de píxels anamòrfics o no quadrats"
+msgstr "Ràtio d'aspecte vertical - per a l'egressió de píxels anamòrfics o no quadrats"
 
 
 msgid "Pixel size for viewport rendering"
@@ -102288,7 +102344,7 @@ msgstr "Unitat de mesura amb què traslladar la ingressió"
 
 
 msgid "Scale uniformly, preserving aspect ratio"
-msgstr "Escalar uniformement, preservant la relació d'aspecte"
+msgstr "Escalar uniformement, preservant la ràtio d'aspecte"
 
 
 msgid "Wipe Sequence"
@@ -116563,10 +116619,6 @@ msgid "BVH"
 msgstr "BVH"
 
 
-msgid "Module Debug"
-msgstr "Depuració de mòdul"
-
-
 msgid "Viewport BVH"
 msgstr "Mirador BVH"
 
@@ -116641,6 +116693,10 @@ msgstr "Extrusió"
 
 msgid "Clear Image"
 msgstr "Retirar imatge"
+
+
+msgid "Module Debug"
+msgstr "Depuració de mòdul"
 
 
 msgid "Cycles built without Embree support"
@@ -120978,6 +121034,14 @@ msgid "Jittered Shadows"
 msgstr "Ombres dispersades"
 
 
+msgid "Preview Quality"
+msgstr "Qualitat de previsionat"
+
+
+msgid "Final Quality"
+msgstr "Qualitat final"
+
+
 msgid "Shadow Pool"
 msgstr "Reserva d'ombres"
 
@@ -121307,7 +121371,7 @@ msgstr "Rastres 3D"
 
 
 msgid "Display Aspect Ratio"
-msgstr "Relació d'aspecte en pantalla"
+msgstr "Ràtio d'aspecte en pantalla"
 
 
 msgctxt "Operator"
@@ -122113,7 +122177,7 @@ msgstr "Imatge*"
 
 
 msgid "Aspect Ratio"
-msgstr "Relació d'aspecte"
+msgstr "Ràtio d'aspecte"
 
 
 msgid "Repeat Image"
@@ -127433,10 +127497,6 @@ msgid "Original Mode"
 msgstr "Mode original"
 
 
-msgid "Kilometers"
-msgstr "Quilòmetres"
-
-
 msgid "100 Meters"
 msgstr "Hectòmetres"
 
@@ -127445,16 +127505,8 @@ msgid "10 Meters"
 msgstr "Decàmetres"
 
 
-msgid "Meters"
-msgstr "Metres"
-
-
 msgid "10 Centimeters"
 msgstr "Decímetres"
-
-
-msgid "Centimeters"
-msgstr "Centímetres"
 
 
 msgid "Micrometers"
@@ -127479,18 +127531,6 @@ msgstr "Furlongs"
 
 msgid "Chains"
 msgstr "Cadenes"
-
-
-msgid "Yards"
-msgstr "Iardes"
-
-
-msgid "Feet"
-msgstr "Peus"
-
-
-msgid "Inches"
-msgstr "Polzades"
 
 
 msgid "Thou"
@@ -132662,10 +132702,6 @@ msgid "Fluid: Could not use default cache directory '%s', please define a valid 
 msgstr "Fluid: No s'ha pogut usar el directori de memòria cau predeterminat '%s', cal definir manualment una ruta vàlida de memòria cau"
 
 
-msgid "Fluid: %s complete! (%.2f)"
-msgstr "Fluid: %s llest! (%.2f)"
-
-
 msgid "Fluid: %s failed: %s"
 msgstr "Fluid: %s fallit: %s"
 
@@ -137128,10 +137164,6 @@ msgid " | [Ctrl] - Increments active"
 msgstr " | [Ctrl] - Increments actius"
 
 
-msgid " | Ctrl - Hold for 10% increments"
-msgstr " | Ctrl - Mantenir pitjat per a increments del 10%"
-
-
 msgid "Unpack File"
 msgstr "Desempaquetar document"
 
@@ -140266,7 +140298,7 @@ msgstr "Cairar interns"
 
 
 msgid "Shell"
-msgstr "Buidar"
+msgstr "Cos"
 
 
 msgctxt "Mesh"
@@ -140569,6 +140601,10 @@ msgid "Prefilter:"
 msgstr "Prefiltrar:"
 
 
+msgid "Quality:"
+msgstr "Qualitat:"
+
+
 msgid "Disabled, built without OpenImageDenoise"
 msgstr "Desactivat, construït sense dessorollador d'OpenImage (OpenImageDenoise)"
 
@@ -140846,6 +140882,10 @@ msgstr "A"
 msgctxt "NodeTree"
 msgid "B"
 msgstr "B"
+
+
+msgid "First Found"
+msgstr "Primer resultat"
 
 
 msgctxt "NodeTree"
@@ -143084,7 +143124,7 @@ msgstr "Especifica l'absorció d'energia per unitat de llargada en passar la llu
 
 
 msgid "The ratio of the minor axis to the major axis of an elliptical cross-section. Recommended values are 0.8~1 for Asian hair, 0.65~0.9 for Caucasian hair, 0.5~0.65 for African hair. The major axis is aligned with the curve normal, which is not supported in particle hair"
-msgstr "Relació entre l'eix menor i l'eix major d'una secció transversal el·líptica. Els valors recomanats són 0,8~1 per als cabells asiàtics, 0,65~0,9 per als cabells caucàsics, 0,5~0,65 per al cabell africà. L'eix principal està alineat a normal de corba, que no és compatible amb les partícules pèl"
+msgstr "Ràtio entre l'eix menor i l'eix major d'una secció transversal el·líptica. Els valors recomanats són 0,8~1 per als cabells asiàtics, 0,65~0,9 per als cabells caucàsics, 0,5~0,65 per al cabell africà. L'eix principal està alineat a normal de corba, que no és compatible amb les partícules pèl"
 
 
 msgid "Hair roughness. A low value leads to a metallic look"
@@ -143726,11 +143766,11 @@ msgstr "La variació de color entre el color1 i el color2. Els valors de -1 i 1 
 
 
 msgid "Ratio of brick's width relative to the texture scale"
-msgstr "Quocient de gruix dels maons en relació a l'escala de la textura"
+msgstr "Ràtio de gruix dels maons en relació a l'escala de la textura"
 
 
 msgid "Ratio of brick's row height relative to the texture scale"
-msgstr "Quocient de l'alçada de filera dels maons en relació a l'escala de la textura"
+msgstr "Ràtio de l'alçada de filera dels maons en relació a l'escala de la textura"
 
 
 msgid "Color of the first checker"
