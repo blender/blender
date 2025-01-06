@@ -186,9 +186,7 @@ class Sculpts : Overlay {
       case blender::bke::pbvh::Type::Grids: {
         const SubdivCCG &subdiv_ccg = *sculpt_session->subdiv_ccg;
         const Mesh &base_mesh = *static_cast<const Mesh *>(object_orig->data);
-        if (!BKE_subdiv_ccg_key_top_level(subdiv_ccg).has_mask &&
-            !base_mesh.attributes().contains(".sculpt_face_set"))
-        {
+        if (subdiv_ccg.masks.is_empty() && !base_mesh.attributes().contains(".sculpt_face_set")) {
           return;
         }
         break;
