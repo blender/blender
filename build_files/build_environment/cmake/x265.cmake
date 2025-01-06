@@ -155,8 +155,8 @@ set(ARG_AR_INPUT $\{CMAKE_ARGV$\{INDEX_AR_INPUT\}\})
 execute_process(
   COMMAND $\{ARG_AR\} -M
   INPUT_FILE $\{ARG_AR_INPUT\}
-)
-")
+)"
+    )
 
     ExternalProject_Add_Step(external_x265 after_install
       COMMAND ${CMAKE_COMMAND} -P ${_ar_cmake} -- ${CMAKE_AR} ${_ar_stdin}

@@ -62,15 +62,13 @@ if(WITH_BLENDER AND NOT WITH_PYTHON_MODULE)
   set_property(DIRECTORY PROPERTY VS_STARTUP_PROJECT blender)
 endif()
 
-macro(warn_hardcoded_paths package_name
-  )
+macro(warn_hardcoded_paths package_name)
   if(WITH_WINDOWS_FIND_MODULES)
     message(WARNING "Using HARDCODED ${package_name} locations")
   endif()
 endmacro()
 
-macro(windows_find_package package_name
-  )
+macro(windows_find_package package_name)
   if(WITH_WINDOWS_FIND_MODULES)
     find_package(${package_name})
   endif()
