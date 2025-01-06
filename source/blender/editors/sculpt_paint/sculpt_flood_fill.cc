@@ -93,9 +93,12 @@ void FillDataMesh::execute(Object &object,
     const int from_v = this->queue.front();
     this->queue.pop();
 
-    for (const int neighbor : vert_neighbors_get_mesh(
-             faces, corner_verts, vert_to_face_map, hide_poly, from_v, neighbors))
-    {
+    vert_neighbors_get_mesh(faces, corner_verts, vert_to_face_map, hide_poly, from_v, neighbors);
+    if (!this->fake_neighbors.is_empty() && this->fake_neighbors[from_v] != FAKE_NEIGHBOR_NONE) {
+      neighbors.append(this->fake_neighbors[from_v]);
+    }
+
+    for (const int neighbor : neighbors) {
       if (this->visited_verts[neighbor]) {
         continue;
       }
@@ -124,6 +127,13 @@ void FillDataGrids::execute(
 
     SubdivCCGNeighbors neighbors;
     BKE_subdiv_ccg_neighbor_coords_get(subdiv_ccg, from_v, true, neighbors);
+    if (!this->fake_neighbors.is_empty() &&
+        this->fake_neighbors[from_v.to_index(key)] != FAKE_NEIGHBOR_NONE)
+    {
+      neighbors.coords.insert(
+          0, SubdivCCGCoord::from_index(key, this->fake_neighbors[from_v.to_index(key)]));
+    }
+
     const int num_unique = neighbors.coords.size() - neighbors.num_duplicates;
 
     /* Flood fill expects the duplicate entries to be passed to the per-neighbor lambda first, so
@@ -151,13 +161,19 @@ void FillDataGrids::execute(
   }
 }
 
-void FillDataBMesh::execute(Object & /*object*/,
-                            FunctionRef<bool(BMVert *from_v, BMVert *to_v)> func)
+void FillDataBMesh::execute(Object &object, FunctionRef<bool(BMVert *from_v, BMVert *to_v)> func)
 {
+  BMesh *bm = object.sculpt->bm;
   Vector<BMVert *, 64> neighbors;
   while (!this->queue.empty()) {
     BMVert *from_v = this->queue.front();
     this->queue.pop();
+
+    if (!this->fake_neighbors.is_empty() &&
+        this->fake_neighbors[BM_elem_index_get(from_v)] != FAKE_NEIGHBOR_NONE)
+    {
+      neighbors.append(BM_vert_at_index(bm, this->fake_neighbors[BM_elem_index_get(from_v)]));
+    }
 
     for (BMVert *neighbor : vert_neighbors_get_bmesh(*from_v, neighbors)) {
       const int neighbor_idx = BM_elem_index_get(neighbor);
