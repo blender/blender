@@ -27,7 +27,7 @@ import zipfile
 
 from typing import (
     Any,
-    Generator,
+    Iterator,
     IO,
     NamedTuple,
 )
@@ -465,7 +465,7 @@ def path_from_url(path: str) -> str:
     return result
 
 
-def random_acii_lines(*, seed: int | str, width: int) -> Generator[str, None, None]:
+def random_acii_lines(*, seed: int | str, width: int) -> Iterator[str]:
     """
     Generate random ASCII text [A-Za-z0-9].
     Intended not to compress well, it's possible to simulate downloading a large package.
@@ -522,7 +522,7 @@ def scandir_recursive_impl(
         path: str,
         *,
         filter_fn: Callable[[str, bool], bool],
-) -> Generator[tuple[str, str], None, None]:
+) -> Iterator[tuple[str, str]]:
     """Recursively yield DirEntry objects for given directory."""
     for entry in os.scandir(path):
         if entry.is_symlink():
@@ -548,7 +548,7 @@ def scandir_recursive_impl(
 def scandir_recursive(
         path: str,
         filter_fn: Callable[[str, bool], bool],
-) -> Generator[tuple[str, str], None, None]:
+) -> Iterator[tuple[str, str]]:
     yield from scandir_recursive_impl(path, path, filter_fn=filter_fn)
 
 
@@ -690,7 +690,7 @@ def rmtree_with_fallback_or_error_pseudo_atomic(
 def build_paths_expand_iter(
         path: str,
         path_list: Sequence[str],
-) -> Generator[tuple[str, str], None, None]:
+) -> Iterator[tuple[str, str]]:
     """
     Expand paths from a path list which always uses "/" slashes.
     """
@@ -1298,7 +1298,7 @@ def url_retrieve_to_data_iter(
         headers: dict[str, str],
         chunk_size: int,
         timeout_in_seconds: float,
-) -> Generator[tuple[bytes, int, Any], None, None]:
+) -> Iterator[tuple[bytes, int, Any]]:
     """
     Retrieve a URL into a temporary location on disk.
 
@@ -1366,7 +1366,7 @@ def url_retrieve_to_filepath_iter(
         data: Any | None = None,
         chunk_size: int,
         timeout_in_seconds: float,
-) -> Generator[tuple[int, int, Any], None, None]:
+) -> Iterator[tuple[int, int, Any]]:
     # Handle temporary file setup.
     with open(filepath, 'wb') as fh_output:
         for block, size, response_headers in url_retrieve_to_data_iter(
@@ -1386,7 +1386,7 @@ def filepath_retrieve_to_filepath_iter(
         *,
         chunk_size: int,
         timeout_in_seconds: float,
-) -> Generator[tuple[int, int], None, None]:
+) -> Iterator[tuple[int, int]]:
     # TODO: `timeout_in_seconds`.
     # Handle temporary file setup.
     _ = timeout_in_seconds
@@ -1403,7 +1403,7 @@ def url_retrieve_to_data_iter_or_filesystem(
         headers: dict[str, str],
         chunk_size: int,
         timeout_in_seconds: float,
-) -> Generator[bytes, None, None]:
+) -> Iterator[bytes]:
     if url_is_filesystem(url):
         with open(path_from_url(url), "rb") as fh_source:
             while (block := fh_source.read(chunk_size)):
@@ -1428,7 +1428,7 @@ def url_retrieve_to_filepath_iter_or_filesystem(
         headers: dict[str, str],
         chunk_size: int,
         timeout_in_seconds: float,
-) -> Generator[tuple[int, int], None, None]:
+) -> Iterator[tuple[int, int]]:
     """
     Callers should catch: ``(Exception, KeyboardInterrupt)`` and convert them to message using:
     ``url_retrieve_exception_as_message``.
@@ -2369,7 +2369,7 @@ def build_paths_filter_by_platform(
         build_paths: list[tuple[str, str]],
         wheel_range: tuple[int, int],
         platforms: tuple[str, ...],
-) -> Generator[tuple[list[tuple[str, str]], str], None, None]:
+) -> Iterator[tuple[list[tuple[str, str]], str]]:
     if not platforms:
         yield (build_paths, "")
         return
