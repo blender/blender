@@ -349,7 +349,7 @@ if(WITH_OPENCOLLADA)
         set(PCRE_LIBRARIES ${LIBDIR}/opencollada/lib/libpcre.a)
       else()
         # Quiet warnings.
-        set(PCRE_LIBRARIES)
+        set(PCRE_LIBRARIES "")
       endif()
     else()
       find_package_wrapper(PCRE)
