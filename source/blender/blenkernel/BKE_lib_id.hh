@@ -395,8 +395,15 @@ enum {
   LIB_ID_FREE_NO_NAMEMAP_REMOVE = 1 << 10,
 };
 
+/**
+ * Low-level ID freeing functions.
+ *
+ * \note These functions do NOT cover embedded IDs. Those are managed by the
+ * owning ID, and are typically allocated/freed from the IDType callbacks.
+ */
 void BKE_libblock_free_datablock(ID *id, int flag) ATTR_NONNULL();
 void BKE_libblock_free_data(ID *id, bool do_id_user) ATTR_NONNULL();
+void BKE_libblock_free_runtime_data(ID *id) ATTR_NONNULL();
 
 /**
  * In most cases #BKE_id_free_ex handles this, when lower level functions are called directly

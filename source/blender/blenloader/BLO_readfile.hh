@@ -532,3 +532,31 @@ BlendThumbnail *BLO_thumbnail_from_file(const char *filepath);
  * \return The file version
  */
 short BLO_version_from_file(const char *filepath);
+
+/**
+ * Runtime structure on `ID.runtime.readfile_data` that is available during the readfile process.
+ *
+ * This is intended for short-lived data, for example for things that are detected in an early
+ * phase of versioning that should be used in a later stage of versioning.
+ *
+ * \note This is NOT allocated when 'reading' an undo step, as that doesn't have to deal with
+ * versioning, linking, and the other stuff that this struct was meant for.
+ */
+struct ID_Readfile_Data {
+  struct Tags {
+    bool is_id_link_placeholder : 1;
+  } tags;
+};
+
+/**
+ * Free the ID_Readfile_Data of all IDs in this bmain and all their embedded IDs.
+ *
+ * This is typically called at the end of the versioning process, as after that
+ * `ID.runtime.readfile_data` should no longer be needed.
+ */
+void BLO_readfile_id_runtime_data_free_all(Main &bmain);
+
+/**
+ *  Free the ID_Readfile_Data of this ID. Does _not_ deal with embeded IDs.
+ */
+void BLO_readfile_id_runtime_data_free(ID &id);
