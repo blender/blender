@@ -275,14 +275,6 @@ static PointerRNA rna_Paint_brush_get(PointerRNA *ptr)
   return RNA_id_pointer_create(&brush->id);
 }
 
-static void rna_Paint_brush_set(PointerRNA *ptr, PointerRNA value, ReportList * /*reports*/)
-{
-  Paint *paint = static_cast<Paint *>(ptr->data);
-  Brush *brush = static_cast<Brush *>(value.data);
-  BKE_paint_brush_set(paint, brush);
-  BKE_paint_invalidate_overlay_all();
-}
-
 static bool rna_Paint_brush_poll(PointerRNA *ptr, PointerRNA value)
 {
   const Paint *paint = static_cast<Paint *>(ptr->data);
@@ -299,14 +291,6 @@ static PointerRNA rna_Paint_eraser_brush_get(PointerRNA *ptr)
     return PointerRNA_NULL;
   }
   return RNA_id_pointer_create(&brush->id);
-}
-
-static void rna_Paint_eraser_brush_set(PointerRNA *ptr, PointerRNA value, ReportList * /*reports*/)
-{
-  Paint *paint = static_cast<Paint *>(ptr->data);
-  Brush *brush = static_cast<Brush *>(value.data);
-  BKE_paint_eraser_brush_set(paint, brush);
-  BKE_paint_invalidate_overlay_all();
 }
 
 static bool rna_Paint_eraser_brush_poll(PointerRNA *ptr, PointerRNA value)
@@ -547,10 +531,10 @@ static void rna_def_paint(BlenderRNA *brna)
 
   /* Global Settings */
   prop = RNA_def_property(srna, "brush", PROP_POINTER, PROP_NONE);
-  RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_struct_type(prop, "Brush");
   RNA_def_property_pointer_funcs(
-      prop, "rna_Paint_brush_get", "rna_Paint_brush_set", nullptr, "rna_Paint_brush_poll");
+      prop, "rna_Paint_brush_get", nullptr, nullptr, "rna_Paint_brush_poll");
   RNA_def_property_ui_text(prop, "Brush", "Active brush");
   RNA_def_property_update(prop, NC_BRUSH | NA_SELECTED, nullptr);
 
@@ -562,13 +546,10 @@ static void rna_def_paint(BlenderRNA *brna)
                            "the last used brush on file load");
 
   prop = RNA_def_property(srna, "eraser_brush", PROP_POINTER, PROP_NONE);
-  RNA_def_property_flag(prop, PROP_EDITABLE);
+  RNA_def_property_clear_flag(prop, PROP_EDITABLE);
   RNA_def_property_struct_type(prop, "Brush");
-  RNA_def_property_pointer_funcs(prop,
-                                 "rna_Paint_eraser_brush_get",
-                                 "rna_Paint_eraser_brush_set",
-                                 nullptr,
-                                 "rna_Paint_eraser_brush_poll");
+  RNA_def_property_pointer_funcs(
+      prop, "rna_Paint_eraser_brush_get", nullptr, nullptr, "rna_Paint_eraser_brush_poll");
   RNA_def_property_ui_text(prop,
                            "Default Eraser Brush",
                            "Default eraser brush for quickly alternating with the main brush");
