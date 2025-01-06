@@ -90,6 +90,7 @@ GLContext::GLContext(void *ghost_window, GLSharedOrphanLists &shared_orphan_list
 
 GLContext::~GLContext()
 {
+  free_framebuffers();
   BLI_assert(orphaned_framebuffers_.is_empty());
   BLI_assert(orphaned_vertarrays_.is_empty());
   /* For now don't allow GPUFrameBuffers to be reuse in another context. */

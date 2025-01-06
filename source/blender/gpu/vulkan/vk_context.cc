@@ -47,6 +47,7 @@ VKContext::~VKContext()
     GPU_texture_free(surface_texture_);
     surface_texture_ = nullptr;
   }
+  free_framebuffers();
   VKBackend::get().device.context_unregister(*this);
 
   imm = nullptr;
