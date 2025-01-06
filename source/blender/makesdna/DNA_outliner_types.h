@@ -91,9 +91,9 @@ typedef enum eTreeStoreElemType {
   /* TSE_LINKED_LAMP = 23, */
   TSE_BONE_COLLECTION_BASE = 24,
   TSE_BONE_COLLECTION = 25,
-  TSE_SEQUENCE = 26,     /* NO ID */
-  TSE_SEQ_STRIP = 27,    /* NO ID */
-  TSE_SEQUENCE_DUP = 28, /* NO ID */
+  TSE_STRIP = 26,      /* NO ID */
+  TSE_STRIP_DATA = 27, /* NO ID */
+  TSE_STRIP_DUP = 28,  /* NO ID */
   TSE_LINKED_PSYS = 29,
   TSE_RNA_STRUCT = 30,        /* NO ID */
   TSE_RNA_PROPERTY = 31,      /* NO ID */
@@ -123,9 +123,9 @@ typedef enum eTreeStoreElemType {
          TSE_NLA, \
          TSE_NLA_TRACK, \
          TSE_DRIVER_BASE, \
-         TSE_SEQUENCE, \
-         TSE_SEQ_STRIP, \
-         TSE_SEQUENCE_DUP, \
+         TSE_STRIP, \
+         TSE_STRIP_DATA, \
+         TSE_STRIP_DUP, \
          TSE_RNA_STRUCT, \
          TSE_RNA_PROPERTY, \
          TSE_RNA_ARRAY_ELEM, \

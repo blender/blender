@@ -341,8 +341,8 @@ static void do_item_rename(ARegion *region,
   {
     BKE_report(reports, RPT_INFO, "Not an editable name");
   }
-  else if (ELEM(tselem->type, TSE_SEQUENCE, TSE_SEQ_STRIP, TSE_SEQUENCE_DUP)) {
-    BKE_report(reports, RPT_INFO, "Sequence names are not editable from the Outliner");
+  else if (ELEM(tselem->type, TSE_STRIP, TSE_STRIP_DATA, TSE_STRIP_DUP)) {
+    BKE_report(reports, RPT_INFO, "Strip names are not editable from the Outliner");
   }
   else if (TSE_IS_REAL_ID(tselem) && !ID_IS_EDITABLE(tselem->id)) {
     BKE_report(reports, RPT_INFO, "External library data is not editable");

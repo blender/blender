@@ -17,35 +17,35 @@ struct StripData;
 
 namespace blender::ed::outliner {
 
-class TreeElementSequence : public AbstractTreeElement {
-  Strip &sequence_;
+class TreeElementStrip : public AbstractTreeElement {
+  Strip &strip_;
 
  public:
-  TreeElementSequence(TreeElement &legacy_te, Strip &sequence);
+  TreeElementStrip(TreeElement &legacy_te, Strip &strip);
 
   bool expand_poll(const SpaceOutliner &) const override;
   void expand(SpaceOutliner &) const override;
 
-  Strip &get_sequence() const;
-  SequenceType get_sequence_type() const;
+  Strip &get_strip() const;
+  SequenceType get_strip_type() const;
 };
 
 /* -------------------------------------------------------------------- */
 
-class TreeElementSequenceStrip : public AbstractTreeElement {
+class TreeElementStripData : public AbstractTreeElement {
  public:
-  TreeElementSequenceStrip(TreeElement &legacy_te, StripData &strip);
+  TreeElementStripData(TreeElement &legacy_te, StripData &strip);
 };
 
 /* -------------------------------------------------------------------- */
 
-class TreeElementSequenceStripDuplicate : public AbstractTreeElement {
-  Strip &sequence_;
+class TreeElementStripDuplicate : public AbstractTreeElement {
+  Strip &strip_;
 
  public:
-  TreeElementSequenceStripDuplicate(TreeElement &legacy_te, Strip &sequence);
+  TreeElementStripDuplicate(TreeElement &legacy_te, Strip &strip);
 
-  Strip &get_sequence() const;
+  Strip &get_strip() const;
 };
 
 }  // namespace blender::ed::outliner

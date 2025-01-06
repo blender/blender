@@ -2777,9 +2777,9 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
       case TSE_BONE_COLLECTION:
         data.icon = ICON_GROUP_BONE;
         break;
-      case TSE_SEQUENCE: {
-        const TreeElementSequence *te_seq = tree_element_cast<TreeElementSequence>(te);
-        switch (te_seq->get_sequence_type()) {
+      case TSE_STRIP: {
+        const TreeElementStrip *te_strip = tree_element_cast<TreeElementStrip>(te);
+        switch (te_strip->get_strip_type()) {
           case SEQ_TYPE_SCENE:
             data.icon = ICON_SCENE_DATA;
             break;
@@ -2833,10 +2833,10 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
         }
         break;
       }
-      case TSE_SEQ_STRIP:
+      case TSE_STRIP_DATA:
         data.icon = ICON_LIBRARY_DATA_DIRECT;
         break;
-      case TSE_SEQUENCE_DUP:
+      case TSE_STRIP_DUP:
         data.icon = ICON_SEQ_STRIP_DUPLICATE;
         break;
       case TSE_RNA_STRUCT: {

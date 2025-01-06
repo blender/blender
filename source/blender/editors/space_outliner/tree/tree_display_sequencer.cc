@@ -39,23 +39,23 @@ ListBase TreeDisplaySequencer::build_tree(const TreeSourceData &source_data)
   }
 
   for (Strip *seq : List<Strip>(ed->seqbasep)) {
-    SequenceAddOp op = need_add_seq_dup(seq);
-    if (op == SEQUENCE_DUPLICATE_NONE) {
-      add_element(&tree, nullptr, seq, nullptr, TSE_SEQUENCE, 0);
+    StripAddOp op = need_add_strip_dup(seq);
+    if (op == StripAddOp::None) {
+      add_element(&tree, nullptr, seq, nullptr, TSE_STRIP, 0);
     }
-    else if (op == SEQUENCE_DUPLICATE_ADD) {
-      TreeElement *te = add_element(&tree, nullptr, seq, nullptr, TSE_SEQUENCE_DUP, 0);
-      add_seq_dup(seq, te, 0);
+    else if (op == StripAddOp::Add) {
+      TreeElement *te = add_element(&tree, nullptr, seq, nullptr, TSE_STRIP_DUP, 0);
+      add_strip_dup(seq, te, 0);
     }
   }
 
   return tree;
 }
 
-SequenceAddOp TreeDisplaySequencer::need_add_seq_dup(Strip *seq) const
+StripAddOp TreeDisplaySequencer::need_add_strip_dup(Strip *seq) const
 {
   if ((!seq->data) || (!seq->data->stripdata)) {
-    return SEQUENCE_DUPLICATE_NONE;
+    return StripAddOp::None;
   }
 
   /*
@@ -70,7 +70,7 @@ SequenceAddOp TreeDisplaySequencer::need_add_seq_dup(Strip *seq) const
     }
 
     if (STREQ(p->data->stripdata->filename, seq->data->stripdata->filename)) {
-      return SEQUENCE_DUPLICATE_NOOP;
+      return StripAddOp::Noop;
     }
     p = p->prev;
   }
@@ -83,15 +83,15 @@ SequenceAddOp TreeDisplaySequencer::need_add_seq_dup(Strip *seq) const
     }
 
     if (STREQ(p->data->stripdata->filename, seq->data->stripdata->filename)) {
-      return SEQUENCE_DUPLICATE_ADD;
+      return StripAddOp::Add;
     }
     p = p->next;
   }
 
-  return SEQUENCE_DUPLICATE_NONE;
+  return StripAddOp::None;
 }
 
-void TreeDisplaySequencer::add_seq_dup(Strip *seq, TreeElement *te, short index)
+void TreeDisplaySequencer::add_strip_dup(Strip *seq, TreeElement *te, short index)
 {
   Strip *p = seq;
   while (p) {
@@ -101,7 +101,7 @@ void TreeDisplaySequencer::add_seq_dup(Strip *seq, TreeElement *te, short index)
     }
 
     if (STREQ(p->data->stripdata->filename, seq->data->stripdata->filename)) {
-      add_element(&te->subtree, nullptr, (void *)p, te, TSE_SEQUENCE, index);
+      add_element(&te->subtree, nullptr, (void *)p, te, TSE_STRIP, index);
     }
     p = p->next;
   }
