@@ -238,7 +238,7 @@ class Credits:
 
     def write_object(
             self,
-            fh: io.TextIOWrapper,
+            fh: io.TextIOBase,
             *,
             use_metadata: bool = False,
     ) -> None:

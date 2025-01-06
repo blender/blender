@@ -108,6 +108,8 @@ def main() -> int:
         "  " + "\n  ".join(icon_files) + "\n",
     )
 
+    return 0
+
 
 if __name__ == "__main__":
     sys.exit(main())

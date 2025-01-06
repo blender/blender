@@ -10,7 +10,7 @@ __all__ = (
 import sys
 
 
-def main():
+def main() -> int:
     argv = sys.argv[:]
 
     strip_byte = False
@@ -20,7 +20,7 @@ def main():
 
     if len(argv) < 2:
         sys.stdout.write("Usage: ctodata <c_file> [--strip-byte]\n")
-        sys.exit(1)
+        return 1
 
     filename = argv[1]
 
@@ -28,7 +28,7 @@ def main():
         fpin = open(filename, "r")
     except:
         sys.stdout.write("Unable to open input {:s}\n".format(argv[1]))
-        sys.exit(1)
+        return 1
 
     data_as_str = fpin.read().rsplit("{")[-1].split("}")[0]
     data_as_str = data_as_str.replace(",", " ")
@@ -56,6 +56,7 @@ def main():
     size = fpout.write(data)
 
     sys.stdout.write("{:d}\n".format(size))
+    return 0
 
 
 if __name__ == "__main__":
