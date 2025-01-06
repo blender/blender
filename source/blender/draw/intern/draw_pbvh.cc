@@ -507,21 +507,6 @@ static const CustomData *get_cdata(const BMesh &bm, const bke::AttrDomain domain
   }
 }
 
-template<typename T> T fallback_value_for_fill()
-{
-  return T();
-}
-
-template<> ColorGeometry4f fallback_value_for_fill()
-{
-  return ColorGeometry4f(1.0f, 1.0f, 1.0f, 1.0f);
-}
-
-template<> ColorGeometry4b fallback_value_for_fill()
-{
-  return fallback_value_for_fill<ColorGeometry4f>().encode();
-}
-
 static int count_visible_tris_bmesh(const Set<BMFace *, 0> &faces)
 {
   return std::count_if(faces.begin(), faces.end(), [&](const BMFace *face) {
@@ -1754,17 +1739,13 @@ Span<gpu::VertBuf *> DrawCacheImpl::ensure_attribute_data(const Object &object,
         }
       }
       else {
-        const eCustomDataType type = std::get<GenericRequest>(attr).type;
-        node_mask.foreach_index(GrainSize(1), [&](const int i) {
-          bke::attribute_math::convert_to_static_type(type, [&](auto dummy) {
-            using T = decltype(dummy);
-            using Converter = AttributeConverter<T>;
-            using VBOType = typename Converter::VBOType;
-            if constexpr (!std::is_void_v<VBOType>) {
-              vbos[i]->data<VBOType>().fill(Converter::convert(fallback_value_for_fill<T>()));
-            }
-          });
-        });
+        ensure_vbos_allocated_grids(object,
+                                    attribute_format(orig_mesh_data, "Dummy", CD_PROP_FLOAT3),
+                                    use_flat_layout_,
+                                    mask,
+                                    vbos);
+        mask.foreach_index(GrainSize(1),
+                           [&](const int i) { vbos[i]->data<float3>().fill(float3(0.0f)); });
       }
       break;
     }
