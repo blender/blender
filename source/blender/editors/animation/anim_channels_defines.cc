@@ -6184,7 +6184,7 @@ void ANIM_channel_draw_widgets(const bContext *C,
             /* Layer onion skinning switch. */
             offset -= ICON_WIDTH;
             UI_block_emboss_set(block, UI_EMBOSS_NONE);
-            prop = RNA_struct_find_property(&ptr, "use_onion_skinning");
+            prop = RNA_struct_find_property(&ptr, "use_annotation_onion_skinning");
             if (const std::optional<std::string> gp_rna_path = RNA_path_from_ID_to_property(&ptr,
                                                                                             prop))
             {
@@ -6204,38 +6204,11 @@ void ANIM_channel_draw_widgets(const bContext *C,
               }
             }
 
-            /* Mask Layer. */
-            offset -= ICON_WIDTH;
-            UI_block_emboss_set(block, UI_EMBOSS_NONE);
-            prop = RNA_struct_find_property(&ptr, "use_mask_layer");
-            if (const std::optional<std::string> gp_rna_path = RNA_path_from_ID_to_property(&ptr,
-                                                                                            prop))
-            {
-              if (RNA_path_resolve_property(&id_ptr, gp_rna_path->c_str(), &ptr, &prop)) {
-                if (gpl->flag & GP_LAYER_USE_MASK) {
-                  icon = ICON_MOD_MASK;
-                }
-                else {
-                  icon = ICON_LAYER_ACTIVE;
-                }
-                uiDefAutoButR(block,
-                              &ptr,
-                              prop,
-                              array_index,
-                              "",
-                              icon,
-                              offset,
-                              rect->ymin,
-                              ICON_WIDTH,
-                              channel_height);
-              }
-            }
-
             /* Layer opacity. */
             const short width = SLIDER_WIDTH * 0.6;
             offset -= width;
             UI_block_emboss_set(block, UI_EMBOSS);
-            prop = RNA_struct_find_property(&ptr, "opacity");
+            prop = RNA_struct_find_property(&ptr, "annotation_opacity");
             if (const std::optional<std::string> gp_rna_path = RNA_path_from_ID_to_property(&ptr,
                                                                                             prop))
             {
