@@ -194,6 +194,33 @@ static void transform_curve_edit_hints(bke::CurvesEditHints &edit_hints, const f
   }
 }
 
+static void transform_grease_pencil_edit_hints(bke::GreasePencilEditHints &edit_hints,
+                                               const float4x4 &transform)
+{
+  if (!edit_hints.drawing_hints) {
+    return;
+  }
+
+  for (bke::GreasePencilDrawingEditHints &drawing_hints : *edit_hints.drawing_hints) {
+    if (const std::optional<MutableSpan<float3>> positions = drawing_hints.positions_for_write()) {
+      transform_positions(*positions, transform);
+    }
+    float3x3 deform_mat = transform.view<3, 3>();
+    if (drawing_hints.deform_mats.has_value()) {
+      MutableSpan<float3x3> deform_mats = *drawing_hints.deform_mats;
+      threading::parallel_for(deform_mats.index_range(), 1024, [&](const IndexRange range) {
+        for (const int64_t i : range) {
+          deform_mats[i] = deform_mat * deform_mats[i];
+        }
+      });
+    }
+    else {
+      drawing_hints.deform_mats.emplace(drawing_hints.drawing_orig->strokes().points_num(),
+                                        deform_mat);
+    }
+  }
+}
+
 static void transform_gizmo_edit_hints(bke::GizmoEditHints &edit_hints, const float4x4 &transform)
 {
   for (float4x4 &m : edit_hints.gizmo_transforms.values()) {
@@ -267,6 +294,11 @@ std::optional<TransformGeometryErrors> transform_geometry(bke::GeometrySet &geom
   }
   if (bke::CurvesEditHints *curve_edit_hints = geometry.get_curve_edit_hints_for_write()) {
     transform_curve_edit_hints(*curve_edit_hints, transform);
+  }
+  if (bke::GreasePencilEditHints *grease_pencil_edit_hints =
+          geometry.get_grease_pencil_edit_hints_for_write())
+  {
+    transform_grease_pencil_edit_hints(*grease_pencil_edit_hints, transform);
   }
   if (bke::GizmoEditHints *gizmo_edit_hints = geometry.get_gizmo_edit_hints_for_write()) {
     transform_gizmo_edit_hints(*gizmo_edit_hints, transform);

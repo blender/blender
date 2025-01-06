@@ -163,7 +163,17 @@ void BKE_id_material_clear(struct Main *bmain, struct ID *id);
  * material indices might be overwritten by the object.
  */
 struct Material *BKE_object_material_get_eval(struct Object *ob, short act);
+/**
+ * Gets the number of material slots on the evaluated object.
+ * This is the maximum of the number of material slots on the object and geometry.
+ */
 int BKE_object_material_count_eval(const struct Object *ob);
+/**
+ * Same as #BKE_object_material_count_eval, but returns at least one. This is commonly used in
+ * rendering code which has to use a fallback material if there is none.
+ */
+int BKE_object_material_count_with_fallback_eval(const struct Object *ob);
+
 void BKE_id_material_eval_assign(struct ID *id, int slot, struct Material *material);
 /**
  * Add an empty material slot if the id has no material slots. This material slot allows the

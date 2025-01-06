@@ -4,9 +4,7 @@
 
 #pragma once
 
-#include "device/memory.h"
 #include "graph/node.h"
-#include "session/buffers.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -22,7 +20,7 @@ enum DenoiserType {
 /* COnstruct human-readable string which denotes the denoiser type. */
 const char *denoiserTypeToHumanReadable(DenoiserType type);
 
-typedef int DenoiserTypeMask;
+using DenoiserTypeMask = int;
 
 enum DenoiserPrefilter {
   /* Best quality of the result without extra processing time, but requires guiding passes to be

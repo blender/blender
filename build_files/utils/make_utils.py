@@ -17,6 +17,23 @@ Some type annotations are quoted to avoid errors in older Python versions.
 These can be unquoted eventually.
 """
 
+__all__ = (
+    "call",
+    "check_output",
+    "command_missing",
+    "git_branch",
+    "git_branch_exists",
+    "git_enable_submodule",
+    "git_get_remote_url",
+    "git_is_remote_repository",
+    "git_remote_exist",
+    "git_set_config",
+    "git_update_submodule",
+    "is_git_submodule_enabled",
+    "parse_blender_version",
+    "remove_directory",
+)
+
 import re
 import os
 import shutil

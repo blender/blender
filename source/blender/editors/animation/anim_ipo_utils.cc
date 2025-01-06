@@ -21,6 +21,11 @@
 #include "BLT_translation.hh"
 
 #include "DNA_anim_types.h"
+#include "DNA_modifier_types.h"
+#include "DNA_node_types.h"
+
+#include "BKE_node.hh"
+#include "BKE_node_runtime.hh"
 
 #include "RNA_access.hh"
 #include "RNA_path.hh"
@@ -40,6 +45,7 @@ struct StructRNA;
 
 std::optional<int> getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 {
+  using namespace blender;
   /* Could make an argument, it's a documented limit at the moment. */
   constexpr size_t name_maxncpy = 256;
 
@@ -141,26 +147,49 @@ std::optional<int> getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
         }
       }
     }
-    /* For node sockets, it is useful to include the node name as well (multiple similar nodes
-     * are not distinguishable otherwise). Unfortunately, the node label cannot be retrieved
-     * from the rna path, for this to work access to the underlying node is needed (but finding
-     * the node iterates all nodes & sockets which would result in bad performance in some
-     * circumstances). */
+
     if (RNA_struct_is_a(ptr.type, &RNA_NodeSocket)) {
-      char nodename[name_maxncpy];
-      if (BLI_str_quoted_substr(fcu->rna_path, "nodes[", nodename, sizeof(nodename))) {
-        const char *structname_all = BLI_sprintfN("%s : %s", nodename, structname);
-        if (free_structname) {
-          MEM_freeN((void *)structname);
-        }
-        structname = structname_all;
-        free_structname = true;
+      /* Display the name/label of a node socket's node to allow distinguishing multiple nodes. */
+      BLI_assert(GS(ptr.owner_id->name) == ID_NT);
+      const bNodeTree *ntree = reinterpret_cast<const bNodeTree *>(ptr.owner_id);
+      const bNodeSocket *socket = static_cast<const bNodeSocket *>(ptr.data);
+      const bNode &node = bke::node_find_node(*ntree, *socket);
+      if (free_structname) {
+        MEM_freeN((void *)structname);
       }
+      structname = node.label_or_name().c_str();
+      free_structname = false;
+    }
+    else if (RNA_struct_is_a(ptr.type, &RNA_Node)) {
+      /* Display the label of the node if available to distinguish nodes like "Value". */
+      BLI_assert(GS(ptr.owner_id->name) == ID_NT);
+      const bNode *node = static_cast<const bNode *>(ptr.data);
+      if (free_structname) {
+        MEM_freeN((void *)structname);
+      }
+      structname = node->label_or_name().c_str();
+      free_structname = false;
     }
   }
 
-  /* Property Name is straightforward */
   propname = RNA_property_ui_name(prop);
+
+  if (RNA_struct_is_a(ptr.type, &RNA_NodesModifier)) {
+    /* Display geometry node properties with node-tree socket labels. */
+    const NodesModifierData *nmd = static_cast<const NodesModifierData *>(ptr.data);
+    if (const bNodeTree *node_group = nmd->node_group) {
+      if (const bNodeTreeInterfaceSocket *input = bke::node_find_interface_input_by_identifier(
+              *node_group, propname))
+      {
+        propname = input->name;
+      }
+    }
+  }
+  else if (RNA_struct_is_a(ptr.type, &RNA_NodeSocket)) {
+    /* Use the socket's name rather than the "Default Value" name of the socket's RNA property. */
+    const bNodeSocket *socket = static_cast<const bNodeSocket *>(ptr.data);
+    propname = socket->name;
+  }
 
   /* Array Index - only if applicable */
   if (RNA_property_array_check(prop)) {

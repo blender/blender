@@ -123,7 +123,7 @@ bool oneapi_run_test_kernel(SyclQueue *queue_)
     sycl::free(B_device, *queue);
     queue->wait_and_throw();
   }
-  catch (sycl::exception const &e) {
+  catch (const sycl::exception &e) {
     if (s_error_cb) {
       s_error_cb(e.what(), s_error_user_ptr);
     }
@@ -133,7 +133,7 @@ bool oneapi_run_test_kernel(SyclQueue *queue_)
   return is_computation_correct;
 }
 
-bool oneapi_zero_memory_on_device(SyclQueue *queue_, void *device_pointer, size_t num_bytes)
+bool oneapi_zero_memory_on_device(SyclQueue *queue_, void *device_pointer, const size_t num_bytes)
 {
   assert(queue_);
   sycl::queue *queue = reinterpret_cast<sycl::queue *>(queue_);
@@ -142,7 +142,7 @@ bool oneapi_zero_memory_on_device(SyclQueue *queue_, void *device_pointer, size_
     queue->wait_and_throw();
     return true;
   }
-  catch (sycl::exception const &e) {
+  catch (const sycl::exception &e) {
     if (s_error_cb) {
       s_error_cb(e.what(), s_error_user_ptr);
     }
@@ -265,7 +265,7 @@ bool oneapi_load_kernels(SyclQueue *queue_,
         }
       }
     }
-    catch (sycl::exception const &e) {
+    catch (const sycl::exception &e) {
       if (s_error_cb) {
         s_error_cb(e.what(), s_error_user_ptr);
       }
@@ -308,7 +308,7 @@ bool oneapi_load_kernels(SyclQueue *queue_,
                                                                     {kernel_id});
     }
   }
-  catch (sycl::exception const &e) {
+  catch (const sycl::exception &e) {
     if (s_error_cb) {
       s_error_cb(e.what(), s_error_user_ptr);
     }
@@ -318,9 +318,9 @@ bool oneapi_load_kernels(SyclQueue *queue_,
 }
 
 bool oneapi_enqueue_kernel(KernelContext *kernel_context,
-                           int kernel,
-                           size_t global_size,
-                           size_t local_size,
+                           const int kernel,
+                           const size_t global_size,
+                           const size_t local_size,
                            const uint kernel_features,
                            bool use_hardware_raytracing,
                            void **args)
@@ -690,7 +690,7 @@ bool oneapi_enqueue_kernel(KernelContext *kernel_context,
       }
     });
   }
-  catch (sycl::exception const &e) {
+  catch (const sycl::exception &e) {
     if (s_error_cb) {
       s_error_cb(e.what(), s_error_user_ptr);
       success = false;

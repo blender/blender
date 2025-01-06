@@ -32,6 +32,7 @@ using OpenSubdiv::Far::PatchTable;
 using OpenSubdiv::Far::PatchTableFactory;
 using OpenSubdiv::Far::StencilTable;
 using OpenSubdiv::Far::StencilTableFactory;
+using OpenSubdiv::Far::StencilTableReal;
 using OpenSubdiv::Far::TopologyRefiner;
 using OpenSubdiv::Osd::PatchArray;
 using OpenSubdiv::Osd::PatchCoord;
@@ -449,6 +450,14 @@ OpenSubdiv_Evaluator *openSubdiv_createEvaluatorFromTopologyRefiner(
     TopologyRefiner::UniformOptions options(level);
     refiner->RefineUniform(options);
   }
+
+  // Work around ASAN warnings, due to OpenSubdiv pretending to have an actual StencilTable
+  // instance while it's really its base class.
+  auto delete_stencil_table = [](const StencilTable *table) {
+    static_assert(std::is_base_of_v<StencilTableReal<float>, StencilTable>);
+    delete reinterpret_cast<const StencilTableReal<float> *>(table);
+  };
+
   // Generate stencil table to update the bi-cubic patches control vertices
   // after they have been re-posed (both for vertex & varying interpolation).
   //
@@ -497,7 +506,7 @@ OpenSubdiv_Evaluator *openSubdiv_createEvaluatorFromTopologyRefiner(
   if (local_point_stencil_table != NULL) {
     const StencilTable *table = StencilTableFactory::AppendLocalPointStencilTable(
         *refiner, vertex_stencils, local_point_stencil_table);
-    delete vertex_stencils;
+    delete_stencil_table(vertex_stencils);
     vertex_stencils = table;
   }
   // Varying stencils.
@@ -507,7 +516,7 @@ OpenSubdiv_Evaluator *openSubdiv_createEvaluatorFromTopologyRefiner(
     if (local_point_varying_stencil_table != NULL) {
       const StencilTable *table = StencilTableFactory::AppendLocalPointStencilTable(
           *refiner, varying_stencils, local_point_varying_stencil_table);
-      delete varying_stencils;
+      delete_stencil_table(varying_stencils);
       varying_stencils = table;
     }
   }
@@ -520,7 +529,7 @@ OpenSubdiv_Evaluator *openSubdiv_createEvaluatorFromTopologyRefiner(
         patch_table->GetLocalPointFaceVaryingStencilTable(face_varying_channel),
         face_varying_channel);
     if (table != NULL) {
-      delete all_face_varying_stencils[face_varying_channel];
+      delete_stencil_table(all_face_varying_stencils[face_varying_channel]);
       all_face_varying_stencils[face_varying_channel] = table;
     }
   }
@@ -556,10 +565,11 @@ OpenSubdiv_Evaluator *openSubdiv_createEvaluatorFromTopologyRefiner(
   evaluator->patch_map = patch_map;
   evaluator->patch_table = patch_table;
   // TODO(sergey): Look into whether we've got duplicated stencils arrays.
-  delete vertex_stencils;
-  delete varying_stencils;
+  delete_stencil_table(vertex_stencils);
+  delete_stencil_table(varying_stencils);
   for (const StencilTable *table : all_face_varying_stencils) {
-    delete table;
+    delete_stencil_table(table);
   }
+
   return evaluator;
 }

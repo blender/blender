@@ -47,7 +47,10 @@ static void draw_node_input(bContext *C,
   if (!socket.is_available()) {
     return;
   }
-  if ((socket.flag & (SOCK_IS_LINKED | SOCK_HIDE_VALUE)) != 0) {
+  if (socket.is_directly_linked()) {
+    return;
+  }
+  if (socket.flag & SOCK_HIDE_VALUE) {
     return;
   }
   if (socket.typeinfo->draw == nullptr) {
@@ -60,9 +63,12 @@ static void draw_node_input(bContext *C,
   if (node.is_reroute()) {
     return;
   }
+  if (socket.idname == StringRef("NodeSocketVirtual")) {
+    return;
+  }
 
   PointerRNA socket_ptr = RNA_pointer_create(node_ptr->owner_id, &RNA_NodeSocket, &socket);
-  const char *text = IFACE_(bke::nodeSocketLabel(&socket));
+  const StringRefNull text(IFACE_(bke::nodeSocketLabel(&socket).c_str()));
   uiLayout *row = uiLayoutRow(layout, true);
   socket.typeinfo->draw(C, row, &socket_ptr, node_ptr, text);
 }
@@ -73,30 +79,25 @@ static void draw_node_inputs_recursive(bContext *C,
                                        PointerRNA *node_ptr,
                                        const blender::nodes::PanelDeclaration &panel_decl)
 {
-  /* Use a root panel property to toggle open/closed state. */
   /* TODO: Use flag on the panel state instead which is better for dynamic panel amounts. */
   const std::string panel_idname = "NodePanel" + std::to_string(panel_decl.identifier);
-  Panel *root_panel = uiLayoutGetRootPanel(layout);
-  LayoutPanelState *state = BKE_panel_layout_panel_state_ensure(
-      root_panel, panel_idname.c_str(), panel_decl.default_collapsed);
-  PointerRNA state_ptr = RNA_pointer_create(nullptr, &RNA_LayoutPanelState, state);
-  uiLayout *panel_layout = uiLayoutPanelProp(
-      C, layout, &state_ptr, "is_open", IFACE_(panel_decl.name.c_str()));
-  if (!(state->flag & LAYOUT_PANEL_STATE_FLAG_OPEN)) {
+  PanelLayout panel = uiLayoutPanel(C, layout, panel_idname.c_str(), panel_decl.default_collapsed);
+  uiItemL(panel.header, IFACE_(panel_decl.name.c_str()), ICON_NONE);
+  if (!panel.body) {
     return;
   }
   for (const ItemDeclaration *item_decl : panel_decl.items) {
     if (const auto *socket_decl = dynamic_cast<const SocketDeclaration *>(item_decl)) {
       if (socket_decl->in_out == SOCK_IN) {
-        draw_node_input(C, panel_layout, node_ptr, node.socket_by_decl(*socket_decl));
+        draw_node_input(C, panel.body, node_ptr, node.socket_by_decl(*socket_decl));
       }
     }
     else if (const auto *sub_panel_decl = dynamic_cast<const PanelDeclaration *>(item_decl)) {
-      draw_node_inputs_recursive(C, panel_layout, node, node_ptr, *sub_panel_decl);
+      draw_node_inputs_recursive(C, panel.body, node, node_ptr, *sub_panel_decl);
     }
     else if (const auto *layout_decl = dynamic_cast<const LayoutDeclaration *>(item_decl)) {
       if (!layout_decl->is_default) {
-        layout_decl->draw(panel_layout, C, node_ptr);
+        layout_decl->draw(panel.body, C, node_ptr);
       }
     }
   }

@@ -422,19 +422,19 @@ static void do_version_bbone_easing_fcurve_fix(ID * /*id*/, FCurve *fcu)
   }
 }
 
-static bool seq_update_proxy_cb(Sequence *seq, void * /*user_data*/)
+static bool seq_update_proxy_cb(Strip *seq, void * /*user_data*/)
 {
   seq->stereo3d_format = static_cast<Stereo3dFormat *>(
       MEM_callocN(sizeof(Stereo3dFormat), "Stereo Display 3d Format"));
 
 #define SEQ_USE_PROXY_CUSTOM_DIR (1 << 19)
 #define SEQ_USE_PROXY_CUSTOM_FILE (1 << 21)
-  if (seq->strip && seq->strip->proxy && !seq->strip->proxy->storage) {
+  if (seq->data && seq->data->proxy && !seq->data->proxy->storage) {
     if (seq->flag & SEQ_USE_PROXY_CUSTOM_DIR) {
-      seq->strip->proxy->storage = SEQ_STORAGE_PROXY_CUSTOM_DIR;
+      seq->data->proxy->storage = SEQ_STORAGE_PROXY_CUSTOM_DIR;
     }
     if (seq->flag & SEQ_USE_PROXY_CUSTOM_FILE) {
-      seq->strip->proxy->storage = SEQ_STORAGE_PROXY_CUSTOM_FILE;
+      seq->data->proxy->storage = SEQ_STORAGE_PROXY_CUSTOM_FILE;
     }
   }
 #undef SEQ_USE_PROXY_CUSTOM_DIR
@@ -442,7 +442,7 @@ static bool seq_update_proxy_cb(Sequence *seq, void * /*user_data*/)
   return true;
 }
 
-static bool seq_update_effectdata_cb(Sequence *seq, void * /*user_data*/)
+static bool seq_update_effectdata_cb(Strip *seq, void * /*user_data*/)
 {
 
   if (seq->type != SEQ_TYPE_TEXT) {

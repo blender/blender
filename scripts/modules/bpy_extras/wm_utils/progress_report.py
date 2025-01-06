@@ -2,6 +2,11 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+__all__ = (
+    "ProgressReport",
+    "ProgressReportSubstep",
+)
+
 import time
 
 
@@ -50,7 +55,7 @@ class ProgressReport:
             self.running = True
         return self
 
-    def __exit__(self, exc_type=None, exc_value=None, traceback=None):
+    def __exit__(self, _exc_type=None, _exc_value=None, _traceback=None):
         self.running = False
         if self.wm:
             self.wm.progress_end()
@@ -139,7 +144,7 @@ class ProgressReportSubstep:
         self.progress.enter_substeps(self.nbr, self.msg)
         return self
 
-    def __exit__(self, exc_type, exc_value, traceback):
+    def __exit__(self, _exc_type, _exc_value, _traceback):
         assert len(self.progress.steps) > self.level
         while len(self.progress.steps) > self.level + 1:
             self.progress.leave_substeps()

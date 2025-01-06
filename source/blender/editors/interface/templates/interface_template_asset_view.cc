@@ -196,7 +196,7 @@ static void populate_asset_collection(const AssetLibraryReference &asset_library
 
   RNA_property_collection_clear(&assets_dataptr, assets_prop);
 
-  asset::list::iterate(asset_library_ref, [&](AssetHandle /*asset*/) {
+  asset::list::iterate(asset_library_ref, [&](asset_system::AssetRepresentation & /*asset*/) {
     /* XXX creating a dummy #RNA_AssetHandle collection item. It's #file_data will be null. This is
      * because the #FileDirEntry may be freed while iterating, there's a cache for them with a
      * maximum size. Further code will query as needed it using the collection index. */

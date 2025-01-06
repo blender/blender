@@ -6,19 +6,14 @@
 
 #  include "integrator/denoiser_oidn_gpu.h"
 
-#  include <array>
-
 #  include "device/device.h"
 #  include "device/oneapi/device_impl.h"
 #  include "device/queue.h"
-#  include "integrator/pass_accessor_cpu.h"
+
 #  include "session/buffers.h"
-#  include "util/array.h"
+
 #  include "util/log.h"
 #  include "util/path.h"
-
-#  include "kernel/device/cpu/compat.h"
-#  include "kernel/device/cpu/kernel.h"
 
 #  if OIDN_VERSION_MAJOR < 2
 #    define oidnSetFilterBool oidnSetFilter1b
@@ -204,7 +199,7 @@ OIDNFilter OIDNDenoiserGPU::create_filter()
   const char *error_message = nullptr;
   OIDNFilter filter = oidnNewFilter(oidn_device_, "RT");
   if (filter == nullptr) {
-    OIDNError err = oidnGetDeviceError(oidn_device_, (const char **)&error_message);
+    const OIDNError err = oidnGetDeviceError(oidn_device_, &error_message);
     if (OIDN_ERROR_NONE != err) {
       LOG(ERROR) << "OIDN error: " << error_message;
       set_error(error_message);
@@ -245,7 +240,7 @@ bool OIDNDenoiserGPU::commit_and_execute_filter(OIDNFilter filter, ExecMode mode
     }
 
     /* If OIDN runs out of memory, reduce mem limit and retry */
-    err = oidnGetDeviceError(oidn_device_, (const char **)&error_message);
+    err = oidnGetDeviceError(oidn_device_, &error_message);
     if (err != OIDN_ERROR_OUT_OF_MEMORY || max_mem_ < 200) {
       break;
     }
@@ -497,12 +492,12 @@ bool OIDNDenoiserGPU::denoise_run(const DenoiseContext &context, const DenoisePa
 void OIDNDenoiserGPU::set_filter_pass(OIDNFilter filter,
                                       const char *name,
                                       device_ptr ptr,
-                                      int format,
-                                      int width,
-                                      int height,
-                                      size_t offset_in_bytes,
-                                      size_t pixel_stride_in_bytes,
-                                      size_t row_stride_in_bytes)
+                                      const int format,
+                                      const int width,
+                                      const int height,
+                                      const size_t offset_in_bytes,
+                                      const size_t pixel_stride_in_bytes,
+                                      const size_t row_stride_in_bytes)
 {
 #  if defined(OIDN_DEVICE_METAL) && defined(WITH_METAL)
   if (denoiser_device_->info.type == DEVICE_METAL) {

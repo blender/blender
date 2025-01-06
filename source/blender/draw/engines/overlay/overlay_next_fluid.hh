@@ -42,7 +42,7 @@ class Fluids : Overlay {
   void begin_sync(Resources &res, const State &state) final
   {
     /* Against design. Should not sync depending on view. */
-    float3 camera_direction = View("WorkaroundView", DRW_view_default_get()).viewinv().z_axis();
+    float3 camera_direction = blender::draw::View::default_get().viewinv().z_axis();
     dominant_axis = math::dominant_axis(camera_direction);
 
     {

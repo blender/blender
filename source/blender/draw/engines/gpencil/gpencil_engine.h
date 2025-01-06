@@ -38,7 +38,6 @@ struct Object;
 struct RenderEngine;
 struct RenderLayer;
 struct View3D;
-struct bGPDstroke;
 
 /* used to convert pixel scale. */
 #define GPENCIL_PIXEL_FACTOR 2000.0f
@@ -49,8 +48,16 @@ struct bGPDstroke;
 #define GP_MAX_MASKBITS 256
 
 struct GPENCIL_tVfx;
+struct GPENCIL_tLayer;
 
+using PassSimple = blender::draw::PassSimple;
+using Texture = blender::draw::Texture;
+using TextureFromPool = blender::draw::TextureFromPool;
+using Framebuffer = blender::draw::Framebuffer;
+/* NOTE: These do not preserve the PassSimple memory across frames.
+ * If that becomes a bottleneck, these containers can be improved. */
 using GPENCIL_tVfx_Pool = blender::draw::detail::SubPassVector<GPENCIL_tVfx>;
+using GPENCIL_tLayer_Pool = blender::draw::detail::SubPassVector<GPENCIL_tLayer>;
 
 /* *********** Draw Data *********** */
 typedef struct GPENCIL_MaterialPool {
@@ -80,7 +87,7 @@ struct GPENCIL_ViewLayerData {
   /* GPENCIL_tObject */
   struct BLI_memblock *gp_object_pool;
   /* GPENCIL_tLayer */
-  struct BLI_memblock *gp_layer_pool;
+  GPENCIL_tLayer_Pool *gp_layer_pool;
   /* GPENCIL_tVfx */
   GPENCIL_tVfx_Pool *gp_vfx_pool;
   /* GPENCIL_MaterialPool */
@@ -94,7 +101,6 @@ struct GPENCIL_ViewLayerData {
 /* *********** GPencil  *********** */
 
 struct GPENCIL_tVfx {
-  using PassSimple = blender::draw::PassSimple;
   /** Single linked-list. */
   struct GPENCIL_tVfx *next = nullptr;
   std::unique_ptr<PassSimple> vfx_ps = std::make_unique<PassSimple>("vfx");
@@ -106,11 +112,9 @@ typedef struct GPENCIL_tLayer {
   /** Single linked-list. */
   struct GPENCIL_tLayer *next;
   /** Geometry pass (draw all strokes). */
-  DRWPass *geom_ps;
+  std::unique_ptr<PassSimple> geom_ps;
   /** Blend pass to composite onto the target buffer (blends modes). NULL if not needed. */
-  DRWPass *blend_ps;
-  /** First shading group created for this layer. Contains all uniforms. */
-  DRWShadingGroup *base_shgrp;
+  std::unique_ptr<PassSimple> blend_ps;
   /** Layer id of the mask. */
   BLI_bitmap *mask_bits;
   BLI_bitmap *mask_invert_bits;
@@ -137,7 +141,7 @@ typedef struct GPENCIL_tObject {
   /* Used for stroke thickness scaling. */
   float object_scale;
   /* Normal used for shading. Based on view angle. */
-  float plane_normal[3];
+  float3 plane_normal;
   /* Used for drawing depth merge pass. */
   float plane_mat[4][4];
 
@@ -153,53 +157,66 @@ typedef struct GPENCIL_StorageList {
   struct GPENCIL_PrivateData *pd;
 } GPENCIL_StorageList;
 
-typedef struct GPENCIL_PassList {
-  struct DRWPass *dummy;
-} GPENCIL_PassList;
-
-typedef struct GPENCIL_FramebufferList {
-  struct GPUFrameBuffer *render_fb;
-  struct GPUFrameBuffer *gpencil_fb;
-  struct GPUFrameBuffer *snapshot_fb;
-  struct GPUFrameBuffer *layer_fb;
-  struct GPUFrameBuffer *object_fb;
-  struct GPUFrameBuffer *mask_fb;
-  struct GPUFrameBuffer *smaa_edge_fb;
-  struct GPUFrameBuffer *smaa_weight_fb;
-} GPENCIL_FramebufferList;
-
-typedef struct GPENCIL_TextureList {
-  /* Dummy texture to avoid errors cause by empty sampler. */
-  struct GPUTexture *dummy_texture;
-  /* Snapshot for smoother drawing. */
-  struct GPUTexture *snapshot_depth_tx;
-  struct GPUTexture *snapshot_color_tx;
-  struct GPUTexture *snapshot_reveal_tx;
-  /* Textures used by Antialiasing. */
-  struct GPUTexture *smaa_area_tx;
-  struct GPUTexture *smaa_search_tx;
-  /* Textures used during render. Containing underlying rendered scene. */
-  struct GPUTexture *render_depth_tx;
-  struct GPUTexture *render_color_tx;
-} GPENCIL_TextureList;
-
 struct GPENCIL_Instance {
-  blender::draw::PassSimple smaa_edge_ps = {"smaa_edge"};
-  blender::draw::PassSimple smaa_weight_ps = {"smaa_weight"};
-  blender::draw::PassSimple smaa_resolve_ps = {"smaa_resolve"};
+  PassSimple smaa_edge_ps = {"smaa_edge"};
+  PassSimple smaa_weight_ps = {"smaa_weight"};
+  PassSimple smaa_resolve_ps = {"smaa_resolve"};
   /* Composite the object depth to the default depth buffer to occlude overlays. */
-  blender::draw::PassSimple merge_depth_ps = {"merge_depth_ps"};
+  PassSimple merge_depth_ps = {"merge_depth_ps"};
   /* Invert mask buffer content. */
-  blender::draw::PassSimple mask_invert_ps = {"mask_invert_ps"};
+  PassSimple mask_invert_ps = {"mask_invert_ps"};
 
   float4x4 object_bound_mat;
+
+  /* Dummy texture to avoid errors cause by empty sampler. */
+  Texture dummy_texture = {"dummy_texture"};
+  Texture dummy_depth = {"dummy_depth"};
+  /* Textures used during render. Containing underlying rendered scene. */
+  Texture render_depth_tx = {"render_depth_tx"};
+  Texture render_color_tx = {"render_color_tx"};
+  /* Snapshot for smoother drawing. */
+  Texture snapshot_depth_tx = {"snapshot_depth_tx"};
+  Texture snapshot_color_tx = {"snapshot_color_tx"};
+  Texture snapshot_reveal_tx = {"snapshot_reveal_tx"};
+  /* Textures used by Antialiasing. */
+  Texture smaa_area_tx = {"smaa_area_tx"};
+  Texture smaa_search_tx = {"smaa_search_tx"};
+
+  /* Temp Textures (shared with other engines). */
+  TextureFromPool depth_tx = {"depth_tx"};
+  TextureFromPool color_tx = {"color_tx"};
+  TextureFromPool color_layer_tx = {"color_layer_tx"};
+  TextureFromPool color_object_tx = {"color_object_tx"};
+  /* Revealage is 1 - alpha */
+  TextureFromPool reveal_tx = {"reveal_tx"};
+  TextureFromPool reveal_layer_tx = {"reveal_layer_tx"};
+  TextureFromPool reveal_object_tx = {"reveal_object_tx"};
+  /* Mask texture */
+  TextureFromPool mask_depth_tx = {"mask_depth_tx"};
+  TextureFromPool mask_color_tx = {"mask_color_tx"};
+  TextureFromPool mask_tx = {"mask_tx"};
+  /* Anti-Aliasing. */
+  TextureFromPool smaa_edge_tx = {"smaa_edge_tx"};
+  TextureFromPool smaa_weight_tx = {"smaa_weight_tx"};
+
+  Framebuffer render_fb = {"render_fb"};
+  Framebuffer gpencil_fb = {"gpencil_fb"};
+  Framebuffer snapshot_fb = {"snapshot_fb"};
+  Framebuffer layer_fb = {"layer_fb"};
+  Framebuffer object_fb = {"object_fb"};
+  Framebuffer mask_fb = {"mask_fb"};
+  Framebuffer smaa_edge_fb = {"smaa_edge_fb"};
+  Framebuffer smaa_weight_fb = {"smaa_weight_fb"};
+
+  void acquire_resources(GPENCIL_PrivateData *pd);
+  void release_resources();
 };
 
 struct GPENCIL_Data {
   void *engine_type; /* Required */
-  struct GPENCIL_FramebufferList *fbl;
-  struct GPENCIL_TextureList *txl;
-  struct GPENCIL_PassList *psl;
+  DRWViewportEmptyList *fbl;
+  DRWViewportEmptyList *txl;
+  DRWViewportEmptyList *psl;
   struct GPENCIL_StorageList *stl;
   struct GPENCIL_Instance *instance;
 
@@ -210,7 +227,7 @@ struct GPENCIL_Data {
 typedef struct GPENCIL_PrivateData {
   /* Pointers copied from GPENCIL_ViewLayerData. */
   struct BLI_memblock *gp_object_pool;
-  struct BLI_memblock *gp_layer_pool;
+  GPENCIL_tLayer_Pool *gp_layer_pool;
   GPENCIL_tVfx_Pool *gp_vfx_pool;
   struct BLI_memblock *gp_material_pool;
   struct BLI_memblock *gp_light_pool;
@@ -227,25 +244,12 @@ typedef struct GPENCIL_PrivateData {
   struct {
     GPENCIL_tObject *first, *last;
   } tobjects, tobjects_infront;
-  /* Temp Textures (shared with other engines). */
-  GPUTexture *depth_tx;
-  GPUTexture *color_tx;
-  GPUTexture *color_layer_tx;
-  GPUTexture *color_object_tx;
-  /* Revealage is 1 - alpha */
-  GPUTexture *reveal_tx;
-  GPUTexture *reveal_layer_tx;
-  GPUTexture *reveal_object_tx;
-  /* Mask texture */
-  GPUTexture *mask_tx;
-  /* Anti-Aliasing. */
-  GPUTexture *smaa_edge_tx;
-  GPUTexture *smaa_weight_tx;
   /* Pointer to dtxl->depth */
   GPUTexture *scene_depth_tx;
   GPUFrameBuffer *scene_fb;
   /* Copy of txl->dummy_tx */
   GPUTexture *dummy_tx;
+  GPUTexture *dummy_depth;
   /* Copy of v3d->shading.single_color. */
   float v3d_single_color[3];
   /* Copy of v3d->shading.color_type or -1 to ignore. */
@@ -258,8 +262,6 @@ typedef struct GPENCIL_PrivateData {
   bool is_render;
   /* If we are in viewport display (used for VFX). */
   bool is_viewport;
-  /* True in selection and auto_depth drawing */
-  bool draw_depth_only;
   /* Is shading set to wire-frame. */
   bool draw_wireframe;
   /* Used by the depth merge step. */
@@ -340,7 +342,8 @@ GPENCIL_tLayer *grease_pencil_layer_cache_get(GPENCIL_tObject *tgp_ob,
                                               int layer_id,
                                               bool skip_onion);
 
-GPENCIL_tLayer *grease_pencil_layer_cache_add(GPENCIL_PrivateData *pd,
+GPENCIL_tLayer *grease_pencil_layer_cache_add(GPENCIL_Instance *inst,
+                                              GPENCIL_PrivateData *pd,
                                               const Object *ob,
                                               const blender::bke::greasepencil::Layer &layer,
                                               int onion_id,
@@ -393,7 +396,7 @@ struct GPUShader *GPENCIL_shader_fx_shadow_get(void);
 void GPENCIL_shader_free(void);
 
 /* Antialiasing */
-void GPENCIL_antialiasing_init(struct GPENCIL_Data *vedata);
+void GPENCIL_antialiasing_init(GPENCIL_Instance *inst, GPENCIL_PrivateData *pd);
 void GPENCIL_antialiasing_draw(struct GPENCIL_Data *vedata);
 
 /* main functions */

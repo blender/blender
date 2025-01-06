@@ -2,7 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#include <stdio.h>
+#include <cstdio>
 
 #include "device/device.h"
 #include "scene/camera.h"
@@ -12,15 +12,14 @@
 #include "session/session.h"
 
 #include "util/args.h"
-#include "util/foreach.h"
-#include "util/function.h"
-#include "util/image.h"
 #include "util/log.h"
 #include "util/path.h"
 #include "util/progress.h"
 #include "util/string.h"
-#include "util/time.h"
-#include "util/transform.h"
+#ifdef WITH_CYCLES_STANDALONE_GUI
+#  include "util/time.h"
+#  include "util/transform.h"
+#endif
 #include "util/unique_ptr.h"
 #include "util/version.h"
 
@@ -39,7 +38,7 @@
 CCL_NAMESPACE_BEGIN
 
 struct Options {
-  Session *session;
+  unique_ptr<Session> session;
   Scene *scene;
   string filepath;
   int width, height;
@@ -58,7 +57,7 @@ static void session_print(const string &str)
 
   /* add spaces to overwrite longer previous print */
   static int maxlen = 0;
-  int len = str.size();
+  const int len = str.size();
   maxlen = max(len, maxlen);
 
   for (int i = len; i < maxlen; i++) {
@@ -71,18 +70,19 @@ static void session_print(const string &str)
 
 static void session_print_status()
 {
-  string status, substatus;
+  string status;
+  string substatus;
 
   /* get status */
-  double progress = options.session->progress.get_progress();
+  const double progress = options.session->progress.get_progress();
   options.session->progress.get_status(status, substatus);
 
-  if (substatus != "") {
+  if (!substatus.empty()) {
     status += ": " + substatus;
   }
 
   /* print status */
-  status = string_printf("Progress %05.2f   %s", (double)progress * 100, status.c_str());
+  status = string_printf("Progress %05.2f   %s", progress * 100, status.c_str());
   session_print(status);
 }
 
@@ -99,12 +99,12 @@ static BufferParams &session_buffer_params()
 
 static void scene_init()
 {
-  options.scene = options.session->scene;
+  options.scene = options.session->scene.get();
 
   /* Read XML or USD */
 #ifdef WITH_USD
   if (!string_endswith(string_to_lower(options.filepath), ".xml")) {
-    HD_CYCLES_NS::HdCyclesFileReader::read(options.session, options.filepath.c_str());
+    HD_CYCLES_NS::HdCyclesFileReader::read(options.session.get(), options.filepath.c_str());
   }
   else
 #endif
@@ -129,7 +129,7 @@ static void scene_init()
 static void session_init()
 {
   options.output_pass = "combined";
-  options.session = new Session(options.session_params, options.scene_params);
+  options.session = make_unique<Session>(options.session_params, options.scene_params);
 
 #ifdef WITH_CYCLES_STANDALONE_GUI
   if (!options.session_params.background) {
@@ -144,11 +144,12 @@ static void session_init()
   }
 
   if (options.session_params.background && !options.quiet) {
-    options.session->progress.set_update_callback(function_bind(&session_print_status));
+    options.session->progress.set_update_callback([] { session_print_status(); });
   }
 #ifdef WITH_CYCLES_STANDALONE_GUI
-  else
-    options.session->progress.set_update_callback(function_bind(&window_redraw));
+  else {
+    options.session->progress.set_update_callback([] { window_redraw(); });
+  }
 #endif
 
   /* load scene */
@@ -166,8 +167,7 @@ static void session_init()
 static void session_exit()
 {
   if (options.session) {
-    delete options.session;
-    options.session = NULL;
+    options.session.reset();
   }
 
   if (options.session_params.background && !options.quiet) {
@@ -181,21 +181,25 @@ static void display_info(Progress &progress)
 {
   static double latency = 0.0;
   static double last = 0;
-  double elapsed = time_dt();
-  string str, interactive;
+  const double elapsed = time_dt();
+  string str;
+  string interactive;
 
   latency = (elapsed - last);
   last = elapsed;
 
-  double total_time, sample_time;
-  string status, substatus;
+  double total_time;
+  double sample_time;
+  string status;
+  string substatus;
 
   progress.get_time(total_time, sample_time);
   progress.get_status(status, substatus);
-  double progress_val = progress.get_progress();
+  const double progress_val = progress.get_progress();
 
-  if (substatus != "")
+  if (!substatus.empty()) {
     status += ": " + substatus;
+  }
 
   interactive = options.interactive ? "On" : "Off";
 
@@ -209,14 +213,15 @@ static void display_info(Progress &progress)
       status.c_str(),
       total_time,
       latency,
-      (double)progress_val * 100,
+      progress_val * 100,
       sample_time,
       interactive.c_str());
 
   window_display_info(str.c_str());
 
-  if (options.show_help)
+  if (options.show_help) {
     window_display_help();
+  }
 }
 
 static void display()
@@ -226,23 +231,23 @@ static void display()
   display_info(options.session->progress);
 }
 
-static void motion(int x, int y, int button)
+static void motion(const int x, const int y, int button)
 {
   if (options.interactive) {
     Transform matrix = options.session->scene->camera->get_matrix();
 
     /* Translate */
     if (button == 0) {
-      float3 translate = make_float3(x * 0.01f, -(y * 0.01f), 0.0f);
+      const float3 translate = make_float3(x * 0.01f, -(y * 0.01f), 0.0f);
       matrix = matrix * transform_translate(translate);
     }
 
     /* Rotate */
     else if (button == 2) {
-      float4 r1 = make_float4((float)x * 0.1f, 0.0f, 1.0f, 0.0f);
+      const float4 r1 = make_float4((float)x * 0.1f, 0.0f, 1.0f, 0.0f);
       matrix = matrix * transform_rotate(DEG2RADF(r1.x), make_float3(r1.y, r1.z, r1.w));
 
-      float4 r2 = make_float4(y * 0.1f, 1.0f, 0.0f, 0.0f);
+      const float4 r2 = make_float4(y * 0.1f, 1.0f, 0.0f, 0.0f);
       matrix = matrix * transform_rotate(DEG2RADF(r2.x), make_float3(r2.y, r2.z, r2.w));
     }
 
@@ -255,7 +260,7 @@ static void motion(int x, int y, int button)
   }
 }
 
-static void resize(int width, int height)
+static void resize(const int width, const int height)
 {
   options.width = width;
   options.height = height;
@@ -275,40 +280,48 @@ static void resize(int width, int height)
 static void keyboard(unsigned char key)
 {
   /* Toggle help */
-  if (key == 'h')
+  if (key == 'h') {
     options.show_help = !(options.show_help);
 
-  /* Reset */
-  else if (key == 'r')
+    /* Reset */
+  }
+  else if (key == 'r') {
     options.session->reset(options.session_params, session_buffer_params());
 
-  /* Cancel */
-  else if (key == 27)  // escape
+    /* Cancel */
+  }
+  else if (key == 27) {  // escape
     options.session->progress.set_cancel("Canceled");
 
-  /* Pause */
+    /* Pause */
+  }
   else if (key == 'p') {
     options.pause = !options.pause;
     options.session->set_pause(options.pause);
   }
 
   /* Interactive Mode */
-  else if (key == 'i')
+  else if (key == 'i') {
     options.interactive = !(options.interactive);
 
-  /* Navigation */
+    /* Navigation */
+  }
   else if (options.interactive && (key == 'w' || key == 'a' || key == 's' || key == 'd')) {
     Transform matrix = options.session->scene->camera->get_matrix();
     float3 translate;
 
-    if (key == 'w')
+    if (key == 'w') {
       translate = make_float3(0.0f, 0.0f, 0.1f);
-    else if (key == 's')
+    }
+    else if (key == 's') {
       translate = make_float3(0.0f, 0.0f, -0.1f);
-    else if (key == 'a')
+    }
+    else if (key == 'a') {
       translate = make_float3(-0.1f, 0.0f, 0.0f);
-    else if (key == 'd')
+    }
+    else if (key == 'd') {
       translate = make_float3(0.1f, 0.0f, 0.0f);
+    }
 
     matrix = matrix * transform_translate(translate);
 
@@ -348,34 +361,37 @@ static void keyboard(unsigned char key)
 }
 #endif
 
-static int files_parse(int argc, const char *argv[])
+static void parse_int(OIIO::cspan<const char *> argv, int *i)
 {
-  if (argc > 0) {
-    options.filepath = argv[0];
-  }
-
-  return 0;
+  assert(argv.size() == 2);
+  *i = atoi(argv[1]);
 }
 
-static void options_parse(int argc, const char **argv)
+static void parse_string(OIIO::cspan<const char *> argv, std::string *s)
+{
+  assert(argv.size() == 2);
+  *s = argv[1];
+}
+
+static void options_parse(const int argc, const char **argv)
 {
   options.width = 1024;
   options.height = 512;
   options.filepath = "";
-  options.session = NULL;
+  options.session = nullptr;
   options.quiet = false;
   options.session_params.use_auto_tile = false;
   options.session_params.tile_size = 0;
 
   /* device names */
-  string device_names = "";
+  string device_names;
   string devicename = "CPU";
   bool list = false;
 
   /* List devices for which support is compiled in. */
-  vector<DeviceType> types = Device::available_types();
-  foreach (DeviceType type, types) {
-    if (device_names != "") {
+  const vector<DeviceType> types = Device::available_types();
+  for (const DeviceType type : types) {
+    if (!device_names.empty()) {
       device_names += ", ";
     }
 
@@ -387,70 +403,57 @@ static void options_parse(int argc, const char **argv)
 
   /* parse options */
   ArgParse ap;
-  bool help = false, profile = false, debug = false, version = false;
+  bool help = false;
+  bool profile = false;
+  bool debug = false;
+  bool version = false;
   int verbosity = 1;
 
-  ap.options("Usage: cycles [options] file.xml",
-             "%*",
-             files_parse,
-             "",
-             "--device %s",
-             &devicename,
-             ("Devices to use: " + device_names).c_str(),
+  ap.usage("cycles [options] file.xml");
+  ap.arg("filename").hidden().action([&](auto argv) { options.filepath = argv[0]; });
+  ap.arg("--device %s:DEVICE").help("Devices to use: " + device_names).action([&](auto argv) {
+    parse_string(argv, &devicename);
+  });
 #ifdef WITH_OSL
-             "--shadingsys %s",
-             &ssname,
-             "Shading system to use: svm, osl",
+  ap.arg("--shadingsys %s:SHADINGSYSTEM")
+      .help("Shading system to use: svm, osl")
+      .action([&](auto argv) { parse_string(argv, &ssname); });
 #endif
-             "--background",
-             &options.session_params.background,
-             "Render in background, without user interface",
-             "--quiet",
-             &options.quiet,
-             "In background mode, don't print progress messages",
-             "--samples %d",
-             &options.session_params.samples,
-             "Number of samples to render",
-             "--output %s",
-             &options.output_filepath,
-             "File path to write output image",
-             "--threads %d",
-             &options.session_params.threads,
-             "CPU Rendering Threads",
-             "--width  %d",
-             &options.width,
-             "Window width in pixel",
-             "--height %d",
-             &options.height,
-             "Window height in pixel",
-             "--tile-size %d",
-             &options.session_params.tile_size,
-             "Tile size in pixels",
-             "--list-devices",
-             &list,
-             "List information about all available devices",
-             "--profile",
-             &profile,
-             "Enable profile logging",
+  ap.arg("--background", &options.session_params.background)
+      .help("Render in background, without user interface");
+  ap.arg("--quiet", &options.quiet).help("In background mode, don't print progress messages");
+  ap.arg("--samples %d:SAMPLES").help("Number of samples to render").action([&](auto argv) {
+    parse_int(argv, &options.session_params.samples);
+  });
+  ap.arg("--output %s:OUTPUT").help("File path to write output image").action([&](auto argv) {
+    parse_string(argv, &options.output_filepath);
+  });
+  ap.arg("--threads %d:THREADS").help("CPU Rendering Threads").action([&](auto argv) {
+    parse_int(argv, &options.session_params.threads);
+  });
+  ap.arg("--width %d:WIDTH").help("Image width in pixelx").action([&](auto argv) {
+    parse_int(argv, &options.width);
+  });
+  ap.arg("--height %d:HEIGHT").help("Image height in pixel").action([&](auto argv) {
+    parse_int(argv, &options.height);
+  });
+  ap.arg("--tile-size %d:TILE_SIZE").help("Tile size in pixels").action([&](auto argv) {
+    parse_int(argv, &options.session_params.tile_size);
+  });
+  ap.arg("--list-devices", &list).help("List information about all available devices");
+  ap.arg("--profile", &profile).help("Enable profile logging");
 #ifdef WITH_CYCLES_LOGGING
-             "--debug",
-             &debug,
-             "Enable debug logging",
-             "--verbose %d",
-             &verbosity,
-             "Set verbosity of the logger",
+  ap.arg("--debug", &debug).help("Enable debug logging");
+  ap.arg("--verbose %d:VERBOSE").help("Set verbosity of the logger").action([&](auto argv) {
+    parse_int(argv, &verbosity);
+  });
 #endif
-             "--help",
-             &help,
-             "Print help message",
-             "--version",
-             &version,
-             "Print version number",
-             NULL);
+  ap.arg("--help", &help).help("Print help message");
+  ap.arg("--version", &version).help("Print version number");
 
-  if (ap.parse(argc, argv) < 0) {
+  if (ap.parse_args(argc, argv) < 0) {
     fprintf(stderr, "%s\n", ap.geterror().c_str());
-    ap.usage();
+    ap.print_help();
     exit(EXIT_FAILURE);
   }
 
@@ -460,10 +463,10 @@ static void options_parse(int argc, const char **argv)
   }
 
   if (list) {
-    vector<DeviceInfo> devices = Device::available_devices();
+    const vector<DeviceInfo> devices = Device::available_devices();
     printf("Devices:\n");
 
-    foreach (DeviceInfo &info, devices) {
+    for (const DeviceInfo &info : devices) {
       printf("    %-10s%s%s\n",
              Device::string_from_type(info.type).c_str(),
              info.description.c_str(),
@@ -476,8 +479,8 @@ static void options_parse(int argc, const char **argv)
     printf("%s\n", CYCLES_VERSION_STRING);
     exit(EXIT_SUCCESS);
   }
-  else if (help || options.filepath == "") {
-    ap.usage();
+  else if (help || options.filepath.empty()) {
+    ap.print_help();
     exit(EXIT_SUCCESS);
   }
 
@@ -499,7 +502,7 @@ static void options_parse(int argc, const char **argv)
   }
 
   /* find matching device */
-  DeviceType device_type = Device::type_from_string(devicename.c_str());
+  const DeviceType device_type = Device::type_from_string(devicename.c_str());
   vector<DeviceInfo> devices = Device::available_devices(DEVICE_MASK(device_type));
 
   bool device_available = false;
@@ -529,7 +532,7 @@ static void options_parse(int argc, const char **argv)
     fprintf(stderr, "Invalid number of samples: %d\n", options.session_params.samples);
     exit(EXIT_FAILURE);
   }
-  else if (options.filepath == "") {
+  else if (options.filepath.empty()) {
     fprintf(stderr, "No file path specified\n");
     exit(EXIT_FAILURE);
   }
@@ -539,7 +542,7 @@ CCL_NAMESPACE_END
 
 using namespace ccl;
 
-int main(int argc, const char **argv)
+int main(const int argc, const char **argv)
 {
   util_logging_init(argv[0]);
   path_init();
@@ -554,7 +557,7 @@ int main(int argc, const char **argv)
 #ifdef WITH_CYCLES_STANDALONE_GUI
   }
   else {
-    string title = "Cycles: " + path_filename(options.filepath);
+    const string title = "Cycles: " + path_filename(options.filepath);
 
     /* init/exit are callback so they run while GL is initialized */
     window_main_loop(title.c_str(),

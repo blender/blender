@@ -5,21 +5,8 @@
 set(INC
   ../include
   ../io
-  ../../asset_system
-  ../../blenkernel
-  ../../blenloader
-  ../../blentranslation
   ../../compositor
-  ../../compositor/realtime_compositor
-  ../../draw
-  ../../functions
-  ../../geometry
-  ../../gpu
-  ../../imbuf
   ../../makesrna
-  ../../nodes
-  ../../render
-  ../../windowmanager
 
   # RNA_prototypes.hh
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
@@ -53,20 +40,27 @@ set(SRC
 
 set(LIB
   PRIVATE bf::animrig
+  PRIVATE bf::asset_system
   PRIVATE bf::blenfont
-  bf_blenkernel
+  PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
+  PRIVATE bf::blenloader
+  PRIVATE bf::blentranslation
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
+  PRIVATE bf::draw
   bf_editor_screen
+  PRIVATE bf::functions
+  PRIVATE bf::geometry
+  PRIVATE bf::gpu
+  PRIVATE bf::imbuf
   PRIVATE bf::intern::guardedalloc
-  bf_realtime_compositor
+  bf_compositor
   PRIVATE bf::extern::fmtlib
+  PRIVATE bf::nodes
+  PRIVATE bf::render
+  PRIVATE bf::windowmanager
 )
-
-if(WITH_COMPOSITOR_CPU)
-  add_definitions(-DWITH_COMPOSITOR_CPU)
-endif()
 
 if(WITH_OPENIMAGEDENOISE)
   add_definitions(-DWITH_OPENIMAGEDENOISE)

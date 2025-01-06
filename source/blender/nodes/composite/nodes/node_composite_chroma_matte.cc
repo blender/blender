@@ -61,18 +61,19 @@ static void node_composit_buts_chroma_matte(uiLayout *layout, bContext * /*C*/, 
   uiLayout *col;
 
   col = uiLayoutColumn(layout, false);
-  uiItemR(col, ptr, "tolerance", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "threshold", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "tolerance", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  uiItemR(col, ptr, "threshold", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 
   col = uiLayoutColumn(layout, true);
   /* Removed for now. */
-  // uiItemR(col, ptr, "lift", UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "gain", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
+  // uiItemR(col, ptr, "lift", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
+  uiItemR(
+      col, ptr, "gain", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
   /* Removed for now. */
-  // uiItemR(col, ptr, "shadow_adjust", UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
+  // uiItemR(col, ptr, "shadow_adjust", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 static float get_acceptance(const bNode &node)
 {
@@ -188,6 +189,7 @@ void register_node_type_cmp_chroma_matte()
   static blender::bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_CHROMA_MATTE, "Chroma Key", NODE_CLASS_MATTE);
+  ntype.enum_name_legacy = "CHROMA_MATTE";
   ntype.declare = file_ns::cmp_node_chroma_matte_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_chroma_matte;
   ntype.flag |= NODE_PREVIEW;

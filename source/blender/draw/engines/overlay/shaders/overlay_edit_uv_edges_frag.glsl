@@ -21,38 +21,39 @@ void main()
   vec4 inner_color = vec4(vec3(0.0), 1.0);
   vec4 outer_color = vec4(0.0);
 
-  vec2 dd = fwidth(geom_noperspective_out.stipplePos);
-  float line_distance = distance(geom_noperspective_out.stipplePos, geom_flat_out.stippleStart) /
-                        max(dd.x, dd.y);
+  vec2 dd = fwidth(stipplePos);
+  float line_distance = distance(stipplePos, stippleStart) / max(dd.x, dd.y);
 
   if (lineStyle == OVERLAY_UV_LINE_STYLE_OUTLINE) {
-#ifdef USE_EDGE_SELECT
-    /* TODO(@ideasman42): The current wire-edit color contrast enough against the selection.
-     * Look into changing the default theme color instead of reducing contrast with edge-select. */
-    inner_color = (geom_out.selectionFac != 0.0) ? colorEdgeSelect : (colorWireEdit * 0.5);
-#else
-    inner_color = mix(colorWireEdit, colorEdgeSelect, geom_out.selectionFac);
-#endif
+    if (use_edge_select) {
+      /* TODO(@ideasman42): The current wire-edit color contrast enough against the selection.
+       * Look into changing the default theme color instead of reducing contrast with edge-select.
+       */
+      inner_color = (selectionFac != 0.0) ? colorEdgeSelect : (colorWireEdit * 0.5);
+    }
+    else {
+      inner_color = mix(colorWireEdit, colorEdgeSelect, selectionFac);
+    }
     outer_color = vec4(vec3(0.0), 1.0);
   }
   else if (lineStyle == OVERLAY_UV_LINE_STYLE_DASH) {
     if (fract(line_distance / dashLength) < 0.5) {
-      inner_color = mix(vec4(vec3(0.35), 1.0), colorEdgeSelect, geom_out.selectionFac);
+      inner_color = mix(vec4(vec3(0.35), 1.0), colorEdgeSelect, selectionFac);
     }
   }
   else if (lineStyle == OVERLAY_UV_LINE_STYLE_BLACK) {
     vec4 base_color = vec4(vec3(0.0), 1.0);
-    inner_color = mix(base_color, colorEdgeSelect, geom_out.selectionFac);
+    inner_color = mix(base_color, colorEdgeSelect, selectionFac);
   }
   else if (lineStyle == OVERLAY_UV_LINE_STYLE_WHITE) {
     vec4 base_color = vec4(1.0);
-    inner_color = mix(base_color, colorEdgeSelect, geom_out.selectionFac);
+    inner_color = mix(base_color, colorEdgeSelect, selectionFac);
   }
   else if (lineStyle == OVERLAY_UV_LINE_STYLE_SHADOW) {
     inner_color = colorUVShadow;
   }
 
-  float dist = abs(geom_noperspective_out.edgeCoord) - max(sizeEdge - 0.5, 0.0);
+  float dist = abs(edgeCoord) - max(sizeEdge - 0.5, 0.0);
   float dist_outer = dist - max(sizeEdge, 1.0);
   float mix_w;
   float mix_w_outer;

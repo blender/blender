@@ -230,16 +230,16 @@ static void panel_draw(const bContext *C, Panel *panel)
   const GreasePencilModifierColorMode color_mode = GreasePencilModifierColorMode(
       RNA_enum_get(ptr, "color_mode"));
 
-  uiItemR(layout, ptr, "color_mode", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "color_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   if (color_mode == MOD_GREASE_PENCIL_COLOR_HARDNESS) {
-    uiItemR(layout, ptr, "hardness_factor", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(layout, ptr, "hardness_factor", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
   else {
     const bool use_uniform_opacity = RNA_boolean_get(ptr, "use_uniform_opacity");
     const bool use_weight_as_factor = RNA_boolean_get(ptr, "use_weight_as_factor");
 
-    uiItemR(layout, ptr, "use_uniform_opacity", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(layout, ptr, "use_uniform_opacity", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     const char *text = (use_uniform_opacity) ? IFACE_("Opacity") : IFACE_("Opacity Factor");
 
     uiLayout *row = uiLayoutRow(layout, true);

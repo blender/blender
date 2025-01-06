@@ -15,7 +15,7 @@ struct ImBuf;
 struct ListBase;
 struct Main;
 struct Scene;
-struct Sequence;
+struct Strip;
 struct StripElem;
 
 enum eSeqTaskId {
@@ -57,9 +57,7 @@ struct SeqRenderData {
  * \note The returned #ImBuf has its reference increased, free after usage!
  */
 ImBuf *SEQ_render_give_ibuf(const SeqRenderData *context, float timeline_frame, int chanshown);
-ImBuf *SEQ_render_give_ibuf_direct(const SeqRenderData *context,
-                                   float timeline_frame,
-                                   Sequence *seq);
+ImBuf *SEQ_render_give_ibuf_direct(const SeqRenderData *context, float timeline_frame, Strip *seq);
 void SEQ_render_new_render_data(Main *bmain,
                                 Depsgraph *depsgraph,
                                 Scene *scene,
@@ -68,7 +66,7 @@ void SEQ_render_new_render_data(Main *bmain,
                                 int preview_render_size,
                                 int for_render,
                                 SeqRenderData *r_context);
-StripElem *SEQ_render_give_stripelem(const Scene *scene, const Sequence *seq, int timeline_frame);
+StripElem *SEQ_render_give_stripelem(const Scene *scene, const Strip *seq, int timeline_frame);
 
 void SEQ_render_imbuf_from_sequencer_space(Scene *scene, ImBuf *ibuf);
 void SEQ_render_pixel_from_sequencer_space_v4(Scene *scene, float pixel[4]);
@@ -76,4 +74,4 @@ void SEQ_render_pixel_from_sequencer_space_v4(Scene *scene, float pixel[4]);
  * Check if `seq` is muted for rendering.
  * This function also checks `SeqTimelineChannel` flag.
  */
-bool SEQ_render_is_muted(const ListBase *channels, const Sequence *seq);
+bool SEQ_render_is_muted(const ListBase *channels, const Strip *seq);

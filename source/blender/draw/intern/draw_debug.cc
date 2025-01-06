@@ -247,11 +247,9 @@ void DebugDraw::display_lines()
   GPU_debug_group_begin("Lines");
   cpu_draw_buf_.push_update();
 
-  float4x4 persmat;
-  const DRWView *view = DRW_view_get_active();
-  DRW_view_persmat_get(view, persmat.ptr(), false);
+  float4x4 persmat = View::default_get().persmat();
 
-  drw_state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS);
+  command::StateSet::set(DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS);
 
   gpu::Batch *batch = drw_cache_procedural_lines_get();
   GPUShader *shader = DRW_shader_debug_draw_display_get();

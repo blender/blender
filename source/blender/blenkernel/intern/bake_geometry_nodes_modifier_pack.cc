@@ -85,7 +85,7 @@ bool unpack_bake_to_disk(const NodesModifierPackedBake &packed_bake,
       BKE_reportf(reports, RPT_ERROR, "Cannot ensure directory: %s", directory.c_str());
       return false;
     }
-    fstream fs(file_path, std::ios::out);
+    fstream fs(file_path, std::ios::out | std::ios::binary);
     fs.write(static_cast<const char *>(bake_file.packed_file->data), bake_file.packed_file->size);
     if (fs.bad()) {
       BKE_reportf(reports, RPT_ERROR, "Cannot write file: %s", file_path);

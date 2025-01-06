@@ -20,6 +20,39 @@
 
 namespace blender::draw::overlay {
 
+/* Add prepass which will write to the depth buffer so that the
+ * alpha-under overlays (alpha checker) will draw correctly for external engines.
+ * NOTE: Use the same Z-depth value as in the regular image drawing engine. */
+class ImagePrepass : Overlay {
+ private:
+  PassSimple ps_ = {"ImagePrepass"};
+
+ public:
+  void begin_sync(Resources &res, const State &state) final
+  {
+    enabled_ = state.is_space_image() && !res.is_selection();
+
+    if (!enabled_) {
+      return;
+    }
+
+    ps_.init();
+    ps_.state_set(DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_ALWAYS);
+    ps_.shader_set(res.shaders.mesh_edit_depth.get());
+    ps_.draw(res.shapes.image_quad.get());
+  }
+
+  void draw_on_render(GPUFrameBuffer *framebuffer, Manager &manager, View &view) final
+  {
+    if (!enabled_) {
+      return;
+    }
+
+    GPU_framebuffer_bind(framebuffer);
+    manager.submit(ps_, view);
+  }
+};
+
 /**
  * A depth pass that write surface depth when it is needed.
  * It is also used for selecting non overlay-only objects.
@@ -171,13 +204,8 @@ class Prepass : Overlay {
         if (use_material_slot_selection_) {
           /* TODO(fclem): Improve the API. */
           const int materials_len = DRW_cache_object_material_count_get(ob_ref.object);
-          Array<GPUMaterial *> materials(materials_len);
-          materials.fill(nullptr);
-
-          gpu::Batch **geom_per_mat = DRW_cache_mesh_surface_shaded_get(
-              ob_ref.object, materials.data(), materials_len);
-
-          geom_list = {geom_per_mat, materials_len};
+          Array<GPUMaterial *> materials(materials_len, nullptr);
+          geom_list = DRW_cache_mesh_surface_shaded_get(ob_ref.object, materials);
         }
         else {
           geom_single = DRW_cache_mesh_surface_get(ob_ref.object);

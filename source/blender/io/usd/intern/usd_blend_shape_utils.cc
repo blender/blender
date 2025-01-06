@@ -304,19 +304,26 @@ void remap_blend_shape_anim(pxr::UsdStageRefPtr stage,
                             const pxr::SdfPath &skel_path,
                             const pxr::SdfPathSet &mesh_paths)
 {
-  pxr::UsdSkelSkeleton skel = pxr::UsdSkelSkeleton::Get(stage, skel_path);
+  pxr::UsdSkelBindingAPI skel_api = pxr::UsdSkelBindingAPI::Get(stage, skel_path);
 
-  if (!skel) {
+  if (!skel_api) {
     CLOG_WARN(&LOG, "Couldn't get skeleton from path %s", skel_path.GetAsString().c_str());
     return;
   }
 
-  /* Create the animation. */
-  pxr::SdfPath anim_path = skel_path.AppendChild(usdtokens::Anim);
-  const pxr::UsdSkelAnimation anim = pxr::UsdSkelAnimation::Define(stage, anim_path);
+  /* Use existing animation if possible, otherwise create a new one. */
+  pxr::UsdPrim anim_prim;
+  pxr::UsdSkelAnimation anim;
+  if (skel_api.GetAnimationSource(&anim_prim)) {
+    anim = pxr::UsdSkelAnimation(anim_prim);
+  }
+  else {
+    pxr::SdfPath anim_path = skel_path.AppendChild(usdtokens::Anim);
+    anim = pxr::UsdSkelAnimation::Define(stage, anim_path);
+  }
 
   if (!anim) {
-    CLOG_WARN(&LOG, "Couldn't define animation at path %s", anim_path.GetAsString().c_str());
+    CLOG_WARN(&LOG, "Couldn't get animation under skeleton %s", skel_path.GetAsString().c_str());
     return;
   }
 

@@ -10,6 +10,10 @@
  * tiles.
  */
 
+#include "infos/eevee_shadow_info.hh"
+
+FRAGMENT_SHADER_CREATE_INFO(eevee_shadow_tag_usage_transparent)
+
 #include "draw_model_lib.glsl"
 #include "eevee_shadow_tag_usage_lib.glsl"
 

@@ -7,6 +7,10 @@
  * This also fills the different render passes.
  */
 
+#include "infos/eevee_deferred_info.hh"
+
+FRAGMENT_SHADER_CREATE_INFO(eevee_deferred_combine)
+
 #include "eevee_colorspace_lib.glsl"
 #include "eevee_gbuffer_lib.glsl"
 #include "eevee_renderpass_lib.glsl"

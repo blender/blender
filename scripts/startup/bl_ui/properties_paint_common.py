@@ -1074,9 +1074,11 @@ def brush_shared_settings(layout, context, brush, popover=False):
 
     # Sculpt Curves #
     if mode == 'SCULPT_CURVES':
+        tool = brush.curves_sculpt_tool
         size = True
-        strength = True
-        direction = brush.curves_sculpt_tool in {'GROW_SHRINK', 'SELECTION_PAINT'}
+        strength = tool not in {'ADD', 'DELETE'}
+        direction = tool in {'GROW_SHRINK', 'SELECTION_PAINT'}
+        strength_pressure = tool not in {'SLIDE', 'ADD', 'DELETE'}
 
     # Grease Pencil #
     if mode == 'PAINT_GREASE_PENCIL':
@@ -1402,8 +1404,8 @@ def brush_texture_settings(layout, brush, sculpt):
 
     if tex_slot.map_mode == 'STENCIL':
         if brush.texture and brush.texture.type == 'IMAGE':
-            layout.operator("brush.stencil_fit_image_aspect")
-        layout.operator("brush.stencil_reset_transform")
+            layout.operator("brush.stencil_fit_image_aspect").mask = False
+        layout.operator("brush.stencil_reset_transform").mask = False
 
     # angle and texture_angle_source
     if tex_slot.has_texture_angle:

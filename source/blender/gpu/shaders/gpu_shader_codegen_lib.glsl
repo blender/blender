@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "gpu_glsl_cpp_stubs.hh"
+
 vec3 calc_barycentric_distances(vec3 pos0, vec3 pos1, vec3 pos2)
 {
   vec3 edge21 = pos2 - pos1;

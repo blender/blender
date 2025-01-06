@@ -19,9 +19,15 @@ The Equalizer sound effect has been added by
 
 - Marcos Perez
 
+Some performance improvements, especially to the JOSResampler have been made by:
+
+- Aras Pranckevičius
+
 Several people provided fixes:
 
 - Aaron Carlisle
 - Sebastian Parborg
 - Leon Zandman
 - Richard Antalik
+- Robert-André Mauchin
+- Lalit Shankar Chowdhury

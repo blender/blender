@@ -88,7 +88,7 @@ static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 
 static void node_layout_ex(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiItemR(layout, ptr, "use_legacy_normal", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "use_legacy_normal", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 /**
@@ -610,6 +610,7 @@ static void node_register()
                      GEO_NODE_DISTRIBUTE_POINTS_ON_FACES,
                      "Distribute Points on Faces",
                      NODE_CLASS_GEOMETRY);
+  ntype.enum_name_legacy = "DISTRIBUTE_POINTS_ON_FACES";
   blender::bke::node_type_size(&ntype, 170, 100, 320);
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;

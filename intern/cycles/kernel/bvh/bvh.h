@@ -4,10 +4,15 @@
 
 #pragma once
 
+#include "kernel/bvh/nodes.h"
 #include "kernel/bvh/types.h"
 #include "kernel/bvh/util.h"
 
-#include "kernel/integrator/state_util.h"
+#include "kernel/geom/curve_intersect.h"
+#include "kernel/geom/motion_triangle_intersect.h"
+#include "kernel/geom/object.h"
+#include "kernel/geom/point_intersect.h"
+#include "kernel/geom/triangle_intersect.h"
 
 /* Device specific acceleration structures for ray tracing. */
 
@@ -63,8 +68,6 @@ CCL_NAMESPACE_BEGIN
  * the code has been extended and modified to support more primitives and work
  * with CPU and various GPU kernel languages. */
 
-#  include "kernel/bvh/nodes.h"
-
 /* Regular BVH traversal */
 
 #  define BVH_FUNCTION_NAME bvh_intersect
@@ -90,7 +93,7 @@ CCL_NAMESPACE_BEGIN
 #  endif
 
 ccl_device_intersect bool scene_intersect(KernelGlobals kg,
-                                          ccl_private const Ray *ray,
+                                          const ccl_private Ray *ray,
                                           const uint visibility,
                                           ccl_private Intersection *isect)
 {
@@ -135,7 +138,7 @@ ccl_device_intersect bool scene_intersect(KernelGlobals kg,
 }
 
 ccl_device_intersect bool scene_intersect_shadow(KernelGlobals kg,
-                                                 ccl_private const Ray *ray,
+                                                 const ccl_private Ray *ray,
                                                  const uint visibility)
 {
   Intersection isect;
@@ -158,11 +161,11 @@ ccl_device_intersect bool scene_intersect_shadow(KernelGlobals kg,
 
 template<bool single_hit = false>
 ccl_device_intersect bool scene_intersect_local(KernelGlobals kg,
-                                                ccl_private const Ray *ray,
+                                                const ccl_private Ray *ray,
                                                 ccl_private LocalIntersection *local_isect,
-                                                int local_object,
+                                                const int local_object,
                                                 ccl_private uint *lcg_state,
-                                                int max_hits)
+                                                const int max_hits)
 {
   if (!intersection_ray_valid(ray)) {
     if (local_isect) {
@@ -224,9 +227,9 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals kg,
 
 ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals kg,
                                                      IntegratorShadowState state,
-                                                     ccl_private const Ray *ray,
-                                                     uint visibility,
-                                                     uint max_hits,
+                                                     const ccl_private Ray *ray,
+                                                     const uint visibility,
+                                                     const uint max_hits,
                                                      ccl_private uint *num_recorded_hits,
                                                      ccl_private float *throughput)
 {
@@ -293,7 +296,7 @@ ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals kg,
 #    endif
 
 ccl_device_intersect bool scene_intersect_volume(KernelGlobals kg,
-                                                 ccl_private const Ray *ray,
+                                                 const ccl_private Ray *ray,
                                                  ccl_private Intersection *isect,
                                                  const uint visibility)
 {
@@ -342,7 +345,7 @@ ccl_device_intersect bool scene_intersect_volume(KernelGlobals kg,
 #    endif
 
 ccl_device_intersect uint scene_intersect_volume(KernelGlobals kg,
-                                                 ccl_private const Ray *ray,
+                                                 const ccl_private Ray *ray,
                                                  ccl_private Intersection *isect,
                                                  const uint max_hits,
                                                  const uint visibility)

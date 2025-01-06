@@ -11,6 +11,7 @@
 #include "DNA_object_types.h"
 #include "DNA_userdef_types.h"
 
+#include "BKE_attribute.hh"
 #include "BKE_customdata.hh"
 #include "BKE_mesh.hh"
 #include "BKE_modifier.hh"
@@ -84,8 +85,13 @@ static ModifierData *modifier_get_last_enabled_for_mode(const Scene *scene,
 
 bool BKE_subsurf_modifier_use_custom_loop_normals(const SubsurfModifierData *smd, const Mesh *mesh)
 {
-  return smd->flags & eSubsurfModifierFlag_UseCustomNormals &&
-         CustomData_has_layer(&mesh->corner_data, CD_CUSTOMLOOPNORMAL);
+  if ((smd->flags & eSubsurfModifierFlag_UseCustomNormals) == 0) {
+    return false;
+  }
+  const std::optional<AttributeMetaData> meta_data = mesh->attributes().lookup_meta_data(
+      "custom_normal");
+  return meta_data && meta_data->domain == AttrDomain::Corner &&
+         meta_data->data_type == CD_PROP_INT16_2D;
 }
 
 bool BKE_subsurf_modifier_has_split_normals(const SubsurfModifierData *smd, const Mesh *mesh)

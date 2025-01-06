@@ -12,12 +12,10 @@
 #  include "device/hiprt/queue.h"
 
 #  ifdef WITH_HIP_DYNLOAD
-#    include "hiprtew.h"
+#    include <hiprtew.h>
 #  else
 #    include <hiprt/hiprt_types.h>
 #  endif
-
-#  include "kernel/device/hiprt/globals.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -31,22 +29,22 @@ class BVHHIPRT;
 class HIPRTDevice : public HIPDevice {
 
  public:
-  virtual BVHLayoutMask get_bvh_layout_mask(const uint kernel_features) const override;
+  BVHLayoutMask get_bvh_layout_mask(const uint kernel_features) const override;
 
   HIPRTDevice(const DeviceInfo &info, Stats &stats, Profiler &profiler, bool headless);
 
-  virtual ~HIPRTDevice();
-  virtual unique_ptr<DeviceQueue> gpu_queue_create() override;
+  ~HIPRTDevice() override;
+  unique_ptr<DeviceQueue> gpu_queue_create() override;
   string compile_kernel_get_common_cflags(const uint kernel_features) override;
-  virtual string compile_kernel(const uint kernel_features,
-                                const char *name,
-                                const char *base = "hiprt") override;
+  string compile_kernel(const uint kernel_features,
+                        const char *name,
+                        const char *base = "hiprt") override;
 
-  virtual bool load_kernels(const uint kernel_features) override;
+  bool load_kernels(const uint kernel_features) override;
 
-  virtual void const_copy_to(const char *name, void *host, size_t size) override;
+  void const_copy_to(const char *name, void *host, const size_t size) override;
 
-  virtual void build_bvh(BVH *bvh, Progress &progress, bool refit) override;
+  void build_bvh(BVH *bvh, Progress &progress, bool refit) override;
 
   hiprtContext get_hiprt_context()
   {

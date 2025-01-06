@@ -108,6 +108,30 @@ static void rna_GreasePencilDrawing_resize_curves(ID *grease_pencil_id,
   }
 }
 
+static void rna_GreasePencilDrawing_reorder_curves(ID *grease_pencil_id,
+                                                   GreasePencilDrawing *drawing_ptr,
+                                                   ReportList *reports,
+                                                   const int *reorder_indices_ptr,
+                                                   const int reorder_indices_num)
+{
+  using namespace blender;
+  bke::greasepencil::Drawing &drawing = drawing_ptr->wrap();
+  bke::CurvesGeometry &curves = drawing.strokes_for_write();
+  if (!rna_CurvesGeometry_reorder_curves(
+          curves, reports, reorder_indices_ptr, reorder_indices_num))
+  {
+    return;
+  }
+
+  drawing.tag_topology_changed();
+
+  /* Avoid updates for importers. */
+  if (grease_pencil_id->us > 0) {
+    DEG_id_tag_update(grease_pencil_id, ID_RECALC_GEOMETRY);
+    WM_main_add_notifier(NC_GEOM | ND_DATA, grease_pencil_id);
+  }
+}
+
 static void rna_GreasePencilDrawing_set_types(ID *grease_pencil_id,
                                               GreasePencilDrawing *drawing_ptr,
                                               ReportList *reports,
@@ -516,6 +540,21 @@ void RNA_api_grease_pencil_drawing(StructRNA *srna)
                            0,
                            10000);
   RNA_def_parameter_flags(parm, PROP_DYNAMIC, ParameterFlag(0));
+
+  func = RNA_def_function(srna, "reorder_strokes", "rna_GreasePencilDrawing_reorder_curves");
+  RNA_def_function_ui_description(func, "Reorder the strokes by the new indices.");
+  RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_USE_REPORTS);
+  parm = RNA_def_int_array(func,
+                           "new_indices",
+                           1,
+                           nullptr,
+                           0,
+                           INT_MAX,
+                           "New indices",
+                           "The new index for each of the strokes",
+                           0,
+                           10000);
+  RNA_def_parameter_flags(parm, PROP_DYNAMIC, PARM_REQUIRED);
 
   func = RNA_def_function(srna, "set_types", "rna_GreasePencilDrawing_set_types");
   RNA_def_function_ui_description(func,

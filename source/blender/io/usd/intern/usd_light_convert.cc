@@ -192,8 +192,8 @@ static bNode *append_node(bNode *dst_node,
                      dst_node,
                      bke::node_find_socket(dst_node, SOCK_IN, in_sock));
 
-  src_node->locx = dst_node->locx - offset;
-  src_node->locy = dst_node->locy;
+  src_node->location[0] = dst_node->location[0] - offset;
+  src_node->location[1] = dst_node->location[1];
 
   return src_node;
 }
@@ -382,7 +382,6 @@ void world_material_to_dome_light(const USDExportParams &params,
 /* Import the dome light as a world material. */
 
 void dome_light_to_world_material(const USDImportParams &params,
-                                  const ImportSettings & /*settings*/,
                                   Scene *scene,
                                   Main *bmain,
                                   const pxr::UsdLuxDomeLight &dome_light,
@@ -421,7 +420,7 @@ void dome_light_to_world_material(const USDImportParams &params,
     }
     else {
       /* Move existing node out of the way. */
-      node->locy += 300;
+      node->location[1] += 300;
     }
   }
 
@@ -434,8 +433,8 @@ void dome_light_to_world_material(const USDImportParams &params,
       return;
     }
 
-    output->locx = 300.0f;
-    output->locy = 300.0f;
+    output->location[0] = 300.0f;
+    output->location[1] = 300.0f;
   }
 
   if (!bgshader) {

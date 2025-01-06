@@ -20,6 +20,10 @@ class DummyContext : public Context {
   {
     back_left = active_fb = new DummyFrameBuffer("DummyFramebuffer");
   }
+  ~DummyContext()
+  {
+    free_framebuffers();
+  }
   void activate() override {}
   void deactivate() override {}
   void begin_frame() override {}

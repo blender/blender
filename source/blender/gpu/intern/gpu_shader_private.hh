@@ -44,6 +44,8 @@ class Shader {
  public:
   /** Uniform & attribute locations for shader. */
   ShaderInterface *interface = nullptr;
+  /** Bit-set indicating the frame-buffer color attachments that this shader writes to. */
+  uint16_t fragment_output_bits = 0;
 
   /**
    * Specialization constants as a Struct-of-Arrays. Allow simpler comparison and reset.
@@ -121,10 +123,6 @@ class Shader {
 
   /* DEPRECATED: Kept only because of BGL API. */
   virtual int program_handle_get() const = 0;
-
-  /* Only used by SSBO Vertex fetch. */
-  virtual bool get_uses_ssbo_vertex_fetch() const = 0;
-  virtual int get_ssbo_vertex_fetch_output_num_verts() const = 0;
 
   inline StringRefNull name_get() const
   {

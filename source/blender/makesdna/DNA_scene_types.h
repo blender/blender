@@ -327,7 +327,7 @@ enum {
   SCE_VIEWS_FORMAT_MULTIVIEW = 1,
 };
 
-/** #ImageFormatData::views_format (also used for #Sequence::views_format). */
+/** #ImageFormatData::views_format (also used for #Strip::views_format). */
 enum {
   R_IMF_VIEWS_INDIVIDUAL = 0,
   R_IMF_VIEWS_STEREO_3D = 1,
@@ -830,10 +830,9 @@ typedef struct RenderData {
   /** Precision used by the GPU execution of the compositor tree. */
   int compositor_precision; /* eCompositorPrecision */
 
-  /* If false and the experimental enable_new_cpu_compositor is true, use the new experimental
-   * CPU compositor implementation, otherwise, use the old CPU compositor. */
-  char use_old_cpu_compositor;
-  char _pad10[7];
+  /** Global configuration for denoise compositor nodes. */
+  int compositor_denoise_preview_quality; /* eCompositorDenoiseQaulity */
+  int compositor_denoise_final_quality;   /* eCompositorDenoiseQaulity */
 } RenderData;
 
 /** #RenderData::quality_flag */
@@ -865,6 +864,14 @@ typedef enum eCompositorPrecision {
   SCE_COMPOSITOR_PRECISION_AUTO = 0,
   SCE_COMPOSITOR_PRECISION_FULL = 1,
 } eCompositorPrecision;
+
+/** #RenderData::compositor_denoise_preview_quality */
+/** #RenderData::compositor_denoise_final_quality */
+typedef enum eCompositorDenoiseQaulity {
+  SCE_COMPOSITOR_DENOISE_HIGH = 0,
+  SCE_COMPOSITOR_DENOISE_BALANCED = 1,
+  SCE_COMPOSITOR_DENOISE_FAST = 2,
+} eCompositorDenoiseQaulity;
 
 /** \} */
 

@@ -2,9 +2,14 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "common_pointcloud_lib.glsl"
+#include "infos/eevee_material_info.hh"
+
+VERTEX_SHADER_CREATE_INFO(eevee_clip_plane)
+VERTEX_SHADER_CREATE_INFO(eevee_geom_point_cloud)
+
 #include "draw_model_lib.glsl"
-#include "eevee_attributes_lib.glsl"
+#include "draw_pointcloud_lib.glsl"
+#include "eevee_attributes_point_cloud_lib.glsl"
 #include "eevee_nodetree_lib.glsl"
 #include "eevee_surf_lib.glsl"
 #include "eevee_velocity_lib.glsl"

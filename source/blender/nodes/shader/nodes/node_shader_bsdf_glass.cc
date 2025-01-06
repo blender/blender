@@ -75,6 +75,7 @@ void register_node_type_sh_bsdf_glass()
   static blender::bke::bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_BSDF_GLASS, "Glass BSDF", NODE_CLASS_SHADER);
+  ntype.enum_name_legacy = "BSDF_GLASS";
   ntype.declare = file_ns::node_declare;
   ntype.add_ui_poll = object_shader_nodes_poll;
   blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::Middle);

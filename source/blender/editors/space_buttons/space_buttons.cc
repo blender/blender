@@ -818,6 +818,7 @@ static void buttons_area_listener(const wmSpaceTypeListenerParams *params)
       break;
     case NC_ANIMATION:
       switch (wmn->data) {
+        case ND_KEYFRAME_PROP:
         case ND_NLA_ACTCHANGE:
           ED_area_tag_redraw(area);
           break;

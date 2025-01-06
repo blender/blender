@@ -779,7 +779,7 @@ static void reuse_bmain_data_invalid_local_usages_fix(ReuseOldBMainData *reuse_d
                                     nullptr;
 
     BKE_library_foreach_ID_link(
-        new_bmain, id_iter, reuse_bmain_data_invalid_local_usages_fix_cb, reuse_data, 0);
+        new_bmain, id_iter, reuse_bmain_data_invalid_local_usages_fix_cb, reuse_data, IDWALK_NOP);
 
     /* Liboverrides who lost their reference should not be liboverrides anymore, but regular IDs.
      */
@@ -1154,6 +1154,7 @@ static void setup_app_data(bContext *C,
      * and/or needs to operate over the whole Main data-base
      * (versioning done in file reading code only operates on a per-library basis). */
     BLO_read_do_version_after_setup(bmain, nullptr, reports);
+    BLO_readfile_id_runtime_data_free_all(*bmain);
   }
 
   bmain->recovered = false;
@@ -1202,7 +1203,7 @@ static void setup_app_data(bContext *C,
 
   BLI_assert(BKE_main_namemap_validate(bmain));
 
-  if (mode != LOAD_UNDO && !USER_EXPERIMENTAL_TEST(&U, no_override_auto_resync)) {
+  if (mode != LOAD_UNDO && liboverride::is_auto_resync_enabled()) {
     reports->duration.lib_overrides_resync = BLI_time_now_seconds();
 
     BKE_lib_override_library_main_resync(
@@ -1817,7 +1818,18 @@ void PartialWriteContext::make_local(ID *ctx_id, const int make_local_flags)
   BKE_main_idmap_remove_id(this->bmain.id_map, ctx_id);
   BKE_main_idmap_remove_id(matching_uid_map_, ctx_id);
 
-  BKE_lib_id_make_local(&this->bmain, ctx_id, make_local_flags);
+  if (ID_IS_LINKED(ctx_id)) {
+    BKE_lib_id_make_local(&this->bmain, ctx_id, make_local_flags);
+  }
+  /* NOTE: Cannot rely only on `ID_IS_OVERRIDE_LIBRARY` here, as the reference pointer to the
+   * linked data may have already been cleared out by dependency management in code above that
+   * call. */
+  else if ((ctx_id->override_library || ID_IS_OVERRIDE_LIBRARY(ctx_id)) &&
+           (make_local_flags & LIB_ID_MAKELOCAL_LIBOVERRIDE_CLEAR) != 0)
+
+  {
+    BKE_lib_override_library_make_local(&this->bmain, ctx_id);
+  }
 
   this->preempt_session_uid(ctx_id, ctx_id_session_uid);
   BKE_main_idmap_insert_id(this->bmain.id_map, ctx_id);
@@ -1923,13 +1935,12 @@ ID *PartialWriteContext::id_add(
       return IDWALK_RET_NOP;
     }
 
-    PartialWriteContext::IDAddOperations operations_final = PartialWriteContext::IDAddOperations(
-        options.operations & MASK_INHERITED);
+    PartialWriteContext::IDAddOperations operations_final = (options.operations & MASK_INHERITED);
     if (dependencies_filter_cb) {
       const PartialWriteContext::IDAddOperations operations_per_id = dependencies_filter_cb(
           cb_data, options);
-      operations_final = PartialWriteContext::IDAddOperations(
-          (operations_per_id & MASK_PER_ID_USAGE) | (operations_final & ~MASK_PER_ID_USAGE));
+      operations_final = ((operations_per_id & MASK_PER_ID_USAGE) |
+                          (operations_final & ~MASK_PER_ID_USAGE));
     }
 
     const bool add_dependencies = (operations_final & ADD_DEPENDENCIES) != 0;

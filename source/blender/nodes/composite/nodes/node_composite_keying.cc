@@ -67,21 +67,22 @@ static void node_composit_buts_keying(uiLayout *layout, bContext * /*C*/, Pointe
 {
   // bNode *node = (bNode*)ptr->data; /* UNUSED */
 
-  uiItemR(layout, ptr, "blur_pre", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "screen_balance", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "despill_factor", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "despill_balance", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "edge_kernel_radius", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "edge_kernel_tolerance", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "clip_black", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "clip_white", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "dilate_distance", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "feather_falloff", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "feather_distance", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "blur_post", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "blur_pre", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  uiItemR(layout, ptr, "screen_balance", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  uiItemR(layout, ptr, "despill_factor", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  uiItemR(layout, ptr, "despill_balance", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  uiItemR(layout, ptr, "edge_kernel_radius", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  uiItemR(
+      layout, ptr, "edge_kernel_tolerance", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  uiItemR(layout, ptr, "clip_black", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  uiItemR(layout, ptr, "clip_white", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  uiItemR(layout, ptr, "dilate_distance", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  uiItemR(layout, ptr, "feather_falloff", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  uiItemR(layout, ptr, "feather_distance", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  uiItemR(layout, ptr, "blur_post", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class KeyingOperation : public NodeOperation {
  public:
@@ -89,6 +90,23 @@ class KeyingOperation : public NodeOperation {
 
   void execute() override
   {
+    Result &input_image = get_result("Image");
+    Result &output_image = get_result("Image");
+    Result &output_matte = get_result("Matte");
+    Result &output_edges = get_result("Edges");
+    if (input_image.is_single_value()) {
+      if (output_image.should_compute()) {
+        input_image.pass_through(output_image);
+      }
+      if (output_matte.should_compute()) {
+        output_matte.allocate_invalid();
+      }
+      if (output_edges.should_compute()) {
+        output_edges.allocate_invalid();
+      }
+      return;
+    }
+
     Result blurred_input = compute_blurred_input();
 
     Result matte = compute_matte(blurred_input);
@@ -98,8 +116,6 @@ class KeyingOperation : public NodeOperation {
     Result tweaked_matte = compute_tweaked_matte(matte);
     matte.release();
 
-    Result &output_image = get_result("Image");
-    Result &output_matte = get_result("Matte");
     if (output_image.should_compute() || output_matte.should_compute()) {
       Result blurred_matte = compute_blurred_matte(tweaked_matte);
       tweaked_matte.release();
@@ -120,6 +136,9 @@ class KeyingOperation : public NodeOperation {
       else {
         feathered_matte.release();
       }
+    }
+    else {
+      tweaked_matte.release();
     }
   }
 
@@ -185,7 +204,7 @@ class KeyingOperation : public NodeOperation {
     output.allocate_texture(input.domain());
 
     parallel_for(input.domain().size, [&](const int2 texel) {
-      const float4 color = input.load_pixel(texel);
+      const float4 color = input.load_pixel<float4>(texel);
       float4 color_ycca;
       rgb_to_ycc(color.x,
                  color.y,
@@ -243,7 +262,7 @@ class KeyingOperation : public NodeOperation {
     output.allocate_texture(input.domain());
 
     parallel_for(input.domain().size, [&](const int2 texel) {
-      const float4 color = input.load_pixel(texel);
+      const float4 color = input.load_pixel<float4>(texel);
       float4 color_ycca;
       rgb_to_ycc(color.x,
                  color.y,
@@ -253,7 +272,7 @@ class KeyingOperation : public NodeOperation {
                  &color_ycca.z,
                  BLI_YCC_ITU_BT709);
 
-      const float2 new_chroma_cb_cr = new_chroma.load_pixel(texel).yz();
+      const float2 new_chroma_cb_cr = new_chroma.load_pixel<float4>(texel).yz();
       color_ycca.y = new_chroma_cb_cr.x * 255.0f;
       color_ycca.z = new_chroma_cb_cr.y * 255.0f;
 
@@ -330,16 +349,16 @@ class KeyingOperation : public NodeOperation {
     };
 
     parallel_for(input.domain().size, [&](const int2 texel) {
-      float4 input_color = input.load_pixel(texel);
+      float4 input_color = input.load_pixel<float4>(texel);
 
       /* We assume that the keying screen will not be overexposed in the image, so if the input
        * brightness is high, we assume the pixel is opaque. */
       if (math::reduce_min(input_color) > 1.0f) {
-        output.store_pixel(texel, float4(1.0f));
+        output.store_pixel(texel, 1.0f);
         return;
       }
 
-      float4 key_color = key.load_pixel(texel);
+      float4 key_color = key.load_pixel<float4, true>(texel);
       int3 key_saturation_indices = compute_saturation_indices(key_color.xyz());
       float input_saturation = compute_saturation(input_color, key_saturation_indices);
       float key_saturation = compute_saturation(key_color, key_saturation_indices);
@@ -359,7 +378,7 @@ class KeyingOperation : public NodeOperation {
         matte = 1.0f - math::clamp(input_saturation / key_saturation, 0.0f, 1.0f);
       }
 
-      output.store_pixel(texel, float4(matte));
+      output.store_pixel(texel, matte);
     });
 
     return output;
@@ -461,7 +480,7 @@ class KeyingOperation : public NodeOperation {
     output_edges.allocate_texture(input_matte.domain());
 
     parallel_for(input_matte.domain().size, [&](const int2 texel) {
-      float matte = input_matte.load_pixel(texel).x;
+      float matte = input_matte.load_pixel<float>(texel);
 
       /* Search the neighborhood around the current matte value and identify if it lies along the
        * edges of the matte. This is needs to be computed only when we need to compute the edges
@@ -473,7 +492,7 @@ class KeyingOperation : public NodeOperation {
         int count = 0;
         for (int j = -edge_search_radius; j <= edge_search_radius; j++) {
           for (int i = -edge_search_radius; i <= edge_search_radius; i++) {
-            float neighbor_matte = input_matte.load_pixel_extended(texel + int2(i, j)).x;
+            float neighbor_matte = input_matte.load_pixel_extended<float>(texel + int2(i, j));
             count += int(math::distance(matte, neighbor_matte) < edge_tolerance);
           }
         }
@@ -497,19 +516,19 @@ class KeyingOperation : public NodeOperation {
       /* Exclude unwanted areas using the provided garbage matte, 1 means unwanted, so invert the
        * garbage matte and take the minimum. */
       if (apply_garbage_matte) {
-        float garbage_matte = garbage_matte_image.load_pixel(texel).x;
+        float garbage_matte = garbage_matte_image.load_pixel<float>(texel);
         tweaked_matte = math::min(tweaked_matte, 1.0f - garbage_matte);
       }
 
       /* Include wanted areas that were incorrectly keyed using the provided core matte. */
       if (apply_core_matte) {
-        float core_matte = core_matte_image.load_pixel(texel).x;
+        float core_matte = core_matte_image.load_pixel<float>(texel);
         tweaked_matte = math::max(tweaked_matte, core_matte);
       }
 
-      output_matte.store_pixel(texel, float4(tweaked_matte));
+      output_matte.store_pixel(texel, tweaked_matte);
       if (compute_edges) {
-        output_edges.store_pixel(texel, float4(is_edge ? 1.0f : 0.0f));
+        output_edges.store_pixel(texel, is_edge ? 1.0f : 0.0f);
       }
     });
 
@@ -631,9 +650,9 @@ class KeyingOperation : public NodeOperation {
     };
 
     parallel_for(input.domain().size, [&](const int2 texel) {
-      float4 key_color = key.load_pixel(texel);
-      float4 color = input.load_pixel(texel);
-      float matte = matte_image.load_pixel(texel).x;
+      float4 key_color = key.load_pixel<float4, true>(texel);
+      float4 color = input.load_pixel<float4>(texel);
+      float matte = matte_image.load_pixel<float>(texel);
 
       /* Alpha multiply the matte to the image. */
       color *= matte;
@@ -663,6 +682,7 @@ void register_node_type_cmp_keying()
   static blender::bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_KEYING, "Keying", NODE_CLASS_MATTE);
+  ntype.enum_name_legacy = "KEYING";
   ntype.declare = file_ns::cmp_node_keying_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_keying;
   ntype.initfunc = file_ns::node_composit_init_keying;

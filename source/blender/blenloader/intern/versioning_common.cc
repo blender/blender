@@ -431,8 +431,8 @@ void add_realize_instances_before_socket(bNodeTree *ntree,
     bNode *realize_node = blender::bke::node_add_static_node(
         nullptr, ntree, GEO_NODE_REALIZE_INSTANCES);
     realize_node->parent = node->parent;
-    realize_node->locx = node->locx - 100;
-    realize_node->locy = node->locy;
+    realize_node->locx_legacy = node->locx_legacy - 100;
+    realize_node->locy_legacy = node->locy_legacy;
     blender::bke::node_add_link(ntree,
                                 link->fromnode,
                                 link->fromsock,

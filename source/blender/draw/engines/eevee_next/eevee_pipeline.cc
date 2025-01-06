@@ -78,8 +78,9 @@ void BackgroundPipeline::clear(View &view)
   inst_.manager->submit(clear_ps_, view);
 }
 
-void BackgroundPipeline::render(View &view)
+void BackgroundPipeline::render(View &view, Framebuffer &combined_fb)
 {
+  GPU_framebuffer_bind(combined_fb);
   inst_.manager->submit(world_ps_, view);
 }
 

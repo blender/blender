@@ -9,6 +9,8 @@
 
 #pragma once
 
+#include "BKE_lib_query.hh" /* For LibraryForeachIDCallbackFlag enum. */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -59,7 +61,7 @@ void BKE_rigidbody_object_copy(struct Main *bmain,
 typedef void (*RigidbodyWorldIDFunc)(struct RigidBodyWorld *rbw,
                                      struct ID **idpoin,
                                      void *userdata,
-                                     int cb_flag);
+                                     LibraryForeachIDCallbackFlag cb_flag);
 
 void BKE_rigidbody_world_id_loop(struct RigidBodyWorld *rbw,
                                  RigidbodyWorldIDFunc func,

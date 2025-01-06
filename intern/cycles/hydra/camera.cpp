@@ -14,7 +14,7 @@
 HDCYCLES_NAMESPACE_OPEN_SCOPE
 
 extern Transform convert_transform(const GfMatrix4d &matrix);
-Transform convert_camera_transform(const GfMatrix4d &matrix, float metersPerUnit)
+Transform convert_camera_transform(const GfMatrix4d &matrix, const float metersPerUnit)
 {
   Transform t = convert_transform(matrix);
   // Flip Z axis
@@ -52,7 +52,7 @@ HdCyclesCamera::HdCyclesCamera(const SdfPath &sprimId) : HdCamera(sprimId)
 #endif
 }
 
-HdCyclesCamera::~HdCyclesCamera() {}
+HdCyclesCamera::~HdCyclesCamera() = default;
 
 HdDirtyBits HdCyclesCamera::GetInitialDirtyBitsMask() const
 {
@@ -60,7 +60,7 @@ HdDirtyBits HdCyclesCamera::GetInitialDirtyBitsMask() const
 }
 
 void HdCyclesCamera::Sync(HdSceneDelegate *sceneDelegate,
-                          HdRenderParam *renderParam,
+                          HdRenderParam * /*renderParam*/,
                           HdDirtyBits *dirtyBits)
 {
   if (*dirtyBits == DirtyBits::Clean) {
@@ -320,7 +320,7 @@ void HdCyclesCamera::ApplyCameraSettings(HdRenderParam *renderParam,
 void HdCyclesCamera::ApplyCameraSettings(HdRenderParam *renderParam,
                                          const GfMatrix4d &worldToViewMatrix,
                                          const GfMatrix4d &projectionMatrix,
-                                         const std::vector<GfVec4d> &clipPlanes,
+                                         const std::vector<GfVec4d> & /*clipPlanes*/,
                                          Camera *cam)
 {
 #if PXR_VERSION >= 2102

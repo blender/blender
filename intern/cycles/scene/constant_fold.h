@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __CONSTANT_FOLD_H__
-#define __CONSTANT_FOLD_H__
+#pragma once
 
 #include "kernel/svm/types.h"
 #include "util/types.h"
@@ -29,11 +28,11 @@ class ConstantFolder {
   bool all_inputs_constant() const;
 
   /* Constant folding helpers */
-  void make_constant(float value) const;
-  void make_constant(float3 value) const;
-  void make_constant(int value) const;
-  void make_constant_clamp(float value, bool clamp) const;
-  void make_constant_clamp(float3 value, bool clamp) const;
+  void make_constant(const float value) const;
+  void make_constant(const float3 value) const;
+  void make_constant(const int value) const;
+  void make_constant_clamp(const float value, bool clamp) const;
+  void make_constant_clamp(const float3 value, bool clamp) const;
   void make_zero() const;
   void make_one() const;
 
@@ -61,5 +60,3 @@ class ConstantFolder {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __CONSTANT_FOLD_H__ */

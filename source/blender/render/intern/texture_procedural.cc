@@ -1211,7 +1211,7 @@ int multitex_ext_safe(Tex *tex,
 
 float texture_value_blend(float tex, float out, float fact, float facg, int blendtype)
 {
-  float in = 0.0, facm, col, scf;
+  float in = 0.0, facm, scf;
   int flip = (facg < 0.0f);
 
   facg = fabsf(facg);
@@ -1269,13 +1269,7 @@ float texture_value_blend(float tex, float out, float fact, float facg, int blen
       break;
 
     case MTEX_LIGHT:
-      col = fact * tex;
-      if (col > out) {
-        in = col;
-      }
-      else {
-        in = out;
-      }
+      in = max_ff(out, tex) * fact + out * facm;
       break;
 
     case MTEX_SOFT_LIGHT:

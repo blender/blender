@@ -21,6 +21,8 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_lib_query.hh" /* For LibraryForeachIDCallbackFlag enum. */
+
 #include "intern/builder/deg_builder.h"
 #include "intern/builder/deg_builder_key.h"
 #include "intern/builder/deg_builder_map.h"
@@ -336,7 +338,7 @@ class DepsgraphRelationBuilder : public DepsgraphBuilder {
   static void modifier_walk(void *user_data,
                             struct Object *object,
                             struct ID **idpoin,
-                            int cb_flag);
+                            LibraryForeachIDCallbackFlag cb_flag);
 
   static void constraint_walk(bConstraint *con, ID **idpoin, bool is_reference, void *user_data);
 

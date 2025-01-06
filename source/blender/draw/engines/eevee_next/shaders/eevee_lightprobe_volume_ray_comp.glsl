@@ -10,6 +10,10 @@
  * Dispatched as 1 thread per irradiance probe sample.
  */
 
+#include "infos/eevee_lightprobe_volume_info.hh"
+
+COMPUTE_SHADER_CREATE_INFO(eevee_lightprobe_volume_ray)
+
 #include "eevee_lightprobe_lib.glsl"
 #include "eevee_lightprobe_sphere_lib.glsl"
 #include "eevee_spherical_harmonics_lib.glsl"

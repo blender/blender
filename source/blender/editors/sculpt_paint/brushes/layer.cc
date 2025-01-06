@@ -226,7 +226,6 @@ static void calc_grids(const Depsgraph &depsgraph,
   SculptSession &ss = *object.sculpt;
   const StrokeCache &cache = *ss.cache;
   SubdivCCG &subdiv_ccg = *ss.subdiv_ccg;
-  const CCGKey key = BKE_subdiv_ccg_key_top_level(subdiv_ccg);
 
   const Span<int> grids = node.grids();
   const OrigPositionData orig_data = orig_position_data_get_grids(object, node);
@@ -256,7 +255,7 @@ static void calc_grids(const Depsgraph &depsgraph,
       subdiv_ccg, layer_displacement_factor.as_span(), grids, tls.displacement_factors);
 
   offset_displacement_factors(displacement_factors, tls.factors, cache.bstrength);
-  if (key.has_mask) {
+  if (!subdiv_ccg.masks.is_empty()) {
     tls.masks.resize(positions.size());
     mask::gather_mask_grids(subdiv_ccg, grids, tls.masks);
   }

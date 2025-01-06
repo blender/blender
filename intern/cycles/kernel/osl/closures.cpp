@@ -16,8 +16,7 @@
 #include "util/math.h"
 #include "util/param.h"
 
-#include "kernel/device/cpu/compat.h"
-#include "kernel/device/cpu/globals.h"
+#include "kernel/globals.h"
 
 #include "kernel/geom/object.h"
 #include "kernel/util/differential.h"
@@ -77,18 +76,17 @@ void OSLRenderServices::register_closures(OSL::ShadingSystem *ss)
 /* Surface & Background */
 
 template<>
-void osl_eval_nodes<SHADER_TYPE_SURFACE>(const KernelGlobalsCPU *kg,
+void osl_eval_nodes<SHADER_TYPE_SURFACE>(const ThreadKernelGlobalsCPU *kg,
                                          const void *state,
                                          ShaderData *sd,
-                                         uint32_t path_flag)
+                                         const uint32_t path_flag)
 {
   /* setup shader globals from shader data */
-  OSLThreadData *tdata = kg->osl_tdata;
   shaderdata_to_shaderglobals(
-      kg, sd, path_flag, reinterpret_cast<ShaderGlobals *>(&tdata->globals));
+      kg, sd, path_flag, reinterpret_cast<ShaderGlobals *>(&kg->osl.shader_globals));
 
   /* clear trace data */
-  tdata->tracedata.init = false;
+  kg->osl.tracedata.init = false;
 
   /* Used by render-services. */
   sd->osl_globals = kg;
@@ -102,30 +100,30 @@ void osl_eval_nodes<SHADER_TYPE_SURFACE>(const KernelGlobalsCPU *kg,
   }
 
   /* execute shader for this point */
-  OSL::ShadingSystem *ss = (OSL::ShadingSystem *)kg->osl_ss;
-  OSL::ShaderGlobals *globals = &tdata->globals;
-  OSL::ShadingContext *octx = tdata->context;
-  int shader = sd->shader & SHADER_MASK;
+  OSL::ShadingSystem *ss = (OSL::ShadingSystem *)kg->osl.ss;
+  OSL::ShaderGlobals *globals = &kg->osl.shader_globals;
+  OSL::ShadingContext *octx = kg->osl.context;
+  const int shader = sd->shader & SHADER_MASK;
 
   if (sd->object == OBJECT_NONE && sd->lamp == LAMP_NONE) {
     /* background */
-    if (kg->osl->background_state) {
+    if (kg->osl.globals->background_state) {
 #if OSL_LIBRARY_VERSION_CODE >= 11304
       ss->execute(*octx,
-                  *(kg->osl->background_state),
-                  kg->osl_thread_index,
+                  *(kg->osl.globals->background_state),
+                  kg->osl.thread_index,
                   0,
                   *globals,
                   nullptr,
                   nullptr);
 #else
-      ss->execute(octx, *(kg->osl->background_state), *globals);
+      ss->execute(octx, *(kg->osl.globals->background_state), *globals);
 #endif
     }
   }
   else {
     /* automatic bump shader */
-    if (kg->osl->bump_state[shader]) {
+    if (kg->osl.globals->bump_state[shader]) {
       /* save state */
       const float3 P = sd->P;
       const float dP = sd->dP;
@@ -135,19 +133,20 @@ void osl_eval_nodes<SHADER_TYPE_SURFACE>(const KernelGlobalsCPU *kg,
       /* set state as if undisplaced */
       if (sd->flag & SD_HAS_DISPLACEMENT) {
         float data[9];
-        bool found = kg->osl->services->get_attribute(sd,
-                                                      true,
-                                                      OSLRenderServices::u_empty,
-                                                      TypeVector,
-                                                      OSLRenderServices::u_geom_undisplaced,
-                                                      data);
+        const bool found = kg->osl.globals->services->get_attribute(
+            sd,
+            true,
+            OSLRenderServices::u_empty,
+            TypeVector,
+            OSLRenderServices::u_geom_undisplaced,
+            data);
         (void)found;
         assert(found);
 
         differential3 tmp_dP;
-        memcpy(&sd->P, data, sizeof(float) * 3);
-        memcpy(&tmp_dP.dx, data + 3, sizeof(float) * 3);
-        memcpy(&tmp_dP.dy, data + 6, sizeof(float) * 3);
+        sd->P = make_float3(data[0], data[1], data[2]);
+        tmp_dP.dx = make_float3(data[3], data[4], data[5]);
+        tmp_dP.dy = make_float3(data[6], data[7], data[8]);
 
         object_position_transform(kg, sd, &sd->P);
         object_dir_transform(kg, sd, &tmp_dP.dx);
@@ -163,14 +162,14 @@ void osl_eval_nodes<SHADER_TYPE_SURFACE>(const KernelGlobalsCPU *kg,
 /* execute bump shader */
 #if OSL_LIBRARY_VERSION_CODE >= 11304
       ss->execute(*octx,
-                  *(kg->osl->bump_state[shader]),
-                  kg->osl_thread_index,
+                  *(kg->osl.globals->bump_state[shader]),
+                  kg->osl.thread_index,
                   0,
                   *globals,
                   nullptr,
                   nullptr);
 #else
-      ss->execute(octx, *(kg->osl->bump_state[shader]), *globals);
+      ss->execute(octx, *(kg->osl.globals->bump_state[shader]), *globals);
 #endif
 
       /* reset state */
@@ -183,17 +182,17 @@ void osl_eval_nodes<SHADER_TYPE_SURFACE>(const KernelGlobalsCPU *kg,
     }
 
     /* surface shader */
-    if (kg->osl->surface_state[shader]) {
+    if (kg->osl.globals->surface_state[shader]) {
 #if OSL_LIBRARY_VERSION_CODE >= 11304
       ss->execute(*octx,
-                  *(kg->osl->surface_state[shader]),
-                  kg->osl_thread_index,
+                  *(kg->osl.globals->surface_state[shader]),
+                  kg->osl.thread_index,
                   0,
                   *globals,
                   nullptr,
                   nullptr);
 #else
-      ss->execute(octx, *(kg->osl->surface_state[shader]), *globals);
+      ss->execute(octx, *(kg->osl.globals->surface_state[shader]), *globals);
 #endif
     }
   }
@@ -207,18 +206,17 @@ void osl_eval_nodes<SHADER_TYPE_SURFACE>(const KernelGlobalsCPU *kg,
 /* Volume */
 
 template<>
-void osl_eval_nodes<SHADER_TYPE_VOLUME>(const KernelGlobalsCPU *kg,
+void osl_eval_nodes<SHADER_TYPE_VOLUME>(const ThreadKernelGlobalsCPU *kg,
                                         const void *state,
                                         ShaderData *sd,
-                                        uint32_t path_flag)
+                                        const uint32_t path_flag)
 {
   /* setup shader globals from shader data */
-  OSLThreadData *tdata = kg->osl_tdata;
   shaderdata_to_shaderglobals(
-      kg, sd, path_flag, reinterpret_cast<ShaderGlobals *>(&tdata->globals));
+      kg, sd, path_flag, reinterpret_cast<ShaderGlobals *>(&kg->osl.shader_globals));
 
   /* clear trace data */
-  tdata->tracedata.init = false;
+  kg->osl.tracedata.init = false;
 
   /* Used by render-services. */
   sd->osl_globals = kg;
@@ -232,22 +230,22 @@ void osl_eval_nodes<SHADER_TYPE_VOLUME>(const KernelGlobalsCPU *kg,
   }
 
   /* execute shader */
-  OSL::ShadingSystem *ss = (OSL::ShadingSystem *)kg->osl_ss;
-  OSL::ShaderGlobals *globals = &tdata->globals;
-  OSL::ShadingContext *octx = tdata->context;
-  int shader = sd->shader & SHADER_MASK;
+  OSL::ShadingSystem *ss = (OSL::ShadingSystem *)kg->osl.ss;
+  OSL::ShaderGlobals *globals = &kg->osl.shader_globals;
+  OSL::ShadingContext *octx = kg->osl.context;
+  const int shader = sd->shader & SHADER_MASK;
 
-  if (kg->osl->volume_state[shader]) {
+  if (kg->osl.globals->volume_state[shader]) {
 #if OSL_LIBRARY_VERSION_CODE >= 11304
     ss->execute(*octx,
-                *(kg->osl->volume_state[shader]),
-                kg->osl_thread_index,
+                *(kg->osl.globals->volume_state[shader]),
+                kg->osl.thread_index,
                 0,
                 *globals,
                 nullptr,
                 nullptr);
 #else
-    ss->execute(octx, *(kg->osl->volume_state[shader]), *globals);
+    ss->execute(octx, *(kg->osl.globals->volume_state[shader]), *globals);
 #endif
   }
 
@@ -260,18 +258,17 @@ void osl_eval_nodes<SHADER_TYPE_VOLUME>(const KernelGlobalsCPU *kg,
 /* Displacement */
 
 template<>
-void osl_eval_nodes<SHADER_TYPE_DISPLACEMENT>(const KernelGlobalsCPU *kg,
+void osl_eval_nodes<SHADER_TYPE_DISPLACEMENT>(const ThreadKernelGlobalsCPU *kg,
                                               const void *state,
                                               ShaderData *sd,
-                                              uint32_t path_flag)
+                                              const uint32_t path_flag)
 {
   /* setup shader globals from shader data */
-  OSLThreadData *tdata = kg->osl_tdata;
   shaderdata_to_shaderglobals(
-      kg, sd, path_flag, reinterpret_cast<ShaderGlobals *>(&tdata->globals));
+      kg, sd, path_flag, reinterpret_cast<ShaderGlobals *>(&kg->osl.shader_globals));
 
   /* clear trace data */
-  tdata->tracedata.init = false;
+  kg->osl.tracedata.init = false;
 
   /* Used by render-services. */
   sd->osl_globals = kg;
@@ -279,22 +276,22 @@ void osl_eval_nodes<SHADER_TYPE_DISPLACEMENT>(const KernelGlobalsCPU *kg,
   sd->osl_shadow_path_state = nullptr;
 
   /* execute shader */
-  OSL::ShadingSystem *ss = (OSL::ShadingSystem *)kg->osl_ss;
-  OSL::ShaderGlobals *globals = &tdata->globals;
-  OSL::ShadingContext *octx = tdata->context;
-  int shader = sd->shader & SHADER_MASK;
+  OSL::ShadingSystem *ss = (OSL::ShadingSystem *)kg->osl.ss;
+  OSL::ShaderGlobals *globals = &kg->osl.shader_globals;
+  OSL::ShadingContext *octx = kg->osl.context;
+  const int shader = sd->shader & SHADER_MASK;
 
-  if (kg->osl->displacement_state[shader]) {
+  if (kg->osl.globals->displacement_state[shader]) {
 #if OSL_LIBRARY_VERSION_CODE >= 11304
     ss->execute(*octx,
-                *(kg->osl->displacement_state[shader]),
-                kg->osl_thread_index,
+                *(kg->osl.globals->displacement_state[shader]),
+                kg->osl.thread_index,
                 0,
                 *globals,
                 nullptr,
                 nullptr);
 #else
-    ss->execute(octx, *(kg->osl->displacement_state[shader]), *globals);
+    ss->execute(octx, *(kg->osl.globals->displacement_state[shader]), *globals);
 #endif
   }
 

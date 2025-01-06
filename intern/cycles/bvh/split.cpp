@@ -25,7 +25,7 @@ BVHObjectSplit::BVHObjectSplit(BVHBuild *builder,
                                BVHSpatialStorage *storage,
                                const BVHRange &range,
                                vector<BVHReference> &references,
-                               float nodeSAH,
+                               const float nodeSAH,
                                const BVHUnaligned *unaligned_heuristic,
                                const Transform *aligned_space)
     : sah(FLT_MAX),
@@ -41,8 +41,6 @@ BVHObjectSplit::BVHObjectSplit(BVHBuild *builder,
   const BVHReference *ref_ptr = &references_->at(range.start());
   float min_sah = FLT_MAX;
 
-  storage_->right_bounds.resize(range.size());
-
   for (int dim = 0; dim < 3; dim++) {
     /* Sort references. */
     bvh_reference_sort(range.start(),
@@ -52,10 +50,15 @@ BVHObjectSplit::BVHObjectSplit(BVHBuild *builder,
                        unaligned_heuristic_,
                        aligned_space_);
 
+    // Resize must be called after every bvh_reference_sort, as sorting may use a task pool for
+    // large ranges. This may cause another BVHObjectSplit to use and resize the storage on the
+    // same thread.
+    storage_->right_bounds.resize(range.size());
+
     /* sweep right to left and determine bounds. */
     BoundBox right_bounds = BoundBox::empty;
     for (int i = range.size() - 1; i > 0; i--) {
-      BoundBox prim_bounds = get_prim_bounds(ref_ptr[i]);
+      const BoundBox prim_bounds = get_prim_bounds(ref_ptr[i]);
       right_bounds.grow(prim_bounds);
       storage_->right_bounds[i - 1] = right_bounds;
     }
@@ -64,12 +67,13 @@ BVHObjectSplit::BVHObjectSplit(BVHBuild *builder,
     BoundBox left_bounds = BoundBox::empty;
 
     for (int i = 1; i < range.size(); i++) {
-      BoundBox prim_bounds = get_prim_bounds(ref_ptr[i - 1]);
+      const BoundBox prim_bounds = get_prim_bounds(ref_ptr[i - 1]);
       left_bounds.grow(prim_bounds);
       right_bounds = storage_->right_bounds[i - 1];
 
-      float sah = nodeSAH + left_bounds.safe_area() * builder->params.primitive_cost(i) +
-                  right_bounds.safe_area() * builder->params.primitive_cost(range.size() - i);
+      const float sah = nodeSAH + left_bounds.safe_area() * builder->params.primitive_cost(i) +
+                        right_bounds.safe_area() *
+                            builder->params.primitive_cost(range.size() - i);
 
       if (sah < min_sah) {
         min_sah = sah;
@@ -86,7 +90,7 @@ BVHObjectSplit::BVHObjectSplit(BVHBuild *builder,
 
 void BVHObjectSplit::split(BVHRange &left, BVHRange &right, const BVHRange &range)
 {
-  assert(references_->size() > 0);
+  assert(!references_->empty());
   /* sort references according to split */
   bvh_reference_sort(range.start(),
                      range.end(),
@@ -95,9 +99,10 @@ void BVHObjectSplit::split(BVHRange &left, BVHRange &right, const BVHRange &rang
                      unaligned_heuristic_,
                      aligned_space_);
 
-  BoundBox effective_left_bounds, effective_right_bounds;
+  BoundBox effective_left_bounds;
+  BoundBox effective_right_bounds;
   const int num_right = range.size() - this->num_left;
-  if (aligned_space_ == NULL) {
+  if (aligned_space_ == nullptr) {
     effective_left_bounds = left_bounds;
     effective_right_bounds = right_bounds;
   }
@@ -105,11 +110,11 @@ void BVHObjectSplit::split(BVHRange &left, BVHRange &right, const BVHRange &rang
     effective_left_bounds = BoundBox::empty;
     effective_right_bounds = BoundBox::empty;
     for (int i = 0; i < this->num_left; ++i) {
-      BoundBox prim_boundbox = references_->at(range.start() + i).bounds();
+      const BoundBox prim_boundbox = references_->at(range.start() + i).bounds();
       effective_left_bounds.grow(prim_boundbox);
     }
     for (int i = 0; i < num_right; ++i) {
-      BoundBox prim_boundbox = references_->at(range.start() + this->num_left + i).bounds();
+      const BoundBox prim_boundbox = references_->at(range.start() + this->num_left + i).bounds();
       effective_right_bounds.grow(prim_boundbox);
     }
   }
@@ -125,7 +130,7 @@ BVHSpatialSplit::BVHSpatialSplit(const BVHBuild &builder,
                                  BVHSpatialStorage *storage,
                                  const BVHRange &range,
                                  vector<BVHReference> &references,
-                                 float nodeSAH,
+                                 const float nodeSAH,
                                  const BVHUnaligned *unaligned_heuristic,
                                  const Transform *aligned_space)
     : sah(FLT_MAX),
@@ -138,7 +143,7 @@ BVHSpatialSplit::BVHSpatialSplit(const BVHBuild &builder,
 {
   /* initialize bins. */
   BoundBox range_bounds;
-  if (aligned_space == NULL) {
+  if (aligned_space == nullptr) {
     range_bounds = range.bounds();
   }
   else {
@@ -148,7 +153,7 @@ BVHSpatialSplit::BVHSpatialSplit(const BVHBuild &builder,
 
   float3 origin = range_bounds.min;
   float3 binSize = (range_bounds.max - origin) * (1.0f / (float)BVHParams::NUM_SPATIAL_BINS);
-  float3 invBinSize = 1.0f / binSize;
+  const float3 invBinSize = 1.0f / binSize;
 
   for (int dim = 0; dim < 3; dim++) {
     for (int i = 0; i < BVHParams::NUM_SPATIAL_BINS; i++) {
@@ -163,9 +168,9 @@ BVHSpatialSplit::BVHSpatialSplit(const BVHBuild &builder,
   /* chop references into bins. */
   for (unsigned int refIdx = range.start(); refIdx < range.end(); refIdx++) {
     const BVHReference &ref = references_->at(refIdx);
-    BoundBox prim_bounds = get_prim_bounds(ref);
-    float3 firstBinf = (prim_bounds.min - origin) * invBinSize;
-    float3 lastBinf = (prim_bounds.max - origin) * invBinSize;
+    const BoundBox prim_bounds = get_prim_bounds(ref);
+    const float3 firstBinf = (prim_bounds.min - origin) * invBinSize;
+    const float3 lastBinf = (prim_bounds.max - origin) * invBinSize;
     int3 firstBin = make_int3((int)firstBinf.x, (int)firstBinf.y, (int)firstBinf.z);
     int3 lastBin = make_int3((int)lastBinf.x, (int)lastBinf.y, (int)lastBinf.z);
 
@@ -177,7 +182,8 @@ BVHSpatialSplit::BVHSpatialSplit(const BVHBuild &builder,
           get_prim_bounds(ref), ref.prim_index(), ref.prim_object(), ref.prim_type());
 
       for (int i = firstBin[dim]; i < lastBin[dim]; i++) {
-        BVHReference leftRef, rightRef;
+        BVHReference leftRef;
+        BVHReference rightRef;
 
         split_reference(
             builder, leftRef, rightRef, currRef, dim, origin[dim] + binSize[dim] * (float)(i + 1));
@@ -211,9 +217,10 @@ BVHSpatialSplit::BVHSpatialSplit(const BVHBuild &builder,
       leftNum += storage_->bins[dim][i - 1].enter;
       rightNum -= storage_->bins[dim][i - 1].exit;
 
-      float sah = nodeSAH + left_bounds.safe_area() * builder.params.primitive_cost(leftNum) +
-                  storage_->right_bounds[i - 1].safe_area() *
-                      builder.params.primitive_cost(rightNum);
+      const float sah = nodeSAH +
+                        left_bounds.safe_area() * builder.params.primitive_cost(leftNum) +
+                        storage_->right_bounds[i - 1].safe_area() *
+                            builder.params.primitive_cost(rightNum);
 
       if (sah < this->sah) {
         this->sah = sah;
@@ -236,7 +243,7 @@ void BVHSpatialSplit::split(BVHBuild *builder,
    * Right-hand side:         [right_start, refs.size()[ */
 
   vector<BVHReference> &refs = *references_;
-  int left_start = range.start();
+  const int left_start = range.start();
   int left_end = left_start;
   int right_start = range.end();
   int right_end = range.end();
@@ -267,11 +274,12 @@ void BVHSpatialSplit::split(BVHBuild *builder,
   new_refs.reserve(right_start - left_end);
   while (left_end < right_start) {
     /* split reference. */
-    BVHReference curr_ref(get_prim_bounds(refs[left_end]),
-                          refs[left_end].prim_index(),
-                          refs[left_end].prim_object(),
-                          refs[left_end].prim_type());
-    BVHReference lref, rref;
+    const BVHReference curr_ref(get_prim_bounds(refs[left_end]),
+                                refs[left_end].prim_index(),
+                                refs[left_end].prim_object(),
+                                refs[left_end].prim_type());
+    BVHReference lref;
+    BVHReference rref;
     split_reference(*builder, lref, rref, curr_ref, this->dim, this->pos);
 
     /* compute SAH for duplicate/unsplit candidates. */
@@ -285,15 +293,15 @@ void BVHSpatialSplit::split(BVHBuild *builder,
     ldb.grow(lref.bounds());
     rdb.grow(rref.bounds());
 
-    float lac = builder->params.primitive_cost(left_end - left_start);
-    float rac = builder->params.primitive_cost(right_end - right_start);
-    float lbc = builder->params.primitive_cost(left_end - left_start + 1);
-    float rbc = builder->params.primitive_cost(right_end - right_start + 1);
+    const float lac = builder->params.primitive_cost(left_end - left_start);
+    const float rac = builder->params.primitive_cost(right_end - right_start);
+    const float lbc = builder->params.primitive_cost(left_end - left_start + 1);
+    const float rbc = builder->params.primitive_cost(right_end - right_start + 1);
 
-    float unsplitLeftSAH = lub.safe_area() * lbc + right_bounds.safe_area() * rac;
-    float unsplitRightSAH = left_bounds.safe_area() * lac + rub.safe_area() * rbc;
-    float duplicateSAH = ldb.safe_area() * lbc + rdb.safe_area() * rbc;
-    float minSAH = min(min(unsplitLeftSAH, unsplitRightSAH), duplicateSAH);
+    const float unsplitLeftSAH = lub.safe_area() * lbc + right_bounds.safe_area() * rac;
+    const float unsplitRightSAH = left_bounds.safe_area() * lac + rub.safe_area() * rbc;
+    const float duplicateSAH = ldb.safe_area() * lbc + rdb.safe_area() * rbc;
+    const float minSAH = min(min(unsplitLeftSAH, unsplitRightSAH), duplicateSAH);
 
     if (minSAH == unsplitLeftSAH) {
       /* unsplit to left */
@@ -315,17 +323,17 @@ void BVHSpatialSplit::split(BVHBuild *builder,
     }
   }
   /* Insert duplicated references into actual array in one go. */
-  if (new_refs.size() != 0) {
+  if (!new_refs.empty()) {
     refs.insert(refs.begin() + (right_end - new_refs.size()), new_refs.begin(), new_refs.end());
   }
-  if (aligned_space_ != NULL) {
+  if (aligned_space_ != nullptr) {
     left_bounds = right_bounds = BoundBox::empty;
     for (int i = left_start; i < left_end - left_start; ++i) {
-      BoundBox prim_boundbox = references_->at(i).bounds();
+      const BoundBox prim_boundbox = references_->at(i).bounds();
       left_bounds.grow(prim_boundbox);
     }
     for (int i = right_start; i < right_end - right_start; ++i) {
-      BoundBox prim_boundbox = references_->at(i).bounds();
+      const BoundBox prim_boundbox = references_->at(i).bounds();
       right_bounds.grow(prim_boundbox);
     }
   }
@@ -335,24 +343,24 @@ void BVHSpatialSplit::split(BVHBuild *builder,
 
 void BVHSpatialSplit::split_triangle_primitive(const Mesh *mesh,
                                                const Transform *tfm,
-                                               int prim_index,
-                                               int dim,
-                                               float pos,
+                                               const int prim_index,
+                                               const int dim,
+                                               const float pos,
                                                BoundBox &left_bounds,
                                                BoundBox &right_bounds)
 {
-  Mesh::Triangle t = mesh->get_triangle(prim_index);
-  const float3 *verts = &mesh->verts[0];
+  const Mesh::Triangle t = mesh->get_triangle(prim_index);
+  const float3 *verts = mesh->verts.data();
   float3 v1 = tfm ? transform_point(tfm, verts[t.v[2]]) : verts[t.v[2]];
   v1 = get_unaligned_point(v1);
 
   for (int i = 0; i < 3; i++) {
     float3 v0 = v1;
-    int vindex = t.v[i];
+    const int vindex = t.v[i];
     v1 = tfm ? transform_point(tfm, verts[vindex]) : verts[vindex];
     v1 = get_unaligned_point(v1);
-    float v0p = v0[dim];
-    float v1p = v1[dim];
+    const float v0p = v0[dim];
+    const float v1p = v1[dim];
 
     /* insert vertex to the boxes it belongs to. */
     if (v0p <= pos) {
@@ -365,7 +373,7 @@ void BVHSpatialSplit::split_triangle_primitive(const Mesh *mesh,
 
     /* edge intersects the plane => insert intersection to both boxes. */
     if ((v0p < pos && v1p > pos) || (v0p > pos && v1p < pos)) {
-      float3 t = mix(v0, v1, clamp((pos - v0p) / (v1p - v0p), 0.0f, 1.0f));
+      const float3 t = mix(v0, v1, clamp((pos - v0p) / (v1p - v0p), 0.0f, 1.0f));
       left_bounds.grow(t);
       right_bounds.grow(t);
     }
@@ -374,29 +382,29 @@ void BVHSpatialSplit::split_triangle_primitive(const Mesh *mesh,
 
 void BVHSpatialSplit::split_curve_primitive(const Hair *hair,
                                             const Transform *tfm,
-                                            int prim_index,
-                                            int segment_index,
-                                            int dim,
-                                            float pos,
+                                            const int prim_index,
+                                            const int segment_index,
+                                            const int dim,
+                                            const float pos,
                                             BoundBox &left_bounds,
                                             BoundBox &right_bounds)
 {
   /* curve split: NOTE - Currently ignores curve width and needs to be fixed. */
-  Hair::Curve curve = hair->get_curve(prim_index);
+  const Hair::Curve curve = hair->get_curve(prim_index);
   const int k0 = curve.first_key + segment_index;
   const int k1 = k0 + 1;
   float3 v0 = hair->get_curve_keys()[k0];
   float3 v1 = hair->get_curve_keys()[k1];
 
-  if (tfm != NULL) {
+  if (tfm != nullptr) {
     v0 = transform_point(tfm, v0);
     v1 = transform_point(tfm, v1);
   }
   v0 = get_unaligned_point(v0);
   v1 = get_unaligned_point(v1);
 
-  float v0p = v0[dim];
-  float v1p = v1[dim];
+  const float v0p = v0[dim];
+  const float v1p = v1[dim];
 
   /* insert vertex to the boxes it belongs to. */
   if (v0p <= pos) {
@@ -417,7 +425,7 @@ void BVHSpatialSplit::split_curve_primitive(const Hair *hair,
 
   /* edge intersects the plane => insert intersection to both boxes. */
   if ((v0p < pos && v1p > pos) || (v0p > pos && v1p < pos)) {
-    float3 t = mix(v0, v1, clamp((pos - v0p) / (v1p - v0p), 0.0f, 1.0f));
+    const float3 t = mix(v0, v1, clamp((pos - v0p) / (v1p - v0p), 0.0f, 1.0f));
     left_bounds.grow(t);
     right_bounds.grow(t);
   }
@@ -425,18 +433,18 @@ void BVHSpatialSplit::split_curve_primitive(const Hair *hair,
 
 void BVHSpatialSplit::split_point_primitive(const PointCloud *pointcloud,
                                             const Transform *tfm,
-                                            int prim_index,
-                                            int dim,
-                                            float pos,
+                                            const int prim_index,
+                                            const int dim,
+                                            const float pos,
                                             BoundBox &left_bounds,
                                             BoundBox &right_bounds)
 {
   /* No real splitting support for points, assume they are small enough for it
    * not to matter. */
   float3 point = pointcloud->get_points()[prim_index];
-  float radius = pointcloud->get_radius()[prim_index];
+  const float radius = pointcloud->get_radius()[prim_index];
 
-  if (tfm != NULL) {
+  if (tfm != nullptr) {
     point = transform_point(tfm, point);
   }
   point = get_unaligned_point(point);
@@ -452,23 +460,23 @@ void BVHSpatialSplit::split_point_primitive(const PointCloud *pointcloud,
 
 void BVHSpatialSplit::split_triangle_reference(const BVHReference &ref,
                                                const Mesh *mesh,
-                                               int dim,
-                                               float pos,
+                                               const int dim,
+                                               const float pos,
                                                BoundBox &left_bounds,
                                                BoundBox &right_bounds)
 {
-  split_triangle_primitive(mesh, NULL, ref.prim_index(), dim, pos, left_bounds, right_bounds);
+  split_triangle_primitive(mesh, nullptr, ref.prim_index(), dim, pos, left_bounds, right_bounds);
 }
 
 void BVHSpatialSplit::split_curve_reference(const BVHReference &ref,
                                             const Hair *hair,
-                                            int dim,
-                                            float pos,
+                                            const int dim,
+                                            const float pos,
                                             BoundBox &left_bounds,
                                             BoundBox &right_bounds)
 {
   split_curve_primitive(hair,
-                        NULL,
+                        nullptr,
                         ref.prim_index(),
                         PRIMITIVE_UNPACK_SEGMENT(ref.prim_type()),
                         dim,
@@ -479,16 +487,20 @@ void BVHSpatialSplit::split_curve_reference(const BVHReference &ref,
 
 void BVHSpatialSplit::split_point_reference(const BVHReference &ref,
                                             const PointCloud *pointcloud,
-                                            int dim,
-                                            float pos,
+                                            const int dim,
+                                            const float pos,
                                             BoundBox &left_bounds,
                                             BoundBox &right_bounds)
 {
-  split_point_primitive(pointcloud, NULL, ref.prim_index(), dim, pos, left_bounds, right_bounds);
+  split_point_primitive(
+      pointcloud, nullptr, ref.prim_index(), dim, pos, left_bounds, right_bounds);
 }
 
-void BVHSpatialSplit::split_object_reference(
-    const Object *object, int dim, float pos, BoundBox &left_bounds, BoundBox &right_bounds)
+void BVHSpatialSplit::split_object_reference(const Object *object,
+                                             const int dim,
+                                             const float pos,
+                                             BoundBox &left_bounds,
+                                             BoundBox &right_bounds)
 {
   Geometry *geom = object->get_geometry();
 
@@ -502,7 +514,7 @@ void BVHSpatialSplit::split_object_reference(
   else if (geom->is_hair()) {
     Hair *hair = static_cast<Hair *>(geom);
     for (int curve_idx = 0; curve_idx < hair->num_curves(); ++curve_idx) {
-      Hair::Curve curve = hair->get_curve(curve_idx);
+      const Hair::Curve curve = hair->get_curve(curve_idx);
       for (int segment_idx = 0; segment_idx < curve.num_keys - 1; ++segment_idx) {
         split_curve_primitive(
             hair, &object->get_tfm(), curve_idx, segment_idx, dim, pos, left_bounds, right_bounds);
@@ -522,8 +534,8 @@ void BVHSpatialSplit::split_reference(const BVHBuild &builder,
                                       BVHReference &left,
                                       BVHReference &right,
                                       const BVHReference &ref,
-                                      int dim,
-                                      float pos)
+                                      const int dim,
+                                      const float pos)
 {
   /* Initialize bounding-boxes. */
   BoundBox left_bounds = BoundBox::empty;

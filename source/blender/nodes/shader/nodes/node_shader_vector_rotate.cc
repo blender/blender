@@ -46,8 +46,8 @@ static void sh_node_vector_rotate_declare(NodeDeclarationBuilder &b)
 
 static void node_shader_buts_vector_rotate(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiItemR(layout, ptr, "rotation_type", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "invert", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "rotation_type", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  uiItemR(layout, ptr, "invert", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 }
 
 static const char *gpu_shader_get_name(int mode)
@@ -269,6 +269,7 @@ void register_node_type_sh_vector_rotate()
   static blender::bke::bNodeType ntype;
 
   sh_fn_node_type_base(&ntype, SH_NODE_VECTOR_ROTATE, "Vector Rotate", NODE_CLASS_OP_VECTOR);
+  ntype.enum_name_legacy = "VECTOR_ROTATE";
   ntype.declare = file_ns::sh_node_vector_rotate_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_vector_rotate;
   ntype.gpu_fn = file_ns::gpu_shader_vector_rotate;

@@ -7,6 +7,11 @@
 # When the version is `(0, 0, 0)`, the key-map being loaded didn't contain any versioning information.
 # This will older than `(2, 92, 0)`.
 
+__all__ = (
+    "keyconfig_update",
+)
+
+
 def keyconfig_update(keyconfig_data, keyconfig_version):
     from bpy.app import version_file as blender_version
     if keyconfig_version >= blender_version:

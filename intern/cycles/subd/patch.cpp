@@ -4,8 +4,6 @@
 
 /* Parts adapted from code in the public domain in NVidia Mesh Tools. */
 
-#include "scene/mesh.h"
-
 #include "subd/patch.h"
 
 #include "util/math.h"
@@ -15,11 +13,11 @@ CCL_NAMESPACE_BEGIN
 
 /* De Casteljau Evaluation */
 
-static void decasteljau_cubic(float3 *P, float3 *dt, float t, const float3 cp[4])
+static void decasteljau_cubic(float3 *P, float3 *dt, const float t, const float3 cp[4])
 {
   float3 d0 = cp[0] + t * (cp[1] - cp[0]);
   float3 d1 = cp[1] + t * (cp[2] - cp[1]);
-  float3 d2 = cp[2] + t * (cp[3] - cp[2]);
+  const float3 d2 = cp[2] + t * (cp[3] - cp[2]);
 
   d0 += t * (d1 - d0);
   d1 += t * (d2 - d1);
@@ -31,9 +29,10 @@ static void decasteljau_cubic(float3 *P, float3 *dt, float t, const float3 cp[4]
 }
 
 static void decasteljau_bicubic(
-    float3 *P, float3 *du, float3 *dv, const float3 cp[16], float u, float v)
+    float3 *P, float3 *du, float3 *dv, const float3 cp[16], float u, const float v)
 {
-  float3 ucp[4], utn[4];
+  float3 ucp[4];
+  float3 utn[4];
 
   /* interpolate over u */
   decasteljau_cubic(ucp + 0, utn + 0, u, cp);
@@ -44,16 +43,17 @@ static void decasteljau_bicubic(
   /* interpolate over v */
   decasteljau_cubic(P, dv, v, ucp);
   if (du) {
-    decasteljau_cubic(du, NULL, v, utn);
+    decasteljau_cubic(du, nullptr, v, utn);
   }
 }
 
 /* Linear Quad Patch */
 
-void LinearQuadPatch::eval(float3 *P, float3 *dPdu, float3 *dPdv, float3 *N, float u, float v)
+void LinearQuadPatch::eval(
+    float3 *P, float3 *dPdu, float3 *dPdv, float3 *N, const float u, float v)
 {
-  float3 d0 = interp(hull[0], hull[1], u);
-  float3 d1 = interp(hull[2], hull[3], u);
+  const float3 d0 = interp(hull[0], hull[1], u);
+  const float3 d1 = interp(hull[2], hull[3], u);
 
   *P = interp(d0, d1, v);
 
@@ -81,10 +81,11 @@ BoundBox LinearQuadPatch::bound()
 
 /* Bicubic Patch */
 
-void BicubicPatch::eval(float3 *P, float3 *dPdu, float3 *dPdv, float3 *N, float u, float v)
+void BicubicPatch::eval(float3 *P, float3 *dPdu, float3 *dPdv, float3 *N, const float u, float v)
 {
   if (N) {
-    float3 dPdu_, dPdv_;
+    float3 dPdu_;
+    float3 dPdv_;
     decasteljau_bicubic(P, &dPdu_, &dPdv_, hull, u, v);
 
     if (dPdu && dPdv) {

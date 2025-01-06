@@ -2,16 +2,15 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __FILM_H__
-#define __FILM_H__
+#pragma once
 
 #include "scene/pass.h"
-#include "util/string.h"
-#include "util/vector.h"
 
 #include "kernel/types.h"
 
 #include "graph/node.h"
+
+#include "util/string.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -19,13 +18,13 @@ class Device;
 class DeviceScene;
 class Scene;
 
-typedef enum FilterType {
+enum FilterType {
   FILTER_BOX,
   FILTER_GAUSSIAN,
   FILTER_BLACKMAN_HARRIS,
 
   FILTER_NUM_TYPES,
-} FilterType;
+};
 
 class Film : public Node {
  public:
@@ -59,7 +58,7 @@ class Film : public Node {
 
  public:
   Film();
-  ~Film();
+  ~Film() override;
 
   /* add default passes to scene */
   static void add_default(Scene *scene);
@@ -86,5 +85,3 @@ class Film : public Node {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __FILM_H__ */

@@ -278,8 +278,6 @@ struct CurvesEffectOperationExecutor {
 
     const CurvesSculpt &curves_sculpt = *ctx_.scene->toolsettings->curves_sculpt;
     brush_ = BKE_paint_brush_for_read(&curves_sculpt.paint);
-    brush_strength_ = brush_strength_get(*ctx_.scene, *brush_, stroke_extension);
-
     brush_radius_base_re_ = BKE_brush_size_get(ctx_.scene, brush_);
     brush_radius_factor_ = brush_radius_factor(*brush_, stroke_extension);
     brush_strength_ = brush_strength_get(*ctx_.scene, *brush_, stroke_extension);
@@ -292,7 +290,7 @@ struct CurvesEffectOperationExecutor {
     brush_pos_end_re_ = stroke_extension.mouse_position;
 
     if (stroke_extension.is_first) {
-      if (falloff_shape_ == PAINT_FALLOFF_SHAPE_SPHERE) {
+      if (falloff_shape_ == PAINT_FALLOFF_SHAPE_SPHERE || (U.flag & USER_ORBIT_SELECTION)) {
         if (std::optional<CurvesBrush3D> brush_3d = sample_curves_3d_brush(
                 *ctx_.depsgraph,
                 *ctx_.region,
@@ -303,6 +301,9 @@ struct CurvesEffectOperationExecutor {
                 brush_radius_base_re_))
         {
           self.brush_3d_ = *brush_3d;
+          remember_stroke_position(
+              *ctx_.scene,
+              math::transform_point(transforms_.curves_to_world, self_->brush_3d_.position_cu));
         }
       }
 

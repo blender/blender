@@ -67,11 +67,9 @@
 #include "SEQ_modifier.hh"
 #include "SEQ_utils.hh"
 
-#ifdef WITH_FFMPEG
-#  include "BKE_writeffmpeg.hh"
-#endif
+#include "IMB_imbuf_enums.h"
 
-#include "IMB_imbuf.hh" /* for proxy / time-code versioning stuff. */
+#include "MOV_enums.hh"
 
 #include "NOD_common.h"
 #include "NOD_composite.hh"
@@ -856,33 +854,33 @@ static const char *node_get_static_idname(int type, int treetype)
   return "";
 }
 
-static const char *node_socket_get_static_idname(bNodeSocket *sock)
+static blender::StringRefNull node_socket_get_static_idname(bNodeSocket *sock)
 {
   switch (sock->type) {
     case SOCK_FLOAT: {
       bNodeSocketValueFloat *dval = sock->default_value_typed<bNodeSocketValueFloat>();
-      return blender::bke::node_static_socket_type(SOCK_FLOAT, dval->subtype);
+      return *blender::bke::node_static_socket_type(SOCK_FLOAT, dval->subtype);
     }
     case SOCK_INT: {
       bNodeSocketValueInt *dval = sock->default_value_typed<bNodeSocketValueInt>();
-      return blender::bke::node_static_socket_type(SOCK_INT, dval->subtype);
+      return *blender::bke::node_static_socket_type(SOCK_INT, dval->subtype);
     }
     case SOCK_BOOLEAN: {
-      return blender::bke::node_static_socket_type(SOCK_BOOLEAN, PROP_NONE);
+      return *blender::bke::node_static_socket_type(SOCK_BOOLEAN, PROP_NONE);
     }
     case SOCK_VECTOR: {
       bNodeSocketValueVector *dval = sock->default_value_typed<bNodeSocketValueVector>();
-      return blender::bke::node_static_socket_type(SOCK_VECTOR, dval->subtype);
+      return *blender::bke::node_static_socket_type(SOCK_VECTOR, dval->subtype);
     }
     case SOCK_RGBA: {
-      return blender::bke::node_static_socket_type(SOCK_RGBA, PROP_NONE);
+      return *blender::bke::node_static_socket_type(SOCK_RGBA, PROP_NONE);
     }
     case SOCK_STRING: {
       bNodeSocketValueString *dval = sock->default_value_typed<bNodeSocketValueString>();
-      return blender::bke::node_static_socket_type(SOCK_STRING, dval->subtype);
+      return *blender::bke::node_static_socket_type(SOCK_STRING, dval->subtype);
     }
     case SOCK_SHADER: {
-      return blender::bke::node_static_socket_type(SOCK_SHADER, PROP_NONE);
+      return *blender::bke::node_static_socket_type(SOCK_SHADER, PROP_NONE);
     }
   }
   return "";
@@ -917,18 +915,18 @@ static void do_versions_nodetree_customnodes(bNodeTree *ntree, int /*is_group*/)
 
       /* sockets idname */
       LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
-        STRNCPY(sock->idname, node_socket_get_static_idname(sock));
+        STRNCPY(sock->idname, node_socket_get_static_idname(sock).c_str());
       }
       LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
-        STRNCPY(sock->idname, node_socket_get_static_idname(sock));
+        STRNCPY(sock->idname, node_socket_get_static_idname(sock).c_str());
       }
     }
     /* tree sockets idname */
     LISTBASE_FOREACH (bNodeSocket *, sock, &ntree->inputs_legacy) {
-      STRNCPY(sock->idname, node_socket_get_static_idname(sock));
+      STRNCPY(sock->idname, node_socket_get_static_idname(sock).c_str());
     }
     LISTBASE_FOREACH (bNodeSocket *, sock, &ntree->outputs_legacy) {
-      STRNCPY(sock->idname, node_socket_get_static_idname(sock));
+      STRNCPY(sock->idname, node_socket_get_static_idname(sock).c_str());
     }
   }
 
@@ -994,15 +992,15 @@ static void do_versions_nodetree_customnodes(bNodeTree *ntree, int /*is_group*/)
   }
 }
 
-static bool seq_colorbalance_update_cb(Sequence *seq, void * /*user_data*/)
+static bool seq_colorbalance_update_cb(Strip *seq, void * /*user_data*/)
 {
-  Strip *strip = seq->strip;
+  StripData *data = seq->data;
 
-  if (strip && strip->color_balance) {
+  if (data && data->color_balance) {
     SequenceModifierData *smd = SEQ_modifier_new(seq, nullptr, seqModifierType_ColorBalance);
     ColorBalanceModifierData *cbmd = (ColorBalanceModifierData *)smd;
 
-    cbmd->color_balance = *strip->color_balance;
+    cbmd->color_balance = *data->color_balance;
 
     /* multiplication with color balance used is handled differently,
      * so we need to move multiplication to modifier so files would be
@@ -1011,13 +1009,13 @@ static bool seq_colorbalance_update_cb(Sequence *seq, void * /*user_data*/)
     cbmd->color_multiply = seq->mul;
     seq->mul = 1.0f;
 
-    MEM_freeN(strip->color_balance);
-    strip->color_balance = nullptr;
+    MEM_freeN(data->color_balance);
+    data->color_balance = nullptr;
   }
   return true;
 }
 
-static bool seq_set_alpha_mode_cb(Sequence *seq, void * /*user_data*/)
+static bool seq_set_alpha_mode_cb(Strip *seq, void * /*user_data*/)
 {
   enum { SEQ_MAKE_PREMUL = (1 << 6) };
   if (seq->flag & SEQ_MAKE_PREMUL) {
@@ -1029,7 +1027,7 @@ static bool seq_set_alpha_mode_cb(Sequence *seq, void * /*user_data*/)
   return true;
 }
 
-static bool seq_set_wipe_angle_cb(Sequence *seq, void * /*user_data*/)
+static bool seq_set_wipe_angle_cb(Strip *seq, void * /*user_data*/)
 {
   if (seq->type == SEQ_TYPE_WIPE) {
     WipeVars *wv = static_cast<WipeVars *>(seq->effectdata);
@@ -2313,10 +2311,10 @@ void blo_do_versions_260(FileData *fd, Library * /*lib*/, Main *bmain)
             num_inputs++;
 
             if (link->tonode) {
-              if (input_locx > link->tonode->locx - offsetx) {
-                input_locx = link->tonode->locx - offsetx;
+              if (input_locx > link->tonode->locx_legacy - offsetx) {
+                input_locx = link->tonode->locx_legacy - offsetx;
               }
-              input_locy += link->tonode->locy;
+              input_locy += link->tonode->locy_legacy;
             }
           }
           else {
@@ -2332,10 +2330,10 @@ void blo_do_versions_260(FileData *fd, Library * /*lib*/, Main *bmain)
             num_outputs++;
 
             if (link->fromnode) {
-              if (output_locx < link->fromnode->locx + offsetx) {
-                output_locx = link->fromnode->locx + offsetx;
+              if (output_locx < link->fromnode->locx_legacy + offsetx) {
+                output_locx = link->fromnode->locx_legacy + offsetx;
               }
-              output_locy += link->fromnode->locy;
+              output_locy += link->fromnode->locy_legacy;
             }
           }
           else {
@@ -2350,13 +2348,13 @@ void blo_do_versions_260(FileData *fd, Library * /*lib*/, Main *bmain)
 
       if (num_inputs > 0) {
         input_locy /= num_inputs;
-        input_node->locx = input_locx;
-        input_node->locy = input_locy;
+        input_node->locx_legacy = input_locx;
+        input_node->locy_legacy = input_locy;
       }
       if (num_outputs > 0) {
         output_locy /= num_outputs;
-        output_node->locx = output_locx;
-        output_node->locy = output_locy;
+        output_node->locx_legacy = output_locx;
+        output_node->locy_legacy = output_locy;
       }
     }
     FOREACH_NODETREE_END;
@@ -2754,12 +2752,10 @@ void blo_do_versions_260(FileData *fd, Library * /*lib*/, Main *bmain)
         scene->toolsettings->snap_node_mode = 8;      /* SCE_SNAP_TO_GRID */
       }
 
-#ifdef WITH_FFMPEG
       /* Update for removed "sound-only" option in FFMPEG export settings. */
       if (scene->r.ffcodecdata.type >= FFMPEG_INVALID) {
         scene->r.ffcodecdata.type = FFMPEG_AVI;
       }
-#endif
     }
   }
 

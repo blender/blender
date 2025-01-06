@@ -34,7 +34,7 @@ static void node_composit_init_mode_sepycca(bNodeTree * /*ntree*/, bNode *node)
   node->custom1 = 1; /* BLI_YCC_ITU_BT709 */
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class SeparateYCCAShaderNode : public ShaderNode {
  public:
@@ -84,6 +84,7 @@ void register_node_type_cmp_sepycca()
 
   cmp_node_type_base(
       &ntype, CMP_NODE_SEPYCCA_LEGACY, "Separate YCbCrA (Legacy)", NODE_CLASS_CONVERTER);
+  ntype.enum_name_legacy = "SEPYCCA";
   ntype.declare = file_ns::cmp_node_sepycca_declare;
   ntype.initfunc = file_ns::node_composit_init_mode_sepycca;
   ntype.gather_link_search_ops = nullptr;
@@ -127,7 +128,7 @@ static void node_composit_init_mode_combycca(bNodeTree * /*ntree*/, bNode *node)
   node->custom1 = 1; /* BLI_YCC_ITU_BT709 */
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class CombineYCCAShaderNode : public ShaderNode {
  public:
@@ -177,6 +178,7 @@ void register_node_type_cmp_combycca()
 
   cmp_node_type_base(
       &ntype, CMP_NODE_COMBYCCA_LEGACY, "Combine YCbCrA (Legacy)", NODE_CLASS_CONVERTER);
+  ntype.enum_name_legacy = "COMBYCCA";
   ntype.declare = file_ns::cmp_node_combycca_declare;
   ntype.initfunc = file_ns::node_composit_init_mode_combycca;
   ntype.gather_link_search_ops = nullptr;

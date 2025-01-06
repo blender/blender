@@ -48,7 +48,7 @@ float atan_fast(float x)
    * Examined 4278190080 values of atan:
    *   171160502 avg ULP diff, 855638016 max ULP, 6.55651e-06 max error // (crush denormals)
    */
-  float r = s * fma(0.43157974, t, 1.0) / fma(fma(0.05831938, t, 0.76443945), t, 1.0);
+  float r = s * fma(0.43157974f, t, 1.0f) / fma(fma(0.05831938f, t, 0.76443945f), t, 1.0f);
   if (a > 1.0) {
     r = 1.57079632679489661923 - r;
   }

@@ -5,11 +5,11 @@
 #pragma once
 
 #ifdef WITH_PATH_GUIDING
-#  include <openpgl/cpp/OpenPGL.h>
-#  include <openpgl/version.h>
+#  include <openpgl/cpp/OpenPGL.h>  // IWYU pragma: export
+#  include <openpgl/version.h>      // IWYU pragma: export
 #endif
 
-#include "util/system.h"
+#include "util/system.h"  // IWYU pragma: keep
 
 CCL_NAMESPACE_BEGIN
 

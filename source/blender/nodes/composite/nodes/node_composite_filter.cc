@@ -41,7 +41,7 @@ static void node_composit_buts_filter(uiLayout *layout, bContext * /*C*/, Pointe
   uiItemR(layout, ptr, "filter_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class FilterOperation : public NodeOperation {
  public:
@@ -49,6 +49,13 @@ class FilterOperation : public NodeOperation {
 
   void execute() override
   {
+    Result &input_image = get_input("Image");
+    if (input_image.is_single_value()) {
+      Result &output_image = get_result("Image");
+      input_image.pass_through(output_image);
+      return;
+    }
+
     if (this->context().use_gpu()) {
       this->execute_gpu();
     }
@@ -112,7 +119,7 @@ class FilterOperation : public NodeOperation {
         float3 color_y = float3(0.0f);
         for (int j = 0; j < 3; j++) {
           for (int i = 0; i < 3; i++) {
-            float3 color = input.load_pixel_extended(texel + int2(i - 1, j - 1)).xyz();
+            float3 color = input.load_pixel_extended<float4>(texel + int2(i - 1, j - 1)).xyz();
             color_x += color * kernel[j][i];
             color_y += color * kernel[i][j];
           }
@@ -124,8 +131,9 @@ class FilterOperation : public NodeOperation {
 
         /* Mix the channel-wise magnitude with the original color at the center of the kernel using
          * the input factor. */
-        float4 color = input.load_pixel(texel);
-        magnitude = math::interpolate(color.xyz(), magnitude, factor.load_pixel(texel).x);
+        float4 color = input.load_pixel<float4>(texel);
+        magnitude = math::interpolate(
+            color.xyz(), magnitude, factor.load_pixel<float, true>(texel));
 
         /* Store the channel-wise magnitude with the original alpha of the input. */
         output.store_pixel(texel, float4(magnitude, color.w));
@@ -137,12 +145,13 @@ class FilterOperation : public NodeOperation {
         float4 color = float4(0.0f);
         for (int j = 0; j < 3; j++) {
           for (int i = 0; i < 3; i++) {
-            color += input.load_pixel_extended(texel + int2(i - 1, j - 1)) * kernel[j][i];
+            color += input.load_pixel_extended<float4>(texel + int2(i - 1, j - 1)) * kernel[j][i];
           }
         }
 
         /* Mix with the original color at the center of the kernel using the input factor. */
-        color = math::interpolate(input.load_pixel(texel), color, factor.load_pixel(texel).x);
+        color = math::interpolate(
+            input.load_pixel<float4>(texel), color, factor.load_pixel<float, true>(texel));
 
         /* Store the color making sure it is not negative. */
         output.store_pixel(texel, math::max(color, float4(0.0f)));
@@ -239,6 +248,7 @@ void register_node_type_cmp_filter()
   static blender::bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_FILTER, "Filter", NODE_CLASS_OP_FILTER);
+  ntype.enum_name_legacy = "FILTER";
   ntype.declare = file_ns::cmp_node_filter_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_filter;
   ntype.labelfunc = node_filter_label;

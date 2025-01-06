@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "infos/eevee_common_info.hh"
+
 /**
  * Camera projection / uv functions and utils.
  */

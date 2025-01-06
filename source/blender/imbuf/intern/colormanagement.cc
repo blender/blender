@@ -1148,6 +1148,7 @@ void colormanage_imbuf_make_linear(ImBuf *ibuf, const char *from_colorspace)
                                   from_colorspace,
                                   to_colorspace,
                                   predivide);
+    ibuf->float_buffer.colorspace = nullptr;
   }
 }
 
@@ -1284,10 +1285,10 @@ static void colormanage_check_colorspace_settings(
   (void)what;
 }
 
-static bool seq_callback(Sequence *seq, void * /*user_data*/)
+static bool seq_callback(Strip *seq, void * /*user_data*/)
 {
-  if (seq->strip) {
-    colormanage_check_colorspace_settings(&seq->strip->colorspace_settings, "sequencer strip");
+  if (seq->data) {
+    colormanage_check_colorspace_settings(&seq->data->colorspace_settings, "sequencer strip");
   }
   return true;
 }

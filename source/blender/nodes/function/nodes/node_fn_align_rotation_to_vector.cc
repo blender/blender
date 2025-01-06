@@ -28,7 +28,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiItemR(layout, ptr, "axis", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "axis", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
   uiItemR(layout, ptr, "pivot_axis", UI_ITEM_NONE, IFACE_("Pivot"), ICON_NONE);
@@ -231,6 +231,7 @@ static void node_register()
 
   fn_node_type_base(
       &ntype, FN_NODE_ALIGN_ROTATION_TO_VECTOR, "Align Rotation to Vector", NODE_CLASS_CONVERTER);
+  ntype.enum_name_legacy = "ALIGN_ROTATION_TO_VECTOR";
   ntype.declare = node_declare;
   ntype.initfunc = node_init;
   ntype.draw_buttons = node_layout;

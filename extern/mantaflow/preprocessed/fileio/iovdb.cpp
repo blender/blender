@@ -599,7 +599,9 @@ int readObjectsVDB(const string &filename, std::vector<PbClass *> *objects, floa
   registerCustomCodecs();
 
   try {
+#ifdef OPENVDB_USE_DELAYED_LOADING
     file.setCopyMaxBytes(0);
+#endif
     file.open();
     gridsVDB = *(file.getGrids());
     openvdb::MetaMap::Ptr metadata = file.getMetadata();

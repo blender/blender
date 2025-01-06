@@ -45,7 +45,7 @@ static void node_composit_init_valtorgb(bNodeTree * /*ntree*/, bNode *node)
   node->storage = BKE_colorband_add(true);
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 static ColorBand *get_color_band(const bNode &node)
 {
@@ -155,6 +155,7 @@ void register_node_type_cmp_valtorgb()
   static blender::bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_VALTORGB, "Color Ramp", NODE_CLASS_CONVERTER);
+  ntype.enum_name_legacy = "VALTORGB";
   ntype.declare = file_ns::cmp_node_valtorgb_declare;
   blender::bke::node_type_size(&ntype, 240, 200, 320);
   ntype.initfunc = file_ns::node_composit_init_valtorgb;
@@ -178,7 +179,7 @@ static void cmp_node_rgbtobw_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>("Val");
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class RGBToBWShaderNode : public ShaderNode {
  public:
@@ -230,6 +231,7 @@ void register_node_type_cmp_rgbtobw()
   static blender::bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_RGBTOBW, "RGB to BW", NODE_CLASS_CONVERTER);
+  ntype.enum_name_legacy = "RGBTOBW";
   ntype.declare = file_ns::cmp_node_rgbtobw_declare;
   blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::Default);
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;

@@ -4,11 +4,13 @@
 
 #pragma once
 
+#include "kernel/svm/util.h"
+
 CCL_NAMESPACE_BEGIN
 
 /* Map Range Node */
 
-ccl_device_inline float smootherstep(float edge0, float edge1, float x)
+ccl_device_inline float smootherstep(const float edge0, const float edge1, float x)
 {
   x = clamp(safe_divide((x - edge0), (edge1 - edge0)), 0.0f, 1.0f);
   return x * x * x * (x * (x * 6.0f - 15.0f) + 10.0f);
@@ -17,13 +19,18 @@ ccl_device_inline float smootherstep(float edge0, float edge1, float x)
 ccl_device_noinline int svm_node_map_range(KernelGlobals kg,
                                            ccl_private ShaderData *sd,
                                            ccl_private float *stack,
-                                           uint value_stack_offset,
-                                           uint parameters_stack_offsets,
-                                           uint results_stack_offsets,
+                                           const uint value_stack_offset,
+                                           const uint parameters_stack_offsets,
+                                           const uint results_stack_offsets,
                                            int offset)
 {
-  uint from_min_stack_offset, from_max_stack_offset, to_min_stack_offset, to_max_stack_offset;
-  uint type_stack_offset, steps_stack_offset, result_stack_offset;
+  uint from_min_stack_offset;
+  uint from_max_stack_offset;
+  uint to_min_stack_offset;
+  uint to_max_stack_offset;
+  uint type_stack_offset;
+  uint steps_stack_offset;
+  uint result_stack_offset;
   svm_unpack_node_uchar4(parameters_stack_offsets,
                          &from_min_stack_offset,
                          &from_max_stack_offset,
@@ -32,15 +39,15 @@ ccl_device_noinline int svm_node_map_range(KernelGlobals kg,
   svm_unpack_node_uchar3(
       results_stack_offsets, &type_stack_offset, &steps_stack_offset, &result_stack_offset);
 
-  uint4 defaults = read_node(kg, &offset);
-  uint4 defaults2 = read_node(kg, &offset);
+  const uint4 defaults = read_node(kg, &offset);
+  const uint4 defaults2 = read_node(kg, &offset);
 
-  float value = stack_load_float(stack, value_stack_offset);
-  float from_min = stack_load_float_default(stack, from_min_stack_offset, defaults.x);
-  float from_max = stack_load_float_default(stack, from_max_stack_offset, defaults.y);
-  float to_min = stack_load_float_default(stack, to_min_stack_offset, defaults.z);
-  float to_max = stack_load_float_default(stack, to_max_stack_offset, defaults.w);
-  float steps = stack_load_float_default(stack, steps_stack_offset, defaults2.x);
+  const float value = stack_load_float(stack, value_stack_offset);
+  const float from_min = stack_load_float_default(stack, from_min_stack_offset, defaults.x);
+  const float from_max = stack_load_float_default(stack, from_max_stack_offset, defaults.y);
+  const float to_min = stack_load_float_default(stack, to_min_stack_offset, defaults.z);
+  const float to_max = stack_load_float_default(stack, to_max_stack_offset, defaults.w);
+  const float steps = stack_load_float_default(stack, steps_stack_offset, defaults2.x);
 
   float result;
 
@@ -79,13 +86,19 @@ ccl_device_noinline int svm_node_map_range(KernelGlobals kg,
 ccl_device_noinline int svm_node_vector_map_range(KernelGlobals kg,
                                                   ccl_private ShaderData *sd,
                                                   ccl_private float *stack,
-                                                  uint value_stack_offset,
-                                                  uint parameters_stack_offsets,
-                                                  uint results_stack_offsets,
-                                                  int offset)
+                                                  const uint value_stack_offset,
+                                                  const uint parameters_stack_offsets,
+                                                  const uint results_stack_offsets,
+                                                  const int offset)
 {
-  uint from_min_stack_offset, from_max_stack_offset, to_min_stack_offset, to_max_stack_offset;
-  uint steps_stack_offset, clamp_stack_offset, range_type_stack_offset, result_stack_offset;
+  uint from_min_stack_offset;
+  uint from_max_stack_offset;
+  uint to_min_stack_offset;
+  uint to_max_stack_offset;
+  uint steps_stack_offset;
+  uint clamp_stack_offset;
+  uint range_type_stack_offset;
+  uint result_stack_offset;
   svm_unpack_node_uchar4(parameters_stack_offsets,
                          &from_min_stack_offset,
                          &from_max_stack_offset,
@@ -97,17 +110,18 @@ ccl_device_noinline int svm_node_vector_map_range(KernelGlobals kg,
                          &range_type_stack_offset,
                          &result_stack_offset);
 
-  float3 value = stack_load_float3(stack, value_stack_offset);
-  float3 from_min = stack_load_float3(stack, from_min_stack_offset);
-  float3 from_max = stack_load_float3(stack, from_max_stack_offset);
-  float3 to_min = stack_load_float3(stack, to_min_stack_offset);
-  float3 to_max = stack_load_float3(stack, to_max_stack_offset);
-  float3 steps = stack_load_float3(stack, steps_stack_offset);
+  const float3 value = stack_load_float3(stack, value_stack_offset);
+  const float3 from_min = stack_load_float3(stack, from_min_stack_offset);
+  const float3 from_max = stack_load_float3(stack, from_max_stack_offset);
+  const float3 to_min = stack_load_float3(stack, to_min_stack_offset);
+  const float3 to_max = stack_load_float3(stack, to_max_stack_offset);
+  const float3 steps = stack_load_float3(stack, steps_stack_offset);
 
-  int type = range_type_stack_offset;
-  int use_clamp = (type == NODE_MAP_RANGE_SMOOTHSTEP || type == NODE_MAP_RANGE_SMOOTHERSTEP) ?
-                      0 :
-                      clamp_stack_offset;
+  const int type = range_type_stack_offset;
+  const int use_clamp = (type == NODE_MAP_RANGE_SMOOTHSTEP ||
+                         type == NODE_MAP_RANGE_SMOOTHERSTEP) ?
+                            0 :
+                            clamp_stack_offset;
   float3 result;
   float3 factor = value;
   switch (range_type_stack_offset) {

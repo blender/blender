@@ -7,7 +7,6 @@
 #include "integrator/pass_accessor.h"
 #include "scene/pass.h"
 #include "session/buffers.h"
-#include "util/types.h"
 #include "util/unique_ptr.h"
 
 CCL_NAMESPACE_BEGIN
@@ -33,7 +32,7 @@ class PathTraceWork {
   static unique_ptr<PathTraceWork> create(Device *device,
                                           Film *film,
                                           DeviceScene *device_scene,
-                                          bool *cancel_requested_flag);
+                                          const bool *cancel_requested_flag);
 
   virtual ~PathTraceWork();
 
@@ -64,8 +63,8 @@ class PathTraceWork {
   /* Render given number of samples as a synchronous blocking call.
    * The samples are added to the render buffer associated with this work. */
   virtual void render_samples(RenderStatistics &statistics,
-                              int start_sample,
-                              int samples_num,
+                              const int start_sample,
+                              const int samples_num,
                               int sample_offset) = 0;
 
   /* Copy render result from this work to the corresponding place of the GPU display.
@@ -74,7 +73,9 @@ class PathTraceWork {
    * noisy pass mode will be passed here when it is known that the buffer does not have denoised
    * passes yet (because denoiser did not run). If the denoised pass is requested and denoiser is
    * not used then this function will fall-back to the noisy pass instead. */
-  virtual void copy_to_display(PathTraceDisplay *display, PassMode pass_mode, int num_samples) = 0;
+  virtual void copy_to_display(PathTraceDisplay *display,
+                               PassMode pass_mode,
+                               const int num_samples) = 0;
 
   virtual void destroy_gpu_resources(PathTraceDisplay *display) = 0;
 
@@ -121,14 +122,15 @@ class PathTraceWork {
 
   /* Perform convergence test on the render buffer, and filter the convergence mask.
    * Returns number of active pixels (the ones which did not converge yet). */
-  virtual int adaptive_sampling_converge_filter_count_active(float threshold, bool reset) = 0;
+  virtual int adaptive_sampling_converge_filter_count_active(const float threshold,
+                                                             bool reset) = 0;
 
   /* Run cryptomatte pass post-processing kernels. */
   virtual void cryptomatte_postproces() = 0;
 
   /* Cheap-ish request to see whether rendering is requested and is to be stopped as soon as
    * possible, without waiting for any samples to be finished. */
-  inline bool is_cancel_requested() const
+  bool is_cancel_requested() const
   {
     /* NOTE: Rely on the fact that on x86 CPU reading scalar can happen without atomic even in
      * threaded environment. */
@@ -143,14 +145,18 @@ class PathTraceWork {
 
 #ifdef WITH_PATH_GUIDING
   /* Initializes the per-thread guiding kernel data. */
-  virtual void guiding_init_kernel_globals(void *, void *, const bool) {}
+  virtual void guiding_init_kernel_globals(void * /*unused*/,
+                                           void * /*unused*/,
+                                           const bool /*unused*/)
+  {
+  }
 #endif
 
  protected:
   PathTraceWork(Device *device,
                 Film *film,
                 DeviceScene *device_scene,
-                bool *cancel_requested_flag);
+                const bool *cancel_requested_flag);
 
   PassAccessor::PassAccessInfo get_display_pass_access_info(PassMode pass_mode) const;
 
@@ -182,7 +188,7 @@ class PathTraceWork {
   BufferParams effective_big_tile_params_;
   BufferParams effective_buffer_params_;
 
-  bool *cancel_requested_flag_ = nullptr;
+  const bool *cancel_requested_flag_ = nullptr;
 };
 
 CCL_NAMESPACE_END

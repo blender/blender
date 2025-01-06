@@ -300,7 +300,7 @@ TreeElement *AbstractTreeDisplay::add_element(ListBase *lb,
     te->abstract_element->display_ = this;
   }
 
-  if (ELEM(type, TSE_SEQUENCE, TSE_SEQ_STRIP, TSE_SEQUENCE_DUP)) {
+  if (ELEM(type, TSE_STRIP, TSE_STRIP_DATA, TSE_STRIP_DUP)) {
     /* pass */
   }
   else if (ELEM(type, TSE_RNA_STRUCT, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM)) {

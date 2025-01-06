@@ -73,7 +73,7 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
   }
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 static int get_mode(const bNode &node)
 {
@@ -245,6 +245,7 @@ void register_node_type_cmp_mix_rgb()
   static blender::bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_MIX_RGB, "Mix", NODE_CLASS_OP_COLOR);
+  ntype.enum_name_legacy = "MIX_RGB";
   ntype.flag |= NODE_PREVIEW;
   ntype.declare = file_ns::cmp_node_mixrgb_declare;
   ntype.labelfunc = node_blend_label;

@@ -2,8 +2,9 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __SESSION_H__
-#define __SESSION_H__
+#pragma once
+
+#include <functional>
 
 #include "device/device.h"
 #include "integrator/render_scheduler.h"
@@ -16,7 +17,6 @@
 #include "util/stats.h"
 #include "util/thread.h"
 #include "util/unique_ptr.h"
-#include "util/vector.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -107,10 +107,10 @@ class SessionParams {
 
 class Session {
  public:
-  Device *device;
+  unique_ptr<Device> device;
   /* Denoiser device. Could be the same as the path trace device. */
-  Device *denoise_device;
-  Scene *scene;
+  unique_ptr<Device> denoise_device_;
+  unique_ptr<Scene> scene;
   Progress progress;
   SessionParams params;
   Stats stats;
@@ -119,7 +119,7 @@ class Session {
   /* Callback is invoked by tile manager whenever on-dist tiles storage file is closed after
    * writing. Allows an engine integration to keep track of those files without worry about
    * transferring the information when it needs to re-create session during rendering. */
-  function<void(string_view)> full_buffer_written_cb;
+  std::function<void(string_view)> full_buffer_written_cb;
 
   explicit Session(const SessionParams &params, const SceneParams &scene_params);
   ~Session();
@@ -138,8 +138,8 @@ class Session {
 
   void set_pause(bool pause);
 
-  void set_samples(int samples);
-  void set_time_limit(double time_limit);
+  void set_samples(const int samples);
+  void set_time_limit(const double time_limit);
 
   void set_output_driver(unique_ptr<OutputDriver> driver);
   void set_display_driver(unique_ptr<DisplayDriver> driver);
@@ -200,7 +200,7 @@ class Session {
 
   void run_main_render_loop();
 
-  bool update_scene(int width, int height);
+  bool update_scene(const int width, const int height);
 
   void update_status_time(bool show_pause = false, bool show_done = false);
 
@@ -208,10 +208,16 @@ class Session {
 
   int2 get_effective_tile_size() const;
 
+  /* Get device used for denoising, may be the same as render device. */
+  Device *denoise_device()
+  {
+    return (denoise_device_) ? denoise_device_.get() : device.get();
+  }
+
   /* Session thread that performs rendering tasks decoupled from the thread
    * controlling the sessions. The thread is created and destroyed along with
    * the session. */
-  thread *session_thread_ = nullptr;
+  unique_ptr<thread> session_thread_ = nullptr;
   thread_condition_variable session_thread_cond_;
   thread_mutex session_thread_mutex_;
   enum {
@@ -242,5 +248,3 @@ class Session {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __SESSION_H__ */

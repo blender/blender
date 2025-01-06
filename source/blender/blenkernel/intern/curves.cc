@@ -233,7 +233,7 @@ void BKE_curves_data_update(Depsgraph *depsgraph, Scene *scene, Object *object)
   /* Evaluate modifiers. */
   Curves *curves = static_cast<Curves *>(object->data);
   GeometrySet geometry_set = GeometrySet::from_curves(curves, GeometryOwnershipType::ReadOnly);
-  if (object->mode == OB_MODE_SCULPT_CURVES) {
+  if (ELEM(object->mode, OB_MODE_EDIT, OB_MODE_SCULPT_CURVES)) {
     /* Try to propagate deformation data through modifier evaluation, so that sculpt mode can work
      * on evaluated curves. */
     GeometryComponentEditData &edit_component =

@@ -163,9 +163,16 @@ static void rna_Pose_blend_pose_from_action(ID *pose_owner,
 static void rna_Pose_backup_create(ID *pose_owner, bAction *action)
 {
   BLI_assert(GS(pose_owner->name) == ID_OB);
+  if (!action || action->wrap().slot_array_num == 0) {
+    /* A pose asset without slots has no data, this usually doesn't happen but can happen by
+     * tagging an empty action as a pose asset. */
+    return;
+  }
   Object *pose_owner_ob = (Object *)pose_owner;
+  blender::animrig::Slot &slot = blender::animrig::get_best_pose_slot_for_id(*pose_owner,
+                                                                             action->wrap());
 
-  BKE_pose_backup_create_on_object(pose_owner_ob, action);
+  BKE_pose_backup_create_on_object(pose_owner_ob, action, slot.handle);
 }
 
 static bool rna_Pose_backup_restore(ID *pose_owner, bContext *C)

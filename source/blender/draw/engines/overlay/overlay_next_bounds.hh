@@ -119,10 +119,10 @@ class Bounds : Overlay {
           call_buffers_.capsule_cap.append(data, select_id);
           mat.z_axis() *= -1;
           mat.location().z = center.z - std::max(0.0f, size.z - size.x);
-          data.object_to_world_ = object_mat * mat;
+          data.object_to_world = object_mat * mat;
           call_buffers_.capsule_cap.append(data, select_id);
           mat.z_axis().z = std::max(0.0f, size.z * 2.0f - size.x * 2.0f);
-          data.object_to_world_ = object_mat * mat;
+          data.object_to_world = object_mat * mat;
           call_buffers_.capsule_body.append(data, select_id);
           break;
         }

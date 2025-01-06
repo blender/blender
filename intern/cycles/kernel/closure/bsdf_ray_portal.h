@@ -4,25 +4,29 @@
 
 #pragma once
 
+#include "kernel/types.h"
+
+#include "kernel/closure/alloc.h"
+
 CCL_NAMESPACE_BEGIN
 
-typedef struct RayPortalClosure {
+struct RayPortalClosure {
   SHADER_CLOSURE_BASE;
 
   float3 P;
   float3 D;
-} RayPortalClosure;
+};
 
 static_assert(sizeof(ShaderClosure) >= sizeof(RayPortalClosure), "RayPortalClosure is too large!");
 
 ccl_device void bsdf_ray_portal_setup(ccl_private ShaderData *sd,
                                       const Spectrum weight,
-                                      uint32_t path_flag,
-                                      float3 position,
+                                      const uint32_t path_flag,
+                                      const float3 position,
                                       float3 direction)
 {
   /* Check cutoff weight. */
-  float sample_weight = fabsf(average(weight));
+  const float sample_weight = fabsf(average(weight));
   if (!(sample_weight >= CLOSURE_WEIGHT_CUTOFF)) {
     return;
   }
@@ -44,7 +48,7 @@ ccl_device void bsdf_ray_portal_setup(ccl_private ShaderData *sd,
   }
 }
 
-ccl_device Spectrum bsdf_ray_portal_eval(ccl_private const ShaderClosure *sc,
+ccl_device Spectrum bsdf_ray_portal_eval(const ccl_private ShaderClosure *sc,
                                          const float3 wi,
                                          const float3 wo,
                                          ccl_private float *pdf)

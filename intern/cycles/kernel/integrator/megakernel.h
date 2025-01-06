@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include "kernel/integrator/init_from_camera.h"
 #include "kernel/integrator/intersect_closest.h"
 #include "kernel/integrator/intersect_dedicated_light.h"
 #include "kernel/integrator/intersect_shadow.h"

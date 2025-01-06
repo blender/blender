@@ -64,6 +64,8 @@
 
 static CLG_LogRef LOG = {"bke.blendfile_link_append"};
 
+using namespace blender::bke;
+
 /* -------------------------------------------------------------------- */
 /** \name Link/append context implementation and public management API.
  * \{ */
@@ -1430,6 +1432,8 @@ void BKE_blendfile_append(BlendfileLinkAppendContext *lapp_context, ReportList *
   BlendFileReadReport bf_reports{};
   bf_reports.reports = reports;
   BLO_read_do_version_after_setup(bmain, lapp_context, &bf_reports);
+
+  BLO_readfile_id_runtime_data_free_all(*bmain);
 }
 
 /** \} */
@@ -1598,6 +1602,8 @@ void BKE_blendfile_link(BlendfileLinkAppendContext *lapp_context, ReportList *re
     BlendFileReadReport bf_reports{};
     bf_reports.reports = reports;
     BLO_read_do_version_after_setup(lapp_context->params->bmain, lapp_context, &bf_reports);
+
+    BLO_readfile_id_runtime_data_free_all(*lapp_context->params->bmain);
   }
 }
 
@@ -1997,9 +2003,7 @@ void BKE_blendfile_library_relocate(BlendfileLinkAppendContext *lapp_context,
   BKE_library_main_rebuild_hierarchy(bmain);
 
   /* Resync overrides if needed. */
-  if (!USER_EXPERIMENTAL_TEST(&U, no_override_auto_resync) &&
-      lapp_context->params->context.scene != nullptr)
-  {
+  if (liboverride::is_auto_resync_enabled() && lapp_context->params->context.scene != nullptr) {
     BlendFileReadReport report{};
     report.reports = reports;
     BKE_lib_override_library_main_resync(bmain,

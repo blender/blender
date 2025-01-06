@@ -4,15 +4,9 @@
 
 set(INC
   ..
-  ../../blenkernel
-  ../../blenloader
-  ../../blentranslation
   ../../editors/include
-  ../../gpu
-  ../../imbuf
   ../../imbuf/intern/oiio
   ../../makesrna
-  ../../windowmanager
   ../../../../intern/mantaflow/extern
   ../../../../intern/opencolorio
   # RNA_prototypes.hh
@@ -120,12 +114,17 @@ set(SRC
 )
 
 set(LIB
+  PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
+  PRIVATE bf::blenloader
+  PRIVATE bf::blentranslation
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   bf_editor_animation
   bf_editor_interface
   bf_editor_space_api
+  PRIVATE bf::gpu
+  PRIVATE bf::imbuf
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::animrig
@@ -133,6 +132,7 @@ set(LIB
 
   ${PYTHON_LINKFLAGS}
   ${PYTHON_LIBRARIES}
+  PRIVATE bf::windowmanager
 )
 
 # Only to check if `buildinfo` is available.
@@ -194,10 +194,6 @@ endif()
 
 if(WITH_CODEC_SNDFILE)
   add_definitions(-DWITH_SNDFILE)
-endif()
-
-if(WITH_COMPOSITOR_CPU)
-  add_definitions(-DWITH_COMPOSITOR_CPU)
 endif()
 
 if(WITH_CYCLES)

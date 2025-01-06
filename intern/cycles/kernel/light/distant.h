@@ -4,9 +4,11 @@
 
 #pragma once
 
-#include "kernel/geom/geom.h"
+#include "kernel/geom/object.h"
 
 #include "kernel/light/common.h"
+
+#include "util/math_fast.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -23,8 +25,8 @@ ccl_device_inline void distant_light_uv(const ccl_global KernelLight *klight,
 
   /* Get u axis and v axis. */
   const Transform itfm = klight->itfm;
-  const float u_ = dot(D, float4_to_float3(itfm.x)) * fac;
-  const float v_ = dot(D, float4_to_float3(itfm.y)) * fac;
+  const float u_ = dot(D, make_float3(itfm.x)) * fac;
+  const float v_ = dot(D, make_float3(itfm.y)) * fac;
 
   /* NOTE: Return barycentric coordinates in the same notation as Embree and OptiX. */
   *u = v_ + 0.5f;
@@ -84,7 +86,7 @@ ccl_device bool distant_light_sample_from_intersection(KernelGlobals kg,
                                                        const int lamp,
                                                        ccl_private LightSample *ccl_restrict ls)
 {
-  ccl_global const KernelLight *klight = &kernel_data_fetch(lights, lamp);
+  const ccl_global KernelLight *klight = &kernel_data_fetch(lights, lamp);
   const int shader = klight->shader_id;
   const LightType type = (LightType)klight->type;
 

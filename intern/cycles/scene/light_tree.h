@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __LIGHT_TREE_H__
-#define __LIGHT_TREE_H__
+#pragma once
 
 #include "scene/light.h"
 #include "scene/scene.h"
@@ -26,7 +25,7 @@ struct OrientationBounds {
   float theta_o; /* angle bounding the normals */
   float theta_e; /* angle bounding the light emissions */
 
-  __forceinline OrientationBounds() {}
+  __forceinline OrientationBounds() = default;
 
   __forceinline OrientationBounds(const float3 &axis_, float theta_o_, float theta_e_)
       : axis(axis_), theta_o(theta_o_), theta_e(theta_e_)
@@ -38,7 +37,7 @@ struct OrientationBounds {
   /* If the orientation bound is set to empty, the values are set to minimums
    * so that merging it with another non-empty orientation bound guarantees that
    * the return value is equal to non-empty orientation bound. */
-  __forceinline OrientationBounds(empty_t)
+  __forceinline OrientationBounds(empty_t /*unused*/)
       : axis(make_float3(0, 0, 0)), theta_o(FLT_MIN), theta_e(FLT_MIN)
   {
   }
@@ -70,7 +69,7 @@ struct LightTreeMeasure {
 
   __forceinline LightTreeMeasure() = default;
 
-  __forceinline LightTreeMeasure(empty_t) {}
+  __forceinline LightTreeMeasure(empty_t /*unused*/) {}
 
   __forceinline LightTreeMeasure(const BoundBox &bbox,
                                  const OrientationBounds &bcone,
@@ -80,9 +79,8 @@ struct LightTreeMeasure {
   }
 
   __forceinline LightTreeMeasure(const LightTreeMeasure &other)
-      : bbox(other.bbox), bcone(other.bcone), energy(other.energy)
-  {
-  }
+
+      = default;
 
   __forceinline bool is_zero() const
   {
@@ -105,8 +103,8 @@ struct LightTreeMeasure {
       return 0.0f;
     }
 
-    float area = bbox.area();
-    float area_measure = area == 0 ? len(bbox.size()) : area;
+    const float area = bbox.area();
+    const float area_measure = area == 0 ? len(bbox.size()) : area;
     return energy * area_measure * bcone.calculate_measure();
   }
 
@@ -191,8 +189,11 @@ struct LightTreeEmitter {
 
   LightTreeMeasure measure;
 
-  LightTreeEmitter(Object *object, int object_id); /* Mesh emitter. */
-  LightTreeEmitter(Scene *scene, int prim_id, int object_id, bool with_transformation = false);
+  LightTreeEmitter(Object *object, const int object_id); /* Mesh emitter. */
+  LightTreeEmitter(Scene *scene,
+                   const int prim_id,
+                   const int object_id,
+                   bool need_transformation = false);
 
   __forceinline bool is_mesh() const
   {
@@ -404,7 +405,7 @@ class LightTree {
     right = 1,
   };
 
-  LightTree(Scene *scene, DeviceScene *dscene, Progress &progress, uint max_lights_in_leaf);
+  LightTree(Scene *scene, DeviceScene *dscene, Progress &progress, const uint max_lights_in_leaf);
 
   /* Returns a pointer to the root node. */
   LightTreeNode *build(Scene *scene, DeviceScene *dscene);
@@ -434,10 +435,10 @@ class LightTree {
 
   void recursive_build(Child child,
                        LightTreeNode *inner,
-                       int start,
-                       int end,
+                       const int start,
+                       const int end,
                        LightTreeEmitter *emitters,
-                       uint bit_trail,
+                       const uint bit_trail,
                        int depth);
 
   bool should_split(LightTreeEmitter *emitters,
@@ -449,12 +450,10 @@ class LightTree {
                     int &split_dim);
 
   /* Check whether the light tree can use this triangle as light-emissive. */
-  bool triangle_usable_as_light(Mesh *mesh, int prim_id);
+  bool triangle_usable_as_light(Mesh *mesh, const int prim_id);
 
   /* Add all the emissive triangles of a mesh to the light tree. */
-  void add_mesh(Scene *scene, Mesh *mesh, int object_id);
+  void add_mesh(Scene *scene, Mesh *mesh, const int object_id);
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __LIGHT_TREE_H__ */

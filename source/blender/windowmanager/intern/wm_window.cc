@@ -512,8 +512,8 @@ void WM_window_title(wmWindowManager *wm, wmWindow *win, const char *title)
   const char *filename = BLI_path_basename(filepath);
 
   const bool has_filepath = filepath[0] != '\0';
-  const bool include_filepath = has_filepath && (filepath != filename) &&
-                                (GHOST_SetPath(handle, filepath) == GHOST_kFailure);
+  const bool native_filepath_display = GHOST_SetPath(handle, filepath) == GHOST_kSuccess;
+  const bool include_filepath = has_filepath && (filepath != filename) && !native_filepath_display;
 
   std::string str;
   if (!wm->file_saved) {
@@ -1470,14 +1470,14 @@ static bool ghost_event_proc(GHOST_EventHandle ghost_event, GHOST_TUserDataPtr C
 
       wm_window_make_drawable(wm, win);
 
-      /* Window might be focused by mouse click in configuration of window manager
+      /* NOTE(@sergey): Window might be focused by mouse click in configuration of window manager
        * when focus is not following mouse
        * click could have been done on a button and depending on window manager settings
        * click would be passed to blender or not, but in any case button under cursor
        * should be activated, so at max next click on button without moving mouse
        * would trigger its handle function
        * currently it seems to be common practice to generate new event for, but probably
-       * we'll need utility function for this? (sergey)
+       * we'll need utility function for this?
        */
       wmEvent event;
       wm_event_init_from_window(win, &event);
@@ -1997,27 +1997,52 @@ static uiBlock *block_create_opengl_usage_warning(bContext *C, ARegion *region, 
   UI_block_theme_style_set(block, UI_BLOCK_THEME_STYLE_POPUP);
   UI_block_emboss_set(block, UI_EMBOSS);
 
-  uiLayout *layout = uiItemsAlertBox(block, 44, ALERT_ICON_ERROR);
+  const char *title = RPT_("Python script uses OpenGL for drawing");
+  const char *message1 = RPT_("This may lead to unexpected behavior");
+  const char *message2 = RPT_(
+      "One of the add-ons or scripts is using OpenGL and will not work correct on Metal");
+  const char *message3 = RPT_(
+      "Please contact the developer of the add-on to migrate to use 'gpu' module");
+  const char *message4 = RPT_("See system tab in preferences to switch to OpenGL backend");
+
+  /* Measure strings to find the longest. */
+  const uiStyle *style = UI_style_get_dpi();
+  UI_fontstyle_set(&style->widget);
+  int text_width = int(BLF_width(style->widget.uifont_id, title, BLF_DRAW_STR_DUMMY_MAX));
+  text_width = std::max(text_width,
+                        int(BLF_width(style->widget.uifont_id, message1, BLF_DRAW_STR_DUMMY_MAX)));
+  text_width = std::max(text_width,
+                        int(BLF_width(style->widget.uifont_id, message2, BLF_DRAW_STR_DUMMY_MAX)));
+  text_width = std::max(text_width,
+                        int(BLF_width(style->widget.uifont_id, message3, BLF_DRAW_STR_DUMMY_MAX)));
+  text_width = std::max(text_width,
+                        int(BLF_width(style->widget.uifont_id, message4, BLF_DRAW_STR_DUMMY_MAX)));
+
+  const int dialog_width = std::max(int(400.0f * UI_SCALE_FAC),
+                                    text_width + int(style->columnspace * 2.5));
+
+  const short icon_size = 64 * UI_SCALE_FAC;
+  uiLayout *layout = uiItemsAlertBox(
+      block, style, dialog_width + icon_size, ALERT_ICON_ERROR, icon_size);
+
+  uiLayout *col = uiLayoutColumn(layout, false);
+  uiLayoutSetScaleY(col, 0.9f);
 
   /* Title and explanation text. */
-  uiLayout *col = uiLayoutColumn(layout, false);
-  uiItemL_ex(col, RPT_("Python script uses OpenGL for drawing"), ICON_NONE, true, false);
-  uiItemL(col, RPT_("This may lead to unexpected behavior"), ICON_NONE);
-  uiItemL(col,
-          RPT_("One of the add-ons or scripts is using OpenGL and will not work correct on Metal"),
-          ICON_NONE);
-  uiItemL(col,
-          RPT_("Please contact the developer of the add-on to migrate to use 'gpu' module"),
-          ICON_NONE);
+  uiItemL_ex(col, title, ICON_NONE, true, false);
+  uiItemS_ex(col, 0.8f, LayoutSeparatorType::Space);
+  uiItemL(col, message1, ICON_NONE);
+  uiItemL(col, message2, ICON_NONE);
+  uiItemL(col, message3, ICON_NONE);
   if (G.opengl_deprecation_usage_filename) {
     char location[1024];
     SNPRINTF(
         location, "%s:%d", G.opengl_deprecation_usage_filename, G.opengl_deprecation_usage_lineno);
     uiItemL(col, location, ICON_NONE);
   }
-  uiItemL(col, RPT_("See system tab in preferences to switch to OpenGL backend"), ICON_NONE);
+  uiItemL(col, message4, ICON_NONE);
 
-  uiItemS(layout);
+  uiItemS_ex(col, 0.5f, LayoutSeparatorType::Space);
 
   UI_block_bounds_set_centered(block, 14 * UI_SCALE_FAC);
 

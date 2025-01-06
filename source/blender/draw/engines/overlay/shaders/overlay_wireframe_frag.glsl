@@ -32,7 +32,7 @@ void main()
   fragColor = vec4(mix(final_front_col, rim_col, saturate(fac)), 1.0);
   fragColor *= fragColor;
 
-#elif !defined(SELECT_EDGES)
+#elif !defined(SELECT_ENABLE)
   lineOutput = pack_line_data(gl_FragCoord.xy, edgeStart, edgePos);
   fragColor = finalColor;
 

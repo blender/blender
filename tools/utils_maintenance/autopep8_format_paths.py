@@ -15,6 +15,10 @@ Otherwise you may call this script directly, for example:
    ./tools/utils_maintenance/autopep8_format_paths.py --changed-only tests/python
 """
 
+__all__ = (
+    "main",
+)
+
 import os
 import sys
 

@@ -95,9 +95,9 @@ inline void set_item_name_and_make_unique(bNode &node,
 {
   using ItemT = typename Accessor::ItemT;
   SocketItemsRef array = Accessor::get_items_from_node(node);
-  const char *default_name = "Item";
+  StringRefNull default_name = "Item";
   if constexpr (Accessor::has_type) {
-    default_name = bke::node_static_socket_label(Accessor::get_socket_type(item), 0);
+    default_name = *bke::node_static_socket_label(Accessor::get_socket_type(item), 0);
   }
 
   char unique_name[MAX_NAME + 4];
@@ -120,7 +120,7 @@ inline void set_item_name_and_make_unique(bNode &node,
         return false;
       },
       &args,
-      default_name,
+      default_name.c_str(),
       '.',
       unique_name,
       ARRAY_SIZE(unique_name));

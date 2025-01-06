@@ -12,7 +12,13 @@
 #endif
 #ifdef WITH_NANOVDB
 #  define NANOVDB_USE_OPENVDB
-#  include <nanovdb/util/OpenToNanoVDB.h>
+#  include <nanovdb/NanoVDB.h>
+#  if NANOVDB_MAJOR_VERSION_NUMBER > 32 || \
+      (NANOVDB_MAJOR_VERSION_NUMBER == 32 && NANOVDB_MINOR_VERSION_NUMBER >= 7)
+#    include <nanovdb/tools/CreateNanoGrid.h>
+#  else
+#    include <nanovdb/util/OpenToNanoVDB.h>
+#  endif
 #endif
 
 CCL_NAMESPACE_BEGIN
@@ -21,8 +27,8 @@ CCL_NAMESPACE_BEGIN
 struct NumChannelsOp {
   int num_channels = 0;
 
-  template<typename GridType, typename FloatGridType, typename FloatDataType, int channels>
-  bool operator()(const openvdb::GridBase::ConstPtr &)
+  template<typename GridType, typename FloatGridType, typename FloatDataType, const int channels>
+  bool operator()(const openvdb::GridBase::ConstPtr & /*unused*/)
   {
     num_channels = channels;
     return true;
@@ -33,7 +39,7 @@ struct ToDenseOp {
   openvdb::CoordBBox bbox;
   void *pixels;
 
-  template<typename GridType, typename FloatGridType, typename FloatDataType, int channels>
+  template<typename GridType, typename FloatGridType, typename FloatDataType, const int channels>
   bool operator()(const openvdb::GridBase::ConstPtr &grid)
   {
     openvdb::tools::Dense<FloatDataType, openvdb::tools::LayoutXYZ> dense(bbox,
@@ -48,30 +54,40 @@ struct ToNanoOp {
   nanovdb::GridHandle<> nanogrid;
   int precision;
 
-  template<typename GridType, typename FloatGridType, typename FloatDataType, int channels>
+  template<typename GridType, typename FloatGridType, typename FloatDataType, const int channels>
   bool operator()(const openvdb::GridBase::ConstPtr &grid)
   {
     if constexpr (!std::is_same_v<GridType, openvdb::MaskGrid>) {
       try {
 #    if NANOVDB_MAJOR_VERSION_NUMBER > 32 || \
         (NANOVDB_MAJOR_VERSION_NUMBER == 32 && NANOVDB_MINOR_VERSION_NUMBER >= 6)
+#      if NANOVDB_MAJOR_VERSION_NUMBER > 32 || \
+          (NANOVDB_MAJOR_VERSION_NUMBER == 32 && NANOVDB_MINOR_VERSION_NUMBER >= 7)
+        /* OpenVDB 12. */
+        using nanovdb::tools::createNanoGrid;
+        using nanovdb::tools::StatsMode;
+#      else
         /* OpenVDB 11. */
+        using nanovdb::createNanoGrid;
+        using nanovdb::StatsMode;
+#      endif
+
         if constexpr (std::is_same_v<FloatGridType, openvdb::FloatGrid>) {
-          openvdb::FloatGrid floatgrid(*openvdb::gridConstPtrCast<GridType>(grid));
+          const openvdb::FloatGrid floatgrid(*openvdb::gridConstPtrCast<GridType>(grid));
           if (precision == 0) {
-            nanogrid = nanovdb::createNanoGrid<openvdb::FloatGrid, nanovdb::FpN>(floatgrid);
+            nanogrid = createNanoGrid<openvdb::FloatGrid, nanovdb::FpN>(floatgrid);
           }
           else if (precision == 16) {
-            nanogrid = nanovdb::createNanoGrid<openvdb::FloatGrid, nanovdb::Fp16>(floatgrid);
+            nanogrid = createNanoGrid<openvdb::FloatGrid, nanovdb::Fp16>(floatgrid);
           }
           else {
-            nanogrid = nanovdb::createNanoGrid<openvdb::FloatGrid, float>(floatgrid);
+            nanogrid = createNanoGrid<openvdb::FloatGrid, float>(floatgrid);
           }
         }
         else if constexpr (std::is_same_v<FloatGridType, openvdb::Vec3fGrid>) {
-          openvdb::Vec3fGrid floatgrid(*openvdb::gridConstPtrCast<GridType>(grid));
-          nanogrid = nanovdb::createNanoGrid<openvdb::Vec3fGrid, nanovdb::Vec3f>(
-              floatgrid, nanovdb::StatsMode::Disable);
+          const openvdb::Vec3fGrid floatgrid(*openvdb::gridConstPtrCast<GridType>(grid));
+          nanogrid = createNanoGrid<openvdb::Vec3fGrid, nanovdb::Vec3f>(floatgrid,
+                                                                        StatsMode::Disable);
         }
 #    else
         /* OpenVDB 10. */
@@ -120,7 +136,7 @@ VDBImageLoader::VDBImageLoader(openvdb::GridBase::ConstPtr grid_, const string &
 
 VDBImageLoader::VDBImageLoader(const string &grid_name) : grid_name(grid_name) {}
 
-VDBImageLoader::~VDBImageLoader() {}
+VDBImageLoader::~VDBImageLoader() = default;
 
 bool VDBImageLoader::load_metadata(const ImageDeviceFeatures &features, ImageMetaData &metadata)
 {
@@ -231,7 +247,10 @@ bool VDBImageLoader::load_metadata(const ImageDeviceFeatures &features, ImageMet
 #endif
 }
 
-bool VDBImageLoader::load_pixels(const ImageMetaData &, void *pixels, const size_t, const bool)
+bool VDBImageLoader::load_pixels(const ImageMetaData & /*metadata*/,
+                                 void *pixels,
+                                 const size_t /*pixels_size*/,
+                                 const bool /*associate_alpha*/)
 {
 #ifdef WITH_OPENVDB
 #  ifdef WITH_NANOVDB

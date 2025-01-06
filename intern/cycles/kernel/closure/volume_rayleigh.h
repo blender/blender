@@ -4,15 +4,17 @@
 
 #pragma once
 
+#include "kernel/types.h"
+
 #include "kernel/closure/volume_util.h"
 
 CCL_NAMESPACE_BEGIN
 
 /* RAYLEIGH CLOSURE */
 
-typedef struct RayleighVolume {
+struct RayleighVolume {
   SHADER_CLOSURE_VOLUME_BASE;
-} RayleighVolume;
+};
 static_assert(sizeof(ShaderVolumeClosure) >= sizeof(RayleighVolume),
               "RayleighVolume is too large!");
 
@@ -22,19 +24,19 @@ ccl_device int volume_rayleigh_setup(ccl_private RayleighVolume *volume)
   return SD_SCATTER;
 }
 
-ccl_device Spectrum volume_rayleigh_eval(ccl_private const ShaderData *sd,
-                                         float3 wo,
+ccl_device Spectrum volume_rayleigh_eval(const ccl_private ShaderData *sd,
+                                         const float3 wo,
                                          ccl_private float *pdf)
 {
   /* note that wi points towards the viewer */
-  float cos_theta = dot(-sd->wi, wo);
+  const float cos_theta = dot(-sd->wi, wo);
   *pdf = phase_rayleigh(cos_theta);
 
   return make_spectrum(*pdf);
 }
 
-ccl_device int volume_rayleigh_sample(ccl_private const ShaderData *sd,
-                                      float2 rand,
+ccl_device int volume_rayleigh_sample(const ccl_private ShaderData *sd,
+                                      const float2 rand,
                                       ccl_private Spectrum *eval,
                                       ccl_private float3 *wo,
                                       ccl_private float *pdf)

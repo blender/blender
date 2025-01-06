@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "infos/eevee_lookdev_info.hh"
+
+FRAGMENT_SHADER_CREATE_INFO(eevee_lookdev_display)
+
 void main()
 {
   vec2 texture_size = vec2(textureSize(metallic_tx, 0));

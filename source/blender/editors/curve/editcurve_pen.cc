@@ -1369,8 +1369,7 @@ static void move_adjacent_handle(const ViewContext *vc, const wmEvent *event, Li
     }
     adj_bezt->h1 = adj_bezt->h2 = HD_FREE;
 
-    int displacement[2];
-    sub_v2_v2v2_int(displacement, event->xy, event->prev_xy);
+    blender::int2 displacement = blender::int2(event->xy) - blender::int2(event->prev_xy);
     const float disp_fl[2] = {float(displacement[0]), float(displacement[1])};
     move_bezt_handle_or_vertex_by_displacement(
         vc, adj_bezt, bezt_idx, disp_fl, 0.0f, false, false);

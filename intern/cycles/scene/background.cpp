@@ -12,10 +12,8 @@
 #include "scene/shader_nodes.h"
 #include "scene/stats.h"
 
-#include "util/foreach.h"
 #include "util/math.h"
 #include "util/time.h"
-#include "util/types.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -41,7 +39,7 @@ NODE_DEFINE(Background)
 
 Background::Background() : Node(get_node_type())
 {
-  shader = NULL;
+  shader = nullptr;
 }
 
 Background::~Background()
@@ -55,7 +53,7 @@ void Background::device_update(Device *device, DeviceScene *dscene, Scene *scene
     return;
   }
 
-  scoped_callback_timer timer([scene](double time) {
+  const scoped_callback_timer timer([scene](double time) {
     if (scene->update_stats) {
       scene->update_stats->background.times.add_entry({"device_update", time});
     }

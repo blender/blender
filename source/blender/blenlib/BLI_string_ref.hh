@@ -113,6 +113,7 @@ class StringRefNull : public StringRefBase {
  public:
   constexpr StringRefNull();
   constexpr StringRefNull(const char *str, int64_t size);
+  StringRefNull(std::nullptr_t) = delete;
   StringRefNull(const char *str);
   StringRefNull(const std::string &str);
 
@@ -436,7 +437,7 @@ constexpr StringRefNull::StringRefNull() : StringRefBase("", 0) {}
 constexpr StringRefNull::StringRefNull(const char *str, const int64_t size)
     : StringRefBase(str, size)
 {
-  BLI_assert(int64_t(strlen(str)) == size);
+  BLI_assert(int64_t(std::char_traits<char>::length(str)) == size);
 }
 
 /**

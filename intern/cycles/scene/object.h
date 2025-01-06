@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __OBJECT_H__
-#define __OBJECT_H__
+#pragma once
 
 #include "graph/node.h"
 
@@ -17,7 +16,6 @@
 #include "util/array.h"
 #include "util/boundbox.h"
 #include "util/param.h"
-#include "util/thread.h"
 #include "util/transform.h"
 #include "util/types.h"
 #include "util/vector.h"
@@ -60,6 +58,8 @@ class Object : public Node {
   NODE_SOCKET_API(bool, is_caustics_caster)
   NODE_SOCKET_API(bool, is_caustics_receiver)
 
+  NODE_SOCKET_API(bool, is_bake_target)
+
   NODE_SOCKET_API(float3, dupli_generated)
   NODE_SOCKET_API(float2, dupli_uv)
 
@@ -78,7 +78,7 @@ class Object : public Node {
   bool intersects_volume;
 
   Object();
-  ~Object();
+  ~Object() override;
 
   void tag_update(Scene *scene);
 
@@ -88,8 +88,8 @@ class Object : public Node {
   /* Convert between normalized -1..1 motion time and index
    * in the motion array. */
   bool use_motion() const;
-  float motion_time(int step) const;
-  int motion_step(float time) const;
+  float motion_time(const int step) const;
+  int motion_step(const float time) const;
   void update_motion();
 
   /* Maximum number of motion steps supported (due to Embree). */
@@ -173,7 +173,7 @@ class ObjectManager {
 
   void device_free(Device *device, DeviceScene *dscene, bool force_free);
 
-  void tag_update(Scene *scene, uint32_t flag);
+  void tag_update(Scene *scene, const uint32_t flag);
 
   bool need_update() const;
 
@@ -194,5 +194,3 @@ class ObjectManager {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __OBJECT_H__ */

@@ -15,8 +15,8 @@ template<typename T0, typename T1, typename T2>
 void oneapi_call(
     KernelGlobalsGPU *kg,
     sycl::handler &cgh,
-    size_t global_size,
-    size_t local_size,
+  const size_t global_size,
+  const size_t local_size,
     void **args,
     void (*func)(const KernelGlobalsGPU *, size_t, size_t, sycl::handler &, T0, T1, T2))
 {

@@ -27,6 +27,7 @@ struct bNodeTree;
 
 namespace blender::nodes {
 struct FieldInferencingInterface;
+struct GeometryNodesEvalDependencies;
 class NodeDeclaration;
 struct GeometryNodesLazyFunctionGraphInfo;
 namespace anonymous_attribute_lifetime {
@@ -45,7 +46,7 @@ namespace blender::bke::node_tree_reference_lifetimes {
 struct ReferenceLifetimesInfo;
 }
 
-namespace blender {
+namespace blender::bke {
 
 struct NodeIDHash {
   uint64_t operator()(const bNode *node) const
@@ -73,9 +74,11 @@ struct NodeIDEquality {
   }
 };
 
-}  // namespace blender
-
-namespace blender::bke {
+enum class FieldSocketState : int8_t {
+  RequiresSingle,
+  CanBeField,
+  IsField,
+};
 
 using NodeIDVectorSet = VectorSet<bNode *, DefaultProbingStrategy, NodeIDHash, NodeIDEquality>;
 
@@ -153,6 +156,8 @@ class bNodeTreeRuntime : NonCopyable, NonMovable {
 
   /** Information about how inputs and outputs of the node group interact with fields. */
   std::unique_ptr<nodes::FieldInferencingInterface> field_inferencing_interface;
+  /** Field status for every socket, accessed with #bNodeSocket::index_in_tree(). */
+  Array<FieldSocketState> field_states;
   /** Information about usage of anonymous attributes within the group. */
   std::unique_ptr<node_tree_reference_lifetimes::ReferenceLifetimesInfo> reference_lifetimes_info;
   std::unique_ptr<nodes::gizmos::TreeGizmoPropagation> gizmo_propagation;
@@ -194,6 +199,14 @@ class bNodeTreeRuntime : NonCopyable, NonMovable {
    */
   Set<const bNodeSocket *> sockets_on_active_gizmo_paths;
 
+  /**
+   * Cache of dependencies used by the node tree itself. Does not account for data that's passed
+   * into the node tree from the outside.
+   * NOTE: The node tree may reference additional data-blocks besides the ones included here. But
+   * those are not used when the node tree is evaluated by Geometry Nodes.
+   */
+  std::unique_ptr<nodes::GeometryNodesEvalDependencies> geometry_nodes_eval_dependencies;
+
   /** Only valid when #topology_cache_is_dirty is false. */
   Vector<bNodeLink *> links;
   Vector<bNodeSocket *> sockets;
@@ -207,12 +220,6 @@ class bNodeTreeRuntime : NonCopyable, NonMovable {
   bool has_undefined_nodes_or_sockets = false;
   bNode *group_output_node = nullptr;
   Vector<bNode *> root_frames;
-};
-
-enum class FieldSocketState {
-  RequiresSingle,
-  CanBeField,
-  IsField,
 };
 
 /**
@@ -241,14 +248,9 @@ class bNodeSocketRuntime : NonCopyable, NonMovable {
   /**
    * The location of the socket in the tree, calculated while drawing the nodes and invalid if the
    * node tree hasn't been drawn yet. In the node tree's "world space" (the same as
-   * #bNode::runtime::totr).
+   * #bNode::runtime::draw_bounds).
    */
   float2 location;
-
-  /**
-   * This is computed during field inferencing and influences the socket shape in geometry nodes.
-   */
-  std::optional<FieldSocketState> field_state;
 
   /** Only valid when #topology_cache_is_dirty is false. */
   Vector<bNodeLink *> directly_linked_links;
@@ -272,7 +274,7 @@ class bNodePanelRuntime : NonCopyable, NonMovable {
  public:
   /* The vertical location of the panel in the tree, calculated while drawing the nodes and invalid
    * if the node tree hasn't been drawn yet. In the node tree's "world space" (the same as
-   * #bNode::runtime::totr). */
+   * #bNode::runtime::draw_bounds). */
   std::optional<float> header_center_y;
   std::optional<bNodePanelExtent> content_extent;
 };
@@ -313,20 +315,8 @@ class bNodeRuntime : NonCopyable, NonMovable {
   /** The original node in the tree (for localized tree). */
   bNode *original = nullptr;
 
-  /**
-   * XXX:
-   * TODO: `prvr` does not exist!
-   * Node totr size depends on the `prvr` size, which in turn is determined from preview size.
-   * In earlier versions bNodePreview was stored directly in nodes, but since now there can be
-   * multiple instances using different preview images it is possible that required node size
-   * varies between instances. preview_xsize, preview_ysize defines a common reserved size for
-   * preview rect for now, could be replaced by more accurate node instance drawing,
-   * but that requires removing totr from DNA and replacing all uses with per-instance data.
-   */
-  /** Reserved size of the preview rect. */
-  short preview_xsize, preview_ysize = 0;
-  /** Entire bound-box (world-space). */
-  rctf totr{};
+  /** Calculated bounding box of node in the view space of the node editor (including UI scale). */
+  rctf draw_bounds{};
 
   /** Used at runtime when going through the tree. Initialize before use. */
   short tmp_flag = 0;
@@ -621,7 +611,7 @@ inline blender::Span<bNodeTreeInterfaceSocket *> bNodeTree::interface_inputs()
 inline blender::Span<const bNodeTreeInterfaceSocket *> bNodeTree::interface_inputs() const
 {
   BLI_assert(this->tree_interface.items_cache_is_available());
-  return this->tree_interface.runtime->inputs_;
+  return this->tree_interface.runtime->inputs_.as_span();
 }
 
 inline blender::Span<bNodeTreeInterfaceSocket *> bNodeTree::interface_outputs()
@@ -633,7 +623,7 @@ inline blender::Span<bNodeTreeInterfaceSocket *> bNodeTree::interface_outputs()
 inline blender::Span<const bNodeTreeInterfaceSocket *> bNodeTree::interface_outputs() const
 {
   BLI_assert(this->tree_interface.items_cache_is_available());
-  return this->tree_interface.runtime->outputs_;
+  return this->tree_interface.runtime->outputs_.as_span();
 }
 
 inline blender::Span<bNodeTreeInterfaceItem *> bNodeTree::interface_items()
@@ -645,7 +635,25 @@ inline blender::Span<bNodeTreeInterfaceItem *> bNodeTree::interface_items()
 inline blender::Span<const bNodeTreeInterfaceItem *> bNodeTree::interface_items() const
 {
   BLI_assert(this->tree_interface.items_cache_is_available());
-  return this->tree_interface.runtime->items_;
+  return this->tree_interface.runtime->items_.as_span();
+}
+
+inline int bNodeTree::interface_input_index(const bNodeTreeInterfaceSocket &io_socket) const
+{
+  BLI_assert(this->tree_interface.items_cache_is_available());
+  return this->tree_interface.runtime->inputs_.index_of_as(&io_socket);
+}
+
+inline int bNodeTree::interface_output_index(const bNodeTreeInterfaceSocket &io_socket) const
+{
+  BLI_assert(this->tree_interface.items_cache_is_available());
+  return this->tree_interface.runtime->outputs_.index_of_as(&io_socket);
+}
+
+inline int bNodeTree::interface_item_index(const bNodeTreeInterfaceItem &io_item) const
+{
+  BLI_assert(this->tree_interface.items_cache_is_available());
+  return this->tree_interface.runtime->items_.index_of_as(&io_item);
 }
 
 /** \} */
@@ -685,6 +693,26 @@ inline blender::Span<const bNodeSocket *> bNode::output_sockets() const
 {
   BLI_assert(blender::bke::node_tree_runtime::topology_cache_is_available(*this));
   return this->runtime->outputs;
+}
+
+inline blender::IndexRange bNode::input_socket_indices_in_tree() const
+{
+  BLI_assert(blender::bke::node_tree_runtime::topology_cache_is_available(*this));
+  const int num_inputs = this->runtime->inputs.size();
+  if (num_inputs == 0) {
+    return {};
+  }
+  return blender::IndexRange::from_begin_size(this->input_socket(0).index_in_tree(), num_inputs);
+}
+
+inline blender::IndexRange bNode::output_socket_indices_in_tree() const
+{
+  BLI_assert(blender::bke::node_tree_runtime::topology_cache_is_available(*this));
+  const int num_outputs = this->runtime->outputs.size();
+  if (num_outputs == 0) {
+    return {};
+  }
+  return blender::IndexRange::from_begin_size(this->output_socket(0).index_in_tree(), num_outputs);
 }
 
 inline bNodeSocket &bNode::input_socket(int index)

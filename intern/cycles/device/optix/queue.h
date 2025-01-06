@@ -17,11 +17,11 @@ class OptiXDeviceQueue : public CUDADeviceQueue {
  public:
   OptiXDeviceQueue(OptiXDevice *device);
 
-  virtual void init_execution() override;
+  void init_execution() override;
 
-  virtual bool enqueue(DeviceKernel kernel,
-                       const int work_size,
-                       DeviceKernelArguments const &args) override;
+  bool enqueue(DeviceKernel kernel,
+               const int work_size,
+               const DeviceKernelArguments &args) override;
 };
 
 CCL_NAMESPACE_END

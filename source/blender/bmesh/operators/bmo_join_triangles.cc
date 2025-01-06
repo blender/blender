@@ -585,7 +585,7 @@ static void rotate_to_plane(const JoinEdgesState &s,
 #endif
 
   for (int i = 0; i < 4; i++) {
-    if (quad_verts[i] == l_shared->v || quad_verts[i] == l_shared->next->v) {
+    if (ELEM(quad_verts[i], l_shared->v, l_shared->next->v)) {
       /* Two coordinates of the quad match the vector that defines the axis of rotation, so they
        * don't change. */
       copy_v3_v3(r_quad_coordinates[i], quad_verts[i]->co);

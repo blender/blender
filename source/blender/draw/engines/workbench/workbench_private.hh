@@ -33,7 +33,7 @@ class StaticShader : NonCopyable {
 
   ~StaticShader()
   {
-    DRW_SHADER_FREE_SAFE(shader_);
+    GPU_SHADER_FREE_SAFE(shader_);
   }
 
   GPUShader *get()

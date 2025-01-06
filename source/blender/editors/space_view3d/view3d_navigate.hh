@@ -126,10 +126,10 @@ struct ViewOpsData {
     /** The ones below are unrelated to the state of the 3D view. */
 
     /** #wmEvent.xy. */
-    int event_xy[2];
+    blender::int2 event_xy;
     /* Offset used when "use_cursor_init" is false to simulate pressing in the middle of the
      * region. */
-    int event_xy_offset[2];
+    blender::int2 event_xy_offset;
     /** #wmEvent.type that triggered the operator. */
     int event_type;
 

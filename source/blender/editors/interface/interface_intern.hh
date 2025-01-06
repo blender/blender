@@ -269,6 +269,8 @@ struct uiBut {
   uiMenuCreateFunc menu_create_func = nullptr;
 
   uiMenuStepFunc menu_step_func = nullptr;
+  /** See #UI_but_menu_disable_hover_open(). */
+  bool menu_no_hover_open = false;
 
   /* RNA data */
   PointerRNA rnapoin = {};
@@ -865,7 +867,7 @@ struct uiKeyNavLock {
   /** Set when we're using keyboard-input. */
   bool is_keynav;
   /** Only used to check if we've moved the cursor. */
-  int event_xy[2];
+  blender::int2 event_xy;
 };
 
 using uiBlockHandleCreateFunc = uiBlock *(*)(bContext *C, uiPopupBlockHandle *handle, void *arg1);
@@ -876,7 +878,7 @@ struct uiPopupBlockCreate {
   void *arg;
   uiFreeArgFunc arg_free;
 
-  int event_xy[2];
+  blender::int2 event_xy;
 
   /** Set when popup is initialized from a button. */
   ARegion *butregion;
@@ -1048,7 +1050,7 @@ uiPopupBlockHandle *ui_popover_panel_create(bContext *C,
  */
 void ui_pie_menu_level_create(uiBlock *block,
                               wmOperatorType *ot,
-                              const char *propname,
+                              const blender::StringRefNull propname,
                               IDProperty *properties,
                               const EnumPropertyItem *items,
                               int totitem,

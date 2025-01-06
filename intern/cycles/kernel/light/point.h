@@ -6,6 +6,8 @@
 
 #include "kernel/light/common.h"
 
+#include "util/math_intersect.h"
+
 CCL_NAMESPACE_BEGIN
 
 ccl_device_inline bool point_light_sample(const ccl_global KernelLight *klight,
@@ -140,12 +142,11 @@ ccl_device_inline bool point_light_intersect(const ccl_global KernelLight *kligh
     float3 P;
     return ray_sphere_intersect(ray->P, ray->D, ray->tmin, ray->tmax, klight->co, radius, &P, t);
   }
-  else {
-    float3 P;
-    const float3 diskN = normalize(ray->P - klight->co);
-    return ray_disk_intersect(
-        ray->P, ray->D, ray->tmin, ray->tmax, klight->co, diskN, radius, &P, t);
-  }
+
+  float3 P;
+  const float3 diskN = normalize(ray->P - klight->co);
+  return ray_disk_intersect(
+      ray->P, ray->D, ray->tmin, ray->tmax, klight->co, diskN, radius, &P, t);
 }
 
 ccl_device_inline bool point_light_sample_from_intersection(const ccl_global KernelLight *klight,

@@ -52,7 +52,7 @@ static void cmp_node_cornerpin_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>("Plane");
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class CornerPinOperation : public NodeOperation {
  public:
@@ -71,7 +71,7 @@ class CornerPinOperation : public NodeOperation {
       }
       if (output_mask.should_compute()) {
         output_mask.allocate_single_value();
-        output_mask.set_float_value(1.0f);
+        output_mask.set_single_value(1.0f);
       }
       return;
     }
@@ -162,7 +162,7 @@ class CornerPinOperation : public NodeOperation {
           projected_coordinates, x_gradient, y_gradient);
 
       /* Premultiply the mask value as an alpha. */
-      float4 plane_color = sampled_color * plane_mask.load_pixel(texel).x;
+      float4 plane_color = sampled_color * plane_mask.load_pixel<float>(texel);
 
       output.store_pixel(texel, plane_color);
     });
@@ -210,7 +210,7 @@ class CornerPinOperation : public NodeOperation {
       float3 transformed_coordinates = float3x3(homography_matrix) * float3(coordinates, 1.0f);
       /* Point is at infinity and will be zero when sampled, so early exit. */
       if (transformed_coordinates.z == 0.0f) {
-        plane_mask.store_pixel(texel, float4(0.0f));
+        plane_mask.store_pixel(texel, 0.0f);
         return;
       }
       float2 projected_coordinates = transformed_coordinates.xy() / transformed_coordinates.z;
@@ -219,7 +219,7 @@ class CornerPinOperation : public NodeOperation {
                              projected_coordinates.x <= 1.0f && projected_coordinates.y <= 1.0f;
       float mask_value = is_inside_plane ? 1.0f : 0.0f;
 
-      plane_mask.store_pixel(texel, float4(mask_value));
+      plane_mask.store_pixel(texel, mask_value);
     });
 
     return plane_mask;
@@ -227,10 +227,10 @@ class CornerPinOperation : public NodeOperation {
 
   float3x3 compute_homography_matrix()
   {
-    float2 lower_left = get_input("Lower Left").get_vector_value_default(float4(0.0f)).xy();
-    float2 lower_right = get_input("Lower Right").get_vector_value_default(float4(0.0f)).xy();
-    float2 upper_right = get_input("Upper Right").get_vector_value_default(float4(0.0f)).xy();
-    float2 upper_left = get_input("Upper Left").get_vector_value_default(float4(0.0f)).xy();
+    float2 lower_left = get_input("Lower Left").get_single_value_default(float4(0.0f)).xy();
+    float2 lower_right = get_input("Lower Right").get_single_value_default(float4(0.0f)).xy();
+    float2 upper_right = get_input("Upper Right").get_single_value_default(float4(0.0f)).xy();
+    float2 upper_left = get_input("Upper Left").get_single_value_default(float4(0.0f)).xy();
 
     /* The inputs are invalid because the plane is not convex, fallback to an identity operation in
      * that case. */
@@ -265,6 +265,7 @@ void register_node_type_cmp_cornerpin()
   static blender::bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_CORNERPIN, "Corner Pin", NODE_CLASS_DISTORT);
+  ntype.enum_name_legacy = "CORNERPIN";
   ntype.declare = file_ns::cmp_node_cornerpin_declare;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 

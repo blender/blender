@@ -181,7 +181,7 @@ void cb_snap_edge(void *userdata,
                   BVHTreeNearest *nearest);
 
 bool nearest_world_tree(SnapObjectContext *sctx,
-                        BVHTree *tree,
+                        const BVHTree *tree,
                         BVHTree_NearestPointCallback nearest_cb,
                         const blender::float4x4 &obmat,
                         void *treedata,

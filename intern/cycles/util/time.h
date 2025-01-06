@@ -2,10 +2,10 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __UTIL_TIME_H__
-#define __UTIL_TIME_H__
+#pragma once
 
-#include "util/function.h"
+#include <functional>
+
 #include "util/string.h"
 
 CCL_NAMESPACE_BEGIN
@@ -16,20 +16,20 @@ double time_dt();
 
 /* Sleep for the specified number of seconds. */
 
-void time_sleep(double t);
+void time_sleep(const double t);
 
 /* Scoped timer. */
 
 class scoped_timer {
  public:
-  explicit scoped_timer(double *value = NULL) : value_(value)
+  explicit scoped_timer(double *value = nullptr) : value_(value)
   {
     time_start_ = time_dt();
   }
 
   ~scoped_timer()
   {
-    if (value_ != NULL) {
+    if (value_ != nullptr) {
       *value_ = get_time();
     }
   }
@@ -51,7 +51,7 @@ class scoped_timer {
 
 class scoped_callback_timer {
  public:
-  using callback_type = function<void(double)>;
+  using callback_type = std::function<void(double)>;
 
   explicit scoped_callback_timer(callback_type cb) : cb(cb) {}
 
@@ -70,8 +70,6 @@ class scoped_callback_timer {
 /* Make human readable string from time, compatible with Blender metadata. */
 
 string time_human_readable_from_seconds(const double seconds);
-double time_human_readable_to_seconds(const string &str);
+double time_human_readable_to_seconds(const string &time_string);
 
 CCL_NAMESPACE_END
-
-#endif

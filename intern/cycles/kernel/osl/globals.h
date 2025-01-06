@@ -2,22 +2,17 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __OSL_GLOBALS_H__
-#define __OSL_GLOBALS_H__
+#pragma once
 
 #ifdef WITH_OSL
 
 #  include <OSL/oslexec.h>
 
-#  include <OpenImageIO/refcnt.h>
-#  include <OpenImageIO/unordered_map_concurrent.h>
-
 #  include "kernel/osl/compat.h"
+#  include "kernel/types.h"
 
 #  include "util/map.h"
 #  include "util/param.h"
-#  include "util/thread.h"
-#  include "util/unique_ptr.h"
 #  include "util/vector.h"
 
 #  ifndef WIN32
@@ -28,6 +23,7 @@ CCL_NAMESPACE_BEGIN
 
 class OSLRenderServices;
 class ColorSpaceProcessor;
+struct ThreadKernelGlobalsCPU;
 
 /* OSL Globals
  *
@@ -38,17 +34,11 @@ class ColorSpaceProcessor;
 struct OSLGlobals {
   OSLGlobals()
   {
-    ss = NULL;
-    ts = NULL;
-    services = NULL;
+    ss = nullptr;
+    ts = nullptr;
+    services = nullptr;
     use = false;
   }
-
-  /* per thread data */
-  static void thread_init(struct KernelGlobalsCPU *kg,
-                          OSLGlobals *osl_globals,
-                          const int thread_init);
-  static void thread_free(struct KernelGlobalsCPU *kg);
 
   bool use;
 
@@ -65,7 +55,7 @@ struct OSLGlobals {
   OSL::ShaderGroupRef background_state;
 
   /* attributes */
-  typedef unordered_map<OSLUStringHash, int> ObjectNameMap;
+  using ObjectNameMap = unordered_map<OSLUStringHash, int>;
 
   ObjectNameMap object_name_map;
   vector<ustring> object_names;
@@ -83,15 +73,29 @@ struct OSLTraceData {
 
 /* thread key for thread specific data lookup */
 struct OSLThreadData {
-  OSL::ShaderGlobals globals;
-  OSL::PerThreadInfo *osl_thread_info;
-  OSLTraceData tracedata;
-  OSL::ShadingContext *context;
-  OIIO::TextureSystem::Perthread *oiio_thread_info;
+  /* Global Data */
+  OSLGlobals *globals = nullptr;
+  OSL::ShadingSystem *ss = nullptr;
+
+  /* Per-thread data. */
+  int thread_index = -1;
+
+  mutable OSL::ShaderGlobals shader_globals;
+  mutable OSLTraceData tracedata;
+
+  OSL::PerThreadInfo *osl_thread_info = nullptr;
+  OSL::ShadingContext *context = nullptr;
+  OIIO::TextureSystem::Perthread *oiio_thread_info = nullptr;
+
+  OSLThreadData(OSLGlobals *globals, const int thread_index);
+  ~OSLThreadData();
+
+  OSLThreadData(OSLThreadData &other) = delete;
+  OSLThreadData(OSLThreadData &&other) noexcept;
+  OSLThreadData &operator=(const OSLThreadData &other) = delete;
+  OSLThreadData &operator=(OSLThreadData &&other) = delete;
 };
 
 CCL_NAMESPACE_END
 
 #endif
-
-#endif /* __OSL_GLOBALS_H__ */

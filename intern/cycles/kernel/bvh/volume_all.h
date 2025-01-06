@@ -26,7 +26,7 @@ ccl_device_inline
 #endif
     uint
     BVH_FUNCTION_FULL_NAME(BVH)(KernelGlobals kg,
-                                ccl_private const Ray *ray,
+                                const ccl_private Ray *ray,
                                 Intersection *isect_array,
                                 const uint max_hits,
                                 const uint visibility)
@@ -252,7 +252,7 @@ ccl_device_inline
 }
 
 ccl_device_inline uint BVH_FUNCTION_NAME(KernelGlobals kg,
-                                         ccl_private const Ray *ray,
+                                         const ccl_private Ray *ray,
                                          Intersection *isect_array,
                                          const uint max_hits,
                                          const uint visibility)

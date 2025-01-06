@@ -276,6 +276,11 @@ bool SocketValueVariant::is_volume_grid() const
   return kind_ == Kind::Grid;
 }
 
+bool SocketValueVariant::is_single() const
+{
+  return kind_ == Kind::Single;
+}
+
 void SocketValueVariant::convert_to_single()
 {
   switch (kind_) {

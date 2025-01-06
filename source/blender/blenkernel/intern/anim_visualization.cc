@@ -117,7 +117,7 @@ bMotionPath *animviz_verify_motionpaths(ReportList *reports,
 
   /* get destination data */
   if (pchan) {
-    /* paths for posechannel - assume that posechannel belongs to the object */
+    /* Paths for pose-channel - assume that pose-channel belongs to the object. */
     avs = &ob->pose->avs;
     dst = &pchan->mpath;
   }

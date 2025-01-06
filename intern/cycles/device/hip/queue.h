@@ -6,7 +6,6 @@
 
 #ifdef WITH_HIP
 
-#  include "device/kernel.h"
 #  include "device/memory.h"
 #  include "device/queue.h"
 
@@ -21,29 +20,29 @@ class device_memory;
 class HIPDeviceQueue : public DeviceQueue {
  public:
   HIPDeviceQueue(HIPDevice *device);
-  ~HIPDeviceQueue();
+  ~HIPDeviceQueue() override;
 
-  virtual int num_concurrent_states(const size_t state_size) const override;
-  virtual int num_concurrent_busy_states(const size_t state_size) const override;
+  int num_concurrent_states(const size_t state_size) const override;
+  int num_concurrent_busy_states(const size_t state_size) const override;
 
-  virtual void init_execution() override;
+  void init_execution() override;
 
-  virtual bool enqueue(DeviceKernel kernel,
-                       const int work_size,
-                       DeviceKernelArguments const &args) override;
+  bool enqueue(DeviceKernel kernel,
+               const int work_size,
+               const DeviceKernelArguments &args) override;
 
-  virtual bool synchronize() override;
+  bool synchronize() override;
 
-  virtual void zero_to_device(device_memory &mem) override;
-  virtual void copy_to_device(device_memory &mem) override;
-  virtual void copy_from_device(device_memory &mem) override;
+  void zero_to_device(device_memory &mem) override;
+  void copy_to_device(device_memory &mem) override;
+  void copy_from_device(device_memory &mem) override;
 
   virtual hipStream_t stream()
   {
     return hip_stream_;
   }
 
-  virtual unique_ptr<DeviceGraphicsInterop> graphics_interop_create() override;
+  unique_ptr<DeviceGraphicsInterop> graphics_interop_create() override;
 
  protected:
   HIPDevice *hip_device_;

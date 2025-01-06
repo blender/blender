@@ -764,7 +764,7 @@ PyDoc_STRVAR(
     "   :arg precision: The number to round the value to in [-1, 21].\n"
     "   :type precision: int\n"
     "   :return: the values of the vector rounded by *precision*\n"
-    "   :rtype: tuple[float]\n");
+    "   :rtype: tuple[float, ...]\n");
 static PyObject *Vector_to_tuple(VectorObject *self, PyObject *args)
 {
   int ndigits = 0;
@@ -1186,7 +1186,7 @@ static PyObject *Vector_angle(VectorObject *self, PyObject *args)
 PyDoc_STRVAR(
     /* Wrap. */
     Vector_angle_signed_doc,
-    ".. function:: angle_signed(other, fallback)\n"
+    ".. function:: angle_signed(other, fallback=None)\n"
     "\n"
     "   Return the signed angle between two 2D vectors (clockwise is positive).\n"
     "\n"

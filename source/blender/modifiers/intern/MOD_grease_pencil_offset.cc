@@ -394,9 +394,9 @@ static void panel_draw(const bContext *C, Panel *panel)
           C, layout, ptr, "open_general_panel", IFACE_("General")))
   {
     uiLayoutSetPropSep(general_panel, true);
-    uiItemR(general_panel, ptr, "location", UI_ITEM_NONE, nullptr, ICON_NONE);
-    uiItemR(general_panel, ptr, "rotation", UI_ITEM_NONE, nullptr, ICON_NONE);
-    uiItemR(general_panel, ptr, "scale", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(general_panel, ptr, "location", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    uiItemR(general_panel, ptr, "rotation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    uiItemR(general_panel, ptr, "scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
   LayoutPanelState *advanced_panel_state = BKE_panel_layout_panel_state_ensure(
@@ -406,7 +406,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   if (uiLayout *advanced_panel = uiLayoutPanelProp(
           C, layout, &advanced_state_ptr, "is_open", IFACE_("Advanced")))
   {
-    uiItemR(advanced_panel, ptr, "offset_mode", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(advanced_panel, ptr, "offset_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
     uiItemR(advanced_panel, ptr, "stroke_location", UI_ITEM_NONE, IFACE_("Offset"), ICON_NONE);
     uiItemR(advanced_panel, ptr, "stroke_rotation", UI_ITEM_NONE, IFACE_("Rotation"), ICON_NONE);
@@ -415,8 +415,13 @@ static void panel_draw(const bContext *C, Panel *panel)
     uiLayout *col = uiLayoutColumn(advanced_panel, true);
     switch (offset_mode) {
       case MOD_GREASE_PENCIL_OFFSET_RANDOM:
-        uiItemR(advanced_panel, ptr, "use_uniform_random_scale", UI_ITEM_NONE, nullptr, ICON_NONE);
-        uiItemR(advanced_panel, ptr, "seed", UI_ITEM_NONE, nullptr, ICON_NONE);
+        uiItemR(advanced_panel,
+                ptr,
+                "use_uniform_random_scale",
+                UI_ITEM_NONE,
+                std::nullopt,
+                ICON_NONE);
+        uiItemR(advanced_panel, ptr, "seed", UI_ITEM_NONE, std::nullopt, ICON_NONE);
         break;
       case MOD_GREASE_PENCIL_OFFSET_STROKE:
         uiItemR(col, ptr, "stroke_step", UI_ITEM_NONE, IFACE_("Stroke Step"), ICON_NONE);

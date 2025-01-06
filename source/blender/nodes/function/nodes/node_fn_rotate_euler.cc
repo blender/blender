@@ -52,8 +52,8 @@ static void node_update(bNodeTree *ntree, bNode *node)
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiItemR(layout, ptr, "rotation_type", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "space", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "rotation_type", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  uiItemR(layout, ptr, "space", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 }
 
 static const mf::MultiFunction *get_multi_function(const bNode &bnode)
@@ -134,6 +134,7 @@ static void node_register()
   static blender::bke::bNodeType ntype;
 
   fn_node_type_base(&ntype, FN_NODE_ROTATE_EULER, "Rotate Euler", NODE_CLASS_CONVERTER);
+  ntype.enum_name_legacy = "ROTATE_EULER";
   ntype.declare = node_declare;
   ntype.draw_buttons = node_layout;
   ntype.updatefunc = node_update;

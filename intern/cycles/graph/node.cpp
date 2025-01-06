@@ -5,7 +5,6 @@
 #include "graph/node.h"
 #include "graph/node_type.h"
 
-#include "util/foreach.h"
 #include "util/md5.h"
 #include "util/param.h"
 #include "util/transform.h"
@@ -14,7 +13,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Node Type */
 
-NodeOwner::~NodeOwner() {}
+NodeOwner::~NodeOwner() = default;
 
 Node::Node(const NodeType *type_, ustring name_) : name(name_), type(type_)
 {
@@ -29,7 +28,7 @@ Node::Node(const NodeType *type_, ustring name_) : name(name_), type(type_)
   }
 
   /* initialize default values */
-  foreach (const SocketType &socket, type->inputs) {
+  for (const SocketType &socket : type->inputs) {
     set_default_value(socket);
   }
 }
@@ -57,37 +56,37 @@ void Node::set(const SocketType &input, bool value)
   set_if_different(input, value);
 }
 
-void Node::set(const SocketType &input, int value)
+void Node::set(const SocketType &input, const int value)
 {
   assert((input.type == SocketType::INT || input.type == SocketType::ENUM));
   set_if_different(input, value);
 }
 
-void Node::set(const SocketType &input, uint value)
+void Node::set(const SocketType &input, const uint value)
 {
   assert(input.type == SocketType::UINT);
   set_if_different(input, value);
 }
 
-void Node::set(const SocketType &input, uint64_t value)
+void Node::set(const SocketType &input, const uint64_t value)
 {
   assert(input.type == SocketType::UINT64);
   set_if_different(input, value);
 }
 
-void Node::set(const SocketType &input, float value)
+void Node::set(const SocketType &input, const float value)
 {
   assert(input.type == SocketType::FLOAT);
   set_if_different(input, value);
 }
 
-void Node::set(const SocketType &input, float2 value)
+void Node::set(const SocketType &input, const float2 value)
 {
   assert(input.type == SocketType::POINT2);
   set_if_different(input, value);
 }
 
-void Node::set(const SocketType &input, float3 value)
+void Node::set(const SocketType &input, const float3 value)
 {
   assert(is_socket_float3(input));
   set_if_different(input, value);
@@ -226,15 +225,13 @@ ustring Node::get_string(const SocketType &input) const
   if (input.type == SocketType::STRING) {
     return get_socket_value<ustring>(this, input);
   }
-  else if (input.type == SocketType::ENUM) {
+  if (input.type == SocketType::ENUM) {
     const NodeEnum &enm = *input.enum_values;
-    int intvalue = get_socket_value<int>(this, input);
+    const int intvalue = get_socket_value<int>(this, input);
     return (enm.exists(intvalue)) ? enm[intvalue] : ustring();
   }
-  else {
-    assert(0);
-    return ustring();
-  }
+  assert(0);
+  return ustring();
 }
 
 Transform Node::get_transform(const SocketType &input) const
@@ -307,12 +304,12 @@ bool Node::has_default_value(const SocketType &input) const
   return memcmp(dst, src, input.size()) == 0;
 }
 
-void Node::set_default_value(const SocketType &socket)
+void Node::set_default_value(const SocketType &input)
 {
-  const void *src = socket.default_value;
-  void *dst = ((char *)this) + socket.struct_offset;
-  if (socket.size() > 0) {
-    memcpy(dst, src, socket.size());
+  const void *src = input.default_value;
+  void *dst = ((char *)this) + input.struct_offset;
+  if (input.size() > 0) {
+    memcpy(dst, src, input.size());
   }
 }
 
@@ -366,7 +363,7 @@ void Node::copy_value(const SocketType &socket, const Node &other, const SocketT
       case SocketType::NODE_ARRAY: {
         copy_array<void *>(this, socket, &other, other_socket);
 
-        array<Node *> &node_array = get_socket_value<array<Node *>>(this, socket);
+        const array<Node *> &node_array = get_socket_value<array<Node *>>(this, socket);
 
         for (Node *node : node_array) {
           node->reference();
@@ -565,7 +562,7 @@ bool Node::equals(const Node &other) const
 {
   assert(type == other.type);
 
-  foreach (const SocketType &socket, type->inputs) {
+  for (const SocketType &socket : type->inputs) {
     if (!equals_value(other, socket)) {
       return false;
     }
@@ -612,7 +609,7 @@ void Node::hash(MD5Hash &md5)
 {
   md5.append(type->name.string());
 
-  foreach (const SocketType &socket, type->inputs) {
+  for (const SocketType &socket : type->inputs) {
     md5.append(socket.name.string());
 
     switch (socket.type) {
@@ -715,7 +712,7 @@ template<typename T> size_t array_size_in_bytes(const Node *node, const SocketTy
 size_t Node::get_total_size_in_bytes() const
 {
   size_t total_size = 0;
-  foreach (const SocketType &socket, type->inputs) {
+  for (const SocketType &socket : type->inputs) {
     switch (socket.type) {
       case SocketType::BOOLEAN:
       case SocketType::FLOAT:
@@ -800,7 +797,7 @@ void Node::set_owner(const NodeOwner *owner_)
 
 void Node::dereference_all_used_nodes()
 {
-  foreach (const SocketType &socket, type->inputs) {
+  for (const SocketType &socket : type->inputs) {
     if (socket.type == SocketType::NODE) {
       Node *node = get_socket_value<Node *>(this, socket);
 
@@ -887,7 +884,7 @@ void Node::set_if_different(const SocketType &input, array<Node *> &value)
     }
   }
 
-  array<Node *> &old_nodes = get_socket_value<array<Node *>>(this, input);
+  const array<Node *> &old_nodes = get_socket_value<array<Node *>>(this, input);
   for (Node *old_node : old_nodes) {
     old_node->dereference();
   }
@@ -903,7 +900,7 @@ void Node::set_if_different(const SocketType &input, array<Node *> &value)
 void Node::print_modified_sockets() const
 {
   printf("Node : %s\n", name.c_str());
-  for (auto &socket : type->inputs) {
+  for (const auto &socket : type->inputs) {
     if (socket_is_modified(socket)) {
       printf("-- socket modified : %s\n", socket.name.c_str());
     }

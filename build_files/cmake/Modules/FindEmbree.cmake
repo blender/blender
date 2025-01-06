@@ -104,7 +104,7 @@ foreach(COMPONENT ${_embree_FIND_COMPONENTS})
       ${_embree_SEARCH_DIRS}
     PATH_SUFFIXES
       lib64 lib
-    )
+  )
   list(APPEND _embree_LIBRARIES "${EMBREE_${UPPERCOMPONENT}_LIBRARY}")
 endforeach()
 
@@ -112,7 +112,7 @@ endforeach()
 # all listed variables are TRUE
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(Embree DEFAULT_MSG
-    _embree_LIBRARIES EMBREE_INCLUDE_DIR)
+  _embree_LIBRARIES EMBREE_INCLUDE_DIR)
 
 if(EMBREE_FOUND)
   set(EMBREE_LIBRARIES ${_embree_LIBRARIES})

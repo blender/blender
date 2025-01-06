@@ -7,14 +7,18 @@
 
 #pragma once
 
+#include "kernel/types.h"
+
+#include "kernel/closure/alloc.h"
+
 CCL_NAMESPACE_BEGIN
 
 ccl_device void bsdf_transparent_setup(ccl_private ShaderData *sd,
                                        const Spectrum weight,
-                                       uint32_t path_flag)
+                                       const uint32_t path_flag)
 {
   /* Check cutoff weight. */
-  float sample_weight = fabsf(average(weight));
+  const float sample_weight = fabsf(average(weight));
   if (!(sample_weight >= CLOSURE_WEIGHT_CUTOFF)) {
     return;
   }
@@ -57,7 +61,7 @@ ccl_device void bsdf_transparent_setup(ccl_private ShaderData *sd,
   }
 }
 
-ccl_device Spectrum bsdf_transparent_eval(ccl_private const ShaderClosure *sc,
+ccl_device Spectrum bsdf_transparent_eval(const ccl_private ShaderClosure *sc,
                                           const float3 wi,
                                           const float3 wo,
                                           ccl_private float *pdf)
@@ -66,9 +70,9 @@ ccl_device Spectrum bsdf_transparent_eval(ccl_private const ShaderClosure *sc,
   return zero_spectrum();
 }
 
-ccl_device int bsdf_transparent_sample(ccl_private const ShaderClosure *sc,
-                                       float3 Ng,
-                                       float3 wi,
+ccl_device int bsdf_transparent_sample(const ccl_private ShaderClosure *sc,
+                                       const float3 Ng,
+                                       const float3 wi,
                                        ccl_private Spectrum *eval,
                                        ccl_private float3 *wo,
                                        ccl_private float *pdf)

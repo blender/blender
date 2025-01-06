@@ -83,6 +83,7 @@
 #include "BKE_mesh.hh"
 #include "BKE_modifier.hh"
 #include "BKE_node.hh" /* for tree type defines */
+#include "BKE_node_tree_update.hh"
 #include "BKE_object.hh"
 #include "BKE_packedFile.hh"
 #include "BKE_preferences.h"
@@ -323,7 +324,7 @@ static void oldnewmap_clear(OldNewMap *onm)
       MEM_freeN(new_addr.newp);
     }
   }
-  onm->map.clear_and_shrink();
+  onm->map.clear();
 }
 
 static void oldnewmap_free(OldNewMap *onm)
@@ -2051,8 +2052,12 @@ static void direct_link_id_override_property(BlendDataReader *reader,
   }
 }
 
-static void direct_link_id_common(
-    BlendDataReader *reader, Library *current_library, ID *id, ID *id_old, const int id_tag);
+static void direct_link_id_common(BlendDataReader *reader,
+                                  Library *current_library,
+                                  ID *id,
+                                  ID *id_old,
+                                  int id_tag,
+                                  ID_Readfile_Data::Tags id_read_tags);
 
 static void direct_link_id_embedded_id(BlendDataReader *reader,
                                        Library *current_library,
@@ -2068,7 +2073,8 @@ static void direct_link_id_embedded_id(BlendDataReader *reader,
                           (ID *)*nodetree,
                           id_old != nullptr ? (ID *)blender::bke::node_tree_from_id(id_old) :
                                               nullptr,
-                          0);
+                          0,
+                          ID_Readfile_Data::Tags{});
     blender::bke::node_tree_blend_read_data(reader, id, *nodetree);
   }
 
@@ -2081,7 +2087,8 @@ static void direct_link_id_embedded_id(BlendDataReader *reader,
                             &scene->master_collection->id,
                             id_old != nullptr ? &((Scene *)id_old)->master_collection->id :
                                                 nullptr,
-                            0);
+                            0,
+                            ID_Readfile_Data::Tags{});
       BKE_collection_blend_read_data(reader, scene->master_collection, &scene->id);
     }
   }
@@ -2144,8 +2151,60 @@ static int direct_link_id_restore_recalc(const FileData *fd,
   return recalc;
 }
 
-static void direct_link_id_common(
-    BlendDataReader *reader, Library *current_library, ID *id, ID *id_old, const int id_tag)
+static void readfile_id_runtime_data_ensure(ID &id)
+{
+  if (id.runtime.readfile_data) {
+    return;
+  }
+  id.runtime.readfile_data = MEM_cnew<ID_Readfile_Data>(__func__);
+}
+
+/**
+ * Return `id.runtime.readfile_data->tags` if the `readfile_data` is allocated,
+ * otherwise return an all-zero set of tags.
+ */
+static ID_Readfile_Data::Tags readfile_id_runtime_tags(ID *id)
+{
+  if (!id->runtime.readfile_data) {
+    return ID_Readfile_Data::Tags{};
+  }
+  return id->runtime.readfile_data->tags;
+}
+
+void BLO_readfile_id_runtime_data_free(ID &id)
+{
+  MEM_SAFE_FREE(id.runtime.readfile_data);
+}
+
+void BLO_readfile_id_runtime_data_free_all(Main &bmain)
+{
+  ID *id;
+  FOREACH_MAIN_ID_BEGIN (&bmain, id) {
+    /* Handle the ID itself. */
+    BLO_readfile_id_runtime_data_free(*id);
+
+    /* Handle its embedded IDs, because they do not get referenced by bmain. */
+    if (GS(id->name) == ID_SCE) {
+      Collection *collection = reinterpret_cast<Scene *>(id)->master_collection;
+      if (collection) {
+        BLO_readfile_id_runtime_data_free(collection->id);
+      }
+    }
+
+    bNodeTree *node_tree = blender::bke::node_tree_from_id(id);
+    if (node_tree) {
+      BLO_readfile_id_runtime_data_free(node_tree->id);
+    }
+  }
+  FOREACH_MAIN_ID_END;
+}
+
+static void direct_link_id_common(BlendDataReader *reader,
+                                  Library *current_library,
+                                  ID *id,
+                                  ID *id_old,
+                                  const int id_tag,
+                                  const ID_Readfile_Data::Tags id_read_tags)
 {
   if (!BLO_read_data_is_undo(reader)) {
     /* When actually reading a file, we do want to reset/re-generate session UIDS.
@@ -2183,7 +2242,18 @@ static void direct_link_id_common(
     BLO_read_struct(reader, LibraryWeakReference, &id->library_weak_reference);
   }
 
-  if (id_tag & ID_TAG_ID_LINK_PLACEHOLDER) {
+  if (!BLO_read_data_is_undo(reader)) {
+    /* Reset the runtime data, as there were versions of Blender that did not do
+     * this before writing to disk. */
+    memset(&id->runtime, 0, sizeof(id->runtime));
+
+    /* Only track the readfile tags when loading from disk. During 'undo' there is no versioning,
+     * no linking, etc. so there is no need for these flags. */
+    readfile_id_runtime_data_ensure(*id);
+    id->runtime.readfile_data->tags = id_read_tags;
+  }
+
+  if (readfile_id_runtime_tags(id).is_id_link_placeholder) {
     /* For placeholder we only need to set the tag and properly initialize generic ID fields above,
      * no further data to read. */
     return;
@@ -2480,7 +2550,12 @@ static void placeholders_ensure_valid(Main *bmain)
   }
 }
 
-static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *id_old)
+static bool direct_link_id(FileData *fd,
+                           Main *main,
+                           const int tag,
+                           const ID_Readfile_Data::Tags id_read_tags,
+                           ID *id,
+                           ID *id_old)
 {
   BlendDataReader reader = {fd};
   /* Sharing is only allowed within individual data-blocks currently. The clearing is done
@@ -2488,9 +2563,9 @@ static bool direct_link_id(FileData *fd, Main *main, const int tag, ID *id, ID *
   reader.shared_data_by_stored_address.clear();
 
   /* Read part of datablock that is common between real and embedded datablocks. */
-  direct_link_id_common(&reader, main->curlib, id, id_old, tag);
+  direct_link_id_common(&reader, main->curlib, id, id_old, tag, id_read_tags);
 
-  if (tag & ID_TAG_ID_LINK_PLACEHOLDER) {
+  if (readfile_id_runtime_tags(id).is_id_link_placeholder) {
     /* For placeholder we only need to set the tag, no further data to read. */
     id->tag = tag;
     return true;
@@ -3000,9 +3075,11 @@ static BHead *read_libblock(FileData *fd,
    * to be done still. */
   id_tag |= (ID_TAG_NEED_LINK | ID_TAG_NEW);
 
+  ID_Readfile_Data::Tags id_read_tags{};
+
   if (bhead->code == ID_LINK_PLACEHOLDER) {
     /* Read placeholder for linked datablock. */
-    id_tag |= ID_TAG_ID_LINK_PLACEHOLDER;
+    id_read_tags.is_id_link_placeholder = true;
 
     if (placeholder_set_indirect_extern) {
       if (id->flag & ID_FLAG_INDIRECT_WEAK_LINK) {
@@ -3013,7 +3090,7 @@ static BHead *read_libblock(FileData *fd,
       }
     }
 
-    direct_link_id(fd, main, id_tag, id, id_old);
+    direct_link_id(fd, main, id_tag, id_read_tags, id, id_old);
 
     if (main->id_map != nullptr) {
       BKE_main_idmap_insert_id(main->id_map, id);
@@ -3025,7 +3102,7 @@ static BHead *read_libblock(FileData *fd,
   /* Read datablock contents.
    * Use convenient malloc name for debugging and better memory link prints. */
   bhead = read_data_into_datamap(fd, bhead, blockname, id_type_index);
-  const bool success = direct_link_id(fd, main, id_tag, id, id_old);
+  const bool success = direct_link_id(fd, main, id_tag, id_read_tags, id, id_old);
   oldnewmap_clear(fd->datamap);
 
   if (!success) {
@@ -3333,8 +3410,10 @@ static void lib_link_all(FileData *fd, Main *bmain)
     if ((id->tag & ID_TAG_NEED_LINK) != 0) {
       /* Not all original pointer values can be considered as valid.
        * Handling of DNA deprecated data should never be needed in undo case. */
-      const int flag = IDWALK_NO_ORIG_POINTERS_ACCESS | IDWALK_INCLUDE_UI |
-                       ((fd->flags & FD_FLAGS_IS_MEMFILE) ? 0 : IDWALK_DO_DEPRECATED_POINTERS);
+      const LibraryForeachIDFlag flag = IDWALK_NO_ORIG_POINTERS_ACCESS | IDWALK_INCLUDE_UI |
+                                        ((fd->flags & FD_FLAGS_IS_MEMFILE) ?
+                                             IDWALK_NOP :
+                                             IDWALK_DO_DEPRECATED_POINTERS);
       BKE_library_foreach_ID_link(bmain, id, lib_link_cb, &reader, flag);
 
       after_liblink_id_process(&reader, id);
@@ -3634,7 +3713,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
   }
 
   if (is_undo) {
-    /* This idmap will store uids of all IDs ending up in the new main, whether they are newly
+    /* This idmap will store UIDs of all IDs ending up in the new main, whether they are newly
      * read, or re-used from the old main. */
     fd->new_idmap_uid = BKE_main_idmap_create(
         static_cast<Main *>(fd->mainlist->first), false, nullptr, MAIN_IDMAP_TYPE_UID);
@@ -3871,6 +3950,9 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
        * Proper fix involves first addressing #90610. */
       BKE_main_collections_parent_relations_rebuild(bfd->main);
 
+      /* Update node trees after re-generating overrides. */
+      BKE_ntree_update_main(bfd->main, nullptr);
+
       fd->reports->duration.lib_overrides = BLI_time_now_seconds() -
                                             fd->reports->duration.lib_overrides;
     }
@@ -4048,7 +4130,7 @@ static BHead *find_bhead_from_idname(FileData *fd, const char *idname)
   }
 #ifdef USE_GHASH_BHEAD
   char id_name_old[MAX_ID_NAME];
-  BLI_strncpy(id_name_old, idname, sizeof(id_name_old));
+  STRNCPY(id_name_old, idname);
   *reinterpret_cast<short *>(id_name_old) = id_code_old;
   return static_cast<BHead *>(BLI_ghash_lookup(fd->bhead_idname_hash, id_name_old));
 #else
@@ -4142,7 +4224,7 @@ static void expand_doit_library(void *fdhandle, Main *mainvar, void *old)
     else {
       /* Convert any previously read weak link to regular link
        * to signal that we want to read this data-block. */
-      if (id->tag & ID_TAG_ID_LINK_PLACEHOLDER) {
+      if (readfile_id_runtime_tags(id).is_id_link_placeholder) {
         id->flag &= ~ID_FLAG_INDIRECT_WEAK_LINK;
       }
 
@@ -4179,9 +4261,10 @@ static void expand_doit_library(void *fdhandle, Main *mainvar, void *old)
       id_sort_by_name(which_libbase(mainvar, GS(id->name)), id, static_cast<ID *>(id->prev));
     }
     else {
-      /* Convert any previously read weak link to regular link
-       * to signal that we want to read this data-block. */
-      if (id->tag & ID_TAG_ID_LINK_PLACEHOLDER) {
+      /* Convert any previously read weak link to regular link to signal that we want to read this
+       * data-block. Note that this function also visits already-loaded data-blocks, and thus their
+       * `readfile_data` field might already have been freed. */
+      if (readfile_id_runtime_tags(id).is_id_link_placeholder) {
         id->flag &= ~ID_FLAG_INDIRECT_WEAK_LINK;
       }
 
@@ -4244,10 +4327,10 @@ void BLO_expand_main(void *fdhandle, Main *mainvar, BLOExpandDoitCallback callba
        * Expanding should _not_ require processing of UI ID pointers.
        * Expanding should never modify ID pointers themselves.
        * Handling of DNA deprecated data should never be needed in undo case. */
-      const int flag = IDWALK_READONLY | IDWALK_NO_ORIG_POINTERS_ACCESS |
-                       ((!fd || (fd->flags & FD_FLAGS_IS_MEMFILE)) ?
-                            0 :
-                            IDWALK_DO_DEPRECATED_POINTERS);
+      const LibraryForeachIDFlag flag = IDWALK_READONLY | IDWALK_NO_ORIG_POINTERS_ACCESS |
+                                        ((!fd || (fd->flags & FD_FLAGS_IS_MEMFILE)) ?
+                                             IDWALK_NOP :
+                                             IDWALK_DO_DEPRECATED_POINTERS);
       BKE_library_foreach_ID_link(nullptr, id_iter, expand_cb, &expander, flag);
 
       do_it = true;
@@ -4597,7 +4680,9 @@ static int has_linked_ids_to_read(Main *mainvar)
 
   while (a--) {
     LISTBASE_FOREACH (ID *, id, lbarray[a]) {
-      if ((id->tag & ID_TAG_ID_LINK_PLACEHOLDER) && !(id->flag & ID_FLAG_INDIRECT_WEAK_LINK)) {
+      if (readfile_id_runtime_tags(id).is_id_link_placeholder &&
+          !(id->flag & ID_FLAG_INDIRECT_WEAK_LINK))
+      {
         return true;
       }
     }
@@ -4628,7 +4713,7 @@ static void read_library_linked_id(
                      library_parent_filepath(mainvar->curlib));
   }
 
-  id->tag &= ~ID_TAG_ID_LINK_PLACEHOLDER;
+  id->runtime.readfile_data->tags.is_id_link_placeholder = false;
   id->flag &= ~ID_FLAG_INDIRECT_WEAK_LINK;
 
   if (bhead) {
@@ -4673,7 +4758,9 @@ static void read_library_linked_ids(FileData *basefd,
 
     while (id) {
       ID *id_next = static_cast<ID *>(id->next);
-      if ((id->tag & ID_TAG_ID_LINK_PLACEHOLDER) && !(id->flag & ID_FLAG_INDIRECT_WEAK_LINK)) {
+      if (readfile_id_runtime_tags(id).is_id_link_placeholder &&
+          !(id->flag & ID_FLAG_INDIRECT_WEAK_LINK))
+      {
         BLI_remlink(lbarray[a], id);
         if (mainvar->id_map != nullptr) {
           BKE_main_idmap_remove_id(mainvar->id_map, id);
@@ -4698,6 +4785,19 @@ static void read_library_linked_ids(FileData *basefd,
          * libraries since multiple might be referencing this ID. */
         change_link_placeholder_to_real_ID_pointer(mainlist, basefd, id, realid);
 
+        /* Transfer the readfile data from the placeholder to the real ID, but
+         * only if the real ID has no readfile data yet. The same realid may be
+         * referred to by multiple placeholders. */
+        if (realid && !realid->runtime.readfile_data) {
+          realid->runtime.readfile_data = id->runtime.readfile_data;
+          id->runtime.readfile_data = nullptr;
+        }
+
+        /* The 'readfile' runtime data needs to be freed here, as this ID placeholder does not go
+         * through versioning (the usual place where this data is freed). Since `id` is not a real
+         * ID, this shouldn't follow any pointers to embedded IDs. */
+        BLO_readfile_id_runtime_data_free(*id);
+
         MEM_freeN(id);
       }
       id = id_next;
@@ -4719,7 +4819,12 @@ static void read_library_clear_weak_links(FileData *basefd, ListBase *mainlist, 
 
     while (id) {
       ID *id_next = static_cast<ID *>(id->next);
-      if ((id->tag & ID_TAG_ID_LINK_PLACEHOLDER) && (id->flag & ID_FLAG_INDIRECT_WEAK_LINK)) {
+
+      /* This function also visits already-loaded data-blocks, and thus their
+       * `readfile_data` field might already have been freed. */
+      if (readfile_id_runtime_tags(id).is_id_link_placeholder &&
+          (id->flag & ID_FLAG_INDIRECT_WEAK_LINK))
+      {
         CLOG_INFO(&LOG, 3, "Dropping weak link to '%s'", id->name);
         change_link_placeholder_to_real_ID_pointer(mainlist, basefd, id, nullptr);
         BLI_freelinkN(lbarray[a], id);
@@ -5011,6 +5116,16 @@ void BLO_read_int8_array(BlendDataReader *reader, const int64_t array_size, int8
 {
   *ptr_p = reinterpret_cast<int8_t *>(
       BLO_read_struct_array_with_size(reader, *((void **)ptr_p), sizeof(int8_t) * array_size));
+}
+
+void BLO_read_int16_array(BlendDataReader *reader, const int64_t array_size, int16_t **ptr_p)
+{
+  *ptr_p = reinterpret_cast<int16_t *>(
+      BLO_read_struct_array_with_size(reader, *((void **)ptr_p), sizeof(int16_t) * array_size));
+
+  if (*ptr_p && BLO_read_requires_endian_switch(reader)) {
+    BLI_endian_switch_int16_array(*ptr_p, array_size);
+  }
 }
 
 void BLO_read_int32_array(BlendDataReader *reader, const int64_t array_size, int32_t **ptr_p)

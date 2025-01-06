@@ -13,6 +13,7 @@
 #include "BLI_math_color.h"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
+#include "BLI_memory_utils.hh"
 
 #include "IMB_imbuf_types.hh"
 
@@ -49,7 +50,7 @@ struct ImageTileWrapper {
 };
 
 template<typename T, int Channels = 4> struct ImageBufferAccessor {
-  static_assert(std::is_same_v<T, int> || std::is_same_v<T, float4>);
+  static_assert(is_same_any_v<T, int, float4>);
 
   ImBuf &image_buffer;
 

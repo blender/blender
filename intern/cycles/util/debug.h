@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __UTIL_DEBUG_H__
-#define __UTIL_DEBUG_H__
+#pragma once
 
 #include <cassert>
 
@@ -129,15 +128,15 @@ class DebugFlags {
   Metal metal;
 
  private:
-  DebugFlags();
+  DebugFlags() = default;
 
  public:
-  explicit DebugFlags(DebugFlags const & /*other*/) = delete;
-  void operator=(DebugFlags const & /*other*/) = delete;
+  explicit DebugFlags(const DebugFlags & /*other*/) = delete;
+  void operator=(const DebugFlags & /*other*/) = delete;
 };
 
-typedef DebugFlags &DebugFlagsRef;
-typedef const DebugFlags &DebugFlagsConstRef;
+using DebugFlagsRef = DebugFlags &;
+using DebugFlagsConstRef = const DebugFlags &;
 
 inline DebugFlags &DebugFlags()
 {
@@ -145,5 +144,3 @@ inline DebugFlags &DebugFlags()
 }
 
 CCL_NAMESPACE_END
-
-#endif /* __UTIL_DEBUG_H__ */

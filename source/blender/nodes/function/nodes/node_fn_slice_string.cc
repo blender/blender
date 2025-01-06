@@ -33,6 +33,7 @@ static void node_register()
   static blender::bke::bNodeType ntype;
 
   fn_node_type_base(&ntype, FN_NODE_SLICE_STRING, "Slice String", NODE_CLASS_CONVERTER);
+  ntype.enum_name_legacy = "SLICE_STRING";
   ntype.declare = node_declare;
   ntype.build_multi_function = node_build_multi_function;
   blender::bke::node_register_type(&ntype);

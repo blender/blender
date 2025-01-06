@@ -132,18 +132,22 @@ template<typename T, typename RadiusT>
  * Returns no box if there are no overlap.
  */
 template<typename T>
+[[nodiscard]] inline std::optional<Bounds<T>> intersect(const Bounds<T> &a, const Bounds<T> &b)
+{
+  const Bounds<T> result{math::max(a.min, b.min), math::min(a.max, b.max)};
+  if (result.is_empty()) {
+    return std::nullopt;
+  }
+  return result;
+}
+template<typename T>
 [[nodiscard]] inline std::optional<Bounds<T>> intersect(const std::optional<Bounds<T>> &a,
                                                         const std::optional<Bounds<T>> &b)
 {
   if (!a.has_value() || !b.has_value()) {
     return std::nullopt;
   }
-  const Bounds<T> result{math::max(a.value().min, b.value().min),
-                         math::min(a.value().max, b.value().max)};
-  if (result.is_empty()) {
-    return std::nullopt;
-  }
-  return result;
+  return intersect(*a, *b);
 }
 
 }  // namespace bounds

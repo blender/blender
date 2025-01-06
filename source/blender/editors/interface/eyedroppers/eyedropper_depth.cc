@@ -268,7 +268,8 @@ static void depthdropper_depth_sample_pt(bContext *C,
         view3d_operator_needs_opengl(C);
 
         /* Ensure the depth buffer is updated for #ED_view3d_autodist. */
-        ED_view3d_depth_override(depsgraph, region, v3d, nullptr, V3D_DEPTH_NO_GPENCIL, nullptr);
+        ED_view3d_depth_override(
+            depsgraph, region, v3d, nullptr, V3D_DEPTH_NO_GPENCIL, false, nullptr);
 
         if (ED_view3d_autodist(region, v3d, mval, co, nullptr)) {
           const float mval_center_fl[2] = {float(region->winx) / 2, float(region->winy) / 2};

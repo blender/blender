@@ -47,10 +47,6 @@ class DummyBackend : public GPUBackend {
   {
     return new DummyBatch;
   }
-  DrawList *drawlist_alloc(int /*list_length*/) override
-  {
-    return nullptr;
-  }
   Fence *fence_alloc() override
   {
     return nullptr;
@@ -96,7 +92,7 @@ class DummyBackend : public GPUBackend {
   void shader_cache_dir_clear_old() override {}
   void render_begin() override {}
   void render_end() override {}
-  void render_step() override {}
+  void render_step(bool /*force_resource_release*/) override {}
 };
 
 }  // namespace blender::gpu

@@ -315,11 +315,10 @@ bool WM_toolsystem_activate_brush_and_tool(bContext *C, Paint *paint, Brush *bru
   return true;
 }
 
-static void toolsystem_brush_activate_from_toolref_for_object_particle(const bContext *C,
+static void toolsystem_brush_activate_from_toolref_for_object_particle(const Main *bmain,
                                                                        const WorkSpace *workspace,
                                                                        const bToolRef *tref)
 {
-  const Main *bmain = CTX_data_main(C);
   const bToolRef_Runtime *tref_rt = tref->runtime;
 
   if (!tref_rt->data_block[0]) {
@@ -342,11 +341,10 @@ static void toolsystem_brush_activate_from_toolref_for_object_particle(const bCo
   }
 }
 
-static void toolsystem_brush_activate_from_toolref_for_object_paint(const bContext *C,
+static void toolsystem_brush_activate_from_toolref_for_object_paint(Main *bmain,
                                                                     const WorkSpace *workspace,
                                                                     const bToolRef *tref)
 {
-  Main *bmain = CTX_data_main(C);
   bToolRef_Runtime *tref_rt = tref->runtime;
 
   const PaintMode paint_mode = BKE_paintmode_get_from_tool(tref);
@@ -410,7 +408,7 @@ static void toolsystem_brush_activate_from_toolref_for_object_paint(const bConte
 /**
  * Activate a brush compatible with \a tref, call when the active tool changes.
  */
-static void toolsystem_brush_activate_from_toolref(const bContext *C,
+static void toolsystem_brush_activate_from_toolref(Main *bmain,
                                                    const WorkSpace *workspace,
                                                    const bToolRef *tref)
 {
@@ -418,22 +416,22 @@ static void toolsystem_brush_activate_from_toolref(const bContext *C,
 
   if (tref->space_type == SPACE_VIEW3D) {
     if (tref->mode == CTX_MODE_PARTICLE) {
-      toolsystem_brush_activate_from_toolref_for_object_particle(C, workspace, tref);
+      toolsystem_brush_activate_from_toolref_for_object_particle(bmain, workspace, tref);
     }
     else {
-      toolsystem_brush_activate_from_toolref_for_object_paint(C, workspace, tref);
+      toolsystem_brush_activate_from_toolref_for_object_paint(bmain, workspace, tref);
     }
   }
   else if (tref->space_type == SPACE_IMAGE) {
     if (tref->mode == SI_MODE_PAINT) {
-      toolsystem_brush_activate_from_toolref_for_object_paint(C, workspace, tref);
+      toolsystem_brush_activate_from_toolref_for_object_paint(bmain, workspace, tref);
     }
   }
 }
 
 /** \} */
 
-static void toolsystem_ref_link(const bContext *C, WorkSpace *workspace, bToolRef *tref)
+static void toolsystem_ref_link(Main *bmain, WorkSpace *workspace, bToolRef *tref)
 {
   bToolRef_Runtime *tref_rt = tref->runtime;
   if (tref_rt->gizmo_group[0]) {
@@ -455,7 +453,7 @@ static void toolsystem_ref_link(const bContext *C, WorkSpace *workspace, bToolRe
   }
 
   if (tref_rt->flag & TOOLREF_FLAG_USE_BRUSHES) {
-    toolsystem_brush_activate_from_toolref(C, workspace, tref);
+    toolsystem_brush_activate_from_toolref(bmain, workspace, tref);
   }
 }
 
@@ -465,7 +463,7 @@ static void toolsystem_refresh_ref(const bContext *C, WorkSpace *workspace, bToo
     return;
   }
   /* Currently same operation. */
-  toolsystem_ref_link(C, workspace, tref);
+  toolsystem_ref_link(CTX_data_main(C), workspace, tref);
 }
 void WM_toolsystem_refresh(const bContext *C, WorkSpace *workspace, const bToolKey *tkey)
 {
@@ -578,7 +576,7 @@ void WM_toolsystem_ref_set_from_runtime(bContext *C,
     tref->runtime->keymap_fallback[0] = '\0';
   }
 
-  toolsystem_ref_link(C, workspace, tref);
+  toolsystem_ref_link(bmain, workspace, tref);
 
   toolsystem_refresh_screen_from_active_tool(bmain, workspace, tref);
 

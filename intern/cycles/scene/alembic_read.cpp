@@ -2,8 +2,10 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#include "scene/alembic_read.h"
+#include <algorithm>
+
 #include "scene/alembic.h"
+#include "scene/alembic_read.h"
 #include "scene/mesh.h"
 
 #include "util/color.h"
@@ -23,7 +25,7 @@ static float3 make_float3_from_yup(const V3f &v)
 /* get the sample times to load data for the given the start and end frame of the procedural */
 static set<chrono_t> get_relevant_sample_times(AlembicProcedural *proc,
                                                const TimeSampling &time_sampling,
-                                               size_t num_samples)
+                                               const size_t num_samples)
 {
   set<chrono_t> result;
 
@@ -75,7 +77,7 @@ static void read_data_loop(AlembicProcedural *proc,
 
   cached_data.set_time_sampling(*params.time_sampling);
 
-  for (chrono_t time : times) {
+  for (const chrono_t time : times) {
     if (progress.get_cancel()) {
       return;
     }
@@ -88,7 +90,7 @@ static void read_data_loop(AlembicProcedural *proc,
 
 /* Compute the vertex normals in case none are present in the IPolyMeshSchema, this is mostly used
  * to avoid computing them in the GeometryManager in order to speed up data updates. */
-static void compute_vertex_normals(CachedData &cache, double current_time)
+static void compute_vertex_normals(CachedData &cache, const double current_time)
 {
   if (cache.vertices.size() == 0) {
     return;
@@ -112,7 +114,7 @@ static void compute_vertex_normals(CachedData &cache, double current_time)
 
   array<char> attr_data(vertices->size() * sizeof(float3));
   float3 *attr_ptr = reinterpret_cast<float3 *>(attr_data.data());
-  memset(attr_ptr, 0, vertices->size() * sizeof(float3));
+  std::fill_n(attr_ptr, vertices->size(), zero_float3());
 
   for (size_t t = 0; t < triangles->size(); ++t) {
     const int3 tri_int3 = triangles->data()[t];
@@ -137,7 +139,7 @@ static void compute_vertex_normals(CachedData &cache, double current_time)
 
 static void add_normals(const Int32ArraySamplePtr face_indices,
                         const IN3fGeomParam &normals,
-                        double time,
+                        const double time,
                         CachedData &cached_data)
 {
   switch (normals.getScope()) {
@@ -169,7 +171,7 @@ static void add_normals(const Int32ArraySamplePtr face_indices,
       const N3fArraySamplePtr values = sample.getVals();
 
       for (size_t i = 0; i < face_indices->size(); ++i) {
-        int point_index = face_indices_array[i];
+        const int point_index = face_indices_array[i];
         data_float3[point_index] = make_float3_from_yup(values->get()[i]);
       }
 
@@ -217,7 +219,9 @@ static void add_normals(const Int32ArraySamplePtr face_indices,
   }
 }
 
-static void add_positions(const P3fArraySamplePtr positions, double time, CachedData &cached_data)
+static void add_positions(const P3fArraySamplePtr positions,
+                          const double time,
+                          CachedData &cached_data)
 {
   if (!positions) {
     return;
@@ -227,7 +231,7 @@ static void add_positions(const P3fArraySamplePtr positions, double time, Cached
   vertices.reserve(positions->size());
 
   for (size_t i = 0; i < positions->size(); i++) {
-    V3f f = positions->get()[i];
+    const V3f f = positions->get()[i];
     vertices.push_back_reserved(make_float3_from_yup(f));
   }
 
@@ -236,7 +240,7 @@ static void add_positions(const P3fArraySamplePtr positions, double time, Cached
 
 static void add_triangles(const Int32ArraySamplePtr face_counts,
                           const Int32ArraySamplePtr face_indices,
-                          double time,
+                          const double time,
                           CachedData &cached_data,
                           const array<int> &polygon_to_shader)
 {
@@ -269,9 +273,9 @@ static void add_triangles(const Int32ArraySamplePtr face_counts,
     }
 
     for (int j = 0; j < face_counts_array[i] - 2; j++) {
-      int v0 = face_indices_array[index_offset];
-      int v1 = face_indices_array[index_offset + j + 1];
-      int v2 = face_indices_array[index_offset + j + 2];
+      const int v0 = face_indices_array[index_offset];
+      const int v1 = face_indices_array[index_offset + j + 1];
+      const int v2 = face_indices_array[index_offset + j + 2];
 
       shader.push_back_reserved(current_shader);
 
@@ -307,7 +311,7 @@ static array<int> compute_polygon_to_shader_map(
     return {};
   }
 
-  array<int> polygon_to_shader(face_counts->size());
+  const array<int> polygon_to_shader(face_counts->size());
 
   for (const FaceSetShaderIndexPair &pair : face_set_shader_index) {
     const IFaceSet &face_set = pair.face_set;
@@ -317,7 +321,7 @@ static array<int> compute_polygon_to_shader_map(
     const size_t num_group_faces = group_faces->size();
 
     for (size_t l = 0; l < num_group_faces; l++) {
-      size_t pos = (*group_faces)[l];
+      const size_t pos = (*group_faces)[l];
 
       if (pos >= polygon_to_shader.size()) {
         continue;
@@ -448,7 +452,7 @@ static void add_subd_polygons(CachedData &cached_data, const SubDSchemaData &dat
     }
 
     shader.push_back_reserved(current_shader);
-    subd_smooth.push_back_reserved(1);
+    subd_smooth.push_back_reserved(true);
     subd_ptex_offset.push_back_reserved(ptex_offset);
 
     ptex_offset += (num_corners == 4 ? 1 : num_corners);
@@ -573,7 +577,7 @@ static void read_curves_data(CachedData &cached_data, const CurvesSchemaData &da
   FloatArraySamplePtr radiuses;
 
   if (data.widths.valid()) {
-    IFloatGeomParam::Sample wsample = data.widths.getExpandedValue(iss);
+    const IFloatGeomParam::Sample wsample = data.widths.getExpandedValue(iss);
     radiuses = wsample.getVals();
   }
 
@@ -650,14 +654,14 @@ static void read_points_data(CachedData &cached_data, const PointsSchemaData &da
   a_shader.reserve(position->size());
 
   if (data.radiuses.valid()) {
-    IFloatGeomParam::Sample wsample = data.radiuses.getExpandedValue(iss);
+    const IFloatGeomParam::Sample wsample = data.radiuses.getExpandedValue(iss);
     radiuses = wsample.getVals();
   }
 
   const bool do_radius = (radiuses != nullptr) && (radiuses->size() > 1);
   float radius = (radiuses && radiuses->size() == 1) ? (*radiuses)[0] : data.default_radius;
 
-  int offset = 0;
+  const int offset = 0;
   for (size_t i = 0; i < position->size(); i++) {
     const V3f &f = position->get()[offset + i];
     a_positions.push_back_slow(make_float3_from_yup(f));
@@ -667,7 +671,7 @@ static void read_points_data(CachedData &cached_data, const PointsSchemaData &da
     }
     a_radius.push_back_slow(radius * data.radius_scale);
 
-    a_shader.push_back_slow((int)0);
+    a_shader.push_back_slow(0);
   }
 
   cached_data.points.add_data(a_positions, time);
@@ -749,7 +753,7 @@ static void process_attribute(CachedData &cache,
                               CachedData::CachedAttribute &attribute,
                               GeometryScope scope,
                               const typename ITypedGeomParam<TRAIT>::Sample &sample,
-                              double time)
+                              const double time)
 {
   using abc_type = typename TRAIT::value_type;
   using cycles_type = typename value_type_converter<abc_type>::cycles_type;
@@ -817,7 +821,7 @@ static void process_uvs(CachedData &cache,
                         CachedData::CachedAttribute &attribute,
                         GeometryScope scope,
                         const IV2fGeomParam::Sample &sample,
-                        double time)
+                        const double time)
 {
   if (scope != kFacevaryingScope && scope != kVaryingScope && scope != kVertexScope) {
     return;
@@ -906,7 +910,7 @@ static void read_attribute_loop(AlembicProcedural *proc,
   std::string name = param.getName();
 
   if (std == ATTR_STD_UV) {
-    std::string uv_source_name = Alembic::Abc::GetSourceName(param.getMetaData());
+    const std::string uv_source_name = Alembic::Abc::GetSourceName(param.getMetaData());
 
     /* According to the convention, primary UVs should have had their name
      * set using Alembic::Abc::SetSourceName, but you can't expect everyone
@@ -942,7 +946,7 @@ static void read_attribute_loop(AlembicProcedural *proc,
       return;
     }
 
-    ISampleSelector iss = ISampleSelector(time);
+    const ISampleSelector iss = ISampleSelector(time);
     typename ITypedGeomParam<TRAIT>::Sample sample;
     param.getIndexed(sample, iss);
 
@@ -1016,8 +1020,8 @@ static void parse_requested_attributes_recursive(const AttributeRequestSet &requ
     const PropertyHeader &property_header = arb_geom_params.getPropertyHeader(i);
 
     if (property_header.isCompound()) {
-      ICompoundProperty compound_property = ICompoundProperty(arb_geom_params,
-                                                              property_header.getName());
+      const ICompoundProperty compound_property = ICompoundProperty(arb_geom_params,
+                                                                    property_header.getName());
       parse_requested_attributes_recursive(
           requested_attributes, compound_property, requested_properties);
     }
@@ -1052,7 +1056,7 @@ void read_attributes(AlembicProcedural *proc,
     read_attribute_loop(proc, cache, default_uvs_param, process_uvs, progress, ATTR_STD_UV);
   }
 
-  vector<PropHeaderAndParent> requested_properties = parse_requested_attributes(
+  const vector<PropHeaderAndParent> requested_properties = parse_requested_attributes(
       requested_attributes, arb_geom_params);
 
   for (const PropHeaderAndParent &prop_and_parent : requested_properties) {

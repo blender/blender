@@ -2,6 +2,12 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+__all__ = (
+    "addon_keymap_register",
+    "addon_keymap_unregister",
+    "keyconfig_test",
+)
+
 
 # -----------------------------------------------------------------------------
 # Add-on helpers to properly (un)register their own keymaps.

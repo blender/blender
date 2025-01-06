@@ -298,11 +298,6 @@ struct XFormObjectData_MetaBall {
   ElemData_MetaBall elem_array[0];
 };
 
-struct XFormObjectData_GPencil {
-  XFormObjectData base;
-  GPencilPointCoordinates elem_array[0];
-};
-
 struct XFormObjectData_GreasePencil {
   XFormObjectData base;
   GreasePencilPointCoordinates elem_array[0];
@@ -469,17 +464,6 @@ XFormObjectData *data_xform_create_ex(ID *id, bool is_edit_mode)
       xod_base = &xod->base;
       break;
     }
-    case ID_GD_LEGACY: {
-      bGPdata *gpd = (bGPdata *)id;
-      const int elem_array_len = BKE_gpencil_stroke_point_count(gpd);
-      XFormObjectData_GPencil *xod = static_cast<XFormObjectData_GPencil *>(
-          MEM_mallocN(sizeof(*xod) + (sizeof(*xod->elem_array) * elem_array_len), __func__));
-      memset(xod, 0x0, sizeof(*xod));
-
-      BKE_gpencil_point_coords_get(gpd, xod->elem_array);
-      xod_base = &xod->base;
-      break;
-    }
     case ID_GP: {
       GreasePencil *grease_pencil = (GreasePencil *)id;
       const int elem_array_len = BKE_grease_pencil_stroke_point_count(*grease_pencil);
@@ -643,16 +627,10 @@ void data_xform_by_mat4(XFormObjectData *xod_base, const float mat[4][4])
       break;
     }
     case ID_MB: {
-      /* Metaballs are a special case, edit-mode and object mode data is shared. */
+      /* Meta-balls are a special case, edit-mode and object mode data is shared. */
       MetaBall *mb = (MetaBall *)xod_base->id;
       XFormObjectData_MetaBall *xod = (XFormObjectData_MetaBall *)xod_base;
       metaball_coords_and_quats_apply_with_mat4(mb, xod->elem_array, mat);
-      break;
-    }
-    case ID_GD_LEGACY: {
-      bGPdata *gpd = (bGPdata *)xod_base->id;
-      XFormObjectData_GPencil *xod = (XFormObjectData_GPencil *)xod_base;
-      BKE_gpencil_point_coords_apply_with_mat4(gpd, xod->elem_array, mat);
       break;
     }
     case ID_GP: {
@@ -751,16 +729,10 @@ void data_xform_restore(XFormObjectData *xod_base)
       break;
     }
     case ID_MB: {
-      /* Metaballs are a special case, edit-mode and object mode data is shared. */
+      /* Meta-balls are a special case, edit-mode and object mode data is shared. */
       MetaBall *mb = (MetaBall *)xod_base->id;
       XFormObjectData_MetaBall *xod = (XFormObjectData_MetaBall *)xod_base;
       metaball_coords_and_quats_apply(mb, xod->elem_array);
-      break;
-    }
-    case ID_GD_LEGACY: {
-      bGPdata *gpd = (bGPdata *)xod_base->id;
-      XFormObjectData_GPencil *xod = (XFormObjectData_GPencil *)xod_base;
-      BKE_gpencil_point_coords_apply(gpd, xod->elem_array);
       break;
     }
     case ID_GP: {

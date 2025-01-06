@@ -4,13 +4,8 @@
  * SPDX-License-Identifier: Apache-2.0 */
 
 #include "device/optix/device.h"
-
 #include "device/cuda/device.h"
-#include "device/optix/device_impl.h"
-
-#include "integrator/denoiser_oidn_gpu.h"
-
-#include "util/log.h"
+#include "device/device.h"
 
 #ifdef WITH_OSL
 #  include <OSL/oslconfig.h>
@@ -18,8 +13,14 @@
 #endif
 
 #ifdef WITH_OPTIX
+#  include "device/optix/device_impl.h"
+
+#  include "integrator/denoiser_oidn_gpu.h"  // IWYU pragma: keep
+
 #  include <optix_function_table_definition.h>
 #endif
+
+#include "util/log.h"
 
 #ifndef OPTIX_FUNCTION_TABLE_SYMBOL
 #  define OPTIX_FUNCTION_TABLE_SYMBOL g_optixFunctionTable
@@ -30,7 +31,7 @@ CCL_NAMESPACE_BEGIN
 bool device_optix_init()
 {
 #ifdef WITH_OPTIX
-  if (OPTIX_FUNCTION_TABLE_SYMBOL.optixDeviceContextCreate != NULL) {
+  if (OPTIX_FUNCTION_TABLE_SYMBOL.optixDeviceContextCreate != nullptr) {
     /* Already initialized function table. */
     return true;
   }
@@ -47,7 +48,7 @@ bool device_optix_init()
                     "Please update to the latest driver first!";
     return false;
   }
-  else if (result != OPTIX_SUCCESS) {
+  if (result != OPTIX_SUCCESS) {
     VLOG_WARNING << "OptiX initialization failed with error code " << (unsigned int)result;
     return false;
   }
@@ -100,13 +101,13 @@ void device_optix_info(const vector<DeviceInfo> &cuda_devices, vector<DeviceInfo
 #endif
 }
 
-Device *device_optix_create(const DeviceInfo &info,
-                            Stats &stats,
-                            Profiler &profiler,
-                            bool headless)
+unique_ptr<Device> device_optix_create(const DeviceInfo &info,
+                                       Stats &stats,
+                                       Profiler &profiler,
+                                       bool headless)
 {
 #ifdef WITH_OPTIX
-  return new OptiXDevice(info, stats, profiler, headless);
+  return make_unique<OptiXDevice>(info, stats, profiler, headless);
 #else
   (void)info;
   (void)stats;

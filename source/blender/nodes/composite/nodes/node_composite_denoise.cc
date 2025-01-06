@@ -54,6 +54,7 @@ static void node_composit_init_denonise(bNodeTree * /*ntree*/, bNode *node)
   NodeDenoise *ndg = MEM_cnew<NodeDenoise>(__func__);
   ndg->hdr = true;
   ndg->prefilter = CMP_NODE_DENOISE_PREFILTER_ACCURATE;
+  ndg->quality = CMP_NODE_DENOISE_QUALITY_SCENE;
   node->storage = ndg;
 }
 
@@ -71,11 +72,13 @@ static void node_composit_buts_denoise(uiLayout *layout, bContext * /*C*/, Point
 #endif
 
   uiItemL(layout, IFACE_("Prefilter:"), ICON_NONE);
-  uiItemR(layout, ptr, "prefilter", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "use_hdr", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "prefilter", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  uiItemL(layout, IFACE_("Quality:"), ICON_NONE);
+  uiItemR(layout, ptr, "quality", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  uiItemR(layout, ptr, "use_hdr", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 /* A callback to cancel the filter operations by evaluating the context's is_canceled method. The
  * API specifies that true indicates the filter should continue, while false indicates it should
@@ -106,6 +109,7 @@ class DenoiseOperation : public NodeOperation {
 
 #ifdef WITH_OPENIMAGEDENOISE
     oidn::DeviceRef device = oidn::newDevice(oidn::DeviceType::CPU);
+    device.set("setAffinity", false);
     device.commit();
 
     const int width = input_image.domain().size.x;
@@ -131,6 +135,7 @@ class DenoiseOperation : public NodeOperation {
     filter.setImage("output", output_color, oidn::Format::Float3, width, height, 0, pixel_stride);
     filter.set("hdr", use_hdr());
     filter.set("cleanAux", auxiliary_passes_are_clean());
+    this->set_filter_quality(filter);
     filter.setProgressMonitorFunction(oidn_progress_monitor_function, &context());
 
     /* If the albedo input is not a single value input, download the albedo texture, denoise it
@@ -147,6 +152,7 @@ class DenoiseOperation : public NodeOperation {
 
       if (should_denoise_auxiliary_passes()) {
         oidn::FilterRef albedoFilter = device.newFilter("RT");
+        this->set_filter_quality(albedoFilter);
         albedoFilter.setImage(
             "albedo", albedo, oidn::Format::Float3, width, height, 0, pixel_stride);
         albedoFilter.setImage(
@@ -175,6 +181,7 @@ class DenoiseOperation : public NodeOperation {
 
       if (should_denoise_auxiliary_passes()) {
         oidn::FilterRef normalFilter = device.newFilter("RT");
+        this->set_filter_quality(normalFilter);
         normalFilter.setImage(
             "normal", normal, oidn::Format::Float3, width, height, 0, pixel_stride);
         normalFilter.setImage(
@@ -197,8 +204,9 @@ class DenoiseOperation : public NodeOperation {
       /* OIDN already wrote to the output directly, however, OIDN skips the alpha channel, so we
        * need to restore it. */
       parallel_for(int2(width, height), [&](const int2 texel) {
-        const float alpha = input_image.load_pixel(texel).w;
-        output_image.store_pixel(texel, float4(output_image.load_pixel(texel).xyz(), alpha));
+        const float alpha = input_image.load_pixel<float4>(texel).w;
+        output_image.store_pixel(texel,
+                                 float4(output_image.load_pixel<float4>(texel).xyz(), alpha));
       });
     }
 
@@ -244,6 +252,51 @@ class DenoiseOperation : public NodeOperation {
     return static_cast<CMPNodeDenoisePrefilter>(node_storage(bnode()).prefilter);
   }
 
+#ifdef WITH_OPENIMAGEDENOISE
+#  if OIDN_VERSION_MAJOR >= 2
+  OIDNQuality get_quality()
+  {
+    const CMPNodeDenoiseQuality node_quality = static_cast<CMPNodeDenoiseQuality>(
+        node_storage(bnode()).quality);
+
+    if (node_quality == CMP_NODE_DENOISE_QUALITY_SCENE) {
+      const eCompositorDenoiseQaulity scene_quality = context().get_denoise_quality();
+      switch (scene_quality) {
+#    if OIDN_VERSION >= 20300
+        case SCE_COMPOSITOR_DENOISE_FAST:
+          return OIDN_QUALITY_FAST;
+#    endif
+        case SCE_COMPOSITOR_DENOISE_BALANCED:
+          return OIDN_QUALITY_BALANCED;
+        case SCE_COMPOSITOR_DENOISE_HIGH:
+        default:
+          return OIDN_QUALITY_HIGH;
+      }
+    }
+
+    switch (node_quality) {
+#    if OIDN_VERSION >= 20300
+      case CMP_NODE_DENOISE_QUALITY_FAST:
+        return OIDN_QUALITY_FAST;
+#    endif
+      case CMP_NODE_DENOISE_QUALITY_BALANCED:
+        return OIDN_QUALITY_BALANCED;
+      case CMP_NODE_DENOISE_QUALITY_HIGH:
+      default:
+        return OIDN_QUALITY_HIGH;
+    }
+  }
+#  endif /* OIDN_VERSION_MAJOR >= 2 */
+
+  void set_filter_quality([[maybe_unused]] oidn::FilterRef &filter)
+  {
+#  if OIDN_VERSION_MAJOR >= 2
+    OIDNQuality quality = this->get_quality();
+    filter.set("quality", quality);
+#  endif
+  }
+#endif /* WITH_OPENIMAGEDENOISE */
+
   /* OIDN can be disabled as a build option, so check WITH_OPENIMAGEDENOISE. Additionally, it is
    * only supported at runtime for CPUs that supports SSE4.1, except for MacOS where it is always
    * supported through the Accelerate framework BNNS on macOS. */
@@ -275,6 +328,7 @@ void register_node_type_cmp_denoise()
   static blender::bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_DENOISE, "Denoise", NODE_CLASS_OP_FILTER);
+  ntype.enum_name_legacy = "DENOISE";
   ntype.declare = file_ns::cmp_node_denoise_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_denoise;
   ntype.initfunc = file_ns::node_composit_init_denonise;

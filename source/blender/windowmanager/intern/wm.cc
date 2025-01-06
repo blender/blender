@@ -441,7 +441,7 @@ void WM_keyconfig_init(bContext *C)
 {
   wmWindowManager *wm = CTX_wm_manager(C);
 
-  /* Create standard key configs. */
+  /* Create standard key configuration. */
   if (wm->defaultconf == nullptr) {
     /* Keep lowercase to match the preset filename. */
     wm->defaultconf = WM_keyconfig_new(wm, WM_KEYCONFIG_STR_DEFAULT, false);

@@ -51,12 +51,12 @@ static void set_curve_normal(bke::CurvesGeometry &curves,
                              const Field<bool> &selection_field,
                              const Field<float3> &custom_normal)
 {
-  bke::try_capture_field_on_geometry(curves.attributes_for_write(),
-                                     curve_context,
-                                     "normal_mode",
-                                     AttrDomain::Curve,
-                                     selection_field,
-                                     fn::make_constant_field<int8_t>(mode));
+  /* First evaluate the normal modes without changing the geometry, since that will influence the
+   * result of the "Normal" node if used in the input to the custom normal field evaluation. */
+  fn::FieldEvaluator evaluator(curve_context, curves.curves_num());
+  evaluator.set_selection(selection_field);
+  evaluator.evaluate();
+  const IndexMask curve_mask = evaluator.get_evaluated_selection_as_mask();
 
   if (mode == NORMAL_MODE_FREE) {
     bke::try_capture_field_on_geometry(curves.attributes_for_write(),
@@ -67,6 +67,8 @@ static void set_curve_normal(bke::CurvesGeometry &curves,
                                            selection_field, AttrDomain::Curve)),
                                        custom_normal);
   }
+
+  index_mask::masked_fill(curves.normal_mode_for_write(), int8_t(mode), curve_mask);
 
   curves.tag_normals_changed();
 }
@@ -135,6 +137,7 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
   geo_node_type_base(&ntype, GEO_NODE_SET_CURVE_NORMAL, "Set Curve Normal", NODE_CLASS_GEOMETRY);
+  ntype.enum_name_legacy = "SET_CURVE_NORMAL";
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.initfunc = node_init;

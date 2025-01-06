@@ -322,7 +322,7 @@ def read_bvh(context, file_path, rotate_mode='XYZ', global_scale=1.0):
                     rest_tail_local += bvh_node_child.rest_head_local
 
                 bvh_node.rest_tail_world = rest_tail_world * (1.0 / len(bvh_node.children))
-                bvh_node.rest_tail_local = rest_tail_local * (1.0 / len(bvh_node.children))
+                bvh_node.rest_tail_local = bvh_node.rest_head_local + (rest_tail_local * (1.0 / len(bvh_node.children)))
 
         # Make sure tail isn't the same location as the head.
         if (bvh_node.rest_tail_local - bvh_node.rest_head_local).length <= 0.001 * global_scale:
@@ -516,9 +516,12 @@ def bvh_node_dict2armature(
 
     context.view_layer.update()
 
-    arm_ob.animation_data_create()
+    arm_ob_adt = arm_ob.animation_data_create()
     action = bpy.data.actions.new(name=bvh_name)
-    arm_ob.animation_data.action = action
+    action_slot = action.slots.new(arm_ob.id_type, arm_ob.name)
+
+    arm_ob_adt.action = action
+    arm_ob_adt.action_slot = action_slot
 
     # Replace the bvh_node.temp (currently an editbone)
     # With a tuple  (pose_bone, armature_bone, bone_rest_matrix, bone_rest_matrix_inv)

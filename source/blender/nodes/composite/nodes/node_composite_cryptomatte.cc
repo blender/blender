@@ -80,9 +80,13 @@ static blender::bke::cryptomatte::CryptomatteSessionPtr cryptomatte_init_from_no
   }
   BLI_assert(GS(image->id.name) == ID_IM);
 
-  NodeCryptomatte *node_cryptomatte = static_cast<NodeCryptomatte *>(node.storage);
-  ImageUser *iuser = &node_cryptomatte->iuser;
-  ImBuf *ibuf = BKE_image_acquire_ibuf(image, iuser, nullptr);
+  /* Construct an image user to retrieve the first image in the sequence, since the frame number
+   * might correspond to a non-existing image. We explicitly do not support the case where the
+   * image sequence has a changing structure. */
+  ImageUser image_user = {};
+  image_user.framenr = BKE_image_sequence_guess_offset(image);
+
+  ImBuf *ibuf = BKE_image_acquire_ibuf(image, &image_user, nullptr);
   RenderResult *render_result = image->rr;
   if (render_result) {
     session = blender::bke::cryptomatte::CryptomatteSessionPtr(
@@ -227,7 +231,7 @@ namespace blender::nodes::node_composite_base_cryptomatte_cc {
 
 NODE_STORAGE_FUNCS(NodeCryptomatte)
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class BaseCryptoMatteOperation : public NodeOperation {
  public:
@@ -372,7 +376,7 @@ class BaseCryptoMatteOperation : public NodeOperation {
     parallel_for(domain.size, [&](const int2 texel) {
       /* Each layer stores two ranks, each rank contains a pair, the identifier and the coverage of
        * the entity identified by the identifier. */
-      float2 first_rank = first_layer.load_pixel(texel + lower_bound).xy();
+      float2 first_rank = first_layer.load_pixel<float4>(texel + lower_bound).xy();
       float id_of_first_rank = first_rank.x;
 
       /* There is no logic to this, we just compute arbitrary compressed versions of the identifier
@@ -445,7 +449,7 @@ class BaseCryptoMatteOperation : public NodeOperation {
     matte.allocate_texture(domain);
 
     /* Clear the matte to zero to ready it to accumulate the coverage. */
-    parallel_for(domain.size, [&](const int2 texel) { matte.store_pixel(texel, float4(0.0f)); });
+    parallel_for(domain.size, [&](const int2 texel) { matte.store_pixel(texel, 0.0f); });
 
     Vector<float> identifiers = get_identifiers();
     /* The user haven't selected any entities, return the currently zero matte. */
@@ -465,7 +469,7 @@ class BaseCryptoMatteOperation : public NodeOperation {
        * blur and transparency." ACM SIGGRAPH 2015 Posters. 2015. 1-1.
        */
       parallel_for(domain.size, [&](const int2 texel) {
-        float4 layer = layer_result.load_pixel(texel + lower_bound);
+        float4 layer = layer_result.load_pixel<float4>(texel + lower_bound);
 
         /* Each Cryptomatte layer stores two ranks. */
         float2 first_rank = layer.xy();
@@ -491,7 +495,7 @@ class BaseCryptoMatteOperation : public NodeOperation {
         }
 
         /* Add the total coverage to the coverage accumulated by previous layers. */
-        matte.store_pixel(texel, float4(matte.load_pixel(texel).x + total_coverage));
+        matte.store_pixel(texel, matte.load_pixel<float>(texel) + total_coverage);
       });
     }
 
@@ -541,8 +545,8 @@ class BaseCryptoMatteOperation : public NodeOperation {
     output.allocate_texture(domain);
 
     parallel_for(domain.size, [&](const int2 texel) {
-      float4 input_color = input.load_pixel(texel);
-      float input_matte = matte.load_pixel(texel).x;
+      float4 input_color = input.load_pixel<float4>(texel);
+      float input_matte = matte.load_pixel<float>(texel);
 
       /* Premultiply the alpha to the image. */
       output.store_pixel(texel, input_color * input_matte);
@@ -658,7 +662,7 @@ static void node_update_cryptomatte(bNodeTree *ntree, bNode *node)
   ntreeCompositCryptomatteUpdateLayerNames(node);
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 using namespace blender::nodes::node_composite_base_cryptomatte_cc;
 
 class CryptoMatteOperation : public BaseCryptoMatteOperation {
@@ -908,6 +912,7 @@ void register_node_type_cmp_cryptomatte()
   static blender::bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_CRYPTOMATTE, "Cryptomatte", NODE_CLASS_MATTE);
+  ntype.enum_name_legacy = "CRYPTOMATTE";
   ntype.declare = file_ns::cmp_node_cryptomatte_declare;
   blender::bke::node_type_size(&ntype, 240, 100, 700);
   ntype.initfunc = file_ns::node_init_cryptomatte;
@@ -935,7 +940,7 @@ bNodeSocket *ntreeCompositCryptomatteAddSocket(bNodeTree *ntree, bNode *node)
   n->inputs_num++;
   SNPRINTF(sockname, "Crypto %.2d", n->inputs_num - 1);
   bNodeSocket *sock = blender::bke::node_add_static_socket(
-      ntree, node, SOCK_IN, SOCK_RGBA, PROP_NONE, nullptr, sockname);
+      ntree, node, SOCK_IN, SOCK_RGBA, PROP_NONE, "", sockname);
   return sock;
 }
 
@@ -967,7 +972,7 @@ static void node_init_cryptomatte_legacy(bNodeTree *ntree, bNode *node)
   ntreeCompositCryptomatteAddSocket(ntree, node);
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 using namespace blender::nodes::node_composite_base_cryptomatte_cc;
 
 class LegacyCryptoMatteOperation : public BaseCryptoMatteOperation {
@@ -982,9 +987,15 @@ class LegacyCryptoMatteOperation : public BaseCryptoMatteOperation {
   Vector<Result> get_layers() override
   {
     Vector<Result> layers;
-    /* Add all textures of all inputs except the first input, which is the input image. */
+    /* Add all valid results of all inputs except the first input, which is the input image. */
     for (const bNodeSocket *socket : bnode().input_sockets().drop_front(1)) {
-      layers.append(get_input(socket->identifier));
+      const Result input = get_input(socket->identifier);
+      if (input.is_single_value()) {
+        /* If this Cryptomatte layer is not valid, because it is not an image, then all later
+         * Cryptomatte layers can't be used even if they were valid. */
+        break;
+      }
+      layers.append(input);
     }
     return layers;
   }
@@ -1006,6 +1017,7 @@ void register_node_type_cmp_cryptomatte_legacy()
 
   cmp_node_type_base(
       &ntype, CMP_NODE_CRYPTOMATTE_LEGACY, "Cryptomatte (Legacy)", NODE_CLASS_MATTE);
+  ntype.enum_name_legacy = "CRYPTOMATTE";
   blender::bke::node_type_socket_templates(&ntype, nullptr, file_ns::cmp_node_cryptomatte_out);
   ntype.initfunc = legacy_file_ns::node_init_cryptomatte_legacy;
   blender::bke::node_type_storage(

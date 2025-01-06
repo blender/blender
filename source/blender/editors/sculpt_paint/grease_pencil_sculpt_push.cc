@@ -67,8 +67,8 @@ void PushOperation::on_stroke_extended(const bContext &C, const InputSample &ext
             return;
           }
 
-          positions[point_i] = projection_fn(deformation.positions[point_i],
-                                             mouse_delta * influence);
+          positions[point_i] += compute_orig_delta(
+              projection_fn, deformation, point_i, mouse_delta * influence);
         });
 
         params.drawing.tag_positions_changed();

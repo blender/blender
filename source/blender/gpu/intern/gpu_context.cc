@@ -75,14 +75,29 @@ Context::Context()
 
 Context::~Context()
 {
+  /* Derived class should have called free_famebuffers already. */
+  BLI_assert(front_left == nullptr);
+  BLI_assert(back_left == nullptr);
+  BLI_assert(front_right == nullptr);
+  BLI_assert(back_right == nullptr);
+
   GPU_matrix_state_discard(matrix_state);
   GPU_BATCH_DISCARD_SAFE(polyline_batch);
   delete state_manager;
+  delete imm;
+}
+
+void Context::free_framebuffers()
+{
   delete front_left;
   delete back_left;
   delete front_right;
   delete back_right;
-  delete imm;
+
+  front_left = nullptr;
+  back_left = nullptr;
+  front_right = nullptr;
+  back_right = nullptr;
 }
 
 bool Context::is_active_on_thread()
@@ -234,13 +249,13 @@ void GPU_render_end()
     backend->render_end();
   }
 }
-void GPU_render_step()
+void GPU_render_step(bool force_resource_release)
 {
   GPUBackend *backend = GPUBackend::get();
   BLI_assert(backend);
   if (backend) {
     printf_end(active_ctx);
-    backend->render_step();
+    backend->render_step(force_resource_release);
     printf_begin(active_ctx);
   }
 }

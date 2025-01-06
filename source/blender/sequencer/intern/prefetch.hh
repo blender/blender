@@ -10,7 +10,7 @@
 
 struct Scene;
 struct SeqRenderData;
-struct Sequence;
+struct Strip;
 
 /**
  * Start or resume prefetching.
@@ -26,4 +26,4 @@ SeqRenderData *seq_prefetch_get_original_context(const SeqRenderData *context);
 /**
  * For cache context swapping.
  */
-Sequence *seq_prefetch_get_original_sequence(Sequence *seq, Scene *scene);
+Strip *seq_prefetch_get_original_sequence(Strip *seq, Scene *scene);

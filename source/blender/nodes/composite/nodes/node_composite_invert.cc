@@ -50,11 +50,11 @@ static void node_composit_buts_invert(uiLayout *layout, bContext * /*C*/, Pointe
   uiLayout *col;
 
   col = uiLayoutColumn(layout, false);
-  uiItemR(col, ptr, "invert_rgb", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "invert_alpha", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "invert_rgb", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  uiItemR(col, ptr, "invert_alpha", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 static bool should_invert_rgb(const bNode &node)
 {
@@ -161,6 +161,7 @@ void register_node_type_cmp_invert()
   static blender::bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_INVERT, "Invert Color", NODE_CLASS_OP_COLOR);
+  ntype.enum_name_legacy = "INVERT";
   ntype.declare = file_ns::cmp_node_invert_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_invert;
   ntype.initfunc = file_ns::node_composit_init_invert;

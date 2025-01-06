@@ -9,11 +9,15 @@
  * cheaper.
  */
 
+#include "infos/eevee_depth_of_field_info.hh"
+
+COMPUTE_SHADER_CREATE_INFO(eevee_depth_of_field_filter)
+
 struct FilterSample {
   vec4 color;
   float weight;
 
-#ifdef GPU_METAL
+#if defined(GPU_METAL) || defined(GLSL_CPP_STUBS)
   inline FilterSample() = default;
   inline FilterSample(vec4 in_color, float in_weight) : color(in_color), weight(in_weight) {}
 #endif

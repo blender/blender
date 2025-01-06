@@ -3,6 +3,11 @@
 # SPDX-License-Identifier: Apache-2.0
 
 # ./blender.bin --background --python tests/python/bl_pyapi_bpy_utils_units.py -- --verbose
+
+__all__ = (
+    "main",
+)
+
 import unittest
 
 from bpy.utils import units
@@ -93,7 +98,11 @@ class UnitsTesting(unittest.TestCase):
             )
 
 
-if __name__ == '__main__':
+def main():
     import sys
     sys.argv = [__file__] + (sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else [])
     unittest.main()
+
+
+if __name__ == '__main__':
+    main()

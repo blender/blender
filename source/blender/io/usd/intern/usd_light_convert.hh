@@ -14,14 +14,11 @@ namespace blender::io::usd {
 struct USDExportParams;
 struct USDImportParams;
 
-struct ImportSettings;
-
 void world_material_to_dome_light(const USDExportParams &params,
                                   const Scene *scene,
                                   pxr::UsdStageRefPtr stage);
 
 void dome_light_to_world_material(const USDImportParams &params,
-                                  const ImportSettings &settings,
                                   Scene *scene,
                                   Main *bmain,
                                   const pxr::UsdLuxDomeLight &dome_light,

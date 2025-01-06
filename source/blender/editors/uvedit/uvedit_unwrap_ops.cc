@@ -1874,27 +1874,27 @@ static void uv_pack_islands_ui(bContext * /*C*/, wmOperator *op)
   uiLayout *layout = op->layout;
   uiLayoutSetPropSep(layout, true);
   uiLayoutSetPropDecorate(layout, false);
-  uiItemR(layout, op->ptr, "shape_method", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(layout, op->ptr, "scale", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, op->ptr, "shape_method", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  uiItemR(layout, op->ptr, "scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   {
-    uiItemR(layout, op->ptr, "rotate", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(layout, op->ptr, "rotate", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiLayout *sub = uiLayoutRow(layout, true);
     uiLayoutSetActive(sub, RNA_boolean_get(op->ptr, "rotate"));
-    uiItemR(sub, op->ptr, "rotate_method", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(sub, op->ptr, "rotate_method", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiItemS(layout);
   }
-  uiItemR(layout, op->ptr, "margin_method", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(layout, op->ptr, "margin", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, op->ptr, "margin_method", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  uiItemR(layout, op->ptr, "margin", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   uiItemS(layout);
   {
-    uiItemR(layout, op->ptr, "pin", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(layout, op->ptr, "pin", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiLayout *sub = uiLayoutRow(layout, true);
     uiLayoutSetActive(sub, RNA_boolean_get(op->ptr, "pin"));
     uiItemR(sub, op->ptr, "pin_method", UI_ITEM_NONE, IFACE_("Lock Method"), ICON_NONE);
     uiItemS(layout);
   }
-  uiItemR(layout, op->ptr, "merge_overlap", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(layout, op->ptr, "udim_source", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, op->ptr, "merge_overlap", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  uiItemR(layout, op->ptr, "udim_source", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   uiItemS(layout);
 }
 
@@ -2879,33 +2879,33 @@ static void unwrap_draw(bContext * /*C*/, wmOperator *op)
   uiLayout *col;
 
   col = uiLayoutColumn(layout, true);
-  uiItemR(col, &ptr, "method", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, &ptr, "method", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   bool is_slim = RNA_enum_get(op->ptr, "method") == UVCALC_UNWRAP_METHOD_MINIMUM_STRETCH;
 
   if (is_slim) {
-    uiItemR(col, &ptr, "iterations", UI_ITEM_NONE, nullptr, ICON_NONE);
-    uiItemR(col, &ptr, "no_flip", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, &ptr, "iterations", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    uiItemR(col, &ptr, "no_flip", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
     uiItemS(col);
-    uiItemR(col, &ptr, "use_weights", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, &ptr, "use_weights", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
     if (RNA_boolean_get(op->ptr, "use_weights")) {
       col = uiLayoutColumn(layout, true);
-      uiItemR(col, &ptr, "weight_group", UI_ITEM_NONE, nullptr, ICON_NONE);
-      uiItemR(col, &ptr, "weight_factor", UI_ITEM_NONE, nullptr, ICON_NONE);
+      uiItemR(col, &ptr, "weight_group", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      uiItemR(col, &ptr, "weight_factor", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     }
   }
   else {
-    uiItemR(col, &ptr, "fill_holes", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, &ptr, "fill_holes", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
   uiItemS(col);
-  uiItemR(col, &ptr, "use_subsurf_data", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, &ptr, "use_subsurf_data", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   uiItemS(col);
-  uiItemR(col, &ptr, "correct_aspect", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(col, &ptr, "margin_method", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(col, &ptr, "margin", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, &ptr, "correct_aspect", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  uiItemR(col, &ptr, "margin_method", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  uiItemR(col, &ptr, "margin", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 void UV_OT_unwrap(wmOperatorType *ot)

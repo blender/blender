@@ -20,28 +20,28 @@ struct ReportList;
 
 struct STLImportParams {
   /** Full path to the source STL file to import. */
-  char filepath[FILE_MAX];
-  eIOAxis forward_axis;
-  eIOAxis up_axis;
-  bool use_facet_normal;
-  bool use_scene_unit;
-  float global_scale;
-  bool use_mesh_validate;
+  char filepath[FILE_MAX] = "";
+  eIOAxis forward_axis = IO_AXIS_Y;
+  eIOAxis up_axis = IO_AXIS_Z;
+  bool use_facet_normal = false;
+  bool use_scene_unit = false;
+  float global_scale = 1.0f;
+  bool use_mesh_validate = true;
 
   ReportList *reports = nullptr;
 };
 
 struct STLExportParams {
   /** Full path to the to-be-saved STL file. */
-  char filepath[FILE_MAX];
-  eIOAxis forward_axis;
-  eIOAxis up_axis;
-  float global_scale;
-  bool export_selected_objects;
-  bool use_scene_unit;
-  bool apply_modifiers;
-  bool ascii_format;
-  bool use_batch;
+  char filepath[FILE_MAX] = "";
+  eIOAxis forward_axis = IO_AXIS_Y;
+  eIOAxis up_axis = IO_AXIS_Z;
+  float global_scale = 1.0f;
+  bool export_selected_objects = false;
+  bool use_scene_unit = false;
+  bool apply_modifiers = true;
+  bool ascii_format = false;
+  bool use_batch = false;
   char collection[MAX_IDPROP_NAME] = "";
 
   ReportList *reports = nullptr;

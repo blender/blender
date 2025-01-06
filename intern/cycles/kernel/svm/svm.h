@@ -25,130 +25,11 @@
  * mostly taken care of in the SVM compiler.
  */
 
+#include "kernel/globals.h"
+#include "kernel/types.h"
+
 #include "kernel/svm/types.h"
-
-CCL_NAMESPACE_BEGIN
-
-/* Stack */
-
-ccl_device_inline float3 stack_load_float3(ccl_private float *stack, uint a)
-{
-  kernel_assert(a + 2 < SVM_STACK_SIZE);
-
-  ccl_private float *stack_a = stack + a;
-  return make_float3(stack_a[0], stack_a[1], stack_a[2]);
-}
-
-ccl_device_inline void stack_store_float3(ccl_private float *stack, uint a, float3 f)
-{
-  kernel_assert(a + 2 < SVM_STACK_SIZE);
-
-  ccl_private float *stack_a = stack + a;
-  stack_a[0] = f.x;
-  stack_a[1] = f.y;
-  stack_a[2] = f.z;
-}
-
-ccl_device_inline float stack_load_float(ccl_private float *stack, uint a)
-{
-  kernel_assert(a < SVM_STACK_SIZE);
-
-  return stack[a];
-}
-
-ccl_device_inline float stack_load_float_default(ccl_private float *stack, uint a, uint value)
-{
-  return (a == (uint)SVM_STACK_INVALID) ? __uint_as_float(value) : stack_load_float(stack, a);
-}
-
-ccl_device_inline void stack_store_float(ccl_private float *stack, uint a, float f)
-{
-  kernel_assert(a < SVM_STACK_SIZE);
-
-  stack[a] = f;
-}
-
-ccl_device_inline int stack_load_int(ccl_private float *stack, uint a)
-{
-  kernel_assert(a < SVM_STACK_SIZE);
-
-  return __float_as_int(stack[a]);
-}
-
-ccl_device_inline int stack_load_int_default(ccl_private float *stack, uint a, uint value)
-{
-  return (a == (uint)SVM_STACK_INVALID) ? (int)value : stack_load_int(stack, a);
-}
-
-ccl_device_inline void stack_store_int(ccl_private float *stack, uint a, int i)
-{
-  kernel_assert(a < SVM_STACK_SIZE);
-
-  stack[a] = __int_as_float(i);
-}
-
-ccl_device_inline bool stack_valid(uint a)
-{
-  return a != (uint)SVM_STACK_INVALID;
-}
-
-/* Reading Nodes */
-
-ccl_device_inline uint4 read_node(KernelGlobals kg, ccl_private int *offset)
-{
-  uint4 node = kernel_data_fetch(svm_nodes, *offset);
-  (*offset)++;
-  return node;
-}
-
-ccl_device_inline float4 read_node_float(KernelGlobals kg, ccl_private int *offset)
-{
-  uint4 node = kernel_data_fetch(svm_nodes, *offset);
-  float4 f = make_float4(__uint_as_float(node.x),
-                         __uint_as_float(node.y),
-                         __uint_as_float(node.z),
-                         __uint_as_float(node.w));
-  (*offset)++;
-  return f;
-}
-
-ccl_device_inline float4 fetch_node_float(KernelGlobals kg, int offset)
-{
-  uint4 node = kernel_data_fetch(svm_nodes, offset);
-  return make_float4(__uint_as_float(node.x),
-                     __uint_as_float(node.y),
-                     __uint_as_float(node.z),
-                     __uint_as_float(node.w));
-}
-
-ccl_device_forceinline void svm_unpack_node_uchar2(uint i,
-                                                   ccl_private uint *x,
-                                                   ccl_private uint *y)
-{
-  *x = (i & 0xFF);
-  *y = ((i >> 8) & 0xFF);
-}
-
-ccl_device_forceinline void svm_unpack_node_uchar3(uint i,
-                                                   ccl_private uint *x,
-                                                   ccl_private uint *y,
-                                                   ccl_private uint *z)
-{
-  *x = (i & 0xFF);
-  *y = ((i >> 8) & 0xFF);
-  *z = ((i >> 16) & 0xFF);
-}
-
-ccl_device_forceinline void svm_unpack_node_uchar4(
-    uint i, ccl_private uint *x, ccl_private uint *y, ccl_private uint *z, ccl_private uint *w)
-{
-  *x = (i & 0xFF);
-  *y = ((i >> 8) & 0xFF);
-  *z = ((i >> 16) & 0xFF);
-  *w = ((i >> 24) & 0xFF);
-}
-
-CCL_NAMESPACE_END
+#include "kernel/svm/util.h"
 
 /* Nodes */
 
@@ -220,13 +101,13 @@ ccl_device void svm_eval_nodes(KernelGlobals kg,
                                ConstIntegratorGenericState state,
                                ccl_private ShaderData *sd,
                                ccl_global float *render_buffer,
-                               uint32_t path_flag)
+                               const uint32_t path_flag)
 {
   float stack[SVM_STACK_SIZE];
   Spectrum closure_weight;
   int offset = sd->shader & SHADER_MASK;
 
-  while (1) {
+  while (true) {
     uint4 node = read_node(kg, &offset);
 
     switch (node.x) {

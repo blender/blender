@@ -9,6 +9,7 @@ __all__ = (
     "axis_conversion",
     "axis_conversion_ensure",
     "create_derived_objects",
+    "poll_file_object_drop",
     "unpack_list",
     "unpack_face_list",
     "path_reference",

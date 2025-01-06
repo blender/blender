@@ -208,6 +208,7 @@ void register_node_type_sh_tex_gabor()
   static blender::bke::bNodeType ntype;
 
   sh_fn_node_type_base(&ntype, SH_NODE_TEX_GABOR, "Gabor Texture", NODE_CLASS_TEXTURE);
+  ntype.enum_name_legacy = "TEX_GABOR";
   ntype.declare = file_ns::sh_node_tex_gabor_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_tex_gabor;
   ntype.initfunc = file_ns::node_shader_init_tex_gabor;

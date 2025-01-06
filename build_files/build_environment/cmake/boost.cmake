@@ -20,7 +20,7 @@ if(WIN32)
     ${CMAKE_COMMAND} -E copy_directory
       ${LIBDIR}/boost/lib/
       ${HARVEST_TARGET}/boost/lib/
-    )
+  )
   if(BUILD_MODE STREQUAL Release)
     set(BOOST_HARVEST_CMD
       ${BOOST_HARVEST_CMD} &&

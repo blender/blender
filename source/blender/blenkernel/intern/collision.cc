@@ -26,7 +26,7 @@
 #include "BKE_modifier.hh"
 
 #include "BKE_collision.h"
-#include "BLI_kdopbvh.h"
+#include "BLI_kdopbvh.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_physics.hh"

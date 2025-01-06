@@ -553,24 +553,16 @@ std::string GHOST_WindowCocoa::getTitle() const
 GHOST_TSuccess GHOST_WindowCocoa::setPath(const char *filepath)
 {
   GHOST_ASSERT(getValid(), "GHOST_WindowCocoa::setAssociatedFile(): window invalid");
-  GHOST_TSuccess success = GHOST_kSuccess;
 
   @autoreleasepool {
-    NSString *associatedFileName = [[NSString alloc] initWithCString:filepath
-                                                            encoding:NSUTF8StringEncoding];
-    @try
-    {
-      m_window.representedFilename = associatedFileName;
-    }
-    @catch (NSException *e)
-    {
-      printf("\nInvalid file path given for window");
-      success = GHOST_kFailure;
-    }
+    NSString *associatedFileName = [[[NSString alloc] initWithCString:filepath
+                                                             encoding:NSUTF8StringEncoding]
+        autorelease];
 
-    [associatedFileName release];
+    m_window.representedFilename = associatedFileName;
   }
-  return success;
+
+  return GHOST_kSuccess;
 }
 
 void GHOST_WindowCocoa::getWindowBounds(GHOST_Rect &bounds) const

@@ -5,8 +5,7 @@
  *
  * Adapted code from Intel Corporation. */
 
-#ifndef __BVH_BINNING_H__
-#define __BVH_BINNING_H__
+#pragma once
 
 #include "bvh/params.h"
 #include "bvh/unaligned.h"
@@ -30,8 +29,8 @@ class BVHObjectBinning : public BVHRange {
 
   BVHObjectBinning(const BVHRange &job,
                    BVHReference *prims,
-                   const BVHUnaligned *unaligned_heuristic = NULL,
-                   const Transform *aligned_space = NULL);
+                   const BVHUnaligned *unaligned_heuristic = nullptr,
+                   const Transform *aligned_space = nullptr);
 
   void split(BVHReference *prims, BVHObjectBinning &left_o, BVHObjectBinning &right_o) const;
 
@@ -62,9 +61,9 @@ class BVHObjectBinning : public BVHRange {
   /* computes the bin numbers for each dimension for a box. */
   __forceinline int4 get_bin(const BoundBox &box) const
   {
-    int4 a = make_int4((box.center2() - cent_bounds_.min) * scale - make_float3(0.5f));
-    int4 mn = make_int4(0);
-    int4 mx = make_int4((int)num_bins - 1);
+    const int4 a = make_int4((box.center2() - cent_bounds_.min) * scale - make_float3(0.5f));
+    const int4 mn = make_int4(0);
+    const int4 mx = make_int4((int)num_bins - 1);
 
     return clamp(a, mn, mx);
   }
@@ -82,22 +81,18 @@ class BVHObjectBinning : public BVHRange {
   }
 
   /* compute the number of blocks occupied in one dimension. */
-  __forceinline int blocks(size_t a) const
+  __forceinline int blocks(const size_t a) const
   {
     return (int)((a + ((1LL << LOG_BLOCK_SIZE) - 1)) >> LOG_BLOCK_SIZE);
   }
 
   __forceinline BoundBox get_prim_bounds(const BVHReference &prim) const
   {
-    if (aligned_space_ == NULL) {
+    if (aligned_space_ == nullptr) {
       return prim.bounds();
     }
-    else {
-      return unaligned_heuristic_->compute_aligned_prim_boundbox(prim, *aligned_space_);
-    }
+    return unaligned_heuristic_->compute_aligned_prim_boundbox(prim, *aligned_space_);
   }
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __BVH_BINNING_H__ */

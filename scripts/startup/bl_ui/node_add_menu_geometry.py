@@ -266,10 +266,12 @@ class NODE_MT_geometry_node_GEO_INPUT_CONSTANT(Menu):
     def draw(self, _context):
         layout = self.layout
         node_add_menu.add_node_type(layout, "FunctionNodeInputBool")
+        node_add_menu.add_node_type(layout, "GeometryNodeInputCollection")
         node_add_menu.add_node_type(layout, "FunctionNodeInputColor")
         node_add_menu.add_node_type(layout, "GeometryNodeInputImage")
         node_add_menu.add_node_type(layout, "FunctionNodeInputInt")
         node_add_menu.add_node_type(layout, "GeometryNodeInputMaterial")
+        node_add_menu.add_node_type(layout, "GeometryNodeInputObject")
         node_add_menu.add_node_type(layout, "FunctionNodeInputRotation")
         node_add_menu.add_node_type(layout, "FunctionNodeInputString")
         node_add_menu.add_node_type(layout, "ShaderNodeValue")
@@ -551,6 +553,7 @@ class NODE_MT_category_GEO_TEXT(Menu):
         node_add_menu.add_node_type(layout, "FunctionNodeSliceString")
         layout.separator()
         node_add_menu.add_node_type(layout, "FunctionNodeStringLength")
+        node_add_menu.add_node_type(layout, "FunctionNodeFindInString")
         node_add_menu.add_node_type(layout, "GeometryNodeStringToCurves")
         node_add_menu.add_node_type(layout, "FunctionNodeValueToString")
         layout.separator()

@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __DEVICE_MEMORY_H__
-#define __DEVICE_MEMORY_H__
+#pragma once
 
 /* Device Memory
  *
@@ -14,7 +13,6 @@
 #include "util/string.h"
 #include "util/texture.h"
 #include "util/types.h"
-#include "util/vector.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -225,7 +223,7 @@ class device_memory {
   {
     return data_size * data_elements * datatype_size(data_type);
   }
-  size_t memory_elements_size(int elements)
+  size_t memory_elements_size(const int elements)
   {
     return elements * data_elements * datatype_size(data_type);
   }
@@ -240,7 +238,7 @@ class device_memory {
   size_t data_depth;
   MemoryType type;
   const char *name;
-  std::string name_storage;
+  string name_storage;
 
   /* Pointers. */
   Device *device;
@@ -252,10 +250,20 @@ class device_memory {
 
   virtual ~device_memory();
 
-  void swap_device(Device *new_device, size_t new_device_size, device_ptr new_device_ptr);
+  void swap_device(Device *new_device, const size_t new_device_size, device_ptr new_device_ptr);
   void restore_device();
 
   bool is_resident(Device *sub_device) const;
+
+  /* No copying and allowed.
+   *
+   * This is because device implementation might need to register device memory in an allocation
+   * map of some sort and use pointer as a key to identify blocks. Moving data from one place to
+   * another bypassing device allocation routines will make those maps hard to maintain. */
+  device_memory(const device_memory &) = delete;
+  device_memory(device_memory &&other) noexcept = delete;
+  device_memory &operator=(const device_memory &) = delete;
+  device_memory &operator=(device_memory &&) = delete;
 
  protected:
   friend class Device;
@@ -270,27 +278,17 @@ class device_memory {
   /* Only create through subclasses. */
   device_memory(Device *device, const char *name, MemoryType type);
 
-  /* No copying and allowed.
-   *
-   * This is because device implementation might need to register device memory in an allocation
-   * map of some sort and use pointer as a key to identify blocks. Moving data from one place to
-   * another bypassing device allocation routines will make those maps hard to maintain. */
-  device_memory(const device_memory &) = delete;
-  device_memory(device_memory &&other) noexcept = delete;
-  device_memory &operator=(const device_memory &) = delete;
-  device_memory &operator=(device_memory &&) = delete;
-
   /* Host allocation on the device. All host_pointer memory should be
    * allocated with these functions, for devices that support using
    * the same pointer for host and device. */
-  void *host_alloc(size_t size);
+  void *host_alloc(const size_t size);
   void host_free();
 
   /* Device memory allocation and copying. */
   void device_alloc();
   void device_free();
   void device_copy_to();
-  void device_copy_from(size_t y, size_t w, size_t h, size_t elem);
+  void device_copy_from(const size_t y, const size_t w, size_t h, const size_t elem);
   void device_zero();
 
   bool device_is_cpu();
@@ -318,12 +316,12 @@ template<typename T> class device_only_memory : public device_memory {
 
   device_only_memory(device_only_memory &&other) noexcept : device_memory(std::move(other)) {}
 
-  virtual ~device_only_memory()
+  ~device_only_memory() override
   {
     free();
   }
 
-  void alloc_to_device(size_t num, bool shrink_to_fit = true)
+  void alloc_to_device(const size_t num, bool shrink_to_fit = true)
   {
     size_t new_size = num;
     bool reallocate;
@@ -378,13 +376,13 @@ template<typename T> class device_vector : public device_memory {
     assert(data_elements > 0);
   }
 
-  virtual ~device_vector()
+  ~device_vector() override
   {
     free();
   }
 
   /* Host memory allocation. */
-  T *alloc(size_t width, size_t height = 0, size_t depth = 0)
+  T *alloc(const size_t width, const size_t height = 0, const size_t depth = 0)
   {
     size_t new_size = size(width, height, depth);
 
@@ -406,7 +404,7 @@ template<typename T> class device_vector : public device_memory {
 
   /* Host memory resize. Only use this if the original data needs to be
    * preserved, it is faster to call alloc() if it can be discarded. */
-  T *resize(size_t width, size_t height = 0, size_t depth = 0)
+  T *resize(const size_t width, const size_t height = 0, const size_t depth = 0)
   {
     size_t new_size = size(width, height, depth);
 
@@ -551,7 +549,7 @@ template<typename T> class device_vector : public device_memory {
     device_copy_from(0, data_width, (data_height == 0) ? 1 : data_height, sizeof(T));
   }
 
-  void copy_from_device(size_t y, size_t w, size_t h)
+  void copy_from_device(const size_t y, const size_t w, size_t h)
   {
     device_copy_from(y, w, h, sizeof(T));
   }
@@ -570,7 +568,7 @@ template<typename T> class device_vector : public device_memory {
   }
 
  protected:
-  size_t size(size_t width, size_t height, size_t depth)
+  size_t size(const size_t width, const size_t height, const size_t depth)
   {
     return width * ((height == 0) ? 1 : height) * ((depth == 0) ? 1 : depth);
   }
@@ -587,7 +585,7 @@ template<typename T> class device_vector : public device_memory {
 
 class device_sub_ptr {
  public:
-  device_sub_ptr(device_memory &mem, size_t offset, size_t size);
+  device_sub_ptr(device_memory &mem, const size_t offset, const size_t size);
   ~device_sub_ptr();
 
   device_ptr operator*() const
@@ -615,12 +613,12 @@ class device_texture : public device_memory {
                  ImageDataType image_data_type,
                  InterpolationType interpolation,
                  ExtensionType extension);
-  ~device_texture();
+  ~device_texture() override;
 
   void *alloc(const size_t width, const size_t height, const size_t depth = 0);
   void copy_to_device();
 
-  uint slot;
+  uint slot = 0;
   TextureInfo info;
 
  protected:
@@ -631,5 +629,3 @@ class device_texture : public device_memory {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __DEVICE_MEMORY_H__ */

@@ -18,8 +18,13 @@ struct Mesh;
 struct MFace;
 
 namespace blender::bke {
+
+void mesh_custom_normals_to_legacy(MutableSpan<CustomDataLayer> corner_layers);
+void mesh_custom_normals_to_generic(Mesh &mesh);
+
 void mesh_sculpt_mask_to_legacy(MutableSpan<CustomDataLayer> vert_layers);
 void mesh_sculpt_mask_to_generic(Mesh &mesh);
+
 }  // namespace blender::bke
 
 void BKE_mesh_legacy_convert_uvs_to_generic(Mesh *mesh);

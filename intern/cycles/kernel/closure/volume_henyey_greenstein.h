@@ -4,17 +4,19 @@
 
 #pragma once
 
+#include "kernel/types.h"
+
 #include "kernel/closure/volume_util.h"
 
 CCL_NAMESPACE_BEGIN
 
 /* HENYEY-GREENSTEIN CLOSURE */
 
-typedef struct HenyeyGreensteinVolume {
+struct HenyeyGreensteinVolume {
   SHADER_CLOSURE_VOLUME_BASE;
 
   float g;
-} HenyeyGreensteinVolume;
+};
 static_assert(sizeof(ShaderVolumeClosure) >= sizeof(HenyeyGreensteinVolume),
               "HenyeyGreensteinVolume is too large!");
 
@@ -27,29 +29,29 @@ ccl_device int volume_henyey_greenstein_setup(ccl_private HenyeyGreensteinVolume
   return SD_SCATTER;
 }
 
-ccl_device Spectrum volume_henyey_greenstein_eval(ccl_private const ShaderData *sd,
-                                                  ccl_private const ShaderVolumeClosure *svc,
-                                                  float3 wo,
+ccl_device Spectrum volume_henyey_greenstein_eval(const ccl_private ShaderData *sd,
+                                                  const ccl_private ShaderVolumeClosure *svc,
+                                                  const float3 wo,
                                                   ccl_private float *pdf)
 {
-  ccl_private const HenyeyGreensteinVolume *volume = (ccl_private const HenyeyGreensteinVolume *)
+  const ccl_private HenyeyGreensteinVolume *volume = (const ccl_private HenyeyGreensteinVolume *)
       svc;
 
   /* note that wi points towards the viewer */
-  float cos_theta = dot(-sd->wi, wo);
+  const float cos_theta = dot(-sd->wi, wo);
   *pdf = phase_henyey_greenstein(cos_theta, volume->g);
 
   return make_spectrum(*pdf);
 }
 
-ccl_device int volume_henyey_greenstein_sample(ccl_private const ShaderData *sd,
-                                               ccl_private const ShaderVolumeClosure *svc,
-                                               float2 rand,
+ccl_device int volume_henyey_greenstein_sample(const ccl_private ShaderData *sd,
+                                               const ccl_private ShaderVolumeClosure *svc,
+                                               const float2 rand,
                                                ccl_private Spectrum *eval,
                                                ccl_private float3 *wo,
                                                ccl_private float *pdf)
 {
-  ccl_private const HenyeyGreensteinVolume *volume = (ccl_private const HenyeyGreensteinVolume *)
+  const ccl_private HenyeyGreensteinVolume *volume = (const ccl_private HenyeyGreensteinVolume *)
       svc;
 
   /* note that wi points towards the viewer and so is used negated */

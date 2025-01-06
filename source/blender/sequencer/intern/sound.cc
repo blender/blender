@@ -45,7 +45,7 @@ static bool sequencer_refresh_sound_length_recursive(Main *bmain, Scene *scene, 
 {
   bool changed = false;
 
-  LISTBASE_FOREACH (Sequence *, seq, seqbase) {
+  LISTBASE_FOREACH (Strip *, seq, seqbase) {
     if (seq->type == SEQ_TYPE_META) {
       if (sequencer_refresh_sound_length_recursive(bmain, scene, &seq->seqbase)) {
         changed = true;
@@ -90,7 +90,7 @@ void SEQ_sound_update_bounds_all(Scene *scene)
   Editing *ed = scene->ed;
 
   if (ed) {
-    LISTBASE_FOREACH (Sequence *, seq, &ed->seqbase) {
+    LISTBASE_FOREACH (Strip *, seq, &ed->seqbase) {
       if (seq->type == SEQ_TYPE_META) {
         seq_update_sound_bounds_recursive(scene, seq);
       }
@@ -101,7 +101,7 @@ void SEQ_sound_update_bounds_all(Scene *scene)
   }
 }
 
-void SEQ_sound_update_bounds(Scene *scene, Sequence *seq)
+void SEQ_sound_update_bounds(Scene *scene, Strip *seq)
 {
   if (seq->type == SEQ_TYPE_SCENE) {
     if (seq->scene && seq->scene_sound) {
@@ -124,7 +124,7 @@ void SEQ_sound_update_bounds(Scene *scene, Sequence *seq)
 
 static void seq_update_sound_recursive(Scene *scene, ListBase *seqbasep, bSound *sound)
 {
-  LISTBASE_FOREACH (Sequence *, seq, seqbasep) {
+  LISTBASE_FOREACH (Strip *, seq, seqbasep) {
     if (seq->type == SEQ_TYPE_META) {
       seq_update_sound_recursive(scene, &seq->seqbase, sound);
     }
@@ -143,9 +143,9 @@ void SEQ_sound_update(Scene *scene, bSound *sound)
   }
 }
 
-float SEQ_sound_pitch_get(const Scene *scene, const Sequence *seq)
+float SEQ_sound_pitch_get(const Scene *scene, const Strip *seq)
 {
-  const Sequence *meta_parent = seq_sequence_lookup_meta_by_seq(scene, seq);
+  const Strip *meta_parent = seq_sequence_lookup_meta_by_seq(scene, seq);
   if (meta_parent != nullptr) {
     return seq->speed_factor * SEQ_sound_pitch_get(scene, meta_parent);
   }
@@ -265,7 +265,7 @@ void SEQ_sound_equalizermodifier_copy_data(SequenceModifierData *target, Sequenc
   }
 }
 
-void *SEQ_sound_equalizermodifier_recreator(Sequence *seq, SequenceModifierData *smd, void *sound)
+void *SEQ_sound_equalizermodifier_recreator(Strip *seq, SequenceModifierData *smd, void *sound)
 {
 #ifdef WITH_CONVOLUTION
   UNUSED_VARS(seq);
@@ -336,7 +336,7 @@ const SoundModifierWorkerInfo *SEQ_sound_modifier_worker_info_get(int type)
   return nullptr;
 }
 
-void *SEQ_sound_modifier_recreator(Sequence *seq, SequenceModifierData *smd, void *sound)
+void *SEQ_sound_modifier_recreator(Strip *seq, SequenceModifierData *smd, void *sound)
 {
 
   if (!(smd->flag & SEQUENCE_MODIFIER_MUTE)) {

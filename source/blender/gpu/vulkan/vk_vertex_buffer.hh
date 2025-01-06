@@ -21,6 +21,7 @@ class VKVertexBuffer : public VertBuf {
   VkBufferView vk_buffer_view_ = VK_NULL_HANDLE;
 
   VertexFormatConverter vertex_format_converter;
+  bool data_uploaded_ = false;
 
  public:
   ~VKVertexBuffer();

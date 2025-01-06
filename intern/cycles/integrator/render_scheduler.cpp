@@ -6,8 +6,8 @@
 
 #include "session/session.h"
 #include "session/tile.h"
+
 #include "util/log.h"
-#include "util/math.h"
 #include "util/time.h"
 
 CCL_NAMESPACE_BEGIN
@@ -66,7 +66,7 @@ bool RenderScheduler::is_adaptive_sampling_used() const
   return adaptive_sampling_.use;
 }
 
-void RenderScheduler::set_start_sample(int start_sample)
+void RenderScheduler::set_start_sample(const int start_sample)
 {
   start_sample_ = start_sample;
 }
@@ -76,7 +76,7 @@ int RenderScheduler::get_start_sample() const
   return start_sample_;
 }
 
-void RenderScheduler::set_num_samples(int num_samples)
+void RenderScheduler::set_num_samples(const int num_samples)
 {
   num_samples_ = num_samples;
 }
@@ -86,7 +86,7 @@ int RenderScheduler::get_num_samples() const
   return num_samples_;
 }
 
-void RenderScheduler::set_sample_offset(int sample_offset)
+void RenderScheduler::set_sample_offset(const int sample_offset)
 {
   sample_offset_ = sample_offset;
 }
@@ -96,7 +96,7 @@ int RenderScheduler::get_sample_offset() const
   return sample_offset_;
 }
 
-void RenderScheduler::set_time_limit(double time_limit)
+void RenderScheduler::set_time_limit(const double time_limit)
 {
   time_limit_ = time_limit;
 }
@@ -118,7 +118,9 @@ int RenderScheduler::get_num_rendered_samples() const
   return state_.num_rendered_samples;
 }
 
-void RenderScheduler::reset(const BufferParams &buffer_params, int num_samples, int sample_offset)
+void RenderScheduler::reset(const BufferParams &buffer_params,
+                            const int num_samples,
+                            const int sample_offset)
 {
   buffer_params_ = buffer_params;
 
@@ -197,7 +199,8 @@ bool RenderScheduler::render_work_reschedule_on_converge(RenderWork &render_work
 
   state_.path_trace_finished = true;
 
-  bool denoiser_delayed, denoiser_ready_to_display;
+  bool denoiser_delayed;
+  bool denoiser_ready_to_display;
   render_work.tile.denoise = work_need_denoise(denoiser_delayed, denoiser_ready_to_display);
 
   render_work.display.update = work_need_update_display(denoiser_delayed);
@@ -355,7 +358,8 @@ RenderWork RenderScheduler::get_render_work()
   render_work.adaptive_sampling.threshold = work_adaptive_threshold();
   render_work.adaptive_sampling.reset = false;
 
-  bool denoiser_delayed, denoiser_ready_to_display;
+  bool denoiser_delayed;
+  bool denoiser_ready_to_display;
   render_work.tile.denoise = work_need_denoise(denoiser_delayed, denoiser_ready_to_display);
 
   render_work.tile.write = done();
@@ -451,7 +455,7 @@ void RenderScheduler::set_full_frame_render_work(RenderWork *render_work)
 
 /* Knowing time which it took to complete a task at the current resolution divider approximate how
  * long it would have taken to complete it at a final resolution. */
-static double approximate_final_time(const RenderWork &render_work, double time)
+static double approximate_final_time(const RenderWork &render_work, const double time)
 {
   if (render_work.resolution_divider == 1) {
     return time;
@@ -478,7 +482,7 @@ void RenderScheduler::report_work_begin(const RenderWork &render_work)
 }
 
 void RenderScheduler::report_path_trace_time(const RenderWork &render_work,
-                                             double time,
+                                             const double time,
                                              bool is_cancelled)
 {
   path_trace_time_.add_wall(time);
@@ -503,7 +507,8 @@ void RenderScheduler::report_path_trace_time(const RenderWork &render_work,
   VLOG_WORK << "Average path tracing time: " << path_trace_time_.get_average() << " seconds.";
 }
 
-void RenderScheduler::report_path_trace_occupancy(const RenderWork &render_work, float occupancy)
+void RenderScheduler::report_path_trace_occupancy(const RenderWork &render_work,
+                                                  const float occupancy)
 {
   state_.occupancy_num_samples = render_work.path_trace.num_samples;
   state_.occupancy = occupancy;
@@ -511,7 +516,7 @@ void RenderScheduler::report_path_trace_occupancy(const RenderWork &render_work,
 }
 
 void RenderScheduler::report_adaptive_filter_time(const RenderWork &render_work,
-                                                  double time,
+                                                  const double time,
                                                   bool is_cancelled)
 {
   adaptive_filter_time_.add_wall(time);
@@ -532,7 +537,7 @@ void RenderScheduler::report_adaptive_filter_time(const RenderWork &render_work,
             << " seconds.";
 }
 
-void RenderScheduler::report_denoise_time(const RenderWork &render_work, double time)
+void RenderScheduler::report_denoise_time(const RenderWork &render_work, const double time)
 {
   denoise_time_.add_wall(time);
 
@@ -551,7 +556,7 @@ void RenderScheduler::report_denoise_time(const RenderWork &render_work, double 
   VLOG_WORK << "Average denoising time: " << denoise_time_.get_average() << " seconds.";
 }
 
-void RenderScheduler::report_display_update_time(const RenderWork &render_work, double time)
+void RenderScheduler::report_display_update_time(const RenderWork &render_work, const double time)
 {
   display_update_time_.add_wall(time);
 
@@ -577,7 +582,7 @@ void RenderScheduler::report_display_update_time(const RenderWork &render_work, 
 }
 
 void RenderScheduler::report_rebalance_time(const RenderWork &render_work,
-                                            double time,
+                                            const double time,
                                             bool balance_changed)
 {
   rebalance_time_.add_wall(time);
@@ -839,7 +844,7 @@ int RenderScheduler::get_num_samples_to_path_trace() const
     return 1;
   }
 
-  int num_samples_per_update = calculate_num_samples_per_update();
+  const int num_samples_per_update = calculate_num_samples_per_update();
   const int path_trace_start_sample = get_start_sample_to_path_trace();
 
   /* Round number of samples to a power of two, so that division of path states into tiles goes in
@@ -932,7 +937,7 @@ int RenderScheduler::get_num_samples_to_path_trace() const
                                           num_samples_to_render);
 }
 
-int RenderScheduler::get_num_samples_during_navigation(int resolution_divider) const
+int RenderScheduler::get_num_samples_during_navigation(const int resolution_divider) const
 {
   /* Special trick for fast navigation: schedule multiple samples during fast navigation
    * (which will prefer to use lower resolution to keep up with refresh rate). This gives more
@@ -1231,7 +1236,8 @@ void RenderScheduler::check_time_limit_reached()
  * Utility functions.
  */
 
-int RenderScheduler::calculate_resolution_divider_for_time(double desired_time, double actual_time)
+int RenderScheduler::calculate_resolution_divider_for_time(const double desired_time,
+                                                           const double actual_time)
 {
   const double ratio_between_times = actual_time / desired_time;
 
@@ -1253,7 +1259,7 @@ int RenderScheduler::calculate_resolution_divider_for_time(double desired_time, 
   return ceil_to_int(sqrt(navigation_samples * ratio_between_times));
 }
 
-int calculate_resolution_divider_for_resolution(int width, int height, int resolution)
+int calculate_resolution_divider_for_resolution(int width, int height, const int resolution)
 {
   if (resolution == INT_MAX) {
     return 1;
@@ -1270,7 +1276,9 @@ int calculate_resolution_divider_for_resolution(int width, int height, int resol
   return resolution_divider;
 }
 
-int calculate_resolution_for_divider(int width, int height, int resolution_divider)
+int calculate_resolution_for_divider(const int width,
+                                     const int height,
+                                     const int resolution_divider)
 {
   const int pixel_area = width * height;
   const int resolution = lround(sqrt(pixel_area));

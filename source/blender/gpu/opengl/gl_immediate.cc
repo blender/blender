@@ -102,7 +102,7 @@ uchar *GLImmediate::begin()
   if (unwrap(this->shader)->is_polyline) {
     /* Polyline needs to bind the buffer as SSBO.
      * The start of the range needs to match the SSBO alignment requirements. */
-    vert_alignment = max_uu(vert_alignment, GPU_storage_buffer_alignment());
+    vert_alignment = ceil_to_multiple_u(vert_alignment, GPU_storage_buffer_alignment());
   }
   /* Ensure vertex data is aligned. Might waste a little space, but it's safe. */
   const uint pre_padding = padding(buffer_offset(), vert_alignment);
@@ -152,7 +152,7 @@ void GLImmediate::end()
   glUnmapBuffer(GL_ARRAY_BUFFER);
 
   if (vertex_len == 0) {
-    /* Noop. Nothing to draw. */
+    /* NOOP. Nothing to draw. */
   }
   else if (unwrap(this->shader)->is_polyline) {
     GLintptr offset = buffer_offset();

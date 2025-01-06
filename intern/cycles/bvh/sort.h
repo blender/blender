@@ -5,10 +5,7 @@
  *
  * Adapted code from NVIDIA Corporation. */
 
-#ifndef __BVH_SORT_H__
-#define __BVH_SORT_H__
-
-#include <cstddef>
+#pragma once
 
 CCL_NAMESPACE_BEGIN
 
@@ -16,13 +13,11 @@ class BVHReference;
 class BVHUnaligned;
 struct Transform;
 
-void bvh_reference_sort(int start,
-                        int end,
+void bvh_reference_sort(const int start,
+                        const int end,
                         BVHReference *data,
-                        int dim,
-                        const BVHUnaligned *unaligned_heuristic = NULL,
-                        const Transform *aligned_space = NULL);
+                        const int dim,
+                        const BVHUnaligned *unaligned_heuristic = nullptr,
+                        const Transform *aligned_space = nullptr);
 
 CCL_NAMESPACE_END
-
-#endif /* __BVH_SORT_H__ */

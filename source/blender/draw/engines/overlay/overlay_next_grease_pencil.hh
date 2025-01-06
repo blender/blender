@@ -44,7 +44,7 @@ class GreasePencil : Overlay {
   /* TODO(fclem): This is quite wasteful and expensive, prefer in shader Z modification like the
    * retopology offset. */
   View view_edit_cage_ = {"view_edit_cage"};
-  State::ViewOffsetData offset_data_;
+  View::OffsetData offset_data_;
 
  public:
   void begin_sync(Resources &res, const State &state) final
@@ -260,8 +260,7 @@ class GreasePencil : Overlay {
       return;
     }
 
-    float view_dist = State::view_dist_get(offset_data_, view.winmat());
-    view_edit_cage_.sync(view.viewmat(), winmat_polygon_offset(view.winmat(), view_dist, 0.5f));
+    view_edit_cage_.sync(view.viewmat(), offset_data_.winmat_polygon_offset(view.winmat(), 0.5f));
 
     GPU_framebuffer_bind(framebuffer);
     manager.submit(edit_grease_pencil_ps_, view_edit_cage_);
@@ -407,11 +406,11 @@ class GreasePencil : Overlay {
     const ToolSettings *ts = scene->toolsettings;
 
     const ::GreasePencil &grease_pencil = *static_cast<::GreasePencil *>(object.data);
-    const blender::bke::greasepencil::Layer &layer = *grease_pencil.get_active_layer();
+    const blender::bke::greasepencil::Layer *active_layer = grease_pencil.get_active_layer();
 
     float4x4 mat = object.object_to_world();
-    if (ts->gp_sculpt.lock_axis != GP_LOCKAXIS_CURSOR) {
-      mat = layer.to_world_space(object);
+    if (active_layer && ts->gp_sculpt.lock_axis != GP_LOCKAXIS_CURSOR) {
+      mat = active_layer->to_world_space(object);
     }
     const View3DCursor *cursor = &scene->cursor;
 
@@ -432,7 +431,8 @@ class GreasePencil : Overlay {
       }
       case GP_LOCKAXIS_VIEW:
         /* view aligned */
-        DRW_view_viewmat_get(nullptr, mat.ptr(), true);
+        /* TODO(fclem): Global access. */
+        mat = blender::draw::View::default_get().viewinv();
         break;
     }
 
@@ -441,8 +441,11 @@ class GreasePencil : Overlay {
     if (ts->gpencil_v3d_align & GP_PROJECT_CURSOR) {
       mat.location() = cursor->location;
     }
+    else if (active_layer) {
+      mat.location() = active_layer->to_world_space(object).location();
+    }
     else {
-      mat.location() = layer.to_world_space(object).location();
+      mat.location() = object.object_to_world().location();
     }
     return mat;
   }

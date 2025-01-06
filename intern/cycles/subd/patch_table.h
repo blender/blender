@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __SUBD_PATCH_TABLE_H__
-#define __SUBD_PATCH_TABLE_H__
+#pragma once
 
 #include "util/array.h"
 #include "util/types.h"
@@ -27,10 +26,12 @@ struct PatchTable;
 }
 #endif
 
+// NOLINTBEGIN
 #define PATCH_ARRAY_SIZE 4
 #define PATCH_PARAM_SIZE 2
 #define PATCH_HANDLE_SIZE 3
 #define PATCH_NODE_SIZE 1
+// NOLINTEND
 
 struct PackedPatchTable {
   array<uint> table;
@@ -43,10 +44,8 @@ struct PackedPatchTable {
   /* calculated size from num_* members */
   size_t total_size();
 
-  void pack(Far::PatchTable *patch_table, int offset = 0);
-  void copy_adjusting_offsets(uint *dest, int doffset);
+  void pack(Far::PatchTable *patch_table, const int offset = 0);
+  void copy_adjusting_offsets(uint *dest, const int doffset);
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __SUBD_PATCH_TABLE_H__ */

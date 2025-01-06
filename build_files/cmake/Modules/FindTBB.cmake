@@ -45,13 +45,13 @@ find_library(TBB_LIBRARY
     ${_tbb_SEARCH_DIRS}
   PATH_SUFFIXES
     lib64 lib
-  )
+)
 
 # handle the QUIETLY and REQUIRED arguments and set TBB_FOUND to TRUE if
 # all listed variables are TRUE
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(TBB DEFAULT_MSG
-    TBB_LIBRARY TBB_INCLUDE_DIR)
+  TBB_LIBRARY TBB_INCLUDE_DIR)
 
 if(TBB_FOUND)
   set(TBB_LIBRARIES ${TBB_LIBRARY})

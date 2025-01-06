@@ -24,10 +24,16 @@ struct MetalRTIntersectionPayload {
 
 struct MetalRTIntersectionLocalPayload_single_hit {
   int self_prim;
+#if defined(__METALRT_MOTION__)
+  int self_object;
+#endif
 };
 
 struct MetalRTIntersectionLocalPayload {
   int self_prim;
+#if defined(__METALRT_MOTION__)
+  int self_object;
+#endif
   uint lcg_state;
   uint hit_prim[LOCAL_MAX_HITS];
   float hit_t[LOCAL_MAX_HITS];
@@ -55,8 +61,13 @@ struct MetalRTIntersectionShadowAllPayload {
 };
 
 #ifdef __HAIR__
-ccl_device_forceinline bool curve_ribbon_accept(
-    KernelGlobals kg, float u, float t, ccl_private const Ray *ray, int object, int prim, int type)
+ccl_device_forceinline bool curve_ribbon_accept(KernelGlobals kg,
+                                                const float u,
+                                                float t,
+                                                const ccl_private Ray *ray,
+                                                const int object,
+                                                const int prim,
+                                                const int type)
 {
   KernelCurve kcurve = kernel_data_fetch(curves, prim);
 
@@ -80,9 +91,9 @@ ccl_device_forceinline bool curve_ribbon_accept(
   if (!(kernel_data_fetch(object_flag, object) & SD_OBJECT_TRANSFORM_APPLIED)) {
     float3 idir;
 #  if defined(__METALRT_MOTION__)
-    bvh_instance_motion_push(NULL, object, ray, &ray_P, &ray_D, &idir);
+    bvh_instance_motion_push(nullptr, object, ray, &ray_P, &ray_D, &idir);
 #  else
-    bvh_instance_push(NULL, object, ray, &ray_P, &ray_D, &idir);
+    bvh_instance_push(nullptr, object, ray, &ray_P, &ray_D, &idir);
 #  endif
   }
 
@@ -91,8 +102,13 @@ ccl_device_forceinline bool curve_ribbon_accept(
   return t * len(ray_D) > avoidance_factor * r;
 }
 
-ccl_device_forceinline float curve_ribbon_v(
-    KernelGlobals kg, float u, float t, ccl_private const Ray *ray, int object, int prim, int type)
+ccl_device_forceinline float curve_ribbon_v(KernelGlobals kg,
+                                            const float u,
+                                            float t,
+                                            const ccl_private Ray *ray,
+                                            const int object,
+                                            const int prim,
+                                            const int type)
 {
 #  if defined(__METALRT_MOTION__)
   float time = ray->time;
@@ -125,9 +141,9 @@ ccl_device_forceinline float curve_ribbon_v(
   if (!(kernel_data_fetch(object_flag, object) & SD_OBJECT_TRANSFORM_APPLIED)) {
     float3 idir;
 #  if defined(__METALRT_MOTION__)
-    bvh_instance_motion_push(NULL, object, ray, &ray_P, &ray_D, &idir);
+    bvh_instance_motion_push(nullptr, object, ray, &ray_P, &ray_D, &idir);
 #  else
-    bvh_instance_push(NULL, object, ray, &ray_P, &ray_D, &idir);
+    bvh_instance_push(nullptr, object, ray, &ray_P, &ray_D, &idir);
 #  endif
   }
 
@@ -135,10 +151,10 @@ ccl_device_forceinline float curve_ribbon_v(
   const float r_curve = P_curve4.w;
 
   float3 P = ray_P + ray_D * t;
-  const float3 P_curve = float4_to_float3(P_curve4);
+  const float3 P_curve = make_float3(P_curve4);
 
   const float4 dPdu4 = metal::catmull_rom_derivative(u, curve[0], curve[1], curve[2], curve[3]);
-  const float3 dPdu = float4_to_float3(dPdu4);
+  const float3 dPdu = make_float3(dPdu4);
 
   const float3 tangent = normalize(dPdu);
   const float3 bitangent = normalize(cross(tangent, -ray_D));
@@ -151,7 +167,7 @@ ccl_device_forceinline float curve_ribbon_v(
 /* Scene intersection. */
 
 ccl_device_intersect bool scene_intersect(KernelGlobals kg,
-                                          ccl_private const Ray *ray,
+                                          const ccl_private Ray *ray,
                                           const uint visibility,
                                           ccl_private Intersection *isect)
 {
@@ -229,14 +245,14 @@ ccl_device_intersect bool scene_intersect(KernelGlobals kg,
     if (!(kernel_data_fetch(object_flag, object) & SD_OBJECT_TRANSFORM_APPLIED)) {
       float3 idir;
 #  if defined(__METALRT_MOTION__)
-      bvh_instance_motion_push(NULL, object, ray, &r.origin, &r.direction, &idir);
+      bvh_instance_motion_push(nullptr, object, ray, &r.origin, &r.direction, &idir);
 #  else
-      bvh_instance_push(NULL, object, ray, &r.origin, &r.direction, &idir);
+      bvh_instance_push(nullptr, object, ray, &r.origin, &r.direction, &idir);
 #  endif
     }
 
     if (prim_type & PRIMITIVE_POINT) {
-      if (!point_intersect(NULL,
+      if (!point_intersect(nullptr,
                            isect,
                            r.origin,
                            r.direction,
@@ -262,7 +278,7 @@ ccl_device_intersect bool scene_intersect(KernelGlobals kg,
 }
 
 ccl_device_intersect bool scene_intersect_shadow(KernelGlobals kg,
-                                                 ccl_private const Ray *ray,
+                                                 const ccl_private Ray *ray,
                                                  const uint visibility)
 {
   metal::raytracing::ray r(ray->P, ray->D, ray->tmin, ray->tmax);
@@ -299,11 +315,11 @@ ccl_device_intersect bool scene_intersect_shadow(KernelGlobals kg,
 #ifdef __BVH_LOCAL__
 template<bool single_hit = false>
 ccl_device_intersect bool scene_intersect_local(KernelGlobals kg,
-                                                ccl_private const Ray *ray,
+                                                const ccl_private Ray *ray,
                                                 ccl_private LocalIntersection *local_isect,
-                                                int local_object,
+                                                const int local_object,
                                                 ccl_private uint *lcg_state,
-                                                int max_hits)
+                                                const int max_hits)
 {
   uint primitive_id_offset = kernel_data_fetch(object_prim_offset, local_object);
 
@@ -330,13 +346,11 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals kg,
     MetalRTIntersectionLocalPayload_single_hit payload;
     payload.self_prim = ray->self.prim - primitive_id_offset;
 
-    /* We only need custom intersection filtering (i.e. non_opaque) if we are performing a
-     * self-primitive intersection check. */
-    metalrt_intersect.force_opacity((ray->self.prim == PRIM_NONE) ?
-                                        metal::raytracing::forced_opacity::opaque :
-                                        metal::raytracing::forced_opacity::non_opaque);
-
 #  if defined(__METALRT_MOTION__)
+    /* We can't skip over the top-level BVH in the motion blur case, so still need to do
+     * the self-object check. */
+    payload.self_object = local_object;
+    metalrt_intersect.force_opacity(metal::raytracing::forced_opacity::non_opaque);
     intersection = metalrt_intersect.intersect(r,
                                                metal_ancillaries->accel_struct,
                                                ~0,
@@ -344,6 +358,11 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals kg,
                                                metal_ancillaries->ift_local_single_hit_mblur,
                                                payload);
 #  else
+    /* We only need custom intersection filtering (i.e. non_opaque) if we are performing a
+     * self-primitive intersection check. */
+    metalrt_intersect.force_opacity((ray->self.prim == PRIM_NONE) ?
+                                        metal::raytracing::forced_opacity::opaque :
+                                        metal::raytracing::forced_opacity::non_opaque);
     intersection = metalrt_intersect.intersect(
         r,
         metal_ancillaries->blas_accel_structs[local_object].blas,
@@ -387,6 +406,9 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals kg,
     metalrt_intersect.force_opacity(metal::raytracing::forced_opacity::non_opaque);
 
 #  if defined(__METALRT_MOTION__)
+    /* We can't skip over the top-level BVH in the motion blur case, so still need to do
+     * the self-object check. */
+    payload.self_object = local_object;
     intersection = metalrt_intersect.intersect(r,
                                                metal_ancillaries->accel_struct,
                                                ~0,
@@ -442,9 +464,9 @@ ccl_device_intersect bool scene_intersect_local(KernelGlobals kg,
 #ifdef __SHADOW_RECORD_ALL__
 ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals kg,
                                                      IntegratorShadowState state,
-                                                     ccl_private const Ray *ray,
-                                                     uint visibility,
-                                                     uint max_hits,
+                                                     const ccl_private Ray *ray,
+                                                     const uint visibility,
+                                                     const uint max_hits,
                                                      ccl_private uint *num_recorded_hits,
                                                      ccl_private float *throughput)
 {
@@ -490,7 +512,7 @@ ccl_device_intersect bool scene_intersect_shadow_all(KernelGlobals kg,
 
 #ifdef __VOLUME__
 ccl_device_intersect bool scene_intersect_volume(KernelGlobals kg,
-                                                 ccl_private const Ray *ray,
+                                                 const ccl_private Ray *ray,
                                                  ccl_private Intersection *isect,
                                                  const uint visibility)
 {

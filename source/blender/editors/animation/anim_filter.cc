@@ -183,7 +183,7 @@ static bool actedit_get_context(bAnimContext *ac, SpaceAction *saction)
     {
       /* TODO: other methods to get the mask. */
 #if 0
-      Sequence *seq = SEQ_select_active_get(ac->scene);
+      Strip *seq = SEQ_select_active_get(ac->scene);
       MovieClip *clip = ac->scene->clip;
       struct Mask *mask = seq ? seq->mask : nullptr;
 #endif
@@ -1009,7 +1009,7 @@ static bool skip_fcurve_selected_data(bAnimContext *ac,
   }
   else if (GS(owner_id->name) == ID_SCE) {
     Scene *scene = (Scene *)owner_id;
-    Sequence *seq = nullptr;
+    Strip *seq = nullptr;
     char seq_name[sizeof(seq->name)];
 
     /* Only consider if F-Curve involves `sequence_editor.sequences`. */
@@ -1512,7 +1512,7 @@ static size_t animfilter_act_group(bAnimContext *ac,
                 ac, &tmp_data, first_fcu, ANIMTYPE_FCURVE, filter_mode, agrp, owner_id, &act->id);
           }
           else {
-            BLI_assert(agrp->channel_bag != nullptr);
+            BLI_assert(agrp->channelbag != nullptr);
             Span<FCurve *> fcurves = agrp->wrap().fcurves();
             tmp_items += animfilter_fcurves_span(
                 ac, &tmp_data, fcurves, slot_handle, filter_mode, owner_id, &act->id);
@@ -1594,8 +1594,8 @@ static size_t animfilter_action_slot(bAnimContext *ac,
   const bool visible_only = (filter_mode & ANIMFILTER_LIST_VISIBLE);
   const bool expansion_is_ok = !visible_only || !show_slot_channel || slot.is_expanded();
 
-  animrig::ChannelBag *channel_bag = animrig::channelbag_for_action_slot(action, slot.handle);
-  if (channel_bag == nullptr) {
+  animrig::Channelbag *channelbag = animrig::channelbag_for_action_slot(action, slot.handle);
+  if (channelbag == nullptr) {
     return items;
   }
 
@@ -1604,7 +1604,7 @@ static size_t animfilter_action_slot(bAnimContext *ac,
   }
 
   /* Add channel groups and their member channels. */
-  for (bActionGroup *group : channel_bag->channel_groups()) {
+  for (bActionGroup *group : channelbag->channel_groups()) {
     items += animfilter_act_group(
         ac, anim_data, &action, slot.handle, group, filter_mode, animated_id);
   }
@@ -1612,13 +1612,13 @@ static size_t animfilter_action_slot(bAnimContext *ac,
   /* Add ungrouped channels. */
   if (!show_active_group_only) {
     int first_ungrouped_fcurve_index = 0;
-    if (!channel_bag->channel_groups().is_empty()) {
-      const bActionGroup *last_group = channel_bag->channel_groups().last();
+    if (!channelbag->channel_groups().is_empty()) {
+      const bActionGroup *last_group = channelbag->channel_groups().last();
       first_ungrouped_fcurve_index = last_group->fcurve_range_start +
                                      last_group->fcurve_range_length;
     }
 
-    Span<FCurve *> fcurves = channel_bag->fcurves().drop_front(first_ungrouped_fcurve_index);
+    Span<FCurve *> fcurves = channelbag->fcurves().drop_front(first_ungrouped_fcurve_index);
     items += animfilter_fcurves_span(
         ac, anim_data, fcurves, slot.handle, filter_mode, animated_id, &action.id);
   }
@@ -2100,7 +2100,7 @@ static size_t animdata_filter_grease_pencil_layer_node_recursive(
     size_t tmp_items = 0;
 
     /* Add grease pencil layer channels. */
-    BEGIN_ANIMFILTER_SUBCHANNELS (layer_group.base.flag &GP_LAYER_TREE_NODE_EXPANDED) {
+    BEGIN_ANIMFILTER_SUBCHANNELS (layer_group.is_expanded()) {
       LISTBASE_FOREACH_BACKWARD (GreasePencilLayerTreeNode *, node_, &layer_group.children) {
         tmp_items += animdata_filter_grease_pencil_layer_node_recursive(
             ac, &tmp_data, grease_pencil, node_->wrap(), filter_mode);
@@ -2770,7 +2770,10 @@ struct tAnimFilterModifiersContext {
 };
 
 /* dependency walker callback for modifier dependencies */
-static void animfilter_modifier_idpoin_cb(void *afm_ptr, Object *ob, ID **idpoin, int /*cb_flag*/)
+static void animfilter_modifier_idpoin_cb(void *afm_ptr,
+                                          Object *ob,
+                                          ID **idpoin,
+                                          LibraryForeachIDCallbackFlag /*cb_flag*/)
 {
   tAnimFilterModifiersContext *afm = (tAnimFilterModifiersContext *)afm_ptr;
   ID *owner_id = &ob->id;

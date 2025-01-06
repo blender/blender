@@ -76,7 +76,7 @@ static void node_composit_buts_movieclip_ex(uiLayout *layout, bContext *C, Point
   uiTemplateColorspaceSettings(layout, &clipptr, "colorspace_settings");
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class MovieClipOperation : public NodeOperation {
  public:
@@ -128,7 +128,7 @@ class MovieClipOperation : public NodeOperation {
     Result &result = get_result("Alpha");
     if (!movie_clip_buffer) {
       result.allocate_single_value();
-      result.set_float_value(1.0f);
+      result.set_single_value(1.0f);
       return;
     }
 
@@ -147,7 +147,7 @@ class MovieClipOperation : public NodeOperation {
     else {
       parallel_for(size, [&](const int2 texel) {
         int64_t pixel_index = (int64_t(texel.y) * size.x + texel.x) * 4;
-        result.store_pixel(texel, float4(movie_clip_buffer->float_buffer.data[pixel_index + 3]));
+        result.store_pixel(texel, movie_clip_buffer->float_buffer.data[pixel_index + 3]);
       });
     }
   }
@@ -159,22 +159,22 @@ class MovieClipOperation : public NodeOperation {
       if (should_compute_output("Offset X")) {
         Result &result = get_result("Offset X");
         result.allocate_single_value();
-        result.set_float_value(0.0f);
+        result.set_single_value(0.0f);
       }
       if (should_compute_output("Offset Y")) {
         Result &result = get_result("Offset Y");
         result.allocate_single_value();
-        result.set_float_value(0.0f);
+        result.set_single_value(0.0f);
       }
       if (should_compute_output("Scale")) {
         Result &result = get_result("Scale");
         result.allocate_single_value();
-        result.set_float_value(1.0f);
+        result.set_single_value(1.0f);
       }
       if (should_compute_output("Angle")) {
         Result &result = get_result("Angle");
         result.allocate_single_value();
-        result.set_float_value(0.0f);
+        result.set_single_value(0.0f);
       }
       return;
     }
@@ -195,22 +195,22 @@ class MovieClipOperation : public NodeOperation {
     if (should_compute_output("Offset X")) {
       Result &result = get_result("Offset X");
       result.allocate_single_value();
-      result.set_float_value(offset.x);
+      result.set_single_value(offset.x);
     }
     if (should_compute_output("Offset Y")) {
       Result &result = get_result("Offset Y");
       result.allocate_single_value();
-      result.set_float_value(offset.y);
+      result.set_single_value(offset.y);
     }
     if (should_compute_output("Scale")) {
       Result &result = get_result("Scale");
       result.allocate_single_value();
-      result.set_float_value(scale);
+      result.set_single_value(scale);
     }
     if (should_compute_output("Angle")) {
       Result &result = get_result("Angle");
       result.allocate_single_value();
-      result.set_float_value(angle);
+      result.set_single_value(angle);
     }
   }
 
@@ -269,6 +269,7 @@ void register_node_type_cmp_movieclip()
   static blender::bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_MOVIECLIP, "Movie Clip", NODE_CLASS_INPUT);
+  ntype.enum_name_legacy = "MOVIECLIP";
   ntype.declare = file_ns::cmp_node_movieclip_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_movieclip;
   ntype.draw_buttons_ex = file_ns::node_composit_buts_movieclip_ex;

@@ -16,6 +16,7 @@
 9:Spanish (Español):es
 8:French (Français):fr_FR
 2:Japanese (日本語):ja_JP
+48:Georgian (ქართული):ka
 47:Slovak (Slovenčina):sk_SK
 55:Urdu (وُدرُا):ur
 41:Vietnamese (Tiếng Việt):vi_VN
@@ -24,11 +25,11 @@
 0:In Progress:
 5:German (Deutsch):de_DE
 4:Italian (Italiano):it_IT
-48:Georgian (ქართული):ka
 24:Korean (한국어):ko_KR
 32:Brazilian Portuguese (Português do Brasil):pt_BR
 12:Portuguese (Português):pt_PT
 15:Russian (Русский):ru_RU
+54:Slovenian (Slovenščina):sl
 51:Swahili (Kiswahili):sw
 49:Tamil (தமிழ்):ta
 30:Turkish (Türkçe):tr_TR
@@ -63,7 +64,6 @@
 3:Dutch (Nederlands):nl_NL
 19:Polish (Polski):pl_PL
 20:Romanian (Român):ro_RO
-54:Slovenian (Slovenščina):sl
 17:Serbian (Српски):sr_RS
 28:Serbian Latin (Srpski latinica):sr_RS@latin
 7:Swedish (Svenska):sv_SE

@@ -32,7 +32,7 @@
 #include "BLI_utildefines_stack.h"
 
 #include "BLI_buffer.h"
-#include "BLI_kdopbvh.h"
+#include "BLI_kdopbvh.hh"
 
 #include "bmesh.hh"
 #include "intern/bmesh_private.hh"

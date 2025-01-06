@@ -146,7 +146,7 @@ struct UndoType {
   size_t step_size;
 };
 
-/** #UndoType.flag bitflags. */
+/** #UndoType.flag bit-flags. */
 enum eUndoTypeFlags {
   /**
    * This undo type `encode` callback needs a valid context, it will fail otherwise.

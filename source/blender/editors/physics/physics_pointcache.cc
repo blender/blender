@@ -14,6 +14,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
+#include "BKE_duplilist.hh"
 #include "BKE_global.hh"
 #include "BKE_layer.hh"
 #include "BKE_pointcache.h"

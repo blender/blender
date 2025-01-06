@@ -4,20 +4,24 @@
 
 #pragma once
 
+#include "kernel/globals.h"
+
+#include "kernel/svm/util.h"
+
 CCL_NAMESPACE_BEGIN
 
 ccl_device_noinline void svm_node_camera(KernelGlobals kg,
                                          ccl_private ShaderData *sd,
                                          ccl_private float *stack,
-                                         uint out_vector,
-                                         uint out_zdepth,
-                                         uint out_distance)
+                                         const uint out_vector,
+                                         const uint out_zdepth,
+                                         const uint out_distance)
 {
   float distance;
   float zdepth;
   float3 vector;
 
-  Transform tfm = kernel_data.cam.worldtocamera;
+  const Transform tfm = kernel_data.cam.worldtocamera;
   vector = transform_point(&tfm, sd->P);
   zdepth = vector.z;
   distance = len(vector);

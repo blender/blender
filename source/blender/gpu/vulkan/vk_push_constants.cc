@@ -151,6 +151,7 @@ void VKPushConstants::update_uniform_buffer()
   BLI_assert(data_ != nullptr);
   VKContext &context = *VKContext::get();
   std::unique_ptr<VKUniformBuffer> &uniform_buffer = tracked_resource_for(context, is_dirty_);
+  uniform_buffer->reset_data_uploaded();
   uniform_buffer->update(data_);
   is_dirty_ = false;
 }

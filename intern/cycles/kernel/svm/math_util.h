@@ -4,14 +4,20 @@
 
 #pragma once
 
+#include "kernel/svm/types.h"
+#include "kernel/tables.h"
+
+#include "util/math.h"
+#include "util/types.h"
+
 CCL_NAMESPACE_BEGIN
 
 ccl_device void svm_vector_math(ccl_private float *value,
                                 ccl_private float3 *vector,
                                 NodeVectorMathType type,
-                                float3 a,
-                                float3 b,
-                                float3 c,
+                                const float3 a,
+                                const float3 b,
+                                const float3 c,
                                 float param1)
 {
   switch (type) {
@@ -102,7 +108,7 @@ ccl_device void svm_vector_math(ccl_private float *value,
   }
 }
 
-ccl_device float svm_math(NodeMathType type, float a, float b, float c)
+ccl_device float svm_math(NodeMathType type, const float a, float b, const float c)
 {
   switch (type) {
     case NODE_MATH_ADD:
@@ -192,7 +198,7 @@ ccl_device float svm_math(NodeMathType type, float a, float b, float c)
   }
 }
 
-ccl_device float3 svm_math_blackbody_color_rec709(float t)
+ccl_device float3 svm_math_blackbody_color_rec709(const float t)
 {
   /* Calculate color in range 800..12000 using an approximation
    * a/x+bx+c for R and G and ((at + b)t + c)t + d) for B.
@@ -203,18 +209,18 @@ ccl_device float3 svm_math_blackbody_color_rec709(float t)
   if (t >= 12000.0f) {
     return make_float3(0.8262954810464208f, 0.9945080501520986f, 1.566307710274283f);
   }
-  else if (t < 800.0f) {
+  if (t < 800.0f) {
     /* Arbitrary lower limit where light is very dim, matching OSL. */
     return make_float3(5.413294490189271f, -0.20319390035873933f, -0.0822535242887164f);
   }
 
-  int i = (t >= 6365.0f) ? 6 :
-          (t >= 3315.0f) ? 5 :
-          (t >= 1902.0f) ? 4 :
-          (t >= 1449.0f) ? 3 :
-          (t >= 1167.0f) ? 2 :
-          (t >= 965.0f)  ? 1 :
-                           0;
+  const int i = (t >= 6365.0f) ? 6 :
+                (t >= 3315.0f) ? 5 :
+                (t >= 1902.0f) ? 4 :
+                (t >= 1449.0f) ? 3 :
+                (t >= 1167.0f) ? 2 :
+                (t >= 965.0f)  ? 1 :
+                                 0;
 
   ccl_constant float *r = blackbody_table_r[i];
   ccl_constant float *g = blackbody_table_g[i];
@@ -226,25 +232,29 @@ ccl_device float3 svm_math_blackbody_color_rec709(float t)
                      ((b[0] * t + b[1]) * t + b[2]) * t + b[3]);
 }
 
-ccl_device_inline float3 svm_math_gamma_color(float3 color, float gamma)
+ccl_device_inline float3 svm_math_gamma_color(float3 color, const float gamma)
 {
-  if (gamma == 0.0f)
+  if (gamma == 0.0f) {
     return make_float3(1.0f, 1.0f, 1.0f);
+  }
 
-  if (color.x > 0.0f)
+  if (color.x > 0.0f) {
     color.x = powf(color.x, gamma);
-  if (color.y > 0.0f)
+  }
+  if (color.y > 0.0f) {
     color.y = powf(color.y, gamma);
-  if (color.z > 0.0f)
+  }
+  if (color.z > 0.0f) {
     color.z = powf(color.z, gamma);
+  }
 
   return color;
 }
 
-ccl_device float3 svm_math_wavelength_color_xyz(float lambda_nm)
+ccl_device float3 svm_math_wavelength_color_xyz(const float lambda_nm)
 {
   float ii = (lambda_nm - 380.0f) * (1.0f / 5.0f);  // scaled 0..80
-  int i = float_to_int(ii);
+  const int i = float_to_int(ii);
   float3 color;
 
   if (i < 0 || i >= 80) {

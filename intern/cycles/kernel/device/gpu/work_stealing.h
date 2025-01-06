@@ -11,8 +11,8 @@ CCL_NAMESPACE_BEGIN
  */
 
 /* Map global work index to tile, pixel X/Y and sample. */
-ccl_device_inline void get_work_pixel(ccl_global const KernelWorkTile *tile,
-                                      uint global_work_index,
+ccl_device_inline void get_work_pixel(const ccl_global KernelWorkTile *tile,
+                                      const uint global_work_index,
                                       ccl_private uint *x,
                                       ccl_private uint *y,
                                       ccl_private uint *sample)
@@ -21,7 +21,7 @@ ccl_device_inline void get_work_pixel(ccl_global const KernelWorkTile *tile,
 
   if (kernel_data.integrator.scrambling_distance < 0.9f) {
     /* Keep threads for the same sample together. */
-    uint tile_pixels = tile->w * tile->h;
+    const uint tile_pixels = tile->w * tile->h;
     sample_offset = global_work_index / tile_pixels;
     pixel_offset = global_work_index - sample_offset * tile_pixels;
   }
@@ -32,8 +32,8 @@ ccl_device_inline void get_work_pixel(ccl_global const KernelWorkTile *tile,
     pixel_offset = global_work_index / tile->num_samples;
   }
 
-  uint y_offset = pixel_offset / tile->w;
-  uint x_offset = pixel_offset - y_offset * tile->w;
+  const uint y_offset = pixel_offset / tile->w;
+  const uint x_offset = pixel_offset - y_offset * tile->w;
 
   *x = tile->x + x_offset;
   *y = tile->y + y_offset;

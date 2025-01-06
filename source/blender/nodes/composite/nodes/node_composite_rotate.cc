@@ -46,7 +46,7 @@ static void node_composit_buts_rotate(uiLayout *layout, bContext * /*C*/, Pointe
   uiItemR(layout, ptr, "filter_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class RotateOperation : public NodeOperation {
  public:
@@ -57,7 +57,7 @@ class RotateOperation : public NodeOperation {
     Result &input = get_input("Image");
     Result &output = get_result("Image");
 
-    const math::AngleRadian rotation = get_input("Degr").get_float_value_default(0.0f);
+    const math::AngleRadian rotation = get_input("Degr").get_single_value_default(0.0f);
     const float3x3 transformation = math::from_rotation<float3x3>(rotation);
 
     RealizationOptions realization_options = input.get_realization_options();
@@ -96,6 +96,7 @@ void register_node_type_cmp_rotate()
   static blender::bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_ROTATE, "Rotate", NODE_CLASS_DISTORT);
+  ntype.enum_name_legacy = "ROTATE";
   ntype.declare = file_ns::cmp_node_rotate_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_rotate;
   ntype.initfunc = file_ns::node_composit_init_rotate;

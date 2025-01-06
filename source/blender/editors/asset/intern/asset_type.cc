@@ -29,7 +29,7 @@ bool id_type_is_supported(const ID *id)
     return false;
   }
 
-  if (U.experimental.use_extended_asset_browser) {
+  if (USER_EXPERIMENTAL_TEST(&U, use_extended_asset_browser)) {
     /* The "Extended Asset Browser" experimental feature flag enables all asset types that can
      * technically be assets. */
     return true;
@@ -40,7 +40,7 @@ bool id_type_is_supported(const ID *id)
 
 int64_t types_supported_as_filter_flags()
 {
-  if (U.experimental.use_extended_asset_browser) {
+  if (USER_EXPERIMENTAL_TEST(&U, use_extended_asset_browser)) {
     return FILTER_ID_ALL;
   }
 

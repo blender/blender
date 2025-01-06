@@ -93,7 +93,7 @@ class MTLBatch : public Batch {
 
   /* Returns an initialized RenderComandEncoder for drawing if all is good.
    * Otherwise, nil. */
-  id<MTLRenderCommandEncoder> bind(uint v_count);
+  id<MTLRenderCommandEncoder> bind();
   void unbind(id<MTLRenderCommandEncoder> rec);
 
   /* Convenience getters. */

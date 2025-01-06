@@ -4,17 +4,19 @@
 
 #pragma once
 
+#include "kernel/types.h"
+
 CCL_NAMESPACE_BEGIN
 
 ccl_device ccl_private ShaderClosure *closure_alloc(ccl_private ShaderData *sd,
-                                                    int size,
+                                                    const int size,
                                                     ClosureType type,
                                                     Spectrum weight)
 {
   kernel_assert(size <= sizeof(ShaderClosure));
 
   if (sd->num_closure_left == 0) {
-    return NULL;
+    return nullptr;
   }
 
   ccl_private ShaderClosure *sc = &sd->closure[sd->num_closure];
@@ -28,7 +30,7 @@ ccl_device ccl_private ShaderClosure *closure_alloc(ccl_private ShaderData *sd,
   return sc;
 }
 
-ccl_device ccl_private void *closure_alloc_extra(ccl_private ShaderData *sd, int size)
+ccl_device ccl_private void *closure_alloc_extra(ccl_private ShaderData *sd, const int size)
 {
   /* Allocate extra space for closure that need more parameters. We allocate
    * in chunks of sizeof(ShaderClosure) starting from the end of the closure
@@ -36,13 +38,13 @@ ccl_device ccl_private void *closure_alloc_extra(ccl_private ShaderData *sd, int
    *
    * This lets us keep the same fast array iteration over closures, as we
    * found linked list iteration and iteration with skipping to be slower. */
-  int num_extra = ((size + sizeof(ShaderClosure) - 1) / sizeof(ShaderClosure));
+  const int num_extra = ((size + sizeof(ShaderClosure) - 1) / sizeof(ShaderClosure));
 
   if (num_extra > sd->num_closure_left) {
     /* Remove previous closure if it was allocated. */
     sd->num_closure--;
     sd->num_closure_left++;
-    return NULL;
+    return nullptr;
   }
 
   sd->num_closure_left -= num_extra;
@@ -50,7 +52,7 @@ ccl_device ccl_private void *closure_alloc_extra(ccl_private ShaderData *sd, int
 }
 
 ccl_device_inline ccl_private ShaderClosure *bsdf_alloc(ccl_private ShaderData *sd,
-                                                        int size,
+                                                        const int size,
                                                         Spectrum weight)
 {
   kernel_assert(isfinite_safe(weight));
@@ -60,12 +62,16 @@ ccl_device_inline ccl_private ShaderClosure *bsdf_alloc(ccl_private ShaderData *
 
   const float sample_weight = fabsf(average(weight));
 
+  /* Do not perform weight cutoff for volume shaders, because large volume with low density could
+   * still contribute significantly to the scene. It should be up to the volume shader to decide
+   * the cutoff. */
   /* Use comparison this way to help dealing with non-finite weight: if the average is not finite
    * we will not allocate new closure. */
-  if (sample_weight >= CLOSURE_WEIGHT_CUTOFF) {
+  const bool volume_valid = (sd->flag & SD_IS_VOLUME_SHADER_EVAL) && (sample_weight > 0.0f);
+  if (volume_valid || sample_weight >= CLOSURE_WEIGHT_CUTOFF) {
     ccl_private ShaderClosure *sc = closure_alloc(sd, size, CLOSURE_NONE_ID, weight);
     if (!sc) {
-      return NULL;
+      return nullptr;
     }
 
     sc->sample_weight = sample_weight;
@@ -73,7 +79,7 @@ ccl_device_inline ccl_private ShaderClosure *bsdf_alloc(ccl_private ShaderData *
     return sc;
   }
 
-  return NULL;
+  return nullptr;
 }
 
 CCL_NAMESPACE_END

@@ -12,9 +12,9 @@
 
 struct ListBase;
 struct Scene;
-struct Sequence;
+struct Strip;
 
-void seq_update_sound_bounds_recursive(const Scene *scene, Sequence *metaseq);
+void seq_update_sound_bounds_recursive(const Scene *scene, Strip *metaseq);
 
 /* Describes gap between strips in timeline. */
 struct GapInfo {
@@ -35,12 +35,12 @@ void seq_time_gap_info_get(const Scene *scene,
                            ListBase *seqbase,
                            int initial_frame,
                            GapInfo *r_gap_info);
-void seq_time_effect_range_set(const Scene *scene, Sequence *seq);
+void seq_time_effect_range_set(const Scene *scene, Strip *seq);
 /**
  * Update strip `startdisp` and `enddisp` (n-input effects have no length to calculate these).
  */
-void seq_time_update_effects_strip_range(const Scene *scene, blender::Span<Sequence *> effects);
-void seq_time_translate_handles(const Scene *scene, Sequence *seq, const int offset);
-float seq_time_media_playback_rate_factor_get(const Scene *scene, const Sequence *seq);
-int seq_time_strip_original_content_length_get(const Scene *scene, const Sequence *seq);
-float seq_retiming_evaluate(const Sequence *seq, const float frame_index);
+void seq_time_update_effects_strip_range(const Scene *scene, blender::Span<Strip *> effects);
+void seq_time_translate_handles(const Scene *scene, Strip *seq, const int offset);
+float seq_time_media_playback_rate_factor_get(const Scene *scene, const Strip *seq);
+int seq_time_strip_original_content_length_get(const Scene *scene, const Strip *seq);
+float seq_retiming_evaluate(const Strip *seq, const float frame_index);

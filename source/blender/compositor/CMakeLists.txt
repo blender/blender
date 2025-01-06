@@ -1,641 +1,363 @@
-# SPDX-FileCopyrightText: 2011 Blender Authors
+# SPDX-FileCopyrightText: 2011-2024 Blender Authors
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-add_subdirectory(realtime_compositor)
+set(INC
+  .
+  algorithms
+  cached_resources
+  utilities
+  ../gpu/intern
+  ../makesrna
+  ../render/intern
+)
 
-if(WITH_COMPOSITOR_CPU)
-  set(INC
-    .
-    algorithms
-    intern
-    nodes
-    operations
-    realtime_compositor
-    ../blenkernel
-    ../blentranslation
-    ../imbuf
-    ../makesrna
-    ../nodes
-    ../windowmanager
-    ../nodes/composite
-    ../nodes/intern
-    ../render
-    ../render/intern
+set(INC_SYS
 
-    # RNA_prototypes.hh
-    ${CMAKE_BINARY_DIR}/source/blender/makesrna
+)
+
+set(SRC
+  COM_compile_state.hh
+  COM_compositor.hh
+  COM_context.hh
+  COM_conversion_operation.hh
+  COM_domain.hh
+  COM_evaluator.hh
+  COM_input_descriptor.hh
+  COM_input_single_value_operation.hh
+  COM_meta_data.hh
+  COM_multi_function_procedure_operation.hh
+  COM_node_operation.hh
+  COM_operation.hh
+  COM_pixel_operation.hh
+  COM_profiler.hh
+  COM_realize_on_domain_operation.hh
+  COM_reduce_to_single_value_operation.hh
+  COM_render_context.hh
+  COM_result.hh
+  COM_scheduler.hh
+  COM_shader_node.hh
+  COM_shader_operation.hh
+  COM_simple_operation.hh
+  COM_static_cache_manager.hh
+  COM_texture_pool.hh
+  COM_utilities.hh
+
+  intern/COM_compositor.cc
+  intern/compile_state.cc
+  intern/context.cc
+  intern/conversion_operation.cc
+  intern/domain.cc
+  intern/evaluator.cc
+  intern/input_single_value_operation.cc
+  intern/meta_data.cc
+  intern/multi_function_procedure_operation.cc
+  intern/node_operation.cc
+  intern/operation.cc
+  intern/pixel_operation.cc
+  intern/profiler.cc
+  intern/realize_on_domain_operation.cc
+  intern/reduce_to_single_value_operation.cc
+  intern/render_context.cc
+  intern/result.cc
+  intern/scheduler.cc
+  intern/shader_node.cc
+  intern/shader_operation.cc
+  intern/simple_operation.cc
+  intern/static_cache_manager.cc
+  intern/texture_pool.cc
+  intern/utilities.cc
+
+  algorithms/intern/compute_preview.cc
+  algorithms/intern/deriche_gaussian_blur.cc
+  algorithms/intern/extract_alpha.cc
+  algorithms/intern/gamma_correct.cc
+  algorithms/intern/jump_flooding.cc
+  algorithms/intern/morphological_blur.cc
+  algorithms/intern/morphological_distance.cc
+  algorithms/intern/morphological_distance_feather.cc
+  algorithms/intern/parallel_reduction.cc
+  algorithms/intern/realize_on_domain.cc
+  algorithms/intern/recursive_gaussian_blur.cc
+  algorithms/intern/smaa.cc
+  algorithms/intern/summed_area_table.cc
+  algorithms/intern/symmetric_separable_blur.cc
+  algorithms/intern/symmetric_separable_blur_variable_size.cc
+  algorithms/intern/transform.cc
+  algorithms/intern/van_vliet_gaussian_blur.cc
+
+  algorithms/COM_algorithm_compute_preview.hh
+  algorithms/COM_algorithm_deriche_gaussian_blur.hh
+  algorithms/COM_algorithm_extract_alpha.hh
+  algorithms/COM_algorithm_gamma_correct.hh
+  algorithms/COM_algorithm_jump_flooding.hh
+  algorithms/COM_algorithm_morphological_blur.hh
+  algorithms/COM_algorithm_morphological_distance.hh
+  algorithms/COM_algorithm_morphological_distance_feather.hh
+  algorithms/COM_algorithm_parallel_reduction.hh
+  algorithms/COM_algorithm_realize_on_domain.hh
+  algorithms/COM_algorithm_recursive_gaussian_blur.hh
+  algorithms/COM_algorithm_smaa.hh
+  algorithms/COM_algorithm_summed_area_table.hh
+  algorithms/COM_algorithm_symmetric_separable_blur.hh
+  algorithms/COM_algorithm_symmetric_separable_blur_variable_size.hh
+  algorithms/COM_algorithm_transform.hh
+  algorithms/COM_algorithm_van_vliet_gaussian_blur.hh
+
+  cached_resources/intern/bokeh_kernel.cc
+  cached_resources/intern/cached_image.cc
+  cached_resources/intern/cached_mask.cc
+  cached_resources/intern/cached_shader.cc
+  cached_resources/intern/cached_texture.cc
+  cached_resources/intern/deriche_gaussian_coefficients.cc
+  cached_resources/intern/distortion_grid.cc
+  cached_resources/intern/fog_glow_kernel.cc
+  cached_resources/intern/keying_screen.cc
+  cached_resources/intern/morphological_distance_feather_weights.cc
+  cached_resources/intern/ocio_color_space_conversion_shader.cc
+  cached_resources/intern/smaa_precomputed_textures.cc
+  cached_resources/intern/symmetric_blur_weights.cc
+  cached_resources/intern/symmetric_separable_blur_weights.cc
+  cached_resources/intern/van_vliet_gaussian_coefficients.cc
+
+  cached_resources/COM_bokeh_kernel.hh
+  cached_resources/COM_cached_image.hh
+  cached_resources/COM_cached_mask.hh
+  cached_resources/COM_cached_resource.hh
+  cached_resources/COM_cached_shader.hh
+  cached_resources/COM_cached_texture.hh
+  cached_resources/COM_deriche_gaussian_coefficients.hh
+  cached_resources/COM_distortion_grid.hh
+  cached_resources/COM_fog_glow_kernel.hh
+  cached_resources/COM_keying_screen.hh
+  cached_resources/COM_morphological_distance_feather_weights.hh
+  cached_resources/COM_ocio_color_space_conversion_shader.hh
+  cached_resources/COM_smaa_precomputed_textures.hh
+  cached_resources/COM_symmetric_blur_weights.hh
+  cached_resources/COM_symmetric_separable_blur_weights.hh
+  cached_resources/COM_van_vliet_gaussian_coefficients.hh
+
+  utilities/COM_utilities_diagonals.hh
+  utilities/COM_utilities_type_conversion.hh
+)
+
+set(LIB
+  PRIVATE bf::blenkernel
+  PRIVATE bf::blentranslation
+  PRIVATE bf::functions
+  PRIVATE bf::gpu
+  PRIVATE bf::imbuf
+  PRIVATE bf::nodes
+  PRIVATE bf::render
+  PRIVATE bf::blenlib
+  PRIVATE bf::dna
+  PRIVATE bf::intern::guardedalloc
+)
+
+set(GLSL_SRC
+  shaders/compositor_alpha_crop.glsl
+  shaders/compositor_bilateral_blur.glsl
+  shaders/compositor_bokeh_blur.glsl
+  shaders/compositor_bokeh_blur_variable_size.glsl
+  shaders/compositor_bokeh_image.glsl
+  shaders/compositor_box_mask.glsl
+  shaders/compositor_compute_preview.glsl
+  shaders/compositor_convert.glsl
+  shaders/compositor_cryptomatte_image.glsl
+  shaders/compositor_cryptomatte_matte.glsl
+  shaders/compositor_cryptomatte_pick.glsl
+  shaders/compositor_defocus_blur.glsl
+  shaders/compositor_defocus_radius_from_depth.glsl
+  shaders/compositor_defocus_radius_from_scale.glsl
+  shaders/compositor_despeckle.glsl
+  shaders/compositor_deriche_gaussian_blur.glsl
+  shaders/compositor_deriche_gaussian_blur_sum.glsl
+  shaders/compositor_directional_blur.glsl
+  shaders/compositor_displace.glsl
+  shaders/compositor_double_edge_mask_compute_boundary.glsl
+  shaders/compositor_double_edge_mask_compute_gradient.glsl
+  shaders/compositor_edge_filter.glsl
+  shaders/compositor_ellipse_mask.glsl
+  shaders/compositor_filter.glsl
+  shaders/compositor_flip.glsl
+  shaders/compositor_gamma_correct.glsl
+  shaders/compositor_glare_bloom_downsample.glsl
+  shaders/compositor_glare_bloom_upsample.glsl
+  shaders/compositor_glare_ghost_accumulate.glsl
+  shaders/compositor_glare_ghost_base.glsl
+  shaders/compositor_glare_highlights.glsl
+  shaders/compositor_glare_mix.glsl
+  shaders/compositor_glare_simple_star_anti_diagonal_pass.glsl
+  shaders/compositor_glare_simple_star_diagonal_pass.glsl
+  shaders/compositor_glare_simple_star_horizontal_pass.glsl
+  shaders/compositor_glare_simple_star_vertical_pass.glsl
+  shaders/compositor_glare_streaks_accumulate.glsl
+  shaders/compositor_glare_streaks_filter.glsl
+  shaders/compositor_id_mask.glsl
+  shaders/compositor_image_crop.glsl
+  shaders/compositor_inpaint_compute_boundary.glsl
+  shaders/compositor_inpaint_compute_region.glsl
+  shaders/compositor_inpaint_fill_region.glsl
+  shaders/compositor_jump_flooding.glsl
+  shaders/compositor_keying_compute_image.glsl
+  shaders/compositor_keying_compute_matte.glsl
+  shaders/compositor_keying_extract_chroma.glsl
+  shaders/compositor_keying_replace_chroma.glsl
+  shaders/compositor_keying_screen.glsl
+  shaders/compositor_keying_tweak_matte.glsl
+  shaders/compositor_kuwahara_anisotropic.glsl
+  shaders/compositor_kuwahara_anisotropic_compute_structure_tensor.glsl
+  shaders/compositor_kuwahara_classic.glsl
+  shaders/compositor_map_uv_anisotropic.glsl
+  shaders/compositor_map_uv_nearest_neighbour.glsl
+  shaders/compositor_morphological_blur.glsl
+  shaders/compositor_morphological_distance.glsl
+  shaders/compositor_morphological_distance_feather.glsl
+  shaders/compositor_morphological_distance_threshold.glsl
+  shaders/compositor_morphological_step.glsl
+  shaders/compositor_motion_blur.glsl
+  shaders/compositor_motion_blur_max_velocity_dilate.glsl
+  shaders/compositor_movie_distortion.glsl
+  shaders/compositor_normalize.glsl
+  shaders/compositor_parallel_reduction.glsl
+  shaders/compositor_pixelate.glsl
+  shaders/compositor_plane_deform.glsl
+  shaders/compositor_plane_deform_mask.glsl
+  shaders/compositor_plane_deform_motion_blur.glsl
+  shaders/compositor_plane_deform_motion_blur_mask.glsl
+  shaders/compositor_premultiply_alpha.glsl
+  shaders/compositor_projector_lens_distortion.glsl
+  shaders/compositor_read_input.glsl
+  shaders/compositor_realize_on_domain.glsl
+  shaders/compositor_scale_variable.glsl
+  shaders/compositor_screen_lens_distortion.glsl
+  shaders/compositor_smaa_blending_weight_calculation.glsl
+  shaders/compositor_smaa_edge_detection.glsl
+  shaders/compositor_smaa_neighborhood_blending.glsl
+  shaders/compositor_split.glsl
+  shaders/compositor_summed_area_table_compute_complete_blocks.glsl
+  shaders/compositor_summed_area_table_compute_complete_x_prologues.glsl
+  shaders/compositor_summed_area_table_compute_complete_y_prologues.glsl
+  shaders/compositor_summed_area_table_compute_incomplete_prologues.glsl
+  shaders/compositor_sun_beams.glsl
+  shaders/compositor_symmetric_blur.glsl
+  shaders/compositor_symmetric_blur_variable_size.glsl
+  shaders/compositor_symmetric_separable_blur.glsl
+  shaders/compositor_symmetric_separable_blur_variable_size.glsl
+  shaders/compositor_tone_map_photoreceptor.glsl
+  shaders/compositor_tone_map_simple.glsl
+  shaders/compositor_van_vliet_gaussian_blur.glsl
+  shaders/compositor_van_vliet_gaussian_blur_sum.glsl
+  shaders/compositor_write_output.glsl
+  shaders/compositor_z_combine_compute_mask.glsl
+  shaders/compositor_z_combine_from_mask.glsl
+  shaders/compositor_z_combine_simple.glsl
+
+  shaders/library/gpu_shader_compositor_alpha_over.glsl
+  shaders/library/gpu_shader_compositor_bright_contrast.glsl
+  shaders/library/gpu_shader_compositor_channel_matte.glsl
+  shaders/library/gpu_shader_compositor_chroma_matte.glsl
+  shaders/library/gpu_shader_compositor_color_balance.glsl
+  shaders/library/gpu_shader_compositor_color_correction.glsl
+  shaders/library/gpu_shader_compositor_color_matte.glsl
+  shaders/library/gpu_shader_compositor_color_spill.glsl
+  shaders/library/gpu_shader_compositor_color_to_luminance.glsl
+  shaders/library/gpu_shader_compositor_difference_matte.glsl
+  shaders/library/gpu_shader_compositor_distance_matte.glsl
+  shaders/library/gpu_shader_compositor_exposure.glsl
+  shaders/library/gpu_shader_compositor_gamma.glsl
+  shaders/library/gpu_shader_compositor_hue_correct.glsl
+  shaders/library/gpu_shader_compositor_hue_saturation_value.glsl
+  shaders/library/gpu_shader_compositor_image_diagonals.glsl
+  shaders/library/gpu_shader_compositor_invert.glsl
+  shaders/library/gpu_shader_compositor_jump_flooding_lib.glsl
+  shaders/library/gpu_shader_compositor_luminance_matte.glsl
+  shaders/library/gpu_shader_compositor_main.glsl
+  shaders/library/gpu_shader_compositor_map_value.glsl
+  shaders/library/gpu_shader_compositor_motion_blur_lib.glsl
+  shaders/library/gpu_shader_compositor_normal.glsl
+  shaders/library/gpu_shader_compositor_ocio_processor.glsl
+  shaders/library/gpu_shader_compositor_posterize.glsl
+  shaders/library/gpu_shader_compositor_separate_combine.glsl
+  shaders/library/gpu_shader_compositor_set_alpha.glsl
+  shaders/library/gpu_shader_compositor_store_output.glsl
+  shaders/library/gpu_shader_compositor_summed_area_table_lib.glsl
+  shaders/library/gpu_shader_compositor_texture_utilities.glsl
+  shaders/library/gpu_shader_compositor_type_conversion.glsl
+)
+
+set(GLSL_C)
+foreach(GLSL_FILE ${GLSL_SRC})
+  glsl_to_c(${GLSL_FILE} GLSL_C)
+endforeach()
+
+blender_add_lib(bf_compositor_shaders "${GLSL_C}" "" "" "")
+
+list(APPEND LIB
+  bf_compositor_shaders
+)
+
+set(GLSL_SOURCE_CONTENT "")
+foreach(GLSL_FILE ${GLSL_SRC})
+  get_filename_component(GLSL_FILE_NAME ${GLSL_FILE} NAME)
+  string(REPLACE "." "_" GLSL_FILE_NAME_UNDERSCORES ${GLSL_FILE_NAME})
+  string(APPEND GLSL_SOURCE_CONTENT "SHADER_SOURCE\(datatoc_${GLSL_FILE_NAME_UNDERSCORES}, \"${GLSL_FILE_NAME}\", \"${GLSL_FILE}\"\)\n")
+endforeach()
+
+set(glsl_source_list_file "${CMAKE_CURRENT_BINARY_DIR}/glsl_compositor_source_list.h")
+file(GENERATE OUTPUT ${glsl_source_list_file} CONTENT "${GLSL_SOURCE_CONTENT}")
+list(APPEND SRC ${glsl_source_list_file})
+list(APPEND INC ${CMAKE_CURRENT_BINARY_DIR})
+
+target_include_directories(bf_compositor_shaders PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
+
+if(WITH_TBB)
+  if(WIN32)
+    # TBB includes Windows.h which will define min/max macros
+    # that will collide with the STL versions.
+    add_definitions(-DNOMINMAX)
+  endif()
+endif()
+
+if(WITH_OPENIMAGEDENOISE)
+  add_definitions(-DWITH_OPENIMAGEDENOISE)
+  add_definitions(-DOIDN_STATIC_LIB)
+  list(APPEND INC_SYS
+    ${OPENIMAGEDENOISE_INCLUDE_DIRS}
+    ${TBB_INCLUDE_DIRS}
+  )
+  list(APPEND LIB
+    ${OPENIMAGEDENOISE_LIBRARIES}
+    ${TBB_LIBRARIES}
+  )
+endif()
+
+if(WITH_OPENCOLORIO)
+  add_definitions(
+    -DWITH_OCIO
   )
 
-  set(INC_SYS
-
+  list(APPEND INC_SYS
+    ${OPENCOLORIO_INCLUDE_DIRS}
   )
 
-  set(SRC
-    COM_compositor.hh
-    COM_defines.h
-
-    intern/COM_BufferArea.h
-    intern/COM_BufferRange.h
-    intern/COM_BuffersIterator.h
-    intern/COM_CPUDevice.cc
-    intern/COM_CPUDevice.h
-    intern/COM_CompositorContext.cc
-    intern/COM_CompositorContext.h
-    intern/COM_ConstantFolder.cc
-    intern/COM_ConstantFolder.h
-    intern/COM_Converter.cc
-    intern/COM_Converter.h
-    intern/COM_Debug.cc
-    intern/COM_Debug.h
-    intern/COM_Device.cc
-    intern/COM_Device.h
-    intern/COM_Enums.cc
-    intern/COM_Enums.h
-    intern/COM_ExecutionModel.cc
-    intern/COM_ExecutionModel.h
-    intern/COM_ExecutionSystem.cc
-    intern/COM_ExecutionSystem.h
-    intern/COM_FullFrameExecutionModel.cc
-    intern/COM_FullFrameExecutionModel.h
-    intern/COM_MemoryBuffer.cc
-    intern/COM_MemoryBuffer.h
-    intern/COM_MetaData.cc
-    intern/COM_MetaData.h
-    intern/COM_MultiThreadedOperation.cc
-    intern/COM_MultiThreadedOperation.h
-    intern/COM_MultiThreadedRowOperation.cc
-    intern/COM_MultiThreadedRowOperation.h
-    intern/COM_Node.cc
-    intern/COM_Node.h
-    intern/COM_NodeConverter.cc
-    intern/COM_NodeConverter.h
-    intern/COM_NodeGraph.cc
-    intern/COM_NodeGraph.h
-    intern/COM_NodeOperation.cc
-    intern/COM_NodeOperation.h
-    intern/COM_NodeOperationBuilder.cc
-    intern/COM_NodeOperationBuilder.h
-    intern/COM_SharedOperationBuffers.cc
-    intern/COM_SharedOperationBuffers.h
-    intern/COM_WorkPackage.h
-    intern/COM_WorkScheduler.cc
-    intern/COM_WorkScheduler.h
-    intern/COM_compositor.cc
-
-    # Internal nodes
-    nodes/COM_SocketProxyNode.cc
-    nodes/COM_SocketProxyNode.h
-
-    # input nodes
-    nodes/COM_BokehImageNode.cc
-    nodes/COM_BokehImageNode.h
-    nodes/COM_ColorNode.cc
-    nodes/COM_ColorNode.h
-    nodes/COM_ImageNode.cc
-    nodes/COM_ImageNode.h
-    nodes/COM_MaskNode.cc
-    nodes/COM_MaskNode.h
-    nodes/COM_MovieClipNode.cc
-    nodes/COM_MovieClipNode.h
-    nodes/COM_RenderLayersNode.cc
-    nodes/COM_RenderLayersNode.h
-    nodes/COM_SceneTimeNode.cc
-    nodes/COM_SceneTimeNode.h
-    nodes/COM_SplitNode.cc
-    nodes/COM_SplitNode.h
-    nodes/COM_SwitchNode.cc
-    nodes/COM_SwitchNode.h
-    nodes/COM_SwitchViewNode.cc
-    nodes/COM_SwitchViewNode.h
-    nodes/COM_TextureNode.cc
-    nodes/COM_TextureNode.h
-    nodes/COM_TimeNode.cc
-    nodes/COM_TimeNode.h
-    nodes/COM_ValueNode.cc
-    nodes/COM_ValueNode.h
-
-    # output nodes
-    nodes/COM_CompositorNode.cc
-    nodes/COM_CompositorNode.h
-    nodes/COM_FileOutputNode.cc
-    nodes/COM_FileOutputNode.h
-    nodes/COM_ViewLevelsNode.cc
-    nodes/COM_ViewLevelsNode.h
-    nodes/COM_ViewerNode.cc
-    nodes/COM_ViewerNode.h
-    operations/COM_CalculateMeanOperation.cc
-    operations/COM_CalculateMeanOperation.h
-    operations/COM_CalculateStandardDeviationOperation.cc
-    operations/COM_CalculateStandardDeviationOperation.h
-
-    # distort nodes
-    nodes/COM_FlipNode.cc
-    nodes/COM_FlipNode.h
-    nodes/COM_RotateNode.cc
-    nodes/COM_RotateNode.h
-    nodes/COM_ScaleNode.cc
-    nodes/COM_ScaleNode.h
-    nodes/COM_TranslateNode.cc
-    nodes/COM_TranslateNode.h
-
-    nodes/COM_DisplaceNode.cc
-    nodes/COM_DisplaceNode.h
-    nodes/COM_MapUVNode.cc
-    nodes/COM_MapUVNode.h
-
-    nodes/COM_ChannelMatteNode.cc
-    nodes/COM_ChannelMatteNode.h
-    nodes/COM_ChromaMatteNode.cc
-    nodes/COM_ChromaMatteNode.h
-    nodes/COM_ColorMatteNode.cc
-    nodes/COM_ColorMatteNode.h
-    nodes/COM_DifferenceMatteNode.cc
-    nodes/COM_DifferenceMatteNode.h
-    nodes/COM_DistanceMatteNode.cc
-    nodes/COM_DistanceMatteNode.h
-    nodes/COM_LensDistortionNode.cc
-    nodes/COM_LensDistortionNode.h
-    nodes/COM_LuminanceMatteNode.cc
-    nodes/COM_LuminanceMatteNode.h
-
-    nodes/COM_GlareNode.cc
-    nodes/COM_GlareNode.h
-
-    nodes/COM_SunBeamsNode.cc
-    nodes/COM_SunBeamsNode.h
-    operations/COM_SunBeamsOperation.cc
-    operations/COM_SunBeamsOperation.h
-
-    nodes/COM_CryptomatteNode.cc
-    nodes/COM_CryptomatteNode.h
-    operations/COM_CryptomatteOperation.cc
-    operations/COM_CryptomatteOperation.h
-
-    nodes/COM_CornerPinNode.cc
-    nodes/COM_CornerPinNode.h
-    nodes/COM_PlaneTrackDeformNode.cc
-    nodes/COM_PlaneTrackDeformNode.h
-
-    nodes/COM_CropNode.cc
-    nodes/COM_CropNode.h
-    operations/COM_CropOperation.cc
-    operations/COM_CropOperation.h
-
-    nodes/COM_DefocusNode.cc
-    nodes/COM_DefocusNode.h
-    nodes/COM_MovieDistortionNode.cc
-    nodes/COM_MovieDistortionNode.h
-    nodes/COM_Stabilize2dNode.cc
-    nodes/COM_Stabilize2dNode.h
-    nodes/COM_TransformNode.cc
-    nodes/COM_TransformNode.h
-
-    # color nodes
-    nodes/COM_AlphaOverNode.cc
-    nodes/COM_AlphaOverNode.h
-    nodes/COM_BrightnessNode.cc
-    nodes/COM_BrightnessNode.h
-    nodes/COM_ColorBalanceNode.cc
-    nodes/COM_ColorBalanceNode.h
-    nodes/COM_ColorCorrectionNode.cc
-    nodes/COM_ColorCorrectionNode.h
-    nodes/COM_ColorCurveNode.cc
-    nodes/COM_ColorCurveNode.h
-    nodes/COM_ColorExposureNode.cc
-    nodes/COM_ColorExposureNode.h
-    nodes/COM_ColorRampNode.cc
-    nodes/COM_ColorRampNode.h
-    nodes/COM_ColorToBWNode.cc
-    nodes/COM_ColorToBWNode.h
-    nodes/COM_ConvertAlphaNode.cc
-    nodes/COM_ConvertAlphaNode.h
-    nodes/COM_ConvertColorSpaceNode.cc
-    nodes/COM_ConvertColorSpaceNode.h
-    nodes/COM_GammaNode.cc
-    nodes/COM_GammaNode.h
-    nodes/COM_HueSaturationValueCorrectNode.cc
-    nodes/COM_HueSaturationValueCorrectNode.h
-    nodes/COM_HueSaturationValueNode.cc
-    nodes/COM_HueSaturationValueNode.h
-    nodes/COM_InvertNode.cc
-    nodes/COM_InvertNode.h
-    nodes/COM_MixNode.cc
-    nodes/COM_MixNode.h
-    nodes/COM_SetAlphaNode.cc
-    nodes/COM_SetAlphaNode.h
-    nodes/COM_TonemapNode.cc
-    nodes/COM_TonemapNode.h
-    nodes/COM_VectorCurveNode.cc
-    nodes/COM_VectorCurveNode.h
-    nodes/COM_ZCombineNode.cc
-    nodes/COM_ZCombineNode.h
-    operations/COM_TonemapOperation.cc
-    operations/COM_TonemapOperation.h
-
-    # converter nodes
-    nodes/COM_CombineColorNode.cc
-    nodes/COM_CombineColorNode.h
-    nodes/COM_CombineColorNodeLegacy.cc
-    nodes/COM_CombineColorNodeLegacy.h
-    nodes/COM_CombineXYZNode.cc
-    nodes/COM_CombineXYZNode.h
-    nodes/COM_IDMaskNode.cc
-    nodes/COM_IDMaskNode.h
-    nodes/COM_SeparateColorNode.cc
-    nodes/COM_SeparateColorNode.h
-    nodes/COM_SeparateColorNodeLegacy.cc
-    nodes/COM_SeparateColorNodeLegacy.h
-    nodes/COM_SeparateXYZNode.cc
-    nodes/COM_SeparateXYZNode.h
-
-    nodes/COM_MapRangeNode.cc
-    nodes/COM_MapRangeNode.h
-    nodes/COM_MapValueNode.cc
-    nodes/COM_MapValueNode.h
-    nodes/COM_MathNode.cc
-    nodes/COM_MathNode.h
-    nodes/COM_NormalNode.cc
-    nodes/COM_NormalNode.h
-    nodes/COM_NormalizeNode.cc
-    nodes/COM_NormalizeNode.h
-
-    operations/COM_NormalizeOperation.cc
-    operations/COM_NormalizeOperation.h
-
-    nodes/COM_PixelateNode.cc
-    nodes/COM_PixelateNode.h
-    operations/COM_PixelateOperation.cc
-    operations/COM_PixelateOperation.h
-
-    # Filter nodes
-    nodes/COM_BilateralBlurNode.cc
-    nodes/COM_BilateralBlurNode.h
-    operations/COM_BilateralBlurOperation.cc
-    operations/COM_BilateralBlurOperation.h
-    nodes/COM_VectorBlurNode.cc
-    nodes/COM_VectorBlurNode.h
-    operations/COM_VectorBlurOperation.cc
-    operations/COM_VectorBlurOperation.h
-    nodes/COM_AntiAliasingNode.cc
-    nodes/COM_AntiAliasingNode.h
-    nodes/COM_BlurNode.cc
-    nodes/COM_BlurNode.h
-    nodes/COM_BokehBlurNode.cc
-    nodes/COM_BokehBlurNode.h
-    nodes/COM_DenoiseNode.cc
-    nodes/COM_DenoiseNode.h
-    nodes/COM_DespeckleNode.cc
-    nodes/COM_DespeckleNode.h
-    nodes/COM_DilateErodeNode.cc
-    nodes/COM_DilateErodeNode.h
-    nodes/COM_DirectionalBlurNode.cc
-    nodes/COM_DirectionalBlurNode.h
-    nodes/COM_FilterNode.cc
-    nodes/COM_FilterNode.h
-    nodes/COM_InpaintNode.cc
-    nodes/COM_InpaintNode.h
-    nodes/COM_KuwaharaNode.cc
-    nodes/COM_KuwaharaNode.h
-    nodes/COM_PosterizeNode.cc
-    nodes/COM_PosterizeNode.h
-
-    operations/COM_BlurBaseOperation.cc
-    operations/COM_BlurBaseOperation.h
-    operations/COM_BokehBlurOperation.cc
-    operations/COM_BokehBlurOperation.h
-    operations/COM_DirectionalBlurOperation.cc
-    operations/COM_DirectionalBlurOperation.h
-    operations/COM_FastGaussianBlurOperation.cc
-    operations/COM_FastGaussianBlurOperation.h
-    operations/COM_GammaCorrectOperation.cc
-    operations/COM_GammaCorrectOperation.h
-    operations/COM_GaussianAlphaBlurBaseOperation.cc
-    operations/COM_GaussianAlphaBlurBaseOperation.h
-    operations/COM_GaussianBlurBaseOperation.cc
-    operations/COM_GaussianBlurBaseOperation.h
-    operations/COM_GaussianBokehBlurOperation.cc
-    operations/COM_GaussianBokehBlurOperation.h
-    operations/COM_KuwaharaAnisotropicOperation.cc
-    operations/COM_KuwaharaAnisotropicOperation.h
-    operations/COM_KuwaharaAnisotropicStructureTensorOperation.cc
-    operations/COM_KuwaharaAnisotropicStructureTensorOperation.h
-    operations/COM_KuwaharaClassicOperation.cc
-    operations/COM_KuwaharaClassicOperation.h
-    operations/COM_MovieClipAttributeOperation.cc
-    operations/COM_MovieClipAttributeOperation.h
-    operations/COM_MovieDistortionOperation.cc
-    operations/COM_MovieDistortionOperation.h
-    operations/COM_PosterizeOperation.cc
-    operations/COM_PosterizeOperation.h
-    operations/COM_SMAAOperation.cc
-    operations/COM_SMAAOperation.h
-    operations/COM_SummedAreaTableOperation.cc
-    operations/COM_SummedAreaTableOperation.h
-    operations/COM_VariableSizeBokehBlurOperation.cc
-    operations/COM_VariableSizeBokehBlurOperation.h
-
-    # Matte nodes
-    nodes/COM_BoxMaskNode.cc
-    nodes/COM_BoxMaskNode.h
-    nodes/COM_ColorSpillNode.cc
-    nodes/COM_ColorSpillNode.h
-    nodes/COM_DoubleEdgeMaskNode.cc
-    nodes/COM_DoubleEdgeMaskNode.h
-    nodes/COM_EllipseMaskNode.cc
-    nodes/COM_EllipseMaskNode.h
-
-    operations/COM_DoubleEdgeMaskOperation.cc
-    operations/COM_DoubleEdgeMaskOperation.h
-
-
-    nodes/COM_KeyingScreenNode.cc
-    nodes/COM_KeyingScreenNode.h
-    operations/COM_KeyingScreenOperation.cc
-    operations/COM_KeyingScreenOperation.h
-
-    nodes/COM_TrackPositionNode.cc
-    nodes/COM_TrackPositionNode.h
-    operations/COM_TrackPositionOperation.cc
-    operations/COM_TrackPositionOperation.h
-
-    nodes/COM_KeyingNode.cc
-    nodes/COM_KeyingNode.h
-    operations/COM_KeyingBlurOperation.cc
-    operations/COM_KeyingBlurOperation.h
-    operations/COM_KeyingClipOperation.cc
-    operations/COM_KeyingClipOperation.h
-    operations/COM_KeyingDespillOperation.cc
-    operations/COM_KeyingDespillOperation.h
-    operations/COM_KeyingOperation.cc
-    operations/COM_KeyingOperation.h
-
-    operations/COM_ColorSpillOperation.cc
-    operations/COM_ColorSpillOperation.h
-    operations/COM_RenderLayersProg.cc
-    operations/COM_RenderLayersProg.h
-
-    operations/COM_BokehImageOperation.cc
-    operations/COM_BokehImageOperation.h
-    operations/COM_ImageOperation.cc
-    operations/COM_ImageOperation.h
-    operations/COM_MultilayerImageOperation.cc
-    operations/COM_MultilayerImageOperation.h
-    operations/COM_TextureOperation.cc
-    operations/COM_TextureOperation.h
-
-
-    operations/COM_SocketProxyOperation.cc
-    operations/COM_SocketProxyOperation.h
-
-    operations/COM_CompositorOperation.cc
-    operations/COM_CompositorOperation.h
-    operations/COM_ConvertDepthToRadiusOperation.cc
-    operations/COM_ConvertDepthToRadiusOperation.h
-    operations/COM_FileOutputOperation.cc
-    operations/COM_FileOutputOperation.h
-    operations/COM_PreviewOperation.cc
-    operations/COM_PreviewOperation.h
-    operations/COM_SplitOperation.cc
-    operations/COM_SplitOperation.h
-    operations/COM_ViewerOperation.cc
-    operations/COM_ViewerOperation.h
-    operations/COM_ZCombineOperation.cc
-    operations/COM_ZCombineOperation.h
-
-    operations/COM_ChangeHSVOperation.cc
-    operations/COM_ChangeHSVOperation.h
-    operations/COM_ChannelMatteOperation.cc
-    operations/COM_ChannelMatteOperation.h
-    operations/COM_ChromaMatteOperation.cc
-    operations/COM_ChromaMatteOperation.h
-    operations/COM_ColorCurveOperation.cc
-    operations/COM_ColorCurveOperation.h
-    operations/COM_ColorExposureOperation.cc
-    operations/COM_ColorExposureOperation.h
-    operations/COM_ColorMatteOperation.cc
-    operations/COM_ColorMatteOperation.h
-    operations/COM_ColorRampOperation.cc
-    operations/COM_ColorRampOperation.h
-    operations/COM_CurveBaseOperation.cc
-    operations/COM_CurveBaseOperation.h
-    operations/COM_DifferenceMatteOperation.cc
-    operations/COM_DifferenceMatteOperation.h
-    operations/COM_DistanceRGBMatteOperation.cc
-    operations/COM_DistanceRGBMatteOperation.h
-    operations/COM_DistanceYCCMatteOperation.cc
-    operations/COM_DistanceYCCMatteOperation.h
-    operations/COM_HueSaturationValueCorrectOperation.cc
-    operations/COM_HueSaturationValueCorrectOperation.h
-    operations/COM_LuminanceMatteOperation.cc
-    operations/COM_LuminanceMatteOperation.h
-    operations/COM_VectorCurveOperation.cc
-    operations/COM_VectorCurveOperation.h
-
-    operations/COM_BrightnessOperation.cc
-    operations/COM_BrightnessOperation.h
-    operations/COM_ColorCorrectionOperation.cc
-    operations/COM_ColorCorrectionOperation.h
-    operations/COM_ConstantOperation.cc
-    operations/COM_ConstantOperation.h
-    operations/COM_GammaOperation.cc
-    operations/COM_GammaOperation.h
-    operations/COM_MixOperation.cc
-    operations/COM_MixOperation.h
-    operations/COM_SetColorOperation.cc
-    operations/COM_SetColorOperation.h
-    operations/COM_SetValueOperation.cc
-    operations/COM_SetValueOperation.h
-    operations/COM_SetVectorOperation.cc
-    operations/COM_SetVectorOperation.h
-
-    operations/COM_MathBaseOperation.cc
-    operations/COM_MathBaseOperation.h
-
-    operations/COM_AlphaOverKeyOperation.cc
-    operations/COM_AlphaOverKeyOperation.h
-    operations/COM_AlphaOverMixedOperation.cc
-    operations/COM_AlphaOverMixedOperation.h
-    operations/COM_AlphaOverPremultiplyOperation.cc
-    operations/COM_AlphaOverPremultiplyOperation.h
-
-    operations/COM_ColorBalanceASCCDLOperation.cc
-    operations/COM_ColorBalanceASCCDLOperation.h
-    operations/COM_ColorBalanceLGGOperation.cc
-    operations/COM_ColorBalanceLGGOperation.h
-    operations/COM_ColorBalanceWhitepointOperation.cc
-    operations/COM_ColorBalanceWhitepointOperation.h
-    operations/COM_InvertOperation.cc
-    operations/COM_InvertOperation.h
-    operations/COM_MapRangeOperation.cc
-    operations/COM_MapRangeOperation.h
-    operations/COM_MapValueOperation.cc
-    operations/COM_MapValueOperation.h
-    operations/COM_SetAlphaMultiplyOperation.cc
-    operations/COM_SetAlphaMultiplyOperation.h
-    operations/COM_SetAlphaReplaceOperation.cc
-    operations/COM_SetAlphaReplaceOperation.h
-
-    # Distort operation
-    operations/COM_DisplaceOperation.cc
-    operations/COM_DisplaceOperation.h
-    operations/COM_FlipOperation.cc
-    operations/COM_FlipOperation.h
-    operations/COM_MapUVOperation.cc
-    operations/COM_MapUVOperation.h
-    operations/COM_PlaneCornerPinOperation.cc
-    operations/COM_PlaneCornerPinOperation.h
-    operations/COM_PlaneDistortCommonOperation.cc
-    operations/COM_PlaneDistortCommonOperation.h
-    operations/COM_PlaneTrackOperation.cc
-    operations/COM_PlaneTrackOperation.h
-    operations/COM_ProjectorLensDistortionOperation.cc
-    operations/COM_ProjectorLensDistortionOperation.h
-    operations/COM_RotateOperation.cc
-    operations/COM_RotateOperation.h
-    operations/COM_ScaleOperation.cc
-    operations/COM_ScaleOperation.h
-    operations/COM_ScreenLensDistortionOperation.cc
-    operations/COM_ScreenLensDistortionOperation.h
-    operations/COM_TransformOperation.cc
-    operations/COM_TransformOperation.h
-    operations/COM_TranslateOperation.cc
-    operations/COM_TranslateOperation.h
-
-    # Filter operations
-    operations/COM_ConvolutionEdgeFilterOperation.cc
-    operations/COM_ConvolutionEdgeFilterOperation.h
-    operations/COM_ConvolutionFilterOperation.cc
-    operations/COM_ConvolutionFilterOperation.h
-    operations/COM_DenoiseOperation.cc
-    operations/COM_DenoiseOperation.h
-    operations/COM_DespeckleOperation.cc
-    operations/COM_DespeckleOperation.h
-    operations/COM_DilateErodeOperation.cc
-    operations/COM_DilateErodeOperation.h
-    operations/COM_GlareBaseOperation.cc
-    operations/COM_GlareBaseOperation.h
-    operations/COM_GlareBloomOperation.cc
-    operations/COM_GlareBloomOperation.h
-    operations/COM_GlareFogGlowOperation.cc
-    operations/COM_GlareFogGlowOperation.h
-    operations/COM_GlareGhostOperation.cc
-    operations/COM_GlareGhostOperation.h
-    operations/COM_GlareSimpleStarOperation.cc
-    operations/COM_GlareSimpleStarOperation.h
-    operations/COM_GlareStreaksOperation.cc
-    operations/COM_GlareStreaksOperation.h
-    operations/COM_GlareThresholdOperation.cc
-    operations/COM_GlareThresholdOperation.h
-    operations/COM_InpaintOperation.cc
-    operations/COM_InpaintOperation.h
-    operations/COM_SetSamplerOperation.cc
-    operations/COM_SetSamplerOperation.h
-
-
-    # Convert operations
-    operations/COM_ConvertOperation.cc
-    operations/COM_ConvertOperation.h
-    operations/COM_IDMaskOperation.cc
-    operations/COM_IDMaskOperation.h
-
-    operations/COM_ConvertColorSpaceOperation.cc
-    operations/COM_ConvertColorSpaceOperation.h
-    operations/COM_DotproductOperation.cc
-    operations/COM_DotproductOperation.h
-
-    # Matte operation
-    operations/COM_BoxMaskOperation.cc
-    operations/COM_BoxMaskOperation.h
-    operations/COM_EllipseMaskOperation.cc
-    operations/COM_EllipseMaskOperation.h
-
-    operations/COM_ConvertColorProfileOperation.cc
-    operations/COM_ConvertColorProfileOperation.h
-    operations/COM_MovieClipOperation.cc
-    operations/COM_MovieClipOperation.h
-
-    operations/COM_MaskOperation.cc
-    operations/COM_MaskOperation.h
-
-    algorithms/COM_JumpFloodingAlgorithm.cc
-    algorithms/COM_JumpFloodingAlgorithm.h
-    algorithms/COM_SymmetricSeparableBlurVariableSizeAlgorithm.cc
-    algorithms/COM_SymmetricSeparableBlurVariableSizeAlgorithm.h
+  list(APPEND LIB
+    ${OPENCOLORIO_LIBRARIES}
   )
+endif()
 
-  set(LIB
-    bf_blenkernel
-    PRIVATE bf::blenlib
-    PRIVATE bf::depsgraph
-    PRIVATE bf::dna
-    PRIVATE bf::intern::clog
-    PRIVATE bf::intern::guardedalloc
-    bf_realtime_compositor
-    PRIVATE bf::intern::atomic
+if(WITH_FFTW3)
+  list(APPEND INC_SYS
+    ${FFTW3_INCLUDE_DIRS}
   )
+  list(APPEND LIB
+    ${FFTW3_LIBRARIES}
+  )
+  add_definitions(-DWITH_FFTW3)
+endif()
 
-  if(WITH_TBB)
-    if(WIN32)
-      # TBB includes Windows.h which will define min/max macros
-      # that will collide with the STL versions.
-      add_definitions(-DNOMINMAX)
-    endif()
-  endif()
+blender_add_lib(bf_compositor "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
 
-  if(WITH_OPENIMAGEDENOISE)
-    add_definitions(-DWITH_OPENIMAGEDENOISE)
-    add_definitions(-DOIDN_STATIC_LIB)
-    list(APPEND INC_SYS
-      ${OPENIMAGEDENOISE_INCLUDE_DIRS}
-      ${TBB_INCLUDE_DIRS}
-    )
-    list(APPEND LIB
-      ${OPENIMAGEDENOISE_LIBRARIES}
-      ${TBB_LIBRARIES}
-    )
-  endif()
-
-  if(WITH_FFTW3)
-    list(APPEND INC_SYS
-      ${FFTW3_INCLUDE_DIRS}
-    )
-    list(APPEND LIB
-      ${FFTW3_LIBRARIES}
-    )
-    add_definitions(-DWITH_FFTW3)
-  endif()
-
-  blender_add_lib(bf_compositor "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
-
-  blender_set_target_unity_build(bf_compositor 10)
-
-  if(COMMAND target_precompile_headers)
-    target_precompile_headers(bf_compositor PRIVATE COM_precomp.h)
-  endif()
-
-  if(CXX_WARN_NO_SUGGEST_OVERRIDE)
-    target_compile_options(bf_compositor PRIVATE "-Wsuggest-override")
-  endif()
-
-  if(WITH_GTESTS)
-    set(TEST_SRC
-      tests/COM_BufferArea_test.cc
-      tests/COM_BufferRange_test.cc
-      tests/COM_BuffersIterator_test.cc
-      tests/COM_ComputeSummedAreaTableOperation_test.cc
-      tests/COM_NodeOperation_test.cc
-    )
-    set(TEST_INC
-    )
-    set(TEST_LIB
-      bf_compositor
-    )
-    blender_add_test_suite_lib(compositor "${TEST_SRC}" "${INC};${TEST_INC}" "${INC_SYS}" "${LIB};${TEST_LIB}")
-  endif()
-
-  # RNA_prototypes.hh
-  add_dependencies(bf_compositor bf_rna)
-
-# End WITH_COMPOSITOR_CPU.
+if(CXX_WARN_NO_SUGGEST_OVERRIDE)
+  target_compile_options(bf_compositor PRIVATE "-Wsuggest-override")
 endif()

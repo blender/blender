@@ -26,7 +26,7 @@ struct CameraInstanceData : public ExtraInstanceData {
   float &volume_end = color_[3];
   float &depth = color_[3];
   float &focus = color_[3];
-  float4x4 &matrix = object_to_world_;
+  float4x4 &matrix = object_to_world;
   float &dist_color_id = matrix[0][3];
   float &corner_x = matrix[0][3];
   float &corner_y = matrix[1][3];
@@ -38,7 +38,7 @@ struct CameraInstanceData : public ExtraInstanceData {
   float &mist_end = matrix[3][3];
 
   CameraInstanceData(const CameraInstanceData &data)
-      : CameraInstanceData(data.object_to_world_, data.color_)
+      : CameraInstanceData(data.object_to_world, data.color_)
   {
   }
 
@@ -88,7 +88,7 @@ class Cameras : Overlay {
   bool extras_enabled_ = false;
   bool motion_tracking_enabled_ = false;
 
-  State::ViewOffsetData offset_data_;
+  View::OffsetData offset_data_;
   float4x4 depth_bias_winmat_;
 
  public:
@@ -224,8 +224,7 @@ class Cameras : Overlay {
     manager.generate_commands(background_ps_, view);
     manager.generate_commands(foreground_ps_, view);
 
-    float view_dist = State::view_dist_get(offset_data_, view.winmat());
-    depth_bias_winmat_ = winmat_polygon_offset(view.winmat(), view_dist, -1.0f);
+    depth_bias_winmat_ = offset_data_.winmat_polygon_offset(view.winmat(), -1.0f);
   }
 
   void draw_line(Framebuffer &framebuffer, Manager &manager, View &view) final
@@ -514,9 +513,7 @@ class Cameras : Overlay {
         }
 
         if ((v3d->flag2 & V3D_SHOW_BUNDLENAME) && !is_selection) {
-          DRWTextStore *dt = DRW_text_cache_ensure();
-
-          DRW_text_cache_add(dt,
+          DRW_text_cache_add(state.dt,
                              bundle_mat[3],
                              track->name,
                              strlen(track->name),
@@ -808,7 +805,7 @@ class Cameras : Overlay {
 
         /* Connecting line between cameras. */
         call_buffers_.stereo_connect_lines.append(stereodata.matrix.location(),
-                                                  instdata.object_to_world_.location(),
+                                                  instdata.object_to_world.location(),
                                                   res.theme_settings.color_wire,
                                                   cam_select_id);
       }

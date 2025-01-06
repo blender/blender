@@ -47,7 +47,7 @@ static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "data_type", UI_ITEM_NONE, "", ICON_NONE);
   uiItemR(layout, ptr, "domain", UI_ITEM_NONE, "", ICON_NONE);
-  uiItemR(layout, ptr, "clamp", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "clamp", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 static void node_init(bNodeTree * /*tree*/, bNode *node)
@@ -249,6 +249,7 @@ static void node_register()
   static blender::bke::bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_SAMPLE_INDEX, "Sample Index", NODE_CLASS_GEOMETRY);
+  ntype.enum_name_legacy = "SAMPLE_INDEX";
   ntype.initfunc = node_init;
   ntype.declare = node_declare;
   blender::bke::node_type_storage(

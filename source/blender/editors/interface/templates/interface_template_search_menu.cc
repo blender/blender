@@ -784,18 +784,35 @@ static MenuSearch_Data *menu_items_from_ui_create(bContext *C,
 
           uiLayoutSetOperatorContext(sub_layout, WM_OP_INVOKE_REGION_WIN);
 
-          but->menu_create_func(C, sub_layout, but->poin);
+          /* If this is a panel, check it's poll function succeeds before drawing.
+           * otherwise draw(..) may be called in an unsupported context and crash, see: #130744.
+           *
+           * NOTE(@ideasman42): it would be good if the buttons #UI_BUT_DISABLED flag
+           * could be used as a more general way to know if poll succeeded,
+           * at this point it's not set - this could be further investigated. */
+          bool poll_success = true;
+          if (PanelType *pt = UI_but_paneltype_get(but)) {
+            if (pt->poll && (pt->poll(C, pt) == false)) {
+              poll_success = false;
+            }
+          }
+
+          if (poll_success) {
+            but->menu_create_func(C, sub_layout, but->poin);
+          }
 
           UI_block_end(C, sub_block);
 
-          MenuSearch_Parent *menu_parent = (MenuSearch_Parent *)BLI_memarena_calloc(
-              memarena, sizeof(*menu_parent));
-          menu_parent->drawstr = strdup_memarena(memarena, but->drawstr.c_str());
-          menu_parent->parent = current_menu.self_as_parent;
+          if (poll_success) {
+            MenuSearch_Parent *menu_parent = (MenuSearch_Parent *)BLI_memarena_calloc(
+                memarena, sizeof(*menu_parent));
+            menu_parent->drawstr = strdup_memarena(memarena, but->drawstr.c_str());
+            menu_parent->parent = current_menu.self_as_parent;
 
-          LISTBASE_FOREACH (uiBut *, sub_but, &sub_block->buttons) {
-            menu_items_from_ui_create_item_from_button(
-                data, memarena, mt, sub_but, wm_context, menu_parent);
+            LISTBASE_FOREACH (uiBut *, sub_but, &sub_block->buttons) {
+              menu_items_from_ui_create_item_from_button(
+                  data, memarena, mt, sub_but, wm_context, menu_parent);
+            }
           }
 
           if (region) {

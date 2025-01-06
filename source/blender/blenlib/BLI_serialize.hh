@@ -300,7 +300,7 @@ class JsonFormatter : public Formatter {
  public:
   void serialize(std::ostream &os, const Value &value) override;
   /**
-   * \return The deserialized value or null on failure to parse the JSON contents. Typically this
+   * \return The de-serialized value or null on failure to parse the JSON contents. Typically this
    *         indicates a malformed file.
    */
   std::unique_ptr<Value> deserialize(std::istream &is) override;

@@ -5,6 +5,10 @@
 /* Sum all spherical harmonic coefficients extracting during remapping to octahedral map.
  * Dispatch only one thread-group that sums. */
 
+#include "infos/eevee_lightprobe_sphere_info.hh"
+
+COMPUTE_SHADER_CREATE_INFO(eevee_lightprobe_sphere_irradiance)
+
 #include "eevee_lightprobe_sphere_lib.glsl"
 #include "eevee_lightprobe_sphere_mapping_lib.glsl"
 #include "eevee_sampling_lib.glsl"

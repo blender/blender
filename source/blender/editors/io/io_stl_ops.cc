@@ -48,7 +48,7 @@ static int wm_stl_export_execute(bContext *C, wmOperator *op)
     BKE_report(op->reports, RPT_ERROR, "No filename given");
     return OPERATOR_CANCELLED;
   }
-  STLExportParams export_params{};
+  STLExportParams export_params;
   RNA_string_get(op->ptr, "filepath", export_params.filepath);
   export_params.forward_axis = eIOAxis(RNA_enum_get(op->ptr, "forward_axis"));
   export_params.up_axis = eIOAxis(RNA_enum_get(op->ptr, "up_axis"));
@@ -192,7 +192,7 @@ void WM_OT_stl_export(wmOperatorType *ot)
 
 static int wm_stl_import_exec(bContext *C, wmOperator *op)
 {
-  STLImportParams params{};
+  STLImportParams params;
   params.forward_axis = eIOAxis(RNA_enum_get(op->ptr, "forward_axis"));
   params.up_axis = eIOAxis(RNA_enum_get(op->ptr, "up_axis"));
   params.use_facet_normal = RNA_boolean_get(op->ptr, "use_facet_normal");
@@ -242,16 +242,16 @@ static void ui_stl_import_settings(const bContext *C, uiLayout *layout, PointerR
 
   if (uiLayout *panel = uiLayoutPanel(C, layout, "STL_import_general", false, IFACE_("General"))) {
     uiLayout *col = uiLayoutColumn(panel, false);
-    uiItemR(col, ptr, "global_scale", UI_ITEM_NONE, nullptr, ICON_NONE);
-    uiItemR(col, ptr, "use_scene_unit", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "global_scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    uiItemR(col, ptr, "use_scene_unit", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiItemR(col, ptr, "forward_axis", UI_ITEM_NONE, IFACE_("Forward Axis"), ICON_NONE);
-    uiItemR(col, ptr, "up_axis", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "up_axis", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
   if (uiLayout *panel = uiLayoutPanel(C, layout, "STL_import_options", false, IFACE_("Options"))) {
     uiLayout *col = uiLayoutColumn(panel, false);
-    uiItemR(col, ptr, "use_facet_normal", UI_ITEM_NONE, nullptr, ICON_NONE);
-    uiItemR(col, ptr, "use_mesh_validate", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "use_facet_normal", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    uiItemR(col, ptr, "use_mesh_validate", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 }
 

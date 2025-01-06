@@ -2,6 +2,19 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#ifdef GPU_SHADER
+#  pragma once
+
+#  include "gpu_glsl_cpp_stubs.hh"
+
+#  include "gpencil_shader_shared.h"
+
+#  include "draw_fullscreen_info.hh"
+#  include "draw_view_info.hh"
+
+#  define COMPOSITE
+#endif
+
 #include "gpu_shader_create_info.hh"
 
 GPU_SHADER_CREATE_INFO(gpencil_fx_common)

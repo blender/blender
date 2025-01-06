@@ -429,4 +429,7 @@ class PartialWriteContext : NonCopyable, NonMovable {
   Library *ensure_library(StringRefNull library_absolute_path);
 };
 
+ENUM_OPERATORS(PartialWriteContext::IDAddOperations,
+               PartialWriteContext::IDAddOperations::MASK_INHERITED);
+
 }  // namespace blender::bke::blendfile

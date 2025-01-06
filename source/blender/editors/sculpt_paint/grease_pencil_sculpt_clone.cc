@@ -81,7 +81,8 @@ void CloneOperation::on_stroke_begin(const bContext &C, const InputSample &start
         MutableSpan<float3> positions = curves.positions_for_write();
         threading::parallel_for(pasted_points, 4096, [&](const IndexRange range) {
           for (const int point_i : range) {
-            positions[point_i] = projection_fn(deformation.positions[point_i], mouse_delta);
+            positions[point_i] = compute_orig_delta(
+                projection_fn, deformation, point_i, mouse_delta);
           }
         });
         params.drawing.tag_positions_changed();

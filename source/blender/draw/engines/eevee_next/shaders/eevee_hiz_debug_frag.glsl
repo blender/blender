@@ -7,6 +7,10 @@
  * Output red if above any max pixels, blue otherwise.
  */
 
+#include "infos/eevee_hiz_info.hh"
+
+FRAGMENT_SHADER_CREATE_INFO(eevee_hiz_debug)
+
 void main()
 {
   ivec2 texel = ivec2(gl_FragCoord.xy);

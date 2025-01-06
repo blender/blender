@@ -2,18 +2,19 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
+#include <algorithm>
+#include <cassert>
+#include <thread>
+
 #include "util/profiling.h"
-#include "util/algorithm.h"
-#include "util/foreach.h"
-#include "util/set.h"
 
 CCL_NAMESPACE_BEGIN
 
-Profiler::Profiler() : do_stop_worker(true), worker(NULL) {}
+Profiler::Profiler() : do_stop_worker(true) {}
 
 Profiler::~Profiler()
 {
-  assert(worker == NULL);
+  assert(worker == nullptr);
 }
 
 void Profiler::run()
@@ -22,10 +23,10 @@ void Profiler::run()
   auto start_time = std::chrono::system_clock::now();
   while (!do_stop_worker) {
     thread_scoped_lock lock(mutex);
-    foreach (ProfilingState *state, states) {
-      uint32_t cur_event = state->event;
-      int32_t cur_shader = state->shader;
-      int32_t cur_object = state->object;
+    for (ProfilingState *state : states) {
+      const uint32_t cur_event = state->event;
+      const int32_t cur_shader = state->shader;
+      const int32_t cur_object = state->object;
 
       /* The state reads/writes should be atomic, but just to be sure
        * check the values for validity anyways. */
@@ -52,9 +53,9 @@ void Profiler::run()
   }
 }
 
-void Profiler::reset(int num_shaders, int num_objects)
+void Profiler::reset(const int num_shaders, const int num_objects)
 {
-  bool running = (worker != NULL);
+  const bool running = (worker != nullptr);
   if (running) {
     stop();
   }
@@ -74,25 +75,24 @@ void Profiler::reset(int num_shaders, int num_objects)
 
 void Profiler::start()
 {
-  assert(worker == NULL);
+  assert(worker == nullptr);
   do_stop_worker = false;
-  worker = new thread(function_bind(&Profiler::run, this));
+  worker = make_unique<thread>([this] { run(); });
 }
 
 void Profiler::stop()
 {
-  if (worker != NULL) {
+  if (worker != nullptr) {
     do_stop_worker = true;
 
     worker->join();
-    delete worker;
-    worker = NULL;
+    worker.reset();
   }
 }
 
 void Profiler::add_state(ProfilingState *state)
 {
-  thread_scoped_lock lock(mutex);
+  const thread_scoped_lock lock(mutex);
 
   /* Add the ProfilingState from the list of sampled states. */
   assert(std::find(states.begin(), states.end(), state) == states.end());
@@ -111,7 +111,7 @@ void Profiler::add_state(ProfilingState *state)
 
 void Profiler::remove_state(ProfilingState *state)
 {
-  thread_scoped_lock lock(mutex);
+  const thread_scoped_lock lock(mutex);
 
   /* Remove the ProfilingState from the list of sampled states. */
   states.erase(std::remove(states.begin(), states.end(), state), states.end());
@@ -131,13 +131,13 @@ void Profiler::remove_state(ProfilingState *state)
 
 uint64_t Profiler::get_event(ProfilingEvent event)
 {
-  assert(worker == NULL);
+  assert(worker == nullptr);
   return event_samples[event];
 }
 
-bool Profiler::get_shader(int shader, uint64_t &samples, uint64_t &hits)
+bool Profiler::get_shader(const int shader, uint64_t &samples, uint64_t &hits)
 {
-  assert(worker == NULL);
+  assert(worker == nullptr);
   if (shader_samples[shader] == 0) {
     return false;
   }
@@ -146,9 +146,9 @@ bool Profiler::get_shader(int shader, uint64_t &samples, uint64_t &hits)
   return true;
 }
 
-bool Profiler::get_object(int object, uint64_t &samples, uint64_t &hits)
+bool Profiler::get_object(const int object, uint64_t &samples, uint64_t &hits)
 {
-  assert(worker == NULL);
+  assert(worker == nullptr);
   if (object_samples[object] == 0) {
     return false;
   }

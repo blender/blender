@@ -311,8 +311,6 @@ ccl_device_forceinline uchar4 make_uchar4(const uchar x,
 #define sqrtf(x) trigmode::sqrt(float(x))
 #define logf(x) trigmode::log(float(x))
 
-#define NULL 0
-
 #define __device__
 
 #ifdef __METALRT__
@@ -402,7 +400,7 @@ enum SamplerType {
   SamplerCount
 };
 
-constant constexpr array<sampler, SamplerCount> metal_samplers = {
+constexpr constant array<sampler, SamplerCount> metal_samplers = {
     sampler(address::repeat, filter::nearest),
     sampler(address::clamp_to_edge, filter::nearest),
     sampler(address::clamp_to_zero, filter::nearest),

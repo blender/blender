@@ -8,6 +8,23 @@ import os
 import sys
 from pathlib import Path
 
+# Unsupported or broken scenarios for the Storm render engine
+BLOCKLIST_HYDRA = [
+    # Corrupted output
+    "image_half.*.blend",
+    "image_packed_float.*.blend",
+    "image_packed_half.*.blend",
+]
+
+BLOCKLIST_USD = [
+    # Corrupted output
+    "image_half.*.blend",
+    "image_packed_float.*.blend",
+    "image_packed_half.*.blend",
+    # Nondeterministic exporting of lights in the scene
+    "light_tree_node_subtended_angle.blend",
+]
+
 
 def setup():
     import bpy
@@ -51,12 +68,14 @@ def get_arguments(filepath, output_filepath):
 
 
 def create_argparse():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-blender", nargs="+")
-    parser.add_argument("-testdir", nargs=1)
-    parser.add_argument("-outdir", nargs=1)
-    parser.add_argument("-oiiotool", nargs=1)
-    parser.add_argument("-export_method", nargs=1)
+    parser = argparse.ArgumentParser(
+        description="Run test script for each blend file in TESTDIR, comparing the render result with known output."
+    )
+    parser.add_argument("--blender", required=True)
+    parser.add_argument("--testdir", required=True)
+    parser.add_argument("--outdir", required=True)
+    parser.add_argument("--oiiotool", required=True)
+    parser.add_argument("--export_method", required=True)
     parser.add_argument('--batch', default=False, action='store_true')
     parser.add_argument('--fail-silently', default=False, action='store_true')
     return parser
@@ -66,30 +85,33 @@ def main():
     parser = create_argparse()
     args = parser.parse_args()
 
-    blender = args.blender[0]
-    test_dir = args.testdir[0]
-    oiiotool = args.oiiotool[0]
-    output_dir = args.outdir[0]
-    export_method = args.export_method[0]
-
     from modules import render_report
 
-    if export_method == 'HYDRA':
-        report = render_report.Report("Storm Hydra", output_dir, oiiotool)
+    if args.export_method == 'HYDRA':
+        report = render_report.Report("Storm Hydra", args.outdir, args.oiiotool, blocklist=BLOCKLIST_HYDRA)
         report.set_reference_dir("storm_hydra_renders")
         report.set_compare_engine('cycles', 'CPU')
     else:
-        report = render_report.Report("Storm USD", output_dir, oiiotool)
+        report = render_report.Report("Storm USD", args.outdir, args.oiiotool, blocklist=BLOCKLIST_USD)
         report.set_reference_dir("storm_usd_renders")
         report.set_compare_engine('storm_hydra')
 
     report.set_pixelated(True)
 
-    test_dir_name = Path(test_dir).name
+    # Try to account for image filtering differences from OS/drivers
+    test_dir_name = Path(args.testdir).name
+    if (test_dir_name in {'image_mapping', 'mesh'}):
+        report.set_fail_threshold(0.028)
+        report.set_fail_percent(1.3)
+    if (test_dir_name in {'image_colorspace'}):
+        report.set_fail_threshold(0.032)
+        report.set_fail_percent(1.5)
 
-    os.environ['BLENDER_HYDRA_EXPORT_METHOD'] = export_method
+    test_dir_name = Path(args.testdir).name
 
-    ok = report.run(test_dir, blender, get_arguments, batch=args.batch, fail_silently=args.fail_silently)
+    os.environ['BLENDER_HYDRA_EXPORT_METHOD'] = args.export_method
+
+    ok = report.run(args.testdir, args.blender, get_arguments, batch=args.batch, fail_silently=args.fail_silently)
 
     sys.exit(not ok)
 

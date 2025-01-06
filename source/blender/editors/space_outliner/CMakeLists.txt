@@ -5,14 +5,7 @@
 set(INC
   ../include
   ../../blenfont
-  ../../blenkernel
-  ../../blenloader
-  ../../blentranslation
-  ../../gpu
-  ../../imbuf
   ../../makesrna
-  ../../sequencer
-  ../../windowmanager
 
   ../../../../extern/fmtlib/include
 
@@ -135,14 +128,20 @@ set(SRC
 
 set(LIB
   PRIVATE bf::animrig
-  bf_blenkernel
+  PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
+  PRIVATE bf::blenloader
+  PRIVATE bf::blentranslation
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
   bf_editor_id_management
   bf_editor_undo
+  PRIVATE bf::gpu
+  PRIVATE bf::imbuf
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
+  PRIVATE bf::sequencer
+  PRIVATE bf::windowmanager
   extern_fmtlib
 )
 

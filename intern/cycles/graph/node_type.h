@@ -5,10 +5,10 @@
 #pragma once
 
 #include "graph/node_enum.h"
-#include "util/array.h"
+#include "util/array.h"  // IWYU pragma: keep
 #include "util/map.h"
 #include "util/param.h"
-#include "util/string.h"
+#include "util/unique_ptr.h"
 #include "util/vector.h"
 
 CCL_NAMESPACE_BEGIN
@@ -16,7 +16,7 @@ CCL_NAMESPACE_BEGIN
 struct Node;
 struct NodeType;
 
-typedef uint64_t SocketModifiedFlags;
+using SocketModifiedFlags = uint64_t;
 
 /* Socket Type */
 
@@ -100,16 +100,16 @@ struct SocketType {
 struct NodeType {
   enum Type { NONE, SHADER };
 
-  explicit NodeType(Type type = NONE, const NodeType *base = NULL);
+  explicit NodeType(Type type = NONE, const NodeType *base = nullptr);
   ~NodeType();
 
   void register_input(ustring name,
                       ustring ui_name,
                       SocketType::Type type,
-                      int struct_offset,
+                      const int struct_offset,
                       const void *default_value,
-                      const NodeEnum *enum_values = NULL,
-                      const NodeType *node_type = NULL,
+                      const NodeEnum *enum_values = nullptr,
+                      const NodeType *node_type = nullptr,
                       int flags = 0,
                       int extra_flags = 0);
   void register_output(ustring name, ustring ui_name, SocketType::Type type);
@@ -117,7 +117,7 @@ struct NodeType {
   const SocketType *find_input(ustring name) const;
   const SocketType *find_output(ustring name) const;
 
-  typedef Node *(*CreateFunc)(const NodeType *type);
+  using CreateFunc = unique_ptr<Node> (*)(const NodeType *);
 
   ustring name;
   Type type;
@@ -129,7 +129,7 @@ struct NodeType {
   static NodeType *add(const char *name,
                        CreateFunc create,
                        Type type = NONE,
-                       const NodeType *base = NULL);
+                       const NodeType *base = nullptr);
   static const NodeType *find(ustring name);
   static unordered_map<ustring, NodeType> &types();
 };
@@ -142,14 +142,14 @@ struct NodeType {
 #define NODE_DECLARE \
   static const NodeType *get_node_type(); \
   template<typename T> static const NodeType *register_type(); \
-  static Node *create(const NodeType *type); \
+  static unique_ptr<Node> create(const NodeType *type); \
   static const NodeType *node_type;
 
 #define NODE_DEFINE(structname) \
   const NodeType *structname::node_type = structname::register_type<structname>(); \
-  Node *structname::create(const NodeType *) \
+  unique_ptr<Node> structname::create(const NodeType *) \
   { \
-    return new structname(); \
+    return make_unique<structname>(); \
   } \
   const NodeType *structname::get_node_type() \
   { \
@@ -184,8 +184,8 @@ struct NodeType {
                          TYPE, \
                          SOCKET_OFFSETOF(T, name), \
                          &defval, \
-                         NULL, \
-                         NULL, \
+                         nullptr, \
+                         nullptr, \
                          flags, \
                          ##__VA_ARGS__); \
   }
@@ -224,19 +224,19 @@ struct NodeType {
                          SOCKET_OFFSETOF(T, name), \
                          &defval, \
                          &values, \
-                         NULL, \
+                         nullptr, \
                          ##__VA_ARGS__); \
   }
 #define SOCKET_NODE(name, ui_name, node_type, ...) \
   { \
-    static Node *defval = NULL; \
+    static Node *defval = nullptr; \
     assert(SOCKET_SIZEOF(T, name) == sizeof(Node *)); \
     type->register_input(ustring(#name), \
                          ustring(ui_name), \
                          SocketType::NODE, \
                          SOCKET_OFFSETOF(T, name), \
-                         &defval, \
-                         NULL, \
+                         (const void *)&defval, \
+                         nullptr, \
                          node_type, \
                          ##__VA_ARGS__); \
   }
@@ -284,7 +284,7 @@ struct NodeType {
                          SocketType::NODE_ARRAY, \
                          SOCKET_OFFSETOF(T, name), \
                          &defval, \
-                         NULL, \
+                         nullptr, \
                          node_type, \
                          ##__VA_ARGS__); \
   }
@@ -353,9 +353,9 @@ struct NodeType {
                        ustring(ui_name), \
                        SocketType::CLOSURE, \
                        0, \
-                       NULL, \
-                       NULL, \
-                       NULL, \
+                       nullptr, \
+                       nullptr, \
+                       nullptr, \
                        SocketType::LINKABLE, \
                        ##__VA_ARGS__)
 

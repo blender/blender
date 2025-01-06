@@ -6,9 +6,7 @@
 #include "integrator/pass_accessor_cpu.h"
 #include "integrator/path_trace.h"
 
-#include "scene/film.h"
 #include "scene/pass.h"
-#include "scene/scene.h"
 #include "session/buffers.h"
 
 CCL_NAMESPACE_BEGIN
@@ -96,7 +94,7 @@ bool PathTraceTile::set_pass_pixels(const string_view pass_name,
 
   const PassAccessor::PassAccessInfo pass_access_info(*pass);
   PassAccessorCPU pass_accessor(pass_access_info, exposure, num_samples);
-  PassAccessor::Source source(pixels, num_channels);
+  const PassAccessor::Source source(pixels, num_channels);
 
   return path_trace_.set_render_tile_pixels(pass_accessor, source);
 }

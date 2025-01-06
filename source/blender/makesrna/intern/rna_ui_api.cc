@@ -42,11 +42,16 @@ const EnumPropertyItem rna_enum_icon_items[] = {
 #  include "ED_node.hh"
 #  include "ED_object.hh"
 
-const char *rna_translate_ui_text(
+using blender::StringRefNull;
+
+std::optional<StringRefNull> rna_translate_ui_text(
     const char *text, const char *text_ctxt, StructRNA *type, PropertyRNA *prop, bool translate)
 {
+  if (!text) {
+    return std::nullopt;
+  }
   /* Also return text if UI labels translation is disabled. */
-  if (!text || !text[0] || !translate || !BLT_translate_iface()) {
+  if (!text[0] || !translate || !BLT_translate_iface()) {
     return text;
   }
 
@@ -110,8 +115,10 @@ static void rna_uiItemR(uiLayout *layout,
   }
 
   /* Get translated name (label). */
-  name = rna_translate_ui_text(name, text_ctxt, nullptr, prop, translate);
-  placeholder = rna_translate_ui_text(placeholder, text_ctxt, nullptr, prop, translate);
+  std::optional<StringRefNull> text = rna_translate_ui_text(
+      name, text_ctxt, nullptr, prop, translate);
+  std::optional<StringRefNull> placeholder_str = rna_translate_ui_text(
+      placeholder, text_ctxt, nullptr, prop, translate);
 
   if (slider) {
     flag |= UI_ITEM_R_SLIDER;
@@ -143,7 +150,7 @@ static void rna_uiItemR(uiLayout *layout,
     flag |= UI_ITEM_R_CHECKBOX_INVERT;
   }
 
-  uiItemFullR(layout, ptr, prop, index, 0, flag, name, icon, placeholder);
+  uiItemFullR(layout, ptr, prop, index, 0, flag, text, icon, placeholder_str);
 }
 
 static void rna_uiItemR_with_popover(uiLayout *layout,
@@ -175,8 +182,9 @@ static void rna_uiItemR_with_popover(uiLayout *layout,
   }
 
   /* Get translated name (label). */
-  name = rna_translate_ui_text(name, text_ctxt, nullptr, prop, translate);
-  uiItemFullR_with_popover(layout, ptr, prop, -1, 0, flag, name, icon, panel_type);
+  std::optional<StringRefNull> text = rna_translate_ui_text(
+      name, text_ctxt, nullptr, prop, translate);
+  uiItemFullR_with_popover(layout, ptr, prop, -1, 0, flag, text, icon, panel_type);
 }
 
 static void rna_uiItemR_with_menu(uiLayout *layout,
@@ -205,8 +213,9 @@ static void rna_uiItemR_with_menu(uiLayout *layout,
   }
 
   /* Get translated name (label). */
-  name = rna_translate_ui_text(name, text_ctxt, nullptr, prop, translate);
-  uiItemFullR_with_menu(layout, ptr, prop, -1, 0, flag, name, icon, menu_type);
+  std::optional<StringRefNull> text = rna_translate_ui_text(
+      name, text_ctxt, nullptr, prop, translate);
+  uiItemFullR_with_menu(layout, ptr, prop, -1, 0, flag, text, icon, menu_type);
 }
 
 static void rna_uiItemMenuEnumR(uiLayout *layout,
@@ -225,8 +234,9 @@ static void rna_uiItemMenuEnumR(uiLayout *layout,
   }
 
   /* Get translated name (label). */
-  name = rna_translate_ui_text(name, text_ctxt, nullptr, prop, translate);
-  uiItemMenuEnumR_prop(layout, ptr, prop, name, icon);
+  std::optional<StringRefNull> text = rna_translate_ui_text(
+      name, text_ctxt, nullptr, prop, translate);
+  uiItemMenuEnumR_prop(layout, ptr, prop, text, icon);
 }
 
 static void rna_uiItemTabsEnumR(uiLayout *layout,
@@ -292,9 +302,10 @@ static void rna_uiItemEnumR_string(uiLayout *layout,
   }
 
   /* Get translated name (label). */
-  name = rna_translate_ui_text(name, text_ctxt, nullptr, prop, translate);
+  std::optional<StringRefNull> text = rna_translate_ui_text(
+      name, text_ctxt, nullptr, prop, translate);
 
-  uiItemEnumR_string_prop(layout, ptr, prop, value, name, icon);
+  uiItemEnumR_string_prop(layout, ptr, prop, value, text, icon);
 }
 
 static void rna_uiItemPointerR(uiLayout *layout,
@@ -321,10 +332,11 @@ static void rna_uiItemPointerR(uiLayout *layout,
   }
 
   /* Get translated name (label). */
-  name = rna_translate_ui_text(name, text_ctxt, nullptr, prop, translate);
+  std::optional<StringRefNull> text = rna_translate_ui_text(
+      name, text_ctxt, nullptr, prop, translate);
 
   uiItemPointerR_prop(
-      layout, ptr, prop, searchptr, searchprop, name, icon, results_are_suggestions);
+      layout, ptr, prop, searchptr, searchprop, text, icon, results_are_suggestions);
 }
 
 static PointerRNA rna_uiItemO(uiLayout *layout,
@@ -347,7 +359,8 @@ static PointerRNA rna_uiItemO(uiLayout *layout,
   }
 
   /* Get translated name (label). */
-  name = rna_translate_ui_text(name, text_ctxt, ot->srna, nullptr, translate);
+  std::optional<StringRefNull> text = rna_translate_ui_text(
+      name, text_ctxt, ot->srna, nullptr, translate);
 
   if (icon_value && !icon) {
     icon = icon_value;
@@ -365,7 +378,7 @@ static PointerRNA rna_uiItemO(uiLayout *layout,
 
   PointerRNA opptr;
   uiItemFullO_ptr(
-      layout, ot, name, icon, nullptr, uiLayoutGetOperatorContext(layout), flag, &opptr);
+      layout, ot, text, icon, nullptr, uiLayoutGetOperatorContext(layout), flag, &opptr);
 
   uiLayoutSetSearchWeight(layout, prev_weight);
   return opptr;
@@ -389,7 +402,8 @@ static PointerRNA rna_uiItemOMenuHold(uiLayout *layout,
   }
 
   /* Get translated name (label). */
-  name = rna_translate_ui_text(name, text_ctxt, ot->srna, nullptr, translate);
+  std::optional<StringRefNull> text = rna_translate_ui_text(
+      name, text_ctxt, ot->srna, nullptr, translate);
   if (icon_value && !icon) {
     icon = icon_value;
   }
@@ -403,7 +417,7 @@ static PointerRNA rna_uiItemOMenuHold(uiLayout *layout,
 
   PointerRNA opptr;
   uiItemFullOMenuHold_ptr(
-      layout, ot, name, icon, nullptr, uiLayoutGetOperatorContext(layout), flag, menu, &opptr);
+      layout, ot, text, icon, nullptr, uiLayoutGetOperatorContext(layout), flag, menu, &opptr);
   return opptr;
 }
 
@@ -433,10 +447,11 @@ static PointerRNA rna_uiItemMenuEnumO(uiLayout *layout,
   }
 
   /* Get translated name (label). */
-  name = rna_translate_ui_text(name, text_ctxt, ot->srna, nullptr, translate);
+  std::optional<StringRefNull> text = rna_translate_ui_text(
+      name, text_ctxt, ot->srna, nullptr, translate);
 
   PointerRNA opptr;
-  uiItemMenuEnumFullO_ptr(layout, C, ot, propname, name, icon, &opptr);
+  uiItemMenuEnumFullO_ptr(layout, C, ot, propname, text, icon, &opptr);
   return opptr;
 }
 
@@ -448,13 +463,14 @@ static void rna_uiItemL(uiLayout *layout,
                         int icon_value)
 {
   /* Get translated name (label). */
-  name = rna_translate_ui_text(name, text_ctxt, nullptr, nullptr, translate);
+  std::optional<StringRefNull> text = rna_translate_ui_text(
+      name, text_ctxt, nullptr, nullptr, translate);
 
   if (icon_value && !icon) {
     icon = icon_value;
   }
 
-  uiItemL(layout, name, icon);
+  uiItemL(layout, text.value_or(""), icon);
 }
 
 static void rna_uiItemM(uiLayout *layout,
@@ -466,13 +482,14 @@ static void rna_uiItemM(uiLayout *layout,
                         int icon_value)
 {
   /* Get translated name (label). */
-  name = rna_translate_ui_text(name, text_ctxt, nullptr, nullptr, translate);
+  std::optional<StringRefNull> text = rna_translate_ui_text(
+      name, text_ctxt, nullptr, nullptr, translate);
 
   if (icon_value && !icon) {
     icon = icon_value;
   }
 
-  uiItemM(layout, menuname, name, icon);
+  uiItemM(layout, menuname, text, icon);
 }
 
 static void rna_uiItemM_contents(uiLayout *layout, const char *menuname)
@@ -490,13 +507,14 @@ static void rna_uiItemPopoverPanel(uiLayout *layout,
                                    int icon_value)
 {
   /* Get translated name (label). */
-  name = rna_translate_ui_text(name, text_ctxt, nullptr, nullptr, translate);
+  std::optional<StringRefNull> text = rna_translate_ui_text(
+      name, text_ctxt, nullptr, nullptr, translate);
 
   if (icon_value && !icon) {
     icon = icon_value;
   }
 
-  uiItemPopoverPanel(layout, C, panel_type, name, icon);
+  uiItemPopoverPanel(layout, C, panel_type, text, icon);
 }
 
 static void rna_uiItemPopoverPanelFromGroup(uiLayout *layout,
@@ -549,9 +567,10 @@ static void rna_uiTemplateID(uiLayout *layout,
   }
 
   /* Get translated name (label). */
-  name = rna_translate_ui_text(name, text_ctxt, nullptr, prop, translate);
+  std::optional<StringRefNull> text = rna_translate_ui_text(
+      name, text_ctxt, nullptr, prop, translate);
 
-  uiTemplateID(layout, C, ptr, propname, newop, openop, unlinkop, filter, live_icon, name);
+  uiTemplateID(layout, C, ptr, propname, newop, openop, unlinkop, filter, live_icon, text);
 }
 
 static void rna_uiTemplateAnyID(uiLayout *layout,
@@ -570,10 +589,11 @@ static void rna_uiTemplateAnyID(uiLayout *layout,
   }
 
   /* Get translated name (label). */
-  name = rna_translate_ui_text(name, text_ctxt, nullptr, prop, translate);
+  std::optional<StringRefNull> text = rna_translate_ui_text(
+      name, text_ctxt, nullptr, prop, translate);
 
   /* XXX This will search property again :( */
-  uiTemplateAnyID(layout, ptr, propname, proptypename, name);
+  uiTemplateAnyID(layout, ptr, propname, proptypename, text);
 }
 
 static void rna_uiTemplateAction(uiLayout *layout,
@@ -585,8 +605,9 @@ static void rna_uiTemplateAction(uiLayout *layout,
                                  const char *text_ctxt,
                                  const bool translate)
 {
-  name = rna_translate_ui_text(name, text_ctxt, nullptr, nullptr, translate);
-  uiTemplateAction(layout, C, id, newop, unlinkop, name);
+  std::optional<StringRefNull> text = rna_translate_ui_text(
+      name, text_ctxt, nullptr, nullptr, translate);
+  uiTemplateAction(layout, C, id, newop, unlinkop, text);
 }
 
 static void rna_uiTemplateSearch(uiLayout *layout,
@@ -609,9 +630,10 @@ static void rna_uiTemplateSearch(uiLayout *layout,
   }
 
   /* Get translated name (label). */
-  name = rna_translate_ui_text(name, text_ctxt, nullptr, prop, translate);
+  std::optional<StringRefNull> text = rna_translate_ui_text(
+      name, text_ctxt, nullptr, prop, translate);
 
-  uiTemplateSearch(layout, C, ptr, propname, searchptr, searchpropname, newop, unlinkop, name);
+  uiTemplateSearch(layout, C, ptr, propname, searchptr, searchpropname, newop, unlinkop, text);
 }
 
 static void rna_uiTemplateSearchPreview(uiLayout *layout,
@@ -636,10 +658,11 @@ static void rna_uiTemplateSearchPreview(uiLayout *layout,
   }
 
   /* Get translated name (label). */
-  name = rna_translate_ui_text(name, text_ctxt, nullptr, prop, translate);
+  std::optional<StringRefNull> text = rna_translate_ui_text(
+      name, text_ctxt, nullptr, prop, translate);
 
   uiTemplateSearchPreview(
-      layout, C, ptr, propname, searchptr, searchpropname, newop, unlinkop, rows, cols, name);
+      layout, C, ptr, propname, searchptr, searchpropname, newop, unlinkop, rows, cols, text);
 }
 
 void rna_uiTemplateList(uiLayout *layout,
@@ -763,18 +786,20 @@ static void rna_uiTemplatePathBuilder(uiLayout *layout,
   }
 
   /* Get translated name (label). */
-  name = rna_translate_ui_text(name, text_ctxt, nullptr, prop, translate);
+  std::optional<StringRefNull> text = rna_translate_ui_text(
+      name, text_ctxt, nullptr, prop, translate);
 
   /* XXX This will search property again :( */
-  uiTemplatePathBuilder(layout, ptr, propname, root_ptr, name);
+  uiTemplatePathBuilder(layout, ptr, propname, root_ptr, text);
 }
 
 static void rna_uiTemplateEventFromKeymapItem(
     uiLayout *layout, wmKeyMapItem *kmi, const char *name, const char *text_ctxt, bool translate)
 {
   /* Get translated name (label). */
-  name = rna_translate_ui_text(name, text_ctxt, nullptr, nullptr, translate);
-  uiTemplateEventFromKeymapItem(layout, name, kmi, true);
+  std::optional<StringRefNull> text = rna_translate_ui_text(
+      name, text_ctxt, nullptr, nullptr, translate);
+  uiTemplateEventFromKeymapItem(layout, text.value_or(""), kmi, true);
 }
 
 static void rna_uiTemplateAssetView(uiLayout *layout,
@@ -846,16 +871,18 @@ static uiLayout *rna_uiLayoutRowWithHeading(
     uiLayout *layout, bool align, const char *heading, const char *heading_ctxt, bool translate)
 {
   /* Get translated heading. */
-  heading = rna_translate_ui_text(heading, heading_ctxt, nullptr, nullptr, translate);
-  return uiLayoutRowWithHeading(layout, align, heading);
+  std::optional<StringRefNull> text = rna_translate_ui_text(
+      heading, heading_ctxt, nullptr, nullptr, translate);
+  return uiLayoutRowWithHeading(layout, align, text.value_or(""));
 }
 
 static uiLayout *rna_uiLayoutColumnWithHeading(
     uiLayout *layout, bool align, const char *heading, const char *heading_ctxt, bool translate)
 {
   /* Get translated heading. */
-  heading = rna_translate_ui_text(heading, heading_ctxt, nullptr, nullptr, translate);
-  return uiLayoutColumnWithHeading(layout, align, heading);
+  std::optional<StringRefNull> text = rna_translate_ui_text(
+      heading, heading_ctxt, nullptr, nullptr, translate);
+  return uiLayoutColumnWithHeading(layout, align, text.value_or(""));
 }
 
 void rna_uiLayoutPanelProp(uiLayout *layout,
@@ -1071,13 +1098,15 @@ PointerRNA rna_uiTemplatePopupConfirm(uiLayout *layout,
     BKE_reportf(reports, RPT_ERROR, "template_popup_confirm used outside of a popup");
   }
   else {
-    text = rna_translate_ui_text(text, text_ctxt, nullptr, nullptr, translate);
+    std::optional<StringRefNull> text_str = rna_translate_ui_text(
+        text, text_ctxt, nullptr, nullptr, translate);
+    std::optional<StringRefNull> cancel_text_str;
     if (cancel_text && cancel_text[0]) {
-      cancel_text = rna_translate_ui_text(cancel_text, text_ctxt, nullptr, nullptr, translate);
+      cancel_text_str = rna_translate_ui_text(cancel_text, text_ctxt, nullptr, nullptr, translate);
     }
 
     UI_popup_block_template_confirm_op(
-        layout, ot, text, cancel_text, icon, cancel_default, &opptr);
+        layout, ot, text_str, cancel_text_str, icon, cancel_default, &opptr);
   }
   return opptr;
 }

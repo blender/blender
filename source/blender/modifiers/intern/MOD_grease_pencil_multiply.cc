@@ -241,25 +241,25 @@ static void panel_draw(const bContext *C, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "duplicates", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "duplicates", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   uiLayout *col = uiLayoutColumn(layout, false);
   uiLayoutSetActive(col, RNA_int_get(ptr, "duplicates") > 0);
-  uiItemR(col, ptr, "distance", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "offset", UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "distance", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  uiItemR(col, ptr, "offset", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
 
   if (uiLayout *fade_panel = uiLayoutPanelProp(
           C, layout, ptr, "open_fading_panel", IFACE_("Fade")))
   {
     uiLayoutSetPropSep(fade_panel, true);
-    uiItemR(fade_panel, ptr, "use_fade", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(fade_panel, ptr, "use_fade", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
     uiLayout *sub = uiLayoutColumn(fade_panel, false);
     uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_fade"));
 
-    uiItemR(sub, ptr, "fading_center", UI_ITEM_NONE, nullptr, ICON_NONE);
-    uiItemR(sub, ptr, "fading_thickness", UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
-    uiItemR(sub, ptr, "fading_opacity", UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
+    uiItemR(sub, ptr, "fading_center", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    uiItemR(sub, ptr, "fading_thickness", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
+    uiItemR(sub, ptr, "fading_opacity", UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
   }
 
   if (uiLayout *influence_panel = uiLayoutPanelProp(

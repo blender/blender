@@ -48,16 +48,16 @@ namespace blender::render {
  * TODO: should share pool with draw manager. It needs some globals initialization figured out
  * there first.
  */
-class TexturePool : public realtime_compositor::TexturePool {
+class TexturePool : public compositor::TexturePool {
  private:
   /** Textures that are not yet used and are available to be acquired. After evaluation, any
    * texture in this map should be freed because it was not acquired in the evaluation and is thus
    * unused. Textures removed from this map should be moved to the textures_in_use_ map when
    * acquired. */
-  Map<realtime_compositor::TexturePoolKey, Vector<GPUTexture *>> available_textures_;
+  Map<compositor::TexturePoolKey, Vector<GPUTexture *>> available_textures_;
   /** Textures that were acquired in this compositor evaluation. After evaluation, those textures
    * are moved to the available_textures_ map to be acquired in the next evaluation. */
-  Map<realtime_compositor::TexturePoolKey, Vector<GPUTexture *>> textures_in_use_;
+  Map<compositor::TexturePoolKey, Vector<GPUTexture *>> textures_in_use_;
 
  public:
   virtual ~TexturePool()
@@ -77,7 +77,7 @@ class TexturePool : public realtime_compositor::TexturePool {
 
   GPUTexture *allocate_texture(int2 size, eGPUTextureFormat format) override
   {
-    const realtime_compositor::TexturePoolKey key(size, format);
+    const compositor::TexturePoolKey key(size, format);
     Vector<GPUTexture *> &available_textures = available_textures_.lookup_or_add_default(key);
     GPUTexture *texture = nullptr;
     if (available_textures.is_empty()) {
@@ -128,15 +128,15 @@ class ContextInputData {
   const RenderData *render_data;
   const bNodeTree *node_tree;
   std::string view_name;
-  realtime_compositor::RenderContext *render_context;
-  realtime_compositor::Profiler *profiler;
+  compositor::RenderContext *render_context;
+  compositor::Profiler *profiler;
 
   ContextInputData(const Scene &scene,
                    const RenderData &render_data,
                    const bNodeTree &node_tree,
                    const char *view_name,
-                   realtime_compositor::RenderContext *render_context,
-                   realtime_compositor::Profiler *profiler)
+                   compositor::RenderContext *render_context,
+                   compositor::Profiler *profiler)
       : scene(&scene),
         render_data(&render_data),
         node_tree(&node_tree),
@@ -149,16 +149,16 @@ class ContextInputData {
 
 /* Render Context Data */
 
-class Context : public realtime_compositor::Context {
+class Context : public compositor::Context {
  private:
   /* Input data. */
   ContextInputData input_data_;
 
   /* Output combined result. */
-  realtime_compositor::Result output_result_;
+  compositor::Result output_result_;
 
   /* Viewer output result. */
-  realtime_compositor::Result viewer_output_result_;
+  compositor::Result viewer_output_result_;
 
   /* Cached GPU and CPU passes that the compositor took ownership of. Those had their reference
    * count incremented when accessed and need to be freed/have their reference count decremented
@@ -168,10 +168,10 @@ class Context : public realtime_compositor::Context {
 
  public:
   Context(const ContextInputData &input_data, TexturePool &texture_pool)
-      : realtime_compositor::Context(texture_pool),
+      : compositor::Context(texture_pool),
         input_data_(input_data),
-        output_result_(this->create_result(realtime_compositor::ResultType::Color)),
-        viewer_output_result_(this->create_result(realtime_compositor::ResultType::Color))
+        output_result_(this->create_result(compositor::ResultType::Color)),
+        viewer_output_result_(this->create_result(compositor::ResultType::Color))
   {
   }
 
@@ -205,6 +205,17 @@ class Context : public realtime_compositor::Context {
   bool use_gpu() const override
   {
     return this->get_render_data().compositor_device == SCE_COMPOSITOR_DEVICE_GPU;
+  }
+
+  eCompositorDenoiseQaulity get_denoise_quality() const override
+  {
+    if (this->render_context()) {
+      return static_cast<eCompositorDenoiseQaulity>(
+          this->get_render_data().compositor_denoise_final_quality);
+    }
+
+    return static_cast<eCompositorDenoiseQaulity>(
+        this->get_render_data().compositor_denoise_preview_quality);
   }
 
   bool use_file_output() const override
@@ -242,7 +253,7 @@ class Context : public realtime_compositor::Context {
     return render_region;
   }
 
-  realtime_compositor::Result get_output_result() override
+  compositor::Result get_output_result() override
   {
     const int2 render_size = get_render_size();
     if (output_result_.is_allocated()) {
@@ -262,10 +273,9 @@ class Context : public realtime_compositor::Context {
     return output_result_;
   }
 
-  realtime_compositor::Result get_viewer_output_result(
-      realtime_compositor::Domain domain,
-      const bool is_data,
-      realtime_compositor::ResultPrecision precision) override
+  compositor::Result get_viewer_output_result(compositor::Domain domain,
+                                              const bool is_data,
+                                              compositor::ResultPrecision precision) override
   {
     viewer_output_result_.set_transformation(domain.transformation);
     viewer_output_result_.meta_data.is_non_color_data = is_data;
@@ -290,53 +300,53 @@ class Context : public realtime_compositor::Context {
     return viewer_output_result_;
   }
 
-  realtime_compositor::Result get_pass(const Scene *scene,
-                                       int view_layer_id,
-                                       const char *pass_name) override
+  compositor::Result get_pass(const Scene *scene,
+                              int view_layer_id,
+                              const char *pass_name) override
   {
     if (!scene) {
-      return realtime_compositor::Result(*this);
+      return compositor::Result(*this);
     }
 
     ViewLayer *view_layer = static_cast<ViewLayer *>(
         BLI_findlink(&scene->view_layers, view_layer_id));
     if (!view_layer) {
-      return realtime_compositor::Result(*this);
+      return compositor::Result(*this);
     }
 
     Render *render = RE_GetSceneRender(scene);
     if (!render) {
-      return realtime_compositor::Result(*this);
+      return compositor::Result(*this);
     }
 
     RenderResult *render_result = RE_AcquireResultRead(render);
     if (!render_result) {
       RE_ReleaseResult(render);
-      return realtime_compositor::Result(*this);
+      return compositor::Result(*this);
     }
 
     RenderLayer *render_layer = RE_GetRenderLayer(render_result, view_layer->name);
     if (!render_layer) {
       RE_ReleaseResult(render);
-      return realtime_compositor::Result(*this);
+      return compositor::Result(*this);
     }
 
     RenderPass *render_pass = RE_pass_find_by_name(
         render_layer, pass_name, this->get_view_name().data());
     if (!render_pass) {
       RE_ReleaseResult(render);
-      return realtime_compositor::Result(*this);
+      return compositor::Result(*this);
     }
 
     if (!render_pass || !render_pass->ibuf || !render_pass->ibuf->float_buffer.data) {
       RE_ReleaseResult(render);
-      return realtime_compositor::Result(*this);
+      return compositor::Result(*this);
     }
 
     const eGPUTextureFormat format = (render_pass->channels == 1) ? GPU_R32F :
                                      (render_pass->channels == 3) ? GPU_RGB32F :
                                                                     GPU_RGBA32F;
-    realtime_compositor::Result pass = realtime_compositor::Result(*this, format);
+    compositor::Result pass = compositor::Result(*this, format);
 
     if (this->use_gpu()) {
       GPUTexture *pass_texture = RE_pass_ensure_gpu_texture_cache(render, render_pass);
@@ -362,23 +372,23 @@ class Context : public realtime_compositor::Context {
     return input_data_.view_name;
   }
 
-  realtime_compositor::ResultPrecision get_precision() const override
+  compositor::ResultPrecision get_precision() const override
   {
     switch (input_data_.scene->r.compositor_precision) {
       case SCE_COMPOSITOR_PRECISION_AUTO:
         /* Auto uses full precision for final renders and half procession otherwise. */
         if (this->render_context()) {
-          return realtime_compositor::ResultPrecision::Full;
+          return compositor::ResultPrecision::Full;
         }
         else {
-          return realtime_compositor::ResultPrecision::Half;
+          return compositor::ResultPrecision::Half;
         }
       case SCE_COMPOSITOR_PRECISION_FULL:
-        return realtime_compositor::ResultPrecision::Full;
+        return compositor::ResultPrecision::Full;
     }
 
     BLI_assert_unreachable();
-    return realtime_compositor::ResultPrecision::Full;
+    return compositor::ResultPrecision::Full;
   }
 
   void set_info_message(StringRef /*message*/) const override
@@ -402,8 +412,12 @@ class Context : public realtime_compositor::Context {
   void populate_meta_data_for_pass(const Scene *scene,
                                    int view_layer_id,
                                    const char *pass_name,
-                                   realtime_compositor::MetaData &meta_data) const override
+                                   compositor::MetaData &meta_data) const override
   {
+    if (!scene) {
+      return;
+    }
+
     ViewLayer *view_layer = static_cast<ViewLayer *>(
         BLI_findlink(&scene->view_layers, view_layer_id));
     if (!view_layer) {
@@ -429,7 +443,7 @@ class Context : public realtime_compositor::Context {
 
     struct StampCallbackData {
       std::string cryptomatte_layer_name;
-      realtime_compositor::MetaData *meta_data;
+      compositor::MetaData *meta_data;
     };
 
     /* Go over the stamp data and add any Cryptomatte related meta data. */
@@ -588,12 +602,12 @@ class Context : public realtime_compositor::Context {
     }
   }
 
-  realtime_compositor::RenderContext *render_context() const override
+  compositor::RenderContext *render_context() const override
   {
     return input_data_.render_context;
   }
 
-  realtime_compositor::Profiler *profiler() const override
+  compositor::Profiler *profiler() const override
   {
     return input_data_.profiler;
   }
@@ -614,9 +628,9 @@ class Context : public realtime_compositor::Context {
   }
 };
 
-/* Render Realtime Compositor */
+/* Render Compositor */
 
-class RealtimeCompositor {
+class Compositor {
  private:
   /* Render instance for GPU context to run compositor in. */
   Render &render_;
@@ -629,10 +643,10 @@ class RealtimeCompositor {
    * changed them since the last evaluation. See the needs_to_be_recreated method for more info on
    * why those are needed. */
   bool uses_gpu_;
-  realtime_compositor::ResultPrecision used_precision_;
+  compositor::ResultPrecision used_precision_;
 
  public:
-  RealtimeCompositor(Render &render, const ContextInputData &input_data) : render_(render)
+  Compositor(Render &render, const ContextInputData &input_data) : render_(render)
   {
     texture_pool_ = std::make_unique<TexturePool>();
     context_ = std::make_unique<Context>(input_data, *texture_pool_);
@@ -641,7 +655,7 @@ class RealtimeCompositor {
     used_precision_ = context_->get_precision();
   }
 
-  ~RealtimeCompositor()
+  ~Compositor()
   {
     /* Use uses_gpu_ instead of context_->use_gpu() because we are freeing resources from the last
      * evaluation. See uses_gpu_ for more information. */
@@ -700,7 +714,7 @@ class RealtimeCompositor {
     /* Always recreate the evaluator, as this only runs on compositing node changes and
      * there is no reason to cache this. Unlike the viewport where it helps for navigation. */
     {
-      realtime_compositor::Evaluator evaluator(*context_);
+      compositor::Evaluator evaluator(*context_);
       evaluator.evaluate();
     }
 
@@ -740,8 +754,8 @@ void Render::compositor_execute(const Scene &scene,
                                 const RenderData &render_data,
                                 const bNodeTree &node_tree,
                                 const char *view_name,
-                                blender::realtime_compositor::RenderContext *render_context,
-                                blender::realtime_compositor::Profiler *profiler)
+                                blender::compositor::RenderContext *render_context,
+                                blender::compositor::Profiler *profiler)
 {
   std::unique_lock lock(this->compositor_mutex);
 
@@ -759,7 +773,7 @@ void Render::compositor_execute(const Scene &scene,
   }
 
   if (!this->compositor) {
-    this->compositor = new blender::render::RealtimeCompositor(*this, input_data);
+    this->compositor = new blender::render::Compositor(*this, input_data);
   }
 
   this->compositor->execute();
@@ -780,8 +794,8 @@ void RE_compositor_execute(Render &render,
                            const RenderData &render_data,
                            const bNodeTree &node_tree,
                            const char *view_name,
-                           blender::realtime_compositor::RenderContext *render_context,
-                           blender::realtime_compositor::Profiler *profiler)
+                           blender::compositor::RenderContext *render_context,
+                           blender::compositor::Profiler *profiler)
 {
   render.compositor_execute(scene, render_data, node_tree, view_name, render_context, profiler);
 }

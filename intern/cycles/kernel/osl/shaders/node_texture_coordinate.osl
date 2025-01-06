@@ -23,7 +23,12 @@ shader node_texture_coordinate(
   if (is_background) {
     Generated = P;
     UV = point(0.0, 0.0, 0.0);
-    Object = P;
+    if (use_transform) {
+      Object = transform(object_itfm, P);
+    }
+    else {
+      Object = P;
+    }
     point Pcam = transform("camera", "world", point(0, 0, 0));
     Camera = transform("camera", P + Pcam);
     getattribute("NDC", Window);
@@ -63,7 +68,7 @@ shader node_texture_coordinate(
     }
     Camera = transform("camera", P);
     Window = transform("NDC", P);
-    Normal = transform("world", "object", N);
+    Normal = normalize(transform("world", "object", N));
     Reflection = -reflect(I, N);
   }
 

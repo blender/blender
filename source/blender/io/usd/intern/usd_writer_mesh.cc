@@ -34,6 +34,7 @@
 #include "DEG_depsgraph.hh"
 
 #include "DNA_key_types.h"
+#include "DNA_material_types.h"
 #include "DNA_modifier_types.h"
 
 #include "CLG_log.h"
@@ -286,7 +287,7 @@ struct USDMeshData {
   pxr::VtArray<pxr::GfVec3f> points;
   pxr::VtIntArray face_vertex_counts;
   pxr::VtIntArray face_indices;
-  Map<short, pxr::VtIntArray> face_groups;
+  MaterialFaceGroups face_groups;
 
   /* The length of this array specifies the number of creases on the surface. Each element gives
    * the number of (must be adjacent) vertices in each crease, whose indices are linearly laid out
@@ -664,7 +665,7 @@ void USDGenericMeshWriter::assign_materials(const HierarchyContext &context,
     auto subset_material_api = pxr::UsdShadeMaterialBindingAPI(subset_prim);
     subset_material_api.Bind(usd_material);
     /* Apply the #MaterialBindingAPI applied schema, as required by USD. */
-    subset_material_api.Apply(subset_prim);
+    pxr::UsdShadeMaterialBindingAPI::Apply(subset_prim);
   }
 }
 

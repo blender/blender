@@ -84,7 +84,7 @@ ShaderModule::~ShaderModule()
   }
 
   for (GPUShader *&shader : shaders_) {
-    DRW_SHADER_FREE_SAFE(shader);
+    GPU_SHADER_FREE_SAFE(shader);
   }
 }
 

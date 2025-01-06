@@ -23,9 +23,6 @@ extern const char datatoc_preview_blend[];
 extern int datatoc_preview_grease_pencil_blend_size;
 extern const char datatoc_preview_grease_pencil_blend[];
 
-extern int datatoc_preview_grease_pencil_legacy_blend_size;
-extern const char datatoc_preview_grease_pencil_legacy_blend[];
-
 extern int datatoc_splash_png_size;
 extern const char datatoc_splash_png[];
 

@@ -465,6 +465,7 @@ struct wmNotifier {
 #define ND_NLA_ACTCHANGE (74 << 16)
 #define ND_FCURVES_ORDER (75 << 16)
 #define ND_NLA_ORDER (76 << 16)
+#define ND_KEYFRAME_AUTO (77 << 16)
 
 /* NC_GPENCIL. */
 #define ND_GPENCIL_EDITMODE (85 << 16)

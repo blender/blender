@@ -39,10 +39,6 @@ static void node_geo_exec(GeoNodeExecParams params)
 
   import_params.forward_axis = IO_AXIS_NEGATIVE_Z;
   import_params.up_axis = IO_AXIS_Y;
-  import_params.use_facet_normal = false;
-  import_params.use_scene_unit = false;
-  import_params.global_scale = 1.0f;
-  import_params.use_mesh_validate = true;
 
   ReportList reports;
   BKE_reports_init(&reports, RPT_STORE);
@@ -78,7 +74,7 @@ static void node_register()
   static blender::bke::bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_IMPORT_STL, "Import STL", NODE_CLASS_INPUT);
-
+  ntype.enum_name_legacy = "IMPORT_STL";
   ntype.geometry_node_execute = node_geo_exec;
   ntype.declare = node_declare;
   ntype.gather_link_search_ops = search_link_ops_for_import_node;

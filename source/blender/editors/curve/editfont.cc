@@ -821,7 +821,7 @@ static void txt_add_object(bContext *C,
   add_v3_v3(obedit->loc, offset);
 
   cu = static_cast<Curve *>(obedit->data);
-  cu->vfont = BKE_vfont_builtin_get();
+  cu->vfont = BKE_vfont_builtin_ensure();
   id_us_plus(&cu->vfont->id);
 
   for (tmp = firstline, a = 0; nbytes < MAXTEXT && a < totline; tmp = tmp->next, a++) {
@@ -2503,7 +2503,7 @@ static int font_unlink_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  builtin_font = BKE_vfont_builtin_get();
+  builtin_font = BKE_vfont_builtin_ensure();
 
   PointerRNA idptr = RNA_id_pointer_create(&builtin_font->id);
   RNA_property_pointer_set(&pprop.ptr, pprop.prop, idptr, nullptr);

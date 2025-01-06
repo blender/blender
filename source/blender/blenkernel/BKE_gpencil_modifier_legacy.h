@@ -9,6 +9,8 @@
 
 #include "DNA_gpencil_modifier_types.h" /* Needed for all enum type definitions. */
 
+#include "BKE_lib_query.hh" /* For LibraryForeachIDCallbackFlag enum. */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -24,7 +26,7 @@ struct Object;
 typedef void (*GreasePencilIDWalkFunc)(void *user_data,
                                        struct Object *ob,
                                        struct ID **idpoin,
-                                       int cb_flag);
+                                       LibraryForeachIDCallbackFlag cb_flag);
 
 /**
  * Free grease pencil modifier data

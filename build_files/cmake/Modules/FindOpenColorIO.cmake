@@ -57,7 +57,7 @@ foreach(COMPONENT ${_opencolorio_FIND_COMPONENTS})
       ${_opencolorio_SEARCH_DIRS}
     PATH_SUFFIXES
       lib64 lib lib64/static lib/static
-    )
+  )
   if(OPENCOLORIO_${UPPERCOMPONENT}_LIBRARY)
     list(APPEND _opencolorio_LIBRARIES "${OPENCOLORIO_${UPPERCOMPONENT}_LIBRARY}")
   endif()
@@ -79,8 +79,8 @@ endif()
 # all listed variables are TRUE
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(OpenColorIO
-    REQUIRED_VARS _opencolorio_LIBRARIES OPENCOLORIO_INCLUDE_DIR
-    VERSION_VAR OPENCOLORIO_VERSION)
+  REQUIRED_VARS _opencolorio_LIBRARIES OPENCOLORIO_INCLUDE_DIR
+  VERSION_VAR OPENCOLORIO_VERSION)
 
 if(OPENCOLORIO_FOUND)
   set(OPENCOLORIO_LIBRARIES ${_opencolorio_LIBRARIES})

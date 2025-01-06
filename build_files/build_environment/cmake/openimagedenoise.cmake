@@ -52,7 +52,7 @@ if(WIN32 AND NOT BLENDER_PLATFORM_ARM)
     -DCMAKE_EXE_LINKER_FLAGS=-L"${LIBDIR}/dpcpp/lib"
   )
 else()
-  if(NOT (APPLE OR WIN32))
+  if(NOT (APPLE OR WIN32 OR BLENDER_PLATFORM_ARM))
     set(OIDN_EXTRA_ARGS
       ${OIDN_EXTRA_ARGS}
       -DCMAKE_CXX_COMPILER=${LIBDIR}/dpcpp/bin/clang++
@@ -103,7 +103,7 @@ add_dependencies(
   external_python
 )
 
-if(NOT (APPLE OR WIN32))
+if(NOT (APPLE OR WIN32 OR BLENDER_PLATFORM_ARM))
   add_dependencies(
     external_openimagedenoise
     external_dpcpp
@@ -111,7 +111,7 @@ if(NOT (APPLE OR WIN32))
   )
 endif()
 
-if(NOT APPLE)
+if(NOT (APPLE OR BLENDER_PLATFORM_ARM))
   add_dependencies(
     external_openimagedenoise
     external_level-zero

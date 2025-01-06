@@ -1,3 +1,15 @@
-All HDRIs are licenses as CC0.
+All HDRIs are licensed as CC0.
 
 These were created by Greg Zaal (Poly Haven https://polyhaven.com).
+Originals used for each HDRI:
+- City: https://polyhaven.com/a/portland_landing_pad
+- Courtyard: https://polyhaven.com/a/courtyard
+- Forest: https://polyhaven.com/a/ninomaru_teien
+- Interior: https://polyhaven.com/a/hotel_room
+- Night: Probably https://polyhaven.com/a/moonless_golf
+- Studio: Probably https://polyhaven.com/a/studio_small_01
+- Sunrise: https://polyhaven.com/a/spruit_sunrise
+- Sunset: https://polyhaven.com/a/venice_sunset
+
+1K resolution of each was taken, and compressed with oiiotool:
+oiiotool input.exr --ch R,G,B -d float --compression dwab:300 --clamp:min=0.0:max=32000.0 -o output.exr

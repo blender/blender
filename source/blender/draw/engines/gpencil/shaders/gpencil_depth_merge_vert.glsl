@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "infos/gpencil_info.hh"
+
+VERTEX_SHADER_CREATE_INFO(gpencil_depth_merge)
+
 void main()
 {
   int v = gl_VertexID % 3;

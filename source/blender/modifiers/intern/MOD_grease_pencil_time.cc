@@ -532,7 +532,7 @@ static void panel_draw(const bContext *C, Panel *panel)
 
   uiLayoutSetPropSep(layout, true);
 
-  uiItemR(layout, ptr, "mode", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   col = uiLayoutColumn(layout, false);
 
@@ -545,7 +545,7 @@ static void panel_draw(const bContext *C, Panel *panel)
 
   row = uiLayoutRow(layout, false);
   uiLayoutSetActive(row, !use_fixed_offset);
-  uiItemR(row, ptr, "use_keep_loop", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(row, ptr, "use_keep_loop", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   if (mode == MOD_GREASE_PENCIL_TIME_MODE_CHAIN) {
     row = uiLayoutRow(layout, false);
@@ -588,11 +588,11 @@ static void panel_draw(const bContext *C, Panel *panel)
                                                   &tmd->segments()[tmd->segment_active_index]);
 
       sub = uiLayoutColumn(layout, true);
-      uiItemR(sub, &segment_ptr, "segment_mode", UI_ITEM_NONE, nullptr, ICON_NONE);
+      uiItemR(sub, &segment_ptr, "segment_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
       sub = uiLayoutColumn(layout, true);
-      uiItemR(sub, &segment_ptr, "segment_start", UI_ITEM_NONE, nullptr, ICON_NONE);
-      uiItemR(sub, &segment_ptr, "segment_end", UI_ITEM_NONE, nullptr, ICON_NONE);
-      uiItemR(sub, &segment_ptr, "segment_repeat", UI_ITEM_NONE, nullptr, ICON_NONE);
+      uiItemR(sub, &segment_ptr, "segment_start", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      uiItemR(sub, &segment_ptr, "segment_end", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      uiItemR(sub, &segment_ptr, "segment_repeat", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     }
   }
 
@@ -601,7 +601,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   if (uiLayout *header = custom_range_panel_layout.header) {
     uiLayoutSetPropSep(header, false);
     uiLayoutSetActive(header, use_custom_range);
-    uiItemR(header, ptr, "use_custom_frame_range", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(header, ptr, "use_custom_frame_range", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
   if (uiLayout *body = custom_range_panel_layout.body) {
     uiLayoutSetPropSep(body, true);

@@ -109,16 +109,13 @@ float light_attenuation_common(LightData light, const bool is_directional, vec3 
 
 float light_shape_radius(LightData light)
 {
-  float radius;
   if (is_sun_light(light.type)) {
     return light_sun_data_get(light).shape_radius;
   }
-  else if (is_area_light(light.type)) {
+  if (is_area_light(light.type)) {
     return length(light_area_data_get(light).size);
   }
-  else {
-    return light_local_data_get(light).shape_radius;
-  }
+  return light_local_data_get(light).shape_radius;
 }
 
 /**

@@ -47,6 +47,8 @@
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 
+#include "MOV_read.hh"
+
 #include "ED_clip.hh"
 #include "ED_screen.hh"
 
@@ -1178,7 +1180,7 @@ struct ProxyJob {
   MovieClip *clip;
   int clip_flag;
   bool stop;
-  IndexBuildContext *index_context;
+  MovieProxyBuilder *proxy_builder;
 };
 
 static void proxy_freejob(void *pjv)
@@ -1232,8 +1234,8 @@ static void do_movie_proxy(void *pjv,
   MovieClip *clip = pj->clip;
   MovieDistortion *distortion = nullptr;
 
-  if (pj->index_context) {
-    IMB_anim_index_rebuild(pj->index_context, stop, do_update, progress);
+  if (pj->proxy_builder) {
+    MOV_proxy_builder_process(pj->proxy_builder, stop, do_update, progress);
   }
 
   if (!build_undistort_count) {
@@ -1497,11 +1499,11 @@ static void proxy_endjob(void *pjv)
   ProxyJob *pj = static_cast<ProxyJob *>(pjv);
 
   if (pj->clip->anim) {
-    IMB_close_anim_proxies(pj->clip->anim);
+    MOV_close_proxies(pj->clip->anim);
   }
 
-  if (pj->index_context) {
-    IMB_anim_index_rebuild_finish(pj->index_context, pj->stop);
+  if (pj->proxy_builder) {
+    MOV_proxy_builder_finish(pj->proxy_builder, pj->stop);
   }
 
   if (pj->clip->source == MCLIP_SRC_MOVIE) {
@@ -1543,14 +1545,13 @@ static int clip_rebuild_proxy_exec(bContext *C, wmOperator * /*op*/)
   pj->clip_flag = clip->flag & MCLIP_TIMECODE_FLAGS;
 
   if (clip->anim) {
-    pj->index_context = IMB_anim_index_rebuild_context(
-        clip->anim,
-        IMB_Timecode_Type(clip->proxy.build_tc_flag),
-        IMB_Proxy_Size(clip->proxy.build_size_flag),
-        clip->proxy.quality,
-        true,
-        nullptr,
-        false);
+    pj->proxy_builder = MOV_proxy_builder_start(clip->anim,
+                                                IMB_Timecode_Type(clip->proxy.build_tc_flag),
+                                                IMB_Proxy_Size(clip->proxy.build_size_flag),
+                                                clip->proxy.quality,
+                                                true,
+                                                nullptr,
+                                                false);
   }
 
   WM_jobs_customdata_set(wm_job, pj, proxy_freejob);

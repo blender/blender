@@ -13,6 +13,25 @@
 /* clang-format off */
 
 /* -------------------------------------------------------------------- */
+/** \name Action Struct
+ * \{ */
+
+/* The last_slot_handle is set to a high value to disambiguate slot handles from
+ * array indices.
+ *
+ * This particular value was obtained by taking the 31 most-significant bits of
+ * the TentHash value (Nathan's hash function) for the string "Quercus&Laksa"
+ * (Sybren's cats). */
+#define DNA_DEFAULT_ACTION_LAST_SLOT_HANDLE 0x37627bf5
+
+#define _DNA_DEFAULT_bAction \
+  { \
+  .last_slot_handle = DNA_DEFAULT_ACTION_LAST_SLOT_HANDLE, \
+  }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name ActionLayer Struct
  * \{ */
 

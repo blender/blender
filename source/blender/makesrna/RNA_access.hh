@@ -18,6 +18,7 @@
 
 #include "BLI_compiler_attrs.h"
 #include "BLI_function_ref.hh"
+#include "BLI_string_ref.hh"
 
 struct ID;
 struct IDOverrideLibrary;
@@ -761,7 +762,7 @@ void RNA_parameter_dynamic_length_set_data(ParameterList *parms,
 int RNA_function_call(
     bContext *C, ReportList *reports, PointerRNA *ptr, FunctionRNA *func, ParameterList *parms);
 
-const char *RNA_translate_ui_text(
+std::optional<blender::StringRefNull> RNA_translate_ui_text(
     const char *text, const char *text_ctxt, StructRNA *type, PropertyRNA *prop, int translate);
 
 /* ID */

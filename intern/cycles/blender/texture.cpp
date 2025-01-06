@@ -4,6 +4,8 @@
 
 #include "blender/texture.h"
 
+#include "util/math.h"
+
 CCL_NAMESPACE_BEGIN
 
 namespace {
@@ -38,7 +40,8 @@ void point_density_texture_space(BL::Depsgraph &b_depsgraph,
     size = zero_float3();
     return;
   }
-  float3 min, max;
+  float3 min;
+  float3 max;
   b_point_density_node.calc_point_density_minmax(b_depsgraph, &min[0], &max[0]);
   loc = (min + max) * 0.5f;
   size = (max - min) * 0.5f;

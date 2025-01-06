@@ -98,7 +98,7 @@ foreach(COMPONENT ${_clang_FIND_COMPONENTS})
       ${_clang_SEARCH_DIRS}
     PATH_SUFFIXES
       lib64 lib
-    )
+  )
   if(CLANG_${UPPERCOMPONENT}_LIBRARY)
     list(APPEND _clang_LIBRARIES "${CLANG_${UPPERCOMPONENT}_LIBRARY}")
   endif()
@@ -109,7 +109,7 @@ endforeach()
 # all listed variables are TRUE.
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(Clang DEFAULT_MSG
-    _clang_LIBRARIES CLANG_INCLUDE_DIR)
+  _clang_LIBRARIES CLANG_INCLUDE_DIR)
 
 if(CLANG_FOUND)
   set(CLANG_LIBRARIES ${_clang_LIBRARIES})

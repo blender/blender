@@ -27,6 +27,12 @@
  * IMPORTANT: Do not forget to manually store the tile data after doing operations on them.
  */
 
+#include "infos/eevee_shadow_info.hh"
+
+#ifdef GPU_LIBRARY_SHADER
+SHADER_LIBRARY_CREATE_INFO(eevee_shadow_page_free)
+#endif
+
 #include "eevee_shadow_tilemap_lib.glsl"
 
 /* Remove page ownership from the tile and append it to the cache. */

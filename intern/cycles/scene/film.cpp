@@ -14,8 +14,6 @@
 #include "scene/stats.h"
 #include "scene/tables.h"
 
-#include "util/algorithm.h"
-#include "util/foreach.h"
 #include "util/math.h"
 #include "util/math_cdf.h"
 #include "util/time.h"
@@ -29,13 +27,13 @@ static float filter_func_box(float /*v*/, float /*width*/)
   return 1.0f;
 }
 
-static float filter_func_gaussian(float v, float width)
+static float filter_func_gaussian(float v, const float width)
 {
   v *= 6.0f / width;
   return expf(-2.0f * v * v);
 }
 
-static float filter_func_blackman_harris(float v, float width)
+static float filter_func_blackman_harris(float v, const float width)
 {
   v = M_2PI_F * (v / width + 0.5f);
   return 0.35875f - 0.48829f * cosf(v) + 0.14128f * cosf(2.0f * v) - 0.01168f * cosf(3.0f * v);
@@ -44,7 +42,7 @@ static float filter_func_blackman_harris(float v, float width)
 static vector<float> filter_table(FilterType type, float width)
 {
   vector<float> filter_table(FILTER_TABLE_SIZE);
-  float (*filter_func)(float, float) = NULL;
+  float (*filter_func)(float, float) = nullptr;
 
   switch (type) {
     case FILTER_BOX:
@@ -73,12 +71,13 @@ static vector<float> filter_table(FilterType type, float width)
    * consider either making FILTER_TABLE_SIZE odd value or sample full filter.
    */
 
-  util_cdf_inverted(FILTER_TABLE_SIZE,
-                    0.0f,
-                    width * 0.5f,
-                    function_bind(filter_func, _1, width),
-                    true,
-                    filter_table);
+  util_cdf_inverted(
+      FILTER_TABLE_SIZE,
+      0.0f,
+      width * 0.5f,
+      [filter_func, width](const float x) { return filter_func(x, width); },
+      true,
+      filter_table);
 
   return filter_table;
 }
@@ -126,7 +125,7 @@ NODE_DEFINE(Film)
 
 Film::Film() : Node(get_node_type()), filter_table_offset_(TABLE_OFFSET_INVALID) {}
 
-Film::~Film() {}
+Film::~Film() = default;
 
 void Film::add_default(Scene *scene)
 {
@@ -140,7 +139,7 @@ void Film::device_update(Device *device, DeviceScene *dscene, Scene *scene)
     return;
   }
 
-  scoped_callback_timer timer([scene](double time) {
+  const scoped_callback_timer timer([scene](double time) {
     if (scene->update_stats) {
       scene->update_stats->film.times.add_entry({"update", time});
     }
@@ -239,7 +238,7 @@ void Film::device_update(Device *device, DeviceScene *dscene, Scene *scene)
       assert(pass->get_type() <= PASS_CATEGORY_BAKE_END);
     }
 
-    if (pass->get_lightgroup() != ustring()) {
+    if (!pass->get_lightgroup().empty()) {
       if (!have_lightgroup) {
         kfilm->pass_lightgroup = kfilm->pass_stride;
         have_lightgroup = true;
@@ -424,14 +423,15 @@ void Film::device_free(Device * /*device*/, DeviceScene * /*dscene*/, Scene *sce
 
 int Film::get_aov_offset(Scene *scene, string name, bool &is_color)
 {
-  int offset_color = 0, offset_value = 0;
-  foreach (const Pass *pass, scene->passes) {
+  int offset_color = 0;
+  int offset_value = 0;
+  for (const Pass *pass : scene->passes) {
     if (pass->get_name() == name) {
       if (pass->get_type() == PASS_AOV_VALUE) {
         is_color = false;
         return offset_value;
       }
-      else if (pass->get_type() == PASS_AOV_COLOR) {
+      if (pass->get_type() == PASS_AOV_COLOR) {
         is_color = true;
         return offset_color;
       }
@@ -452,8 +452,8 @@ bool Film::update_lightgroups(Scene *scene)
 {
   map<ustring, int> lightgroups;
   int i = 0;
-  foreach (const Pass *pass, scene->passes) {
-    ustring lightgroup = pass->get_lightgroup();
+  for (const Pass *pass : scene->passes) {
+    const ustring lightgroup = pass->get_lightgroup();
     if (!lightgroup.empty()) {
       if (!lightgroups.count(lightgroup)) {
         lightgroups[lightgroup] = i++;
@@ -471,8 +471,8 @@ bool Film::update_lightgroups(Scene *scene)
 void Film::update_passes(Scene *scene, bool add_sample_count_pass)
 {
   const Background *background = scene->background;
-  const BakeManager *bake_manager = scene->bake_manager;
-  const ObjectManager *object_manager = scene->object_manager;
+  const BakeManager *bake_manager = scene->bake_manager.get();
+  const ObjectManager *object_manager = scene->object_manager.get();
   Integrator *integrator = scene->integrator;
 
   if (!is_modified() && !object_manager->need_update() && !integrator->is_modified() &&
@@ -577,8 +577,9 @@ void Film::update_passes(Scene *scene, bool add_sample_count_pass)
 
   if (have_uv_pass != prev_have_uv_pass) {
     scene->geometry_manager->tag_update(scene, GeometryManager::UV_PASS_NEEDED);
-    foreach (Shader *shader, scene->shaders)
+    for (Shader *shader : scene->shaders) {
       shader->need_update_uvs = true;
+    }
   }
   if (have_motion_pass != prev_have_motion_pass) {
     scene->geometry_manager->tag_update(scene, GeometryManager::MOTION_PASS_NEEDED);
@@ -609,31 +610,29 @@ void Film::add_auto_pass(Scene *scene, PassType type, const char *name)
 
 void Film::add_auto_pass(Scene *scene, PassType type, PassMode mode, const char *name)
 {
-  Pass *pass = new Pass();
+  unique_ptr<Pass> pass = make_unique<Pass>();
   pass->set_type(type);
   pass->set_mode(mode);
   pass->set_name(ustring((name) ? name : ""));
   pass->is_auto_ = true;
 
   pass->set_owner(scene);
-  scene->passes.push_back(pass);
+  scene->passes.push_back(std::move(pass));
 }
 
 void Film::remove_auto_passes(Scene *scene)
 {
   /* Remove all passes which were automatically created. */
-  vector<Pass *> new_passes;
+  unique_ptr_vector<Pass> new_passes;
 
-  for (Pass *pass : scene->passes) {
+  for (size_t i = 0; i < scene->passes.size(); i++) {
+    unique_ptr<Pass> pass = scene->passes.steal(i);
     if (!pass->is_auto_) {
-      new_passes.push_back(pass);
-    }
-    else {
-      delete pass;
+      new_passes.push_back(std::move(pass));
     }
   }
 
-  scene->passes = new_passes;
+  scene->passes = std::move(new_passes);
 }
 
 static bool compare_pass_order(const Pass *a, const Pass *b)
@@ -659,9 +658,11 @@ static bool compare_pass_order(const Pass *a, const Pass *b)
 void Film::finalize_passes(Scene *scene, const bool use_denoise)
 {
   /* Remove duplicate passes. */
-  vector<Pass *> new_passes;
+  unique_ptr_vector<Pass> new_passes;
 
-  for (Pass *pass : scene->passes) {
+  for (size_t i = 0; i < scene->passes.size(); i++) {
+    unique_ptr<Pass> pass = scene->passes.steal(i);
+
     /* Disable denoising on passes if denoising is disabled, or if the
      * pass does not support it. */
     pass->set_mode((use_denoise && pass->get_info().support_denoise) ? pass->get_mode() :
@@ -693,19 +694,16 @@ void Film::finalize_passes(Scene *scene, const bool use_denoise)
     }
 
     if (!duplicate_found) {
-      new_passes.push_back(pass);
-    }
-    else {
-      delete pass;
+      new_passes.push_back(std::move(pass));
     }
   }
 
   /* Order from by components and type, This is required to for AOVs and cryptomatte passes,
    * which the kernel assumes to be in order. Note this must use stable sort so cryptomatte
    * passes remain in the right order. */
-  stable_sort(new_passes.begin(), new_passes.end(), compare_pass_order);
+  new_passes.stable_sort(compare_pass_order);
 
-  scene->passes = new_passes;
+  scene->passes = std::move(new_passes);
 }
 
 uint Film::get_kernel_features(const Scene *scene) const

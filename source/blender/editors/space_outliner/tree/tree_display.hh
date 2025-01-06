@@ -30,7 +30,7 @@ struct Library;
 struct ListBase;
 struct Main;
 struct Scene;
-struct Sequence;
+struct Strip;
 struct SpaceOutliner;
 struct ViewLayer;
 
@@ -217,11 +217,7 @@ class TreeDisplayOverrideLibraryHierarchies final : public AbstractTreeDisplay {
 /* -------------------------------------------------------------------- */
 /* Video Sequencer Tree-Display */
 
-enum SequenceAddOp {
-  SEQUENCE_DUPLICATE_NOOP = 0,
-  SEQUENCE_DUPLICATE_ADD,
-  SEQUENCE_DUPLICATE_NONE
-};
+enum class StripAddOp : int8_t { Noop = 0, Add, None };
 
 /**
  * \brief Tree-Display for the Video Sequencer display mode
@@ -237,8 +233,8 @@ class TreeDisplaySequencer final : public AbstractTreeDisplay {
   /**
    * Helped function to put duplicate sequence in the same tree.
    */
-  SequenceAddOp need_add_seq_dup(Sequence *seq) const;
-  void add_seq_dup(Sequence *seq, TreeElement *te, short index);
+  StripAddOp need_add_strip_dup(Strip *seq) const;
+  void add_strip_dup(Strip *seq, TreeElement *te, short index);
 };
 
 /* -------------------------------------------------------------------- */

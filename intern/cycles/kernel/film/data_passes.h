@@ -4,9 +4,11 @@
 
 #pragma once
 
-#include "kernel/geom/geom.h"
+#include "kernel/integrator/surface_shader.h"
 
 #include "kernel/camera/camera.h"
+
+#include "kernel/geom/primitive.h"
 
 #include "kernel/film/cryptomatte_passes.h"
 #include "kernel/film/write.h"
@@ -14,9 +16,9 @@
 CCL_NAMESPACE_BEGIN
 
 ccl_device_inline size_t film_write_cryptomatte_pass(ccl_global float *ccl_restrict buffer,
-                                                     size_t depth,
-                                                     float id,
-                                                     float matte_weight)
+                                                     const size_t depth,
+                                                     const float id,
+                                                     const float matte_weight)
 {
   film_write_cryptomatte_slots(buffer, depth * 2, id, matte_weight);
   return depth * 4;
@@ -24,7 +26,7 @@ ccl_device_inline size_t film_write_cryptomatte_pass(ccl_global float *ccl_restr
 
 ccl_device_inline void film_write_data_passes(KernelGlobals kg,
                                               IntegratorState state,
-                                              ccl_private const ShaderData *sd,
+                                              const ccl_private ShaderData *sd,
                                               ccl_global float *ccl_restrict render_buffer)
 {
 #ifdef __PASSES__
@@ -144,14 +146,18 @@ ccl_device_inline void film_write_data_passes(KernelGlobals kg,
     /* Falloff */
     const float mist_falloff = kernel_data.film.mist_falloff;
 
-    if (mist_falloff == 1.0f)
+    if (mist_falloff == 1.0f) {
       ;
-    else if (mist_falloff == 2.0f)
+    }
+    else if (mist_falloff == 2.0f) {
       mist = mist * mist;
-    else if (mist_falloff == 0.5f)
+    }
+    else if (mist_falloff == 0.5f) {
       mist = sqrtf(mist);
-    else
+    }
+    else {
       mist = powf(mist, mist_falloff);
+    }
 
     /* Modulate by transparency */
     const Spectrum throughput = INTEGRATOR_STATE(state, path, throughput);

@@ -7,15 +7,16 @@
 #include "scene/alembic_read.h"
 #include "scene/camera.h"
 #include "scene/curves.h"
+#include "scene/hair.h"
 #include "scene/mesh.h"
 #include "scene/object.h"
 #include "scene/pointcloud.h"
 #include "scene/scene.h"
 #include "scene/shader.h"
 
-#include "util/foreach.h"
 #include "util/log.h"
 #include "util/progress.h"
+#include "util/set.h"
 #include "util/transform.h"
 #include "util/vector.h"
 
@@ -245,9 +246,12 @@ size_t CachedData::memory_used() const
   return mem_used;
 }
 
-static M44d convert_yup_zup(const M44d &mtx, float scale_mult)
+static M44d convert_yup_zup(const M44d &mtx, const float scale_mult)
 {
-  V3d scale, shear, rotation, translation;
+  V3d scale;
+  V3d shear;
+  V3d rotation;
+  V3d translation;
 
   if (!extractSHRT(mtx,
                    scale,
@@ -260,12 +264,14 @@ static M44d convert_yup_zup(const M44d &mtx, float scale_mult)
     return mtx;
   }
 
-  M44d rot_mat, scale_mat, trans_mat;
+  M44d rot_mat;
+  M44d scale_mat;
+  M44d trans_mat;
   rot_mat.setEulerAngles(V3d(rotation.x, -rotation.z, rotation.y));
   scale_mat.setScale(V3d(scale.x, scale.z, scale.y));
   trans_mat.setTranslation(V3d(translation.x, -translation.z, translation.y));
 
-  M44d temp_mat = scale_mat * rot_mat * trans_mat;
+  const M44d temp_mat = scale_mat * rot_mat * trans_mat;
 
   scale_mat.setScale(static_cast<double>(scale_mult));
 
@@ -294,7 +300,10 @@ static M44d transform_compose(const V3d &scale,
                               const Quatd &rotation,
                               const V3d &translation)
 {
-  M44d scale_mat, shear_mat, rot_mat, trans_mat;
+  M44d scale_mat;
+  M44d shear_mat;
+  M44d rot_mat;
+  M44d trans_mat;
 
   scale_mat.setScale(scale);
   shear_mat.setShear(shear);
@@ -308,7 +317,7 @@ static M44d transform_compose(const V3d &scale,
  */
 static M44d get_matrix_for_time(const MatrixSampleMap &samples, chrono_t time)
 {
-  MatrixSampleMap::const_iterator iter = samples.find(time);
+  const MatrixSampleMap::const_iterator iter = samples.find(time);
   if (iter != samples.end()) {
     return iter->second;
   }
@@ -325,7 +334,7 @@ static M44d get_interpolated_matrix_for_time(const MatrixSampleMap &samples, chr
   }
 
   /* see if exact match */
-  MatrixSampleMap::const_iterator iter = samples.find(time);
+  const MatrixSampleMap::const_iterator iter = samples.find(time);
   if (iter != samples.end()) {
     return iter->second;
   }
@@ -347,7 +356,7 @@ static M44d get_interpolated_matrix_for_time(const MatrixSampleMap &samples, chr
   chrono_t next_time = samples.rbegin()->first;
 
   for (MatrixSampleMap::const_iterator I = samples.begin(); I != samples.end(); ++I) {
-    chrono_t current_time = (*I).first;
+    const chrono_t current_time = (*I).first;
 
     if (current_time > prev_time && current_time <= time) {
       prev_time = current_time;
@@ -361,15 +370,19 @@ static M44d get_interpolated_matrix_for_time(const MatrixSampleMap &samples, chr
   const M44d prev_mat = get_matrix_for_time(samples, prev_time);
   const M44d next_mat = get_matrix_for_time(samples, next_time);
 
-  V3d prev_scale, next_scale;
-  V3d prev_shear, next_shear;
-  V3d prev_translation, next_translation;
-  Quatd prev_rotation, next_rotation;
+  V3d prev_scale;
+  V3d next_scale;
+  V3d prev_shear;
+  V3d next_shear;
+  V3d prev_translation;
+  V3d next_translation;
+  Quatd prev_rotation;
+  Quatd next_rotation;
 
   transform_decompose(prev_mat, prev_scale, prev_shear, prev_rotation, prev_translation);
   transform_decompose(next_mat, next_scale, next_shear, next_rotation, next_translation);
 
-  chrono_t t = (time - prev_time) / (next_time - prev_time);
+  const chrono_t t = (time - prev_time) / (next_time - prev_time);
 
   /* Ensure rotation around the shortest angle. */
   if ((prev_rotation ^ next_rotation) < 0) {
@@ -396,15 +409,15 @@ static void concatenate_xform_samples(const MatrixSampleMap &parent_samples,
     union_of_samples.insert(pair.first);
   }
 
-  foreach (chrono_t time, union_of_samples) {
-    M44d parent_matrix = get_interpolated_matrix_for_time(parent_samples, time);
-    M44d local_matrix = get_interpolated_matrix_for_time(local_samples, time);
+  for (const chrono_t time : union_of_samples) {
+    const M44d parent_matrix = get_interpolated_matrix_for_time(parent_samples, time);
+    const M44d local_matrix = get_interpolated_matrix_for_time(local_samples, time);
 
     output_samples[time] = local_matrix * parent_matrix;
   }
 }
 
-static Transform make_transform(const M44d &a, float scale)
+static Transform make_transform(const M44d &a, const float scale)
 {
   M44d m = convert_yup_zup(a, scale);
   Transform trans;
@@ -438,7 +451,7 @@ AlembicObject::AlembicObject() : Node(get_node_type())
   schema_type = INVALID;
 }
 
-AlembicObject::~AlembicObject() {}
+AlembicObject::~AlembicObject() = default;
 
 void AlembicObject::set_object(Object *object_)
 {
@@ -660,7 +673,7 @@ void AlembicObject::setup_transform_cache(CachedData &cached_data, float scale)
     cached_data.transforms.set_time_sampling(*xform_time_sampling);
   }
 
-  if (xform_samples.size() == 0) {
+  if (xform_samples.empty()) {
     Transform tfm = transform_scale(make_float3(scale));
     cached_data.transforms.add_data(tfm, 0.0);
   }
@@ -668,7 +681,7 @@ void AlembicObject::setup_transform_cache(CachedData &cached_data, float scale)
     /* It is possible for a leaf node of the hierarchy to have multiple samples for its transforms
      * if a sibling has animated transforms. So check if we indeed have animated transformations.
      */
-    M44d first_matrix = xform_samples.begin()->first;
+    const M44d first_matrix = xform_samples.begin()->first;
     bool has_animation = false;
     for (const std::pair<chrono_t, M44d> pair : xform_samples) {
       if (pair.second != first_matrix) {
@@ -697,11 +710,11 @@ AttributeRequestSet AlembicObject::get_requested_attributes()
   Geometry *geometry = object->get_geometry();
   assert(geometry);
 
-  foreach (Node *node, geometry->get_used_shaders()) {
+  for (Node *node : geometry->get_used_shaders()) {
     Shader *shader = static_cast<Shader *>(node);
 
-    foreach (const AttributeRequest &attr, shader->attributes.requests) {
-      if (attr.name != "") {
+    for (const AttributeRequest &attr : shader->attributes.requests) {
+      if (!attr.name.empty()) {
         requested_attributes.add(attr.name);
       }
     }
@@ -712,7 +725,9 @@ AttributeRequestSet AlembicObject::get_requested_attributes()
 
 /* Update existing attributes and remove any attribute not in the cached_data, those attributes
  * were added by Cycles (e.g. face normals) */
-static void update_attributes(AttributeSet &attributes, CachedData &cached_data, double frame_time)
+static void update_attributes(AttributeSet &attributes,
+                              CachedData &cached_data,
+                              const double frame_time)
 {
   set<Attribute *> cached_attributes;
 
@@ -738,7 +753,7 @@ static void update_attributes(AttributeSet &attributes, CachedData &cached_data,
       continue;
     }
 
-    const ccl::array<char> &attr_data = result.get_data();
+    const array<char> &attr_data = result.get_data();
 
     /* weak way of detecting if the topology has changed
      * todo: reuse code from device_update patch */
@@ -776,8 +791,6 @@ NODE_DEFINE(AlembicProcedural)
   SOCKET_FLOAT(default_radius, "Default Radius", 0.01f);
   SOCKET_FLOAT(scale, "Scale", 1.0f);
 
-  SOCKET_NODE_ARRAY(objects, "Objects", AlembicObject::get_node_type());
-
   SOCKET_BOOLEAN(use_prefetch, "Use Prefetch", true);
   SOCKET_INT(prefetch_cache_size, "Prefetch Cache Size", 4096);
 
@@ -794,9 +807,9 @@ AlembicProcedural::~AlembicProcedural()
 {
   ccl::set<Geometry *> geometries_set;
   ccl::set<Object *> objects_set;
-  ccl::set<AlembicObject *> abc_objects_set;
+  const ccl::set<AlembicObject *> abc_objects_set;
 
-  foreach (Node *node, objects) {
+  for (Node *node : nodes) {
     AlembicObject *abc_object = static_cast<AlembicObject *>(node);
 
     if (abc_object->get_object()) {
@@ -828,13 +841,14 @@ void AlembicProcedural::generate(Scene *scene, Progress &progress)
 
   if (frame < start_frame || frame > end_frame) {
     clear_modified();
+    objects_modified = false;
     return;
   }
 
   bool need_shader_updates = false;
   bool need_data_updates = false;
 
-  foreach (Node *object_node, objects) {
+  for (Node *object_node : nodes) {
     AlembicObject *object = static_cast<AlembicObject *>(object_node);
 
     if (object->is_modified()) {
@@ -852,7 +866,7 @@ void AlembicProcedural::generate(Scene *scene, Progress &progress)
     }
 
     /* Check for changes in shaders (e.g. newly requested attributes). */
-    foreach (Node *shader_node, object->get_used_shaders()) {
+    for (Node *shader_node : object->get_used_shaders()) {
       Shader *shader = static_cast<Shader *>(shader_node);
 
       if (shader->need_update_geometry()) {
@@ -862,7 +876,7 @@ void AlembicProcedural::generate(Scene *scene, Progress &progress)
     }
   }
 
-  if (!is_modified() && !need_shader_updates && !need_data_updates) {
+  if (!(is_modified() || objects_modified) && !need_shader_updates && !need_data_updates) {
     return;
   }
 
@@ -871,10 +885,10 @@ void AlembicProcedural::generate(Scene *scene, Progress &progress)
     factory.setPolicy(Alembic::Abc::ErrorHandler::kQuietNoopPolicy);
 
     std::vector<std::string> filenames;
-    filenames.push_back(filepath.c_str());
+    filenames.emplace_back(filepath.c_str());
 
     for (const ustring &layer : layers) {
-      filenames.push_back(layer.c_str());
+      filenames.emplace_back(layer.c_str());
     }
 
     /* We need to reverse the order as overriding archives should come first. */
@@ -887,11 +901,12 @@ void AlembicProcedural::generate(Scene *scene, Progress &progress)
       filepath.clear();
       layers.clear();
       clear_modified();
+      objects_modified = false;
       return;
     }
   }
 
-  if (!objects_loaded || objects_is_modified()) {
+  if (!objects_loaded || objects_modified) {
     load_objects(progress);
     objects_loaded = true;
   }
@@ -899,7 +914,7 @@ void AlembicProcedural::generate(Scene *scene, Progress &progress)
   const chrono_t frame_time = (chrono_t)((frame - frame_offset) / frame_rate);
 
   /* Clear the subdivision caches as the data is stored differently. */
-  for (Node *node : objects) {
+  for (Node *node : nodes) {
     AlembicObject *object = static_cast<AlembicObject *>(node);
 
     if (object->schema_type != AlembicObject::SUBD) {
@@ -913,7 +928,7 @@ void AlembicProcedural::generate(Scene *scene, Progress &progress)
 
   if (use_prefetch_is_modified()) {
     if (!use_prefetch) {
-      for (Node *node : objects) {
+      for (Node *node : nodes) {
         AlembicObject *object = static_cast<AlembicObject *>(node);
         object->clear_cache();
       }
@@ -924,7 +939,7 @@ void AlembicProcedural::generate(Scene *scene, Progress &progress)
     /* Check whether the current memory usage fits in the new requested size,
      * abort the render if it is any higher. */
     size_t memory_used = 0ul;
-    for (Node *node : objects) {
+    for (Node *node : nodes) {
       AlembicObject *object = static_cast<AlembicObject *>(node);
       memory_used += object->get_cached_data().memory_used();
     }
@@ -937,7 +952,7 @@ void AlembicProcedural::generate(Scene *scene, Progress &progress)
 
   build_caches(progress);
 
-  foreach (Node *node, objects) {
+  for (Node *node : nodes) {
     AlembicObject *object = static_cast<AlembicObject *>(node);
 
     if (progress.get_cancel()) {
@@ -969,12 +984,7 @@ void AlembicProcedural::generate(Scene *scene, Progress &progress)
   }
 
   clear_modified();
-}
-
-void AlembicProcedural::add_object(AlembicObject *object)
-{
-  objects.push_back_slow(object);
-  tag_objects_modified();
+  objects_modified = false;
 }
 
 void AlembicProcedural::tag_update(Scene *scene)
@@ -984,7 +994,7 @@ void AlembicProcedural::tag_update(Scene *scene)
 
 AlembicObject *AlembicProcedural::get_or_create_object(const ustring &path)
 {
-  foreach (Node *node, objects) {
+  for (Node *node : nodes) {
     AlembicObject *object = static_cast<AlembicObject *>(node);
 
     if (object->get_path() == path) {
@@ -994,8 +1004,7 @@ AlembicObject *AlembicProcedural::get_or_create_object(const ustring &path)
 
   AlembicObject *object = create_node<AlembicObject>();
   object->set_path(path);
-
-  add_object(object);
+  objects_modified = true;
 
   return object;
 }
@@ -1004,7 +1013,7 @@ void AlembicProcedural::load_objects(Progress &progress)
 {
   unordered_map<string, AlembicObject *> object_map;
 
-  foreach (Node *node, objects) {
+  for (Node *node : nodes) {
     AlembicObject *object = static_cast<AlembicObject *>(node);
 
     /* only consider newly added objects */
@@ -1013,14 +1022,14 @@ void AlembicProcedural::load_objects(Progress &progress)
     }
   }
 
-  IObject root = archive.getTop();
+  const IObject root = archive.getTop();
 
   for (size_t i = 0; i < root.getNumChildren(); ++i) {
     walk_hierarchy(root, root.getChildHeader(i), {}, object_map, progress);
   }
 
   /* Create nodes in the scene. */
-  for (std::pair<string, AlembicObject *> pair : object_map) {
+  for (const std::pair<string, AlembicObject *> pair : object_map) {
     AlembicObject *abc_object = pair.second;
 
     Geometry *geometry = nullptr;
@@ -1057,7 +1066,7 @@ void AlembicProcedural::load_objects(Progress &progress)
   }
 
   /* Share geometries between instances. */
-  foreach (Node *node, objects) {
+  for (Node *node : nodes) {
     AlembicObject *abc_object = static_cast<AlembicObject *>(node);
 
     if (abc_object->instance_of) {
@@ -1106,11 +1115,11 @@ void AlembicProcedural::read_mesh(AlembicObject *abc_object, Abc::chrono_t frame
     smooth.reserve(triangle_data->size());
 
     for (size_t i = 0; i < triangle_data->size(); ++i) {
-      int3 tri = (*triangle_data)[i];
+      const int3 tri = (*triangle_data)[i];
       triangles.push_back_reserved(tri.x);
       triangles.push_back_reserved(tri.y);
       triangles.push_back_reserved(tri.z);
-      smooth.push_back_reserved(1);
+      smooth.push_back_reserved(true);
     }
 
     mesh->set_triangles(triangles);
@@ -1122,7 +1131,7 @@ void AlembicProcedural::read_mesh(AlembicObject *abc_object, Abc::chrono_t frame
   update_attributes(mesh->attributes, cached_data, frame_time);
 
   if (mesh->is_modified()) {
-    bool need_rebuild = mesh->triangles_is_modified();
+    const bool need_rebuild = mesh->triangles_is_modified();
     mesh->tag_update(scene_, need_rebuild);
   }
 }
@@ -1219,12 +1228,13 @@ void AlembicProcedural::read_subd(AlembicObject *abc_object, Abc::chrono_t frame
   update_attributes(mesh->subd_attributes, cached_data, frame_time);
 
   if (mesh->is_modified()) {
-    bool need_rebuild = (mesh->triangles_is_modified()) ||
-                        (mesh->subd_num_corners_is_modified()) ||
-                        (mesh->subd_shader_is_modified()) || (mesh->subd_smooth_is_modified()) ||
-                        (mesh->subd_ptex_offset_is_modified()) ||
-                        (mesh->subd_start_corner_is_modified()) ||
-                        (mesh->subd_face_corners_is_modified());
+    const bool need_rebuild = (mesh->triangles_is_modified()) ||
+                              (mesh->subd_num_corners_is_modified()) ||
+                              (mesh->subd_shader_is_modified()) ||
+                              (mesh->subd_smooth_is_modified()) ||
+                              (mesh->subd_ptex_offset_is_modified()) ||
+                              (mesh->subd_start_corner_is_modified()) ||
+                              (mesh->subd_face_corners_is_modified());
 
     mesh->tag_update(scene_, need_rebuild);
   }
@@ -1328,10 +1338,10 @@ void AlembicProcedural::walk_hierarchy(
   if (IXform::matches(header)) {
     IXform xform(parent, header.getName());
 
-    IXformSchema &xs = xform.getSchema();
+    const IXformSchema &xs = xform.getSchema();
 
     if (xs.getNumOps() > 0) {
-      TimeSamplingPtr ts = xs.getTimeSampling();
+      const TimeSamplingPtr ts = xs.getTimeSampling();
       MatrixSampleMap local_xform_samples;
 
       MatrixSampleMap *temp_xform_samples = nullptr;
@@ -1345,8 +1355,8 @@ void AlembicProcedural::walk_hierarchy(
       }
 
       for (size_t i = 0; i < xs.getNumSamples(); ++i) {
-        chrono_t sample_time = ts->getSampleTime(index_t(i));
-        XformSample sample = xs.getValue(ISampleSelector(sample_time));
+        const chrono_t sample_time = ts->getSampleTime(index_t(i));
+        const XformSample sample = xs.getValue(ISampleSelector(sample_time));
         temp_xform_samples->insert({sample_time, sample.getMatrix()});
       }
 
@@ -1362,7 +1372,7 @@ void AlembicProcedural::walk_hierarchy(
     next_object = xform;
   }
   else if (ISubD::matches(header)) {
-    ISubD subd(parent, header.getName());
+    const ISubD subd(parent, header.getName());
 
     unordered_map<std::string, AlembicObject *>::const_iterator iter;
     iter = object_map.find(subd.getFullName());
@@ -1381,7 +1391,7 @@ void AlembicProcedural::walk_hierarchy(
     next_object = subd;
   }
   else if (IPolyMesh::matches(header)) {
-    IPolyMesh mesh(parent, header.getName());
+    const IPolyMesh mesh(parent, header.getName());
 
     unordered_map<std::string, AlembicObject *>::const_iterator iter;
     iter = object_map.find(mesh.getFullName());
@@ -1400,7 +1410,7 @@ void AlembicProcedural::walk_hierarchy(
     next_object = mesh;
   }
   else if (ICurves::matches(header)) {
-    ICurves curves(parent, header.getName());
+    const ICurves curves(parent, header.getName());
 
     unordered_map<std::string, AlembicObject *>::const_iterator iter;
     iter = object_map.find(curves.getFullName());
@@ -1422,7 +1432,7 @@ void AlembicProcedural::walk_hierarchy(
     // ignore the face set, it will be read along with the data
   }
   else if (IPoints::matches(header)) {
-    IPoints points(parent, header.getName());
+    const IPoints points(parent, header.getName());
 
     unordered_map<std::string, AlembicObject *>::const_iterator iter;
     iter = object_map.find(points.getFullName());
@@ -1483,7 +1493,7 @@ void AlembicProcedural::build_caches(Progress &progress)
 {
   size_t memory_used = 0;
 
-  for (Node *node : objects) {
+  for (Node *node : nodes) {
     AlembicObject *object = static_cast<AlembicObject *>(node);
 
     if (progress.get_cancel()) {
@@ -1498,7 +1508,7 @@ void AlembicProcedural::build_caches(Progress &progress)
       }
       else if (object->need_shader_update) {
         IPolyMesh polymesh(object->iobject, Alembic::Abc::kWrapExisting);
-        IPolyMeshSchema schema = polymesh.getSchema();
+        const IPolyMeshSchema schema = polymesh.getSchema();
         read_attributes(this,
                         object->get_cached_data(),
                         schema,
@@ -1512,7 +1522,7 @@ void AlembicProcedural::build_caches(Progress &progress)
           object->radius_scale_is_modified())
       {
         ICurves curves(object->iobject, Alembic::Abc::kWrapExisting);
-        ICurvesSchema schema = curves.getSchema();
+        const ICurvesSchema schema = curves.getSchema();
         object->load_data_in_cache(object->get_cached_data(), this, schema, progress);
       }
     }
@@ -1521,7 +1531,7 @@ void AlembicProcedural::build_caches(Progress &progress)
           object->radius_scale_is_modified())
       {
         IPoints points(object->iobject, Alembic::Abc::kWrapExisting);
-        IPointsSchema schema = points.getSchema();
+        const IPointsSchema schema = points.getSchema();
         object->load_data_in_cache(object->get_cached_data(), this, schema, progress);
       }
     }
@@ -1533,7 +1543,7 @@ void AlembicProcedural::build_caches(Progress &progress)
       }
       else if (object->need_shader_update) {
         ISubD subd_mesh(object->iobject, Alembic::Abc::kWrapExisting);
-        ISubDSchema schema = subd_mesh.getSchema();
+        const ISubDSchema schema = subd_mesh.getSchema();
         read_attributes(this,
                         object->get_cached_data(),
                         schema,

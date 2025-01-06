@@ -59,14 +59,6 @@ static void init_data(ModifierData *md)
   MEMCPY_STRUCT_AFTER(smd, DNA_struct_default_get(SubsurfModifierData), modifier);
 }
 
-static void required_data_mask(ModifierData *md, CustomData_MeshMasks *r_cddata_masks)
-{
-  SubsurfModifierData *smd = (SubsurfModifierData *)md;
-  if (smd->flags & eSubsurfModifierFlag_UseCustomNormals) {
-    r_cddata_masks->lmask |= CD_MASK_CUSTOMLOOPNORMAL;
-  }
-}
-
 static void copy_data(const ModifierData *md, ModifierData *target, const int flag)
 {
 #if 0
@@ -202,6 +194,7 @@ static void subdiv_cache_mesh_wrapper_settings(const ModifierEvalContext *ctx,
 
 static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
+  using namespace blender;
   Mesh *result = mesh;
 #if !defined(WITH_OPENSUBDIV)
   BKE_modifier_set_error(ctx->object, md, "Disabled, built without OpenSubdiv");
@@ -261,10 +254,11 @@ static Mesh *modify_mesh(ModifierData *md, const ModifierEvalContext *ctx, Mesh 
   }
 
   if (use_clnors) {
-    BKE_mesh_set_custom_normals_normalized(
-        result,
-        static_cast<float(*)[3]>(
-            CustomData_get_layer_for_write(&result->corner_data, CD_NORMAL, result->corners_num)));
+    bke::mesh_set_custom_normals_normalized(
+        *result,
+        {static_cast<float3 *>(
+             CustomData_get_layer_for_write(&result->corner_data, CD_NORMAL, result->corners_num)),
+         result->corners_num});
     CustomData_free_layers(&result->corner_data, CD_NORMAL, result->corners_num);
   }
   // blender::bke::subdiv::stats_print(&subdiv->stats);
@@ -362,7 +356,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   UNUSED_VARS(C);
 #endif
 
-  uiItemR(layout, ptr, "subdivision_type", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "subdivision_type", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
   uiLayoutSetPropSep(layout, true);
 
@@ -375,7 +369,7 @@ static void panel_draw(const bContext *C, Panel *panel)
             ICON_NONE);
   }
   if (ob_use_adaptive_subdivision && show_adaptive_options) {
-    uiItemR(layout, &ob_cycles_ptr, "dicing_rate", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(layout, &ob_cycles_ptr, "dicing_rate", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     float render = std::max(RNA_float_get(&cycles_ptr, "dicing_rate") *
                                 RNA_float_get(&ob_cycles_ptr, "dicing_rate"),
                             0.1f);
@@ -396,13 +390,14 @@ static void panel_draw(const bContext *C, Panel *panel)
     uiItemR(col, ptr, "render_levels", UI_ITEM_NONE, IFACE_("Render"), ICON_NONE);
   }
 
-  uiItemR(layout, ptr, "show_only_control_edges", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "show_only_control_edges", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
   SubsurfModifierData *smd = static_cast<SubsurfModifierData *>(ptr->data);
   Object *ob = static_cast<Object *>(ob_ptr.data);
-  const Mesh *mesh = static_cast<const Mesh *>(ob->data);
-  if (BKE_subsurf_modifier_force_disable_gpu_evaluation_for_mesh(smd, mesh)) {
+  if (ob->type == OB_MESH && BKE_subsurf_modifier_force_disable_gpu_evaluation_for_mesh(
+                                 smd, static_cast<const Mesh *>(ob->data)))
+  {
     uiItemL(layout,
             RPT_("Sharp edges or custom normals detected, disabling GPU subdivision"),
             ICON_INFO);
@@ -449,16 +444,16 @@ static void advanced_panel_draw(const bContext *C, Panel *panel)
   uiLayoutSetPropSep(layout, true);
 
   uiLayoutSetActive(layout, !(show_adaptive_options && ob_use_adaptive_subdivision));
-  uiItemR(layout, ptr, "use_limit_surface", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "use_limit_surface", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   uiLayout *col = uiLayoutColumn(layout, true);
   uiLayoutSetActive(col, RNA_boolean_get(ptr, "use_limit_surface"));
-  uiItemR(col, ptr, "quality", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "quality", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-  uiItemR(layout, ptr, "uv_smooth", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "boundary_smooth", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "use_creases", UI_ITEM_NONE, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "use_custom_normals", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "uv_smooth", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  uiItemR(layout, ptr, "boundary_smooth", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  uiItemR(layout, ptr, "use_creases", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+  uiItemR(layout, ptr, "use_custom_normals", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 static void panel_register(ARegionType *region_type)
@@ -497,7 +492,7 @@ ModifierTypeInfo modifierType_Subsurf = {
     /*modify_geometry_set*/ nullptr,
 
     /*init_data*/ init_data,
-    /*required_data_mask*/ required_data_mask,
+    /*required_data_mask*/ nullptr,
     /*free_data*/ free_data,
     /*is_disabled*/ is_disabled,
     /*update_depsgraph*/ nullptr,

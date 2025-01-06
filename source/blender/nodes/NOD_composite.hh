@@ -10,10 +10,10 @@
 
 #include "BKE_node.hh"
 
-namespace blender::realtime_compositor {
+namespace blender::compositor {
 class RenderContext;
 class Profiler;
-}  // namespace blender::realtime_compositor
+}  // namespace blender::compositor
 namespace blender::bke {
 struct bNodeTreeType;
 }  // namespace blender::bke
@@ -36,14 +36,6 @@ void node_cmp_rlayers_register_pass(bNodeTree *ntree,
 const char *node_cmp_rlayers_sock_to_pass(int sock_index);
 
 void register_node_type_cmp_custom_group(blender::bke::bNodeType *ntype);
-
-void ntreeCompositExecTree(Render *render,
-                           Scene *scene,
-                           bNodeTree *ntree,
-                           RenderData *rd,
-                           const char *view_name,
-                           blender::realtime_compositor::RenderContext *render_context,
-                           blender::realtime_compositor::Profiler *profiler);
 
 /**
  * Called from render pipeline, to tag render input and output.

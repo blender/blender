@@ -192,6 +192,30 @@ const EnumPropertyItem rna_enum_usd_mtl_purpose_items[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
+const EnumPropertyItem rna_enum_usd_convert_scene_units_items[] = {
+    {USD_SCENE_UNITS_METERS, "METERS", 0, "Meters", "Scene meters per unit to 1.0"},
+    {USD_SCENE_UNITS_KILOMETERS, "KILOMETERS", 0, "Kilometers", "Scene meters per unit to 1000.0"},
+    {USD_SCENE_UNITS_CENTIMETERS,
+     "CENTIMETERS",
+     0,
+     "Centimeters",
+     "Scene meters per unit to 0.01"},
+    {USD_SCENE_UNITS_MILLIMETERS,
+     "MILLIMETERS",
+     0,
+     "Millimeters",
+     "Scene meters per unit to 0.001"},
+    {USD_SCENE_UNITS_INCHES, "INCHES", 0, "Inches", "Scene meters per unit to 0.0254"},
+    {USD_SCENE_UNITS_FEET, "FEET", 0, "Feet", "Scene meters per unit to 0.3048"},
+    {USD_SCENE_UNITS_YARDS, "YARDS", 0, "Yards", "Scene meters per unit to 0.9144"},
+    {USD_SCENE_UNITS_CUSTOM,
+     "CUSTOM",
+     0,
+     "Custom",
+     "Specify a custom scene meters per unit value"},
+    {0, nullptr, 0, nullptr, nullptr},
+};
+
 /* Stored in the wmOperator's customdata field to indicate it should run as a background job.
  * This is set when the operator is invoked, and not set when it is only executed. */
 struct eUSDOperatorOptions {
@@ -331,6 +355,10 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
     }
   }
 
+  const eUSDSceneUnits convert_scene_units = eUSDSceneUnits(
+      RNA_enum_get(op->ptr, "convert_scene_units"));
+  const float meters_per_unit = RNA_float_get(op->ptr, "meters_per_unit");
+
   char root_prim_path[FILE_MAX];
   RNA_string_get(op->ptr, "root_prim_path", root_prim_path);
   process_prim_path(root_prim_path);
@@ -388,6 +416,8 @@ static int wm_usd_export_exec(bContext *C, wmOperator *op)
 
   params.usdz_downscale_size = usdz_downscale_size;
   params.usdz_downscale_custom_size = usdz_downscale_custom_size;
+  params.convert_scene_units = convert_scene_units;
+  params.custom_meters_per_unit = meters_per_unit;
 
   params.merge_parent_xform = merge_parent_xform;
 
@@ -410,78 +440,84 @@ static void wm_usd_export_draw(bContext *C, wmOperator *op)
 
   if (uiLayout *panel = uiLayoutPanel(C, layout, "USD_export_general", false, IFACE_("General"))) {
     uiLayout *col = uiLayoutColumn(panel, false);
-    uiItemR(col, ptr, "root_prim_path", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "root_prim_path", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
     uiLayout *sub = uiLayoutColumnWithHeading(col, true, IFACE_("Include"));
     if (CTX_wm_space_file(C)) {
-      uiItemR(sub, ptr, "selected_objects_only", UI_ITEM_NONE, nullptr, ICON_NONE);
-      uiItemR(sub, ptr, "visible_objects_only", UI_ITEM_NONE, nullptr, ICON_NONE);
+      uiItemR(sub, ptr, "selected_objects_only", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      uiItemR(sub, ptr, "visible_objects_only", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     }
-    uiItemR(sub, ptr, "export_animation", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(sub, ptr, "export_animation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
     sub = uiLayoutColumnWithHeading(col, true, IFACE_("Blender Data"));
-    uiItemR(sub, ptr, "export_custom_properties", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(sub, ptr, "export_custom_properties", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiLayout *props_col = uiLayoutColumn(sub, true);
-    uiItemR(props_col, ptr, "custom_properties_namespace", UI_ITEM_NONE, nullptr, ICON_NONE);
-    uiItemR(props_col, ptr, "author_blender_name", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(props_col, ptr, "custom_properties_namespace", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    uiItemR(props_col, ptr, "author_blender_name", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiLayoutSetActive(props_col, RNA_boolean_get(op->ptr, "export_custom_properties"));
 #  if PXR_VERSION >= 2403
-    uiItemR(sub, ptr, "allow_unicode", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(sub, ptr, "allow_unicode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 #  endif
 
     sub = uiLayoutColumnWithHeading(col, true, IFACE_("File References"));
-    uiItemR(sub, ptr, "relative_paths", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(sub, ptr, "relative_paths", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
     col = uiLayoutColumn(panel, false);
-    uiItemR(col, ptr, "convert_orientation", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "convert_orientation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     if (RNA_boolean_get(ptr, "convert_orientation")) {
-      uiItemR(col, ptr, "export_global_forward_selection", UI_ITEM_NONE, nullptr, ICON_NONE);
-      uiItemR(col, ptr, "export_global_up_selection", UI_ITEM_NONE, nullptr, ICON_NONE);
+      uiItemR(col, ptr, "export_global_forward_selection", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      uiItemR(col, ptr, "export_global_up_selection", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     }
-    uiItemR(col, ptr, "xform_op_mode", UI_ITEM_NONE, nullptr, ICON_NONE);
+
+    uiItemR(col, ptr, "convert_scene_units", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    if (eUSDSceneUnits(RNA_enum_get(ptr, "convert_scene_units")) == USD_SCENE_UNITS_CUSTOM) {
+      uiItemR(col, ptr, "meters_per_unit", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    }
+
+    uiItemR(col, ptr, "xform_op_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
     col = uiLayoutColumn(panel, false);
-    uiItemR(col, ptr, "evaluation_mode", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "evaluation_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
   if (uiLayout *panel = uiLayoutPanel(
           C, layout, "USD_export_types", false, IFACE_("Object Types")))
   {
     uiLayout *col = uiLayoutColumn(panel, false);
-    uiItemR(col, ptr, "export_meshes", UI_ITEM_NONE, nullptr, ICON_NONE);
-    uiItemR(col, ptr, "export_lights", UI_ITEM_NONE, nullptr, ICON_NONE);
-    uiItemR(col, ptr, "export_cameras", UI_ITEM_NONE, nullptr, ICON_NONE);
-    uiItemR(col, ptr, "export_curves", UI_ITEM_NONE, nullptr, ICON_NONE);
-    uiItemR(col, ptr, "export_points", UI_ITEM_NONE, nullptr, ICON_NONE);
-    uiItemR(col, ptr, "export_volumes", UI_ITEM_NONE, nullptr, ICON_NONE);
-    uiItemR(col, ptr, "export_hair", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "export_meshes", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    uiItemR(col, ptr, "export_lights", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    uiItemR(col, ptr, "export_cameras", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    uiItemR(col, ptr, "export_curves", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    uiItemR(col, ptr, "export_points", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    uiItemR(col, ptr, "export_volumes", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    uiItemR(col, ptr, "export_hair", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
   if (uiLayout *panel = uiLayoutPanel(C, layout, "USD_export_geometry", false, IFACE_("Geometry")))
   {
     uiLayout *col = uiLayoutColumn(panel, false);
-    uiItemR(col, ptr, "export_uvmaps", UI_ITEM_NONE, nullptr, ICON_NONE);
-    uiItemR(col, ptr, "rename_uvmaps", UI_ITEM_NONE, nullptr, ICON_NONE);
-    uiItemR(col, ptr, "export_normals", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "export_uvmaps", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    uiItemR(col, ptr, "rename_uvmaps", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    uiItemR(col, ptr, "export_normals", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-    uiItemR(col, ptr, "merge_parent_xform", UI_ITEM_NONE, nullptr, ICON_NONE);
-    uiItemR(col, ptr, "triangulate_meshes", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "merge_parent_xform", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    uiItemR(col, ptr, "triangulate_meshes", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     if (RNA_boolean_get(ptr, "triangulate_meshes")) {
       uiItemR(col, ptr, "quad_method", UI_ITEM_NONE, IFACE_("Method Quads"), ICON_NONE);
       uiItemR(col, ptr, "ngon_method", UI_ITEM_NONE, IFACE_("Polygons"), ICON_NONE);
     }
 
-    uiItemR(col, ptr, "export_subdivision", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "export_subdivision", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
   if (uiLayout *panel = uiLayoutPanel(C, layout, "USD_export_rigging", true, IFACE_("Rigging"))) {
     uiLayout *col = uiLayoutColumn(panel, false);
 
-    uiItemR(col, ptr, "export_shapekeys", UI_ITEM_NONE, nullptr, ICON_NONE);
-    uiItemR(col, ptr, "export_armatures", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "export_shapekeys", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    uiItemR(col, ptr, "export_armatures", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
     uiLayout *row = uiLayoutRow(col, true);
-    uiItemR(row, ptr, "only_deform_bones", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(row, ptr, "only_deform_bones", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiLayoutSetActive(row, RNA_boolean_get(ptr, "export_armatures"));
   }
 
@@ -495,14 +531,14 @@ static void wm_usd_export_draw(bContext *C, wmOperator *op)
       uiLayoutSetActive(panel.body, export_materials);
 
       uiLayout *col = uiLayoutColumn(panel.body, false);
-      uiItemR(col, ptr, "generate_preview_surface", UI_ITEM_NONE, nullptr, ICON_NONE);
-      uiItemR(col, ptr, "generate_materialx_network", UI_ITEM_NONE, nullptr, ICON_NONE);
-      uiItemR(col, ptr, "convert_world_material", UI_ITEM_NONE, nullptr, ICON_NONE);
+      uiItemR(col, ptr, "generate_preview_surface", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      uiItemR(col, ptr, "generate_materialx_network", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      uiItemR(col, ptr, "convert_world_material", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
       col = uiLayoutColumn(panel.body, true);
       uiLayoutSetPropSep(col, true);
 
-      uiItemR(col, ptr, "export_textures_mode", UI_ITEM_NONE, nullptr, ICON_NONE);
+      uiItemR(col, ptr, "export_textures_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
       const eUSDTexExportMode textures_mode = eUSDTexExportMode(
           RNA_enum_get(op->ptr, "export_textures_mode"));
@@ -510,10 +546,10 @@ static void wm_usd_export_draw(bContext *C, wmOperator *op)
       uiLayout *col2 = uiLayoutColumn(col, true);
       uiLayoutSetPropSep(col2, true);
       uiLayoutSetEnabled(col2, textures_mode == USD_TEX_EXPORT_NEW_PATH);
-      uiItemR(col2, ptr, "overwrite_textures", UI_ITEM_NONE, nullptr, ICON_NONE);
-      uiItemR(col2, ptr, "usdz_downscale_size", UI_ITEM_NONE, nullptr, ICON_NONE);
+      uiItemR(col2, ptr, "overwrite_textures", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      uiItemR(col2, ptr, "usdz_downscale_size", UI_ITEM_NONE, std::nullopt, ICON_NONE);
       if (RNA_enum_get(ptr, "usdz_downscale_size") == USD_TEXTURE_SIZE_CUSTOM) {
-        uiItemR(col2, ptr, "usdz_downscale_custom_size", UI_ITEM_NONE, nullptr, ICON_NONE);
+        uiItemR(col2, ptr, "usdz_downscale_custom_size", UI_ITEM_NONE, std::nullopt, ICON_NONE);
       }
     }
   }
@@ -522,7 +558,7 @@ static void wm_usd_export_draw(bContext *C, wmOperator *op)
           C, layout, "USD_export_experimental", true, IFACE_("Experimental")))
   {
     uiLayout *col = uiLayoutColumn(panel, false);
-    uiItemR(col, ptr, "use_instancing", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "use_instancing", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 }
 
@@ -854,9 +890,26 @@ void WM_OT_usd_export(wmOperatorType *ot)
                   "merge_parent_xform",
                   false,
                   "Merge parent Xform",
-                  "Merge USD primitives with their Xform parent if possible: "
-                  "USD does not allow nested UsdGeomGprim. Intermediary Xform will "
-                  "be defined to keep the USD file valid.");
+                  "Merge USD primitives with their Xform parent if possible. USD does not allow "
+                  "nested UsdGeomGprims, intermediary Xform prims will be defined to keep the USD "
+                  "file valid when encountering object hierarchies.");
+
+  RNA_def_enum(ot->srna,
+               "convert_scene_units",
+               rna_enum_usd_convert_scene_units_items,
+               eUSDSceneUnits::USD_SCENE_UNITS_METERS,
+               "Units",
+               "Set the USD Stage meters per unit to the chosen measurement, or a custom value");
+
+  RNA_def_float(ot->srna,
+                "meters_per_unit",
+                1.0f,
+                0.0001f,
+                1000.0f,
+                "Meters Per Unit",
+                "Custom value for meters per unit in the USD Stage",
+                0.0001f,
+                1000.0f);
 }
 
 /* ====== USD Import ====== */
@@ -964,6 +1017,8 @@ static int wm_usd_import_exec(bContext *C, wmOperator *op)
   const eUSDTexNameCollisionMode tex_name_collision_mode = eUSDTexNameCollisionMode(
       RNA_enum_get(op->ptr, "tex_name_collision_mode"));
 
+  const bool apply_unit_conversion_scale = RNA_boolean_get(op->ptr, "apply_unit_conversion_scale");
+
   USDImportParams params{};
   params.prim_path_mask = prim_path_mask;
   params.scale = scale;
@@ -1014,6 +1069,8 @@ static int wm_usd_import_exec(bContext *C, wmOperator *op)
 
   STRNCPY(params.import_textures_dir, import_textures_dir);
 
+  params.apply_unit_conversion_scale = apply_unit_conversion_scale;
+
   /* Switch out of edit mode to avoid being stuck in it (#54326). */
   Object *obedit = CTX_data_edit_object(C);
   if (obedit) {
@@ -1041,89 +1098,90 @@ static void wm_usd_import_draw(bContext *C, wmOperator *op)
   if (uiLayout *panel = uiLayoutPanel(C, layout, "USD_import_general", false, IFACE_("General"))) {
     uiLayout *col = uiLayoutColumn(panel, false);
 
-    uiItemR(col, ptr, "prim_path_mask", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "prim_path_mask", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
     uiLayout *sub = uiLayoutColumnWithHeading(col, true, IFACE_("Include"));
-    uiItemR(sub, ptr, "import_visible_only", UI_ITEM_NONE, nullptr, ICON_NONE);
-    uiItemR(sub, ptr, "import_defined_only", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(sub, ptr, "import_visible_only", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    uiItemR(sub, ptr, "import_defined_only", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
     col = uiLayoutColumn(panel, false);
-    uiItemR(col, ptr, "set_frame_range", UI_ITEM_NONE, nullptr, ICON_NONE);
-    uiItemR(col, ptr, "create_collection", UI_ITEM_NONE, nullptr, ICON_NONE);
-    uiItemR(col, ptr, "relative_path", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "set_frame_range", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    uiItemR(col, ptr, "create_collection", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    uiItemR(col, ptr, "relative_path", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
-    uiItemR(col, ptr, "scale", UI_ITEM_NONE, nullptr, ICON_NONE);
-    uiItemR(col, ptr, "light_intensity_scale", UI_ITEM_NONE, nullptr, ICON_NONE);
-    uiItemR(col, ptr, "attr_import_mode", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "apply_unit_conversion_scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    uiItemR(col, ptr, "scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    uiItemR(col, ptr, "light_intensity_scale", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    uiItemR(col, ptr, "attr_import_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
   if (uiLayout *panel = uiLayoutPanel(
           C, layout, "USD_import_types", false, IFACE_("Object Types")))
   {
     uiLayout *col = uiLayoutColumn(panel, false);
-    uiItemR(col, ptr, "import_cameras", UI_ITEM_NONE, nullptr, ICON_NONE);
-    uiItemR(col, ptr, "import_curves", UI_ITEM_NONE, nullptr, ICON_NONE);
-    uiItemR(col, ptr, "import_lights", UI_ITEM_NONE, nullptr, ICON_NONE);
-    uiItemR(col, ptr, "import_materials", UI_ITEM_NONE, nullptr, ICON_NONE);
-    uiItemR(col, ptr, "import_meshes", UI_ITEM_NONE, nullptr, ICON_NONE);
-    uiItemR(col, ptr, "import_volumes", UI_ITEM_NONE, nullptr, ICON_NONE);
-    uiItemR(col, ptr, "import_points", UI_ITEM_NONE, nullptr, ICON_NONE);
-    uiItemR(col, ptr, "import_shapes", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "import_cameras", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    uiItemR(col, ptr, "import_curves", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    uiItemR(col, ptr, "import_lights", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    uiItemR(col, ptr, "import_materials", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    uiItemR(col, ptr, "import_meshes", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    uiItemR(col, ptr, "import_volumes", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    uiItemR(col, ptr, "import_points", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    uiItemR(col, ptr, "import_shapes", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
     col = uiLayoutColumnWithHeading(panel, true, IFACE_("Display Purpose"));
-    uiItemR(col, ptr, "import_render", UI_ITEM_NONE, nullptr, ICON_NONE);
-    uiItemR(col, ptr, "import_proxy", UI_ITEM_NONE, nullptr, ICON_NONE);
-    uiItemR(col, ptr, "import_guide", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "import_render", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    uiItemR(col, ptr, "import_proxy", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    uiItemR(col, ptr, "import_guide", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
     col = uiLayoutColumnWithHeading(panel, true, IFACE_("Material Purpose"));
-    uiItemR(col, ptr, "mtl_purpose", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "mtl_purpose", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
   if (uiLayout *panel = uiLayoutPanel(C, layout, "USD_import_geometry", true, IFACE_("Geometry")))
   {
     uiLayout *col = uiLayoutColumn(panel, false);
-    uiItemR(col, ptr, "read_mesh_uvs", UI_ITEM_NONE, nullptr, ICON_NONE);
-    uiItemR(col, ptr, "read_mesh_colors", UI_ITEM_NONE, nullptr, ICON_NONE);
-    uiItemR(col, ptr, "read_mesh_attributes", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "read_mesh_uvs", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    uiItemR(col, ptr, "read_mesh_colors", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    uiItemR(col, ptr, "read_mesh_attributes", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiItemR(col, ptr, "import_subdiv", UI_ITEM_NONE, IFACE_("Subdivision"), ICON_NONE);
 
     col = uiLayoutColumn(panel, false);
-    uiItemR(col, ptr, "validate_meshes", UI_ITEM_NONE, nullptr, ICON_NONE);
-    uiItemR(col, ptr, "merge_parent_xform", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "validate_meshes", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    uiItemR(col, ptr, "merge_parent_xform", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
   if (uiLayout *panel = uiLayoutPanel(C, layout, "USD_import_rigging", true, IFACE_("Rigging"))) {
     uiLayout *col = uiLayoutColumn(panel, false);
-    uiItemR(col, ptr, "import_blendshapes", UI_ITEM_NONE, nullptr, ICON_NONE);
-    uiItemR(col, ptr, "import_skeletons", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "import_blendshapes", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    uiItemR(col, ptr, "import_skeletons", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
   if (uiLayout *panel = uiLayoutPanel(C, layout, "USD_import_material", true, IFACE_("Materials")))
   {
     uiLayout *col = uiLayoutColumn(panel, false);
 
-    uiItemR(col, ptr, "import_all_materials", UI_ITEM_NONE, nullptr, ICON_NONE);
-    uiItemR(col, ptr, "import_usd_preview", UI_ITEM_NONE, nullptr, ICON_NONE);
-    uiItemR(col, ptr, "create_world_material", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "import_all_materials", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    uiItemR(col, ptr, "import_usd_preview", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    uiItemR(col, ptr, "create_world_material", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiLayoutSetEnabled(col, RNA_boolean_get(ptr, "import_materials"));
 
     uiLayout *row = uiLayoutRow(col, true);
-    uiItemR(row, ptr, "set_material_blend", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(row, ptr, "set_material_blend", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiLayoutSetEnabled(row, RNA_boolean_get(ptr, "import_usd_preview"));
-    uiItemR(col, ptr, "mtl_name_collision_mode", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "mtl_name_collision_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
   if (uiLayout *panel = uiLayoutPanel(C, layout, "USD_import_texture", true, IFACE_("Textures"))) {
     uiLayout *col = uiLayoutColumn(panel, false);
 
-    uiItemR(col, ptr, "import_textures_mode", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "import_textures_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     bool copy_textures = RNA_enum_get(op->ptr, "import_textures_mode") == USD_TEX_IMPORT_COPY;
 
     uiLayout *row = uiLayoutRow(col, true);
-    uiItemR(row, ptr, "import_textures_dir", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(row, ptr, "import_textures_dir", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiLayoutSetEnabled(row, copy_textures);
     row = uiLayoutRow(col, true);
-    uiItemR(row, ptr, "tex_name_collision_mode", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(row, ptr, "tex_name_collision_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiLayoutSetEnabled(row, copy_textures);
     uiLayoutSetEnabled(col, RNA_boolean_get(ptr, "import_materials"));
   }
@@ -1132,7 +1190,7 @@ static void wm_usd_import_draw(bContext *C, wmOperator *op)
           C, layout, "USD_import_instancing", true, IFACE_("Particles and Instancing")))
   {
     uiLayout *col = uiLayoutColumn(panel, false);
-    uiItemR(col, ptr, "support_scene_instancing", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, ptr, "support_scene_instancing", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 }
 
@@ -1346,6 +1404,14 @@ void WM_OT_usd_import(wmOperatorType *ot)
                   "Merge parent Xform",
                   "Allow USD primitives to merge with their Xform parent "
                   "if they are the only child in the hierarchy");
+
+  RNA_def_boolean(
+      ot->srna,
+      "apply_unit_conversion_scale",
+      true,
+      "Apply Unit Conversion Scale",
+      "Scale the scene objects by the USD stage's meters per unit value. "
+      "This scaling is applied in addition to the value specified in the Scale option");
 }
 
 namespace blender::ed::io {

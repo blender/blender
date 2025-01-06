@@ -7,7 +7,7 @@
 #ifdef WITH_CUDA
 
 #  ifdef WITH_CUDA_DYNLOAD
-#    include "cuew.h"
+#    include <cuew.h>
 #  else
 #    include <cuda.h>
 #  endif

@@ -13,6 +13,10 @@
  * by Jorge Jimenez
  */
 
+#include "infos/eevee_motion_blur_info.hh"
+
+COMPUTE_SHADER_CREATE_INFO(eevee_motion_blur_gather)
+
 #include "draw_view_lib.glsl"
 #include "eevee_motion_blur_lib.glsl"
 #include "eevee_sampling_lib.glsl"

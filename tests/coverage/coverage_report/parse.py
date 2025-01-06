@@ -239,7 +239,7 @@ def compute_summary(data_by_source_file, source_file_order):
                 if execution_count > 0:
                     run_lines.add(line_index)
 
-            for function_name, instantiation_fdata in fdata["instantiations"].items():
+            for _function_name, instantiation_fdata in fdata["instantiations"].items():
                 num_instantiated_functions += 1
                 if instantiation_fdata["execution_count"] > 0:
                     num_instantiated_functions_run += 1

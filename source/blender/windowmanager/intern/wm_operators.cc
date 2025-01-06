@@ -513,7 +513,7 @@ static const char *wm_context_member_from_ptr(const bContext *C,
     const ID_Type ptr_id_type = GS(ptr->owner_id->name);
     switch (ptr_id_type) {
       case ID_SCE: {
-        TEST_PTR_DATA_TYPE_FROM_CONTEXT("active_sequence_strip", RNA_Sequence, ptr);
+        TEST_PTR_DATA_TYPE_FROM_CONTEXT("active_sequence_strip", RNA_Strip, ptr);
 
         CTX_TEST_PTR_ID(C, "scene", ptr->owner_id);
         break;
@@ -1445,7 +1445,7 @@ static uiBlock *wm_block_create_redo(bContext *C, ARegion *region, void *arg_op)
     }
   }
 
-  uiItemL_ex(layout, WM_operatortype_name(op->type, op->ptr).c_str(), ICON_NONE, true, false);
+  uiItemL_ex(layout, WM_operatortype_name(op->type, op->ptr), ICON_NONE, true, false);
   uiItemS_ex(layout, 0.2f, LayoutSeparatorType::Line);
   uiItemS_ex(layout, 0.5f);
 
@@ -1572,7 +1572,7 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *region, void *user_
 
   /* Title. */
   if (!data->title.empty()) {
-    uiItemL_ex(layout, data->title.c_str(), ICON_NONE, true, false);
+    uiItemL_ex(layout, data->title, ICON_NONE, true, false);
 
     /* Line under the title if there are properties but no message body. */
     if (data->include_properties && message_lines.size() == 0) {
@@ -1582,7 +1582,7 @@ static uiBlock *wm_block_dialog_create(bContext *C, ARegion *region, void *user_
 
   /* Message lines. */
   for (auto &st : message_lines) {
-    uiItemL(layout, st.c_str(), ICON_NONE);
+    uiItemL(layout, st, ICON_NONE);
   }
 
   if (data->include_properties) {
@@ -3590,7 +3590,9 @@ static void redraw_timer_step(bContext *C,
                               ScrArea *area,
                               ARegion *region,
                               const int type,
-                              const int cfra)
+                              const int cfra,
+                              const int steps_done,
+                              const int steps_total)
 {
   if (type == eRTDrawRegion) {
     if (region) {
@@ -3636,8 +3638,13 @@ static void redraw_timer_step(bContext *C,
   else if (type == eRTAnimationPlay) {
     /* Play anim, return on same frame as started with. */
     int tot = (scene->r.efra - scene->r.sfra) + 1;
+    const int frames_total = tot * steps_total;
+    int frames_done = tot * steps_done;
 
     while (tot--) {
+      WM_progress_set(win, float(frames_done) / float(frames_total));
+      frames_done++;
+
       /* TODO: ability to escape! */
       scene->r.cfra++;
       if (scene->r.cfra > scene->r.efra) {
@@ -3684,6 +3691,8 @@ static int redraw_timer_exec(bContext *C, wmOperator *op)
    */
   Depsgraph *depsgraph = CTX_data_depsgraph_pointer(C);
 
+  RNA_enum_description(redraw_timer_type_items, type, &infostr);
+
   WM_cursor_wait(true);
 
   double time_start = BLI_time_now_seconds();
@@ -3692,7 +3701,13 @@ static int redraw_timer_exec(bContext *C, wmOperator *op)
 
   int iter_steps = 0;
   for (int a = 0; a < iter; a++) {
-    redraw_timer_step(C, scene, depsgraph, win, area, region, type, cfra);
+
+    if (type == eRTAnimationPlay) {
+      WorkspaceStatus status(C);
+      status.item(fmt::format("{} / {} {}", a + 1, iter, infostr), ICON_INFO);
+    }
+
+    redraw_timer_step(C, scene, depsgraph, win, area, region, type, cfra, a, iter);
     iter_steps += 1;
 
     if (time_limit != 0.0) {
@@ -3705,7 +3720,10 @@ static int redraw_timer_exec(bContext *C, wmOperator *op)
 
   double time_delta = (BLI_time_now_seconds() - time_start) * 1000;
 
-  RNA_enum_description(redraw_timer_type_items, type, &infostr);
+  if (type == eRTAnimationPlay) {
+    ED_workspace_status_text(C, nullptr);
+    WM_progress_clear(win);
+  }
 
   WM_cursor_wait(false);
 
@@ -3794,7 +3812,7 @@ static void previews_id_ensure(bContext *C, Scene *scene, ID *id)
 
 static int previews_id_ensure_callback(LibraryIDLinkCallbackData *cb_data)
 {
-  const int cb_flag = cb_data->cb_flag;
+  const LibraryForeachIDCallbackFlag cb_flag = cb_data->cb_flag;
 
   if (cb_flag & (IDWALK_CB_EMBEDDED | IDWALK_CB_EMBEDDED_NOT_OWNING)) {
     return IDWALK_RET_NOP;
@@ -4288,6 +4306,7 @@ static void gesture_box_modal_keymap(wmKeyConfig *keyconf)
   WM_modalkeymap_assign(keymap, "VIEW3D_OT_zoom_border");
   WM_modalkeymap_assign(keymap, "IMAGE_OT_render_border");
   WM_modalkeymap_assign(keymap, "IMAGE_OT_view_zoom_border");
+  WM_modalkeymap_assign(keymap, "GREASE_PENCIL_OT_erase_box");
 }
 
 /* Lasso modal operators. */
@@ -4319,6 +4338,7 @@ static void gesture_lasso_modal_keymap(wmKeyConfig *keyconf)
   WM_modalkeymap_assign(keymap, "NODE_OT_select_lasso");
   WM_modalkeymap_assign(keymap, "UV_OT_select_lasso");
   WM_modalkeymap_assign(keymap, "PAINT_OT_hide_show_lasso_gesture");
+  WM_modalkeymap_assign(keymap, "GREASE_PENCIL_OT_erase_lasso");
 }
 
 /* Polyline modal operators */

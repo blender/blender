@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "infos/gpencil_vfx_info.hh"
+
+FRAGMENT_SHADER_CREATE_INFO(gpencil_fx_composite)
+
 #include "gpencil_common_lib.glsl"
 
 float gaussian_weight(float x)

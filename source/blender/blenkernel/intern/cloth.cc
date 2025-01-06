@@ -919,7 +919,7 @@ static void cloth_free_errorsprings(Cloth *cloth,
 
   MEM_SAFE_FREE(spring_ref);
 
-  cloth->edgeset.clear_and_shrink();
+  cloth->edgeset.clear();
 }
 
 BLI_INLINE void cloth_bend_poly_dir(
@@ -1372,7 +1372,7 @@ BLI_INLINE bool cloth_bend_set_poly_vert_array(int **poly, int len, const int *c
   return true;
 }
 
-static bool find_internal_spring_target_vertex(BVHTreeFromMesh *treedata,
+static bool find_internal_spring_target_vertex(blender::bke::BVHTreeFromMesh *treedata,
                                                const blender::Span<blender::float3> vert_normals,
                                                uint v_idx,
                                                RNG *rng,
@@ -1500,7 +1500,6 @@ static bool cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
   bool use_internal_springs = (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_INTERNAL_SPRINGS);
 
   if (use_internal_springs && numface > 0) {
-    BVHTreeFromMesh treedata = {nullptr};
     int tar_v_idx;
     Mesh *tmp_mesh = nullptr;
     RNG *rng;
@@ -1513,7 +1512,8 @@ static bool cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
     }
 
     Set<OrderedEdge> existing_vert_pairs;
-    BKE_bvhtree_from_mesh_get(&treedata, tmp_mesh ? tmp_mesh : mesh, BVHTREE_FROM_CORNER_TRIS, 2);
+    blender::bke::BVHTreeFromMesh treedata = tmp_mesh ? tmp_mesh->bvh_corner_tris() :
+                                                        mesh->bvh_corner_tris();
     rng = BLI_rng_new_srandom(0);
 
     const blender::Span<blender::float3> vert_normals = tmp_mesh ? tmp_mesh->vert_normals() :
@@ -1561,7 +1561,6 @@ static bool cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
         }
         else {
           cloth_free_errorsprings(cloth, edgelist, spring_ref);
-          free_bvhtree_from_mesh(&treedata);
           if (tmp_mesh) {
             BKE_id_free(nullptr, &tmp_mesh->id);
           }
@@ -1570,8 +1569,7 @@ static bool cloth_build_springs(ClothModifierData *clmd, Mesh *mesh)
         }
       }
     }
-    existing_vert_pairs.clear_and_shrink();
-    free_bvhtree_from_mesh(&treedata);
+    existing_vert_pairs.clear();
     if (tmp_mesh) {
       BKE_id_free(nullptr, &tmp_mesh->id);
     }

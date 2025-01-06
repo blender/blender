@@ -27,7 +27,7 @@
 /* works but slower */
 uint BLI_ghashutil_ptrhash(const void *key)
 {
-  return (uint)(intptr_t)key;
+  return uint(intptr_t(key));
 }
 #else
 uint BLI_ghashutil_ptrhash(const void *key)

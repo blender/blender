@@ -204,19 +204,21 @@ class Wireframe : Overlay {
         break;
       }
       case OB_VOLUME: {
-        gpu::Batch *geom = DRW_cache_volume_face_wireframe_get(ob_ref.object);
-        if (geom == nullptr) {
-          break;
-        }
-        if (static_cast<Volume *>(ob_ref.object->data)->display.wireframe_type ==
-            VOLUME_WIREFRAME_POINTS)
-        {
-          coloring.pointcloud_ps_->draw(
-              geom, manager.unique_handle(ob_ref), res.select_id(ob_ref).get());
-        }
-        else {
-          coloring.mesh_ps_->draw(
-              geom, manager.unique_handle(ob_ref), res.select_id(ob_ref).get());
+        if (show_surface_wire) {
+          gpu::Batch *geom = DRW_cache_volume_face_wireframe_get(ob_ref.object);
+          if (geom == nullptr) {
+            break;
+          }
+          if (static_cast<Volume *>(ob_ref.object->data)->display.wireframe_type ==
+              VOLUME_WIREFRAME_POINTS)
+          {
+            coloring.pointcloud_ps_->draw(
+                geom, manager.unique_handle(ob_ref), res.select_id(ob_ref).get());
+          }
+          else {
+            coloring.mesh_ps_->draw(
+                geom, manager.unique_handle(ob_ref), res.select_id(ob_ref).get());
+          }
         }
         break;
       }

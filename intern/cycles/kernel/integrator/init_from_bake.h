@@ -14,8 +14,6 @@
 
 #include "kernel/sample/pattern.h"
 
-#include "kernel/geom/geom.h"
-
 CCL_NAMESPACE_BEGIN
 
 /* In order to perform anti-aliasing during baking, we jitter the input barycentric coordinates
@@ -39,8 +37,8 @@ ccl_device_inline void bake_jitter_barycentric(ccl_private float &u,
 {
   for (int i = 0; i < 10; i++) {
     /* Offset UV according to differentials. */
-    float jitterU = u + (rand_filter.x - 0.5f) * dudx + (rand_filter.y - 0.5f) * dudy;
-    float jitterV = v + (rand_filter.x - 0.5f) * dvdx + (rand_filter.y - 0.5f) * dvdy;
+    const float jitterU = u + (rand_filter.x - 0.5f) * dudx + (rand_filter.y - 0.5f) * dudy;
+    const float jitterV = v + (rand_filter.x - 0.5f) * dvdx + (rand_filter.y - 0.5f) * dvdy;
     /* If this location is inside the triangle, return. */
     if (jitterU > 0.0f && jitterV > 0.0f && jitterU + jitterV < 1.0f) {
       u = jitterU;
@@ -51,14 +49,13 @@ ccl_device_inline void bake_jitter_barycentric(ccl_private float &u,
     rand_filter = hash_float2_to_float2(rand_filter);
   }
   /* Retries exceeded, give up and just use center value. */
-  return;
 }
 
 /* Offset towards center of triangle to avoid ray-tracing precision issues. */
-ccl_device const float2 bake_offset_towards_center(KernelGlobals kg,
-                                                   const int prim,
-                                                   const float u,
-                                                   const float v)
+ccl_device float2 bake_offset_towards_center(KernelGlobals kg,
+                                             const int prim,
+                                             const float u,
+                                             const float v)
 {
   float3 tri_verts[3];
   triangle_vertices(kg, prim, tri_verts);
@@ -104,7 +101,7 @@ ccl_device const float2 bake_offset_towards_center(KernelGlobals kg,
  * that the pixel did converge. */
 ccl_device bool integrator_init_from_bake(KernelGlobals kg,
                                           IntegratorState state,
-                                          ccl_global const KernelWorkTile *ccl_restrict tile,
+                                          const ccl_global KernelWorkTile *ccl_restrict tile,
                                           ccl_global float *render_buffer,
                                           const int x,
                                           const int y,
@@ -188,13 +185,14 @@ ccl_device bool integrator_init_from_bake(KernelGlobals kg,
 
   /* Position and normal on triangle. */
   const int object = kernel_data.bake.object_index;
-  float3 P, Ng;
+  float3 P;
+  float3 Ng;
   int shader;
   triangle_point_normal(kg, object, prim, u, v, &P, &Ng, &shader);
 
   const int object_flag = kernel_data_fetch(object_flag, object);
   if (!(object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
-    Transform tfm = object_fetch_transform(kg, object, OBJECT_TRANSFORM);
+    const Transform tfm = object_fetch_transform(kg, object, OBJECT_TRANSFORM);
     P = transform_point_auto(&tfm, P);
   }
 
@@ -220,7 +218,7 @@ ccl_device bool integrator_init_from_bake(KernelGlobals kg,
     float3 N = (shader & SHADER_SMOOTH_NORMAL) ? triangle_smooth_normal(kg, Ng, prim, u, v) : Ng;
 
     if (!(object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
-      Transform itfm = object_fetch_transform(kg, object, OBJECT_INVERSE_TRANSFORM);
+      const Transform itfm = object_fetch_transform(kg, object, OBJECT_INVERSE_TRANSFORM);
       N = normalize(transform_direction_transposed(&itfm, N));
       Ng = normalize(transform_direction_transposed(&itfm, Ng));
     }
@@ -233,7 +231,7 @@ ccl_device bool integrator_init_from_bake(KernelGlobals kg,
       film_write_pass_float3(buffer + kernel_data.film.pass_position, P);
       return true;
     }
-    else if (kernel_data.film.pass_normal != PASS_UNUSED && !(shader_flags & SD_HAS_BUMP)) {
+    if (kernel_data.film.pass_normal != PASS_UNUSED && !(shader_flags & SD_HAS_BUMP)) {
       film_write_pass_float3(buffer + kernel_data.film.pass_normal, N);
       return true;
     }
@@ -290,10 +288,11 @@ ccl_device bool integrator_init_from_bake(KernelGlobals kg,
     ray.time = 0.5f;
 
     /* Setup differentials. */
-    float3 dPdu, dPdv;
+    float3 dPdu;
+    float3 dPdv;
     triangle_dPdudv(kg, prim, &dPdu, &dPdv);
     if (!(object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
-      Transform tfm = object_fetch_transform(kg, object, OBJECT_TRANSFORM);
+      const Transform tfm = object_fetch_transform(kg, object, OBJECT_TRANSFORM);
       dPdu = transform_direction(&tfm, dPdu);
       dPdv = transform_direction(&tfm, dPdv);
     }

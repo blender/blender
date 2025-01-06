@@ -61,8 +61,12 @@ static void node_composit_buts_channel_matte(uiLayout *layout, bContext * /*C*/,
 
   uiItemL(layout, IFACE_("Color Space:"), ICON_NONE);
   row = uiLayoutRow(layout, false);
-  uiItemR(
-      row, ptr, "color_space", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
+  uiItemR(row,
+          ptr,
+          "color_space",
+          UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_EXPAND,
+          std::nullopt,
+          ICON_NONE);
 
   col = uiLayoutColumn(layout, false);
   uiItemL(col, IFACE_("Key Channel:"), ICON_NONE);
@@ -71,12 +75,12 @@ static void node_composit_buts_channel_matte(uiLayout *layout, bContext * /*C*/,
           ptr,
           "matte_channel",
           UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_EXPAND,
-          nullptr,
+          std::nullopt,
           ICON_NONE);
 
   col = uiLayoutColumn(layout, false);
 
-  uiItemR(col, ptr, "limit_method", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "limit_method", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   if (RNA_enum_get(ptr, "limit_method") == 0) {
     uiItemL(col, IFACE_("Limiting Channel:"), ICON_NONE);
     row = uiLayoutRow(col, false);
@@ -84,17 +88,25 @@ static void node_composit_buts_channel_matte(uiLayout *layout, bContext * /*C*/,
             ptr,
             "limit_channel",
             UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_EXPAND,
-            nullptr,
+            std::nullopt,
             ICON_NONE);
   }
 
-  uiItemR(
-      col, ptr, "limit_max", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
-  uiItemR(
-      col, ptr, "limit_min", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
+  uiItemR(col,
+          ptr,
+          "limit_max",
+          UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER,
+          std::nullopt,
+          ICON_NONE);
+  uiItemR(col,
+          ptr,
+          "limit_min",
+          UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER,
+          std::nullopt,
+          ICON_NONE);
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 static CMPNodeChannelMatteColorSpace get_color_space(const bNode &node)
 {
@@ -153,7 +165,7 @@ class ChannelMatteShaderNode : public ShaderNode {
     GPUNodeStack *inputs = get_inputs_array();
     GPUNodeStack *outputs = get_outputs_array();
 
-    const float color_space = static_cast<int>(get_color_space(bnode()));
+    const float color_space = int(get_color_space(bnode()));
     const float matte_channel = get_matte_channel(bnode());
     const float2 limit_channels = float2(get_limit_channels(bnode()));
     const float max_limit = get_max_limit(bnode());
@@ -286,6 +298,7 @@ void register_node_type_cmp_channel_matte()
   static blender::bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_CHANNEL_MATTE, "Channel Key", NODE_CLASS_MATTE);
+  ntype.enum_name_legacy = "CHANNEL_MATTE";
   ntype.declare = file_ns::cmp_node_channel_matte_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_channel_matte;
   ntype.flag |= NODE_PREVIEW;

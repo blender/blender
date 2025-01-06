@@ -6,6 +6,10 @@
  * Use screen space tracing against depth buffer to find intersection with the scene.
  */
 
+#include "infos/eevee_tracing_info.hh"
+
+COMPUTE_SHADER_CREATE_INFO(eevee_ray_trace_screen)
+
 #include "eevee_bxdf_sampling_lib.glsl"
 #include "eevee_closure_lib.glsl"
 #include "eevee_colorspace_lib.glsl"

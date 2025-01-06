@@ -2,8 +2,28 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#ifdef GPU_SHADER
+#  pragma once
+#  include "BLI_utildefines_variadic.h"
+
+#  include "gpu_glsl_cpp_stubs.hh"
+
+#  include "draw_view_info.hh"
+#  include "eevee_common_info.hh"
+#  include "eevee_shader_shared.hh"
+#  include "eevee_velocity_info.hh"
+
+#  define DOF_BOKEH_TEXTURE true
+#  define DILATE_MODE_MIN_MAX true
+#endif
+
 #include "eevee_defines.hh"
 #include "gpu_shader_create_info.hh"
+
+GPU_SHADER_CREATE_INFO(eevee_depth_of_field_tiles_common)
+IMAGE(0, GPU_R11F_G11F_B10F, READ, FLOAT_2D, in_tiles_fg_img)
+IMAGE(1, GPU_R11F_G11F_B10F, READ, FLOAT_2D, in_tiles_bg_img)
+GPU_SHADER_CREATE_END()
 
 /* -------------------------------------------------------------------- */
 /** \name Setup
@@ -125,11 +145,6 @@ GPU_SHADER_CREATE_INFO(eevee_depth_of_field_tiles_dilate_minmax)
 DO_STATIC_COMPILATION()
 DEFINE_VALUE("DILATE_MODE_MIN_MAX", "true")
 ADDITIONAL_INFO(eevee_depth_of_field_tiles_dilate)
-GPU_SHADER_CREATE_END()
-
-GPU_SHADER_CREATE_INFO(eevee_depth_of_field_tiles_common)
-IMAGE(0, GPU_R11F_G11F_B10F, READ, FLOAT_2D, in_tiles_fg_img)
-IMAGE(1, GPU_R11F_G11F_B10F, READ, FLOAT_2D, in_tiles_bg_img)
 GPU_SHADER_CREATE_END()
 
 /** \} */

@@ -2,15 +2,12 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#include <limits.h>
-#include <string.h>
+#include <cstring>
 
 #include "device/cpu/device.h"
 #include "device/device.h"
-#include "integrator/pass_accessor_cpu.h"
 #include "integrator/path_trace.h"
 #include "scene/background.h"
-#include "scene/bake.h"
 #include "scene/camera.h"
 #include "scene/integrator.h"
 #include "scene/light.h"
@@ -23,8 +20,6 @@
 #include "session/output_driver.h"
 #include "session/session.h"
 
-#include "util/foreach.h"
-#include "util/function.h"
 #include "util/log.h"
 #include "util/math.h"
 #include "util/task.h"
@@ -48,22 +43,26 @@ Session::Session(const SessionParams &params_, const SceneParams &scene_params)
     progress.set_error(device->error_message());
   }
 
-  scene = new Scene(scene_params, device);
+  scene = make_unique<Scene>(scene_params, device.get());
 
   if (params.device == params.denoise_device) {
-    denoise_device = device;
+    /* Reuse render device. */
   }
   else {
-    denoise_device = Device::create(params.denoise_device, stats, profiler, params_.headless);
+    denoise_device_ = Device::create(params.denoise_device, stats, profiler, params_.headless);
 
-    if (denoise_device->have_error()) {
-      progress.set_error(denoise_device->error_message());
+    if (denoise_device_->have_error()) {
+      progress.set_error(denoise_device_->error_message());
     }
   }
 
   /* Configure path tracer. */
-  path_trace_ = make_unique<PathTrace>(
-      device, denoise_device, scene->film, &scene->dscene, render_scheduler_, tile_manager_);
+  path_trace_ = make_unique<PathTrace>(device.get(),
+                                       denoise_device(),
+                                       scene->film,
+                                       &scene->dscene,
+                                       render_scheduler_,
+                                       tile_manager_);
   path_trace_->set_progress(&progress);
   path_trace_->progress_update_cb = [&]() { update_status_time(); };
 
@@ -75,7 +74,7 @@ Session::Session(const SessionParams &params_, const SceneParams &scene_params)
   };
 
   /* Create session thread. */
-  session_thread_ = new thread(function_bind(&Session::thread_run, this));
+  session_thread_ = make_unique<thread>([this] { thread_run(); });
 }
 
 Session::~Session()
@@ -85,14 +84,14 @@ Session::~Session()
 
   /* Signal session thread to end. */
   {
-    thread_scoped_lock session_thread_lock(session_thread_mutex_);
+    const thread_scoped_lock session_thread_lock(session_thread_mutex_);
     session_thread_state_ = SESSION_THREAD_END;
   }
   session_thread_cond_.notify_all();
 
   /* Destroy session thread. */
   session_thread_->join();
-  delete session_thread_;
+  session_thread_.reset();
 
   /* Destroy path tracer, before the device. This is needed because destruction might need to
    * access device for device memory free.
@@ -101,11 +100,9 @@ Session::~Session()
   path_trace_.reset();
 
   /* Destroy scene and device. */
-  delete scene;
-  if (denoise_device != device) {
-    delete denoise_device;
-  }
-  delete device;
+  scene.reset();
+  denoise_device_.reset();
+  device.reset();
 
   /* Stop task scheduler. */
   TaskScheduler::exit();
@@ -115,7 +112,7 @@ void Session::start()
 {
   {
     /* Signal session thread to start rendering. */
-    thread_scoped_lock session_thread_lock(session_thread_mutex_);
+    const thread_scoped_lock session_thread_lock(session_thread_mutex_);
     if (session_thread_state_ == SESSION_THREAD_RENDER) {
       /* Already rendering, nothing to do. */
       return;
@@ -145,7 +142,7 @@ void Session::cancel(bool quick)
 
     /* Signal unpause in case the render was paused. */
     {
-      thread_scoped_lock pause_lock(pause_mutex_);
+      const thread_scoped_lock pause_lock(pause_mutex_);
       pause_ = false;
     }
     pause_cond_.notify_all();
@@ -169,7 +166,8 @@ void Session::run_main_render_loop()
 
     if (!render_work) {
       if (VLOG_INFO_IS_ON) {
-        double total_time, render_time;
+        double total_time;
+        double render_time;
         progress.get_time(total_time, render_time);
         VLOG_INFO << "Rendering in main loop is done in " << render_time << " seconds.";
         VLOG_INFO << path_trace_->full_report();
@@ -204,7 +202,7 @@ void Session::run_main_render_loop()
       /* buffers mutex is locked entirely while rendering each
        * sample, and released/reacquired on each iteration to allow
        * reset and draw in between */
-      thread_scoped_lock buffers_lock(buffers_mutex_);
+      const thread_scoped_lock buffers_lock(buffers_mutex_);
 
       /* update status and timing */
       update_status_time();
@@ -241,7 +239,7 @@ void Session::thread_run()
         session_thread_cond_.wait(session_thread_lock);
         continue;
       }
-      else if (session_thread_state_ == SESSION_THREAD_END) {
+      if (session_thread_state_ == SESSION_THREAD_END) {
         /* End thread immediately. */
         break;
       }
@@ -252,7 +250,7 @@ void Session::thread_run()
 
     /* Go back from rendering to waiting. */
     {
-      thread_scoped_lock session_thread_lock(session_thread_mutex_);
+      const thread_scoped_lock session_thread_lock(session_thread_mutex_);
       if (session_thread_state_ == SESSION_THREAD_RENDER) {
         session_thread_state_ = SESSION_THREAD_WAIT;
       }
@@ -297,7 +295,7 @@ void Session::thread_render()
 
 bool Session::is_session_thread_rendering()
 {
-  thread_scoped_lock session_thread_lock(session_thread_mutex_);
+  const thread_scoped_lock session_thread_lock(session_thread_mutex_);
   return (session_thread_state_ == SESSION_THREAD_RENDER);
 }
 
@@ -313,11 +311,11 @@ RenderWork Session::run_update_for_next_iteration()
 
   /* Perform delayed reset if requested. */
   {
-    thread_scoped_lock reset_lock(delayed_reset_.mutex);
+    const thread_scoped_lock reset_lock(delayed_reset_.mutex);
     if (delayed_reset_.do_reset) {
       did_reset = true;
 
-      thread_scoped_lock buffers_lock(buffers_mutex_);
+      const thread_scoped_lock buffers_lock(buffers_mutex_);
       do_delayed_reset();
 
       /* After reset make sure the tile manager is at the first big tile. */
@@ -349,7 +347,7 @@ RenderWork Session::run_update_for_next_iteration()
 
   /* Update path guiding. */
   {
-    const GuidingParams guiding_params = scene->integrator->get_guiding_params(device);
+    const GuidingParams guiding_params = scene->integrator->get_guiding_params(device.get());
     const bool guiding_reset = (guiding_params.use) ? scene->need_reset(false) : false;
     path_trace_->set_guiding_params(guiding_params, guiding_reset);
   }
@@ -374,7 +372,7 @@ RenderWork Session::run_update_for_next_iteration()
   }
 
   if (render_work) {
-    scoped_timer update_timer;
+    const scoped_timer update_timer;
 
     if (switched_to_new_tile) {
       BufferParams tile_params = buffer_params_;
@@ -462,7 +460,7 @@ bool Session::run_wait_for_work(const RenderWork &render_work)
   /* Only leave the loop when rendering is not paused. But even if the current render is
    * un-paused but there is nothing to render keep waiting until new work is added. */
   while (!progress.get_cancel()) {
-    scoped_timer pause_timer;
+    const scoped_timer pause_timer;
 
     if (!pause_ && (render_work || new_work_added_ || delayed_reset_.do_reset)) {
       break;
@@ -541,11 +539,11 @@ void Session::do_delayed_reset()
    * tile results. It is safe to use generic update function here which checks for changes since
    * changes in tile settings re-creates session, which ensures film is fully updated on tile
    * changes. */
-  scene->film->update_passes(scene, tile_manager_.has_multiple_tiles());
+  scene->film->update_passes(scene.get(), tile_manager_.has_multiple_tiles());
 
   /* Update for new state of scene and passes. */
   buffer_params_.update_passes(scene->passes);
-  tile_manager_.update(buffer_params_, scene);
+  tile_manager_.update(buffer_params_, scene.get());
 
   /* Update temp directory on reset.
    * This potentially allows to finish the existing rendering with a previously configure
@@ -569,8 +567,8 @@ void Session::do_delayed_reset()
 void Session::reset(const SessionParams &session_params, const BufferParams &buffer_params)
 {
   {
-    thread_scoped_lock reset_lock(delayed_reset_.mutex);
-    thread_scoped_lock pause_lock(pause_mutex_);
+    const thread_scoped_lock reset_lock(delayed_reset_.mutex);
+    const thread_scoped_lock pause_lock(pause_mutex_);
 
     delayed_reset_.do_reset = true;
     delayed_reset_.session_params = session_params;
@@ -582,7 +580,7 @@ void Session::reset(const SessionParams &session_params, const BufferParams &buf
   pause_cond_.notify_all();
 }
 
-void Session::set_samples(int samples)
+void Session::set_samples(const int samples)
 {
   if (samples == params.samples) {
     return;
@@ -591,14 +589,14 @@ void Session::set_samples(int samples)
   params.samples = samples;
 
   {
-    thread_scoped_lock pause_lock(pause_mutex_);
+    const thread_scoped_lock pause_lock(pause_mutex_);
     new_work_added_ = true;
   }
 
   pause_cond_.notify_all();
 }
 
-void Session::set_time_limit(double time_limit)
+void Session::set_time_limit(const double time_limit)
 {
   if (time_limit == params.time_limit) {
     return;
@@ -607,7 +605,7 @@ void Session::set_time_limit(double time_limit)
   params.time_limit = time_limit;
 
   {
-    thread_scoped_lock pause_lock(pause_mutex_);
+    const thread_scoped_lock pause_lock(pause_mutex_);
     new_work_added_ = true;
   }
 
@@ -619,7 +617,7 @@ void Session::set_pause(bool pause)
   bool notify = false;
 
   {
-    thread_scoped_lock pause_lock(pause_mutex_);
+    const thread_scoped_lock pause_lock(pause_mutex_);
 
     if (pause != pause_) {
       pause_ = pause;
@@ -654,7 +652,8 @@ double Session::get_estimated_remaining_time() const
     return 0.0;
   }
 
-  double total_time, render_time;
+  double total_time;
+  double render_time;
   progress.get_time(total_time, render_time);
   double remaining = (1.0 - (double)completed) * (render_time / (double)completed);
 
@@ -679,7 +678,7 @@ void Session::wait()
   }
 }
 
-bool Session::update_scene(int width, int height)
+bool Session::update_scene(const int width, const int height)
 {
   /* Update camera if dimensions changed for progressive render. the camera
    * knows nothing about progressive or cropped rendering, it just gets the
@@ -701,7 +700,8 @@ static string status_append(const string &status, const string &suffix)
 
 void Session::update_status_time(bool show_pause, bool show_done)
 {
-  string status, substatus;
+  string status;
+  string substatus;
 
   const int current_tile = progress.get_rendered_tiles();
   const int num_tiles = tile_manager_.get_num_tiles();
@@ -757,7 +757,7 @@ void Session::collect_statistics(RenderStats *render_stats)
 {
   scene->collect_statistics(render_stats);
   if (params.use_profiling && (params.device.type == DEVICE_CPU)) {
-    render_stats->collect_profiling(scene, profiler);
+    render_stats->collect_profiling(scene.get(), profiler);
   }
 }
 

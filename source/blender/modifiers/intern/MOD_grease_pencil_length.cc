@@ -277,7 +277,7 @@ static void panel_draw(const bContext *C, Panel *panel)
   PointerRNA *ptr = modifier_panel_get_property_pointers(panel, nullptr);
 
   uiLayoutSetPropSep(layout, true);
-  uiItemR(layout, ptr, "mode", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   uiLayout *col = uiLayoutColumn(layout, true);
 
@@ -301,12 +301,12 @@ static void panel_draw(const bContext *C, Panel *panel)
     uiLayoutSetPropSep(subcol, true);
     uiLayoutSetActive(subcol, RNA_boolean_get(ptr, "use_random"));
 
-    uiItemR(subcol, ptr, "step", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(subcol, ptr, "step", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
     uiItemR(subcol, ptr, "random_start_factor", UI_ITEM_NONE, IFACE_("Offset Start"), ICON_NONE);
     uiItemR(subcol, ptr, "random_end_factor", UI_ITEM_NONE, IFACE_("End"), ICON_NONE);
     uiItemR(subcol, ptr, "random_offset", UI_ITEM_NONE, IFACE_("Noise Offset"), ICON_NONE);
-    uiItemR(subcol, ptr, "seed", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(subcol, ptr, "seed", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
   if (uiLayout *curvature_layout = uiLayoutPanelProp(
@@ -318,9 +318,9 @@ static void panel_draw(const bContext *C, Panel *panel)
     uiLayoutSetPropSep(subcol, true);
     uiLayoutSetActive(subcol, RNA_boolean_get(ptr, "use_curvature"));
 
-    uiItemR(subcol, ptr, "point_density", UI_ITEM_NONE, nullptr, ICON_NONE);
-    uiItemR(subcol, ptr, "segment_influence", UI_ITEM_NONE, nullptr, ICON_NONE);
-    uiItemR(subcol, ptr, "max_angle", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(subcol, ptr, "point_density", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    uiItemR(subcol, ptr, "segment_influence", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+    uiItemR(subcol, ptr, "max_angle", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     uiItemR(subcol, ptr, "invert_curvature", UI_ITEM_NONE, IFACE_("Invert"), ICON_NONE);
   }
 

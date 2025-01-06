@@ -35,7 +35,7 @@ class HdCyclesSession final : public PXR_NS::HdRenderParam {
     return _stageMetersPerUnit;
   }
 
-  void SetStageMetersPerUnit(double stageMetersPerUnit)
+  void SetStageMetersPerUnit(const double stageMetersPerUnit)
   {
     _stageMetersPerUnit = stageMetersPerUnit;
   }

@@ -91,6 +91,14 @@ VKPipelinePool::VKPipelinePool()
       VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
   vk_pipeline_rasterization_state_create_info_.lineWidth = 1.0f;
   vk_pipeline_rasterization_state_create_info_.frontFace = VK_FRONT_FACE_CLOCKWISE;
+  vk_pipeline_rasterization_state_create_info_.pNext =
+      &vk_pipeline_rasterization_provoking_vertex_state_info_;
+
+  vk_pipeline_rasterization_provoking_vertex_state_info_ = {};
+  vk_pipeline_rasterization_provoking_vertex_state_info_.sType =
+      VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_PROVOKING_VERTEX_STATE_CREATE_INFO_EXT;
+  vk_pipeline_rasterization_provoking_vertex_state_info_.provokingVertexMode =
+      VK_PROVOKING_VERTEX_MODE_LAST_VERTEX_EXT;
 
   vk_pipeline_viewport_state_create_info_ = {};
   vk_pipeline_viewport_state_create_info_.sType =

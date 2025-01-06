@@ -35,6 +35,9 @@
 
 #include "view3d_intern.hh"
 #include "view3d_navigate.hh" /* own include */
+
+using blender::float3;
+
 /* -------------------------------------------------------------------- */
 /** \name View All Operator
  *
@@ -68,8 +71,8 @@ static void view3d_object_calc_minmax(Depsgraph *depsgraph,
                                       Scene *scene,
                                       Object *ob_eval,
                                       const bool only_center,
-                                      float min[3],
-                                      float max[3])
+                                      float3 &min,
+                                      float3 &max)
 {
   /* Account for duplis. */
   if (BKE_object_minmax_dupli(depsgraph, scene, ob_eval, min, max, false) == 0) {
@@ -205,7 +208,7 @@ static int view3d_all_exec(bContext *C, wmOperator *op)
   const bool center = RNA_boolean_get(op->ptr, "center");
   const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
 
-  float min[3], max[3];
+  float3 min, max;
   bool changed = false;
 
   if (center) {

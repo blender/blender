@@ -4,10 +4,10 @@
 
 #pragma once
 
-#include <cstring>
-#include <string>
-
 #ifdef WITH_HIP
+
+#  include <cstring>
+#  include <string>
 
 #  ifdef WITH_HIP_DYNLOAD
 #    include "hipew.h"

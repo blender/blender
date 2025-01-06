@@ -11,7 +11,7 @@ from bl_ui.utils import PresetPanel
 from bpy.types import Panel, Menu
 
 from bl_ui.properties_grease_pencil_common import GreasePencilSimplifyPanel
-from bl_ui.properties_render import draw_curves_settings, CompositorPerformanceButtonsPanel
+from bl_ui.properties_render import draw_curves_settings, CompositorPerformanceButtonsPanel, CompositorDenoisePerformanceButtonsPanel
 from bl_ui.properties_view_layer import (
     ViewLayerCryptomattePanelHelper,
     ViewLayerAOVPanelHelper,
@@ -795,6 +795,12 @@ class CYCLES_RENDER_PT_performance(CyclesButtonsPanel, Panel):
 
 class CYCLES_RENDER_PT_performance_compositor(CyclesButtonsPanel, CompositorPerformanceButtonsPanel, Panel):
     bl_parent_id = "CYCLES_RENDER_PT_performance"
+    bl_options = {'DEFAULT_CLOSED'}
+
+
+class CYCLES_RENDER_PT_performance_compositor_denoise_settings(
+        CyclesButtonsPanel, CompositorDenoisePerformanceButtonsPanel, Panel):
+    bl_parent_id = "CYCLES_RENDER_PT_performance_compositor"
     bl_options = {'DEFAULT_CLOSED'}
 
 
@@ -2157,12 +2163,23 @@ class CYCLES_RENDER_PT_debug(CyclesDebugButtonsPanel, Panel):
         row.prop(cscene, "debug_use_cpu_avx2", toggle=True)
         col.prop(cscene, "debug_bvh_layout", text="BVH")
 
+        import platform
+        is_macos = platform.system() == 'Darwin'
         col.separator()
 
-        col = layout.column(heading="CUDA")
-        col.prop(cscene, "debug_use_cuda_adaptive_compile")
-        col = layout.column(heading="OptiX")
-        col.prop(cscene, "debug_use_optix_debug", text="Module Debug")
+        if is_macos:
+            col = layout.column(heading="Metal")
+            col.prop(cscene, "debug_use_metal_adaptive_compile")
+        else:
+            col = layout.column(heading="CUDA")
+            col.prop(cscene, "debug_use_cuda_adaptive_compile")
+            col = layout.column(heading="OptiX")
+            col.prop(cscene, "debug_use_optix_debug", text="Module Debug")
+
+            col.separator()
+
+            col = layout.column(heading="HIP")
+            col.prop(cscene, "debug_use_hip_adaptive_compile")
 
         col.separator()
 
@@ -2464,6 +2481,7 @@ classes = (
     CYCLES_RENDER_PT_film_transparency,
     CYCLES_RENDER_PT_performance,
     CYCLES_RENDER_PT_performance_compositor,
+    CYCLES_RENDER_PT_performance_compositor_denoise_settings,
     CYCLES_RENDER_PT_performance_threads,
     CYCLES_RENDER_PT_performance_memory,
     CYCLES_RENDER_PT_performance_acceleration_structure,

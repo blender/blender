@@ -1381,7 +1381,7 @@ static bool rna_MeshEdge_use_seam_get(PointerRNA *ptr)
 {
   const Mesh *mesh = rna_mesh(ptr);
   const bool *seam_edge = static_cast<const bool *>(
-      CustomData_get_layer_named(&mesh->edge_data, CD_PROP_BOOL, ".uv_seam"));
+      CustomData_get_layer_named(&mesh->edge_data, CD_PROP_BOOL, "uv_seam"));
   const int index = rna_MeshEdge_index_get(ptr);
   return seam_edge == nullptr ? false : seam_edge[index];
 }
@@ -1390,14 +1390,14 @@ static void rna_MeshEdge_use_seam_set(PointerRNA *ptr, bool value)
 {
   Mesh *mesh = rna_mesh(ptr);
   bool *seam_edge = static_cast<bool *>(CustomData_get_layer_named_for_write(
-      &mesh->edge_data, CD_PROP_BOOL, ".uv_seam", mesh->edges_num));
+      &mesh->edge_data, CD_PROP_BOOL, "uv_seam", mesh->edges_num));
   if (!seam_edge) {
     if (!value) {
       /* Skip adding layer if it doesn't exist already anyway and we're not hiding an element. */
       return;
     }
     seam_edge = static_cast<bool *>(CustomData_add_layer_named(
-        &mesh->edge_data, CD_PROP_BOOL, CD_SET_DEFAULT, mesh->edges_num, ".uv_seam"));
+        &mesh->edge_data, CD_PROP_BOOL, CD_SET_DEFAULT, mesh->edges_num, "uv_seam"));
   }
   const int index = rna_MeshEdge_index_get(ptr);
   seam_edge[index] = value;

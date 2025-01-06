@@ -2,7 +2,11 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "common_gpencil_lib.glsl"
+#include "infos/gpencil_info.hh"
+
+VERTEX_SHADER_CREATE_INFO(gpencil_geometry)
+
+#include "draw_grease_pencil_lib.glsl"
 
 void gpencil_color_output(vec4 stroke_col, vec4 vert_col, float vert_strength, float mix_tex)
 {

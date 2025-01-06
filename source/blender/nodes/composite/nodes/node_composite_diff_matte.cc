@@ -54,12 +54,17 @@ static void node_composit_buts_diff_matte(uiLayout *layout, bContext * /*C*/, Po
   uiLayout *col;
 
   col = uiLayoutColumn(layout, true);
+  uiItemR(col,
+          ptr,
+          "tolerance",
+          UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER,
+          std::nullopt,
+          ICON_NONE);
   uiItemR(
-      col, ptr, "tolerance", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
-  uiItemR(col, ptr, "falloff", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER, nullptr, ICON_NONE);
+      col, ptr, "falloff", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_SLIDER, std::nullopt, ICON_NONE);
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 static float get_tolerance(const bNode &node)
 {
@@ -130,6 +135,7 @@ void register_node_type_cmp_diff_matte()
   static blender::bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_DIFF_MATTE, "Difference Key", NODE_CLASS_MATTE);
+  ntype.enum_name_legacy = "DIFF_MATTE";
   ntype.declare = file_ns::cmp_node_diff_matte_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_diff_matte;
   ntype.flag |= NODE_PREVIEW;

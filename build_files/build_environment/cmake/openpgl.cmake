@@ -48,7 +48,7 @@ if(WIN32)
       DEPENDEES install
     )
   else()
-  ExternalProject_Add_Step(external_openpgl after_install
+    ExternalProject_Add_Step(external_openpgl after_install
       COMMAND ${CMAKE_COMMAND} -E copy
         ${LIBDIR}/openpgl/lib/openpgl_d.lib
         ${HARVEST_TARGET}/openpgl/lib/openpgl_d.lib

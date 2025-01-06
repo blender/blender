@@ -2,6 +2,10 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+__all__ = (
+    "AbstractImBufTest",
+)
+
 import os
 import pathlib
 import shutil

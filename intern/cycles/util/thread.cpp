@@ -4,14 +4,19 @@
 
 #include "util/thread.h"
 
-#include "util/system.h"
-#include "util/windows.h"
+#if defined(__APPLE__) || defined(__linux__) && !defined(__GLIBC__)
+#else
+#  include "util/system.h"
+#  ifdef _WIN32
+#    include "util/windows.h"
+#  endif
 
-#include <system_error>
+#  include <system_error>
+#endif
 
 CCL_NAMESPACE_BEGIN
 
-thread::thread(function<void()> run_cb) : run_cb_(run_cb), joined_(false)
+thread::thread(std::function<void()> run_cb) : run_cb_(run_cb), joined_(false)
 {
 #if defined(__APPLE__) || defined(__linux__) && !defined(__GLIBC__)
   /* Set the stack size to 2MB to match GLIBC. The default 512KB on macOS is
@@ -37,14 +42,14 @@ void *thread::run(void *arg)
 {
   thread *self = (thread *)(arg);
   self->run_cb_();
-  return NULL;
+  return nullptr;
 }
 
 bool thread::join()
 {
   joined_ = true;
 #if defined(__APPLE__) || defined(__linux__) && !defined(__GLIBC__)
-  return pthread_join(pthread_id, NULL) == 0;
+  return pthread_join(pthread_id, nullptr) == 0;
 #else
   try {
     std_thread.join();

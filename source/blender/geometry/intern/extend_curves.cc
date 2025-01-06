@@ -215,6 +215,9 @@ bke::CurvesGeometry extend_curves(bke::CurvesGeometry &src_curves,
   if (src_curves.points_num() < 2) {
     return src_curves;
   }
+  if (selection.is_empty()) {
+    return src_curves;
+  }
 
   const int src_curves_num = src_curves.curves_num();
   Array<int> start_points(src_curves_num, 0);

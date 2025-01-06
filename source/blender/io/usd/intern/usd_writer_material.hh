@@ -40,6 +40,11 @@ void export_texture(bNode *node,
                     const bool allow_overwrite = false,
                     ReportList *reports = nullptr);
 
+void export_texture(Image *ima,
+                    const pxr::UsdStageRefPtr stage,
+                    const bool allow_overwrite = false,
+                    ReportList *reports = nullptr);
+
 /**
  * Gets an asset path for the given texture image / node. The resulting path
  * may be absolute, relative to the USD file, or in a 'textures' directory

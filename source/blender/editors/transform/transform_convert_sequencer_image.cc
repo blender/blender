@@ -33,7 +33,7 @@
 
 /** Used for sequencer transform. */
 struct TransDataSeq {
-  Sequence *seq;
+  Strip *seq;
   float orig_origin_position[2];
   float orig_translation[2];
   float orig_scale[2];
@@ -41,13 +41,13 @@ struct TransDataSeq {
 };
 
 static TransData *SeqToTransData(const Scene *scene,
-                                 Sequence *seq,
+                                 Strip *seq,
                                  TransData *td,
                                  TransData2D *td2d,
                                  TransDataSeq *tdseq,
                                  int vert_index)
 {
-  const StripTransform *transform = seq->strip->transform;
+  const StripTransform *transform = seq->data->transform;
   float origin[2];
   SEQ_image_transform_origin_offset_pixelspace_get(scene, seq, origin);
   float vertex[2] = {origin[0], origin[1]};
@@ -123,7 +123,7 @@ static void createTransSeqImageData(bContext * /*C*/, TransInfo *t)
   ListBase *channels = SEQ_channels_displayed_get(ed);
   blender::VectorSet strips = SEQ_query_rendered_strips(
       t->scene, channels, seqbase, t->scene->r.cfra, 0);
-  strips.remove_if([&](Sequence *seq) { return (seq->flag & SELECT) == 0; });
+  strips.remove_if([&](Strip *seq) { return (seq->flag & SELECT) == 0; });
 
   if (strips.is_empty()) {
     return;
@@ -140,7 +140,7 @@ static void createTransSeqImageData(bContext * /*C*/, TransInfo *t)
   TransDataSeq *tdseq = static_cast<TransDataSeq *>(
       MEM_callocN(tc->data_len * sizeof(TransDataSeq), "TransSeq TransDataSeq"));
 
-  for (Sequence *seq : strips) {
+  for (Strip *seq : strips) {
     /* One `Sequence` needs 3 `TransData` entries - center point placed in image origin, then 2
      * points offset by 1 in X and Y direction respectively, so rotation and scale can be
      * calculated from these points. */
@@ -220,8 +220,8 @@ static void recalcData_sequencer_image(TransInfo *t)
     sub_v2_v2(handle_y, origin);
 
     TransDataSeq *tdseq = static_cast<TransDataSeq *>(td->extra);
-    Sequence *seq = tdseq->seq;
-    StripTransform *transform = seq->strip->transform;
+    Strip *seq = tdseq->seq;
+    StripTransform *transform = seq->data->transform;
     float mirror[2];
     SEQ_image_transform_mirror_factor_get(seq, mirror);
 
@@ -268,8 +268,8 @@ static void special_aftertrans_update__sequencer_image(bContext * /*C*/, TransIn
 
   for (i = 0, td = tc->data, td2d = tc->data_2d; i < tc->data_len; i++, td++, td2d++) {
     TransDataSeq *tdseq = static_cast<TransDataSeq *>(td->extra);
-    Sequence *seq = tdseq->seq;
-    StripTransform *transform = seq->strip->transform;
+    Strip *seq = tdseq->seq;
+    StripTransform *transform = seq->data->transform;
     if (t->state == TRANS_CANCEL) {
       if (t->mode == TFM_ROTATION) {
         transform->rotation = tdseq->orig_rotation;

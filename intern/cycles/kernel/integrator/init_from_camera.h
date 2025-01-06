@@ -10,8 +10,8 @@
 #include "kernel/film/light_passes.h"
 
 #include "kernel/integrator/path_state.h"
-#include "kernel/integrator/shadow_catcher.h"
 
+#include "kernel/integrator/state_util.h"
 #include "kernel/sample/pattern.h"
 
 CCL_NAMESPACE_BEGIN
@@ -53,7 +53,7 @@ ccl_device_inline void integrate_camera_sample(KernelGlobals kg,
  * that the pixel did converge. */
 ccl_device bool integrator_init_from_camera(KernelGlobals kg,
                                             IntegratorState state,
-                                            ccl_global const KernelWorkTile *ccl_restrict tile,
+                                            const ccl_global KernelWorkTile *ccl_restrict tile,
                                             ccl_global float *render_buffer,
                                             const int x,
                                             const int y,

@@ -7,9 +7,9 @@
  * Structs for use by the 'Sequencer' (Video Editor)
  *
  * Note on terminology
- * - #Sequence: video/effect/audio data you can select and manipulate in the sequencer.
- * - #Sequence.machine: Strange name for the channel.
- * - #Strip: The data referenced by the #Sequence
+ * - #Strip: video/effect/audio data you can select and manipulate in the sequencer.
+ * - #Strip.machine: Strange name for the channel.
+ * - #StripData: The data referenced by the #Strip
  * - Meta Strip (SEQ_TYPE_META): Support for nesting Sequences.
  */
 
@@ -32,27 +32,30 @@ struct bSound;
 namespace blender::seq {
 struct MediaPresence;
 struct ThumbnailCache;
+struct TextVarsRuntime;
 }  // namespace blender::seq
 using MediaPresence = blender::seq::MediaPresence;
 using ThumbnailCache = blender::seq::ThumbnailCache;
+using TextVarsRuntime = blender::seq::TextVarsRuntime;
 #else
 typedef struct MediaPresence MediaPresence;
 typedef struct ThumbnailCache ThumbnailCache;
+typedef struct TextVarsRuntime TextVarsRuntime;
 #endif
 
 /* -------------------------------------------------------------------- */
-/** \name Sequence & Editing Structs
+/** \name Strip & Editing Structs
  * \{ */
 
 /* strlens; 256= FILE_MAXFILE, 768= FILE_MAXDIR */
 
 typedef struct StripAnim {
   struct StripAnim *next, *prev;
-  struct ImBufAnim *anim;
+  struct MovieReader *anim;
 } StripAnim;
 
 typedef struct StripElem {
-  /** File name concatenated onto #Strip::dirpath. */
+  /** File name concatenated onto #StripData::dirpath. */
   char filename[256];
   /** Ignore when zeroed. */
   int orig_width, orig_height;
@@ -96,7 +99,7 @@ typedef struct StripProxy {
   char dirpath[768];
   /** Custom file. */
   char filename[256];
-  struct ImBufAnim *anim; /* custom proxy anim file */
+  struct MovieReader *anim; /* custom proxy anim file */
 
   short tc; /* time code in use */
 
@@ -110,8 +113,8 @@ typedef struct StripProxy {
   char _pad[5];
 } StripProxy;
 
-typedef struct Strip {
-  struct Strip *next, *prev;
+typedef struct StripData {
+  struct StripData *next, *prev;
   int us, done;
   int startstill, endstill;
   /**
@@ -128,7 +131,7 @@ typedef struct Strip {
 
   /* color management */
   ColorManagedColorspaceSettings colorspace_settings;
-} Strip;
+} StripData;
 
 typedef enum eSeqRetimingKeyFlag {
   SEQ_SPEED_TRANSITION_IN = (1 << 0),
@@ -150,9 +153,9 @@ typedef struct SeqRetimingKey {
   char _pad2[4];
 } SeqRetimingKey;
 
-typedef struct SequenceRuntime {
+typedef struct StripRuntime {
   SessionUID session_uid;
-} SequenceRuntime;
+} StripRuntime;
 
 /**
  * The sequence structure is the basic struct used by any strip.
@@ -161,11 +164,9 @@ typedef struct SequenceRuntime {
  * \warning The first part identical to ID (for use in ipo's)
  * the comment above is historic, probably we can drop the ID compatibility,
  * but take care making this change.
- *
- * \warning This is really a 'Strip' in the UI!, name is highly confusing.
  */
-typedef struct Sequence {
-  struct Sequence *next, *prev;
+typedef struct Strip {
+  struct Strip *next, *prev;
   void *_pad;
   /** Needed (to be like ipo), else it will raise libdata warnings, this should never be used. */
   void *lib;
@@ -206,7 +207,7 @@ typedef struct Sequence {
   /** MOVIECLIP render flags. */
   int clip_flag;
 
-  Strip *strip;
+  StripData *data;
 
   /** Old animation system, deprecated for 2.5. */
   struct Ipo *ipo DNA_DEPRECATED;
@@ -228,7 +229,7 @@ typedef struct Sequence {
   float speed_fader;
 
   /* pointers for effects: */
-  struct Sequence *seq1, *seq2;
+  struct Strip *seq1, *seq2;
 
   /* This strange padding is needed due to how `seqbasep` de-serialization is
    * done right now in #scene_blend_read_data. */
@@ -297,14 +298,14 @@ typedef struct Sequence {
   int retiming_keys_num;
   char _pad6[4];
 
-  SequenceRuntime runtime;
-} Sequence;
+  StripRuntime runtime;
+} Strip;
 
 typedef struct MetaStack {
   struct MetaStack *next, *prev;
   ListBase *oldbasep;
   ListBase *old_channels;
-  Sequence *parseq;
+  Strip *parseq;
   /* the startdisp/enddisp when entering the meta */
   int disp_range[2];
 } MetaStack;
@@ -318,7 +319,7 @@ typedef struct SeqTimelineChannel {
 
 typedef struct SeqConnection {
   struct SeqConnection *next, *prev;
-  Sequence *seq_ref;
+  Strip *seq_ref;
 } SeqConnection;
 
 typedef struct EditingRuntime {
@@ -339,7 +340,7 @@ typedef struct Editing {
   ListBase channels; /* SeqTimelineChannel */
 
   /* Context vars, used to be static */
-  Sequence *act_seq;
+  Strip *act_seq;
   /** 1024 = FILE_MAX. */
   char act_imagedir[1024];
   /** 1024 = FILE_MAX. */
@@ -453,9 +454,17 @@ typedef struct TextVars {
   float outline_width;
   char flag;
   char align;
+  char _pad[2];
+
+  /** Offsets in bytes relative to #TextVars::text. */
+  int cursor_offset;
+  int selection_start_offset;
+  int selection_end_offset;
+
   char align_y DNA_DEPRECATED /* Only used for versioning. */;
   char anchor_x, anchor_y;
-  char _pad[7];
+  char _pad1;
+  TextVarsRuntime *runtime;
 } TextVars;
 
 /** #TextVars.flag */
@@ -493,7 +502,7 @@ typedef struct ColorMixVars {
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Sequence Modifiers
+/** \name Strip Modifiers
  * \{ */
 
 typedef struct SequenceModifierData {
@@ -506,7 +515,7 @@ typedef struct SequenceModifierData {
   int mask_input_type;
   int mask_time;
 
-  struct Sequence *mask_sequence;
+  struct Strip *mask_sequence;
   struct Mask *mask_id;
 } SequenceModifierData;
 
@@ -619,7 +628,7 @@ enum {
 /* From: `DNA_object_types.h`, see it's doc-string there. */
 #define SELECT 1
 
-/** #Sequence.flag */
+/** #Strip.flag */
 enum {
   /* `SELECT = (1 << 0)` */
   SEQ_LEFTSEL = (1 << 1),
@@ -627,7 +636,7 @@ enum {
   SEQ_OVERLAP = (1 << 3),
   SEQ_FILTERY = (1 << 4),
   SEQ_MUTE = (1 << 5),
-  /* SEQ_FLAG_SKIP_THUMBNAILS = (1 << 6), */ /* no longer used */
+  SEQ_FLAG_TEXT_EDITING_ACTIVE = (1 << 6),
   SEQ_REVERSE_FRAMES = (1 << 7),
   SEQ_IPO_FRAME_LOCKED = (1 << 8),
   SEQ_EFFECT_NOT_LOADED = (1 << 9),
@@ -707,14 +716,14 @@ enum {
   SEQ_PROXY_SKIP_EXISTING = 1,
 };
 
-/** #Sequence.alpha_mode */
+/** #Strip.alpha_mode */
 enum {
   SEQ_ALPHA_STRAIGHT = 0,
   SEQ_ALPHA_PREMUL = 1,
 };
 
 /**
- * #Sequence.type
+ * #Strip.type
  *
  * \warning #SEQ_TYPE_EFFECT BIT is used to determine if this is an effect strip!
  */
@@ -823,7 +832,7 @@ enum {
 };
 
 /**
- * #Sequence.cache_flag
+ * #Strip.cache_flag
  * - #SEQ_CACHE_STORE_RAW
  * - #SEQ_CACHE_STORE_PREPROCESSED
  * - #SEQ_CACHE_STORE_COMPOSITE
@@ -854,7 +863,7 @@ enum {
   SEQ_CACHE_DISK_CACHE_ENABLE = (1 << 11),
 };
 
-/** #Sequence.color_tag. */
+/** #Strip.color_tag. */
 typedef enum SequenceColorTag {
   SEQUENCE_COLOR_NONE = -1,
   SEQUENCE_COLOR_01,
@@ -870,7 +879,7 @@ typedef enum SequenceColorTag {
   SEQUENCE_COLOR_TOT,
 } SequenceColorTag;
 
-/* Sequence->StripTransform->filter */
+/* Strip->StripTransform->filter */
 enum {
   SEQ_TRANSFORM_FILTER_AUTO = -1,
   SEQ_TRANSFORM_FILTER_NEAREST = 0,

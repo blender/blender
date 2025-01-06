@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: Apache-2.0 */
 
 #include "bvh/bvh.h"
-#include "bvh/bvh2.h"
 
 #include "device/device.h"
 
@@ -14,22 +13,14 @@
 #include "scene/light.h"
 #include "scene/mesh.h"
 #include "scene/object.h"
-#include "scene/pointcloud.h"
 #include "scene/scene.h"
 #include "scene/shader.h"
 #include "scene/shader_nodes.h"
-#include "scene/stats.h"
-#include "scene/volume.h"
 
-#include "subd/patch_table.h"
 #include "subd/split.h"
 
-#include "kernel/osl/globals.h"
-
-#include "util/foreach.h"
 #include "util/log.h"
 #include "util/progress.h"
-#include "util/task.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -43,7 +34,7 @@ bool Geometry::need_attribute(Scene *scene, AttributeStandard std)
     return true;
   }
 
-  foreach (Node *node, used_shaders) {
+  for (Node *node : used_shaders) {
     Shader *shader = static_cast<Shader *>(node);
     if (shader->attributes.find(std)) {
       return true;
@@ -55,11 +46,11 @@ bool Geometry::need_attribute(Scene *scene, AttributeStandard std)
 
 bool Geometry::need_attribute(Scene * /*scene*/, ustring name)
 {
-  if (name == ustring()) {
+  if (name.empty()) {
     return false;
   }
 
-  foreach (Node *node, used_shaders) {
+  for (Node *node : used_shaders) {
     Shader *shader = static_cast<Shader *>(node);
     if (shader->attributes.find(name)) {
       return true;
@@ -73,7 +64,7 @@ AttributeRequestSet Geometry::needed_attributes()
 {
   AttributeRequestSet result;
 
-  foreach (Node *node, used_shaders) {
+  for (Node *node : used_shaders) {
     Shader *shader = static_cast<Shader *>(node);
     result.add(shader->attributes);
   }
@@ -83,7 +74,7 @@ AttributeRequestSet Geometry::needed_attributes()
 
 bool Geometry::has_voxel_attributes() const
 {
-  foreach (const Attribute &attr, attributes.attributes) {
+  for (const Attribute &attr : attributes.attributes) {
     if (attr.element == ATTR_ELEMENT_VOXEL) {
       return true;
     }
@@ -94,9 +85,9 @@ bool Geometry::has_voxel_attributes() const
 
 /* Generate a normal attribute map entry from an attribute descriptor. */
 static void emit_attribute_map_entry(AttributeMap *attr_map,
-                                     size_t index,
-                                     uint64_t id,
-                                     TypeDesc type,
+                                     const size_t index,
+                                     const uint64_t id,
+                                     const TypeDesc type,
                                      const AttributeDescriptor &desc)
 {
   attr_map[index].id = id;
@@ -128,9 +119,9 @@ static void emit_attribute_map_entry(AttributeMap *attr_map,
 /* Generate an attribute map end marker, optionally including a link to another map.
  * Links are used to connect object attribute maps to mesh attribute maps. */
 static void emit_attribute_map_terminator(AttributeMap *attr_map,
-                                          size_t index,
+                                          const size_t index,
                                           bool chain,
-                                          uint chain_link)
+                                          const uint chain_link)
 {
   for (int j = 0; j < ATTR_PRIM_TYPES; j++) {
     attr_map[index + j].id = ATTR_STD_NONE;
@@ -142,8 +133,11 @@ static void emit_attribute_map_terminator(AttributeMap *attr_map,
 }
 
 /* Generate all necessary attribute map entries from the attribute request. */
-static void emit_attribute_mapping(
-    AttributeMap *attr_map, size_t index, uint64_t id, AttributeRequest &req, Geometry *geom)
+static void emit_attribute_mapping(AttributeMap *attr_map,
+                                   const size_t index,
+                                   const uint64_t id,
+                                   AttributeRequest &req,
+                                   Geometry *geom)
 {
   emit_attribute_map_entry(attr_map, index, id, req.type, req.desc);
 
@@ -155,7 +149,7 @@ static void emit_attribute_mapping(
   }
 }
 
-void GeometryManager::update_svm_attributes(Device *,
+void GeometryManager::update_svm_attributes(Device * /*unused*/,
                                             DeviceScene *dscene,
                                             Scene *scene,
                                             vector<AttributeRequestSet> &geom_attributes,
@@ -173,12 +167,15 @@ void GeometryManager::update_svm_attributes(Device *,
 
 #ifdef WITH_OSL
     size_t attr_count = 0;
-    foreach (AttributeRequest &req, geom_attributes[i].requests) {
+    for (const AttributeRequest &req : geom_attributes[i].requests) {
       if (req.std != ATTR_STD_NONE &&
           scene->shader_manager->get_attribute_id(req.std) != (uint64_t)req.std)
+      {
         attr_count += 2;
-      else
+      }
+      else {
         attr_count += 1;
+      }
     }
 #else
     const size_t attr_count = geom_attributes[i].size();
@@ -219,7 +216,7 @@ void GeometryManager::update_svm_attributes(Device *,
     /* set geometry attributes */
     size_t index = geom->attr_map_offset;
 
-    foreach (AttributeRequest &req, attributes.requests) {
+    for (AttributeRequest &req : attributes.requests) {
       uint64_t id;
       if (req.std == ATTR_STD_NONE) {
         id = scene->shader_manager->get_attribute_id(req.name);
@@ -252,7 +249,7 @@ void GeometryManager::update_svm_attributes(Device *,
     if (attributes.size() > 0) {
       size_t index = object->attr_map_offset;
 
-      foreach (AttributeRequest &req, attributes.requests) {
+      for (AttributeRequest &req : attributes.requests) {
         uint64_t id;
         if (req.std == ATTR_STD_NONE) {
           id = scene->shader_manager->get_attribute_id(req.name);
@@ -296,14 +293,14 @@ void GeometryManager::update_attribute_element_offset(Geometry *geom,
     type = mattr->type;
 
     /* store attribute data in arrays */
-    size_t size = mattr->element_size(geom, prim);
+    const size_t size = mattr->element_size(geom, prim);
 
-    AttributeElement &element = desc.element;
+    const AttributeElement &element = desc.element;
     int &offset = desc.offset;
 
     if (mattr->element == ATTR_ELEMENT_VOXEL) {
       /* store slot in offset value */
-      ImageHandle &handle = mattr->data_voxel();
+      const ImageHandle &handle = mattr->data_voxel();
       offset = handle.svm_slot();
     }
     else if (mattr->element == ATTR_ELEMENT_CORNER_BYTE) {
@@ -456,7 +453,7 @@ static void update_attribute_element_size(Geometry *geom,
                                           size_t *attr_uchar4_size)
 {
   if (mattr) {
-    size_t size = mattr->element_size(geom, prim);
+    const size_t size = mattr->element_size(geom, prim);
 
     if (mattr->element == ATTR_ELEMENT_VOXEL) {
       /* pass */
@@ -500,7 +497,7 @@ void GeometryManager::device_update_attributes(Device *device,
     geom->index = i;
     scene->need_global_attributes(geom_attributes[i]);
 
-    foreach (Node *node, geom->get_used_shaders()) {
+    for (Node *node : geom->get_used_shaders()) {
       Shader *shader = static_cast<Shader *>(node);
       geom_attributes[i].add(shader->attributes);
     }
@@ -519,7 +516,7 @@ void GeometryManager::device_update_attributes(Device *device,
   for (size_t i = 0; i < scene->objects.size(); i++) {
     Object *object = scene->objects[i];
     Geometry *geom = object->geometry;
-    size_t geom_idx = geom->index;
+    const size_t geom_idx = geom->index;
 
     assert(geom_idx < scene->geometry.size() && scene->geometry[geom_idx] == geom);
 
@@ -530,7 +527,7 @@ void GeometryManager::device_update_attributes(Device *device,
     AttributeSet &values = object_attribute_values[i];
 
     for (size_t j = 0; j < object->attributes.size(); j++) {
-      ParamValue &param = object->attributes[j];
+      const ParamValue &param = object->attributes[j];
 
       /* add attributes that are requested and not already handled by the mesh */
       if (geom_requests.find(param.name()) && !geom->attributes.find(param.name())) {
@@ -559,7 +556,7 @@ void GeometryManager::device_update_attributes(Device *device,
   for (size_t i = 0; i < scene->geometry.size(); i++) {
     Geometry *geom = scene->geometry[i];
     AttributeRequestSet &attributes = geom_attributes[i];
-    foreach (AttributeRequest &req, attributes.requests) {
+    for (AttributeRequest &req : attributes.requests) {
       Attribute *attr = geom->attributes.find(req);
 
       update_attribute_element_size(geom,
@@ -590,7 +587,7 @@ void GeometryManager::device_update_attributes(Device *device,
   for (size_t i = 0; i < scene->objects.size(); i++) {
     Object *object = scene->objects[i];
 
-    foreach (Attribute &attr, object_attribute_values[i].attributes) {
+    for (Attribute &attr : object_attribute_values[i].attributes) {
       update_attribute_element_size(object->geometry,
                                     &attr,
                                     ATTR_PRIM_GEOMETRY,
@@ -630,7 +627,7 @@ void GeometryManager::device_update_attributes(Device *device,
 
     /* todo: we now store std and name attributes from requests even if
      * they actually refer to the same mesh attributes, optimize */
-    foreach (AttributeRequest &req, attributes.requests) {
+    for (AttributeRequest &req : attributes.requests) {
       Attribute *attr = geom->attributes.find(req);
 
       if (attr) {
@@ -691,7 +688,7 @@ void GeometryManager::device_update_attributes(Device *device,
     AttributeRequestSet &attributes = object_attributes[i];
     AttributeSet &values = object_attribute_values[i];
 
-    foreach (AttributeRequest &req, attributes.requests) {
+    for (AttributeRequest &req : attributes.requests) {
       Attribute *attr = values.find(req);
 
       if (attr) {

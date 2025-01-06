@@ -11,7 +11,7 @@
 struct Editing;
 struct ListBase;
 struct SeqTimelineChannel;
-struct Sequence;
+struct Strip;
 
 ListBase *SEQ_channels_displayed_get(Editing *ed);
 void SEQ_channels_displayed_set(Editing *ed, ListBase *channels);
@@ -24,4 +24,4 @@ char *SEQ_channel_name_get(ListBase *channels, int channel_index);
 bool SEQ_channel_is_locked(const SeqTimelineChannel *channel);
 bool SEQ_channel_is_muted(const SeqTimelineChannel *channel);
 int SEQ_channel_index_get(const SeqTimelineChannel *channel);
-ListBase *SEQ_get_channels_by_seq(ListBase *seqbase, ListBase *channels, const Sequence *seq);
+ListBase *SEQ_get_channels_by_seq(ListBase *seqbase, ListBase *channels, const Strip *seq);

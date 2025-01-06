@@ -3,24 +3,24 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
 
 set(INC
-  ../blender/blenkernel
   ../blender/editors/include
-  ../blender/gpu
-  ../blender/imbuf
   ../blender/io/usd
-  ../blender/bmesh
   ../blender/makesrna
-  ../blender/render
-  ../blender/windowmanager
 )
 
 set(LIB
+  PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
+  PRIVATE bf::bmesh
   PRIVATE bf::depsgraph
   PRIVATE bf::dna
+  PRIVATE bf::gpu
+  PRIVATE bf::imbuf
+  PRIVATE bf::imbuf::movie
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
-  bf_windowmanager
+  PRIVATE bf::render
+  PRIVATE bf::windowmanager
 )
 
 if(HAVE_FEENABLEEXCEPT)
@@ -271,7 +271,7 @@ if(WITH_BUILDINFO)
       -DBUILD_DATE=${BUILDINFO_OVERRIDE_DATE}
       -DBUILD_TIME=${BUILDINFO_OVERRIDE_TIME}
       -P ${CMAKE_SOURCE_DIR}/build_files/cmake/buildinfo.cmake
-    )
+  )
 
   # `buildinfo.h` is a generated file.
   set_source_files_properties(
@@ -479,6 +479,14 @@ if(WITH_PYTHON)
     endif()
   endif()
   unset(FREESTYLE_EXCLUDE_CONDITIONAL)
+
+  if(WITH_DRACO)
+    install(
+      PROGRAMS $<TARGET_FILE:extern_draco>
+      DESTINATION ${TARGETDIR_VER}/scripts/addons_core/io_scene_gltf2
+    )
+  endif()
+
 endif()
 
 # fonts
@@ -539,17 +547,19 @@ endif()
 if(WIN32)
   if(EXISTS ${LIBDIR}/osl/bin/oslquery.dll) # 4.1+
     windows_install_shared_manifest(
-      FILES ${LIBDIR}/osl/bin/oslquery.dll
-            ${LIBDIR}/osl/bin/oslcomp.dll
-            ${LIBDIR}/osl/bin/oslexec.dll
-            ${LIBDIR}/osl/bin/oslnoise.dll
+      FILES
+        ${LIBDIR}/osl/bin/oslquery.dll
+        ${LIBDIR}/osl/bin/oslcomp.dll
+        ${LIBDIR}/osl/bin/oslexec.dll
+        ${LIBDIR}/osl/bin/oslnoise.dll
       RELEASE
     )
     windows_install_shared_manifest(
-      FILES ${LIBDIR}/osl/bin/oslquery_d.dll
-            ${LIBDIR}/osl/bin/oslcomp_d.dll
-            ${LIBDIR}/osl/bin/oslexec_d.dll
-            ${LIBDIR}/osl/bin/oslnoise_d.dll
+      FILES
+        ${LIBDIR}/osl/bin/oslquery_d.dll
+        ${LIBDIR}/osl/bin/oslcomp_d.dll
+        ${LIBDIR}/osl/bin/oslexec_d.dll
+        ${LIBDIR}/osl/bin/oslnoise_d.dll
       DEBUG
     )
   endif()
@@ -983,19 +993,6 @@ file(REMOVE ${CMAKE_BINARY_DIR}/bin/lib/libglapi.so.0.0.0)\n
     endif()
   endif()
 
-  if(WITH_DRACO)
-    if(WITH_PYTHON_MODULE)
-      install(
-        PROGRAMS $<TARGET_FILE:extern_draco>
-        DESTINATION ${CMAKE_BINARY_DIR}/bin/bpy/lib
-      )
-    else()
-      install(
-        PROGRAMS $<TARGET_FILE:extern_draco>
-        DESTINATION ${TARGETDIR_VER}/python/lib/python${PYTHON_VERSION}/site-packages
-      )
-    endif()
-  endif()
 elseif(WIN32)
   if(WITH_WINDOWS_EXTERNAL_MANIFEST)
     install(
@@ -1517,6 +1514,13 @@ elseif(WIN32)
       DESTINATION ${TARGETDIR_EXE}
       RENAME blender_system_info.cmd
     )
+    if(WITH_CYCLES)
+      install(
+        FILES
+          ${CMAKE_SOURCE_DIR}/release/windows/batch/blender_debug_cycles.cmd
+        DESTINATION ${TARGETDIR_EXE}
+      )
+    endif()
     install(
       FILES
         ${CMAKE_SOURCE_DIR}/release/windows/batch/blender_debug_gpu.cmd
@@ -1534,20 +1538,6 @@ elseif(WIN32)
       TARGETS BlendThumb
       DESTINATION "."
     )
-  endif()
-
-  if(WITH_DRACO)
-    if(WITH_PYTHON_MODULE)
-      install(
-        PROGRAMS $<TARGET_FILE:extern_draco>
-        DESTINATION ${CMAKE_BINARY_DIR}/bin/bpy/lib
-      )
-    else()
-      install(
-        PROGRAMS $<TARGET_FILE:extern_draco>
-        DESTINATION ${TARGETDIR_VER}/python/lib/site-packages
-      )
-    endif()
   endif()
 
   if(WITH_PYTHON_MODULE AND TARGETDIR_BPY)
@@ -1606,18 +1596,18 @@ elseif(APPLE)
 
   install(
     FILES ${OSX_APP_SOURCEDIR}/Contents/PkgInfo
-    DESTINATION "./Blender.app/Contents"
+    DESTINATION "Blender.app/Contents"
   )
 
   install_dir(
     ${OSX_APP_SOURCEDIR}/Contents/Resources
-    "./Blender.app/Contents"
+    "Blender.app/Contents"
   )
 
   if(WITH_BLENDER_THUMBNAILER)
     install(
       TARGETS blender-thumbnailer
-      DESTINATION "./Blender.app/Contents/MacOS"
+      DESTINATION "Blender.app/Contents/MacOS"
     )
   endif()
 
@@ -1676,23 +1666,10 @@ elseif(APPLE)
     unset(PYTHON_EXECUTABLE_NAME_ONLY)
     install(
       PROGRAMS ${CMAKE_BINARY_DIR}/release/darwin/scripts/blender-system-info.sh
-      DESTINATION "./Blender.app/Contents/Resources"
+      DESTINATION "Blender.app/Contents/Resources"
     )
   endif()
 
-  if(WITH_DRACO)
-    if(WITH_PYTHON_MODULE)
-      install(
-        PROGRAMS $<TARGET_FILE:extern_draco>
-        DESTINATION ${CMAKE_BINARY_DIR}/bin/bpy/lib
-      )
-    else()
-      install(
-        PROGRAMS $<TARGET_FILE:extern_draco>
-        DESTINATION ${TARGETDIR_VER}/python/lib/python${PYTHON_VERSION}/site-packages
-      )
-    endif()
-  endif()
 endif()
 
 # -----------------------------------------------------------------------------
@@ -1717,7 +1694,7 @@ if(DEFINED TARGETDIR_TEXT)
   install(
     DIRECTORY ${CMAKE_SOURCE_DIR}/release/license
     DESTINATION "${TARGETDIR_TEXT}"
-)
+  )
 endif()
 
 # Create a system extensions directory (users or administrators may populate this).

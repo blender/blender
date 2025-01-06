@@ -9,12 +9,12 @@
 #  include "device/cuda/util.h"
 
 #  ifdef WITH_CUDA_DYNLOAD
-#    include <cuew.h>
+#    include <cuew.h>  // IWYU pragma: export
 // Do not use CUDA SDK headers when using CUEW
 #    define OPTIX_DONT_INCLUDE_CUDA
 #  endif
 
-#  include <optix_stubs.h>
+#  include <optix_stubs.h>  // IWYU pragma: export
 
 /* Utility for checking return values of OptiX function calls. */
 #  define optix_device_assert(optix_device, stmt) \

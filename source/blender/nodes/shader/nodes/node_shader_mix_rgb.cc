@@ -159,6 +159,7 @@ void register_node_type_sh_mix_rgb()
   static blender::bke::bNodeType ntype;
 
   sh_fn_node_type_base(&ntype, SH_NODE_MIX_RGB_LEGACY, "Mix (Legacy)", NODE_CLASS_OP_COLOR);
+  ntype.enum_name_legacy = "MIX_RGB";
   ntype.declare = file_ns::sh_node_mix_rgb_declare;
   ntype.labelfunc = node_blend_label;
   ntype.gpu_fn = file_ns::gpu_shader_mix_rgb;

@@ -13,31 +13,31 @@ struct Main;
 struct MovieClip;
 struct ReportList;
 struct Scene;
-struct Sequence;
+struct Strip;
 
 /**
  * Check if one sequence is input to the other.
  */
-bool SEQ_relation_is_effect_of_strip(const Sequence *effect, const Sequence *input);
+bool SEQ_relation_is_effect_of_strip(const Strip *effect, const Strip *input);
 /**
  * Function to free imbuf and anim data on changes.
  */
-void SEQ_relations_sequence_free_anim(Sequence *seq);
+void SEQ_relations_sequence_free_anim(Strip *seq);
 bool SEQ_relations_check_scene_recursion(Scene *scene, ReportList *reports);
 /**
  * Check if "seq_main" (indirectly) uses strip "seq".
  */
-bool SEQ_relations_render_loop_check(Sequence *seq_main, Sequence *seq);
+bool SEQ_relations_render_loop_check(Strip *seq_main, Strip *seq);
 void SEQ_relations_free_imbuf(Scene *scene, ListBase *seqbase, bool for_render);
-void SEQ_relations_invalidate_cache_raw(Scene *scene, Sequence *seq);
-void SEQ_relations_invalidate_cache_preprocessed(Scene *scene, Sequence *seq);
-void SEQ_relations_invalidate_cache_composite(Scene *scene, Sequence *seq);
-void SEQ_relations_invalidate_dependent(Scene *scene, Sequence *seq);
+void SEQ_relations_invalidate_cache_raw(Scene *scene, Strip *seq);
+void SEQ_relations_invalidate_cache_preprocessed(Scene *scene, Strip *seq);
+void SEQ_relations_invalidate_cache_composite(Scene *scene, Strip *seq);
+void SEQ_relations_invalidate_dependent(Scene *scene, Strip *seq);
 void SEQ_relations_invalidate_scene_strips(Main *bmain, Scene *scene_target);
 void SEQ_relations_invalidate_movieclip_strips(Main *bmain, MovieClip *clip_target);
 void SEQ_relations_invalidate_cache_in_range(Scene *scene,
-                                             Sequence *seq,
-                                             Sequence *range_mask,
+                                             Strip *seq,
+                                             Strip *range_mask,
                                              int invalidate_types);
 /**
  * Release FFmpeg handles of strips that are not currently displayed to minimize memory usage.
@@ -51,18 +51,18 @@ void SEQ_relations_check_uids_unique_and_report(const Scene *scene);
 /**
  * Generate new UID for the given sequence.
  */
-void SEQ_relations_session_uid_generate(Sequence *sequence);
+void SEQ_relations_session_uid_generate(Strip *sequence);
 
 void SEQ_cache_cleanup(Scene *scene);
 void SEQ_cache_iterate(
     Scene *scene,
     void *userdata,
     bool callback_init(void *userdata, size_t item_count),
-    bool callback_iter(void *userdata, Sequence *seq, int timeline_frame, int cache_type));
+    bool callback_iter(void *userdata, Strip *seq, int timeline_frame, int cache_type));
 /**
  * Return immediate parent meta of sequence.
  */
-Sequence *SEQ_find_metastrip_by_sequence(ListBase *seqbase /* = ed->seqbase */,
-                                         Sequence *meta /* = NULL */,
-                                         Sequence *seq);
-bool SEQ_exists_in_seqbase(const Sequence *seq, const ListBase *seqbase);
+Strip *SEQ_find_metastrip_by_sequence(ListBase *seqbase /* = ed->seqbase */,
+                                      Strip *meta /* = NULL */,
+                                      Strip *seq);
+bool SEQ_exists_in_seqbase(const Strip *seq, const ListBase *seqbase);

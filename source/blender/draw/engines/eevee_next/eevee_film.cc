@@ -598,7 +598,7 @@ void Film::end_sync()
   use_reprojection_ = inst_.sampling.interactive_mode();
 
   /* Just bypass the reprojection and reset the accumulation. */
-  if (!use_reprojection_ && inst_.sampling.is_reset()) {
+  if (inst_.is_viewport() && !use_reprojection_ && inst_.sampling.is_reset()) {
     use_reprojection_ = false;
     data_.use_history = false;
   }
@@ -822,7 +822,7 @@ void Film::display()
   data_.display_only = true;
   inst_.uniform_data.push_update();
 
-  draw::View drw_view("MainView", DRW_view_default_get());
+  draw::View &drw_view = draw::View::default_get();
 
   DRW_manager_get()->submit(accumulate_ps_, drw_view);
 
@@ -847,7 +847,8 @@ float *Film::read_pass(eViewLayerEEVEEPassType pass_type, int layer_offset)
   if (pass_is_float3(pass_type)) {
     /* Convert result in place as we cannot do this conversion on GPU. */
     for (const int px : IndexRange(GPU_texture_width(pass_tx) * GPU_texture_height(pass_tx))) {
-      *(reinterpret_cast<float3 *>(result) + px) = *(reinterpret_cast<float3 *>(result + px * 4));
+      float3 tmp = *(reinterpret_cast<float3 *>(result + px * 4));
+      *(reinterpret_cast<float3 *>(result) + px) = tmp;
     }
   }
 

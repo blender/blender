@@ -368,9 +368,10 @@ static void outliner_collection_set_flag_recursive(Scene *scene,
                                                    PropertyRNA *base_or_object_prop,
                                                    const bool value)
 {
-  if (layer_collection && layer_collection->flag & LAYER_COLLECTION_EXCLUDE) {
+  if (!layer_collection) {
     return;
   }
+
   PointerRNA ptr;
   outliner_layer_or_collection_pointer_create(scene, layer_collection, collection, &ptr);
   if (layer_or_collection_prop && !RNA_property_editable(&ptr, layer_or_collection_prop)) {
@@ -380,7 +381,7 @@ static void outliner_collection_set_flag_recursive(Scene *scene,
   RNA_property_boolean_set(&ptr, layer_or_collection_prop, value);
 
   /* Set the same flag for the nested objects as well. */
-  if (base_or_object_prop) {
+  if (base_or_object_prop && !(layer_collection->flag & LAYER_COLLECTION_EXCLUDE)) {
     /* NOTE: We can't use BKE_collection_object_cache_get()
      * otherwise we would not take collection exclusion into account. */
     LISTBASE_FOREACH (CollectionObject *, cob, &layer_collection->collection->gobject) {
@@ -505,7 +506,7 @@ void outliner_collection_isolate_flag(Scene *scene,
                                       const bool value)
 {
   PointerRNA ptr;
-  const bool is_hide = strstr(propname, "hide_") != nullptr;
+  const bool is_hide = strstr(propname, "hide_") || STREQ(propname, "exclude");
 
   LayerCollection *top_layer_collection = layer_collection ?
                                               static_cast<LayerCollection *>(
@@ -1577,6 +1578,10 @@ static void outliner_draw_restrictbuts(uiBlock *block,
                                       0,
                                       0,
                                       nullptr);
+              UI_but_func_set(bt,
+                              view_layer__layer_collection_set_flag_recursive_fn,
+                              layer_collection,
+                              (char *)"exclude");
               UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
             }
 
@@ -1968,16 +1973,13 @@ static void outliner_draw_overrides_rna_buts(uiBlock *block,
 
 static bool outliner_but_identity_cmp_context_id_fn(const uiBut *a, const uiBut *b)
 {
-  const PointerRNA *idptr_a = UI_but_context_ptr_get(a, "id", &RNA_ID);
-  const PointerRNA *idptr_b = UI_but_context_ptr_get(b, "id", &RNA_ID);
-  if (!idptr_a || !idptr_b) {
+  const std::optional<int64_t> session_uid_a = UI_but_context_int_get(a, "session_uid");
+  const std::optional<int64_t> session_uid_b = UI_but_context_int_get(b, "session_uid");
+  if (!session_uid_a || !session_uid_b) {
     return false;
   }
-  const ID *id_a = (const ID *)idptr_a->data;
-  const ID *id_b = (const ID *)idptr_b->data;
-
   /* Using session UID to compare is safer than using the pointer. */
-  return id_a->session_uid == id_b->session_uid;
+  return session_uid_a == session_uid_b;
 }
 
 static void outliner_draw_overrides_restrictbuts(Main *bmain,
@@ -2024,8 +2026,7 @@ static void outliner_draw_overrides_restrictbuts(Main *bmain,
                                UI_UNIT_X,
                                UI_UNIT_Y,
                                "");
-    PointerRNA idptr = RNA_id_pointer_create(&id);
-    UI_but_context_ptr_set(block, but, "id", &idptr);
+    UI_but_context_int_set(block, but, "session_uid", id.session_uid);
     UI_but_func_identity_compare_set(but, outliner_but_identity_cmp_context_id_fn);
     UI_but_flag_enable(but, UI_BUT_DRAG_LOCK);
   }
@@ -2089,7 +2090,7 @@ static void outliner_draw_rnabuts(uiBlock *block,
                         &ptr,
                         prop,
                         -1,
-                        nullptr,
+                        std::nullopt,
                         ICON_NONE,
                         sizex,
                         te->ys,
@@ -2776,9 +2777,9 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
       case TSE_BONE_COLLECTION:
         data.icon = ICON_GROUP_BONE;
         break;
-      case TSE_SEQUENCE: {
-        const TreeElementSequence *te_seq = tree_element_cast<TreeElementSequence>(te);
-        switch (te_seq->get_sequence_type()) {
+      case TSE_STRIP: {
+        const TreeElementStrip *te_strip = tree_element_cast<TreeElementStrip>(te);
+        switch (te_strip->get_strip_type()) {
           case SEQ_TYPE_SCENE:
             data.icon = ICON_SCENE_DATA;
             break;
@@ -2832,10 +2833,10 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
         }
         break;
       }
-      case TSE_SEQ_STRIP:
+      case TSE_STRIP_DATA:
         data.icon = ICON_LIBRARY_DATA_DIRECT;
         break;
-      case TSE_SEQUENCE_DUP:
+      case TSE_STRIP_DUP:
         data.icon = ICON_SEQ_STRIP_DUPLICATE;
         break;
       case TSE_RNA_STRUCT: {
@@ -3820,11 +3821,13 @@ static void outliner_draw_tree(uiBlock *block,
 {
   const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
 
+  short columns_offset = use_mode_column ? UI_UNIT_X : 0;
+
   /* Move the tree a unit left in view layer mode */
-  short columns_offset = (use_mode_column && (space_outliner->outlinevis == SO_SCENES)) ?
-                             UI_UNIT_X :
-                             0;
-  if (!use_mode_column && (space_outliner->outlinevis == SO_VIEW_LAYER)) {
+  if ((space_outliner->outlinevis == SO_VIEW_LAYER) &&
+      !(space_outliner->filter & SO_FILTER_NO_COLLECTION) &&
+      (space_outliner->filter & SO_FILTER_NO_VIEW_LAYERS))
+  {
     columns_offset -= UI_UNIT_X;
   }
 

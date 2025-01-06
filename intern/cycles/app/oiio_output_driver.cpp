@@ -6,6 +6,9 @@
 
 #include "scene/colorspace.h"
 
+#include "util/image.h"
+#include "util/unique_ptr.h"
+
 #include <OpenImageIO/imagebuf.h>
 #include <OpenImageIO/imagebufalgo.h>
 
@@ -18,7 +21,7 @@ OIIOOutputDriver::OIIOOutputDriver(const string_view filepath,
 {
 }
 
-OIIOOutputDriver::~OIIOOutputDriver() {}
+OIIOOutputDriver::~OIIOOutputDriver() = default;
 
 void OIIOOutputDriver::write_render_tile(const Tile &tile)
 {
@@ -38,7 +41,7 @@ void OIIOOutputDriver::write_render_tile(const Tile &tile)
   const int width = tile.size.x;
   const int height = tile.size.y;
 
-  ImageSpec spec(width, height, 4, TypeDesc::FLOAT);
+  const ImageSpec spec(width, height, 4, TypeDesc::FLOAT);
   if (!image_output->open(filepath_, spec)) {
     log_("Failed to create image file");
     return;
@@ -51,11 +54,11 @@ void OIIOOutputDriver::write_render_tile(const Tile &tile)
   }
 
   /* Manipulate offset and stride to convert from bottom-up to top-down convention. */
-  ImageBuf image_buffer(spec,
-                        pixels.data() + (height - 1) * width * 4,
-                        AutoStride,
-                        -width * 4 * sizeof(float),
-                        AutoStride);
+  OIIO::ImageBuf image_buffer(spec,
+                              pixels.data() + (height - 1) * width * 4,
+                              AutoStride,
+                              -width * 4 * sizeof(float),
+                              AutoStride);
 
   /* Apply gamma correction for (some) non-linear file formats.
    * TODO: use OpenColorIO view transform if available. */
@@ -63,7 +66,7 @@ void OIIOOutputDriver::write_render_tile(const Tile &tile)
           u_colorspace_auto, "", image_output->format_name(), true) == u_colorspace_srgb)
   {
     const float g = 1.0f / 2.2f;
-    ImageBufAlgo::pow(image_buffer, image_buffer, {g, g, g, 1.0f});
+    OIIO::ImageBufAlgo::pow(image_buffer, image_buffer, {g, g, g, 1.0f});
   }
 
   /* Write to disk and close */

@@ -75,10 +75,11 @@ void USDCameraReader::read_object_data(Main *bmain, const double motionSampleTim
 
   /* Call UncheckedGet() to silence compiler warnings.
    * Clamp to 1e-6 matching range defined in RNA. */
-  bcam->clip_start = max_ff(1e-6f, clippingRangeVal.UncheckedGet<pxr::GfVec2f>()[0]);
-  bcam->clip_end = clippingRangeVal.UncheckedGet<pxr::GfVec2f>()[1];
+  bcam->clip_start = max_ff(
+      1e-6f, clippingRangeVal.UncheckedGet<pxr::GfVec2f>()[0] * settings_->scene_scale);
+  bcam->clip_end = clippingRangeVal.UncheckedGet<pxr::GfVec2f>()[1] * settings_->scene_scale;
 
-  bcam->dof.focus_distance = focalDistanceVal.Get<float>();
+  bcam->dof.focus_distance = focalDistanceVal.Get<float>() * settings_->scene_scale;
   bcam->dof.aperture_fstop = float(fstopVal.Get<float>());
 
   if (bcam->type == CAM_ORTHO) {

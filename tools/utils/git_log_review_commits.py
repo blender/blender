@@ -12,6 +12,9 @@ Example usage:
 
    ./git_log_review_commits.py --source=../../.. --range=HEAD~40..HEAD --filter=BUGFIX
 """
+__all__ = (
+    "main",
+)
 
 
 class _Getch:
@@ -34,10 +37,8 @@ class _GetchUnix:
 
     def __init__(self):
         import tty
-        import sys
 
     def __call__(self):
-        import sys
         import tty
         import termios
         fd = sys.stdin.fileno()
@@ -54,6 +55,7 @@ class _GetchWindows:
 
     def __init__(self):
         import msvcrt
+        del msvcrt
 
     def __call__(self):
         import msvcrt

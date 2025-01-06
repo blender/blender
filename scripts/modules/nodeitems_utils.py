@@ -2,6 +2,17 @@
 #
 # SPDX-License-Identifier: GPL-2.0-or-later
 
+__all__ = (
+    "NodeCategory",
+    "NodeItem",
+    "NodeItemCustom",
+    "draw_node_categories_menu",
+    "has_node_categories",
+    "node_items_iter",
+    "register_node_categories",
+    "unregister_node_categories",
+)
+
 import bpy
 
 
@@ -88,7 +99,7 @@ _node_categories = {}
 def register_node_categories(identifier, cat_list):
     if identifier in _node_categories:
         raise KeyError("Node categories list '{:s}' already registered".format(identifier))
-        return
+        # return
 
     # works as draw function for menus
     def draw_node_item(self, context):

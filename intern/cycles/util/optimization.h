@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __UTIL_OPTIMIZATION_H__
-#define __UTIL_OPTIMIZATION_H__
+#pragma once
 
 #ifndef __KERNEL_GPU__
 
@@ -49,5 +48,3 @@
 #  endif
 
 #endif
-
-#endif /* __UTIL_OPTIMIZATION_H__ */

@@ -738,6 +738,7 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
   fn_node_type_base(&ntype, FN_NODE_COMPARE, "Compare", NODE_CLASS_CONVERTER);
+  ntype.enum_name_legacy = "COMPARE";
   ntype.declare = node_declare;
   ntype.labelfunc = node_label;
   ntype.updatefunc = node_update;

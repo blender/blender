@@ -266,6 +266,7 @@ void immEnd()
     imm->batch = nullptr; /* don't free, batch belongs to caller */
   }
   else {
+    Context::get()->assert_framebuffer_shader_compatibility(unwrap(imm->shader));
     imm->end();
   }
 

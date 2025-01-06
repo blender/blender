@@ -128,12 +128,6 @@ int MTLBatch::prepare_vertex_binding(MTLVertBuf *verts,
   int buffer_index = -1;
   int attribute_offset = 0;
 
-  if (!active_shader_->get_uses_ssbo_vertex_fetch()) {
-    BLI_assert(
-        buffer_stride >= 4 &&
-        "In Metal, Vertex buffer stride should be 4. SSBO Vertex fetch is not affected by this");
-  }
-
   /* Iterate over VertBuf vertex format and find attributes matching those in the active
    * shader's interface. */
   for (uint32_t a_idx = 0; a_idx < format->attr_len; a_idx++) {
@@ -211,23 +205,7 @@ int MTLBatch::prepare_vertex_binding(MTLVertBuf *verts,
               "only mat4 attributes currently supported -- Not ready to handle other long "
               "component length attributes yet");
 
-          /* SSBO Vertex Fetch Attribute safety checks. */
-          if (active_shader_->get_uses_ssbo_vertex_fetch()) {
-            /* When using SSBO vertex fetch, we do not need to expose split attributes,
-             * A matrix can be read directly as a whole block of contiguous data. */
-            MTLSSBOAttribute ssbo_attr(mtl_attr.index,
-                                       buffer_index,
-                                       attribute_offset,
-                                       buffer_stride,
-                                       GPU_SHADER_ATTR_TYPE_MAT4,
-                                       instanced);
-            active_shader_->ssbo_vertex_fetch_bind_attribute(ssbo_attr);
-            desc.vertex_descriptor.ssbo_attributes[desc.vertex_descriptor.num_ssbo_attributes] =
-                ssbo_attr;
-            desc.vertex_descriptor.num_ssbo_attributes++;
-          }
-          else {
-
+          {
             /* Handle Mat4 attributes. */
             if (a->comp_len == 16) {
               /* Debug safety checks. */
@@ -341,26 +319,6 @@ int MTLBatch::prepare_vertex_binding(MTLVertBuf *verts,
                   (mtl_attr.location) :
                   desc.vertex_descriptor.max_attribute_value;
           desc.vertex_descriptor.total_attributes++;
-          /* SSBO Vertex Fetch attribute bind. */
-          if (active_shader_->get_uses_ssbo_vertex_fetch()) {
-            BLI_assert_msg(desc.vertex_descriptor.attributes[mtl_attr.location].format ==
-                               mtl_attr.format,
-                           "SSBO Vertex Fetch does not support attribute conversion.");
-
-            MTLSSBOAttribute ssbo_attr(
-                mtl_attr.index,
-                buffer_index,
-                attribute_offset,
-                buffer_stride,
-                MTLShader::ssbo_vertex_type_to_attr_type(
-                    desc.vertex_descriptor.attributes[mtl_attr.location].format),
-                instanced);
-
-            active_shader_->ssbo_vertex_fetch_bind_attribute(ssbo_attr);
-            desc.vertex_descriptor.ssbo_attributes[desc.vertex_descriptor.num_ssbo_attributes] =
-                ssbo_attr;
-            desc.vertex_descriptor.num_ssbo_attributes++;
-          }
 
           /* NOTE: We are setting max_attribute_value to be up to the maximum found index, because
            * of this, it is possible that we may skip over certain attributes if they were not in
@@ -393,7 +351,7 @@ int MTLBatch::prepare_vertex_binding(MTLVertBuf *verts,
   return -1;
 }
 
-id<MTLRenderCommandEncoder> MTLBatch::bind(uint v_count)
+id<MTLRenderCommandEncoder> MTLBatch::bind()
 {
   /* Setup draw call and render pipeline state here. Called by every draw, but setup here so that
    * MTLDrawList only needs to perform setup a single time. */
@@ -416,12 +374,6 @@ id<MTLRenderCommandEncoder> MTLBatch::bind(uint v_count)
     BLI_assert_msg(false, "No valid Metal shader!");
     return nil;
   }
-
-  /* Check if using SSBO Fetch Mode.
-   * This is an alternative drawing mode to geometry shaders, wherein vertex buffers
-   * are bound as readable (random-access) GPU buffers and certain descriptor properties
-   * are passed using Shader uniforms. */
-  bool uses_ssbo_fetch = active_shader_->get_uses_ssbo_vertex_fetch();
 
   /* Prepare Vertex Descriptor and extract VertexBuffers to bind. */
   MTLVertBuf *buffers[GPU_BATCH_VBO_MAX_LEN] = {nullptr};
@@ -480,70 +432,6 @@ id<MTLRenderCommandEncoder> MTLBatch::bind(uint v_count)
   }
 
   /*** Bind Vertex Buffers and Index Buffers **/
-
-  /* SSBO Vertex Fetch Buffer bindings. */
-  if (uses_ssbo_fetch) {
-
-    /* SSBO Vertex Fetch - Bind Index Buffer to appropriate slot -- if used. */
-    id<MTLBuffer> idx_buffer = nil;
-    GPUPrimType final_prim_type = this->prim_type;
-
-    if (mtl_elem != nullptr) {
-
-      /* Fetch index buffer. This function can situationally return an optimized
-       * index buffer of a different primitive type. If this is the case, `final_prim_type`
-       * and `v_count` will be updated with the new format.
-       * NOTE: For indexed rendering, v_count represents the number of indices. */
-      idx_buffer = mtl_elem->get_index_buffer(final_prim_type, v_count);
-      BLI_assert(idx_buffer != nil);
-
-      /* Update uniforms for SSBO-vertex-fetch-mode indexed rendering to flag usage. */
-      int &uniform_ssbo_index_mode_u16 = active_shader_->uni_ssbo_uses_index_mode_u16;
-      BLI_assert(uniform_ssbo_index_mode_u16 != -1);
-      int uses_index_mode_u16 = (mtl_elem->index_type_ == GPU_INDEX_U16) ? 1 : 0;
-      active_shader_->uniform_int(uniform_ssbo_index_mode_u16, 1, 1, &uses_index_mode_u16);
-
-      BLI_assert(active_shader_->uni_ssbo_index_base_loc != -1);
-      int index_base = (int)mtl_elem->index_base_;
-      active_shader_->uniform_int(active_shader_->uni_ssbo_index_base_loc, 1, 1, &index_base);
-    }
-    else {
-      idx_buffer = ctx->get_null_buffer();
-    }
-    rps.bind_vertex_buffer(idx_buffer, 0, MTL_SSBO_VERTEX_FETCH_IBO_INDEX);
-
-    /* Ensure all attributes are set. */
-    active_shader_->ssbo_vertex_fetch_bind_attributes_end(rec);
-
-    /* Bind nullptr Buffers for unused vertex data slots. */
-    id<MTLBuffer> null_buffer = ctx->get_null_buffer();
-    BLI_assert(null_buffer != nil);
-    for (int i = num_buffers; i < MTL_SSBO_VERTEX_FETCH_MAX_VBOS; i++) {
-      if (rps.cached_vertex_buffer_bindings[i].metal_buffer == nil) {
-        rps.bind_vertex_buffer(null_buffer, 0, i);
-      }
-    }
-
-    /* Flag whether Indexed rendering is used or not. */
-    int &uniform_ssbo_use_indexed = active_shader_->uni_ssbo_uses_indexed_rendering;
-    BLI_assert(uniform_ssbo_use_indexed != -1);
-    int uses_indexed_rendering = (mtl_elem != nullptr) ? 1 : 0;
-    active_shader_->uniform_int(uniform_ssbo_use_indexed, 1, 1, &uses_indexed_rendering);
-
-    /* Set SSBO-fetch-mode status uniforms. */
-    BLI_assert(active_shader_->uni_ssbo_input_prim_type_loc != -1);
-    BLI_assert(active_shader_->uni_ssbo_input_vert_count_loc != -1);
-    GPU_shader_uniform_int_ex(reinterpret_cast<GPUShader *>(wrap(active_shader_)),
-                              active_shader_->uni_ssbo_input_prim_type_loc,
-                              1,
-                              1,
-                              (const int *)(&final_prim_type));
-    GPU_shader_uniform_int_ex(reinterpret_cast<GPUShader *>(wrap(active_shader_)),
-                              active_shader_->uni_ssbo_input_vert_count_loc,
-                              1,
-                              1,
-                              (const int *)(&v_count));
-  }
 
   /* Ensure Context Render Pipeline State is fully setup and ready to execute the draw.
    * This should happen after all other final rendering setup is complete. */
@@ -606,11 +494,6 @@ void MTLBatch::prepare_vertex_descriptor_and_bindings(MTLVertBuf **buffers, int 
   Span<MTLVertBuf *> mtl_inst(reinterpret_cast<MTLVertBuf **>(this->inst),
                               GPU_BATCH_INST_VBO_MAX_LEN);
 
-  /* SSBO Vertex fetch also passes vertex descriptor information into the shader. */
-  if (active_shader_->get_uses_ssbo_vertex_fetch()) {
-    active_shader_->ssbo_vertex_fetch_bind_attributes_begin();
-  }
-
   /* Resolve Metal vertex buffer bindings. */
   /* Vertex Descriptors
    * ------------------
@@ -639,15 +522,6 @@ void MTLBatch::prepare_vertex_descriptor_and_bindings(MTLVertBuf **buffers, int 
           buffers[bid] = mtl_verts[descriptor->bufferIds[bid].id];
           buffer_is_instanced[bid] = false;
         }
-      }
-    }
-
-    /* Use cached ssbo attribute binding data. */
-    if (active_shader_->get_uses_ssbo_vertex_fetch()) {
-      BLI_assert(desc.vertex_descriptor.uses_ssbo_vertex_fetch);
-      for (int attr_id = 0; attr_id < desc.vertex_descriptor.num_ssbo_attributes; attr_id++) {
-        active_shader_->ssbo_vertex_fetch_bind_attribute(
-            desc.vertex_descriptor.ssbo_attributes[attr_id]);
       }
     }
   }
@@ -699,7 +573,6 @@ void MTLBatch::prepare_vertex_descriptor_and_bindings(MTLVertBuf **buffers, int 
     }
 
     /* Add to VertexDescriptor cache */
-    desc.vertex_descriptor.uses_ssbo_vertex_fetch = active_shader_->get_uses_ssbo_vertex_fetch();
     pair.attr_mask = attr_mask;
     pair.vertex_descriptor = desc.vertex_descriptor;
     pair.num_buffers = num_buffers;
@@ -741,7 +614,7 @@ void MTLBatch::draw_advanced(int v_first, int v_count, int i_first, int i_count)
 
   /* Setup RenderPipelineState for batch. */
   MTLContext *ctx = MTLContext::get();
-  id<MTLRenderCommandEncoder> rec = this->bind(v_count);
+  id<MTLRenderCommandEncoder> rec = this->bind();
   if (rec == nil) {
     /* End of draw. */
     this->unbind(rec);
@@ -752,35 +625,10 @@ void MTLBatch::draw_advanced(int v_first, int v_count, int i_first, int i_count)
   MTLIndexBuf *mtl_elem = static_cast<MTLIndexBuf *>(reinterpret_cast<IndexBuf *>(this->elem));
   MTLPrimitiveType mtl_prim_type = gpu_prim_type_to_metal(this->prim_type);
 
-  /* Render using SSBO Vertex Fetch. */
-  if (active_shader_->get_uses_ssbo_vertex_fetch()) {
-
-    /* Submit draw call with modified vertex count, which reflects vertices per primitive defined
-     * in the USE_SSBO_VERTEX_FETCH pragma. */
-    int num_input_primitives = gpu_get_prim_count_from_type(v_count, this->prim_type);
-    int output_num_verts = num_input_primitives *
-                           active_shader_->get_ssbo_vertex_fetch_output_num_verts();
-    BLI_assert_msg(
-        mtl_vertex_count_fits_primitive_type(
-            output_num_verts, active_shader_->get_ssbo_vertex_fetch_output_prim_type()),
-        "Output Vertex count is not compatible with the requested output vertex primitive type");
-
-    /* Set depth stencil state (requires knowledge of primitive type). */
-    ctx->ensure_depth_stencil_state(active_shader_->get_ssbo_vertex_fetch_output_prim_type());
-
-    [rec drawPrimitives:active_shader_->get_ssbo_vertex_fetch_output_prim_type()
-            vertexStart:0
-            vertexCount:output_num_verts
-          instanceCount:i_count
-           baseInstance:i_first];
-    ctx->main_command_buffer.register_draw_counters(output_num_verts * i_count);
-  }
   /* Perform regular draw. */
-  else if (mtl_elem == nullptr) {
-
+  if (mtl_elem == nullptr) {
     /* Primitive Type toplogy emulation. */
     if (mtl_needs_topology_emulation(this->prim_type)) {
-
       /* Generate index buffer for primitive types requiring emulation. */
       GPUPrimType emulated_prim_type = this->prim_type;
       uint32_t emulated_v_count = v_count;
@@ -883,7 +731,7 @@ void MTLBatch::draw_advanced_indirect(GPUStorageBuf *indirect_buf, intptr_t offs
 {
   /* Setup RenderPipelineState for batch. */
   MTLContext *ctx = MTLContext::get();
-  id<MTLRenderCommandEncoder> rec = this->bind(0);
+  id<MTLRenderCommandEncoder> rec = this->bind();
   if (rec == nil) {
     printf("Failed to open Render Command encoder for DRAW INDIRECT\n");
 
@@ -898,24 +746,6 @@ void MTLBatch::draw_advanced_indirect(GPUStorageBuf *indirect_buf, intptr_t offs
   BLI_assert(mtl_indirect_buf != nil);
   if (mtl_indirect_buf == nil) {
     MTL_LOG_WARNING("Metal Indirect Draw Storage Buffer is nil.");
-
-    /* End of draw. */
-    this->unbind(rec);
-    return;
-  }
-
-  /* Indirect SSBO vertex fetch calls require the draw command in the buffer to be mutated at
-   * command encoding time. This takes place within the draw manager when a shader supporting
-   * SSBO Vertex-Fetch is used. */
-  if (active_shader_->get_uses_ssbo_vertex_fetch())
-  { /* Set depth stencil state (requires knowledge of primitive type). */
-    ctx->ensure_depth_stencil_state(active_shader_->get_ssbo_vertex_fetch_output_prim_type());
-
-    /* Issue draw call. */
-    [rec drawPrimitives:active_shader_->get_ssbo_vertex_fetch_output_prim_type()
-              indirectBuffer:mtl_indirect_buf
-        indirectBufferOffset:offset];
-    ctx->main_command_buffer.register_draw_counters(1);
 
     /* End of draw. */
     this->unbind(rec);

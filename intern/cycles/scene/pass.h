@@ -7,7 +7,7 @@
 #include <iosfwd>
 
 #include "util/string.h"
-#include "util/vector.h"
+#include "util/unique_ptr_vector.h"
 
 #include "kernel/types.h"
 
@@ -78,17 +78,17 @@ class Pass : public Node {
                            const bool include_albedo = false,
                            const bool is_lightgroup = false);
 
-  static bool contains(const vector<Pass *> &passes, PassType type);
+  static bool contains(const unique_ptr_vector<Pass> &passes, PassType type);
 
   /* Returns nullptr if there is no pass with the given name or type+mode. */
-  static const Pass *find(const vector<Pass *> &passes, const string &name);
-  static const Pass *find(const vector<Pass *> &passes,
+  static const Pass *find(const unique_ptr_vector<Pass> &passes, const string &name);
+  static const Pass *find(const unique_ptr_vector<Pass> &passes,
                           PassType type,
                           PassMode mode = PassMode::NOISY,
                           const ustring &lightgroup = ustring());
 
   /* Returns PASS_UNUSED if there is no corresponding pass. */
-  static int get_offset(const vector<Pass *> &passes, const Pass *pass);
+  static int get_offset(const unique_ptr_vector<Pass> &passes, const Pass *pass);
 
   friend class Film;
 };

@@ -96,7 +96,10 @@ class USDMaterialReader {
  public:
   USDMaterialReader(const USDImportParams &params, Main *bmain);
 
-  Material *add_material(const pxr::UsdShadeMaterial &usd_material) const;
+  Material *add_material(const pxr::UsdShadeMaterial &usd_material,
+                         bool read_usd_preview = true) const;
+
+  void import_usd_preview(Material *mtl, const pxr::UsdShadeMaterial &usd_material) const;
 
   /** Get the wmJobWorkerStatus-provided `reports` list pointer, to use with the BKE_report API. */
   ReportList *reports() const
@@ -106,7 +109,7 @@ class USDMaterialReader {
 
  protected:
   /** Create the Principled BSDF shader node network. */
-  void import_usd_preview(Material *mtl, const pxr::UsdShadeShader &usd_shader) const;
+  void import_usd_preview_nodes(Material *mtl, const pxr::UsdShadeShader &usd_shader) const;
 
   void set_principled_node_inputs(bNode *principled_node,
                                   bNodeTree *ntree,

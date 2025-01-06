@@ -4386,6 +4386,11 @@ static void widget_box(uiBut *but,
   widgetbase_draw(&wtb, wcol);
 
   copy_v3_v3_uchar(wcol->inner, old_col);
+
+  /* Flush the cache so that we don't draw over contents. #125035 */
+  GPU_blend(GPU_BLEND_ALPHA);
+  UI_widgetbase_draw_cache_flush();
+  GPU_blend(GPU_BLEND_NONE);
 }
 
 static void widget_but(uiWidgetColors *wcol,

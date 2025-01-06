@@ -28,7 +28,7 @@
 #include "DNA_texture_types.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_kdopbvh.h"
+#include "BLI_kdopbvh.hh"
 #include "BLI_kdtree.h"
 #include "BLI_linklist.h"
 #include "BLI_math_base_safe.h"
@@ -5020,7 +5020,7 @@ struct ParticleSystemIDLoopForModifier {
 static void particlesystem_modifiersForeachIDLink(void *user_data,
                                                   Object * /*object*/,
                                                   ID **id_pointer,
-                                                  int cb_flag)
+                                                  const LibraryForeachIDCallbackFlag cb_flag)
 {
   ParticleSystemIDLoopForModifier *data = (ParticleSystemIDLoopForModifier *)user_data;
   data->func(data->psys, id_pointer, data->userdata, cb_flag);

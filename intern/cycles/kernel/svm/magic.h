@@ -4,11 +4,16 @@
 
 #pragma once
 
+#include "kernel/svm/util.h"
+
 CCL_NAMESPACE_BEGIN
 
 /* Magic */
 
-ccl_device_noinline_cpu float3 svm_magic(float3 p, float scale, int n, float distortion)
+ccl_device_noinline_cpu float3 svm_magic(const float3 p,
+                                         const float scale,
+                                         const int n,
+                                         float distortion)
 {
   /*
    * Prevent NaNs due to input p
@@ -22,9 +27,9 @@ ccl_device_noinline_cpu float3 svm_magic(float3 p, float scale, int n, float dis
    * smaller value. This is due to the value in the -2*PI to 2*PI range
    * effectively being lost due to floating point precision.
    */
-  float px = fmodf(p.x, M_2PI_F);
-  float py = fmodf(p.y, M_2PI_F);
-  float pz = fmodf(p.z, M_2PI_F);
+  const float px = fmodf(p.x, M_2PI_F);
+  const float py = fmodf(p.y, M_2PI_F);
+  const float pz = fmodf(p.z, M_2PI_F);
 
   float x = sinf((px + py + pz) * 5.0f * scale);
   float y = cosf((-px + py - pz) * 5.0f * scale);
@@ -93,26 +98,35 @@ ccl_device_noinline_cpu float3 svm_magic(float3 p, float scale, int n, float dis
   return make_float3(0.5f - x, 0.5f - y, 0.5f - z);
 }
 
-ccl_device_noinline int svm_node_tex_magic(
-    KernelGlobals kg, ccl_private ShaderData *sd, ccl_private float *stack, uint4 node, int offset)
+ccl_device_noinline int svm_node_tex_magic(KernelGlobals kg,
+                                           ccl_private ShaderData *sd,
+                                           ccl_private float *stack,
+                                           const uint4 node,
+                                           int offset)
 {
   uint depth;
-  uint scale_offset, distortion_offset, co_offset, fac_offset, color_offset;
+  uint scale_offset;
+  uint distortion_offset;
+  uint co_offset;
+  uint fac_offset;
+  uint color_offset;
 
   svm_unpack_node_uchar3(node.y, &depth, &color_offset, &fac_offset);
   svm_unpack_node_uchar3(node.z, &co_offset, &scale_offset, &distortion_offset);
 
-  uint4 node2 = read_node(kg, &offset);
-  float3 co = stack_load_float3(stack, co_offset);
-  float scale = stack_load_float_default(stack, scale_offset, node2.x);
-  float distortion = stack_load_float_default(stack, distortion_offset, node2.y);
+  const uint4 node2 = read_node(kg, &offset);
+  const float3 co = stack_load_float3(stack, co_offset);
+  const float scale = stack_load_float_default(stack, scale_offset, node2.x);
+  const float distortion = stack_load_float_default(stack, distortion_offset, node2.y);
 
-  float3 color = svm_magic(co, scale, depth, distortion);
+  const float3 color = svm_magic(co, scale, depth, distortion);
 
-  if (stack_valid(fac_offset))
+  if (stack_valid(fac_offset)) {
     stack_store_float(stack, fac_offset, average(color));
-  if (stack_valid(color_offset))
+  }
+  if (stack_valid(color_offset)) {
     stack_store_float3(stack, color_offset, color);
+  }
   return offset;
 }
 

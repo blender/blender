@@ -21,6 +21,11 @@ Some type annotations are quoted to avoid errors in older Python versions.
 These can be unquoted eventually.
 """
 
+__all__ = (
+    "main",
+)
+
+
 import argparse
 import os
 import platform
@@ -519,21 +524,6 @@ def floating_checkout_update(
         os.chdir(cwd)
 
     return skip_msg
-
-
-def external_scripts_update(
-        args: argparse.Namespace,
-        repo_name: str,
-        directory_name: str,
-        branch: "str | None",
-) -> str:
-    return floating_checkout_update(
-        args,
-        repo_name,
-        Path("scripts") / directory_name,
-        branch,
-        old_submodules_dir=Path("release") / "scripts" / directory_name,
-    )
 
 
 def floating_libraries_update(args: argparse.Namespace, branch: "str | None") -> str:

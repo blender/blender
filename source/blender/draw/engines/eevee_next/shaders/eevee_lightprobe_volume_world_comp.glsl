@@ -8,6 +8,10 @@
  * The whole thread group will load the same data and write a brick worth of data.
  */
 
+#include "infos/eevee_lightprobe_volume_info.hh"
+
+COMPUTE_SHADER_CREATE_INFO(eevee_lightprobe_volume_world)
+
 #include "eevee_spherical_harmonics_lib.glsl"
 
 void atlas_store(vec4 sh_coefficient, ivec2 atlas_coord, int layer)

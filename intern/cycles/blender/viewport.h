@@ -2,16 +2,13 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __BLENDER_VIEWPORT_H__
-#define __BLENDER_VIEWPORT_H__
+#pragma once
 
-#include "MEM_guardedalloc.h"
-
-#include "RNA_access.hh"
 #include "RNA_blender_cpp.hh"
-#include "RNA_types.hh"
 
-#include "scene/film.h"
+#include "kernel/types.h"
+
+#include "util/param.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -47,5 +44,3 @@ class BlenderViewportParameters {
 };
 
 CCL_NAMESPACE_END
-
-#endif

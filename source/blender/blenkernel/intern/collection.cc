@@ -239,11 +239,11 @@ static void collection_foreach_id(ID *id, LibraryForeachIDData *data)
   LISTBASE_FOREACH (CollectionParent *, parent, &collection->runtime.parents) {
     /* XXX This is very weak. The whole idea of keeping pointers to private IDs is very bad
      * anyway... */
-    const int cb_flag = ((parent->collection != nullptr &&
-                          (data_flags & IDWALK_NO_ORIG_POINTERS_ACCESS) == 0 &&
-                          (parent->collection->id.flag & ID_FLAG_EMBEDDED_DATA) != 0) ?
-                             IDWALK_CB_EMBEDDED_NOT_OWNING :
-                             IDWALK_CB_NOP);
+    const LibraryForeachIDCallbackFlag cb_flag =
+        ((parent->collection != nullptr && (data_flags & IDWALK_NO_ORIG_POINTERS_ACCESS) == 0 &&
+          (parent->collection->id.flag & ID_FLAG_EMBEDDED_DATA) != 0) ?
+             IDWALK_CB_EMBEDDED_NOT_OWNING :
+             IDWALK_CB_NOP);
     BKE_LIB_FOREACHID_PROCESS_IDSUPER(
         data, parent->collection, IDWALK_CB_NEVER_SELF | IDWALK_CB_LOOPBACK | cb_flag);
   }

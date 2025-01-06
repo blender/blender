@@ -687,7 +687,8 @@ class WM_OT_context_cycle_array(Operator):
 class WM_OT_context_menu_enum(Operator):
     bl_idname = "wm.context_menu_enum"
     bl_label = "Context Enum Menu"
-    bl_options = {'UNDO', 'INTERNAL'}
+    # The menu items & UI logic handles undo.
+    bl_options = {'INTERNAL'}
 
     data_path: rna_path_prop
 
@@ -718,7 +719,8 @@ class WM_OT_context_menu_enum(Operator):
 class WM_OT_context_pie_enum(Operator):
     bl_idname = "wm.context_pie_enum"
     bl_label = "Context Enum Pie"
-    bl_options = {'UNDO', 'INTERNAL'}
+    # The menu items & UI logic handles undo.
+    bl_options = {'INTERNAL'}
 
     data_path: rna_path_prop
 
@@ -750,7 +752,8 @@ class WM_OT_context_pie_enum(Operator):
 class WM_OT_operator_pie_enum(Operator):
     bl_idname = "wm.operator_pie_enum"
     bl_label = "Operator Enum Pie"
-    bl_options = {'UNDO', 'INTERNAL'}
+    # The menu items & UI logic handles undo.
+    bl_options = {'INTERNAL'}
 
     data_path: StringProperty(
         name="Operator",
@@ -2663,7 +2666,7 @@ class BatchRenameAction(bpy.types.PropertyGroup):
 
     # We could split these into sub-properties, however it's not so important.
 
-    # type: 'SET'.
+    # Used when `type == 'SET'`.
     set_name: StringProperty(name="Name")
     set_method: EnumProperty(
         name="Method",
@@ -2675,7 +2678,7 @@ class BatchRenameAction(bpy.types.PropertyGroup):
         default='SUFFIX',
     )
 
-    # type: 'STRIP'.
+    # Used when `type == 'STRIP'`.
     strip_chars: EnumProperty(
         name="Strip Characters",
         options={'ENUM_FLAG'},
@@ -2686,7 +2689,7 @@ class BatchRenameAction(bpy.types.PropertyGroup):
         ),
     )
 
-    # type: 'STRIP'.
+    # Used when `type == 'STRIP'`.
     strip_part: EnumProperty(
         name="Strip Part",
         options={'ENUM_FLAG'},
@@ -2696,7 +2699,7 @@ class BatchRenameAction(bpy.types.PropertyGroup):
         ),
     )
 
-    # type: 'REPLACE'.
+    # Used when `type == 'REPLACE'`.
     replace_src: StringProperty(name="Find")
     replace_dst: StringProperty(name="Replace")
     replace_match_case: BoolProperty(name="Case Sensitive")
@@ -2709,7 +2712,7 @@ class BatchRenameAction(bpy.types.PropertyGroup):
         description="Use regular expression for the replacement text (supporting groups)",
     )
 
-    # type: 'CASE'.
+    # Used when `type == 'CASE'`.
     case_method: EnumProperty(
         name="Case",
         items=(

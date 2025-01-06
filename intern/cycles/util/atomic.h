@@ -2,13 +2,12 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __UTIL_ATOMIC_H__
-#define __UTIL_ATOMIC_H__
+#pragma once
 
 #ifndef __KERNEL_GPU__
 
 /* Using atomic ops header from Blender. */
-#  include "atomic_ops.h"
+#  include "atomic_ops.h"  // IWYU pragma: export
 
 #  define atomic_add_and_fetch_float(p, x) atomic_add_and_fetch_fl((p), (x))
 #  define atomic_compare_and_swap_float(p, old_val, new_val) \
@@ -83,12 +82,12 @@ ccl_device_inline float atomic_add_and_fetch_float(volatile ccl_global float *_s
 #    endif
 }
 
-template<class T> ccl_device_inline uint32_t atomic_fetch_and_add_uint32(device T *p, int x)
+template<class T> ccl_device_inline uint32_t atomic_fetch_and_add_uint32(device T *p, const int x)
 {
   return atomic_fetch_add_explicit((device atomic_uint *)p, x, memory_order_relaxed);
 }
 
-template<class T> ccl_device_inline uint32_t atomic_fetch_and_sub_uint32(device T *p, int x)
+template<class T> ccl_device_inline uint32_t atomic_fetch_and_sub_uint32(device T *p, const int x)
 {
   return atomic_fetch_sub_explicit((device atomic_uint *)p, x, memory_order_relaxed);
 }
@@ -103,17 +102,19 @@ template<class T> ccl_device_inline uint32_t atomic_fetch_and_dec_uint32(device 
   return atomic_fetch_sub_explicit((device atomic_uint *)p, 1, memory_order_relaxed);
 }
 
-template<class T> ccl_device_inline uint32_t atomic_fetch_and_or_uint32(device T *p, int x)
+template<class T> ccl_device_inline uint32_t atomic_fetch_and_or_uint32(device T *p, const int x)
 {
   return atomic_fetch_or_explicit((device atomic_uint *)p, x, memory_order_relaxed);
 }
 
-template<class T> ccl_device_inline uint32_t atomic_fetch_and_add_uint32(threadgroup T *p, int x)
+template<class T>
+ccl_device_inline uint32_t atomic_fetch_and_add_uint32(threadgroup T *p, const int x)
 {
   return atomic_fetch_add_explicit((threadgroup atomic_uint *)p, x, memory_order_relaxed);
 }
 
-template<class T> ccl_device_inline uint32_t atomic_fetch_and_sub_uint32(threadgroup T *p, int x)
+template<class T>
+ccl_device_inline uint32_t atomic_fetch_and_sub_uint32(threadgroup T *p, const int x)
 {
   return atomic_fetch_sub_explicit((threadgroup atomic_uint *)p, x, memory_order_relaxed);
 }
@@ -128,7 +129,8 @@ template<class T> ccl_device_inline uint32_t atomic_fetch_and_dec_uint32(threadg
   return atomic_fetch_sub_explicit((threadgroup atomic_uint *)p, 1, memory_order_relaxed);
 }
 
-template<class T> ccl_device_inline uint32_t atomic_fetch_and_or_uint32(threadgroup T *p, int x)
+template<class T>
+ccl_device_inline uint32_t atomic_fetch_and_or_uint32(threadgroup T *p, const int x)
 {
   return atomic_fetch_or_explicit((threadgroup atomic_uint *)p, x, memory_order_relaxed);
 }
@@ -172,7 +174,7 @@ ccl_device_inline float atomic_compare_and_swap_float(volatile ccl_global float 
 
 #  ifdef __KERNEL_ONEAPI__
 
-ccl_device_inline float atomic_add_and_fetch_float(ccl_global float *p, float x)
+ccl_device_inline float atomic_add_and_fetch_float(ccl_global float *p, const float x)
 {
   sycl::atomic_ref<float,
                    sycl::memory_order::relaxed,
@@ -206,7 +208,7 @@ ccl_device_inline unsigned int atomic_fetch_and_add_uint32(ccl_global unsigned i
   return atomic.fetch_add(x);
 }
 
-ccl_device_inline int atomic_fetch_and_add_uint32(ccl_global int *p, int x)
+ccl_device_inline int atomic_fetch_and_add_uint32(ccl_global int *p, const int x)
 {
   sycl::atomic_ref<int,
                    sycl::memory_order::relaxed,
@@ -216,7 +218,7 @@ ccl_device_inline int atomic_fetch_and_add_uint32(ccl_global int *p, int x)
   return atomic.fetch_add(x);
 }
 
-ccl_device_inline int atomic_fetch_and_add_uint32_shared(int *p, int x)
+ccl_device_inline int atomic_fetch_and_add_uint32_shared(int *p, const int x)
 {
   sycl::atomic_ref<int,
                    sycl::memory_order::relaxed,
@@ -237,7 +239,7 @@ ccl_device_inline unsigned int atomic_fetch_and_sub_uint32(ccl_global unsigned i
   return atomic.fetch_sub(x);
 }
 
-ccl_device_inline int atomic_fetch_and_sub_uint32(ccl_global int *p, int x)
+ccl_device_inline int atomic_fetch_and_sub_uint32(ccl_global int *p, const int x)
 {
   sycl::atomic_ref<int,
                    sycl::memory_order::relaxed,
@@ -278,7 +280,7 @@ ccl_device_inline unsigned int atomic_fetch_and_or_uint32(ccl_global unsigned in
   return atomic.fetch_or(x);
 }
 
-ccl_device_inline int atomic_fetch_and_or_uint32(ccl_global int *p, int x)
+ccl_device_inline int atomic_fetch_and_or_uint32(ccl_global int *p, const int x)
 {
   sycl::atomic_ref<int,
                    sycl::memory_order::relaxed,
@@ -288,7 +290,7 @@ ccl_device_inline int atomic_fetch_and_or_uint32(ccl_global int *p, int x)
   return atomic.fetch_or(x);
 }
 
-ccl_device_inline void atomic_store_local(int *p, int x)
+ccl_device_inline void atomic_store_local(int *p, const int x)
 {
   sycl::atomic_ref<int,
                    sycl::memory_order::relaxed,
@@ -311,5 +313,3 @@ ccl_device_inline int atomic_load_local(int *p)
 #  endif /* __KERNEL_ONEAPI__ */
 
 #endif /* __KERNEL_GPU__ */
-
-#endif /* __UTIL_ATOMIC_H__ */

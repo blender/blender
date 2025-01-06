@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __UTIL_DISJOINT_SET_H__
-#define __UTIL_DISJOINT_SET_H__
+#pragma once
 
 #include "util/array.h"
 #include <utility>
@@ -16,7 +15,7 @@ class DisjointSet {
   array<size_t> ranks;
 
  public:
-  DisjointSet(size_t size) : parents(size), ranks(size)
+  DisjointSet(const size_t size) : parents(size), ranks(size)
   {
     for (size_t i = 0; i < size; i++) {
       parents[i] = i;
@@ -31,14 +30,14 @@ class DisjointSet {
       root = parents[root];
     }
     while (parents[x] != root) {
-      size_t parent = parents[x];
+      const size_t parent = parents[x];
       parents[x] = root;
       x = parent;
     }
     return root;
   }
 
-  void join(size_t x, size_t y)
+  void join(const size_t x, const size_t y)
   {
     size_t x_root = find(x);
     size_t y_root = find(y);
@@ -59,5 +58,3 @@ class DisjointSet {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __UTIL_DISJOINT_SET_H__ */

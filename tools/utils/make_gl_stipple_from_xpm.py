@@ -4,6 +4,9 @@
 
 # Converts 32x32 XPM images written be the gimp to GL stipples
 # takes XPM files as arguments, prints out C style definitions.
+__all__ = (
+    "main",
+)
 
 import sys
 import os
@@ -12,12 +15,11 @@ import os
 def main():
     xpm_ls = [f for f in sys.argv[1:] if f.lower().endswith(".xpm")]
 
-    print("Converting: " + " ".join(xpm_ls))
+    print("Converting:", " ".join(xpm_ls))
 
     for xpm in xpm_ls:
-        f = open(xpm, "r")
-        data = f.read()
-        f.close()
+        with open(xpm, "r", encoding="utf-8") as fh:
+            data = fh.read()
 
         # all after first {
         data = data.split("{", 1)[1]

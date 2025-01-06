@@ -44,6 +44,7 @@
 #include "interface_regions_intern.hh"
 
 using blender::StringRef;
+using blender::StringRefNull;
 
 /* -------------------------------------------------------------------- */
 /** \name Utility Functions
@@ -785,24 +786,20 @@ void UI_popup_block_template_confirm(uiBlock *block,
 
 void UI_popup_block_template_confirm_op(uiLayout *layout,
                                         wmOperatorType *ot,
-                                        const char *confirm_text,
-                                        const char *cancel_text,
+                                        const std::optional<StringRef> confirm_text_opt,
+                                        const std::optional<StringRef> cancel_text_opt,
                                         const int icon,
                                         bool cancel_default,
                                         PointerRNA *r_ptr)
 {
   uiBlock *block = uiLayoutGetBlock(layout);
 
-  if (confirm_text == nullptr) {
-    confirm_text = IFACE_("OK");
-  }
-  if (cancel_text == nullptr) {
-    cancel_text = IFACE_("Cancel");
-  }
+  const StringRef confirm_text = confirm_text_opt.value_or(IFACE_("OK"));
+  const StringRef cancel_text = cancel_text_opt.value_or(IFACE_("Cancel"));
 
   /* Use a split so both buttons are the same size. */
-  const bool show_confirm = confirm_text[0] != '\0';
-  const bool show_cancel = cancel_text[0] != '\0';
+  const bool show_confirm = !confirm_text.is_empty();
+  const bool show_cancel = !cancel_text.is_empty();
   uiLayout *row = (show_confirm && show_cancel) ? uiLayoutSplit(layout, 0.5f, false) : layout;
 
   /* When only one button is shown, make it default. */

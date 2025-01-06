@@ -666,7 +666,7 @@ static BMOpDefine bmo_grid_fill_def = {
 /*
  * Fill Holes.
  *
- * Fill boundary edges with faces, copying surrounding customdata.
+ * Fill boundary edges with faces, copying surrounding custom-data.
  */
 static BMOpDefine bmo_holes_fill_def = {
   "holes_fill",

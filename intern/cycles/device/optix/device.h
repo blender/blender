@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "util/string.h"
+#include "util/unique_ptr.h"
 #include "util/vector.h"
 
 CCL_NAMESPACE_BEGIN
@@ -16,10 +16,10 @@ class Stats;
 
 bool device_optix_init();
 
-Device *device_optix_create(const DeviceInfo &info,
-                            Stats &stats,
-                            Profiler &profiler,
-                            bool headless);
+unique_ptr<Device> device_optix_create(const DeviceInfo &info,
+                                       Stats &stats,
+                                       Profiler &profiler,
+                                       bool headless);
 
 void device_optix_info(const vector<DeviceInfo> &cuda_devices, vector<DeviceInfo> &devices);
 

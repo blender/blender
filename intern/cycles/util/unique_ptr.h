@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __UTIL_UNIQUE_PTR_H__
-#define __UTIL_UNIQUE_PTR_H__
+#pragma once
 
 #include <memory>
 
@@ -13,5 +12,3 @@ using std::make_unique;
 using std::unique_ptr;
 
 CCL_NAMESPACE_END
-
-#endif /* __UTIL_UNIQUE_PTR_H__ */

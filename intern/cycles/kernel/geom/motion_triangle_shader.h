@@ -15,6 +15,12 @@
 
 #pragma once
 
+#include "kernel/globals.h"
+#include "kernel/types.h"
+
+#include "kernel/geom/motion_triangle.h"
+#include "kernel/geom/motion_triangle_intersect.h"
+
 CCL_NAMESPACE_BEGIN
 
 /* Setup of motion triangle specific parts of ShaderData, moved into this one
@@ -28,7 +34,8 @@ ccl_device_noinline void motion_triangle_shader_setup(KernelGlobals kg, ccl_priv
   sd->shader = kernel_data_fetch(tri_shader, sd->prim);
 
   /* Compute motion info. */
-  int numsteps, step;
+  int numsteps;
+  int step;
   float t;
   uint3 tri_vindex;
   motion_triangle_compute_info(

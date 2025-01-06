@@ -20,7 +20,8 @@ static void node_shader_buts_script(uiLayout *layout, bContext * /*C*/, PointerR
   uiLayout *row;
 
   row = uiLayoutRow(layout, false);
-  uiItemR(row, ptr, "mode", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
+  uiItemR(
+      row, ptr, "mode", UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 
   row = uiLayoutRow(layout, true);
 
@@ -42,7 +43,7 @@ static void node_shader_buts_script_ex(uiLayout *layout, bContext *C, PointerRNA
 
 #if 0 /* not implemented yet */
   if (RNA_enum_get(ptr, "mode") == NODE_SCRIPT_EXTERNAL) {
-    uiItemR(layout, ptr, "use_auto_update", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+    uiItemR(layout, ptr, "use_auto_update", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
   }
 #endif
 }
@@ -87,6 +88,7 @@ void register_node_type_sh_script()
   static blender::bke::bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_SCRIPT, "Script", NODE_CLASS_SCRIPT);
+  ntype.enum_name_legacy = "SCRIPT";
   ntype.draw_buttons = file_ns::node_shader_buts_script;
   ntype.draw_buttons_ex = file_ns::node_shader_buts_script_ex;
   ntype.initfunc = file_ns::init;

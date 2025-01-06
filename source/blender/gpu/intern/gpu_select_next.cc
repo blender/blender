@@ -16,13 +16,13 @@
 
 struct GPUSelectNextState {
   /** Result buffer set on initialization. */
-  GPUSelectBuffer *buffer;
+  GPUSelectBuffer *buffer = nullptr;
   /** Area of the viewport to render / select from. */
-  rcti rect;
+  rcti rect = {0, 0, 0, 0};
   /** Number of hits. Set to -1 if it overflows buffer_len. */
-  uint hits;
+  uint hits = -1;
   /** Mode of operation. */
-  eGPUSelectMode mode;
+  eGPUSelectMode mode = eGPUSelectMode::GPU_SELECT_INVALID;
 };
 
 static GPUSelectNextState g_state = {};
@@ -59,17 +59,16 @@ void gpu_select_next_set_result(GPUSelectResult *hit_buf, uint hit_len)
     case eGPUSelectMode::GPU_SELECT_ALL:
       hit_results.copy_from(hits);
       break;
-    case eGPUSelectMode::GPU_SELECT_NEAREST_FIRST_PASS:
-      hit_results.copy_from(hits);
-      break;
-    case eGPUSelectMode::GPU_SELECT_NEAREST_SECOND_PASS:
-      hit_results.copy_from(hits);
-      break;
     case eGPUSelectMode::GPU_SELECT_PICK_ALL:
       hit_results.copy_from(hits);
       break;
     case eGPUSelectMode::GPU_SELECT_PICK_NEAREST:
       hit_results.copy_from(hits);
+      break;
+    case eGPUSelectMode::GPU_SELECT_NEAREST_FIRST_PASS:
+    case eGPUSelectMode::GPU_SELECT_NEAREST_SECOND_PASS:
+    case eGPUSelectMode::GPU_SELECT_INVALID:
+      BLI_assert_unreachable();
       break;
   }
 

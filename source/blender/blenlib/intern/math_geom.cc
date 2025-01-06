@@ -5361,7 +5361,11 @@ bool is_quad_convex_v3(const float v1[3], const float v2[3], const float v3[3], 
 
     cross_v3_v3v3(plane, v13, v24);
 
-    if (len_squared_v3(plane) < FLT_EPSILON) {
+    /* Ignore planes that are small or (near) zero area,
+     * scale the threshold down as the length of the cross product is also squared.
+     * With this value quads with edges smaller than 1e-05 may be detected as too small. */
+    const float eps_sq = square_f(1e-8f);
+    if (len_squared_v3(plane) < eps_sq) {
       return false;
     }
   }

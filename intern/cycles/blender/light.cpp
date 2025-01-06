@@ -15,12 +15,12 @@ CCL_NAMESPACE_BEGIN
 void BlenderSync::sync_light(BL::Object &b_parent,
                              int persistent_id[OBJECT_PERSISTENT_ID_SIZE],
                              BObjectInfo &b_ob_info,
-                             int random_id,
+                             const int random_id,
                              Transform &tfm,
                              bool *use_portal)
 {
   /* test if we need to sync */
-  ObjectKey key(b_parent, persistent_id, b_ob_info.real_object, false);
+  const ObjectKey key(b_parent, persistent_id, b_ob_info.real_object, false);
   BL::Light b_light(b_ob_info.object_data);
 
   Light *light = light_map.find(key);
@@ -101,7 +101,7 @@ void BlenderSync::sync_light(BL::Object &b_parent,
   }
 
   /* strength */
-  float3 strength = get_float3(b_light.color()) * BL::PointLight(b_light).energy();
+  const float3 strength = get_float3(b_light.color()) * BL::PointLight(b_light).energy();
   light->set_strength(strength);
 
   /* location and (inverted!) direction */
@@ -141,7 +141,7 @@ void BlenderSync::sync_light(BL::Object &b_parent,
   }
 
   /* visibility */
-  uint visibility = object_ray_visibility(b_ob_info.real_object);
+  const uint visibility = object_ray_visibility(b_ob_info.real_object);
   light->set_use_camera((visibility & PATH_RAY_CAMERA) != 0);
   light->set_use_diffuse((visibility & PATH_RAY_DIFFUSE) != 0);
   light->set_use_glossy((visibility & PATH_RAY_GLOSSY) != 0);
@@ -172,13 +172,14 @@ void BlenderSync::sync_background_light(BL::SpaceView3D &b_v3d, bool use_portal)
     PointerRNA cworld = RNA_pointer_get(&b_world.ptr, "cycles");
 
     enum SamplingMethod { SAMPLING_NONE = 0, SAMPLING_AUTOMATIC, SAMPLING_MANUAL, SAMPLING_NUM };
-    int sampling_method = get_enum(cworld, "sampling_method", SAMPLING_NUM, SAMPLING_AUTOMATIC);
-    bool sample_as_light = (sampling_method != SAMPLING_NONE);
+    const int sampling_method = get_enum(
+        cworld, "sampling_method", SAMPLING_NUM, SAMPLING_AUTOMATIC);
+    const bool sample_as_light = (sampling_method != SAMPLING_NONE);
 
     if (sample_as_light || use_portal) {
       /* test if we need to sync */
       Light *light;
-      ObjectKey key(b_world, 0, b_world, false);
+      const ObjectKey key(b_world, nullptr, b_world, false);
 
       if (light_map.add_or_update(&light, b_world, b_world, key) || world_recalc ||
           b_world.ptr.data != world_map)

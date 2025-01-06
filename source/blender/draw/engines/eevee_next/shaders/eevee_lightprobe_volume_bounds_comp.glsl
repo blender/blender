@@ -9,6 +9,10 @@
  * - capture_info_buf
  */
 
+#include "infos/eevee_lightprobe_volume_info.hh"
+
+COMPUTE_SHADER_CREATE_INFO(eevee_lightprobe_volume_bounds)
+
 #include "draw_intersect_lib.glsl"
 #include "eevee_light_iter_lib.glsl"
 #include "eevee_shadow_tilemap_lib.glsl"

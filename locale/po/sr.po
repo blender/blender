@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Release Candidate (b'7dfe47164a63')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'96c6f543ecc7')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-11-18 11:20+0000\n"
+"POT-Creation-Date: 2025-01-06 10:26+0000\n"
 "PO-Revision-Date: 2012-09-07 22:32+0100\n"
 "Last-Translator: Nikola Radovanovic <cobisimo@gmail.com>\n"
 "Language-Team: Nikola Radovanovic\n"
@@ -33,6 +33,10 @@ msgstr "Боја"
 
 msgid "Value"
 msgstr "Вредност"
+
+
+msgid "F-Curves"
+msgstr "Ф-крива"
 
 
 msgid "Action Group"
@@ -179,6 +183,50 @@ msgid "Expanded"
 msgstr "Проширено"
 
 
+msgid "Influence"
+msgstr "Утицај"
+
+
+msgid "Mix Mode"
+msgstr "Режим мешања"
+
+
+msgid "Replace"
+msgstr "Замени"
+
+
+msgid "Offset"
+msgstr "Одстојање"
+
+
+msgid "Add"
+msgstr "Додај"
+
+
+msgid "Subtract"
+msgstr "Одузимање"
+
+
+msgid "Multiply"
+msgstr "Умножено"
+
+
+msgid "Strips"
+msgstr "Траке"
+
+
+msgid "Active"
+msgstr "Активно"
+
+
+msgid "Show Expanded"
+msgstr "Прикажи проширено"
+
+
+msgid "Keyframe"
+msgstr "Кључни кадар"
+
+
 msgid "Module"
 msgstr "Модул"
 
@@ -249,22 +297,6 @@ msgstr "Трајна путања до података"
 
 msgid "Action"
 msgstr "Акција"
-
-
-msgid "Replace"
-msgstr "Замени"
-
-
-msgid "Add"
-msgstr "Додај"
-
-
-msgid "Subtract"
-msgstr "Одузимање"
-
-
-msgid "Multiply"
-msgstr "Умножено"
 
 
 msgid "Nothing"
@@ -1425,10 +1457,6 @@ msgid "Mode"
 msgstr "Режим рада"
 
 
-msgid "Active"
-msgstr "Активно"
-
-
 msgid "Vertex Color"
 msgstr "Боја темена"
 
@@ -1529,10 +1557,6 @@ msgid "Crop"
 msgstr "Исеци"
 
 
-msgid "Offset"
-msgstr "Одстојање"
-
-
 msgid "Rotation"
 msgstr "Ротација"
 
@@ -1547,10 +1571,6 @@ msgstr "Увећање"
 
 msgid "Show Background Image"
 msgstr "Прикажи позадинску слику"
-
-
-msgid "Show Expanded"
-msgstr "Прикажи проширено"
 
 
 msgid "Show On Foreground"
@@ -2106,10 +2126,6 @@ msgid "Constraint modifying the transformation of objects and bones"
 msgstr "Ограничење који мења трансформацију објеката и костију"
 
 
-msgid "Influence"
-msgstr "Утицај"
-
-
 msgid "Amount of influence constraint will have on the final solution"
 msgstr "Ниво који ће утицај овог ограничења имати на крајњи резултат"
 
@@ -2304,10 +2320,6 @@ msgstr "Минимум"
 
 msgid "Minimum value for target channel range"
 msgstr "Поставља минималну Y вредност рендерованог оквира"
-
-
-msgid "Mix Mode"
-msgstr "Режим мешања"
 
 
 msgid "Transform Channel"
@@ -3928,16 +3940,16 @@ msgid "Audio volume"
 msgstr "AVI кодек"
 
 
+msgid "H.264"
+msgstr "H.264"
+
+
 msgid "FFmpeg video codec #1"
 msgstr "FFmpeg видео кодек #1"
 
 
 msgid "Flash Video"
 msgstr "Flash видео"
-
-
-msgid "H.264"
-msgstr "H.264"
 
 
 msgid "HuffYUV"
@@ -3972,16 +3984,16 @@ msgid "MPEG-4"
 msgstr "MPEG-4"
 
 
-msgid "Ogg"
-msgstr "Ogg"
-
-
 msgid "Matroska"
 msgstr "Matroska"
 
 
 msgid "Flash"
 msgstr "Flash"
+
+
+msgid "Ogg"
+msgstr "Ogg"
 
 
 msgid "Lossless Output"
@@ -4086,6 +4098,10 @@ msgstr "Изузети оквир из коначне слике"
 
 msgid "Phase"
 msgstr "Фаза"
+
+
+msgid "Roughness"
+msgstr "Храпавост"
 
 
 msgid "Step Size"
@@ -4872,10 +4888,6 @@ msgid "Grease Pencil Frame"
 msgstr "Скицирани кадар"
 
 
-msgid "Keyframe"
-msgstr "Кључни кадар"
-
-
 msgid "Extreme"
 msgstr "Екстрем"
 
@@ -4960,16 +4972,16 @@ msgid "Users"
 msgstr "Корисници"
 
 
-msgid "F-Curves"
-msgstr "Ф-крива"
-
-
 msgid "Frame Range"
 msgstr "Опсег кадрова:"
 
 
 msgid "Groups"
 msgstr "Групе"
+
+
+msgid "Layers"
+msgstr "Слојеви"
 
 
 msgid "Stick"
@@ -5860,10 +5872,6 @@ msgid "Use Textures"
 msgstr "Користи текстуре"
 
 
-msgid "Layers"
-msgstr "Слојеви"
-
-
 msgid "Selected"
 msgstr "Изабрано"
 
@@ -6244,10 +6252,6 @@ msgid "Cloth"
 msgstr "Тканина"
 
 
-msgid "Roughness"
-msgstr "Храпавост"
-
-
 msgid "Texture Slot Images"
 msgstr "Слике слота текстура"
 
@@ -6392,12 +6396,16 @@ msgid "Shader"
 msgstr "Сенчења"
 
 
-msgid "Grease Pencil Data"
-msgstr "Подаци скицирања"
+msgid "Pattern"
+msgstr "Шара"
 
 
 msgid "Interface"
 msgstr "Интерфејс"
+
+
+msgid "Grease Pencil Data"
+msgstr "Подаци скицирања"
 
 
 msgid "Links"
@@ -7754,10 +7762,6 @@ msgid "Marble Texture"
 msgstr "Текстура мермера"
 
 
-msgid "Pattern"
-msgstr "Шара"
-
-
 msgid "Use soft marble"
 msgstr "Користи меки мермер"
 
@@ -8078,6 +8082,14 @@ msgid "Codec"
 msgstr "Кодек"
 
 
+msgid "No compression"
+msgstr "Компресија"
+
+
+msgid "DWAA (lossy)"
+msgstr "DWAA (са губитком)"
+
+
 msgid "Pxr24 (lossy)"
 msgstr "Pxr24 (са губитком)"
 
@@ -8088,10 +8100,6 @@ msgstr "B44 (са губитком)"
 
 msgid "B44A (lossy)"
 msgstr "B44A (са губитком)"
-
-
-msgid "DWAA (lossy)"
-msgstr "DWAA (са губитком)"
 
 
 msgid "File format to save the rendered images as"
@@ -10730,10 +10738,6 @@ msgid "Static Type"
 msgstr "Статичка врста"
 
 
-msgid "Node type (deprecated, use with care)"
-msgstr "Врста чвора (застарело, користите пажљиво)"
-
-
 msgid "Outputs"
 msgstr "Излази"
 
@@ -11020,6 +11024,10 @@ msgstr "Користи Z-Бафер"
 
 msgid "Z-Scale"
 msgstr "Z-увећање"
+
+
+msgid "High quality"
+msgstr "Висок квалитет"
 
 
 msgid "Neighbor"
@@ -14184,15 +14192,6 @@ msgstr "Уклони обележивач"
 
 
 msgctxt "Operator"
-msgid "Cancel File Load"
-msgstr "Прекини учитавање слике"
-
-
-msgid "Cancel loading of selected file"
-msgstr "Прекини учитавање изабране датотеке"
-
-
-msgctxt "Operator"
 msgid "Delete Selected Files"
 msgstr "Избриши изабране датотеке"
 
@@ -14556,10 +14555,6 @@ msgstr "Изабери све кључне кадрове на кривој"
 msgctxt "Operator"
 msgid "Set Cursor"
 msgstr "Постави курсор"
-
-
-msgid "Remove"
-msgstr "Уклони"
 
 
 msgid "Flatten"
@@ -15819,6 +15814,14 @@ msgid "Aligned Axis"
 msgstr "Поравнате осе"
 
 
+msgid "Equal To"
+msgstr "Једнако са"
+
+
+msgid "Not Equal To"
+msgstr "Није једнако са"
+
+
 msgctxt "Operator"
 msgid "Select Faces by Sides"
 msgstr "Изабери странице по странама"
@@ -15826,14 +15829,6 @@ msgstr "Изабери странице по странама"
 
 msgid "Number of Vertices"
 msgstr "Број темена"
-
-
-msgid "Equal To"
-msgstr "Једнако са"
-
-
-msgid "Not Equal To"
-msgstr "Није једнако са"
 
 
 msgctxt "Operator"
@@ -17372,11 +17367,6 @@ msgid "Project Image"
 msgstr "Пројектуј слику"
 
 
-msgctxt "Operator"
-msgid "Texture Paint Toggle"
-msgstr "Бојење текстуре"
-
-
 msgid "Blur Iterations"
 msgstr "Итерација замућења"
 
@@ -18505,6 +18495,11 @@ msgid "Swap Inputs"
 msgstr "Замени улаз"
 
 
+msgctxt "Operator"
+msgid "Deselect All"
+msgstr "Поништи цео изабор"
+
+
 msgid "Zoom preview to fit in the area"
 msgstr "Зумирај поглед да испуни простор"
 
@@ -19573,6 +19568,10 @@ msgid "Name of the menu"
 msgstr "Назив менија"
 
 
+msgid "Remove"
+msgstr "Уклони"
+
+
 msgid "Save a Collada file"
 msgstr "Сачувај као Collada датотеку"
 
@@ -19974,12 +19973,12 @@ msgid "Restrict"
 msgstr "Ограничи"
 
 
-msgid "Transform Orientations"
-msgstr "Трансформација оријентација"
-
-
 msgid "Motion Tracking"
 msgstr "Праћење покрета"
+
+
+msgid "Transform Orientations"
+msgstr "Трансформација оријентација"
 
 
 msgid "Bone Constraints"
@@ -20180,10 +20179,6 @@ msgstr "Аудио"
 
 msgid "Note"
 msgstr "Белешка"
-
-
-msgid "Strips"
-msgstr "Траке"
 
 
 msgid "Playback"
@@ -20503,10 +20498,6 @@ msgstr "Систем честица мете"
 
 
 msgid "Cache Compression"
-msgstr "Компресија"
-
-
-msgid "No compression"
 msgstr "Компресија"
 
 
@@ -21284,10 +21275,6 @@ msgstr "Користи просторну поделе"
 
 msgid "Use BVH spatial splits: longer builder time, faster render"
 msgstr "Користи BVH просторне поделе: дуже траје припрема али је бржи рендеринг"
-
-
-msgid "High quality"
-msgstr "Висок квалитет"
 
 
 msgid "Device to use for rendering"
@@ -23235,30 +23222,6 @@ msgid "Snap Element"
 msgstr "Елемент лепљења"
 
 
-msgid "Node X"
-msgstr "Чвор X"
-
-
-msgid "Snap to left/right node border"
-msgstr "Лепи за леву/десну ивицу чвора"
-
-
-msgid "Node Y"
-msgstr "Чвор Y"
-
-
-msgid "Snap to top/bottom node border"
-msgstr "Лепи за горњу/доњу ивицу чвора"
-
-
-msgid "Node X / Y"
-msgstr "Чвор X / Y"
-
-
-msgid "Snap to any node border"
-msgstr "Лепи за боло коју ивицу свора"
-
-
 msgid "Snap Target"
 msgstr "Циљ лепљења"
 
@@ -23848,11 +23811,6 @@ msgstr "Учитај"
 msgctxt "Operator"
 msgid "Reset Settings"
 msgstr "Запамти корисничке поставке"
-
-
-msgctxt "Operator"
-msgid "Deselect All"
-msgstr "Поништи цео изабор"
 
 
 msgctxt "Operator"
@@ -25143,14 +25101,6 @@ msgid "Plane Track"
 msgstr "Праћење плоче"
 
 
-msgid "Error writing frame"
-msgstr "Грешка при упису кадра"
-
-
-msgid "No valid formats found"
-msgstr "Није пронађен исправан формат"
-
-
 msgid "unknown error reading file"
 msgstr "непозната грешака приликом читања датотеке"
 
@@ -26319,6 +26269,14 @@ msgstr "Препиши %s"
 
 msgid "UV Vertex"
 msgstr "UV теме"
+
+
+msgid "Error writing frame"
+msgstr "Грешка при упису кадра"
+
+
+msgid "No valid formats found"
+msgstr "Није пронађен исправан формат"
 
 
 msgid "Index out of range"

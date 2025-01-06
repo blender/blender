@@ -204,7 +204,8 @@ GlyphBLF *blf_glyph_ensure_icon(
 float blf_character_to_curves(FontBLF *font,
                               unsigned int unicode,
                               ListBase *nurbsbase,
-                              const float scale);
+                              const float scale,
+                              bool use_fallback);
 
 void blf_glyph_draw(FontBLF *font, GlyphCacheBLF *gc, GlyphBLF *g, int x, int y);
 

@@ -95,14 +95,10 @@ def system_path_contains(dirpath: str) -> bool:
     return False
 
 
-# When removing files to make way for newly copied file an `os.path.exists`
-# check isn't sufficient as the path may be a broken symbolic-link.
-def path_exists_or_is_link(path: str) -> bool:
-    return os.path.exists(path) or os.path.islink(path)
-
-
 def filepath_ensure_removed(path: str) -> bool:
-    if path_exists_or_is_link(path):
+    # When removing files to make way for newly copied file an `os.path.exists`
+    # check isn't sufficient as the path may be a broken symbolic-link.
+    if os.path.lexists(path):
         os.remove(path)
         return True
     return False

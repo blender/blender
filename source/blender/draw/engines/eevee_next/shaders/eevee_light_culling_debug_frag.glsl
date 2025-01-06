@@ -8,6 +8,10 @@
  * pass is not conservative enough).
  */
 
+#include "infos/eevee_light_culling_info.hh"
+
+FRAGMENT_SHADER_CREATE_INFO(eevee_light_culling_debug)
+
 #include "draw_view_lib.glsl"
 #include "eevee_light_iter_lib.glsl"
 #include "eevee_light_lib.glsl"
@@ -25,7 +29,6 @@ void main()
   uint light_cull = 0u;
   vec2 px = gl_FragCoord.xy;
   LIGHT_FOREACH_BEGIN_LOCAL (light_cull_buf, light_zbin_buf, light_tile_buf, px, vP_z, l_idx) {
-    LightData light = light_buf[l_idx];
     light_cull |= 1u << l_idx;
     light_count += 1.0;
   }

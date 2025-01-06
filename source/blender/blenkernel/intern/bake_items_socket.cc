@@ -236,7 +236,7 @@ static void restore_data_blocks(const Span<GeometrySet *> geometries,
 
 static void default_initialize_socket_value(const eNodeSocketDatatype socket_type, void *r_value)
 {
-  const char *socket_idname = bke::node_static_socket_type(socket_type, 0);
+  const StringRefNull socket_idname = *bke::node_static_socket_type(socket_type, 0);
   const bke::bNodeSocketType *typeinfo = bke::node_socket_type_find(socket_idname);
   if (typeinfo->geometry_nodes_default_cpp_value) {
     typeinfo->geometry_nodes_cpp_type->copy_construct(typeinfo->geometry_nodes_default_cpp_value,

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Release Candidate (b'7dfe47164a63')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'96c6f543ecc7')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-11-18 11:20+0000\n"
+"POT-Creation-Date: 2025-01-06 10:26+0000\n"
 "PO-Revision-Date: 2024-01-17 19:22+0000\n"
 "Last-Translator: Peter Simonsson <peter@simonsson.com>\n"
 "Language-Team: Swedish <https://translate.blender.org/projects/blender-ui/ui/sv/>\n"
@@ -57,6 +57,10 @@ msgstr "Lista över AOV"
 
 msgid "Collection of AOVs"
 msgstr "Samling av AOV"
+
+
+msgid "F-Curves"
+msgstr "F-kurvor"
 
 
 msgid "Groups of F-Curves"
@@ -195,8 +199,219 @@ msgid "Expanded in Graph Editor"
 msgstr "Expanderad i grafredigeraren"
 
 
+msgid "Influence"
+msgstr "Inflytande"
+
+
+msgid "Replace"
+msgstr "Ersätt"
+
+
+msgid "Offset"
+msgstr "Förskjutning"
+
+
+msgid "Add"
+msgstr "Addera"
+
+
+msgid "Subtract"
+msgstr "Subtrahera"
+
+
+msgid "Multiply"
+msgstr "Multiplicera"
+
+
 msgid "Collection of timeline markers"
 msgstr "Samling av tidslinjemarkörer"
+
+
+msgid "Active"
+msgstr "Aktiv"
+
+
+msgctxt "ID"
+msgid "Armature"
+msgstr "Armatur"
+
+
+msgctxt "ID"
+msgid "Brush"
+msgstr "Pensel"
+
+
+msgctxt "ID"
+msgid "Cache File"
+msgstr "Cachefil"
+
+
+msgctxt "ID"
+msgid "Camera"
+msgstr "Kamera"
+
+
+msgctxt "ID"
+msgid "Collection"
+msgstr "Samling"
+
+
+msgctxt "ID"
+msgid "Curve"
+msgstr "Kurva"
+
+
+msgctxt "ID"
+msgid "Curves"
+msgstr "Kurvor"
+
+
+msgctxt "ID"
+msgid "Font"
+msgstr "Typsnitt"
+
+
+msgctxt "ID"
+msgid "Grease Pencil"
+msgstr "Grease Pencil"
+
+
+msgctxt "ID"
+msgid "Grease Pencil v3"
+msgstr "Grease Pencil v3"
+
+
+msgctxt "ID"
+msgid "Image"
+msgstr "Bild"
+
+
+msgctxt "ID"
+msgid "Lattice"
+msgstr "Lattice"
+
+
+msgctxt "ID"
+msgid "Library"
+msgstr "Bibliotek"
+
+
+msgctxt "ID"
+msgid "Light"
+msgstr "Ljus"
+
+
+msgctxt "ID"
+msgid "Light Probe"
+msgstr "Ljussond"
+
+
+msgctxt "ID"
+msgid "Mask"
+msgstr "Mask"
+
+
+msgctxt "ID"
+msgid "Material"
+msgstr "Material"
+
+
+msgctxt "ID"
+msgid "Mesh"
+msgstr "Mesh"
+
+
+msgctxt "ID"
+msgid "Metaball"
+msgstr "Metaboll"
+
+
+msgctxt "ID"
+msgid "Movie Clip"
+msgstr "Filmklipp"
+
+
+msgctxt "ID"
+msgid "Node Tree"
+msgstr "Nodträd"
+
+
+msgctxt "ID"
+msgid "Object"
+msgstr "Objekt"
+
+
+msgctxt "ID"
+msgid "Palette"
+msgstr "Palett"
+
+
+msgctxt "ID"
+msgid "Particle"
+msgstr "Partikel"
+
+
+msgctxt "ID"
+msgid "Point Cloud"
+msgstr "Punktmoln"
+
+
+msgctxt "ID"
+msgid "Scene"
+msgstr "Scen"
+
+
+msgctxt "ID"
+msgid "Screen"
+msgstr "Skärm"
+
+
+msgctxt "ID"
+msgid "Sound"
+msgstr "Ljud"
+
+
+msgctxt "ID"
+msgid "Speaker"
+msgstr "Högtalare"
+
+
+msgctxt "ID"
+msgid "Text"
+msgstr "Text"
+
+
+msgctxt "ID"
+msgid "Texture"
+msgstr "Textur"
+
+
+msgctxt "ID"
+msgid "Volume"
+msgstr "Volym"
+
+
+msgctxt "ID"
+msgid "Window Manager"
+msgstr "Fönsterhanterare"
+
+
+msgctxt "ID"
+msgid "Workspace"
+msgstr "Arbetsyta"
+
+
+msgctxt "ID"
+msgid "World"
+msgstr "Värld"
+
+
+msgid "Show Expanded"
+msgstr "Visa utvikt"
+
+
+msgid "Keyframe"
+msgstr "Keyframe"
 
 
 msgid "Add-on"
@@ -279,24 +494,8 @@ msgid "Animation data for data-block"
 msgstr "Animationsdata för datablock"
 
 
-msgid "Replace"
-msgstr "Ersätt"
-
-
 msgid "Combine"
 msgstr "Kombinera"
-
-
-msgid "Add"
-msgstr "Addera"
-
-
-msgid "Subtract"
-msgstr "Subtrahera"
-
-
-msgid "Multiply"
-msgstr "Multiplicera"
 
 
 msgid "Nothing"
@@ -586,181 +785,6 @@ msgstr "Typ av datablock"
 
 msgid "The type of the data-block, if the asset represents one ('NONE' otherwise)"
 msgstr "Typen av datablocket, om tillgången representerar en ('INGEN' annars)"
-
-
-msgctxt "ID"
-msgid "Armature"
-msgstr "Armatur"
-
-
-msgctxt "ID"
-msgid "Brush"
-msgstr "Pensel"
-
-
-msgctxt "ID"
-msgid "Cache File"
-msgstr "Cachefil"
-
-
-msgctxt "ID"
-msgid "Camera"
-msgstr "Kamera"
-
-
-msgctxt "ID"
-msgid "Collection"
-msgstr "Samling"
-
-
-msgctxt "ID"
-msgid "Curve"
-msgstr "Kurva"
-
-
-msgctxt "ID"
-msgid "Curves"
-msgstr "Kurvor"
-
-
-msgctxt "ID"
-msgid "Font"
-msgstr "Typsnitt"
-
-
-msgctxt "ID"
-msgid "Grease Pencil"
-msgstr "Grease Pencil"
-
-
-msgctxt "ID"
-msgid "Grease Pencil v3"
-msgstr "Grease Pencil v3"
-
-
-msgctxt "ID"
-msgid "Image"
-msgstr "Bild"
-
-
-msgctxt "ID"
-msgid "Lattice"
-msgstr "Lattice"
-
-
-msgctxt "ID"
-msgid "Library"
-msgstr "Bibliotek"
-
-
-msgctxt "ID"
-msgid "Light"
-msgstr "Ljus"
-
-
-msgctxt "ID"
-msgid "Light Probe"
-msgstr "Ljussond"
-
-
-msgctxt "ID"
-msgid "Mask"
-msgstr "Mask"
-
-
-msgctxt "ID"
-msgid "Material"
-msgstr "Material"
-
-
-msgctxt "ID"
-msgid "Mesh"
-msgstr "Mesh"
-
-
-msgctxt "ID"
-msgid "Metaball"
-msgstr "Metaboll"
-
-
-msgctxt "ID"
-msgid "Movie Clip"
-msgstr "Filmklipp"
-
-
-msgctxt "ID"
-msgid "Node Tree"
-msgstr "Nodträd"
-
-
-msgctxt "ID"
-msgid "Object"
-msgstr "Objekt"
-
-
-msgctxt "ID"
-msgid "Palette"
-msgstr "Palett"
-
-
-msgctxt "ID"
-msgid "Particle"
-msgstr "Partikel"
-
-
-msgctxt "ID"
-msgid "Point Cloud"
-msgstr "Punktmoln"
-
-
-msgctxt "ID"
-msgid "Scene"
-msgstr "Scen"
-
-
-msgctxt "ID"
-msgid "Screen"
-msgstr "Skärm"
-
-
-msgctxt "ID"
-msgid "Sound"
-msgstr "Ljud"
-
-
-msgctxt "ID"
-msgid "Speaker"
-msgstr "Högtalare"
-
-
-msgctxt "ID"
-msgid "Text"
-msgstr "Text"
-
-
-msgctxt "ID"
-msgid "Texture"
-msgstr "Textur"
-
-
-msgctxt "ID"
-msgid "Volume"
-msgstr "Volym"
-
-
-msgctxt "ID"
-msgid "Window Manager"
-msgstr "Fönsterhanterare"
-
-
-msgctxt "ID"
-msgid "Workspace"
-msgstr "Arbetsyta"
-
-
-msgctxt "ID"
-msgid "World"
-msgstr "Värld"
 
 
 msgid "The local data-block this asset represents; only valid if that is a data-block in this file"
@@ -2092,10 +2116,6 @@ msgid "Mode"
 msgstr "Läge"
 
 
-msgid "Active"
-msgstr "Aktiv"
-
-
 msgid "Use current mode"
 msgstr "Använd aktuellt läge"
 
@@ -2240,20 +2260,12 @@ msgid "Crop"
 msgstr "Beskär"
 
 
-msgid "Offset"
-msgstr "Förskjutning"
-
-
 msgid "Rotation"
 msgstr "Rotation"
 
 
 msgid "Scale"
 msgstr "Skala"
-
-
-msgid "Show Expanded"
-msgstr "Visa utvikt"
 
 
 msgid "Show this image in front of objects in viewport"
@@ -2354,10 +2366,6 @@ msgstr "Alpha"
 
 msgid "Position"
 msgstr "Position"
-
-
-msgid "Influence"
-msgstr "Inflytande"
 
 
 msgid "World Space"
@@ -3495,10 +3503,6 @@ msgid "Type of keyframe"
 msgstr "Typ av keyframe"
 
 
-msgid "Keyframe"
-msgstr "Keyframe"
-
-
 msgid "Blend Mode"
 msgstr "Blandningsläge"
 
@@ -3571,12 +3575,12 @@ msgid "A collection of F-Curves for animation"
 msgstr "En samling F-kurvor för animering"
 
 
-msgid "F-Curves"
-msgstr "F-kurvor"
-
-
 msgid "Groups"
 msgstr "Grupper"
+
+
+msgid "Layers"
+msgstr "Lager"
 
 
 msgid "Wire"
@@ -3973,10 +3977,6 @@ msgid "Node tree for node-based shaders"
 msgstr "Nodträd för nodbaserade shaders"
 
 
-msgid "Layers"
-msgstr "Lager"
-
-
 msgid "Only selected keyframes"
 msgstr "Endast markerade keyframes"
 
@@ -4152,6 +4152,10 @@ msgstr "Filter"
 
 msgid "Shader"
 msgstr "Shader"
+
+
+msgid "Pattern"
+msgstr "Mönster"
 
 
 msgid "Interface"
@@ -4818,10 +4822,6 @@ msgstr "Turbulens av bruset"
 
 msgid "Marble Texture"
 msgstr "Marmortextur"
-
-
-msgid "Pattern"
-msgstr "Mönster"
 
 
 msgid "Use soft marble"
@@ -5752,6 +5752,10 @@ msgstr "Låg"
 
 msgid "Basis"
 msgstr "Bas"
+
+
+msgid "High quality"
+msgstr "Hög kvalitet"
 
 
 msgctxt "Image"
@@ -8850,10 +8854,6 @@ msgid "Execute a node group on geometry"
 msgstr "Kör en nodgrupp på geometri"
 
 
-msgid "Remove"
-msgstr "Ta bort"
-
-
 msgid "Rounded"
 msgstr "Rundad"
 
@@ -11032,11 +11032,6 @@ msgid "Toggle whether item under cursor is enabled or closed"
 msgstr "Växla om objektet under musen är aktiverat eller stängt"
 
 
-msgctxt "Operator"
-msgid "Texture Paint Toggle"
-msgstr "Växla texturmålning"
-
-
 msgid "Weights from envelopes with user defined radius"
 msgstr "Vikter från omslutningar med användardefinierad radie"
 
@@ -11190,6 +11185,11 @@ msgstr "Kör Python-fil"
 msgctxt "Operator"
 msgid "Sphere"
 msgstr "Sfär"
+
+
+msgctxt "Operator"
+msgid "Deselect All"
+msgstr "Avmarkera allt"
 
 
 msgid "Add or remove comments"
@@ -11589,6 +11589,10 @@ msgstr "Topp"
 msgctxt "View3D"
 msgid "Front"
 msgstr "Fram"
+
+
+msgid "Remove"
+msgstr "Ta bort"
 
 
 msgid "Save a Collada file"
@@ -12972,10 +12976,6 @@ msgid "Back"
 msgstr "Bak"
 
 
-msgid "High quality"
-msgstr "Hög kvalitet"
-
-
 msgid "Keep Animation"
 msgstr "Behåll animering"
 
@@ -13680,11 +13680,6 @@ msgstr "Tillägget '{}' kunde inte hittas!"
 msgctxt "Operator"
 msgid "Reset Settings"
 msgstr "Återställ inställningar"
-
-
-msgctxt "Operator"
-msgid "Deselect All"
-msgstr "Avmarkera allt"
 
 
 msgctxt "Operator"
@@ -14837,11 +14832,6 @@ msgstr "Ta bort från ram"
 
 
 msgctxt "Operator"
-msgid "Insert Into Group"
-msgstr "Infoga i grupp"
-
-
-msgctxt "Operator"
 msgid "Node Options"
 msgstr "Nodalternativ"
 
@@ -14854,6 +14844,11 @@ msgstr "Okopplade uttag"
 msgctxt "Operator"
 msgid "Collapse"
 msgstr "Fäll ihop"
+
+
+msgctxt "Operator"
+msgid "Insert Into Group"
+msgstr "Infoga i grupp"
 
 
 msgctxt "Operator"
@@ -14872,11 +14867,6 @@ msgstr "Hitta..."
 
 
 msgctxt "Operator"
-msgid "Exit Group"
-msgstr "Gå ur grupp"
-
-
-msgctxt "Operator"
 msgid "Online Manual"
 msgstr "Onlinemanual"
 
@@ -14887,6 +14877,11 @@ msgstr "Förhandsgranskningar"
 
 msgid "Named Attributes"
 msgstr "Namngivna attribut"
+
+
+msgctxt "Operator"
+msgid "Exit Group"
+msgstr "Gå ur grupp"
 
 
 msgid "Closed by Default"
@@ -16762,10 +16757,6 @@ msgstr "Cycles renderingsmotor"
 
 msgid "Pose Library"
 msgstr "Pose-bibliotek"
-
-
-msgid "All Add-ons"
-msgstr "Alla tillägg"
 
 
 msgid "All Add-ons Installed by User"

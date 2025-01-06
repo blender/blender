@@ -49,7 +49,7 @@ find_library(FFTW3_LIBRARY_F
     ${_fftw3_SEARCH_DIRS}
   PATH_SUFFIXES
     lib64 lib
-  )
+)
 
 find_library(FFTW3_LIBRARY_THREADS_F
   NAMES
@@ -58,7 +58,7 @@ find_library(FFTW3_LIBRARY_THREADS_F
     ${_fftw3_SEARCH_DIRS}
   PATH_SUFFIXES
     lib64 lib
-  )
+)
 
 find_library(FFTW3_LIBRARY_D
   NAMES
@@ -67,7 +67,7 @@ find_library(FFTW3_LIBRARY_D
     ${_fftw3_SEARCH_DIRS}
   PATH_SUFFIXES
     lib64 lib
-  )
+)
 
 list(APPEND _FFTW3_LIBRARIES "${FFTW3_LIBRARY_F}")
 list(APPEND _FFTW3_LIBRARIES "${FFTW3_LIBRARY_D}")
@@ -79,7 +79,7 @@ endif()
 # all listed variables are TRUE
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(Fftw3 DEFAULT_MSG
-    _FFTW3_LIBRARIES FFTW3_INCLUDE_DIR)
+  _FFTW3_LIBRARIES FFTW3_INCLUDE_DIR)
 
 if(FFTW3_FOUND)
   set(FFTW3_LIBRARIES ${_FFTW3_LIBRARIES})

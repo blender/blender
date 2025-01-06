@@ -15,6 +15,7 @@
 #include "BLI_bit_vector.hh"
 #include "BLI_bounds_types.hh"
 #include "BLI_implicit_sharing.hh"
+#include "BLI_kdopbvh.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_shared_cache.hh"
 #include "BLI_vector.hh"
@@ -22,14 +23,14 @@
 #include "DNA_customdata_types.h"
 
 struct BMEditMesh;
-struct BVHCache;
+struct BVHTree;
 struct Mesh;
 class ShrinkwrapBoundaryData;
 struct SubdivCCG;
 struct SubsurfRuntimeData;
 namespace blender::bke {
 struct EditMeshData;
-}
+}  // namespace blender::bke
 namespace blender::bke::bake {
 struct BakeMaterialsList;
 }
@@ -158,8 +159,15 @@ struct MeshRuntime {
   /** Cache for triangle to original face index map, accessed with #Mesh::corner_tri_faces(). */
   SharedCache<Array<int>> corner_tri_faces_cache;
 
-  /** Cache for BVH trees generated for the mesh. Defined in 'BKE_bvhutil.c' */
-  BVHCache *bvh_cache = nullptr;
+  SharedCache<std::unique_ptr<BVHTree, BVHTreeDeleter>> bvh_cache_verts;
+  SharedCache<std::unique_ptr<BVHTree, BVHTreeDeleter>> bvh_cache_edges;
+  SharedCache<std::unique_ptr<BVHTree, BVHTreeDeleter>> bvh_cache_faces;
+  SharedCache<std::unique_ptr<BVHTree, BVHTreeDeleter>> bvh_cache_corner_tris;
+  SharedCache<std::unique_ptr<BVHTree, BVHTreeDeleter>> bvh_cache_corner_tris_no_hidden;
+  SharedCache<std::unique_ptr<BVHTree, BVHTreeDeleter>> bvh_cache_loose_verts;
+  SharedCache<std::unique_ptr<BVHTree, BVHTreeDeleter>> bvh_cache_loose_verts_no_hidden;
+  SharedCache<std::unique_ptr<BVHTree, BVHTreeDeleter>> bvh_cache_loose_edges;
+  SharedCache<std::unique_ptr<BVHTree, BVHTreeDeleter>> bvh_cache_loose_edges_no_hidden;
 
   /** Needed in case we need to lazily initialize the mesh. */
   CustomData_MeshMasks cd_mask_extra = {};

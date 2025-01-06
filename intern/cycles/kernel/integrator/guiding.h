@@ -4,9 +4,13 @@
 
 #pragma once
 
-#include "kernel/closure/alloc.h"
-#include "kernel/closure/bsdf.h"
-#include "kernel/film/write.h"
+#include "kernel/globals.h"
+#include "kernel/types.h"
+
+#include "kernel/integrator/state.h"
+#include "kernel/util/colorspace.h"
+
+#include "util/color.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -32,7 +36,7 @@ struct GuidingRISSample {
 };
 
 ccl_device_forceinline bool calculate_ris_target(ccl_private GuidingRISSample *ris_sample,
-                                                 ccl_private const float guiding_sampling_prob)
+                                                 const ccl_private float guiding_sampling_prob)
 {
 #if defined(__PATH_GUIDING__)
   const float pi_factor = 2.0f;
@@ -75,7 +79,7 @@ static pgl_point3f guiding_point3f(const float3 v)
  * guiding_record_surface_bounce. */
 ccl_device_forceinline void guiding_record_surface_segment(KernelGlobals kg,
                                                            IntegratorState state,
-                                                           ccl_private const ShaderData *sd)
+                                                           const ccl_private ShaderData *sd)
 {
 #if defined(__PATH_GUIDING__) && PATH_GUIDING_LEVEL >= 1
   if (!kernel_data.integrator.train_guiding) {
@@ -99,7 +103,7 @@ ccl_device_forceinline void guiding_record_surface_segment(KernelGlobals kg,
 /* Records the surface scattering event at the current vertex position of the segment. */
 ccl_device_forceinline void guiding_record_surface_bounce(KernelGlobals kg,
                                                           IntegratorState state,
-                                                          ccl_private const ShaderData *sd,
+                                                          const ccl_private ShaderData *sd,
                                                           const Spectrum weight,
                                                           const float pdf,
                                                           const float3 N,
@@ -262,7 +266,7 @@ ccl_device_forceinline void guiding_record_volume_segment(KernelGlobals kg,
 /* Records the volume scattering event at the current vertex position of the segment. */
 ccl_device_forceinline void guiding_record_volume_bounce(KernelGlobals kg,
                                                          IntegratorState state,
-                                                         ccl_private const ShaderData *sd,
+                                                         const ccl_private ShaderData *sd,
                                                          const Spectrum weight,
                                                          const float pdf,
                                                          const float3 wo,
@@ -344,7 +348,7 @@ ccl_device_forceinline void guiding_record_volume_emission(KernelGlobals kg,
  * a call of guiding_record_surface_emission, if the intersected light source
  * emits light in the direction of the path. */
 ccl_device_forceinline void guiding_record_light_surface_segment(
-    KernelGlobals kg, IntegratorState state, ccl_private const Intersection *ccl_restrict isect)
+    KernelGlobals kg, IntegratorState state, const ccl_private Intersection *ccl_restrict isect)
 {
 #if defined(__PATH_GUIDING__) && PATH_GUIDING_LEVEL >= 1
   if (!kernel_data.integrator.train_guiding) {
@@ -458,7 +462,7 @@ ccl_device_forceinline void guiding_record_continuation_probability(
  * bounce) into separate rendering passes. */
 ccl_device_forceinline void guiding_write_debug_passes(KernelGlobals kg,
                                                        IntegratorState state,
-                                                       ccl_private const ShaderData *sd,
+                                                       const ccl_private ShaderData *sd,
                                                        ccl_global float *ccl_restrict
                                                            render_buffer)
 {
@@ -483,7 +487,7 @@ ccl_device_forceinline void guiding_write_debug_passes(KernelGlobals kg,
     float avg_roughness = 0.0f;
     float sum_sample_weight = 0.0f;
     for (int i = 0; i < sd->num_closure; i++) {
-      ccl_private const ShaderClosure *sc = &sd->closure[i];
+      const ccl_private ShaderClosure *sc = &sd->closure[i];
 
       if (!CLOSURE_IS_BSDF_OR_BSSRDF(sc->type)) {
         continue;

@@ -4,8 +4,9 @@
 
 #pragma once
 
-#include "kernel/light/light.h"
-#include "kernel/light/triangle.h"
+#include "kernel/globals.h"
+
+#include "kernel/light/common.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -22,8 +23,8 @@ ccl_device int light_distribution_sample(KernelGlobals kg, const float rand)
   int len = kernel_data.integrator.num_distribution + 1;
 
   do {
-    int half_len = len >> 1;
-    int middle = first + half_len;
+    const int half_len = len >> 1;
+    const int middle = first + half_len;
 
     if (rand < kernel_data_fetch(light_distribution, middle).totarea) {
       len = half_len;
@@ -36,7 +37,7 @@ ccl_device int light_distribution_sample(KernelGlobals kg, const float rand)
 
   /* Clamping should not be needed but float rounding errors seem to
    * make this fail on rare occasions. */
-  int index = clamp(first - 1, 0, kernel_data.integrator.num_distribution - 1);
+  const int index = clamp(first - 1, 0, kernel_data.integrator.num_distribution - 1);
 
   return index;
 }

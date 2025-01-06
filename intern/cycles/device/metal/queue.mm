@@ -4,6 +4,9 @@
 
 #ifdef WITH_METAL
 
+#  include <algorithm>
+#  include <mutex>
+
 #  include "device/metal/queue.h"
 
 #  include "device/metal/device_impl.h"
@@ -33,12 +36,12 @@ MetalDeviceQueue::MetalDeviceQueue(MetalDevice *device)
     shared_event_id_ = 1;
 
     /* Shareable event listener */
-    event_queue_ = dispatch_queue_create("com.cycles.metal.event_queue", NULL);
+    event_queue_ = dispatch_queue_create("com.cycles.metal.event_queue", nullptr);
     shared_event_listener_ = [[MTLSharedEventListener alloc] initWithDispatchQueue:event_queue_];
 
     wait_semaphore_ = dispatch_semaphore_create(0);
 
-    if (auto str = getenv("CYCLES_METAL_PROFILING")) {
+    if (auto *str = getenv("CYCLES_METAL_PROFILING")) {
       if (atoi(str) && [mtlDevice_ supportsCounterSampling:MTLCounterSamplingPointAtStageBoundary])
       {
         /* Enable per-kernel timing breakdown (shown at end of render). */
@@ -73,26 +76,26 @@ void MetalDeviceQueue::setup_capture()
 {
   capture_kernel_ = DeviceKernel(-1);
 
-  if (auto capture_kernel_str = getenv("CYCLES_DEBUG_METAL_CAPTURE_KERNEL")) {
+  if (auto *capture_kernel_str = getenv("CYCLES_DEBUG_METAL_CAPTURE_KERNEL")) {
     /* CYCLES_DEBUG_METAL_CAPTURE_KERNEL captures a single dispatch of the specified kernel. */
     capture_kernel_ = DeviceKernel(atoi(capture_kernel_str));
     printf("Capture kernel: %d = %s\n", capture_kernel_, device_kernel_as_string(capture_kernel_));
 
     capture_dispatch_counter_ = 0;
-    if (auto capture_dispatch_str = getenv("CYCLES_DEBUG_METAL_CAPTURE_DISPATCH")) {
+    if (auto *capture_dispatch_str = getenv("CYCLES_DEBUG_METAL_CAPTURE_DISPATCH")) {
       capture_dispatch_counter_ = atoi(capture_dispatch_str);
 
       printf("Capture dispatch number %d\n", capture_dispatch_counter_);
     }
   }
-  else if (auto capture_samples_str = getenv("CYCLES_DEBUG_METAL_CAPTURE_SAMPLES")) {
+  else if (auto *capture_samples_str = getenv("CYCLES_DEBUG_METAL_CAPTURE_SAMPLES")) {
     /* CYCLES_DEBUG_METAL_CAPTURE_SAMPLES captures a block of dispatches from reset#(N) to
      * reset#(N+1). */
     capture_samples_ = true;
     capture_reset_counter_ = atoi(capture_samples_str);
 
     capture_dispatch_counter_ = INT_MAX;
-    if (auto capture_limit_str = getenv("CYCLES_DEBUG_METAL_CAPTURE_LIMIT")) {
+    if (auto *capture_limit_str = getenv("CYCLES_DEBUG_METAL_CAPTURE_LIMIT")) {
       /* CYCLES_DEBUG_METAL_CAPTURE_LIMIT sets the maximum number of dispatches to capture. */
       capture_dispatch_counter_ = atoi(capture_limit_str);
     }
@@ -114,7 +117,7 @@ void MetalDeviceQueue::setup_capture()
 
   label_command_encoders_ = true;
 
-  if (auto capture_url = getenv("CYCLES_DEBUG_METAL_CAPTURE_URL")) {
+  if (auto *capture_url = getenv("CYCLES_DEBUG_METAL_CAPTURE_URL")) {
     if ([captureManager supportsDestination:MTLCaptureDestinationGPUTraceDocument]) {
 
       MTLCaptureDescriptor *captureDescriptor = [[MTLCaptureDescriptor alloc] init];
@@ -332,7 +335,7 @@ void MetalDeviceQueue::init_execution()
 
 bool MetalDeviceQueue::enqueue(DeviceKernel kernel,
                                const int work_size,
-                               DeviceKernelArguments const &args)
+                               const DeviceKernelArguments &args)
 {
   @autoreleasepool {
     update_capture(kernel);
@@ -633,8 +636,9 @@ bool MetalDeviceQueue::enqueue(DeviceKernel kernel,
             if (IntegratorQueueCounter *queue_counter = (IntegratorQueueCounter *)
                                                             it.first->host_pointer)
             {
-              for (int i = 0; i < DEVICE_KERNEL_INTEGRATOR_NUM; i++)
-                printf("%s%d", i == 0 ? "" : ",", int(queue_counter->num_queued[i]));
+              for (int i = 0; i < DEVICE_KERNEL_INTEGRATOR_NUM; i++) {
+                printf("%s%d", i == 0 ? "" : ",", queue_counter->num_queued[i]);
+              }
             }
             break;
           }

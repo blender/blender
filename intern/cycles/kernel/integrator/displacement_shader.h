@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include "kernel/globals.h"
+
 #ifdef __SVM__
 #  include "kernel/svm/svm.h"
 #endif
@@ -33,7 +35,7 @@ ccl_device void displacement_shader_eval(KernelGlobals kg,
   {
 #ifdef __SVM__
     svm_eval_nodes<KERNEL_FEATURE_NODE_MASK_DISPLACEMENT, SHADER_TYPE_DISPLACEMENT>(
-        kg, state, sd, NULL, 0);
+        kg, state, sd, nullptr, 0);
 #endif
   }
 }

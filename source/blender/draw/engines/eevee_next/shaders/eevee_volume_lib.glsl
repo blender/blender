@@ -4,6 +4,10 @@
 
 #pragma once
 
+#include "infos/eevee_common_info.hh"
+
+SHADER_LIBRARY_CREATE_INFO(eevee_global_ubo)
+
 /**
  * The resources expected to be defined are:
  * - uniform_buf.volumes

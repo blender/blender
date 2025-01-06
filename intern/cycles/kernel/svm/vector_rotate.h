@@ -4,18 +4,25 @@
 
 #pragma once
 
+#include "kernel/svm/util.h"
+
 CCL_NAMESPACE_BEGIN
 
 /* Vector Rotate */
 
 ccl_device_noinline void svm_node_vector_rotate(ccl_private ShaderData *sd,
                                                 ccl_private float *stack,
-                                                uint input_stack_offsets,
-                                                uint axis_stack_offsets,
-                                                uint result_stack_offset)
+                                                const uint input_stack_offsets,
+                                                const uint axis_stack_offsets,
+                                                const uint result_stack_offset)
 {
-  uint type, vector_stack_offset, rotation_stack_offset, center_stack_offset, axis_stack_offset,
-      angle_stack_offset, invert;
+  uint type;
+  uint vector_stack_offset;
+  uint rotation_stack_offset;
+  uint center_stack_offset;
+  uint axis_stack_offset;
+  uint angle_stack_offset;
+  uint invert;
 
   svm_unpack_node_uchar4(
       input_stack_offsets, &type, &vector_stack_offset, &rotation_stack_offset, &invert);
@@ -24,13 +31,13 @@ ccl_device_noinline void svm_node_vector_rotate(ccl_private ShaderData *sd,
 
   if (stack_valid(result_stack_offset)) {
 
-    float3 vector = stack_load_float3(stack, vector_stack_offset);
-    float3 center = stack_load_float3(stack, center_stack_offset);
+    const float3 vector = stack_load_float3(stack, vector_stack_offset);
+    const float3 center = stack_load_float3(stack, center_stack_offset);
     float3 result = make_float3(0.0f, 0.0f, 0.0f);
 
     if (type == NODE_VECTOR_ROTATE_TYPE_EULER_XYZ) {
-      float3 rotation = stack_load_float3(stack, rotation_stack_offset);  // Default XYZ.
-      Transform rotationTransform = euler_to_transform(rotation);
+      const float3 rotation = stack_load_float3(stack, rotation_stack_offset);  // Default XYZ.
+      const Transform rotationTransform = euler_to_transform(rotation);
       if (invert) {
         result = transform_direction_transposed(&rotationTransform, vector - center) + center;
       }

@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __BVH_EMBREE_H__
-#define __BVH_EMBREE_H__
+#pragma once
 
 #ifdef WITH_EMBREE
 
@@ -18,9 +17,6 @@
 #  include "bvh/bvh.h"
 #  include "bvh/params.h"
 
-#  include "util/string.h"
-#  include "util/thread.h"
-#  include "util/types.h"
 #  include "util/vector.h"
 
 CCL_NAMESPACE_BEGIN
@@ -34,7 +30,7 @@ class BVHEmbree : public BVH {
   void build(Progress &progress,
              Stats *stats,
              RTCDevice rtc_device,
-             const bool isSyclEmbreeDevice = false);
+             const bool rtc_device_is_sycl_ = false);
   void refit(Progress &progress);
 
 #  if defined(WITH_EMBREE_GPU) && RTC_VERSION >= 40302
@@ -45,18 +41,17 @@ class BVHEmbree : public BVH {
 
   RTCScene scene;
 
- protected:
-  friend class BVH;
   BVHEmbree(const BVHParams &params,
             const vector<Geometry *> &geometry,
             const vector<Object *> &objects);
-  virtual ~BVHEmbree();
+  ~BVHEmbree() override;
 
-  void add_object(Object *ob, int i);
-  void add_instance(Object *ob, int i);
-  void add_curves(const Object *ob, const Hair *hair, int i);
-  void add_points(const Object *ob, const PointCloud *pointcloud, int i);
-  void add_triangles(const Object *ob, const Mesh *mesh, int i);
+ protected:
+  void add_object(Object *ob, const int i);
+  void add_instance(Object *ob, const int i);
+  void add_curves(const Object *ob, const Hair *hair, const int i);
+  void add_points(const Object *ob, const PointCloud *pointcloud, const int i);
+  void add_triangles(const Object *ob, const Mesh *mesh, const int i);
 
  private:
   void set_tri_vertex_buffer(RTCGeometry geom_id, const Mesh *mesh, const bool update);
@@ -73,5 +68,3 @@ class BVHEmbree : public BVH {
 CCL_NAMESPACE_END
 
 #endif /* WITH_EMBREE */
-
-#endif /* __BVH_EMBREE_H__ */

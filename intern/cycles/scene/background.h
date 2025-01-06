@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __BACKGROUND_H__
-#define __BACKGROUND_H__
+#pragma once
 
 #include "graph/node.h"
 
@@ -34,7 +33,7 @@ class Background : public Node {
   NODE_SOCKET_API(ustring, lightgroup)
 
   Background();
-  ~Background();
+  ~Background() override;
 
   void device_update(Device *device, DeviceScene *dscene, Scene *scene);
   void device_free(Device *device, DeviceScene *dscene);
@@ -45,5 +44,3 @@ class Background : public Node {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __BACKGROUND_H__ */

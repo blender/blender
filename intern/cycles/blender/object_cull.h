@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __BLENDER_OBJECT_CULL_H__
-#define __BLENDER_OBJECT_CULL_H__
+#pragma once
 
 #include "blender/sync.h"
 #include "util/types.h"
@@ -20,8 +19,8 @@ class BlenderObjectCulling {
   bool test(Scene *scene, BL::Object &b_ob, Transform &tfm);
 
  private:
-  bool test_camera(Scene *scene, float3 bb[8]);
-  bool test_distance(Scene *scene, float3 bb[8]);
+  bool test_camera(Scene *scene, const float3 bb[8]);
+  bool test_distance(Scene *scene, const float3 bb[8]);
 
   bool use_scene_camera_cull_;
   bool use_camera_cull_;
@@ -32,5 +31,3 @@ class BlenderObjectCulling {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __BLENDER_OBJECT_CULL_H__ */

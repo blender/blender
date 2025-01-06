@@ -11,6 +11,10 @@
 # * 403 Client Error: That means the token doesn't have the right scope.
 # * 500 Server Error: The token is invalid.
 
+__all__ = (
+    "main",
+)
+
 import logging
 import os
 import requests
@@ -36,6 +40,9 @@ from requests.structures import CaseInsensitiveDict
 logger = logging.getLogger(__file__)
 
 
+GITEA_DOMAIN = "https://projects.blender.org/"
+
+
 @dc.dataclass
 class TeamMember():
     id: int
@@ -49,7 +56,7 @@ class TeamMember():
             login=self.login,
             full_name=self.full_name,
             last_login=self.last_login,
-            url=gitea_domain + self.login,
+            url=GITEA_DOMAIN + self.login,
         )
 
 
@@ -211,23 +218,21 @@ def is_inactive(member: TeamMember) -> bool:
     return member.last_login < two_years_ago
 
 
-teams = (
-    "Developers",
-    "Add-ons",
-    "Translation",
-    "Documentation",
-    "Technical-Artists",
-    "Contributors",
-)
-
-
-api_token = os.environ['GITEA_API_TOKEN']
-gitea_domain = "https://projects.blender.org/"
-api_url = yarl.URL(gitea_domain + 'api/v1/')
-organization_name = "blender"
-
-
 def main() -> None:
+
+    teams = (
+        "Developers",
+        "Add-ons",
+        "Translation",
+        "Documentation",
+        "Technical-Artists",
+        "Contributors",
+    )
+
+    api_token = os.environ['GITEA_API_TOKEN']
+    api_url = yarl.URL(GITEA_DOMAIN + 'api/v1/')
+    organization_name = "blender"
+
     for team_name in teams:
         logger.warning(team_name)
         members = fetch_team_members(

@@ -85,6 +85,19 @@ typedef unsigned int uint;
 #  endif
 #endif
 
+/* Use to suppress harmless UBSAN divide by zero warnings. */
+#ifdef __SANITIZE_ADDRESS__
+   /* Used by GCC, note that there doesn't seem to be a way to check for UBSAN specifically. */
+#  define HAS_UBSAN
+#else
+   /* Used by CLANG. */
+#  ifdef __has_feature
+#    if __has_feature(undefined_behavior_sanitizer)
+#      define HAS_UBSAN
+#    endif
+#  endif
+#endif
+
 #define SWAP(type, a, b)  {    \
 	type sw_ap;                \
 	sw_ap = (a);               \
@@ -628,8 +641,15 @@ static void cubic_from_points_offset_fallback(
 	 * in this case the error values approach divide by zero (infinite)
 	 * so there is no need to be too precise when checking if limits have been exceeded. */
 
+#ifndef HAS_UBSAN
 	double alpha_l = (dists[0] / 0.75) / fabs(dot_vnvn(tan_l, a[0], dims));
 	double alpha_r = (dists[1] / 0.75) / fabs(dot_vnvn(tan_r, a[1], dims));
+#else /* Suppress harmless division by zero warnings. */
+	const double alpha_l_div = fabs(dot_vnvn(tan_l, a[0], dims));
+	const double alpha_r_div = fabs(dot_vnvn(tan_r, a[1], dims));
+	double alpha_l = alpha_l_div > 0.0 ? ((dists[0] / 0.75) / alpha_l_div) : INFINITY;
+	double alpha_r = alpha_r_div > 0.0 ? ((dists[1] / 0.75) / alpha_r_div) : INFINITY;
+#endif /* HAS_UBSAN */
 
 
 	if (!(alpha_l > 0.0) || (alpha_l > dists[0] + dir_dist)) {

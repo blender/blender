@@ -25,7 +25,7 @@ template<typename DstType> DstType convertToCycles(const VtValue &value)
     return value.UncheckedGet<DstType>();
   }
 
-  VtValue castedValue = VtValue::Cast<DstType>(value);
+  const VtValue castedValue = VtValue::Cast<DstType>(value);
   if (castedValue.IsHolding<DstType>()) {
     return castedValue.UncheckedGet<DstType>();
   }
@@ -178,7 +178,7 @@ array<DstType> convertToCyclesArray(const VtValue &value)
   }
 
   if (value.CanCast<SrcArray>()) {
-    VtValue castedValue = VtValue::Cast<SrcArray>(value);
+    const VtValue castedValue = VtValue::Cast<SrcArray>(value);
     const auto &valueData = castedValue.UncheckedGet<SrcArray>();
     array<DstType> cyclesArray;
     cyclesArray.resize(valueData.size());

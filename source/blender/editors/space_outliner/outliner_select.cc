@@ -730,13 +730,13 @@ static void tree_element_constraint_activate(bContext *C,
   WM_event_add_notifier(C, NC_OBJECT | ND_CONSTRAINT, ob);
 }
 
-static void tree_element_sequence_activate(bContext *C,
-                                           Scene *scene,
-                                           TreeElement *te,
-                                           const eOLSetState set)
+static void tree_element_strip_activate(bContext *C,
+                                        Scene *scene,
+                                        TreeElement *te,
+                                        const eOLSetState set)
 {
-  const TreeElementSequence *te_seq = tree_element_cast<TreeElementSequence>(te);
-  Sequence *seq = &te_seq->get_sequence();
+  const TreeElementStrip *te_strip = tree_element_cast<TreeElementStrip>(te);
+  Strip *seq = &te_strip->get_strip();
   Editing *ed = SEQ_editing_get(scene);
 
   if (BLI_findindex(ed->seqbasep, seq) != -1) {
@@ -757,22 +757,22 @@ static void tree_element_sequence_activate(bContext *C,
   WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER | NA_SELECTED, scene);
 }
 
-static void tree_element_sequence_dup_activate(Scene *scene, TreeElement * /*te*/)
+static void tree_element_strip_dup_activate(Scene *scene, TreeElement * /*te*/)
 {
   Editing *ed = SEQ_editing_get(scene);
 
 #if 0
   select_single_seq(seq, 1);
 #endif
-  Sequence *p = static_cast<Sequence *>(ed->seqbasep->first);
+  Strip *p = static_cast<Strip *>(ed->seqbasep->first);
   while (p) {
-    if ((!p->strip) || (!p->strip->stripdata) || (p->strip->stripdata->filename[0] == '\0')) {
+    if ((!p->data) || (!p->data->stripdata) || (p->data->stripdata->filename[0] == '\0')) {
       p = p->next;
       continue;
     }
 
 #if 0
-    if (STREQ(p->strip->stripdata->filename, seq->strip->stripdata->filename)) {
+    if (STREQ(p->strip->stripdata->filename, seq->data->stripdata->filename)) {
       select_single_seq(p, 0);
     }
 #endif
@@ -882,11 +882,11 @@ void tree_element_type_active_set(bContext *C,
     case TSE_BONE_COLLECTION:
       tree_element_bonecollection_activate(C, te, tselem);
       break;
-    case TSE_SEQUENCE:
-      tree_element_sequence_activate(C, tvc.scene, te, set);
+    case TSE_STRIP:
+      tree_element_strip_activate(C, tvc.scene, te, set);
       break;
-    case TSE_SEQUENCE_DUP:
-      tree_element_sequence_dup_activate(tvc.scene, te);
+    case TSE_STRIP_DUP:
+      tree_element_strip_dup_activate(tvc.scene, te);
       break;
     case TSE_GP_LAYER:
       tree_element_gplayer_activate(C, te, tselem);
@@ -1020,10 +1020,10 @@ static eOLDrawState tree_element_bone_collection_state_get(const TreeElement *te
   return OL_DRAWSEL_NONE;
 }
 
-static eOLDrawState tree_element_sequence_state_get(const Scene *scene, const TreeElement *te)
+static eOLDrawState tree_element_strip_state_get(const Scene *scene, const TreeElement *te)
 {
-  const TreeElementSequence *te_seq = tree_element_cast<TreeElementSequence>(te);
-  const Sequence *seq = &te_seq->get_sequence();
+  const TreeElementStrip *te_strip = tree_element_cast<TreeElementStrip>(te);
+  const Strip *seq = &te_strip->get_strip();
   const Editing *ed = scene->ed;
 
   if (ed && ed->act_seq == seq && seq->flag & SELECT) {
@@ -1032,11 +1032,10 @@ static eOLDrawState tree_element_sequence_state_get(const Scene *scene, const Tr
   return OL_DRAWSEL_NONE;
 }
 
-static eOLDrawState tree_element_sequence_dup_state_get(const TreeElement *te)
+static eOLDrawState tree_element_strip_dup_state_get(const TreeElement *te)
 {
-  const TreeElementSequenceStripDuplicate *te_dup =
-      tree_element_cast<TreeElementSequenceStripDuplicate>(te);
-  const Sequence *seq = &te_dup->get_sequence();
+  const TreeElementStripDuplicate *te_dup = tree_element_cast<TreeElementStripDuplicate>(te);
+  const Strip *seq = &te_dup->get_strip();
   if (seq->flag & SELECT) {
     return OL_DRAWSEL_NORMAL;
   }
@@ -1195,10 +1194,10 @@ eOLDrawState tree_element_type_active_state_get(const TreeViewContext &tvc,
       return OL_DRAWSEL_NONE;
     case TSE_R_LAYER:
       return tree_element_viewlayer_state_get(tvc.view_layer, te);
-    case TSE_SEQUENCE:
-      return tree_element_sequence_state_get(tvc.scene, te);
-    case TSE_SEQUENCE_DUP:
-      return tree_element_sequence_dup_state_get(te);
+    case TSE_STRIP:
+      return tree_element_strip_state_get(tvc.scene, te);
+    case TSE_STRIP_DUP:
+      return tree_element_strip_dup_state_get(te);
     case TSE_GP_LAYER:
       return tree_element_gplayer_state_get(te);
     case TSE_GREASE_PENCIL_NODE:
@@ -1449,9 +1448,9 @@ static void do_outliner_item_activate_tree_element(bContext *C,
 {
   /* Always makes active object, except for some specific types. */
   if (ELEM(tselem->type,
-           TSE_SEQUENCE,
-           TSE_SEQ_STRIP,
-           TSE_SEQUENCE_DUP,
+           TSE_STRIP,
+           TSE_STRIP_DATA,
+           TSE_STRIP_DUP,
            TSE_EBONE,
            TSE_LINKED_NODE_TREE,
            TSE_LAYER_COLLECTION))

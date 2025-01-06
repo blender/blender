@@ -15,6 +15,10 @@
  * Currently this shader is dispatched with one thread-group for all directional light.
  */
 
+#include "infos/eevee_shadow_info.hh"
+
+COMPUTE_SHADER_CREATE_INFO(eevee_shadow_tilemap_amend)
+
 #include "eevee_light_iter_lib.glsl"
 #include "eevee_shadow_tilemap_lib.glsl"
 #include "gpu_shader_math_matrix_lib.glsl"

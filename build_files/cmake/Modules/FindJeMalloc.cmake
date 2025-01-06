@@ -45,7 +45,7 @@ find_library(JEMALLOC_LIBRARY
     ${_jemalloc_SEARCH_DIRS}
   PATH_SUFFIXES
     lib64 lib
-  )
+)
 
 if(JEMALLOC_INCLUDE_DIR)
   set(_version_regex "^#define[ \t]+JEMALLOC_VERSION[ \t]+\"([^\"]+)\".*")
@@ -60,7 +60,7 @@ endif()
 # all listed variables are TRUE
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(JeMalloc DEFAULT_MSG
-    JEMALLOC_LIBRARY JEMALLOC_INCLUDE_DIR)
+  JEMALLOC_LIBRARY JEMALLOC_INCLUDE_DIR)
 
 if(JEMALLOC_FOUND)
   set(JEMALLOC_LIBRARIES ${JEMALLOC_LIBRARY})

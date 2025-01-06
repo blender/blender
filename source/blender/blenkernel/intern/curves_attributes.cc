@@ -49,9 +49,6 @@ class CurvesVertexGroupsAttributeProvider final : public DynamicAttributesProvid
  public:
   GAttributeReader try_get_for_read(const void *owner, const StringRef attribute_id) const final
   {
-    if (bke::attribute_name_is_anonymous(attribute_id)) {
-      return {};
-    }
     const CurvesGeometry *curves = static_cast<const CurvesGeometry *>(owner);
     if (curves == nullptr) {
       return {};
@@ -78,9 +75,6 @@ class CurvesVertexGroupsAttributeProvider final : public DynamicAttributesProvid
 
   GAttributeWriter try_get_for_write(void *owner, const StringRef attribute_id) const final
   {
-    if (bke::attribute_name_is_anonymous(attribute_id)) {
-      return {};
-    }
     CurvesGeometry *curves = static_cast<CurvesGeometry *>(owner);
     if (curves == nullptr) {
       return {};
@@ -94,22 +88,16 @@ class CurvesVertexGroupsAttributeProvider final : public DynamicAttributesProvid
     return {varray_for_mutable_deform_verts(dverts, vertex_group_index), AttrDomain::Point};
   }
 
-  bool try_delete(void *owner, const StringRef attribute_id) const final
+  bool try_delete(void *owner, const StringRef name) const final
   {
-    if (bke::attribute_name_is_anonymous(attribute_id)) {
-      return false;
-    }
     CurvesGeometry *curves = static_cast<CurvesGeometry *>(owner);
     if (curves == nullptr) {
       return true;
     }
-    const std::string name = attribute_id;
 
     int index;
     bDeformGroup *group;
-    if (!BKE_defgroup_listbase_name_find(
-            &curves->vertex_group_names, name.c_str(), &index, &group))
-    {
+    if (!BKE_defgroup_listbase_name_find(&curves->vertex_group_names, name, &index, &group)) {
       return false;
     }
     BLI_remlink(&curves->vertex_group_names, group);
@@ -250,12 +238,15 @@ static GeometryAttributeProviders create_attribute_providers_for_curve()
                                                          tag_component_topology_changed,
                                                          AttributeValidator{&handle_type_clamp});
 
+  static float default_nurbs_weight = 1.0f;
   static BuiltinCustomDataLayerProvider nurbs_weight("nurbs_weight",
                                                      AttrDomain::Point,
                                                      CD_PROP_FLOAT,
                                                      BuiltinAttributeProvider::Deletable,
                                                      point_access,
-                                                     tag_component_positions_changed);
+                                                     tag_component_positions_changed,
+                                                     {},
+                                                     &default_nurbs_weight);
 
   static const auto nurbs_order_clamp = mf::build::SI1_SO<int8_t, int8_t>(
       "NURBS Order Validate",

@@ -83,11 +83,15 @@ bool filelist_file_is_preview_pending(const FileList *filelist, const FileDirEnt
  * already loaded, invalid or not supported).
  */
 bool filelist_file_ensure_preview_requested(FileList *filelist, FileDirEntry *file);
-ImBuf *filelist_getimage(FileList *filelist, int index);
-ImBuf *filelist_file_getimage(const FileDirEntry *file);
-ImBuf *filelist_geticon_image_ex(const FileDirEntry *file);
-ImBuf *filelist_geticon_image(FileList *filelist, int index);
-int filelist_geticon(FileList *filelist, int index, bool is_main);
+ImBuf *filelist_get_preview_image(FileList *filelist, int index);
+ImBuf *filelist_file_get_preview_image(const FileDirEntry *file);
+ImBuf *filelist_geticon_special_file_image_ex(const FileDirEntry *file);
+/**
+ * Get one of the larger document icons as image. E.g. a folder or file icon. A file type icon can
+ * be overlaid on top then.
+ */
+ImBuf *filelist_geticon_special_file_image(FileList *filelist, int index);
+int filelist_geticon_file_type(FileList *filelist, int index, bool is_main);
 
 FileList *filelist_new(short type);
 void filelist_settype(FileList *filelist, short type);

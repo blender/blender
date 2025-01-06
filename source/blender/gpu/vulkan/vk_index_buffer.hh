@@ -16,6 +16,7 @@ namespace blender::gpu {
 
 class VKIndexBuffer : public IndexBuf {
   VKBuffer buffer_;
+  bool data_uploaded_ = false;
 
  public:
   void upload_data() override;

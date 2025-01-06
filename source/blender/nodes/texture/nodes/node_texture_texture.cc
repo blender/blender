@@ -85,6 +85,7 @@ void register_node_type_tex_texture()
   static blender::bke::bNodeType ntype;
 
   tex_node_type_base(&ntype, TEX_NODE_TEXTURE, "Texture", NODE_CLASS_INPUT);
+  ntype.enum_name_legacy = "TEXTURE";
   blender::bke::node_type_socket_templates(&ntype, inputs, outputs);
   ntype.exec_fn = exec;
   ntype.flag |= NODE_PREVIEW;

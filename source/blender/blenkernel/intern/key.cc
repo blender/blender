@@ -2263,11 +2263,11 @@ void BKE_keyblock_mesh_calc_normals(const KeyBlock *kb,
         {reinterpret_cast<blender::float3 *>(vert_normals), mesh->verts_num});
   }
   if (loop_normals_needed) {
-    const blender::short2 *clnors = static_cast<const blender::short2 *>(
-        CustomData_get_layer(&mesh->corner_data, CD_CUSTOMLOOPNORMAL));
     const AttributeAccessor attributes = mesh->attributes();
     const VArraySpan sharp_edges = *attributes.lookup<bool>("sharp_edge", AttrDomain::Edge);
     const VArraySpan sharp_faces = *attributes.lookup<bool>("sharp_face", AttrDomain::Face);
+    const VArraySpan custom_normals = *attributes.lookup<short2>("custom_normal",
+                                                                 AttrDomain::Corner);
     mesh::normals_calc_corners(
         positions,
         edges,
@@ -2279,7 +2279,7 @@ void BKE_keyblock_mesh_calc_normals(const KeyBlock *kb,
         {reinterpret_cast<blender::float3 *>(face_normals), faces.size()},
         sharp_edges,
         sharp_faces,
-        clnors,
+        custom_normals,
         nullptr,
         {reinterpret_cast<blender::float3 *>(r_loop_normals), corner_verts.size()});
   }

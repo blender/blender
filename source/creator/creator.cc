@@ -61,6 +61,8 @@
 
 #include "IMB_imbuf.hh" /* For #IMB_init. */
 
+#include "MOV_util.hh"
+
 #include "RE_engine.h"
 #include "RE_texture.h"
 
@@ -495,10 +497,8 @@ int main(int argc,
 
   /* Must be initialized after #BKE_appdir_init to account for color-management paths. */
   IMB_init();
-#ifdef WITH_FFMPEG
   /* Keep after #ARG_PASS_SETTINGS since debug flags are checked. */
-  IMB_ffmpeg_init();
-#endif
+  MOV_init();
 
   /* After #ARG_PASS_SETTINGS arguments, this is so #WM_main_playanim skips #RNA_init. */
   RNA_init();

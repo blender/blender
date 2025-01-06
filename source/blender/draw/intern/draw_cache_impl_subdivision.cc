@@ -2206,8 +2206,7 @@ static bool draw_subdiv_create_requested_buffers(Object &ob,
   runtime_data->stats_totloop = draw_cache.num_subdiv_loops;
 
   draw_cache.use_custom_loop_normals = (runtime_data->use_loop_normals) &&
-                                       CustomData_has_layer(&mesh_eval->corner_data,
-                                                            CD_CUSTOMLOOPNORMAL);
+                                       mesh_eval->attributes().contains("custom_normal");
 
   if (DRW_ibo_requested(mbc.buff.ibo.tris)) {
     draw_subdiv_cache_ensure_mat_offsets(draw_cache, mesh_eval, batch_cache.mat_len);

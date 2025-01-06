@@ -133,7 +133,7 @@ HdCyclesDelegate::HdCyclesDelegate(const HdRenderSettingsMap &settingsMap,
   }
 }
 
-HdCyclesDelegate::~HdCyclesDelegate() {}
+HdCyclesDelegate::~HdCyclesDelegate() = default;
 
 void HdCyclesDelegate::SetDrivers(const HdDriverVector &drivers)
 {
@@ -364,11 +364,13 @@ VtDictionary HdCyclesDelegate::GetRenderStats() const
   const Stats &stats = _renderParam->session->stats;
   const Progress &progress = _renderParam->session->progress;
 
-  double totalTime, renderTime;
+  double totalTime;
+  double renderTime;
   progress.get_time(totalTime, renderTime);
-  double fractionDone = progress.get_progress();
+  const double fractionDone = progress.get_progress();
 
-  std::string status, substatus;
+  std::string status;
+  std::string substatus;
   progress.get_status(status, substatus);
   if (!substatus.empty()) {
     status += " | " + substatus;
@@ -413,7 +415,7 @@ HdAovDescriptor HdCyclesDelegate::GetDefaultAovDescriptor(const TfToken &name) c
 
 HdRenderSettingDescriptorList HdCyclesDelegate::GetRenderSettingDescriptors() const
 {
-  Scene *const scene = _renderParam->session->scene;
+  Scene *const scene = _renderParam->session->scene.get();
 
   HdRenderSettingDescriptorList descriptors;
 
@@ -444,7 +446,7 @@ HdRenderSettingDescriptorList HdCyclesDelegate::GetRenderSettingDescriptors() co
 
 void HdCyclesDelegate::SetRenderSetting(const PXR_NS::TfToken &key, const PXR_NS::VtValue &value)
 {
-  Scene *const scene = _renderParam->session->scene;
+  Scene *const scene = _renderParam->session->scene.get();
   Session *const session = _renderParam->session;
 
   if (key == HdCyclesRenderSettingsTokens->stageMetersPerUnit) {
@@ -469,7 +471,7 @@ void HdCyclesDelegate::SetRenderSetting(const PXR_NS::TfToken &key, const PXR_NS
   else {
     const std::string &keyString = key.GetString();
     if (keyString.rfind("cycles:integrator:", 0) == 0) {
-      ustring socketName(keyString, sizeof("cycles:integrator:") - 1);
+      const ustring socketName(keyString, sizeof("cycles:integrator:") - 1);
       if (const SocketType *socket = scene->integrator->type->find_input(socketName)) {
         SetNodeValue(scene->integrator, *socket, value);
         ++_settingsVersion;
@@ -480,34 +482,33 @@ void HdCyclesDelegate::SetRenderSetting(const PXR_NS::TfToken &key, const PXR_NS
 
 VtValue HdCyclesDelegate::GetRenderSetting(const TfToken &key) const
 {
-  Scene *const scene = _renderParam->session->scene;
+  Scene *const scene = _renderParam->session->scene.get();
   Session *const session = _renderParam->session;
 
   if (key == HdCyclesRenderSettingsTokens->stageMetersPerUnit) {
     return VtValue(_renderParam->GetStageMetersPerUnit());
   }
-  else if (key == HdCyclesRenderSettingsTokens->device) {
+  if (key == HdCyclesRenderSettingsTokens->device) {
     return VtValue(TfToken(Device::string_from_type(session->params.device.type)));
   }
-  else if (key == HdCyclesRenderSettingsTokens->threads) {
+  if (key == HdCyclesRenderSettingsTokens->threads) {
     return VtValue(session->params.threads);
   }
-  else if (key == HdCyclesRenderSettingsTokens->timeLimit) {
+  if (key == HdCyclesRenderSettingsTokens->timeLimit) {
     return VtValue(session->params.time_limit);
   }
-  else if (key == HdCyclesRenderSettingsTokens->samples) {
+  if (key == HdCyclesRenderSettingsTokens->samples) {
     return VtValue(session->params.samples);
   }
-  else if (key == HdCyclesRenderSettingsTokens->sampleOffset) {
+  if (key == HdCyclesRenderSettingsTokens->sampleOffset) {
     return VtValue(session->params.sample_offset);
   }
-  else {
-    const std::string &keyString = key.GetString();
-    if (keyString.rfind("cycles:integrator:", 0) == 0) {
-      ustring socketName(keyString, sizeof("cycles:integrator:") - 1);
-      if (const SocketType *socket = scene->integrator->type->find_input(socketName)) {
-        return GetNodeValue(scene->integrator, *socket);
-      }
+
+  const std::string &keyString = key.GetString();
+  if (keyString.rfind("cycles:integrator:", 0) == 0) {
+    const ustring socketName(keyString, sizeof("cycles:integrator:") - 1);
+    if (const SocketType *socket = scene->integrator->type->find_input(socketName)) {
+      return GetNodeValue(scene->integrator, *socket);
     }
   }
 

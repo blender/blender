@@ -24,7 +24,11 @@ struct TransData;
 struct TransDataCurveHandleFlags;
 struct TransInfo;
 struct bContext;
-struct Sequence;
+struct Strip;
+
+namespace blender::bke::crazyspace {
+struct GeometryDeformation;
+}
 
 struct TransConvertTypeInfo {
   int flags; /* #eTFlag. */
@@ -98,6 +102,12 @@ struct CurvesTransformData {
    * handle_positions_right.
    */
   blender::Vector<int> layer_offsets;
+
+  /**
+   * Grease pencil multi-frame editing falloff. One value for each drawing in a
+   * `TransDataContainer`.
+   */
+  blender::Vector<float> grease_pencil_falloffs;
 
   /**
    * Copy of all positions being transformed.
@@ -177,14 +187,17 @@ void animrecord_check_state(TransInfo *t, ID *id);
  * Used for both curves and grease pencil objects.
  */
 void curve_populate_trans_data_structs(
+    const TransInfo &t,
     TransDataContainer &tc,
     blender::bke::CurvesGeometry &curves,
     const blender::float4x4 &transform,
+    const blender::bke::crazyspace::GeometryDeformation &deformation,
     std::optional<blender::MutableSpan<float>> value_attribute,
     const blender::Span<blender::IndexMask> points_to_transform_indices,
     const blender::IndexMask &affected_curves,
     bool use_connected_only,
-    const blender::IndexMask &bezier_curves);
+    const blender::IndexMask &bezier_curves,
+    void *extra = nullptr);
 
 CurvesTransformData *create_curves_transform_custom_data(TransCustomData &custom_data);
 
@@ -366,7 +379,7 @@ extern TransConvertTypeInfo TransConvertType_Sculpt;
 
 extern TransConvertTypeInfo TransConvertType_Sequencer;
 
-bool seq_transform_check_overlap(blender::Span<Sequence *> transformed_strips);
+bool seq_transform_check_overlap(blender::Span<Strip *> transformed_strips);
 
 /* `transform_convert_sequencer_image.cc` */
 

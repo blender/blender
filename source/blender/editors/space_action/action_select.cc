@@ -203,7 +203,7 @@ static void actkeys_find_key_in_list_element(bAnimContext *ac,
   /* half-size (for either side), but rounded up to nearest int (for easier targeting) */
   key_hsize = roundf(key_hsize / 2.0f);
 
-  const Range2f range = {
+  const Bounds<float> range = {
       UI_view2d_region_to_view_x(v2d, region_x - int(key_hsize)),
       UI_view2d_region_to_view_x(v2d, region_x + int(key_hsize)),
   };

@@ -92,30 +92,30 @@ const float3 quads_normals[6] = {
     make_float3(0.0f, 0.0f, 1.0f),
 };
 
-static int add_vertex(int3 v,
+static int add_vertex(const int3 v,
                       vector<int3> &vertices,
-                      int3 res,
+                      const int3 res,
                       unordered_map<size_t, int> &used_verts)
 {
-  size_t vert_key = v.x + v.y * (res.x + 1) + v.z * (res.x + 1) * (res.y + 1);
-  unordered_map<size_t, int>::iterator it = used_verts.find(vert_key);
+  const size_t vert_key = v.x + v.y * (res.x + 1) + v.z * (res.x + 1) * (res.y + 1);
+  const unordered_map<size_t, int>::iterator it = used_verts.find(vert_key);
 
   if (it != used_verts.end()) {
     return it->second;
   }
 
-  int vertex_offset = vertices.size();
+  const int vertex_offset = vertices.size();
   used_verts[vert_key] = vertex_offset;
   vertices.push_back(v);
   return vertex_offset;
 }
 
-static void create_quad(int3 corners[8],
+static void create_quad(const int3 corners[8],
                         vector<int3> &vertices,
                         vector<QuadData> &quads,
-                        int3 res,
+                        const int3 res,
                         unordered_map<size_t, int> &used_verts,
-                        int face_index)
+                        const int face_index)
 {
   QuadData quad;
   quad.v0 = add_vertex(corners[quads_indices[face_index][0]], vertices, res, used_verts);
@@ -150,10 +150,10 @@ class VolumeMeshBuilder {
   VolumeMeshBuilder();
 
 #ifdef WITH_OPENVDB
-  void add_grid(openvdb::GridBase::ConstPtr grid, bool do_clipping, float volume_clipping);
+  void add_grid(openvdb::GridBase::ConstPtr grid, bool do_clipping, const float volume_clipping);
 #endif
 
-  void add_padding(int pad_size);
+  void add_padding(const int pad_size);
 
   void create_mesh(vector<float3> &vertices,
                    vector<int> &indices,
@@ -174,13 +174,13 @@ class VolumeMeshBuilder {
 
 #ifdef WITH_OPENVDB
   template<typename GridType>
-  void merge_grid(openvdb::GridBase::ConstPtr grid, bool do_clipping, float volume_clipping)
+  void merge_grid(openvdb::GridBase::ConstPtr grid, bool do_clipping, const float volume_clipping)
   {
     typename GridType::ConstPtr typed_grid = openvdb::gridConstPtrCast<GridType>(grid);
 
     if (do_clipping) {
       using ValueType = typename GridType::ValueType;
-      typename GridType::Ptr copy = typed_grid->deepCopy();
+      const typename GridType::Ptr copy = typed_grid->deepCopy();
       typename GridType::ValueOnIter iter = copy->beginValueOn();
 
       for (; iter; ++iter) {
@@ -205,7 +205,7 @@ VolumeMeshBuilder::VolumeMeshBuilder()
 #ifdef WITH_OPENVDB
 void VolumeMeshBuilder::add_grid(openvdb::GridBase::ConstPtr grid,
                                  bool do_clipping,
-                                 float volume_clipping)
+                                 const float volume_clipping)
 {
   /* set the transform of our grid from the first one */
   if (first_grid) {
@@ -217,7 +217,7 @@ void VolumeMeshBuilder::add_grid(openvdb::GridBase::ConstPtr grid,
    * its index space registers with that of the other, here we resample our mask
    * grid so memory usage is kept low */
   else if (topology_grid->transform() != grid->transform()) {
-    openvdb::MaskGrid::Ptr temp_grid = topology_grid->copyWithNewTree();
+    const openvdb::MaskGrid::Ptr temp_grid = topology_grid->copyWithNewTree();
     temp_grid->setTransform(grid->transform().copy());
     openvdb::tools::resampleToMatch<openvdb::tools::BoxSampler>(*topology_grid, *temp_grid);
     topology_grid = temp_grid;
@@ -257,7 +257,7 @@ void VolumeMeshBuilder::add_grid(openvdb::GridBase::ConstPtr grid,
 }
 #endif
 
-void VolumeMeshBuilder::add_padding(int pad_size)
+void VolumeMeshBuilder::add_padding(const int pad_size)
 {
 #ifdef WITH_OPENVDB
   openvdb::tools::dilateActiveValues(
@@ -298,7 +298,7 @@ void VolumeMeshBuilder::create_mesh(vector<float3> &vertices,
 #ifdef WITH_OPENVDB
 static bool is_non_empty_leaf(const openvdb::MaskGrid::TreeType &tree, const openvdb::Coord coord)
 {
-  auto *leaf_node = tree.probeLeaf(coord);
+  const auto *leaf_node = tree.probeLeaf(coord);
   return (leaf_node && !leaf_node->isEmpty());
 }
 #endif
@@ -385,15 +385,15 @@ void VolumeMeshBuilder::convert_object_space(const vector<int3> &vertices,
   bbox = topology_grid->evalActiveVoxelBoundingBox();
   openvdb::Coord dim = bbox.dim();
 
-  float3 cell_size = make_float3(1.0f / dim.x(), 1.0f / dim.y(), 1.0f / dim.z());
-  float3 point_offset = cell_size * face_overlap_avoidance;
+  const float3 cell_size = make_float3(1.0f / dim.x(), 1.0f / dim.y(), 1.0f / dim.z());
+  const float3 point_offset = cell_size * face_overlap_avoidance;
 
   out_vertices.reserve(vertices.size());
 
   for (size_t i = 0; i < vertices.size(); ++i) {
     openvdb::math::Vec3d p = topology_grid->indexToWorld(
         openvdb::math::Vec3d(vertices[i].x, vertices[i].y, vertices[i].z));
-    float3 vertex = make_float3((float)p.x(), (float)p.y(), (float)p.z());
+    const float3 vertex = make_float3((float)p.x(), (float)p.y(), (float)p.z());
     out_vertices.push_back(vertex + point_offset);
   }
 #else
@@ -439,24 +439,24 @@ bool VolumeMeshBuilder::empty_grid() const
 #ifdef WITH_OPENVDB
 template<typename GridType>
 static openvdb::GridBase::ConstPtr openvdb_grid_from_device_texture(device_texture *image_memory,
-                                                                    float volume_clipping,
+                                                                    const float volume_clipping,
                                                                     Transform transform_3d)
 {
   using ValueType = typename GridType::ValueType;
 
-  openvdb::CoordBBox dense_bbox(0,
-                                0,
-                                0,
-                                image_memory->data_width - 1,
-                                image_memory->data_height - 1,
-                                image_memory->data_depth - 1);
+  const openvdb::CoordBBox dense_bbox(0,
+                                      0,
+                                      0,
+                                      image_memory->data_width - 1,
+                                      image_memory->data_height - 1,
+                                      image_memory->data_depth - 1);
 
   typename GridType::Ptr sparse = GridType::create(ValueType(0.0f));
   if (dense_bbox.empty()) {
     return sparse;
   }
 
-  openvdb::tools::Dense<ValueType, openvdb::tools::MemoryLayout::LayoutXYZ> dense(
+  const openvdb::tools::Dense<ValueType, openvdb::tools::MemoryLayout::LayoutXYZ> dense(
       dense_bbox, static_cast<ValueType *>(image_memory->host_pointer));
 
   openvdb::tools::copyFromDense(dense, *sparse, ValueType(volume_clipping));
@@ -468,30 +468,30 @@ static openvdb::GridBase::ConstPtr openvdb_grid_from_device_texture(device_textu
   sparse->tree().voxelizeActiveTiles();
 
   /* Compute index to world matrix. */
-  float3 voxel_size = make_float3(1.0f / image_memory->data_width,
-                                  1.0f / image_memory->data_height,
-                                  1.0f / image_memory->data_depth);
+  const float3 voxel_size = make_float3(1.0f / image_memory->data_width,
+                                        1.0f / image_memory->data_height,
+                                        1.0f / image_memory->data_depth);
 
   transform_3d = transform_inverse(transform_3d);
 
-  openvdb::Mat4R index_to_world_mat((double)(voxel_size.x * transform_3d[0][0]),
-                                    0.0,
-                                    0.0,
-                                    0.0,
-                                    0.0,
-                                    (double)(voxel_size.y * transform_3d[1][1]),
-                                    0.0,
-                                    0.0,
-                                    0.0,
-                                    0.0,
-                                    (double)(voxel_size.z * transform_3d[2][2]),
-                                    0.0,
-                                    (double)transform_3d[0][3],
-                                    (double)transform_3d[1][3],
-                                    (double)transform_3d[2][3],
-                                    1.0);
+  const openvdb::Mat4R index_to_world_mat((double)(voxel_size.x * transform_3d[0][0]),
+                                          0.0,
+                                          0.0,
+                                          0.0,
+                                          0.0,
+                                          (double)(voxel_size.y * transform_3d[1][1]),
+                                          0.0,
+                                          0.0,
+                                          0.0,
+                                          0.0,
+                                          (double)(voxel_size.z * transform_3d[2][2]),
+                                          0.0,
+                                          (double)transform_3d[0][3],
+                                          (double)transform_3d[1][3],
+                                          (double)transform_3d[2][3],
+                                          1.0);
 
-  openvdb::math::Transform::Ptr index_to_world_tfm =
+  const openvdb::math::Transform::Ptr index_to_world_tfm =
       openvdb::math::Transform::createLinearTransform(index_to_world_mat);
 
   sparse->setTransform(index_to_world_tfm);
@@ -500,7 +500,7 @@ static openvdb::GridBase::ConstPtr openvdb_grid_from_device_texture(device_textu
 }
 
 static int estimate_required_velocity_padding(openvdb::GridBase::ConstPtr grid,
-                                              float velocity_scale)
+                                              const float velocity_scale)
 {
   /* TODO: we may need to also find outliers and clamp them to avoid adding too much padding. */
   openvdb::math::Extrema extrema;
@@ -509,12 +509,14 @@ static int estimate_required_velocity_padding(openvdb::GridBase::ConstPtr grid,
   /* External `.vdb` files have a vec3 type for velocity,
    * but the Blender exporter creates a vec4. */
   if (grid->isType<openvdb::Vec3fGrid>()) {
-    openvdb::Vec3fGrid::ConstPtr vel_grid = openvdb::gridConstPtrCast<openvdb::Vec3fGrid>(grid);
+    const openvdb::Vec3fGrid::ConstPtr vel_grid = openvdb::gridConstPtrCast<openvdb::Vec3fGrid>(
+        grid);
     extrema = openvdb::tools::extrema(vel_grid->cbeginValueOn());
     voxel_size = vel_grid->voxelSize();
   }
   else if (grid->isType<openvdb::Vec4fGrid>()) {
-    openvdb::Vec4fGrid::ConstPtr vel_grid = openvdb::gridConstPtrCast<openvdb::Vec4fGrid>(grid);
+    const openvdb::Vec4fGrid::ConstPtr vel_grid = openvdb::gridConstPtrCast<openvdb::Vec4fGrid>(
+        grid);
     extrema = openvdb::tools::extrema(vel_grid->cbeginValueOn());
     voxel_size = vel_grid->voxelSize();
   }
@@ -542,13 +544,13 @@ static openvdb::FloatGrid::ConstPtr get_vdb_for_attribute(Volume *volume, Attrib
     return nullptr;
   }
 
-  ImageHandle &handle = attr->data_voxel();
+  const ImageHandle &handle = attr->data_voxel();
   VDBImageLoader *vdb_loader = handle.vdb_loader();
   if (!vdb_loader) {
     return nullptr;
   }
 
-  openvdb::GridBase::ConstPtr grid = vdb_loader->get_grid();
+  const openvdb::GridBase::ConstPtr grid = vdb_loader->get_grid();
   if (!grid) {
     return nullptr;
   }
@@ -561,7 +563,7 @@ static openvdb::FloatGrid::ConstPtr get_vdb_for_attribute(Volume *volume, Attrib
 }
 
 class MergeScalarGrids {
-  typedef openvdb::FloatTree ScalarTree;
+  using ScalarTree = openvdb::FloatTree;
 
   openvdb::tree::ValueAccessor<const ScalarTree> m_acc_x, m_acc_y, m_acc_z;
 
@@ -572,18 +574,17 @@ class MergeScalarGrids {
   }
 
   MergeScalarGrids(const MergeScalarGrids &other)
-      : m_acc_x(other.m_acc_x), m_acc_y(other.m_acc_y), m_acc_z(other.m_acc_z)
-  {
-  }
+
+      = default;
 
   void operator()(const openvdb::Vec3STree::ValueOnIter &it) const
   {
     using namespace openvdb;
 
     const math::Coord xyz = it.getCoord();
-    float x = m_acc_x.getValue(xyz);
-    float y = m_acc_y.getValue(xyz);
-    float z = m_acc_z.getValue(xyz);
+    const float x = m_acc_x.getValue(xyz);
+    const float y = m_acc_y.getValue(xyz);
+    const float z = m_acc_z.getValue(xyz);
 
     it.setValue(math::Vec3s(x, y, z));
   }
@@ -596,18 +597,18 @@ static void merge_scalar_grids_for_velocity(const Scene *scene, Volume *volume)
     return;
   }
 
-  openvdb::FloatGrid::ConstPtr vel_x_grid = get_vdb_for_attribute(volume,
-                                                                  ATTR_STD_VOLUME_VELOCITY_X);
-  openvdb::FloatGrid::ConstPtr vel_y_grid = get_vdb_for_attribute(volume,
-                                                                  ATTR_STD_VOLUME_VELOCITY_Y);
-  openvdb::FloatGrid::ConstPtr vel_z_grid = get_vdb_for_attribute(volume,
-                                                                  ATTR_STD_VOLUME_VELOCITY_Z);
+  const openvdb::FloatGrid::ConstPtr vel_x_grid = get_vdb_for_attribute(
+      volume, ATTR_STD_VOLUME_VELOCITY_X);
+  const openvdb::FloatGrid::ConstPtr vel_y_grid = get_vdb_for_attribute(
+      volume, ATTR_STD_VOLUME_VELOCITY_Y);
+  const openvdb::FloatGrid::ConstPtr vel_z_grid = get_vdb_for_attribute(
+      volume, ATTR_STD_VOLUME_VELOCITY_Z);
 
   if (!(vel_x_grid && vel_y_grid && vel_z_grid)) {
     return;
   }
 
-  openvdb::Vec3fGrid::Ptr vecgrid = openvdb::Vec3SGrid::create(openvdb::Vec3s(0.0f));
+  const openvdb::Vec3fGrid::Ptr vecgrid = openvdb::Vec3SGrid::create(openvdb::Vec3s(0.0f));
 
   /* Activate voxels in the vector grid based on the scalar grids to ensure thread safety during
    * the merge. */
@@ -619,15 +620,15 @@ static void merge_scalar_grids_for_velocity(const Scene *scene, Volume *volume)
   openvdb::tools::foreach (vecgrid->beginValueOn(), op, true, false);
 
   /* Assume all grids have the same transformation. */
-  openvdb::math::Transform::Ptr transform = openvdb::ConstPtrCast<openvdb::math::Transform>(
+  const openvdb::math::Transform::Ptr transform = openvdb::ConstPtrCast<openvdb::math::Transform>(
       vel_x_grid->transformPtr());
   vecgrid->setTransform(transform);
 
   /* Make an attribute for it. */
   Attribute *attr = volume->attributes.add(ATTR_STD_VOLUME_VELOCITY);
-  ImageLoader *loader = new VDBImageLoader(vecgrid, "merged_velocity");
-  ImageParams params;
-  attr->data_voxel() = scene->image_manager->add_image(loader, params);
+  unique_ptr<ImageLoader> loader = make_unique<VDBImageLoader>(vecgrid, "merged_velocity");
+  const ImageParams params;
+  attr->data_voxel() = scene->image_manager->add_image(std::move(loader), params);
 }
 #endif
 
@@ -635,11 +636,11 @@ static void merge_scalar_grids_for_velocity(const Scene *scene, Volume *volume)
 
 void GeometryManager::create_volume_mesh(const Scene *scene, Volume *volume, Progress &progress)
 {
-  string msg = string_printf("Computing Volume Mesh %s", volume->name.c_str());
+  const string msg = string_printf("Computing Volume Mesh %s", volume->name.c_str());
   progress.set_status("Updating Mesh", msg);
 
   /* Find shader and compute padding based on volume shader interpolation settings. */
-  Shader *volume_shader = NULL;
+  Shader *volume_shader = nullptr;
   int pad_size = 0;
 
   for (Node *node : volume->get_used_shaders()) {

@@ -19,6 +19,7 @@
 #include "BLI_task.hh"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
+#include "BLI_vector.hh"
 
 #include "DNA_action_types.h"
 #include "DNA_anim_types.h"
@@ -40,7 +41,6 @@
 #include "BKE_main.hh"
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
-#include "BKE_writemovie.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"
@@ -58,6 +58,8 @@
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 
+#include "MOV_write.hh"
+
 #include "RE_pipeline.h"
 
 #include "BLT_translation.hh"
@@ -69,6 +71,7 @@
 
 #include "ANIM_action_legacy.hh"
 
+#include "GPU_context.hh"
 #include "GPU_framebuffer.hh"
 #include "GPU_matrix.hh"
 #include "GPU_viewport.hh"
@@ -119,7 +122,6 @@ struct OGLRender {
   GPUViewport *viewport;
 
   ReportList *reports;
-  bMovieHandle *mh;
   int cfrao, nfra;
 
   int totvideos;
@@ -137,7 +139,7 @@ struct OGLRender {
   /** Use to check if running modal or not (invoked or executed). */
   wmTimer *timer;
 
-  void **movie_ctx_arr;
+  blender::Vector<MovieWriter *> movie_writers;
 
   TaskPool *task_pool;
   bool pool_ok;
@@ -400,6 +402,13 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
     RE_render_result_rect_from_ibuf(rr, ibuf_result, oglrender->view_id);
     IMB_freeImBuf(ibuf_result);
   }
+
+  /* Perform render step between renders to allow
+   * flushing of freed GPUBackend resources. */
+  if (GPU_backend_get_type() == GPU_BACKEND_METAL) {
+    GPU_flush();
+  }
+  GPU_render_step(true);
 }
 
 static void screen_opengl_render_write(OGLRender *oglrender)
@@ -571,7 +580,7 @@ static int gather_frames_to_render_for_id(LibraryIDLinkCallbackData *cb_data)
   ID *id = *id_p;
 
   ID *self_id = cb_data->self_id;
-  const int cb_flag = cb_data->cb_flag;
+  const LibraryForeachIDCallbackFlag cb_flag = cb_data->cb_flag;
   if (cb_flag == IDWALK_CB_LOOPBACK || id == self_id) {
     /* IDs may end up referencing themselves one way or the other, and those
      * (the self_id ones) have always already been processed. */
@@ -839,8 +848,6 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
   oglrender->win = win;
 
   oglrender->totvideos = 0;
-  oglrender->mh = nullptr;
-  oglrender->movie_ctx_arr = nullptr;
 
   if (is_animation) {
     if (is_render_keyed_only) {
@@ -873,7 +880,6 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
 static void screen_opengl_render_end(bContext *C, OGLRender *oglrender)
 {
   Scene *scene = oglrender->scene;
-  int i;
 
   if (oglrender->is_animation) {
     /* Trickery part for movie output:
@@ -905,17 +911,13 @@ static void screen_opengl_render_end(bContext *C, OGLRender *oglrender)
 
   MEM_SAFE_FREE(oglrender->render_frames);
 
-  if (oglrender->mh) {
+  if (!oglrender->movie_writers.is_empty()) {
     if (BKE_imtype_is_movie(scene->r.im_format.imtype)) {
-      for (i = 0; i < oglrender->totvideos; i++) {
-        oglrender->mh->end_movie(oglrender->movie_ctx_arr[i]);
-        oglrender->mh->context_free(oglrender->movie_ctx_arr[i]);
+      for (MovieWriter *writer : oglrender->movie_writers) {
+        MOV_write_end(writer);
       }
     }
-
-    if (oglrender->movie_ctx_arr) {
-      MEM_freeN(oglrender->movie_ctx_arr);
-    }
+    oglrender->movie_writers.clear_and_shrink();
   }
 
   if (oglrender->timer) { /* exec will not have a timer */
@@ -974,34 +976,25 @@ static bool screen_opengl_render_anim_init(bContext *C, wmOperator *op)
 
     BKE_scene_multiview_videos_dimensions_get(
         &scene->r, oglrender->sizex, oglrender->sizey, &width, &height);
-    oglrender->mh = BKE_movie_handle_get(scene->r.im_format.imtype);
-
-    if (oglrender->mh == nullptr) {
-      BKE_report(oglrender->reports, RPT_ERROR, "Movie format unsupported");
-      screen_opengl_render_end(C, oglrender);
-      return false;
-    }
-
-    oglrender->movie_ctx_arr = static_cast<void **>(
-        MEM_mallocN(sizeof(void *) * oglrender->totvideos, "Movies"));
+    oglrender->movie_writers.reserve(oglrender->totvideos);
 
     for (i = 0; i < oglrender->totvideos; i++) {
       Scene *scene_eval = DEG_get_evaluated_scene(oglrender->depsgraph);
       const char *suffix = BKE_scene_multiview_view_id_suffix_get(&scene->r, i);
-
-      oglrender->movie_ctx_arr[i] = oglrender->mh->context_create();
-      if (!oglrender->mh->start_movie(oglrender->movie_ctx_arr[i],
-                                      scene_eval,
-                                      &scene->r,
-                                      oglrender->sizex,
-                                      oglrender->sizey,
-                                      oglrender->reports,
-                                      PRVRANGEON != 0,
-                                      suffix))
-      {
+      MovieWriter *writer = MOV_write_begin(scene->r.im_format.imtype,
+                                            scene_eval,
+                                            &scene->r,
+                                            oglrender->sizex,
+                                            oglrender->sizey,
+                                            oglrender->reports,
+                                            PRVRANGEON != 0,
+                                            suffix);
+      if (writer == nullptr) {
+        BKE_report(oglrender->reports, RPT_ERROR, "Movie format unsupported");
         screen_opengl_render_end(C, oglrender);
         return false;
       }
+      oglrender->movie_writers.append(writer);
     }
   }
 
@@ -1051,8 +1044,7 @@ static void write_result(TaskPool *__restrict pool, WriteTaskData *task_data)
                                   rr,
                                   scene,
                                   &scene->r,
-                                  oglrender->mh,
-                                  oglrender->movie_ctx_arr,
+                                  oglrender->movie_writers.data(),
                                   oglrender->totvideos,
                                   PRVRANGEON != 0);
   }

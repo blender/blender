@@ -12,9 +12,9 @@
 #  include "util/time.h"
 
 #  include <IOKit/IOKitLib.h>
+#  include <ctime>
 #  include <pwd.h>
 #  include <sys/shm.h>
-#  include <time.h>
 
 CCL_NAMESPACE_BEGIN
 
@@ -36,7 +36,7 @@ int MetalInfo::get_apple_gpu_core_count(id<MTLDevice> device)
     io_service_t gpu_service = IOServiceGetMatchingService(
         kIOMainPortDefault, IORegistryEntryIDMatching(device.registryID));
     if (CFNumberRef numberRef = (CFNumberRef)IORegistryEntryCreateCFProperty(
-            gpu_service, CFSTR("gpu-core-count"), 0, 0))
+            gpu_service, CFSTR("gpu-core-count"), nullptr, 0))
     {
       if (CFGetTypeID(numberRef) == CFNumberGetTypeID()) {
         CFNumberGetValue(numberRef, kCFNumberSInt32Type, &core_count);
@@ -53,10 +53,10 @@ AppleGPUArchitecture MetalInfo::get_apple_gpu_architecture(id<MTLDevice> device)
   if (strstr(device_name, "M1")) {
     return APPLE_M1;
   }
-  else if (strstr(device_name, "M2")) {
+  if (strstr(device_name, "M2")) {
     return get_apple_gpu_core_count(device) <= 10 ? APPLE_M2 : APPLE_M2_BIG;
   }
-  else if (strstr(device_name, "M3")) {
+  if (strstr(device_name, "M3")) {
     return APPLE_M3;
   }
   return APPLE_UNKNOWN;
@@ -64,7 +64,7 @@ AppleGPUArchitecture MetalInfo::get_apple_gpu_architecture(id<MTLDevice> device)
 
 int MetalInfo::optimal_sort_partition_elements()
 {
-  if (auto str = getenv("CYCLES_METAL_SORT_PARTITION_ELEMENTS")) {
+  if (auto *str = getenv("CYCLES_METAL_SORT_PARTITION_ELEMENTS")) {
     return atoi(str);
   }
 
@@ -75,7 +75,7 @@ int MetalInfo::optimal_sort_partition_elements()
   return 65536;
 }
 
-vector<id<MTLDevice>> const &MetalInfo::get_usable_devices()
+const vector<id<MTLDevice>> &MetalInfo::get_usable_devices()
 {
   static vector<id<MTLDevice>> usable_devices;
   static bool already_enumerated = false;

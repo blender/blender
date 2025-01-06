@@ -6,6 +6,10 @@
  * Compute light objects lighting contribution using captured Gbuffer data.
  */
 
+#include "infos/eevee_deferred_info.hh"
+
+FRAGMENT_SHADER_CREATE_INFO(eevee_deferred_capture_eval)
+
 #include "draw_view_lib.glsl"
 #include "eevee_gbuffer_lib.glsl"
 #include "eevee_light_eval_lib.glsl"

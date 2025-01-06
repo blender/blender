@@ -31,8 +31,8 @@ static void node_init(bNodeTree * /*tree*/, bNode *node)
 
 static void node_layout(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiItemR(layout, ptr, "primary_axis", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "secondary_axis", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "primary_axis", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
+  uiItemR(layout, ptr, "secondary_axis", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
 }
 
 static float3 get_orthogonal_of_non_zero_vector(const float3 &v)
@@ -177,6 +177,7 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
   fn_node_type_base(&ntype, FN_NODE_AXES_TO_ROTATION, "Axes to Rotation", NODE_CLASS_CONVERTER);
+  ntype.enum_name_legacy = "AXES_TO_ROTATION";
   ntype.declare = node_declare;
   ntype.initfunc = node_init;
   ntype.build_multi_function = node_build_multi_function;

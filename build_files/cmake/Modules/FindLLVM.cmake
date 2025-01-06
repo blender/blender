@@ -85,7 +85,7 @@ endif()
 # all listed variables are TRUE
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(LLVM DEFAULT_MSG
-    LLVM_LIBRARY)
+  LLVM_LIBRARY)
 
 mark_as_advanced(
   LLVM_LIBRARY

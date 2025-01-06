@@ -38,7 +38,7 @@ class BVHMetal : public BVH {
            const vector<Geometry *> &geometry,
            const vector<Object *> &objects,
            Device *device);
-  virtual ~BVHMetal();
+  ~BVHMetal() override;
 
   bool build_BLAS(Progress &progress, id<MTLDevice> device, id<MTLCommandQueue> queue, bool refit);
   bool build_BLAS_mesh(Progress &progress,

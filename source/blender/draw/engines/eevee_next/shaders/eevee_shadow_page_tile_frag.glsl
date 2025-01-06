@@ -35,6 +35,10 @@
  * belong to shadow pages not being updated in this pass are discarded.
  **/
 
+#include "infos/eevee_shadow_info.hh"
+
+FRAGMENT_SHADER_CREATE_INFO(eevee_shadow_page_tile_clear)
+
 #include "eevee_shadow_tilemap_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"
 

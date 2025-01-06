@@ -4,16 +4,19 @@
 
 #pragma once
 
+#include "kernel/svm/math_util.h"
+#include "kernel/svm/util.h"
+
 CCL_NAMESPACE_BEGIN
 
 ccl_device_noinline void svm_node_gamma(ccl_private ShaderData *sd,
                                         ccl_private float *stack,
-                                        uint in_gamma,
-                                        uint in_color,
-                                        uint out_color)
+                                        const uint in_gamma,
+                                        const uint in_color,
+                                        const uint out_color)
 {
   float3 color = stack_load_float3(stack, in_color);
-  float gamma = stack_load_float(stack, in_gamma);
+  const float gamma = stack_load_float(stack, in_gamma);
 
   color = svm_math_gamma_color(color, gamma);
 

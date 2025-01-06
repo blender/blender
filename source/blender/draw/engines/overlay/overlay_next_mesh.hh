@@ -19,6 +19,7 @@
 #include "BKE_subdiv_modifier.hh"
 #include "DEG_depsgraph_query.hh"
 #include "DNA_brush_types.h"
+#include "DNA_mask_types.h"
 #include "DNA_mesh_types.h"
 #include "ED_image.hh"
 #include "ED_view3d.hh"
@@ -76,7 +77,7 @@ class Meshes : Overlay {
   View view_edit_cage_ = {"view_edit_cage"};
   View view_edit_edge_ = {"view_edit_edge"};
   View view_edit_vert_ = {"view_edit_vert"};
-  State::ViewOffsetData offset_data_;
+  View::OffsetData offset_data_;
 
  public:
   void begin_sync(Resources &res, const State &state) final
@@ -370,10 +371,9 @@ class Meshes : Overlay {
       return;
     }
 
-    float view_dist = State::view_dist_get(offset_data_, view.winmat());
-    view_edit_cage_.sync(view.viewmat(), winmat_polygon_offset(view.winmat(), view_dist, 0.5f));
-    view_edit_edge_.sync(view.viewmat(), winmat_polygon_offset(view.winmat(), view_dist, 1.0f));
-    view_edit_vert_.sync(view.viewmat(), winmat_polygon_offset(view.winmat(), view_dist, 1.5f));
+    view_edit_cage_.sync(view.viewmat(), offset_data_.winmat_polygon_offset(view.winmat(), 0.5f));
+    view_edit_edge_.sync(view.viewmat(), offset_data_.winmat_polygon_offset(view.winmat(), 1.0f));
+    view_edit_vert_.sync(view.viewmat(), offset_data_.winmat_polygon_offset(view.winmat(), 1.5f));
 
     manager.submit(edit_mesh_normals_ps_, view);
     manager.submit(edit_mesh_faces_ps_, view);
@@ -398,10 +398,9 @@ class Meshes : Overlay {
 
     GPU_debug_group_begin("Mesh Edit Color Only");
 
-    float view_dist = State::view_dist_get(offset_data_, view.winmat());
-    view_edit_cage_.sync(view.viewmat(), winmat_polygon_offset(view.winmat(), view_dist, 0.5f));
-    view_edit_edge_.sync(view.viewmat(), winmat_polygon_offset(view.winmat(), view_dist, 1.0f));
-    view_edit_vert_.sync(view.viewmat(), winmat_polygon_offset(view.winmat(), view_dist, 1.5f));
+    view_edit_cage_.sync(view.viewmat(), offset_data_.winmat_polygon_offset(view.winmat(), 0.5f));
+    view_edit_edge_.sync(view.viewmat(), offset_data_.winmat_polygon_offset(view.winmat(), 1.0f));
+    view_edit_vert_.sync(view.viewmat(), offset_data_.winmat_polygon_offset(view.winmat(), 1.5f));
 
     GPU_framebuffer_bind(framebuffer);
     manager.submit(edit_mesh_normals_ps_, view);
@@ -513,9 +512,6 @@ class MeshUVs : Overlay {
   bool show_tiled_image_active_ = false;
   bool show_tiled_image_border_ = false;
   bool show_tiled_image_label_ = false;
-
-  /* Set of original objects that have been drawn. */
-  Set<const Object *> drawn_object_set_;
 
  public:
   void begin_sync(Resources &res, const State &state) final
@@ -709,41 +705,21 @@ class MeshUVs : Overlay {
 
     per_mesh_area_3d_.clear();
     per_mesh_area_2d_.clear();
-
-    drawn_object_set_.clear();
   }
 
   void edit_object_sync(Manager &manager,
                         const ObjectRef &ob_ref,
                         Resources & /*res*/,
-                        const State &state) final
+                        const State & /*state*/) final
   {
     if (!enabled_ || ob_ref.object->type != OB_MESH) {
       return;
     }
 
-    /* When editing objects that share the same mesh we should only draw the
-     * first object to avoid overlapping UVs. Moreover, only the first evaluated object has the
-     * correct batches with the correct selection state.
-     * To this end, we skip duplicates and use the evaluated object returned by the depsgraph.
-     * See #83187. */
-    Object *object_orig = DEG_get_original_object(ob_ref.object);
-    Object *object_eval = DEG_get_evaluated_object(state.depsgraph, object_orig);
-
-    if (!drawn_object_set_.add(object_orig)) {
-      return;
-    }
-
     ResourceHandle res_handle = manager.unique_handle(ob_ref);
 
-    Object &ob = *object_eval;
+    Object &ob = *ob_ref.object;
     Mesh &mesh = *static_cast<Mesh *>(ob.data);
-
-    if (object_eval != ob_ref.object) {
-      /* We are requesting batches on an evaluated ID that is potentially not iterated over.
-       * So we have to manually call these cache validation and extraction method. */
-      DRW_mesh_batch_cache_validate(ob, mesh);
-    }
 
     if (show_uv_edit) {
       gpu::Batch *geom = DRW_mesh_batch_cache_get_edituv_edges(ob, mesh);
@@ -781,11 +757,6 @@ class MeshUVs : Overlay {
     if (show_wireframe_) {
       gpu::Batch *geom = DRW_mesh_batch_cache_get_uv_edges(ob, mesh);
       wireframe_ps_.draw_expand(geom, GPU_PRIM_TRIS, 2, 1, res_handle);
-    }
-
-    if (object_eval != ob_ref.object) {
-      /* TODO(fclem): Refactor. Global access. But as explained above it is a bit complicated. */
-      drw_batch_cache_generate_requested_delayed(&ob);
     }
   }
 
@@ -851,13 +822,20 @@ class MeshUVs : Overlay {
       };
 
       ListBaseWrapper<ImageTile> tiles(image->tiles);
-
+      /* image->active_tile_index could point to a non existing ImageTile. To work around this we
+       * get the active tile when looping over all tiles. */
+      const ImageTile *active_tile = nullptr;
+      int tile_index = 0;
       for (const ImageTile *tile : tiles) {
         draw_tile(tile, false);
+        if (tile_index == image->active_tile_index) {
+          active_tile = tile;
+        }
+        tile_index++;
       }
       /* Draw active tile on top. */
-      if (show_tiled_image_active_) {
-        draw_tile(tiles.get(image->active_tile_index), true);
+      if (show_tiled_image_active_ && active_tile != nullptr) {
+        draw_tile(active_tile, true);
       }
     }
 

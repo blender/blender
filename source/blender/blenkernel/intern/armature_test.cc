@@ -6,6 +6,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_math_matrix.h"
+#include "BLI_math_matrix.hh"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_string.h"
@@ -29,13 +30,13 @@ static double EXPECT_M3_ORTHOGONAL(const float mat[3][3],
                                    double epsilon_ortho)
 {
   /* Do the checks in double precision to avoid precision issues in the checks themselves. */
-  double dmat[3][3];
-  copy_m3d_m3(dmat, mat);
+  double3x3 dmat;
+  copy_m3d_m3(dmat.ptr(), mat);
 
   /* Check individual axis scaling. */
-  EXPECT_NEAR(len_v3_db(dmat[0]), 1.0, epsilon_scale);
-  EXPECT_NEAR(len_v3_db(dmat[1]), 1.0, epsilon_scale);
-  EXPECT_NEAR(len_v3_db(dmat[2]), 1.0, epsilon_scale);
+  EXPECT_NEAR(math::length(dmat[0]), 1.0, epsilon_scale);
+  EXPECT_NEAR(math::length(dmat[1]), 1.0, epsilon_scale);
+  EXPECT_NEAR(math::length(dmat[2]), 1.0, epsilon_scale);
 
   /* Check orthogonality. */
   EXPECT_NEAR(dot_v3v3_db(dmat[0], dmat[1]), 0.0, epsilon_ortho);
@@ -43,7 +44,7 @@ static double EXPECT_M3_ORTHOGONAL(const float mat[3][3],
   EXPECT_NEAR(dot_v3v3_db(dmat[1], dmat[2]), 0.0, epsilon_ortho);
 
   /* Check determinant to detect flipping and as a secondary volume change check. */
-  double determinant = determinant_m3_array_db(dmat);
+  double determinant = math::determinant(dmat);
 
   EXPECT_NEAR(determinant, 1.0, epsilon_ortho);
 

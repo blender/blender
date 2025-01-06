@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __NODES_H__
-#define __NODES_H__
+#pragma once
 
 #include "graph/node.h"
 #include "scene/image.h"
@@ -11,6 +10,7 @@
 
 #include "util/array.h"
 #include "util/string.h"
+#include "util/unique_ptr.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -26,12 +26,12 @@ class TextureMapping {
   TextureMapping();
   Transform compute_transform();
   bool skip();
-  void compile(SVMCompiler &compiler, int offset_in, int offset_out);
+  void compile(SVMCompiler &compiler, const int offset_in, const int offset_out);
   int compile(SVMCompiler &compiler, ShaderInput *vector_in);
   void compile(OSLCompiler &compiler);
 
   int compile_begin(SVMCompiler &compiler, ShaderInput *vector_in);
-  void compile_end(SVMCompiler &compiler, ShaderInput *vector_in, int vector_offset);
+  void compile_end(SVMCompiler &compiler, ShaderInput *vector_in, const int vector_offset);
 
   float3 translation;
   float3 rotation;
@@ -77,7 +77,7 @@ class ImageSlotTextureNode : public TextureNode {
     special_type = SHADER_SPECIAL_TYPE_IMAGE_SLOT;
   }
 
-  virtual bool equals(const ShaderNode &other)
+  bool equals(const ShaderNode &other) override
   {
     const ImageSlotTextureNode &other_node = (const ImageSlotTextureNode &)other;
     return TextureNode::equals(other) && handle == other_node.handle;
@@ -89,14 +89,14 @@ class ImageSlotTextureNode : public TextureNode {
 class ImageTextureNode : public ImageSlotTextureNode {
  public:
   SHADER_NODE_NO_CLONE_CLASS(ImageTextureNode)
-  ShaderNode *clone(ShaderGraph *graph) const;
-  void attributes(Shader *shader, AttributeRequestSet *attributes);
-  bool has_attribute_dependency()
+  ShaderNode *clone(ShaderGraph *graph) const override;
+  void attributes(Shader *shader, AttributeRequestSet *attributes) override;
+  bool has_attribute_dependency() override
   {
     return true;
   }
 
-  virtual bool equals(const ShaderNode &other)
+  bool equals(const ShaderNode &other) override
   {
     const ImageTextureNode &other_node = (const ImageTextureNode &)other;
     return ImageSlotTextureNode::equals(other) && animated == other_node.animated;
@@ -123,14 +123,14 @@ class ImageTextureNode : public ImageSlotTextureNode {
 class EnvironmentTextureNode : public ImageSlotTextureNode {
  public:
   SHADER_NODE_NO_CLONE_CLASS(EnvironmentTextureNode)
-  ShaderNode *clone(ShaderGraph *graph) const;
-  void attributes(Shader *shader, AttributeRequestSet *attributes);
-  bool has_attribute_dependency()
+  ShaderNode *clone(ShaderGraph *graph) const override;
+  void attributes(Shader *shader, AttributeRequestSet *attributes) override;
+  bool has_attribute_dependency() override
   {
     return true;
   }
 
-  virtual bool equals(const ShaderNode &other)
+  bool equals(const ShaderNode &other) override
   {
     const EnvironmentTextureNode &other_node = (const EnvironmentTextureNode &)other;
     return ImageSlotTextureNode::equals(other) && animated == other_node.animated;
@@ -168,7 +168,7 @@ class SkyTextureNode : public TextureNode {
   NODE_SOCKET_API(float3, vector)
   ImageHandle handle;
 
-  void simplify_settings(Scene *scene);
+  void simplify_settings(Scene *scene) override;
 
   float get_sun_size()
   {
@@ -189,7 +189,7 @@ class OutputNode : public ShaderNode {
   NODE_SOCKET_API(float3, normal)
 
   /* Don't allow output node de-duplication. */
-  virtual bool equals(const ShaderNode & /*other*/)
+  bool equals(const ShaderNode & /*other*/) override
   {
     return false;
   }
@@ -198,7 +198,7 @@ class OutputNode : public ShaderNode {
 class OutputAOVNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(OutputAOVNode)
-  virtual void simplify_settings(Scene *scene);
+  void simplify_settings(Scene *scene) override;
 
   NODE_SOCKET_API(float, value)
   NODE_SOCKET_API(float3, color)
@@ -206,7 +206,7 @@ class OutputAOVNode : public ShaderNode {
   NODE_SOCKET_API(ustring, name)
 
   /* Don't allow output node de-duplication. */
-  virtual bool equals(const ShaderNode & /*other*/)
+  bool equals(const ShaderNode & /*other*/) override
   {
     return false;
   }
@@ -258,7 +258,7 @@ class VoronoiTextureNode : public TextureNode {
  public:
   SHADER_NODE_CLASS(VoronoiTextureNode)
 
-  virtual int get_feature()
+  int get_feature() override
   {
     int result = ShaderNode::get_feature();
     if (dimensions == 4) {
@@ -348,15 +348,15 @@ class PointDensityTextureNode : public ShaderNode {
  public:
   SHADER_NODE_NO_CLONE_CLASS(PointDensityTextureNode)
 
-  ~PointDensityTextureNode();
-  ShaderNode *clone(ShaderGraph *graph) const;
-  void attributes(Shader *shader, AttributeRequestSet *attributes);
-  bool has_attribute_dependency()
+  ~PointDensityTextureNode() override;
+  ShaderNode *clone(ShaderGraph *graph) const override;
+  void attributes(Shader *shader, AttributeRequestSet *attributes) override;
+  bool has_attribute_dependency() override
   {
     return true;
   }
 
-  bool has_spatial_varying()
+  bool has_spatial_varying() override
   {
     return true;
   }
@@ -373,7 +373,7 @@ class PointDensityTextureNode : public ShaderNode {
 
   ImageParams image_params() const;
 
-  virtual bool equals(const ShaderNode &other)
+  bool equals(const ShaderNode &other) override
   {
     const PointDensityTextureNode &other_node = (const PointDensityTextureNode &)other;
     return ShaderNode::equals(other) && handle == other_node.handle;
@@ -384,8 +384,8 @@ class IESLightNode : public TextureNode {
  public:
   SHADER_NODE_NO_CLONE_CLASS(IESLightNode)
 
-  ~IESLightNode();
-  ShaderNode *clone(ShaderGraph *graph) const;
+  ~IESLightNode() override;
+  ShaderNode *clone(ShaderGraph *graph) const override;
 
   NODE_SOCKET_API(ustring, filename)
   NODE_SOCKET_API(ustring, ies)
@@ -412,7 +412,7 @@ class WhiteNoiseTextureNode : public ShaderNode {
 class MappingNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(MappingNode)
-  void constant_fold(const ConstantFolder &folder);
+  void constant_fold(const ConstantFolder &folder) override;
 
   NODE_SOCKET_API(float3, vector)
   NODE_SOCKET_API(float3, location)
@@ -424,7 +424,7 @@ class MappingNode : public ShaderNode {
 class RGBToBWNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(RGBToBWNode)
-  void constant_fold(const ConstantFolder &folder);
+  void constant_fold(const ConstantFolder &folder) override;
 
   NODE_SOCKET_API(float3, color)
 };
@@ -435,7 +435,7 @@ class ConvertNode : public ShaderNode {
   ConvertNode(const ConvertNode &other);
   SHADER_NODE_BASE_CLASS(ConvertNode)
 
-  void constant_fold(const ConstantFolder &folder);
+  void constant_fold(const ConstantFolder &folder) override;
 
  private:
   SocketType::Type from, to;
@@ -452,7 +452,7 @@ class ConvertNode : public ShaderNode {
 
   static const int MAX_TYPE = 13;
   static bool register_types();
-  static Node *create(const NodeType *type);
+  static unique_ptr<Node> create(const NodeType *type);
   static const NodeType *node_types[MAX_TYPE][MAX_TYPE];
   static bool initialized;
 };
@@ -461,23 +461,23 @@ class BsdfBaseNode : public ShaderNode {
  public:
   BsdfBaseNode(const NodeType *node_type);
 
-  bool has_spatial_varying()
+  bool has_spatial_varying() override
   {
     return true;
   }
-  virtual ClosureType get_closure_type()
+  ClosureType get_closure_type() override
   {
     return closure;
   }
-  virtual bool has_bump();
+  bool has_bump() override;
 
-  virtual bool equals(const ShaderNode & /*other*/)
+  bool equals(const ShaderNode & /*other*/) override
   {
     /* TODO(sergey): With some care BSDF nodes can be de-duplicated. */
     return false;
   }
 
-  virtual int get_feature()
+  int get_feature() override
   {
     return ShaderNode::get_feature() | KERNEL_FEATURE_NODE_BSDF;
   }
@@ -515,9 +515,9 @@ class PrincipledBsdfNode : public BsdfBaseNode {
  public:
   SHADER_NODE_CLASS(PrincipledBsdfNode)
 
-  bool has_surface_bssrdf();
-  bool has_bssrdf_bump();
-  void simplify_settings(Scene *scene);
+  bool has_surface_bssrdf() override;
+  bool has_bssrdf_bump() override;
+  void simplify_settings(Scene *scene) override;
 
   NODE_SOCKET_API(float3, base_color)
   NODE_SOCKET_API(float, metallic)
@@ -554,13 +554,13 @@ class PrincipledBsdfNode : public BsdfBaseNode {
   NODE_SOCKET_API(float, thin_film_ior)
 
  public:
-  void attributes(Shader *shader, AttributeRequestSet *attributes);
-  bool has_attribute_dependency()
+  void attributes(Shader *shader, AttributeRequestSet *attributes) override;
+  bool has_attribute_dependency() override
   {
     return true;
   }
-  bool has_surface_transparent();
-  bool has_surface_emission();
+  bool has_surface_transparent() override;
+  bool has_surface_emission() override;
 };
 
 class TranslucentBsdfNode : public BsdfNode {
@@ -572,7 +572,7 @@ class TransparentBsdfNode : public BsdfNode {
  public:
   SHADER_NODE_CLASS(TransparentBsdfNode)
 
-  bool has_surface_transparent()
+  bool has_surface_transparent() override
   {
     return true;
   }
@@ -585,7 +585,7 @@ class RayPortalBsdfNode : public BsdfNode {
   NODE_SOCKET_API(float3, position)
   NODE_SOCKET_API(float3, direction)
 
-  bool has_surface_transparent()
+  bool has_surface_transparent() override
   {
     return true;
   }
@@ -598,7 +598,7 @@ class SheenBsdfNode : public BsdfNode {
   NODE_SOCKET_API(float, roughness)
   NODE_SOCKET_API(ClosureType, distribution)
 
-  ClosureType get_closure_type()
+  ClosureType get_closure_type() override
   {
     return distribution;
   }
@@ -608,8 +608,8 @@ class MetallicBsdfNode : public BsdfNode {
  public:
   SHADER_NODE_CLASS(MetallicBsdfNode)
 
-  void simplify_settings(Scene *scene);
-  ClosureType get_closure_type()
+  void simplify_settings(Scene *scene) override;
+  ClosureType get_closure_type() override
   {
     return closure;
   }
@@ -624,8 +624,8 @@ class MetallicBsdfNode : public BsdfNode {
   NODE_SOCKET_API(ClosureType, distribution)
   NODE_SOCKET_API(ClosureType, fresnel_type)
 
-  void attributes(Shader *shader, AttributeRequestSet *attributes);
-  bool has_attribute_dependency()
+  void attributes(Shader *shader, AttributeRequestSet *attributes) override;
+  bool has_attribute_dependency() override
   {
     return true;
   }
@@ -637,8 +637,8 @@ class GlossyBsdfNode : public BsdfNode {
  public:
   SHADER_NODE_CLASS(GlossyBsdfNode)
 
-  void simplify_settings(Scene *scene);
-  ClosureType get_closure_type()
+  void simplify_settings(Scene *scene) override;
+  ClosureType get_closure_type() override
   {
     return distribution;
   }
@@ -649,8 +649,8 @@ class GlossyBsdfNode : public BsdfNode {
   NODE_SOCKET_API(float, rotation)
   NODE_SOCKET_API(ClosureType, distribution)
 
-  void attributes(Shader *shader, AttributeRequestSet *attributes);
-  bool has_attribute_dependency()
+  void attributes(Shader *shader, AttributeRequestSet *attributes) override;
+  bool has_attribute_dependency() override
   {
     return true;
   }
@@ -662,7 +662,7 @@ class GlassBsdfNode : public BsdfNode {
  public:
   SHADER_NODE_CLASS(GlassBsdfNode)
 
-  ClosureType get_closure_type()
+  ClosureType get_closure_type() override
   {
     return distribution;
   }
@@ -676,7 +676,7 @@ class RefractionBsdfNode : public BsdfNode {
  public:
   SHADER_NODE_CLASS(RefractionBsdfNode)
 
-  ClosureType get_closure_type()
+  ClosureType get_closure_type() override
   {
     return distribution;
   }
@@ -698,12 +698,12 @@ class ToonBsdfNode : public BsdfNode {
 class SubsurfaceScatteringNode : public BsdfNode {
  public:
   SHADER_NODE_CLASS(SubsurfaceScatteringNode)
-  bool has_surface_bssrdf()
+  bool has_surface_bssrdf() override
   {
     return true;
   }
-  bool has_bssrdf_bump();
-  ClosureType get_closure_type()
+  bool has_bssrdf_bump() override;
+  ClosureType get_closure_type() override
   {
     return method;
   }
@@ -719,18 +719,18 @@ class SubsurfaceScatteringNode : public BsdfNode {
 class EmissionNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(EmissionNode)
-  void constant_fold(const ConstantFolder &folder);
+  void constant_fold(const ConstantFolder &folder) override;
 
-  bool has_surface_emission()
+  bool has_surface_emission() override
   {
     return true;
   }
-  bool has_volume_support()
+  bool has_volume_support() override
   {
     return true;
   }
 
-  virtual int get_feature()
+  int get_feature() override
   {
     return ShaderNode::get_feature() | KERNEL_FEATURE_NODE_EMISSION;
   }
@@ -745,9 +745,9 @@ class EmissionNode : public ShaderNode {
 class BackgroundNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(BackgroundNode)
-  void constant_fold(const ConstantFolder &folder);
+  void constant_fold(const ConstantFolder &folder) override;
 
-  virtual int get_feature()
+  int get_feature() override
   {
     return ShaderNode::get_feature() | KERNEL_FEATURE_NODE_EMISSION;
   }
@@ -760,7 +760,7 @@ class BackgroundNode : public ShaderNode {
 class HoldoutNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(HoldoutNode)
-  virtual ClosureType get_closure_type()
+  ClosureType get_closure_type() override
   {
     return CLOSURE_HOLDOUT_ID;
   }
@@ -773,11 +773,11 @@ class AmbientOcclusionNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(AmbientOcclusionNode)
 
-  bool has_spatial_varying()
+  bool has_spatial_varying() override
   {
     return true;
   }
-  virtual int get_feature()
+  int get_feature() override
   {
     return KERNEL_FEATURE_NODE_RAYTRACE;
   }
@@ -800,15 +800,15 @@ class VolumeNode : public ShaderNode {
                ShaderInput *density,
                ShaderInput *param1 = nullptr,
                ShaderInput *param2 = nullptr);
-  virtual int get_feature()
+  int get_feature() override
   {
     return ShaderNode::get_feature() | KERNEL_FEATURE_NODE_VOLUME;
   }
-  virtual ClosureType get_closure_type()
+  ClosureType get_closure_type() override
   {
     return closure;
   }
-  virtual bool has_volume_support()
+  bool has_volume_support() override
   {
     return true;
   }
@@ -821,7 +821,7 @@ class VolumeNode : public ShaderNode {
   ClosureType closure;
 
  public:
-  virtual bool equals(const ShaderNode & /*other*/)
+  bool equals(const ShaderNode & /*other*/) override
   {
     /* TODO(sergey): With some care Volume nodes can be de-duplicated. */
     return false;
@@ -848,8 +848,8 @@ class ScatterVolumeNode : public VolumeNode {
 class PrincipledVolumeNode : public VolumeNode {
  public:
   SHADER_NODE_CLASS(PrincipledVolumeNode)
-  void attributes(Shader *shader, AttributeRequestSet *attributes);
-  bool has_attribute_dependency()
+  void attributes(Shader *shader, AttributeRequestSet *attributes) override;
+  bool has_attribute_dependency() override
   {
     return true;
   }
@@ -871,7 +871,7 @@ class PrincipledVolumeNode : public VolumeNode {
 class PrincipledHairBsdfNode : public BsdfBaseNode {
  public:
   SHADER_NODE_CLASS(PrincipledHairBsdfNode)
-  void attributes(Shader *shader, AttributeRequestSet *attributes);
+  void attributes(Shader *shader, AttributeRequestSet *attributes) override;
 
   /* Longitudinal roughness. */
   NODE_SOCKET_API(float, roughness)
@@ -915,18 +915,18 @@ class PrincipledHairBsdfNode : public BsdfBaseNode {
   /* Selected scattering model (chiang/huang). */
   NODE_SOCKET_API(NodePrincipledHairModel, model)
 
-  virtual int get_feature()
+  int get_feature() override
   {
-    return ShaderNode::get_feature() | KERNEL_FEATURE_NODE_PRINCIPLED_HAIR;
+    return ccl::BsdfBaseNode::get_feature() | KERNEL_FEATURE_NODE_PRINCIPLED_HAIR;
   }
 
-  bool has_surface_transparent();
+  bool has_surface_transparent() override;
 };
 
 class HairBsdfNode : public BsdfNode {
  public:
   SHADER_NODE_CLASS(HairBsdfNode)
-  ClosureType get_closure_type()
+  ClosureType get_closure_type() override
   {
     return component;
   }
@@ -941,12 +941,12 @@ class HairBsdfNode : public BsdfNode {
 class GeometryNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(GeometryNode)
-  void attributes(Shader *shader, AttributeRequestSet *attributes);
-  bool has_attribute_dependency()
+  void attributes(Shader *shader, AttributeRequestSet *attributes) override;
+  bool has_attribute_dependency() override
   {
     return true;
   }
-  bool has_spatial_varying()
+  bool has_spatial_varying() override
   {
     return true;
   }
@@ -956,12 +956,12 @@ class GeometryNode : public ShaderNode {
 class TextureCoordinateNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(TextureCoordinateNode)
-  void attributes(Shader *shader, AttributeRequestSet *attributes);
-  bool has_attribute_dependency()
+  void attributes(Shader *shader, AttributeRequestSet *attributes) override;
+  bool has_attribute_dependency() override
   {
     return true;
   }
-  bool has_spatial_varying()
+  bool has_spatial_varying() override
   {
     return true;
   }
@@ -974,12 +974,12 @@ class TextureCoordinateNode : public ShaderNode {
 class UVMapNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(UVMapNode)
-  void attributes(Shader *shader, AttributeRequestSet *attributes);
-  bool has_attribute_dependency()
+  void attributes(Shader *shader, AttributeRequestSet *attributes) override;
+  bool has_attribute_dependency() override
   {
     return true;
   }
-  bool has_spatial_varying()
+  bool has_spatial_varying() override
   {
     return true;
   }
@@ -996,7 +996,7 @@ class LightPathNode : public ShaderNode {
 class LightFalloffNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(LightFalloffNode)
-  bool has_spatial_varying()
+  bool has_spatial_varying() override
   {
     return true;
   }
@@ -1013,8 +1013,8 @@ class ObjectInfoNode : public ShaderNode {
 class ParticleInfoNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(ParticleInfoNode)
-  void attributes(Shader *shader, AttributeRequestSet *attributes);
-  bool has_attribute_dependency()
+  void attributes(Shader *shader, AttributeRequestSet *attributes) override;
+  bool has_attribute_dependency() override
   {
     return true;
   }
@@ -1024,12 +1024,12 @@ class HairInfoNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(HairInfoNode)
 
-  void attributes(Shader *shader, AttributeRequestSet *attributes);
-  bool has_attribute_dependency()
+  void attributes(Shader *shader, AttributeRequestSet *attributes) override;
+  bool has_attribute_dependency() override
   {
     return true;
   }
-  bool has_spatial_varying()
+  bool has_spatial_varying() override
   {
     return true;
   }
@@ -1039,12 +1039,12 @@ class PointInfoNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(PointInfoNode)
 
-  void attributes(Shader *shader, AttributeRequestSet *attributes);
-  bool has_attribute_dependency()
+  void attributes(Shader *shader, AttributeRequestSet *attributes) override;
+  bool has_attribute_dependency() override
   {
     return true;
   }
-  bool has_spatial_varying()
+  bool has_spatial_varying() override
   {
     return true;
   }
@@ -1053,27 +1053,27 @@ class PointInfoNode : public ShaderNode {
 class VolumeInfoNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(VolumeInfoNode)
-  void attributes(Shader *shader, AttributeRequestSet *attributes);
-  bool has_attribute_dependency()
+  void attributes(Shader *shader, AttributeRequestSet *attributes) override;
+  bool has_attribute_dependency() override
   {
     return true;
   }
-  bool has_spatial_varying()
+  bool has_spatial_varying() override
   {
     return true;
   }
-  void expand(ShaderGraph *graph);
+  void expand(ShaderGraph *graph) override;
 };
 
 class VertexColorNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(VertexColorNode)
-  void attributes(Shader *shader, AttributeRequestSet *attributes);
-  bool has_attribute_dependency()
+  void attributes(Shader *shader, AttributeRequestSet *attributes) override;
+  bool has_attribute_dependency() override
   {
     return true;
   }
-  bool has_spatial_varying()
+  bool has_spatial_varying() override
   {
     return true;
   }
@@ -1085,7 +1085,7 @@ class ValueNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(ValueNode)
 
-  void constant_fold(const ConstantFolder &folder);
+  void constant_fold(const ConstantFolder &folder) override;
 
   NODE_SOCKET_API(float, value)
 };
@@ -1094,7 +1094,7 @@ class ColorNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(ColorNode)
 
-  void constant_fold(const ConstantFolder &folder);
+  void constant_fold(const ConstantFolder &folder) override;
 
   NODE_SOCKET_API(float3, value)
 };
@@ -1102,13 +1102,13 @@ class ColorNode : public ShaderNode {
 class AddClosureNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(AddClosureNode)
-  void constant_fold(const ConstantFolder &folder);
+  void constant_fold(const ConstantFolder &folder) override;
 };
 
 class MixClosureNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(MixClosureNode)
-  void constant_fold(const ConstantFolder &folder);
+  void constant_fold(const ConstantFolder &folder) override;
 
   NODE_SOCKET_API(float, fac)
 };
@@ -1124,7 +1124,7 @@ class MixClosureWeightNode : public ShaderNode {
 class InvertNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(InvertNode)
-  void constant_fold(const ConstantFolder &folder);
+  void constant_fold(const ConstantFolder &folder) override;
 
   NODE_SOCKET_API(float, fac)
   NODE_SOCKET_API(float3, color)
@@ -1133,7 +1133,7 @@ class InvertNode : public ShaderNode {
 class MixNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(MixNode)
-  void constant_fold(const ConstantFolder &folder);
+  void constant_fold(const ConstantFolder &folder) override;
 
   NODE_SOCKET_API(NodeMix, mix_type)
   NODE_SOCKET_API(bool, use_clamp)
@@ -1145,7 +1145,7 @@ class MixNode : public ShaderNode {
 class MixColorNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(MixColorNode)
-  void constant_fold(const ConstantFolder &folder);
+  void constant_fold(const ConstantFolder &folder) override;
 
   NODE_SOCKET_API(float3, a)
   NODE_SOCKET_API(float3, b)
@@ -1158,7 +1158,7 @@ class MixColorNode : public ShaderNode {
 class MixFloatNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(MixFloatNode)
-  void constant_fold(const ConstantFolder &folder);
+  void constant_fold(const ConstantFolder &folder) override;
 
   NODE_SOCKET_API(float, a)
   NODE_SOCKET_API(float, b)
@@ -1169,7 +1169,7 @@ class MixFloatNode : public ShaderNode {
 class MixVectorNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(MixVectorNode)
-  void constant_fold(const ConstantFolder &folder);
+  void constant_fold(const ConstantFolder &folder) override;
 
   NODE_SOCKET_API(float3, a)
   NODE_SOCKET_API(float3, b)
@@ -1180,7 +1180,7 @@ class MixVectorNode : public ShaderNode {
 class MixVectorNonUniformNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(MixVectorNonUniformNode)
-  void constant_fold(const ConstantFolder &folder);
+  void constant_fold(const ConstantFolder &folder) override;
 
   NODE_SOCKET_API(float3, a)
   NODE_SOCKET_API(float3, b)
@@ -1191,7 +1191,7 @@ class MixVectorNonUniformNode : public ShaderNode {
 class CombineColorNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(CombineColorNode)
-  void constant_fold(const ConstantFolder &folder);
+  void constant_fold(const ConstantFolder &folder) override;
 
   NODE_SOCKET_API(NodeCombSepColorType, color_type)
   NODE_SOCKET_API(float, r)
@@ -1202,7 +1202,7 @@ class CombineColorNode : public ShaderNode {
 class CombineRGBNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(CombineRGBNode)
-  void constant_fold(const ConstantFolder &folder);
+  void constant_fold(const ConstantFolder &folder) override;
 
   NODE_SOCKET_API(float, r)
   NODE_SOCKET_API(float, g)
@@ -1212,7 +1212,7 @@ class CombineRGBNode : public ShaderNode {
 class CombineHSVNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(CombineHSVNode)
-  void constant_fold(const ConstantFolder &folder);
+  void constant_fold(const ConstantFolder &folder) override;
 
   NODE_SOCKET_API(float, h)
   NODE_SOCKET_API(float, s)
@@ -1222,7 +1222,7 @@ class CombineHSVNode : public ShaderNode {
 class CombineXYZNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(CombineXYZNode)
-  void constant_fold(const ConstantFolder &folder);
+  void constant_fold(const ConstantFolder &folder) override;
 
   NODE_SOCKET_API(float, x)
   NODE_SOCKET_API(float, y)
@@ -1232,7 +1232,7 @@ class CombineXYZNode : public ShaderNode {
 class GammaNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(GammaNode)
-  void constant_fold(const ConstantFolder &folder);
+  void constant_fold(const ConstantFolder &folder) override;
 
   NODE_SOCKET_API(float3, color)
   NODE_SOCKET_API(float, gamma)
@@ -1241,7 +1241,7 @@ class GammaNode : public ShaderNode {
 class BrightContrastNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(BrightContrastNode)
-  void constant_fold(const ConstantFolder &folder);
+  void constant_fold(const ConstantFolder &folder) override;
 
   NODE_SOCKET_API(float3, color)
   NODE_SOCKET_API(float, bright)
@@ -1251,7 +1251,7 @@ class BrightContrastNode : public ShaderNode {
 class SeparateColorNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(SeparateColorNode)
-  void constant_fold(const ConstantFolder &folder);
+  void constant_fold(const ConstantFolder &folder) override;
 
   NODE_SOCKET_API(NodeCombSepColorType, color_type)
   NODE_SOCKET_API(float3, color)
@@ -1260,7 +1260,7 @@ class SeparateColorNode : public ShaderNode {
 class SeparateRGBNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(SeparateRGBNode)
-  void constant_fold(const ConstantFolder &folder);
+  void constant_fold(const ConstantFolder &folder) override;
 
   NODE_SOCKET_API(float3, color)
 };
@@ -1268,7 +1268,7 @@ class SeparateRGBNode : public ShaderNode {
 class SeparateHSVNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(SeparateHSVNode)
-  void constant_fold(const ConstantFolder &folder);
+  void constant_fold(const ConstantFolder &folder) override;
 
   NODE_SOCKET_API(float3, color)
 };
@@ -1276,7 +1276,7 @@ class SeparateHSVNode : public ShaderNode {
 class SeparateXYZNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(SeparateXYZNode)
-  void constant_fold(const ConstantFolder &folder);
+  void constant_fold(const ConstantFolder &folder) override;
 
   NODE_SOCKET_API(float3, vector)
 };
@@ -1295,12 +1295,12 @@ class HSVNode : public ShaderNode {
 class AttributeNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(AttributeNode)
-  void attributes(Shader *shader, AttributeRequestSet *attributes);
-  bool has_attribute_dependency()
+  void attributes(Shader *shader, AttributeRequestSet *attributes) override;
+  bool has_attribute_dependency() override
   {
     return true;
   }
-  bool has_spatial_varying()
+  bool has_spatial_varying() override
   {
     return true;
   }
@@ -1311,7 +1311,7 @@ class AttributeNode : public ShaderNode {
 class CameraNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(CameraNode)
-  bool has_spatial_varying()
+  bool has_spatial_varying() override
   {
     return true;
   }
@@ -1320,7 +1320,7 @@ class CameraNode : public ShaderNode {
 class FresnelNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(FresnelNode)
-  bool has_spatial_varying()
+  bool has_spatial_varying() override
   {
     return true;
   }
@@ -1332,7 +1332,7 @@ class FresnelNode : public ShaderNode {
 class LayerWeightNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(LayerWeightNode)
-  bool has_spatial_varying()
+  bool has_spatial_varying() override
   {
     return true;
   }
@@ -1344,7 +1344,7 @@ class LayerWeightNode : public ShaderNode {
 class WireframeNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(WireframeNode)
-  bool has_spatial_varying()
+  bool has_spatial_varying() override
   {
     return true;
   }
@@ -1363,7 +1363,7 @@ class WavelengthNode : public ShaderNode {
 class BlackbodyNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(BlackbodyNode)
-  void constant_fold(const ConstantFolder &folder);
+  void constant_fold(const ConstantFolder &folder) override;
 
   NODE_SOCKET_API(float, temperature)
 };
@@ -1371,7 +1371,7 @@ class BlackbodyNode : public ShaderNode {
 class VectorMapRangeNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(VectorMapRangeNode)
-  void expand(ShaderGraph *graph);
+  void expand(ShaderGraph *graph) override;
 
   NODE_SOCKET_API(float3, vector)
   NODE_SOCKET_API(float3, from_min)
@@ -1386,7 +1386,7 @@ class VectorMapRangeNode : public ShaderNode {
 class MapRangeNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(MapRangeNode)
-  void expand(ShaderGraph *graph);
+  void expand(ShaderGraph *graph) override;
 
   NODE_SOCKET_API(float, value)
   NODE_SOCKET_API(float, from_min)
@@ -1401,7 +1401,7 @@ class MapRangeNode : public ShaderNode {
 class ClampNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(ClampNode)
-  void constant_fold(const ConstantFolder &folder);
+  void constant_fold(const ConstantFolder &folder) override;
   NODE_SOCKET_API(float, value)
   NODE_SOCKET_API(float, min)
   NODE_SOCKET_API(float, max)
@@ -1411,8 +1411,8 @@ class ClampNode : public ShaderNode {
 class MathNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(MathNode)
-  void expand(ShaderGraph *graph);
-  void constant_fold(const ConstantFolder &folder);
+  void expand(ShaderGraph *graph) override;
+  void constant_fold(const ConstantFolder &folder) override;
 
   NODE_SOCKET_API(float, value1)
   NODE_SOCKET_API(float, value2)
@@ -1432,7 +1432,7 @@ class NormalNode : public ShaderNode {
 class VectorMathNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(VectorMathNode)
-  void constant_fold(const ConstantFolder &folder);
+  void constant_fold(const ConstantFolder &folder) override;
 
   NODE_SOCKET_API(float3, vector1)
   NODE_SOCKET_API(float3, vector2)
@@ -1467,12 +1467,12 @@ class VectorTransformNode : public ShaderNode {
 class BumpNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(BumpNode)
-  void constant_fold(const ConstantFolder &folder);
-  bool has_spatial_varying()
+  void constant_fold(const ConstantFolder &folder) override;
+  bool has_spatial_varying() override
   {
     return true;
   }
-  virtual int get_feature()
+  int get_feature() override
   {
     return KERNEL_FEATURE_NODE_BUMP;
   }
@@ -1503,26 +1503,29 @@ class CurvesNode : public ShaderNode {
  protected:
   using ShaderNode::constant_fold;
   void constant_fold(const ConstantFolder &folder, ShaderInput *value_in);
-  void compile(SVMCompiler &compiler, int type, ShaderInput *value_in, ShaderOutput *value_out);
+  void compile(SVMCompiler &compiler,
+               const int type,
+               ShaderInput *value_in,
+               ShaderOutput *value_out);
   void compile(OSLCompiler &compiler, const char *name);
 };
 
 class RGBCurvesNode : public CurvesNode {
  public:
   SHADER_NODE_CLASS(RGBCurvesNode)
-  void constant_fold(const ConstantFolder &folder);
+  void constant_fold(const ConstantFolder &folder) override;
 };
 
 class VectorCurvesNode : public CurvesNode {
  public:
   SHADER_NODE_CLASS(VectorCurvesNode)
-  void constant_fold(const ConstantFolder &folder);
+  void constant_fold(const ConstantFolder &folder) override;
 };
 
 class FloatCurveNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(FloatCurveNode)
-  void constant_fold(const ConstantFolder &folder);
+  void constant_fold(const ConstantFolder &folder) override;
 
   NODE_SOCKET_API_ARRAY(array<float>, curve)
   NODE_SOCKET_API(float, min_x)
@@ -1535,7 +1538,7 @@ class FloatCurveNode : public ShaderNode {
 class RGBRampNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(RGBRampNode)
-  void constant_fold(const ConstantFolder &folder);
+  void constant_fold(const ConstantFolder &folder) override;
 
   NODE_SOCKET_API_ARRAY(array<float3>, ramp)
   NODE_SOCKET_API_ARRAY(array<float>, ramp_alpha)
@@ -1551,8 +1554,10 @@ class SetNormalNode : public ShaderNode {
 
 class OSLNode final : public ShaderNode {
  public:
-  static OSLNode *create(ShaderGraph *graph, size_t num_inputs, const OSLNode *from = NULL);
-  ~OSLNode();
+  static OSLNode *create(ShaderGraph *graph,
+                         const size_t num_inputs,
+                         const OSLNode *from = nullptr);
+  ~OSLNode() override;
 
   static void operator delete(void *ptr)
   {
@@ -1561,12 +1566,12 @@ class OSLNode final : public ShaderNode {
      * extra space at the end of the node. */
     ::operator delete(ptr);
   }
-  static void operator delete(void *, void *)
+  static void operator delete(void * /*unused*/, void * /*unused*/)
   {
     /* Deliberately empty placement delete operator, to avoid MSVC warning C4291. */
   }
 
-  ShaderNode *clone(ShaderGraph *graph) const;
+  ShaderNode *clone(ShaderGraph *graph) const override;
 
   char *input_default_value();
   void add_input(ustring name, SocketType::Type type, const int flags = 0);
@@ -1574,26 +1579,26 @@ class OSLNode final : public ShaderNode {
 
   SHADER_NODE_NO_CLONE_CLASS(OSLNode)
 
-  bool has_surface_emission()
+  bool has_surface_emission() override
   {
     return has_emission;
   }
 
   /* Ideally we could better detect this, but we can't query this now. */
-  bool has_spatial_varying()
+  bool has_spatial_varying() override
   {
     return true;
   }
-  bool has_volume_support()
+  bool has_volume_support() override
   {
     return true;
   }
-  virtual int get_feature()
+  int get_feature() override
   {
     return ShaderNode::get_feature() | KERNEL_FEATURE_NODE_RAYTRACE;
   }
 
-  virtual bool equals(const ShaderNode & /*other*/)
+  bool equals(const ShaderNode & /*other*/) override
   {
     return false;
   }
@@ -1606,12 +1611,12 @@ class OSLNode final : public ShaderNode {
 class NormalMapNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(NormalMapNode)
-  void attributes(Shader *shader, AttributeRequestSet *attributes);
-  bool has_attribute_dependency()
+  void attributes(Shader *shader, AttributeRequestSet *attributes) override;
+  bool has_attribute_dependency() override
   {
     return true;
   }
-  bool has_spatial_varying()
+  bool has_spatial_varying() override
   {
     return true;
   }
@@ -1625,12 +1630,12 @@ class NormalMapNode : public ShaderNode {
 class TangentNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(TangentNode)
-  void attributes(Shader *shader, AttributeRequestSet *attributes);
-  bool has_attribute_dependency()
+  void attributes(Shader *shader, AttributeRequestSet *attributes) override;
+  bool has_attribute_dependency() override
   {
     return true;
   }
-  bool has_spatial_varying()
+  bool has_spatial_varying() override
   {
     return true;
   }
@@ -1643,11 +1648,11 @@ class TangentNode : public ShaderNode {
 class BevelNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(BevelNode)
-  bool has_spatial_varying()
+  bool has_spatial_varying() override
   {
     return true;
   }
-  virtual int get_feature()
+  int get_feature() override
   {
     return KERNEL_FEATURE_NODE_RAYTRACE;
   }
@@ -1660,8 +1665,8 @@ class BevelNode : public ShaderNode {
 class DisplacementNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(DisplacementNode)
-  void constant_fold(const ConstantFolder &folder);
-  virtual int get_feature()
+  void constant_fold(const ConstantFolder &folder) override;
+  int get_feature() override
   {
     return KERNEL_FEATURE_NODE_BUMP;
   }
@@ -1676,13 +1681,13 @@ class DisplacementNode : public ShaderNode {
 class VectorDisplacementNode : public ShaderNode {
  public:
   SHADER_NODE_CLASS(VectorDisplacementNode)
-  void attributes(Shader *shader, AttributeRequestSet *attributes);
-  bool has_attribute_dependency()
+  void attributes(Shader *shader, AttributeRequestSet *attributes) override;
+  bool has_attribute_dependency() override
   {
     return true;
   }
-  void constant_fold(const ConstantFolder &folder);
-  virtual int get_feature()
+  void constant_fold(const ConstantFolder &folder) override;
+  int get_feature() override
   {
     return KERNEL_FEATURE_NODE_BUMP;
   }
@@ -1695,5 +1700,3 @@ class VectorDisplacementNode : public ShaderNode {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __NODES_H__ */

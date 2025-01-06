@@ -5,6 +5,7 @@
 #pragma once
 
 #include "util/string.h"
+#include "util/unique_ptr.h"
 #include "util/vector.h"
 
 CCL_NAMESPACE_BEGIN
@@ -16,7 +17,10 @@ class Stats;
 
 bool device_hip_init();
 
-Device *device_hip_create(const DeviceInfo &info, Stats &stats, Profiler &profiler, bool headless);
+unique_ptr<Device> device_hip_create(const DeviceInfo &info,
+                                     Stats &stats,
+                                     Profiler &profiler,
+                                     bool headless);
 
 void device_hip_info(vector<DeviceInfo> &devices);
 

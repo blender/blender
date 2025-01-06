@@ -344,8 +344,7 @@ void VKDescriptorSetTracker::upload_descriptor_sets()
   int buffer_index = 0;
   int buffer_view_index = 0;
   int image_index = 0;
-  for (int write_index : vk_write_descriptor_sets_.index_range()) {
-    VkWriteDescriptorSet &vk_write_descriptor_set = vk_write_descriptor_sets_[write_index++];
+  for (VkWriteDescriptorSet &vk_write_descriptor_set : vk_write_descriptor_sets_) {
     switch (vk_write_descriptor_set.descriptorType) {
       case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:
       case VK_DESCRIPTOR_TYPE_STORAGE_IMAGE:
@@ -367,6 +366,53 @@ void VKDescriptorSetTracker::upload_descriptor_sets()
         break;
     }
   }
+
+#if 0
+  /* Uncomment this for rebalancing VKDescriptorPools::POOL_SIZE_* */
+  {
+    int storage_buffer_count = 0;
+    int storage_image_count = 0;
+    int combined_image_sampler_count = 0;
+    int uniform_buffer_count = 0;
+    int uniform_texel_buffer_count = 0;
+    int input_attachment_count = 0;
+    Set<VkDescriptorSet> descriptor_set_count;
+
+    for (VkWriteDescriptorSet &vk_write_descriptor_set : vk_write_descriptor_sets_) {
+      descriptor_set_count.add(vk_write_descriptor_set.dstSet);
+      switch (vk_write_descriptor_set.descriptorType) {
+        case VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:
+          combined_image_sampler_count += 1;
+          break;
+        case VK_DESCRIPTOR_TYPE_STORAGE_IMAGE:
+          storage_image_count += 1;
+          break;
+        case VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER:
+          uniform_texel_buffer_count += 1;
+          break;
+        case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
+          uniform_buffer_count += 1;
+          break;
+        case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER:
+          storage_buffer_count += 1;
+          break;
+        case VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT:
+          input_attachment_count += 1;
+          break;
+        default:
+          BLI_assert_unreachable();
+      }
+    }
+    std::cout << __func__ << ": "
+              << "descriptor_set=" << descriptor_set_count.size()
+              << ", combined_image_sampler=" << combined_image_sampler_count
+              << ", storage_image=" << storage_image_count
+              << ", uniform_texel_buffer=" << uniform_texel_buffer_count
+              << ", uniform_buffer=" << uniform_buffer_count
+              << ", storage_buffer=" << storage_buffer_count
+              << ", input_attachment=" << input_attachment_count << "\n";
+  }
+#endif
 
   /* Update the descriptor set on the device. */
   const VKDevice &device = VKBackend::get().device;

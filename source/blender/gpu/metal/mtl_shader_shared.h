@@ -2,10 +2,6 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-/* Global parameters. */
-#define MTL_SSBO_VERTEX_FETCH_MAX_VBOS 6 /* buffer bind 0..5 */
-#define MTL_SSBO_VERTEX_FETCH_IBO_INDEX MTL_SSBO_VERTEX_FETCH_MAX_VBOS
-
 /* Add Types as needed (Also need to be added to mtl_shader.h). */
 #define GPU_SHADER_ATTR_TYPE_FLOAT 0
 #define GPU_SHADER_ATTR_TYPE_INT 1

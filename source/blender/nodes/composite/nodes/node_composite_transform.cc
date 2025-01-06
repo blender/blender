@@ -57,7 +57,7 @@ static void node_composit_buts_transform(uiLayout *layout, bContext * /*C*/, Poi
   uiItemR(layout, ptr, "filter_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class TransformOperation : public NodeOperation {
  public:
@@ -68,10 +68,10 @@ class TransformOperation : public NodeOperation {
     Result &input = get_input("Image");
     Result &output = get_result("Image");
 
-    const float2 translation = float2(get_input("X").get_float_value_default(0.0f),
-                                      get_input("Y").get_float_value_default(0.0f));
-    const math::AngleRadian rotation = get_input("Angle").get_float_value_default(0.0f);
-    const float2 scale = float2(get_input("Scale").get_float_value_default(1.0f));
+    const float2 translation = float2(get_input("X").get_single_value_default(0.0f),
+                                      get_input("Y").get_single_value_default(0.0f));
+    const math::AngleRadian rotation = get_input("Angle").get_single_value_default(0.0f);
+    const float2 scale = float2(get_input("Scale").get_single_value_default(1.0f));
     const float3x3 transformation = math::from_loc_rot_scale<float3x3>(
         translation, rotation, scale);
 
@@ -111,6 +111,7 @@ void register_node_type_cmp_transform()
   static blender::bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_TRANSFORM, "Transform", NODE_CLASS_DISTORT);
+  ntype.enum_name_legacy = "TRANSFORM";
   ntype.declare = file_ns::cmp_node_transform_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_transform;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;

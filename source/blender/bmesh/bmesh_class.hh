@@ -49,7 +49,7 @@ struct BLI_mempool;
  * 4: some elements for internal record keeping.
  */
 typedef struct BMHeader {
-  /** Customdata layers. */
+  /** CustomData layers. */
   void *data;
 
   /**

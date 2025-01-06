@@ -1171,7 +1171,7 @@ bool UI_context_copy_to_selected_list(bContext *C,
 
     *r_lb = list_of_things;
   }
-  else if (RNA_struct_is_a(ptr->type, &RNA_Sequence)) {
+  else if (RNA_struct_is_a(ptr->type, &RNA_Strip)) {
     /* Special case when we do this for 'Sequence.lock'.
      * (if the sequence is locked, it won't be in "selected_editable_sequences"). */
     const char *prop_id = RNA_property_identifier(prop);
@@ -1222,14 +1222,13 @@ bool UI_context_copy_to_selected_list(bContext *C,
     if (RNA_struct_is_a(ptr->type, &RNA_NodeSocket)) {
       bNodeTree *ntree = (bNodeTree *)ptr->owner_id;
       bNodeSocket *sock = static_cast<bNodeSocket *>(ptr->data);
-      if (blender::bke::node_find_node_try(ntree, sock, &node, nullptr)) {
-        path = RNA_path_resolve_from_type_to_property(ptr, prop, &RNA_Node);
-        if (path) {
-          /* we're good! */
-        }
-        else {
-          node = nullptr;
-        }
+      node = &blender::bke::node_find_node(*ntree, *sock);
+      path = RNA_path_resolve_from_type_to_property(ptr, prop, &RNA_Node);
+      if (path) {
+        /* we're good! */
+      }
+      else {
+        node = nullptr;
       }
     }
     else {
@@ -1299,9 +1298,9 @@ bool UI_context_copy_to_selected_list(bContext *C,
     }
     else if (GS(id->name) == ID_SCE) {
       /* Sequencer's ID is scene :/ */
-      /* Try to recursively find an RNA_Sequence ancestor,
+      /* Try to recursively find an RNA_Strip ancestor,
        * to handle situations like #41062... */
-      *r_path = RNA_path_resolve_from_type_to_property(ptr, prop, &RNA_Sequence);
+      *r_path = RNA_path_resolve_from_type_to_property(ptr, prop, &RNA_Strip);
       if (r_path->has_value()) {
         /* Special case when we do this for 'Sequence.lock'.
          * (if the sequence is locked, it won't be in "selected_editable_sequences"). */

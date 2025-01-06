@@ -12,10 +12,9 @@ expanding an operator into a menu.
 
 
 def main():
-    import bpy
     from bpy.types import Operator
 
-    def dummy_func(test):
+    def dummy_func(_test):
         pass
 
     kw_dummy = dict(fget=dummy_func, fset=dummy_func, fdel=dummy_func)

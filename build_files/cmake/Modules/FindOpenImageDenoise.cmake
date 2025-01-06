@@ -66,7 +66,7 @@ foreach(COMPONENT ${_openimagedenoise_FIND_COMPONENTS})
       ${_openimagedenoise_SEARCH_DIRS}
     PATH_SUFFIXES
       lib64 lib
-    )
+  )
   list(APPEND _openimagedenoise_LIBRARIES "${OPENIMAGEDENOISE_${UPPERCOMPONENT}_LIBRARY}")
 endforeach()
 
@@ -80,7 +80,7 @@ foreach(COMPONENT ${_openimagedenoise_FIND_STATIC_COMPONENTS})
       ${_openimagedenoise_SEARCH_DIRS}
     PATH_SUFFIXES
       lib64 lib
-    )
+  )
   mark_as_advanced(OPENIMAGEDENOISE_${UPPERCOMPONENT}_LIBRARY)
   if(OPENIMAGEDENOISE_${UPPERCOMPONENT}_LIBRARY)
     list(APPEND _openimagedenoise_LIBRARIES "${OPENIMAGEDENOISE_${UPPERCOMPONENT}_LIBRARY}")
@@ -94,13 +94,13 @@ find_library(OPENIMAGEDENOISE_LIBRARY
     ${_openimagedenoise_SEARCH_DIRS}
   PATH_SUFFIXES
     lib64 lib
-  )
+)
 
 # handle the QUIETLY and REQUIRED arguments and set OPENIMAGEDENOISE_FOUND to TRUE if
 # all listed variables are TRUE
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(OpenImageDenoise DEFAULT_MSG
-    OPENIMAGEDENOISE_LIBRARY OPENIMAGEDENOISE_INCLUDE_DIR)
+  OPENIMAGEDENOISE_LIBRARY OPENIMAGEDENOISE_INCLUDE_DIR)
 
 if(OPENIMAGEDENOISE_FOUND)
   set(OPENIMAGEDENOISE_LIBRARIES ${_openimagedenoise_LIBRARIES})

@@ -157,8 +157,8 @@ const float node_locy_step = 300.0f;
 static bNode *add_node(bNodeTree *ntree, int type, float x, float y)
 {
   bNode *node = bke::node_add_static_node(nullptr, ntree, type);
-  node->locx = x;
-  node->locy = y;
+  node->location[0] = x;
+  node->location[1] = y;
   return node;
 }
 

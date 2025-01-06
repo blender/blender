@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __BVH_UNALIGNED_H__
-#define __BVH_UNALIGNED_H__
+#pragma once
 
 #include "util/vector.h"
 
@@ -40,11 +39,11 @@ class BVHUnaligned {
   BoundBox compute_aligned_boundbox(const BVHObjectBinning &range,
                                     const BVHReference *references,
                                     const Transform &aligned_space,
-                                    BoundBox *cent_bounds = NULL) const;
+                                    BoundBox *cent_bounds = nullptr) const;
   BoundBox compute_aligned_boundbox(const BVHRange &range,
                                     const BVHReference *references,
                                     const Transform &aligned_space,
-                                    BoundBox *cent_bounds = NULL) const;
+                                    BoundBox *cent_bounds = nullptr) const;
 
   /* Calculate affine transform for node packing.
    * Bounds will be in the range of 0..1.
@@ -57,5 +56,3 @@ class BVHUnaligned {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __BVH_UNALIGNED_H__ */

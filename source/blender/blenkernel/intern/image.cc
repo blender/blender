@@ -36,6 +36,8 @@
 #include "IMB_moviecache.hh"
 #include "IMB_openexr.hh"
 
+#include "MOV_read.hh"
+
 /* Allow using deprecated functionality for .blend file I/O. */
 #define DNA_DEPRECATED_ALLOW
 
@@ -613,7 +615,7 @@ static void image_free_anims(Image *ima)
   while (ima->anims.last) {
     ImageAnim *ia = static_cast<ImageAnim *>(ima->anims.last);
     if (ia->anim) {
-      IMB_free_anim(ia->anim);
+      MOV_close(ia->anim);
       ia->anim = nullptr;
     }
     BLI_remlink(&ima->anims, ia);
@@ -1121,7 +1123,7 @@ Image *BKE_image_load_exists_in_lib(Main *bmain,
       if (BLI_path_cmp(filepath_test, filepath_abs) != 0) {
         continue;
       }
-      if ((BKE_image_has_anim(ima)) && (ima->id.us != 0)) {
+      if (BKE_image_has_anim(ima) && (ima->id.us != 0)) {
         /* TODO explain why animated images with already one or more users are skipped? */
         continue;
       }
@@ -1863,7 +1865,7 @@ static void stampdata(
   }
 
   if (use_dynamic && scene->r.stamp & R_STAMP_SEQSTRIP) {
-    const Sequence *seq = SEQ_get_topmost_sequence(scene, scene->r.cfra);
+    const Strip *seq = SEQ_get_topmost_sequence(scene, scene->r.cfra);
 
     if (seq) {
       STRNCPY(text, seq->name + 2);
@@ -2704,31 +2706,31 @@ bool BKE_imbuf_write_stamp(const Scene *scene,
   return BKE_imbuf_write(ibuf, filepath, imf);
 }
 
-ImBufAnim *openanim_noload(const char *filepath,
-                           int flags,
-                           int streamindex,
-                           char colorspace[IMA_MAX_SPACE])
+MovieReader *openanim_noload(const char *filepath,
+                             int flags,
+                             int streamindex,
+                             char colorspace[IMA_MAX_SPACE])
 {
-  ImBufAnim *anim;
+  MovieReader *anim;
 
-  anim = IMB_open_anim(filepath, flags, streamindex, colorspace);
+  anim = MOV_open_file(filepath, flags, streamindex, colorspace);
   return anim;
 }
 
-ImBufAnim *openanim(const char *filepath,
-                    int flags,
-                    int streamindex,
-                    char colorspace[IMA_MAX_SPACE])
+MovieReader *openanim(const char *filepath,
+                      int flags,
+                      int streamindex,
+                      char colorspace[IMA_MAX_SPACE])
 {
-  ImBufAnim *anim;
+  MovieReader *anim;
   ImBuf *ibuf;
 
-  anim = IMB_open_anim(filepath, flags, streamindex, colorspace);
+  anim = MOV_open_file(filepath, flags, streamindex, colorspace);
   if (anim == nullptr) {
     return nullptr;
   }
 
-  ibuf = IMB_anim_absolute(anim, 0, IMB_TC_NONE, IMB_PROXY_NONE);
+  ibuf = MOV_decode_frame(anim, 0, IMB_TC_NONE, IMB_PROXY_NONE);
   if (ibuf == nullptr) {
     const char *reason;
     if (!BLI_exists(filepath)) {
@@ -2739,7 +2741,7 @@ ImBufAnim *openanim(const char *filepath,
     }
     CLOG_INFO(&LOG, 1, "unable to load anim, %s: %s", reason, filepath);
 
-    IMB_free_anim(anim);
+    MOV_close(anim);
     return nullptr;
   }
   IMB_freeImBuf(ibuf);
@@ -2811,33 +2813,58 @@ static void image_viewer_create_views(const RenderData *rd, Image *ima)
   }
 }
 
+/* Returns true if the views of the given image match the actives views in the given render data.
+ * Returns false otherwise to indicate that the image views should be recreated to make them match
+ * the render data. */
+static bool image_views_match_render_views(const Image *image, const RenderData *render_data)
+{
+  /* The number of views in the image do not match the number of active views in the render
+   * data. */
+  const int number_of_active_views = BKE_scene_multiview_num_views_get(render_data);
+  if (BLI_listbase_count(&image->views) != number_of_active_views) {
+    return false;
+  }
+
+  /* If the render data is not multi-view, then a single unnamed view should exist in the image,
+   * otherwise, the views don't match. We don't have to check that a single view exist, since this
+   * is handled by the check above for the number of views. */
+  if (!(render_data->scemode & R_MULTIVIEW)) {
+    const ImageView *image_view = static_cast<ImageView *>(image->views.first);
+    /* If the view is unnamed, the views match, otherwise, they don't. */
+    return image_view->name[0] == '\0';
+  }
+
+  /* The render data is multi-view, so we need to check that for every view in the image, a
+   * corresponding active render view with the same name exists, noting that they may not
+   * necessarily be in the same order. */
+  LISTBASE_FOREACH (ImageView *, image_view, &image->views) {
+    SceneRenderView *scene_render_view = static_cast<SceneRenderView *>(
+        BLI_findstring(&render_data->views, image_view->name, offsetof(SceneRenderView, name)));
+    /* A render view doesn't exist for that image view with the same name, so the views don't
+     * match. */
+    if (!scene_render_view) {
+      return false;
+    }
+
+    /* A render view exists for that image view with the same name, but it is disabled, so the
+     * views don't match. */
+    if (!BKE_scene_multiview_is_render_view_active(render_data, scene_render_view)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 void BKE_image_ensure_viewer_views(const RenderData *rd, Image *ima, ImageUser *iuser)
 {
-  bool do_reset;
-  const bool is_multiview = (rd->scemode & R_MULTIVIEW) != 0;
-
   BLI_thread_lock(LOCK_DRAW_IMAGE);
 
   if (!BKE_scene_multiview_is_stereo3d(rd)) {
     iuser->flag &= ~IMA_SHOW_STEREO;
   }
 
-  /* see if all scene render views are in the image view list */
-  do_reset = (BKE_scene_multiview_num_views_get(rd) != BLI_listbase_count(&ima->views));
-
-  /* multiview also needs to be sure all the views are synced */
-  if (is_multiview && !do_reset) {
-    LISTBASE_FOREACH (ImageView *, iv, &ima->views) {
-      SceneRenderView *srv = static_cast<SceneRenderView *>(
-          BLI_findstring(&rd->views, iv->name, offsetof(SceneRenderView, name)));
-      if ((srv == nullptr) || (BKE_scene_multiview_is_render_view_active(rd, srv) == false)) {
-        do_reset = true;
-        break;
-      }
-    }
-  }
-
-  if (do_reset) {
+  if (!image_views_match_render_views(ima, rd)) {
     BLI_mutex_lock(static_cast<ThreadMutex *>(ima->runtime.cache_mutex));
 
     image_free_cached_frames(ima);
@@ -2890,6 +2917,14 @@ static void image_walk_ntree_all_users(
           Image *ima = (Image *)node->id;
           ImageUser *iuser = static_cast<ImageUser *>(node->storage);
           callback(ima, id, iuser, customdata);
+        }
+        if (node->type == CMP_NODE_CRYPTOMATTE) {
+          CMPNodeCryptomatteSource source = static_cast<CMPNodeCryptomatteSource>(node->custom1);
+          if (source == CMP_NODE_CRYPTOMATTE_SOURCE_IMAGE) {
+            Image *image = (Image *)node->id;
+            ImageUser *image_user = &static_cast<NodeCryptomatte *>(node->storage)->iuser;
+            callback(image, id, image_user, customdata);
+          }
         }
       }
       break;
@@ -4152,12 +4187,12 @@ static ImBuf *load_movie_single(Image *ima, ImageUser *iuser, int frame, const i
 
     /* let's initialize this user */
     if (ia->anim && iuser && iuser->frames == 0) {
-      iuser->frames = IMB_anim_get_duration(ia->anim, IMB_TC_RECORD_RUN);
+      iuser->frames = MOV_get_duration_frames(ia->anim, IMB_TC_RECORD_RUN);
     }
   }
 
   if (ia->anim) {
-    int dur = IMB_anim_get_duration(ia->anim, IMB_TC_RECORD_RUN);
+    int dur = MOV_get_duration_frames(ia->anim, IMB_TC_RECORD_RUN);
     int fra = frame - 1;
 
     if (fra < 0) {
@@ -4166,9 +4201,10 @@ static ImBuf *load_movie_single(Image *ima, ImageUser *iuser, int frame, const i
     if (fra > (dur - 1)) {
       fra = dur - 1;
     }
-    ibuf = IMB_makeSingleUser(IMB_anim_absolute(ia->anim, fra, IMB_TC_RECORD_RUN, IMB_PROXY_NONE));
+    ibuf = IMB_makeSingleUser(MOV_decode_frame(ia->anim, fra, IMB_TC_RECORD_RUN, IMB_PROXY_NONE));
 
     if (ibuf) {
+      colormanage_imbuf_make_linear(ibuf, ima->colorspace_settings.name);
       image_init_after_load(ima, iuser, ibuf);
     }
   }

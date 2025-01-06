@@ -2,19 +2,16 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __UTIL_PATH_H__
-#define __UTIL_PATH_H__
+#pragma once
 
 /* Utility functions to get paths to files distributed with the program. For
  * the standalone apps, paths are relative to the executable, for dynamically
  * linked libraries, the path to the library may be set with path_init, which
  * then makes all paths relative to that. */
 
-#include <stdio.h>
+#include <cstdio>
 
-#include "util/set.h"
 #include "util/string.h"
-#include "util/types.h"
 #include "util/vector.h"
 
 CCL_NAMESPACE_BEGIN
@@ -70,5 +67,3 @@ void path_cache_kernel_mark_added_and_clear_old(const string &path,
                                                 const size_t max_old_kernel_of_same_type = 5);
 
 CCL_NAMESPACE_END
-
-#endif

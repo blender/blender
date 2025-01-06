@@ -273,9 +273,7 @@ static void try_convert_single_object(Object &curves_ob,
   }
   Mesh &surface_me = *static_cast<Mesh *>(surface_ob.data);
 
-  BVHTreeFromMesh surface_bvh;
-  BKE_bvhtree_from_mesh_get(&surface_bvh, &surface_me, BVHTREE_FROM_CORNER_TRIS, 2);
-  BLI_SCOPED_DEFER([&]() { free_bvhtree_from_mesh(&surface_bvh); });
+  bke::BVHTreeFromMesh surface_bvh = surface_me.bvh_corner_tris();
 
   const Span<float3> positions_cu = curves.positions();
   const Span<int> tri_faces = surface_me.corner_tri_faces();
@@ -615,9 +613,7 @@ static void snap_curves_to_surface_exec_object(Object &curves_ob,
 
   switch (attach_mode) {
     case AttachMode::Nearest: {
-      BVHTreeFromMesh surface_bvh;
-      BKE_bvhtree_from_mesh_get(&surface_bvh, &surface_mesh, BVHTREE_FROM_CORNER_TRIS, 2);
-      BLI_SCOPED_DEFER([&]() { free_bvhtree_from_mesh(&surface_bvh); });
+      bke::BVHTreeFromMesh surface_bvh = surface_mesh.bvh_corner_tris();
 
       threading::parallel_for(curves.curves_range(), 256, [&](const IndexRange curves_range) {
         for (const int curve_i : curves_range) {
@@ -949,7 +945,7 @@ static void select_random_ui(bContext * /*C*/, wmOperator *op)
 {
   uiLayout *layout = op->layout;
 
-  uiItemR(layout, op->ptr, "seed", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, op->ptr, "seed", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   uiItemR(layout, op->ptr, "probability", UI_ITEM_R_SLIDER, IFACE_("Probability"), ICON_NONE);
 }
 
@@ -1364,7 +1360,7 @@ static int exec(bContext *C, wmOperator * /*op*/)
                             [&](const int i) { cyclic.span[i] = !cyclic.span[i]; });
     cyclic.finish();
 
-    if (!cyclic.span.as_span().contains(true)) {
+    if (!cyclic.span.contains(true)) {
       attributes.remove("cyclic");
     }
 

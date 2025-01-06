@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __CAMERA_H__
-#define __CAMERA_H__
+#pragma once
 
 #include "kernel/types.h"
 
@@ -189,7 +188,7 @@ class Camera : public Node {
  public:
   /* functions */
   Camera();
-  ~Camera();
+  ~Camera() override;
 
   void compute_auto_viewplane();
 
@@ -203,20 +202,18 @@ class Camera : public Node {
   BoundBox viewplane_bounds_get();
 
   /* Calculates the width of a pixel at point in world space. */
-  float world_to_raster_size(float3 P);
+  float world_to_raster_size(const float3 P);
 
   /* Motion blur. */
-  float motion_time(int step) const;
-  int motion_step(float time) const;
+  float motion_time(const int step) const;
+  int motion_step(const float time) const;
   bool use_motion() const;
 
-  void set_screen_size(int width_, int height_);
+  void set_screen_size(const int width_, int height_);
 
  private:
   /* Private utility functions. */
-  float3 transform_raster_to_world(float raster_x, float raster_y);
+  float3 transform_raster_to_world(const float raster_x, const float raster_y);
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __CAMERA_H__ */

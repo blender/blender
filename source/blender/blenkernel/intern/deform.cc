@@ -44,7 +44,7 @@
 
 #include "BLO_read_write.hh"
 
-#include "data_transfer_intern.h"
+#include "data_transfer_intern.hh"
 
 using blender::StringRef;
 

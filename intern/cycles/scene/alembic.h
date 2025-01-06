@@ -7,7 +7,6 @@
 #include "graph/node.h"
 #include "scene/attribute.h"
 #include "scene/procedural.h"
-#include "util/set.h"
 #include "util/transform.h"
 #include "util/vector.h"
 
@@ -154,7 +153,7 @@ template<typename T> class DataStore {
 
   /* Get the data for the specified time.
    * Return nullptr if there is no data or if the data for this time was already loaded. */
-  CacheLookupResult<T> data_for_time(double time)
+  CacheLookupResult<T> data_for_time(const double time)
   {
     if (size() == 0) {
       return CacheLookupResult<T>::no_data_found_for_time();
@@ -179,7 +178,7 @@ template<typename T> class DataStore {
 
   /* get the data for the specified time, but do not check if the data was already loaded for this
    * time return nullptr if there is no data */
-  CacheLookupResult<T> data_for_time_no_check(double time)
+  CacheLookupResult<T> data_for_time_no_check(const double time)
   {
     if (size() == 0) {
       return CacheLookupResult<T>::no_data_found_for_time();
@@ -209,13 +208,13 @@ template<typename T> class DataStore {
     data.push_back(data_);
   }
 
-  void reuse_data_for_last_time(double time)
+  void reuse_data_for_last_time(const double time)
   {
     const TimeIndexPair &data_index = index_data_map.back();
     index_data_map.push_back({time, data_index.source_time, data_index.index});
   }
 
-  void add_no_data(double time)
+  void add_no_data(const double time)
   {
     index_data_map.push_back({time, time, -1ul});
   }
@@ -244,7 +243,7 @@ template<typename T> class DataStore {
 
   /* Copy the data for the specified time to the node's socket. If there is no
    * data for this time or it was already loaded, do nothing. */
-  void copy_to_socket(double time, Node *node, const SocketType *socket)
+  void copy_to_socket(const double time, Node *node, const SocketType *socket)
   {
     CacheLookupResult<T> result = data_for_time(time);
 
@@ -274,7 +273,7 @@ template<typename T> class DataStore {
   }
 
  private:
-  const TimeIndexPair &get_index_for_time(double time) const
+  const TimeIndexPair &get_index_for_time(const double time) const
   {
     std::pair<size_t, Alembic::Abc::chrono_t> index_pair;
     index_pair = time_sampling.getNearIndex(time, index_data_map.size());
@@ -377,7 +376,7 @@ class AlembicObject : public Node {
   NODE_SOCKET_API(float, radius_scale)
 
   AlembicObject();
-  ~AlembicObject();
+  ~AlembicObject() override;
 
  private:
   friend class AlembicProcedural;
@@ -446,7 +445,7 @@ class AlembicObject : public Node {
 
   CachedData cached_data_;
 
-  void setup_transform_cache(CachedData &cached_data, float scale);
+  void setup_transform_cache(CachedData &cached_data, const float scale);
 
   AttributeRequestSet get_requested_attributes();
 };
@@ -462,8 +461,9 @@ class AlembicObject : public Node {
  */
 class AlembicProcedural : public Procedural {
   Alembic::AbcGeom::IArchive archive;
-  bool objects_loaded;
-  Scene *scene_;
+  bool objects_loaded = false;
+  bool objects_modified = false;
+  Scene *scene_ = nullptr;
 
  public:
   NODE_DECLARE
@@ -490,9 +490,6 @@ class AlembicProcedural : public Procedural {
   /* The frame rate used for rendering in units of frames per second. */
   NODE_SOCKET_API(float, frame_rate)
 
-  /* List of AlembicObjects to render. */
-  NODE_SOCKET_API_ARRAY(array<Node *>, objects)
-
   /* Set the default radius to use for curves when the Alembic Curves Schemas do not have radius
    * information. */
   NODE_SOCKET_API(float, default_radius)
@@ -509,11 +506,11 @@ class AlembicProcedural : public Procedural {
   NODE_SOCKET_API(int, prefetch_cache_size)
 
   AlembicProcedural();
-  ~AlembicProcedural();
+  ~AlembicProcedural() override;
 
   /* Populates the Cycles scene with Nodes for every contained AlembicObject on the first
    * invocation, and updates the data on subsequent invocations if the frame changed. */
-  void generate(Scene *scene, Progress &progress);
+  void generate(Scene *scene, Progress &progress) override;
 
   /* Tag for an update only if something was modified. */
   void tag_update(Scene *scene);
@@ -529,9 +526,6 @@ class AlembicProcedural : public Procedural {
   AlembicObject *get_or_create_object(const ustring &path);
 
  private:
-  /* Add an object to our list of objects, and tag the socket as modified. */
-  void add_object(AlembicObject *object);
-
   /* Load the data for all the objects whose data has not yet been loaded. */
   void load_objects(Progress &progress);
 
@@ -539,7 +533,7 @@ class AlembicProcedural : public Procedural {
    * specified in our objects socket, and accumulate all of the transformations samples along the
    * way for each IObject. */
   void walk_hierarchy(Alembic::AbcGeom::IObject parent,
-                      const Alembic::AbcGeom::ObjectHeader &ohead,
+                      const Alembic::AbcGeom::ObjectHeader &header,
                       MatrixSamplesData matrix_samples_data,
                       const unordered_map<string, AlembicObject *> &object_map,
                       Progress &progress);

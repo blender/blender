@@ -23,7 +23,7 @@ CCL_NAMESPACE_BEGIN
 
 template<typename StackReadOp, typename StackWriteOp>
 ccl_device void volume_stack_enter_exit(KernelGlobals kg,
-                                        ccl_private const ShaderData *sd,
+                                        const ccl_private ShaderData *sd,
                                         StackReadOp stack_read,
                                         StackWriteOp stack_write)
 {
@@ -84,7 +84,7 @@ ccl_device void volume_stack_enter_exit(KernelGlobals kg,
 
 ccl_device void volume_stack_enter_exit(KernelGlobals kg,
                                         IntegratorState state,
-                                        ccl_private const ShaderData *sd)
+                                        const ccl_private ShaderData *sd)
 {
   VOLUME_READ_LAMBDA(integrator_state_read_volume_stack(state, i))
   VOLUME_WRITE_LAMBDA(integrator_state_write_volume_stack(state, i, entry))
@@ -93,7 +93,7 @@ ccl_device void volume_stack_enter_exit(KernelGlobals kg,
 
 ccl_device void shadow_volume_stack_enter_exit(KernelGlobals kg,
                                                IntegratorShadowState state,
-                                               ccl_private const ShaderData *sd)
+                                               const ccl_private ShaderData *sd)
 {
   VOLUME_READ_LAMBDA(integrator_state_read_shadow_volume_stack(state, i))
   VOLUME_WRITE_LAMBDA(integrator_state_write_shadow_volume_stack(state, i, entry))
@@ -125,6 +125,34 @@ ccl_device_inline void volume_stack_clean(KernelGlobals kg, IntegratorState stat
   }
 }
 
+/* Check if the volume is homogeneous by checking if the shader flag is set or if volume attributes
+ * are needed. */
+ccl_device_inline bool volume_is_homogeneous(KernelGlobals kg,
+                                             const ccl_private VolumeStack &entry)
+{
+  const int shader_flag = kernel_data_fetch(shaders, (entry.shader & SHADER_MASK)).flags;
+
+  if (shader_flag & SD_HETEROGENEOUS_VOLUME) {
+    return false;
+  }
+
+  if (shader_flag & SD_NEED_VOLUME_ATTRIBUTES) {
+    const int object = entry.object;
+    if (object == OBJECT_NONE) {
+      /* Volume attributes for world is not supported. */
+      return true;
+    }
+
+    const int object_flag = kernel_data_fetch(object_flag, object);
+    if (object_flag & SD_OBJECT_HAS_VOLUME_ATTRIBUTES) {
+      /* If both the shader and the object needs volume attributes, the volume is heterogeneous. */
+      return false;
+    }
+  }
+
+  return true;
+}
+
 template<typename StackReadOp>
 ccl_device float volume_stack_step_size(KernelGlobals kg, StackReadOp stack_read)
 {
@@ -136,27 +164,7 @@ ccl_device float volume_stack_step_size(KernelGlobals kg, StackReadOp stack_read
       break;
     }
 
-    int shader_flag = kernel_data_fetch(shaders, (entry.shader & SHADER_MASK)).flags;
-
-    bool heterogeneous = false;
-
-    if (shader_flag & SD_HETEROGENEOUS_VOLUME) {
-      heterogeneous = true;
-    }
-    else if (shader_flag & SD_NEED_VOLUME_ATTRIBUTES) {
-      /* We want to render world or objects without any volume grids
-       * as homogeneous, but can only verify this at run-time since other
-       * heterogeneous volume objects may be using the same shader. */
-      int object = entry.object;
-      if (object != OBJECT_NONE) {
-        int object_flag = kernel_data_fetch(object_flag, object);
-        if (object_flag & SD_OBJECT_HAS_VOLUME_ATTRIBUTES) {
-          heterogeneous = true;
-        }
-      }
-    }
-
-    if (heterogeneous) {
+    if (!volume_is_homogeneous(kg, entry)) {
       float object_step_size = object_volume_step_size(kg, entry.object);
       object_step_size *= kernel_data.integrator.volume_step_rate;
       step_size = fminf(object_step_size, step_size);
@@ -166,12 +174,12 @@ ccl_device float volume_stack_step_size(KernelGlobals kg, StackReadOp stack_read
   return step_size;
 }
 
-typedef enum VolumeSampleMethod {
+enum VolumeSampleMethod {
   VOLUME_SAMPLE_NONE = 0,
   VOLUME_SAMPLE_DISTANCE = (1 << 0),
   VOLUME_SAMPLE_EQUIANGULAR = (1 << 1),
   VOLUME_SAMPLE_MIS = (VOLUME_SAMPLE_DISTANCE | VOLUME_SAMPLE_EQUIANGULAR),
-} VolumeSampleMethod;
+};
 
 ccl_device VolumeSampleMethod volume_stack_sample_method(KernelGlobals kg, IntegratorState state)
 {

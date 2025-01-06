@@ -6,11 +6,10 @@
 
 #include "device/cpu/kernel_function.h"
 #include "util/half.h"
-#include "util/types.h"
 
 CCL_NAMESPACE_BEGIN
 
-struct KernelGlobalsCPU;
+struct ThreadKernelGlobalsCPU;
 struct KernelFilmConvert;
 struct IntegratorStateCPU;
 struct TileInfo;
@@ -20,10 +19,11 @@ class CPUKernels {
   /* Integrator. */
 
   using IntegratorFunction =
-      CPUKernelFunction<void (*)(const KernelGlobalsCPU *kg, IntegratorStateCPU *state)>;
-  using IntegratorShadeFunction = CPUKernelFunction<void (*)(
-      const KernelGlobalsCPU *kg, IntegratorStateCPU *state, ccl_global float *render_buffer)>;
-  using IntegratorInitFunction = CPUKernelFunction<bool (*)(const KernelGlobalsCPU *kg,
+      CPUKernelFunction<void (*)(const ThreadKernelGlobalsCPU *kg, IntegratorStateCPU *state)>;
+  using IntegratorShadeFunction = CPUKernelFunction<void (*)(const ThreadKernelGlobalsCPU *kg,
+                                                             IntegratorStateCPU *state,
+                                                             ccl_global float *render_buffer)>;
+  using IntegratorInitFunction = CPUKernelFunction<bool (*)(const ThreadKernelGlobalsCPU *kg,
                                                             IntegratorStateCPU *state,
                                                             KernelWorkTile *tile,
                                                             ccl_global float *render_buffer)>;
@@ -46,7 +46,7 @@ class CPUKernels {
   /* Shader evaluation. */
 
   using ShaderEvalFunction = CPUKernelFunction<void (*)(
-      const KernelGlobalsCPU *kg, const KernelShaderEvalInput *, float *, const int)>;
+      const ThreadKernelGlobalsCPU *kg, const KernelShaderEvalInput *, float *, const int)>;
 
   ShaderEvalFunction shader_eval_displace;
   ShaderEvalFunction shader_eval_background;
@@ -55,31 +55,31 @@ class CPUKernels {
   /* Adaptive stopping. */
 
   using AdaptiveSamplingConvergenceCheckFunction =
-      CPUKernelFunction<bool (*)(const KernelGlobalsCPU *kg,
+      CPUKernelFunction<bool (*)(const ThreadKernelGlobalsCPU *kg,
                                  ccl_global float *render_buffer,
-                                 int x,
-                                 int y,
-                                 float threshold,
-                                 int reset,
-                                 int offset,
+                                 const int x,
+                                 const int y,
+                                 const float threshold,
+                                 const int reset,
+                                 const int offset,
                                  int stride)>;
 
   using AdaptiveSamplingFilterXFunction =
-      CPUKernelFunction<void (*)(const KernelGlobalsCPU *kg,
+      CPUKernelFunction<void (*)(const ThreadKernelGlobalsCPU *kg,
                                  ccl_global float *render_buffer,
-                                 int y,
-                                 int start_x,
-                                 int width,
-                                 int offset,
+                                 const int y,
+                                 const int start_x,
+                                 const int width,
+                                 const int offset,
                                  int stride)>;
 
   using AdaptiveSamplingFilterYFunction =
-      CPUKernelFunction<void (*)(const KernelGlobalsCPU *kg,
+      CPUKernelFunction<void (*)(const ThreadKernelGlobalsCPU *kg,
                                  ccl_global float *render_buffer,
-                                 int x,
-                                 int start_y,
-                                 int height,
-                                 int offset,
+                                 const int x,
+                                 const int start_y,
+                                 const int height,
+                                 const int offset,
                                  int stride)>;
 
   AdaptiveSamplingConvergenceCheckFunction adaptive_sampling_convergence_check;
@@ -90,7 +90,7 @@ class CPUKernels {
   /* Cryptomatte. */
 
   using CryptomattePostprocessFunction = CPUKernelFunction<void (*)(
-      const KernelGlobalsCPU *kg, ccl_global float *render_buffer, int pixel_index)>;
+      const ThreadKernelGlobalsCPU *kg, ccl_global float *render_buffer, const int pixel_index)>;
 
   CryptomattePostprocessFunction cryptomatte_postprocess;
 

@@ -41,6 +41,9 @@ All coordinates are written, then all colors.
 Since this is a binary format which isn't intended for general use
 the ``.dat`` file extension should be used.
 """
+__all__ = (
+    "main",
+)
 
 # This script writes out geometry-icons.
 import bpy

@@ -149,9 +149,8 @@ def main():
         md5_update = md5_instance.update
 
         for f in md5_source:
-            filehandle = open(f, "rb")
-            md5_update(filehandle.read())
-            filehandle.close()
+            with open(f, "rb") as fh:
+                md5_update(fh.read())
 
         md5_new = md5_instance.hexdigest()
 

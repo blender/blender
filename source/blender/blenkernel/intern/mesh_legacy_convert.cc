@@ -2142,19 +2142,19 @@ static bNodeTree *add_auto_smooth_node_tree(Main &bmain, Library *owner_library)
   angle_data.subtype = PROP_ANGLE;
 
   bNode *group_output = node_add_node(nullptr, group, "NodeGroupOutput");
-  group_output->locx = 480.0f;
-  group_output->locy = -100.0f;
+  group_output->location[0] = 480.0f;
+  group_output->location[1] = -100.0f;
   bNode *group_input_angle = node_add_node(nullptr, group, "NodeGroupInput");
-  group_input_angle->locx = -420.0f;
-  group_input_angle->locy = -300.0f;
+  group_input_angle->location[0] = -420.0f;
+  group_input_angle->location[1] = -300.0f;
   LISTBASE_FOREACH (bNodeSocket *, socket, &group_input_angle->outputs) {
     if (!STREQ(socket->identifier, "Socket_2")) {
       socket->flag |= SOCK_HIDDEN;
     }
   }
   bNode *group_input_mesh = node_add_node(nullptr, group, "NodeGroupInput");
-  group_input_mesh->locx = -60.0f;
-  group_input_mesh->locy = -100.0f;
+  group_input_mesh->location[0] = -60.0f;
+  group_input_mesh->location[1] = -100.0f;
   LISTBASE_FOREACH (bNodeSocket *, socket, &group_input_mesh->outputs) {
     if (!STREQ(socket->identifier, "Socket_1")) {
       socket->flag |= SOCK_HIDDEN;
@@ -2162,30 +2162,30 @@ static bNodeTree *add_auto_smooth_node_tree(Main &bmain, Library *owner_library)
   }
   bNode *shade_smooth_edge = node_add_node(nullptr, group, "GeometryNodeSetShadeSmooth");
   shade_smooth_edge->custom1 = int16_t(bke::AttrDomain::Edge);
-  shade_smooth_edge->locx = 120.0f;
-  shade_smooth_edge->locy = -100.0f;
+  shade_smooth_edge->location[0] = 120.0f;
+  shade_smooth_edge->location[1] = -100.0f;
   bNode *shade_smooth_face = node_add_node(nullptr, group, "GeometryNodeSetShadeSmooth");
   shade_smooth_face->custom1 = int16_t(bke::AttrDomain::Face);
-  shade_smooth_face->locx = 300.0f;
-  shade_smooth_face->locy = -100.0f;
+  shade_smooth_face->location[0] = 300.0f;
+  shade_smooth_face->location[1] = -100.0f;
   bNode *edge_angle = node_add_node(nullptr, group, "GeometryNodeInputMeshEdgeAngle");
-  edge_angle->locx = -420.0f;
-  edge_angle->locy = -220.0f;
+  edge_angle->location[0] = -420.0f;
+  edge_angle->location[1] = -220.0f;
   bNode *edge_smooth = node_add_node(nullptr, group, "GeometryNodeInputEdgeSmooth");
-  edge_smooth->locx = -60.0f;
-  edge_smooth->locy = -160.0f;
+  edge_smooth->location[0] = -60.0f;
+  edge_smooth->location[1] = -160.0f;
   bNode *face_smooth = node_add_node(nullptr, group, "GeometryNodeInputShadeSmooth");
-  face_smooth->locx = -240.0f;
-  face_smooth->locy = -340.0f;
+  face_smooth->location[0] = -240.0f;
+  face_smooth->location[1] = -340.0f;
   bNode *boolean_and = node_add_node(nullptr, group, "FunctionNodeBooleanMath");
   boolean_and->custom1 = NODE_BOOLEAN_MATH_AND;
-  boolean_and->locx = -60.0f;
-  boolean_and->locy = -220.0f;
+  boolean_and->location[0] = -60.0f;
+  boolean_and->location[1] = -220.0f;
   bNode *less_than_or_equal = node_add_node(nullptr, group, "FunctionNodeCompare");
   static_cast<NodeFunctionCompare *>(less_than_or_equal->storage)->operation =
       NODE_COMPARE_LESS_EQUAL;
-  less_than_or_equal->locx = -240.0f;
-  less_than_or_equal->locy = -180.0f;
+  less_than_or_equal->location[0] = -240.0f;
+  less_than_or_equal->location[1] = -180.0f;
 
   node_add_link(group,
                 edge_angle,
@@ -2395,7 +2395,9 @@ void BKE_main_mesh_legacy_convert_auto_smooth(Main &bmain)
     /* Auto-smooth disabled sharp edge tagging when the evaluated mesh had custom normals.
      * When the original mesh has custom normals, that's a good sign the evaluated mesh will
      * have custom normals as well. */
-    bool has_custom_normals = CustomData_has_layer(&mesh->corner_data, CD_CUSTOMLOOPNORMAL);
+    bool has_custom_normals = CustomData_has_layer(&mesh->corner_data, CD_CUSTOMLOOPNORMAL) ||
+                              CustomData_has_layer_named(
+                                  &mesh->corner_data, CD_PROP_INT16_2D, "custom_normal");
     if (has_custom_normals) {
       continue;
     }
@@ -2503,6 +2505,58 @@ void mesh_sculpt_mask_to_generic(Mesh &mesh)
   if (data != nullptr) {
     CustomData_add_layer_named_with_data(
         &mesh.vert_data, CD_PROP_FLOAT, data, mesh.verts_num, ".sculpt_mask", sharing_info);
+  }
+  if (sharing_info != nullptr) {
+    sharing_info->remove_user_and_delete_if_last();
+  }
+}
+
+void mesh_custom_normals_to_legacy(MutableSpan<CustomDataLayer> corner_layers)
+{
+  bool changed = false;
+  for (CustomDataLayer &layer : corner_layers) {
+    if (StringRef(layer.name) == "custom_normal" && layer.type == CD_PROP_INT16_2D) {
+      layer.type = CD_CUSTOMLOOPNORMAL;
+      layer.name[0] = '\0';
+      changed = true;
+      break;
+    }
+  }
+  if (!changed) {
+    return;
+  }
+  /* #CustomData expects the layers to be sorted in increasing order based on type. */
+  std::stable_sort(
+      corner_layers.begin(),
+      corner_layers.end(),
+      [](const CustomDataLayer &a, const CustomDataLayer &b) { return a.type < b.type; });
+}
+
+void mesh_custom_normals_to_generic(Mesh &mesh)
+{
+  if (mesh.attributes().contains("custom_normal")) {
+    return;
+  }
+  void *data = nullptr;
+  const ImplicitSharingInfo *sharing_info = nullptr;
+  for (const int i : IndexRange(mesh.corner_data.totlayer)) {
+    CustomDataLayer &layer = mesh.corner_data.layers[i];
+    if (layer.type == CD_CUSTOMLOOPNORMAL) {
+      data = layer.data;
+      sharing_info = layer.sharing_info;
+      layer.data = nullptr;
+      layer.sharing_info = nullptr;
+      CustomData_free_layer(&mesh.corner_data, CD_CUSTOMLOOPNORMAL, mesh.corners_num, i);
+      break;
+    }
+  }
+  if (data != nullptr) {
+    CustomData_add_layer_named_with_data(&mesh.corner_data,
+                                         CD_PROP_INT16_2D,
+                                         data,
+                                         mesh.corners_num,
+                                         "custom_normal",
+                                         sharing_info);
   }
   if (sharing_info != nullptr) {
     sharing_info->remove_user_and_delete_if_last();

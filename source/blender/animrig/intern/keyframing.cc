@@ -1083,7 +1083,7 @@ CombinedKeyingResult insert_keyframes(Main *bmain,
     /* NOTE: this function call is complex with interesting/non-obvious effects.
      * Please see its documentation for details. */
     BKE_animsys_nla_remap_keyframe_values(nla_context,
-                                          struct_pointer,
+                                          &ptr,
                                           prop,
                                           rna_values.as_mutable_span(),
                                           rna_path.index.value_or(-1),
@@ -1091,10 +1091,16 @@ CombinedKeyingResult insert_keyframes(Main *bmain,
                                           &force_all,
                                           rna_values_mask);
 
-    const std::optional<std::string> rna_path_id_to_prop = RNA_path_from_ID_to_property(&ptr,
-                                                                                        prop);
+    std::optional<std::string> rna_path_id_to_prop = RNA_path_from_ID_to_property(&ptr, prop);
     if (!rna_path_id_to_prop.has_value()) {
-      continue;
+      /* In the case of nested RNA properties the path cannot be reconstructed in all cases. There
+       * may be a system in place in the future, see #122427.*/
+      if (struct_pointer->data != id) {
+        continue;
+      }
+      /* However if the struct pointer happens to be an ID pointer we can use the path that was
+       * passed in. This fixes issues like #132195.*/
+      rna_path_id_to_prop = rna_path.path;
     }
 
     /* Handle the `force_all` condition mentioned above, ensuring the

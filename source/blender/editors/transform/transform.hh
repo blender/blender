@@ -606,8 +606,8 @@ struct MouseInput {
    */
   bool use_virtual_mval;
   struct {
-    double prev[2];
-    double accum[2];
+    blender::double2 prev;
+    blender::double2 accum;
   } virtual_mval;
 };
 

@@ -491,7 +491,7 @@ static int main_relations_create_idlink_cb(LibraryIDLinkCallbackData *cb_data)
   MainIDRelations *bmain_relations = static_cast<MainIDRelations *>(cb_data->user_data);
   ID *self_id = cb_data->self_id;
   ID **id_pointer = cb_data->id_pointer;
-  const int cb_flag = cb_data->cb_flag;
+  const LibraryForeachIDCallbackFlag cb_flag = cb_data->cb_flag;
 
   if (*id_pointer) {
     MainIDRelationsEntry **entry_p;
@@ -558,8 +558,10 @@ void BKE_main_relations_create(Main *bmain, const short flag)
 
   ID *id;
   FOREACH_MAIN_ID_BEGIN (bmain, id) {
-    const int idwalk_flag = IDWALK_READONLY |
-                            ((flag & MAINIDRELATIONS_INCLUDE_UI) != 0 ? IDWALK_INCLUDE_UI : 0);
+    const LibraryForeachIDFlag idwalk_flag = IDWALK_READONLY |
+                                             ((flag & MAINIDRELATIONS_INCLUDE_UI) != 0 ?
+                                                  IDWALK_INCLUDE_UI :
+                                                  IDWALK_NOP);
 
     /* Ensure all IDs do have an entry, even if they are not connected to any other. */
     MainIDRelationsEntry **entry_p;

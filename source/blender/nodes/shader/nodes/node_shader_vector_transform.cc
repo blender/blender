@@ -30,7 +30,7 @@ static void node_shader_buts_vect_transform(uiLayout *layout, bContext * /*C*/, 
           ptr,
           "vector_type",
           UI_ITEM_R_SPLIT_EMPTY_NAME | UI_ITEM_R_EXPAND,
-          nullptr,
+          std::nullopt,
           ICON_NONE);
   uiItemR(layout, ptr, "convert_from", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
   uiItemR(layout, ptr, "convert_to", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
@@ -209,6 +209,7 @@ void register_node_type_sh_vect_transform()
   static blender::bke::bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_VECT_TRANSFORM, "Vector Transform", NODE_CLASS_OP_VECTOR);
+  ntype.enum_name_legacy = "VECT_TRANSFORM";
   ntype.declare = file_ns::node_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_vect_transform;
   ntype.initfunc = file_ns::node_shader_init_vect_transform;

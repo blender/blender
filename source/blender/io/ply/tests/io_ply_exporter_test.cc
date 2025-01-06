@@ -136,10 +136,10 @@ static std::vector<char> read_temp_file_in_vectorchar(const std::string &file_pa
 TEST_F(PLYExportTest, WriteHeaderAscii)
 {
   std::string filePath = get_temp_ply_filename(temp_file_path);
-  PLYExportParams _params = {};
+  PLYExportParams _params;
   _params.ascii_format = true;
   _params.export_normals = false;
-  _params.vertex_colors = PLY_VERTEX_COLOR_NONE;
+  _params.vertex_colors = ePLYVertexColorMode::None;
   STRNCPY(_params.filepath, filePath.c_str());
 
   std::unique_ptr<PlyData> plyData = load_cube(_params);
@@ -174,10 +174,10 @@ TEST_F(PLYExportTest, WriteHeaderAscii)
 TEST_F(PLYExportTest, WriteHeaderBinary)
 {
   std::string filePath = get_temp_ply_filename(temp_file_path);
-  PLYExportParams _params = {};
+  PLYExportParams _params;
   _params.ascii_format = false;
   _params.export_normals = false;
-  _params.vertex_colors = PLY_VERTEX_COLOR_NONE;
+  _params.vertex_colors = ePLYVertexColorMode::None;
   STRNCPY(_params.filepath, filePath.c_str());
 
   std::unique_ptr<PlyData> plyData = load_cube(_params);
@@ -212,10 +212,10 @@ TEST_F(PLYExportTest, WriteHeaderBinary)
 TEST_F(PLYExportTest, WriteVerticesAscii)
 {
   std::string filePath = get_temp_ply_filename(temp_file_path);
-  PLYExportParams _params = {};
+  PLYExportParams _params;
   _params.ascii_format = true;
   _params.export_normals = false;
-  _params.vertex_colors = PLY_VERTEX_COLOR_NONE;
+  _params.vertex_colors = ePLYVertexColorMode::None;
   STRNCPY(_params.filepath, filePath.c_str());
 
   std::unique_ptr<PlyData> plyData = load_cube(_params);
@@ -244,10 +244,10 @@ TEST_F(PLYExportTest, WriteVerticesAscii)
 TEST_F(PLYExportTest, WriteVerticesBinary)
 {
   std::string filePath = get_temp_ply_filename(temp_file_path);
-  PLYExportParams _params = {};
+  PLYExportParams _params;
   _params.ascii_format = false;
   _params.export_normals = false;
-  _params.vertex_colors = PLY_VERTEX_COLOR_NONE;
+  _params.vertex_colors = ePLYVertexColorMode::None;
   STRNCPY(_params.filepath, filePath.c_str());
 
   std::unique_ptr<PlyData> plyData = load_cube(_params);
@@ -280,10 +280,10 @@ TEST_F(PLYExportTest, WriteVerticesBinary)
 TEST_F(PLYExportTest, WriteFacesAscii)
 {
   std::string filePath = get_temp_ply_filename(temp_file_path);
-  PLYExportParams _params = {};
+  PLYExportParams _params;
   _params.ascii_format = true;
   _params.export_normals = false;
-  _params.vertex_colors = PLY_VERTEX_COLOR_NONE;
+  _params.vertex_colors = ePLYVertexColorMode::None;
   STRNCPY(_params.filepath, filePath.c_str());
 
   std::unique_ptr<PlyData> plyData = load_cube(_params);
@@ -310,10 +310,10 @@ TEST_F(PLYExportTest, WriteFacesAscii)
 TEST_F(PLYExportTest, WriteFacesBinary)
 {
   std::string filePath = get_temp_ply_filename(temp_file_path);
-  PLYExportParams _params = {};
+  PLYExportParams _params;
   _params.ascii_format = false;
   _params.export_normals = false;
-  _params.vertex_colors = PLY_VERTEX_COLOR_NONE;
+  _params.vertex_colors = ePLYVertexColorMode::None;
   STRNCPY(_params.filepath, filePath.c_str());
 
   std::unique_ptr<PlyData> plyData = load_cube(_params);
@@ -346,10 +346,10 @@ TEST_F(PLYExportTest, WriteFacesBinary)
 TEST_F(PLYExportTest, WriteVertexNormalsAscii)
 {
   std::string filePath = get_temp_ply_filename(temp_file_path);
-  PLYExportParams _params = {};
+  PLYExportParams _params;
   _params.ascii_format = true;
   _params.export_normals = true;
-  _params.vertex_colors = PLY_VERTEX_COLOR_NONE;
+  _params.vertex_colors = ePLYVertexColorMode::None;
   STRNCPY(_params.filepath, filePath.c_str());
 
   std::unique_ptr<PlyData> plyData = load_cube(_params);
@@ -378,10 +378,10 @@ TEST_F(PLYExportTest, WriteVertexNormalsAscii)
 TEST_F(PLYExportTest, WriteVertexNormalsBinary)
 {
   std::string filePath = get_temp_ply_filename(temp_file_path);
-  PLYExportParams _params = {};
+  PLYExportParams _params;
   _params.ascii_format = false;
   _params.export_normals = true;
-  _params.vertex_colors = PLY_VERTEX_COLOR_NONE;
+  _params.vertex_colors = ePLYVertexColorMode::None;
   STRNCPY(_params.filepath, filePath.c_str());
 
   std::unique_ptr<PlyData> plyData = load_cube(_params);
@@ -434,7 +434,8 @@ class PLYExportPLYDataTest : public PLYExportTest {
 
 TEST_F(PLYExportPLYDataTest, CubeLoadPLYData)
 {
-  PLYExportParams params = {};
+  PLYExportParams params;
+  params.export_uv = false;
   PlyData plyData = load_ply_data_from_blendfile("io_tests/blend_geometry/cube_all_data.blend",
                                                  params);
   EXPECT_EQ(plyData.vertices.size(), 8);
@@ -442,7 +443,7 @@ TEST_F(PLYExportPLYDataTest, CubeLoadPLYData)
 }
 TEST_F(PLYExportPLYDataTest, CubeLoadPLYDataUV)
 {
-  PLYExportParams params = {};
+  PLYExportParams params;
   params.export_uv = true;
   PlyData plyData = load_ply_data_from_blendfile("io_tests/blend_geometry/cube_all_data.blend",
                                                  params);
@@ -451,7 +452,8 @@ TEST_F(PLYExportPLYDataTest, CubeLoadPLYDataUV)
 }
 TEST_F(PLYExportPLYDataTest, CubeLooseEdgesLoadPLYData)
 {
-  PLYExportParams params = {};
+  PLYExportParams params;
+  params.export_uv = false;
   params.forward_axis = IO_AXIS_Y;
   params.up_axis = IO_AXIS_Z;
   params.global_scale = 1.0f;
@@ -482,7 +484,7 @@ TEST_F(PLYExportPLYDataTest, CubeLooseEdgesLoadPLYData)
 }
 TEST_F(PLYExportPLYDataTest, CubeLooseEdgesLoadPLYDataUV)
 {
-  PLYExportParams params = {};
+  PLYExportParams params;
   params.forward_axis = IO_AXIS_Y;
   params.up_axis = IO_AXIS_Z;
   params.global_scale = 1.0f;
@@ -528,7 +530,7 @@ TEST_F(PLYExportPLYDataTest, CubeLooseEdgesLoadPLYDataUV)
 
 TEST_F(PLYExportPLYDataTest, CubesVertexAttrs)
 {
-  PLYExportParams params = {};
+  PLYExportParams params;
   params.export_uv = true;
   params.export_attributes = true;
   PlyData plyData = load_ply_data_from_blendfile(
@@ -540,7 +542,7 @@ TEST_F(PLYExportPLYDataTest, CubesVertexAttrs)
 
 TEST_F(PLYExportPLYDataTest, SuzanneLoadPLYDataUV)
 {
-  PLYExportParams params = {};
+  PLYExportParams params;
   params.export_uv = true;
   PlyData plyData = load_ply_data_from_blendfile("io_tests/blend_geometry/suzanne_all_data.blend",
                                                  params);

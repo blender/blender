@@ -29,7 +29,6 @@ struct PoseTree;
 struct Scene;
 struct bArmature;
 struct bConstraint;
-struct bGPDstroke;
 struct bPose;
 struct bPoseChannel;
 struct MDeformVert;
@@ -176,8 +175,8 @@ std::optional<blender::Bounds<blender::float3>> BKE_armature_min_max(const Objec
 void BKE_pchan_minmax(const Object *ob,
                       const bPoseChannel *pchan,
                       const bool use_empty_drawtype,
-                      float r_min[3],
-                      float r_max[3]);
+                      blender::float3 &r_min,
+                      blender::float3 &r_max);
 /**
  * Calculate the axis aligned bounds of the pose of `ob` in world-space.
  *
@@ -629,22 +628,12 @@ void BKE_pose_eval_cleanup(Depsgraph *depsgraph, Scene *scene, Object *object);
 /* Note that we could have a 'BKE_armature_deform_coords' that doesn't take object data
  * currently there are no callers for this though. */
 
-void BKE_armature_deform_coords_with_gpencil_stroke(const Object *ob_arm,
-                                                    const Object *ob_target,
-                                                    float (*vert_coords)[3],
-                                                    float (*vert_deform_mats)[3][3],
-                                                    int vert_coords_len,
-                                                    int deformflag,
-                                                    float (*vert_coords_prev)[3],
-                                                    const char *defgrp_name,
-                                                    bGPDstroke *gps_target);
-
 void BKE_armature_deform_coords_with_curves(
     const Object &ob_arm,
     const Object &ob_target,
     const ListBase *defbase,
     blender::MutableSpan<blender::float3> vert_coords,
-    std::optional<blender::MutableSpan<blender::float3>> vert_coords_prev,
+    std::optional<blender::Span<blender::float3>> vert_coords_prev,
     std::optional<blender::MutableSpan<blender::float3x3>> vert_deform_mats,
     blender::Span<MDeformVert> dverts,
     int deformflag,

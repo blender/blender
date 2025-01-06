@@ -5,24 +5,24 @@
 #ifdef WITH_CUDA
 
 #  include <climits>
-#  include <limits.h>
-#  include <stdio.h>
-#  include <stdlib.h>
-#  include <string.h>
+#  include <cstdio>
+#  include <cstdlib>
+#  include <cstring>
 
 #  include "device/cuda/device_impl.h"
 
 #  include "util/debug.h"
-#  include "util/foreach.h"
 #  include "util/log.h"
-#  include "util/map.h"
 #  include "util/md5.h"
 #  include "util/path.h"
 #  include "util/string.h"
 #  include "util/system.h"
 #  include "util/time.h"
 #  include "util/types.h"
-#  include "util/windows.h"
+
+#  ifdef _WIN32
+#    include "util/windows.h"
+#  endif
 
 #  include "kernel/device/cuda/globals.h"
 
@@ -64,9 +64,9 @@ CUDADevice::CUDADevice(const DeviceInfo &info, Stats &stats, Profiler &profiler,
 
   cuDevId = info.num;
   cuDevice = 0;
-  cuContext = 0;
+  cuContext = nullptr;
 
-  cuModule = 0;
+  cuModule = nullptr;
 
   need_texture_info = false;
 
@@ -327,7 +327,7 @@ string CUDADevice::compile_kernel(const string &common_cflags,
 
   /* Compile. */
   const char *const nvcc = cuewCompilerPath();
-  if (nvcc == NULL) {
+  if (nvcc == nullptr) {
     set_error(
         "CUDA nvcc compiler not found. "
         "Install CUDA toolkit in default location.");
@@ -344,7 +344,7 @@ string CUDADevice::compile_kernel(const string &common_cflags,
         nvcc_cuda_version % 10);
     return string();
   }
-  else if (!(nvcc_cuda_version >= 102 && nvcc_cuda_version < 130)) {
+  if (!(nvcc_cuda_version >= 102 && nvcc_cuda_version < 130)) {
     printf(
         "CUDA version %d.%d detected, build may succeed but only "
         "CUDA 10.1 to 12 are officially supported.\n",
@@ -417,7 +417,7 @@ bool CUDADevice::load_kernels(const uint kernel_features)
   }
 
   /* check if cuda init succeeded */
-  if (cuContext == 0) {
+  if (cuContext == nullptr) {
     return false;
   }
 
@@ -522,7 +522,7 @@ void CUDADevice::get_device_memory_info(size_t &total, size_t &free)
   cuMemGetInfo(&free, &total);
 }
 
-bool CUDADevice::alloc_device(void *&device_pointer, size_t size)
+bool CUDADevice::alloc_device(void *&device_pointer, const size_t size)
 {
   CUDAContextScope scope(this);
 
@@ -537,7 +537,7 @@ void CUDADevice::free_device(void *device_pointer)
   cuda_assert(cuMemFree((CUdeviceptr)device_pointer));
 }
 
-bool CUDADevice::alloc_host(void *&shared_pointer, size_t size)
+bool CUDADevice::alloc_host(void *&shared_pointer, const size_t size)
 {
   CUDAContextScope scope(this);
 
@@ -560,7 +560,7 @@ void CUDADevice::transform_host_pointer(void *&device_pointer, void *&shared_poi
   cuda_assert(cuMemHostGetDevicePointer_v2((CUdeviceptr *)&device_pointer, shared_pointer, 0));
 }
 
-void CUDADevice::copy_host_to_device(void *device_pointer, void *host_pointer, size_t size)
+void CUDADevice::copy_host_to_device(void *device_pointer, void *host_pointer, const size_t size)
 {
   const CUDAContextScope scope(this);
 
@@ -598,7 +598,8 @@ void CUDADevice::mem_copy_to(device_memory &mem)
   }
 }
 
-void CUDADevice::mem_copy_from(device_memory &mem, size_t y, size_t w, size_t h, size_t elem)
+void CUDADevice::mem_copy_from(
+    device_memory &mem, const size_t y, size_t w, const size_t h, size_t elem)
 {
   if (mem.type == MEM_TEXTURE || mem.type == MEM_GLOBAL) {
     assert(!"mem_copy_from not supported for textures.");
@@ -652,12 +653,12 @@ void CUDADevice::mem_free(device_memory &mem)
   }
 }
 
-device_ptr CUDADevice::mem_alloc_sub_ptr(device_memory &mem, size_t offset, size_t /*size*/)
+device_ptr CUDADevice::mem_alloc_sub_ptr(device_memory &mem, const size_t offset, size_t /*size*/)
 {
   return (device_ptr)(((char *)mem.device_pointer) + mem.memory_elements_size(offset));
 }
 
-void CUDADevice::const_copy_to(const char *name, void *host, size_t size)
+void CUDADevice::const_copy_to(const char *name, void *host, const size_t size)
 {
   CUDAContextScope scope(this);
   CUdeviceptr mem;
@@ -758,8 +759,8 @@ void CUDADevice::tex_alloc(device_texture &mem)
       return;
   }
 
-  Mem *cmem = NULL;
-  CUarray array_3d = NULL;
+  Mem *cmem = nullptr;
+  CUarray array_3d = nullptr;
   size_t src_pitch = mem.data_width * dsize * mem.data_elements;
   size_t dst_pitch = src_pitch;
 
@@ -907,7 +908,7 @@ void CUDADevice::tex_alloc(device_texture &mem)
     thread_scoped_lock lock(device_mem_map_mutex);
     cmem = &device_mem_map[&mem];
 
-    cuda_assert(cuTexObjectCreate(&cmem->texobject, &resDesc, &texDesc, NULL));
+    cuda_assert(cuTexObjectCreate(&cmem->texobject, &resDesc, &texDesc, nullptr));
 
     texture_info[slot].data = (uint64_t)cmem->texobject;
   }
@@ -1008,7 +1009,7 @@ bool CUDADevice::get_device_attribute(CUdevice_attribute attribute, int *value)
   return cuDeviceGetAttribute(value, attribute, cuDevice) == CUDA_SUCCESS;
 }
 
-int CUDADevice::get_device_default_attribute(CUdevice_attribute attribute, int default_value)
+int CUDADevice::get_device_default_attribute(CUdevice_attribute attribute, const int default_value)
 {
   int value = 0;
   if (!get_device_attribute(attribute, &value)) {

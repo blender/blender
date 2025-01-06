@@ -2,6 +2,18 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#ifdef GPU_SHADER
+#  pragma once
+#  include "gpu_glsl_cpp_stubs.hh"
+
+#  include "draw_object_infos_info.hh"
+#  include "draw_view_info.hh"
+#  include "eevee_common_info.hh"
+#  include "eevee_shader_shared.hh"
+
+#  define SPHERE_PROBE
+#endif
+
 #include "eevee_defines.hh"
 #include "gpu_shader_create_info.hh"
 
@@ -75,11 +87,6 @@ GPU_SHADER_CREATE_END()
 /* -------------------------------------------------------------------- */
 /** \name Baking
  * \{ */
-
-GPU_SHADER_CREATE_INFO(eevee_surfel_common)
-STORAGE_BUF(SURFEL_BUF_SLOT, READ_WRITE, Surfel, surfel_buf[])
-STORAGE_BUF(CAPTURE_BUF_SLOT, READ, CaptureInfoData, capture_info_buf)
-GPU_SHADER_CREATE_END()
 
 GPU_SHADER_CREATE_INFO(eevee_surfel_light)
 DEFINE("LIGHT_ITER_FORCE_NO_CULLING")
@@ -240,27 +247,6 @@ SAMPLER(9, FLOAT_3D, validity_tx)
 IMAGE(0, VOLUME_PROBE_FORMAT, WRITE, FLOAT_3D, irradiance_atlas_img)
 COMPUTE_SOURCE("eevee_lightprobe_volume_load_comp.glsl")
 DO_STATIC_COMPILATION()
-GPU_SHADER_CREATE_END()
-
-GPU_SHADER_CREATE_INFO(eevee_volume_probe_data)
-UNIFORM_BUF(IRRADIANCE_GRID_BUF_SLOT, VolumeProbeData, grids_infos_buf[IRRADIANCE_GRID_MAX])
-/* NOTE: Use uint instead of IrradianceBrickPacked because Metal needs to know the exact type.
- */
-STORAGE_BUF(IRRADIANCE_BRICK_BUF_SLOT, READ, uint, bricks_infos_buf[])
-SAMPLER(VOLUME_PROBE_TEX_SLOT, FLOAT_3D, irradiance_atlas_tx)
-DEFINE("IRRADIANCE_GRID_SAMPLING")
-GPU_SHADER_CREATE_END()
-
-GPU_SHADER_CREATE_INFO(eevee_lightprobe_data)
-ADDITIONAL_INFO(eevee_lightprobe_sphere_data)
-ADDITIONAL_INFO(eevee_volume_probe_data)
-GPU_SHADER_CREATE_END()
-
-GPU_SHADER_CREATE_INFO(eevee_lightprobe_planar_data)
-DEFINE("SPHERE_PROBE")
-UNIFORM_BUF(PLANAR_PROBE_BUF_SLOT, PlanarProbeData, probe_planar_buf[PLANAR_PROBE_MAX])
-SAMPLER(PLANAR_PROBE_RADIANCE_TEX_SLOT, FLOAT_2D_ARRAY, planar_radiance_tx)
-SAMPLER(PLANAR_PROBE_DEPTH_TEX_SLOT, DEPTH_2D_ARRAY, planar_depth_tx)
 GPU_SHADER_CREATE_END()
 
 /** \} */

@@ -67,7 +67,7 @@ static void shader_print_errors(const char *task, const char *log, const char *c
   LOG(ERROR) << log;
 }
 
-static int compile_shader_program(void)
+static int compile_shader_program()
 {
   const struct Shader {
     const char *source;
@@ -79,10 +79,10 @@ static int compile_shader_program(void)
   for (int i = 0; i < 2; i++) {
     const GLuint shader = glCreateShader(shaders[i].type);
 
-    string source_str = shaders[i].source;
+    const string source_str = shaders[i].source;
     const char *c_str = source_str.c_str();
 
-    glShaderSource(shader, 1, &c_str, NULL);
+    glShaderSource(shader, 1, &c_str, nullptr);
     glCompileShader(shader);
 
     GLint compile_status;
@@ -137,7 +137,7 @@ int OpenGLShader::get_tex_coord_attrib_location()
   return tex_coord_attribute_location_;
 }
 
-void OpenGLShader::bind(int width, int height)
+void OpenGLShader::bind(const int width, const int height)
 {
   create_shader_if_needed();
 

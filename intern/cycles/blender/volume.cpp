@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: Apache-2.0 */
 
 #include "scene/volume.h"
-#include "scene/colorspace.h"
 #include "scene/image.h"
 #include "scene/image_vdb.h"
 #include "scene/object.h"
@@ -11,7 +10,6 @@
 #include "blender/sync.h"
 #include "blender/util.h"
 
-#include "BKE_volume.hh"
 #include "BKE_volume_grid.hh"
 
 CCL_NAMESPACE_BEGIN
@@ -26,7 +24,7 @@ class BlenderSmokeLoader : public ImageLoader {
         *static_cast<const ::Mesh *>(b_ob.data().ptr.data), texspace_loc, texspace_size);
   }
 
-  bool load_metadata(const ImageDeviceFeatures &, ImageMetaData &metadata) override
+  bool load_metadata(const ImageDeviceFeatures & /*features*/, ImageMetaData &metadata) override
   {
     if (!b_domain) {
       return false;
@@ -50,7 +48,7 @@ class BlenderSmokeLoader : public ImageLoader {
       return false;
     }
 
-    int3 resolution = get_int3(b_domain.domain_resolution());
+    const int3 resolution = get_int3(b_domain.domain_resolution());
     int amplify = (b_domain.use_noise()) ? b_domain.noise_scale() : 1;
 
     /* Velocity and heat data is always low-resolution. */
@@ -71,14 +69,18 @@ class BlenderSmokeLoader : public ImageLoader {
     return true;
   }
 
-  bool load_pixels(const ImageMetaData &, void *pixels, const size_t, const bool) override
+  bool load_pixels(const ImageMetaData & /*metadata*/,
+                   void *pixels,
+                   const size_t /*pixels_size*/,
+                   const bool /*associate_alpha*/) override
   {
     if (!b_domain) {
       return false;
     }
 #ifdef WITH_FLUID
-    int3 resolution = get_int3(b_domain.domain_resolution());
-    int length, amplify = (b_domain.use_noise()) ? b_domain.noise_scale() : 1;
+    const int3 resolution = get_int3(b_domain.domain_resolution());
+    int length;
+    int amplify = (b_domain.use_noise()) ? b_domain.noise_scale() : 1;
 
     /* Velocity and heat data is always low-resolution. */
     if (attribute == ATTR_STD_VOLUME_VELOCITY || attribute == ATTR_STD_VOLUME_HEAT) {
@@ -168,7 +170,7 @@ class BlenderSmokeLoader : public ImageLoader {
 };
 
 static void sync_smoke_volume(
-    BL::Scene &b_scene, Scene *scene, BObjectInfo &b_ob_info, Volume *volume, float frame)
+    BL::Scene &b_scene, Scene *scene, BObjectInfo &b_ob_info, Volume *volume, const float frame)
 {
   if (!b_ob_info.is_real_object_data()) {
     return;
@@ -190,16 +192,16 @@ static void sync_smoke_volume(
 
   volume->set_velocity_scale(velocity_scale);
 
-  AttributeStandard attributes[] = {ATTR_STD_VOLUME_DENSITY,
-                                    ATTR_STD_VOLUME_COLOR,
-                                    ATTR_STD_VOLUME_FLAME,
-                                    ATTR_STD_VOLUME_HEAT,
-                                    ATTR_STD_VOLUME_TEMPERATURE,
-                                    ATTR_STD_VOLUME_VELOCITY,
-                                    ATTR_STD_NONE};
+  const AttributeStandard attributes[] = {ATTR_STD_VOLUME_DENSITY,
+                                          ATTR_STD_VOLUME_COLOR,
+                                          ATTR_STD_VOLUME_FLAME,
+                                          ATTR_STD_VOLUME_HEAT,
+                                          ATTR_STD_VOLUME_TEMPERATURE,
+                                          ATTR_STD_VOLUME_VELOCITY,
+                                          ATTR_STD_NONE};
 
   for (int i = 0; attributes[i] != ATTR_STD_NONE; i++) {
-    AttributeStandard std = attributes[i];
+    const AttributeStandard std = attributes[i];
     if (!volume->need_attribute(scene, std)) {
       continue;
     }
@@ -208,11 +210,11 @@ static void sync_smoke_volume(
 
     Attribute *attr = volume->attributes.add(std);
 
-    ImageLoader *loader = new BlenderSmokeLoader(b_ob_info.real_object, std);
+    unique_ptr<ImageLoader> loader = make_unique<BlenderSmokeLoader>(b_ob_info.real_object, std);
     ImageParams params;
     params.frame = frame;
 
-    attr->data_voxel() = scene->image_manager->add_image(loader, params);
+    attr->data_voxel() = scene->image_manager->add_image(std::move(loader), params);
   }
 }
 
@@ -295,7 +297,7 @@ static void sync_volume_object(BL::BlendData &b_data,
 
   /* Find grid with matching name. */
   for (BL::VolumeGrid &b_grid : b_volume.grids) {
-    ustring name = ustring(b_grid.name());
+    const ustring name = ustring(b_grid.name());
     AttributeStandard std = ATTR_STD_NONE;
 
     if (name == Attribute::standard_name(ATTR_STD_VOLUME_DENSITY)) {
@@ -341,12 +343,12 @@ static void sync_volume_object(BL::BlendData &b_data,
                             volume->attributes.add(std) :
                             volume->attributes.add(name, TypeFloat, ATTR_ELEMENT_VOXEL);
 
-      ImageLoader *loader = new BlenderVolumeLoader(
+      unique_ptr<ImageLoader> loader = make_unique<BlenderVolumeLoader>(
           b_data, b_volume, name.string(), b_render.precision());
       ImageParams params;
       params.frame = b_volume.grids.frame();
 
-      attr->data_voxel() = scene->image_manager->add_image(loader, params, false);
+      attr->data_voxel() = scene->image_manager->add_image(std::move(loader), params, false);
     }
   }
 }

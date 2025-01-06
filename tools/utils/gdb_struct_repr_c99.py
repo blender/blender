@@ -11,6 +11,11 @@ Example use:
    (gdb) source tools/utils/gdb_struct_repr_c99.py
    (gdb) print_struct_c99 scene->toolsettings
 '''
+__all__ = (
+    "main",
+)
+
+import sys
 
 
 class PrintStructC99(gdb.Command):
@@ -30,7 +35,7 @@ class PrintStructC99(gdb.Command):
         first_line = string.split('\n')[0]
         return first_line.split('=')[1][:-1].strip()
 
-    def invoke(self, arg, from_tty):
+    def invoke(self, arg, _from_tty):
         ret_ptype = gdb.execute('ptype {}'.format(arg), to_string=True)
         tname = self.extract_typename(ret_ptype)
         print('{} {} = {{'.format(tname, arg))
@@ -46,10 +51,16 @@ class PrintStructC99(gdb.Command):
             print(' ' * hs + '.' + rr_s[0] + '= ' + rr_rval)
 
 
-print('Running GDB from: {:s}\n'.format(gdb.PYTHONDIR))
-gdb.execute("set print pretty")
-gdb.execute('set pagination off')
-gdb.execute('set print repeats 0')
-gdb.execute('set print elements unlimited')
-# instantiate
-PrintStructC99()
+def main() -> int:
+    print('Running GDB from: {:s}\n'.format(gdb.PYTHONDIR))
+    gdb.execute("set print pretty")
+    gdb.execute('set pagination off')
+    gdb.execute('set print repeats 0')
+    gdb.execute('set print elements unlimited')
+    # instantiate
+    PrintStructC99()
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

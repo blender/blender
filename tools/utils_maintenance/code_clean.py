@@ -11,6 +11,10 @@ Note: currently this is limited to paths in "source/" and "intern/",
 we could change this if it's needed.
 """
 
+__all__ = (
+    "main",
+)
+
 import argparse
 import re
 import subprocess
@@ -449,7 +453,7 @@ class EditGenerator:
     def edit_list_from_file(_source: str, _data: str, _shared_edit_data: Any) -> list[Edit]:
         # The `__init_subclass__` function ensures this is always overridden.
         raise RuntimeError("This function must be overridden by it's subclass!")
-        return []
+        # return []
 
     @staticmethod
     def setup() -> Any:

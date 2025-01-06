@@ -34,7 +34,7 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void search_link_ops(GatherLinkSearchOpParams &params)
 {
-  if (!U.experimental.use_new_volume_nodes) {
+  if (!USER_EXPERIMENTAL_TEST(&U, use_new_volume_nodes)) {
     return;
   }
   if (params.other_socket().type == SOCK_GEOMETRY) {
@@ -135,7 +135,7 @@ static void node_register()
   static blender::bke::bNodeType ntype;
 
   geo_node_type_base(&ntype, GEO_NODE_STORE_NAMED_GRID, "Store Named Grid", NODE_CLASS_GEOMETRY);
-
+  ntype.enum_name_legacy = "STORE_NAMED_GRID";
   ntype.declare = node_declare;
   ntype.gather_link_search_ops = search_link_ops;
   ntype.draw_buttons = node_layout;

@@ -17,6 +17,9 @@
 #if defined(WITH_OPENGL_BACKEND) && defined(__linux__)
 #  include "GHOST_ContextEGL.hh"
 #endif
+#ifdef WITH_VULKAN_BACKEND
+#  include "GHOST_ContextVK.hh"
+#endif
 #include "GHOST_ContextNone.hh"
 
 class GHOST_WindowNULL;
@@ -82,33 +85,72 @@ class GHOST_SystemHeadless : public GHOST_System {
   void getAllDisplayDimensions(uint32_t & /*width*/, uint32_t & /*height*/) const override
   { /* nop */
   }
-  GHOST_IContext *createOffscreenContext(GHOST_GPUSettings /*gpuSettings*/) override
+  GHOST_IContext *createOffscreenContext(GHOST_GPUSettings gpuSettings) override
   {
-#if defined(WITH_OPENGL_BACKEND) && defined(__linux__)
-    GHOST_Context *context;
-    for (int minor = 6; minor >= 3; --minor) {
-      context = new GHOST_ContextEGL((GHOST_System *)this,
-                                     false,
-                                     EGLNativeWindowType(0),
-                                     EGLNativeDisplayType(EGL_DEFAULT_DISPLAY),
-                                     EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT,
-                                     4,
-                                     minor,
-                                     GHOST_OPENGL_EGL_CONTEXT_FLAGS,
-                                     GHOST_OPENGL_EGL_RESET_NOTIFICATION_STRATEGY,
-                                     EGL_OPENGL_API);
+    switch (gpuSettings.context_type) {
+#ifdef WITH_VULKAN_BACKEND
+      case GHOST_kDrawingContextTypeVulkan: {
+        const bool debug_context = (gpuSettings.flags & GHOST_gpuDebugContext) != 0;
+#  ifdef _WIN32
+        GHOST_Context *context = new GHOST_ContextVK(
+            false, (HWND)0, 1, 2, debug_context, gpuSettings.preferred_device);
+#  elif defined(__APPLE__)
+        GHOST_Context *context = new GHOST_ContextVK(
+            false, nullptr, 1, 2, debug_context, gpuSettings.preferred_device);
+#  else
+        GHOST_Context *context = new GHOST_ContextVK(false,
+                                                     GHOST_kVulkanPlatformHeadless,
+                                                     0,
+                                                     0,
+                                                     nullptr,
+                                                     nullptr,
+                                                     nullptr,
+                                                     1,
+                                                     2,
+                                                     debug_context,
+                                                     gpuSettings.preferred_device);
+#  endif
+        if (context->initializeDrawingContext()) {
+          return context;
+        }
 
-      if (context->initializeDrawingContext()) {
+        delete context;
+        return nullptr;
+      }
+#endif
+
+#if defined(WITH_OPENGL_BACKEND) && defined(__linux__)
+      case GHOST_kDrawingContextTypeOpenGL: {
+        GHOST_Context *context;
+        for (int minor = 6; minor >= 3; --minor) {
+          context = new GHOST_ContextEGL((GHOST_System *)this,
+                                         false,
+                                         EGLNativeWindowType(0),
+                                         EGLNativeDisplayType(EGL_DEFAULT_DISPLAY),
+                                         EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT,
+                                         4,
+                                         minor,
+                                         GHOST_OPENGL_EGL_CONTEXT_FLAGS,
+                                         GHOST_OPENGL_EGL_RESET_NOTIFICATION_STRATEGY,
+                                         EGL_OPENGL_API);
+
+          if (context->initializeDrawingContext()) {
+            return context;
+          }
+          delete context;
+          context = nullptr;
+        }
+
         return context;
       }
-      delete context;
-      context = nullptr;
+#endif
+
+      default:
+        /* Unsupported backend. */
+        return nullptr;
     }
 
-    return context;
-#else
     return nullptr;
-#endif
   }
   GHOST_TSuccess disposeContext(GHOST_IContext *context) override
   {

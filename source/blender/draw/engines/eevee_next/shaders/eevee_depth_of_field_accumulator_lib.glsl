@@ -10,6 +10,13 @@
  * One is for the half-resolution gather passes and the other one for slight in focus regions.
  */
 
+#include "infos/eevee_depth_of_field_info.hh"
+
+SHADER_LIBRARY_CREATE_INFO(eevee_depth_of_field_lut)
+#ifdef GPU_LIBRARY_SHADER
+COMPUTE_SHADER_CREATE_INFO(eevee_depth_of_field_gather)
+#endif
+
 #include "draw_view_lib.glsl"
 #include "eevee_colorspace_lib.glsl"
 #include "eevee_depth_of_field_lib.glsl"
@@ -68,7 +75,7 @@ struct DofGatherData {
 
   float layer_opacity;
 
-#ifdef GPU_METAL
+#if defined(GPU_METAL) || defined(GLSL_CPP_STUBS)
   /* Explicit constructors -- To support GLSL syntax. */
   inline DofGatherData() = default;
   inline DofGatherData(vec4 in_color,

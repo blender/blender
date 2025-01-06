@@ -26,7 +26,7 @@ static void cmp_node_normalize_declare(NodeDeclarationBuilder &b)
   b.add_output<decl::Float>("Value");
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class NormalizeOperation : public NodeOperation {
  private:
@@ -93,10 +93,10 @@ class NormalizeOperation : public NodeOperation {
     output.allocate_texture(domain);
 
     parallel_for(domain.size, [&](const int2 texel) {
-      const float value = image.load_pixel(texel).x;
+      const float value = image.load_pixel<float>(texel);
       const float normalized_value = (value - minimum) * scale;
       const float clamped_value = math::clamp(normalized_value, 0.0f, 1.0f);
-      output.store_pixel(texel, float4(clamped_value));
+      output.store_pixel(texel, clamped_value);
     });
   }
 };
@@ -115,6 +115,7 @@ void register_node_type_cmp_normalize()
   static blender::bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_NORMALIZE, "Normalize", NODE_CLASS_OP_VECTOR);
+  ntype.enum_name_legacy = "NORMALIZE";
   ntype.declare = file_ns::cmp_node_normalize_declare;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 

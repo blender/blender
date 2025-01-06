@@ -128,13 +128,6 @@ struct MTLVertexDescriptor {
   int num_vert_buffers;
   MTLPrimitiveTopologyClass prim_topology_class;
 
-  /* WORKAROUND: SSBO Vertex-fetch attributes -- These follow the same structure
-   * but have slightly different binding rules, passed in via uniform
-   * push constant data block. */
-  bool uses_ssbo_vertex_fetch;
-  MTLSSBOAttribute ssbo_attributes[GPU_VERT_ATTR_MAX_LEN];
-  int num_ssbo_attributes;
-
   bool operator==(const MTLVertexDescriptor &other) const
   {
     if ((this->max_attribute_value != other.max_attribute_value) ||
@@ -175,8 +168,6 @@ struct MTLVertexDescriptor {
     for (const int b : IndexRange(this->num_vert_buffers)) {
       hash ^= this->buffer_layouts[b].hash() << (b + 10);
     }
-
-    /* NOTE: SSBO vertex fetch members not hashed as these will match attribute bindings. */
     return hash;
   }
 };
@@ -341,8 +332,6 @@ struct MTLRenderPipelineStateDescriptor {
     for (int i = 0; i < GPU_VERT_ATTR_MAX_LEN; i++) {
       vertex_descriptor.attributes[i].reset();
     }
-    vertex_descriptor.uses_ssbo_vertex_fetch = false;
-    vertex_descriptor.num_ssbo_attributes = 0;
   }
 };
 

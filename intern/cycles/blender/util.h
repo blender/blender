@@ -2,23 +2,25 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __BLENDER_UTIL_H__
-#define __BLENDER_UTIL_H__
+#pragma once
 
 #include "scene/mesh.h"
 #include "scene/scene.h"
 
 #include "util/algorithm.h"
 #include "util/array.h"
-#include "util/map.h"
 #include "util/path.h"
 #include "util/set.h"
 #include "util/transform.h"
 #include "util/types.h"
-#include "util/vector.h"
+
+#include "RNA_blender_cpp.hh"
+
+#include "DNA_mesh_types.h"
 
 #include "BKE_image.hh"
-#include "BKE_mesh.hh"
+#include "BKE_mesh.h"
+#include "BKE_mesh_types.hh"
 
 CCL_NAMESPACE_BEGIN
 
@@ -44,7 +46,7 @@ struct BObjectInfo {
   }
 };
 
-typedef BL::ShaderNodeAttribute::attribute_type_enum BlenderAttributeType;
+using BlenderAttributeType = BL::ShaderNodeAttribute::attribute_type_enum;
 BlenderAttributeType blender_attribute_name_split_type(ustring name, string *r_real_name);
 
 void python_thread_state_save(void **python_thread_state);
@@ -149,7 +151,7 @@ static inline void free_object_to_mesh(BL::BlendData & /*data*/,
 static inline void colorramp_to_array(BL::ColorRamp &ramp,
                                       array<float3> &ramp_color,
                                       array<float> &ramp_alpha,
-                                      int size)
+                                      const int size)
 {
   const int full_size = size + 1;
   ramp_color.resize(full_size);
@@ -171,7 +173,7 @@ static inline void curvemap_minmax_curve(/*const*/ BL::CurveMap &curve, float *m
 }
 
 static inline void curvemapping_minmax(/*const*/ BL::CurveMapping &cumap,
-                                       int num_curves,
+                                       const int num_curves,
                                        float *min_x,
                                        float *max_x)
 {
@@ -184,23 +186,26 @@ static inline void curvemapping_minmax(/*const*/ BL::CurveMapping &cumap,
   }
 }
 
-static inline void curvemapping_to_array(BL::CurveMapping &cumap, array<float> &data, int size)
+static inline void curvemapping_to_array(BL::CurveMapping &cumap,
+                                         array<float> &data,
+                                         const int size)
 {
   cumap.update();
   BL::CurveMap curve = cumap.curves[0];
   const int full_size = size + 1;
   data.resize(full_size);
   for (int i = 0; i < full_size; i++) {
-    float t = float(i) / float(size);
+    const float t = float(i) / float(size);
     data[i] = cumap.evaluate(curve, t);
   }
 }
 
 static inline void curvemapping_float_to_array(BL::CurveMapping &cumap,
                                                array<float> &data,
-                                               int size)
+                                               const int size)
 {
-  float min = 0.0f, max = 1.0f;
+  float min = 0.0f;
+  float max = 1.0f;
 
   curvemapping_minmax(cumap, 1, &min, &max);
 
@@ -214,17 +219,18 @@ static inline void curvemapping_float_to_array(BL::CurveMapping &cumap,
   data.resize(full_size);
 
   for (int i = 0; i < full_size; i++) {
-    float t = min + float(i) / float(size) * range;
+    const float t = min + float(i) / float(size) * range;
     data[i] = cumap.evaluate(map, t);
   }
 }
 
 static inline void curvemapping_color_to_array(BL::CurveMapping &cumap,
                                                array<float3> &data,
-                                               int size,
+                                               const int size,
                                                bool rgb_curve)
 {
-  float min_x = 0.0f, max_x = 1.0f;
+  float min_x = 0.0f;
+  float max_x = 1.0f;
 
   /* TODO(sergey): There is no easy way to automatically guess what is
    * the range to be used here for the case when mapping is applied on
@@ -262,7 +268,7 @@ static inline void curvemapping_color_to_array(BL::CurveMapping &cumap,
   }
   else {
     for (int i = 0; i < full_size; i++) {
-      float t = min_x + float(i) / float(size) * range_x;
+      const float t = min_x + float(i) / float(size) * range_x;
       data[i] = make_float3(
           cumap.evaluate(mapR, t), cumap.evaluate(mapG, t), cumap.evaluate(mapB, t));
     }
@@ -299,7 +305,7 @@ static inline int render_resolution_y(BL::RenderSettings &b_render)
 static inline string image_user_file_path(BL::BlendData &data,
                                           BL::ImageUser &iuser,
                                           BL::Image &ima,
-                                          int cfra)
+                                          const int cfra)
 {
   char filepath[1024];
   iuser.tile(0);
@@ -315,19 +321,23 @@ static inline string image_user_file_path(BL::BlendData &data,
   return string(filepath);
 }
 
-static inline int image_user_frame_number(BL::ImageUser &iuser, BL::Image &ima, int cfra)
+static inline int image_user_frame_number(BL::ImageUser &iuser, BL::Image &ima, const int cfra)
 {
   BKE_image_user_frame_calc(
       static_cast<Image *>(ima.ptr.data), static_cast<ImageUser *>(iuser.ptr.data), cfra);
   return iuser.frame_current();
 }
 
-static inline unsigned char *image_get_pixels_for_frame(BL::Image &image, int frame, int tile)
+static inline unsigned char *image_get_pixels_for_frame(BL::Image &image,
+                                                        const int frame,
+                                                        const int tile)
 {
   return BKE_image_get_pixels_for_frame(static_cast<Image *>(image.ptr.data), frame, tile);
 }
 
-static inline float *image_get_float_pixels_for_frame(BL::Image &image, int frame, int tile)
+static inline float *image_get_float_pixels_for_frame(BL::Image &image,
+                                                      const int frame,
+                                                      const int tile)
 {
   return BKE_image_get_float_pixels_for_frame(static_cast<Image *>(image.ptr.data), frame, tile);
 }
@@ -358,15 +368,22 @@ static inline void render_add_metadata(BL::RenderResult &b_rr, string name, stri
 
 static inline Transform get_transform(const BL::Array<float, 16> &array)
 {
-  ProjectionTransform projection;
+  /* Convert from Blender column major to Cycles row major, assume it's an affine transform that
+   * does not need the last row. */
+  return make_transform(array[0],
+                        array[4],
+                        array[8],
+                        array[12],
 
-  /* We assume both types to be just 16 floats, and transpose because blender
-   * use column major matrix order while we use row major. */
-  memcpy((void *)&projection, &array, sizeof(float) * 16);
-  projection = projection_transpose(projection);
+                        array[1],
+                        array[5],
+                        array[9],
+                        array[13],
 
-  /* Drop last row, matrix is assumed to be affine transform. */
-  return projection_to_transform(projection);
+                        array[2],
+                        array[6],
+                        array[10],
+                        array[14]);
 }
 
 static inline float2 get_float2(const BL::Array<float, 2> &array)
@@ -411,7 +428,7 @@ static inline float3 get_float3(PointerRNA &ptr, const char *name)
   return f;
 }
 
-static inline void set_float3(PointerRNA &ptr, const char *name, float3 value)
+static inline void set_float3(PointerRNA &ptr, const char *name, const float3 value)
 {
   RNA_float_set_array(&ptr, name, &value.x);
 }
@@ -423,7 +440,7 @@ static inline float4 get_float4(PointerRNA &ptr, const char *name)
   return f;
 }
 
-static inline void set_float4(PointerRNA &ptr, const char *name, float4 value)
+static inline void set_float4(PointerRNA &ptr, const char *name, const float4 value)
 {
   RNA_float_set_array(&ptr, name, &value.x);
 }
@@ -443,7 +460,7 @@ static inline float get_float(PointerRNA &ptr, const char *name)
   return RNA_float_get(&ptr, name);
 }
 
-static inline void set_float(PointerRNA &ptr, const char *name, float value)
+static inline void set_float(PointerRNA &ptr, const char *name, const float value)
 {
   RNA_float_set(&ptr, name, value);
 }
@@ -453,7 +470,7 @@ static inline int get_int(PointerRNA &ptr, const char *name)
   return RNA_int_get(&ptr, name);
 }
 
-static inline void set_int(PointerRNA &ptr, const char *name, int value)
+static inline void set_int(PointerRNA &ptr, const char *name, const int value)
 {
   RNA_int_set(&ptr, name, value);
 }
@@ -482,27 +499,27 @@ static inline string get_enum_identifier(PointerRNA &ptr, const char *name)
 {
   PropertyRNA *prop = RNA_struct_find_property(&ptr, name);
   const char *identifier = "";
-  int value = RNA_property_enum_get(&ptr, prop);
+  const int value = RNA_property_enum_get(&ptr, prop);
 
-  RNA_property_enum_identifier(NULL, &ptr, prop, value, &identifier);
+  RNA_property_enum_identifier(nullptr, &ptr, prop, value, &identifier);
 
   return string(identifier);
 }
 
-static inline void set_enum(PointerRNA &ptr, const char *name, int value)
+static inline void set_enum(PointerRNA &ptr, const char *name, const int value)
 {
   RNA_enum_set(&ptr, name, value);
 }
 
 static inline void set_enum(PointerRNA &ptr, const char *name, const string &identifier)
 {
-  RNA_enum_set_identifier(NULL, &ptr, name, identifier.c_str());
+  RNA_enum_set_identifier(nullptr, &ptr, name, identifier.c_str());
 }
 
 static inline string get_string(PointerRNA &ptr, const char *name)
 {
   char cstrbuf[1024];
-  char *cstr = RNA_string_get_alloc(&ptr, name, cstrbuf, sizeof(cstrbuf), NULL);
+  char *cstr = RNA_string_get_alloc(&ptr, name, cstrbuf, sizeof(cstrbuf), nullptr);
   string str(cstr);
   if (cstr != cstrbuf) {
     MEM_freeN(cstr);
@@ -539,7 +556,7 @@ static inline string blender_absolute_path(BL::BlendData &b_data, BL::ID &b_id, 
 
 static inline string get_text_datablock_content(const PointerRNA &ptr)
 {
-  if (ptr.data == NULL) {
+  if (ptr.data == nullptr) {
     return "";
   }
 
@@ -556,7 +573,8 @@ static inline string get_text_datablock_content(const PointerRNA &ptr)
 
 static inline void mesh_texture_space(const ::Mesh &b_mesh, float3 &loc, float3 &size)
 {
-  float texspace_location[3], texspace_size[3];
+  float texspace_location[3];
+  float texspace_size[3];
   BKE_mesh_texspace_get(const_cast<::Mesh *>(&b_mesh), texspace_location, texspace_size);
 
   loc = make_float3(texspace_location[0], texspace_location[1], texspace_location[2]);
@@ -679,7 +697,7 @@ static inline Mesh::SubdivisionType object_subdivision_type(BL::Object &b_ob,
 
   if (cobj.data && !b_ob.modifiers.empty() && experimental) {
     BL::Modifier mod = b_ob.modifiers[b_ob.modifiers.length() - 1];
-    bool enabled = preview ? mod.show_viewport() : mod.show_render();
+    const bool enabled = preview ? mod.show_viewport() : mod.show_render();
 
     if (enabled && mod.type() == BL::Modifier::type_SUBSURF &&
         RNA_boolean_get(&cobj, "use_adaptive_subdivision"))
@@ -689,9 +707,7 @@ static inline Mesh::SubdivisionType object_subdivision_type(BL::Object &b_ob,
       if (subsurf.subdivision_type() == BL::SubsurfModifier::subdivision_type_CATMULL_CLARK) {
         return Mesh::SUBDIVISION_CATMULL_CLARK;
       }
-      else {
-        return Mesh::SUBDIVISION_LINEAR;
-      }
+      return Mesh::SUBDIVISION_LINEAR;
     }
   }
 
@@ -748,7 +764,7 @@ static inline bool object_need_motion_attribute(BObjectInfo &b_ob_info, Scene *s
 
 class EdgeMap {
  public:
-  EdgeMap() {}
+  EdgeMap() = default;
 
   void clear()
   {
@@ -779,5 +795,3 @@ class EdgeMap {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __BLENDER_UTIL_H__ */

@@ -48,9 +48,9 @@ std::ostream &operator<<(std::ostream &stream, const ReferenceSetInfo &info)
   return stream;
 }
 
-static bool socket_may_have_reference(const bNodeSocket &socket)
+static bool socket_may_have_reference(const bNodeTree &tree, const bNodeSocket &socket)
 {
-  return socket.runtime->field_state == FieldSocketState::IsField;
+  return tree.runtime->field_states[socket.index_in_tree()] == FieldSocketState::IsField;
 }
 
 static bool or_into_each_other_masked(MutableBoundedBitSpan a,
@@ -126,7 +126,7 @@ static Array<const aal::RelationsInNode *> prepare_relations_by_node(const bNode
             if (prev_geometry_index == -1) {
               continue;
             }
-            if (socket_may_have_reference(socket)) {
+            if (socket_may_have_reference(tree, socket)) {
               relations.eval_relations.append({i, prev_geometry_index});
             }
           }
@@ -142,7 +142,7 @@ static Array<const aal::RelationsInNode *> prepare_relations_by_node(const bNode
             if (prev_geometry_index == -1) {
               continue;
             }
-            if (socket_may_have_reference(socket)) {
+            if (socket_may_have_reference(tree, socket)) {
               relations.available_relations.append({i, prev_geometry_index});
             }
           }
@@ -156,7 +156,7 @@ static Array<const aal::RelationsInNode *> prepare_relations_by_node(const bNode
         for (const bNodeSocket *socket : node->output_sockets()) {
           if (can_contain_referenced_data(eNodeSocketDatatype(socket->type))) {
             for (const bNodeSocket *other_output : node->output_sockets()) {
-              if (socket_may_have_reference(*other_output)) {
+              if (socket_may_have_reference(tree, *other_output)) {
                 relations.available_relations.append({other_output->index(), socket->index()});
               }
             }
@@ -165,7 +165,7 @@ static Array<const aal::RelationsInNode *> prepare_relations_by_node(const bNode
         for (const bNodeSocket *socket : node->input_sockets()) {
           if (can_contain_referenced_data(eNodeSocketDatatype(socket->type))) {
             for (const bNodeSocket *other_input : node->input_sockets()) {
-              if (socket_may_have_reference(*other_input)) {
+              if (socket_may_have_reference(tree, *other_input)) {
                 relations.eval_relations.append({other_input->index(), socket->index()});
               }
             }
@@ -185,7 +185,7 @@ static Array<const aal::RelationsInNode *> prepare_relations_by_node(const bNode
             if (can_contain_referenced_data(eNodeSocketDatatype(input_socket.type))) {
               relations.propagate_relations.append({input_index, output_index});
             }
-            else if (socket_may_have_reference(input_socket)) {
+            else if (socket_may_have_reference(tree, input_socket)) {
               relations.reference_relations.append({input_index, output_index});
             }
           }
@@ -414,12 +414,32 @@ static bool pass_left_to_right(const bNodeTree &tree,
         }
         const bNode *input_node = zone->input_node;
         const bNode *output_node = node;
+        const auto *storage = static_cast<const NodeGeometryForeachGeometryElementOutput *>(
+            node->storage);
         const int src_index = input_node->input_socket(0).index_in_tree();
         for (const bNodeSocket *output_socket : output_node->output_sockets()) {
           if (output_socket->type == SOCK_GEOMETRY) {
             const int dst_index = output_socket->index_in_tree();
             r_potential_data_by_socket[dst_index] |= r_potential_data_by_socket[src_index];
           }
+        }
+
+        /* Propagate references from the inside to the outside. Like in the repeat zone, new
+         * references created in the zone stay local inside the zone and are not propagated to the
+         * outside. Instead, the foreach-element output node creates new references. */
+        const BitVector<> outside_references = get_references_coming_from_outside_zone(
+            *zone, r_potential_data_by_socket, r_potential_reference_by_socket);
+        for (const int item_i : IndexRange(storage->generation_items.items_num)) {
+          const int src_index =
+              node->input_socket(storage->main_items.items_num + item_i).index_in_tree();
+          const int dst_index =
+              node->output_socket(1 + storage->main_items.items_num + item_i).index_in_tree();
+          bits::inplace_or_masked(r_potential_data_by_socket[dst_index],
+                                  outside_references,
+                                  r_potential_data_by_socket[src_index]);
+          bits::inplace_or_masked(r_potential_reference_by_socket[dst_index],
+                                  outside_references,
+                                  r_potential_reference_by_socket[src_index]);
         }
         break;
       }
@@ -581,6 +601,20 @@ static bool pass_right_to_left(const bNodeTree &tree,
             const int src_index = output_socket->index_in_tree();
             r_required_data_by_socket[dst_index] |= r_required_data_by_socket[src_index];
           }
+        }
+        break;
+      }
+      case GEO_NODE_FOREACH_GEOMETRY_ELEMENT_OUTPUT: {
+        const bNode *output_node = node;
+        const auto *storage = static_cast<NodeGeometryForeachGeometryElementOutput *>(
+            output_node->storage);
+
+        for (const int item_i : IndexRange(storage->generation_items.items_num)) {
+          const int src_index =
+              node->output_socket(1 + storage->main_items.items_num + item_i).index_in_tree();
+          const int dst_index =
+              node->input_socket(storage->main_items.items_num + item_i).index_in_tree();
+          r_required_data_by_socket[dst_index] |= r_required_data_by_socket[src_index];
         }
         break;
       }

@@ -25,7 +25,7 @@ using namespace OpenSubdiv;
 
 struct PatchMapQuadNode {
   /* sets all the children to point to the patch of index */
-  void set_child(int index)
+  void set_child(const int index)
   {
     for (int i = 0; i < 4; i++) {
       children[i] = index | PATCH_MAP_NODE_IS_SET | PATCH_MAP_NODE_IS_LEAF;
@@ -33,7 +33,7 @@ struct PatchMapQuadNode {
   }
 
   /* sets the child in quadrant to point to the node or patch of the given index */
-  void set_child(unsigned char quadrant, int index, bool is_leaf = true)
+  void set_child(unsigned char quadrant, const int index, bool is_leaf = true)
   {
     assert(quadrant < 4);
     children[quadrant] = index | PATCH_MAP_NODE_IS_SET | (is_leaf ? PATCH_MAP_NODE_IS_LEAF : 0);
@@ -76,7 +76,7 @@ static void build_patch_map(PackedPatchTable &table,
   int num_faces = 0;
 
   for (int array = 0; array < table.num_arrays; array++) {
-    Far::ConstPatchParamArray params = patch_table->GetPatchParams(array);
+    const Far::ConstPatchParamArray params = patch_table->GetPatchParams(array);
 
     for (int j = 0; j < patch_table->GetNumPatches(array); j++) {
       num_faces = max(num_faces, (int)params[j].GetFaceId());
@@ -94,12 +94,12 @@ static void build_patch_map(PackedPatchTable &table,
 
   /* populate the quadtree from the FarPatchArrays sub-patches */
   for (int array = 0; array < table.num_arrays; array++) {
-    Far::ConstPatchParamArray params = patch_table->GetPatchParams(array);
+    const Far::ConstPatchParamArray params = patch_table->GetPatchParams(array);
 
     for (int i = 0; i < patch_table->GetNumPatches(array); i++, handle_index += PATCH_HANDLE_SIZE)
     {
       const Far::PatchParam &param = params[i];
-      unsigned short depth = param.GetDepth();
+      const unsigned short depth = param.GetDepth();
 
       PatchMapQuadNode *node = &quadtree[params[i].GetFaceId()];
 
@@ -111,13 +111,13 @@ static void build_patch_map(PackedPatchTable &table,
 
       int u = param.GetU();
       int v = param.GetV();
-      int pdepth = param.NonQuadRoot() ? depth - 2 : depth - 1;
+      const int pdepth = param.NonQuadRoot() ? depth - 2 : depth - 1;
       int half = 1 << pdepth;
 
       for (int j = 0; j < depth; j++) {
-        int delta = half >> 1;
+        const int delta = half >> 1;
 
-        int quadrant = resolve_quadrant(half, u, v);
+        const int quadrant = resolve_quadrant(half, u, v);
         assert(quadrant >= 0);
 
         half = delta;
@@ -128,22 +128,20 @@ static void build_patch_map(PackedPatchTable &table,
           node->set_child(quadrant, handle_index + offset, true);
           break;
         }
+        /* travel down the child node of the corresponding quadrant */
+        if (!(node->children[quadrant] & PATCH_MAP_NODE_IS_SET)) {
+          /* create a new branch in the quadrant */
+          quadtree.push_back(PatchMapQuadNode());
+
+          const int idx = (int)quadtree.size() - 1;
+          node->set_child(quadrant, idx * 4 + offset, false);
+
+          node = &quadtree[idx];
+        }
         else {
-          /* travel down the child node of the corresponding quadrant */
-          if (!(node->children[quadrant] & PATCH_MAP_NODE_IS_SET)) {
-            /* create a new branch in the quadrant */
-            quadtree.push_back(PatchMapQuadNode());
-
-            int idx = (int)quadtree.size() - 1;
-            node->set_child(quadrant, idx * 4 + offset, false);
-
-            node = &quadtree[idx];
-          }
-          else {
-            /* travel down an existing branch */
-            uint idx = node->children[quadrant] & PATCH_MAP_NODE_INDEX_MASK;
-            node = &(quadtree[(idx - offset) / 4]);
-          }
+          /* travel down an existing branch */
+          const uint idx = node->children[quadrant] & PATCH_MAP_NODE_INDEX_MASK;
+          node = &(quadtree[(idx - offset) / 4]);
         }
       }
     }
@@ -151,7 +149,7 @@ static void build_patch_map(PackedPatchTable &table,
 
   /* copy into table */
   assert(table.table.size() == table.total_size());
-  uint map_offset = table.total_size();
+  const uint map_offset = table.total_size();
 
   table.num_nodes = quadtree.size() * 4;
   table.table.resize(table.total_size());
@@ -176,7 +174,7 @@ size_t PackedPatchTable::total_size()
          num_patches * (PATCH_PARAM_SIZE + PATCH_HANDLE_SIZE) + num_nodes * PATCH_NODE_SIZE;
 }
 
-void PackedPatchTable::pack(Far::PatchTable *patch_table, int offset)
+void PackedPatchTable::pack(Far::PatchTable *patch_table, const int offset)
 {
   num_arrays = 0;
   num_patches = 0;
@@ -187,8 +185,8 @@ void PackedPatchTable::pack(Far::PatchTable *patch_table, int offset)
   num_arrays = patch_table->GetNumPatchArrays();
 
   for (int i = 0; i < num_arrays; i++) {
-    int patches = patch_table->GetNumPatches(i);
-    int num_control = patch_table->GetPatchArrayDescriptor(i).GetNumControlVertices();
+    const int patches = patch_table->GetNumPatches(i);
+    const int num_control = patch_table->GetPatchArrayDescriptor(i).GetNumControlVertices();
 
     num_patches += patches;
     num_indices += patches * num_control;
@@ -210,7 +208,7 @@ void PackedPatchTable::pack(Far::PatchTable *patch_table, int offset)
     *(array++) = (index - data) + offset;
     *(array++) = (param - data) + offset;
 
-    Far::ConstIndexArray indices = patch_table->GetPatchArrayVertices(i);
+    const Far::ConstIndexArray indices = patch_table->GetPatchArrayVertices(i);
 
     for (int j = 0; j < indices.size(); j++) {
       *(index++) = indices[j];
@@ -218,8 +216,8 @@ void PackedPatchTable::pack(Far::PatchTable *patch_table, int offset)
 
     const Far::PatchParamTable &param_table = patch_table->GetPatchParamTable();
 
-    int num_control = patch_table->GetPatchArrayDescriptor(i).GetNumControlVertices();
-    int patches = patch_table->GetNumPatches(i);
+    const int num_control = patch_table->GetPatchArrayDescriptor(i).GetNumControlVertices();
+    const int patches = patch_table->GetNumPatches(i);
 
     for (int j = 0; j < patches; j++, current_param++) {
       *(param++) = param_table[current_param].field0;
@@ -238,7 +236,7 @@ void PackedPatchTable::pack(Far::PatchTable *patch_table, int offset)
 #endif
 }
 
-void PackedPatchTable::copy_adjusting_offsets(uint *dest, int doffset)
+void PackedPatchTable::copy_adjusting_offsets(uint *dest, const int doffset)
 {
   uint *src = table.data();
 

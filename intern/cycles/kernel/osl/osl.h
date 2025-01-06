@@ -12,15 +12,16 @@
  * Holds all variables to execute and use OSL shaders from the kernel.
  */
 
+#include "kernel/osl/closures_setup.h"
 #include "kernel/osl/types.h"
 
-#include "kernel/osl/closures_setup.h"
+#include "kernel/util/differential.h"
 
 CCL_NAMESPACE_BEGIN
 
 ccl_device_inline void shaderdata_to_shaderglobals(KernelGlobals kg,
                                                    ccl_private ShaderData *sd,
-                                                   uint32_t path_flag,
+                                                   const uint32_t path_flag,
                                                    ccl_private ShaderGlobals *globals)
 {
   const differential3 dP = differential_from_compact(sd->Ng, sd->dP);
@@ -62,26 +63,26 @@ ccl_device_inline void shaderdata_to_shaderglobals(KernelGlobals kg,
   globals->shader2common = sd;
   globals->object2common = sd;
 
-  /* must be set to NULL before execute */
+  /* must be set to nullptr before execute */
   globals->Ci = nullptr;
 }
 
 ccl_device void flatten_closure_tree(KernelGlobals kg,
                                      ccl_private ShaderData *sd,
-                                     uint32_t path_flag,
-                                     ccl_private const OSLClosure *closure)
+                                     const uint32_t path_flag,
+                                     const ccl_private OSLClosure *closure)
 {
   int stack_size = 0;
   float3 weight = one_float3();
   float3 weight_stack[16];
-  ccl_private const OSLClosure *closure_stack[16];
+  const ccl_private OSLClosure *closure_stack[16];
   int layer_stack_level = -1;
   float3 layer_albedo = zero_float3();
 
   while (true) {
     switch (closure->id) {
       case OSL_CLOSURE_MUL_ID: {
-        ccl_private const OSLClosureMul *mul = static_cast<ccl_private const OSLClosureMul *>(
+        const ccl_private OSLClosureMul *mul = static_cast<const ccl_private OSLClosureMul *>(
             closure);
         weight *= mul->weight;
         closure = mul->closure;
@@ -92,7 +93,7 @@ ccl_device void flatten_closure_tree(KernelGlobals kg,
           kernel_assert(!"Exhausted OSL closure stack");
           break;
         }
-        ccl_private const OSLClosureAdd *add = static_cast<ccl_private const OSLClosureAdd *>(
+        const ccl_private OSLClosureAdd *add = static_cast<const ccl_private OSLClosureAdd *>(
             closure);
         closure = add->closureA;
         weight_stack[stack_size] = weight;
@@ -100,9 +101,9 @@ ccl_device void flatten_closure_tree(KernelGlobals kg,
         continue;
       }
       case OSL_CLOSURE_LAYER_ID: {
-        ccl_private const OSLClosureComponent *comp =
-            static_cast<ccl_private const OSLClosureComponent *>(closure);
-        ccl_private const LayerClosure *layer = reinterpret_cast<ccl_private const LayerClosure *>(
+        const ccl_private OSLClosureComponent *comp =
+            static_cast<const ccl_private OSLClosureComponent *>(closure);
+        const ccl_private LayerClosure *layer = reinterpret_cast<const ccl_private LayerClosure *>(
             comp + 1);
 
         /* Layer closures may not appear in the top layer subtree of another layer closure. */
@@ -134,7 +135,7 @@ ccl_device void flatten_closure_tree(KernelGlobals kg,
                                 path_flag, \
                                 weight * comp->weight, \
                                 reinterpret_cast<ccl_private const Upper##Closure *>(comp + 1), \
-                                (layer_stack_level >= 0) ? &albedo : NULL); \
+                                (layer_stack_level >= 0) ? &albedo : nullptr); \
     if (layer_stack_level >= 0) { \
       layer_albedo += albedo; \
     } \
@@ -171,7 +172,7 @@ ccl_device void flatten_closure_tree(KernelGlobals kg,
 #ifndef __KERNEL_GPU__
 
 template<ShaderType type>
-void osl_eval_nodes(const KernelGlobalsCPU *kg,
+void osl_eval_nodes(const ThreadKernelGlobalsCPU *kg,
                     const void *state,
                     ShaderData *sd,
                     uint32_t path_flag);
@@ -182,7 +183,7 @@ template<ShaderType type, typename ConstIntegratorGenericState>
 ccl_device_inline void osl_eval_nodes(KernelGlobals kg,
                                       ConstIntegratorGenericState state,
                                       ccl_private ShaderData *sd,
-                                      uint32_t path_flag)
+                                      const uint32_t path_flag)
 {
   ShaderGlobals globals;
   shaderdata_to_shaderglobals(kg, sd, path_flag, &globals);

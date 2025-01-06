@@ -121,7 +121,8 @@ struct FilterLocalData {
   Vector<int> visible_verts;
   Vector<float> node_mask;
   Vector<float> new_mask;
-  Vector<Vector<int>> vert_neighbors;
+  Vector<int> neighbor_offsets;
+  Vector<int> neighbor_data;
 };
 
 static void apply_new_mask_mesh(const Depsgraph &depsgraph,
@@ -154,7 +155,7 @@ static void apply_new_mask_mesh(const Depsgraph &depsgraph,
 
 static void smooth_mask_mesh(const OffsetIndices<int> faces,
                              const Span<int> corner_verts,
-                             const GroupedSpan<int> vert_to_face_map,
+                             const GroupedSpan<int> vert_to_face,
                              const Span<bool> hide_poly,
                              const Span<bool> hide_vert,
                              const Span<float> mask,
@@ -164,9 +165,13 @@ static void smooth_mask_mesh(const OffsetIndices<int> faces,
 {
   const Span<int> verts = node.verts();
 
-  tls.vert_neighbors.resize(verts.size());
-  const MutableSpan<Vector<int>> neighbors = tls.vert_neighbors;
-  calc_vert_neighbors(faces, corner_verts, vert_to_face_map, hide_poly, verts, neighbors);
+  const GroupedSpan<int> neighbors = calc_vert_neighbors(faces,
+                                                         corner_verts,
+                                                         vert_to_face,
+                                                         hide_poly,
+                                                         verts,
+                                                         tls.neighbor_offsets,
+                                                         tls.neighbor_data);
 
   smooth::neighbor_data_average_mesh(mask, neighbors, new_mask);
   copy_old_hidden_mask_mesh(verts, hide_vert, mask, new_mask);
@@ -174,7 +179,7 @@ static void smooth_mask_mesh(const OffsetIndices<int> faces,
 
 static void sharpen_mask_mesh(const OffsetIndices<int> faces,
                               const Span<int> corner_verts,
-                              const GroupedSpan<int> vert_to_face_map,
+                              const GroupedSpan<int> vert_to_face,
                               const Span<bool> hide_poly,
                               const Span<bool> hide_vert,
                               const Span<float> mask,
@@ -188,9 +193,13 @@ static void sharpen_mask_mesh(const OffsetIndices<int> faces,
   const MutableSpan<float> node_mask = tls.node_mask;
   gather_data_mesh(mask, verts, node_mask);
 
-  tls.vert_neighbors.resize(verts.size());
-  const MutableSpan<Vector<int>> neighbors = tls.vert_neighbors;
-  calc_vert_neighbors(faces, corner_verts, vert_to_face_map, hide_poly, verts, neighbors);
+  const GroupedSpan<int> neighbors = calc_vert_neighbors(faces,
+                                                         corner_verts,
+                                                         vert_to_face,
+                                                         hide_poly,
+                                                         verts,
+                                                         tls.neighbor_offsets,
+                                                         tls.neighbor_data);
 
   smooth::neighbor_data_average_mesh(mask, neighbors, new_mask);
 
@@ -200,7 +209,7 @@ static void sharpen_mask_mesh(const OffsetIndices<int> faces,
 
 static void grow_mask_mesh(const OffsetIndices<int> faces,
                            const Span<int> corner_verts,
-                           const GroupedSpan<int> vert_to_face_map,
+                           const GroupedSpan<int> vert_to_face,
                            const Span<bool> hide_poly,
                            const Span<bool> hide_vert,
                            const Span<float> mask,
@@ -210,9 +219,13 @@ static void grow_mask_mesh(const OffsetIndices<int> faces,
 {
   const Span<int> verts = node.verts();
 
-  tls.vert_neighbors.resize(verts.size());
-  const MutableSpan<Vector<int>> neighbors = tls.vert_neighbors;
-  calc_vert_neighbors(faces, corner_verts, vert_to_face_map, hide_poly, verts, neighbors);
+  const GroupedSpan<int> neighbors = calc_vert_neighbors(faces,
+                                                         corner_verts,
+                                                         vert_to_face,
+                                                         hide_poly,
+                                                         verts,
+                                                         tls.neighbor_offsets,
+                                                         tls.neighbor_data);
 
   for (const int i : verts.index_range()) {
     new_mask[i] = mask[verts[i]];
@@ -225,7 +238,7 @@ static void grow_mask_mesh(const OffsetIndices<int> faces,
 
 static void shrink_mask_mesh(const OffsetIndices<int> faces,
                              const Span<int> corner_verts,
-                             const GroupedSpan<int> vert_to_face_map,
+                             const GroupedSpan<int> vert_to_face,
                              const Span<bool> hide_poly,
                              const Span<bool> hide_vert,
                              const Span<float> mask,
@@ -235,9 +248,13 @@ static void shrink_mask_mesh(const OffsetIndices<int> faces,
 {
   const Span<int> verts = node.verts();
 
-  tls.vert_neighbors.resize(verts.size());
-  const MutableSpan<Vector<int>> neighbors = tls.vert_neighbors;
-  calc_vert_neighbors(faces, corner_verts, vert_to_face_map, hide_poly, verts, neighbors);
+  const GroupedSpan<int> neighbors = calc_vert_neighbors(faces,
+                                                         corner_verts,
+                                                         vert_to_face,
+                                                         hide_poly,
+                                                         verts,
+                                                         tls.neighbor_offsets,
+                                                         tls.neighbor_data);
 
   for (const int i : verts.index_range()) {
     new_mask[i] = mask[verts[i]];

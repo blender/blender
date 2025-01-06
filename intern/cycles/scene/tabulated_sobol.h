@@ -2,15 +2,12 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __TABULATED_SOBOL_H__
-#define __TABULATED_SOBOL_H__
+#pragma once
 
 #include "util/types.h"
 
 CCL_NAMESPACE_BEGIN
 
-void tabulated_sobol_generate_4D(float4 points[], int size, int rng_seed);
+void tabulated_sobol_generate_4D(float4 points[], const int size, const int rng_seed);
 
 CCL_NAMESPACE_END
-
-#endif /* __TABULATED_SOBOL_H__ */

@@ -65,10 +65,10 @@ static int view3d_copybuffer_exec(bContext *C, wmOperator *op)
   /* context, selection, could be generalized */
   CTX_DATA_BEGIN (C, Object *, ob, selected_objects) {
     copybuffer.id_add(&ob->id,
-                      PartialWriteContext::IDAddOptions{PartialWriteContext::IDAddOperations(
-                          PartialWriteContext::IDAddOperations::SET_FAKE_USER |
-                          PartialWriteContext::IDAddOperations::SET_CLIPBOARD_MARK |
-                          PartialWriteContext::IDAddOperations::ADD_DEPENDENCIES)},
+                      PartialWriteContext::IDAddOptions{
+                          (PartialWriteContext::IDAddOperations::SET_FAKE_USER |
+                           PartialWriteContext::IDAddOperations::SET_CLIPBOARD_MARK |
+                           PartialWriteContext::IDAddOperations::ADD_DEPENDENCIES)},
                       nullptr);
   }
   CTX_DATA_END;

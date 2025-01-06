@@ -56,6 +56,7 @@ void register_node_type_sh_value()
   static blender::bke::bNodeType ntype;
 
   sh_fn_node_type_base(&ntype, SH_NODE_VALUE, "Value", NODE_CLASS_INPUT);
+  ntype.enum_name_legacy = "VALUE";
   ntype.declare = file_ns::sh_node_value_declare;
   ntype.gpu_fn = file_ns::gpu_shader_value;
   ntype.build_multi_function = file_ns::sh_node_value_build_multi_function;

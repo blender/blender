@@ -16,8 +16,9 @@
 
 /** Workaround to forward-declare C++ type in C header. */
 #ifdef __cplusplus
-#  include <BLI_vector.hh>
 #  include <string>
+
+#  include "BLI_vector.hh"
 
 namespace blender {
 template<typename T> class Span;
@@ -425,15 +426,15 @@ typedef struct bNode {
   /** Parent node (for frame nodes). */
   struct bNode *parent;
 
-  /** Root location in the node canvas (in parent space). */
-  float locx, locy;
+  /** The location of the top left corner of the node on the canvas. */
+  float location[2];
   /**
    * Custom width and height controlled by users. Height is calculate automatically for most
    * nodes.
    */
   float width, height;
-  /** Additional offset from loc. TODO: Redundant with #locx and #locy, remove/deprecate. */
-  float offsetx, offsety;
+  float locx_legacy, locy_legacy;
+  float offsetx_legacy, offsety_legacy;
 
   /** Custom user-defined label, MAX_NAME. */
   char label[64];
@@ -475,9 +476,11 @@ typedef struct bNode {
   /** A span containing all input sockets of the node (including unavailable sockets). */
   blender::Span<bNodeSocket *> input_sockets();
   blender::Span<const bNodeSocket *> input_sockets() const;
+  blender::IndexRange input_socket_indices_in_tree() const;
   /** A span containing all output sockets of the node (including unavailable sockets). */
   blender::Span<bNodeSocket *> output_sockets();
   blender::Span<const bNodeSocket *> output_sockets() const;
+  blender::IndexRange output_socket_indices_in_tree() const;
   /** Utility to get an input socket by its index. */
   bNodeSocket &input_socket(int index);
   const bNodeSocket &input_socket(int index) const;
@@ -847,6 +850,10 @@ typedef struct bNodeTree {
   blender::Span<const bNodeTreeInterfaceSocket *> interface_outputs() const;
   blender::Span<bNodeTreeInterfaceItem *> interface_items();
   blender::Span<const bNodeTreeInterfaceItem *> interface_items() const;
+
+  int interface_input_index(const bNodeTreeInterfaceSocket &io_socket) const;
+  int interface_output_index(const bNodeTreeInterfaceSocket &io_socket) const;
+  int interface_item_index(const bNodeTreeInterfaceItem &io_item) const;
 #endif
 } bNodeTree;
 
@@ -1564,6 +1571,8 @@ typedef struct NodeCryptomatte {
 typedef struct NodeDenoise {
   char hdr;
   char prefilter;
+  char quality;
+  char _pad[1];
 } NodeDenoise;
 
 typedef struct NodeMapRange {
@@ -2794,6 +2803,14 @@ typedef enum CMPNodeDenoisePrefilter {
   CMP_NODE_DENOISE_PREFILTER_NONE = 1,
   CMP_NODE_DENOISE_PREFILTER_ACCURATE = 2
 } CMPNodeDenoisePrefilter;
+
+/** #NodeDenoise.quality */
+typedef enum CMPNodeDenoiseQuality {
+  CMP_NODE_DENOISE_QUALITY_SCENE = 0,
+  CMP_NODE_DENOISE_QUALITY_HIGH = 1,
+  CMP_NODE_DENOISE_QUALITY_BALANCED = 2,
+  CMP_NODE_DENOISE_QUALITY_FAST = 3,
+} CMPNodeDenoiseQuality;
 
 /* Color combine/separate modes */
 

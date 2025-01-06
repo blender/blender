@@ -92,18 +92,18 @@ static void node_composit_buts_trackpos(uiLayout *layout, bContext *C, PointerRN
       uiItemR(layout, ptr, "track_name", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_ANIM_DATA);
     }
 
-    uiItemR(layout, ptr, "position", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+    uiItemR(layout, ptr, "position", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 
     if (ELEM(node->custom1,
              CMP_NODE_TRACK_POSITION_RELATIVE_FRAME,
              CMP_NODE_TRACK_POSITION_ABSOLUTE_FRAME))
     {
-      uiItemR(layout, ptr, "frame_relative", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+      uiItemR(layout, ptr, "frame_relative", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
     }
   }
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class TrackPositionOperation : public NodeOperation {
  public:
@@ -141,13 +141,13 @@ class TrackPositionOperation : public NodeOperation {
     if (should_compute_x) {
       Result &result = get_result("X");
       result.allocate_single_value();
-      result.set_float_value(position.x);
+      result.set_single_value(position.x);
     }
 
     if (should_compute_y) {
       Result &result = get_result("Y");
       result.allocate_single_value();
-      result.set_float_value(position.y);
+      result.set_single_value(position.y);
     }
   }
 
@@ -175,7 +175,7 @@ class TrackPositionOperation : public NodeOperation {
 
     Result &result = get_result("Speed");
     result.allocate_single_value();
-    result.set_vector_value(speed);
+    result.set_single_value(speed);
   }
 
   void execute_invalid()
@@ -183,17 +183,17 @@ class TrackPositionOperation : public NodeOperation {
     if (should_compute_output("X")) {
       Result &result = get_result("X");
       result.allocate_single_value();
-      result.set_float_value(0.0f);
+      result.set_single_value(0.0f);
     }
     if (should_compute_output("Y")) {
       Result &result = get_result("Y");
       result.allocate_single_value();
-      result.set_float_value(0.0f);
+      result.set_single_value(0.0f);
     }
     if (should_compute_output("Speed")) {
       Result &result = get_result("Speed");
       result.allocate_single_value();
-      result.set_vector_value(float4(0.0f));
+      result.set_single_value(float4(0.0f));
     }
   }
 
@@ -356,6 +356,7 @@ void register_node_type_cmp_trackpos()
   static blender::bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_TRACKPOS, "Track Position", NODE_CLASS_INPUT);
+  ntype.enum_name_legacy = "TRACKPOS";
   ntype.declare = file_ns::cmp_node_trackpos_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_trackpos;
   ntype.initfunc_api = file_ns::init;

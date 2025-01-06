@@ -125,7 +125,6 @@ static void remove_unsupported_corner_data(Mesh &mesh)
   CustomData_free_layers(&mesh.corner_data, CD_TANGENT, mesh.corners_num);
   CustomData_free_layers(&mesh.corner_data, CD_MLOOPTANGENT, mesh.corners_num);
   CustomData_free_layers(&mesh.corner_data, CD_GRID_PAINT_MASK, mesh.corners_num);
-  CustomData_free_layers(&mesh.corner_data, CD_CUSTOMLOOPNORMAL, mesh.corners_num);
 }
 
 static void expand_mesh(Mesh &mesh,
@@ -1543,6 +1542,7 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
   geo_node_type_base(&ntype, GEO_NODE_EXTRUDE_MESH, "Extrude Mesh", NODE_CLASS_GEOMETRY);
+  ntype.enum_name_legacy = "EXTRUDE_MESH";
   ntype.declare = node_declare;
   ntype.initfunc = node_init;
   ntype.geometry_node_execute = node_geo_exec;

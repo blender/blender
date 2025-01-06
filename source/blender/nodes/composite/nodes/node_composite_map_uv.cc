@@ -41,7 +41,7 @@ static void cmp_node_map_uv_declare(NodeDeclarationBuilder &b)
 static void node_composit_buts_map_uv(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
   uiItemR(layout, ptr, "filter_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
-  uiItemR(layout, ptr, "alpha", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "alpha", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 }
 
 static void node_composit_init_map_uv(bNodeTree * /*ntree*/, bNode *node)
@@ -49,7 +49,7 @@ static void node_composit_init_map_uv(bNodeTree * /*ntree*/, bNode *node)
   node->custom2 = CMP_NODE_MAP_UV_FILTERING_ANISOTROPIC;
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class MapUVOperation : public NodeOperation {
  public:
@@ -118,12 +118,41 @@ class MapUVOperation : public NodeOperation {
 
   void execute_cpu()
   {
+    const Result &input_uv = get_input("UV");
+    if (input_uv.is_single_value()) {
+      this->execute_single_cpu();
+      return;
+    }
+
     if (this->get_nearest_neighbour()) {
       this->execute_cpu_nearest();
     }
     else {
       this->execute_cpu_anisotropic();
     }
+  }
+
+  void execute_single_cpu()
+  {
+    const Result &input_uv = get_input("UV");
+    const Result &input_image = get_input("Image");
+
+    float2 uv_coordinates = input_uv.get_single_value<float4>().xy();
+    float4 sampled_color = input_image.sample_nearest_zero(uv_coordinates);
+
+    /* The UV input is assumed to contain an alpha channel as its third channel, since the
+     * UV coordinates might be defined in only a subset area of the UV texture as mentioned.
+     * In that case, the alpha is typically opaque at the subset area and transparent
+     * everywhere else, and alpha pre-multiplication is then performed. This format of having
+     * an alpha channel in the UV coordinates is the format used by UV passes in render
+     * engines, hence the mentioned logic. */
+    float alpha = input_uv.get_single_value<float4>().z;
+
+    float4 result = sampled_color * alpha;
+
+    Result &output = get_result("Image");
+    output.allocate_single_value();
+    output.set_single_value(result);
   }
 
   void execute_cpu_nearest()
@@ -136,17 +165,17 @@ class MapUVOperation : public NodeOperation {
     output_image.allocate_texture(domain);
 
     parallel_for(domain.size, [&](const int2 texel) {
-      float2 uv_coordinates = input_uv.load_pixel(texel).xy();
+      float2 uv_coordinates = input_uv.load_pixel<float4>(texel).xy();
 
       float4 sampled_color = input_image.sample_nearest_zero(uv_coordinates);
 
-      /* The UV texture is assumed to contain an alpha channel as its third channel, since the
+      /* The UV input is assumed to contain an alpha channel as its third channel, since the
        * UV coordinates might be defined in only a subset area of the UV texture as mentioned.
        * In that case, the alpha is typically opaque at the subset area and transparent
        * everywhere else, and alpha pre-multiplication is then performed. This format of having
        * an alpha channel in the UV coordinates is the format used by UV passes in render
        * engines, hence the mentioned logic. */
-      float alpha = input_uv.load_pixel(texel).z;
+      float alpha = input_uv.load_pixel<float4>(texel).z;
 
       float4 result = sampled_color * alpha;
 
@@ -181,10 +210,10 @@ class MapUVOperation : public NodeOperation {
       const int2 upper_left_texel = int2(x, y + 1);
       const int2 upper_right_texel = int2(x + 1, y + 1);
 
-      const float2 lower_left_uv = input_uv.load_pixel(lower_left_texel).xy();
-      const float2 lower_right_uv = input_uv.load_pixel_extended(lower_right_texel).xy();
-      const float2 upper_left_uv = input_uv.load_pixel_extended(upper_left_texel).xy();
-      const float2 upper_right_uv = input_uv.load_pixel_extended(upper_right_texel).xy();
+      const float2 lower_left_uv = input_uv.load_pixel<float4>(lower_left_texel).xy();
+      const float2 lower_right_uv = input_uv.load_pixel_extended<float4>(lower_right_texel).xy();
+      const float2 upper_left_uv = input_uv.load_pixel_extended<float4>(upper_left_texel).xy();
+      const float2 upper_right_uv = input_uv.load_pixel_extended<float4>(upper_right_texel).xy();
 
       /* Compute the partial derivatives using finite difference. Divide by the input size since
        * sample_ewa_zero assumes derivatives with respect to texel coordinates. */
@@ -216,13 +245,13 @@ class MapUVOperation : public NodeOperation {
         float gradient_attenuation = math::max(
             0.0f, 1.0f - gradient_attenuation_factor * gradient_magnitude);
 
-        /* The UV texture is assumed to contain an alpha channel as its third channel, since the
+        /* The UV input is assumed to contain an alpha channel as its third channel, since the
          * UV coordinates might be defined in only a subset area of the UV texture as mentioned.
          * In that case, the alpha is typically opaque at the subset area and transparent
          * everywhere else, and alpha pre-multiplication is then performed. This format of having
          * an alpha channel in the UV coordinates is the format used by UV passes in render
          * engines, hence the mentioned logic. */
-        float alpha = input_uv.load_pixel(texel).z;
+        float alpha = input_uv.load_pixel<float4>(texel).z;
 
         float4 result = sampled_color * gradient_attenuation * alpha;
 
@@ -273,6 +302,7 @@ void register_node_type_cmp_mapuv()
   static blender::bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_MAP_UV, "Map UV", NODE_CLASS_DISTORT);
+  ntype.enum_name_legacy = "MAP_UV";
   ntype.declare = file_ns::cmp_node_map_uv_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_map_uv;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;

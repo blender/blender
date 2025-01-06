@@ -39,6 +39,7 @@ void register_node_type_sh_background()
   static blender::bke::bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_BACKGROUND, "Background", NODE_CLASS_SHADER);
+  ntype.enum_name_legacy = "BACKGROUND";
   ntype.declare = file_ns::node_declare;
   ntype.add_ui_poll = world_shader_nodes_poll;
   ntype.gpu_fn = file_ns::node_shader_gpu_background;

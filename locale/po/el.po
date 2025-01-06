@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Release Candidate (b'7dfe47164a63')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'96c6f543ecc7')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-11-18 11:20+0000\n"
+"POT-Creation-Date: 2025-01-06 10:26+0000\n"
 "PO-Revision-Date: 2024-04-29 13:44+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Greek <https://translate.blender.org/projects/blender-ui/ui/el/>\n"
@@ -35,6 +35,14 @@ msgid "Select"
 msgstr "Επιλογή"
 
 
+msgid "Add"
+msgstr "Προσθήκη"
+
+
+msgid "Subtract"
+msgstr "Αφαίρεση"
+
+
 msgid "On"
 msgstr "Ενεργό"
 
@@ -49,14 +57,6 @@ msgstr "Κεντράρισμα"
 
 msgid "Action"
 msgstr "Δράση"
-
-
-msgid "Add"
-msgstr "Προσθήκη"
-
-
-msgid "Subtract"
-msgstr "Αφαίρεση"
 
 
 msgid "Hold"
@@ -744,10 +744,6 @@ msgid "Open"
 msgstr "Άνοιγμα"
 
 
-msgid "Remove"
-msgstr "Remove"
-
-
 msgid "Both"
 msgstr "Both"
 
@@ -928,6 +924,10 @@ msgstr "Polar ZY"
 
 msgid "Pan"
 msgstr "Ολίσθηση προβολής"
+
+
+msgid "Remove"
+msgstr "Remove"
 
 
 msgctxt "Operator"

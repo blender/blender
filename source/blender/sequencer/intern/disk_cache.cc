@@ -291,7 +291,7 @@ static void seq_disk_cache_get_project_dir(SeqDiskCache *disk_cache,
 }
 
 static void seq_disk_cache_get_dir(
-    SeqDiskCache *disk_cache, Scene *scene, Sequence *seq, char *dirpath, size_t dirpath_maxncpy)
+    SeqDiskCache *disk_cache, Scene *scene, Strip *seq, char *dirpath, size_t dirpath_maxncpy)
 {
   char scene_name[MAX_ID_NAME + 22]; /* + -%PRId64 */
   char seq_name[SEQ_NAME_MAXSTR];
@@ -369,7 +369,7 @@ static void seq_disk_cache_handle_versioning(SeqDiskCache *disk_cache)
 
 static void seq_disk_cache_delete_invalid_files(SeqDiskCache *disk_cache,
                                                 Scene *scene,
-                                                Sequence *seq,
+                                                Strip *seq,
                                                 int invalidate_types,
                                                 int range_start,
                                                 int range_end)
@@ -394,11 +394,8 @@ static void seq_disk_cache_delete_invalid_files(SeqDiskCache *disk_cache,
   }
 }
 
-void seq_disk_cache_invalidate(SeqDiskCache *disk_cache,
-                               Scene *scene,
-                               Sequence *seq,
-                               Sequence *seq_changed,
-                               int invalidate_types)
+void seq_disk_cache_invalidate(
+    SeqDiskCache *disk_cache, Scene *scene, Strip *seq, Strip *seq_changed, int invalidate_types)
 {
   int start;
   int end;

@@ -369,7 +369,6 @@ set(SRC
   WSDLSSolver.cpp
   WorldObject.cpp
   eigen_types.cpp
-  ublas_types.hpp
 
   kdl/chain.cpp
   kdl/chainfksolverpos_recursive.cpp

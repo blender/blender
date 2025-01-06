@@ -335,7 +335,7 @@ static void pbvh_bmesh_node_split(Vector<BMeshNode> &nodes,
   for (BMFace *f : n->bm_faces_) {
     BM_ELEM_CD_SET_INT(f, cd_face_node_offset, DYNTOPO_NODE_NONE);
   }
-  n->bm_faces_.clear_and_shrink();
+  n->bm_faces_.clear();
 
   n->flag_ &= ~Node::Leaf;
   node_changed[node_index] = true;

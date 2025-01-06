@@ -111,7 +111,7 @@ struct SyncSelectTypes {
   bool object;
   bool edit_bone;
   bool pose_bone;
-  bool sequence;
+  bool seq_strip;
 };
 
 /**
@@ -130,7 +130,7 @@ static void outliner_sync_select_from_outliner_set_types(bContext *C,
   sync_types->object = !sequence_view;
   sync_types->edit_bone = !sequence_view && (tvc.ob_edit && tvc.ob_edit->type == OB_ARMATURE);
   sync_types->pose_bone = !sequence_view && (tvc.ob_pose && tvc.ob_pose->mode == OB_MODE_POSE);
-  sync_types->sequence = sequence_view;
+  sync_types->seq_strip = sequence_view;
 }
 
 /**
@@ -152,11 +152,11 @@ static bool outliner_sync_select_to_outliner_set_types(const TreeViewContext &tv
   sync_types->pose_bone = !sequence_view && (tvc.ob_pose && tvc.ob_pose->mode == OB_MODE_POSE) &&
                           (space_outliner->sync_select_dirty &
                            WM_OUTLINER_SYNC_SELECT_FROM_POSE_BONE);
-  sync_types->sequence = sequence_view && (space_outliner->sync_select_dirty &
-                                           WM_OUTLINER_SYNC_SELECT_FROM_SEQUENCE);
+  sync_types->seq_strip = sequence_view && (space_outliner->sync_select_dirty &
+                                            WM_OUTLINER_SYNC_SELECT_FROM_SEQUENCE);
 
   return sync_types->object || sync_types->edit_bone || sync_types->pose_bone ||
-         sync_types->sequence;
+         sync_types->seq_strip;
 }
 
 /**
@@ -250,12 +250,12 @@ static void outliner_select_sync_to_pose_bone(TreeElement *te,
   }
 }
 
-static void outliner_select_sync_to_sequence(Scene *scene, const TreeElement *te)
+static void outliner_select_sync_to_strip(Scene *scene, const TreeElement *te)
 {
   const TreeStoreElem *tselem = TREESTORE(te);
 
-  const TreeElementSequence *te_sequence = tree_element_cast<TreeElementSequence>(te);
-  Sequence *seq = &te_sequence->get_sequence();
+  const TreeElementStrip *te_strip = tree_element_cast<TreeElementStrip>(te);
+  Strip *seq = &te_strip->get_strip();
 
   if (tselem->flag & TSE_ACTIVE) {
     SEQ_select_active_set(scene, seq);
@@ -296,9 +296,9 @@ static void outliner_sync_selection_from_outliner(Scene *scene,
         outliner_select_sync_to_pose_bone(te, tselem, selected_items->pose_bones);
       }
     }
-    else if (tselem->type == TSE_SEQUENCE) {
-      if (sync_types->sequence) {
-        outliner_select_sync_to_sequence(scene, te);
+    else if (tselem->type == TSE_STRIP) {
+      if (sync_types->seq_strip) {
+        outliner_select_sync_to_strip(scene, te);
       }
     }
 
@@ -346,7 +346,7 @@ void ED_outliner_select_sync_from_outliner(bContext *C, SpaceOutliner *space_out
   else if (sync_types.pose_bone) {
     space_outliner->sync_select_dirty &= ~WM_OUTLINER_SYNC_SELECT_FROM_POSE_BONE;
   }
-  if (sync_types.sequence) {
+  if (sync_types.seq_strip) {
     space_outliner->sync_select_dirty &= ~WM_OUTLINER_SYNC_SELECT_FROM_SEQUENCE;
     WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER | NA_SELECTED, scene);
   }
@@ -424,14 +424,14 @@ static void outliner_select_sync_from_pose_bone(bPoseChannel *pchan_active,
   }
 }
 
-static void outliner_select_sync_from_sequence(Sequence *sequence_active, const TreeElement *te)
+static void outliner_select_sync_from_strip(Strip *strip_active, const TreeElement *te)
 {
   TreeStoreElem *tselem = TREESTORE(te);
 
-  const TreeElementSequence *te_sequence = tree_element_cast<TreeElementSequence>(te);
-  const Sequence *seq = &te_sequence->get_sequence();
+  const TreeElementStrip *te_strip = tree_element_cast<TreeElementStrip>(te);
+  const Strip *seq = &te_strip->get_strip();
 
-  if (seq == sequence_active) {
+  if (seq == strip_active) {
     tselem->flag |= TSE_ACTIVE;
   }
   else {
@@ -447,14 +447,14 @@ static void outliner_select_sync_from_sequence(Sequence *sequence_active, const 
 }
 
 /**
- * Contains active object, bones, and sequence for syncing to prevent getting active data
+ * Contains active object, bones, and strip for syncing to prevent getting active data
  * repeatedly throughout syncing to the outliner.
  */
 struct SyncSelectActiveData {
   Object *object;
   EditBone *edit_bone;
   bPoseChannel *pose_channel;
-  Sequence *sequence;
+  Strip *strip;
 };
 
 /** Sync select and active flags from active view layer, bones, and sequences to the outliner. */
@@ -483,9 +483,9 @@ static void outliner_sync_selection_to_outliner(const Scene *scene,
         outliner_select_sync_from_pose_bone(active_data->pose_channel, te, tselem);
       }
     }
-    else if (tselem->type == TSE_SEQUENCE) {
-      if (sync_types->sequence) {
-        outliner_select_sync_from_sequence(active_data->sequence, te);
+    else if (tselem->type == TSE_STRIP) {
+      if (sync_types->seq_strip) {
+        outliner_select_sync_from_strip(active_data->strip, te);
       }
     }
     else {
@@ -507,7 +507,7 @@ static void get_sync_select_active_data(const bContext *C, SyncSelectActiveData 
   active_data->object = BKE_view_layer_active_object_get(view_layer);
   active_data->edit_bone = CTX_data_active_bone(C);
   active_data->pose_channel = CTX_data_active_pose_bone(C);
-  active_data->sequence = SEQ_select_active_get(scene);
+  active_data->strip = SEQ_select_active_get(scene);
 }
 
 void outliner_sync_selection(const bContext *C,
@@ -520,7 +520,7 @@ void outliner_sync_selection(const bContext *C,
       tvc, space_outliner, &sync_types);
 
   if (sync_required) {
-    /* Store active object, bones, and sequence */
+    /* Store active object, bones, and strip */
     SyncSelectActiveData active_data;
     get_sync_select_active_data(C, &active_data);
 
@@ -541,7 +541,7 @@ void outliner_sync_selection(const bContext *C,
     if (sync_types.pose_bone) {
       space_outliner->sync_select_dirty &= ~WM_OUTLINER_SYNC_SELECT_FROM_POSE_BONE;
     }
-    if (sync_types.sequence) {
+    if (sync_types.seq_strip) {
       space_outliner->sync_select_dirty &= ~WM_OUTLINER_SYNC_SELECT_FROM_SEQUENCE;
     }
   }

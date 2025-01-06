@@ -15,7 +15,7 @@ void CCL_start_debug_logging()
   ccl::util_logging_start();
 }
 
-void CCL_logging_verbosity_set(int verbosity)
+void CCL_logging_verbosity_set(const int verbosity)
 {
   ccl::util_logging_verbosity_set(verbosity);
 }

@@ -22,6 +22,7 @@ __all__ = (
     "app_template_paths",
     "register_class",
     "register_cli_command",
+    "time_from_frame",
     "unregister_cli_command",
     "register_manual_map",
     "unregister_manual_map",

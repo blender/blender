@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0 */
 
 #include "hydra/mesh.h"
+#include "hydra/attribute.h"
 #include "hydra/geometry.inl"
 #include "scene/mesh.h"
 
@@ -96,7 +97,7 @@ HdCyclesMesh::HdCyclesMesh(const SdfPath &rprimId
 {
 }
 
-HdCyclesMesh::~HdCyclesMesh() {}
+HdCyclesMesh::~HdCyclesMesh() = default;
 
 HdDirtyBits HdCyclesMesh::GetInitialDirtyBitsMask() const
 {
@@ -399,7 +400,7 @@ void HdCyclesMesh::PopulateTopology(HdSceneDelegate *sceneDelegate)
   // Initialize lookup table from polygon face to material shader index
   VtIntArray faceShaders(_topology.GetNumFaces(), 0);
 
-  HdGeomSubsets const &geomSubsets = _topology.GetGeomSubsets();
+  const HdGeomSubsets &geomSubsets = _topology.GetGeomSubsets();
   if (!geomSubsets.empty()) {
     array<Node *> usedShaders = std::move(_geom->get_used_shaders());
     // Remove any previous materials except for the material assigned to the prim
@@ -416,7 +417,7 @@ void HdCyclesMesh::PopulateTopology(HdSceneDelegate *sceneDelegate)
         shader = it->second;
       }
       else {
-        const auto material = static_cast<const HdCyclesMaterial *>(
+        const auto *const material = static_cast<const HdCyclesMaterial *>(
             sceneDelegate->GetRenderIndex().GetSprim(HdPrimTypeTokens->material,
                                                      geomSubset.materialId));
 
@@ -428,7 +429,7 @@ void HdCyclesMesh::PopulateTopology(HdSceneDelegate *sceneDelegate)
         }
       }
 
-      for (int face : geomSubset.indices) {
+      for (const int face : geomSubset.indices) {
         faceShaders[face] = shader;
       }
     }
@@ -453,12 +454,12 @@ void HdCyclesMesh::PopulateTopology(HdSceneDelegate *sceneDelegate)
     }
   }
   else {
-    PxOsdSubdivTags subdivTags = GetSubdivTags(sceneDelegate);
+    const PxOsdSubdivTags subdivTags = GetSubdivTags(sceneDelegate);
     _topology.SetSubdivTags(subdivTags);
 
     size_t numNgons = 0;
     size_t numCorners = 0;
-    for (int vertCount : vertCounts) {
+    for (const int vertCount : vertCounts) {
       numNgons += (vertCount == 4) ? 0 : 1;
       numCorners += vertCount;
     }
@@ -468,7 +469,7 @@ void HdCyclesMesh::PopulateTopology(HdSceneDelegate *sceneDelegate)
     // TODO: Handle hole indices
     size_t faceIndex = 0;
     size_t indexOffset = 0;
-    for (int vertCount : vertCounts) {
+    for (const int vertCount : vertCounts) {
       _geom->add_subd_face(&vertIndx[indexOffset], vertCount, faceShaders[faceIndex], smooth);
 
       faceIndex++;
@@ -478,7 +479,7 @@ void HdCyclesMesh::PopulateTopology(HdSceneDelegate *sceneDelegate)
     const VtIntArray creaseLengths = subdivTags.GetCreaseLengths();
     if (!creaseLengths.empty()) {
       size_t numCreases = 0;
-      for (int creaseLength : creaseLengths) {
+      for (const int creaseLength : creaseLengths) {
         numCreases += creaseLength - 1;
       }
 
@@ -490,14 +491,14 @@ void HdCyclesMesh::PopulateTopology(HdSceneDelegate *sceneDelegate)
       indexOffset = 0;
       size_t creaseLengthOffset = 0;
       size_t createWeightOffset = 0;
-      for (int creaseLength : creaseLengths) {
+      for (const int creaseLength : creaseLengths) {
         for (int j = 0; j < creaseLength - 1; ++j, ++createWeightOffset) {
           const int v0 = creaseIndices[indexOffset + j];
           const int v1 = creaseIndices[indexOffset + j + 1];
 
-          float weight = creaseWeights.size() == creaseLengths.size() ?
-                             creaseWeights[creaseLengthOffset] :
-                             creaseWeights[createWeightOffset];
+          const float weight = creaseWeights.size() == creaseLengths.size() ?
+                                   creaseWeights[creaseLengthOffset] :
+                                   creaseWeights[createWeightOffset];
 
           _geom->add_edge_crease(v0, v1, weight);
         }

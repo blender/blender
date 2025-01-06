@@ -36,6 +36,9 @@ Sphinx: PDF generation
     cd doc/python_api/sphinx-out
     make
 """
+__all__ = (
+    "main",
+)
 
 import os
 import sys
@@ -595,6 +598,7 @@ from types import (
 
 _BPY_STRUCT_FAKE = "bpy_struct"
 _BPY_PROP_COLLECTION_FAKE = "bpy_prop_collection"
+_BPY_PROP_COLLECTION_IDPROP_FAKE = "bpy_prop_collection_idprop"
 
 if _BPY_PROP_COLLECTION_FAKE:
     _BPY_PROP_COLLECTION_ID = ":class:`{:s}`".format(_BPY_PROP_COLLECTION_FAKE)
@@ -646,20 +650,6 @@ def undocumented_message(module_name, type_name, identifier):
     )
 
     return "Undocumented, consider `contributing <https://developer.blender.org/>`__."
-
-
-def range_str(val):
-    """
-    Converts values to strings for the range directive.
-    (unused function it seems)
-    """
-    if val < -10000000:
-        return "-inf"
-    if val > 10000000:
-        return "inf"
-    if type(val) == float:
-        return "{:g}".format(val)
-    return str(val)
 
 
 def example_extract_docstring(filepath):
@@ -1686,7 +1676,8 @@ def pyrna2sphinx(basepath):
             if len(func.return_values) == 1:
                 write_param("      ", fw, func.return_values[0], is_return=True)
             elif func.return_values:  # Multiple return values.
-                fw("      :return ({:s}):\n".format(", ".join(prop.identifier for prop in func.return_values)))
+                fw("      :return:\n")
+                type_descrs = []
                 for prop in func.return_values:
                     # TODO: pyrna_enum2sphinx for multiple return values,
                     # actually don't think we even use this but still!
@@ -1701,6 +1692,7 @@ def pyrna2sphinx(basepath):
                         collection_id=_BPY_PROP_COLLECTION_ID,
                         enum_descr_override=enum_descr_override,
                     )
+                    type_descrs.append(type_descr)
                     descr = prop.description
                     if not descr:
                         descr = prop.name
@@ -1709,6 +1701,7 @@ def pyrna2sphinx(basepath):
                         prop.identifier,
                         ", ".join((val for val in (descr, type_descr) if val))
                     ))
+                fw("      :rtype: ({:s})\n".format(", ".join(type_descrs)))
 
             write_example_ref("      ", fw, struct_module_name + "." + struct_id + "." + func.identifier)
 
@@ -1877,6 +1870,13 @@ def pyrna2sphinx(basepath):
             fake_bpy_type(
                 "bpy.types", class_value, _BPY_PROP_COLLECTION_FAKE,
                 "built-in class used for all collections.", use_subclasses=False,
+            )
+
+        if _BPY_PROP_COLLECTION_IDPROP_FAKE:
+            class_value = bpy.data.objects.__class__
+            fake_bpy_type(
+                "bpy.types", class_value, _BPY_PROP_COLLECTION_IDPROP_FAKE,
+                "built-in class used for user defined collections.", use_subclasses=False,
             )
 
     # Operators.

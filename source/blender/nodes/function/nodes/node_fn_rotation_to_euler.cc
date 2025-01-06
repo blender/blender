@@ -55,6 +55,7 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
   fn_node_type_base(&ntype, FN_NODE_ROTATION_TO_EULER, "Rotation to Euler", NODE_CLASS_CONVERTER);
+  ntype.enum_name_legacy = "ROTATION_TO_EULER";
   ntype.declare = node_declare;
   ntype.build_multi_function = node_build_multi_function;
   ntype.eval_elem = node_eval_elem;

@@ -1468,13 +1468,17 @@ static void icon_draw_size(float x,
   const float fdraw_size = float(draw_size);
 
   Icon *icon = BKE_icon_get(icon_id);
-  alpha *= btheme->tui.icon_alpha;
 
   if (icon == nullptr) {
     if (G.debug & G_DEBUG) {
       printf("%s: Internal error, no icon for icon ID: %d\n", __func__, icon_id);
     }
     return;
+  }
+
+  if (icon->obj_type != ICON_DATA_STUDIOLIGHT) {
+    /* Icon alpha should not apply to MatCap/Studio lighting. #80356. */
+    alpha *= btheme->tui.icon_alpha;
   }
 
   /* scale width and height according to aspect */

@@ -1505,11 +1505,6 @@ void DepsgraphRelationBuilder::build_constraints(ID *id,
 
           /* Add dependency on normal layers if necessary. */
           if (ct->tar->type == OB_MESH && scon->shrinkType != MOD_SHRINKWRAP_NEAREST_VERTEX) {
-            bool track = (scon->flag & CON_SHRINKWRAP_TRACK_NORMAL) != 0;
-            if (track || BKE_shrinkwrap_needs_normals(scon->shrinkType, scon->shrinkMode)) {
-              add_customdata_mask(ct->tar,
-                                  DEGCustomDataMeshMasks::MaskLoop(CD_MASK_CUSTOMLOOPNORMAL));
-            }
             if (scon->shrinkType == MOD_SHRINKWRAP_TARGET_PROJECT) {
               add_special_eval_flag(&ct->tar->id, DAG_EVAL_NEED_SHRINKWRAP_BOUNDARY);
             }
@@ -1707,7 +1702,7 @@ void DepsgraphRelationBuilder::build_animdata_action_targets(ID *id,
       switch (strip->type()) {
         case animrig::Strip::Type::Keyframe: {
           animrig::StripKeyframeData &strip_data = strip->data<animrig::StripKeyframeData>(action);
-          animrig::ChannelBag *channels = strip_data.channelbag_for_slot(*slot);
+          animrig::Channelbag *channels = strip_data.channelbag_for_slot(*slot);
           if (channels == nullptr) {
             /* Go to next strip. */
             break;
@@ -3354,7 +3349,7 @@ struct Seq_build_prop_cb_data {
   bool has_audio_strips;
 };
 
-static bool seq_build_prop_cb(Sequence *seq, void *user_data)
+static bool seq_build_prop_cb(Strip *seq, void *user_data)
 {
   Seq_build_prop_cb_data *cd = (Seq_build_prop_cb_data *)user_data;
 
@@ -3638,7 +3633,7 @@ void DepsgraphRelationBuilder::build_copy_on_write_relations(IDNode *id_node)
 void DepsgraphRelationBuilder::modifier_walk(void *user_data,
                                              Object * /*object*/,
                                              ID **idpoin,
-                                             int /*cb_flag*/)
+                                             LibraryForeachIDCallbackFlag /*cb_flag*/)
 {
   BuilderWalkUserData *data = (BuilderWalkUserData *)user_data;
   ID *id = *idpoin;

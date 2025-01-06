@@ -151,40 +151,34 @@ struct BPyContextTempOverride {
   PyObject *py_state_context_dict;
 };
 
-static void bpy_rna_context_temp_override__tp_dealloc(BPyContextTempOverride *self)
+static void bpy_rna_context_temp_override_dealloc(BPyContextTempOverride *self)
 {
-  PyObject_DEL(self);
+  PyObject_GC_UnTrack(self);
+  Py_CLEAR(self->py_state_context_dict);
+  PyObject_GC_Del(self);
 }
 
-static PyObject *bpy_rna_context_temp_override_enter(BPyContextTempOverride *self)
+static int bpy_rna_context_temp_override_traverse(BPyContextTempOverride *self,
+                                                  visitproc visit,
+                                                  void *arg)
 {
-  bContext *C = self->context;
-  Main *bmain = CTX_data_main(C);
+  Py_VISIT(self->py_state_context_dict);
+  return 0;
+}
 
-  CTX_py_state_push(C, &self->py_state, self->py_state_context_dict);
+static int bpy_rna_context_temp_override_clear(BPyContextTempOverride *self)
+{
+  Py_CLEAR(self->py_state_context_dict);
+  return 0;
+}
 
-  self->ctx_init.win = CTX_wm_window(C);
-  self->ctx_init.screen = self->ctx_init.win ? WM_window_get_active_screen(self->ctx_init.win) :
-                                               CTX_wm_screen(C);
-  self->ctx_init.area = CTX_wm_area(C);
-  self->ctx_init.region = CTX_wm_region(C);
-
-  wmWindow *win = self->ctx_temp.win_is_set ? self->ctx_temp.win : self->ctx_init.win;
-  bScreen *screen = self->ctx_temp.screen_is_set ? self->ctx_temp.screen : self->ctx_init.screen;
-  ScrArea *area = self->ctx_temp.area_is_set ? self->ctx_temp.area : self->ctx_init.area;
-  ARegion *region = self->ctx_temp.region_is_set ? self->ctx_temp.region : self->ctx_init.region;
-
-  self->ctx_init.win_is_set = (self->ctx_init.win != win);
-  self->ctx_init.screen_is_set = (self->ctx_init.screen != screen);
-  self->ctx_init.area_is_set = (self->ctx_init.area != area);
-  self->ctx_init.region_is_set = (self->ctx_init.region != region);
-
-  /* When the screen isn't passed but a window is, match the screen to the window,
-   * it's important to do this after setting `self->ctx_init.screen_is_set` because the screen is
-   * *not* set, only the window, restoring the window will also restore its screen, see #116297. */
-  if ((self->ctx_temp.win_is_set == true) && (self->ctx_temp.screen_is_set == false)) {
-    screen = win ? WM_window_get_active_screen(win) : nullptr;
-  }
+static bool bpy_rna_context_temp_override_enter_ok_or_error(const BPyContextTempOverride *self,
+                                                            const Main *bmain,
+                                                            const wmWindow *win,
+                                                            const bScreen *screen,
+                                                            const ScrArea *area,
+                                                            const ARegion *region)
+{
 
   /* NOTE(@ideasman42): Regarding sanity checks.
    * There are 3 different situations to be accounted for here regarding overriding windowing data.
@@ -217,33 +211,33 @@ static PyObject *bpy_rna_context_temp_override_enter(BPyContextTempOverride *sel
   if (self->ctx_temp.region_is_set && (region != nullptr)) {
     if (screen == nullptr && area == nullptr) {
       PyErr_SetString(PyExc_TypeError, "Region set with screen & area set to None");
-      return nullptr;
+      return false;
     }
     if (!wm_check_region_exists(screen, area, region)) {
       PyErr_SetString(PyExc_TypeError, "Region not found in area or screen");
-      return nullptr;
+      return false;
     }
   }
 
   if (self->ctx_temp.area_is_set && (area != nullptr)) {
     if (win == nullptr && screen == nullptr) {
       PyErr_SetString(PyExc_TypeError, "Area set with window & screen set to None");
-      return nullptr;
+      return false;
     }
     if (!wm_check_area_exists(win, screen, area)) {
       PyErr_SetString(PyExc_TypeError, "Area not found in screen");
-      return nullptr;
+      return false;
     }
   }
 
   if (self->ctx_temp.screen_is_set && (screen != nullptr)) {
     if (win == nullptr) {
       PyErr_SetString(PyExc_TypeError, "Screen set with null window");
-      return nullptr;
+      return false;
     }
     if (!wm_check_screen_exists(bmain, screen)) {
       PyErr_SetString(PyExc_TypeError, "Screen not found");
-      return nullptr;
+      return false;
     }
 
     /* Skip some checks when the screen is unchanged. */
@@ -254,16 +248,16 @@ static PyObject *bpy_rna_context_temp_override_enter(BPyContextTempOverride *sel
       {
         PyErr_SetString(PyExc_TypeError,
                         "Overriding context with an active temporary screen isn't supported");
-        return nullptr;
+        return false;
       }
       if (!wm_check_screen_switch_supported(screen)) {
         PyErr_SetString(PyExc_TypeError,
                         "Overriding context with temporary screen isn't supported");
-        return nullptr;
+        return false;
       }
       if (BKE_workspace_layout_find_global(bmain, screen, nullptr) == nullptr) {
         PyErr_SetString(PyExc_TypeError, "Screen has no workspace");
-        return nullptr;
+        return false;
       }
 
       LISTBASE_FOREACH (wmWindowManager *, wm, &bmain->wm) {
@@ -273,7 +267,7 @@ static PyObject *bpy_rna_context_temp_override_enter(BPyContextTempOverride *sel
           }
           if (screen == WM_window_get_active_screen(win_iter)) {
             PyErr_SetString(PyExc_TypeError, "Screen is used by another window");
-            return nullptr;
+            return false;
           }
         }
       }
@@ -283,8 +277,47 @@ static PyObject *bpy_rna_context_temp_override_enter(BPyContextTempOverride *sel
   if (self->ctx_temp.win_is_set && (win != nullptr)) {
     if (!wm_check_window_exists(bmain, win)) {
       PyErr_SetString(PyExc_TypeError, "Window not found");
-      return nullptr;
+      return false;
     }
+  }
+
+  return true;
+}
+
+static PyObject *bpy_rna_context_temp_override_enter(BPyContextTempOverride *self)
+{
+  bContext *C = self->context;
+  Main *bmain = CTX_data_main(C);
+
+  /* It's crucial to call #CTX_py_state_pop if this function fails with an error. */
+  CTX_py_state_push(C, &self->py_state, self->py_state_context_dict);
+
+  self->ctx_init.win = CTX_wm_window(C);
+  self->ctx_init.screen = self->ctx_init.win ? WM_window_get_active_screen(self->ctx_init.win) :
+                                               CTX_wm_screen(C);
+  self->ctx_init.area = CTX_wm_area(C);
+  self->ctx_init.region = CTX_wm_region(C);
+
+  wmWindow *win = self->ctx_temp.win_is_set ? self->ctx_temp.win : self->ctx_init.win;
+  bScreen *screen = self->ctx_temp.screen_is_set ? self->ctx_temp.screen : self->ctx_init.screen;
+  ScrArea *area = self->ctx_temp.area_is_set ? self->ctx_temp.area : self->ctx_init.area;
+  ARegion *region = self->ctx_temp.region_is_set ? self->ctx_temp.region : self->ctx_init.region;
+
+  self->ctx_init.win_is_set = (self->ctx_init.win != win);
+  self->ctx_init.screen_is_set = (self->ctx_init.screen != screen);
+  self->ctx_init.area_is_set = (self->ctx_init.area != area);
+  self->ctx_init.region_is_set = (self->ctx_init.region != region);
+
+  /* When the screen isn't passed but a window is, match the screen to the window,
+   * it's important to do this after setting `self->ctx_init.screen_is_set` because the screen is
+   * *not* set, only the window, restoring the window will also restore its screen, see #116297. */
+  if ((self->ctx_temp.win_is_set == true) && (self->ctx_temp.screen_is_set == false)) {
+    screen = win ? WM_window_get_active_screen(win) : nullptr;
+  }
+
+  if (!bpy_rna_context_temp_override_enter_ok_or_error(self, bmain, win, screen, area, region)) {
+    CTX_py_state_pop(C, &self->py_state);
+    return nullptr;
   }
 
   /* Manipulate the context (setup). */
@@ -470,7 +503,6 @@ static PyObject *bpy_rna_context_temp_override_exit(BPyContextTempOverride *self
     Py_DECREF(context_dict_test);
   }
   CTX_py_state_pop(C, &self->py_state);
-  Py_CLEAR(self->py_state_context_dict);
 
   Py_RETURN_NONE;
 }
@@ -480,7 +512,7 @@ static PyObject *bpy_rna_context_temp_override_exit(BPyContextTempOverride *self
 #  pragma GCC diagnostic ignored "-Wcast-function-type"
 #endif
 
-static PyMethodDef bpy_rna_context_temp_override__tp_methods[] = {
+static PyMethodDef bpy_rna_context_temp_override_methods[] = {
     {"__enter__", (PyCFunction)bpy_rna_context_temp_override_enter, METH_NOARGS},
     {"__exit__", (PyCFunction)bpy_rna_context_temp_override_exit, METH_VARARGS},
     {nullptr},
@@ -495,7 +527,7 @@ static PyTypeObject BPyContextTempOverride_Type = {
     /*tp_name*/ "ContextTempOverride",
     /*tp_basicsize*/ sizeof(BPyContextTempOverride),
     /*tp_itemsize*/ 0,
-    /*tp_dealloc*/ (destructor)bpy_rna_context_temp_override__tp_dealloc,
+    /*tp_dealloc*/ (destructor)bpy_rna_context_temp_override_dealloc,
     /*tp_vectorcall_offset*/ 0,
     /*tp_getattr*/ nullptr,
     /*tp_setattr*/ nullptr,
@@ -510,15 +542,15 @@ static PyTypeObject BPyContextTempOverride_Type = {
     /*tp_getattro*/ nullptr,
     /*tp_setattro*/ nullptr,
     /*tp_as_buffer*/ nullptr,
-    /*tp_flags*/ Py_TPFLAGS_DEFAULT,
+    /*tp_flags*/ Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_GC,
     /*tp_doc*/ nullptr,
-    /*tp_traverse*/ nullptr,
-    /*tp_clear*/ nullptr,
+    /*tp_traverse*/ (traverseproc)bpy_rna_context_temp_override_traverse,
+    /*tp_clear*/ (inquiry)bpy_rna_context_temp_override_clear,
     /*tp_richcompare*/ nullptr,
     /*tp_weaklistoffset*/ 0,
     /*tp_iter*/ nullptr,
     /*tp_iternext*/ nullptr,
-    /*tp_methods*/ bpy_rna_context_temp_override__tp_methods,
+    /*tp_methods*/ bpy_rna_context_temp_override_methods,
     /*tp_members*/ nullptr,
     /*tp_getset*/ nullptr,
     /*tp_base*/ nullptr,
@@ -697,7 +729,8 @@ static PyObject *bpy_context_temp_override(PyObject *self, PyObject *args, PyObj
     ctx_temp.region_is_set = true;
   }
 
-  BPyContextTempOverride *ret = PyObject_New(BPyContextTempOverride, &BPyContextTempOverride_Type);
+  BPyContextTempOverride *ret = PyObject_GC_New(BPyContextTempOverride,
+                                                &BPyContextTempOverride_Type);
   ret->context = C;
   ret->ctx_temp = ctx_temp;
   memset(&ret->ctx_init, 0, sizeof(ret->ctx_init));
@@ -705,6 +738,8 @@ static PyObject *bpy_context_temp_override(PyObject *self, PyObject *args, PyObj
   ret->ctx_temp_orig.screen = nullptr;
 
   ret->py_state_context_dict = kwds;
+
+  PyObject_GC_Track(ret);
 
   return (PyObject *)ret;
 }

@@ -10,7 +10,7 @@ void main()
 {
   select_id_set(in_select_buf[gl_VertexID]);
 
-  vec3 world_pos = point_object_to_world(pos);
+  vec3 world_pos = point_object_to_world(data_buf[gl_VertexID].pos_.xyz);
   gl_Position = point_world_to_ndc(world_pos);
 
   gl_PointSize = sizeObjectCenter;
@@ -22,7 +22,7 @@ void main()
   radii[3] = radius - outline_width - 1.0;
   radii /= sizeObjectCenter;
 
-  fillColor = ucolor;
+  fillColor = data_buf[gl_VertexID].color_;
   outlineColor = colorOutline;
 
 #ifdef SELECT_ENABLE

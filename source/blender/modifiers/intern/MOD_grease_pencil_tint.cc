@@ -405,25 +405,25 @@ static void panel_draw(const bContext *C, Panel *panel)
       RNA_enum_get(ptr, "tint_mode"));
   const bool use_weight_as_factor = RNA_boolean_get(ptr, "use_weight_as_factor");
 
-  uiItemR(layout, ptr, "color_mode", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "color_mode", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   uiLayout *row = uiLayoutRow(layout, true);
   uiLayoutSetActive(row, !use_weight_as_factor);
-  uiItemR(row, ptr, "factor", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(row, ptr, "factor", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   uiItemR(row, ptr, "use_weight_as_factor", UI_ITEM_NONE, "", ICON_MOD_VERTEX_WEIGHT);
 
-  uiItemR(layout, ptr, "tint_mode", UI_ITEM_R_EXPAND, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "tint_mode", UI_ITEM_R_EXPAND, std::nullopt, ICON_NONE);
   switch (tint_mode) {
     case MOD_GREASE_PENCIL_TINT_UNIFORM:
-      uiItemR(layout, ptr, "color", UI_ITEM_NONE, nullptr, ICON_NONE);
+      uiItemR(layout, ptr, "color", UI_ITEM_NONE, std::nullopt, ICON_NONE);
       break;
     case MOD_GREASE_PENCIL_TINT_GRADIENT:
       uiLayout *col = uiLayoutColumn(layout, false);
       uiLayoutSetPropSep(col, false);
       uiTemplateColorRamp(col, ptr, "color_ramp", true);
       uiItemS(layout);
-      uiItemR(layout, ptr, "object", UI_ITEM_NONE, nullptr, ICON_NONE);
-      uiItemR(layout, ptr, "radius", UI_ITEM_NONE, nullptr, ICON_NONE);
+      uiItemR(layout, ptr, "object", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+      uiItemR(layout, ptr, "radius", UI_ITEM_NONE, std::nullopt, ICON_NONE);
       break;
   }
 

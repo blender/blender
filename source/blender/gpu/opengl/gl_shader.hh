@@ -187,16 +187,6 @@ class GLShader : public Shader {
   void uniform_float(int location, int comp_len, int array_size, const float *data) override;
   void uniform_int(int location, int comp_len, int array_size, const int *data) override;
 
-  /* Unused: SSBO vertex fetch draw parameters. */
-  bool get_uses_ssbo_vertex_fetch() const override
-  {
-    return false;
-  }
-  int get_ssbo_vertex_fetch_output_num_verts() const override
-  {
-    return 0;
-  }
-
   /** DEPRECATED: Kept only because of BGL API. */
   int program_handle_get() const override;
 
@@ -227,7 +217,7 @@ class GLShader : public Shader {
    */
   std::string workaround_geometry_shader_source_create(const shader::ShaderCreateInfo &info);
 
-  bool do_geometry_shader_injection(const shader::ShaderCreateInfo *info);
+  bool do_geometry_shader_injection(const shader::ShaderCreateInfo *info) const;
 
   MEM_CXX_CLASS_ALLOC_FUNCS("GLShader");
 };

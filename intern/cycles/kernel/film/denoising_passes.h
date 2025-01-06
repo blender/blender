@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "kernel/geom/geom.h"
+#include "kernel/closure/bsdf.h"
 
 #include "kernel/film/write.h"
 
@@ -13,7 +13,7 @@ CCL_NAMESPACE_BEGIN
 #ifdef __DENOISING_FEATURES__
 ccl_device_forceinline void film_write_denoising_features_surface(KernelGlobals kg,
                                                                   IntegratorState state,
-                                                                  ccl_private const ShaderData *sd,
+                                                                  const ccl_private ShaderData *sd,
                                                                   ccl_global float *ccl_restrict
                                                                       render_buffer)
 {
@@ -46,10 +46,11 @@ ccl_device_forceinline void film_write_denoising_features_surface(KernelGlobals 
   float3 normal = zero_float3();
   Spectrum diffuse_albedo = zero_spectrum();
   Spectrum specular_albedo = zero_spectrum();
-  float sum_weight = 0.0f, sum_nonspecular_weight = 0.0f;
+  float sum_weight = 0.0f;
+  float sum_nonspecular_weight = 0.0f;
 
   for (int i = 0; i < sd->num_closure; i++) {
-    ccl_private const ShaderClosure *sc = &sd->closure[i];
+    const ccl_private ShaderClosure *sc = &sd->closure[i];
 
     if (!CLOSURE_IS_BSDF_OR_BSSRDF(sc->type)) {
       continue;
@@ -61,7 +62,7 @@ ccl_device_forceinline void film_write_denoising_features_surface(KernelGlobals 
               sc->sample_weight;
     sum_weight += sc->sample_weight;
 
-    Spectrum closure_albedo = bsdf_albedo(kg, sd, sc, true, true);
+    const Spectrum closure_albedo = bsdf_albedo(kg, sd, sc, true, true);
     if (bsdf_get_specular_roughness_squared(sc) > sqr(0.075f) ||
         sc->type == CLOSURE_BSDF_HAIR_HUANG_ID)
     {

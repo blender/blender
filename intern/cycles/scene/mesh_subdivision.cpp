@@ -11,8 +11,6 @@
 #include "subd/split.h"
 
 #include "util/algorithm.h"
-#include "util/foreach.h"
-#include "util/hash.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -27,12 +25,10 @@ CCL_NAMESPACE_END
 
 /* specializations of TopologyRefinerFactory for ccl::Mesh */
 
-namespace OpenSubdiv {
-namespace OPENSUBDIV_VERSION {
-namespace Far {
+namespace OpenSubdiv::v3_6_0::Far {
 template<>
 bool TopologyRefinerFactory<ccl::Mesh>::resizeComponentTopology(TopologyRefiner &refiner,
-                                                                ccl::Mesh const &mesh)
+                                                                const ccl::Mesh &mesh)
 {
   setNumBaseVertices(refiner, mesh.get_verts().size());
   setNumBaseFaces(refiner, mesh.get_num_subd_faces());
@@ -46,7 +42,7 @@ bool TopologyRefinerFactory<ccl::Mesh>::resizeComponentTopology(TopologyRefiner 
 
 template<>
 bool TopologyRefinerFactory<ccl::Mesh>::assignComponentTopology(TopologyRefiner &refiner,
-                                                                ccl::Mesh const &mesh)
+                                                                const ccl::Mesh &mesh)
 {
   const ccl::array<int> &subd_face_corners = mesh.get_subd_face_corners();
   const ccl::array<int> &subd_start_corner = mesh.get_subd_start_corner();
@@ -55,7 +51,7 @@ bool TopologyRefinerFactory<ccl::Mesh>::assignComponentTopology(TopologyRefiner 
   for (int i = 0; i < mesh.get_num_subd_faces(); i++) {
     IndexArray face_verts = getBaseFaceVertices(refiner, i);
 
-    int start_corner = subd_start_corner[i];
+    const int start_corner = subd_start_corner[i];
     int *corner = &subd_face_corners[start_corner];
 
     for (int j = 0; j < subd_num_corners[i]; j++, corner++) {
@@ -68,13 +64,13 @@ bool TopologyRefinerFactory<ccl::Mesh>::assignComponentTopology(TopologyRefiner 
 
 template<>
 bool TopologyRefinerFactory<ccl::Mesh>::assignComponentTags(TopologyRefiner &refiner,
-                                                            ccl::Mesh const &mesh)
+                                                            const ccl::Mesh &mesh)
 {
   /* Historical maximum crease weight used at Pixar, influencing the maximum in OpenSubDiv. */
   static constexpr float CREASE_SCALE = 10.0f;
 
-  size_t num_creases = mesh.get_subd_creases_weight().size();
-  size_t num_vertex_creases = mesh.get_subd_vert_creases().size();
+  const size_t num_creases = mesh.get_subd_creases_weight().size();
+  const size_t num_vertex_creases = mesh.get_subd_vert_creases().size();
 
   /* The last loop is over the vertices, so early exit to avoid iterating them needlessly. */
   if (num_creases == 0 && num_vertex_creases == 0) {
@@ -82,8 +78,8 @@ bool TopologyRefinerFactory<ccl::Mesh>::assignComponentTags(TopologyRefiner &ref
   }
 
   for (int i = 0; i < num_creases; i++) {
-    ccl::Mesh::SubdEdgeCrease crease = mesh.get_subd_crease(i);
-    Index edge = findBaseEdge(refiner, crease.v[0], crease.v[1]);
+    const ccl::Mesh::SubdEdgeCrease crease = mesh.get_subd_crease(i);
+    const Index edge = findBaseEdge(refiner, crease.v[0], crease.v[1]);
 
     if (edge != INDEX_INVALID) {
       setBaseEdgeSharpness(refiner, edge, crease.crease * CREASE_SCALE);
@@ -101,13 +97,13 @@ bool TopologyRefinerFactory<ccl::Mesh>::assignComponentTags(TopologyRefiner &ref
 
   for (int i = 0; i < mesh.get_verts().size(); i++) {
     float sharpness = 0.0f;
-    std::map<int, float>::const_iterator iter = vertex_creases.find(i);
+    const std::map<int, float>::const_iterator iter = vertex_creases.find(i);
 
     if (iter != vertex_creases.end()) {
       sharpness = iter->second;
     }
 
-    ConstIndexArray vert_edges = getBaseVertexEdges(refiner, i);
+    const ConstIndexArray vert_edges = getBaseVertexEdges(refiner, i);
 
     if (vert_edges.size() == 2) {
       const float sharpness0 = refiner.getLevel(0).getEdgeSharpness(vert_edges[0]);
@@ -127,20 +123,18 @@ bool TopologyRefinerFactory<ccl::Mesh>::assignComponentTags(TopologyRefiner &ref
 
 template<>
 bool TopologyRefinerFactory<ccl::Mesh>::assignFaceVaryingTopology(TopologyRefiner & /*refiner*/,
-                                                                  ccl::Mesh const & /*mesh*/)
+                                                                  const ccl::Mesh & /*mesh*/)
 {
   return true;
 }
 
 template<>
 void TopologyRefinerFactory<ccl::Mesh>::reportInvalidTopology(TopologyError /*err_code*/,
-                                                              char const * /*msg*/,
-                                                              ccl::Mesh const & /*mesh*/)
+                                                              const char * /*msg*/,
+                                                              const ccl::Mesh & /*mesh*/)
 {
 }
-} /* namespace Far */
-} /* namespace OPENSUBDIV_VERSION */
-} /* namespace OpenSubdiv */
+}  // namespace OpenSubdiv::v3_6_0::Far
 
 CCL_NAMESPACE_BEGIN
 
@@ -151,20 +145,20 @@ using namespace OpenSubdiv;
 template<typename T> struct OsdValue {
   T value;
 
-  OsdValue() {}
+  OsdValue() = default;
 
-  void Clear(void * = 0)
+  void Clear(void * /*unused*/ = nullptr)
   {
     memset(&value, 0, sizeof(T));
   }
 
-  void AddWithWeight(OsdValue<T> const &src, float weight)
+  void AddWithWeight(const OsdValue<T> &src, const float weight)
   {
     value += src.value * weight;
   }
 };
 
-template<> void OsdValue<uchar4>::AddWithWeight(OsdValue<uchar4> const &src, float weight)
+template<> void OsdValue<uchar4>::AddWithWeight(const OsdValue<uchar4> &src, const float weight)
 {
   for (int i = 0; i < 4; i++) {
     value[i] += (uchar)(src.value[i] * weight);
@@ -174,49 +168,42 @@ template<> void OsdValue<uchar4>::AddWithWeight(OsdValue<uchar4> const &src, flo
 /* class for holding OpenSubdiv data used during tessellation */
 
 class OsdData {
-  Mesh *mesh;
+  Mesh *mesh = nullptr;
   vector<OsdValue<float3>> verts;
-  Far::TopologyRefiner *refiner;
-  Far::PatchTable *patch_table;
-  Far::PatchMap *patch_map;
+  unique_ptr<Far::TopologyRefiner> refiner;
+  unique_ptr<Far::PatchTable> patch_table;
+  unique_ptr<Far::PatchMap> patch_map;
 
  public:
-  OsdData() : mesh(NULL), refiner(NULL), patch_table(NULL), patch_map(NULL) {}
-
-  ~OsdData()
-  {
-    delete refiner;
-    delete patch_table;
-    delete patch_map;
-  }
+  OsdData() = default;
 
   void build_from_mesh(Mesh *mesh_)
   {
     mesh = mesh_;
 
     /* type and options */
-    Sdc::SchemeType type = Sdc::SCHEME_CATMARK;
+    const Sdc::SchemeType type = Sdc::SCHEME_CATMARK;
 
     Sdc::Options options;
     options.SetVtxBoundaryInterpolation(Sdc::Options::VTX_BOUNDARY_EDGE_ONLY);
 
     /* create refiner */
-    refiner = Far::TopologyRefinerFactory<Mesh>::Create(
-        *mesh, Far::TopologyRefinerFactory<Mesh>::Options(type, options));
+    refiner.reset(Far::TopologyRefinerFactory<Mesh>::Create(
+        *mesh, Far::TopologyRefinerFactory<Mesh>::Options(type, options)));
 
     /* adaptive refinement */
-    int max_isolation = calculate_max_isolation();
+    const int max_isolation = calculate_max_isolation();
     refiner->RefineAdaptive(Far::TopologyRefiner::AdaptiveOptions(max_isolation));
 
     /* create patch table */
     Far::PatchTableFactory::Options patch_options;
     patch_options.endCapType = Far::PatchTableFactory::Options::ENDCAP_GREGORY_BASIS;
 
-    patch_table = Far::PatchTableFactory::Create(*refiner, patch_options);
+    patch_table.reset(Far::PatchTableFactory::Create(*refiner, patch_options));
 
     /* interpolate verts */
-    int num_refiner_verts = refiner->GetNumVerticesTotal();
-    int num_local_points = patch_table->GetNumLocalPoints();
+    const int num_refiner_verts = refiner->GetNumVerticesTotal();
+    const int num_local_points = patch_table->GetNumLocalPoints();
 
     verts.resize(num_refiner_verts + num_local_points);
     for (int i = 0; i < mesh->get_verts().size(); i++) {
@@ -231,20 +218,20 @@ class OsdData {
     }
 
     if (num_local_points) {
-      patch_table->ComputeLocalPointValues(&verts[0], &verts[num_refiner_verts]);
+      patch_table->ComputeLocalPointValues(verts.data(), &verts[num_refiner_verts]);
     }
 
     /* create patch map */
-    patch_map = new Far::PatchMap(*patch_table);
+    patch_map = make_unique<Far::PatchMap>(*patch_table);
   }
 
   void subdivide_attribute(Attribute &attr)
   {
-    Far::PrimvarRefiner primvar_refiner(*refiner);
+    const Far::PrimvarRefiner primvar_refiner(*refiner);
 
     if (attr.element == ATTR_ELEMENT_VERTEX) {
-      int num_refiner_verts = refiner->GetNumVerticesTotal();
-      int num_local_points = patch_table->GetNumLocalPoints();
+      const int num_refiner_verts = refiner->GetNumVerticesTotal();
+      const int num_local_points = patch_table->GetNumLocalPoints();
 
       attr.resize(num_refiner_verts + num_local_points);
       attr.flags |= ATTR_FINAL_SIZE;
@@ -254,15 +241,15 @@ class OsdData {
       for (int i = 0; i < refiner->GetMaxLevel(); i++) {
         char *dest = src + refiner->GetLevel(i).GetNumVertices() * attr.data_sizeof();
 
-        if (attr.same_storage(attr.type, TypeFloat)) {
+        if (ccl::Attribute::same_storage(attr.type, TypeFloat)) {
           primvar_refiner.Interpolate(i + 1, (OsdValue<float> *)src, (OsdValue<float> *&)dest);
         }
-        else if (attr.same_storage(attr.type, TypeFloat2)) {
+        else if (ccl::Attribute::same_storage(attr.type, TypeFloat2)) {
           primvar_refiner.Interpolate(i + 1, (OsdValue<float2> *)src, (OsdValue<float2> *&)dest);
           // float3 is not interchangeable with float4 and so needs to be handled
           // separately
         }
-        else if (attr.same_storage(attr.type, TypeFloat4)) {
+        else if (ccl::Attribute::same_storage(attr.type, TypeFloat4)) {
           primvar_refiner.Interpolate(i + 1, (OsdValue<float4> *)src, (OsdValue<float4> *&)dest);
         }
         else {
@@ -273,28 +260,28 @@ class OsdData {
       }
 
       if (num_local_points) {
-        if (attr.same_storage(attr.type, TypeFloat)) {
+        if (ccl::Attribute::same_storage(attr.type, TypeFloat)) {
           patch_table->ComputeLocalPointValues(
-              (OsdValue<float> *)&attr.buffer[0],
+              (OsdValue<float> *)attr.buffer.data(),
               (OsdValue<float> *)&attr.buffer[num_refiner_verts * attr.data_sizeof()]);
         }
-        else if (attr.same_storage(attr.type, TypeFloat2)) {
+        else if (ccl::Attribute::same_storage(attr.type, TypeFloat2)) {
           patch_table->ComputeLocalPointValues(
-              (OsdValue<float2> *)&attr.buffer[0],
+              (OsdValue<float2> *)attr.buffer.data(),
               (OsdValue<float2> *)&attr.buffer[num_refiner_verts * attr.data_sizeof()]);
         }
-        else if (attr.same_storage(attr.type, TypeFloat4)) {
+        else if (ccl::Attribute::same_storage(attr.type, TypeFloat4)) {
           // float3 is not interchangeable with float4 and so needs to be handled
           // separately
           patch_table->ComputeLocalPointValues(
-              (OsdValue<float4> *)&attr.buffer[0],
+              (OsdValue<float4> *)attr.buffer.data(),
               (OsdValue<float4> *)&attr.buffer[num_refiner_verts * attr.data_sizeof()]);
         }
         else {
           // float3 is not interchangeable with float4 and so needs to be handled
           // separately
           patch_table->ComputeLocalPointValues(
-              (OsdValue<float3> *)&attr.buffer[0],
+              (OsdValue<float3> *)attr.buffer.data(),
               (OsdValue<float3> *)&attr.buffer[num_refiner_verts * attr.data_sizeof()]);
         }
       }
@@ -309,13 +296,13 @@ class OsdData {
     /* loop over all edges to find longest in screen space */
     const Far::TopologyLevel &level = refiner->GetLevel(0);
     const SubdParams *subd_params = mesh->get_subd_params();
-    Transform objecttoworld = subd_params->objecttoworld;
+    const Transform objecttoworld = subd_params->objecttoworld;
     Camera *cam = subd_params->camera;
 
     float longest_edge = 0.0f;
 
     for (size_t i = 0; i < level.GetNumEdges(); i++) {
-      Far::ConstIndexArray verts = level.GetEdgeVertices(i);
+      const Far::ConstIndexArray verts = level.GetEdgeVertices(i);
 
       float3 a = mesh->get_verts()[verts[0]];
       float3 b = mesh->get_verts()[verts[1]];
@@ -336,7 +323,7 @@ class OsdData {
     }
 
     /* calculate isolation level */
-    int isolation = (int)(log2f(max(longest_edge / subd_params->dicing_rate, 1.0f)) + 1.0f);
+    const int isolation = (int)(log2f(max(longest_edge / subd_params->dicing_rate, 1.0f)) + 1.0f);
 
     return min(isolation, 10);
   }
@@ -350,43 +337,50 @@ class OsdData {
 struct OsdPatch : Patch {
   OsdData *osd_data;
 
-  OsdPatch() {}
+  OsdPatch() = default;
   OsdPatch(OsdData *data) : osd_data(data) {}
 
-  void eval(float3 *P, float3 *dPdu, float3 *dPdv, float3 *N, float u, float v)
+  void eval(float3 *P, float3 *dPdu, float3 *dPdv, float3 *N, const float u, float v) override
   {
     const Far::PatchTable::PatchHandle *handle = osd_data->patch_map->FindPatch(
         patch_index, (double)u, (double)v);
     assert(handle);
 
-    float p_weights[20], du_weights[20], dv_weights[20];
+    float p_weights[20];
+    float du_weights[20];
+    float dv_weights[20];
     osd_data->patch_table->EvaluateBasis(*handle, u, v, p_weights, du_weights, dv_weights);
 
-    Far::ConstIndexArray cv = osd_data->patch_table->GetPatchVertices(*handle);
+    const Far::ConstIndexArray cv = osd_data->patch_table->GetPatchVertices(*handle);
 
-    float3 du, dv;
-    if (P)
+    float3 du;
+    float3 dv;
+    if (P) {
       *P = zero_float3();
+    }
     du = zero_float3();
     dv = zero_float3();
 
     for (int i = 0; i < cv.size(); i++) {
-      float3 p = osd_data->verts[cv[i]].value;
+      const float3 p = osd_data->verts[cv[i]].value;
 
-      if (P)
+      if (P) {
         *P += p * p_weights[i];
+      }
       du += p * du_weights[i];
       dv += p * dv_weights[i];
     }
 
-    if (dPdu)
+    if (dPdu) {
       *dPdu = du;
-    if (dPdv)
+    }
+    if (dPdv) {
       *dPdv = dv;
+    }
     if (N) {
       *N = cross(du, dv);
 
-      float t = len(*N);
+      const float t = len(*N);
       *N = (t != 0.0f) ? *N / t : make_float3(0.0f, 0.0f, 1.0f);
     }
   }
@@ -418,15 +412,15 @@ void Mesh::tessellate(DiagSplit *split)
     subdivision_type = SUBDIVISION_LINEAR;
 
     /* force disable attribute subdivision for same reason as above */
-    foreach (Attribute &attr, subd_attributes.attributes) {
+    for (Attribute &attr : subd_attributes.attributes) {
       attr.flags &= ~ATTR_SUBDIVIDED;
     }
   }
 
-  int num_faces = get_num_subd_faces();
+  const int num_faces = get_num_subd_faces();
 
   Attribute *attr_vN = subd_attributes.find(ATTR_STD_VERTEX_NORMAL);
-  float3 *vN = (attr_vN) ? attr_vN->data_float3() : NULL;
+  float3 *vN = (attr_vN) ? attr_vN->data_float3() : nullptr;
 
   /* count patches */
   int num_patches = 0;
@@ -495,7 +489,7 @@ void Mesh::tessellate(DiagSplit *split)
           }
         }
         else {
-          float3 N = face.normal(this);
+          const float3 N = face.normal(this);
           for (int i = 0; i < 4; i++) {
             normals[i] = N;
           }
@@ -512,7 +506,7 @@ void Mesh::tessellate(DiagSplit *split)
         float3 center_vert = zero_float3();
         float3 center_normal = zero_float3();
 
-        float inv_num_corners = 1.0f / float(face.num_corners);
+        const float inv_num_corners = 1.0f / float(face.num_corners);
         for (int corner = 0; corner < face.num_corners; corner++) {
           center_vert += verts[subd_face_corners[face.start_corner + corner]] * inv_num_corners;
           center_normal += vN[subd_face_corners[face.start_corner + corner]] * inv_num_corners;
@@ -551,7 +545,7 @@ void Mesh::tessellate(DiagSplit *split)
             normals[2] = (normals[2] + normals[0]) * 0.5;
           }
           else {
-            float3 N = face.normal(this);
+            const float3 N = face.normal(this);
             for (int i = 0; i < 4; i++) {
               normals[i] = N;
             }
@@ -567,7 +561,7 @@ void Mesh::tessellate(DiagSplit *split)
   }
 
   /* interpolate center points for attributes */
-  foreach (Attribute &attr, subd_attributes.attributes) {
+  for (Attribute &attr : subd_attributes.attributes) {
 #ifdef WITH_OPENSUBDIV
     if (subdivision_type == SUBDIVISION_CATMULL_CLARK && attr.flags & ATTR_SUBDIVIDED) {
       if (attr.element == ATTR_ELEMENT_CORNER || attr.element == ATTR_ELEMENT_CORNER_BYTE) {
@@ -584,7 +578,7 @@ void Mesh::tessellate(DiagSplit *split)
 #endif
 
     char *data = attr.data();
-    size_t stride = attr.data_sizeof();
+    const size_t stride = attr.data_sizeof();
     int ngons = 0;
 
     switch (attr.element) {
@@ -596,7 +590,7 @@ void Mesh::tessellate(DiagSplit *split)
             char *center = data + (verts.size() - num_subd_verts + ngons) * stride;
             attr.zero_data(center);
 
-            float inv_num_corners = 1.0f / float(face.num_corners);
+            const float inv_num_corners = 1.0f / float(face.num_corners);
 
             for (int corner = 0; corner < face.num_corners; corner++) {
               attr.add_with_weight(center,
@@ -621,7 +615,7 @@ void Mesh::tessellate(DiagSplit *split)
             char *center = data + (subd_face_corners.size() + ngons) * stride;
             attr.zero_data(center);
 
-            float inv_num_corners = 1.0f / float(face.num_corners);
+            const float inv_num_corners = 1.0f / float(face.num_corners);
 
             for (int corner = 0; corner < face.num_corners; corner++) {
               attr.add_with_weight(
@@ -640,7 +634,7 @@ void Mesh::tessellate(DiagSplit *split)
           if (!face.is_quad()) {
             uchar *center = (uchar *)data + (subd_face_corners.size() + ngons) * stride;
 
-            float inv_num_corners = 1.0f / float(face.num_corners);
+            const float inv_num_corners = 1.0f / float(face.num_corners);
             float4 val = zero_float4();
 
             for (int corner = 0; corner < face.num_corners; corner++) {
@@ -667,9 +661,8 @@ void Mesh::tessellate(DiagSplit *split)
 #ifdef WITH_OPENSUBDIV
   /* pack patch tables */
   if (need_packed_patch_table) {
-    delete patch_table;
-    patch_table = new PackedPatchTable;
-    patch_table->pack(osd_data.patch_table);
+    patch_table = make_unique<PackedPatchTable>();
+    patch_table->pack(osd_data.patch_table.get());
   }
 #endif
 }

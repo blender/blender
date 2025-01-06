@@ -2,14 +2,13 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __UTIL_OPENIMAGEDENOISE_H__
-#define __UTIL_OPENIMAGEDENOISE_H__
+#pragma once
 
 #ifdef WITH_OPENIMAGEDENOISE
-#  include <OpenImageDenoise/oidn.hpp>
+#  include <OpenImageDenoise/oidn.hpp>  // IWYU pragma: export
 #endif
 
-#include "util/system.h"
+#include "util/system.h"  // IWYU pragma: keep
 
 CCL_NAMESPACE_BEGIN
 
@@ -31,5 +30,3 @@ static inline bool openimagedenoise_supported()
 }
 
 CCL_NAMESPACE_END
-
-#endif /* __UTIL_OPENIMAGEDENOISE_H__ */

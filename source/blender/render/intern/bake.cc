@@ -319,7 +319,7 @@ static void barycentric_differentials_from_position(const float co[3],
 /**
  * This function populates pixel_array and returns TRUE if things are correct
  */
-static bool cast_ray_highpoly(BVHTreeFromMesh *treeData,
+static bool cast_ray_highpoly(blender::bke::BVHTreeFromMesh *treeData,
                               TriTessFace *triangle_low,
                               TriTessFace *triangles[],
                               BakePixel *pixel_array_low,
@@ -572,7 +572,7 @@ bool RE_bake_pixels_populate_from_objects(Mesh *me_low,
   /* Assume all high-poly tessfaces are triangles. */
   me_highpoly = static_cast<Mesh **>(
       MEM_mallocN(sizeof(Mesh *) * tot_highpoly, "Highpoly Derived Meshes"));
-  Array<BVHTreeFromMesh> treeData(tot_highpoly);
+  Array<blender::bke::BVHTreeFromMesh> treeData(tot_highpoly);
 
   if (!is_cage) {
     me_eval_low = BKE_mesh_copy_for_eval(*me_low);
@@ -594,9 +594,7 @@ bool RE_bake_pixels_populate_from_objects(Mesh *me_low,
     me_highpoly[i] = highpoly[i].mesh;
 
     if (BKE_mesh_runtime_corner_tris_len(me_highpoly[i]) != 0) {
-      /* Create a BVH-tree for each `highpoly` object. */
-      BKE_bvhtree_from_mesh_get(&treeData[i], me_highpoly[i], BVHTREE_FROM_CORNER_TRIS, 2);
-
+      treeData[i] = me_highpoly[i]->bvh_corner_tris();
       if (treeData[i].tree == nullptr) {
         printf("Baking: out of memory while creating BHVTree for object \"%s\"\n",
                highpoly[i].ob->id.name + 2);
@@ -663,8 +661,6 @@ bool RE_bake_pixels_populate_from_objects(Mesh *me_low,
   /* garbage collection */
 cleanup:
   for (int i = 0; i < tot_highpoly; i++) {
-    free_bvhtree_from_mesh(&treeData[i]);
-
     if (tris_high[i]) {
       MEM_freeN(tris_high[i]);
     }

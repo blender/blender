@@ -174,7 +174,7 @@ class POSE_OT_selection_set_assign(_PoseModeOnlyMixin, Operator):
     bl_description = "Add selected bones to Selection Set"
     bl_options = {'UNDO', 'REGISTER'}
 
-    def invoke(self, context, event):
+    def invoke(self, context, _event):
         arm = context.object
 
         if not (arm.active_selection_set < len(arm.selection_sets)):

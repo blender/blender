@@ -87,7 +87,7 @@ static void node_composit_buts_moviedistortion(uiLayout *layout, bContext *C, Po
   uiItemR(layout, ptr, "distortion_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class MovieDistortionOperation : public NodeOperation {
  public:
@@ -130,12 +130,11 @@ class MovieDistortionOperation : public NodeOperation {
 
     distortion_grid.bind_as_texture(shader, "distortion_grid_tx");
 
-    const Domain domain = compute_domain();
     Result &output_image = get_result("Image");
-    output_image.allocate_texture(domain);
+    output_image.allocate_texture(distortion_grid.domain());
     output_image.bind_as_image(shader, "output_img");
 
-    compute_dispatch_threads_at_least(shader, domain.size);
+    compute_dispatch_threads_at_least(shader, distortion_grid.domain().size);
 
     input_image.unbind_as_texture();
     distortion_grid.unbind_as_texture();
@@ -147,13 +146,12 @@ class MovieDistortionOperation : public NodeOperation {
   {
     Result &input = get_input("Image");
 
-    const Domain domain = compute_domain();
     Result &output = get_result("Image");
-    output.allocate_texture(domain);
+    output.allocate_texture(distortion_grid.domain());
 
-    parallel_for(domain.size, [&](const int2 texel) {
+    parallel_for(distortion_grid.domain().size, [&](const int2 texel) {
       output.store_pixel(texel,
-                         input.sample_bilinear_zero(distortion_grid.load_pixel(texel).xy()));
+                         input.sample_bilinear_zero(distortion_grid.load_pixel<float2>(texel)));
     });
   }
 
@@ -182,11 +180,13 @@ void register_node_type_cmp_moviedistortion()
   static blender::bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_MOVIEDISTORTION, "Movie Distortion", NODE_CLASS_DISTORT);
+  ntype.enum_name_legacy = "MOVIEDISTORTION";
   ntype.declare = file_ns::cmp_node_moviedistortion_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_moviedistortion;
   ntype.labelfunc = file_ns::label;
   ntype.initfunc_api = file_ns::init;
-  blender::bke::node_type_storage(&ntype, nullptr, file_ns::storage_free, file_ns::storage_copy);
+  blender::bke::node_type_storage(
+      &ntype, std::nullopt, file_ns::storage_free, file_ns::storage_copy);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;
 
   blender::bke::node_register_type(&ntype);

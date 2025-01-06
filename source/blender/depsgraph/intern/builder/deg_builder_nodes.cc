@@ -418,8 +418,8 @@ void DepsgraphNodeBuilder::begin_build()
   graph_->entry_tags.clear();
 }
 
-/* Util callbacks for `BKE_library_foreach_ID_link`, used to detect when an evaluated ID is using
- * ID pointers that are either:
+/* Utility callbacks for `BKE_library_foreach_ID_link`, used to detect when an evaluated ID is
+ * using ID pointers that are either:
  *  - evaluated ID pointers that do not exist anymore in current depsgraph.
  *  - Orig ID pointers that do have now an evaluated version in current depsgraph.
  * In both cases, it means the evaluated ID user needs to be flushed, to ensure its pointers are
@@ -2236,7 +2236,7 @@ void DepsgraphNodeBuilder::build_vfont(VFont *vfont)
       &vfont->id, NodeType::GENERIC_DATABLOCK, OperationCode::GENERIC_DATABLOCK_UPDATE);
 }
 
-static bool seq_node_build_cb(Sequence *seq, void *user_data)
+static bool seq_node_build_cb(Strip *seq, void *user_data)
 {
   DepsgraphNodeBuilder *nb = (DepsgraphNodeBuilder *)user_data;
   nb->build_idproperties(seq->prop);
@@ -2316,7 +2316,7 @@ void DepsgraphNodeBuilder::build_scene_speakers(Scene *scene, ViewLayer *view_la
 void DepsgraphNodeBuilder::modifier_walk(void *user_data,
                                          Object * /*object*/,
                                          ID **idpoin,
-                                         int /*cb_flag*/)
+                                         LibraryForeachIDCallbackFlag /*cb_flag*/)
 {
   BuilderWalkUserData *data = (BuilderWalkUserData *)user_data;
   ID *id = *idpoin;

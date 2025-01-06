@@ -184,6 +184,7 @@ static void node_register()
   static blender::bke::bNodeType ntype;
   geo_node_type_base(
       &ntype, GEO_NODE_OFFSET_POINT_IN_CURVE, "Offset Point in Curve", NODE_CLASS_INPUT);
+  ntype.enum_name_legacy = "OFFSET_POINT_IN_CURVE";
   ntype.geometry_node_execute = node_geo_exec;
   ntype.declare = node_declare;
   blender::bke::node_register_type(&ntype);

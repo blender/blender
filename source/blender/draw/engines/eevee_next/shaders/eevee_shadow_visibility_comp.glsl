@@ -8,9 +8,13 @@
  */
 /* TODO(fclem): Could reject bounding boxes that are covering only invalid tiles. */
 
+#include "infos/eevee_shadow_info.hh"
+
+COMPUTE_SHADER_CREATE_INFO(eevee_shadow_view_visibility)
+
 #include "common_intersect_lib.glsl"
-#include "common_math_lib.glsl"
-#include "common_view_lib.glsl"
+#include "draw_view_lib.glsl"
+#include "gpu_shader_math_base_lib.glsl"
 #include "gpu_shader_utildefines_lib.glsl"
 
 bool shadow_linking_affects_caster(uint view_id, uint resource_id)

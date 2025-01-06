@@ -62,8 +62,6 @@ class Instance {
 
   ShapeCache shapes;
 
-  View view = {"OverlayView"};
-
   /** Global types. */
   Resources resources = {selection_type_,
                          overlay::ShaderModule::module_get(selection_type_, clipping_enabled_),
@@ -72,6 +70,7 @@ class Instance {
 
   /** Overlay types. */
   Background background;
+  ImagePrepass image_prepass;
   Origins origins = {selection_type_};
   Outline outline;
   MotionPath motion_paths;
@@ -119,7 +118,7 @@ class Instance {
 
   ~Instance()
   {
-    DRW_UBO_FREE_SAFE(grid_ubo);
+    GPU_UBO_FREE_SAFE(grid_ubo);
   }
 
   void init();

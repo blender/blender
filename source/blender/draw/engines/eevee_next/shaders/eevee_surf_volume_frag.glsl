@@ -7,10 +7,19 @@
 
 /* Store volumetric properties into the froxel textures. */
 
+#include "infos/eevee_material_info.hh"
+
+#ifdef GLSL_CPP_STUBS
+#  define MAT_VOLUME
+#endif
+
+FRAGMENT_SHADER_CREATE_INFO(eevee_geom_mesh)
+FRAGMENT_SHADER_CREATE_INFO(eevee_surf_volume)
+
 #include "eevee_volume_lib.glsl"
 
 /* Needed includes for shader nodes. */
-#include "eevee_attributes_lib.glsl"
+#include "eevee_attributes_volume_lib.glsl"
 #include "eevee_nodetree_lib.glsl"
 #include "eevee_occupancy_lib.glsl"
 #include "eevee_sampling_lib.glsl"
@@ -45,10 +54,10 @@ VolumeProperties eval_froxel(ivec3 froxel, float jitter)
   vec3 uvw = (vec3(froxel) + vec3(0.5, 0.5, 0.5 - jitter)) * uniform_buf.volumes.inv_tex_size;
 
   vec3 vP = volume_jitter_to_view(uvw);
-  vec3 wP = point_view_to_world(vP);
+  vec3 wP = drw_point_view_to_world(vP);
 #if !defined(MAT_GEOM_CURVES) && !defined(MAT_GEOM_POINT_CLOUD)
 #  ifdef GRID_ATTRIBUTES
-  g_lP = point_world_to_object(wP);
+  g_lP = drw_point_world_to_object(wP);
 #  else
   g_wP = wP;
 #  endif

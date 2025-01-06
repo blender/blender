@@ -60,10 +60,10 @@ static void node_composit_buts_map_range(uiLayout *layout, bContext * /*C*/, Poi
   uiLayout *col;
 
   col = uiLayoutColumn(layout, true);
-  uiItemR(col, ptr, "use_clamp", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  uiItemR(col, ptr, "use_clamp", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 static bool get_should_clamp(const bNode &node)
 {
@@ -176,6 +176,7 @@ void register_node_type_cmp_map_range()
   static blender::bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_MAP_RANGE, "Map Range", NODE_CLASS_OP_VECTOR);
+  ntype.enum_name_legacy = "MAP_RANGE";
   ntype.declare = file_ns::cmp_node_map_range_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_map_range;
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;

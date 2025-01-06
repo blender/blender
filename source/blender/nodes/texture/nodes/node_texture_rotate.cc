@@ -82,6 +82,7 @@ void register_node_type_tex_rotate()
   static blender::bke::bNodeType ntype;
 
   tex_node_type_base(&ntype, TEX_NODE_ROTATE, "Rotate", NODE_CLASS_DISTORT);
+  ntype.enum_name_legacy = "ROTATE";
   blender::bke::node_type_socket_templates(&ntype, inputs, outputs);
   ntype.exec_fn = exec;
 

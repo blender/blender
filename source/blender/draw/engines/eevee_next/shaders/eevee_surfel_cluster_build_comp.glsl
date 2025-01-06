@@ -10,6 +10,10 @@
  * Dispatch 1 thread per surfel.
  */
 
+#include "infos/eevee_lightprobe_volume_info.hh"
+
+COMPUTE_SHADER_CREATE_INFO(eevee_surfel_cluster_build)
+
 #include "eevee_surfel_list_lib.glsl"
 
 void main()

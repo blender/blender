@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __MERGE_H__
-#define __MERGE_H__
+#pragma once
 
 #include "util/string.h"
 #include "util/vector.h"
@@ -27,5 +26,3 @@ class ImageMerger {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __MERGE_H__ */

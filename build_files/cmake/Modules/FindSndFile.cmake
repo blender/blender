@@ -42,7 +42,7 @@ find_library(LIBSNDFILE_LIBRARY
     ${_sndfile_SEARCH_DIRS}
   PATH_SUFFIXES
     lib64 lib
-  )
+)
 
 # handle the QUIETLY and REQUIRED arguments and set SNDFILE_FOUND to TRUE if
 # all listed variables are TRUE

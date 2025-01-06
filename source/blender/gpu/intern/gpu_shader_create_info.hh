@@ -246,17 +246,18 @@
 #  define EARLY_FRAGMENT_TEST(enable)
 #  define DEPTH_WRITE(value)
 
-#  define SPECIALIZATION_CONSTANT(type, name, default_value) constexpr type name = type(1);
+#  define SPECIALIZATION_CONSTANT(type, name, default_value) \
+    constexpr type name = type(default_value);
 
-#  define PUSH_CONSTANT(type, name) const type name = type(1);
-#  define PUSH_CONSTANT_ARRAY(type, name, array_size) const type name[array_size] = {type(1)};
+#  define PUSH_CONSTANT(type, name) extern const type name;
+#  define PUSH_CONSTANT_ARRAY(type, name, array_size) extern const type name[array_size];
 
-#  define UNIFORM_BUF(slot, type_name, name) const type_name name = {type_name()};
-#  define UNIFORM_BUF_FREQ(slot, type_name, name, freq) const type_name name = {type_name()};
+#  define UNIFORM_BUF(slot, type_name, name) extern const type_name name;
+#  define UNIFORM_BUF_FREQ(slot, type_name, name, freq) extern const type_name name;
 
-#  define STORAGE_BUF(slot, qualifiers, type_name, name) qualifiers type_name name = {type_name()};
+#  define STORAGE_BUF(slot, qualifiers, type_name, name) extern qualifiers type_name name;
 #  define STORAGE_BUF_FREQ(slot, qualifiers, type_name, name, freq) \
-    qualifiers type_name name = {type_name()};
+    extern qualifiers type_name name;
 
 #  define SAMPLER(slot, type, name) _##type(sampler) name;
 #  define SAMPLER_FREQ(slot, type, name, freq) _##type(sampler) name;

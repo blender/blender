@@ -21,26 +21,26 @@ class MetalDevice;
 class MetalDeviceQueue : public DeviceQueue {
  public:
   MetalDeviceQueue(MetalDevice *device);
-  ~MetalDeviceQueue();
+  ~MetalDeviceQueue() override;
 
-  virtual int num_concurrent_states(const size_t) const override;
-  virtual int num_concurrent_busy_states(const size_t) const override;
-  virtual int num_sort_partition_elements() const override;
-  virtual bool supports_local_atomic_sort() const override;
+  int num_concurrent_states(const size_t /*state_size*/) const override;
+  int num_concurrent_busy_states(const size_t /*state_size*/) const override;
+  int num_sort_partition_elements() const override;
+  bool supports_local_atomic_sort() const override;
 
-  virtual void init_execution() override;
+  void init_execution() override;
 
-  virtual bool enqueue(DeviceKernel kernel,
-                       const int work_size,
-                       DeviceKernelArguments const &args) override;
+  bool enqueue(DeviceKernel kernel,
+               const int work_size,
+               const DeviceKernelArguments &args) override;
 
-  virtual bool synchronize() override;
+  bool synchronize() override;
 
-  virtual void zero_to_device(device_memory &mem) override;
-  virtual void copy_to_device(device_memory &mem) override;
-  virtual void copy_from_device(device_memory &mem) override;
+  void zero_to_device(device_memory &mem) override;
+  void copy_to_device(device_memory &mem) override;
+  void copy_from_device(device_memory &mem) override;
 
-  virtual void *native_queue() override;
+  void *native_queue() override;
 
  protected:
   void setup_capture();

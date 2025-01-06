@@ -6,27 +6,26 @@
 #include "scene/scene.h"
 #include "scene/stats.h"
 
-#include "util/foreach.h"
 #include "util/progress.h"
 
 CCL_NAMESPACE_BEGIN
 
 NODE_ABSTRACT_DEFINE(Procedural)
 {
-  NodeType *type = NodeType::add("procedural_base", NULL);
+  NodeType *type = NodeType::add("procedural_base", nullptr);
   return type;
 }
 
 Procedural::Procedural(const NodeType *type) : Node(type) {}
 
-Procedural::~Procedural() {}
+Procedural::~Procedural() = default;
 
 ProceduralManager::ProceduralManager()
 {
   need_update_ = true;
 }
 
-ProceduralManager::~ProceduralManager() {}
+ProceduralManager::~ProceduralManager() = default;
 
 void ProceduralManager::update(Scene *scene, Progress &progress)
 {
@@ -36,13 +35,13 @@ void ProceduralManager::update(Scene *scene, Progress &progress)
 
   progress.set_status("Updating Procedurals");
 
-  scoped_callback_timer timer([scene](double time) {
+  const scoped_callback_timer timer([scene](double time) {
     if (scene->update_stats) {
       scene->update_stats->procedurals.times.add_entry({"update", time});
     }
   });
 
-  foreach (Procedural *procedural, scene->procedurals) {
+  for (Procedural *procedural : scene->procedurals) {
     if (progress.get_cancel()) {
       return;
     }

@@ -21,7 +21,7 @@ namespace blender::deg {
 
 SequencerBackup::SequencerBackup(const Depsgraph *depsgraph) : depsgraph(depsgraph) {}
 
-static bool seq_init_cb(Sequence *seq, void *user_data)
+static bool seq_init_cb(Strip *seq, void *user_data)
 {
   SequencerBackup *sb = (SequencerBackup *)user_data;
   SequenceBackup sequence_backup(sb->depsgraph);
@@ -41,7 +41,7 @@ void SequencerBackup::init_from_scene(Scene *scene)
   }
 }
 
-static bool seq_restore_cb(Sequence *seq, void *user_data)
+static bool seq_restore_cb(Strip *seq, void *user_data)
 {
   SequencerBackup *sb = (SequencerBackup *)user_data;
   const SessionUID &session_uid = seq->runtime.session_uid;

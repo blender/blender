@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "kernel/closure/volume_util.h"
+#include "kernel/types.h"
 
 #include "kernel/closure/volume_draine.h"
 #include "kernel/closure/volume_fournier_forand.h"
@@ -28,9 +28,9 @@ ccl_device void volume_extinction_setup(ccl_private ShaderData *sd, Spectrum wei
 
 /* VOLUME SCATTERING */
 
-ccl_device Spectrum volume_phase_eval(ccl_private const ShaderData *sd,
-                                      ccl_private const ShaderVolumeClosure *svc,
-                                      float3 wo,
+ccl_device Spectrum volume_phase_eval(const ccl_private ShaderData *sd,
+                                      const ccl_private ShaderVolumeClosure *svc,
+                                      const float3 wo,
                                       ccl_private float *pdf)
 {
   switch (svc->type) {
@@ -49,9 +49,9 @@ ccl_device Spectrum volume_phase_eval(ccl_private const ShaderData *sd,
   }
 }
 
-ccl_device int volume_phase_sample(ccl_private const ShaderData *sd,
-                                   ccl_private const ShaderVolumeClosure *svc,
-                                   float2 rand,
+ccl_device int volume_phase_sample(const ccl_private ShaderData *sd,
+                                   const ccl_private ShaderVolumeClosure *svc,
+                                   const float2 rand,
                                    ccl_private Spectrum *eval,
                                    ccl_private float3 *wo,
                                    ccl_private float *pdf)
@@ -72,8 +72,8 @@ ccl_device int volume_phase_sample(ccl_private const ShaderData *sd,
   }
 }
 
-ccl_device bool volume_phase_equal(ccl_private const ShaderClosure *c1,
-                                   ccl_private const ShaderClosure *c2)
+ccl_device bool volume_phase_equal(const ccl_private ShaderClosure *c1,
+                                   const ccl_private ShaderClosure *c2)
 {
   if (c1->type != c2->type) {
     return false;
@@ -104,7 +104,7 @@ ccl_device bool volume_phase_equal(ccl_private const ShaderClosure *c1,
 
 /* Approximate phase functions as Henyey-Greenstein for volume guiding.
  * TODO: This is not ideal, we should use RIS guiding for non-HG phase functions. */
-ccl_device float volume_phase_get_g(ccl_private const ShaderVolumeClosure *svc)
+ccl_device float volume_phase_get_g(const ccl_private ShaderVolumeClosure *svc)
 {
   switch (svc->type) {
     case CLOSURE_VOLUME_FOURNIER_FORAND_ID:
@@ -129,12 +129,12 @@ ccl_device float volume_phase_get_g(ccl_private const ShaderVolumeClosure *svc)
  * unnecessary work in volumes and subsurface scattering. */
 #define VOLUME_THROUGHPUT_EPSILON 1e-6f
 
-ccl_device Spectrum volume_color_transmittance(Spectrum sigma, float t)
+ccl_device Spectrum volume_color_transmittance(Spectrum sigma, const float t)
 {
   return exp(-sigma * t);
 }
 
-ccl_device float volume_channel_get(Spectrum value, int channel)
+ccl_device float volume_channel_get(Spectrum value, const int channel)
 {
   return GET_SPECTRUM_CHANNEL(value, channel);
 }
@@ -149,8 +149,8 @@ ccl_device int volume_sample_channel(Spectrum albedo,
    *
    * "Practical and Controllable Subsurface Scattering for Production Path
    *  Tracing". Matt Jen-Yuan Chiang, Peter Kutz, Brent Burley. SIGGRAPH 2016. */
-  Spectrum weights = fabs(throughput * albedo);
-  float sum_weights = reduce_add(weights);
+  const Spectrum weights = fabs(throughput * albedo);
+  const float sum_weights = reduce_add(weights);
 
   if (sum_weights > 0.0f) {
     *pdf = weights / sum_weights;

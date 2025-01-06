@@ -20,9 +20,9 @@ static void node_declare(NodeDeclarationBuilder &b)
 
 static void node_shader_buts_ambient_occlusion(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 {
-  uiItemR(layout, ptr, "samples", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "inside", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
-  uiItemR(layout, ptr, "only_local", UI_ITEM_R_SPLIT_EMPTY_NAME, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "samples", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  uiItemR(layout, ptr, "inside", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+  uiItemR(layout, ptr, "only_local", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
 }
 
 static int node_shader_gpu_ambient_occlusion(GPUMaterial *mat,
@@ -82,6 +82,7 @@ void register_node_type_sh_ambient_occlusion()
   static blender::bke::bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_AMBIENT_OCCLUSION, "Ambient Occlusion", NODE_CLASS_INPUT);
+  ntype.enum_name_legacy = "AMBIENT_OCCLUSION";
   ntype.declare = file_ns::node_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_ambient_occlusion;
   ntype.initfunc = file_ns::node_shader_init_ambient_occlusion;

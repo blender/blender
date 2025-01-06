@@ -4,8 +4,6 @@
 
 set(INC
   .
-  ../../blenkernel
-  ../../gpu
   ../../makesrna
 )
 
@@ -41,8 +39,10 @@ set(SRC
 set(LIB
   ${PYTHON_LINKFLAGS}
   ${PYTHON_LIBRARIES}
+  PRIVATE bf::blenkernel
   PRIVATE bf::blenlib
   PRIVATE bf::dna
+  PRIVATE bf::gpu
   PRIVATE bf::intern::clog
   PRIVATE bf::intern::guardedalloc
 )

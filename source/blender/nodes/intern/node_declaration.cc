@@ -109,6 +109,8 @@ NodeDeclarationBuilder::NodeDeclarationBuilder(const bke::bNodeType &typeinfo,
       ntree_(ntree),
       node_(node)
 {
+  /* Unused in release builds, but used for BLI_assert() in debug builds. */
+  UNUSED_VARS(typeinfo_);
 }
 
 void NodeDeclarationBuilder::use_custom_socket_order(bool enable)

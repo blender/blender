@@ -115,9 +115,7 @@ void SceneState::init(Object *camera_ob /*=nullptr*/)
     rv3d->rflag &= ~RV3D_GPULIGHT_UPDATE;
   }
 
-  float4x4 matrix;
-  /* TODO(@pragma37): New API? */
-  DRW_view_persmat_get(nullptr, matrix.ptr(), false);
+  float4x4 matrix = View::default_get().persmat();
   if (matrix != view_projection_matrix) {
     view_projection_matrix = matrix;
     reset_taa = true;

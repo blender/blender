@@ -8,6 +8,7 @@
 #include <optional>
 
 #include "BLI_function_ref.hh"
+#include "BLI_generic_pointer.hh"
 #include "BLI_generic_span.hh"
 #include "BLI_generic_virtual_array.hh"
 #include "BLI_offset_indices.hh"
@@ -463,7 +464,9 @@ class AttributeIter {
 struct AttributeAccessorFunctions {
   bool (*domain_supported)(const void *owner, AttrDomain domain);
   int (*domain_size)(const void *owner, AttrDomain domain);
-  bool (*is_builtin)(const void *owner, StringRef attribute_id);
+  std::optional<AttributeDomainAndType> (*builtin_domain_and_type)(const void *owner,
+                                                                   StringRef attribute_id);
+  GPointer (*get_builtin_default)(const void *owner, StringRef attribute_id);
   GAttributeReader (*lookup)(const void *owner, StringRef attribute_id);
   GVArray (*adapt_domain)(const void *owner,
                           const GVArray &varray,
@@ -549,7 +552,25 @@ class AttributeAccessor {
    */
   bool is_builtin(const StringRef attribute_id) const
   {
-    return fn_->is_builtin(owner_, attribute_id);
+    return fn_->builtin_domain_and_type(owner_, attribute_id).has_value();
+  }
+
+  /**
+   * \return The required domain and type for the attribute, if it is builtin.
+   */
+  std::optional<AttributeDomainAndType> get_builtin_domain_and_type(const StringRef name) const
+  {
+    return fn_->builtin_domain_and_type(owner_, name);
+  }
+
+  /**
+   * \return The default value defined by the `#BuiltinAttributeProvider`. The provided
+   * attribute_id must refer to a builtin attribute.
+   */
+  GPointer get_builtin_default(const StringRef attribute_id) const
+  {
+    BLI_assert(this->is_builtin(attribute_id));
+    return fn_->get_builtin_default(owner_, attribute_id);
   }
 
   /**

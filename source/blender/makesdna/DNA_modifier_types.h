@@ -20,11 +20,17 @@
 
 namespace blender {
 struct NodesModifierRuntime;
+namespace bke {
+struct BVHTreeFromMesh;
 }
+}  // namespace blender
 using NodesModifierRuntimeHandle = blender::NodesModifierRuntime;
+using BVHTreeFromMeshHandle = blender::bke::BVHTreeFromMesh;
 #else
 typedef struct NodesModifierRuntimeHandle NodesModifierRuntimeHandle;
+typedef struct BVHTreeFromMeshHandle BVHTreeFromMeshHandle;
 #endif
+struct LineartModifierRuntime;
 
 /* WARNING ALERT! TYPEDEF VALUES ARE WRITTEN IN FILES! SO DO NOT CHANGE!
  * (ONLY ADD NEW ITEMS AT THE END)
@@ -955,7 +961,7 @@ typedef struct SurfaceModifierData_Runtime {
   struct Mesh *mesh;
 
   /** Bounding volume hierarchy of the mesh faces. */
-  struct BVHTreeFromMesh *bvhtree;
+  BVHTreeFromMeshHandle *bvhtree;
 
   int cfra_prev, verts_num;
 
@@ -3221,7 +3227,7 @@ typedef struct GreasePencilLineartModifierData {
   struct LineartData *la_data_ptr;
 
   /* Points to a `LineartModifierRuntime`, which includes the object dependency list. */
-  void *runtime;
+  struct LineartModifierRuntime *runtime;
 } GreasePencilLineartModifierData;
 
 typedef struct GreasePencilArmatureModifierData {

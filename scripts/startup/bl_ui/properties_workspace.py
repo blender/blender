@@ -149,7 +149,7 @@ class WORKSPACE_UL_addons_items(UIList):
             indices = self._sort_addons_by_category_name(addons)
         return flags, indices
 
-    def draw_item(self, context, layout, _data, addon, icon, _active_data, _active_propname, _index):
+    def draw_item(self, context, layout, _data, addon, _icon, _active_data, _active_propname, _index):
         row = layout.row()
         row.active = context.workspace.use_filter_by_owner
         row.emboss = 'NONE'

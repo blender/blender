@@ -86,35 +86,41 @@ int node_group_ui_class(const bNode *node)
   if (!group) {
     return NODE_CLASS_GROUP;
   }
-  switch (blender::bke::NodeGroupColorTag(group->color_tag)) {
-    case blender::bke::NodeGroupColorTag::None:
+  switch (blender::bke::NodeColorTag(group->color_tag)) {
+    case blender::bke::NodeColorTag::None:
       return NODE_CLASS_GROUP;
-    case blender::bke::NodeGroupColorTag::Attribute:
+    case blender::bke::NodeColorTag::Attribute:
       return NODE_CLASS_ATTRIBUTE;
-    case blender::bke::NodeGroupColorTag::Color:
+    case blender::bke::NodeColorTag::Color:
       return NODE_CLASS_OP_COLOR;
-    case blender::bke::NodeGroupColorTag::Converter:
+    case blender::bke::NodeColorTag::Converter:
       return NODE_CLASS_CONVERTER;
-    case blender::bke::NodeGroupColorTag::Distort:
+    case blender::bke::NodeColorTag::Distort:
       return NODE_CLASS_DISTORT;
-    case blender::bke::NodeGroupColorTag::Filter:
+    case blender::bke::NodeColorTag::Filter:
       return NODE_CLASS_OP_FILTER;
-    case blender::bke::NodeGroupColorTag::Geometry:
+    case blender::bke::NodeColorTag::Geometry:
       return NODE_CLASS_GEOMETRY;
-    case blender::bke::NodeGroupColorTag::Input:
+    case blender::bke::NodeColorTag::Input:
       return NODE_CLASS_INPUT;
-    case blender::bke::NodeGroupColorTag::Matte:
+    case blender::bke::NodeColorTag::Matte:
       return NODE_CLASS_MATTE;
-    case blender::bke::NodeGroupColorTag::Output:
+    case blender::bke::NodeColorTag::Output:
       return NODE_CLASS_OUTPUT;
-    case blender::bke::NodeGroupColorTag::Script:
+    case blender::bke::NodeColorTag::Script:
       return NODE_CLASS_SCRIPT;
-    case blender::bke::NodeGroupColorTag::Shader:
+    case blender::bke::NodeColorTag::Shader:
       return NODE_CLASS_SHADER;
-    case blender::bke::NodeGroupColorTag::Texture:
+    case blender::bke::NodeColorTag::Texture:
       return NODE_CLASS_TEXTURE;
-    case blender::bke::NodeGroupColorTag::Vector:
+    case blender::bke::NodeColorTag::Vector:
       return NODE_CLASS_OP_VECTOR;
+    case blender::bke::NodeColorTag::Pattern:
+      return NODE_CLASS_PATTERN;
+    case blender::bke::NodeColorTag::Interface:
+      return NODE_CLASS_INTERFACE;
+    case blender::bke::NodeColorTag::Group:
+      return NODE_CLASS_GROUP;
   }
   return NODE_CLASS_GROUP;
 }
@@ -504,6 +510,7 @@ void register_node_type_frame()
   ntype->free_self = (void (*)(blender::bke::bNodeType *))MEM_freeN;
 
   blender::bke::node_type_base(ntype, NODE_FRAME, "Frame", NODE_CLASS_LAYOUT);
+  ntype->enum_name_legacy = "FRAME";
   ntype->initfunc = node_frame_init;
   blender::bke::node_type_storage(
       ntype, "NodeFrame", node_free_standard_storage, node_copy_standard_storage);
@@ -546,6 +553,7 @@ void register_node_type_reroute()
   ntype->free_self = (void (*)(blender::bke::bNodeType *))MEM_freeN;
 
   blender::bke::node_type_base(ntype, NODE_REROUTE, "Reroute", NODE_CLASS_LAYOUT);
+  ntype->enum_name_legacy = "REROUTE";
   ntype->declare = node_reroute_declare;
   ntype->initfunc = node_reroute_init;
   node_type_storage(ntype, "NodeReroute", node_free_standard_storage, node_copy_standard_storage);
@@ -777,6 +785,7 @@ void register_node_type_group_input()
   ntype->free_self = (void (*)(blender::bke::bNodeType *))MEM_freeN;
 
   blender::bke::node_type_base(ntype, NODE_GROUP_INPUT, "Group Input", NODE_CLASS_INTERFACE);
+  ntype->enum_name_legacy = "GROUP_INPUT";
   blender::bke::node_type_size(ntype, 140, 80, 400);
   ntype->declare = blender::nodes::group_input_declare;
   ntype->insert_link = blender::nodes::group_input_insert_link;
@@ -801,6 +810,7 @@ void register_node_type_group_output()
   ntype->free_self = (void (*)(blender::bke::bNodeType *))MEM_freeN;
 
   blender::bke::node_type_base(ntype, NODE_GROUP_OUTPUT, "Group Output", NODE_CLASS_INTERFACE);
+  ntype->enum_name_legacy = "GROUP_OUTPUT";
   blender::bke::node_type_size(ntype, 140, 80, 400);
   ntype->declare = blender::nodes::group_output_declare;
   ntype->insert_link = blender::nodes::group_output_insert_link;

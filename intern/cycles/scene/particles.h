@@ -2,8 +2,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __PARTICLES_H__
-#define __PARTICLES_H__
+#pragma once
 
 #include "util/array.h"
 #include "util/types.h"
@@ -35,7 +34,7 @@ class ParticleSystem : public Node {
   NODE_DECLARE
 
   ParticleSystem();
-  ~ParticleSystem();
+  ~ParticleSystem() override;
 
   void tag_update(Scene *scene);
 
@@ -64,5 +63,3 @@ class ParticleSystemManager {
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __PARTICLES_H__ */

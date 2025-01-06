@@ -41,6 +41,7 @@ void register_node_type_sh_volume_absorption()
   static blender::bke::bNodeType ntype;
 
   sh_node_type_base(&ntype, SH_NODE_VOLUME_ABSORPTION, "Volume Absorption", NODE_CLASS_SHADER);
+  ntype.enum_name_legacy = "VOLUME_ABSORPTION";
   ntype.declare = file_ns::node_declare;
   ntype.gpu_fn = file_ns::node_shader_gpu_volume_absorption;
 

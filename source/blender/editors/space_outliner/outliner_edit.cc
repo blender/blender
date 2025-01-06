@@ -341,8 +341,8 @@ static void do_item_rename(ARegion *region,
   {
     BKE_report(reports, RPT_INFO, "Not an editable name");
   }
-  else if (ELEM(tselem->type, TSE_SEQUENCE, TSE_SEQ_STRIP, TSE_SEQUENCE_DUP)) {
-    BKE_report(reports, RPT_INFO, "Sequence names are not editable from the Outliner");
+  else if (ELEM(tselem->type, TSE_STRIP, TSE_STRIP_DATA, TSE_STRIP_DUP)) {
+    BKE_report(reports, RPT_INFO, "Strip names are not editable from the Outliner");
   }
   else if (TSE_IS_REAL_ID(tselem) && !ID_IS_EDITABLE(tselem->id)) {
     BKE_report(reports, RPT_INFO, "External library data is not editable");
@@ -806,10 +806,10 @@ static int outliner_id_copy_tag(SpaceOutliner *space_outliner,
     /* Add selected item and all of its dependencies to the copy buffer. */
     if (tselem->flag & TSE_SELECTED && ELEM(tselem->type, TSE_SOME_ID, TSE_LAYER_COLLECTION)) {
       copybuffer.id_add(tselem->id,
-                        PartialWriteContext::IDAddOptions{PartialWriteContext::IDAddOperations(
-                            PartialWriteContext::IDAddOperations::SET_FAKE_USER |
-                            PartialWriteContext::IDAddOperations::SET_CLIPBOARD_MARK |
-                            PartialWriteContext::IDAddOperations::ADD_DEPENDENCIES)},
+                        PartialWriteContext::IDAddOptions{
+                            (PartialWriteContext::IDAddOperations::SET_FAKE_USER |
+                             PartialWriteContext::IDAddOperations::SET_CLIPBOARD_MARK |
+                             PartialWriteContext::IDAddOperations::ADD_DEPENDENCIES)},
                         nullptr);
       num_ids++;
     }
@@ -2349,20 +2349,20 @@ static void outliner_orphans_purge_ui(bContext * /*C*/, wmOperator *op)
   std::string unused_message = "";
   unused_message_gen(unused_message, data.num_local);
   uiLayout *column = uiLayoutColumn(layout, true);
-  uiItemR(column, ptr, "do_local_ids", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(column, ptr, "do_local_ids", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   uiLayout *row = uiLayoutRow(column, true);
   uiItemS_ex(row, 2.67f);
-  uiItemL(row, unused_message.c_str(), ICON_NONE);
+  uiItemL(row, unused_message, ICON_NONE);
 
   unused_message = "";
   unused_message_gen(unused_message, data.num_linked);
   column = uiLayoutColumn(layout, true);
-  uiItemR(column, ptr, "do_linked_ids", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(column, ptr, "do_linked_ids", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   row = uiLayoutRow(column, true);
   uiItemS_ex(row, 2.67f);
-  uiItemL(row, unused_message.c_str(), ICON_NONE);
+  uiItemL(row, unused_message, ICON_NONE);
 
-  uiItemR(layout, ptr, "do_recursive", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "do_recursive", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 void OUTLINER_OT_orphans_purge(wmOperatorType *ot)

@@ -4,7 +4,7 @@
 
 #include "device/cpu/device.h"
 #include "device/cpu/device_impl.h"
-#include "integrator/denoiser_oidn.h"
+#include "device/device.h"
 
 /* Used for `info.denoisers`. */
 /* TODO(sergey): The denoisers are probably to be moved completely out of the device into their
@@ -14,9 +14,12 @@
 
 CCL_NAMESPACE_BEGIN
 
-Device *device_cpu_create(const DeviceInfo &info, Stats &stats, Profiler &profiler, bool headless)
+unique_ptr<Device> device_cpu_create(const DeviceInfo &info,
+                                     Stats &stats,
+                                     Profiler &profiler,
+                                     bool headless)
 {
-  return new CPUDevice(info, stats, profiler, headless);
+  return make_unique<CPUDevice>(info, stats, profiler, headless);
 }
 
 void device_cpu_info(vector<DeviceInfo> &devices)
@@ -45,7 +48,7 @@ void device_cpu_info(vector<DeviceInfo> &devices)
 
 string device_cpu_capabilities()
 {
-  string capabilities = "";
+  string capabilities;
   capabilities += system_cpu_support_sse42() ? "SSE42 " : "";
   capabilities += system_cpu_support_avx2() ? "AVX2" : "";
   if (capabilities[capabilities.size() - 1] == ' ') {

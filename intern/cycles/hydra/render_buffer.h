@@ -68,7 +68,7 @@ class HdCyclesRenderBuffer final : public PXR_NS::HdRenderBuffer {
   void WritePixels(const float *pixels,
                    const PXR_NS::GfVec2i &offset,
                    const PXR_NS::GfVec2i &dims,
-                   int channels,
+                   const int channels,
                    bool isId = false);
 
  private:

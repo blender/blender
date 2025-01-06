@@ -18,7 +18,6 @@
 
 #include "kernel/types.h"
 
-#include "util/foreach.h"
 #include "util/hash.h"
 #include "util/log.h"
 #include "util/task.h"
@@ -164,7 +163,7 @@ NODE_DEFINE(Integrator)
 
 Integrator::Integrator() : Node(get_node_type()) {}
 
-Integrator::~Integrator() {}
+Integrator::~Integrator() = default;
 
 void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 {
@@ -172,7 +171,7 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
     return;
   }
 
-  scoped_callback_timer timer([scene](double time) {
+  const scoped_callback_timer timer([scene](double time) {
     if (scene->update_stats) {
       scene->update_stats->integrator.times.add_entry({"device_update", time});
     }
@@ -210,7 +209,7 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
    * transparent shaders in the scene. Otherwise we can disable it
    * to improve performance a bit. */
   kintegrator->transparent_shadows = false;
-  foreach (Shader *shader, scene->shaders) {
+  for (Shader *shader : scene->shaders) {
     /* keep this in sync with SD_HAS_TRANSPARENT_SHADOW in shader.cpp */
     if ((shader->has_surface_transparent && shader->get_use_transparent_shadow()) ||
         shader->has_volume)
@@ -253,7 +252,7 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
     kintegrator->filter_closures |= FILTER_CLOSURE_TRANSPARENT;
   }
 
-  GuidingParams guiding_params = get_guiding_params(device);
+  const GuidingParams guiding_params = get_guiding_params(device);
   kintegrator->use_guiding = guiding_params.use;
   kintegrator->train_guiding = kintegrator->use_guiding;
   kintegrator->use_surface_guiding = guiding_params.use_surface_guiding;
@@ -308,7 +307,7 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
   }
 
   /* Build pre-tabulated Sobol samples if needed. */
-  int sequence_size = clamp(
+  const int sequence_size = clamp(
       next_power_of_two(aa_samples - 1), MIN_TAB_SOBOL_SAMPLES, MAX_TAB_SOBOL_SAMPLES);
   const int table_size = sequence_size * NUM_TAB_SOBOL_PATTERNS * NUM_TAB_SOBOL_DIMENSIONS;
   if (kintegrator->sampling_pattern == SAMPLING_PATTERN_TABULATED_SOBOL &&
@@ -323,7 +322,9 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
     TaskPool pool;
     for (int j = 0; j < NUM_TAB_SOBOL_PATTERNS; ++j) {
       float4 *sequence = directions + j * sequence_size;
-      pool.push(function_bind(&tabulated_sobol_generate_4D, sequence, sequence_size, j));
+      pool.push([sequence, sequence_size, j] {
+        tabulated_sobol_generate_4D(sequence, sequence_size, j);
+      });
     }
     pool.wait_work();
 
@@ -336,12 +337,12 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
   clear_modified();
 }
 
-void Integrator::device_free(Device *, DeviceScene *dscene, bool force_free)
+void Integrator::device_free(Device * /*unused*/, DeviceScene *dscene, bool force_free)
 {
   dscene->sample_pattern_lut.free_if_need_realloc(force_free);
 }
 
-void Integrator::tag_update(Scene *scene, uint32_t flag)
+void Integrator::tag_update(Scene *scene, const uint32_t flag)
 {
   if (flag & UPDATE_ALL) {
     tag_modified();

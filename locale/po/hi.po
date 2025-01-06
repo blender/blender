@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.3.0 Release Candidate (b'7dfe47164a63')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'96c6f543ecc7')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-11-18 11:20+0000\n"
+"POT-Creation-Date: 2025-01-06 10:26+0000\n"
 "PO-Revision-Date: 2015-03-03 16:21+0530\n"
 "Last-Translator: Roshan Lal Gumasta <roshan@anisecrets.com>\n"
 "Language-Team: Hindi <www.anisecrets.com>\n"
@@ -175,6 +175,14 @@ msgid "Expanded"
 msgstr "विस्तृत"
 
 
+msgid "Influence"
+msgstr "प्रभाव"
+
+
+msgid "Add"
+msgstr "जोड़ें"
+
+
 msgid "Off"
 msgstr "बंद"
 
@@ -241,10 +249,6 @@ msgstr "अनुप्राणन सामग्री"
 
 msgid "Action"
 msgstr "कार्य"
-
-
-msgid "Add"
-msgstr "जोड़ें"
 
 
 msgid "Nothing"
@@ -914,10 +918,6 @@ msgid "Error"
 msgstr "त्रुटि"
 
 
-msgid "Influence"
-msgstr "प्रभाव"
-
-
 msgid "Copy Location"
 msgstr "स्थिति की प्रतिलिपि बनाएँ"
 
@@ -1339,12 +1339,12 @@ msgid "Realtime"
 msgstr "ससमय"
 
 
-msgid "Ogg"
-msgstr "ओजीजी"
-
-
 msgid "Flash"
 msgstr "फ्लैश"
+
+
+msgid "Ogg"
+msgstr "ओजीजी"
 
 
 msgid "Lossless Output"
@@ -1655,6 +1655,10 @@ msgid "Users"
 msgstr "प्रयोक्ता"
 
 
+msgid "Layers"
+msgstr "परतें"
+
+
 msgid "Stick"
 msgstr "छड़ी"
 
@@ -1913,10 +1917,6 @@ msgstr "अधिकतम"
 
 msgid "Rounds"
 msgstr "दौर"
-
-
-msgid "Layers"
-msgstr "परतें"
 
 
 msgid "Fade"
@@ -3774,10 +3774,6 @@ msgid "Italic"
 msgstr "तिर्यगक्षर"
 
 
-msgid "Remove"
-msgstr "हटाएँ"
-
-
 msgid "Flatten"
 msgstr "समतल"
 
@@ -4461,6 +4457,10 @@ msgid "Pan Right"
 msgstr "दाएँ पैन करें"
 
 
+msgid "Remove"
+msgstr "हटाएँ"
+
+
 msgid "Open a Blender file"
 msgstr "एक ब्लेंडर संचिका खोलें"
 
@@ -4569,12 +4569,12 @@ msgid "Lock Y"
 msgstr "तालाबंदी y"
 
 
-msgid "Transform Orientations"
-msgstr "दिक् विन्यास संरचनांतरण"
-
-
 msgid "Motion Tracking"
 msgstr "गति मार्गन"
+
+
+msgid "Transform Orientations"
+msgstr "दिक् विन्यास संरचनांतरण"
 
 
 msgid "Predefined tracking camera intrinsics"
@@ -5875,10 +5875,6 @@ msgid "Key %d"
 msgstr "कुंजी %d"
 
 
-msgid "GPencil"
-msgstr "तैलीय पेंसिल"
-
-
 msgid "No new files have been packed"
 msgstr "कोई संचिकाएँ संकुल नहीं की गईं"
 
@@ -5913,38 +5909,6 @@ msgstr "स्मृति से बाहर त्रुटि"
 
 msgid "Undefined Type"
 msgstr "अपरिभाषित प्रकार"
-
-
-msgid "Error writing frame"
-msgstr "गठन लेखन में त्रुटि"
-
-
-msgid "No valid formats found"
-msgstr "कोई मान्य स्वरूप नहीं मिला"
-
-
-msgid "Render width has to be 720 pixels for DV!"
-msgstr " प्रतिपादन चौड़ाई डीवी के लिए ७२० पिक्सल होना चाहिए!"
-
-
-msgid "Render height has to be 480 pixels for DV-NTSC!"
-msgstr " प्रतिपादन ऊंचाई DV NTSC के लिए ४८० पिक्सेल होना चाहिए!"
-
-
-msgid "Render height has to be 576 pixels for DV-PAL!"
-msgstr " प्रतिपादन ऊंचाई ५७६ पिक्सल DV-पाल लिए होना चाहिए!"
-
-
-msgid "Error initializing video stream"
-msgstr "वीडियो स्ट्रीम आरंभ करने में त्रुटि"
-
-
-msgid "Error initializing audio stream"
-msgstr "श्रव्य स्ट्रीम आरंभ करने में त्रुटि"
-
-
-msgid "Could not open file for writing"
-msgstr "लेखन के लिए संचिका को नहीं खोल सकता"
 
 
 msgid "unknown error reading file"
@@ -6655,6 +6619,38 @@ msgstr "रिक्त स्थान"
 
 msgid "Overwrite %s"
 msgstr "अधिलेखित करें %s"
+
+
+msgid "Error writing frame"
+msgstr "गठन लेखन में त्रुटि"
+
+
+msgid "No valid formats found"
+msgstr "कोई मान्य स्वरूप नहीं मिला"
+
+
+msgid "Render width has to be 720 pixels for DV!"
+msgstr " प्रतिपादन चौड़ाई डीवी के लिए ७२० पिक्सल होना चाहिए!"
+
+
+msgid "Render height has to be 480 pixels for DV-NTSC!"
+msgstr " प्रतिपादन ऊंचाई DV NTSC के लिए ४८० पिक्सेल होना चाहिए!"
+
+
+msgid "Render height has to be 576 pixels for DV-PAL!"
+msgstr " प्रतिपादन ऊंचाई ५७६ पिक्सल DV-पाल लिए होना चाहिए!"
+
+
+msgid "Error initializing video stream"
+msgstr "वीडियो स्ट्रीम आरंभ करने में त्रुटि"
+
+
+msgid "Error initializing audio stream"
+msgstr "श्रव्य स्ट्रीम आरंभ करने में त्रुटि"
+
+
+msgid "Could not open file for writing"
+msgstr "लेखन के लिए संचिका को नहीं खोल सकता"
 
 
 msgid "Flame"

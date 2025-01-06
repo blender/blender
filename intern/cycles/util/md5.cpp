@@ -9,11 +9,12 @@
 #include "util/md5.h"
 #include "util/path.h"
 
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 
 CCL_NAMESPACE_BEGIN
 
+// NOLINTBEGIN
 #define T_MASK ((uint32_t)~0)
 #define T1 /* 0xd76aa478 */ (T_MASK ^ 0x28955b87)
 #define T2 /* 0xe8c7b756 */ (T_MASK ^ 0x173848a9)
@@ -79,10 +80,14 @@ CCL_NAMESPACE_BEGIN
 #define T62 /* 0xbd3af235 */ (T_MASK ^ 0x42c50dca)
 #define T63 0x2ad7d2bb
 #define T64 /* 0xeb86d391 */ (T_MASK ^ 0x14792c6e)
+// NOLINTEND
 
 void MD5Hash::process(const uint8_t *data /*[64]*/)
 {
-  uint32_t a = abcd[0], b = abcd[1], c = abcd[2], d = abcd[3];
+  uint32_t a = abcd[0];
+  uint32_t b = abcd[1];
+  uint32_t c = abcd[2];
+  uint32_t d = abcd[3];
   uint32_t t;
   /* Define storage for little-endian or both types of CPUs. */
   uint32_t xbuf[16];
@@ -101,7 +106,7 @@ void MD5Hash::process(const uint8_t *data /*[64]*/)
        * On little-endian machines, we can process properly aligned
        * data without copying it.
        */
-      if (!((data - (const uint8_t *)0) & 3)) {
+      if (!((data - (const uint8_t *)nullptr) & 3)) {
         /* data are properly aligned */
         X = (const uint32_t *)data;
       }
@@ -250,14 +255,14 @@ MD5Hash::MD5Hash()
   abcd[3] = 0x10325476;
 }
 
-MD5Hash::~MD5Hash() {}
+MD5Hash::~MD5Hash() = default;
 
-void MD5Hash::append(const uint8_t *data, int nbytes)
+void MD5Hash::append(const uint8_t *data, const int nbytes)
 {
   const uint8_t *p = data;
   int left = nbytes;
-  int offset = (count[0] >> 3) & 63;
-  uint32_t nbits = (uint32_t)(nbytes << 3);
+  const int offset = (count[0] >> 3) & 63;
+  const uint32_t nbits = (uint32_t)(nbytes << 3);
 
   if (nbytes <= 0) {
     return;
@@ -272,7 +277,7 @@ void MD5Hash::append(const uint8_t *data, int nbytes)
 
   /* Process an initial partial block. */
   if (offset) {
-    int copy = (offset + nbytes > 64 ? 64 - offset : nbytes);
+    const int copy = (offset + nbytes > 64 ? 64 - offset : nbytes);
 
     memcpy(buf + offset, p, copy);
     if (offset + copy < 64) {
@@ -296,7 +301,7 @@ void MD5Hash::append(const uint8_t *data, int nbytes)
 
 void MD5Hash::append(const string &str)
 {
-  if (str.size()) {
+  if (!str.empty()) {
     append((const uint8_t *)str.c_str(), str.size());
   }
 }
@@ -319,7 +324,7 @@ bool MD5Hash::append_file(const string &filepath)
     append(buffer, n);
   } while (n == buffer_size);
 
-  bool success = (ferror(f) == 0);
+  const bool success = (ferror(f) == 0);
 
   fclose(f);
 

@@ -1185,7 +1185,7 @@ void strip_loose_faces_corners(Mesh *mesh, blender::BitSpan faces_to_remove)
     }
     else {
       /* If one of the face's corners is invalid, the whole face is invalid! */
-      if (corner_edges.slice(start, size).as_span().contains(INVALID_CORNER_EDGE_MARKER)) {
+      if (corner_edges.slice(start, size).contains(INVALID_CORNER_EDGE_MARKER)) {
         invalid = true;
       }
     }

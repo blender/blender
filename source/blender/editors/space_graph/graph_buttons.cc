@@ -225,7 +225,7 @@ static void graph_panel_properties(const bContext *C, Panel *panel)
   col = uiLayoutColumn(layout, false);
   uiLayoutSetEnabled(col, (fcu->flag & FCURVE_DISABLED) != 0);
   uiItemR(col, &fcu_ptr, "data_path", UI_ITEM_NONE, "", ICON_RNA);
-  uiItemR(col, &fcu_ptr, "array_index", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, &fcu_ptr, "array_index", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   /* color settings */
   col = uiLayoutColumn(layout, true);
@@ -394,24 +394,24 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
       uiItemL(split, IFACE_("None for Enum/Boolean"), ICON_IPO_CONSTANT);
     }
     else {
-      uiItemR(col, &bezt_ptr, "interpolation", UI_ITEM_NONE, nullptr, ICON_NONE);
+      uiItemR(col, &bezt_ptr, "interpolation", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     }
 
     /* easing type */
     if (bezt->ipo > BEZT_IPO_BEZ) {
-      uiItemR(col, &bezt_ptr, "easing", UI_ITEM_NONE, nullptr, ICON_NONE);
+      uiItemR(col, &bezt_ptr, "easing", UI_ITEM_NONE, std::nullopt, ICON_NONE);
     }
 
     /* easing extra */
     switch (bezt->ipo) {
       case BEZT_IPO_BACK:
         col = uiLayoutColumn(layout, true);
-        uiItemR(col, &bezt_ptr, "back", UI_ITEM_NONE, nullptr, ICON_NONE);
+        uiItemR(col, &bezt_ptr, "back", UI_ITEM_NONE, std::nullopt, ICON_NONE);
         break;
       case BEZT_IPO_ELASTIC:
         col = uiLayoutColumn(layout, true);
-        uiItemR(col, &bezt_ptr, "amplitude", UI_ITEM_NONE, nullptr, ICON_NONE);
-        uiItemR(col, &bezt_ptr, "period", UI_ITEM_NONE, nullptr, ICON_NONE);
+        uiItemR(col, &bezt_ptr, "amplitude", UI_ITEM_NONE, std::nullopt, ICON_NONE);
+        uiItemR(col, &bezt_ptr, "period", UI_ITEM_NONE, std::nullopt, ICON_NONE);
         break;
       default:
         break;
@@ -468,7 +468,7 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
       but = uiDefButR(block,
                       UI_BTYPE_MENU,
                       B_REDR,
-                      nullptr,
+                      std::nullopt,
                       0,
                       0,
                       but_max_width,
@@ -526,7 +526,7 @@ static void graph_panel_key_properties(const bContext *C, Panel *panel)
       but = uiDefButR(block,
                       UI_BTYPE_MENU,
                       B_REDR,
-                      nullptr,
+                      std::nullopt,
                       0,
                       0,
                       but_max_width,
@@ -738,10 +738,10 @@ static void graph_panel_driverVar_fallback(uiLayout *layout,
   if (dtar->options & DTAR_OPTION_USE_FALLBACK) {
     uiLayout *row = uiLayoutRow(layout, true);
     uiItemR(row, dtar_ptr, "use_fallback_value", UI_ITEM_NONE, "", ICON_NONE);
-    uiItemR(row, dtar_ptr, "fallback_value", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(row, dtar_ptr, "fallback_value", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
   else {
-    uiItemR(layout, dtar_ptr, "use_fallback_value", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(layout, dtar_ptr, "use_fallback_value", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 }
 
@@ -840,7 +840,7 @@ static void graph_panel_driverVar__locDiff(uiLayout *layout, ID *id, DriverVar *
   /* we can clear it again now - it's only needed when creating the ID/Bone fields */
   uiLayoutSetRedAlert(col, false);
 
-  uiItemR(col, &dtar_ptr, "transform_space", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, &dtar_ptr, "transform_space", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   /* Object 2 */
   col = uiLayoutColumn(layout, true);
@@ -856,7 +856,7 @@ static void graph_panel_driverVar__locDiff(uiLayout *layout, ID *id, DriverVar *
   /* we can clear it again now - it's only needed when creating the ID/Bone fields */
   uiLayoutSetRedAlert(col, false);
 
-  uiItemR(col, &dtar2_ptr, "transform_space", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, &dtar2_ptr, "transform_space", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
 /* settings for 'transform channel' driver variable type */
@@ -881,7 +881,7 @@ static void graph_panel_driverVar__transChan(uiLayout *layout, ID *id, DriverVar
   }
 
   sub = uiLayoutColumn(layout, true);
-  uiItemR(sub, &dtar_ptr, "transform_type", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(sub, &dtar_ptr, "transform_type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   if (ELEM(dtar->transChan,
            DTAR_TRANSCHAN_ROTX,
@@ -906,7 +906,7 @@ static void graph_panel_driverVar__contextProp(uiLayout *layout, ID *id, DriverV
   /* Target Property. */
   {
     uiLayout *row = uiLayoutRow(layout, false);
-    uiItemR(row, &dtar_ptr, "context_property", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(row, &dtar_ptr, "context_property", UI_ITEM_NONE, std::nullopt, ICON_NONE);
   }
 
   /* Target Path */
@@ -1014,7 +1014,7 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
 
   col = uiLayoutColumn(layout, true);
   block = uiLayoutGetBlock(col);
-  uiItemR(col, &driver_ptr, "type", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(col, &driver_ptr, "type", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
   {
     char valBuf[32];
@@ -1042,7 +1042,7 @@ static void graph_draw_driver_settings_panel(uiLayout *layout,
 
     uiItemL(col, IFACE_("Expression:"), ICON_NONE);
     uiItemR(col, &driver_ptr, "expression", UI_ITEM_NONE, "", ICON_NONE);
-    uiItemR(col, &driver_ptr, "use_self", UI_ITEM_NONE, nullptr, ICON_NONE);
+    uiItemR(col, &driver_ptr, "use_self", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 
     /* errors? */
     col = uiLayoutColumn(layout, true);

@@ -14,7 +14,8 @@
 #include "kernel/device/cpu/compat.h"
 
 #ifndef KERNEL_STUB
-#    include "kernel/device/cpu/globals.h"
+#    include "kernel/globals.h"
+
 #    include "kernel/device/cpu/image.h"
 
 #    include "kernel/integrator/state.h"
@@ -61,7 +62,7 @@ CCL_NAMESPACE_BEGIN
 /* TODO: Either use something like get_work_pixel(), or simplify tile which is passed here, so
  * that it does not contain unused fields. */
 #define DEFINE_INTEGRATOR_INIT_KERNEL(name) \
-  bool KERNEL_FUNCTION_FULL_NAME(integrator_##name)(const KernelGlobalsCPU *kg, \
+  bool KERNEL_FUNCTION_FULL_NAME(integrator_##name)(const ThreadKernelGlobalsCPU *kg, \
                                                     IntegratorStateCPU *state, \
                                                     KernelWorkTile *tile, \
                                                     ccl_global float *render_buffer) \
@@ -71,29 +72,31 @@ CCL_NAMESPACE_BEGIN
   }
 
 #define DEFINE_INTEGRATOR_KERNEL(name) \
-  void KERNEL_FUNCTION_FULL_NAME(integrator_##name)(const KernelGlobalsCPU *kg, \
+  void KERNEL_FUNCTION_FULL_NAME(integrator_##name)(const ThreadKernelGlobalsCPU *kg, \
                                                     IntegratorStateCPU *state) \
   { \
     KERNEL_INVOKE(name, kg, state); \
   }
 
 #define DEFINE_INTEGRATOR_SHADE_KERNEL(name) \
-  void KERNEL_FUNCTION_FULL_NAME(integrator_##name)( \
-      const KernelGlobalsCPU *kg, IntegratorStateCPU *state, ccl_global float *render_buffer) \
+  void KERNEL_FUNCTION_FULL_NAME(integrator_##name)(const ThreadKernelGlobalsCPU *kg, \
+                                                    IntegratorStateCPU *state, \
+                                                    ccl_global float *render_buffer) \
   { \
     KERNEL_INVOKE(name, kg, state, render_buffer); \
   }
 
 #define DEFINE_INTEGRATOR_SHADOW_KERNEL(name) \
-  void KERNEL_FUNCTION_FULL_NAME(integrator_##name)(const KernelGlobalsCPU *kg, \
+  void KERNEL_FUNCTION_FULL_NAME(integrator_##name)(const ThreadKernelGlobalsCPU *kg, \
                                                     IntegratorStateCPU *state) \
   { \
     KERNEL_INVOKE(name, kg, &state->shadow); \
   }
 
 #define DEFINE_INTEGRATOR_SHADOW_SHADE_KERNEL(name) \
-  void KERNEL_FUNCTION_FULL_NAME(integrator_##name)( \
-      const KernelGlobalsCPU *kg, IntegratorStateCPU *state, ccl_global float *render_buffer) \
+  void KERNEL_FUNCTION_FULL_NAME(integrator_##name)(const ThreadKernelGlobalsCPU *kg, \
+                                                    IntegratorStateCPU *state, \
+                                                    ccl_global float *render_buffer) \
   { \
     KERNEL_INVOKE(name, kg, &state->shadow, render_buffer); \
   }
@@ -117,7 +120,7 @@ DEFINE_INTEGRATOR_SHADOW_SHADE_KERNEL(shade_shadow)
  * Shader evaluation.
  */
 
-void KERNEL_FUNCTION_FULL_NAME(shader_eval_displace)(const KernelGlobalsCPU *kg,
+void KERNEL_FUNCTION_FULL_NAME(shader_eval_displace)(const ThreadKernelGlobalsCPU *kg,
                                                      const KernelShaderEvalInput *input,
                                                      float *output,
                                                      const int offset)
@@ -129,7 +132,7 @@ void KERNEL_FUNCTION_FULL_NAME(shader_eval_displace)(const KernelGlobalsCPU *kg,
 #endif
 }
 
-void KERNEL_FUNCTION_FULL_NAME(shader_eval_background)(const KernelGlobalsCPU *kg,
+void KERNEL_FUNCTION_FULL_NAME(shader_eval_background)(const ThreadKernelGlobalsCPU *kg,
                                                        const KernelShaderEvalInput *input,
                                                        float *output,
                                                        const int offset)
@@ -142,7 +145,7 @@ void KERNEL_FUNCTION_FULL_NAME(shader_eval_background)(const KernelGlobalsCPU *k
 }
 
 void KERNEL_FUNCTION_FULL_NAME(shader_eval_curve_shadow_transparency)(
-    const KernelGlobalsCPU *kg,
+    const ThreadKernelGlobalsCPU *kg,
     const KernelShaderEvalInput *input,
     float *output,
     const int offset)
@@ -159,14 +162,14 @@ void KERNEL_FUNCTION_FULL_NAME(shader_eval_curve_shadow_transparency)(
  */
 
 bool KERNEL_FUNCTION_FULL_NAME(adaptive_sampling_convergence_check)(
-    const KernelGlobalsCPU *kg,
+    const ThreadKernelGlobalsCPU *kg,
     ccl_global float *render_buffer,
-    int x,
-    int y,
-    float threshold,
-    int reset,
-    int offset,
-    int stride)
+    const int x,
+    const int y,
+    const float threshold,
+    const int reset,
+    const int offset,
+    const int stride)
 {
 #ifdef KERNEL_STUB
   STUB_ASSERT(KERNEL_ARCH, adaptive_sampling_convergence_check);
@@ -177,13 +180,13 @@ bool KERNEL_FUNCTION_FULL_NAME(adaptive_sampling_convergence_check)(
 #endif
 }
 
-void KERNEL_FUNCTION_FULL_NAME(adaptive_sampling_filter_x)(const KernelGlobalsCPU *kg,
+void KERNEL_FUNCTION_FULL_NAME(adaptive_sampling_filter_x)(const ThreadKernelGlobalsCPU *kg,
                                                            ccl_global float *render_buffer,
-                                                           int y,
-                                                           int start_x,
-                                                           int width,
-                                                           int offset,
-                                                           int stride)
+                                                           const int y,
+                                                           const int start_x,
+                                                           const int width,
+                                                           const int offset,
+                                                           const int stride)
 {
 #ifdef KERNEL_STUB
   STUB_ASSERT(KERNEL_ARCH, adaptive_sampling_filter_x);
@@ -192,13 +195,13 @@ void KERNEL_FUNCTION_FULL_NAME(adaptive_sampling_filter_x)(const KernelGlobalsCP
 #endif
 }
 
-void KERNEL_FUNCTION_FULL_NAME(adaptive_sampling_filter_y)(const KernelGlobalsCPU *kg,
+void KERNEL_FUNCTION_FULL_NAME(adaptive_sampling_filter_y)(const ThreadKernelGlobalsCPU *kg,
                                                            ccl_global float *render_buffer,
-                                                           int x,
-                                                           int start_y,
-                                                           int height,
-                                                           int offset,
-                                                           int stride)
+                                                           const int x,
+                                                           const int start_y,
+                                                           const int height,
+                                                           const int offset,
+                                                           const int stride)
 {
 #ifdef KERNEL_STUB
   STUB_ASSERT(KERNEL_ARCH, adaptive_sampling_filter_y);
@@ -211,9 +214,9 @@ void KERNEL_FUNCTION_FULL_NAME(adaptive_sampling_filter_y)(const KernelGlobalsCP
  * Cryptomatte.
  */
 
-void KERNEL_FUNCTION_FULL_NAME(cryptomatte_postprocess)(const KernelGlobalsCPU *kg,
+void KERNEL_FUNCTION_FULL_NAME(cryptomatte_postprocess)(const ThreadKernelGlobalsCPU *kg,
                                                         ccl_global float *render_buffer,
-                                                        int pixel_index)
+                                                        const int pixel_index)
 {
 #ifdef KERNEL_STUB
   STUB_ASSERT(KERNEL_ARCH, cryptomatte_postprocess);

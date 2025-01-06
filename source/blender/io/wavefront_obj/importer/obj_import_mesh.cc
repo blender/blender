@@ -423,7 +423,7 @@ void MeshFromGeometry::create_normals(Mesh *mesh)
       corner_index++;
     }
   }
-  BKE_mesh_set_custom_normals(mesh, reinterpret_cast<float(*)[3]>(corner_normals.data()));
+  bke::mesh_set_custom_normals(*mesh, corner_normals);
 }
 
 void MeshFromGeometry::create_colors(Mesh *mesh)

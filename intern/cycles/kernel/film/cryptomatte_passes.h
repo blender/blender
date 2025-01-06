@@ -4,20 +4,22 @@
 
 #pragma once
 
+#include "kernel/globals.h"
+
 CCL_NAMESPACE_BEGIN
 
 /* Element of ID pass stored in the render buffers.
  * It is `float2` semantically, but it must be unaligned since the offset of ID passes in the
  * render buffers might not meet expected by compiler alignment. */
-typedef struct CryptoPassBufferElement {
+struct CryptoPassBufferElement {
   float x;
   float y;
-} CryptoPassBufferElement;
+};
 
 ccl_device_inline void film_write_cryptomatte_slots(ccl_global float *buffer,
-                                                    int num_slots,
-                                                    float id,
-                                                    float weight)
+                                                    const int num_slots,
+                                                    const float id,
+                                                    const float weight)
 {
   kernel_assert(id != ID_NONE);
   if (weight == 0.0f) {
@@ -53,7 +55,7 @@ ccl_device_inline void film_write_cryptomatte_slots(ccl_global float *buffer,
     }
     /* If there already is a slot for that ID, add the weight.
      * If no slot was found, add it to the last. */
-    else if (id_buffer[slot].x == id || slot == num_slots - 1) {
+    if (id_buffer[slot].x == id || slot == num_slots - 1) {
       id_buffer[slot].y += weight;
       break;
     }
@@ -61,7 +63,7 @@ ccl_device_inline void film_write_cryptomatte_slots(ccl_global float *buffer,
   }
 }
 
-ccl_device_inline void film_sort_cryptomatte_slots(ccl_global float *buffer, int num_slots)
+ccl_device_inline void film_sort_cryptomatte_slots(ccl_global float *buffer, const int num_slots)
 {
   ccl_global CryptoPassBufferElement *id_buffer = (ccl_global CryptoPassBufferElement *)buffer;
   for (int slot = 1; slot < num_slots; ++slot) {
@@ -82,7 +84,7 @@ ccl_device_inline void film_sort_cryptomatte_slots(ccl_global float *buffer, int
 /* post-sorting for Cryptomatte */
 ccl_device_inline void film_cryptomatte_post(KernelGlobals kg,
                                              ccl_global float *render_buffer,
-                                             int pixel_index)
+                                             const int pixel_index)
 {
   const int pass_stride = kernel_data.film.pass_stride;
   const uint64_t render_buffer_offset = (uint64_t)pixel_index * pass_stride;

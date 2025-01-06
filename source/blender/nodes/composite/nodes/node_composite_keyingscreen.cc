@@ -78,10 +78,10 @@ static void node_composit_buts_keyingscreen(uiLayout *layout, bContext *C, Point
     uiItemPointerR(col, ptr, "tracking_object", &tracking_ptr, "objects", "", ICON_OBJECT_DATA);
   }
 
-  uiItemR(layout, ptr, "smoothness", UI_ITEM_NONE, nullptr, ICON_NONE);
+  uiItemR(layout, ptr, "smoothness", UI_ITEM_NONE, std::nullopt, ICON_NONE);
 }
 
-using namespace blender::realtime_compositor;
+using namespace blender::compositor;
 
 class KeyingScreenOperation : public NodeOperation {
  public:
@@ -170,6 +170,7 @@ void register_node_type_cmp_keyingscreen()
   static blender::bke::bNodeType ntype;
 
   cmp_node_type_base(&ntype, CMP_NODE_KEYINGSCREEN, "Keying Screen", NODE_CLASS_MATTE);
+  ntype.enum_name_legacy = "KEYINGSCREEN";
   ntype.declare = file_ns::cmp_node_keyingscreen_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_keyingscreen;
   ntype.initfunc_api = file_ns::node_composit_init_keyingscreen;

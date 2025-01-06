@@ -26,19 +26,18 @@
 
 #  include "bvh/embree.h"
 
-#  include "kernel/device/cpu/bvh.h"
-#  include "kernel/device/cpu/compat.h"
-#  include "kernel/device/cpu/globals.h"
-
 #  include "scene/hair.h"
 #  include "scene/mesh.h"
 #  include "scene/object.h"
 #  include "scene/pointcloud.h"
 
-#  include "util/foreach.h"
 #  include "util/log.h"
 #  include "util/progress.h"
 #  include "util/stats.h"
+
+#  if EMBREE_MAJOR_VERSION < 4
+#    include "kernel/device/cpu/bvh.h"
+#  endif
 
 CCL_NAMESPACE_BEGIN
 
@@ -49,7 +48,7 @@ static_assert(Object::MAX_MOTION_STEPS == Geometry::MAX_MOTION_STEPS,
 
 static size_t unaccounted_mem = 0;
 
-static bool rtc_memory_monitor_func(void *userPtr, const ssize_t bytes, const bool)
+static bool rtc_memory_monitor_func(void *userPtr, const ssize_t bytes, const bool /*unused*/)
 {
   Stats *stats = (Stats *)userPtr;
   if (stats) {
@@ -72,7 +71,7 @@ static bool rtc_memory_monitor_func(void *userPtr, const ssize_t bytes, const bo
   return true;
 }
 
-static void rtc_error_func(void *, enum RTCError, const char *str)
+static void rtc_error_func(void * /*unused*/, enum RTCError /*unused*/, const char *str)
 {
   VLOG_WARNING << str;
 }
@@ -87,7 +86,7 @@ static bool rtc_progress_func(void *user_ptr, const double n)
     return true;
   }
 
-  string msg = string_printf("Building BVH %.0f%%", n * 100.0);
+  const string msg = string_printf("Building BVH %.0f%%", n * 100.0);
   progress->set_substatus(msg);
   progress_start_time = time_dt();
 
@@ -98,8 +97,8 @@ BVHEmbree::BVHEmbree(const BVHParams &params_,
                      const vector<Geometry *> &geometry_,
                      const vector<Object *> &objects_)
     : BVH(params_, geometry_, objects_),
-      scene(NULL),
-      rtc_device(NULL),
+      scene(nullptr),
+      rtc_device(nullptr),
       build_quality(RTC_BUILD_QUALITY_REFIT)
 {
   SIMD_SET_FLUSH_TO_ZERO;
@@ -121,14 +120,14 @@ void BVHEmbree::build(Progress &progress,
   rtc_device_is_sycl = rtc_device_is_sycl_;
   assert(rtc_device);
 
-  rtcSetDeviceErrorFunction(rtc_device, rtc_error_func, NULL);
+  rtcSetDeviceErrorFunction(rtc_device, rtc_error_func, nullptr);
   rtcSetDeviceMemoryMonitorFunction(rtc_device, rtc_memory_monitor_func, stats);
 
   progress.set_substatus("Building BVH");
 
   if (scene) {
     rtcReleaseScene(scene);
-    scene = NULL;
+    scene = nullptr;
   }
 
   const bool dynamic = params.bvh_type == BVH_TYPE_DYNAMIC;
@@ -149,7 +148,7 @@ void BVHEmbree::build(Progress &progress,
   rtcSetSceneBuildQuality(scene, build_quality);
 
   int i = 0;
-  foreach (Object *ob, objects) {
+  for (Object *ob : objects) {
     if (params.top_level) {
       if (!ob->is_traceable()) {
         ++i;
@@ -166,8 +165,9 @@ void BVHEmbree::build(Progress &progress,
       add_object(ob, i);
     }
     ++i;
-    if (progress.get_cancel())
+    if (progress.get_cancel()) {
       return;
+    }
   }
 
   if (progress.get_cancel()) {
@@ -222,14 +222,15 @@ RTCError BVHEmbree::offload_scenes_to_gpu(const vector<RTCScene> &scenes)
     /* In case of any errors from Embree, we should stop
      * the execution and propagate the error. */
     RTCError error_code = rtcGetDeviceError(rtc_device);
-    if (error_code != RTC_ERROR_NONE)
+    if (error_code != RTC_ERROR_NONE) {
       return error_code;
+    }
   }
   return RTC_ERROR_NONE;
 }
 #  endif
 
-void BVHEmbree::add_object(Object *ob, int i)
+void BVHEmbree::add_object(Object *ob, const int i)
 {
   Geometry *geom = ob->get_geometry();
 
@@ -253,10 +254,10 @@ void BVHEmbree::add_object(Object *ob, int i)
   }
 }
 
-void BVHEmbree::add_instance(Object *ob, int i)
+void BVHEmbree::add_instance(Object *ob, const int i)
 {
-  BVHEmbree *instance_bvh = (BVHEmbree *)(ob->get_geometry()->bvh);
-  assert(instance_bvh != NULL);
+  BVHEmbree *instance_bvh = static_cast<BVHEmbree *>(ob->get_geometry()->bvh.get());
+  assert(instance_bvh != nullptr);
 
   const size_t num_object_motion_steps = ob->use_motion() ? ob->get_motion().size() : 1;
   const size_t num_motion_steps = min(num_object_motion_steps, (size_t)RTC_MAX_TIME_STEP_COUNT);
@@ -299,11 +300,11 @@ void BVHEmbree::add_instance(Object *ob, int i)
   rtcReleaseGeometry(geom_id);
 }
 
-void BVHEmbree::add_triangles(const Object *ob, const Mesh *mesh, int i)
+void BVHEmbree::add_triangles(const Object *ob, const Mesh *mesh, const int i)
 {
-  size_t prim_offset = mesh->prim_offset;
+  const size_t prim_offset = mesh->prim_offset;
 
-  const Attribute *attr_mP = NULL;
+  const Attribute *attr_mP = nullptr;
   size_t num_motion_steps = 1;
   if (mesh->has_motion_blur()) {
     attr_mP = mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
@@ -363,7 +364,7 @@ void BVHEmbree::add_triangles(const Object *ob, const Mesh *mesh, int i)
 
 void BVHEmbree::set_tri_vertex_buffer(RTCGeometry geom_id, const Mesh *mesh, const bool update)
 {
-  const Attribute *attr_mP = NULL;
+  const Attribute *attr_mP = nullptr;
   size_t num_motion_steps = 1;
   int t_mid = 0;
   if (mesh->has_motion_blur()) {
@@ -385,7 +386,7 @@ void BVHEmbree::set_tri_vertex_buffer(RTCGeometry geom_id, const Mesh *mesh, con
       verts = mesh->get_verts().data();
     }
     else {
-      int t_ = (t > t_mid) ? (t - 1) : t;
+      const int t_ = (t > t_mid) ? (t - 1) : t;
       verts = &attr_mP->data_float3()[t_ * num_verts];
     }
 
@@ -438,14 +439,14 @@ void BVHEmbree::set_tri_vertex_buffer(RTCGeometry geom_id, const Mesh *mesh, con
  * Packs the hair motion curve data control variables (CVs) into float4s as [x y z radius]
  */
 template<typename T>
-void pack_motion_verts(size_t num_curves,
+void pack_motion_verts(const size_t num_curves,
                        const Hair *hair,
                        const T *verts,
                        const float *curve_radius,
                        float4 *rtc_verts)
 {
   for (size_t j = 0; j < num_curves; ++j) {
-    Hair::Curve c = hair->get_curve(j);
+    const Hair::Curve c = hair->get_curve(j);
     int fk = c.first_key;
     int k = 1;
     for (; k < c.num_keys + 1; ++k, ++fk) {
@@ -463,7 +464,7 @@ void pack_motion_verts(size_t num_curves,
 
 void BVHEmbree::set_curve_vertex_buffer(RTCGeometry geom_id, const Hair *hair, const bool update)
 {
-  const Attribute *attr_mP = NULL;
+  const Attribute *attr_mP = nullptr;
   size_t num_motion_steps = 1;
   if (hair->has_motion_blur()) {
     attr_mP = hair->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
@@ -485,7 +486,7 @@ void BVHEmbree::set_curve_vertex_buffer(RTCGeometry geom_id, const Hair *hair, c
 
   /* Copy the CV data to Embree */
   const int t_mid = (num_motion_steps - 1) / 2;
-  const float *curve_radius = &hair->get_curve_radius()[0];
+  const float *curve_radius = hair->get_curve_radius().data();
   for (int t = 0; t < num_motion_steps; ++t) {
     // As float4 and float3 are no longer interchangeable the 2 types need to be
     // handled separately. Attributes are float4s where the radius is stored in w and
@@ -503,12 +504,12 @@ void BVHEmbree::set_curve_vertex_buffer(RTCGeometry geom_id, const Hair *hair, c
     assert(rtc_verts);
     if (rtc_verts) {
       const size_t num_curves = hair->num_curves();
-      if (t == t_mid || attr_mP == NULL) {
-        const float3 *verts = &hair->get_curve_keys()[0];
+      if (t == t_mid || attr_mP == nullptr) {
+        const float3 *verts = hair->get_curve_keys().data();
         pack_motion_verts<float3>(num_curves, hair, verts, curve_radius, rtc_verts);
       }
       else {
-        int t_ = (t > t_mid) ? (t - 1) : t;
+        const int t_ = (t > t_mid) ? (t - 1) : t;
         const float4 *verts = &attr_mP->data_float4()[t_ * num_keys];
         pack_motion_verts<float4>(num_curves, hair, verts, curve_radius, rtc_verts);
       }
@@ -524,7 +525,7 @@ void BVHEmbree::set_point_vertex_buffer(RTCGeometry geom_id,
                                         const PointCloud *pointcloud,
                                         const bool update)
 {
-  const Attribute *attr_mP = NULL;
+  const Attribute *attr_mP = nullptr;
   size_t num_motion_steps = 1;
   if (pointcloud->has_motion_blur()) {
     attr_mP = pointcloud->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
@@ -554,7 +555,7 @@ void BVHEmbree::set_point_vertex_buffer(RTCGeometry geom_id,
 
     assert(rtc_verts);
     if (rtc_verts) {
-      if (t == t_mid || attr_mP == NULL) {
+      if (t == t_mid || attr_mP == nullptr) {
         /* Pack the motion points into a float4 as [x y z radius]. */
         const float3 *verts = pointcloud->get_points().data();
         for (size_t j = 0; j < num_points; ++j) {
@@ -566,9 +567,9 @@ void BVHEmbree::set_point_vertex_buffer(RTCGeometry geom_id,
       }
       else {
         /* Motion blur is already packed as [x y z radius]. */
-        int t_ = (t > t_mid) ? (t - 1) : t;
+        const int t_ = (t > t_mid) ? (t - 1) : t;
         const float4 *verts = &attr_mP->data_float4()[t_ * num_points];
-        memcpy(rtc_verts, verts, sizeof(float4) * num_points);
+        std::copy_n(verts, num_points, rtc_verts);
       }
     }
 
@@ -578,11 +579,11 @@ void BVHEmbree::set_point_vertex_buffer(RTCGeometry geom_id,
   }
 }
 
-void BVHEmbree::add_points(const Object *ob, const PointCloud *pointcloud, int i)
+void BVHEmbree::add_points(const Object *ob, const PointCloud *pointcloud, const int i)
 {
-  size_t prim_offset = pointcloud->prim_offset;
+  const size_t prim_offset = pointcloud->prim_offset;
 
-  const Attribute *attr_mP = NULL;
+  const Attribute *attr_mP = nullptr;
   size_t num_motion_steps = 1;
   if (pointcloud->has_motion_blur()) {
     attr_mP = pointcloud->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
@@ -591,7 +592,7 @@ void BVHEmbree::add_points(const Object *ob, const PointCloud *pointcloud, int i
     }
   }
 
-  enum RTCGeometryType type = RTC_GEOMETRY_TYPE_SPHERE_POINT;
+  const enum RTCGeometryType type = RTC_GEOMETRY_TYPE_SPHERE_POINT;
 
   RTCGeometry geom_id = rtcNewGeometry(rtc_device, type);
 
@@ -614,11 +615,11 @@ void BVHEmbree::add_points(const Object *ob, const PointCloud *pointcloud, int i
   rtcReleaseGeometry(geom_id);
 }
 
-void BVHEmbree::add_curves(const Object *ob, const Hair *hair, int i)
+void BVHEmbree::add_curves(const Object *ob, const Hair *hair, const int i)
 {
-  size_t prim_offset = hair->curve_segment_offset;
+  const size_t prim_offset = hair->curve_segment_offset;
 
-  const Attribute *attr_mP = NULL;
+  const Attribute *attr_mP = nullptr;
   size_t num_motion_steps = 1;
   if (hair->has_motion_blur()) {
     attr_mP = hair->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
@@ -633,14 +634,14 @@ void BVHEmbree::add_curves(const Object *ob, const Hair *hair, int i)
   const size_t num_curves = hair->num_curves();
   size_t num_segments = 0;
   for (size_t j = 0; j < num_curves; ++j) {
-    Hair::Curve c = hair->get_curve(j);
+    const Hair::Curve c = hair->get_curve(j);
     assert(c.num_segments() > 0);
     num_segments += c.num_segments();
   }
 
-  enum RTCGeometryType type = (hair->curve_shape == CURVE_RIBBON ?
-                                   RTC_GEOMETRY_TYPE_FLAT_CATMULL_ROM_CURVE :
-                                   RTC_GEOMETRY_TYPE_ROUND_CATMULL_ROM_CURVE);
+  const enum RTCGeometryType type = (hair->curve_shape == CURVE_RIBBON ?
+                                         RTC_GEOMETRY_TYPE_FLAT_CATMULL_ROM_CURVE :
+                                         RTC_GEOMETRY_TYPE_ROUND_CATMULL_ROM_CURVE);
 
   RTCGeometry geom_id = rtcNewGeometry(rtc_device, type);
   rtcSetGeometryTessellationRate(geom_id, params.curve_subdivisions + 1);
@@ -648,7 +649,7 @@ void BVHEmbree::add_curves(const Object *ob, const Hair *hair, int i)
       geom_id, RTC_BUFFER_TYPE_INDEX, 0, RTC_FORMAT_UINT, sizeof(int), num_segments);
   size_t rtc_index = 0;
   for (size_t j = 0; j < num_curves; ++j) {
-    Hair::Curve c = hair->get_curve(j);
+    const Hair::Curve c = hair->get_curve(j);
     for (size_t k = 0; k < c.num_segments(); ++k) {
       rtc_indices[rtc_index] = c.first_key + k;
       /* Room for extra CVs at Catmull-Rom splines. */
@@ -690,7 +691,7 @@ void BVHEmbree::refit(Progress &progress)
 
   /* Update all vertex buffers, then tell Embree to rebuild/-fit the BVHs. */
   unsigned geom_id = 0;
-  foreach (Object *ob, objects) {
+  for (Object *ob : objects) {
     if (!params.top_level || (ob->is_traceable() && !ob->get_geometry()->is_instanced())) {
       Geometry *geom = ob->get_geometry();
 

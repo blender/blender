@@ -34,6 +34,28 @@
 #define U BLI_STATIC_ASSERT(false, "Global 'U' not allowed, only use arguments passed in!")
 
 /* -------------------------------------------------------------------- */
+/** \name Preferences File
+ * \{ */
+
+namespace blender::bke::preferences {
+
+bool exists()
+{
+  const std::optional<std::string> cfgdir = BKE_appdir_folder_id(BLENDER_USER_CONFIG, nullptr);
+  if (!cfgdir.has_value()) {
+    return false;
+  }
+
+  char userpref[FILE_MAX];
+  BLI_path_join(userpref, sizeof(userpref), cfgdir->c_str(), BLENDER_USERPREF_FILE);
+  return BLI_exists(userpref);
+}
+
+}  // namespace blender::bke::preferences
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name Asset Libraries
  * \{ */
 

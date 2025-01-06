@@ -6,9 +6,9 @@
 
 #include <vector>
 
-#include "gflags/gflags.h"
-#include "glog/logging.h"
-#include "gtest/gtest.h"
+#include <gflags/gflags.h>  // IWYU pragma: export
+#include <glog/logging.h>   // IWYU pragma: export
+#include <gtest/gtest.h>    // IWYU pragma: export
 
 namespace blender::tests {
 

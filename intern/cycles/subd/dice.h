@@ -2,16 +2,14 @@
  *
  * SPDX-License-Identifier: Apache-2.0 */
 
-#ifndef __SUBD_DICE_H__
-#define __SUBD_DICE_H__
+#pragma once
 
 /* DX11 like EdgeDice implementation, with different tessellation factors for
  * each edge for watertight tessellation, with subpatch remapping to work with
  * DiagSplit. For more algorithm details, see the DiagSplit paper or the
  * ARB_tessellation_shader OpenGL extension, Section 2.X.2. */
 
-#include "util/types.h"
-#include "util/vector.h"
+#include "util/transform.h"
 
 #include "subd/subpatch.h"
 
@@ -41,7 +39,7 @@ struct SubdParams {
     split_threshold = 1;
     dicing_rate = 1.0f;
     max_level = 12;
-    camera = NULL;
+    camera = nullptr;
   }
 };
 
@@ -57,12 +55,12 @@ class EdgeDice {
 
   explicit EdgeDice(const SubdParams &params);
 
-  void reserve(int num_verts, int num_triangles);
+  void reserve(const int num_verts, const int num_triangles);
 
-  void set_vert(Patch *patch, int index, float2 uv);
-  void add_triangle(Patch *patch, int v0, int v1, int v2);
+  void set_vert(Patch *patch, const int index, const float2 uv);
+  void add_triangle(Patch *patch, const int v0, const int v1, const int v2);
 
-  void stitch_triangles(Subpatch &sub, int edge);
+  void stitch_triangles(Subpatch &sub, const int edge);
 };
 
 /* Quad EdgeDice */
@@ -71,21 +69,19 @@ class QuadDice : public EdgeDice {
  public:
   explicit QuadDice(const SubdParams &params);
 
-  float3 eval_projected(Subpatch &sub, float u, float v);
+  float3 eval_projected(Subpatch &sub, const float u, float v);
 
-  float2 map_uv(Subpatch &sub, float u, float v);
-  void set_vert(Subpatch &sub, int index, float u, float v);
+  float2 map_uv(Subpatch &sub, const float u, float v);
+  void set_vert(Subpatch &sub, const int index, const float u, float v);
 
-  void add_grid(Subpatch &sub, int Mu, int Mv, int offset);
+  void add_grid(Subpatch &sub, const int Mu, const int Mv, const int offset);
 
-  void set_side(Subpatch &sub, int edge);
+  void set_side(Subpatch &sub, const int edge);
 
   float quad_area(const float3 &a, const float3 &b, const float3 &c, const float3 &d);
-  float scale_factor(Subpatch &sub, int Mu, int Mv);
+  float scale_factor(Subpatch &sub, const int Mu, const int Mv);
 
   void dice(Subpatch &sub);
 };
 
 CCL_NAMESPACE_END
-
-#endif /* __SUBD_DICE_H__ */

@@ -585,10 +585,6 @@ Span<float3> face_normals_eval_from_eval(const Object &object_eval);
 
 int BKE_pbvh_debug_draw_gen_get(blender::bke::pbvh::Node &node);
 
-void BKE_pbvh_draw_debug_cb(blender::bke::pbvh::Tree &pbvh,
-                            void (*draw_fn)(blender::bke::pbvh::Node *node, void *user_data),
-                            void *user_data);
-
 namespace blender::bke::pbvh {
 
 /** Return pointers to all the leaf nodes in the BVH tree. */

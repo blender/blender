@@ -93,7 +93,7 @@ NodeGroup *BlenderFileLoader::Load()
       continue;
     }
 
-    /* Evaluated metaballs will appear as mesh objects in the iterator. */
+    /* Evaluated meta-balls will appear as mesh objects in the iterator. */
     if (ob->type == OB_MBALL) {
       continue;
     }

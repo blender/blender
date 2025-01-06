@@ -19,7 +19,7 @@ TEST(util_task, basic)
   TaskScheduler::init(0);
   TaskPool pool;
   for (int i = 0; i < 100; ++i) {
-    pool.push(function_bind(task_run));
+    pool.push([] { task_run(); });
   }
   TaskPool::Summary summary;
   pool.wait_work(&summary);
@@ -33,7 +33,7 @@ TEST(util_task, multiple_times)
     TaskScheduler::init(0);
     TaskPool pool;
     for (int i = 0; i < 100; ++i) {
-      pool.push(function_bind(task_run));
+      pool.push([] { task_run(); });
     }
     TaskPool::Summary summary;
     pool.wait_work(&summary);

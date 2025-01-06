@@ -2,10 +2,15 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "infos/eevee_material_info.hh"
+
+VERTEX_SHADER_CREATE_INFO(eevee_clip_plane)
+VERTEX_SHADER_CREATE_INFO(eevee_geom_gpencil)
+
 #include "draw_model_lib.glsl"
 /* Grease pencil includes commmon_view_lib. */
 // #include "common_gpencil_lib.glsl"
-#include "eevee_attributes_lib.glsl"
+#include "eevee_attributes_gpencil_lib.glsl"
 #include "eevee_surf_lib.glsl"
 #include "eevee_velocity_lib.glsl"
 

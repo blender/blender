@@ -10,6 +10,7 @@
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
+#include <limits>
 #include <memory.h>
 
 #include "MEM_guardedalloc.h"
@@ -25,14 +26,17 @@
 #include "BLI_bitmap_draw_2d.h"
 #include "BLI_ghash.h"
 #include "BLI_hash.hh"
+#include "BLI_index_range.hh"
 #include "BLI_listbase.h"
 #include "BLI_math_base.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
+#include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_string.h"
 #include "BLI_string_utils.hh"
+#include "BLI_task.hh"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
@@ -2512,85 +2516,104 @@ ImBuf *BKE_tracking_distort_frame(MovieTracking *tracking,
                                       false);
 }
 
-void BKE_tracking_max_distortion_delta_across_bound(MovieTracking *tracking,
-                                                    const int image_width,
-                                                    const int image_height,
-                                                    const rcti *rect,
-                                                    const bool undistort,
-                                                    float r_delta[2])
+/* Reduces the given function in parallel over the given range, the reduction function should have
+ * the given identity value. The given function gets as arguments the index of the element of the
+ * range as well as a reference to the value where the result should be accumulated, while the
+ * reduction function gets a reference to two values and returns their reduction. */
+template<typename Value, typename Function, typename Reduction>
+static Value parallel_reduce(const int range,
+                             const Value &identity,
+                             const Function &function,
+                             const Reduction &reduction)
 {
-  float pos[2], warped_pos[2];
-  const int coord_delta = 5;
-  void (*apply_distortion)(MovieTracking *tracking,
-                           int image_width,
-                           int image_height,
-                           const float pos[2],
-                           float out[2]);
+  using namespace blender;
+  return threading::parallel_reduce(
+      IndexRange(range),
+      32,
+      identity,
+      [&](const IndexRange sub_range, const Value &initial_value) {
+        Value result = initial_value;
+        for (const int64_t i : sub_range) {
+          function(i, result);
+        }
+        return result;
+      },
+      reduction);
+}
 
-  if (undistort) {
-    apply_distortion = BKE_tracking_undistort_v2;
-  }
-  else {
-    apply_distortion = BKE_tracking_distort_v2;
-  }
+void BKE_tracking_distortion_bounds_deltas(MovieTracking *tracking,
+                                           const int size[2],
+                                           const bool undistort,
+                                           int *r_right,
+                                           int *r_left,
+                                           int *r_bottom,
+                                           int *r_top)
+{
+  using namespace blender;
 
-  r_delta[0] = r_delta[1] = -FLT_MAX;
-
-  for (int a = rect->xmin; a <= rect->xmax + coord_delta; a += coord_delta) {
-    if (a > rect->xmax) {
-      a = rect->xmax;
+  auto distortion_function = [&](const float2 &position) {
+    float2 distorted_position;
+    /* Notice that the condition is inverted, that's because when we are undistorting, we compute
+     * the boundaries by distorting and vice versa. */
+    if (undistort) {
+      BKE_tracking_distort_v2(tracking, size[0], size[1], position, distorted_position);
     }
-
-    /* bottom edge */
-    pos[0] = a;
-    pos[1] = rect->ymin;
-
-    apply_distortion(tracking, image_width, image_height, pos, warped_pos);
-
-    r_delta[0] = max_ff(r_delta[0], fabsf(pos[0] - warped_pos[0]));
-    r_delta[1] = max_ff(r_delta[1], fabsf(pos[1] - warped_pos[1]));
-
-    /* top edge */
-    pos[0] = a;
-    pos[1] = rect->ymax;
-
-    apply_distortion(tracking, image_width, image_height, pos, warped_pos);
-
-    r_delta[0] = max_ff(r_delta[0], fabsf(pos[0] - warped_pos[0]));
-    r_delta[1] = max_ff(r_delta[1], fabsf(pos[1] - warped_pos[1]));
-
-    if (a >= rect->xmax) {
-      break;
+    else {
+      BKE_tracking_undistort_v2(tracking, size[0], size[1], position, distorted_position);
     }
-  }
+    return distorted_position;
+  };
 
-  for (int a = rect->ymin; a <= rect->ymax + coord_delta; a += coord_delta) {
-    if (a > rect->ymax) {
-      a = rect->ymax;
-    }
+  /* Maximum distorted x location along the right edge of the image. */
+  const float maximum_x = parallel_reduce(
+      size[1],
+      std::numeric_limits<float>::lowest(),
+      [&](const int i, float &accumulated_value) {
+        accumulated_value = math::max(accumulated_value,
+                                      distortion_function(float2(size[0], i)).x);
+      },
+      [&](const float &a, const float &b) { return math::max(a, b); });
 
-    /* left edge */
-    pos[0] = rect->xmin;
-    pos[1] = a;
+  /* Minimum distorted x location along the left edge of the image. */
+  const float minimum_x = parallel_reduce(
+      size[1],
+      std::numeric_limits<float>::max(),
+      [&](const int i, float &accumulated_value) {
+        accumulated_value = math::min(accumulated_value, distortion_function(float2(0.0f, i)).x);
+      },
+      [&](const float &a, const float &b) { return math::min(a, b); });
 
-    apply_distortion(tracking, image_width, image_height, pos, warped_pos);
+  /* Minimum distorted y location along the bottom edge of the image. */
+  const float minimum_y = parallel_reduce(
+      size[0],
+      std::numeric_limits<float>::max(),
+      [&](const int i, float &accumulated_value) {
+        accumulated_value = math::min(accumulated_value, distortion_function(float2(i, 0.0f)).y);
+      },
+      [&](const float &a, const float &b) { return math::min(a, b); });
 
-    r_delta[0] = max_ff(r_delta[0], fabsf(pos[0] - warped_pos[0]));
-    r_delta[1] = max_ff(r_delta[1], fabsf(pos[1] - warped_pos[1]));
+  /* Maximum distorted y location along the top edge of the image. */
+  const float maximum_y = parallel_reduce(
+      size[0],
+      std::numeric_limits<float>::lowest(),
+      [&](const int i, float &accumulated_value) {
+        accumulated_value = math::max(accumulated_value,
+                                      distortion_function(float2(i, size[1])).y);
+      },
+      [&](const float &a, const float &b) { return math::max(a, b); });
 
-    /* right edge */
-    pos[0] = rect->xmax;
-    pos[1] = a;
+  /* Compute the deltas from the image edges to the maximum/minimum distorted location along the
+   * direction of that edge. */
+  const float right_delta = maximum_x - size[0];
+  const float left_delta = 0.0f - minimum_x;
+  const float bottom_delta = 0.0f - minimum_y;
+  const float top_delta = maximum_y - size[1];
 
-    apply_distortion(tracking, image_width, image_height, pos, warped_pos);
-
-    r_delta[0] = max_ff(r_delta[0], fabsf(pos[0] - warped_pos[0]));
-    r_delta[1] = max_ff(r_delta[1], fabsf(pos[1] - warped_pos[1]));
-
-    if (a >= rect->ymax) {
-      break;
-    }
-  }
+  /* Round the deltas away from zero. */
+  *r_right = int(right_delta < 0.0f ? math::floor(right_delta) : math::ceil(right_delta));
+  *r_left = int(left_delta < 0.0f ? math::floor(left_delta) : math::ceil(left_delta));
+  *r_bottom = int(bottom_delta < 0.0f ? math::floor(bottom_delta) : math::ceil(bottom_delta));
+  *r_top = int(top_delta < 0.0f ? math::floor(top_delta) : math::ceil(top_delta));
 }
 
 /* --------------------------------------------------------------------

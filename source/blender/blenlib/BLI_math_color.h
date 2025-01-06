@@ -128,16 +128,6 @@ MINLINE void premul_float_to_straight_uchar(unsigned char *result, const float c
  * \{ */
 
 /**
- * If the requested RGB shade contains a negative weight for
- * one of the primaries, it lies outside the color gamut
- * accessible from the given triple of primaries.  Desaturate
- * it by adding white, equal quantities of R, G, and B, enough
- * to make RGB all positive. The function returns 1 if the
- * components were modified, zero otherwise.
- */
-int constrain_rgb(float *r, float *g, float *b);
-void minmax_rgb(short c[3]);
-/**
  * Clamp `hsv` to usable values.
  */
 void hsv_clamp_v(float hsv[3], float v_max);
@@ -196,19 +186,6 @@ MINLINE void rgba_float_args_set(float col[4], float r, float g, float b, float 
 MINLINE void rgba_uchar_args_test_set(
     unsigned char col[4], unsigned char r, unsigned char g, unsigned char b, unsigned char a);
 MINLINE void cpack_cpy_3ub(unsigned char r_col[3], unsigned int pack);
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name lift/gamma/gain / ASC-CDL conversion
- * \{ */
-
-void lift_gamma_gain_to_asc_cdl(const float *lift,
-                                const float *gamma,
-                                const float *gain,
-                                float *offset,
-                                float *slope,
-                                float *power);
 
 /** \} */
 

@@ -150,6 +150,17 @@ DeltaProjectionFunc get_screen_projection_fn(const GreasePencilStrokeParams &par
                                              const Object &object,
                                              const bke::greasepencil::Layer &layer);
 
+/**
+ * Compute position offset for a point in the original geometry
+ * from a screen offset and crazyspace deformation info.
+ * \param projection_fn Projection from screen space to the evaluated object.
+ * \param deformation Converts evaluated position delta to original geometry.
+ */
+float3 compute_orig_delta(const DeltaProjectionFunc &projection_fn,
+                          const bke::crazyspace::GeometryDeformation &deformation,
+                          int index,
+                          const float2 &screen_delta);
+
 bool do_vertex_color_points(const Brush &brush);
 bool do_vertex_color_fill(const Brush &brush);
 

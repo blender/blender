@@ -12,6 +12,10 @@ Example usage:
   python3 tools/utils_api/bpy_introspect_ui.py
 """
 
+__all__ = (
+    "main",
+)
+
 import sys
 ModuleType = type(sys)
 
@@ -274,8 +278,8 @@ def fake_main():
     bpy.types.Object.bl_rna = NewAttr("bpy.types.Object.bl_rna", "bl_rna")
     bpy.types.ParticleSettings = type("ParticleSettings", (), {})
     bpy.types.Scene = type("Scene", (), {})
-    bpy.types.Sequence = type("Sequence", (), {})
     bpy.types.Speaker = type("Speaker", (), {})
+    bpy.types.Strip = type("Strip", (), {})
     bpy.types.SurfaceCurve = type("SurfaceCurve", (), {})
     bpy.types.TextCurve = type("SurfaceCurve", (), {})
     bpy.types.Texture = type("Texture", (), {})

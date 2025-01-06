@@ -314,6 +314,7 @@ class GHOST_SystemX11 : public GHOST_System {
     /* Atoms for Selection, copy & paste. */
     Atom TARGETS;
     Atom STRING;
+    Atom C_STRING;
     Atom COMPOUND_TEXT;
     Atom TEXT;
     Atom CLIPBOARD;

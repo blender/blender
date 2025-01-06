@@ -6,11 +6,8 @@ set(INC
   PUBLIC .
   intern
 
-  ../blenkernel
-  ../blentranslation
   ../editors/include
   ../makesrna
-  ../windowmanager
   ../../../extern/fmtlib/include
   # RNA_prototypes.hh
   ${CMAKE_BINARY_DIR}/source/blender/makesrna
@@ -61,13 +58,15 @@ set(SRC
 )
 
 set(LIB
-  bf_blenkernel
+  PRIVATE bf::blenkernel
   bf::blenlib
+  PRIVATE bf::blentranslation
   PRIVATE bf::depsgraph
   bf::dna
   PRIVATE bf::intern::guardedalloc
   PRIVATE bf::intern::atomic
   PRIVATE bf::intern::clog
+  PRIVATE bf::windowmanager
 )
 
 blender_add_lib(bf_animrig "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
@@ -84,6 +83,7 @@ if(WITH_GTESTS)
     intern/evaluation_test.cc
     intern/keyframing_test.cc
     intern/nla_test.cc
+    intern/pose_test.cc
   )
   set(TEST_LIB
     PRIVATE bf::animrig

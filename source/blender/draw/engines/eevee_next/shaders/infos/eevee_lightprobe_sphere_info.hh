@@ -2,18 +2,21 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#ifdef GPU_SHADER
+#  pragma once
+#  include "gpu_glsl_cpp_stubs.hh"
+
+#  include "draw_object_infos_info.hh"
+#  include "draw_view_info.hh"
+#  include "eevee_common_info.hh"
+#  include "eevee_lightprobe_volume_info.hh"
+#  include "eevee_shader_shared.hh"
+
+#  define SPHERE_PROBE
+#endif
+
 #include "eevee_defines.hh"
 #include "gpu_shader_create_info.hh"
-
-/* -------------------------------------------------------------------- */
-/** \name Shared
- * \{ */
-
-GPU_SHADER_CREATE_INFO(eevee_lightprobe_sphere_data)
-DEFINE("SPHERE_PROBE")
-UNIFORM_BUF(SPHERE_PROBE_BUF_SLOT, SphereProbeData, lightprobe_sphere_buf[SPHERE_PROBE_MAX])
-SAMPLER(SPHERE_PROBE_TEX_SLOT, FLOAT_2D_ARRAY, lightprobe_spheres_tx)
-GPU_SHADER_CREATE_END()
 
 /* Sample cubemap and remap into an octahedral texture. */
 GPU_SHADER_CREATE_INFO(eevee_lightprobe_sphere_remap)
