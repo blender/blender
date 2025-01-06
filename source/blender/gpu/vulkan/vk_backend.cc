@@ -96,8 +96,11 @@ static Vector<StringRefNull> missing_capabilities_get(VkPhysicalDevice vk_physic
 {
   Vector<StringRefNull> missing_capabilities;
   /* Check device features. */
-  VkPhysicalDeviceFeatures2 features = {};
-  features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+  VkPhysicalDeviceVulkan12Features features_12 = {
+      VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES};
+  VkPhysicalDeviceFeatures2 features = {VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
+                                        &features_12};
+
   vkGetPhysicalDeviceFeatures2(vk_physical_device, &features);
 
 #ifndef __APPLE__
@@ -128,6 +131,9 @@ static Vector<StringRefNull> missing_capabilities_get(VkPhysicalDevice vk_physic
   }
   if (features.features.fragmentStoresAndAtomics == VK_FALSE) {
     missing_capabilities.append("fragment stores and atomics");
+  }
+  if (features_12.timelineSemaphore == VK_FALSE) {
+    missing_capabilities.append("timeline semaphores");
   }
 
   /* Check device extensions. */
