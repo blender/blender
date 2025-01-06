@@ -6196,6 +6196,11 @@ void UI_but_func_menu_step_set(uiBut *but, uiMenuStepFunc func)
   but->menu_step_func = func;
 }
 
+void UI_but_menu_disable_hover_open(uiBut *but)
+{
+  but->menu_no_hover_open = true;
+}
+
 void UI_but_func_tooltip_label_set(uiBut *but, std::function<std::string(const uiBut *but)> func)
 {
   but->tip_label_func = std::move(func);
