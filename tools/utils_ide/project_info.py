@@ -210,14 +210,14 @@ def cmake_advanced_info() -> (
 def cmake_cache_var(var: str) -> str | None:
     with open(os.path.join(CMAKE_DIR, "CMakeCache.txt"), encoding='utf-8') as cache_file:
         lines = [
-            l_strip for l in cache_file
-            if (l_strip := l.strip())
-            if not l_strip.startswith(("//", "#"))
+            line_strip for line in cache_file
+            if (line_strip := line.strip())
+            if not line_strip.startswith(("//", "#"))
         ]
 
-    for l in lines:
-        if l.split(":")[0] == var:
-            return l.split("=", 1)[-1]
+    for line in lines:
+        if line.split(":")[0] == var:
+            return line.split("=", 1)[-1]
     return None
 
 
@@ -234,8 +234,8 @@ def cmake_compiler_defines() -> list[str] | None:
 
     os.system("%s -dM -E %s > %s" % (compiler, temp_c, temp_def))
 
-    with open(temp_def) as temp_def_fh:
-        lines = [l.strip() for l in temp_def_fh if l.strip()]
+    with open(temp_def, "r", encoding="utf-8") as temp_def_fh:
+        lines = [line.strip() for line in temp_def_fh if line.strip()]
 
     os.remove(temp_c)
     os.remove(temp_def)

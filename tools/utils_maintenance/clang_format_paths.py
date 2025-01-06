@@ -109,16 +109,15 @@ def convert_tabs_to_spaces(files: Sequence[str]) -> None:
 
             # Complex 2 space
             # because some comments have tabs for alignment.
-            def handle(l: str) -> str:
-                ls = l.lstrip("\t")
-                d = len(l) - len(ls)
+            def handle(line: str) -> str:
+                line_strip = line.lstrip("\t")
+                d = len(line) - len(line_strip)
                 if d != 0:
-                    return ("  " * d) + ls.expandtabs(4)
-                else:
-                    return l.expandtabs(4)
+                    return ("  " * d) + line_strip.expandtabs(4)
+                return line.expandtabs(4)
 
             lines = data.splitlines(keepends=True)
-            lines = [handle(l) for l in lines]
+            lines = [handle(line) for line in lines]
             data = "".join(lines)
         with open(f, 'w', encoding="utf-8") as fh:
             fh.write(data)
