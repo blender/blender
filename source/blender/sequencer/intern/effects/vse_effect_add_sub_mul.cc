@@ -45,7 +45,7 @@ struct AddEffectOp {
 };
 
 static ImBuf *do_add_effect(const SeqRenderData *context,
-                            Sequence * /*seq*/,
+                            Strip * /*seq*/,
                             float /*timeline_frame*/,
                             float fac,
                             ImBuf *src1,
@@ -89,7 +89,7 @@ struct SubEffectOp {
 };
 
 static ImBuf *do_sub_effect(const SeqRenderData *context,
-                            Sequence * /*seq*/,
+                            Strip * /*seq*/,
                             float /*timeline_frame*/,
                             float fac,
                             ImBuf *src1,
@@ -133,7 +133,7 @@ struct MulEffectOp {
 };
 
 static ImBuf *do_mul_effect(const SeqRenderData *context,
-                            Sequence * /*seq*/,
+                            Strip * /*seq*/,
                             float /*timeline_frame*/,
                             float fac,
                             ImBuf *src1,

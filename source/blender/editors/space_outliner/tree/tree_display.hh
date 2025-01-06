@@ -30,7 +30,7 @@ struct Library;
 struct ListBase;
 struct Main;
 struct Scene;
-struct Sequence;
+struct Strip;
 struct SpaceOutliner;
 struct ViewLayer;
 
@@ -237,8 +237,8 @@ class TreeDisplaySequencer final : public AbstractTreeDisplay {
   /**
    * Helped function to put duplicate sequence in the same tree.
    */
-  SequenceAddOp need_add_seq_dup(Sequence *seq) const;
-  void add_seq_dup(Sequence *seq, TreeElement *te, short index);
+  SequenceAddOp need_add_seq_dup(Strip *seq) const;
+  void add_seq_dup(Strip *seq, TreeElement *te, short index);
 };
 
 /* -------------------------------------------------------------------- */

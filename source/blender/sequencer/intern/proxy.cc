@@ -62,7 +62,7 @@ struct SeqIndexBuildContext {
   Main *bmain;
   Depsgraph *depsgraph;
   Scene *scene;
-  Sequence *seq, *orig_seq;
+  Strip *seq, *orig_seq;
   SessionUID orig_seq_uid;
 };
 
@@ -94,7 +94,7 @@ double SEQ_rendersize_to_scale_factor(int render_size)
   return 1.0;
 }
 
-bool seq_proxy_get_custom_file_filepath(Sequence *seq, char *filepath, const int view_id)
+bool seq_proxy_get_custom_file_filepath(Strip *seq, char *filepath, const int view_id)
 {
   /* Ideally this would be #PROXY_MAXFILE however BLI_path_abs clamps to #FILE_MAX. */
   char filepath_temp[FILE_MAX];
@@ -123,7 +123,7 @@ bool seq_proxy_get_custom_file_filepath(Sequence *seq, char *filepath, const int
 }
 
 static bool seq_proxy_get_filepath(Scene *scene,
-                                   Sequence *seq,
+                                   Strip *seq,
                                    int timeline_frame,
                                    eSpaceSeq_Proxy_RenderSize render_size,
                                    char *filepath,
@@ -186,7 +186,7 @@ static bool seq_proxy_get_filepath(Scene *scene,
   return true;
 }
 
-bool SEQ_can_use_proxy(const SeqRenderData *context, const Sequence *seq, int psize)
+bool SEQ_can_use_proxy(const SeqRenderData *context, const Strip *seq, int psize)
 {
   if (seq->data->proxy == nullptr || !context->use_proxies) {
     return false;
@@ -196,7 +196,7 @@ bool SEQ_can_use_proxy(const SeqRenderData *context, const Sequence *seq, int ps
   return (seq->flag & SEQ_USE_PROXY) != 0 && psize != IMB_PROXY_NONE && (size_flags & psize) != 0;
 }
 
-ImBuf *seq_proxy_fetch(const SeqRenderData *context, Sequence *seq, int timeline_frame)
+ImBuf *seq_proxy_fetch(const SeqRenderData *context, Strip *seq, int timeline_frame)
 {
   char filepath[PROXY_MAXFILE];
   StripProxy *proxy = seq->data->proxy;
@@ -255,7 +255,7 @@ ImBuf *seq_proxy_fetch(const SeqRenderData *context, Sequence *seq, int timeline
 
 static void seq_proxy_build_frame(const SeqRenderData *context,
                                   SeqRenderState *state,
-                                  Sequence *seq,
+                                  Strip *seq,
                                   int timeline_frame,
                                   int proxy_render_size,
                                   const bool overwrite)
@@ -334,7 +334,7 @@ struct MultiViewPrefixVars {
  * \note This function must first a `view_id` of zero, to initialize `prefix_vars`
  * for use with other views.
  */
-static bool seq_proxy_multiview_context_invalid(Sequence *seq,
+static bool seq_proxy_multiview_context_invalid(Strip *seq,
                                                 Scene *scene,
                                                 const int view_id,
                                                 MultiViewPrefixVars *prefix_vars)
@@ -374,7 +374,7 @@ static bool seq_proxy_multiview_context_invalid(Sequence *seq,
 /**
  * This returns the maximum possible number of required contexts
  */
-static int seq_proxy_context_count(Sequence *seq, Scene *scene)
+static int seq_proxy_context_count(Strip *seq, Scene *scene)
 {
   int num_views = 1;
 
@@ -408,7 +408,7 @@ static int seq_proxy_context_count(Sequence *seq, Scene *scene)
   return num_views;
 }
 
-static bool seq_proxy_need_rebuild(Sequence *seq, MovieReader *anim)
+static bool seq_proxy_need_rebuild(Strip *seq, MovieReader *anim)
 {
   if ((seq->data->proxy->build_flags & SEQ_PROXY_SKIP_EXISTING) == 0) {
     return true;
@@ -422,13 +422,13 @@ static bool seq_proxy_need_rebuild(Sequence *seq, MovieReader *anim)
 bool SEQ_proxy_rebuild_context(Main *bmain,
                                Depsgraph *depsgraph,
                                Scene *scene,
-                               Sequence *seq,
+                               Strip *seq,
                                blender::Set<std::string> *processed_paths,
                                ListBase *queue,
                                bool build_only_on_bad_performance)
 {
   SeqIndexBuildContext *context;
-  Sequence *nseq;
+  Strip *nseq;
   LinkData *link;
   int num_files;
   int i;
@@ -508,7 +508,7 @@ void SEQ_proxy_rebuild(SeqIndexBuildContext *context, wmJobWorkerStatus *worker_
 {
   const bool overwrite = context->overwrite;
   SeqRenderData render_context;
-  Sequence *seq = context->seq;
+  Strip *seq = context->seq;
   Scene *scene = context->scene;
   Main *bmain = context->bmain;
   int timeline_frame;
@@ -589,7 +589,7 @@ void SEQ_proxy_rebuild_finish(SeqIndexBuildContext *context, bool stop)
   MEM_freeN(context);
 }
 
-void SEQ_proxy_set(Sequence *seq, bool value)
+void SEQ_proxy_set(Strip *seq, bool value)
 {
   if (value) {
     seq->flag |= SEQ_USE_PROXY;
@@ -612,7 +612,7 @@ void seq_proxy_index_dir_set(MovieReader *anim, const char *base_dir)
   MOV_set_custom_proxy_dir(anim, dirname);
 }
 
-void free_proxy_seq(Sequence *seq)
+void free_proxy_seq(Strip *seq)
 {
   if (seq->data && seq->data->proxy && seq->data->proxy->anim) {
     MOV_close(seq->data->proxy->anim);

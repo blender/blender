@@ -182,7 +182,7 @@ static void animchan_sync_fcurve_scene(bAnimListElem *ale)
   BLI_assert(GS(owner_id->name) == ID_SCE);
   Scene *scene = (Scene *)owner_id;
   FCurve *fcu = (FCurve *)ale->data;
-  Sequence *seq = nullptr;
+  Strip *seq = nullptr;
 
   /* Only affect if F-Curve involves sequence_editor.sequences. */
   char seq_name[sizeof(seq->name)];

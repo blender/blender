@@ -22,13 +22,13 @@ static int num_inputs_multicam()
   return 0;
 }
 
-static StripEarlyOut early_out_multicam(const Sequence * /*seq*/, float /*fac*/)
+static StripEarlyOut early_out_multicam(const Strip * /*seq*/, float /*fac*/)
 {
   return StripEarlyOut::NoInput;
 }
 
 static ImBuf *do_multicam(const SeqRenderData *context,
-                          Sequence *seq,
+                          Strip *seq,
                           float timeline_frame,
                           float /*fac*/,
                           ImBuf * /*ibuf1*/,

@@ -99,7 +99,7 @@ static eSpaceSeq_Proxy_RenderSize get_sequencer_render_size(Main *bmain)
   return render_size;
 }
 
-static bool can_use_proxy(const Sequence *seq, int psize)
+static bool can_use_proxy(const Strip *seq, int psize)
 {
   if (seq->data->proxy == nullptr) {
     return false;
@@ -109,7 +109,7 @@ static bool can_use_proxy(const Sequence *seq, int psize)
 }
 
 /* image_size is width or height depending what RNA property is converted - X or Y. */
-static void seq_convert_transform_animation(const Sequence *seq,
+static void seq_convert_transform_animation(const Strip *seq,
                                             const Scene *scene,
                                             const char *path,
                                             const int image_size,
@@ -144,7 +144,7 @@ static void seq_convert_transform_animation(const Sequence *seq,
 }
 
 static void seq_convert_transform_crop(const Scene *scene,
-                                       Sequence *seq,
+                                       Strip *seq,
                                        const eSpaceSeq_Proxy_RenderSize render_size)
 {
   if (seq->data->transform == nullptr) {
@@ -256,7 +256,7 @@ static void seq_convert_transform_crop_lb(const Scene *scene,
                                           const eSpaceSeq_Proxy_RenderSize render_size)
 {
 
-  LISTBASE_FOREACH (Sequence *, seq, lb) {
+  LISTBASE_FOREACH (Strip *, seq, lb) {
     if (!ELEM(seq->type, SEQ_TYPE_SOUND_RAM, SEQ_TYPE_SOUND_HD)) {
       seq_convert_transform_crop(scene, seq, render_size);
     }
@@ -287,7 +287,7 @@ static void seq_convert_transform_animation_2(const Scene *scene,
 }
 
 static void seq_convert_transform_crop_2(const Scene *scene,
-                                         Sequence *seq,
+                                         Strip *seq,
                                          const eSpaceSeq_Proxy_RenderSize render_size)
 {
   const StripElem *s_elem = seq->data->stripdata;
@@ -342,7 +342,7 @@ static void seq_convert_transform_crop_lb_2(const Scene *scene,
                                             const eSpaceSeq_Proxy_RenderSize render_size)
 {
 
-  LISTBASE_FOREACH (Sequence *, seq, lb) {
+  LISTBASE_FOREACH (Strip *, seq, lb) {
     if (!ELEM(seq->type, SEQ_TYPE_SOUND_RAM, SEQ_TYPE_SOUND_HD)) {
       seq_convert_transform_crop_2(scene, seq, render_size);
     }
@@ -372,7 +372,7 @@ static void seq_update_meta_disp_range(Scene *scene)
     SEQ_time_right_handle_frame_set(scene, ms->parseq, ms->disp_range[1]);
 
     /* Recalculate effects using meta strip. */
-    LISTBASE_FOREACH (Sequence *, seq, ms->oldbasep) {
+    LISTBASE_FOREACH (Strip *, seq, ms->oldbasep) {
       if (seq->seq2) {
         seq->start = seq->startdisp = max_ii(seq->seq1->startdisp, seq->seq2->startdisp);
         seq->enddisp = min_ii(seq->seq1->enddisp, seq->seq2->enddisp);
@@ -782,7 +782,7 @@ static void do_versions_291_fcurve_handles_limit(FCurve *fcu)
 
 static void do_versions_strip_cache_settings_recursive(const ListBase *seqbase)
 {
-  LISTBASE_FOREACH (Sequence *, seq, seqbase) {
+  LISTBASE_FOREACH (Strip *, seq, seqbase) {
     seq->cache_flag = 0;
     if (seq->type == SEQ_TYPE_META) {
       do_versions_strip_cache_settings_recursive(&seq->seqbase);

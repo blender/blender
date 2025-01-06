@@ -289,7 +289,7 @@ static void do_versions_idproperty_bones_recursive(Bone *bone)
 
 static void do_versions_idproperty_seq_recursive(ListBase *seqbase)
 {
-  LISTBASE_FOREACH (Sequence *, seq, seqbase) {
+  LISTBASE_FOREACH (Strip *, seq, seqbase) {
     version_idproperty_ui_data(seq->prop);
     if (seq->type == SEQ_TYPE_META) {
       do_versions_idproperty_seq_recursive(&seq->seqbase);
@@ -425,7 +425,7 @@ static void do_versions_sequencer_speed_effect_recursive(Scene *scene, const Lis
 #define SEQ_SPEED_INTEGRATE (1 << 0)
 #define SEQ_SPEED_COMPRESS_IPO_Y (1 << 2)
 
-  LISTBASE_FOREACH (Sequence *, seq, seqbase) {
+  LISTBASE_FOREACH (Strip *, seq, seqbase) {
     if (seq->type == SEQ_TYPE_SPEED) {
       SpeedControlVars *v = (SpeedControlVars *)seq->effectdata;
       const char *substr = nullptr;
@@ -462,8 +462,7 @@ static void do_versions_sequencer_speed_effect_recursive(Scene *scene, const Lis
       v->flags &= ~(SEQ_SPEED_INTEGRATE | SEQ_SPEED_COMPRESS_IPO_Y);
 
       if (substr || globalSpeed != 1.0f) {
-        FCurve *fcu = id_data_find_fcurve(
-            &scene->id, seq, &RNA_Sequence, "speed_factor", 0, nullptr);
+        FCurve *fcu = id_data_find_fcurve(&scene->id, seq, &RNA_Strip, "speed_factor", 0, nullptr);
         if (fcu) {
           if (globalSpeed != 1.0f) {
             for (int i = 0; i < fcu->totvert; i++) {
@@ -490,13 +489,13 @@ static void do_versions_sequencer_speed_effect_recursive(Scene *scene, const Lis
 #undef SEQ_SPEED_COMPRESS_IPO_Y
 }
 
-static bool do_versions_sequencer_color_tags(Sequence *seq, void * /*user_data*/)
+static bool do_versions_sequencer_color_tags(Strip *seq, void * /*user_data*/)
 {
   seq->color_tag = SEQUENCE_COLOR_NONE;
   return true;
 }
 
-static bool do_versions_sequencer_color_balance_sop(Sequence *seq, void * /*user_data*/)
+static bool do_versions_sequencer_color_balance_sop(Strip *seq, void * /*user_data*/)
 {
   LISTBASE_FOREACH (SequenceModifierData *, smd, &seq->modifiers) {
     if (smd->type == seqModifierType_ColorBalance) {
@@ -631,7 +630,7 @@ static bNodeTree *add_realize_node_tree(Main *bmain)
   return node_tree;
 }
 
-static void seq_speed_factor_fix_rna_path(Sequence *seq, ListBase *fcurves)
+static void seq_speed_factor_fix_rna_path(Strip *seq, ListBase *fcurves)
 {
   char name_esc[(sizeof(seq->name) - 2) * 2];
   BLI_str_escape(name_esc, seq->name + 2, sizeof(name_esc));
@@ -644,7 +643,7 @@ static void seq_speed_factor_fix_rna_path(Sequence *seq, ListBase *fcurves)
   MEM_freeN(path);
 }
 
-static bool version_fix_seq_meta_range(Sequence *seq, void *user_data)
+static bool version_fix_seq_meta_range(Strip *seq, void *user_data)
 {
   Scene *scene = (Scene *)user_data;
   if (seq->type == SEQ_TYPE_META) {
@@ -653,7 +652,7 @@ static bool version_fix_seq_meta_range(Sequence *seq, void *user_data)
   return true;
 }
 
-static bool seq_speed_factor_set(Sequence *seq, void *user_data)
+static bool seq_speed_factor_set(Strip *seq, void *user_data)
 {
   const Scene *scene = static_cast<const Scene *>(user_data);
   if (seq->type == SEQ_TYPE_SOUND_RAM) {
@@ -1503,7 +1502,7 @@ static bNodeSocket *do_version_replace_float_size_with_vector(bNodeTree *ntree,
   return new_socket;
 }
 
-static bool seq_transform_origin_set(Sequence *seq, void * /*user_data*/)
+static bool seq_transform_origin_set(Strip *seq, void * /*user_data*/)
 {
   StripTransform *transform = seq->data->transform;
   if (seq->data->transform != nullptr) {
@@ -1512,7 +1511,7 @@ static bool seq_transform_origin_set(Sequence *seq, void * /*user_data*/)
   return true;
 }
 
-static bool seq_transform_filter_set(Sequence *seq, void * /*user_data*/)
+static bool seq_transform_filter_set(Strip *seq, void * /*user_data*/)
 {
   StripTransform *transform = seq->data->transform;
   if (seq->data->transform != nullptr) {
@@ -1521,7 +1520,7 @@ static bool seq_transform_filter_set(Sequence *seq, void * /*user_data*/)
   return true;
 }
 
-static bool seq_meta_channels_ensure(Sequence *seq, void * /*user_data*/)
+static bool seq_meta_channels_ensure(Strip *seq, void * /*user_data*/)
 {
   if (seq->type == SEQ_TYPE_META) {
     SEQ_channels_ensure(&seq->channels);
@@ -1750,7 +1749,7 @@ static void version_node_tree_socket_id_delim(bNodeTree *ntree)
   }
 }
 
-static bool version_merge_still_offsets(Sequence *seq, void * /*user_data*/)
+static bool version_merge_still_offsets(Strip *seq, void * /*user_data*/)
 {
   seq->startofs -= seq->startstill;
   seq->endofs -= seq->endstill;
@@ -1759,13 +1758,13 @@ static bool version_merge_still_offsets(Sequence *seq, void * /*user_data*/)
   return true;
 }
 
-static bool version_fix_delete_flag(Sequence *seq, void * /*user_data*/)
+static bool version_fix_delete_flag(Strip *seq, void * /*user_data*/)
 {
   seq->flag &= ~SEQ_FLAG_DELETE;
   return true;
 }
 
-static bool version_set_seq_single_frame_content(Sequence *seq, void * /*user_data*/)
+static bool version_set_seq_single_frame_content(Strip *seq, void * /*user_data*/)
 {
   if ((seq->len == 1) &&
       (seq->type == SEQ_TYPE_IMAGE ||
@@ -1776,7 +1775,7 @@ static bool version_set_seq_single_frame_content(Sequence *seq, void * /*user_da
   return true;
 }
 
-static bool version_seq_fix_broken_sound_strips(Sequence *seq, void * /*user_data*/)
+static bool version_seq_fix_broken_sound_strips(Strip *seq, void * /*user_data*/)
 {
   if (seq->type != SEQ_TYPE_SOUND_RAM || seq->speed_factor != 0.0f) {
     return true;

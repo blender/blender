@@ -614,7 +614,7 @@ static void do_version_constraints_copy_rotation_mix_mode(ListBase *lb)
 
 static void do_versions_seq_alloc_transform_and_crop(ListBase *seqbase)
 {
-  LISTBASE_FOREACH (Sequence *, seq, seqbase) {
+  LISTBASE_FOREACH (Strip *, seq, seqbase) {
     if (ELEM(seq->type, SEQ_TYPE_SOUND_RAM, SEQ_TYPE_SOUND_HD) == 0) {
       if (seq->data->transform == nullptr) {
         seq->data->transform = static_cast<StripTransform *>(
@@ -767,7 +767,7 @@ static void do_version_curvemapping_walker(Main *bmain, void (*callback)(CurveMa
     }
 
     if (scene->ed != nullptr) {
-      LISTBASE_FOREACH (Sequence *, seq, &scene->ed->seqbase) {
+      LISTBASE_FOREACH (Strip *, seq, &scene->ed->seqbase) {
         LISTBASE_FOREACH (SequenceModifierData *, smd, &seq->modifiers) {
           const SequenceModifierTypeInfo *smti = SEQ_modifier_type_info_get(smd->type);
 
@@ -2995,7 +2995,7 @@ void do_versions_after_linking_280(FileData *fd, Main *bmain)
  * (see #55668, involving Meta strips). */
 static void do_versions_seq_unique_name_all_strips(Scene *sce, ListBase *seqbasep)
 {
-  LISTBASE_FOREACH (Sequence *, seq, seqbasep) {
+  LISTBASE_FOREACH (Strip *, seq, seqbasep) {
     SEQ_sequence_base_unique_name_recursive(sce, &sce->ed->seqbase, seq);
     if (seq->seqbase.first != nullptr) {
       do_versions_seq_unique_name_all_strips(sce, &seq->seqbase);
@@ -3009,7 +3009,7 @@ static void do_versions_seq_set_cache_defaults(Editing *ed)
   ed->recycle_max_cost = 10.0f;
 }
 
-static bool seq_update_flags_cb(Sequence *seq, void * /*user_data*/)
+static bool seq_update_flags_cb(Strip *seq, void * /*user_data*/)
 {
   seq->flag &= ~((1 << 6) | (1 << 18) | (1 << 19) | (1 << 21));
   if (seq->type == SEQ_TYPE_SPEED) {

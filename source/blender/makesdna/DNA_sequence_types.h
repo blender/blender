@@ -7,9 +7,9 @@
  * Structs for use by the 'Sequencer' (Video Editor)
  *
  * Note on terminology
- * - #Sequence: video/effect/audio data you can select and manipulate in the sequencer.
- * - #Sequence.machine: Strange name for the channel.
- * - #StripData: The data referenced by the #Sequence
+ * - #Strip: video/effect/audio data you can select and manipulate in the sequencer.
+ * - #Strip.machine: Strange name for the channel.
+ * - #StripData: The data referenced by the #Strip
  * - Meta Strip (SEQ_TYPE_META): Support for nesting Sequences.
  */
 
@@ -44,7 +44,7 @@ typedef struct TextVarsRuntime TextVarsRuntime;
 #endif
 
 /* -------------------------------------------------------------------- */
-/** \name Sequence & Editing Structs
+/** \name Strip & Editing Structs
  * \{ */
 
 /* strlens; 256= FILE_MAXFILE, 768= FILE_MAXDIR */
@@ -164,11 +164,9 @@ typedef struct SequenceRuntime {
  * \warning The first part identical to ID (for use in ipo's)
  * the comment above is historic, probably we can drop the ID compatibility,
  * but take care making this change.
- *
- * \warning This is really a 'Strip' in the UI!, name is highly confusing.
  */
-typedef struct Sequence {
-  struct Sequence *next, *prev;
+typedef struct Strip {
+  struct Strip *next, *prev;
   void *_pad;
   /** Needed (to be like ipo), else it will raise libdata warnings, this should never be used. */
   void *lib;
@@ -231,7 +229,7 @@ typedef struct Sequence {
   float speed_fader;
 
   /* pointers for effects: */
-  struct Sequence *seq1, *seq2;
+  struct Strip *seq1, *seq2;
 
   /* This strange padding is needed due to how `seqbasep` de-serialization is
    * done right now in #scene_blend_read_data. */
@@ -301,13 +299,13 @@ typedef struct Sequence {
   char _pad6[4];
 
   SequenceRuntime runtime;
-} Sequence;
+} Strip;
 
 typedef struct MetaStack {
   struct MetaStack *next, *prev;
   ListBase *oldbasep;
   ListBase *old_channels;
-  Sequence *parseq;
+  Strip *parseq;
   /* the startdisp/enddisp when entering the meta */
   int disp_range[2];
 } MetaStack;
@@ -321,7 +319,7 @@ typedef struct SeqTimelineChannel {
 
 typedef struct SeqConnection {
   struct SeqConnection *next, *prev;
-  Sequence *seq_ref;
+  Strip *seq_ref;
 } SeqConnection;
 
 typedef struct EditingRuntime {
@@ -342,7 +340,7 @@ typedef struct Editing {
   ListBase channels; /* SeqTimelineChannel */
 
   /* Context vars, used to be static */
-  Sequence *act_seq;
+  Strip *act_seq;
   /** 1024 = FILE_MAX. */
   char act_imagedir[1024];
   /** 1024 = FILE_MAX. */
@@ -504,7 +502,7 @@ typedef struct ColorMixVars {
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Sequence Modifiers
+/** \name Strip Modifiers
  * \{ */
 
 typedef struct SequenceModifierData {
@@ -517,7 +515,7 @@ typedef struct SequenceModifierData {
   int mask_input_type;
   int mask_time;
 
-  struct Sequence *mask_sequence;
+  struct Strip *mask_sequence;
   struct Mask *mask_id;
 } SequenceModifierData;
 
@@ -630,7 +628,7 @@ enum {
 /* From: `DNA_object_types.h`, see it's doc-string there. */
 #define SELECT 1
 
-/** #Sequence.flag */
+/** #Strip.flag */
 enum {
   /* `SELECT = (1 << 0)` */
   SEQ_LEFTSEL = (1 << 1),
@@ -718,14 +716,14 @@ enum {
   SEQ_PROXY_SKIP_EXISTING = 1,
 };
 
-/** #Sequence.alpha_mode */
+/** #Strip.alpha_mode */
 enum {
   SEQ_ALPHA_STRAIGHT = 0,
   SEQ_ALPHA_PREMUL = 1,
 };
 
 /**
- * #Sequence.type
+ * #Strip.type
  *
  * \warning #SEQ_TYPE_EFFECT BIT is used to determine if this is an effect strip!
  */
@@ -834,7 +832,7 @@ enum {
 };
 
 /**
- * #Sequence.cache_flag
+ * #Strip.cache_flag
  * - #SEQ_CACHE_STORE_RAW
  * - #SEQ_CACHE_STORE_PREPROCESSED
  * - #SEQ_CACHE_STORE_COMPOSITE
@@ -865,7 +863,7 @@ enum {
   SEQ_CACHE_DISK_CACHE_ENABLE = (1 << 11),
 };
 
-/** #Sequence.color_tag. */
+/** #Strip.color_tag. */
 typedef enum SequenceColorTag {
   SEQUENCE_COLOR_NONE = -1,
   SEQUENCE_COLOR_01,
@@ -881,7 +879,7 @@ typedef enum SequenceColorTag {
   SEQUENCE_COLOR_TOT,
 } SequenceColorTag;
 
-/* Sequence->StripTransform->filter */
+/* Strip->StripTransform->filter */
 enum {
   SEQ_TRANSFORM_FILTER_AUTO = -1,
   SEQ_TRANSFORM_FILTER_NEAREST = 0,

@@ -290,7 +290,7 @@ void SEQUENCER_OT_view_zoom_ratio(wmOperatorType *ot)
  * \{ */
 
 static void seq_view_collection_rect_preview(Scene *scene,
-                                             blender::Span<Sequence *> strips,
+                                             blender::Span<Strip *> strips,
                                              rctf *rect)
 {
   float min[2], max[2];
@@ -313,7 +313,7 @@ static void seq_view_collection_rect_preview(Scene *scene,
 }
 
 static void seq_view_collection_rect_timeline(const bContext *C,
-                                              blender::Span<Sequence *> strips,
+                                              blender::Span<Strip *> strips,
                                               rctf *rect)
 {
   const Scene *scene = CTX_data_scene(C);
@@ -323,7 +323,7 @@ static void seq_view_collection_rect_timeline(const bContext *C,
   int ymax = 0;
   int xmargin = FPS;
 
-  for (Sequence *seq : strips) {
+  for (Strip *seq : strips) {
     xmin = min_ii(xmin, SEQ_time_left_handle_frame_get(scene, seq));
     xmax = max_ii(xmax, SEQ_time_right_handle_frame_get(scene, seq));
 

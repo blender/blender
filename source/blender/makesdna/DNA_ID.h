@@ -363,7 +363,7 @@ enum {
   LIBOVERRIDE_FLAG_SYSTEM_DEFINED = 1 << 1,
 };
 
-/* watch it: Sequence has identical beginning. */
+/* watch it: Strip has identical beginning. */
 /**
  * ID is the first thing included in all serializable types. It
  * provides a common handle to place all data in double-linked lists.

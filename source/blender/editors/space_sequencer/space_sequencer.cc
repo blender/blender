@@ -624,7 +624,7 @@ static void sequencer_main_region_message_subscribe(const wmRegionMessageSubscri
     StructRNA *type_array[] = {
         &RNA_SequenceEditor,
 
-        &RNA_Sequence,
+        &RNA_Strip,
         /* Members of 'Sequence'. */
         &RNA_SequenceCrop,
         &RNA_SequenceTransform,
@@ -641,7 +641,7 @@ static void sequencer_main_region_message_subscribe(const wmRegionMessageSubscri
 }
 
 static bool is_mouse_over_retiming_key(const Scene *scene,
-                                       const Sequence *seq,
+                                       const Strip *seq,
                                        const View2D *v2d,
                                        const ScrArea *area,
                                        float mouse_co_region[2])

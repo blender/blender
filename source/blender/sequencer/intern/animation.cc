@@ -35,13 +35,13 @@ bool SEQ_animation_drivers_exist(Scene *scene)
   return scene->adt != nullptr && !BLI_listbase_is_empty(&scene->adt->drivers);
 }
 
-bool SEQ_fcurve_matches(const Sequence &seq, const FCurve &fcurve)
+bool SEQ_fcurve_matches(const Strip &seq, const FCurve &fcurve)
 {
   return animrig::fcurve_matches_collection_path(
       fcurve, "sequence_editor.sequences_all[", seq.name + 2);
 }
 
-void SEQ_offset_animdata(Scene *scene, Sequence *seq, int ofs)
+void SEQ_offset_animdata(Scene *scene, Strip *seq, int ofs)
 {
   if (!SEQ_animation_keyframes_exist(scene) || ofs == 0) {
     return;
@@ -73,7 +73,7 @@ void SEQ_offset_animdata(Scene *scene, Sequence *seq, int ofs)
   DEG_id_tag_update(&scene->adt->action->id, ID_RECALC_ANIMATION);
 }
 
-void SEQ_free_animdata(Scene *scene, Sequence *seq)
+void SEQ_free_animdata(Scene *scene, Strip *seq)
 {
   if (!SEQ_animation_keyframes_exist(scene)) {
     return;
@@ -144,13 +144,13 @@ void SEQ_animation_restore_original(Scene *scene, SeqAnimationBackup *backup)
 /**
  * Duplicate the animation in `src` that matches items in `seq` into `dst`.
  */
-static void seq_animation_duplicate(Sequence *seq,
+static void seq_animation_duplicate(Strip *seq,
                                     animrig::Action &dst,
                                     const animrig::slot_handle_t dst_slot_handle,
                                     SeqAnimationBackup *src)
 {
   if (seq->type == SEQ_TYPE_META) {
-    LISTBASE_FOREACH (Sequence *, meta_child, &seq->seqbase) {
+    LISTBASE_FOREACH (Strip *, meta_child, &seq->seqbase) {
       seq_animation_duplicate(meta_child, dst, dst_slot_handle, src);
     }
   }
@@ -187,10 +187,10 @@ static void seq_animation_duplicate(Sequence *seq,
 /**
  * Duplicate the drivers in `src` that matches items in `seq` into `dst`.
  */
-static void seq_drivers_duplicate(Sequence *seq, AnimData *dst, SeqAnimationBackup *src)
+static void seq_drivers_duplicate(Strip *seq, AnimData *dst, SeqAnimationBackup *src)
 {
   if (seq->type == SEQ_TYPE_META) {
-    LISTBASE_FOREACH (Sequence *, meta_child, &seq->seqbase) {
+    LISTBASE_FOREACH (Strip *, meta_child, &seq->seqbase) {
       seq_drivers_duplicate(meta_child, dst, src);
     }
   }
@@ -204,9 +204,7 @@ static void seq_drivers_duplicate(Sequence *seq, AnimData *dst, SeqAnimationBack
   }
 }
 
-void SEQ_animation_duplicate_backup_to_scene(Scene *scene,
-                                             Sequence *seq,
-                                             SeqAnimationBackup *backup)
+void SEQ_animation_duplicate_backup_to_scene(Scene *scene, Strip *seq, SeqAnimationBackup *backup)
 {
   BLI_assert(scene != nullptr);
 

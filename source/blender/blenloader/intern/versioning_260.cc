@@ -992,7 +992,7 @@ static void do_versions_nodetree_customnodes(bNodeTree *ntree, int /*is_group*/)
   }
 }
 
-static bool seq_colorbalance_update_cb(Sequence *seq, void * /*user_data*/)
+static bool seq_colorbalance_update_cb(Strip *seq, void * /*user_data*/)
 {
   StripData *data = seq->data;
 
@@ -1015,7 +1015,7 @@ static bool seq_colorbalance_update_cb(Sequence *seq, void * /*user_data*/)
   return true;
 }
 
-static bool seq_set_alpha_mode_cb(Sequence *seq, void * /*user_data*/)
+static bool seq_set_alpha_mode_cb(Strip *seq, void * /*user_data*/)
 {
   enum { SEQ_MAKE_PREMUL = (1 << 6) };
   if (seq->flag & SEQ_MAKE_PREMUL) {
@@ -1027,7 +1027,7 @@ static bool seq_set_alpha_mode_cb(Sequence *seq, void * /*user_data*/)
   return true;
 }
 
-static bool seq_set_wipe_angle_cb(Sequence *seq, void * /*user_data*/)
+static bool seq_set_wipe_angle_cb(Strip *seq, void * /*user_data*/)
 {
   if (seq->type == SEQ_TYPE_WIPE) {
     WipeVars *wv = static_cast<WipeVars *>(seq->effectdata);

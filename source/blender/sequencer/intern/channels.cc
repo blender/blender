@@ -84,11 +84,11 @@ bool SEQ_channel_is_muted(const SeqTimelineChannel *channel)
   return (channel->flag & SEQ_CHANNEL_MUTE) != 0;
 }
 
-ListBase *SEQ_get_channels_by_seq(ListBase *seqbase, ListBase *channels, const Sequence *seq)
+ListBase *SEQ_get_channels_by_seq(ListBase *seqbase, ListBase *channels, const Strip *seq)
 {
   ListBase *lb = nullptr;
 
-  LISTBASE_FOREACH (Sequence *, iseq, seqbase) {
+  LISTBASE_FOREACH (Strip *, iseq, seqbase) {
     if (seq == iseq) {
       return channels;
     }

@@ -736,7 +736,7 @@ static void tree_element_sequence_activate(bContext *C,
                                            const eOLSetState set)
 {
   const TreeElementSequence *te_seq = tree_element_cast<TreeElementSequence>(te);
-  Sequence *seq = &te_seq->get_sequence();
+  Strip *seq = &te_seq->get_sequence();
   Editing *ed = SEQ_editing_get(scene);
 
   if (BLI_findindex(ed->seqbasep, seq) != -1) {
@@ -764,7 +764,7 @@ static void tree_element_sequence_dup_activate(Scene *scene, TreeElement * /*te*
 #if 0
   select_single_seq(seq, 1);
 #endif
-  Sequence *p = static_cast<Sequence *>(ed->seqbasep->first);
+  Strip *p = static_cast<Strip *>(ed->seqbasep->first);
   while (p) {
     if ((!p->data) || (!p->data->stripdata) || (p->data->stripdata->filename[0] == '\0')) {
       p = p->next;
@@ -1023,7 +1023,7 @@ static eOLDrawState tree_element_bone_collection_state_get(const TreeElement *te
 static eOLDrawState tree_element_sequence_state_get(const Scene *scene, const TreeElement *te)
 {
   const TreeElementSequence *te_seq = tree_element_cast<TreeElementSequence>(te);
-  const Sequence *seq = &te_seq->get_sequence();
+  const Strip *seq = &te_seq->get_sequence();
   const Editing *ed = scene->ed;
 
   if (ed && ed->act_seq == seq && seq->flag & SELECT) {
@@ -1036,7 +1036,7 @@ static eOLDrawState tree_element_sequence_dup_state_get(const TreeElement *te)
 {
   const TreeElementSequenceStripDuplicate *te_dup =
       tree_element_cast<TreeElementSequenceStripDuplicate>(te);
-  const Sequence *seq = &te_dup->get_sequence();
+  const Strip *seq = &te_dup->get_sequence();
   if (seq->flag & SELECT) {
     return OL_DRAWSEL_NORMAL;
   }

@@ -24,7 +24,7 @@ struct TransData;
 struct TransDataCurveHandleFlags;
 struct TransInfo;
 struct bContext;
-struct Sequence;
+struct Strip;
 
 namespace blender::bke::crazyspace {
 struct GeometryDeformation;
@@ -379,7 +379,7 @@ extern TransConvertTypeInfo TransConvertType_Sculpt;
 
 extern TransConvertTypeInfo TransConvertType_Sequencer;
 
-bool seq_transform_check_overlap(blender::Span<Sequence *> transformed_strips);
+bool seq_transform_check_overlap(blender::Span<Strip *> transformed_strips);
 
 /* `transform_convert_sequencer_image.cc` */
 

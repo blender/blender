@@ -19,7 +19,7 @@ extern "C" {
 
 struct Depsgraph;
 struct Main;
-struct Sequence;
+struct Strip;
 struct bSound;
 struct SoundInfo;
 
@@ -126,13 +126,13 @@ void BKE_sound_update_fps(struct Main *bmain, struct Scene *scene);
 void BKE_sound_update_scene_listener(struct Scene *scene);
 
 void *BKE_sound_scene_add_scene_sound(
-    struct Scene *scene, struct Sequence *sequence, int startframe, int endframe, int frameskip);
+    struct Scene *scene, struct Strip *sequence, int startframe, int endframe, int frameskip);
 
-void *BKE_sound_scene_add_scene_sound_defaults(struct Scene *scene, struct Sequence *sequence);
+void *BKE_sound_scene_add_scene_sound_defaults(struct Scene *scene, struct Strip *sequence);
 
 void *BKE_sound_add_scene_sound(
-    struct Scene *scene, struct Sequence *sequence, int startframe, int endframe, int frameskip);
-void *BKE_sound_add_scene_sound_defaults(struct Scene *scene, struct Sequence *sequence);
+    struct Scene *scene, struct Strip *sequence, int startframe, int endframe, int frameskip);
+void *BKE_sound_add_scene_sound_defaults(struct Scene *scene, struct Strip *sequence);
 
 void BKE_sound_remove_scene_sound(struct Scene *scene, void *handle);
 
@@ -144,7 +144,7 @@ void BKE_sound_move_scene_sound(const struct Scene *scene,
                                 int endframe,
                                 int frameskip,
                                 double audio_offset);
-void BKE_sound_move_scene_sound_defaults(struct Scene *scene, struct Sequence *sequence);
+void BKE_sound_move_scene_sound_defaults(struct Scene *scene, struct Strip *sequence);
 
 /* Join the Sequence with the structure in Audaspace, the second parameter is a bSound */
 void BKE_sound_update_scene_sound(void *handle, struct bSound *sound);

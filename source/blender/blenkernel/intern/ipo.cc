@@ -1028,7 +1028,7 @@ static char *get_rna_access(ID *id,
                             int adrcode,
                             const char actname[],
                             const char constname[],
-                            Sequence *seq,
+                            Strip *seq,
                             int *r_array_index)
 {
   DynStr *path = BLI_dynstr_new();
@@ -1405,7 +1405,7 @@ static void icu_to_fcurves(ID *id,
                            IpoCurve *icu,
                            char *actname,
                            char *constname,
-                           Sequence *seq,
+                           Strip *seq,
                            int muteipo)
 {
   AdrBit2Path *abp;
@@ -1692,7 +1692,7 @@ static void ipo_to_animato(ID *id,
                            Ipo *ipo,
                            char actname[],
                            char constname[],
-                           Sequence *seq,
+                           Strip *seq,
                            ListBase *animgroups,
                            ListBase *anim,
                            ListBase *drivers)
@@ -1840,7 +1840,7 @@ static void action_to_animato(
  * from animation data is accomplished here too...
  */
 static void ipo_to_animdata(
-    Main *bmain, ID *id, Ipo *ipo, char actname[], char constname[], Sequence *seq)
+    Main *bmain, ID *id, Ipo *ipo, char actname[], char constname[], Strip *seq)
 {
   AnimData *adt = BKE_animdata_from_id(id);
   ListBase anim = {nullptr, nullptr};
@@ -2042,7 +2042,7 @@ struct Seq_callback_data {
   AnimData *adt;
 };
 
-static bool seq_convert_callback(Sequence *seq, void *userdata)
+static bool seq_convert_callback(Strip *seq, void *userdata)
 {
   IpoCurve *icu = static_cast<IpoCurve *>((seq->ipo) ? seq->ipo->curve.first : nullptr);
   short adrcode = SEQ_FAC1;

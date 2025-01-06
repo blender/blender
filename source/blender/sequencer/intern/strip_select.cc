@@ -14,7 +14,7 @@
 #include "SEQ_select.hh"
 #include "SEQ_sequencer.hh"
 
-Sequence *SEQ_select_active_get(const Scene *scene)
+Strip *SEQ_select_active_get(const Scene *scene)
 {
   const Editing *ed = SEQ_editing_get(scene);
 
@@ -25,7 +25,7 @@ Sequence *SEQ_select_active_get(const Scene *scene)
   return ed->act_seq;
 }
 
-void SEQ_select_active_set(Scene *scene, Sequence *seq)
+void SEQ_select_active_set(Scene *scene, Strip *seq)
 {
   Editing *ed = SEQ_editing_get(scene);
 
@@ -36,7 +36,7 @@ void SEQ_select_active_set(Scene *scene, Sequence *seq)
   ed->act_seq = seq;
 }
 
-bool SEQ_select_active_get_pair(Scene *scene, Sequence **r_seq_act, Sequence **r_seq_other)
+bool SEQ_select_active_get_pair(Scene *scene, Strip **r_seq_act, Strip **r_seq_other)
 {
   Editing *ed = SEQ_editing_get(scene);
 
@@ -48,7 +48,7 @@ bool SEQ_select_active_get_pair(Scene *scene, Sequence **r_seq_act, Sequence **r
 
   *r_seq_other = nullptr;
 
-  LISTBASE_FOREACH (Sequence *, seq, ed->seqbasep) {
+  LISTBASE_FOREACH (Strip *, seq, ed->seqbasep) {
     if (seq->flag & SELECT && (seq != (*r_seq_act))) {
       if (*r_seq_other) {
         return false;

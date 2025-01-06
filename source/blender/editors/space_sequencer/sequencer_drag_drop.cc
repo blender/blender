@@ -224,7 +224,7 @@ static float update_overlay_strip_position_data(bContext *C, const int mval[2])
   else {
     /* Check if there is a strip that would intersect with the new strip(s). */
     coords->is_intersecting = false;
-    Sequence dummy_seq{};
+    Strip dummy_seq{};
     dummy_seq.machine = coords->channel;
     dummy_seq.start = coords->start_frame;
     dummy_seq.len = coords->strip_len;
@@ -279,7 +279,7 @@ static void sequencer_drop_copy(bContext *C, wmDrag *drag, wmDropBox *drop)
 
     /* Get the top most strip channel that is in view. */
     int max_channel = -1;
-    for (Sequence *seq : strips) {
+    for (Strip *seq : strips) {
       max_channel = max_ii(seq->machine, max_channel);
     }
 

@@ -73,14 +73,14 @@
 #include "sequencer_quads_batch.hh"
 #include "sequencer_scopes.hh"
 
-static Sequence *special_seq_update = nullptr;
+static Strip *special_seq_update = nullptr;
 
-void sequencer_special_update_set(Sequence *seq)
+void sequencer_special_update_set(Strip *seq)
 {
   special_seq_update = seq;
 }
 
-Sequence *ED_sequencer_special_preview_get()
+Strip *ED_sequencer_special_preview_get()
 {
   return special_seq_update;
 }
@@ -90,7 +90,7 @@ void ED_sequencer_special_preview_set(bContext *C, const int mval[2])
   Scene *scene = CTX_data_scene(C);
   ARegion *region = CTX_wm_region(C);
   eSeqHandle hand_dummy;
-  Sequence *seq = find_nearest_seq(scene, &region->v2d, mval, &hand_dummy);
+  Strip *seq = find_nearest_seq(scene, &region->v2d, mval, &hand_dummy);
   sequencer_special_update_set(seq);
 }
 
@@ -980,7 +980,7 @@ static bool sequencer_calc_scopes(Scene *scene, SpaceSeq *sseq, ImBuf *ibuf, boo
 
 bool sequencer_draw_get_transform_preview(SpaceSeq *sseq, Scene *scene)
 {
-  Sequence *last_seq = SEQ_select_active_get(scene);
+  Strip *last_seq = SEQ_select_active_get(scene);
   if (last_seq == nullptr) {
     return false;
   }
@@ -992,7 +992,7 @@ bool sequencer_draw_get_transform_preview(SpaceSeq *sseq, Scene *scene)
 
 int sequencer_draw_get_transform_preview_frame(Scene *scene)
 {
-  Sequence *last_seq = SEQ_select_active_get(scene);
+  Strip *last_seq = SEQ_select_active_get(scene);
   /* #sequencer_draw_get_transform_preview must already have been called. */
   BLI_assert(last_seq != nullptr);
   int preview_frame;
@@ -1007,7 +1007,7 @@ int sequencer_draw_get_transform_preview_frame(Scene *scene)
   return preview_frame;
 }
 
-static void seq_draw_image_origin_and_outline(const bContext *C, Sequence *seq, bool is_active_seq)
+static void seq_draw_image_origin_and_outline(const bContext *C, Strip *seq, bool is_active_seq)
 {
   SpaceSeq *sseq = CTX_wm_space_seq(C);
   const ARegion *region = CTX_wm_region(C);
@@ -1080,7 +1080,7 @@ static void seq_draw_image_origin_and_outline(const bContext *C, Sequence *seq, 
   GPU_line_smooth(false);
 }
 
-static void text_selection_draw(const bContext *C, const Sequence *seq, uint pos)
+static void text_selection_draw(const bContext *C, const Strip *seq, uint pos)
 {
   const TextVars *data = static_cast<TextVars *>(seq->effectdata);
   const TextVarsRuntime *text = data->runtime;
@@ -1150,7 +1150,7 @@ static blender::float2 coords_region_view_align(const View2D *v2d, const blender
   return coords_region_aligned;
 }
 
-static void text_edit_draw_cursor(const bContext *C, const Sequence *seq, uint pos)
+static void text_edit_draw_cursor(const bContext *C, const Strip *seq, uint pos)
 {
   const TextVars *data = static_cast<TextVars *>(seq->effectdata);
   const TextVarsRuntime *text = data->runtime;
@@ -1198,7 +1198,7 @@ static void text_edit_draw_cursor(const bContext *C, const Sequence *seq, uint p
   immEnd();
 }
 
-static void text_edit_draw_box(const bContext *C, const Sequence *seq, uint pos)
+static void text_edit_draw_box(const bContext *C, const Strip *seq, uint pos)
 {
   const TextVars *data = static_cast<TextVars *>(seq->effectdata);
   const TextVarsRuntime *text = data->runtime;
@@ -1240,7 +1240,7 @@ static void text_edit_draw(const bContext *C)
   if (!sequencer_text_editing_active_poll(const_cast<bContext *>(C))) {
     return;
   }
-  const Sequence *seq = SEQ_select_active_get(CTX_data_scene(C));
+  const Strip *seq = SEQ_select_active_get(CTX_data_scene(C));
   if (!SEQ_effects_can_render_text(seq)) {
     return;
   }
@@ -1344,8 +1344,8 @@ void sequencer_draw_preview(const bContext *C,
     ListBase *channels = SEQ_channels_displayed_get(ed);
     blender::VectorSet strips = SEQ_query_rendered_strips(
         scene, channels, ed->seqbasep, timeline_frame, 0);
-    Sequence *active_seq = SEQ_select_active_get(scene);
-    for (Sequence *seq : strips) {
+    Strip *active_seq = SEQ_select_active_get(scene);
+    for (Strip *seq : strips) {
       seq_draw_image_origin_and_outline(C, seq, seq == active_seq);
       text_edit_draw(C);
     }

@@ -1285,7 +1285,7 @@ static void colormanage_check_colorspace_settings(
   (void)what;
 }
 
-static bool seq_callback(Sequence *seq, void * /*user_data*/)
+static bool seq_callback(Strip *seq, void * /*user_data*/)
 {
   if (seq->data) {
     colormanage_check_colorspace_settings(&seq->data->colorspace_settings, "sequencer strip");

@@ -22,10 +22,10 @@ using namespace blender;
 /* -------------------------------------------------------------------- */
 /* Alpha Over Effect */
 
-static void init_alpha_over_or_under(Sequence *seq)
+static void init_alpha_over_or_under(Strip *seq)
 {
-  Sequence *seq1 = seq->seq1;
-  Sequence *seq2 = seq->seq2;
+  Strip *seq1 = seq->seq1;
+  Strip *seq2 = seq->seq2;
 
   seq->seq2 = seq1;
   seq->seq1 = seq2;
@@ -77,7 +77,7 @@ struct AlphaOverEffectOp {
 };
 
 static ImBuf *do_alphaover_effect(const SeqRenderData *context,
-                                  Sequence * /*seq*/,
+                                  Strip * /*seq*/,
                                   float /*timeline_frame*/,
                                   float fac,
                                   ImBuf *src1,
@@ -126,7 +126,7 @@ struct AlphaUnderEffectOp {
 };
 
 static ImBuf *do_alphaunder_effect(const SeqRenderData *context,
-                                   Sequence * /*seq*/,
+                                   Strip * /*seq*/,
                                    float /*timeline_frame*/,
                                    float fac,
                                    ImBuf *src1,
@@ -318,7 +318,7 @@ struct BlendModeEffectOp {
 };
 
 static ImBuf *do_blend_mode_effect(const SeqRenderData *context,
-                                   Sequence *seq,
+                                   Strip *seq,
                                    float /*timeline_frame*/,
                                    float fac,
                                    ImBuf *src1,
@@ -335,7 +335,7 @@ static ImBuf *do_blend_mode_effect(const SeqRenderData *context,
 /* -------------------------------------------------------------------- */
 /* Color Mix Effect */
 
-static void init_colormix_effect(Sequence *seq)
+static void init_colormix_effect(Strip *seq)
 {
   if (seq->effectdata) {
     MEM_freeN(seq->effectdata);
@@ -347,7 +347,7 @@ static void init_colormix_effect(Sequence *seq)
 }
 
 static ImBuf *do_colormix_effect(const SeqRenderData *context,
-                                 Sequence *seq,
+                                 Strip *seq,
                                  float /*timeline_frame*/,
                                  float /*fac*/,
                                  ImBuf *src1,
@@ -371,7 +371,7 @@ static ImBuf *do_colormix_effect(const SeqRenderData *context,
  * inputs and thus the effect "fade" factor controlling the other input. */
 
 static ImBuf *do_overdrop_effect(const SeqRenderData *context,
-                                 Sequence *seq,
+                                 Strip *seq,
                                  float timeline_frame,
                                  float fac,
                                  ImBuf *src1,
@@ -380,12 +380,12 @@ static ImBuf *do_overdrop_effect(const SeqRenderData *context,
   return do_alphaover_effect(context, seq, timeline_frame, fac, src1, src2);
 }
 
-static void copy_effect_default(Sequence *dst, const Sequence *src, const int /*flag*/)
+static void copy_effect_default(Strip *dst, const Strip *src, const int /*flag*/)
 {
   dst->effectdata = MEM_dupallocN(src->effectdata);
 }
 
-static void free_effect_default(Sequence *seq, const bool /*do_id_user*/)
+static void free_effect_default(Strip *seq, const bool /*do_id_user*/)
 {
   MEM_SAFE_FREE(seq->effectdata);
 }

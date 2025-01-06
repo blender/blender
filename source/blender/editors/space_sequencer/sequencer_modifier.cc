@@ -36,7 +36,7 @@
 static int strip_modifier_add_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
-  Sequence *seq = SEQ_select_active_get(scene);
+  Strip *seq = SEQ_select_active_get(scene);
   int type = RNA_enum_get(op->ptr, "type");
 
   SEQ_modifier_new(seq, nullptr, type);
@@ -57,7 +57,7 @@ static const EnumPropertyItem *filter_modifiers_by_sequence_type_itemf(bContext 
   }
 
   Scene *scene = CTX_data_scene(C);
-  Sequence *seq = SEQ_select_active_get(scene);
+  Strip *seq = SEQ_select_active_get(scene);
   if (seq) {
     if (ELEM(seq->type, SEQ_TYPE_SOUND_RAM)) {
       return rna_enum_sequence_sound_modifier_type_items;
@@ -97,7 +97,7 @@ void SEQUENCER_OT_strip_modifier_add(wmOperatorType *ot)
 static int strip_modifier_remove_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
-  Sequence *seq = SEQ_select_active_get(scene);
+  Strip *seq = SEQ_select_active_get(scene);
   char name[MAX_NAME];
   SequenceModifierData *smd;
 
@@ -157,7 +157,7 @@ enum {
 static int strip_modifier_move_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
-  Sequence *seq = SEQ_select_active_get(scene);
+  Strip *seq = SEQ_select_active_get(scene);
   char name[MAX_NAME];
   int direction;
   SequenceModifierData *smd;
@@ -239,7 +239,7 @@ static int strip_modifier_copy_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   Editing *ed = scene->ed;
-  Sequence *seq = SEQ_select_active_get(scene);
+  Strip *seq = SEQ_select_active_get(scene);
   const int type = RNA_enum_get(op->ptr, "type");
 
   if (!seq || !seq->modifiers.first) {
@@ -248,7 +248,7 @@ static int strip_modifier_copy_exec(bContext *C, wmOperator *op)
 
   int isSound = ELEM(seq->type, SEQ_TYPE_SOUND_RAM);
 
-  LISTBASE_FOREACH (Sequence *, seq_iter, SEQ_active_seqbase_get(ed)) {
+  LISTBASE_FOREACH (Strip *, seq_iter, SEQ_active_seqbase_get(ed)) {
     if (seq_iter->flag & SELECT) {
       if (seq_iter == seq) {
         continue;
@@ -329,7 +329,7 @@ void SEQUENCER_OT_strip_modifier_copy(wmOperatorType *ot)
 static int strip_modifier_equalizer_redefine_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
-  Sequence *seq = SEQ_select_active_get(scene);
+  Strip *seq = SEQ_select_active_get(scene);
   SequenceModifierData *smd;
   char name[MAX_NAME];
   RNA_string_get(op->ptr, "name", name);

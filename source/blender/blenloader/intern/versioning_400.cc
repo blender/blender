@@ -1019,7 +1019,7 @@ static void version_nla_tweakmode_incomplete(Main *bmain)
   }
 }
 
-static bool versioning_convert_strip_speed_factor(Sequence *seq, void *user_data)
+static bool versioning_convert_strip_speed_factor(Strip *seq, void *user_data)
 {
   const Scene *scene = static_cast<Scene *>(user_data);
   const float speed_factor = seq->speed_factor;
@@ -1042,7 +1042,7 @@ static bool versioning_convert_strip_speed_factor(Sequence *seq, void *user_data
   return true;
 }
 
-static bool versioning_clear_strip_unused_flag(Sequence *seq, void * /*user_data*/)
+static bool versioning_clear_strip_unused_flag(Strip *seq, void * /*user_data*/)
 {
   seq->flag &= ~(1 << 6);
   return true;
@@ -2973,7 +2973,7 @@ static void fix_geometry_nodes_object_info_scale(bNodeTree &ntree)
   }
 }
 
-static bool seq_filter_bilinear_to_auto(Sequence *seq, void * /*user_data*/)
+static bool seq_filter_bilinear_to_auto(Strip *seq, void * /*user_data*/)
 {
   StripTransform *transform = seq->data->transform;
   if (transform != nullptr && transform->filter == SEQ_TRANSFORM_FILTER_BILINEAR) {
@@ -3047,7 +3047,7 @@ static void hue_correct_set_wrapping(CurveMapping *curve_mapping)
   curve_mapping->curr.ymax = 1.0f;
 }
 
-static bool seq_hue_correct_set_wrapping(Sequence *seq, void * /*user_data*/)
+static bool seq_hue_correct_set_wrapping(Strip *seq, void * /*user_data*/)
 {
   LISTBASE_FOREACH (SequenceModifierData *, smd, &seq->modifiers) {
     if (smd->type == seqModifierType_HueCorrect) {
@@ -3067,7 +3067,7 @@ static void versioning_update_timecode(short int *tc)
   }
 }
 
-static bool seq_proxies_timecode_update(Sequence *seq, void * /*user_data*/)
+static bool seq_proxies_timecode_update(Strip *seq, void * /*user_data*/)
 {
   if (seq->data == nullptr || seq->data->proxy == nullptr) {
     return true;
@@ -3077,7 +3077,7 @@ static bool seq_proxies_timecode_update(Sequence *seq, void * /*user_data*/)
   return true;
 }
 
-static bool seq_text_data_update(Sequence *seq, void * /*user_data*/)
+static bool seq_text_data_update(Strip *seq, void * /*user_data*/)
 {
   if (seq->type != SEQ_TYPE_TEXT || seq->effectdata == nullptr) {
     return true;
@@ -3252,7 +3252,7 @@ static void hide_simulation_node_skip_socket_value(Main &bmain)
   }
 }
 
-static bool versioning_convert_seq_text_anchor(Sequence *seq, void * /*user_data*/)
+static bool versioning_convert_seq_text_anchor(Strip *seq, void * /*user_data*/)
 {
   if (seq->type != SEQ_TYPE_TEXT || seq->effectdata == nullptr) {
     return true;

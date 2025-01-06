@@ -10,32 +10,32 @@
 
 struct ListBase;
 struct Scene;
-struct Sequence;
+struct Strip;
 
-bool SEQ_transform_sequence_can_be_translated(const Sequence *seq);
+bool SEQ_transform_sequence_can_be_translated(const Strip *seq);
 /**
  * Used so we can do a quick check for single image seq
  * since they work a bit differently to normal image seq's (during transform).
  */
-bool SEQ_transform_single_image_check(const Sequence *seq);
-bool SEQ_transform_test_overlap(const Scene *scene, ListBase *seqbasep, Sequence *test);
-bool SEQ_transform_test_overlap_seq_seq(const Scene *scene, Sequence *seq1, Sequence *seq2);
-void SEQ_transform_translate_sequence(Scene *evil_scene, Sequence *seq, int delta);
+bool SEQ_transform_single_image_check(const Strip *seq);
+bool SEQ_transform_test_overlap(const Scene *scene, ListBase *seqbasep, Strip *test);
+bool SEQ_transform_test_overlap_seq_seq(const Scene *scene, Strip *seq1, Strip *seq2);
+void SEQ_transform_translate_sequence(Scene *evil_scene, Strip *seq, int delta);
 /**
  * \return 0 if there weren't enough space.
  */
 bool SEQ_transform_seqbase_shuffle_ex(ListBase *seqbasep,
-                                      Sequence *test,
+                                      Strip *test,
                                       Scene *evil_scene,
                                       int channel_delta);
-bool SEQ_transform_seqbase_shuffle(ListBase *seqbasep, Sequence *test, Scene *evil_scene);
-bool SEQ_transform_seqbase_shuffle_time(blender::Span<Sequence *> strips_to_shuffle,
-                                        blender::Span<Sequence *> time_dependent_strips,
+bool SEQ_transform_seqbase_shuffle(ListBase *seqbasep, Strip *test, Scene *evil_scene);
+bool SEQ_transform_seqbase_shuffle_time(blender::Span<Strip *> strips_to_shuffle,
+                                        blender::Span<Strip *> time_dependent_strips,
                                         ListBase *seqbasep,
                                         Scene *evil_scene,
                                         ListBase *markers,
                                         bool use_sync_markers);
-bool SEQ_transform_seqbase_shuffle_time(blender::Span<Sequence *> strips_to_shuffle,
+bool SEQ_transform_seqbase_shuffle_time(blender::Span<Strip *> strips_to_shuffle,
                                         ListBase *seqbasep,
                                         Scene *evil_scene,
                                         ListBase *markers,
@@ -43,12 +43,12 @@ bool SEQ_transform_seqbase_shuffle_time(blender::Span<Sequence *> strips_to_shuf
 
 void SEQ_transform_handle_overlap(Scene *scene,
                                   ListBase *seqbasep,
-                                  blender::Span<Sequence *> transformed_strips,
-                                  blender::Span<Sequence *> time_dependent_strips,
+                                  blender::Span<Strip *> transformed_strips,
+                                  blender::Span<Strip *> time_dependent_strips,
                                   bool use_sync_markers);
 void SEQ_transform_handle_overlap(Scene *scene,
                                   ListBase *seqbasep,
-                                  blender::Span<Sequence *> transformed_strips,
+                                  blender::Span<Strip *> transformed_strips,
                                   bool use_sync_markers);
 /**
  * Check if the selected seq's reference unselected seq's.
@@ -71,11 +71,11 @@ void SEQ_transform_offset_after_frame(Scene *scene,
  * Check if `seq` can be moved.
  * This function also checks `SeqTimelineChannel` flag.
  */
-bool SEQ_transform_is_locked(ListBase *channels, const Sequence *seq);
+bool SEQ_transform_is_locked(ListBase *channels, const Strip *seq);
 
 /* Image transformation. */
 
-void SEQ_image_transform_mirror_factor_get(const Sequence *seq, float r_mirror[2]);
+void SEQ_image_transform_mirror_factor_get(const Strip *seq, float r_mirror[2]);
 /**
  * Get strip transform origin offset from image center
  * NOTE: This function does not apply axis mirror.
@@ -85,7 +85,7 @@ void SEQ_image_transform_mirror_factor_get(const Sequence *seq, float r_mirror[2
  * \param r_origin: return value
  */
 void SEQ_image_transform_origin_offset_pixelspace_get(const Scene *scene,
-                                                      const Sequence *seq,
+                                                      const Strip *seq,
                                                       float r_origin[2]);
 /**
  * Get 4 corner points of strip image, optionally without rotation component applied.
@@ -97,7 +97,7 @@ void SEQ_image_transform_origin_offset_pixelspace_get(const Scene *scene,
  * \param r_quad: array of 4 2D vectors
  */
 void SEQ_image_transform_quad_get(const Scene *scene,
-                                  const Sequence *seq,
+                                  const Strip *seq,
                                   bool apply_rotation,
                                   float r_quad[4][2]);
 /**
@@ -107,9 +107,7 @@ void SEQ_image_transform_quad_get(const Scene *scene,
  * \param seq: Sequence to calculate transformed image quad
  * \param r_quad: array of 4 2D vectors
  */
-void SEQ_image_transform_final_quad_get(const Scene *scene,
-                                        const Sequence *seq,
-                                        float r_quad[4][2]);
+void SEQ_image_transform_final_quad_get(const Scene *scene, const Strip *seq, float r_quad[4][2]);
 
 void SEQ_image_preview_unit_to_px(const Scene *scene, const float co_src[2], float co_dst[2]);
 void SEQ_image_preview_unit_from_px(const Scene *scene, const float co_src[2], float co_dst[2]);
@@ -125,7 +123,7 @@ void SEQ_image_preview_unit_from_px(const Scene *scene, const float co_src[2], f
  * \param r_max: Maximum x and y values
  */
 void SEQ_image_transform_bounding_box_from_collection(Scene *scene,
-                                                      blender::Span<Sequence *> strips,
+                                                      blender::Span<Strip *> strips,
                                                       bool apply_rotation,
                                                       float r_min[2],
                                                       float r_max[2]);
@@ -139,5 +137,5 @@ void SEQ_image_transform_bounding_box_from_collection(Scene *scene,
  * \param r_transform_matrix: Return value
  */
 void SEQ_image_transform_matrix_get(const Scene *scene,
-                                    const Sequence *seq,
+                                    const Strip *seq,
                                     float r_transform_matrix[4][4]);

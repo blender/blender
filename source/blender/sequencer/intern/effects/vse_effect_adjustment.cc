@@ -23,12 +23,12 @@ static int num_inputs_adjustment()
   return 0;
 }
 
-static StripEarlyOut early_out_adjustment(const Sequence * /*seq*/, float /*fac*/)
+static StripEarlyOut early_out_adjustment(const Strip * /*seq*/, float /*fac*/)
 {
   return StripEarlyOut::NoInput;
 }
 
-static ImBuf *do_adjustment_impl(const SeqRenderData *context, Sequence *seq, float timeline_frame)
+static ImBuf *do_adjustment_impl(const SeqRenderData *context, Strip *seq, float timeline_frame)
 {
   Editing *ed;
   ImBuf *i = nullptr;
@@ -55,7 +55,7 @@ static ImBuf *do_adjustment_impl(const SeqRenderData *context, Sequence *seq, fl
    * a meta-strip and have that work on everything below the meta-strip. */
 
   if (!i) {
-    Sequence *meta;
+    Strip *meta;
 
     meta = SEQ_find_metastrip_by_sequence(&ed->seqbase, nullptr, seq);
 
@@ -68,7 +68,7 @@ static ImBuf *do_adjustment_impl(const SeqRenderData *context, Sequence *seq, fl
 }
 
 static ImBuf *do_adjustment(const SeqRenderData *context,
-                            Sequence *seq,
+                            Strip *seq,
                             float timeline_frame,
                             float /*fac*/,
                             ImBuf * /*ibuf1*/,

@@ -123,7 +123,7 @@ static bool seq_cache_hashcmp(const void *a_, const void *b_)
 }
 
 static float seq_cache_timeline_frame_to_frame_index(const Scene *scene,
-                                                     const Sequence *seq,
+                                                     const Strip *seq,
                                                      const float timeline_frame,
                                                      const int type)
 {
@@ -138,7 +138,7 @@ static float seq_cache_timeline_frame_to_frame_index(const Scene *scene,
   return timeline_frame - SEQ_time_start_frame_get(seq);
 }
 
-float seq_cache_frame_index_to_timeline_frame(Sequence *seq, float frame_index)
+float seq_cache_frame_index_to_timeline_frame(Strip *seq, float frame_index)
 {
   return frame_index + SEQ_time_start_frame_get(seq);
 }
@@ -508,7 +508,7 @@ static void seq_cache_create(Main *bmain, Scene *scene)
 
 static void seq_cache_populate_key(SeqCacheKey *key,
                                    const SeqRenderData *context,
-                                   Sequence *seq,
+                                   Strip *seq,
                                    const float timeline_frame,
                                    const int type)
 {
@@ -527,7 +527,7 @@ static void seq_cache_populate_key(SeqCacheKey *key,
 
 static SeqCacheKey *seq_cache_allocate_key(SeqCache *cache,
                                            const SeqRenderData *context,
-                                           Sequence *seq,
+                                           Strip *seq,
                                            const float timeline_frame,
                                            const int type)
 {
@@ -620,8 +620,8 @@ void SEQ_cache_cleanup(Scene *scene)
 }
 
 void seq_cache_cleanup_sequence(Scene *scene,
-                                Sequence *seq,
-                                Sequence *seq_changed,
+                                Strip *seq,
+                                Strip *seq_changed,
                                 int invalidate_types,
                                 bool force_seq_changed_range)
 {
@@ -684,7 +684,7 @@ void seq_cache_cleanup_sequence(Scene *scene,
   seq_cache_unlock(scene);
 }
 
-ImBuf *seq_cache_get(const SeqRenderData *context, Sequence *seq, float timeline_frame, int type)
+ImBuf *seq_cache_get(const SeqRenderData *context, Strip *seq, float timeline_frame, int type)
 {
 
   if (context->skip_cache || context->is_proxy_render || !seq) {
@@ -750,7 +750,7 @@ ImBuf *seq_cache_get(const SeqRenderData *context, Sequence *seq, float timeline
 }
 
 bool seq_cache_put_if_possible(
-    const SeqRenderData *context, Sequence *seq, float timeline_frame, int type, ImBuf *ibuf)
+    const SeqRenderData *context, Strip *seq, float timeline_frame, int type, ImBuf *ibuf)
 {
   Scene *scene = context->scene;
 
@@ -778,7 +778,7 @@ bool seq_cache_put_if_possible(
 }
 
 void seq_cache_put(
-    const SeqRenderData *context, Sequence *seq, float timeline_frame, int type, ImBuf *i)
+    const SeqRenderData *context, Strip *seq, float timeline_frame, int type, ImBuf *i)
 {
   if (i == nullptr || context->skip_cache || context->is_proxy_render || !seq) {
     return;
@@ -830,7 +830,7 @@ void SEQ_cache_iterate(
     Scene *scene,
     void *userdata,
     bool callback_init(void *userdata, size_t item_count),
-    bool callback_iter(void *userdata, Sequence *seq, int timeline_frame, int cache_type))
+    bool callback_iter(void *userdata, Strip *seq, int timeline_frame, int cache_type))
 {
   SeqCache *cache = seq_cache_get_from_scene(scene);
   if (!cache) {

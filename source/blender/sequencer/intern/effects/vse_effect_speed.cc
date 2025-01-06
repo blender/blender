@@ -21,7 +21,7 @@
 #include "effects.hh"
 #include "render.hh"
 
-static void init_speed_effect(Sequence *seq)
+static void init_speed_effect(Strip *seq)
 {
   if (seq->effectdata) {
     MEM_freeN(seq->effectdata);
@@ -36,7 +36,7 @@ static void init_speed_effect(Sequence *seq)
   v->speed_fader_frame_number = 0.0f;
 }
 
-static void load_speed_effect(Sequence *seq)
+static void load_speed_effect(Strip *seq)
 {
   SpeedControlVars *v = (SpeedControlVars *)seq->effectdata;
   v->frameMap = nullptr;
@@ -47,7 +47,7 @@ static int num_inputs_speed()
   return 1;
 }
 
-static void free_speed_effect(Sequence *seq, const bool /*do_id_user*/)
+static void free_speed_effect(Strip *seq, const bool /*do_id_user*/)
 {
   SpeedControlVars *v = (SpeedControlVars *)seq->effectdata;
   if (v->frameMap) {
@@ -56,7 +56,7 @@ static void free_speed_effect(Sequence *seq, const bool /*do_id_user*/)
   MEM_SAFE_FREE(seq->effectdata);
 }
 
-static void copy_speed_effect(Sequence *dst, const Sequence *src, const int /*flag*/)
+static void copy_speed_effect(Strip *dst, const Strip *src, const int /*flag*/)
 {
   SpeedControlVars *v;
   dst->effectdata = MEM_dupallocN(src->effectdata);
@@ -64,17 +64,17 @@ static void copy_speed_effect(Sequence *dst, const Sequence *src, const int /*fl
   v->frameMap = nullptr;
 }
 
-static StripEarlyOut early_out_speed(const Sequence * /*seq*/, float /*fac*/)
+static StripEarlyOut early_out_speed(const Strip * /*seq*/, float /*fac*/)
 {
   return StripEarlyOut::DoEffect;
 }
 
-static FCurve *seq_effect_speed_speed_factor_curve_get(Scene *scene, Sequence *seq)
+static FCurve *seq_effect_speed_speed_factor_curve_get(Scene *scene, Strip *seq)
 {
-  return id_data_find_fcurve(&scene->id, seq, &RNA_Sequence, "speed_factor", 0, nullptr);
+  return id_data_find_fcurve(&scene->id, seq, &RNA_Strip, "speed_factor", 0, nullptr);
 }
 
-void seq_effect_speed_rebuild_map(Scene *scene, Sequence *seq)
+void seq_effect_speed_rebuild_map(Scene *scene, Strip *seq)
 {
   const int effect_strip_length = SEQ_time_right_handle_frame_get(scene, seq) -
                                   SEQ_time_left_handle_frame_get(scene, seq);
@@ -105,7 +105,7 @@ void seq_effect_speed_rebuild_map(Scene *scene, Sequence *seq)
   }
 }
 
-static void seq_effect_speed_frame_map_ensure(Scene *scene, Sequence *seq)
+static void seq_effect_speed_frame_map_ensure(Scene *scene, Strip *seq)
 {
   const SpeedControlVars *v = (SpeedControlVars *)seq->effectdata;
   if (v->frameMap != nullptr) {
@@ -116,7 +116,7 @@ static void seq_effect_speed_frame_map_ensure(Scene *scene, Sequence *seq)
 }
 
 float seq_speed_effect_target_frame_get(Scene *scene,
-                                        Sequence *seq_speed,
+                                        Strip *seq_speed,
                                         float timeline_frame,
                                         int input)
 {
@@ -127,7 +127,7 @@ float seq_speed_effect_target_frame_get(Scene *scene,
   SEQ_effect_handle_get(seq_speed); /* Ensure, that data are initialized. */
   int frame_index = round_fl_to_int(SEQ_give_frame_index(scene, seq_speed, timeline_frame));
   SpeedControlVars *s = (SpeedControlVars *)seq_speed->effectdata;
-  const Sequence *source = seq_speed->seq1;
+  const Strip *source = seq_speed->seq1;
 
   float target_frame = 0.0f;
   switch (s->speed_control_type) {
@@ -174,7 +174,7 @@ float seq_speed_effect_target_frame_get(Scene *scene,
 }
 
 static float speed_effect_interpolation_ratio_get(Scene *scene,
-                                                  Sequence *seq_speed,
+                                                  Strip *seq_speed,
                                                   float timeline_frame)
 {
   const float target_frame = seq_speed_effect_target_frame_get(
@@ -183,7 +183,7 @@ static float speed_effect_interpolation_ratio_get(Scene *scene,
 }
 
 static ImBuf *do_speed_effect(const SeqRenderData *context,
-                              Sequence *seq,
+                              Strip *seq,
                               float timeline_frame,
                               float fac,
                               ImBuf *ibuf1,

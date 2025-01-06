@@ -1865,7 +1865,7 @@ static void stampdata(
   }
 
   if (use_dynamic && scene->r.stamp & R_STAMP_SEQSTRIP) {
-    const Sequence *seq = SEQ_get_topmost_sequence(scene, scene->r.cfra);
+    const Strip *seq = SEQ_get_topmost_sequence(scene, scene->r.cfra);
 
     if (seq) {
       STRNCPY(text, seq->name + 2);

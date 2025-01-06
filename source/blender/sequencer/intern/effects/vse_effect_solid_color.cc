@@ -17,7 +17,7 @@
 
 using namespace blender;
 
-static void init_solid_color(Sequence *seq)
+static void init_solid_color(Strip *seq)
 {
   if (seq->effectdata) {
     MEM_freeN(seq->effectdata);
@@ -34,23 +34,23 @@ static int num_inputs_color()
   return 0;
 }
 
-static void free_solid_color(Sequence *seq, const bool /*do_id_user*/)
+static void free_solid_color(Strip *seq, const bool /*do_id_user*/)
 {
   MEM_SAFE_FREE(seq->effectdata);
 }
 
-static void copy_solid_color(Sequence *dst, const Sequence *src, const int /*flag*/)
+static void copy_solid_color(Strip *dst, const Strip *src, const int /*flag*/)
 {
   dst->effectdata = MEM_dupallocN(src->effectdata);
 }
 
-static StripEarlyOut early_out_color(const Sequence * /*seq*/, float /*fac*/)
+static StripEarlyOut early_out_color(const Strip * /*seq*/, float /*fac*/)
 {
   return StripEarlyOut::NoInput;
 }
 
 static ImBuf *do_solid_color(const SeqRenderData *context,
-                             Sequence *seq,
+                             Strip *seq,
                              float /*timeline_frame*/,
                              float /*fac*/,
                              ImBuf *ibuf1,

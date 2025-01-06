@@ -48,7 +48,7 @@
 #include "utils.hh"
 
 struct SeqUniqueInfo {
-  Sequence *seq;
+  Strip *seq;
   char name_src[SEQ_NAME_MAXSTR];
   char name_dest[SEQ_NAME_MAXSTR];
   int count;
@@ -57,7 +57,7 @@ struct SeqUniqueInfo {
 
 static void seqbase_unique_name(ListBase *seqbasep, SeqUniqueInfo *sui)
 {
-  LISTBASE_FOREACH (Sequence *, seq, seqbasep) {
+  LISTBASE_FOREACH (Strip *, seq, seqbasep) {
     if ((sui->seq != seq) && STREQ(sui->name_dest, seq->name + 2)) {
       /* SEQ_NAME_MAXSTR -4 for the number, -1 for \0, - 2 for r_prefix */
       SNPRINTF(
@@ -67,7 +67,7 @@ static void seqbase_unique_name(ListBase *seqbasep, SeqUniqueInfo *sui)
   }
 }
 
-static bool seqbase_unique_name_recursive_fn(Sequence *seq, void *arg_pt)
+static bool seqbase_unique_name_recursive_fn(Strip *seq, void *arg_pt)
 {
   if (seq->seqbase.first) {
     seqbase_unique_name(&seq->seqbase, (SeqUniqueInfo *)arg_pt);
@@ -75,7 +75,7 @@ static bool seqbase_unique_name_recursive_fn(Sequence *seq, void *arg_pt)
   return true;
 }
 
-void SEQ_sequence_base_unique_name_recursive(Scene *scene, ListBase *seqbasep, Sequence *seq)
+void SEQ_sequence_base_unique_name_recursive(Scene *scene, ListBase *seqbasep, Strip *seq)
 {
   SeqUniqueInfo sui;
   char *dot;
@@ -163,7 +163,7 @@ static const char *give_seqname_by_type(int type)
   }
 }
 
-const char *SEQ_sequence_give_name(const Sequence *seq)
+const char *SEQ_sequence_give_name(const Strip *seq)
 {
   const char *name = give_seqname_by_type(seq->type);
 
@@ -177,7 +177,7 @@ const char *SEQ_sequence_give_name(const Sequence *seq)
   return name;
 }
 
-ListBase *SEQ_get_seqbase_from_sequence(Sequence *seq, ListBase **r_channels, int *r_offset)
+ListBase *SEQ_get_seqbase_from_sequence(Strip *seq, ListBase **r_channels, int *r_offset)
 {
   ListBase *seqbase = nullptr;
 
@@ -204,10 +204,7 @@ ListBase *SEQ_get_seqbase_from_sequence(Sequence *seq, ListBase **r_channels, in
   return seqbase;
 }
 
-static void open_anim_filepath(Sequence *seq,
-                               StripAnim *sanim,
-                               const char *filepath,
-                               bool openfile)
+static void open_anim_filepath(Strip *seq, StripAnim *sanim, const char *filepath, bool openfile)
 {
   if (openfile) {
     sanim->anim = openanim(filepath,
@@ -223,14 +220,14 @@ static void open_anim_filepath(Sequence *seq,
   }
 }
 
-static bool use_proxy(Editing *ed, Sequence *seq)
+static bool use_proxy(Editing *ed, Strip *seq)
 {
   StripProxy *proxy = seq->data->proxy;
   return proxy && ((proxy->storage & SEQ_STORAGE_PROXY_CUSTOM_DIR) != 0 ||
                    (ed->proxy_storage == SEQ_EDIT_PROXY_DIR_STORAGE));
 }
 
-static void proxy_dir_get(Editing *ed, Sequence *seq, size_t str_len, char *r_proxy_dirpath)
+static void proxy_dir_get(Editing *ed, Strip *seq, size_t str_len, char *r_proxy_dirpath)
 {
   if (use_proxy(ed, seq)) {
     if (ed->proxy_storage == SEQ_EDIT_PROXY_DIR_STORAGE) {
@@ -248,7 +245,7 @@ static void proxy_dir_get(Editing *ed, Sequence *seq, size_t str_len, char *r_pr
   }
 }
 
-static void index_dir_set(Editing *ed, Sequence *seq, StripAnim *sanim)
+static void index_dir_set(Editing *ed, Strip *seq, StripAnim *sanim)
 {
   if (sanim->anim == nullptr || !use_proxy(ed, seq)) {
     return;
@@ -259,7 +256,7 @@ static void index_dir_set(Editing *ed, Sequence *seq, StripAnim *sanim)
   seq_proxy_index_dir_set(sanim->anim, proxy_dirpath);
 }
 
-static bool open_anim_file_multiview(Scene *scene, Sequence *seq, const char *filepath)
+static bool open_anim_file_multiview(Scene *scene, Strip *seq, const char *filepath)
 {
   char prefix[FILE_MAX];
   const char *ext = nullptr;
@@ -296,7 +293,7 @@ static bool open_anim_file_multiview(Scene *scene, Sequence *seq, const char *fi
   return is_multiview_loaded;
 }
 
-void seq_open_anim_file(Scene *scene, Sequence *seq, bool openfile)
+void seq_open_anim_file(Scene *scene, Strip *seq, bool openfile)
 {
   if ((seq->anims.first != nullptr) && (((StripAnim *)seq->anims.first)->anim != nullptr) &&
       !openfile)
@@ -327,7 +324,7 @@ void seq_open_anim_file(Scene *scene, Sequence *seq, bool openfile)
   }
 }
 
-const Sequence *SEQ_get_topmost_sequence(const Scene *scene, int frame)
+const Strip *SEQ_get_topmost_sequence(const Scene *scene, int frame)
 {
   Editing *ed = scene->ed;
 
@@ -336,10 +333,10 @@ const Sequence *SEQ_get_topmost_sequence(const Scene *scene, int frame)
   }
 
   ListBase *channels = SEQ_channels_displayed_get(ed);
-  const Sequence *best_seq = nullptr;
+  const Strip *best_seq = nullptr;
   int best_machine = -1;
 
-  LISTBASE_FOREACH (const Sequence *, seq, ed->seqbasep) {
+  LISTBASE_FOREACH (const Strip *, seq, ed->seqbasep) {
     if (SEQ_render_is_muted(channels, seq) || !SEQ_time_strip_intersects_frame(scene, seq, frame))
     {
       continue;
@@ -363,11 +360,11 @@ const Sequence *SEQ_get_topmost_sequence(const Scene *scene, int frame)
   return best_seq;
 }
 
-ListBase *SEQ_get_seqbase_by_seq(const Scene *scene, Sequence *seq)
+ListBase *SEQ_get_seqbase_by_seq(const Scene *scene, Strip *seq)
 {
   Editing *ed = SEQ_editing_get(scene);
   ListBase *main_seqbase = &ed->seqbase;
-  Sequence *seq_meta = seq_sequence_lookup_meta_by_seq(scene, seq);
+  Strip *seq_meta = seq_sequence_lookup_meta_by_seq(scene, seq);
 
   if (seq_meta != nullptr) {
     return &seq_meta->seqbase;
@@ -378,12 +375,12 @@ ListBase *SEQ_get_seqbase_by_seq(const Scene *scene, Sequence *seq)
   return nullptr;
 }
 
-Sequence *SEQ_sequence_from_strip_elem(ListBase *seqbase, StripElem *se)
+Strip *SEQ_sequence_from_strip_elem(ListBase *seqbase, StripElem *se)
 {
-  Sequence *iseq;
+  Strip *iseq;
 
-  for (iseq = static_cast<Sequence *>(seqbase->first); iseq; iseq = iseq->next) {
-    Sequence *seq_found;
+  for (iseq = static_cast<Strip *>(seqbase->first); iseq; iseq = iseq->next) {
+    Strip *seq_found;
     if ((iseq->data && iseq->data->stripdata) &&
         ARRAY_HAS_ITEM(se, iseq->data->stripdata, iseq->len))
     {
@@ -398,14 +395,14 @@ Sequence *SEQ_sequence_from_strip_elem(ListBase *seqbase, StripElem *se)
   return iseq;
 }
 
-Sequence *SEQ_get_sequence_by_name(ListBase *seqbase, const char *name, bool recursive)
+Strip *SEQ_get_sequence_by_name(ListBase *seqbase, const char *name, bool recursive)
 {
-  LISTBASE_FOREACH (Sequence *, iseq, seqbase) {
+  LISTBASE_FOREACH (Strip *, iseq, seqbase) {
     if (STREQ(name, iseq->name + 2)) {
       return iseq;
     }
     if (recursive && !BLI_listbase_is_empty(&iseq->seqbase)) {
-      Sequence *rseq = SEQ_get_sequence_by_name(&iseq->seqbase, name, true);
+      Strip *rseq = SEQ_get_sequence_by_name(&iseq->seqbase, name, true);
       if (rseq != nullptr) {
         return rseq;
       }
@@ -417,7 +414,7 @@ Sequence *SEQ_get_sequence_by_name(ListBase *seqbase, const char *name, bool rec
 
 Mask *SEQ_active_mask_get(Scene *scene)
 {
-  Sequence *seq_act = SEQ_select_active_get(scene);
+  Strip *seq_act = SEQ_select_active_get(scene);
 
   if (seq_act && seq_act->type == SEQ_TYPE_MASK) {
     return seq_act->mask;
@@ -426,7 +423,7 @@ Mask *SEQ_active_mask_get(Scene *scene)
   return nullptr;
 }
 
-void SEQ_alpha_mode_from_file_extension(Sequence *seq)
+void SEQ_alpha_mode_from_file_extension(Strip *seq)
 {
   if (seq->data && seq->data->stripdata) {
     const char *filename = seq->data->stripdata->filename;
@@ -434,7 +431,7 @@ void SEQ_alpha_mode_from_file_extension(Sequence *seq)
   }
 }
 
-bool SEQ_sequence_has_valid_data(const Sequence *seq)
+bool SEQ_sequence_has_valid_data(const Strip *seq)
 {
   switch (seq->type) {
     case SEQ_TYPE_MASK:
@@ -450,7 +447,7 @@ bool SEQ_sequence_has_valid_data(const Sequence *seq)
   return true;
 }
 
-bool sequencer_seq_generates_image(Sequence *seq)
+bool sequencer_seq_generates_image(Strip *seq)
 {
   switch (seq->type) {
     case SEQ_TYPE_IMAGE:
@@ -465,7 +462,7 @@ bool sequencer_seq_generates_image(Sequence *seq)
   return false;
 }
 
-void SEQ_set_scale_to_fit(const Sequence *seq,
+void SEQ_set_scale_to_fit(const Strip *seq,
                           const int image_width,
                           const int image_height,
                           const int preview_width,
@@ -496,7 +493,7 @@ void SEQ_set_scale_to_fit(const Sequence *seq,
   }
 }
 
-void SEQ_ensure_unique_name(Sequence *seq, Scene *scene)
+void SEQ_ensure_unique_name(Strip *seq, Scene *scene)
 {
   char name[SEQ_NAME_MAXSTR];
 
@@ -513,7 +510,7 @@ void SEQ_ensure_unique_name(Sequence *seq, Scene *scene)
                                 false);
 
   if (seq->type == SEQ_TYPE_META) {
-    LISTBASE_FOREACH (Sequence *, seq_child, &seq->seqbase) {
+    LISTBASE_FOREACH (Strip *, seq_child, &seq->seqbase) {
       SEQ_ensure_unique_name(seq_child, scene);
     }
   }

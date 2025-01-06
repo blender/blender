@@ -15,17 +15,17 @@
 
 struct ListBase;
 struct Scene;
-struct Sequence;
+struct Strip;
 struct SeqAnimationBackup;
 
 bool SEQ_animation_keyframes_exist(Scene *scene);
 bool SEQ_animation_drivers_exist(Scene *scene);
-void SEQ_free_animdata(Scene *scene, Sequence *seq);
-void SEQ_offset_animdata(Scene *scene, Sequence *seq, int ofs);
+void SEQ_free_animdata(Scene *scene, Strip *seq);
+void SEQ_offset_animdata(Scene *scene, Strip *seq, int ofs);
 /**
  * Return whether the fcurve targets the given sequence.
  */
-bool SEQ_fcurve_matches(const Sequence &seq, const FCurve &fcurve);
+bool SEQ_fcurve_matches(const Strip &seq, const FCurve &fcurve);
 struct SeqAnimationBackup {
   /* `curves` and `channelbag` here represent effectively the same data (the
    * fcurves that animate the Scene that the sequence belongs to), just for
@@ -47,6 +47,4 @@ void SEQ_animation_restore_original(Scene *scene, SeqAnimationBackup *backup);
 /**
  * Duplicate F-Curves and drivers used by `seq` from `backup` to `scene`.
  */
-void SEQ_animation_duplicate_backup_to_scene(Scene *scene,
-                                             Sequence *seq,
-                                             SeqAnimationBackup *backup);
+void SEQ_animation_duplicate_backup_to_scene(Scene *scene, Strip *seq, SeqAnimationBackup *backup);

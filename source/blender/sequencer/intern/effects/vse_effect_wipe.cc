@@ -285,7 +285,7 @@ static float check_zone(const WipeZone *wipezone, int x, int y, float fac)
   return output;
 }
 
-static void init_wipe_effect(Sequence *seq)
+static void init_wipe_effect(Strip *seq)
 {
   if (seq->effectdata) {
     MEM_freeN(seq->effectdata);
@@ -299,19 +299,19 @@ static int num_inputs_wipe()
   return 2;
 }
 
-static void free_wipe_effect(Sequence *seq, const bool /*do_id_user*/)
+static void free_wipe_effect(Strip *seq, const bool /*do_id_user*/)
 {
   MEM_SAFE_FREE(seq->effectdata);
 }
 
-static void copy_wipe_effect(Sequence *dst, const Sequence *src, const int /*flag*/)
+static void copy_wipe_effect(Strip *dst, const Strip *src, const int /*flag*/)
 {
   dst->effectdata = MEM_dupallocN(src->effectdata);
 }
 
 template<typename T>
 static void do_wipe_effect(
-    const Sequence *seq, float fac, int width, int height, const T *rect1, const T *rect2, T *out)
+    const Strip *seq, float fac, int width, int height, const T *rect1, const T *rect2, T *out)
 {
   using namespace blender;
   const WipeVars *wipe = (const WipeVars *)seq->effectdata;
@@ -357,7 +357,7 @@ static void do_wipe_effect(
 }
 
 static ImBuf *do_wipe_effect(const SeqRenderData *context,
-                             Sequence *seq,
+                             Strip *seq,
                              float /*timeline_frame*/,
                              float fac,
                              ImBuf *ibuf1,

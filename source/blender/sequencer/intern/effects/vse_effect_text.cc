@@ -153,7 +153,7 @@ static void seq_unload_font(int fontid)
  * \{ */
 
 /* `data->text[0] == 0` is ignored on purpose in order to make it possible to edit  */
-bool SEQ_effects_can_render_text(const Sequence *seq)
+bool SEQ_effects_can_render_text(const Strip *seq)
 {
   TextVars *data = static_cast<TextVars *>(seq->effectdata);
   if (data->text_size < 1.0f ||
@@ -167,7 +167,7 @@ bool SEQ_effects_can_render_text(const Sequence *seq)
   return true;
 }
 
-static void init_text_effect(Sequence *seq)
+static void init_text_effect(Strip *seq)
 {
   if (seq->effectdata) {
     MEM_freeN(seq->effectdata);
@@ -255,7 +255,7 @@ void SEQ_effect_text_font_load(TextVars *data, const bool do_id_user)
   }
 }
 
-static void free_text_effect(Sequence *seq, const bool do_id_user)
+static void free_text_effect(Strip *seq, const bool do_id_user)
 {
   TextVars *data = static_cast<TextVars *>(seq->effectdata);
   SEQ_effect_text_font_unload(data, do_id_user);
@@ -267,13 +267,13 @@ static void free_text_effect(Sequence *seq, const bool do_id_user)
   }
 }
 
-static void load_text_effect(Sequence *seq)
+static void load_text_effect(Strip *seq)
 {
   TextVars *data = static_cast<TextVars *>(seq->effectdata);
   SEQ_effect_text_font_load(data, false);
 }
 
-static void copy_text_effect(Sequence *dst, const Sequence *src, const int flag)
+static void copy_text_effect(Strip *dst, const Strip *src, const int flag)
 {
   dst->effectdata = MEM_dupallocN(src->effectdata);
   TextVars *data = static_cast<TextVars *>(dst->effectdata);
@@ -288,7 +288,7 @@ static int num_inputs_text()
   return 0;
 }
 
-static StripEarlyOut early_out_text(const Sequence *seq, float /*fac*/)
+static StripEarlyOut early_out_text(const Strip *seq, float /*fac*/)
 {
   if (!SEQ_effects_can_render_text(seq)) {
     return StripEarlyOut::UseInput1;
@@ -761,7 +761,7 @@ static void fill_rect_alpha_under(
   });
 }
 
-static int text_effect_line_size_get(const SeqRenderData *context, const Sequence *seq)
+static int text_effect_line_size_get(const SeqRenderData *context, const Strip *seq)
 {
   TextVars *data = static_cast<TextVars *>(seq->effectdata);
   /* Compensate text size for preview render size. */
@@ -773,7 +773,7 @@ static int text_effect_line_size_get(const SeqRenderData *context, const Sequenc
   return proxy_size_comp * data->text_size;
 }
 
-static int text_effect_font_init(const SeqRenderData *context, const Sequence *seq, int font_flags)
+static int text_effect_font_init(const SeqRenderData *context, const Strip *seq, int font_flags)
 {
   TextVars *data = static_cast<TextVars *>(seq->effectdata);
   int font = blf_mono_font_render;
@@ -973,7 +973,7 @@ static void apply_text_alignment(const TextVars *data,
   }
 }
 
-static void calc_text_runtime(const Sequence *seq, int font, const int2 image_size)
+static void calc_text_runtime(const Strip *seq, int font, const int2 image_size)
 {
   TextVars *data = static_cast<TextVars *>(seq->effectdata);
 
@@ -995,7 +995,7 @@ static void calc_text_runtime(const Sequence *seq, int font, const int2 image_si
 }
 
 static ImBuf *do_text_effect(const SeqRenderData *context,
-                             Sequence *seq,
+                             Strip *seq,
                              float /*timeline_frame*/,
                              float /*fac*/,
                              ImBuf * /*ibuf1*/,

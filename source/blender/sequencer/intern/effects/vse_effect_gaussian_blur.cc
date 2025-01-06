@@ -19,7 +19,7 @@
 
 using namespace blender;
 
-static void init_gaussian_blur_effect(Sequence *seq)
+static void init_gaussian_blur_effect(Strip *seq)
 {
   if (seq->effectdata) {
     MEM_freeN(seq->effectdata);
@@ -33,17 +33,17 @@ static int num_inputs_gaussian_blur()
   return 1;
 }
 
-static void free_gaussian_blur_effect(Sequence *seq, const bool /*do_id_user*/)
+static void free_gaussian_blur_effect(Strip *seq, const bool /*do_id_user*/)
 {
   MEM_SAFE_FREE(seq->effectdata);
 }
 
-static void copy_gaussian_blur_effect(Sequence *dst, const Sequence *src, const int /*flag*/)
+static void copy_gaussian_blur_effect(Strip *dst, const Strip *src, const int /*flag*/)
 {
   dst->effectdata = MEM_dupallocN(src->effectdata);
 }
 
-static StripEarlyOut early_out_gaussian_blur(const Sequence *seq, float /*fac*/)
+static StripEarlyOut early_out_gaussian_blur(const Strip *seq, float /*fac*/)
 {
   GaussianBlurVars *data = static_cast<GaussianBlurVars *>(seq->effectdata);
   if (data->size_x == 0.0f && data->size_y == 0) {
@@ -136,7 +136,7 @@ static void gaussian_blur_y(const Span<float> gaussian,
 }
 
 static ImBuf *do_gaussian_blur_effect(const SeqRenderData *context,
-                                      Sequence *seq,
+                                      Strip *seq,
                                       float /*timeline_frame*/,
                                       float /*fac*/,
                                       ImBuf *ibuf1,

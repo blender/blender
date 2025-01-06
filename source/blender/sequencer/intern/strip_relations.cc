@@ -36,13 +36,13 @@
 #include "image_cache.hh"
 #include "utils.hh"
 
-bool SEQ_relation_is_effect_of_strip(const Sequence *effect, const Sequence *input)
+bool SEQ_relation_is_effect_of_strip(const Strip *effect, const Strip *input)
 {
   return ELEM(input, effect->seq1, effect->seq2);
 }
 
 /* check whether sequence cur depends on seq */
-static bool seq_relations_check_depend(const Scene *scene, Sequence *seq, Sequence *cur)
+static bool seq_relations_check_depend(const Scene *scene, Strip *seq, Strip *cur)
 {
   if (SEQ_relation_is_effect_of_strip(cur, seq)) {
     return true;
@@ -73,9 +73,9 @@ static bool seq_relations_check_depend(const Scene *scene, Sequence *seq, Sequen
   return true;
 }
 
-static void sequence_do_invalidate_dependent(Scene *scene, Sequence *seq, ListBase *seqbase)
+static void sequence_do_invalidate_dependent(Scene *scene, Strip *seq, ListBase *seqbase)
 {
-  LISTBASE_FOREACH (Sequence *, cur, seqbase) {
+  LISTBASE_FOREACH (Strip *, cur, seqbase) {
     if (cur == seq) {
       continue;
     }
@@ -99,7 +99,7 @@ static void sequence_do_invalidate_dependent(Scene *scene, Sequence *seq, ListBa
 }
 
 static void sequence_invalidate_cache(Scene *scene,
-                                      Sequence *seq,
+                                      Strip *seq,
                                       bool invalidate_self,
                                       int invalidate_types)
 {
@@ -121,8 +121,8 @@ static void sequence_invalidate_cache(Scene *scene,
 
 /* Find meta-strips that contain invalidated_seq and invalidate them. */
 static bool seq_relations_find_and_invalidate_metas(Scene *scene,
-                                                    Sequence *invalidated_seq,
-                                                    Sequence *meta_seq)
+                                                    Strip *invalidated_seq,
+                                                    Strip *meta_seq)
 {
   ListBase *seqbase;
 
@@ -134,7 +134,7 @@ static bool seq_relations_find_and_invalidate_metas(Scene *scene,
     seqbase = &meta_seq->seqbase;
   }
 
-  LISTBASE_FOREACH (Sequence *, seq, seqbase) {
+  LISTBASE_FOREACH (Strip *, seq, seqbase) {
     if (seq->type == SEQ_TYPE_META) {
       if (seq_relations_find_and_invalidate_metas(scene, invalidated_seq, seq)) {
         sequence_invalidate_cache(scene, seq, true, SEQ_CACHE_ALL_TYPES);
@@ -150,21 +150,21 @@ static bool seq_relations_find_and_invalidate_metas(Scene *scene,
 }
 
 void SEQ_relations_invalidate_cache_in_range(Scene *scene,
-                                             Sequence *seq,
-                                             Sequence *range_mask,
+                                             Strip *seq,
+                                             Strip *range_mask,
                                              int invalidate_types)
 {
   seq_cache_cleanup_sequence(scene, seq, range_mask, invalidate_types, true);
   seq_relations_find_and_invalidate_metas(scene, seq, nullptr);
 }
 
-void SEQ_relations_invalidate_cache_raw(Scene *scene, Sequence *seq)
+void SEQ_relations_invalidate_cache_raw(Scene *scene, Strip *seq)
 {
   sequence_invalidate_cache(scene, seq, true, SEQ_CACHE_ALL_TYPES);
   seq_relations_find_and_invalidate_metas(scene, seq, nullptr);
 }
 
-void SEQ_relations_invalidate_cache_preprocessed(Scene *scene, Sequence *seq)
+void SEQ_relations_invalidate_cache_preprocessed(Scene *scene, Strip *seq)
 {
   sequence_invalidate_cache(scene,
                             seq,
@@ -174,7 +174,7 @@ void SEQ_relations_invalidate_cache_preprocessed(Scene *scene, Sequence *seq)
   seq_relations_find_and_invalidate_metas(scene, seq, nullptr);
 }
 
-void SEQ_relations_invalidate_cache_composite(Scene *scene, Sequence *seq)
+void SEQ_relations_invalidate_cache_composite(Scene *scene, Strip *seq)
 {
   if (seq->type == SEQ_TYPE_SOUND_RAM) {
     return;
@@ -185,7 +185,7 @@ void SEQ_relations_invalidate_cache_composite(Scene *scene, Sequence *seq)
   seq_relations_find_and_invalidate_metas(scene, seq, nullptr);
 }
 
-void SEQ_relations_invalidate_dependent(Scene *scene, Sequence *seq)
+void SEQ_relations_invalidate_dependent(Scene *scene, Strip *seq)
 {
   if (seq->type == SEQ_TYPE_SOUND_RAM) {
     return;
@@ -198,7 +198,7 @@ void SEQ_relations_invalidate_dependent(Scene *scene, Sequence *seq)
 
 static void invalidate_scene_strips(Scene *scene, Scene *scene_target, ListBase *seqbase)
 {
-  for (Sequence *seq = static_cast<Sequence *>(seqbase->first); seq != nullptr; seq = seq->next) {
+  for (Strip *seq = static_cast<Strip *>(seqbase->first); seq != nullptr; seq = seq->next) {
     if (seq->scene == scene_target) {
       SEQ_relations_invalidate_cache_raw(scene, seq);
     }
@@ -222,7 +222,7 @@ void SEQ_relations_invalidate_scene_strips(Main *bmain, Scene *scene_target)
 
 static void invalidate_movieclip_strips(Scene *scene, MovieClip *clip_target, ListBase *seqbase)
 {
-  for (Sequence *seq = static_cast<Sequence *>(seqbase->first); seq != nullptr; seq = seq->next) {
+  for (Strip *seq = static_cast<Strip *>(seqbase->first); seq != nullptr; seq = seq->next) {
     if (seq->clip == clip_target) {
       SEQ_relations_invalidate_cache_raw(scene, seq);
     }
@@ -253,7 +253,7 @@ void SEQ_relations_free_imbuf(Scene *scene, ListBase *seqbase, bool for_render)
   SEQ_cache_cleanup(scene);
   SEQ_prefetch_stop(scene);
 
-  LISTBASE_FOREACH (Sequence *, seq, seqbase) {
+  LISTBASE_FOREACH (Strip *, seq, seqbase) {
     if (for_render && SEQ_time_strip_intersects_frame(scene, seq, scene->r.cfra)) {
       continue;
     }
@@ -282,7 +282,7 @@ static void sequencer_all_free_anim_ibufs(const Scene *scene,
                                           const int frame_range[2])
 {
   Editing *ed = SEQ_editing_get(scene);
-  for (Sequence *seq = static_cast<Sequence *>(seqbase->first); seq != nullptr; seq = seq->next) {
+  for (Strip *seq = static_cast<Strip *>(seqbase->first); seq != nullptr; seq = seq->next) {
     if (!SEQ_time_strip_intersects_frame(scene, seq, timeline_frame) ||
         !((frame_range[0] <= timeline_frame) && (frame_range[1] > timeline_frame)))
     {
@@ -318,9 +318,9 @@ void SEQ_relations_free_all_anim_ibufs(Scene *scene, int timeline_frame)
   sequencer_all_free_anim_ibufs(scene, &ed->seqbase, timeline_frame, frame_range);
 }
 
-static Sequence *sequencer_check_scene_recursion(Scene *scene, ListBase *seqbase)
+static Strip *sequencer_check_scene_recursion(Scene *scene, ListBase *seqbase)
 {
-  LISTBASE_FOREACH (Sequence *, seq, seqbase) {
+  LISTBASE_FOREACH (Strip *, seq, seqbase) {
     if (seq->type == SEQ_TYPE_SCENE && seq->scene == scene) {
       return seq;
     }
@@ -348,7 +348,7 @@ bool SEQ_relations_check_scene_recursion(Scene *scene, ReportList *reports)
     return false;
   }
 
-  Sequence *recursive_seq = sequencer_check_scene_recursion(scene, &ed->seqbase);
+  Strip *recursive_seq = sequencer_check_scene_recursion(scene, &ed->seqbase);
 
   if (recursive_seq != nullptr) {
     BKE_reportf(reports,
@@ -357,7 +357,7 @@ bool SEQ_relations_check_scene_recursion(Scene *scene, ReportList *reports)
                 recursive_seq->name + 2,
                 SEQ_time_left_handle_frame_get(scene, recursive_seq));
 
-    LISTBASE_FOREACH (Sequence *, seq, &ed->seqbase) {
+    LISTBASE_FOREACH (Strip *, seq, &ed->seqbase) {
       if (seq->type != SEQ_TYPE_SCENE && sequencer_seq_generates_image(seq)) {
         /* There are other strips to render, so render them. */
         return false;
@@ -370,7 +370,7 @@ bool SEQ_relations_check_scene_recursion(Scene *scene, ReportList *reports)
   return false;
 }
 
-bool SEQ_relations_render_loop_check(Sequence *seq_main, Sequence *seq)
+bool SEQ_relations_render_loop_check(Strip *seq_main, Strip *seq)
 {
   if (seq_main == nullptr || seq == nullptr) {
     return false;
@@ -395,7 +395,7 @@ bool SEQ_relations_render_loop_check(Sequence *seq_main, Sequence *seq)
   return false;
 }
 
-void SEQ_relations_sequence_free_anim(Sequence *seq)
+void SEQ_relations_sequence_free_anim(Strip *seq)
 {
   while (seq->anims.last) {
     StripAnim *sanim = static_cast<StripAnim *>(seq->anims.last);
@@ -410,12 +410,12 @@ void SEQ_relations_sequence_free_anim(Sequence *seq)
   BLI_listbase_clear(&seq->anims);
 }
 
-void SEQ_relations_session_uid_generate(Sequence *sequence)
+void SEQ_relations_session_uid_generate(Strip *sequence)
 {
   sequence->runtime.session_uid = BLI_session_uid_generate();
 }
 
-static bool get_uids_cb(Sequence *seq, void *user_data)
+static bool get_uids_cb(Strip *seq, void *user_data)
 {
   GSet *used_uids = (GSet *)user_data;
   const SessionUID *session_uid = &seq->runtime.session_uid;
@@ -447,10 +447,10 @@ void SEQ_relations_check_uids_unique_and_report(const Scene *scene)
   BLI_gset_free(used_uids, nullptr);
 }
 
-Sequence *SEQ_find_metastrip_by_sequence(ListBase *seqbase, Sequence *meta, Sequence *seq)
+Strip *SEQ_find_metastrip_by_sequence(ListBase *seqbase, Strip *meta, Strip *seq)
 {
-  LISTBASE_FOREACH (Sequence *, iseq, seqbase) {
-    Sequence *rval;
+  LISTBASE_FOREACH (Strip *, iseq, seqbase) {
+    Strip *rval;
 
     if (seq == iseq) {
       return meta;
@@ -464,9 +464,9 @@ Sequence *SEQ_find_metastrip_by_sequence(ListBase *seqbase, Sequence *meta, Sequ
   return nullptr;
 }
 
-bool SEQ_exists_in_seqbase(const Sequence *seq, const ListBase *seqbase)
+bool SEQ_exists_in_seqbase(const Strip *seq, const ListBase *seqbase)
 {
-  LISTBASE_FOREACH (Sequence *, seq_test, seqbase) {
+  LISTBASE_FOREACH (Strip *, seq_test, seqbase) {
     if (seq_test->type == SEQ_TYPE_META && SEQ_exists_in_seqbase(seq, &seq_test->seqbase)) {
       return true;
     }

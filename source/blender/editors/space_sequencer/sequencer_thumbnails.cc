@@ -47,7 +47,7 @@ struct SeqThumbInfo {
   bool is_muted;
 };
 
-static float thumb_calc_first_timeline_frame(const Sequence *seq,
+static float thumb_calc_first_timeline_frame(const Strip *seq,
                                              float left_handle,
                                              float frame_step,
                                              const rctf *view_area)
@@ -63,7 +63,7 @@ static float thumb_calc_first_timeline_frame(const Sequence *seq,
   return seq->start + aligned_frame_offset;
 }
 
-static float thumb_calc_next_timeline_frame(const Sequence *seq,
+static float thumb_calc_next_timeline_frame(const Strip *seq,
                                             float left_handle,
                                             float last_frame,
                                             float frame_step)
@@ -78,7 +78,7 @@ static float thumb_calc_next_timeline_frame(const Sequence *seq,
   return next_frame;
 }
 
-static void seq_get_thumb_image_dimensions(const Sequence *seq,
+static void seq_get_thumb_image_dimensions(const Strip *seq,
                                            float pixelx,
                                            float pixely,
                                            float *r_thumb_width,

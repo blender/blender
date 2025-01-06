@@ -70,7 +70,7 @@ class MouseCoords {
   }
 };
 
-blender::VectorSet<Sequence *> all_strips_from_context(bContext *C)
+blender::VectorSet<Strip *> all_strips_from_context(bContext *C)
 {
   Scene *scene = CTX_data_scene(C);
   Editing *ed = SEQ_editing_get(scene);
@@ -85,7 +85,7 @@ blender::VectorSet<Sequence *> all_strips_from_context(bContext *C)
   return SEQ_query_all_strips(seqbase);
 }
 
-blender::VectorSet<Sequence *> ED_sequencer_selected_strips_from_context(bContext *C)
+blender::VectorSet<Strip *> ED_sequencer_selected_strips_from_context(bContext *C)
 {
   const Scene *scene = CTX_data_scene(C);
   Editing *ed = SEQ_editing_get(scene);
@@ -97,16 +97,16 @@ blender::VectorSet<Sequence *> ED_sequencer_selected_strips_from_context(bContex
   if (is_preview) {
     blender::VectorSet strips = SEQ_query_rendered_strips(
         scene, channels, seqbase, scene->r.cfra, 0);
-    strips.remove_if([&](Sequence *seq) { return (seq->flag & SELECT) == 0; });
+    strips.remove_if([&](Strip *seq) { return (seq->flag & SELECT) == 0; });
     return strips;
   }
 
   return SEQ_query_selected_strips(seqbase);
 }
 
-static void select_surrounding_handles(Scene *scene, Sequence *test) /* XXX BRING BACK */
+static void select_surrounding_handles(Scene *scene, Strip *test) /* XXX BRING BACK */
 {
-  Sequence *neighbor;
+  Strip *neighbor;
 
   neighbor = find_neighboring_sequence(scene, test, SEQ_SIDE_LEFT, -1);
   if (neighbor) {
@@ -134,7 +134,7 @@ static void select_active_side(
     const Scene *scene, ListBase *seqbase, int sel_side, int channel, int frame)
 {
 
-  LISTBASE_FOREACH (Sequence *, seq, seqbase) {
+  LISTBASE_FOREACH (Strip *, seq, seqbase) {
     if (channel == seq->machine) {
       switch (sel_side) {
         case SEQ_SIDE_LEFT:
@@ -165,7 +165,7 @@ static void select_active_side_range(const Scene *scene,
                                      const int frame_ranges[SEQ_MAX_CHANNELS],
                                      const int frame_ignore)
 {
-  LISTBASE_FOREACH (Sequence *, seq, seqbase) {
+  LISTBASE_FOREACH (Strip *, seq, seqbase) {
     if (seq->machine < SEQ_MAX_CHANNELS) {
       const int frame = frame_ranges[seq->machine];
       if (frame == frame_ignore) {
@@ -195,14 +195,14 @@ static void select_active_side_range(const Scene *scene,
 
 /* Used alongside `select_linked_time` helper function in SEQUENCER_OT_select. */
 static void select_linked_time_seq(const Scene *scene,
-                                   const Sequence *seq_source,
+                                   const Strip *seq_source,
                                    const eSeqHandle handle_clicked)
 {
   ListBase *seqbase = SEQ_active_seqbase_get(scene->ed);
   int source_left = SEQ_time_left_handle_frame_get(scene, seq_source);
   int source_right = SEQ_time_right_handle_frame_get(scene, seq_source);
 
-  LISTBASE_FOREACH (Sequence *, seq_dest, seqbase) {
+  LISTBASE_FOREACH (Strip *, seq_dest, seqbase) {
     if (seq_source->machine != seq_dest->machine) {
       const bool left_match = (SEQ_time_left_handle_frame_get(scene, seq_dest) == source_left);
       const bool right_match = (SEQ_time_right_handle_frame_get(scene, seq_dest) == source_right);
@@ -230,7 +230,7 @@ static void select_linked_time_seq(const Scene *scene,
 #if 0 /* BRING BACK */
 void select_surround_from_last(Scene *scene)
 {
-  Sequence *seq = get_last_seq(scene);
+  Strip *seq = get_last_seq(scene);
 
   if (seq == nullptr) {
     return;
@@ -240,7 +240,7 @@ void select_surround_from_last(Scene *scene)
 }
 #endif
 
-void ED_sequencer_select_sequence_single(Scene *scene, Sequence *seq, bool deselect_all)
+void ED_sequencer_select_sequence_single(Scene *scene, Strip *seq, bool deselect_all)
 {
   Editing *ed = SEQ_editing_get(scene);
 
@@ -264,7 +264,7 @@ void ED_sequencer_select_sequence_single(Scene *scene, Sequence *seq, bool desel
   recurs_sel_seq(seq);
 }
 
-void seq_rectf(const Scene *scene, const Sequence *seq, rctf *r_rect)
+void seq_rectf(const Scene *scene, const Strip *seq, rctf *r_rect)
 {
   r_rect->xmin = SEQ_time_left_handle_frame_get(scene, seq);
   r_rect->xmax = SEQ_time_right_handle_frame_get(scene, seq);
@@ -272,7 +272,7 @@ void seq_rectf(const Scene *scene, const Sequence *seq, rctf *r_rect)
   r_rect->ymax = seq->machine + SEQ_STRIP_OFSTOP;
 }
 
-Sequence *find_neighboring_sequence(Scene *scene, Sequence *test, int lr, int sel)
+Strip *find_neighboring_sequence(Scene *scene, Strip *test, int lr, int sel)
 {
   /* sel: 0==unselected, 1==selected, -1==don't care. */
   Editing *ed = SEQ_editing_get(scene);
@@ -284,7 +284,7 @@ Sequence *find_neighboring_sequence(Scene *scene, Sequence *test, int lr, int se
   if (sel > 0) {
     sel = SELECT;
   }
-  LISTBASE_FOREACH (Sequence *, seq, ed->seqbasep) {
+  LISTBASE_FOREACH (Strip *, seq, ed->seqbasep) {
     if ((seq != test) && (test->machine == seq->machine) &&
         ((sel == -1) || (sel && (seq->flag & SELECT)) || (sel == 0 && (seq->flag & SELECT) == 0)))
     {
@@ -309,12 +309,12 @@ Sequence *find_neighboring_sequence(Scene *scene, Sequence *test, int lr, int se
   return nullptr;
 }
 
-Sequence *find_nearest_seq(const Scene *scene,
-                           const View2D *v2d,
-                           const int mval[2],
-                           eSeqHandle *r_hand)
+Strip *find_nearest_seq(const Scene *scene,
+                        const View2D *v2d,
+                        const int mval[2],
+                        eSeqHandle *r_hand)
 {
-  Sequence *seq;
+  Strip *seq;
   Editing *ed = SEQ_editing_get(scene);
   float x, y;
   float pixelx;
@@ -330,7 +330,7 @@ Sequence *find_nearest_seq(const Scene *scene,
 
   UI_view2d_region_to_view(v2d, mval[0], mval[1], &x, &y);
 
-  seq = static_cast<Sequence *>(ed->seqbasep->first);
+  seq = static_cast<Strip *>(ed->seqbasep->first);
 
   while (seq) {
     if (seq->machine == int(y)) {
@@ -375,7 +375,7 @@ Sequence *find_nearest_seq(const Scene *scene,
         return seq;
       }
     }
-    seq = static_cast<Sequence *>(seq->next);
+    seq = static_cast<Strip *>(seq->next);
   }
   return nullptr;
 }
@@ -383,8 +383,8 @@ Sequence *find_nearest_seq(const Scene *scene,
 #if 0
 static void select_neighbor_from_last(Scene *scene, int lr)
 {
-  Sequence *seq = SEQ_select_active_get(scene);
-  Sequence *neighbor;
+  Strip *seq = SEQ_select_active_get(scene);
+  Strip *neighbor;
   bool changed = false;
   if (seq) {
     neighbor = find_neighboring_sequence(scene, seq, lr, -1);
@@ -413,10 +413,10 @@ static void select_neighbor_from_last(Scene *scene, int lr)
 }
 #endif
 
-void recurs_sel_seq(Sequence *seq_meta)
+void recurs_sel_seq(Strip *seq_meta)
 {
-  Sequence *seq;
-  seq = static_cast<Sequence *>(seq_meta->seqbase.first);
+  Strip *seq;
+  seq = static_cast<Strip *>(seq_meta->seqbase.first);
 
   while (seq) {
 
@@ -434,11 +434,11 @@ void recurs_sel_seq(Sequence *seq_meta)
       recurs_sel_seq(seq);
     }
 
-    seq = static_cast<Sequence *>(seq->next);
+    seq = static_cast<Strip *>(seq->next);
   }
 }
 
-bool seq_point_image_isect(const Scene *scene, const Sequence *seq, float point_view[2])
+bool seq_point_image_isect(const Scene *scene, const Strip *seq, float point_view[2])
 {
   float seq_image_quad[4][2];
   SEQ_image_transform_final_quad_get(scene, seq, seq_image_quad);
@@ -476,7 +476,7 @@ static int sequencer_de_select_all_exec(bContext *C, wmOperator *op)
 
   if (action == SEL_TOGGLE) {
     action = SEL_SELECT;
-    for (Sequence *seq : strips) {
+    for (Strip *seq : strips) {
       if (seq->flag & SEQ_ALLSEL) {
         action = SEL_DESELECT;
         break;
@@ -484,7 +484,7 @@ static int sequencer_de_select_all_exec(bContext *C, wmOperator *op)
     }
   }
 
-  for (Sequence *seq : strips) {
+  for (Strip *seq : strips) {
     switch (action) {
       case SEL_SELECT:
         seq->flag &= ~(SEQ_LEFTSEL + SEQ_RIGHTSEL);
@@ -543,7 +543,7 @@ static int sequencer_select_inverse_exec(bContext *C, wmOperator * /*op*/)
 
   blender::VectorSet strips = all_strips_from_context(C);
 
-  for (Sequence *seq : strips) {
+  for (Strip *seq : strips) {
     if (seq->flag & SELECT) {
       seq->flag &= ~SEQ_ALLSEL;
     }
@@ -580,7 +580,7 @@ void SEQUENCER_OT_select_inverse(wmOperatorType *ot)
 /** \name Select Operator
  * \{ */
 
-static void sequencer_select_set_active(Scene *scene, Sequence *seq)
+static void sequencer_select_set_active(Scene *scene, Strip *seq)
 {
   Editing *ed = SEQ_editing_get(scene);
 
@@ -607,7 +607,7 @@ static void sequencer_select_side_of_frame(const bContext *C,
   Editing *ed = SEQ_editing_get(scene);
 
   const float x = UI_view2d_region_to_view_x(v2d, mval[0]);
-  LISTBASE_FOREACH (Sequence *, seq_iter, SEQ_active_seqbase_get(ed)) {
+  LISTBASE_FOREACH (Strip *, seq_iter, SEQ_active_seqbase_get(ed)) {
     if (((x < scene->r.cfra) &&
          (SEQ_time_right_handle_frame_get(scene, seq_iter) <= scene->r.cfra)) ||
         ((x >= scene->r.cfra) &&
@@ -638,7 +638,7 @@ static void sequencer_select_side_of_frame(const bContext *C,
 }
 
 static void sequencer_select_linked_handle(const bContext *C,
-                                           Sequence *seq,
+                                           Strip *seq,
                                            const eSeqHandle handle_clicked)
 {
   Scene *scene = CTX_data_scene(C);
@@ -662,7 +662,7 @@ static void sequencer_select_linked_handle(const bContext *C,
      */
     const int sel_side = (handle_clicked == SEQ_HANDLE_LEFT) ? SEQ_SIDE_LEFT : SEQ_SIDE_RIGHT;
 
-    Sequence *neighbor = find_neighboring_sequence(scene, seq, sel_side, -1);
+    Strip *neighbor = find_neighboring_sequence(scene, seq, sel_side, -1);
     if (neighbor) {
       switch (sel_side) {
         case SEQ_SIDE_LEFT:
@@ -712,7 +712,7 @@ static void sequencer_select_linked_handle(const bContext *C,
 /** Collect sequencer that are candidates for being selected. */
 struct SeqSelect_Link {
   SeqSelect_Link *next, *prev;
-  Sequence *seq;
+  Strip *seq;
   /** Only use for center selection. */
   float center_dist_sq;
 };
@@ -752,7 +752,7 @@ static int seq_sort_for_center_select(const void *a, const void *b)
  * If multiple strips are found, loop through them in order
  * (depth (top-most first) or closest to mouse when `center` is true).
  */
-static Sequence *seq_select_seq_from_preview(
+static Strip *seq_select_seq_from_preview(
     const bContext *C, const int mval[2], const bool toggle, const bool extend, const bool center)
 {
   Scene *scene = CTX_data_scene(C);
@@ -781,9 +781,9 @@ static Sequence *seq_select_seq_from_preview(
       scene, channels, seqbase, scene->r.cfra, sseq->chanshown);
 
   SeqSelect_Link *slink_active = nullptr;
-  Sequence *seq_active = SEQ_select_active_get(scene);
+  Strip *seq_active = SEQ_select_active_get(scene);
   ListBase strips_ordered = {nullptr};
-  for (Sequence *seq : strips) {
+  for (Strip *seq : strips) {
     bool isect = false;
     float center_dist_sq_test = 0.0f;
     if (center) {
@@ -821,7 +821,7 @@ static Sequence *seq_select_seq_from_preview(
                     center ? seq_sort_for_center_select : seq_sort_for_depth_select);
 
   SeqSelect_Link *slink_select = static_cast<SeqSelect_Link *>(strips_ordered.first);
-  Sequence *seq_select = nullptr;
+  Strip *seq_select = nullptr;
   if (slink_select != nullptr) {
     /* Only use special behavior for the active strip when it's selected. */
     if ((center == false) && slink_active && (seq_active->flag & SELECT)) {
@@ -844,7 +844,7 @@ static Sequence *seq_select_seq_from_preview(
   return seq_select;
 }
 
-bool ED_sequencer_handle_is_selected(const Sequence *seq, eSeqHandle handle)
+bool ED_sequencer_handle_is_selected(const Strip *seq, eSeqHandle handle)
 {
   return ((handle == SEQ_HANDLE_LEFT) && (seq->flag & SEQ_LEFTSEL)) ||
          ((handle == SEQ_HANDLE_RIGHT) && (seq->flag & SEQ_RIGHTSEL));
@@ -873,15 +873,15 @@ static bool element_already_selected(const StripSelection &selection)
 
 static void sequencer_select_connected_strips(const StripSelection &selection)
 {
-  blender::VectorSet<Sequence *> sources;
+  blender::VectorSet<Strip *> sources;
   sources.add(selection.seq1);
   if (selection.seq2) {
     sources.add(selection.seq2);
   }
 
-  for (Sequence *source : sources) {
-    blender::VectorSet<Sequence *> connections = SEQ_get_connected_strips(source);
-    for (Sequence *connection : connections) {
+  for (Strip *source : sources) {
+    blender::VectorSet<Strip *> connections = SEQ_get_connected_strips(source);
+    for (Strip *connection : connections) {
       /* Copy selection settings exactly for connected strips. */
       connection->flag &= ~(SEQ_ALLSEL);
       connection->flag |= source->flag & (SEQ_ALLSEL);
@@ -890,7 +890,7 @@ static void sequencer_select_connected_strips(const StripSelection &selection)
 }
 
 static void sequencer_select_strip_impl(const Editing *ed,
-                                        Sequence *seq,
+                                        Strip *seq,
                                         const eSeqHandle handle_clicked,
                                         const bool extend,
                                         const bool deselect,
@@ -961,7 +961,7 @@ static void select_linked_time(const Scene *scene,
 }
 
 /* Similar to `sequence_handle_size_get_clamped()` but allows for larger clickable area. */
-static float clickable_handle_size_get(const Scene *scene, const Sequence *seq, const View2D *v2d)
+static float clickable_handle_size_get(const Scene *scene, const Strip *seq, const View2D *v2d)
 {
   const float pixelx = 1 / UI_view2d_scale_get_x(v2d);
   const float strip_len = SEQ_time_right_handle_frame_get(scene, seq) -
@@ -969,7 +969,7 @@ static float clickable_handle_size_get(const Scene *scene, const Sequence *seq, 
   return min_ff(15.0f * pixelx * U.pixelsize, strip_len / 4);
 }
 
-bool ED_sequencer_can_select_handle(const Scene *scene, const Sequence *seq, const View2D *v2d)
+bool ED_sequencer_can_select_handle(const Scene *scene, const Strip *seq, const View2D *v2d)
 {
   if (SEQ_effect_get_num_inputs(seq->type) > 0) {
     return false;
@@ -996,7 +996,7 @@ bool ED_sequencer_can_select_handle(const Scene *scene, const Sequence *seq, con
 }
 
 static void strip_clickable_areas_get(const Scene *scene,
-                                      const Sequence *seq,
+                                      const Strip *seq,
                                       const View2D *v2d,
                                       rctf *r_body,
                                       rctf *r_left_handle,
@@ -1014,7 +1014,7 @@ static void strip_clickable_areas_get(const Scene *scene,
   BLI_rctf_pad(r_body, -handsize, 0.0f);
 }
 
-static rctf strip_clickable_area_get(const Scene *scene, const View2D *v2d, const Sequence *seq)
+static rctf strip_clickable_area_get(const Scene *scene, const View2D *v2d, const Strip *seq)
 {
   rctf body, left, right;
   strip_clickable_areas_get(scene, seq, v2d, &body, &left, &right);
@@ -1025,7 +1025,7 @@ static rctf strip_clickable_area_get(const Scene *scene, const View2D *v2d, cons
 
 static float strip_to_frame_distance(const Scene *scene,
                                      const View2D *v2d,
-                                     const Sequence *seq,
+                                     const Strip *seq,
                                      float timeline_frame)
 {
   rctf body, left, right;
@@ -1034,14 +1034,14 @@ static float strip_to_frame_distance(const Scene *scene,
 }
 
 /* Get strips that can be selected by click. */
-static blender::Vector<Sequence *> mouseover_strips_sorted_get(const Scene *scene,
-                                                               const View2D *v2d,
-                                                               float mouse_co[2])
+static blender::Vector<Strip *> mouseover_strips_sorted_get(const Scene *scene,
+                                                            const View2D *v2d,
+                                                            float mouse_co[2])
 {
   Editing *ed = SEQ_editing_get(scene);
 
-  blender::Vector<Sequence *> strips;
-  LISTBASE_FOREACH (Sequence *, seq, ed->seqbasep) {
+  blender::Vector<Strip *> strips;
+  LISTBASE_FOREACH (Strip *, seq, ed->seqbasep) {
     if (seq->machine != int(mouse_co[1])) {
       continue;
     }
@@ -1058,7 +1058,7 @@ static blender::Vector<Sequence *> mouseover_strips_sorted_get(const Scene *scen
     strips.append(seq);
   }
 
-  std::sort(strips.begin(), strips.end(), [&](const Sequence *seq1, const Sequence *seq2) {
+  std::sort(strips.begin(), strips.end(), [&](const Strip *seq1, const Strip *seq2) {
     return strip_to_frame_distance(scene, v2d, seq1, mouse_co[0]) <
            strip_to_frame_distance(scene, v2d, seq2, mouse_co[0]);
   });
@@ -1066,7 +1066,7 @@ static blender::Vector<Sequence *> mouseover_strips_sorted_get(const Scene *scen
   return strips;
 }
 
-static bool strips_are_adjacent(const Scene *scene, const Sequence *seq1, const Sequence *seq2)
+static bool strips_are_adjacent(const Scene *scene, const Strip *seq1, const Strip *seq2)
 {
   const int s1_left = SEQ_time_left_handle_frame_get(scene, seq1);
   const int s1_right = SEQ_time_right_handle_frame_get(scene, seq1);
@@ -1077,7 +1077,7 @@ static bool strips_are_adjacent(const Scene *scene, const Sequence *seq1, const 
 }
 
 static eSeqHandle get_strip_handle_under_cursor(const Scene *scene,
-                                                const Sequence *seq,
+                                                const Strip *seq,
                                                 const View2D *v2d,
                                                 float mouse_co[2])
 {
@@ -1098,7 +1098,7 @@ static eSeqHandle get_strip_handle_under_cursor(const Scene *scene,
 }
 
 static bool is_mouse_over_both_handles_of_adjacent_strips(const Scene *scene,
-                                                          blender::Vector<Sequence *> strips,
+                                                          blender::Vector<Strip *> strips,
                                                           const View2D *v2d,
                                                           float mouse_co[2])
 {
@@ -1125,7 +1125,7 @@ StripSelection ED_sequencer_pick_strip_and_handle(const Scene *scene,
                                                   const View2D *v2d,
                                                   float mouse_co[2])
 {
-  blender::Vector<Sequence *> strips = mouseover_strips_sorted_get(scene, v2d, mouse_co);
+  blender::Vector<Strip *> strips = mouseover_strips_sorted_get(scene, v2d, mouse_co);
 
   StripSelection selection;
 
@@ -1172,7 +1172,7 @@ int sequencer_select_exec(bContext *C, wmOperator *op)
 
   /* Check to see if the mouse cursor intersects with the retiming box; if so, `seq_key_owner` is
    * set. If the cursor intersects with a retiming key, `key` will be set too. */
-  Sequence *seq_key_owner = nullptr;
+  Strip *seq_key_owner = nullptr;
   SeqRetimingKey *key = retiming_mouseover_key_get(C, mouse_co.region, &seq_key_owner);
 
   /* If no key was found, the mouse cursor may still intersect with a "fake key" that has not been
@@ -1191,8 +1191,8 @@ int sequencer_select_exec(bContext *C, wmOperator *op)
     /* Attempt to realize any other connected strips' fake keys. */
     if (SEQ_is_strip_connected(seq_key_owner)) {
       const int key_frame = SEQ_retiming_key_timeline_frame_get(scene, seq_key_owner, key);
-      blender::VectorSet<Sequence *> connections = SEQ_get_connected_strips(seq_key_owner);
-      for (Sequence *connection : connections) {
+      blender::VectorSet<Strip *> connections = SEQ_get_connected_strips(seq_key_owner);
+      for (Strip *connection : connections) {
         if (key_frame == left_fake_key_frame_get(C, connection) ||
             key_frame == right_fake_key_frame_get(C, connection))
         {
@@ -1410,7 +1410,7 @@ static int sequencer_select_handle_exec(bContext *C, wmOperator *op)
   }
 
   /* Ignore clicks on retiming keys. */
-  Sequence *seq_key_test = nullptr;
+  Strip *seq_key_test = nullptr;
   SeqRetimingKey *key = retiming_mouseover_key_get(C, mouse_co.region, &seq_key_test);
   if (key != nullptr) {
     return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
@@ -1504,12 +1504,12 @@ static bool select_linked_internal(Scene *scene)
 
   bool changed = false;
 
-  LISTBASE_FOREACH (Sequence *, seq, SEQ_active_seqbase_get(ed)) {
+  LISTBASE_FOREACH (Strip *, seq, SEQ_active_seqbase_get(ed)) {
     if ((seq->flag & SELECT) == 0) {
       continue;
     }
     /* Only get unselected neighbors. */
-    Sequence *neighbor = find_neighboring_sequence(scene, seq, SEQ_SIDE_LEFT, 0);
+    Strip *neighbor = find_neighboring_sequence(scene, seq, SEQ_SIDE_LEFT, 0);
     if (neighbor) {
       neighbor->flag |= SELECT;
       recurs_sel_seq(neighbor);
@@ -1539,11 +1539,11 @@ static bool select_more_less_seq__internal(Scene *scene, bool select_more)
   const int neighbor_selection_filter = select_more ? 0 : SELECT;
   const int selection_filter = select_more ? SELECT : 0;
 
-  LISTBASE_FOREACH (Sequence *, seq, SEQ_active_seqbase_get(ed)) {
+  LISTBASE_FOREACH (Strip *, seq, SEQ_active_seqbase_get(ed)) {
     if ((seq->flag & SELECT) != selection_filter) {
       continue;
     }
-    Sequence *neighbor = find_neighboring_sequence(
+    Strip *neighbor = find_neighboring_sequence(
         scene, seq, SEQ_SIDE_LEFT, neighbor_selection_filter);
     if (neighbor) {
       BLI_gset_add(neighbors, neighbor);
@@ -1558,7 +1558,7 @@ static bool select_more_less_seq__internal(Scene *scene, bool select_more)
   GSetIterator gsi;
   BLI_gsetIterator_init(&gsi, neighbors);
   while (!BLI_gsetIterator_done(&gsi)) {
-    Sequence *neighbor = static_cast<Sequence *>(BLI_gsetIterator_getKey(&gsi));
+    Strip *neighbor = static_cast<Strip *>(BLI_gsetIterator_getKey(&gsi));
     if (select_more) {
       neighbor->flag |= SELECT;
       recurs_sel_seq(neighbor);
@@ -1653,7 +1653,7 @@ static int sequencer_select_linked_pick_invoke(bContext *C, wmOperator *op, cons
 
   bool extend = RNA_boolean_get(op->ptr, "extend");
 
-  Sequence *mouse_seq;
+  Strip *mouse_seq;
   eSeqHandle hand;
   int selected;
 
@@ -1770,10 +1770,10 @@ static int sequencer_select_handles_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   Editing *ed = SEQ_editing_get(scene);
   int sel_side = RNA_enum_get(op->ptr, "side");
-  LISTBASE_FOREACH (Sequence *, seq, ed->seqbasep) {
+  LISTBASE_FOREACH (Strip *, seq, ed->seqbasep) {
     if (seq->flag & SELECT) {
-      Sequence *l_neighbor = find_neighboring_sequence(scene, seq, SEQ_SIDE_LEFT, -1);
-      Sequence *r_neighbor = find_neighboring_sequence(scene, seq, SEQ_SIDE_RIGHT, -1);
+      Strip *l_neighbor = find_neighboring_sequence(scene, seq, SEQ_SIDE_LEFT, -1);
+      Strip *r_neighbor = find_neighboring_sequence(scene, seq, SEQ_SIDE_RIGHT, -1);
 
       switch (sel_side) {
         case SEQ_SELECT_HANDLES_SIDE_LEFT:
@@ -1817,7 +1817,7 @@ static int sequencer_select_handles_exec(bContext *C, wmOperator *op)
     }
   }
   /*   Select strips */
-  LISTBASE_FOREACH (Sequence *, seq, ed->seqbasep) {
+  LISTBASE_FOREACH (Strip *, seq, ed->seqbasep) {
     if ((seq->flag & SEQ_LEFTSEL) || (seq->flag & SEQ_RIGHTSEL)) {
       if (!(seq->flag & SELECT)) {
         seq->flag |= SELECT;
@@ -1876,7 +1876,7 @@ static int sequencer_select_side_of_frame_exec(bContext *C, wmOperator *op)
     ED_sequencer_deselect_all(scene);
   }
   const int timeline_frame = scene->r.cfra;
-  LISTBASE_FOREACH (Sequence *, seq, SEQ_active_seqbase_get(ed)) {
+  LISTBASE_FOREACH (Strip *, seq, SEQ_active_seqbase_get(ed)) {
     bool test = false;
     switch (side) {
       case -1:
@@ -1949,7 +1949,7 @@ static int sequencer_select_side_exec(bContext *C, wmOperator *op)
 
   copy_vn_i(frame_ranges, ARRAY_SIZE(frame_ranges), frame_init);
 
-  LISTBASE_FOREACH (Sequence *, seq, ed->seqbasep) {
+  LISTBASE_FOREACH (Strip *, seq, ed->seqbasep) {
     if (UNLIKELY(seq->machine >= SEQ_MAX_CHANNELS)) {
       continue;
     }
@@ -2007,9 +2007,7 @@ void SEQUENCER_OT_select_side(wmOperatorType *ot)
 /** \name Box Select Operator
  * \{ */
 
-static bool seq_box_select_rect_image_isect(const Scene *scene,
-                                            const Sequence *seq,
-                                            const rctf *rect)
+static bool seq_box_select_rect_image_isect(const Scene *scene, const Strip *seq, const rctf *rect)
 {
   float seq_image_quad[4][2];
   SEQ_image_transform_final_quad_get(scene, seq, seq_image_quad);
@@ -2044,7 +2042,7 @@ static void seq_box_select_seq_from_preview(const bContext *C,
 
   blender::VectorSet strips = SEQ_query_rendered_strips(
       scene, channels, seqbase, scene->r.cfra, sseq->chanshown);
-  for (Sequence *seq : strips) {
+  for (Strip *seq : strips) {
     if (!seq_box_select_rect_image_isect(scene, seq, rect)) {
       continue;
     }
@@ -2098,7 +2096,7 @@ static int sequencer_box_select_exec(bContext *C, wmOperator *op)
     return OPERATOR_FINISHED;
   }
 
-  LISTBASE_FOREACH (Sequence *, seq, ed->seqbasep) {
+  LISTBASE_FOREACH (Strip *, seq, ed->seqbasep) {
     rctf rq;
     seq_rectf(scene, seq, &rq);
     if (BLI_rctf_isect(&rq, &rectf, nullptr)) {
@@ -2287,14 +2285,14 @@ static const EnumPropertyItem sequencer_prop_select_grouped_types[] = {
 
 #define SEQ_CHANNEL_CHECK(_seq, _chan) ELEM((_chan), 0, (_seq)->machine)
 
-static bool select_grouped_type(blender::Span<Sequence *> strips,
+static bool select_grouped_type(blender::Span<Strip *> strips,
                                 ListBase * /*seqbase*/,
-                                Sequence *actseq,
+                                Strip *actseq,
                                 const int channel)
 {
   bool changed = false;
 
-  for (Sequence *seq : strips) {
+  for (Strip *seq : strips) {
     if (SEQ_CHANNEL_CHECK(seq, channel) && seq->type == actseq->type) {
       seq->flag |= SELECT;
       changed = true;
@@ -2304,15 +2302,15 @@ static bool select_grouped_type(blender::Span<Sequence *> strips,
   return changed;
 }
 
-static bool select_grouped_type_basic(blender::Span<Sequence *> strips,
+static bool select_grouped_type_basic(blender::Span<Strip *> strips,
                                       ListBase * /*seqbase*/,
-                                      Sequence *actseq,
+                                      Strip *actseq,
                                       const int channel)
 {
   bool changed = false;
   const bool is_sound = SEQ_IS_SOUND(actseq);
 
-  for (Sequence *seq : strips) {
+  for (Strip *seq : strips) {
     if (SEQ_CHANNEL_CHECK(seq, channel) && (is_sound ? SEQ_IS_SOUND(seq) : !SEQ_IS_SOUND(seq))) {
       seq->flag |= SELECT;
       changed = true;
@@ -2322,15 +2320,15 @@ static bool select_grouped_type_basic(blender::Span<Sequence *> strips,
   return changed;
 }
 
-static bool select_grouped_type_effect(blender::Span<Sequence *> strips,
+static bool select_grouped_type_effect(blender::Span<Strip *> strips,
                                        ListBase * /*seqbase*/,
-                                       Sequence *actseq,
+                                       Strip *actseq,
                                        const int channel)
 {
   bool changed = false;
   const bool is_effect = SEQ_IS_EFFECT(actseq);
 
-  for (Sequence *seq : strips) {
+  for (Strip *seq : strips) {
     if (SEQ_CHANNEL_CHECK(seq, channel) && (is_effect ? SEQ_IS_EFFECT(seq) : !SEQ_IS_EFFECT(seq)))
     {
       seq->flag |= SELECT;
@@ -2341,9 +2339,9 @@ static bool select_grouped_type_effect(blender::Span<Sequence *> strips,
   return changed;
 }
 
-static bool select_grouped_data(blender::Span<Sequence *> strips,
+static bool select_grouped_data(blender::Span<Strip *> strips,
                                 ListBase * /*seqbase*/,
-                                Sequence *actseq,
+                                Strip *actseq,
                                 const int channel)
 {
   bool changed = false;
@@ -2354,7 +2352,7 @@ static bool select_grouped_data(blender::Span<Sequence *> strips,
   }
 
   if (SEQ_HAS_PATH(actseq) && dirpath) {
-    for (Sequence *seq : strips) {
+    for (Strip *seq : strips) {
       if (SEQ_CHANNEL_CHECK(seq, channel) && SEQ_HAS_PATH(seq) && seq->data &&
           STREQ(seq->data->dirpath, dirpath))
       {
@@ -2365,7 +2363,7 @@ static bool select_grouped_data(blender::Span<Sequence *> strips,
   }
   else if (actseq->type == SEQ_TYPE_SCENE) {
     Scene *sce = actseq->scene;
-    for (Sequence *seq : strips) {
+    for (Strip *seq : strips) {
       if (SEQ_CHANNEL_CHECK(seq, channel) && seq->type == SEQ_TYPE_SCENE && seq->scene == sce) {
         seq->flag |= SELECT;
         changed = true;
@@ -2374,7 +2372,7 @@ static bool select_grouped_data(blender::Span<Sequence *> strips,
   }
   else if (actseq->type == SEQ_TYPE_MOVIECLIP) {
     MovieClip *clip = actseq->clip;
-    for (Sequence *seq : strips) {
+    for (Strip *seq : strips) {
       if (SEQ_CHANNEL_CHECK(seq, channel) && seq->type == SEQ_TYPE_MOVIECLIP && seq->clip == clip)
       {
         seq->flag |= SELECT;
@@ -2384,7 +2382,7 @@ static bool select_grouped_data(blender::Span<Sequence *> strips,
   }
   else if (actseq->type == SEQ_TYPE_MASK) {
     Mask *mask = actseq->mask;
-    for (Sequence *seq : strips) {
+    for (Strip *seq : strips) {
       if (SEQ_CHANNEL_CHECK(seq, channel) && seq->type == SEQ_TYPE_MASK && seq->mask == mask) {
         seq->flag |= SELECT;
         changed = true;
@@ -2395,9 +2393,9 @@ static bool select_grouped_data(blender::Span<Sequence *> strips,
   return changed;
 }
 
-static bool select_grouped_effect(blender::Span<Sequence *> strips,
+static bool select_grouped_effect(blender::Span<Strip *> strips,
                                   ListBase * /*seqbase*/,
-                                  Sequence *actseq,
+                                  Strip *actseq,
                                   const int channel)
 {
   bool changed = false;
@@ -2407,7 +2405,7 @@ static bool select_grouped_effect(blender::Span<Sequence *> strips,
     effects[i] = false;
   }
 
-  for (Sequence *seq : strips) {
+  for (Strip *seq : strips) {
     if (SEQ_CHANNEL_CHECK(seq, channel) && (seq->type & SEQ_TYPE_EFFECT) &&
         SEQ_relation_is_effect_of_strip(seq, actseq))
     {
@@ -2415,7 +2413,7 @@ static bool select_grouped_effect(blender::Span<Sequence *> strips,
     }
   }
 
-  for (Sequence *seq : strips) {
+  for (Strip *seq : strips) {
     if (SEQ_CHANNEL_CHECK(seq, channel) && effects[seq->type]) {
       if (seq->seq1) {
         seq->seq1->flag |= SELECT;
@@ -2431,13 +2429,13 @@ static bool select_grouped_effect(blender::Span<Sequence *> strips,
 }
 
 static bool select_grouped_time_overlap(const Scene *scene,
-                                        blender::Span<Sequence *> strips,
+                                        blender::Span<Strip *> strips,
                                         ListBase * /*seqbase*/,
-                                        Sequence *actseq)
+                                        Strip *actseq)
 {
   bool changed = false;
 
-  for (Sequence *seq : strips) {
+  for (Strip *seq : strips) {
     if (SEQ_time_left_handle_frame_get(scene, seq) <
             SEQ_time_right_handle_frame_get(scene, actseq) &&
         SEQ_time_right_handle_frame_get(scene, seq) >
@@ -2453,11 +2451,11 @@ static bool select_grouped_time_overlap(const Scene *scene,
 
 /* Query strips that are in lower channel and intersect in time with seq_reference. */
 static void query_lower_channel_strips(const Scene *scene,
-                                       Sequence *seq_reference,
+                                       Strip *seq_reference,
                                        ListBase *seqbase,
-                                       blender::VectorSet<Sequence *> &strips)
+                                       blender::VectorSet<Strip *> &strips)
 {
-  LISTBASE_FOREACH (Sequence *, seq_test, seqbase) {
+  LISTBASE_FOREACH (Strip *, seq_test, seqbase) {
     if (seq_test->machine > seq_reference->machine) {
       continue; /* Not lower channel. */
     }
@@ -2475,13 +2473,13 @@ static void query_lower_channel_strips(const Scene *scene,
 /* Select all strips within time range and with lower channel of initial selection. Then select
  * effect chains of these strips. */
 static bool select_grouped_effect_link(const Scene *scene,
-                                       blender::VectorSet<Sequence *> strips,
+                                       blender::VectorSet<Strip *> strips,
                                        ListBase *seqbase,
-                                       Sequence * /*actseq*/,
+                                       Strip * /*actseq*/,
                                        const int /*channel*/)
 {
   /* Get collection of strips. */
-  strips.remove_if([&](Sequence *seq) { return (seq->flag & SELECT) == 0; });
+  strips.remove_if([&](Strip *seq) { return (seq->flag & SELECT) == 0; });
   const int selected_strip_count = strips.size();
   /* XXX: this uses scene as arg, so it does not work with iterator :( I had thought about this,
    * but expand function is just so useful... I can just add scene and inject it I guess. */
@@ -2492,7 +2490,7 @@ static bool select_grouped_effect_link(const Scene *scene,
   const bool changed = strips.size() > selected_strip_count;
 
   /* Actual logic. */
-  for (Sequence *seq : strips) {
+  for (Strip *seq : strips) {
     seq->flag |= SELECT;
   }
 
@@ -2507,7 +2505,7 @@ static int sequencer_select_grouped_exec(bContext *C, wmOperator *op)
 {
   Scene *scene = CTX_data_scene(C);
   ListBase *seqbase = SEQ_active_seqbase_get(SEQ_editing_get(scene));
-  Sequence *actseq = SEQ_select_active_get(scene);
+  Strip *actseq = SEQ_select_active_get(scene);
 
   const bool is_preview = sequencer_view_has_preview_poll(C);
   if (is_preview && !sequencer_view_preview_only_poll(C)) {
@@ -2528,7 +2526,7 @@ static int sequencer_select_grouped_exec(bContext *C, wmOperator *op)
   bool changed = false;
 
   if (!extend) {
-    LISTBASE_FOREACH (Sequence *, seq, seqbase) {
+    LISTBASE_FOREACH (Strip *, seq, seqbase) {
       seq->flag &= ~SELECT;
       changed = true;
     }

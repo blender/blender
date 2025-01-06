@@ -255,7 +255,7 @@ static void outliner_select_sync_to_sequence(Scene *scene, const TreeElement *te
   const TreeStoreElem *tselem = TREESTORE(te);
 
   const TreeElementSequence *te_sequence = tree_element_cast<TreeElementSequence>(te);
-  Sequence *seq = &te_sequence->get_sequence();
+  Strip *seq = &te_sequence->get_sequence();
 
   if (tselem->flag & TSE_ACTIVE) {
     SEQ_select_active_set(scene, seq);
@@ -424,12 +424,12 @@ static void outliner_select_sync_from_pose_bone(bPoseChannel *pchan_active,
   }
 }
 
-static void outliner_select_sync_from_sequence(Sequence *sequence_active, const TreeElement *te)
+static void outliner_select_sync_from_sequence(Strip *sequence_active, const TreeElement *te)
 {
   TreeStoreElem *tselem = TREESTORE(te);
 
   const TreeElementSequence *te_sequence = tree_element_cast<TreeElementSequence>(te);
-  const Sequence *seq = &te_sequence->get_sequence();
+  const Strip *seq = &te_sequence->get_sequence();
 
   if (seq == sequence_active) {
     tselem->flag |= TSE_ACTIVE;
@@ -454,7 +454,7 @@ struct SyncSelectActiveData {
   Object *object;
   EditBone *edit_bone;
   bPoseChannel *pose_channel;
-  Sequence *sequence;
+  Strip *sequence;
 };
 
 /** Sync select and active flags from active view layer, bones, and sequences to the outliner. */

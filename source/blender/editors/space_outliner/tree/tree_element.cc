@@ -127,14 +127,13 @@ std::unique_ptr<AbstractTreeElement> AbstractTreeElement::create_from_type(const
       return std::make_unique<TreeElementRNAArrayElement>(
           legacy_te, *static_cast<PointerRNA *>(create_data), legacy_te.index);
     case TSE_SEQUENCE:
-      return std::make_unique<TreeElementSequence>(legacy_te,
-                                                   *static_cast<Sequence *>(create_data));
+      return std::make_unique<TreeElementSequence>(legacy_te, *static_cast<Strip *>(create_data));
     case TSE_SEQ_STRIP:
       return std::make_unique<TreeElementSequenceStrip>(legacy_te,
                                                         *static_cast<StripData *>(create_data));
     case TSE_SEQUENCE_DUP:
       return std::make_unique<TreeElementSequenceStripDuplicate>(
-          legacy_te, *static_cast<Sequence *>(create_data));
+          legacy_te, *static_cast<Strip *>(create_data));
     case TSE_BONE:
       return std::make_unique<TreeElementBone>(
           legacy_te, *owner_id, *static_cast<Bone *>(create_data));

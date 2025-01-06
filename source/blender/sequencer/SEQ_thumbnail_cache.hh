@@ -11,7 +11,7 @@
 struct bContext;
 struct ImBuf;
 struct rctf;
-struct Sequence;
+struct Strip;
 struct Scene;
 
 #include "BLI_function_ref.hh"
@@ -35,7 +35,7 @@ static constexpr int SEQ_THUMB_SIZE = 256;
  * processed in the background. */
 ImBuf *thumbnail_cache_get(const bContext *C,
                            Scene *scene,
-                           const Sequence *seq,
+                           const Strip *seq,
                            float timeline_frame);
 
 /**
@@ -44,7 +44,7 @@ ImBuf *thumbnail_cache_get(const bContext *C,
  */
 void thumbnail_cache_maintain_capacity(Scene *scene);
 
-void thumbnail_cache_invalidate_strip(Scene *scene, const Sequence *seq);
+void thumbnail_cache_invalidate_strip(Scene *scene, const Strip *seq);
 
 /**
  * Discard in-flight thumbnail loading requests that are outside of the given view (X coordinate:
@@ -55,6 +55,6 @@ void thumbnail_cache_discard_requests_outside(Scene *scene, const rctf &rect);
 void thumbnail_cache_clear(Scene *scene);
 void thumbnail_cache_destroy(Scene *scene);
 
-bool strip_can_have_thumbnail(const Scene *scene, const Sequence *seq);
+bool strip_can_have_thumbnail(const Scene *scene, const Strip *seq);
 
 }  // namespace blender::seq

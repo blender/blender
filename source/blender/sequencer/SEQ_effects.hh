@@ -13,7 +13,7 @@
 
 struct ImBuf;
 struct SeqRenderData;
-struct Sequence;
+struct Strip;
 struct TextVars;
 
 enum class StripEarlyOut {
@@ -36,7 +36,7 @@ enum {
 struct SeqEffectHandle {
   /* constructors & destructor */
   /* init is _only_ called on first creation */
-  void (*init)(Sequence *seq);
+  void (*init)(Strip *seq);
 
   /* number of input strips needed
    * (called directly after construction) */
@@ -44,36 +44,33 @@ struct SeqEffectHandle {
 
   /* load is called first time after readblenfile in
    * get_sequence_effect automatically */
-  void (*load)(Sequence *seqconst);
+  void (*load)(Strip *seqconst);
 
   /* duplicate */
-  void (*copy)(Sequence *dst, const Sequence *src, int flag);
+  void (*copy)(Strip *dst, const Strip *src, int flag);
 
   /* destruct */
-  void (*free)(Sequence *seq, bool do_id_user);
+  void (*free)(Strip *seq, bool do_id_user);
 
-  StripEarlyOut (*early_out)(const Sequence *seq, float fac);
+  StripEarlyOut (*early_out)(const Strip *seq, float fac);
 
   /* sets the default `fac` value */
-  void (*get_default_fac)(const Scene *scene,
-                          const Sequence *seq,
-                          float timeline_frame,
-                          float *fac);
+  void (*get_default_fac)(const Scene *scene, const Strip *seq, float timeline_frame, float *fac);
 
   /* execute the effect */
   ImBuf *(*execute)(const SeqRenderData *context,
-                    Sequence *seq,
+                    Strip *seq,
                     float timeline_frame,
                     float fac,
                     ImBuf *ibuf1,
                     ImBuf *ibuf2);
 };
 
-SeqEffectHandle SEQ_effect_handle_get(Sequence *seq);
+SeqEffectHandle SEQ_effect_handle_get(Strip *seq);
 int SEQ_effect_get_num_inputs(int seq_type);
 void SEQ_effect_text_font_unload(TextVars *data, bool do_id_user);
 void SEQ_effect_text_font_load(TextVars *data, bool do_id_user);
-bool SEQ_effects_can_render_text(const Sequence *seq);
+bool SEQ_effects_can_render_text(const Strip *seq);
 
 namespace blender::seq {
 

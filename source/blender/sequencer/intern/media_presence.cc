@@ -21,13 +21,13 @@ namespace blender::seq {
 
 static ThreadMutex presence_lock = BLI_MUTEX_INITIALIZER;
 
-static const char *get_seq_base_path(const Sequence *seq)
+static const char *get_seq_base_path(const Strip *seq)
 {
   return seq->scene ? ID_BLEND_PATH_FROM_GLOBAL(&seq->scene->id) :
                       BKE_main_blendfile_path_from_global();
 }
 
-static bool check_sound_media_missing(const bSound *sound, const Sequence *seq)
+static bool check_sound_media_missing(const bSound *sound, const Strip *seq)
 {
   if (sound == nullptr) {
     return false;
@@ -40,7 +40,7 @@ static bool check_sound_media_missing(const bSound *sound, const Sequence *seq)
   return !BLI_exists(filepath);
 }
 
-static bool check_media_missing(const Sequence *seq)
+static bool check_media_missing(const Strip *seq)
 {
   if (seq == nullptr || seq->data == nullptr) {
     return false;
@@ -69,7 +69,7 @@ static bool check_media_missing(const Sequence *seq)
 
   /* Recurse into meta strips. */
   if (seq->type == SEQ_TYPE_META) {
-    LISTBASE_FOREACH (Sequence *, seqn, &seq->seqbase) {
+    LISTBASE_FOREACH (Strip *, seqn, &seq->seqbase) {
       if (check_media_missing(seqn)) {
         return true;
       }
@@ -94,7 +94,7 @@ static MediaPresence *get_media_presence_cache(Scene *scene)
   return *presence;
 }
 
-bool media_presence_is_missing(Scene *scene, const Sequence *seq)
+bool media_presence_is_missing(Scene *scene, const Strip *seq)
 {
   if (seq == nullptr || scene == nullptr || scene->ed == nullptr) {
     return false;
@@ -136,7 +136,7 @@ bool media_presence_is_missing(Scene *scene, const Sequence *seq)
   return missing;
 }
 
-void media_presence_set_missing(Scene *scene, const Sequence *seq, bool missing)
+void media_presence_set_missing(Scene *scene, const Strip *seq, bool missing)
 {
   if (seq == nullptr || scene == nullptr || scene->ed == nullptr) {
     return;
@@ -157,7 +157,7 @@ void media_presence_set_missing(Scene *scene, const Sequence *seq, bool missing)
   BLI_mutex_unlock(&presence_lock);
 }
 
-void media_presence_invalidate_strip(Scene *scene, const Sequence *seq)
+void media_presence_invalidate_strip(Scene *scene, const Strip *seq)
 {
   BLI_mutex_lock(&presence_lock);
   if (scene != nullptr && scene->ed != nullptr && scene->ed->runtime.media_presence != nullptr) {

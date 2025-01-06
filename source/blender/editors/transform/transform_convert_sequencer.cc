@@ -42,8 +42,8 @@
 
 /** Used for sequencer transform. */
 struct TransDataSeq {
-  Sequence *seq;
-  /** A copy of #Sequence.flag that may be modified for nested strips. */
+  Strip *seq;
+  /** A copy of #Strip.flag that may be modified for nested strips. */
   int flag;
   /** Use this so we can have transform data at the strips start,
    * but apply correctly to the start frame. */
@@ -65,7 +65,7 @@ struct TransSeq {
   View2DEdgePanData edge_pan;
 
   /* Strips that aren't selected, but their position entirely depends on transformed strips. */
-  blender::VectorSet<Sequence *> time_dependent_strips;
+  blender::VectorSet<Strip *> time_dependent_strips;
 };
 
 /* -------------------------------------------------------------------- */
@@ -77,7 +77,7 @@ struct TransSeq {
  *
  * count and flag MUST be set.
  */
-static void SeqTransInfo(TransInfo *t, Sequence *seq, int *r_count, int *r_flag)
+static void SeqTransInfo(TransInfo *t, Strip *seq, int *r_count, int *r_flag)
 {
   Scene *scene = t->scene;
   Editing *ed = SEQ_editing_get(t->scene);
@@ -151,7 +151,7 @@ static int SeqTransCount(TransInfo *t, ListBase *seqbase)
 {
   int tot = 0, count, flag;
 
-  LISTBASE_FOREACH (Sequence *, seq, seqbase) {
+  LISTBASE_FOREACH (Strip *, seq, seqbase) {
     SeqTransInfo(t, seq, &count, &flag); /* Ignore the flag. */
     tot += count;
   }
@@ -163,7 +163,7 @@ static TransData *SeqToTransData(Scene *scene,
                                  TransData *td,
                                  TransData2D *td2d,
                                  TransDataSeq *tdsq,
-                                 Sequence *seq,
+                                 Strip *seq,
                                  int flag,
                                  int sel_flag)
 {
@@ -231,7 +231,7 @@ static int SeqToTransData_build(
   int count, flag;
   int tot = 0;
 
-  LISTBASE_FOREACH (Sequence *, seq, seqbase) {
+  LISTBASE_FOREACH (Strip *, seq, seqbase) {
 
     SeqTransInfo(t, seq, &count, &flag);
 
@@ -267,11 +267,11 @@ static void free_transform_custom_data(TransCustomData *custom_data)
 }
 
 /* Canceled, need to update the strips display. */
-static void seq_transform_cancel(TransInfo *t, blender::Span<Sequence *> transformed_strips)
+static void seq_transform_cancel(TransInfo *t, blender::Span<Strip *> transformed_strips)
 {
   ListBase *seqbase = SEQ_active_seqbase_get(SEQ_editing_get(t->scene));
 
-  for (Sequence *seq : transformed_strips) {
+  for (Strip *seq : transformed_strips) {
     /* Handle pre-existing overlapping strips even when operator is canceled.
      * This is necessary for SEQUENCER_OT_duplicate_move macro for example. */
     if (SEQ_transform_test_overlap(t->scene, seqbase, seq)) {
@@ -286,9 +286,9 @@ static ListBase *seqbase_active_get(const TransInfo *t)
   return SEQ_active_seqbase_get(ed);
 }
 
-bool seq_transform_check_overlap(blender::Span<Sequence *> transformed_strips)
+bool seq_transform_check_overlap(blender::Span<Strip *> transformed_strips)
 {
-  for (Sequence *seq : transformed_strips) {
+  for (Strip *seq : transformed_strips) {
     if (seq->flag & SEQ_OVERLAP) {
       return true;
     }
@@ -296,13 +296,12 @@ bool seq_transform_check_overlap(blender::Span<Sequence *> transformed_strips)
   return false;
 }
 
-static blender::VectorSet<Sequence *> seq_transform_collection_from_transdata(
-    TransDataContainer *tc)
+static blender::VectorSet<Strip *> seq_transform_collection_from_transdata(TransDataContainer *tc)
 {
-  blender::VectorSet<Sequence *> strips;
+  blender::VectorSet<Strip *> strips;
   TransData *td = tc->data;
   for (int a = 0; a < tc->data_len; a++, td++) {
-    Sequence *seq = ((TransDataSeq *)td->extra)->seq;
+    Strip *seq = ((TransDataSeq *)td->extra)->seq;
     strips.add(seq);
   }
   return strips;
@@ -320,7 +319,7 @@ static void freeSeqData(TransInfo *t, TransDataContainer *tc, TransCustomData *c
   SEQ_iterator_set_expand(
       t->scene, seqbase_active_get(t), transformed_strips, SEQ_query_strip_effect_chain);
 
-  for (Sequence *seq : transformed_strips) {
+  for (Strip *seq : transformed_strips) {
     seq->flag &= ~SEQ_IGNORE_CHANNEL_LOCK;
   }
 
@@ -344,10 +343,10 @@ static void freeSeqData(TransInfo *t, TransDataContainer *tc, TransCustomData *c
   free_transform_custom_data(custom_data);
 }
 
-static blender::VectorSet<Sequence *> query_selected_strips_no_handles(ListBase *seqbase)
+static blender::VectorSet<Strip *> query_selected_strips_no_handles(ListBase *seqbase)
 {
-  blender::VectorSet<Sequence *> strips;
-  LISTBASE_FOREACH (Sequence *, seq, seqbase) {
+  blender::VectorSet<Strip *> strips;
+  LISTBASE_FOREACH (Strip *, seq, seqbase) {
     if ((seq->flag & SELECT) != 0 && ((seq->flag & (SEQ_LEFTSEL | SEQ_RIGHTSEL)) == 0)) {
       strips.add(seq);
     }
@@ -360,9 +359,9 @@ enum SeqInputSide {
   SEQ_INPUT_RIGHT = 1,
 };
 
-static Sequence *effect_input_get(const Scene *scene, Sequence *effect, SeqInputSide side)
+static Strip *effect_input_get(const Scene *scene, Strip *effect, SeqInputSide side)
 {
-  Sequence *input = effect->seq1;
+  Strip *input = effect->seq1;
   if (effect->seq2 && (SEQ_time_left_handle_frame_get(scene, effect->seq2) -
                        SEQ_time_left_handle_frame_get(scene, effect->seq1)) *
                               side >
@@ -373,9 +372,9 @@ static Sequence *effect_input_get(const Scene *scene, Sequence *effect, SeqInput
   return input;
 }
 
-static Sequence *effect_base_input_get(const Scene *scene, Sequence *effect, SeqInputSide side)
+static Strip *effect_base_input_get(const Scene *scene, Strip *effect, SeqInputSide side)
 {
-  Sequence *input = effect, *seq_iter = effect;
+  Strip *input = effect, *seq_iter = effect;
   while (seq_iter != nullptr) {
     input = seq_iter;
     seq_iter = effect_input_get(scene, seq_iter, side);
@@ -387,8 +386,8 @@ static Sequence *effect_base_input_get(const Scene *scene, Sequence *effect, Seq
  * Strips that aren't stime_dependent_stripselected, but their position entirely depends on
  * transformed strips. This collection is used to offset animation.
  */
-static void query_time_dependent_strips_strips(
-    TransInfo *t, blender::VectorSet<Sequence *> &time_dependent_strips)
+static void query_time_dependent_strips_strips(TransInfo *t,
+                                               blender::VectorSet<Strip *> &time_dependent_strips)
 {
   ListBase *seqbase = seqbase_active_get(t);
 
@@ -396,7 +395,7 @@ static void query_time_dependent_strips_strips(
    * If all inputs of any effect even indirectly(through another effect) points to selected strip,
    * its position will change. */
 
-  blender::VectorSet<Sequence *> strips_no_handles = query_selected_strips_no_handles(seqbase);
+  blender::VectorSet<Strip *> strips_no_handles = query_selected_strips_no_handles(seqbase);
   time_dependent_strips.add_multiple(strips_no_handles);
 
   SEQ_iterator_set_expand(t->scene, seqbase, strips_no_handles, SEQ_query_strip_effect_chain);
@@ -405,7 +404,7 @@ static void query_time_dependent_strips_strips(
   while (strip_added) {
     strip_added = false;
 
-    for (Sequence *seq : strips_no_handles) {
+    for (Strip *seq : strips_no_handles) {
       if (time_dependent_strips.contains(seq)) {
         continue; /* Strip is already in collection, skip it. */
       }
@@ -427,15 +426,15 @@ static void query_time_dependent_strips_strips(
 
   blender::VectorSet selected_strips = SEQ_query_selected_strips(seqbase);
   SEQ_iterator_set_expand(t->scene, seqbase, selected_strips, SEQ_query_strip_effect_chain);
-  for (Sequence *seq : selected_strips) {
+  for (Strip *seq : selected_strips) {
     /* Check only 2 input effects. */
     if (seq->seq1 == nullptr || seq->seq2 == nullptr) {
       continue;
     }
 
     /* Find immediate base inputs(left and right side). */
-    Sequence *input_left = effect_base_input_get(t->scene, seq, SEQ_INPUT_LEFT);
-    Sequence *input_right = effect_base_input_get(t->scene, seq, SEQ_INPUT_RIGHT);
+    Strip *input_left = effect_base_input_get(t->scene, seq, SEQ_INPUT_LEFT);
+    Strip *input_right = effect_base_input_get(t->scene, seq, SEQ_INPUT_RIGHT);
 
     if ((input_left->flag & SEQ_RIGHTSEL) != 0 && (input_right->flag & SEQ_LEFTSEL) != 0) {
       time_dependent_strips.add(seq);
@@ -444,7 +443,7 @@ static void query_time_dependent_strips_strips(
 
   /* Remove all non-effects. */
   time_dependent_strips.remove_if(
-      [&](Sequence *seq) { return SEQ_transform_sequence_can_be_translated(seq); });
+      [&](Strip *seq) { return SEQ_transform_sequence_can_be_translated(seq); });
 }
 
 static void createTransSeqData(bContext * /*C*/, TransInfo *t)
@@ -508,7 +507,7 @@ static void createTransSeqData(bContext * /*C*/, TransInfo *t)
   SeqToTransData_build(t, ed->seqbasep, td, td2d, tdsq);
 
   ts->selection_channel_range_min = SEQ_MAX_CHANNELS + 1;
-  LISTBASE_FOREACH (Sequence *, seq, SEQ_active_seqbase_get(ed)) {
+  LISTBASE_FOREACH (Strip *, seq, SEQ_active_seqbase_get(ed)) {
     if ((seq->flag & SELECT) != 0) {
       ts->selection_channel_range_min = min_ii(ts->selection_channel_range_min, seq->machine);
       ts->selection_channel_range_max = max_ii(ts->selection_channel_range_max, seq->machine);
@@ -563,7 +562,7 @@ static void flushTransSeq(TransInfo *t)
   TransData *td = nullptr;
   TransData2D *td2d = nullptr;
   TransDataSeq *tdsq = nullptr;
-  Sequence *seq;
+  Strip *seq;
 
   Scene *scene = t->scene;
 
@@ -634,7 +633,7 @@ static void flushTransSeq(TransInfo *t)
   TransSeq *ts = (TransSeq *)TRANS_DATA_CONTAINER_FIRST_SINGLE(t)->custom.type.data;
 
   /* Update animation for effects. */
-  for (Sequence *seq : ts->time_dependent_strips) {
+  for (Strip *seq : ts->time_dependent_strips) {
     SEQ_offset_animdata(t->scene, seq, max_offset);
   }
 
@@ -644,7 +643,7 @@ static void flushTransSeq(TransInfo *t)
   SEQ_iterator_set_expand(
       t->scene, seqbase_active_get(t), transformed_strips, SEQ_query_strip_effect_chain);
 
-  for (Sequence *seq : transformed_strips) {
+  for (Strip *seq : transformed_strips) {
     /* Test overlap, displays red outline. */
     seq->flag &= ~SEQ_OVERLAP;
     if (SEQ_transform_test_overlap(scene, seqbasep, seq)) {
@@ -657,13 +656,13 @@ static void recalcData_sequencer(TransInfo *t)
 {
   TransData *td;
   int a;
-  Sequence *seq_prev = nullptr;
+  Strip *seq_prev = nullptr;
 
   TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_SINGLE(t);
 
   for (a = 0, td = tc->data; a < tc->data_len; a++, td++) {
     TransDataSeq *tdsq = (TransDataSeq *)td->extra;
-    Sequence *seq = tdsq->seq;
+    Strip *seq = tdsq->seq;
 
     if (seq != seq_prev) {
       SEQ_relations_invalidate_cache_composite(t->scene, seq);
@@ -690,8 +689,8 @@ static void special_aftertrans_update__sequencer(bContext * /*C*/, TransInfo *t)
       transform_mode_edge_seq_slide_use_restore_handle_selection(t))
   {
     TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_SINGLE(t);
-    blender::VectorSet<Sequence *> strips = seq_transform_collection_from_transdata(tc);
-    for (Sequence *seq : strips) {
+    blender::VectorSet<Strip *> strips = seq_transform_collection_from_transdata(tc);
+    for (Strip *seq : strips) {
       seq->flag &= ~(SEQ_LEFTSEL | SEQ_RIGHTSEL);
     }
   }

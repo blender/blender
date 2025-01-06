@@ -2967,7 +2967,7 @@ class SEQUENCER_PT_custom_props(SequencerButtonsPanel, PropertyPanel, Panel):
         'BLENDER_WORKBENCH',
     }
     _context_path = "active_sequence_strip"
-    _property_type = (bpy.types.Sequence,)
+    _property_type = (bpy.types.Strip,)
     bl_category = "Strip"
 
 

@@ -794,7 +794,7 @@ static void scene_foreach_layer_collection(LibraryForeachIDData *data,
   }
 }
 
-static bool seq_foreach_member_id_cb(Sequence *seq, void *user_data)
+static bool seq_foreach_member_id_cb(Strip *seq, void *user_data)
 {
   LibraryForeachIDData *data = static_cast<LibraryForeachIDData *>(user_data);
   const int flag = BKE_lib_query_foreachid_process_flags_get(data);
@@ -942,7 +942,7 @@ static void scene_foreach_id(ID *id, LibraryForeachIDData *data)
   }
 }
 
-static bool seq_foreach_path_callback(Sequence *seq, void *user_data)
+static bool seq_foreach_path_callback(Strip *seq, void *user_data)
 {
   if (SEQ_HAS_PATH(seq)) {
     StripElem *se = seq->data->stripdata;
@@ -1178,9 +1178,9 @@ static void direct_link_paint_helper(BlendDataReader *reader, const Scene *scene
 
 static void link_recurs_seq(BlendDataReader *reader, ListBase *lb)
 {
-  BLO_read_struct_list(reader, Sequence, lb);
+  BLO_read_struct_list(reader, Strip, lb);
 
-  LISTBASE_FOREACH_MUTABLE (Sequence *, seq, lb) {
+  LISTBASE_FOREACH_MUTABLE (Strip *, seq, lb) {
     /* Sanity check. */
     if (!SEQ_is_valid_strip_channel(seq)) {
       BLI_freelinkN(lb, seq);
@@ -1298,8 +1298,8 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
     BLO_read_struct(reader, Editing, &sce->ed);
     Editing *ed = sce->ed;
 
-    ed->act_seq = static_cast<Sequence *>(
-        BLO_read_get_new_data_address_no_us(reader, ed->act_seq, sizeof(Sequence)));
+    ed->act_seq = static_cast<Strip *>(
+        BLO_read_get_new_data_address_no_us(reader, ed->act_seq, sizeof(Strip)));
     ed->cache = nullptr;
     ed->prefetch_job = nullptr;
     ed->runtime.sequence_lookup = nullptr;
@@ -1323,8 +1323,8 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
        * would be to calculate offset using sDNA from the file (NOT from the
        * current Blender). Even better would be having some sort of dedicated
        * map of seqbase pointers to avoid this offset magic. */
-      constexpr intptr_t seqbase_offset = offsetof(Sequence, seqbase);
-      constexpr intptr_t channels_offset = offsetof(Sequence, channels);
+      constexpr intptr_t seqbase_offset = offsetof(Strip, seqbase);
+      constexpr intptr_t channels_offset = offsetof(Strip, channels);
 #if ARCH_CPU_64_BITS
       static_assert(seqbase_offset == 264, "Sequence seqbase member offset cannot be changed");
       static_assert(channels_offset == 280, "Sequence channels member offset cannot be changed");
@@ -1340,7 +1340,7 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
       else {
         seqbase_poin = POINTER_OFFSET(ed->seqbasep, -seqbase_offset);
 
-        seqbase_poin = BLO_read_get_new_data_address_no_us(reader, seqbase_poin, sizeof(Sequence));
+        seqbase_poin = BLO_read_get_new_data_address_no_us(reader, seqbase_poin, sizeof(Strip));
 
         if (seqbase_poin) {
           ed->seqbasep = (ListBase *)POINTER_OFFSET(seqbase_poin, seqbase_offset);
@@ -1371,15 +1371,14 @@ static void scene_blend_read_data(BlendDataReader *reader, ID *id)
       BLO_read_struct_list(reader, MetaStack, &(ed->metastack));
 
       LISTBASE_FOREACH (MetaStack *, ms, &ed->metastack) {
-        BLO_read_struct(reader, Sequence, &ms->parseq);
+        BLO_read_struct(reader, Strip, &ms->parseq);
 
         if (ms->oldbasep == old_seqbasep) {
           ms->oldbasep = &ed->seqbase;
         }
         else {
           seqbase_poin = POINTER_OFFSET(ms->oldbasep, -seqbase_offset);
-          seqbase_poin = BLO_read_get_new_data_address_no_us(
-              reader, seqbase_poin, sizeof(Sequence));
+          seqbase_poin = BLO_read_get_new_data_address_no_us(reader, seqbase_poin, sizeof(Strip));
           if (seqbase_poin) {
             ms->oldbasep = (ListBase *)POINTER_OFFSET(seqbase_poin, seqbase_offset);
           }

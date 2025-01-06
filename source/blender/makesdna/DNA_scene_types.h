@@ -327,7 +327,7 @@ enum {
   SCE_VIEWS_FORMAT_MULTIVIEW = 1,
 };
 
-/** #ImageFormatData::views_format (also used for #Sequence::views_format). */
+/** #ImageFormatData::views_format (also used for #Strip::views_format). */
 enum {
   R_IMF_VIEWS_INDIVIDUAL = 0,
   R_IMF_VIEWS_STEREO_3D = 1,

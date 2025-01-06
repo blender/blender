@@ -157,7 +157,7 @@ static ThumbnailCache *query_thumbnail_cache(Scene *scene)
   return scene->ed->runtime.thumbnail_cache;
 }
 
-bool strip_can_have_thumbnail(const Scene *scene, const Sequence *seq)
+bool strip_can_have_thumbnail(const Scene *scene, const Strip *seq)
 {
   if (scene == nullptr || scene->ed == nullptr || seq == nullptr) {
     return false;
@@ -172,7 +172,7 @@ bool strip_can_have_thumbnail(const Scene *scene, const Sequence *seq)
   return true;
 }
 
-static std::string get_path_from_seq(Scene *scene, const Sequence *seq, float timeline_frame)
+static std::string get_path_from_seq(Scene *scene, const Strip *seq, float timeline_frame)
 {
   char filepath[FILE_MAX];
   filepath[0] = 0;
@@ -422,7 +422,7 @@ static ImBuf *query_thumbnail(ThumbnailCache &cache,
                               int frame_index,
                               float timeline_frame,
                               const bContext *C,
-                              const Sequence *seq)
+                              const Strip *seq)
 {
   int64_t cur_time = cache.logical_time_;
   ThumbnailCache::FileEntry *val = cache.map_.lookup_ptr(key);
@@ -481,10 +481,7 @@ static ImBuf *query_thumbnail(ThumbnailCache &cache,
   return val->frames[best_index].thumb;
 }
 
-ImBuf *thumbnail_cache_get(const bContext *C,
-                           Scene *scene,
-                           const Sequence *seq,
-                           float timeline_frame)
+ImBuf *thumbnail_cache_get(const bContext *C, Scene *scene, const Strip *seq, float timeline_frame)
 {
   if (!strip_can_have_thumbnail(scene, seq)) {
     return nullptr;
@@ -511,7 +508,7 @@ ImBuf *thumbnail_cache_get(const bContext *C,
   return res;
 }
 
-void thumbnail_cache_invalidate_strip(Scene *scene, const Sequence *seq)
+void thumbnail_cache_invalidate_strip(Scene *scene, const Strip *seq)
 {
   if (!strip_can_have_thumbnail(scene, seq)) {
     return;

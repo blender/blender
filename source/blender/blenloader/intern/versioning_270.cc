@@ -422,7 +422,7 @@ static void do_version_bbone_easing_fcurve_fix(ID * /*id*/, FCurve *fcu)
   }
 }
 
-static bool seq_update_proxy_cb(Sequence *seq, void * /*user_data*/)
+static bool seq_update_proxy_cb(Strip *seq, void * /*user_data*/)
 {
   seq->stereo3d_format = static_cast<Stereo3dFormat *>(
       MEM_callocN(sizeof(Stereo3dFormat), "Stereo Display 3d Format"));
@@ -442,7 +442,7 @@ static bool seq_update_proxy_cb(Sequence *seq, void * /*user_data*/)
   return true;
 }
 
-static bool seq_update_effectdata_cb(Sequence *seq, void * /*user_data*/)
+static bool seq_update_effectdata_cb(Strip *seq, void * /*user_data*/)
 {
 
   if (seq->type != SEQ_TYPE_TEXT) {

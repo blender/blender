@@ -3349,7 +3349,7 @@ struct Seq_build_prop_cb_data {
   bool has_audio_strips;
 };
 
-static bool seq_build_prop_cb(Sequence *seq, void *user_data)
+static bool seq_build_prop_cb(Strip *seq, void *user_data)
 {
   Seq_build_prop_cb_data *cd = (Seq_build_prop_cb_data *)user_data;
 

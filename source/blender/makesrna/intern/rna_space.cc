@@ -2452,7 +2452,7 @@ static void seq_build_proxy(bContext *C, PointerRNA *ptr)
   wmJob *wm_job = ED_seq_proxy_wm_job_get(C);
   ProxyJob *pj = ED_seq_proxy_job_get(C, wm_job);
 
-  LISTBASE_FOREACH (Sequence *, seq, seqbase) {
+  LISTBASE_FOREACH (Strip *, seq, seqbase) {
     if (seq->type != SEQ_TYPE_MOVIE || seq->data == nullptr || seq->data->proxy == nullptr) {
       continue;
     }

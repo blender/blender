@@ -192,13 +192,13 @@ static void SOUND_OT_open_mono(wmOperatorType *ot)
 
 static void sound_update_animation_flags(Scene *scene);
 
-static bool sound_update_animation_flags_fn(Sequence *seq, void *user_data)
+static bool sound_update_animation_flags_fn(Strip *seq, void *user_data)
 {
   const FCurve *fcu;
   Scene *scene = (Scene *)user_data;
   bool driven;
 
-  fcu = id_data_find_fcurve(&scene->id, seq, &RNA_Sequence, "volume", 0, &driven);
+  fcu = id_data_find_fcurve(&scene->id, seq, &RNA_Strip, "volume", 0, &driven);
   if (fcu || driven) {
     seq->flag |= SEQ_AUDIO_VOLUME_ANIMATED;
   }
@@ -206,7 +206,7 @@ static bool sound_update_animation_flags_fn(Sequence *seq, void *user_data)
     seq->flag &= ~SEQ_AUDIO_VOLUME_ANIMATED;
   }
 
-  fcu = id_data_find_fcurve(&scene->id, seq, &RNA_Sequence, "pitch", 0, &driven);
+  fcu = id_data_find_fcurve(&scene->id, seq, &RNA_Strip, "pitch", 0, &driven);
   if (fcu || driven) {
     seq->flag |= SEQ_AUDIO_PITCH_ANIMATED;
   }
@@ -214,7 +214,7 @@ static bool sound_update_animation_flags_fn(Sequence *seq, void *user_data)
     seq->flag &= ~SEQ_AUDIO_PITCH_ANIMATED;
   }
 
-  fcu = id_data_find_fcurve(&scene->id, seq, &RNA_Sequence, "pan", 0, &driven);
+  fcu = id_data_find_fcurve(&scene->id, seq, &RNA_Strip, "pan", 0, &driven);
   if (fcu || driven) {
     seq->flag |= SEQ_AUDIO_PAN_ANIMATED;
   }

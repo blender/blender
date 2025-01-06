@@ -2236,7 +2236,7 @@ void DepsgraphNodeBuilder::build_vfont(VFont *vfont)
       &vfont->id, NodeType::GENERIC_DATABLOCK, OperationCode::GENERIC_DATABLOCK_UPDATE);
 }
 
-static bool seq_node_build_cb(Sequence *seq, void *user_data)
+static bool seq_node_build_cb(Strip *seq, void *user_data)
 {
   DepsgraphNodeBuilder *nb = (DepsgraphNodeBuilder *)user_data;
   nb->build_idproperties(seq->prop);
