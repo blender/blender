@@ -132,9 +132,10 @@ static PyObject *bpy_lib_write(BPy_PropertyRNA *self, PyObject *args, PyObject *
   BLI_path_abs(filepath_abs, BKE_main_blendfile_path_from_global());
 
   PartialWriteContext partial_write_ctx{bmain_src->filepath};
-  const PartialWriteContext::IDAddOptions add_options{PartialWriteContext::IDAddOperations(
-      PartialWriteContext::IDAddOperations::ADD_DEPENDENCIES |
-      (use_fake_user ? PartialWriteContext::IDAddOperations::SET_FAKE_USER : 0))};
+  const PartialWriteContext::IDAddOptions add_options{
+      (PartialWriteContext::IDAddOperations::ADD_DEPENDENCIES |
+       PartialWriteContext::IDAddOperations(
+           use_fake_user ? PartialWriteContext::IDAddOperations::SET_FAKE_USER : 0))};
 
   if (PySet_GET_SIZE(datablocks) > 0) {
     PyObject *it = PyObject_GetIter(datablocks);

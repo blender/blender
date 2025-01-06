@@ -1935,13 +1935,12 @@ ID *PartialWriteContext::id_add(
       return IDWALK_RET_NOP;
     }
 
-    PartialWriteContext::IDAddOperations operations_final = PartialWriteContext::IDAddOperations(
-        options.operations & MASK_INHERITED);
+    PartialWriteContext::IDAddOperations operations_final = (options.operations & MASK_INHERITED);
     if (dependencies_filter_cb) {
       const PartialWriteContext::IDAddOperations operations_per_id = dependencies_filter_cb(
           cb_data, options);
-      operations_final = PartialWriteContext::IDAddOperations(
-          (operations_per_id & MASK_PER_ID_USAGE) | (operations_final & ~MASK_PER_ID_USAGE));
+      operations_final = ((operations_per_id & MASK_PER_ID_USAGE) |
+                          (operations_final & ~MASK_PER_ID_USAGE));
     }
 
     const bool add_dependencies = (operations_final & ADD_DEPENDENCIES) != 0;

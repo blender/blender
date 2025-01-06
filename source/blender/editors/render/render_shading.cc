@@ -2615,12 +2615,12 @@ static int copy_material_exec(bContext *C, wmOperator *op)
   PartialWriteContext copybuffer{BKE_main_blendfile_path(bmain)};
 
   /* Add the material to the copybuffer (and all of its dependencies). */
-  copybuffer.id_add(&ma->id,
-                    PartialWriteContext::IDAddOptions{PartialWriteContext::IDAddOperations(
-                        PartialWriteContext::IDAddOperations::SET_FAKE_USER |
-                        PartialWriteContext::IDAddOperations::SET_CLIPBOARD_MARK |
-                        PartialWriteContext::IDAddOperations::ADD_DEPENDENCIES)},
-                    nullptr);
+  copybuffer.id_add(
+      &ma->id,
+      PartialWriteContext::IDAddOptions{(PartialWriteContext::IDAddOperations::SET_FAKE_USER |
+                                         PartialWriteContext::IDAddOperations::SET_CLIPBOARD_MARK |
+                                         PartialWriteContext::IDAddOperations::ADD_DEPENDENCIES)},
+      nullptr);
 
   char filepath[FILE_MAX];
   material_copybuffer_filepath_get(filepath, sizeof(filepath));

@@ -160,9 +160,8 @@ static bool sequencer_write_copy_paste_file(Main *bmain_src,
       copy_buffer.id_create(ID_SCE,
                             scene_name,
                             nullptr,
-                            {PartialWriteContext::IDAddOperations(
-                                PartialWriteContext::IDAddOperations::SET_FAKE_USER |
-                                PartialWriteContext::IDAddOperations::SET_CLIPBOARD_MARK)}));
+                            {(PartialWriteContext::IDAddOperations::SET_FAKE_USER |
+                              PartialWriteContext::IDAddOperations::SET_CLIPBOARD_MARK)}));
 
   /* Create an empty sequence editor data to store all copied strips. */
   scene_dst->ed = MEM_cnew<Editing>(__func__);

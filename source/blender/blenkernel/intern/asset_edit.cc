@@ -162,10 +162,9 @@ static bool asset_write_in_library(Main &bmain,
 
   PartialWriteContext lib_write_ctx{BKE_main_blendfile_path(&bmain)};
   ID *new_id = lib_write_ctx.id_add(&id,
-                                    {PartialWriteContext::IDAddOperations(
-                                        PartialWriteContext::IDAddOperations::MAKE_LOCAL |
-                                        PartialWriteContext::IDAddOperations::SET_FAKE_USER |
-                                        PartialWriteContext::IDAddOperations::ADD_DEPENDENCIES)});
+                                    {(PartialWriteContext::IDAddOperations::MAKE_LOCAL |
+                                      PartialWriteContext::IDAddOperations::SET_FAKE_USER |
+                                      PartialWriteContext::IDAddOperations::ADD_DEPENDENCIES)});
 
   std::string new_name = name;
   BKE_libblock_rename(lib_write_ctx.bmain, *new_id, new_name);
