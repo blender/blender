@@ -153,9 +153,9 @@ typedef struct SeqRetimingKey {
   char _pad2[4];
 } SeqRetimingKey;
 
-typedef struct SequenceRuntime {
+typedef struct StripRuntime {
   SessionUID session_uid;
-} SequenceRuntime;
+} StripRuntime;
 
 /**
  * The sequence structure is the basic struct used by any strip.
@@ -298,7 +298,7 @@ typedef struct Strip {
   int retiming_keys_num;
   char _pad6[4];
 
-  SequenceRuntime runtime;
+  StripRuntime runtime;
 } Strip;
 
 typedef struct MetaStack {
