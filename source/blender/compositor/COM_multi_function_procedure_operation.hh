@@ -88,12 +88,12 @@ class MultiFunctionProcedureOperation : public PixelOperation {
   mf::Variable *get_multi_function_input_variable(DInputSocket input_socket,
                                                   DOutputSocket output_socket);
 
-  /* Implicitly convert the type of the given variable that is passed from the given output socket
+  /* Implicitly convert the type of the given variable that is passed from the given origin socket
    * to the given input socket if needed. This is done by adding an implicit conversion function
    * whose output variable will be returned. If no conversion is needed, the given variable is
    * returned as is. */
   mf::Variable *do_variable_implicit_conversion(DInputSocket input_socket,
-                                                DOutputSocket output_socket,
+                                                DSocket origin_socket,
                                                 mf::Variable *variable);
 
   /* Given the variables that were returned by calling the multi-function for the given node,

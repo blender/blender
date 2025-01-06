@@ -187,27 +187,27 @@ Vector<mf::Variable *> MultiFunctionProcedureOperation::get_input_variables(DNod
     const DSocket origin = get_input_origin_socket(input);
     if (origin->is_input()) {
       input_variables.append(this->get_constant_input_variable(DInputSocket(origin)));
-      continue;
-    }
-
-    /* Otherwise, the origin socket is an output, which means it is linked. */
-    const DOutputSocket output = DOutputSocket(origin);
-
-    /* If the origin node is part of the multi-function procedure operation, then the output has an
-     * existing variable for it. */
-    if (compile_unit_.contains(output.node())) {
-      input_variables.append(output_to_variable_map_.lookup(output));
     }
     else {
-      /* Otherwise, the origin node is not part of the multi-function procedure operation, and a
-       * variable that represents an input to the multi-function procedure operation is used. */
-      input_variables.append(this->get_multi_function_input_variable(input, output));
+      /* Otherwise, the origin socket is an output, which means it is linked. */
+      const DOutputSocket output = DOutputSocket(origin);
+
+      /* If the origin node is part of the multi-function procedure operation, then the output has
+       * an existing variable for it. */
+      if (compile_unit_.contains(output.node())) {
+        input_variables.append(output_to_variable_map_.lookup(output));
+      }
+      else {
+        /* Otherwise, the origin node is not part of the multi-function procedure operation, and a
+         * variable that represents an input to the multi-function procedure operation is used. */
+        input_variables.append(this->get_multi_function_input_variable(input, output));
+      }
     }
 
     /* Implicitly convert the variable type if needed by adding a call to an implicit conversion
      * function. */
     input_variables.last() = this->do_variable_implicit_conversion(
-        input, output, input_variables.last());
+        input, origin, input_variables.last());
   }
 
   return input_variables;
@@ -418,10 +418,10 @@ static mf::MultiFunction *get_conversion_function(const ResultType variable_type
 }
 
 mf::Variable *MultiFunctionProcedureOperation::do_variable_implicit_conversion(
-    DInputSocket input_socket, DOutputSocket output_socket, mf::Variable *variable)
+    DInputSocket input_socket, DSocket origin_socket, mf::Variable *variable)
 {
   const ResultType expected_type = get_node_socket_result_type(input_socket.bsocket());
-  const ResultType variable_type = get_node_socket_result_type(output_socket.bsocket());
+  const ResultType variable_type = get_node_socket_result_type(origin_socket.bsocket());
 
   const mf::MultiFunction *function = get_conversion_function(variable_type, expected_type);
   if (!function) {
