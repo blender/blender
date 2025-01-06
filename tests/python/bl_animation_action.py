@@ -9,7 +9,7 @@ import pathlib
 import bpy
 
 """
-blender -b --factory-startup --python tests/python/bl_animation_action.py
+blender -b --factory-startup --python tests/python/bl_animation_action.py -- --testdir tests/data/animation/
 """
 
 
@@ -66,6 +66,31 @@ class ActionSlotCreationTest(unittest.TestCase):
             # Creating slots with unspecified ID type is
             # not supported in the Python API.
             self.action.slots.new('UNSPECIFIED', "Bob")
+
+    def test_long_identifier(self):
+        # Test a 65-character identifier, using a 63-character name. This is the
+        # maximum length allowed (the DNA field is MAX_ID_NAME=66 long, which
+        # includes the trailing zero byte).
+        long_but_ok_name = "This name is so long! It might look long, but it is just right!"
+        slot_ok = self.action.slots.new('OBJECT', long_but_ok_name)
+        self.assertEqual(long_but_ok_name, slot_ok.name_display, "this name should fit")
+        self.assertEqual('OB' + long_but_ok_name, slot_ok.identifier, "this identifier should fit")
+
+        # Test one character more.
+        too_long_name = "This name is so long! It might look long, and that it is indeed."
+        too_long_name_truncated = too_long_name[:63]
+        slot_long = self.action.slots.new('OBJECT', too_long_name)
+        self.assertEqual(too_long_name_truncated, slot_long.name_display, "this name should be truncated")
+        self.assertEqual('OB' + too_long_name_truncated, slot_long.identifier, "this identifier should be truncated")
+
+        # Test with different trailing character.
+        other_long_name = "This name is so long! It might look long, and that it is indeed!"
+        truncated_and_unique = other_long_name[:59] + ".001"
+        slot_long2 = self.action.slots.new('OBJECT', too_long_name)
+        self.assertEqual(truncated_and_unique, slot_long2.name_display,
+                         "this name should be truncated and made unique")
+        self.assertEqual('OB' + truncated_and_unique, slot_long2.identifier,
+                         "this identifier should be truncated and made unique")
 
 
 class ActionSlotAssignmentTest(unittest.TestCase):
