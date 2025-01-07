@@ -170,7 +170,7 @@ typedef struct Strip {
   void *_pad;
   /** Needed (to be like ipo), else it will raise libdata warnings, this should never be used. */
   void *lib;
-  /** SEQ_NAME_MAXSTR - name, set by default and needs to be unique, for RNA paths. */
+  /** STRIP_NAME_MAXSTR - name, set by default and needs to be unique, for RNA paths. */
   char name[64];
 
   /** Flags bitmap (see below) and the type of sequence. */
@@ -490,7 +490,7 @@ enum {
   SEQ_TEXT_ALIGN_Y_BOTTOM = 2,
 };
 
-#define SEQ_FONT_NOT_LOADED -2
+#define STRIP_FONT_NOT_LOADED -2
 
 typedef struct ColorMixVars {
   /** Value from STRIP_TYPE_XXX enumeration. */
@@ -606,8 +606,8 @@ enum {
   SEQ_EDIT_SHOW_MISSING_MEDIA = 1 << 0,
 };
 
-#define SEQ_STRIP_OFSBOTTOM 0.05f
-#define SEQ_STRIP_OFSTOP 0.95f
+#define STRIP_OFSBOTTOM 0.05f
+#define STRIP_OFSTOP 0.95f
 
 /** #Editor::proxy_storage */
 enum {
@@ -623,7 +623,7 @@ enum {
   SEQ_SPEED_USE_INTERPOLATION = 1 << 3,
 };
 
-#define SEQ_NAME_MAXSTR 64
+#define STRIP_NAME_MAXSTR 64
 
 /* From: `DNA_object_types.h`, see it's doc-string there. */
 #define SELECT 1
@@ -678,10 +678,10 @@ enum {
 };
 
 /* convenience define for all selection flags */
-#define SEQ_ALLSEL (SELECT + SEQ_LEFTSEL + SEQ_RIGHTSEL)
+#define STRIP_ALLSEL (SELECT + SEQ_LEFTSEL + SEQ_RIGHTSEL)
 
 /* Deprecated, don't use a flag anymore. */
-// #define SEQ_ACTIVE 1048576
+// #define STRIP_ACTIVE 1048576
 
 enum {
   SEQ_COLOR_BALANCE_INVERSE_GAIN = 1 << 0,
@@ -794,7 +794,7 @@ enum {
  * otherwise, you can't really blend, right :) !)
  */
 
-#define SEQ_HAS_PATH(_seq) \
+#define STRIP_HAS_PATH(_seq) \
   (ELEM((_seq)->type, \
         STRIP_TYPE_MOVIE, \
         STRIP_TYPE_IMAGE, \

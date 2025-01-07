@@ -618,14 +618,14 @@ static void do_versions_socket_default_value_259(bNodeSocket *sock)
 
 static bool strip_sound_proxy_update_cb(Strip *strip, void * /*user_data*/)
 {
-#define SEQ_USE_PROXY_CUSTOM_DIR (1 << 19)
-#define SEQ_USE_PROXY_CUSTOM_FILE (1 << 21)
+#define STRIP_USE_PROXY_CUSTOM_DIR (1 << 19)
+#define STRIP_USE_PROXY_CUSTOM_FILE (1 << 21)
   /* don't know, if anybody used that this way, but just in case, upgrade to new way... */
-  if ((strip->flag & SEQ_USE_PROXY_CUSTOM_FILE) && !(strip->flag & SEQ_USE_PROXY_CUSTOM_DIR)) {
+  if ((strip->flag & STRIP_USE_PROXY_CUSTOM_FILE) && !(strip->flag & STRIP_USE_PROXY_CUSTOM_DIR)) {
     SNPRINTF(strip->data->proxy->dirpath, "%s" SEP_STR "BL_proxy", strip->data->dirpath);
   }
-#undef SEQ_USE_PROXY_CUSTOM_DIR
-#undef SEQ_USE_PROXY_CUSTOM_FILE
+#undef STRIP_USE_PROXY_CUSTOM_DIR
+#undef STRIP_USE_PROXY_CUSTOM_FILE
   return true;
 }
 

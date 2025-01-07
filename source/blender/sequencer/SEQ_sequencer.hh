@@ -34,8 +34,8 @@ enum {
 };
 
 /* strip_dupli' flags */
-#define SEQ_DUPE_UNIQUE_NAME (1 << 0)
-#define SEQ_DUPE_ALL (1 << 3) /* otherwise only selected are copied */
+#define STRIP_DUPE_UNIQUE_NAME (1 << 0)
+#define STRIP_DUPE_ALL (1 << 3) /* otherwise only selected are copied */
 
 SequencerToolSettings *SEQ_tool_settings_init();
 SequencerToolSettings *SEQ_tool_settings_ensure(Scene *scene);

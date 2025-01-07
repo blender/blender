@@ -450,7 +450,7 @@ Strip *SEQ_edit_strip_split(Main *bmain,
 
   /* Duplicate ListBase. */
   ListBase right_strips = {nullptr, nullptr};
-  SEQ_sequence_base_dupli_recursive(scene, scene, &right_strips, &left_strips, SEQ_DUPE_ALL, 0);
+  SEQ_sequence_base_dupli_recursive(scene, scene, &right_strips, &left_strips, STRIP_DUPE_ALL, 0);
 
   Strip *left_seq = static_cast<Strip *>(left_strips.first);
   Strip *right_seq = static_cast<Strip *>(right_strips.first);

@@ -197,7 +197,7 @@ bool sequencer_strip_has_path_poll(bContext *C)
   Editing *ed;
   Strip *strip;
   return (((ed = SEQ_editing_get(CTX_data_scene(C))) != nullptr) &&
-          ((strip = ed->act_seq) != nullptr) && SEQ_HAS_PATH(strip));
+          ((strip = ed->act_seq) != nullptr) && STRIP_HAS_PATH(strip));
 }
 
 bool sequencer_view_has_preview_poll(bContext *C)
@@ -1488,7 +1488,7 @@ static int sequencer_split_exec(bContext *C, wmOperator *op)
           if (SEQ_time_right_handle_frame_get(scene, strip) == split_frame &&
               strip->machine == split_channel)
           {
-            strip_selected = strip->flag & SEQ_ALLSEL;
+            strip_selected = strip->flag & STRIP_ALLSEL;
           }
         }
         if (!strip_selected) {
@@ -1496,7 +1496,7 @@ static int sequencer_split_exec(bContext *C, wmOperator *op)
             if (SEQ_time_left_handle_frame_get(scene, strip) == split_frame &&
                 strip->machine == split_channel)
             {
-              strip->flag &= ~SEQ_ALLSEL;
+              strip->flag &= ~STRIP_ALLSEL;
             }
           }
         }
@@ -1507,12 +1507,12 @@ static int sequencer_split_exec(bContext *C, wmOperator *op)
         LISTBASE_FOREACH (Strip *, strip, SEQ_active_seqbase_get(ed)) {
           if (split_side == SEQ_SIDE_LEFT) {
             if (SEQ_time_left_handle_frame_get(scene, strip) >= split_frame) {
-              strip->flag &= ~SEQ_ALLSEL;
+              strip->flag &= ~STRIP_ALLSEL;
             }
           }
           else {
             if (SEQ_time_right_handle_frame_get(scene, strip) <= split_frame) {
-              strip->flag &= ~SEQ_ALLSEL;
+              strip->flag &= ~STRIP_ALLSEL;
             }
           }
         }
@@ -1935,7 +1935,7 @@ static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
         se = SEQ_render_give_stripelem(scene, strip, timeline_frame);
 
         strip_new = SEQ_sequence_dupli_recursive(
-            scene, scene, seqbase, strip, SEQ_DUPE_UNIQUE_NAME);
+            scene, scene, seqbase, strip, STRIP_DUPE_UNIQUE_NAME);
 
         strip_new->start = start_ofs;
         strip_new->type = STRIP_TYPE_IMAGE;
@@ -2545,8 +2545,8 @@ bool ED_sequencer_deselect_all(Scene *scene)
   }
 
   LISTBASE_FOREACH (Strip *, strip, SEQ_active_seqbase_get(ed)) {
-    if (strip->flag & SEQ_ALLSEL) {
-      strip->flag &= ~SEQ_ALLSEL;
+    if (strip->flag & STRIP_ALLSEL) {
+      strip->flag &= ~STRIP_ALLSEL;
       changed = true;
     }
   }

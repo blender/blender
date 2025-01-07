@@ -208,8 +208,8 @@ static StripDrawContext strip_draw_context_get(TimelineDrawContext *ctx, Strip *
   Scene *scene = ctx->scene;
 
   strip_ctx.strip = strip;
-  strip_ctx.bottom = strip->machine + SEQ_STRIP_OFSBOTTOM;
-  strip_ctx.top = strip->machine + SEQ_STRIP_OFSTOP;
+  strip_ctx.bottom = strip->machine + STRIP_OFSBOTTOM;
+  strip_ctx.top = strip->machine + STRIP_OFSTOP;
   strip_ctx.left_handle = SEQ_time_left_handle_frame_get(scene, strip);
   strip_ctx.right_handle = SEQ_time_right_handle_frame_get(scene, strip);
   strip_ctx.content_start = SEQ_time_start_frame_get(strip);
@@ -721,8 +721,8 @@ static void drawmeta_contents(TimelineDrawContext *timeline_ctx,
       x1_chan = max_ff(x1_chan, meta_x1);
       x2_chan = min_ff(x2_chan, meta_x2);
 
-      y1_chan = bottom + y_chan + (draw_height * SEQ_STRIP_OFSBOTTOM);
-      y2_chan = bottom + y_chan + (draw_height * SEQ_STRIP_OFSTOP);
+      y1_chan = bottom + y_chan + (draw_height * STRIP_OFSBOTTOM);
+      y2_chan = bottom + y_chan + (draw_height * STRIP_OFSTOP);
 
       timeline_ctx->quads->add_quad(x1_chan, y1_chan, x2_chan, y2_chan, col);
     }
@@ -1097,24 +1097,24 @@ static void draw_strip_offsets(TimelineDrawContext *timeline_ctx,
     timeline_ctx->quads->add_quad(strip_ctx->left_handle,
                                   strip_ctx->bottom - timeline_ctx->pixely,
                                   strip_ctx->content_start,
-                                  strip_ctx->bottom - SEQ_STRIP_OFSBOTTOM,
+                                  strip_ctx->bottom - STRIP_OFSBOTTOM,
                                   col);
     timeline_ctx->quads->add_wire_quad(strip_ctx->left_handle,
                                        strip_ctx->bottom - timeline_ctx->pixely,
                                        strip_ctx->content_start,
-                                       strip_ctx->bottom - SEQ_STRIP_OFSBOTTOM,
+                                       strip_ctx->bottom - STRIP_OFSBOTTOM,
                                        blend_col);
   }
   if (strip_ctx->right_handle < strip_ctx->content_end) {
     timeline_ctx->quads->add_quad(strip_ctx->right_handle,
                                   strip_ctx->top + timeline_ctx->pixely,
                                   strip_ctx->content_end,
-                                  strip_ctx->top + SEQ_STRIP_OFSBOTTOM,
+                                  strip_ctx->top + STRIP_OFSBOTTOM,
                                   col);
     timeline_ctx->quads->add_wire_quad(strip_ctx->right_handle,
                                        strip_ctx->top + timeline_ctx->pixely,
                                        strip_ctx->content_end,
-                                       strip_ctx->top + SEQ_STRIP_OFSBOTTOM,
+                                       strip_ctx->top + STRIP_OFSBOTTOM,
                                        blend_col);
   }
 }
@@ -1723,21 +1723,20 @@ static bool draw_cache_view_iter_fn(void *userdata,
       return false;
     }
     if ((cache_type & SEQ_CACHE_STORE_RAW) && (drawdata->cache_flag & SEQ_CACHE_SHOW_RAW)) {
-      stripe_bot = strip->machine + SEQ_STRIP_OFSBOTTOM + drawdata->stripe_ofs_y;
+      stripe_bot = strip->machine + STRIP_OFSBOTTOM + drawdata->stripe_ofs_y;
       col = col_raw;
     }
     else if ((cache_type & SEQ_CACHE_STORE_PREPROCESSED) &&
              (drawdata->cache_flag & SEQ_CACHE_SHOW_PREPROCESSED))
     {
-      stripe_bot = strip->machine + SEQ_STRIP_OFSBOTTOM + drawdata->stripe_ht +
+      stripe_bot = strip->machine + STRIP_OFSBOTTOM + drawdata->stripe_ht +
                    drawdata->stripe_ofs_y * 2;
       col = col_preproc;
     }
     else if ((cache_type & SEQ_CACHE_STORE_COMPOSITE) &&
              (drawdata->cache_flag & SEQ_CACHE_SHOW_COMPOSITE))
     {
-      stripe_bot = strip->machine + SEQ_STRIP_OFSTOP - drawdata->stripe_ofs_y -
-                   drawdata->stripe_ht;
+      stripe_bot = strip->machine + STRIP_OFSTOP - drawdata->stripe_ofs_y - drawdata->stripe_ht;
       col = col_composite;
     }
     else {
@@ -1799,7 +1798,7 @@ static void draw_cache_background(const bContext *C, CacheDrawData *draw_data)
   strips.remove_if([&](Strip *strip) { return strip->type == STRIP_TYPE_SOUND_RAM; });
 
   for (const Strip *strip : strips) {
-    stripe_bot = strip->machine + SEQ_STRIP_OFSBOTTOM + draw_data->stripe_ofs_y;
+    stripe_bot = strip->machine + STRIP_OFSBOTTOM + draw_data->stripe_ofs_y;
     if (sseq->cache_overlay.flag & SEQ_CACHE_SHOW_RAW) {
       draw_cache_stripe(scene, strip, *draw_data->quads, stripe_bot, draw_data->stripe_ht, bg_raw);
     }
@@ -1811,8 +1810,7 @@ static void draw_cache_background(const bContext *C, CacheDrawData *draw_data)
     }
 
     if (sseq->cache_overlay.flag & SEQ_CACHE_SHOW_COMPOSITE) {
-      stripe_bot = strip->machine + SEQ_STRIP_OFSTOP - draw_data->stripe_ofs_y -
-                   draw_data->stripe_ht;
+      stripe_bot = strip->machine + STRIP_OFSTOP - draw_data->stripe_ofs_y - draw_data->stripe_ht;
       draw_cache_stripe(
           scene, strip, *draw_data->quads, stripe_bot, draw_data->stripe_ht, bg_composite);
     }

@@ -727,7 +727,7 @@ static void rna_Sequence_text_font_set(PointerRNA *ptr,
   SEQ_effect_text_font_unload(data, true);
 
   id_us_plus(&value->id);
-  data->text_blf_id = SEQ_FONT_NOT_LOADED;
+  data->text_blf_id = STRIP_FONT_NOT_LOADED;
   data->text_font = value;
 }
 

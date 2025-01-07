@@ -422,8 +422,8 @@ static void move_vertex_group_names_to_object_data(Main *bmain)
 static void do_versions_sequencer_speed_effect_recursive(Scene *scene, const ListBase *seqbase)
 {
   /* Old SpeedControlVars->flags. */
-#define SEQ_SPEED_INTEGRATE (1 << 0)
-#define SEQ_SPEED_COMPRESS_IPO_Y (1 << 2)
+#define STRIP_SPEED_INTEGRATE (1 << 0)
+#define STRIP_SPEED_COMPRESS_IPO_Y (1 << 2)
 
   LISTBASE_FOREACH (Strip *, strip, seqbase) {
     if (strip->type == STRIP_TYPE_SPEED) {
@@ -443,11 +443,11 @@ static void do_versions_sequencer_speed_effect_recursive(Scene *scene, const Lis
                                    1.0f));
         }
       }
-      else if (v->flags & SEQ_SPEED_INTEGRATE) {
+      else if (v->flags & STRIP_SPEED_INTEGRATE) {
         v->speed_control_type = SEQ_SPEED_MULTIPLY;
         v->speed_fader = strip->speed_fader * globalSpeed;
       }
-      else if (v->flags & SEQ_SPEED_COMPRESS_IPO_Y) {
+      else if (v->flags & STRIP_SPEED_COMPRESS_IPO_Y) {
         globalSpeed *= 100.0f;
         v->speed_control_type = SEQ_SPEED_LENGTH;
         v->speed_fader_length = strip->speed_fader * globalSpeed;
@@ -459,7 +459,7 @@ static void do_versions_sequencer_speed_effect_recursive(Scene *scene, const Lis
         substr = "speed_frame_number";
       }
 
-      v->flags &= ~(SEQ_SPEED_INTEGRATE | SEQ_SPEED_COMPRESS_IPO_Y);
+      v->flags &= ~(STRIP_SPEED_INTEGRATE | STRIP_SPEED_COMPRESS_IPO_Y);
 
       if (substr || globalSpeed != 1.0f) {
         FCurve *fcu = id_data_find_fcurve(
@@ -486,8 +486,8 @@ static void do_versions_sequencer_speed_effect_recursive(Scene *scene, const Lis
     }
   }
 
-#undef SEQ_SPEED_INTEGRATE
-#undef SEQ_SPEED_COMPRESS_IPO_Y
+#undef STRIP_SPEED_INTEGRATE
+#undef STRIP_SPEED_COMPRESS_IPO_Y
 }
 
 static bool do_versions_sequencer_color_tags(Strip *strip, void * /*user_data*/)

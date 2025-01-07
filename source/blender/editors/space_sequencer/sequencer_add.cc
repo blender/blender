@@ -174,7 +174,7 @@ static void sequencer_generic_invoke_path__internal(bContext *C,
   if (RNA_struct_find_property(op->ptr, identifier)) {
     Scene *scene = CTX_data_scene(C);
     Strip *last_seq = SEQ_select_active_get(scene);
-    if (last_seq && last_seq->data && SEQ_HAS_PATH(last_seq)) {
+    if (last_seq && last_seq->data && STRIP_HAS_PATH(last_seq)) {
       Main *bmain = CTX_data_main(C);
       char dirpath[FILE_MAX];
       STRNCPY(dirpath, last_seq->data->dirpath);

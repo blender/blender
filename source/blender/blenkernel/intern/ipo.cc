@@ -1098,15 +1098,15 @@ static char *get_rna_access(ID *id,
 
     /* XXX problematic block-types. */
     case ID_SEQ: /* sequencer strip */
-      /* SEQ_FAC1: */
+      /* STRIP_FAC1: */
       switch (adrcode) {
-        case SEQ_FAC1:
+        case STRIP_FAC1:
           propname = "effect_fader";
           break;
-        case SEQ_FAC_SPEED:
+        case STRIP_FAC_SPEED:
           propname = "speed_fader";
           break;
-        case SEQ_FAC_OPACITY:
+        case STRIP_FAC_OPACITY:
           propname = "blend_alpha";
           break;
       }
@@ -2102,7 +2102,7 @@ struct Seq_callback_data {
 static bool strip_convert_callback(Strip *strip, void *userdata)
 {
   IpoCurve *icu = static_cast<IpoCurve *>((strip->ipo) ? strip->ipo->curve.first : nullptr);
-  short adrcode = SEQ_FAC1;
+  short adrcode = STRIP_FAC1;
 
   if (G.debug & G_DEBUG) {
     printf("\tconverting sequence strip %s\n", strip->name + 2);
@@ -2120,10 +2120,10 @@ static bool strip_convert_callback(Strip *strip, void *userdata)
     case STRIP_TYPE_SCENE:
     case STRIP_TYPE_MOVIE:
     case STRIP_TYPE_COLOR:
-      adrcode = SEQ_FAC_OPACITY;
+      adrcode = STRIP_FAC_OPACITY;
       break;
     case STRIP_TYPE_SPEED:
-      adrcode = SEQ_FAC_SPEED;
+      adrcode = STRIP_FAC_SPEED;
       break;
   }
   icu->adrcode = adrcode;

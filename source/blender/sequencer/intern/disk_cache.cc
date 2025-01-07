@@ -294,7 +294,7 @@ static void seq_disk_cache_get_dir(
     SeqDiskCache *disk_cache, Scene *scene, Strip *strip, char *dirpath, size_t dirpath_maxncpy)
 {
   char scene_name[MAX_ID_NAME + 22]; /* + -%PRId64 */
-  char strip_name[SEQ_NAME_MAXSTR];
+  char strip_name[STRIP_NAME_MAXSTR];
   char project_dir[FILE_MAX];
 
   seq_disk_cache_get_project_dir(disk_cache, project_dir, sizeof(project_dir));

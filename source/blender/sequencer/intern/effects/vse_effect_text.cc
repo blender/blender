@@ -780,10 +780,10 @@ static int text_effect_font_init(const SeqRenderData *context, const Strip *stri
 
   /* In case font got unloaded behind our backs: mark it as needing a load. */
   if (data->text_blf_id >= 0 && !BLF_is_loaded_id(data->text_blf_id)) {
-    data->text_blf_id = SEQ_FONT_NOT_LOADED;
+    data->text_blf_id = STRIP_FONT_NOT_LOADED;
   }
 
-  if (data->text_blf_id == SEQ_FONT_NOT_LOADED) {
+  if (data->text_blf_id == STRIP_FONT_NOT_LOADED) {
     data->text_blf_id = -1;
 
     SEQ_effect_text_font_load(data, false);

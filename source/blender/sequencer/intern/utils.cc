@@ -49,8 +49,8 @@
 
 struct SeqUniqueInfo {
   Strip *strip;
-  char name_src[SEQ_NAME_MAXSTR];
-  char name_dest[SEQ_NAME_MAXSTR];
+  char name_src[STRIP_NAME_MAXSTR];
+  char name_dest[STRIP_NAME_MAXSTR];
   int count;
   int match;
 };
@@ -59,9 +59,9 @@ static void seqbase_unique_name(ListBase *seqbasep, SeqUniqueInfo *sui)
 {
   LISTBASE_FOREACH (Strip *, strip, seqbasep) {
     if ((sui->strip != strip) && STREQ(sui->name_dest, strip->name + 2)) {
-      /* SEQ_NAME_MAXSTR -4 for the number, -1 for \0, - 2 for r_prefix */
+      /* STRIP_NAME_MAXSTR -4 for the number, -1 for \0, - 2 for r_prefix */
       SNPRINTF(
-          sui->name_dest, "%.*s.%03d", SEQ_NAME_MAXSTR - 4 - 1 - 2, sui->name_src, sui->count++);
+          sui->name_dest, "%.*s.%03d", STRIP_NAME_MAXSTR - 4 - 1 - 2, sui->name_src, sui->count++);
       sui->match = 1; /* be sure to re-scan */
     }
   }
@@ -497,7 +497,7 @@ void SEQ_set_scale_to_fit(const Strip *strip,
 
 void SEQ_ensure_unique_name(Strip *strip, Scene *scene)
 {
-  char name[SEQ_NAME_MAXSTR];
+  char name[STRIP_NAME_MAXSTR];
 
   STRNCPY_UTF8(name, strip->name + 2);
   SEQ_sequence_base_unique_name_recursive(scene, &scene->ed->seqbase, strip);

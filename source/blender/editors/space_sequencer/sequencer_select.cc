@@ -210,8 +210,8 @@ static void select_linked_time_seq(const Scene *scene,
 
       if (left_match && right_match) {
         /* Direct match, copy all selection settings. */
-        strip_dest->flag &= ~(SEQ_ALLSEL);
-        strip_dest->flag |= strip_source->flag & (SEQ_ALLSEL);
+        strip_dest->flag &= ~(STRIP_ALLSEL);
+        strip_dest->flag |= strip_source->flag & (STRIP_ALLSEL);
         recurs_sel_seq(strip_dest);
       }
       else if (left_match && handle_clicked == SEQ_HANDLE_LEFT) {
@@ -269,8 +269,8 @@ void strip_rectf(const Scene *scene, const Strip *strip, rctf *r_rect)
 {
   r_rect->xmin = SEQ_time_left_handle_frame_get(scene, strip);
   r_rect->xmax = SEQ_time_right_handle_frame_get(scene, strip);
-  r_rect->ymin = strip->machine + SEQ_STRIP_OFSBOTTOM;
-  r_rect->ymax = strip->machine + SEQ_STRIP_OFSTOP;
+  r_rect->ymin = strip->machine + STRIP_OFSBOTTOM;
+  r_rect->ymax = strip->machine + STRIP_OFSTOP;
 }
 
 Strip *find_neighboring_sequence(Scene *scene, Strip *test, int lr, int sel)
@@ -423,13 +423,13 @@ void recurs_sel_seq(Strip *strip_meta)
   while (strip) {
 
     if (strip_meta->flag & (SEQ_LEFTSEL + SEQ_RIGHTSEL)) {
-      strip->flag &= ~SEQ_ALLSEL;
+      strip->flag &= ~STRIP_ALLSEL;
     }
     else if (strip_meta->flag & SELECT) {
       strip->flag |= SELECT;
     }
     else {
-      strip->flag &= ~SEQ_ALLSEL;
+      strip->flag &= ~STRIP_ALLSEL;
     }
 
     if (strip->seqbase.first) {
@@ -482,7 +482,7 @@ static int sequencer_de_select_all_exec(bContext *C, wmOperator *op)
   if (action == SEL_TOGGLE) {
     action = SEL_SELECT;
     for (Strip *strip : strips) {
-      if (strip->flag & SEQ_ALLSEL) {
+      if (strip->flag & STRIP_ALLSEL) {
         action = SEL_DESELECT;
         break;
       }
@@ -496,11 +496,11 @@ static int sequencer_de_select_all_exec(bContext *C, wmOperator *op)
         strip->flag |= SELECT;
         break;
       case SEL_DESELECT:
-        strip->flag &= ~SEQ_ALLSEL;
+        strip->flag &= ~STRIP_ALLSEL;
         break;
       case SEL_INVERT:
-        if (strip->flag & SEQ_ALLSEL) {
-          strip->flag &= ~SEQ_ALLSEL;
+        if (strip->flag & STRIP_ALLSEL) {
+          strip->flag &= ~STRIP_ALLSEL;
         }
         else {
           strip->flag &= ~(SEQ_LEFTSEL + SEQ_RIGHTSEL);
@@ -550,7 +550,7 @@ static int sequencer_select_inverse_exec(bContext *C, wmOperator * /*op*/)
 
   for (Strip *strip : strips) {
     if (strip->flag & SELECT) {
-      strip->flag &= ~SEQ_ALLSEL;
+      strip->flag &= ~STRIP_ALLSEL;
     }
     else {
       strip->flag &= ~(SEQ_LEFTSEL + SEQ_RIGHTSEL);
@@ -652,9 +652,9 @@ static void sequencer_select_linked_handle(const bContext *C,
     /* First click selects the strip and its adjacent handles (if valid).
      * Second click selects the strip,
      * both of its handles and its adjacent handles (if valid). */
-    const bool is_striponly_selected = ((strip->flag & SEQ_ALLSEL) == SELECT);
-    strip->flag &= ~SEQ_ALLSEL;
-    strip->flag |= is_striponly_selected ? SEQ_ALLSEL : SELECT;
+    const bool is_striponly_selected = ((strip->flag & STRIP_ALLSEL) == SELECT);
+    strip->flag &= ~STRIP_ALLSEL;
+    strip->flag |= is_striponly_selected ? STRIP_ALLSEL : SELECT;
     select_surrounding_handles(scene, strip);
   }
   else {
@@ -891,8 +891,8 @@ static void sequencer_select_connected_strips(const StripSelection &selection)
     blender::VectorSet<Strip *> connections = SEQ_get_connected_strips(source);
     for (Strip *connection : connections) {
       /* Copy selection settings exactly for connected strips. */
-      connection->flag &= ~(SEQ_ALLSEL);
-      connection->flag |= source->flag & (SEQ_ALLSEL);
+      connection->flag &= ~(STRIP_ALLSEL);
+      connection->flag |= source->flag & (STRIP_ALLSEL);
     }
   }
 }
@@ -945,7 +945,7 @@ static void sequencer_select_strip_impl(const Editing *ed,
     }
   }
   else if (action == 0) {
-    strip->flag &= ~SEQ_ALLSEL;
+    strip->flag &= ~STRIP_ALLSEL;
   }
 }
 
@@ -2286,15 +2286,16 @@ static const EnumPropertyItem sequencer_prop_select_grouped_types[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-#define SEQ_IS_SOUND(_seq) \
+#define STRIP_IS_SOUND(_seq) \
   ((_seq->type & STRIP_TYPE_SOUND_RAM) && !(_seq->type & STRIP_TYPE_EFFECT))
 
-#define SEQ_IS_EFFECT(_seq) ((_seq->type & STRIP_TYPE_EFFECT) != 0)
+#define STRIP_IS_EFFECT(_seq) ((_seq->type & STRIP_TYPE_EFFECT) != 0)
 
-#define SEQ_USE_DATA(_seq) \
-  (ELEM(_seq->type, STRIP_TYPE_SCENE, STRIP_TYPE_MOVIECLIP, STRIP_TYPE_MASK) || SEQ_HAS_PATH(_seq))
+#define STRIP_USE_DATA(_seq) \
+  (ELEM(_seq->type, STRIP_TYPE_SCENE, STRIP_TYPE_MOVIECLIP, STRIP_TYPE_MASK) || \
+   STRIP_HAS_PATH(_seq))
 
-#define SEQ_CHANNEL_CHECK(_seq, _chan) ELEM((_chan), 0, (_seq)->machine)
+#define STRIP_CHANNEL_CHECK(_seq, _chan) ELEM((_chan), 0, (_seq)->machine)
 
 static bool select_grouped_type(blender::Span<Strip *> strips,
                                 ListBase * /*seqbase*/,
@@ -2304,7 +2305,7 @@ static bool select_grouped_type(blender::Span<Strip *> strips,
   bool changed = false;
 
   for (Strip *strip : strips) {
-    if (SEQ_CHANNEL_CHECK(strip, channel) && strip->type == actseq->type) {
+    if (STRIP_CHANNEL_CHECK(strip, channel) && strip->type == actseq->type) {
       strip->flag |= SELECT;
       changed = true;
     }
@@ -2319,11 +2320,11 @@ static bool select_grouped_type_basic(blender::Span<Strip *> strips,
                                       const int channel)
 {
   bool changed = false;
-  const bool is_sound = SEQ_IS_SOUND(actseq);
+  const bool is_sound = STRIP_IS_SOUND(actseq);
 
   for (Strip *strip : strips) {
-    if (SEQ_CHANNEL_CHECK(strip, channel) &&
-        (is_sound ? SEQ_IS_SOUND(strip) : !SEQ_IS_SOUND(strip)))
+    if (STRIP_CHANNEL_CHECK(strip, channel) &&
+        (is_sound ? STRIP_IS_SOUND(strip) : !STRIP_IS_SOUND(strip)))
     {
       strip->flag |= SELECT;
       changed = true;
@@ -2339,11 +2340,11 @@ static bool select_grouped_type_effect(blender::Span<Strip *> strips,
                                        const int channel)
 {
   bool changed = false;
-  const bool is_effect = SEQ_IS_EFFECT(actseq);
+  const bool is_effect = STRIP_IS_EFFECT(actseq);
 
   for (Strip *strip : strips) {
-    if (SEQ_CHANNEL_CHECK(strip, channel) &&
-        (is_effect ? SEQ_IS_EFFECT(strip) : !SEQ_IS_EFFECT(strip)))
+    if (STRIP_CHANNEL_CHECK(strip, channel) &&
+        (is_effect ? STRIP_IS_EFFECT(strip) : !STRIP_IS_EFFECT(strip)))
     {
       strip->flag |= SELECT;
       changed = true;
@@ -2361,13 +2362,13 @@ static bool select_grouped_data(blender::Span<Strip *> strips,
   bool changed = false;
   const char *dirpath = actseq->data ? actseq->data->dirpath : nullptr;
 
-  if (!SEQ_USE_DATA(actseq)) {
+  if (!STRIP_USE_DATA(actseq)) {
     return changed;
   }
 
-  if (SEQ_HAS_PATH(actseq) && dirpath) {
+  if (STRIP_HAS_PATH(actseq) && dirpath) {
     for (Strip *strip : strips) {
-      if (SEQ_CHANNEL_CHECK(strip, channel) && SEQ_HAS_PATH(strip) && strip->data &&
+      if (STRIP_CHANNEL_CHECK(strip, channel) && STRIP_HAS_PATH(strip) && strip->data &&
           STREQ(strip->data->dirpath, dirpath))
       {
         strip->flag |= SELECT;
@@ -2378,7 +2379,7 @@ static bool select_grouped_data(blender::Span<Strip *> strips,
   else if (actseq->type == STRIP_TYPE_SCENE) {
     Scene *sce = actseq->scene;
     for (Strip *strip : strips) {
-      if (SEQ_CHANNEL_CHECK(strip, channel) && strip->type == STRIP_TYPE_SCENE &&
+      if (STRIP_CHANNEL_CHECK(strip, channel) && strip->type == STRIP_TYPE_SCENE &&
           strip->scene == sce)
       {
         strip->flag |= SELECT;
@@ -2389,7 +2390,7 @@ static bool select_grouped_data(blender::Span<Strip *> strips,
   else if (actseq->type == STRIP_TYPE_MOVIECLIP) {
     MovieClip *clip = actseq->clip;
     for (Strip *strip : strips) {
-      if (SEQ_CHANNEL_CHECK(strip, channel) && strip->type == STRIP_TYPE_MOVIECLIP &&
+      if (STRIP_CHANNEL_CHECK(strip, channel) && strip->type == STRIP_TYPE_MOVIECLIP &&
           strip->clip == clip)
       {
         strip->flag |= SELECT;
@@ -2400,7 +2401,7 @@ static bool select_grouped_data(blender::Span<Strip *> strips,
   else if (actseq->type == STRIP_TYPE_MASK) {
     Mask *mask = actseq->mask;
     for (Strip *strip : strips) {
-      if (SEQ_CHANNEL_CHECK(strip, channel) && strip->type == STRIP_TYPE_MASK &&
+      if (STRIP_CHANNEL_CHECK(strip, channel) && strip->type == STRIP_TYPE_MASK &&
           strip->mask == mask)
       {
         strip->flag |= SELECT;
@@ -2425,7 +2426,7 @@ static bool select_grouped_effect(blender::Span<Strip *> strips,
   }
 
   for (Strip *strip : strips) {
-    if (SEQ_CHANNEL_CHECK(strip, channel) && (strip->type & STRIP_TYPE_EFFECT) &&
+    if (STRIP_CHANNEL_CHECK(strip, channel) && (strip->type & STRIP_TYPE_EFFECT) &&
         SEQ_relation_is_effect_of_strip(strip, actseq))
     {
       effects[strip->type] = true;
@@ -2433,7 +2434,7 @@ static bool select_grouped_effect(blender::Span<Strip *> strips,
   }
 
   for (Strip *strip : strips) {
-    if (SEQ_CHANNEL_CHECK(strip, channel) && effects[strip->type]) {
+    if (STRIP_CHANNEL_CHECK(strip, channel) && effects[strip->type]) {
       if (strip->seq1) {
         strip->seq1->flag |= SELECT;
       }
@@ -2516,9 +2517,9 @@ static bool select_grouped_effect_link(const Scene *scene,
   return changed;
 }
 
-#undef SEQ_IS_SOUND
-#undef SEQ_IS_EFFECT
-#undef SEQ_USE_DATA
+#undef STRIP_IS_SOUND
+#undef STRIP_IS_EFFECT
+#undef STRIP_USE_DATA
 
 static int sequencer_select_grouped_exec(bContext *C, wmOperator *op)
 {
