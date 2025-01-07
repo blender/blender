@@ -56,6 +56,7 @@ class Armatures : Overlay {
     PassSimple::Sub *shape_outline = nullptr;
     /* Custom bone wire-frame. */
     PassSimple::Sub *shape_wire = nullptr;
+    PassSimple::Sub *shape_wire_strip = nullptr;
     /* Envelopes. */
     PassSimple::Sub *envelope_fill = nullptr;
     PassSimple::Sub *envelope_outline = nullptr;
@@ -102,6 +103,7 @@ class Armatures : Overlay {
     Map<gpu::Batch *, std::unique_ptr<BoneInstanceBuf>> custom_shape_fill;
     Map<gpu::Batch *, std::unique_ptr<BoneInstanceBuf>> custom_shape_outline;
     Map<gpu::Batch *, std::unique_ptr<BoneInstanceBuf>> custom_shape_wire;
+    Map<gpu::Batch *, std::unique_ptr<BoneInstanceBuf>> custom_shape_wire_strip;
 
     BoneInstanceBuf &custom_shape_fill_get_buffer(gpu::Batch *geom)
     {
@@ -119,9 +121,16 @@ class Armatures : Overlay {
 
     BoneInstanceBuf &custom_shape_wire_get_buffer(gpu::Batch *geom)
     {
-      return *custom_shape_wire.lookup_or_add_cb(geom, [this]() {
-        return std::make_unique<BoneInstanceBuf>(this->selection_type_, "CustomBoneWire");
-      });
+      if (geom->prim_type == GPU_PRIM_LINE_STRIP) {
+        return *custom_shape_wire_strip.lookup_or_add_cb(geom, [this]() {
+          return std::make_unique<BoneInstanceBuf>(this->selection_type_, "CustomBoneWireStrip");
+        });
+      }
+      else {
+        return *custom_shape_wire.lookup_or_add_cb(geom, [this]() {
+          return std::make_unique<BoneInstanceBuf>(this->selection_type_, "CustomBoneWire");
+        });
+      }
     }
 
     BoneBuffers(const SelectionType selection_type) : selection_type_(selection_type){};
@@ -295,6 +304,27 @@ class Armatures : Overlay {
       else {
         transparent_.shape_wire = opaque_.shape_wire;
       }
+
+      {
+        auto &sub = armature_ps_.sub("opaque.shape_wire_strip");
+        sub.state_set(default_state | DRW_STATE_BLEND_ALPHA, state.clipping_plane_count);
+        sub.shader_set(res.shaders.armature_shape_wire_strip.get());
+        sub.push_constant("alpha", 1.0f);
+        sub.push_constant("do_smooth_wire", do_smooth_wire);
+        opaque_.shape_wire_strip = &sub;
+      }
+      if (use_wire_alpha) {
+        auto &sub = armature_ps_.sub("transparent.shape_wire_strip");
+        sub.state_set(default_state | DRW_STATE_BLEND_ALPHA, state.clipping_plane_count);
+        sub.shader_set(res.shaders.armature_shape_wire_strip.get());
+        sub.bind_texture("depthTex", depth_tex);
+        sub.push_constant("alpha", wire_alpha * 0.6f);
+        sub.push_constant("do_smooth_wire", do_smooth_wire);
+        transparent_.shape_wire_strip = &sub;
+      }
+      else {
+        transparent_.shape_wire_strip = opaque_.shape_wire_strip;
+      }
     }
     /* Degrees of freedom. */
     {
@@ -427,6 +457,7 @@ class Armatures : Overlay {
       bb.custom_shape_fill.clear();
       bb.custom_shape_outline.clear();
       bb.custom_shape_wire.clear();
+      bb.custom_shape_wire_strip.clear();
     };
 
     shape_instance_bufs_begin_sync(transparent_);
@@ -572,6 +603,9 @@ class Armatures : Overlay {
       }
       for (CustomShapeBuf item : bb.custom_shape_wire.items()) {
         item.value->end_sync(*bb.shape_wire, item.key, GPU_PRIM_TRIS, 2);
+      }
+      for (CustomShapeBuf item : bb.custom_shape_wire_strip.items()) {
+        item.value->end_sync(*bb.shape_wire_strip, item.key, GPU_PRIM_TRIS, 2);
       }
     };
 

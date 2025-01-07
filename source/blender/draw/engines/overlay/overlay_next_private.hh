@@ -439,6 +439,7 @@ class ShaderModule {
   ShaderPtr armature_shape_outline = shader_selectable("overlay_armature_shape_outline");
   ShaderPtr armature_shape_fill = shader_selectable("overlay_armature_shape_solid");
   ShaderPtr armature_shape_wire = shader_selectable("overlay_armature_shape_wire");
+  ShaderPtr armature_shape_wire_strip = shader_selectable("overlay_armature_shape_wire_strip");
   ShaderPtr armature_sphere_outline = shader_selectable("overlay_armature_sphere_outline");
   ShaderPtr armature_sphere_fill = shader_selectable("overlay_armature_sphere_solid");
   ShaderPtr armature_stick = shader_selectable("overlay_armature_stick");
