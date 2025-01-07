@@ -40,7 +40,7 @@ bool SEQ_relation_is_effect_of_strip(const Strip *effect, const Strip *input)
 }
 
 /* check whether sequence cur depends on seq */
-static bool seq_relations_check_depend(const Scene *scene, Strip *strip, Strip *cur)
+static bool strip_relations_check_depend(const Scene *scene, Strip *strip, Strip *cur)
 {
   if (SEQ_relation_is_effect_of_strip(cur, strip)) {
     return true;
@@ -78,7 +78,7 @@ static void sequence_do_invalidate_dependent(Scene *scene, Strip *strip, ListBas
       continue;
     }
 
-    if (seq_relations_check_depend(scene, strip, cur)) {
+    if (strip_relations_check_depend(scene, strip, cur)) {
       /* Effect must be invalidated completely if they depend on invalidated strip. */
       if ((cur->type & SEQ_TYPE_EFFECT) != 0) {
         seq_cache_cleanup_sequence(scene, cur, strip, SEQ_CACHE_ALL_TYPES, false);
@@ -108,7 +108,7 @@ static void sequence_invalidate_cache(Scene *scene,
   }
 
   if (strip->effectdata && strip->type == SEQ_TYPE_SPEED) {
-    seq_effect_speed_rebuild_map(scene, strip);
+    strip_effect_speed_rebuild_map(scene, strip);
   }
 
   blender::seq::media_presence_invalidate_strip(scene, strip);
@@ -118,9 +118,9 @@ static void sequence_invalidate_cache(Scene *scene,
 }
 
 /* Find meta-strips that contain invalidated_seq and invalidate them. */
-static bool seq_relations_find_and_invalidate_metas(Scene *scene,
-                                                    Strip *invalidated_seq,
-                                                    Strip *meta_seq)
+static bool strip_relations_find_and_invalidate_metas(Scene *scene,
+                                                      Strip *invalidated_seq,
+                                                      Strip *meta_seq)
 {
   ListBase *seqbase;
 
@@ -134,7 +134,7 @@ static bool seq_relations_find_and_invalidate_metas(Scene *scene,
 
   LISTBASE_FOREACH (Strip *, strip, seqbase) {
     if (strip->type == SEQ_TYPE_META) {
-      if (seq_relations_find_and_invalidate_metas(scene, invalidated_seq, strip)) {
+      if (strip_relations_find_and_invalidate_metas(scene, invalidated_seq, strip)) {
         sequence_invalidate_cache(scene, strip, true, SEQ_CACHE_ALL_TYPES);
         return true;
       }
@@ -153,13 +153,13 @@ void SEQ_relations_invalidate_cache_in_range(Scene *scene,
                                              int invalidate_types)
 {
   seq_cache_cleanup_sequence(scene, strip, range_mask, invalidate_types, true);
-  seq_relations_find_and_invalidate_metas(scene, strip, nullptr);
+  strip_relations_find_and_invalidate_metas(scene, strip, nullptr);
 }
 
 void SEQ_relations_invalidate_cache_raw(Scene *scene, Strip *strip)
 {
   sequence_invalidate_cache(scene, strip, true, SEQ_CACHE_ALL_TYPES);
-  seq_relations_find_and_invalidate_metas(scene, strip, nullptr);
+  strip_relations_find_and_invalidate_metas(scene, strip, nullptr);
 }
 
 void SEQ_relations_invalidate_cache_preprocessed(Scene *scene, Strip *strip)
@@ -169,7 +169,7 @@ void SEQ_relations_invalidate_cache_preprocessed(Scene *scene, Strip *strip)
                             true,
                             SEQ_CACHE_STORE_PREPROCESSED | SEQ_CACHE_STORE_COMPOSITE |
                                 SEQ_CACHE_STORE_FINAL_OUT);
-  seq_relations_find_and_invalidate_metas(scene, strip, nullptr);
+  strip_relations_find_and_invalidate_metas(scene, strip, nullptr);
 }
 
 void SEQ_relations_invalidate_cache_composite(Scene *scene, Strip *strip)
@@ -180,7 +180,7 @@ void SEQ_relations_invalidate_cache_composite(Scene *scene, Strip *strip)
 
   sequence_invalidate_cache(
       scene, strip, true, SEQ_CACHE_STORE_COMPOSITE | SEQ_CACHE_STORE_FINAL_OUT);
-  seq_relations_find_and_invalidate_metas(scene, strip, nullptr);
+  strip_relations_find_and_invalidate_metas(scene, strip, nullptr);
 }
 
 void SEQ_relations_invalidate_dependent(Scene *scene, Strip *strip)
@@ -191,7 +191,7 @@ void SEQ_relations_invalidate_dependent(Scene *scene, Strip *strip)
 
   sequence_invalidate_cache(
       scene, strip, false, SEQ_CACHE_STORE_COMPOSITE | SEQ_CACHE_STORE_FINAL_OUT);
-  seq_relations_find_and_invalidate_metas(scene, strip, nullptr);
+  strip_relations_find_and_invalidate_metas(scene, strip, nullptr);
 }
 
 static void invalidate_scene_strips(Scene *scene, Scene *scene_target, ListBase *seqbase)
@@ -263,7 +263,7 @@ void SEQ_relations_free_imbuf(Scene *scene, ListBase *seqbase, bool for_render)
         SEQ_relations_sequence_free_anim(strip);
       }
       if (strip->type == SEQ_TYPE_SPEED) {
-        seq_effect_speed_rebuild_map(scene, strip);
+        strip_effect_speed_rebuild_map(scene, strip);
       }
     }
     if (strip->type == SEQ_TYPE_META) {
@@ -371,23 +371,23 @@ bool SEQ_relations_check_scene_recursion(Scene *scene, ReportList *reports)
   return false;
 }
 
-bool SEQ_relations_render_loop_check(Strip *seq_main, Strip *strip)
+bool SEQ_relations_render_loop_check(Strip *strip_main, Strip *strip)
 {
-  if (seq_main == nullptr || strip == nullptr) {
+  if (strip_main == nullptr || strip == nullptr) {
     return false;
   }
 
-  if (seq_main == strip) {
+  if (strip_main == strip) {
     return true;
   }
 
-  if ((seq_main->seq1 && SEQ_relations_render_loop_check(seq_main->seq1, strip)) ||
-      (seq_main->seq2 && SEQ_relations_render_loop_check(seq_main->seq2, strip)))
+  if ((strip_main->seq1 && SEQ_relations_render_loop_check(strip_main->seq1, strip)) ||
+      (strip_main->seq2 && SEQ_relations_render_loop_check(strip_main->seq2, strip)))
   {
     return true;
   }
 
-  LISTBASE_FOREACH (SequenceModifierData *, smd, &seq_main->modifiers) {
+  LISTBASE_FOREACH (SequenceModifierData *, smd, &strip_main->modifiers) {
     if (smd->mask_sequence && SEQ_relations_render_loop_check(smd->mask_sequence, strip)) {
       return true;
     }
@@ -468,11 +468,11 @@ Strip *SEQ_find_metastrip_by_sequence(ListBase *seqbase, Strip *meta, Strip *str
 
 bool SEQ_exists_in_seqbase(const Strip *strip, const ListBase *seqbase)
 {
-  LISTBASE_FOREACH (Strip *, seq_test, seqbase) {
-    if (seq_test->type == SEQ_TYPE_META && SEQ_exists_in_seqbase(strip, &seq_test->seqbase)) {
+  LISTBASE_FOREACH (Strip *, strip_test, seqbase) {
+    if (strip_test->type == SEQ_TYPE_META && SEQ_exists_in_seqbase(strip, &strip_test->seqbase)) {
       return true;
     }
-    if (seq_test == strip) {
+    if (strip_test == strip) {
       return true;
     }
   }

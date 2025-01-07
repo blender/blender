@@ -82,7 +82,7 @@ void SEQ_fontmap_clear()
   g_font_map.name_to_mem_font_id.clear();
 }
 
-static int seq_load_font_file(const std::string &path)
+static int strip_load_font_file(const std::string &path)
 {
   std::lock_guard lock(g_font_map.mutex);
   int fontid = g_font_map.path_to_file_font_id.add_or_modify(
@@ -109,7 +109,7 @@ static int seq_load_font_file(const std::string &path)
   return fontid;
 }
 
-static int seq_load_font_mem(const std::string &name, const uchar *data, int data_size)
+static int strip_load_font_mem(const std::string &name, const uchar *data, int data_size)
 {
   std::lock_guard lock(g_font_map.mutex);
   int fontid = g_font_map.name_to_mem_font_id.add_or_modify(
@@ -136,7 +136,7 @@ static int seq_load_font_mem(const std::string &name, const uchar *data, int dat
   return fontid;
 }
 
-static void seq_unload_font(int fontid)
+static void strip_unload_font(int fontid)
 {
   std::lock_guard lock(g_font_map.mutex);
   bool unloaded = BLF_unload_id(fontid);
@@ -217,7 +217,7 @@ void SEQ_effect_text_font_unload(TextVars *data, const bool do_id_user)
 
   /* Unload the font. */
   if (data->text_blf_id >= 0) {
-    seq_unload_font(data->text_blf_id);
+    strip_unload_font(data->text_blf_id);
     data->text_blf_id = -1;
   }
 }
@@ -244,14 +244,14 @@ void SEQ_effect_text_font_load(TextVars *data, const bool do_id_user)
     char name[MAX_ID_FULL_NAME];
     BKE_id_full_name_get(name, &vfont->id, 0);
 
-    data->text_blf_id = seq_load_font_mem(name, static_cast<const uchar *>(pf->data), pf->size);
+    data->text_blf_id = strip_load_font_mem(name, static_cast<const uchar *>(pf->data), pf->size);
   }
   else {
     char filepath[FILE_MAX];
     STRNCPY(filepath, vfont->filepath);
 
     BLI_path_abs(filepath, ID_BLEND_PATH_FROM_GLOBAL(&vfont->id));
-    data->text_blf_id = seq_load_font_file(filepath);
+    data->text_blf_id = strip_load_font_file(filepath);
   }
 }
 

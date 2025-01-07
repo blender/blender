@@ -196,21 +196,21 @@ static bool seq_snap_source_points_build_preview(const Scene *scene,
 /** \name Snap targets
  * \{ */
 
-/* Add effect strips directly or indirectly connected to `seq_reference` to `collection`. */
+/* Add effect strips directly or indirectly connected to `strip_reference` to `collection`. */
 static void query_strip_effects_fn(const Scene *scene,
-                                   Strip *seq_reference,
+                                   Strip *strip_reference,
                                    ListBase *seqbase,
                                    blender::VectorSet<Strip *> &strips)
 {
-  if (strips.contains(seq_reference)) {
+  if (strips.contains(strip_reference)) {
     return; /* Strip is already in set, so all effects connected to it are as well. */
   }
-  strips.add(seq_reference);
+  strips.add(strip_reference);
 
-  /* Find all strips connected to `seq_reference`. */
-  LISTBASE_FOREACH (Strip *, seq_test, seqbase) {
-    if (SEQ_relation_is_effect_of_strip(seq_test, seq_reference)) {
-      query_strip_effects_fn(scene, seq_test, seqbase, strips);
+  /* Find all strips connected to `strip_reference`. */
+  LISTBASE_FOREACH (Strip *, strip_test, seqbase) {
+    if (SEQ_relation_is_effect_of_strip(strip_test, strip_reference)) {
+      query_strip_effects_fn(scene, strip_test, seqbase, strips);
     }
   }
 }
@@ -447,12 +447,12 @@ static bool seq_snap_target_points_build_preview(const Scene *scene,
 
   if (snap_mode & SEQ_SNAP_TO_STRIPS_PREVIEW) {
     for (Strip *strip : snap_targets) {
-      float seq_image_quad[4][2];
-      SEQ_image_transform_final_quad_get(scene, strip, seq_image_quad);
+      float strip_image_quad[4][2];
+      SEQ_image_transform_final_quad_get(scene, strip, strip_image_quad);
 
       for (int j = 0; j < 4; j++) {
-        snap_data->target_snap_points[i][0] = seq_image_quad[j][0];
-        snap_data->target_snap_points[i][1] = seq_image_quad[j][1];
+        snap_data->target_snap_points[i][0] = strip_image_quad[j][0];
+        snap_data->target_snap_points[i][1] = strip_image_quad[j][1];
         i++;
       }
 

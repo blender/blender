@@ -28,5 +28,5 @@ bool seq_disk_cache_enforce_limits(SeqDiskCache *disk_cache);
 void seq_disk_cache_invalidate(SeqDiskCache *disk_cache,
                                Scene *scene,
                                Strip *strip,
-                               Strip *seq_changed,
+                               Strip *strip_changed,
                                int invalidate_types);

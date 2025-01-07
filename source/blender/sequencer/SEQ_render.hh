@@ -73,7 +73,7 @@ StripElem *SEQ_render_give_stripelem(const Scene *scene, const Strip *strip, int
 void SEQ_render_imbuf_from_sequencer_space(Scene *scene, ImBuf *ibuf);
 void SEQ_render_pixel_from_sequencer_space_v4(Scene *scene, float pixel[4]);
 /**
- * Check if `seq` is muted for rendering.
+ * Check if `strip` is muted for rendering.
  * This function also checks `SeqTimelineChannel` flag.
  */
 bool SEQ_render_is_muted(const ListBase *channels, const Strip *strip);

@@ -27,9 +27,9 @@ bool SEQ_relation_is_effect_of_strip(const Strip *effect, const Strip *input);
 void SEQ_relations_sequence_free_anim(Strip *strip);
 bool SEQ_relations_check_scene_recursion(Scene *scene, ReportList *reports);
 /**
- * Check if "seq_main" (indirectly) uses strip "seq".
+ * Check if "strip_main" (indirectly) uses strip "strip".
  */
-bool SEQ_relations_render_loop_check(Strip *seq_main, Strip *strip);
+bool SEQ_relations_render_loop_check(Strip *strip_main, Strip *strip);
 void SEQ_relations_free_imbuf(Scene *scene, ListBase *seqbase, bool for_render);
 void SEQ_relations_invalidate_cache_raw(Scene *scene, Strip *strip);
 void SEQ_relations_invalidate_cache_preprocessed(Scene *scene, Strip *strip);

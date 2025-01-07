@@ -73,7 +73,7 @@ struct SeqEffectHandle {
 };
 
 SeqEffectHandle SEQ_effect_handle_get(Strip *strip);
-int SEQ_effect_get_num_inputs(int seq_type);
+int SEQ_effect_get_num_inputs(int strip_type);
 void SEQ_effect_text_font_unload(TextVars *data, bool do_id_user);
 void SEQ_effect_text_font_load(TextVars *data, bool do_id_user);
 bool SEQ_effects_can_render_text(const Strip *strip);

@@ -74,7 +74,7 @@ struct ThumbnailCache {
         : file_path(path),
           frame_index(frame),
           stream_index(stream),
-          seq_type(type),
+          strip_type(type),
           requested_at(logical_time),
           timeline_frame(time_frame),
           channel(ch),
@@ -86,7 +86,7 @@ struct ThumbnailCache {
     std::string file_path;
     int frame_index = 0;  /* Frame index (for movies) or image index (for image sequences). */
     int stream_index = 0; /* Stream index (only for multi-stream movies). */
-    SequenceType seq_type = SEQ_TYPE_IMAGE;
+    SequenceType strip_type = SEQ_TYPE_IMAGE;
 
     /* The following members are payload and do not contribute to uniqueness. */
     int64_t requested_at = 0;
@@ -97,12 +97,12 @@ struct ThumbnailCache {
 
     uint64_t hash() const
     {
-      return get_default_hash(file_path, frame_index, stream_index, seq_type);
+      return get_default_hash(file_path, frame_index, stream_index, strip_type);
     }
     bool operator==(const Request &o) const
     {
       return frame_index == o.frame_index && stream_index == o.stream_index &&
-             seq_type == o.seq_type && file_path == o.file_path;
+             strip_type == o.strip_type && file_path == o.file_path;
     }
   };
 
@@ -335,14 +335,14 @@ void ThumbGenerationJob::run_fn(void *customdata, wmJobWorkerStatus *worker_stat
         ++total_thumbs;
 #endif
         ImBuf *thumb = nullptr;
-        if (request.seq_type == SEQ_TYPE_IMAGE) {
+        if (request.strip_type == SEQ_TYPE_IMAGE) {
           /* Load thumbnail for an image. */
 #ifdef DEBUG_PRINT_THUMB_JOB_TIMES
           ++total_images;
 #endif
           thumb = make_thumb_for_image(job->scene_, request);
         }
-        else if (request.seq_type == SEQ_TYPE_MOVIE) {
+        else if (request.strip_type == SEQ_TYPE_MOVIE) {
           /* Load thumbnail for an movie. */
 #ifdef DEBUG_PRINT_THUMB_JOB_TIMES
           ++total_movies;

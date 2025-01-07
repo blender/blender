@@ -462,7 +462,7 @@ void blo_do_version_old_trackto_to_constraints(Object *ob)
   ob->track = nullptr;
 }
 
-static bool seq_set_alpha_mode_cb(Strip *strip, void * /*user_data*/)
+static bool strip_set_alpha_mode_cb(Strip *strip, void * /*user_data*/)
 {
   if (ELEM(strip->type, SEQ_TYPE_IMAGE, SEQ_TYPE_MOVIE)) {
     strip->alpha_mode = SEQ_ALPHA_STRAIGHT;
@@ -470,7 +470,7 @@ static bool seq_set_alpha_mode_cb(Strip *strip, void * /*user_data*/)
   return true;
 }
 
-static bool seq_set_blend_mode_cb(Strip *strip, void * /*user_data*/)
+static bool strip_set_blend_mode_cb(Strip *strip, void * /*user_data*/)
 {
   if (strip->blend_mode == 0) {
     strip->blend_opacity = 100.0f;
@@ -1223,7 +1223,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
     while (sce) {
       ed = sce->ed;
       if (ed) {
-        SEQ_for_each_callback(&sce->ed->seqbase, seq_set_alpha_mode_cb, nullptr);
+        SEQ_for_each_callback(&sce->ed->seqbase, strip_set_alpha_mode_cb, nullptr);
       }
 
       sce = static_cast<Scene *>(sce->id.next);
@@ -2451,7 +2451,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *bmain)
          sce = static_cast<Scene *>(sce->id.next))
     {
       if (sce->ed) {
-        SEQ_for_each_callback(&sce->ed->seqbase, seq_set_blend_mode_cb, nullptr);
+        SEQ_for_each_callback(&sce->ed->seqbase, strip_set_blend_mode_cb, nullptr);
       }
     }
   }

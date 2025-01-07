@@ -846,22 +846,22 @@ static void seq_build_proxy(bContext *C, blender::Span<Strip *> movie_strips)
 }
 
 static void sequencer_add_movie_sync_sound_strip(
-    Main *bmain, Scene *scene, Strip *seq_movie, Strip *seq_sound, SeqLoadData *load_data)
+    Main *bmain, Scene *scene, Strip *strip_movie, Strip *strip_sound, SeqLoadData *load_data)
 {
-  if (ELEM(nullptr, seq_movie, seq_sound)) {
+  if (ELEM(nullptr, strip_movie, strip_sound)) {
     return;
   }
 
   /* Make sure that the sound strip start time relative to the movie is taken into account. */
-  SEQ_add_sound_av_sync(bmain, scene, seq_sound, load_data);
+  SEQ_add_sound_av_sync(bmain, scene, strip_sound, load_data);
 
   /* Ensure that the sound strip start/end matches the movie strip even if the actual
    * length and true position of the sound doesn't match up exactly.
    */
   SEQ_time_right_handle_frame_set(
-      scene, seq_sound, SEQ_time_right_handle_frame_get(scene, seq_movie));
+      scene, strip_sound, SEQ_time_right_handle_frame_get(scene, strip_movie));
   SEQ_time_left_handle_frame_set(
-      scene, seq_sound, SEQ_time_left_handle_frame_get(scene, seq_movie));
+      scene, strip_sound, SEQ_time_left_handle_frame_get(scene, strip_movie));
 }
 
 static void sequencer_add_movie_multiple_strips(bContext *C,
@@ -884,44 +884,44 @@ static void sequencer_add_movie_multiple_strips(bContext *C,
     RNA_string_get(&itemptr, "name", file_only);
     BLI_path_join(load_data->path, sizeof(load_data->path), dir_only, file_only);
     STRNCPY(load_data->name, file_only);
-    Strip *seq_movie = nullptr;
-    Strip *seq_sound = nullptr;
+    Strip *strip_movie = nullptr;
+    Strip *strip_sound = nullptr;
 
-    seq_movie = SEQ_add_movie_strip(bmain, scene, ed->seqbasep, load_data);
+    strip_movie = SEQ_add_movie_strip(bmain, scene, ed->seqbasep, load_data);
 
-    if (seq_movie == nullptr) {
+    if (strip_movie == nullptr) {
       BKE_reportf(op->reports, RPT_ERROR, "File '%s' could not be loaded", load_data->path);
     }
     else {
       if (RNA_boolean_get(op->ptr, "sound")) {
-        seq_sound = SEQ_add_sound_strip(bmain, scene, ed->seqbasep, load_data);
-        sequencer_add_movie_sync_sound_strip(bmain, scene, seq_movie, seq_sound, load_data);
-        added_strips.append(seq_movie);
+        strip_sound = SEQ_add_sound_strip(bmain, scene, ed->seqbasep, load_data);
+        sequencer_add_movie_sync_sound_strip(bmain, scene, strip_movie, strip_sound, load_data);
+        added_strips.append(strip_movie);
 
-        if (seq_sound) {
+        if (strip_sound) {
           /* The video has sound, shift the video strip up a channel to make room for the sound
            * strip. */
-          added_strips.append(seq_sound);
-          seq_movie->machine++;
+          added_strips.append(strip_sound);
+          strip_movie->machine++;
         }
       }
 
-      load_data->start_frame += SEQ_time_right_handle_frame_get(scene, seq_movie) -
-                                SEQ_time_left_handle_frame_get(scene, seq_movie);
+      load_data->start_frame += SEQ_time_right_handle_frame_get(scene, strip_movie) -
+                                SEQ_time_left_handle_frame_get(scene, strip_movie);
       if (overlap_shuffle_override) {
-        has_seq_overlap |= seq_load_apply_generic_options_only_test_overlap(C, op, seq_sound);
-        has_seq_overlap |= seq_load_apply_generic_options_only_test_overlap(C, op, seq_movie);
+        has_seq_overlap |= seq_load_apply_generic_options_only_test_overlap(C, op, strip_sound);
+        has_seq_overlap |= seq_load_apply_generic_options_only_test_overlap(C, op, strip_movie);
       }
       else {
-        seq_load_apply_generic_options(C, op, seq_sound);
-        seq_load_apply_generic_options(C, op, seq_movie);
+        seq_load_apply_generic_options(C, op, strip_sound);
+        seq_load_apply_generic_options(C, op, strip_movie);
       }
 
       if (U.sequencer_editor_flag & USER_SEQ_ED_CONNECT_STRIPS_BY_DEFAULT) {
-        SEQ_connect(seq_movie, seq_sound);
+        SEQ_connect(strip_movie, strip_sound);
       }
 
-      r_movie_strips.add(seq_movie);
+      r_movie_strips.add(strip_movie);
     }
   }
   RNA_END;
@@ -945,26 +945,26 @@ static bool sequencer_add_movie_single_strip(bContext *C,
   Scene *scene = CTX_data_scene(C);
   const Editing *ed = SEQ_editing_ensure(scene);
 
-  Strip *seq_movie = nullptr;
-  Strip *seq_sound = nullptr;
+  Strip *strip_movie = nullptr;
+  Strip *strip_sound = nullptr;
   blender::Vector<Strip *> added_strips;
 
-  seq_movie = SEQ_add_movie_strip(bmain, scene, ed->seqbasep, load_data);
+  strip_movie = SEQ_add_movie_strip(bmain, scene, ed->seqbasep, load_data);
 
-  if (seq_movie == nullptr) {
+  if (strip_movie == nullptr) {
     BKE_reportf(op->reports, RPT_ERROR, "File '%s' could not be loaded", load_data->path);
     return false;
   }
   if (RNA_boolean_get(op->ptr, "sound")) {
-    seq_sound = SEQ_add_sound_strip(bmain, scene, ed->seqbasep, load_data);
-    sequencer_add_movie_sync_sound_strip(bmain, scene, seq_movie, seq_sound, load_data);
-    added_strips.append(seq_movie);
+    strip_sound = SEQ_add_sound_strip(bmain, scene, ed->seqbasep, load_data);
+    sequencer_add_movie_sync_sound_strip(bmain, scene, strip_movie, strip_sound, load_data);
+    added_strips.append(strip_movie);
 
-    if (seq_sound) {
-      added_strips.append(seq_sound);
+    if (strip_sound) {
+      added_strips.append(strip_sound);
       /* The video has sound, shift the video strip up a channel to make room for the sound
        * strip. */
-      seq_movie->machine++;
+      strip_movie->machine++;
     }
   }
 
@@ -973,8 +973,8 @@ static bool sequencer_add_movie_single_strip(bContext *C,
   if (overlap_shuffle_override) {
     bool has_seq_overlap = false;
 
-    has_seq_overlap |= seq_load_apply_generic_options_only_test_overlap(C, op, seq_sound);
-    has_seq_overlap |= seq_load_apply_generic_options_only_test_overlap(C, op, seq_movie);
+    has_seq_overlap |= seq_load_apply_generic_options_only_test_overlap(C, op, strip_sound);
+    has_seq_overlap |= seq_load_apply_generic_options_only_test_overlap(C, op, strip_movie);
 
     if (has_seq_overlap) {
       ScrArea *area = CTX_wm_area(C);
@@ -984,15 +984,15 @@ static bool sequencer_add_movie_single_strip(bContext *C,
     }
   }
   else {
-    seq_load_apply_generic_options(C, op, seq_sound);
-    seq_load_apply_generic_options(C, op, seq_movie);
+    seq_load_apply_generic_options(C, op, strip_sound);
+    seq_load_apply_generic_options(C, op, strip_movie);
   }
 
   if (U.sequencer_editor_flag & USER_SEQ_ED_CONNECT_STRIPS_BY_DEFAULT) {
-    SEQ_connect(seq_movie, seq_sound);
+    SEQ_connect(strip_movie, strip_sound);
   }
 
-  r_movie_strips.add(seq_movie);
+  r_movie_strips.add(strip_movie);
 
   return true;
 }
@@ -1469,7 +1469,8 @@ static int sequencer_add_effect_strip_exec(bContext *C, wmOperator *op)
   load_data.effect.type = RNA_enum_get(op->ptr, "type");
 
   Strip *seq1, *seq2;
-  if (!seq_effect_find_selected(scene, nullptr, load_data.effect.type, &seq1, &seq2, &error_msg)) {
+  if (!strip_effect_find_selected(scene, nullptr, load_data.effect.type, &seq1, &seq2, &error_msg))
+  {
     BKE_report(op->reports, RPT_ERROR, error_msg);
     return OPERATOR_CANCELLED;
   }

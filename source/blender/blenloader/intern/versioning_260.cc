@@ -992,7 +992,7 @@ static void do_versions_nodetree_customnodes(bNodeTree *ntree, int /*is_group*/)
   }
 }
 
-static bool seq_colorbalance_update_cb(Strip *strip, void * /*user_data*/)
+static bool strip_colorbalance_update_cb(Strip *strip, void * /*user_data*/)
 {
   StripData *data = strip->data;
 
@@ -1015,7 +1015,7 @@ static bool seq_colorbalance_update_cb(Strip *strip, void * /*user_data*/)
   return true;
 }
 
-static bool seq_set_alpha_mode_cb(Strip *strip, void * /*user_data*/)
+static bool strip_set_alpha_mode_cb(Strip *strip, void * /*user_data*/)
 {
   enum { SEQ_MAKE_PREMUL = (1 << 6) };
   if (strip->flag & SEQ_MAKE_PREMUL) {
@@ -1027,7 +1027,7 @@ static bool seq_set_alpha_mode_cb(Strip *strip, void * /*user_data*/)
   return true;
 }
 
-static bool seq_set_wipe_angle_cb(Strip *strip, void * /*user_data*/)
+static bool strip_set_wipe_angle_cb(Strip *strip, void * /*user_data*/)
 {
   if (strip->type == SEQ_TYPE_WIPE) {
     WipeVars *wv = static_cast<WipeVars *>(strip->effectdata);
@@ -1842,7 +1842,7 @@ void blo_do_versions_260(FileData *fd, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 263, 18)) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       if (scene->ed) {
-        SEQ_for_each_callback(&scene->ed->seqbase, seq_colorbalance_update_cb, nullptr);
+        SEQ_for_each_callback(&scene->ed->seqbase, strip_colorbalance_update_cb, nullptr);
       }
     }
   }
@@ -2081,7 +2081,7 @@ void blo_do_versions_260(FileData *fd, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 265, 5)) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       if (scene->ed) {
-        SEQ_for_each_callback(&scene->ed->seqbase, seq_set_alpha_mode_cb, nullptr);
+        SEQ_for_each_callback(&scene->ed->seqbase, strip_set_alpha_mode_cb, nullptr);
       }
 
       if (scene->r.bake_samples == 0) {
@@ -2781,7 +2781,7 @@ void blo_do_versions_260(FileData *fd, Library * /*lib*/, Main *bmain)
 
       LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
         if (scene->ed) {
-          SEQ_for_each_callback(&scene->ed->seqbase, seq_set_wipe_angle_cb, nullptr);
+          SEQ_for_each_callback(&scene->ed->seqbase, strip_set_wipe_angle_cb, nullptr);
         }
       }
 

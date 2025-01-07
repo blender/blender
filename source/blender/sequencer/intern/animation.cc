@@ -144,14 +144,14 @@ void SEQ_animation_restore_original(Scene *scene, SeqAnimationBackup *backup)
 /**
  * Duplicate the animation in `src` that matches items in `strip` into `dst`.
  */
-static void seq_animation_duplicate(Strip *strip,
-                                    animrig::Action &dst,
-                                    const animrig::slot_handle_t dst_slot_handle,
-                                    SeqAnimationBackup *src)
+static void strip_animation_duplicate(Strip *strip,
+                                      animrig::Action &dst,
+                                      const animrig::slot_handle_t dst_slot_handle,
+                                      SeqAnimationBackup *src)
 {
   if (strip->type == SEQ_TYPE_META) {
     LISTBASE_FOREACH (Strip *, meta_child, &strip->seqbase) {
-      seq_animation_duplicate(meta_child, dst, dst_slot_handle, src);
+      strip_animation_duplicate(meta_child, dst, dst_slot_handle, src);
     }
   }
 
@@ -187,11 +187,11 @@ static void seq_animation_duplicate(Strip *strip,
 /**
  * Duplicate the drivers in `src` that matches items in `strip` into `dst`.
  */
-static void seq_drivers_duplicate(Strip *strip, AnimData *dst, SeqAnimationBackup *src)
+static void strip_drivers_duplicate(Strip *strip, AnimData *dst, SeqAnimationBackup *src)
 {
   if (strip->type == SEQ_TYPE_META) {
     LISTBASE_FOREACH (Strip *, meta_child, &strip->seqbase) {
-      seq_drivers_duplicate(meta_child, dst, src);
+      strip_drivers_duplicate(meta_child, dst, src);
     }
   }
 
@@ -213,11 +213,11 @@ void SEQ_animation_duplicate_backup_to_scene(Scene *scene,
   if (!BLI_listbase_is_empty(&backup->curves) || !backup->channelbag.fcurves().is_empty()) {
     BLI_assert(scene->adt != nullptr);
     BLI_assert(scene->adt->action != nullptr);
-    seq_animation_duplicate(strip, scene->adt->action->wrap(), scene->adt->slot_handle, backup);
+    strip_animation_duplicate(strip, scene->adt->action->wrap(), scene->adt->slot_handle, backup);
   }
 
   if (!BLI_listbase_is_empty(&backup->drivers)) {
     BLI_assert(scene->adt != nullptr);
-    seq_drivers_duplicate(strip, scene->adt, backup);
+    strip_drivers_duplicate(strip, scene->adt, backup);
   }
 }

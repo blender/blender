@@ -14,7 +14,10 @@ struct Main;
 struct Scene;
 struct Strip;
 
-bool SEQ_edit_sequence_swap(Scene *scene, Strip *seq_a, Strip *seq_b, const char **r_error_str);
+bool SEQ_edit_sequence_swap(Scene *scene,
+                            Strip *strip_a,
+                            Strip *strip_b,
+                            const char **r_error_str);
 /**
  * Move sequence to seqbase.
  *

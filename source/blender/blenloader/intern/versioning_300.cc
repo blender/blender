@@ -631,7 +631,7 @@ static bNodeTree *add_realize_node_tree(Main *bmain)
   return node_tree;
 }
 
-static void seq_speed_factor_fix_rna_path(Strip *strip, ListBase *fcurves)
+static void strip_speed_factor_fix_rna_path(Strip *strip, ListBase *fcurves)
 {
   char name_esc[(sizeof(strip->name) - 2) * 2];
   BLI_str_escape(name_esc, strip->name + 2, sizeof(name_esc));
@@ -653,16 +653,16 @@ static bool version_fix_seq_meta_range(Strip *strip, void *user_data)
   return true;
 }
 
-static bool seq_speed_factor_set(Strip *strip, void *user_data)
+static bool strip_speed_factor_set(Strip *strip, void *user_data)
 {
   const Scene *scene = static_cast<const Scene *>(user_data);
   if (strip->type == SEQ_TYPE_SOUND_RAM) {
     /* Move `pitch` animation to `speed_factor` */
     if (scene->adt && scene->adt->action) {
-      seq_speed_factor_fix_rna_path(strip, &scene->adt->action->curves);
+      strip_speed_factor_fix_rna_path(strip, &scene->adt->action->curves);
     }
     if (scene->adt && !BLI_listbase_is_empty(&scene->adt->drivers)) {
-      seq_speed_factor_fix_rna_path(strip, &scene->adt->drivers);
+      strip_speed_factor_fix_rna_path(strip, &scene->adt->drivers);
     }
 
     /* Pitch value of 0 has been found in some files. This would cause problems. */
@@ -1320,7 +1320,7 @@ void do_versions_after_linking_300(FileData * /*fd*/, Main *bmain)
       if (ed == nullptr) {
         continue;
       }
-      SEQ_for_each_callback(&ed->seqbase, seq_speed_factor_set, scene);
+      SEQ_for_each_callback(&ed->seqbase, strip_speed_factor_set, scene);
       SEQ_for_each_callback(&ed->seqbase, version_fix_seq_meta_range, scene);
     }
   }
@@ -1503,7 +1503,7 @@ static bNodeSocket *do_version_replace_float_size_with_vector(bNodeTree *ntree,
   return new_socket;
 }
 
-static bool seq_transform_origin_set(Strip *strip, void * /*user_data*/)
+static bool strip_transform_origin_set(Strip *strip, void * /*user_data*/)
 {
   StripTransform *transform = strip->data->transform;
   if (strip->data->transform != nullptr) {
@@ -1512,7 +1512,7 @@ static bool seq_transform_origin_set(Strip *strip, void * /*user_data*/)
   return true;
 }
 
-static bool seq_transform_filter_set(Strip *strip, void * /*user_data*/)
+static bool strip_transform_filter_set(Strip *strip, void * /*user_data*/)
 {
   StripTransform *transform = strip->data->transform;
   if (strip->data->transform != nullptr) {
@@ -1521,7 +1521,7 @@ static bool seq_transform_filter_set(Strip *strip, void * /*user_data*/)
   return true;
 }
 
-static bool seq_meta_channels_ensure(Strip *strip, void * /*user_data*/)
+static bool strip_meta_channels_ensure(Strip *strip, void * /*user_data*/)
 {
   if (strip->type == SEQ_TYPE_META) {
     SEQ_channels_ensure(&strip->channels);
@@ -2939,7 +2939,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
       sequencer_tool_settings->pivot_point = V3D_AROUND_CENTER_MEDIAN;
 
       if (scene->ed != nullptr) {
-        SEQ_for_each_callback(&scene->ed->seqbase, seq_transform_origin_set, nullptr);
+        SEQ_for_each_callback(&scene->ed->seqbase, strip_transform_origin_set, nullptr);
       }
     }
     LISTBASE_FOREACH (bScreen *, screen, &bmain->screens) {
@@ -3474,7 +3474,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 302, 2)) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       if (scene->ed != nullptr) {
-        SEQ_for_each_callback(&scene->ed->seqbase, seq_transform_filter_set, nullptr);
+        SEQ_for_each_callback(&scene->ed->seqbase, strip_transform_filter_set, nullptr);
       }
     }
   }
@@ -3683,7 +3683,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
         continue;
       }
       SEQ_channels_ensure(&ed->channels);
-      SEQ_for_each_callback(&scene->ed->seqbase, seq_meta_channels_ensure, nullptr);
+      SEQ_for_each_callback(&scene->ed->seqbase, strip_meta_channels_ensure, nullptr);
 
       ed->displayed_channels = &ed->channels;
 

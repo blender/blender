@@ -12,7 +12,7 @@
 
 #include "SEQ_connect.hh"
 
-static void seq_connections_free(Strip *strip)
+static void strip_connections_free(Strip *strip)
 {
   if (strip == nullptr) {
     return;
@@ -48,15 +48,15 @@ bool SEQ_disconnect(Strip *strip)
     }
   }
   /* Now clear `connections` for `strip` itself. */
-  seq_connections_free(strip);
+  strip_connections_free(strip);
 
   return true;
 }
 
-bool SEQ_disconnect(blender::VectorSet<Strip *> &seq_list)
+bool SEQ_disconnect(blender::VectorSet<Strip *> &strip_list)
 {
   bool changed = false;
-  for (Strip *strip : seq_list) {
+  for (Strip *strip : strip_list) {
     changed |= SEQ_disconnect(strip);
   }
 
@@ -90,20 +90,20 @@ void SEQ_connect(Strip *seq1, Strip *seq2)
   if (seq1 == nullptr || seq2 == nullptr) {
     return;
   }
-  blender::VectorSet<Strip *> seq_list;
-  seq_list.add(seq1);
-  seq_list.add(seq2);
+  blender::VectorSet<Strip *> strip_list;
+  strip_list.add(seq1);
+  strip_list.add(seq2);
 
-  SEQ_connect(seq_list);
+  SEQ_connect(strip_list);
 }
 
-void SEQ_connect(blender::VectorSet<Strip *> &seq_list)
+void SEQ_connect(blender::VectorSet<Strip *> &strip_list)
 {
-  seq_list.remove_if([&](Strip *strip) { return strip == nullptr; });
+  strip_list.remove_if([&](Strip *strip) { return strip == nullptr; });
 
-  for (Strip *seq1 : seq_list) {
+  for (Strip *seq1 : strip_list) {
     SEQ_disconnect(seq1);
-    for (Strip *seq2 : seq_list) {
+    for (Strip *seq2 : strip_list) {
       if (seq1 == seq2) {
         continue;
       }
@@ -133,17 +133,17 @@ bool SEQ_is_strip_connected(const Strip *strip)
   return !BLI_listbase_is_empty(&strip->connections);
 }
 
-bool SEQ_are_strips_connected_together(blender::VectorSet<Strip *> &seq_list)
+bool SEQ_are_strips_connected_together(blender::VectorSet<Strip *> &strip_list)
 {
-  const int expected_connection_num = seq_list.size() - 1;
-  for (Strip *seq1 : seq_list) {
+  const int expected_connection_num = strip_list.size() - 1;
+  for (Strip *seq1 : strip_list) {
     blender::VectorSet<Strip *> connections = SEQ_get_connected_strips(seq1);
     int found_connection_num = connections.size();
     if (found_connection_num != expected_connection_num) {
       return false;
     }
     for (Strip *seq2 : connections) {
-      if (!seq_list.contains(seq2)) {
+      if (!strip_list.contains(seq2)) {
         return false;
       }
     }

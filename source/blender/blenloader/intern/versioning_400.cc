@@ -3023,7 +3023,7 @@ static void fix_geometry_nodes_object_info_scale(bNodeTree &ntree)
   }
 }
 
-static bool seq_filter_bilinear_to_auto(Strip *strip, void * /*user_data*/)
+static bool strip_filter_bilinear_to_auto(Strip *strip, void * /*user_data*/)
 {
   StripTransform *transform = strip->data->transform;
   if (transform != nullptr && transform->filter == SEQ_TRANSFORM_FILTER_BILINEAR) {
@@ -3097,7 +3097,7 @@ static void hue_correct_set_wrapping(CurveMapping *curve_mapping)
   curve_mapping->curr.ymax = 1.0f;
 }
 
-static bool seq_hue_correct_set_wrapping(Strip *strip, void * /*user_data*/)
+static bool strip_hue_correct_set_wrapping(Strip *strip, void * /*user_data*/)
 {
   LISTBASE_FOREACH (SequenceModifierData *, smd, &strip->modifiers) {
     if (smd->type == seqModifierType_HueCorrect) {
@@ -3117,7 +3117,7 @@ static void versioning_update_timecode(short int *tc)
   }
 }
 
-static bool seq_proxies_timecode_update(Strip *strip, void * /*user_data*/)
+static bool strip_proxies_timecode_update(Strip *strip, void * /*user_data*/)
 {
   if (strip->data == nullptr || strip->data->proxy == nullptr) {
     return true;
@@ -3127,7 +3127,7 @@ static bool seq_proxies_timecode_update(Strip *strip, void * /*user_data*/)
   return true;
 }
 
-static bool seq_text_data_update(Strip *strip, void * /*user_data*/)
+static bool strip_text_data_update(Strip *strip, void * /*user_data*/)
 {
   if (strip->type != SEQ_TYPE_TEXT || strip->effectdata == nullptr) {
     return true;
@@ -4335,7 +4335,7 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 401, 18)) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       if (scene->ed != nullptr) {
-        SEQ_for_each_callback(&scene->ed->seqbase, seq_filter_bilinear_to_auto, nullptr);
+        SEQ_for_each_callback(&scene->ed->seqbase, strip_filter_bilinear_to_auto, nullptr);
       }
     }
   }
@@ -4495,7 +4495,7 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
 
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       if (scene->ed != nullptr) {
-        SEQ_for_each_callback(&scene->ed->seqbase, seq_hue_correct_set_wrapping, nullptr);
+        SEQ_for_each_callback(&scene->ed->seqbase, strip_hue_correct_set_wrapping, nullptr);
       }
     }
   }
@@ -4654,7 +4654,7 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 28)) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       if (scene->ed != nullptr) {
-        SEQ_for_each_callback(&scene->ed->seqbase, seq_proxies_timecode_update, nullptr);
+        SEQ_for_each_callback(&scene->ed->seqbase, strip_proxies_timecode_update, nullptr);
       }
     }
 
@@ -4667,7 +4667,7 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 402, 29)) {
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       if (scene->ed) {
-        SEQ_for_each_callback(&scene->ed->seqbase, seq_text_data_update, nullptr);
+        SEQ_for_each_callback(&scene->ed->seqbase, strip_text_data_update, nullptr);
       }
     }
   }

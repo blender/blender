@@ -119,7 +119,7 @@ void SEQ_time_start_frame_set(const Scene *scene, Strip *strip, int timeline_fra
  *
  * \note this function is currently only used internally and in versioning code.
  */
-void SEQ_time_update_meta_strip_range(const Scene *scene, Strip *seq_meta);
+void SEQ_time_update_meta_strip_range(const Scene *scene, Strip *strip_meta);
 /**
  * Move contents of a strip without moving the strip handles.
  */

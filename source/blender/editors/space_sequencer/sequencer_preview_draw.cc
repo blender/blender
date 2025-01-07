@@ -1007,7 +1007,9 @@ int sequencer_draw_get_transform_preview_frame(Scene *scene)
   return preview_frame;
 }
 
-static void seq_draw_image_origin_and_outline(const bContext *C, Strip *strip, bool is_active_seq)
+static void strip_draw_image_origin_and_outline(const bContext *C,
+                                                Strip *strip,
+                                                bool is_active_seq)
 {
   SpaceSeq *sseq = CTX_wm_space_seq(C);
   const ARegion *region = CTX_wm_region(C);
@@ -1051,8 +1053,8 @@ static void seq_draw_image_origin_and_outline(const bContext *C, Strip *strip, b
   immUnbindProgram();
 
   /* Outline. */
-  float seq_image_quad[4][2];
-  SEQ_image_transform_final_quad_get(CTX_data_scene(C), strip, seq_image_quad);
+  float strip_image_quad[4][2];
+  SEQ_image_transform_final_quad_get(CTX_data_scene(C), strip, strip_image_quad);
 
   GPU_line_smooth(true);
   GPU_blend(GPU_BLEND_ALPHA);
@@ -1069,10 +1071,10 @@ static void seq_draw_image_origin_and_outline(const bContext *C, Strip *strip, b
   immUniformColor3fv(col);
   immUniform1f("lineWidth", U.pixelsize);
   immBegin(GPU_PRIM_LINE_LOOP, 4);
-  immVertex2f(pos, seq_image_quad[0][0], seq_image_quad[0][1]);
-  immVertex2f(pos, seq_image_quad[1][0], seq_image_quad[1][1]);
-  immVertex2f(pos, seq_image_quad[2][0], seq_image_quad[2][1]);
-  immVertex2f(pos, seq_image_quad[3][0], seq_image_quad[3][1]);
+  immVertex2f(pos, strip_image_quad[0][0], strip_image_quad[0][1]);
+  immVertex2f(pos, strip_image_quad[1][0], strip_image_quad[1][1]);
+  immVertex2f(pos, strip_image_quad[2][0], strip_image_quad[2][1]);
+  immVertex2f(pos, strip_image_quad[3][0], strip_image_quad[3][1]);
   immEnd();
   immUnbindProgram();
   GPU_line_width(1);
@@ -1086,14 +1088,14 @@ static void text_selection_draw(const bContext *C, const Strip *strip, uint pos)
   const TextVarsRuntime *text = data->runtime;
   const Scene *scene = CTX_data_scene(C);
 
-  if (data->selection_start_offset == -1 || seq_text_selection_range_get(data).is_empty()) {
+  if (data->selection_start_offset == -1 || strip_text_selection_range_get(data).is_empty()) {
     return;
   }
 
-  const blender::IndexRange sel_range = seq_text_selection_range_get(data);
-  const blender::int2 selection_start = seq_text_cursor_offset_to_position(text,
-                                                                           sel_range.first());
-  const blender::int2 selection_end = seq_text_cursor_offset_to_position(text, sel_range.last());
+  const blender::IndexRange sel_range = strip_text_selection_range_get(data);
+  const blender::int2 selection_start = strip_text_cursor_offset_to_position(text,
+                                                                             sel_range.first());
+  const blender::int2 selection_end = strip_text_cursor_offset_to_position(text, sel_range.last());
   const int line_start = selection_start.y;
   const int line_end = selection_end.y;
 
@@ -1160,8 +1162,8 @@ static void text_edit_draw_cursor(const bContext *C, const Strip *strip, uint po
   const float view_aspect = scene->r.xasp / scene->r.yasp;
   blender::float4x4 transform_mat;
   SEQ_image_transform_matrix_get(scene, strip, transform_mat.ptr());
-  const blender::int2 cursor_position = seq_text_cursor_offset_to_position(text,
-                                                                           data->cursor_offset);
+  const blender::int2 cursor_position = strip_text_cursor_offset_to_position(text,
+                                                                             data->cursor_offset);
   const float cursor_width = 10;
   blender::float2 cursor_coords =
       text->lines[cursor_position.y].characters[cursor_position.x].position;
@@ -1346,7 +1348,7 @@ void sequencer_draw_preview(const bContext *C,
         scene, channels, ed->seqbasep, timeline_frame, 0);
     Strip *active_seq = SEQ_select_active_get(scene);
     for (Strip *strip : strips) {
-      seq_draw_image_origin_and_outline(C, strip, strip == active_seq);
+      strip_draw_image_origin_and_outline(C, strip, strip == active_seq);
       text_edit_draw(C);
     }
   }

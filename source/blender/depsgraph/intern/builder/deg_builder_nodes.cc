@@ -2236,7 +2236,7 @@ void DepsgraphNodeBuilder::build_vfont(VFont *vfont)
       &vfont->id, NodeType::GENERIC_DATABLOCK, OperationCode::GENERIC_DATABLOCK_UPDATE);
 }
 
-static bool seq_node_build_cb(Strip *strip, void *user_data)
+static bool strip_node_build_cb(Strip *strip, void *user_data)
 {
   DepsgraphNodeBuilder *nb = (DepsgraphNodeBuilder *)user_data;
   nb->build_idproperties(strip->prop);
@@ -2274,7 +2274,7 @@ void DepsgraphNodeBuilder::build_scene_sequencer(Scene *scene)
                        SEQ_eval_sequences(depsgraph, scene_cow, &scene_cow->ed->seqbase);
                      });
   /* Make sure data for sequences is in the graph. */
-  SEQ_for_each_callback(&scene->ed->seqbase, seq_node_build_cb, this);
+  SEQ_for_each_callback(&scene->ed->seqbase, strip_node_build_cb, this);
 }
 
 void DepsgraphNodeBuilder::build_scene_audio(Scene *scene)

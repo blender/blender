@@ -374,10 +374,10 @@ static Strip *effect_input_get(const Scene *scene, Strip *effect, SeqInputSide s
 
 static Strip *effect_base_input_get(const Scene *scene, Strip *effect, SeqInputSide side)
 {
-  Strip *input = effect, *seq_iter = effect;
-  while (seq_iter != nullptr) {
-    input = seq_iter;
-    seq_iter = effect_input_get(scene, seq_iter, side);
+  Strip *input = effect, *strip_iter = effect;
+  while (strip_iter != nullptr) {
+    input = strip_iter;
+    strip_iter = effect_input_get(scene, strip_iter, side);
   }
   return input;
 }
@@ -656,7 +656,7 @@ static void recalcData_sequencer(TransInfo *t)
 {
   TransData *td;
   int a;
-  Strip *seq_prev = nullptr;
+  Strip *strip_prev = nullptr;
 
   TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_SINGLE(t);
 
@@ -664,11 +664,11 @@ static void recalcData_sequencer(TransInfo *t)
     TransDataSeq *tdsq = (TransDataSeq *)td->extra;
     Strip *strip = tdsq->strip;
 
-    if (strip != seq_prev) {
+    if (strip != strip_prev) {
       SEQ_relations_invalidate_cache_composite(t->scene, strip);
     }
 
-    seq_prev = strip;
+    strip_prev = strip;
   }
 
   DEG_id_tag_update(&t->scene->id, ID_RECALC_SEQUENCER_STRIPS);

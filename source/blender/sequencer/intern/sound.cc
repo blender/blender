@@ -93,7 +93,7 @@ void SEQ_sound_update_bounds_all(Scene *scene)
   if (ed) {
     LISTBASE_FOREACH (Strip *, strip, &ed->seqbase) {
       if (strip->type == SEQ_TYPE_META) {
-        seq_update_sound_bounds_recursive(scene, strip);
+        strip_update_sound_bounds_recursive(scene, strip);
       }
       else if (ELEM(strip->type, SEQ_TYPE_SOUND_RAM, SEQ_TYPE_SCENE)) {
         SEQ_sound_update_bounds(scene, strip);
@@ -120,14 +120,14 @@ void SEQ_sound_update_bounds(Scene *scene, Strip *strip)
   else {
     BKE_sound_move_scene_sound_defaults(scene, strip);
   }
-  /* mute is set in seq_update_muting_recursive */
+  /* mute is set in strip_update_muting_recursive */
 }
 
-static void seq_update_sound_recursive(Scene *scene, ListBase *seqbasep, bSound *sound)
+static void strip_update_sound_recursive(Scene *scene, ListBase *seqbasep, bSound *sound)
 {
   LISTBASE_FOREACH (Strip *, strip, seqbasep) {
     if (strip->type == SEQ_TYPE_META) {
-      seq_update_sound_recursive(scene, &strip->seqbase, sound);
+      strip_update_sound_recursive(scene, &strip->seqbase, sound);
     }
     else if (strip->type == SEQ_TYPE_SOUND_RAM) {
       if (strip->scene_sound && sound == strip->sound) {
@@ -140,7 +140,7 @@ static void seq_update_sound_recursive(Scene *scene, ListBase *seqbasep, bSound 
 void SEQ_sound_update(Scene *scene, bSound *sound)
 {
   if (scene->ed) {
-    seq_update_sound_recursive(scene, &scene->ed->seqbase, sound);
+    strip_update_sound_recursive(scene, &scene->ed->seqbase, sound);
   }
 }
 

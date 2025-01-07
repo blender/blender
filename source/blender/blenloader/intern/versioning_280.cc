@@ -3009,7 +3009,7 @@ static void do_versions_seq_set_cache_defaults(Editing *ed)
   ed->recycle_max_cost = 10.0f;
 }
 
-static bool seq_update_flags_cb(Strip *strip, void * /*user_data*/)
+static bool strip_update_flags_cb(Strip *strip, void * /*user_data*/)
 {
   strip->flag &= ~((1 << 6) | (1 << 18) | (1 << 19) | (1 << 21));
   if (strip->type == SEQ_TYPE_SPEED) {
@@ -4647,7 +4647,7 @@ void blo_do_versions_280(FileData *fd, Library * /*lib*/, Main *bmain)
       }
 
       if (scene->ed) {
-        SEQ_for_each_callback(&scene->ed->seqbase, seq_update_flags_cb, nullptr);
+        SEQ_for_each_callback(&scene->ed->seqbase, strip_update_flags_cb, nullptr);
       }
     }
 

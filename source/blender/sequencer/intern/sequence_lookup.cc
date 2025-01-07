@@ -25,7 +25,7 @@
 static std::mutex lookup_lock;
 
 struct SequenceLookup {
-  blender::Map<std::string, Strip *> seq_by_name;
+  blender::Map<std::string, Strip *> strip_by_name;
   blender::Map<const Strip *, Strip *> meta_by_seq;
   blender::Map<const Strip *, blender::VectorSet<Strip *>> effects_by_seq;
   blender::Map<const SeqTimelineChannel *, Strip *> owner_by_channel;
@@ -66,7 +66,7 @@ static void seq_sequence_lookup_build_from_seqbase(Strip *parent_meta,
   }
 
   LISTBASE_FOREACH (Strip *, strip, seqbase) {
-    lookup->seq_by_name.add(strip->name + 2, strip);
+    lookup->strip_by_name.add(strip->name + 2, strip);
     lookup->meta_by_seq.add(strip, parent_meta);
     seq_sequence_lookup_build_effect(strip, lookup);
 
@@ -128,7 +128,7 @@ Strip *SEQ_sequence_lookup_seq_by_name(const Scene *scene, const char *key)
   std::lock_guard lock(lookup_lock);
   seq_sequence_lookup_update_if_needed(scene, &scene->ed->runtime.sequence_lookup);
   SequenceLookup *lookup = scene->ed->runtime.sequence_lookup;
-  return lookup->seq_by_name.lookup_default(key, nullptr);
+  return lookup->strip_by_name.lookup_default(key, nullptr);
 }
 
 Strip *seq_sequence_lookup_meta_by_seq(const Scene *scene, const Strip *key)

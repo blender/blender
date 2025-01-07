@@ -626,12 +626,12 @@ static void drawmeta_contents(TimelineDrawContext *timeline_ctx,
                               float corner_radius)
 {
   using namespace seq;
-  Strip *seq_meta = strip_ctx->strip;
+  Strip *strip_meta = strip_ctx->strip;
   if (!strip_ctx->can_draw_strip_content || (timeline_ctx->sseq->flag & SEQ_SHOW_OVERLAY) == 0) {
     return;
   }
-  if ((seq_meta->type != SEQ_TYPE_META) &&
-      ((seq_meta->type != SEQ_TYPE_SCENE) || (seq_meta->flag & SEQ_SCENE_STRIPS) == 0))
+  if ((strip_meta->type != SEQ_TYPE_META) &&
+      ((strip_meta->type != SEQ_TYPE_SCENE) || (strip_meta->flag & SEQ_SCENE_STRIPS) == 0))
   {
     return;
   }
@@ -658,14 +658,14 @@ static void drawmeta_contents(TimelineDrawContext *timeline_ctx,
   ListBase *meta_channels;
   int offset;
 
-  meta_seqbase = SEQ_get_seqbase_from_sequence(seq_meta, &meta_channels, &offset);
+  meta_seqbase = SEQ_get_seqbase_from_sequence(strip_meta, &meta_channels, &offset);
 
   if (!meta_seqbase || BLI_listbase_is_empty(meta_seqbase)) {
     return;
   }
 
-  if (seq_meta->type == SEQ_TYPE_SCENE) {
-    offset = seq_meta->start - offset;
+  if (strip_meta->type == SEQ_TYPE_SCENE) {
+    offset = strip_meta->start - offset;
   }
   else {
     offset = 0;

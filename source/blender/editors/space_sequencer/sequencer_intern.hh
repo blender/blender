@@ -174,15 +174,15 @@ void channel_draw_context_init(const bContext *C,
 
 /* `sequencer_edit.cc` */
 
-void seq_rectf(const Scene *scene, const Strip *strip, rctf *r_rect);
+void strip_rectf(const Scene *scene, const Strip *strip, rctf *r_rect);
 Strip *find_neighboring_sequence(Scene *scene, Strip *test, int lr, int sel);
-void recurs_sel_seq(Strip *seq_meta);
-int seq_effect_find_selected(Scene *scene,
-                             Strip *activeseq,
-                             int type,
-                             Strip **r_selseq1,
-                             Strip **r_selseq2,
-                             const char **r_error_str);
+void recurs_sel_seq(Strip *strip_meta);
+int strip_effect_find_selected(Scene *scene,
+                               Strip *activeseq,
+                               int type,
+                               Strip **r_selseq1,
+                               Strip **r_selseq2,
+                               const char **r_error_str);
 
 /* Operator helpers. */
 bool sequencer_edit_poll(bContext *C);
@@ -281,7 +281,7 @@ Strip *find_nearest_seq(const Scene *scene,
                         const View2D *v2d,
                         const int mval[2],
                         eSeqHandle *r_hand);
-bool seq_point_image_isect(const Scene *scene, const Strip *strip, float point_view[2]);
+bool strip_point_image_isect(const Scene *scene, const Strip *strip, float point_view[2]);
 
 /* `sequencer_add.cc` */
 
@@ -379,7 +379,7 @@ SeqRetimingKey *retiming_mouseover_key_get(const bContext *C, const int mval[2],
 int left_fake_key_frame_get(const bContext *C, const Strip *strip);
 int right_fake_key_frame_get(const bContext *C, const Strip *strip);
 bool retiming_keys_can_be_displayed(const SpaceSeq *sseq);
-rctf seq_retiming_keys_box_get(const Scene *scene, const View2D *v2d, const Strip *strip);
+rctf strip_retiming_keys_box_get(const Scene *scene, const View2D *v2d, const Strip *strip);
 
 /* `sequencer_text_edit.cc` */
 bool sequencer_text_editing_active_poll(bContext *C);
@@ -394,8 +394,8 @@ void SEQUENCER_OT_text_cursor_set(wmOperatorType *ot);
 void SEQUENCER_OT_text_edit_copy(wmOperatorType *ot);
 void SEQUENCER_OT_text_edit_paste(wmOperatorType *ot);
 void SEQUENCER_OT_text_edit_cut(wmOperatorType *ot);
-blender::int2 seq_text_cursor_offset_to_position(const TextVarsRuntime *text, int cursor_offset);
-blender::IndexRange seq_text_selection_range_get(const TextVars *data);
+blender::int2 strip_text_cursor_offset_to_position(const TextVarsRuntime *text, int cursor_offset);
+blender::IndexRange strip_text_selection_range_get(const TextVars *data);
 
 /* `sequencer_timeline_draw.cc` */
 blender::Vector<Strip *> sequencer_visible_strips_get(const bContext *C);

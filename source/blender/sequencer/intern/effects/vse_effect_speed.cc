@@ -69,12 +69,12 @@ static StripEarlyOut early_out_speed(const Strip * /*strip*/, float /*fac*/)
   return StripEarlyOut::DoEffect;
 }
 
-static FCurve *seq_effect_speed_speed_factor_curve_get(Scene *scene, Strip *strip)
+static FCurve *strip_effect_speed_speed_factor_curve_get(Scene *scene, Strip *strip)
 {
   return id_data_find_fcurve(&scene->id, strip, &RNA_Strip, "speed_factor", 0, nullptr);
 }
 
-void seq_effect_speed_rebuild_map(Scene *scene, Strip *strip)
+void strip_effect_speed_rebuild_map(Scene *scene, Strip *strip)
 {
   const int effect_strip_length = SEQ_time_right_handle_frame_get(scene, strip) -
                                   SEQ_time_left_handle_frame_get(scene, strip);
@@ -83,7 +83,7 @@ void seq_effect_speed_rebuild_map(Scene *scene, Strip *strip)
     return; /* Make COVERITY happy and check for (CID 598) input strip. */
   }
 
-  const FCurve *fcu = seq_effect_speed_speed_factor_curve_get(scene, strip);
+  const FCurve *fcu = strip_effect_speed_speed_factor_curve_get(scene, strip);
   if (fcu == nullptr) {
     return;
   }
@@ -106,29 +106,29 @@ void seq_effect_speed_rebuild_map(Scene *scene, Strip *strip)
   }
 }
 
-static void seq_effect_speed_frame_map_ensure(Scene *scene, Strip *strip)
+static void strip_effect_speed_frame_map_ensure(Scene *scene, Strip *strip)
 {
   const SpeedControlVars *v = (SpeedControlVars *)strip->effectdata;
   if (v->frameMap != nullptr) {
     return;
   }
 
-  seq_effect_speed_rebuild_map(scene, strip);
+  strip_effect_speed_rebuild_map(scene, strip);
 }
 
-float seq_speed_effect_target_frame_get(Scene *scene,
-                                        Strip *seq_speed,
-                                        float timeline_frame,
-                                        int input)
+float strip_speed_effect_target_frame_get(Scene *scene,
+                                          Strip *strip_speed,
+                                          float timeline_frame,
+                                          int input)
 {
-  if (seq_speed->seq1 == nullptr) {
+  if (strip_speed->seq1 == nullptr) {
     return 0.0f;
   }
 
-  SEQ_effect_handle_get(seq_speed); /* Ensure, that data are initialized. */
-  int frame_index = round_fl_to_int(SEQ_give_frame_index(scene, seq_speed, timeline_frame));
-  SpeedControlVars *s = (SpeedControlVars *)seq_speed->effectdata;
-  const Strip *source = seq_speed->seq1;
+  SEQ_effect_handle_get(strip_speed); /* Ensure, that data are initialized. */
+  int frame_index = round_fl_to_int(SEQ_give_frame_index(scene, strip_speed, timeline_frame));
+  SpeedControlVars *s = (SpeedControlVars *)strip_speed->effectdata;
+  const Strip *source = strip_speed->seq1;
 
   float target_frame = 0.0f;
   switch (s->speed_control_type) {
@@ -136,16 +136,16 @@ float seq_speed_effect_target_frame_get(Scene *scene,
       /* Only right handle controls effect speed! */
       const float target_content_length = SEQ_time_strip_length_get(scene, source) -
                                           source->startofs;
-      const float speed_effetct_length = SEQ_time_right_handle_frame_get(scene, seq_speed) -
-                                         SEQ_time_left_handle_frame_get(scene, seq_speed);
+      const float speed_effetct_length = SEQ_time_right_handle_frame_get(scene, strip_speed) -
+                                         SEQ_time_left_handle_frame_get(scene, strip_speed);
       const float ratio = frame_index / speed_effetct_length;
       target_frame = target_content_length * ratio;
       break;
     }
     case SEQ_SPEED_MULTIPLY: {
-      const FCurve *fcu = seq_effect_speed_speed_factor_curve_get(scene, seq_speed);
+      const FCurve *fcu = strip_effect_speed_speed_factor_curve_get(scene, strip_speed);
       if (fcu != nullptr) {
-        seq_effect_speed_frame_map_ensure(scene, seq_speed);
+        strip_effect_speed_frame_map_ensure(scene, strip_speed);
         target_frame = s->frameMap[frame_index];
       }
       else {
@@ -162,7 +162,7 @@ float seq_speed_effect_target_frame_get(Scene *scene,
   }
 
   CLAMP(target_frame, 0, SEQ_time_strip_length_get(scene, source));
-  target_frame += seq_speed->start;
+  target_frame += strip_speed->start;
 
   /* No interpolation. */
   if ((s->flags & SEQ_SPEED_USE_INTERPOLATION) == 0) {
@@ -175,11 +175,11 @@ float seq_speed_effect_target_frame_get(Scene *scene,
 }
 
 static float speed_effect_interpolation_ratio_get(Scene *scene,
-                                                  Strip *seq_speed,
+                                                  Strip *strip_speed,
                                                   float timeline_frame)
 {
-  const float target_frame = seq_speed_effect_target_frame_get(
-      scene, seq_speed, timeline_frame, 0);
+  const float target_frame = strip_speed_effect_target_frame_get(
+      scene, strip_speed, timeline_frame, 0);
   return target_frame - floor(target_frame);
 }
 

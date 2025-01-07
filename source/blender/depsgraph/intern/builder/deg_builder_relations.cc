@@ -3349,7 +3349,7 @@ struct Seq_build_prop_cb_data {
   bool has_audio_strips;
 };
 
-static bool seq_build_prop_cb(Strip *strip, void *user_data)
+static bool strip_build_prop_cb(Strip *strip, void *user_data)
 {
   Seq_build_prop_cb_data *cd = (Seq_build_prop_cb_data *)user_data;
 
@@ -3400,7 +3400,7 @@ void DepsgraphRelationBuilder::build_scene_sequencer(Scene *scene)
 
   Seq_build_prop_cb_data cb_data = {this, sequencer_key, false};
 
-  SEQ_for_each_callback(&scene->ed->seqbase, seq_build_prop_cb, &cb_data);
+  SEQ_for_each_callback(&scene->ed->seqbase, strip_build_prop_cb, &cb_data);
   if (cb_data.has_audio_strips) {
     add_relation(sequencer_key, scene_audio_key, "Sequencer -> Audio");
   }

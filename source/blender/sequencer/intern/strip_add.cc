@@ -72,16 +72,16 @@ void SEQ_add_load_data_init(SeqLoadData *load_data,
   load_data->channel = channel;
 }
 
-static void seq_add_generic_update(Scene *scene, Strip *strip)
+static void strip_add_generic_update(Scene *scene, Strip *strip)
 {
   SEQ_sequence_base_unique_name_recursive(scene, &scene->ed->seqbase, strip);
   SEQ_relations_invalidate_cache_composite(scene, strip);
   SEQ_sequence_lookup_invalidate(scene);
-  seq_time_effect_range_set(scene, strip);
+  strip_time_effect_range_set(scene, strip);
   SEQ_time_update_meta_strip_range(scene, seq_sequence_lookup_meta_by_seq(scene, strip));
 }
 
-static void seq_add_set_name(Scene *scene, Strip *strip, SeqLoadData *load_data)
+static void strip_add_set_name(Scene *scene, Strip *strip, SeqLoadData *load_data)
 {
   if (load_data->name[0] != '\0') {
     SEQ_edit_sequence_name_set(scene, strip, load_data->name);
@@ -105,7 +105,7 @@ static void seq_add_set_name(Scene *scene, Strip *strip, SeqLoadData *load_data)
   }
 }
 
-static void seq_add_set_view_transform(Scene *scene, Strip *strip, SeqLoadData *load_data)
+static void strip_add_set_view_transform(Scene *scene, Strip *strip, SeqLoadData *load_data)
 {
   const char *strip_colorspace = strip->data->colorspace_settings.name;
 
@@ -130,8 +130,8 @@ Strip *SEQ_add_scene_strip(Scene *scene, ListBase *seqbase, SeqLoadData *load_da
   strip->scene = load_data->scene;
   strip->len = load_data->scene->r.efra - load_data->scene->r.sfra + 1;
   id_us_ensure_real((ID *)load_data->scene);
-  seq_add_set_name(scene, strip, load_data);
-  seq_add_generic_update(scene, strip);
+  strip_add_set_name(scene, strip, load_data);
+  strip_add_generic_update(scene, strip);
   return strip;
 }
 
@@ -142,8 +142,8 @@ Strip *SEQ_add_movieclip_strip(Scene *scene, ListBase *seqbase, SeqLoadData *loa
   strip->clip = load_data->clip;
   strip->len = BKE_movieclip_get_duration(load_data->clip);
   id_us_ensure_real((ID *)load_data->clip);
-  seq_add_set_name(scene, strip, load_data);
-  seq_add_generic_update(scene, strip);
+  strip_add_set_name(scene, strip, load_data);
+  strip_add_generic_update(scene, strip);
   return strip;
 }
 
@@ -154,8 +154,8 @@ Strip *SEQ_add_mask_strip(Scene *scene, ListBase *seqbase, SeqLoadData *load_dat
   strip->mask = load_data->mask;
   strip->len = BKE_mask_get_duration(load_data->mask);
   id_us_ensure_real((ID *)load_data->mask);
-  seq_add_set_name(scene, strip, load_data);
-  seq_add_generic_update(scene, strip);
+  strip_add_set_name(scene, strip, load_data);
+  strip_add_generic_update(scene, strip);
   return strip;
 }
 
@@ -181,8 +181,8 @@ Strip *SEQ_add_effect_strip(Scene *scene, ListBase *seqbase, SeqLoadData *load_d
     SEQ_time_right_handle_frame_set(scene, strip, load_data->effect.end_frame);
   }
 
-  seq_add_set_name(scene, strip, load_data);
-  seq_add_generic_update(scene, strip);
+  strip_add_set_name(scene, strip, load_data);
+  strip_add_generic_update(scene, strip);
 
   return strip;
 }
@@ -273,9 +273,9 @@ Strip *SEQ_add_image_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqLoad
 
   /* Set Last active directory. */
   STRNCPY(scene->ed->act_imagedir, strip->data->dirpath);
-  seq_add_set_view_transform(scene, strip, load_data);
-  seq_add_set_name(scene, strip, load_data);
-  seq_add_generic_update(scene, strip);
+  strip_add_set_view_transform(scene, strip, load_data);
+  strip_add_set_name(scene, strip, load_data);
+  strip_add_generic_update(scene, strip);
 
   return strip;
 }
@@ -348,8 +348,8 @@ Strip *SEQ_add_sound_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqLoad
 
   /* Set Last active directory. */
   BLI_strncpy(scene->ed->act_sounddir, data->dirpath, FILE_MAXDIR);
-  seq_add_set_name(scene, strip, load_data);
-  seq_add_generic_update(scene, strip);
+  strip_add_set_name(scene, strip, load_data);
+  strip_add_generic_update(scene, strip);
 
   return strip;
 }
@@ -379,13 +379,13 @@ Strip *SEQ_add_meta_strip(Scene *scene, ListBase *seqbase, SeqLoadData *load_dat
       seqbase, load_data->start_frame, load_data->channel, SEQ_TYPE_META);
 
   /* Set name. */
-  seq_add_set_name(scene, seqm, load_data);
+  strip_add_set_name(scene, seqm, load_data);
 
   /* Set frames start and length. */
   seqm->start = load_data->start_frame;
   seqm->len = 1;
 
-  seq_add_generic_update(scene, seqm);
+  strip_add_generic_update(scene, seqm);
 
   return seqm;
 }
@@ -515,9 +515,9 @@ Strip *SEQ_add_movie_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqLoad
   BLI_path_split_dir_file(
       load_data->path, data->dirpath, sizeof(data->dirpath), se->filename, sizeof(se->filename));
 
-  seq_add_set_view_transform(scene, strip, load_data);
-  seq_add_set_name(scene, strip, load_data);
-  seq_add_generic_update(scene, strip);
+  strip_add_set_view_transform(scene, strip, load_data);
+  strip_add_set_name(scene, strip, load_data);
+  strip_add_generic_update(scene, strip);
 
   MEM_freeN(anim_arr);
   return strip;

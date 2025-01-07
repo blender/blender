@@ -2099,7 +2099,7 @@ struct Seq_callback_data {
   AnimData *adt;
 };
 
-static bool seq_convert_callback(Strip *strip, void *userdata)
+static bool strip_convert_callback(Strip *strip, void *userdata)
 {
   IpoCurve *icu = static_cast<IpoCurve *>((strip->ipo) ? strip->ipo->curve.first : nullptr);
   short adrcode = SEQ_FAC1;
@@ -2412,7 +2412,7 @@ void do_versions_ipos_to_layered_actions(Main *bmain)
     Editing *ed = scene->ed;
     if (ed && ed->seqbasep) {
       Seq_callback_data cb_data = {bmain, scene, BKE_animdata_ensure_id(id)};
-      SEQ_for_each_callback(&ed->seqbase, seq_convert_callback, &cb_data);
+      SEQ_for_each_callback(&ed->seqbase, strip_convert_callback, &cb_data);
     }
   }
 

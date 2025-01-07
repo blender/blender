@@ -652,7 +652,7 @@ static bool is_mouse_over_retiming_key(const Scene *scene,
     return false;
   }
 
-  rctf retiming_keys_box = seq_retiming_keys_box_get(scene, v2d, strip);
+  rctf retiming_keys_box = strip_retiming_keys_box_get(scene, v2d, strip);
   return BLI_rctf_isect_pt_v(&retiming_keys_box, mouse_co_region);
 }
 

@@ -91,16 +91,16 @@ static int sequencer_retiming_data_show_exec(bContext *C, wmOperator * /*op*/)
 {
   Scene *scene = CTX_data_scene(C);
   Editing *ed = SEQ_editing_get(scene);
-  Strip *seq_act = SEQ_select_active_get(scene);
+  Strip *strip_act = SEQ_select_active_get(scene);
 
-  if (seq_act == nullptr) {
+  if (strip_act == nullptr) {
     return OPERATOR_CANCELLED;
   }
 
   if (sequencer_retiming_mode_is_active(C)) {
     sequencer_retiming_data_hide_all(ed->seqbasep);
   }
-  else if (SEQ_retiming_data_is_editable(seq_act)) {
+  else if (SEQ_retiming_data_is_editable(strip_act)) {
     sequencer_retiming_data_hide_selection(ed->seqbasep);
   }
   else {

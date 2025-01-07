@@ -158,10 +158,9 @@ void get_default_fac_fade(const Scene *scene, const Strip *strip, float timeline
   *fac = math::clamp(*fac, 0.0f, 1.0f);
 }
 
-SeqEffectHandle get_sequence_effect_impl(int seq_type)
+SeqEffectHandle get_sequence_effect_impl(int strip_type)
 {
   SeqEffectHandle rval;
-  int sequence_type = seq_type;
 
   rval.init = init_noop;
   rval.num_inputs = num_inputs_default;
@@ -172,7 +171,7 @@ SeqEffectHandle get_sequence_effect_impl(int seq_type)
   rval.execute = nullptr;
   rval.copy = nullptr;
 
-  switch (sequence_type) {
+  switch (strip_type) {
     case SEQ_TYPE_CROSS:
       cross_effect_get_handle(rval);
       break;
@@ -267,7 +266,7 @@ SeqEffectHandle SEQ_effect_handle_get(Strip *strip)
   return rval;
 }
 
-SeqEffectHandle seq_effect_get_sequence_blend(Strip *strip)
+SeqEffectHandle strip_effect_get_sequence_blend(Strip *strip)
 {
   SeqEffectHandle rval = {};
 
@@ -289,9 +288,9 @@ SeqEffectHandle seq_effect_get_sequence_blend(Strip *strip)
   return rval;
 }
 
-int SEQ_effect_get_num_inputs(int seq_type)
+int SEQ_effect_get_num_inputs(int strip_type)
 {
-  SeqEffectHandle rval = get_sequence_effect_impl(seq_type);
+  SeqEffectHandle rval = get_sequence_effect_impl(strip_type);
 
   int count = rval.num_inputs();
   if (rval.execute) {

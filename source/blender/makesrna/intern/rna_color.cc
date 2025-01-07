@@ -630,7 +630,7 @@ struct Seq_colorspace_cb_data {
  * If property pointer matches one of strip, set `r_seq`,
  * so not all cached images have to be invalidated.
  */
-static bool seq_find_colorspace_settings_cb(Strip *strip, void *user_data)
+static bool strip_find_colorspace_settings_cb(Strip *strip, void *user_data)
 {
   Seq_colorspace_cb_data *cd = (Seq_colorspace_cb_data *)user_data;
   if (strip->data && &strip->data->colorspace_settings == cd->colorspace_settings) {
@@ -687,7 +687,7 @@ static void rna_ColorManagedColorspaceSettings_reload_update(Main *bmain,
       }
       else {
         /* Strip colorspace was likely changed. */
-        SEQ_for_each_callback(&scene->ed->seqbase, seq_find_colorspace_settings_cb, &cb_data);
+        SEQ_for_each_callback(&scene->ed->seqbase, strip_find_colorspace_settings_cb, &cb_data);
         Strip *strip = cb_data.r_seq;
 
         if (strip) {

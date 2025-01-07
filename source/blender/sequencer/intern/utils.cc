@@ -293,7 +293,7 @@ static bool open_anim_file_multiview(Scene *scene, Strip *strip, const char *fil
   return is_multiview_loaded;
 }
 
-void seq_open_anim_file(Scene *scene, Strip *strip, bool openfile)
+void strip_open_anim_file(Scene *scene, Strip *strip, bool openfile)
 {
   if ((strip->anims.first != nullptr) && (((StripAnim *)strip->anims.first)->anim != nullptr) &&
       !openfile)
@@ -366,10 +366,10 @@ ListBase *SEQ_get_seqbase_by_seq(const Scene *scene, Strip *strip)
 {
   Editing *ed = SEQ_editing_get(scene);
   ListBase *main_seqbase = &ed->seqbase;
-  Strip *seq_meta = seq_sequence_lookup_meta_by_seq(scene, strip);
+  Strip *strip_meta = seq_sequence_lookup_meta_by_seq(scene, strip);
 
-  if (seq_meta != nullptr) {
-    return &seq_meta->seqbase;
+  if (strip_meta != nullptr) {
+    return &strip_meta->seqbase;
   }
   if (BLI_findindex(main_seqbase, strip) != -1) {
     return main_seqbase;
@@ -382,14 +382,14 @@ Strip *SEQ_sequence_from_strip_elem(ListBase *seqbase, StripElem *se)
   Strip *iseq;
 
   for (iseq = static_cast<Strip *>(seqbase->first); iseq; iseq = iseq->next) {
-    Strip *seq_found;
+    Strip *strip_found;
     if ((iseq->data && iseq->data->stripdata) &&
         ARRAY_HAS_ITEM(se, iseq->data->stripdata, iseq->len))
     {
       break;
     }
-    if ((seq_found = SEQ_sequence_from_strip_elem(&iseq->seqbase, se))) {
-      iseq = seq_found;
+    if ((strip_found = SEQ_sequence_from_strip_elem(&iseq->seqbase, se))) {
+      iseq = strip_found;
       break;
     }
   }
@@ -416,10 +416,10 @@ Strip *SEQ_get_sequence_by_name(ListBase *seqbase, const char *name, bool recurs
 
 Mask *SEQ_active_mask_get(Scene *scene)
 {
-  Strip *seq_act = SEQ_select_active_get(scene);
+  Strip *strip_act = SEQ_select_active_get(scene);
 
-  if (seq_act && seq_act->type == SEQ_TYPE_MASK) {
-    return seq_act->mask;
+  if (strip_act && strip_act->type == SEQ_TYPE_MASK) {
+    return strip_act->mask;
   }
 
   return nullptr;
@@ -512,8 +512,8 @@ void SEQ_ensure_unique_name(Strip *strip, Scene *scene)
                                 false);
 
   if (strip->type == SEQ_TYPE_META) {
-    LISTBASE_FOREACH (Strip *, seq_child, &strip->seqbase) {
-      SEQ_ensure_unique_name(seq_child, scene);
+    LISTBASE_FOREACH (Strip *, strip_child, &strip->seqbase) {
+      SEQ_ensure_unique_name(strip_child, scene);
     }
   }
 }

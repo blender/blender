@@ -791,7 +791,8 @@ static ImBuf *seq_render_effect_strip_impl(const SeqRenderData *context,
       for (i = 0; i < 2; i++) {
         /* Speed effect requires time remapping of `timeline_frame` for input(s). */
         if (input[0] && strip->type == SEQ_TYPE_SPEED) {
-          float target_frame = seq_speed_effect_target_frame_get(scene, strip, timeline_frame, i);
+          float target_frame = strip_speed_effect_target_frame_get(
+              scene, strip, timeline_frame, i);
 
           /* Only convert to int when interpolation is not used. */
           SpeedControlVars *s = reinterpret_cast<SpeedControlVars *>(strip->effectdata);
@@ -1097,7 +1098,7 @@ static ImBuf *seq_render_movie_strip(const SeqRenderData *context,
                                      bool *r_is_proxy_image)
 {
   /* Load all the videos. */
-  seq_open_anim_file(context->scene, strip, false);
+  strip_open_anim_file(context->scene, strip, false);
 
   ImBuf *ibuf = nullptr;
   StripAnim *sanim = static_cast<StripAnim *>(strip->anims.first);
@@ -1792,9 +1793,9 @@ static bool seq_must_swap_input_in_blend_mode(Strip *strip)
   return swap_input;
 }
 
-static StripEarlyOut seq_get_early_out_for_blend_mode(Strip *strip)
+static StripEarlyOut strip_get_early_out_for_blend_mode(Strip *strip)
 {
-  SeqEffectHandle sh = seq_effect_get_sequence_blend(strip);
+  SeqEffectHandle sh = strip_effect_get_sequence_blend(strip);
   float fac = strip->blend_opacity / 100.0f;
   StripEarlyOut early_out = sh.early_out(strip, fac);
 
@@ -1817,7 +1818,7 @@ static ImBuf *seq_render_strip_stack_apply_effect(
     const SeqRenderData *context, Strip *strip, float timeline_frame, ImBuf *ibuf1, ImBuf *ibuf2)
 {
   ImBuf *out;
-  SeqEffectHandle sh = seq_effect_get_sequence_blend(strip);
+  SeqEffectHandle sh = strip_effect_get_sequence_blend(strip);
   float fac = strip->blend_opacity / 100.0f;
   int swap_input = seq_must_swap_input_in_blend_mode(strip);
 
@@ -1881,7 +1882,7 @@ static ImBuf *seq_render_strip_stack(const SeqRenderData *context,
       break;
     }
 
-    StripEarlyOut early_out = seq_get_early_out_for_blend_mode(strip);
+    StripEarlyOut early_out = strip_get_early_out_for_blend_mode(strip);
 
     if (early_out == StripEarlyOut::DoEffect && opaques.is_occluded(context, strip, i)) {
       early_out = StripEarlyOut::UseInput1;
@@ -1960,7 +1961,7 @@ static ImBuf *seq_render_strip_stack(const SeqRenderData *context,
       continue;
     }
 
-    if (seq_get_early_out_for_blend_mode(strip) == StripEarlyOut::DoEffect) {
+    if (strip_get_early_out_for_blend_mode(strip) == StripEarlyOut::DoEffect) {
       ImBuf *ibuf1 = out;
       ImBuf *ibuf2 = seq_render_strip(context, state, strip, timeline_frame);
 
@@ -2054,7 +2055,6 @@ ImBuf *SEQ_render_give_ibuf_direct(const SeqRenderData *context,
 
 bool SEQ_render_is_muted(const ListBase *channels, const Strip *strip)
 {
-
   SeqTimelineChannel *channel = SEQ_channel_get_by_index(channels, strip->machine);
   return strip->flag & SEQ_MUTE || SEQ_channel_is_muted(channel);
 }

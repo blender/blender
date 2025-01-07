@@ -46,7 +46,7 @@ void seq_cache_free_temp_cache(Scene *scene, short id, int timeline_frame);
 void seq_cache_destruct(Scene *scene);
 void seq_cache_cleanup_sequence(Scene *scene,
                                 Strip *strip,
-                                Strip *seq_changed,
+                                Strip *strip_changed,
                                 int invalidate_types,
                                 bool force_seq_changed_range);
 bool seq_cache_is_full();

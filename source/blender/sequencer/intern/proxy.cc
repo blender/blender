@@ -226,7 +226,7 @@ ImBuf *seq_proxy_fetch(const SeqRenderData *context, Strip *strip, int timeline_
       return nullptr;
     }
 
-    seq_open_anim_file(context->scene, strip, true);
+    strip_open_anim_file(context->scene, strip, true);
     sanim = static_cast<StripAnim *>(strip->anims.first);
 
     frameno = MOV_calc_frame_index_with_timecode(
@@ -452,7 +452,7 @@ bool SEQ_proxy_rebuild_context(Main *bmain,
 
     /* Check if proxies are already built here, because actually opening anims takes a lot of
      * time. */
-    seq_open_anim_file(scene, strip, false);
+    strip_open_anim_file(scene, strip, false);
     StripAnim *sanim = static_cast<StripAnim *>(BLI_findlink(&strip->anims, i));
     if (sanim->anim && !seq_proxy_need_rebuild(strip, sanim->anim)) {
       continue;
@@ -480,7 +480,7 @@ bool SEQ_proxy_rebuild_context(Main *bmain,
     context->view_id = i; /* only for images */
 
     if (nseq->type == SEQ_TYPE_MOVIE) {
-      seq_open_anim_file(scene, nseq, true);
+      strip_open_anim_file(scene, nseq, true);
       sanim = static_cast<StripAnim *>(BLI_findlink(&nseq->anims, i));
 
       if (sanim->anim) {

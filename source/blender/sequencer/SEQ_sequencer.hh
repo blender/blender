@@ -33,7 +33,7 @@ enum {
   SEQ_SIDE_NO_CHANGE,
 };
 
-/* seq_dupli' flags */
+/* strip_dupli' flags */
 #define SEQ_DUPE_UNIQUE_NAME (1 << 0)
 #define SEQ_DUPE_ALL (1 << 3) /* otherwise only selected are copied */
 

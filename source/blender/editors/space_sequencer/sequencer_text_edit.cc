@@ -76,7 +76,7 @@ bool sequencer_text_editing_active_poll(bContext *C)
   return (strip->flag & SEQ_FLAG_TEXT_EDITING_ACTIVE) != 0;
 }
 
-int2 seq_text_cursor_offset_to_position(const TextVarsRuntime *text, int cursor_offset)
+int2 strip_text_cursor_offset_to_position(const TextVarsRuntime *text, int cursor_offset)
 {
   cursor_offset = std::clamp(cursor_offset, 0, text->character_count);
 
@@ -106,7 +106,7 @@ static const seq::CharInfo &character_at_cursor_pos_get(const TextVarsRuntime *t
 static const seq::CharInfo &character_at_cursor_offset_get(const TextVarsRuntime *text,
                                                            const int cursor_offset)
 {
-  const int2 cursor_pos = seq_text_cursor_offset_to_position(text, cursor_offset);
+  const int2 cursor_pos = strip_text_cursor_offset_to_position(text, cursor_offset);
   return character_at_cursor_pos_get(text, cursor_pos);
 }
 
@@ -121,7 +121,7 @@ static void text_selection_cancel(TextVars *data)
   data->selection_end_offset = 0;
 }
 
-IndexRange seq_text_selection_range_get(const TextVars *data)
+IndexRange strip_text_selection_range_get(const TextVars *data)
 {
   /* Ensure, that selection start < selection end. */
   int sel_start_offset = data->selection_start_offset;
@@ -135,7 +135,7 @@ IndexRange seq_text_selection_range_get(const TextVars *data)
 
 static bool text_has_selection(const TextVars *data)
 {
-  return !seq_text_selection_range_get(data).is_empty();
+  return !strip_text_selection_range_get(data).is_empty();
 }
 
 static void delete_selected_text(TextVars *data)
@@ -145,7 +145,7 @@ static void delete_selected_text(TextVars *data)
   }
 
   TextVarsRuntime *text = data->runtime;
-  IndexRange sel_range = seq_text_selection_range_get(data);
+  IndexRange sel_range = strip_text_selection_range_get(data);
 
   seq::CharInfo char_start = character_at_cursor_offset_get(text, sel_range.first());
   seq::CharInfo char_end = character_at_cursor_offset_get(text, sel_range.last());
@@ -155,7 +155,7 @@ static void delete_selected_text(TextVars *data)
 
   std::memmove(addr_start, addr_end, BLI_strnlen(addr_end, sizeof(data->text)) + 1);
 
-  const int2 sel_start = seq_text_cursor_offset_to_position(text, sel_range.first());
+  const int2 sel_start = strip_text_cursor_offset_to_position(text, sel_range.first());
   data->cursor_offset = cursor_position_to_offset(text, sel_start);
   text_selection_cancel(data);
 }
@@ -304,7 +304,7 @@ static int sequencer_text_cursor_move_exec(bContext *C, wmOperator *op)
     data->selection_start_offset = data->cursor_offset;
   }
 
-  int2 cursor_position = seq_text_cursor_offset_to_position(text, data->cursor_offset);
+  int2 cursor_position = strip_text_cursor_offset_to_position(text, data->cursor_offset);
 
   switch (RNA_enum_get(op->ptr, "type")) {
     case PREV_CHAR:
@@ -728,7 +728,7 @@ static int sequencer_text_cursor_set_invoke(bContext *C, wmOperator *op, const w
   float2 mouse_loc;
   UI_view2d_region_to_view(v2d, mval_region.x, mval_region.y, &mouse_loc.x, &mouse_loc.y);
 
-  if (!seq_point_image_isect(scene, strip, mouse_loc)) {
+  if (!strip_point_image_isect(scene, strip, mouse_loc)) {
     strip->flag &= ~SEQ_FLAG_TEXT_EDITING_ACTIVE;
     return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
   }
@@ -766,7 +766,7 @@ void SEQUENCER_OT_text_cursor_set(wmOperatorType *ot)
 static void text_edit_copy(const TextVars *data)
 {
   const TextVarsRuntime *text = data->runtime;
-  const IndexRange selection_range = seq_text_selection_range_get(data);
+  const IndexRange selection_range = strip_text_selection_range_get(data);
   const seq::CharInfo start = character_at_cursor_offset_get(text, selection_range.first());
   const seq::CharInfo end = character_at_cursor_offset_get(text, selection_range.last());
   const size_t len = end.str_ptr + end.byte_length - start.str_ptr;

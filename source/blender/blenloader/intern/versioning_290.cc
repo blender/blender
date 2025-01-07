@@ -110,11 +110,11 @@ static bool can_use_proxy(const Strip *strip, int psize)
 }
 
 /* image_size is width or height depending what RNA property is converted - X or Y. */
-static void seq_convert_transform_animation(const Strip *strip,
-                                            const Scene *scene,
-                                            const char *path,
-                                            const int image_size,
-                                            const int scene_size)
+static void strip_convert_transform_animation(const Strip *strip,
+                                              const Scene *scene,
+                                              const char *path,
+                                              const int image_size,
+                                              const int scene_size)
 {
   if (scene->adt == nullptr || scene->adt->action == nullptr) {
     return;
@@ -144,9 +144,9 @@ static void seq_convert_transform_animation(const Strip *strip,
   }
 }
 
-static void seq_convert_transform_crop(const Scene *scene,
-                                       Strip *strip,
-                                       const eSpaceSeq_Proxy_RenderSize render_size)
+static void strip_convert_transform_crop(const Scene *scene,
+                                         Strip *strip,
+                                         const eSpaceSeq_Proxy_RenderSize render_size)
 {
   if (strip->data->transform == nullptr) {
     strip->data->transform = MEM_cnew<StripTransform>(__func__);
@@ -242,34 +242,34 @@ static void seq_convert_transform_crop(const Scene *scene,
   BLI_str_escape(name_esc, strip->name + 2, sizeof(name_esc));
 
   path = BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].transform.offset_x", name_esc);
-  seq_convert_transform_animation(strip, scene, path, image_size_x, scene->r.xsch);
+  strip_convert_transform_animation(strip, scene, path, image_size_x, scene->r.xsch);
   MEM_freeN(path);
   path = BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].transform.offset_y", name_esc);
-  seq_convert_transform_animation(strip, scene, path, image_size_y, scene->r.ysch);
+  strip_convert_transform_animation(strip, scene, path, image_size_y, scene->r.ysch);
   MEM_freeN(path);
 
   strip->flag &= ~use_transform_flag;
   strip->flag &= ~use_crop_flag;
 }
 
-static void seq_convert_transform_crop_lb(const Scene *scene,
-                                          const ListBase *lb,
-                                          const eSpaceSeq_Proxy_RenderSize render_size)
+static void strip_convert_transform_crop_lb(const Scene *scene,
+                                            const ListBase *lb,
+                                            const eSpaceSeq_Proxy_RenderSize render_size)
 {
 
   LISTBASE_FOREACH (Strip *, seq, lb) {
     if (!ELEM(seq->type, SEQ_TYPE_SOUND_RAM, SEQ_TYPE_SOUND_HD)) {
-      seq_convert_transform_crop(scene, seq, render_size);
+      strip_convert_transform_crop(scene, seq, render_size);
     }
     if (seq->type == SEQ_TYPE_META) {
-      seq_convert_transform_crop_lb(scene, &seq->seqbase, render_size);
+      strip_convert_transform_crop_lb(scene, &seq->seqbase, render_size);
     }
   }
 }
 
-static void seq_convert_transform_animation_2(const Scene *scene,
-                                              const char *path,
-                                              const float scale_to_fit_factor)
+static void strip_convert_transform_animation_2(const Scene *scene,
+                                                const char *path,
+                                                const float scale_to_fit_factor)
 {
   if (scene->adt == nullptr || scene->adt->action == nullptr) {
     return;
@@ -287,9 +287,9 @@ static void seq_convert_transform_animation_2(const Scene *scene,
   }
 }
 
-static void seq_convert_transform_crop_2(const Scene *scene,
-                                         Strip *strip,
-                                         const eSpaceSeq_Proxy_RenderSize render_size)
+static void strip_convert_transform_crop_2(const Scene *scene,
+                                           Strip *strip,
+                                           const eSpaceSeq_Proxy_RenderSize render_size)
 {
   const StripElem *s_elem = strip->data->stripdata;
   if (s_elem == nullptr) {
@@ -319,36 +319,36 @@ static void seq_convert_transform_crop_2(const Scene *scene,
   char name_esc[(sizeof(strip->name) - 2) * 2], *path;
   BLI_str_escape(name_esc, strip->name + 2, sizeof(name_esc));
   path = BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].transform.scale_x", name_esc);
-  seq_convert_transform_animation_2(scene, path, scale_to_fit_factor);
+  strip_convert_transform_animation_2(scene, path, scale_to_fit_factor);
   MEM_freeN(path);
   path = BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].transform.scale_y", name_esc);
-  seq_convert_transform_animation_2(scene, path, scale_to_fit_factor);
+  strip_convert_transform_animation_2(scene, path, scale_to_fit_factor);
   MEM_freeN(path);
   path = BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].crop.min_x", name_esc);
-  seq_convert_transform_animation_2(scene, path, 1 / scale_to_fit_factor);
+  strip_convert_transform_animation_2(scene, path, 1 / scale_to_fit_factor);
   MEM_freeN(path);
   path = BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].crop.max_x", name_esc);
-  seq_convert_transform_animation_2(scene, path, 1 / scale_to_fit_factor);
+  strip_convert_transform_animation_2(scene, path, 1 / scale_to_fit_factor);
   MEM_freeN(path);
   path = BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].crop.min_y", name_esc);
-  seq_convert_transform_animation_2(scene, path, 1 / scale_to_fit_factor);
+  strip_convert_transform_animation_2(scene, path, 1 / scale_to_fit_factor);
   MEM_freeN(path);
   path = BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].crop.max_x", name_esc);
-  seq_convert_transform_animation_2(scene, path, 1 / scale_to_fit_factor);
+  strip_convert_transform_animation_2(scene, path, 1 / scale_to_fit_factor);
   MEM_freeN(path);
 }
 
-static void seq_convert_transform_crop_lb_2(const Scene *scene,
-                                            const ListBase *lb,
-                                            const eSpaceSeq_Proxy_RenderSize render_size)
+static void strip_convert_transform_crop_lb_2(const Scene *scene,
+                                              const ListBase *lb,
+                                              const eSpaceSeq_Proxy_RenderSize render_size)
 {
 
   LISTBASE_FOREACH (Strip *, seq, lb) {
     if (!ELEM(seq->type, SEQ_TYPE_SOUND_RAM, SEQ_TYPE_SOUND_HD)) {
-      seq_convert_transform_crop_2(scene, seq, render_size);
+      strip_convert_transform_crop_2(scene, seq, render_size);
     }
     if (seq->type == SEQ_TYPE_META) {
-      seq_convert_transform_crop_lb_2(scene, &seq->seqbase, render_size);
+      strip_convert_transform_crop_lb_2(scene, &seq->seqbase, render_size);
     }
   }
 }
@@ -623,7 +623,7 @@ void do_versions_after_linking_290(FileData * /*fd*/, Main *bmain)
 
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       if (scene->ed != nullptr) {
-        seq_convert_transform_crop_lb(scene, &scene->ed->seqbase, render_size);
+        strip_convert_transform_crop_lb(scene, &scene->ed->seqbase, render_size);
       }
     }
   }
@@ -647,7 +647,7 @@ void do_versions_after_linking_290(FileData * /*fd*/, Main *bmain)
     eSpaceSeq_Proxy_RenderSize render_size = get_sequencer_render_size(bmain);
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       if (scene->ed != nullptr) {
-        seq_convert_transform_crop_lb_2(scene, &scene->ed->seqbase, render_size);
+        strip_convert_transform_crop_lb_2(scene, &scene->ed->seqbase, render_size);
       }
     }
   }

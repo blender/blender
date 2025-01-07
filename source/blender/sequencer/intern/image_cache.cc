@@ -620,7 +620,7 @@ void SEQ_cache_cleanup(Scene *scene)
 
 void seq_cache_cleanup_sequence(Scene *scene,
                                 Strip *strip,
-                                Strip *seq_changed,
+                                Strip *strip_changed,
                                 int invalidate_types,
                                 bool force_seq_changed_range)
 {
@@ -630,15 +630,15 @@ void seq_cache_cleanup_sequence(Scene *scene,
   }
 
   if (seq_disk_cache_is_enabled(cache->bmain) && cache->disk_cache != nullptr) {
-    seq_disk_cache_invalidate(cache->disk_cache, scene, strip, seq_changed, invalidate_types);
+    seq_disk_cache_invalidate(cache->disk_cache, scene, strip, strip_changed, invalidate_types);
   }
 
   seq_cache_lock(scene);
 
   const int range_start_seq_changed = seq_cache_timeline_frame_to_frame_index(
-      scene, strip, SEQ_time_left_handle_frame_get(scene, seq_changed), invalidate_types);
+      scene, strip, SEQ_time_left_handle_frame_get(scene, strip_changed), invalidate_types);
   const int range_end_seq_changed = seq_cache_timeline_frame_to_frame_index(
-      scene, strip, SEQ_time_right_handle_frame_get(scene, seq_changed), invalidate_types);
+      scene, strip, SEQ_time_right_handle_frame_get(scene, strip_changed), invalidate_types);
 
   int range_start = range_start_seq_changed;
   int range_end = range_end_seq_changed;
@@ -664,7 +664,7 @@ void seq_cache_cleanup_sequence(Scene *scene,
     BLI_ghashIterator_step(&gh_iter);
     BLI_assert(key->cache_owner == cache);
 
-    /* Clean all final and composite in intersection of strip and seq_changed. */
+    /* Clean all final and composite in intersection of strip and strip_changed. */
     if (key->type & invalidate_composite && key->frame_index >= range_start &&
         key->frame_index <= range_end)
     {
