@@ -1625,7 +1625,7 @@ static int bake(const BakeAPIRender *bkr,
     for (i = 0; i < tot_highpoly; i++) {
       ok = RE_bake_engine(re,
                           depsgraph,
-                          highpoly[i].ob,
+                          highpoly[i].ob_eval,
                           i,
                           pixel_array_high,
                           &targets,
