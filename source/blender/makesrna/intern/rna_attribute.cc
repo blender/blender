@@ -642,7 +642,7 @@ int rna_AttributeGroup_length(PointerRNA *ptr)
 
 bool rna_AttributeGroup_lookup_string(PointerRNA *ptr, const char *key, PointerRNA *r_ptr)
 {
-  AttributeOwner owner = owner_from_attribute_pointer_rna(ptr);
+  AttributeOwner owner = owner_from_pointer_rna(ptr);
 
   if (CustomDataLayer *layer = BKE_attribute_search_for_write(
           owner, key, CD_MASK_PROP_ALL, ATTR_DOMAIN_MASK_ALL))
