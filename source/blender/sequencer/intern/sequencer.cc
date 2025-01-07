@@ -157,7 +157,7 @@ Strip *SEQ_sequence_alloc(ListBase *lb, int timeline_frame, int machine, int typ
   strip->stereo3d_format = static_cast<Stereo3dFormat *>(
       MEM_callocN(sizeof(Stereo3dFormat), "Sequence Stereo Format"));
 
-  strip->color_tag = SEQUENCE_COLOR_NONE;
+  strip->color_tag = STRIP_COLOR_NONE;
 
   if (strip->type == STRIP_TYPE_META) {
     SEQ_channels_ensure(&strip->channels);

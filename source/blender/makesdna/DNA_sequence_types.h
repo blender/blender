@@ -868,20 +868,20 @@ enum {
 };
 
 /** #Strip.color_tag. */
-typedef enum SequenceColorTag {
-  SEQUENCE_COLOR_NONE = -1,
-  SEQUENCE_COLOR_01,
-  SEQUENCE_COLOR_02,
-  SEQUENCE_COLOR_03,
-  SEQUENCE_COLOR_04,
-  SEQUENCE_COLOR_05,
-  SEQUENCE_COLOR_06,
-  SEQUENCE_COLOR_07,
-  SEQUENCE_COLOR_08,
-  SEQUENCE_COLOR_09,
+typedef enum StripColorTag {
+  STRIP_COLOR_NONE = -1,
+  STRIP_COLOR_01,
+  STRIP_COLOR_02,
+  STRIP_COLOR_03,
+  STRIP_COLOR_04,
+  STRIP_COLOR_05,
+  STRIP_COLOR_06,
+  STRIP_COLOR_07,
+  STRIP_COLOR_08,
+  STRIP_COLOR_09,
 
-  SEQUENCE_COLOR_TOT,
-} SequenceColorTag;
+  STRIP_COLOR_TOT,
+} StripColorTag;
 
 /* Strip->StripTransform->filter */
 enum {

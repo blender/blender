@@ -3423,8 +3423,7 @@ void SEQUENCER_OT_strip_color_tag_set(wmOperatorType *ot)
   /* Flags. */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-  RNA_def_enum(
-      ot->srna, "color", rna_enum_strip_color_items, SEQUENCE_COLOR_NONE, "Color Tag", "");
+  RNA_def_enum(ot->srna, "color", rna_enum_strip_color_items, STRIP_COLOR_NONE, "Color Tag", "");
 }
 
 /** \} */

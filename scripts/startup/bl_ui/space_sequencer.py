@@ -1406,7 +1406,7 @@ class SEQUENCER_PT_color_tag_picker(SequencerColorTagPicker, Panel):
         row = layout.row(align=True)
         row.operator("sequencer.strip_color_tag_set", icon='X').color = 'NONE'
         for i in range(1, 10):
-            icon = 'SEQUENCE_COLOR_{:02d}'.format(i)
+            icon = 'STRIP_COLOR_{:02d}'.format(i)
             row.operator("sequencer.strip_color_tag_set", icon=icon).color = 'COLOR_{:02d}'.format(i)
 
 

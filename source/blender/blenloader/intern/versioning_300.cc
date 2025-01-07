@@ -492,7 +492,7 @@ static void do_versions_sequencer_speed_effect_recursive(Scene *scene, const Lis
 
 static bool do_versions_sequencer_color_tags(Strip *strip, void * /*user_data*/)
 {
-  strip->color_tag = SEQUENCE_COLOR_NONE;
+  strip->color_tag = STRIP_COLOR_NONE;
   return true;
 }
 
@@ -3088,7 +3088,7 @@ void blo_do_versions_300(FileData *fd, Library * /*lib*/, Main *bmain)
       }
     }
 
-    /* Set strip color tags to SEQUENCE_COLOR_NONE. */
+    /* Set strip color tags to STRIP_COLOR_NONE. */
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       if (scene->ed != nullptr) {
         SEQ_for_each_callback(&scene->ed->seqbase, do_versions_sequencer_color_tags, nullptr);

@@ -98,16 +98,16 @@ const EnumPropertyItem rna_enum_sequence_sound_modifier_type_items[] = {
 };
 
 const EnumPropertyItem rna_enum_strip_color_items[] = {
-    {SEQUENCE_COLOR_NONE, "NONE", ICON_X, "None", "Assign no color tag to the collection"},
-    {SEQUENCE_COLOR_01, "COLOR_01", ICON_SEQUENCE_COLOR_01, "Color 01", ""},
-    {SEQUENCE_COLOR_02, "COLOR_02", ICON_SEQUENCE_COLOR_02, "Color 02", ""},
-    {SEQUENCE_COLOR_03, "COLOR_03", ICON_SEQUENCE_COLOR_03, "Color 03", ""},
-    {SEQUENCE_COLOR_04, "COLOR_04", ICON_SEQUENCE_COLOR_04, "Color 04", ""},
-    {SEQUENCE_COLOR_05, "COLOR_05", ICON_SEQUENCE_COLOR_05, "Color 05", ""},
-    {SEQUENCE_COLOR_06, "COLOR_06", ICON_SEQUENCE_COLOR_06, "Color 06", ""},
-    {SEQUENCE_COLOR_07, "COLOR_07", ICON_SEQUENCE_COLOR_07, "Color 07", ""},
-    {SEQUENCE_COLOR_08, "COLOR_08", ICON_SEQUENCE_COLOR_08, "Color 08", ""},
-    {SEQUENCE_COLOR_09, "COLOR_09", ICON_SEQUENCE_COLOR_09, "Color 09", ""},
+    {STRIP_COLOR_NONE, "NONE", ICON_X, "None", "Assign no color tag to the collection"},
+    {STRIP_COLOR_01, "COLOR_01", ICON_STRIP_COLOR_01, "Color 01", ""},
+    {STRIP_COLOR_02, "COLOR_02", ICON_STRIP_COLOR_02, "Color 02", ""},
+    {STRIP_COLOR_03, "COLOR_03", ICON_STRIP_COLOR_03, "Color 03", ""},
+    {STRIP_COLOR_04, "COLOR_04", ICON_STRIP_COLOR_04, "Color 04", ""},
+    {STRIP_COLOR_05, "COLOR_05", ICON_STRIP_COLOR_05, "Color 05", ""},
+    {STRIP_COLOR_06, "COLOR_06", ICON_STRIP_COLOR_06, "Color 06", ""},
+    {STRIP_COLOR_07, "COLOR_07", ICON_STRIP_COLOR_07, "Color 07", ""},
+    {STRIP_COLOR_08, "COLOR_08", ICON_STRIP_COLOR_08, "Color 08", ""},
+    {STRIP_COLOR_09, "COLOR_09", ICON_STRIP_COLOR_09, "Color 09", ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
 

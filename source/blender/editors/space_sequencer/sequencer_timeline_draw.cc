@@ -295,8 +295,8 @@ static void color3ubv_from_seq(const Scene *curscene,
                                const bool is_muted,
                                uchar r_col[3])
 {
-  if (show_strip_color_tag && uint(strip->color_tag) < SEQUENCE_COLOR_TOT &&
-      strip->color_tag != SEQUENCE_COLOR_NONE)
+  if (show_strip_color_tag && uint(strip->color_tag) < STRIP_COLOR_TOT &&
+      strip->color_tag != STRIP_COLOR_NONE)
   {
     bTheme *btheme = UI_GetTheme();
     const ThemeStripColor *strip_color = &btheme->strip_color[strip->color_tag];
