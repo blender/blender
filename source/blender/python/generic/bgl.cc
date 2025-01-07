@@ -28,7 +28,7 @@
 
 #include <epoxy/gl.h>
 
-#include "bgl.h"
+#include "bgl.hh"
 
 #include "CLG_log.h"
 
