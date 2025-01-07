@@ -54,6 +54,7 @@ void main()
     ivec2 texel = start + j * direction;
     vec4 horizontal = texture_load(diagonal_tx, texel);
     vec4 vertical = imageLoad(anti_diagonal_img, texel);
-    imageStore(anti_diagonal_img, texel, horizontal + vertical);
+    vec4 combined = horizontal + vertical;
+    imageStore(anti_diagonal_img, texel, vec4(combined.rgb, 1.0));
   }
 }

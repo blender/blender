@@ -10,6 +10,9 @@
 
 #include <algorithm>
 #include <cmath>
+#include <string>
+
+#include <fmt/format.h>
 
 /* Define macros in `DNA_genfile.h`. */
 #define DNA_GENFILE_VERSIONING_MACROS
@@ -44,8 +47,10 @@
 #include "BLI_assert.h"
 #include "BLI_listbase.h"
 #include "BLI_map.hh"
+#include "BLI_math_base.hh"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
+#include "BLI_math_vector_types.hh"
 #include "BLI_set.hh"
 #include "BLI_string.h"
 #include "BLI_string_ref.hh"
@@ -62,6 +67,7 @@
 #include "BKE_curve.hh"
 #include "BKE_customdata.hh"
 #include "BKE_effect.h"
+#include "BKE_fcurve.hh"
 #include "BKE_file_handler.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_idprop.hh"
@@ -1048,6 +1054,203 @@ static bool versioning_clear_strip_unused_flag(Strip *seq, void * /*user_data*/)
   return true;
 }
 
+/* Adjust the values of the given FCurve key frames by applying the given function. The function is
+ * expected to get and return a float representing the value of the key frame. The FCurve is
+ * potentially changed to have the given property type, if not already the case. */
+template<typename Function>
+static void adjust_fcurve_key_frame_values(FCurve *fcurve,
+                                           const PropertyType property_type,
+                                           const Function &function)
+{
+  /* Adjust key frames. */
+  if (fcurve->bezt) {
+    for (int i = 0; i < fcurve->totvert; i++) {
+      fcurve->bezt[i].vec[0][1] = function(fcurve->bezt[i].vec[0][1]);
+      fcurve->bezt[i].vec[1][1] = function(fcurve->bezt[i].vec[1][1]);
+      fcurve->bezt[i].vec[2][1] = function(fcurve->bezt[i].vec[2][1]);
+    }
+  }
+
+  /* Adjust baked key frames. */
+  if (fcurve->fpt) {
+    for (int i = 0; i < fcurve->totvert; i++) {
+      fcurve->fpt[i].vec[1] = function(fcurve->fpt[i].vec[1]);
+    }
+  }
+
+  /* Setup the flags based on the property type. */
+  fcurve->flag &= ~(FCURVE_INT_VALUES | FCURVE_DISCRETE_VALUES);
+  switch (property_type) {
+    case PROP_FLOAT:
+      break;
+    case PROP_INT:
+      fcurve->flag |= FCURVE_INT_VALUES;
+      break;
+    default:
+      fcurve->flag |= (FCURVE_DISCRETE_VALUES | FCURVE_INT_VALUES);
+      break;
+  }
+
+  /* Recalculate the automatic handles of the FCurve after adjustments. */
+  BKE_fcurve_handles_recalc(fcurve);
+}
+
+/* The Threshold, Mix, and Size properties of the node were converted into node inputs, and
+ * two new outputs were added.
+ *
+ * A new Highlights output was added to expose the extracted highlights, this is not relevant for
+ * versioning.
+ *
+ * A new Glare output was added to expose just the generated glare without the input image itself.
+ * this relevant for versioning the Mix property as will be shown.
+ *
+ * The Threshold, Iterations, Fade, Color Modulation, Streaks, and Streaks Angle Offset properties
+ * were converted into node inputs, maintaining its type and range, so we just transfer its value
+ * as is.
+ *
+ * The Mix property was converted into a Strength input, but its range changed from [-1, 1] to [0,
+ * 1]. For the [-1, 0] sub-range, -1 used to mean zero strength and 0 used to mean full strength,
+ * so we can convert between the two ranges by negating the mix factor and subtracting it from 1.
+ * The [0, 1] sub-range on the other hand was useless except for the value 1, because it linearly
+ * interpolates between Image + Glare and Glare, so it essentially adds an attenuated version of
+ * the input image to the glare. When it is 1, only the glare is returned. So we split that range
+ * in half as a heuristic and for values in the range [0.5, 1], we just reconnect the output to the
+ * newly added Glare output.
+ *
+ * The Size property was converted into a float node input, and its range was changed from [1, 9]
+ * to [0, 1]. For Bloom, the [1, 9] range was related exponentially to the actual size of the
+ * glare, that is, 9 meant the glare covers the entire image, 8 meant it covers half, 7 meant it
+ * covers quarter and so on. The new range is linear and relative to the image size, that is, 1
+ * means the entire image and 0 means nothing. So we can convert from the [1, 9] range to [0, 1]
+ * range using the relation 2^(x-9).
+ * For Fog Glow, the [1, 9] range was related to the absolute size of the Fog Glow kernel in
+ * pixels, where it is 2^size pixels in size. There is no way to version this accurately, since the
+ * new size is relative to the input image size, which is runtime information. But we can assume
+ * the render size as a guess and compute the size relative to that. */
+static void do_version_glare_node_options_to_inputs(const Scene *scene,
+                                                    bNodeTree *node_tree,
+                                                    bNode *node)
+{
+  NodeGlare *storage = static_cast<NodeGlare *>(node->storage);
+  if (!storage) {
+    return;
+  }
+
+  /* Get the newly added inputs. */
+  bNodeSocket *threshold = version_node_add_socket_if_not_exist(
+      node_tree, node, SOCK_IN, SOCK_FLOAT, PROP_NONE, "Threshold", "Threshold");
+  bNodeSocket *strength = version_node_add_socket_if_not_exist(
+      node_tree, node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Strength", "Strength");
+  bNodeSocket *size = version_node_add_socket_if_not_exist(
+      node_tree, node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Size", "Size");
+  bNodeSocket *streaks = version_node_add_socket_if_not_exist(
+      node_tree, node, SOCK_IN, SOCK_INT, PROP_NONE, "Streaks", "Streaks");
+  bNodeSocket *streaks_angle = version_node_add_socket_if_not_exist(
+      node_tree, node, SOCK_IN, SOCK_FLOAT, PROP_ANGLE, "Streaks Angle", "Streaks Angle");
+  bNodeSocket *iterations = version_node_add_socket_if_not_exist(
+      node_tree, node, SOCK_IN, SOCK_INT, PROP_NONE, "Iterations", "Iterations");
+  bNodeSocket *fade = version_node_add_socket_if_not_exist(
+      node_tree, node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Fade", "Fade");
+  bNodeSocket *color_modulation = version_node_add_socket_if_not_exist(
+      node_tree, node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Color Modulation", "Color Modulation");
+
+  /* Function to remap the Mix property to the range of the new Strength input. See function
+   * description. */
+  auto mix_to_strength = [](const float mix) {
+    return 1.0f - blender::math::clamp(-mix, 0.0f, 1.0f);
+  };
+
+  /* Function to remap the Size property to its new range. See function description. */
+  blender::int2 render_size;
+  BKE_render_resolution(&scene->r, true, &render_size.x, &render_size.y);
+  const int max_render_size = blender::math::reduce_max(render_size);
+  auto size_to_linear = [&](const int size) {
+    if (storage->type == CMP_NODE_GLARE_BLOOM) {
+      return blender::math::pow(2.0f, float(size - 9));
+    }
+    return blender::math::min(1.0f, float((1 << size) + 1) / float(max_render_size));
+  };
+
+  /* Assign the inputs the values from the old deprecated properties. */
+  threshold->default_value_typed<bNodeSocketValueFloat>()->value = storage->threshold;
+  strength->default_value_typed<bNodeSocketValueFloat>()->value = mix_to_strength(storage->mix);
+  size->default_value_typed<bNodeSocketValueFloat>()->value = size_to_linear(storage->size);
+  streaks->default_value_typed<bNodeSocketValueInt>()->value = storage->streaks;
+  streaks_angle->default_value_typed<bNodeSocketValueFloat>()->value = storage->angle_ofs;
+  iterations->default_value_typed<bNodeSocketValueInt>()->value = storage->iter;
+  fade->default_value_typed<bNodeSocketValueFloat>()->value = storage->fade;
+  color_modulation->default_value_typed<bNodeSocketValueFloat>()->value = storage->colmod;
+
+  /* Compute the RNA path of the node. */
+  char escaped_node_name[sizeof(node->name) * 2 + 1];
+  BLI_str_escape(escaped_node_name, node->name, sizeof(escaped_node_name));
+  const std::string node_rna_path = fmt::format("nodes[\"{}\"]", escaped_node_name);
+
+  BKE_fcurves_id_cb(&node_tree->id, [&](ID * /*id*/, FCurve *fcurve) {
+    /* The FCurve does not belong to the node since its RNA path doesn't start with the node's RNA
+     * path. */
+    if (!blender::StringRef(fcurve->rna_path).startswith(node_rna_path)) {
+      return;
+    }
+
+    /* Change the RNA path of the FCurve from the old properties to the new inputs, adjusting the
+     * values of the FCurves frames when needed. */
+    char *old_rna_path = fcurve->rna_path;
+    if (BLI_str_endswith(fcurve->rna_path, "threshold")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[1].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "mix")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[2].default_value");
+      adjust_fcurve_key_frame_values(
+          fcurve, PROP_FLOAT, [&](const float value) { return mix_to_strength(value); });
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "size")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[3].default_value");
+      adjust_fcurve_key_frame_values(
+          fcurve, PROP_FLOAT, [&](const float value) { return size_to_linear(value); });
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "streaks")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[4].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "angle_offset")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[5].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "iterations")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[6].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "fade")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[7].default_value");
+    }
+    else if (BLI_str_endswith(fcurve->rna_path, "color_modulation")) {
+      fcurve->rna_path = BLI_sprintfN("%s.%s", node_rna_path.c_str(), "inputs[8].default_value");
+    }
+
+    /* The RNA path was changed, free the old path. */
+    if (fcurve->rna_path != old_rna_path) {
+      MEM_freeN(old_rna_path);
+    }
+  });
+
+  /* If the Mix factor is between [0.5, 1], then the user actually wants the Glare output, so
+   * reconnect the output to the newly created Glare output. */
+  if (storage->mix > 0.5f) {
+    bNodeSocket *image_output = version_node_add_socket_if_not_exist(
+        node_tree, node, SOCK_OUT, SOCK_RGBA, PROP_NONE, "Image", "Image");
+    bNodeSocket *glare_output = version_node_add_socket_if_not_exist(
+        node_tree, node, SOCK_OUT, SOCK_RGBA, PROP_NONE, "Glare", "Glare");
+
+    LISTBASE_FOREACH_BACKWARD_MUTABLE (bNodeLink *, link, &node_tree->links) {
+      if (link->fromsock != image_output) {
+        continue;
+      }
+
+      /* Relink from the Image output to the Glare output. */
+      blender::bke::node_add_link(node_tree, node, glare_output, link->tonode, link->tosock);
+      blender::bke::node_remove_link(node_tree, link);
+    }
+  }
+}
+
 static bool all_scenes_use(Main *bmain, const blender::Span<const char *> engines)
 {
   if (!bmain->scenes.first) {
@@ -1281,6 +1484,22 @@ void do_versions_after_linking_400(FileData *fd, Main *bmain)
         scene->toolsettings->snap_node_mode = SCE_SNAP_TO_GRID;
       }
     }
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 18)) {
+    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
+      if (ntree->type != NTREE_COMPOSIT) {
+        continue;
+      }
+
+      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
+        if (node->type != CMP_NODE_GLARE) {
+          continue;
+        }
+        do_version_glare_node_options_to_inputs(reinterpret_cast<Scene *>(id), ntree, node);
+      }
+    }
+    FOREACH_NODETREE_END;
   }
 
   /**

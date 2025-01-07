@@ -7,6 +7,7 @@
  */
 
 #include <climits>
+#include <cmath>
 #include <cstdlib>
 #include <cstring>
 
@@ -14,6 +15,7 @@
 
 #include "BLI_function_ref.hh"
 #include "BLI_linear_allocator.hh"
+#include "BLI_math_base.hh"
 #include "BLI_math_rotation.h"
 #include "BLI_string.h"
 #include "BLI_string_utf8_symbols.h"
@@ -3378,6 +3380,152 @@ static void rna_NodeColorBalance_update_cdl(Main *bmain, Scene *scene, PointerRN
                                        static_cast<bNode *>(ptr->data));
   rna_Node_update(bmain, scene, ptr);
 }
+
+/* --------------------------------------------------------------------
+ * Glare Node Compatibility Setters/Getters.
+ *
+ * The Glare node properties are now deprecated and replaced corresponding inputs. So we provide
+ * setters/getters for compatibility until those are removed in 5.0. See the
+ * do_version_glare_node_options_to_inputs function for conversion
+ */
+
+static float rna_NodeGlare_threshold_get(PointerRNA *ptr)
+{
+  bNode *node = static_cast<bNode *>(ptr->data);
+  bNodeSocket *input = blender::bke::node_find_socket(node, SOCK_IN, "Threshold");
+  PointerRNA input_rna_pointer = RNA_pointer_create(ptr->owner_id, &RNA_NodeSocket, input);
+  return RNA_float_get(&input_rna_pointer, "default_value");
+}
+
+static void rna_NodeGlare_threshold_set(PointerRNA *ptr, const float value)
+{
+  bNode *node = static_cast<bNode *>(ptr->data);
+  bNodeSocket *input = blender::bke::node_find_socket(node, SOCK_IN, "Threshold");
+  PointerRNA input_rna_pointer = RNA_pointer_create(ptr->owner_id, &RNA_NodeSocket, input);
+  RNA_float_set(&input_rna_pointer, "default_value", value);
+}
+
+static float rna_NodeGlare_mix_get(PointerRNA *ptr)
+{
+  bNode *node = static_cast<bNode *>(ptr->data);
+  bNodeSocket *input = blender::bke::node_find_socket(node, SOCK_IN, "Strength");
+  PointerRNA input_rna_pointer = RNA_pointer_create(ptr->owner_id, &RNA_NodeSocket, input);
+  return RNA_float_get(&input_rna_pointer, "default_value") - 1;
+}
+
+static void rna_NodeGlare_mix_set(PointerRNA *ptr, const float value)
+{
+  bNode *node = static_cast<bNode *>(ptr->data);
+  bNodeSocket *input = blender::bke::node_find_socket(node, SOCK_IN, "Strength");
+  PointerRNA input_rna_pointer = RNA_pointer_create(ptr->owner_id, &RNA_NodeSocket, input);
+  const float mix_value = 1.0f - blender::math::clamp(-value, 0.0f, 1.0f);
+  RNA_float_set(&input_rna_pointer, "default_value", mix_value);
+}
+
+static int rna_NodeGlare_size_get(PointerRNA *ptr)
+{
+  bNode *node = static_cast<bNode *>(ptr->data);
+  bNodeSocket *input = blender::bke::node_find_socket(node, SOCK_IN, "Size");
+  PointerRNA input_rna_pointer = RNA_pointer_create(ptr->owner_id, &RNA_NodeSocket, input);
+  const float size_value = RNA_float_get(&input_rna_pointer, "default_value");
+  if (size_value == 0.0f) {
+    return 1;
+  }
+  return blender::math::max(1, 9 - int(-std::log2(size_value)));
+}
+
+static void rna_NodeGlare_size_set(PointerRNA *ptr, const int value)
+{
+  bNode *node = static_cast<bNode *>(ptr->data);
+  bNodeSocket *input = blender::bke::node_find_socket(node, SOCK_IN, "Size");
+  PointerRNA input_rna_pointer = RNA_pointer_create(ptr->owner_id, &RNA_NodeSocket, input);
+  const float size_value = blender::math::pow(2.0f, float(value - 9));
+  RNA_float_set(&input_rna_pointer, "default_value", size_value);
+}
+
+static int rna_NodeGlare_streaks_get(PointerRNA *ptr)
+{
+  bNode *node = static_cast<bNode *>(ptr->data);
+  bNodeSocket *input = blender::bke::node_find_socket(node, SOCK_IN, "Streaks");
+  PointerRNA input_rna_pointer = RNA_pointer_create(ptr->owner_id, &RNA_NodeSocket, input);
+  return blender::math::clamp(RNA_int_get(&input_rna_pointer, "default_value"), 1, 16);
+}
+
+static void rna_NodeGlare_streaks_set(PointerRNA *ptr, const int value)
+{
+  bNode *node = static_cast<bNode *>(ptr->data);
+  bNodeSocket *input = blender::bke::node_find_socket(node, SOCK_IN, "Streaks");
+  PointerRNA input_rna_pointer = RNA_pointer_create(ptr->owner_id, &RNA_NodeSocket, input);
+  RNA_int_set(&input_rna_pointer, "default_value", blender::math::clamp(value, 1, 16));
+}
+
+static float rna_NodeGlare_angle_offset_get(PointerRNA *ptr)
+{
+  bNode *node = static_cast<bNode *>(ptr->data);
+  bNodeSocket *input = blender::bke::node_find_socket(node, SOCK_IN, "Streaks Angle");
+  PointerRNA input_rna_pointer = RNA_pointer_create(ptr->owner_id, &RNA_NodeSocket, input);
+  return RNA_float_get(&input_rna_pointer, "default_value");
+}
+
+static void rna_NodeGlare_angle_offset_set(PointerRNA *ptr, const float value)
+{
+  bNode *node = static_cast<bNode *>(ptr->data);
+  bNodeSocket *input = blender::bke::node_find_socket(node, SOCK_IN, "Streaks Angle");
+  PointerRNA input_rna_pointer = RNA_pointer_create(ptr->owner_id, &RNA_NodeSocket, input);
+  RNA_float_set(&input_rna_pointer, "default_value", value);
+}
+
+static int rna_NodeGlare_iterations_get(PointerRNA *ptr)
+{
+  bNode *node = static_cast<bNode *>(ptr->data);
+  bNodeSocket *input = blender::bke::node_find_socket(node, SOCK_IN, "Iterations");
+  PointerRNA input_rna_pointer = RNA_pointer_create(ptr->owner_id, &RNA_NodeSocket, input);
+  return blender::math::clamp(RNA_int_get(&input_rna_pointer, "default_value"), 2, 5);
+}
+
+static void rna_NodeGlare_iterations_set(PointerRNA *ptr, const int value)
+{
+  bNode *node = static_cast<bNode *>(ptr->data);
+  bNodeSocket *input = blender::bke::node_find_socket(node, SOCK_IN, "Iterations");
+  PointerRNA input_rna_pointer = RNA_pointer_create(ptr->owner_id, &RNA_NodeSocket, input);
+  RNA_int_set(&input_rna_pointer, "default_value", blender::math::clamp(value, 2, 5));
+}
+
+static float rna_NodeGlare_fade_get(PointerRNA *ptr)
+{
+  bNode *node = static_cast<bNode *>(ptr->data);
+  bNodeSocket *input = blender::bke::node_find_socket(node, SOCK_IN, "Fade");
+  PointerRNA input_rna_pointer = RNA_pointer_create(ptr->owner_id, &RNA_NodeSocket, input);
+  return blender::math::clamp(RNA_float_get(&input_rna_pointer, "default_value"), 0.75f, 1.0f);
+}
+
+static void rna_NodeGlare_fade_set(PointerRNA *ptr, const float value)
+{
+  bNode *node = static_cast<bNode *>(ptr->data);
+  bNodeSocket *input = blender::bke::node_find_socket(node, SOCK_IN, "Fade");
+  PointerRNA input_rna_pointer = RNA_pointer_create(ptr->owner_id, &RNA_NodeSocket, input);
+  RNA_float_set(&input_rna_pointer, "default_value", blender::math::clamp(value, 0.75f, 1.0f));
+}
+
+static float rna_NodeGlare_color_modulation_get(PointerRNA *ptr)
+{
+  bNode *node = static_cast<bNode *>(ptr->data);
+  bNodeSocket *input = blender::bke::node_find_socket(node, SOCK_IN, "Color Modulation");
+  PointerRNA input_rna_pointer = RNA_pointer_create(ptr->owner_id, &RNA_NodeSocket, input);
+  return blender::math::clamp(RNA_float_get(&input_rna_pointer, "default_value"), 0.0f, 1.0f);
+}
+
+static void rna_NodeGlare_color_modulation_set(PointerRNA *ptr, const float value)
+{
+  bNode *node = static_cast<bNode *>(ptr->data);
+  bNodeSocket *input = blender::bke::node_find_socket(node, SOCK_IN, "Color Modulation");
+  PointerRNA input_rna_pointer = RNA_pointer_create(ptr->owner_id, &RNA_NodeSocket, input);
+  RNA_float_set(&input_rna_pointer, "default_value", blender::math::clamp(value, 0.0f, 1.0f));
+}
+
+/* --------------------------------------------------------------------
+ * White Balance Node.
+ */
 
 static void rna_NodeColorBalance_input_whitepoint_get(PointerRNA *ptr, float value[3])
 {
@@ -7835,54 +7983,57 @@ static void def_cmp_glare(StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "iterations", PROP_INT, PROP_NONE);
-  RNA_def_property_int_sdna(prop, nullptr, "iter");
+  RNA_def_property_int_funcs(
+      prop, "rna_NodeGlare_iterations_get", "rna_NodeGlare_iterations_set", nullptr);
   RNA_def_property_range(prop, 2, 5);
-  RNA_def_property_ui_text(prop, "Iterations", "");
-  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+  RNA_def_property_ui_text(prop, "Iterations", "(Deprecated: Use Iterations input instead)");
 
   prop = RNA_def_property(srna, "color_modulation", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "colmod");
+  RNA_def_property_float_funcs(
+      prop, "rna_NodeGlare_color_modulation_get", "rna_NodeGlare_color_modulation_set", nullptr);
   RNA_def_property_range(prop, 0.0f, 1.0f);
   RNA_def_property_ui_text(
       prop,
       "Color Modulation",
       "Amount of Color Modulation, modulates colors of streaks and ghosts for "
-      "a spectral dispersion effect");
-  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+      "a spectral dispersion effect. (Deprecated: Use Color Modulation input instead)");
 
   prop = RNA_def_property(srna, "mix", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "mix");
+  RNA_def_property_float_funcs(prop, "rna_NodeGlare_mix_get", "rna_NodeGlare_mix_set", nullptr);
   RNA_def_property_range(prop, -1.0f, 1.0f);
-  RNA_def_property_ui_text(
-      prop, "Mix", "-1 is original image only, 0 is exact 50/50 mix, 1 is processed image only");
-  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+  RNA_def_property_ui_text(prop,
+                           "Mix",
+                           "1 is original image only, 0 is exact 50/50 mix, 1 is processed image "
+                           "only. (Deprecated: Use Strength input instead)");
 
   prop = RNA_def_property(srna, "threshold", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "threshold");
+  RNA_def_property_float_funcs(
+      prop, "rna_NodeGlare_threshold_get", "rna_NodeGlare_threshold_set", nullptr);
   RNA_def_property_range(prop, 0.0f, FLT_MAX);
-  RNA_def_property_ui_text(
-      prop,
-      "Threshold",
-      "The glare filter will only be applied to pixels brighter than this value");
-  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+  RNA_def_property_ui_text(prop,
+                           "Threshold",
+                           "The glare filter will only be applied to pixels brighter than this "
+                           "value. (Deprecated: Use Threshold input instead)");
 
   prop = RNA_def_property(srna, "streaks", PROP_INT, PROP_NONE);
-  RNA_def_property_int_sdna(prop, nullptr, "streaks");
+  RNA_def_property_int_funcs(
+      prop, "rna_NodeGlare_streaks_get", "rna_NodeGlare_streaks_set", nullptr);
   RNA_def_property_range(prop, 1, 16);
-  RNA_def_property_ui_text(prop, "Streaks", "Total number of streaks");
-  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+  RNA_def_property_ui_text(
+      prop, "Streaks", "Total number of streaks. (Deprecated: Use Streaks input instead)");
 
   prop = RNA_def_property(srna, "angle_offset", PROP_FLOAT, PROP_ANGLE);
-  RNA_def_property_float_sdna(prop, nullptr, "angle_ofs");
+  RNA_def_property_float_funcs(
+      prop, "rna_NodeGlare_angle_offset_get", "rna_NodeGlare_angle_offset_set", nullptr);
   RNA_def_property_range(prop, 0.0f, DEG2RADF(180.0f));
-  RNA_def_property_ui_text(prop, "Angle Offset", "Streak angle offset");
-  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+  RNA_def_property_ui_text(
+      prop, "Angle Offset", "Streak angle offset. (Deprecated: Use Streaks Angle input instead)");
 
   prop = RNA_def_property(srna, "fade", PROP_FLOAT, PROP_NONE);
-  RNA_def_property_float_sdna(prop, nullptr, "fade");
+  RNA_def_property_float_funcs(prop, "rna_NodeGlare_fade_get", "rna_NodeGlare_fade_set", nullptr);
   RNA_def_property_range(prop, 0.75f, 1.0f);
-  RNA_def_property_ui_text(prop, "Fade", "Streak fade-out factor");
-  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+  RNA_def_property_ui_text(
+      prop, "Fade", "Streak fade-out factor. (Deprecated: Use Fade input instead)");
 
   prop = RNA_def_property(srna, "use_rotate_45", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_sdna(prop, nullptr, "star_45", 0);
@@ -7890,15 +8041,12 @@ static void def_cmp_glare(StructRNA *srna)
   RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
   prop = RNA_def_property(srna, "size", PROP_INT, PROP_NONE);
-  RNA_def_property_int_sdna(prop, nullptr, "size");
+  RNA_def_property_int_funcs(prop, "rna_NodeGlare_size_get", "rna_NodeGlare_size_set", nullptr);
   RNA_def_property_range(prop, 1, 9);
-  RNA_def_property_ui_text(
-      prop,
-      "Size",
-      "Glow/glare size (not actual size; relative to initial size of bright area of pixels)");
-  RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
-
-  /* TODO */
+  RNA_def_property_ui_text(prop,
+                           "Size",
+                           "Glow/glare size (not actual size; relative to initial size of bright "
+                           "area of pixels). (Deprecated: Use Size input instead)");
 }
 
 static void def_cmp_tonemap(StructRNA *srna)
