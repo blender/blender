@@ -169,10 +169,19 @@ class Prepass : Overlay {
   void sculpt_sync(Manager &manager, const ObjectRef &ob_ref, Resources &res)
   {
     ResourceHandle handle = manager.resource_handle_for_sculpt(ob_ref);
-    select::ID select_id = res.select_id(ob_ref);
 
     for (SculptBatch &batch : sculpt_batches_get(ob_ref.object, SCULPT_BATCH_DEFAULT)) {
-      mesh_ps_->draw(batch.batch, handle, select_id.get());
+      select::ID select_id = use_material_slot_selection_ ?
+                                 res.select_id(ob_ref, (batch.material_slot + 1) << 16) :
+                                 res.select_id(ob_ref);
+
+      if (res.is_selection()) {
+        /* Conservative shader needs expanded draw-call. */
+        mesh_ps_->draw_expand(batch.batch, GPU_PRIM_TRIS, 1, 1, handle, select_id.get());
+      }
+      else {
+        mesh_ps_->draw(batch.batch, handle, select_id.get());
+      }
     }
   }
 
