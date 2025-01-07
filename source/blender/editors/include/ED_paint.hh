@@ -10,6 +10,8 @@
 
 #include "DNA_view3d_enums.h"
 
+#include <cstdint>
+
 enum class PaintMode : int8_t;
 struct bContext;
 struct bToolRef;
@@ -18,6 +20,7 @@ struct Image;
 struct ImageUser;
 struct ImBuf;
 struct Main;
+struct Object;
 struct PaintModeSettings;
 struct PaintTileMap;
 struct ReportList;

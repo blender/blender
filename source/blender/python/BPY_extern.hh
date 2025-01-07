@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "BLI_sys_types.h"
+
 struct ARegionType;
 struct AnimationEvalContext;
 struct ChannelDriver; /* DNA_anim_types.h */
@@ -24,8 +26,6 @@ struct bContextDataResult;
 struct bPythonConstraint; /* DNA_constraint_types.h */
 struct StructRNA;
 struct wmWindowManager;
-
-#include "BLI_utildefines.h"
 
 void BPY_pyconstraint_exec(bPythonConstraint *con, bConstraintOb *cob, ListBase *targets);
 //  void BPY_pyconstraint_settings(void *arg1, void *arg2);

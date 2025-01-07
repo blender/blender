@@ -8,6 +8,11 @@
 
 #pragma once
 
+#include <cstring>
+
+#include "DNA_color_types.h"
+#include "DNA_image_types.h"
+
 namespace blender::image_engine {
 
 /**

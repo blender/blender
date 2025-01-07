@@ -16,7 +16,7 @@
 #include "BKE_scene.hh"
 
 #include "BLI_listbase.h"
-#include "BLI_math_base.hh"
+#include "BLI_math_base.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_string.h"
 
@@ -28,8 +28,6 @@
 #include "DNA_curve_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
-#include "DNA_meshdata_types.h"
-#include "DNA_scene_types.h"
 
 #include "MEM_guardedalloc.h"
 

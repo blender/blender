@@ -17,8 +17,6 @@
 #include "BLI_array.hh"
 #include "BLI_math_vector_types.hh"
 
-#include "DNA_customdata_types.h"
-
 #include "bmesh.hh"
 
 struct BMLoop;

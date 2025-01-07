@@ -215,4 +215,4 @@ BLI_INLINE void BKE_multires_construct_tangent_matrix(float tangent_matrix[3][3]
  */
 void multires_do_versions_simple_to_catmull_clark(Object *object, MultiresModifierData *mmd);
 
-#include "intern/multires_inline.hh"
+#include "intern/multires_inline.hh"  // IWYU pragma: export

@@ -9,17 +9,13 @@
  * \brief A BVH for high poly meshes.
  */
 
-#include <optional>
-#include <string>
 #include <variant>
 
 #include "BLI_array.hh"
 #include "BLI_bit_group_vector.hh"
 #include "BLI_bit_vector.hh"
 #include "BLI_bounds_types.hh"
-#include "BLI_compiler_compat.h"
 #include "BLI_function_ref.hh"
-#include "BLI_generic_span.hh"
 #include "BLI_index_mask_fwd.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_offset_indices.hh"
@@ -28,6 +24,7 @@
 #include "BLI_string_ref.hh"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
+#include "BLI_vector_set.hh"
 
 struct BMFace;
 struct BMLog;

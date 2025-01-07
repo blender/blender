@@ -6,6 +6,8 @@
  * \ingroup eevee
  */
 
+#include "BLI_rect.h"
+
 #include "BKE_image.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_node.hh"
@@ -16,8 +18,6 @@
 #include "GPU_material.hh"
 
 #include "eevee_instance.hh"
-
-#include "draw_debug.hh"
 
 namespace blender::eevee {
 

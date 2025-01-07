@@ -11,14 +11,12 @@
 #include "BKE_node_runtime.hh"
 
 #include "BLI_math_vector.h"
-#include "BLI_math_vector.hh"
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
 
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
 
-#include "obj_export_mesh.hh"
 #include "obj_export_mtl.hh"
 
 #include "CLG_log.h"

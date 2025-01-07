@@ -51,10 +51,8 @@
 
 #include "BLF_api.hh"
 
-#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
-#include "DNA_sequence_types.h"
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
@@ -62,7 +60,9 @@
 
 #include "AS_asset_library.hh"
 
-#include "BKE_addon.h"
+#ifndef WITH_CYCLES
+#  include "BKE_addon.h"
+#endif
 #include "BKE_appdir.hh"
 #include "BKE_autoexec.hh"
 #include "BKE_blender.hh"

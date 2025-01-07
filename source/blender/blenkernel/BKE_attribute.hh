@@ -9,13 +9,11 @@
 
 #include "BLI_function_ref.hh"
 #include "BLI_generic_pointer.hh"
-#include "BLI_generic_span.hh"
 #include "BLI_generic_virtual_array.hh"
 #include "BLI_offset_indices.hh"
 #include "BLI_set.hh"
 #include "BLI_struct_equality_utils.hh"
 
-#include "BKE_anonymous_attribute_id.hh"
 #include "BKE_attribute.h"
 #include "BKE_attribute_filters.hh"
 

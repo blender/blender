@@ -20,11 +20,9 @@
 #include "GPU_material.hh"
 
 #include "draw_resource.hh"
-#include "draw_sculpt.hh"
 #include "draw_view.hh"
 
 #include <atomic>
-#include <string>
 
 namespace blender::draw {
 

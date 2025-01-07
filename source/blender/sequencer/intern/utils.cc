@@ -17,8 +17,9 @@
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
 
-#include "BLI_blenlib.h"
-#include "BLI_vector_set.hh"
+#include "BLI_path_utils.hh"
+#include "BLI_string.h"
+#include "BLI_string_utf8.h"
 
 #include "BLT_translation.hh"
 
@@ -37,7 +38,6 @@
 #include "SEQ_time.hh"
 #include "SEQ_utils.hh"
 
-#include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 
 #include "MOV_read.hh"

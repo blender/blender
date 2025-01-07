@@ -16,8 +16,6 @@
 
 #include "../mathutils/mathutils.hh"
 
-#include "BLI_utildefines.h"
-
 #include "BKE_context.hh"
 
 #include "WM_message.hh"

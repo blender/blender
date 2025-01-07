@@ -9,7 +9,6 @@
 #pragma once
 
 #include "BLI_compiler_compat.h"
-#include "BLI_sys_types.h"
 
 struct Mesh;
 struct MultiresModifierData;
@@ -306,4 +305,4 @@ BLI_INLINE float crease_to_sharpness(float edge_crease);
 
 }  // namespace blender::bke::subdiv
 
-#include "intern/subdiv_inline.hh"
+#include "intern/subdiv_inline.hh"  // IWYU pragma: export

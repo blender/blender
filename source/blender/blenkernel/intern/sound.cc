@@ -14,6 +14,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_iterator.h"
+#include "BLI_math_base.h"
 #include "BLI_math_rotation.h"
 #include "BLI_threads.h"
 

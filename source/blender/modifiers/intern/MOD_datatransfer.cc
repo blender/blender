@@ -6,6 +6,8 @@
  * \ingroup modifiers
  */
 
+#include <cfloat>
+
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.hh"
@@ -20,7 +22,6 @@
 #include "BKE_lib_id.hh"
 #include "BKE_lib_query.hh"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_mapping.hh"
 #include "BKE_mesh_remap.hh"
 #include "BKE_modifier.hh"
 #include "BKE_report.hh"

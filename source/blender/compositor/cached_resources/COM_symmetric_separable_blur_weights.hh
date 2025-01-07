@@ -12,6 +12,7 @@
 #include "BLI_math_vector_types.hh"
 
 #include "COM_cached_resource.hh"
+#include "COM_result.hh"
 
 namespace blender::compositor {
 

@@ -6,6 +6,8 @@
  * \ingroup modifiers
  */
 
+#include <cfloat>
+
 #include "BLI_utildefines.h"
 
 #include "BLI_listbase.h"

@@ -9,12 +9,10 @@
  */
 
 #include <array>
-#include <cmath>
 #include <ostream>
 #include <type_traits>
 
 #include "BLI_math_vector_unroll.hh"
-#include "BLI_unroll.hh"
 #include "BLI_utildefines.h"
 
 namespace blender {

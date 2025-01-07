@@ -8,5 +8,7 @@
 
 #pragma once
 
+#include <Python.h>
+
 PyObject *BPY_app_translations_struct();
 void BPY_app_translations_end();

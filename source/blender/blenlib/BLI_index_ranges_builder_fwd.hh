@@ -4,8 +4,6 @@
 
 #pragma once
 
-#include "BLI_utildefines.h"
-
 namespace blender {
 
 template<typename T> class IndexRangesBuilder;

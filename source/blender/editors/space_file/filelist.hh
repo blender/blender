@@ -8,6 +8,11 @@
 
 #pragma once
 
+#include <cstddef>
+#include <cstdint>
+
+#include "DNA_space_types.h"
+
 struct AssetLibraryReference;
 struct bContext;
 struct BlendHandle;

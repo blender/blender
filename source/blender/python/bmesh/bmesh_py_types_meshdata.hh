@@ -8,6 +8,10 @@
 
 #pragma once
 
+#include <Python.h>
+
+#include "bmesh.hh"
+
 extern PyTypeObject BPy_BMLoopUV_Type;
 extern PyTypeObject BPy_BMDeformVert_Type;
 

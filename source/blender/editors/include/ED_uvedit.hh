@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "BLI_function_ref.hh"
+
 #include "BKE_customdata.hh"
 
 struct ARegion;
@@ -18,6 +20,7 @@ struct BMLoop;
 struct BMesh;
 struct Image;
 struct ImageUser;
+struct ListBase;
 struct Main;
 struct Object;
 struct Scene;

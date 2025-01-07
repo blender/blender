@@ -13,6 +13,8 @@
 
 #include "COLLADAFWUniqueId.h"
 
+#include "DNA_key_types.h"
+
 #include "BKE_action.hh"
 #include "BKE_armature.hh"
 #include "BKE_object.hh"

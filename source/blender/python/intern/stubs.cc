@@ -6,8 +6,6 @@
  * \ingroup pythonintern
  */
 
-#include "BLI_utildefines.h"
-
 #include "BPY_extern.hh"
 
 /* python, will come back */

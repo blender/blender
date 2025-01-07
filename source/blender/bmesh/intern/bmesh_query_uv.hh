@@ -8,6 +8,10 @@
  * \ingroup bmesh
  */
 
+#include "BKE_customdata.hh"
+
+#include "bmesh_class.hh"
+
 /**
  * Retrieve the custom data offsets for the UV map.
  * \param layer: The layer index (where 0 is the first UV map).

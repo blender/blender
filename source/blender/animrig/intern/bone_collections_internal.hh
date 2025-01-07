@@ -11,7 +11,8 @@
 
 #pragma once
 
-#include <stdint.h>
+struct bArmature;
+struct BoneCollection;
 
 namespace blender::animrig::internal {
 

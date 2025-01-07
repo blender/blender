@@ -15,12 +15,14 @@ struct ARegionType;
 struct AssetShelf;
 struct AssetShelfSettings;
 struct AssetShelfType;
-struct bContext;
-struct bContextDataResult;
 struct BlendDataReader;
 struct BlendWriter;
 struct Main;
 struct RegionPollParams;
+struct ScrArea;
+struct bContext;
+struct bContextDataResult;
+struct wmRegionListenerParams;
 struct wmRegionMessageSubscribeParams;
 struct wmWindowManager;
 

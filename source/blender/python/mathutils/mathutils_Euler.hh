@@ -8,6 +8,10 @@
  * \ingroup pymathutils
  */
 
+#include <Python.h>
+
+#include "mathutils.hh"
+
 extern PyTypeObject euler_Type;
 #define EulerObject_Check(v) PyObject_TypeCheck((v), &euler_Type)
 #define EulerObject_CheckExact(v) (Py_TYPE(v) == &euler_Type)

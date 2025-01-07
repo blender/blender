@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <Python.h>
+
 #include "BLI_compiler_attrs.h"
 
 struct GPUOffScreen;

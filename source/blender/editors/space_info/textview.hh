@@ -8,6 +8,10 @@
 
 #pragma once
 
+#include "BLI_utildefines.h"
+
+#include "DNA_vec_types.h"
+
 #define TVC_TAB_COLUMNS 4
 
 enum eTextViewContext_LineFlag {

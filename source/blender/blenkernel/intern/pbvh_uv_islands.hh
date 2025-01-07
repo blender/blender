@@ -21,18 +21,14 @@
 
 #pragma once
 
-#include <fstream>
 #include <optional>
 
 #include "BLI_array.hh"
 #include "BLI_map.hh"
-#include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_offset_indices.hh"
-#include "BLI_rect.h"
 #include "BLI_vector.hh"
 #include "BLI_vector_list.hh"
-#include "BLI_virtual_array.hh"
 
 namespace blender::bke::pbvh::uv_islands {
 

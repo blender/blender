@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "DNA_vec_types.h"
+
 #include "BLI_math_vector_types.hh"
 #include "BLI_vector.hh"
 
@@ -12,6 +14,7 @@
  */
 
 struct ImBuf;
+struct Scene;
 struct SeqRenderData;
 struct Strip;
 struct TextVars;

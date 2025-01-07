@@ -8,4 +8,6 @@
 
 #pragma once
 
+#include <Python.h>
+
 PyObject *bpygpu_state_init();

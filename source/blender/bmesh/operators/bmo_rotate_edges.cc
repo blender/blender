@@ -8,6 +8,8 @@
  * Rotate edges topology that share two faces.
  */
 
+#include <cfloat>
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_heap.h"

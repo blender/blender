@@ -15,10 +15,10 @@
 #ifndef MATH_STANDALONE /* define when building outside blender */
 #  include "BKE_curve.hh"
 #  include "BKE_displist.h"
-#  include "BLI_blenlib.h"
 #  include "BLI_boxpack_2d.h"
 #  include "BLI_convexhull_2d.h"
 #  include "BLI_delaunay_2d.hh"
+#  include "BLI_listbase.h"
 #  include "MEM_guardedalloc.h"
 #endif /* !MATH_STANDALONE */
 

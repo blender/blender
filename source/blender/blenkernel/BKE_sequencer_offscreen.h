@@ -7,6 +7,10 @@
 /** \file
  * \ingroup bke
  */
+
+#include "DNA_object_enums.h"
+#include "DNA_view3d_enums.h"
+
 #include "IMB_imbuf_types.hh"
 
 #ifdef __cplusplus

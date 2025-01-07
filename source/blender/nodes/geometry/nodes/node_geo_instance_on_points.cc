@@ -7,7 +7,6 @@
 #include "BLI_math_matrix.hh"
 #include "BLI_task.hh"
 
-#include "BKE_attribute_math.hh"
 #include "BKE_curves.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_instances.hh"

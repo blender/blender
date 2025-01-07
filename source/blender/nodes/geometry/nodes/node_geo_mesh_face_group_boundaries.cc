@@ -4,7 +4,7 @@
 
 #include <atomic>
 
-#include "BKE_mesh.hh"
+#include "DNA_mesh_types.h"
 
 #include "node_geometry_util.hh"
 

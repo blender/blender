@@ -12,11 +12,8 @@
 #include <Python.h>
 #include <cstddef>
 
-#include "MEM_guardedalloc.h"
-
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
-#include "BLI_utildefines.h"
 
 #include "BKE_blendfile.hh"
 #include "BKE_global.hh"

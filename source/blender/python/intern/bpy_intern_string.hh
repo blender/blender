@@ -8,6 +8,8 @@
  * \ingroup pythonintern
  */
 
+#include <Python.h>
+
 void bpy_intern_string_init();
 void bpy_intern_string_exit();
 

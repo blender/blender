@@ -8,8 +8,14 @@
 
 #pragma once
 
+#include <array>
+
+#include "BLI_array.hh"
+#include "BLI_index_mask.hh"
+#include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector.hh"
-#include "BLI_span.hh"
+
+#include "BKE_paint.hh"
 
 struct Brush;
 struct Depsgraph;

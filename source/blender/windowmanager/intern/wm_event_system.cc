@@ -10,7 +10,6 @@
  * Also some operator reports utility functions.
  */
 
-#include <cmath>
 #include <cstdlib>
 #include <cstring>
 #include <fmt/format.h>

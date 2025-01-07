@@ -8,15 +8,15 @@
 
 #pragma once
 
-#include "BLI_compiler_attrs.h"
 #include "BLI_sys_types.h"
 #include "BLI_vector.hh"
 
 struct Base;
 struct CLG_LogRef;
+struct ID;
+struct MemFile;
 struct Object;
 struct Scene;
-struct MemFile;
 struct UndoStack;
 struct ViewLayer;
 struct bContext;

@@ -8,6 +8,7 @@
  * Task pool to run tasks in parallel.
  */
 
+#include <atomic>
 #include <cstdlib>
 #include <memory>
 #include <utility>

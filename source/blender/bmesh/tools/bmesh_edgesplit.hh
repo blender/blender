@@ -8,6 +8,8 @@
  * \ingroup bmesh
  */
 
+#include "bmesh_class.hh"
+
 /**
  * \param use_verts: Use flagged verts instead of edges.
  * \param tag_only: Only split tagged edges.

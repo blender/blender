@@ -14,7 +14,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_bitmap.h"
-#include "BLI_utildefines.h"
 
 #include "BKE_global.hh"
 #include "BKE_lib_id.hh"

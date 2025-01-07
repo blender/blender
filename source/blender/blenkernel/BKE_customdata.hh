@@ -9,14 +9,14 @@
 
 #pragma once
 
-#include "BLI_cpp_type.hh"
+#include <optional>
+
 #include "BLI_implicit_sharing.h"
 #include "BLI_memory_counter_fwd.hh"
 #include "BLI_set.hh"
 #include "BLI_span.hh"
 #include "BLI_string_ref.hh"
 #include "BLI_sys_types.h"
-#include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 
 #include "BKE_volume_enums.hh"

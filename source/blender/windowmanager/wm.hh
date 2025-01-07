@@ -8,7 +8,11 @@
 
 #pragma once
 
+struct wmOperator;
+struct wmTimer;
 struct wmWindow;
+struct wmWindowManager;
+struct Main;
 
 #include "gizmo/wm_gizmo_wmapi.hh"
 

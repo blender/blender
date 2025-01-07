@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <string>
+
 #include "BLI_compiler_attrs.h"
 
 struct KDTree_1d;

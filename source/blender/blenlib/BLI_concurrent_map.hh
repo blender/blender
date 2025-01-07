@@ -23,13 +23,12 @@
 #      undef NOMINMAX
 #    endif
 #  endif
+#else
+#  include "BLI_set.hh"
 #endif
-
-#include <mutex>
 
 #include "BLI_hash.hh"
 #include "BLI_hash_tables.hh"
-#include "BLI_set.hh"
 
 namespace blender {
 

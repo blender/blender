@@ -8,6 +8,11 @@
  * \ingroup bmesh
  */
 
+#include "BLI_compiler_attrs.h"
+#include "BLI_compiler_compat.h"
+
+#include "bmesh_class.hh"
+
 /**
  * Returns true if the vertex is used in a given face.
  */

@@ -22,6 +22,9 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_math_base.h"
+#include "BLI_math_rotation.h"
+
 #include "BLT_translation.hh"
 
 #include "BKE_animsys.h"

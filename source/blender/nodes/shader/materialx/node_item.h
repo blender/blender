@@ -4,8 +4,6 @@
 
 #pragma once
 
-#include <map>
-
 #include <MaterialXCore/Node.h>
 
 namespace blender::nodes::materialx {

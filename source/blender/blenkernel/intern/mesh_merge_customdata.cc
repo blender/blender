@@ -8,6 +8,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_math_base.h"
 #include "BLI_math_vector_types.hh"
 #include "BLI_task.hh"
 #include "BLI_utildefines.h"

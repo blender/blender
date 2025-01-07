@@ -14,13 +14,12 @@
 
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
-#include "DNA_space_types.h" /* for FILE_MAX. */
 
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
 
-#include "BLI_fileops_types.h"
 #include "BLI_ghash.h"
+#include "BLI_math_base.h"
 #include "BLI_mempool.h"
 #include "BLI_threads.h"
 

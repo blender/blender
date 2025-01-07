@@ -9,7 +9,7 @@
  */
 
 #include "BLI_function_ref.hh"
-#include "BLI_math_vector.hh"
+#include "BLI_math_vector_types.hh"
 #include "BLI_sys_types.h"
 
 struct BVHTree;

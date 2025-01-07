@@ -10,10 +10,7 @@
 
 #include "BLI_compiler_compat.h"
 #include "BLI_ghash.h"
-#include "BLI_math_vector_types.hh"
 #include "BLI_span.hh"
-
-#include "DNA_listBase.h"
 
 #include "BKE_volume_enums.hh"
 

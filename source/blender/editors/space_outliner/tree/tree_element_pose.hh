@@ -10,6 +10,7 @@
 
 #include "tree_element.hh"
 
+struct bPoseChannel;
 struct Object;
 
 namespace blender::ed::outliner {

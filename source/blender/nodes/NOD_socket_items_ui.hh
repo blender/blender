@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "DNA_node_types.h"
+
 #include "WM_api.hh"
 
 #include "UI_interface.hh"
@@ -12,6 +14,8 @@
 #include "RNA_prototypes.hh"
 
 #include "BKE_screen.hh"
+
+#include "NOD_socket_items.hh"
 
 namespace blender::nodes::socket_items::ui {
 

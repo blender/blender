@@ -13,11 +13,8 @@
 
 #include "GPU_vertex_buffer.hh"
 
-#include "MEM_guardedalloc.h"
-
 #include "../generic/py_capi_utils.hh"
 #include "../generic/python_compat.hh"
-#include "../generic/python_utildefines.hh"
 
 #include "gpu_py.hh"
 #include "gpu_py_vertex_buffer.hh" /* own include */

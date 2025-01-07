@@ -15,10 +15,16 @@
 
 #pragma once
 
+struct bContext;
+struct wmEvent;
 struct wmEventHandler_Gizmo;
 struct wmEventHandler_Op;
+struct wmGizmo;
+struct wmGizmoGroup;
 struct wmGizmoMap;
+struct wmKeyConfig;
 struct wmOperatorType;
+struct ListBase;
 
 /* -------------------------------------------------------------------- */
 /** \name #wmGizmo

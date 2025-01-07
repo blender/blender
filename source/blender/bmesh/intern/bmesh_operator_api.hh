@@ -9,8 +9,11 @@
  */
 
 #include "BLI_ghash.h"
+#include "BLI_utildefines.h"
 
 #include <stdarg.h>
+
+#include "bmesh_class.hh"
 
 /**
  * operators represent logical, executable mesh modules.  all topological

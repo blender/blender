@@ -17,7 +17,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_anim_types.h"
 #include "DNA_listBase.h"
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
@@ -34,8 +33,6 @@
 #include "BKE_sound.h"
 
 #include "DEG_depsgraph.hh"
-
-#include "IMB_imbuf.hh"
 
 #include "MOV_read.hh"
 

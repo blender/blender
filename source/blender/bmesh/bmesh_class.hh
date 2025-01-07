@@ -12,6 +12,10 @@
  */
 
 #include "BLI_assert.h"
+#include "BLI_sys_types.h"
+
+#include "DNA_customdata_types.h"
+#include "DNA_listBase.h"
 
 /* disable holes for now,
  * these are ifdef'd because they use more memory and can't be saved in DNA currently */

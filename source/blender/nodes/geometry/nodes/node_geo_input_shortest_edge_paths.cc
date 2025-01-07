@@ -5,9 +5,7 @@
 #include <queue>
 
 #include "BLI_array_utils.hh"
-#include "BLI_map.hh"
 #include "BLI_math_vector_types.hh"
-#include "BLI_set.hh"
 #include "BLI_task.hh"
 
 #include "BKE_mesh.hh"

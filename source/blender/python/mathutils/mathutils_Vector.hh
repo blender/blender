@@ -8,6 +8,10 @@
 
 #pragma once
 
+#include <Python.h>
+
+#include "mathutils.hh"
+
 extern PyTypeObject vector_Type;
 
 #define VectorObject_Check(v) PyObject_TypeCheck((v), &vector_Type)

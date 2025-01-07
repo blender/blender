@@ -61,7 +61,7 @@ MINLINE float uint_as_float(unsigned int i);
 MINLINE float xor_fl(float x, int y);
 
 #if BLI_MATH_DO_INLINE
-#  include "intern/math_bits_inline.c"
+#  include "intern/math_bits_inline.c"  // IWYU pragma: export
 #endif
 
 #ifdef __cplusplus

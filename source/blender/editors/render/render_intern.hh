@@ -8,6 +8,7 @@
 
 #pragma once
 
+struct ReportList;
 struct ScrArea;
 struct bContext;
 struct wmOperatorType;

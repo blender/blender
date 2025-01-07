@@ -8,6 +8,8 @@
  * \ingroup bmesh
  */
 
+#include "bmesh_class.hh"
+
 struct CurveProfile;
 struct MDeformVert;
 

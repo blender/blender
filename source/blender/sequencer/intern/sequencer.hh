@@ -4,11 +4,11 @@
 
 #pragma once
 
-#include "BLI_vector_set.hh"
-
 /** \file
  * \ingroup sequencer
  */
+
+#include "BLI_span.hh"
 
 struct Scene;
 struct Strip;

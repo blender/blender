@@ -8,7 +8,6 @@
 
 #pragma once
 
-#include "BLI_compiler_attrs.h"
 #include "WM_types.hh"
 
 struct Main;

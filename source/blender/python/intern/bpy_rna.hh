@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <Python.h>
+
 #include <optional>
 
 /* --- bpy build options --- */

@@ -21,8 +21,6 @@
 
 #include "DEG_depsgraph.hh"
 
-#include "IMB_imbuf.hh"
-
 #include "MOV_read.hh"
 
 #include "SEQ_iterator.hh"

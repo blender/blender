@@ -15,7 +15,6 @@
 #include "DNA_anim_types.h"
 
 #include "BLI_listbase.h"
-#include "BLI_math_base.h"
 #include "BLI_string.h"
 
 #include "BKE_animsys.h"

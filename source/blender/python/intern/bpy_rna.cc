@@ -16,13 +16,11 @@
 
 #include <cfloat> /* FLT_MIN/MAX */
 #include <cstddef>
-#include <new>
 #include <optional>
 
 #include "RNA_path.hh"
 #include "RNA_types.hh"
 
-#include "BLI_bitmap.h"
 #include "BLI_dynstr.h"
 #include "BLI_listbase.h"
 #include "BLI_math_rotation.h"

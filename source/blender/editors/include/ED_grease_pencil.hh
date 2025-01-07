@@ -11,10 +11,10 @@
 #include "BKE_grease_pencil.hh"
 
 #include "BKE_attribute_filter.hh"
-#include "BLI_generic_span.hh"
 #include "BLI_index_mask_fwd.hh"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_set.hh"
+#include "BLI_task.hh"
 
 #include "ED_keyframes_edit.hh"
 #include "ED_select_utils.hh"

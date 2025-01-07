@@ -10,6 +10,15 @@
 
 #pragma once
 
+#include "BLI_compiler_attrs.h"
+#include "BLI_compiler_compat.h"
+
+#include "bmesh_class.hh"
+
+#include "intern/bmesh_operator_api.hh"
+
+struct BMOperator;
+
 /* Tool Flag API: Tool code must never put junk in header flags (#BMHeader.hflag)
  * instead, use this API to set flags.
  * If you need to store a value per element, use a #GHash or a mapping slot to do it. */

@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "BLI_math_vector_types.hh"
+
 /* DRAWLINE options flags. */
 #define DRAWLIGHT 1
 

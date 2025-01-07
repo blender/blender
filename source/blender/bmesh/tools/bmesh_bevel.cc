@@ -15,6 +15,7 @@
 #include "DNA_modifier_types.h"
 
 #include "BLI_alloca.h"
+#include "BLI_math_base.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"

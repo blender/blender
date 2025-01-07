@@ -17,18 +17,14 @@
 #include "DNA_volume_types.h"
 
 #include "BLI_bounds.hh"
-#include "BLI_compiler_compat.h"
 #include "BLI_fileops.h"
-#include "BLI_ghash.h"
 #include "BLI_index_range.hh"
-#include "BLI_map.hh"
-#include "BLI_math_matrix.h"
+#include "BLI_math_base.h"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
 #include "BLI_string_ref.hh"
-#include "BLI_task.hh"
 #include "BLI_utildefines.h"
 
 #include "BKE_anim_data.hh"
@@ -74,10 +70,8 @@ using blender::StringRefNull;
 using blender::bke::GVolumeGrid;
 
 #ifdef WITH_OPENVDB
-#  include <atomic>
 #  include <list>
 #  include <mutex>
-#  include <unordered_set>
 
 #  include <openvdb/openvdb.h>
 #  include <openvdb/points/PointDataGrid.h>

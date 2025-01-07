@@ -6,7 +6,6 @@
  * \ingroup bke
  */
 
-#include "BLI_math_base.hh"
 #include "MEM_guardedalloc.h"
 
 #include "DNA_scene_types.h"

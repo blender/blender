@@ -6,6 +6,7 @@
  * \ingroup bli
  */
 
+#include "BLI_math_base.h"
 #include "BLI_math_vector.h"
 
 #include "BLI_math_base_safe.h"

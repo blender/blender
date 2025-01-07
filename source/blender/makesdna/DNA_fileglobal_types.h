@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <stdint.h>
+
 /**
  * FileGlobal stores a part of the current user-interface settings at
  * the moment of saving, and the file-specific settings.

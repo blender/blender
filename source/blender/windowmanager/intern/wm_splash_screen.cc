@@ -14,16 +14,11 @@
  * - Links to web sites.
  */
 
-#include <algorithm>
 #include <cstring>
 
-#include "DNA_ID.h"
-#include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
-
-#include "BLF_api.hh"
 
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"

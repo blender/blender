@@ -10,8 +10,6 @@
 
 #include <Python.h>
 
-#include "BLI_utildefines.h"
-
 #include "bmesh.hh"
 
 #include "bmesh_py_types.hh"

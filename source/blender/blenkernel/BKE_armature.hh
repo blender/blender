@@ -8,9 +8,10 @@
  * \ingroup bke
  */
 
+#include <optional>
+
 #include "BLI_bounds_types.hh"
 #include "BLI_function_ref.hh"
-#include "BLI_listbase.h"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_set.hh"

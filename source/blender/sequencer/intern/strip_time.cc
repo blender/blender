@@ -8,8 +8,6 @@
  * \ingroup bke
  */
 
-#include "MEM_guardedalloc.h"
-
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
 
@@ -20,8 +18,6 @@
 #include "BKE_sound.h"
 
 #include "DNA_sound_types.h"
-
-#include "IMB_imbuf.hh"
 
 #include "MOV_read.hh"
 

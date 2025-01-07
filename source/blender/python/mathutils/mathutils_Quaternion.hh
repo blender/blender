@@ -8,6 +8,10 @@
  * \ingroup pymathutils
  */
 
+#include <Python.h>
+
+#include "mathutils.hh"
+
 extern PyTypeObject quaternion_Type;
 
 #define QuaternionObject_Check(v) PyObject_TypeCheck((v), &quaternion_Type)

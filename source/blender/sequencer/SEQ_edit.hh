@@ -8,6 +8,7 @@
  * \ingroup sequencer
  */
 
+struct Editing;
 struct ListBase;
 struct Main;
 struct Scene;

@@ -295,6 +295,7 @@ set(SRC
   BLI_math_color.h
   BLI_math_color.hh
   BLI_math_color_blend.h
+  BLI_math_constants.h
   BLI_math_euler.hh
   BLI_math_euler_types.hh
   BLI_math_geom.h

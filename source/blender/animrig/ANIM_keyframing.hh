@@ -11,12 +11,8 @@
 #pragma once
 
 #include <array>
-#include <string>
 
-#include "BLI_array.hh"
-#include "BLI_bit_span.hh"
 #include "BLI_string_ref.hh"
-#include "BLI_vector.hh"
 
 #include "DNA_anim_types.h"
 #include "DNA_windowmanager_types.h"

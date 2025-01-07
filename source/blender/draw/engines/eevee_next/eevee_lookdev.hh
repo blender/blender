@@ -11,12 +11,33 @@
 
 #pragma once
 
+#include <string>
+
+#include "DNA_image_types.h"
+#include "DNA_vec_types.h"
 #include "DNA_world_types.h"
+
+#include "BLI_math_vector_types.hh"
+
+#include "DRW_gpu_wrapper.hh"
+
+#include "draw_manager.hh"
+#include "draw_pass.hh"
+
+struct bNode;
+struct bNodeSocketValueFloat;
+struct View3D;
 
 namespace blender::eevee {
 
 class Instance;
 class LookdevView;
+
+using blender::draw::Framebuffer;
+using blender::draw::PassSimple;
+using blender::draw::ResourceHandle;
+using blender::draw::Texture;
+using blender::draw::View;
 
 /* -------------------------------------------------------------------- */
 /** \name Parameters

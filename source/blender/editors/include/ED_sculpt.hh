@@ -8,12 +8,16 @@
 
 #pragma once
 
+struct Depsgraph;
+struct Main;
+struct Mesh;
 struct Object;
 struct ReportList;
+struct Scene;
 struct UndoType;
 struct bContext;
-struct wmOperator;
 struct wmKeyConfig;
+struct wmOperator;
 
 namespace blender::ed::sculpt_paint {
 

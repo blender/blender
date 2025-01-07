@@ -11,7 +11,6 @@
 #include "DNA_node_types.h"
 
 #include "BLI_any.hh"
-#include "BLI_cpp_type.hh"
 #include "BLI_generic_pointer.hh"
 
 namespace blender::bke {

@@ -12,6 +12,9 @@
 extern "C" {
 #endif
 
+struct DrawEngineType;
+struct RenderEngineType;
+
 extern DrawEngineType draw_engine_external_type;
 extern RenderEngineType DRW_engine_viewport_external_type;
 

@@ -31,5 +31,5 @@ MINLINE float safe_powf(float base, float exponent);
 #endif
 
 #if BLI_MATH_DO_INLINE
-#  include "intern/math_base_safe_inline.c"
+#  include "intern/math_base_safe_inline.c"  // IWYU pragma: export
 #endif

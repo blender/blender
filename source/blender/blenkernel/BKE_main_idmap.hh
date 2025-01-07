@@ -18,7 +18,9 @@
  */
 
 #include "BLI_compiler_attrs.h"
+#include "BLI_sys_types.h"
 
+struct Library;
 struct ID;
 struct IDNameLib_Map;
 struct Main;

@@ -10,14 +10,12 @@
 
 #include <Python.h>
 
-#include "BLI_rect.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "py_capi_utils.hh"
 
 #include "python_compat.hh"
-#include "python_utildefines.hh"
 
 #include "imbuf_py_api.hh" /* own include */
 

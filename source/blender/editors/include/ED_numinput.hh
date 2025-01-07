@@ -11,6 +11,7 @@
 #define NUM_STR_REP_LEN 64
 #define NUM_MAX_ELEMENTS 3
 
+struct bContext;
 struct wmEvent;
 struct UnitSettings;
 

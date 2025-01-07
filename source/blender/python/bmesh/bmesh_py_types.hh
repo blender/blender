@@ -8,6 +8,10 @@
 
 #pragma once
 
+#include <Python.h>
+
+#include "bmesh.hh"
+
 struct BMesh;
 struct BMEdge;
 struct BMElem;

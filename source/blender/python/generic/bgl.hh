@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <Python.h>
+
 PyObject *BPyInit_bgl();
 
 /* This API is deprecated, currently these are only used in `bgl.cc`

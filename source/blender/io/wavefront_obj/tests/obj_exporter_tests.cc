@@ -16,7 +16,6 @@
 
 #include "BLI_fileops.h"
 #include "BLI_string.h"
-#include "BLI_vector.hh"
 
 #include "BLO_readfile.hh"
 

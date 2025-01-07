@@ -18,10 +18,13 @@ class TextureFromPool;
 }  // namespace blender::draw
 
 struct DRWPass;
-struct DRWTextStore;
 struct DRWRegisteredDrawEngine;
+struct DRWTextStore;
 struct DrawEngineType;
+struct GPUFrameBuffer;
+struct GPUTexture;
 struct GPUViewport;
+struct ListBase;
 
 /* NOTE: these structs are only here for reading the actual lists from the engine.
  * The actual length of them is stored in a ViewportEngineData_Info.

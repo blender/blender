@@ -13,6 +13,7 @@
 #include "BLI_utildefines.h" /* for BLI_assert */
 
 #include "CCGSubSurf.h"
+#include "CCGSubSurf_inline.h"
 #include "CCGSubSurf_intern.h"
 
 #define FACE_calcIFNo(f, lvl, S, x, y, no) \

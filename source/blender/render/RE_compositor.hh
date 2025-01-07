@@ -4,8 +4,6 @@
 
 #pragma once
 
-#include <memory>
-
 namespace blender::compositor {
 class RenderContext;
 class Profiler;

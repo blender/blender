@@ -23,6 +23,9 @@
 #include "BLI_compiler_attrs.h"
 #include "BLI_mempool.h"
 
+#include "bmesh_class.hh"
+#include "intern/bmesh_operator_api.hh"
+
 /* these iterator over all elements of a specific
  * type in the mesh.
  *

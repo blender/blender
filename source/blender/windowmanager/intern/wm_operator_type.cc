@@ -12,17 +12,12 @@
 
 #include "CLG_log.h"
 
-#include "DNA_ID.h"
-#include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
-#include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
 
 #include "BLT_translation.hh"
 
 #include "BLI_blenlib.h"
-#include "BLI_map.hh"
-#include "BLI_utildefines.h"
 
 #include "BKE_context.hh"
 #include "BKE_idprop.hh"

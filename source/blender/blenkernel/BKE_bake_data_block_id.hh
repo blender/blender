@@ -8,7 +8,9 @@
  * \ingroup bke
  */
 
-#include "BLI_string_ref.hh"
+#include <optional>
+#include <string>
+
 #include "BLI_struct_equality_utils.hh"
 #include "BLI_vector.hh"
 

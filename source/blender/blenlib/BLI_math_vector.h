@@ -635,7 +635,7 @@ void mul_vn_db(double *array_tar, int size, double f);
  * \{ */
 
 #if BLI_MATH_DO_INLINE
-#  include "intern/math_vector_inline.c"
+#  include "intern/math_vector_inline.c"  // IWYU pragma: export
 #endif
 
 #ifdef BLI_MATH_GCC_WARN_PRAGMA

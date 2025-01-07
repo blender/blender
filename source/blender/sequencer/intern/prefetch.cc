@@ -19,6 +19,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_threads.h"
+#include "BLI_vector_set.hh"
 
 #include "IMB_imbuf.hh"
 #include "IMB_imbuf_types.hh"
@@ -36,7 +37,6 @@
 #include "DEG_depsgraph_query.hh"
 
 #include "SEQ_channels.hh"
-#include "SEQ_iterator.hh"
 #include "SEQ_prefetch.hh"
 #include "SEQ_relations.hh"
 #include "SEQ_render.hh"

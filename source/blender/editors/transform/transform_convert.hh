@@ -15,6 +15,8 @@
 
 #include "BLI_index_mask.hh"
 
+#include "transform.hh"
+
 struct BMEditMesh;
 struct BMesh;
 struct BezTriple;

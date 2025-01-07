@@ -6,8 +6,7 @@
  * \ingroup spview3d
  */
 
-#include "MEM_guardedalloc.h"
-
+#include "BLI_math_base.h"
 #include "BLI_math_rotation.h"
 
 #include "WM_api.hh"

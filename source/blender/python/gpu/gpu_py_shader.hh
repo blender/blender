@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <Python.h>
+
 #ifndef __cplusplus
 #  include "../generic/py_capi_utils.hh"
 #endif

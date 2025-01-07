@@ -8,6 +8,8 @@
  * \ingroup sequencer
  */
 
+#include <cstddef>
+
 struct ListBase;
 struct Main;
 struct MovieClip;

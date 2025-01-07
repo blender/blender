@@ -10,6 +10,8 @@
 
 #include "BLI_vector_set.hh"
 
+struct ListBase;
+struct Scene;
 struct Strip;
 
 /**

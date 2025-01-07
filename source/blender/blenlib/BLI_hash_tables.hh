@@ -12,7 +12,6 @@
 
 #include <algorithm>
 
-#include "BLI_memory_utils.hh"
 #include "BLI_utildefines.h"
 #include "BLI_vector.hh"
 

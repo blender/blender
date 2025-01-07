@@ -10,10 +10,8 @@
 
 #include "BLI_function_ref.hh"
 #include "BLI_implicit_sharing_ptr.hh"
-#include "BLI_map.hh"
 #include "BLI_memory_counter_fwd.hh"
 #include "BLI_set.hh"
-#include "BLI_vector_set.hh"
 
 namespace blender::memory_counter {
 

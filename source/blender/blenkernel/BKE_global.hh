@@ -11,7 +11,6 @@
  *   for every fresh Blender run.
  */
 
-#include "BLI_utildefines.h"
 #include "DNA_listBase.h"
 
 struct Main;

@@ -19,6 +19,7 @@
 #include "bmesh.hh"
 
 #include "draw_cache_impl.hh"
+#include "draw_sculpt.hh"
 
 #include "overlay_next_base.hh"
 

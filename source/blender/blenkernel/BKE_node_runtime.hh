@@ -10,7 +10,6 @@
 #include "BLI_cache_mutex.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_multi_value_map.hh"
-#include "BLI_resource_scope.hh"
 #include "BLI_set.hh"
 #include "BLI_utility_mixins.hh"
 #include "BLI_vector.hh"

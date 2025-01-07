@@ -13,6 +13,7 @@
 #include "BLI_vector.hh"
 
 struct ID;
+struct Main;
 
 namespace blender::animrig {
 

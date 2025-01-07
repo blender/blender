@@ -14,10 +14,6 @@ struct rctf;
 struct Strip;
 struct Scene;
 
-#include "BLI_function_ref.hh"
-
-#include <string>
-
 namespace blender::seq {
 
 static constexpr int SEQ_THUMB_SIZE = 256;

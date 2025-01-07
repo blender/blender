@@ -11,7 +11,6 @@
 #include <cstring>
 #include <fmt/format.h>
 
-#include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
@@ -22,7 +21,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
-#include "BLI_string_utils.hh"
 #include "BLI_utildefines.h"
 
 #include "BLF_api.hh"

@@ -10,6 +10,10 @@
  * BMesh walker API.
  */
 
+#include "bmesh_class.hh"
+
+struct BMWalker;
+
 extern BMWalker *bm_walker_types[];
 extern const int bm_totwalkers;
 

@@ -2,13 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include <algorithm>
-
 #include "node_geometry_util.hh"
 
 #include "DNA_node_types.h"
-
-#include "BLI_string.h"
 
 #include "FN_multi_function.hh"
 

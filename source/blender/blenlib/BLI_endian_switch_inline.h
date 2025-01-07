@@ -4,6 +4,9 @@
 
 #pragma once
 
+#include "BLI_compiler_compat.h"
+#include "BLI_sys_types.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif

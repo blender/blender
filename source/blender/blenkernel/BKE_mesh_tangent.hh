@@ -14,6 +14,7 @@
 #include "BLI_sys_types.h"
 
 struct ReportList;
+struct Mesh;
 
 /**
  * Compute simplified tangent space normals, i.e.

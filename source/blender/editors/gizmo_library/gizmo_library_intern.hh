@@ -10,7 +10,9 @@
 
 #include "gizmo_geometry.h"
 
+struct IDProperty;
 struct bContext;
+struct wmGizmo;
 struct wmGizmoProperty;
 
 #define DIAL_RESOLUTION 48

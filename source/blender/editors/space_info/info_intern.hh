@@ -10,6 +10,7 @@
 
 /* internal exports only */
 
+struct ARegion;
 struct ReportList;
 struct SpaceInfo;
 struct wmOperatorType;

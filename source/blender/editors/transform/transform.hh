@@ -15,7 +15,6 @@
 #include "ED_view3d.hh"
 
 #include "DNA_listBase.h"
-#include "DNA_object_enums.h"
 #include "DNA_scene_types.h"
 
 #include "DEG_depsgraph.hh"

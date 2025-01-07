@@ -9,7 +9,6 @@
  */
 
 #include "BLI_compiler_attrs.h"
-#include "BLI_utildefines.h"
 
 #ifdef __cplusplus
 extern "C" {

@@ -16,7 +16,6 @@
 #include <cstddef>
 #include <cstdio>
 #include <cstring>
-#include <iostream>
 #include <sstream>
 
 #include <fmt/format.h>
@@ -42,10 +41,8 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_dial_2d.h"
-#include "BLI_math_matrix.hh"
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector_types.hh"
-#include "BLI_string_utils.hh"
 #include "BLI_time.h"
 #include "BLI_utildefines.h"
 
@@ -65,7 +62,6 @@
 #include "BKE_report.hh"
 #include "BKE_scene.hh"
 #include "BKE_screen.hh" /* #BKE_ST_MAXNAME. */
-#include "BKE_unit.hh"
 
 #include "BKE_idtype.hh"
 

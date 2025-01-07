@@ -8,6 +8,12 @@
  * \ingroup bmesh
  */
 
+#include <array>
+
+#include "BLI_span.hh"
+
+#include "bmesh_class.hh"
+
 bool BM_mesh_boolean(BMesh *bm,
                      blender::Span<std::array<BMLoop *, 3>> looptris,
                      int (*test_fn)(BMFace *f, void *user_data),

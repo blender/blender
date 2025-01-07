@@ -11,6 +11,7 @@
 /* internal exports only */
 struct ARegion;
 struct ARegionType;
+struct ImageUser;
 struct SpaceImage;
 struct bContext;
 struct bNodeTree;

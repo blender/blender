@@ -90,7 +90,7 @@ typedef struct bNodeTreeInterfaceSocket {
   /* Socket default value and associated data, e.g. bNodeSocketValueFloat. */
   void *socket_data;
 
-  IDProperty *properties;
+  struct IDProperty *properties;
 
 #ifdef __cplusplus
   bNodeSocketTypeHandle *socket_typeinfo() const;

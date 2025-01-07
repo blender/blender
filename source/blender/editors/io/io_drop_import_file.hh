@@ -4,5 +4,7 @@
 
 #pragma once
 
+struct wmOperatorType;
+
 void WM_OT_drop_import_file(wmOperatorType *ot);
 void ED_dropbox_drop_import_file();

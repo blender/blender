@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "BLI_span.hh"
+
 struct BPoint;
 struct Base;
 struct BezTriple;

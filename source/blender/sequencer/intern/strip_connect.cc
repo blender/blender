@@ -11,7 +11,6 @@
 #include "DNA_sequence_types.h"
 
 #include "SEQ_connect.hh"
-#include "SEQ_time.hh"
 
 static void seq_connections_free(Strip *seq)
 {

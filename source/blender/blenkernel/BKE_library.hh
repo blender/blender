@@ -9,8 +9,6 @@
  * API to manage `Library` data-blocks.
  */
 
-#include "BLI_compiler_attrs.h"
-
 struct Library;
 struct Main;
 

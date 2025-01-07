@@ -12,8 +12,6 @@
 #include "DNA_listBase.h"
 #include "DNA_vec_types.h"
 
-#include "BLI_implicit_sharing.h"
-
 struct GPUTexture;
 struct ImBuf;
 struct Image;

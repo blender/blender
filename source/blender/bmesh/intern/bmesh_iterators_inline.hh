@@ -10,6 +10,9 @@
 
 #pragma once
 
+#include "BLI_compiler_attrs.h"
+#include "BLI_compiler_compat.h"
+
 /* inline here optimizes out the switch statement when called with
  * constant values (which is very common), nicer for loop-in-loop situations */
 

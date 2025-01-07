@@ -6,22 +6,13 @@
  * \ingroup RNA
  */
 
-#include <cstdio>
 #include <cstdlib>
 
 #include "DNA_ID.h"
 #include "DNA_material_types.h"
-#include "DNA_object_types.h"
-#include "DNA_vfont_types.h"
 
-#include "BLI_utildefines.h"
-
-#include "BKE_icons.h"
 #include "BKE_lib_id.hh"
-#include "BKE_main_namemap.hh"
-#include "BKE_object.hh"
 
-#include "RNA_access.hh"
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
@@ -219,6 +210,7 @@ const IDFilterEnumPropertyItem rna_enum_id_type_filter_items[] = {
 
 #  include "BKE_anim_data.hh"
 #  include "BKE_global.hh" /* XXX, remove me */
+#  include "BKE_icons.h"
 #  include "BKE_idprop.hh"
 #  include "BKE_idtype.hh"
 #  include "BKE_lib_override.hh"

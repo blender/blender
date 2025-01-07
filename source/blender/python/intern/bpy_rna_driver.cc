@@ -10,11 +10,7 @@
 
 #include <Python.h>
 
-#include "MEM_guardedalloc.h"
-
 #include "DNA_anim_types.h"
-
-#include "BLI_utildefines.h"
 
 #include "BKE_fcurve_driver.h"
 

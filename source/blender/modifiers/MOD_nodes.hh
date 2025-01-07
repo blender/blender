@@ -4,7 +4,10 @@
 
 #pragma once
 
+#include <memory>
+
 struct NodesModifierData;
+struct NodesModifierDataBlock;
 struct Object;
 struct NodesModifierPackedBake;
 

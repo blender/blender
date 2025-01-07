@@ -8,6 +8,8 @@
  * \ingroup sequencer
  */
 
+#include "DNA_listBase.h"
+
 #include "BLI_set.hh"
 
 struct Depsgraph;

@@ -81,18 +81,30 @@
 #elif !defined(GPU_SHADER_CREATE_INFO)
 /* Helps intellisense / auto-completion inside info files. */
 #  define GPU_SHADER_NAMED_INTERFACE_INFO(_interface, _inst_name) \
-    StageInterfaceInfo _interface(#_interface, _inst_name); \
-    _interface
+    static inline void autocomplete_helper_interface_##_interface() \
+    { \
+      StageInterfaceInfo _interface(#_interface, _inst_name); \
+      _interface
 #  define GPU_SHADER_INTERFACE_INFO(_interface) \
-    StageInterfaceInfo _interface(#_interface); \
-    _interface
+    static inline void autocomplete_helper_interface_##_interface() \
+    { \
+      StageInterfaceInfo _interface(#_interface); \
+      _interface
 #  define GPU_SHADER_CREATE_INFO(_info) \
-    ShaderCreateInfo _info(#_info); \
-    _info
+    static inline void autocomplete_helper_info_##_info() \
+    { \
+      ShaderCreateInfo _info(#_info); \
+      _info
 
-#  define GPU_SHADER_NAMED_INTERFACE_END(_inst_name) ;
-#  define GPU_SHADER_INTERFACE_END() ;
-#  define GPU_SHADER_CREATE_END() ;
+#  define GPU_SHADER_NAMED_INTERFACE_END(_inst_name) \
+    ; \
+    }
+#  define GPU_SHADER_INTERFACE_END() \
+    ; \
+    }
+#  define GPU_SHADER_CREATE_END() \
+    ; \
+    }
 
 #endif
 

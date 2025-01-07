@@ -8,6 +8,8 @@
  * \ingroup pygen
  */
 
+#include <Python.h>
+
 PyObject *BPyInit_imbuf();
 
 extern PyTypeObject Py_ImBuf_Type;

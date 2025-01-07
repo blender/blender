@@ -6,7 +6,6 @@
 
 #include "DNA_pointcloud_types.h"
 
-#include "BKE_attribute_math.hh"
 #include "BKE_instances.hh"
 #include "BKE_pointcloud.hh"
 

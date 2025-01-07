@@ -13,9 +13,6 @@
 #include "DRW_engine.hh"
 #include "DRW_render.hh"
 
-#include "BLI_assert.h"
-#include "BLI_linklist.h"
-#include "BLI_memblock.h"
 #include "BLI_task.h"
 #include "BLI_threads.h"
 

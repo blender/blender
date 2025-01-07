@@ -12,6 +12,8 @@
 
 #pragma once
 
+#include "GHOST_Types.h"
+
 struct bContext;
 struct GPUContext;
 

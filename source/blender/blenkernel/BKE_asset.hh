@@ -9,7 +9,6 @@
 #pragma once
 
 #include "BLI_compiler_attrs.h"
-#include "BLI_utildefines.h"
 
 #include "DNA_asset_types.h"
 

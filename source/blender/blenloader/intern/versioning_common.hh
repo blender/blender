@@ -11,6 +11,8 @@
 #include "BLI_function_ref.hh"
 #include "BLI_map.hh"
 
+#include "DNA_node_types.h"
+
 struct ARegion;
 struct bNode;
 struct bNodeSocket;

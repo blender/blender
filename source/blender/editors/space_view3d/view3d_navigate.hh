@@ -8,6 +8,9 @@
 
 #pragma once
 
+#include "MEM_guardedalloc.h"
+
+#include "BLI_math_vector_types.hh"
 #include "BLI_utildefines.h"
 
 /**
@@ -23,6 +26,7 @@ struct RegionView3D;
 struct Scene;
 struct ScrArea;
 struct View3D;
+struct ViewOpsData;
 struct bContext;
 struct Object;
 struct PointerRNA;

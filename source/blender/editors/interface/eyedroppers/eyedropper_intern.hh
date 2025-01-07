@@ -10,6 +10,12 @@
 
 #pragma once
 
+struct ScrArea;
+struct bContext;
+struct uiBut;
+struct wmEvent;
+struct wmWindow;
+
 /* `interface_eyedropper.cc` */
 
 void eyedropper_draw_cursor_text_window(const wmWindow *window, const char *name);

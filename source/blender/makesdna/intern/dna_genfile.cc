@@ -23,7 +23,6 @@
 #include "BLI_endian_switch.h"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_memarena.h"
-#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "BLI_ghash.h"

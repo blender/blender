@@ -16,6 +16,8 @@
 
 #include "obj_import_objects.hh"
 
+struct OBJImportParams;
+
 namespace blender::io::obj {
 
 /**

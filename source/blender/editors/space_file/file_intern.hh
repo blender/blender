@@ -11,6 +11,8 @@
 #include "DNA_space_types.h"
 #include "DNA_windowmanager_types.h"
 
+#include "ED_fileselect.hh"
+
 /* internal exports only */
 
 struct ARegion;

@@ -8,6 +8,16 @@
 
 #pragma once
 
+struct ARegion;
+struct ARegionType;
+struct ListBase;
+struct PointerRNA;
+struct SpaceNla;
+struct bAnimContext;
+struct bContext;
+struct wmKeyConfig;
+struct wmOperatorType;
+
 /* internal exports only */
 
 /* **************************************** */

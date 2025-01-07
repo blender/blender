@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <cstddef>
+
 struct IDProperty;
 struct ImBuf;
 

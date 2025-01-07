@@ -2,6 +2,10 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_rect.h"
+
+#include "DNA_fluid_types.h"
+
 #include "BKE_editmesh.hh"
 #include "BKE_modifier.hh"
 #include "BKE_object.hh"
@@ -9,11 +13,14 @@
 #include "BKE_paint_bvh.hh"
 #include "BKE_particle.h"
 #include "BKE_report.hh"
+
 #include "DEG_depsgraph_query.hh"
-#include "DNA_fluid_types.h"
+
 #include "ED_paint.hh"
 #include "ED_view3d.hh"
+
 #include "GPU_capabilities.hh"
+
 #include "IMB_imbuf_types.hh"
 
 #include "draw_common.hh"

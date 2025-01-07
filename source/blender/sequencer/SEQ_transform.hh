@@ -8,6 +8,8 @@
  * \ingroup sequencer
  */
 
+#include "BLI_span.hh"
+
 struct ListBase;
 struct Scene;
 struct Strip;

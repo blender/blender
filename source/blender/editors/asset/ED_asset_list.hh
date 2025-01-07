@@ -8,8 +8,6 @@
 
 #pragma once
 
-#include <string>
-
 #include "BLI_function_ref.hh"
 
 struct AssetHandle;

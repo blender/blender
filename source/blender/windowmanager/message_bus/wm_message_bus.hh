@@ -8,9 +8,11 @@
 
 #pragma once
 
+#include "DNA_listBase.h"
+
 #include "RNA_prototypes.hh"
 #include "RNA_types.hh"
-#include <stdio.h>
+#include <cstdio>
 
 struct ID;
 struct bContext;

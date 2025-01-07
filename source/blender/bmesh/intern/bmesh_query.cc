@@ -17,6 +17,7 @@
 
 #include "BLI_alloca.h"
 #include "BLI_linklist.h"
+#include "BLI_math_base.h"
 #include "BLI_math_geom.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_rotation.h"

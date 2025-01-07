@@ -8,20 +8,12 @@
 
 #include <cstdlib>
 
-#include "DNA_action_types.h"
 #include "DNA_anim_types.h"
-#include "DNA_scene_types.h"
-
-#include "BLI_listbase_wrapper.hh"
-#include "BLI_utildefines.h"
 
 #include "BLT_translation.hh"
 
-#include "MEM_guardedalloc.h"
-
 #include "BKE_nla.hh"
 
-#include "RNA_access.hh"
 #include "RNA_define.hh"
 #include "RNA_enum_types.hh"
 
@@ -31,9 +23,6 @@
 #include "WM_types.hh"
 
 #include "ED_keyframing.hh"
-
-#include "ANIM_action.hh"
-#include "ANIM_keyingsets.hh"
 
 using namespace blender;
 
@@ -117,7 +106,9 @@ const EnumPropertyItem rna_enum_keying_flag_api_items[] = {
 #  include "BKE_fcurve.hh"
 #  include "BKE_nla.hh"
 
+#  include "ANIM_action.hh"
 #  include "ANIM_action_legacy.hh"
+#  include "ANIM_keyingsets.hh"
 
 #  include "DEG_depsgraph.hh"
 #  include "DEG_depsgraph_build.hh"

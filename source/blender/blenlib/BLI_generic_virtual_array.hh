@@ -13,7 +13,6 @@
 
 #include "BLI_generic_array.hh"
 #include "BLI_generic_span.hh"
-#include "BLI_timeit.hh"
 #include "BLI_virtual_array.hh"
 
 namespace blender {

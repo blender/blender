@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "bmesh_class.hh"
+
 /** \file
  * \ingroup bmesh
  */

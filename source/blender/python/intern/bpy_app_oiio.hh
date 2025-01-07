@@ -8,4 +8,6 @@
 
 #pragma once
 
+#include <Python.h>
+
 PyObject *BPY_app_oiio_struct();

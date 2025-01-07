@@ -10,7 +10,7 @@
 
 #include <memory>
 
-#include "BLI_utildefines.h"
+#include "BLI_assert.h"
 
 namespace blender {
 

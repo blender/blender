@@ -17,6 +17,7 @@ struct bArgs;
 typedef struct bArgs bArgs;
 
 #include <stdarg.h> /* For `va_list`. */
+#include <stdbool.h>
 
 #include "BLI_compiler_attrs.h"
 

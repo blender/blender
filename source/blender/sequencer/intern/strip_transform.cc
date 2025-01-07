@@ -8,7 +8,6 @@
  * \ingroup bke
  */
 
-#include "BLI_math_matrix_types.hh"
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
 
@@ -17,7 +16,6 @@
 #include "BLI_math_rotation.h"
 #include "BLI_math_vector.h"
 #include "BLI_math_vector_types.hh"
-#include "BLI_rect.h"
 
 #include "SEQ_animation.hh"
 #include "SEQ_channels.hh"

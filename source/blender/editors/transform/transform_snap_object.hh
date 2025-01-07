@@ -8,14 +8,32 @@
 
 #pragma once
 
+#include "DNA_scene_types.h"
+
+#include "BLI_kdopbvh.hh"
 #include "BLI_map.hh"
 #include "BLI_math_geom.h"
+#include "BLI_math_matrix_types.hh"
+#include "BLI_math_vector_types.hh"
+
+#include "ED_transform_snap_object_context.hh"
 
 #define MAX_CLIPPLANE_LEN 6
 
 #define SNAP_TO_EDGE_ELEMENTS \
   (SCE_SNAP_TO_EDGE | SCE_SNAP_TO_EDGE_ENDPOINT | SCE_SNAP_TO_EDGE_MIDPOINT | \
    SCE_SNAP_TO_EDGE_PERPENDICULAR)
+
+struct BMEdge;
+struct BMFace;
+struct BMVert;
+struct Depsgraph;
+struct ID;
+struct ListBase;
+struct Object;
+struct RegionView3D;
+struct Scene;
+struct View3D;
 
 struct SnapObjectContext {
   Scene *scene;

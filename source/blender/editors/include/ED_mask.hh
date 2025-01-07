@@ -10,10 +10,13 @@
 
 #include "DNA_mask_types.h"
 
+struct ARegion;
 struct Depsgraph;
 struct KeyframeEditData;
 struct MaskLayer;
 struct MaskLayerShape;
+struct Scene;
+struct ScrArea;
 struct bContext;
 struct wmKeyConfig;
 

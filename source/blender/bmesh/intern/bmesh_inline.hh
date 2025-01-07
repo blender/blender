@@ -10,6 +10,11 @@
 
 #pragma once
 
+#include "BLI_compiler_attrs.h"
+#include "BLI_compiler_compat.h"
+
+#include "bmesh_class.hh"
+
 /* stuff for dealing with header flags */
 #define BM_elem_flag_test(ele, hflag) _bm_elem_flag_test(&(ele)->head, hflag)
 #define BM_elem_flag_test_bool(ele, hflag) _bm_elem_flag_test_bool(&(ele)->head, hflag)

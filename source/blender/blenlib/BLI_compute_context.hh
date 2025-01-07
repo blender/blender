@@ -36,7 +36,6 @@
 
 #include <optional>
 
-#include "BLI_array.hh"
 #include "BLI_linear_allocator.hh"
 #include "BLI_stack.hh"
 #include "BLI_string_ref.hh"

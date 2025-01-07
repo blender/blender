@@ -16,7 +16,6 @@
 #include "BLI_index_mask_fwd.hh"
 #include "BLI_offset_indices.hh"
 #include "BLI_span.hh"
-#include "BLI_sys_types.h"
 #include "BLI_utility_mixins.hh"
 #include "BLI_vector.hh"
 

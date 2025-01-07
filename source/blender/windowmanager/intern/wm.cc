@@ -16,14 +16,12 @@
 #include <cstddef>
 #include <cstring>
 
-#include "BLI_ghash.h"
-#include "BLI_sys_types.h"
-
 #include "DNA_windowmanager_types.h"
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
+#include "BLI_ghash.h"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.hh"

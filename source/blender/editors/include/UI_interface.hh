@@ -17,7 +17,7 @@
 
 #include "UI_resources.hh"
 
-#include "UI_interface_c.hh"
+#include "UI_interface_c.hh"  // IWYU pragma: export
 
 namespace blender::nodes::geo_eval_log {
 struct GeometryAttributeInfo;

@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include "CCGSubSurf.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -264,5 +266,3 @@ void ccgSubSurf__dumpCoords(CCGSubSurf *ss);
 #ifdef __cplusplus
 }
 #endif
-
-#include "CCGSubSurf_inline.h"

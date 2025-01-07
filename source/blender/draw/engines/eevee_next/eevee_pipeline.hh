@@ -21,6 +21,8 @@
 #include "eevee_raytrace.hh"
 #include "eevee_subsurface.hh"
 
+struct Camera;
+
 namespace blender::eevee {
 
 class Instance;

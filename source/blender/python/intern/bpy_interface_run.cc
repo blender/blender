@@ -27,7 +27,6 @@
 #include "BPY_extern_run.hh"
 
 #include "bpy_capi_utils.hh"
-#include "bpy_intern_string.hh"
 #include "bpy_traceback.hh"
 
 #include "../generic/py_capi_utils.hh"

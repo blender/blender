@@ -15,7 +15,6 @@
 
 #include "BLI_listbase.h"
 #include "BLI_map.hh"
-#include "BLI_sys_types.h"
 #include "BLI_vector_set.hh"
 
 #include <cstring>
