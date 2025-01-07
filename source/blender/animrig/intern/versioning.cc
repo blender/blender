@@ -49,9 +49,12 @@ void convert_legacy_animato_actions(Main &bmain)
   LISTBASE_FOREACH (bAction *, dna_action, &bmain.actions) {
     blender::animrig::Action &action = dna_action->wrap();
 
-    if (action_is_layered(action)) {
+    if (action_is_layered(action) && !action.is_empty()) {
       /* This is just a safety net. Blender files that trigger this versioning code are not
-       * expected to have any layered/slotted Actions. */
+       * expected to have any layered/slotted Actions.
+       *
+       * Empty Actions, even though they are valid "layered" Actions, should still get through
+       * versioning, though, to ensure they have the default "Legacy Slot" and a zero idroot. */
       continue;
     }
 
