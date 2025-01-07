@@ -146,9 +146,9 @@ void SEQ_retiming_reset(Scene *scene, Strip *strip)
 
   SEQ_retiming_data_clear(strip);
 
-  blender::Span effects = seq_sequence_lookup_effects_by_seq(scene, strip);
+  blender::Span effects = SEQ_lookup_effects_by_strip(scene, strip);
   strip_time_update_effects_strip_range(scene, effects);
-  SEQ_time_update_meta_strip_range(scene, seq_sequence_lookup_meta_by_seq(scene, strip));
+  SEQ_time_update_meta_strip_range(scene, SEQ_lookup_meta_by_strip(scene, strip));
 
   retiming_key_overlap(scene, strip);
 }
@@ -772,9 +772,9 @@ void SEQ_retiming_key_timeline_frame_set(const Scene *scene,
     strip_retiming_key_offset(scene, strip, key, offset);
   }
 
-  blender::Span effects = seq_sequence_lookup_effects_by_seq(scene, strip);
+  blender::Span effects = SEQ_lookup_effects_by_strip(scene, strip);
   strip_time_update_effects_strip_range(scene, effects);
-  SEQ_time_update_meta_strip_range(scene, seq_sequence_lookup_meta_by_seq(scene, strip));
+  SEQ_time_update_meta_strip_range(scene, SEQ_lookup_meta_by_strip(scene, strip));
 }
 
 float SEQ_retiming_key_speed_get(const Strip *strip, const SeqRetimingKey *key)
@@ -1039,7 +1039,7 @@ static RetimingRangeData strip_retiming_range_data_get(const Scene *scene, const
 {
   RetimingRangeData strip_retiming_data = RetimingRangeData(strip);
 
-  const Strip *meta_parent = seq_sequence_lookup_meta_by_seq(scene, strip);
+  const Strip *meta_parent = SEQ_lookup_meta_by_strip(scene, strip);
   if (meta_parent == nullptr) {
     return strip_retiming_data;
   }

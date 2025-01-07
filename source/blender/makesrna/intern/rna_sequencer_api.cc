@@ -86,7 +86,7 @@ static void rna_Sequences_move_strip_to_meta(
   DEG_relations_tag_update(bmain);
   DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
 
-  SEQ_sequence_lookup_invalidate(scene);
+  SEQ_strip_lookup_invalidate(scene);
 
   WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
 }

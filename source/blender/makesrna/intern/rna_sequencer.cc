@@ -301,7 +301,7 @@ static bool rna_SequenceEditor_sequences_all_lookup_string(PointerRNA *ptr,
   ID *id = ptr->owner_id;
   Scene *scene = (Scene *)id;
 
-  Strip *strip = SEQ_sequence_lookup_seq_by_name(scene, key);
+  Strip *strip = SEQ_lookup_strip_by_name(scene, key);
   if (strip) {
     *r_ptr = RNA_pointer_create(ptr->owner_id, &RNA_Strip, strip);
     return true;
@@ -1533,7 +1533,7 @@ static void rna_SequenceTimelineChannel_name_set(PointerRNA *ptr, const char *va
   Scene *scene = (Scene *)ptr->owner_id;
   Editing *ed = SEQ_editing_get(scene);
 
-  Strip *channel_owner = SEQ_sequence_lookup_owner_by_channel(scene, channel);
+  Strip *channel_owner = SEQ_lookup_strip_by_channel_owner(scene, channel);
   ListBase *channels_base = &ed->channels;
 
   if (channel_owner != nullptr) {
@@ -1557,7 +1557,7 @@ static void rna_SequenceTimelineChannel_mute_update(Main *bmain,
   Editing *ed = SEQ_editing_get(scene);
   SeqTimelineChannel *channel = (SeqTimelineChannel *)ptr;
 
-  Strip *channel_owner = SEQ_sequence_lookup_owner_by_channel(scene, channel);
+  Strip *channel_owner = SEQ_lookup_strip_by_channel_owner(scene, channel);
   ListBase *seqbase;
   if (channel_owner == nullptr) {
     seqbase = &ed->seqbase;
@@ -1578,7 +1578,7 @@ static std::optional<std::string> rna_SeqTimelineChannel_path(const PointerRNA *
   Scene *scene = (Scene *)ptr->owner_id;
   SeqTimelineChannel *channel = (SeqTimelineChannel *)ptr->data;
 
-  Strip *channel_owner = SEQ_sequence_lookup_owner_by_channel(scene, channel);
+  Strip *channel_owner = SEQ_lookup_strip_by_channel_owner(scene, channel);
 
   char channel_name_esc[(sizeof(channel->name)) * 2];
   BLI_str_escape(channel_name_esc, channel->name, sizeof(channel_name_esc));

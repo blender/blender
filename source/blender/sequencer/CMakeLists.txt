@@ -70,7 +70,7 @@ set(SRC
   intern/proxy_job.cc
   intern/render.cc
   intern/render.hh
-  intern/sequence_lookup.cc
+  intern/strip_lookup.cc
   intern/sequencer.cc
   intern/sequencer.hh
   intern/sound.cc

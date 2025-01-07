@@ -24,7 +24,7 @@
 struct Ipo;
 struct MovieClip;
 struct Scene;
-struct SequenceLookup;
+struct StripLookup;
 struct VFont;
 struct bSound;
 
@@ -323,7 +323,7 @@ typedef struct SeqConnection {
 } SeqConnection;
 
 typedef struct EditingRuntime {
-  struct SequenceLookup *sequence_lookup;
+  struct StripLookup *strip_lookup;
   MediaPresence *media_presence;
   ThumbnailCache *thumbnail_cache;
   void *_pad;
