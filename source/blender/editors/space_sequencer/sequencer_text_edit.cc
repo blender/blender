@@ -44,7 +44,7 @@ static bool sequencer_text_editing_poll(bContext *C)
   }
 
   const Strip *strip = SEQ_select_active_get(CTX_data_scene(C));
-  if (strip == nullptr || strip->type != SEQ_TYPE_TEXT || !SEQ_effects_can_render_text(strip)) {
+  if (strip == nullptr || strip->type != STRIP_TYPE_TEXT || !SEQ_effects_can_render_text(strip)) {
     return false;
   }
 

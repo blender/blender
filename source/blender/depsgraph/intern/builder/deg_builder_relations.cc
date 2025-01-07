@@ -3365,7 +3365,7 @@ static bool strip_build_prop_cb(Strip *strip, void *user_data)
     /* This is to support 3D audio. */
     cd->has_audio_strips = true;
   }
-  if (strip->type == SEQ_TYPE_SCENE && strip->scene != nullptr) {
+  if (strip->type == STRIP_TYPE_SCENE && strip->scene != nullptr) {
     if (strip->flag & SEQ_SCENE_STRIPS) {
       cd->builder->build_scene_sequencer(strip->scene);
       ComponentKey sequence_scene_audio_key(&strip->scene->id, NodeType::AUDIO);

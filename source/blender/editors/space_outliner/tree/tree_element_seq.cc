@@ -27,7 +27,7 @@ TreeElementStrip::TreeElementStrip(TreeElement &legacy_te, Strip &strip)
 
 bool TreeElementStrip::expand_poll(const SpaceOutliner & /*space_outliner*/) const
 {
-  return !(strip_.type & SEQ_TYPE_EFFECT);
+  return !(strip_.type & STRIP_TYPE_EFFECT);
 }
 
 void TreeElementStrip::expand(SpaceOutliner & /*space_outliner*/) const
@@ -38,7 +38,7 @@ void TreeElementStrip::expand(SpaceOutliner & /*space_outliner*/) const
    * show it, in other case put the filename.
    */
 
-  if (strip_.type == SEQ_TYPE_META) {
+  if (strip_.type == STRIP_TYPE_META) {
     LISTBASE_FOREACH (Strip *, child, &strip_.seqbase) {
       add_element(&legacy_te_.subtree, nullptr, child, &legacy_te_, TSE_STRIP, 0);
     }
@@ -53,9 +53,9 @@ Strip &TreeElementStrip::get_strip() const
   return strip_;
 }
 
-SequenceType TreeElementStrip::get_strip_type() const
+StripType TreeElementStrip::get_strip_type() const
 {
-  return SequenceType(strip_.type);
+  return StripType(strip_.type);
 }
 
 /* -------------------------------------------------------------------- */

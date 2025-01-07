@@ -48,7 +48,7 @@ float SEQ_time_media_playback_rate_factor_get(const Scene *scene, const Strip *s
 
 int seq_time_strip_original_content_length_get(const Scene *scene, const Strip *strip)
 {
-  if (strip->type == SEQ_TYPE_SOUND_RAM) {
+  if (strip->type == STRIP_TYPE_SOUND_RAM) {
     return strip->len;
   }
 
@@ -62,7 +62,7 @@ float SEQ_give_frame_index(const Scene *scene, const Strip *strip, float timelin
   float end = SEQ_time_content_end_frame_get(scene, strip) - 1;
   float frame_index_max = strip->len - 1;
 
-  if (strip->type & SEQ_TYPE_EFFECT) {
+  if (strip->type & STRIP_TYPE_EFFECT) {
     end = SEQ_time_right_handle_frame_get(scene, strip);
     frame_index_max = end - sta;
   }
@@ -71,7 +71,7 @@ float SEQ_give_frame_index(const Scene *scene, const Strip *strip, float timelin
     return -1;
   }
 
-  if (strip->type == SEQ_TYPE_IMAGE && SEQ_transform_single_image_check(strip)) {
+  if (strip->type == STRIP_TYPE_IMAGE && SEQ_transform_single_image_check(strip)) {
     return 0;
   }
 
@@ -118,11 +118,11 @@ static void strip_update_sound_bounds_recursive_impl(const Scene *scene,
   /* For sound we go over full meta tree to update bounds of the sound strips,
    * since sound is played outside of evaluating the image-buffers (#ImBuf). */
   LISTBASE_FOREACH (Strip *, strip, &metaseq->seqbase) {
-    if (strip->type == SEQ_TYPE_META) {
+    if (strip->type == STRIP_TYPE_META) {
       strip_update_sound_bounds_recursive_impl(
           scene, strip, max_ii(start, metaseq_start(strip)), min_ii(end, metaseq_end(strip)));
     }
-    else if (ELEM(strip->type, SEQ_TYPE_SOUND_RAM, SEQ_TYPE_SCENE)) {
+    else if (ELEM(strip->type, STRIP_TYPE_SOUND_RAM, STRIP_TYPE_SCENE)) {
       if (strip->scene_sound) {
         int startofs = strip->startofs;
         int endofs = strip->endofs;
@@ -322,7 +322,7 @@ int SEQ_time_find_next_prev_edit(Scene *scene,
 float SEQ_time_sequence_get_fps(Scene *scene, Strip *strip)
 {
   switch (strip->type) {
-    case SEQ_TYPE_MOVIE: {
+    case STRIP_TYPE_MOVIE: {
       strip_open_anim_file(scene, strip, true);
       if (BLI_listbase_is_empty(&strip->anims)) {
         return 0.0f;
@@ -333,12 +333,12 @@ float SEQ_time_sequence_get_fps(Scene *scene, Strip *strip)
       }
       return MOV_get_fps(strip_anim->anim);
     }
-    case SEQ_TYPE_MOVIECLIP:
+    case STRIP_TYPE_MOVIECLIP:
       if (strip->clip != nullptr) {
         return BKE_movieclip_get_fps(strip->clip);
       }
       break;
-    case SEQ_TYPE_SCENE:
+    case STRIP_TYPE_SCENE:
       if (strip->scene != nullptr) {
         return float(strip->scene->r.frs_sec) / strip->scene->r.frs_sec_base;
       }
@@ -570,7 +570,7 @@ void strip_time_translate_handles(const Scene *scene, Strip *strip, const int of
 static void strip_time_slip_strip_ex(
     const Scene *scene, Strip *strip, int delta, float subframe_delta, bool recursed)
 {
-  if (strip->type == SEQ_TYPE_SOUND_RAM && subframe_delta != 0.0f) {
+  if (strip->type == STRIP_TYPE_SOUND_RAM && subframe_delta != 0.0f) {
     strip->sound_offset += subframe_delta / FPS;
   }
 
@@ -586,12 +586,12 @@ static void strip_time_slip_strip_ex(
 
   /* Effects only have a start frame and a length, so unless we're inside
    * a meta strip, there's no need to do anything. */
-  if (!recursed && (strip->type & SEQ_TYPE_EFFECT)) {
+  if (!recursed && (strip->type & STRIP_TYPE_EFFECT)) {
     return;
   }
 
   /* Move strips inside meta strip. */
-  if (strip->type == SEQ_TYPE_META) {
+  if (strip->type == STRIP_TYPE_META) {
     /* If the meta strip has no contents, don't do anything. */
     if (BLI_listbase_is_empty(&strip->seqbase)) {
       return;
@@ -623,7 +623,7 @@ void SEQ_time_slip_strip(const Scene *scene, Strip *strip, int delta, float subf
 int SEQ_time_get_rounded_sound_offset(const Scene *scene, const Strip *strip)
 {
   int sound_offset = 0;
-  if (strip->type == SEQ_TYPE_SOUND_RAM && strip->sound != nullptr) {
+  if (strip->type == STRIP_TYPE_SOUND_RAM && strip->sound != nullptr) {
     sound_offset = round_fl_to_int((strip->sound->offset_time + strip->sound_offset) * FPS);
   }
   return sound_offset;

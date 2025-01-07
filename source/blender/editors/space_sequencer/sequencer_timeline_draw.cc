@@ -139,7 +139,7 @@ static TimelineDrawContext timeline_draw_context_get(const bContext *C, SeqQuads
 
 static bool seq_draw_waveforms_poll(const SpaceSeq *sseq, const Strip *strip)
 {
-  const bool strip_is_valid = strip->type == SEQ_TYPE_SOUND_RAM && strip->sound != nullptr;
+  const bool strip_is_valid = strip->type == STRIP_TYPE_SOUND_RAM && strip->sound != nullptr;
   const bool overlays_enabled = (sseq->flag & SEQ_SHOW_OVERLAY) != 0;
   const bool ovelay_option = ((sseq->timeline_overlay.flag & SEQ_TIMELINE_ALL_WAVEFORMS) != 0 ||
                               (strip->flag & SEQ_AUDIO_DRAW_WAVEFORM));
@@ -159,7 +159,7 @@ static bool strip_hides_text_overlay_first(const TimelineDrawContext *ctx,
                                            const StripDrawContext *strip_ctx)
 {
   return seq_draw_waveforms_poll(ctx->sseq, strip_ctx->strip) ||
-         strip_ctx->strip->type == SEQ_TYPE_COLOR;
+         strip_ctx->strip->type == STRIP_TYPE_COLOR;
 }
 
 static void strip_draw_context_set_text_overlay_visibility(TimelineDrawContext *ctx,
@@ -215,7 +215,7 @@ static StripDrawContext strip_draw_context_get(TimelineDrawContext *ctx, Strip *
   strip_ctx.content_start = SEQ_time_start_frame_get(strip);
   strip_ctx.content_end = SEQ_time_content_end_frame_get(scene, strip);
 
-  if (strip->type == SEQ_TYPE_SOUND_RAM && strip->sound != nullptr) {
+  if (strip->type == STRIP_TYPE_SOUND_RAM && strip->sound != nullptr) {
     /* Visualize sub-frame sound offsets. */
     const double sound_offset = (strip->sound->offset_time + strip->sound_offset) * FPS;
     strip_ctx.content_start += sound_offset;
@@ -243,7 +243,7 @@ static StripDrawContext strip_draw_context_get(TimelineDrawContext *ctx, Strip *
   strip_ctx.missing_data_block = !SEQ_sequence_has_valid_data(strip);
   strip_ctx.missing_media = media_presence_is_missing(scene, strip);
   strip_ctx.is_connected = SEQ_is_strip_connected(strip);
-  if (strip->type == SEQ_TYPE_META) {
+  if (strip->type == STRIP_TYPE_META) {
     const ListBase *seqbase = &strip->seqbase;
     LISTBASE_FOREACH (const Strip *, sub, seqbase) {
       if (!SEQ_sequence_has_valid_data(sub)) {
@@ -275,11 +275,12 @@ static void strip_draw_context_curve_get(const TimelineDrawContext *ctx,
                                      (ctx->sseq->flag & SEQ_SHOW_OVERLAY) != 0 &&
                                      (ctx->sseq->timeline_overlay.flag &
                                       SEQ_TIMELINE_SHOW_FCURVES) != 0;
-  const bool showing_waveform = (strip_ctx.strip->type == SEQ_TYPE_SOUND_RAM) &&
+  const bool showing_waveform = (strip_ctx.strip->type == STRIP_TYPE_SOUND_RAM) &&
                                 !strip_ctx.strip_is_too_small &&
                                 seq_draw_waveforms_poll(ctx->sseq, strip_ctx.strip);
   if (showing_curve_overlay || showing_waveform) {
-    const char *prop_name = strip_ctx.strip->type == SEQ_TYPE_SOUND_RAM ? "volume" : "blend_alpha";
+    const char *prop_name = strip_ctx.strip->type == STRIP_TYPE_SOUND_RAM ? "volume" :
+                                                                            "blend_alpha";
     strip_ctx.curve = id_data_find_fcurve(
         &ctx->scene->id, strip_ctx.strip, &RNA_Strip, prop_name, 0, nullptr);
     if (strip_ctx.curve && BKE_fcurve_is_empty(strip_ctx.curve)) {
@@ -312,27 +313,27 @@ static void color3ubv_from_seq(const Scene *curscene,
   UI_SetTheme(SPACE_SEQ, RGN_TYPE_WINDOW);
 
   switch (strip->type) {
-    case SEQ_TYPE_IMAGE:
+    case STRIP_TYPE_IMAGE:
       UI_GetThemeColor3ubv(TH_SEQ_IMAGE, r_col);
       break;
 
-    case SEQ_TYPE_META:
+    case STRIP_TYPE_META:
       UI_GetThemeColor3ubv(TH_SEQ_META, r_col);
       break;
 
-    case SEQ_TYPE_MOVIE:
+    case STRIP_TYPE_MOVIE:
       UI_GetThemeColor3ubv(TH_SEQ_MOVIE, r_col);
       break;
 
-    case SEQ_TYPE_MOVIECLIP:
+    case STRIP_TYPE_MOVIECLIP:
       UI_GetThemeColor3ubv(TH_SEQ_MOVIECLIP, r_col);
       break;
 
-    case SEQ_TYPE_MASK:
+    case STRIP_TYPE_MASK:
       UI_GetThemeColor3ubv(TH_SEQ_MASK, r_col);
       break;
 
-    case SEQ_TYPE_SCENE:
+    case STRIP_TYPE_SCENE:
       UI_GetThemeColor3ubv(TH_SEQ_SCENE, r_col);
 
       if (strip->scene == curscene) {
@@ -341,83 +342,83 @@ static void color3ubv_from_seq(const Scene *curscene,
       break;
 
     /* Transitions use input colors, fallback for when the input is a transition itself. */
-    case SEQ_TYPE_CROSS:
-    case SEQ_TYPE_GAMCROSS:
-    case SEQ_TYPE_WIPE:
+    case STRIP_TYPE_CROSS:
+    case STRIP_TYPE_GAMCROSS:
+    case STRIP_TYPE_WIPE:
       UI_GetThemeColor3ubv(TH_SEQ_TRANSITION, r_col);
 
       /* Slightly offset hue to distinguish different transition types. */
-      if (strip->type == SEQ_TYPE_GAMCROSS) {
+      if (strip->type == STRIP_TYPE_GAMCROSS) {
         rgb_byte_set_hue_float_offset(r_col, 0.03);
       }
-      else if (strip->type == SEQ_TYPE_WIPE) {
+      else if (strip->type == STRIP_TYPE_WIPE) {
         rgb_byte_set_hue_float_offset(r_col, 0.06);
       }
       break;
 
     /* Effects. */
-    case SEQ_TYPE_TRANSFORM:
-    case SEQ_TYPE_SPEED:
-    case SEQ_TYPE_ADD:
-    case SEQ_TYPE_SUB:
-    case SEQ_TYPE_MUL:
-    case SEQ_TYPE_ALPHAOVER:
-    case SEQ_TYPE_ALPHAUNDER:
-    case SEQ_TYPE_OVERDROP:
-    case SEQ_TYPE_GLOW:
-    case SEQ_TYPE_MULTICAM:
-    case SEQ_TYPE_ADJUSTMENT:
-    case SEQ_TYPE_GAUSSIAN_BLUR:
-    case SEQ_TYPE_COLORMIX:
+    case STRIP_TYPE_TRANSFORM:
+    case STRIP_TYPE_SPEED:
+    case STRIP_TYPE_ADD:
+    case STRIP_TYPE_SUB:
+    case STRIP_TYPE_MUL:
+    case STRIP_TYPE_ALPHAOVER:
+    case STRIP_TYPE_ALPHAUNDER:
+    case STRIP_TYPE_OVERDROP:
+    case STRIP_TYPE_GLOW:
+    case STRIP_TYPE_MULTICAM:
+    case STRIP_TYPE_ADJUSTMENT:
+    case STRIP_TYPE_GAUSSIAN_BLUR:
+    case STRIP_TYPE_COLORMIX:
       UI_GetThemeColor3ubv(TH_SEQ_EFFECT, r_col);
 
       /* Slightly offset hue to distinguish different effects. */
-      if (strip->type == SEQ_TYPE_ADD) {
+      if (strip->type == STRIP_TYPE_ADD) {
         rgb_byte_set_hue_float_offset(r_col, 0.09);
       }
-      else if (strip->type == SEQ_TYPE_SUB) {
+      else if (strip->type == STRIP_TYPE_SUB) {
         rgb_byte_set_hue_float_offset(r_col, 0.03);
       }
-      else if (strip->type == SEQ_TYPE_MUL) {
+      else if (strip->type == STRIP_TYPE_MUL) {
         rgb_byte_set_hue_float_offset(r_col, 0.06);
       }
-      else if (strip->type == SEQ_TYPE_ALPHAOVER) {
+      else if (strip->type == STRIP_TYPE_ALPHAOVER) {
         rgb_byte_set_hue_float_offset(r_col, 0.16);
       }
-      else if (strip->type == SEQ_TYPE_ALPHAUNDER) {
+      else if (strip->type == STRIP_TYPE_ALPHAUNDER) {
         rgb_byte_set_hue_float_offset(r_col, 0.19);
       }
-      else if (strip->type == SEQ_TYPE_OVERDROP) {
+      else if (strip->type == STRIP_TYPE_OVERDROP) {
         rgb_byte_set_hue_float_offset(r_col, 0.22);
       }
-      else if (strip->type == SEQ_TYPE_COLORMIX) {
+      else if (strip->type == STRIP_TYPE_COLORMIX) {
         rgb_byte_set_hue_float_offset(r_col, 0.25);
       }
-      else if (strip->type == SEQ_TYPE_GAUSSIAN_BLUR) {
+      else if (strip->type == STRIP_TYPE_GAUSSIAN_BLUR) {
         rgb_byte_set_hue_float_offset(r_col, 0.31);
       }
-      else if (strip->type == SEQ_TYPE_GLOW) {
+      else if (strip->type == STRIP_TYPE_GLOW) {
         rgb_byte_set_hue_float_offset(r_col, 0.34);
       }
-      else if (strip->type == SEQ_TYPE_ADJUSTMENT) {
+      else if (strip->type == STRIP_TYPE_ADJUSTMENT) {
         rgb_byte_set_hue_float_offset(r_col, 0.89);
       }
-      else if (strip->type == SEQ_TYPE_SPEED) {
+      else if (strip->type == STRIP_TYPE_SPEED) {
         rgb_byte_set_hue_float_offset(r_col, 0.72);
       }
-      else if (strip->type == SEQ_TYPE_TRANSFORM) {
+      else if (strip->type == STRIP_TYPE_TRANSFORM) {
         rgb_byte_set_hue_float_offset(r_col, 0.75);
       }
-      else if (strip->type == SEQ_TYPE_MULTICAM) {
+      else if (strip->type == STRIP_TYPE_MULTICAM) {
         rgb_byte_set_hue_float_offset(r_col, 0.85);
       }
       break;
 
-    case SEQ_TYPE_COLOR:
+    case STRIP_TYPE_COLOR:
       UI_GetThemeColor3ubv(TH_SEQ_COLOR, r_col);
       break;
 
-    case SEQ_TYPE_SOUND_RAM:
+    case STRIP_TYPE_SOUND_RAM:
       UI_GetThemeColor3ubv(TH_SEQ_AUDIO, r_col);
       blendcol[0] = blendcol[1] = blendcol[2] = 128;
       if (is_muted) {
@@ -425,7 +426,7 @@ static void color3ubv_from_seq(const Scene *curscene,
       }
       break;
 
-    case SEQ_TYPE_TEXT:
+    case STRIP_TYPE_TEXT:
       UI_GetThemeColor3ubv(TH_SEQ_TEXT, r_col);
       break;
 
@@ -630,8 +631,8 @@ static void drawmeta_contents(TimelineDrawContext *timeline_ctx,
   if (!strip_ctx->can_draw_strip_content || (timeline_ctx->sseq->flag & SEQ_SHOW_OVERLAY) == 0) {
     return;
   }
-  if ((strip_meta->type != SEQ_TYPE_META) &&
-      ((strip_meta->type != SEQ_TYPE_SCENE) || (strip_meta->flag & SEQ_SCENE_STRIPS) == 0))
+  if ((strip_meta->type != STRIP_TYPE_META) &&
+      ((strip_meta->type != STRIP_TYPE_SCENE) || (strip_meta->flag & SEQ_SCENE_STRIPS) == 0))
   {
     return;
   }
@@ -664,7 +665,7 @@ static void drawmeta_contents(TimelineDrawContext *timeline_ctx,
     return;
   }
 
-  if (strip_meta->type == SEQ_TYPE_SCENE) {
+  if (strip_meta->type == STRIP_TYPE_SCENE) {
     offset = strip_meta->start - offset;
   }
   else {
@@ -692,7 +693,7 @@ static void drawmeta_contents(TimelineDrawContext *timeline_ctx,
       float y_chan = (strip->machine - chan_min) / float(chan_range) * draw_range;
       float y1_chan, y2_chan;
 
-      if (strip->type == SEQ_TYPE_COLOR) {
+      if (strip->type == STRIP_TYPE_COLOR) {
         SolidColorVars *colvars = (SolidColorVars *)strip->effectdata;
         rgb_float_to_uchar(col, colvars->col);
       }
@@ -800,28 +801,28 @@ static void draw_seq_text_get_source(const Strip *strip, char *r_source, size_t 
 
   /* Set source for the most common types. */
   switch (strip->type) {
-    case SEQ_TYPE_IMAGE:
-    case SEQ_TYPE_MOVIE: {
+    case STRIP_TYPE_IMAGE:
+    case STRIP_TYPE_MOVIE: {
       BLI_path_join(
           r_source, source_maxncpy, strip->data->dirpath, strip->data->stripdata->filename);
       break;
     }
-    case SEQ_TYPE_SOUND_RAM: {
+    case STRIP_TYPE_SOUND_RAM: {
       if (strip->sound != nullptr) {
         BLI_strncpy(r_source, strip->sound->filepath, source_maxncpy);
       }
       break;
     }
-    case SEQ_TYPE_MULTICAM: {
+    case STRIP_TYPE_MULTICAM: {
       BLI_snprintf(r_source, source_maxncpy, "Channel: %d", strip->multicam_source);
       break;
     }
-    case SEQ_TYPE_TEXT: {
+    case STRIP_TYPE_TEXT: {
       const TextVars *textdata = static_cast<TextVars *>(strip->effectdata);
       BLI_strncpy(r_source, textdata->text, source_maxncpy);
       break;
     }
-    case SEQ_TYPE_SCENE: {
+    case STRIP_TYPE_SCENE: {
       if (strip->scene != nullptr) {
         if (strip->scene_camera != nullptr) {
           BLI_snprintf(r_source,
@@ -836,13 +837,13 @@ static void draw_seq_text_get_source(const Strip *strip, char *r_source, size_t 
       }
       break;
     }
-    case SEQ_TYPE_MOVIECLIP: {
+    case STRIP_TYPE_MOVIECLIP: {
       if (strip->clip != nullptr) {
         BLI_strncpy(r_source, strip->clip->id.name + 2, source_maxncpy);
       }
       break;
     }
-    case SEQ_TYPE_MASK: {
+    case STRIP_TYPE_MASK: {
       if (strip->mask != nullptr) {
         BLI_strncpy(r_source, strip->mask->id.name + 2, source_maxncpy);
       }
@@ -992,7 +993,7 @@ static void draw_strip_icons(TimelineDrawContext *timeline_ctx,
     }
 
     /* Draw icon in center of content. */
-    if (strip.can_draw_strip_content && strip.strip->type != SEQ_TYPE_META) {
+    if (strip.can_draw_strip_content && strip.strip->type != STRIP_TYPE_META) {
       rctf rect;
       rect.xmin = strip.left_handle + strip.handle_width;
       rect.xmax = strip.right_handle - strip.handle_width;
@@ -1201,7 +1202,7 @@ static void draw_multicam_highlight(TimelineDrawContext *timeline_ctx,
   if (strip_ctx->strip != act_seq || act_seq == nullptr) {
     return;
   }
-  if ((act_seq->flag & SELECT) == 0 || act_seq->type != SEQ_TYPE_MULTICAM) {
+  if ((act_seq->flag & SELECT) == 0 || act_seq->type != STRIP_TYPE_MULTICAM) {
     return;
   }
 
@@ -1319,7 +1320,7 @@ static void draw_strips_background(TimelineDrawContext *timeline_ctx,
     data.col_background = color_pack(col);
 
     /* Color band state. */
-    if (show_overlay && (strip.strip->type == SEQ_TYPE_COLOR)) {
+    if (show_overlay && (strip.strip->type == STRIP_TYPE_COLOR)) {
       data.flags |= GPU_SEQ_FLAG_COLOR_BAND;
       SolidColorVars *colvars = (SolidColorVars *)strip.strip->effectdata;
       rgb_float_to_uchar(col, colvars->col);
@@ -1328,7 +1329,7 @@ static void draw_strips_background(TimelineDrawContext *timeline_ctx,
 
     /* Transition state. */
     if (show_overlay && strip.can_draw_strip_content &&
-        ELEM(strip.strip->type, SEQ_TYPE_CROSS, SEQ_TYPE_GAMCROSS, SEQ_TYPE_WIPE))
+        ELEM(strip.strip->type, STRIP_TYPE_CROSS, STRIP_TYPE_GAMCROSS, STRIP_TYPE_WIPE))
     {
       data.flags |= GPU_SEQ_FLAG_TRANSITION;
 
@@ -1336,7 +1337,7 @@ static void draw_strips_background(TimelineDrawContext *timeline_ctx,
       const Strip *seq2 = strip.strip->seq2;
 
       /* Left side. */
-      if (seq1->type == SEQ_TYPE_COLOR) {
+      if (seq1->type == STRIP_TYPE_COLOR) {
         rgb_float_to_uchar(col, ((const SolidColorVars *)seq1->effectdata)->col);
       }
       else {
@@ -1345,7 +1346,7 @@ static void draw_strips_background(TimelineDrawContext *timeline_ctx,
       data.col_transition_in = color_pack(col);
 
       /* Right side. */
-      if (seq2->type == SEQ_TYPE_COLOR) {
+      if (seq2->type == STRIP_TYPE_COLOR) {
         rgb_float_to_uchar(col, ((const SolidColorVars *)seq2->effectdata)->col);
       }
       else {
@@ -1372,7 +1373,7 @@ static void strip_data_missing_media_flags_set(const StripDrawContext &strip,
       data.flags |= GPU_SEQ_FLAG_MISSING_TITLE;
     }
     /* Do not tint content area for meta strips; we want to display children. */
-    if (strip.strip->type != SEQ_TYPE_META) {
+    if (strip.strip->type != STRIP_TYPE_META) {
       data.flags |= GPU_SEQ_FLAG_MISSING_CONTENT;
     }
   }
@@ -1795,7 +1796,7 @@ static void draw_cache_background(const bContext *C, CacheDrawData *draw_data)
   }
 
   Vector<Strip *> strips = sequencer_visible_strips_get(C);
-  strips.remove_if([&](Strip *strip) { return strip->type == SEQ_TYPE_SOUND_RAM; });
+  strips.remove_if([&](Strip *strip) { return strip->type == STRIP_TYPE_SOUND_RAM; });
 
   for (const Strip *strip : strips) {
     stripe_bot = strip->machine + SEQ_STRIP_OFSBOTTOM + draw_data->stripe_ofs_y;

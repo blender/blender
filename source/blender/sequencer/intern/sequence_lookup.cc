@@ -47,7 +47,7 @@ static void seq_sequence_lookup_append_effect(const Strip *input,
 
 static void seq_sequence_lookup_build_effect(Strip *strip, SequenceLookup *lookup)
 {
-  if ((strip->type & SEQ_TYPE_EFFECT) == 0) {
+  if ((strip->type & STRIP_TYPE_EFFECT) == 0) {
     return;
   }
 
@@ -70,7 +70,7 @@ static void seq_sequence_lookup_build_from_seqbase(Strip *parent_meta,
     lookup->meta_by_seq.add(strip, parent_meta);
     seq_sequence_lookup_build_effect(strip, lookup);
 
-    if (strip->type == SEQ_TYPE_META) {
+    if (strip->type == STRIP_TYPE_META) {
       seq_sequence_lookup_build_from_seqbase(strip, &strip->seqbase, lookup);
     }
   }

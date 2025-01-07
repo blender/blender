@@ -170,13 +170,13 @@ bool SEQ_retiming_is_allowed(const Strip *strip)
   }
 
   return ELEM(strip->type,
-              SEQ_TYPE_SOUND_RAM,
-              SEQ_TYPE_IMAGE,
-              SEQ_TYPE_META,
-              SEQ_TYPE_SCENE,
-              SEQ_TYPE_MOVIE,
-              SEQ_TYPE_MOVIECLIP,
-              SEQ_TYPE_MASK);
+              STRIP_TYPE_SOUND_RAM,
+              STRIP_TYPE_IMAGE,
+              STRIP_TYPE_META,
+              STRIP_TYPE_SCENE,
+              STRIP_TYPE_MOVIE,
+              STRIP_TYPE_MOVIECLIP,
+              STRIP_TYPE_MASK);
 }
 
 static int strip_retiming_segment_length_get(const SeqRetimingKey *start_key)

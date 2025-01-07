@@ -53,7 +53,7 @@ bool SEQ_transform_seqbase_isolated_sel_check(ListBase *seqbase)
 
   /* test relationships */
   LISTBASE_FOREACH (Strip *, strip, seqbase) {
-    if ((strip->type & SEQ_TYPE_EFFECT) == 0) {
+    if ((strip->type & STRIP_TYPE_EFFECT) == 0) {
       continue;
     }
 
@@ -78,7 +78,7 @@ bool SEQ_transform_seqbase_isolated_sel_check(ListBase *seqbase)
 
 bool SEQ_transform_sequence_can_be_translated(const Strip *strip)
 {
-  return !(strip->type & SEQ_TYPE_EFFECT) || (SEQ_effect_get_num_inputs(strip->type) == 0);
+  return !(strip->type & STRIP_TYPE_EFFECT) || (SEQ_effect_get_num_inputs(strip->type) == 0);
 }
 
 bool SEQ_transform_test_overlap_seq_seq(const Scene *scene, Strip *seq1, Strip *seq2)
@@ -114,7 +114,7 @@ void SEQ_transform_translate_sequence(Scene *evil_scene, Strip *strip, int delta
   /* Meta strips requires their content is to be translated, and then frame range of the meta is
    * updated based on nested strips. This won't work for empty meta-strips,
    * so they can be treated as normal strip. */
-  if (strip->type == SEQ_TYPE_META && !BLI_listbase_is_empty(&strip->seqbase)) {
+  if (strip->type == STRIP_TYPE_META && !BLI_listbase_is_empty(&strip->seqbase)) {
     LISTBASE_FOREACH (Strip *, strip_child, &strip->seqbase) {
       SEQ_transform_translate_sequence(evil_scene, strip_child, delta);
     }
@@ -285,7 +285,7 @@ static blender::VectorSet<Strip *> extract_standalone_strips(
   blender::VectorSet<Strip *> standalone_strips;
 
   for (Strip *strip : transformed_strips) {
-    if ((strip->type & SEQ_TYPE_EFFECT) == 0 || strip->seq1 == nullptr) {
+    if ((strip->type & STRIP_TYPE_EFFECT) == 0 || strip->seq1 == nullptr) {
       standalone_strips.add(strip);
     }
   }
@@ -464,13 +464,13 @@ static void strip_transform_handle_overwrite_trim(Scene *scene,
       target, scene, seqbasep, SEQ_query_strip_effect_chain);
 
   /* Expand collection by adding all target's children, effects and their children. */
-  if ((target->type & SEQ_TYPE_EFFECT) != 0) {
+  if ((target->type & STRIP_TYPE_EFFECT) != 0) {
     SEQ_iterator_set_expand(scene, seqbasep, targets, SEQ_query_strip_effect_chain);
   }
 
   /* Trim all non effects, that have influence on effect length which is overlapping. */
   for (Strip *strip : targets) {
-    if ((strip->type & SEQ_TYPE_EFFECT) != 0 && SEQ_effect_get_num_inputs(strip->type) > 0) {
+    if ((strip->type & STRIP_TYPE_EFFECT) != 0 && SEQ_effect_get_num_inputs(strip->type) > 0) {
       continue;
     }
     if (overlap == STRIP_OVERLAP_LEFT_SIDE) {
@@ -649,7 +649,7 @@ void SEQ_image_transform_matrix_get(const Scene *scene,
                                     float r_transform_matrix[4][4])
 {
   float image_size[2] = {float(scene->r.xsch), float(scene->r.ysch)};
-  if (ELEM(strip->type, SEQ_TYPE_MOVIE, SEQ_TYPE_IMAGE)) {
+  if (ELEM(strip->type, STRIP_TYPE_MOVIE, STRIP_TYPE_IMAGE)) {
     image_size[0] = strip->data->stripdata->orig_width;
     image_size[1] = strip->data->stripdata->orig_height;
   }
@@ -676,7 +676,7 @@ static void strip_image_transform_quad_get_ex(const Scene *scene,
   const StripCrop *crop = strip->data->crop;
 
   float image_size[2] = {float(scene->r.xsch), float(scene->r.ysch)};
-  if (ELEM(strip->type, SEQ_TYPE_MOVIE, SEQ_TYPE_IMAGE)) {
+  if (ELEM(strip->type, STRIP_TYPE_MOVIE, STRIP_TYPE_IMAGE)) {
     image_size[0] = strip->data->stripdata->orig_width;
     image_size[1] = strip->data->stripdata->orig_height;
   }

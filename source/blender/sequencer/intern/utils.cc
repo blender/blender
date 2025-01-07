@@ -108,55 +108,55 @@ void SEQ_sequence_base_unique_name_recursive(Scene *scene, ListBase *seqbasep, S
 static const char *give_seqname_by_type(int type)
 {
   switch (type) {
-    case SEQ_TYPE_META:
+    case STRIP_TYPE_META:
       return CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, "Meta");
-    case SEQ_TYPE_IMAGE:
+    case STRIP_TYPE_IMAGE:
       return CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, "Image");
-    case SEQ_TYPE_SCENE:
+    case STRIP_TYPE_SCENE:
       return CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, "Scene");
-    case SEQ_TYPE_MOVIE:
+    case STRIP_TYPE_MOVIE:
       return CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, "Movie");
-    case SEQ_TYPE_MOVIECLIP:
+    case STRIP_TYPE_MOVIECLIP:
       return CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, "Clip");
-    case SEQ_TYPE_MASK:
+    case STRIP_TYPE_MASK:
       return CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, "Mask");
-    case SEQ_TYPE_SOUND_RAM:
+    case STRIP_TYPE_SOUND_RAM:
       return CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, "Audio");
-    case SEQ_TYPE_CROSS:
+    case STRIP_TYPE_CROSS:
       return CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, "Cross");
-    case SEQ_TYPE_GAMCROSS:
+    case STRIP_TYPE_GAMCROSS:
       return CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, "Gamma Cross");
-    case SEQ_TYPE_ADD:
+    case STRIP_TYPE_ADD:
       return CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, "Add");
-    case SEQ_TYPE_SUB:
+    case STRIP_TYPE_SUB:
       return CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, "Subtract");
-    case SEQ_TYPE_MUL:
+    case STRIP_TYPE_MUL:
       return CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, "Multiply");
-    case SEQ_TYPE_ALPHAOVER:
+    case STRIP_TYPE_ALPHAOVER:
       return CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, "Alpha Over");
-    case SEQ_TYPE_ALPHAUNDER:
+    case STRIP_TYPE_ALPHAUNDER:
       return CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, "Alpha Under");
-    case SEQ_TYPE_OVERDROP:
+    case STRIP_TYPE_OVERDROP:
       return CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, "Over Drop");
-    case SEQ_TYPE_COLORMIX:
+    case STRIP_TYPE_COLORMIX:
       return CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, "Color Mix");
-    case SEQ_TYPE_WIPE:
+    case STRIP_TYPE_WIPE:
       return CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, "Wipe");
-    case SEQ_TYPE_GLOW:
+    case STRIP_TYPE_GLOW:
       return CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, "Glow");
-    case SEQ_TYPE_TRANSFORM:
+    case STRIP_TYPE_TRANSFORM:
       return CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, "Transform");
-    case SEQ_TYPE_COLOR:
+    case STRIP_TYPE_COLOR:
       return CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, "Color");
-    case SEQ_TYPE_MULTICAM:
+    case STRIP_TYPE_MULTICAM:
       return CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, "Multicam");
-    case SEQ_TYPE_ADJUSTMENT:
+    case STRIP_TYPE_ADJUSTMENT:
       return CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, "Adjustment");
-    case SEQ_TYPE_SPEED:
+    case STRIP_TYPE_SPEED:
       return CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, "Speed");
-    case SEQ_TYPE_GAUSSIAN_BLUR:
+    case STRIP_TYPE_GAUSSIAN_BLUR:
       return CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, "Gaussian Blur");
-    case SEQ_TYPE_TEXT:
+    case STRIP_TYPE_TEXT:
       return CTX_DATA_(BLT_I18NCONTEXT_ID_SEQUENCE, "Text");
     default:
       return nullptr;
@@ -168,7 +168,7 @@ const char *SEQ_sequence_give_name(const Strip *strip)
   const char *name = give_seqname_by_type(strip->type);
 
   if (!name) {
-    if (!(strip->type & SEQ_TYPE_EFFECT)) {
+    if (!(strip->type & STRIP_TYPE_EFFECT)) {
       return strip->data->dirpath;
     }
 
@@ -182,13 +182,13 @@ ListBase *SEQ_get_seqbase_from_sequence(Strip *strip, ListBase **r_channels, int
   ListBase *seqbase = nullptr;
 
   switch (strip->type) {
-    case SEQ_TYPE_META: {
+    case STRIP_TYPE_META: {
       seqbase = &strip->seqbase;
       *r_channels = &strip->channels;
       *r_offset = SEQ_time_start_frame_get(strip);
       break;
     }
-    case SEQ_TYPE_SCENE: {
+    case STRIP_TYPE_SCENE: {
       if (strip->flag & SEQ_SCENE_STRIPS && strip->scene) {
         Editing *ed = SEQ_editing_get(strip->scene);
         if (ed) {
@@ -346,12 +346,12 @@ const Strip *SEQ_get_topmost_sequence(const Scene *scene, int frame)
     /* Only use strips that generate an image, not ones that combine
      * other strips or apply some effect. */
     if (ELEM(strip->type,
-             SEQ_TYPE_IMAGE,
-             SEQ_TYPE_META,
-             SEQ_TYPE_SCENE,
-             SEQ_TYPE_MOVIE,
-             SEQ_TYPE_COLOR,
-             SEQ_TYPE_TEXT))
+             STRIP_TYPE_IMAGE,
+             STRIP_TYPE_META,
+             STRIP_TYPE_SCENE,
+             STRIP_TYPE_MOVIE,
+             STRIP_TYPE_COLOR,
+             STRIP_TYPE_TEXT))
     {
       if (strip->machine > best_machine) {
         best_seq = strip;
@@ -418,7 +418,7 @@ Mask *SEQ_active_mask_get(Scene *scene)
 {
   Strip *strip_act = SEQ_select_active_get(scene);
 
-  if (strip_act && strip_act->type == SEQ_TYPE_MASK) {
+  if (strip_act && strip_act->type == STRIP_TYPE_MASK) {
     return strip_act->mask;
   }
 
@@ -436,13 +436,13 @@ void SEQ_alpha_mode_from_file_extension(Strip *strip)
 bool SEQ_sequence_has_valid_data(const Strip *strip)
 {
   switch (strip->type) {
-    case SEQ_TYPE_MASK:
+    case STRIP_TYPE_MASK:
       return (strip->mask != nullptr);
-    case SEQ_TYPE_MOVIECLIP:
+    case STRIP_TYPE_MOVIECLIP:
       return (strip->clip != nullptr);
-    case SEQ_TYPE_SCENE:
+    case STRIP_TYPE_SCENE:
       return (strip->scene != nullptr);
-    case SEQ_TYPE_SOUND_RAM:
+    case STRIP_TYPE_SOUND_RAM:
       return (strip->sound != nullptr);
   }
 
@@ -452,13 +452,13 @@ bool SEQ_sequence_has_valid_data(const Strip *strip)
 bool sequencer_seq_generates_image(Strip *strip)
 {
   switch (strip->type) {
-    case SEQ_TYPE_IMAGE:
-    case SEQ_TYPE_SCENE:
-    case SEQ_TYPE_MOVIE:
-    case SEQ_TYPE_MOVIECLIP:
-    case SEQ_TYPE_MASK:
-    case SEQ_TYPE_COLOR:
-    case SEQ_TYPE_TEXT:
+    case STRIP_TYPE_IMAGE:
+    case STRIP_TYPE_SCENE:
+    case STRIP_TYPE_MOVIE:
+    case STRIP_TYPE_MOVIECLIP:
+    case STRIP_TYPE_MASK:
+    case STRIP_TYPE_COLOR:
+    case STRIP_TYPE_TEXT:
       return true;
   }
   return false;
@@ -511,7 +511,7 @@ void SEQ_ensure_unique_name(Strip *strip, Scene *scene)
                                 0,
                                 false);
 
-  if (strip->type == SEQ_TYPE_META) {
+  if (strip->type == STRIP_TYPE_META) {
     LISTBASE_FOREACH (Strip *, strip_child, &strip->seqbase) {
       SEQ_ensure_unique_name(strip_child, scene);
     }

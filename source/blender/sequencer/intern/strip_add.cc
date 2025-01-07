@@ -87,16 +87,16 @@ static void strip_add_set_name(Scene *scene, Strip *strip, SeqLoadData *load_dat
     SEQ_edit_sequence_name_set(scene, strip, load_data->name);
   }
   else {
-    if (strip->type == SEQ_TYPE_SCENE) {
+    if (strip->type == STRIP_TYPE_SCENE) {
       SEQ_edit_sequence_name_set(scene, strip, load_data->scene->id.name + 2);
     }
-    else if (strip->type == SEQ_TYPE_MOVIECLIP) {
+    else if (strip->type == STRIP_TYPE_MOVIECLIP) {
       SEQ_edit_sequence_name_set(scene, strip, load_data->clip->id.name + 2);
     }
-    else if (strip->type == SEQ_TYPE_MASK) {
+    else if (strip->type == STRIP_TYPE_MASK) {
       SEQ_edit_sequence_name_set(scene, strip, load_data->mask->id.name + 2);
     }
-    else if ((strip->type & SEQ_TYPE_EFFECT) != 0) {
+    else if ((strip->type & STRIP_TYPE_EFFECT) != 0) {
       SEQ_edit_sequence_name_set(scene, strip, SEQ_sequence_give_name(strip));
     }
     else { /* Image, sound and movie. */
@@ -126,7 +126,7 @@ static void strip_add_set_view_transform(Scene *scene, Strip *strip, SeqLoadData
 Strip *SEQ_add_scene_strip(Scene *scene, ListBase *seqbase, SeqLoadData *load_data)
 {
   Strip *strip = SEQ_sequence_alloc(
-      seqbase, load_data->start_frame, load_data->channel, SEQ_TYPE_SCENE);
+      seqbase, load_data->start_frame, load_data->channel, STRIP_TYPE_SCENE);
   strip->scene = load_data->scene;
   strip->len = load_data->scene->r.efra - load_data->scene->r.sfra + 1;
   id_us_ensure_real((ID *)load_data->scene);
@@ -138,7 +138,7 @@ Strip *SEQ_add_scene_strip(Scene *scene, ListBase *seqbase, SeqLoadData *load_da
 Strip *SEQ_add_movieclip_strip(Scene *scene, ListBase *seqbase, SeqLoadData *load_data)
 {
   Strip *strip = SEQ_sequence_alloc(
-      seqbase, load_data->start_frame, load_data->channel, SEQ_TYPE_MOVIECLIP);
+      seqbase, load_data->start_frame, load_data->channel, STRIP_TYPE_MOVIECLIP);
   strip->clip = load_data->clip;
   strip->len = BKE_movieclip_get_duration(load_data->clip);
   id_us_ensure_real((ID *)load_data->clip);
@@ -150,7 +150,7 @@ Strip *SEQ_add_movieclip_strip(Scene *scene, ListBase *seqbase, SeqLoadData *loa
 Strip *SEQ_add_mask_strip(Scene *scene, ListBase *seqbase, SeqLoadData *load_data)
 {
   Strip *strip = SEQ_sequence_alloc(
-      seqbase, load_data->start_frame, load_data->channel, SEQ_TYPE_MASK);
+      seqbase, load_data->start_frame, load_data->channel, STRIP_TYPE_MASK);
   strip->mask = load_data->mask;
   strip->len = BKE_mask_get_duration(load_data->mask);
   id_us_ensure_real((ID *)load_data->mask);
@@ -210,7 +210,7 @@ void SEQ_add_image_init_alpha_mode(Strip *strip)
     BLI_path_abs(filepath, BKE_main_blendfile_path_from_global());
 
     /* Initialize input color space. */
-    if (strip->type == SEQ_TYPE_IMAGE) {
+    if (strip->type == STRIP_TYPE_IMAGE) {
       ibuf = IMB_loadiffname(
           filepath, IB_test | IB_alphamode_detect, strip->data->colorspace_settings.name);
 
@@ -232,7 +232,7 @@ void SEQ_add_image_init_alpha_mode(Strip *strip)
 Strip *SEQ_add_image_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqLoadData *load_data)
 {
   Strip *strip = SEQ_sequence_alloc(
-      seqbase, load_data->start_frame, load_data->channel, SEQ_TYPE_IMAGE);
+      seqbase, load_data->start_frame, load_data->channel, STRIP_TYPE_IMAGE);
   strip->len = load_data->image.len;
   StripData *data = strip->data;
   data->stripdata = static_cast<StripElem *>(
@@ -313,7 +313,7 @@ Strip *SEQ_add_sound_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqLoad
   }
 
   Strip *strip = SEQ_sequence_alloc(
-      seqbase, load_data->start_frame, load_data->channel, SEQ_TYPE_SOUND_RAM);
+      seqbase, load_data->start_frame, load_data->channel, STRIP_TYPE_SOUND_RAM);
   strip->sound = sound;
   strip->scene_sound = nullptr;
 
@@ -376,7 +376,7 @@ Strip *SEQ_add_meta_strip(Scene *scene, ListBase *seqbase, SeqLoadData *load_dat
 {
   /* Allocate sequence. */
   Strip *seqm = SEQ_sequence_alloc(
-      seqbase, load_data->start_frame, load_data->channel, SEQ_TYPE_META);
+      seqbase, load_data->start_frame, load_data->channel, STRIP_TYPE_META);
 
   /* Set name. */
   strip_add_set_name(scene, seqm, load_data);
@@ -459,7 +459,7 @@ Strip *SEQ_add_movie_strip(Main *bmain, Scene *scene, ListBase *seqbase, SeqLoad
   }
 
   Strip *strip = SEQ_sequence_alloc(
-      seqbase, load_data->start_frame, load_data->channel, SEQ_TYPE_MOVIE);
+      seqbase, load_data->start_frame, load_data->channel, STRIP_TYPE_MOVIE);
 
   /* Multiview settings. */
   if (load_data->use_multiview) {
@@ -529,13 +529,13 @@ void SEQ_add_reload_new_file(Main *bmain, Scene *scene, Strip *strip, const bool
   /* NOTE: don't rename the strip, will break animation curves. */
 
   if (ELEM(strip->type,
-           SEQ_TYPE_MOVIE,
-           SEQ_TYPE_IMAGE,
-           SEQ_TYPE_SOUND_RAM,
-           SEQ_TYPE_SCENE,
-           SEQ_TYPE_META,
-           SEQ_TYPE_MOVIECLIP,
-           SEQ_TYPE_MASK) == 0)
+           STRIP_TYPE_MOVIE,
+           STRIP_TYPE_IMAGE,
+           STRIP_TYPE_SOUND_RAM,
+           STRIP_TYPE_SCENE,
+           STRIP_TYPE_META,
+           STRIP_TYPE_MOVIECLIP,
+           STRIP_TYPE_MASK) == 0)
   {
     return;
   }
@@ -547,7 +547,7 @@ void SEQ_add_reload_new_file(Main *bmain, Scene *scene, Strip *strip, const bool
   }
 
   switch (strip->type) {
-    case SEQ_TYPE_IMAGE: {
+    case STRIP_TYPE_IMAGE: {
       /* Hack? */
       size_t olen = MEM_allocN_len(strip->data->stripdata) / sizeof(StripElem);
 
@@ -559,7 +559,7 @@ void SEQ_add_reload_new_file(Main *bmain, Scene *scene, Strip *strip, const bool
       }
       break;
     }
-    case SEQ_TYPE_MOVIE: {
+    case STRIP_TYPE_MOVIE: {
       char filepath[FILE_MAX];
       StripAnim *sanim;
       bool is_multiview_loaded = false;
@@ -636,7 +636,7 @@ void SEQ_add_reload_new_file(Main *bmain, Scene *scene, Strip *strip, const bool
       }
       break;
     }
-    case SEQ_TYPE_MOVIECLIP:
+    case STRIP_TYPE_MOVIECLIP:
       if (strip->clip == nullptr) {
         return;
       }
@@ -649,7 +649,7 @@ void SEQ_add_reload_new_file(Main *bmain, Scene *scene, Strip *strip, const bool
         strip->len = 0;
       }
       break;
-    case SEQ_TYPE_MASK:
+    case STRIP_TYPE_MASK:
       if (strip->mask == nullptr) {
         return;
       }
@@ -660,7 +660,7 @@ void SEQ_add_reload_new_file(Main *bmain, Scene *scene, Strip *strip, const bool
         strip->len = 0;
       }
       break;
-    case SEQ_TYPE_SOUND_RAM:
+    case STRIP_TYPE_SOUND_RAM:
 #ifdef WITH_AUDASPACE
       if (!strip->sound) {
         return;
@@ -676,7 +676,7 @@ void SEQ_add_reload_new_file(Main *bmain, Scene *scene, Strip *strip, const bool
       return;
 #endif
       break;
-    case SEQ_TYPE_SCENE: {
+    case STRIP_TYPE_SCENE: {
       strip->len = (strip->scene) ? strip->scene->r.efra - strip->scene->r.sfra + 1 : 0;
       strip->len -= strip->anim_startofs;
       strip->len -= strip->anim_endofs;
@@ -700,7 +700,7 @@ void SEQ_add_reload_new_file(Main *bmain, Scene *scene, Strip *strip, const bool
 void SEQ_add_movie_reload_if_needed(
     Main *bmain, Scene *scene, Strip *strip, bool *r_was_reloaded, bool *r_can_produce_frames)
 {
-  BLI_assert_msg(strip->type == SEQ_TYPE_MOVIE,
+  BLI_assert_msg(strip->type == STRIP_TYPE_MOVIE,
                  "This function is only implemented for movie strips.");
 
   bool must_reload = false;

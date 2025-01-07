@@ -312,7 +312,7 @@ static bool scene_new_sequencer_poll(bContext *C)
 {
   Scene *scene = CTX_data_scene(C);
   const Strip *strip = SEQ_select_active_get(scene);
-  return (strip && (strip->type == SEQ_TYPE_SCENE));
+  return (strip && (strip->type == STRIP_TYPE_SCENE));
 }
 
 static const EnumPropertyItem *scene_new_sequencer_enum_itemf(bContext *C,
@@ -335,7 +335,7 @@ static const EnumPropertyItem *scene_new_sequencer_enum_itemf(bContext *C,
   else {
     Scene *scene = CTX_data_scene(C);
     Strip *strip = SEQ_select_active_get(scene);
-    if (strip && (strip->type == SEQ_TYPE_SCENE) && (strip->scene != nullptr)) {
+    if (strip && (strip->type == STRIP_TYPE_SCENE) && (strip->scene != nullptr)) {
       has_scene_or_no_context = true;
     }
   }

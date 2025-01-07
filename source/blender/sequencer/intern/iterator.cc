@@ -29,7 +29,7 @@ static bool strip_for_each_recursive(ListBase *seqbase, SeqForEachFunc callback,
       /* Callback signaled stop, return. */
       return false;
     }
-    if (strip->type == SEQ_TYPE_META) {
+    if (strip->type == STRIP_TYPE_META) {
       if (!strip_for_each_recursive(&strip->seqbase, callback, user_data)) {
         return false;
       }
@@ -78,7 +78,7 @@ void SEQ_iterator_set_expand(const Scene *scene,
 static void query_all_strips_recursive(const ListBase *seqbase, VectorSet<Strip *> &strips)
 {
   LISTBASE_FOREACH (Strip *, seq, seqbase) {
-    if (seq->type == SEQ_TYPE_META) {
+    if (seq->type == STRIP_TYPE_META) {
       query_all_strips_recursive(&seq->seqbase, strips);
     }
     strips.add(seq);
@@ -142,7 +142,7 @@ static bool must_render_strip(const VectorSet<Strip *> &strips, Strip *strip)
       return false;
     }
 
-    if ((strip_iter->type & SEQ_TYPE_EFFECT) != 0 &&
+    if ((strip_iter->type & STRIP_TYPE_EFFECT) != 0 &&
         SEQ_relation_is_effect_of_strip(strip_iter, strip))
     {
       /* Strips in same channel or higher than its effect are rendered. */
@@ -155,7 +155,7 @@ static bool must_render_strip(const VectorSet<Strip *> &strips, Strip *strip)
   }
 
   /* All non-generator effects are rendered (with respect to conditions above). */
-  if ((strip->type & SEQ_TYPE_EFFECT) != 0 && SEQ_effect_get_num_inputs(strip->type) != 0) {
+  if ((strip->type & STRIP_TYPE_EFFECT) != 0 && SEQ_effect_get_num_inputs(strip->type) != 0) {
     return true;
   }
 
@@ -173,7 +173,7 @@ static void collection_filter_rendered_strips(VectorSet<Strip *> &strips, ListBa
   /* Remove sound strips and muted strips from VectorSet, because these are not rendered.
    * Function #must_render_strip() don't have to check for these strips anymore. */
   strips.remove_if([&](Strip *strip) {
-    return strip->type == SEQ_TYPE_SOUND_RAM || SEQ_render_is_muted(channels, strip);
+    return strip->type == STRIP_TYPE_SOUND_RAM || SEQ_render_is_muted(channels, strip);
   });
 
   strips.remove_if([&](Strip *strip) { return !must_render_strip(strips, strip); });
@@ -217,7 +217,7 @@ void SEQ_query_strip_effect_chain(const Scene *scene,
   strips.add(reference_strip);
 
   /* Find all strips that reference_strip is connected to. */
-  if (reference_strip->type & SEQ_TYPE_EFFECT) {
+  if (reference_strip->type & STRIP_TYPE_EFFECT) {
     if (reference_strip->seq1) {
       SEQ_query_strip_effect_chain(scene, reference_strip->seq1, seqbase, strips);
     }

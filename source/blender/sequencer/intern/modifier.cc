@@ -1365,7 +1365,7 @@ void SEQ_modifier_list_copy(Strip *seqn, Strip *strip)
 
 int SEQ_sequence_supports_modifiers(Strip *strip)
 {
-  return (strip->type != SEQ_TYPE_SOUND_RAM);
+  return (strip->type != STRIP_TYPE_SOUND_RAM);
 }
 
 /** \} */

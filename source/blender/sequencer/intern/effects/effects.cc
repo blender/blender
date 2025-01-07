@@ -172,78 +172,78 @@ SeqEffectHandle get_sequence_effect_impl(int strip_type)
   rval.copy = nullptr;
 
   switch (strip_type) {
-    case SEQ_TYPE_CROSS:
+    case STRIP_TYPE_CROSS:
       cross_effect_get_handle(rval);
       break;
-    case SEQ_TYPE_GAMCROSS:
+    case STRIP_TYPE_GAMCROSS:
       gamma_cross_effect_get_handle(rval);
       break;
-    case SEQ_TYPE_ADD:
+    case STRIP_TYPE_ADD:
       add_effect_get_handle(rval);
       break;
-    case SEQ_TYPE_SUB:
+    case STRIP_TYPE_SUB:
       sub_effect_get_handle(rval);
       break;
-    case SEQ_TYPE_MUL:
+    case STRIP_TYPE_MUL:
       mul_effect_get_handle(rval);
       break;
-    case SEQ_TYPE_SCREEN:
-    case SEQ_TYPE_OVERLAY:
-    case SEQ_TYPE_COLOR_BURN:
-    case SEQ_TYPE_LINEAR_BURN:
-    case SEQ_TYPE_DARKEN:
-    case SEQ_TYPE_LIGHTEN:
-    case SEQ_TYPE_DODGE:
-    case SEQ_TYPE_SOFT_LIGHT:
-    case SEQ_TYPE_HARD_LIGHT:
-    case SEQ_TYPE_PIN_LIGHT:
-    case SEQ_TYPE_LIN_LIGHT:
-    case SEQ_TYPE_VIVID_LIGHT:
-    case SEQ_TYPE_BLEND_COLOR:
-    case SEQ_TYPE_HUE:
-    case SEQ_TYPE_SATURATION:
-    case SEQ_TYPE_VALUE:
-    case SEQ_TYPE_DIFFERENCE:
-    case SEQ_TYPE_EXCLUSION:
+    case STRIP_TYPE_SCREEN:
+    case STRIP_TYPE_OVERLAY:
+    case STRIP_TYPE_COLOR_BURN:
+    case STRIP_TYPE_LINEAR_BURN:
+    case STRIP_TYPE_DARKEN:
+    case STRIP_TYPE_LIGHTEN:
+    case STRIP_TYPE_DODGE:
+    case STRIP_TYPE_SOFT_LIGHT:
+    case STRIP_TYPE_HARD_LIGHT:
+    case STRIP_TYPE_PIN_LIGHT:
+    case STRIP_TYPE_LIN_LIGHT:
+    case STRIP_TYPE_VIVID_LIGHT:
+    case STRIP_TYPE_BLEND_COLOR:
+    case STRIP_TYPE_HUE:
+    case STRIP_TYPE_SATURATION:
+    case STRIP_TYPE_VALUE:
+    case STRIP_TYPE_DIFFERENCE:
+    case STRIP_TYPE_EXCLUSION:
       blend_mode_effect_get_handle(rval);
       break;
-    case SEQ_TYPE_COLORMIX:
+    case STRIP_TYPE_COLORMIX:
       color_mix_effect_get_handle(rval);
       break;
-    case SEQ_TYPE_ALPHAOVER:
+    case STRIP_TYPE_ALPHAOVER:
       alpha_over_effect_get_handle(rval);
       break;
-    case SEQ_TYPE_OVERDROP:
+    case STRIP_TYPE_OVERDROP:
       over_drop_effect_get_handle(rval);
       break;
-    case SEQ_TYPE_ALPHAUNDER:
+    case STRIP_TYPE_ALPHAUNDER:
       alpha_under_effect_get_handle(rval);
       break;
-    case SEQ_TYPE_WIPE:
+    case STRIP_TYPE_WIPE:
       wipe_effect_get_handle(rval);
       break;
-    case SEQ_TYPE_GLOW:
+    case STRIP_TYPE_GLOW:
       glow_effect_get_handle(rval);
       break;
-    case SEQ_TYPE_TRANSFORM:
+    case STRIP_TYPE_TRANSFORM:
       transform_effect_get_handle(rval);
       break;
-    case SEQ_TYPE_SPEED:
+    case STRIP_TYPE_SPEED:
       speed_effect_get_handle(rval);
       break;
-    case SEQ_TYPE_COLOR:
+    case STRIP_TYPE_COLOR:
       solid_color_effect_get_handle(rval);
       break;
-    case SEQ_TYPE_MULTICAM:
+    case STRIP_TYPE_MULTICAM:
       multi_camera_effect_get_handle(rval);
       break;
-    case SEQ_TYPE_ADJUSTMENT:
+    case STRIP_TYPE_ADJUSTMENT:
       adjustment_effect_get_handle(rval);
       break;
-    case SEQ_TYPE_GAUSSIAN_BLUR:
+    case STRIP_TYPE_GAUSSIAN_BLUR:
       gaussian_blur_effect_get_handle(rval);
       break;
-    case SEQ_TYPE_TEXT:
+    case STRIP_TYPE_TEXT:
       text_effect_get_handle(rval);
       break;
   }
@@ -255,7 +255,7 @@ SeqEffectHandle SEQ_effect_handle_get(Strip *strip)
 {
   SeqEffectHandle rval = {};
 
-  if (strip->type & SEQ_TYPE_EFFECT) {
+  if (strip->type & STRIP_TYPE_EFFECT) {
     rval = get_sequence_effect_impl(strip->type);
     if ((strip->flag & SEQ_EFFECT_NOT_LOADED) != 0) {
       rval.load(strip);

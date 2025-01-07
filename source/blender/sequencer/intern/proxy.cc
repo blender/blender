@@ -344,7 +344,7 @@ static bool seq_proxy_multiview_context_invalid(Strip *strip,
     return false;
   }
 
-  if ((strip->type == SEQ_TYPE_IMAGE) && (strip->views_format == R_IMF_VIEWS_INDIVIDUAL)) {
+  if ((strip->type == STRIP_TYPE_IMAGE) && (strip->views_format == R_IMF_VIEWS_INDIVIDUAL)) {
     if (view_id == 0) {
       /* Clear on first use. */
       prefix_vars->prefix[0] = '\0';
@@ -384,11 +384,11 @@ static int seq_proxy_context_count(Strip *strip, Scene *scene)
   }
 
   switch (strip->type) {
-    case SEQ_TYPE_MOVIE: {
+    case STRIP_TYPE_MOVIE: {
       num_views = BLI_listbase_count(&strip->anims);
       break;
     }
-    case SEQ_TYPE_IMAGE: {
+    case STRIP_TYPE_IMAGE: {
       switch (strip->views_format) {
         case R_IMF_VIEWS_INDIVIDUAL:
           num_views = BKE_scene_multiview_num_views_get(&scene->r);
@@ -479,7 +479,7 @@ bool SEQ_proxy_rebuild_context(Main *bmain,
 
     context->view_id = i; /* only for images */
 
-    if (nseq->type == SEQ_TYPE_MOVIE) {
+    if (nseq->type == STRIP_TYPE_MOVIE) {
       strip_open_anim_file(scene, nseq, true);
       sanim = static_cast<StripAnim *>(BLI_findlink(&nseq->anims, i));
 
@@ -514,7 +514,7 @@ void SEQ_proxy_rebuild(SeqIndexBuildContext *context, wmJobWorkerStatus *worker_
   Main *bmain = context->bmain;
   int timeline_frame;
 
-  if (strip->type == SEQ_TYPE_MOVIE) {
+  if (strip->type == STRIP_TYPE_MOVIE) {
     if (context->proxy_builder) {
       MOV_proxy_builder_process(context->proxy_builder,
                                 &worker_status->stop,

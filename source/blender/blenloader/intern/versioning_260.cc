@@ -1029,7 +1029,7 @@ static bool strip_set_alpha_mode_cb(Strip *strip, void * /*user_data*/)
 
 static bool strip_set_wipe_angle_cb(Strip *strip, void * /*user_data*/)
 {
-  if (strip->type == SEQ_TYPE_WIPE) {
+  if (strip->type == STRIP_TYPE_WIPE) {
     WipeVars *wv = static_cast<WipeVars *>(strip->effectdata);
     wv->angle = DEG2RADF(wv->angle);
   }

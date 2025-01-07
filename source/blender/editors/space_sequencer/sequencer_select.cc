@@ -251,12 +251,12 @@ void ED_sequencer_select_sequence_single(Scene *scene, Strip *strip, bool desele
 
   SEQ_select_active_set(scene, strip);
 
-  if (ELEM(strip->type, SEQ_TYPE_IMAGE, SEQ_TYPE_MOVIE)) {
+  if (ELEM(strip->type, STRIP_TYPE_IMAGE, STRIP_TYPE_MOVIE)) {
     if (strip->data) {
       BLI_strncpy(ed->act_imagedir, strip->data->dirpath, FILE_MAXDIR);
     }
   }
-  else if (strip->type == SEQ_TYPE_SOUND_RAM) {
+  else if (strip->type == STRIP_TYPE_SOUND_RAM) {
     if (strip->data) {
       BLI_strncpy(ed->act_sounddir, strip->data->dirpath, FILE_MAXDIR);
     }
@@ -591,12 +591,12 @@ static void sequencer_select_set_active(Scene *scene, Strip *strip)
 
   SEQ_select_active_set(scene, strip);
 
-  if (ELEM(strip->type, SEQ_TYPE_IMAGE, SEQ_TYPE_MOVIE)) {
+  if (ELEM(strip->type, STRIP_TYPE_IMAGE, STRIP_TYPE_MOVIE)) {
     if (strip->data) {
       BLI_strncpy(ed->act_imagedir, strip->data->dirpath, FILE_MAXDIR);
     }
   }
-  else if (strip->type == SEQ_TYPE_SOUND_RAM) {
+  else if (strip->type == STRIP_TYPE_SOUND_RAM) {
     if (strip->data) {
       BLI_strncpy(ed->act_sounddir, strip->data->dirpath, FILE_MAXDIR);
     }
@@ -2286,12 +2286,13 @@ static const EnumPropertyItem sequencer_prop_select_grouped_types[] = {
     {0, nullptr, 0, nullptr, nullptr},
 };
 
-#define SEQ_IS_SOUND(_seq) ((_seq->type & SEQ_TYPE_SOUND_RAM) && !(_seq->type & SEQ_TYPE_EFFECT))
+#define SEQ_IS_SOUND(_seq) \
+  ((_seq->type & STRIP_TYPE_SOUND_RAM) && !(_seq->type & STRIP_TYPE_EFFECT))
 
-#define SEQ_IS_EFFECT(_seq) ((_seq->type & SEQ_TYPE_EFFECT) != 0)
+#define SEQ_IS_EFFECT(_seq) ((_seq->type & STRIP_TYPE_EFFECT) != 0)
 
 #define SEQ_USE_DATA(_seq) \
-  (ELEM(_seq->type, SEQ_TYPE_SCENE, SEQ_TYPE_MOVIECLIP, SEQ_TYPE_MASK) || SEQ_HAS_PATH(_seq))
+  (ELEM(_seq->type, STRIP_TYPE_SCENE, STRIP_TYPE_MOVIECLIP, STRIP_TYPE_MASK) || SEQ_HAS_PATH(_seq))
 
 #define SEQ_CHANNEL_CHECK(_seq, _chan) ELEM((_chan), 0, (_seq)->machine)
 
@@ -2374,10 +2375,10 @@ static bool select_grouped_data(blender::Span<Strip *> strips,
       }
     }
   }
-  else if (actseq->type == SEQ_TYPE_SCENE) {
+  else if (actseq->type == STRIP_TYPE_SCENE) {
     Scene *sce = actseq->scene;
     for (Strip *strip : strips) {
-      if (SEQ_CHANNEL_CHECK(strip, channel) && strip->type == SEQ_TYPE_SCENE &&
+      if (SEQ_CHANNEL_CHECK(strip, channel) && strip->type == STRIP_TYPE_SCENE &&
           strip->scene == sce)
       {
         strip->flag |= SELECT;
@@ -2385,10 +2386,10 @@ static bool select_grouped_data(blender::Span<Strip *> strips,
       }
     }
   }
-  else if (actseq->type == SEQ_TYPE_MOVIECLIP) {
+  else if (actseq->type == STRIP_TYPE_MOVIECLIP) {
     MovieClip *clip = actseq->clip;
     for (Strip *strip : strips) {
-      if (SEQ_CHANNEL_CHECK(strip, channel) && strip->type == SEQ_TYPE_MOVIECLIP &&
+      if (SEQ_CHANNEL_CHECK(strip, channel) && strip->type == STRIP_TYPE_MOVIECLIP &&
           strip->clip == clip)
       {
         strip->flag |= SELECT;
@@ -2396,10 +2397,11 @@ static bool select_grouped_data(blender::Span<Strip *> strips,
       }
     }
   }
-  else if (actseq->type == SEQ_TYPE_MASK) {
+  else if (actseq->type == STRIP_TYPE_MASK) {
     Mask *mask = actseq->mask;
     for (Strip *strip : strips) {
-      if (SEQ_CHANNEL_CHECK(strip, channel) && strip->type == SEQ_TYPE_MASK && strip->mask == mask)
+      if (SEQ_CHANNEL_CHECK(strip, channel) && strip->type == STRIP_TYPE_MASK &&
+          strip->mask == mask)
       {
         strip->flag |= SELECT;
         changed = true;
@@ -2416,14 +2418,14 @@ static bool select_grouped_effect(blender::Span<Strip *> strips,
                                   const int channel)
 {
   bool changed = false;
-  bool effects[SEQ_TYPE_MAX + 1];
+  bool effects[STRIP_TYPE_MAX + 1];
 
-  for (int i = 0; i <= SEQ_TYPE_MAX; i++) {
+  for (int i = 0; i <= STRIP_TYPE_MAX; i++) {
     effects[i] = false;
   }
 
   for (Strip *strip : strips) {
-    if (SEQ_CHANNEL_CHECK(strip, channel) && (strip->type & SEQ_TYPE_EFFECT) &&
+    if (SEQ_CHANNEL_CHECK(strip, channel) && (strip->type & STRIP_TYPE_EFFECT) &&
         SEQ_relation_is_effect_of_strip(strip, actseq))
     {
       effects[strip->type] = true;

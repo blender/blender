@@ -47,11 +47,11 @@ static bool check_media_missing(const Strip *strip)
   }
 
   /* Images or movies. */
-  if (ELEM((strip)->type, SEQ_TYPE_MOVIE, SEQ_TYPE_IMAGE)) {
+  if (ELEM((strip)->type, STRIP_TYPE_MOVIE, STRIP_TYPE_IMAGE)) {
     const StripElem *elem = strip->data->stripdata;
     if (elem != nullptr) {
       int paths_count = 1;
-      if (strip->type == SEQ_TYPE_IMAGE) {
+      if (strip->type == STRIP_TYPE_IMAGE) {
         /* Image strip has array of file names. */
         paths_count = int(MEM_allocN_len(elem) / sizeof(*elem));
       }
@@ -68,7 +68,7 @@ static bool check_media_missing(const Strip *strip)
   }
 
   /* Recurse into meta strips. */
-  if (strip->type == SEQ_TYPE_META) {
+  if (strip->type == STRIP_TYPE_META) {
     LISTBASE_FOREACH (Strip *, seqn, &strip->seqbase) {
       if (check_media_missing(seqn)) {
         return true;
@@ -109,7 +109,7 @@ bool media_presence_is_missing(Scene *scene, const Strip *strip)
   /* Strips that reference another data block that has path to media
    * (e.g. sound strips) need to key the presence cache on that data
    * block. Since it can be used by multiple strips. */
-  if (strip->type == SEQ_TYPE_SOUND_RAM) {
+  if (strip->type == STRIP_TYPE_SOUND_RAM) {
     const bSound *sound = strip->sound;
     const bool *val = presence->map_sound.lookup_ptr(sound);
     if (val != nullptr) {
@@ -146,7 +146,7 @@ void media_presence_set_missing(Scene *scene, const Strip *strip, bool missing)
 
   MediaPresence *presence = get_media_presence_cache(scene);
 
-  if (strip->type == SEQ_TYPE_SOUND_RAM) {
+  if (strip->type == STRIP_TYPE_SOUND_RAM) {
     const bSound *sound = strip->sound;
     presence->map_sound.add_overwrite(sound, missing);
   }

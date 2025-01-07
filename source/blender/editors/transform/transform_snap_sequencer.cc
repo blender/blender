@@ -228,7 +228,7 @@ static blender::VectorSet<Strip *> query_snap_targets_timeline(
   blender::VectorSet effects_of_snap_sources = snap_sources;
   SEQ_iterator_set_expand(scene, seqbase, effects_of_snap_sources, query_strip_effects_fn);
   effects_of_snap_sources.remove_if([&](Strip *strip) {
-    return (strip->type & SEQ_TYPE_EFFECT) != 0 && SEQ_effect_get_num_inputs(strip->type) == 0;
+    return (strip->type & STRIP_TYPE_EFFECT) != 0 && SEQ_effect_get_num_inputs(strip->type) == 0;
   });
 
   blender::VectorSet<Strip *> snap_targets;
@@ -239,7 +239,7 @@ static blender::VectorSet<Strip *> query_snap_targets_timeline(
     if (SEQ_render_is_muted(channels, strip) && (snap_flag & SEQ_SNAP_IGNORE_MUTED)) {
       continue;
     }
-    if (strip->type == SEQ_TYPE_SOUND_RAM && (snap_flag & SEQ_SNAP_IGNORE_SOUND)) {
+    if (strip->type == STRIP_TYPE_SOUND_RAM && (snap_flag & SEQ_SNAP_IGNORE_SOUND)) {
       continue;
     }
     if (effects_of_snap_sources.contains(strip)) {
@@ -379,7 +379,7 @@ static void seq_snap_target_points_build_timeline(const Scene *scene,
       int content_end = SEQ_time_content_end_frame_get(scene, strip);
 
       /* Effects and single image strips produce incorrect content length. Skip these strips. */
-      if ((strip->type & SEQ_TYPE_EFFECT) != 0 || strip->len == 1) {
+      if ((strip->type & STRIP_TYPE_EFFECT) != 0 || strip->len == 1) {
         content_start = SEQ_time_left_handle_frame_get(scene, strip);
         content_end = SEQ_time_right_handle_frame_get(scene, strip);
       }

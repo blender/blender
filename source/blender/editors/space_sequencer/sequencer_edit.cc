@@ -394,7 +394,7 @@ static int sequencer_snap_exec(bContext *C, wmOperator *op)
 
   /* Recalculate bounds of effect strips, offsetting the keyframes if not snapping any handle. */
   LISTBASE_FOREACH (Strip *, strip, ed->seqbasep) {
-    if (strip->type & SEQ_TYPE_EFFECT) {
+    if (strip->type & STRIP_TYPE_EFFECT) {
       const bool either_handle_selected = (strip->flag & (SEQ_LEFTSEL | SEQ_RIGHTSEL)) != 0;
 
       if (strip->seq1 && (strip->seq1->flag & SELECT)) {
@@ -479,7 +479,7 @@ static void slip_add_sequences(ListBase *seqbasep, Strip **strip_array)
   int i = 0;
 
   LISTBASE_FOREACH (Strip *, strip, seqbasep) {
-    if (!(strip->type & SEQ_TYPE_EFFECT) && (strip->flag & SELECT)) {
+    if (!(strip->type & STRIP_TYPE_EFFECT) && (strip->flag & SELECT)) {
       strip_array[i] = strip;
       i++;
     }
@@ -491,7 +491,7 @@ static int slip_count_sequences(ListBase *seqbasep)
   int trimmed_sequences = 0;
 
   LISTBASE_FOREACH (Strip *, strip, seqbasep) {
-    if (!(strip->type & SEQ_TYPE_EFFECT) && (strip->flag & SELECT)) {
+    if (!(strip->type & STRIP_TYPE_EFFECT) && (strip->flag & SELECT)) {
       trimmed_sequences++;
     }
   }
@@ -1222,7 +1222,7 @@ int strip_effect_find_selected(Scene *scene,
 
   LISTBASE_FOREACH (Strip *, strip, ed->seqbasep) {
     if (strip->flag & SELECT) {
-      if (strip->type == SEQ_TYPE_SOUND_RAM) {
+      if (strip->type == STRIP_TYPE_SOUND_RAM) {
         *r_error_str = N_("Cannot apply effects to audio sequence strips");
         return 0;
       }
@@ -1326,7 +1326,7 @@ static bool sequencer_effect_poll(bContext *C)
 
   if (ed) {
     Strip *last_seq = SEQ_select_active_get(scene);
-    if (last_seq && (last_seq->type & SEQ_TYPE_EFFECT)) {
+    if (last_seq && (last_seq->type & STRIP_TYPE_EFFECT)) {
       return true;
     }
   }
@@ -1703,7 +1703,7 @@ static int sequencer_add_duplicate_exec(bContext *C, wmOperator * /*op*/)
    * overlap, because strips won't be translated. */
   if (region->regiontype == RGN_TYPE_PREVIEW && sequencer_view_preview_only_poll(C)) {
     for (Strip *strip = strip_last->next; strip; strip = strip->next) {
-      if (strip->type == SEQ_TYPE_SOUND_RAM) {
+      if (strip->type == STRIP_TYPE_SOUND_RAM) {
         SEQ_edit_flag_for_removal(scene, ed->seqbasep, strip);
       }
     }
@@ -1747,7 +1747,7 @@ void SEQUENCER_OT_duplicate(wmOperatorType *ot)
 
 static void sequencer_delete_strip_data(bContext *C, Strip *strip)
 {
-  if (strip->type != SEQ_TYPE_SCENE) {
+  if (strip->type != STRIP_TYPE_SCENE) {
     return;
   }
 
@@ -1855,7 +1855,7 @@ static int sequencer_offset_clear_exec(bContext *C, wmOperator * /*op*/)
       continue;
     }
 
-    if ((strip->type & SEQ_TYPE_EFFECT) == 0 && (strip->flag & SELECT)) {
+    if ((strip->type & STRIP_TYPE_EFFECT) == 0 && (strip->flag & SELECT)) {
       strip->startofs = strip->endofs = 0;
     }
   }
@@ -1870,7 +1870,7 @@ static int sequencer_offset_clear_exec(bContext *C, wmOperator * /*op*/)
   for (strip = static_cast<Strip *>(ed->seqbasep->first); strip;
        strip = static_cast<Strip *>(strip->next))
   {
-    if ((strip->type & SEQ_TYPE_EFFECT) == 0 && (strip->flag & SELECT)) {
+    if ((strip->type & STRIP_TYPE_EFFECT) == 0 && (strip->flag & SELECT)) {
       if (SEQ_transform_test_overlap(scene, ed->seqbasep, strip)) {
         SEQ_transform_seqbase_shuffle(ed->seqbasep, strip, scene);
       }
@@ -1921,7 +1921,7 @@ static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
   SEQ_prefetch_stop(scene);
 
   while (strip) {
-    if ((strip->flag & SELECT) && (strip->type == SEQ_TYPE_IMAGE) && (strip->len > 1)) {
+    if ((strip->flag & SELECT) && (strip->type == STRIP_TYPE_IMAGE) && (strip->len > 1)) {
       Strip *strip_next;
 
       /* TODO: remove f-curve and assign to split image strips.
@@ -1938,7 +1938,7 @@ static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
             scene, scene, seqbase, strip, SEQ_DUPE_UNIQUE_NAME);
 
         strip_new->start = start_ofs;
-        strip_new->type = SEQ_TYPE_IMAGE;
+        strip_new->type = STRIP_TYPE_IMAGE;
         strip_new->len = 1;
         strip_new->flag |= SEQ_SINGLE_FRAME_CONTENT;
         strip_new->endofs = 1 - step;
@@ -2020,7 +2020,7 @@ static int sequencer_meta_toggle_exec(bContext *C, wmOperator * /*op*/)
 
   SEQ_prefetch_stop(scene);
 
-  if (active_strip && active_strip->type == SEQ_TYPE_META && active_strip->flag & SELECT) {
+  if (active_strip && active_strip->type == STRIP_TYPE_META && active_strip->flag & SELECT) {
     /* Deselect active meta strip. */
     SEQ_select_active_set(scene, nullptr);
     SEQ_meta_stack_set(scene, active_strip);
@@ -2079,7 +2079,7 @@ static int sequencer_meta_make_exec(bContext *C, wmOperator *op)
 
   int channel_max = 1, channel_min = INT_MAX, meta_start_frame = MAXFRAME,
       meta_end_frame = MINFRAME;
-  Strip *seqm = SEQ_sequence_alloc(active_seqbase, 1, 1, SEQ_TYPE_META);
+  Strip *seqm = SEQ_sequence_alloc(active_seqbase, 1, 1, STRIP_TYPE_META);
 
   /* Remove all selected from main list, and put in meta.
    * Sequence is moved within the same edit, no need to re-generate the UID. */
@@ -2154,7 +2154,7 @@ static int sequencer_meta_separate_exec(bContext *C, wmOperator * /*op*/)
   Editing *ed = SEQ_editing_get(scene);
   Strip *active_strip = SEQ_select_active_get(scene);
 
-  if (active_strip == nullptr || active_strip->type != SEQ_TYPE_META) {
+  if (active_strip == nullptr || active_strip->type != STRIP_TYPE_META) {
     return OPERATOR_CANCELLED;
   }
 
@@ -2408,7 +2408,7 @@ static int sequencer_swap_exec(bContext *C, wmOperator *op)
 
     /* Do this in a new loop since both effects need to be calculated first. */
     LISTBASE_FOREACH (Strip *, iseq, seqbase) {
-      if ((iseq->type & SEQ_TYPE_EFFECT) &&
+      if ((iseq->type & STRIP_TYPE_EFFECT) &&
           (strip_is_parent(iseq, active_seq) || strip_is_parent(iseq, strip)))
       {
         /* This may now overlap. */
@@ -2461,10 +2461,10 @@ static int sequencer_rendersize_exec(bContext *C, wmOperator * /*op*/)
   }
 
   switch (active_seq->type) {
-    case SEQ_TYPE_IMAGE:
+    case STRIP_TYPE_IMAGE:
       se = SEQ_render_give_stripelem(scene, active_seq, scene->r.cfra);
       break;
-    case SEQ_TYPE_MOVIE:
+    case STRIP_TYPE_MOVIE:
       se = active_seq->data->stripdata;
       break;
     default:
@@ -2688,24 +2688,24 @@ void SEQUENCER_OT_change_effect_input(wmOperatorType *ot)
  * \{ */
 
 const EnumPropertyItem sequencer_prop_effect_types[] = {
-    {SEQ_TYPE_CROSS, "CROSS", 0, "Crossfade", "Crossfade effect strip type"},
-    {SEQ_TYPE_ADD, "ADD", 0, "Add", "Add effect strip type"},
-    {SEQ_TYPE_SUB, "SUBTRACT", 0, "Subtract", "Subtract effect strip type"},
-    {SEQ_TYPE_ALPHAOVER, "ALPHA_OVER", 0, "Alpha Over", "Alpha Over effect strip type"},
-    {SEQ_TYPE_ALPHAUNDER, "ALPHA_UNDER", 0, "Alpha Under", "Alpha Under effect strip type"},
-    {SEQ_TYPE_GAMCROSS, "GAMMA_CROSS", 0, "Gamma Cross", "Gamma Cross effect strip type"},
-    {SEQ_TYPE_MUL, "MULTIPLY", 0, "Multiply", "Multiply effect strip type"},
-    {SEQ_TYPE_OVERDROP, "OVER_DROP", 0, "Alpha Over Drop", "Alpha Over Drop effect strip type"},
-    {SEQ_TYPE_WIPE, "WIPE", 0, "Wipe", "Wipe effect strip type"},
-    {SEQ_TYPE_GLOW, "GLOW", 0, "Glow", "Glow effect strip type"},
-    {SEQ_TYPE_TRANSFORM, "TRANSFORM", 0, "Transform", "Transform effect strip type"},
-    {SEQ_TYPE_COLOR, "COLOR", 0, "Color", "Color effect strip type"},
-    {SEQ_TYPE_SPEED, "SPEED", 0, "Speed", "Color effect strip type"},
-    {SEQ_TYPE_MULTICAM, "MULTICAM", 0, "Multicam Selector", ""},
-    {SEQ_TYPE_ADJUSTMENT, "ADJUSTMENT", 0, "Adjustment Layer", ""},
-    {SEQ_TYPE_GAUSSIAN_BLUR, "GAUSSIAN_BLUR", 0, "Gaussian Blur", ""},
-    {SEQ_TYPE_TEXT, "TEXT", 0, "Text", ""},
-    {SEQ_TYPE_COLORMIX, "COLORMIX", 0, "Color Mix", ""},
+    {STRIP_TYPE_CROSS, "CROSS", 0, "Crossfade", "Crossfade effect strip type"},
+    {STRIP_TYPE_ADD, "ADD", 0, "Add", "Add effect strip type"},
+    {STRIP_TYPE_SUB, "SUBTRACT", 0, "Subtract", "Subtract effect strip type"},
+    {STRIP_TYPE_ALPHAOVER, "ALPHA_OVER", 0, "Alpha Over", "Alpha Over effect strip type"},
+    {STRIP_TYPE_ALPHAUNDER, "ALPHA_UNDER", 0, "Alpha Under", "Alpha Under effect strip type"},
+    {STRIP_TYPE_GAMCROSS, "GAMMA_CROSS", 0, "Gamma Cross", "Gamma Cross effect strip type"},
+    {STRIP_TYPE_MUL, "MULTIPLY", 0, "Multiply", "Multiply effect strip type"},
+    {STRIP_TYPE_OVERDROP, "OVER_DROP", 0, "Alpha Over Drop", "Alpha Over Drop effect strip type"},
+    {STRIP_TYPE_WIPE, "WIPE", 0, "Wipe", "Wipe effect strip type"},
+    {STRIP_TYPE_GLOW, "GLOW", 0, "Glow", "Glow effect strip type"},
+    {STRIP_TYPE_TRANSFORM, "TRANSFORM", 0, "Transform", "Transform effect strip type"},
+    {STRIP_TYPE_COLOR, "COLOR", 0, "Color", "Color effect strip type"},
+    {STRIP_TYPE_SPEED, "SPEED", 0, "Speed", "Color effect strip type"},
+    {STRIP_TYPE_MULTICAM, "MULTICAM", 0, "Multicam Selector", ""},
+    {STRIP_TYPE_ADJUSTMENT, "ADJUSTMENT", 0, "Adjustment Layer", ""},
+    {STRIP_TYPE_GAUSSIAN_BLUR, "GAUSSIAN_BLUR", 0, "Gaussian Blur", ""},
+    {STRIP_TYPE_TEXT, "TEXT", 0, "Text", ""},
+    {STRIP_TYPE_COLORMIX, "COLORMIX", 0, "Color Mix", ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -2718,7 +2718,7 @@ static int sequencer_change_effect_type_exec(bContext *C, wmOperator *op)
   /* Free previous effect and init new effect. */
   SeqEffectHandle sh;
 
-  if ((strip->type & SEQ_TYPE_EFFECT) == 0) {
+  if ((strip->type & STRIP_TYPE_EFFECT) == 0) {
     return OPERATOR_CANCELLED;
   }
 
@@ -2759,7 +2759,7 @@ void SEQUENCER_OT_change_effect_type(wmOperatorType *ot)
   ot->prop = RNA_def_enum(ot->srna,
                           "type",
                           sequencer_prop_effect_types,
-                          SEQ_TYPE_CROSS,
+                          STRIP_TYPE_CROSS,
                           "Type",
                           "Sequencer effect type");
   RNA_def_property_translation_context(ot->prop, BLT_I18NCONTEXT_ID_SEQUENCE);
@@ -2780,7 +2780,7 @@ static int sequencer_change_path_exec(bContext *C, wmOperator *op)
   const bool use_placeholders = RNA_boolean_get(op->ptr, "use_placeholders");
   int minext_frameme, numdigits;
 
-  if (strip->type == SEQ_TYPE_IMAGE) {
+  if (strip->type == STRIP_TYPE_IMAGE) {
     char directory[FILE_MAX];
     int len;
     StripElem *se;
@@ -2837,7 +2837,7 @@ static int sequencer_change_path_exec(bContext *C, wmOperator *op)
      * Important not to set strip->len = len; allow the function to handle it. */
     SEQ_add_reload_new_file(bmain, scene, strip, true);
   }
-  else if (strip->type == SEQ_TYPE_SOUND_RAM) {
+  else if (strip->type == STRIP_TYPE_SOUND_RAM) {
     bSound *sound = strip->sound;
     if (sound == nullptr) {
       return OPERATOR_CANCELLED;
@@ -2880,7 +2880,7 @@ static int sequencer_change_path_invoke(bContext *C, wmOperator *op, const wmEve
   RNA_string_set(op->ptr, "filepath", filepath);
 
   /* Set default display depending on strip type. */
-  if (strip->type == SEQ_TYPE_IMAGE) {
+  if (strip->type == STRIP_TYPE_IMAGE) {
     RNA_boolean_set(op->ptr, "filter_movie", false);
   }
   else {
@@ -2934,7 +2934,7 @@ static bool sequencer_strip_change_scene_poll(bContext *C)
     return false;
   }
   Strip *strip = ed->act_seq;
-  return ((strip != nullptr) && (strip->type == SEQ_TYPE_SCENE));
+  return ((strip != nullptr) && (strip->type == STRIP_TYPE_SCENE));
 }
 static int sequencer_change_scene_exec(bContext *C, wmOperator *op)
 {
@@ -3043,7 +3043,7 @@ static bool strip_get_text_strip_cb(Strip *strip, void *user_data)
   Editing *ed = SEQ_editing_get(cd->scene);
   ListBase *channels = SEQ_channels_displayed_get(ed);
   /* Only text strips that are not muted and don't end with negative frame. */
-  if ((strip->type == SEQ_TYPE_TEXT) && !SEQ_render_is_muted(channels, strip) &&
+  if ((strip->type == STRIP_TYPE_TEXT) && !SEQ_render_is_muted(channels, strip) &&
       (SEQ_time_right_handle_frame_get(cd->scene, strip) > cd->scene->r.sfra))
   {
     BLI_addtail(cd->text_seq, MEM_dupallocN(strip));
@@ -3135,7 +3135,7 @@ static bool sequencer_strip_is_text_poll(bContext *C)
   Editing *ed;
   Strip *strip;
   return (((ed = SEQ_editing_get(CTX_data_scene(C))) != nullptr) &&
-          ((strip = ed->act_seq) != nullptr) && (strip->type == SEQ_TYPE_TEXT));
+          ((strip = ed->act_seq) != nullptr) && (strip->type == STRIP_TYPE_TEXT));
 }
 
 void SEQUENCER_OT_export_subtitles(wmOperatorType *ot)
@@ -3262,7 +3262,7 @@ static int sequencer_strip_transform_clear_exec(bContext *C, wmOperator *op)
   const int property = RNA_enum_get(op->ptr, "property");
 
   LISTBASE_FOREACH (Strip *, strip, ed->seqbasep) {
-    if (strip->flag & SELECT && strip->type != SEQ_TYPE_SOUND_RAM) {
+    if (strip->flag & SELECT && strip->type != STRIP_TYPE_SOUND_RAM) {
       StripTransform *transform = strip->data->transform;
       switch (property) {
         case STRIP_TRANSFORM_POSITION:
@@ -3334,7 +3334,7 @@ static int sequencer_strip_transform_fit_exec(bContext *C, wmOperator *op)
   const eSeqImageFitMethod fit_method = eSeqImageFitMethod(RNA_enum_get(op->ptr, "fit_method"));
 
   LISTBASE_FOREACH (Strip *, strip, ed->seqbasep) {
-    if (strip->flag & SELECT && strip->type != SEQ_TYPE_SOUND_RAM) {
+    if (strip->flag & SELECT && strip->type != STRIP_TYPE_SOUND_RAM) {
       const int timeline_frame = scene->r.cfra;
       StripElem *strip_elem = SEQ_render_give_stripelem(scene, strip, timeline_frame);
 
@@ -3519,7 +3519,7 @@ static int sequencer_scene_frame_range_update_exec(bContext *C, wmOperator * /*o
 static bool sequencer_scene_frame_range_update_poll(bContext *C)
 {
   Editing *ed = SEQ_editing_get(CTX_data_scene(C));
-  return (ed != nullptr && ed->act_seq != nullptr && (ed->act_seq->type & SEQ_TYPE_SCENE) != 0);
+  return (ed != nullptr && ed->act_seq != nullptr && (ed->act_seq->type & STRIP_TYPE_SCENE) != 0);
 }
 
 void SEQUENCER_OT_scene_frame_range_update(wmOperatorType *ot)

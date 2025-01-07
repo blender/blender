@@ -2115,14 +2115,14 @@ static bool strip_convert_callback(Strip *strip, void *userdata)
 
   /* Patch `adrcode`, so that we can map to different DNA variables later (semi-hack (tm)). */
   switch (strip->type) {
-    case SEQ_TYPE_IMAGE:
-    case SEQ_TYPE_META:
-    case SEQ_TYPE_SCENE:
-    case SEQ_TYPE_MOVIE:
-    case SEQ_TYPE_COLOR:
+    case STRIP_TYPE_IMAGE:
+    case STRIP_TYPE_META:
+    case STRIP_TYPE_SCENE:
+    case STRIP_TYPE_MOVIE:
+    case STRIP_TYPE_COLOR:
       adrcode = SEQ_FAC_OPACITY;
       break;
-    case SEQ_TYPE_SPEED:
+    case STRIP_TYPE_SPEED:
       adrcode = SEQ_FAC_SPEED;
       break;
   }

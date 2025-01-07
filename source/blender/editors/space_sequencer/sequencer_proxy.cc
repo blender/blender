@@ -54,7 +54,7 @@ static void seq_proxy_build_job(const bContext *C, ReportList *reports)
   bool selected = false; /* Check for no selected strips */
 
   LISTBASE_FOREACH (Strip *, seq, SEQ_active_seqbase_get(ed)) {
-    if (!ELEM(seq->type, SEQ_TYPE_MOVIE, SEQ_TYPE_IMAGE) || (seq->flag & SELECT) == 0) {
+    if (!ELEM(seq->type, STRIP_TYPE_MOVIE, STRIP_TYPE_IMAGE) || (seq->flag & SELECT) == 0) {
       continue;
     }
 
@@ -172,7 +172,7 @@ static int sequencer_enable_proxies_exec(bContext *C, wmOperator *op)
 
   LISTBASE_FOREACH (Strip *, seq, SEQ_active_seqbase_get(ed)) {
     if (seq->flag & SELECT) {
-      if (ELEM(seq->type, SEQ_TYPE_MOVIE, SEQ_TYPE_IMAGE)) {
+      if (ELEM(seq->type, STRIP_TYPE_MOVIE, STRIP_TYPE_IMAGE)) {
         SEQ_proxy_set(seq, turnon);
         if (seq->data->proxy == nullptr) {
           continue;

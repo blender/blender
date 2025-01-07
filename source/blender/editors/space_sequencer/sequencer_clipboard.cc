@@ -77,7 +77,7 @@ static void sequencer_copy_animation_listbase(Scene *scene_src,
                                               ListBase *fcurve_base_src)
 {
   /* Add curves for strips inside meta strip. */
-  if (strip_dst->type == SEQ_TYPE_META) {
+  if (strip_dst->type == STRIP_TYPE_META) {
     LISTBASE_FOREACH (Strip *, meta_child, &strip_dst->seqbase) {
       sequencer_copy_animation_listbase(scene_src, meta_child, clipboard_dst, fcurve_base_src);
     }
@@ -102,7 +102,7 @@ static void sequencer_copy_animation_to_vector(Scene *scene_src,
                                                animrig::slot_handle_t fcurves_src_slot_handle)
 {
   /* Add curves for strips inside meta strip. */
-  if (strip_dst->type == SEQ_TYPE_META) {
+  if (strip_dst->type == STRIP_TYPE_META) {
     LISTBASE_FOREACH (Strip *, meta_child, &strip_dst->seqbase) {
       sequencer_copy_animation_to_vector(
           scene_src, meta_child, clipboard_dst, fcurves_src_action, fcurves_src_slot_handle);

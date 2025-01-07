@@ -127,7 +127,7 @@ static Strip *sequencer_prefetch_get_original_sequence(Strip *strip, ListBase *s
       return seq_orig;
     }
 
-    if (seq_orig->type == SEQ_TYPE_META) {
+    if (seq_orig->type == STRIP_TYPE_META) {
       Strip *match = sequencer_prefetch_get_original_sequence(strip, &seq_orig->seqbase);
       if (match != nullptr) {
         return match;
@@ -392,7 +392,7 @@ static bool seq_prefetch_scene_strip_is_rendered(PrefetchJob *pfjob,
 
   /* Iterate over rendered strips. */
   for (Strip *strip : strips) {
-    if (strip->type == SEQ_TYPE_META &&
+    if (strip->type == STRIP_TYPE_META &&
         seq_prefetch_scene_strip_is_rendered(
             pfjob, &strip->channels, &strip->seqbase, scene_strips, true))
     {
@@ -400,7 +400,7 @@ static bool seq_prefetch_scene_strip_is_rendered(PrefetchJob *pfjob,
     }
 
     /* Disable prefetching 3D scene strips, but check for disk cache. */
-    if (strip->type == SEQ_TYPE_SCENE && (strip->flag & SEQ_SCENE_STRIPS) == 0 &&
+    if (strip->type == STRIP_TYPE_SCENE && (strip->flag & SEQ_SCENE_STRIPS) == 0 &&
         !seq_prefetch_seq_has_disk_cache(pfjob, strip, !is_recursive_check))
     {
       return true;
@@ -420,7 +420,7 @@ static blender::VectorSet<Strip *> query_scene_strips(ListBase *seqbase)
 {
   blender::VectorSet<Strip *> strips;
   LISTBASE_FOREACH (Strip *, strip, seqbase) {
-    if (strip->type == SEQ_TYPE_SCENE && (strip->flag & SEQ_SCENE_STRIPS) == 0) {
+    if (strip->type == STRIP_TYPE_SCENE && (strip->flag & SEQ_SCENE_STRIPS) == 0) {
       strips.add(strip);
     }
   }

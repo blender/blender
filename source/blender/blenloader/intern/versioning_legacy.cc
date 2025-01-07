@@ -464,7 +464,7 @@ void blo_do_version_old_trackto_to_constraints(Object *ob)
 
 static bool strip_set_alpha_mode_cb(Strip *strip, void * /*user_data*/)
 {
-  if (ELEM(strip->type, SEQ_TYPE_IMAGE, SEQ_TYPE_MOVIE)) {
+  if (ELEM(strip->type, STRIP_TYPE_IMAGE, STRIP_TYPE_MOVIE)) {
     strip->alpha_mode = SEQ_ALPHA_STRAIGHT;
   }
   return true;

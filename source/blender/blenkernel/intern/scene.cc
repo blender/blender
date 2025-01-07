@@ -828,7 +828,7 @@ static bool strip_foreach_member_id_cb(Strip *strip, void *user_data)
     FOREACHID_PROCESS_IDSUPER(data, smd->mask_id, IDWALK_CB_USER);
   }
 
-  if (strip->type == SEQ_TYPE_TEXT && strip->effectdata) {
+  if (strip->type == STRIP_TYPE_TEXT && strip->effectdata) {
     TextVars *text_data = static_cast<TextVars *>(strip->effectdata);
     FOREACHID_PROCESS_IDSUPER(data, text_data->text_font, IDWALK_CB_USER);
   }
@@ -948,14 +948,14 @@ static bool strip_foreach_path_callback(Strip *strip, void *user_data)
     StripElem *se = strip->data->stripdata;
     BPathForeachPathData *bpath_data = (BPathForeachPathData *)user_data;
 
-    if (ELEM(strip->type, SEQ_TYPE_MOVIE, SEQ_TYPE_SOUND_RAM) && se) {
+    if (ELEM(strip->type, STRIP_TYPE_MOVIE, STRIP_TYPE_SOUND_RAM) && se) {
       BKE_bpath_foreach_path_dirfile_fixed_process(bpath_data,
                                                    strip->data->dirpath,
                                                    sizeof(strip->data->dirpath),
                                                    se->filename,
                                                    sizeof(se->filename));
     }
-    else if ((strip->type == SEQ_TYPE_IMAGE) && se) {
+    else if ((strip->type == STRIP_TYPE_IMAGE) && se) {
       /* NOTE: An option not to loop over all strips could be useful? */
       uint len = uint(MEM_allocN_len(se)) / uint(sizeof(*se));
       uint i;

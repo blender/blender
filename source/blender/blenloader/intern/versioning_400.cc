@@ -869,7 +869,7 @@ static bool versioning_convert_strip_speed_factor(Strip *strip, void *user_data)
 
   last_key->strip_frame_index = (strip->len) / speed_factor;
 
-  if (strip->type == SEQ_TYPE_SOUND_RAM) {
+  if (strip->type == STRIP_TYPE_SOUND_RAM) {
     const int prev_length = strip->len - strip->startofs - strip->endofs;
     const float left_handle = SEQ_time_left_handle_frame_get(scene, strip);
     SEQ_time_right_handle_frame_set(scene, strip, left_handle + prev_length);
@@ -3129,7 +3129,7 @@ static bool strip_proxies_timecode_update(Strip *strip, void * /*user_data*/)
 
 static bool strip_text_data_update(Strip *strip, void * /*user_data*/)
 {
-  if (strip->type != SEQ_TYPE_TEXT || strip->effectdata == nullptr) {
+  if (strip->type != STRIP_TYPE_TEXT || strip->effectdata == nullptr) {
     return true;
   }
 
@@ -3304,7 +3304,7 @@ static void hide_simulation_node_skip_socket_value(Main &bmain)
 
 static bool versioning_convert_seq_text_anchor(Strip *strip, void * /*user_data*/)
 {
-  if (strip->type != SEQ_TYPE_TEXT || strip->effectdata == nullptr) {
+  if (strip->type != STRIP_TYPE_TEXT || strip->effectdata == nullptr) {
     return true;
   }
 

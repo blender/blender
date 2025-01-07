@@ -129,7 +129,7 @@ static float seq_cache_timeline_frame_to_frame_index(const Scene *scene,
   /* With raw images, map timeline_frame to strip input media frame range. This means that static
    * images or extended frame range of movies will only generate one cache entry. No special
    * treatment in converting frame index to timeline_frame is needed. */
-  bool is_effect = strip->type & SEQ_TYPE_EFFECT;
+  bool is_effect = strip->type & STRIP_TYPE_EFFECT;
   if (!is_effect && type == SEQ_CACHE_STORE_RAW) {
     return SEQ_give_frame_index(scene, strip, timeline_frame);
   }

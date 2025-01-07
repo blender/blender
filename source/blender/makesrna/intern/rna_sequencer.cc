@@ -231,7 +231,7 @@ static void add_strips_from_seqbase(const ListBase *seqbase, blender::Vector<Str
   LISTBASE_FOREACH (Strip *, strip, seqbase) {
     strips.append(strip);
 
-    if (strip->type == SEQ_TYPE_META) {
+    if (strip->type == STRIP_TYPE_META) {
       add_strips_from_seqbase(&strip->seqbase, strips);
     }
   }
@@ -437,7 +437,7 @@ static void do_sequence_frame_change_update(Scene *scene, Strip *strip)
     SEQ_transform_seqbase_shuffle(seqbase, strip, scene);
   }
 
-  if (strip->type == SEQ_TYPE_SOUND_RAM) {
+  if (strip->type == STRIP_TYPE_SOUND_RAM) {
     DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS);
   }
 }
@@ -555,7 +555,7 @@ static void rna_Sequence_frame_offset_start_range(
     PointerRNA *ptr, float *min, float *max, float * /*softmin*/, float * /*softmax*/)
 {
   Strip *strip = (Strip *)ptr->data;
-  *min = (strip->type == SEQ_TYPE_SOUND_RAM) ? 0 : INT_MIN;
+  *min = (strip->type == STRIP_TYPE_SOUND_RAM) ? 0 : INT_MIN;
   *max = strip->len - strip->endofs - 1;
 }
 
@@ -563,7 +563,7 @@ static void rna_Sequence_frame_offset_end_range(
     PointerRNA *ptr, float *min, float *max, float * /*softmin*/, float * /*softmax*/)
 {
   Strip *strip = (Strip *)ptr->data;
-  *min = (strip->type == SEQ_TYPE_SOUND_RAM) ? 0 : INT_MIN;
+  *min = (strip->type == STRIP_TYPE_SOUND_RAM) ? 0 : INT_MIN;
   *max = strip->len - strip->startofs - 1;
 }
 
@@ -787,55 +787,55 @@ static StructRNA *rna_Sequence_refine(PointerRNA *ptr)
   Strip *strip = (Strip *)ptr->data;
 
   switch (strip->type) {
-    case SEQ_TYPE_IMAGE:
+    case STRIP_TYPE_IMAGE:
       return &RNA_ImageSequence;
-    case SEQ_TYPE_META:
+    case STRIP_TYPE_META:
       return &RNA_MetaSequence;
-    case SEQ_TYPE_SCENE:
+    case STRIP_TYPE_SCENE:
       return &RNA_SceneSequence;
-    case SEQ_TYPE_MOVIE:
+    case STRIP_TYPE_MOVIE:
       return &RNA_MovieSequence;
-    case SEQ_TYPE_MOVIECLIP:
+    case STRIP_TYPE_MOVIECLIP:
       return &RNA_MovieClipSequence;
-    case SEQ_TYPE_MASK:
+    case STRIP_TYPE_MASK:
       return &RNA_MaskSequence;
-    case SEQ_TYPE_SOUND_RAM:
+    case STRIP_TYPE_SOUND_RAM:
       return &RNA_SoundSequence;
-    case SEQ_TYPE_CROSS:
+    case STRIP_TYPE_CROSS:
       return &RNA_CrossSequence;
-    case SEQ_TYPE_ADD:
+    case STRIP_TYPE_ADD:
       return &RNA_AddSequence;
-    case SEQ_TYPE_SUB:
+    case STRIP_TYPE_SUB:
       return &RNA_SubtractSequence;
-    case SEQ_TYPE_ALPHAOVER:
+    case STRIP_TYPE_ALPHAOVER:
       return &RNA_AlphaOverSequence;
-    case SEQ_TYPE_ALPHAUNDER:
+    case STRIP_TYPE_ALPHAUNDER:
       return &RNA_AlphaUnderSequence;
-    case SEQ_TYPE_GAMCROSS:
+    case STRIP_TYPE_GAMCROSS:
       return &RNA_GammaCrossSequence;
-    case SEQ_TYPE_MUL:
+    case STRIP_TYPE_MUL:
       return &RNA_MultiplySequence;
-    case SEQ_TYPE_OVERDROP:
+    case STRIP_TYPE_OVERDROP:
       return &RNA_OverDropSequence;
-    case SEQ_TYPE_MULTICAM:
+    case STRIP_TYPE_MULTICAM:
       return &RNA_MulticamSequence;
-    case SEQ_TYPE_ADJUSTMENT:
+    case STRIP_TYPE_ADJUSTMENT:
       return &RNA_AdjustmentSequence;
-    case SEQ_TYPE_WIPE:
+    case STRIP_TYPE_WIPE:
       return &RNA_WipeSequence;
-    case SEQ_TYPE_GLOW:
+    case STRIP_TYPE_GLOW:
       return &RNA_GlowSequence;
-    case SEQ_TYPE_TRANSFORM:
+    case STRIP_TYPE_TRANSFORM:
       return &RNA_TransformSequence;
-    case SEQ_TYPE_COLOR:
+    case STRIP_TYPE_COLOR:
       return &RNA_ColorSequence;
-    case SEQ_TYPE_SPEED:
+    case STRIP_TYPE_SPEED:
       return &RNA_SpeedControlSequence;
-    case SEQ_TYPE_GAUSSIAN_BLUR:
+    case STRIP_TYPE_GAUSSIAN_BLUR:
       return &RNA_GaussianBlurSequence;
-    case SEQ_TYPE_TEXT:
+    case STRIP_TYPE_TEXT:
       return &RNA_TextSequence;
-    case SEQ_TYPE_COLORMIX:
+    case STRIP_TYPE_COLORMIX:
       return &RNA_ColorMixSequence;
     default:
       return &RNA_Strip;
@@ -1271,7 +1271,8 @@ static void rna_SequenceEditor_overlay_frame_set(PointerRNA *ptr, int value)
 static void rna_SequenceEditor_display_stack(ID *id, Editing *ed, ReportList *reports, Strip *seqm)
 {
   /* Check for non-meta sequence */
-  if (seqm != nullptr && seqm->type != SEQ_TYPE_META && SEQ_exists_in_seqbase(seqm, &ed->seqbase))
+  if (seqm != nullptr && seqm->type != STRIP_TYPE_META &&
+      SEQ_exists_in_seqbase(seqm, &ed->seqbase))
   {
     BKE_report(reports, RPT_ERROR, "Strip type must be 'META'");
     return;
@@ -1393,7 +1394,7 @@ static void rna_SequenceModifier_update(Main *bmain, Scene * /*scene*/, PointerR
   Editing *ed = SEQ_editing_get(scene);
   Strip *strip = sequence_get_by_modifier(ed, static_cast<SequenceModifierData *>(ptr->data));
 
-  if (ELEM(strip->type, SEQ_TYPE_SOUND_RAM, SEQ_TYPE_SOUND_HD)) {
+  if (ELEM(strip->type, STRIP_TYPE_SOUND_RAM, STRIP_TYPE_SOUND_HD)) {
     DEG_id_tag_update(&scene->id, ID_RECALC_SEQUENCER_STRIPS | ID_RECALC_AUDIO);
     DEG_relations_tag_update(bmain);
   }
@@ -1423,7 +1424,7 @@ static bool rna_SequenceModifier_otherSequence_poll(PointerRNA *ptr, PointerRNA 
   Strip *strip = sequence_get_by_modifier(ed, static_cast<SequenceModifierData *>(ptr->data));
   Strip *cur = (Strip *)value.data;
 
-  if ((strip == cur) || (cur->type == SEQ_TYPE_SOUND_RAM)) {
+  if ((strip == cur) || (cur->type == STRIP_TYPE_SOUND_RAM)) {
     return false;
   }
 
@@ -1999,38 +2000,38 @@ static void rna_def_strip_color_balance(BlenderRNA *brna)
 
 static const EnumPropertyItem blend_mode_items[] = {
     {SEQ_BLEND_REPLACE, "REPLACE", 0, "Replace", ""},
-    {SEQ_TYPE_CROSS, "CROSS", 0, "Cross", ""},
+    {STRIP_TYPE_CROSS, "CROSS", 0, "Cross", ""},
     RNA_ENUM_ITEM_SEPR,
-    {SEQ_TYPE_DARKEN, "DARKEN", 0, "Darken", ""},
-    {SEQ_TYPE_MUL, "MULTIPLY", 0, "Multiply", ""},
-    {SEQ_TYPE_COLOR_BURN, "BURN", 0, "Color Burn", ""},
-    {SEQ_TYPE_LINEAR_BURN, "LINEAR_BURN", 0, "Linear Burn", ""},
+    {STRIP_TYPE_DARKEN, "DARKEN", 0, "Darken", ""},
+    {STRIP_TYPE_MUL, "MULTIPLY", 0, "Multiply", ""},
+    {STRIP_TYPE_COLOR_BURN, "BURN", 0, "Color Burn", ""},
+    {STRIP_TYPE_LINEAR_BURN, "LINEAR_BURN", 0, "Linear Burn", ""},
     RNA_ENUM_ITEM_SEPR,
-    {SEQ_TYPE_LIGHTEN, "LIGHTEN", 0, "Lighten", ""},
-    {SEQ_TYPE_SCREEN, "SCREEN", 0, "Screen", ""},
-    {SEQ_TYPE_DODGE, "DODGE", 0, "Color Dodge", ""},
-    {SEQ_TYPE_ADD, "ADD", 0, "Add", ""},
+    {STRIP_TYPE_LIGHTEN, "LIGHTEN", 0, "Lighten", ""},
+    {STRIP_TYPE_SCREEN, "SCREEN", 0, "Screen", ""},
+    {STRIP_TYPE_DODGE, "DODGE", 0, "Color Dodge", ""},
+    {STRIP_TYPE_ADD, "ADD", 0, "Add", ""},
     RNA_ENUM_ITEM_SEPR,
-    {SEQ_TYPE_OVERLAY, "OVERLAY", 0, "Overlay", ""},
-    {SEQ_TYPE_SOFT_LIGHT, "SOFT_LIGHT", 0, "Soft Light", ""},
-    {SEQ_TYPE_HARD_LIGHT, "HARD_LIGHT", 0, "Hard Light", ""},
-    {SEQ_TYPE_VIVID_LIGHT, "VIVID_LIGHT", 0, "Vivid Light", ""},
-    {SEQ_TYPE_LIN_LIGHT, "LINEAR_LIGHT", 0, "Linear Light", ""},
-    {SEQ_TYPE_PIN_LIGHT, "PIN_LIGHT", 0, "Pin Light", ""},
+    {STRIP_TYPE_OVERLAY, "OVERLAY", 0, "Overlay", ""},
+    {STRIP_TYPE_SOFT_LIGHT, "SOFT_LIGHT", 0, "Soft Light", ""},
+    {STRIP_TYPE_HARD_LIGHT, "HARD_LIGHT", 0, "Hard Light", ""},
+    {STRIP_TYPE_VIVID_LIGHT, "VIVID_LIGHT", 0, "Vivid Light", ""},
+    {STRIP_TYPE_LIN_LIGHT, "LINEAR_LIGHT", 0, "Linear Light", ""},
+    {STRIP_TYPE_PIN_LIGHT, "PIN_LIGHT", 0, "Pin Light", ""},
     RNA_ENUM_ITEM_SEPR,
-    {SEQ_TYPE_DIFFERENCE, "DIFFERENCE", 0, "Difference", ""},
-    {SEQ_TYPE_EXCLUSION, "EXCLUSION", 0, "Exclusion", ""},
-    {SEQ_TYPE_SUB, "SUBTRACT", 0, "Subtract", ""},
+    {STRIP_TYPE_DIFFERENCE, "DIFFERENCE", 0, "Difference", ""},
+    {STRIP_TYPE_EXCLUSION, "EXCLUSION", 0, "Exclusion", ""},
+    {STRIP_TYPE_SUB, "SUBTRACT", 0, "Subtract", ""},
     RNA_ENUM_ITEM_SEPR,
-    {SEQ_TYPE_HUE, "HUE", 0, "Hue", ""},
-    {SEQ_TYPE_SATURATION, "SATURATION", 0, "Saturation", ""},
-    {SEQ_TYPE_BLEND_COLOR, "COLOR", 0, "Color", ""},
-    {SEQ_TYPE_VALUE, "VALUE", 0, "Value", ""},
+    {STRIP_TYPE_HUE, "HUE", 0, "Hue", ""},
+    {STRIP_TYPE_SATURATION, "SATURATION", 0, "Saturation", ""},
+    {STRIP_TYPE_BLEND_COLOR, "COLOR", 0, "Color", ""},
+    {STRIP_TYPE_VALUE, "VALUE", 0, "Value", ""},
     RNA_ENUM_ITEM_SEPR,
-    {SEQ_TYPE_ALPHAOVER, "ALPHA_OVER", 0, "Alpha Over", ""},
-    {SEQ_TYPE_ALPHAUNDER, "ALPHA_UNDER", 0, "Alpha Under", ""},
-    {SEQ_TYPE_GAMCROSS, "GAMMA_CROSS", 0, "Gamma Cross", ""},
-    {SEQ_TYPE_OVERDROP, "OVER_DROP", 0, "Over Drop", ""},
+    {STRIP_TYPE_ALPHAOVER, "ALPHA_OVER", 0, "Alpha Over", ""},
+    {STRIP_TYPE_ALPHAUNDER, "ALPHA_UNDER", 0, "Alpha Under", ""},
+    {STRIP_TYPE_GAMCROSS, "GAMMA_CROSS", 0, "Gamma Cross", ""},
+    {STRIP_TYPE_OVERDROP, "OVER_DROP", 0, "Over Drop", ""},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
@@ -2085,31 +2086,31 @@ static void rna_def_sequence(BlenderRNA *brna)
   PropertyRNA *prop;
 
   static const EnumPropertyItem strip_type_items[] = {
-      {SEQ_TYPE_IMAGE, "IMAGE", 0, "Image", ""},
-      {SEQ_TYPE_META, "META", 0, "Meta", ""},
-      {SEQ_TYPE_SCENE, "SCENE", 0, "Scene", ""},
-      {SEQ_TYPE_MOVIE, "MOVIE", 0, "Movie", ""},
-      {SEQ_TYPE_MOVIECLIP, "MOVIECLIP", 0, "Clip", ""},
-      {SEQ_TYPE_MASK, "MASK", 0, "Mask", ""},
-      {SEQ_TYPE_SOUND_RAM, "SOUND", 0, "Sound", ""},
-      {SEQ_TYPE_CROSS, "CROSS", 0, "Cross", ""},
-      {SEQ_TYPE_ADD, "ADD", 0, "Add", ""},
-      {SEQ_TYPE_SUB, "SUBTRACT", 0, "Subtract", ""},
-      {SEQ_TYPE_ALPHAOVER, "ALPHA_OVER", 0, "Alpha Over", ""},
-      {SEQ_TYPE_ALPHAUNDER, "ALPHA_UNDER", 0, "Alpha Under", ""},
-      {SEQ_TYPE_GAMCROSS, "GAMMA_CROSS", 0, "Gamma Cross", ""},
-      {SEQ_TYPE_MUL, "MULTIPLY", 0, "Multiply", ""},
-      {SEQ_TYPE_OVERDROP, "OVER_DROP", 0, "Over Drop", ""},
-      {SEQ_TYPE_WIPE, "WIPE", 0, "Wipe", ""},
-      {SEQ_TYPE_GLOW, "GLOW", 0, "Glow", ""},
-      {SEQ_TYPE_TRANSFORM, "TRANSFORM", 0, "Transform", ""},
-      {SEQ_TYPE_COLOR, "COLOR", 0, "Color", ""},
-      {SEQ_TYPE_SPEED, "SPEED", 0, "Speed", ""},
-      {SEQ_TYPE_MULTICAM, "MULTICAM", 0, "Multicam Selector", ""},
-      {SEQ_TYPE_ADJUSTMENT, "ADJUSTMENT", 0, "Adjustment Layer", ""},
-      {SEQ_TYPE_GAUSSIAN_BLUR, "GAUSSIAN_BLUR", 0, "Gaussian Blur", ""},
-      {SEQ_TYPE_TEXT, "TEXT", 0, "Text", ""},
-      {SEQ_TYPE_COLORMIX, "COLORMIX", 0, "Color Mix", ""},
+      {STRIP_TYPE_IMAGE, "IMAGE", 0, "Image", ""},
+      {STRIP_TYPE_META, "META", 0, "Meta", ""},
+      {STRIP_TYPE_SCENE, "SCENE", 0, "Scene", ""},
+      {STRIP_TYPE_MOVIE, "MOVIE", 0, "Movie", ""},
+      {STRIP_TYPE_MOVIECLIP, "MOVIECLIP", 0, "Clip", ""},
+      {STRIP_TYPE_MASK, "MASK", 0, "Mask", ""},
+      {STRIP_TYPE_SOUND_RAM, "SOUND", 0, "Sound", ""},
+      {STRIP_TYPE_CROSS, "CROSS", 0, "Cross", ""},
+      {STRIP_TYPE_ADD, "ADD", 0, "Add", ""},
+      {STRIP_TYPE_SUB, "SUBTRACT", 0, "Subtract", ""},
+      {STRIP_TYPE_ALPHAOVER, "ALPHA_OVER", 0, "Alpha Over", ""},
+      {STRIP_TYPE_ALPHAUNDER, "ALPHA_UNDER", 0, "Alpha Under", ""},
+      {STRIP_TYPE_GAMCROSS, "GAMMA_CROSS", 0, "Gamma Cross", ""},
+      {STRIP_TYPE_MUL, "MULTIPLY", 0, "Multiply", ""},
+      {STRIP_TYPE_OVERDROP, "OVER_DROP", 0, "Over Drop", ""},
+      {STRIP_TYPE_WIPE, "WIPE", 0, "Wipe", ""},
+      {STRIP_TYPE_GLOW, "GLOW", 0, "Glow", ""},
+      {STRIP_TYPE_TRANSFORM, "TRANSFORM", 0, "Transform", ""},
+      {STRIP_TYPE_COLOR, "COLOR", 0, "Color", ""},
+      {STRIP_TYPE_SPEED, "SPEED", 0, "Speed", ""},
+      {STRIP_TYPE_MULTICAM, "MULTICAM", 0, "Multicam Selector", ""},
+      {STRIP_TYPE_ADJUSTMENT, "ADJUSTMENT", 0, "Adjustment Layer", ""},
+      {STRIP_TYPE_GAUSSIAN_BLUR, "GAUSSIAN_BLUR", 0, "Gaussian Blur", ""},
+      {STRIP_TYPE_TEXT, "TEXT", 0, "Text", ""},
+      {STRIP_TYPE_COLORMIX, "COLORMIX", 0, "Color Mix", ""},
       {0, nullptr, 0, nullptr, nullptr},
   };
 
@@ -3502,31 +3503,31 @@ static void rna_def_text(StructRNA *srna)
 static void rna_def_color_mix(StructRNA *srna)
 {
   static const EnumPropertyItem blend_color_items[] = {
-      {SEQ_TYPE_DARKEN, "DARKEN", 0, "Darken", ""},
-      {SEQ_TYPE_MUL, "MULTIPLY", 0, "Multiply", ""},
-      {SEQ_TYPE_COLOR_BURN, "BURN", 0, "Color Burn", ""},
-      {SEQ_TYPE_LINEAR_BURN, "LINEAR_BURN", 0, "Linear Burn", ""},
+      {STRIP_TYPE_DARKEN, "DARKEN", 0, "Darken", ""},
+      {STRIP_TYPE_MUL, "MULTIPLY", 0, "Multiply", ""},
+      {STRIP_TYPE_COLOR_BURN, "BURN", 0, "Color Burn", ""},
+      {STRIP_TYPE_LINEAR_BURN, "LINEAR_BURN", 0, "Linear Burn", ""},
       RNA_ENUM_ITEM_SEPR,
-      {SEQ_TYPE_LIGHTEN, "LIGHTEN", 0, "Lighten", ""},
-      {SEQ_TYPE_SCREEN, "SCREEN", 0, "Screen", ""},
-      {SEQ_TYPE_DODGE, "DODGE", 0, "Color Dodge", ""},
-      {SEQ_TYPE_ADD, "ADD", 0, "Add", ""},
+      {STRIP_TYPE_LIGHTEN, "LIGHTEN", 0, "Lighten", ""},
+      {STRIP_TYPE_SCREEN, "SCREEN", 0, "Screen", ""},
+      {STRIP_TYPE_DODGE, "DODGE", 0, "Color Dodge", ""},
+      {STRIP_TYPE_ADD, "ADD", 0, "Add", ""},
       RNA_ENUM_ITEM_SEPR,
-      {SEQ_TYPE_OVERLAY, "OVERLAY", 0, "Overlay", ""},
-      {SEQ_TYPE_SOFT_LIGHT, "SOFT_LIGHT", 0, "Soft Light", ""},
-      {SEQ_TYPE_HARD_LIGHT, "HARD_LIGHT", 0, "Hard Light", ""},
-      {SEQ_TYPE_VIVID_LIGHT, "VIVID_LIGHT", 0, "Vivid Light", ""},
-      {SEQ_TYPE_LIN_LIGHT, "LINEAR_LIGHT", 0, "Linear Light", ""},
-      {SEQ_TYPE_PIN_LIGHT, "PIN_LIGHT", 0, "Pin Light", ""},
+      {STRIP_TYPE_OVERLAY, "OVERLAY", 0, "Overlay", ""},
+      {STRIP_TYPE_SOFT_LIGHT, "SOFT_LIGHT", 0, "Soft Light", ""},
+      {STRIP_TYPE_HARD_LIGHT, "HARD_LIGHT", 0, "Hard Light", ""},
+      {STRIP_TYPE_VIVID_LIGHT, "VIVID_LIGHT", 0, "Vivid Light", ""},
+      {STRIP_TYPE_LIN_LIGHT, "LINEAR_LIGHT", 0, "Linear Light", ""},
+      {STRIP_TYPE_PIN_LIGHT, "PIN_LIGHT", 0, "Pin Light", ""},
       RNA_ENUM_ITEM_SEPR,
-      {SEQ_TYPE_DIFFERENCE, "DIFFERENCE", 0, "Difference", ""},
-      {SEQ_TYPE_EXCLUSION, "EXCLUSION", 0, "Exclusion", ""},
-      {SEQ_TYPE_SUB, "SUBTRACT", 0, "Subtract", ""},
+      {STRIP_TYPE_DIFFERENCE, "DIFFERENCE", 0, "Difference", ""},
+      {STRIP_TYPE_EXCLUSION, "EXCLUSION", 0, "Exclusion", ""},
+      {STRIP_TYPE_SUB, "SUBTRACT", 0, "Subtract", ""},
       RNA_ENUM_ITEM_SEPR,
-      {SEQ_TYPE_HUE, "HUE", 0, "Hue", ""},
-      {SEQ_TYPE_SATURATION, "SATURATION", 0, "Saturation", ""},
-      {SEQ_TYPE_BLEND_COLOR, "COLOR", 0, "Color", ""},
-      {SEQ_TYPE_VALUE, "VALUE", 0, "Value", ""},
+      {STRIP_TYPE_HUE, "HUE", 0, "Hue", ""},
+      {STRIP_TYPE_SATURATION, "SATURATION", 0, "Saturation", ""},
+      {STRIP_TYPE_BLEND_COLOR, "COLOR", 0, "Color", ""},
+      {STRIP_TYPE_VALUE, "VALUE", 0, "Value", ""},
       {0, nullptr, 0, nullptr, nullptr},
   };
 

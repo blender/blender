@@ -65,7 +65,7 @@ struct ThumbnailCache {
     explicit Request(const std::string &path,
                      int frame,
                      int stream,
-                     SequenceType type,
+                     StripType type,
                      int64_t logical_time,
                      float time_frame,
                      int ch,
@@ -86,7 +86,7 @@ struct ThumbnailCache {
     std::string file_path;
     int frame_index = 0;  /* Frame index (for movies) or image index (for image sequences). */
     int stream_index = 0; /* Stream index (only for multi-stream movies). */
-    SequenceType strip_type = SEQ_TYPE_IMAGE;
+    SequenceType strip_type = STRIP_TYPE_IMAGE;
 
     /* The following members are payload and do not contribute to uniqueness. */
     int64_t requested_at = 0;
@@ -162,7 +162,7 @@ bool strip_can_have_thumbnail(const Scene *scene, const Strip *strip)
   if (scene == nullptr || scene->ed == nullptr || strip == nullptr) {
     return false;
   }
-  if (!ELEM(strip->type, SEQ_TYPE_MOVIE, SEQ_TYPE_IMAGE)) {
+  if (!ELEM(strip->type, STRIP_TYPE_MOVIE, STRIP_TYPE_IMAGE)) {
     return false;
   }
   const StripElem *se = strip->data->stripdata;
@@ -177,14 +177,14 @@ static std::string get_path_from_seq(Scene *scene, const Strip *strip, float tim
   char filepath[FILE_MAX];
   filepath[0] = 0;
   switch (strip->type) {
-    case SEQ_TYPE_IMAGE: {
+    case STRIP_TYPE_IMAGE: {
       const StripElem *s_elem = SEQ_render_give_stripelem(scene, strip, timeline_frame);
       if (s_elem != nullptr) {
         BLI_path_join(filepath, sizeof(filepath), strip->data->dirpath, s_elem->filename);
         BLI_path_abs(filepath, ID_BLEND_PATH_FROM_GLOBAL(&scene->id));
       }
     } break;
-    case SEQ_TYPE_MOVIE:
+    case STRIP_TYPE_MOVIE:
       BLI_path_join(
           filepath, sizeof(filepath), strip->data->dirpath, strip->data->stripdata->filename);
       BLI_path_abs(filepath, ID_BLEND_PATH_FROM_GLOBAL(&scene->id));
@@ -335,14 +335,14 @@ void ThumbGenerationJob::run_fn(void *customdata, wmJobWorkerStatus *worker_stat
         ++total_thumbs;
 #endif
         ImBuf *thumb = nullptr;
-        if (request.strip_type == SEQ_TYPE_IMAGE) {
+        if (request.strip_type == STRIP_TYPE_IMAGE) {
           /* Load thumbnail for an image. */
 #ifdef DEBUG_PRINT_THUMB_JOB_TIMES
           ++total_images;
 #endif
           thumb = make_thumb_for_image(job->scene_, request);
         }
-        else if (request.strip_type == SEQ_TYPE_MOVIE) {
+        else if (request.strip_type == STRIP_TYPE_MOVIE) {
           /* Load thumbnail for an movie. */
 #ifdef DEBUG_PRINT_THUMB_JOB_TIMES
           ++total_movies;
@@ -461,7 +461,7 @@ static ImBuf *query_thumbnail(ThumbnailCache &cache,
     ThumbnailCache::Request request(key,
                                     frame_index,
                                     strip->streamindex,
-                                    SequenceType(strip->type),
+                                    StripType(strip->type),
                                     cur_time,
                                     timeline_frame,
                                     strip->machine,
@@ -494,7 +494,7 @@ ImBuf *thumbnail_cache_get(const bContext *C,
 
   const std::string key = get_path_from_seq(scene, strip, timeline_frame);
   int frame_index = SEQ_give_frame_index(scene, strip, timeline_frame);
-  if (strip->type == SEQ_TYPE_MOVIE) {
+  if (strip->type == STRIP_TYPE_MOVIE) {
     frame_index += strip->anim_startofs;
   }
 
@@ -520,11 +520,11 @@ void thumbnail_cache_invalidate_strip(Scene *scene, const Strip *strip)
   std::scoped_lock lock(thumb_cache_mutex);
   ThumbnailCache *cache = query_thumbnail_cache(scene);
   if (cache != nullptr) {
-    if (ELEM((strip)->type, SEQ_TYPE_MOVIE, SEQ_TYPE_IMAGE)) {
+    if (ELEM((strip)->type, STRIP_TYPE_MOVIE, STRIP_TYPE_IMAGE)) {
       const StripElem *elem = strip->data->stripdata;
       if (elem != nullptr) {
         int paths_count = 1;
-        if (strip->type == SEQ_TYPE_IMAGE) {
+        if (strip->type == STRIP_TYPE_IMAGE) {
           /* Image strip has array of file names. */
           paths_count = int(MEM_allocN_len(elem) / sizeof(*elem));
         }

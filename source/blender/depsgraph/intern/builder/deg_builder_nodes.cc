@@ -2246,7 +2246,7 @@ static bool strip_node_build_cb(Strip *strip, void *user_data)
   if (strip->scene != nullptr) {
     nb->build_scene_parameters(strip->scene);
   }
-  if (strip->type == SEQ_TYPE_SCENE && strip->scene != nullptr) {
+  if (strip->type == STRIP_TYPE_SCENE && strip->scene != nullptr) {
     if (strip->flag & SEQ_SCENE_STRIPS) {
       nb->build_scene_sequencer(strip->scene);
     }

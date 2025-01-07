@@ -2780,51 +2780,51 @@ TreeElementIcon tree_element_get_icon(TreeStoreElem *tselem, TreeElement *te)
       case TSE_STRIP: {
         const TreeElementStrip *te_strip = tree_element_cast<TreeElementStrip>(te);
         switch (te_strip->get_strip_type()) {
-          case SEQ_TYPE_SCENE:
+          case STRIP_TYPE_SCENE:
             data.icon = ICON_SCENE_DATA;
             break;
-          case SEQ_TYPE_MOVIECLIP:
+          case STRIP_TYPE_MOVIECLIP:
             data.icon = ICON_TRACKER;
             break;
-          case SEQ_TYPE_MASK:
+          case STRIP_TYPE_MASK:
             data.icon = ICON_MOD_MASK;
             break;
-          case SEQ_TYPE_MOVIE:
+          case STRIP_TYPE_MOVIE:
             data.icon = ICON_FILE_MOVIE;
             break;
-          case SEQ_TYPE_SOUND_RAM:
+          case STRIP_TYPE_SOUND_RAM:
             data.icon = ICON_SOUND;
             break;
-          case SEQ_TYPE_IMAGE:
+          case STRIP_TYPE_IMAGE:
             data.icon = ICON_FILE_IMAGE;
             break;
-          case SEQ_TYPE_COLOR:
-          case SEQ_TYPE_ADJUSTMENT:
+          case STRIP_TYPE_COLOR:
+          case STRIP_TYPE_ADJUSTMENT:
             data.icon = ICON_COLOR;
             break;
-          case SEQ_TYPE_TEXT:
+          case STRIP_TYPE_TEXT:
             data.icon = ICON_FONT_DATA;
             break;
-          case SEQ_TYPE_ADD:
-          case SEQ_TYPE_SUB:
-          case SEQ_TYPE_MUL:
-          case SEQ_TYPE_OVERDROP:
-          case SEQ_TYPE_ALPHAOVER:
-          case SEQ_TYPE_ALPHAUNDER:
-          case SEQ_TYPE_COLORMIX:
-          case SEQ_TYPE_MULTICAM:
-          case SEQ_TYPE_TRANSFORM:
-          case SEQ_TYPE_SPEED:
-          case SEQ_TYPE_GLOW:
-          case SEQ_TYPE_GAUSSIAN_BLUR:
+          case STRIP_TYPE_ADD:
+          case STRIP_TYPE_SUB:
+          case STRIP_TYPE_MUL:
+          case STRIP_TYPE_OVERDROP:
+          case STRIP_TYPE_ALPHAOVER:
+          case STRIP_TYPE_ALPHAUNDER:
+          case STRIP_TYPE_COLORMIX:
+          case STRIP_TYPE_MULTICAM:
+          case STRIP_TYPE_TRANSFORM:
+          case STRIP_TYPE_SPEED:
+          case STRIP_TYPE_GLOW:
+          case STRIP_TYPE_GAUSSIAN_BLUR:
             data.icon = ICON_SHADERFX;
             break;
-          case SEQ_TYPE_CROSS:
-          case SEQ_TYPE_GAMCROSS:
-          case SEQ_TYPE_WIPE:
+          case STRIP_TYPE_CROSS:
+          case STRIP_TYPE_GAMCROSS:
+          case STRIP_TYPE_WIPE:
             data.icon = ICON_ARROW_LEFTRIGHT;
             break;
-          case SEQ_TYPE_META:
+          case STRIP_TYPE_META:
             data.icon = ICON_SEQ_STRIP_META;
             break;
           default:

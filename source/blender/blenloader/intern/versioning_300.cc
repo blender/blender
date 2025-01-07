@@ -291,7 +291,7 @@ static void do_versions_idproperty_seq_recursive(ListBase *seqbase)
 {
   LISTBASE_FOREACH (Strip *, strip, seqbase) {
     version_idproperty_ui_data(strip->prop);
-    if (strip->type == SEQ_TYPE_META) {
+    if (strip->type == STRIP_TYPE_META) {
       do_versions_idproperty_seq_recursive(&strip->seqbase);
     }
   }
@@ -426,7 +426,7 @@ static void do_versions_sequencer_speed_effect_recursive(Scene *scene, const Lis
 #define SEQ_SPEED_COMPRESS_IPO_Y (1 << 2)
 
   LISTBASE_FOREACH (Strip *, strip, seqbase) {
-    if (strip->type == SEQ_TYPE_SPEED) {
+    if (strip->type == STRIP_TYPE_SPEED) {
       SpeedControlVars *v = (SpeedControlVars *)strip->effectdata;
       const char *substr = nullptr;
       float globalSpeed = v->globalSpeed;
@@ -481,7 +481,7 @@ static void do_versions_sequencer_speed_effect_recursive(Scene *scene, const Lis
         }
       }
     }
-    else if (strip->type == SEQ_TYPE_META) {
+    else if (strip->type == STRIP_TYPE_META) {
       do_versions_sequencer_speed_effect_recursive(scene, &strip->seqbase);
     }
   }
@@ -647,7 +647,7 @@ static void strip_speed_factor_fix_rna_path(Strip *strip, ListBase *fcurves)
 static bool version_fix_seq_meta_range(Strip *strip, void *user_data)
 {
   Scene *scene = (Scene *)user_data;
-  if (strip->type == SEQ_TYPE_META) {
+  if (strip->type == STRIP_TYPE_META) {
     SEQ_time_update_meta_strip_range(scene, strip);
   }
   return true;
@@ -656,7 +656,7 @@ static bool version_fix_seq_meta_range(Strip *strip, void *user_data)
 static bool strip_speed_factor_set(Strip *strip, void *user_data)
 {
   const Scene *scene = static_cast<const Scene *>(user_data);
-  if (strip->type == SEQ_TYPE_SOUND_RAM) {
+  if (strip->type == STRIP_TYPE_SOUND_RAM) {
     /* Move `pitch` animation to `speed_factor` */
     if (scene->adt && scene->adt->action) {
       strip_speed_factor_fix_rna_path(strip, &scene->adt->action->curves);
@@ -1523,7 +1523,7 @@ static bool strip_transform_filter_set(Strip *strip, void * /*user_data*/)
 
 static bool strip_meta_channels_ensure(Strip *strip, void * /*user_data*/)
 {
-  if (strip->type == SEQ_TYPE_META) {
+  if (strip->type == STRIP_TYPE_META) {
     SEQ_channels_ensure(&strip->channels);
   }
   return true;
@@ -1768,8 +1768,8 @@ static bool version_fix_delete_flag(Strip *strip, void * /*user_data*/)
 static bool version_set_seq_single_frame_content(Strip *strip, void * /*user_data*/)
 {
   if ((strip->len == 1) &&
-      (strip->type == SEQ_TYPE_IMAGE ||
-       ((strip->type & SEQ_TYPE_EFFECT) && SEQ_effect_get_num_inputs(strip->type) == 0)))
+      (strip->type == STRIP_TYPE_IMAGE ||
+       ((strip->type & STRIP_TYPE_EFFECT) && SEQ_effect_get_num_inputs(strip->type) == 0)))
   {
     strip->flag |= SEQ_SINGLE_FRAME_CONTENT;
   }
@@ -1778,7 +1778,7 @@ static bool version_set_seq_single_frame_content(Strip *strip, void * /*user_dat
 
 static bool version_seq_fix_broken_sound_strips(Strip *strip, void * /*user_data*/)
 {
-  if (strip->type != SEQ_TYPE_SOUND_RAM || strip->speed_factor != 0.0f) {
+  if (strip->type != STRIP_TYPE_SOUND_RAM || strip->speed_factor != 0.0f) {
     return true;
   }
 

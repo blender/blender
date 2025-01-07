@@ -191,7 +191,7 @@ static ImBuf *do_speed_effect(const SeqRenderData *context,
                               ImBuf *ibuf2)
 {
   const SpeedControlVars *s = (SpeedControlVars *)strip->effectdata;
-  SeqEffectHandle cross_effect = get_sequence_effect_impl(SEQ_TYPE_CROSS);
+  SeqEffectHandle cross_effect = get_sequence_effect_impl(STRIP_TYPE_CROSS);
   ImBuf *out;
 
   if (s->flags & SEQ_SPEED_USE_INTERPOLATION) {

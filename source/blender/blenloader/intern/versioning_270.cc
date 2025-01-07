@@ -444,7 +444,7 @@ static bool strip_update_proxy_cb(Strip *strip, void * /*user_data*/)
 
 static bool strip_update_effectdata_cb(Strip *strip, void * /*user_data*/)
 {
-  if (strip->type != SEQ_TYPE_TEXT) {
+  if (strip->type != STRIP_TYPE_TEXT) {
     return true;
   }
 

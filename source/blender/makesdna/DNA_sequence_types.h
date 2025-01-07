@@ -10,7 +10,7 @@
  * - #Strip: video/effect/audio data you can select and manipulate in the sequencer.
  * - #Strip.machine: Strange name for the channel.
  * - #StripData: The data referenced by the #Strip
- * - Meta Strip (SEQ_TYPE_META): Support for nesting Sequences.
+ * - Meta Strip (STRIP_TYPE_META): Support for nesting Sequences.
  */
 
 #pragma once
@@ -493,7 +493,7 @@ enum {
 #define SEQ_FONT_NOT_LOADED -2
 
 typedef struct ColorMixVars {
-  /** Value from SEQ_TYPE_XXX enumeration. */
+  /** Value from STRIP_TYPE_XXX enumeration. */
   int blend_effect;
   /** Blend factor [0.0f, 1.0f]. */
   float factor;
@@ -725,61 +725,61 @@ enum {
 /**
  * #Strip.type
  *
- * \warning #SEQ_TYPE_EFFECT BIT is used to determine if this is an effect strip!
+ * \warning #STRIP_TYPE_EFFECT BIT is used to determine if this is an effect strip!
  */
-typedef enum SequenceType {
-  SEQ_TYPE_IMAGE = 0,
-  SEQ_TYPE_META = 1,
-  SEQ_TYPE_SCENE = 2,
-  SEQ_TYPE_MOVIE = 3,
-  SEQ_TYPE_SOUND_RAM = 4,
-  SEQ_TYPE_SOUND_HD = 5, /* DEPRECATED */
-  SEQ_TYPE_MOVIECLIP = 6,
-  SEQ_TYPE_MASK = 7,
+typedef enum StripType {
+  STRIP_TYPE_IMAGE = 0,
+  STRIP_TYPE_META = 1,
+  STRIP_TYPE_SCENE = 2,
+  STRIP_TYPE_MOVIE = 3,
+  STRIP_TYPE_SOUND_RAM = 4,
+  STRIP_TYPE_SOUND_HD = 5, /* DEPRECATED */
+  STRIP_TYPE_MOVIECLIP = 6,
+  STRIP_TYPE_MASK = 7,
 
-  SEQ_TYPE_EFFECT = 8,
-  SEQ_TYPE_CROSS = 8,
-  SEQ_TYPE_ADD = 9,
-  SEQ_TYPE_SUB = 10,
-  SEQ_TYPE_ALPHAOVER = 11,
-  SEQ_TYPE_ALPHAUNDER = 12,
-  SEQ_TYPE_GAMCROSS = 13,
-  SEQ_TYPE_MUL = 14,
-  SEQ_TYPE_OVERDROP = 15,
-  /* SEQ_TYPE_PLUGIN      = 24, */ /* Deprecated */
-  SEQ_TYPE_WIPE = 25,
-  SEQ_TYPE_GLOW = 26,
-  SEQ_TYPE_TRANSFORM = 27,
-  SEQ_TYPE_COLOR = 28,
-  SEQ_TYPE_SPEED = 29,
-  SEQ_TYPE_MULTICAM = 30,
-  SEQ_TYPE_ADJUSTMENT = 31,
-  SEQ_TYPE_GAUSSIAN_BLUR = 40,
-  SEQ_TYPE_TEXT = 41,
-  SEQ_TYPE_COLORMIX = 42,
+  STRIP_TYPE_EFFECT = 8,
+  STRIP_TYPE_CROSS = 8,
+  STRIP_TYPE_ADD = 9,
+  STRIP_TYPE_SUB = 10,
+  STRIP_TYPE_ALPHAOVER = 11,
+  STRIP_TYPE_ALPHAUNDER = 12,
+  STRIP_TYPE_GAMCROSS = 13,
+  STRIP_TYPE_MUL = 14,
+  STRIP_TYPE_OVERDROP = 15,
+  /* STRIP_TYPE_PLUGIN      = 24, */ /* Deprecated */
+  STRIP_TYPE_WIPE = 25,
+  STRIP_TYPE_GLOW = 26,
+  STRIP_TYPE_TRANSFORM = 27,
+  STRIP_TYPE_COLOR = 28,
+  STRIP_TYPE_SPEED = 29,
+  STRIP_TYPE_MULTICAM = 30,
+  STRIP_TYPE_ADJUSTMENT = 31,
+  STRIP_TYPE_GAUSSIAN_BLUR = 40,
+  STRIP_TYPE_TEXT = 41,
+  STRIP_TYPE_COLORMIX = 42,
 
   /* Blend modes */
-  SEQ_TYPE_SCREEN = 43,
-  SEQ_TYPE_LIGHTEN = 44,
-  SEQ_TYPE_DODGE = 45,
-  SEQ_TYPE_DARKEN = 46,
-  SEQ_TYPE_COLOR_BURN = 47,
-  SEQ_TYPE_LINEAR_BURN = 48,
-  SEQ_TYPE_OVERLAY = 49,
-  SEQ_TYPE_HARD_LIGHT = 50,
-  SEQ_TYPE_SOFT_LIGHT = 51,
-  SEQ_TYPE_PIN_LIGHT = 52,
-  SEQ_TYPE_LIN_LIGHT = 53,
-  SEQ_TYPE_VIVID_LIGHT = 54,
-  SEQ_TYPE_HUE = 55,
-  SEQ_TYPE_SATURATION = 56,
-  SEQ_TYPE_VALUE = 57,
-  SEQ_TYPE_BLEND_COLOR = 58,
-  SEQ_TYPE_DIFFERENCE = 59,
-  SEQ_TYPE_EXCLUSION = 60,
+  STRIP_TYPE_SCREEN = 43,
+  STRIP_TYPE_LIGHTEN = 44,
+  STRIP_TYPE_DODGE = 45,
+  STRIP_TYPE_DARKEN = 46,
+  STRIP_TYPE_COLOR_BURN = 47,
+  STRIP_TYPE_LINEAR_BURN = 48,
+  STRIP_TYPE_OVERLAY = 49,
+  STRIP_TYPE_HARD_LIGHT = 50,
+  STRIP_TYPE_SOFT_LIGHT = 51,
+  STRIP_TYPE_PIN_LIGHT = 52,
+  STRIP_TYPE_LIN_LIGHT = 53,
+  STRIP_TYPE_VIVID_LIGHT = 54,
+  STRIP_TYPE_HUE = 55,
+  STRIP_TYPE_SATURATION = 56,
+  STRIP_TYPE_VALUE = 57,
+  STRIP_TYPE_BLEND_COLOR = 58,
+  STRIP_TYPE_DIFFERENCE = 59,
+  STRIP_TYPE_EXCLUSION = 60,
 
-  SEQ_TYPE_MAX = 60,
-} SequenceType;
+  STRIP_TYPE_MAX = 60,
+} StripType;
 
 enum {
   SEQ_MOVIECLIP_RENDER_UNDISTORTED = 1 << 0,
@@ -789,13 +789,17 @@ enum {
 enum {
   SEQ_BLEND_REPLACE = 0,
 };
-/* all other BLEND_MODEs are simple SEQ_TYPE_EFFECT ids and therefore identical
+/* all other BLEND_MODEs are simple STRIP_TYPE_EFFECT ids and therefore identical
  * to the table above. (Only those effects that handle _exactly_ two inputs,
  * otherwise, you can't really blend, right :) !)
  */
 
 #define SEQ_HAS_PATH(_seq) \
-  (ELEM((_seq)->type, SEQ_TYPE_MOVIE, SEQ_TYPE_IMAGE, SEQ_TYPE_SOUND_RAM, SEQ_TYPE_SOUND_HD))
+  (ELEM((_seq)->type, \
+        STRIP_TYPE_MOVIE, \
+        STRIP_TYPE_IMAGE, \
+        STRIP_TYPE_SOUND_RAM, \
+        STRIP_TYPE_SOUND_HD))
 
 /* modifiers */
 

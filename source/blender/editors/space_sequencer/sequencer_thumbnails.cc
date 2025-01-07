@@ -137,7 +137,7 @@ static void get_seq_strip_thumbnails(const View2D *v2d,
   const float crop_x_multiplier = 1.0f / pixelx / (thumb_height / image_height / pixely);
 
   float upper_thumb_bound = min_ff(strip.right_handle, strip.content_end);
-  if (strip.strip->type == SEQ_TYPE_IMAGE) {
+  if (strip.strip->type == STRIP_TYPE_IMAGE) {
     upper_thumb_bound = strip.right_handle;
   }
 

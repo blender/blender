@@ -27,7 +27,7 @@ class TreeElementStrip : public AbstractTreeElement {
   void expand(SpaceOutliner &) const override;
 
   Strip &get_strip() const;
-  SequenceType get_strip_type() const;
+  StripType get_strip_type() const;
 };
 
 /* -------------------------------------------------------------------- */

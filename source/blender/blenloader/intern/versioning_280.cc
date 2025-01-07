@@ -615,7 +615,7 @@ static void do_version_constraints_copy_rotation_mix_mode(ListBase *lb)
 static void do_versions_seq_alloc_transform_and_crop(ListBase *seqbase)
 {
   LISTBASE_FOREACH (Strip *, seq, seqbase) {
-    if (ELEM(seq->type, SEQ_TYPE_SOUND_RAM, SEQ_TYPE_SOUND_HD) == 0) {
+    if (ELEM(seq->type, STRIP_TYPE_SOUND_RAM, STRIP_TYPE_SOUND_HD) == 0) {
       if (seq->data->transform == nullptr) {
         seq->data->transform = static_cast<StripTransform *>(
             MEM_callocN(sizeof(StripTransform), "StripTransform"));
@@ -3012,7 +3012,7 @@ static void do_versions_seq_set_cache_defaults(Editing *ed)
 static bool strip_update_flags_cb(Strip *strip, void * /*user_data*/)
 {
   strip->flag &= ~((1 << 6) | (1 << 18) | (1 << 19) | (1 << 21));
-  if (strip->type == SEQ_TYPE_SPEED) {
+  if (strip->type == STRIP_TYPE_SPEED) {
     SpeedControlVars *s = (SpeedControlVars *)strip->effectdata;
     s->flags &= ~(SEQ_SPEED_UNUSED_1);
   }

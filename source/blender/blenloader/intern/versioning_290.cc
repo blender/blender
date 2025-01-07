@@ -258,10 +258,10 @@ static void strip_convert_transform_crop_lb(const Scene *scene,
 {
 
   LISTBASE_FOREACH (Strip *, seq, lb) {
-    if (!ELEM(seq->type, SEQ_TYPE_SOUND_RAM, SEQ_TYPE_SOUND_HD)) {
+    if (!ELEM(seq->type, STRIP_TYPE_SOUND_RAM, STRIP_TYPE_SOUND_HD)) {
       strip_convert_transform_crop(scene, seq, render_size);
     }
-    if (seq->type == SEQ_TYPE_META) {
+    if (seq->type == STRIP_TYPE_META) {
       strip_convert_transform_crop_lb(scene, &seq->seqbase, render_size);
     }
   }
@@ -344,10 +344,10 @@ static void strip_convert_transform_crop_lb_2(const Scene *scene,
 {
 
   LISTBASE_FOREACH (Strip *, seq, lb) {
-    if (!ELEM(seq->type, SEQ_TYPE_SOUND_RAM, SEQ_TYPE_SOUND_HD)) {
+    if (!ELEM(seq->type, STRIP_TYPE_SOUND_RAM, STRIP_TYPE_SOUND_HD)) {
       strip_convert_transform_crop_2(scene, seq, render_size);
     }
-    if (seq->type == SEQ_TYPE_META) {
+    if (seq->type == STRIP_TYPE_META) {
       strip_convert_transform_crop_lb_2(scene, &seq->seqbase, render_size);
     }
   }
@@ -785,7 +785,7 @@ static void do_versions_strip_cache_settings_recursive(const ListBase *seqbase)
 {
   LISTBASE_FOREACH (Strip *, seq, seqbase) {
     seq->cache_flag = 0;
-    if (seq->type == SEQ_TYPE_META) {
+    if (seq->type == STRIP_TYPE_META) {
       do_versions_strip_cache_settings_recursive(&seq->seqbase);
     }
   }
