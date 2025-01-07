@@ -86,7 +86,7 @@ struct ThumbnailCache {
     std::string file_path;
     int frame_index = 0;  /* Frame index (for movies) or image index (for image sequences). */
     int stream_index = 0; /* Stream index (only for multi-stream movies). */
-    SequenceType strip_type = STRIP_TYPE_IMAGE;
+    StripType strip_type = STRIP_TYPE_IMAGE;
 
     /* The following members are payload and do not contribute to uniqueness. */
     int64_t requested_at = 0;
