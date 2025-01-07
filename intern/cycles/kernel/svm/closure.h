@@ -138,7 +138,11 @@ ccl_device
 
       // get Disney principled parameters
       const float metallic = saturatef(param1);
+#ifdef __SUBSURFACE__
       const float subsurface_weight = saturatef(param2);
+#else
+      const float subsurface_weight = 0.0f;
+#endif
       const float specular_ior_level = max(stack_load_float(stack, specular_ior_level_offset),
                                            0.0f);
       const float roughness = saturatef(stack_load_float(stack, roughness_offset));
@@ -450,7 +454,6 @@ ccl_device
         sd->flag |= bssrdf_setup(sd, bssrdf, path_flag, subsurface_method);
       }
 #else
-      subsurface_weight = 0.0f;
       (void)data_subsurf;
 #endif
 
