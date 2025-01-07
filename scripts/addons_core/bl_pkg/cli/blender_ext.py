@@ -1290,6 +1290,26 @@ class PathPatternMatch:
 # -----------------------------------------------------------------------------
 # URL Downloading
 
+
+# NOTE:
+# - Using return arguments isn't ideal but is better than including
+#   a static value in the iterator.
+# - Other data could be added here as needed (response headers if the caller needs them).
+class DataRetrieveInfo:
+    """
+    When accessing a file from a URL or from the file-system,
+    this is a "return" argument so the caller can know the size of the chunks it's iterating over,
+    or -1 when the size is not known.
+    """
+    __slots__ = (
+        "size_hint",
+    )
+    size_hint: int
+
+    def __init__(self) -> None:
+        self.size_hint = -1
+
+
 # Originally based on `urllib.request.urlretrieve`.
 def url_retrieve_to_data_iter(
         url: str,
@@ -1298,21 +1318,16 @@ def url_retrieve_to_data_iter(
         headers: dict[str, str],
         chunk_size: int,
         timeout_in_seconds: float,
-) -> Iterator[tuple[bytes, int, Any]]:
+        retrieve_info: DataRetrieveInfo,
+) -> Iterator[bytes]:
     """
-    Retrieve a URL into a temporary location on disk.
+    Iterate over byte data downloaded from a from a URL
+    limited to ``chunk_size``.
 
-    Requires a URL argument. If a filename is passed, it is used as
-    the temporary file location. The reporthook argument should be
-    a callable that accepts a block number, a read size, and the
-    total file size of the URL target. The data argument should be
-    valid URL encoded data.
-
-    If a filename is passed and the URL points to a local resource,
-    the result is a copy from local file to new file.
-
-    Returns a tuple containing the path to the newly created
-    data file as well as the resulting HTTPMessage object.
+    - The ``retrieve_info.size_hint``
+      will be set once the iterator starts and can be used for progress display.
+    - The iterator will start with an empty block, so the size can be known
+      before time is spent downloading data.
     """
     from urllib.error import ContentTooShortError
     from urllib.request import urlopen
@@ -1334,7 +1349,10 @@ def url_retrieve_to_data_iter(
         if "content-length" in response_headers:
             size = int(response_headers["Content-Length"])
 
-        yield (b'', size, response_headers)
+        retrieve_info.size_hint = size
+
+        # Yield an empty block so progress display may start.
+        yield b""
 
         if timeout_in_seconds <= 0.0:
             while True:
@@ -1342,14 +1360,14 @@ def url_retrieve_to_data_iter(
                 if not block:
                     break
                 read += len(block)
-                yield (block, size, response_headers)
+                yield block
         else:
             while True:
                 block = read_with_timeout(fp, chunk_size, timeout_in_seconds=timeout_in_seconds)
                 if not block:
                     break
                 read += len(block)
-                yield (block, size, response_headers)
+                yield block
 
     if size >= 0 and read < size:
         raise ContentTooShortError(
@@ -1358,6 +1376,7 @@ def url_retrieve_to_data_iter(
         )
 
 
+# See `url_retrieve_to_data_iter` doc-string.
 def url_retrieve_to_filepath_iter(
         url: str,
         filepath: str,
@@ -1366,69 +1385,77 @@ def url_retrieve_to_filepath_iter(
         data: Any | None = None,
         chunk_size: int,
         timeout_in_seconds: float,
-) -> Iterator[tuple[int, int, Any]]:
+        retrieve_info: DataRetrieveInfo,
+) -> Iterator[int]:
     # Handle temporary file setup.
     with open(filepath, 'wb') as fh_output:
-        for block, size, response_headers in url_retrieve_to_data_iter(
+        for block in url_retrieve_to_data_iter(
                 url,
                 headers=headers,
                 data=data,
                 chunk_size=chunk_size,
                 timeout_in_seconds=timeout_in_seconds,
+                retrieve_info=retrieve_info,
         ):
             fh_output.write(block)
-            yield (len(block), size, response_headers)
+            yield len(block)
 
 
+# See `url_retrieve_to_data_iter` doc-string.
 def filepath_retrieve_to_filepath_iter(
         filepath_src: str,
         filepath: str,
         *,
         chunk_size: int,
         timeout_in_seconds: float,
-) -> Iterator[tuple[int, int]]:
+        retrieve_info: DataRetrieveInfo,
+) -> Iterator[int]:
     # TODO: `timeout_in_seconds`.
     # Handle temporary file setup.
     _ = timeout_in_seconds
     with open(filepath_src, 'rb') as fh_input:
-        size = os.fstat(fh_input.fileno()).st_size
+        retrieve_info.size_hint = os.fstat(fh_input.fileno()).st_size
+        yield 0
         with open(filepath, 'wb') as fh_output:
             while (block := fh_input.read(chunk_size)):
                 fh_output.write(block)
-                yield (len(block), size)
+                yield len(block)
 
 
 def url_retrieve_to_data_iter_or_filesystem(
         url: str,
         headers: dict[str, str],
+        *,
         chunk_size: int,
         timeout_in_seconds: float,
+        retrieve_info: DataRetrieveInfo,
 ) -> Iterator[bytes]:
     if url_is_filesystem(url):
         with open(path_from_url(url), "rb") as fh_source:
+            retrieve_info.size_hint = os.fstat(fh_source.fileno()).st_size
+            yield b""
             while (block := fh_source.read(chunk_size)):
                 yield block
     else:
-        for (
-                block,
-                _size,
-                _response_headers,
-        ) in url_retrieve_to_data_iter(
+        yield from url_retrieve_to_data_iter(
             url,
             headers=headers,
             chunk_size=chunk_size,
             timeout_in_seconds=timeout_in_seconds,
-        ):
-            yield block
+            retrieve_info=retrieve_info,
+        )
 
 
+# See `url_retrieve_to_data_iter` doc-string.
 def url_retrieve_to_filepath_iter_or_filesystem(
         url: str,
         filepath: str,
+        *,
         headers: dict[str, str],
         chunk_size: int,
         timeout_in_seconds: float,
-) -> Iterator[tuple[int, int]]:
+        retrieve_info: DataRetrieveInfo,
+) -> Iterator[int]:
     """
     Callers should catch: ``(Exception, KeyboardInterrupt)`` and convert them to message using:
     ``url_retrieve_exception_as_message``.
@@ -1439,16 +1466,17 @@ def url_retrieve_to_filepath_iter_or_filesystem(
             filepath,
             chunk_size=chunk_size,
             timeout_in_seconds=timeout_in_seconds,
+            retrieve_info=retrieve_info,
         )
     else:
-        for (read, size, _response_headers) in url_retrieve_to_filepath_iter(
+        yield from url_retrieve_to_filepath_iter(
             url,
             filepath,
             headers=headers,
             chunk_size=chunk_size,
             timeout_in_seconds=timeout_in_seconds,
-        ):
-            yield (read, size)
+            retrieve_info=retrieve_info,
+        )
 
 
 def url_retrieve_exception_is_connectivity(
@@ -2965,8 +2993,9 @@ def repo_sync_from_remote(
             return False
 
         try:
+            retrieve_info = DataRetrieveInfo()
             read_total = 0
-            for (read, size) in url_retrieve_to_filepath_iter_or_filesystem(
+            for read in url_retrieve_to_filepath_iter_or_filesystem(
                     remote_json_url,
                     local_json_path_temp,
                     headers=url_request_headers_create(
@@ -2976,12 +3005,14 @@ def repo_sync_from_remote(
                     ),
                     chunk_size=CHUNK_SIZE_DEFAULT,
                     timeout_in_seconds=timeout_in_seconds,
+                    retrieve_info=retrieve_info,
             ):
-                request_exit |= msglog.progress("Downloading...", read_total, size, 'BYTE')
+                request_exit |= msglog.progress("Downloading...", read_total, retrieve_info.size_hint, 'BYTE')
                 if request_exit:
                     break
                 read_total += read
             del read_total
+            del retrieve_info
         except (Exception, KeyboardInterrupt) as ex:
             msg = url_retrieve_exception_as_message(ex, prefix="sync", url=remote_url)
             if demote_connection_errors_to_status and url_retrieve_exception_is_connectivity(ex):
@@ -3888,6 +3919,7 @@ class subcmd_client:
                     ),
                     chunk_size=CHUNK_SIZE_DEFAULT,
                     timeout_in_seconds=timeout_in_seconds,
+                    retrieve_info=DataRetrieveInfo(),  # Unused.
             ):
                 result.write(block)
 
@@ -4339,6 +4371,7 @@ class subcmd_client:
                                     ),
                                     chunk_size=CHUNK_SIZE_DEFAULT,
                                     timeout_in_seconds=timeout_in_seconds,
+                                    retrieve_info=DataRetrieveInfo(),  # Unused.
                             ):
                                 request_exit |= msglog.progress(
                                     "Downloading \"{:s}\"".format(pkg_idname),
