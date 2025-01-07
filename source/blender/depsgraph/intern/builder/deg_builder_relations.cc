@@ -3349,34 +3349,34 @@ struct Seq_build_prop_cb_data {
   bool has_audio_strips;
 };
 
-static bool seq_build_prop_cb(Strip *seq, void *user_data)
+static bool seq_build_prop_cb(Strip *strip, void *user_data)
 {
   Seq_build_prop_cb_data *cd = (Seq_build_prop_cb_data *)user_data;
 
-  cd->builder->build_idproperties(seq->prop);
-  if (seq->sound != nullptr) {
-    cd->builder->build_sound(seq->sound);
-    ComponentKey sound_key(&seq->sound->id, NodeType::AUDIO);
+  cd->builder->build_idproperties(strip->prop);
+  if (strip->sound != nullptr) {
+    cd->builder->build_sound(strip->sound);
+    ComponentKey sound_key(&strip->sound->id, NodeType::AUDIO);
     cd->builder->add_relation(sound_key, cd->sequencer_key, "Sound -> Sequencer");
     cd->has_audio_strips = true;
   }
-  if (seq->scene != nullptr) {
-    cd->builder->build_scene_parameters(seq->scene);
+  if (strip->scene != nullptr) {
+    cd->builder->build_scene_parameters(strip->scene);
     /* This is to support 3D audio. */
     cd->has_audio_strips = true;
   }
-  if (seq->type == SEQ_TYPE_SCENE && seq->scene != nullptr) {
-    if (seq->flag & SEQ_SCENE_STRIPS) {
-      cd->builder->build_scene_sequencer(seq->scene);
-      ComponentKey sequence_scene_audio_key(&seq->scene->id, NodeType::AUDIO);
+  if (strip->type == SEQ_TYPE_SCENE && strip->scene != nullptr) {
+    if (strip->flag & SEQ_SCENE_STRIPS) {
+      cd->builder->build_scene_sequencer(strip->scene);
+      ComponentKey sequence_scene_audio_key(&strip->scene->id, NodeType::AUDIO);
       cd->builder->add_relation(
           sequence_scene_audio_key, cd->sequencer_key, "Sequence Scene Audio -> Sequencer");
-      ComponentKey sequence_scene_key(&seq->scene->id, NodeType::SEQUENCER);
+      ComponentKey sequence_scene_key(&strip->scene->id, NodeType::SEQUENCER);
       cd->builder->add_relation(
           sequence_scene_key, cd->sequencer_key, "Sequence Scene -> Sequencer");
     }
-    ViewLayer *sequence_view_layer = BKE_view_layer_default_render(seq->scene);
-    cd->builder->build_scene_speakers(seq->scene, sequence_view_layer);
+    ViewLayer *sequence_view_layer = BKE_view_layer_default_render(strip->scene);
+    cd->builder->build_scene_speakers(strip->scene, sequence_view_layer);
   }
   /* TODO(sergey): Movie clip, camera, mask. */
   return true;

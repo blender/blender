@@ -735,9 +735,9 @@ short transform_orientation_matrix_get(bContext *C,
 
   if (t->spacetype == SPACE_SEQ && t->options & CTX_SEQUENCER_IMAGE) {
     Scene *scene = t->scene;
-    Strip *seq = SEQ_select_active_get(scene);
-    if (seq && seq->data->transform && orient_index == V3D_ORIENT_LOCAL) {
-      axis_angle_to_mat3_single(r_spacemtx, 'Z', seq->data->transform->rotation);
+    Strip *strip = SEQ_select_active_get(scene);
+    if (strip && strip->data->transform && orient_index == V3D_ORIENT_LOCAL) {
+      axis_angle_to_mat3_single(r_spacemtx, 'Z', strip->data->transform->rotation);
       return orient_index;
     }
   }

@@ -295,12 +295,12 @@ static void calcSpringFactor(MouseInput *mi)
   }
 }
 
-static int transform_seq_slide_strip_cursor_get(const Strip *seq)
+static int transform_seq_slide_strip_cursor_get(const Strip *strip)
 {
-  if ((seq->flag & SEQ_LEFTSEL) != 0) {
+  if ((strip->flag & SEQ_LEFTSEL) != 0) {
     return WM_CURSOR_LEFT_HANDLE;
   }
-  if ((seq->flag & SEQ_RIGHTSEL) != 0) {
+  if ((strip->flag & SEQ_RIGHTSEL) != 0) {
     return WM_CURSOR_RIGHT_HANDLE;
   }
   return WM_CURSOR_NSEW_SCROLL;

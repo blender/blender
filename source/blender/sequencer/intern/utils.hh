@@ -12,5 +12,5 @@ struct ListBase;
 struct Scene;
 struct Sequence;
 
-bool sequencer_seq_generates_image(Strip *seq);
-void seq_open_anim_file(Scene *scene, Strip *seq, bool openfile);
+bool sequencer_seq_generates_image(Strip *strip);
+void seq_open_anim_file(Scene *scene, Strip *strip, bool openfile);

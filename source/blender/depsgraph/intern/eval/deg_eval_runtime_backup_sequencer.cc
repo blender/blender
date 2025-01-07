@@ -21,13 +21,13 @@ namespace blender::deg {
 
 SequencerBackup::SequencerBackup(const Depsgraph *depsgraph) : depsgraph(depsgraph) {}
 
-static bool seq_init_cb(Strip *seq, void *user_data)
+static bool seq_init_cb(Strip *strip, void *user_data)
 {
   SequencerBackup *sb = (SequencerBackup *)user_data;
   SequenceBackup sequence_backup(sb->depsgraph);
-  sequence_backup.init_from_sequence(seq);
+  sequence_backup.init_from_sequence(strip);
   if (!sequence_backup.isEmpty()) {
-    const SessionUID &session_uid = seq->runtime.session_uid;
+    const SessionUID &session_uid = strip->runtime.session_uid;
     BLI_assert(BLI_session_uid_is_generated(&session_uid));
     sb->sequences_backup.add(session_uid, sequence_backup);
   }
@@ -41,14 +41,14 @@ void SequencerBackup::init_from_scene(Scene *scene)
   }
 }
 
-static bool seq_restore_cb(Strip *seq, void *user_data)
+static bool seq_restore_cb(Strip *strip, void *user_data)
 {
   SequencerBackup *sb = (SequencerBackup *)user_data;
-  const SessionUID &session_uid = seq->runtime.session_uid;
+  const SessionUID &session_uid = strip->runtime.session_uid;
   BLI_assert(BLI_session_uid_is_generated(&session_uid));
   SequenceBackup *sequence_backup = sb->sequences_backup.lookup_ptr(session_uid);
   if (sequence_backup != nullptr) {
-    sequence_backup->restore_to_sequence(seq);
+    sequence_backup->restore_to_sequence(strip);
   }
   return true;
 }

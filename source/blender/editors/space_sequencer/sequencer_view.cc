@@ -323,13 +323,13 @@ static void seq_view_collection_rect_timeline(const bContext *C,
   int ymax = 0;
   int xmargin = FPS;
 
-  for (Strip *seq : strips) {
-    xmin = min_ii(xmin, SEQ_time_left_handle_frame_get(scene, seq));
-    xmax = max_ii(xmax, SEQ_time_right_handle_frame_get(scene, seq));
+  for (Strip *strip : strips) {
+    xmin = min_ii(xmin, SEQ_time_left_handle_frame_get(scene, strip));
+    xmax = max_ii(xmax, SEQ_time_right_handle_frame_get(scene, strip));
 
-    ymin = min_ii(ymin, seq->machine);
+    ymin = min_ii(ymin, strip->machine);
     /* "+1" because each channel has a thickness of 1. */
-    ymax = max_ii(ymax, seq->machine + 1);
+    ymax = max_ii(ymax, strip->machine + 1);
   }
 
   xmax += xmargin;

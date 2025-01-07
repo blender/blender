@@ -99,17 +99,18 @@ static eSpaceSeq_Proxy_RenderSize get_sequencer_render_size(Main *bmain)
   return render_size;
 }
 
-static bool can_use_proxy(const Strip *seq, int psize)
+static bool can_use_proxy(const Strip *strip, int psize)
 {
-  if (seq->data->proxy == nullptr) {
+  if (strip->data->proxy == nullptr) {
     return false;
   }
-  short size_flags = seq->data->proxy->build_size_flags;
-  return (seq->flag & SEQ_USE_PROXY) != 0 && psize != IMB_PROXY_NONE && (size_flags & psize) != 0;
+  short size_flags = strip->data->proxy->build_size_flags;
+  return (strip->flag & SEQ_USE_PROXY) != 0 && psize != IMB_PROXY_NONE &&
+         (size_flags & psize) != 0;
 }
 
 /* image_size is width or height depending what RNA property is converted - X or Y. */
-static void seq_convert_transform_animation(const Strip *seq,
+static void seq_convert_transform_animation(const Strip *strip,
                                             const Scene *scene,
                                             const char *path,
                                             const int image_size,
@@ -124,7 +125,7 @@ static void seq_convert_transform_animation(const Strip *seq,
   const uint32_t use_crop_flag = (1 << 17);
 
   /* Convert offset animation, but only if crop is not used. */
-  if ((seq->flag & use_transform_flag) != 0 && (seq->flag & use_crop_flag) == 0) {
+  if ((strip->flag & use_transform_flag) != 0 && (strip->flag & use_crop_flag) == 0) {
     FCurve *fcu = BKE_fcurve_find(&scene->adt->action->curves, path, 0);
     if (fcu != nullptr && !BKE_fcurve_is_empty(fcu)) {
       BezTriple *bezt = fcu->bezt;
@@ -144,18 +145,18 @@ static void seq_convert_transform_animation(const Strip *seq,
 }
 
 static void seq_convert_transform_crop(const Scene *scene,
-                                       Strip *seq,
+                                       Strip *strip,
                                        const eSpaceSeq_Proxy_RenderSize render_size)
 {
-  if (seq->data->transform == nullptr) {
-    seq->data->transform = MEM_cnew<StripTransform>(__func__);
+  if (strip->data->transform == nullptr) {
+    strip->data->transform = MEM_cnew<StripTransform>(__func__);
   }
-  if (seq->data->crop == nullptr) {
-    seq->data->crop = MEM_cnew<StripCrop>(__func__);
+  if (strip->data->crop == nullptr) {
+    strip->data->crop = MEM_cnew<StripCrop>(__func__);
   }
 
-  StripCrop *c = seq->data->crop;
-  StripTransform *t = seq->data->transform;
+  StripCrop *c = strip->data->crop;
+  StripTransform *t = strip->data->transform;
   int old_image_center_x = scene->r.xsch / 2;
   int old_image_center_y = scene->r.ysch / 2;
   int image_size_x = scene->r.xsch;
@@ -165,12 +166,12 @@ static void seq_convert_transform_crop(const Scene *scene,
   const uint32_t use_transform_flag = (1 << 16);
   const uint32_t use_crop_flag = (1 << 17);
 
-  const StripElem *s_elem = seq->data->stripdata;
+  const StripElem *s_elem = strip->data->stripdata;
   if (s_elem != nullptr) {
     image_size_x = s_elem->orig_width;
     image_size_y = s_elem->orig_height;
 
-    if (can_use_proxy(seq, SEQ_rendersize_to_proxysize(render_size))) {
+    if (can_use_proxy(strip, SEQ_rendersize_to_proxysize(render_size))) {
       image_size_x /= SEQ_rendersize_to_scale_factor(render_size);
       image_size_y /= SEQ_rendersize_to_scale_factor(render_size);
     }
@@ -183,11 +184,11 @@ static void seq_convert_transform_crop(const Scene *scene,
   }
 
   /* Clear crop if it was unused. This must happen before converting values. */
-  if ((seq->flag & use_crop_flag) == 0) {
+  if ((strip->flag & use_crop_flag) == 0) {
     c->bottom = c->top = c->left = c->right = 0;
   }
 
-  if ((seq->flag & use_transform_flag) == 0) {
+  if ((strip->flag & use_transform_flag) == 0) {
     t->xofs = t->yofs = 0;
 
     /* Reverse scale to fit for strips not using offset. */
@@ -201,7 +202,7 @@ static void seq_convert_transform_crop(const Scene *scene,
     }
   }
 
-  if ((seq->flag & use_crop_flag) != 0 && (seq->flag & use_transform_flag) == 0) {
+  if ((strip->flag & use_crop_flag) != 0 && (strip->flag & use_transform_flag) == 0) {
     /* Calculate image offset. */
     float s_x = scene->r.xsch / image_size_x;
     float s_y = scene->r.ysch / image_size_y;
@@ -216,7 +217,7 @@ static void seq_convert_transform_crop(const Scene *scene,
     t->scale_y *= float(image_size_y) / float(cropped_image_size_y);
   }
 
-  if ((seq->flag & use_transform_flag) != 0) {
+  if ((strip->flag & use_transform_flag) != 0) {
     /* Convert image offset. */
     old_image_center_x = image_size_x / 2 - c->left + t->xofs;
     old_image_center_y = image_size_y / 2 - c->bottom + t->yofs;
@@ -226,7 +227,7 @@ static void seq_convert_transform_crop(const Scene *scene,
                                        float(image_size_y) / float(scene->r.ysch));
 
     /* Convert crop. */
-    if ((seq->flag & use_crop_flag) != 0) {
+    if ((strip->flag & use_crop_flag) != 0) {
       c->top /= t->scale_x;
       c->bottom /= t->scale_x;
       c->left /= t->scale_x;
@@ -237,18 +238,18 @@ static void seq_convert_transform_crop(const Scene *scene,
   t->xofs = old_image_center_x - scene->r.xsch / 2;
   t->yofs = old_image_center_y - scene->r.ysch / 2;
 
-  char name_esc[(sizeof(seq->name) - 2) * 2], *path;
-  BLI_str_escape(name_esc, seq->name + 2, sizeof(name_esc));
+  char name_esc[(sizeof(strip->name) - 2) * 2], *path;
+  BLI_str_escape(name_esc, strip->name + 2, sizeof(name_esc));
 
   path = BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].transform.offset_x", name_esc);
-  seq_convert_transform_animation(seq, scene, path, image_size_x, scene->r.xsch);
+  seq_convert_transform_animation(strip, scene, path, image_size_x, scene->r.xsch);
   MEM_freeN(path);
   path = BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].transform.offset_y", name_esc);
-  seq_convert_transform_animation(seq, scene, path, image_size_y, scene->r.ysch);
+  seq_convert_transform_animation(strip, scene, path, image_size_y, scene->r.ysch);
   MEM_freeN(path);
 
-  seq->flag &= ~use_transform_flag;
-  seq->flag &= ~use_crop_flag;
+  strip->flag &= ~use_transform_flag;
+  strip->flag &= ~use_crop_flag;
 }
 
 static void seq_convert_transform_crop_lb(const Scene *scene,
@@ -287,20 +288,20 @@ static void seq_convert_transform_animation_2(const Scene *scene,
 }
 
 static void seq_convert_transform_crop_2(const Scene *scene,
-                                         Strip *seq,
+                                         Strip *strip,
                                          const eSpaceSeq_Proxy_RenderSize render_size)
 {
-  const StripElem *s_elem = seq->data->stripdata;
+  const StripElem *s_elem = strip->data->stripdata;
   if (s_elem == nullptr) {
     return;
   }
 
-  StripCrop *c = seq->data->crop;
-  StripTransform *t = seq->data->transform;
+  StripCrop *c = strip->data->crop;
+  StripTransform *t = strip->data->transform;
   int image_size_x = s_elem->orig_width;
   int image_size_y = s_elem->orig_height;
 
-  if (can_use_proxy(seq, SEQ_rendersize_to_proxysize(render_size))) {
+  if (can_use_proxy(strip, SEQ_rendersize_to_proxysize(render_size))) {
     image_size_x /= SEQ_rendersize_to_scale_factor(render_size);
     image_size_y /= SEQ_rendersize_to_scale_factor(render_size);
   }
@@ -315,8 +316,8 @@ static void seq_convert_transform_crop_2(const Scene *scene,
   c->left /= scale_to_fit_factor;
   c->right /= scale_to_fit_factor;
 
-  char name_esc[(sizeof(seq->name) - 2) * 2], *path;
-  BLI_str_escape(name_esc, seq->name + 2, sizeof(name_esc));
+  char name_esc[(sizeof(strip->name) - 2) * 2], *path;
+  BLI_str_escape(name_esc, strip->name + 2, sizeof(name_esc));
   path = BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].transform.scale_x", name_esc);
   seq_convert_transform_animation_2(scene, path, scale_to_fit_factor);
   MEM_freeN(path);

@@ -75,9 +75,9 @@
 
 static Strip *special_seq_update = nullptr;
 
-void sequencer_special_update_set(Strip *seq)
+void sequencer_special_update_set(Strip *strip)
 {
-  special_seq_update = seq;
+  special_seq_update = strip;
 }
 
 Strip *ED_sequencer_special_preview_get()
@@ -90,8 +90,8 @@ void ED_sequencer_special_preview_set(bContext *C, const int mval[2])
   Scene *scene = CTX_data_scene(C);
   ARegion *region = CTX_wm_region(C);
   eSeqHandle hand_dummy;
-  Strip *seq = find_nearest_seq(scene, &region->v2d, mval, &hand_dummy);
-  sequencer_special_update_set(seq);
+  Strip *strip = find_nearest_seq(scene, &region->v2d, mval, &hand_dummy);
+  sequencer_special_update_set(strip);
 }
 
 void ED_sequencer_special_preview_clear()
@@ -1007,14 +1007,14 @@ int sequencer_draw_get_transform_preview_frame(Scene *scene)
   return preview_frame;
 }
 
-static void seq_draw_image_origin_and_outline(const bContext *C, Strip *seq, bool is_active_seq)
+static void seq_draw_image_origin_and_outline(const bContext *C, Strip *strip, bool is_active_seq)
 {
   SpaceSeq *sseq = CTX_wm_space_seq(C);
   const ARegion *region = CTX_wm_region(C);
   if (region->regiontype == RGN_TYPE_PREVIEW && !sequencer_view_preview_only_poll(C)) {
     return;
   }
-  if ((seq->flag & SELECT) == 0) {
+  if ((strip->flag & SELECT) == 0) {
     return;
   }
   if (ED_screen_animation_no_scrub(CTX_wm_manager(C))) {
@@ -1035,7 +1035,7 @@ static void seq_draw_image_origin_and_outline(const bContext *C, Strip *seq, boo
   }
 
   float origin[2];
-  SEQ_image_transform_origin_offset_pixelspace_get(CTX_data_scene(C), seq, origin);
+  SEQ_image_transform_origin_offset_pixelspace_get(CTX_data_scene(C), strip, origin);
 
   /* Origin. */
   GPUVertFormat *format = immVertexFormat();
@@ -1052,7 +1052,7 @@ static void seq_draw_image_origin_and_outline(const bContext *C, Strip *seq, boo
 
   /* Outline. */
   float seq_image_quad[4][2];
-  SEQ_image_transform_final_quad_get(CTX_data_scene(C), seq, seq_image_quad);
+  SEQ_image_transform_final_quad_get(CTX_data_scene(C), strip, seq_image_quad);
 
   GPU_line_smooth(true);
   GPU_blend(GPU_BLEND_ALPHA);
@@ -1080,9 +1080,9 @@ static void seq_draw_image_origin_and_outline(const bContext *C, Strip *seq, boo
   GPU_line_smooth(false);
 }
 
-static void text_selection_draw(const bContext *C, const Strip *seq, uint pos)
+static void text_selection_draw(const bContext *C, const Strip *strip, uint pos)
 {
-  const TextVars *data = static_cast<TextVars *>(seq->effectdata);
+  const TextVars *data = static_cast<TextVars *>(strip->effectdata);
   const TextVarsRuntime *text = data->runtime;
   const Scene *scene = CTX_data_scene(C);
 
@@ -1114,7 +1114,7 @@ static void text_selection_draw(const bContext *C, const Strip *seq, uint pos)
     const blender::float3 view_offs{-scene->r.xsch / 2.0f, -scene->r.ysch / 2.0f, 0.0f};
     const float view_aspect = scene->r.xasp / scene->r.yasp;
     blender::float4x4 transform_mat;
-    SEQ_image_transform_matrix_get(scene, seq, transform_mat.ptr());
+    SEQ_image_transform_matrix_get(scene, strip, transform_mat.ptr());
     blender::float4x3 selection_quad{
         {character_start.position.x, line_y, 0.0f},
         {character_start.position.x, line_y + text->line_height, 0.0f},
@@ -1150,16 +1150,16 @@ static blender::float2 coords_region_view_align(const View2D *v2d, const blender
   return coords_region_aligned;
 }
 
-static void text_edit_draw_cursor(const bContext *C, const Strip *seq, uint pos)
+static void text_edit_draw_cursor(const bContext *C, const Strip *strip, uint pos)
 {
-  const TextVars *data = static_cast<TextVars *>(seq->effectdata);
+  const TextVars *data = static_cast<TextVars *>(strip->effectdata);
   const TextVarsRuntime *text = data->runtime;
   const Scene *scene = CTX_data_scene(C);
 
   const blender::float3 view_offs{-scene->r.xsch / 2.0f, -scene->r.ysch / 2.0f, 0.0f};
   const float view_aspect = scene->r.xasp / scene->r.yasp;
   blender::float4x4 transform_mat;
-  SEQ_image_transform_matrix_get(scene, seq, transform_mat.ptr());
+  SEQ_image_transform_matrix_get(scene, strip, transform_mat.ptr());
   const blender::int2 cursor_position = seq_text_cursor_offset_to_position(text,
                                                                            data->cursor_offset);
   const float cursor_width = 10;
@@ -1198,16 +1198,16 @@ static void text_edit_draw_cursor(const bContext *C, const Strip *seq, uint pos)
   immEnd();
 }
 
-static void text_edit_draw_box(const bContext *C, const Strip *seq, uint pos)
+static void text_edit_draw_box(const bContext *C, const Strip *strip, uint pos)
 {
-  const TextVars *data = static_cast<TextVars *>(seq->effectdata);
+  const TextVars *data = static_cast<TextVars *>(strip->effectdata);
   const TextVarsRuntime *text = data->runtime;
   const Scene *scene = CTX_data_scene(C);
 
   const blender::float3 view_offs{-scene->r.xsch / 2.0f, -scene->r.ysch / 2.0f, 0.0f};
   const float view_aspect = scene->r.xasp / scene->r.yasp;
   blender::float4x4 transform_mat;
-  SEQ_image_transform_matrix_get(CTX_data_scene(C), seq, transform_mat.ptr());
+  SEQ_image_transform_matrix_get(CTX_data_scene(C), strip, transform_mat.ptr());
   blender::float4x3 box_quad{
       {float(text->text_boundbox.xmin), float(text->text_boundbox.ymin), 0.0f},
       {float(text->text_boundbox.xmin), float(text->text_boundbox.ymax), 0.0f},
@@ -1240,8 +1240,8 @@ static void text_edit_draw(const bContext *C)
   if (!sequencer_text_editing_active_poll(const_cast<bContext *>(C))) {
     return;
   }
-  const Strip *seq = SEQ_select_active_get(CTX_data_scene(C));
-  if (!SEQ_effects_can_render_text(seq)) {
+  const Strip *strip = SEQ_select_active_get(CTX_data_scene(C));
+  if (!SEQ_effects_can_render_text(strip)) {
     return;
   }
 
@@ -1251,14 +1251,14 @@ static void text_edit_draw(const bContext *C)
   GPU_blend(GPU_BLEND_ALPHA);
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
 
-  text_selection_draw(C, seq, pos);
-  text_edit_draw_cursor(C, seq, pos);
+  text_selection_draw(C, strip, pos);
+  text_edit_draw_cursor(C, strip, pos);
 
   immUnbindProgram();
   GPU_blend(GPU_BLEND_NONE);
   GPU_line_smooth(false);
 
-  text_edit_draw_box(C, seq, pos);
+  text_edit_draw_box(C, strip, pos);
 }
 
 void sequencer_draw_preview(const bContext *C,
@@ -1345,8 +1345,8 @@ void sequencer_draw_preview(const bContext *C,
     blender::VectorSet strips = SEQ_query_rendered_strips(
         scene, channels, ed->seqbasep, timeline_frame, 0);
     Strip *active_seq = SEQ_select_active_get(scene);
-    for (Strip *seq : strips) {
-      seq_draw_image_origin_and_outline(C, seq, seq == active_seq);
+    for (Strip *strip : strips) {
+      seq_draw_image_origin_and_outline(C, strip, strip == active_seq);
       text_edit_draw(C);
     }
   }

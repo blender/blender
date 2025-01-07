@@ -462,18 +462,18 @@ void blo_do_version_old_trackto_to_constraints(Object *ob)
   ob->track = nullptr;
 }
 
-static bool seq_set_alpha_mode_cb(Strip *seq, void * /*user_data*/)
+static bool seq_set_alpha_mode_cb(Strip *strip, void * /*user_data*/)
 {
-  if (ELEM(seq->type, SEQ_TYPE_IMAGE, SEQ_TYPE_MOVIE)) {
-    seq->alpha_mode = SEQ_ALPHA_STRAIGHT;
+  if (ELEM(strip->type, SEQ_TYPE_IMAGE, SEQ_TYPE_MOVIE)) {
+    strip->alpha_mode = SEQ_ALPHA_STRAIGHT;
   }
   return true;
 }
 
-static bool seq_set_blend_mode_cb(Strip *seq, void * /*user_data*/)
+static bool seq_set_blend_mode_cb(Strip *strip, void * /*user_data*/)
 {
-  if (seq->blend_mode == 0) {
-    seq->blend_opacity = 100.0f;
+  if (strip->blend_mode == 0) {
+    strip->blend_opacity = 100.0f;
   }
   return true;
 }

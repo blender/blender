@@ -157,36 +157,36 @@ static ThumbnailCache *query_thumbnail_cache(Scene *scene)
   return scene->ed->runtime.thumbnail_cache;
 }
 
-bool strip_can_have_thumbnail(const Scene *scene, const Strip *seq)
+bool strip_can_have_thumbnail(const Scene *scene, const Strip *strip)
 {
-  if (scene == nullptr || scene->ed == nullptr || seq == nullptr) {
+  if (scene == nullptr || scene->ed == nullptr || strip == nullptr) {
     return false;
   }
-  if (!ELEM(seq->type, SEQ_TYPE_MOVIE, SEQ_TYPE_IMAGE)) {
+  if (!ELEM(strip->type, SEQ_TYPE_MOVIE, SEQ_TYPE_IMAGE)) {
     return false;
   }
-  const StripElem *se = seq->data->stripdata;
+  const StripElem *se = strip->data->stripdata;
   if (se->orig_height == 0 || se->orig_width == 0) {
     return false;
   }
   return true;
 }
 
-static std::string get_path_from_seq(Scene *scene, const Strip *seq, float timeline_frame)
+static std::string get_path_from_seq(Scene *scene, const Strip *strip, float timeline_frame)
 {
   char filepath[FILE_MAX];
   filepath[0] = 0;
-  switch (seq->type) {
+  switch (strip->type) {
     case SEQ_TYPE_IMAGE: {
-      const StripElem *s_elem = SEQ_render_give_stripelem(scene, seq, timeline_frame);
+      const StripElem *s_elem = SEQ_render_give_stripelem(scene, strip, timeline_frame);
       if (s_elem != nullptr) {
-        BLI_path_join(filepath, sizeof(filepath), seq->data->dirpath, s_elem->filename);
+        BLI_path_join(filepath, sizeof(filepath), strip->data->dirpath, s_elem->filename);
         BLI_path_abs(filepath, ID_BLEND_PATH_FROM_GLOBAL(&scene->id));
       }
     } break;
     case SEQ_TYPE_MOVIE:
       BLI_path_join(
-          filepath, sizeof(filepath), seq->data->dirpath, seq->data->stripdata->filename);
+          filepath, sizeof(filepath), strip->data->dirpath, strip->data->stripdata->filename);
       BLI_path_abs(filepath, ID_BLEND_PATH_FROM_GLOBAL(&scene->id));
       break;
   }
@@ -422,7 +422,7 @@ static ImBuf *query_thumbnail(ThumbnailCache &cache,
                               int frame_index,
                               float timeline_frame,
                               const bContext *C,
-                              const Strip *seq)
+                              const Strip *strip)
 {
   int64_t cur_time = cache.logical_time_;
   ThumbnailCache::FileEntry *val = cache.map_.lookup_ptr(key);
@@ -440,7 +440,7 @@ static ImBuf *query_thumbnail(ThumbnailCache &cache,
   int64_t best_index = -1;
   int best_score = INT_MAX;
   for (int64_t index = 0; index < val->frames.size(); index++) {
-    if (seq->streamindex != val->frames[index].stream_index) {
+    if (strip->streamindex != val->frames[index].stream_index) {
       continue; /* Different video stream than what we need, ignore. */
     }
     int score = math::abs(frame_index - val->frames[index].frame_index);
@@ -455,16 +455,16 @@ static ImBuf *query_thumbnail(ThumbnailCache &cache,
 
   if (best_score > 0) {
     /* We do not have an exact frame match, add a thumb generation request. */
-    const StripElem *se = seq->data->stripdata;
+    const StripElem *se = strip->data->stripdata;
     int img_width = se->orig_width;
     int img_height = se->orig_height;
     ThumbnailCache::Request request(key,
                                     frame_index,
-                                    seq->streamindex,
-                                    SequenceType(seq->type),
+                                    strip->streamindex,
+                                    SequenceType(strip->type),
                                     cur_time,
                                     timeline_frame,
-                                    seq->machine,
+                                    strip->machine,
                                     img_width,
                                     img_height);
     cache.requests_.add(request);
@@ -481,25 +481,28 @@ static ImBuf *query_thumbnail(ThumbnailCache &cache,
   return val->frames[best_index].thumb;
 }
 
-ImBuf *thumbnail_cache_get(const bContext *C, Scene *scene, const Strip *seq, float timeline_frame)
+ImBuf *thumbnail_cache_get(const bContext *C,
+                           Scene *scene,
+                           const Strip *strip,
+                           float timeline_frame)
 {
-  if (!strip_can_have_thumbnail(scene, seq)) {
+  if (!strip_can_have_thumbnail(scene, strip)) {
     return nullptr;
   }
 
   timeline_frame = math::round(timeline_frame);
 
-  const std::string key = get_path_from_seq(scene, seq, timeline_frame);
-  int frame_index = SEQ_give_frame_index(scene, seq, timeline_frame);
-  if (seq->type == SEQ_TYPE_MOVIE) {
-    frame_index += seq->anim_startofs;
+  const std::string key = get_path_from_seq(scene, strip, timeline_frame);
+  int frame_index = SEQ_give_frame_index(scene, strip, timeline_frame);
+  if (strip->type == SEQ_TYPE_MOVIE) {
+    frame_index += strip->anim_startofs;
   }
 
   ImBuf *res = nullptr;
   {
     std::scoped_lock lock(thumb_cache_mutex);
     ThumbnailCache *cache = ensure_thumbnail_cache(scene);
-    res = query_thumbnail(*cache, key, frame_index, timeline_frame, C, seq);
+    res = query_thumbnail(*cache, key, frame_index, timeline_frame, C, strip);
   }
 
   if (res) {
@@ -508,28 +511,28 @@ ImBuf *thumbnail_cache_get(const bContext *C, Scene *scene, const Strip *seq, fl
   return res;
 }
 
-void thumbnail_cache_invalidate_strip(Scene *scene, const Strip *seq)
+void thumbnail_cache_invalidate_strip(Scene *scene, const Strip *strip)
 {
-  if (!strip_can_have_thumbnail(scene, seq)) {
+  if (!strip_can_have_thumbnail(scene, strip)) {
     return;
   }
 
   std::scoped_lock lock(thumb_cache_mutex);
   ThumbnailCache *cache = query_thumbnail_cache(scene);
   if (cache != nullptr) {
-    if (ELEM((seq)->type, SEQ_TYPE_MOVIE, SEQ_TYPE_IMAGE)) {
-      const StripElem *elem = seq->data->stripdata;
+    if (ELEM((strip)->type, SEQ_TYPE_MOVIE, SEQ_TYPE_IMAGE)) {
+      const StripElem *elem = strip->data->stripdata;
       if (elem != nullptr) {
         int paths_count = 1;
-        if (seq->type == SEQ_TYPE_IMAGE) {
+        if (strip->type == SEQ_TYPE_IMAGE) {
           /* Image strip has array of file names. */
           paths_count = int(MEM_allocN_len(elem) / sizeof(*elem));
         }
         char filepath[FILE_MAX];
-        const char *basepath = seq->scene ? ID_BLEND_PATH_FROM_GLOBAL(&seq->scene->id) :
-                                            BKE_main_blendfile_path_from_global();
+        const char *basepath = strip->scene ? ID_BLEND_PATH_FROM_GLOBAL(&strip->scene->id) :
+                                              BKE_main_blendfile_path_from_global();
         for (int i = 0; i < paths_count; i++, elem++) {
-          BLI_path_join(filepath, sizeof(filepath), seq->data->dirpath, elem->filename);
+          BLI_path_join(filepath, sizeof(filepath), strip->data->dirpath, elem->filename);
           BLI_path_abs(filepath, basepath);
           cache->remove_entry(filepath);
         }

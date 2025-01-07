@@ -23,31 +23,31 @@ static int num_inputs_adjustment()
   return 0;
 }
 
-static StripEarlyOut early_out_adjustment(const Strip * /*seq*/, float /*fac*/)
+static StripEarlyOut early_out_adjustment(const Strip * /*strip*/, float /*fac*/)
 {
   return StripEarlyOut::NoInput;
 }
 
-static ImBuf *do_adjustment_impl(const SeqRenderData *context, Strip *seq, float timeline_frame)
+static ImBuf *do_adjustment_impl(const SeqRenderData *context, Strip *strip, float timeline_frame)
 {
   Editing *ed;
   ImBuf *i = nullptr;
 
   ed = context->scene->ed;
 
-  ListBase *seqbasep = SEQ_get_seqbase_by_seq(context->scene, seq);
-  ListBase *channels = SEQ_get_channels_by_seq(&ed->seqbase, &ed->channels, seq);
+  ListBase *seqbasep = SEQ_get_seqbase_by_seq(context->scene, strip);
+  ListBase *channels = SEQ_get_channels_by_seq(&ed->seqbase, &ed->channels, strip);
 
   /* Clamp timeline_frame to strip range so it behaves as if it had "still frame" offset (last
    * frame is static after end of strip). This is how most strips behave. This way transition
    * effects that doesn't overlap or speed effect can't fail rendering outside of strip range. */
   timeline_frame = clamp_i(timeline_frame,
-                           SEQ_time_left_handle_frame_get(context->scene, seq),
-                           SEQ_time_right_handle_frame_get(context->scene, seq) - 1);
+                           SEQ_time_left_handle_frame_get(context->scene, strip),
+                           SEQ_time_right_handle_frame_get(context->scene, strip) - 1);
 
-  if (seq->machine > 1) {
+  if (strip->machine > 1) {
     i = seq_render_give_ibuf_seqbase(
-        context, timeline_frame, seq->machine - 1, channels, seqbasep);
+        context, timeline_frame, strip->machine - 1, channels, seqbasep);
   }
 
   /* Found nothing? so let's work the way up the meta-strip stack, so
@@ -57,7 +57,7 @@ static ImBuf *do_adjustment_impl(const SeqRenderData *context, Strip *seq, float
   if (!i) {
     Strip *meta;
 
-    meta = SEQ_find_metastrip_by_sequence(&ed->seqbase, nullptr, seq);
+    meta = SEQ_find_metastrip_by_sequence(&ed->seqbase, nullptr, strip);
 
     if (meta) {
       i = do_adjustment_impl(context, meta, timeline_frame);
@@ -68,7 +68,7 @@ static ImBuf *do_adjustment_impl(const SeqRenderData *context, Strip *seq, float
 }
 
 static ImBuf *do_adjustment(const SeqRenderData *context,
-                            Strip *seq,
+                            Strip *strip,
                             float timeline_frame,
                             float /*fac*/,
                             ImBuf * /*ibuf1*/,
@@ -83,7 +83,7 @@ static ImBuf *do_adjustment(const SeqRenderData *context,
     return nullptr;
   }
 
-  out = do_adjustment_impl(context, seq, timeline_frame);
+  out = do_adjustment_impl(context, strip, timeline_frame);
 
   return out;
 }

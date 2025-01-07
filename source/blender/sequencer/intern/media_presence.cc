@@ -21,13 +21,13 @@ namespace blender::seq {
 
 static ThreadMutex presence_lock = BLI_MUTEX_INITIALIZER;
 
-static const char *get_seq_base_path(const Strip *seq)
+static const char *get_seq_base_path(const Strip *strip)
 {
-  return seq->scene ? ID_BLEND_PATH_FROM_GLOBAL(&seq->scene->id) :
-                      BKE_main_blendfile_path_from_global();
+  return strip->scene ? ID_BLEND_PATH_FROM_GLOBAL(&strip->scene->id) :
+                        BKE_main_blendfile_path_from_global();
 }
 
-static bool check_sound_media_missing(const bSound *sound, const Strip *seq)
+static bool check_sound_media_missing(const bSound *sound, const Strip *strip)
 {
   if (sound == nullptr) {
     return false;
@@ -35,30 +35,30 @@ static bool check_sound_media_missing(const bSound *sound, const Strip *seq)
 
   char filepath[FILE_MAX];
   STRNCPY(filepath, sound->filepath);
-  const char *basepath = get_seq_base_path(seq);
+  const char *basepath = get_seq_base_path(strip);
   BLI_path_abs(filepath, basepath);
   return !BLI_exists(filepath);
 }
 
-static bool check_media_missing(const Strip *seq)
+static bool check_media_missing(const Strip *strip)
 {
-  if (seq == nullptr || seq->data == nullptr) {
+  if (strip == nullptr || strip->data == nullptr) {
     return false;
   }
 
   /* Images or movies. */
-  if (ELEM((seq)->type, SEQ_TYPE_MOVIE, SEQ_TYPE_IMAGE)) {
-    const StripElem *elem = seq->data->stripdata;
+  if (ELEM((strip)->type, SEQ_TYPE_MOVIE, SEQ_TYPE_IMAGE)) {
+    const StripElem *elem = strip->data->stripdata;
     if (elem != nullptr) {
       int paths_count = 1;
-      if (seq->type == SEQ_TYPE_IMAGE) {
+      if (strip->type == SEQ_TYPE_IMAGE) {
         /* Image strip has array of file names. */
         paths_count = int(MEM_allocN_len(elem) / sizeof(*elem));
       }
       char filepath[FILE_MAX];
-      const char *basepath = get_seq_base_path(seq);
+      const char *basepath = get_seq_base_path(strip);
       for (int i = 0; i < paths_count; i++, elem++) {
-        BLI_path_join(filepath, sizeof(filepath), seq->data->dirpath, elem->filename);
+        BLI_path_join(filepath, sizeof(filepath), strip->data->dirpath, elem->filename);
         BLI_path_abs(filepath, basepath);
         if (!BLI_exists(filepath)) {
           return true;
@@ -68,8 +68,8 @@ static bool check_media_missing(const Strip *seq)
   }
 
   /* Recurse into meta strips. */
-  if (seq->type == SEQ_TYPE_META) {
-    LISTBASE_FOREACH (Strip *, seqn, &seq->seqbase) {
+  if (strip->type == SEQ_TYPE_META) {
+    LISTBASE_FOREACH (Strip *, seqn, &strip->seqbase) {
       if (check_media_missing(seqn)) {
         return true;
       }
@@ -94,9 +94,9 @@ static MediaPresence *get_media_presence_cache(Scene *scene)
   return *presence;
 }
 
-bool media_presence_is_missing(Scene *scene, const Strip *seq)
+bool media_presence_is_missing(Scene *scene, const Strip *strip)
 {
-  if (seq == nullptr || scene == nullptr || scene->ed == nullptr) {
+  if (strip == nullptr || scene == nullptr || scene->ed == nullptr) {
     return false;
   }
 
@@ -109,26 +109,26 @@ bool media_presence_is_missing(Scene *scene, const Strip *seq)
   /* Strips that reference another data block that has path to media
    * (e.g. sound strips) need to key the presence cache on that data
    * block. Since it can be used by multiple strips. */
-  if (seq->type == SEQ_TYPE_SOUND_RAM) {
-    const bSound *sound = seq->sound;
+  if (strip->type == SEQ_TYPE_SOUND_RAM) {
+    const bSound *sound = strip->sound;
     const bool *val = presence->map_sound.lookup_ptr(sound);
     if (val != nullptr) {
       missing = *val;
     }
     else {
-      missing = check_sound_media_missing(sound, seq);
+      missing = check_sound_media_missing(sound, strip);
       presence->map_sound.add_new(sound, missing);
     }
   }
   else {
     /* Regular strips that point to media directly. */
-    const bool *val = presence->map_seq.lookup_ptr(seq);
+    const bool *val = presence->map_seq.lookup_ptr(strip);
     if (val != nullptr) {
       missing = *val;
     }
     else {
-      missing = check_media_missing(seq);
-      presence->map_seq.add_new(seq, missing);
+      missing = check_media_missing(strip);
+      presence->map_seq.add_new(strip, missing);
     }
   }
 
@@ -136,9 +136,9 @@ bool media_presence_is_missing(Scene *scene, const Strip *seq)
   return missing;
 }
 
-void media_presence_set_missing(Scene *scene, const Strip *seq, bool missing)
+void media_presence_set_missing(Scene *scene, const Strip *strip, bool missing)
 {
-  if (seq == nullptr || scene == nullptr || scene->ed == nullptr) {
+  if (strip == nullptr || scene == nullptr || scene->ed == nullptr) {
     return;
   }
 
@@ -146,22 +146,22 @@ void media_presence_set_missing(Scene *scene, const Strip *seq, bool missing)
 
   MediaPresence *presence = get_media_presence_cache(scene);
 
-  if (seq->type == SEQ_TYPE_SOUND_RAM) {
-    const bSound *sound = seq->sound;
+  if (strip->type == SEQ_TYPE_SOUND_RAM) {
+    const bSound *sound = strip->sound;
     presence->map_sound.add_overwrite(sound, missing);
   }
   else {
-    presence->map_seq.add_overwrite(seq, missing);
+    presence->map_seq.add_overwrite(strip, missing);
   }
 
   BLI_mutex_unlock(&presence_lock);
 }
 
-void media_presence_invalidate_strip(Scene *scene, const Strip *seq)
+void media_presence_invalidate_strip(Scene *scene, const Strip *strip)
 {
   BLI_mutex_lock(&presence_lock);
   if (scene != nullptr && scene->ed != nullptr && scene->ed->runtime.media_presence != nullptr) {
-    scene->ed->runtime.media_presence->map_seq.remove(seq);
+    scene->ed->runtime.media_presence->map_seq.remove(strip);
   }
   BLI_mutex_unlock(&presence_lock);
 }

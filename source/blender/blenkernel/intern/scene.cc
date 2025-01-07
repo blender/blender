@@ -794,7 +794,7 @@ static void scene_foreach_layer_collection(LibraryForeachIDData *data,
   }
 }
 
-static bool seq_foreach_member_id_cb(Strip *seq, void *user_data)
+static bool seq_foreach_member_id_cb(Strip *strip, void *user_data)
 {
   LibraryForeachIDData *data = static_cast<LibraryForeachIDData *>(user_data);
   const int flag = BKE_lib_query_foreachid_process_flags_get(data);
@@ -816,25 +816,25 @@ static bool seq_foreach_member_id_cb(Strip *seq, void *user_data)
   } \
   ((void)0)
 
-  FOREACHID_PROCESS_IDSUPER(data, seq->scene, IDWALK_CB_NEVER_SELF);
-  FOREACHID_PROCESS_IDSUPER(data, seq->scene_camera, IDWALK_CB_NOP);
-  FOREACHID_PROCESS_IDSUPER(data, seq->clip, IDWALK_CB_USER);
-  FOREACHID_PROCESS_IDSUPER(data, seq->mask, IDWALK_CB_USER);
-  FOREACHID_PROCESS_IDSUPER(data, seq->sound, IDWALK_CB_USER);
-  IDP_foreach_property(seq->prop, IDP_TYPE_FILTER_ID, [&](IDProperty *prop) {
+  FOREACHID_PROCESS_IDSUPER(data, strip->scene, IDWALK_CB_NEVER_SELF);
+  FOREACHID_PROCESS_IDSUPER(data, strip->scene_camera, IDWALK_CB_NOP);
+  FOREACHID_PROCESS_IDSUPER(data, strip->clip, IDWALK_CB_USER);
+  FOREACHID_PROCESS_IDSUPER(data, strip->mask, IDWALK_CB_USER);
+  FOREACHID_PROCESS_IDSUPER(data, strip->sound, IDWALK_CB_USER);
+  IDP_foreach_property(strip->prop, IDP_TYPE_FILTER_ID, [&](IDProperty *prop) {
     BKE_lib_query_idpropertiesForeachIDLink_callback(prop, data);
   });
-  LISTBASE_FOREACH (SequenceModifierData *, smd, &seq->modifiers) {
+  LISTBASE_FOREACH (SequenceModifierData *, smd, &strip->modifiers) {
     FOREACHID_PROCESS_IDSUPER(data, smd->mask_id, IDWALK_CB_USER);
   }
 
-  if (seq->type == SEQ_TYPE_TEXT && seq->effectdata) {
-    TextVars *text_data = static_cast<TextVars *>(seq->effectdata);
+  if (strip->type == SEQ_TYPE_TEXT && strip->effectdata) {
+    TextVars *text_data = static_cast<TextVars *>(strip->effectdata);
     FOREACHID_PROCESS_IDSUPER(data, text_data->text_font, IDWALK_CB_USER);
   }
 
   if (flag & IDWALK_DO_DEPRECATED_POINTERS) {
-    FOREACHID_PROCESS_ID_NOCHECK(data, seq->ipo, IDWALK_CB_USER);
+    FOREACHID_PROCESS_ID_NOCHECK(data, strip->ipo, IDWALK_CB_USER);
   }
 
 #undef FOREACHID_PROCESS_IDSUPER
@@ -942,20 +942,20 @@ static void scene_foreach_id(ID *id, LibraryForeachIDData *data)
   }
 }
 
-static bool seq_foreach_path_callback(Strip *seq, void *user_data)
+static bool seq_foreach_path_callback(Strip *strip, void *user_data)
 {
-  if (SEQ_HAS_PATH(seq)) {
-    StripElem *se = seq->data->stripdata;
+  if (SEQ_HAS_PATH(strip)) {
+    StripElem *se = strip->data->stripdata;
     BPathForeachPathData *bpath_data = (BPathForeachPathData *)user_data;
 
-    if (ELEM(seq->type, SEQ_TYPE_MOVIE, SEQ_TYPE_SOUND_RAM) && se) {
+    if (ELEM(strip->type, SEQ_TYPE_MOVIE, SEQ_TYPE_SOUND_RAM) && se) {
       BKE_bpath_foreach_path_dirfile_fixed_process(bpath_data,
-                                                   seq->data->dirpath,
-                                                   sizeof(seq->data->dirpath),
+                                                   strip->data->dirpath,
+                                                   sizeof(strip->data->dirpath),
                                                    se->filename,
                                                    sizeof(se->filename));
     }
-    else if ((seq->type == SEQ_TYPE_IMAGE) && se) {
+    else if ((strip->type == SEQ_TYPE_IMAGE) && se) {
       /* NOTE: An option not to loop over all strips could be useful? */
       uint len = uint(MEM_allocN_len(se)) / uint(sizeof(*se));
       uint i;
@@ -967,8 +967,8 @@ static bool seq_foreach_path_callback(Strip *seq, void *user_data)
 
       for (i = 0; i < len; i++, se++) {
         BKE_bpath_foreach_path_dirfile_fixed_process(bpath_data,
-                                                     seq->data->dirpath,
-                                                     sizeof(seq->data->dirpath),
+                                                     strip->data->dirpath,
+                                                     sizeof(strip->data->dirpath),
                                                      se->filename,
                                                      sizeof(se->filename));
       }
@@ -976,7 +976,7 @@ static bool seq_foreach_path_callback(Strip *seq, void *user_data)
     else {
       /* simple case */
       BKE_bpath_foreach_path_fixed_process(
-          bpath_data, seq->data->dirpath, sizeof(seq->data->dirpath));
+          bpath_data, strip->data->dirpath, sizeof(strip->data->dirpath));
     }
   }
   return true;

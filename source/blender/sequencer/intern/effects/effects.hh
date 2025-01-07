@@ -19,12 +19,12 @@ struct ImBuf;
 struct Scene;
 struct Strip;
 
-SeqEffectHandle seq_effect_get_sequence_blend(Strip *seq);
+SeqEffectHandle seq_effect_get_sequence_blend(Strip *strip);
 /**
  * Build frame map when speed in mode #SEQ_SPEED_MULTIPLY is animated.
  * This is, because `target_frame` value is integrated over time.
  */
-void seq_effect_speed_rebuild_map(Scene *scene, Strip *seq);
+void seq_effect_speed_rebuild_map(Scene *scene, Strip *strip);
 /**
  * Override timeline_frame when rendering speed effect input.
  */
@@ -81,7 +81,10 @@ inline void store_opaque_black_pixel(float *dst)
 StripEarlyOut early_out_mul_input1(const Strip * /*seq*/, float fac);
 StripEarlyOut early_out_mul_input2(const Strip * /*seq*/, float fac);
 StripEarlyOut early_out_fade(const Strip * /*seq*/, float fac);
-void get_default_fac_fade(const Scene *scene, const Strip *seq, float timeline_frame, float *fac);
+void get_default_fac_fade(const Scene *scene,
+                          const Strip *strip,
+                          float timeline_frame,
+                          float *fac);
 
 SeqEffectHandle get_sequence_effect_impl(int seq_type);
 

@@ -25,7 +25,7 @@ Strip *SEQ_select_active_get(const Scene *scene)
   return ed->act_seq;
 }
 
-void SEQ_select_active_set(Scene *scene, Strip *seq)
+void SEQ_select_active_set(Scene *scene, Strip *strip)
 {
   Editing *ed = SEQ_editing_get(scene);
 
@@ -33,7 +33,7 @@ void SEQ_select_active_set(Scene *scene, Strip *seq)
     return;
   }
 
-  ed->act_seq = seq;
+  ed->act_seq = strip;
 }
 
 bool SEQ_select_active_get_pair(Scene *scene, Strip **r_seq_act, Strip **r_seq_other)
@@ -48,13 +48,13 @@ bool SEQ_select_active_get_pair(Scene *scene, Strip **r_seq_act, Strip **r_seq_o
 
   *r_seq_other = nullptr;
 
-  LISTBASE_FOREACH (Strip *, seq, ed->seqbasep) {
-    if (seq->flag & SELECT && (seq != (*r_seq_act))) {
+  LISTBASE_FOREACH (Strip *, strip, ed->seqbasep) {
+    if (strip->flag & SELECT && (strip != (*r_seq_act))) {
       if (*r_seq_other) {
         return false;
       }
 
-      *r_seq_other = seq;
+      *r_seq_other = strip;
     }
   }
 

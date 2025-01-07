@@ -736,21 +736,21 @@ static void tree_element_strip_activate(bContext *C,
                                         const eOLSetState set)
 {
   const TreeElementStrip *te_strip = tree_element_cast<TreeElementStrip>(te);
-  Strip *seq = &te_strip->get_strip();
+  Strip *strip = &te_strip->get_strip();
   Editing *ed = SEQ_editing_get(scene);
 
-  if (BLI_findindex(ed->seqbasep, seq) != -1) {
+  if (BLI_findindex(ed->seqbasep, strip) != -1) {
     if (set == OL_SETSEL_EXTEND) {
       SEQ_select_active_set(scene, nullptr);
     }
     ED_sequencer_deselect_all(scene);
 
-    if ((set == OL_SETSEL_EXTEND) && seq->flag & SELECT) {
-      seq->flag &= ~SELECT;
+    if ((set == OL_SETSEL_EXTEND) && strip->flag & SELECT) {
+      strip->flag &= ~SELECT;
     }
     else {
-      seq->flag |= SELECT;
-      SEQ_select_active_set(scene, seq);
+      strip->flag |= SELECT;
+      SEQ_select_active_set(scene, strip);
     }
   }
 
@@ -762,7 +762,7 @@ static void tree_element_strip_dup_activate(Scene *scene, TreeElement * /*te*/)
   Editing *ed = SEQ_editing_get(scene);
 
 #if 0
-  select_single_seq(seq, 1);
+  select_single_seq(strip, 1);
 #endif
   Strip *p = static_cast<Strip *>(ed->seqbasep->first);
   while (p) {
@@ -772,7 +772,7 @@ static void tree_element_strip_dup_activate(Scene *scene, TreeElement * /*te*/)
     }
 
 #if 0
-    if (STREQ(p->strip->stripdata->filename, seq->data->stripdata->filename)) {
+    if (STREQ(p->strip->stripdata->filename, strip->data->stripdata->filename)) {
       select_single_seq(p, 0);
     }
 #endif
@@ -1023,10 +1023,10 @@ static eOLDrawState tree_element_bone_collection_state_get(const TreeElement *te
 static eOLDrawState tree_element_strip_state_get(const Scene *scene, const TreeElement *te)
 {
   const TreeElementStrip *te_strip = tree_element_cast<TreeElementStrip>(te);
-  const Strip *seq = &te_strip->get_strip();
+  const Strip *strip = &te_strip->get_strip();
   const Editing *ed = scene->ed;
 
-  if (ed && ed->act_seq == seq && seq->flag & SELECT) {
+  if (ed && ed->act_seq == strip && strip->flag & SELECT) {
     return OL_DRAWSEL_NORMAL;
   }
   return OL_DRAWSEL_NONE;
@@ -1035,8 +1035,8 @@ static eOLDrawState tree_element_strip_state_get(const Scene *scene, const TreeE
 static eOLDrawState tree_element_strip_dup_state_get(const TreeElement *te)
 {
   const TreeElementStripDuplicate *te_dup = tree_element_cast<TreeElementStripDuplicate>(te);
-  const Strip *seq = &te_dup->get_strip();
-  if (seq->flag & SELECT) {
+  const Strip *strip = &te_dup->get_strip();
+  if (strip->flag & SELECT) {
     return OL_DRAWSEL_NORMAL;
   }
   return OL_DRAWSEL_NONE;

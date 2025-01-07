@@ -39,7 +39,7 @@ enum {
 struct SeqEffectHandle {
   /* constructors & destructor */
   /* init is _only_ called on first creation */
-  void (*init)(Strip *seq);
+  void (*init)(Strip *strip);
 
   /* number of input strips needed
    * (called directly after construction) */
@@ -53,27 +53,30 @@ struct SeqEffectHandle {
   void (*copy)(Strip *dst, const Strip *src, int flag);
 
   /* destruct */
-  void (*free)(Strip *seq, bool do_id_user);
+  void (*free)(Strip *strip, bool do_id_user);
 
-  StripEarlyOut (*early_out)(const Strip *seq, float fac);
+  StripEarlyOut (*early_out)(const Strip *strip, float fac);
 
   /* sets the default `fac` value */
-  void (*get_default_fac)(const Scene *scene, const Strip *seq, float timeline_frame, float *fac);
+  void (*get_default_fac)(const Scene *scene,
+                          const Strip *strip,
+                          float timeline_frame,
+                          float *fac);
 
   /* execute the effect */
   ImBuf *(*execute)(const SeqRenderData *context,
-                    Strip *seq,
+                    Strip *strip,
                     float timeline_frame,
                     float fac,
                     ImBuf *ibuf1,
                     ImBuf *ibuf2);
 };
 
-SeqEffectHandle SEQ_effect_handle_get(Strip *seq);
+SeqEffectHandle SEQ_effect_handle_get(Strip *strip);
 int SEQ_effect_get_num_inputs(int seq_type);
 void SEQ_effect_text_font_unload(TextVars *data, bool do_id_user);
 void SEQ_effect_text_font_load(TextVars *data, bool do_id_user);
-bool SEQ_effects_can_render_text(const Strip *seq);
+bool SEQ_effects_can_render_text(const Strip *strip);
 
 namespace blender::seq {
 

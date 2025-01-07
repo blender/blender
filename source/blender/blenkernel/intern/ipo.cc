@@ -1028,7 +1028,7 @@ static char *get_rna_access(ID *id,
                             int adrcode,
                             const char actname[],
                             const char constname[],
-                            Strip *seq,
+                            Strip *strip,
                             int *r_array_index)
 {
   DynStr *path = BLI_dynstr_new();
@@ -1177,11 +1177,11 @@ static char *get_rna_access(ID *id,
     BLI_str_escape(constname_esc, constname, sizeof(constname_esc));
     SNPRINTF(buf, "constraints[\"%s\"]", constname_esc);
   }
-  else if (seq) {
-    /* Sequence names in Scene */
-    char seq_name_esc[(sizeof(seq->name) - 2) * 2];
-    BLI_str_escape(seq_name_esc, seq->name + 2, sizeof(seq_name_esc));
-    SNPRINTF(buf, "sequence_editor.sequences_all[\"%s\"]", seq_name_esc);
+  else if (strip) {
+    /* Strip names in Scene */
+    char strip_name_esc[(sizeof(strip->name) - 2) * 2];
+    BLI_str_escape(strip_name_esc, strip->name + 2, sizeof(strip_name_esc));
+    SNPRINTF(buf, "sequence_editor.sequences_all[\"%s\"]", strip_name_esc);
   }
   else {
     buf[0] = '\0'; /* empty string */
@@ -1405,7 +1405,7 @@ static void icu_to_fcurves(ID *id,
                            IpoCurve *icu,
                            char *actname,
                            char *constname,
-                           Strip *seq,
+                           Strip *strip,
                            int muteipo)
 {
   AdrBit2Path *abp;
@@ -1565,7 +1565,7 @@ static void icu_to_fcurves(ID *id,
      * - we will need to set the 'disabled' flag if no path is able to be made (for now)
      */
     fcu->rna_path = get_rna_access(
-        id, icu->blocktype, icu->adrcode, actname, constname, seq, &fcu->array_index);
+        id, icu->blocktype, icu->adrcode, actname, constname, strip, &fcu->array_index);
     if (fcu->rna_path == nullptr) {
       fcu->flag |= FCURVE_DISABLED;
     }
@@ -1655,9 +1655,9 @@ static void icu_to_fcurves(ID *id,
         }
 
         /* correct values for sequencer curves, that were not locked to frame */
-        if (seq && (seq->flag & SEQ_IPO_FRAME_LOCKED) == 0) {
-          const float mul = (seq->enddisp - seq->startdisp) / 100.0f;
-          const float offset = seq->startdisp;
+        if (strip && (strip->flag & SEQ_IPO_FRAME_LOCKED) == 0) {
+          const float mul = (strip->enddisp - strip->startdisp) / 100.0f;
+          const float offset = strip->startdisp;
 
           dst->vec[0][0] *= mul;
           dst->vec[0][0] += offset;
@@ -1692,7 +1692,7 @@ static void ipo_to_animato(ID *id,
                            Ipo *ipo,
                            char actname[],
                            char constname[],
-                           Strip *seq,
+                           Strip *strip,
                            ListBase *animgroups,
                            ListBase *anim,
                            ListBase *drivers)
@@ -1732,7 +1732,7 @@ static void ipo_to_animato(ID *id,
       /* Blender 2.4x allowed empty drivers,
        * but we don't now, since they cause more trouble than they're worth. */
       if ((icu->driver->ob) || (icu->driver->type == IPO_DRIVER_TYPE_PYTHON)) {
-        icu_to_fcurves(id, nullptr, drivers, icu, actname, constname, seq, ipo->muteipo);
+        icu_to_fcurves(id, nullptr, drivers, icu, actname, constname, strip, ipo->muteipo);
       }
       else {
         MEM_freeN(icu->driver);
@@ -1740,7 +1740,7 @@ static void ipo_to_animato(ID *id,
       }
     }
     else {
-      icu_to_fcurves(id, animgroups, anim, icu, actname, constname, seq, ipo->muteipo);
+      icu_to_fcurves(id, animgroups, anim, icu, actname, constname, strip, ipo->muteipo);
     }
   }
 
@@ -1840,7 +1840,7 @@ static void action_to_animato(
  * from animation data is accomplished here too...
  */
 static void ipo_to_animdata(
-    Main *bmain, ID *id, Ipo *ipo, char actname[], char constname[], Strip *seq)
+    Main *bmain, ID *id, Ipo *ipo, char actname[], char constname[], Strip *strip)
 {
   AnimData *adt = BKE_animdata_from_id(id);
   ListBase anim = {nullptr, nullptr};
@@ -1856,12 +1856,12 @@ static void ipo_to_animdata(
   }
 
   if (G.debug & G_DEBUG) {
-    printf("ipo to animdata - ID:%s, IPO:%s, actname:%s constname:%s seqname:%s  curves:%d\n",
+    printf("ipo to animdata - ID:%s, IPO:%s, actname:%s constname:%s stripname:%s  curves:%d\n",
            id->name + 2,
            ipo->id.name + 2,
            (actname) ? actname : "<None>",
            (constname) ? constname : "<None>",
-           (seq) ? (seq->name + 2) : "<None>",
+           (strip) ? (strip->name + 2) : "<None>",
            BLI_listbase_count(&ipo->curve));
   }
 
@@ -1869,7 +1869,7 @@ static void ipo_to_animdata(
    * (separated into separate lists of F-Curves for animation and drivers),
    * and the try to put these lists in the right places, but do not free the lists here. */
   /* XXX there shouldn't be any need for the groups, so don't supply pointer for that now... */
-  ipo_to_animato(id, ipo, actname, constname, seq, nullptr, &anim, &drivers);
+  ipo_to_animato(id, ipo, actname, constname, strip, nullptr, &anim, &drivers);
 
   /* deal with animation first */
   if (anim.first) {
@@ -2042,22 +2042,22 @@ struct Seq_callback_data {
   AnimData *adt;
 };
 
-static bool seq_convert_callback(Strip *seq, void *userdata)
+static bool seq_convert_callback(Strip *strip, void *userdata)
 {
-  IpoCurve *icu = static_cast<IpoCurve *>((seq->ipo) ? seq->ipo->curve.first : nullptr);
+  IpoCurve *icu = static_cast<IpoCurve *>((strip->ipo) ? strip->ipo->curve.first : nullptr);
   short adrcode = SEQ_FAC1;
 
   if (G.debug & G_DEBUG) {
-    printf("\tconverting sequence strip %s\n", seq->name + 2);
+    printf("\tconverting sequence strip %s\n", strip->name + 2);
   }
 
-  if (ELEM(nullptr, seq->ipo, icu)) {
-    seq->flag |= SEQ_USE_EFFECT_DEFAULT_FADE;
+  if (ELEM(nullptr, strip->ipo, icu)) {
+    strip->flag |= SEQ_USE_EFFECT_DEFAULT_FADE;
     return true;
   }
 
   /* Patch `adrcode`, so that we can map to different DNA variables later (semi-hack (tm)). */
-  switch (seq->type) {
+  switch (strip->type) {
     case SEQ_TYPE_IMAGE:
     case SEQ_TYPE_META:
     case SEQ_TYPE_SCENE:
@@ -2074,14 +2074,14 @@ static bool seq_convert_callback(Strip *seq, void *userdata)
   Seq_callback_data *cd = (Seq_callback_data *)userdata;
 
   /* convert IPO */
-  ipo_to_animdata(cd->bmain, (ID *)cd->scene, seq->ipo, nullptr, nullptr, seq);
+  ipo_to_animdata(cd->bmain, (ID *)cd->scene, strip->ipo, nullptr, nullptr, strip);
 
   if (cd->adt->action) {
     cd->adt->action->idroot = ID_SCE; /* scene-rooted */
   }
 
-  id_us_min(&seq->ipo->id);
-  seq->ipo = nullptr;
+  id_us_min(&strip->ipo->id);
+  strip->ipo = nullptr;
   return true;
 }
 

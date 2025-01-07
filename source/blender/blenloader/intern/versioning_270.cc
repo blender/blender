@@ -422,19 +422,19 @@ static void do_version_bbone_easing_fcurve_fix(ID * /*id*/, FCurve *fcu)
   }
 }
 
-static bool seq_update_proxy_cb(Strip *seq, void * /*user_data*/)
+static bool seq_update_proxy_cb(Strip *strip, void * /*user_data*/)
 {
-  seq->stereo3d_format = static_cast<Stereo3dFormat *>(
+  strip->stereo3d_format = static_cast<Stereo3dFormat *>(
       MEM_callocN(sizeof(Stereo3dFormat), "Stereo Display 3d Format"));
 
 #define SEQ_USE_PROXY_CUSTOM_DIR (1 << 19)
 #define SEQ_USE_PROXY_CUSTOM_FILE (1 << 21)
-  if (seq->data && seq->data->proxy && !seq->data->proxy->storage) {
-    if (seq->flag & SEQ_USE_PROXY_CUSTOM_DIR) {
-      seq->data->proxy->storage = SEQ_STORAGE_PROXY_CUSTOM_DIR;
+  if (strip->data && strip->data->proxy && !strip->data->proxy->storage) {
+    if (strip->flag & SEQ_USE_PROXY_CUSTOM_DIR) {
+      strip->data->proxy->storage = SEQ_STORAGE_PROXY_CUSTOM_DIR;
     }
-    if (seq->flag & SEQ_USE_PROXY_CUSTOM_FILE) {
-      seq->data->proxy->storage = SEQ_STORAGE_PROXY_CUSTOM_FILE;
+    if (strip->flag & SEQ_USE_PROXY_CUSTOM_FILE) {
+      strip->data->proxy->storage = SEQ_STORAGE_PROXY_CUSTOM_FILE;
     }
   }
 #undef SEQ_USE_PROXY_CUSTOM_DIR
@@ -442,19 +442,18 @@ static bool seq_update_proxy_cb(Strip *seq, void * /*user_data*/)
   return true;
 }
 
-static bool seq_update_effectdata_cb(Strip *seq, void * /*user_data*/)
+static bool seq_update_effectdata_cb(Strip *strip, void * /*user_data*/)
 {
-
-  if (seq->type != SEQ_TYPE_TEXT) {
+  if (strip->type != SEQ_TYPE_TEXT) {
     return true;
   }
 
-  if (seq->effectdata == nullptr) {
-    SeqEffectHandle effect_handle = SEQ_effect_handle_get(seq);
-    effect_handle.init(seq);
+  if (strip->effectdata == nullptr) {
+    SeqEffectHandle effect_handle = SEQ_effect_handle_get(strip);
+    effect_handle.init(strip);
   }
 
-  TextVars *data = static_cast<TextVars *>(seq->effectdata);
+  TextVars *data = static_cast<TextVars *>(strip->effectdata);
   if (data->color[3] == 0.0f) {
     copy_v4_fl(data->color, 1.0f);
     data->shadow_color[3] = 1.0f;

@@ -25,7 +25,7 @@ bool SEQ_edit_sequence_swap(Scene *scene, Strip *seq_a, Strip *seq_b, const char
  */
 bool SEQ_edit_move_strip_to_seqbase(Scene *scene,
                                     ListBase *seqbase,
-                                    Strip *seq,
+                                    Strip *strip,
                                     ListBase *dst_seqbase);
 /**
  * Move sequence to meta sequence.
@@ -42,7 +42,7 @@ bool SEQ_edit_move_strip_to_meta(Scene *scene,
 /**
  * Flag seq and its users (effects) for removal.
  */
-void SEQ_edit_flag_for_removal(Scene *scene, ListBase *seqbase, Strip *seq);
+void SEQ_edit_flag_for_removal(Scene *scene, ListBase *seqbase, Strip *strip);
 /**
  * Remove all flagged sequences, return true if sequence is removed.
  */
@@ -68,7 +68,7 @@ enum eSeqSplitMethod {
 Strip *SEQ_edit_strip_split(Main *bmain,
                             Scene *scene,
                             ListBase *seqbase,
-                            Strip *seq,
+                            Strip *strip,
                             int timeline_frame,
                             eSeqSplitMethod method,
                             const char **r_error);
@@ -85,4 +85,4 @@ bool SEQ_edit_remove_gaps(Scene *scene,
                           ListBase *seqbase,
                           int initial_frame,
                           bool remove_all_gaps);
-void SEQ_edit_sequence_name_set(Scene *scene, Strip *seq, const char *new_name);
+void SEQ_edit_sequence_name_set(Scene *scene, Strip *strip, const char *new_name);

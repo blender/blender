@@ -12,12 +12,12 @@
 
 #include "SEQ_connect.hh"
 
-static void seq_connections_free(Strip *seq)
+static void seq_connections_free(Strip *strip)
 {
-  if (seq == nullptr) {
+  if (strip == nullptr) {
     return;
   }
-  ListBase *connections = &seq->connections;
+  ListBase *connections = &strip->connections;
   LISTBASE_FOREACH_MUTABLE (SeqConnection *, con, connections) {
     MEM_delete(con);
   }
@@ -32,23 +32,23 @@ void SEQ_connections_duplicate(ListBase *connections_dst, ListBase *connections_
   }
 }
 
-bool SEQ_disconnect(Strip *seq)
+bool SEQ_disconnect(Strip *strip)
 {
-  if (seq == nullptr || BLI_listbase_is_empty(&seq->connections)) {
+  if (strip == nullptr || BLI_listbase_is_empty(&strip->connections)) {
     return false;
   }
-  /* Remove `SeqConnections` from other strips' `connections` list that point to `seq`. */
-  LISTBASE_FOREACH (SeqConnection *, con_seq, &seq->connections) {
+  /* Remove `SeqConnections` from other strips' `connections` list that point to `strip`. */
+  LISTBASE_FOREACH (SeqConnection *, con_seq, &strip->connections) {
     Strip *other = con_seq->seq_ref;
     LISTBASE_FOREACH_MUTABLE (SeqConnection *, con_other, &other->connections) {
-      if (con_other->seq_ref == seq) {
+      if (con_other->seq_ref == strip) {
         BLI_remlink(&other->connections, con_other);
         MEM_delete(con_other);
       }
     }
   }
-  /* Now clear `connections` for `seq` itself. */
-  seq_connections_free(seq);
+  /* Now clear `connections` for `strip` itself. */
+  seq_connections_free(strip);
 
   return true;
 }
@@ -56,30 +56,30 @@ bool SEQ_disconnect(Strip *seq)
 bool SEQ_disconnect(blender::VectorSet<Strip *> &seq_list)
 {
   bool changed = false;
-  for (Strip *seq : seq_list) {
-    changed |= SEQ_disconnect(seq);
+  for (Strip *strip : seq_list) {
+    changed |= SEQ_disconnect(strip);
   }
 
   return changed;
 }
 
-void SEQ_cut_one_way_connections(Strip *seq)
+void SEQ_cut_one_way_connections(Strip *strip)
 {
-  if (seq == nullptr) {
+  if (strip == nullptr) {
     return;
   }
-  LISTBASE_FOREACH_MUTABLE (SeqConnection *, con_seq, &seq->connections) {
+  LISTBASE_FOREACH_MUTABLE (SeqConnection *, con_seq, &strip->connections) {
     Strip *other = con_seq->seq_ref;
     bool is_one_way = true;
     LISTBASE_FOREACH (SeqConnection *, con_other, &other->connections) {
-      if (con_other->seq_ref == seq) {
-        /* The `other` sequence has a bidirectional connection with `seq`. */
+      if (con_other->seq_ref == strip) {
+        /* The `other` sequence has a bidirectional connection with `strip`. */
         is_one_way = false;
         break;
       }
     }
     if (is_one_way) {
-      BLI_remlink(&seq->connections, con_seq);
+      BLI_remlink(&strip->connections, con_seq);
       MEM_delete(con_seq);
     }
   }
@@ -99,7 +99,7 @@ void SEQ_connect(Strip *seq1, Strip *seq2)
 
 void SEQ_connect(blender::VectorSet<Strip *> &seq_list)
 {
-  seq_list.remove_if([&](Strip *seq) { return seq == nullptr; });
+  seq_list.remove_if([&](Strip *strip) { return strip == nullptr; });
 
   for (Strip *seq1 : seq_list) {
     SEQ_disconnect(seq1);
@@ -114,23 +114,23 @@ void SEQ_connect(blender::VectorSet<Strip *> &seq_list)
   }
 }
 
-blender::VectorSet<Strip *> SEQ_get_connected_strips(const Strip *seq)
+blender::VectorSet<Strip *> SEQ_get_connected_strips(const Strip *strip)
 {
   blender::VectorSet<Strip *> connections;
-  if (seq != nullptr) {
-    LISTBASE_FOREACH (SeqConnection *, con, &seq->connections) {
+  if (strip != nullptr) {
+    LISTBASE_FOREACH (SeqConnection *, con, &strip->connections) {
       connections.add(con->seq_ref);
     }
   }
   return connections;
 }
 
-bool SEQ_is_strip_connected(const Strip *seq)
+bool SEQ_is_strip_connected(const Strip *strip)
 {
-  if (seq == nullptr) {
+  if (strip == nullptr) {
     return false;
   }
-  return !BLI_listbase_is_empty(&seq->connections);
+  return !BLI_listbase_is_empty(&strip->connections);
 }
 
 bool SEQ_are_strips_connected_together(blender::VectorSet<Strip *> &seq_list)

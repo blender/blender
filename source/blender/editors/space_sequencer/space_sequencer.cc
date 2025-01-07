@@ -641,18 +641,18 @@ static void sequencer_main_region_message_subscribe(const wmRegionMessageSubscri
 }
 
 static bool is_mouse_over_retiming_key(const Scene *scene,
-                                       const Strip *seq,
+                                       const Strip *strip,
                                        const View2D *v2d,
                                        const ScrArea *area,
                                        float mouse_co_region[2])
 {
   const SpaceSeq *sseq = static_cast<SpaceSeq *>(area->spacedata.first);
 
-  if (!SEQ_retiming_data_is_editable(seq) || !retiming_keys_can_be_displayed(sseq)) {
+  if (!SEQ_retiming_data_is_editable(strip) || !retiming_keys_can_be_displayed(sseq)) {
     return false;
   }
 
-  rctf retiming_keys_box = seq_retiming_keys_box_get(scene, v2d, seq);
+  rctf retiming_keys_box = seq_retiming_keys_box_get(scene, v2d, strip);
   return BLI_rctf_isect_pt_v(&retiming_keys_box, mouse_co_region);
 }
 

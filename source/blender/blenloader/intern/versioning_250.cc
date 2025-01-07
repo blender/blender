@@ -616,36 +616,36 @@ static void do_versions_socket_default_value_259(bNodeSocket *sock)
   }
 }
 
-static bool seq_sound_proxy_update_cb(Strip *seq, void * /*user_data*/)
+static bool seq_sound_proxy_update_cb(Strip *strip, void * /*user_data*/)
 {
 #define SEQ_USE_PROXY_CUSTOM_DIR (1 << 19)
 #define SEQ_USE_PROXY_CUSTOM_FILE (1 << 21)
   /* don't know, if anybody used that this way, but just in case, upgrade to new way... */
-  if ((seq->flag & SEQ_USE_PROXY_CUSTOM_FILE) && !(seq->flag & SEQ_USE_PROXY_CUSTOM_DIR)) {
-    SNPRINTF(seq->data->proxy->dirpath, "%s" SEP_STR "BL_proxy", seq->data->dirpath);
+  if ((strip->flag & SEQ_USE_PROXY_CUSTOM_FILE) && !(strip->flag & SEQ_USE_PROXY_CUSTOM_DIR)) {
+    SNPRINTF(strip->data->proxy->dirpath, "%s" SEP_STR "BL_proxy", strip->data->dirpath);
   }
 #undef SEQ_USE_PROXY_CUSTOM_DIR
 #undef SEQ_USE_PROXY_CUSTOM_FILE
   return true;
 }
 
-static bool seq_set_volume_cb(Strip *seq, void * /*user_data*/)
+static bool seq_set_volume_cb(Strip *strip, void * /*user_data*/)
 {
-  seq->volume = 1.0f;
+  strip->volume = 1.0f;
   return true;
 }
 
-static bool seq_set_sat_cb(Strip *seq, void * /*user_data*/)
+static bool seq_set_sat_cb(Strip *strip, void * /*user_data*/)
 {
-  if (seq->sat == 0.0f) {
-    seq->sat = 1.0f;
+  if (strip->sat == 0.0f) {
+    strip->sat = 1.0f;
   }
   return true;
 }
 
-static bool seq_set_pitch_cb(Strip *seq, void * /*user_data*/)
+static bool seq_set_pitch_cb(Strip *strip, void * /*user_data*/)
 {
-  seq->pitch = 1.0f;
+  strip->pitch = 1.0f;
   return true;
 }
 

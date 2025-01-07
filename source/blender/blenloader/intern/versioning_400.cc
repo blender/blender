@@ -1026,32 +1026,34 @@ static void version_nla_tweakmode_incomplete(Main *bmain)
   }
 }
 
-static bool versioning_convert_strip_speed_factor(Strip *seq, void *user_data)
+static bool versioning_convert_strip_speed_factor(Strip *strip, void *user_data)
 {
   const Scene *scene = static_cast<Scene *>(user_data);
-  const float speed_factor = seq->speed_factor;
+  const float speed_factor = strip->speed_factor;
 
-  if (speed_factor == 1.0f || !SEQ_retiming_is_allowed(seq) || SEQ_retiming_keys_count(seq) > 0) {
+  if (speed_factor == 1.0f || !SEQ_retiming_is_allowed(strip) ||
+      SEQ_retiming_keys_count(strip) > 0)
+  {
     return true;
   }
 
-  SEQ_retiming_data_ensure(seq);
-  SeqRetimingKey *last_key = &SEQ_retiming_keys_get(seq)[1];
+  SEQ_retiming_data_ensure(strip);
+  SeqRetimingKey *last_key = &SEQ_retiming_keys_get(strip)[1];
 
-  last_key->strip_frame_index = (seq->len) / speed_factor;
+  last_key->strip_frame_index = (strip->len) / speed_factor;
 
-  if (seq->type == SEQ_TYPE_SOUND_RAM) {
-    const int prev_length = seq->len - seq->startofs - seq->endofs;
-    const float left_handle = SEQ_time_left_handle_frame_get(scene, seq);
-    SEQ_time_right_handle_frame_set(scene, seq, left_handle + prev_length);
+  if (strip->type == SEQ_TYPE_SOUND_RAM) {
+    const int prev_length = strip->len - strip->startofs - strip->endofs;
+    const float left_handle = SEQ_time_left_handle_frame_get(scene, strip);
+    SEQ_time_right_handle_frame_set(scene, strip, left_handle + prev_length);
   }
 
   return true;
 }
 
-static bool versioning_clear_strip_unused_flag(Strip *seq, void * /*user_data*/)
+static bool versioning_clear_strip_unused_flag(Strip *strip, void * /*user_data*/)
 {
-  seq->flag &= ~(1 << 6);
+  strip->flag &= ~(1 << 6);
   return true;
 }
 
@@ -3193,9 +3195,9 @@ static void fix_geometry_nodes_object_info_scale(bNodeTree &ntree)
   }
 }
 
-static bool seq_filter_bilinear_to_auto(Strip *seq, void * /*user_data*/)
+static bool seq_filter_bilinear_to_auto(Strip *strip, void * /*user_data*/)
 {
-  StripTransform *transform = seq->data->transform;
+  StripTransform *transform = strip->data->transform;
   if (transform != nullptr && transform->filter == SEQ_TRANSFORM_FILTER_BILINEAR) {
     transform->filter = SEQ_TRANSFORM_FILTER_AUTO;
   }
@@ -3267,9 +3269,9 @@ static void hue_correct_set_wrapping(CurveMapping *curve_mapping)
   curve_mapping->curr.ymax = 1.0f;
 }
 
-static bool seq_hue_correct_set_wrapping(Strip *seq, void * /*user_data*/)
+static bool seq_hue_correct_set_wrapping(Strip *strip, void * /*user_data*/)
 {
-  LISTBASE_FOREACH (SequenceModifierData *, smd, &seq->modifiers) {
+  LISTBASE_FOREACH (SequenceModifierData *, smd, &strip->modifiers) {
     if (smd->type == seqModifierType_HueCorrect) {
       HueCorrectModifierData *hcmd = (HueCorrectModifierData *)smd;
       CurveMapping *cumap = (CurveMapping *)&hcmd->curve_mapping;
@@ -3287,23 +3289,23 @@ static void versioning_update_timecode(short int *tc)
   }
 }
 
-static bool seq_proxies_timecode_update(Strip *seq, void * /*user_data*/)
+static bool seq_proxies_timecode_update(Strip *strip, void * /*user_data*/)
 {
-  if (seq->data == nullptr || seq->data->proxy == nullptr) {
+  if (strip->data == nullptr || strip->data->proxy == nullptr) {
     return true;
   }
-  StripProxy *proxy = seq->data->proxy;
+  StripProxy *proxy = strip->data->proxy;
   versioning_update_timecode(&proxy->tc);
   return true;
 }
 
-static bool seq_text_data_update(Strip *seq, void * /*user_data*/)
+static bool seq_text_data_update(Strip *strip, void * /*user_data*/)
 {
-  if (seq->type != SEQ_TYPE_TEXT || seq->effectdata == nullptr) {
+  if (strip->type != SEQ_TYPE_TEXT || strip->effectdata == nullptr) {
     return true;
   }
 
-  TextVars *data = static_cast<TextVars *>(seq->effectdata);
+  TextVars *data = static_cast<TextVars *>(strip->effectdata);
   if (data->shadow_angle == 0.0f) {
     data->shadow_angle = DEG2RADF(65.0f);
     data->shadow_offset = 0.04f;
@@ -3472,13 +3474,13 @@ static void hide_simulation_node_skip_socket_value(Main &bmain)
   }
 }
 
-static bool versioning_convert_seq_text_anchor(Strip *seq, void * /*user_data*/)
+static bool versioning_convert_seq_text_anchor(Strip *strip, void * /*user_data*/)
 {
-  if (seq->type != SEQ_TYPE_TEXT || seq->effectdata == nullptr) {
+  if (strip->type != SEQ_TYPE_TEXT || strip->effectdata == nullptr) {
     return true;
   }
 
-  TextVars *data = static_cast<TextVars *>(seq->effectdata);
+  TextVars *data = static_cast<TextVars *>(strip->effectdata);
   data->anchor_x = data->align;
   data->anchor_y = data->align_y;
   data->align = SEQ_TEXT_ALIGN_X_LEFT;

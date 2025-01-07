@@ -251,7 +251,7 @@ static bool gizmo2d_calc_bounds(const bContext *C, float *r_center, float *r_min
     ListBase *channels = SEQ_channels_displayed_get(ed);
     blender::VectorSet strips = SEQ_query_rendered_strips(
         scene, channels, seqbase, scene->r.cfra, 0);
-    strips.remove_if([&](Strip *seq) { return (seq->flag & SELECT) == 0; });
+    strips.remove_if([&](Strip *strip) { return (strip->flag & SELECT) == 0; });
     int selected_strips = strips.size();
     if (selected_strips > 0) {
       has_select = true;
@@ -303,7 +303,7 @@ static int gizmo2d_calc_transform_orientation(const bContext *C)
   ListBase *channels = SEQ_channels_displayed_get(ed);
   blender::VectorSet strips = SEQ_query_rendered_strips(
       scene, channels, seqbase, scene->r.cfra, 0);
-  strips.remove_if([&](Strip *seq) { return (seq->flag & SELECT) == 0; });
+  strips.remove_if([&](Strip *strip) { return (strip->flag & SELECT) == 0; });
 
   bool use_local_orient = strips.size() == 1;
 
@@ -326,14 +326,14 @@ static float gizmo2d_calc_rotation(const bContext *C)
   ListBase *channels = SEQ_channels_displayed_get(ed);
   blender::VectorSet strips = SEQ_query_rendered_strips(
       scene, channels, seqbase, scene->r.cfra, 0);
-  strips.remove_if([&](Strip *seq) { return (seq->flag & SELECT) == 0; });
+  strips.remove_if([&](Strip *strip) { return (strip->flag & SELECT) == 0; });
 
   if (strips.size() == 1) {
     /* Only return the strip rotation if only one is selected. */
-    for (Strip *seq : strips) {
-      StripTransform *transform = seq->data->transform;
+    for (Strip *strip : strips) {
+      StripTransform *transform = strip->data->transform;
       float mirror[2];
-      SEQ_image_transform_mirror_factor_get(seq, mirror);
+      SEQ_image_transform_mirror_factor_get(strip, mirror);
       return transform->rotation * mirror[0] * mirror[1];
     }
   }
@@ -350,13 +350,13 @@ static bool seq_get_strip_pivot_median(const Scene *scene, float r_pivot[2])
   ListBase *channels = SEQ_channels_displayed_get(ed);
   blender::VectorSet strips = SEQ_query_rendered_strips(
       scene, channels, seqbase, scene->r.cfra, 0);
-  strips.remove_if([&](Strip *seq) { return (seq->flag & SELECT) == 0; });
+  strips.remove_if([&](Strip *strip) { return (strip->flag & SELECT) == 0; });
   bool has_select = !strips.is_empty();
 
   if (has_select) {
-    for (Strip *seq : strips) {
+    for (Strip *strip : strips) {
       float origin[2];
-      SEQ_image_transform_origin_offset_pixelspace_get(scene, seq, origin);
+      SEQ_image_transform_origin_offset_pixelspace_get(scene, strip, origin);
       add_v2_v2(r_pivot, origin);
     }
     mul_v2_fl(r_pivot, 1.0f / strips.size());
@@ -388,7 +388,7 @@ static bool gizmo2d_calc_transform_pivot(const bContext *C, float r_pivot[2])
       ListBase *channels = SEQ_channels_displayed_get(ed);
       blender::VectorSet strips = SEQ_query_rendered_strips(
           scene, channels, seqbase, scene->r.cfra, 0);
-      strips.remove_if([&](Strip *seq) { return (seq->flag & SELECT) == 0; });
+      strips.remove_if([&](Strip *strip) { return (strip->flag & SELECT) == 0; });
       has_select = !strips.is_empty();
     }
     else if (pivot_point == V3D_AROUND_CENTER_BOUNDS) {

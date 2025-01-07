@@ -17,7 +17,7 @@ struct Strip;
 /**
  * Callback format for the for_each function below.
  */
-using SeqForEachFunc = bool (*)(Strip *seq, void *user_data);
+using SeqForEachFunc = bool (*)(Strip *strip, void *user_data);
 
 /**
  * Utility function to recursively iterate through all sequence strips in a `seqbase` list.

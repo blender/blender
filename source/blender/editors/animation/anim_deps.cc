@@ -182,23 +182,23 @@ static void animchan_sync_fcurve_scene(bAnimListElem *ale)
   BLI_assert(GS(owner_id->name) == ID_SCE);
   Scene *scene = (Scene *)owner_id;
   FCurve *fcu = (FCurve *)ale->data;
-  Strip *seq = nullptr;
+  Strip *strip = nullptr;
 
   /* Only affect if F-Curve involves sequence_editor.sequences. */
-  char seq_name[sizeof(seq->name)];
-  if (!BLI_str_quoted_substr(fcu->rna_path, "sequences_all[", seq_name, sizeof(seq_name))) {
+  char strip_name[sizeof(strip->name)];
+  if (!BLI_str_quoted_substr(fcu->rna_path, "sequences_all[", strip_name, sizeof(strip_name))) {
     return;
   }
 
   /* Check if this strip is selected. */
   Editing *ed = SEQ_editing_get(scene);
-  seq = SEQ_get_sequence_by_name(ed->seqbasep, seq_name, false);
-  if (seq == nullptr) {
+  strip = SEQ_get_sequence_by_name(ed->seqbasep, strip_name, false);
+  if (strip == nullptr) {
     return;
   }
 
   /* update selection status */
-  if (seq->flag & SELECT) {
+  if (strip->flag & SELECT) {
     fcu->flag |= FCURVE_SELECTED;
   }
   else {

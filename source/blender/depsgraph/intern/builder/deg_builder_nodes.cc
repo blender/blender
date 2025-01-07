@@ -2236,22 +2236,22 @@ void DepsgraphNodeBuilder::build_vfont(VFont *vfont)
       &vfont->id, NodeType::GENERIC_DATABLOCK, OperationCode::GENERIC_DATABLOCK_UPDATE);
 }
 
-static bool seq_node_build_cb(Strip *seq, void *user_data)
+static bool seq_node_build_cb(Strip *strip, void *user_data)
 {
   DepsgraphNodeBuilder *nb = (DepsgraphNodeBuilder *)user_data;
-  nb->build_idproperties(seq->prop);
-  if (seq->sound != nullptr) {
-    nb->build_sound(seq->sound);
+  nb->build_idproperties(strip->prop);
+  if (strip->sound != nullptr) {
+    nb->build_sound(strip->sound);
   }
-  if (seq->scene != nullptr) {
-    nb->build_scene_parameters(seq->scene);
+  if (strip->scene != nullptr) {
+    nb->build_scene_parameters(strip->scene);
   }
-  if (seq->type == SEQ_TYPE_SCENE && seq->scene != nullptr) {
-    if (seq->flag & SEQ_SCENE_STRIPS) {
-      nb->build_scene_sequencer(seq->scene);
+  if (strip->type == SEQ_TYPE_SCENE && strip->scene != nullptr) {
+    if (strip->flag & SEQ_SCENE_STRIPS) {
+      nb->build_scene_sequencer(strip->scene);
     }
-    ViewLayer *sequence_view_layer = BKE_view_layer_default_render(seq->scene);
-    nb->build_scene_speakers(seq->scene, sequence_view_layer);
+    ViewLayer *sequence_view_layer = BKE_view_layer_default_render(strip->scene);
+    nb->build_scene_speakers(strip->scene, sequence_view_layer);
   }
   /* TODO(sergey): Movie clip, scene, camera, mask. */
   return true;

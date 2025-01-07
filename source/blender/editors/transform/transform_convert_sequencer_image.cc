@@ -33,7 +33,7 @@
 
 /** Used for sequencer transform. */
 struct TransDataSeq {
-  Strip *seq;
+  Strip *strip;
   float orig_origin_position[2];
   float orig_translation[2];
   float orig_scale[2];
@@ -41,15 +41,15 @@ struct TransDataSeq {
 };
 
 static TransData *SeqToTransData(const Scene *scene,
-                                 Strip *seq,
+                                 Strip *strip,
                                  TransData *td,
                                  TransData2D *td2d,
                                  TransDataSeq *tdseq,
                                  int vert_index)
 {
-  const StripTransform *transform = seq->data->transform;
+  const StripTransform *transform = strip->data->transform;
   float origin[2];
-  SEQ_image_transform_origin_offset_pixelspace_get(scene, seq, origin);
+  SEQ_image_transform_origin_offset_pixelspace_get(scene, strip, origin);
   float vertex[2] = {origin[0], origin[1]};
 
   /* Add control vertex, so rotation and scale can be calculated.
@@ -79,7 +79,7 @@ static TransData *SeqToTransData(const Scene *scene,
   axis_angle_to_mat3_single(td->axismtx, 'Z', transform->rotation);
   normalize_m3(td->axismtx);
 
-  tdseq->seq = seq;
+  tdseq->strip = strip;
   copy_v2_v2(tdseq->orig_origin_position, origin);
   tdseq->orig_translation[0] = transform->xofs;
   tdseq->orig_translation[1] = transform->yofs;
@@ -123,7 +123,7 @@ static void createTransSeqImageData(bContext * /*C*/, TransInfo *t)
   ListBase *channels = SEQ_channels_displayed_get(ed);
   blender::VectorSet strips = SEQ_query_rendered_strips(
       t->scene, channels, seqbase, t->scene->r.cfra, 0);
-  strips.remove_if([&](Strip *seq) { return (seq->flag & SELECT) == 0; });
+  strips.remove_if([&](Strip *strip) { return (strip->flag & SELECT) == 0; });
 
   if (strips.is_empty()) {
     return;
@@ -140,13 +140,13 @@ static void createTransSeqImageData(bContext * /*C*/, TransInfo *t)
   TransDataSeq *tdseq = static_cast<TransDataSeq *>(
       MEM_callocN(tc->data_len * sizeof(TransDataSeq), "TransSeq TransDataSeq"));
 
-  for (Strip *seq : strips) {
+  for (Strip *strip : strips) {
     /* One `Sequence` needs 3 `TransData` entries - center point placed in image origin, then 2
      * points offset by 1 in X and Y direction respectively, so rotation and scale can be
      * calculated from these points. */
-    SeqToTransData(t->scene, seq, td++, td2d++, tdseq++, 0);
-    SeqToTransData(t->scene, seq, td++, td2d++, tdseq++, 1);
-    SeqToTransData(t->scene, seq, td++, td2d++, tdseq++, 2);
+    SeqToTransData(t->scene, strip, td++, td2d++, tdseq++, 0);
+    SeqToTransData(t->scene, strip, td++, td2d++, tdseq++, 1);
+    SeqToTransData(t->scene, strip, td++, td2d++, tdseq++, 2);
   }
 }
 
@@ -220,10 +220,10 @@ static void recalcData_sequencer_image(TransInfo *t)
     sub_v2_v2(handle_y, origin);
 
     TransDataSeq *tdseq = static_cast<TransDataSeq *>(td->extra);
-    Strip *seq = tdseq->seq;
-    StripTransform *transform = seq->data->transform;
+    Strip *strip = tdseq->strip;
+    StripTransform *transform = strip->data->transform;
     float mirror[2];
-    SEQ_image_transform_mirror_factor_get(seq, mirror);
+    SEQ_image_transform_mirror_factor_get(strip, mirror);
 
     /* Calculate translation. */
     float translation[2];
@@ -254,7 +254,7 @@ static void recalcData_sequencer_image(TransInfo *t)
       autokeyframe_sequencer_image(t->context, t->scene, transform, t->mode);
     }
 
-    SEQ_relations_invalidate_cache_preprocessed(t->scene, seq);
+    SEQ_relations_invalidate_cache_preprocessed(t->scene, strip);
   }
 }
 
@@ -268,8 +268,8 @@ static void special_aftertrans_update__sequencer_image(bContext * /*C*/, TransIn
 
   for (i = 0, td = tc->data, td2d = tc->data_2d; i < tc->data_len; i++, td++, td2d++) {
     TransDataSeq *tdseq = static_cast<TransDataSeq *>(td->extra);
-    Strip *seq = tdseq->seq;
-    StripTransform *transform = seq->data->transform;
+    Strip *strip = tdseq->strip;
+    StripTransform *transform = strip->data->transform;
     if (t->state == TRANS_CANCEL) {
       if (t->mode == TFM_ROTATION) {
         transform->rotation = tdseq->orig_rotation;

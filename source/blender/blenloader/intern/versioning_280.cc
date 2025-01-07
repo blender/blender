@@ -3009,11 +3009,11 @@ static void do_versions_seq_set_cache_defaults(Editing *ed)
   ed->recycle_max_cost = 10.0f;
 }
 
-static bool seq_update_flags_cb(Strip *seq, void * /*user_data*/)
+static bool seq_update_flags_cb(Strip *strip, void * /*user_data*/)
 {
-  seq->flag &= ~((1 << 6) | (1 << 18) | (1 << 19) | (1 << 21));
-  if (seq->type == SEQ_TYPE_SPEED) {
-    SpeedControlVars *s = (SpeedControlVars *)seq->effectdata;
+  strip->flag &= ~((1 << 6) | (1 << 18) | (1 << 19) | (1 << 21));
+  if (strip->type == SEQ_TYPE_SPEED) {
+    SpeedControlVars *s = (SpeedControlVars *)strip->effectdata;
     s->flags &= ~(SEQ_SPEED_UNUSED_1);
   }
   return true;

@@ -66,7 +66,7 @@ ListBase *SEQ_active_seqbase_get(const Editing *ed);
  */
 void SEQ_seqbase_active_set(Editing *ed, ListBase *seqbase);
 Strip *SEQ_sequence_alloc(ListBase *lb, int timeline_frame, int machine, int type);
-void SEQ_sequence_free(Scene *scene, Strip *seq);
+void SEQ_sequence_free(Scene *scene, Strip *strip);
 /**
  * Get #MetaStack that corresponds to current level that is being viewed
  *
@@ -87,14 +87,14 @@ void SEQ_meta_stack_set(const Scene *scene, Strip *dst_seq);
  */
 Strip *SEQ_meta_stack_pop(Editing *ed);
 Strip *SEQ_sequence_dupli_recursive(
-    const Scene *scene_src, Scene *scene_dst, ListBase *new_seq_list, Strip *seq, int dupe_flag);
+    const Scene *scene_src, Scene *scene_dst, ListBase *new_seq_list, Strip *strip, int dupe_flag);
 void SEQ_sequence_base_dupli_recursive(const Scene *scene_src,
                                        Scene *scene_dst,
                                        ListBase *nseqbase,
                                        const ListBase *seqbase,
                                        int dupe_flag,
                                        int flag);
-bool SEQ_is_valid_strip_channel(const Strip *seq);
+bool SEQ_is_valid_strip_channel(const Strip *strip);
 
 /**
  * Read and Write functions for `.blend` file data.

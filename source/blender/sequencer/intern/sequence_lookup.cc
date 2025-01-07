@@ -45,14 +45,14 @@ static void seq_sequence_lookup_append_effect(const Strip *input,
   effects.add(effect);
 }
 
-static void seq_sequence_lookup_build_effect(Strip *seq, SequenceLookup *lookup)
+static void seq_sequence_lookup_build_effect(Strip *strip, SequenceLookup *lookup)
 {
-  if ((seq->type & SEQ_TYPE_EFFECT) == 0) {
+  if ((strip->type & SEQ_TYPE_EFFECT) == 0) {
     return;
   }
 
-  seq_sequence_lookup_append_effect(seq->seq1, seq, lookup);
-  seq_sequence_lookup_append_effect(seq->seq2, seq, lookup);
+  seq_sequence_lookup_append_effect(strip->seq1, strip, lookup);
+  seq_sequence_lookup_append_effect(strip->seq2, strip, lookup);
 }
 
 static void seq_sequence_lookup_build_from_seqbase(Strip *parent_meta,
@@ -65,13 +65,13 @@ static void seq_sequence_lookup_build_from_seqbase(Strip *parent_meta,
     }
   }
 
-  LISTBASE_FOREACH (Strip *, seq, seqbase) {
-    lookup->seq_by_name.add(seq->name + 2, seq);
-    lookup->meta_by_seq.add(seq, parent_meta);
-    seq_sequence_lookup_build_effect(seq, lookup);
+  LISTBASE_FOREACH (Strip *, strip, seqbase) {
+    lookup->seq_by_name.add(strip->name + 2, strip);
+    lookup->meta_by_seq.add(strip, parent_meta);
+    seq_sequence_lookup_build_effect(strip, lookup);
 
-    if (seq->type == SEQ_TYPE_META) {
-      seq_sequence_lookup_build_from_seqbase(seq, &seq->seqbase, lookup);
+    if (strip->type == SEQ_TYPE_META) {
+      seq_sequence_lookup_build_from_seqbase(strip, &strip->seqbase, lookup);
     }
   }
 }

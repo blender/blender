@@ -183,9 +183,9 @@ static bool actedit_get_context(bAnimContext *ac, SpaceAction *saction)
     {
       /* TODO: other methods to get the mask. */
 #if 0
-      Strip *seq = SEQ_select_active_get(ac->scene);
+      Strip *strip = SEQ_select_active_get(ac->scene);
       MovieClip *clip = ac->scene->clip;
-      struct Mask *mask = seq ? seq->mask : nullptr;
+      struct Mask *mask = strip ? strip->mask : nullptr;
 #endif
 
       /* update scene-pointer (no need to check for pinning yet, as not implemented) */
@@ -1009,23 +1009,23 @@ static bool skip_fcurve_selected_data(bAnimContext *ac,
   }
   else if (GS(owner_id->name) == ID_SCE) {
     Scene *scene = (Scene *)owner_id;
-    Strip *seq = nullptr;
-    char seq_name[sizeof(seq->name)];
+    Strip *strip = nullptr;
+    char strip_name[sizeof(strip->name)];
 
     /* Only consider if F-Curve involves `sequence_editor.sequences`. */
     if (fcu->rna_path &&
-        BLI_str_quoted_substr(fcu->rna_path, "sequences_all[", seq_name, sizeof(seq_name)))
+        BLI_str_quoted_substr(fcu->rna_path, "sequences_all[", strip_name, sizeof(strip_name)))
     {
       /* Get strip name, and check if this strip is selected. */
       Editing *ed = SEQ_editing_get(scene);
       if (ed) {
-        seq = SEQ_get_sequence_by_name(ed->seqbasep, seq_name, false);
+        strip = SEQ_get_sequence_by_name(ed->seqbasep, strip_name, false);
       }
 
       /* Can only add this F-Curve if it is selected. */
       if (ac->ads->filterflag & ADS_FILTER_ONLYSEL) {
 
-        /* NOTE(@ideasman42): The `seq == nullptr` check doesn't look right
+        /* NOTE(@ideasman42): The `strip == nullptr` check doesn't look right
          * (compared to other checks in this function which skip data that can't be found).
          *
          * This is done since the search for sequence strips doesn't use a global lookup:
@@ -1040,11 +1040,11 @@ static bool skip_fcurve_selected_data(bAnimContext *ac,
          * If this is an important difference, the nullptr case could perform a global lookup,
          * only returning `true` if the sequence strip exists elsewhere
          * (ignoring its selection state). */
-        if (seq == nullptr) {
+        if (strip == nullptr) {
           return true;
         }
 
-        if ((seq->flag & SELECT) == 0) {
+        if ((strip->flag & SELECT) == 0) {
           return true;
         }
       }

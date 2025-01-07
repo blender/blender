@@ -100,23 +100,23 @@ Array<float> make_gaussian_blur_kernel(float rad, int size)
   return gaussian;
 }
 
-static void init_noop(Strip * /*seq*/) {}
+static void init_noop(Strip * /*strip*/) {}
 
-static void load_noop(Strip * /*seq*/) {}
+static void load_noop(Strip * /*strip*/) {}
 
-static void free_noop(Strip * /*seq*/, const bool /*do_id_user*/) {}
+static void free_noop(Strip * /*strip*/, const bool /*do_id_user*/) {}
 
 static int num_inputs_default()
 {
   return 2;
 }
 
-static StripEarlyOut early_out_noop(const Strip * /*seq*/, float /*fac*/)
+static StripEarlyOut early_out_noop(const Strip * /*strip*/, float /*fac*/)
 {
   return StripEarlyOut::DoEffect;
 }
 
-StripEarlyOut early_out_fade(const Strip * /*seq*/, float fac)
+StripEarlyOut early_out_fade(const Strip * /*strip*/, float fac)
 {
   if (fac == 0.0f) {
     return StripEarlyOut::UseInput1;
@@ -127,7 +127,7 @@ StripEarlyOut early_out_fade(const Strip * /*seq*/, float fac)
   return StripEarlyOut::DoEffect;
 }
 
-StripEarlyOut early_out_mul_input2(const Strip * /*seq*/, float fac)
+StripEarlyOut early_out_mul_input2(const Strip * /*strip*/, float fac)
 {
   if (fac == 0.0f) {
     return StripEarlyOut::UseInput1;
@@ -135,7 +135,7 @@ StripEarlyOut early_out_mul_input2(const Strip * /*seq*/, float fac)
   return StripEarlyOut::DoEffect;
 }
 
-StripEarlyOut early_out_mul_input1(const Strip * /*seq*/, float fac)
+StripEarlyOut early_out_mul_input1(const Strip * /*strip*/, float fac)
 {
   if (fac == 0.0f) {
     return StripEarlyOut::UseInput2;
@@ -144,17 +144,17 @@ StripEarlyOut early_out_mul_input1(const Strip * /*seq*/, float fac)
 }
 
 static void get_default_fac_noop(const Scene * /*scene*/,
-                                 const Strip * /*seq*/,
+                                 const Strip * /*strip*/,
                                  float /*timeline_frame*/,
                                  float *fac)
 {
   *fac = 1.0f;
 }
 
-void get_default_fac_fade(const Scene *scene, const Strip *seq, float timeline_frame, float *fac)
+void get_default_fac_fade(const Scene *scene, const Strip *strip, float timeline_frame, float *fac)
 {
-  *fac = float(timeline_frame - SEQ_time_left_handle_frame_get(scene, seq));
-  *fac /= SEQ_time_strip_length_get(scene, seq);
+  *fac = float(timeline_frame - SEQ_time_left_handle_frame_get(scene, strip));
+  *fac /= SEQ_time_strip_length_get(scene, strip);
   *fac = math::clamp(*fac, 0.0f, 1.0f);
 }
 
@@ -252,37 +252,37 @@ SeqEffectHandle get_sequence_effect_impl(int seq_type)
   return rval;
 }
 
-SeqEffectHandle SEQ_effect_handle_get(Strip *seq)
+SeqEffectHandle SEQ_effect_handle_get(Strip *strip)
 {
   SeqEffectHandle rval = {};
 
-  if (seq->type & SEQ_TYPE_EFFECT) {
-    rval = get_sequence_effect_impl(seq->type);
-    if ((seq->flag & SEQ_EFFECT_NOT_LOADED) != 0) {
-      rval.load(seq);
-      seq->flag &= ~SEQ_EFFECT_NOT_LOADED;
+  if (strip->type & SEQ_TYPE_EFFECT) {
+    rval = get_sequence_effect_impl(strip->type);
+    if ((strip->flag & SEQ_EFFECT_NOT_LOADED) != 0) {
+      rval.load(strip);
+      strip->flag &= ~SEQ_EFFECT_NOT_LOADED;
     }
   }
 
   return rval;
 }
 
-SeqEffectHandle seq_effect_get_sequence_blend(Strip *seq)
+SeqEffectHandle seq_effect_get_sequence_blend(Strip *strip)
 {
   SeqEffectHandle rval = {};
 
-  if (seq->blend_mode != 0) {
-    if ((seq->flag & SEQ_EFFECT_NOT_LOADED) != 0) {
+  if (strip->blend_mode != 0) {
+    if ((strip->flag & SEQ_EFFECT_NOT_LOADED) != 0) {
       /* load the effect first */
-      rval = get_sequence_effect_impl(seq->type);
-      rval.load(seq);
+      rval = get_sequence_effect_impl(strip->type);
+      rval.load(strip);
     }
 
-    rval = get_sequence_effect_impl(seq->blend_mode);
-    if ((seq->flag & SEQ_EFFECT_NOT_LOADED) != 0) {
+    rval = get_sequence_effect_impl(strip->blend_mode);
+    if ((strip->flag & SEQ_EFFECT_NOT_LOADED) != 0) {
       /* now load the blend and unset unloaded flag */
-      rval.load(seq);
-      seq->flag &= ~SEQ_EFFECT_NOT_LOADED;
+      rval.load(strip);
+      strip->flag &= ~SEQ_EFFECT_NOT_LOADED;
     }
   }
 

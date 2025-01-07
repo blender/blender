@@ -21,24 +21,24 @@
 #include "effects.hh"
 #include "render.hh"
 
-static void init_speed_effect(Strip *seq)
+static void init_speed_effect(Strip *strip)
 {
-  if (seq->effectdata) {
-    MEM_freeN(seq->effectdata);
+  if (strip->effectdata) {
+    MEM_freeN(strip->effectdata);
   }
 
-  seq->effectdata = MEM_callocN(sizeof(SpeedControlVars), "speedcontrolvars");
+  strip->effectdata = MEM_callocN(sizeof(SpeedControlVars), "speedcontrolvars");
 
-  SpeedControlVars *v = (SpeedControlVars *)seq->effectdata;
+  SpeedControlVars *v = (SpeedControlVars *)strip->effectdata;
   v->speed_control_type = SEQ_SPEED_STRETCH;
   v->speed_fader = 1.0f;
   v->speed_fader_length = 0.0f;
   v->speed_fader_frame_number = 0.0f;
 }
 
-static void load_speed_effect(Strip *seq)
+static void load_speed_effect(Strip *strip)
 {
-  SpeedControlVars *v = (SpeedControlVars *)seq->effectdata;
+  SpeedControlVars *v = (SpeedControlVars *)strip->effectdata;
   v->frameMap = nullptr;
 }
 
@@ -47,13 +47,13 @@ static int num_inputs_speed()
   return 1;
 }
 
-static void free_speed_effect(Strip *seq, const bool /*do_id_user*/)
+static void free_speed_effect(Strip *strip, const bool /*do_id_user*/)
 {
-  SpeedControlVars *v = (SpeedControlVars *)seq->effectdata;
+  SpeedControlVars *v = (SpeedControlVars *)strip->effectdata;
   if (v->frameMap) {
     MEM_freeN(v->frameMap);
   }
-  MEM_SAFE_FREE(seq->effectdata);
+  MEM_SAFE_FREE(strip->effectdata);
 }
 
 static void copy_speed_effect(Strip *dst, const Strip *src, const int /*flag*/)
@@ -64,31 +64,31 @@ static void copy_speed_effect(Strip *dst, const Strip *src, const int /*flag*/)
   v->frameMap = nullptr;
 }
 
-static StripEarlyOut early_out_speed(const Strip * /*seq*/, float /*fac*/)
+static StripEarlyOut early_out_speed(const Strip * /*strip*/, float /*fac*/)
 {
   return StripEarlyOut::DoEffect;
 }
 
-static FCurve *seq_effect_speed_speed_factor_curve_get(Scene *scene, Strip *seq)
+static FCurve *seq_effect_speed_speed_factor_curve_get(Scene *scene, Strip *strip)
 {
-  return id_data_find_fcurve(&scene->id, seq, &RNA_Strip, "speed_factor", 0, nullptr);
+  return id_data_find_fcurve(&scene->id, strip, &RNA_Strip, "speed_factor", 0, nullptr);
 }
 
-void seq_effect_speed_rebuild_map(Scene *scene, Strip *seq)
+void seq_effect_speed_rebuild_map(Scene *scene, Strip *strip)
 {
-  const int effect_strip_length = SEQ_time_right_handle_frame_get(scene, seq) -
-                                  SEQ_time_left_handle_frame_get(scene, seq);
+  const int effect_strip_length = SEQ_time_right_handle_frame_get(scene, strip) -
+                                  SEQ_time_left_handle_frame_get(scene, strip);
 
-  if ((seq->seq1 == nullptr) || (effect_strip_length < 1)) {
+  if ((strip->seq1 == nullptr) || (effect_strip_length < 1)) {
     return; /* Make COVERITY happy and check for (CID 598) input strip. */
   }
 
-  const FCurve *fcu = seq_effect_speed_speed_factor_curve_get(scene, seq);
+  const FCurve *fcu = seq_effect_speed_speed_factor_curve_get(scene, strip);
   if (fcu == nullptr) {
     return;
   }
 
-  SpeedControlVars *v = (SpeedControlVars *)seq->effectdata;
+  SpeedControlVars *v = (SpeedControlVars *)strip->effectdata;
   if (v->frameMap) {
     MEM_freeN(v->frameMap);
   }
@@ -98,21 +98,22 @@ void seq_effect_speed_rebuild_map(Scene *scene, Strip *seq)
 
   float target_frame = 0;
   for (int frame_index = 1; frame_index < effect_strip_length; frame_index++) {
-    target_frame += evaluate_fcurve(fcu, SEQ_time_left_handle_frame_get(scene, seq) + frame_index);
-    const int target_frame_max = SEQ_time_strip_length_get(scene, seq->seq1);
+    target_frame += evaluate_fcurve(fcu,
+                                    SEQ_time_left_handle_frame_get(scene, strip) + frame_index);
+    const int target_frame_max = SEQ_time_strip_length_get(scene, strip->seq1);
     CLAMP(target_frame, 0, target_frame_max);
     v->frameMap[frame_index] = target_frame;
   }
 }
 
-static void seq_effect_speed_frame_map_ensure(Scene *scene, Strip *seq)
+static void seq_effect_speed_frame_map_ensure(Scene *scene, Strip *strip)
 {
-  const SpeedControlVars *v = (SpeedControlVars *)seq->effectdata;
+  const SpeedControlVars *v = (SpeedControlVars *)strip->effectdata;
   if (v->frameMap != nullptr) {
     return;
   }
 
-  seq_effect_speed_rebuild_map(scene, seq);
+  seq_effect_speed_rebuild_map(scene, strip);
 }
 
 float seq_speed_effect_target_frame_get(Scene *scene,
@@ -183,18 +184,18 @@ static float speed_effect_interpolation_ratio_get(Scene *scene,
 }
 
 static ImBuf *do_speed_effect(const SeqRenderData *context,
-                              Strip *seq,
+                              Strip *strip,
                               float timeline_frame,
                               float fac,
                               ImBuf *ibuf1,
                               ImBuf *ibuf2)
 {
-  const SpeedControlVars *s = (SpeedControlVars *)seq->effectdata;
+  const SpeedControlVars *s = (SpeedControlVars *)strip->effectdata;
   SeqEffectHandle cross_effect = get_sequence_effect_impl(SEQ_TYPE_CROSS);
   ImBuf *out;
 
   if (s->flags & SEQ_SPEED_USE_INTERPOLATION) {
-    fac = speed_effect_interpolation_ratio_get(context->scene, seq, timeline_frame);
+    fac = speed_effect_interpolation_ratio_get(context->scene, strip, timeline_frame);
     /* Current frame is ibuf1, next frame is ibuf2. */
     out = cross_effect.execute(context, nullptr, timeline_frame, fac, ibuf1, ibuf2);
     return out;

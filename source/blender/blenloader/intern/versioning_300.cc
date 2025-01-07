@@ -289,10 +289,10 @@ static void do_versions_idproperty_bones_recursive(Bone *bone)
 
 static void do_versions_idproperty_seq_recursive(ListBase *seqbase)
 {
-  LISTBASE_FOREACH (Strip *, seq, seqbase) {
-    version_idproperty_ui_data(seq->prop);
-    if (seq->type == SEQ_TYPE_META) {
-      do_versions_idproperty_seq_recursive(&seq->seqbase);
+  LISTBASE_FOREACH (Strip *, strip, seqbase) {
+    version_idproperty_ui_data(strip->prop);
+    if (strip->type == SEQ_TYPE_META) {
+      do_versions_idproperty_seq_recursive(&strip->seqbase);
     }
   }
 }
@@ -425,44 +425,45 @@ static void do_versions_sequencer_speed_effect_recursive(Scene *scene, const Lis
 #define SEQ_SPEED_INTEGRATE (1 << 0)
 #define SEQ_SPEED_COMPRESS_IPO_Y (1 << 2)
 
-  LISTBASE_FOREACH (Strip *, seq, seqbase) {
-    if (seq->type == SEQ_TYPE_SPEED) {
-      SpeedControlVars *v = (SpeedControlVars *)seq->effectdata;
+  LISTBASE_FOREACH (Strip *, strip, seqbase) {
+    if (strip->type == SEQ_TYPE_SPEED) {
+      SpeedControlVars *v = (SpeedControlVars *)strip->effectdata;
       const char *substr = nullptr;
       float globalSpeed = v->globalSpeed;
-      if (seq->flag & SEQ_USE_EFFECT_DEFAULT_FADE) {
+      if (strip->flag & SEQ_USE_EFFECT_DEFAULT_FADE) {
         if (globalSpeed == 1.0f) {
           v->speed_control_type = SEQ_SPEED_STRETCH;
         }
         else {
           v->speed_control_type = SEQ_SPEED_MULTIPLY;
           v->speed_fader = globalSpeed *
-                           (float(seq->seq1->len) /
-                            max_ff(float(SEQ_time_right_handle_frame_get(scene, seq->seq1) -
-                                         seq->seq1->start),
+                           (float(strip->seq1->len) /
+                            max_ff(float(SEQ_time_right_handle_frame_get(scene, strip->seq1) -
+                                         strip->seq1->start),
                                    1.0f));
         }
       }
       else if (v->flags & SEQ_SPEED_INTEGRATE) {
         v->speed_control_type = SEQ_SPEED_MULTIPLY;
-        v->speed_fader = seq->speed_fader * globalSpeed;
+        v->speed_fader = strip->speed_fader * globalSpeed;
       }
       else if (v->flags & SEQ_SPEED_COMPRESS_IPO_Y) {
         globalSpeed *= 100.0f;
         v->speed_control_type = SEQ_SPEED_LENGTH;
-        v->speed_fader_length = seq->speed_fader * globalSpeed;
+        v->speed_fader_length = strip->speed_fader * globalSpeed;
         substr = "speed_length";
       }
       else {
         v->speed_control_type = SEQ_SPEED_FRAME_NUMBER;
-        v->speed_fader_frame_number = int(seq->speed_fader * globalSpeed);
+        v->speed_fader_frame_number = int(strip->speed_fader * globalSpeed);
         substr = "speed_frame_number";
       }
 
       v->flags &= ~(SEQ_SPEED_INTEGRATE | SEQ_SPEED_COMPRESS_IPO_Y);
 
       if (substr || globalSpeed != 1.0f) {
-        FCurve *fcu = id_data_find_fcurve(&scene->id, seq, &RNA_Strip, "speed_factor", 0, nullptr);
+        FCurve *fcu = id_data_find_fcurve(
+            &scene->id, strip, &RNA_Strip, "speed_factor", 0, nullptr);
         if (fcu) {
           if (globalSpeed != 1.0f) {
             for (int i = 0; i < fcu->totvert; i++) {
@@ -480,8 +481,8 @@ static void do_versions_sequencer_speed_effect_recursive(Scene *scene, const Lis
         }
       }
     }
-    else if (seq->type == SEQ_TYPE_META) {
-      do_versions_sequencer_speed_effect_recursive(scene, &seq->seqbase);
+    else if (strip->type == SEQ_TYPE_META) {
+      do_versions_sequencer_speed_effect_recursive(scene, &strip->seqbase);
     }
   }
 
@@ -489,15 +490,15 @@ static void do_versions_sequencer_speed_effect_recursive(Scene *scene, const Lis
 #undef SEQ_SPEED_COMPRESS_IPO_Y
 }
 
-static bool do_versions_sequencer_color_tags(Strip *seq, void * /*user_data*/)
+static bool do_versions_sequencer_color_tags(Strip *strip, void * /*user_data*/)
 {
-  seq->color_tag = SEQUENCE_COLOR_NONE;
+  strip->color_tag = SEQUENCE_COLOR_NONE;
   return true;
 }
 
-static bool do_versions_sequencer_color_balance_sop(Strip *seq, void * /*user_data*/)
+static bool do_versions_sequencer_color_balance_sop(Strip *strip, void * /*user_data*/)
 {
-  LISTBASE_FOREACH (SequenceModifierData *, smd, &seq->modifiers) {
+  LISTBASE_FOREACH (SequenceModifierData *, smd, &strip->modifiers) {
     if (smd->type == seqModifierType_ColorBalance) {
       StripColorBalance *cb = &((ColorBalanceModifierData *)smd)->color_balance;
       cb->method = SEQ_COLOR_BALANCE_METHOD_LIFTGAMMAGAIN;
@@ -630,10 +631,10 @@ static bNodeTree *add_realize_node_tree(Main *bmain)
   return node_tree;
 }
 
-static void seq_speed_factor_fix_rna_path(Strip *seq, ListBase *fcurves)
+static void seq_speed_factor_fix_rna_path(Strip *strip, ListBase *fcurves)
 {
-  char name_esc[(sizeof(seq->name) - 2) * 2];
-  BLI_str_escape(name_esc, seq->name + 2, sizeof(name_esc));
+  char name_esc[(sizeof(strip->name) - 2) * 2];
+  BLI_str_escape(name_esc, strip->name + 2, sizeof(name_esc));
   char *path = BLI_sprintfN("sequence_editor.sequences_all[\"%s\"].pitch", name_esc);
   FCurve *fcu = BKE_fcurve_find(fcurves, path, 0);
   if (fcu != nullptr) {
@@ -643,36 +644,36 @@ static void seq_speed_factor_fix_rna_path(Strip *seq, ListBase *fcurves)
   MEM_freeN(path);
 }
 
-static bool version_fix_seq_meta_range(Strip *seq, void *user_data)
+static bool version_fix_seq_meta_range(Strip *strip, void *user_data)
 {
   Scene *scene = (Scene *)user_data;
-  if (seq->type == SEQ_TYPE_META) {
-    SEQ_time_update_meta_strip_range(scene, seq);
+  if (strip->type == SEQ_TYPE_META) {
+    SEQ_time_update_meta_strip_range(scene, strip);
   }
   return true;
 }
 
-static bool seq_speed_factor_set(Strip *seq, void *user_data)
+static bool seq_speed_factor_set(Strip *strip, void *user_data)
 {
   const Scene *scene = static_cast<const Scene *>(user_data);
-  if (seq->type == SEQ_TYPE_SOUND_RAM) {
+  if (strip->type == SEQ_TYPE_SOUND_RAM) {
     /* Move `pitch` animation to `speed_factor` */
     if (scene->adt && scene->adt->action) {
-      seq_speed_factor_fix_rna_path(seq, &scene->adt->action->curves);
+      seq_speed_factor_fix_rna_path(strip, &scene->adt->action->curves);
     }
     if (scene->adt && !BLI_listbase_is_empty(&scene->adt->drivers)) {
-      seq_speed_factor_fix_rna_path(seq, &scene->adt->drivers);
+      seq_speed_factor_fix_rna_path(strip, &scene->adt->drivers);
     }
 
     /* Pitch value of 0 has been found in some files. This would cause problems. */
-    if (seq->pitch <= 0.0f) {
-      seq->pitch = 1.0f;
+    if (strip->pitch <= 0.0f) {
+      strip->pitch = 1.0f;
     }
 
-    seq->speed_factor = seq->pitch;
+    strip->speed_factor = strip->pitch;
   }
   else {
-    seq->speed_factor = 1.0f;
+    strip->speed_factor = 1.0f;
   }
   return true;
 }
@@ -1502,28 +1503,28 @@ static bNodeSocket *do_version_replace_float_size_with_vector(bNodeTree *ntree,
   return new_socket;
 }
 
-static bool seq_transform_origin_set(Strip *seq, void * /*user_data*/)
+static bool seq_transform_origin_set(Strip *strip, void * /*user_data*/)
 {
-  StripTransform *transform = seq->data->transform;
-  if (seq->data->transform != nullptr) {
+  StripTransform *transform = strip->data->transform;
+  if (strip->data->transform != nullptr) {
     transform->origin[0] = transform->origin[1] = 0.5f;
   }
   return true;
 }
 
-static bool seq_transform_filter_set(Strip *seq, void * /*user_data*/)
+static bool seq_transform_filter_set(Strip *strip, void * /*user_data*/)
 {
-  StripTransform *transform = seq->data->transform;
-  if (seq->data->transform != nullptr) {
+  StripTransform *transform = strip->data->transform;
+  if (strip->data->transform != nullptr) {
     transform->filter = SEQ_TRANSFORM_FILTER_BILINEAR;
   }
   return true;
 }
 
-static bool seq_meta_channels_ensure(Strip *seq, void * /*user_data*/)
+static bool seq_meta_channels_ensure(Strip *strip, void * /*user_data*/)
 {
-  if (seq->type == SEQ_TYPE_META) {
-    SEQ_channels_ensure(&seq->channels);
+  if (strip->type == SEQ_TYPE_META) {
+    SEQ_channels_ensure(&strip->channels);
   }
   return true;
 }
@@ -1749,44 +1750,44 @@ static void version_node_tree_socket_id_delim(bNodeTree *ntree)
   }
 }
 
-static bool version_merge_still_offsets(Strip *seq, void * /*user_data*/)
+static bool version_merge_still_offsets(Strip *strip, void * /*user_data*/)
 {
-  seq->startofs -= seq->startstill;
-  seq->endofs -= seq->endstill;
-  seq->startstill = 0;
-  seq->endstill = 0;
+  strip->startofs -= strip->startstill;
+  strip->endofs -= strip->endstill;
+  strip->startstill = 0;
+  strip->endstill = 0;
   return true;
 }
 
-static bool version_fix_delete_flag(Strip *seq, void * /*user_data*/)
+static bool version_fix_delete_flag(Strip *strip, void * /*user_data*/)
 {
-  seq->flag &= ~SEQ_FLAG_DELETE;
+  strip->flag &= ~SEQ_FLAG_DELETE;
   return true;
 }
 
-static bool version_set_seq_single_frame_content(Strip *seq, void * /*user_data*/)
+static bool version_set_seq_single_frame_content(Strip *strip, void * /*user_data*/)
 {
-  if ((seq->len == 1) &&
-      (seq->type == SEQ_TYPE_IMAGE ||
-       ((seq->type & SEQ_TYPE_EFFECT) && SEQ_effect_get_num_inputs(seq->type) == 0)))
+  if ((strip->len == 1) &&
+      (strip->type == SEQ_TYPE_IMAGE ||
+       ((strip->type & SEQ_TYPE_EFFECT) && SEQ_effect_get_num_inputs(strip->type) == 0)))
   {
-    seq->flag |= SEQ_SINGLE_FRAME_CONTENT;
+    strip->flag |= SEQ_SINGLE_FRAME_CONTENT;
   }
   return true;
 }
 
-static bool version_seq_fix_broken_sound_strips(Strip *seq, void * /*user_data*/)
+static bool version_seq_fix_broken_sound_strips(Strip *strip, void * /*user_data*/)
 {
-  if (seq->type != SEQ_TYPE_SOUND_RAM || seq->speed_factor != 0.0f) {
+  if (strip->type != SEQ_TYPE_SOUND_RAM || strip->speed_factor != 0.0f) {
     return true;
   }
 
-  seq->speed_factor = 1.0f;
-  SEQ_retiming_data_clear(seq);
+  strip->speed_factor = 1.0f;
+  SEQ_retiming_data_clear(strip);
 
   /* Broken files do have negative start offset, which should not be present in sound strips. */
-  if (seq->startofs < 0) {
-    seq->startofs = 0.0f;
+  if (strip->startofs < 0) {
+    strip->startofs = 0.0f;
   }
 
   return true;

@@ -124,15 +124,15 @@ static void blur_isolate_highlights(const float4 *in,
   });
 }
 
-static void init_glow_effect(Strip *seq)
+static void init_glow_effect(Strip *strip)
 {
-  if (seq->effectdata) {
-    MEM_freeN(seq->effectdata);
+  if (strip->effectdata) {
+    MEM_freeN(strip->effectdata);
   }
 
-  seq->effectdata = MEM_callocN(sizeof(GlowVars), "glowvars");
+  strip->effectdata = MEM_callocN(sizeof(GlowVars), "glowvars");
 
-  GlowVars *glow = (GlowVars *)seq->effectdata;
+  GlowVars *glow = (GlowVars *)strip->effectdata;
   glow->fMini = 0.25;
   glow->fClamp = 1.0;
   glow->fBoost = 0.5;
@@ -146,9 +146,9 @@ static int num_inputs_glow()
   return 1;
 }
 
-static void free_glow_effect(Strip *seq, const bool /*do_id_user*/)
+static void free_glow_effect(Strip *strip, const bool /*do_id_user*/)
 {
-  MEM_SAFE_FREE(seq->effectdata);
+  MEM_SAFE_FREE(strip->effectdata);
 }
 
 static void copy_glow_effect(Strip *dst, const Strip *src, const int /*flag*/)
@@ -156,7 +156,7 @@ static void copy_glow_effect(Strip *dst, const Strip *src, const int /*flag*/)
   dst->effectdata = MEM_dupallocN(src->effectdata);
 }
 
-static void do_glow_effect_byte(Strip *seq,
+static void do_glow_effect_byte(Strip *strip,
                                 int render_size,
                                 float fac,
                                 int x,
@@ -166,7 +166,7 @@ static void do_glow_effect_byte(Strip *seq,
                                 uchar *out)
 {
   using namespace blender;
-  GlowVars *glow = (GlowVars *)seq->effectdata;
+  GlowVars *glow = (GlowVars *)strip->effectdata;
 
   Array<float4> inbuf(x * y);
   Array<float4> outbuf(x * y);
@@ -199,7 +199,7 @@ static void do_glow_effect_byte(Strip *seq,
   });
 }
 
-static void do_glow_effect_float(Strip *seq,
+static void do_glow_effect_float(Strip *strip,
                                  int render_size,
                                  float fac,
                                  int x,
@@ -211,7 +211,7 @@ static void do_glow_effect_float(Strip *seq,
   using namespace blender;
   float4 *outbuf = reinterpret_cast<float4 *>(out);
   float4 *inbuf = reinterpret_cast<float4 *>(rect1);
-  GlowVars *glow = (GlowVars *)seq->effectdata;
+  GlowVars *glow = (GlowVars *)strip->effectdata;
 
   blur_isolate_highlights(
       inbuf, outbuf, x, y, glow->fMini * 3.0f, glow->fBoost * fac, glow->fClamp);
@@ -224,7 +224,7 @@ static void do_glow_effect_float(Strip *seq,
 }
 
 static ImBuf *do_glow_effect(const SeqRenderData *context,
-                             Strip *seq,
+                             Strip *strip,
                              float /*timeline_frame*/,
                              float fac,
                              ImBuf *ibuf1,
@@ -235,7 +235,7 @@ static ImBuf *do_glow_effect(const SeqRenderData *context,
   int render_size = 100 * context->rectx / context->scene->r.xsch;
 
   if (out->float_buffer.data) {
-    do_glow_effect_float(seq,
+    do_glow_effect_float(strip,
                          render_size,
                          fac,
                          context->rectx,
@@ -245,7 +245,7 @@ static ImBuf *do_glow_effect(const SeqRenderData *context,
                          out->float_buffer.data);
   }
   else {
-    do_glow_effect_byte(seq,
+    do_glow_effect_byte(strip,
                         render_size,
                         fac,
                         context->rectx,

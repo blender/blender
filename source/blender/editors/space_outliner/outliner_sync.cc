@@ -255,17 +255,17 @@ static void outliner_select_sync_to_strip(Scene *scene, const TreeElement *te)
   const TreeStoreElem *tselem = TREESTORE(te);
 
   const TreeElementStrip *te_strip = tree_element_cast<TreeElementStrip>(te);
-  Strip *seq = &te_strip->get_strip();
+  Strip *strip = &te_strip->get_strip();
 
   if (tselem->flag & TSE_ACTIVE) {
-    SEQ_select_active_set(scene, seq);
+    SEQ_select_active_set(scene, strip);
   }
 
   if (tselem->flag & TSE_SELECTED) {
-    seq->flag |= SELECT;
+    strip->flag |= SELECT;
   }
   else {
-    seq->flag &= ~SELECT;
+    strip->flag &= ~SELECT;
   }
 }
 
@@ -429,16 +429,16 @@ static void outliner_select_sync_from_strip(Strip *strip_active, const TreeEleme
   TreeStoreElem *tselem = TREESTORE(te);
 
   const TreeElementStrip *te_strip = tree_element_cast<TreeElementStrip>(te);
-  const Strip *seq = &te_strip->get_strip();
+  const Strip *strip = &te_strip->get_strip();
 
-  if (seq == strip_active) {
+  if (strip == strip_active) {
     tselem->flag |= TSE_ACTIVE;
   }
   else {
     tselem->flag &= ~TSE_ACTIVE;
   }
 
-  if (seq->flag & SELECT) {
+  if (strip->flag & SELECT) {
     tselem->flag |= TSE_SELECTED;
   }
   else {

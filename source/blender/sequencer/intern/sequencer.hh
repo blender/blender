@@ -17,7 +17,7 @@ struct StripProxy;
  * Cache must be freed before calling this function
  * since it leaves the #Editing::seqbase in an invalid state.
  */
-void seq_free_sequence_recurse(Scene *scene, Strip *seq, bool do_id_user);
+void seq_free_sequence_recurse(Scene *scene, Strip *strip, bool do_id_user);
 StripProxy *seq_strip_proxy_alloc();
 /**
  * Find meta strip, that contains strip `key`.
@@ -31,7 +31,7 @@ StripProxy *seq_strip_proxy_alloc();
  */
 Strip *seq_sequence_lookup_meta_by_seq(const Scene *scene, const Strip *key);
 /**
- * Find effect strips, that use strip `seq` as one of inputs.
+ * Find effect strips, that use strip `strip` as one of inputs.
  * If lookup hash doesn't exist, it will be created. If hash is tagged as invalid, it will be
  * rebuilt.
  *

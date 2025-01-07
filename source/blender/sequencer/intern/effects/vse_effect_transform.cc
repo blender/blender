@@ -21,15 +21,15 @@
 
 using namespace blender;
 
-static void init_transform_effect(Strip *seq)
+static void init_transform_effect(Strip *strip)
 {
-  if (seq->effectdata) {
-    MEM_freeN(seq->effectdata);
+  if (strip->effectdata) {
+    MEM_freeN(strip->effectdata);
   }
 
-  seq->effectdata = MEM_callocN(sizeof(TransformVars), "transformvars");
+  strip->effectdata = MEM_callocN(sizeof(TransformVars), "transformvars");
 
-  TransformVars *transform = (TransformVars *)seq->effectdata;
+  TransformVars *transform = (TransformVars *)strip->effectdata;
 
   transform->ScalexIni = 1.0f;
   transform->ScaleyIni = 1.0f;
@@ -49,9 +49,9 @@ static int num_inputs_transform()
   return 1;
 }
 
-static void free_transform_effect(Strip *seq, const bool /*do_id_user*/)
+static void free_transform_effect(Strip *strip, const bool /*do_id_user*/)
 {
-  MEM_SAFE_FREE(seq->effectdata);
+  MEM_SAFE_FREE(strip->effectdata);
 }
 
 static void copy_transform_effect(Strip *dst, const Strip *src, const int /*flag*/)
@@ -131,7 +131,7 @@ static void transform_image(int x,
 }
 
 static ImBuf *do_transform_effect(const SeqRenderData *context,
-                                  Strip *seq,
+                                  Strip *strip,
                                   float /*timeline_frame*/,
                                   float /*fac*/,
                                   ImBuf *src1,
@@ -139,7 +139,7 @@ static ImBuf *do_transform_effect(const SeqRenderData *context,
 {
   ImBuf *dst = prepare_effect_imbufs(context, src1, nullptr);
 
-  const TransformVars *transform = (TransformVars *)seq->effectdata;
+  const TransformVars *transform = (TransformVars *)strip->effectdata;
 
   /* Scale */
   float scale_x, scale_y;

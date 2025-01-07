@@ -84,15 +84,15 @@ bool SEQ_channel_is_muted(const SeqTimelineChannel *channel)
   return (channel->flag & SEQ_CHANNEL_MUTE) != 0;
 }
 
-ListBase *SEQ_get_channels_by_seq(ListBase *seqbase, ListBase *channels, const Strip *seq)
+ListBase *SEQ_get_channels_by_seq(ListBase *seqbase, ListBase *channels, const Strip *strip)
 {
   ListBase *lb = nullptr;
 
-  LISTBASE_FOREACH (Strip *, iseq, seqbase) {
-    if (seq == iseq) {
+  LISTBASE_FOREACH (Strip *, istrip, seqbase) {
+    if (strip == istrip) {
       return channels;
     }
-    if ((lb = SEQ_get_channels_by_seq(&iseq->seqbase, &iseq->channels, seq))) {
+    if ((lb = SEQ_get_channels_by_seq(&istrip->seqbase, &istrip->channels, strip))) {
       return lb;
     }
   }

@@ -630,11 +630,11 @@ struct Seq_colorspace_cb_data {
  * If property pointer matches one of strip, set `r_seq`,
  * so not all cached images have to be invalidated.
  */
-static bool seq_find_colorspace_settings_cb(Strip *seq, void *user_data)
+static bool seq_find_colorspace_settings_cb(Strip *strip, void *user_data)
 {
   Seq_colorspace_cb_data *cd = (Seq_colorspace_cb_data *)user_data;
-  if (seq->data && &seq->data->colorspace_settings == cd->colorspace_settings) {
-    cd->r_seq = seq;
+  if (strip->data && &strip->data->colorspace_settings == cd->colorspace_settings) {
+    cd->r_seq = strip;
     return false;
   }
   return true;
@@ -688,17 +688,17 @@ static void rna_ColorManagedColorspaceSettings_reload_update(Main *bmain,
       else {
         /* Strip colorspace was likely changed. */
         SEQ_for_each_callback(&scene->ed->seqbase, seq_find_colorspace_settings_cb, &cb_data);
-        Strip *seq = cb_data.r_seq;
+        Strip *strip = cb_data.r_seq;
 
-        if (seq) {
-          SEQ_relations_sequence_free_anim(seq);
+        if (strip) {
+          SEQ_relations_sequence_free_anim(strip);
 
-          if (seq->data->proxy && seq->data->proxy->anim) {
-            MOV_close(seq->data->proxy->anim);
-            seq->data->proxy->anim = nullptr;
+          if (strip->data->proxy && strip->data->proxy->anim) {
+            MOV_close(strip->data->proxy->anim);
+            strip->data->proxy->anim = nullptr;
           }
 
-          SEQ_relations_invalidate_cache_raw(scene, seq);
+          SEQ_relations_invalidate_cache_raw(scene, strip);
         }
       }
 
