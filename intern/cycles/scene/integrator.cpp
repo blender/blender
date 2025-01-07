@@ -130,6 +130,7 @@ NODE_DEFINE(Integrator)
   SOCKET_FLOAT(scrambling_distance, "Scrambling Distance", 1.0f);
 
   static NodeEnum denoiser_type_enum;
+  denoiser_type_enum.insert("none", DENOISER_NONE);
   denoiser_type_enum.insert("optix", DENOISER_OPTIX);
   denoiser_type_enum.insert("openimagedenoise", DENOISER_OPENIMAGEDENOISE);
 
