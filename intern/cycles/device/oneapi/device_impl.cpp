@@ -550,7 +550,7 @@ void OneapiDevice::const_copy_to(const char *name, void *host, const size_t size
         this, name, MEM_READ_ONLY);
     data_ptr->alloc(size);
     data = data_ptr.get();
-    const_mem_map_.insert(ConstMemMap::value_type(name, std::move(data)));
+    const_mem_map_.insert(ConstMemMap::value_type(name, std::move(data_ptr)));
   }
   else {
     data = i->second.get();
