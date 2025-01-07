@@ -607,7 +607,7 @@ void USDStageReader::import_all_materials(Main *bmain)
     }
 
     if (blender::io::usd::find_existing_material(
-            prim.GetPath(), params_, settings_.mat_name_to_mat, settings_.usd_path_to_mat_name))
+            prim.GetPath(), params_, settings_.mat_name_to_mat, settings_.usd_path_to_mat))
     {
       /* The material already exists. */
       continue;
@@ -625,11 +625,10 @@ void USDStageReader::import_all_materials(Main *bmain)
     settings_.mat_name_to_mat.lookup_or_add_default(mtl_name) = new_mtl;
 
     if (params_.mtl_name_collision_mode == USD_MTL_NAME_COLLISION_MAKE_UNIQUE) {
-      /* Record the unique name of the Blender material we created for the USD material
-       * with the given path, so we don't import the material again when assigning
-       * materials to objects elsewhere in the code. */
-      settings_.usd_path_to_mat_name.lookup_or_add_default(
-          prim.GetPath().GetAsString()) = mtl_name;
+      /* Record the Blender material we created for the USD material with the given path.
+       * This is to prevent importing the material again when assigning materials to objects
+       * elsewhere in the code. */
+      settings_.usd_path_to_mat.lookup_or_add_default(prim.GetPath().GetAsString()) = new_mtl;
     }
 
     if (have_import_hook) {
@@ -644,12 +643,7 @@ void USDStageReader::fake_users_for_unused_materials()
 {
   /* Iterate over the imported materials and set a fake user for any unused
    * materials. */
-  for (const auto path_mat_pair : settings_.usd_path_to_mat_name.items()) {
-    Material *mat = settings_.mat_name_to_mat.lookup_default(path_mat_pair.value, nullptr);
-    if (mat == nullptr) {
-      continue;
-    }
-
+  for (Material *mat : settings_.usd_path_to_mat.values()) {
     if (mat->id.us == 0) {
       id_fake_user_set(&mat->id);
     }

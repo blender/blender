@@ -110,7 +110,7 @@ static void assign_materials(Main *bmain,
 
   for (const auto item : mat_index_map.items()) {
     Material *assigned_mat = find_existing_material(
-        item.key, params, settings.mat_name_to_mat, settings.usd_path_to_mat_name);
+        item.key, params, settings.mat_name_to_mat, settings.usd_path_to_mat);
     if (!assigned_mat) {
       /* Blender material doesn't exist, so create it now. */
 
@@ -142,9 +142,8 @@ static void assign_materials(Main *bmain,
       settings.mat_name_to_mat.lookup_or_add_default(mat_name) = assigned_mat;
 
       if (params.mtl_name_collision_mode == USD_MTL_NAME_COLLISION_MAKE_UNIQUE) {
-        /* Record the name of the Blender material we created for the USD material
-         * with the given path. */
-        settings.usd_path_to_mat_name.lookup_or_add_default(item.key.GetAsString()) = mat_name;
+        /* Record the Blender material we created for the USD material with the given path. */
+        settings.usd_path_to_mat.lookup_or_add_default(item.key.GetAsString()) = assigned_mat;
       }
 
       if (have_import_hook) {

@@ -196,16 +196,15 @@ void build_material_map(const Main *bmain, blender::Map<std::string, Material *>
  * \param mat_map: Map a material name to a Blender material.  Note that the name key
  * might be the Blender material name modified to be a valid USD identifier,
  * to match the material names in the imported USD.
- * \param usd_path_to_mat_name: Map a USD material path to the imported Blender material name.
+ * \param usd_path_to_mat: Map a USD material path to the imported Blender material.
  *
- * The usd_path_to_mat_name is needed to determine the name of the Blender
+ * The usd_path_to_mat is needed to determine the name of the Blender
  * material imported from a USD path in the case when a unique name was generated
  * for the material due to a name collision.
  */
-Material *find_existing_material(
-    const pxr::SdfPath &usd_mat_path,
-    const USDImportParams &params,
-    const blender::Map<std::string, Material *> &mat_map,
-    const blender::Map<std::string, std::string> &usd_path_to_mat_name);
+Material *find_existing_material(const pxr::SdfPath &usd_mat_path,
+                                 const USDImportParams &params,
+                                 const blender::Map<std::string, Material *> &mat_map,
+                                 const blender::Map<std::string, Material *> &usd_path_to_mat);
 
 }  // namespace blender::io::usd

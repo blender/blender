@@ -1495,22 +1495,14 @@ void build_material_map(const Main *bmain, blender::Map<std::string, Material *>
   }
 }
 
-Material *find_existing_material(
-    const pxr::SdfPath &usd_mat_path,
-    const USDImportParams &params,
-    const blender::Map<std::string, Material *> &mat_map,
-    const blender::Map<std::string, std::string> &usd_path_to_mat_name)
+Material *find_existing_material(const pxr::SdfPath &usd_mat_path,
+                                 const USDImportParams &params,
+                                 const blender::Map<std::string, Material *> &mat_map,
+                                 const blender::Map<std::string, Material *> &usd_path_to_mat)
 {
   if (params.mtl_name_collision_mode == USD_MTL_NAME_COLLISION_MAKE_UNIQUE) {
     /* Check if we've already created the Blender material with a modified name. */
-    const std::string *mat_name = usd_path_to_mat_name.lookup_ptr(usd_mat_path.GetAsString());
-    if (mat_name == nullptr) {
-      return nullptr;
-    }
-
-    Material *mat = mat_map.lookup_default(*mat_name, nullptr);
-    BLI_assert_msg(mat != nullptr, "Previously created material cannot be found any more");
-    return mat;
+    return usd_path_to_mat.lookup_default(usd_mat_path.GetAsString(), nullptr);
   }
 
   return mat_map.lookup_default(usd_mat_path.GetName(), nullptr);

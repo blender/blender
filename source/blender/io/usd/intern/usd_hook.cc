@@ -619,7 +619,7 @@ void call_import_hooks(USDStageReader *archive, ReportList *reports)
 
   /* Resize based on the typical scenario where there will be both Object and Data entries
    * in the map in addition to each material. */
-  prim_map.reserve((readers.size() * 2) + settings.usd_path_to_mat_name.size());
+  prim_map.reserve((readers.size() * 2) + settings.usd_path_to_mat.size());
 
   for (const USDPrimReader *reader : readers) {
     if (!reader) {
@@ -636,12 +636,9 @@ void call_import_hooks(USDStageReader *archive, ReportList *reports)
     }
   }
 
-  settings.usd_path_to_mat_name.foreach_item(
-      [&](const std::string &path, const std::string &name) {
-        if (Material *mat = settings.mat_name_to_mat.lookup_default(name, nullptr)) {
-          prim_map.lookup_or_add_default(path).append(RNA_id_pointer_create(&mat->id));
-        }
-      });
+  settings.usd_path_to_mat.foreach_item([&prim_map](const std::string &path, Material *mat) {
+    prim_map.lookup_or_add_default(path).append(RNA_id_pointer_create(&mat->id));
+  });
 
   OnImportInvoker on_import(archive->stage(), prim_map, reports);
   on_import.call();
