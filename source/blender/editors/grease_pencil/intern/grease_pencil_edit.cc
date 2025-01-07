@@ -389,7 +389,7 @@ static void GREASE_PENCIL_OT_stroke_simplify(wmOperatorType *ot)
   ot->description = "Simplify selected strokes";
 
   ot->exec = grease_pencil_stroke_simplify_exec;
-  ot->poll = editable_grease_pencil_point_selection_poll;
+  ot->poll = editable_grease_pencil_poll;
 
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
