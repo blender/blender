@@ -14,6 +14,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math_matrix.h"
+#include "BLI_vector.hh"
 #include "BLI_virtual_array.hh"
 
 #include "DNA_key_types.h"
@@ -88,15 +89,13 @@ static void join_mesh_single(Depsgraph *depsgraph,
                              int faces_num,
                              Key *key,
                              Key *nkey,
-                             Material **matar,
-                             int *matmap,
-                             int totcol,
+                             blender::Vector<Material *> &matar,
                              int *vertofs,
                              int *edgeofs,
                              int *loopofs,
                              int *polyofs)
 {
-  int a, b;
+  int a;
 
   Mesh *mesh = static_cast<Mesh *>(ob_src->data);
   float3 *vert_positions = *vert_positions_pp;
@@ -238,16 +237,34 @@ static void join_mesh_single(Depsgraph *depsgraph,
     }
   }
 
+  /* Make remapping for material indices. Assume at least one slot,
+   * that will be null if there are no actual slots. */
+  const int totcol = std::max(ob_src->totcol, 1);
+  blender::Vector<int> matmap(totcol);
   if (mesh->faces_num) {
-    if (matmap) {
-      /* make mapping for materials */
-      for (a = 1; a <= ob_src->totcol; a++) {
-        Material *ma = BKE_object_material_get(ob_src, a);
+    for (a = 1; a <= totcol; a++) {
+      Material *ma = (a <= ob_src->totcol) ? BKE_object_material_get(ob_src, a) : nullptr;
 
-        for (b = 0; b < totcol; b++) {
-          if (ma == matar[b]) {
-            matmap[a - 1] = b;
-            break;
+      /* Try to reuse existing slot. */
+      int b = 0;
+      for (; b < matar.size(); b++) {
+        if (ma == matar[b]) {
+          matmap[a - 1] = b;
+          break;
+        }
+      }
+
+      if (b == matar.size()) {
+        if (matar.size() == MAXMAT) {
+          /* Reached max limit of materials, use first slot. */
+          matmap[a - 1] = 0;
+        }
+        else {
+          /* Add new slot. */
+          matmap[a - 1] = matar.size();
+          matar.append(ma);
+          if (ma) {
+            id_us_plus(&ma->id);
           }
         }
       }
@@ -261,13 +278,15 @@ static void join_mesh_single(Depsgraph *depsgraph,
      * material is the result of joining. */
     int *material_indices = static_cast<int *>(CustomData_get_layer_named_for_write(
         face_data, CD_PROP_INT32, "material_index", faces_num));
-    if (!material_indices && totcol > 1) {
+    if (!material_indices && matar.size() > 1) {
       material_indices = (int *)CustomData_add_layer_named(
           face_data, CD_PROP_INT32, CD_SET_DEFAULT, faces_num, "material_index");
     }
     if (material_indices) {
       for (a = 0; a < mesh->faces_num; a++) {
-        material_indices[a + *polyofs] = matmap ? matmap[material_indices[a + *polyofs]] : 0;
+        /* Clamp invalid slots, matching #BKE_object_material_get_p. */
+        const int mat_index = std::clamp(material_indices[a + *polyofs], 0, totcol - 1);
+        material_indices[a + *polyofs] = matmap[mat_index];
       }
     }
 
@@ -320,13 +339,13 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
   Main *bmain = CTX_data_main(C);
   Scene *scene = CTX_data_scene(C);
   Object *ob = CTX_data_active_object(C);
-  Material **matar = nullptr, *ma;
+  Material *ma;
   Mesh *mesh;
   blender::int2 *edge = nullptr;
   Key *key, *nkey = nullptr;
   float imat[4][4];
-  int a, b, totcol, totmat = 0, totedge = 0, totvert = 0;
-  int totloop = 0, faces_num = 0, vertofs, *matmap = nullptr;
+  int a, totedge = 0, totvert = 0;
+  int totloop = 0, faces_num = 0, vertofs;
   int i, haskey = 0, edgeofs, loopofs, polyofs;
   bool ok = false, join_parent = false;
   CustomData vert_data, edge_data, ldata, face_data;
@@ -353,7 +372,6 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
       totedge += mesh->edges_num;
       totloop += mesh->corners_num;
       faces_num += mesh->faces_num;
-      totmat += ob_iter->totcol;
 
       if (ob_iter == ob) {
         ok = true;
@@ -403,16 +421,10 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
     return OPERATOR_CANCELLED;
   }
 
-  /* new material indices and material array */
-  if (totmat) {
-    matar = static_cast<Material **>(MEM_callocN(sizeof(*matar) * totmat, __func__));
-    matmap = static_cast<int *>(MEM_callocN(sizeof(*matmap) * totmat, __func__));
-  }
-  totcol = ob->totcol;
-
   /* Active object materials in new main array, is nicer start! */
+  blender::Vector<Material *> matar;
   for (a = 0; a < ob->totcol; a++) {
-    matar[a] = BKE_object_material_get(ob, a + 1);
+    matar.append(BKE_object_material_get(ob, a + 1));
     id_us_plus((ID *)matar[a]);
     /* increase id->us : will be lowered later */
   }
@@ -472,30 +484,6 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
       mesh_join_offset_face_sets_ID(mesh, &face_set_id_offset);
 
       if (mesh->verts_num) {
-        /* Add this object's materials to the base one's if they don't exist already
-         * (but only if limits not exceeded yet) */
-        if (totcol < MAXMAT) {
-          for (a = 1; a <= ob_iter->totcol; a++) {
-            ma = BKE_object_material_get(ob_iter, a);
-
-            for (b = 0; b < totcol; b++) {
-              if (ma == matar[b]) {
-                break;
-              }
-            }
-            if (b == totcol) {
-              matar[b] = ma;
-              if (ma) {
-                id_us_plus(&ma->id);
-              }
-              totcol++;
-            }
-            if (totcol >= MAXMAT) {
-              break;
-            }
-          }
-        }
-
         /* If this mesh has shape-keys,
          * check if destination mesh already has matching entries too. */
         if (mesh->key && key) {
@@ -597,8 +585,6 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
                    key,
                    nkey,
                    matar,
-                   matmap,
-                   totcol,
                    &vertofs,
                    &edgeofs,
                    &loopofs,
@@ -632,8 +618,6 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
                        key,
                        nkey,
                        matar,
-                       matmap,
-                       totcol,
                        &vertofs,
                        &edgeofs,
                        &loopofs,
@@ -685,11 +669,17 @@ int ED_mesh_join_objects_exec(bContext *C, wmOperator *op)
   MEM_SAFE_FREE(ob->matbits);
   MEM_SAFE_FREE(mesh->mat);
 
+  /* If the object had no slots, don't add an empty one. */
+  if (ob->totcol == 0 && matar.size() == 1 && matar[0] == nullptr) {
+    matar.clear();
+  }
+
+  const int totcol = matar.size();
   if (totcol) {
-    mesh->mat = matar;
+    mesh->mat = static_cast<Material **>(MEM_callocN(sizeof(*mesh->mat) * totcol, __func__));
+    std::copy_n(matar.data(), totcol, mesh->mat);
     ob->mat = static_cast<Material **>(MEM_callocN(sizeof(*ob->mat) * totcol, __func__));
     ob->matbits = static_cast<char *>(MEM_callocN(sizeof(*ob->matbits) * totcol, __func__));
-    MEM_freeN(matmap);
   }
 
   ob->totcol = mesh->totcol = totcol;
