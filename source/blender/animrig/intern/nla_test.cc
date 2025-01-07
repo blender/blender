@@ -151,7 +151,7 @@ TEST_F(NLASlottedActionTest, assign_slot_to_multiple_strips)
   EXPECT_STREQ(strip1->last_slot_identifier, slot.identifier);
   EXPECT_EQ(slot.idtype, ID_OB);
 
-  /* Assign another slot slot 'manually'. */
+  /* Assign another slot 'manually'. */
   Slot &other_slot = action->slot_add();
   EXPECT_EQ(nla::assign_action_slot(*strip1, &other_slot, cube->id),
             ActionSlotAssignmentResult::OK);

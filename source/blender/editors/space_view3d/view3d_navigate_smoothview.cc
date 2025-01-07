@@ -585,7 +585,7 @@ void ED_view3d_smooth_view_force_finish_no_camera_lock(const Depsgraph *depsgrap
 
   /* NOTE(@ideasman42): Ideally we would *always* apply the camera lock.
    * Failing to do so results in incorrect behavior when a user performs
-   * a camera-locked view-port manipulation & immediately enters enters local-view
+   * a camera-locked view-port manipulation & immediately enters local-view
    * before the operation is completed.
    * In this case the camera isn't key-framed when it should be.
    *

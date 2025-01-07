@@ -206,7 +206,7 @@ class Result {
    * the size of the given domain, and set the domain of the result to the given domain.
    *
    * If from_pool is true, the texture will be allocated from the texture pool of the context,
-   * otherwise, a new texture will be allocated. Pooling should not be be used for persistent
+   * otherwise, a new texture will be allocated. Pooling should not be used for persistent
    * results that might span more than one evaluation, like cached resources. While pooling should
    * be used for most other cases where the result will be allocated then later released in the
    * same evaluation.

@@ -373,7 +373,7 @@ void remove_selected_points_in_active_layer(Span<PointsRange> ranges_selected,
     mask_content.extend(range_content);
   }
 
-  /* remove_points requires the the indices in the mask to be sorted */
+  /* remove_points requires the indices in the mask to be sorted */
   std::sort(mask_content.begin(), mask_content.end());
   IndexMask mask = IndexMask::from_indices(mask_content.as_span(), memory);
 

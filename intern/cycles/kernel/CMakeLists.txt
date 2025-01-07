@@ -730,7 +730,7 @@ endif()
 # HIP RT module
 
 if(WITH_CYCLES_DEVICE_HIPRT)
-  set(HIPRT_COMPILER_PARALLEL_JOBS 1 CACHE STRING "Number of parallel compiler instances to use for for HIP-RT kernels")
+  set(HIPRT_COMPILER_PARALLEL_JOBS 1 CACHE STRING "Number of parallel compiler instances to use for HIP-RT kernels")
   mark_as_advanced(HIPRT_COMPILER_PARALLEL_JOBS)
 
   set(bvh_file ${CMAKE_CURRENT_BINARY_DIR}/hiprt${HIPRT_VERSION}_${HIP_VERSION_SHORT}_amd.hipfb)
