@@ -2090,27 +2090,31 @@ static void add_attribute_search_or_value_buttons(DrawGroupInputsContext &ctx,
   uiLayout *name_row = uiLayoutRow(split, false);
   uiLayoutSetAlignment(name_row, UI_LAYOUT_ALIGN_RIGHT);
 
+  uiLayout *prop_row = nullptr;
+
   const std::optional<StringRef> attribute_name = nodes::input_attribute_name_get(
       *ctx.nmd.settings.properties, socket);
   if (type == SOCK_BOOLEAN && !attribute_name) {
     uiItemL(name_row, "", ICON_NONE);
+    prop_row = uiLayoutRow(split, true);
   }
   else {
-    uiItemL(name_row, socket.name ? IFACE_(socket.name) : "", ICON_NONE);
+    prop_row = uiLayoutRow(layout, true);
   }
 
-  uiLayout *prop_row = uiLayoutRow(split, true);
   if (type == SOCK_BOOLEAN) {
     uiLayoutSetPropSep(prop_row, false);
     uiLayoutSetAlignment(prop_row, UI_LAYOUT_ALIGN_EXPAND);
   }
 
   if (attribute_name) {
+    uiItemL(name_row, socket.name ? IFACE_(socket.name) : "", ICON_NONE);
+    prop_row = uiLayoutRow(split, true);
     add_attribute_search_button(ctx, prop_row, rna_path_attribute_name, socket, false);
     uiItemL(layout, "", ICON_BLANK1);
   }
   else {
-    const char *name = type == SOCK_BOOLEAN ? (socket.name ? IFACE_(socket.name) : "") : "";
+    const char *name = socket.name ? IFACE_(socket.name) : "";
     uiItemR(prop_row, ctx.md_ptr, rna_path, UI_ITEM_NONE, name, ICON_NONE);
     uiItemDecoratorR(layout, ctx.md_ptr, rna_path.c_str(), -1);
   }
