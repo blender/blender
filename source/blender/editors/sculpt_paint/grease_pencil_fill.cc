@@ -788,8 +788,7 @@ static IndexMask get_visible_boundary_strokes(const Object &object,
                                                        materials[curve_i] + 1);
     const MaterialGPencilStyle *gp_style = material ? material->gp_style : nullptr;
     const bool is_hidden_material = (gp_style->flag & GP_MATERIAL_HIDE);
-    const bool is_stroke_material = (gp_style->flag & GP_MATERIAL_STROKE_SHOW);
-    if (gp_style == nullptr || is_hidden_material || !is_stroke_material) {
+    if (gp_style == nullptr || is_hidden_material) {
       return false;
     }
 
