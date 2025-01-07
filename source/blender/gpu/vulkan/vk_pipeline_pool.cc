@@ -282,6 +282,10 @@ VkPipeline VKPipelinePool::get_or_create_graphics_pipeline(VKGraphicsInfo &graph
   vk_pipeline_rasterization_state_create_info_.frontFace = graphics_info.state.invert_facing ?
                                                                VK_FRONT_FACE_COUNTER_CLOCKWISE :
                                                                VK_FRONT_FACE_CLOCKWISE;
+  vk_pipeline_rasterization_provoking_vertex_state_info_.provokingVertexMode =
+      graphics_info.state.provoking_vert == GPU_VERTEX_LAST ?
+          VK_PROVOKING_VERTEX_MODE_LAST_VERTEX_EXT :
+          VK_PROVOKING_VERTEX_MODE_FIRST_VERTEX_EXT;
 
   /* Viewport state */
   vk_pipeline_viewport_state_create_info_.pViewports =
@@ -601,6 +605,8 @@ VkPipeline VKPipelinePool::get_or_create_graphics_pipeline(VKGraphicsInfo &graph
   vk_pipeline_rasterization_state_create_info_.depthBiasConstantFactor = 0.0f;
   vk_pipeline_rasterization_state_create_info_.depthBiasClamp = 0.0f;
   vk_pipeline_rasterization_state_create_info_.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+  vk_pipeline_rasterization_provoking_vertex_state_info_.provokingVertexMode =
+      VK_PROVOKING_VERTEX_MODE_LAST_VERTEX_EXT;
   vk_pipeline_viewport_state_create_info_.pScissors = nullptr;
   vk_pipeline_viewport_state_create_info_.scissorCount = 0;
   vk_pipeline_viewport_state_create_info_.pViewports = nullptr;
