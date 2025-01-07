@@ -129,7 +129,7 @@ void SEQ_transform_translate_sequence(Scene *evil_scene, Strip *strip, int delta
   }
 
   SEQ_offset_animdata(evil_scene, strip, delta);
-  blender::Span effects = SEQ_lookup_effects_by_strip(evil_scene, strip);
+  blender::Span<Strip *> effects = SEQ_lookup_effects_by_strip(evil_scene, strip);
   strip_time_update_effects_strip_range(evil_scene, effects);
   SEQ_time_update_meta_strip_range(evil_scene, SEQ_lookup_meta_by_strip(evil_scene, strip));
 }
