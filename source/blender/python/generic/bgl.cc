@@ -28,9 +28,12 @@
 
 #include <epoxy/gl.h>
 
-#include "bgl.hh"
-
 #include "CLG_log.h"
+
+/* Forward declare API's defines here. */
+#define USE_BGL_DEPRECATED_API
+#include "bgl.hh" /* Own include. */
+#undef USE_BGL_DEPRECATED_API
 
 static CLG_LogRef LOG = {"bgl"};
 
