@@ -1495,9 +1495,10 @@ class GlareOperation : public NodeOperation {
      * smaller dimension of the size of the highlights.
      *
      * However, as users might want a smaller glare size, we reduce the chain length by the
-     * size supplied by the user. */
+     * size supplied by the user. Also make sure that log2 does not get zero. */
     const int smaller_dimension = math::reduce_min(highlights.domain().size);
-    const int chain_length = int(std::log2(smaller_dimension * this->get_size()));
+    const float scaled_dimension = smaller_dimension * this->get_size();
+    const int chain_length = int(std::log2(math::max(1.0f, scaled_dimension)));
 
     /* If the chain length is less than 2, that means no down-sampling will happen, so we just
      * return a copy of the highlights. This is a sanitization of a corner case, so no need to
@@ -1974,9 +1975,19 @@ class GlareOperation : public NodeOperation {
    * essentially the extent of the glare in pixels. */
   int compute_fog_glow_kernel_size(const Result &highlights)
   {
-    /* make sure the kernel size is odd since an even one will typically introduce a tiny offset as
+    /* The input size is relative to the larger dimension of the image. */
+    const int size = int(math::reduce_max(highlights.domain().size) * this->get_size());
+
+    /* Make sure size is at least 3 pixels for implicitly since code deals with half kernel sizes
+     * which will be zero if less than 3, causing zero division. */
+    const int safe_size = math::max(3, size);
+
+    /* Make sure the kernel size is odd since an even one will typically introduce a tiny offset as
      * it has no exact center value. */
-    return (int(math::reduce_max(highlights.domain().size) * this->get_size()) / 2) * 2 + 1;
+    const bool is_even = safe_size % 2 == 0;
+    const int odd_size = safe_size + (is_even ? 1 : 0);
+
+    return odd_size;
   }
 
   /* ----------
