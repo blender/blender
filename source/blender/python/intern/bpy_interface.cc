@@ -250,12 +250,12 @@ void BPY_context_set(bContext *C)
 
 #ifdef WITH_FLUID
 /* Defined in `manta` module. */
-extern "C" PyObject *Manta_initPython(void);
+extern "C" PyObject *Manta_initPython();
 #endif
 
 #ifdef WITH_AUDASPACE_PY
 /* Defined in `AUD_C-API.cpp`. */
-extern "C" PyObject *AUD_initPython(void);
+extern "C" PyObject *AUD_initPython();
 #endif
 
 #ifdef WITH_CYCLES

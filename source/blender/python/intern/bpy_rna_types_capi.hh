@@ -8,4 +8,4 @@
 
 #pragma once
 
-void BPY_rna_types_extend_capi(void);
+void BPY_rna_types_extend_capi();
