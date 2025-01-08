@@ -1406,7 +1406,7 @@ class VIEW3D_MT_uv_map(Menu):
     def draw(self, _context):
         layout = self.layout
 
-        layout.menu("IMAGE_MT_uvs_unwrap")
+        layout.menu_contents("IMAGE_MT_uvs_unwrap")
 
         layout.separator()
 

@@ -401,7 +401,11 @@ class IMAGE_MT_uvs_unwrap(Menu):
     def draw(self, _context):
         layout = self.layout
 
-        layout.operator_enum("uv.unwrap", "method")
+        # It would be nice to do: `layout.operator_enum("uv.unwrap", "method")`
+        # However the menu items don't have an "Unwrap" prefix, so inline the operators.
+        layout.operator("uv.unwrap", text="Unwrap Angle Based").method = 'ANGLE_BASED'
+        layout.operator("uv.unwrap", text="Unwrap Conformal").method = 'CONFORMAL'
+        layout.operator("uv.unwrap", text="Unwrap Minimum Stretch").method = 'MINIMUM_STRETCH'
 
         layout.separator()
 
