@@ -404,7 +404,9 @@ static void replace_inputs_evaluated_data_blocks(
 {
   IDP_foreach_property(&properties, IDP_TYPE_FILTER_ID, [&](IDProperty *property) {
     if (ID *id = IDP_Id(property)) {
-      property->data.pointer = const_cast<ID *>(depsgraphs.get_evaluated_id(*id));
+      if (ID_TYPE_USE_COPY_ON_EVAL(GS(id->name))) {
+        property->data.pointer = const_cast<ID *>(depsgraphs.get_evaluated_id(*id));
+      }
     }
   });
 }
