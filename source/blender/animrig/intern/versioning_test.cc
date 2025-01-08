@@ -85,7 +85,7 @@ TEST(animrig_versioning, action_is_layered)
         << "Layered Actions with forward-compat data should be considered 'layered'";
   }
 
-  { /* Completely zero'ed out Action. */
+  { /* Completely zeroed out Action. */
     bAction action = {{nullptr}};
     EXPECT_TRUE(action_is_layered(action)) << "Zero'ed-out Actions should be considered 'layered'";
   }

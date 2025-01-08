@@ -1,4 +1,3 @@
-
 /* SPDX-FileCopyrightText: 2024 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
@@ -31,7 +30,7 @@ namespace blender::animrig::versioning {
  *
  * NOTE: this is semi-duplicated from `Action::is_action_layered()`, but with
  * tweaks to also recognize ultra-legacy (pre-Animato) data. Because this needs access to
- * depreacted DNA fields, which is ok here in the versioning code, the other "is this legacy or
+ * deprecated DNA fields, which is ok here in the versioning code, the other "is this legacy or
  * layered?" functions do not check for pre-Animato data.
  *
  * \see Action::is_action_layered()

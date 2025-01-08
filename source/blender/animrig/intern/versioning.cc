@@ -149,7 +149,7 @@ void tag_action_user_for_slotted_actions_conversion(ID &animated_id)
 
 void tag_action_users_for_slotted_actions_conversion(Main &bmain)
 {
-  /* This function is only called when the blendfile is old enough to NOT use
+  /* This function is only called when the blend-file is old enough to NOT use
    * slotted Actions, so we can safely tag anything that uses an Action. */
 
   auto flag_adt = [](ID &animated_id,

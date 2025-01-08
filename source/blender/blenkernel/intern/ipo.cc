@@ -1396,7 +1396,7 @@ static void fcurve_add_to_list(
  * is not relevant, BUT do not free the IPO-Curve itself...
  *
  * \param `id`: data-block that the IPO-Curve is attached to and/or which the new
- * datapaths will start from. May be null, which may impact the datapaths of the
+ * data-paths will start from. May be null, which may impact the data-paths of the
  * created F-Curves in some cases.
  * \param actname: name of Action-Channel (if applicable) that IPO-Curve's IPO-block belonged to.
  * \param constname: name of Constraint-Channel (if applicable)
@@ -1695,7 +1695,7 @@ static void icu_to_fcurves(ID *id,
  * it is given two lists, which it will perform driver/animation-data separation.
  *
  * \param `id`: Data-block that the IPO-Curve is attached to and/or which the
- * new datapaths will start from. May be null, which may impact the datapaths of
+ * new data-paths will start from. May be null, which may impact the data-paths of
  * the created F-Curves in some cases.
  * \param `actname`: Contrary to what you might think, this is not the name of
  * an action. I (Nathan) don't know what it *is*, but I'm leaving this note here

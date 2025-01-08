@@ -686,7 +686,7 @@ static void action_blend_read_data(BlendDataReader *reader, ID *id)
     BLI_listbase_clear(&action.curves);
     BLI_listbase_clear(&action.groups);
 
-    /* Should never be stored as part of the forward-compatable data in a
+    /* Should never be stored as part of the forward-compatible data in a
      * layered action, and thus should always be empty here. */
     BLI_assert(BLI_listbase_is_empty(&action.chanbase));
   }
