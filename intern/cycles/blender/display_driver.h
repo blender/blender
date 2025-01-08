@@ -52,6 +52,8 @@ class BlenderDisplayShader {
  * display space shader. */
 class BlenderFallbackDisplayShader : public BlenderDisplayShader {
  public:
+  ~BlenderFallbackDisplayShader() override;
+
   GPUShader *bind(const int width, const int height) override;
   void unbind() override;
 

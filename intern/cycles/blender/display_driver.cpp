@@ -62,6 +62,11 @@ static GPUShader *compile_fallback_shader()
   return shader;
 }
 
+BlenderFallbackDisplayShader::~BlenderFallbackDisplayShader()
+{
+  destroy_shader();
+}
+
 GPUShader *BlenderFallbackDisplayShader::bind(const int width, const int height)
 {
   create_shader_if_needed();
@@ -879,6 +884,8 @@ bool BlenderDisplayDriver::gpu_resources_create()
 void BlenderDisplayDriver::gpu_resources_destroy()
 {
   gpu_context_enable();
+
+  display_shader_.reset();
 
   tiles_->current_tile.gpu_resources_destroy();
   tiles_->finished_tiles.gl_resources_destroy_and_clear();
