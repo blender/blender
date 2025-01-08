@@ -72,6 +72,38 @@ const EnumPropertyItem rna_enum_color_space_convert_default_items[] = {
 #  include "SEQ_relations.hh"
 #  include "SEQ_thumbnail_cache.hh"
 
+struct SeqCurveMappingUpdateData {
+  Scene *scene;
+  CurveMapping *curve;
+};
+
+static bool seq_update_modifier_curve(Strip *strip, void *user_data)
+{
+  /* Invalidate cache of any strips that have modifiers using this
+   * curve mapping. */
+  SeqCurveMappingUpdateData *data = static_cast<SeqCurveMappingUpdateData *>(user_data);
+  LISTBASE_FOREACH (SequenceModifierData *, smd, &strip->modifiers) {
+    if (smd->type == seqModifierType_Curves) {
+      CurvesModifierData *cmd = reinterpret_cast<CurvesModifierData *>(smd);
+      if (&cmd->curve_mapping == data->curve) {
+        SEQ_relations_invalidate_cache_preprocessed(data->scene, strip);
+      }
+    }
+  }
+  return true;
+}
+
+static void seq_notify_curve_update(CurveMapping *curve, ID *id)
+{
+  if (id && GS(id->name) == ID_SCE) {
+    Scene *scene = (Scene *)id;
+    if (scene->ed) {
+      SeqCurveMappingUpdateData data{scene, curve};
+      SEQ_for_each_callback(&scene->ed->seqbase, seq_update_modifier_curve, &data);
+    }
+  }
+}
+
 static int rna_CurveMapping_curves_length(PointerRNA *ptr)
 {
   CurveMapping *cumap = (CurveMapping *)ptr->data;
@@ -141,6 +173,7 @@ static void rna_CurveMapping_tone_update(Main * /*bmain*/, Scene * /*scene*/, Po
     curve_mapping->cur = 3;
   }
 
+  seq_notify_curve_update(curve_mapping, ptr->owner_id);
   WM_main_add_notifier(NC_NODE | NA_EDITED, nullptr);
   WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, nullptr);
 }
