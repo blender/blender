@@ -3869,8 +3869,17 @@ void RNA_property_enum_set(PointerRNA *ptr, PropertyRNA *prop, int value)
 int RNA_property_enum_get_default(PointerRNA * /*ptr*/, PropertyRNA *prop)
 {
   EnumPropertyRNA *eprop = (EnumPropertyRNA *)rna_ensure_property(prop);
-
   BLI_assert(RNA_property_type(prop) == PROP_ENUM);
+
+  if (prop->magic != RNA_MAGIC) {
+    const IDProperty *idprop = reinterpret_cast<const IDProperty *>(prop);
+    if (idprop->ui_data) {
+      BLI_assert(idprop->type == IDP_INT);
+      const IDPropertyUIDataInt *ui_data = reinterpret_cast<const IDPropertyUIDataInt *>(
+          idprop->ui_data);
+      return ui_data->default_value;
+    }
+  }
 
   return eprop->defaultvalue;
 }
