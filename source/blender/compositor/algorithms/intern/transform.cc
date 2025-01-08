@@ -83,20 +83,11 @@ void transform(Context &context,
                const float3x3 &transformation,
                RealizationOptions realization_options)
 {
-  /* If we are wrapping, the input is translated but the target domain remains fixed, which results
-   * in the input clipping on one side and wrapping on the opposite side. This mask vector can be
-   * multiplied to the translation component of the transformation to remove it. */
-  const float2 wrap_mask = float2(realization_options.wrap_x ? 0.0f : 1.0f,
-                                  realization_options.wrap_y ? 0.0f : 1.0f);
-
-  /* Compute a transformed input domain, excluding translations of wrapped axes. */
-  Domain input_domain = input.domain();
-  float3x3 domain_transformation = transformation;
-  domain_transformation.location() *= wrap_mask;
-  input_domain.transform(domain_transformation);
+  Domain transformed_domain = input.domain();
+  transformed_domain.transform(transformation);
 
   /* Realize the input on the target domain using the full transformation. */
-  const Domain target_domain = compute_realized_transformation_domain(context, input_domain);
+  const Domain target_domain = compute_realized_transformation_domain(context, transformed_domain);
   realize_on_domain(context,
                     input,
                     output,

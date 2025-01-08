@@ -107,6 +107,7 @@
 #include "compositor_symmetric_separable_blur_variable_size_info.hh"
 #include "compositor_tone_map_photoreceptor_info.hh"
 #include "compositor_tone_map_simple_info.hh"
+#include "compositor_translate_wrapped_info.hh"
 #include "compositor_van_vliet_gaussian_blur_info.hh"
 #include "compositor_write_output_info.hh"
 #include "compositor_z_combine_info.hh"
