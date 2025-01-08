@@ -230,68 +230,111 @@ static int calc_pix_fmt_max_component_bits(AVPixelFormat fmt)
   return bits;
 }
 
-static int startffmpeg(MovieReader *anim)
+static AVFormatContext *init_format_context(const char *filepath,
+                                            int video_stream_index,
+                                            int &r_stream_index,
+                                            const AVCodec *forced_video_decoder)
 {
-  const AVCodec *pCodec;
-  AVFormatContext *pFormatCtx = nullptr;
-  AVCodecContext *pCodecCtx;
-  AVStream *video_stream;
-  int video_stream_index;
-  int frs_num;
-  double frs_den;
-  int streamcount;
-
-  /* The following for color space determination */
-  int srcRange, dstRange, brightness, contrast, saturation;
-  int *table;
-  const int *inv_table;
-
-  if (anim == nullptr) {
-    return (-1);
+  AVFormatContext *format_ctx = nullptr;
+  if (forced_video_decoder != nullptr) {
+    format_ctx = avformat_alloc_context();
+    format_ctx->video_codec_id = forced_video_decoder->id;
+    format_ctx->video_codec = forced_video_decoder;
   }
 
-  streamcount = anim->streamindex;
-
-  if (avformat_open_input(&pFormatCtx, anim->filepath, nullptr, nullptr) != 0) {
-    return -1;
+  if (avformat_open_input(&format_ctx, filepath, nullptr, nullptr) != 0) {
+    return nullptr;
   }
 
-  if (avformat_find_stream_info(pFormatCtx, nullptr) < 0) {
-    avformat_close_input(&pFormatCtx);
-    return -1;
+  if (avformat_find_stream_info(format_ctx, nullptr) < 0) {
+    avformat_close_input(&format_ctx);
+    return nullptr;
   }
 
-  av_dump_format(pFormatCtx, 0, anim->filepath, 0);
+  av_dump_format(format_ctx, 0, filepath, 0);
 
   /* Find the video stream */
-  video_stream_index = -1;
-
-  for (int i = 0; i < pFormatCtx->nb_streams; i++) {
-    if (pFormatCtx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
-      if (streamcount > 0) {
-        streamcount--;
+  r_stream_index = -1;
+  for (int i = 0; i < format_ctx->nb_streams; i++) {
+    if (format_ctx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
+      if (video_stream_index > 0) {
+        video_stream_index--;
         continue;
       }
-      video_stream_index = i;
+      r_stream_index = i;
       break;
     }
   }
 
-  if (video_stream_index == -1) {
+  if (r_stream_index == -1) {
+    avformat_close_input(&format_ctx);
+    return nullptr;
+  }
+
+  return format_ctx;
+}
+
+static AVFormatContext *init_format_context_vpx_workarounds(const char *filepath,
+                                                            int video_stream_index,
+                                                            int &r_stream_index,
+                                                            const AVCodec *&r_codec)
+{
+  AVFormatContext *format_ctx = init_format_context(
+      filepath, video_stream_index, r_stream_index, nullptr);
+  if (format_ctx == nullptr) {
+    return nullptr;
+  }
+
+  /* By default ffmpeg uses built-in VP8/VP9 decoders, however those do not detect
+   * alpha channel (see ffmpeg trac issue #8344 https://trac.ffmpeg.org/ticket/8344).
+   * The trick for VP8/VP9 is to explicitly force use of libvpx decoder.
+   * Only do this where alpha_mode=1 metadata is set. Note that in order to work,
+   * the previously initialized format context must be closed and a fresh one
+   * with explicitly requested codec must be created. */
+  r_codec = nullptr;
+  const AVStream *video_stream = format_ctx->streams[r_stream_index];
+  if (ELEM(video_stream->codecpar->codec_id, AV_CODEC_ID_VP8, AV_CODEC_ID_VP9)) {
+    AVDictionaryEntry *tag = nullptr;
+    tag = av_dict_get(video_stream->metadata, "alpha_mode", tag, AV_DICT_IGNORE_SUFFIX);
+    if (tag && strcmp(tag->value, "1") == 0) {
+      r_codec = avcodec_find_decoder_by_name(
+          video_stream->codecpar->codec_id == AV_CODEC_ID_VP8 ? "libvpx" : "libvpx-vp9");
+      if (r_codec != nullptr) {
+        avformat_close_input(&format_ctx);
+        format_ctx = avformat_alloc_context();
+        format_ctx = init_format_context(filepath, video_stream_index, r_stream_index, r_codec);
+        if (format_ctx == nullptr) {
+          return nullptr;
+        }
+      }
+    }
+  }
+
+  if (r_codec == nullptr) {
+    /* Use default decoder. */
+    r_codec = avcodec_find_decoder(video_stream->codecpar->codec_id);
+  }
+
+  return format_ctx;
+}
+
+static int startffmpeg(MovieReader *anim)
+{
+  if (anim == nullptr) {
+    return -1;
+  }
+
+  int video_stream_index;
+  const AVCodec *pCodec = nullptr;
+  AVFormatContext *pFormatCtx = init_format_context_vpx_workarounds(
+      anim->filepath, anim->streamindex, video_stream_index, pCodec);
+  if (pFormatCtx == nullptr || pCodec == nullptr) {
     avformat_close_input(&pFormatCtx);
     return -1;
   }
 
-  video_stream = pFormatCtx->streams[video_stream_index];
-
-  /* Find the decoder for the video stream */
-  pCodec = avcodec_find_decoder(video_stream->codecpar->codec_id);
-  if (pCodec == nullptr) {
-    avformat_close_input(&pFormatCtx);
-    return -1;
-  }
-
-  pCodecCtx = avcodec_alloc_context3(nullptr);
+  AVCodecContext *pCodecCtx = avcodec_alloc_context3(nullptr);
+  AVStream *video_stream = pFormatCtx->streams[video_stream_index];
   avcodec_parameters_to_context(pCodecCtx, video_stream->codecpar);
   pCodecCtx->workaround_bugs = FF_BUG_AUTODETECT;
 
@@ -320,8 +363,8 @@ static int startffmpeg(MovieReader *anim)
   }
 
   const AVRational frame_rate = av_guess_frame_rate(pFormatCtx, video_stream, nullptr);
-  frs_num = frame_rate.num;
-  frs_den = frame_rate.den;
+  int frs_num = frame_rate.num;
+  double frs_den = frame_rate.den;
 
   frs_den *= AV_TIME_BASE;
 
@@ -430,6 +473,9 @@ static int startffmpeg(MovieReader *anim)
   }
 
   /* Try do detect if input has 0-255 YCbCR range (JFIF, JPEG, Motion-JPEG). */
+  int srcRange, dstRange, brightness, contrast, saturation;
+  int *table;
+  const int *inv_table;
   if (!sws_getColorspaceDetails(anim->img_convert_ctx,
                                 (int **)&inv_table,
                                 &srcRange,
