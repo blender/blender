@@ -279,7 +279,10 @@ class Cameras : Overlay {
     }
 
     Object *ob = ob_ref.object;
-    CameraInstanceData data(ob->object_to_world(), res.object_wire_color(ob_ref, state));
+    float4x4 mat = ob->object_to_world();
+    /* Normalize matrix scale. */
+    mat.view<3, 3>() = math::normalize(mat.view<3, 3>());
+    CameraInstanceData data(mat, res.object_wire_color(ob_ref, state));
 
     const View3D *v3d = state.v3d;
     const Scene *scene = state.scene;
@@ -298,7 +301,7 @@ class Cameras : Overlay {
     const bool is_selection_camera_stereo = is_select && is_camera_view && is_multiview &&
                                             is_stereo3d_view;
 
-    float3 scale = math::to_scale(data.matrix);
+    float3 scale = math::to_scale(ob->object_to_world());
     /* BKE_camera_multiview_model_matrix already accounts for scale, don't do it here. */
     if (is_selection_camera_stereo) {
       scale = float3(1.0f);
