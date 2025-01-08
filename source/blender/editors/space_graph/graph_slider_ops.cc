@@ -134,7 +134,7 @@ static void common_draw_status_header(bContext *C, tGraphSliderOp *gso, const ch
   if (hasNumInput(&gso->num)) {
     char str_ofs[NUM_STR_REP_LEN];
 
-    outputNumInput(&gso->num, str_ofs, &gso->scene->unit);
+    outputNumInput(&gso->num, str_ofs, gso->scene->unit);
 
     SNPRINTF(status_str, "%s: %s", mode_str, str_ofs);
   }
@@ -464,7 +464,7 @@ static void decimate_draw_status(bContext *C, tGraphSliderOp *gso)
   if (hasNumInput(&gso->num)) {
     char str_ofs[NUM_STR_REP_LEN];
 
-    outputNumInput(&gso->num, str_ofs, &gso->scene->unit);
+    outputNumInput(&gso->num, str_ofs, gso->scene->unit);
 
     SNPRINTF(status_str, "%s: %s", mode_str, str_ofs);
   }
@@ -973,7 +973,7 @@ static void ease_draw_status_header(bContext *C, wmOperator *op)
   if (hasNumInput(&gso->num)) {
     char str_ofs[NUM_STR_REP_LEN];
 
-    outputNumInput(&gso->num, str_ofs, &gso->scene->unit);
+    outputNumInput(&gso->num, str_ofs, gso->scene->unit);
 
     SNPRINTF(status_str, "%s: %s", mode_str, str_ofs);
   }
@@ -1577,7 +1577,7 @@ static void shear_draw_status_header(bContext *C, tGraphSliderOp *gso)
   if (hasNumInput(&gso->num)) {
     char str_ofs[NUM_STR_REP_LEN];
 
-    outputNumInput(&gso->num, str_ofs, &gso->scene->unit);
+    outputNumInput(&gso->num, str_ofs, gso->scene->unit);
 
     SNPRINTF(status_str, "%s: %s", mode_str, str_ofs);
   }
@@ -2467,7 +2467,7 @@ static void scale_from_neighbor_draw_status_header(bContext *C, wmOperator *op)
   if (hasNumInput(&gso->num)) {
     char str_ofs[NUM_STR_REP_LEN];
 
-    outputNumInput(&gso->num, str_ofs, &gso->scene->unit);
+    outputNumInput(&gso->num, str_ofs, gso->scene->unit);
 
     SNPRINTF(status_str, "%s: %s", mode_str, str_ofs);
   }

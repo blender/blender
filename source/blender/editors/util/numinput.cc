@@ -85,7 +85,7 @@ void initNumInput(NumInput *n)
   n->str_cur = 0;
 }
 
-void outputNumInput(NumInput *n, char *str, const UnitSettings *unit_settings)
+void outputNumInput(NumInput *n, char *str, const UnitSettings &unit_settings)
 {
   short j;
   const int ln = NUM_STR_REP_LEN;
@@ -265,7 +265,7 @@ static bool editstr_insert_at_cursor(NumInput *n, const char *buf, const int buf
 
 bool user_string_to_number(bContext *C,
                            const char *str,
-                           const UnitSettings *unit,
+                           const UnitSettings &unit,
                            int type,
                            double *r_value,
                            const bool use_single_line_error,
@@ -281,7 +281,7 @@ bool user_string_to_number(bContext *C,
     char str_unit_convert[256];
     STRNCPY(str_unit_convert, str);
     BKE_unit_replace_string(
-        str_unit_convert, sizeof(str_unit_convert), str, unit_scale, unit->system, type);
+        str_unit_convert, sizeof(str_unit_convert), str, unit_scale, unit.system, type);
 
     return BPY_run_string_as_number(C, nullptr, str_unit_convert, &err_info, r_value);
   }
@@ -583,7 +583,7 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
 
     double val;
     int success = user_string_to_number(
-        C, n->str, &sce->unit, n->unit_type[idx], &val, false, &error);
+        C, n->str, sce->unit, n->unit_type[idx], &val, false, &error);
 
     if (error) {
       ReportList *reports = CTX_wm_reports(C);

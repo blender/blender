@@ -540,7 +540,7 @@ void headerRotation(TransInfo *t, char *str, const int str_size, float final)
   if (hasNumInput(&t->num)) {
     char c[NUM_STR_REP_LEN];
 
-    outputNumInput(&(t->num), c, &t->scene->unit);
+    outputNumInput(&(t->num), c, t->scene->unit);
 
     ofs += BLI_snprintf_rlen(
         str + ofs, str_size - ofs, IFACE_("Rotation: %s %s %s"), &c[0], t->con.text, t->proptext);
@@ -841,7 +841,7 @@ void headerResize(TransInfo *t, const float vec[3], char *str, const int str_siz
   char tvec[NUM_STR_REP_LEN * 3];
   size_t ofs = 0;
   if (hasNumInput(&t->num)) {
-    outputNumInput(&(t->num), tvec, &t->scene->unit);
+    outputNumInput(&(t->num), tvec, t->scene->unit);
   }
   else {
     BLI_snprintf(&tvec[0], NUM_STR_REP_LEN, "%.4f", vec[0]);

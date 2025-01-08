@@ -285,7 +285,7 @@ static void depthdropper_depth_sample_pt(bContext *C,
                                    double(*r_depth),
                                    4,
                                    B_UNIT_LENGTH,
-                                   &scene->unit,
+                                   scene->unit,
                                    false);
         }
         else {

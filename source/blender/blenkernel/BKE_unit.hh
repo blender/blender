@@ -34,7 +34,7 @@ size_t BKE_unit_value_as_string(char *str,
                                 double value,
                                 int prec,
                                 int type,
-                                const UnitSettings *settings,
+                                const UnitSettings &settings,
                                 bool pad);
 
 /**
@@ -45,7 +45,7 @@ size_t BKE_unit_value_as_string_scaled(char *str,
                                        double value,
                                        int prec,
                                        int type,
-                                       const UnitSettings *settings,
+                                       const UnitSettings &settings,
                                        bool pad);
 
 /**
@@ -76,7 +76,7 @@ bool BKE_unit_string_contains_unit(const char *str, int type);
 /**
  * If user does not specify a unit, this converts it to the unit from the settings.
  */
-double BKE_unit_apply_preferred_unit(const UnitSettings *settings, int type, double value);
+double BKE_unit_apply_preferred_unit(const UnitSettings &settings, int type, double value);
 
 /**
  * Make string keyboard-friendly, e.g: `10µm -> 10um`.
@@ -102,7 +102,7 @@ bool BKE_unit_is_valid(int system, int type);
  * Apply the needed correction factor to value, based on unit_type
  * (only length-related are affected currently) and `unit->scale_length`.
  */
-double BKE_unit_value_scale(const UnitSettings *unit, int unit_type, double value);
+double BKE_unit_value_scale(const UnitSettings &settings, int unit_type, double value);
 
 /**
  * Loop over scales, could add names later.

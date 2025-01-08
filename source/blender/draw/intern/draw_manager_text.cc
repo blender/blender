@@ -259,7 +259,7 @@ void DRW_text_cache_draw(DRWTextStore *dt, ARegion *region, View3D *v3d)
 void DRW_text_edit_mesh_measure_stats(const ARegion *region,
                                       const View3D *v3d,
                                       const Object *ob,
-                                      const UnitSettings *unit,
+                                      const UnitSettings &unit,
                                       DRWTextStore *dt)
 {
   /* Do not use ascii when using non-default unit system, some unit chars are utf8 (micro, square,
@@ -277,7 +277,7 @@ void DRW_text_edit_mesh_measure_stats(const ARegion *region,
   char numstr[32];                      /* Stores the measurement display text here */
   const char *conv_float;               /* Use a float conversion matching the grid size */
   blender::uchar4 col = {0, 0, 0, 255}; /* color of the text to draw */
-  const float grid = unit->system ? unit->scale_length : v3d->grid;
+  const float grid = unit.system ? unit.scale_length : v3d->grid;
   const bool do_global = (v3d->flag & V3D_GLOBAL_STATS) != 0;
   const bool do_moving = (G.moving & G_TRANSFORM_EDIT) != 0;
   blender::float4x4 clip_planes;
@@ -363,7 +363,7 @@ void DRW_text_edit_mesh_measure_stats(const ARegion *region,
           }
 
           const size_t numstr_len =
-              unit->system ?
+              unit.system ?
                   BKE_unit_value_as_string_scaled(
                       numstr, sizeof(numstr), len_v3v3(v1, v2), 3, B_UNIT_LENGTH, unit, false) :
                   SNPRINTF_RLEN(numstr, conv_float, len_v3v3(v1, v2));
@@ -375,7 +375,7 @@ void DRW_text_edit_mesh_measure_stats(const ARegion *region,
   }
 
   if (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_EDGE_ANG) {
-    const bool is_rad = (unit->system_rotation == USER_UNIT_ROT_RADIANS);
+    const bool is_rad = (unit.system_rotation == USER_UNIT_ROT_RADIANS);
     BMEdge *eed;
 
     UI_GetThemeColor3ubv(TH_DRAWEXTRA_EDGEANG, col);
@@ -498,9 +498,9 @@ void DRW_text_edit_mesh_measure_stats(const ARegion *region,
         vmid = blender::math::transform_point(ob->object_to_world(), vmid);
 
         const size_t numstr_len =
-            unit->system ? BKE_unit_value_as_string_scaled(
-                               numstr, sizeof(numstr), area, 3, B_UNIT_AREA, unit, false) :
-                           SNPRINTF_RLEN(numstr, conv_float, area);
+            unit.system ? BKE_unit_value_as_string_scaled(
+                              numstr, sizeof(numstr), area, 3, B_UNIT_AREA, unit, false) :
+                          SNPRINTF_RLEN(numstr, conv_float, area);
 
         DRW_text_cache_add(dt, vmid, numstr, numstr_len, 0, 0, txt_flag, col);
       }
@@ -510,7 +510,7 @@ void DRW_text_edit_mesh_measure_stats(const ARegion *region,
 
   if (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_FACE_ANG) {
     BMFace *efa;
-    const bool is_rad = (unit->system_rotation == USER_UNIT_ROT_RADIANS);
+    const bool is_rad = (unit.system_rotation == USER_UNIT_ROT_RADIANS);
 
     UI_GetThemeColor3ubv(TH_DRAWEXTRA_FACEANG, col);
 

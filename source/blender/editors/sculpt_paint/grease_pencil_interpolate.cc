@@ -584,7 +584,7 @@ static void grease_pencil_interpolate_status_indicators(bContext &C,
   std::string status;
   if (hasNumInput(&opdata.numeric_input)) {
     char str_ofs[NUM_STR_REP_LEN];
-    outputNumInput(&const_cast<NumInput &>(opdata.numeric_input), str_ofs, &scene.unit);
+    outputNumInput(&const_cast<NumInput &>(opdata.numeric_input), str_ofs, scene.unit);
     status = msg + std::string(str_ofs);
   }
   else {

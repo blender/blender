@@ -80,7 +80,7 @@ static void edbm_inset_update_header(wmOperator *op, bContext *C)
     char msg[UI_MAX_DRAW_STR];
     char flts_str[NUM_STR_REP_LEN * 2];
     if (hasNumInput(&opdata->num_input)) {
-      outputNumInput(&opdata->num_input, flts_str, &sce->unit);
+      outputNumInput(&opdata->num_input, flts_str, sce->unit);
     }
     else {
       BKE_unit_value_as_string(flts_str,
@@ -88,14 +88,14 @@ static void edbm_inset_update_header(wmOperator *op, bContext *C)
                                RNA_float_get(op->ptr, "thickness"),
                                4,
                                B_UNIT_LENGTH,
-                               &sce->unit,
+                               sce->unit,
                                true);
       BKE_unit_value_as_string(flts_str + NUM_STR_REP_LEN,
                                NUM_STR_REP_LEN,
                                RNA_float_get(op->ptr, "depth"),
                                4,
                                B_UNIT_LENGTH,
-                               &sce->unit,
+                               sce->unit,
                                true);
     }
     SNPRINTF(msg, IFACE_("Thickness: %s, Depth: %s"), flts_str, flts_str + NUM_STR_REP_LEN);

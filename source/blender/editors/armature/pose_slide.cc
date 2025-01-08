@@ -967,7 +967,7 @@ static void pose_slide_draw_status(bContext *C, tPoseSlideOp *pso)
     Scene *scene = pso->scene;
     char str_offs[NUM_STR_REP_LEN];
 
-    outputNumInput(&pso->num, str_offs, &scene->unit);
+    outputNumInput(&pso->num, str_offs, scene->unit);
 
     SNPRINTF(status_str, "%s: %s | %s", mode_str, str_offs, limits_str);
   }

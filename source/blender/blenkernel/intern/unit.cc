@@ -1734,15 +1734,15 @@ struct PreferredUnits {
   int temperature;
 };
 
-static PreferredUnits preferred_units_from_UnitSettings(const UnitSettings *settings)
+static PreferredUnits preferred_units_from_UnitSettings(const UnitSettings &settings)
 {
   PreferredUnits units = {0};
-  units.system = settings->system;
-  units.rotation = settings->system_rotation;
-  units.length = settings->length_unit;
-  units.mass = settings->mass_unit;
-  units.time = settings->time_unit;
-  units.temperature = settings->temperature_unit;
+  units.system = settings.system;
+  units.rotation = settings.system_rotation;
+  units.length = settings.length_unit;
+  units.mass = settings.mass_unit;
+  units.time = settings.time_unit;
+  units.temperature = settings.temperature_unit;
   return units;
 }
 
@@ -1878,10 +1878,10 @@ size_t BKE_unit_value_as_string(char *str,
                                 double value,
                                 int prec,
                                 int type,
-                                const UnitSettings *settings,
+                                const UnitSettings &settings,
                                 bool pad)
 {
-  bool do_split = (settings->flag & USER_UNIT_OPT_SPLIT) != 0;
+  bool do_split = (settings.flag & USER_UNIT_OPT_SPLIT) != 0;
   PreferredUnits units = preferred_units_from_UnitSettings(settings);
   return unit_as_string_main(str, str_maxncpy, value, prec, type, do_split, pad, units);
 }
@@ -1891,16 +1891,16 @@ size_t BKE_unit_value_as_string_scaled(char *str,
                                        double value,
                                        int prec,
                                        int type,
-                                       const UnitSettings *settings,
+                                       const UnitSettings &settings,
                                        bool pad)
 {
   return BKE_unit_value_as_string(
       str, str_maxncpy, BKE_unit_value_scale(settings, type, value), prec, type, settings, pad);
 }
 
-double BKE_unit_value_scale(const UnitSettings *unit, const int unit_type, double value)
+double BKE_unit_value_scale(const UnitSettings &settings, const int unit_type, double value)
 {
-  if (unit->system == USER_UNIT_NONE) {
+  if (settings.system == USER_UNIT_NONE) {
     /* Never apply scale_length when not using a unit setting! */
     return value;
   }
@@ -1909,14 +1909,14 @@ double BKE_unit_value_scale(const UnitSettings *unit, const int unit_type, doubl
     case B_UNIT_LENGTH:
     case B_UNIT_VELOCITY:
     case B_UNIT_ACCELERATION:
-      return value * double(unit->scale_length);
+      return value * double(settings.scale_length);
     case B_UNIT_AREA:
     case B_UNIT_POWER:
-      return value * pow(unit->scale_length, 2);
+      return value * pow(settings.scale_length, 2);
     case B_UNIT_VOLUME:
-      return value * pow(unit->scale_length, 3);
+      return value * pow(settings.scale_length, 3);
     case B_UNIT_MASS:
-      return value * pow(unit->scale_length, 3);
+      return value * pow(settings.scale_length, 3);
     case B_UNIT_CAMERA: /* *Do not* use scene's unit scale for camera focal lens! See #42026. */
     case B_UNIT_WAVELENGTH: /* Wavelength values are independent of the scene scale. */
     default:
@@ -2338,7 +2338,7 @@ bool BKE_unit_string_contains_unit(const char *str, int type)
   return false;
 }
 
-double BKE_unit_apply_preferred_unit(const UnitSettings *settings, int type, double value)
+double BKE_unit_apply_preferred_unit(const UnitSettings &settings, int type, double value)
 {
   PreferredUnits units = preferred_units_from_UnitSettings(settings);
   const bUnitDef *unit = get_preferred_display_unit_if_used(type, units);

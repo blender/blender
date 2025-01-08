@@ -2539,7 +2539,7 @@ static void radial_control_update_header(wmOperator *op, bContext *C)
 
   if (hasNumInput(&rc->num_input)) {
     char num_str[NUM_STR_REP_LEN];
-    outputNumInput(&rc->num_input, num_str, &scene->unit);
+    outputNumInput(&rc->num_input, num_str, scene->unit);
     SNPRINTF(msg, "%s: %s", RNA_property_ui_name(rc->prop), num_str);
   }
   else {
