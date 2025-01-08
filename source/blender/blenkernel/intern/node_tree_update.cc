@@ -170,7 +170,7 @@ static int get_internal_link_type_priority(const bNodeSocketType *from, const bN
 
   /* The rest of the socket types only allow an internal link if both the input and output socket
    * have the same type. If the sockets are custom, we check the idname instead. */
-  if (to->type == from->type && (to->type != SOCK_CUSTOM || STREQ(to->idname, from->idname))) {
+  if (to->type == from->type && (to->type != SOCK_CUSTOM || to->idname == from->idname)) {
     return 1;
   }
 
@@ -1231,8 +1231,8 @@ class NodeTreeMainUpdater {
               NodeLinkError{fmt::format("{}: {} " BLI_STR_UTF8_BLACK_RIGHT_POINTING_SMALL_TRIANGLE
                                         " {}",
                                         TIP_("Conversion is not supported"),
-                                        TIP_(link->fromsock->typeinfo->label),
-                                        TIP_(link->tosock->typeinfo->label))});
+                                        TIP_(link->fromsock->typeinfo->label.c_str()),
+                                        TIP_(link->tosock->typeinfo->label.c_str()))});
           continue;
         }
       }

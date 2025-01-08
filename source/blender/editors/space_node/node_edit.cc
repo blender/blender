@@ -515,7 +515,7 @@ void ED_node_tree_propagate_change(const bContext *C, Main *bmain, bNodeTree *ro
 void ED_node_set_tree_type(SpaceNode *snode, blender::bke::bNodeTreeType *typeinfo)
 {
   if (typeinfo) {
-    STRNCPY(snode->tree_idname, typeinfo->idname);
+    STRNCPY(snode->tree_idname, typeinfo->idname.c_str());
   }
   else {
     snode->tree_idname[0] = '\0';
@@ -524,22 +524,22 @@ void ED_node_set_tree_type(SpaceNode *snode, blender::bke::bNodeTreeType *typein
 
 bool ED_node_is_compositor(const SpaceNode *snode)
 {
-  return STREQ(snode->tree_idname, ntreeType_Composite->idname);
+  return snode->tree_idname == ntreeType_Composite->idname;
 }
 
 bool ED_node_is_shader(SpaceNode *snode)
 {
-  return STREQ(snode->tree_idname, ntreeType_Shader->idname);
+  return snode->tree_idname == ntreeType_Shader->idname;
 }
 
 bool ED_node_is_texture(SpaceNode *snode)
 {
-  return STREQ(snode->tree_idname, ntreeType_Texture->idname);
+  return snode->tree_idname == ntreeType_Texture->idname;
 }
 
 bool ED_node_is_geometry(SpaceNode *snode)
 {
-  return STREQ(snode->tree_idname, ntreeType_Geometry->idname);
+  return snode->tree_idname == ntreeType_Geometry->idname;
 }
 
 bool ED_node_supports_preview(SpaceNode *snode)

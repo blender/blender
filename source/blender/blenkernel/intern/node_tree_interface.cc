@@ -24,6 +24,8 @@
 #include "DNA_node_tree_interface_types.h"
 #include "DNA_node_types.h"
 
+using blender::StringRef;
+
 /**
  * These flags are used by the `changed_flag` field in #bNodeTreeInterfaceRuntime.
  */
@@ -42,22 +44,20 @@ namespace socket_types {
  * `NodeSocketFloatUnsigned`, `NodeSocketFloatFactor`. Only the "base type" (`NodeSocketFloat`)
  * is considered valid for interface sockets.
  */
-static const char *try_get_supported_socket_type(const StringRef socket_type)
+static std::optional<StringRef> try_get_supported_socket_type(const StringRef socket_type)
 {
-  /* Make a copy of the string for `.c_str()` until the socket type map uses C++ types. */
-  const std::string idname(socket_type);
-  const blender::bke::bNodeSocketType *typeinfo = bke::node_socket_type_find(idname.c_str());
+  const blender::bke::bNodeSocketType *typeinfo = bke::node_socket_type_find(socket_type);
   if (typeinfo == nullptr) {
-    return nullptr;
+    return std::nullopt;
   }
   /* For builtin socket types only the base type is supported. */
   if (node_is_static_socket_type(typeinfo)) {
-    const std::optional<StringRefNull> type_name = bke::node_static_socket_type(typeinfo->type,
-                                                                                PROP_NONE);
-    if (type_name.has_value()) {
-      return type_name->c_str();
+    if (const std::optional<StringRefNull> type_name = bke::node_static_socket_type(typeinfo->type,
+                                                                                    PROP_NONE))
+    {
+      return *type_name;
     }
-    return nullptr;
+    return std::nullopt;
   }
   return typeinfo->idname;
 }
@@ -682,10 +682,11 @@ blender::ColorGeometry4f bNodeTreeInterfaceSocket::socket_color() const
   }
 }
 
-bool bNodeTreeInterfaceSocket::set_socket_type(const char *new_socket_type)
+bool bNodeTreeInterfaceSocket::set_socket_type(const StringRef new_socket_type)
 {
-  const char *idname = socket_types::try_get_supported_socket_type(new_socket_type);
-  if (idname == nullptr) {
+  const std::optional<StringRef> idname = socket_types::try_get_supported_socket_type(
+      new_socket_type);
+  if (!idname) {
     return false;
   }
 
@@ -695,7 +696,7 @@ bool bNodeTreeInterfaceSocket::set_socket_type(const char *new_socket_type)
   }
   MEM_SAFE_FREE(this->socket_type);
 
-  this->socket_type = BLI_strdup(new_socket_type);
+  this->socket_type = BLI_strdupn(new_socket_type.data(), new_socket_type.size());
   this->socket_data = socket_types::make_socket_data(new_socket_type);
 
   return true;
@@ -703,8 +704,9 @@ bool bNodeTreeInterfaceSocket::set_socket_type(const char *new_socket_type)
 
 void bNodeTreeInterfaceSocket::init_from_socket_instance(const bNodeSocket *socket)
 {
-  const char *idname = socket_types::try_get_supported_socket_type(socket->idname);
-  BLI_assert(idname != nullptr);
+  const std::optional<StringRef> idname = socket_types::try_get_supported_socket_type(
+      socket->idname);
+  BLI_assert(idname.has_value());
 
   if (this->socket_data != nullptr) {
     socket_types::socket_data_free(*this, true);
@@ -715,8 +717,8 @@ void bNodeTreeInterfaceSocket::init_from_socket_instance(const bNodeSocket *sock
     this->flag |= NODE_INTERFACE_SOCKET_HIDE_VALUE;
   }
 
-  this->socket_type = BLI_strdup(idname);
-  this->socket_data = socket_types::make_socket_data(idname);
+  this->socket_type = BLI_strdupn(idname->data(), idname->size());
+  this->socket_data = socket_types::make_socket_data(*idname);
   socket_types::socket_data_copy_ptr(*this, socket->default_value, 0);
 }
 
@@ -1047,8 +1049,8 @@ static bNodeTreeInterfaceSocket *make_socket(const int uid,
 {
   BLI_assert(!socket_type.is_empty());
 
-  const char *idname = socket_types::try_get_supported_socket_type(socket_type);
-  if (idname == nullptr) {
+  const std::optional<StringRef> idname = socket_types::try_get_supported_socket_type(socket_type);
+  if (!idname) {
     return nullptr;
   }
 

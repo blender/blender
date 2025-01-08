@@ -176,15 +176,15 @@ blender::bke::bNodeTreeType *ntreeType_Shader;
 
 void register_node_tree_type_sh()
 {
-  blender::bke::bNodeTreeType *tt = ntreeType_Shader = MEM_cnew<blender::bke::bNodeTreeType>(
-      "shader node tree type");
+  blender::bke::bNodeTreeType *tt = ntreeType_Shader = MEM_new<blender::bke::bNodeTreeType>(
+      __func__);
 
   tt->type = NTREE_SHADER;
-  STRNCPY(tt->idname, "ShaderNodeTree");
-  STRNCPY(tt->group_idname, "ShaderNodeGroup");
-  STRNCPY(tt->ui_name, N_("Shader Editor"));
+  tt->idname = "ShaderNodeTree";
+  tt->group_idname = "ShaderNodeGroup";
+  tt->ui_name = N_("Shader Editor");
   tt->ui_icon = ICON_NODE_MATERIAL;
-  STRNCPY(tt->ui_description, N_("Shader nodes"));
+  tt->ui_description = N_("Shader nodes");
 
   tt->foreach_nodeclass = foreach_nodeclass;
   tt->localize = localize;

@@ -150,15 +150,15 @@ blender::bke::bNodeTreeType *ntreeType_Composite;
 
 void register_node_tree_type_cmp()
 {
-  blender::bke::bNodeTreeType *tt = ntreeType_Composite = MEM_cnew<blender::bke::bNodeTreeType>(
+  blender::bke::bNodeTreeType *tt = ntreeType_Composite = MEM_new<blender::bke::bNodeTreeType>(
       __func__);
 
   tt->type = NTREE_COMPOSIT;
-  STRNCPY(tt->idname, "CompositorNodeTree");
-  STRNCPY(tt->group_idname, "CompositorNodeGroup");
-  STRNCPY(tt->ui_name, N_("Compositor"));
+  tt->idname = "CompositorNodeTree";
+  tt->group_idname = "CompositorNodeGroup";
+  tt->ui_name = N_("Compositor");
   tt->ui_icon = ICON_NODE_COMPOSITING;
-  STRNCPY(tt->ui_description, N_("Compositing nodes"));
+  tt->ui_description = N_("Compositing nodes");
 
   tt->foreach_nodeclass = foreach_nodeclass;
   tt->localize = localize;

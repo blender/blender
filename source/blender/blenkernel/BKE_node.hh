@@ -147,53 +147,59 @@ using NodeInverseEvalFunction = void (*)(blender::nodes::inverse_eval::InverseEv
  */
 struct bNodeSocketType {
   /** Identifier name. */
-  char idname[64];
+  std::string idname;
   /** Type label. */
-  char label[64];
+  std::string label;
   /** Sub-type label. */
-  char subtype_label[64];
+  std::string subtype_label;
 
-  void (*draw)(
-      bContext *C, uiLayout *layout, PointerRNA *ptr, PointerRNA *node_ptr, StringRefNull text);
-  void (*draw_color)(bContext *C, PointerRNA *ptr, PointerRNA *node_ptr, float *r_color);
-  void (*draw_color_simple)(const bNodeSocketType *socket_type, float *r_color);
+  void (*draw)(bContext *C,
+               uiLayout *layout,
+               PointerRNA *ptr,
+               PointerRNA *node_ptr,
+               StringRefNull text) = nullptr;
+  void (*draw_color)(bContext *C, PointerRNA *ptr, PointerRNA *node_ptr, float *r_color) = nullptr;
+  void (*draw_color_simple)(const bNodeSocketType *socket_type, float *r_color) = nullptr;
 
-  void (*interface_draw)(ID *id, bNodeTreeInterfaceSocket *socket, bContext *C, uiLayout *layout);
+  void (*interface_draw)(ID *id,
+                         bNodeTreeInterfaceSocket *socket,
+                         bContext *C,
+                         uiLayout *layout) = nullptr;
   void (*interface_init_socket)(ID *id,
                                 const bNodeTreeInterfaceSocket *interface_socket,
                                 bNode *node,
                                 bNodeSocket *socket,
-                                StringRefNull data_path);
+                                StringRefNull data_path) = nullptr;
   void (*interface_from_socket)(ID *id,
                                 bNodeTreeInterfaceSocket *interface_socket,
                                 const bNode *node,
-                                const bNodeSocket *socket);
+                                const bNodeSocket *socket) = nullptr;
 
   /* RNA integration */
-  ExtensionRNA ext_socket;
-  ExtensionRNA ext_interface;
+  ExtensionRNA ext_socket = {};
+  ExtensionRNA ext_interface = {};
 
   /* for standard socket types in C */
-  int type, subtype;
+  int type = 0, subtype = 0;
 
   /* When set, bNodeSocket->limit does not have any effect anymore. */
-  bool use_link_limits_of_type;
-  int input_link_limit;
-  int output_link_limit;
+  bool use_link_limits_of_type = 0;
+  int input_link_limit = 0;
+  int output_link_limit = 0;
 
   /* Callback to free the socket type. */
-  void (*free_self)(bNodeSocketType *stype);
+  void (*free_self)(bNodeSocketType *stype) = nullptr;
 
   /* Return the CPPType of this socket. */
-  const blender::CPPType *base_cpp_type;
+  const blender::CPPType *base_cpp_type = nullptr;
   /* Get the value of this socket in a generic way. */
-  SocketGetCPPValueFunction get_base_cpp_value;
+  SocketGetCPPValueFunction get_base_cpp_value = nullptr;
   /* Get geometry nodes cpp type. */
-  const blender::CPPType *geometry_nodes_cpp_type;
+  const blender::CPPType *geometry_nodes_cpp_type = nullptr;
   /* Get geometry nodes cpp value. */
-  SocketGetGeometryNodesCPPValueFunction get_geometry_nodes_cpp_value;
+  SocketGetGeometryNodesCPPValueFunction get_geometry_nodes_cpp_value = nullptr;
   /* Default value for this socket type. */
-  const void *geometry_nodes_default_cpp_value;
+  const void *geometry_nodes_default_cpp_value = nullptr;
 };
 
 using NodeInitExecFunction = void *(*)(bNodeExecContext *context,
@@ -213,47 +219,50 @@ using NodeMaterialXFunction = void (*)(void *data, bNode *node, bNodeSocket *out
  * implementing the node behavior.
  */
 struct bNodeType {
-  char idname[64]; /* identifier name */
+  std::string idname;
   int type;
 
-  char ui_name[64]; /* MAX_NAME */
-  char ui_description[256];
+  std::string ui_name;
+  std::string ui_description;
   int ui_icon;
   /** Should usually use the idname instead, but this enum type is still exposed in Python. */
-  const char *enum_name_legacy;
+  const char *enum_name_legacy = nullptr;
 
-  float width, minwidth, maxwidth;
-  float height, minheight, maxheight;
-  short nclass, flag;
+  float width = 0.0f, minwidth = 0.0f, maxwidth = 0.0f;
+  float height = 0.0f, minheight = 0.0f, maxheight = 0.0f;
+  short nclass = 0, flag = 0;
 
   /* templates for static sockets */
-  bNodeSocketTemplate *inputs, *outputs;
+  bNodeSocketTemplate *inputs = nullptr, *outputs = nullptr;
 
-  char storagename[64]; /* struct name for DNA */
+  std::string storagename; /* struct name for DNA */
 
   /* Draw the option buttons on the node */
-  void (*draw_buttons)(uiLayout *, bContext *C, PointerRNA *ptr);
+  void (*draw_buttons)(uiLayout *, bContext *C, PointerRNA *ptr) = nullptr;
   /* Additional parameters in the side panel */
-  void (*draw_buttons_ex)(uiLayout *, bContext *C, PointerRNA *ptr);
+  void (*draw_buttons_ex)(uiLayout *, bContext *C, PointerRNA *ptr) = nullptr;
 
   /* Additional drawing on backdrop */
-  void (*draw_backdrop)(SpaceNode *snode, ImBuf *backdrop, bNode *node, int x, int y);
+  void (*draw_backdrop)(SpaceNode *snode, ImBuf *backdrop, bNode *node, int x, int y) = nullptr;
 
   /**
    * Optional custom label function for the node header.
    * \note Used as a fallback when #bNode.label isn't set.
    */
-  void (*labelfunc)(const bNodeTree *ntree, const bNode *node, char *label, int label_maxncpy);
+  void (*labelfunc)(const bNodeTree *ntree,
+                    const bNode *node,
+                    char *label,
+                    int label_maxncpy) = nullptr;
 
   /** Optional override for node class, used for drawing node header. */
-  int (*ui_class)(const bNode *node);
+  int (*ui_class)(const bNode *node) = nullptr;
   /** Optional dynamic description of what the node group does. */
-  std::string (*ui_description_fn)(const bNode &node);
+  std::string (*ui_description_fn)(const bNode &node) = nullptr;
 
   /** Called when the node is updated in the editor. */
-  void (*updatefunc)(bNodeTree *ntree, bNode *node);
+  void (*updatefunc)(bNodeTree *ntree, bNode *node) = nullptr;
   /** Check and update if internal ID data has changed. */
-  void (*group_update_func)(bNodeTree *ntree, bNode *node);
+  void (*group_update_func)(bNodeTree *ntree, bNode *node) = nullptr;
 
   /**
    * Initialize a new node instance of this type after creation.
@@ -261,7 +270,7 @@ struct bNodeType {
    * \note Assignments to `node->id` must not increment the user of the ID.
    * This is handled by the caller of this callback.
    */
-  void (*initfunc)(bNodeTree *ntree, bNode *node);
+  void (*initfunc)(bNodeTree *ntree, bNode *node) = nullptr;
   /**
    * Free the node instance.
    *
@@ -269,20 +278,20 @@ struct bNodeType {
    * while freeing #Main, the state of this ID is undefined.
    * Higher level logic to remove the node handles the user-count.
    */
-  void (*freefunc)(bNode *node);
+  void (*freefunc)(bNode *node) = nullptr;
   /** Make a copy of the node instance. */
-  void (*copyfunc)(bNodeTree *dest_ntree, bNode *dest_node, const bNode *src_node);
+  void (*copyfunc)(bNodeTree *dest_ntree, bNode *dest_node, const bNode *src_node) = nullptr;
 
   /* Registerable API callback versions, called in addition to C callbacks */
-  void (*initfunc_api)(const bContext *C, PointerRNA *ptr);
-  void (*freefunc_api)(PointerRNA *ptr);
-  void (*copyfunc_api)(PointerRNA *ptr, const bNode *src_node);
+  void (*initfunc_api)(const bContext *C, PointerRNA *ptr) = nullptr;
+  void (*freefunc_api)(PointerRNA *ptr) = nullptr;
+  void (*copyfunc_api)(PointerRNA *ptr, const bNode *src_node) = nullptr;
 
   /**
    * An additional poll test for deciding whether nodes should be an option in search menus.
    * Potentially more strict poll than #poll(), but doesn't have to check the same things.
    */
-  bool (*add_ui_poll)(const bContext *C);
+  bool (*add_ui_poll)(const bContext *C) = nullptr;
 
   /**
    * Can this node type be added to a node tree?
@@ -293,47 +302,49 @@ struct bNodeType {
    *                         when it's not just a dummy, that is, if it actually wants to access
    *                         the returned disabled-hint (null-check needed!).
    */
-  bool (*poll)(const bNodeType *ntype, const bNodeTree *nodetree, const char **r_disabled_hint);
+  bool (*poll)(const bNodeType *ntype,
+               const bNodeTree *nodetree,
+               const char **r_disabled_hint) = nullptr;
   /**
    * Can this node be added to a node tree?
    * \param r_disabled_hint: See `poll()`.
    */
   bool (*poll_instance)(const bNode *node,
                         const bNodeTree *nodetree,
-                        const char **r_disabled_hint);
+                        const char **r_disabled_hint) = nullptr;
 
   /* Optional handling of link insertion. Returns false if the link shouldn't be created. */
-  bool (*insert_link)(bNodeTree *ntree, bNode *node, bNodeLink *link);
+  bool (*insert_link)(bNodeTree *ntree, bNode *node, bNodeLink *link) = nullptr;
 
-  void (*free_self)(bNodeType *ntype);
+  void (*free_self)(bNodeType *ntype) = nullptr;
 
   /* **** execution callbacks **** */
-  NodeInitExecFunction init_exec_fn;
-  NodeFreeExecFunction free_exec_fn;
-  NodeExecFunction exec_fn;
+  NodeInitExecFunction init_exec_fn = nullptr;
+  NodeFreeExecFunction free_exec_fn = nullptr;
+  NodeExecFunction exec_fn = nullptr;
   /* gpu */
-  NodeGPUExecFunction gpu_fn;
+  NodeGPUExecFunction gpu_fn = nullptr;
   /* MaterialX */
-  NodeMaterialXFunction materialx_fn;
+  NodeMaterialXFunction materialx_fn = nullptr;
 
   /* Get an instance of this node's compositor operation. Freeing the instance is the
    * responsibility of the caller. */
-  NodeGetCompositorOperationFunction get_compositor_operation;
+  NodeGetCompositorOperationFunction get_compositor_operation = nullptr;
 
   /* Get an instance of this node's compositor shader node. Freeing the instance is the
    * responsibility of the caller. */
-  NodeGetCompositorShaderNodeFunction get_compositor_shader_node;
+  NodeGetCompositorShaderNodeFunction get_compositor_shader_node = nullptr;
 
   /* A message to display in the node header for unsupported compositor nodes. The message
    * is assumed to be static and thus require no memory handling. This field is to be removed when
    * all nodes are supported. */
-  const char *compositor_unsupported_message;
+  const char *compositor_unsupported_message = nullptr;
 
   /* Build a multi-function for this node. */
-  NodeMultiFunctionBuildFunction build_multi_function;
+  NodeMultiFunctionBuildFunction build_multi_function = nullptr;
 
   /* Execute a geometry node. */
-  NodeGeometryExecFunction geometry_node_execute;
+  NodeGeometryExecFunction geometry_node_execute = nullptr;
 
   /**
    * Declares which sockets and panels the node has. It has to be able to generate a declaration
@@ -341,7 +352,7 @@ struct bNodeType {
    * is not provided, then the declaration should be generated as much as possible and everything
    * that depends on the node context should be skipped.
    */
-  NodeDeclareFunction declare;
+  NodeDeclareFunction declare = nullptr;
 
   /**
    * Declaration of the node outside of any context. If the node declaration is never dependent on
@@ -350,51 +361,51 @@ struct bNodeType {
    * the node. In this case, the static declaration is mostly just a hint, and does not have to
    * match with the final node.
    */
-  blender::nodes::NodeDeclaration *static_declaration;
+  blender::nodes::NodeDeclaration *static_declaration = nullptr;
 
   /**
    * Add to the list of search names and operations gathered by node link drag searching.
    * Usually it isn't necessary to override the default behavior here, but a node type can have
    * custom behavior here like adding custom search items.
    */
-  NodeGatherSocketLinkOperationsFunction gather_link_search_ops;
+  NodeGatherSocketLinkOperationsFunction gather_link_search_ops = nullptr;
 
   /** Get extra information that is drawn next to the node. */
-  NodeExtraInfoFunction get_extra_info;
+  NodeExtraInfoFunction get_extra_info = nullptr;
 
   /**
    * "Abstract" evaluation of the node. It tells the caller which parts of the inputs affect which
    * parts of the outputs.
    */
-  NodeElemEvalFunction eval_elem;
+  NodeElemEvalFunction eval_elem = nullptr;
 
   /**
    * Similar to #eval_elem but tells the caller which parts of the inputs have to be modified to
    * modify the outputs.
    */
-  NodeInverseElemEvalFunction eval_inverse_elem;
+  NodeInverseElemEvalFunction eval_inverse_elem = nullptr;
 
   /**
    * Evaluates the inverse of the node if possible. This evaluation has access to logged values of
    * all input sockets as well as new values for output sockets. Based on that, it should determine
    * how one or more of the inputs should change so that the output becomes the given one.
    */
-  NodeInverseEvalFunction eval_inverse;
+  NodeInverseEvalFunction eval_inverse = nullptr;
 
   /**
    * Registers operators that are specific to this node. This allows nodes to be more
    * self-contained compared to the alternative to registering all operators in a more central
    * place.
    */
-  void (*register_operators)();
+  void (*register_operators)() = nullptr;
 
   /** True when the node cannot be muted. */
-  bool no_muting;
+  bool no_muting = false;
   /** True when the node still works but it's usage is discouraged. */
-  const char *deprecation_notice;
+  const char *deprecation_notice = nullptr;
 
   /* RNA integration */
-  ExtensionRNA rna_ext;
+  ExtensionRNA rna_ext = {};
 };
 
 /** #bNodeType.nclass (for add-menu and themes). */
@@ -446,38 +457,41 @@ enum class NodeColorTag {
 using bNodeClassCallback = void (*)(void *calldata, int nclass, StringRefNull name);
 
 struct bNodeTreeType {
-  int type;        /* type identifier */
-  char idname[64]; /* identifier name */
+  int type = 0;       /* type identifier */
+  std::string idname; /* identifier name */
 
   /* The ID name of group nodes for this type. */
-  char group_idname[64];
+  std::string group_idname;
 
-  char ui_name[64];
-  char ui_description[256];
-  int ui_icon;
+  std::string ui_name;
+  std::string ui_description;
+  int ui_icon = 0;
 
   /* callbacks */
   /* Iteration over all node classes. */
-  void (*foreach_nodeclass)(void *calldata, bNodeClassCallback func);
+  void (*foreach_nodeclass)(void *calldata, bNodeClassCallback func) = nullptr;
   /* Check visibility in the node editor */
-  bool (*poll)(const bContext *C, bNodeTreeType *ntreetype);
+  bool (*poll)(const bContext *C, bNodeTreeType *ntreetype) = nullptr;
   /* Select a node tree from the context */
-  void (*get_from_context)(
-      const bContext *C, bNodeTreeType *ntreetype, bNodeTree **r_ntree, ID **r_id, ID **r_from);
+  void (*get_from_context)(const bContext *C,
+                           bNodeTreeType *ntreetype,
+                           bNodeTree **r_ntree,
+                           ID **r_id,
+                           ID **r_from) = nullptr;
 
   /* calls allowing threaded composite */
-  void (*localize)(bNodeTree *localtree, bNodeTree *ntree);
-  void (*local_merge)(Main *bmain, bNodeTree *localtree, bNodeTree *ntree);
+  void (*localize)(bNodeTree *localtree, bNodeTree *ntree) = nullptr;
+  void (*local_merge)(Main *bmain, bNodeTree *localtree, bNodeTree *ntree) = nullptr;
 
   /* Tree update. Overrides `nodetype->updatetreefunc`. */
-  void (*update)(bNodeTree *ntree);
+  void (*update)(bNodeTree *ntree) = nullptr;
 
-  bool (*validate_link)(eNodeSocketDatatype from, eNodeSocketDatatype to);
+  bool (*validate_link)(eNodeSocketDatatype from, eNodeSocketDatatype to) = nullptr;
 
-  void (*node_add_init)(bNodeTree *ntree, bNode *bnode);
+  void (*node_add_init)(bNodeTree *ntree, bNode *bnode) = nullptr;
 
   /* Check if the socket type is valid for this tree type. */
-  bool (*valid_socket_type)(bNodeTreeType *ntreetype, bNodeSocketType *socket_type);
+  bool (*valid_socket_type)(bNodeTreeType *ntreetype, bNodeSocketType *socket_type) = nullptr;
 
   /**
    * If true, then some UI elements related to building node groups will be hidden.
@@ -485,10 +499,10 @@ struct bNodeTreeType {
    *
    * This is a uint8_t instead of bool to avoid compiler warnings in generated RNA code.
    */
-  uint8_t no_group_interface;
+  uint8_t no_group_interface = 0;
 
   /* RNA integration */
-  ExtensionRNA rna_ext;
+  ExtensionRNA rna_ext = {};
 };
 
 /** \} */

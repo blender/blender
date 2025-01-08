@@ -857,11 +857,11 @@ static bke::bNodeSocketType *make_standard_socket_type(int type, int subtype)
   bke::bNodeSocketType *stype;
   StructRNA *srna;
 
-  stype = MEM_cnew<bke::bNodeSocketType>("node socket C type");
-  stype->free_self = (void (*)(bke::bNodeSocketType *stype))MEM_freeN;
-  STRNCPY(stype->idname, socket_idname.c_str());
-  STRNCPY(stype->label, socket_label.c_str());
-  STRNCPY(stype->subtype_label, socket_subtype_label.c_str());
+  stype = MEM_new<bke::bNodeSocketType>(__func__);
+  stype->free_self = [](bke::bNodeSocketType *type) { MEM_delete(type); };
+  stype->idname = socket_idname;
+  stype->label = socket_label;
+  stype->subtype_label = socket_subtype_label;
 
   /* set the RNA type
    * uses the exact same identifier as the socket type idname */
@@ -901,9 +901,9 @@ static bke::bNodeSocketType *make_socket_type_virtual()
   bke::bNodeSocketType *stype;
   StructRNA *srna;
 
-  stype = MEM_cnew<bke::bNodeSocketType>("node socket C type");
-  stype->free_self = (void (*)(bke::bNodeSocketType *stype))MEM_freeN;
-  STRNCPY(stype->idname, socket_idname);
+  stype = MEM_new<bke::bNodeSocketType>(__func__);
+  stype->free_self = [](bke::bNodeSocketType *type) { MEM_delete(type); };
+  stype->idname = socket_idname;
 
   /* set the RNA type
    * uses the exact same identifier as the socket type idname */

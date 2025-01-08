@@ -404,7 +404,7 @@ static SpaceLink *node_create(const ScrArea * /*area*/, const Scene * /*scene*/)
 
   /* select the first tree type for valid type */
   for (const bke::bNodeTreeType *treetype : bke::node_tree_types_get()) {
-    STRNCPY(snode->tree_idname, treetype->idname);
+    STRNCPY(snode->tree_idname, treetype->idname.c_str());
     break;
   }
 

@@ -132,15 +132,15 @@ blender::bke::bNodeTreeType *ntreeType_Texture;
 
 void register_node_tree_type_tex()
 {
-  blender::bke::bNodeTreeType *tt = ntreeType_Texture = MEM_cnew<blender::bke::bNodeTreeType>(
-      "texture node tree type");
+  blender::bke::bNodeTreeType *tt = ntreeType_Texture = MEM_new<blender::bke::bNodeTreeType>(
+      __func__);
 
   tt->type = NTREE_TEXTURE;
-  STRNCPY(tt->idname, "TextureNodeTree");
-  STRNCPY(tt->group_idname, "TextureNodeGroup");
-  STRNCPY(tt->ui_name, N_("Texture Node Editor"));
+  tt->idname = "TextureNodeTree";
+  tt->group_idname = "TextureNodeGroup";
+  tt->ui_name = N_("Texture Node Editor");
   tt->ui_icon = ICON_NODE_TEXTURE; /* Defined in `drawnode.cc`. */
-  STRNCPY(tt->ui_description, N_("Texture nodes"));
+  tt->ui_description = N_("Texture nodes");
 
   tt->foreach_nodeclass = foreach_nodeclass;
   tt->update = update;

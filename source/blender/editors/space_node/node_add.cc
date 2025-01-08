@@ -1066,7 +1066,7 @@ static int new_node_tree_exec(bContext *C, wmOperator *op)
   }
   else {
     const bke::bNodeTreeType *type = bke::node_tree_type_find(idname);
-    treename = type->ui_name;
+    treename = type->ui_name.c_str();
   }
 
   ntree = bke::node_tree_add_tree(bmain, treename, idname);

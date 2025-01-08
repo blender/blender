@@ -486,14 +486,14 @@ static bNodeSocket *make_socket(bNodeTree *ntree,
                                 const StringRef name,
                                 const StringRef identifier)
 {
-  bNodeSocketType *stype = node_socket_type_find(idname.data());
+  bNodeSocketType *stype = node_socket_type_find(idname);
   if (stype == nullptr) {
     return nullptr;
   }
 
   bNodeSocket *sock = MEM_cnew<bNodeSocket>(__func__);
   sock->runtime = MEM_new<bNodeSocketRuntime>(__func__);
-  STRNCPY(sock->idname, stype->idname);
+  StringRef(stype->idname).copy(sock->idname);
   sock->in_out = int(in_out);
   sock->type = int(SOCK_CUSTOM); /* int type undefined by default */
   node_socket_set_typeinfo(ntree, sock, stype);
@@ -800,7 +800,7 @@ void node_tree_blend_write(BlendWriter *writer, bNodeTree *ntree)
         if (nss->bytecode) {
           BLO_write_string(writer, nss->bytecode);
         }
-        BLO_write_struct_by_name(writer, node->typeinfo->storagename, node->storage);
+        BLO_write_struct_by_name(writer, node->typeinfo->storagename.c_str(), node->storage);
       }
       else if ((ntree->type == NTREE_COMPOSIT) && ELEM(node->type,
                                                        CMP_NODE_TIME,
@@ -835,7 +835,7 @@ void node_tree_blend_write(BlendWriter *writer, bNodeTree *ntree)
               break;
           }
         }
-        BLO_write_struct_by_name(writer, node->typeinfo->storagename, node->storage);
+        BLO_write_struct_by_name(writer, node->typeinfo->storagename.c_str(), node->storage);
       }
       else if ((ntree->type == NTREE_COMPOSIT) &&
                ELEM(node->type, CMP_NODE_CRYPTOMATTE, CMP_NODE_CRYPTOMATTE_LEGACY))
@@ -845,14 +845,14 @@ void node_tree_blend_write(BlendWriter *writer, bNodeTree *ntree)
         LISTBASE_FOREACH (CryptomatteEntry *, entry, &nc->entries) {
           BLO_write_struct(writer, CryptomatteEntry, entry);
         }
-        BLO_write_struct_by_name(writer, node->typeinfo->storagename, node->storage);
+        BLO_write_struct_by_name(writer, node->typeinfo->storagename.c_str(), node->storage);
       }
       else if (node->type == FN_NODE_INPUT_STRING) {
         NodeInputString *storage = static_cast<NodeInputString *>(node->storage);
         if (storage->string) {
           BLO_write_string(writer, storage->string);
         }
-        BLO_write_struct_by_name(writer, node->typeinfo->storagename, storage);
+        BLO_write_struct_by_name(writer, node->typeinfo->storagename.c_str(), storage);
       }
       else if (node->type == GEO_NODE_CAPTURE_ATTRIBUTE) {
         auto &storage = *static_cast<NodeGeometryAttributeCapture *>(node->storage);
@@ -872,7 +872,7 @@ void node_tree_blend_write(BlendWriter *writer, bNodeTree *ntree)
         nodes::socket_items::blend_write<nodes::CaptureAttributeItemsAccessor>(writer, *node);
       }
       else if (node->typeinfo != &NodeTypeUndefined) {
-        BLO_write_struct_by_name(writer, node->typeinfo->storagename, node->storage);
+        BLO_write_struct_by_name(writer, node->typeinfo->storagename.c_str(), node->storage);
       }
     }
 
@@ -1468,7 +1468,7 @@ static void node_init(const bContext *C, bNodeTree *ntree, bNode *node)
    *     Data have their own translation option!
    *     This solution may be a bit rougher than nodeLabel()'s returned string, but it's simpler
    *     than adding "do_translate" flags to this func (and labelfunc() as well). */
-  STRNCPY_UTF8(node->name, DATA_(ntype->ui_name));
+  STRNCPY_UTF8(node->name, DATA_(ntype->ui_name.c_str()));
   node_unique_name(ntree, node);
 
   /* Generally sockets should be added after the initialization, because the set of sockets might
@@ -1583,24 +1583,24 @@ static void update_typeinfo(Main *bmain,
   }
 
   FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
-    if (treetype && STREQ(ntree->idname, treetype->idname)) {
+    if (treetype && ntree->idname == treetype->idname) {
       ntree_set_typeinfo(ntree, unregister ? nullptr : treetype);
     }
 
     /* initialize nodes */
     for (bNode *node : ntree->all_nodes()) {
-      if (nodetype && STREQ(node->idname, nodetype->idname)) {
+      if (nodetype && node->idname == nodetype->idname) {
         node_set_typeinfo(C, ntree, node, unregister ? nullptr : nodetype);
       }
 
       /* initialize node sockets */
       LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
-        if (socktype && STREQ(sock->idname, socktype->idname)) {
+        if (socktype && sock->idname == socktype->idname) {
           node_socket_set_typeinfo(ntree, sock, unregister ? nullptr : socktype);
         }
       }
       LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
-        if (socktype && STREQ(sock->idname, socktype->idname)) {
+        if (socktype && sock->idname == socktype->idname) {
           node_socket_set_typeinfo(ntree, sock, unregister ? nullptr : socktype);
         }
       }
@@ -1630,18 +1630,18 @@ void node_tree_set_type(const bContext *C, bNodeTree *ntree)
 template<typename T> struct StructPointerIDNameHash {
   uint64_t operator()(const T *value) const
   {
-    return get_default_hash<StringRef>(value->idname);
+    return get_default_hash(value->idname);
   }
   uint64_t operator()(const StringRef name) const
   {
-    return get_default_hash<StringRef>(name);
+    return get_default_hash(name);
   }
 };
 
 template<typename T> struct StructPointerNameEqual {
   bool operator()(const T *a, const T *b) const
   {
-    return STREQ(a->idname, b->idname);
+    return a->idname == b->idname;
   }
   bool operator()(const StringRef idname, const T *a) const
   {
@@ -1710,7 +1710,7 @@ static void ntree_free_type(void *treetype_v)
   /* Probably not. It is pretty much expected we want to update G_MAIN here I think -
    * or we'd want to update *all* active Mains, which we cannot do anyway currently. */
   update_typeinfo(G_MAIN, nullptr, treetype, nullptr, nullptr, true);
-  MEM_freeN(treetype);
+  MEM_delete(treetype);
 }
 
 void node_tree_type_free_link(const bNodeTreeType *nt)
@@ -1772,7 +1772,7 @@ void node_register_type(bNodeType *nt)
 
   if (!nt->enum_name_legacy) {
     /* For new nodes, use the idname as a unique identifier. */
-    nt->enum_name_legacy = nt->idname;
+    nt->enum_name_legacy = nt->idname.c_str();
   }
 
   if (nt->declare) {
@@ -2696,7 +2696,7 @@ bNode *node_add_node(const bContext *C, bNodeTree *ntree, const StringRefNull id
 
 bNode *node_add_static_node(const bContext *C, bNodeTree *ntree, const int type)
 {
-  const char *idname = nullptr;
+  std::optional<StringRefNull> idname;
 
   for (bNodeType *ntype : node_types_get()) {
     /* Do an extra poll here, because some int types are used
@@ -2715,7 +2715,7 @@ bNode *node_add_static_node(const bContext *C, bNodeTree *ntree, const int type)
     CLOG_ERROR(&LOG, "static node type %d undefined", type);
     return nullptr;
   }
-  return node_add_node(C, ntree, idname);
+  return node_add_node(C, ntree, *idname);
 }
 
 static void node_socket_copy(bNodeSocket *sock_dst, const bNodeSocket *sock_src, const int flag)
@@ -4290,7 +4290,7 @@ void nodeLabel(const bNodeTree *ntree, const bNode *node, char *label, const int
     return;
   }
 
-  BLI_strncpy(label, IFACE_(node->typeinfo->ui_name), label_maxncpy);
+  BLI_strncpy(label, IFACE_(node->typeinfo->ui_name.c_str()), label_maxncpy);
 }
 
 std::optional<StringRefNull> nodeSocketShortLabel(const bNodeSocket *sock)
@@ -4344,13 +4344,13 @@ void node_type_base(bNodeType *ntype, const int type, const StringRefNull name, 
    */
 #define DefNode(Category, ID, DefFunc, StructName, UIName, UIDesc) \
   case ID: { \
-    STRNCPY(ntype->idname, #Category #StructName); \
+    ntype->idname = (#Category #StructName); \
     StructRNA *srna = RNA_struct_find(#Category #StructName); \
     BLI_assert(srna != nullptr); \
     ntype->rna_ext.srna = srna; \
     RNA_struct_blender_type_set(srna, ntype); \
     RNA_def_struct_ui_text(srna, UIName, UIDesc); \
-    STRNCPY(ntype->ui_description, UIDesc); \
+    ntype->ui_description = UIDesc; \
     break; \
   }
 
@@ -4362,7 +4362,7 @@ void node_type_base(bNodeType *ntype, const int type, const StringRefNull name, 
   BLI_assert(ntype->idname[0] != '\0');
 
   ntype->type = type;
-  name.copy(ntype->ui_name);
+  ntype->ui_name = name;
   ntype->nclass = nclass;
 
   node_type_base_defaults(ntype);
@@ -4377,9 +4377,9 @@ void node_type_base_custom(bNodeType *ntype,
                            const StringRefNull enum_name,
                            const short nclass)
 {
-  idname.copy(ntype->idname);
+  ntype->idname = idname;
   ntype->type = NODE_CUSTOM;
-  name.copy(ntype->ui_name);
+  ntype->ui_name = name;
   ntype->nclass = nclass;
   ntype->enum_name_legacy = enum_name.c_str();
 
@@ -4646,12 +4646,7 @@ void node_type_storage(bNodeType *ntype,
                                         bNode *dest_node,
                                         const bNode *src_node))
 {
-  if (storagename.has_value()) {
-    storagename->copy(ntype->storagename);
-  }
-  else {
-    ntype->storagename[0] = '\0';
-  }
+  ntype->storagename = storagename.value_or("");
   ntype->copyfunc = copyfunc;
   ntype->freefunc = freefunc;
 }

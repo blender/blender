@@ -116,16 +116,16 @@ const char *node_group_idname(bContext *C)
   SpaceNode *snode = CTX_wm_space_node(C);
 
   if (ED_node_is_shader(snode)) {
-    return ntreeType_Shader->group_idname;
+    return ntreeType_Shader->group_idname.c_str();
   }
   if (ED_node_is_compositor(snode)) {
-    return ntreeType_Composite->group_idname;
+    return ntreeType_Composite->group_idname.c_str();
   }
   if (ED_node_is_texture(snode)) {
-    return ntreeType_Texture->group_idname;
+    return ntreeType_Texture->group_idname.c_str();
   }
   if (ED_node_is_geometry(snode)) {
-    return ntreeType_Geometry->group_idname;
+    return ntreeType_Geometry->group_idname.c_str();
   }
 
   return "";
