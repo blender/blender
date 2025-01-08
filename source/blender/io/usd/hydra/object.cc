@@ -16,7 +16,8 @@ namespace blender::io::hydra {
 ObjectData::ObjectData(HydraSceneDelegate *scene_delegate,
                        const Object *object,
                        pxr::SdfPath const &prim_id)
-    : IdData(scene_delegate, &object->id, prim_id), transform(pxr::GfMatrix4d(1.0))
+    : IdData(scene_delegate, (object) ? &object->id : nullptr, prim_id),
+      transform(pxr::GfMatrix4d(1.0))
 {
 }
 
