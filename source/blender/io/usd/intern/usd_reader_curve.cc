@@ -289,13 +289,12 @@ void USDCurvesReader::read_custom_data(bke::CurvesGeometry &curves,
 
   std::vector<pxr::UsdGeomPrimvar> primvars = pv_api.GetPrimvarsWithValues();
   for (const pxr::UsdGeomPrimvar &pv : primvars) {
-    if (!pv.HasValue()) {
-      continue;
+    const pxr::SdfValueTypeName pv_type = pv.GetTypeName();
+    if (!pv_type.IsArray()) {
+      continue; /* Skip non-array primvar attributes. */
     }
 
-    const pxr::SdfValueTypeName pv_type = pv.GetTypeName();
     const pxr::TfToken pv_interp = pv.GetInterpolation();
-
     const std::optional<bke::AttrDomain> domain = convert_usd_interp_to_blender(pv_interp);
     const std::optional<eCustomDataType> type = convert_usd_type_to_blender(pv_type);
 
