@@ -2,6 +2,12 @@
 # SPDX-FileCopyrightText: 2020-2023 Blender Authors
 #
 # SPDX-License-Identifier: Apache-2.0
+"""
+The main entry point to running benchmark tests.
+
+See https://developer.blender.org/docs/handbook/testing/performance/
+for a general introduction to the topic.
+"""
 
 import api
 import argparse
