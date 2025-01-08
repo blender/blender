@@ -220,9 +220,10 @@ void AbstractTreeView::get_hierarchy_lines(const ARegion &region,
     const int x = ((first_descendant->indent_width() + uiLayoutListItemPaddingWidth() -
                     (0.5f * UI_ICON_SIZE) + U.pixelsize + UI_SCALE_FAC) /
                    aspect);
-    const int ymax = std::max(0, first_descendant_index - scroll_ofs) * padded_item_height();
+    const int ymax = std::max(0, first_descendant_index - scroll_ofs) * padded_item_height() /
+                     aspect;
     const int ymin = std::min(max_visible_row_count, last_descendant_index + 1 - scroll_ofs) *
-                     padded_item_height();
+                     padded_item_height() / aspect;
     lines.append(std::make_pair(int2(x, ymax), int2(x, ymin)));
 
     this->get_hierarchy_lines(region, *item, aspect, lines, visible_item_index);
