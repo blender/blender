@@ -60,7 +60,7 @@ inline void update_after_node_change(bContext *C, const PointerRNA node_ptr)
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(node_ptr.owner_id);
 
   BKE_ntree_update_tag_node_property(ntree, node);
-  ED_node_tree_propagate_change(nullptr, CTX_data_main(C), ntree);
+  ED_node_tree_propagate_change(CTX_data_main(C), ntree);
   WM_main_add_notifier(NC_NODE | NA_EDITED, ntree);
 }
 

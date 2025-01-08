@@ -1072,7 +1072,7 @@ static void WIDGETGROUP_geometry_nodes_refresh(const bContext *C, wmGizmoGroup *
                                                   modify_value);
 
                 Main *main = CTX_data_main(C);
-                ED_node_tree_propagate_change(const_cast<bContext *>(C), main, nullptr);
+                ED_node_tree_propagate_change(main, nullptr);
                 WM_main_add_notifier(NC_GEOM | ND_DATA, nullptr);
               };
         }

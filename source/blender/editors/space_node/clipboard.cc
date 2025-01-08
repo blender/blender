@@ -473,7 +473,7 @@ static int node_clipboard_paste_exec(bContext *C, wmOperator *op)
     update_multi_input_indices_for_removed_links(*new_node);
   }
 
-  ED_node_tree_propagate_change(C, bmain, &tree);
+  ED_node_tree_propagate_change(bmain, &tree);
   /* Pasting nodes can create arbitrary new relations because nodes can reference IDs. */
   DEG_relations_tag_update(bmain);
 

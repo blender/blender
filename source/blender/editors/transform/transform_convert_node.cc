@@ -280,7 +280,7 @@ static void special_aftertrans_update__node(bContext *C, TransInfo *t)
           bke::node_remove_node(bmain, ntree, node, true);
         }
       }
-      ED_node_tree_propagate_change(C, bmain, ntree);
+      ED_node_tree_propagate_change(bmain, ntree);
     }
   }
 

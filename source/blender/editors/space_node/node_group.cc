@@ -481,7 +481,7 @@ static int node_group_ungroup_exec(bContext *C, wmOperator * /*op*/)
   for (bNode *node : nodes_to_ungroup) {
     node_group_ungroup(bmain, snode->edittree, node);
   }
-  ED_node_tree_propagate_change(C, CTX_data_main(C), nullptr);
+  ED_node_tree_propagate_change(CTX_data_main(C), nullptr);
   return OPERATOR_FINISHED;
 }
 
@@ -666,7 +666,7 @@ static int node_group_separate_exec(bContext *C, wmOperator *op)
   /* switch to parent tree */
   ED_node_tree_pop(snode);
 
-  ED_node_tree_propagate_change(C, CTX_data_main(C), nullptr);
+  ED_node_tree_propagate_change(CTX_data_main(C), nullptr);
 
   return OPERATOR_FINISHED;
 }
@@ -1202,7 +1202,7 @@ static void node_group_make_insert_selected(const bContext &C,
 
   update_nested_node_refs_after_moving_nodes_into_group(ntree, group, *gnode, node_identifier_map);
 
-  ED_node_tree_propagate_change(&C, bmain, nullptr);
+  ED_node_tree_propagate_change(bmain, nullptr);
 }
 
 static bNode *node_group_make_from_nodes(const bContext &C,

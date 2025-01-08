@@ -109,14 +109,13 @@ void ED_node_set_active(
  * Additionally, this will send notifiers and tag the depsgraph based on the changes. Depsgraph
  * relation updates have to be triggered by the caller.
  *
- * \param C: Context if available. This can be null.
  * \param bmain: Main whose data-blocks should be updated based on the changes.
  * \param ntree: Under some circumstances the caller knows that only one node tree has
  *   changed since the last update. In this case the function may be able to skip scanning #bmain
  *   for other things that have to be changed. It may still scan #bmain if the interface of the
  *   node tree has changed.
  */
-void ED_node_tree_propagate_change(const bContext *C, Main *bmain, bNodeTree *ntree);
+void ED_node_tree_propagate_change(Main *bmain, bNodeTree *ntree);
 
 /**
  * \param scene_owner: is the owner of the job,

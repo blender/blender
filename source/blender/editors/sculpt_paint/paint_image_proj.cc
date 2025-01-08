@@ -6776,7 +6776,7 @@ static bool proj_paint_add_slot(bContext *C, wmOperator *op)
       }
     }
 
-    ED_node_tree_propagate_change(C, bmain, ntree);
+    ED_node_tree_propagate_change(bmain, ntree);
     /* In case we added more than one node, position them too. */
     blender::bke::node_position_propagate(out_node);
 

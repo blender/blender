@@ -1812,7 +1812,7 @@ void rna_Scene_compositor_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr
     bNodeTree *ntree = reinterpret_cast<bNodeTree *>(scene->nodetree);
     WM_main_add_notifier(NC_NODE | NA_EDITED, &ntree->id);
     WM_main_add_notifier(NC_SCENE | ND_NODES, &ntree->id);
-    ED_node_tree_propagate_change(nullptr, bmain, ntree);
+    ED_node_tree_propagate_change(bmain, ntree);
   }
 }
 

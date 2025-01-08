@@ -193,7 +193,7 @@ static void rna_Texture_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
   }
   else if (GS(id->name) == ID_NT) {
     bNodeTree *ntree = (bNodeTree *)ptr->owner_id;
-    ED_node_tree_propagate_change(nullptr, bmain, ntree);
+    ED_node_tree_propagate_change(bmain, ntree);
   }
 }
 

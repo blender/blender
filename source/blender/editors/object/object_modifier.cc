@@ -3802,7 +3802,7 @@ static int geometry_node_tree_copy_assign_exec(bContext *C, wmOperator * /*op*/)
   nmd->node_group = new_tree;
   id_us_min(&tree->id);
 
-  ED_node_tree_propagate_change(C, bmain, new_tree);
+  ED_node_tree_propagate_change(bmain, new_tree);
   DEG_id_tag_update(&ob->id, ID_RECALC_GEOMETRY);
   DEG_relations_tag_update(bmain);
   WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);

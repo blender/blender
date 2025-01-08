@@ -201,7 +201,7 @@ void ED_render_engine_changed(Main *bmain, const bool update_scene_data)
       ntreeCompositUpdateRLayers(scene->nodetree);
     }
   }
-  ED_node_tree_propagate_change(nullptr, bmain, nullptr);
+  ED_node_tree_propagate_change(bmain, nullptr);
 
   /* Update #CacheFiles to ensure that procedurals are properly taken into account. */
   LISTBASE_FOREACH (CacheFile *, cachefile, &bmain->cachefiles) {
