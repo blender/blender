@@ -869,7 +869,7 @@ void register_node_type_group_output()
   ntype->free_self = [](blender::bke::bNodeType *type) { MEM_delete(type); };
 
   blender::bke::node_type_base(ntype, NODE_GROUP_OUTPUT, NODE_CLASS_INTERFACE);
-  ntype->ui_name = "Group Input";
+  ntype->ui_name = "Group Output";
   ntype->ui_description = "Output data from inside of a node group";
   ntype->enum_name_legacy = "GROUP_OUTPUT";
   blender::bke::node_type_size(ntype, 140, 80, 400);
