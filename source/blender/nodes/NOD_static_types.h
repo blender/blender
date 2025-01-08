@@ -13,7 +13,7 @@
 
 /* Empty definitions for undefined macros to avoid warnings */
 #ifndef DefNode
-#define DefNode(Category, ID, DefFunc, EnumName, StructName)
+#define DefNode(Category, ID, EnumName, StructName)
 #endif
 
 /* WARNING! If you edit those strings, please do the same in relevant nodes files (under blender/nodes/...)! */
