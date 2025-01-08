@@ -363,7 +363,7 @@ static int find_closest_edge_in_poly(ARegion *region,
                                      const int mval[2])
 {
   using namespace blender;
-  int closest_edge_index;
+  int closest_edge_index = -1;
 
   const float2 mval_f = {float(mval[0]), float(mval[1])};
   float min_distance = FLT_MAX;
@@ -485,6 +485,9 @@ void paintface_select_loop(bContext *C, Object *ob, const int mval[2], const boo
   const IndexRange face = faces[poly_pick_index];
   const int closest_edge_index = find_closest_edge_in_poly(
       region, edges, corner_edges.slice(face), verts, mval);
+  if (closest_edge_index == -1) {
+    return;
+  }
 
   Array<int> edge_to_face_offsets;
   Array<int> edge_to_face_indices;
