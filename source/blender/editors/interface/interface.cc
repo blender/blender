@@ -2832,12 +2832,12 @@ static double ui_get_but_scale_unit(uiBut *but, double value)
   const UnitSettings *unit = but->block->unit;
   const int unit_type = UI_but_unit_type_get(but);
 
-  /* Time unit is a bit special, not handled by BKE_scene_unit_scale() for now. */
+  /* Time unit is a bit special, not handled by #BKE_unit_value_scale() for now. */
   if (unit_type == PROP_UNIT_TIME) { /* WARNING: using evil_C :| */
     Scene *scene = CTX_data_scene(static_cast<const bContext *>(but->block->evil_C));
     return FRA2TIME(value);
   }
-  return BKE_scene_unit_scale(unit, RNA_SUBTYPE_UNIT_VALUE(unit_type), value);
+  return BKE_unit_value_scale(unit, RNA_SUBTYPE_UNIT_VALUE(unit_type), value);
 }
 
 void ui_but_convert_to_unit_alt_name(uiBut *but, char *str, size_t str_maxncpy)

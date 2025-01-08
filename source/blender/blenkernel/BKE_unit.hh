@@ -88,6 +88,12 @@ double BKE_unit_base_scalar(int system, int type);
 bool BKE_unit_is_valid(int system, int type);
 
 /**
+ * Apply the needed correction factor to value, based on unit_type
+ * (only length-related are affected currently) and `unit->scale_length`.
+ */
+double BKE_unit_value_scale(const UnitSettings *unit, int unit_type, double value);
+
+/**
  * Loop over scales, could add names later.
  */
 // double bUnit_Iter(void **unit, char **name, int system, int type);

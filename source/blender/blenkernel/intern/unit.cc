@@ -1886,6 +1886,32 @@ size_t BKE_unit_value_as_string(char *str,
   return unit_as_string_main(str, str_maxncpy, value, prec, type, do_split, pad, units);
 }
 
+double BKE_unit_value_scale(const UnitSettings *unit, const int unit_type, double value)
+{
+  if (unit->system == USER_UNIT_NONE) {
+    /* Never apply scale_length when not using a unit setting! */
+    return value;
+  }
+
+  switch (unit_type) {
+    case B_UNIT_LENGTH:
+    case B_UNIT_VELOCITY:
+    case B_UNIT_ACCELERATION:
+      return value * double(unit->scale_length);
+    case B_UNIT_AREA:
+    case B_UNIT_POWER:
+      return value * pow(unit->scale_length, 2);
+    case B_UNIT_VOLUME:
+      return value * pow(unit->scale_length, 3);
+    case B_UNIT_MASS:
+      return value * pow(unit->scale_length, 3);
+    case B_UNIT_CAMERA: /* *Do not* use scene's unit scale for camera focal lens! See #42026. */
+    case B_UNIT_WAVELENGTH: /* Wavelength values are independent of the scene scale. */
+    default:
+      return value;
+  }
+}
+
 BLI_INLINE bool isalpha_or_utf8(const int ch)
 {
   return (ch >= 128 || isalpha(ch));
