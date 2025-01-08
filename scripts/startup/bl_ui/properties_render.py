@@ -760,7 +760,8 @@ class CompositorPerformanceButtonsPanel:
         col = layout.column()
         row = col.row()
         row.prop(rd, "compositor_device", text="Device", expand=True)
-        col.prop(rd, "compositor_precision", text="Precision")
+        if rd.compositor_device == "GPU":
+            col.prop(rd, "compositor_precision", text="Precision")
 
 
 class CompositorDenoisePerformanceButtonsPanel:

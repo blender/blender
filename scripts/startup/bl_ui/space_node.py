@@ -853,7 +853,8 @@ class NODE_PT_quality(bpy.types.Panel):
 
         col = layout.column()
         col.prop(rd, "compositor_device", text="Device")
-        col.prop(rd, "compositor_precision", text="Precision")
+        if rd.compositor_device == "GPU":
+            col.prop(rd, "compositor_precision", text="Precision")
 
         col = layout.column()
         col.prop(tree, "use_viewer_border")
