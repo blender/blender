@@ -879,6 +879,7 @@ ImBuf *IMB_scale_into_new(
 
   /* Create result image. */
   ImBuf *dst = IMB_allocImBuf(newx, newy, ibuf->planes, IB_uninitialized_pixels);
+  dst->channels = ibuf->channels;
   IMB_metadata_copy(dst, ibuf);
   dst->colormanage_flag = ibuf->colormanage_flag;
   if (dst_byte != nullptr) {

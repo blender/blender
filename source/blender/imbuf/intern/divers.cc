@@ -518,7 +518,7 @@ static void imb_buffer_float_from_float_thread_do(void *data_v, int scanline)
   const int num_scanlines = 1;
   FloatToFloatThreadData *data = (FloatToFloatThreadData *)data_v;
   size_t offset_from = size_t(scanline) * data->stride_from * data->channels_from;
-  size_t offset_to = size_t(scanline) * data->stride_to * data->channels_from;
+  size_t offset_to = size_t(scanline) * data->stride_to * 4;
   IMB_buffer_float_from_float(data->rect_to + offset_to,
                               data->rect_from + offset_from,
                               data->channels_from,

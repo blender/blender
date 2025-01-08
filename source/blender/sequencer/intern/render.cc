@@ -843,6 +843,30 @@ static ImBuf *seq_render_effect_strip_impl(const SeqRenderData *context,
 /** \name Individual strip rendering functions
  * \{ */
 
+static void convert_multilayer_ibuf(ImBuf *ibuf)
+{
+  /* Load the combined/RGB layer, if this is a multi-layer image. */
+  BKE_movieclip_convert_multilayer_ibuf(ibuf);
+
+  /* Combined layer might be non-4 channels, however the rest
+   * of sequencer assumes RGBA everywhere. Convert to 4 channel if needed. */
+  if (ibuf->float_buffer.data != nullptr && ibuf->channels != 4) {
+    float *dst = static_cast<float *>(MEM_mallocN(sizeof(float[4]) * ibuf->x * ibuf->y, __func__));
+    IMB_buffer_float_from_float_threaded(dst,
+                                         ibuf->float_buffer.data,
+                                         ibuf->channels,
+                                         IB_PROFILE_LINEAR_RGB,
+                                         IB_PROFILE_LINEAR_RGB,
+                                         false,
+                                         ibuf->x,
+                                         ibuf->y,
+                                         ibuf->x,
+                                         ibuf->x);
+    IMB_assign_float_buffer(ibuf, dst, IB_TAKE_OWNERSHIP);
+    ibuf->channels = 4;
+  }
+}
+
 /**
  * Render individual view for multi-view or single (default view) for mono-view.
  */
@@ -855,7 +879,7 @@ static ImBuf *seq_render_image_strip_view(const SeqRenderData *context,
 {
   ImBuf *ibuf = nullptr;
 
-  int flag = IB_rect | IB_metadata;
+  int flag = IB_rect | IB_metadata | IB_multilayer;
   if (strip->alpha_mode == SEQ_ALPHA_PREMUL) {
     flag |= IB_alphamode_premul;
   }
@@ -873,6 +897,7 @@ static ImBuf *seq_render_image_strip_view(const SeqRenderData *context,
   if (ibuf == nullptr) {
     return nullptr;
   }
+  convert_multilayer_ibuf(ibuf);
 
   /* We don't need both (speed reasons)! */
   if (ibuf->float_buffer.data != nullptr && ibuf->byte_buffer.data != nullptr) {
