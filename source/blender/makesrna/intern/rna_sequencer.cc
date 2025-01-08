@@ -2268,6 +2268,7 @@ static void rna_def_sequence(BlenderRNA *brna)
   prop = RNA_def_property(srna, "blend_type", PROP_ENUM, PROP_NONE);
   RNA_def_property_enum_sdna(prop, nullptr, "blend_mode");
   RNA_def_property_enum_items(prop, blend_mode_items);
+  RNA_def_property_enum_default(prop, STRIP_TYPE_ALPHAOVER);
   RNA_def_property_ui_text(
       prop, "Blending Mode", "Method for controlling how the strip combines with other strips");
   RNA_def_property_update(
@@ -2275,6 +2276,7 @@ static void rna_def_sequence(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "blend_alpha", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_range(prop, 0.0f, 1.0f);
+  RNA_def_property_float_default(prop, 1.0f);
   RNA_def_property_ui_text(
       prop, "Blend Opacity", "Percentage of how much the strip's colors affect other strips");
   /* stupid 0-100 -> 0-1 */
@@ -2799,6 +2801,7 @@ static void rna_def_audio_options(StructRNA *srna)
   prop = RNA_def_property(srna, "volume", PROP_FLOAT, PROP_NONE);
   RNA_def_property_float_sdna(prop, nullptr, "volume");
   RNA_def_property_range(prop, 0.0f, 100.0f);
+  RNA_def_property_float_default(prop, 1.0f);
   RNA_def_property_ui_text(prop, "Volume", "Playback volume of the sound");
   RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_SOUND);
   RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_audio_update");
