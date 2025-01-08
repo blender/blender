@@ -71,6 +71,17 @@ static void cmp_node_glare_declare(NodeDeclarationBuilder &b)
       .subtype(PROP_FACTOR)
       .description("The strength of the glare that will be added to the image")
       .compositor_expects_single_value();
+  b.add_input<decl::Float>("Saturation")
+      .default_value(1.0f)
+      .min(0.0f)
+      .max(1.0f)
+      .subtype(PROP_FACTOR)
+      .description("Defines how saturated the glare that will be added to the image")
+      .compositor_expects_single_value();
+  b.add_input<decl::Color>("Tint")
+      .default_value({1.0f, 1.0f, 1.0f, 1.0f})
+      .description("Tints the glare that will be added to the image")
+      .compositor_expects_single_value();
   b.add_input<decl::Float>("Size")
       .default_value(0.5f)
       .min(0.0f)
@@ -2001,12 +2012,6 @@ class GlareOperation : public NodeOperation {
       return;
     }
 
-    Result &image_input = this->get_input("Image");
-    if (this->get_strength() == 0.0f) {
-      image_input.pass_through(image_output);
-      return;
-    }
-
     if (this->context().use_gpu()) {
       this->execute_mix_gpu(glare_result);
     }
@@ -2020,7 +2025,8 @@ class GlareOperation : public NodeOperation {
     GPUShader *shader = context().get_shader("compositor_glare_mix");
     GPU_shader_bind(shader);
 
-    GPU_shader_uniform_1f(shader, "strength", this->get_strength());
+    GPU_shader_uniform_1f(shader, "saturation", this->get_saturation());
+    GPU_shader_uniform_3fv(shader, "tint", this->get_tint());
 
     const Result &input_image = get_input("Image");
     input_image.bind_as_texture(shader, "input_tx");
@@ -2043,7 +2049,8 @@ class GlareOperation : public NodeOperation {
 
   void execute_mix_cpu(const Result &glare_result)
   {
-    const float strength = this->get_strength();
+    const float saturation = this->get_saturation();
+    const float3 tint = this->get_tint();
 
     const Result &input = get_input("Image");
 
@@ -2052,17 +2059,22 @@ class GlareOperation : public NodeOperation {
     output.allocate_texture(domain);
 
     parallel_for(domain.size, [&](const int2 texel) {
-      /* Add 0.5 to evaluate the input sampler at the center of the pixel and divide by the input
-       * image size to get the relevant coordinates into the sampler's expected [0, 1] range.
-       * Make sure the input color is not negative to avoid a subtractive effect when adding the
-       * glare. */
-      float2 normalized_coordinates = (float2(texel) + float2(0.5f)) / float2(input.domain().size);
-      float4 glare_color = glare_result.sample_bilinear_extended(normalized_coordinates);
+      /* Make sure the input is not negative to avoid a subtractive effect when adding the glare.*/
       float4 input_color = math::max(float4(0.0f), input.load_pixel<float4>(texel));
 
-      float3 highlights = input_color.xyz() + glare_color.xyz() * strength;
+      float2 normalized_coordinates = (float2(texel) + float2(0.5f)) / float2(input.domain().size);
+      float4 glare_color = glare_result.sample_bilinear_extended(normalized_coordinates);
 
-      output.store_pixel(texel, float4(highlights, input_color.w));
+      /* Adjust saturation of glare. */
+      float4 glare_hsva;
+      rgb_to_hsv_v(glare_color, glare_hsva);
+      glare_hsva.y = math::clamp(glare_hsva.y * saturation, 0.0f, 1.0f);
+      float4 glare_rgba;
+      hsv_to_rgb_v(glare_hsva, glare_rgba);
+
+      float3 combined_color = input_color.xyz() + glare_rgba.xyz() * tint;
+
+      output.store_pixel(texel, float4(combined_color, input_color.w));
     });
   }
 
@@ -2084,7 +2096,8 @@ class GlareOperation : public NodeOperation {
     GPUShader *shader = this->context().get_shader("compositor_glare_write_glare_output");
     GPU_shader_bind(shader);
 
-    GPU_shader_uniform_1f(shader, "strength", this->get_strength());
+    GPU_shader_uniform_1f(shader, "saturation", this->get_saturation());
+    GPU_shader_uniform_3fv(shader, "tint", this->get_tint());
 
     GPU_texture_filter_mode(glare, true);
     GPU_texture_extend_mode(glare, GPU_SAMPLER_EXTEND_MODE_EXTEND);
@@ -2104,7 +2117,8 @@ class GlareOperation : public NodeOperation {
 
   void write_glare_output_cpu(const Result &glare)
   {
-    const float strength = this->get_strength();
+    const float saturation = this->get_saturation();
+    const float3 tint = this->get_tint();
 
     const Result &image_input = this->get_input("Image");
     Result &output = this->get_result("Glare");
@@ -2113,9 +2127,17 @@ class GlareOperation : public NodeOperation {
     const int2 size = output.domain().size;
     parallel_for(size, [&](const int2 texel) {
       float2 normalized_coordinates = (float2(texel) + float2(0.5f)) / float2(size);
-      float4 glare_value = glare.sample_bilinear_extended(normalized_coordinates);
-      float4 adjusted_glare_value = glare_value * strength;
-      output.store_pixel(texel, float4(adjusted_glare_value.xyz(), 1.0f));
+      float4 glare_color = glare.sample_bilinear_extended(normalized_coordinates);
+
+      /* Adjust saturation of glare. */
+      float4 glare_hsva;
+      rgb_to_hsv_v(glare_color, glare_hsva);
+      glare_hsva.y = math::clamp(glare_hsva.y * saturation, 0.0f, 1.0f);
+      float4 glare_rgba;
+      hsv_to_rgb_v(glare_hsva, glare_rgba);
+
+      float3 adjusted_glare_value = glare_rgba.xyz() * tint;
+      output.store_pixel(texel, float4(adjusted_glare_value, 1.0f));
     });
   }
 
@@ -2131,6 +2153,17 @@ class GlareOperation : public NodeOperation {
   float get_strength()
   {
     return math::max(0.0f, this->get_input("Strength").get_single_value_default(1.0f));
+  }
+
+  float get_saturation()
+  {
+    return math::max(0.0f, this->get_input("Saturation").get_single_value_default(1.0f));
+  }
+
+  float3 get_tint()
+  {
+    return this->get_input("Tint").get_single_value_default(float4(1.0f)).xyz() *
+           this->get_strength();
   }
 
   float get_size()
