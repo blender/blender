@@ -3780,23 +3780,29 @@ static void wm_paintcursor_test(bContext *C, const wmEvent *event)
   wmWindowManager *wm = CTX_wm_manager(C);
 
   if (wm->paintcursors.first) {
-    ARegion *region = CTX_wm_region(C);
+    const bScreen *screen = CTX_wm_screen(C);
+    ARegion *region = screen ? screen->active_region : nullptr;
 
     if (region) {
+      ARegion *prev_region = CTX_wm_region(C);
+
+      CTX_wm_region_set(C, region);
       wm_paintcursor_tag(C, wm, region);
+      CTX_wm_region_set(C, prev_region);
     }
 
     /* If previous position was not in current region, we have to set a temp new context. */
     if (region == nullptr || !BLI_rcti_isect_pt_v(&region->winrct, event->prev_xy)) {
-      ScrArea *area = CTX_wm_area(C);
+      ScrArea *prev_area = CTX_wm_area(C);
+      ARegion *prev_region = CTX_wm_region(C);
 
       CTX_wm_area_set(C, area_event_inside(C, event->prev_xy));
       CTX_wm_region_set(C, region_event_inside(C, event->prev_xy));
 
       wm_paintcursor_tag(C, wm, CTX_wm_region(C));
 
-      CTX_wm_area_set(C, area);
-      CTX_wm_region_set(C, region);
+      CTX_wm_area_set(C, prev_area);
+      CTX_wm_region_set(C, prev_region);
     }
   }
 }
