@@ -790,7 +790,7 @@ static AVStream *alloc_video_stream(MovieWriter *context,
   if (codec_id == AV_CODEC_ID_VP9 && rd->im_format.planes == R_IMF_PLANES_RGBA) {
     c->pix_fmt = AV_PIX_FMT_YUVA420P;
   }
-  else if (ELEM(codec_id, AV_CODEC_ID_H264, AV_CODEC_ID_H265, AV_CODEC_ID_VP9) &&
+  else if (ELEM(codec_id, AV_CODEC_ID_H264, AV_CODEC_ID_H265, AV_CODEC_ID_VP9, AV_CODEC_ID_AV1) &&
            (context->ffmpeg_crf == 0))
   {
     /* Use 4:4:4 instead of 4:2:0 pixel format for lossless rendering. */
