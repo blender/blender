@@ -1719,7 +1719,7 @@ static StructRNA *rna_Operator_register(Main *bmain,
     dummy_ot.description = *strings_table[2] ? strings_table[2] : nullptr;
     dummy_ot.translation_context = strings_table[3];
     dummy_ot.undo_group = strings_table[4];
-    BLI_assert(ARRAY_SIZE(strings) == 5);
+    BLI_STATIC_ASSERT(ARRAY_SIZE(strings) == 5, "Unexpected number of strings")
   }
 
   /* XXX, this doubles up with the operator name #29666.
@@ -1892,7 +1892,7 @@ static StructRNA *rna_MacroOperator_register(Main *bmain,
     dummy_ot.description = *strings_table[2] ? strings_table[2] : nullptr;
     dummy_ot.translation_context = strings_table[3];
     dummy_ot.undo_group = strings_table[4];
-    BLI_assert(ARRAY_SIZE(strings) == 5);
+    BLI_STATIC_ASSERT(ARRAY_SIZE(strings) == 5, "Unexpected number of strings")
   }
 
   /* XXX, this doubles up with the operator name #29666.
