@@ -13,6 +13,7 @@
 #include "UI_resources.hh"
 
 #include "COM_node_operation.hh"
+#include "COM_utilities.hh"
 
 #include "node_composite_util.hh"
 
