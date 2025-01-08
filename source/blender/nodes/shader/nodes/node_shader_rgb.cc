@@ -29,8 +29,8 @@ static int gpu_shader_rgb(GPUMaterial *mat,
 NODE_SHADER_MATERIALX_BEGIN
 #ifdef WITH_MATERIALX
 {
-  NodeItem color = get_output_default("Color", NodeItem::Type::Color4);
-  return create_node("constant", NodeItem::Type::Color4, {{"value", color}});
+  NodeItem color = get_output_default("Color", NodeItem::Type::Color3);
+  return create_node("constant", NodeItem::Type::Color3, {{"value", color}});
 }
 #endif
 NODE_SHADER_MATERIALX_END

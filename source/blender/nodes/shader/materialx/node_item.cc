@@ -478,12 +478,80 @@ NodeItem NodeItem::exp() const
   return to_vector().arithmetic("exp", [](float a) { return std::exp(a); });
 }
 
+bool NodeItem::is_convertible(eNodeSocketDatatype from_type, Type to_type)
+{
+  switch (to_type) {
+    case Type::Any:
+      return true;
+    case Type::Empty:
+    case Type::Multioutput:
+      return false;
+    case Type::String:
+    case Type::Filename:
+      return from_type == SOCK_STRING;
+    case Type::Boolean:
+      return from_type == SOCK_BOOLEAN;
+    case Type::Integer:
+      return from_type == SOCK_INT;
+    case Type::Float:
+    case Type::Vector2:
+    case Type::Vector3:
+    case Type::Color3:
+    case Type::Vector4:
+    case Type::Color4:
+    case Type::DisplacementShader:
+      return ELEM(from_type, SOCK_FLOAT, SOCK_VECTOR, SOCK_RGBA);
+    case Type::EDF:
+      return ELEM(from_type, SOCK_FLOAT, SOCK_VECTOR, SOCK_RGBA, SOCK_SHADER);
+    case Type::BSDF:
+    case Type::SurfaceShader:
+    case Type::Material:
+    case Type::SurfaceOpacity:
+      return from_type == SOCK_SHADER;
+  }
+
+  return false;
+}
+
 NodeItem NodeItem::convert(Type to_type) const
 {
   Type from_type = type();
   if (from_type == Type::Empty || from_type == to_type || to_type == Type::Any) {
     return *this;
   }
+
+  switch (to_type) {
+    /* Link arithmetic types to shader as EDF. */
+    case Type::EDF:
+      if (is_arithmetic(from_type)) {
+        return create_node("uniform_edf", NodeItem::Type::EDF, {{"color", convert(Type::Color3)}});
+      }
+      return empty();
+    /* Displacement shader from arithmetic types, when not using (Vector) Displacement node. */
+    case Type::DisplacementShader:
+      if (is_arithmetic(from_type)) {
+        return create_node("displacement",
+                           NodeItem::Type::DisplacementShader,
+                           {{"displacement", convert(Type::Vector3)}});
+      }
+      return empty();
+    /* Surface opacity is just a float. */
+    case Type::SurfaceOpacity:
+      to_type = Type::Float;
+      if (from_type == to_type || to_type == Type::Any) {
+        return *this;
+      }
+      break;
+    /* Material output will evaluate graph multiple times for different components,
+     * when linking arithmetic types we want to leave those empty. */
+    case Type::BSDF:
+    case Type::SurfaceShader:
+    case Type::Material:
+      return empty();
+    default:
+      break;
+  }
+
   if (!is_arithmetic(from_type) || !is_arithmetic(to_type)) {
     CLOG_WARN(LOG_MATERIALX_SHADER,
               "Cannot convert: %s -> %s",

@@ -119,8 +119,8 @@ NODE_SHADER_MATERIALX_BEGIN
   NodeItem value1 = val(1.0f);
   NodeItem value2 = val(0.0f);
   if (STREQ(socket_out_->name, "Color")) {
-    value1 = get_input_value("Color1", NodeItem::Type::Color4);
-    value2 = get_input_value("Color2", NodeItem::Type::Color4);
+    value1 = get_input_value("Color1", NodeItem::Type::Color3);
+    value2 = get_input_value("Color2", NodeItem::Type::Color3);
   }
   NodeItem scale = get_input_value("Scale", NodeItem::Type::Float);
 

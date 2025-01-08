@@ -28,8 +28,8 @@ static int gpu_shader_rgbtobw(GPUMaterial *mat,
 NODE_SHADER_MATERIALX_BEGIN
 #ifdef WITH_MATERIALX
 {
-  NodeItem color = get_input_value("Color", NodeItem::Type::Color4);
-  return create_node("luminance", NodeItem::Type::Color4, {{"in", color}});
+  NodeItem color = get_input_value("Color", NodeItem::Type::Color3);
+  return create_node("luminance", NodeItem::Type::Color3, {{"in", color}});
 }
 #endif
 NODE_SHADER_MATERIALX_END

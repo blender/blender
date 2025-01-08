@@ -35,7 +35,7 @@ static int node_shader_gpu_gamma(GPUMaterial *mat,
 NODE_SHADER_MATERIALX_BEGIN
 #ifdef WITH_MATERIALX
 {
-  NodeItem color = get_input_value("Color", NodeItem::Type::Color4);
+  NodeItem color = get_input_value("Color", NodeItem::Type::Color3);
   NodeItem gamma = get_input_value("Gamma", NodeItem::Type::Float);
   return color ^ gamma;
 }

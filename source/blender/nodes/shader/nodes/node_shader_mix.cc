@@ -579,8 +579,8 @@ NODE_SHADER_MATERIALX_BEGIN
 
     case SOCK_RGBA:
       factor = get_input_value(0, NodeItem::Type::Float);
-      value1 = get_input_value(6, NodeItem::Type::Color4);
-      value2 = get_input_value(7, NodeItem::Type::Color4);
+      value1 = get_input_value(6, NodeItem::Type::Color3);
+      value2 = get_input_value(7, NodeItem::Type::Color3);
       break;
 
     default:
