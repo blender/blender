@@ -119,7 +119,7 @@ ImageMetaData ImageHandle::metadata()
     return ImageMetaData();
   }
 
-  ImageManager::Image *img = manager->images[tile_slots.front()].get();
+  ImageManager::Image *img = manager->get_image_slot(tile_slots.front());
   manager->load_image_metadata(img);
   return img->metadata;
 }
@@ -131,7 +131,7 @@ int ImageHandle::svm_slot(const int tile_index) const
   }
 
   if (manager->osl_texture_system) {
-    ImageManager::Image *img = manager->images[tile_slots[tile_index]].get();
+    ImageManager::Image *img = manager->get_image_slot(tile_slots[tile_index]);
     if (!img->loader->osl_filepath().empty()) {
       return -1;
     }
@@ -150,12 +150,12 @@ vector<int4> ImageHandle::get_svm_slots() const
     int4 node;
 
     size_t slot = tile_slots[2 * i];
-    node.x = manager->images[slot]->loader->get_tile_number();
+    node.x = manager->get_image_slot(slot)->loader->get_tile_number();
     node.y = slot;
 
     if ((2 * i + 1) < tile_slots.size()) {
       slot = tile_slots[2 * i + 1];
-      node.z = manager->images[slot]->loader->get_tile_number();
+      node.z = manager->get_image_slot(slot)->loader->get_tile_number();
       node.w = slot;
     }
     else {
@@ -175,7 +175,7 @@ device_texture *ImageHandle::image_memory(const int tile_index) const
     return nullptr;
   }
 
-  ImageManager::Image *img = manager->images[tile_slots[tile_index]].get();
+  ImageManager::Image *img = manager->get_image_slot(tile_slots[tile_index]);
   return img ? img->mem.get() : nullptr;
 }
 
@@ -185,7 +185,7 @@ VDBImageLoader *ImageHandle::vdb_loader(const int tile_index) const
     return nullptr;
   }
 
-  ImageManager::Image *img = manager->images[tile_slots[tile_index]].get();
+  ImageManager::Image *img = manager->get_image_slot(tile_slots[tile_index]);
 
   if (img == nullptr) {
     return nullptr;
@@ -501,6 +501,13 @@ void ImageManager::remove_image_user(const size_t slot)
   if (image->users == 0) {
     need_update_ = true;
   }
+}
+
+ImageManager::Image *ImageManager::get_image_slot(const size_t slot)
+{
+  /* Need mutex lock, images vector might get resized by another thread. */
+  const thread_scoped_lock device_lock(images_mutex);
+  return images[slot].get();
 }
 
 static bool image_associate_alpha(ImageManager::Image *img)

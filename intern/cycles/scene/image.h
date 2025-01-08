@@ -222,6 +222,7 @@ class ImageManager {
                         const bool builtin);
   void add_image_user(const size_t slot);
   void remove_image_user(const size_t slot);
+  Image *get_image_slot(const size_t slot);
 
   void load_image_metadata(Image *img);
 
