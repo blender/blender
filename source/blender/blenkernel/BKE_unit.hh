@@ -38,6 +38,17 @@ size_t BKE_unit_value_as_string(char *str,
                                 bool pad);
 
 /**
+ * A version of #BKE_unit_value_as_string with the `value` scaled by #BKE_unit_value_scale.
+ */
+size_t BKE_unit_value_as_string_scaled(char *str,
+                                       int str_maxncpy,
+                                       double value,
+                                       int prec,
+                                       int type,
+                                       const UnitSettings *settings,
+                                       bool pad);
+
+/**
  * Replace units with values, used before python button evaluation.
  *
  * Make a copy of the string that replaces the units with numbers.

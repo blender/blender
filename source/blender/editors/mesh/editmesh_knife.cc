@@ -514,13 +514,8 @@ static void knifetool_draw_visible_distances(const KnifeTool_OpData *kcd)
     SNPRINTF(numstr, "%.*f", distance_precision, cut_len);
   }
   else {
-    BKE_unit_value_as_string(numstr,
-                             sizeof(numstr),
-                             double(cut_len * unit->scale_length),
-                             distance_precision,
-                             B_UNIT_LENGTH,
-                             unit,
-                             false);
+    BKE_unit_value_as_string_scaled(
+        numstr, sizeof(numstr), cut_len, distance_precision, B_UNIT_LENGTH, unit, false);
   }
 
   BLF_enable(blf_mono_font, BLF_ROTATION);

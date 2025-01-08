@@ -1886,6 +1886,18 @@ size_t BKE_unit_value_as_string(char *str,
   return unit_as_string_main(str, str_maxncpy, value, prec, type, do_split, pad, units);
 }
 
+size_t BKE_unit_value_as_string_scaled(char *str,
+                                       int str_maxncpy,
+                                       double value,
+                                       int prec,
+                                       int type,
+                                       const UnitSettings *settings,
+                                       bool pad)
+{
+  return BKE_unit_value_as_string(
+      str, str_maxncpy, BKE_unit_value_scale(settings, type, value), prec, type, settings, pad);
+}
+
 double BKE_unit_value_scale(const UnitSettings *unit, const int unit_type, double value)
 {
   if (unit->system == USER_UNIT_NONE) {

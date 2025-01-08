@@ -187,9 +187,8 @@ static void translate_dist_to_str(char *r_str,
                                   const float val,
                                   const UnitSettings *unit)
 {
-  if (unit) {
-    BKE_unit_value_as_string(
-        r_str, r_str_maxncpy, val * unit->scale_length, 4, B_UNIT_LENGTH, unit, false);
+  if (unit && (unit->system != USER_UNIT_NONE)) {
+    BKE_unit_value_as_string_scaled(r_str, r_str_maxncpy, val, 4, B_UNIT_LENGTH, unit, false);
   }
   else {
     /* Check range to prevent string buffer overflow. */
