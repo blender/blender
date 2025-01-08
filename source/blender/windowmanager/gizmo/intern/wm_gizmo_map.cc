@@ -965,7 +965,6 @@ void wm_gizmomap_handler_context_op(bContext *C, wmEventHandler_Op *handler)
     if (area == nullptr) {
       /* When changing screen layouts with running modal handlers (like render display),
        * this is not an error to print. */
-      printf("internal error: modal gizmo-map handler has invalid area\n");
     }
     else {
       ARegion *region;
