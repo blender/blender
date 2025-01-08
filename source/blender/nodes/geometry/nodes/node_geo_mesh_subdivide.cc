@@ -80,7 +80,11 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_SUBDIVIDE_MESH, "Subdivide Mesh", NODE_CLASS_GEOMETRY);
+  geo_node_type_base(&ntype, GEO_NODE_SUBDIVIDE_MESH, NODE_CLASS_GEOMETRY);
+  ntype.ui_name = "Subdivide Mesh";
+  ntype.ui_description =
+      "Divide mesh faces into smaller ones without changing the shape or volume, using linear "
+      "interpolation to place the new vertices";
   ntype.enum_name_legacy = "SUBDIVIDE_MESH";
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;

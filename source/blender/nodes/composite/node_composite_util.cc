@@ -28,9 +28,9 @@ void cmp_node_update_default(bNodeTree * /*ntree*/, bNode *node)
   node->runtime->need_exec = 1;
 }
 
-void cmp_node_type_base(blender::bke::bNodeType *ntype, int type, const char *name, short nclass)
+void cmp_node_type_base(blender::bke::bNodeType *ntype, int type, short nclass)
 {
-  blender::bke::node_type_base(ntype, type, name, nclass);
+  blender::bke::node_type_base(ntype, type, nclass);
 
   ntype->poll = cmp_node_poll_default;
   ntype->updatefunc = cmp_node_update_default;

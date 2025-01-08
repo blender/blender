@@ -59,8 +59,9 @@ static void register_node()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(
-      &ntype, GEO_NODE_TRANSLATE_INSTANCES, "Translate Instances", NODE_CLASS_GEOMETRY);
+  geo_node_type_base(&ntype, GEO_NODE_TRANSLATE_INSTANCES, NODE_CLASS_GEOMETRY);
+  ntype.ui_name = "Translate Instances";
+  ntype.ui_description = "Move top-level geometry instances in local or global space";
   ntype.enum_name_legacy = "TRANSLATE_INSTANCES";
   ntype.geometry_node_execute = node_geo_exec;
   ntype.declare = node_declare;

@@ -107,7 +107,9 @@ void register_node_type_cmp_bokehimage()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_BOKEHIMAGE, "Bokeh Image", NODE_CLASS_INPUT);
+  cmp_node_type_base(&ntype, CMP_NODE_BOKEHIMAGE, NODE_CLASS_INPUT);
+  ntype.ui_name = "Bokeh Image";
+  ntype.ui_description = "Generate image with bokeh shape for use with the Bokeh Blur filter node";
   ntype.enum_name_legacy = "BOKEHIMAGE";
   ntype.declare = file_ns::cmp_node_bokehimage_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_bokehimage;

@@ -128,9 +128,9 @@ static void node_rna(StructRNA *srna)
 static void register_node()
 {
   static blender::bke::bNodeType ntype;
-
-  geo_node_type_base(
-      &ntype, GEO_NODE_TRANSFORM_GEOMETRY, "Transform Geometry", NODE_CLASS_GEOMETRY);
+  geo_node_type_base(&ntype, GEO_NODE_TRANSFORM_GEOMETRY, NODE_CLASS_GEOMETRY);
+  ntype.ui_name = "Transform Geometry";
+  ntype.ui_description = "Translate, rotate or scale the geometry";
   ntype.enum_name_legacy = "TRANSFORM_GEOMETRY";
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;

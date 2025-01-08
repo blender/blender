@@ -144,7 +144,9 @@ void register_node_type_cmp_stabilize2d()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_STABILIZE2D, "Stabilize 2D", NODE_CLASS_DISTORT);
+  cmp_node_type_base(&ntype, CMP_NODE_STABILIZE2D, NODE_CLASS_DISTORT);
+  ntype.ui_name = "Stabilize 2D";
+  ntype.ui_description = "Stabilize footage using 2D stabilization motion tracking settings";
   ntype.enum_name_legacy = "STABILIZE2D";
   ntype.declare = file_ns::cmp_node_stabilize2d_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_stabilize2d;

@@ -56,7 +56,9 @@ static void node_geo_exec(GeoNodeExecParams params)
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
-  geo_node_type_base(&ntype, GEO_NODE_TOOL_SET_FACE_SET, "Set Face Set", NODE_CLASS_GEOMETRY);
+  geo_node_type_base(&ntype, GEO_NODE_TOOL_SET_FACE_SET, NODE_CLASS_GEOMETRY);
+  ntype.ui_name = "Set Face Set";
+  ntype.ui_description = "Set sculpt face set values for faces";
   ntype.enum_name_legacy = "TOOL_SET_FACE_SET";
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;

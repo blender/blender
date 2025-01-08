@@ -48,7 +48,9 @@ static void node_geo_exec(GeoNodeExecParams params)
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
-  geo_node_type_base(&ntype, GEO_NODE_INPUT_INSTANCE_SCALE, "Instance Scale", NODE_CLASS_INPUT);
+  geo_node_type_base(&ntype, GEO_NODE_INPUT_INSTANCE_SCALE, NODE_CLASS_INPUT);
+  ntype.ui_name = "Instance Scale";
+  ntype.ui_description = "Retrieve the scale of each instance in the geometry";
   ntype.enum_name_legacy = "INPUT_INSTANCE_SCALE";
   ntype.geometry_node_execute = node_geo_exec;
   ntype.declare = node_declare;

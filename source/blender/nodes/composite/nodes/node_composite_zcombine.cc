@@ -380,7 +380,9 @@ void register_node_type_cmp_zcombine()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_ZCOMBINE, "Z Combine", NODE_CLASS_OP_COLOR);
+  cmp_node_type_base(&ntype, CMP_NODE_ZCOMBINE, NODE_CLASS_OP_COLOR);
+  ntype.ui_name = "Z Combine";
+  ntype.ui_description = "Combine two images using depth maps";
   ntype.enum_name_legacy = "ZCOMBINE";
   ntype.declare = file_ns::cmp_node_zcombine_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_zcombine;

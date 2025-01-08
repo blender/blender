@@ -313,7 +313,9 @@ void register_node_type_sh_tex_sky()
 
   static blender::bke::bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_TEX_SKY, "Sky Texture", NODE_CLASS_TEXTURE);
+  sh_node_type_base(&ntype, SH_NODE_TEX_SKY, NODE_CLASS_TEXTURE);
+  ntype.ui_name = "Sky Texture";
+  ntype.ui_description = "Generate a procedural sky texture";
   ntype.enum_name_legacy = "TEX_SKY";
   ntype.declare = file_ns::node_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_tex_sky;

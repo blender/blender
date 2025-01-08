@@ -199,7 +199,9 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_RESAMPLE_CURVE, "Resample Curve", NODE_CLASS_GEOMETRY);
+  geo_node_type_base(&ntype, GEO_NODE_RESAMPLE_CURVE, NODE_CLASS_GEOMETRY);
+  ntype.ui_name = "Resample Curve";
+  ntype.ui_description = "Generate a poly spline for each input spline";
   ntype.enum_name_legacy = "RESAMPLE_CURVE";
   ntype.declare = node_declare;
   ntype.draw_buttons = node_layout;

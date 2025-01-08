@@ -45,7 +45,8 @@ void register_node_type_tex_distance()
 {
   static blender::bke::bNodeType ntype;
 
-  tex_node_type_base(&ntype, TEX_NODE_DISTANCE, "Distance", NODE_CLASS_CONVERTER);
+  tex_node_type_base(&ntype, TEX_NODE_DISTANCE, NODE_CLASS_CONVERTER);
+  ntype.ui_name = "Distance";
   ntype.enum_name_legacy = "DISTANCE";
   blender::bke::node_type_socket_templates(&ntype, inputs, outputs);
   ntype.exec_fn = exec;

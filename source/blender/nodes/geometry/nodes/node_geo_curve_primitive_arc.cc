@@ -372,7 +372,9 @@ static void node_rna(StructRNA *srna)
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
-  geo_node_type_base(&ntype, GEO_NODE_CURVE_PRIMITIVE_ARC, "Arc", NODE_CLASS_GEOMETRY);
+  geo_node_type_base(&ntype, GEO_NODE_CURVE_PRIMITIVE_ARC, NODE_CLASS_GEOMETRY);
+  ntype.ui_name = "Arc";
+  ntype.ui_description = "Generate a poly spline arc";
   ntype.enum_name_legacy = "CURVE_PRIMITIVE_ARC";
   ntype.initfunc = node_init;
   blender::bke::node_type_storage(&ntype,

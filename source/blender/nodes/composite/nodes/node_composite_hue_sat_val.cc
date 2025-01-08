@@ -112,7 +112,9 @@ void register_node_type_cmp_hue_sat()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_HUE_SAT, "Hue/Saturation/Value", NODE_CLASS_OP_COLOR);
+  cmp_node_type_base(&ntype, CMP_NODE_HUE_SAT, NODE_CLASS_OP_COLOR);
+  ntype.ui_name = "Hue/Saturation/Value";
+  ntype.ui_description = "Apply a color transformation in the HSV color model";
   ntype.enum_name_legacy = "HUE_SAT";
   ntype.declare = file_ns::cmp_node_huesatval_declare;
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;

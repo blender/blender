@@ -90,7 +90,10 @@ static void node_geo_exec(GeoNodeExecParams params)
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
-  geo_node_type_base(&ntype, GEO_NODE_CURVE_PRIMITIVE_STAR, "Star", NODE_CLASS_GEOMETRY);
+  geo_node_type_base(&ntype, GEO_NODE_CURVE_PRIMITIVE_STAR, NODE_CLASS_GEOMETRY);
+  ntype.ui_name = "Star";
+  ntype.ui_description =
+      "Generate a poly spline in a star pattern by connecting alternating points of two circles";
   ntype.enum_name_legacy = "CURVE_PRIMITIVE_STAR";
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;

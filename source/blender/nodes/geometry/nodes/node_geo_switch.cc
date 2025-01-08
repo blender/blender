@@ -246,7 +246,9 @@ static void register_node()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_SWITCH, "Switch", NODE_CLASS_CONVERTER);
+  geo_node_type_base(&ntype, GEO_NODE_SWITCH, NODE_CLASS_CONVERTER);
+  ntype.ui_name = "Switch";
+  ntype.ui_description = "Switch between two inputs";
   ntype.enum_name_legacy = "SWITCH";
   ntype.declare = node_declare;
   ntype.initfunc = node_init;

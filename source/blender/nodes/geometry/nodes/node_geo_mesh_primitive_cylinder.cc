@@ -143,7 +143,9 @@ static void node_rna(StructRNA *srna)
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
-  geo_node_type_base(&ntype, GEO_NODE_MESH_PRIMITIVE_CYLINDER, "Cylinder", NODE_CLASS_GEOMETRY);
+  geo_node_type_base(&ntype, GEO_NODE_MESH_PRIMITIVE_CYLINDER, NODE_CLASS_GEOMETRY);
+  ntype.ui_name = "Cylinder";
+  ntype.ui_description = "Generate a cylinder mesh";
   ntype.enum_name_legacy = "MESH_PRIMITIVE_CYLINDER";
   ntype.initfunc = node_init;
   blender::bke::node_type_storage(

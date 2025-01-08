@@ -192,7 +192,9 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_POINTS_TO_CURVES, "Points to Curves", NODE_CLASS_GEOMETRY);
+  geo_node_type_base(&ntype, GEO_NODE_POINTS_TO_CURVES, NODE_CLASS_GEOMETRY);
+  ntype.ui_name = "Points to Curves";
+  ntype.ui_description = "Split all points to curve by its group ID and reorder by weight";
   ntype.enum_name_legacy = "POINTS_TO_CURVES";
   ntype.geometry_node_execute = node_geo_exec;
   ntype.declare = node_declare;

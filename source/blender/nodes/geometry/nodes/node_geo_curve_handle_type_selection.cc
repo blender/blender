@@ -134,8 +134,9 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(
-      &ntype, GEO_NODE_CURVE_HANDLE_TYPE_SELECTION, "Handle Type Selection", NODE_CLASS_INPUT);
+  geo_node_type_base(&ntype, GEO_NODE_CURVE_HANDLE_TYPE_SELECTION, NODE_CLASS_INPUT);
+  ntype.ui_name = "Handle Type Selection";
+  ntype.ui_description = "Provide a selection based on the handle types of Bézier control points";
   ntype.enum_name_legacy = "CURVE_HANDLE_TYPE_SELECTION";
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;

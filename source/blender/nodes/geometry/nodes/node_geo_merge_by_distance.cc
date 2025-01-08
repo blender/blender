@@ -159,7 +159,9 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_MERGE_BY_DISTANCE, "Merge by Distance", NODE_CLASS_GEOMETRY);
+  geo_node_type_base(&ntype, GEO_NODE_MERGE_BY_DISTANCE, NODE_CLASS_GEOMETRY);
+  ntype.ui_name = "Merge by Distance";
+  ntype.ui_description = "Merge vertices or points within a given distance";
   ntype.enum_name_legacy = "MERGE_BY_DISTANCE";
   ntype.initfunc = node_init;
   blender::bke::node_type_storage(&ntype,

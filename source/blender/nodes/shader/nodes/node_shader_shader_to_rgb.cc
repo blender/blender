@@ -33,7 +33,12 @@ void register_node_type_sh_shadertorgb()
 
   static blender::bke::bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_SHADERTORGB, "Shader to RGB", NODE_CLASS_CONVERTER);
+  sh_node_type_base(&ntype, SH_NODE_SHADERTORGB, NODE_CLASS_CONVERTER);
+  ntype.ui_name = "Shader to RGB";
+  ntype.ui_description =
+      "Convert rendering effect (such as light and shadow) to color. Typically used for "
+      "non-photorealistic rendering, to apply additional effects on the output of BSDFs.\nNote: "
+      "only supported in EEVEE";
   ntype.enum_name_legacy = "SHADERTORGB";
   ntype.declare = file_ns::node_declare;
   ntype.add_ui_poll = object_eevee_shader_nodes_poll;

@@ -164,7 +164,9 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_SET_MATERIAL, "Set Material", NODE_CLASS_GEOMETRY);
+  geo_node_type_base(&ntype, GEO_NODE_SET_MATERIAL, NODE_CLASS_GEOMETRY);
+  ntype.ui_name = "Set Material";
+  ntype.ui_description = "Assign a material to geometry elements";
   ntype.enum_name_legacy = "SET_MATERIAL";
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;

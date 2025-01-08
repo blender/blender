@@ -292,7 +292,11 @@ void register_node_type_cmp_crop()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_CROP, "Crop", NODE_CLASS_DISTORT);
+  cmp_node_type_base(&ntype, CMP_NODE_CROP, NODE_CLASS_DISTORT);
+  ntype.ui_name = "Crop";
+  ntype.ui_description =
+      "Crops image to a smaller region, either making the cropped area transparent or resizing "
+      "the image";
   ntype.enum_name_legacy = "CROP";
   ntype.declare = file_ns::cmp_node_crop_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_crop;

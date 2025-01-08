@@ -327,7 +327,9 @@ void register_node_type_cmp_denoise()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_DENOISE, "Denoise", NODE_CLASS_OP_FILTER);
+  cmp_node_type_base(&ntype, CMP_NODE_DENOISE, NODE_CLASS_OP_FILTER);
+  ntype.ui_name = "Denoise";
+  ntype.ui_description = "Denoise renders from Cycles and other ray tracing renderers";
   ntype.enum_name_legacy = "DENOISE";
   ntype.declare = file_ns::cmp_node_denoise_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_denoise;

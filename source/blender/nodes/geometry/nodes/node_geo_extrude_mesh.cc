@@ -1541,7 +1541,11 @@ static void node_rna(StructRNA *srna)
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
-  geo_node_type_base(&ntype, GEO_NODE_EXTRUDE_MESH, "Extrude Mesh", NODE_CLASS_GEOMETRY);
+  geo_node_type_base(&ntype, GEO_NODE_EXTRUDE_MESH, NODE_CLASS_GEOMETRY);
+  ntype.ui_name = "Extrude Mesh";
+  ntype.ui_description =
+      "Generate new vertices, edges, or faces from selected elements and move them based on an "
+      "offset while keeping them connected by their boundary";
   ntype.enum_name_legacy = "EXTRUDE_MESH";
   ntype.declare = node_declare;
   ntype.initfunc = node_init;

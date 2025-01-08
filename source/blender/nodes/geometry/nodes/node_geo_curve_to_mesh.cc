@@ -134,7 +134,10 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_CURVE_TO_MESH, "Curve to Mesh", NODE_CLASS_GEOMETRY);
+  geo_node_type_base(&ntype, GEO_NODE_CURVE_TO_MESH, NODE_CLASS_GEOMETRY);
+  ntype.ui_name = "Curve to Mesh";
+  ntype.ui_description =
+      "Convert curves into a mesh, optionally with a custom profile shape defined by curves";
   ntype.enum_name_legacy = "CURVE_TO_MESH";
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;

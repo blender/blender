@@ -105,7 +105,9 @@ void register_node_type_sh_tangent()
 
   static blender::bke::bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_TANGENT, "Tangent", NODE_CLASS_INPUT);
+  sh_node_type_base(&ntype, SH_NODE_TANGENT, NODE_CLASS_INPUT);
+  ntype.ui_name = "Tangent";
+  ntype.ui_description = "Generate a tangent direction for the Anisotropic BSDF";
   ntype.enum_name_legacy = "TANGENT";
   ntype.declare = file_ns::node_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_tangent;

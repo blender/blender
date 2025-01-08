@@ -95,7 +95,9 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_GET_NAMED_GRID, "Get Named Grid", NODE_CLASS_GEOMETRY);
+  geo_node_type_base(&ntype, GEO_NODE_GET_NAMED_GRID, NODE_CLASS_GEOMETRY);
+  ntype.ui_name = "Get Named Grid";
+  ntype.ui_description = "Get volume grid from a volume geometry with the specified name";
   ntype.enum_name_legacy = "GET_NAMED_GRID";
   ntype.declare = node_declare;
   ntype.gather_link_search_ops = search_link_ops_for_volume_grid_node;

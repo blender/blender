@@ -303,7 +303,9 @@ void register_node_type_cmp_boxmask()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_MASK_BOX, "Box Mask", NODE_CLASS_MATTE);
+  cmp_node_type_base(&ntype, CMP_NODE_MASK_BOX, NODE_CLASS_MATTE);
+  ntype.ui_name = "Box Mask";
+  ntype.ui_description = "Create rectangular mask suitable for use as a simple matte";
   ntype.enum_name_legacy = "BOXMASK";
   ntype.declare = file_ns::cmp_node_boxmask_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_boxmask;

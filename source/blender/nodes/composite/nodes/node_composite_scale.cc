@@ -317,7 +317,9 @@ void register_node_type_cmp_scale()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_SCALE, "Scale", NODE_CLASS_DISTORT);
+  cmp_node_type_base(&ntype, CMP_NODE_SCALE, NODE_CLASS_DISTORT);
+  ntype.ui_name = "Scale";
+  ntype.ui_description = "Change the size of the image";
   ntype.enum_name_legacy = "SCALE";
   ntype.declare = file_ns::cmp_node_scale_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_scale;

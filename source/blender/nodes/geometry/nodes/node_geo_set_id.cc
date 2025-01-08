@@ -75,7 +75,10 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_SET_ID, "Set ID", NODE_CLASS_GEOMETRY);
+  geo_node_type_base(&ntype, GEO_NODE_SET_ID, NODE_CLASS_GEOMETRY);
+  ntype.ui_name = "Set ID";
+  ntype.ui_description =
+      "Set the id attribute on the input geometry, mainly used internally for randomizing";
   ntype.enum_name_legacy = "SET_ID";
   ntype.geometry_node_execute = node_geo_exec;
   ntype.declare = node_declare;

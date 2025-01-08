@@ -107,7 +107,8 @@ void register_node_type_tex_bricks()
 {
   static blender::bke::bNodeType ntype;
 
-  tex_node_type_base(&ntype, TEX_NODE_BRICKS, "Bricks", NODE_CLASS_PATTERN);
+  tex_node_type_base(&ntype, TEX_NODE_BRICKS, NODE_CLASS_PATTERN);
+  ntype.ui_name = "Bricks";
   ntype.enum_name_legacy = "BRICKS";
   blender::bke::node_type_socket_templates(&ntype, inputs, outputs);
   blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::Middle);

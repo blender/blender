@@ -21,7 +21,11 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_INPUT_NORMAL, "Normal", NODE_CLASS_INPUT);
+  geo_node_type_base(&ntype, GEO_NODE_INPUT_NORMAL, NODE_CLASS_INPUT);
+  ntype.ui_name = "Normal";
+  ntype.ui_description =
+      "Retrieve a unit length vector indicating the direction pointing away from the geometry at "
+      "each element";
   ntype.enum_name_legacy = "INPUT_NORMAL";
   ntype.geometry_node_execute = node_geo_exec;
   ntype.declare = node_declare;

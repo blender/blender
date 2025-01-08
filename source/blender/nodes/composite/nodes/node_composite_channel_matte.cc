@@ -297,7 +297,9 @@ void register_node_type_cmp_channel_matte()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_CHANNEL_MATTE, "Channel Key", NODE_CLASS_MATTE);
+  cmp_node_type_base(&ntype, CMP_NODE_CHANNEL_MATTE, NODE_CLASS_MATTE);
+  ntype.ui_name = "Channel Key";
+  ntype.ui_description = "Create matte based on differences in color channels";
   ntype.enum_name_legacy = "CHANNEL_MATTE";
   ntype.declare = file_ns::cmp_node_channel_matte_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_channel_matte;

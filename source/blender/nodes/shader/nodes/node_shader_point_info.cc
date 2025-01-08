@@ -40,7 +40,9 @@ void register_node_type_sh_point_info()
 
   static blender::bke::bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_POINT_INFO, "Point Info", NODE_CLASS_INPUT);
+  sh_node_type_base(&ntype, SH_NODE_POINT_INFO, NODE_CLASS_INPUT);
+  ntype.ui_name = "Point Info";
+  ntype.ui_description = "Retrieve information about points in a point cloud";
   ntype.enum_name_legacy = "POINT_INFO";
   ntype.declare = file_ns::node_declare;
   ntype.gpu_fn = file_ns::node_shader_gpu_point_info;

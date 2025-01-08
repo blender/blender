@@ -73,7 +73,9 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_IMPORT_STL, "Import STL", NODE_CLASS_INPUT);
+  geo_node_type_base(&ntype, GEO_NODE_IMPORT_STL, NODE_CLASS_INPUT);
+  ntype.ui_name = "Import STL";
+  ntype.ui_description = "Import a mesh from an STL file";
   ntype.enum_name_legacy = "IMPORT_STL";
   ntype.geometry_node_execute = node_geo_exec;
   ntype.declare = node_declare;

@@ -46,7 +46,9 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_SPLIT_EDGES, "Split Edges", NODE_CLASS_GEOMETRY);
+  geo_node_type_base(&ntype, GEO_NODE_SPLIT_EDGES, NODE_CLASS_GEOMETRY);
+  ntype.ui_name = "Split Edges";
+  ntype.ui_description = "Duplicate mesh edges and break connections with the surrounding faces";
   ntype.enum_name_legacy = "SPLIT_EDGES";
   ntype.geometry_node_execute = node_geo_exec;
   ntype.declare = node_declare;

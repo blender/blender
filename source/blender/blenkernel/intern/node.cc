@@ -1767,8 +1767,10 @@ static void node_free_type(void *nodetype_v)
 void node_register_type(bNodeType *nt)
 {
   /* debug only: basic verification of registered types */
-  BLI_assert(nt->idname[0] != '\0');
+  BLI_assert(!nt->idname.empty());
   BLI_assert(nt->poll != nullptr);
+
+  RNA_def_struct_ui_text(nt->rna_ext.srna, nt->ui_name.c_str(), nt->ui_description.c_str());
 
   if (!nt->enum_name_legacy) {
     /* For new nodes, use the idname as a unique identifier. */
@@ -4333,7 +4335,7 @@ static bool node_poll_instance_default(const bNode *node,
   return node->typeinfo->poll(node->typeinfo, ntree, r_disabled_hint);
 }
 
-void node_type_base(bNodeType *ntype, const int type, const StringRefNull name, const short nclass)
+void node_type_base(bNodeType *ntype, const int type, const short nclass)
 {
   /* Use static type info header to map static int type to identifier string and RNA struct type.
    * Associate the RNA struct type with the bNodeType.
@@ -4342,15 +4344,13 @@ void node_type_base(bNodeType *ntype, const int type, const StringRefNull name, 
    * created in makesrna, which can not be associated to a bNodeType immediately,
    * since bNodeTypes are registered afterward ...
    */
-#define DefNode(Category, ID, DefFunc, StructName, UIName, UIDesc) \
+#define DefNode(Category, ID, DefFunc, StructName) \
   case ID: { \
     ntype->idname = (#Category #StructName); \
     StructRNA *srna = RNA_struct_find(#Category #StructName); \
     BLI_assert(srna != nullptr); \
     ntype->rna_ext.srna = srna; \
     RNA_struct_blender_type_set(srna, ntype); \
-    RNA_def_struct_ui_text(srna, UIName, UIDesc); \
-    ntype->ui_description = UIDesc; \
     break; \
   }
 
@@ -4362,7 +4362,6 @@ void node_type_base(bNodeType *ntype, const int type, const StringRefNull name, 
   BLI_assert(ntype->idname[0] != '\0');
 
   ntype->type = type;
-  ntype->ui_name = name;
   ntype->nclass = nclass;
 
   node_type_base_defaults(ntype);

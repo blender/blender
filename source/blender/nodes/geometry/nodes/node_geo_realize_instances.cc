@@ -88,7 +88,9 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_REALIZE_INSTANCES, "Realize Instances", NODE_CLASS_GEOMETRY);
+  geo_node_type_base(&ntype, GEO_NODE_REALIZE_INSTANCES, NODE_CLASS_GEOMETRY);
+  ntype.ui_name = "Realize Instances";
+  ntype.ui_description = "Convert instances into real geometry data";
   ntype.enum_name_legacy = "REALIZE_INSTANCES";
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;

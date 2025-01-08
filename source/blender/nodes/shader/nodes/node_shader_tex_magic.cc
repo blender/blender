@@ -183,7 +183,9 @@ void register_node_type_sh_tex_magic()
 
   static blender::bke::bNodeType ntype;
 
-  sh_fn_node_type_base(&ntype, SH_NODE_TEX_MAGIC, "Magic Texture", NODE_CLASS_TEXTURE);
+  sh_fn_node_type_base(&ntype, SH_NODE_TEX_MAGIC, NODE_CLASS_TEXTURE);
+  ntype.ui_name = "Magic Texture";
+  ntype.ui_description = "Generate a psychedelic color texture";
   ntype.enum_name_legacy = "TEX_MAGIC";
   ntype.declare = file_ns::sh_node_tex_magic_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_tex_magic;

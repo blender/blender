@@ -131,7 +131,9 @@ void register_node_type_cmp_flip()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_FLIP, "Flip", NODE_CLASS_DISTORT);
+  cmp_node_type_base(&ntype, CMP_NODE_FLIP, NODE_CLASS_DISTORT);
+  ntype.ui_name = "Flip";
+  ntype.ui_description = "Flip an image along a defined axis";
   ntype.enum_name_legacy = "FLIP";
   ntype.declare = file_ns::cmp_node_flip_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_flip;

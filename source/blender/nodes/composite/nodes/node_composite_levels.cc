@@ -198,7 +198,9 @@ void register_node_type_cmp_view_levels()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_VIEW_LEVELS, "Levels", NODE_CLASS_OUTPUT);
+  cmp_node_type_base(&ntype, CMP_NODE_VIEW_LEVELS, NODE_CLASS_OUTPUT);
+  ntype.ui_name = "Levels";
+  ntype.ui_description = "Compute average and standard deviation of pixel values";
   ntype.enum_name_legacy = "LEVELS";
   ntype.declare = file_ns::cmp_node_levels_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_view_levels;

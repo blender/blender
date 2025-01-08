@@ -63,7 +63,8 @@ void register_node_type_tex_decompose()
 {
   static blender::bke::bNodeType ntype;
 
-  tex_node_type_base(&ntype, TEX_NODE_DECOMPOSE_LEGACY, "Separate RGBA", NODE_CLASS_OP_COLOR);
+  tex_node_type_base(&ntype, TEX_NODE_DECOMPOSE_LEGACY, NODE_CLASS_OP_COLOR);
+  ntype.ui_name = "Separate RGBA";
   ntype.enum_name_legacy = "DECOMPOSE";
   blender::bke::node_type_socket_templates(&ntype, inputs, outputs);
   ntype.exec_fn = exec;

@@ -60,7 +60,7 @@ struct TexDelegate {
 bool tex_node_poll_default(const blender::bke::bNodeType *ntype,
                            const bNodeTree *ntree,
                            const char **r_disabled_hint);
-void tex_node_type_base(blender::bke::bNodeType *ntype, int type, const char *name, short nclass);
+void tex_node_type_base(blender::bke::bNodeType *ntype, int type, short nclass);
 
 void tex_input_rgba(float *out, bNodeStack *in, TexParams *params, short thread);
 void tex_input_vec(float *out, bNodeStack *in, TexParams *params, short thread);

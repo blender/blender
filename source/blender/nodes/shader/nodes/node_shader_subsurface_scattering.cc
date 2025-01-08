@@ -115,8 +115,11 @@ void register_node_type_sh_subsurface_scattering()
 
   static blender::bke::bNodeType ntype;
 
-  sh_node_type_base(
-      &ntype, SH_NODE_SUBSURFACE_SCATTERING, "Subsurface Scattering", NODE_CLASS_SHADER);
+  sh_node_type_base(&ntype, SH_NODE_SUBSURFACE_SCATTERING, NODE_CLASS_SHADER);
+  ntype.ui_name = "Subsurface Scattering";
+  ntype.ui_description =
+      "Subsurface multiple scattering shader to simulate light entering the surface and bouncing "
+      "internally.\nTypically used for materials such as skin, wax, marble or milk";
   ntype.enum_name_legacy = "SUBSURFACE_SCATTERING";
   ntype.declare = file_ns::node_declare;
   ntype.add_ui_poll = object_shader_nodes_poll;

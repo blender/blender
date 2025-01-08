@@ -244,7 +244,9 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_VOLUME_TO_MESH, "Volume to Mesh", NODE_CLASS_GEOMETRY);
+  geo_node_type_base(&ntype, GEO_NODE_VOLUME_TO_MESH, NODE_CLASS_GEOMETRY);
+  ntype.ui_name = "Volume to Mesh";
+  ntype.ui_description = "Generate a mesh on the \"surface\" of a volume";
   ntype.enum_name_legacy = "VOLUME_TO_MESH";
   ntype.declare = node_declare;
   blender::bke::node_type_storage(

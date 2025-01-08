@@ -45,7 +45,12 @@ void register_node_type_sh_fresnel()
 
   static blender::bke::bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_FRESNEL, "Fresnel", NODE_CLASS_INPUT);
+  sh_node_type_base(&ntype, SH_NODE_FRESNEL, NODE_CLASS_INPUT);
+  ntype.ui_name = "Fresnel";
+  ntype.ui_description =
+      "Produce a blending factor depending on the angle between the surface normal and the view "
+      "direction using Fresnel equations.\nTypically used for mixing reflections at grazing "
+      "angles";
   ntype.enum_name_legacy = "FRESNEL";
   ntype.declare = file_ns::node_declare;
   ntype.gpu_fn = file_ns::node_shader_gpu_fresnel;

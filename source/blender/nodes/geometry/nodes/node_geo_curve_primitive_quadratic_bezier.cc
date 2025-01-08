@@ -64,8 +64,10 @@ static void node_geo_exec(GeoNodeExecParams params)
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
-  geo_node_type_base(
-      &ntype, GEO_NODE_CURVE_PRIMITIVE_QUADRATIC_BEZIER, "Quadratic Bézier", NODE_CLASS_GEOMETRY);
+  geo_node_type_base(&ntype, GEO_NODE_CURVE_PRIMITIVE_QUADRATIC_BEZIER, NODE_CLASS_GEOMETRY);
+  ntype.ui_name = "Quadratic Bézier";
+  ntype.ui_description =
+      "Generate a poly spline in a parabola shape with control points positions";
   ntype.enum_name_legacy = "CURVE_PRIMITIVE_QUADRATIC_BEZIER";
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;

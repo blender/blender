@@ -110,7 +110,11 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_SET_SHADE_SMOOTH, "Set Shade Smooth", NODE_CLASS_GEOMETRY);
+  geo_node_type_base(&ntype, GEO_NODE_SET_SHADE_SMOOTH, NODE_CLASS_GEOMETRY);
+  ntype.ui_name = "Set Shade Smooth";
+  ntype.ui_description =
+      "Control the smoothness of mesh normals around each face by changing the \"shade smooth\" "
+      "attribute";
   ntype.enum_name_legacy = "SET_SHADE_SMOOTH";
   ntype.geometry_node_execute = node_geo_exec;
   ntype.declare = node_declare;

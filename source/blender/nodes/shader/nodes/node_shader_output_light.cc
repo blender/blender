@@ -36,7 +36,9 @@ void register_node_type_sh_output_light()
 
   static blender::bke::bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_OUTPUT_LIGHT, "Light Output", NODE_CLASS_OUTPUT);
+  sh_node_type_base(&ntype, SH_NODE_OUTPUT_LIGHT, NODE_CLASS_OUTPUT);
+  ntype.ui_name = "Light Output";
+  ntype.ui_description = "Output light information to a light object";
   ntype.enum_name_legacy = "OUTPUT_LIGHT";
   ntype.declare = file_ns::node_declare;
   ntype.add_ui_poll = object_cycles_shader_nodes_poll;

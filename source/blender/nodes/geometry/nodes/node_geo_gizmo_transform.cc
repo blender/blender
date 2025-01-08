@@ -67,7 +67,9 @@ static void node_layout_ex(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
 static void node_register()
 {
   static bke::bNodeType ntype;
-  geo_node_type_base(&ntype, GEO_NODE_GIZMO_TRANSFORM, "Transform Gizmo", NODE_CLASS_INTERFACE);
+  geo_node_type_base(&ntype, GEO_NODE_GIZMO_TRANSFORM, NODE_CLASS_INTERFACE);
+  ntype.ui_name = "Transform Gizmo";
+  ntype.ui_description = "Show a transform gizmo in the viewport";
   ntype.enum_name_legacy = "GIZMO_TRANSFORM";
   bke::node_type_storage(&ntype,
                          "NodeGeometryTransformGizmo",

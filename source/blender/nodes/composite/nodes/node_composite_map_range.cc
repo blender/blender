@@ -175,7 +175,9 @@ void register_node_type_cmp_map_range()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_MAP_RANGE, "Map Range", NODE_CLASS_OP_VECTOR);
+  cmp_node_type_base(&ntype, CMP_NODE_MAP_RANGE, NODE_CLASS_OP_VECTOR);
+  ntype.ui_name = "Map Range";
+  ntype.ui_description = "Map an input value range into a destination range";
   ntype.enum_name_legacy = "MAP_RANGE";
   ntype.declare = file_ns::cmp_node_map_range_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_map_range;

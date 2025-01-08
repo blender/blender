@@ -76,7 +76,8 @@ static void node_rna(StructRNA *srna)
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
-  fn_node_type_base(&ntype, FN_NODE_ROTATE_ROTATION, "Rotate Rotation", NODE_CLASS_CONVERTER);
+  fn_node_type_base(&ntype, FN_NODE_ROTATE_ROTATION, NODE_CLASS_CONVERTER);
+  ntype.ui_name = "Rotate Rotation";
   ntype.enum_name_legacy = "ROTATE_ROTATION";
   ntype.declare = node_declare;
   ntype.draw_buttons = node_layout;

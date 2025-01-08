@@ -435,7 +435,11 @@ void register_node_type_cmp_planetrackdeform()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_PLANETRACKDEFORM, "Plane Track Deform", NODE_CLASS_DISTORT);
+  cmp_node_type_base(&ntype, CMP_NODE_PLANETRACKDEFORM, NODE_CLASS_DISTORT);
+  ntype.ui_name = "Plane Track Deform";
+  ntype.ui_description =
+      "Replace flat planes in footage by another image, detected by plane tracks from motion "
+      "tracking";
   ntype.enum_name_legacy = "PLANETRACKDEFORM";
   ntype.declare = file_ns::cmp_node_planetrackdeform_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_planetrackdeform;

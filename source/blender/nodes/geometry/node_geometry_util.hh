@@ -26,7 +26,7 @@ class GatherLinkSearchOpParams;
 }  // namespace nodes
 }  // namespace blender
 
-void geo_node_type_base(blender::bke::bNodeType *ntype, int type, const char *name, short nclass);
+void geo_node_type_base(blender::bke::bNodeType *ntype, int type, short nclass);
 bool geo_node_poll_default(const blender::bke::bNodeType *ntype,
                            const bNodeTree *ntree,
                            const char **r_disabled_hint);

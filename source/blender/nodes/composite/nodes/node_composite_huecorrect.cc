@@ -155,7 +155,9 @@ void register_node_type_cmp_huecorrect()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_HUECORRECT, "Hue Correct", NODE_CLASS_OP_COLOR);
+  cmp_node_type_base(&ntype, CMP_NODE_HUECORRECT, NODE_CLASS_OP_COLOR);
+  ntype.ui_name = "Hue Correct";
+  ntype.ui_description = "Adjust hue, saturation, and value with a curve";
   ntype.enum_name_legacy = "HUECORRECT";
   ntype.declare = file_ns::cmp_node_huecorrect_declare;
   blender::bke::node_type_size(&ntype, 320, 140, 500);

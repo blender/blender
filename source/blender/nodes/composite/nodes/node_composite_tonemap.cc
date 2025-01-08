@@ -428,7 +428,11 @@ void register_node_type_cmp_tonemap()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_TONEMAP, "Tonemap", NODE_CLASS_OP_COLOR);
+  cmp_node_type_base(&ntype, CMP_NODE_TONEMAP, NODE_CLASS_OP_COLOR);
+  ntype.ui_name = "Tonemap";
+  ntype.ui_description =
+      "Map one set of colors to another in order to approximate the appearance of high dynamic "
+      "range";
   ntype.enum_name_legacy = "TONEMAP";
   ntype.declare = file_ns::cmp_node_tonemap_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_tonemap;

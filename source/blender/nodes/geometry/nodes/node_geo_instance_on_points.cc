@@ -288,8 +288,11 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(
-      &ntype, GEO_NODE_INSTANCE_ON_POINTS, "Instance on Points", NODE_CLASS_GEOMETRY);
+  geo_node_type_base(&ntype, GEO_NODE_INSTANCE_ON_POINTS, NODE_CLASS_GEOMETRY);
+  ntype.ui_name = "Instance on Points";
+  ntype.ui_description =
+      "Generate a reference to geometry at each of the input points, without duplicating its "
+      "underlying data";
   ntype.enum_name_legacy = "INSTANCE_ON_POINTS";
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;

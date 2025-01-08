@@ -39,7 +39,9 @@ static void node_geo_exec(GeoNodeExecParams params)
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
-  geo_node_type_base(&ntype, GEO_NODE_TOOL_3D_CURSOR, "3D Cursor", NODE_CLASS_INPUT);
+  geo_node_type_base(&ntype, GEO_NODE_TOOL_3D_CURSOR, NODE_CLASS_INPUT);
+  ntype.ui_name = "3D Cursor";
+  ntype.ui_description = "The scene's 3D cursor location and rotation";
   ntype.enum_name_legacy = "TOOL_3D_CURSOR";
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;

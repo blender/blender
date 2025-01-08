@@ -174,7 +174,9 @@ static void node_geo_exec(GeoNodeExecParams params)
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
-  geo_node_type_base(&ntype, GEO_NODE_TOOL_SELECTION, "Selection", NODE_CLASS_INPUT);
+  geo_node_type_base(&ntype, GEO_NODE_TOOL_SELECTION, NODE_CLASS_INPUT);
+  ntype.ui_name = "Selection";
+  ntype.ui_description = "User selection of the edited geometry, for tool execution";
   ntype.enum_name_legacy = "TOOL_SELECTION";
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;

@@ -199,10 +199,8 @@ static bool node_insert_link(bNodeTree *ntree, bNode *node, bNodeLink *link)
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
-  geo_node_type_base(&ntype,
-                     GEO_NODE_FOREACH_GEOMETRY_ELEMENT_INPUT,
-                     "For Each Geometry Element Input",
-                     NODE_CLASS_INTERFACE);
+  geo_node_type_base(&ntype, GEO_NODE_FOREACH_GEOMETRY_ELEMENT_INPUT, NODE_CLASS_INTERFACE);
+  ntype.ui_name = "For Each Geometry Element Input";
   ntype.enum_name_legacy = "FOREACH_GEOMETRY_ELEMENT_INPUT";
   ntype.initfunc = node_init;
   ntype.declare = node_declare;
@@ -372,10 +370,8 @@ static void node_extra_info(NodeExtraInfoParams &params)
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
-  geo_node_type_base(&ntype,
-                     GEO_NODE_FOREACH_GEOMETRY_ELEMENT_OUTPUT,
-                     "For Each Geometry Element Output",
-                     NODE_CLASS_INTERFACE);
+  geo_node_type_base(&ntype, GEO_NODE_FOREACH_GEOMETRY_ELEMENT_OUTPUT, NODE_CLASS_INTERFACE);
+  ntype.ui_name = "For Each Geometry Element Output";
   ntype.enum_name_legacy = "FOREACH_GEOMETRY_ELEMENT_OUTPUT";
   ntype.initfunc = node_init;
   ntype.declare = node_declare;

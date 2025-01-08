@@ -362,7 +362,9 @@ void register_node_type_sh_math()
 
   static blender::bke::bNodeType ntype;
 
-  sh_fn_node_type_base(&ntype, SH_NODE_MATH, "Math", NODE_CLASS_CONVERTER);
+  sh_fn_node_type_base(&ntype, SH_NODE_MATH, NODE_CLASS_CONVERTER);
+  ntype.ui_name = "Math";
+  ntype.ui_description = "Perform math operations";
   ntype.enum_name_legacy = "MATH";
   ntype.declare = file_ns::sh_node_math_declare;
   ntype.labelfunc = node_math_label;

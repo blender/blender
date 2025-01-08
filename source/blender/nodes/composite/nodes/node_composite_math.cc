@@ -125,7 +125,9 @@ void register_node_type_cmp_math()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_MATH, "Math", NODE_CLASS_CONVERTER);
+  cmp_node_type_base(&ntype, CMP_NODE_MATH, NODE_CLASS_CONVERTER);
+  ntype.ui_name = "Math";
+  ntype.ui_description = "Perform math operations";
   ntype.enum_name_legacy = "MATH";
   ntype.declare = file_ns::cmp_node_math_declare;
   ntype.labelfunc = node_math_label;

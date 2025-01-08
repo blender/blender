@@ -248,7 +248,9 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_SAMPLE_INDEX, "Sample Index", NODE_CLASS_GEOMETRY);
+  geo_node_type_base(&ntype, GEO_NODE_SAMPLE_INDEX, NODE_CLASS_GEOMETRY);
+  ntype.ui_name = "Sample Index";
+  ntype.ui_description = "Retrieve values from specific geometry elements";
   ntype.enum_name_legacy = "SAMPLE_INDEX";
   ntype.initfunc = node_init;
   ntype.declare = node_declare;

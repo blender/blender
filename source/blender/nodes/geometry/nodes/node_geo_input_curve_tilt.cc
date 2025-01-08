@@ -21,7 +21,11 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_INPUT_CURVE_TILT, "Curve Tilt", NODE_CLASS_INPUT);
+  geo_node_type_base(&ntype, GEO_NODE_INPUT_CURVE_TILT, NODE_CLASS_INPUT);
+  ntype.ui_name = "Curve Tilt";
+  ntype.ui_description =
+      "Retrieve the angle at each control point used to twist the curve's normal around its "
+      "tangent";
   ntype.enum_name_legacy = "INPUT_CURVE_TILT";
   ntype.geometry_node_execute = node_geo_exec;
   ntype.declare = node_declare;

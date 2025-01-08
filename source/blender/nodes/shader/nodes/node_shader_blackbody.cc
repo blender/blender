@@ -70,7 +70,9 @@ void register_node_type_sh_blackbody()
 
   static blender::bke::bNodeType ntype;
 
-  sh_fn_node_type_base(&ntype, SH_NODE_BLACKBODY, "Blackbody", NODE_CLASS_CONVERTER);
+  sh_fn_node_type_base(&ntype, SH_NODE_BLACKBODY, NODE_CLASS_CONVERTER);
+  ntype.ui_name = "Blackbody";
+  ntype.ui_description = "Convert a blackbody temperature to an RGB value";
   ntype.enum_name_legacy = "BLACKBODY";
   ntype.declare = file_ns::node_declare;
   blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::Middle);

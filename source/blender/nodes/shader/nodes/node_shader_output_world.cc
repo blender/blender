@@ -39,7 +39,9 @@ void register_node_type_sh_output_world()
 
   static blender::bke::bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_OUTPUT_WORLD, "World Output", NODE_CLASS_OUTPUT);
+  sh_node_type_base(&ntype, SH_NODE_OUTPUT_WORLD, NODE_CLASS_OUTPUT);
+  ntype.ui_name = "World Output";
+  ntype.ui_description = "Output light color information to the scene's World";
   ntype.enum_name_legacy = "OUTPUT_WORLD";
   ntype.declare = file_ns::node_declare;
   ntype.add_ui_poll = world_shader_nodes_poll;

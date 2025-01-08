@@ -26,7 +26,11 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_IS_VIEWPORT, "Is Viewport", NODE_CLASS_INPUT);
+  geo_node_type_base(&ntype, GEO_NODE_IS_VIEWPORT, NODE_CLASS_INPUT);
+  ntype.ui_name = "Is Viewport";
+  ntype.ui_description =
+      "Retrieve whether the nodes are being evaluated for the viewport rather than the final "
+      "render";
   ntype.enum_name_legacy = "IS_VIEWPORT";
   ntype.geometry_node_execute = node_geo_exec;
   ntype.declare = node_declare;
