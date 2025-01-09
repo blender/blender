@@ -10,6 +10,7 @@ struct NodesModifierData;
 struct NodesModifierDataBlock;
 struct Object;
 struct NodesModifierPackedBake;
+struct NodesModifierBake;
 
 namespace blender::bke::bake {
 struct ModifierCache;
@@ -45,5 +46,6 @@ struct NodesModifierRuntime {
 
 void nodes_modifier_data_block_destruct(NodesModifierDataBlock *data_block, bool do_id_user);
 void nodes_modifier_packed_bake_free(NodesModifierPackedBake *packed_bake);
+void nodes_modifier_bake_destruct(NodesModifierBake *bake, bool do_id_user);
 
 }  // namespace blender
