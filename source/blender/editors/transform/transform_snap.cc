@@ -853,7 +853,7 @@ void transform_snap_grid_init(const TransInfo *t, float r_snap[3], float *r_snap
     *r_snap_precision = 0.5f;
   }
   else if (t->spacetype == SPACE_NODE) {
-    r_snap[0] = r_snap[1] = ED_node_grid_size();
+    r_snap[0] = r_snap[1] = blender::ed::space_node::grid_size_get();
   }
 }
 

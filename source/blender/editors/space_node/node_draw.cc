@@ -104,6 +104,8 @@ using blender::bke::bNodeTreeZones;
 using blender::ed::space_node::NestedTreePreviews;
 using blender::nodes::NodeExtraInfoRow;
 
+namespace blender::ed::space_node {
+
 /**
  * This is passed to many functions which draw the node editor.
  */
@@ -126,7 +128,7 @@ struct TreeDrawContext {
    * Geometry nodes logs various data during execution. The logged data that corresponds to the
    * currently drawn node tree can be retrieved from the log below.
    */
-  blender::Map<const bNodeTreeZone *, geo_log::GeoTreeLog *> geo_log_by_zone;
+  Map<const bNodeTreeZone *, geo_log::GeoTreeLog *> geo_log_by_zone;
 
   NestedTreePreviews *nested_group_infos = nullptr;
   /**
@@ -134,24 +136,21 @@ struct TreeDrawContext {
    */
   bool used_by_compositor = false;
 
-  blender::Map<bNodeInstanceKey, blender::timeit::Nanoseconds>
-      *compositor_per_node_execution_time = nullptr;
+  Map<bNodeInstanceKey, timeit::Nanoseconds> *compositor_per_node_execution_time = nullptr;
 
   /**
    * Label for reroute nodes that is derived from upstream reroute nodes.
    */
-  blender::Map<const bNode *, blender::StringRef> reroute_auto_labels;
+  Map<const bNode *, StringRef> reroute_auto_labels;
 };
 
-float ED_node_grid_size()
+float grid_size_get()
 {
   return NODE_GRID_STEP_SIZE;
 }
 
-void ED_node_tree_update(const bContext *C)
+void tree_update(const bContext *C)
 {
-  using namespace blender::ed::space_node;
-
   SpaceNode *snode = CTX_wm_space_node(C);
   if (snode) {
     snode_set_context(*C);
@@ -169,13 +168,13 @@ static bNodeTree *node_tree_from_ID(ID *id)
     if (GS(id->name) == ID_NT) {
       return (bNodeTree *)id;
     }
-    return blender::bke::node_tree_from_id(id);
+    return bke::node_tree_from_id(id);
   }
 
   return nullptr;
 }
 
-void ED_node_tag_update_id(ID *id)
+void tag_update_id(ID *id)
 {
   bNodeTree *ntree = node_tree_from_ID(id);
   if (id == nullptr || ntree == nullptr) {
@@ -214,8 +213,6 @@ void ED_node_tag_update_id(ID *id)
     DEG_id_tag_update(id, 0);
   }
 }
-
-namespace blender::ed::space_node {
 
 static std::string node_socket_get_tooltip(const SpaceNode *snode,
                                            const bNodeTree &ntree,
@@ -1833,8 +1830,6 @@ static std::optional<std::string> create_description_inspection_string(const bNo
 static std::optional<std::string> create_log_inspection_string(geo_log::GeoTreeLog *geo_tree_log,
                                                                const bNodeSocket &socket)
 {
-  using namespace blender::nodes::geo_eval_log;
-
   if (geo_tree_log == nullptr) {
     return std::nullopt;
   }
@@ -1843,7 +1838,7 @@ static std::optional<std::string> create_log_inspection_string(geo_log::GeoTreeL
   }
 
   geo_tree_log->ensure_socket_values();
-  ValueLog *value_log = geo_tree_log->find_socket_value_log(socket);
+  geo_log::ValueLog *value_log = geo_tree_log->find_socket_value_log(socket);
   fmt::memory_buffer buf;
   if (const geo_log::GenericValueLog *generic_value_log =
           dynamic_cast<const geo_log::GenericValueLog *>(value_log))

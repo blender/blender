@@ -268,7 +268,7 @@ static void texture_changed(Main *bmain, Tex *tex)
     if (scene->use_nodes && scene->nodetree) {
       LISTBASE_FOREACH (bNode *, node, &scene->nodetree->nodes) {
         if (node->id == &tex->id) {
-          ED_node_tag_update_id(&scene->id);
+          blender::ed::space_node::tag_update_id(&scene->id);
         }
       }
     }

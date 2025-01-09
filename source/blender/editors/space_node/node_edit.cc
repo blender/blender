@@ -963,7 +963,7 @@ static void node_resize_exit(bContext *C, wmOperator *op, bool cancel)
 /* Compute the nearest 1D coordinate corresponding to the nearest grid in node. */
 static float nearest_node_grid_coord(float co)
 {
-  float grid_size = ED_node_grid_size();
+  float grid_size = grid_size_get();
   float rest = fmod(co, grid_size);
   float offset = rest - grid_size / 2 >= 0 ? grid_size : 0;
 
