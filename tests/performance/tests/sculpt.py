@@ -90,6 +90,7 @@ def generate_stroke(context):
 
     The generated stroke coves the full plane diagonal.
     """
+    import bpy
     from mathutils import Vector
 
     template = {
@@ -104,6 +105,10 @@ def generate_stroke(context):
         "x_tilt": 0,
         "y_tilt": 0
     }
+
+    version = bpy.app.version
+    if version[0] <= 4 and version[1] <= 3:
+        template["pen_flip"] = False
 
     num_steps = 100
     start = Vector((-1, -1, 0))
