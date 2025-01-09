@@ -37,6 +37,7 @@
 #include "BKE_mesh_mapping.hh"
 #include "BKE_mesh_types.hh"
 #include "BKE_node.hh"
+#include "BKE_node_legacy_types.hh"
 
 #include "DEG_depsgraph.hh"
 #include "DEG_depsgraph_query.hh"

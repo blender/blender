@@ -15,6 +15,7 @@
 
 #include "BKE_context.hh"
 #include "BKE_image.hh"
+#include "BKE_node_legacy_types.hh"
 
 #include "ED_gizmo_library.hh"
 #include "ED_screen.hh"

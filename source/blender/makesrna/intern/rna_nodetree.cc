@@ -42,6 +42,7 @@
 #include "BKE_geometry_set.hh"
 #include "BKE_image.hh"
 #include "BKE_node.hh"
+#include "BKE_node_legacy_types.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.hh"
 #include "BKE_scene.hh"
@@ -632,6 +633,7 @@ static const EnumPropertyItem node_cryptomatte_layer_name_items[] = {
 
 #  include "BKE_context.hh"
 #  include "BKE_idprop.hh"
+#  include "BKE_node_legacy_types.hh"
 
 #  include "BKE_global.hh"
 

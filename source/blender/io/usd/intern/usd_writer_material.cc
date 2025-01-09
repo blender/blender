@@ -13,6 +13,7 @@
 #include "BKE_image_format.hh"
 #include "BKE_main.hh"
 #include "BKE_node.hh"
+#include "BKE_node_legacy_types.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_report.hh"
 

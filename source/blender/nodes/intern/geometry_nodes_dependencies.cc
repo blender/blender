@@ -7,6 +7,7 @@
 #include "DNA_ID.h"
 #include "DNA_object_types.h"
 
+#include "BKE_node_legacy_types.hh"
 #include "BKE_node_runtime.hh"
 
 namespace blender::nodes {

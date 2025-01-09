@@ -14,6 +14,7 @@
 #include "DNA_node_types.h"
 
 #include "BKE_node.hh"
+#include "BKE_node_legacy_types.hh"  // IWYU pragma: export
 
 #include "NOD_multi_function.hh"
 #include "NOD_register.hh"

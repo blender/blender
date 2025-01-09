@@ -11,6 +11,8 @@
 #include "DNA_ID.h"
 #include "DNA_node_types.h"
 
+#include "BKE_node_legacy_types.hh"  // IWYU pragma: export
+
 #include "node_composite_register.hh"
 #include "node_util.hh"
 

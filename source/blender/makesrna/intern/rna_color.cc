@@ -58,6 +58,7 @@ const EnumPropertyItem rna_enum_color_space_convert_default_items[] = {
 #  include "BKE_linestyle.h"
 #  include "BKE_movieclip.h"
 #  include "BKE_node.hh"
+#  include "BKE_node_legacy_types.hh"
 
 #  include "DEG_depsgraph.hh"
 

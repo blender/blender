@@ -7,6 +7,7 @@
 
 #include <fmt/format.h>
 
+#include "BKE_node_legacy_types.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_dot_export.hh"
 #include "BKE_node_tree_reference_lifetimes.hh"

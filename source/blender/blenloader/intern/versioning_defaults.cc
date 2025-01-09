@@ -57,6 +57,7 @@
 #include "BKE_main_namemap.hh"
 #include "BKE_material.hh"
 #include "BKE_mesh.hh"
+#include "BKE_node_legacy_types.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.hh"
 #include "BKE_paint.hh"

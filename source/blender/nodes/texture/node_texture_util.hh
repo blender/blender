@@ -9,6 +9,7 @@
 #pragma once
 
 #include "BKE_node.hh"
+#include "BKE_node_legacy_types.hh"  // IWYU pragma: export
 
 #include "node_texture_register.hh"
 

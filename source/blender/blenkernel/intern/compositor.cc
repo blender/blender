@@ -14,6 +14,7 @@
 #include "BKE_compositor.hh"
 #include "BKE_cryptomatte.hh"
 #include "BKE_node.hh"
+#include "BKE_node_legacy_types.hh"
 #include "BKE_node_runtime.hh"
 
 #include "DNA_layer_types.h"

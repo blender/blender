@@ -10,6 +10,7 @@
 
 #include "NOD_derived_node_tree.hh"
 
+#include "BKE_node_legacy_types.hh"
 #include "BKE_node_runtime.hh"
 
 #include "COM_context.hh"

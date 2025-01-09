@@ -8,6 +8,7 @@
 
 #include "BKE_image.hh"
 #include "BKE_node.hh"
+#include "BKE_node_legacy_types.hh"
 #include "BKE_node_runtime.hh"
 
 #include "BLI_math_vector.h"

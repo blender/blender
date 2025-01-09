@@ -9,6 +9,7 @@
 #include "BKE_image.hh"
 #include "BKE_main.hh"
 #include "BKE_node.hh"
+#include "BKE_node_legacy_types.hh"
 
 #include "BLI_math_vector.h"
 #include "BLI_path_utils.hh"

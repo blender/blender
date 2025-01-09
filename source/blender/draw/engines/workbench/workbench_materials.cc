@@ -8,6 +8,7 @@
 #include "BLI_math_color.h"
 /* get_image */
 #include "BKE_node.hh"
+#include "BKE_node_legacy_types.hh"
 #include "DNA_node_types.h"
 #include "ED_uvedit.hh"
 /* get_image */

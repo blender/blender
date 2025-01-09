@@ -8,6 +8,7 @@
 
 #include "BKE_compute_contexts.hh"
 #include "BKE_node.hh"
+#include "BKE_node_legacy_types.hh"
 #include "BKE_node_runtime.hh"
 
 namespace blender::nodes::partial_eval {

@@ -7,6 +7,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BKE_node.hh"
+#include "BKE_node_legacy_types.hh"  // IWYU pragma: export
 #include "BKE_node_socket_value.hh"
 
 #include "NOD_geometry_exec.hh"

@@ -12,6 +12,7 @@
 #include <cmath>
 
 #include "BKE_node.hh"
+#include "BKE_node_legacy_types.hh"  // IWYU pragma: export
 
 #include "DNA_node_types.h"
 

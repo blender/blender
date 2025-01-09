@@ -9,6 +9,7 @@
 #include "NOD_socket.hh"
 
 #include "BKE_node.hh"
+#include "BKE_node_legacy_types.hh"
 
 #include "BLT_translation.hh"
 
