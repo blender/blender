@@ -99,7 +99,7 @@ class Cameras : Overlay {
     enabled_ = state.is_space_v3d();
     extras_enabled_ = enabled_ && state.show_extras();
     motion_tracking_enabled_ = enabled_ && state.v3d->flag2 & V3D_SHOW_RECONSTRUCTION;
-    images_enabled_ = enabled_ && !res.is_selection();
+    images_enabled_ = enabled_ && !res.is_selection() && !state.is_depth_only_drawing;
     enabled_ = extras_enabled_ || images_enabled_ || motion_tracking_enabled_;
 
     offset_data_ = state.offset_data_get();
