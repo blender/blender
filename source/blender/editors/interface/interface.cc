@@ -4475,9 +4475,10 @@ static void ui_def_but_rna__menu(bContext *C, uiLayout *layout, void *but_p)
   int rows = 0;
 
   const wmWindow *win = CTX_wm_window(C);
-  const int row_height = int(float(UI_UNIT_Y) / but->block->aspect);
+  const float row_height = float(UI_UNIT_Y) / but->block->aspect;
   /* Calculate max_rows from how many rows can fit in this window. */
-  const int max_rows = (win->sizey - (4 * row_height)) / row_height;
+  const float vertical_space = (float(WM_window_native_pixel_y(win)) / 2.0f) - (UI_UNIT_Y * 3.0f);
+  const int max_rows = int(vertical_space / row_height) - 1;
   float text_width = 0.0f;
 
   BLF_size(BLF_default(), UI_style_get()->widget.points * UI_SCALE_FAC);
@@ -4511,10 +4512,7 @@ static void ui_def_but_rna__menu(bContext *C, uiLayout *layout, void *but_p)
 
   /* Wrap long single-column lists. */
   if (categories == 0) {
-    columns = std::max((totitems + 20) / 20, 1);
-    if (columns > 8) {
-      columns = (totitems + 25) / 25;
-    }
+    columns = std::max((totitems + col_rows) / max_rows, 1);
     rows = std::max(totitems / columns, 1);
     while (rows * columns < totitems) {
       rows++;
