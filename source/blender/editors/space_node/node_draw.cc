@@ -144,7 +144,7 @@ struct TreeDrawContext {
   /**
    * Label for reroute nodes that is derived from upstream reroute nodes.
    */
-  blender::Map<const bNode *, blender::StringRefNull> reroute_auto_labels;
+  blender::Map<const bNode *, blender::StringRef> reroute_auto_labels;
 };
 
 float ED_node_grid_size()
@@ -4215,18 +4215,18 @@ static const bNode *reroute_node_get_linked_reroute(const bNode &reroute)
  * The auto label overlay displays a label on reroute nodes based on the user-defined label of a
  * linked reroute upstream.
  */
-static StringRefNull reroute_node_get_auto_label(TreeDrawContext &tree_draw_ctx,
-                                                 const bNode &src_reroute)
+static StringRef reroute_node_get_auto_label(TreeDrawContext &tree_draw_ctx,
+                                             const bNode &src_reroute)
 {
   BLI_assert(src_reroute.is_reroute());
 
   if (src_reroute.label[0] != '\0') {
-    return StringRefNull(src_reroute.label);
+    return src_reroute.label;
   }
 
-  Map<const bNode *, StringRefNull> &reroute_auto_labels = tree_draw_ctx.reroute_auto_labels;
+  Map<const bNode *, StringRef> &reroute_auto_labels = tree_draw_ctx.reroute_auto_labels;
 
-  StringRefNull label;
+  StringRef label;
   Vector<const bNode *> reroute_path;
 
   /* Traverse reroute path backwards until label, non-reroute node or link-cycle is found. */
@@ -4234,7 +4234,7 @@ static StringRefNull reroute_node_get_auto_label(TreeDrawContext &tree_draw_ctx,
        reroute = reroute_node_get_linked_reroute(*reroute))
   {
     reroute_path.append(reroute);
-    if (const StringRefNull *label_ptr = reroute_auto_labels.lookup_ptr(reroute)) {
+    if (const StringRef *label_ptr = reroute_auto_labels.lookup_ptr(reroute)) {
       label = *label_ptr;
       break;
     }
@@ -4306,16 +4306,17 @@ static void reroute_node_draw_label(TreeDrawContext &tree_draw_ctx,
     return;
   }
 
-  char showname[128];
-  STRNCPY(showname,
-          has_label ? node.label : reroute_node_get_auto_label(tree_draw_ctx, node).c_str());
+  const StringRef text = has_label ? node.label : reroute_node_get_auto_label(tree_draw_ctx, node);
+  if (text.is_empty()) {
+    return;
+  }
 
   const short width = 512;
   const int x = BLI_rctf_cent_x(&node.runtime->draw_bounds) - (width / 2);
   const int y = node.runtime->draw_bounds.ymax;
 
   uiBut *label_but = uiDefBut(
-      &block, UI_BTYPE_LABEL, 0, showname, x, y, width, short(NODE_DY), nullptr, 0, 0, nullptr);
+      &block, UI_BTYPE_LABEL, 0, text, x, y, width, short(NODE_DY), nullptr, 0, 0, nullptr);
 
   UI_but_drawflag_disable(label_but, UI_BUT_TEXT_LEFT);
 
