@@ -108,7 +108,6 @@ BLOCKLIST_GPU = [
     'image_log.blend',
     'glass_mix_40964.blend',
     'filter_glossy_refraction_45609.blend',
-    'smoke_color.blend',
     'bevel_mblur.blend',
     # Inconsistency between Embree and Hair primitive on GPU.
     'denoise_hair.blend',

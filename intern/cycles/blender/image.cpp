@@ -14,6 +14,7 @@
 #include "blender/session.h"
 
 #include "util/half.h"
+#include "util/transform.h"
 #include "util/types_float4.h"
 
 CCL_NAMESPACE_BEGIN
@@ -63,8 +64,6 @@ bool BlenderImageLoader::load_metadata(const ImageDeviceFeatures & /*features*/,
     }
     BKE_image_release_ibuf(b_image, ibuf, lock);
   }
-
-  metadata.depth = 1;
 
   if (is_float) {
     if (metadata.channels == 1) {

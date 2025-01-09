@@ -937,11 +937,7 @@ void MetalDevice::tex_alloc_as_buffer(device_texture &mem)
   texture_info[slot] = mem.info;
   texture_slot_map[slot] = mmem->mtlBuffer;
 
-  if (mem.info.data_type == IMAGE_DATA_TYPE_NANOVDB_FLOAT ||
-      mem.info.data_type == IMAGE_DATA_TYPE_NANOVDB_FLOAT3 ||
-      mem.info.data_type == IMAGE_DATA_TYPE_NANOVDB_FPN ||
-      mem.info.data_type == IMAGE_DATA_TYPE_NANOVDB_FP16)
-  {
+  if (is_nanovdb_type(mem.info.data_type)) {
     using_nanovdb = true;
   }
 }

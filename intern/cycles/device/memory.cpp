@@ -180,6 +180,7 @@ device_texture::device_texture(Device *device,
     case IMAGE_DATA_TYPE_BYTE:
     case IMAGE_DATA_TYPE_NANOVDB_FLOAT:
     case IMAGE_DATA_TYPE_NANOVDB_FLOAT3:
+    case IMAGE_DATA_TYPE_NANOVDB_FLOAT4:
     case IMAGE_DATA_TYPE_NANOVDB_FPN:
     case IMAGE_DATA_TYPE_NANOVDB_FP16:
       data_type = TYPE_UCHAR;

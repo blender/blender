@@ -48,6 +48,8 @@ const char *name_from_type(ImageDataType type)
       return "nanovdb_float";
     case IMAGE_DATA_TYPE_NANOVDB_FLOAT3:
       return "nanovdb_float3";
+    case IMAGE_DATA_TYPE_NANOVDB_FLOAT4:
+      return "nanovdb_float4";
     case IMAGE_DATA_TYPE_NANOVDB_FPN:
       return "nanovdb_fpn";
     case IMAGE_DATA_TYPE_NANOVDB_FP16:
@@ -367,10 +369,7 @@ void ImageManager::load_image_metadata(Image *img)
 
   metadata.detect_colorspace();
 
-  assert(features.has_nanovdb || (metadata.type != IMAGE_DATA_TYPE_NANOVDB_FLOAT ||
-                                  metadata.type != IMAGE_DATA_TYPE_NANOVDB_FLOAT3 ||
-                                  metadata.type != IMAGE_DATA_TYPE_NANOVDB_FPN ||
-                                  metadata.type != IMAGE_DATA_TYPE_NANOVDB_FP16));
+  assert(features.has_nanovdb || !is_nanovdb_type(metadata.type));
 
   img->need_metadata = false;
 }
@@ -811,9 +810,7 @@ void ImageManager::device_load_image(Device *device,
     }
   }
 #ifdef WITH_NANOVDB
-  else if (type == IMAGE_DATA_TYPE_NANOVDB_FLOAT || type == IMAGE_DATA_TYPE_NANOVDB_FLOAT3 ||
-           type == IMAGE_DATA_TYPE_NANOVDB_FPN || type == IMAGE_DATA_TYPE_NANOVDB_FP16)
-  {
+  else if (is_nanovdb_type(type)) {
     const thread_scoped_lock device_lock(device_mutex);
     void *pixels = img->mem->alloc(img->metadata.byte_size, 0);
 

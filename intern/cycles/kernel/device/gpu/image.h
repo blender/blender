@@ -321,6 +321,9 @@ ccl_device float4 kernel_tex_image_interp_3d(KernelGlobals kg,
         info, x, y, z, interpolation);
     return make_float4(f, 1.0f);
   }
+  if (texture_type == IMAGE_DATA_TYPE_NANOVDB_FLOAT4) {
+    return kernel_tex_image_interp_nanovdb<float4, float4>(info, x, y, z, interpolation);
+  }
   if (texture_type == IMAGE_DATA_TYPE_NANOVDB_FPN) {
     float f = kernel_tex_image_interp_nanovdb<float, nanovdb::FpN>(info, x, y, z, interpolation);
     return make_float4(f, f, f, 1.0f);

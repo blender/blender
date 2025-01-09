@@ -80,7 +80,7 @@ class ImageMetaData {
 /* Information about supported features that Image loaders can use. */
 class ImageDeviceFeatures {
  public:
-  bool has_nanovdb;
+  bool has_nanovdb = true;
 };
 
 /* Image loader base class, that can be subclassed to load image data

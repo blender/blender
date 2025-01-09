@@ -8,15 +8,13 @@
 #include "scene/scene.h"
 
 #ifdef WITH_OPENVDB
-#  include <openvdb/tools/Dense.h>
 #  include <openvdb/tools/GridTransformer.h>
 #  include <openvdb/tools/Morphology.h>
-#  include <openvdb/tools/Statistics.h>
 #endif
 
 #include "util/hash.h"
 #include "util/log.h"
-#include "util/openvdb.h"
+#include "util/nanovdb.h"
 #include "util/progress.h"
 #include "util/types.h"
 
@@ -26,7 +24,6 @@ NODE_DEFINE(Volume)
 {
   NodeType *type = NodeType::add("volume", create, NodeType::NONE, Mesh::get_node_type());
 
-  SOCKET_FLOAT(clipping, "Clipping", 0.001f);
   SOCKET_FLOAT(step_size, "Step Size", 0.0f);
   SOCKET_BOOLEAN(object_space, "Object Space", false);
   SOCKET_FLOAT(velocity_scale, "Velocity Scale", 1.0f);
@@ -36,7 +33,6 @@ NODE_DEFINE(Volume)
 
 Volume::Volume() : Mesh(get_node_type(), Geometry::VOLUME)
 {
-  clipping = 0.001f;
   step_size = 0.0f;
   object_space = false;
 }
@@ -61,7 +57,7 @@ enum {
   QUAD_Z_MAX = 5,
 };
 
-#ifdef WITH_OPENVDB
+#if defined(WITH_OPENVDB) && defined(WITH_NANOVDB)
 const int quads_indices[6][4] = {
     /* QUAD_X_MIN */
     {4, 0, 3, 7},
@@ -127,7 +123,6 @@ static void create_quad(const int3 corners[8],
 
   quads.push_back(quad);
 }
-#endif
 
 /* Create a mesh from a volume.
  *
@@ -141,18 +136,14 @@ static void create_quad(const int3 corners[8],
  */
 class VolumeMeshBuilder {
  public:
-#ifdef WITH_OPENVDB
   /* use a MaskGrid to store the topology to save memory */
   openvdb::MaskGrid::Ptr topology_grid;
   openvdb::CoordBBox bbox;
-#endif
   bool first_grid;
 
   VolumeMeshBuilder();
 
-#ifdef WITH_OPENVDB
-  void add_grid(openvdb::GridBase::ConstPtr grid, bool do_clipping, const float volume_clipping);
-#endif
+  void add_grid(const nanovdb::GridHandle<> &grid);
 
   void add_padding(const int pad_size);
 
@@ -169,30 +160,6 @@ class VolumeMeshBuilder {
   void convert_quads_to_tris(const vector<QuadData> &quads, vector<int> &tris);
 
   bool empty_grid() const;
-
-#ifdef WITH_OPENVDB
-  template<typename GridType>
-  void merge_grid(openvdb::GridBase::ConstPtr grid, bool do_clipping, const float volume_clipping)
-  {
-    typename GridType::ConstPtr typed_grid = openvdb::gridConstPtrCast<GridType>(grid);
-
-    if (do_clipping) {
-      using ValueType = typename GridType::ValueType;
-      const typename GridType::Ptr copy = typed_grid->deepCopy();
-      typename GridType::ValueOnIter iter = copy->beginValueOn();
-
-      for (; iter; ++iter) {
-        if (openvdb::math::Abs(iter.getValue()) < ValueType(volume_clipping)) {
-          iter.setValueOff();
-        }
-      }
-
-      typed_grid = copy;
-    }
-
-    topology_grid->topologyUnion(*typed_grid);
-  }
-#endif
 };
 
 VolumeMeshBuilder::VolumeMeshBuilder()
@@ -200,21 +167,21 @@ VolumeMeshBuilder::VolumeMeshBuilder()
   first_grid = true;
 }
 
-#ifdef WITH_OPENVDB
-void VolumeMeshBuilder::add_grid(openvdb::GridBase::ConstPtr grid,
-                                 bool do_clipping,
-                                 const float volume_clipping)
+void VolumeMeshBuilder::add_grid(const nanovdb::GridHandle<> &nanogrid)
 {
   /* set the transform of our grid from the first one */
+  openvdb::MaskGrid::Ptr grid = nanovdb_to_openvdb_mask(nanogrid);
+
   if (first_grid) {
-    topology_grid = openvdb::MaskGrid::create();
-    topology_grid->setTransform(grid->transform().copy());
+    topology_grid = grid;
     first_grid = false;
+    return;
   }
-  /* if the transforms do not match, we need to resample one of the grids so that
+
+  /* If the transforms do not match, we need to resample one of the grids so that
    * its index space registers with that of the other, here we resample our mask
    * grid so memory usage is kept low */
-  else if (topology_grid->transform() != grid->transform()) {
+  if (topology_grid->transform() != grid->transform()) {
     const openvdb::MaskGrid::Ptr temp_grid = topology_grid->copyWithNewTree();
     temp_grid->setTransform(grid->transform().copy());
     openvdb::tools::resampleToMatch<openvdb::tools::BoxSampler>(*topology_grid, *temp_grid);
@@ -222,54 +189,19 @@ void VolumeMeshBuilder::add_grid(openvdb::GridBase::ConstPtr grid,
     topology_grid->setTransform(grid->transform().copy());
   }
 
-  if (grid->isType<openvdb::FloatGrid>()) {
-    merge_grid<openvdb::FloatGrid>(grid, do_clipping, volume_clipping);
-  }
-  else if (grid->isType<openvdb::Vec3fGrid>()) {
-    merge_grid<openvdb::Vec3fGrid>(grid, do_clipping, volume_clipping);
-  }
-  else if (grid->isType<openvdb::Vec4fGrid>()) {
-    merge_grid<openvdb::Vec4fGrid>(grid, do_clipping, volume_clipping);
-  }
-  else if (grid->isType<openvdb::BoolGrid>()) {
-    merge_grid<openvdb::BoolGrid>(grid, do_clipping, volume_clipping);
-  }
-  else if (grid->isType<openvdb::DoubleGrid>()) {
-    merge_grid<openvdb::DoubleGrid>(grid, do_clipping, volume_clipping);
-  }
-  else if (grid->isType<openvdb::Int32Grid>()) {
-    merge_grid<openvdb::Int32Grid>(grid, do_clipping, volume_clipping);
-  }
-  else if (grid->isType<openvdb::Int64Grid>()) {
-    merge_grid<openvdb::Int64Grid>(grid, do_clipping, volume_clipping);
-  }
-  else if (grid->isType<openvdb::Vec3IGrid>()) {
-    merge_grid<openvdb::Vec3IGrid>(grid, do_clipping, volume_clipping);
-  }
-  else if (grid->isType<openvdb::Vec3dGrid>()) {
-    merge_grid<openvdb::Vec3dGrid>(grid, do_clipping, volume_clipping);
-  }
-  else if (grid->isType<openvdb::MaskGrid>()) {
-    topology_grid->topologyUnion(*openvdb::gridConstPtrCast<openvdb::MaskGrid>(grid));
-  }
+  topology_grid->topologyUnion(*grid);
 }
-#endif
 
 void VolumeMeshBuilder::add_padding(const int pad_size)
 {
-#ifdef WITH_OPENVDB
   openvdb::tools::dilateActiveValues(
       topology_grid->tree(), pad_size, openvdb::tools::NN_FACE, openvdb::tools::IGNORE_TILES);
-#else
-  (void)pad_size;
-#endif
 }
 
 void VolumeMeshBuilder::create_mesh(vector<float3> &vertices,
                                     vector<int> &indices,
                                     const float face_overlap_avoidance)
 {
-#ifdef WITH_OPENVDB
   /* We create vertices in index space (is), and only convert them to object
    * space when done. */
   vector<int3> vertices_is;
@@ -284,25 +216,17 @@ void VolumeMeshBuilder::create_mesh(vector<float3> &vertices,
   convert_object_space(vertices_is, vertices, face_overlap_avoidance);
 
   convert_quads_to_tris(quads, indices);
-#else
-  (void)vertices;
-  (void)indices;
-  (void)face_overlap_avoidance;
-#endif
 }
 
-#ifdef WITH_OPENVDB
 static bool is_non_empty_leaf(const openvdb::MaskGrid::TreeType &tree, const openvdb::Coord coord)
 {
   const auto *leaf_node = tree.probeLeaf(coord);
   return (leaf_node && !leaf_node->isEmpty());
 }
-#endif
 
 void VolumeMeshBuilder::generate_vertices_and_quads(vector<ccl::int3> &vertices_is,
                                                     vector<QuadData> &quads)
 {
-#ifdef WITH_OPENVDB
   const openvdb::MaskGrid::TreeType &tree = topology_grid->tree();
   tree.evalLeafBoundingBox(bbox);
 
@@ -366,17 +290,12 @@ void VolumeMeshBuilder::generate_vertices_and_quads(vector<ccl::int3> &vertices_
       create_quad(corners, vertices_is, quads, resolution, used_verts, QUAD_Z_MAX);
     }
   }
-#else
-  (void)vertices_is;
-  (void)quads;
-#endif
 }
 
 void VolumeMeshBuilder::convert_object_space(const vector<int3> &vertices,
                                              vector<float3> &out_vertices,
                                              const float face_overlap_avoidance)
 {
-#ifdef WITH_OPENVDB
   /* compute the offset for the face overlap avoidance */
   bbox = topology_grid->evalActiveVoxelBoundingBox();
   openvdb::Coord dim = bbox.dim();
@@ -392,11 +311,6 @@ void VolumeMeshBuilder::convert_object_space(const vector<int3> &vertices,
     const float3 vertex = make_float3((float)p.x(), (float)p.y(), (float)p.z());
     out_vertices.push_back(vertex + point_offset);
   }
-#else
-  (void)vertices;
-  (void)out_vertices;
-  (void)face_overlap_avoidance;
-#endif
 }
 
 void VolumeMeshBuilder::convert_quads_to_tris(const vector<QuadData> &quads, vector<int> &tris)
@@ -417,115 +331,46 @@ void VolumeMeshBuilder::convert_quads_to_tris(const vector<QuadData> &quads, vec
 
 bool VolumeMeshBuilder::empty_grid() const
 {
-#ifdef WITH_OPENVDB
   return !topology_grid ||
          (!topology_grid->tree().hasActiveTiles() && topology_grid->tree().leafCount() == 0);
-#else
-  return true;
-#endif
 }
 
-#ifdef WITH_OPENVDB
-template<typename GridType>
-static openvdb::GridBase::ConstPtr openvdb_grid_from_device_texture(device_texture *image_memory,
-                                                                    const float volume_clipping,
-                                                                    Transform transform_3d)
-{
-  using ValueType = typename GridType::ValueType;
-
-  const openvdb::CoordBBox dense_bbox(0,
-                                      0,
-                                      0,
-                                      image_memory->data_width - 1,
-                                      image_memory->data_height - 1,
-                                      image_memory->data_depth - 1);
-
-  typename GridType::Ptr sparse = GridType::create(ValueType(0.0f));
-  if (dense_bbox.empty()) {
-    return sparse;
-  }
-
-  const openvdb::tools::Dense<ValueType, openvdb::tools::MemoryLayout::LayoutXYZ> dense(
-      dense_bbox, static_cast<ValueType *>(image_memory->host_pointer));
-
-  openvdb::tools::copyFromDense(dense, *sparse, ValueType(volume_clipping));
-
-  /* #copyFromDense will remove any leaf node that contains constant data and replace it with a
-   * tile, however, we need to preserve the leaves in order to generate the mesh, so re-voxelize
-   * the leaves that were pruned. This should not affect areas that were skipped due to the
-   * volume_clipping parameter. */
-  sparse->tree().voxelizeActiveTiles();
-
-  /* Compute index to world matrix. */
-  const float3 voxel_size = make_float3(1.0f / image_memory->data_width,
-                                        1.0f / image_memory->data_height,
-                                        1.0f / image_memory->data_depth);
-
-  transform_3d = transform_inverse(transform_3d);
-
-  const openvdb::Mat4R index_to_world_mat((double)(voxel_size.x * transform_3d[0][0]),
-                                          0.0,
-                                          0.0,
-                                          0.0,
-                                          0.0,
-                                          (double)(voxel_size.y * transform_3d[1][1]),
-                                          0.0,
-                                          0.0,
-                                          0.0,
-                                          0.0,
-                                          (double)(voxel_size.z * transform_3d[2][2]),
-                                          0.0,
-                                          (double)transform_3d[0][3],
-                                          (double)transform_3d[1][3],
-                                          (double)transform_3d[2][3],
-                                          1.0);
-
-  const openvdb::math::Transform::Ptr index_to_world_tfm =
-      openvdb::math::Transform::createLinearTransform(index_to_world_mat);
-
-  sparse->setTransform(index_to_world_tfm);
-
-  return sparse;
-}
-
-static int estimate_required_velocity_padding(openvdb::GridBase::ConstPtr grid,
+static int estimate_required_velocity_padding(const nanovdb::GridHandle<> &grid,
                                               const float velocity_scale)
 {
-  /* TODO: we may need to also find outliers and clamp them to avoid adding too much padding. */
-  openvdb::math::Extrema extrema;
-  openvdb::Vec3d voxel_size;
+  const auto *typed_grid = grid.template grid<nanovdb::Vec3f>(0);
 
-  /* External `.vdb` files have a vec3 type for velocity,
-   * but the Blender exporter creates a vec4. */
-  if (grid->isType<openvdb::Vec3fGrid>()) {
-    const openvdb::Vec3fGrid::ConstPtr vel_grid = openvdb::gridConstPtrCast<openvdb::Vec3fGrid>(
-        grid);
-    extrema = openvdb::tools::extrema(vel_grid->cbeginValueOn());
-    voxel_size = vel_grid->voxelSize();
-  }
-  else if (grid->isType<openvdb::Vec4fGrid>()) {
-    const openvdb::Vec4fGrid::ConstPtr vel_grid = openvdb::gridConstPtrCast<openvdb::Vec4fGrid>(
-        grid);
-    extrema = openvdb::tools::extrema(vel_grid->cbeginValueOn());
-    voxel_size = vel_grid->voxelSize();
-  }
-  else {
-    assert(0);
+  if (typed_grid == nullptr) {
     return 0;
   }
 
+  const nanovdb::Vec3d voxel_size = typed_grid->voxelSize();
+
   /* We should only have uniform grids, so x = y = z, but we never know. */
-  const double max_voxel_size = openvdb::math::Max(voxel_size.x(), voxel_size.y(), voxel_size.z());
+  const double max_voxel_size = openvdb::math::Max(voxel_size[0], voxel_size[1], voxel_size[2]);
   if (max_voxel_size == 0.0) {
     return 0;
   }
 
-  const double estimated_padding = extrema.max() * static_cast<double>(velocity_scale) /
+  /* TODO: we may need to also find outliers and clamp them to avoid adding too much padding. */
+  const nanovdb::Vec3f mn = typed_grid->tree().root().minimum();
+  const nanovdb::Vec3f mx = typed_grid->tree().root().maximum();
+  float max_value = 0.0f;
+  max_value = max(max_value, fabsf(mx[0]));
+  max_value = max(max_value, fabsf(mx[1]));
+  max_value = max(max_value, fabsf(mx[2]));
+  max_value = max(max_value, fabsf(mn[0]));
+  max_value = max(max_value, fabsf(mn[1]));
+  max_value = max(max_value, fabsf(mn[2]));
+
+  const double estimated_padding = max_value * static_cast<double>(velocity_scale) /
                                    max_voxel_size;
 
   return static_cast<int>(std::ceil(estimated_padding));
 }
+#endif
 
+#ifdef WITH_OPENVDB
 static openvdb::FloatGrid::ConstPtr get_vdb_for_attribute(Volume *volume, AttributeStandard std)
 {
   Attribute *attr = volume->attributes.find(std);
@@ -619,7 +464,7 @@ static void merge_scalar_grids_for_velocity(const Scene *scene, Volume *volume)
   const ImageParams params;
   attr->data_voxel() = scene->image_manager->add_image(std::move(loader), params);
 }
-#endif
+#endif /* defined(WITH_OPENVDB) && defined(WITH_NANOVDB) */
 
 /* ************************************************************************** */
 
@@ -662,18 +507,14 @@ void GeometryManager::create_volume_mesh(const Scene *scene, Volume *volume, Pro
     return;
   }
 
+#if defined(WITH_OPENVDB) && defined(WITH_NANOVDB)
   /* Create volume mesh builder. */
   VolumeMeshBuilder builder;
-
-#ifdef WITH_OPENVDB
-  merge_scalar_grids_for_velocity(scene, volume);
 
   for (Attribute &attr : volume->attributes.attributes) {
     if (attr.element != ATTR_ELEMENT_VOXEL) {
       continue;
     }
-
-    bool do_clipping = false;
 
     ImageHandle &handle = attr.data_voxel();
 
@@ -681,50 +522,29 @@ void GeometryManager::create_volume_mesh(const Scene *scene, Volume *volume, Pro
       continue;
     }
 
-    /* Try building from OpenVDB grid directly. */
-    VDBImageLoader *vdb_loader = handle.vdb_loader();
-    openvdb::GridBase::ConstPtr grid;
-    if (vdb_loader) {
-      grid = vdb_loader->get_grid();
-
-      /* If building from an OpenVDB grid, we need to manually clip the values. */
-      do_clipping = true;
+    /* Create NanoVDB grid handle from texture memory. */
+    device_texture *texture = handle.image_memory();
+    if (texture == nullptr || texture->host_pointer == nullptr ||
+        !is_nanovdb_type(texture->info.data_type))
+    {
+      continue;
     }
 
-    /* Else fall back to creating an OpenVDB grid from the dense volume data. */
-    if (!grid) {
-      device_texture *image_memory = handle.image_memory();
+    nanovdb::GridHandle grid(
+        nanovdb::HostBuffer::createFull(texture->memory_size(), texture->host_pointer));
 
-      if (image_memory->data_elements == 1) {
-        grid = openvdb_grid_from_device_texture<openvdb::FloatGrid>(
-            image_memory, volume->get_clipping(), handle.metadata().transform_3d);
-      }
-      else if (image_memory->data_elements == 3) {
-        grid = openvdb_grid_from_device_texture<openvdb::Vec3fGrid>(
-            image_memory, volume->get_clipping(), handle.metadata().transform_3d);
-      }
-      else if (image_memory->data_elements == 4) {
-        grid = openvdb_grid_from_device_texture<openvdb::Vec4fGrid>(
-            image_memory, volume->get_clipping(), handle.metadata().transform_3d);
-      }
+    /* Add padding based on the maximum velocity vector. */
+    if (attr.std == ATTR_STD_VOLUME_VELOCITY && scene->need_motion() != Scene::MOTION_NONE) {
+      pad_size = max(pad_size,
+                     estimate_required_velocity_padding(grid, volume->get_velocity_scale()));
     }
 
-    if (grid) {
-      /* Add padding based on the maximum velocity vector. */
-      if (attr.std == ATTR_STD_VOLUME_VELOCITY && scene->need_motion() != Scene::MOTION_NONE) {
-        pad_size = max(pad_size,
-                       estimate_required_velocity_padding(grid, volume->get_velocity_scale()));
-      }
-
-      builder.add_grid(grid, do_clipping, volume->get_clipping());
-    }
+    builder.add_grid(grid);
   }
-#else
-  (void)scene;
-#endif
 
   /* If nothing to build, early out. */
   if (builder.empty_grid()) {
+    LOG(WORK) << "Memory usage volume mesh: 0 Mb. (empty grid)";
     return;
   }
 
@@ -759,6 +579,16 @@ void GeometryManager::create_volume_mesh(const Scene *scene, Volume *volume, Pro
             << (vertices.size() * sizeof(float3) + indices.size() * sizeof(int)) /
                    (1024.0 * 1024.0)
             << "Mb.";
+#else
+  (void)scene;
+#endif /* defined(WITH_OPENVDB) && defined(WITH_NANOVDB) */
+}
+
+void Volume::merge_grids(const Scene *scene)
+{
+#ifdef WITH_OPENVDB
+  merge_scalar_grids_for_velocity(scene, this);
+#endif
 }
 
 CCL_NAMESPACE_END

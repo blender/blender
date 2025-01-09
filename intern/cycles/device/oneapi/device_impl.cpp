@@ -842,11 +842,7 @@ void OneapiDevice::tex_alloc(device_texture &mem)
     sycl::ext::oneapi::experimental::bindless_image_sampler samp(
         address_mode, sycl::coordinate_normalization_mode::normalized, filter_mode);
 
-    if (mem.info.data_type != IMAGE_DATA_TYPE_NANOVDB_FLOAT &&
-        mem.info.data_type != IMAGE_DATA_TYPE_NANOVDB_FLOAT3 &&
-        mem.info.data_type != IMAGE_DATA_TYPE_NANOVDB_FPN &&
-        mem.info.data_type != IMAGE_DATA_TYPE_NANOVDB_FP16)
-    {
+    if (!is_nanovdb_type(mem.info.data_type)) {
       sycl::ext::oneapi::experimental::sampled_image_handle imgHandle;
 
       if (memHandle.raw_handle) {

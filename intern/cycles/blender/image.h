@@ -9,6 +9,7 @@
 #include "RNA_blender_cpp.hh"
 
 #include "scene/image.h"
+#include "scene/image_vdb.h"
 
 struct Image;
 struct ImageUser;

@@ -865,11 +865,7 @@ void HIPDevice::tex_alloc(device_texture &mem)
   /* Set Mapping and tag that we need to (re-)upload to device */
   TextureInfo tex_info = mem.info;
 
-  if (mem.info.data_type != IMAGE_DATA_TYPE_NANOVDB_FLOAT &&
-      mem.info.data_type != IMAGE_DATA_TYPE_NANOVDB_FLOAT3 &&
-      mem.info.data_type != IMAGE_DATA_TYPE_NANOVDB_FPN &&
-      mem.info.data_type != IMAGE_DATA_TYPE_NANOVDB_FP16)
-  {
+  if (!is_nanovdb_type(mem.info.data_type)) {
     /* Bindless textures. */
     hipResourceDesc resDesc;
     memset(&resDesc, 0, sizeof(resDesc));

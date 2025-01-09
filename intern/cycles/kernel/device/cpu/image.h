@@ -713,6 +713,11 @@ template<typename TexT, typename OutT> struct NanoVDBInterpolator {
     return make_float4(r.x, r.y, r.z, 1.0f);
   }
 
+  static ccl_always_inline float4 read(const float4 r)
+  {
+    return r;
+  }
+
   template<typename Acc>
   static ccl_always_inline OutT
   interp_3d_closest(const Acc &acc, const float x, float y, const float z)
@@ -917,6 +922,8 @@ ccl_device float4 kernel_tex_image_interp_3d(KernelGlobals kg,
     }
     case IMAGE_DATA_TYPE_NANOVDB_FLOAT3:
       return NanoVDBInterpolator<packed_float3, float4>::interp_3d(info, P.x, P.y, P.z, interp);
+    case IMAGE_DATA_TYPE_NANOVDB_FLOAT4:
+      return NanoVDBInterpolator<float4, float4>::interp_3d(info, P.x, P.y, P.z, interp);
     case IMAGE_DATA_TYPE_NANOVDB_FPN: {
       const float f = NanoVDBInterpolator<nanovdb::FpN, float>::interp_3d(
           info, P.x, P.y, P.z, interp);
@@ -929,7 +936,6 @@ ccl_device float4 kernel_tex_image_interp_3d(KernelGlobals kg,
     }
 #endif
     default:
-      assert(0);
       return make_float4(
           TEX_IMAGE_MISSING_R, TEX_IMAGE_MISSING_G, TEX_IMAGE_MISSING_B, TEX_IMAGE_MISSING_A);
   }

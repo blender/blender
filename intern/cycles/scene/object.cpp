@@ -327,7 +327,7 @@ float Object::compute_volume_step_size() const
       if (attr.element == ATTR_ELEMENT_VOXEL) {
         ImageHandle &handle = attr.data_voxel();
         const ImageMetaData &metadata = handle.metadata();
-        if (metadata.width == 0 || metadata.height == 0 || metadata.depth == 0) {
+        if (metadata.byte_size == 0) {
           continue;
         }
 
@@ -335,25 +335,13 @@ float Object::compute_volume_step_size() const
         float voxel_step_size = volume->get_step_size();
 
         if (voxel_step_size == 0.0f) {
-          /* Auto detect step size. */
-          float3 size = one_float3();
-#ifdef WITH_NANOVDB
-          /* Dimensions were not applied to image transform with NanoVDB (see image_vdb.cpp) */
-          if (metadata.type != IMAGE_DATA_TYPE_NANOVDB_FLOAT &&
-              metadata.type != IMAGE_DATA_TYPE_NANOVDB_FLOAT3 &&
-              metadata.type != IMAGE_DATA_TYPE_NANOVDB_FPN &&
-              metadata.type != IMAGE_DATA_TYPE_NANOVDB_FP16)
-#endif
-          {
-            size /= make_float3(metadata.width, metadata.height, metadata.depth);
-          }
-
-          /* Step size is transformed from voxel to world space. */
+          /* Auto detect step size.
+           * Step size is transformed from voxel to world space. */
           Transform voxel_tfm = tfm;
           if (metadata.use_transform_3d) {
             voxel_tfm = tfm * transform_inverse(metadata.transform_3d);
           }
-          voxel_step_size = reduce_min(fabs(transform_direction(&voxel_tfm, size)));
+          voxel_step_size = reduce_min(fabs(transform_direction(&voxel_tfm, one_float3())));
         }
         else if (volume->get_object_space()) {
           /* User specified step size in object space. */
