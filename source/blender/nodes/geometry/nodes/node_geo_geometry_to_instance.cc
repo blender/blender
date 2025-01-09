@@ -33,7 +33,10 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_GEOMETRY_TO_INSTANCE, NODE_CLASS_GEOMETRY);
+  geo_node_type_base(&ntype,
+                     "GeometryNodeGeometryToInstance",
+                     GEO_NODE_GEOMETRY_TO_INSTANCE,
+                     NODE_CLASS_GEOMETRY);
   ntype.ui_name = "Geometry to Instance";
   ntype.ui_description =
       "Convert each input geometry into an instance, which can be much faster than the Join "

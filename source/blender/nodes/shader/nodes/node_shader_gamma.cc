@@ -50,7 +50,7 @@ void register_node_type_sh_gamma()
 
   static blender::bke::bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_GAMMA, NODE_CLASS_OP_COLOR);
+  sh_node_type_base(&ntype, "ShaderNodeGamma", SH_NODE_GAMMA, NODE_CLASS_OP_COLOR);
   ntype.ui_name = "Gamma";
   ntype.ui_description = "Apply a gamma correction";
   ntype.enum_name_legacy = "GAMMA";

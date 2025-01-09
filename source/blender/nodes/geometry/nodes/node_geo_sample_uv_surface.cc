@@ -196,7 +196,8 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_SAMPLE_UV_SURFACE, NODE_CLASS_GEOMETRY);
+  geo_node_type_base(
+      &ntype, "GeometryNodeSampleUVSurface", GEO_NODE_SAMPLE_UV_SURFACE, NODE_CLASS_GEOMETRY);
   ntype.ui_name = "Sample UV Surface";
   ntype.ui_description =
       "Calculate the interpolated values of a mesh attribute at a UV coordinate";

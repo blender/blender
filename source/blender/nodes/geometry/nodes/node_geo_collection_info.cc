@@ -187,7 +187,8 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_COLLECTION_INFO, NODE_CLASS_INPUT);
+  geo_node_type_base(
+      &ntype, "GeometryNodeCollectionInfo", GEO_NODE_COLLECTION_INFO, NODE_CLASS_INPUT);
   ntype.ui_name = "Collection Info";
   ntype.ui_description = "Retrieve geometry instances from a collection";
   ntype.enum_name_legacy = "COLLECTION_INFO";

@@ -355,7 +355,7 @@ void register_node_type_cmp_trackpos()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_TRACKPOS, NODE_CLASS_INPUT);
+  cmp_node_type_base(&ntype, "CompositorNodeTrackPos", CMP_NODE_TRACKPOS, NODE_CLASS_INPUT);
   ntype.ui_name = "Track Position";
   ntype.ui_description =
       "Provide information about motion tracking points, such as x and y values";

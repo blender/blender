@@ -99,7 +99,7 @@ void register_node_type_sh_clamp()
 
   static blender::bke::bNodeType ntype;
 
-  sh_fn_node_type_base(&ntype, SH_NODE_CLAMP, NODE_CLASS_CONVERTER);
+  sh_fn_node_type_base(&ntype, "ShaderNodeClamp", SH_NODE_CLAMP, NODE_CLASS_CONVERTER);
   ntype.ui_name = "Clamp";
   ntype.ui_description = "Clamp a value between a minimum and a maximum";
   ntype.enum_name_legacy = "CLAMP";

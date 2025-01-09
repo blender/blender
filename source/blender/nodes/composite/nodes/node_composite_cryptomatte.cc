@@ -911,7 +911,8 @@ void register_node_type_cmp_cryptomatte()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_CRYPTOMATTE, NODE_CLASS_MATTE);
+  cmp_node_type_base(
+      &ntype, "CompositorNodeCryptomatteV2", CMP_NODE_CRYPTOMATTE, NODE_CLASS_MATTE);
   ntype.ui_name = "Cryptomatte";
   ntype.ui_description =
       "Generate matte for individual objects and materials using Cryptomatte render passes";
@@ -1018,7 +1019,8 @@ void register_node_type_cmp_cryptomatte_legacy()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_CRYPTOMATTE_LEGACY, NODE_CLASS_MATTE);
+  cmp_node_type_base(
+      &ntype, "CompositorNodeCryptomatte", CMP_NODE_CRYPTOMATTE_LEGACY, NODE_CLASS_MATTE);
   ntype.ui_name = "Cryptomatte (Legacy)";
   ntype.ui_description = "Deprecated. Use Cryptomatte Node instead";
   ntype.enum_name_legacy = "CRYPTOMATTE";

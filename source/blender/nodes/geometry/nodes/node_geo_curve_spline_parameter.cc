@@ -293,7 +293,8 @@ static void node_geo_exec(GeoNodeExecParams params)
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
-  geo_node_type_base(&ntype, GEO_NODE_CURVE_SPLINE_PARAMETER, NODE_CLASS_INPUT);
+  geo_node_type_base(
+      &ntype, "GeometryNodeSplineParameter", GEO_NODE_CURVE_SPLINE_PARAMETER, NODE_CLASS_INPUT);
   ntype.ui_name = "Spline Parameter";
   ntype.ui_description = "Retrieve how far along each spline a control point is";
   ntype.enum_name_legacy = "SPLINE_PARAMETER";

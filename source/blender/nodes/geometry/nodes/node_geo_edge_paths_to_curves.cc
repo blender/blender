@@ -102,7 +102,8 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_EDGE_PATHS_TO_CURVES, NODE_CLASS_GEOMETRY);
+  geo_node_type_base(
+      &ntype, "GeometryNodeEdgePathsToCurves", GEO_NODE_EDGE_PATHS_TO_CURVES, NODE_CLASS_GEOMETRY);
   ntype.ui_name = "Edge Paths to Curves";
   ntype.ui_description = "Output curves following paths across mesh edges";
   ntype.enum_name_legacy = "EDGE_PATHS_TO_CURVES";

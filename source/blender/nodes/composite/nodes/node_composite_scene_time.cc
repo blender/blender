@@ -55,7 +55,7 @@ void register_node_type_cmp_scene_time()
 {
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_SCENE_TIME, NODE_CLASS_INPUT);
+  cmp_node_type_base(&ntype, "CompositorNodeSceneTime", CMP_NODE_SCENE_TIME, NODE_CLASS_INPUT);
   ntype.ui_name = "Scene Time";
   ntype.ui_description = "Input the current scene time in seconds or frames";
   ntype.enum_name_legacy = "SCENE_TIME";

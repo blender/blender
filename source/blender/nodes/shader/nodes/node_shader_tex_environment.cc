@@ -189,7 +189,8 @@ void register_node_type_sh_tex_environment()
 
   static blender::bke::bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_TEX_ENVIRONMENT, NODE_CLASS_TEXTURE);
+  sh_node_type_base(
+      &ntype, "ShaderNodeTexEnvironment", SH_NODE_TEX_ENVIRONMENT, NODE_CLASS_TEXTURE);
   ntype.ui_name = "Environment Texture";
   ntype.ui_description =
       "Sample an image file as an environment texture. Typically used to light the scene with the "

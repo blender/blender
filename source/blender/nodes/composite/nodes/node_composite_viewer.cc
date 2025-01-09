@@ -324,7 +324,7 @@ void register_node_type_cmp_viewer()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_VIEWER, NODE_CLASS_OUTPUT);
+  cmp_node_type_base(&ntype, "CompositorNodeViewer", CMP_NODE_VIEWER, NODE_CLASS_OUTPUT);
   ntype.ui_name = "Viewer";
   ntype.ui_description =
       "Visualize data from inside a node graph, in the image editor or as a backdrop";

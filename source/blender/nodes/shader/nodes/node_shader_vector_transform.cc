@@ -208,7 +208,8 @@ void register_node_type_sh_vect_transform()
 
   static blender::bke::bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_VECT_TRANSFORM, NODE_CLASS_OP_VECTOR);
+  sh_node_type_base(
+      &ntype, "ShaderNodeVectorTransform", SH_NODE_VECT_TRANSFORM, NODE_CLASS_OP_VECTOR);
   ntype.ui_name = "Vector Transform";
   ntype.ui_description =
       "Convert a vector, point, or normal between world, camera, and object coordinate space";

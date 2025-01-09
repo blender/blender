@@ -182,7 +182,8 @@ void register_node_type_cmp_bilateralblur()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_BILATERALBLUR, NODE_CLASS_OP_FILTER);
+  cmp_node_type_base(
+      &ntype, "CompositorNodeBilateralblur", CMP_NODE_BILATERALBLUR, NODE_CLASS_OP_FILTER);
   ntype.ui_name = "Bilateral Blur";
   ntype.ui_description = "Adaptively blur image, while retaining sharp edges";
   ntype.enum_name_legacy = "BILATERALBLUR";

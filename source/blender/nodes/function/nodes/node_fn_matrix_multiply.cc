@@ -50,7 +50,8 @@ static void node_eval_inverse(inverse_eval::InverseEvalParams &params)
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
-  fn_node_type_base(&ntype, FN_NODE_MATRIX_MULTIPLY, NODE_CLASS_CONVERTER);
+  fn_node_type_base(
+      &ntype, "FunctionNodeMatrixMultiply", FN_NODE_MATRIX_MULTIPLY, NODE_CLASS_CONVERTER);
   ntype.ui_name = "Multiply Matrices";
   ntype.enum_name_legacy = "MATRIX_MULTIPLY";
   ntype.declare = node_declare;

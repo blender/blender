@@ -23,7 +23,10 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_INPUT_INSTANCE_TRANSFORM, NODE_CLASS_INPUT);
+  geo_node_type_base(&ntype,
+                     "GeometryNodeInstanceTransform",
+                     GEO_NODE_INPUT_INSTANCE_TRANSFORM,
+                     NODE_CLASS_INPUT);
   ntype.ui_name = "Instance Transform";
   ntype.ui_description = "Retrieve the full transformation of each instance in the geometry";
   ntype.enum_name_legacy = "INPUT_INSTANCE_TRANSFORM";

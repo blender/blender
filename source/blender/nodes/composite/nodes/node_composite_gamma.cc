@@ -76,7 +76,7 @@ void register_node_type_cmp_gamma()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_GAMMA, NODE_CLASS_OP_COLOR);
+  cmp_node_type_base(&ntype, "CompositorNodeGamma", CMP_NODE_GAMMA, NODE_CLASS_OP_COLOR);
   ntype.ui_name = "Gamma";
   ntype.ui_description = "Apply gamma correction";
   ntype.enum_name_legacy = "GAMMA";

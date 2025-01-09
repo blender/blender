@@ -222,7 +222,8 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_MESH_PRIMITIVE_LINE, NODE_CLASS_GEOMETRY);
+  geo_node_type_base(
+      &ntype, "GeometryNodeMeshLine", GEO_NODE_MESH_PRIMITIVE_LINE, NODE_CLASS_GEOMETRY);
   ntype.ui_name = "Mesh Line";
   ntype.ui_description = "Generate vertices in a line and connect them with edges";
   ntype.enum_name_legacy = "MESH_PRIMITIVE_LINE";

@@ -82,7 +82,8 @@ void register_node_type_cmp_sepycca()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_SEPYCCA_LEGACY, NODE_CLASS_CONVERTER);
+  cmp_node_type_base(
+      &ntype, "CompositorNodeSepYCCA", CMP_NODE_SEPYCCA_LEGACY, NODE_CLASS_CONVERTER);
   ntype.ui_name = "Separate YCbCrA (Legacy)";
   ntype.ui_description = "Deprecated";
   ntype.enum_name_legacy = "SEPYCCA";
@@ -177,7 +178,8 @@ void register_node_type_cmp_combycca()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_COMBYCCA_LEGACY, NODE_CLASS_CONVERTER);
+  cmp_node_type_base(
+      &ntype, "CompositorNodeCombYCCA", CMP_NODE_COMBYCCA_LEGACY, NODE_CLASS_CONVERTER);
   ntype.ui_name = "Combine YCbCrA (Legacy)";
   ntype.ui_description = "Deprecated";
   ntype.enum_name_legacy = "COMBYCCA";

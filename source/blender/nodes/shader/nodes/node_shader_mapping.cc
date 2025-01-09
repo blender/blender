@@ -121,7 +121,7 @@ void register_node_type_sh_mapping()
 
   static blender::bke::bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_MAPPING, NODE_CLASS_OP_VECTOR);
+  sh_node_type_base(&ntype, "ShaderNodeMapping", SH_NODE_MAPPING, NODE_CLASS_OP_VECTOR);
   ntype.ui_name = "Mapping";
   ntype.ui_description = "Transform the input vector by applying translation, rotation, and scale";
   ntype.enum_name_legacy = "MAPPING";

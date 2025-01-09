@@ -95,7 +95,7 @@ void register_node_type_cmp_rotate()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_ROTATE, NODE_CLASS_DISTORT);
+  cmp_node_type_base(&ntype, "CompositorNodeRotate", CMP_NODE_ROTATE, NODE_CLASS_DISTORT);
   ntype.ui_name = "Rotate";
   ntype.ui_description = "Rotate image by specified angle";
   ntype.enum_name_legacy = "ROTATE";

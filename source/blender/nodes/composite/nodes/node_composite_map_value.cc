@@ -195,7 +195,7 @@ void register_node_type_cmp_map_value()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_MAP_VALUE, NODE_CLASS_OP_VECTOR);
+  cmp_node_type_base(&ntype, "CompositorNodeMapValue", CMP_NODE_MAP_VALUE, NODE_CLASS_OP_VECTOR);
   ntype.ui_name = "Map Value";
   ntype.ui_description = "Scale, offset and clamp values";
   ntype.enum_name_legacy = "MAP_VALUE";

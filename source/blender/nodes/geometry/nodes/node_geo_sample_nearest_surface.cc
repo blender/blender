@@ -234,7 +234,10 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_SAMPLE_NEAREST_SURFACE, NODE_CLASS_GEOMETRY);
+  geo_node_type_base(&ntype,
+                     "GeometryNodeSampleNearestSurface",
+                     GEO_NODE_SAMPLE_NEAREST_SURFACE,
+                     NODE_CLASS_GEOMETRY);
   ntype.ui_name = "Sample Nearest Surface";
   ntype.ui_description =
       "Calculate the interpolated value of a mesh attribute on the closest point of its surface";

@@ -136,7 +136,8 @@ static void node_rna(StructRNA *srna)
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
-  geo_node_type_base(&ntype, GEO_NODE_SET_CURVE_NORMAL, NODE_CLASS_GEOMETRY);
+  geo_node_type_base(
+      &ntype, "GeometryNodeSetCurveNormal", GEO_NODE_SET_CURVE_NORMAL, NODE_CLASS_GEOMETRY);
   ntype.ui_name = "Set Curve Normal";
   ntype.ui_description = "Set the evaluation mode for curve normals";
   ntype.enum_name_legacy = "SET_CURVE_NORMAL";

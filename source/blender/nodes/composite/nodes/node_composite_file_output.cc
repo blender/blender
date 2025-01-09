@@ -920,7 +920,7 @@ void register_node_type_cmp_output_file()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_OUTPUT_FILE, NODE_CLASS_OUTPUT);
+  cmp_node_type_base(&ntype, "CompositorNodeOutputFile", CMP_NODE_OUTPUT_FILE, NODE_CLASS_OUTPUT);
   ntype.ui_name = "File Output";
   ntype.ui_description = "Write image file to disk";
   ntype.enum_name_legacy = "OUTPUT_FILE";

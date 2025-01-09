@@ -59,7 +59,7 @@ void register_node_type_sh_object_info()
 
   static blender::bke::bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_OBJECT_INFO, NODE_CLASS_INPUT);
+  sh_node_type_base(&ntype, "ShaderNodeObjectInfo", SH_NODE_OBJECT_INFO, NODE_CLASS_INPUT);
   ntype.ui_name = "Object Info";
   ntype.ui_description = "Retrieve information about the object instance";
   ntype.enum_name_legacy = "OBJECT_INFO";

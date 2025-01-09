@@ -302,7 +302,7 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  fn_node_type_base(&ntype, FN_NODE_INTEGER_MATH, NODE_CLASS_CONVERTER);
+  fn_node_type_base(&ntype, "FunctionNodeIntegerMath", FN_NODE_INTEGER_MATH, NODE_CLASS_CONVERTER);
   ntype.ui_name = "Integer Math";
   ntype.enum_name_legacy = "INTEGER_MATH";
   ntype.declare = node_declare;

@@ -28,7 +28,8 @@ static void node_exec(GeoNodeExecParams params)
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
-  geo_node_type_base(&ntype, GEO_NODE_INPUT_SCENE_TIME, NODE_CLASS_INPUT);
+  geo_node_type_base(
+      &ntype, "GeometryNodeInputSceneTime", GEO_NODE_INPUT_SCENE_TIME, NODE_CLASS_INPUT);
   ntype.ui_name = "Scene Time";
   ntype.ui_description =
       "Retrieve the current time in the scene's animation in units of seconds or frames";

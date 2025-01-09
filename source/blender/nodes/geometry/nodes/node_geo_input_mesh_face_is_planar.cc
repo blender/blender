@@ -111,7 +111,10 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_INPUT_MESH_FACE_IS_PLANAR, NODE_CLASS_INPUT);
+  geo_node_type_base(&ntype,
+                     "GeometryNodeInputMeshFaceIsPlanar",
+                     GEO_NODE_INPUT_MESH_FACE_IS_PLANAR,
+                     NODE_CLASS_INPUT);
   ntype.ui_name = "Is Face Planar";
   ntype.ui_description =
       "Retrieve whether all triangles in a face are on the same plane, i.e. whether they have the "

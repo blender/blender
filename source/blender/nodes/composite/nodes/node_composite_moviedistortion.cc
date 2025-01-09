@@ -179,7 +179,8 @@ void register_node_type_cmp_moviedistortion()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_MOVIEDISTORTION, NODE_CLASS_DISTORT);
+  cmp_node_type_base(
+      &ntype, "CompositorNodeMovieDistortion", CMP_NODE_MOVIEDISTORTION, NODE_CLASS_DISTORT);
   ntype.ui_name = "Movie Distortion";
   ntype.ui_description =
       "Remove lens distortion from footage, using motion tracking camera lens settings";

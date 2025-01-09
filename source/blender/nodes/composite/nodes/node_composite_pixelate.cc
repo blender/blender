@@ -132,7 +132,7 @@ void register_node_type_cmp_pixelate()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_PIXELATE, NODE_CLASS_OP_FILTER);
+  cmp_node_type_base(&ntype, "CompositorNodePixelate", CMP_NODE_PIXELATE, NODE_CLASS_OP_FILTER);
   ntype.ui_name = "Pixelate";
   ntype.ui_description =
       "Reduce detail in an image by making individual pixels more prominent, for a blocky or "

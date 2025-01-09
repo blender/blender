@@ -148,7 +148,8 @@ void register_node_type_cmp_brightcontrast()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_BRIGHTCONTRAST, NODE_CLASS_OP_COLOR);
+  cmp_node_type_base(
+      &ntype, "CompositorNodeBrightContrast", CMP_NODE_BRIGHTCONTRAST, NODE_CLASS_OP_COLOR);
   ntype.ui_name = "Brightness/Contrast";
   ntype.ui_description = "Adjust brightness and contrast";
   ntype.enum_name_legacy = "BRIGHTCONTRAST";

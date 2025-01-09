@@ -74,7 +74,7 @@ void register_node_type_sh_displacement()
 
   static blender::bke::bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_DISPLACEMENT, NODE_CLASS_OP_VECTOR);
+  sh_node_type_base(&ntype, "ShaderNodeDisplacement", SH_NODE_DISPLACEMENT, NODE_CLASS_OP_VECTOR);
   ntype.ui_name = "Displacement";
   ntype.ui_description = "Displace the surface along the surface normal";
   ntype.enum_name_legacy = "DISPLACEMENT";

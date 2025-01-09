@@ -115,7 +115,8 @@ void register_node_type_sh_subsurface_scattering()
 
   static blender::bke::bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_SUBSURFACE_SCATTERING, NODE_CLASS_SHADER);
+  sh_node_type_base(
+      &ntype, "ShaderNodeSubsurfaceScattering", SH_NODE_SUBSURFACE_SCATTERING, NODE_CLASS_SHADER);
   ntype.ui_name = "Subsurface Scattering";
   ntype.ui_description =
       "Subsurface multiple scattering shader to simulate light entering the surface and bouncing "

@@ -93,7 +93,7 @@ void register_node_type_sh_uvmap()
 
   static blender::bke::bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_UVMAP, NODE_CLASS_INPUT);
+  sh_node_type_base(&ntype, "ShaderNodeUVMap", SH_NODE_UVMAP, NODE_CLASS_INPUT);
   ntype.ui_name = "UV Map";
   ntype.ui_description =
       "Retrieve a UV map from the geometry, or the default fallback if none is specified";

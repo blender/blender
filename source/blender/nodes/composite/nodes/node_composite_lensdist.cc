@@ -505,7 +505,7 @@ void register_node_type_cmp_lensdist()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_LENSDIST, NODE_CLASS_DISTORT);
+  cmp_node_type_base(&ntype, "CompositorNodeLensdist", CMP_NODE_LENSDIST, NODE_CLASS_DISTORT);
   ntype.ui_name = "Lens Distortion";
   ntype.ui_description = "Simulate distortion and dispersion from camera lenses";
   ntype.enum_name_legacy = "LENSDIST";

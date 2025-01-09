@@ -21,7 +21,8 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_INPUT_SPLINE_CYCLIC, NODE_CLASS_INPUT);
+  geo_node_type_base(
+      &ntype, "GeometryNodeInputSplineCyclic", GEO_NODE_INPUT_SPLINE_CYCLIC, NODE_CLASS_INPUT);
   ntype.ui_name = "Is Spline Cyclic";
   ntype.ui_description = "Retrieve whether each spline endpoint connects to the beginning";
   ntype.enum_name_legacy = "INPUT_SPLINE_CYCLIC";

@@ -54,7 +54,7 @@ void register_node_type_tex_scale()
 {
   static blender::bke::bNodeType ntype;
 
-  tex_node_type_base(&ntype, TEX_NODE_SCALE, NODE_CLASS_DISTORT);
+  tex_node_type_base(&ntype, "TextureNodeScale", TEX_NODE_SCALE, NODE_CLASS_DISTORT);
   ntype.ui_name = "Scale";
   ntype.enum_name_legacy = "SCALE";
   blender::bke::node_type_socket_templates(&ntype, inputs, outputs);

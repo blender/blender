@@ -240,7 +240,8 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_SAMPLE_GRID_INDEX, NODE_CLASS_CONVERTER);
+  geo_node_type_base(
+      &ntype, "GeometryNodeSampleGridIndex", GEO_NODE_SAMPLE_GRID_INDEX, NODE_CLASS_CONVERTER);
   ntype.ui_name = "Sample Grid Index";
   ntype.ui_description = "Retrieve volume grid values at specific voxels";
   ntype.enum_name_legacy = "SAMPLE_GRID_INDEX";

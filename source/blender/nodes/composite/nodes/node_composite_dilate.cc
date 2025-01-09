@@ -558,7 +558,8 @@ void register_node_type_cmp_dilateerode()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_DILATEERODE, NODE_CLASS_OP_FILTER);
+  cmp_node_type_base(
+      &ntype, "CompositorNodeDilateErode", CMP_NODE_DILATEERODE, NODE_CLASS_OP_FILTER);
   ntype.ui_name = "Dilate/Erode";
   ntype.ui_description = "Expand and shrink masks";
   ntype.enum_name_legacy = "DILATE_ERODE";

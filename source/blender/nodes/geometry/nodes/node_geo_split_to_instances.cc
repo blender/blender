@@ -354,7 +354,8 @@ static void node_rna(StructRNA *srna)
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
-  geo_node_type_base(&ntype, GEO_NODE_SPLIT_TO_INSTANCES, NODE_CLASS_GEOMETRY);
+  geo_node_type_base(
+      &ntype, "GeometryNodeSplitToInstances", GEO_NODE_SPLIT_TO_INSTANCES, NODE_CLASS_GEOMETRY);
   ntype.ui_name = "Split to Instances";
   ntype.ui_description = "Create separate geometries containing the elements from the same group";
   ntype.enum_name_legacy = "Split to Instances";

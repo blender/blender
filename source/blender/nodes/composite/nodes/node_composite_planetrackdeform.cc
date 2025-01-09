@@ -435,7 +435,8 @@ void register_node_type_cmp_planetrackdeform()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_PLANETRACKDEFORM, NODE_CLASS_DISTORT);
+  cmp_node_type_base(
+      &ntype, "CompositorNodePlaneTrackDeform", CMP_NODE_PLANETRACKDEFORM, NODE_CLASS_DISTORT);
   ntype.ui_name = "Plane Track Deform";
   ntype.ui_description =
       "Replace flat planes in footage by another image, detected by plane tracks from motion "

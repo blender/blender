@@ -48,7 +48,7 @@ void register_node_type_sh_bsdf_toon()
 
   static blender::bke::bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_BSDF_TOON, NODE_CLASS_SHADER);
+  sh_node_type_base(&ntype, "ShaderNodeBsdfToon", SH_NODE_BSDF_TOON, NODE_CLASS_SHADER);
   ntype.ui_name = "Toon BSDF";
   ntype.ui_description = "Diffuse and Glossy shaders with cartoon light effects";
   ntype.enum_name_legacy = "BSDF_TOON";

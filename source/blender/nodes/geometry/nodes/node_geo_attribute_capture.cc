@@ -254,7 +254,8 @@ static void node_register()
       "Store the result of a field on a geometry and output the data as a node socket. Allows "
       "remembering or interpolating data as the geometry changes, such as positions before "
       "deformation";
-  geo_node_type_base(&ntype, GEO_NODE_CAPTURE_ATTRIBUTE, NODE_CLASS_ATTRIBUTE);
+  geo_node_type_base(
+      &ntype, "GeometryNodeCaptureAttribute", GEO_NODE_CAPTURE_ATTRIBUTE, NODE_CLASS_ATTRIBUTE);
   ntype.enum_name_legacy = "CAPTURE_ATTRIBUTE";
   blender::bke::node_type_storage(
       &ntype, "NodeGeometryAttributeCapture", node_free_storage, node_copy_storage);

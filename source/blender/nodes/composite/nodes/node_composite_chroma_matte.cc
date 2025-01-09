@@ -188,7 +188,7 @@ void register_node_type_cmp_chroma_matte()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_CHROMA_MATTE, NODE_CLASS_MATTE);
+  cmp_node_type_base(&ntype, "CompositorNodeChromaMatte", CMP_NODE_CHROMA_MATTE, NODE_CLASS_MATTE);
   ntype.ui_name = "Chroma Key";
   ntype.ui_description = "Create matte based on chroma values";
   ntype.enum_name_legacy = "CHROMA_MATTE";

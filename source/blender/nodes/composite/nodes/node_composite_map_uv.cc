@@ -301,7 +301,7 @@ void register_node_type_cmp_mapuv()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_MAP_UV, NODE_CLASS_DISTORT);
+  cmp_node_type_base(&ntype, "CompositorNodeMapUV", CMP_NODE_MAP_UV, NODE_CLASS_DISTORT);
   ntype.ui_name = "Map UV";
   ntype.ui_description =
       "Map a texture using UV coordinates, to apply a texture to objects in compositing";

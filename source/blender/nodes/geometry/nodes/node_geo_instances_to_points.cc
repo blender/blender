@@ -110,7 +110,8 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_INSTANCES_TO_POINTS, NODE_CLASS_GEOMETRY);
+  geo_node_type_base(
+      &ntype, "GeometryNodeInstancesToPoints", GEO_NODE_INSTANCES_TO_POINTS, NODE_CLASS_GEOMETRY);
   ntype.ui_name = "Instances to Points";
   ntype.ui_description =
       "Generate points at the origins of instances.\nNote: Nested instances are not affected by "

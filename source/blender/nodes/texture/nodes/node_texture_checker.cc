@@ -54,7 +54,7 @@ void register_node_type_tex_checker()
 {
   static blender::bke::bNodeType ntype;
 
-  tex_node_type_base(&ntype, TEX_NODE_CHECKER, NODE_CLASS_PATTERN);
+  tex_node_type_base(&ntype, "TextureNodeChecker", TEX_NODE_CHECKER, NODE_CLASS_PATTERN);
   ntype.ui_name = "Checker";
   ntype.enum_name_legacy = "CHECKER";
   blender::bke::node_type_socket_templates(&ntype, inputs, outputs);

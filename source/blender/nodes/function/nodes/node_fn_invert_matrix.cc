@@ -62,7 +62,8 @@ static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
-  fn_node_type_base(&ntype, FN_NODE_INVERT_MATRIX, NODE_CLASS_CONVERTER);
+  fn_node_type_base(
+      &ntype, "FunctionNodeInvertMatrix", FN_NODE_INVERT_MATRIX, NODE_CLASS_CONVERTER);
   ntype.ui_name = "Invert Matrix";
   ntype.enum_name_legacy = "INVERT_MATRIX";
   ntype.declare = node_declare;

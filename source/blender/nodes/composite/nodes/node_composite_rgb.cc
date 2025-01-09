@@ -54,7 +54,7 @@ void register_node_type_cmp_rgb()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_RGB, NODE_CLASS_INPUT);
+  cmp_node_type_base(&ntype, "CompositorNodeRGB", CMP_NODE_RGB, NODE_CLASS_INPUT);
   ntype.ui_name = "RGB";
   ntype.ui_description = "A color picker";
   ntype.enum_name_legacy = "RGB";

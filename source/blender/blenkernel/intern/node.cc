@@ -6,6 +6,7 @@
  * \ingroup bke
  */
 
+#include "BLI_assert.h"
 #include "CLG_log.h"
 
 #include "MEM_guardedalloc.h"
@@ -4335,27 +4336,14 @@ static bool node_poll_instance_default(const bNode *node,
   return node->typeinfo->poll(node->typeinfo, ntree, r_disabled_hint);
 }
 
-void node_type_base(bNodeType *ntype, const int type, const short nclass)
+void node_type_base(bNodeType *ntype, std::string idname, const int type, const short nclass)
 {
-  /* Use static type info header to map static int type to identifier string and RNA struct type.
-   * Associate the RNA struct type with the bNodeType.
-   * Dynamically registered nodes will create an RNA type at runtime
-   * and call RNA_struct_blender_type_set, so this only needs to be done for old RNA types
-   * created in makesrna, which can not be associated to a bNodeType immediately,
-   * since bNodeTypes are registered afterward ...
-   */
-#define DefNode(Category, ID, DefFunc, StructName) \
-  case ID: { \
-    ntype->idname = (#Category #StructName); \
-    StructRNA *srna = RNA_struct_find(#Category #StructName); \
-    BLI_assert(srna != nullptr); \
-    ntype->rna_ext.srna = srna; \
-    RNA_struct_blender_type_set(srna, ntype); \
-    break; \
-  }
-
-  switch (type) {
-#include "NOD_static_types.h"
+  ntype->idname = std::move(idname);
+  if (!ELEM(type, NODE_CUSTOM, NODE_UNDEFINED)) {
+    StructRNA *srna = RNA_struct_find(ntype->idname.c_str());
+    BLI_assert(srna != nullptr);
+    ntype->rna_ext.srna = srna;
+    RNA_struct_blender_type_set(srna, ntype);
   }
 
   /* make sure we have a valid type (everything registered) */

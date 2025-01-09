@@ -78,7 +78,8 @@ static void node_geo_exec(GeoNodeExecParams params)
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
-  geo_node_type_base(&ntype, GEO_NODE_INPUT_SPLINE_LENGTH, NODE_CLASS_INPUT);
+  geo_node_type_base(
+      &ntype, "GeometryNodeSplineLength", GEO_NODE_INPUT_SPLINE_LENGTH, NODE_CLASS_INPUT);
   ntype.ui_name = "Spline Length";
   ntype.ui_description =
       "Retrieve the total length of each spline, as a distance or as a number of points";

@@ -677,7 +677,7 @@ void register_node_type_cmp_vecblur()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_VECBLUR, NODE_CLASS_OP_FILTER);
+  cmp_node_type_base(&ntype, "CompositorNodeVecBlur", CMP_NODE_VECBLUR, NODE_CLASS_OP_FILTER);
   ntype.ui_name = "Vector Blur";
   ntype.ui_description = "Uses the vector speed render pass to blur the image pixels in 2D";
   ntype.enum_name_legacy = "VECBLUR";

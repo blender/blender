@@ -110,7 +110,7 @@ void register_node_type_cmp_transform()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_TRANSFORM, NODE_CLASS_DISTORT);
+  cmp_node_type_base(&ntype, "CompositorNodeTransform", CMP_NODE_TRANSFORM, NODE_CLASS_DISTORT);
   ntype.ui_name = "Transform";
   ntype.ui_description = "Scale, translate and rotate an image";
   ntype.enum_name_legacy = "TRANSFORM";

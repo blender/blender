@@ -92,7 +92,8 @@ static void node_rna(StructRNA *srna)
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
-  geo_node_type_base(&ntype, GEO_NODE_CURVE_SPLINE_TYPE, NODE_CLASS_GEOMETRY);
+  geo_node_type_base(
+      &ntype, "GeometryNodeCurveSplineType", GEO_NODE_CURVE_SPLINE_TYPE, NODE_CLASS_GEOMETRY);
   ntype.ui_name = "Set Spline Type";
   ntype.ui_description = "Change the type of curves";
   ntype.enum_name_legacy = "CURVE_SPLINE_TYPE";

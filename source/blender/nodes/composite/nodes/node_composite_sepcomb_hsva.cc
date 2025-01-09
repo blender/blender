@@ -55,7 +55,8 @@ void register_node_type_cmp_sephsva()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_SEPHSVA_LEGACY, NODE_CLASS_CONVERTER);
+  cmp_node_type_base(
+      &ntype, "CompositorNodeSepHSVA", CMP_NODE_SEPHSVA_LEGACY, NODE_CLASS_CONVERTER);
   ntype.ui_name = "Separate HSVA (Legacy)";
   ntype.ui_description = "Deprecated";
   ntype.enum_name_legacy = "SEPHSVA";
@@ -124,7 +125,8 @@ void register_node_type_cmp_combhsva()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_COMBHSVA_LEGACY, NODE_CLASS_CONVERTER);
+  cmp_node_type_base(
+      &ntype, "CompositorNodeCombHSVA", CMP_NODE_COMBHSVA_LEGACY, NODE_CLASS_CONVERTER);
   ntype.ui_name = "Combine HSVA (Legacy)";
   ntype.ui_description = "Deprecated";
   ntype.enum_name_legacy = "COMBHSVA";

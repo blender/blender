@@ -198,7 +198,8 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_MERGE_LAYERS, NODE_CLASS_GEOMETRY);
+  geo_node_type_base(
+      &ntype, "GeometryNodeMergeLayers", GEO_NODE_MERGE_LAYERS, NODE_CLASS_GEOMETRY);
   ntype.ui_name = "Merge Layers";
   ntype.ui_description = "Join groups of Grease Pencil layers into one";
   ntype.enum_name_legacy = "MERGE_LAYERS";

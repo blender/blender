@@ -170,7 +170,7 @@ void register_node_type_cmp_sunbeams()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_SUNBEAMS, NODE_CLASS_OP_FILTER);
+  cmp_node_type_base(&ntype, "CompositorNodeSunBeams", CMP_NODE_SUNBEAMS, NODE_CLASS_OP_FILTER);
   ntype.ui_name = "Sun Beams";
   ntype.ui_description = "Create sun beams based on image brightness";
   ntype.enum_name_legacy = "SUNBEAMS";

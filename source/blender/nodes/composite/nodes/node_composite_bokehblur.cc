@@ -415,7 +415,7 @@ void register_node_type_cmp_bokehblur()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_BOKEHBLUR, NODE_CLASS_OP_FILTER);
+  cmp_node_type_base(&ntype, "CompositorNodeBokehBlur", CMP_NODE_BOKEHBLUR, NODE_CLASS_OP_FILTER);
   ntype.ui_name = "Bokeh Blur";
   ntype.ui_description =
       "Generate a bokeh type blur similar to Defocus. Unlike defocus an in-focus region is "

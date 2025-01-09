@@ -329,7 +329,8 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_SAMPLE_NEAREST, NODE_CLASS_GEOMETRY);
+  geo_node_type_base(
+      &ntype, "GeometryNodeSampleNearest", GEO_NODE_SAMPLE_NEAREST, NODE_CLASS_GEOMETRY);
   ntype.ui_name = "Sample Nearest";
   ntype.ui_description =
       "Find the element of a geometry closest to a position. Similar to the \"Index of Nearest\" "

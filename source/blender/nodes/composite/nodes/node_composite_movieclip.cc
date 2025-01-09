@@ -268,7 +268,7 @@ void register_node_type_cmp_movieclip()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_MOVIECLIP, NODE_CLASS_INPUT);
+  cmp_node_type_base(&ntype, "CompositorNodeMovieClip", CMP_NODE_MOVIECLIP, NODE_CLASS_INPUT);
   ntype.ui_name = "Movie Clip";
   ntype.ui_description =
       "Input image or movie from a movie clip datablock, typically used for motion tracking";

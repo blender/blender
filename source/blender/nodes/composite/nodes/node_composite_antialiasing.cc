@@ -101,7 +101,8 @@ void register_node_type_cmp_antialiasing()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_ANTIALIASING, NODE_CLASS_OP_FILTER);
+  cmp_node_type_base(
+      &ntype, "CompositorNodeAntiAliasing", CMP_NODE_ANTIALIASING, NODE_CLASS_OP_FILTER);
   ntype.ui_name = "Anti-Aliasing";
   ntype.ui_description = "Smooth away jagged edges";
   ntype.enum_name_legacy = "ANTIALIASING";

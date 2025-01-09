@@ -42,7 +42,7 @@ void register_node_type_sh_rgbtobw()
 
   static blender::bke::bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_RGBTOBW, NODE_CLASS_CONVERTER);
+  sh_node_type_base(&ntype, "ShaderNodeRGBToBW", SH_NODE_RGBTOBW, NODE_CLASS_CONVERTER);
   ntype.ui_name = "RGB to BW";
   ntype.ui_description = "Convert a color's luminance to a grayscale value";
   ntype.enum_name_legacy = "RGBTOBW";

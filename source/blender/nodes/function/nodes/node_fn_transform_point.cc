@@ -27,7 +27,8 @@ static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
-  fn_node_type_base(&ntype, FN_NODE_TRANSFORM_POINT, NODE_CLASS_CONVERTER);
+  fn_node_type_base(
+      &ntype, "FunctionNodeTransformPoint", FN_NODE_TRANSFORM_POINT, NODE_CLASS_CONVERTER);
   ntype.ui_name = "Transform Point";
   ntype.enum_name_legacy = "TRANSFORM_POINT";
   ntype.declare = node_declare;

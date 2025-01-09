@@ -57,7 +57,7 @@ void register_node_type_sh_light_path()
 
   static blender::bke::bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_LIGHT_PATH, NODE_CLASS_INPUT);
+  sh_node_type_base(&ntype, "ShaderNodeLightPath", SH_NODE_LIGHT_PATH, NODE_CLASS_INPUT);
   ntype.ui_name = "Light Path";
   ntype.ui_description =
       "Retrieve the type of incoming ray for which the shader is being executed.\nTypically used "

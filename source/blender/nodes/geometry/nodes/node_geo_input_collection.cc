@@ -29,7 +29,8 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_INPUT_COLLECTION, NODE_CLASS_INPUT);
+  geo_node_type_base(
+      &ntype, "GeometryNodeInputCollection", GEO_NODE_INPUT_COLLECTION, NODE_CLASS_INPUT);
   ntype.ui_name = "Collection";
   ntype.ui_description = "Output a single collection";
   ntype.enum_name_legacy = "INPUT_COLLECTION";

@@ -386,7 +386,8 @@ void register_node_type_cmp_colorbalance()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_COLORBALANCE, NODE_CLASS_OP_COLOR);
+  cmp_node_type_base(
+      &ntype, "CompositorNodeColorBalance", CMP_NODE_COLORBALANCE, NODE_CLASS_OP_COLOR);
   ntype.ui_name = "Color Balance";
   ntype.ui_description = "Adjust color and values";
   ntype.enum_name_legacy = "COLORBALANCE";

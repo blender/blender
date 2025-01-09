@@ -177,7 +177,7 @@ void register_node_type_cmp_mask()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_MASK, NODE_CLASS_INPUT);
+  cmp_node_type_base(&ntype, "CompositorNodeMask", CMP_NODE_MASK, NODE_CLASS_INPUT);
   ntype.ui_name = "Mask";
   ntype.ui_description = "Input mask from a mask datablock, created in the image editor";
   ntype.enum_name_legacy = "MASK";

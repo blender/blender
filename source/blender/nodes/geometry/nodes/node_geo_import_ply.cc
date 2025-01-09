@@ -70,7 +70,7 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_IMPORT_PLY, NODE_CLASS_INPUT);
+  geo_node_type_base(&ntype, "GeometryNodeImportPLY", GEO_NODE_IMPORT_PLY, NODE_CLASS_INPUT);
   ntype.ui_name = "Import PLY";
   ntype.ui_description = "Import a point cloud from a PLY file";
   ntype.enum_name_legacy = "IMPORT_PLY";

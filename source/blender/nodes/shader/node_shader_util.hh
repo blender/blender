@@ -39,8 +39,11 @@ struct GPUMaterial;
 bool sh_node_poll_default(const blender::bke::bNodeType *ntype,
                           const bNodeTree *ntree,
                           const char **r_disabled_hint);
-void sh_node_type_base(blender::bke::bNodeType *ntype, int type, short nclass);
-void sh_fn_node_type_base(blender::bke::bNodeType *ntype, int type, short nclass);
+void sh_node_type_base(blender::bke::bNodeType *ntype, std::string idname, int type, short nclass);
+void sh_fn_node_type_base(blender::bke::bNodeType *ntype,
+                          std::string idname,
+                          int type,
+                          short nclass);
 bool line_style_shader_nodes_poll(const bContext *C);
 bool world_shader_nodes_poll(const bContext *C);
 bool object_shader_nodes_poll(const bContext *C);

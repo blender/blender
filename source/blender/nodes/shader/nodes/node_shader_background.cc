@@ -38,7 +38,7 @@ void register_node_type_sh_background()
 
   static blender::bke::bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_BACKGROUND, NODE_CLASS_SHADER);
+  sh_node_type_base(&ntype, "ShaderNodeBackground", SH_NODE_BACKGROUND, NODE_CLASS_SHADER);
   ntype.ui_name = "Background";
   ntype.ui_description =
       "Add background light emission.\nNote: This node should only be used for the world surface "

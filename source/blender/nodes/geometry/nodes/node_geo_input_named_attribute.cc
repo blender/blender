@@ -121,7 +121,8 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_INPUT_NAMED_ATTRIBUTE, NODE_CLASS_INPUT);
+  geo_node_type_base(
+      &ntype, "GeometryNodeInputNamedAttribute", GEO_NODE_INPUT_NAMED_ATTRIBUTE, NODE_CLASS_INPUT);
   ntype.ui_name = "Named Attribute";
   ntype.ui_description = "Retrieve the data of a specified attribute";
   ntype.enum_name_legacy = "INPUT_ATTRIBUTE";

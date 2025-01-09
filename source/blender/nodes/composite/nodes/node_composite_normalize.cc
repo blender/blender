@@ -114,7 +114,7 @@ void register_node_type_cmp_normalize()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_NORMALIZE, NODE_CLASS_OP_VECTOR);
+  cmp_node_type_base(&ntype, "CompositorNodeNormalize", CMP_NODE_NORMALIZE, NODE_CLASS_OP_VECTOR);
   ntype.ui_name = "Normalize";
   ntype.ui_description =
       "Map values to 0 to 1 range, based on the minimum and maximum pixel values";

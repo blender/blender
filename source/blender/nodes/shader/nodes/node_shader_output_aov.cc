@@ -59,7 +59,7 @@ void register_node_type_sh_output_aov()
 
   static blender::bke::bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_OUTPUT_AOV, NODE_CLASS_OUTPUT);
+  sh_node_type_base(&ntype, "ShaderNodeOutputAOV", SH_NODE_OUTPUT_AOV, NODE_CLASS_OUTPUT);
   ntype.ui_name = "AOV Output";
   ntype.ui_description =
       "Arbitrary Output Variables.\nProvide custom render passes for arbitrary shader node "

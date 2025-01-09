@@ -106,7 +106,8 @@ static void node_geo_exec(GeoNodeExecParams params)
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
-  geo_node_type_base(&ntype, GEO_NODE_SUBDIVIDE_CURVE, NODE_CLASS_GEOMETRY);
+  geo_node_type_base(
+      &ntype, "GeometryNodeSubdivideCurve", GEO_NODE_SUBDIVIDE_CURVE, NODE_CLASS_GEOMETRY);
   ntype.ui_name = "Subdivide Curve";
   ntype.ui_description = "Dividing each curve segment into a specified number of pieces";
   ntype.enum_name_legacy = "SUBDIVIDE_CURVE";

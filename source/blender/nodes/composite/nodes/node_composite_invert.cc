@@ -160,7 +160,7 @@ void register_node_type_cmp_invert()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_INVERT, NODE_CLASS_OP_COLOR);
+  cmp_node_type_base(&ntype, "CompositorNodeInvert", CMP_NODE_INVERT, NODE_CLASS_OP_COLOR);
   ntype.ui_name = "Invert Color";
   ntype.ui_description = "Invert colors, producing a negative";
   ntype.enum_name_legacy = "INVERT";

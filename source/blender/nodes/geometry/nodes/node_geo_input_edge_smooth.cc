@@ -21,7 +21,8 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_INPUT_EDGE_SMOOTH, NODE_CLASS_INPUT);
+  geo_node_type_base(
+      &ntype, "GeometryNodeInputEdgeSmooth", GEO_NODE_INPUT_EDGE_SMOOTH, NODE_CLASS_INPUT);
   ntype.ui_name = "Is Edge Smooth";
   ntype.ui_description = "Retrieve whether each edge is marked for smooth or split normals";
   ntype.enum_name_legacy = "INPUT_EDGE_SMOOTH";

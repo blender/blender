@@ -21,7 +21,7 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_INPUT_INDEX, NODE_CLASS_INPUT);
+  geo_node_type_base(&ntype, "GeometryNodeInputIndex", GEO_NODE_INPUT_INDEX, NODE_CLASS_INPUT);
   ntype.ui_name = "Index";
   ntype.ui_description =
       "Retrieve an integer value indicating the position of each element in the list, starting at "

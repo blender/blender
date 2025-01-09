@@ -556,7 +556,7 @@ void register_node_type_sh_vect_math()
 
   static blender::bke::bNodeType ntype;
 
-  sh_fn_node_type_base(&ntype, SH_NODE_VECTOR_MATH, NODE_CLASS_OP_VECTOR);
+  sh_fn_node_type_base(&ntype, "ShaderNodeVectorMath", SH_NODE_VECTOR_MATH, NODE_CLASS_OP_VECTOR);
   ntype.ui_name = "Vector Math";
   ntype.ui_description = "Perform vector math operation";
   ntype.enum_name_legacy = "VECT_MATH";

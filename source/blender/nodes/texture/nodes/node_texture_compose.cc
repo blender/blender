@@ -42,7 +42,7 @@ void register_node_type_tex_compose()
 {
   static blender::bke::bNodeType ntype;
 
-  tex_node_type_base(&ntype, TEX_NODE_COMPOSE_LEGACY, NODE_CLASS_OP_COLOR);
+  tex_node_type_base(&ntype, "TextureNodeCompose", TEX_NODE_COMPOSE_LEGACY, NODE_CLASS_OP_COLOR);
   ntype.ui_name = "Combine RGBA (Legacy)";
   ntype.enum_name_legacy = "COMPOSE";
   blender::bke::node_type_socket_templates(&ntype, inputs, outputs);

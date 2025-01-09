@@ -109,7 +109,7 @@ void register_node_type_cmp_texture()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_TEXTURE, NODE_CLASS_INPUT);
+  cmp_node_type_base(&ntype, "CompositorNodeTexture", CMP_NODE_TEXTURE, NODE_CLASS_INPUT);
   ntype.ui_name = "Texture";
   ntype.ui_description = "Generate texture pattern from texture datablock";
   ntype.enum_name_legacy = "TEXTURE";

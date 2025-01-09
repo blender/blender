@@ -82,7 +82,7 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_IMPORT_OBJ, NODE_CLASS_INPUT);
+  geo_node_type_base(&ntype, "GeometryNodeImportOBJ", GEO_NODE_IMPORT_OBJ, NODE_CLASS_INPUT);
   ntype.ui_name = "Import OBJ";
   ntype.ui_description = "Import geometry from an OBJ file";
   ntype.enum_name_legacy = "IMPORT_OBJ";

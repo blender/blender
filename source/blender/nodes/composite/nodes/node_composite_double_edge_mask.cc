@@ -320,7 +320,8 @@ void register_node_type_cmp_doubleedgemask()
 
   static blender::bke::bNodeType ntype; /* Allocate a node type data structure. */
 
-  cmp_node_type_base(&ntype, CMP_NODE_DOUBLEEDGEMASK, NODE_CLASS_MATTE);
+  cmp_node_type_base(
+      &ntype, "CompositorNodeDoubleEdgeMask", CMP_NODE_DOUBLEEDGEMASK, NODE_CLASS_MATTE);
   ntype.ui_name = "Double Edge Mask";
   ntype.ui_description = "Create a gradient between two masks";
   ntype.enum_name_legacy = "DOUBLE_EDGE_MASK";

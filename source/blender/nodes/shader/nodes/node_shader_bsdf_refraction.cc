@@ -72,7 +72,8 @@ void register_node_type_sh_bsdf_refraction()
 
   static blender::bke::bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_BSDF_REFRACTION, NODE_CLASS_SHADER);
+  sh_node_type_base(
+      &ntype, "ShaderNodeBsdfRefraction", SH_NODE_BSDF_REFRACTION, NODE_CLASS_SHADER);
   ntype.ui_name = "Refraction BSDF";
   ntype.ui_description =
       "Glossy refraction with sharp or microfacet distribution, typically used for materials that "

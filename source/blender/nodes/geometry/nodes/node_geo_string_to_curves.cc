@@ -378,7 +378,8 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_STRING_TO_CURVES, NODE_CLASS_GEOMETRY);
+  geo_node_type_base(
+      &ntype, "GeometryNodeStringToCurves", GEO_NODE_STRING_TO_CURVES, NODE_CLASS_GEOMETRY);
   ntype.ui_name = "String to Curves";
   ntype.ui_description =
       "Generate a paragraph of text with a specific font, using a curve instance to store each "

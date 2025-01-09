@@ -61,7 +61,8 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_CURVE_LENGTH, NODE_CLASS_GEOMETRY);
+  geo_node_type_base(
+      &ntype, "GeometryNodeCurveLength", GEO_NODE_CURVE_LENGTH, NODE_CLASS_GEOMETRY);
   ntype.ui_name = "Curve Length";
   ntype.ui_description = "Retrieve the length of all splines added together";
   ntype.enum_name_legacy = "CURVE_LENGTH";

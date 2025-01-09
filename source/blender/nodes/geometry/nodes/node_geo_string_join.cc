@@ -32,7 +32,7 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_STRING_JOIN, NODE_CLASS_CONVERTER);
+  geo_node_type_base(&ntype, "GeometryNodeStringJoin", GEO_NODE_STRING_JOIN, NODE_CLASS_CONVERTER);
   ntype.ui_name = "Join Strings";
   ntype.ui_description = "Combine any number of input strings";
   ntype.enum_name_legacy = "STRING_JOIN";

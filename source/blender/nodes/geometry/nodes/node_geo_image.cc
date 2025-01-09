@@ -30,7 +30,7 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_IMAGE, NODE_CLASS_INPUT);
+  geo_node_type_base(&ntype, "GeometryNodeInputImage", GEO_NODE_IMAGE, NODE_CLASS_INPUT);
   ntype.ui_name = "Image";
   ntype.ui_description = "Input an image data-block";
   ntype.enum_name_legacy = "IMAGE";

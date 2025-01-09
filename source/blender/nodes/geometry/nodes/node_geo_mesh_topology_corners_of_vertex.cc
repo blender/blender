@@ -197,7 +197,10 @@ static void node_geo_exec(GeoNodeExecParams params)
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
-  geo_node_type_base(&ntype, GEO_NODE_MESH_TOPOLOGY_CORNERS_OF_VERTEX, NODE_CLASS_INPUT);
+  geo_node_type_base(&ntype,
+                     "GeometryNodeCornersOfVertex",
+                     GEO_NODE_MESH_TOPOLOGY_CORNERS_OF_VERTEX,
+                     NODE_CLASS_INPUT);
   ntype.ui_name = "Corners of Vertex";
   ntype.ui_description = "Retrieve face corners connected to vertices";
   ntype.enum_name_legacy = "CORNERS_OF_VERTEX";

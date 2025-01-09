@@ -61,7 +61,7 @@ void register_node_type_cmp_switch()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_SWITCH, NODE_CLASS_CONVERTER);
+  cmp_node_type_base(&ntype, "CompositorNodeSwitch", CMP_NODE_SWITCH, NODE_CLASS_CONVERTER);
   ntype.ui_name = "Switch";
   ntype.ui_description = "Switch between two images using a checkbox";
   ntype.enum_name_legacy = "SWITCH";

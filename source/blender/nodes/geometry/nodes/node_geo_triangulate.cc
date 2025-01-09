@@ -154,7 +154,7 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_TRIANGULATE, NODE_CLASS_GEOMETRY);
+  geo_node_type_base(&ntype, "GeometryNodeTriangulate", GEO_NODE_TRIANGULATE, NODE_CLASS_GEOMETRY);
   ntype.ui_name = "Triangulate";
   ntype.ui_description = "Convert all faces in a mesh to triangular faces";
   ntype.enum_name_legacy = "TRIANGULATE";

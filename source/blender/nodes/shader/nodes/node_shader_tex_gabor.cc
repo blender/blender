@@ -207,7 +207,7 @@ void register_node_type_sh_tex_gabor()
 
   static blender::bke::bNodeType ntype;
 
-  sh_fn_node_type_base(&ntype, SH_NODE_TEX_GABOR, NODE_CLASS_TEXTURE);
+  sh_fn_node_type_base(&ntype, "ShaderNodeTexGabor", SH_NODE_TEX_GABOR, NODE_CLASS_TEXTURE);
   ntype.ui_name = "Gabor Texture";
   ntype.ui_description = "Generate Gabor noise";
   ntype.enum_name_legacy = "TEX_GABOR";

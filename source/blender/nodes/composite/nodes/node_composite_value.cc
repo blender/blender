@@ -50,7 +50,7 @@ void register_node_type_cmp_value()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_VALUE, NODE_CLASS_INPUT);
+  cmp_node_type_base(&ntype, "CompositorNodeValue", CMP_NODE_VALUE, NODE_CLASS_INPUT);
   ntype.ui_name = "Value";
   ntype.ui_description = "Input numerical values to other nodes in the node graph";
   ntype.enum_name_legacy = "VALUE";

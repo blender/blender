@@ -48,7 +48,10 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  fn_node_type_base(&ntype, FN_NODE_INPUT_SPECIAL_CHARACTERS, NODE_CLASS_INPUT);
+  fn_node_type_base(&ntype,
+                    "FunctionNodeInputSpecialCharacters",
+                    FN_NODE_INPUT_SPECIAL_CHARACTERS,
+                    NODE_CLASS_INPUT);
   ntype.ui_name = "Special Characters";
   ntype.enum_name_legacy = "INPUT_SPECIAL_CHARACTERS";
   ntype.declare = node_declare;

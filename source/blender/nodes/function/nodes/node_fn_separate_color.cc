@@ -215,7 +215,8 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  fn_node_type_base(&ntype, FN_NODE_SEPARATE_COLOR, NODE_CLASS_CONVERTER);
+  fn_node_type_base(
+      &ntype, "FunctionNodeSeparateColor", FN_NODE_SEPARATE_COLOR, NODE_CLASS_CONVERTER);
   ntype.ui_name = "Separate Color";
   ntype.enum_name_legacy = "SEPARATE_COLOR";
   ntype.declare = node_declare;

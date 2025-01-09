@@ -27,7 +27,8 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  fn_node_type_base(&ntype, FN_NODE_STRING_LENGTH, NODE_CLASS_CONVERTER);
+  fn_node_type_base(
+      &ntype, "FunctionNodeStringLength", FN_NODE_STRING_LENGTH, NODE_CLASS_CONVERTER);
   ntype.ui_name = "String Length";
   ntype.enum_name_legacy = "STRING_LENGTH";
   ntype.declare = node_declare;

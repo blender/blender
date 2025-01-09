@@ -1243,7 +1243,8 @@ static void node_rna(StructRNA *srna)
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
-  geo_node_type_base(&ntype, GEO_NODE_DUPLICATE_ELEMENTS, NODE_CLASS_GEOMETRY);
+  geo_node_type_base(
+      &ntype, "GeometryNodeDuplicateElements", GEO_NODE_DUPLICATE_ELEMENTS, NODE_CLASS_GEOMETRY);
   ntype.ui_name = "Duplicate Elements";
   ntype.ui_description = "Generate an arbitrary number copies of each selected input element";
   ntype.enum_name_legacy = "DUPLICATE_ELEMENTS";

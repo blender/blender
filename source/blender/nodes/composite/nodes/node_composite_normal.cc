@@ -95,7 +95,7 @@ void register_node_type_cmp_normal()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_NORMAL, NODE_CLASS_OP_VECTOR);
+  cmp_node_type_base(&ntype, "CompositorNodeNormal", CMP_NODE_NORMAL, NODE_CLASS_OP_VECTOR);
   ntype.ui_name = "Normal";
   ntype.ui_description = "Generate a normal vector and a dot product";
   ntype.enum_name_legacy = "NORMAL";

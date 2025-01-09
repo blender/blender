@@ -509,7 +509,7 @@ void register_node_type_cmp_image()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_IMAGE, NODE_CLASS_INPUT);
+  cmp_node_type_base(&ntype, "CompositorNodeImage", CMP_NODE_IMAGE, NODE_CLASS_INPUT);
   ntype.ui_name = "Image";
   ntype.ui_description = "Input image or movie file";
   ntype.enum_name_legacy = "IMAGE";
@@ -821,7 +821,7 @@ void register_node_type_cmp_rlayers()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_R_LAYERS, NODE_CLASS_INPUT);
+  cmp_node_type_base(&ntype, "CompositorNodeRLayers", CMP_NODE_R_LAYERS, NODE_CLASS_INPUT);
   ntype.ui_name = "Render Layers";
   ntype.ui_description = "Input render passes from a scene render";
   ntype.enum_name_legacy = "R_LAYERS";

@@ -610,7 +610,7 @@ void register_node_type_sh_mix()
   namespace file_ns = blender::nodes::node_sh_mix_cc;
 
   static blender::bke::bNodeType ntype;
-  sh_fn_node_type_base(&ntype, SH_NODE_MIX, NODE_CLASS_CONVERTER);
+  sh_fn_node_type_base(&ntype, "ShaderNodeMix", SH_NODE_MIX, NODE_CLASS_CONVERTER);
   ntype.ui_name = "Mix";
   ntype.ui_description = "Mix values by a factor";
   ntype.enum_name_legacy = "MIX";

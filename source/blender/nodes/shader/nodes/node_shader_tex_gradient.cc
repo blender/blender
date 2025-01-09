@@ -199,7 +199,7 @@ void register_node_type_sh_tex_gradient()
 
   static blender::bke::bNodeType ntype;
 
-  sh_fn_node_type_base(&ntype, SH_NODE_TEX_GRADIENT, NODE_CLASS_TEXTURE);
+  sh_fn_node_type_base(&ntype, "ShaderNodeTexGradient", SH_NODE_TEX_GRADIENT, NODE_CLASS_TEXTURE);
   ntype.ui_name = "Gradient Texture";
   ntype.ui_description =
       "Generate interpolated color and intensity values based on the input vector";

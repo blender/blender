@@ -61,7 +61,10 @@ static void node_geo_exec(GeoNodeExecParams params)
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
-  geo_node_type_base(&ntype, GEO_NODE_INPUT_MESH_EDGE_NEIGHBORS, NODE_CLASS_INPUT);
+  geo_node_type_base(&ntype,
+                     "GeometryNodeInputMeshEdgeNeighbors",
+                     GEO_NODE_INPUT_MESH_EDGE_NEIGHBORS,
+                     NODE_CLASS_INPUT);
   ntype.ui_name = "Edge Neighbors";
   ntype.ui_description = "Retrieve the number of faces that use each edge as one of their sides";
   ntype.enum_name_legacy = "MESH_EDGE_NEIGHBORS";

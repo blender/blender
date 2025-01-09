@@ -219,7 +219,8 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_POINTS_TO_VOLUME, NODE_CLASS_GEOMETRY);
+  geo_node_type_base(
+      &ntype, "GeometryNodePointsToVolume", GEO_NODE_POINTS_TO_VOLUME, NODE_CLASS_GEOMETRY);
   ntype.ui_name = "Points to Volume";
   ntype.ui_description = "Generate a fog volume sphere around every point";
   ntype.enum_name_legacy = "POINTS_TO_VOLUME";

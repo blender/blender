@@ -364,7 +364,7 @@ void register_node_type_cmp_inpaint()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_INPAINT, NODE_CLASS_OP_FILTER);
+  cmp_node_type_base(&ntype, "CompositorNodeInpaint", CMP_NODE_INPAINT, NODE_CLASS_OP_FILTER);
   ntype.ui_name = "Inpaint";
   ntype.ui_description = "Extend borders of an image into transparent or masked regions";
   ntype.enum_name_legacy = "INPAINT";

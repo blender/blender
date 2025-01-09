@@ -25,7 +25,8 @@ static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
-  fn_node_type_base(&ntype, FN_NODE_INVERT_ROTATION, NODE_CLASS_CONVERTER);
+  fn_node_type_base(
+      &ntype, "FunctionNodeInvertRotation", FN_NODE_INVERT_ROTATION, NODE_CLASS_CONVERTER);
   ntype.ui_name = "Invert Rotation";
   ntype.enum_name_legacy = "INVERT_ROTATION";
   ntype.declare = node_declare;

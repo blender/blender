@@ -47,7 +47,7 @@ void register_node_type_sh_hair_info()
 
   static blender::bke::bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_HAIR_INFO, NODE_CLASS_INPUT);
+  sh_node_type_base(&ntype, "ShaderNodeHairInfo", SH_NODE_HAIR_INFO, NODE_CLASS_INPUT);
   ntype.ui_name = "Curves Info";
   ntype.ui_description = "Retrieve hair curve information";
   ntype.enum_name_legacy = "HAIR_INFO";

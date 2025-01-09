@@ -197,7 +197,7 @@ void register_node_type_cmp_alphaover()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_ALPHAOVER, NODE_CLASS_OP_COLOR);
+  cmp_node_type_base(&ntype, "CompositorNodeAlphaOver", CMP_NODE_ALPHAOVER, NODE_CLASS_OP_COLOR);
   ntype.ui_name = "Alpha Over";
   ntype.ui_description = "Overlay a foreground image onto a background image";
   ntype.enum_name_legacy = "ALPHAOVER";

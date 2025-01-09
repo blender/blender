@@ -106,7 +106,7 @@ void register_node_type_cmp_curve_time()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_TIME, NODE_CLASS_INPUT);
+  cmp_node_type_base(&ntype, "CompositorNodeTime", CMP_NODE_TIME, NODE_CLASS_INPUT);
   ntype.ui_name = "Time Curve";
   ntype.ui_description =
       "Generate a factor value (from 0.0 to 1.0) between scene start and end time, using a curve "
@@ -222,7 +222,7 @@ void register_node_type_cmp_curve_vec()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_CURVE_VEC, NODE_CLASS_OP_VECTOR);
+  cmp_node_type_base(&ntype, "CompositorNodeCurveVec", CMP_NODE_CURVE_VEC, NODE_CLASS_OP_VECTOR);
   ntype.ui_name = "Vector Curves";
   ntype.ui_description = "Map input vector components with curves";
   ntype.enum_name_legacy = "CURVE_VEC";
@@ -395,7 +395,7 @@ void register_node_type_cmp_curve_rgb()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_CURVE_RGB, NODE_CLASS_OP_COLOR);
+  cmp_node_type_base(&ntype, "CompositorNodeCurveRGB", CMP_NODE_CURVE_RGB, NODE_CLASS_OP_COLOR);
   ntype.ui_name = "RGB Curves";
   ntype.ui_description = "Perform level adjustments on each color channel of an image";
   ntype.enum_name_legacy = "CURVE_RGB";

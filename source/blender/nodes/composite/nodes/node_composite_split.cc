@@ -149,7 +149,7 @@ void register_node_type_cmp_split()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_SPLIT, NODE_CLASS_CONVERTER);
+  cmp_node_type_base(&ntype, "CompositorNodeSplit", CMP_NODE_SPLIT, NODE_CLASS_CONVERTER);
   ntype.ui_name = "Split";
   ntype.ui_description =
       "Combine two images for side-by-side display. Typically used in combination with a Viewer "

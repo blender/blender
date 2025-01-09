@@ -77,7 +77,7 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_IMAGE_INFO, NODE_CLASS_INPUT);
+  geo_node_type_base(&ntype, "GeometryNodeImageInfo", GEO_NODE_IMAGE_INFO, NODE_CLASS_INPUT);
   ntype.ui_name = "Image Info";
   ntype.ui_description = "Retrieve information about an image";
   ntype.enum_name_legacy = "IMAGE_INFO";

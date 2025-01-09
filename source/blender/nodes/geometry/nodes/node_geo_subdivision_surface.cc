@@ -231,7 +231,8 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_SUBDIVISION_SURFACE, NODE_CLASS_GEOMETRY);
+  geo_node_type_base(
+      &ntype, "GeometryNodeSubdivisionSurface", GEO_NODE_SUBDIVISION_SURFACE, NODE_CLASS_GEOMETRY);
   ntype.ui_name = "Subdivision Surface";
   ntype.ui_description =
       "Divide mesh faces to form a smooth surface, using the Catmull-Clark subdivision method";

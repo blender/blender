@@ -162,7 +162,8 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_MESH_TO_VOLUME, NODE_CLASS_GEOMETRY);
+  geo_node_type_base(
+      &ntype, "GeometryNodeMeshToVolume", GEO_NODE_MESH_TO_VOLUME, NODE_CLASS_GEOMETRY);
   ntype.ui_name = "Mesh to Volume";
   ntype.ui_description = "Create a fog volume with the shape of the input mesh's surface";
   ntype.enum_name_legacy = "MESH_TO_VOLUME";

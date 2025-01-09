@@ -69,7 +69,8 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_SEPARATE_COMPONENTS, NODE_CLASS_GEOMETRY);
+  geo_node_type_base(
+      &ntype, "GeometryNodeSeparateComponents", GEO_NODE_SEPARATE_COMPONENTS, NODE_CLASS_GEOMETRY);
   ntype.ui_name = "Separate Components";
   ntype.ui_description =
       "Split a geometry into a separate output for each type of data in the geometry";

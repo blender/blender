@@ -118,7 +118,10 @@ static void node_geo_exec(GeoNodeExecParams params)
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
-  geo_node_type_base(&ntype, GEO_NODE_INPUT_CURVE_HANDLES, NODE_CLASS_INPUT);
+  geo_node_type_base(&ntype,
+                     "GeometryNodeInputCurveHandlePositions",
+                     GEO_NODE_INPUT_CURVE_HANDLES,
+                     NODE_CLASS_INPUT);
   ntype.ui_name = "Curve Handle Positions";
   ntype.ui_description = "Retrieve the position of each Bézier control point's handles";
   ntype.enum_name_legacy = "INPUT_CURVE_HANDLES";

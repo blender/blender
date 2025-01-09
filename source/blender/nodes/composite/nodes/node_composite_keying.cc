@@ -681,7 +681,7 @@ void register_node_type_cmp_keying()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_KEYING, NODE_CLASS_MATTE);
+  cmp_node_type_base(&ntype, "CompositorNodeKeying", CMP_NODE_KEYING, NODE_CLASS_MATTE);
   ntype.ui_name = "Keying";
   ntype.ui_description =
       "Perform both chroma keying (to remove the backdrop) and despill (to correct color cast "

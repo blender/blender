@@ -51,7 +51,7 @@ void register_node_type_sh_invert()
 
   static blender::bke::bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_INVERT, NODE_CLASS_OP_COLOR);
+  sh_node_type_base(&ntype, "ShaderNodeInvert", SH_NODE_INVERT, NODE_CLASS_OP_COLOR);
   ntype.ui_name = "Invert Color";
   ntype.ui_description = "Invert a color, producing a negative";
   ntype.enum_name_legacy = "INVERT";

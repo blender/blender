@@ -134,7 +134,8 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_STORE_NAMED_GRID, NODE_CLASS_GEOMETRY);
+  geo_node_type_base(
+      &ntype, "GeometryNodeStoreNamedGrid", GEO_NODE_STORE_NAMED_GRID, NODE_CLASS_GEOMETRY);
   ntype.ui_name = "Store Named Grid";
   ntype.ui_description = "Store grid data in a volume geometry with the specified name";
   ntype.enum_name_legacy = "STORE_NAMED_GRID";

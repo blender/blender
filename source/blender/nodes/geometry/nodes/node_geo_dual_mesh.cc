@@ -932,7 +932,7 @@ static void node_geo_exec(GeoNodeExecParams params)
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
-  geo_node_type_base(&ntype, GEO_NODE_DUAL_MESH, NODE_CLASS_GEOMETRY);
+  geo_node_type_base(&ntype, "GeometryNodeDualMesh", GEO_NODE_DUAL_MESH, NODE_CLASS_GEOMETRY);
   ntype.ui_name = "Dual Mesh";
   ntype.ui_description = "Convert Faces into vertices and vertices into faces";
   ntype.enum_name_legacy = "DUAL_MESH";

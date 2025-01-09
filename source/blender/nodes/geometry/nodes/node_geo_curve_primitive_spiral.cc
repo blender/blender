@@ -89,7 +89,8 @@ static void node_geo_exec(GeoNodeExecParams params)
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
-  geo_node_type_base(&ntype, GEO_NODE_CURVE_PRIMITIVE_SPIRAL, NODE_CLASS_GEOMETRY);
+  geo_node_type_base(
+      &ntype, "GeometryNodeCurveSpiral", GEO_NODE_CURVE_PRIMITIVE_SPIRAL, NODE_CLASS_GEOMETRY);
   ntype.ui_name = "Spiral";
   ntype.ui_description = "Generate a poly spline in a spiral shape";
   ntype.enum_name_legacy = "CURVE_PRIMITIVE_SPIRAL";

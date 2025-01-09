@@ -87,7 +87,8 @@ void register_node_type_cmp_switch_view()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_SWITCH_VIEW, NODE_CLASS_CONVERTER);
+  cmp_node_type_base(
+      &ntype, "CompositorNodeSwitchView", CMP_NODE_SWITCH_VIEW, NODE_CLASS_CONVERTER);
   ntype.ui_name = "Switch View";
   ntype.ui_description = "Combine the views (left and right) into a single stereo 3D output";
   ntype.enum_name_legacy = "VIEWSWITCH";

@@ -30,7 +30,7 @@ void register_node_type_sh_holdout()
 
   static blender::bke::bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_HOLDOUT, NODE_CLASS_SHADER);
+  sh_node_type_base(&ntype, "ShaderNodeHoldout", SH_NODE_HOLDOUT, NODE_CLASS_SHADER);
   ntype.ui_name = "Holdout";
   ntype.ui_description =
       "Create a \"hole\" in the image with zero alpha transparency, which is useful for "

@@ -143,7 +143,7 @@ void register_node_type_cmp_idmask()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_ID_MASK, NODE_CLASS_CONVERTER);
+  cmp_node_type_base(&ntype, "CompositorNodeIDMask", CMP_NODE_ID_MASK, NODE_CLASS_CONVERTER);
   ntype.ui_name = "ID Mask";
   ntype.ui_description = "Create a matte from an object or material index pass";
   ntype.enum_name_legacy = "ID_MASK";

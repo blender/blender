@@ -27,7 +27,8 @@ static void node_build_multi_function(NodeMultiFunctionBuilder &builder)
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
-  fn_node_type_base(&ntype, FN_NODE_PROJECT_POINT, NODE_CLASS_CONVERTER);
+  fn_node_type_base(
+      &ntype, "FunctionNodeProjectPoint", FN_NODE_PROJECT_POINT, NODE_CLASS_CONVERTER);
   ntype.ui_name = "Project Point";
   ntype.ui_description =
       "Project a point using a matrix, using location, rotation, scale, and perspective divide";

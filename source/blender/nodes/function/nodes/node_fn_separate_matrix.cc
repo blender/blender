@@ -275,7 +275,8 @@ static void node_eval_inverse(inverse_eval::InverseEvalParams &params)
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
-  fn_node_type_base(&ntype, FN_NODE_SEPARATE_MATRIX, NODE_CLASS_CONVERTER);
+  fn_node_type_base(
+      &ntype, "FunctionNodeSeparateMatrix", FN_NODE_SEPARATE_MATRIX, NODE_CLASS_CONVERTER);
   ntype.ui_name = "Separate Matrix";
   ntype.ui_description = "Split a 4x4 matrix into its individual values";
   ntype.enum_name_legacy = "SEPARATE_MATRIX";

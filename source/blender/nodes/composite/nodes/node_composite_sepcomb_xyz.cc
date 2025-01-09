@@ -71,7 +71,8 @@ void register_node_type_cmp_separate_xyz()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_SEPARATE_XYZ, NODE_CLASS_CONVERTER);
+  cmp_node_type_base(
+      &ntype, "CompositorNodeSeparateXYZ", CMP_NODE_SEPARATE_XYZ, NODE_CLASS_CONVERTER);
   ntype.ui_name = "Separate XYZ";
   ntype.ui_description = "Split a vector into its individual components";
   ntype.enum_name_legacy = "SEPARATE_XYZ";
@@ -131,7 +132,8 @@ void register_node_type_cmp_combine_xyz()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_COMBINE_XYZ, NODE_CLASS_CONVERTER);
+  cmp_node_type_base(
+      &ntype, "CompositorNodeCombineXYZ", CMP_NODE_COMBINE_XYZ, NODE_CLASS_CONVERTER);
   ntype.ui_name = "Combine XYZ";
   ntype.ui_description = "Combine a vector from its individual components";
   ntype.enum_name_legacy = "COMBINE_XYZ";

@@ -176,7 +176,8 @@ static void node_rna(StructRNA *srna)
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
-  fn_node_type_base(&ntype, FN_NODE_AXES_TO_ROTATION, NODE_CLASS_CONVERTER);
+  fn_node_type_base(
+      &ntype, "FunctionNodeAxesToRotation", FN_NODE_AXES_TO_ROTATION, NODE_CLASS_CONVERTER);
   ntype.ui_name = "Axes to Rotation";
   ntype.ui_description =
       "Create a rotation from a primary and (ideally orthogonal) secondary axis";

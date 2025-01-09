@@ -219,7 +219,7 @@ void register_node_type_cmp_displace()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_DISPLACE, NODE_CLASS_DISTORT);
+  cmp_node_type_base(&ntype, "CompositorNodeDisplace", CMP_NODE_DISPLACE, NODE_CLASS_DISTORT);
   ntype.ui_name = "Displace";
   ntype.ui_description = "Displace pixel position using an offset vector";
   ntype.enum_name_legacy = "DISPLACE";

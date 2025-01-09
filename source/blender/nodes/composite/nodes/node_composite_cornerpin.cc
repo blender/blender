@@ -264,7 +264,7 @@ void register_node_type_cmp_cornerpin()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, CMP_NODE_CORNERPIN, NODE_CLASS_DISTORT);
+  cmp_node_type_base(&ntype, "CompositorNodeCornerPin", CMP_NODE_CORNERPIN, NODE_CLASS_DISTORT);
   ntype.ui_name = "Corner Pin";
   ntype.ui_description = "Plane warp transformation using explicit corner values";
   ntype.enum_name_legacy = "CORNERPIN";

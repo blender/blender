@@ -43,7 +43,7 @@ void register_node_type_sh_camera()
 
   static blender::bke::bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_CAMERA, NODE_CLASS_INPUT);
+  sh_node_type_base(&ntype, "ShaderNodeCameraData", SH_NODE_CAMERA, NODE_CLASS_INPUT);
   ntype.ui_name = "Camera Data";
   ntype.ui_description =
       "Retrieve information about the camera and how it relates to the current shading point's "

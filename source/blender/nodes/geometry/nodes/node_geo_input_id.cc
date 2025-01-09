@@ -23,7 +23,7 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, GEO_NODE_INPUT_ID, NODE_CLASS_INPUT);
+  geo_node_type_base(&ntype, "GeometryNodeInputID", GEO_NODE_INPUT_ID, NODE_CLASS_INPUT);
   ntype.ui_name = "ID";
   ntype.ui_description =
       "Retrieve a stable random identifier value from the \"id\" attribute on the point domain, "

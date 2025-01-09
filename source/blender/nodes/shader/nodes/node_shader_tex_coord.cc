@@ -106,7 +106,7 @@ void register_node_type_sh_tex_coord()
 
   static blender::bke::bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_TEX_COORD, NODE_CLASS_INPUT);
+  sh_node_type_base(&ntype, "ShaderNodeTexCoord", SH_NODE_TEX_COORD, NODE_CLASS_INPUT);
   ntype.ui_name = "Texture Coordinate";
   ntype.ui_description =
       "Retrieve multiple types of texture coordinates.\nTypically used as inputs for texture "

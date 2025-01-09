@@ -33,7 +33,7 @@ void register_node_type_sh_shadertorgb()
 
   static blender::bke::bNodeType ntype;
 
-  sh_node_type_base(&ntype, SH_NODE_SHADERTORGB, NODE_CLASS_CONVERTER);
+  sh_node_type_base(&ntype, "ShaderNodeShaderToRGB", SH_NODE_SHADERTORGB, NODE_CLASS_CONVERTER);
   ntype.ui_name = "Shader to RGB";
   ntype.ui_description =
       "Convert rendering effect (such as light and shadow) to color. Typically used for "
