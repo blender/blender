@@ -1013,7 +1013,7 @@ static void node_property_update_default(Main *bmain, Scene * /*scene*/, Pointer
   bNodeTree *ntree = (bNodeTree *)ptr->owner_id;
   bNode *node = (bNode *)ptr->data;
   BKE_ntree_update_tag_node_property(ntree, node);
-  ED_node_tree_propagate_change(bmain, ntree);
+  ED_node_tree_propagate_change(*bmain);
 }
 
 static void node_socket_template_properties_update(blender::bke::bNodeType *ntype,

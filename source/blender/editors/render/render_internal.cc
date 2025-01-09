@@ -798,7 +798,7 @@ static void render_endjob(void *rjv)
 
   if (rj->single_layer) {
     BKE_ntree_update_tag_id_changed(rj->main, &rj->scene->id);
-    BKE_ntree_update_main(rj->main, nullptr);
+    BKE_ntree_update(*rj->main);
     WM_main_add_notifier(NC_NODE | NA_EDITED, rj->scene);
   }
 

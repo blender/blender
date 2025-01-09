@@ -254,7 +254,7 @@ static void rna_ImageUser_update(Main *bmain, Scene *scene, PointerRNA *ptr)
     if (GS(id->name) == ID_NT) {
       /* Special update for node-trees. */
       BKE_ntree_update_tag_image_user_changed((bNodeTree *)id, iuser);
-      ED_node_tree_propagate_change(bmain, nullptr);
+      ED_node_tree_propagate_change(*bmain);
     }
     else {
       /* Update material or texture for render preview. */

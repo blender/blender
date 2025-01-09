@@ -188,7 +188,7 @@ typedef struct bNodeSocket {
   /* XXX deprecated, only used for restoring old group node links */
   int to_index DNA_DEPRECATED;
 
-  /** A link pointer, set in #BKE_ntree_update_main. */
+  /** A link pointer, set in #BKE_ntree_update. */
   struct bNodeLink *link;
 
   /* XXX deprecated, socket input values are stored in default_value now.

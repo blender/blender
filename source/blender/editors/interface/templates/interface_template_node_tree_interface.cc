@@ -157,7 +157,7 @@ class NodeSocketViewItem : public BasicTreeViewItem {
 
     socket_.name = BLI_strdup(new_name.c_str());
     nodetree_.tree_interface.tag_items_changed();
-    ED_node_tree_propagate_change(CTX_data_main(&C), &nodetree_);
+    ED_node_tree_propagate_change(*CTX_data_main(&C), &nodetree_);
     ED_undo_push(&const_cast<bContext &>(C), new_name.c_str());
     return true;
   }
@@ -217,7 +217,7 @@ class NodePanelViewItem : public BasicTreeViewItem {
 
     panel_.name = BLI_strdup(new_name.c_str());
     nodetree_.tree_interface.tag_items_changed();
-    ED_node_tree_propagate_change(CTX_data_main(&C), &nodetree_);
+    ED_node_tree_propagate_change(*CTX_data_main(&C), &nodetree_);
     return true;
   }
   StringRef get_rename_string() const override
@@ -395,7 +395,7 @@ bool NodeSocketDropTarget::on_drop(bContext *C, const DragInfo &drag_info) const
   interface.move_item_to_parent(*drag_item, parent, index);
 
   /* General update */
-  ED_node_tree_propagate_change(CTX_data_main(C), &nodetree);
+  ED_node_tree_propagate_change(*CTX_data_main(C), &nodetree);
   ED_undo_push(C, "Insert node group item");
   return true;
 }
@@ -485,7 +485,7 @@ bool NodePanelDropTarget::on_drop(bContext *C, const DragInfo &drag_info) const
   interface.move_item_to_parent(*drag_item, parent, index);
 
   /* General update */
-  ED_node_tree_propagate_change(CTX_data_main(C), &nodetree);
+  ED_node_tree_propagate_change(*CTX_data_main(C), &nodetree);
   ED_undo_push(C, "Insert node group item");
   return true;
 }

@@ -86,7 +86,7 @@ bNode *add_node(const bContext &C, const StringRef idname, const float2 &locatio
   bke::node_set_selected(node, true);
   ED_node_set_active(&bmain, &snode, &node_tree, node, nullptr);
 
-  ED_node_tree_propagate_change(&bmain, &node_tree);
+  ED_node_tree_propagate_change(bmain, &node_tree);
   return node;
 }
 
@@ -106,7 +106,7 @@ bNode *add_static_node(const bContext &C, int type, const float2 &location)
   bke::node_set_selected(node, true);
   ED_node_set_active(&bmain, &snode, &node_tree, node, nullptr);
 
-  ED_node_tree_propagate_change(&bmain, &node_tree);
+  ED_node_tree_propagate_change(bmain, &node_tree);
   return node;
 }
 
@@ -223,7 +223,7 @@ static int add_reroute_exec(bContext *C, wmOperator *op)
     }
   }
 
-  ED_node_tree_propagate_change(CTX_data_main(C), &ntree);
+  ED_node_tree_propagate_change(*CTX_data_main(C), &ntree);
   return OPERATOR_FINISHED;
 }
 
@@ -329,7 +329,7 @@ static int node_add_group_exec(bContext *C, wmOperator *op)
   BKE_ntree_update_tag_node_property(snode->edittree, group_node);
 
   bke::node_set_active(ntree, group_node);
-  ED_node_tree_propagate_change(bmain, nullptr);
+  ED_node_tree_propagate_change(*bmain, nullptr);
   WM_event_add_notifier(C, NC_NODE | NA_ADDED, nullptr);
   DEG_relations_tag_update(bmain);
   return OPERATOR_FINISHED;
@@ -432,7 +432,7 @@ static bool add_node_group_asset(const bContext &C,
   BKE_ntree_update_tag_node_property(&edit_tree, group_node);
 
   bke::node_set_active(&edit_tree, group_node);
-  ED_node_tree_propagate_change(&bmain, nullptr);
+  ED_node_tree_propagate_change(bmain, nullptr);
   WM_event_add_notifier(&C, NC_NODE | NA_ADDED, nullptr);
   DEG_relations_tag_update(&bmain);
 
@@ -543,7 +543,7 @@ static int node_add_object_exec(bContext *C, wmOperator *op)
   BKE_ntree_update_tag_socket_property(ntree, sock);
 
   bke::node_set_active(ntree, object_node);
-  ED_node_tree_propagate_change(bmain, ntree);
+  ED_node_tree_propagate_change(*bmain, ntree);
   DEG_relations_tag_update(bmain);
 
   return OPERATOR_FINISHED;
@@ -630,7 +630,7 @@ static int node_add_collection_exec(bContext *C, wmOperator *op)
   BKE_ntree_update_tag_socket_property(&ntree, sock);
 
   bke::node_set_active(&ntree, collection_node);
-  ED_node_tree_propagate_change(bmain, &ntree);
+  ED_node_tree_propagate_change(*bmain, &ntree);
   DEG_relations_tag_update(bmain);
 
   return OPERATOR_FINISHED;
@@ -824,7 +824,7 @@ static int node_add_file_exec(bContext *C, wmOperator *op)
 
   ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
 
-  ED_node_tree_propagate_change(bmain, snode.edittree);
+  ED_node_tree_propagate_change(*bmain, snode.edittree);
   DEG_relations_tag_update(bmain);
 
   if (nodes.size() == 1) {
@@ -926,7 +926,7 @@ static int node_add_mask_exec(bContext *C, wmOperator *op)
   node->id = mask;
   id_us_plus(mask);
 
-  ED_node_tree_propagate_change(bmain, snode.edittree);
+  ED_node_tree_propagate_change(*bmain, snode.edittree);
   DEG_relations_tag_update(bmain);
 
   return OPERATOR_FINISHED;
@@ -979,7 +979,7 @@ static int node_add_material_exec(bContext *C, wmOperator *op)
   material_node->id = &material->id;
   id_us_plus(&material->id);
 
-  ED_node_tree_propagate_change(bmain, ntree);
+  ED_node_tree_propagate_change(*bmain, ntree);
   DEG_relations_tag_update(bmain);
 
   return OPERATOR_FINISHED;

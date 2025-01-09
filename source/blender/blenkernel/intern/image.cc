@@ -3386,7 +3386,7 @@ void BKE_image_signal(Main *bmain, Image *ima, ImageUser *iuser, int signal)
   BLI_mutex_unlock(static_cast<ThreadMutex *>(ima->runtime.cache_mutex));
 
   BKE_ntree_update_tag_id_changed(bmain, &ima->id);
-  BKE_ntree_update_main(bmain, nullptr);
+  BKE_ntree_update(*bmain);
 }
 
 /**

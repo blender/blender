@@ -115,7 +115,7 @@ void ED_node_set_active(
  *   for other things that have to be changed. It may still scan #bmain if the interface of the
  *   node tree has changed.
  */
-void ED_node_tree_propagate_change(Main *bmain, bNodeTree *ntree);
+void ED_node_tree_propagate_change(Main &bmain, bNodeTree *ntree = nullptr);
 
 /**
  * \param scene_owner: is the owner of the job,

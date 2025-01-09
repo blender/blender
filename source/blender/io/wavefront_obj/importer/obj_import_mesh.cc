@@ -373,7 +373,7 @@ static Material *get_or_create_material(Main *bmain,
 
   mat->use_nodes = true;
   mat->nodetree = create_mtl_node_tree(bmain, mtl, mat, relative_paths);
-  BKE_ntree_update_main_tree(bmain, mat->nodetree, nullptr);
+  BKE_ntree_update_after_single_tree_change(*bmain, *mat->nodetree);
 
   created_materials.add_new(name, mat);
   return mat;

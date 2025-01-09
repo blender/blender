@@ -2381,7 +2381,7 @@ static void node_panel_toggle_button_cb(bContext *C, void *panel_state_argv, voi
 
   panel_state->flag ^= NODE_PANEL_COLLAPSED;
 
-  ED_node_tree_propagate_change(bmain, ntree);
+  ED_node_tree_propagate_change(*bmain, ntree);
 }
 
 /* Draw panel backgrounds first, so other node elements can be rendered on top. */

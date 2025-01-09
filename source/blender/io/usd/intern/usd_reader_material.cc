@@ -542,7 +542,7 @@ void USDMaterialReader::import_usd_preview_nodes(Material *mtl,
 
   blender::bke::node_set_active(ntree, output);
 
-  BKE_ntree_update_main_tree(bmain_, ntree, nullptr);
+  BKE_ntree_update_after_single_tree_change(*bmain_, *ntree);
 
   /* Optionally, set the material blend mode. */
   if (params_.set_material_blend) {

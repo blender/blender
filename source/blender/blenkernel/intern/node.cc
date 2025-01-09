@@ -4251,7 +4251,7 @@ void node_tree_update_all_new(Main *main)
     }
   }
   FOREACH_NODETREE_END;
-  BKE_ntree_update_main(main, nullptr);
+  BKE_ntree_update(*main);
 }
 
 void node_tree_update_all_users(Main *main, ID *id)
@@ -4273,7 +4273,7 @@ void node_tree_update_all_users(Main *main, ID *id)
   }
   FOREACH_NODETREE_END;
   if (need_update) {
-    BKE_ntree_update_main(main, nullptr);
+    BKE_ntree_update(*main);
   }
 }
 

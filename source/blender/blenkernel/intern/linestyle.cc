@@ -1959,5 +1959,5 @@ void BKE_linestyle_default_shader(const bContext *C, FreestyleLineStyle *linesty
   tosock = static_cast<bNodeSocket *>(BLI_findlink(&output_linestyle->inputs, 0)); /* Color */
   blender::bke::node_add_link(ntree, input_texture, fromsock, output_linestyle, tosock);
 
-  BKE_ntree_update_main_tree(CTX_data_main(C), ntree, nullptr);
+  BKE_ntree_update_after_single_tree_change(*CTX_data_main(C), *ntree);
 }

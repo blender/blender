@@ -3947,7 +3947,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
       BKE_main_collections_parent_relations_rebuild(bfd->main);
 
       /* Update node trees after re-generating overrides. */
-      BKE_ntree_update_main(bfd->main, nullptr);
+      BKE_ntree_update(*bfd->main);
 
       fd->reports->duration.lib_overrides = BLI_time_now_seconds() -
                                             fd->reports->duration.lib_overrides;

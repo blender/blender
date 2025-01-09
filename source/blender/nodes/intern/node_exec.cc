@@ -153,7 +153,7 @@ bNodeTreeExec *ntree_exec_begin(bNodeExecContext *context,
   /* Using global main here is likely totally wrong, not sure what to do about that one though...
    * We cannot even check ntree is in global main,
    * since most of the time it won't be (thanks to ntree design)!!! */
-  BKE_ntree_update_main_tree(G.main, ntree, nullptr);
+  BKE_ntree_update_after_single_tree_change(*G.main, *ntree);
 
   ntree->ensure_topology_cache();
   const Span<bNode *> nodelist = ntree->toposort_left_to_right();

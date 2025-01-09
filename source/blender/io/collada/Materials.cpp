@@ -100,7 +100,7 @@ bNodeTree *MaterialNode::prepare_material_nodetree()
 
 void MaterialNode::update_material_nodetree()
 {
-  BKE_ntree_update_main_tree(CTX_data_main(mContext), ntree, nullptr);
+  BKE_ntree_update_after_single_tree_change(*CTX_data_main(mContext), *ntree);
 }
 
 bNode *MaterialNode::add_node(int node_type, int locx, int locy, std::string label)

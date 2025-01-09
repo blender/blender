@@ -214,7 +214,7 @@ void ntreeCompositTagRender(Scene *scene)
       }
     }
   }
-  BKE_ntree_update_main(G_MAIN, nullptr);
+  BKE_ntree_update(*G_MAIN);
 }
 
 void ntreeCompositClearTags(bNodeTree *ntree)

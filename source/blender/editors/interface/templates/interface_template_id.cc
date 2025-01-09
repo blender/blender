@@ -771,7 +771,7 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
           WM_event_add_notifier(C, NC_SPACE | ND_SPACE_OUTLINER, nullptr);
           DEG_relations_tag_update(bmain);
         }
-        ED_node_tree_propagate_change(CTX_data_main(C), nullptr);
+        ED_node_tree_propagate_change(*CTX_data_main(C));
         undo_push_label = "Make Single User";
       }
       break;
