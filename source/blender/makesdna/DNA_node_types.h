@@ -468,6 +468,16 @@ typedef struct bNode {
   bool is_group() const;
   bool is_group_input() const;
   bool is_group_output() const;
+
+  /**
+   * Check if the node has the given idname.
+   *
+   * Note: This function assumes that the given idname is a valid registered idname. This is done
+   * to catch typos earlier. One can compare with `bNodeType::idname` directly if the idname might
+   * not be registered.
+   */
+  bool is_type(blender::StringRef query_idname) const;
+
   const blender::nodes::NodeDeclaration *declaration() const;
   /** A span containing all internal links when the node is muted. */
   blender::Span<bNodeLink> internal_links() const;

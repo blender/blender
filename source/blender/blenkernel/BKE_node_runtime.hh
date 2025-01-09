@@ -812,6 +812,11 @@ inline bool bNode::is_group_output() const
   return this->type_legacy == NODE_GROUP_OUTPUT;
 }
 
+inline bool bNode::is_type(const blender::StringRef query_idname) const
+{
+  return this->typeinfo->is_type(query_idname);
+}
+
 inline blender::Span<bNodeLink> bNode::internal_links() const
 {
   return this->runtime->internal_links;

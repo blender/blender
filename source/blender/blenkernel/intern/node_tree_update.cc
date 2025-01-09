@@ -620,7 +620,7 @@ class NodeTreeMainUpdater {
       return true;
     }
     if (ntree.tree_interface.is_changed()) {
-      if (ELEM(node.type_legacy, NODE_GROUP_INPUT, NODE_GROUP_OUTPUT)) {
+      if (node.is_group_input() || node.is_group_output()) {
         return true;
       }
     }
@@ -718,11 +718,11 @@ class NodeTreeMainUpdater {
     int selected_priority = -1;
     bool selected_is_linked = false;
     const bNode &node = output_socket->owner_node();
-    if (node.type_legacy == GEO_NODE_BAKE) {
+    if (node.is_type("GeometryNodeBake")) {
       /* Internal links should always map corresponding input and output sockets. */
       return &node.input_by_identifier(output_socket->identifier);
     }
-    if (node.type_legacy == GEO_NODE_CAPTURE_ATTRIBUTE) {
+    if (node.is_type("GeometryNodeCaptureAttribute")) {
       return &node.input_socket(output_socket->index());
     }
     for (const bNodeSocket *input_socket : node.input_sockets()) {
@@ -791,7 +791,7 @@ class NodeTreeMainUpdater {
   {
     ntree.runtime->previews_refresh_state++;
     for (bNode *node : ntree.all_nodes()) {
-      if (node->type_legacy != NODE_GROUP) {
+      if (!node->is_group()) {
         continue;
       }
       if (bNodeTree *nested_tree = reinterpret_cast<bNodeTree *>(node->id)) {
@@ -907,7 +907,7 @@ class NodeTreeMainUpdater {
     for (bNode *node : ntree.toposort_right_to_left()) {
       const bool node_updated = this->should_update_individual_node(ntree, *node);
 
-      if (node->typeinfo->type_legacy == GEO_NODE_MENU_SWITCH) {
+      if (node->is_type("GeometryNodeMenuSwitch")) {
         /* Generate new enum items when the node has changed, otherwise keep existing items. */
         if (node_updated) {
           const NodeMenuSwitch &storage = *static_cast<NodeMenuSwitch *>(node->storage);
@@ -970,7 +970,7 @@ class NodeTreeMainUpdater {
           }
         }
       }
-      else if (node->type_legacy == GEO_NODE_MENU_SWITCH) {
+      else if (node->is_type("GeometryNodeMenuSwitch")) {
         /* First input is always the node's own menu, propagate only to the enum case inputs. */
         const bNodeSocket *output = node->output_sockets().first();
         for (bNodeSocket *input : node->input_sockets().drop_front(1)) {
@@ -981,7 +981,7 @@ class NodeTreeMainUpdater {
           }
         }
       }
-      else if (node->type_legacy == GEO_NODE_FOREACH_GEOMETRY_ELEMENT_INPUT) {
+      else if (node->is_type("GeometryNodeForeachGeometryElementInput")) {
         /* Propagate menu from element inputs to field inputs. */
         BLI_assert(node->input_sockets().size() == node->output_sockets().size());
         /* Inputs Geometry, Selection and outputs Index, Element are ignored. */
@@ -1320,17 +1320,17 @@ class NodeTreeMainUpdater {
     if (node.typeinfo->nclass == NODE_CLASS_OUTPUT) {
       return true;
     }
-    if (node.type_legacy == NODE_GROUP_OUTPUT) {
+    if (node.is_group_output()) {
       return true;
     }
-    if (node.type_legacy == GEO_NODE_WARNING) {
+    if (node.is_type("GeometryNodeWarning")) {
       return true;
     }
     if (nodes::gizmos::is_builtin_gizmo_node(node)) {
       return true;
     }
     /* Assume node groups without output sockets are outputs. */
-    if (node.type_legacy == NODE_GROUP) {
+    if (node.is_group()) {
       const bNodeTree *node_group = reinterpret_cast<const bNodeTree *>(node.id);
       if (node_group != nullptr &&
           node_group->runtime->runtime_flag & NTREE_RUNTIME_FLAG_HAS_MATERIAL_OUTPUT)
@@ -1434,7 +1434,7 @@ class NodeTreeMainUpdater {
         if (!all_available_inputs_computed) {
           continue;
         }
-        if (node.type_legacy == NODE_REROUTE) {
+        if (node.is_reroute()) {
           socket_hash = *hash_by_socket_id[node.input_socket(0).index_in_tree()];
         }
         else if (node.is_muted()) {
@@ -1462,7 +1462,7 @@ class NodeTreeMainUpdater {
 
           /* The Image Texture node has a special case. The behavior of the color output changes
            * depending on whether the Alpha output is linked. */
-          if (node.type_legacy == SH_NODE_TEX_IMAGE && socket.index() == 0) {
+          if (node.is_type("ShaderNodeTexImage") && socket.index() == 0) {
             BLI_assert(STREQ(socket.name, "Color"));
             const bNodeSocket &alpha_socket = node.output_socket(1);
             BLI_assert(STREQ(alpha_socket.name, "Alpha"));
@@ -1562,7 +1562,7 @@ class NodeTreeMainUpdater {
         }
         /* The Normal node has a special case, because the value stored in the first output
          * socket is used as input in the node. */
-        if (node.type_legacy == SH_NODE_NORMAL && socket.index() == 1) {
+        if (node.is_type("ShaderNodeNormal") && socket.index() == 1) {
           BLI_assert(STREQ(socket.name, "Dot"));
           const bNodeSocket &normal_output = node.output_socket(0);
           BLI_assert(STREQ(normal_output.name, "Normal"));

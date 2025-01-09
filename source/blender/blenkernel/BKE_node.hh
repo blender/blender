@@ -407,6 +407,15 @@ struct bNodeType {
 
   /* RNA integration */
   ExtensionRNA rna_ext = {};
+
+  /**
+   * Check if type has the given idname.
+   *
+   * Note: This function assumes that the given idname is a valid registered idname. This is done
+   * to catch typos earlier. One can compare with `bNodeType::idname` directly if the idname might
+   * not be registered.
+   */
+  bool is_type(StringRef query_idname) const;
 };
 
 /** #bNodeType.nclass (for add-menu and themes). */
@@ -1787,6 +1796,13 @@ Span<int> all_zone_node_types();
 Span<int> all_zone_input_node_types();
 Span<int> all_zone_output_node_types();
 const bNodeZoneType *zone_type_by_node_type(const int node_type);
+
+inline bool bNodeType::is_type(const StringRef query_idname) const
+{
+  /* Ensure that the given idname exists to check for typos. */
+  BLI_assert(node_type_find(query_idname) != nullptr);
+  return this->idname == query_idname;
+}
 
 }  // namespace blender::bke
 
