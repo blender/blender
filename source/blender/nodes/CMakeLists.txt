@@ -121,7 +121,6 @@ set(SRC
   NOD_socket_items_ops.hh
   NOD_socket_items_ui.hh
   NOD_socket_search_link.hh
-  NOD_static_types.h
   NOD_texture.h
   NOD_value_elem.hh
   NOD_value_elem_eval.hh
