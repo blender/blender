@@ -47,10 +47,7 @@ void *device_memory::host_alloc(const size_t size)
 
   void *ptr = util_aligned_malloc(size, MIN_ALIGNMENT_CPU_DATA_TYPES);
 
-  if (ptr) {
-    util_guarded_mem_alloc(size);
-  }
-  else {
+  if (ptr == nullptr) {
     throw std::bad_alloc();
   }
 
@@ -60,8 +57,7 @@ void *device_memory::host_alloc(const size_t size)
 void device_memory::host_free()
 {
   if (host_pointer) {
-    util_guarded_mem_free(memory_size());
-    util_aligned_free(host_pointer);
+    util_aligned_free(host_pointer, memory_size());
     host_pointer = nullptr;
   }
 }

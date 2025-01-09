@@ -15,7 +15,7 @@ CCL_NAMESPACE_BEGIN
 void *util_aligned_malloc(const size_t size, const int alignment);
 
 /* Free memory allocated by util_aligned_malloc. */
-void util_aligned_free(void *ptr);
+void util_aligned_free(void *ptr, const size_t size);
 
 /* Aligned new operator. */
 template<typename T, typename... Args> T *util_aligned_new(Args... args)
@@ -28,7 +28,7 @@ template<typename T> void util_aligned_delete(T *t)
 {
   if (t) {
     t->~T();
-    util_aligned_free(t);
+    util_aligned_free(t, sizeof(T));
   }
 }
 

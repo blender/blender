@@ -166,7 +166,7 @@ void CPUDevice::mem_free(device_memory &mem)
   }
   else if (mem.device_pointer) {
     if (mem.type == MEM_DEVICE_ONLY || !mem.host_pointer) {
-      util_aligned_free((void *)mem.device_pointer);
+      util_aligned_free((void *)mem.device_pointer, mem.memory_size());
     }
     mem.device_pointer = 0;
     stats.mem_free(mem.device_size);
