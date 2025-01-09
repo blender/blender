@@ -315,6 +315,7 @@ class Device {
 
   virtual void mem_alloc(device_memory &mem) = 0;
   virtual void mem_copy_to(device_memory &mem) = 0;
+  virtual void mem_move_to_host(device_memory &mem) = 0;
   virtual void mem_copy_from(
       device_memory &mem, const size_t y, size_t w, const size_t h, size_t elem) = 0;
   virtual void mem_zero(device_memory &mem) = 0;
@@ -379,8 +380,10 @@ class GPUDevice : public Device {
   size_t device_mem_in_use = 0;
 
   virtual void init_host_memory(const size_t preferred_texture_headroom = 0,
-                                size_t preferred_working_headroom = 0);
-  virtual void move_textures_to_host(const size_t size, bool for_texture);
+                                const size_t preferred_working_headroom = 0);
+  virtual void move_textures_to_host(const size_t size,
+                                     const size_t headroom,
+                                     const bool for_texture);
 
   /* Allocation, deallocation and copy functions, with corresponding
    * support of device/host allocations. */

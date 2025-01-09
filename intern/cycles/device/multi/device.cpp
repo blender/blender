@@ -340,7 +340,6 @@ class MultiDevice : public Device {
     device_ptr key = (existing_key) ? existing_key : unique_key++;
     size_t existing_size = mem.device_size;
 
-    /* The tile buffers are allocated on each device (see below), so copy to all of them */
     for (const vector<SubDevice *> &island : peer_islands) {
       SubDevice *owner_sub = find_suitable_mem_device(existing_key, island);
       mem.device = owner_sub->device.get();
@@ -355,6 +354,36 @@ class MultiDevice : public Device {
         for (SubDevice *island_sub : island) {
           if (island_sub != owner_sub) {
             island_sub->device->mem_copy_to(mem);
+          }
+        }
+      }
+    }
+
+    mem.device = this;
+    mem.device_pointer = key;
+    stats.mem_alloc(mem.device_size - existing_size);
+  }
+
+  void mem_move_to_host(device_memory &mem) override
+  {
+    device_ptr existing_key = mem.device_pointer;
+    device_ptr key = (existing_key) ? existing_key : unique_key++;
+    size_t existing_size = mem.device_size;
+
+    for (const vector<SubDevice *> &island : peer_islands) {
+      SubDevice *owner_sub = find_suitable_mem_device(existing_key, island);
+      mem.device = owner_sub->device.get();
+      mem.device_pointer = (existing_key) ? owner_sub->ptr_map[existing_key] : 0;
+      mem.device_size = existing_size;
+
+      owner_sub->device->mem_move_to_host(mem);
+      owner_sub->ptr_map[key] = mem.device_pointer;
+
+      if (mem.type == MEM_GLOBAL || mem.type == MEM_TEXTURE) {
+        /* Need to create texture objects and update pointer in kernel globals on all devices */
+        for (SubDevice *island_sub : island) {
+          if (island_sub != owner_sub) {
+            island_sub->device->mem_move_to_host(mem);
           }
         }
       }

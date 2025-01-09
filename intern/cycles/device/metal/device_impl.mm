@@ -772,46 +772,48 @@ void MetalDevice::generic_copy_to(device_memory &mem)
 
 void MetalDevice::generic_free(device_memory &mem)
 {
-  if (mem.device_pointer) {
-    std::lock_guard<std::recursive_mutex> lock(metal_mem_map_mutex);
-    MetalMem &mmem = *metal_mem_map.at(&mem);
-    size_t size = mmem.size;
-
-    /* If mmem.use_uma is true, reference counting is used
-     * to safely free memory. */
-
-    bool free_mtlBuffer = false;
-
-    if (mmem.use_UMA) {
-      assert(mem.shared_pointer);
-      if (mem.shared_pointer) {
-        assert(mem.shared_counter > 0);
-        if (--mem.shared_counter == 0) {
-          free_mtlBuffer = true;
-        }
-      }
-    }
-    else {
-      free_mtlBuffer = true;
-    }
-
-    if (free_mtlBuffer) {
-      if (mem.host_pointer && mem.host_pointer == mem.shared_pointer) {
-        /* Safely move the device-side data back to the host before it is freed. */
-        mem.host_pointer = mem.host_alloc(size);
-        memcpy(mem.host_pointer, mem.shared_pointer, size);
-        mmem.use_UMA = false;
-      }
-
-      mem.shared_pointer = nullptr;
-
-      /* Free device memory. */
-      delayed_free_list.push_back(mmem.mtlBuffer);
-      mmem.mtlBuffer = nil;
-    }
-
-    erase_allocation(mem);
+  if (!mem.device_pointer) {
+    return;
   }
+
+  std::lock_guard<std::recursive_mutex> lock(metal_mem_map_mutex);
+  MetalMem &mmem = *metal_mem_map.at(&mem);
+  size_t size = mmem.size;
+
+  /* If mmem.use_uma is true, reference counting is used
+   * to safely free memory. */
+
+  bool free_mtlBuffer = false;
+
+  if (mmem.use_UMA) {
+    assert(mem.shared_pointer);
+    if (mem.shared_pointer) {
+      assert(mem.shared_counter > 0);
+      if (--mem.shared_counter == 0) {
+        free_mtlBuffer = true;
+      }
+    }
+  }
+  else {
+    free_mtlBuffer = true;
+  }
+
+  if (free_mtlBuffer) {
+    if (mem.host_pointer && mem.host_pointer == mem.shared_pointer) {
+      /* Safely move the device-side data back to the host before it is freed. */
+      mem.host_pointer = mem.host_alloc(size);
+      memcpy(mem.host_pointer, mem.shared_pointer, size);
+      mmem.use_UMA = false;
+    }
+
+    mem.shared_pointer = nullptr;
+
+    /* Free device memory. */
+    delayed_free_list.push_back(mmem.mtlBuffer);
+    mmem.mtlBuffer = nil;
+  }
+
+  erase_allocation(mem);
 }
 
 void MetalDevice::mem_alloc(device_memory &mem)
@@ -829,20 +831,35 @@ void MetalDevice::mem_alloc(device_memory &mem)
 
 void MetalDevice::mem_copy_to(device_memory &mem)
 {
-  if (mem.type == MEM_GLOBAL) {
-    global_free(mem);
-    global_alloc(mem);
-  }
-  else if (mem.type == MEM_TEXTURE) {
-    tex_free((device_texture &)mem);
-    tex_alloc((device_texture &)mem);
-  }
-  else {
-    if (!mem.device_pointer) {
-      generic_alloc(mem);
+  if (!mem.device_pointer) {
+    if (mem.type == MEM_GLOBAL) {
+      global_alloc(mem);
     }
-    generic_copy_to(mem);
+    else if (mem.type == MEM_TEXTURE) {
+      tex_alloc((device_texture &)mem);
+    }
+    else {
+      generic_alloc(mem);
+      generic_copy_to(mem);
+    }
   }
+  else if (mem.is_resident(this)) {
+    if (mem.type == MEM_GLOBAL) {
+      generic_copy_to(mem);
+    }
+    else if (mem.type == MEM_TEXTURE) {
+      tex_copy_to((device_texture &)mem);
+    }
+    else {
+      generic_copy_to(mem);
+    }
+  }
+}
+
+void MetalDevice::mem_move_to_host(device_memory & /*mem*/)
+{
+  /* Metal implements own mechanism for moving host memory. */
+  assert(0);
 }
 
 void MetalDevice::mem_copy_from(
@@ -1116,7 +1133,6 @@ void MetalDevice::tex_alloc(device_texture &mem)
     }
 
     /* General variables for both architectures */
-    size_t dsize = datatype_size(mem.data_type);
     size_t size = mem.memory_size();
 
     /* sampler_index maps into the GPU's constant 'metal_samplers' array */
@@ -1178,7 +1194,7 @@ void MetalDevice::tex_alloc(device_texture &mem)
     assert(format != MTLPixelFormatInvalid);
 
     id<MTLTexture> mtlTexture = nil;
-    size_t src_pitch = mem.data_width * dsize * mem.data_elements;
+    size_t src_pitch = mem.data_width * datatype_size(mem.data_type) * mem.data_elements;
 
     if (mem.data_depth > 1) {
       /* 3D texture using array */
@@ -1305,6 +1321,45 @@ void MetalDevice::tex_alloc(device_texture &mem)
 
     if (max_working_set_exceeded()) {
       set_error("System is out of GPU memory");
+    }
+  }
+}
+
+void MetalDevice::tex_copy_to(device_texture &mem)
+{
+  if (mem.is_resident(this)) {
+    const size_t src_pitch = mem.data_width * datatype_size(mem.data_type) * mem.data_elements;
+
+    if (mem.data_depth > 0) {
+      id<MTLTexture> mtlTexture;
+      {
+        std::lock_guard<std::recursive_mutex> lock(metal_mem_map_mutex);
+        mtlTexture = metal_mem_map.at(&mem)->mtlTexture;
+      }
+      const size_t imageBytes = src_pitch * mem.data_height;
+      for (size_t d = 0; d < mem.data_depth; d++) {
+        const size_t offset = d * imageBytes;
+        [mtlTexture replaceRegion:MTLRegionMake3D(0, 0, d, mem.data_width, mem.data_height, 1)
+                      mipmapLevel:0
+                            slice:0
+                        withBytes:(uint8_t *)mem.host_pointer + offset
+                      bytesPerRow:src_pitch
+                    bytesPerImage:0];
+      }
+    }
+    else if (mem.data_height > 0) {
+      id<MTLTexture> mtlTexture;
+      {
+        std::lock_guard<std::recursive_mutex> lock(metal_mem_map_mutex);
+        mtlTexture = metal_mem_map.at(&mem)->mtlTexture;
+      }
+      [mtlTexture replaceRegion:MTLRegionMake2D(0, 0, mem.data_width, mem.data_height)
+                    mipmapLevel:0
+                      withBytes:mem.host_pointer
+                    bytesPerRow:src_pitch];
+    }
+    else {
+      generic_copy_to(mem);
     }
   }
 }

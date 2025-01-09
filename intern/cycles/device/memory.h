@@ -288,6 +288,7 @@ class device_memory {
   void device_alloc();
   void device_free();
   void device_copy_to();
+  void device_move_to_host();
   void device_copy_from(const size_t y, const size_t w, size_t h, const size_t elem);
   void device_zero();
 

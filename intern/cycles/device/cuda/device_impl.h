@@ -74,6 +74,8 @@ class CUDADevice : public GPUDevice {
 
   void mem_copy_to(device_memory &mem) override;
 
+  void mem_move_to_host(device_memory &mem) override;
+
   void mem_copy_from(
       device_memory &mem, const size_t y, size_t w, const size_t h, size_t elem) override;
 
@@ -86,11 +88,11 @@ class CUDADevice : public GPUDevice {
   void const_copy_to(const char *name, void *host, const size_t size) override;
 
   void global_alloc(device_memory &mem);
-
+  void global_copy_to(device_memory &mem);
   void global_free(device_memory &mem);
 
   void tex_alloc(device_texture &mem);
-
+  void tex_copy_to(device_texture &mem);
   void tex_free(device_texture &mem);
 
   bool should_use_graphics_interop() override;

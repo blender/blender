@@ -614,7 +614,7 @@ void GPUDevice::move_textures_to_host(size_t size, bool for_texture)
        * devices as well, which is potentially dangerous when still in use (since
        * a thread rendering on another devices would only be caught in this mutex
        * if it so happens to do an allocation at the same time as well. */
-      max_mem->device_copy_to();
+      max_mem->device_move_to_host();
       size = (max_size >= size) ? 0 : size - max_size;
 
       any_device_moving_textures_to_host = false;
@@ -758,40 +758,42 @@ GPUDevice::Mem *GPUDevice::generic_alloc(device_memory &mem, const size_t pitch_
 
 void GPUDevice::generic_free(device_memory &mem)
 {
-  if (mem.device_pointer) {
-    const thread_scoped_lock lock(device_mem_map_mutex);
-    DCHECK(device_mem_map.find(&mem) != device_mem_map.end());
-    const Mem &cmem = device_mem_map[&mem];
-
-    /* If cmem.use_mapped_host is true, reference counting is used
-     * to safely free a mapped host memory. */
-
-    if (cmem.use_mapped_host) {
-      assert(mem.shared_pointer);
-      if (mem.shared_pointer) {
-        assert(mem.shared_counter > 0);
-        if (--mem.shared_counter == 0) {
-          if (mem.host_pointer == mem.shared_pointer) {
-            mem.host_pointer = nullptr;
-          }
-          free_host(mem.shared_pointer);
-          mem.shared_pointer = nullptr;
-        }
-      }
-      map_host_used -= mem.device_size;
-    }
-    else {
-      /* Free device memory. */
-      free_device((void *)mem.device_pointer);
-      device_mem_in_use -= mem.device_size;
-    }
-
-    stats.mem_free(mem.device_size);
-    mem.device_pointer = 0;
-    mem.device_size = 0;
-
-    device_mem_map.erase(device_mem_map.find(&mem));
+  if (!(mem.device_pointer && mem.is_resident(this))) {
+    return;
   }
+
+  const thread_scoped_lock lock(device_mem_map_mutex);
+  DCHECK(device_mem_map.find(&mem) != device_mem_map.end());
+  const Mem &cmem = device_mem_map[&mem];
+
+  /* If cmem.use_mapped_host is true, reference counting is used
+   * to safely free a mapped host memory. */
+
+  if (cmem.use_mapped_host) {
+    assert(mem.shared_pointer);
+    if (mem.shared_pointer) {
+      assert(mem.shared_counter > 0);
+      if (--mem.shared_counter == 0) {
+        if (mem.host_pointer == mem.shared_pointer) {
+          mem.host_pointer = nullptr;
+        }
+        free_host(mem.shared_pointer);
+        mem.shared_pointer = nullptr;
+      }
+    }
+    map_host_used -= mem.device_size;
+  }
+  else {
+    /* Free device memory. */
+    free_device((void *)mem.device_pointer);
+    device_mem_in_use -= mem.device_size;
+  }
+
+  stats.mem_free(mem.device_size);
+  mem.device_pointer = 0;
+  mem.device_size = 0;
+
+  device_mem_map.erase(device_mem_map.find(&mem));
 }
 
 void GPUDevice::generic_copy_to(device_memory &mem)

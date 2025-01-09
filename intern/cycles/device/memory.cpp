@@ -82,6 +82,13 @@ void device_memory::device_copy_to()
   }
 }
 
+void device_memory::device_move_to_host()
+{
+  if (host_pointer) {
+    device->mem_move_to_host(*this);
+  }
+}
+
 void device_memory::device_copy_from(const size_t y, const size_t w, size_t h, const size_t elem)
 {
   assert(type != MEM_TEXTURE && type != MEM_READ_ONLY && type != MEM_GLOBAL);

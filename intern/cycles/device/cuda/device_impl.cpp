@@ -583,6 +583,25 @@ void CUDADevice::mem_alloc(device_memory &mem)
 void CUDADevice::mem_copy_to(device_memory &mem)
 {
   if (mem.type == MEM_GLOBAL) {
+    global_copy_to(mem);
+  }
+  else if (mem.type == MEM_TEXTURE) {
+    tex_copy_to((device_texture &)mem);
+  }
+  else {
+    if (!mem.device_pointer) {
+      generic_alloc(mem);
+      generic_copy_to(mem);
+    }
+    else if (mem.is_resident(this)) {
+      generic_copy_to(mem);
+    }
+  }
+}
+
+void CUDADevice::mem_move_to_host(device_memory &mem)
+{
+  if (mem.type == MEM_GLOBAL) {
     global_free(mem);
     global_alloc(mem);
   }
@@ -591,10 +610,7 @@ void CUDADevice::mem_copy_to(device_memory &mem)
     tex_alloc((device_texture &)mem);
   }
   else {
-    if (!mem.device_pointer) {
-      generic_alloc(mem);
-    }
-    generic_copy_to(mem);
+    assert(0);
   }
 }
 
@@ -689,6 +705,19 @@ void CUDADevice::global_alloc(device_memory &mem)
   const_copy_to(mem.name, &mem.device_pointer, sizeof(mem.device_pointer));
 }
 
+void CUDADevice::global_copy_to(device_memory &mem)
+{
+  if (!mem.device_pointer) {
+    generic_alloc(mem);
+    generic_copy_to(mem);
+  }
+  else if (mem.is_resident(this)) {
+    generic_copy_to(mem);
+  }
+
+  const_copy_to(mem.name, &mem.device_pointer, sizeof(mem.device_pointer));
+}
+
 void CUDADevice::global_free(device_memory &mem)
 {
   if (mem.is_resident(this) && mem.device_pointer) {
@@ -696,12 +725,52 @@ void CUDADevice::global_free(device_memory &mem)
   }
 }
 
+static size_t tex_src_pitch(const device_texture &mem)
+{
+  return mem.data_width * datatype_size(mem.data_type) * mem.data_elements;
+}
+
+static CUDA_MEMCPY2D tex_2d_copy_param(const device_texture &mem, const int pitch_alignment)
+{
+  /* 2D texture using pitch aligned linear memory. */
+  const size_t src_pitch = tex_src_pitch(mem);
+  const size_t dst_pitch = align_up(src_pitch, pitch_alignment);
+
+  CUDA_MEMCPY2D param;
+  memset(&param, 0, sizeof(param));
+  param.dstMemoryType = CU_MEMORYTYPE_DEVICE;
+  param.dstDevice = mem.device_pointer;
+  param.dstPitch = dst_pitch;
+  param.srcMemoryType = CU_MEMORYTYPE_HOST;
+  param.srcHost = mem.host_pointer;
+  param.srcPitch = src_pitch;
+  param.WidthInBytes = param.srcPitch;
+  param.Height = mem.data_height;
+
+  return param;
+}
+
+static CUDA_MEMCPY3D tex_3d_copy_param(const device_texture &mem)
+{
+  const size_t src_pitch = tex_src_pitch(mem);
+
+  CUDA_MEMCPY3D param;
+  memset(&param, 0, sizeof(param));
+  param.dstMemoryType = CU_MEMORYTYPE_ARRAY;
+  param.dstArray = (CUarray)mem.device_pointer;
+  param.srcMemoryType = CU_MEMORYTYPE_HOST;
+  param.srcHost = mem.host_pointer;
+  param.srcPitch = src_pitch;
+  param.WidthInBytes = param.srcPitch;
+  param.Height = mem.data_height;
+  param.Depth = mem.data_depth;
+
+  return param;
+}
+
 void CUDADevice::tex_alloc(device_texture &mem)
 {
   CUDAContextScope scope(this);
-
-  size_t dsize = datatype_size(mem.data_type);
-  size_t size = mem.memory_size();
 
   CUaddress_mode address_mode = CU_TR_ADDRESS_MODE_WRAP;
   switch (mem.info.extension) {
@@ -761,8 +830,6 @@ void CUDADevice::tex_alloc(device_texture &mem)
 
   Mem *cmem = nullptr;
   CUarray array_3d = nullptr;
-  size_t src_pitch = mem.data_width * dsize * mem.data_elements;
-  size_t dst_pitch = src_pitch;
 
   if (!mem.is_resident(this)) {
     thread_scoped_lock lock(device_mem_map_mutex);
@@ -772,9 +839,6 @@ void CUDADevice::tex_alloc(device_texture &mem)
     if (mem.data_depth > 1) {
       array_3d = (CUarray)mem.device_pointer;
       cmem->array = reinterpret_cast<arrayMemObject>(array_3d);
-    }
-    else if (mem.data_height > 0) {
-      dst_pitch = align_up(src_pitch, pitch_alignment);
     }
   }
   else if (mem.data_depth > 1) {
@@ -798,22 +862,12 @@ void CUDADevice::tex_alloc(device_texture &mem)
       return;
     }
 
-    CUDA_MEMCPY3D param;
-    memset(&param, 0, sizeof(param));
-    param.dstMemoryType = CU_MEMORYTYPE_ARRAY;
-    param.dstArray = array_3d;
-    param.srcMemoryType = CU_MEMORYTYPE_HOST;
-    param.srcHost = mem.host_pointer;
-    param.srcPitch = src_pitch;
-    param.WidthInBytes = param.srcPitch;
-    param.Height = mem.data_height;
-    param.Depth = mem.data_depth;
-
-    cuda_assert(cuMemcpy3D(&param));
-
     mem.device_pointer = (device_ptr)array_3d;
-    mem.device_size = size;
-    stats.mem_alloc(size);
+    mem.device_size = mem.memory_size();
+    stats.mem_alloc(mem.memory_size());
+
+    const CUDA_MEMCPY3D param = tex_3d_copy_param(mem);
+    cuda_assert(cuMemcpy3D(&param));
 
     thread_scoped_lock lock(device_mem_map_mutex);
     cmem = &device_mem_map[&mem];
@@ -822,25 +876,15 @@ void CUDADevice::tex_alloc(device_texture &mem)
   }
   else if (mem.data_height > 0) {
     /* 2D texture, using pitch aligned linear memory. */
-    dst_pitch = align_up(src_pitch, pitch_alignment);
-    size_t dst_size = dst_pitch * mem.data_height;
+    const size_t dst_pitch = align_up(tex_src_pitch(mem), pitch_alignment);
+    const size_t dst_size = dst_pitch * mem.data_height;
 
     cmem = generic_alloc(mem, dst_size - mem.memory_size());
     if (!cmem) {
       return;
     }
 
-    CUDA_MEMCPY2D param;
-    memset(&param, 0, sizeof(param));
-    param.dstMemoryType = CU_MEMORYTYPE_DEVICE;
-    param.dstDevice = mem.device_pointer;
-    param.dstPitch = dst_pitch;
-    param.srcMemoryType = CU_MEMORYTYPE_HOST;
-    param.srcHost = mem.host_pointer;
-    param.srcPitch = src_pitch;
-    param.WidthInBytes = param.srcPitch;
-    param.Height = mem.data_height;
-
+    const CUDA_MEMCPY2D param = tex_2d_copy_param(mem, pitch_alignment);
     cuda_assert(cuMemcpy2DUnaligned(&param));
   }
   else {
@@ -850,7 +894,7 @@ void CUDADevice::tex_alloc(device_texture &mem)
       return;
     }
 
-    cuda_assert(cuMemcpyHtoD(mem.device_pointer, mem.host_pointer, size));
+    cuda_assert(cuMemcpyHtoD(mem.device_pointer, mem.host_pointer, mem.memory_size()));
   }
 
   /* Resize once */
@@ -879,6 +923,8 @@ void CUDADevice::tex_alloc(device_texture &mem)
       resDesc.flags = 0;
     }
     else if (mem.data_height > 0) {
+      const size_t dst_pitch = align_up(tex_src_pitch(mem), pitch_alignment);
+
       resDesc.resType = CU_RESOURCE_TYPE_PITCH2D;
       resDesc.res.pitch2D.devPtr = mem.device_pointer;
       resDesc.res.pitch2D.format = format;
@@ -917,36 +963,73 @@ void CUDADevice::tex_alloc(device_texture &mem)
   }
 }
 
-void CUDADevice::tex_free(device_texture &mem)
+void CUDADevice::tex_copy_to(device_texture &mem)
 {
-  if (mem.device_pointer) {
-    CUDAContextScope scope(this);
-    thread_scoped_lock lock(device_mem_map_mutex);
-    DCHECK(device_mem_map.find(&mem) != device_mem_map.end());
-    const Mem &cmem = device_mem_map[&mem];
-
-    if (cmem.texobject) {
-      /* Free bindless texture. */
-      cuTexObjectDestroy(cmem.texobject);
+  if (!mem.device_pointer) {
+    /* Not yet allocated on device. */
+    tex_alloc(mem);
+  }
+  else if (!mem.is_resident(this)) {
+    /* Peering with another device, may still need to create texture info and object. */
+    if (texture_info[mem.slot].data == 0) {
+      tex_alloc(mem);
     }
-
-    if (!mem.is_resident(this)) {
-      /* Do not free memory here, since it was allocated on a different device. */
-      device_mem_map.erase(device_mem_map.find(&mem));
+  }
+  else {
+    /* Resident and fully allocated, only copy. */
+    if (mem.data_depth > 0) {
+      CUDAContextScope scope(this);
+      const CUDA_MEMCPY3D param = tex_3d_copy_param(mem);
+      cuda_assert(cuMemcpy3D(&param));
     }
-    else if (cmem.array) {
-      /* Free array. */
-      cuArrayDestroy(reinterpret_cast<CUarray>(cmem.array));
-      stats.mem_free(mem.device_size);
-      mem.device_pointer = 0;
-      mem.device_size = 0;
-
-      device_mem_map.erase(device_mem_map.find(&mem));
+    else if (mem.data_height > 0) {
+      CUDAContextScope scope(this);
+      const CUDA_MEMCPY2D param = tex_2d_copy_param(mem, pitch_alignment);
+      cuda_assert(cuMemcpy2DUnaligned(&param));
     }
     else {
-      lock.unlock();
-      generic_free(mem);
+      generic_copy_to(mem);
     }
+  }
+}
+
+void CUDADevice::tex_free(device_texture &mem)
+{
+  CUDAContextScope scope(this);
+  thread_scoped_lock lock(device_mem_map_mutex);
+
+  /* Check if the memory was allocated for this device. */
+  auto it = device_mem_map.find(&mem);
+  if (it == device_mem_map.end()) {
+    return;
+  }
+
+  const Mem &cmem = it->second;
+
+  /* Always clear texture info and texture object, regardless of residency. */
+  texture_info[mem.slot] = TextureInfo();
+
+  if (cmem.texobject) {
+    /* Free bindless texture. */
+    cuTexObjectDestroy(cmem.texobject);
+  }
+
+  if (!mem.is_resident(this)) {
+    /* Do not free memory here, since it was allocated on a different device. */
+    device_mem_map.erase(device_mem_map.find(&mem));
+  }
+  else if (cmem.array) {
+    /* Free array. */
+    cuArrayDestroy(reinterpret_cast<CUarray>(cmem.array));
+    stats.mem_free(mem.device_size);
+    mem.device_pointer = 0;
+    mem.device_size = 0;
+
+    device_mem_map.erase(device_mem_map.find(&mem));
+  }
+  else {
+    lock.unlock();
+    generic_free(mem);
   }
 }
 
