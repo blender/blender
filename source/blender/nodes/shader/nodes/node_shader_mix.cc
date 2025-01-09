@@ -8,7 +8,7 @@
 
 #include <algorithm>
 
-#include "BKE_material.h"
+#include "BKE_material.hh"
 
 #include "BLI_math_quaternion.hh"
 #include "BLI_math_vector.h"

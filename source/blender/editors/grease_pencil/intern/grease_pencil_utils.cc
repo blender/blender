@@ -11,7 +11,7 @@
 #include "BKE_colortools.hh"
 #include "BKE_context.hh"
 #include "BKE_grease_pencil.hh"
-#include "BKE_material.h"
+#include "BKE_material.hh"
 #include "BKE_paint.hh"
 #include "BKE_report.hh"
 #include "BKE_scene.hh"

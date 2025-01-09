@@ -10,7 +10,7 @@
 #include "BKE_attribute.hh"
 #include "BKE_curves.hh"
 #include "BKE_customdata.hh"
-#include "BKE_material.h"
+#include "BKE_material.hh"
 #include "BKE_particle.h"
 
 #include "DEG_depsgraph_query.hh"

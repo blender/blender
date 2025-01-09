@@ -11,7 +11,7 @@
 #include "BKE_image.hh"
 #include "BKE_layer.hh"
 #include "BKE_main.hh"
-#include "BKE_material.h"
+#include "BKE_material.hh"
 
 #include "DNA_layer_types.h"
 #include "DNA_material_types.h"

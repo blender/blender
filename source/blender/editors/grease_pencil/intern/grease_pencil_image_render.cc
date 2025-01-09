@@ -10,7 +10,7 @@
 #include "BKE_camera.h"
 #include "BKE_curves.hh"
 #include "BKE_image.hh"
-#include "BKE_material.h"
+#include "BKE_material.hh"
 
 #include "BLI_math_vector.hh"
 #include "DNA_gpencil_legacy_types.h"

@@ -36,7 +36,7 @@
 #include "BKE_layer.hh"
 #include "BKE_lib_id.hh" /* free_libblock */
 #include "BKE_main.hh"
-#include "BKE_material.h"
+#include "BKE_material.hh"
 #include "BKE_mesh.hh"
 #include "BKE_node.hh"
 #include "BKE_node_tree_update.hh"

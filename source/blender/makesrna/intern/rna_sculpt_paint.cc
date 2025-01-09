@@ -25,7 +25,7 @@
 
 #include "BKE_brush.hh"
 #include "BKE_layer.hh"
-#include "BKE_material.h"
+#include "BKE_material.hh"
 #include "BKE_paint.hh"
 
 #include "ED_image.hh"

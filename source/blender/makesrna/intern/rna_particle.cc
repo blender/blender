@@ -146,7 +146,7 @@ static const EnumPropertyItem part_fluid_type_items[] = {
 #  include "BKE_customdata.hh"
 #  include "BKE_deform.hh"
 #  include "BKE_effect.h"
-#  include "BKE_material.h"
+#  include "BKE_material.hh"
 #  include "BKE_modifier.hh"
 #  include "BKE_particle.h"
 #  include "BKE_pointcache.h"

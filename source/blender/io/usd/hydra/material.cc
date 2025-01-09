@@ -22,7 +22,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BKE_lib_id.hh"
-#include "BKE_material.h"
+#include "BKE_material.hh"
 
 #include "RNA_access.hh"
 #include "RNA_prototypes.hh"

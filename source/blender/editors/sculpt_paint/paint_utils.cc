@@ -34,7 +34,7 @@
 #include "BKE_customdata.hh"
 #include "BKE_image.hh"
 #include "BKE_layer.hh"
-#include "BKE_material.h"
+#include "BKE_material.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_sample.hh"
 #include "BKE_object.hh"

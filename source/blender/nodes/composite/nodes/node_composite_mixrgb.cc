@@ -14,7 +14,7 @@
 
 #include "DNA_material_types.h"
 
-#include "BKE_material.h"
+#include "BKE_material.hh"
 
 #include "GPU_material.hh"
 

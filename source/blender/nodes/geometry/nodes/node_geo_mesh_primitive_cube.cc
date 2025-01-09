@@ -4,7 +4,7 @@
 
 #include "BLI_math_euler.hh"
 
-#include "BKE_material.h"
+#include "BKE_material.hh"
 #include "BKE_mesh.hh"
 
 #include "GEO_mesh_primitive_cuboid.hh"

@@ -9,7 +9,7 @@
 #include "node_texture_util.hh"
 #include "node_util.hh"
 
-#include "BKE_material.h"
+#include "BKE_material.hh"
 
 #include "BLI_math_vector.h"
 

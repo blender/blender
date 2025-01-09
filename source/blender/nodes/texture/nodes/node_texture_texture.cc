@@ -8,7 +8,7 @@
 
 #include "node_texture_util.hh"
 
-#include "BKE_material.h"
+#include "BKE_material.hh"
 #include "BKE_node_runtime.hh"
 
 #include "BLI_math_vector.h"

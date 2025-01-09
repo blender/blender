@@ -25,7 +25,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_main.hh"
-#include "BKE_material.h"
+#include "BKE_material.hh"
 #include "BKE_node.hh"
 
 #include "NOD_shader.h"

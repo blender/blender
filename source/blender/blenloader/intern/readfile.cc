@@ -79,7 +79,7 @@
 #include "BKE_main.hh" /* for Main */
 #include "BKE_main_idmap.hh"
 #include "BKE_main_namemap.hh"
-#include "BKE_material.h"
+#include "BKE_material.hh"
 #include "BKE_mesh.hh"
 #include "BKE_modifier.hh"
 #include "BKE_node.hh" /* for tree type defines */

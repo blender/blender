@@ -44,6 +44,7 @@
 
 #include "BKE_colorband.hh"  /* BKE_colorband_evaluate() */
 #include "BKE_colortools.hh" /* BKE_curvemapping_evaluateF() */
+#include "BKE_material.hh"   /* ramp_blend() */
 
 #ifdef __cplusplus
 extern "C" {
@@ -137,8 +138,6 @@ static int ramp_blend_type(const char *type)
   }
   return -1;
 }
-
-#include "BKE_material.h" /* ramp_blend() */
 
 PyDoc_STRVAR(
     /* Wrap. */

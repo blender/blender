@@ -78,7 +78,7 @@
 #include "BKE_layer.hh"
 #include "BKE_main.hh"
 #include "BKE_mask.h"
-#include "BKE_material.h"
+#include "BKE_material.hh"
 #include "BKE_modifier.hh"
 #include "BKE_node.hh"
 

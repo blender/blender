@@ -55,7 +55,7 @@
 #include "BKE_lib_query.hh"
 #include "BKE_lib_remap.hh"
 #include "BKE_main.hh"
-#include "BKE_material.h"
+#include "BKE_material.hh"
 #include "BKE_mesh_types.hh"
 #include "BKE_modifier.hh"
 #include "BKE_node.hh"

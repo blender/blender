@@ -12,7 +12,7 @@
 
 #include "BKE_curves.hh"
 #include "BKE_grease_pencil.hh"
-#include "BKE_material.h"
+#include "BKE_material.hh"
 #include "BKE_mesh.hh"
 
 namespace blender::nodes::node_geo_set_material_cc {

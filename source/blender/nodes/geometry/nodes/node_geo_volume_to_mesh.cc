@@ -9,7 +9,7 @@
 
 #include "node_geometry_util.hh"
 
-#include "BKE_material.h"
+#include "BKE_material.hh"
 #include "BKE_mesh.hh"
 #include "BKE_volume.hh"
 #include "BKE_volume_grid.hh"

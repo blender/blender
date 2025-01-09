@@ -6,7 +6,7 @@
  * \ingroup texnodes
  */
 
-#include "BKE_material.h"
+#include "BKE_material.hh"
 #include "BLI_math_vector.h"
 #include "DNA_material_types.h"
 #include "node_texture_util.hh"

@@ -21,7 +21,7 @@
 #include "BKE_attribute.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_editmesh_cache.hh"
-#include "BKE_material.h"
+#include "BKE_material.hh"
 #include "BKE_mesh.hh"
 #include "BKE_mesh_runtime.hh"
 #include "BKE_object.hh"
