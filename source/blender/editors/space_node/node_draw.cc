@@ -65,7 +65,6 @@
 #include "GPU_immediate.hh"
 #include "GPU_immediate_util.hh"
 #include "GPU_matrix.hh"
-#include "GPU_shader_shared.hh"
 #include "GPU_state.hh"
 #include "GPU_viewport.hh"
 
@@ -86,14 +85,11 @@
 #include "RNA_access.hh"
 #include "RNA_prototypes.hh"
 
-#include "NOD_geometry_exec.hh"
 #include "NOD_geometry_nodes_gizmos.hh"
 #include "NOD_geometry_nodes_log.hh"
 #include "NOD_node_declaration.hh"
 #include "NOD_node_extra_info.hh"
 #include "NOD_socket_declarations_geometry.hh"
-
-#include "FN_field.hh"
 
 #include "GEO_fillet_curves.hh"
 
@@ -2334,8 +2330,11 @@ static void node_draw_socket(const bContext &C,
       block, sock.index_in_tree(), socket_location, float2(2.0f * half_width, 2.0f * half_height));
 }
 
-static void node_draw_sockets(
-    const bContext &C, uiBlock &block, const SpaceNode &snode, bNodeTree &ntree, const bNode &node)
+static void node_draw_sockets(const bContext &C,
+                              uiBlock &block,
+                              const SpaceNode &snode,
+                              const bNodeTree &ntree,
+                              const bNode &node)
 {
   if (!draw_node_details(snode)) {
     return;
@@ -2473,7 +2472,7 @@ static void node_draw_panels(bNodeTree &ntree, const bNode &node, uiBlock &block
         int(draw_bounds.xmin + NODE_MARGIN_X + 0.4f),
         int(*panel_runtime.header_center_y - NODE_DYS),
         short(draw_bounds.xmax - draw_bounds.xmin - (30.0f * UI_SCALE_FAC)),
-        short(NODE_DY),
+        NODE_DY,
         nullptr,
         0,
         0,
@@ -2755,8 +2754,9 @@ static std::optional<std::chrono::nanoseconds> node_get_execution_time(
       return geo_node_get_execution_time(tree_draw_ctx, snode, node);
     case NTREE_COMPOSIT:
       return compositor_node_get_execution_time(tree_draw_ctx, snode, node);
+    default:
+      return std::nullopt;
   }
-  return std::nullopt;
 }
 
 static std::string node_get_execution_time_label(TreeDrawContext &tree_draw_ctx,
@@ -3093,7 +3093,7 @@ static void node_draw_extra_info_row(const bNode &node,
                              int(but_text_left),
                              int(rect.ymin + row * (20.0f * UI_SCALE_FAC)),
                              short(but_text_width),
-                             short(NODE_DY),
+                             NODE_DY,
                              nullptr,
                              0,
                              0,
@@ -3456,7 +3456,7 @@ static void node_draw_basis(const bContext &C,
                         int(rct.xmin + NODE_MARGIN_X + 0.4f),
                         int(rct.ymax - NODE_DY),
                         short(iconofs - rct.xmin - NODE_MARGIN_X),
-                        short(NODE_DY),
+                        NODE_DY,
                         nullptr,
                         0,
                         0,
@@ -3708,7 +3708,7 @@ static void node_draw_hidden(const bContext &C,
                         round_fl_to_int(rct.xmin + NODE_MARGIN_X),
                         round_fl_to_int(centy - NODE_DY * 0.5f),
                         short(BLI_rctf_size_x(&rct) - (2 * U.widget_unit)),
-                        short(NODE_DY),
+                        NODE_DY,
                         nullptr,
                         0,
                         0,
@@ -4316,7 +4316,7 @@ static void reroute_node_draw_label(TreeDrawContext &tree_draw_ctx,
   const int y = node.runtime->draw_bounds.ymax;
 
   uiBut *label_but = uiDefBut(
-      &block, UI_BTYPE_LABEL, 0, text, x, y, width, short(NODE_DY), nullptr, 0, 0, nullptr);
+      &block, UI_BTYPE_LABEL, 0, text, x, y, width, NODE_DY, nullptr, 0, 0, nullptr);
 
   UI_but_drawflag_disable(label_but, UI_BUT_TEXT_LEFT);
 
