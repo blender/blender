@@ -92,11 +92,11 @@ set(SRC
   interface_utils.cc
   interface_widgets.cc
   resources.cc
-  view2d.cc
-  view2d_draw.cc
-  view2d_edge_pan.cc
-  view2d_gizmo_navigate.cc
-  view2d_ops.cc
+  view2d/view2d.cc
+  view2d/view2d_draw.cc
+  view2d/view2d_edge_pan.cc
+  view2d/view2d_gizmo_navigate.cc
+  view2d/view2d_ops.cc
   views/abstract_view.cc
   views/abstract_view_item.cc
   views/grid_view.cc
@@ -107,7 +107,7 @@ set(SRC
   templates/interface_templates_intern.hh
   interface_intern.hh
   regions/interface_regions_intern.hh
-  view2d_intern.hh
+  view2d/view2d_intern.hh
 )
 
 set(LIB
