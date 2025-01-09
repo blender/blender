@@ -1326,11 +1326,11 @@ static int node_get_colorid(TreeDrawContext &tree_draw_ctx, const bNode &node)
     case NODE_CLASS_INPUT:
       return TH_NODE_INPUT;
     case NODE_CLASS_OUTPUT: {
-      if (node.type == GEO_NODE_VIEWER) {
+      if (node.type_legacy == GEO_NODE_VIEWER) {
         return &node == tree_draw_ctx.active_geometry_nodes_viewer ? TH_NODE_OUTPUT : TH_NODE;
       }
       const bool is_output_node = (node.flag & NODE_DO_OUTPUT) ||
-                                  (node.type == CMP_NODE_OUTPUT_FILE);
+                                  (node.type_legacy == CMP_NODE_OUTPUT_FILE);
       return is_output_node ? TH_NODE_OUTPUT : TH_NODE;
     }
     case NODE_CLASS_CONVERTER:
@@ -2648,7 +2648,7 @@ static std::optional<std::chrono::nanoseconds> geo_node_get_execution_time(
   if (tree_log == nullptr) {
     return std::nullopt;
   }
-  if (node.type == NODE_GROUP_OUTPUT) {
+  if (node.type_legacy == NODE_GROUP_OUTPUT) {
     return tree_log->execution_time;
   }
   if (node.is_frame()) {
@@ -2881,7 +2881,7 @@ static std::optional<NodeExtraInfoRow> node_get_accessed_attributes_row(
   if (geo_tree_log == nullptr) {
     return std::nullopt;
   }
-  if (ELEM(node.type,
+  if (ELEM(node.type_legacy,
            GEO_NODE_STORE_NAMED_ATTRIBUTE,
            GEO_NODE_REMOVE_ATTRIBUTE,
            GEO_NODE_INPUT_NAMED_ATTRIBUTE))
@@ -3012,7 +3012,7 @@ static Vector<NodeExtraInfoRow> node_get_extra_info(const bContext &C,
 
   if (snode.overlay.flag & SN_OVERLAY_SHOW_TIMINGS &&
       (ELEM(node.typeinfo->nclass, NODE_CLASS_GEOMETRY, NODE_CLASS_GROUP, NODE_CLASS_ATTRIBUTE) ||
-       ELEM(node.type,
+       ELEM(node.type_legacy,
             NODE_FRAME,
             NODE_GROUP_OUTPUT,
             GEO_NODE_SIMULATION_OUTPUT,
@@ -3251,7 +3251,7 @@ static void node_draw_basis(const bContext &C,
   }
 
   /* Shadow. */
-  if (!bke::all_zone_node_types().contains(node.type)) {
+  if (!bke::all_zone_node_types().contains(node.type_legacy)) {
     node_draw_shadow(snode, node, BASIS_RAD, 1.0f);
   }
 
@@ -3322,7 +3322,7 @@ static void node_draw_basis(const bContext &C,
   float iconofs = rct.xmax - 0.35f * U.widget_unit;
 
   /* Group edit. This icon should be the first for the node groups. */
-  if (node.type == NODE_GROUP) {
+  if (node.type_legacy == NODE_GROUP) {
     iconofs -= iconbutw;
     UI_block_emboss_set(&block, UI_EMBOSS_NONE);
     uiBut *but = uiDefIconBut(&block,
@@ -3369,7 +3369,9 @@ static void node_draw_basis(const bContext &C,
                     (void *)"NODE_OT_preview_toggle");
     UI_block_emboss_set(&block, UI_EMBOSS);
   }
-  if (ELEM(node.type, NODE_CUSTOM, NODE_CUSTOM_GROUP) && node.typeinfo->ui_icon != ICON_NONE) {
+  if (ELEM(node.type_legacy, NODE_CUSTOM, NODE_CUSTOM_GROUP) &&
+      node.typeinfo->ui_icon != ICON_NONE)
+  {
     iconofs -= iconbutw;
     UI_block_emboss_set(&block, UI_EMBOSS_NONE);
     uiDefIconBut(&block,
@@ -3386,7 +3388,7 @@ static void node_draw_basis(const bContext &C,
                  "");
     UI_block_emboss_set(&block, UI_EMBOSS);
   }
-  if (node.type == GEO_NODE_VIEWER) {
+  if (node.type_legacy == GEO_NODE_VIEWER) {
     const bool is_active = &node == tree_draw_ctx.active_geometry_nodes_viewer;
     iconofs -= iconbutw;
     UI_block_emboss_set(&block, UI_EMBOSS_NONE);
@@ -3565,7 +3567,7 @@ static void node_draw_basis(const bContext &C,
     else if (bke::node_type_is_undefined(&node)) {
       UI_GetThemeColor4fv(TH_REDALERT, color_outline);
     }
-    else if (const bke::bNodeZoneType *zone_type = bke::zone_type_by_node_type(node.type)) {
+    else if (const bke::bNodeZoneType *zone_type = bke::zone_type_by_node_type(node.type_legacy)) {
       UI_GetThemeColor4fv(zone_type->theme_id, color_outline);
       color_outline[3] = 1.0f;
     }
@@ -4522,7 +4524,7 @@ static void node_draw_zones_and_frames(const bContext &C,
 
   const auto get_theme_id = [&](const int zone_i) {
     const bNode *node = zones->zones[zone_i]->output_node;
-    return bke::zone_type_by_node_type(node->type)->theme_id;
+    return bke::zone_type_by_node_type(node->type_legacy)->theme_id;
   };
 
   const uint pos = GPU_vertformat_attr_add(

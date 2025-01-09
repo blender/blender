@@ -100,7 +100,7 @@ static blender::bke::cryptomatte::CryptomatteSessionPtr cryptomatte_init_from_no
     const bNode &node, const bool build_meta_data)
 {
   blender::bke::cryptomatte::CryptomatteSessionPtr session;
-  if (node.type != CMP_NODE_CRYPTOMATTE) {
+  if (node.type_legacy != CMP_NODE_CRYPTOMATTE) {
     return session;
   }
 
@@ -156,7 +156,7 @@ static void cryptomatte_remove(NodeCryptomatte &n, float encoded_hash)
 
 void ntreeCompositCryptomatteSyncFromAdd(bNode *node)
 {
-  BLI_assert(ELEM(node->type, CMP_NODE_CRYPTOMATTE, CMP_NODE_CRYPTOMATTE_LEGACY));
+  BLI_assert(ELEM(node->type_legacy, CMP_NODE_CRYPTOMATTE, CMP_NODE_CRYPTOMATTE_LEGACY));
   NodeCryptomatte *n = static_cast<NodeCryptomatte *>(node->storage);
   if (n->runtime.add[0] != 0.0f) {
     cryptomatte_add(*node, *n, n->runtime.add[0]);
@@ -166,7 +166,7 @@ void ntreeCompositCryptomatteSyncFromAdd(bNode *node)
 
 void ntreeCompositCryptomatteSyncFromRemove(bNode *node)
 {
-  BLI_assert(ELEM(node->type, CMP_NODE_CRYPTOMATTE, CMP_NODE_CRYPTOMATTE_LEGACY));
+  BLI_assert(ELEM(node->type_legacy, CMP_NODE_CRYPTOMATTE, CMP_NODE_CRYPTOMATTE_LEGACY));
   NodeCryptomatte *n = static_cast<NodeCryptomatte *>(node->storage);
   if (n->runtime.remove[0] != 0.0f) {
     cryptomatte_remove(*n, n->runtime.remove[0]);
@@ -175,7 +175,7 @@ void ntreeCompositCryptomatteSyncFromRemove(bNode *node)
 }
 void ntreeCompositCryptomatteUpdateLayerNames(bNode *node)
 {
-  BLI_assert(node->type == CMP_NODE_CRYPTOMATTE);
+  BLI_assert(node->type_legacy == CMP_NODE_CRYPTOMATTE);
   NodeCryptomatte *n = static_cast<NodeCryptomatte *>(node->storage);
   BLI_freelistN(&n->runtime.layers);
 
@@ -195,7 +195,7 @@ void ntreeCompositCryptomatteUpdateLayerNames(bNode *node)
 
 void ntreeCompositCryptomatteLayerPrefix(const bNode *node, char *r_prefix, size_t prefix_maxncpy)
 {
-  BLI_assert(node->type == CMP_NODE_CRYPTOMATTE);
+  BLI_assert(node->type_legacy == CMP_NODE_CRYPTOMATTE);
   NodeCryptomatte *node_cryptomatte = (NodeCryptomatte *)node->storage;
   blender::bke::cryptomatte::CryptomatteSessionPtr session = cryptomatte_init_from_node(*node,
                                                                                         false);
@@ -599,14 +599,14 @@ static void node_init_api_cryptomatte(const bContext *C, PointerRNA *ptr)
 {
   Scene *scene = CTX_data_scene(C);
   bNode *node = static_cast<bNode *>(ptr->data);
-  BLI_assert(node->type == CMP_NODE_CRYPTOMATTE);
+  BLI_assert(node->type_legacy == CMP_NODE_CRYPTOMATTE);
   node->id = &scene->id;
   id_us_plus(node->id);
 }
 
 static void node_free_cryptomatte(bNode *node)
 {
-  BLI_assert(ELEM(node->type, CMP_NODE_CRYPTOMATTE, CMP_NODE_CRYPTOMATTE_LEGACY));
+  BLI_assert(ELEM(node->type_legacy, CMP_NODE_CRYPTOMATTE, CMP_NODE_CRYPTOMATTE_LEGACY));
   NodeCryptomatte *nc = static_cast<NodeCryptomatte *>(node->storage);
 
   if (nc) {
@@ -938,7 +938,7 @@ void register_node_type_cmp_cryptomatte()
 
 bNodeSocket *ntreeCompositCryptomatteAddSocket(bNodeTree *ntree, bNode *node)
 {
-  BLI_assert(node->type == CMP_NODE_CRYPTOMATTE_LEGACY);
+  BLI_assert(node->type_legacy == CMP_NODE_CRYPTOMATTE_LEGACY);
   NodeCryptomatte *n = static_cast<NodeCryptomatte *>(node->storage);
   char sockname[32];
   n->inputs_num++;
@@ -950,7 +950,7 @@ bNodeSocket *ntreeCompositCryptomatteAddSocket(bNodeTree *ntree, bNode *node)
 
 int ntreeCompositCryptomatteRemoveSocket(bNodeTree *ntree, bNode *node)
 {
-  BLI_assert(node->type == CMP_NODE_CRYPTOMATTE_LEGACY);
+  BLI_assert(node->type_legacy == CMP_NODE_CRYPTOMATTE_LEGACY);
   NodeCryptomatte *n = static_cast<NodeCryptomatte *>(node->storage);
   if (n->inputs_num < 2) {
     return 0;

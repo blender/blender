@@ -63,7 +63,7 @@ static void unique_name(bNode *node)
     i = i->prev;
   }
   for (; i; i = i->next) {
-    if (i == node || i->type != TEX_NODE_OUTPUT ||
+    if (i == node || i->type_legacy != TEX_NODE_OUTPUT ||
         !STREQ(name, ((TexNodeOutput *)(i->storage))->name))
     {
       continue;
@@ -106,7 +106,7 @@ static void assign_index(bNode *node)
 
 check_index:
   for (; tnode; tnode = tnode->next) {
-    if (tnode->type == TEX_NODE_OUTPUT && tnode != node) {
+    if (tnode->type_legacy == TEX_NODE_OUTPUT && tnode != node) {
       if (tnode->custom1 == index) {
         index++;
         goto check_index;

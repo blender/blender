@@ -28,7 +28,8 @@ namespace blender::nodes::gizmos {
 
 bool is_builtin_gizmo_node(const bNode &node)
 {
-  return ELEM(node.type, GEO_NODE_GIZMO_LINEAR, GEO_NODE_GIZMO_DIAL, GEO_NODE_GIZMO_TRANSFORM);
+  return ELEM(
+      node.type_legacy, GEO_NODE_GIZMO_LINEAR, GEO_NODE_GIZMO_DIAL, GEO_NODE_GIZMO_TRANSFORM);
 }
 
 /**
@@ -36,7 +37,7 @@ bool is_builtin_gizmo_node(const bNode &node)
  */
 static ie::ElemVariant get_gizmo_socket_elem(const bNode &node, const bNodeSocket &socket)
 {
-  switch (node.type) {
+  switch (node.type_legacy) {
     case GEO_NODE_GIZMO_LINEAR: {
       return {ie::FloatElem::all()};
     }

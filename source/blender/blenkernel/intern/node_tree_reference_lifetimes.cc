@@ -107,7 +107,7 @@ static Array<const aal::RelationsInNode *> prepare_relations_by_node(const bNode
   Array<const aal::RelationsInNode *> relations_by_node(tree.all_nodes().size());
   for (const bNode *node : tree.all_nodes()) {
     const aal::RelationsInNode *node_relations = nullptr;
-    switch (node->type) {
+    switch (node->type_legacy) {
       case GEO_NODE_SIMULATION_INPUT:
       case GEO_NODE_SIMULATION_OUTPUT:
       case GEO_NODE_BAKE: {
@@ -174,7 +174,7 @@ static Array<const aal::RelationsInNode *> prepare_relations_by_node(const bNode
         /* Only create propagate and reference relations for the input node. The output node
          * needs special handling because attributes created inside of the zone are not directly
          * referenced on the outside. */
-        if (node->type == GEO_NODE_REPEAT_INPUT) {
+        if (node->type_legacy == GEO_NODE_REPEAT_INPUT) {
           const int input_items_start = 1;
           const int output_items_start = 1;
           const int items_num = node->output_sockets().size() - 1 - output_items_start;
@@ -404,7 +404,7 @@ static bool pass_left_to_right(const bNodeTree &tree,
         r_potential_data_by_socket[dst_index] |= r_potential_data_by_socket[src_index];
       }
     }
-    switch (node->type) {
+    switch (node->type_legacy) {
       /* This zone needs additional special handling because attributes from the input geometry
        * are propagated to the output node. */
       case GEO_NODE_FOREACH_GEOMETRY_ELEMENT_OUTPUT: {
@@ -586,7 +586,7 @@ static bool pass_right_to_left(const bNodeTree &tree,
       }
     }
 
-    switch (node->type) {
+    switch (node->type_legacy) {
       /* Propagate from the geometry outputs to the geometry input. */
       case GEO_NODE_FOREACH_GEOMETRY_ELEMENT_INPUT: {
         const bNodeTreeZone *zone = get_zone_of_node_if_full(zones, *node);

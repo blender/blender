@@ -111,7 +111,7 @@ NodeItem GroupOutputNodeParser::compute_full()
             1,
             "%s [%d] => %s",
             node_->name,
-            node_->typeinfo->type,
+            node_->typeinfo->type_legacy,
             NodeItem::type(to_type_).c_str());
 
 #ifdef USE_MATERIALX_NODEGRAPH
@@ -161,7 +161,7 @@ NodeItem GroupInputNodeParser::compute_full()
             1,
             "%s [%d] => %s",
             node_->name,
-            node_->typeinfo->type,
+            node_->typeinfo->type_legacy,
             NodeItem::type(to_type_).c_str());
 
 #ifdef USE_MATERIALX_NODEGRAPH

@@ -113,8 +113,8 @@
 static void version_composite_nodetree_null_id(bNodeTree *ntree, Scene *scene)
 {
   for (bNode *node : ntree->all_nodes()) {
-    if (node->id == nullptr && ((node->type == CMP_NODE_R_LAYERS) ||
-                                (node->type == CMP_NODE_CRYPTOMATTE &&
+    if (node->id == nullptr && ((node->type_legacy == CMP_NODE_R_LAYERS) ||
+                                (node->type_legacy == CMP_NODE_CRYPTOMATTE &&
                                  node->custom1 == CMP_NODE_CRYPTOMATTE_SOURCE_RENDER)))
     {
       node->id = &scene->id;
@@ -313,7 +313,7 @@ static void version_principled_bsdf_update_animdata(ID *owner_id, bNodeTree *ntr
   AnimData *adt = BKE_animdata_from_id(id);
 
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    if (node->type != SH_NODE_BSDF_PRINCIPLED) {
+    if (node->type_legacy != SH_NODE_BSDF_PRINCIPLED) {
       continue;
     }
 
@@ -598,7 +598,7 @@ static AlphaSource versioning_eevee_alpha_source_get(bNodeSocket *socket, int de
 
   bNode *node = socket->link->fromnode;
 
-  switch (node->type) {
+  switch (node->type_legacy) {
     case NODE_REROUTE: {
       return versioning_eevee_alpha_source_get(
           static_cast<bNodeSocket *>(BLI_findlink(&node->inputs, 0)), depth + 1);
@@ -785,12 +785,12 @@ static void versioning_replace_splitviewer(bNodeTree *ntree)
    * and link it to the new split node to achieve the same behavior of the split viewer node. */
 
   LISTBASE_FOREACH_MUTABLE (bNode *, node, &ntree->nodes) {
-    if (node->type != CMP_NODE_SPLITVIEWER__DEPRECATED) {
+    if (node->type_legacy != CMP_NODE_SPLITVIEWER__DEPRECATED) {
       continue;
     }
 
     STRNCPY(node->idname, "CompositorNodeSplit");
-    node->type = CMP_NODE_SPLIT;
+    node->type_legacy = CMP_NODE_SPLIT;
     MEM_freeN(node->storage);
     node->storage = nullptr;
 
@@ -1324,7 +1324,7 @@ void do_versions_after_linking_400(FileData *fd, Main *bmain)
       }
 
       LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-        if (node->type != CMP_NODE_GLARE) {
+        if (node->type_legacy != CMP_NODE_GLARE) {
           continue;
         }
         do_version_glare_node_options_to_inputs(reinterpret_cast<Scene *>(id), ntree, node);
@@ -1465,9 +1465,9 @@ static void version_mesh_crease_generic(Main &bmain)
 static void versioning_replace_legacy_glossy_node(bNodeTree *ntree)
 {
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    if (node->type == SH_NODE_BSDF_GLOSSY_LEGACY) {
+    if (node->type_legacy == SH_NODE_BSDF_GLOSSY_LEGACY) {
       STRNCPY(node->idname, "ShaderNodeBsdfAnisotropic");
-      node->type = SH_NODE_BSDF_GLOSSY;
+      node->type_legacy = SH_NODE_BSDF_GLOSSY;
     }
   }
 }
@@ -1478,7 +1478,8 @@ static void versioning_remove_microfacet_sharp_distribution(bNodeTree *ntree)
    * set to SHARP and set them to GGX, disconnect any link to the Roughness input
    * and set its value to zero. */
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    if (!ELEM(node->type, SH_NODE_BSDF_GLOSSY, SH_NODE_BSDF_GLASS, SH_NODE_BSDF_REFRACTION)) {
+    if (!ELEM(node->type_legacy, SH_NODE_BSDF_GLOSSY, SH_NODE_BSDF_GLASS, SH_NODE_BSDF_REFRACTION))
+    {
       continue;
     }
     if (node->custom1 != SHD_GLOSSY_SHARP_DEPRECATED) {
@@ -1513,7 +1514,9 @@ static void version_replace_texcoord_normal_socket(bNodeTree *ntree)
   bNodeSocket *vec_out_socket = nullptr;
 
   LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &ntree->links) {
-    if (link->fromnode->type == SH_NODE_TEX_COORD && STREQ(link->fromsock->identifier, "Normal")) {
+    if (link->fromnode->type_legacy == SH_NODE_TEX_COORD &&
+        STREQ(link->fromsock->identifier, "Normal"))
+    {
       if (geometry_node == nullptr) {
         geometry_node = blender::bke::node_add_static_node(nullptr, ntree, SH_NODE_NEW_GEOMETRY);
         incoming_socket = blender::bke::node_find_socket(geometry_node, SOCK_OUT, "Incoming");
@@ -1539,7 +1542,7 @@ static void version_replace_texcoord_normal_socket(bNodeTree *ntree)
 static void version_principled_transmission_roughness(bNodeTree *ntree)
 {
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    if (node->type != SH_NODE_BSDF_PRINCIPLED) {
+    if (node->type_legacy != SH_NODE_BSDF_PRINCIPLED) {
       continue;
     }
     bNodeSocket *sock = blender::bke::node_find_socket(node, SOCK_IN, "Transmission Roughness");
@@ -1553,7 +1556,7 @@ static void version_principled_transmission_roughness(bNodeTree *ntree)
 static void version_replace_velvet_sheen_node(bNodeTree *ntree)
 {
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    if (node->type == SH_NODE_BSDF_SHEEN) {
+    if (node->type_legacy == SH_NODE_BSDF_SHEEN) {
       STRNCPY(node->idname, "ShaderNodeBsdfSheen");
 
       bNodeSocket *sigmaInput = blender::bke::node_find_socket(node, SOCK_IN, "Sigma");
@@ -1570,7 +1573,7 @@ static void version_replace_velvet_sheen_node(bNodeTree *ntree)
 static void version_principled_bsdf_sheen(bNodeTree *ntree)
 {
   auto check_node = [](const bNode *node) {
-    return (node->type == SH_NODE_BSDF_PRINCIPLED) &&
+    return (node->type_legacy == SH_NODE_BSDF_PRINCIPLED) &&
            (blender::bke::node_find_socket(node, SOCK_IN, "Sheen Roughness") == nullptr);
   };
   auto update_input = [ntree](bNode *node, bNodeSocket *input) {
@@ -1604,7 +1607,7 @@ static void version_principled_bsdf_sheen(bNodeTree *ntree)
 static void version_refraction_depth_to_thickness_value(bNodeTree *ntree, float thickness)
 {
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    if (node->type != SH_NODE_OUTPUT_MATERIAL) {
+    if (node->type_legacy != SH_NODE_OUTPUT_MATERIAL) {
       continue;
     }
 
@@ -1641,7 +1644,7 @@ static void version_refraction_depth_to_thickness_value(bNodeTree *ntree, float 
 static void versioning_update_noise_texture_node(bNodeTree *ntree)
 {
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    if (node->type != SH_NODE_TEX_NOISE) {
+    if (node->type_legacy != SH_NODE_TEX_NOISE) {
       continue;
     }
 
@@ -1704,12 +1707,12 @@ static void versioning_replace_musgrave_texture_node(bNodeTree *ntree)
 {
   version_node_input_socket_name(ntree, SH_NODE_TEX_MUSGRAVE_DEPRECATED, "Dimension", "Roughness");
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    if (node->type != SH_NODE_TEX_MUSGRAVE_DEPRECATED) {
+    if (node->type_legacy != SH_NODE_TEX_MUSGRAVE_DEPRECATED) {
       continue;
     }
 
     STRNCPY(node->idname, "ShaderNodeTexNoise");
-    node->type = SH_NODE_TEX_NOISE;
+    node->type_legacy = SH_NODE_TEX_NOISE;
     NodeTexNoise *data = MEM_cnew<NodeTexNoise>(__func__);
     data->base = (static_cast<NodeTexMusgrave *>(node->storage))->base;
     data->dimensions = (static_cast<NodeTexMusgrave *>(node->storage))->dimensions;
@@ -2111,7 +2114,7 @@ static void version_principled_bsdf_subsurface(bNodeTree *ntree)
    * - Remove Subsurface Color input
    */
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    if (node->type != SH_NODE_BSDF_PRINCIPLED) {
+    if (node->type_legacy != SH_NODE_BSDF_PRINCIPLED) {
       continue;
     }
     if (blender::bke::node_find_socket(node, SOCK_IN, "Subsurface Scale")) {
@@ -2199,7 +2202,7 @@ static void version_principled_bsdf_emission(bNodeTree *ntree)
    * Therefore, set strength to 1.0 for those files.
    */
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    if (node->type != SH_NODE_BSDF_PRINCIPLED) {
+    if (node->type_legacy != SH_NODE_BSDF_PRINCIPLED) {
       continue;
     }
     if (!blender::bke::node_find_socket(node, SOCK_IN, "Emission")) {
@@ -2233,7 +2236,7 @@ static void version_principled_bsdf_rename_sockets(bNodeTree *ntree)
 static void version_replace_principled_hair_model(bNodeTree *ntree)
 {
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    if (node->type != SH_NODE_BSDF_HAIR_PRINCIPLED) {
+    if (node->type_legacy != SH_NODE_BSDF_HAIR_PRINCIPLED) {
       continue;
     }
     NodeShaderHairPrincipled *data = MEM_cnew<NodeShaderHairPrincipled>(__func__);
@@ -2263,7 +2266,7 @@ static void change_input_socket_to_rotation_type(bNodeTree &ntree,
       continue;
     }
     if (ELEM(link->fromsock->type, SOCK_ROTATION, SOCK_VECTOR, SOCK_FLOAT) &&
-        link->fromnode->type != NODE_REROUTE)
+        link->fromnode->type_legacy != NODE_REROUTE)
     {
       /* No need to add the conversion node when implicit conversions will work. */
       continue;
@@ -2296,7 +2299,8 @@ static void change_output_socket_to_rotation_type(bNodeTree &ntree,
     if (link->fromsock != &socket) {
       continue;
     }
-    if (ELEM(link->tosock->type, SOCK_ROTATION, SOCK_VECTOR) && link->tonode->type != NODE_REROUTE)
+    if (ELEM(link->tosock->type, SOCK_ROTATION, SOCK_VECTOR) &&
+        link->tonode->type_legacy != NODE_REROUTE)
     {
       /* No need to add the conversion node when implicit conversions will work. */
       continue;
@@ -2458,7 +2462,7 @@ static void versioning_fix_socket_subtype_idnames(bNodeTree *ntree)
 static void version_principled_bsdf_coat(bNodeTree *ntree)
 {
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    if (node->type != SH_NODE_BSDF_PRINCIPLED) {
+    if (node->type_legacy != SH_NODE_BSDF_PRINCIPLED) {
       continue;
     }
     if (blender::bke::node_find_socket(node, SOCK_IN, "Coat IOR") != nullptr) {
@@ -2488,7 +2492,7 @@ static void remove_triangulate_node_min_size_input(bNodeTree *tree)
   using namespace blender;
   Set<bNode *> triangulate_nodes;
   LISTBASE_FOREACH (bNode *, node, &tree->nodes) {
-    if (node->type == GEO_NODE_TRIANGULATE) {
+    if (node->type_legacy == GEO_NODE_TRIANGULATE) {
       triangulate_nodes.add(node);
     }
   }
@@ -2607,7 +2611,7 @@ static void remove_triangulate_node_min_size_input(bNodeTree *tree)
 static void version_principled_bsdf_specular_tint(bNodeTree *ntree)
 {
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    if (node->type != SH_NODE_BSDF_PRINCIPLED) {
+    if (node->type_legacy != SH_NODE_BSDF_PRINCIPLED) {
       continue;
     }
     bNodeSocket *specular_tint_sock = blender::bke::node_find_socket(
@@ -2915,7 +2919,7 @@ static void version_socket_identifier_suffixes_for_dynamic_types(
 static void versioning_nodes_dynamic_sockets(bNodeTree &ntree)
 {
   LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
-    switch (node->type) {
+    switch (node->type_legacy) {
       case GEO_NODE_ACCUMULATE_FIELD:
         /* This node requires the extra `total` parameter, because the `Group Index` identifier
          * also has a space in the name, that should not be treated as separator. */
@@ -2944,7 +2948,7 @@ static void versioning_nodes_dynamic_sockets(bNodeTree &ntree)
 static void versioning_nodes_dynamic_sockets_2(bNodeTree &ntree)
 {
   LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
-    if (!ELEM(node->type, GEO_NODE_SWITCH, GEO_NODE_SAMPLE_CURVE)) {
+    if (!ELEM(node->type_legacy, GEO_NODE_SWITCH, GEO_NODE_SAMPLE_CURVE)) {
       continue;
     }
     version_socket_identifier_suffixes_for_dynamic_types(node->inputs, "_");
@@ -2997,13 +3001,13 @@ static void fix_geometry_nodes_object_info_scale(bNodeTree &ntree)
   using namespace blender;
   MultiValueMap<bNodeSocket *, bNodeLink *> out_links_per_socket;
   LISTBASE_FOREACH (bNodeLink *, link, &ntree.links) {
-    if (link->fromnode->type == GEO_NODE_OBJECT_INFO) {
+    if (link->fromnode->type_legacy == GEO_NODE_OBJECT_INFO) {
       out_links_per_socket.add(link->fromsock, link);
     }
   }
 
   LISTBASE_FOREACH_MUTABLE (bNode *, node, &ntree.nodes) {
-    if (node->type != GEO_NODE_OBJECT_INFO) {
+    if (node->type_legacy != GEO_NODE_OBJECT_INFO) {
       continue;
     }
     bNodeSocket *scale = blender::bke::node_find_socket(node, SOCK_OUT, "Scale");
@@ -3156,7 +3160,7 @@ static void versioning_node_hue_correct_set_wrappng(bNodeTree *ntree)
   if (ntree->type == NTREE_COMPOSIT) {
     LISTBASE_FOREACH_MUTABLE (bNode *, node, &ntree->nodes) {
 
-      if (node->type == CMP_NODE_HUECORRECT) {
+      if (node->type_legacy == CMP_NODE_HUECORRECT) {
         CurveMapping *cumap = (CurveMapping *)node->storage;
         hue_correct_set_wrapping(cumap);
       }
@@ -3266,7 +3270,7 @@ static void hide_simulation_node_skip_socket_value(Main &bmain)
 {
   LISTBASE_FOREACH (bNodeTree *, tree, &bmain.nodetrees) {
     LISTBASE_FOREACH (bNode *, node, &tree->nodes) {
-      if (node->type != GEO_NODE_SIMULATION_OUTPUT) {
+      if (node->type_legacy != GEO_NODE_SIMULATION_OUTPUT) {
         continue;
       }
       bNodeSocket *skip_input = static_cast<bNodeSocket *>(node->inputs.first);
@@ -3326,7 +3330,7 @@ static void add_subsurf_node_limit_surface_option(Main &bmain)
   LISTBASE_FOREACH (bNodeTree *, ntree, &bmain.nodetrees) {
     if (ntree->type == NTREE_GEOMETRY) {
       LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-        if (node->type == GEO_NODE_SUBDIVISION_SURFACE) {
+        if (node->type_legacy == GEO_NODE_SUBDIVISION_SURFACE) {
           bNodeSocket *socket = version_node_add_socket_if_not_exist(
               ntree, node, SOCK_IN, SOCK_BOOLEAN, PROP_NONE, "Limit Surface", "Limit Surface");
           static_cast<bNodeSocketValueBoolean *>(socket->default_value)->value = false;
@@ -3410,7 +3414,7 @@ static void rename_mesh_uv_seam_attribute(Mesh &mesh)
 static void version_group_input_socket_data_block_reference(bNodeTree &ntree)
 {
   LISTBASE_FOREACH (bNode *, node, &ntree.nodes) {
-    if (node->type != NODE_GROUP_INPUT) {
+    if (node->type_legacy != NODE_GROUP_INPUT) {
       continue;
     }
     LISTBASE_FOREACH (bNodeSocket *, socket, &node->outputs) {
@@ -3650,7 +3654,7 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
       if (ntree->type != NTREE_CUSTOM) {
         LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-          if (node->type == SH_NODE_TEX_NOISE) {
+          if (node->type_legacy == SH_NODE_TEX_NOISE) {
             if (!node->storage) {
               NodeTexNoise *tex = MEM_cnew<NodeTexNoise>(__func__);
               BKE_texture_mapping_default(&tex->base.tex_mapping, TEXMAP_TYPE_POINT);
@@ -3798,7 +3802,7 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     LISTBASE_FOREACH (bNodeTree *, ntree, &bmain->nodetrees) {
       if (ntree->type == NTREE_GEOMETRY) {
         LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-          if (node->type == GEO_NODE_SET_SHADE_SMOOTH) {
+          if (node->type_legacy == GEO_NODE_SET_SHADE_SMOOTH) {
             node->custom1 = int8_t(blender::bke::AttrDomain::Face);
           }
         }
@@ -4223,7 +4227,7 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
       if (ntree->type == NTREE_COMPOSIT) {
         LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-          if (node->type == CMP_NODE_PIXELATE) {
+          if (node->type_legacy == CMP_NODE_PIXELATE) {
             node->custom1 = 1;
           }
         }
@@ -4236,7 +4240,7 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
       if (ntree->type == NTREE_COMPOSIT) {
         LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-          if (node->type == CMP_NODE_MAP_UV) {
+          if (node->type_legacy == CMP_NODE_MAP_UV) {
             node->custom2 = CMP_NODE_MAP_UV_FILTERING_ANISOTROPIC;
           }
         }
@@ -4260,7 +4264,7 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
       if (ntree->type == NTREE_COMPOSIT) {
         LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-          if (node->type == CMP_NODE_KEYING) {
+          if (node->type_legacy == CMP_NODE_KEYING) {
             NodeKeyingData &keying_data = *static_cast<NodeKeyingData *>(node->storage);
             keying_data.edge_kernel_radius = max_ii(keying_data.edge_kernel_radius - 1, 0);
           }
@@ -4605,7 +4609,7 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
         continue;
       }
       LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-        if (node->type != CMP_NODE_BLUR) {
+        if (node->type_legacy != CMP_NODE_BLUR) {
           continue;
         }
 
@@ -4897,7 +4901,7 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
         continue;
       }
       LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-        if (node->type != GEO_NODE_CAPTURE_ATTRIBUTE) {
+        if (node->type_legacy != GEO_NODE_CAPTURE_ATTRIBUTE) {
           continue;
         }
         NodeGeometryAttributeCapture *storage = static_cast<NodeGeometryAttributeCapture *>(
@@ -4935,7 +4939,7 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
         continue;
       }
       LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-        if (node->type != CMP_NODE_CURVE_RGB) {
+        if (node->type_legacy != CMP_NODE_CURVE_RGB) {
           continue;
         }
 
@@ -5061,7 +5065,7 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
       if (ntree->type != NTREE_CUSTOM) {
         LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-          if (node->type == CMP_NODE_COLORBALANCE) {
+          if (node->type_legacy == CMP_NODE_COLORBALANCE) {
             NodeColorBalance *n = static_cast<NodeColorBalance *>(node->storage);
             n->input_temperature = n->output_temperature = 6500.0f;
             n->input_tint = n->output_tint = 10.0f;
@@ -5101,7 +5105,7 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
       }
 
       LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-        if (node->type != CMP_NODE_OUTPUT_FILE) {
+        if (node->type_legacy != CMP_NODE_OUTPUT_FILE) {
           continue;
         }
 
@@ -5281,7 +5285,7 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
         continue;
       }
       LISTBASE_FOREACH_MUTABLE (bNode *, node, &ntree->nodes) {
-        if (ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_COMPOSITE)) {
+        if (ELEM(node->type_legacy, CMP_NODE_VIEWER, CMP_NODE_COMPOSITE)) {
           node->flag &= ~NODE_PREVIEW;
         }
       }
@@ -5438,7 +5442,7 @@ void blo_do_versions_400(FileData *fd, Library * /*lib*/, Main *bmain)
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
       if (ntree->type == NTREE_SHADER) {
         LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-          if (node->type == SH_NODE_MIX_SHADER) {
+          if (node->type_legacy == SH_NODE_MIX_SHADER) {
             LISTBASE_FOREACH (bNodeSocket *, socket, &node->inputs) {
               if (STREQ(socket->identifier, "Shader.001")) {
                 STRNCPY(socket->identifier, "Shader_001");

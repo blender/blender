@@ -171,7 +171,7 @@ void version_node_socket_name(bNodeTree *ntree,
                               const char *new_name)
 {
   for (bNode *node : ntree->all_nodes()) {
-    if (node->type == node_type) {
+    if (node->type_legacy == node_type) {
       change_node_socket_name(&node->inputs, old_name, new_name);
       change_node_socket_name(&node->outputs, old_name, new_name);
     }
@@ -184,7 +184,7 @@ void version_node_input_socket_name(bNodeTree *ntree,
                                     const char *new_name)
 {
   for (bNode *node : ntree->all_nodes()) {
-    if (node->type == node_type) {
+    if (node->type_legacy == node_type) {
       change_node_socket_name(&node->inputs, old_name, new_name);
     }
   }
@@ -196,7 +196,7 @@ void version_node_output_socket_name(bNodeTree *ntree,
                                      const char *new_name)
 {
   for (bNode *node : ntree->all_nodes()) {
-    if (node->type == node_type) {
+    if (node->type_legacy == node_type) {
       change_node_socket_name(&node->outputs, old_name, new_name);
     }
   }
@@ -220,7 +220,7 @@ bNode &version_node_add_empty(bNodeTree &ntree, const char *idname)
   node->height = ntype->height;
   node->color[0] = node->color[1] = node->color[2] = 0.608;
 
-  node->type = ntype->type;
+  node->type_legacy = ntype->type_legacy;
 
   BKE_ntree_update_tag_node_new(&ntree, node);
   return *node;
@@ -301,7 +301,7 @@ bNodeSocket *version_node_add_socket_if_not_exist(bNodeTree *ntree,
 void version_node_id(bNodeTree *ntree, const int node_type, const char *new_name)
 {
   for (bNode *node : ntree->all_nodes()) {
-    if (node->type == node_type) {
+    if (node->type_legacy == node_type) {
       if (!STREQ(node->idname, new_name)) {
         STRNCPY(node->idname, new_name);
       }
@@ -329,7 +329,7 @@ void version_node_socket_index_animdata(Main *bmain,
       }
 
       for (bNode *node : ntree->all_nodes()) {
-        if (node->type != node_type) {
+        if (node->type_legacy != node_type) {
           continue;
         }
 
@@ -426,7 +426,7 @@ void add_realize_instances_before_socket(bNodeTree *ntree,
   blender::Vector<bNodeLink *> links = find_connected_links(ntree, geometry_socket);
   for (bNodeLink *link : links) {
     /* If the realize instances node is already before this socket, no need to continue. */
-    if (link->fromnode->type == GEO_NODE_REALIZE_INSTANCES) {
+    if (link->fromnode->type_legacy == GEO_NODE_REALIZE_INSTANCES) {
       return;
     }
 
@@ -571,7 +571,7 @@ bNode *version_eevee_output_node_get(bNodeTree *ntree, int16_t node_type)
   /* NOTE: duplicated from `ntreeShaderOutputNode` with small adjustments so it can be called
    * during versioning. */
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    if (node->type != node_type) {
+    if (node->type_legacy != node_type) {
       continue;
     }
     if (node->custom1 == SHD_OUTPUT_ALL) {

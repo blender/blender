@@ -417,7 +417,7 @@ static void node_foreach_cache(ID *id,
 
   if (nodetree->type == NTREE_COMPOSIT) {
     for (bNode *node : nodetree->all_nodes()) {
-      if (node->type == CMP_NODE_MOVIEDISTORTION) {
+      if (node->type_legacy == CMP_NODE_MOVIEDISTORTION) {
         key.identifier = size_t(BLI_ghashutil_strhash_p(node->name));
         function_callback(id, &key, static_cast<void **>(&node->storage), 0, user_data);
       }
@@ -432,11 +432,11 @@ static void node_foreach_path(ID *id, BPathForeachPathData *bpath_data)
   switch (ntree->type) {
     case NTREE_SHADER: {
       for (bNode *node : ntree->all_nodes()) {
-        if (node->type == SH_NODE_SCRIPT) {
+        if (node->type_legacy == SH_NODE_SCRIPT) {
           NodeShaderScript *nss = static_cast<NodeShaderScript *>(node->storage);
           BKE_bpath_foreach_path_fixed_process(bpath_data, nss->filepath, sizeof(nss->filepath));
         }
-        else if (node->type == SH_NODE_TEX_IES) {
+        else if (node->type_legacy == SH_NODE_TEX_IES) {
           NodeShaderTexIES *ies = static_cast<NodeShaderTexIES *>(node->storage);
           BKE_bpath_foreach_path_fixed_process(bpath_data, ies->filepath, sizeof(ies->filepath));
         }
@@ -767,7 +767,7 @@ void node_tree_blend_write(BlendWriter *writer, bNodeTree *ntree)
   }
 
   for (bNode *node : ntree->all_nodes()) {
-    if (ntree->type == NTREE_SHADER && node->type == SH_NODE_BSDF_HAIR_PRINCIPLED) {
+    if (ntree->type == NTREE_SHADER && node->type_legacy == SH_NODE_BSDF_HAIR_PRINCIPLED) {
       /* For Principeld Hair BSDF, also write to `node->custom1` for forward compatibility, because
        * prior to 4.0 `node->custom1` was used for color parametrization instead of
        * `node->storage->parametrization`. */
@@ -792,18 +792,18 @@ void node_tree_blend_write(BlendWriter *writer, bNodeTree *ntree)
 
     if (node->storage) {
       if (ELEM(ntree->type, NTREE_SHADER, NTREE_GEOMETRY) &&
-          ELEM(node->type, SH_NODE_CURVE_VEC, SH_NODE_CURVE_RGB, SH_NODE_CURVE_FLOAT))
+          ELEM(node->type_legacy, SH_NODE_CURVE_VEC, SH_NODE_CURVE_RGB, SH_NODE_CURVE_FLOAT))
       {
         BKE_curvemapping_blend_write(writer, static_cast<const CurveMapping *>(node->storage));
       }
-      else if (ntree->type == NTREE_SHADER && (node->type == SH_NODE_SCRIPT)) {
+      else if (ntree->type == NTREE_SHADER && (node->type_legacy == SH_NODE_SCRIPT)) {
         NodeShaderScript *nss = static_cast<NodeShaderScript *>(node->storage);
         if (nss->bytecode) {
           BLO_write_string(writer, nss->bytecode);
         }
         BLO_write_struct_by_name(writer, node->typeinfo->storagename.c_str(), node->storage);
       }
-      else if ((ntree->type == NTREE_COMPOSIT) && ELEM(node->type,
+      else if ((ntree->type == NTREE_COMPOSIT) && ELEM(node->type_legacy,
                                                        CMP_NODE_TIME,
                                                        CMP_NODE_CURVE_VEC,
                                                        CMP_NODE_CURVE_RGB,
@@ -812,14 +812,15 @@ void node_tree_blend_write(BlendWriter *writer, bNodeTree *ntree)
         BKE_curvemapping_blend_write(writer, static_cast<const CurveMapping *>(node->storage));
       }
       else if ((ntree->type == NTREE_TEXTURE) &&
-               ELEM(node->type, TEX_NODE_CURVE_RGB, TEX_NODE_CURVE_TIME))
+               ELEM(node->type_legacy, TEX_NODE_CURVE_RGB, TEX_NODE_CURVE_TIME))
       {
         BKE_curvemapping_blend_write(writer, static_cast<const CurveMapping *>(node->storage));
       }
-      else if ((ntree->type == NTREE_COMPOSIT) && (node->type == CMP_NODE_MOVIEDISTORTION)) {
+      else if ((ntree->type == NTREE_COMPOSIT) && (node->type_legacy == CMP_NODE_MOVIEDISTORTION))
+      {
         /* pass */
       }
-      else if ((ntree->type == NTREE_COMPOSIT) && (node->type == CMP_NODE_GLARE)) {
+      else if ((ntree->type == NTREE_COMPOSIT) && (node->type_legacy == CMP_NODE_GLARE)) {
         /* Simple forward compatibility for fix for #50736.
          * Not ideal (there is no ideal solution here), but should do for now. */
         NodeGlare *ndg = static_cast<NodeGlare *>(node->storage);
@@ -839,7 +840,7 @@ void node_tree_blend_write(BlendWriter *writer, bNodeTree *ntree)
         BLO_write_struct_by_name(writer, node->typeinfo->storagename.c_str(), node->storage);
       }
       else if ((ntree->type == NTREE_COMPOSIT) &&
-               ELEM(node->type, CMP_NODE_CRYPTOMATTE, CMP_NODE_CRYPTOMATTE_LEGACY))
+               ELEM(node->type_legacy, CMP_NODE_CRYPTOMATTE, CMP_NODE_CRYPTOMATTE_LEGACY))
       {
         NodeCryptomatte *nc = static_cast<NodeCryptomatte *>(node->storage);
         BLO_write_string(writer, nc->matte_id);
@@ -848,14 +849,14 @@ void node_tree_blend_write(BlendWriter *writer, bNodeTree *ntree)
         }
         BLO_write_struct_by_name(writer, node->typeinfo->storagename.c_str(), node->storage);
       }
-      else if (node->type == FN_NODE_INPUT_STRING) {
+      else if (node->type_legacy == FN_NODE_INPUT_STRING) {
         NodeInputString *storage = static_cast<NodeInputString *>(node->storage);
         if (storage->string) {
           BLO_write_string(writer, storage->string);
         }
         BLO_write_struct_by_name(writer, node->typeinfo->storagename.c_str(), storage);
       }
-      else if (node->type == GEO_NODE_CAPTURE_ATTRIBUTE) {
+      else if (node->type_legacy == GEO_NODE_CAPTURE_ATTRIBUTE) {
         auto &storage = *static_cast<NodeGeometryAttributeCapture *>(node->storage);
         /* Improve forward compatibility. */
         storage.data_type_legacy = CD_PROP_FLOAT;
@@ -877,7 +878,7 @@ void node_tree_blend_write(BlendWriter *writer, bNodeTree *ntree)
       }
     }
 
-    if (node->type == CMP_NODE_OUTPUT_FILE) {
+    if (node->type_legacy == CMP_NODE_OUTPUT_FILE) {
       /* Inputs have their own storage data. */
       NodeImageMultiFile *nimf = (NodeImageMultiFile *)node->storage;
       BKE_image_format_blend_write(writer, &nimf->format);
@@ -889,28 +890,28 @@ void node_tree_blend_write(BlendWriter *writer, bNodeTree *ntree)
         BKE_image_format_blend_write(writer, &sockdata->format);
       }
     }
-    if (ELEM(node->type, CMP_NODE_IMAGE, CMP_NODE_R_LAYERS)) {
+    if (ELEM(node->type_legacy, CMP_NODE_IMAGE, CMP_NODE_R_LAYERS)) {
       /* Write extra socket info. */
       LISTBASE_FOREACH (bNodeSocket *, sock, &node->outputs) {
         BLO_write_struct(writer, NodeImageLayer, sock->storage);
       }
     }
-    if (node->type == GEO_NODE_SIMULATION_OUTPUT) {
+    if (node->type_legacy == GEO_NODE_SIMULATION_OUTPUT) {
       nodes::socket_items::blend_write<nodes::SimulationItemsAccessor>(writer, *node);
     }
-    if (node->type == GEO_NODE_REPEAT_OUTPUT) {
+    if (node->type_legacy == GEO_NODE_REPEAT_OUTPUT) {
       nodes::socket_items::blend_write<nodes::RepeatItemsAccessor>(writer, *node);
     }
-    if (node->type == GEO_NODE_INDEX_SWITCH) {
+    if (node->type_legacy == GEO_NODE_INDEX_SWITCH) {
       nodes::socket_items::blend_write<nodes::IndexSwitchItemsAccessor>(writer, *node);
     }
-    if (node->type == GEO_NODE_BAKE) {
+    if (node->type_legacy == GEO_NODE_BAKE) {
       nodes::socket_items::blend_write<nodes::BakeItemsAccessor>(writer, *node);
     }
-    if (node->type == GEO_NODE_MENU_SWITCH) {
+    if (node->type_legacy == GEO_NODE_MENU_SWITCH) {
       nodes::socket_items::blend_write<nodes::MenuSwitchItemsAccessor>(writer, *node);
     }
-    if (node->type == GEO_NODE_FOREACH_GEOMETRY_ELEMENT_OUTPUT) {
+    if (node->type_legacy == GEO_NODE_FOREACH_GEOMETRY_ELEMENT_OUTPUT) {
       nodes::socket_items::blend_write<nodes::ForeachGeometryElementInputItemsAccessor>(writer,
                                                                                         *node);
       nodes::socket_items::blend_write<nodes::ForeachGeometryElementGenerationItemsAccessor>(
@@ -1107,7 +1108,7 @@ void node_tree_blend_read_data(BlendDataReader *reader, ID *owner_id, bNodeTree 
     BLO_read_struct(reader, IDProperty, &node->prop);
     IDP_BlendDataRead(reader, &node->prop);
 
-    if (node->type == CMP_NODE_MOVIEDISTORTION) {
+    if (node->type_legacy == CMP_NODE_MOVIEDISTORTION) {
       /* Do nothing, this is runtime cache and hence handled by generic code using
        * `IDTypeInfo.foreach_cache` callback. */
     }
@@ -1118,7 +1119,7 @@ void node_tree_blend_read_data(BlendDataReader *reader, ID *owner_id, bNodeTree 
     }
 
     if (node->storage) {
-      switch (node->type) {
+      switch (node->type_legacy) {
         case SH_NODE_CURVE_VEC:
         case SH_NODE_CURVE_RGB:
         case SH_NODE_CURVE_FLOAT:
@@ -1236,7 +1237,7 @@ void node_tree_blend_read_data(BlendDataReader *reader, ID *owner_id, bNodeTree 
     }
 
     /* Socket storage. */
-    if (node->type == CMP_NODE_OUTPUT_FILE) {
+    if (node->type_legacy == CMP_NODE_OUTPUT_FILE) {
       LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
         NodeImageMultiFileSocket *sockdata = static_cast<NodeImageMultiFileSocket *>(
             sock->storage);
@@ -1474,7 +1475,7 @@ static void node_init(const bContext *C, bNodeTree *ntree, bNode *node)
 
   /* Generally sockets should be added after the initialization, because the set of sockets might
    * depend on node properties. */
-  const bool add_sockets_before_init = node->type == CMP_NODE_R_LAYERS;
+  const bool add_sockets_before_init = node->type_legacy == CMP_NODE_R_LAYERS;
   if (add_sockets_before_init) {
     node_add_sockets_from_type(ntree, node, ntype);
   }
@@ -1537,7 +1538,7 @@ static void node_set_typeinfo(const bContext *C,
     node->typeinfo = typeinfo;
 
     /* deprecated integer type */
-    node->type = typeinfo->type;
+    node->type_legacy = typeinfo->type_legacy;
 
     /* initialize the node if necessary */
     node_init(C, ntree, node);
@@ -2164,9 +2165,9 @@ bNodeSocket *node_add_socket(bNodeTree *ntree,
                              const StringRefNull identifier,
                              const StringRefNull name)
 {
-  BLI_assert(node->type != NODE_FRAME);
-  BLI_assert(!(in_out == SOCK_IN && node->type == NODE_GROUP_INPUT));
-  BLI_assert(!(in_out == SOCK_OUT && node->type == NODE_GROUP_OUTPUT));
+  BLI_assert(node->type_legacy != NODE_FRAME);
+  BLI_assert(!(in_out == SOCK_IN && node->type_legacy == NODE_GROUP_INPUT));
+  BLI_assert(!(in_out == SOCK_OUT && node->type_legacy == NODE_GROUP_OUTPUT));
 
   ListBase *lb = (in_out == SOCK_IN ? &node->inputs : &node->outputs);
   bNodeSocket *sock = make_socket(ntree, node, in_out, lb, idname, identifier, name);
@@ -2549,7 +2550,7 @@ bNode *node_find_root_parent(bNode *node)
   while (parent_iter->parent != nullptr) {
     parent_iter = parent_iter->parent;
   }
-  if (parent_iter->type != NODE_FRAME) {
+  if (parent_iter->type_legacy != NODE_FRAME) {
     return nullptr;
   }
   return parent_iter;
@@ -2704,7 +2705,7 @@ bNode *node_add_static_node(const bContext *C, bNodeTree *ntree, const int type)
   for (bNodeType *ntype : node_types_get()) {
     /* Do an extra poll here, because some int types are used
      * for multiple node types, this helps find the desired type. */
-    if (ntype->type != type) {
+    if (ntype->type_legacy != type) {
       continue;
     }
 
@@ -2834,7 +2835,7 @@ static void *node_static_value_storage_for(bNode &node, const bNodeSocket &socke
     return nullptr;
   }
 
-  switch (node.type) {
+  switch (node.type_legacy) {
     case FN_NODE_INPUT_BOOL:
       return &reinterpret_cast<NodeInputBool *>(node.storage)->boolean;
     case SH_NODE_VALUE:
@@ -2919,7 +2920,7 @@ void node_socket_move_default_value(Main & /*bmain*/,
     /* Multi input sockets no have value. */
     return;
   }
-  if (ELEM(NODE_REROUTE, dst_node.type, src_node.type)) {
+  if (ELEM(NODE_REROUTE, dst_node.type_legacy, src_node.type_legacy)) {
     /* Reroute node can't have ownership of socket value directly. */
     return;
   }
@@ -3145,7 +3146,7 @@ void node_internal_relink(bNodeTree *ntree, bNode *node)
 
 void node_attach_node(bNodeTree *ntree, bNode *node, bNode *parent)
 {
-  BLI_assert(parent->type == NODE_FRAME);
+  BLI_assert(parent->type_legacy == NODE_FRAME);
   BLI_assert(!node_is_parent_and_child(parent, node));
   node->parent = parent;
   BKE_ntree_update_tag_parent_change(ntree, node);
@@ -3154,7 +3155,7 @@ void node_attach_node(bNodeTree *ntree, bNode *node, bNode *parent)
 void node_detach_node(bNodeTree *ntree, bNode *node)
 {
   if (node->parent) {
-    BLI_assert(node->parent->type == NODE_FRAME);
+    BLI_assert(node->parent->type_legacy == NODE_FRAME);
     node->parent = nullptr;
     BKE_ntree_update_tag_parent_change(ntree, node);
   }
@@ -3665,10 +3666,10 @@ void node_tree_set_output(bNodeTree *ntree)
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
     if (node->typeinfo->nclass == NODE_CLASS_OUTPUT) {
       /* we need a check for which output node should be tagged like this, below an exception */
-      if (ELEM(node->type, CMP_NODE_OUTPUT_FILE, GEO_NODE_VIEWER)) {
+      if (ELEM(node->type_legacy, CMP_NODE_OUTPUT_FILE, GEO_NODE_VIEWER)) {
         continue;
       }
-      const bool node_is_output = node->type == CMP_NODE_VIEWER;
+      const bool node_is_output = node->type_legacy == CMP_NODE_VIEWER;
 
       int output = 0;
       /* there is more types having output class, each one is checked */
@@ -3679,9 +3680,9 @@ void node_tree_set_output(bNodeTree *ntree)
         }
 
         /* same type, exception for viewer */
-        const bool tnode_is_output = tnode->type == CMP_NODE_VIEWER;
+        const bool tnode_is_output = tnode->type_legacy == CMP_NODE_VIEWER;
         const bool compositor_case = is_compositor && tnode_is_output && node_is_output;
-        if (tnode->type == node->type || compositor_case) {
+        if (tnode->type_legacy == node->type_legacy || compositor_case) {
           if (tnode->flag & NODE_DO_OUTPUT) {
             output++;
             if (output > 1) {
@@ -3697,10 +3698,10 @@ void node_tree_set_output(bNodeTree *ntree)
     }
 
     /* group node outputs use this flag too */
-    if (node->type == NODE_GROUP_OUTPUT) {
+    if (node->type_legacy == NODE_GROUP_OUTPUT) {
       int output = 0;
       LISTBASE_FOREACH (bNode *, tnode, &ntree->nodes) {
-        if (tnode->type != NODE_GROUP_OUTPUT) {
+        if (tnode->type_legacy != NODE_GROUP_OUTPUT) {
           continue;
         }
         if (tnode->flag & NODE_DO_OUTPUT) {
@@ -4196,7 +4197,7 @@ static Set<int> get_known_node_types_set()
 {
   Set<int> result;
   for (const bNodeType *ntype : node_types_get()) {
-    result.add(ntype->type);
+    result.add(ntype->type_legacy);
   }
   return result;
 }
@@ -4216,8 +4217,8 @@ static bool can_read_node_type(const int type)
 static void node_replace_undefined_types(bNode *node)
 {
   /* If the integer type is unknown then this node cannot be read. */
-  if (!can_read_node_type(node->type)) {
-    node->type = NODE_CUSTOM;
+  if (!can_read_node_type(node->type_legacy)) {
+    node->type_legacy = NODE_CUSTOM;
     /* This type name is arbitrary, it just has to be unique enough to not match a future node
      * idname. Includes the old type identifier for debugging purposes. */
     const std::string old_idname = node->idname;
@@ -4349,7 +4350,7 @@ void node_type_base(bNodeType *ntype, std::string idname, const int type, const 
   /* make sure we have a valid type (everything registered) */
   BLI_assert(ntype->idname[0] != '\0');
 
-  ntype->type = type;
+  ntype->type_legacy = type;
   ntype->nclass = nclass;
 
   node_type_base_defaults(ntype);
@@ -4365,7 +4366,7 @@ void node_type_base_custom(bNodeType *ntype,
                            const short nclass)
 {
   ntype->idname = idname;
-  ntype->type = NODE_CUSTOM;
+  ntype->type_legacy = NODE_CUSTOM;
   ntype->ui_name = name;
   ntype->nclass = nclass;
   ntype->enum_name_legacy = enum_name.c_str();
@@ -4738,7 +4739,7 @@ void node_tree_remove_layer_n(bNodeTree *ntree, Scene *scene, const int layer_in
   BLI_assert(layer_index != -1);
   BLI_assert(scene != nullptr);
   for (bNode *node : ntree->all_nodes()) {
-    if (node->type == CMP_NODE_R_LAYERS && node->id == &scene->id) {
+    if (node->type_legacy == CMP_NODE_R_LAYERS && node->id == &scene->id) {
       if (node->custom1 == layer_index) {
         node->custom1 = 0;
       }

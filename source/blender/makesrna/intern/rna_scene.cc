@@ -1236,7 +1236,7 @@ static std::optional<std::string> rna_ImageFormatSettings_path(const PointerRNA 
       bNode *node;
 
       for (node = static_cast<bNode *>(ntree->nodes.first); node; node = node->next) {
-        if (node->type == CMP_NODE_OUTPUT_FILE) {
+        if (node->type_legacy == CMP_NODE_OUTPUT_FILE) {
           if (&((NodeImageMultiFile *)node->storage)->format == imf) {
             char node_name_esc[sizeof(node->name) * 2];
             BLI_str_escape(node_name_esc, node->name, sizeof(node_name_esc));

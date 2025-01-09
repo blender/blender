@@ -31,7 +31,7 @@ using bke::bNodeTreeZones;
 
 static ViewerPathElem *viewer_path_elem_for_zone(const bNodeTreeZone &zone)
 {
-  switch (zone.output_node->type) {
+  switch (zone.output_node->type_legacy) {
     case GEO_NODE_SIMULATION_OUTPUT: {
       SimulationZoneViewerPathElem *node_elem = BKE_viewer_path_elem_new_simulation_zone();
       node_elem->sim_output_node_id = zone.output_node->identifier;
@@ -157,7 +157,7 @@ void activate_geometry_node(Main &bmain, SpaceNode &snode, bNode &node)
     return;
   }
   for (bNode *iter_node : snode.edittree->all_nodes()) {
-    if (iter_node->type == GEO_NODE_VIEWER) {
+    if (iter_node->type_legacy == GEO_NODE_VIEWER) {
       SET_FLAG_FROM_TEST(iter_node->flag, iter_node == &node, NODE_DO_OUTPUT);
     }
   }

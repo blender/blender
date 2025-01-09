@@ -93,7 +93,7 @@ bool space_node_view_flag(
         BLI_rctf_union(&cur_new, &node->runtime->draw_bounds);
         tot++;
 
-        if (node->type == NODE_FRAME) {
+        if (node->type_legacy == NODE_FRAME) {
           has_frame = true;
         }
       }

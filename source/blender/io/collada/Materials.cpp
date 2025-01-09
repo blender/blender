@@ -275,7 +275,7 @@ Image *MaterialNode::get_diffuse_image()
     return nullptr;
   }
 
-  if (texture->type != SH_NODE_TEX_IMAGE) {
+  if (texture->type_legacy != SH_NODE_TEX_IMAGE) {
     return nullptr;
   }
 

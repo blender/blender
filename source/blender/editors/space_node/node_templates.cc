@@ -78,7 +78,7 @@ static void node_link_item_init(NodeLinkItem &item)
  */
 static bool node_link_item_compare(bNode *node, NodeLinkItem *item)
 {
-  if (ELEM(node->type, NODE_GROUP, NODE_CUSTOM_GROUP)) {
+  if (ELEM(node->type_legacy, NODE_GROUP, NODE_CUSTOM_GROUP)) {
     return (node->id == (ID *)item->ngroup);
   }
   return true;
@@ -86,7 +86,7 @@ static bool node_link_item_compare(bNode *node, NodeLinkItem *item)
 
 static void node_link_item_apply(bNodeTree *ntree, bNode *node, NodeLinkItem *item)
 {
-  if (ELEM(node->type, NODE_GROUP, NODE_CUSTOM_GROUP)) {
+  if (ELEM(node->type_legacy, NODE_GROUP, NODE_CUSTOM_GROUP)) {
     node->id = (ID *)item->ngroup;
     BKE_ntree_update_tag_node_property(ntree, node);
   }
@@ -217,7 +217,7 @@ static void node_socket_add_replace(const bContext *C,
 
   /* find existing node that we can use */
   for (node_from = (bNode *)ntree->nodes.first; node_from; node_from = node_from->next) {
-    if (node_from->type == type) {
+    if (node_from->type_legacy == type) {
       break;
     }
   }
@@ -230,7 +230,7 @@ static void node_socket_add_replace(const bContext *C,
     }
   }
 
-  if (node_prev && node_prev->type == type && node_link_item_compare(node_prev, item)) {
+  if (node_prev && node_prev->type_legacy == type && node_link_item_compare(node_prev, item)) {
     /* keep the previous node if it's the same type */
     node_from = node_prev;
   }
@@ -325,7 +325,7 @@ static Vector<NodeLinkItem> ui_node_link_items(NodeLinkArg *arg,
 {
   Vector<NodeLinkItem> items;
 
-  if (arg->node_type->type == NODE_GROUP) {
+  if (arg->node_type->type_legacy == NODE_GROUP) {
     LISTBASE_FOREACH (bNodeTree *, ngroup, &arg->bmain->nodetrees) {
       if (BKE_id_name(ngroup->id)[0] == '.') {
         /* Don't display hidden node groups, just like the add menu. */
@@ -418,7 +418,7 @@ static void ui_node_link(bContext *C, void *arg_p, void *event_p)
     node_socket_remove(bmain, ntree, node_to, sock_to);
   }
   else {
-    node_socket_add_replace(C, ntree, node_to, sock_to, arg->node_type->type, &arg->item);
+    node_socket_add_replace(C, ntree, node_to, sock_to, arg->node_type->type_legacy, &arg->item);
   }
 
   ED_undo_push(C, "Node input modify");
@@ -827,7 +827,7 @@ static void ui_node_draw_node(
   }
   else {
     if (node.typeinfo->draw_buttons) {
-      if (node.type != NODE_GROUP) {
+      if (node.type_legacy != NODE_GROUP) {
         uiLayoutSetPropSep(&layout, true);
         node.typeinfo->draw_buttons(&layout, &C, &nodeptr);
       }
@@ -882,8 +882,8 @@ static void ui_node_draw_input(uiLayout &layout,
     if (depth > 0) {
       UI_block_emboss_set(block, UI_EMBOSS_NONE);
 
-      if (lnode &&
-          (lnode->inputs.first || (lnode->typeinfo->draw_buttons && lnode->type != NODE_GROUP)))
+      if (lnode && (lnode->inputs.first ||
+                    (lnode->typeinfo->draw_buttons && lnode->type_legacy != NODE_GROUP)))
       {
         int icon = (input.flag & SOCK_COLLAPSED) ? ICON_RIGHTARROW : ICON_DOWNARROW_HLT;
         uiItemR(sub, &inputptr, "show_expanded", UI_ITEM_R_ICON_ONLY, "", icon);

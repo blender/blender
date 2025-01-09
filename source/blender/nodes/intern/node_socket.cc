@@ -328,7 +328,7 @@ static const char *get_current_socket_identifier_for_future_socket(
     const bNodeSocket &socket,
     const Span<const SocketDeclaration *> socket_decls)
 {
-  switch (node.type) {
+  switch (node.type_legacy) {
     case FN_NODE_RANDOM_VALUE: {
       return get_identifier_from_decl({"Min", "Max", "Value"}, socket, socket_decls);
     }
@@ -560,7 +560,7 @@ void node_verify_sockets(bNodeTree *ntree, bNode *node, bool do_id_user)
     if (ntype->inputs && ntype->inputs[0].type >= 0) {
       verify_socket_template_list(ntree, node, SOCK_IN, &node->inputs, ntype->inputs);
     }
-    if (ntype->outputs && ntype->outputs[0].type >= 0 && node->type != CMP_NODE_R_LAYERS) {
+    if (ntype->outputs && ntype->outputs[0].type >= 0 && node->type_legacy != CMP_NODE_R_LAYERS) {
       verify_socket_template_list(ntree, node, SOCK_OUT, &node->outputs, ntype->outputs);
     }
   }

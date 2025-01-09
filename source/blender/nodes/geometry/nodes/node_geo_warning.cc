@@ -122,7 +122,7 @@ namespace blender::nodes {
 std::unique_ptr<LazyFunction> get_warning_node_lazy_function(const bNode &node)
 {
   using namespace node_geo_warning_cc;
-  BLI_assert(node.type == GEO_NODE_WARNING);
+  BLI_assert(node.type_legacy == GEO_NODE_WARNING);
   return std::make_unique<LazyFunctionForWarningNode>(node);
 }
 

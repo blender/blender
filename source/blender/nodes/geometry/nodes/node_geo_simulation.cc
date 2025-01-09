@@ -898,7 +898,7 @@ std::unique_ptr<LazyFunction> get_simulation_input_lazy_function(
     const bNode &node,
     GeometryNodesLazyFunctionGraphInfo &own_lf_graph_info)
 {
-  BLI_assert(node.type == GEO_NODE_SIMULATION_INPUT);
+  BLI_assert(node.type_legacy == GEO_NODE_SIMULATION_INPUT);
   return std::make_unique<
       node_geo_simulation_cc::sim_input_node::LazyFunctionForSimulationInputNode>(
       node_tree, node, own_lf_graph_info);
@@ -907,7 +907,7 @@ std::unique_ptr<LazyFunction> get_simulation_input_lazy_function(
 std::unique_ptr<LazyFunction> get_simulation_output_lazy_function(
     const bNode &node, GeometryNodesLazyFunctionGraphInfo &own_lf_graph_info)
 {
-  BLI_assert(node.type == GEO_NODE_SIMULATION_OUTPUT);
+  BLI_assert(node.type_legacy == GEO_NODE_SIMULATION_OUTPUT);
   return std::make_unique<
       node_geo_simulation_cc::sim_output_node::LazyFunctionForSimulationOutputNode>(
       node, own_lf_graph_info);

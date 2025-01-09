@@ -1240,7 +1240,7 @@ bool UI_context_copy_to_selected_list(bContext *C,
       lb = CTX_data_collection_get(C, "selected_nodes");
       lb.remove_if([&](const PointerRNA &link) {
         bNode *node_data = static_cast<bNode *>(link.data);
-        if (node_data->type != node->type) {
+        if (node_data->type_legacy != node->type_legacy) {
           return true;
         }
         return false;

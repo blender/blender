@@ -789,27 +789,27 @@ inline bool bNode::is_muted() const
 
 inline bool bNode::is_reroute() const
 {
-  return this->type == NODE_REROUTE;
+  return this->type_legacy == NODE_REROUTE;
 }
 
 inline bool bNode::is_frame() const
 {
-  return this->type == NODE_FRAME;
+  return this->type_legacy == NODE_FRAME;
 }
 
 inline bool bNode::is_group() const
 {
-  return ELEM(this->type, NODE_GROUP, NODE_CUSTOM_GROUP);
+  return ELEM(this->type_legacy, NODE_GROUP, NODE_CUSTOM_GROUP);
 }
 
 inline bool bNode::is_group_input() const
 {
-  return this->type == NODE_GROUP_INPUT;
+  return this->type_legacy == NODE_GROUP_INPUT;
 }
 
 inline bool bNode::is_group_output() const
 {
-  return this->type == NODE_GROUP_OUTPUT;
+  return this->type_legacy == NODE_GROUP_OUTPUT;
 }
 
 inline blender::Span<bNodeLink> bNode::internal_links() const

@@ -260,13 +260,13 @@ static std::unique_ptr<bNodeTreeZones> discover_tree_zones(const bNodeTree &tree
         depend_on_output_flags |= depend_on_output_flag_array[from_node_i];
       }
     }
-    if (input_types.contains(node->type)) {
+    if (input_types.contains(node->type_legacy)) {
       if (const bNodeTreeZone *zone = zone_by_inout_node.lookup_default(node, nullptr)) {
         /* Now entering a zone, so set the corresponding bit. */
         depend_on_input_flags[zone->index].set();
       }
     }
-    else if (output_types.contains(node->type)) {
+    else if (output_types.contains(node->type_legacy)) {
       if (const bNodeTreeZone *zone = zone_by_inout_node.lookup_default(node, nullptr)) {
         /* The output is implicitly linked to the input, so also propagate the bits from there. */
         if (const bNode *zone_input_node = zone->input_node) {

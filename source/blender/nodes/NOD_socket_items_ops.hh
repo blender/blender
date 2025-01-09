@@ -48,7 +48,7 @@ inline PointerRNA get_active_node_to_operate_on(bContext *C, const int node_type
       active_node = const_cast<bNode *>(zone->output_node);
     }
   }
-  if (active_node->type != node_type) {
+  if (active_node->type_legacy != node_type) {
     return PointerRNA_NULL;
   }
   return RNA_pointer_create(&snode->edittree->id, &RNA_Node, active_node);

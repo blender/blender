@@ -803,13 +803,13 @@ static const char *get_legacy_node_type(const PointerRNA *ptr)
 {
   const bNode *node = static_cast<const bNode *>(ptr->data);
   const blender::bke::bNodeType *ntype = node->typeinfo;
-  if (ntype->type == NODE_CUSTOM) {
+  if (ntype->type_legacy == NODE_CUSTOM) {
     return "CUSTOM";
   }
-  if (ntype->type == NODE_CUSTOM_GROUP) {
+  if (ntype->type_legacy == NODE_CUSTOM_GROUP) {
     return "CUSTOM GROUP";
   }
-  if (ntype->type == NODE_UNDEFINED) {
+  if (ntype->type_legacy == NODE_UNDEFINED) {
     return "UNDEFINED";
   }
   if (ntype->enum_name_legacy) {
@@ -1332,11 +1332,11 @@ static void rna_NodeTree_active_node_set(PointerRNA *ptr,
     blender::bke::node_set_active(ntree, node);
 
     /* Handle NODE_DO_OUTPUT as well. */
-    if (node->typeinfo->nclass == NODE_CLASS_OUTPUT && node->type != CMP_NODE_OUTPUT_FILE) {
+    if (node->typeinfo->nclass == NODE_CLASS_OUTPUT && node->type_legacy != CMP_NODE_OUTPUT_FILE) {
       /* If this node becomes the active output, the others of the same type can't be the active
        * output anymore. */
       LISTBASE_FOREACH (bNode *, other_node, &ntree->nodes) {
-        if (other_node->type == node->type) {
+        if (other_node->type_legacy == node->type_legacy) {
           other_node->flag &= ~NODE_DO_OUTPUT;
         }
       }
@@ -1687,7 +1687,7 @@ std::optional<std::string> rna_Node_ImageUser_path(const PointerRNA *ptr)
   }
 
   for (bNode *node = static_cast<bNode *>(ntree->nodes.first); node; node = node->next) {
-    switch (node->type) {
+    switch (node->type_legacy) {
       case SH_NODE_TEX_ENVIRONMENT: {
         NodeTexEnvironment *data = static_cast<NodeTexEnvironment *>(node->storage);
         if (&data->iuser != ptr->data) {
@@ -2394,7 +2394,7 @@ static void rna_Node_parent_set(PointerRNA *ptr, PointerRNA value, ReportList * 
   /* XXX only Frame node allowed for now,
    * in the future should have a poll function or so to test possible attachment.
    */
-  if (parent->type != NODE_FRAME) {
+  if (parent->type_legacy != NODE_FRAME) {
     return;
   }
 
@@ -2421,7 +2421,7 @@ static void rna_Node_internal_links_begin(CollectionPropertyIterator *iter, Poin
  */
 static bool allow_identifier_lookup(const bNode &node)
 {
-  switch (node.type) {
+  switch (node.type_legacy) {
     case FN_NODE_RANDOM_VALUE:
     case SH_NODE_MIX:
     case FN_NODE_COMPARE:
@@ -2484,11 +2484,11 @@ static bool rna_Node_parent_poll(PointerRNA *ptr, PointerRNA value)
   /* XXX only Frame node allowed for now,
    * in the future should have a poll function or so to test possible attachment.
    */
-  if (parent->type != NODE_FRAME) {
+  if (parent->type_legacy != NODE_FRAME) {
     return false;
   }
 
-  if (node->type == NODE_FRAME && blender::bke::node_is_parent_and_child(node, parent)) {
+  if (node->type_legacy == NODE_FRAME && blender::bke::node_is_parent_and_child(node, parent)) {
     return false;
   }
 
@@ -2651,7 +2651,7 @@ static int rna_Node_color_tag_get(PointerRNA *ptr)
 
 static bool allow_changing_sockets(bNode *node)
 {
-  return ELEM(node->type, NODE_CUSTOM, SH_NODE_SCRIPT, CMP_NODE_OUTPUT_FILE);
+  return ELEM(node->type_legacy, NODE_CUSTOM, SH_NODE_SCRIPT, CMP_NODE_OUTPUT_FILE);
 }
 
 static bNodeSocket *rna_Node_inputs_new(ID *id,
@@ -3046,7 +3046,7 @@ static StructRNA *rna_GeometryNodeCustomGroup_register(Main *bmain,
     return nullptr;
   }
 
-  nt->type = NODE_CUSTOM_GROUP;
+  nt->type_legacy = NODE_CUSTOM_GROUP;
 
   register_node_type_geo_custom_group(nt);
 
@@ -3074,7 +3074,7 @@ static StructRNA *rna_ShaderNodeCustomGroup_register(Main *bmain,
     return nullptr;
   }
 
-  nt->type = NODE_CUSTOM_GROUP;
+  nt->type_legacy = NODE_CUSTOM_GROUP;
 
   register_node_type_sh_custom_group(nt);
 
@@ -3099,7 +3099,7 @@ static StructRNA *rna_CompositorNodeCustomGroup_register(Main *bmain,
     return nullptr;
   }
 
-  nt->type = NODE_CUSTOM_GROUP;
+  nt->type_legacy = NODE_CUSTOM_GROUP;
 
   register_node_type_cmp_custom_group(nt);
 
@@ -3247,7 +3247,9 @@ static void rna_Node_image_layer_update(Main *bmain, Scene *scene, PointerRNA *p
   Image *ima = reinterpret_cast<Image *>(node->id);
   ImageUser *iuser = static_cast<ImageUser *>(node->storage);
 
-  if (node->type == CMP_NODE_CRYPTOMATTE && node->custom1 != CMP_NODE_CRYPTOMATTE_SOURCE_IMAGE) {
+  if (node->type_legacy == CMP_NODE_CRYPTOMATTE &&
+      node->custom1 != CMP_NODE_CRYPTOMATTE_SOURCE_IMAGE)
+  {
     return;
   }
 
@@ -3318,7 +3320,9 @@ static const EnumPropertyItem *rna_Node_image_layer_itemf(bContext * /*C*/,
   const EnumPropertyItem *item = nullptr;
   RenderLayer *rl;
 
-  if (node->type == CMP_NODE_CRYPTOMATTE && node->custom1 != CMP_NODE_CRYPTOMATTE_SOURCE_IMAGE) {
+  if (node->type_legacy == CMP_NODE_CRYPTOMATTE &&
+      node->custom1 != CMP_NODE_CRYPTOMATTE_SOURCE_IMAGE)
+  {
     return rna_enum_dummy_NULL_items;
   }
 
@@ -3340,7 +3344,9 @@ static bool rna_Node_image_has_layers_get(PointerRNA *ptr)
   bNode *node = static_cast<bNode *>(ptr->data);
   Image *ima = reinterpret_cast<Image *>(node->id);
 
-  if (node->type == CMP_NODE_CRYPTOMATTE && node->custom1 != CMP_NODE_CRYPTOMATTE_SOURCE_IMAGE) {
+  if (node->type_legacy == CMP_NODE_CRYPTOMATTE &&
+      node->custom1 != CMP_NODE_CRYPTOMATTE_SOURCE_IMAGE)
+  {
     return false;
   }
 
@@ -3356,7 +3362,9 @@ static bool rna_Node_image_has_views_get(PointerRNA *ptr)
   bNode *node = static_cast<bNode *>(ptr->data);
   Image *ima = reinterpret_cast<Image *>(node->id);
 
-  if (node->type == CMP_NODE_CRYPTOMATTE && node->custom1 != CMP_NODE_CRYPTOMATTE_SOURCE_IMAGE) {
+  if (node->type_legacy == CMP_NODE_CRYPTOMATTE &&
+      node->custom1 != CMP_NODE_CRYPTOMATTE_SOURCE_IMAGE)
+  {
     return false;
   }
 
@@ -3406,7 +3414,9 @@ static const EnumPropertyItem *rna_Node_image_view_itemf(bContext * /*C*/,
   const EnumPropertyItem *item = nullptr;
   RenderView *rv;
 
-  if (node->type == CMP_NODE_CRYPTOMATTE && node->custom1 != CMP_NODE_CRYPTOMATTE_SOURCE_IMAGE) {
+  if (node->type_legacy == CMP_NODE_CRYPTOMATTE &&
+      node->custom1 != CMP_NODE_CRYPTOMATTE_SOURCE_IMAGE)
+  {
     return rna_enum_dummy_NULL_items;
   }
 
@@ -3894,7 +3904,8 @@ static PointerRNA rna_Node_paired_output_get(PointerRNA *ptr)
 {
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(ptr->owner_id);
   bNode *node = static_cast<bNode *>(ptr->data);
-  const blender::bke::bNodeZoneType &zone_type = *blender::bke::zone_type_by_node_type(node->type);
+  const blender::bke::bNodeZoneType &zone_type = *blender::bke::zone_type_by_node_type(
+      node->type_legacy);
   bNode *output_node = zone_type.get_corresponding_output(*ntree, *node);
   PointerRNA r_ptr = RNA_pointer_create(&ntree->id, &RNA_Node, output_node);
   return r_ptr;
@@ -3904,8 +3915,9 @@ static bool rna_Node_pair_with_output(
     ID *id, bNode *node, bContext *C, ReportList *reports, bNode *output_node)
 {
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(id);
-  const blender::bke::bNodeZoneType &zone_type = *blender::bke::zone_type_by_node_type(node->type);
-  if (output_node->type != zone_type.output_type) {
+  const blender::bke::bNodeZoneType &zone_type = *blender::bke::zone_type_by_node_type(
+      node->type_legacy);
+  if (output_node->type_legacy != zone_type.output_type) {
     BKE_reportf(
         reports,
         RPT_ERROR,
@@ -4331,7 +4343,7 @@ static void rna_ShaderNode_is_active_output_set(PointerRNA *ptr, bool value)
     /* If this node becomes the active output, the others of the same type can't be the active
      * output anymore. */
     LISTBASE_FOREACH (bNode *, other_node, &ntree->nodes) {
-      if (other_node->type == node->type) {
+      if (other_node->type_legacy == node->type_legacy) {
         other_node->flag &= ~NODE_DO_OUTPUT;
       }
     }
@@ -4349,7 +4361,7 @@ static void rna_GroupOutput_is_active_output_set(PointerRNA *ptr, bool value)
   if (value) {
     /* Make sure that no other group output is active at the same time. */
     LISTBASE_FOREACH (bNode *, other_node, &ntree->nodes) {
-      if (other_node->type == NODE_GROUP_OUTPUT) {
+      if (other_node->type_legacy == NODE_GROUP_OUTPUT) {
         other_node->flag &= ~NODE_DO_OUTPUT;
       }
     }

@@ -385,11 +385,21 @@ typedef struct bNode {
   bNodeTypeHandle *typeinfo;
 
   /**
-   * Integer type used for builtin nodes, allowing cheaper lookup and changing ID names with
-   * versioning code. Avoid using directly if possible, since may not match runtime node type if it
-   * wasn't found.
+   * Legacy integer type for nodes. It does not uniquely identify a node type, only the `idname`
+   * does that. For example, all custom nodes use #NODE_CUSTOM but do have different idnames.
+   * This is mainly kept for compatibility reasons.
+   *
+   * Currently, this type is also used in many parts of Blender, but that should slowly be phased
+   * out by either relying on idnames, accessor methods like `node.is_reroute()`.
+   *
+   * A main benefit of this integer type over using idnames currently is that integer comparison is
+   * much cheaper than string comparison, especially if many idnames have the same prefix (e.g.
+   * "GeometryNode"). Eventually, we could introduce cheap-to-compare runtime identifier for node
+   * types. That could mean e.g. using `ustring` for idnames (where string comparison is just
+   * pointer comparison), or using a run-time generated integer that is automatically assigned when
+   * node types are registered.
    */
-  int16_t type;
+  int16_t type_legacy;
 
   /**
    * Depth of the node in the node editor, used to keep recently selected nodes at the front, and

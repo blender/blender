@@ -792,7 +792,7 @@ struct GeometryNodesGizmoGroup {
 
 static std::unique_ptr<NodeGizmos> create_gizmo_node_gizmos(const bNode &gizmo_node)
 {
-  switch (gizmo_node.type) {
+  switch (gizmo_node.type_legacy) {
     case GEO_NODE_GIZMO_LINEAR:
       return std::make_unique<LinearGizmo>();
     case GEO_NODE_GIZMO_DIAL:

@@ -358,7 +358,7 @@ static void update_bakes_from_node_group(NodesModifierData &nmd)
     for (const bNestedNodeRef &ref : nmd.node_group->nested_node_refs_span()) {
       const bNode *node = nmd.node_group->find_nested_node(ref.id);
       if (node) {
-        if (ELEM(node->type, GEO_NODE_SIMULATION_OUTPUT, GEO_NODE_BAKE)) {
+        if (ELEM(node->type_legacy, GEO_NODE_SIMULATION_OUTPUT, GEO_NODE_BAKE)) {
           new_bake_ids.append(ref.id);
         }
       }

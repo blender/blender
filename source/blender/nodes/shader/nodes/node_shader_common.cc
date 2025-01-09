@@ -28,7 +28,7 @@ static void group_gpu_copy_inputs(bNode *gnode, GPUNodeStack *in, bNodeStack *gs
   bNodeTree *ngroup = (bNodeTree *)gnode->id;
 
   for (bNode *node : ngroup->all_nodes()) {
-    if (node->type == NODE_GROUP_INPUT) {
+    if (node->type_legacy == NODE_GROUP_INPUT) {
       int a;
       LISTBASE_FOREACH_INDEX (bNodeSocket *, sock, &node->outputs, a) {
         bNodeStack *ns = node_get_socket_stack(gstack, sock);
@@ -89,7 +89,7 @@ void register_node_type_sh_group()
   blender::bke::node_type_base_custom(
       &ntype, "ShaderNodeGroup", "Group", "GROUP", NODE_CLASS_GROUP);
   ntype.enum_name_legacy = "GROUP";
-  ntype.type = NODE_GROUP;
+  ntype.type_legacy = NODE_GROUP;
   ntype.poll = sh_node_poll_default;
   ntype.poll_instance = node_group_poll_instance;
   ntype.insert_link = node_insert_link_default;

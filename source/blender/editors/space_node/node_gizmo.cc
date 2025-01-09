@@ -104,7 +104,7 @@ static bool WIDGETGROUP_node_transform_poll(const bContext *C, wmGizmoGroupType 
   if (snode && snode->edittree && snode->edittree->type == NTREE_COMPOSIT) {
     bNode *node = bke::node_get_active(snode->edittree);
 
-    if (node && ELEM(node->type, CMP_NODE_VIEWER)) {
+    if (node && ELEM(node->type_legacy, CMP_NODE_VIEWER)) {
       return true;
     }
   }
@@ -301,7 +301,7 @@ static bool WIDGETGROUP_node_crop_poll(const bContext *C, wmGizmoGroupType * /*g
   if (snode && snode->edittree && snode->edittree->type == NTREE_COMPOSIT) {
     bNode *node = bke::node_get_active(snode->edittree);
 
-    if (node && ELEM(node->type, CMP_NODE_CROP)) {
+    if (node && ELEM(node->type_legacy, CMP_NODE_CROP)) {
       /* ignore 'use_crop_size', we can't usefully edit the crop in this case. */
       if ((node->custom1 & (1 << 0)) == 0) {
         return true;
@@ -418,7 +418,7 @@ static bool WIDGETGROUP_node_sbeam_poll(const bContext *C, wmGizmoGroupType * /*
   if (snode && snode->edittree && snode->edittree->type == NTREE_COMPOSIT) {
     bNode *node = bke::node_get_active(snode->edittree);
 
-    if (node && ELEM(node->type, CMP_NODE_SUNBEAMS)) {
+    if (node && ELEM(node->type_legacy, CMP_NODE_SUNBEAMS)) {
       return true;
     }
   }
@@ -525,7 +525,7 @@ static bool WIDGETGROUP_node_corner_pin_poll(const bContext *C, wmGizmoGroupType
   if (snode && snode->edittree && snode->edittree->type == NTREE_COMPOSIT) {
     bNode *node = bke::node_get_active(snode->edittree);
 
-    if (node && ELEM(node->type, CMP_NODE_CORNERPIN)) {
+    if (node && ELEM(node->type_legacy, CMP_NODE_CORNERPIN)) {
       return true;
     }
   }

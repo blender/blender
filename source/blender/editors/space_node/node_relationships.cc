@@ -219,7 +219,7 @@ static bNodeSocket *best_socket_output(bNodeTree *ntree,
 
   /* Always allow linking to an reroute node. The socket type of the reroute sockets might change
    * after the link has been created. */
-  if (node->type == NODE_REROUTE) {
+  if (node->type_legacy == NODE_REROUTE) {
     return (bNodeSocket *)node->outputs.first;
   }
 
@@ -429,7 +429,7 @@ static bNodeSocket *node_link_viewer_get_socket(bNodeTree &ntree,
                                                 bNode &viewer_node,
                                                 bNodeSocket &src_socket)
 {
-  if (viewer_node.type != GEO_NODE_VIEWER) {
+  if (viewer_node.type_legacy != GEO_NODE_VIEWER) {
     /* In viewer nodes in the compositor, only the first input should be linked to. */
     return (bNodeSocket *)viewer_node.inputs.first;
   }
@@ -456,14 +456,14 @@ static bNodeSocket *node_link_viewer_get_socket(bNodeTree &ntree,
 
 static bool is_viewer_node(const bNode &node)
 {
-  return ELEM(node.type, CMP_NODE_VIEWER, GEO_NODE_VIEWER);
+  return ELEM(node.type_legacy, CMP_NODE_VIEWER, GEO_NODE_VIEWER);
 }
 
 static bool is_viewer_socket_in_viewer(const bNodeSocket &socket)
 {
   const bNode &node = socket.owner_node();
   BLI_assert(is_viewer_node(node));
-  if (node.typeinfo->type == GEO_NODE_VIEWER) {
+  if (node.typeinfo->type_legacy == GEO_NODE_VIEWER) {
     return true;
   }
   return socket.index() == 0;
@@ -1915,7 +1915,7 @@ static int node_parent_set_exec(bContext *C, wmOperator * /*op*/)
   SpaceNode &snode = *CTX_wm_space_node(C);
   bNodeTree &ntree = *snode.edittree;
   bNode *frame = bke::node_get_active(&ntree);
-  if (!frame || frame->type != NODE_FRAME) {
+  if (!frame || frame->type_legacy != NODE_FRAME) {
     return OPERATOR_CANCELLED;
   }
 
@@ -2438,7 +2438,7 @@ void node_insert_on_link_flags(Main &bmain, SpaceNode &snode, bool is_new_node)
     best_output = get_main_socket(ntree, *node_to_insert, SOCK_OUT);
   }
 
-  if (node_to_insert->type != NODE_REROUTE) {
+  if (node_to_insert->type_legacy != NODE_REROUTE) {
     /* Ignore main sockets when the types don't match. */
     if (best_input != nullptr && ntree.typeinfo->validate_link != nullptr &&
         !ntree.typeinfo->validate_link(static_cast<eNodeSocketDatatype>(old_link->fromsock->type),
@@ -2720,7 +2720,7 @@ static void node_link_insert_offset_ntree(NodeInsertOfsData *iofsd,
     /* check nodes front to back */
     for (bNode *frame : tree_draw_order_calc_nodes_reversed(*ntree)) {
       /* skip selected, those are the nodes we want to attach */
-      if ((frame->type != NODE_FRAME) || (frame->flag & NODE_SELECT)) {
+      if ((frame->type_legacy != NODE_FRAME) || (frame->flag & NODE_SELECT)) {
         continue;
       }
 

@@ -718,7 +718,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
 
         /* which_output 0 is now "not specified" */
         LISTBASE_FOREACH (bNode *, node, &tx->nodetree->nodes) {
-          if (node->type == TEX_NODE_OUTPUT) {
+          if (node->type_legacy == TEX_NODE_OUTPUT) {
             node->custom1++;
           }
         }
@@ -1424,7 +1424,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
         bNode *node = static_cast<bNode *>(scene->nodetree->nodes.first);
 
         while (node) {
-          if (node->type == CMP_NODE_COLORBALANCE) {
+          if (node->type_legacy == CMP_NODE_COLORBALANCE) {
             NodeColorBalance *n = (NodeColorBalance *)node->storage;
             n->lift[0] += 1.0f;
             n->lift[1] += 1.0f;
@@ -1439,7 +1439,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
       bNode *node = static_cast<bNode *>(ntree->nodes.first);
 
       while (node) {
-        if (node->type == CMP_NODE_COLORBALANCE) {
+        if (node->type_legacy == CMP_NODE_COLORBALANCE) {
           NodeColorBalance *n = (NodeColorBalance *)node->storage;
           n->lift[0] += 1.0f;
           n->lift[1] += 1.0f;
@@ -1951,7 +1951,7 @@ void blo_do_versions_250(FileData *fd, Library * /*lib*/, Main *bmain)
     LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
       if (scene->nodetree) {
         LISTBASE_FOREACH (bNode *, node, &scene->nodetree->nodes) {
-          if (node->type == CMP_NODE_BLUR) {
+          if (node->type_legacy == CMP_NODE_BLUR) {
             NodeBlurData *nbd = static_cast<NodeBlurData *>(node->storage);
             nbd->percentx *= 100.0f;
             nbd->percenty *= 100.0f;

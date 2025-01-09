@@ -77,7 +77,7 @@ static void localize(bNodeTree *localtree, bNodeTree *ntree)
     /* move over the compbufs */
     /* right after #blender::bke::node_tree_copy_tree() `oldsock` pointers are valid */
 
-    if (node->type == CMP_NODE_VIEWER) {
+    if (node->type_legacy == CMP_NODE_VIEWER) {
       if (node->id) {
         if (node->flag & NODE_DO_OUTPUT) {
           local_node->id = (ID *)node->id;
@@ -100,13 +100,13 @@ static void local_merge(Main *bmain, bNodeTree *localtree, bNodeTree *ntree)
 
   LISTBASE_FOREACH (bNode *, lnode, &localtree->nodes) {
     if (bNode *orig_node = blender::bke::node_find_node_by_name(ntree, lnode->name)) {
-      if (lnode->type == CMP_NODE_VIEWER) {
+      if (lnode->type_legacy == CMP_NODE_VIEWER) {
         if (lnode->id && (lnode->flag & NODE_DO_OUTPUT)) {
           /* image_merge does sanity check for pointers */
           BKE_image_merge(bmain, (Image *)orig_node->id, (Image *)lnode->id);
         }
       }
-      else if (lnode->type == CMP_NODE_MOVIEDISTORTION) {
+      else if (lnode->type_legacy == CMP_NODE_MOVIEDISTORTION) {
         /* special case for distortion node: distortion context is allocating in exec function
          * and to achieve much better performance on further calls this context should be
          * copied back to original node */
@@ -182,10 +182,10 @@ void ntreeCompositUpdateRLayers(bNodeTree *ntree)
   }
 
   for (bNode *node : ntree->all_nodes()) {
-    if (node->type == CMP_NODE_R_LAYERS) {
+    if (node->type_legacy == CMP_NODE_R_LAYERS) {
       node_cmp_rlayers_outputs(ntree, node);
     }
-    else if (node->type == CMP_NODE_CRYPTOMATTE &&
+    else if (node->type_legacy == CMP_NODE_CRYPTOMATTE &&
              node->custom1 == CMP_NODE_CRYPTOMATTE_SOURCE_RENDER)
     {
       node->typeinfo->updatefunc(ntree, node);
@@ -205,10 +205,10 @@ void ntreeCompositTagRender(Scene *scene)
   {
     if (sce_iter->nodetree) {
       for (bNode *node : sce_iter->nodetree->all_nodes()) {
-        if (node->id == (ID *)scene || node->type == CMP_NODE_COMPOSITE) {
+        if (node->id == (ID *)scene || node->type_legacy == CMP_NODE_COMPOSITE) {
           BKE_ntree_update_tag_node_property(sce_iter->nodetree, node);
         }
-        else if (node->type == CMP_NODE_TEXTURE) /* uses scene size_x/size_y */ {
+        else if (node->type_legacy == CMP_NODE_TEXTURE) /* uses scene size_x/size_y */ {
           BKE_ntree_update_tag_node_property(sce_iter->nodetree, node);
         }
       }
@@ -227,7 +227,7 @@ void ntreeCompositClearTags(bNodeTree *ntree)
 
   for (bNode *node : ntree->all_nodes()) {
     node->runtime->need_exec = 0;
-    if (node->type == NODE_GROUP) {
+    if (node->type_legacy == NODE_GROUP) {
       ntreeCompositClearTags((bNodeTree *)node->id);
     }
   }

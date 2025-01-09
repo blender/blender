@@ -220,7 +220,7 @@ Material *BlenderStrokeRenderer::GetStrokeShader(Main *bmain,
 
     // find the active Output Line Style node
     LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-      if (node->type == SH_NODE_OUTPUT_LINESTYLE && (node->flag & NODE_DO_OUTPUT)) {
+      if (node->type_legacy == SH_NODE_OUTPUT_LINESTYLE && (node->flag & NODE_DO_OUTPUT)) {
         output_linestyle = node;
         break;
       }
@@ -387,7 +387,7 @@ Material *BlenderStrokeRenderer::GetStrokeShader(Main *bmain,
     }
 
     LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-      if (node->type == SH_NODE_UVALONGSTROKE) {
+      if (node->type_legacy == SH_NODE_UVALONGSTROKE) {
         // UV output of the UV Along Stroke node
         bNodeSocket *sock = (bNodeSocket *)BLI_findlink(&node->outputs, 0);
 

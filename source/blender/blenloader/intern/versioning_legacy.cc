@@ -153,7 +153,7 @@ static void ntree_version_241(bNodeTree *ntree)
 {
   if (ntree->type == NTREE_COMPOSIT) {
     LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-      if (node->type == CMP_NODE_BLUR) {
+      if (node->type_legacy == CMP_NODE_BLUR) {
         if (node->storage == nullptr) {
           NodeBlurData *nbd = static_cast<NodeBlurData *>(
               MEM_callocN(sizeof(NodeBlurData), "node blur patch"));
@@ -163,7 +163,7 @@ static void ntree_version_241(bNodeTree *ntree)
           node->storage = nbd;
         }
       }
-      else if (node->type == CMP_NODE_VECBLUR) {
+      else if (node->type_legacy == CMP_NODE_VECBLUR) {
         if (node->storage == nullptr) {
           NodeBlurData *nbd = static_cast<NodeBlurData *>(
               MEM_callocN(sizeof(NodeBlurData), "node blur patch"));
@@ -181,7 +181,7 @@ static void ntree_version_242(bNodeTree *ntree)
 {
   if (ntree->type == NTREE_COMPOSIT) {
     LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-      if (node->type == CMP_NODE_HUE_SAT) {
+      if (node->type_legacy == CMP_NODE_HUE_SAT) {
         if (node->storage) {
           NodeHueSat *nhs = static_cast<NodeHueSat *>(node->storage);
           if (nhs->val == 0.0f) {
@@ -202,7 +202,7 @@ static void ntree_version_245(FileData *fd, Library * /*lib*/, bNodeTree *ntree)
 
   if (ntree->type == NTREE_COMPOSIT) {
     LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-      if (node->type == CMP_NODE_ALPHAOVER) {
+      if (node->type_legacy == CMP_NODE_ALPHAOVER) {
         if (!node->storage) {
           ntf = static_cast<NodeTwoFloats *>(MEM_callocN(sizeof(NodeTwoFloats), "NodeTwoFloats"));
           node->storage = ntf;
@@ -365,7 +365,7 @@ static void do_version_ntree_242_2(bNodeTree *ntree)
 {
   if (ntree->type == NTREE_COMPOSIT) {
     LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-      if (ELEM(node->type, CMP_NODE_IMAGE, CMP_NODE_VIEWER)) {
+      if (ELEM(node->type_legacy, CMP_NODE_IMAGE, CMP_NODE_VIEWER)) {
         /* only image had storage */
         if (node->storage) {
           NodeImageAnim *nia = static_cast<NodeImageAnim *>(node->storage);

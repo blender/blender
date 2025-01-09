@@ -592,7 +592,7 @@ namespace blender::nodes {
 
 bool get_bake_draw_context(const bContext *C, const bNode &node, BakeDrawContext &r_ctx)
 {
-  BLI_assert(ELEM(node.type, GEO_NODE_BAKE, GEO_NODE_SIMULATION_OUTPUT));
+  BLI_assert(ELEM(node.type_legacy, GEO_NODE_BAKE, GEO_NODE_SIMULATION_OUTPUT));
   r_ctx.node = &node;
   r_ctx.snode = CTX_wm_space_node(C);
   if (!r_ctx.snode) {
@@ -652,7 +652,7 @@ bool get_bake_draw_context(const bContext *C, const bNode &node, BakeDrawContext
   const Scene *scene = CTX_data_scene(C);
   r_ctx.frame_range = bke::bake::get_node_bake_frame_range(
       *scene, *r_ctx.object, *r_ctx.nmd, r_ctx.bake->id);
-  r_ctx.bake_still = node.type == GEO_NODE_BAKE &&
+  r_ctx.bake_still = node.type_legacy == GEO_NODE_BAKE &&
                      r_ctx.bake->bake_mode == NODES_MODIFIER_BAKE_MODE_STILL;
   r_ctx.is_baked = r_ctx.baked_range.has_value();
   r_ctx.bake_target = bke::bake::get_node_bake_target(*r_ctx.object, *r_ctx.nmd, r_ctx.bake->id);
@@ -901,7 +901,7 @@ std::unique_ptr<LazyFunction> get_bake_lazy_function(
     const bNode &node, GeometryNodesLazyFunctionGraphInfo &lf_graph_info)
 {
   namespace file_ns = blender::nodes::node_geo_bake_cc;
-  BLI_assert(node.type == GEO_NODE_BAKE);
+  BLI_assert(node.type_legacy == GEO_NODE_BAKE);
   return std::make_unique<file_ns::LazyFunctionForBakeNode>(node, lf_graph_info);
 }
 

@@ -1305,7 +1305,7 @@ bNode *bc_get_master_shader(Material *ma)
   bNodeTree *nodetree = ma->nodetree;
   if (nodetree) {
     LISTBASE_FOREACH (bNode *, node, &nodetree->nodes) {
-      if (node->typeinfo->type == SH_NODE_BSDF_PRINCIPLED) {
+      if (node->typeinfo->type_legacy == SH_NODE_BSDF_PRINCIPLED) {
         return node;
       }
     }

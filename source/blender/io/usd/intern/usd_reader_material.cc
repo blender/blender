@@ -1261,7 +1261,7 @@ void USDMaterialReader::load_tex_image(const pxr::UsdShadeShader &usd_shader,
                                        bNode *tex_image,
                                        const ExtraLinkInfo &extra) const
 {
-  if (!(usd_shader && tex_image && tex_image->type == SH_NODE_TEX_IMAGE)) {
+  if (!(usd_shader && tex_image && tex_image->type_legacy == SH_NODE_TEX_IMAGE)) {
     return;
   }
 

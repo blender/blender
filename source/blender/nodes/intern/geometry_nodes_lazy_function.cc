@@ -1911,7 +1911,7 @@ struct GeometryNodesLazyFunctionBuilder {
 
     for (const int zone_i : zone_build_order) {
       const bNodeTreeZone &zone = *tree_zones_->zones[zone_i];
-      switch (zone.output_node->type) {
+      switch (zone.output_node->type_legacy) {
         case GEO_NODE_SIMULATION_OUTPUT: {
           this->build_simulation_zone_function(zone);
           break;
@@ -2736,7 +2736,7 @@ struct GeometryNodesLazyFunctionBuilder {
       this->build_muted_node(bnode, graph_params);
       return;
     }
-    switch (node_type->type) {
+    switch (node_type->type_legacy) {
       case NODE_FRAME: {
         /* Ignored. */
         break;

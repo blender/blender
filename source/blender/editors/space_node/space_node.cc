@@ -362,7 +362,7 @@ bool push_compute_context_for_tree_path(const SpaceNode &snode,
     const Vector<const blender::bke::bNodeTreeZone *> zone_stack =
         tree_zones->get_zone_stack_for_node(group_node->identifier);
     for (const blender::bke::bNodeTreeZone *zone : zone_stack) {
-      switch (zone->output_node->type) {
+      switch (zone->output_node->type_legacy) {
         case GEO_NODE_SIMULATION_OUTPUT: {
           compute_context_builder.push<bke::SimulationZoneComputeContext>(*zone->output_node);
           break;

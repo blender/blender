@@ -397,7 +397,7 @@ std::unique_ptr<LazyFunction> get_index_switch_node_lazy_function(
     const bNode &node, GeometryNodesLazyFunctionGraphInfo &lf_graph_info)
 {
   using namespace node_geo_index_switch_cc;
-  BLI_assert(node.type == GEO_NODE_INDEX_SWITCH);
+  BLI_assert(node.type_legacy == GEO_NODE_INDEX_SWITCH);
   return std::make_unique<LazyFunctionForIndexSwitchNode>(node, lf_graph_info);
 }
 

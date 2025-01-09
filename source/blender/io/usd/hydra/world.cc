@@ -79,7 +79,7 @@ void WorldData::init()
       bNodeLink const *link = input_socket->directly_linked_links()[0];
 
       bNode *input_node = link->fromnode;
-      if (input_node->type != SH_NODE_BACKGROUND) {
+      if (input_node->type_legacy != SH_NODE_BACKGROUND) {
         return;
       }
 
@@ -93,7 +93,7 @@ void WorldData::init()
 
       if (!color_input.directly_linked_links().is_empty()) {
         bNode *color_input_node = color_input.directly_linked_links()[0]->fromnode;
-        if (ELEM(color_input_node->type, SH_NODE_TEX_IMAGE, SH_NODE_TEX_ENVIRONMENT)) {
+        if (ELEM(color_input_node->type_legacy, SH_NODE_TEX_IMAGE, SH_NODE_TEX_ENVIRONMENT)) {
           NodeTexImage *tex = static_cast<NodeTexImage *>(color_input_node->storage);
           Image *image = (Image *)color_input_node->id;
           if (image) {

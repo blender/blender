@@ -112,7 +112,7 @@ static bool node_needs_own_transform(const bNode &node)
   if (node.is_muted()) {
     return false;
   }
-  switch (node.type) {
+  switch (node.type_legacy) {
     case GEO_NODE_COLLECTION_INFO: {
       const NodeGeometryCollectionInfo &storage = *static_cast<const NodeGeometryCollectionInfo *>(
           node.storage);

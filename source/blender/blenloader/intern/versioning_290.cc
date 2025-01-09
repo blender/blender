@@ -393,7 +393,7 @@ static void version_node_socket_duplicate(bNodeTree *ntree,
 {
   /* Duplicate a link going into the original socket. */
   LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &ntree->links) {
-    if (link->tonode->type == node_type) {
+    if (link->tonode->type_legacy == node_type) {
       bNode *node = link->tonode;
       bNodeSocket *dest_socket = blender::bke::node_find_socket(node, SOCK_IN, new_name);
       BLI_assert(dest_socket);
@@ -405,7 +405,7 @@ static void version_node_socket_duplicate(bNodeTree *ntree,
 
   /* Duplicate the default value from the old socket and assign it to the new socket. */
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    if (node->type == node_type) {
+    if (node->type_legacy == node_type) {
       bNodeSocket *source_socket = blender::bke::node_find_socket(node, SOCK_IN, old_name);
       bNodeSocket *dest_socket = blender::bke::node_find_socket(node, SOCK_IN, new_name);
       BLI_assert(source_socket && dest_socket);
@@ -794,12 +794,14 @@ static void do_versions_strip_cache_settings_recursive(const ListBase *seqbase)
 static void version_node_join_geometry_for_multi_input_socket(bNodeTree *ntree)
 {
   LISTBASE_FOREACH_MUTABLE (bNodeLink *, link, &ntree->links) {
-    if (link->tonode->type == GEO_NODE_JOIN_GEOMETRY && !(link->tosock->flag & SOCK_MULTI_INPUT)) {
+    if (link->tonode->type_legacy == GEO_NODE_JOIN_GEOMETRY &&
+        !(link->tosock->flag & SOCK_MULTI_INPUT))
+    {
       link->tosock = static_cast<bNodeSocket *>(link->tonode->inputs.first);
     }
   }
   LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-    if (node->type == GEO_NODE_JOIN_GEOMETRY) {
+    if (node->type_legacy == GEO_NODE_JOIN_GEOMETRY) {
       bNodeSocket *socket = static_cast<bNodeSocket *>(node->inputs.first);
       socket->flag |= SOCK_MULTI_INPUT;
       socket->limit = 4095;
@@ -907,7 +909,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
       FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
         if (ntree->type == NTREE_SHADER) {
           LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-            if (node->type == SH_NODE_TEX_SKY && node->storage) {
+            if (node->type_legacy == SH_NODE_TEX_SKY && node->storage) {
               NodeTexSky *tex = (NodeTexSky *)node->storage;
               tex->sun_disc = true;
               tex->sun_size = DEG2RADF(0.545);
@@ -1097,7 +1099,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
       FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
         if (ntree->type == NTREE_SHADER) {
           LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-            if (node->type == SH_NODE_TEX_SKY && node->storage) {
+            if (node->type_legacy == SH_NODE_TEX_SKY && node->storage) {
               NodeTexSky *tex = (NodeTexSky *)node->storage;
               tex->sun_intensity = 1.0f;
               tex->altitude *= 0.001f;
@@ -1532,7 +1534,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
       /* Rename Render-layer Socket `VolumeScatterCol` to `VolumeDir`. */
       if (scene->nodetree) {
         LISTBASE_FOREACH (bNode *, node, &scene->nodetree->nodes) {
-          if (node->type == CMP_NODE_R_LAYERS) {
+          if (node->type_legacy == CMP_NODE_R_LAYERS) {
             LISTBASE_FOREACH (bNodeSocket *, output_socket, &node->outputs) {
               const char *volume_scatter = "VolumeScatterCol";
               if (STREQLEN(output_socket->name, volume_scatter, MAX_NAME)) {
@@ -1549,7 +1551,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
       LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
         if (scene->nodetree) {
           LISTBASE_FOREACH (bNode *, node, &scene->nodetree->nodes) {
-            if (node->type == CMP_NODE_CRYPTOMATTE_LEGACY) {
+            if (node->type_legacy == CMP_NODE_CRYPTOMATTE_LEGACY) {
               NodeCryptomatte *storage = (NodeCryptomatte *)node->storage;
               char *matte_id = storage->matte_id;
               if (matte_id == nullptr || strlen(storage->matte_id) == 0) {
@@ -1627,7 +1629,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
           continue;
         }
         LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-          if (node->type != CMP_NODE_SETALPHA) {
+          if (node->type_legacy != CMP_NODE_SETALPHA) {
             continue;
           }
           NodeSetAlpha *storage = MEM_cnew<NodeSetAlpha>("NodeSetAlpha");
@@ -1654,7 +1656,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
       if (ntree->type == NTREE_COMPOSIT) {
         LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-          if (node->type == CMP_NODE_OUTPUT_FILE) {
+          if (node->type_legacy == CMP_NODE_OUTPUT_FILE) {
             LISTBASE_FOREACH (bNodeSocket *, sock, &node->inputs) {
               NodeImageMultiFileSocket *simf = static_cast<NodeImageMultiFileSocket *>(
                   sock->storage);
@@ -1700,7 +1702,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
         continue;
       }
       LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-        if (node->type == GEO_NODE_OBJECT_INFO && node->storage == nullptr) {
+        if (node->type_legacy == GEO_NODE_OBJECT_INFO && node->storage == nullptr) {
           NodeGeometryObjectInfo *data = (NodeGeometryObjectInfo *)MEM_callocN(
               sizeof(NodeGeometryObjectInfo), __func__);
           data->transform_space = GEO_NODE_TRANSFORM_SPACE_RELATIVE;
@@ -1737,7 +1739,7 @@ void blo_do_versions_290(FileData *fd, Library * /*lib*/, Main *bmain)
     FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
       if (ntree->type == NTREE_SHADER) {
         LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-          if (node->type == SH_NODE_TEX_SKY && node->storage) {
+          if (node->type_legacy == SH_NODE_TEX_SKY && node->storage) {
             NodeTexSky *tex = (NodeTexSky *)node->storage;
             tex->altitude *= 1000.0f;
           }

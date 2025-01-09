@@ -231,7 +231,7 @@ bool blender::bke::node_supports_active_flag(const bNode *node, int sub_activity
     case NODE_ACTIVE_TEXTURE:
       return node->typeinfo->nclass == NODE_CLASS_TEXTURE;
     case NODE_ACTIVE_PAINT_CANVAS:
-      return ELEM(node->type, SH_NODE_TEX_IMAGE, SH_NODE_ATTRIBUTE);
+      return ELEM(node->type_legacy, SH_NODE_TEX_IMAGE, SH_NODE_ATTRIBUTE);
   }
   return false;
 }
@@ -258,7 +258,7 @@ static bNode *node_get_active(bNodeTree *ntree, int sub_activity)
     else if (!inactivenode && blender::bke::node_supports_active_flag(node, sub_activity)) {
       inactivenode = node;
     }
-    else if (node->type == NODE_GROUP) {
+    else if (node->type_legacy == NODE_GROUP) {
       if (node->flag & NODE_ACTIVE) {
         activegroup = node;
       }
@@ -284,7 +284,7 @@ static bNode *node_get_active(bNodeTree *ntree, int sub_activity)
   if (hasgroup) {
     /* node active texture node in this tree, look inside groups */
     for (bNode *node : ntree->all_nodes()) {
-      if (node->type == NODE_GROUP) {
+      if (node->type_legacy == NODE_GROUP) {
         bNode *tnode = node_get_active((bNodeTree *)node->id, sub_activity);
         if (tnode && ((tnode->flag & sub_activity) || !inactivenode)) {
           return tnode;

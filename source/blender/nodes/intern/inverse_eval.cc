@@ -505,7 +505,7 @@ static bool set_socket_value(bContext &C,
 static bool set_value_node_value(bContext &C, bNode &node, const SocketValueVariant &value_variant)
 {
   bNodeTree &tree = node.owner_tree();
-  switch (node.type) {
+  switch (node.type_legacy) {
     case SH_NODE_VALUE: {
       const float value = value_variant.get<float>();
       const std::string rna_path = fmt::format("nodes[\"{}\"].outputs[0].default_value",

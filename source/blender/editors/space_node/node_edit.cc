@@ -129,17 +129,17 @@ float2 node_link_calculate_multi_input_position(const float2 &socket_position,
 static void compo_tag_output_nodes(bNodeTree *nodetree, int recalc_flags)
 {
   for (bNode *node : nodetree->all_nodes()) {
-    if (node->type == CMP_NODE_COMPOSITE) {
+    if (node->type_legacy == CMP_NODE_COMPOSITE) {
       if (recalc_flags & COM_RECALC_COMPOSITE) {
         node->flag |= NODE_DO_OUTPUT_RECALC;
       }
     }
-    else if (node->type == CMP_NODE_VIEWER) {
+    else if (node->type_legacy == CMP_NODE_VIEWER) {
       if (recalc_flags & COM_RECALC_VIEWER) {
         node->flag |= NODE_DO_OUTPUT_RECALC;
       }
     }
-    else if (node->type == NODE_GROUP) {
+    else if (node->type_legacy == NODE_GROUP) {
       if (node->id) {
         compo_tag_output_nodes((bNodeTree *)node->id, recalc_flags);
       }
@@ -723,7 +723,7 @@ void ED_node_set_active(
   }
 
   blender::bke::node_set_active(ntree, node);
-  if (node->type == NODE_GROUP) {
+  if (node->type_legacy == NODE_GROUP) {
     return;
   }
 
@@ -731,9 +731,9 @@ void ED_node_set_active(
   bool do_update = false;
 
   /* Generic node group output: set node as active output. */
-  if (node->type == NODE_GROUP_OUTPUT) {
+  if (node->type_legacy == NODE_GROUP_OUTPUT) {
     for (bNode *node_iter : ntree->all_nodes()) {
-      if (node_iter->type == NODE_GROUP_OUTPUT) {
+      if (node_iter->type_legacy == NODE_GROUP_OUTPUT) {
         node_iter->flag &= ~NODE_DO_OUTPUT;
       }
     }
@@ -747,14 +747,14 @@ void ED_node_set_active(
 
   /* Tree specific activate calls. */
   if (ntree->type == NTREE_SHADER) {
-    if (ELEM(node->type,
+    if (ELEM(node->type_legacy,
              SH_NODE_OUTPUT_MATERIAL,
              SH_NODE_OUTPUT_WORLD,
              SH_NODE_OUTPUT_LIGHT,
              SH_NODE_OUTPUT_LINESTYLE))
     {
       for (bNode *node_iter : ntree->all_nodes()) {
-        if (node_iter->type == node->type) {
+        if (node_iter->type_legacy == node->type_legacy) {
           node_iter->flag &= ~NODE_DO_OUTPUT;
         }
       }
@@ -815,9 +815,9 @@ void ED_node_set_active(
   }
   else if (ntree->type == NTREE_COMPOSIT) {
     /* Make active viewer, currently only one is supported. */
-    if (node->type == CMP_NODE_VIEWER) {
+    if (node->type_legacy == CMP_NODE_VIEWER) {
       for (bNode *node_iter : ntree->all_nodes()) {
-        if (node_iter->type == CMP_NODE_VIEWER) {
+        if (node_iter->type_legacy == CMP_NODE_VIEWER) {
           node_iter->flag &= ~NODE_DO_OUTPUT;
         }
       }
@@ -831,10 +831,10 @@ void ED_node_set_active(
       /* Adding a node doesn't link this yet. */
       node->id = (ID *)BKE_image_ensure_viewer(bmain, IMA_TYPE_COMPOSITE, "Viewer Node");
     }
-    else if (node->type == CMP_NODE_COMPOSITE) {
+    else if (node->type_legacy == CMP_NODE_COMPOSITE) {
       if (was_output == 0) {
         for (bNode *node_iter : ntree->all_nodes()) {
-          if (node_iter->type == CMP_NODE_COMPOSITE) {
+          if (node_iter->type_legacy == CMP_NODE_COMPOSITE) {
             node_iter->flag &= ~NODE_DO_OUTPUT;
           }
         }
@@ -849,10 +849,10 @@ void ED_node_set_active(
     }
   }
   else if (ntree->type == NTREE_GEOMETRY) {
-    if (node->type == GEO_NODE_VIEWER) {
+    if (node->type_legacy == GEO_NODE_VIEWER) {
       if ((node->flag & NODE_DO_OUTPUT) == 0) {
         for (bNode *node_iter : ntree->all_nodes()) {
-          if (node_iter->type == GEO_NODE_VIEWER) {
+          if (node_iter->type_legacy == GEO_NODE_VIEWER) {
             node_iter->flag &= ~NODE_DO_OUTPUT;
           }
         }
@@ -1343,14 +1343,14 @@ void remap_node_pairing(bNodeTree &dst_tree, const Map<const bNode *, bNode *> &
    * so we have to build a map first to find copied output nodes in the new tree. */
   Map<int32_t, bNode *> dst_output_node_map;
   for (const auto &item : node_map.items()) {
-    if (bke::all_zone_output_node_types().contains(item.key->type)) {
+    if (bke::all_zone_output_node_types().contains(item.key->type_legacy)) {
       dst_output_node_map.add_new(item.key->identifier, item.value);
     }
   }
 
   for (bNode *dst_node : node_map.values()) {
-    if (bke::all_zone_input_node_types().contains(dst_node->type)) {
-      const bke::bNodeZoneType &zone_type = *bke::zone_type_by_node_type(dst_node->type);
+    if (bke::all_zone_input_node_types().contains(dst_node->type_legacy)) {
+      const bke::bNodeZoneType &zone_type = *bke::zone_type_by_node_type(dst_node->type_legacy);
       int &output_node_id = zone_type.get_corresponding_output_id(*dst_node);
       if (const bNode *output_node = dst_output_node_map.lookup_default(output_node_id, nullptr)) {
         output_node_id = output_node->identifier;
@@ -1525,8 +1525,9 @@ static int node_read_viewlayers_exec(bContext *C, wmOperator * /*op*/)
   }
 
   for (bNode *node : edit_tree.all_nodes()) {
-    if ((node->type == CMP_NODE_R_LAYERS) || (node->type == CMP_NODE_CRYPTOMATTE &&
-                                              node->custom1 == CMP_NODE_CRYPTOMATTE_SOURCE_RENDER))
+    if ((node->type_legacy == CMP_NODE_R_LAYERS) ||
+        (node->type_legacy == CMP_NODE_CRYPTOMATTE &&
+         node->custom1 == CMP_NODE_CRYPTOMATTE_SOURCE_RENDER))
     {
       ID *id = node->id;
       if (id == nullptr) {
@@ -1745,7 +1746,7 @@ static int node_deactivate_viewer_exec(bContext *C, wmOperator * /*op*/)
   bNode *active_viewer = viewer_path::find_geometry_nodes_viewer(workspace.viewer_path, snode);
 
   for (bNode *node : snode.edittree->all_nodes()) {
-    if (node->type != GEO_NODE_VIEWER) {
+    if (node->type_legacy != GEO_NODE_VIEWER) {
       continue;
     }
     if (!(node->flag & SELECT)) {
@@ -2013,7 +2014,7 @@ static int node_output_file_add_socket_exec(bContext *C, wmOperator *op)
     node = bke::node_get_active(snode->edittree);
   }
 
-  if (!node || node->type != CMP_NODE_OUTPUT_FILE) {
+  if (!node || node->type_legacy != CMP_NODE_OUTPUT_FILE) {
     return OPERATOR_CANCELLED;
   }
 
@@ -2065,7 +2066,7 @@ static int node_output_file_remove_active_socket_exec(bContext *C, wmOperator * 
     node = bke::node_get_active(snode->edittree);
   }
 
-  if (!node || node->type != CMP_NODE_OUTPUT_FILE) {
+  if (!node || node->type_legacy != CMP_NODE_OUTPUT_FILE) {
     return OPERATOR_CANCELLED;
   }
 
@@ -2112,7 +2113,7 @@ static int node_output_file_move_active_socket_exec(bContext *C, wmOperator *op)
     node = bke::node_get_active(snode->edittree);
   }
 
-  if (!node || node->type != CMP_NODE_OUTPUT_FILE) {
+  if (!node || node->type_legacy != CMP_NODE_OUTPUT_FILE) {
     return OPERATOR_CANCELLED;
   }
 
@@ -2242,7 +2243,7 @@ static bool node_shader_script_update_poll(bContext *C)
     node = bke::node_get_active(snode->edittree);
   }
 
-  if (node && node->type == SH_NODE_SCRIPT) {
+  if (node && node->type_legacy == SH_NODE_SCRIPT) {
     NodeShaderScript *nss = (NodeShaderScript *)node->storage;
 
     if (node->id || nss->filepath[0]) {
@@ -2274,13 +2275,13 @@ static bool node_shader_script_update_text_recursive(RenderEngine *engine,
 
   /* Update each script that is using this text datablock. */
   for (bNode *node : ntree->all_nodes()) {
-    if (node->type == NODE_GROUP) {
+    if (node->type_legacy == NODE_GROUP) {
       bNodeTree *ngroup = (bNodeTree *)node->id;
       if (ngroup && !done_trees.contains(ngroup)) {
         found |= node_shader_script_update_text_recursive(engine, type, ngroup, text, done_trees);
       }
     }
-    else if (node->type == SH_NODE_SCRIPT && node->id == &text->id) {
+    else if (node->type_legacy == SH_NODE_SCRIPT && node->id == &text->id) {
       type->update_script_node(engine, ntree, node);
       found = true;
     }
@@ -2511,7 +2512,7 @@ static int node_cryptomatte_add_socket_exec(bContext *C, wmOperator * /*op*/)
     node = bke::node_get_active(snode->edittree);
   }
 
-  if (!node || node->type != CMP_NODE_CRYPTOMATTE_LEGACY) {
+  if (!node || node->type_legacy != CMP_NODE_CRYPTOMATTE_LEGACY) {
     return OPERATOR_CANCELLED;
   }
 
@@ -2559,7 +2560,7 @@ static int node_cryptomatte_remove_socket_exec(bContext *C, wmOperator * /*op*/)
     node = bke::node_get_active(snode->edittree);
   }
 
-  if (!node || node->type != CMP_NODE_CRYPTOMATTE_LEGACY) {
+  if (!node || node->type_legacy != CMP_NODE_CRYPTOMATTE_LEGACY) {
     return OPERATOR_CANCELLED;
   }
 
