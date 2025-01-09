@@ -24,8 +24,8 @@ TEST(animrig_versioning, action_is_layered)
    * only looks at the length of lists, and not their contents, that should be fine. */
 
   { /* Pre-Animato Action / Blender version 2.49 and older. */
-    bAction action = {{nullptr}};
-    Ipo *fake_ipo = nullptr;
+    bAction action = {};
+    Link /* Ipo */ fake_ipo = {};
 
     BLI_addtail(&action.chanbase, &fake_ipo);
     EXPECT_FALSE(action_is_layered(action))
@@ -33,8 +33,8 @@ TEST(animrig_versioning, action_is_layered)
   }
 
   { /* Animato Action only fcurves / Blender version [2.5, 4.4) */
-    bAction action = {{nullptr}};
-    FCurve *fake_fcurve = nullptr;
+    bAction action = {};
+    Link /* FCurve */ fake_fcurve = {};
 
     BLI_addtail(&action.curves, &fake_fcurve);
     EXPECT_FALSE(action_is_layered(action))
@@ -42,9 +42,9 @@ TEST(animrig_versioning, action_is_layered)
   }
 
   { /* Animato Action with fcurves + groups / Blender version [2.5, 4.4) */
-    bAction action = {{nullptr}};
-    FCurve *fake_fcurve = nullptr;
-    bActionGroup *fake_group = nullptr;
+    bAction action = {};
+    Link /* FCurve */ fake_fcurve = {};
+    Link /* bActionGroup */ fake_group = {};
 
     BLI_addtail(&action.curves, &fake_fcurve);
     BLI_addtail(&action.groups, &fake_group);
@@ -53,8 +53,8 @@ TEST(animrig_versioning, action_is_layered)
   }
 
   { /* Animato Action with only groups / Blender version [2.5, 4.4) */
-    bAction action = {{nullptr}};
-    bActionGroup *fake_group = nullptr;
+    bAction action = {};
+    Link /* bActionGroup */ fake_group = {};
 
     BLI_addtail(&action.groups, &fake_group);
     EXPECT_FALSE(action_is_layered(action))
@@ -62,22 +62,22 @@ TEST(animrig_versioning, action_is_layered)
   }
 
   { /* Layered Action with only layers / Blender version 4.4 and newer. */
-    bAction action = {{nullptr}};
+    bAction action = {};
     action.layer_array_num = 1;
 
     EXPECT_TRUE(action_is_layered(action)) << "Layered Actions should be considered 'layered'";
   }
 
   { /* Layered Action with only slots / Blender version 4.4 and newer. */
-    bAction action = {{nullptr}};
+    bAction action = {};
     action.slot_array_num = 1;
 
     EXPECT_TRUE(action_is_layered(action)) << "Layered Actions should be considered 'layered'";
   }
 
   { /* Layered Action as it exists on disk, with forward-compatible info in there. */
-    bAction action = {{nullptr}};
-    FCurve *fake_fcurve = nullptr;
+    bAction action = {};
+    Link /* FCurve */ fake_fcurve = {};
     action.layer_array_num = 1;
 
     BLI_addtail(&action.curves, &fake_fcurve);
@@ -86,7 +86,7 @@ TEST(animrig_versioning, action_is_layered)
   }
 
   { /* Completely zeroed out Action. */
-    bAction action = {{nullptr}};
+    bAction action = {};
     EXPECT_TRUE(action_is_layered(action)) << "Zero'ed-out Actions should be considered 'layered'";
   }
 }
