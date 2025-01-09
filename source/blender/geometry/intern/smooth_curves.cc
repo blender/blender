@@ -183,6 +183,22 @@ void smooth_curve_attribute(const IndexMask &curves_to_smooth,
 {
   VArraySpan<float> influences(influence_by_point);
 
+  auto smooth_points_range =
+      [&](const IndexRange range, const bool cyclic, Vector<std::byte> &orig_data) {
+        GMutableSpan dst_data = attribute_data.slice(range);
+        orig_data.resize(dst_data.size_in_bytes());
+        dst_data.type().copy_assign_n(dst_data.data(), orig_data.data(), range.size());
+        const GSpan src_data(dst_data.type(), orig_data.data(), range.size());
+
+        gaussian_blur_1D(src_data,
+                         iterations,
+                         VArray<float>::ForSpan(influences.slice(range)),
+                         smooth_ends,
+                         keep_shape,
+                         cyclic,
+                         dst_data);
+      };
+
   curves_to_smooth.foreach_index(GrainSize(512), [&](const int curve_i) {
     Vector<std::byte> orig_data;
     const IndexRange points = points_by_curve[curve_i];
@@ -193,21 +209,16 @@ void smooth_curve_attribute(const IndexMask &curves_to_smooth,
       return;
     }
 
-    selection_mask.foreach_range([&](const IndexRange range) {
-      GMutableSpan dst_data = attribute_data.slice(range);
-
-      orig_data.resize(dst_data.size_in_bytes());
-      dst_data.type().copy_assign_n(dst_data.data(), orig_data.data(), range.size());
-      const GSpan src_data(dst_data.type(), orig_data.data(), range.size());
-
-      gaussian_blur_1D(src_data,
-                       iterations,
-                       VArray<float>::ForSpan(influences.slice(range)),
-                       smooth_ends,
-                       keep_shape,
-                       cyclic[curve_i],
-                       dst_data);
-    });
+    const std::optional<IndexRange> selection_range = selection_mask.to_range();
+    if (selection_range && *selection_range == points) {
+      smooth_points_range(points, cyclic[curve_i], orig_data);
+    }
+    else {
+      selection_mask.foreach_range([&](const IndexRange range) {
+        /* Individual ranges should be treated as non-cyclic. */
+        smooth_points_range(range, false, orig_data);
+      });
+    }
   });
 }
 
