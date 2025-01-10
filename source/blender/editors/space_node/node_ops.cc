@@ -123,6 +123,7 @@ void node_keymap(wmKeyConfig *keyconf)
   WM_keymap_ensure(keyconf, "Node Editor", SPACE_NODE, RGN_TYPE_WINDOW);
 
   node_link_modal_keymap(keyconf);
+  node_resize_modal_keymap(keyconf);
 }
 
 }  // namespace blender::ed::space_node

@@ -918,11 +918,13 @@ struct NodeSizeWidget {
   float oldlocx, oldlocy;
   float oldwidth, oldheight;
   int directions;
+  bool precision, snap_to_grid;
 };
 
 static void node_resize_init(
     bContext *C, wmOperator *op, const float2 &cursor, const bNode *node, NodeResizeDirection dir)
 {
+  Scene *scene = CTX_data_scene(C);
   NodeSizeWidget *nsw = MEM_cnew<NodeSizeWidget>(__func__);
 
   op->customdata = nsw;
@@ -936,6 +938,7 @@ static void node_resize_init(
   nsw->oldwidth = node->width;
   nsw->oldheight = node->height;
   nsw->directions = dir;
+  nsw->snap_to_grid = scene->toolsettings->snap_flag_node;
 
   WM_cursor_modal_set(CTX_wm_window(C), node_get_resize_cursor(dir));
   /* add modal handler */
@@ -962,6 +965,36 @@ static void node_resize_exit(bContext *C, wmOperator *op, bool cancel)
   op->customdata = nullptr;
 }
 
+enum class NodeResizeAction : int {
+  Begin = 0,
+  Cancel = 1,
+  SnapInvertOn = 2,
+  SnapInvertOff = 3,
+};
+
+wmKeyMap *node_resize_modal_keymap(wmKeyConfig *keyconf)
+{
+  static const EnumPropertyItem modal_items[] = {
+      {int(NodeResizeAction::Begin), "BEGIN", 0, "Resize Node", ""},
+      {int(NodeResizeAction::Cancel), "CANCEL", 0, "Cancel", ""},
+      {int(NodeResizeAction::SnapInvertOn), "SNAP_INVERT_ON", 0, "Snap Invert", ""},
+      {int(NodeResizeAction::SnapInvertOff), "SNAP_INVERT_OFF", 0, "Snap Invert", ""},
+      {0, nullptr, 0, nullptr, nullptr},
+  };
+
+  wmKeyMap *keymap = WM_modalkeymap_find(keyconf, "Node Resize Modal Map");
+
+  if (keymap && keymap->modal_items) {
+    return nullptr;
+  }
+
+  keymap = WM_modalkeymap_ensure(keyconf, "Node Resize Modal Map", modal_items);
+
+  WM_modalkeymap_assign(keymap, "NODE_OT_resize");
+
+  return keymap;
+}
+
 /* Compute the nearest 1D coordinate corresponding to the nearest grid in node. */
 static float nearest_node_grid_coord(float co)
 {
@@ -975,14 +1008,26 @@ static float nearest_node_grid_coord(float co)
 static int node_resize_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
   SpaceNode *snode = CTX_wm_space_node(C);
-  Scene *scene = CTX_data_scene(C);
   ARegion *region = CTX_wm_region(C);
   bNode *node = bke::node_get_active(snode->edittree);
   NodeSizeWidget *nsw = (NodeSizeWidget *)op->customdata;
 
-  bool snap_to_grid = scene->toolsettings->snap_flag_node;
-  if (event->modifier & KM_CTRL) {
-    snap_to_grid = !snap_to_grid;
+  if (event->type == EVT_MODAL_MAP) {
+    switch (NodeResizeAction(event->val)) {
+      case NodeResizeAction::Begin: {
+        return OPERATOR_RUNNING_MODAL;
+      }
+      case NodeResizeAction::Cancel: {
+        node_resize_exit(C, op, true);
+        ED_region_tag_redraw(region);
+        return OPERATOR_CANCELLED;
+      }
+      case NodeResizeAction::SnapInvertOn:
+      case NodeResizeAction::SnapInvertOff: {
+        nsw->snap_to_grid = !nsw->snap_to_grid;
+        return OPERATOR_RUNNING_MODAL;
+      }
+    }
   }
 
   switch (event->type) {
@@ -1004,7 +1049,7 @@ static int node_resize_modal(bContext *C, wmOperator *op, const wmEvent *event)
           if (nsw->directions & NODE_RESIZE_RIGHT) {
             *pwidth = oldwidth + dx;
 
-            if (snap_to_grid) {
+            if (nsw->snap_to_grid) {
               *pwidth = nearest_node_grid_coord(*pwidth);
             }
             CLAMP(*pwidth, widthmin, widthmax);
@@ -1012,7 +1057,7 @@ static int node_resize_modal(bContext *C, wmOperator *op, const wmEvent *event)
           if (nsw->directions & NODE_RESIZE_LEFT) {
             float locmax = nsw->oldlocx + oldwidth;
 
-            if (snap_to_grid) {
+            if (nsw->snap_to_grid) {
               dx = nearest_node_grid_coord(dx);
             }
             node->location[0] = nsw->oldlocx + dx;
@@ -1052,18 +1097,8 @@ static int node_resize_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
         return OPERATOR_FINISHED;
       }
-      if (event->val == KM_PRESS) {
-        node_resize_exit(C, op, true);
-        ED_region_tag_redraw(region);
-
-        return OPERATOR_CANCELLED;
-      }
       break;
     }
-    case EVT_ESCKEY:
-      node_resize_exit(C, op, true);
-      ED_region_tag_redraw(region);
-      return OPERATOR_CANCELLED;
   }
 
   return OPERATOR_RUNNING_MODAL;
