@@ -1419,10 +1419,7 @@ void BKE_layer_collection_sync(const Scene *scene, ViewLayer *view_layer)
 
   /* Always set a valid active collection. */
   LayerCollection *active = view_layer->active_collection;
-  if (active && layer_collection_hidden(view_layer, active)) {
-    BKE_layer_collection_activate_parent(view_layer, active);
-  }
-  else if (active == nullptr) {
+  if (active == nullptr) {
     view_layer->active_collection = static_cast<LayerCollection *>(
         view_layer->layer_collections.first);
   }
