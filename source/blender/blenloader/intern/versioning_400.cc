@@ -1082,6 +1082,31 @@ static void do_version_glare_node_options_to_inputs(const Scene *scene,
   }
 }
 
+static void do_version_glare_node_options_to_inputs_recursive(
+    const Scene *scene,
+    bNodeTree *node_tree,
+    blender::Set<bNodeTree *> &node_trees_already_versioned)
+{
+  if (node_trees_already_versioned.contains(node_tree)) {
+    return;
+  }
+
+  LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+    if (node->type_legacy == CMP_NODE_GLARE) {
+      do_version_glare_node_options_to_inputs(scene, node_tree, node);
+    }
+    else if (node->is_group()) {
+      bNodeTree *child_tree = reinterpret_cast<bNodeTree *>(node->id);
+      if (child_tree) {
+        do_version_glare_node_options_to_inputs_recursive(
+            scene, child_tree, node_trees_already_versioned);
+      }
+    }
+  }
+
+  node_trees_already_versioned.add_new(node_tree);
+}
+
 static bool all_scenes_use(Main *bmain, const blender::Span<const char *> engines)
 {
   if (!bmain->scenes.first) {
@@ -1319,19 +1344,32 @@ void do_versions_after_linking_400(FileData *fd, Main *bmain)
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 18)) {
-    FOREACH_NODETREE_BEGIN (bmain, ntree, id) {
-      if (ntree->type != NTREE_COMPOSIT) {
+    blender::Set<bNodeTree *> node_trees_already_versioned;
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      bNodeTree *node_tree = scene->nodetree;
+      if (!node_tree) {
+        continue;
+      }
+      do_version_glare_node_options_to_inputs_recursive(
+          scene, node_tree, node_trees_already_versioned);
+    }
+
+    /* The above loop versioned all node trees used in a scene, but other node trees might exist
+     * that are not used in a scene. For those, assume the first scene in the file, as this is
+     * better than not doing versioning at all. */
+    Scene *scene = static_cast<Scene *>(bmain->scenes.first);
+    LISTBASE_FOREACH (bNodeTree *, node_tree, &bmain->nodetrees) {
+      if (node_trees_already_versioned.contains(node_tree)) {
         continue;
       }
 
-      LISTBASE_FOREACH (bNode *, node, &ntree->nodes) {
-        if (node->type_legacy != CMP_NODE_GLARE) {
-          continue;
+      LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+        if (node->type_legacy == CMP_NODE_GLARE) {
+          do_version_glare_node_options_to_inputs(scene, node_tree, node);
         }
-        do_version_glare_node_options_to_inputs(reinterpret_cast<Scene *>(id), ntree, node);
       }
+      node_trees_already_versioned.add_new(node_tree);
     }
-    FOREACH_NODETREE_END;
   }
 
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 19)) {
