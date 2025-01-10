@@ -2,17 +2,12 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BLI_index_range.hh"
-#include "BLI_listbase.h"
 #include "BLI_map.hh"
-#include "BLI_rect.h"
 #include "BLI_set.hh"
 #include "BLI_string.h"
 #include "BLI_string_ref.hh"
 
-#include "DNA_modifier_types.h"
 #include "DNA_node_types.h"
-#include "DNA_object_types.h"
 #include "DNA_space_types.h"
 
 #include "BKE_context.hh"
@@ -20,7 +15,6 @@
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.hh"
 #include "BKE_node_tree_zones.hh"
-#include "BKE_object.hh"
 
 #include "RNA_access.hh"
 #include "RNA_enum_types.hh"
@@ -28,8 +22,6 @@
 #include "ED_node.hh"
 #include "ED_screen.hh"
 #include "ED_undo.hh"
-
-#include "BLT_translation.hh"
 
 #include "UI_interface.hh"
 #include "UI_resources.hh"

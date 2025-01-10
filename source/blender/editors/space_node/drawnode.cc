@@ -9,11 +9,9 @@
 
 #include "BLI_color.hh"
 #include "BLI_string.h"
-#include "BLI_system.h"
 #include "BLI_threads.h"
 
 #include "DNA_node_types.h"
-#include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
@@ -30,7 +28,6 @@
 #include "BKE_scene.hh"
 #include "BKE_tracking.h"
 
-#include "BLF_api.hh"
 #include "BLT_translation.hh"
 
 #include "BIF_glutil.hh"
@@ -40,7 +37,6 @@
 #include "GPU_framebuffer.hh"
 #include "GPU_immediate.hh"
 #include "GPU_matrix.hh"
-#include "GPU_platform.hh"
 #include "GPU_shader_shared.hh"
 #include "GPU_state.hh"
 #include "GPU_uniform_buffer.hh"
@@ -68,9 +64,7 @@
 #include "NOD_geometry_nodes_gizmos.hh"
 #include "NOD_node_declaration.hh"
 #include "NOD_partial_eval.hh"
-#include "NOD_shader.h"
 #include "NOD_socket.hh"
-#include "NOD_texture.h"
 #include "node_intern.hh" /* own include */
 
 namespace blender::ed::space_node {

@@ -38,11 +38,8 @@
 #include "UI_resources.hh"
 #include "UI_view2d.hh"
 
-#include "BLT_translation.hh"
-
 #include "NOD_node_declaration.hh"
 #include "NOD_socket.hh"
-#include "NOD_socket_declarations_geometry.hh"
 
 #include "node_intern.hh" /* own include */
 

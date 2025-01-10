@@ -8,7 +8,6 @@
 
 #include <array>
 #include <cstdlib>
-#include <iostream>
 
 #include "DNA_node_types.h"
 #include "DNA_windowmanager_types.h"
@@ -47,8 +46,6 @@
 #include "UI_view2d.hh"
 
 #include "DEG_depsgraph.hh"
-
-#include "MEM_guardedalloc.h"
 
 #include "node_intern.hh" /* own include */
 

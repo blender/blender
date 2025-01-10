@@ -26,7 +26,6 @@
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
 #include "BKE_node_runtime.hh"
-#include "BKE_node_tree_interface.hh"
 #include "BKE_node_tree_update.hh"
 
 #include "RNA_access.hh"
@@ -34,7 +33,6 @@
 
 #include "NOD_node_declaration.hh"
 #include "NOD_socket.hh"
-#include "NOD_socket_declarations.hh"
 
 #include "../interface/interface_intern.hh" /* XXX bad level */
 #include "UI_interface.hh"

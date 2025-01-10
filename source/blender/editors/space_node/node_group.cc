@@ -13,7 +13,6 @@
 #include "DNA_anim_types.h"
 #include "DNA_node_types.h"
 
-#include "BLI_linklist.h"
 #include "BLI_listbase.h"
 #include "BLI_map.hh"
 #include "BLI_math_vector_types.hh"
@@ -37,7 +36,6 @@
 
 #include "DEG_depsgraph_build.hh"
 
-#include "ED_node.hh" /* own include */
 #include "ED_node.hh"
 #include "ED_node_preview.hh"
 #include "ED_render.hh"

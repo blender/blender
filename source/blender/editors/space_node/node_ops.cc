@@ -8,7 +8,7 @@
 
 #include "DNA_node_types.h"
 
-#include "ED_node.hh" /* own include */
+#include "ED_node_c.hh"
 #include "ED_screen.hh"
 
 #include "RNA_access.hh"
