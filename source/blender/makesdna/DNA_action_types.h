@@ -753,15 +753,9 @@ typedef enum eActionGroup_Flag {
 /* Actions -------------------------------------- */
 
 /**
- * Action - reusable F-Curve 'bag'  (act)
+ * Container of animation data.
  *
- * This contains F-Curves that may affect settings from more than one ID block-type and/or
- * data-block (i.e. sub-data linked/used directly to the ID block that the animation data is linked
- * to), but with the restriction that the other unrelated data (i.e. data that is not directly used
- * or linked to by the source ID block).
- *
- * It serves as a 'unit' of reusable animation information (i.e. keyframes/motion data),
- * that affects a group of related settings (as defined by the user).
+ * \see blender::animrig::Action for more detailed documentation.
  */
 typedef struct bAction {
   /** ID-serialization for relinking. */
@@ -1143,8 +1137,8 @@ typedef struct ActionLayer {
   uint8_t _pad0[2];
 
   /**
-   * There is always at least one strip.
-   * If there is only one, it can be infinite. This is the default for new layers.
+   * The layer's array of strips. See the documentation of
+   * #blender::animrig::Layer for the invariants of this array.
    */
   struct ActionStrip **strip_array; /* Array of 'strip_array_num' strips. */
   int strip_array_num;
