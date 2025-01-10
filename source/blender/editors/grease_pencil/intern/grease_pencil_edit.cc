@@ -3997,13 +3997,19 @@ static void copy_layer_group_content(GreasePencil &grease_pencil_dst,
 {
   using namespace blender::bke::greasepencil;
 
-  for (const bke::greasepencil::TreeNode *node : group_src.nodes()) {
-    if (node->is_group()) {
-      copy_layer_group_recursive(grease_pencil_dst, group_dst, node->as_group(), layer_name_map);
-    }
-    if (node->is_layer()) {
-      Layer &layer_dst = copy_layer(grease_pencil_dst, group_dst, node->as_layer());
-      layer_name_map.add_new(node->as_layer().name(), layer_dst.name());
+  LISTBASE_FOREACH (GreasePencilLayerTreeNode *, child, &group_src.children) {
+    switch (child->type) {
+      case GP_LAYER_TREE_LEAF: {
+        Layer &layer_src = reinterpret_cast<GreasePencilLayer *>(child)->wrap();
+        Layer &layer_dst = copy_layer(grease_pencil_dst, group_dst, layer_src);
+        layer_name_map.add_new(layer_src.name(), layer_dst.name());
+        break;
+      }
+      case GP_LAYER_TREE_GROUP: {
+        LayerGroup &group_src = reinterpret_cast<GreasePencilLayerTreeGroup *>(child)->wrap();
+        copy_layer_group_recursive(grease_pencil_dst, group_dst, group_src, layer_name_map);
+        break;
+      }
     }
   }
 }
