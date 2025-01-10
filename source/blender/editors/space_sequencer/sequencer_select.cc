@@ -1133,9 +1133,14 @@ StripSelection ED_sequencer_pick_strip_and_handle(const Scene *scene,
                                                   const View2D *v2d,
                                                   float mouse_co[2])
 {
-  blender::Vector<Strip *> strips = mouseover_strips_sorted_get(scene, v2d, mouse_co);
-
   StripSelection selection;
+  /* Do not pick strips when clicking inside time scrub region. */
+  float time_scrub_y = v2d->cur.ymax - UI_TIME_SCRUB_MARGIN_Y / UI_view2d_scale_get_y(v2d);
+  if (mouse_co[1] > time_scrub_y) {
+    return selection;
+  }
+
+  blender::Vector<Strip *> strips = mouseover_strips_sorted_get(scene, v2d, mouse_co);
 
   if (strips.size() == 0) {
     return selection;
