@@ -2683,7 +2683,7 @@ void node_unique_id(bNodeTree *ntree, bNode *node)
   BLI_assert(node->runtime->index_in_tree == ntree->runtime->nodes_by_id.index_of(node));
 }
 
-bNode *node_add_node(const bContext *C, bNodeTree *ntree, const StringRefNull idname)
+bNode *node_add_node(const bContext *C, bNodeTree *ntree, const StringRef idname)
 {
   bNode *node = MEM_cnew<bNode>(__func__);
   node->runtime = MEM_new<bNodeRuntime>(__func__);
@@ -3219,8 +3219,8 @@ static bNodeTree *node_tree_add_tree_do(Main *bmain,
                                         std::optional<Library *> owner_library,
                                         ID *owner_id,
                                         const bool is_embedded,
-                                        const StringRefNull name,
-                                        const StringRefNull idname)
+                                        const StringRef name,
+                                        const StringRef idname)
 {
   /* trees are created as local trees for compositor, material or texture nodes,
    * node groups and other tree types are created as library data.
@@ -3232,7 +3232,7 @@ static bNodeTree *node_tree_add_tree_do(Main *bmain,
   BLI_assert_msg(!owner_library || !owner_id,
                  "Embedded NTrees should never have a defined owner library here");
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(
-      BKE_libblock_alloc_in_lib(bmain, owner_library, ID_NT, name.c_str(), flag));
+      BKE_libblock_alloc_in_lib(bmain, owner_library, ID_NT, std::string(name).c_str(), flag));
   BKE_libblock_init_empty(&ntree->id);
   if (is_embedded) {
     BLI_assert(owner_id != nullptr);
@@ -3252,7 +3252,7 @@ static bNodeTree *node_tree_add_tree_do(Main *bmain,
   return ntree;
 }
 
-bNodeTree *node_tree_add_tree(Main *bmain, const StringRefNull name, const StringRefNull idname)
+bNodeTree *node_tree_add_tree(Main *bmain, const StringRef name, const StringRef idname)
 {
   return node_tree_add_tree_do(bmain, std::nullopt, nullptr, false, name, idname);
 }
