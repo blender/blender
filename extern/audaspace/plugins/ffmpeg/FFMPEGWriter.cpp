@@ -120,7 +120,7 @@ void FFMPEGWriter::encode()
 	while(avcodec_receive_packet(m_codecCtx, m_packet) == 0)
 	{
 		m_packet->stream_index = m_stream->index;
-
+		av_packet_rescale_ts(m_packet, m_codecCtx->time_base, m_stream->time_base);
 		if(av_write_frame(m_formatCtx, m_packet) < 0)
 			AUD_THROW(FileException, "Frame couldn't be writen to the file with ffmpeg.");
 	}
@@ -161,7 +161,7 @@ void FFMPEGWriter::close()
 	while(avcodec_receive_packet(m_codecCtx, m_packet) == 0)
 	{
 		m_packet->stream_index = m_stream->index;
-
+		av_packet_rescale_ts(m_packet, m_codecCtx->time_base, m_stream->time_base);
 		if(av_write_frame(m_formatCtx, m_packet) < 0)
 			AUD_THROW(FileException, "Frame couldn't be writen to the file with ffmpeg.");
 	}
