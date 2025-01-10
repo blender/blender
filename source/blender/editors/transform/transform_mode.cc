@@ -1060,7 +1060,7 @@ void ElementResize(const TransInfo *t,
       float ratio = values_final_evil[0];
       float transformed_value = td->ival * fabs(ratio);
       *td->val = blender::math::max(
-          blender::math::interpolate(transformed_value, td->ival, gp_falloff), 0.001f);
+          blender::math::interpolate(td->ival, transformed_value, gp_falloff), 0.001f);
     }
   }
   else {
