@@ -95,7 +95,11 @@ void BKE_object_material_array_assign(
     Main *bmain, Object *ob, Material ***matar, int totcol, bool to_object_only);
 
 short BKE_object_material_slot_find_index(Object *ob, Material *ma);
-bool BKE_object_material_slot_add(Main *bmain, Object *ob);
+/**
+ * \param set_active: Set the newly added slot as active material slot of the object. Usually that
+ * is wanted when adding a material slot, so it's the default.
+ */
+bool BKE_object_material_slot_add(Main *bmain, Object *ob, bool set_active = true);
 bool BKE_object_material_slot_remove(Main *bmain, Object *ob);
 bool BKE_object_material_slot_used(Object *object, short actcol);
 

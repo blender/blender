@@ -1322,7 +1322,7 @@ short BKE_object_material_slot_find_index(Object *ob, Material *ma)
   return 0;
 }
 
-bool BKE_object_material_slot_add(Main *bmain, Object *ob)
+bool BKE_object_material_slot_add(Main *bmain, Object *ob, const bool set_active)
 {
   if (ob == nullptr) {
     return false;
@@ -1332,7 +1332,9 @@ bool BKE_object_material_slot_add(Main *bmain, Object *ob)
   }
 
   BKE_object_material_assign(bmain, ob, nullptr, ob->totcol + 1, BKE_MAT_ASSIGN_USERPREF);
-  ob->actcol = ob->totcol;
+  if (set_active) {
+    ob->actcol = ob->totcol;
+  }
   return true;
 }
 
