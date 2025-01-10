@@ -544,7 +544,7 @@ void curve_populate_trans_data_structs(
             center = point_positions[domain_i];
           }
           else {
-            center = td.iloc;
+            center = *elem;
           }
 
           copy_v3_v3(td.iloc, *elem);
