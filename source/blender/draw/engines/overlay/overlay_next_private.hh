@@ -156,6 +156,7 @@ struct State {
   int clipping_plane_count = 0;
 
   /* Active Image properties. Only valid image space only. */
+  bool is_image_valid = false;
   int2 image_size = int2(0);
   float2 image_uv_aspect = float2(0.0f);
   float2 image_aspect = float2(0.0f);

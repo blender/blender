@@ -92,6 +92,7 @@ void Instance::init()
     /* During engine initialization phase the `space_image` isn't locked and we are able to
      * retrieve the needed data. During cache_init the image engine locks the `space_image` and
      * makes it impossible to retrieve the data. */
+    state.is_image_valid = bool(space_image->image);
     ED_space_image_get_uv_aspect(space_image, &state.image_uv_aspect.x, &state.image_uv_aspect.y);
     ED_space_image_get_size(space_image, &state.image_size.x, &state.image_size.y);
     ED_space_image_get_aspect(space_image, &state.image_aspect.x, &state.image_aspect.y);

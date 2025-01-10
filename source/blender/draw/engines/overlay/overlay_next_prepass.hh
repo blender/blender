@@ -30,7 +30,7 @@ class ImagePrepass : Overlay {
  public:
   void begin_sync(Resources &res, const State &state) final
   {
-    enabled_ = state.is_space_image() && !res.is_selection();
+    enabled_ = state.is_space_image() && state.is_image_valid && !res.is_selection();
 
     if (!enabled_) {
       return;
