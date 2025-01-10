@@ -14,7 +14,7 @@
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 
-#include "NOD_common.h"
+#include "NOD_common.hh"
 #include "node_common.h"
 #include "node_exec.hh"
 #include "node_texture_util.hh"

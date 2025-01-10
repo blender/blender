@@ -28,7 +28,7 @@
 
 #include "UI_interface.hh"
 
-#include "NOD_common.h"
+#include "NOD_common.hh"
 #include "NOD_geo_bake.hh"
 #include "NOD_geo_simulation.hh"
 #include "NOD_geometry.hh"

@@ -642,7 +642,7 @@ static const EnumPropertyItem node_cryptomatte_layer_name_items[] = {
 
 #  include "GPU_material.hh"
 
-#  include "NOD_common.h"
+#  include "NOD_common.hh"
 #  include "NOD_composite.hh"
 #  include "NOD_geo_bake.hh"
 #  include "NOD_geo_capture_attribute.hh"

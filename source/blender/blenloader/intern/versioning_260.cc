@@ -72,7 +72,7 @@
 
 #include "MOV_enums.hh"
 
-#include "NOD_common.h"
+#include "NOD_common.hh"
 #include "NOD_composite.hh"
 
 #include "BLO_readfile.hh"

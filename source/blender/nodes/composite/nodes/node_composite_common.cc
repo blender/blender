@@ -8,7 +8,7 @@
 
 #include "DNA_node_types.h"
 
-#include "NOD_common.h"
+#include "NOD_common.hh"
 #include "node_common.h"
 #include "node_composite_util.hh"
 

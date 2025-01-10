@@ -52,7 +52,7 @@
 
 #include "UI_resources.hh"
 
-#include "NOD_common.h"
+#include "NOD_common.hh"
 #include "NOD_composite.hh"
 #include "NOD_geometry.hh"
 #include "NOD_shader.h"

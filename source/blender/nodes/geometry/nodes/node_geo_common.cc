@@ -7,7 +7,7 @@
 #include "NOD_geometry.hh"
 #include "NOD_node_declaration.hh"
 
-#include "NOD_common.h"
+#include "NOD_common.hh"
 #include "node_common.h"
 #include "node_geometry_util.hh"
 
