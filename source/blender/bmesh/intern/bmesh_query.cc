@@ -1497,13 +1497,13 @@ float BM_vert_calc_median_tagged_edge_length(const BMVert *v)
 
 BMLoop *BM_face_find_shortest_loop(BMFace *f)
 {
-  BMLoop *shortest_loop = nullptr;
   float shortest_len = FLT_MAX;
 
   BMLoop *l_iter;
   BMLoop *l_first;
 
   l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+  BMLoop *shortest_loop = l_first; /* Fallback for non-finite coordinates, see #108658. */
 
   do {
     const float len_sq = len_squared_v3v3(l_iter->v->co, l_iter->next->v->co);
@@ -1518,13 +1518,13 @@ BMLoop *BM_face_find_shortest_loop(BMFace *f)
 
 BMLoop *BM_face_find_longest_loop(BMFace *f)
 {
-  BMLoop *longest_loop = nullptr;
   float len_max_sq = 0.0f;
 
   BMLoop *l_iter;
   BMLoop *l_first;
 
   l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+  BMLoop *longest_loop = l_first; /* Fallback for non-finite coordinates, see #108658. */
 
   do {
     const float len_sq = len_squared_v3v3(l_iter->v->co, l_iter->next->v->co);
