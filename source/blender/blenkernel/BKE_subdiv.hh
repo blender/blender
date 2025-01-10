@@ -93,7 +93,7 @@ struct SubdivStats {
       double topology_refiner_creation_time;
       /* Total time spent in blender::bke::subdiv::subdiv_to_mesh(). */
       double subdiv_to_mesh_time;
-      /* Geometry (mesh vertices) creation time during SUBDIV_TYO_MESH. */
+      /* Geometry (mesh vertices) creation time during SUBDIV_TO_MESH. */
       double subdiv_to_mesh_geometry_time;
       /* Time spent on evaluator creation from topology refiner. */
       double evaluator_creation_time;
