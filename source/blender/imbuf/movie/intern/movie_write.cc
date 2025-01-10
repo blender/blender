@@ -1308,17 +1308,20 @@ static bool ffmpeg_movie_append(MovieWriter *context,
   if (context->video_stream) {
     avframe = generate_video_frame(context, image);
     success = (avframe && write_video_frame(context, avframe, reports));
+  }
+
+  if (context->audio_stream) {
     /* Add +1 frame because we want to encode audio up until the next video frame. */
     write_audio_frames(
         context, (frame - start_frame + 1) / (double(rd->frs_sec) / double(rd->frs_sec_base)));
+  }
 
-    if (context->ffmpeg_autosplit) {
-      if (avio_tell(context->outfile->pb) > ffmpeg_autosplit_size) {
-        end_ffmpeg_impl(context, true);
-        context->ffmpeg_autosplit_count++;
+  if (context->ffmpeg_autosplit) {
+    if (avio_tell(context->outfile->pb) > ffmpeg_autosplit_size) {
+      end_ffmpeg_impl(context, true);
+      context->ffmpeg_autosplit_count++;
 
-        success &= start_ffmpeg_impl(context, rd, image->x, image->y, suffix, reports);
-      }
+      success &= start_ffmpeg_impl(context, rd, image->x, image->y, suffix, reports);
     }
   }
 
