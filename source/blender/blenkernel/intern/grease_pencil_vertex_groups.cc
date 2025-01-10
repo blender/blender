@@ -7,10 +7,10 @@
  */
 
 #include "DNA_meshdata_types.h"
+#include "DNA_object_types.h"
 
 #include "BLI_listbase.h"
 #include "BLI_set.hh"
-#include "BLI_string.h"
 
 #include "BKE_curves.hh"
 #include "BKE_deform.hh"

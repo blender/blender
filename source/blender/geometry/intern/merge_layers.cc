@@ -4,10 +4,11 @@
 
 #include "GEO_merge_layers.hh"
 
+#include "BLI_math_matrix.hh"
+
 #include "BKE_attribute_math.hh"
 #include "BKE_curves.hh"
 #include "BKE_grease_pencil.hh"
-#include "BKE_lib_id.hh"
 
 #include "GEO_join_geometries.hh"
 

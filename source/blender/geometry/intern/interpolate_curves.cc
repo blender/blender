@@ -2,6 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
+#include "BLI_math_quaternion.hh"
+
 #include "BKE_attribute_math.hh"
 #include "BKE_curves.hh"
 

@@ -8,6 +8,7 @@
 
 #include "BLI_kdtree.h"
 #include "BLI_length_parameterize.hh"
+#include "BLI_math_quaternion.hh"
 #include "BLI_math_rotation.h"
 #include "BLI_task.hh"
 

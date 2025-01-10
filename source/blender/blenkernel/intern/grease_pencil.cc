@@ -1583,6 +1583,11 @@ LayerGroup &LayerGroup::operator=(const LayerGroup &other)
   return *this;
 }
 
+bool LayerGroup::is_empty() const
+{
+  return BLI_listbase_is_empty(&this->children);
+}
+
 TreeNode &LayerGroup::add_node(TreeNode &node)
 {
   BLI_addtail(&this->children, &node);

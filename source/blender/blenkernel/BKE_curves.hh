@@ -10,7 +10,6 @@
  */
 
 #include "BLI_bounds_types.hh"
-#include "BLI_generic_virtual_array.hh"
 #include "BLI_implicit_sharing_ptr.hh"
 #include "BLI_index_mask_fwd.hh"
 #include "BLI_math_matrix_types.hh"
@@ -36,6 +35,9 @@ struct AttributeAccessorFunctions;
 }  // namespace blender::bke
 namespace blender::bke::bake {
 struct BakeMaterialsList;
+}
+namespace blender {
+class GVArray;
 }
 
 namespace blender::bke {

@@ -16,12 +16,14 @@
 
 #include "BLI_endian_defines.h"
 #include "BLI_endian_switch.h"
+#include "BLI_listbase.h"
 #include "BLI_math_matrix_types.hh"
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
 
 #include "DNA_material_types.h"
 #include "DNA_modifier_types.h"
+#include "DNA_object_types.h"
 #include "DNA_volume_types.h"
 
 #include "RNA_access.hh"

@@ -27,6 +27,8 @@
 #include "BLI_convexhull_2d.h"
 #include "BLI_function_ref.hh"
 #include "BLI_map.hh"
+#include "BLI_math_matrix.hh"
+#include "BLI_math_quaternion.hh"
 #include "BLI_set.hh"
 #include "BLI_span.hh"
 #include "BLI_string.h"

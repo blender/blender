@@ -10,9 +10,8 @@
 
 #include "DNA_ID.h"
 #include "DNA_customdata_types.h"
-#include "DNA_object_types.h"
+#include "DNA_listBase.h"
 
-#include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 
 #ifdef __cplusplus
