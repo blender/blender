@@ -3083,7 +3083,7 @@ void OBJECT_OT_drop_geometry_nodes(wmOperatorType *ot)
                                   "Session UID of the geometry node group being dropped",
                                   INT32_MIN,
                                   INT32_MAX);
-  RNA_def_property_flag(prop, (PropertyFlag)(PROP_HIDDEN | PROP_SKIP_SAVE));
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
   RNA_def_boolean(ot->srna,
                   "show_datablock_in_modifier",
                   true,

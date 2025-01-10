@@ -941,7 +941,7 @@ static void GREASE_PENCIL_OT_set_selection_mode(wmOperatorType *ot)
 
   ot->prop = prop = RNA_def_enum(
       ot->srna, "mode", rna_enum_grease_pencil_selectmode_items, 0, "Mode", "");
-  RNA_def_property_flag(prop, (PropertyFlag)(PROP_HIDDEN | PROP_SKIP_SAVE));
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
 static int grease_pencil_material_select_exec(bContext *C, wmOperator *op)

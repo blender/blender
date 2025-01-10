@@ -247,7 +247,7 @@ void NODE_OT_add_reroute(wmOperatorType *ot)
   /* properties */
   PropertyRNA *prop;
   prop = RNA_def_collection_runtime(ot->srna, "path", &RNA_OperatorMousePath, "Path", "");
-  RNA_def_property_flag(prop, (PropertyFlag)(PROP_HIDDEN | PROP_SKIP_SAVE));
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
   /* internal */
   RNA_def_int(ot->srna, "cursor", WM_CURSOR_CROSS, 0, INT_MAX, "Cursor", "", 0, INT_MAX);
 }
@@ -387,7 +387,7 @@ void NODE_OT_add_group(wmOperatorType *ot)
 
   PropertyRNA *prop = RNA_def_boolean(
       ot->srna, "show_datablock_in_node", true, "Show the datablock selector in the node", "");
-  RNA_def_property_flag(prop, (PropertyFlag)(PROP_SKIP_SAVE | PROP_HIDDEN));
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
 }
 
 /** \} */

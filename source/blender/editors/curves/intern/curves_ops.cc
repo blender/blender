@@ -859,7 +859,7 @@ static void CURVES_OT_set_selection_domain(wmOperatorType *ot)
 
   ot->prop = prop = RNA_def_enum(
       ot->srna, "domain", rna_enum_attribute_curves_domain_items, 0, "Domain", "");
-  RNA_def_property_flag(prop, (PropertyFlag)(PROP_HIDDEN | PROP_SKIP_SAVE));
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
 
 static bool has_anything_selected(const Span<Curves *> curves_ids)

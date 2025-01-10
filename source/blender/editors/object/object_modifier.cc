@@ -2385,13 +2385,13 @@ void OBJECT_OT_modifier_apply(wmOperatorType *ot)
                          false,
                          "Make Data Single User",
                          "Make the object's data single user if needed");
-  RNA_def_property_flag(prop, (PropertyFlag)(PROP_HIDDEN | PROP_SKIP_SAVE));
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
   prop = RNA_def_boolean(ot->srna,
                          "all_keyframes",
                          false,
                          "Apply to all keyframes",
                          "For Grease Pencil objects, apply the modifier to all the keyframes");
-  RNA_def_property_flag(prop, (PropertyFlag)(PROP_HIDDEN | PROP_SKIP_SAVE));
+  RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
   modifier_register_use_selected_objects_prop(ot);
 }
 

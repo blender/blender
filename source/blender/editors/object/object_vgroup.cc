@@ -4064,7 +4064,7 @@ void OBJECT_OT_vertex_weight_paste(wmOperatorType *ot)
                      "Index of source weight in active vertex group",
                      -1,
                      INT_MAX);
-  RNA_def_property_flag(prop, (PropertyFlag)(PROP_SKIP_SAVE | PROP_HIDDEN));
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
 }
 
 /** \} */
@@ -4114,7 +4114,7 @@ void OBJECT_OT_vertex_weight_delete(wmOperatorType *ot)
                      "Index of source weight in active vertex group",
                      -1,
                      INT_MAX);
-  RNA_def_property_flag(prop, (PropertyFlag)(PROP_SKIP_SAVE | PROP_HIDDEN));
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
 }
 
 /** \} */
@@ -4161,7 +4161,7 @@ void OBJECT_OT_vertex_weight_set_active(wmOperatorType *ot)
                      "Index of source weight in active vertex group",
                      -1,
                      INT_MAX);
-  RNA_def_property_flag(prop, (PropertyFlag)(PROP_SKIP_SAVE | PROP_HIDDEN));
+  RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
 }
 
 /** \} */
