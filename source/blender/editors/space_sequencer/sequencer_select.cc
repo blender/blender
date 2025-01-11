@@ -1403,6 +1403,7 @@ void SEQUENCER_OT_select(wmOperatorType *ot)
 
 static int sequencer_select_handle_exec(bContext *C, wmOperator *op)
 {
+  /* This operator is only used in the RCS keymap by default and is not exposed in any menus. */
   const View2D *v2d = UI_view2d_fromcontext(C);
   Scene *scene = CTX_data_scene(C);
   Editing *ed = SEQ_editing_get(scene);

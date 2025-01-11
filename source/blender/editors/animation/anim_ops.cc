@@ -256,12 +256,12 @@ static bool sequencer_skip_for_handle_tweak(const bContext *C, const wmEvent *ev
 /* Modal Operator init */
 static int change_frame_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-  ARegion *region = CTX_wm_region(C);
   bScreen *screen = CTX_wm_screen(C);
-  if (CTX_wm_space_seq(C) != nullptr && region->regiontype == RGN_TYPE_PREVIEW) {
-    return OPERATOR_CANCELLED;
-  }
-  if (sequencer_skip_for_handle_tweak(C, event)) {
+
+  /* This check is done in case scrubbing and strip tweaking in the sequencer are bound to the same
+   * event (e.g. RCS keymap where both are activated on left mouse press). Tweaking should take
+   * precedence. */
+  if (CTX_wm_space_seq(C) && sequencer_skip_for_handle_tweak(C, event)) {
     return OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH;
   }
 
