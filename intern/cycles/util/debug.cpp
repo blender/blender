@@ -27,7 +27,6 @@ void DebugFlags::CPU::reset()
   } while (0)
 
   CHECK_CPU_FLAGS(avx2, "CYCLES_CPU_NO_AVX2");
-  CHECK_CPU_FLAGS(sse42, "CYCLES_CPU_NO_SSE42");
 
 #undef STRINGIFY
 #undef CHECK_CPU_FLAGS

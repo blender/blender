@@ -8,15 +8,9 @@
 
 /* x86
  *
- * Compile a regular and SSE42 kernel. */
+ * Compile a regular kernel. */
 
 #  if defined(i386) || defined(_M_IX86)
-
-/* We require minimum SSE4.2 support on x86, so auto enable. */
-#    define __KERNEL_SSE42__
-#    ifdef WITH_KERNEL_SSE42
-#      define WITH_CYCLES_OPTIMIZED_KERNEL_SSE42
-#    endif
 
 /* x86-64
  *

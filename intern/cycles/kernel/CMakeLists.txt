@@ -15,7 +15,6 @@ set(INC_SYS
 set(SRC_KERNEL_DEVICE_CPU
   device/cpu/globals.cpp
   device/cpu/kernel.cpp
-  device/cpu/kernel_sse42.cpp
   device/cpu/kernel_avx2.cpp
 )
 
@@ -1346,10 +1345,6 @@ endif()
 
 if(DEFINED CYCLES_KERNEL_FLAGS)
   set_source_files_properties(device/cpu/kernel.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_KERNEL_FLAGS}")
-endif()
-
-if(CXX_HAS_SSE42)
-  set_source_files_properties(device/cpu/kernel_sse42.cpp PROPERTIES COMPILE_FLAGS "${CYCLES_SSE42_FLAGS}")
 endif()
 
 if(CXX_HAS_AVX2)
