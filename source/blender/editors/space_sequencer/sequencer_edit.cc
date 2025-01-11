@@ -2063,15 +2063,16 @@ void SEQUENCER_OT_meta_toggle(wmOperatorType *ot)
 /** \name Make Meta Strip Operator
  * \{ */
 
-static int sequencer_meta_make_exec(bContext *C, wmOperator *op)
+static int sequencer_meta_make_exec(bContext *C, wmOperator * /*op*/)
 {
   Scene *scene = CTX_data_scene(C);
   Editing *ed = SEQ_editing_get(scene);
   Strip *active_strip = SEQ_select_active_get(scene);
   ListBase *active_seqbase = SEQ_active_seqbase_get(ed);
 
-  if (SEQ_transform_seqbase_isolated_sel_check(active_seqbase) == false) {
-    BKE_report(op->reports, RPT_ERROR, "Please select all related strips");
+  blender::VectorSet<Strip *> selected = SEQ_query_selected_strips(active_seqbase);
+
+  if (selected.is_empty()) {
     return OPERATOR_CANCELLED;
   }
 
@@ -2084,12 +2085,9 @@ static int sequencer_meta_make_exec(bContext *C, wmOperator *op)
   /* Remove all selected from main list, and put in meta.
    * Sequence is moved within the same edit, no need to re-generate the UID. */
   blender::VectorSet<Strip *> strips_to_move;
-  LISTBASE_FOREACH (Strip *, strip, active_seqbase) {
-    if (strip != seqm && strip->flag & SELECT) {
-      strips_to_move.add(strip);
-      strips_to_move.add_multiple(SEQ_get_connected_strips(strip));
-    }
-  }
+  strips_to_move.add_multiple(selected);
+  SEQ_iterator_set_expand(
+      scene, active_seqbase, strips_to_move, SEQ_query_strip_connected_and_effect_chain);
 
   for (Strip *strip : strips_to_move) {
     SEQ_relations_invalidate_cache_preprocessed(scene, strip);

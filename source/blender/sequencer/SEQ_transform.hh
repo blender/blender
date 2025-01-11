@@ -53,10 +53,6 @@ void SEQ_transform_handle_overlap(Scene *scene,
                                   blender::Span<Strip *> transformed_strips,
                                   bool use_sync_markers);
 /**
- * Check if the selected seq's reference unselected seq's.
- */
-bool SEQ_transform_seqbase_isolated_sel_check(ListBase *seqbase);
-/**
  * Move strips and markers (if not locked) that start after timeline_frame by delta frames
  *
  * \param scene: Scene in which strips are located

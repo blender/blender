@@ -41,6 +41,7 @@
 #include "BKE_scene.hh"
 
 #include "SEQ_animation.hh"
+#include "SEQ_iterator.hh"
 #include "SEQ_select.hh"
 #include "SEQ_sequencer.hh"
 #include "SEQ_time.hh"
@@ -310,9 +311,22 @@ int sequencer_clipboard_copy_exec(bContext *C, wmOperator *op)
   Scene *scene = CTX_data_scene(C);
   Editing *ed = SEQ_editing_get(scene);
 
-  if (SEQ_transform_seqbase_isolated_sel_check(ed->seqbasep) == false) {
-    BKE_report(op->reports, RPT_ERROR, "Please select all related strips");
+  blender::VectorSet<Strip *> selected = SEQ_query_selected_strips(ed->seqbasep);
+
+  if (selected.is_empty()) {
     return OPERATOR_CANCELLED;
+  }
+
+  blender::VectorSet<Strip *> effect_chain;
+  effect_chain.add_multiple(selected);
+  SEQ_iterator_set_expand(scene, ed->seqbasep, effect_chain, SEQ_query_strip_effect_chain);
+
+  blender::VectorSet<Strip *> expanded;
+  for (Strip *strip : effect_chain) {
+    if (!(strip->flag & SELECT)) {
+      strip->flag |= SELECT;
+      expanded.add(strip);
+    }
   }
 
   char filepath[FILE_MAX];
@@ -320,12 +334,25 @@ int sequencer_clipboard_copy_exec(bContext *C, wmOperator *op)
   bool success = sequencer_write_copy_paste_file(bmain, scene, filepath, *op->reports);
   if (!success) {
     BKE_report(op->reports, RPT_ERROR, "Could not create the copy paste file!");
+    for (Strip *strip : expanded) {
+      strip->flag &= ~SELECT;
+    }
     return OPERATOR_CANCELLED;
   }
 
   /* We are all done! */
-  BKE_report(
-      op->reports, RPT_INFO, "Copied the selected Video Sequencer strips to internal clipboard");
+  if (effect_chain.size() > selected.size()) {
+    BKE_report(op->reports,
+               RPT_INFO,
+               "Copied the selected Video Sequencer strips and associated effect chain to "
+               "internal clipboard");
+  }
+  else {
+    BKE_report(
+        op->reports, RPT_INFO, "Copied the selected Video Sequencer strips to internal clipboard");
+  }
+  ED_outliner_select_sync_from_sequence_tag(C);
+  WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER | NA_SELECTED, scene);
   return OPERATOR_FINISHED;
 }
 

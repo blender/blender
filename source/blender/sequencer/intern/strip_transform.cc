@@ -35,47 +35,6 @@ bool SEQ_transform_single_image_check(const Strip *strip)
   return (strip->flag & SEQ_SINGLE_FRAME_CONTENT) != 0;
 }
 
-bool SEQ_transform_seqbase_isolated_sel_check(ListBase *seqbase)
-{
-  /* is there more than 1 select */
-  bool ok = false;
-
-  LISTBASE_FOREACH (Strip *, strip, seqbase) {
-    if (strip->flag & SELECT) {
-      ok = true;
-      break;
-    }
-  }
-
-  if (ok == false) {
-    return false;
-  }
-
-  /* test relationships */
-  LISTBASE_FOREACH (Strip *, strip, seqbase) {
-    if ((strip->type & STRIP_TYPE_EFFECT) == 0) {
-      continue;
-    }
-
-    if (strip->flag & SELECT) {
-      if ((strip->seq1 && (strip->seq1->flag & SELECT) == 0) ||
-          (strip->seq2 && (strip->seq2->flag & SELECT) == 0))
-      {
-        return false;
-      }
-    }
-    else {
-      if ((strip->seq1 && (strip->seq1->flag & SELECT)) ||
-          (strip->seq2 && (strip->seq2->flag & SELECT)))
-      {
-        return false;
-      }
-    }
-  }
-
-  return true;
-}
-
 bool SEQ_transform_sequence_can_be_translated(const Strip *strip)
 {
   return !(strip->type & STRIP_TYPE_EFFECT) || (SEQ_effect_get_num_inputs(strip->type) == 0);
