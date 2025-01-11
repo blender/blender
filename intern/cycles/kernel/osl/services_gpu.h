@@ -764,7 +764,7 @@ ccl_device_inline bool get_object_attribute_impl(KernelGlobals kg,
   T dy = make_zero<T>();
 #ifdef __VOLUME__
   if (primitive_is_volume_attribute(sd)) {
-    v = primitive_volume_attribute<T>(kg, sd, desc);
+    v = primitive_volume_attribute<T>(kg, sd, desc, false);
   }
   else
 #endif
@@ -1147,7 +1147,9 @@ ccl_device_extern bool rs_texture3d(ccl_private ShaderGlobals *sg,
 
   switch (type) {
     case OSL_TEXTURE_HANDLE_TYPE_SVM: {
-      const float4 rgba = kernel_tex_image_interp_3d(nullptr, slot, *P, INTERPOLATION_NONE);
+      ccl_private ShaderData *const sd = static_cast<ccl_private ShaderData *>(sg->renderstate);
+      const float4 rgba = kernel_tex_image_interp_3d(
+          nullptr, slot, *P, INTERPOLATION_NONE, lcg_step_float(&sd->lcg_state));
       if (nchannels > 0) {
         result[0] = rgba.x;
       }

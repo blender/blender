@@ -65,7 +65,7 @@ ccl_device_noinline void svm_node_attr(KernelGlobals kg,
     /* Volumes
      * NOTE: moving this into its own node type might help improve performance. */
     if (primitive_is_volume_attribute(sd)) {
-      const float4 value = volume_attribute_float4(kg, sd, desc);
+      const float4 value = volume_attribute_float4(kg, sd, desc, false);
 
       if (type == NODE_ATTR_OUTPUT_FLOAT) {
         const float f = volume_attribute_value<float>(value);
