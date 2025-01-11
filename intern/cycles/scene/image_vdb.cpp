@@ -7,6 +7,7 @@
 #include "util/log.h"
 #include "util/nanovdb.h"
 #include "util/openvdb.h"
+#include "util/texture.h"
 
 #ifdef WITH_OPENVDB
 #  include <openvdb/tools/Dense.h>
@@ -62,8 +63,10 @@ bool VDBImageLoader::load_metadata(const ImageDeviceFeatures &features, ImageMet
   /* Set dimensions. */
   bbox = grid->evalActiveVoxelBoundingBox();
   if (bbox.empty()) {
+    metadata.type = IMAGE_DATA_TYPE_NANOVDB_EMPTY;
+    metadata.byte_size = 0;
     grid.reset();
-    return false;
+    return true;
   }
 
   if (metadata.channels == 1) {

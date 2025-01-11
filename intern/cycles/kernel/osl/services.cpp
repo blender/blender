@@ -39,6 +39,7 @@
 #include "kernel/svm/bevel.h"
 
 #include "kernel/util/ies.h"
+#include "kernel/util/texture_3d.h"
 
 CCL_NAMESPACE_BEGIN
 

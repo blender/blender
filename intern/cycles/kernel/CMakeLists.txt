@@ -352,6 +352,7 @@ set(SRC_KERNEL_UTIL_HEADERS
   util/ies.h
   util/lookup_table.h
   util/nanovdb.h
+  util/texture_3d.h
   util/profiler.h
 )
 

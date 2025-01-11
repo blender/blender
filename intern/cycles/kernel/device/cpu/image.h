@@ -7,10 +7,6 @@
 #include "kernel/device/cpu/compat.h"
 #include "kernel/device/cpu/globals.h"
 
-#ifdef WITH_NANOVDB
-#  include "kernel/util/nanovdb.h"
-#endif
-
 #include "util/half.h"
 
 CCL_NAMESPACE_BEGIN
@@ -324,140 +320,6 @@ template<typename TexT, typename OutT = float4> struct TextureInterpolator {
   }
 };
 
-#ifdef WITH_NANOVDB
-template<typename TexT, typename OutT> struct NanoVDBInterpolator {
-
-  static ccl_always_inline float read(const float r)
-  {
-    return r;
-  }
-
-  static ccl_always_inline float4 read(const packed_float3 r)
-  {
-    return make_float4(r.x, r.y, r.z, 1.0f);
-  }
-
-  static ccl_always_inline float4 read(const float4 r)
-  {
-    return r;
-  }
-
-  template<typename Acc>
-  static ccl_always_inline OutT
-  interp_3d_closest(const Acc &acc, const float x, float y, const float z)
-  {
-    const nanovdb::Coord coord((int32_t)floorf(x), (int32_t)floorf(y), (int32_t)floorf(z));
-    return read(acc.getValue(coord));
-  }
-
-  template<typename Acc>
-  static ccl_always_inline OutT
-  interp_3d_linear(const Acc &acc, const float x, float y, const float z)
-  {
-    int ix, iy, iz;
-    const float tx = frac(x - 0.5f, &ix);
-    const float ty = frac(y - 0.5f, &iy);
-    const float tz = frac(z - 0.5f, &iz);
-
-    return mix(mix(mix(read(acc.getValue(nanovdb::Coord(ix, iy, iz))),
-                       read(acc.getValue(nanovdb::Coord(ix, iy, iz + 1))),
-                       tz),
-                   mix(read(acc.getValue(nanovdb::Coord(ix, iy + 1, iz + 1))),
-                       read(acc.getValue(nanovdb::Coord(ix, iy + 1, iz))),
-                       1.0f - tz),
-                   ty),
-               mix(mix(read(acc.getValue(nanovdb::Coord(ix + 1, iy + 1, iz))),
-                       read(acc.getValue(nanovdb::Coord(ix + 1, iy + 1, iz + 1))),
-                       tz),
-                   mix(read(acc.getValue(nanovdb::Coord(ix + 1, iy, iz + 1))),
-                       read(acc.getValue(nanovdb::Coord(ix + 1, iy, iz))),
-                       1.0f - tz),
-                   1.0f - ty),
-               tx);
-  }
-
-  /* Tricubic b-spline interpolation. */
-  template<typename Acc>
-#  if defined(__GNUC__) || defined(__clang__)
-  static ccl_always_inline
-#  else
-  static ccl_never_inline
-#  endif
-      OutT
-      interp_3d_cubic(const Acc &acc, const float x, float y, const float z)
-  {
-    int ix, iy, iz;
-    int nix, niy, niz;
-    int pix, piy, piz;
-    int nnix, nniy, nniz;
-
-    /* A -0.5 offset is used to center the cubic samples around the sample point. */
-    const float tx = frac(x - 0.5f, &ix);
-    const float ty = frac(y - 0.5f, &iy);
-    const float tz = frac(z - 0.5f, &iz);
-
-    pix = ix - 1;
-    piy = iy - 1;
-    piz = iz - 1;
-    nix = ix + 1;
-    niy = iy + 1;
-    niz = iz + 1;
-    nnix = ix + 2;
-    nniy = iy + 2;
-    nniz = iz + 2;
-
-    const int xc[4] = {pix, ix, nix, nnix};
-    const int yc[4] = {piy, iy, niy, nniy};
-    const int zc[4] = {piz, iz, niz, nniz};
-    float u[4], v[4], w[4];
-
-    /* Some helper macros to keep code size reasonable.
-     * Lets the compiler inline all the matrix multiplications.
-     */
-#  define DATA(x, y, z) (read(acc.getValue(nanovdb::Coord(xc[x], yc[y], zc[z]))))
-#  define COL_TERM(col, row) \
-    (v[col] * (u[0] * DATA(0, col, row) + u[1] * DATA(1, col, row) + u[2] * DATA(2, col, row) + \
-               u[3] * DATA(3, col, row)))
-#  define ROW_TERM(row) \
-    (w[row] * (COL_TERM(0, row) + COL_TERM(1, row) + COL_TERM(2, row) + COL_TERM(3, row)))
-
-    SET_CUBIC_SPLINE_WEIGHTS(u, tx);
-    SET_CUBIC_SPLINE_WEIGHTS(v, ty);
-    SET_CUBIC_SPLINE_WEIGHTS(w, tz);
-
-    /* Actual interpolation. */
-    return ROW_TERM(0) + ROW_TERM(1) + ROW_TERM(2) + ROW_TERM(3);
-
-#  undef COL_TERM
-#  undef ROW_TERM
-#  undef DATA
-  }
-
-  static ccl_always_inline OutT interp_3d(
-      const TextureInfo &info, const float x, float y, const float z, InterpolationType interp)
-  {
-    using namespace nanovdb;
-
-    NanoGrid<TexT> *const grid = (NanoGrid<TexT> *)info.data;
-
-    switch ((interp == INTERPOLATION_NONE) ? info.interpolation : interp) {
-      case INTERPOLATION_CLOSEST: {
-        ReadAccessor<TexT> acc(grid->tree().root());
-        return interp_3d_closest(acc, x, y, z);
-      }
-      case INTERPOLATION_LINEAR: {
-        CachedReadAccessor<TexT> acc(grid->tree().root());
-        return interp_3d_linear(acc, x, y, z);
-      }
-      default: {
-        CachedReadAccessor<TexT> acc(grid->tree().root());
-        return interp_3d_cubic(acc, x, y, z);
-      }
-    }
-  }
-};
-#endif
-
 #undef SET_CUBIC_SPLINE_WEIGHTS
 
 ccl_device float4 kernel_tex_image_interp(KernelGlobals kg, const int id, const float x, float y)
@@ -495,47 +357,6 @@ ccl_device float4 kernel_tex_image_interp(KernelGlobals kg, const int id, const 
       return TextureInterpolator<float4>::interp(info, x, y);
     default:
       assert(0);
-      return make_float4(
-          TEX_IMAGE_MISSING_R, TEX_IMAGE_MISSING_G, TEX_IMAGE_MISSING_B, TEX_IMAGE_MISSING_A);
-  }
-}
-
-ccl_device float4 kernel_tex_image_interp_3d(KernelGlobals kg,
-                                             const int id,
-                                             float3 P,
-                                             InterpolationType interp)
-{
-  const TextureInfo &info = kernel_data_fetch(texture_info, id);
-
-  if (UNLIKELY(!info.data)) {
-    return zero_float4();
-  }
-
-  if (info.use_transform_3d) {
-    P = transform_point(&info.transform_3d, P);
-  }
-  switch (info.data_type) {
-#ifdef WITH_NANOVDB
-    case IMAGE_DATA_TYPE_NANOVDB_FLOAT: {
-      const float f = NanoVDBInterpolator<float, float>::interp_3d(info, P.x, P.y, P.z, interp);
-      return make_float4(f, f, f, 1.0f);
-    }
-    case IMAGE_DATA_TYPE_NANOVDB_FLOAT3:
-      return NanoVDBInterpolator<packed_float3, float4>::interp_3d(info, P.x, P.y, P.z, interp);
-    case IMAGE_DATA_TYPE_NANOVDB_FLOAT4:
-      return NanoVDBInterpolator<float4, float4>::interp_3d(info, P.x, P.y, P.z, interp);
-    case IMAGE_DATA_TYPE_NANOVDB_FPN: {
-      const float f = NanoVDBInterpolator<nanovdb::FpN, float>::interp_3d(
-          info, P.x, P.y, P.z, interp);
-      return make_float4(f, f, f, 1.0f);
-    }
-    case IMAGE_DATA_TYPE_NANOVDB_FP16: {
-      const float f = NanoVDBInterpolator<nanovdb::Fp16, float>::interp_3d(
-          info, P.x, P.y, P.z, interp);
-      return make_float4(f, f, f, 1.0f);
-    }
-#endif
-    default:
       return make_float4(
           TEX_IMAGE_MISSING_R, TEX_IMAGE_MISSING_G, TEX_IMAGE_MISSING_B, TEX_IMAGE_MISSING_A);
   }

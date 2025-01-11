@@ -43,13 +43,14 @@ enum ImageDataType {
   IMAGE_DATA_TYPE_NANOVDB_FLOAT4 = 10,
   IMAGE_DATA_TYPE_NANOVDB_FPN = 11,
   IMAGE_DATA_TYPE_NANOVDB_FP16 = 12,
+  IMAGE_DATA_TYPE_NANOVDB_EMPTY = 13,
 
   IMAGE_DATA_NUM_TYPES
 };
 
 ccl_device_inline bool is_nanovdb_type(int type)
 {
-  return (type >= IMAGE_DATA_TYPE_NANOVDB_FLOAT && type <= IMAGE_DATA_TYPE_NANOVDB_FP16);
+  return (type >= IMAGE_DATA_TYPE_NANOVDB_FLOAT && type <= IMAGE_DATA_TYPE_NANOVDB_EMPTY);
 }
 
 /* Alpha types

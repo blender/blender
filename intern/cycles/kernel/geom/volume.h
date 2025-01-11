@@ -14,10 +14,11 @@
 #pragma once
 
 #include "kernel/globals.h"
-#include "kernel/image.h"
 
 #include "kernel/geom/attribute.h"
 #include "kernel/geom/object.h"
+
+#include "kernel/util/texture_3d.h"
 
 CCL_NAMESPACE_BEGIN
 
