@@ -543,7 +543,8 @@ void draw_image_cache(const bContext *C, ARegion *region)
   immRecti(pos, x, region_bottom, x + ceilf(framelen), region_bottom + 8 * UI_SCALE_FAC);
   immUnbindProgram();
 
-  ED_region_cache_draw_curfra_label(cfra, x, region_bottom + 8.0f * UI_SCALE_FAC);
+  ED_region_cache_draw_curfra_label(
+      cfra, x + roundf(framelen / 2), region_bottom + 8.0f * UI_SCALE_FAC);
 
   if (mask != nullptr) {
     ED_mask_draw_frames(mask, region, cfra, sfra, efra);

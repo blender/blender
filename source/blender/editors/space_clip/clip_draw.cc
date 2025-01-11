@@ -238,7 +238,8 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *region, MovieClip *clip
 
   immUnbindProgram();
 
-  ED_region_cache_draw_curfra_label(sc->user.framenr, x, 8.0f * UI_SCALE_FAC);
+  ED_region_cache_draw_curfra_label(
+      sc->user.framenr, x + roundf(framelen / 2), 8.0f * UI_SCALE_FAC);
 
   pos = GPU_vertformat_attr_add(immVertexFormat(), "pos", GPU_COMP_I32, 2, GPU_FETCH_INT_TO_FLOAT);
   immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
