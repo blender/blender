@@ -15,13 +15,13 @@ ccl_device_inline float4 zero_float4()
 #ifdef __KERNEL_SSE__
   return float4(_mm_setzero_ps());
 #else
-  return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+  return make_float4(0.0f);
 #endif
 }
 
 ccl_device_inline float4 one_float4()
 {
-  return make_float4(1.0f, 1.0f, 1.0f, 1.0f);
+  return make_float4(1.0f);
 }
 
 ccl_device_inline int4 cast(const float4 a)

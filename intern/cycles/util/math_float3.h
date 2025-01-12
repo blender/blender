@@ -110,7 +110,7 @@ ccl_device_inline float3 operator+(const float3 a, const float3 b)
 
 ccl_device_inline float3 operator+(const float3 a, const float f)
 {
-  return a + make_float3(f, f, f);
+  return a + make_float3(f);
 }
 
 ccl_device_inline float3 operator-(const float3 a, const float3 b)
@@ -124,7 +124,7 @@ ccl_device_inline float3 operator-(const float3 a, const float3 b)
 
 ccl_device_inline float3 operator-(const float3 a, const float f)
 {
-  return a - make_float3(f, f, f);
+  return a - make_float3(f);
 }
 
 ccl_device_inline float3 operator+=(float3 &a, const float3 b)
