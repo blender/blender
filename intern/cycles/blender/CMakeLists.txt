@@ -103,12 +103,8 @@ if(WITH_TBB)
 endif()
 
 if(WITH_OPENVDB)
-  add_definitions(-DWITH_OPENVDB ${OPENVDB_DEFINITIONS})
   list(APPEND INC
     ../../openvdb
-  )
-  list(APPEND INC_SYS
-    ${OPENVDB_INCLUDE_DIRS}
   )
   list(APPEND LIB
     ${OPENVDB_LIBRARIES}
