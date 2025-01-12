@@ -143,14 +143,63 @@ void USDCurvesReader::read_object_data(Main *bmain, double motionSampleTime)
   Curves *cu = (Curves *)object_->data;
   read_curve_sample(cu, motionSampleTime);
 
-  if (curve_prim_.GetPointsAttr().ValueMightBeTimeVarying()) {
+  if (is_animated()) {
     add_cache_modifier();
   }
 
   USDXformReader::read_object_data(bmain, motionSampleTime);
 }
 
-void USDCurvesReader::read_curve_sample(Curves *curves_id, const double motionSampleTime)
+void USDCurvesReader::read_custom_data(bke::CurvesGeometry &curves,
+                                       const double motionSampleTime) const
+{
+  pxr::UsdGeomPrimvarsAPI pv_api(prim_);
+
+  std::vector<pxr::UsdGeomPrimvar> primvars = pv_api.GetPrimvarsWithValues();
+  for (const pxr::UsdGeomPrimvar &pv : primvars) {
+    const pxr::SdfValueTypeName pv_type = pv.GetTypeName();
+    if (!pv_type.IsArray()) {
+      continue; /* Skip non-array primvar attributes. */
+    }
+
+    const pxr::TfToken pv_interp = pv.GetInterpolation();
+    const std::optional<bke::AttrDomain> domain = convert_usd_interp_to_blender(pv_interp);
+    const std::optional<eCustomDataType> type = convert_usd_type_to_blender(pv_type);
+
+    if (!domain.has_value() || !type.has_value()) {
+      const pxr::TfToken pv_name = pxr::UsdGeomPrimvar::StripPrimvarsName(pv.GetPrimvarName());
+      BKE_reportf(reports(),
+                  RPT_WARNING,
+                  "Primvar '%s' (interpolation %s, type %s) cannot be converted to Blender",
+                  pv_name.GetText(),
+                  pv_interp.GetText(),
+                  pv_type.GetAsToken().GetText());
+      continue;
+    }
+
+    bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
+    copy_primvar_to_blender_attribute(pv, motionSampleTime, *type, *domain, {}, attributes);
+  }
+}
+
+void USDCurvesReader::read_geometry(bke::GeometrySet &geometry_set,
+                                    const USDMeshReadParams params,
+                                    const char ** /*r_err_str*/)
+{
+  if (!geometry_set.has_curves()) {
+    return;
+  }
+
+  Curves *curves = geometry_set.get_curves_for_write();
+  read_curve_sample(curves, params.motion_sample_time);
+}
+
+bool USDBasisCurvesReader::is_animated() const
+{
+  return curve_prim_.GetPointsAttr().ValueMightBeTimeVarying();
+}
+
+void USDBasisCurvesReader::read_curve_sample(Curves *curves_id, const double motionSampleTime)
 {
   pxr::UsdAttribute widthsAttr = curve_prim_.GetWidthsAttr();
   pxr::UsdAttribute vertexAttr = curve_prim_.GetCurveVertexCountsAttr();
@@ -280,50 +329,6 @@ void USDCurvesReader::read_curve_sample(Curves *curves_id, const double motionSa
   }
 
   read_custom_data(curves, motionSampleTime);
-}
-
-void USDCurvesReader::read_custom_data(bke::CurvesGeometry &curves,
-                                       const double motionSampleTime) const
-{
-  pxr::UsdGeomPrimvarsAPI pv_api(curve_prim_);
-
-  std::vector<pxr::UsdGeomPrimvar> primvars = pv_api.GetPrimvarsWithValues();
-  for (const pxr::UsdGeomPrimvar &pv : primvars) {
-    const pxr::SdfValueTypeName pv_type = pv.GetTypeName();
-    if (!pv_type.IsArray()) {
-      continue; /* Skip non-array primvar attributes. */
-    }
-
-    const pxr::TfToken pv_interp = pv.GetInterpolation();
-    const std::optional<bke::AttrDomain> domain = convert_usd_interp_to_blender(pv_interp);
-    const std::optional<eCustomDataType> type = convert_usd_type_to_blender(pv_type);
-
-    if (!domain.has_value() || !type.has_value()) {
-      const pxr::TfToken pv_name = pxr::UsdGeomPrimvar::StripPrimvarsName(pv.GetPrimvarName());
-      BKE_reportf(reports(),
-                  RPT_WARNING,
-                  "Primvar '%s' (interpolation %s, type %s) cannot be converted to Blender",
-                  pv_name.GetText(),
-                  pv_interp.GetText(),
-                  pv_type.GetAsToken().GetText());
-      continue;
-    }
-
-    bke::MutableAttributeAccessor attributes = curves.attributes_for_write();
-    copy_primvar_to_blender_attribute(pv, motionSampleTime, *type, *domain, {}, attributes);
-  }
-}
-
-void USDCurvesReader::read_geometry(bke::GeometrySet &geometry_set,
-                                    const USDMeshReadParams params,
-                                    const char ** /*r_err_str*/)
-{
-  if (!geometry_set.has_curves()) {
-    return;
-  }
-
-  Curves *curves = geometry_set.get_curves_for_write();
-  read_curve_sample(curves, params.motion_sample_time);
 }
 
 }  // namespace blender::io::usd

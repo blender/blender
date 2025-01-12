@@ -224,7 +224,7 @@ USDPrimReader *USDStageReader::create_reader_if_allowed(const pxr::UsdPrim &prim
     return new USDCameraReader(prim, params_, settings_);
   }
   if (params_.import_curves && prim.IsA<pxr::UsdGeomBasisCurves>()) {
-    return new USDCurvesReader(prim, params_, settings_);
+    return new USDBasisCurvesReader(prim, params_, settings_);
   }
   if (params_.import_curves && prim.IsA<pxr::UsdGeomNurbsCurves>()) {
     return new USDNurbsReader(prim, params_, settings_);
@@ -269,7 +269,7 @@ USDPrimReader *USDStageReader::create_reader(const pxr::UsdPrim &prim)
     return new USDCameraReader(prim, params_, settings_);
   }
   if (prim.IsA<pxr::UsdGeomBasisCurves>()) {
-    return new USDCurvesReader(prim, params_, settings_);
+    return new USDBasisCurvesReader(prim, params_, settings_);
   }
   if (prim.IsA<pxr::UsdGeomNurbsCurves>()) {
     return new USDNurbsReader(prim, params_, settings_);
