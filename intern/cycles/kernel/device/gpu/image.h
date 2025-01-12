@@ -87,49 +87,6 @@ ccl_device_noinline T kernel_tex_image_interp_bicubic(const ccl_global TextureIn
                          g1x * ccl_gpu_tex_object_read_2D<T>(tex, x1, y1));
 }
 
-/* Fast tricubic texture lookup using 8 trilinear lookups. */
-template<typename T>
-ccl_device_noinline T
-kernel_tex_image_interp_tricubic(const ccl_global TextureInfo &info, float x, float y, float z)
-{
-  ccl_gpu_tex_object_3D tex = (ccl_gpu_tex_object_3D)info.data;
-
-  x = (x * info.width) - 0.5f;
-  y = (y * info.height) - 0.5f;
-  z = (z * info.depth) - 0.5f;
-
-  float px = floorf(x);
-  float py = floorf(y);
-  float pz = floorf(z);
-  float fx = x - px;
-  float fy = y - py;
-  float fz = z - pz;
-
-  float g0x = cubic_g0(fx);
-  float g1x = cubic_g1(fx);
-  float g0y = cubic_g0(fy);
-  float g1y = cubic_g1(fy);
-  float g0z = cubic_g0(fz);
-  float g1z = cubic_g1(fz);
-
-  /* Note +0.5 offset to compensate for CUDA linear filtering convention. */
-  float x0 = (px + cubic_h0(fx) + 0.5f) / info.width;
-  float x1 = (px + cubic_h1(fx) + 0.5f) / info.width;
-  float y0 = (py + cubic_h0(fy) + 0.5f) / info.height;
-  float y1 = (py + cubic_h1(fy) + 0.5f) / info.height;
-  float z0 = (pz + cubic_h0(fz) + 0.5f) / info.depth;
-  float z1 = (pz + cubic_h1(fz) + 0.5f) / info.depth;
-
-  return g0z * (g0y * (g0x * ccl_gpu_tex_object_read_3D<T>(tex, x0, y0, z0) +
-                       g1x * ccl_gpu_tex_object_read_3D<T>(tex, x1, y0, z0)) +
-                g1y * (g0x * ccl_gpu_tex_object_read_3D<T>(tex, x0, y1, z0) +
-                       g1x * ccl_gpu_tex_object_read_3D<T>(tex, x1, y1, z0))) +
-         g1z * (g0y * (g0x * ccl_gpu_tex_object_read_3D<T>(tex, x0, y0, z1) +
-                       g1x * ccl_gpu_tex_object_read_3D<T>(tex, x1, y0, z1)) +
-                g1y * (g0x * ccl_gpu_tex_object_read_3D<T>(tex, x0, y1, z1) +
-                       g1x * ccl_gpu_tex_object_read_3D<T>(tex, x1, y1, z1)));
-}
-
 #ifdef WITH_NANOVDB
 template<typename OutT, typename Acc>
 ccl_device OutT kernel_tex_image_interp_trilinear_nanovdb(ccl_private Acc &acc,
@@ -333,30 +290,9 @@ ccl_device float4 kernel_tex_image_interp_3d(KernelGlobals kg,
     return make_float4(f, f, f, 1.0f);
   }
 #endif
-  if (texture_type == IMAGE_DATA_TYPE_FLOAT4 || texture_type == IMAGE_DATA_TYPE_BYTE4 ||
-      texture_type == IMAGE_DATA_TYPE_HALF4 || texture_type == IMAGE_DATA_TYPE_USHORT4)
-  {
-    if (interpolation == INTERPOLATION_CUBIC || interpolation == INTERPOLATION_SMART) {
-      return kernel_tex_image_interp_tricubic<float4>(info, x, y, z);
-    }
-    else {
-      ccl_gpu_tex_object_3D tex = (ccl_gpu_tex_object_3D)info.data;
-      return ccl_gpu_tex_object_read_3D<float4>(tex, x, y, z);
-    }
-  }
-  else {
-    float f;
 
-    if (interpolation == INTERPOLATION_CUBIC || interpolation == INTERPOLATION_SMART) {
-      f = kernel_tex_image_interp_tricubic<float>(info, x, y, z);
-    }
-    else {
-      ccl_gpu_tex_object_3D tex = (ccl_gpu_tex_object_3D)info.data;
-      f = ccl_gpu_tex_object_read_3D<float>(tex, x, y, z);
-    }
-
-    return make_float4(f, f, f, 1.0f);
-  }
+  return make_float4(
+      TEX_IMAGE_MISSING_R, TEX_IMAGE_MISSING_G, TEX_IMAGE_MISSING_B, TEX_IMAGE_MISSING_A);
 }
 
 CCL_NAMESPACE_END

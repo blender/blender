@@ -16,7 +16,6 @@ device_memory::device_memory(Device *device, const char *_name, MemoryType type)
       device_size(0),
       data_width(0),
       data_height(0),
-      data_depth(0),
       type(type),
       name_storage(_name),
       device(device),
@@ -70,7 +69,6 @@ void device_memory::host_and_device_free()
   data_size = 0;
   data_width = 0;
   data_height = 0;
-  data_depth = 0;
 }
 
 void device_memory::device_alloc()
@@ -218,9 +216,9 @@ device_texture::~device_texture()
 }
 
 /* Host memory allocation. */
-void *device_texture::alloc(const size_t width, const size_t height, const size_t depth)
+void *device_texture::alloc(const size_t width, const size_t height)
 {
-  const size_t new_size = size(width, height, depth);
+  const size_t new_size = size(width, height);
 
   if (new_size != data_size) {
     host_and_device_free();
@@ -231,11 +229,9 @@ void *device_texture::alloc(const size_t width, const size_t height, const size_
   data_size = new_size;
   data_width = width;
   data_height = height;
-  data_depth = depth;
 
   info.width = width;
   info.height = height;
-  info.depth = depth;
 
   return host_pointer;
 }

@@ -719,23 +719,6 @@ static hip_Memcpy2D tex_2d_copy_param(const device_texture &mem, const int pitch
   return param;
 }
 
-static HIP_MEMCPY3D tex_3d_copy_param(const device_texture &mem)
-{
-  const size_t src_pitch = tex_src_pitch(mem);
-
-  HIP_MEMCPY3D param;
-  memset(&param, 0, sizeof(HIP_MEMCPY3D));
-  param.dstMemoryType = hipMemoryTypeArray;
-  param.dstArray = (hArray)mem.device_pointer;
-  param.srcMemoryType = hipMemoryTypeHost;
-  param.srcHost = mem.host_pointer;
-  param.srcPitch = src_pitch;
-  param.WidthInBytes = param.srcPitch;
-  param.Height = mem.data_height;
-  param.Depth = mem.data_depth;
-  return param;
-}
-
 void HIPDevice::tex_alloc(device_texture &mem)
 {
   HIPContextScope scope(this);
@@ -794,50 +777,11 @@ void HIPDevice::tex_alloc(device_texture &mem)
   }
 
   Mem *cmem = nullptr;
-  hArray array_3d = nullptr;
 
   if (!mem.is_resident(this)) {
     thread_scoped_lock lock(device_mem_map_mutex);
     cmem = &device_mem_map[&mem];
     cmem->texobject = 0;
-
-    if (mem.data_depth > 1) {
-      array_3d = (hArray)mem.device_pointer;
-      cmem->array = reinterpret_cast<arrayMemObject>(array_3d);
-    }
-  }
-  else if (mem.data_depth > 1) {
-    /* 3D texture using array, there is no API for linear memory. */
-    HIP_ARRAY3D_DESCRIPTOR desc;
-
-    desc.Width = mem.data_width;
-    desc.Height = mem.data_height;
-    desc.Depth = mem.data_depth;
-    desc.Format = format;
-    desc.NumChannels = mem.data_elements;
-    desc.Flags = 0;
-
-    LOG(WORK) << "Array 3D allocate: " << mem.name << ", "
-              << string_human_readable_number(mem.memory_size()) << " bytes. ("
-              << string_human_readable_size(mem.memory_size()) << ")";
-
-    hip_assert(hipArray3DCreate((hArray *)&array_3d, &desc));
-
-    if (!array_3d) {
-      return;
-    }
-
-    mem.device_pointer = (device_ptr)array_3d;
-    mem.device_size = mem.memory_size();
-    stats.mem_alloc(mem.memory_size());
-
-    const HIP_MEMCPY3D param = tex_3d_copy_param(mem);
-    hip_assert(hipDrvMemcpy3D(&param));
-
-    thread_scoped_lock lock(device_mem_map_mutex);
-    cmem = &device_mem_map[&mem];
-    cmem->texobject = 0;
-    cmem->array = reinterpret_cast<arrayMemObject>(array_3d);
   }
   else if (mem.data_height > 0) {
     /* 2D texture, using pitch aligned linear memory. */
@@ -870,12 +814,7 @@ void HIPDevice::tex_alloc(device_texture &mem)
     hipResourceDesc resDesc;
     memset(&resDesc, 0, sizeof(resDesc));
 
-    if (array_3d) {
-      resDesc.resType = hipResourceTypeArray;
-      resDesc.res.array.h_Array = array_3d;
-      resDesc.flags = 0;
-    }
-    else if (mem.data_height > 0) {
+    if (mem.data_height > 0) {
       const size_t dst_pitch = align_up(tex_src_pitch(mem), pitch_alignment);
 
       resDesc.resType = hipResourceTypePitch2D;
@@ -949,12 +888,7 @@ void HIPDevice::tex_copy_to(device_texture &mem)
   }
   else {
     /* Resident and fully allocated, only copy. */
-    if (mem.data_depth > 0) {
-      HIPContextScope scope(this);
-      const HIP_MEMCPY3D param = tex_3d_copy_param(mem);
-      hip_assert(hipDrvMemcpy3D(&param));
-    }
-    else if (mem.data_height > 0) {
+    if (mem.data_height > 0) {
       HIPContextScope scope(this);
       const hip_Memcpy2D param = tex_2d_copy_param(mem, pitch_alignment);
       hip_assert(hipDrvMemcpy2DUnaligned(&param));

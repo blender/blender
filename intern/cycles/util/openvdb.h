@@ -5,7 +5,6 @@
 #pragma once
 
 #ifdef WITH_OPENVDB
-#  include <memory>
 #  include <openvdb/openvdb.h>
 
 namespace openvdb {

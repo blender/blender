@@ -30,7 +30,6 @@ bool SkyLoader::load_metadata(const ImageDeviceFeatures & /*features*/, ImageMet
   metadata.width = 512;
   metadata.height = 128;
   metadata.channels = 3;
-  metadata.depth = 1;
   metadata.type = IMAGE_DATA_TYPE_FLOAT4;
   metadata.compress_as_srgb = false;
   return true;

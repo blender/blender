@@ -55,7 +55,7 @@ class ImageMetaData {
  public:
   /* Set by ImageLoader.load_metadata(). */
   int channels;
-  size_t width, height, depth;
+  size_t width, height;
   size_t byte_size;
   ImageDataType type;
 

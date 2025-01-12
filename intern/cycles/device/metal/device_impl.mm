@@ -530,7 +530,7 @@ void MetalDevice::compile_and_load(const int device_id, MetalPipelineType pso_ty
 
 bool MetalDevice::is_texture(const TextureInfo &tex)
 {
-  return (tex.depth > 0 || tex.height > 0);
+  return tex.height > 0;
 }
 
 void MetalDevice::load_texture_info() {}
@@ -1022,43 +1022,7 @@ void MetalDevice::tex_alloc(device_texture &mem)
     id<MTLTexture> mtlTexture = nil;
     size_t src_pitch = mem.data_width * datatype_size(mem.data_type) * mem.data_elements;
 
-    if (mem.data_depth > 1) {
-      /* 3D texture using array */
-      MTLTextureDescriptor *desc;
-
-      desc = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:format
-                                                                width:mem.data_width
-                                                               height:mem.data_height
-                                                            mipmapped:NO];
-
-      desc.storageMode = MTLStorageModeShared;
-      desc.usage = MTLTextureUsageShaderRead;
-
-      desc.textureType = MTLTextureType3D;
-      desc.depth = mem.data_depth;
-
-      LOG(WORK) << "Texture 3D allocate: " << mem.name << ", "
-                << string_human_readable_number(mem.memory_size()) << " bytes. ("
-                << string_human_readable_size(mem.memory_size()) << ")";
-
-      mtlTexture = [mtlDevice newTextureWithDescriptor:desc];
-      if (!mtlTexture) {
-        set_error("System is out of GPU memory");
-        return;
-      }
-
-      const size_t imageBytes = src_pitch * mem.data_height;
-      for (size_t d = 0; d < mem.data_depth; d++) {
-        const size_t offset = d * imageBytes;
-        [mtlTexture replaceRegion:MTLRegionMake3D(0, 0, d, mem.data_width, mem.data_height, 1)
-                      mipmapLevel:0
-                            slice:0
-                        withBytes:(uint8_t *)mem.host_pointer + offset
-                      bytesPerRow:src_pitch
-                    bytesPerImage:0];
-      }
-    }
-    else if (mem.data_height > 0) {
+    if (mem.data_height > 0) {
       /* 2D texture */
       MTLTextureDescriptor *desc;
 
@@ -1145,24 +1109,7 @@ void MetalDevice::tex_copy_to(device_texture &mem)
   if (mem.is_resident(this)) {
     const size_t src_pitch = mem.data_width * datatype_size(mem.data_type) * mem.data_elements;
 
-    if (mem.data_depth > 0) {
-      id<MTLTexture> mtlTexture;
-      {
-        std::lock_guard<std::recursive_mutex> lock(metal_mem_map_mutex);
-        mtlTexture = metal_mem_map.at(&mem)->mtlTexture;
-      }
-      const size_t imageBytes = src_pitch * mem.data_height;
-      for (size_t d = 0; d < mem.data_depth; d++) {
-        const size_t offset = d * imageBytes;
-        [mtlTexture replaceRegion:MTLRegionMake3D(0, 0, d, mem.data_width, mem.data_height, 1)
-                      mipmapLevel:0
-                            slice:0
-                        withBytes:(uint8_t *)mem.host_pointer + offset
-                      bytesPerRow:src_pitch
-                    bytesPerImage:0];
-      }
-    }
-    else if (mem.data_height > 0) {
+    if (mem.data_height > 0) {
       id<MTLTexture> mtlTexture;
       {
         std::lock_guard<std::recursive_mutex> lock(metal_mem_map_mutex);
@@ -1182,7 +1129,7 @@ void MetalDevice::tex_copy_to(device_texture &mem)
 void MetalDevice::tex_free(device_texture &mem)
 {
   int slot = mem.slot;
-  if (mem.data_depth == 0 && mem.data_height == 0) {
+  if (mem.data_height == 0) {
     generic_free(mem);
   }
   else if (metal_mem_map.count(&mem)) {
