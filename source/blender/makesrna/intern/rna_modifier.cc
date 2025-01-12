@@ -6897,10 +6897,9 @@ static void rna_def_modifier_meshcache(BlenderRNA *brna)
   RNA_def_property_ui_text(prop, "Up", "");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
-  prop = RNA_def_property(srna, "flip_axis", PROP_ENUM, PROP_NONE);
-  RNA_def_property_enum_sdna(prop, nullptr, "flip_axis");
-  RNA_def_property_enum_items(prop, rna_enum_axis_flag_xyz_items);
-  RNA_def_property_flag(prop, PROP_ENUM_FLAG);
+  prop = RNA_def_property(srna, "flip_axis", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_boolean_sdna(prop, nullptr, "flip_axis", MOD_MESHCACHE_FLIP_AXIS_X);
+  RNA_def_property_array(prop, 3);
   RNA_def_property_ui_text(prop, "Flip Axis", "");
   RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
