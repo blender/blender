@@ -47,7 +47,7 @@ const EnumPropertyItem rna_enum_curves_handle_type_items[] = {
      "ALIGN",
      0,
      "Align",
-     "The location is constrained to point in the opposite direction as the other handleW"},
+     "The location is constrained to point in the opposite direction as the other handle"},
     {0, nullptr, 0, nullptr, nullptr},
 };
 
