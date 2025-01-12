@@ -1398,7 +1398,6 @@ bool BKE_palette_is_empty(const Palette *palette)
   return BLI_listbase_is_empty(&palette->colors);
 }
 
-/* helper function to sort using qsort */
 static int palettecolor_compare_hsv(const void *a1, const void *a2)
 {
   const tPaletteColorHSV *ps1 = static_cast<const tPaletteColorHSV *>(a1);
@@ -1431,7 +1430,11 @@ static int palettecolor_compare_hsv(const void *a1, const void *a2)
   return 0;
 }
 
-/* helper function to sort using qsort */
+void BKE_palette_sort_hsv(tPaletteColorHSV *color_array, const int totcol)
+{
+  qsort(color_array, totcol, sizeof(tPaletteColorHSV), palettecolor_compare_hsv);
+}
+
 static int palettecolor_compare_svh(const void *a1, const void *a2)
 {
   const tPaletteColorHSV *ps1 = static_cast<const tPaletteColorHSV *>(a1);
@@ -1462,6 +1465,11 @@ static int palettecolor_compare_svh(const void *a1, const void *a2)
   }
 
   return 0;
+}
+
+void BKE_palette_sort_svh(tPaletteColorHSV *color_array, const int totcol)
+{
+  qsort(color_array, totcol, sizeof(tPaletteColorHSV), palettecolor_compare_svh);
 }
 
 static int palettecolor_compare_vhs(const void *a1, const void *a2)
@@ -1496,6 +1504,11 @@ static int palettecolor_compare_vhs(const void *a1, const void *a2)
   return 0;
 }
 
+void BKE_palette_sort_vhs(tPaletteColorHSV *color_array, const int totcol)
+{
+  qsort(color_array, totcol, sizeof(tPaletteColorHSV), palettecolor_compare_vhs);
+}
+
 static int palettecolor_compare_luminance(const void *a1, const void *a2)
 {
   const tPaletteColorHSV *ps1 = static_cast<const tPaletteColorHSV *>(a1);
@@ -1512,24 +1525,6 @@ static int palettecolor_compare_luminance(const void *a1, const void *a2)
   }
 
   return 0;
-}
-
-void BKE_palette_sort_hsv(tPaletteColorHSV *color_array, const int totcol)
-{
-  /* Sort by Hue, Saturation and Value. */
-  qsort(color_array, totcol, sizeof(tPaletteColorHSV), palettecolor_compare_hsv);
-}
-
-void BKE_palette_sort_svh(tPaletteColorHSV *color_array, const int totcol)
-{
-  /* Sort by Saturation, Value and Hue. */
-  qsort(color_array, totcol, sizeof(tPaletteColorHSV), palettecolor_compare_svh);
-}
-
-void BKE_palette_sort_vhs(tPaletteColorHSV *color_array, const int totcol)
-{
-  /* Sort by Saturation, Value and Hue. */
-  qsort(color_array, totcol, sizeof(tPaletteColorHSV), palettecolor_compare_vhs);
 }
 
 void BKE_palette_sort_luminance(tPaletteColorHSV *color_array, const int totcol)
