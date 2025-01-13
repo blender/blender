@@ -290,7 +290,7 @@ class Meshes : Overlay {
     /* WORKAROUND: GPU subdiv uses a different normal format. Remove this once GPU subdiv is
      * refactored. */
     const bool use_gpu_subdiv = BKE_subsurf_modifier_has_gpu_subdiv(static_cast<Mesh *>(ob->data));
-    const bool draw_as_solid = (ob->dt > OB_WIRE);
+    const bool draw_as_solid = (ob->dt > OB_WIRE) && !state.xray_enabled;
 
     if (show_retopology_) {
       gpu::Batch *geom = DRW_mesh_batch_cache_get_edit_triangles(mesh);

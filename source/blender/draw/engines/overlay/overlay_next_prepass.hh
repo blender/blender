@@ -72,7 +72,7 @@ class Prepass : Overlay {
  public:
   void begin_sync(Resources &res, const State &state) final
   {
-    enabled_ = state.is_space_v3d();
+    enabled_ = state.is_space_v3d() && !state.xray_enabled;
 
     if (!enabled_) {
       /* Not used. But release the data. */
