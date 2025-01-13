@@ -1181,6 +1181,11 @@ void PathTraceWorkGPU::cryptomatte_postproces()
 
 bool PathTraceWorkGPU::copy_render_buffers_from_device()
 {
+  /* May not exist if cancelled before rendering started. */
+  if (!buffers_->buffer.device_pointer) {
+    return false;
+  }
+
   queue_->copy_from_device(buffers_->buffer);
 
   /* Synchronize so that the CPU-side buffer is available at the exit of this function. */
