@@ -496,6 +496,19 @@ TEST(keyframes_paste, pastebuf_match_path_property)
         to_simple,
         flip))
         << "nonexistent bone, but same property name";
+
+    /* This just tests the current functionality. This may not necessarily be
+     * correct / desired behavior. */
+    FCurvePtr fcurve_with_long_rna_path = fake_fcurve(
+        "pose.bones[\"hand.L\"].weirdly_long_location", 0);
+    EXPECT_TRUE(pastebuf_match_path_property(
+        bmain,
+        fcurve.get(),
+        fake_aci_owned("pose.bones[\"hand.L\"].location", 0, true, arm_ob_id).get(),
+        from_single,
+        to_simple,
+        flip))
+        << "property name suffix-match";
   }
 
   { /* From Multiple Channels, so array indices matter. */
@@ -558,6 +571,19 @@ TEST(keyframes_paste, pastebuf_match_path_property)
         to_simple,
         flip))
         << "nonexistent bone, but same property name";
+
+    /* This just tests the current functionality. This may not necessarily be
+     * correct / desired behavior. */
+    FCurvePtr fcurve_with_long_rna_path = fake_fcurve(
+        "pose.bones[\"hand.L\"].weirdly_long_location", 0);
+    EXPECT_TRUE(pastebuf_match_path_property(
+        bmain,
+        fcurve.get(),
+        fake_aci_owned("pose.bones[\"hand.L\"].location", 0, true, arm_ob_id).get(),
+        from_single,
+        to_simple,
+        flip))
+        << "property name suffix-match";
   }
 
   { /* Resilience against deleted IDs. */

@@ -1454,8 +1454,8 @@ bool pastebuf_match_path_full(Main * /*bmain*/,
   }
 
   /* The 'source' of the copy data is considered 'ok' if either we're copying a single F-Curve, or
-   * the array index matches (so 'loc' X/Y/Z can be copied to a single 'scale' property, and it'll
-   * pick up the right X/Y/Z component). */
+   * the array index matches (so [location X,Y,Z] can be copied to a single 'scale' property, and
+   * it'll pick up the right X/Y/Z component). */
   const bool is_source_ok = from_single || aci->array_index == fcu->array_index;
   if (!is_source_ok) {
     return false;
@@ -1477,46 +1477,45 @@ bool pastebuf_match_path_property(Main *bmain,
                                   const bool /*to_simple*/,
                                   const bool /*flip*/)
 {
-  /* check that paths exist */
-  if (aci->rna_path && fcu->rna_path) {
-    /* find the property of the fcurve and compare against the end of the tAnimCopybufItem
-     * more involved since it needs to do path lookups.
-     * This is not 100% reliable since the user could be editing the curves on a path that won't
-     * resolve, or a bone could be renamed after copying for eg. but in normal copy & paste
-     * this should work out ok.
-     */
-    if (BLI_findindex(which_libbase(bmain, aci->id_type), aci->id) == -1) {
-      /* pedantic but the ID could have been removed, and beats crashing! */
-      printf("paste_animedit_keys: error ID has been removed!\n");
-    }
-    else {
-      PointerRNA rptr;
-      PropertyRNA *prop;
-
-      PointerRNA id_ptr = RNA_id_pointer_create(aci->id);
-
-      if (RNA_path_resolve_property(&id_ptr, aci->rna_path, &rptr, &prop)) {
-        const char *identifier = RNA_property_identifier(prop);
-        int len_id = strlen(identifier);
-        int len_path = strlen(fcu->rna_path);
-        if (len_id <= len_path) {
-          /* NOTE: paths which end with "] will fail with this test - Animated ID Props. */
-          if (STREQ(identifier, fcu->rna_path + (len_path - len_id))) {
-            if ((from_single) || (aci->array_index == fcu->array_index)) {
-              return true;
-            }
-          }
-        }
-      }
-      else {
-        printf("paste_animedit_keys: failed to resolve path id:%s, '%s'!\n",
-               aci->id->name,
-               aci->rna_path);
-      }
-    }
+  if (!aci->rna_path || !fcu->rna_path) {
+    return false;
   }
 
-  return false;
+  /* The 'source' of the copy data is considered 'ok' if either we're copying a single F-Curve, or
+   * the array index matches (so [location X,Y,Z] can be copied to a single 'scale' property, and
+   * it'll pick up the right X/Y/Z component). */
+  const bool is_source_ok = from_single || aci->array_index == fcu->array_index;
+  if (!is_source_ok) {
+    return false;
+  }
+
+  /* find the property of the fcurve and compare against the end of the tAnimCopybufItem
+   * more involved since it needs to do path lookups.
+   * This is not 100% reliable since the user could be editing the curves on a path that won't
+   * resolve, or a bone could be renamed after copying for eg. but in normal copy & paste
+   * this should work out ok.
+   */
+  if (BLI_findindex(which_libbase(bmain, aci->id_type), aci->id) == -1) {
+    /* The ID could have been removed after copying the keys. This function
+     * needs it to resolve the property & get the name. */
+    printf("paste_animedit_keys: error ID has been removed!\n");
+    return false;
+  }
+
+  PointerRNA rptr;
+  PropertyRNA *prop;
+  PointerRNA id_ptr = RNA_id_pointer_create(aci->id);
+
+  if (!RNA_path_resolve_property(&id_ptr, aci->rna_path, &rptr, &prop)) {
+    printf("paste_animedit_keys: failed to resolve path id:%s, '%s'!\n",
+           aci->id->name,
+           aci->rna_path);
+    return false;
+  }
+
+  const char *identifier = RNA_property_identifier(prop);
+  /* NOTE: paths which end with "] will fail with this test - Animated ID Props. */
+  return blender::StringRef(fcu->rna_path).endswith(identifier);
 }
 
 bool pastebuf_match_index_only(Main * /*bmain*/,
