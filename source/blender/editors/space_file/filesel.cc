@@ -1471,7 +1471,7 @@ void ED_fileselect_ensure_default_filepath(bContext *C, wmOperator *op, const ch
     const char *blendfile_path = BKE_main_blendfile_path(bmain);
 
     if (blendfile_path[0] == '\0') {
-      STRNCPY(filepath, DATA_("untitled"));
+      STRNCPY(filepath, DATA_("Untitled"));
     }
     else {
       STRNCPY(filepath, blendfile_path);
