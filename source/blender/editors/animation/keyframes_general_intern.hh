@@ -35,6 +35,14 @@ struct tAnimCopybufItem {
 void tAnimCopybufItem_free(tAnimCopybufItem *aci);
 
 /**
+ * Flip bone names in the RNA path, returning the flipped path.
+ *
+ * Returns empty optional if the aci is not a bone (is_bone=false or RNA path
+ * has an unexpected prefix).
+ */
+std::optional<std::string> flip_names(const tAnimCopybufItem *aci);
+
+/**
  * Most strict paste buffer matching method: exact matches only.
  */
 bool pastebuf_match_path_full(Main *bmain,

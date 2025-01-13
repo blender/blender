@@ -82,6 +82,21 @@ CopyBufItemPtr fake_aci_owned(const char *rna_path,
 
 }  // namespace
 
+TEST(keyframes_paste, flip_names)
+{
+  EXPECT_EQ(std::nullopt, flip_names(fake_aci("whatever", 1, false).get())) << "is_bone is false";
+  EXPECT_EQ(std::nullopt, flip_names(fake_aci("whatever", 1, true).get())) << "not a bone prefix";
+
+  EXPECT_EQ("pose.bones[\"head\"]", flip_names(fake_aci("pose.bones[\"head\"]", 1, true).get()))
+      << "unflippable name should remain unchanged";
+  EXPECT_EQ("pose.bones[\"Arm_L\"]", flip_names(fake_aci("pose.bones[\"Arm_R\"]", 1, true).get()))
+      << "flippable name should be flipped";
+
+  EXPECT_EQ("pose.bones[\"Arm_L\"].rotation_euler",
+            flip_names(fake_aci("pose.bones[\"Arm_R\"].rotation_euler", 1, true).get()))
+      << "flippable name should be flipped";
+}
+
 TEST(keyframes_paste, pastebuf_match_path_full)
 {
   { /* NULL RNA paths. */

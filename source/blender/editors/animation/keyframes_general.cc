@@ -1364,24 +1364,25 @@ short copy_animedit_keys(bAnimContext *ac, ListBase *anim_data)
   return 0;
 }
 
-static void flip_names(tAnimCopybufItem *aci, char **r_name)
+std::optional<std::string> flip_names(const tAnimCopybufItem *aci)
 {
   if (!aci->is_bone) {
-    return;
+    return {};
   }
   int ofs_start, ofs_end;
   if (!BLI_str_quoted_substr_range(aci->rna_path, "pose.bones[", &ofs_start, &ofs_end)) {
-    return;
+    return {};
   }
 
-  char *str_start = aci->rna_path + ofs_start;
+  /* Cast away the constness; we're going to modify data, but it'll be put back
+   * before the function ends. */
+  char *str_start = const_cast<tAnimCopybufItem *>(aci)->rna_path + ofs_start;
   const char *str_end = aci->rna_path + ofs_end;
 
   /* Swap out the name.
    * NOTE: there is no need to un-escape the string to flip it.
    * However the buffer does need to be twice the size. */
   char bname_new[MAX_VGROUP_NAME * 2];
-  char *str_iter;
   int len_old, prefix_l, postfix_l;
 
   prefix_l = str_start - aci->rna_path;
@@ -1395,8 +1396,9 @@ static void flip_names(tAnimCopybufItem *aci, char **r_name)
   const int len_new = BLI_string_flip_side_name(bname_new, str_start, false, sizeof(bname_new));
   str_start[len_old] = '\"';
 
-  str_iter = *r_name = static_cast<char *>(
+  char *rna_path_flipped_charptr = static_cast<char *>(
       MEM_mallocN(sizeof(char) * (prefix_l + postfix_l + len_new + 1), "flipped_path"));
+  char *str_iter = rna_path_flipped_charptr;
 
   memcpy(str_iter, aci->rna_path, prefix_l);
   str_iter += prefix_l;
@@ -1404,6 +1406,12 @@ static void flip_names(tAnimCopybufItem *aci, char **r_name)
   str_iter += len_new;
   memcpy(str_iter, str_end, postfix_l);
   str_iter[postfix_l] = '\0';
+
+  const std::string rna_path_flipped(rna_path_flipped_charptr);
+
+  MEM_freeN(rna_path_flipped_charptr);
+
+  return rna_path_flipped;
 }
 
 /* ------------------- */
@@ -1443,13 +1451,8 @@ bool pastebuf_match_path_full(Main * /*bmain*/,
   if (to_simple || (aci->rna_path && fcu->rna_path)) {
     if (!to_simple && flip && aci->is_bone && fcu->rna_path) {
       if ((from_single) || (aci->array_index == fcu->array_index)) {
-        char *name = nullptr;
-        flip_names(const_cast<tAnimCopybufItem *>(aci), &name);
-        if (STREQ(name, fcu->rna_path)) {
-          MEM_freeN(name);
-          return true;
-        }
-        MEM_freeN(name);
+        const std::optional<std::string> with_flipped_name = flip_names(aci);
+        return with_flipped_name && with_flipped_name == fcu->rna_path;
       }
     }
     else if (to_simple || STREQ(aci->rna_path, fcu->rna_path)) {
