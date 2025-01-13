@@ -1448,21 +1448,26 @@ bool pastebuf_match_path_full(Main * /*bmain*/,
                               const bool to_simple,
                               const bool flip)
 {
-  if (to_simple || (aci->rna_path && fcu->rna_path)) {
-    if (!to_simple && flip && aci->is_bone && fcu->rna_path) {
-      if ((from_single) || (aci->array_index == fcu->array_index)) {
-        const std::optional<std::string> with_flipped_name = flip_names(aci);
-        return with_flipped_name && with_flipped_name == fcu->rna_path;
-      }
-    }
-    else if (to_simple || STREQ(aci->rna_path, fcu->rna_path)) {
-      if ((from_single) || (aci->array_index == fcu->array_index)) {
-        return true;
-      }
-    }
+  if (!fcu->rna_path || !aci->rna_path) {
+    /* No paths to compare to, so only ok if pasting to a single F-Curve. */
+    return to_simple;
   }
 
-  return false;
+  /* The 'source' of the copy data is considered 'ok' if either we're copying a single F-Curve, or
+   * the array index matches (so 'loc' X/Y/Z can be copied to a single 'scale' property, and it'll
+   * pick up the right X/Y/Z component). */
+  const bool is_source_ok = from_single || aci->array_index == fcu->array_index;
+  if (!is_source_ok) {
+    return false;
+  }
+
+  if (!to_simple && flip && aci->is_bone) {
+    const std::optional<std::string> with_flipped_name = flip_names(
+        const_cast<tAnimCopybufItem *>(aci));
+    return with_flipped_name && with_flipped_name == fcu->rna_path;
+  }
+
+  return to_simple || STREQ(aci->rna_path, fcu->rna_path);
 }
 
 bool pastebuf_match_path_property(Main *bmain,
