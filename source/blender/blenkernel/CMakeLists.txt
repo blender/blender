@@ -10,6 +10,7 @@ set(INC
   ../nodes/geometry/include
   ../shader_fx
   ../simulation
+  ../windowmanager
   ../../../intern/eigen
   ../../../intern/ghost
   ../../../intern/iksolver/extern
@@ -180,6 +181,7 @@ set(SRC
   intern/linestyle.cc
   intern/main.cc
   intern/main_idmap.cc
+  intern/main_invariants.cc
   intern/main_namemap.cc
   intern/mask.cc
   intern/mask_evaluate.cc
@@ -432,6 +434,7 @@ set(SRC
   BKE_linestyle.h
   BKE_main.hh
   BKE_main_idmap.hh
+  BKE_main_invariants.hh
   BKE_main_namemap.hh
   BKE_mask.h
   BKE_material.hh

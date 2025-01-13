@@ -22,6 +22,7 @@
 #include "BKE_image.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
+#include "BKE_main_invariants.hh"
 #include "BKE_material.hh"
 #include "BKE_node.hh"
 #include "BKE_node_legacy_types.hh"
@@ -460,32 +461,6 @@ bool composite_node_editable(bContext *C)
   return false;
 }
 
-static void send_notifiers_after_tree_change(ID *id, bNodeTree *ntree)
-{
-  WM_main_add_notifier(NC_NODE | NA_EDITED, id);
-
-  if (ntree->type == NTREE_SHADER && id != nullptr) {
-    if (GS(id->name) == ID_MA) {
-      WM_main_add_notifier(NC_MATERIAL | ND_SHADING, id);
-    }
-    else if (GS(id->name) == ID_LA) {
-      WM_main_add_notifier(NC_LAMP | ND_LIGHTING, id);
-    }
-    else if (GS(id->name) == ID_WO) {
-      WM_main_add_notifier(NC_WORLD | ND_WORLD, id);
-    }
-  }
-  else if (ntree->type == NTREE_COMPOSIT) {
-    WM_main_add_notifier(NC_SCENE | ND_NODES, id);
-  }
-  else if (ntree->type == NTREE_TEXTURE) {
-    WM_main_add_notifier(NC_TEXTURE | ND_NODES, id);
-  }
-  else if (ntree->type == NTREE_GEOMETRY) {
-    WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, id);
-  }
-}
-
 /** \} */
 
 }  // namespace blender::ed::space_node
@@ -496,19 +471,11 @@ static void send_notifiers_after_tree_change(ID *id, bNodeTree *ntree)
 
 void ED_node_tree_propagate_change(Main &bmain, bNodeTree *root_ntree)
 {
-  NodeTreeUpdateExtraParams params;
-  params.tree_changed_fn = [](bNodeTree &ntree, ID &owner_id) {
-    blender::ed::space_node::send_notifiers_after_tree_change(&owner_id, &ntree);
-    DEG_id_tag_update(&ntree.id, ID_RECALC_SYNC_TO_EVAL);
-  };
-  params.tree_output_changed_fn = [](bNodeTree &ntree, ID & /*owner_id*/) {
-    DEG_id_tag_update(&ntree.id, ID_RECALC_NTREE_OUTPUT);
-  };
   if (root_ntree) {
-    BKE_ntree_update_after_single_tree_change(bmain, *root_ntree, params);
+    BKE_main_ensure_invariants(bmain, {{&root_ntree->id}});
   }
   else {
-    BKE_ntree_update(bmain, std::nullopt, params);
+    BKE_main_ensure_invariants(bmain);
   }
 }
 

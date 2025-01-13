@@ -78,6 +78,7 @@
 #include "BKE_lib_remap.hh"
 #include "BKE_main.hh" /* for Main */
 #include "BKE_main_idmap.hh"
+#include "BKE_main_invariants.hh"
 #include "BKE_main_namemap.hh"
 #include "BKE_material.hh"
 #include "BKE_mesh.hh"
@@ -3946,8 +3947,8 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
        * Proper fix involves first addressing #90610. */
       BKE_main_collections_parent_relations_rebuild(bfd->main);
 
-      /* Update node trees after re-generating overrides. */
-      BKE_ntree_update(*bfd->main);
+      /* Update invariants after re-generating overrides. */
+      BKE_main_ensure_invariants(*bfd->main);
 
       fd->reports->duration.lib_overrides = BLI_time_now_seconds() -
                                             fd->reports->duration.lib_overrides;
