@@ -8,20 +8,19 @@
 
 namespace blender::gpu::render_graph {
 
+class VKRenderGraphTestTransfer : public VKRenderGraphTest {};
+
 /**
  * Fill a single buffer and read it back.
  */
-TEST(vk_render_graph, fill_and_read_back)
+TEST_F(VKRenderGraphTestTransfer, fill_and_read_back)
 {
   VkHandle<VkBuffer> buffer(1u);
 
-  Vector<std::string> log;
-  VKResourceStateTracker resources;
-  VKRenderGraph render_graph(std::make_unique<CommandBufferLog>(log), resources);
   resources.add_buffer(buffer);
   VKFillBufferNode::CreateInfo fill_buffer = {buffer, 1024, 42};
-  render_graph.add_node(fill_buffer);
-  render_graph.submit_buffer_for_read(buffer);
+  render_graph->add_node(fill_buffer);
+  render_graph->submit_buffer_for_read(buffer);
 
   EXPECT_EQ(1, log.size());
   EXPECT_EQ("fill_buffer(dst_buffer=0x1, dst_offset=0, size=1024, data=42)", log[0]);
@@ -30,17 +29,14 @@ TEST(vk_render_graph, fill_and_read_back)
 /**
  * Fill a single buffer, copy it to a staging buffer and read the staging buffer back.
  */
-TEST(vk_render_graph, fill_transfer_and_read_back)
+TEST_F(VKRenderGraphTestTransfer, fill_transfer_and_read_back)
 {
   VkHandle<VkBuffer> buffer(1u);
   VkHandle<VkBuffer> staging_buffer(2u);
 
-  Vector<std::string> log;
-  VKResourceStateTracker resources;
-  VKRenderGraph render_graph(std::make_unique<CommandBufferLog>(log), resources);
   resources.add_buffer(buffer);
   VKFillBufferNode::CreateInfo fill_buffer = {buffer, 1024, 42};
-  render_graph.add_node(fill_buffer);
+  render_graph->add_node(fill_buffer);
   resources.add_buffer(staging_buffer);
 
   VKCopyBufferNode::CreateInfo copy_buffer = {};
@@ -49,9 +45,9 @@ TEST(vk_render_graph, fill_transfer_and_read_back)
   copy_buffer.region.srcOffset = 0;
   copy_buffer.region.dstOffset = 0;
   copy_buffer.region.size = 1024;
-  render_graph.add_node(copy_buffer);
+  render_graph->add_node(copy_buffer);
 
-  render_graph.submit_buffer_for_read(staging_buffer);
+  render_graph->submit_buffer_for_read(staging_buffer);
 
   EXPECT_EQ(3, log.size());
   EXPECT_EQ("fill_buffer(dst_buffer=0x1, dst_offset=0, size=1024, data=42)", log[0]);
@@ -74,19 +70,16 @@ TEST(vk_render_graph, fill_transfer_and_read_back)
  *
  * Between the two fills a write->write barrier should be created.
  */
-TEST(vk_render_graph, fill_fill_read_back)
+TEST_F(VKRenderGraphTestTransfer, fill_fill_read_back)
 {
   VkHandle<VkBuffer> buffer(1u);
 
-  Vector<std::string> log;
-  VKResourceStateTracker resources;
-  VKRenderGraph render_graph(std::make_unique<CommandBufferLog>(log), resources);
   resources.add_buffer(buffer);
   VKFillBufferNode::CreateInfo fill_buffer_1 = {buffer, 1024, 0};
-  render_graph.add_node(fill_buffer_1);
+  render_graph->add_node(fill_buffer_1);
   VKFillBufferNode::CreateInfo fill_buffer_2 = {buffer, 1024, 42};
-  render_graph.add_node(fill_buffer_2);
-  render_graph.submit_buffer_for_read(buffer);
+  render_graph->add_node(fill_buffer_2);
+  render_graph->submit_buffer_for_read(buffer);
 
   EXPECT_EQ(3, log.size());
   EXPECT_EQ("fill_buffer(dst_buffer=0x1, dst_offset=0, size=1024, data=0)", log[0]);
@@ -105,15 +98,12 @@ TEST(vk_render_graph, fill_fill_read_back)
 /**
  * Fill a single buffer, copy it to a staging buffer and read the staging buffer back.
  */
-TEST(vk_render_graph, clear_clear_copy_and_read_back)
+TEST_F(VKRenderGraphTestTransfer, clear_clear_copy_and_read_back)
 {
   VkHandle<VkImage> src_image(1u);
   VkHandle<VkImage> dst_image(2u);
   VkHandle<VkBuffer> staging_buffer(3u);
 
-  Vector<std::string> log;
-  VKResourceStateTracker resources;
-  VKRenderGraph render_graph(std::make_unique<CommandBufferLog>(log), resources);
   resources.add_image(src_image, 1, VK_IMAGE_LAYOUT_UNDEFINED, ResourceOwner::APPLICATION);
   resources.add_image(dst_image, 1, VK_IMAGE_LAYOUT_UNDEFINED, ResourceOwner::APPLICATION);
   resources.add_buffer(staging_buffer);
@@ -148,11 +138,11 @@ TEST(vk_render_graph, clear_clear_copy_and_read_back)
       VK_IMAGE_ASPECT_COLOR_BIT;
   copy_dst_image_to_buffer.vk_image_aspects = VK_IMAGE_ASPECT_COLOR_BIT;
 
-  render_graph.add_node(clear_color_image_src);
-  render_graph.add_node(clear_color_image_dst);
-  render_graph.add_node(copy_image);
-  render_graph.add_node(copy_dst_image_to_buffer);
-  render_graph.submit_buffer_for_read(staging_buffer);
+  render_graph->add_node(clear_color_image_src);
+  render_graph->add_node(clear_color_image_dst);
+  render_graph->add_node(copy_image);
+  render_graph->add_node(copy_dst_image_to_buffer);
+  render_graph->submit_buffer_for_read(staging_buffer);
 
   EXPECT_EQ(8, log.size());
   EXPECT_EQ(
@@ -249,15 +239,12 @@ TEST(vk_render_graph, clear_clear_copy_and_read_back)
 /**
  * Clear an image, blit it to another image, copy to a staging buffer and read back.
  */
-TEST(vk_render_graph, clear_blit_copy_and_read_back)
+TEST_F(VKRenderGraphTestTransfer, clear_blit_copy_and_read_back)
 {
   VkHandle<VkImage> src_image(1u);
   VkHandle<VkImage> dst_image(2u);
   VkHandle<VkBuffer> staging_buffer(3u);
 
-  Vector<std::string> log;
-  VKResourceStateTracker resources;
-  VKRenderGraph render_graph(std::make_unique<CommandBufferLog>(log), resources);
   resources.add_image(src_image, 1, VK_IMAGE_LAYOUT_UNDEFINED, ResourceOwner::APPLICATION);
   resources.add_image(dst_image, 1, VK_IMAGE_LAYOUT_UNDEFINED, ResourceOwner::APPLICATION);
   resources.add_buffer(staging_buffer);
@@ -277,11 +264,11 @@ TEST(vk_render_graph, clear_blit_copy_and_read_back)
       VK_IMAGE_ASPECT_COLOR_BIT;
   copy_dst_image_to_buffer.vk_image_aspects = VK_IMAGE_ASPECT_COLOR_BIT;
 
-  render_graph.add_node(clear_color_image_src);
+  render_graph->add_node(clear_color_image_src);
   VKBlitImageNode::CreateInfo blit_image = {src_image, dst_image, vk_image_blit, VK_FILTER_LINEAR};
-  render_graph.add_node(blit_image);
-  render_graph.add_node(copy_dst_image_to_buffer);
-  render_graph.submit_buffer_for_read(staging_buffer);
+  render_graph->add_node(blit_image);
+  render_graph->add_node(copy_dst_image_to_buffer);
+  render_graph->submit_buffer_for_read(staging_buffer);
 
   EXPECT_EQ(6, log.size());
   EXPECT_EQ(
@@ -353,4 +340,5 @@ TEST(vk_render_graph, clear_blit_copy_and_read_back)
           "    width=0, height=0, depth=0  )" + endl() + ")",
       log[5]);
 }
+
 }  // namespace blender::gpu::render_graph

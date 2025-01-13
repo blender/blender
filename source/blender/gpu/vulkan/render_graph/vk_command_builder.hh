@@ -122,9 +122,10 @@ class VKCommandBuilder {
   void build_pipeline_barriers(VKRenderGraph &render_graph,
                                VKCommandBufferInterface &command_buffer,
                                NodeHandle node_handle,
-                               VkPipelineStageFlags pipeline_stage);
+                               VkPipelineStageFlags pipeline_stage,
+                               bool within_rendering = false);
   void reset_barriers();
-  void send_pipeline_barriers(VKCommandBufferInterface &command_buffer);
+  void send_pipeline_barriers(VKCommandBufferInterface &command_buffer, bool within_rendering);
 
   void add_buffer_barriers(VKRenderGraph &render_graph,
                            NodeHandle node_handle,
@@ -141,7 +142,8 @@ class VKCommandBuilder {
 
   void add_image_barriers(VKRenderGraph &render_graph,
                           NodeHandle node_handle,
-                          VkPipelineStageFlags node_stages);
+                          VkPipelineStageFlags node_stages,
+                          bool within_rendering);
   void add_image_barrier(VkImage vk_image,
                          VkAccessFlags src_access_mask,
                          VkAccessFlags dst_access_mask,
@@ -152,10 +154,12 @@ class VKCommandBuilder {
                          uint32_t layer_count = VK_REMAINING_ARRAY_LAYERS);
   void add_image_read_barriers(VKRenderGraph &render_graph,
                                NodeHandle node_handle,
-                               VkPipelineStageFlags node_stages);
+                               VkPipelineStageFlags node_stages,
+                               bool within_rendering);
   void add_image_write_barriers(VKRenderGraph &render_graph,
                                 NodeHandle node_handle,
-                                VkPipelineStageFlags node_stages);
+                                VkPipelineStageFlags node_stages,
+                                bool within_rendering);
 
   /**
    * Ensure that the debug group associated with the given node_handle is activated.
@@ -218,6 +222,8 @@ class VKCommandBuilder {
    * state.
    */
   void layer_tracking_resume(VKCommandBufferInterface &command_buffer);
+
+  bool node_has_input_attachments(const VKRenderGraph &render_graph, NodeHandle node);
 };
 
 }  // namespace blender::gpu::render_graph

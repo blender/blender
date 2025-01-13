@@ -356,6 +356,7 @@ void VKBackend::detect_workarounds(VKDevice &device)
     workarounds.vertex_formats.r8g8b8 = true;
     workarounds.fragment_shader_barycentric = true;
     workarounds.dynamic_rendering = true;
+    workarounds.dynamic_rendering_local_read = true;
     workarounds.dynamic_rendering_unused_attachments = true;
 
     GCaps.render_pass_workaround = true;
@@ -372,6 +373,8 @@ void VKBackend::detect_workarounds(VKDevice &device)
       VK_KHR_FRAGMENT_SHADER_BARYCENTRIC_EXTENSION_NAME);
   workarounds.dynamic_rendering = !device.supports_extension(
       VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME);
+  workarounds.dynamic_rendering_local_read = !device.supports_extension(
+      VK_KHR_DYNAMIC_RENDERING_LOCAL_READ_EXTENSION_NAME);
   workarounds.dynamic_rendering_unused_attachments = !device.supports_extension(
       VK_EXT_DYNAMIC_RENDERING_UNUSED_ATTACHMENTS_EXTENSION_NAME);
   workarounds.logic_ops = !device.physical_device_features_get().logicOp;

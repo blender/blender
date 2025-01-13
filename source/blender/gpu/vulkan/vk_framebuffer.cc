@@ -331,30 +331,44 @@ static void set_load_store(VkRenderingAttachmentInfo &r_rendering_attachment,
 void VKFrameBuffer::subpass_transition_impl(const GPUAttachmentState depth_attachment_state,
                                             Span<GPUAttachmentState> color_attachment_states)
 {
-  /* TODO: this is a fallback implementation. We should also provide support for
-   * `VK_EXT_dynamic_rendering_local_read`. This extension is only supported on Windows
-   * platforms (2024Q2), but would reduce the rendering synchronization overhead. */
-  VKContext &context = *VKContext::get();
-  if (is_rendering_) {
-    rendering_end(context);
+  const VKDevice &device = VKBackend::get().device;
+  const bool supports_local_read = !device.workarounds_get().dynamic_rendering_local_read;
+  if (supports_local_read) {
+    VKContext &context = *VKContext::get();
 
-    /* TODO: this might need a better implementation:
-     * READ -> DONTCARE
-     * WRITE -> LOAD, STORE based on previous value.
-     * IGNORE -> DONTCARE -> IGNORE */
+    for (int index : IndexRange(color_attachment_states.size())) {
+      if (color_attachment_states[index] == GPU_ATTACHMENT_READ) {
+        VKTexture *texture = unwrap(unwrap(color_tex(index)));
+        if (texture) {
+          context.state_manager_get().image_bind(texture, index);
+        }
+      }
+    }
     load_stores.fill(default_load_store());
   }
+  else {
+    VKContext &context = *VKContext::get();
+    if (is_rendering_) {
+      rendering_end(context);
 
-  attachment_states_[GPU_FB_DEPTH_ATTACHMENT] = depth_attachment_state;
-  attachment_states_.as_mutable_span()
-      .slice(GPU_FB_COLOR_ATTACHMENT0, color_attachment_states.size())
-      .copy_from(color_attachment_states);
-  for (int index : IndexRange(color_attachment_states.size())) {
-    if (color_attachment_states[index] == GPU_ATTACHMENT_READ) {
-      VKTexture *texture = unwrap(unwrap(color_tex(index)));
-      if (texture) {
-        context.state_manager_get().texture_bind(
-            texture, GPUSamplerState::default_sampler(), index);
+      /* TODO: this might need a better implementation:
+       * READ -> DONTCARE
+       * WRITE -> LOAD, STORE based on previous value.
+       * IGNORE -> DONTCARE -> IGNORE */
+      load_stores.fill(default_load_store());
+    }
+
+    attachment_states_[GPU_FB_DEPTH_ATTACHMENT] = depth_attachment_state;
+    attachment_states_.as_mutable_span()
+        .slice(GPU_FB_COLOR_ATTACHMENT0, color_attachment_states.size())
+        .copy_from(color_attachment_states);
+    for (int index : IndexRange(color_attachment_states.size())) {
+      if (color_attachment_states[index] == GPU_ATTACHMENT_READ) {
+        VKTexture *texture = unwrap(unwrap(color_tex(index)));
+        if (texture) {
+          context.state_manager_get().texture_bind(
+              texture, GPUSamplerState::default_sampler(), index);
+        }
       }
     }
   }
@@ -802,6 +816,9 @@ void VKFrameBuffer::rendering_ensure_render_pass(VKContext &context)
 void VKFrameBuffer::rendering_ensure_dynamic_rendering(VKContext &context,
                                                        const VKWorkarounds &workarounds)
 {
+  const VKDevice &device = VKBackend::get().device;
+  const bool supports_local_read = !device.workarounds_get().dynamic_rendering_local_read;
+
   depth_attachment_format_ = VK_FORMAT_UNDEFINED;
   stencil_attachment_format_ = VK_FORMAT_UNDEFINED;
 
@@ -857,7 +874,8 @@ void VKFrameBuffer::rendering_ensure_dynamic_rendering(VKContext &context,
       vk_format = image_view.vk_format();
     }
     attachment_info.imageView = vk_image_view;
-    attachment_info.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    attachment_info.imageLayout = supports_local_read ? VK_IMAGE_LAYOUT_RENDERING_LOCAL_READ_KHR :
+                                                        VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
     set_load_store(attachment_info, load_stores[color_attachment_index]);
 
     access_info.images.append(

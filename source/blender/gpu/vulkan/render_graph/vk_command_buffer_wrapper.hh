@@ -18,6 +18,7 @@ namespace blender::gpu::render_graph {
 class VKCommandBufferInterface {
  public:
   bool use_dynamic_rendering = true;
+  bool use_dynamic_rendering_local_read = true;
 
   VKCommandBufferInterface() {}
   virtual ~VKCommandBufferInterface() = default;
