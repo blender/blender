@@ -23,7 +23,6 @@ from .drivers import get_sk_drivers, get_driver_on_shapekey
 from .anim_utils import reset_bone_matrix, reset_sk_data, link_samplers, add_slide_data, merge_tracks_perform, bake_animation, get_channelbag_for_slot
 
 
-
 class ActionsData:
     data_type = "ACTION"
 
@@ -65,6 +64,7 @@ class ActionsData:
     def __len__(self):
         return len(self.actions)
 
+
 class ActionData:
     def __init__(self, action):
         self.action = action
@@ -79,7 +79,7 @@ class ActionData:
         self.slots.append(new_slot)
 
     def sort(self):
-        #Implement sorting, to be sure to get:
+        # Implement sorting, to be sure to get:
         # TRS first, and then SK
         sort_items = {'OBJECT': 1, 'KEY': 2}
         self.slots.sort(key=lambda x: sort_items.get(x.id_root))
@@ -93,6 +93,7 @@ class SlotData:
         self.slot = slot
         self.id_root = id_root
         self.track = track
+
 
 def gather_actions_animations(export_settings):
 
@@ -144,6 +145,8 @@ def gather_actions_animations(export_settings):
 # For example, cache will get frame 1/4/7/10 if step is 3, with an action starting at frame 1
 # If all backing is enabled, and scene start at 0, we will get frame 0/3/6/9 => Cache will fail
 # Set the reference frame from the first action retrieve, and align all actions to this frame
+
+
 def _align_frame_start(reference_frame_start, frame, export_settings):
 
     if reference_frame_start is None:
@@ -355,7 +358,6 @@ def gather_action_animations(obj_uuid: int,
             animations.append(animation)
         # We can return early if no actions
         return animations, tracks
-
 
     # Keep current situation and prepare export
     current_action = None
@@ -582,7 +584,7 @@ def gather_action_animations(obj_uuid: int,
                             obj_uuid, prop, blender_action.name, slot.slot.handle, True, get_gltf_interpolation("LINEAR"), export_settings)
                     elif type_ == "SK":
                         channel = gather_sampled_sk_channel(obj_uuid, blender_action.name, slot.slot.handle, export_settings)
-                    elif type_ == "EXTRA": #TODOSLOT slot-3
+                    elif type_ == "EXTRA":  # TODOSLOT slot-3
                         channel = None
                     else:
                         export_settings['log'].error("Type unknown. Should not happen")
@@ -645,10 +647,9 @@ def gather_action_animations(obj_uuid: int,
                 channels=all_channels,
                 name=blender_action.name,
                 extras=__gather_extras(blender_action, export_settings),
-                samplers=[], # This will be generated later, in link_samplers
+                samplers=[],  # This will be generated later, in link_samplers
                 extensions=None
             )
-
 
             link_samplers(animation, export_settings)
             animations.append(animation)
@@ -666,9 +667,9 @@ def gather_action_animations(obj_uuid: int,
                     tracks[blender_action.name] = []
                 tracks[blender_action.name].append(offset + len(animations) - 1)
             elif export_settings['gltf_merge_animation'] == "NONE":
-                pass # Nothing to store, we are not going to merge animations
+                pass  # Nothing to store, we are not going to merge animations
             else:
-                pass # This should not happen (or the developer added a new option, and forget to take it into account here)
+                pass  # This should not happen (or the developer added a new option, and forget to take it into account here)
 
 
 # Restoring current situation
@@ -683,7 +684,7 @@ def gather_action_animations(obj_uuid: int,
                 if blender_object.animation_data.action is not None:
                     blender_object.animation_data.action_slot = None
                 blender_object.animation_data.action = None
-            elif blender_object.animation_data.action.name != current_action.name: #TODO action name is not unique (library)
+            elif blender_object.animation_data.action.name != current_action.name:  # TODO action name is not unique (library)
                 # Restore action that was active at start of exporting
                 reset_bone_matrix(blender_object, export_settings)
                 blender_object.animation_data.action = current_action
@@ -732,11 +733,11 @@ def gather_action_animations(obj_uuid: int,
 
     return animations, tracks
 
+
 @cached
 def __get_blender_actions(obj_uuid: str,
                           export_settings
                           ) -> ActionsData:
-
 
     actions = ActionsData()
 
@@ -758,7 +759,7 @@ def __get_blender_actions(obj_uuid: str,
             else:
                 # Store Action info
                 new_action = ActionData(blender_object.animation_data.action)
-                new_action.add_slot(blender_object.animation_data.action_slot, blender_object.animation_data.action_slot.id_root, None) # Active action => No track
+                new_action.add_slot(blender_object.animation_data.action_slot, blender_object.animation_data.action_slot.id_root, None)  # Active action => No track
                 actions.add_action(new_action)
 
         # Collect associated strips from NLA tracks.
@@ -842,13 +843,12 @@ def __get_blender_actions(obj_uuid: str,
 
                         # Check the action is not in list of actions to ignore
                         if hasattr(bpy.data.scenes[0], "gltf_action_filter") and id(act) in [id(item.action)
-                                                                                            for item in bpy.data.scenes[0].gltf_action_filter if item.keep is False]:
+                                                                                             for item in bpy.data.scenes[0].gltf_action_filter if item.keep is False]:
                             continue  # We ignore this action
 
                         new_action = ActionData(act)
                         new_action.add_slot(slot, slot.id_root, None)
                         actions.add_action(new_action)
-
 
     export_user_extensions('gather_actions_hook', export_settings, blender_object, actions)
 
@@ -891,7 +891,7 @@ def __get_blender_actions_broadcast(obj_uuid, export_settings):
     for blender_action in bpy.data.actions:
         if hasattr(bpy.data.scenes[0], "gltf_action_filter") and id(blender_action) in [
                 id(item.action) for item in bpy.data.scenes[0].gltf_action_filter if item.keep is False]:
-            continue # We ignore this action
+            continue  # We ignore this action
 
         new_action = ActionData(blender_action)
 
@@ -919,7 +919,7 @@ def __get_blender_actions_broadcast(obj_uuid, export_settings):
                 new_action.add_slot(slot, slot.id_root, None)
 
             else:
-                pass # TODOSLOT slot-3
+                pass  # TODOSLOT slot-3
 
         if new_action.has_slots():
             blender_actions.add_action(new_action)

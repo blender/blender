@@ -806,9 +806,9 @@ class ExportGLTF2_Base(ConvertGLTF2_Base):
     export_merge_animation: EnumProperty(
         name='Merge Animation',
         items=(('NLA_TRACK', 'NLA Track Names', 'Merge by NLA Track Names'),
-                ('ACTION', 'Actions', 'Merge by Actions'),
-                ('NONE', 'No Merge', 'Do not merge animations'),
-                ),
+               ('ACTION', 'Actions', 'Merge by Actions'),
+               ('NONE', 'No Merge', 'Do not merge animations'),
+               ),
         description='Merge animations',
         default='ACTION'
     )
@@ -1493,7 +1493,7 @@ def export_panel_data_material(layout, operator):
         col.active = operator.export_image_format != "WEBP" and not operator.export_materials in ['PLACEHOLDER', 'NONE']
         col.prop(operator, "export_image_add_webp")
         col = body.column()
-        col.active = operator.export_image_format != "WEBP"  and not operator.export_materials in ['PLACEHOLDER', 'NONE']
+        col.active = operator.export_image_format != "WEBP" and not operator.export_materials in ['PLACEHOLDER', 'NONE']
         col.prop(operator, "export_image_webp_fallback")
 
         header, sub_body = body.panel("GLTF_export_data_material_unused", default_closed=True)
@@ -1631,6 +1631,7 @@ def export_panel_animation_notes(layout, operator):
             body.label(text="Track mode uses full bake mode:")
             body.label(text="- sampling is active")
             body.label(text="- baking all objects is active")
+
 
 def export_panel_animation_bake_and_merge(layout, operator):
     header, body = layout.panel("GLTF_export_animation_bake_and_merge", default_closed=False)
@@ -2004,6 +2005,7 @@ def import_bone_panel(layout, operator):
         if operator.bone_heuristic == 'BLENDER':
             body.prop(operator, 'disable_bone_shape')
             body.prop(operator, 'bone_shape_scale_factor')
+
 
 def import_ux_panel(layout, operator):
     header, body = layout.panel("GLTF_import_ux", default_closed=False)

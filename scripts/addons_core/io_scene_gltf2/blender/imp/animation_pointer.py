@@ -56,7 +56,6 @@ class BlenderPointerAnim():
         else:
             id_root = asset_type
 
-
         action, slot = BlenderPointerAnim.get_or_create_action_and_slot(
             gltf, anim_idx, asset, asset_idx, id_root, name_=name)
 

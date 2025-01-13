@@ -26,10 +26,10 @@ def gather_animation_fcurves(
 
     return channels, to_be_sampled, extra_samplers
 
+
 def __gather_channels_fcurves(
         obj_uuid: str,
         blender_action: bpy.types.Action,
         slot_handle: int,
         export_settings):
     return gather_animation_fcurves_channels(obj_uuid, blender_action, slot_handle, export_settings)
-

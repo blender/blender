@@ -38,6 +38,7 @@ class TracksData:
         for tr in self.tracks:
             yield tr
 
+
 class TrackData:
     def __init__(self, tracks, track_name, on_type):
         self.tracks = tracks
@@ -244,9 +245,9 @@ def gather_track_animations(obj_uuid: int,
                     tracks[blender_action.name] = []
                 tracks[blender_action.name].append(offset + len(animations) - 1)  # Store index of animation in animations
             elif export_settings['gltf_merge_animation'] == "NONE":
-                pass # Nothing to store, we are not going to merge animations
+                pass  # Nothing to store, we are not going to merge animations
             else:
-                pass # This should not happen (or the developer added a new option, and forget to take it into account here)
+                pass  # This should not happen (or the developer added a new option, and forget to take it into account here)
 
         # Restoring muting
         if track_data.on_type == "OBJECT":
@@ -361,7 +362,6 @@ def __get_nla_tracks_obj(obj_uuid: str, export_settings):
                 )
 
                 tracks_data.add(track_data)
-
 
         # Start a new stack
         current_exported_tracks.append(stored_track)
@@ -765,8 +765,6 @@ def __get_nla_tracks_material(blender_type_data, blender_id, export_settings):
     )
 
     tracks_data.add(track_data)
-
-
 
     return tracks_data
 

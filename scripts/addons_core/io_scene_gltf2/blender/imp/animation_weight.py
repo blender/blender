@@ -8,6 +8,7 @@ from ...io.imp.user_extensions import import_user_extensions
 from ...io.imp.gltf2_io_binary import BinaryData
 from .animation_utils import make_fcurve, get_or_create_action_and_slot
 
+
 class BlenderWeightAnim():
     """Blender ShapeKey Animation."""
     def __new__(cls, *args, **kwargs):

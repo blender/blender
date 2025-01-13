@@ -377,6 +377,7 @@ def needs_baking(obj_uuid: str,
 
     return False
 
+
 def __get_channelbag_for_slot_handle(action, slot_handle):
     for layer in action.layers:
         for strip in layer.strips:

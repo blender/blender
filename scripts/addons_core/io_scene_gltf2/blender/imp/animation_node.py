@@ -168,4 +168,3 @@ class BlenderNodeAnim():
 
         import_user_extensions('gather_import_animation_channel_after_hook',
                                gltf, animation, vnode, path, channel, action)
-

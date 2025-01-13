@@ -27,6 +27,7 @@ def dll_path() -> Path:
     if library_name is None:
         print('WARNING', 'Unsupported platform {}, Draco mesh compression is unavailable'.format(sys.platform))
 
+
 def dll_exists(quiet=False) -> bool:
     """
     Checks whether the DLL path exists.

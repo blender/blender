@@ -6,6 +6,8 @@ import bpy
 from .vnode import VNode
 
 # Here data can be object, object.data, material, material.node_tree, camera, light
+
+
 def simulate_stash(data, track_name, action, action_slot, start_frame=None):
     # Simulate stash :
     # * add a track
@@ -24,6 +26,7 @@ def simulate_stash(data, track_name, action, action_slot, start_frame=None):
     _strip.action_frame_end = action.frame_range[1]
     new_track.lock = True
     new_track.mute = True
+
 
 def restore_animation_on_object(data, anim_name):
     """ here, data can be an object, shapekeys, camera or light data """
@@ -81,6 +84,7 @@ def make_fcurve(action, slot, co, data_path, index=0, group_name='', interpolati
 
     return fcurve
 
+
 def get_channelbag_for_slot(action, slot):
     # This is on purpose limited to the first layer and strip. To support more
     # than 1 layer, a rewrite of this operator is needed which ideally would
@@ -93,6 +97,8 @@ def get_channelbag_for_slot(action, slot):
 
 # This is use for TRS & weights animations
 # For pointers, see the same function in animation_pointer.py
+
+
 def get_or_create_action_and_slot(gltf, vnode_idx, anim_idx, path):
     animation = gltf.data.animations[anim_idx]
     vnode = gltf.vnodes[vnode_idx]
@@ -134,7 +140,7 @@ def get_or_create_action_and_slot(gltf, vnode_idx, anim_idx, path):
             # It helps to automatically assign the right slot, and it will get range correctly without setting it by hand
             gltf.needs_stash.append((obj.data.shape_keys, action, slot))
         else:
-            pass # This should not happen, as we only support TRS and weights animations here
+            pass  # This should not happen, as we only support TRS and weights animations here
             # animation pointer is managed in another place
 
         action.layers[0].strips[0].channelbags.new(slot)
@@ -155,7 +161,7 @@ def get_or_create_action_and_slot(gltf, vnode_idx, anim_idx, path):
                 # It helps to automatically assign the right slot, and it will get range correctly without setting it by hand
                 gltf.needs_stash.append((obj.data.shape_keys, action, slot))
             else:
-                pass # This should not happen, as we only support TRS and weights animations here
+                pass  # This should not happen, as we only support TRS and weights animations here
                 # animation pointer is managed in another place
 
             action.layers[0].strips[0].channelbags.new(slot)
@@ -167,11 +173,12 @@ def get_or_create_action_and_slot(gltf, vnode_idx, anim_idx, path):
     # We now have action and slot, we can return the right slot
     return action, slot
 
+
 def __get_id_from_path(path):
     if path in ["translation", "rotation", "scale"]:
         return "OBJECT"
     elif path == "weights":
         return "KEY"
     else:
-        pass # This should not happen, as we only support TRS and weights animations here
+        pass  # This should not happen, as we only support TRS and weights animations here
         # animation pointer is managed in another place
