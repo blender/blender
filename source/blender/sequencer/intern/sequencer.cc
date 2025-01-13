@@ -324,8 +324,8 @@ static void seq_new_fix_links_recursive(Strip *strip, blender::Map<Strip *, Stri
   }
 
   if (SEQ_is_strip_connected(strip)) {
-    LISTBASE_FOREACH (SeqConnection *, con, &strip->connections) {
-      con->seq_ref = strip_map.lookup_default(con->seq_ref, con->seq_ref);
+    LISTBASE_FOREACH (StripConnection *, con, &strip->connections) {
+      con->strip_ref = strip_map.lookup_default(con->strip_ref, con->strip_ref);
     }
   }
 
@@ -790,8 +790,8 @@ static bool strip_write_data_cb(Strip *strip, void *userdata)
     BLO_write_struct(writer, SeqTimelineChannel, channel);
   }
 
-  LISTBASE_FOREACH (SeqConnection *, con, &strip->connections) {
-    BLO_write_struct(writer, SeqConnection, con);
+  LISTBASE_FOREACH (StripConnection *, con, &strip->connections) {
+    BLO_write_struct(writer, StripConnection, con);
   }
 
   if (strip->retiming_keys != nullptr) {
@@ -911,10 +911,10 @@ static bool strip_read_data_cb(Strip *strip, void *user_data)
 
   SEQ_modifier_blend_read_data(reader, &strip->modifiers);
 
-  BLO_read_struct_list(reader, SeqConnection, &strip->connections);
-  LISTBASE_FOREACH (SeqConnection *, con, &strip->connections) {
-    if (con->seq_ref) {
-      BLO_read_struct(reader, Strip, &con->seq_ref);
+  BLO_read_struct_list(reader, StripConnection, &strip->connections);
+  LISTBASE_FOREACH (StripConnection *, con, &strip->connections) {
+    if (con->strip_ref) {
+      BLO_read_struct(reader, Strip, &con->strip_ref);
     }
   }
 
