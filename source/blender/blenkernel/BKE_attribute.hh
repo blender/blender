@@ -870,6 +870,7 @@ class MutableAttributeAccessor : public AttributeAccessor {
 struct AttributeTransferData {
   /* Expect that if an attribute exists, it is stored as a contiguous array internally anyway. */
   GVArraySpan src;
+  StringRef name;
   AttributeMetaData meta_data;
   GSpanAttributeWriter dst;
 };

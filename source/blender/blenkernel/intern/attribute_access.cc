@@ -870,7 +870,7 @@ Vector<AttributeTransferData> retrieve_attributes_for_transfer(
     GVArray src = *iter.get();
     GSpanAttributeWriter dst = dst_attributes.lookup_or_add_for_write_only_span(
         iter.name, iter.domain, iter.data_type);
-    attributes.append({std::move(src), {iter.domain, iter.data_type}, std::move(dst)});
+    attributes.append({std::move(src), iter.name, {iter.domain, iter.data_type}, std::move(dst)});
   });
   return attributes;
 }
