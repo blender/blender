@@ -680,9 +680,6 @@ if(NOT WITH_WINDOWS_FIND_MODULES)
 endif()
 
 if(WITH_BOOST)
-  if(WITH_CYCLES AND WITH_CYCLES_OSL)
-    set(boost_extra_libs wave)
-  endif()
   if(WITH_INTERNATIONAL)
     list(APPEND boost_extra_libs locale)
   endif()
@@ -690,7 +687,7 @@ if(WITH_BOOST)
   set(Boost_USE_MULTITHREADED ON) # suffix -mt
   set(Boost_USE_STATIC_LIBS ON) # suffix -s
   if(WITH_WINDOWS_FIND_MODULES)
-    find_package(Boost COMPONENTS date_time filesystem thread regex system ${boost_extra_libs})
+    find_package(Boost COMPONENTS ${boost_extra_libs})
   endif()
   if(NOT Boost_FOUND)
     warn_hardcoded_paths(BOOST)
@@ -701,20 +698,7 @@ if(WITH_BOOST)
       set(BOOST_DEBUG_POSTFIX "vc142-mt-gd-x64-${BOOST_VERSION}")
       set(BOOST_PREFIX "lib")
     endif()
-    set(BOOST_LIBRARIES
-      optimized ${BOOST_LIBPATH}/${BOOST_PREFIX}boost_date_time-${BOOST_POSTFIX}.lib
-      optimized ${BOOST_LIBPATH}/${BOOST_PREFIX}boost_filesystem-${BOOST_POSTFIX}.lib
-      optimized ${BOOST_LIBPATH}/${BOOST_PREFIX}boost_regex-${BOOST_POSTFIX}.lib
-      optimized ${BOOST_LIBPATH}/${BOOST_PREFIX}boost_system-${BOOST_POSTFIX}.lib
-      optimized ${BOOST_LIBPATH}/${BOOST_PREFIX}boost_thread-${BOOST_POSTFIX}.lib
-      optimized ${BOOST_LIBPATH}/${BOOST_PREFIX}boost_chrono-${BOOST_POSTFIX}.lib
-      debug ${BOOST_LIBPATH}/${BOOST_PREFIX}boost_date_time-${BOOST_DEBUG_POSTFIX}.lib
-      debug ${BOOST_LIBPATH}/${BOOST_PREFIX}boost_filesystem-${BOOST_DEBUG_POSTFIX}.lib
-      debug ${BOOST_LIBPATH}/${BOOST_PREFIX}boost_regex-${BOOST_DEBUG_POSTFIX}.lib
-      debug ${BOOST_LIBPATH}/${BOOST_PREFIX}boost_system-${BOOST_DEBUG_POSTFIX}.lib
-      debug ${BOOST_LIBPATH}/${BOOST_PREFIX}boost_thread-${BOOST_DEBUG_POSTFIX}.lib
-      debug ${BOOST_LIBPATH}/${BOOST_PREFIX}boost_chrono-${BOOST_DEBUG_POSTFIX}.lib
-    )
+    set(BOOST_LIBRARIES)
     if(EXISTS ${BOOST_34_TRIGGER_FILE})
       if(WITH_USD)
         set(BOOST_PYTHON_LIBRARIES
@@ -722,12 +706,6 @@ if(WITH_BOOST)
           optimized ${BOOST_LIBPATH}/${BOOST_PREFIX}boost_python${_PYTHON_VERSION_NO_DOTS}-${BOOST_POSTFIX}.lib
         )
       endif()
-    endif()
-    if(WITH_CYCLES AND WITH_CYCLES_OSL)
-      set(BOOST_LIBRARIES ${BOOST_LIBRARIES}
-        optimized ${BOOST_LIBPATH}/${BOOST_PREFIX}boost_wave-${BOOST_POSTFIX}.lib
-        debug ${BOOST_LIBPATH}/${BOOST_PREFIX}boost_wave-${BOOST_DEBUG_POSTFIX}.lib
-      )
     endif()
     if(WITH_INTERNATIONAL)
       set(BOOST_LIBRARIES ${BOOST_LIBRARIES}
