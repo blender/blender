@@ -1,5 +1,5 @@
 /* SPDX-FileCopyrightText: 2001-2002 NaN Holding BV. All rights reserved.
- * SPDX-FileCopyrightText: 2024 Blender Authors
+ * SPDX-FileCopyrightText: 2024-2025 Blender Authors
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
@@ -145,7 +145,7 @@ void MOV_set_multiview_suffix(MovieReader *anim, const char *suffix)
 
 #ifdef WITH_FFMPEG
 
-static double ffmpeg_stream_start_time_get(AVStream *stream)
+static double ffmpeg_stream_start_time_get(const AVStream *stream)
 {
   if (stream->start_time == AV_NOPTS_VALUE) {
     return 0.0;
@@ -154,7 +154,9 @@ static double ffmpeg_stream_start_time_get(AVStream *stream)
   return stream->start_time * av_q2d(stream->time_base);
 }
 
-static int ffmpeg_container_frame_count_get(AVFormatContext *pFormatCtx, AVStream *video_stream)
+static int ffmpeg_container_frame_count_get(const AVFormatContext *pFormatCtx,
+                                            const AVStream *video_stream,
+                                            const double frame_rate)
 {
   /* Find audio stream to guess the duration of the video.
    * Sometimes the audio AND the video stream have a start offset.
@@ -172,7 +174,6 @@ static int ffmpeg_container_frame_count_get(AVFormatContext *pFormatCtx, AVStrea
     }
   }
 
-  const AVRational frame_rate = av_guess_frame_rate(pFormatCtx, video_stream, nullptr);
   double stream_dur;
 
   if (video_start > audio_start) {
@@ -185,23 +186,24 @@ static int ffmpeg_container_frame_count_get(AVFormatContext *pFormatCtx, AVStrea
     stream_dur = double(pFormatCtx->duration) / AV_TIME_BASE;
   }
 
-  return lround(stream_dur * av_q2d(frame_rate));
+  return lround(stream_dur * frame_rate);
 }
 
-static int ffmpeg_frame_count_get(AVFormatContext *pFormatCtx, AVStream *video_stream)
+static int ffmpeg_frame_count_get(const AVFormatContext *pFormatCtx,
+                                  const AVStream *video_stream,
+                                  const double frame_rate)
 {
   /* Use stream duration to determine frame count. */
   if (video_stream->duration != AV_NOPTS_VALUE) {
-    const AVRational frame_rate = av_guess_frame_rate(pFormatCtx, video_stream, nullptr);
     const double stream_dur = video_stream->duration * av_q2d(video_stream->time_base);
-    return lround(stream_dur * av_q2d(frame_rate));
+    return lround(stream_dur * frame_rate);
   }
 
   /* Fall back to manually estimating the video stream duration.
    * This is because the video stream duration can be shorter than the `pFormatCtx->duration`.
    */
   if (pFormatCtx->duration != AV_NOPTS_VALUE) {
-    return ffmpeg_container_frame_count_get(pFormatCtx, video_stream);
+    return ffmpeg_container_frame_count_get(pFormatCtx, video_stream, frame_rate);
   }
 
   /* Read frame count from the stream if we can. Note, that this value can not be trusted. */
@@ -362,9 +364,20 @@ static int startffmpeg(MovieReader *anim)
     return -1;
   }
 
-  const AVRational frame_rate = av_guess_frame_rate(pFormatCtx, video_stream, nullptr);
-  int frs_num = frame_rate.num;
-  double frs_den = frame_rate.den;
+  /* Check if we need the "never seek, only decode one frame" ffmpeg bug workaround. */
+  const bool is_ogg_container = strcmp(pFormatCtx->iformat->name, "ogg") == 0;
+  const bool is_non_ogg_video = video_stream->codecpar->codec_id != AV_CODEC_ID_THEORA;
+  const bool is_video_thumbnail = (video_stream->disposition & AV_DISPOSITION_ATTACHED_PIC) != 0;
+  anim->never_seek_decode_one_frame = is_ogg_container && is_non_ogg_video && is_video_thumbnail;
+
+  anim->frame_rate = av_guess_frame_rate(pFormatCtx, video_stream, nullptr);
+  if (anim->never_seek_decode_one_frame) {
+    /* Files that need this workaround have nonsensical frame rates too, resulting
+     * in "millions of frames" if done through regular math. Treat framerate as 24/1 instead. */
+    anim->frame_rate = {24, 1};
+  }
+  int frs_num = anim->frame_rate.num;
+  double frs_den = anim->frame_rate.den;
 
   frs_den *= AV_TIME_BASE;
 
@@ -378,7 +391,8 @@ static int startffmpeg(MovieReader *anim)
   /* Save the relative start time for the video. IE the start time in relation to where playback
    * starts. */
   anim->start_offset = ffmpeg_stream_start_time_get(video_stream);
-  anim->duration_in_frames = ffmpeg_frame_count_get(pFormatCtx, video_stream);
+  anim->duration_in_frames = ffmpeg_frame_count_get(
+      pFormatCtx, video_stream, av_q2d(anim->frame_rate));
 
   anim->x = pCodecCtx->width;
   anim->y = pCodecCtx->height;
@@ -507,12 +521,11 @@ static int startffmpeg(MovieReader *anim)
   return 0;
 }
 
-static double ffmpeg_steps_per_frame_get(MovieReader *anim)
+static double ffmpeg_steps_per_frame_get(const MovieReader *anim)
 {
-  AVStream *v_st = anim->pFormatCtx->streams[anim->videoStream];
-  AVRational time_base = v_st->time_base;
-  AVRational frame_rate = av_guess_frame_rate(anim->pFormatCtx, v_st, nullptr);
-  return av_q2d(av_inv_q(av_mul_q(frame_rate, time_base)));
+  const AVStream *v_st = anim->pFormatCtx->streams[anim->videoStream];
+  const AVRational time_base = v_st->time_base;
+  return av_q2d(av_inv_q(av_mul_q(anim->frame_rate, time_base)));
 }
 
 /* Store backup frame.
@@ -717,6 +730,11 @@ static AVFrame *ffmpeg_frame_by_pts_get(MovieReader *anim, int64_t pts_to_search
    */
   if (!anim->pFrame_complete) {
     return nullptr;
+  }
+
+  if (anim->never_seek_decode_one_frame) {
+    /* If we only decode one frame, return it. */
+    return anim->pFrame;
   }
 
   const bool backup_frame_ready = anim->pFrame_backup_complete;
@@ -1138,21 +1156,30 @@ static ImBuf *ffmpeg_fetchibuf(MovieReader *anim, int position, IMB_Timecode_Typ
   double pts_time_base = av_q2d(v_st->time_base);
   int64_t start_pts = v_st->start_time;
 
-  av_log(anim->pFormatCtx,
-         AV_LOG_DEBUG,
-         "FETCH: looking for PTS=%" PRId64 " (pts_timebase=%g, frame_rate=%g, start_pts=%" PRId64
-         ")\n",
-         int64_t(pts_to_search),
-         pts_time_base,
-         frame_rate,
-         start_pts);
-
-  if (ffmpeg_must_decode(anim, position)) {
-    if (ffmpeg_must_seek(anim, position)) {
-      ffmpeg_seek_to_key_frame(anim, position, tc_index, pts_to_search);
+  if (anim->never_seek_decode_one_frame) {
+    /* If we must only ever decode one frame, and never seek, do so here. */
+    if (!anim->pFrame_complete) {
+      ffmpeg_decode_video_frame(anim);
     }
+  }
+  else {
+    /* For all regular video files, do the seek/decode as needed. */
+    av_log(anim->pFormatCtx,
+           AV_LOG_DEBUG,
+           "FETCH: looking for PTS=%" PRId64 " (pts_timebase=%g, frame_rate=%g, start_pts=%" PRId64
+           ")\n",
+           int64_t(pts_to_search),
+           pts_time_base,
+           frame_rate,
+           start_pts);
 
-    ffmpeg_decode_video_frame_scan(anim, pts_to_search);
+    if (ffmpeg_must_decode(anim, position)) {
+      if (ffmpeg_must_seek(anim, position)) {
+        ffmpeg_seek_to_key_frame(anim, position, tc_index, pts_to_search);
+      }
+
+      ffmpeg_decode_video_frame_scan(anim, pts_to_search);
+    }
   }
 
   /* Update resolution as it can change per-frame with WebM. See #100741 & #100081. */
