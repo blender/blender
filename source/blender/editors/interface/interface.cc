@@ -1164,6 +1164,9 @@ static void ui_menu_block_set_keyaccels(uiBlock *block)
                 UI_BTYPE_MENU,
                 UI_BTYPE_BLOCK,
                 UI_BTYPE_PULLDOWN,
+                UI_BTYPE_ICON_TOGGLE,
+                UI_BTYPE_ICON_TOGGLE_N,
+
                 /* For PIE-menus. */
                 UI_BTYPE_ROW) ||
           (but->flag & UI_HIDDEN))

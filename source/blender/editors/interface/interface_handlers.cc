@@ -11111,7 +11111,11 @@ static int ui_handle_menu_event(bContext *C,
             /* Accelerator keys that allow "pressing" a menu entry by pressing a single key. */
             LISTBASE_FOREACH (uiBut *, but_iter, &block->buttons) {
               if (!(but_iter->flag & UI_BUT_DISABLED) && but_iter->menu_key == event->type) {
-                if (but_iter->type == UI_BTYPE_BUT) {
+                if (ELEM(but_iter->type,
+                         UI_BTYPE_BUT,
+                         UI_BTYPE_ICON_TOGGLE,
+                         UI_BTYPE_ICON_TOGGLE_N))
+                {
                   UI_but_execute(C, region, but_iter);
                 }
                 else {
