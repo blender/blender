@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'96c6f543ecc7')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'52cb367a9b67')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-06 10:26+0000\n"
+"POT-Creation-Date: 2025-01-13 11:47+0000\n"
 "PO-Revision-Date: 2024-04-29 13:54+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Basque <https://translate.blender.org/projects/blender-ui/ui/eu/>\n"
@@ -283,38 +283,6 @@ msgid "Weight"
 msgstr "Pisua"
 
 
-msgid "Armature"
-msgstr "Eskeletoa"
-
-
-msgid "Camera"
-msgstr "Kamera"
-
-
-msgid "Curve"
-msgstr "Kurba"
-
-
-msgid "Material"
-msgstr "Materiala"
-
-
-msgid "Sound"
-msgstr "Soinua"
-
-
-msgid "Speaker"
-msgstr "Bozgorailua"
-
-
-msgid "Text"
-msgstr "Testua"
-
-
-msgid "World"
-msgstr "Mundua"
-
-
 msgid "Distance"
 msgstr "Distantzia"
 
@@ -331,16 +299,16 @@ msgid "Parent"
 msgstr "Gurasoa"
 
 
-msgid "Direction"
-msgstr "Norabidea"
-
-
-msgid "Normal"
-msgstr "Normala"
+msgid "Material"
+msgstr "Materiala"
 
 
 msgid "Stroke"
 msgstr "Trazua"
+
+
+msgid "Curve"
+msgstr "Kurba"
 
 
 msgid "Look"
@@ -359,12 +327,20 @@ msgid "Disable"
 msgstr "Desgaitu"
 
 
+msgid "Armature"
+msgstr "Eskeletoa"
+
+
 msgid "Z"
 msgstr "Z"
 
 
 msgid "Default"
 msgstr "Lehenetsia"
+
+
+msgid "Camera"
+msgstr "Kamera"
 
 
 msgid "Bone"
@@ -435,6 +411,10 @@ msgid "Delete"
 msgstr "Ezabatu"
 
 
+msgid "Normal"
+msgstr "Normala"
+
+
 msgid "Onion Skinning"
 msgstr "Tipula-azapa"
 
@@ -457,6 +437,15 @@ msgstr "Taldeak"
 
 msgid "Local"
 msgstr "Lokala"
+
+
+msgctxt "Curve"
+msgid "Sphere"
+msgstr "Esfera"
+
+
+msgid "Direction"
+msgstr "Norabidea"
 
 
 msgid "Sequence"
@@ -497,6 +486,10 @@ msgstr "Zirkulua"
 
 msgid "Angular Velocity"
 msgstr "Abiadura-angeluarra"
+
+
+msgid "Sound"
+msgstr "Soinua"
 
 
 msgid "Image Texture"
@@ -564,17 +557,16 @@ msgid "Min Angle"
 msgstr "Angelu Minimoa"
 
 
-msgctxt "Curve"
-msgid "Sphere"
-msgstr "Esfera"
+msgid "Show/Hide"
+msgstr "Erakutsi/Ezkutatu"
 
 
 msgid "Relations"
 msgstr "Loturak"
 
 
-msgid "Show/Hide"
-msgstr "Erakutsi/Ezkutatu"
+msgid "Text"
+msgstr "Testua"
 
 
 msgid "UV"
@@ -620,6 +612,10 @@ msgstr "Azelerazio-faktorea"
 msgctxt "Curve"
 msgid "Curve"
 msgstr "Kurba"
+
+
+msgid "World"
+msgstr "Mundua"
 
 
 msgctxt "Curve"
@@ -1693,6 +1689,30 @@ msgid "Language"
 msgstr "Hizkuntza"
 
 
+msgid "Gray Scale"
+msgstr "Gris-eskala"
+
+
+msgid "Sepia"
+msgstr "Sepia"
+
+
+msgid "Blender File"
+msgstr "Blender Fitxategia"
+
+
+msgid "Sort Alphabetically"
+msgstr "Alfabetikoki Ordenatu"
+
+
+msgid "Speaker"
+msgstr "Bozgorailua"
+
+
+msgid "3D"
+msgstr "3D"
+
+
 msgctxt "Sequence"
 msgid "Image"
 msgstr "Irudia"
@@ -1721,26 +1741,6 @@ msgstr "Soinua"
 msgctxt "Sequence"
 msgid "Cross"
 msgstr "Gurutzatu"
-
-
-msgid "Gray Scale"
-msgstr "Gris-eskala"
-
-
-msgid "Sepia"
-msgstr "Sepia"
-
-
-msgid "Blender File"
-msgstr "Blender Fitxategia"
-
-
-msgid "Sort Alphabetically"
-msgstr "Alfabetikoki Ordenatu"
-
-
-msgid "3D"
-msgstr "3D"
 
 
 msgctxt "WindowManager"

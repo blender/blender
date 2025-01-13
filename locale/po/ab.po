@@ -1,7 +1,7 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'96c6f543ecc7')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'52cb367a9b67')\n"
 "Report-Msgid-Bugs-To: \n"
 "PO-Revision-Date: 2024-04-29 13:23+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
@@ -99,52 +99,12 @@ msgid "Main Meshes"
 msgstr "Ихадоу Аҿарԥагақәа"
 
 
-msgid "Armature"
-msgstr "Абаҩ"
-
-
-msgid "Camera"
-msgstr "Акамера"
-
-
-msgid "Curve"
-msgstr "Архәара"
+msgid "Mode"
+msgstr "А́иҿкаашьа"
 
 
 msgid "Image"
 msgstr "Асахьанҵа"
-
-
-msgid "Lattice"
-msgstr "Аҭыџьеихац"
-
-
-msgid "Library"
-msgstr "Ашәҟәыԥхьарҭа"
-
-
-msgid "Light"
-msgstr "Алашара"
-
-
-msgid "Mesh"
-msgstr "Аҿарҧага"
-
-
-msgid "Metaball"
-msgstr "Метампыл"
-
-
-msgid "Speaker"
-msgstr "Абжьы Ахыҵхырҭа"
-
-
-msgid "Text"
-msgstr "Аҳәоу"
-
-
-msgid "Mode"
-msgstr "А́иҿкаашьа"
 
 
 msgid "Rotation"
@@ -155,8 +115,20 @@ msgid "Scale"
 msgstr "Ашәага"
 
 
+msgid "Curve"
+msgstr "Архәара"
+
+
 msgid "Difference"
 msgstr "Аиԥшымра"
+
+
+msgid "Armature"
+msgstr "Абаҩ"
+
+
+msgid "Camera"
+msgstr "Акамера"
 
 
 msgid "Location"
@@ -215,6 +187,10 @@ msgid "Window"
 msgstr "Аԥенџьыр"
 
 
+msgid "Library"
+msgstr "Ашәҟәыԥхьарҭа"
+
+
 msgid "Local"
 msgstr "Ҷыдала"
 
@@ -245,6 +221,10 @@ msgid "Edit"
 msgstr "Аиҭакра"
 
 
+msgid "Mesh"
+msgstr "Аҿарҧага"
+
+
 msgid "Circle"
 msgstr "Аицыгьежь"
 
@@ -273,6 +253,10 @@ msgid "Texture Paint"
 msgstr "Атекстура Ашәра"
 
 
+msgid "Lattice"
+msgstr "Аҭыџьеихац"
+
+
 msgctxt "ID"
 msgid "Empty"
 msgstr "Аҭацәы"
@@ -280,6 +264,18 @@ msgstr "Аҭацәы"
 
 msgid "3D Cursor"
 msgstr "3Д Ахырхага"
+
+
+msgid "Metaball"
+msgstr "Метампыл"
+
+
+msgid "Light"
+msgstr "Алашара"
+
+
+msgid "Text"
+msgstr "Аҳәоу"
 
 
 msgid "Marker"
@@ -403,14 +399,18 @@ msgid "Circle"
 msgstr "Аицыгьежь"
 
 
-msgctxt "Sequence"
-msgid "Image"
-msgstr "Асахьанҵа"
-
-
 msgctxt "MovieClip"
 msgid "View"
 msgstr "Аԥшра"
+
+
+msgid "Speaker"
+msgstr "Абжьы Ахыҵхырҭа"
+
+
+msgctxt "Sequence"
+msgid "Image"
+msgstr "Асахьанҵа"
 
 
 msgctxt "WindowManager"

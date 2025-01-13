@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'96c6f543ecc7')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'52cb367a9b67')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-06 10:26+0000\n"
+"POT-Creation-Date: 2025-01-13 11:47+0000\n"
 "PO-Revision-Date: 2024-11-09 15:56+0000\n"
 "Last-Translator: leif larsen <linuxdk1978@gmail.com>\n"
 "Language-Team: Danish <https://translate.blender.org/projects/blender-ui/ui/da/>\n"
@@ -2296,46 +2296,6 @@ msgid "Light Probes"
 msgstr "Lyssonder"
 
 
-msgid "Armature"
-msgstr "Armatur"
-
-
-msgid "Camera"
-msgstr "Kamera"
-
-
-msgid "Image"
-msgstr "Billede"
-
-
-msgid "Key"
-msgstr "Nøgle"
-
-
-msgid "Material"
-msgstr "Materiale"
-
-
-msgid "Mesh"
-msgstr "Maske"
-
-
-msgid "Movie Clip"
-msgstr "Film klip"
-
-
-msgid "Scene"
-msgstr "Scene"
-
-
-msgid "Sound"
-msgstr "Lyd"
-
-
-msgid "Text"
-msgstr "Tekst"
-
-
 msgid "Level"
 msgstr "Niveau"
 
@@ -2388,8 +2348,8 @@ msgid "Mode"
 msgstr "tilstand"
 
 
-msgid "Direction"
-msgstr "Retning"
+msgid "Material"
+msgstr "Materiale"
 
 
 msgid "All"
@@ -2472,6 +2432,10 @@ msgid "Crop"
 msgstr "Beskær"
 
 
+msgid "Image"
+msgstr "Billede"
+
+
 msgid "Image displayed and edited in this space"
 msgstr "Billedet vises og redigeres i dette rum"
 
@@ -2514,6 +2478,10 @@ msgstr "Baggrunds kilde"
 
 msgid "Data source used for background"
 msgstr "Datakilde brugt til baggrund"
+
+
+msgid "Movie Clip"
+msgstr "Film klip"
 
 
 msgid "Camera Clip"
@@ -2628,6 +2596,10 @@ msgid "Locked Track"
 msgstr "Låst spor"
 
 
+msgid "Armature"
+msgstr "Armatur"
+
+
 msgid "Target object"
 msgstr "mål objekt"
 
@@ -2652,6 +2624,10 @@ msgid "Up Axis"
 msgstr "Op akse"
 
 
+msgid "Camera"
+msgstr "Kamera"
+
+
 msgid "Bone"
 msgstr "Knogle"
 
@@ -2670,6 +2646,10 @@ msgstr "Lokation"
 
 msgid "Depth"
 msgstr "Dybte"
+
+
+msgid "Scene"
+msgstr "Scene"
 
 
 msgid "Invert"
@@ -2737,6 +2717,10 @@ msgid "Local"
 msgstr "Lokal"
 
 
+msgid "Direction"
+msgstr "Retning"
+
+
 msgid "Blur"
 msgstr "Sløring"
 
@@ -2765,6 +2749,10 @@ msgid "Max"
 msgstr "Maximum"
 
 
+msgid "Mesh"
+msgstr "Maske"
+
+
 msgid "Angular Velocity"
 msgstr "Vinkelhastighed"
 
@@ -2784,6 +2772,10 @@ msgstr "Reference afstand"
 msgctxt "Sound"
 msgid "Pitch"
 msgstr "Toneleje"
+
+
+msgid "Sound"
+msgstr "Lyd"
 
 
 msgid "Blend"
@@ -2840,6 +2832,14 @@ msgstr "Maksimal vinkel"
 
 msgid "Min Angle"
 msgstr "Minimum vinkel"
+
+
+msgid "Text"
+msgstr "Tekst"
+
+
+msgid "Key"
+msgstr "Nøgle"
 
 
 msgid "File"
@@ -3068,10 +3068,6 @@ msgstr "2D struktur"
 
 msgid "Legacy Compute Device Type"
 msgstr "Forældere beregningstyrper"
-
-
-msgid "Password"
-msgstr "Kodeord"
 
 
 msgid "Gray Scale"

@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'96c6f543ecc7')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'52cb367a9b67')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-06 10:26+0000\n"
+"POT-Creation-Date: 2025-01-13 11:47+0000\n"
 "PO-Revision-Date: 2024-03-23 04:06+0000\n"
 "Last-Translator: Alexandru Buhnici <in@alexm.ro>\n"
 "Language-Team: Romanian <https://translate.blender.org/projects/blender-ui/ui/ro/>\n"
@@ -1738,42 +1738,6 @@ msgid "Textures"
 msgstr "Texturi"
 
 
-msgid "Curve"
-msgstr "Curbă"
-
-
-msgid "Image"
-msgstr "Imagine"
-
-
-msgid "Light"
-msgstr "Lumină"
-
-
-msgid "Material"
-msgstr "Material"
-
-
-msgid "Scene"
-msgstr "Scenă"
-
-
-msgid "Texture"
-msgstr "Textură"
-
-
-msgid "Window Manager"
-msgstr "Manager Ferestre"
-
-
-msgid "Workspace"
-msgstr "Spațiu de lucru"
-
-
-msgid "World"
-msgstr "Lume"
-
-
 msgid "Distance"
 msgstr "Distanță"
 
@@ -1796,8 +1760,8 @@ msgid "Mode"
 msgstr "Mod"
 
 
-msgid "Radius"
-msgstr "Rază"
+msgid "Material"
+msgstr "Material"
 
 
 msgid "Hue"
@@ -1828,6 +1792,10 @@ msgid "Collection of object paths"
 msgstr "Colecție de căi ale obiectelor"
 
 
+msgid "Image"
+msgstr "Imagine"
+
+
 msgid "Rotation"
 msgstr "Rotație"
 
@@ -1846,6 +1814,10 @@ msgstr "Stânga"
 
 msgid "Right"
 msgstr "Dreapta"
+
+
+msgid "Curve"
+msgstr "Curbă"
 
 
 msgid "Gamma"
@@ -1900,12 +1872,20 @@ msgid "View"
 msgstr "Vedere"
 
 
+msgid "Radius"
+msgstr "Rază"
+
+
 msgid "Viewport"
 msgstr "Fereastra de Vizualizare"
 
 
 msgid "Render"
 msgstr "Render"
+
+
+msgid "Scene"
+msgstr "Scenă"
 
 
 msgid "Shading"
@@ -1918,6 +1898,10 @@ msgstr "Transformare"
 
 msgid "Shrink"
 msgstr "Micșorează"
+
+
+msgid "Texture"
+msgstr "Textură"
 
 
 msgid "Vertex"
@@ -2005,17 +1989,8 @@ msgid "Global"
 msgstr "Global"
 
 
-msgctxt "Curves"
-msgid "Curve Preset"
-msgstr "Preset Curbă"
-
-
 msgid "Blur"
 msgstr "Estompare"
-
-
-msgid "Space"
-msgstr "Spațiu"
 
 
 msgid "Sequence"
@@ -2091,6 +2066,14 @@ msgid "Gain"
 msgstr "Creștere"
 
 
+msgid "Window Manager"
+msgstr "Manager Ferestre"
+
+
+msgid "Workspace"
+msgstr "Spațiu de lucru"
+
+
 msgid "Animation"
 msgstr "Animație"
 
@@ -2115,6 +2098,10 @@ msgstr "Sfârșit"
 
 msgid "Sampling"
 msgstr "Eșantionare"
+
+
+msgid "Light"
+msgstr "Lumină"
 
 
 msgid "Add Image"
@@ -2178,12 +2165,20 @@ msgid "New"
 msgstr "Nou"
 
 
+msgid "Space"
+msgstr "Spațiu"
+
+
 msgid "Overwrite"
 msgstr "Suprascriere"
 
 
 msgid "Copy"
 msgstr "Copiere"
+
+
+msgid "World"
+msgstr "Lume"
 
 
 msgid "Normalize"
@@ -2655,10 +2650,6 @@ msgid "New Window"
 msgstr "Fereastră Nouă"
 
 
-msgid "Password"
-msgstr "Parolă"
-
-
 msgid "Viewport Samples"
 msgstr "Eșantioane în fereastra de vizualizare"
 
@@ -2675,6 +2666,19 @@ msgid "Viewport Denoising"
 msgstr "Denoising în Fereastra de Vizualizare"
 
 
+msgctxt "MovieClip"
+msgid "View"
+msgstr "Vedere"
+
+
+msgid "Active Tool and Workspace settings"
+msgstr "Unealta Activă și Setările Spațiului de Lucru"
+
+
+msgid "Render Properties"
+msgstr "Propretățile de Render"
+
+
 msgctxt "Sequence"
 msgid "Image"
 msgstr "Imagine"
@@ -2688,19 +2692,6 @@ msgstr "Scenă"
 msgctxt "Sequence"
 msgid "Movie"
 msgstr "Film"
-
-
-msgctxt "MovieClip"
-msgid "View"
-msgstr "Vedere"
-
-
-msgid "Active Tool and Workspace settings"
-msgstr "Unealta Activă și Setările Spațiului de Lucru"
-
-
-msgid "Render Properties"
-msgstr "Propretățile de Render"
 
 
 msgid "Summary"
@@ -3206,8 +3197,12 @@ msgid "Movie"
 msgstr "Film"
 
 
-msgid "No Properties"
-msgstr "Fără proprietăți"
+msgid "Delete the active position"
+msgstr "Șterge poziția activă"
+
+
+msgid "Choose active color stop"
+msgstr "Alege stopul de culoare activ"
 
 
 msgid "Reset View"
@@ -3224,26 +3219,6 @@ msgstr "Extinde Extrapolat"
 
 msgid "Reset Curve"
 msgstr "Resetează Curba"
-
-
-msgid "Anim Player"
-msgstr "Anim Player"
-
-
-msgid "Display number of users of this data (click to make a single-user copy)"
-msgstr "Afișează numărul de utilizatori ai acestor date (faceți click pentru a face o copie pentru un singur utilizator)"
-
-
-msgid "Reset operator defaults"
-msgstr "Resetează valorile implicite ale operatorilor"
-
-
-msgid "Delete the active position"
-msgstr "Șterge poziția activă"
-
-
-msgid "Choose active color stop"
-msgstr "Alege stopul de culoare activ"
 
 
 msgid "Zoom in"
@@ -3266,12 +3241,8 @@ msgid "Reset Black/White point and curves"
 msgstr "Resetează punctele și curbele Negru/Alb"
 
 
-msgid "Stop this job"
-msgstr "Oprește această treabă"
-
-
-msgid "Stop animation playback"
-msgstr "Oprește playback-ul animației"
+msgid "Display number of users of this data (click to make a single-user copy)"
+msgstr "Afișează numărul de utilizatori ai acestor date (faceți click pentru a face o copie pentru un singur utilizator)"
 
 
 msgid "Browse Scene to be linked"
@@ -3479,6 +3450,26 @@ msgid "New"
 msgstr "Nou"
 
 
+msgid "No Properties"
+msgstr "Fără proprietăți"
+
+
+msgid "Reset operator defaults"
+msgstr "Resetează valorile implicite ale operatorilor"
+
+
+msgid "Anim Player"
+msgstr "Anim Player"
+
+
+msgid "Stop this job"
+msgstr "Oprește această treabă"
+
+
+msgid "Stop animation playback"
+msgstr "Oprește playback-ul animației"
+
+
 msgctxt "Mesh"
 msgid "Cube"
 msgstr "Cub"
@@ -3658,10 +3649,6 @@ msgstr "Adăugare nodul la intrare"
 
 msgid "Mask not found"
 msgstr "Masca nu a fost găsită"
-
-
-msgid "Please select all related strips"
-msgstr "Te rog selectează toate benzile aferente"
 
 
 msgid "No valid inputs to swap"

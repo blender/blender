@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'96c6f543ecc7')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'52cb367a9b67')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-06 10:26+0000\n"
+"POT-Creation-Date: 2025-01-13 11:47+0000\n"
 "PO-Revision-Date: 2024-11-08 04:56+0000\n"
 "Last-Translator: Just Adam <adam.abbas2009@gmail.com>\n"
 "Language-Team: Bulgarian <https://translate.blender.org/projects/blender-ui/ui/bg/>\n"
@@ -524,112 +524,8 @@ msgid "Current stage of the import process"
 msgstr "Настоящ етап на процеса на внасяне"
 
 
-msgid "ID Type"
-msgstr "ID тип"
-
-
 msgid "ID type of the item"
 msgstr "ID тип на артикула"
-
-
-msgid "Armature"
-msgstr "Арматура"
-
-
-msgid "Brush"
-msgstr "Четка"
-
-
-msgid "Camera"
-msgstr "Камера"
-
-
-msgid "Collection"
-msgstr "Колекция"
-
-
-msgid "Font"
-msgstr "Шрифт"
-
-
-msgid "Image"
-msgstr "Изображение"
-
-
-msgid "Key"
-msgstr "Клавиш"
-
-
-msgid "Lattice"
-msgstr "Решетка"
-
-
-msgid "Library"
-msgstr "Библиотека"
-
-
-msgid "Light"
-msgstr "Светлина"
-
-
-msgid "Line Style"
-msgstr "Стил на линията"
-
-
-msgid "Mask"
-msgstr "Маскиране"
-
-
-msgid "Material"
-msgstr "Материал"
-
-
-msgid "Mesh"
-msgstr "Меш"
-
-
-msgid "Palette"
-msgstr "Палитра"
-
-
-msgid "Particle"
-msgstr "Частица"
-
-
-msgid "Scene"
-msgstr "Сцена"
-
-
-msgid "Screen"
-msgstr "Екран"
-
-
-msgid "Sound"
-msgstr "Звук"
-
-
-msgid "Text"
-msgstr "Текст"
-
-
-msgid "Texture"
-msgstr "Текстура"
-
-
-msgid "Volume"
-msgstr "Обем"
-
-
-msgid "Window Manager"
-msgstr "Управител на прозорците"
-
-
-msgid "Workspace"
-msgstr "Работно пространство"
-
-
-msgid "World"
-msgstr "Свят"
 
 
 msgid "Import Info"
@@ -648,6 +544,10 @@ msgid "Speed"
 msgstr "Скорст"
 
 
+msgid "Volume"
+msgstr "Обем"
+
+
 msgid "Parent"
 msgstr "Родителска"
 
@@ -658,6 +558,10 @@ msgstr "Деформиране"
 
 msgid "Index"
 msgstr "Индекс"
+
+
+msgid "Material"
+msgstr "Материал"
 
 
 msgid "All"
@@ -678,6 +582,10 @@ msgstr "Запълни"
 
 msgid "Crop"
 msgstr "Отрязване"
+
+
+msgid "Image"
+msgstr "Изображение"
 
 
 msgid "Left"
@@ -732,6 +640,10 @@ msgid "Mix"
 msgstr "Смесване"
 
 
+msgid "Screen"
+msgstr "Екран"
+
+
 msgid "Difference"
 msgstr "Разлика"
 
@@ -760,12 +672,16 @@ msgid "Input"
 msgstr "Вход"
 
 
+msgid "Armature"
+msgstr "Арматура"
+
+
 msgid "Floor"
 msgstr "Под"
 
 
-msgid "Additive"
-msgstr "Натрупващо се"
+msgid "Camera"
+msgstr "Камера"
 
 
 msgid "Front"
@@ -796,6 +712,10 @@ msgid "Render"
 msgstr "Генериране"
 
 
+msgid "Scene"
+msgstr "Сцена"
+
+
 msgid "Driver type"
 msgstr "Водач тип"
 
@@ -806,6 +726,10 @@ msgstr "Променливи"
 
 msgid "Factor"
 msgstr "Фактор"
+
+
+msgid "Texture"
+msgstr "Текстура"
 
 
 msgid "Format"
@@ -838,6 +762,10 @@ msgstr "Идентификатор"
 
 msgid "User Defined"
 msgstr "Потребителски"
+
+
+msgid "Additive"
+msgstr "Натрупващо се"
 
 
 msgid "Maximum distance for the field to work"
@@ -924,8 +852,16 @@ msgid "Density"
 msgstr "Плътност"
 
 
+msgid "Collection"
+msgstr "Колекция"
+
+
 msgid "Exclusive"
 msgstr "Изключващ"
+
+
+msgid "Line Style"
+msgstr "Стил на линията"
 
 
 msgid "Frames"
@@ -942,6 +878,10 @@ msgstr "Мрежа"
 
 msgid "Region Type"
 msgstr "Тип на Региона"
+
+
+msgid "Library"
+msgstr "Библиотека"
 
 
 msgid "Layers"
@@ -968,6 +908,10 @@ msgid "Smear"
 msgstr "Мажа"
 
 
+msgid "Brush"
+msgstr "Четка"
+
+
 msgid "Perspective"
 msgstr "Перспектива"
 
@@ -978,6 +922,10 @@ msgstr "Ортографиране"
 
 msgid "Extrude"
 msgstr "Изтегляне"
+
+
+msgid "Font"
+msgstr "Шрифт"
 
 
 msgid "Small Caps"
@@ -1020,6 +968,10 @@ msgid "Tool"
 msgstr "Прибор"
 
 
+msgid "Mesh"
+msgstr "Меш"
+
+
 msgid "Constraints"
 msgstr "Ограничители"
 
@@ -1032,8 +984,16 @@ msgid "Solid"
 msgstr "Солиден"
 
 
+msgid "Lattice"
+msgstr "Решетка"
+
+
 msgid "Pose"
 msgstr "Поза"
+
+
+msgid "Particle"
+msgstr "Частица"
 
 
 msgid "Halo"
@@ -1046,6 +1006,10 @@ msgstr "Неродени"
 
 msgid "3D Cursor"
 msgstr "3D Курсор"
+
+
+msgid "Sound"
+msgstr "Звук"
 
 
 msgid "Blend"
@@ -1064,12 +1028,16 @@ msgid "Area"
 msgstr "Площ"
 
 
-msgid "Sharp"
-msgstr "Рязък"
+msgid "Window Manager"
+msgstr "Управител на прозорците"
 
 
 msgid "Themes"
 msgstr "Теми"
+
+
+msgid "Workspace"
+msgstr "Работно пространство"
 
 
 msgid "Mist"
@@ -1164,8 +1132,20 @@ msgid "Click"
 msgstr "Клик"
 
 
+msgid "ID Type"
+msgstr "ID тип"
+
+
+msgid "Mask"
+msgstr "Маскиране"
+
+
 msgid "UV Mapping"
 msgstr "UV Картиране"
+
+
+msgid "Light"
+msgstr "Светлина"
 
 
 msgid "Rigid Body"
@@ -1192,8 +1172,16 @@ msgid "Merge"
 msgstr "Слей"
 
 
+msgid "Text"
+msgstr "Текст"
+
+
 msgid "Languages..."
 msgstr "Езици..."
+
+
+msgid "Key"
+msgstr "Клавиш"
 
 
 msgid "Import"
@@ -1218,6 +1206,10 @@ msgstr "Външни Данни"
 
 msgid "Help"
 msgstr "Помощ"
+
+
+msgid "Sharp"
+msgstr "Рязък"
 
 
 msgid "Ball"
@@ -1252,16 +1244,16 @@ msgid "Protect"
 msgstr "Предпази"
 
 
-msgid "Shaded"
-msgstr "Светлосенки"
-
-
 msgid "Overwrite"
 msgstr "Презаписване"
 
 
 msgid "Copy"
 msgstr "Копиране"
+
+
+msgid "World"
+msgstr "Свят"
 
 
 msgid "Even"
@@ -1691,10 +1683,6 @@ msgid "Hide"
 msgstr "Скриване"
 
 
-msgid "Wrap"
-msgstr "Обвив"
-
-
 msgctxt "Operator"
 msgid "Bake"
 msgstr "Изпечи"
@@ -1775,6 +1763,10 @@ msgstr "Презареждане"
 msgctxt "Operator"
 msgid "Image from View"
 msgstr "Изображение от Изглед"
+
+
+msgid "Palette"
+msgstr "Палитра"
 
 
 msgid "Connect hair to the emitter mesh"
@@ -1995,6 +1987,10 @@ msgid "Remove"
 msgstr "Премахване"
 
 
+msgid "Wrap"
+msgstr "Обвив"
+
+
 msgid "Doc ID"
 msgstr "Doc ID"
 
@@ -2186,6 +2182,10 @@ msgstr "Бележка"
 
 msgid "Timeline"
 msgstr "Времева линия"
+
+
+msgid "Shaded"
+msgstr "Светлосенки"
 
 
 msgid "Sub"

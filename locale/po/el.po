@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'96c6f543ecc7')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'52cb367a9b67')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-06 10:26+0000\n"
+"POT-Creation-Date: 2025-01-13 11:47+0000\n"
 "PO-Revision-Date: 2024-04-29 13:44+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Greek <https://translate.blender.org/projects/blender-ui/ui/el/>\n"
@@ -119,66 +119,6 @@ msgid "Hide"
 msgstr "Απόκρυψη"
 
 
-msgid "Armature"
-msgstr "Σκελετός"
-
-
-msgid "Camera"
-msgstr "Κάμερα"
-
-
-msgid "Curve"
-msgstr "Καμπύλη"
-
-
-msgid "Font"
-msgstr "Γραμματοσειρά"
-
-
-msgid "Key"
-msgstr "Κλειδί"
-
-
-msgid "Lattice"
-msgstr "Πλέγμα"
-
-
-msgid "Library"
-msgstr "Βιβλιοθήκη"
-
-
-msgid "Light"
-msgstr "Φως"
-
-
-msgid "Mesh"
-msgstr "Πολύγωνα"
-
-
-msgid "Metaball"
-msgstr "Μετα-σφαίρα"
-
-
-msgid "Scene"
-msgstr "Σκηνή"
-
-
-msgid "Screen"
-msgstr "Οθόνη"
-
-
-msgid "Sound"
-msgstr "Ήχος"
-
-
-msgid "Text"
-msgstr "Κείμενο"
-
-
-msgid "World"
-msgstr "Κόσμος"
-
-
 msgid "Speed"
 msgstr "Ταχύτητα"
 
@@ -231,12 +171,20 @@ msgid "Quality"
 msgstr "Ποιότητα"
 
 
+msgid "Curve"
+msgstr "Καμπύλη"
+
+
 msgid "Gamma"
 msgstr "Γάμμα"
 
 
 msgid "Mix"
 msgstr "Μείξη"
+
+
+msgid "Screen"
+msgstr "Οθόνη"
 
 
 msgid "Near"
@@ -267,8 +215,16 @@ msgid "Locked Track"
 msgstr "Κλειδωμένο Κανάλι"
 
 
+msgid "Armature"
+msgstr "Σκελετός"
+
+
 msgid "Child Of"
 msgstr "Τέκνο Του"
+
+
+msgid "Camera"
+msgstr "Κάμερα"
 
 
 msgid "Bone"
@@ -313,6 +269,10 @@ msgstr "Τμήματα"
 
 msgid "Render"
 msgstr "Render"
+
+
+msgid "Scene"
+msgstr "Σκηνή"
 
 
 msgid "Group"
@@ -395,12 +355,12 @@ msgid "Blue"
 msgstr "Μπλε"
 
 
+msgid "Library"
+msgstr "Βιβλιοθήκη"
+
+
 msgid "Wire"
 msgstr "Πλέγμα"
-
-
-msgid "Grab"
-msgstr "Μετακίνηση"
 
 
 msgid "Dynamic"
@@ -421,6 +381,10 @@ msgstr "Προεξοχή"
 
 msgid "Path"
 msgstr "Μονοπάτι"
+
+
+msgid "Font"
+msgstr "Γραμματοσειρά"
 
 
 msgid "Shear"
@@ -463,6 +427,10 @@ msgid "Edit"
 msgstr "Επεξεργασία"
 
 
+msgid "Mesh"
+msgstr "Πολύγωνα"
+
+
 msgid "Bounding Box"
 msgstr "Κουτί Ορίων"
 
@@ -499,6 +467,14 @@ msgid "Weight Paint"
 msgstr "Χρωματισμός Βάρους"
 
 
+msgid "Lattice"
+msgstr "Πλέγμα"
+
+
+msgid "Sound"
+msgstr "Ήχος"
+
+
 msgid "Blend"
 msgstr "Ανάμιξη"
 
@@ -509,10 +485,6 @@ msgstr "Σκληρό"
 
 msgid "Area"
 msgstr "Περιοχή"
-
-
-msgid "Sharp"
-msgstr "Απότομο"
 
 
 msgid "Themes"
@@ -547,16 +519,24 @@ msgid "Keyboard"
 msgstr "Πληκτρολόγιο"
 
 
-msgid "Mirror"
-msgstr "Καθρέφτισμα"
-
-
 msgid "Snap"
 msgstr "Προσκόλληση"
 
 
+msgid "Mirror"
+msgstr "Καθρέφτισμα"
+
+
 msgid "Select Linked"
 msgstr "Επιλογή Συνδεδεμένων"
+
+
+msgid "Metaball"
+msgstr "Μετα-σφαίρα"
+
+
+msgid "Light"
+msgstr "Φως"
 
 
 msgid "Rigid Body"
@@ -577,6 +557,14 @@ msgstr "Ορισμός Ενός Χρήστη"
 
 msgid "Merge"
 msgstr "Συγχώνευση"
+
+
+msgid "Text"
+msgstr "Κείμενο"
+
+
+msgid "Key"
+msgstr "Κλειδί"
 
 
 msgid "Import"
@@ -601,6 +589,10 @@ msgstr "Εξαγωγή"
 
 msgid "Help"
 msgstr "Βοήθεια"
+
+
+msgid "Sharp"
+msgstr "Απότομο"
 
 
 msgid "Ball"
@@ -631,8 +623,8 @@ msgid "New"
 msgstr "Νέο"
 
 
-msgid "Shaded"
-msgstr "Με σκίαση"
+msgid "World"
+msgstr "Κόσμος"
 
 
 msgid "Lines"
@@ -949,6 +941,10 @@ msgid "Recover Last Session"
 msgstr "Επαναφορά τελευταίας συνεδρίας"
 
 
+msgid "Shaded"
+msgstr "Με σκίαση"
+
+
 msgid "Sub"
 msgstr "Υπο"
 
@@ -985,16 +981,16 @@ msgid "Sky"
 msgstr "Ουρανός"
 
 
+msgid "Lens"
+msgstr "Φακός"
+
+
 msgid "Alpha Under"
 msgstr "Υποκάλυψη βάσει διαφάνειας"
 
 
 msgid "Gamma Cross"
 msgstr "Μετάβαση Γάμμα"
-
-
-msgid "Lens"
-msgstr "Φακός"
 
 
 msgid "Stencil"

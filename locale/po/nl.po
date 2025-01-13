@@ -1,9 +1,9 @@
 
 msgid ""
 msgstr ""
-"Project-Id-Version: Blender 4.4.0 Alpha (b'96c6f543ecc7')\n"
+"Project-Id-Version: Blender 4.4.0 Alpha (b'52cb367a9b67')\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-06 10:26+0000\n"
+"POT-Creation-Date: 2025-01-13 11:47+0000\n"
 "PO-Revision-Date: 2024-12-30 14:39+0000\n"
 "Last-Translator: Sander Spolspoel <sander@sworl.be>\n"
 "Language-Team: Dutch <https://translate.blender.org/projects/blender-ui/ui/nl/>\n"
@@ -857,90 +857,6 @@ msgid "Collection of worlds"
 msgstr "Collectie van werelden"
 
 
-msgid "Armature"
-msgstr "Skelet"
-
-
-msgid "Brush"
-msgstr "Kwast"
-
-
-msgid "Camera"
-msgstr "Camera"
-
-
-msgid "Collection"
-msgstr "Collectie"
-
-
-msgid "Curve"
-msgstr "Kromme"
-
-
-msgid "Font"
-msgstr "Lettertype"
-
-
-msgid "Image"
-msgstr "Afbeelding"
-
-
-msgid "Key"
-msgstr "Sleutel"
-
-
-msgid "Library"
-msgstr "Bibliotheek"
-
-
-msgid "Light"
-msgstr "Licht"
-
-
-msgid "Line Style"
-msgstr "Stijl voor Lijnen"
-
-
-msgid "Mask"
-msgstr "Mask"
-
-
-msgid "Material"
-msgstr "Materiaal"
-
-
-msgid "Node Tree"
-msgstr "Node Boom"
-
-
-msgid "Particle"
-msgstr "Deeltje"
-
-
-msgid "Scene"
-msgstr "Scene"
-
-
-msgid "Sound"
-msgstr "Geluid"
-
-
-msgid "Text"
-msgstr "Tekst"
-
-
-msgid "Volume"
-msgstr "Volume"
-
-
-msgid "Workspace"
-msgstr "Werkomgeving"
-
-
-msgid "World"
-msgstr "Wereld"
-
-
 msgid "Avoid"
 msgstr "Vermijd"
 
@@ -979,6 +895,10 @@ msgstr "Afvlakking"
 
 msgid "Random"
 msgstr "Willekeurig"
+
+
+msgid "Volume"
+msgstr "Volume"
 
 
 msgid "Automatic"
@@ -1035,6 +955,10 @@ msgid "Use current mode"
 msgstr "Gebruik huidige modus"
 
 
+msgid "Material"
+msgstr "Materiaal"
+
+
 msgid "Vertex Color"
 msgstr "Kleur van Punt"
 
@@ -1085,6 +1009,10 @@ msgstr "Ondoorzichtigheid"
 
 msgid "Fit"
 msgstr "Passend"
+
+
+msgid "Image"
+msgstr "Afbeelding"
 
 
 msgid "Rotation"
@@ -1173,6 +1101,10 @@ msgstr "Willekeurige Wrijving"
 
 msgid "Stickiness"
 msgstr "Kleverigheid"
+
+
+msgid "Curve"
+msgstr "Kromme"
 
 
 msgid "Exposure"
@@ -1272,6 +1204,10 @@ msgid "Transformation"
 msgstr "Transformatie"
 
 
+msgid "Armature"
+msgstr "Skelet"
+
+
 msgid "Floor"
 msgstr "Vloer"
 
@@ -1290,6 +1226,10 @@ msgstr "Y"
 
 msgid "Use Rotation"
 msgstr "Gebruik Rotatie"
+
+
+msgid "Camera"
+msgstr "Camera"
 
 
 msgid "Copy Pose"
@@ -1350,6 +1290,10 @@ msgstr "Segmenten"
 
 msgid "Render"
 msgstr "Render"
+
+
+msgid "Scene"
+msgstr "Scene"
 
 
 msgid "Particle System"
@@ -1804,6 +1748,10 @@ msgid "Set Size"
 msgstr "Grootte Instellen"
 
 
+msgid "Collection"
+msgstr "Collectie"
+
+
 msgid "Inclusive"
 msgstr "Inclusief"
 
@@ -1826,6 +1774,10 @@ msgstr "Silhouet"
 
 msgid "One Face"
 msgstr "Een Vlak"
+
+
+msgid "Line Style"
+msgstr "Stijl voor Lijnen"
 
 
 msgid "Selection by Collection"
@@ -1912,14 +1864,6 @@ msgid "Reference"
 msgstr "Voorbeeld"
 
 
-msgid "Breakdown"
-msgstr "Afbreken"
-
-
-msgid "Generated"
-msgstr "Gegenereerd"
-
-
 msgid "Grease Pencil Layer"
 msgstr "Vetkrijt laag"
 
@@ -1954,6 +1898,10 @@ msgstr "Toon Lijn"
 
 msgid "Is Indirect"
 msgstr "Is Indirect"
+
+
+msgid "Library"
+msgstr "Bibliotheek"
 
 
 msgid "Full Name"
@@ -2008,6 +1956,41 @@ msgid "Subtract Color"
 msgstr "Trek Kleur Af"
 
 
+msgctxt "Curve"
+msgid "Smooth"
+msgstr "Glad"
+
+
+msgctxt "Curve"
+msgid "Sphere"
+msgstr "Ball"
+
+
+msgctxt "Curve"
+msgid "Root"
+msgstr "Wortel"
+
+
+msgctxt "Curve"
+msgid "Sharp"
+msgstr "Scherp"
+
+
+msgctxt "Curve"
+msgid "Linear"
+msgstr "Lineair"
+
+
+msgctxt "Curve"
+msgid "Inverse Square"
+msgstr "Inverse Wortel"
+
+
+msgctxt "Curve"
+msgid "Constant"
+msgstr "Constant"
+
+
 msgid "Cloth Simulation"
 msgstr "Kledingsimulatie"
 
@@ -2024,16 +2007,12 @@ msgid "Draw"
 msgstr "Potlood"
 
 
+msgid "Brush"
+msgstr "Kwast"
+
+
 msgid "Elastic"
 msgstr "Elastisch"
-
-
-msgid "Dots"
-msgstr "Stippen"
-
-
-msgid "Space"
-msgstr "Ruimte"
 
 
 msgid "Texture Slot"
@@ -2184,6 +2163,10 @@ msgid "Edit Format"
 msgstr "Bewerk Formaat"
 
 
+msgid "Font"
+msgstr "Lettertype"
+
+
 msgid "Font Size"
 msgstr "Groote Lettertype"
 
@@ -2214,6 +2197,10 @@ msgstr "Min"
 
 msgid "Max"
 msgstr "Max"
+
+
+msgid "Node Tree"
+msgstr "Node Boom"
 
 
 msgid "Rounds"
@@ -2372,10 +2359,6 @@ msgid "Simple"
 msgstr "Simpel"
 
 
-msgid "Cross"
-msgstr "Kruisovergang"
-
-
 msgid "Display"
 msgstr "Weergave"
 
@@ -2398,6 +2381,10 @@ msgstr "Massa"
 
 msgid "Material Slot"
 msgstr "Materiaal Plek"
+
+
+msgid "Particle"
+msgstr "Deeltje"
 
 
 msgid "Death"
@@ -2493,6 +2480,10 @@ msgid "Mute the speaker"
 msgstr "Demp de speaker"
 
 
+msgid "Sound"
+msgstr "Geluid"
+
+
 msgid "Area"
 msgstr "Gebied"
 
@@ -2505,8 +2496,13 @@ msgid "Mirror Y"
 msgstr "Spiegel Y"
 
 
-msgid "Sharp"
-msgstr "Scherp"
+msgctxt "Sequence"
+msgid "Clip"
+msgstr "Clip"
+
+
+msgid "Workspace"
+msgstr "Werkomgeving"
 
 
 msgid "Animation"
@@ -2723,42 +2719,28 @@ msgid "Falloff"
 msgstr "Afvlakking"
 
 
-msgctxt "Curve"
-msgid "Smooth"
-msgstr "Glad"
-
-
-msgctxt "Curve"
-msgid "Sphere"
-msgstr "Ball"
-
-
-msgctxt "Curve"
-msgid "Root"
-msgstr "Wortel"
-
-
-msgctxt "Curve"
-msgid "Inverse Square"
-msgstr "Inverse Wortel"
-
-
-msgctxt "Curve"
-msgid "Sharp"
-msgstr "Scherp"
-
-
-msgctxt "Curve"
-msgid "Linear"
-msgstr "Lineair"
-
-
 msgid "Calculate Holes"
 msgstr "Bereken Gaten"
 
 
 msgid "Active Point"
 msgstr "Actieve Punt"
+
+
+msgid "Dots"
+msgstr "Stippen"
+
+
+msgid "Mask"
+msgstr "Mask"
+
+
+msgid "Show/Hide"
+msgstr "Toon/Verberg"
+
+
+msgid "Names"
+msgstr "Namen"
 
 
 msgid "Mirror"
@@ -2781,6 +2763,10 @@ msgid "Select Linked"
 msgstr "Selecteer Aaneengesloten"
 
 
+msgid "Light"
+msgstr "Licht"
+
+
 msgid "Add Image"
 msgstr "Voeg Afbeelding Toe"
 
@@ -2797,10 +2783,6 @@ msgid "Quick Effects"
 msgstr "Snelle Effecten"
 
 
-msgid "Show/Hide"
-msgstr "Toon/Verberg"
-
-
 msgid "Convert"
 msgstr "Converteer"
 
@@ -2813,8 +2795,8 @@ msgid "Clear Transform"
 msgstr "Maak Transformatie Leeg"
 
 
-msgid "Names"
-msgstr "Namen"
+msgid "Text"
+msgstr "Tekst"
 
 
 msgctxt "MovieClip"
@@ -2834,6 +2816,11 @@ msgid "Channel"
 msgstr "Kanaal"
 
 
+msgid "Key"
+msgstr "Sleutel"
+
+
+msgctxt "Operator"
 msgid "Smooth"
 msgstr "Glad"
 
@@ -2908,6 +2895,10 @@ msgid "Loose"
 msgstr "Los"
 
 
+msgid "Sharp"
+msgstr "Scherp"
+
+
 msgid "Seam"
 msgstr "Naad"
 
@@ -2918,6 +2909,10 @@ msgstr "Punt indexen"
 
 msgid "Split Normals"
 msgstr "Splits Normalen"
+
+
+msgid "Smooth"
+msgstr "Glad"
 
 
 msgid "Root"
@@ -2980,6 +2975,10 @@ msgid "Custom Normal"
 msgstr "Eigen Normaal"
 
 
+msgid "Space"
+msgstr "Ruimte"
+
+
 msgid "Cut Edges"
 msgstr "Knip Randen"
 
@@ -3001,11 +3000,6 @@ msgstr "Geen Afvlakking"
 msgctxt "Curve"
 msgid "Curve"
 msgstr "Kromme"
-
-
-msgctxt "Curve"
-msgid "Constant"
-msgstr "Constant"
 
 
 msgid "Used Length"
@@ -3074,6 +3068,10 @@ msgstr "Spiegel As"
 
 msgid "Copy"
 msgstr "Kopieer"
+
+
+msgid "World"
+msgstr "Wereld"
 
 
 msgctxt "Operator"
@@ -3524,6 +3522,14 @@ msgstr "Alle Kanalen"
 msgctxt "Operator"
 msgid "Set Keyframe Type"
 msgstr "Zet Type Sleutelframe"
+
+
+msgid "Breakdown"
+msgstr "Afbreken"
+
+
+msgid "Generated"
+msgstr "Gegenereerd"
 
 
 msgctxt "Operator"
@@ -4063,11 +4069,6 @@ msgid "Less"
 msgstr "Minder"
 
 
-msgctxt "Operator"
-msgid "Smooth"
-msgstr "Glad"
-
-
 msgid "Output A"
 msgstr "Uitvoer A"
 
@@ -4363,6 +4364,16 @@ msgstr "Toon Krommes"
 msgctxt "Operator"
 msgid "Grease Pencil Draw"
 msgstr "Vetkrijt Tekenen"
+
+
+msgctxt "Operator"
+msgid "Invert"
+msgstr "Keer Om"
+
+
+msgctxt "Operator"
+msgid "Erase"
+msgstr "Gummen"
 
 
 msgid "Flat"
@@ -6578,11 +6589,6 @@ msgstr "Tekenen"
 
 
 msgctxt "Operator"
-msgid "Erase"
-msgstr "Gummen"
-
-
-msgctxt "Operator"
 msgid "Box"
 msgstr "Doos"
 
@@ -6718,10 +6724,6 @@ msgid "Seconds"
 msgstr "Seconden"
 
 
-msgid "Password"
-msgstr "Wachtwoord"
-
-
 msgid "Find/Replace"
 msgstr "Vind/Vervang"
 
@@ -6782,68 +6784,16 @@ msgid "Bounciness"
 msgstr "Veerkrachtigheid"
 
 
-msgid "Alpha Under"
-msgstr "Alpha Onder"
-
-
-msgctxt "Sequence"
-msgid "Image"
-msgstr "Afbeelding"
-
-
-msgctxt "Sequence"
-msgid "Meta"
-msgstr "Meta"
-
-
-msgctxt "Sequence"
-msgid "Scene"
-msgstr "Scene"
-
-
-msgctxt "Sequence"
-msgid "Movie"
-msgstr "Film"
-
-
-msgctxt "Sequence"
-msgid "Clip"
-msgstr "Clip"
-
-
-msgctxt "Sequence"
-msgid "Mask"
-msgstr "Mask"
-
-
-msgctxt "Sequence"
-msgid "Sound"
-msgstr "Geluid"
-
-
-msgctxt "Sequence"
-msgid "Cross"
-msgstr "Kruisovergang"
-
-
-msgid "Add Sequence"
-msgstr "Voeg Sequentie Toe"
-
-
-msgid "Shadow Color"
-msgstr "Schaduwkleur"
-
-
-msgid "Use Annotations"
-msgstr "Gebruik Annotaties"
-
-
 msgid "Active Strip"
 msgstr "Actieve Strip"
 
 
 msgid "Show Annotation"
 msgstr "Toon Annotaties"
+
+
+msgid "Shadow Color"
+msgstr "Schaduwkleur"
 
 
 msgid "Shape Key"
@@ -6993,6 +6943,57 @@ msgstr "3D"
 
 msgid "Color Value"
 msgstr "Kleurwaarde"
+
+
+msgid "Cross"
+msgstr "Kruisovergang"
+
+
+msgid "Alpha Under"
+msgstr "Alpha Onder"
+
+
+msgctxt "Sequence"
+msgid "Image"
+msgstr "Afbeelding"
+
+
+msgctxt "Sequence"
+msgid "Meta"
+msgstr "Meta"
+
+
+msgctxt "Sequence"
+msgid "Scene"
+msgstr "Scene"
+
+
+msgctxt "Sequence"
+msgid "Movie"
+msgstr "Film"
+
+
+msgctxt "Sequence"
+msgid "Mask"
+msgstr "Mask"
+
+
+msgctxt "Sequence"
+msgid "Sound"
+msgstr "Geluid"
+
+
+msgctxt "Sequence"
+msgid "Cross"
+msgstr "Kruisovergang"
+
+
+msgid "Add Sequence"
+msgstr "Voeg Sequentie Toe"
+
+
+msgid "Use Annotations"
+msgstr "Gebruik Annotaties"
 
 
 msgid "Force Field"
@@ -7501,11 +7502,6 @@ msgstr "Schaal Veer"
 msgctxt "Operator"
 msgid "Hide Unselected"
 msgstr "Verberg niet Geselecteerd"
-
-
-msgctxt "Operator"
-msgid "Invert"
-msgstr "Keer Om"
 
 
 msgctxt "Operator"
@@ -8740,18 +8736,6 @@ msgid "Choose Screen layout"
 msgstr "Kies Scherm indeling"
 
 
-msgid "File Not Found"
-msgstr "Bestand Niet Gevonden"
-
-
-msgid "Today"
-msgstr "Vandaag"
-
-
-msgid "Yesterday"
-msgstr "Gisteren"
-
-
 msgctxt "Action"
 msgid "New"
 msgstr "Nieuw"
@@ -8875,6 +8859,18 @@ msgstr "Nieuw"
 msgctxt "World"
 msgid "New"
 msgstr "Nieuw"
+
+
+msgid "File Not Found"
+msgstr "Bestand Niet Gevonden"
+
+
+msgid "Today"
+msgstr "Vandaag"
+
+
+msgid "Yesterday"
+msgstr "Gisteren"
 
 
 msgid "Close"
