@@ -18,6 +18,7 @@ def gather_data_sampled_keyframes(
         blender_id,
         channel,
         action_name,
+        slot_handle: int,
         node_channel_is_animated: bool,
         additional_key,  # Used to differentiate between material / material node_tree
         export_settings):
@@ -46,6 +47,7 @@ def gather_data_sampled_keyframes(
             action_name,
             frame,
             step,
+            slot_handle,
             export_settings
         )
 
@@ -67,6 +69,7 @@ def gather_data_sampled_keyframes(
                     action_name,
                     frame,
                     step,
+                    slot_handle,
                     export_settings
                 )
 
@@ -91,6 +94,7 @@ def gather_data_sampled_keyframes(
                         action_name,
                         frame,
                         step,
+                        slot_handle,
                         export_settings
                     )
 

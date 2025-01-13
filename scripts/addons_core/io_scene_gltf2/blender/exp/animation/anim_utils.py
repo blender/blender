@@ -52,6 +52,7 @@ def reset_bone_matrix(blender_object, export_settings) -> None:
 
     # Remove current action if any
     if blender_object.animation_data and blender_object.animation_data.action:
+        blender_object.animation_data.action_slot = None
         blender_object.animation_data.action = None
 
     # Resetting bones TRS to avoid to keep not keyed value on a future action set
@@ -59,14 +60,23 @@ def reset_bone_matrix(blender_object, export_settings) -> None:
         bone.matrix_basis = Matrix()
 
 
-def reset_sk_data(blender_object, blender_actions, export_settings) -> None:
+def reset_sk_data(blender_object, datas, export_settings) -> None:
     # Using NLA for SK is not so common
     # Reset to 0.0 will happen here only if there are at least 2 tracks to export
     if export_settings['gltf_export_reset_sk_data'] is False:
         return
 
-    if len([i for i in blender_actions if i[2] == "SHAPEKEY"]) <= 1:
+    if datas is None:
         return
+
+    if datas.data_type == "TRACK":
+        # For tracks
+        if len(list(datas.loop_on_type("KEY"))) <= 1:
+            return
+    else:
+        # For actions
+        if len([i for i in datas.values() if len([s for s in i.slots if s.id_root == "KEY"]) != 0]) <= 1:
+            return
 
     if blender_object.type != "MESH":
         return
@@ -92,6 +102,7 @@ def add_slide_data(start_frame, uuid: int, key: str, export_settings, add_driver
 
 
 def merge_tracks_perform(merged_tracks, animations, export_settings):
+    # Depending on the option choose, here "track" can be the NLA Track or the action name
     to_delete_idx = []
     for merged_anim_track in merged_tracks.keys():
         if len(merged_tracks[merged_anim_track]) < 2:
@@ -195,7 +206,15 @@ def bake_animation(obj_uuid: str, animation_key: str, export_settings, mode=None
         # (skinned meshes TRS must be ignored, says glTF specification)
         if export_settings['vtree'].nodes[obj_uuid].skin is None:
             if mode is None or mode == "OBJECT":
-                animation, _ = gather_action_object_sampled(obj_uuid, None, animation_key, export_settings)
+                channels, _ = gather_action_object_sampled(obj_uuid, None, None, animation_key, export_settings)
+                if channels:
+                    animation = gltf2_io.Animation(
+                        channels=channels,
+                        extensions=None,  # as other animations
+                        extras=None,  # Because there is no animation to get extras from
+                        name=export_settings['vtree'].nodes[obj_uuid].blender_object.name if obj_uuid == animation_key else animation_key,
+                        samplers=[]
+                    )
 
         # Need to bake sk only if not linked to a driver sk by parent armature
         # In case of NLA track export, no baking of SK
@@ -216,7 +235,7 @@ def bake_animation(obj_uuid: str, animation_key: str, export_settings, mode=None
                 ignore_sk = True
 
             if ignore_sk is False:
-                channel = gather_sampled_sk_channel(obj_uuid, animation_key, export_settings)
+                channel = gather_sampled_sk_channel(obj_uuid, animation_key, None, export_settings)
                 if channel is not None:
                     if animation is None:
                         animation = gltf2_io.Animation(
@@ -241,14 +260,22 @@ def bake_animation(obj_uuid: str, animation_key: str, export_settings, mode=None
         # We need to bake all bones. Because some bone can have some constraints linking to
         # some other armature bones, for example
 
-        animation, _ = gather_action_armature_sampled(obj_uuid, None, animation_key, export_settings)
+        channels, _ = gather_action_armature_sampled(obj_uuid, None, None, animation_key, export_settings)
+        if channels:
+            animation = gltf2_io.Animation(
+                channels=channels,
+                extensions=None,  # as other animations
+                extras=None,  # Because there is no animation to get extras from
+                name=export_settings['vtree'].nodes[obj_uuid].blender_object.name if obj_uuid == animation_key else animation_key,
+                samplers=[]
+            )
         link_samplers(animation, export_settings)
         if animation is not None:
             return animation
     return None
 
 
-def bake_data_animation(blender_type_data, blender_id, animation_key, on_type, export_settings):
+def bake_data_animation(blender_type_data, blender_id, animation_key, slot_handle, on_type, export_settings):
     # if there is no animation in file => no need to bake
     if len(bpy.data.actions) == 0:
         return None
@@ -273,7 +300,7 @@ def bake_data_animation(blender_type_data, blender_id, animation_key, on_type, e
             if len(export_settings['KHR_animation_pointer'][blender_type_data][i]['paths']) == 0:
                 continue
 
-            channels = gather_data_sampled_channels(blender_type_data, i, animation_key, on_type, export_settings)
+            channels = gather_data_sampled_channels(blender_type_data, i, animation_key, slot_handle, on_type, export_settings)
             if channels is not None:
                 total_channels.extend(channels)
 
@@ -289,3 +316,14 @@ def bake_data_animation(blender_type_data, blender_id, animation_key, on_type, e
     if animation is not None and animation.channels:
         link_samplers(animation, export_settings)
         return animation
+
+
+def get_channelbag_for_slot(action, slot):
+    # This is on purpose limited to the first layer and strip. To support more
+    # than 1 layer, a rewrite of this operator is needed which ideally would
+    # happen in C++.
+    for layer in action.layers:
+        for strip in layer.strips:
+            channelbag = strip.channels(slot.handle)
+            return channelbag
+    return None

@@ -10,7 +10,7 @@ from .channel_target import gather_data_sampled_channel_target
 from .sampler import gather_data_sampled_animation_sampler
 
 
-def gather_data_sampled_channels(blender_type_data, blender_id, blender_action_name,
+def gather_data_sampled_channels(blender_type_data, blender_id, blender_action_name, slot_handle,
                                  additional_key, export_settings) -> typing.List[gltf2_io.AnimationChannel]:
     channels = []
 
@@ -29,6 +29,7 @@ def gather_data_sampled_channels(blender_type_data, blender_id, blender_action_n
             blender_id,
             path,
             blender_action_name,
+            slot_handle,
             path in list_of_animated_data_channels.keys(),
             list_of_animated_data_channels[path] if path in list_of_animated_data_channels.keys() else get_gltf_interpolation("LINEAR"),
             additional_key,
@@ -47,6 +48,7 @@ def gather_sampled_data_channel(
         blender_id: str,
         channel: str,
         action_name: str,
+        slot_handle: int,
         node_channel_is_animated: bool,
         node_channel_interpolation: str,
         additional_key: str,  # Used to differentiate between material / material node_tree
@@ -60,6 +62,7 @@ def gather_sampled_data_channel(
             blender_id,
             channel,
             action_name,
+            slot_handle,
             node_channel_is_animated,
             node_channel_interpolation,
             additional_key,
@@ -97,6 +100,7 @@ def __gather_sampler(
         blender_id,
         channel,
         action_name,
+        slot_handle,
         node_channel_is_animated,
         node_channel_interpolation,
         additional_key,
@@ -106,6 +110,7 @@ def __gather_sampler(
         blender_id,
         channel,
         action_name,
+        slot_handle,
         node_channel_is_animated,
         node_channel_interpolation,
         additional_key,
