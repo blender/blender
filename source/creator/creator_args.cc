@@ -1347,6 +1347,11 @@ static const char arg_handle_debug_mode_generic_set_doc_depsgraph_uid[] =
 static const char arg_handle_debug_mode_generic_set_doc_gpu_force_workarounds[] =
     "\n\t"
     "Enable workarounds for typical GPU issues and disable all GPU extensions.";
+#  ifdef WITH_VULKAN_BACKEND
+static const char arg_handle_debug_mode_generic_set_doc_gpu_force_vulkan_local_read[] =
+    "\n\t"
+    "Force Vulkan dynamic rendering local read when supported by device.";
+#  endif
 
 static int arg_handle_debug_mode_generic_set(int /*argc*/, const char ** /*argv*/, void *data)
 {
@@ -2853,6 +2858,13 @@ void main_args_setup(bContext *C, bArgs *ba, bool all)
                "--debug-gpu-force-workarounds",
                CB_EX(arg_handle_debug_mode_generic_set, gpu_force_workarounds),
                (void *)G_DEBUG_GPU_FORCE_WORKAROUNDS);
+#  ifdef WITH_VULKAN_BACKEND
+  BLI_args_add(ba,
+               nullptr,
+               "--debug-gpu-vulkan-local-read",
+               CB_EX(arg_handle_debug_mode_generic_set, gpu_force_vulkan_local_read),
+               (void *)G_DEBUG_GPU_FORCE_VULKAN_LOCAL_READ);
+#  endif
   BLI_args_add(ba, nullptr, "--debug-exit-on-error", CB(arg_handle_debug_exit_on_error), nullptr);
 
   BLI_args_add(ba, nullptr, "--verbose", CB(arg_handle_verbosity_set), nullptr);

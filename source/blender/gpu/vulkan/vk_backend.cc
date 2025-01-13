@@ -386,6 +386,22 @@ void VKBackend::detect_workarounds(VKDevice &device)
     workarounds.not_aligned_pixel_formats = true;
   }
 
+  /* Only enable by default dynamic rendering local read on Qualcomm devices. NVIDIA, AMD and Intel
+   * performance is better when disabled (20%). On Qualcomm devices the improvement can be
+   * substantial (16% on shader_balls.blend).
+   *
+   * `--debug-gpu-vulkan-local-read` can be used to use dynamic rendering local read on any
+   * supported platform.
+   *
+   * TODO: Check if bottleneck is during command building. If so we could fine-tune this after the
+   * device command building landed (T132682).
+   */
+  if ((G.debug & G_DEBUG_GPU_FORCE_VULKAN_LOCAL_READ) == 0 &&
+      !GPU_type_matches(GPU_DEVICE_QUALCOMM, GPU_OS_ANY, GPU_DRIVER_ANY))
+  {
+    workarounds.dynamic_rendering_local_read = true;
+  }
+
   VkFormatProperties format_properties = {};
   vkGetPhysicalDeviceFormatProperties(
       device.physical_device_get(), VK_FORMAT_R8G8B8_UNORM, &format_properties);
