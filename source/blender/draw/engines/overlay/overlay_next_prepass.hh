@@ -190,7 +190,7 @@ class Prepass : Overlay {
                    Resources &res,
                    const State &state) final
   {
-    if (!enabled_) {
+    if (!enabled_ || ob_ref.object->dt < OB_SOLID) {
       return;
     }
 
