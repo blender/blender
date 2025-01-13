@@ -31,6 +31,7 @@
 namespace blender::animrig::versioning {
 
 constexpr const char *DEFAULT_VERSIONED_SLOT_NAME = "Legacy Slot";
+constexpr const char *DEFAULT_VERSIONED_LAYER_NAME = "Layer";
 
 bool action_is_layered(const bAction &dna_action)
 {
@@ -99,7 +100,7 @@ void convert_legacy_animato_action(bAction &dna_action)
                                     DATA_(DEFAULT_VERSIONED_SLOT_NAME)};
   action.slot_identifier_define(slot, slot_identifier);
 
-  Layer &layer = action.layer_add("Layer");
+  Layer &layer = action.layer_add(DATA_(DEFAULT_VERSIONED_LAYER_NAME));
   blender::animrig::Strip &strip = layer.strip_add(action,
                                                    blender::animrig::Strip::Type::Keyframe);
   Channelbag &bag = strip.data<StripKeyframeData>(action).channelbag_for_slot_ensure(slot);
