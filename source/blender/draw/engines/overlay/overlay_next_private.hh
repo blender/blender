@@ -143,6 +143,8 @@ struct State {
   bool hide_overlays = false;
   bool xray_enabled = false;
   bool xray_enabled_and_not_wire = false;
+  /* Can be true even if Xray Alpha is 1.0. */
+  bool xray_flag_enabled = false;
   /* Brings the active pose armature in front of all objects. */
   bool do_pose_xray = false;
   /* Add a veil on top of all surfaces to make the active pose armature pop out. */
