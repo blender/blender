@@ -31,7 +31,7 @@
 namespace blender::animrig::versioning {
 
 constexpr const char *DEFAULT_VERSIONED_SLOT_NAME = "Legacy Slot";
-constexpr const char *DEFAULT_VERSIONED_LAYER_NAME = "Layer";
+constexpr const char *DEFAULT_VERSIONED_LAYER_NAME = "Legacy Layer";
 
 bool action_is_layered(const bAction &dna_action)
 {
