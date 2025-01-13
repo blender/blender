@@ -22,6 +22,7 @@
 #include "BLI_utildefines.h"
 
 #include "BLI_vector.hh"
+#include "DNA_sequence_types.h"
 #include "DNA_view2d_types.h"
 #include "GPU_primitive.hh"
 #include "IMB_imbuf_types.hh"
@@ -91,7 +92,9 @@ void ED_sequencer_special_preview_set(bContext *C, const int mval[2])
   ARegion *region = CTX_wm_region(C);
   eSeqHandle hand_dummy;
   Strip *strip = find_nearest_seq(scene, &region->v2d, mval, &hand_dummy);
-  sequencer_special_update_set(strip);
+  if (strip != nullptr && strip->type != STRIP_TYPE_SOUND_RAM) {
+    sequencer_special_update_set(strip);
+  }
 }
 
 void ED_sequencer_special_preview_clear()
