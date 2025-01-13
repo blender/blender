@@ -14,6 +14,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <optional>
 
 #include "CLG_log.h"
 
@@ -656,7 +657,7 @@ bool BKE_id_copy_is_allowed(const ID *id)
 ID *BKE_id_copy_in_lib(Main *bmain,
                        std::optional<Library *> owner_library,
                        const ID *id,
-                       const ID *new_owner_id,
+                       std::optional<const ID *> new_owner_id,
                        ID **new_id_p,
                        const int flag)
 {
@@ -759,12 +760,12 @@ ID *BKE_id_copy_in_lib(Main *bmain,
 
 ID *BKE_id_copy_ex(Main *bmain, const ID *id, ID **new_id_p, const int flag)
 {
-  return BKE_id_copy_in_lib(bmain, std::nullopt, id, nullptr, new_id_p, flag);
+  return BKE_id_copy_in_lib(bmain, std::nullopt, id, std::nullopt, new_id_p, flag);
 }
 
 ID *BKE_id_copy(Main *bmain, const ID *id)
 {
-  return BKE_id_copy_in_lib(bmain, std::nullopt, id, nullptr, nullptr, LIB_ID_COPY_DEFAULT);
+  return BKE_id_copy_in_lib(bmain, std::nullopt, id, std::nullopt, nullptr, LIB_ID_COPY_DEFAULT);
 }
 
 ID *BKE_id_copy_for_duplicate(Main *bmain,
@@ -1510,7 +1511,7 @@ void *BKE_id_new_nomain(const short type, const char *name)
 void BKE_libblock_copy_in_lib(Main *bmain,
                               std::optional<Library *> owner_library,
                               const ID *id,
-                              const ID *new_owner_id,
+                              std::optional<const ID *> new_owner_id,
                               ID **new_id_p,
                               const int orig_flag)
 {
@@ -1585,11 +1586,17 @@ void BKE_libblock_copy_in_lib(Main *bmain,
    * is given. In some cases (e.g. depsgraph), this is important for later remapping to work
    * properly.
    */
-  if (new_owner_id) {
+  if (new_owner_id.has_value()) {
     const IDTypeInfo *idtype = BKE_idtype_get_info_from_id(new_id);
     BLI_assert(idtype->owner_pointer_get != nullptr);
     ID **owner_id_pointer = idtype->owner_pointer_get(new_id, false);
-    *owner_id_pointer = const_cast<ID *>(new_owner_id);
+    if (owner_id_pointer) {
+      *owner_id_pointer = const_cast<ID *>(*new_owner_id);
+      if (*new_owner_id == nullptr) {
+        /* If the new id does not have an owner, it's also not embedded. */
+        new_id->flag &= ~ID_FLAG_EMBEDDED_DATA;
+      }
+    }
   }
 
   /* We do not want any handling of user-count in code duplicating the data here, we do that all
@@ -1647,14 +1654,14 @@ void BKE_libblock_copy_in_lib(Main *bmain,
 
 void BKE_libblock_copy_ex(Main *bmain, const ID *id, ID **new_id_p, const int orig_flag)
 {
-  BKE_libblock_copy_in_lib(bmain, std::nullopt, id, nullptr, new_id_p, orig_flag);
+  BKE_libblock_copy_in_lib(bmain, std::nullopt, id, std::nullopt, new_id_p, orig_flag);
 }
 
 void *BKE_libblock_copy(Main *bmain, const ID *id)
 {
   ID *idn = nullptr;
 
-  BKE_libblock_copy_in_lib(bmain, std::nullopt, id, nullptr, &idn, 0);
+  BKE_libblock_copy_in_lib(bmain, std::nullopt, id, std::nullopt, &idn, 0);
 
   return idn;
 }

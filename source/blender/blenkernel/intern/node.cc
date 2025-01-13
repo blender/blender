@@ -3764,7 +3764,7 @@ void node_tree_node_flag_set(const bNodeTree *ntree, const int flag, const bool 
   }
 }
 
-bNodeTree *node_tree_localize(bNodeTree *ntree, ID *new_owner_id)
+bNodeTree *node_tree_localize(bNodeTree *ntree, std::optional<ID *> new_owner_id)
 {
   if (ntree == nullptr) {
     return nullptr;

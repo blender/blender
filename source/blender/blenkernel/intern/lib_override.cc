@@ -10,6 +10,7 @@
 #include <cstring>
 #include <iostream>
 #include <map>
+#include <optional>
 #include <queue>
 
 #include "CLG_log.h"
@@ -266,7 +267,7 @@ static ID *lib_override_library_create_from(Main *bmain,
   ID *local_id = BKE_id_copy_in_lib(bmain,
                                     owner_library,
                                     reference_id,
-                                    nullptr,
+                                    std::nullopt,
                                     nullptr,
                                     (LIB_ID_COPY_DEFAULT | LIB_ID_COPY_NO_LIB_OVERRIDE |
                                      LIB_ID_COPY_NO_LIB_OVERRIDE_LOCAL_DATA_FLAG |
