@@ -1431,105 +1431,117 @@ static void flip_names(tAnimCopybufItem *aci, char **r_name)
 
 /* ------------------- */
 
-/* most strict method: exact matches only */
-static tAnimCopybufItem *pastebuf_match_path_full(const FCurve *fcu,
-                                                  const short from_single,
-                                                  const short to_simple,
-                                                  bool flip)
-{
-  tAnimCopybufItem *aci;
+using pastebuf_match_func = bool (*)(Main *bmain,
+                                     const FCurve *fcurve_to_match,
+                                     const tAnimCopybufItem *aci,
+                                     bool from_single,
+                                     bool to_simple,
+                                     bool flip);
 
-  for (aci = static_cast<tAnimCopybufItem *>(animcopybuf.first); aci; aci = aci->next) {
-    if (to_simple || (aci->rna_path && fcu->rna_path)) {
-      if (!to_simple && flip && aci->is_bone && fcu->rna_path) {
-        if ((from_single) || (aci->array_index == fcu->array_index)) {
-          char *name = nullptr;
-          flip_names(aci, &name);
-          if (STREQ(name, fcu->rna_path)) {
-            MEM_freeN(name);
-            break;
-          }
+static tAnimCopybufItem *pastebuf_find_matching_copybuf_item(const pastebuf_match_func strategy,
+                                                             Main *bmain,
+                                                             const FCurve *fcurve_to_match,
+                                                             const bool from_single,
+                                                             const bool to_simple,
+                                                             const bool flip)
+{
+  LISTBASE_FOREACH (tAnimCopybufItem *, aci, &animcopybuf) {
+    if (strategy(bmain, fcurve_to_match, aci, from_single, to_simple, flip)) {
+      return aci;
+    }
+  }
+  return nullptr;
+}
+
+/* most strict method: exact matches only */
+static bool pastebuf_match_path_full(Main * /*bmain*/,
+                                     const FCurve *fcu,
+                                     const tAnimCopybufItem *aci,
+                                     const bool from_single,
+                                     const bool to_simple,
+                                     const bool flip)
+{
+  if (to_simple || (aci->rna_path && fcu->rna_path)) {
+    if (!to_simple && flip && aci->is_bone && fcu->rna_path) {
+      if ((from_single) || (aci->array_index == fcu->array_index)) {
+        char *name = nullptr;
+        flip_names(const_cast<tAnimCopybufItem *>(aci), &name);
+        if (STREQ(name, fcu->rna_path)) {
           MEM_freeN(name);
+          return true;
         }
+        MEM_freeN(name);
       }
-      else if (to_simple || STREQ(aci->rna_path, fcu->rna_path)) {
-        if ((from_single) || (aci->array_index == fcu->array_index)) {
-          break;
-        }
+    }
+    else if (to_simple || STREQ(aci->rna_path, fcu->rna_path)) {
+      if ((from_single) || (aci->array_index == fcu->array_index)) {
+        return true;
       }
     }
   }
 
-  return aci;
+  return false;
 }
 
 /* medium match strictness: path match only (i.e. ignore ID) */
-static tAnimCopybufItem *pastebuf_match_path_property(Main *bmain,
-                                                      const FCurve *fcu,
-                                                      const short from_single,
-                                                      const short /*to_simple*/)
+static bool pastebuf_match_path_property(Main *bmain,
+                                         const FCurve *fcu,
+                                         const tAnimCopybufItem *aci,
+                                         const bool from_single,
+                                         const bool /*to_simple*/,
+                                         const bool /*flip*/)
 {
-  tAnimCopybufItem *aci;
+  /* check that paths exist */
+  if (aci->rna_path && fcu->rna_path) {
+    /* find the property of the fcurve and compare against the end of the tAnimCopybufItem
+     * more involved since it needs to do path lookups.
+     * This is not 100% reliable since the user could be editing the curves on a path that won't
+     * resolve, or a bone could be renamed after copying for eg. but in normal copy & paste
+     * this should work out ok.
+     */
+    if (BLI_findindex(which_libbase(bmain, aci->id_type), aci->id) == -1) {
+      /* pedantic but the ID could have been removed, and beats crashing! */
+      printf("paste_animedit_keys: error ID has been removed!\n");
+    }
+    else {
+      PointerRNA rptr;
+      PropertyRNA *prop;
 
-  for (aci = static_cast<tAnimCopybufItem *>(animcopybuf.first); aci; aci = aci->next) {
-    /* check that paths exist */
-    if (aci->rna_path && fcu->rna_path) {
-      /* find the property of the fcurve and compare against the end of the tAnimCopybufItem
-       * more involved since it needs to do path lookups.
-       * This is not 100% reliable since the user could be editing the curves on a path that won't
-       * resolve, or a bone could be renamed after copying for eg. but in normal copy & paste
-       * this should work out ok.
-       */
-      if (BLI_findindex(which_libbase(bmain, aci->id_type), aci->id) == -1) {
-        /* pedantic but the ID could have been removed, and beats crashing! */
-        printf("paste_animedit_keys: error ID has been removed!\n");
-      }
-      else {
-        PointerRNA rptr;
-        PropertyRNA *prop;
+      PointerRNA id_ptr = RNA_id_pointer_create(aci->id);
 
-        PointerRNA id_ptr = RNA_id_pointer_create(aci->id);
-
-        if (RNA_path_resolve_property(&id_ptr, aci->rna_path, &rptr, &prop)) {
-          const char *identifier = RNA_property_identifier(prop);
-          int len_id = strlen(identifier);
-          int len_path = strlen(fcu->rna_path);
-          if (len_id <= len_path) {
-            /* NOTE: paths which end with "] will fail with this test - Animated ID Props. */
-            if (STREQ(identifier, fcu->rna_path + (len_path - len_id))) {
-              if ((from_single) || (aci->array_index == fcu->array_index)) {
-                break;
-              }
+      if (RNA_path_resolve_property(&id_ptr, aci->rna_path, &rptr, &prop)) {
+        const char *identifier = RNA_property_identifier(prop);
+        int len_id = strlen(identifier);
+        int len_path = strlen(fcu->rna_path);
+        if (len_id <= len_path) {
+          /* NOTE: paths which end with "] will fail with this test - Animated ID Props. */
+          if (STREQ(identifier, fcu->rna_path + (len_path - len_id))) {
+            if ((from_single) || (aci->array_index == fcu->array_index)) {
+              return true;
             }
           }
         }
-        else {
-          printf("paste_animedit_keys: failed to resolve path id:%s, '%s'!\n",
-                 aci->id->name,
-                 aci->rna_path);
-        }
+      }
+      else {
+        printf("paste_animedit_keys: failed to resolve path id:%s, '%s'!\n",
+               aci->id->name,
+               aci->rna_path);
       }
     }
   }
 
-  return aci;
+  return false;
 }
 
 /* least strict matching heuristic: indices only */
-static tAnimCopybufItem *pastebuf_match_index_only(const FCurve *fcu,
-                                                   const short from_single,
-                                                   const short /*to_simple*/)
+static bool pastebuf_match_index_only(Main * /*bmain*/,
+                                      const FCurve *fcu,
+                                      const tAnimCopybufItem *aci,
+                                      const bool from_single,
+                                      const bool /*to_simple*/,
+                                      const bool /*to_simple*/)
 {
-  tAnimCopybufItem *aci;
-
-  for (aci = static_cast<tAnimCopybufItem *>(animcopybuf.first); aci; aci = aci->next) {
-    /* check that paths exist */
-    if ((from_single) || (aci->array_index == fcu->array_index)) {
-      break;
-    }
-  }
-
-  return aci;
+  return from_single || aci->array_index == fcu->array_index;
 }
 
 /* ................ */
@@ -1821,6 +1833,28 @@ eKeyPasteError paste_animedit_keys(bAnimContext *ac,
     for (pass = 0; pass < 3; pass++) {
       uint totmatch = 0;
 
+      pastebuf_match_func matcher;
+      switch (pass) {
+        case 0:
+          /* most strict, must be exact path match data_path & index */
+          matcher = pastebuf_match_path_full;
+          break;
+
+        case 1:
+          /* less strict, just compare property names */
+          matcher = pastebuf_match_path_property;
+          break;
+
+        case 2:
+          /* Comparing properties gave no results, so just do index comparisons */
+          matcher = pastebuf_match_index_only;
+          break;
+
+        default:
+          BLI_assert_unreachable();
+          continue;
+      }
+
       LISTBASE_FOREACH (bAnimListElem *, ale, anim_data) {
         /* Find buffer item to paste from:
          * - If names don't matter (i.e. only 1 channel in buffer), don't check id/group
@@ -1829,24 +1863,9 @@ eKeyPasteError paste_animedit_keys(bAnimContext *ac,
          * - Most importantly, rna-paths should match (array indices are unimportant for now)
          */
         FCurve *fcu = (FCurve *)ale->data; /* destination F-Curve */
-        tAnimCopybufItem *aci = nullptr;
 
-        switch (pass) {
-          case 0:
-            /* most strict, must be exact path match data_path & index */
-            aci = pastebuf_match_path_full(fcu, from_single, to_simple, flip);
-            break;
-
-          case 1:
-            /* less strict, just compare property names */
-            aci = pastebuf_match_path_property(ac->bmain, fcu, from_single, to_simple);
-            break;
-
-          case 2:
-            /* Comparing properties gave no results, so just do index comparisons */
-            aci = pastebuf_match_index_only(fcu, from_single, to_simple);
-            break;
-        }
+        tAnimCopybufItem *aci = pastebuf_find_matching_copybuf_item(
+            matcher, ac->bmain, fcu, from_single, to_simple, flip);
 
         /* copy the relevant data from the matching buffer curve */
         if (aci) {
