@@ -297,6 +297,9 @@ GPUShader *GPU_shader_create_from_info(const GPUShaderCreateInfo *_info)
 
 static std::string preprocess_source(StringRefNull original)
 {
+  if (original.is_empty()) {
+    return original;
+  }
   gpu::shader::Preprocessor processor;
   return processor.process(original);
 };
