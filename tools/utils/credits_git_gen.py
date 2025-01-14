@@ -340,12 +340,13 @@ def main() -> None:
     contrib_companies = (
         "<b>Adidas</b> - Principled BSDF shader in Cycles",
         "<b>AMD</b> - Cycles HIP GPU rendering, CPU optimizations, Hydra integration",
-        "<b>Apple</b> - Cycles Metal GPU backend, USD integration",
+        "<b>Apple</b> - Metal GPU backends, USD integration",
         "<b>AutoCRC</b> - Improvements to fluid particles, vertex color baking",
         "<b>BioSkill GmbH</b> - H3D compatibility for X3D Exporter, OBJ Nurbs Import/Export",
         "<b>Facebook</b> - Cycles subsurface scattering improvements",
         "<b>Intel</b> - Cycles oneAPI GPU rendering, CPU optimizations",
         "<b>NVIDIA</b> - Cycles OptiX GPU rendering, USD integration",
+        "<b>Sony Interactive Entertainment</b> - Deployment improvements",
         "<b>Unity Technologies</b> - FBX Exporter",
     )
 
