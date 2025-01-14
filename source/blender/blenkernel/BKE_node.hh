@@ -8,6 +8,8 @@
  * \ingroup bke
  */
 
+#include <optional>
+
 #include "BLI_compiler_compat.h"
 #include "BLI_ghash.h"
 #include "BLI_span.hh"
@@ -807,6 +809,8 @@ void node_type_storage(bNodeType *ntype,
 #define NODE_GROUP_OUTPUT 8
 #define NODE_CUSTOM_GROUP 9
 
+#define NODE_LEGACY_TYPE_GENERATION_START 5000
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -1165,7 +1169,9 @@ std::optional<StringRefNull> nodeSocketShortLabel(const bNodeSocket *sock);
 /**
  * Initialize a new node type struct with default values and callbacks.
  */
-void node_type_base(bNodeType *ntype, std::string idname, int type);
+void node_type_base(bNodeType *ntype,
+                    std::string idname,
+                    std::optional<int16_t> legacy_type = std::nullopt);
 
 void node_type_socket_templates(bNodeType *ntype,
                                 bNodeSocketTemplate *inputs,

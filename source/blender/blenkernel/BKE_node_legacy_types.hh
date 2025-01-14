@@ -11,6 +11,8 @@
  * changed.
  *
  * See #bNode::type_legacy for more information.
+ *
+ * NOTE: Values here must not be larger than #NODE_LEGACY_TYPE_GENERATION_START.
  */
 
 /* -------------------------------------------------------------------- */

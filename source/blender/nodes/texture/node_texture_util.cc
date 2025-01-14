@@ -28,6 +28,7 @@
 
 #include "node_texture_util.hh"
 #include "node_util.hh"
+#include <optional>
 
 bool tex_node_poll_default(const blender::bke::bNodeType * /*ntype*/,
                            const bNodeTree *ntree,
@@ -40,9 +41,11 @@ bool tex_node_poll_default(const blender::bke::bNodeType * /*ntype*/,
   return true;
 }
 
-void tex_node_type_base(blender::bke::bNodeType *ntype, std::string idname, int type)
+void tex_node_type_base(blender::bke::bNodeType *ntype,
+                        std::string idname,
+                        const std::optional<int16_t> legacy_type)
 {
-  blender::bke::node_type_base(ntype, idname, type);
+  blender::bke::node_type_base(ntype, idname, legacy_type);
 
   ntype->poll = tex_node_poll_default;
   ntype->insert_link = node_insert_link_default;
