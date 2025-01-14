@@ -1107,6 +1107,87 @@ static void do_version_glare_node_options_to_inputs_recursive(
   node_trees_already_versioned.add_new(node_tree);
 }
 
+/* The bloom glare is now normalized by its chain length, see the compute_bloom_chain_length method
+ * in the glare code. So we need to multiply the strength by the chain length to restore its
+ * original value. Since the chain length depend on the input image size, which is runtime
+ * information, we assume the render size as a guess. */
+static void do_version_glare_node_bloom_strength(const Scene *scene,
+                                                 bNodeTree *node_tree,
+                                                 bNode *node)
+{
+  NodeGlare *storage = static_cast<NodeGlare *>(node->storage);
+  if (!storage) {
+    return;
+  }
+
+  if (storage->type != CMP_NODE_GLARE_BLOOM) {
+    return;
+  }
+
+  /* See the get_quality_factor method in the glare code. */
+  const int quality_factor = 1 << storage->quality;
+
+  blender::int2 render_size;
+  BKE_render_resolution(&scene->r, true, &render_size.x, &render_size.y);
+
+  const blender::int2 highlights_size = render_size / quality_factor;
+
+  bNodeSocket *size = version_node_add_socket_if_not_exist(
+      node_tree, node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Size", "Size");
+  const float size_value = size->default_value_typed<bNodeSocketValueFloat>()->value;
+
+  /* See the compute_bloom_chain_length method in the glare code. */
+  const int smaller_dimension = blender::math::reduce_min(highlights_size);
+  const float scaled_dimension = smaller_dimension * size_value;
+  const int chain_length = int(std::log2(blender::math::max(1.0f, scaled_dimension)));
+
+  auto scale_strength = [chain_length](const float strength) { return strength * chain_length; };
+
+  bNodeSocket *strength_input = version_node_add_socket_if_not_exist(
+      node_tree, node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Strength", "Strength");
+  strength_input->default_value_typed<bNodeSocketValueFloat>()->value = scale_strength(
+      strength_input->default_value_typed<bNodeSocketValueFloat>()->value);
+
+  /* Compute the RNA path of the strength input. */
+  char escaped_node_name[sizeof(node->name) * 2 + 1];
+  BLI_str_escape(escaped_node_name, node->name, sizeof(escaped_node_name));
+  const std::string strength_rna_path = fmt::format("nodes[\"{}\"].inputs[4].default_value",
+                                                    escaped_node_name);
+
+  /* Scale F-Curve. */
+  BKE_fcurves_id_cb(&node_tree->id, [&](ID * /*id*/, FCurve *fcurve) {
+    if (strength_rna_path == fcurve->rna_path) {
+      adjust_fcurve_key_frame_values(
+          fcurve, PROP_FLOAT, [&](const float value) { return scale_strength(value); });
+    }
+  });
+}
+
+static void do_version_glare_node_bloom_strength_recursive(
+    const Scene *scene,
+    bNodeTree *node_tree,
+    blender::Set<bNodeTree *> &node_trees_already_versioned)
+{
+  if (node_trees_already_versioned.contains(node_tree)) {
+    return;
+  }
+
+  LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+    if (node->type_legacy == CMP_NODE_GLARE) {
+      do_version_glare_node_bloom_strength(scene, node_tree, node);
+    }
+    else if (node->is_group()) {
+      bNodeTree *child_tree = reinterpret_cast<bNodeTree *>(node->id);
+      if (child_tree) {
+        do_version_glare_node_bloom_strength_recursive(
+            scene, child_tree, node_trees_already_versioned);
+      }
+    }
+  }
+
+  node_trees_already_versioned.add_new(node_tree);
+}
+
 static bool all_scenes_use(Main *bmain, const blender::Span<const char *> engines)
 {
   if (!bmain->scenes.first) {
@@ -1380,6 +1461,35 @@ void do_versions_after_linking_400(FileData *fd, Main *bmain)
   if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 20)) {
     /* Two new inputs were added, Highlights Smoothness and Highlights suppression. */
     version_node_socket_index_animdata(bmain, NTREE_COMPOSIT, CMP_NODE_GLARE, 2, 2, 13);
+  }
+
+  if (!MAIN_VERSION_FILE_ATLEAST(bmain, 404, 21)) {
+    blender::Set<bNodeTree *> node_trees_already_versioned;
+    LISTBASE_FOREACH (Scene *, scene, &bmain->scenes) {
+      bNodeTree *node_tree = scene->nodetree;
+      if (!node_tree) {
+        continue;
+      }
+      do_version_glare_node_bloom_strength_recursive(
+          scene, node_tree, node_trees_already_versioned);
+    }
+
+    /* The above loop versioned all node trees used in a scene, but other node trees might exist
+     * that are not used in a scene. For those, assume the first scene in the file, as this is
+     * better than not doing versioning at all. */
+    Scene *scene = static_cast<Scene *>(bmain->scenes.first);
+    LISTBASE_FOREACH (bNodeTree *, node_tree, &bmain->nodetrees) {
+      if (node_trees_already_versioned.contains(node_tree)) {
+        continue;
+      }
+
+      LISTBASE_FOREACH (bNode *, node, &node_tree->nodes) {
+        if (node->type_legacy == CMP_NODE_GLARE) {
+          do_version_glare_node_bloom_strength(scene, node_tree, node);
+        }
+      }
+      node_trees_already_versioned.add_new(node_tree);
+    }
   }
 
   /**
