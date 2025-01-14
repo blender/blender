@@ -191,7 +191,11 @@ void VKVertexBuffer::allocate()
                                        VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT |
                                        VK_BUFFER_USAGE_TRANSFER_DST_BIT;
 
-  buffer_.create(size_alloc_get(), GPU_USAGE_STATIC, vk_buffer_usage, false);
+  buffer_.create(size_alloc_get(),
+                 GPU_USAGE_STATIC,
+                 vk_buffer_usage,
+                 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
   debug::object_label(buffer_.vk_handle(), "VertexBuffer");
 }
 
