@@ -377,19 +377,6 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
                                    Mesh *mesh)
 {
   using namespace blender;
-  if (mesh->verts_num == 0) {
-    /* Output just the start cap even if the mesh is empty. */
-    Object *start_cap_ob = amd->start_cap;
-    if (start_cap_ob && start_cap_ob != ctx->object) {
-      Mesh *start_cap_mesh = BKE_modifier_get_evaluated_mesh_from_evaluated_object(start_cap_ob);
-      if (start_cap_mesh) {
-        BKE_mesh_wrapper_ensure_mdata(start_cap_mesh);
-        return BKE_mesh_copy_for_eval(*start_cap_mesh);
-      }
-    }
-    return mesh;
-  }
-
   int2 *edge;
   int i, j, c, count;
   float length = amd->length;
@@ -628,9 +615,11 @@ static Mesh *arrayModifier_doArray(ArrayModifierData *amd,
     }
 
     /* adjust edge vertex indices */
-    edge = &result_edges[c * chunk_nedges];
-    for (i = 0; i < chunk_nedges; i++, edge++) {
-      (*edge) += c * chunk_nverts;
+    if (chunk_nedges) {
+      edge = &result_edges[c * chunk_nedges];
+      for (i = 0; i < chunk_nedges; i++, edge++) {
+        (*edge) += c * chunk_nverts;
+      }
     }
 
     for (i = 0; i < chunk_nfaces; i++) {
