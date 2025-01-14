@@ -896,6 +896,10 @@ static bool rna_Space_view2d_sync_get(PointerRNA *ptr)
   ARegion *region;
 
   area = rna_area_from_space(ptr); /* can be nullptr */
+  if (area == nullptr) {
+    return false;
+  }
+
   if (area->spacetype == SPACE_CLIP) {
     region = BKE_area_find_region_type(area, RGN_TYPE_PREVIEW);
   }
@@ -916,7 +920,11 @@ static void rna_Space_view2d_sync_set(PointerRNA *ptr, bool value)
   ARegion *region;
 
   area = rna_area_from_space(ptr); /* can be nullptr */
-  if ((area != nullptr) && !UI_view2d_area_supports_sync(area)) {
+  if (!area) {
+    return;
+  }
+
+  if (!UI_view2d_area_supports_sync(area)) {
     BKE_reportf(nullptr,
                 RPT_ERROR,
                 "'show_locked_time' is not supported for the '%s' editor",
@@ -947,6 +955,10 @@ static void rna_Space_view2d_sync_update(Main * /*bmain*/, Scene * /*scene*/, Po
   ARegion *region;
 
   area = rna_area_from_space(ptr); /* can be nullptr */
+  if (area == nullptr) {
+    return;
+  }
+
   if (area->spacetype == SPACE_CLIP) {
     region = BKE_area_find_region_type(area, RGN_TYPE_PREVIEW);
   }
