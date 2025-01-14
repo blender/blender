@@ -2501,7 +2501,7 @@ static void scene_graph_update_tagged(Depsgraph *depsgraph, Main *bmain, bool on
     /* (Re-)build dependency graph if needed. */
     DEG_graph_relations_update(depsgraph);
     /* Uncomment this to check if graph was properly tagged for update. */
-    // DEG_debug_graph_relations_validate(depsgraph, bmain, scene);
+    // DEG_debug_graph_relations_validate(depsgraph, bmain, scene, view_layer);
     /* Flush editing data if needed. */
     prepare_mesh_for_viewport_render(bmain, scene, view_layer);
     /* Update all objects: drivers, matrices, etc. flags set
