@@ -10,6 +10,7 @@
 #include "BKE_lib_query.hh"
 #include "BKE_main.hh"
 #include "BKE_main_idmap.hh"
+#include "BKE_main_invariants.hh"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_report.hh"
@@ -473,7 +474,7 @@ static int node_clipboard_paste_exec(bContext *C, wmOperator *op)
     update_multi_input_indices_for_removed_links(*new_node);
   }
 
-  ED_node_tree_propagate_change(*bmain);
+  BKE_main_ensure_invariants(*bmain);
   /* Pasting nodes can create arbitrary new relations because nodes can reference IDs. */
   DEG_relations_tag_update(bmain);
 

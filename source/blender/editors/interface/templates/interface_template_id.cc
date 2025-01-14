@@ -14,6 +14,7 @@
 #include "BKE_lib_id.hh"
 #include "BKE_lib_override.hh"
 #include "BKE_main.hh"
+#include "BKE_main_invariants.hh"
 #include "BKE_packedFile.hh"
 
 #include "BLI_string.h"
@@ -771,7 +772,7 @@ static void template_id_cb(bContext *C, void *arg_litem, void *arg_event)
           WM_event_add_notifier(C, NC_SPACE | ND_SPACE_OUTLINER, nullptr);
           DEG_relations_tag_update(bmain);
         }
-        ED_node_tree_propagate_change(*CTX_data_main(C));
+        BKE_main_ensure_invariants(*CTX_data_main(C));
         undo_push_label = "Make Single User";
       }
       break;

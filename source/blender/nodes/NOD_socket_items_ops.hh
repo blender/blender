@@ -9,6 +9,7 @@
 #include "WM_api.hh"
 
 #include "BKE_context.hh"
+#include "BKE_main_invariants.hh"
 #include "BKE_node_tree_update.hh"
 #include "BKE_node_tree_zones.hh"
 
@@ -60,7 +61,7 @@ inline void update_after_node_change(bContext *C, const PointerRNA node_ptr)
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(node_ptr.owner_id);
 
   BKE_ntree_update_tag_node_property(ntree, node);
-  ED_node_tree_propagate_change(*CTX_data_main(C), ntree);
+  BKE_main_ensure_invariants(*CTX_data_main(C), ntree->id);
   WM_main_add_notifier(NC_NODE | NA_EDITED, ntree);
 }
 

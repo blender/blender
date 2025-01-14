@@ -33,6 +33,7 @@
 #include "BKE_customdata.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_layer.hh"
+#include "BKE_main_invariants.hh"
 #include "BKE_material.hh"
 #include "BKE_mesh_mapping.hh"
 #include "BKE_mesh_types.hh"
@@ -171,7 +172,7 @@ void ED_object_assign_active_image(Main *bmain, Object *ob, int mat_nr, Image *i
 
   if (node && is_image_texture_node(node)) {
     node->id = &ima->id;
-    ED_node_tree_propagate_change(*bmain, ma->nodetree);
+    BKE_main_ensure_invariants(*bmain, ma->nodetree->id);
   }
 }
 

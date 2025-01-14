@@ -47,6 +47,7 @@ const EnumPropertyItem rna_enum_node_socket_type_items[] = {
 
 #  include "BLI_string_ref.hh"
 
+#  include "BKE_main_invariants.hh"
 #  include "BKE_node.hh"
 #  include "BKE_node_enum.hh"
 #  include "BKE_node_runtime.hh"
@@ -350,7 +351,7 @@ static void rna_NodeSocket_update(Main *bmain, Scene * /*scene*/, PointerRNA *pt
   bNodeSocket *sock = static_cast<bNodeSocket *>(ptr->data);
 
   BKE_ntree_update_tag_socket_property(ntree, sock);
-  ED_node_tree_propagate_change(*bmain, ntree);
+  BKE_main_ensure_invariants(*bmain, ntree->id);
 }
 
 static void rna_NodeSocket_enabled_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
@@ -359,7 +360,7 @@ static void rna_NodeSocket_enabled_update(Main *bmain, Scene * /*scene*/, Pointe
   bNodeSocket *sock = static_cast<bNodeSocket *>(ptr->data);
 
   BKE_ntree_update_tag_socket_availability(ntree, sock);
-  ED_node_tree_propagate_change(*bmain, ntree);
+  BKE_main_ensure_invariants(*bmain, ntree->id);
 }
 
 static bool rna_NodeSocket_is_output_get(PointerRNA *ptr)

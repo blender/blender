@@ -21,6 +21,7 @@
 #include "BKE_geometry_set_instances.hh"
 #include "BKE_idprop.hh"
 #include "BKE_instances.hh"
+#include "BKE_main_invariants.hh"
 #include "BKE_modifier.hh"
 #include "BKE_node_legacy_types.hh"
 #include "BKE_node_runtime.hh"
@@ -1073,7 +1074,7 @@ static void WIDGETGROUP_geometry_nodes_refresh(const bContext *C, wmGizmoGroup *
                                                   modify_value);
 
                 Main *main = CTX_data_main(C);
-                ED_node_tree_propagate_change(*main);
+                BKE_main_ensure_invariants(*main);
                 WM_main_add_notifier(NC_GEOM | ND_DATA, nullptr);
               };
         }

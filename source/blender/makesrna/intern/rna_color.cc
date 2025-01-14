@@ -16,6 +16,7 @@
 
 #include "BLT_translation.hh"
 
+#include "BKE_main_invariants.hh"
 #include "BKE_node_tree_update.hh"
 
 #include "RNA_define.hh"
@@ -360,7 +361,7 @@ static void rna_ColorRamp_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr
         for (node = static_cast<bNode *>(ntree->nodes.first); node; node = node->next) {
           if (ELEM(node->type_legacy, SH_NODE_VALTORGB, CMP_NODE_VALTORGB, TEX_NODE_VALTORGB)) {
             BKE_ntree_update_tag_node_property(ntree, node);
-            ED_node_tree_propagate_change(*bmain, ntree);
+            BKE_main_ensure_invariants(*bmain, ntree->id);
           }
         }
         break;

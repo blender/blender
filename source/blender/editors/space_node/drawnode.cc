@@ -20,6 +20,7 @@
 #include "BKE_curve.hh"
 #include "BKE_image.hh"
 #include "BKE_main.hh"
+#include "BKE_main_invariants.hh"
 #include "BKE_node.hh"
 #include "BKE_node_enum.hh"
 #include "BKE_node_legacy_types.hh"
@@ -1008,7 +1009,7 @@ static void node_property_update_default(Main *bmain, Scene * /*scene*/, Pointer
   bNodeTree *ntree = (bNodeTree *)ptr->owner_id;
   bNode *node = (bNode *)ptr->data;
   BKE_ntree_update_tag_node_property(ntree, node);
-  ED_node_tree_propagate_change(*bmain);
+  BKE_main_ensure_invariants(*bmain);
 }
 
 static void node_socket_template_properties_update(blender::bke::bNodeType *ntype,

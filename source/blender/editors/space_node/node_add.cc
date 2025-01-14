@@ -26,6 +26,7 @@
 #include "BKE_image.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
+#include "BKE_main_invariants.hh"
 #include "BKE_node.hh"
 #include "BKE_node_legacy_types.hh"
 #include "BKE_node_runtime.hh"
@@ -87,7 +88,7 @@ bNode *add_node(const bContext &C, const StringRef idname, const float2 &locatio
   bke::node_set_selected(node, true);
   ED_node_set_active(&bmain, &snode, &node_tree, node, nullptr);
 
-  ED_node_tree_propagate_change(bmain, &node_tree);
+  BKE_main_ensure_invariants(bmain, node_tree.id);
   return node;
 }
 
@@ -107,7 +108,7 @@ bNode *add_static_node(const bContext &C, int type, const float2 &location)
   bke::node_set_selected(node, true);
   ED_node_set_active(&bmain, &snode, &node_tree, node, nullptr);
 
-  ED_node_tree_propagate_change(bmain, &node_tree);
+  BKE_main_ensure_invariants(bmain, node_tree.id);
   return node;
 }
 
@@ -224,7 +225,7 @@ static int add_reroute_exec(bContext *C, wmOperator *op)
     }
   }
 
-  ED_node_tree_propagate_change(*CTX_data_main(C), &ntree);
+  BKE_main_ensure_invariants(*CTX_data_main(C), ntree.id);
   return OPERATOR_FINISHED;
 }
 
@@ -330,7 +331,7 @@ static int node_add_group_exec(bContext *C, wmOperator *op)
   BKE_ntree_update_tag_node_property(snode->edittree, group_node);
 
   bke::node_set_active(ntree, group_node);
-  ED_node_tree_propagate_change(*bmain, nullptr);
+  BKE_main_ensure_invariants(*bmain);
   WM_event_add_notifier(C, NC_NODE | NA_ADDED, nullptr);
   DEG_relations_tag_update(bmain);
   return OPERATOR_FINISHED;
@@ -433,7 +434,7 @@ static bool add_node_group_asset(const bContext &C,
   BKE_ntree_update_tag_node_property(&edit_tree, group_node);
 
   bke::node_set_active(&edit_tree, group_node);
-  ED_node_tree_propagate_change(bmain, nullptr);
+  BKE_main_ensure_invariants(bmain);
   WM_event_add_notifier(&C, NC_NODE | NA_ADDED, nullptr);
   DEG_relations_tag_update(&bmain);
 
@@ -544,7 +545,7 @@ static int node_add_object_exec(bContext *C, wmOperator *op)
   BKE_ntree_update_tag_socket_property(ntree, sock);
 
   bke::node_set_active(ntree, object_node);
-  ED_node_tree_propagate_change(*bmain, ntree);
+  BKE_main_ensure_invariants(*bmain, ntree->id);
   DEG_relations_tag_update(bmain);
 
   return OPERATOR_FINISHED;
@@ -631,7 +632,7 @@ static int node_add_collection_exec(bContext *C, wmOperator *op)
   BKE_ntree_update_tag_socket_property(&ntree, sock);
 
   bke::node_set_active(&ntree, collection_node);
-  ED_node_tree_propagate_change(*bmain, &ntree);
+  BKE_main_ensure_invariants(*bmain, ntree.id);
   DEG_relations_tag_update(bmain);
 
   return OPERATOR_FINISHED;
@@ -825,7 +826,7 @@ static int node_add_file_exec(bContext *C, wmOperator *op)
 
   ED_preview_kill_jobs(CTX_wm_manager(C), CTX_data_main(C));
 
-  ED_node_tree_propagate_change(*bmain, snode.edittree);
+  BKE_main_ensure_invariants(*bmain, snode.edittree->id);
   DEG_relations_tag_update(bmain);
 
   if (nodes.size() == 1) {
@@ -927,7 +928,7 @@ static int node_add_mask_exec(bContext *C, wmOperator *op)
   node->id = mask;
   id_us_plus(mask);
 
-  ED_node_tree_propagate_change(*bmain, snode.edittree);
+  BKE_main_ensure_invariants(*bmain, snode.edittree->id);
   DEG_relations_tag_update(bmain);
 
   return OPERATOR_FINISHED;
@@ -980,7 +981,7 @@ static int node_add_material_exec(bContext *C, wmOperator *op)
   material_node->id = &material->id;
   id_us_plus(&material->id);
 
-  ED_node_tree_propagate_change(*bmain, ntree);
+  BKE_main_ensure_invariants(*bmain, ntree->id);
   DEG_relations_tag_update(bmain);
 
   return OPERATOR_FINISHED;

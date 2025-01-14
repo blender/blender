@@ -11,6 +11,7 @@
 #include "DNA_space_types.h"
 
 #include "BKE_context.hh"
+#include "BKE_main_invariants.hh"
 #include "BKE_node_legacy_types.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.hh"
@@ -205,7 +206,7 @@ static void attribute_search_exec_fn(bContext *C, void *data_v, void *item_v)
       /* Make the output socket with the new type on the attribute input node active. */
       nodes::update_node_declaration_and_sockets(*node_tree, *node);
       BKE_ntree_update_tag_node_property(node_tree, node);
-      ED_node_tree_propagate_change(*CTX_data_main(C), node_tree);
+      BKE_main_ensure_invariants(*CTX_data_main(C), node_tree->id);
     }
   }
 

@@ -94,23 +94,6 @@ void ED_node_set_active(
     Main *bmain, SpaceNode *snode, bNodeTree *ntree, bNode *node, bool *r_active_texture_changed);
 
 /**
- * Call after one or more node trees have been changed and tagged accordingly.
- *
- * This function will make sure that other parts of Blender update accordingly. For example, if the
- * node group interface changed, parent node groups have to be updated as well.
- *
- * Additionally, this will send notifiers and tag the depsgraph based on the changes. Depsgraph
- * relation updates have to be triggered by the caller.
- *
- * \param bmain: Main whose data-blocks should be updated based on the changes.
- * \param ntree: Under some circumstances the caller knows that only one node tree has
- *   changed since the last update. In this case the function may be able to skip scanning #bmain
- *   for other things that have to be changed. It may still scan #bmain if the interface of the
- *   node tree has changed.
- */
-void ED_node_tree_propagate_change(Main &bmain, bNodeTree *ntree = nullptr);
-
-/**
  * \param scene_owner: is the owner of the job,
  * we don't use it for anything else currently so could also be a void pointer,
  * but for now keep it an 'Scene' for consistency.

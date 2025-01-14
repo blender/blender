@@ -50,6 +50,7 @@
 #include "BKE_lightprobe.h"
 #include "BKE_linestyle.h"
 #include "BKE_main.hh"
+#include "BKE_main_invariants.hh"
 #include "BKE_material.hh"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
@@ -1642,7 +1643,7 @@ static int render_view_add_exec(bContext *C, wmOperator * /*op*/)
   WM_event_add_notifier(C, NC_SCENE | ND_RENDER_OPTIONS, scene);
 
   BKE_ntree_update_tag_id_changed(bmain, &scene->id);
-  ED_node_tree_propagate_change(*bmain);
+  BKE_main_ensure_invariants(*bmain);
 
   return OPERATOR_FINISHED;
 }
@@ -1681,7 +1682,7 @@ static int render_view_remove_exec(bContext *C, wmOperator * /*op*/)
   WM_event_add_notifier(C, NC_SCENE | ND_RENDER_OPTIONS, scene);
 
   BKE_ntree_update_tag_id_changed(bmain, &scene->id);
-  ED_node_tree_propagate_change(*bmain);
+  BKE_main_ensure_invariants(*bmain);
 
   return OPERATOR_FINISHED;
 }
@@ -2835,7 +2836,7 @@ static int paste_material_exec(bContext *C, wmOperator *op)
 
   /* There are some custom updates to the node tree above, better do a full update pass. */
   BKE_ntree_update_tag_all(ma->nodetree);
-  ED_node_tree_propagate_change(*bmain);
+  BKE_main_ensure_invariants(*bmain);
 
   DEG_id_tag_update(&ma->id, ID_RECALC_SYNC_TO_EVAL);
   WM_event_add_notifier(C, NC_MATERIAL | ND_SHADING_LINKS, ma);

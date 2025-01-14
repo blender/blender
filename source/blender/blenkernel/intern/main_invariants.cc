@@ -68,3 +68,8 @@ void BKE_main_ensure_invariants(Main &bmain, const std::optional<blender::Span<I
 {
   propagate_node_tree_changes(bmain, modified_ids);
 }
+
+void BKE_main_ensure_invariants(Main &bmain, ID &modified_id)
+{
+  BKE_main_ensure_invariants(bmain, {{&modified_id}});
+}

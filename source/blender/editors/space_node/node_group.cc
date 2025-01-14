@@ -29,6 +29,7 @@
 #include "BKE_context.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_main.hh"
+#include "BKE_main_invariants.hh"
 #include "BKE_node_runtime.hh"
 #include "BKE_node_tree_update.hh"
 #include "BKE_report.hh"
@@ -482,7 +483,7 @@ static int node_group_ungroup_exec(bContext *C, wmOperator * /*op*/)
   for (bNode *node : nodes_to_ungroup) {
     node_group_ungroup(bmain, snode->edittree, node);
   }
-  ED_node_tree_propagate_change(*CTX_data_main(C));
+  BKE_main_ensure_invariants(*CTX_data_main(C));
   return OPERATOR_FINISHED;
 }
 
@@ -667,7 +668,7 @@ static int node_group_separate_exec(bContext *C, wmOperator *op)
   /* switch to parent tree */
   ED_node_tree_pop(snode);
 
-  ED_node_tree_propagate_change(*CTX_data_main(C));
+  BKE_main_ensure_invariants(*CTX_data_main(C));
 
   return OPERATOR_FINISHED;
 }
@@ -1200,7 +1201,7 @@ static void node_group_make_insert_selected(const bContext &C,
 
   update_nested_node_refs_after_moving_nodes_into_group(ntree, group, *gnode, node_identifier_map);
 
-  ED_node_tree_propagate_change(*bmain);
+  BKE_main_ensure_invariants(*bmain);
 }
 
 static bNode *node_group_make_from_nodes(const bContext &C,

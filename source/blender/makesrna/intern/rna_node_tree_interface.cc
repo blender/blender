@@ -33,6 +33,7 @@ static const EnumPropertyItem node_tree_interface_socket_in_out_items[] = {
 #  include "BLI_string_ref.hh"
 
 #  include "BKE_attribute.hh"
+#  include "BKE_main_invariants.hh"
 #  include "BKE_node.hh"
 #  include "BKE_node_enum.hh"
 #  include "BKE_node_runtime.hh"
@@ -62,7 +63,7 @@ static void rna_NodeTreeInterfaceItem_update(Main *bmain, Scene * /*scene*/, Poi
     return;
   }
   ntree->tree_interface.tag_items_changed();
-  ED_node_tree_propagate_change(*bmain, ntree);
+  BKE_main_ensure_invariants(*bmain, ntree->id);
 }
 
 static StructRNA *rna_NodeTreeInterfaceItem_refine(PointerRNA *ptr)
@@ -544,7 +545,7 @@ static bNodeTreeInterfaceSocket *rna_NodeTreeInterfaceItems_new_socket(
     BKE_report(reports, RPT_ERROR, "Unable to create socket");
   }
   else {
-    ED_node_tree_propagate_change(*bmain, ntree);
+    BKE_main_ensure_invariants(*bmain, ntree->id);
     WM_main_add_notifier(NC_NODE | NA_EDITED, ntree);
   }
 
@@ -570,7 +571,7 @@ static bNodeTreeInterfacePanel *rna_NodeTreeInterfaceItems_new_panel(ID *id,
   }
   else {
     bNodeTree *ntree = reinterpret_cast<bNodeTree *>(id);
-    ED_node_tree_propagate_change(*bmain, ntree);
+    BKE_main_ensure_invariants(*bmain, ntree->id);
     WM_main_add_notifier(NC_NODE | NA_EDITED, ntree);
   }
 
@@ -607,7 +608,7 @@ static bNodeTreeInterfaceItem *rna_NodeTreeInterfaceItems_copy_to_parent(
   }
   else {
     bNodeTree *ntree = reinterpret_cast<bNodeTree *>(id);
-    ED_node_tree_propagate_change(*bmain, ntree);
+    BKE_main_ensure_invariants(*bmain, ntree->id);
     WM_main_add_notifier(NC_NODE | NA_EDITED, ntree);
   }
 
@@ -634,7 +635,7 @@ static void rna_NodeTreeInterfaceItems_remove(ID *id,
   interface->remove_item(*item, move_content_to_parent);
 
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(id);
-  ED_node_tree_propagate_change(*bmain, ntree);
+  BKE_main_ensure_invariants(*bmain, ntree->id);
   WM_main_add_notifier(NC_NODE | NA_EDITED, ntree);
 }
 
@@ -643,7 +644,7 @@ static void rna_NodeTreeInterfaceItems_clear(ID *id, bNodeTreeInterface *interfa
   interface->clear_items();
 
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(id);
-  ED_node_tree_propagate_change(*bmain, ntree);
+  BKE_main_ensure_invariants(*bmain, ntree->id);
   WM_main_add_notifier(NC_NODE | NA_EDITED, ntree);
 }
 
@@ -656,7 +657,7 @@ static void rna_NodeTreeInterfaceItems_move(ID *id,
   interface->move_item(*item, to_position);
 
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(id);
-  ED_node_tree_propagate_change(*bmain, ntree);
+  BKE_main_ensure_invariants(*bmain, ntree->id);
   WM_main_add_notifier(NC_NODE | NA_EDITED, ntree);
 }
 
@@ -671,7 +672,7 @@ static void rna_NodeTreeInterfaceItems_move_to_parent(ID *id,
   interface->move_item_to_parent(*item, parent, to_position);
 
   bNodeTree *ntree = reinterpret_cast<bNodeTree *>(id);
-  ED_node_tree_propagate_change(*bmain, ntree);
+  BKE_main_ensure_invariants(*bmain, ntree->id);
   WM_main_add_notifier(NC_NODE | NA_EDITED, ntree);
 }
 

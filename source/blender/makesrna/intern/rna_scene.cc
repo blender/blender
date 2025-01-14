@@ -40,6 +40,7 @@
 #include "BKE_armature.hh"
 #include "BKE_editmesh.hh"
 #include "BKE_idtype.hh"
+#include "BKE_main_invariants.hh"
 #include "BKE_paint.hh"
 #include "BKE_volume.hh"
 
@@ -1813,7 +1814,7 @@ void rna_Scene_compositor_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr
     bNodeTree *ntree = reinterpret_cast<bNodeTree *>(scene->nodetree);
     WM_main_add_notifier(NC_NODE | NA_EDITED, &ntree->id);
     WM_main_add_notifier(NC_SCENE | ND_NODES, &ntree->id);
-    ED_node_tree_propagate_change(*bmain, ntree);
+    BKE_main_ensure_invariants(*bmain, ntree->id);
   }
 }
 

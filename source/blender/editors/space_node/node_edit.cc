@@ -469,16 +469,6 @@ bool composite_node_editable(bContext *C)
 /** \name Node Editor Public API Functions
  * \{ */
 
-void ED_node_tree_propagate_change(Main &bmain, bNodeTree *root_ntree)
-{
-  if (root_ntree) {
-    BKE_main_ensure_invariants(bmain, {{&root_ntree->id}});
-  }
-  else {
-    BKE_main_ensure_invariants(bmain);
-  }
-}
-
 void ED_node_set_tree_type(SpaceNode *snode, blender::bke::bNodeTreeType *typeinfo)
 {
   if (typeinfo) {
@@ -737,7 +727,7 @@ void ED_node_set_active(
       BKE_ntree_update_tag_active_output_changed(ntree);
     }
 
-    ED_node_tree_propagate_change(*bmain, ntree);
+    BKE_main_ensure_invariants(*bmain, ntree->id);
 
     if ((node->flag & NODE_ACTIVE_TEXTURE) && !was_active_texture) {
       /* If active texture changed, free GLSL materials. */
@@ -781,7 +771,7 @@ void ED_node_set_active(
       if (r_active_texture_changed) {
         *r_active_texture_changed = true;
       }
-      ED_node_tree_propagate_change(*bmain, ntree);
+      BKE_main_ensure_invariants(*bmain, ntree->id);
       WM_main_add_notifier(NC_IMAGE, nullptr);
     }
 
@@ -799,7 +789,7 @@ void ED_node_set_active(
       node->flag |= NODE_DO_OUTPUT;
       if (was_output == 0) {
         BKE_ntree_update_tag_active_output_changed(ntree);
-        ED_node_tree_propagate_change(*bmain, ntree);
+        BKE_main_ensure_invariants(*bmain, ntree->id);
       }
 
       /* Adding a node doesn't link this yet. */
@@ -815,11 +805,11 @@ void ED_node_set_active(
 
         node->flag |= NODE_DO_OUTPUT;
         BKE_ntree_update_tag_active_output_changed(ntree);
-        ED_node_tree_propagate_change(*bmain, ntree);
+        BKE_main_ensure_invariants(*bmain, ntree->id);
       }
     }
     else if (do_update) {
-      ED_node_tree_propagate_change(*bmain, ntree);
+      BKE_main_ensure_invariants(*bmain, ntree->id);
     }
   }
   else if (ntree->type == NTREE_GEOMETRY) {
@@ -1487,7 +1477,7 @@ static int node_duplicate_exec(bContext *C, wmOperator *op)
   }
 
   tree_draw_order_update(*snode->edittree);
-  ED_node_tree_propagate_change(*bmain, snode->edittree);
+  BKE_main_ensure_invariants(*bmain, snode->edittree->id);
   return OPERATOR_FINISHED;
 }
 
@@ -1550,7 +1540,7 @@ static int node_read_viewlayers_exec(bContext *C, wmOperator * /*op*/)
     }
   }
 
-  ED_node_tree_propagate_change(*bmain, &edit_tree);
+  BKE_main_ensure_invariants(*bmain, edit_tree.id);
 
   return OPERATOR_FINISHED;
 }
@@ -1716,7 +1706,7 @@ static int node_preview_toggle_exec(bContext *C, wmOperator * /*op*/)
 
   node_flag_toggle_exec(snode, NODE_PREVIEW);
 
-  ED_node_tree_propagate_change(*CTX_data_main(C), snode->edittree);
+  BKE_main_ensure_invariants(*CTX_data_main(C), snode->edittree->id);
 
   return OPERATOR_FINISHED;
 }
@@ -1767,7 +1757,7 @@ static int node_deactivate_viewer_exec(bContext *C, wmOperator * /*op*/)
     }
   }
 
-  ED_node_tree_propagate_change(*CTX_data_main(C), snode.edittree);
+  BKE_main_ensure_invariants(*CTX_data_main(C), snode.edittree->id);
 
   return OPERATOR_FINISHED;
 }
@@ -1846,7 +1836,7 @@ static int node_socket_toggle_exec(bContext *C, wmOperator * /*op*/)
     }
   }
 
-  ED_node_tree_propagate_change(*CTX_data_main(C), snode->edittree);
+  BKE_main_ensure_invariants(*CTX_data_main(C), snode->edittree->id);
 
   WM_event_add_notifier(C, NC_NODE | ND_DISPLAY, nullptr);
   /* Hack to force update of the button state after drawing, see #112462. */
@@ -1890,7 +1880,7 @@ static int node_mute_exec(bContext *C, wmOperator * /*op*/)
     }
   }
 
-  ED_node_tree_propagate_change(*bmain, snode->edittree);
+  BKE_main_ensure_invariants(*bmain, snode->edittree->id);
 
   return OPERATOR_FINISHED;
 }
@@ -1932,7 +1922,7 @@ static int node_delete_exec(bContext *C, wmOperator * /*op*/)
     }
   }
 
-  ED_node_tree_propagate_change(*bmain, snode->edittree);
+  BKE_main_ensure_invariants(*bmain, snode->edittree->id);
 
   return OPERATOR_FINISHED;
 }
@@ -1979,7 +1969,7 @@ static int node_delete_reconnect_exec(bContext *C, wmOperator * /*op*/)
     }
   }
 
-  ED_node_tree_propagate_change(*bmain, snode->edittree);
+  BKE_main_ensure_invariants(*bmain, snode->edittree->id);
 
   return OPERATOR_FINISHED;
 }
@@ -2030,7 +2020,7 @@ static int node_output_file_add_socket_exec(bContext *C, wmOperator *op)
   RNA_string_get(op->ptr, "file_path", file_path);
   ntreeCompositOutputFileAddSocket(ntree, node, file_path, &scene->r.im_format);
 
-  ED_node_tree_propagate_change(*CTX_data_main(C), snode->edittree);
+  BKE_main_ensure_invariants(*CTX_data_main(C), snode->edittree->id);
 
   return OPERATOR_FINISHED;
 }
@@ -2083,7 +2073,7 @@ static int node_output_file_remove_active_socket_exec(bContext *C, wmOperator * 
     return OPERATOR_CANCELLED;
   }
 
-  ED_node_tree_propagate_change(*CTX_data_main(C), ntree);
+  BKE_main_ensure_invariants(*CTX_data_main(C), ntree->id);
 
   return OPERATOR_FINISHED;
 }
@@ -2155,7 +2145,7 @@ static int node_output_file_move_active_socket_exec(bContext *C, wmOperator *op)
   }
 
   BKE_ntree_update_tag_node_property(snode->edittree, node);
-  ED_node_tree_propagate_change(*CTX_data_main(C), snode->edittree);
+  BKE_main_ensure_invariants(*CTX_data_main(C), snode->edittree->id);
 
   return OPERATOR_FINISHED;
 }
@@ -2438,7 +2428,7 @@ static int viewer_border_exec(bContext *C, wmOperator *op)
         btree->flag |= NTREE_VIEWER_BORDER;
       }
 
-      ED_node_tree_propagate_change(*bmain, btree);
+      BKE_main_ensure_invariants(*bmain, btree->id);
       WM_event_add_notifier(C, NC_NODE | ND_DISPLAY, nullptr);
     }
     else {
@@ -2478,7 +2468,7 @@ static int clear_viewer_border_exec(bContext *C, wmOperator * /*op*/)
   bNodeTree *btree = snode->nodetree;
 
   btree->flag &= ~NTREE_VIEWER_BORDER;
-  ED_node_tree_propagate_change(*CTX_data_main(C), btree);
+  BKE_main_ensure_invariants(*CTX_data_main(C), btree->id);
   WM_event_add_notifier(C, NC_NODE | ND_DISPLAY, nullptr);
 
   return OPERATOR_FINISHED;
@@ -2527,7 +2517,7 @@ static int node_cryptomatte_add_socket_exec(bContext *C, wmOperator * /*op*/)
 
   ntreeCompositCryptomatteAddSocket(ntree, node);
 
-  ED_node_tree_propagate_change(*CTX_data_main(C), ntree);
+  BKE_main_ensure_invariants(*CTX_data_main(C), ntree->id);
 
   return OPERATOR_FINISHED;
 }
@@ -2577,7 +2567,7 @@ static int node_cryptomatte_remove_socket_exec(bContext *C, wmOperator * /*op*/)
     return OPERATOR_CANCELLED;
   }
 
-  ED_node_tree_propagate_change(*CTX_data_main(C), ntree);
+  BKE_main_ensure_invariants(*CTX_data_main(C), ntree->id);
 
   return OPERATOR_FINISHED;
 }

@@ -16,6 +16,7 @@
 #include "BLI_rect.h"
 
 #include "BKE_context.hh"
+#include "BKE_main_invariants.hh"
 #include "BKE_node.hh"
 #include "BKE_node_runtime.hh"
 
@@ -280,7 +281,7 @@ static void special_aftertrans_update__node(bContext *C, TransInfo *t)
           bke::node_remove_node(bmain, ntree, node, true);
         }
       }
-      ED_node_tree_propagate_change(*bmain, ntree);
+      BKE_main_ensure_invariants(*bmain, ntree->id);
     }
   }
 

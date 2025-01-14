@@ -22,6 +22,7 @@
 
 #include "BLI_utildefines.h"
 
+#include "BKE_main_invariants.hh"
 #include "BKE_node.hh"
 #include "BKE_node_tree_update.hh"
 #include "BKE_paint.hh"
@@ -194,7 +195,7 @@ static void rna_Texture_update(Main *bmain, Scene * /*scene*/, PointerRNA *ptr)
   }
   else if (GS(id->name) == ID_NT) {
     bNodeTree *ntree = (bNodeTree *)ptr->owner_id;
-    ED_node_tree_propagate_change(*bmain, ntree);
+    BKE_main_ensure_invariants(*bmain, ntree->id);
   }
 }
 

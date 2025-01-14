@@ -36,3 +36,9 @@ struct ID;
  */
 void BKE_main_ensure_invariants(Main &bmain,
                                 std::optional<blender::Span<ID *>> modified_ids = std::nullopt);
+
+/**
+ * Same as above but the calling code is less verbose in the common case when only a single
+ * data-block has been modified.
+ */
+void BKE_main_ensure_invariants(Main &bmain, ID &modified_id);
