@@ -176,7 +176,7 @@ void VKTexture::clear_depth_stencil(const eGPUFrameBufferBits buffers,
 
 void VKTexture::swizzle_set(const char swizzle_mask[4])
 {
-  memcpy(image_view_info_.swizzle, swizzle_mask, 4);
+  memcpy(swizzle_, swizzle_mask, 4);
 }
 
 void VKTexture::mip_range_set(int min, int max)
@@ -607,7 +607,7 @@ const VKImageView &VKTexture::image_view_get(const VKImageViewInfo &info)
   if (is_texture_view()) {
     /* TODO: API should be improved as we don't support image view specialization.
      * In the current API this is still possible to setup when using attachments. */
-    return image_view_get(info.arrayed);
+    return image_view_get(info.arrayed, VKImageViewFlags::DEFAULT);
   }
   for (const VKImageView &image_view : image_views_) {
     if (image_view.info == info) {
@@ -619,16 +619,30 @@ const VKImageView &VKTexture::image_view_get(const VKImageViewInfo &info)
   return image_views_.last();
 }
 
-const VKImageView &VKTexture::image_view_get(VKImageViewArrayed arrayed)
+const VKImageView &VKTexture::image_view_get(VKImageViewArrayed arrayed, VKImageViewFlags flags)
 {
   image_view_info_.mip_range = mip_map_range();
   image_view_info_.use_srgb = true;
   image_view_info_.use_stencil = use_stencil_;
   image_view_info_.arrayed = arrayed;
   image_view_info_.layer_range = layer_range();
+
   if (arrayed == VKImageViewArrayed::NOT_ARRAYED) {
     image_view_info_.layer_range = image_view_info_.layer_range.slice(
         0, ELEM(type_, GPU_TEXTURE_CUBE, GPU_TEXTURE_CUBE_ARRAY) ? 6 : 1);
+  }
+
+  if (bool(flags & VKImageViewFlags::NO_SWIZZLING)) {
+    image_view_info_.swizzle[0] = 'r';
+    image_view_info_.swizzle[1] = 'g';
+    image_view_info_.swizzle[2] = 'b';
+    image_view_info_.swizzle[3] = 'a';
+  }
+  else {
+    image_view_info_.swizzle[0] = swizzle_[0];
+    image_view_info_.swizzle[1] = swizzle_[1];
+    image_view_info_.swizzle[2] = swizzle_[2];
+    image_view_info_.swizzle[3] = swizzle_[3];
   }
 
   if (is_texture_view()) {

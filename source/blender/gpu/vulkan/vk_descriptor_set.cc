@@ -76,11 +76,12 @@ void VKDescriptorSetTracker::bind_image_resource(const VKStateManager &state_man
                                                  render_graph::VKResourceAccessInfo &access_info)
 {
   VKTexture &texture = *state_manager.images_.get(resource_binding.binding);
-  bind_image(VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
-             VK_NULL_HANDLE,
-             texture.image_view_get(resource_binding.arrayed).vk_handle(),
-             VK_IMAGE_LAYOUT_GENERAL,
-             resource_binding.location);
+  bind_image(
+      VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
+      VK_NULL_HANDLE,
+      texture.image_view_get(resource_binding.arrayed, VKImageViewFlags::NO_SWIZZLING).vk_handle(),
+      VK_IMAGE_LAYOUT_GENERAL,
+      resource_binding.location);
   /* Update access info. */
   uint32_t layer_base = 0;
   uint32_t layer_count = VK_REMAINING_ARRAY_LAYERS;
@@ -127,7 +128,8 @@ void VKDescriptorSetTracker::bind_texture_resource(const VKDevice &device,
         const VKSampler &sampler = device.samplers().get(elem.sampler);
         bind_image(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
                    sampler.vk_handle(),
-                   texture->image_view_get(resource_binding.arrayed).vk_handle(),
+                   texture->image_view_get(resource_binding.arrayed, VKImageViewFlags::DEFAULT)
+                       .vk_handle(),
                    VK_IMAGE_LAYOUT_GENERAL,
                    resource_binding.location);
         access_info.images.append({texture->vk_image_handle(),
@@ -157,7 +159,8 @@ void VKDescriptorSetTracker::bind_input_attachment_resource(
     BLI_assert(texture);
     bind_image(VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,
                VK_NULL_HANDLE,
-               texture->image_view_get(resource_binding.arrayed).vk_handle(),
+               texture->image_view_get(resource_binding.arrayed, VKImageViewFlags::NO_SWIZZLING)
+                   .vk_handle(),
                VK_IMAGE_LAYOUT_RENDERING_LOCAL_READ_KHR,
                resource_binding.location);
     access_info.images.append({texture->vk_image_handle(),
@@ -174,11 +177,12 @@ void VKDescriptorSetTracker::bind_input_attachment_resource(
     BLI_assert(elem.resource_type == BindSpaceTextures::Type::Texture);
     if (supports_dynamic_rendering) {
       const VKSampler &sampler = device.samplers().get(elem.sampler);
-      bind_image(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-                 sampler.vk_handle(),
-                 texture->image_view_get(resource_binding.arrayed).vk_handle(),
-                 VK_IMAGE_LAYOUT_GENERAL,
-                 resource_binding.location);
+      bind_image(
+          VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+          sampler.vk_handle(),
+          texture->image_view_get(resource_binding.arrayed, VKImageViewFlags::DEFAULT).vk_handle(),
+          VK_IMAGE_LAYOUT_GENERAL,
+          resource_binding.location);
       access_info.images.append({texture->vk_image_handle(),
                                  resource_binding.access_mask,
                                  to_vk_image_aspect_flag_bits(texture->device_format_get()),
@@ -189,7 +193,8 @@ void VKDescriptorSetTracker::bind_input_attachment_resource(
       /* Fallback to renderpasses / subpasses. */
       bind_image(VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,
                  VK_NULL_HANDLE,
-                 texture->image_view_get(resource_binding.arrayed).vk_handle(),
+                 texture->image_view_get(resource_binding.arrayed, VKImageViewFlags::NO_SWIZZLING)
+                     .vk_handle(),
                  VK_IMAGE_LAYOUT_GENERAL,
                  resource_binding.location);
       access_info.images.append({texture->vk_image_handle(),
