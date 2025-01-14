@@ -37,10 +37,11 @@ void register_node_type_sh_sephsv()
 
   static blender::bke::bNodeType ntype;
 
-  sh_node_type_base(&ntype, "ShaderNodeSeparateHSV", SH_NODE_SEPHSV_LEGACY, NODE_CLASS_CONVERTER);
+  sh_node_type_base(&ntype, "ShaderNodeSeparateHSV", SH_NODE_SEPHSV_LEGACY);
   ntype.ui_name = "Separate HSV (Legacy)";
   ntype.ui_description = "Deprecated";
   ntype.enum_name_legacy = "SEPHSV";
+  ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = file_ns::node_declare_sephsv;
   ntype.gpu_fn = file_ns::gpu_shader_sephsv;
   ntype.gather_link_search_ops = nullptr;
@@ -77,10 +78,11 @@ void register_node_type_sh_combhsv()
 
   static blender::bke::bNodeType ntype;
 
-  sh_node_type_base(&ntype, "ShaderNodeCombineHSV", SH_NODE_COMBHSV_LEGACY, NODE_CLASS_CONVERTER);
+  sh_node_type_base(&ntype, "ShaderNodeCombineHSV", SH_NODE_COMBHSV_LEGACY);
   ntype.ui_name = "Combine HSV (Legacy)";
   ntype.ui_description = "Deprecated";
   ntype.enum_name_legacy = "COMBHSV";
+  ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = file_ns::node_declare_combhsv;
   ntype.gpu_fn = file_ns::gpu_shader_combhsv;
   ntype.gather_link_search_ops = nullptr;

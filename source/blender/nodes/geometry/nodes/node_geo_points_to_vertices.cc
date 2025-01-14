@@ -103,11 +103,11 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(
-      &ntype, "GeometryNodePointsToVertices", GEO_NODE_POINTS_TO_VERTICES, NODE_CLASS_GEOMETRY);
+  geo_node_type_base(&ntype, "GeometryNodePointsToVertices", GEO_NODE_POINTS_TO_VERTICES);
   ntype.ui_name = "Points to Vertices";
   ntype.ui_description = "Generate a mesh vertex for each point cloud point";
   ntype.enum_name_legacy = "POINTS_TO_VERTICES";
+  ntype.nclass = NODE_CLASS_GEOMETRY;
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
   blender::bke::node_register_type(&ntype);

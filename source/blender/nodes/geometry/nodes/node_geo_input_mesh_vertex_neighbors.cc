@@ -106,13 +106,12 @@ static void node_geo_exec(GeoNodeExecParams params)
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
-  geo_node_type_base(&ntype,
-                     "GeometryNodeInputMeshVertexNeighbors",
-                     GEO_NODE_INPUT_MESH_VERTEX_NEIGHBORS,
-                     NODE_CLASS_INPUT);
+  geo_node_type_base(
+      &ntype, "GeometryNodeInputMeshVertexNeighbors", GEO_NODE_INPUT_MESH_VERTEX_NEIGHBORS);
   ntype.ui_name = "Vertex Neighbors";
   ntype.ui_description = "Retrieve topology information relating to each vertex of a mesh";
   ntype.enum_name_legacy = "MESH_VERTEX_NEIGHBORS";
+  ntype.nclass = NODE_CLASS_INPUT;
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
   blender::bke::node_register_type(&ntype);

@@ -51,11 +51,11 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(
-      &ntype, "GeometryNodeMeshToCurve", GEO_NODE_MESH_TO_CURVE, NODE_CLASS_GEOMETRY);
+  geo_node_type_base(&ntype, "GeometryNodeMeshToCurve", GEO_NODE_MESH_TO_CURVE);
   ntype.ui_name = "Mesh to Curve";
   ntype.ui_description = "Generate a curve from a mesh";
   ntype.enum_name_legacy = "MESH_TO_CURVE";
+  ntype.nclass = NODE_CLASS_GEOMETRY;
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
   blender::bke::node_register_type(&ntype);

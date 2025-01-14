@@ -58,13 +58,13 @@ void register_node_type_sh_bsdf_transparent()
 
   static blender::bke::bNodeType ntype;
 
-  sh_node_type_base(
-      &ntype, "ShaderNodeBsdfTransparent", SH_NODE_BSDF_TRANSPARENT, NODE_CLASS_SHADER);
+  sh_node_type_base(&ntype, "ShaderNodeBsdfTransparent", SH_NODE_BSDF_TRANSPARENT);
   ntype.ui_name = "Transparent BSDF";
   ntype.ui_description =
       "Transparency without refraction, passing straight through the surface as if there were no "
       "geometry";
   ntype.enum_name_legacy = "BSDF_TRANSPARENT";
+  ntype.nclass = NODE_CLASS_SHADER;
   ntype.add_ui_poll = object_shader_nodes_poll;
   ntype.declare = file_ns::node_declare;
   ntype.gpu_fn = file_ns::node_shader_gpu_bsdf_transparent;

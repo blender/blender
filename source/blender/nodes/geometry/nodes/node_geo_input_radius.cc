@@ -21,10 +21,11 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, "GeometryNodeInputRadius", GEO_NODE_INPUT_RADIUS, NODE_CLASS_INPUT);
+  geo_node_type_base(&ntype, "GeometryNodeInputRadius", GEO_NODE_INPUT_RADIUS);
   ntype.ui_name = "Radius";
   ntype.ui_description = "Retrieve the radius at each point on curve or point cloud geometry";
   ntype.enum_name_legacy = "INPUT_RADIUS";
+  ntype.nclass = NODE_CLASS_INPUT;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.declare = node_declare;
   blender::bke::node_register_type(&ntype);

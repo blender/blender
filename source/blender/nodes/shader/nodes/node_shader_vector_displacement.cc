@@ -78,11 +78,11 @@ void register_node_type_sh_vector_displacement()
 
   static blender::bke::bNodeType ntype;
 
-  sh_node_type_base(
-      &ntype, "ShaderNodeVectorDisplacement", SH_NODE_VECTOR_DISPLACEMENT, NODE_CLASS_OP_VECTOR);
+  sh_node_type_base(&ntype, "ShaderNodeVectorDisplacement", SH_NODE_VECTOR_DISPLACEMENT);
   ntype.ui_name = "Vector Displacement";
   ntype.ui_description = "Displace the surface along an arbitrary direction";
   ntype.enum_name_legacy = "VECTOR_DISPLACEMENT";
+  ntype.nclass = NODE_CLASS_OP_VECTOR;
   ntype.declare = file_ns::node_declare;
   ntype.initfunc = file_ns::node_shader_init_vector_displacement;
   ntype.gpu_fn = file_ns::gpu_shader_vector_displacement;

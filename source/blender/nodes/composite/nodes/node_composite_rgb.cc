@@ -54,10 +54,11 @@ void register_node_type_cmp_rgb()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, "CompositorNodeRGB", CMP_NODE_RGB, NODE_CLASS_INPUT);
+  cmp_node_type_base(&ntype, "CompositorNodeRGB", CMP_NODE_RGB);
   ntype.ui_name = "RGB";
   ntype.ui_description = "A color picker";
   ntype.enum_name_legacy = "RGB";
+  ntype.nclass = NODE_CLASS_INPUT;
   ntype.declare = file_ns::cmp_node_rgb_declare;
   blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::Default);
   ntype.get_compositor_operation = file_ns::get_compositor_operation;

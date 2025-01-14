@@ -117,12 +117,13 @@ void register_node_type_sh_bump()
 
   static blender::bke::bNodeType ntype;
 
-  sh_node_type_base(&ntype, "ShaderNodeBump", SH_NODE_BUMP, NODE_CLASS_OP_VECTOR);
+  sh_node_type_base(&ntype, "ShaderNodeBump", SH_NODE_BUMP);
   ntype.ui_name = "Bump";
   ntype.ui_description =
       "Generate a perturbed normal from a height texture for bump mapping. Typically used for "
       "faking highly detailed surfaces";
   ntype.enum_name_legacy = "BUMP";
+  ntype.nclass = NODE_CLASS_OP_VECTOR;
   ntype.declare = file_ns::node_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_bump;
   ntype.gpu_fn = file_ns::gpu_shader_bump;

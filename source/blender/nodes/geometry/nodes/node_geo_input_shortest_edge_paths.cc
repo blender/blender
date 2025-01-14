@@ -262,15 +262,14 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype,
-                     "GeometryNodeInputShortestEdgePaths",
-                     GEO_NODE_INPUT_SHORTEST_EDGE_PATHS,
-                     NODE_CLASS_INPUT);
+  geo_node_type_base(
+      &ntype, "GeometryNodeInputShortestEdgePaths", GEO_NODE_INPUT_SHORTEST_EDGE_PATHS);
   ntype.ui_name = "Shortest Edge Paths";
   ntype.ui_description =
       "Find the shortest paths along mesh edges to selected end vertices, with customizable cost "
       "per edge";
   ntype.enum_name_legacy = "SHORTEST_EDGE_PATHS";
+  ntype.nclass = NODE_CLASS_INPUT;
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
   blender::bke::node_register_type(&ntype);

@@ -302,12 +302,13 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, "GeometryNodeRaycast", GEO_NODE_RAYCAST, NODE_CLASS_GEOMETRY);
+  geo_node_type_base(&ntype, "GeometryNodeRaycast", GEO_NODE_RAYCAST);
   ntype.ui_name = "Raycast";
   ntype.ui_description =
       "Cast rays from the context geometry onto a target geometry, and retrieve information from "
       "each hit point";
   ntype.enum_name_legacy = "RAYCAST";
+  ntype.nclass = NODE_CLASS_GEOMETRY;
   bke::node_type_size_preset(&ntype, bke::eNodeSizePreset::Middle);
   ntype.initfunc = node_init;
   blender::bke::node_type_storage(

@@ -21,11 +21,11 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(
-      &ntype, "GeometryNodeInputPosition", GEO_NODE_INPUT_POSITION, NODE_CLASS_INPUT);
+  geo_node_type_base(&ntype, "GeometryNodeInputPosition", GEO_NODE_INPUT_POSITION);
   ntype.ui_name = "Position";
   ntype.ui_description = "Retrieve a vector indicating the location of each element";
   ntype.enum_name_legacy = "POSITION";
+  ntype.nclass = NODE_CLASS_INPUT;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.declare = node_declare;
   blender::bke::node_register_type(&ntype);

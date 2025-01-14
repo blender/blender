@@ -52,10 +52,11 @@ void register_node_type_sh_emission()
 
   static blender::bke::bNodeType ntype;
 
-  sh_node_type_base(&ntype, "ShaderNodeEmission", SH_NODE_EMISSION, NODE_CLASS_SHADER);
+  sh_node_type_base(&ntype, "ShaderNodeEmission", SH_NODE_EMISSION);
   ntype.ui_name = "Emission";
   ntype.ui_description = "Lambertian emission shader";
   ntype.enum_name_legacy = "EMISSION";
+  ntype.nclass = NODE_CLASS_SHADER;
   ntype.declare = file_ns::node_declare;
   ntype.gpu_fn = file_ns::node_shader_gpu_emission;
   ntype.materialx_fn = file_ns::node_shader_materialx;

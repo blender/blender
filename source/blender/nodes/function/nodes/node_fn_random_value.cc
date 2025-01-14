@@ -201,9 +201,10 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  fn_node_type_base(&ntype, "FunctionNodeRandomValue", FN_NODE_RANDOM_VALUE, NODE_CLASS_CONVERTER);
+  fn_node_type_base(&ntype, "FunctionNodeRandomValue", FN_NODE_RANDOM_VALUE);
   ntype.ui_name = "Random Value";
   ntype.enum_name_legacy = "RANDOM_VALUE";
+  ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.initfunc = fn_node_random_value_init;
   ntype.updatefunc = fn_node_random_value_update;
   ntype.draw_buttons = node_layout;

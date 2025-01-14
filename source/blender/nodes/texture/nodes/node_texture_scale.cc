@@ -6,6 +6,7 @@
  * \ingroup texnodes
  */
 
+#include "BKE_node.hh"
 #include "BLI_math_vector.h"
 #include "node_texture_util.hh"
 #include <cmath>
@@ -54,9 +55,10 @@ void register_node_type_tex_scale()
 {
   static blender::bke::bNodeType ntype;
 
-  tex_node_type_base(&ntype, "TextureNodeScale", TEX_NODE_SCALE, NODE_CLASS_DISTORT);
+  tex_node_type_base(&ntype, "TextureNodeScale", TEX_NODE_SCALE);
   ntype.ui_name = "Scale";
   ntype.enum_name_legacy = "SCALE";
+  ntype.nclass = NODE_CLASS_DISTORT;
   blender::bke::node_type_socket_templates(&ntype, inputs, outputs);
   ntype.exec_fn = exec;
 

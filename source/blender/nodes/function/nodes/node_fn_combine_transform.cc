@@ -112,10 +112,10 @@ static void node_eval_inverse(inverse_eval::InverseEvalParams &params)
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
-  fn_node_type_base(
-      &ntype, "FunctionNodeCombineTransform", FN_NODE_COMBINE_TRANSFORM, NODE_CLASS_CONVERTER);
+  fn_node_type_base(&ntype, "FunctionNodeCombineTransform", FN_NODE_COMBINE_TRANSFORM);
   ntype.ui_name = "Combine Transform";
   ntype.enum_name_legacy = "COMBINE_TRANSFORM";
+  ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = node_declare;
   ntype.build_multi_function = node_build_multi_function;
   ntype.eval_elem = node_eval_elem;

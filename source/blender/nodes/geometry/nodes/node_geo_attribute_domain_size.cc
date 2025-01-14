@@ -172,13 +172,11 @@ static void node_rna(StructRNA *srna)
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
-  geo_node_type_base(&ntype,
-                     "GeometryNodeAttributeDomainSize",
-                     GEO_NODE_ATTRIBUTE_DOMAIN_SIZE,
-                     NODE_CLASS_ATTRIBUTE);
+  geo_node_type_base(&ntype, "GeometryNodeAttributeDomainSize", GEO_NODE_ATTRIBUTE_DOMAIN_SIZE);
   ntype.ui_name = "Domain Size";
   ntype.ui_description = "Retrieve the number of elements in a geometry for each attribute domain";
   ntype.enum_name_legacy = "ATTRIBUTE_DOMAIN_SIZE";
+  ntype.nclass = NODE_CLASS_ATTRIBUTE;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.declare = node_declare;
   ntype.draw_buttons = node_layout;

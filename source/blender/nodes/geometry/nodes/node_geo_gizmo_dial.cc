@@ -52,10 +52,11 @@ static void node_rna(StructRNA *srna)
 static void node_register()
 {
   static bke::bNodeType ntype;
-  geo_node_type_base(&ntype, "GeometryNodeGizmoDial", GEO_NODE_GIZMO_DIAL, NODE_CLASS_INTERFACE);
+  geo_node_type_base(&ntype, "GeometryNodeGizmoDial", GEO_NODE_GIZMO_DIAL);
   ntype.ui_name = "Dial Gizmo";
   ntype.ui_description = "Show a dial gizmo in the viewport for a value";
   ntype.enum_name_legacy = "GIZMO_DIAL";
+  ntype.nclass = NODE_CLASS_INTERFACE;
   bke::node_type_storage(
       &ntype, "NodeGeometryDialGizmo", node_free_standard_storage, node_copy_standard_storage);
   ntype.declare = node_declare;

@@ -256,9 +256,10 @@ static void init(bNodeTree * /*ntree*/, bNode *node)
   { \
     static blender::bke::bNodeType ntype; \
 \
-    tex_node_type_base(&ntype, idname, TEX_NODE_PROC + TEXTYPE, NODE_CLASS_TEXTURE); \
+    tex_node_type_base(&ntype, idname, TEX_NODE_PROC + TEXTYPE); \
     ntype.ui_name = Name; \
     ntype.enum_name_legacy = EnumNameLegacy; \
+    ntype.nclass = NODE_CLASS_TEXTURE; \
     blender::bke::node_type_socket_templates(&ntype, name##_inputs, outputs); \
     blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::Middle); \
     ntype.initfunc = init; \

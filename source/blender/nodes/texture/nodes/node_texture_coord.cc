@@ -34,9 +34,10 @@ void register_node_type_tex_coord()
 {
   static blender::bke::bNodeType ntype;
 
-  tex_node_type_base(&ntype, "TextureNodeCoordinates", TEX_NODE_COORD, NODE_CLASS_INPUT);
+  tex_node_type_base(&ntype, "TextureNodeCoordinates", TEX_NODE_COORD);
   ntype.ui_name = "Coordinates";
   ntype.enum_name_legacy = "COORD";
+  ntype.nclass = NODE_CLASS_INPUT;
   blender::bke::node_type_socket_templates(&ntype, nullptr, outputs);
   ntype.exec_fn = exec;
 

@@ -44,11 +44,11 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(
-      &ntype, "GeometryNodeSetPointRadius", GEO_NODE_SET_POINT_RADIUS, NODE_CLASS_GEOMETRY);
+  geo_node_type_base(&ntype, "GeometryNodeSetPointRadius", GEO_NODE_SET_POINT_RADIUS);
   ntype.ui_name = "Set Point Radius";
   ntype.ui_description = "Set the display size of point cloud points";
   ntype.enum_name_legacy = "SET_POINT_RADIUS";
+  ntype.nclass = NODE_CLASS_GEOMETRY;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.declare = node_declare;
   blender::bke::node_register_type(&ntype);

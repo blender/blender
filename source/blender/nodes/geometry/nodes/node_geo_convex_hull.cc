@@ -285,12 +285,13 @@ static void node_geo_exec(GeoNodeExecParams params)
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
-  geo_node_type_base(&ntype, "GeometryNodeConvexHull", GEO_NODE_CONVEX_HULL, NODE_CLASS_GEOMETRY);
+  geo_node_type_base(&ntype, "GeometryNodeConvexHull", GEO_NODE_CONVEX_HULL);
   ntype.ui_name = "Convex Hull";
   ntype.ui_description =
       "Create a mesh that encloses all points in the input geometry with the smallest number of "
       "points";
   ntype.enum_name_legacy = "CONVEX_HULL";
+  ntype.nclass = NODE_CLASS_GEOMETRY;
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
   blender::bke::node_register_type(&ntype);

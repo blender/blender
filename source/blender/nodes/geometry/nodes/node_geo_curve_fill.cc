@@ -339,11 +339,12 @@ static void node_rna(StructRNA *srna)
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
-  geo_node_type_base(&ntype, "GeometryNodeFillCurve", GEO_NODE_FILL_CURVE, NODE_CLASS_GEOMETRY);
+  geo_node_type_base(&ntype, "GeometryNodeFillCurve", GEO_NODE_FILL_CURVE);
   ntype.ui_name = "Fill Curve";
   ntype.ui_description =
       "Generate a mesh on the XY plane with faces on the inside of input curves";
   ntype.enum_name_legacy = "FILL_CURVE";
+  ntype.nclass = NODE_CLASS_GEOMETRY;
   ntype.initfunc = node_init;
   blender::bke::node_type_storage(
       &ntype, "NodeGeometryCurveFill", node_free_standard_storage, node_copy_standard_storage);

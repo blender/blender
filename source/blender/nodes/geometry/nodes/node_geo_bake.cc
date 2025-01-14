@@ -568,10 +568,11 @@ static void node_gather_link_searches(GatherLinkSearchOpParams &params)
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
-  geo_node_type_base(&ntype, "GeometryNodeBake", GEO_NODE_BAKE, NODE_CLASS_GEOMETRY);
+  geo_node_type_base(&ntype, "GeometryNodeBake", GEO_NODE_BAKE);
   ntype.ui_name = "Bake";
   ntype.ui_description = "Cache the incoming data so that it can be used without recomputation";
   ntype.enum_name_legacy = "BAKE";
+  ntype.nclass = NODE_CLASS_GEOMETRY;
   ntype.declare = node_declare;
   ntype.draw_buttons = node_layout;
   ntype.initfunc = node_init;

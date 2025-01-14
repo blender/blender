@@ -88,11 +88,12 @@ void register_node_type_sh_vertex_color()
 
   static blender::bke::bNodeType ntype;
 
-  sh_node_type_base(&ntype, "ShaderNodeVertexColor", SH_NODE_VERTEX_COLOR, NODE_CLASS_INPUT);
+  sh_node_type_base(&ntype, "ShaderNodeVertexColor", SH_NODE_VERTEX_COLOR);
   ntype.ui_name = "Color Attribute";
   ntype.ui_description =
       "Retrieve a color attribute, or the default fallback if none is specified";
   ntype.enum_name_legacy = "VERTEX_COLOR";
+  ntype.nclass = NODE_CLASS_INPUT;
   ntype.declare = file_ns::node_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_vertex_color;
   ntype.initfunc = file_ns::node_shader_init_vertex_color;

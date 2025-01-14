@@ -240,11 +240,11 @@ void register_node_type_cmp_separate_color()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(
-      &ntype, "CompositorNodeSeparateColor", CMP_NODE_SEPARATE_COLOR, NODE_CLASS_CONVERTER);
+  cmp_node_type_base(&ntype, "CompositorNodeSeparateColor", CMP_NODE_SEPARATE_COLOR);
   ntype.ui_name = "Separate Color";
   ntype.ui_description = "Split an image into its composite color channels";
   ntype.enum_name_legacy = "SEPARATE_COLOR";
+  ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = file_ns::cmp_node_separate_color_declare;
   ntype.initfunc = node_cmp_combsep_color_init;
   blender::bke::node_type_storage(
@@ -466,11 +466,11 @@ void register_node_type_cmp_combine_color()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(
-      &ntype, "CompositorNodeCombineColor", CMP_NODE_COMBINE_COLOR, NODE_CLASS_CONVERTER);
+  cmp_node_type_base(&ntype, "CompositorNodeCombineColor", CMP_NODE_COMBINE_COLOR);
   ntype.ui_name = "Combine Color";
   ntype.ui_description = "Combine an image from its composite color channels";
   ntype.enum_name_legacy = "COMBINE_COLOR";
+  ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = file_ns::cmp_node_combine_color_declare;
   ntype.initfunc = node_cmp_combsep_color_init;
   blender::bke::node_type_storage(

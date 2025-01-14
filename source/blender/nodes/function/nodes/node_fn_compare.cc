@@ -737,9 +737,10 @@ static void node_rna(StructRNA *srna)
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
-  fn_node_type_base(&ntype, "FunctionNodeCompare", FN_NODE_COMPARE, NODE_CLASS_CONVERTER);
+  fn_node_type_base(&ntype, "FunctionNodeCompare", FN_NODE_COMPARE);
   ntype.ui_name = "Compare";
   ntype.enum_name_legacy = "COMPARE";
+  ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = node_declare;
   ntype.labelfunc = node_label;
   ntype.updatefunc = node_update;

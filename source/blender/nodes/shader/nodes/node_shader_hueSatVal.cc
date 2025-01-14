@@ -81,10 +81,11 @@ void register_node_type_sh_hue_sat()
 
   static blender::bke::bNodeType ntype;
 
-  sh_node_type_base(&ntype, "ShaderNodeHueSaturation", SH_NODE_HUE_SAT, NODE_CLASS_OP_COLOR);
+  sh_node_type_base(&ntype, "ShaderNodeHueSaturation", SH_NODE_HUE_SAT);
   ntype.ui_name = "Hue/Saturation/Value";
   ntype.ui_description = "Apply a color transformation in the HSV color model";
   ntype.enum_name_legacy = "HUE_SAT";
+  ntype.nclass = NODE_CLASS_OP_COLOR;
   ntype.declare = file_ns::node_declare;
   blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::Middle);
   ntype.gpu_fn = file_ns::gpu_shader_hue_sat;

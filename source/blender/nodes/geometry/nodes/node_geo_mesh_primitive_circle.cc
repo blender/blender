@@ -221,11 +221,11 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(
-      &ntype, "GeometryNodeMeshCircle", GEO_NODE_MESH_PRIMITIVE_CIRCLE, NODE_CLASS_GEOMETRY);
+  geo_node_type_base(&ntype, "GeometryNodeMeshCircle", GEO_NODE_MESH_PRIMITIVE_CIRCLE);
   ntype.ui_name = "Mesh Circle";
   ntype.ui_description = "Generate a circular ring of edges";
   ntype.enum_name_legacy = "MESH_PRIMITIVE_CIRCLE";
+  ntype.nclass = NODE_CLASS_GEOMETRY;
   ntype.initfunc = node_init;
   blender::bke::node_type_storage(
       &ntype, "NodeGeometryMeshCircle", node_free_standard_storage, node_copy_standard_storage);

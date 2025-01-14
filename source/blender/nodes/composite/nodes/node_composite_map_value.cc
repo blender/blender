@@ -195,10 +195,11 @@ void register_node_type_cmp_map_value()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, "CompositorNodeMapValue", CMP_NODE_MAP_VALUE, NODE_CLASS_OP_VECTOR);
+  cmp_node_type_base(&ntype, "CompositorNodeMapValue", CMP_NODE_MAP_VALUE);
   ntype.ui_name = "Map Value";
   ntype.ui_description = "Scale, offset and clamp values";
   ntype.enum_name_legacy = "MAP_VALUE";
+  ntype.nclass = NODE_CLASS_OP_VECTOR;
   ntype.declare = file_ns::cmp_node_map_value_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_map_value;
   ntype.initfunc = file_ns::node_composit_init_map_value;

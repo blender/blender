@@ -664,13 +664,13 @@ void register_node_type_sh_bsdf_principled()
 
   static blender::bke::bNodeType ntype;
 
-  sh_node_type_base(
-      &ntype, "ShaderNodeBsdfPrincipled", SH_NODE_BSDF_PRINCIPLED, NODE_CLASS_SHADER);
+  sh_node_type_base(&ntype, "ShaderNodeBsdfPrincipled", SH_NODE_BSDF_PRINCIPLED);
   ntype.ui_name = "Principled BSDF";
   ntype.ui_description =
       "Physically-based, easy-to-use shader for rendering surface materials, based on the OpenPBR "
       "model";
   ntype.enum_name_legacy = "BSDF_PRINCIPLED";
+  ntype.nclass = NODE_CLASS_SHADER;
   ntype.declare = file_ns::node_declare;
   ntype.add_ui_poll = object_shader_nodes_poll;
   blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::Large);

@@ -132,10 +132,11 @@ void register_node_type_sh_curve_vec()
 
   static blender::bke::bNodeType ntype;
 
-  sh_fn_node_type_base(&ntype, "ShaderNodeVectorCurve", SH_NODE_CURVE_VEC, NODE_CLASS_OP_VECTOR);
+  sh_fn_node_type_base(&ntype, "ShaderNodeVectorCurve", SH_NODE_CURVE_VEC);
   ntype.ui_name = "Vector Curves";
   ntype.ui_description = "Map input vector components with curves";
   ntype.enum_name_legacy = "CURVE_VEC";
+  ntype.nclass = NODE_CLASS_OP_VECTOR;
   ntype.declare = file_ns::sh_node_curve_vec_declare;
   ntype.initfunc = file_ns::node_shader_init_curve_vec;
   blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::Large);
@@ -295,10 +296,11 @@ void register_node_type_sh_curve_rgb()
 
   static blender::bke::bNodeType ntype;
 
-  sh_fn_node_type_base(&ntype, "ShaderNodeRGBCurve", SH_NODE_CURVE_RGB, NODE_CLASS_OP_COLOR);
+  sh_fn_node_type_base(&ntype, "ShaderNodeRGBCurve", SH_NODE_CURVE_RGB);
   ntype.ui_name = "RGB Curves";
   ntype.ui_description = "Apply color corrections for each color channel";
   ntype.enum_name_legacy = "CURVE_RGB";
+  ntype.nclass = NODE_CLASS_OP_COLOR;
   ntype.declare = file_ns::sh_node_curve_rgb_declare;
   ntype.initfunc = file_ns::node_shader_init_curve_rgb;
   blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::Large);
@@ -426,10 +428,11 @@ void register_node_type_sh_curve_float()
 
   static blender::bke::bNodeType ntype;
 
-  sh_fn_node_type_base(&ntype, "ShaderNodeFloatCurve", SH_NODE_CURVE_FLOAT, NODE_CLASS_CONVERTER);
+  sh_fn_node_type_base(&ntype, "ShaderNodeFloatCurve", SH_NODE_CURVE_FLOAT);
   ntype.ui_name = "Float Curve";
   ntype.ui_description = "Map an input float to a curve and outputs a float value";
   ntype.enum_name_legacy = "CURVE_FLOAT";
+  ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = file_ns::sh_node_curve_float_declare;
   ntype.initfunc = file_ns::node_shader_init_curve_float;
   blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::Large);

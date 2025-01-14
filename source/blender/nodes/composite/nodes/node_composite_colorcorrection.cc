@@ -510,13 +510,13 @@ void register_node_type_cmp_colorcorrection()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(
-      &ntype, "CompositorNodeColorCorrection", CMP_NODE_COLORCORRECTION, NODE_CLASS_OP_COLOR);
+  cmp_node_type_base(&ntype, "CompositorNodeColorCorrection", CMP_NODE_COLORCORRECTION);
   ntype.ui_name = "Color Correction";
   ntype.ui_description =
       "Adjust the color of an image, separately in several tonal ranges (highlights, midtones and "
       "shadows)";
   ntype.enum_name_legacy = "COLORCORRECTION";
+  ntype.nclass = NODE_CLASS_OP_COLOR;
   ntype.declare = file_ns::cmp_node_colorcorrection_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_colorcorrection;
   ntype.draw_buttons_ex = file_ns::node_composit_buts_colorcorrection_ex;

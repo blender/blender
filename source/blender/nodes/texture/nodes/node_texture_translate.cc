@@ -48,9 +48,10 @@ void register_node_type_tex_translate()
 {
   static blender::bke::bNodeType ntype;
 
-  tex_node_type_base(&ntype, "TextureNodeTranslate", TEX_NODE_TRANSLATE, NODE_CLASS_DISTORT);
+  tex_node_type_base(&ntype, "TextureNodeTranslate", TEX_NODE_TRANSLATE);
   ntype.ui_name = "Translate";
   ntype.enum_name_legacy = "TRANSLATE";
+  ntype.nclass = NODE_CLASS_DISTORT;
   blender::bke::node_type_socket_templates(&ntype, inputs, outputs);
   ntype.exec_fn = exec;
 

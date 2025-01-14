@@ -32,11 +32,11 @@ static void node_geo_exec(GeoNodeExecParams params)
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
-  geo_node_type_base(
-      &ntype, "GeometryNodeToolMousePosition", GEO_NODE_TOOL_MOUSE_POSITION, NODE_CLASS_INPUT);
+  geo_node_type_base(&ntype, "GeometryNodeToolMousePosition", GEO_NODE_TOOL_MOUSE_POSITION);
   ntype.ui_name = "Mouse Position";
   ntype.ui_description = "Retrieve the position of the mouse cursor";
   ntype.enum_name_legacy = "TOOL_MOUSE_POSITION";
+  ntype.nclass = NODE_CLASS_INPUT;
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.gather_link_search_ops = search_link_ops_for_tool_node;

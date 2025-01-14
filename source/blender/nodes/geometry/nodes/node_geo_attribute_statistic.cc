@@ -363,14 +363,12 @@ static void node_rna(StructRNA *srna)
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
-  geo_node_type_base(&ntype,
-                     "GeometryNodeAttributeStatistic",
-                     GEO_NODE_ATTRIBUTE_STATISTIC,
-                     NODE_CLASS_ATTRIBUTE);
+  geo_node_type_base(&ntype, "GeometryNodeAttributeStatistic", GEO_NODE_ATTRIBUTE_STATISTIC);
   ntype.ui_name = "Attribute Statistic";
   ntype.ui_description =
       "Calculate statistics about a data set from a field evaluated on a geometry";
   ntype.enum_name_legacy = "ATTRIBUTE_STATISTIC";
+  ntype.nclass = NODE_CLASS_ATTRIBUTE;
   ntype.initfunc = node_init;
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;

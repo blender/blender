@@ -196,13 +196,11 @@ void register_node_type_cmp_convert_color_space()
   namespace file_ns = blender::nodes::node_composite_convert_color_space_cc;
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype,
-                     "CompositorNodeConvertColorSpace",
-                     CMP_NODE_CONVERT_COLOR_SPACE,
-                     NODE_CLASS_CONVERTER);
+  cmp_node_type_base(&ntype, "CompositorNodeConvertColorSpace", CMP_NODE_CONVERT_COLOR_SPACE);
   ntype.ui_name = "Convert Colorspace";
   ntype.ui_description = "Convert between color spaces";
   ntype.enum_name_legacy = "CONVERT_COLORSPACE";
+  ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = file_ns::CMP_NODE_CONVERT_COLOR_SPACE_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_convert_colorspace;
   blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::Middle);

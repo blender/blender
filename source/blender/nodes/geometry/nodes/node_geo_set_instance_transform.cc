@@ -35,13 +35,11 @@ static void node_register()
 {
   static bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype,
-                     "GeometryNodeSetInstanceTransform",
-                     GEO_NODE_SET_INSTANCE_TRANSFORM,
-                     NODE_CLASS_GEOMETRY);
+  geo_node_type_base(&ntype, "GeometryNodeSetInstanceTransform", GEO_NODE_SET_INSTANCE_TRANSFORM);
   ntype.ui_name = "Set Instance Transform";
   ntype.ui_description = "Set the transformation matrix of every instance";
   ntype.enum_name_legacy = "SET_INSTANCE_TRANSFORM";
+  ntype.nclass = NODE_CLASS_GEOMETRY;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.declare = node_declare;
   bke::node_type_size(&ntype, 160, 100, 700);

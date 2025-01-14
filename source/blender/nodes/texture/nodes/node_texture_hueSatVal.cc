@@ -93,9 +93,10 @@ void register_node_type_tex_hue_sat()
 {
   static blender::bke::bNodeType ntype;
 
-  tex_node_type_base(&ntype, "TextureNodeHueSaturation", TEX_NODE_HUE_SAT, NODE_CLASS_OP_COLOR);
+  tex_node_type_base(&ntype, "TextureNodeHueSaturation", TEX_NODE_HUE_SAT);
   ntype.ui_name = "Hue/Saturation/Value";
   ntype.enum_name_legacy = "HUE_SAT";
+  ntype.nclass = NODE_CLASS_OP_COLOR;
   blender::bke::node_type_socket_templates(&ntype, inputs, outputs);
   blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::Middle);
   ntype.exec_fn = exec;

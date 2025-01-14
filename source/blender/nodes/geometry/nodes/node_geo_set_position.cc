@@ -162,11 +162,11 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(
-      &ntype, "GeometryNodeSetPosition", GEO_NODE_SET_POSITION, NODE_CLASS_GEOMETRY);
+  geo_node_type_base(&ntype, "GeometryNodeSetPosition", GEO_NODE_SET_POSITION);
   ntype.ui_name = "Set Position";
   ntype.ui_description = "Set the location of each point";
   ntype.enum_name_legacy = "SET_POSITION";
+  ntype.nclass = NODE_CLASS_GEOMETRY;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.declare = node_declare;
   blender::bke::node_register_type(&ntype);

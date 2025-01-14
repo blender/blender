@@ -138,9 +138,10 @@ void register_node_type_tex_output()
 {
   static blender::bke::bNodeType ntype;
 
-  tex_node_type_base(&ntype, "TextureNodeOutput", TEX_NODE_OUTPUT, NODE_CLASS_OUTPUT);
+  tex_node_type_base(&ntype, "TextureNodeOutput", TEX_NODE_OUTPUT);
   ntype.ui_name = "Output";
   ntype.enum_name_legacy = "OUTPUT";
+  ntype.nclass = NODE_CLASS_OUTPUT;
   blender::bke::node_type_socket_templates(&ntype, inputs, nullptr);
   blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::Middle);
   ntype.initfunc = init;

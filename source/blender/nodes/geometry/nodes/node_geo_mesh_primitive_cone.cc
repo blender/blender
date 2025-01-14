@@ -153,11 +153,11 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(
-      &ntype, "GeometryNodeMeshCone", GEO_NODE_MESH_PRIMITIVE_CONE, NODE_CLASS_GEOMETRY);
+  geo_node_type_base(&ntype, "GeometryNodeMeshCone", GEO_NODE_MESH_PRIMITIVE_CONE);
   ntype.ui_name = "Cone";
   ntype.ui_description = "Generate a cone mesh";
   ntype.enum_name_legacy = "MESH_PRIMITIVE_CONE";
+  ntype.nclass = NODE_CLASS_GEOMETRY;
   ntype.initfunc = node_init;
   blender::bke::node_type_storage(
       &ntype, "NodeGeometryMeshCone", node_free_standard_storage, node_copy_standard_storage);

@@ -93,11 +93,12 @@ void register_node_type_sh_uvmap()
 
   static blender::bke::bNodeType ntype;
 
-  sh_node_type_base(&ntype, "ShaderNodeUVMap", SH_NODE_UVMAP, NODE_CLASS_INPUT);
+  sh_node_type_base(&ntype, "ShaderNodeUVMap", SH_NODE_UVMAP);
   ntype.ui_name = "UV Map";
   ntype.ui_description =
       "Retrieve a UV map from the geometry, or the default fallback if none is specified";
   ntype.enum_name_legacy = "UVMAP";
+  ntype.nclass = NODE_CLASS_INPUT;
   ntype.declare = file_ns::node_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_uvmap;
   blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::Middle);

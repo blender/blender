@@ -141,13 +141,11 @@ static void node_geo_exec(GeoNodeExecParams params)
 static void node_register()
 {
   static bke::bNodeType ntype;
-  geo_node_type_base(&ntype,
-                     "GeometryNodeGreasePencilToCurves",
-                     GEO_NODE_GREASE_PENCIL_TO_CURVES,
-                     NODE_CLASS_GEOMETRY);
+  geo_node_type_base(&ntype, "GeometryNodeGreasePencilToCurves", GEO_NODE_GREASE_PENCIL_TO_CURVES);
   ntype.ui_name = "Grease Pencil to Curves";
   ntype.ui_description = "Convert Grease Pencil layers into curve instances";
   ntype.enum_name_legacy = "GREASE_PENCIL_TO_CURVES";
+  ntype.nclass = NODE_CLASS_GEOMETRY;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.declare = node_declare;
   bke::node_type_size(&ntype, 160, 100, 320);

@@ -6,6 +6,7 @@
  * \ingroup cmpnodes
  */
 
+#include "BKE_node.hh"
 #include "BLI_math_base.hh"
 #include "BLI_math_color.h"
 #include "BLI_math_matrix_types.hh"
@@ -386,11 +387,11 @@ void register_node_type_cmp_colorbalance()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(
-      &ntype, "CompositorNodeColorBalance", CMP_NODE_COLORBALANCE, NODE_CLASS_OP_COLOR);
+  cmp_node_type_base(&ntype, "CompositorNodeColorBalance", CMP_NODE_COLORBALANCE);
   ntype.ui_name = "Color Balance";
   ntype.ui_description = "Adjust color and values";
   ntype.enum_name_legacy = "COLORBALANCE";
+  ntype.nclass = NODE_CLASS_OP_COLOR;
   ntype.declare = file_ns::cmp_node_colorbalance_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_colorbalance;
   ntype.draw_buttons_ex = file_ns::node_composit_buts_colorbalance_ex;

@@ -26,7 +26,4 @@ bool cmp_node_poll_default(const blender::bke::bNodeType *ntype,
                            const bNodeTree *ntree,
                            const char **r_disabled_hint);
 void cmp_node_update_default(bNodeTree *ntree, bNode *node);
-void cmp_node_type_base(blender::bke::bNodeType *ntype,
-                        std::string idname,
-                        int type,
-                        short nclass);
+void cmp_node_type_base(blender::bke::bNodeType *ntype, std::string idname, int type);

@@ -308,10 +308,11 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, "GeometryNodeProximity", GEO_NODE_PROXIMITY, NODE_CLASS_GEOMETRY);
+  geo_node_type_base(&ntype, "GeometryNodeProximity", GEO_NODE_PROXIMITY);
   ntype.ui_name = "Geometry Proximity";
   ntype.ui_description = "Compute the closest location on the target geometry";
   ntype.enum_name_legacy = "PROXIMITY";
+  ntype.nclass = NODE_CLASS_GEOMETRY;
   ntype.initfunc = geo_proximity_init;
   blender::bke::node_type_storage(
       &ntype, "NodeGeometryProximity", node_free_standard_storage, node_copy_standard_storage);

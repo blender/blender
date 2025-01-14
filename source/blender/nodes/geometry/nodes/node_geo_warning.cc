@@ -102,10 +102,11 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, "GeometryNodeWarning", GEO_NODE_WARNING, NODE_CLASS_INTERFACE);
+  geo_node_type_base(&ntype, "GeometryNodeWarning", GEO_NODE_WARNING);
   ntype.ui_name = "Warning";
   ntype.ui_description = "Create custom warnings in node groups";
   ntype.enum_name_legacy = "WARNING";
+  ntype.nclass = NODE_CLASS_INTERFACE;
   ntype.declare = node_declare;
   ntype.labelfunc = node_label;
   ntype.draw_buttons = node_layout;

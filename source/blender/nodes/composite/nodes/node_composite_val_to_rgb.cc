@@ -154,10 +154,11 @@ void register_node_type_cmp_valtorgb()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, "CompositorNodeValToRGB", CMP_NODE_VALTORGB, NODE_CLASS_CONVERTER);
+  cmp_node_type_base(&ntype, "CompositorNodeValToRGB", CMP_NODE_VALTORGB);
   ntype.ui_name = "Color Ramp";
   ntype.ui_description = "Map values to colors with the use of a gradient";
   ntype.enum_name_legacy = "VALTORGB";
+  ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = file_ns::cmp_node_valtorgb_declare;
   blender::bke::node_type_size(&ntype, 240, 200, 320);
   ntype.initfunc = file_ns::node_composit_init_valtorgb;
@@ -232,10 +233,11 @@ void register_node_type_cmp_rgbtobw()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, "CompositorNodeRGBToBW", CMP_NODE_RGBTOBW, NODE_CLASS_CONVERTER);
+  cmp_node_type_base(&ntype, "CompositorNodeRGBToBW", CMP_NODE_RGBTOBW);
   ntype.ui_name = "RGB to BW";
   ntype.ui_description = "Convert RGB input into grayscale using luminance";
   ntype.enum_name_legacy = "RGBTOBW";
+  ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = file_ns::cmp_node_rgbtobw_declare;
   blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::Default);
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;

@@ -91,10 +91,11 @@ void register_node_type_sh_geometry()
 
   static blender::bke::bNodeType ntype;
 
-  sh_node_type_base(&ntype, "ShaderNodeNewGeometry", SH_NODE_NEW_GEOMETRY, NODE_CLASS_INPUT);
+  sh_node_type_base(&ntype, "ShaderNodeNewGeometry", SH_NODE_NEW_GEOMETRY);
   ntype.ui_name = "Geometry";
   ntype.ui_description = "Retrieve geometric information about the current shading point";
   ntype.enum_name_legacy = "NEW_GEOMETRY";
+  ntype.nclass = NODE_CLASS_INPUT;
   ntype.declare = file_ns::node_declare;
   ntype.gpu_fn = file_ns::node_shader_gpu_geometry;
   ntype.materialx_fn = file_ns::node_shader_materialx;

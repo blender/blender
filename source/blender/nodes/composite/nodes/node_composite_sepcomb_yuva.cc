@@ -55,11 +55,11 @@ void register_node_type_cmp_sepyuva()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(
-      &ntype, "CompositorNodeSepYUVA", CMP_NODE_SEPYUVA_LEGACY, NODE_CLASS_CONVERTER);
+  cmp_node_type_base(&ntype, "CompositorNodeSepYUVA", CMP_NODE_SEPYUVA_LEGACY);
   ntype.ui_name = "Separate YUVA (Legacy)";
   ntype.ui_description = "Deprecated";
   ntype.enum_name_legacy = "SEPYUVA";
+  ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = file_ns::cmp_node_sepyuva_declare;
   ntype.gather_link_search_ops = nullptr;
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
@@ -125,11 +125,11 @@ void register_node_type_cmp_combyuva()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(
-      &ntype, "CompositorNodeCombYUVA", CMP_NODE_COMBYUVA_LEGACY, NODE_CLASS_CONVERTER);
+  cmp_node_type_base(&ntype, "CompositorNodeCombYUVA", CMP_NODE_COMBYUVA_LEGACY);
   ntype.ui_name = "Combine YUVA (Legacy)";
   ntype.ui_description = "Deprecated";
   ntype.enum_name_legacy = "COMBYUVA";
+  ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = file_ns::cmp_node_combyuva_declare;
   ntype.gather_link_search_ops = nullptr;
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;

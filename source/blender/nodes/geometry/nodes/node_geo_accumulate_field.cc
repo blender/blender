@@ -426,13 +426,13 @@ static void node_rna(StructRNA *srna)
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
-  geo_node_type_base(
-      &ntype, "GeometryNodeAccumulateField", GEO_NODE_ACCUMULATE_FIELD, NODE_CLASS_CONVERTER);
+  geo_node_type_base(&ntype, "GeometryNodeAccumulateField", GEO_NODE_ACCUMULATE_FIELD);
   ntype.ui_name = "Accumulate Field";
   ntype.ui_description =
       "Add the values of an evaluated field together and output the running total for each "
       "element";
   ntype.enum_name_legacy = "ACCUMULATE_FIELD";
+  ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.initfunc = node_init;
   ntype.draw_buttons = node_layout;

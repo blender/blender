@@ -38,9 +38,10 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  fn_node_type_base(&ntype, "FunctionNodeInputVector", FN_NODE_INPUT_VECTOR, 0);
+  fn_node_type_base(&ntype, "FunctionNodeInputVector", FN_NODE_INPUT_VECTOR);
   ntype.ui_name = "Vector";
   ntype.enum_name_legacy = "INPUT_VECTOR";
+  ntype.nclass = NODE_CLASS_INPUT;
   ntype.declare = node_declare;
   ntype.initfunc = node_init;
   blender::bke::node_type_storage(

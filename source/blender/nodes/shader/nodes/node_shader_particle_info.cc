@@ -50,12 +50,13 @@ void register_node_type_sh_particle_info()
 
   static blender::bke::bNodeType ntype;
 
-  sh_node_type_base(&ntype, "ShaderNodeParticleInfo", SH_NODE_PARTICLE_INFO, NODE_CLASS_INPUT);
+  sh_node_type_base(&ntype, "ShaderNodeParticleInfo", SH_NODE_PARTICLE_INFO);
   ntype.ui_name = "Particle Info";
   ntype.ui_description =
       "Retrieve the data of the particle that spawned the object instance, for example to give "
       "variation to multiple instances of an object";
   ntype.enum_name_legacy = "PARTICLE_INFO";
+  ntype.nclass = NODE_CLASS_INPUT;
   ntype.declare = file_ns::node_declare;
   ntype.gpu_fn = file_ns::gpu_shader_particle_info;
   ntype.materialx_fn = file_ns::node_shader_materialx;

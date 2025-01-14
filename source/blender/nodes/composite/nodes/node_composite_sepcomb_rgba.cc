@@ -55,11 +55,11 @@ void register_node_type_cmp_seprgba()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(
-      &ntype, "CompositorNodeSepRGBA", CMP_NODE_SEPRGBA_LEGACY, NODE_CLASS_CONVERTER);
+  cmp_node_type_base(&ntype, "CompositorNodeSepRGBA", CMP_NODE_SEPRGBA_LEGACY);
   ntype.ui_name = "Separate RGBA (Legacy)";
   ntype.ui_description = "Deprecated";
   ntype.enum_name_legacy = "SEPRGBA";
+  ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = file_ns::cmp_node_seprgba_declare;
   ntype.gather_link_search_ops = nullptr;
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
@@ -125,11 +125,11 @@ void register_node_type_cmp_combrgba()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(
-      &ntype, "CompositorNodeCombRGBA", CMP_NODE_COMBRGBA_LEGACY, NODE_CLASS_CONVERTER);
+  cmp_node_type_base(&ntype, "CompositorNodeCombRGBA", CMP_NODE_COMBRGBA_LEGACY);
   ntype.ui_name = "Combine RGBA (Legacy)";
   ntype.ui_description = "Deprecated";
   ntype.enum_name_legacy = "COMBRGBA";
+  ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = file_ns::cmp_node_combrgba_declare;
   ntype.gather_link_search_ops = nullptr;
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;

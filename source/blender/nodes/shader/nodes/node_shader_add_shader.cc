@@ -58,10 +58,11 @@ void register_node_type_sh_add_shader()
 
   static blender::bke::bNodeType ntype;
 
-  sh_node_type_base(&ntype, "ShaderNodeAddShader", SH_NODE_ADD_SHADER, NODE_CLASS_SHADER);
+  sh_node_type_base(&ntype, "ShaderNodeAddShader", SH_NODE_ADD_SHADER);
   ntype.ui_name = "Add Shader";
   ntype.ui_description = "Add two Shaders together";
   ntype.enum_name_legacy = "ADD_SHADER";
+  ntype.nclass = NODE_CLASS_SHADER;
   ntype.declare = file_ns::node_declare;
   ntype.gpu_fn = file_ns::node_shader_gpu_add_shader;
   ntype.materialx_fn = file_ns::node_shader_materialx;

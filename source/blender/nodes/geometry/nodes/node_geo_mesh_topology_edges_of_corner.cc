@@ -119,13 +119,11 @@ static void node_geo_exec(GeoNodeExecParams params)
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
-  geo_node_type_base(&ntype,
-                     "GeometryNodeEdgesOfCorner",
-                     GEO_NODE_MESH_TOPOLOGY_EDGES_OF_CORNER,
-                     NODE_CLASS_INPUT);
+  geo_node_type_base(&ntype, "GeometryNodeEdgesOfCorner", GEO_NODE_MESH_TOPOLOGY_EDGES_OF_CORNER);
   ntype.ui_name = "Edges of Corner";
   ntype.ui_description = "Retrieve the edges on both sides of a face corner";
   ntype.enum_name_legacy = "EDGES_OF_CORNER";
+  ntype.nclass = NODE_CLASS_INPUT;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.declare = node_declare;
   blender::bke::node_register_type(&ntype);

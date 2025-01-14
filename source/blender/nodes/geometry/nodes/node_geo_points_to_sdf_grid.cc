@@ -107,11 +107,11 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(
-      &ntype, "GeometryNodePointsToSDFGrid", GEO_NODE_POINTS_TO_SDF_GRID, NODE_CLASS_GEOMETRY);
+  geo_node_type_base(&ntype, "GeometryNodePointsToSDFGrid", GEO_NODE_POINTS_TO_SDF_GRID);
   ntype.ui_name = "Points to SDF Grid";
   ntype.ui_description = "Create a signed distance volume grid from points";
   ntype.enum_name_legacy = "POINTS_TO_SDF_GRID";
+  ntype.nclass = NODE_CLASS_GEOMETRY;
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.gather_link_search_ops = search_link_ops_for_volume_grid_node;

@@ -28,12 +28,12 @@ static void node_exec(GeoNodeExecParams params)
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
-  geo_node_type_base(
-      &ntype, "GeometryNodeInputSceneTime", GEO_NODE_INPUT_SCENE_TIME, NODE_CLASS_INPUT);
+  geo_node_type_base(&ntype, "GeometryNodeInputSceneTime", GEO_NODE_INPUT_SCENE_TIME);
   ntype.ui_name = "Scene Time";
   ntype.ui_description =
       "Retrieve the current time in the scene's animation in units of seconds or frames";
   ntype.enum_name_legacy = "INPUT_SCENE_TIME";
+  ntype.nclass = NODE_CLASS_INPUT;
   ntype.geometry_node_execute = node_exec;
   ntype.declare = node_declare;
   blender::bke::node_register_type(&ntype);

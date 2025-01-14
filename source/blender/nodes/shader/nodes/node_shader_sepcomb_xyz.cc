@@ -137,10 +137,11 @@ void register_node_type_sh_sepxyz()
 
   static blender::bke::bNodeType ntype;
 
-  sh_fn_node_type_base(&ntype, "ShaderNodeSeparateXYZ", SH_NODE_SEPXYZ, NODE_CLASS_CONVERTER);
+  sh_fn_node_type_base(&ntype, "ShaderNodeSeparateXYZ", SH_NODE_SEPXYZ);
   ntype.ui_name = "Separate XYZ";
   ntype.ui_description = "Split a vector into its X, Y, and Z components";
   ntype.enum_name_legacy = "SEPXYZ";
+  ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = file_ns::sh_node_sepxyz_declare;
   ntype.gpu_fn = file_ns::gpu_shader_sepxyz;
   ntype.build_multi_function = file_ns::sh_node_sepxyz_build_multi_function;
@@ -228,10 +229,11 @@ void register_node_type_sh_combxyz()
 
   static blender::bke::bNodeType ntype;
 
-  sh_fn_node_type_base(&ntype, "ShaderNodeCombineXYZ", SH_NODE_COMBXYZ, NODE_CLASS_CONVERTER);
+  sh_fn_node_type_base(&ntype, "ShaderNodeCombineXYZ", SH_NODE_COMBXYZ);
   ntype.ui_name = "Combine XYZ";
   ntype.ui_description = "Create a vector from X, Y, and Z components";
   ntype.enum_name_legacy = "COMBXYZ";
+  ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = file_ns::sh_node_combxyz_declare;
   ntype.gpu_fn = file_ns::gpu_shader_combxyz;
   ntype.build_multi_function = file_ns::sh_node_combxyz_build_multi_function;

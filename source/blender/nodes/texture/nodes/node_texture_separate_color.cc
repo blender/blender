@@ -97,10 +97,10 @@ void register_node_type_tex_separate_color()
 {
   static blender::bke::bNodeType ntype;
 
-  tex_node_type_base(
-      &ntype, "TextureNodeSeparateColor", TEX_NODE_SEPARATE_COLOR, NODE_CLASS_OP_COLOR);
+  tex_node_type_base(&ntype, "TextureNodeSeparateColor", TEX_NODE_SEPARATE_COLOR);
   ntype.ui_name = "Separate Color";
   ntype.enum_name_legacy = "SEPARATE_COLOR";
+  ntype.nclass = NODE_CLASS_OP_COLOR;
   blender::bke::node_type_socket_templates(&ntype, inputs, outputs);
   ntype.exec_fn = exec;
   ntype.updatefunc = update;

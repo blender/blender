@@ -4338,7 +4338,7 @@ static bool node_poll_instance_default(const bNode *node,
   return node->typeinfo->poll(node->typeinfo, ntree, r_disabled_hint);
 }
 
-void node_type_base(bNodeType *ntype, std::string idname, const int type, const short nclass)
+void node_type_base(bNodeType *ntype, std::string idname, const int type)
 {
   ntype->idname = std::move(idname);
   if (!ELEM(type, NODE_CUSTOM, NODE_UNDEFINED)) {
@@ -4352,7 +4352,7 @@ void node_type_base(bNodeType *ntype, std::string idname, const int type, const 
   BLI_assert(ntype->idname[0] != '\0');
 
   ntype->type_legacy = type;
-  ntype->nclass = nclass;
+  ntype->nclass = NODE_CLASS_CONVERTER;
 
   node_type_base_defaults(ntype);
 

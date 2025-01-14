@@ -203,10 +203,11 @@ void register_node_type_cmp_distance_matte()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, "CompositorNodeDistanceMatte", CMP_NODE_DIST_MATTE, NODE_CLASS_MATTE);
+  cmp_node_type_base(&ntype, "CompositorNodeDistanceMatte", CMP_NODE_DIST_MATTE);
   ntype.ui_name = "Distance Key";
   ntype.ui_description = "Create matte based on 3D distance between colors";
   ntype.enum_name_legacy = "DIST_MATTE";
+  ntype.nclass = NODE_CLASS_MATTE;
   ntype.declare = file_ns::cmp_node_distance_matte_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_distance_matte;
   ntype.flag |= NODE_PREVIEW;

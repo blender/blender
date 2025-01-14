@@ -42,10 +42,10 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  fn_node_type_base(
-      &ntype, "FunctionNodeReplaceString", FN_NODE_REPLACE_STRING, NODE_CLASS_CONVERTER);
+  fn_node_type_base(&ntype, "FunctionNodeReplaceString", FN_NODE_REPLACE_STRING);
   ntype.ui_name = "Replace String";
   ntype.enum_name_legacy = "REPLACE_STRING";
+  ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = node_declare;
   ntype.build_multi_function = node_build_multi_function;
   blender::bke::node_register_type(&ntype);

@@ -172,12 +172,13 @@ void register_node_type_sh_normal_map()
 
   static blender::bke::bNodeType ntype;
 
-  sh_node_type_base(&ntype, "ShaderNodeNormalMap", SH_NODE_NORMAL_MAP, NODE_CLASS_OP_VECTOR);
+  sh_node_type_base(&ntype, "ShaderNodeNormalMap", SH_NODE_NORMAL_MAP);
   ntype.ui_name = "Normal Map";
   ntype.ui_description =
       "Generate a perturbed normal from an RGB normal map image. Typically used for faking highly "
       "detailed surfaces";
   ntype.enum_name_legacy = "NORMAL_MAP";
+  ntype.nclass = NODE_CLASS_OP_VECTOR;
   ntype.declare = file_ns::node_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_normal_map;
   blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::Middle);

@@ -142,10 +142,11 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, "GeometryNodeViewer", GEO_NODE_VIEWER, NODE_CLASS_OUTPUT);
+  geo_node_type_base(&ntype, "GeometryNodeViewer", GEO_NODE_VIEWER);
   ntype.ui_name = "Viewer";
   ntype.ui_description = "Display the input data in the Spreadsheet Editor";
   ntype.enum_name_legacy = "VIEWER";
+  ntype.nclass = NODE_CLASS_OUTPUT;
   blender::bke::node_type_storage(
       &ntype, "NodeGeometryViewer", node_free_standard_storage, node_copy_standard_storage);
   ntype.declare = node_declare;

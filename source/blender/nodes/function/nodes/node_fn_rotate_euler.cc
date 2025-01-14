@@ -133,9 +133,10 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  fn_node_type_base(&ntype, "FunctionNodeRotateEuler", FN_NODE_ROTATE_EULER, NODE_CLASS_CONVERTER);
+  fn_node_type_base(&ntype, "FunctionNodeRotateEuler", FN_NODE_ROTATE_EULER);
   ntype.ui_name = "Rotate Euler";
   ntype.enum_name_legacy = "ROTATE_EULER";
+  ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = node_declare;
   ntype.draw_buttons = node_layout;
   ntype.updatefunc = node_update;

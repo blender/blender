@@ -42,9 +42,10 @@ void register_node_type_tex_at()
 {
   static blender::bke::bNodeType ntype;
 
-  tex_node_type_base(&ntype, "TextureNodeAt", TEX_NODE_AT, NODE_CLASS_DISTORT);
+  tex_node_type_base(&ntype, "TextureNodeAt", TEX_NODE_AT);
   ntype.ui_name = "At";
   ntype.enum_name_legacy = "AT";
+  ntype.nclass = NODE_CLASS_DISTORT;
   blender::bke::node_type_socket_templates(&ntype, inputs, outputs);
   blender::bke::node_type_size(&ntype, 140, 100, 320);
   ntype.exec_fn = exec;

@@ -77,11 +77,12 @@ void register_node_type_cmp_posterize()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, "CompositorNodePosterize", CMP_NODE_POSTERIZE, NODE_CLASS_OP_COLOR);
+  cmp_node_type_base(&ntype, "CompositorNodePosterize", CMP_NODE_POSTERIZE);
   ntype.ui_name = "Posterize";
   ntype.ui_description =
       "Reduce number of colors in an image, converting smooth gradients into sharp transitions";
   ntype.enum_name_legacy = "POSTERIZE";
+  ntype.nclass = NODE_CLASS_OP_COLOR;
   ntype.declare = file_ns::cmp_node_posterize_declare;
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
   ntype.build_multi_function = file_ns::node_build_multi_function;

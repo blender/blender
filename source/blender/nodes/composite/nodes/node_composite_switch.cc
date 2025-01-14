@@ -61,10 +61,11 @@ void register_node_type_cmp_switch()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, "CompositorNodeSwitch", CMP_NODE_SWITCH, NODE_CLASS_CONVERTER);
+  cmp_node_type_base(&ntype, "CompositorNodeSwitch", CMP_NODE_SWITCH);
   ntype.ui_name = "Switch";
   ntype.ui_description = "Switch between two images using a checkbox";
   ntype.enum_name_legacy = "SWITCH";
+  ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = file_ns::cmp_node_switch_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_switch;
   blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::Default);

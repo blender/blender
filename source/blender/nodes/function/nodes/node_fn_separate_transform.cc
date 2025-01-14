@@ -106,10 +106,10 @@ static void node_eval_inverse(inverse_eval::InverseEvalParams &params)
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
-  fn_node_type_base(
-      &ntype, "FunctionNodeSeparateTransform", FN_NODE_SEPARATE_TRANSFORM, NODE_CLASS_CONVERTER);
+  fn_node_type_base(&ntype, "FunctionNodeSeparateTransform", FN_NODE_SEPARATE_TRANSFORM);
   ntype.ui_name = "Separate Transform";
   ntype.enum_name_legacy = "SEPARATE_TRANSFORM";
+  ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = node_declare;
   ntype.build_multi_function = node_build_multi_function;
   ntype.eval_elem = node_eval_elem;

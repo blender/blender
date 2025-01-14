@@ -2329,10 +2329,11 @@ void register_node_type_cmp_glare()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, "CompositorNodeGlare", CMP_NODE_GLARE, NODE_CLASS_OP_FILTER);
+  cmp_node_type_base(&ntype, "CompositorNodeGlare", CMP_NODE_GLARE);
   ntype.ui_name = "Glare ";
   ntype.ui_description = "Add lens flares, fog and glows around bright parts of the image";
   ntype.enum_name_legacy = "GLARE";
+  ntype.nclass = NODE_CLASS_OP_FILTER;
   ntype.declare = file_ns::cmp_node_glare_declare;
   ntype.updatefunc = file_ns::node_update;
   ntype.draw_buttons = file_ns::node_composit_buts_glare;

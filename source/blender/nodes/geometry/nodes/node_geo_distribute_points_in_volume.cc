@@ -281,13 +281,12 @@ static void node_rna(StructRNA *srna)
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
-  geo_node_type_base(&ntype,
-                     "GeometryNodeDistributePointsInVolume",
-                     GEO_NODE_DISTRIBUTE_POINTS_IN_VOLUME,
-                     NODE_CLASS_GEOMETRY);
+  geo_node_type_base(
+      &ntype, "GeometryNodeDistributePointsInVolume", GEO_NODE_DISTRIBUTE_POINTS_IN_VOLUME);
   ntype.ui_name = "Distribute Points in Volume",
   ntype.ui_description = "Generate points inside a volume";
   ntype.enum_name_legacy = "DISTRIBUTE_POINTS_IN_VOLUME";
+  ntype.nclass = NODE_CLASS_GEOMETRY;
   blender::bke::node_type_storage(&ntype,
                                   "NodeGeometryDistributePointsInVolume",
                                   node_free_standard_storage,

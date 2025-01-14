@@ -178,11 +178,11 @@ static void node_rna(StructRNA *srna)
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
-  geo_node_type_base(
-      &ntype, "GeometryNodeSDFGridBoolean", GEO_NODE_SDF_GRID_BOOLEAN, NODE_CLASS_GEOMETRY);
+  geo_node_type_base(&ntype, "GeometryNodeSDFGridBoolean", GEO_NODE_SDF_GRID_BOOLEAN);
   ntype.ui_name = "SDF Grid Boolean";
   ntype.ui_description = "Cut, subtract, or join multiple SDF volume grid inputs";
   ntype.enum_name_legacy = "SDF_GRID_BOOLEAN";
+  ntype.nclass = NODE_CLASS_GEOMETRY;
   ntype.declare = node_declare;
   ntype.initfunc = node_init;
   ntype.draw_buttons = node_layout;

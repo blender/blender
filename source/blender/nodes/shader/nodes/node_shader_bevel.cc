@@ -57,12 +57,13 @@ void register_node_type_sh_bevel()
 
   static blender::bke::bNodeType ntype;
 
-  sh_node_type_base(&ntype, "ShaderNodeBevel", SH_NODE_BEVEL, NODE_CLASS_INPUT);
+  sh_node_type_base(&ntype, "ShaderNodeBevel", SH_NODE_BEVEL);
   ntype.ui_name = "Bevel";
   ntype.ui_description =
       "Generates normals with round corners.\nNote: only supported in Cycles, and may slow down "
       "renders";
   ntype.enum_name_legacy = "BEVEL";
+  ntype.nclass = NODE_CLASS_INPUT;
   ntype.declare = file_ns::node_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_bevel;
   ntype.initfunc = file_ns::node_shader_init_bevel;

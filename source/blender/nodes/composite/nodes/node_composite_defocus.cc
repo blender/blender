@@ -560,10 +560,11 @@ void register_node_type_cmp_defocus()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, "CompositorNodeDefocus", CMP_NODE_DEFOCUS, NODE_CLASS_OP_FILTER);
+  cmp_node_type_base(&ntype, "CompositorNodeDefocus", CMP_NODE_DEFOCUS);
   ntype.ui_name = "Defocus";
   ntype.ui_description = "Apply depth of field in 2D, using a Z depth map or mask";
   ntype.enum_name_legacy = "DEFOCUS";
+  ntype.nclass = NODE_CLASS_OP_FILTER;
   ntype.declare = file_ns::cmp_node_defocus_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_defocus;
   ntype.initfunc = file_ns::node_composit_init_defocus;

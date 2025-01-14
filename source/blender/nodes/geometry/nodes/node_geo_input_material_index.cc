@@ -21,13 +21,13 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(
-      &ntype, "GeometryNodeInputMaterialIndex", GEO_NODE_INPUT_MATERIAL_INDEX, NODE_CLASS_INPUT);
+  geo_node_type_base(&ntype, "GeometryNodeInputMaterialIndex", GEO_NODE_INPUT_MATERIAL_INDEX);
   ntype.ui_name = "Material Index";
   ntype.ui_description =
       "Retrieve the index of the material used for each element in the geometry's list of "
       "materials";
   ntype.enum_name_legacy = "INPUT_MATERIAL_INDEX";
+  ntype.nclass = NODE_CLASS_INPUT;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.declare = node_declare;
   blender::bke::node_register_type(&ntype);

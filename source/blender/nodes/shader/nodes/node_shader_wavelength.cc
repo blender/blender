@@ -43,10 +43,11 @@ void register_node_type_sh_wavelength()
 
   static blender::bke::bNodeType ntype;
 
-  sh_node_type_base(&ntype, "ShaderNodeWavelength", SH_NODE_WAVELENGTH, NODE_CLASS_CONVERTER);
+  sh_node_type_base(&ntype, "ShaderNodeWavelength", SH_NODE_WAVELENGTH);
   ntype.ui_name = "Wavelength";
   ntype.ui_description = "Convert a wavelength value to an RGB value";
   ntype.enum_name_legacy = "WAVELENGTH";
+  ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = file_ns::node_declare;
   blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::Middle);
   ntype.gpu_fn = file_ns::node_shader_gpu_wavelength;

@@ -58,12 +58,13 @@ void register_node_type_sh_wireframe()
 
   static blender::bke::bNodeType ntype;
 
-  sh_node_type_base(&ntype, "ShaderNodeWireframe", SH_NODE_WIREFRAME, NODE_CLASS_INPUT);
+  sh_node_type_base(&ntype, "ShaderNodeWireframe", SH_NODE_WIREFRAME);
   ntype.ui_name = "Wireframe";
   ntype.ui_description =
       "Retrieve the edges of an object as it appears to Cycles.\nNote: as meshes are triangulated "
       "before being processed by Cycles, topology will always appear triangulated";
   ntype.enum_name_legacy = "WIREFRAME";
+  ntype.nclass = NODE_CLASS_INPUT;
   ntype.declare = file_ns::node_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_wireframe;
   ntype.gpu_fn = file_ns::node_shader_gpu_wireframe;

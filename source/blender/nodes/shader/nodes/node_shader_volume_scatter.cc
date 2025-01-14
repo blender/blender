@@ -106,11 +106,12 @@ void register_node_type_sh_volume_scatter()
 
   static blender::bke::bNodeType ntype;
 
-  sh_node_type_base(&ntype, "ShaderNodeVolumeScatter", SH_NODE_VOLUME_SCATTER, NODE_CLASS_SHADER);
+  sh_node_type_base(&ntype, "ShaderNodeVolumeScatter", SH_NODE_VOLUME_SCATTER);
   ntype.ui_name = "Volume Scatter";
   ntype.ui_description =
       "Scatter light as it passes through the volume, often used to add fog to a scene";
   ntype.enum_name_legacy = "VOLUME_SCATTER";
+  ntype.nclass = NODE_CLASS_SHADER;
   ntype.declare = file_ns::node_declare;
   ntype.add_ui_poll = object_shader_nodes_poll;
   ntype.draw_buttons = file_ns::node_shader_buts_scatter;

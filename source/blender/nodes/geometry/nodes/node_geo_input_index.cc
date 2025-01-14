@@ -21,12 +21,13 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, "GeometryNodeInputIndex", GEO_NODE_INPUT_INDEX, NODE_CLASS_INPUT);
+  geo_node_type_base(&ntype, "GeometryNodeInputIndex", GEO_NODE_INPUT_INDEX);
   ntype.ui_name = "Index";
   ntype.ui_description =
       "Retrieve an integer value indicating the position of each element in the list, starting at "
       "zero";
   ntype.enum_name_legacy = "INDEX";
+  ntype.nclass = NODE_CLASS_INPUT;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.declare = node_declare;
   blender::bke::node_register_type(&ntype);

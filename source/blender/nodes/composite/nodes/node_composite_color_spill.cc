@@ -225,12 +225,13 @@ void register_node_type_cmp_color_spill()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, "CompositorNodeColorSpill", CMP_NODE_COLOR_SPILL, NODE_CLASS_MATTE);
+  cmp_node_type_base(&ntype, "CompositorNodeColorSpill", CMP_NODE_COLOR_SPILL);
   ntype.ui_name = "Color Spill";
   ntype.ui_description =
       "Remove colors from a blue or green screen, by reducing one RGB channel compared to the "
       "others";
   ntype.enum_name_legacy = "COLOR_SPILL";
+  ntype.nclass = NODE_CLASS_MATTE;
   ntype.declare = file_ns::cmp_node_color_spill_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_color_spill;
   ntype.initfunc = file_ns::node_composit_init_color_spill;

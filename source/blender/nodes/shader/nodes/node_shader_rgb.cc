@@ -43,10 +43,11 @@ void register_node_type_sh_rgb()
 
   static blender::bke::bNodeType ntype;
 
-  sh_node_type_base(&ntype, "ShaderNodeRGB", SH_NODE_RGB, NODE_CLASS_INPUT);
+  sh_node_type_base(&ntype, "ShaderNodeRGB", SH_NODE_RGB);
   ntype.ui_name = "RGB";
   ntype.ui_description = "A color picker";
   ntype.enum_name_legacy = "RGB";
+  ntype.nclass = NODE_CLASS_INPUT;
   ntype.declare = file_ns::node_declare;
   ntype.gpu_fn = file_ns::gpu_shader_rgb;
   ntype.materialx_fn = file_ns::node_shader_materialx;

@@ -131,10 +131,11 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype, "GeometryNodeInputTangent", GEO_NODE_INPUT_TANGENT, NODE_CLASS_INPUT);
+  geo_node_type_base(&ntype, "GeometryNodeInputTangent", GEO_NODE_INPUT_TANGENT);
   ntype.ui_name = "Curve Tangent";
   ntype.ui_description = "Retrieve the direction of curves at each control point";
   ntype.enum_name_legacy = "INPUT_TANGENT";
+  ntype.nclass = NODE_CLASS_INPUT;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.declare = node_declare;
   blender::bke::node_register_type(&ntype);

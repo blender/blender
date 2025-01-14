@@ -249,13 +249,11 @@ static void node_geo_exec(GeoNodeExecParams params)
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
-  geo_node_type_base(&ntype,
-                     "GeometryNodePointsOfCurve",
-                     GEO_NODE_CURVE_TOPOLOGY_POINTS_OF_CURVE,
-                     NODE_CLASS_INPUT);
+  geo_node_type_base(&ntype, "GeometryNodePointsOfCurve", GEO_NODE_CURVE_TOPOLOGY_POINTS_OF_CURVE);
   ntype.ui_name = "Points of Curve";
   ntype.ui_description = "Retrieve a point index within a curve";
   ntype.enum_name_legacy = "POINTS_OF_CURVE";
+  ntype.nclass = NODE_CLASS_INPUT;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.declare = node_declare;
   blender::bke::node_register_type(&ntype);

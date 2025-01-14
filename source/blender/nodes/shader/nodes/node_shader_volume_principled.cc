@@ -164,11 +164,11 @@ void register_node_type_sh_volume_principled()
 
   static blender::bke::bNodeType ntype;
 
-  sh_node_type_base(
-      &ntype, "ShaderNodeVolumePrincipled", SH_NODE_VOLUME_PRINCIPLED, NODE_CLASS_SHADER);
+  sh_node_type_base(&ntype, "ShaderNodeVolumePrincipled", SH_NODE_VOLUME_PRINCIPLED);
   ntype.ui_name = "Principled Volume";
   ntype.ui_description = "Combine all volume shading components into a single easy to use node";
   ntype.enum_name_legacy = "PRINCIPLED_VOLUME";
+  ntype.nclass = NODE_CLASS_SHADER;
   ntype.declare = file_ns::node_declare;
   blender::bke::node_type_size_preset(&ntype, blender::bke::eNodeSizePreset::Large);
   ntype.gpu_fn = file_ns::node_shader_gpu_volume_principled;

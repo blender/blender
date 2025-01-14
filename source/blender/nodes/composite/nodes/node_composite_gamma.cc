@@ -76,10 +76,11 @@ void register_node_type_cmp_gamma()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, "CompositorNodeGamma", CMP_NODE_GAMMA, NODE_CLASS_OP_COLOR);
+  cmp_node_type_base(&ntype, "CompositorNodeGamma", CMP_NODE_GAMMA);
   ntype.ui_name = "Gamma";
   ntype.ui_description = "Apply gamma correction";
   ntype.enum_name_legacy = "GAMMA";
+  ntype.nclass = NODE_CLASS_OP_COLOR;
   ntype.declare = file_ns::cmp_node_gamma_declare;
   ntype.get_compositor_shader_node = file_ns::get_compositor_shader_node;
   ntype.build_multi_function = file_ns::node_build_multi_function;

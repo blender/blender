@@ -73,12 +73,12 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(
-      &ntype, "GeometryNodeSetSplineCyclic", GEO_NODE_SET_SPLINE_CYCLIC, NODE_CLASS_GEOMETRY);
+  geo_node_type_base(&ntype, "GeometryNodeSetSplineCyclic", GEO_NODE_SET_SPLINE_CYCLIC);
   ntype.ui_name = "Set Spline Cyclic";
   ntype.ui_description =
       "Control whether each spline loops back on itself by changing the \"cyclic\" attribute";
   ntype.enum_name_legacy = "SET_SPLINE_CYCLIC";
+  ntype.nclass = NODE_CLASS_GEOMETRY;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.declare = node_declare;
   blender::bke::node_register_type(&ntype);

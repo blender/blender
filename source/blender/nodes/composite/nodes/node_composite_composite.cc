@@ -288,10 +288,11 @@ void register_node_type_cmp_composite()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, "CompositorNodeComposite", CMP_NODE_COMPOSITE, NODE_CLASS_OUTPUT);
+  cmp_node_type_base(&ntype, "CompositorNodeComposite", CMP_NODE_COMPOSITE);
   ntype.ui_name = "Composite";
   ntype.ui_description = "Final render output";
   ntype.enum_name_legacy = "COMPOSITE";
+  ntype.nclass = NODE_CLASS_OUTPUT;
   ntype.declare = file_ns::cmp_node_composite_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_composite;
   ntype.get_compositor_operation = file_ns::get_compositor_operation;

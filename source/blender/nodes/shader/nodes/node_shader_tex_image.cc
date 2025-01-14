@@ -279,10 +279,11 @@ void register_node_type_sh_tex_image()
 
   static blender::bke::bNodeType ntype;
 
-  sh_node_type_base(&ntype, "ShaderNodeTexImage", SH_NODE_TEX_IMAGE, NODE_CLASS_TEXTURE);
+  sh_node_type_base(&ntype, "ShaderNodeTexImage", SH_NODE_TEX_IMAGE);
   ntype.ui_name = "Image Texture";
   ntype.ui_description = "Sample an image file as a texture";
   ntype.enum_name_legacy = "TEX_IMAGE";
+  ntype.nclass = NODE_CLASS_TEXTURE;
   ntype.declare = file_ns::sh_node_tex_image_declare;
   ntype.initfunc = file_ns::node_shader_init_tex_image;
   blender::bke::node_type_storage(

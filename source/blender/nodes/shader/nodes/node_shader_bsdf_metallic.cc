@@ -154,10 +154,11 @@ void register_node_type_sh_bsdf_metallic()
 
   static blender::bke::bNodeType ntype;
 
-  sh_node_type_base(&ntype, "ShaderNodeBsdfMetallic", SH_NODE_BSDF_METALLIC, NODE_CLASS_SHADER);
+  sh_node_type_base(&ntype, "ShaderNodeBsdfMetallic", SH_NODE_BSDF_METALLIC);
   ntype.ui_name = "Metallic BSDF";
   ntype.ui_description = "Metallic reflection with microfacet distribution, and metallic fresnel";
   ntype.enum_name_legacy = "BSDF_METALLIC";
+  ntype.nclass = NODE_CLASS_SHADER;
   ntype.declare = file_ns::node_declare;
   ntype.add_ui_poll = object_shader_nodes_poll;
   ntype.draw_buttons = file_ns::node_shader_buts_metallic;

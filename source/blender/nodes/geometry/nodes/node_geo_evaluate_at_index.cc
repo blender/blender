@@ -98,11 +98,11 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(
-      &ntype, "GeometryNodeFieldAtIndex", GEO_NODE_EVALUATE_AT_INDEX, NODE_CLASS_CONVERTER);
+  geo_node_type_base(&ntype, "GeometryNodeFieldAtIndex", GEO_NODE_EVALUATE_AT_INDEX);
   ntype.ui_name = "Evaluate at Index";
   ntype.ui_description = "Retrieve data of other elements in the context's geometry";
   ntype.enum_name_legacy = "FIELD_AT_INDEX";
+  ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.draw_buttons = node_layout;
   ntype.initfunc = node_init;

@@ -48,10 +48,11 @@ void register_node_type_sh_volume_info()
 
   static blender::bke::bNodeType ntype;
 
-  sh_node_type_base(&ntype, "ShaderNodeVolumeInfo", SH_NODE_VOLUME_INFO, NODE_CLASS_INPUT);
+  sh_node_type_base(&ntype, "ShaderNodeVolumeInfo", SH_NODE_VOLUME_INFO);
   ntype.ui_name = "Volume Info";
   ntype.ui_description = "Read volume data attributes from volume grids";
   ntype.enum_name_legacy = "VOLUME_INFO";
+  ntype.nclass = NODE_CLASS_INPUT;
   ntype.declare = file_ns::node_declare;
   ntype.gpu_fn = file_ns::node_shader_gpu_volume_info;
 

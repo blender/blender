@@ -202,12 +202,13 @@ void register_node_type_cmp_despeckle()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, "CompositorNodeDespeckle", CMP_NODE_DESPECKLE, NODE_CLASS_OP_FILTER);
+  cmp_node_type_base(&ntype, "CompositorNodeDespeckle", CMP_NODE_DESPECKLE);
   ntype.ui_name = "Despeckle";
   ntype.ui_description =
       "Smooth areas of an image in which noise is noticeable, while leaving complex areas "
       "untouched";
   ntype.enum_name_legacy = "DESPECKLE";
+  ntype.nclass = NODE_CLASS_OP_FILTER;
   ntype.declare = file_ns::cmp_node_despeckle_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_despeckle;
   ntype.flag |= NODE_PREVIEW;

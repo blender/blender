@@ -210,14 +210,12 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(&ntype,
-                     "GeometryNodeStoreNamedAttribute",
-                     GEO_NODE_STORE_NAMED_ATTRIBUTE,
-                     NODE_CLASS_ATTRIBUTE);
+  geo_node_type_base(&ntype, "GeometryNodeStoreNamedAttribute", GEO_NODE_STORE_NAMED_ATTRIBUTE);
   ntype.ui_name = "Store Named Attribute";
   ntype.ui_description =
       "Store the result of a field on a geometry as an attribute with the specified name";
   ntype.enum_name_legacy = "STORE_NAMED_ATTRIBUTE";
+  ntype.nclass = NODE_CLASS_ATTRIBUTE;
   blender::bke::node_type_storage(&ntype,
                                   "NodeGeometryStoreNamedAttribute",
                                   node_free_standard_storage,

@@ -91,12 +91,12 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(
-      &ntype, "GeometryNodeFieldOnDomain", GEO_NODE_EVALUATE_ON_DOMAIN, NODE_CLASS_CONVERTER);
+  geo_node_type_base(&ntype, "GeometryNodeFieldOnDomain", GEO_NODE_EVALUATE_ON_DOMAIN);
   ntype.ui_name = "Evaluate on Domain";
   ntype.ui_description =
       "Retrieve values from a field on a different domain besides the domain from the context";
   ntype.enum_name_legacy = "FIELD_ON_DOMAIN";
+  ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.geometry_node_execute = node_geo_exec;
   ntype.draw_buttons = node_layout;
   ntype.initfunc = node_init;

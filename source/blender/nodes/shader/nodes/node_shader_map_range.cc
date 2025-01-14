@@ -524,10 +524,11 @@ void register_node_type_sh_map_range()
 
   static blender::bke::bNodeType ntype;
 
-  sh_fn_node_type_base(&ntype, "ShaderNodeMapRange", SH_NODE_MAP_RANGE, NODE_CLASS_CONVERTER);
+  sh_fn_node_type_base(&ntype, "ShaderNodeMapRange", SH_NODE_MAP_RANGE);
   ntype.ui_name = "Map Range";
   ntype.ui_description = "Remap a value from a range to a target range";
   ntype.enum_name_legacy = "MAP_RANGE";
+  ntype.nclass = NODE_CLASS_CONVERTER;
   ntype.declare = file_ns::sh_node_map_range_declare;
   ntype.draw_buttons = file_ns::node_shader_buts_map_range;
   ntype.ui_class = file_ns::node_shader_map_range_ui_class;

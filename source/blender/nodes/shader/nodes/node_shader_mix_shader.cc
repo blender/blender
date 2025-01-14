@@ -65,10 +65,11 @@ void register_node_type_sh_mix_shader()
 
   static blender::bke::bNodeType ntype;
 
-  sh_node_type_base(&ntype, "ShaderNodeMixShader", SH_NODE_MIX_SHADER, NODE_CLASS_SHADER);
+  sh_node_type_base(&ntype, "ShaderNodeMixShader", SH_NODE_MIX_SHADER);
   ntype.ui_name = "Mix Shader";
   ntype.ui_description = "Mix two shaders together. Typically used for material layering";
   ntype.enum_name_legacy = "MIX_SHADER";
+  ntype.nclass = NODE_CLASS_SHADER;
   ntype.declare = file_ns::node_declare;
   ntype.gpu_fn = file_ns::node_shader_gpu_mix_shader;
   ntype.materialx_fn = file_ns::node_shader_materialx;

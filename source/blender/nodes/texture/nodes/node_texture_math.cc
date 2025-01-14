@@ -331,9 +331,10 @@ void register_node_type_tex_math()
 {
   static blender::bke::bNodeType ntype;
 
-  tex_node_type_base(&ntype, "TextureNodeMath", TEX_NODE_MATH, NODE_CLASS_CONVERTER);
+  tex_node_type_base(&ntype, "TextureNodeMath", TEX_NODE_MATH);
   ntype.ui_name = "Math";
   ntype.enum_name_legacy = "MATH";
+  ntype.nclass = NODE_CLASS_CONVERTER;
   blender::bke::node_type_socket_templates(&ntype, inputs, outputs);
   ntype.labelfunc = node_math_label;
   ntype.exec_fn = exec;

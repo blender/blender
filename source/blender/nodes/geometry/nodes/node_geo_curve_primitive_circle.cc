@@ -231,13 +231,11 @@ static void node_rna(StructRNA *srna)
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
-  geo_node_type_base(&ntype,
-                     "GeometryNodeCurvePrimitiveCircle",
-                     GEO_NODE_CURVE_PRIMITIVE_CIRCLE,
-                     NODE_CLASS_GEOMETRY);
+  geo_node_type_base(&ntype, "GeometryNodeCurvePrimitiveCircle", GEO_NODE_CURVE_PRIMITIVE_CIRCLE);
   ntype.ui_name = "Curve Circle";
   ntype.ui_description = "Generate a poly spline circle";
   ntype.enum_name_legacy = "CURVE_PRIMITIVE_CIRCLE";
+  ntype.nclass = NODE_CLASS_GEOMETRY;
   ntype.initfunc = node_init;
   blender::bke::node_type_storage(&ntype,
                                   "NodeGeometryCurvePrimitiveCircle",

@@ -68,12 +68,13 @@ static void node_geo_exec(GeoNodeExecParams params)
 static void node_register()
 {
   static blender::bke::bNodeType ntype;
-  geo_node_type_base(&ntype, "GeometryNodeBoundBox", GEO_NODE_BOUNDING_BOX, NODE_CLASS_GEOMETRY);
+  geo_node_type_base(&ntype, "GeometryNodeBoundBox", GEO_NODE_BOUNDING_BOX);
   ntype.ui_name = "Bounding Box";
   ntype.ui_description =
       "Calculate the limits of a geometry's positions and generate a box mesh with those "
       "dimensions";
   ntype.enum_name_legacy = "BOUNDING_BOX";
+  ntype.nclass = NODE_CLASS_GEOMETRY;
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
   blender::bke::node_register_type(&ntype);

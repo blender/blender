@@ -37,9 +37,10 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  fn_node_type_base(&ntype, "FunctionNodeInputInt", FN_NODE_INPUT_INT, 0);
+  fn_node_type_base(&ntype, "FunctionNodeInputInt", FN_NODE_INPUT_INT);
   ntype.ui_name = "Integer";
   ntype.enum_name_legacy = "INPUT_INT";
+  ntype.nclass = NODE_CLASS_INPUT;
   ntype.declare = node_declare;
   ntype.initfunc = node_init;
   blender::bke::node_type_storage(

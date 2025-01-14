@@ -137,10 +137,11 @@ void register_node_type_cmp_luma_matte()
 
   static blender::bke::bNodeType ntype;
 
-  cmp_node_type_base(&ntype, "CompositorNodeLumaMatte", CMP_NODE_LUMA_MATTE, NODE_CLASS_MATTE);
+  cmp_node_type_base(&ntype, "CompositorNodeLumaMatte", CMP_NODE_LUMA_MATTE);
   ntype.ui_name = "Luminance Key";
   ntype.ui_description = "Create a matte based on luminance (brightness) difference";
   ntype.enum_name_legacy = "LUMA_MATTE";
+  ntype.nclass = NODE_CLASS_MATTE;
   ntype.declare = file_ns::cmp_node_luma_matte_declare;
   ntype.draw_buttons = file_ns::node_composit_buts_luma_matte;
   ntype.flag |= NODE_PREVIEW;

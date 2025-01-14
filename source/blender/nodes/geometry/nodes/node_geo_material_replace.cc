@@ -55,11 +55,11 @@ static void node_register()
 {
   static blender::bke::bNodeType ntype;
 
-  geo_node_type_base(
-      &ntype, "GeometryNodeReplaceMaterial", GEO_NODE_REPLACE_MATERIAL, NODE_CLASS_GEOMETRY);
+  geo_node_type_base(&ntype, "GeometryNodeReplaceMaterial", GEO_NODE_REPLACE_MATERIAL);
   ntype.ui_name = "Replace Material";
   ntype.ui_description = "Swap one material with another";
   ntype.enum_name_legacy = "REPLACE_MATERIAL";
+  ntype.nclass = NODE_CLASS_GEOMETRY;
   ntype.declare = node_declare;
   ntype.geometry_node_execute = node_geo_exec;
   blender::bke::node_register_type(&ntype);
