@@ -224,20 +224,9 @@ class DOPESHEET_HT_editor_buttons:
         st = context.space_data
         tool_settings = context.tool_settings
 
-        if st.mode in {'ACTION', 'SHAPEKEY'}:
-            # TODO: These buttons need some tidying up -
-            # Probably by using a popover, and bypassing the template_id() here
-            row = layout.row(align=True)
-            row.operator("action.layer_prev", text="", icon='TRIA_DOWN')
-            row.operator("action.layer_next", text="", icon='TRIA_UP')
-
-            row = layout.row(align=True)
-            row.operator("action.push_down", text="Push Down", icon='NLA_PUSHDOWN')
-            row.operator("action.stash", text="Stash", icon='FREEZE')
-
-            if context.object:
-                layout.separator_spacer()
-                cls._draw_action_selector(context, layout)
+        if st.mode in {'ACTION', 'SHAPEKEY'} and context.object:
+            layout.separator_spacer()
+            cls._draw_action_selector(context, layout)
 
         # Layer management
         if st.mode == 'GPENCIL':
@@ -582,6 +571,10 @@ class DOPESHEET_MT_action(Menu):
 
         layout.separator()
         layout.operator("anim.slot_channels_move_to_new_action")
+
+        layout.separator()
+        layout.operator("action.push_down", text="Push Down Action", icon='NLA_PUSHDOWN')
+        layout.operator("action.stash", text="Stash Action", icon='FREEZE')
 
 
 class DOPESHEET_MT_key(Menu):
