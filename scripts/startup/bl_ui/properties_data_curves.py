@@ -64,7 +64,8 @@ class DATA_PT_curves_surface(DataButtonsPanel, Panel):
                 ob.data.surface.data,
                 "uv_layers",
                 text="UV Map",
-                icon='GROUP_UVS')
+                icon='GROUP_UVS',
+            )
         else:
             row = layout.row()
             row.prop(ob.data, "surface_uv_map", text="UV Map")
@@ -109,7 +110,8 @@ class CURVES_UL_attributes(UIList):
         # Filtering by name
         if self.filter_name:
             flags = bpy.types.UI_UL_list.filter_items_by_name(
-                self.filter_name, self.bitflag_filter_item, attributes, "name", reverse=self.use_filter_invert)
+                self.filter_name, self.bitflag_filter_item, attributes, "name", reverse=self.use_filter_invert,
+            )
         if not flags:
             flags = [self.bitflag_filter_item] * len(attributes)
 

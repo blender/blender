@@ -1020,7 +1020,8 @@ class VIEW3D_HT_header(Header):
             row.popover(
                 panel="VIEW3D_PT_mask",
                 icon=VIEW3D_HT_header._texture_mask_icon(tool_settings.image_paint),
-                text="")
+                text="",
+            )
         else:
             # Transform settings depending on tool header visibility
             VIEW3D_HT_header.draw_xform_template(layout, context)
@@ -2588,7 +2589,8 @@ class VIEW3D_MT_grease_pencil_add(Menu):
         layout.operator(
             "object.grease_pencil_add",
             text="Collection Line Art",
-            icon='OUTLINER_COLLECTION').type = 'LINEART_COLLECTION'
+            icon='OUTLINER_COLLECTION',
+        ).type = 'LINEART_COLLECTION'
         layout.operator("object.grease_pencil_add", text="Object Line Art", icon='OBJECT_DATA').type = 'LINEART_OBJECT'
 
 
@@ -4341,8 +4343,11 @@ class BoneOptions:
             opt_suffix = "bone."
 
         for opt in options:
-            props = layout.operator("wm.context_collection_boolean_set", text=bone_props[opt].name,
-                                    text_ctxt=i18n_contexts.default)
+            props = layout.operator(
+                "wm.context_collection_boolean_set",
+                text=bone_props[opt].name,
+                text_ctxt=i18n_contexts.default,
+            )
             props.data_path_iter = data_path_iter
             props.data_path_item = opt_suffix + opt
             props.type = self.type
@@ -7593,7 +7598,8 @@ class VIEW3D_PT_snapping(Panel):
             "use_snap_translate",
             text="Move",
             text_ctxt=i18n_contexts.operator_default,
-            toggle=True)
+            toggle=True,
+        )
         row.prop(tool_settings, "use_snap_rotate", text="Rotate", text_ctxt=i18n_contexts.operator_default, toggle=True)
         row.prop(tool_settings, "use_snap_scale", text="Scale", text_ctxt=i18n_contexts.operator_default, toggle=True)
         col.label(text="Rotation Increment")
@@ -7627,8 +7633,10 @@ class VIEW3D_PT_proportional_edit(Panel):
         layout = self.layout
         tool_settings = context.tool_settings
         col = layout.column()
-        col.active = (tool_settings.use_proportional_edit_objects if context.mode == 'OBJECT'
-                      else tool_settings.use_proportional_edit)
+        col.active = (
+            tool_settings.use_proportional_edit_objects if context.mode == 'OBJECT' else
+            tool_settings.use_proportional_edit
+        )
 
         if context.mode != 'OBJECT':
             col.prop(tool_settings, "use_proportional_connected")
@@ -7769,14 +7777,17 @@ class VIEW3D_PT_overlay_grease_pencil_options(Panel):
 
         ob = context.object
 
-        layout.label(text={
-            'PAINT_GREASE_PENCIL': iface_("Draw Grease Pencil"),
-            'EDIT_GREASE_PENCIL': iface_("Edit Grease Pencil"),
-            'WEIGHT_GREASE_PENCIL': iface_("Weight Grease Pencil"),
-            'OBJECT': iface_("Grease Pencil"),
-            'SCULPT_GREASE_PENCIL': iface_("Sculpt Grease Pencil"),
-            'VERTEX_GREASE_PENCIL': iface_("Vertex Grease Pencil"),
-        }[context.mode], translate=False)
+        layout.label(
+            text={
+                'PAINT_GREASE_PENCIL': iface_("Draw Grease Pencil"),
+                'EDIT_GREASE_PENCIL': iface_("Edit Grease Pencil"),
+                'WEIGHT_GREASE_PENCIL': iface_("Weight Grease Pencil"),
+                'OBJECT': iface_("Grease Pencil"),
+                'SCULPT_GREASE_PENCIL': iface_("Sculpt Grease Pencil"),
+                'VERTEX_GREASE_PENCIL': iface_("Vertex Grease Pencil"),
+            }[context.mode],
+            translate=False
+        )
 
         layout.prop(overlay, "use_gpencil_onion_skin", text="Onion Skin")
 
@@ -8052,8 +8063,10 @@ class VIEW3D_MT_grease_pencil_assign_material(Menu):
         for slot in ob.material_slots:
             mat = slot.material
             if mat:
-                layout.operator("grease_pencil.stroke_material_set", text=mat.name,
-                                icon='LAYER_ACTIVE' if mat == mat_active else 'BLANK1').material = mat.name
+                layout.operator(
+                    "grease_pencil.stroke_material_set", text=mat.name,
+                    icon='LAYER_ACTIVE' if mat == mat_active else 'BLANK1',
+                ).material = mat.name
 
 
 class VIEW3D_MT_greasepencil_edit_context_menu(Menu):

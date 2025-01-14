@@ -467,7 +467,8 @@ class ARMATURE_OT_copy_bone_color_to_selected(Operator):
 
     bone_type: EnumProperty(
         name="Type",
-        items=_bone_type_enum)
+        items=_bone_type_enum,
+    )
 
     @classmethod
     def poll(cls, context):
@@ -528,7 +529,8 @@ class ARMATURE_OT_copy_bone_color_to_selected(Operator):
                 "Bone colors were synced; "
                 "for {:d} bones this will not be visible due to pose bone color overrides".format(
                     num_pose_color_overrides,
-                ))
+                ),
+            )
 
         return {'FINISHED'}
 

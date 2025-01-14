@@ -1049,7 +1049,8 @@ class IMAGE_PT_snapping(Panel):
             "use_snap_translate",
             text="Move",
             text_ctxt=i18n_contexts.operator_default,
-            toggle=True)
+            toggle=True,
+        )
         row.prop(tool_settings, "use_snap_rotate", text="Rotate", text_ctxt=i18n_contexts.operator_default, toggle=True)
         row.prop(tool_settings, "use_snap_scale", text="Scale", text_ctxt=i18n_contexts.operator_default, toggle=True)
         col.label(text="Rotation Increment")

@@ -458,7 +458,8 @@ class GreasePencilMaterialsPanel:
                 sub.operator(
                     "grease_pencil.material_isolate",
                     icon='RESTRICT_VIEW_ON',
-                    text="").affect_visibility = True
+                    text="",
+                ).affect_visibility = True
                 sub.operator("grease_pencil.material_isolate", icon='LOCKED', text="").affect_visibility = False
 
             if show_full_ui:

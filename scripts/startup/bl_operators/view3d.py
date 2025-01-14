@@ -56,7 +56,8 @@ class VIEW3D_OT_edit_mesh_extrude_individual_move(Operator):
                 'INVOKE_REGION_WIN',
                 TRANSFORM_OT_shrink_fatten={
                     "release_confirm": False,
-                })
+                },
+            )
         elif select_mode[1] and totedge >= 1:
             bpy.ops.mesh.extrude_edges_move(
                 'INVOKE_REGION_WIN',

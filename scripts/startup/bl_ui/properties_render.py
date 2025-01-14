@@ -790,7 +790,8 @@ class RENDER_PT_eevee_performance_compositor(RenderButtonsPanel, CompositorPerfo
 
 
 class RENDER_PT_eevee_performance_compositor_denoise_settings(
-        RenderButtonsPanel, CompositorDenoisePerformanceButtonsPanel, Panel):
+        RenderButtonsPanel, CompositorDenoisePerformanceButtonsPanel, Panel,
+):
     bl_options = {'DEFAULT_CLOSED'}
     bl_parent_id = "RENDER_PT_eevee_performance_compositor"
     COMPAT_ENGINES = {

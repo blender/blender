@@ -627,8 +627,9 @@ def get_shadeless_node(dest_node_tree):
 # -----------------------------------------------------------------------------
 # Operator
 
-class IMAGE_OT_import_as_mesh_planes(AddObjectHelper, ImportHelper, MaterialProperties_MixIn,
-                                     TextureProperties_MixIn, Operator):
+class IMAGE_OT_import_as_mesh_planes(
+        AddObjectHelper, ImportHelper, MaterialProperties_MixIn, TextureProperties_MixIn, Operator,
+):
     """Create mesh plane(s) from image files with the appropriate aspect ratio"""
 
     bl_idname = "image.import_as_mesh_planes"

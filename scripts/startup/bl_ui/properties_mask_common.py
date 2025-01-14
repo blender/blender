@@ -211,11 +211,15 @@ class MASK_PT_point:
 
             if parent.parent in tracking.objects:
                 ob = tracking.objects[parent.parent]
-                col.prop_search(parent, "sub_parent", ob,
-                                tracks_list, icon='ANIM_DATA', text="Track", text_ctxt=i18n_contexts.id_movieclip)
+                col.prop_search(
+                    parent, "sub_parent", ob,
+                    tracks_list, icon='ANIM_DATA', text="Track", text_ctxt=i18n_contexts.id_movieclip,
+                )
             else:
-                col.prop_search(parent, "sub_parent", tracking,
-                                tracks_list, icon='ANIM_DATA', text="Track", text_ctxt=i18n_contexts.id_movieclip)
+                col.prop_search(
+                    parent, "sub_parent", tracking,
+                    tracks_list, icon='ANIM_DATA', text="Track", text_ctxt=i18n_contexts.id_movieclip,
+                )
 
 
 class MASK_PT_display:

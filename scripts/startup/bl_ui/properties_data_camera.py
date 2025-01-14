@@ -268,7 +268,8 @@ class DATA_PT_camera_dof(CameraButtonsPanel, Panel):
         row.operator(
             "ui.eyedropper_depth",
             icon='EYEDROPPER',
-            text="").prop_data_path = "scene.camera.data.dof.focus_distance"
+            text="",
+        ).prop_data_path = "scene.camera.data.dof.focus_distance"
 
 
 class DATA_PT_camera_dof_aperture(CameraButtonsPanel, Panel):

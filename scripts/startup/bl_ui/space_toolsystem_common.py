@@ -817,12 +817,10 @@ class ToolSelectPanelHelper:
         # Add some spacing since the icon is currently assuming regular small icon size.
         if show_tool_icon_always:
             layout.label(
-                text="    " +
-                iface_(
-                    item.label,
-                    i18n_contexts.operator_default),
+                text="    " + iface_(item.label, i18n_contexts.operator_default),
                 icon_value=icon_value,
-                translate=False)
+                translate=False,
+            )
             layout.separator()
         else:
             if not context.space_data.show_region_toolbar:
@@ -847,8 +845,11 @@ class ToolSelectPanelHelper:
 
             row = layout.row(heading="Drag", heading_ctxt=i18n_contexts.editor_view3d)
             row.context_pointer_set("tool", tool)
-            row.popover(panel="TOPBAR_PT_tool_fallback", text=iface_(
-                label, i18n_contexts.operator_default), translate=False)
+            row.popover(
+                panel="TOPBAR_PT_tool_fallback",
+                text=iface_(label, i18n_contexts.operator_default),
+                translate=False,
+            )
 
         return tool
 

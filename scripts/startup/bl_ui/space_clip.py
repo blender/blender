@@ -202,9 +202,11 @@ class CLIP_HT_header(Header):
 
                 row = layout.row(align=True)
                 row.prop(dopesheet, "sort_method", text="")
-                row.prop(dopesheet, "use_invert_sort",
-                         text="", toggle=True,
-                         icon='SORT_DESC' if dopesheet.use_invert_sort else 'SORT_ASC')
+                row.prop(
+                    dopesheet, "use_invert_sort",
+                    text="", toggle=True,
+                    icon='SORT_DESC' if dopesheet.use_invert_sort else 'SORT_ASC',
+                )
 
     def _draw_masking(self, context):
         layout = self.layout
@@ -557,8 +559,10 @@ class CLIP_PT_tools_solve(CLIP_PT_tracking_panel, Panel):
         col.prop(settings, "use_keyframe_selection", text="Keyframe")
 
         col = layout.column(align=True)
-        col.active = (not settings.use_tripod_solver and
-                      not settings.use_keyframe_selection)
+        col.active = (
+            not settings.use_tripod_solver and
+            not settings.use_keyframe_selection
+        )
         col.prop(tracking_object, "keyframe_a")
         col.prop(tracking_object, "keyframe_b")
 
@@ -1041,8 +1045,7 @@ class CLIP_PT_stabilization(CLIP_PT_reconstruction_panel, Panel):
         else:
             row.label(text="Tracks for Location")
             row = box.row()
-            row.template_list("UI_UL_list", "stabilization_tracks", stab, "tracks",
-                              stab, "active_track_index", rows=2)
+            row.template_list("UI_UL_list", "stabilization_tracks", stab, "tracks", stab, "active_track_index", rows=2)
 
             sub = row.column(align=True)
 
@@ -1056,9 +1059,11 @@ class CLIP_PT_stabilization(CLIP_PT_reconstruction_panel, Panel):
             if stab.use_stabilize_rotation:
                 box.label(text="Tracks for Rotation/Scale")
                 row = box.row()
-                row.template_list("UI_UL_list", "stabilization_rotation_tracks",
-                                  stab, "rotation_tracks",
-                                  stab, "active_rotation_track_index", rows=2)
+                row.template_list(
+                    "UI_UL_list", "stabilization_rotation_tracks",
+                    stab, "rotation_tracks",
+                    stab, "active_rotation_track_index", rows=2,
+                )
 
                 sub = row.column(align=True)
 

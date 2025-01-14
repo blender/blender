@@ -67,8 +67,11 @@ class OBJECT_MT_modifier_add(ModifierAddMenu, Menu):
 
         if layout.operator_context == 'EXEC_REGION_WIN':
             layout.operator_context = 'INVOKE_REGION_WIN'
-            layout.operator("WM_OT_search_single_menu", text="Search...",
-                            icon='VIEWZOOM').menu_idname = "OBJECT_MT_modifier_add"
+            layout.operator(
+                "WM_OT_search_single_menu",
+                text="Search...",
+                icon='VIEWZOOM',
+            ).menu_idname = "OBJECT_MT_modifier_add"
             layout.separator()
 
         layout.operator_context = 'INVOKE_REGION_WIN'

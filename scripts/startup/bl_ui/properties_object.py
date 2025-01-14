@@ -437,7 +437,8 @@ def has_geometry_visibility(ob):
             'VOLUME',
             'POINTCLOUD',
             'CURVES',
-        }) or (ob.instance_type == 'COLLECTION' and ob.instance_collection))
+        }) or (ob.instance_type == 'COLLECTION' and ob.instance_collection)
+    )
 
 
 class OBJECT_PT_shading(ObjectButtonsPanel, Panel):
@@ -487,7 +488,8 @@ class OBJECT_PT_light_linking(ObjectButtonsPanel, Panel):
         col.template_ID(
             light_linking,
             "receiver_collection",
-            new="object.light_linking_receiver_collection_new")
+            new="object.light_linking_receiver_collection_new",
+        )
 
         if not light_linking.receiver_collection:
             return
@@ -532,7 +534,8 @@ class OBJECT_PT_shadow_linking(ObjectButtonsPanel, Panel):
         col.template_ID(
             light_linking,
             "blocker_collection",
-            new="object.light_linking_blocker_collection_new")
+            new="object.light_linking_blocker_collection_new",
+        )
 
         if not light_linking.blocker_collection:
             return

@@ -756,7 +756,8 @@ class RemovePresetKeyconfig(AddPresetBase, Operator):
             return {'CANCELLED'}
 
         return context.window_manager.invoke_confirm(
-            self, event, title="Remove Keymap Configuration", confirm_text="Delete")
+            self, event, title="Remove Keymap Configuration", confirm_text="Delete",
+        )
 
 
 class AddPresetOperator(AddPresetBase, Operator):

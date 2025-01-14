@@ -432,14 +432,18 @@ class ShapeTransfer(Operator):
                     n1loc_to = v1_to + target_normals[i1] * edlen_to
                     n2loc_to = v2_to + target_normals[i2] * edlen_to
 
-                    pt = barycentric_transform(orig_shape_coords[i1],
-                                               v2, v1, n1loc,
-                                               v2_to, v1_to, n1loc_to)
+                    pt = barycentric_transform(
+                        orig_shape_coords[i1],
+                        v2, v1, n1loc,
+                        v2_to, v1_to, n1loc_to,
+                    )
                     median_coords[i1].append(pt)
 
-                    pt = barycentric_transform(orig_shape_coords[i2],
-                                               v1, v2, n2loc,
-                                               v1_to, v2_to, n2loc_to)
+                    pt = barycentric_transform(
+                        orig_shape_coords[i2],
+                        v1, v2, n2loc,
+                        v1_to, v2_to, n2loc_to,
+                    )
                     median_coords[i2].append(pt)
 
             # apply the offsets to the new shape

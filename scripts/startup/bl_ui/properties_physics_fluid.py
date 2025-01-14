@@ -1021,11 +1021,12 @@ class PHYSICS_PT_particles(PhysicButtonsPanel, Panel):
             split.enabled = (
                 note_flag and
                 ob.mode == 'OBJECT' and
-                domain.has_cache_baked_data and
-                (domain.use_spray_particles or
-                 domain.use_bubble_particles or
-                 domain.use_foam_particles or
-                 domain.use_tracer_particles)
+                domain.has_cache_baked_data and (
+                    domain.use_spray_particles or
+                    domain.use_bubble_particles or
+                    domain.use_foam_particles or
+                    domain.use_tracer_particles
+                )
             )
 
             bake_incomplete = (domain.cache_frame_pause_particles < domain.cache_frame_end)

@@ -233,11 +233,14 @@ def operator_value_is_undo(value):
             return False
 
     # return True if its a non window ID type
-    return (isinstance(id_data, bpy.types.ID) and
-            (not isinstance(id_data, (bpy.types.WindowManager,
-                                      bpy.types.Screen,
-                                      bpy.types.Brush,
-                                      ))))
+    return (
+        isinstance(id_data, bpy.types.ID) and
+        (not isinstance(id_data, (
+            bpy.types.WindowManager,
+            bpy.types.Screen,
+            bpy.types.Brush,
+        )))
+    )
 
 
 def operator_path_is_undo(context, data_path):
@@ -842,10 +845,12 @@ doc_id = StringProperty(
 )
 
 data_path_iter = StringProperty(
-    description="The data path relative to the context, must point to an iterable")
+    description="The data path relative to the context, must point to an iterable",
+)
 
 data_path_item = StringProperty(
-    description="The data path from each iterable to the value (int or float)")
+    description="The data path from each iterable to the value (int or float)",
+)
 
 
 class WM_OT_context_collection_boolean_set(Operator):
@@ -1384,8 +1389,9 @@ rna_custom_property_type_items = (
     ('PYTHON', "Python", "Edit a Python value directly, for unsupported property types"),
 )
 
-rna_custom_property_subtype_none_item = ('NONE', n_(
-    "Plain Data", i18n_contexts.unit), n_("Data values without special behavior"))
+rna_custom_property_subtype_none_item = (
+    'NONE', n_("Plain Data", i18n_contexts.unit), n_("Data values without special behavior")
+)
 
 rna_custom_property_subtype_number_items = (
     rna_custom_property_subtype_none_item,
@@ -1413,8 +1419,10 @@ rna_custom_property_subtype_vector_items = (
     ('XYZ', n_("XYZ", i18n_contexts.unit), ""),
 )
 
-rna_id_type_items = tuple((item.identifier, item.name, item.description, item.icon, item.value)
-                          for item in bpy.types.ID.bl_rna.properties["id_type"].enum_items)
+rna_id_type_items = tuple(
+    (item.identifier, item.name, item.description, item.icon, item.value)
+    for item in bpy.types.ID.bl_rna.properties["id_type"].enum_items
+)
 
 
 class WM_OT_properties_edit(Operator):
@@ -3591,8 +3599,12 @@ class WM_MT_region_toggle_pie(Menu):
             text = enum_items[region_type].name
             attr = cls._region_info[region_type]
             value = getattr(space_data, attr)
-            props = pie.operator("wm.context_toggle", text=text, text_ctxt=i18n_contexts.default,
-                                 icon='CHECKBOX_HLT' if value else 'CHECKBOX_DEHLT')
+            props = pie.operator(
+                "wm.context_toggle",
+                text=text,
+                text_ctxt=i18n_contexts.default,
+                icon='CHECKBOX_HLT' if value else 'CHECKBOX_DEHLT',
+            )
             props.data_path = "space_data." + attr
 
     def draw(self, context):

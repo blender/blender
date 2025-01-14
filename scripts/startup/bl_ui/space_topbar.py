@@ -57,7 +57,8 @@ class TOPBAR_HT_upper_bar(Header):
             window, "view_layer",
             scene, "view_layers",
             new="scene.view_layer_add",
-            unlink="scene.view_layer_remove")
+            unlink="scene.view_layer_remove",
+        )
 
 
 class TOPBAR_PT_tool_settings_extra(Panel):
@@ -299,8 +300,9 @@ class TOPBAR_MT_file_defaults(Menu):
 
         if app_template:
             layout.label(
-                text=iface_(bpy.path.display_name(app_template, has_ext=False),
-                            i18n_contexts.id_workspace), translate=False)
+                text=iface_(bpy.path.display_name(app_template, has_ext=False), i18n_contexts.id_workspace),
+                translate=False,
+            )
 
         layout.operator("wm.save_homefile")
         if app_template:

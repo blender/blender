@@ -138,7 +138,8 @@ class WORKSPACE_UL_addons_items(UIList):
         # Filtering by category and name
         if self.filter_name:
             flags = self._filter_addons_by_category_name(
-                self.filter_name, self.bitflag_filter_item, addons, reverse=self.use_filter_invert)
+                self.filter_name, self.bitflag_filter_item, addons, reverse=self.use_filter_invert,
+            )
         if not flags:
             flags = [self.bitflag_filter_item] * len(addons)
         # Filer addons without registered modules
@@ -181,7 +182,9 @@ classes = (
 
 
 bpy.types.WorkSpace.active_addon = bpy.props.IntProperty(
-    name="Active Add-on", description="Active Add-on in the Workspace Add-ons filter")
+    name="Active Add-on",
+    description="Active Add-on in the Workspace Add-ons filter",
+)
 
 
 if __name__ == "__main__":  # only for live edit.
