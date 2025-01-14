@@ -418,8 +418,8 @@ def script_paths_pref():
 
 def script_paths_system_environment():
     """Returns a list of system script directories from environment variables."""
-    if env_system_path := _os.environ.get("BLENDER_SYSTEM_SCRIPTS"):
-        return [_os.path.normpath(env_system_path)]
+    if env_system_paths := _os.environ.get("BLENDER_SYSTEM_SCRIPTS"):
+        return [_os.path.normpath(p) for p in env_system_paths.split(_os.pathsep) if p]
     return []
 
 

@@ -436,6 +436,47 @@ static bool get_path_environment(char *targetpath,
       targetpath, targetpath_maxncpy, subfolder_name, envvar, check_is_dir);
 }
 
+static blender::Vector<std::string> get_path_environment_multiple(const char *subfolder_name,
+                                                                  const char *envvar,
+                                                                  const bool check_is_dir)
+{
+  blender::Vector<std::string> paths;
+  const char *env_path = envvar ? BLI_getenv(envvar) : nullptr;
+  if (!env_path) {
+    return paths;
+  }
+
+  std::string env_path_str = env_path;
+
+#ifdef _WIN32
+  const char separator = ';';
+#else
+  const char separator = ':';
+#endif
+  char path[PATH_MAX] = "\0";
+
+  size_t last = 0;
+  size_t next = 0;
+  for (; (next = env_path_str.find(separator, last)) != std::string::npos; last = next + 1) {
+    BLI_path_join(
+        path, sizeof(path), env_path_str.substr(last, next - last).c_str(), subfolder_name);
+    if (!check_is_dir || BLI_is_dir(path)) {
+      paths.append(path);
+    }
+  }
+  if (last < env_path_str.size()) {
+    BLI_path_join(path,
+                  sizeof(path),
+                  env_path_str.substr(last, env_path_str.size() - last).c_str(),
+                  subfolder_name);
+    if (!check_is_dir || BLI_is_dir(path)) {
+      paths.append(path);
+    }
+  }
+
+  return paths;
+}
+
 /**
  * Returns the path of a folder within the user-files area.
  *
@@ -1016,13 +1057,8 @@ static blender::Vector<std::string> appdir_app_template_directories()
   }
 
   /* Environment variable. */
-  if (get_path_environment(temp_dir,
-                           sizeof(temp_dir),
-                           "startup" SEP_STR "bl_app_templates_system",
-                           "BLENDER_SYSTEM_SCRIPTS"))
-  {
-    directories.append(temp_dir);
-  }
+  directories.extend(get_path_environment_multiple(
+      "startup" SEP_STR "bl_app_templates_system", "BLENDER_SYSTEM_SCRIPTS", true));
 
   /* Local or system directory. */
   if (BKE_appdir_folder_id_ex(BLENDER_SYSTEM_SCRIPTS,
