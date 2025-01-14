@@ -937,14 +937,17 @@ static auto fit_strokes_to_view(const ViewContext &view_context,
                                 const float2 fill_point,
                                 const bool uniform_zoom,
                                 const float max_zoom_factor,
-                                const float2 margin)
+                                const float2 margin,
+                                const float pixel_scale)
 {
   BLI_assert(max_zoom_factor >= 1.0f);
   const float min_zoom_factor = math::safe_rcp(max_zoom_factor);
+  /* These values are copied from GPv2. */
+  const int2 min_image_size = int2(128, 128);
 
   switch (fit_method) {
     case FillToolFitMethod::None:
-      return std::make_tuple(float2(1.0f), float2(0.0f), float3x3::identity());
+      return std::make_tuple(float2(1.0f), float2(0.0f), min_image_size, float3x3::identity());
 
     case FillToolFitMethod::FitToView: {
       const Object &object_eval = *DEG_get_evaluated_object(view_context.depsgraph,
@@ -958,7 +961,7 @@ static auto fit_strokes_to_view(const ViewContext &view_context,
           boundary_layers,
           src_drawings);
       if (!boundary_bounds) {
-        return std::make_tuple(float2(1.0f), float2(0.0f), float3x3::identity());
+        return std::make_tuple(float2(1.0f), float2(0.0f), min_image_size, float3x3::identity());
       }
 
       /* Include fill point for computing zoom. */
@@ -969,6 +972,7 @@ static auto fit_strokes_to_view(const ViewContext &view_context,
       }();
 
       const Bounds<float2> region_bounds = get_region_bounds(*view_context.region);
+      const int2 image_size = math::max(int2(region_bounds.size() * pixel_scale), min_image_size);
       const float2 zoom_factors = math::clamp(
           math::safe_divide(fill_bounds.size(), region_bounds.size()),
           float2(min_zoom_factor),
@@ -986,13 +990,13 @@ static auto fit_strokes_to_view(const ViewContext &view_context,
                                               region_bounds.size());
       /* Corner offset for boundary transform (pixels to strokes). */
       const float3x3 image_to_region = math::from_loc_scale<float3x3>(
-          render_bounds.min - region_bounds.min, zoom);
+          render_bounds.min - region_bounds.min, zoom * math::safe_rcp(pixel_scale));
 
-      return std::make_tuple(zoom, offset, image_to_region);
+      return std::make_tuple(zoom, offset, image_size, image_to_region);
     }
   }
 
-  return std::make_tuple(float2(1.0f), float2(0.0f), float3x3::identity());
+  return std::make_tuple(float2(1.0f), float2(0.0f), min_image_size, float3x3::identity());
 }
 
 static Image *render_strokes(const ViewContext &view_context,
@@ -1001,6 +1005,7 @@ static Image *render_strokes(const ViewContext &view_context,
                              const bke::greasepencil::Layer &layer,
                              const VArray<bool> &boundary_layers,
                              const Span<DrawingInfo> src_drawings,
+                             const int2 &image_size,
                              const std::optional<float> alpha_threshold,
                              const float2 &fill_point,
                              const ExtensionData &extensions,
@@ -1021,12 +1026,6 @@ static Image *render_strokes(const ViewContext &view_context,
   const float radius_scale = (brush.gpencil_settings->fill_draw_mode == GP_FILL_DMODE_CONTROL) ?
                                  0.0f :
                                  0.5f;
-
-  constexpr const int min_image_size = 128;
-  /* Pixel scale (aka. "fill_factor, aka. "Precision") to reduce image size. */
-  const float pixel_scale = brush.gpencil_settings->fill_factor;
-  const int2 region_size = int2(region.winx, region.winy);
-  const int2 image_size = math::max(region_size * pixel_scale, int2(min_image_size));
 
   /* Transform mouse coordinates into layer space for rendering alongside strokes. */
   const float3 fill_point_layer = placement.project(fill_point);
@@ -1140,14 +1139,17 @@ bke::CurvesGeometry fill_strokes(const ViewContext &view_context,
   const bool uniform_zoom = true;
   const float max_zoom_factor = 5.0f;
   const float2 margin = float2(20);
-  const auto [zoom, offset, image_to_region] = fit_strokes_to_view(view_context,
-                                                                   boundary_layers,
-                                                                   src_drawings,
-                                                                   fit_method,
-                                                                   fill_point,
-                                                                   uniform_zoom,
-                                                                   max_zoom_factor,
-                                                                   margin);
+  /* Pixel scale (aka. "fill_factor, aka. "Precision") to reduce image size. */
+  const float pixel_scale = brush.gpencil_settings->fill_factor;
+  const auto [zoom, offset, image_size, image_to_region] = fit_strokes_to_view(view_context,
+                                                                               boundary_layers,
+                                                                               src_drawings,
+                                                                               fit_method,
+                                                                               fill_point,
+                                                                               uniform_zoom,
+                                                                               max_zoom_factor,
+                                                                               margin,
+                                                                               pixel_scale);
 
   ed::greasepencil::DrawingPlacement placement(scene, region, view3d, object_eval, &layer);
   if (placement.use_project_to_surface()) {
@@ -1164,6 +1166,7 @@ bke::CurvesGeometry fill_strokes(const ViewContext &view_context,
                               layer,
                               boundary_layers,
                               src_drawings,
+                              image_size,
                               alpha_threshold,
                               fill_point,
                               extensions,
