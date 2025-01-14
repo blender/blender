@@ -891,23 +891,27 @@ GHOST_TSuccess GHOST_SystemCocoa::getPixelAtCursor(float r_color[3]) const
   @autoreleasepool {
     NSColorSampler *sampler = [[NSColorSampler alloc] init];
     __block BOOL selectCompleted = NO;
-    
+
     [sampler showSamplerWithSelectionHandler:^(NSColor *selectedColor) {
-      dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        if (selectedColor != nil) {
-          NSColor *rgbColor = [selectedColor colorUsingColorSpace:[NSColorSpace deviceRGBColorSpace]];
-          if (rgbColor) {
-            r_color[0] = [rgbColor redComponent];
-            r_color[1] = [rgbColor greenComponent];
-            r_color[2] = [rgbColor blueComponent]; 
-          }
-        }
-        selectCompleted = YES;
-      });
+      dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.1 * NSEC_PER_SEC)),
+                     dispatch_get_main_queue(),
+                     ^{
+                       if (selectedColor != nil) {
+                         NSColor *rgbColor = [selectedColor
+                             colorUsingColorSpace:[NSColorSpace deviceRGBColorSpace]];
+                         if (rgbColor) {
+                           r_color[0] = [rgbColor redComponent];
+                           r_color[1] = [rgbColor greenComponent];
+                           r_color[2] = [rgbColor blueComponent];
+                         }
+                       }
+                       selectCompleted = YES;
+                     });
     }];
-    
+
     while (!selectCompleted) {
-      [[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode beforeDate:[NSDate dateWithTimeIntervalSinceNow:0.05]];
+      [[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode
+                               beforeDate:[NSDate dateWithTimeIntervalSinceNow:0.05]];
     }
   }
   return GHOST_kSuccess;
