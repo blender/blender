@@ -140,6 +140,8 @@ static void gpencil_init_colors(tGPDprimitive *p)
 
   gpd->runtime.matid = BKE_object_material_slot_find_index(p->ob, p->material);
   gpd->runtime.sbuffer_brush = brush;
+
+  gpd->runtime.fill_opacity_fac = 1.0f;
 }
 
 /* Helper to square a primitive */
