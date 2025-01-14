@@ -2280,9 +2280,12 @@ class GlareOperation : public NodeOperation {
   {
     switch (static_cast<CMPNodeGlareType>(node_storage(bnode()).type)) {
       case CMP_NODE_GLARE_BLOOM:
-        /* Bloom adds a number of layers equivalent to the chain length, so we need to normalize by
-         * the chain length, see the bloom code for more information. */
-        return this->compute_bloom_chain_length();
+        /* Bloom adds a number of passes equal to the chain length, if the input is constant, each
+         * of those passes will hold the same constant, so we need to normalize by the chain
+         * length, see the bloom code for more information. If the chain length is less than 1,
+         * then no bloom will be generated, so we can return 1 in this case to avoid zero division
+         * later on. */
+        return math::max(1, this->compute_bloom_chain_length());
       case CMP_NODE_GLARE_SIMPLE_STAR:
       case CMP_NODE_GLARE_FOG_GLOW:
       case CMP_NODE_GLARE_STREAKS:
