@@ -10,6 +10,7 @@
 #include <cfloat>
 #include <climits>
 #include <cstddef>
+#include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -2368,7 +2369,8 @@ static void rna_def_property_boolean_sdna(PropertyRNA *prop,
   if (length > 1) {
     if (booleanbit <= 0) {
       CLOG_ERROR(&LOG,
-                 "%s.%s is using a null or negative 'booleanbit' value of %ld, which is invalid "
+                 "%s.%s is using a null or negative 'booleanbit' value of %" PRId64
+                 ", which is invalid "
                  "for 'bitset arrays' boolean properties.",
                  srna->identifier,
                  prop->identifier,
@@ -2380,7 +2382,8 @@ static void rna_def_property_boolean_sdna(PropertyRNA *prop,
     bit_index = bitscan_forward_uint64(*reinterpret_cast<const uint64_t *>(&booleanbit));
     if ((booleanbit & ~(1 << bit_index)) != 0) {
       CLOG_ERROR(&LOG,
-                 "%s.%s is using a multi-bit 'booleanbit' value of %ld, which is invalid for "
+                 "%s.%s is using a multi-bit 'booleanbit' value of %" PRId64
+                 ", which is invalid for "
                  "'bitset arrays' boolean properties.",
                  srna->identifier,
                  prop->identifier,
