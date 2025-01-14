@@ -1374,44 +1374,15 @@ std::optional<std::string> flip_names(const tAnimCopybufItem *aci)
     return {};
   }
 
-  /* Cast away the constness; we're going to modify data, but it'll be put back
-   * before the function ends. */
-  char *str_start = const_cast<tAnimCopybufItem *>(aci)->rna_path + ofs_start;
-  const char *str_end = aci->rna_path + ofs_end;
-
-  /* Swap out the name.
-   * NOTE: there is no need to un-escape the string to flip it.
+  /* NOTE: there is no need to un-escape the string to flip it.
    * However the buffer does need to be twice the size. */
   char bname_new[MAX_VGROUP_NAME * 2];
-  int len_old, prefix_l, postfix_l;
 
-  prefix_l = str_start - aci->rna_path;
+  const std::string bone_name(aci->rna_path + ofs_start, aci->rna_path + ofs_end);
+  BLI_string_flip_side_name(bname_new, bone_name.c_str(), false, sizeof(bname_new));
 
-  len_old = str_end - str_start;
-  postfix_l = strlen(str_end);
-
-  /* Temporary substitute with nullptr terminator. */
-  BLI_assert(str_start[len_old] == '\"');
-  str_start[len_old] = 0;
-  const int len_new = BLI_string_flip_side_name(bname_new, str_start, false, sizeof(bname_new));
-  str_start[len_old] = '\"';
-
-  char *rna_path_flipped_charptr = static_cast<char *>(
-      MEM_mallocN(sizeof(char) * (prefix_l + postfix_l + len_new + 1), "flipped_path"));
-  char *str_iter = rna_path_flipped_charptr;
-
-  memcpy(str_iter, aci->rna_path, prefix_l);
-  str_iter += prefix_l;
-  memcpy(str_iter, bname_new, len_new);
-  str_iter += len_new;
-  memcpy(str_iter, str_end, postfix_l);
-  str_iter[postfix_l] = '\0';
-
-  const std::string rna_path_flipped(rna_path_flipped_charptr);
-
-  MEM_freeN(rna_path_flipped_charptr);
-
-  return rna_path_flipped;
+  return blender::StringRef(aci->rna_path, aci->rna_path + ofs_start) + bname_new +
+         blender::StringRef(aci->rna_path + ofs_end);
 }
 
 /* ------------------- */
