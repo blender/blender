@@ -123,10 +123,11 @@ class MESH_UL_shape_keys(UIList):
         # key = data
         key_block = item
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            split = layout.split(factor=0.66, align=False)
+            split = layout.split(factor=0.5, align=True)
             split.prop(key_block, "name", text="", emboss=False, icon_value=icon)
             row = split.row(align=True)
             row.emboss = 'NONE_OR_STATUS'
+            row.alignment = 'RIGHT'
             if key_block.mute or (obj.mode == 'EDIT' and not (obj.use_shape_key_edit_mode and obj.type == 'MESH')):
                 split.active = False
             if not item.id_data.use_relative:
