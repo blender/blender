@@ -98,6 +98,11 @@ const char *BLI_path_parent_dir_end(const char *path, size_t path_len)
  * https://en.wikipedia.org/wiki/Filename#Reserved_characters_and_words )
  * by underscores ('_').
  *
+ * \note This should only be used when creating new paths from user-input or
+ * to sanitize a file-names initialized from non-path text such as the name of a data-block.
+ * It must never be used on references to existing paths since this function
+ * will change the paths causing them to become invalid.
+ *
  * \note Space case ' ' is a bit of an edge case here - in theory it is allowed,
  * but again can be an issue in some cases, so we simply replace it by an underscore too
  * (good practice anyway).
@@ -118,6 +123,10 @@ bool BLI_path_make_safe_filename(char *filename) ATTR_NONNULL(1);
  * Make given path OS-safe.
  *
  * \return true if \a path was changed, false otherwise.
+ *
+ * \note When the file-name component of the path may not use safe characters,
+ * #BLI_path_make_safe_filename should be used on the file-name part,
+ * so slashes are replaced, treating the text as a single file-name.
  */
 bool BLI_path_make_safe(char *path) ATTR_NONNULL(1);
 
