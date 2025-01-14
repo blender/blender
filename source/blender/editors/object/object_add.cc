@@ -3209,11 +3209,13 @@ static Object *convert_mesh_to_grease_pencil(Base &base,
   newob->data = grease_pencil;
   newob->type = OB_GREASE_PENCIL;
 
-  /* Reset `ob->totcol` since currently the generic / grease pencil material functions still
-   * depend on this value being coherent (The same value as `GreasePencil::material_array_num`).
+  /* Reset `ob->totcol` and `ob->actcol` since currently the generic / grease pencil material
+   * functions still depend on this value being coherent (The same value as
+   * `GreasePencil::material_array_num`).
    */
   short *totcol = BKE_object_material_len_p(newob);
   newob->totcol = *totcol;
+  newob->actcol = *totcol;
 
   mesh_to_grease_pencil_add_material(
       *info.bmain, *newob, DATA_("Stroke"), float4(0.0f, 0.0f, 0.0f, 1.0f), {});
