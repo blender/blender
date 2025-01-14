@@ -1,0 +1,22 @@
+@echo off
+REM ###########################################################################
+REM #
+REM # This script assumes the machine has been prepared with the vmprep.cmd 
+REM # script and will build the dependencies in the c:\db folder 
+REM # 
+REM # If you find this script with a .txt extention, DO NOT RUN IT! vmprep will 
+REM # Download this and give it the right extention. 
+REM ###########################################################################
+set CMAKE_GENERATOR_INSTANCE=c:\vs2019bt\
+set CMAKE_GENERATOR=Visual Studio 16 2019
+set NODEBUG=
+set TMPDIR=c:\t\
+set ROCM_PATH=c:\tools\rocm\5.7
+set HIP_PATH=c:\tools\rocm\5.7
+set PERL=c:\db\build\downloads\perl\perl\bin\perl.exe
+set path=%path%;c:\db\build\downloads\perl\perl\bin\;
+if not exist c:\db\ (
+  mkdir c:\db
+)
+cd /d c:\db
+call c:\blendergit\blender\build_files\build_environment\windows\build_deps.cmd 2019 x64 release
