@@ -22,8 +22,9 @@ struct ID;
  * invariants with a single call in the end. Obviously, the invariants are not maintained in the
  * meantime then and functions relying on them might not work.
  *
- * If nothing is changed, this function does nothing and it should not be slower than checking a
- * flag on every data-block in the given bmain.
+ * If this function does not need to do any work to ensure the invariants (that is, no data
+ * affecting invariants has been changed), it should not be slower than checking a flag on every
+ * data-block in the given bmain.
  *
  * Sometimes, it is known that only a single or very few data-blocks have been changed (e.g. when a
  * node has been inserted in a node tree). Passing in #modified_ids can speed up the function
