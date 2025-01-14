@@ -55,49 +55,74 @@ NODE_STORAGE_FUNCS(NodeGlare)
 
 static void cmp_node_glare_declare(NodeDeclarationBuilder &b)
 {
+  b.use_custom_socket_order();
+
+  b.add_output<decl::Color>("Image").description("The image with the generated glare added");
+  b.add_output<decl::Color>("Glare").description("The generated glare");
+  b.add_output<decl::Color>("Highlights")
+      .description("The extracted highlights from which the glare was generated");
+
+  b.add_layout([](uiLayout *layout, bContext * /*C*/, PointerRNA *ptr) {
+#ifndef WITH_FFTW3
+    const int glare_type = RNA_enum_get(ptr, "glare_type");
+    if (glare_type == CMP_NODE_GLARE_FOG_GLOW) {
+      uiItemL(layout, RPT_("Disabled, built without FFTW"), ICON_ERROR);
+    }
+#endif
+
+    uiItemR(layout, ptr, "glare_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+    uiItemR(layout, ptr, "quality", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
+  });
+
   b.add_input<decl::Color>("Image")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
       .compositor_domain_priority(0);
-  b.add_input<decl::Float>("Threshold")
+
+  PanelDeclarationBuilder &highlights_panel = b.add_panel("Highlights").default_closed(true);
+  highlights_panel.add_input<decl::Float>("Threshold", "Highlights Threshold")
       .default_value(1.0f)
       .min(0.0f)
       .description(
-          "Defines the luminance at which pixels start to be considered part of the highlights "
-          "that will produce a glare")
+          "The brightness level at which pixels are considered part of the highlights that "
+          "produce a glare")
       .compositor_expects_single_value();
-  b.add_input<decl::Float>("Smoothness", "Highlights Smoothness")
+  highlights_panel.add_input<decl::Float>("Smoothness", "Highlights Smoothness")
       .default_value(0.1f)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR)
       .description("The smoothness of the extracted highlights")
       .compositor_expects_single_value();
-  b.add_input<decl::Float>("Maximum", "Maximum Highlights")
+  highlights_panel.add_input<decl::Float>("Maximum", "Maximum Highlights")
       .default_value(0.0f)
       .min(0.0f)
       .description(
-          "Suppresses the highlights such that their brightness are not larger than this value. "
-          "Zero disables suppression and has no effect")
+          "Suppresses bright highlights such that their brightness are not larger than this "
+          "value. Zero disables suppression and has no effect")
       .compositor_expects_single_value();
-  b.add_input<decl::Float>("Strength")
+
+  PanelDeclarationBuilder &mix_panel = b.add_panel("Adjust");
+  mix_panel.add_input<decl::Float>("Strength")
       .default_value(1.0f)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR)
-      .description("The strength of the glare that will be added to the image")
+      .description("Adjusts the brightness of the glare")
       .compositor_expects_single_value();
-  b.add_input<decl::Float>("Saturation")
+  mix_panel.add_input<decl::Float>("Saturation")
       .default_value(1.0f)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR)
-      .description("Defines how saturated the glare that will be added to the image")
+      .description("Adjusts the saturation of the glare")
       .compositor_expects_single_value();
-  b.add_input<decl::Color>("Tint")
+  mix_panel.add_input<decl::Color>("Tint")
       .default_value({1.0f, 1.0f, 1.0f, 1.0f})
-      .description("Tints the glare that will be added to the image")
+      .description("Tints the glare. Consider desaturating the glare to more accurate tinting")
       .compositor_expects_single_value();
-  b.add_input<decl::Float>("Size")
+
+  PanelDeclarationBuilder &glare_panel = b.add_panel("Glare");
+  glare_panel.add_input<decl::Float>("Size")
       .default_value(0.5f)
       .min(0.0f)
       .max(1.0f)
@@ -106,44 +131,45 @@ static void cmp_node_glare_declare(NodeDeclarationBuilder &b)
           "The size of the glare relative to the image. 1 means the glare covers the entire "
           "image, 0.5 means the glare covers half the image, and so on")
       .compositor_expects_single_value();
-  b.add_input<decl::Int>("Streaks")
+  glare_panel.add_input<decl::Int>("Streaks")
       .default_value(4)
       .min(1)
       .max(16)
       .description("The number of streaks")
       .compositor_expects_single_value();
-  b.add_input<decl::Float>("Streaks Angle")
+  glare_panel.add_input<decl::Float>("Streaks Angle")
       .default_value(0.0f)
       .subtype(PROP_ANGLE)
       .description("The angle that the first streak makes with the horizontal axis")
       .compositor_expects_single_value();
-  b.add_input<decl::Int>("Iterations")
+  glare_panel.add_input<decl::Int>("Iterations")
       .default_value(3)
       .min(2)
       .max(5)
       .description(
-          "The number of ghosts for Ghost glare or the spread of Glare for Streaks and Simple "
-          "Star")
+          "The number of ghosts for Ghost glare or the quality and spread of Glare for Streaks "
+          "and Simple Star")
       .compositor_expects_single_value();
-  b.add_input<decl::Float>("Fade")
+  glare_panel.add_input<decl::Float>("Fade")
       .default_value(0.9f)
       .min(0.75f)
       .max(1.0f)
       .subtype(PROP_FACTOR)
       .description("Streak fade-out factor")
       .compositor_expects_single_value();
-  b.add_input<decl::Float>("Color Modulation")
+  glare_panel.add_input<decl::Float>("Color Modulation")
       .default_value(0.25)
       .min(0.0f)
       .max(1.0f)
       .subtype(PROP_FACTOR)
       .description("Modulates colors of streaks and ghosts for a spectral dispersion effect")
       .compositor_expects_single_value();
-
-  b.add_output<decl::Color>("Image").description("The image with the generated glare added");
-  b.add_output<decl::Color>("Glare").description("The generated glare");
-  b.add_output<decl::Color>("Highlights")
-      .description("The extracted highlights from which the glare was generated");
+  glare_panel.add_layout([](uiLayout *layout, bContext * /*C*/, PointerRNA *ptr) {
+    const int glare_type = RNA_enum_get(ptr, "glare_type");
+    if (glare_type == CMP_NODE_GLARE_SIMPLE_STAR) {
+      uiItemR(layout, ptr, "use_rotate_45", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
+    }
+  });
 }
 
 static void node_composit_init_glare(bNodeTree * /*ntree*/, bNode *node)
@@ -153,23 +179,6 @@ static void node_composit_init_glare(bNodeTree * /*ntree*/, bNode *node)
   ndg->type = CMP_NODE_GLARE_STREAKS;
   ndg->star_45 = true;
   node->storage = ndg;
-}
-
-static void node_composit_buts_glare(uiLayout *layout, bContext * /*C*/, PointerRNA *ptr)
-{
-  const int glare_type = RNA_enum_get(ptr, "glare_type");
-#ifndef WITH_FFTW3
-  if (glare_type == CMP_NODE_GLARE_FOG_GLOW) {
-    uiItemL(layout, RPT_("Disabled, built without FFTW"), ICON_ERROR);
-  }
-#endif
-
-  uiItemR(layout, ptr, "glare_type", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
-  uiItemR(layout, ptr, "quality", UI_ITEM_R_SPLIT_EMPTY_NAME, "", ICON_NONE);
-
-  if (glare_type == CMP_NODE_GLARE_SIMPLE_STAR) {
-    uiItemR(layout, ptr, "use_rotate_45", UI_ITEM_R_SPLIT_EMPTY_NAME, std::nullopt, ICON_NONE);
-  }
 }
 
 static void node_update(bNodeTree *ntree, bNode *node)
@@ -416,7 +425,7 @@ class GlareOperation : public NodeOperation {
 
   float get_threshold()
   {
-    return math::max(0.0f, this->get_input("Threshold").get_single_value_default(1.0f));
+    return math::max(0.0f, this->get_input("Highlights Threshold").get_single_value_default(1.0f));
   }
 
   float get_highlights_smoothness()
@@ -2336,7 +2345,6 @@ void register_node_type_cmp_glare()
   ntype.nclass = NODE_CLASS_OP_FILTER;
   ntype.declare = file_ns::cmp_node_glare_declare;
   ntype.updatefunc = file_ns::node_update;
-  ntype.draw_buttons = file_ns::node_composit_buts_glare;
   ntype.initfunc = file_ns::node_composit_init_glare;
   blender::bke::node_type_storage(
       &ntype, "NodeGlare", node_free_standard_storage, node_copy_standard_storage);

@@ -969,7 +969,7 @@ static void do_version_glare_node_options_to_inputs(const Scene *scene,
 
   /* Get the newly added inputs. */
   bNodeSocket *threshold = version_node_add_socket_if_not_exist(
-      node_tree, node, SOCK_IN, SOCK_FLOAT, PROP_NONE, "Threshold", "Threshold");
+      node_tree, node, SOCK_IN, SOCK_FLOAT, PROP_NONE, "Highlights Threshold", "Threshold");
   bNodeSocket *strength = version_node_add_socket_if_not_exist(
       node_tree, node, SOCK_IN, SOCK_FLOAT, PROP_FACTOR, "Strength", "Strength");
   bNodeSocket *size = version_node_add_socket_if_not_exist(
