@@ -1420,7 +1420,7 @@ using pastebuf_match_func = bool (*)(Main *bmain,
                                      const FCurve *fcurve_to_match,
                                      const tAnimCopybufItem *aci,
                                      bool from_single,
-                                     bool to_simple,
+                                     bool to_single,
                                      bool flip);
 
 /**
@@ -1430,11 +1430,11 @@ static tAnimCopybufItem *pastebuf_find_matching_copybuf_item(const pastebuf_matc
                                                              Main *bmain,
                                                              const FCurve *fcurve_to_match,
                                                              const bool from_single,
-                                                             const bool to_simple,
+                                                             const bool to_single,
                                                              const bool flip)
 {
   LISTBASE_FOREACH (tAnimCopybufItem *, aci, &animcopybuf) {
-    if (strategy(bmain, fcurve_to_match, aci, from_single, to_simple, flip)) {
+    if (strategy(bmain, fcurve_to_match, aci, from_single, to_single, flip)) {
       return aci;
     }
   }
@@ -1445,12 +1445,12 @@ bool pastebuf_match_path_full(Main * /*bmain*/,
                               const FCurve *fcu,
                               const tAnimCopybufItem *aci,
                               const bool from_single,
-                              const bool to_simple,
+                              const bool to_single,
                               const bool flip)
 {
   if (!fcu->rna_path || !aci->rna_path) {
     /* No paths to compare to, so only ok if pasting to a single F-Curve. */
-    return to_simple;
+    return to_single;
   }
 
   /* The 'source' of the copy data is considered 'ok' if either we're copying a single F-Curve, or
@@ -1461,20 +1461,20 @@ bool pastebuf_match_path_full(Main * /*bmain*/,
     return false;
   }
 
-  if (!to_simple && flip && aci->is_bone) {
+  if (!to_single && flip && aci->is_bone) {
     const std::optional<std::string> with_flipped_name = flip_names(
         const_cast<tAnimCopybufItem *>(aci));
     return with_flipped_name && with_flipped_name == fcu->rna_path;
   }
 
-  return to_simple || STREQ(aci->rna_path, fcu->rna_path);
+  return to_single || STREQ(aci->rna_path, fcu->rna_path);
 }
 
 bool pastebuf_match_path_property(Main *bmain,
                                   const FCurve *fcu,
                                   const tAnimCopybufItem *aci,
                                   const bool from_single,
-                                  const bool /*to_simple*/,
+                                  const bool /*to_single*/,
                                   const bool /*flip*/)
 {
   if (!aci->rna_path || !fcu->rna_path) {
@@ -1522,8 +1522,8 @@ bool pastebuf_match_index_only(Main * /*bmain*/,
                                const FCurve *fcu,
                                const tAnimCopybufItem *aci,
                                const bool from_single,
-                               const bool /*to_simple*/,
-                               const bool /*to_simple*/)
+                               const bool /*to_single*/,
+                               const bool /*flip*/)
 {
   return from_single || aci->array_index == fcu->array_index;
 }
@@ -1765,7 +1765,7 @@ eKeyPasteError paste_animedit_keys(bAnimContext *ac,
   const Scene *scene = (ac->scene);
 
   const bool from_single = BLI_listbase_is_single(&animcopybuf);
-  const bool to_simple = BLI_listbase_is_single(anim_data);
+  const bool to_single = BLI_listbase_is_single(anim_data);
 
   float offset[2];
   int pass;
@@ -1795,7 +1795,7 @@ eKeyPasteError paste_animedit_keys(bAnimContext *ac,
       break;
   }
 
-  if (from_single && to_simple) {
+  if (from_single && to_single) {
     /* 1:1 match, no tricky checking, just paste */
     FCurve *fcu;
     tAnimCopybufItem *aci;
@@ -1843,7 +1843,7 @@ eKeyPasteError paste_animedit_keys(bAnimContext *ac,
         FCurve *fcu = (FCurve *)ale->data; /* destination F-Curve */
 
         tAnimCopybufItem *aci = pastebuf_find_matching_copybuf_item(
-            matcher, ac->bmain, fcu, from_single, to_simple, flip);
+            matcher, ac->bmain, fcu, from_single, to_single, flip);
 
         /* copy the relevant data from the matching buffer curve */
         if (aci) {

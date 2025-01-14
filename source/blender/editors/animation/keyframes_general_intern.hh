@@ -49,7 +49,7 @@ bool pastebuf_match_path_full(Main *bmain,
                               const FCurve *fcu,
                               const tAnimCopybufItem *aci,
                               bool from_single,
-                              bool to_simple,
+                              bool to_single,
                               bool flip);
 
 /**
@@ -59,7 +59,7 @@ bool pastebuf_match_path_property(Main *bmain,
                                   const FCurve *fcu,
                                   const tAnimCopybufItem *aci,
                                   bool from_single,
-                                  bool to_simple,
+                                  bool to_single,
                                   bool flip);
 
 /**
@@ -69,5 +69,5 @@ bool pastebuf_match_index_only(Main *bmain,
                                const FCurve *fcu,
                                const tAnimCopybufItem *aci,
                                bool from_single,
-                               bool to_simple,
+                               bool to_single,
                                bool flip);
