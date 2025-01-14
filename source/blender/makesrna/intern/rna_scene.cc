@@ -4112,9 +4112,8 @@ static void rna_def_tool_settings(BlenderRNA *brna)
 
   /* Mesh */
   prop = RNA_def_property(srna, "mesh_select_mode", PROP_BOOLEAN, PROP_NONE);
-  RNA_def_property_boolean_sdna(prop, nullptr, "selectmode", 1);
+  RNA_def_property_boolean_bitset_array_sdna(prop, nullptr, "selectmode", 1 << 0, 3);
   RNA_def_property_flag(prop, PROP_DEG_SYNC_ONLY);
-  RNA_def_property_array(prop, 3);
   RNA_def_property_boolean_funcs(prop, nullptr, "rna_Scene_editmesh_select_mode_set");
   RNA_def_property_ui_text(prop, "Mesh Selection Mode", "Which mesh elements selection works on");
   RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);

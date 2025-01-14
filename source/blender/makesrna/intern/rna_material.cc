@@ -780,8 +780,7 @@ static void rna_def_material_lineart(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "use_material_mask_bits", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_default(prop, false);
-  RNA_def_property_boolean_sdna(prop, nullptr, "material_mask_bits", 1);
-  RNA_def_property_array(prop, 8);
+  RNA_def_property_boolean_bitset_array_sdna(prop, nullptr, "material_mask_bits", 1 << 0, 8);
   RNA_def_property_ui_text(prop, "Mask", "");
   RNA_def_property_update(prop, NC_GPENCIL | ND_SHADING, "rna_MaterialLineArt_update");
 

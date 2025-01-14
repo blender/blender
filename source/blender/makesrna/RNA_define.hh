@@ -357,14 +357,38 @@ PropertyRNA *RNA_def_property(StructOrFunctionRNA *cont,
                               int type,
                               int subtype);
 
+/**
+ * Define a boolean property controlling one or more bitflags in the DNA member.
+ *
+ * \note This can be combined to a call to #RNA_def_property_array on the same property, in case
+ * the wrapped DNA member is an array of integers. Do not confuse it with defining a RNA boolean
+ * array property using a single DNA member as a bitset (use
+ * #RNA_def_property_boolean_bitset_array_sdna for this).
+ */
 void RNA_def_property_boolean_sdna(PropertyRNA *prop,
                                    const char *structname,
                                    const char *propname,
-                                   int64_t bit);
+                                   int64_t booleanbit);
 void RNA_def_property_boolean_negative_sdna(PropertyRNA *prop,
                                             const char *structname,
                                             const char *propname,
-                                            int64_t bit);
+                                            int64_t booleanbit);
+/**
+ * Used to define an array of boolean values using a single int/char/etc. member of a DNA struct
+ * (aka 'bitset array').
+ *
+ * The #booleanbit value should strictly have a single bit enabled (so typically come from a
+ * bit-shift expression like `1 << 0`), and be strictly positive (i.e. the left-most bit in the
+ * valid range should not be used). Multi-bit values are not valid. It will be used as first bit
+ * for the `0`-indexed item of the array.
+ *
+ * The maximum #len depends on the type of the DNA member, and the #booleanbit value. The left-most
+ * bit is not usable (because bitshift operations over signed negative values are typically
+ * 'arithmetic', and not 'bitwise', in C++). So e.g. `31` for an `int32_t` with a `booleanbit`
+ * value of `1 << 0`, and so on.
+ */
+void RNA_def_property_boolean_bitset_array_sdna(
+    PropertyRNA *prop, const char *structname, const char *propname, int64_t booleanbit, int len);
 void RNA_def_property_int_sdna(PropertyRNA *prop, const char *structname, const char *propname);
 void RNA_def_property_float_sdna(PropertyRNA *prop, const char *structname, const char *propname);
 void RNA_def_property_string_sdna(PropertyRNA *prop, const char *structname, const char *propname);

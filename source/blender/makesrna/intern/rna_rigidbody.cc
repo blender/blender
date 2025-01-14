@@ -1202,8 +1202,7 @@ static void rna_def_rigidbody_object(BlenderRNA *brna)
   RNA_def_property_update(prop, NC_OBJECT | ND_POINTCACHE, "rna_RigidBodyOb_shape_reset");
 
   prop = RNA_def_property(srna, "collision_collections", PROP_BOOLEAN, PROP_LAYER_MEMBER);
-  RNA_def_property_boolean_sdna(prop, nullptr, "col_groups", 1);
-  RNA_def_property_array(prop, 20);
+  RNA_def_property_boolean_bitset_array_sdna(prop, nullptr, "col_groups", 1 << 0, 20);
   RNA_def_property_boolean_funcs(prop, nullptr, "rna_RigidBodyOb_collision_collections_set");
   RNA_def_property_ui_text(
       prop, "Collision Collections", "Collision collections rigid body belongs to");
