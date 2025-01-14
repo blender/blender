@@ -1460,8 +1460,11 @@ void Layer::set_parent_bone_name(const StringRef new_name)
 {
   if (this->parsubstr != nullptr) {
     MEM_freeN(this->parsubstr);
+    this->parsubstr = nullptr;
   }
-  this->parsubstr = BLI_strdupn(new_name.data(), new_name.size());
+  if (!new_name.is_empty()) {
+    this->parsubstr = BLI_strdupn(new_name.data(), new_name.size());
+  }
 }
 
 float4x4 Layer::parent_to_world(const Object &parent) const
@@ -1505,8 +1508,11 @@ void Layer::set_view_layer_name(const StringRef new_name)
 {
   if (this->viewlayername != nullptr) {
     MEM_freeN(this->viewlayername);
+    this->viewlayername = nullptr;
   }
-  this->viewlayername = BLI_strdupn(new_name.data(), new_name.size());
+  if (!new_name.is_empty()) {
+    this->viewlayername = BLI_strdupn(new_name.data(), new_name.size());
+  }
 }
 
 LayerGroup::LayerGroup()
