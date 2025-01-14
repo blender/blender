@@ -2072,6 +2072,8 @@ void UI_panel_category_clear_all(ARegion *region);
  */
 void UI_panel_category_draw_all(ARegion *region, const char *category_id_active);
 
+void UI_panel_stop_animation(const bContext *C, Panel *panel);
+
 /* Panel custom data. */
 PointerRNA *UI_panel_custom_data_get(const Panel *panel);
 PointerRNA *UI_region_panel_custom_data_under_cursor(const bContext *C, const wmEvent *event);
