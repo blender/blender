@@ -3973,6 +3973,10 @@ static void rna_def_operator_stroke_element(BlenderRNA *brna)
   RNA_def_property_range(prop, 0.0f, FLT_MAX);
   RNA_def_property_ui_text(prop, "Brush Size", "Brush size in screen space");
 
+  prop = RNA_def_property(srna, "pen_flip", PROP_BOOLEAN, PROP_NONE);
+  RNA_def_property_flag(prop, PROP_IDPROPERTY);
+  RNA_def_property_ui_text(prop, "Flip", "");
+
   prop = RNA_def_property(srna, "x_tilt", PROP_FLOAT, PROP_FACTOR);
   RNA_def_property_flag(prop, PROP_IDPROPERTY);
   RNA_def_property_range(prop, -1.0f, 1.0f);
