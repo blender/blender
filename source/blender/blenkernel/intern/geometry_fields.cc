@@ -11,8 +11,6 @@
 #include "BKE_grease_pencil.hh"
 #include "BKE_instances.hh"
 #include "BKE_mesh.hh"
-#include "BKE_pointcloud.hh"
-#include "BKE_type_conversions.hh"
 
 #include "DNA_mesh_types.h"
 #include "DNA_pointcloud_types.h"

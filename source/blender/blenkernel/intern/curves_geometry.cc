@@ -6,7 +6,6 @@
  * \ingroup bke
  */
 
-#include <mutex>
 #include <utility>
 
 #include "MEM_guardedalloc.h"
@@ -18,7 +17,6 @@
 #include "BLI_math_matrix.hh"
 #include "BLI_math_rotation_legacy.hh"
 #include "BLI_memory_counter.hh"
-#include "BLI_multi_value_map.hh"
 #include "BLI_task.hh"
 
 #include "BLO_read_write.hh"

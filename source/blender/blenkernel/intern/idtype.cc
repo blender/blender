@@ -9,12 +9,8 @@
 #include <array>
 #include <cstring>
 
-#include "MEM_guardedalloc.h"
-
 #include "BLI_ghash.h"
 #include "BLI_utildefines.h"
-
-#include "CLG_log.h"
 
 #include "BLT_translation.hh"
 
@@ -23,7 +19,6 @@
 #include "DNA_node_types.h"
 #include "DNA_scene_types.h"
 
-#include "BKE_main.hh"
 #include "BKE_node.hh"
 
 #include "BKE_idtype.hh"

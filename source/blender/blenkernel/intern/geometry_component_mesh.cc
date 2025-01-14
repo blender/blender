@@ -2,21 +2,12 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BLI_listbase.h"
-#include "BLI_task.hh"
+#include "BLI_math_vector.hh"
 
-#include "DNA_meshdata_types.h"
-#include "DNA_object_types.h"
-
-#include "BKE_attribute_math.hh"
-#include "BKE_deform.hh"
 #include "BKE_geometry_fields.hh"
 #include "BKE_geometry_set.hh"
 #include "BKE_lib_id.hh"
 #include "BKE_mesh.hh"
-#include "BKE_mesh_mapping.hh"
-
-#include "FN_multi_function_builder.hh"
 
 #include "attribute_access_intern.hh"
 

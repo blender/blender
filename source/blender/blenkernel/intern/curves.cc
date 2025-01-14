@@ -18,7 +18,6 @@
 #include "DNA_object_types.h"
 
 #include "BLI_index_range.hh"
-#include "BLI_math_base.h"
 #include "BLI_math_matrix.hh"
 #include "BLI_rand.hh"
 #include "BLI_span.hh"

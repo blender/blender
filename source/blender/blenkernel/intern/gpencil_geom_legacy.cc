@@ -6,46 +6,25 @@
  * \ingroup bke
  */
 
-#include <algorithm>
 #include <cmath>
-#include <cstddef>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_array_utils.h"
-#include "BLI_blenlib.h"
-#include "BLI_ghash.h"
-#include "BLI_hash.h"
-#include "BLI_heap.h"
-#include "BLI_math_geom.h"
-#include "BLI_math_matrix.h"
-#include "BLI_math_rotation.h"
+#include "BLI_listbase.h"
 #include "BLI_math_vector.h"
-#include "BLI_math_vector.hh"
 #include "BLI_math_vector_types.hh"
 #include "BLI_polyfill_2d.h"
 #include "BLI_span.hh"
-#include "BLI_string_utils.hh"
 
 #include "DNA_gpencil_legacy_types.h"
-#include "DNA_gpencil_modifier_types.h"
-#include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
-#include "DNA_scene_types.h"
 
-#include "BKE_attribute.hh"
-#include "BKE_deform.hh"
 #include "BKE_gpencil_geom_legacy.h"
 #include "BKE_gpencil_legacy.h"
-#include "BKE_material.hh"
-#include "BKE_object.hh"
-#include "BKE_object_types.hh"
-
-#include "DEG_depsgraph_query.hh"
 
 using blender::float3;
 using blender::Span;

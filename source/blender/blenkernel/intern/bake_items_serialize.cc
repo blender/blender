@@ -6,7 +6,6 @@
 #include "BKE_bake_items_serialize.hh"
 #include "BKE_curves.hh"
 #include "BKE_customdata.hh"
-#include "BKE_deform.hh"
 #include "BKE_grease_pencil.hh"
 #include "BKE_instances.hh"
 #include "BKE_lib_id.hh"
@@ -21,8 +20,6 @@
 #include "BLI_path_utils.hh"
 #include "BLI_string.h"
 
-#include "DNA_material_types.h"
-#include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_volume_types.h"
 

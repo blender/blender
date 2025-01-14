@@ -17,14 +17,12 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_blenlib.h"
 #include "BLI_math_matrix.h"
 #include "BLI_math_vector.h"
+#include "BLI_string_utf8.h"
 #include "BLI_string_utils.hh"
 
 #include "BLT_translation.hh"
-
-#include "IMB_interp.hh"
 
 /* Allow using deprecated functionality for .blend file I/O. */
 #define DNA_DEPRECATED_ALLOW
@@ -33,7 +31,7 @@
 #include "DNA_gpencil_legacy_types.h"
 #include "DNA_material_types.h"
 #include "DNA_meshdata_types.h"
-#include "DNA_space_types.h"
+#include "DNA_scene_types.h"
 
 #include "BKE_action.hh"
 #include "BKE_anim_data.hh"
@@ -52,9 +50,9 @@
 #include "BKE_material.hh"
 #include "BKE_paint.hh"
 
-#include "BLI_math_color.h"
+#include "DEG_depsgraph.hh"
 
-#include "DEG_depsgraph_query.hh"
+#include "BLI_math_color.h"
 
 #include "BLO_read_write.hh"
 

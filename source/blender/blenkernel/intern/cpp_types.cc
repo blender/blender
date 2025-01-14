@@ -2,11 +2,8 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BLI_color.hh"
 #include "BLI_cpp_type_make.hh"
 #include "BLI_cpp_types_make.hh"
-#include "BLI_math_matrix_types.hh"
-#include "BLI_math_vector_types.hh"
 
 #include "BKE_cpp_types.hh"
 #include "BKE_geometry_nodes_reference_set.hh"
