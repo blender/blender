@@ -131,6 +131,22 @@ static void subdivide_attribute_catmull_rom(const OffsetIndices<int> src_points_
   });
 }
 
+static HandleType aligned_or_free_handle_type(const HandleType type)
+{
+  switch (type) {
+    case BEZIER_HANDLE_FREE:
+      return BEZIER_HANDLE_FREE;
+    case BEZIER_HANDLE_AUTO:
+      return BEZIER_HANDLE_ALIGN;
+    case BEZIER_HANDLE_VECTOR:
+      return BEZIER_HANDLE_FREE;
+    case BEZIER_HANDLE_ALIGN:
+      return BEZIER_HANDLE_ALIGN;
+  }
+  BLI_assert_unreachable();
+  return BEZIER_HANDLE_FREE;
+}
+
 static void subdivide_bezier_segment(const float3 &position_prev,
                                      const float3 &handle_prev,
                                      const float3 &handle_next,
@@ -138,30 +154,24 @@ static void subdivide_bezier_segment(const float3 &position_prev,
                                      const HandleType type_prev,
                                      const HandleType type_next,
                                      const IndexRange segment_points,
+                                     const int dst_next_segment_start,
                                      MutableSpan<float3> dst_positions,
                                      MutableSpan<float3> dst_handles_l,
                                      MutableSpan<float3> dst_handles_r,
                                      MutableSpan<int8_t> dst_types_l,
-                                     MutableSpan<int8_t> dst_types_r,
-                                     const bool is_last_cyclic_segment)
+                                     MutableSpan<int8_t> dst_types_r)
 {
-  auto fill_segment_handle_types = [&](const HandleType type) {
-    /* Also change the left handle of the control point following the segment's points. And don't
-     * change the left handle of the first point, since that is part of the previous segment. */
-    dst_types_l.slice_safe(segment_points.shift(1)).fill(type);
-    dst_types_r.slice(segment_points).fill(type);
-  };
-
   if (bke::curves::bezier::segment_is_vector(type_prev, type_next)) {
     linear_interpolation(position_prev, position_next, dst_positions.slice(segment_points));
-    fill_segment_handle_types(BEZIER_HANDLE_VECTOR);
+    /* All of the segment handles should be vector handles. */
+    dst_types_r[segment_points.first()] = BEZIER_HANDLE_VECTOR;
+    dst_types_l[dst_next_segment_start] = BEZIER_HANDLE_VECTOR;
+    dst_types_l.slice(segment_points.drop_front(1)).fill(BEZIER_HANDLE_VECTOR);
+    dst_types_r.slice(segment_points.drop_front(1)).fill(BEZIER_HANDLE_VECTOR);
   }
   else {
     /* The first point in the segment is always copied. */
     dst_positions[segment_points.first()] = position_prev;
-
-    /* Non-vector segments in the result curve are given auto handles. */
-    fill_segment_handle_types(BEZIER_HANDLE_AUTO);
 
     /* In order to generate a Bezier curve with the same shape as the input curve, apply the
      * De Casteljau algorithm iteratively for the provided number of cuts, constantly updating the
@@ -189,9 +199,16 @@ static void subdivide_bezier_segment(const float3 &position_prev,
     }
 
     /* Copy the handles for the last segment from the working variables. */
-    const int i_segment_last = is_last_cyclic_segment ? 0 : segment_points.one_after_last();
     dst_handles_r[segment_points.last()] = segment_handle_prev;
-    dst_handles_l[i_segment_last] = segment_handle_next;
+    dst_handles_l[dst_next_segment_start] = segment_handle_next;
+
+    /* First and last handles at the ends of the segment are aligned if possible. */
+    dst_types_r[segment_points.first()] = aligned_or_free_handle_type(type_prev);
+    dst_types_l[dst_next_segment_start] = aligned_or_free_handle_type(type_next);
+
+    /* Handles inside the segment are aligned. */
+    dst_types_l.slice(segment_points.drop_front(1)).fill(BEZIER_HANDLE_ALIGN);
+    dst_types_r.slice(segment_points.drop_front(1)).fill(BEZIER_HANDLE_ALIGN);
   }
 }
 
@@ -218,42 +235,31 @@ static void subdivide_bezier_positions(const Span<float3> src_positions,
                                HandleType(src_types_r[segment_i]),
                                HandleType(src_types_l[segment_i + 1]),
                                segment,
+                               segment.one_after_last(),
                                dst_positions,
                                dst_handles_l,
                                dst_handles_r,
                                dst_types_l,
-                               dst_types_r,
-                               false);
+                               dst_types_r);
     }
   });
 
   if (cyclic) {
     const int last_index = src_positions.index_range().last();
     const IndexRange segment = evaluated_offsets[last_index];
-    const HandleType type_prev = HandleType(src_types_r.last());
-    const HandleType type_next = HandleType(src_types_l.first());
     subdivide_bezier_segment(src_positions.last(),
                              src_handles_r.last(),
                              src_handles_l.first(),
                              src_positions.first(),
-                             type_prev,
-                             type_next,
+                             HandleType(src_types_r.last()),
+                             HandleType(src_types_l.first()),
                              segment,
+                             0,
                              dst_positions,
                              dst_handles_l,
                              dst_handles_r,
                              dst_types_l,
-                             dst_types_r,
-                             true);
-
-    if (bke::curves::bezier::segment_is_vector(type_prev, type_next)) {
-      dst_types_l.first() = BEZIER_HANDLE_VECTOR;
-      dst_types_r.last() = BEZIER_HANDLE_VECTOR;
-    }
-    else {
-      dst_types_l.first() = BEZIER_HANDLE_FREE;
-      dst_types_r.last() = BEZIER_HANDLE_FREE;
-    }
+                             dst_types_r);
   }
   else {
     dst_positions.last() = src_positions.last();
