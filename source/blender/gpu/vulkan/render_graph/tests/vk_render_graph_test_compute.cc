@@ -28,7 +28,7 @@ TEST_F(VKRenderGraphTestCompute, dispatch_read_back)
   dispatch_info.dispatch_node.group_count_y = 1;
   dispatch_info.dispatch_node.group_count_z = 1;
   render_graph->add_node(dispatch_info);
-  render_graph->submit_buffer_for_read(buffer);
+  render_graph->submit_for_read();
   EXPECT_EQ(3, log.size());
   EXPECT_EQ("bind_pipeline(pipeline_bind_point=VK_PIPELINE_BIND_POINT_COMPUTE, pipeline=0x2)",
             log[0]);
@@ -75,7 +75,7 @@ TEST_F(VKRenderGraphTestCompute, dispatch_dispatch_read_back)
     dispatch_info.dispatch_node.group_count_z = 2;
     render_graph->add_node(dispatch_info);
   }
-  render_graph->submit_buffer_for_read(buffer);
+  render_graph->submit_for_read();
   EXPECT_EQ(5, log.size());
   EXPECT_EQ("bind_pipeline(pipeline_bind_point=VK_PIPELINE_BIND_POINT_COMPUTE, pipeline=0x2)",
             log[0]);
@@ -134,7 +134,7 @@ TEST_F(VKRenderGraphTestCompute, dispatch_dispatch_read_back_with_changing_descr
     dispatch_info.dispatch_node.group_count_z = 2;
     render_graph->add_node(dispatch_info);
   }
-  render_graph->submit_buffer_for_read(buffer);
+  render_graph->submit_for_read();
   EXPECT_EQ(6, log.size());
   EXPECT_EQ("bind_pipeline(pipeline_bind_point=VK_PIPELINE_BIND_POINT_COMPUTE, pipeline=0x2)",
             log[0]);
@@ -196,7 +196,7 @@ TEST_F(VKRenderGraphTestCompute, dispatch_dispatch_read_back_with_changing_pipel
     dispatch_info.dispatch_node.group_count_z = 2;
     render_graph->add_node(dispatch_info);
   }
-  render_graph->submit_buffer_for_read(buffer);
+  render_graph->submit_for_read();
   EXPECT_EQ(6, log.size());
   EXPECT_EQ("bind_pipeline(pipeline_bind_point=VK_PIPELINE_BIND_POINT_COMPUTE, pipeline=0x2)",
             log[0]);
@@ -259,7 +259,7 @@ TEST_F(VKRenderGraphTestCompute,
     dispatch_info.dispatch_node.group_count_z = 2;
     render_graph->add_node(dispatch_info);
   }
-  render_graph->submit_buffer_for_read(buffer);
+  render_graph->submit_for_read();
   EXPECT_EQ(7, log.size());
   EXPECT_EQ("bind_pipeline(pipeline_bind_point=VK_PIPELINE_BIND_POINT_COMPUTE, pipeline=0x2)",
             log[0]);
@@ -309,7 +309,7 @@ TEST_F(VKRenderGraphTestCompute, dispatch_indirect_read_back)
   dispatch_indirect_info.dispatch_indirect_node.buffer = command_buffer;
   dispatch_indirect_info.dispatch_indirect_node.offset = 0;
   render_graph->add_node(dispatch_indirect_info);
-  render_graph->submit_buffer_for_read(buffer);
+  render_graph->submit_for_read();
   EXPECT_EQ(4, log.size());
   EXPECT_EQ(
       "pipeline_barrier(src_stage_mask=VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, "
@@ -364,7 +364,7 @@ TEST_F(VKRenderGraphTestCompute, dispatch_indirect_dispatch_indirect_read_back)
     dispatch_indirect_info.dispatch_indirect_node.offset = 12;
     render_graph->add_node(dispatch_indirect_info);
   }
-  render_graph->submit_buffer_for_read(buffer);
+  render_graph->submit_for_read();
   EXPECT_EQ(6, log.size());
 
   EXPECT_EQ(

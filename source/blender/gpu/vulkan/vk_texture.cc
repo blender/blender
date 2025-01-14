@@ -219,7 +219,7 @@ void VKTexture::read_sub(
   context.rendering_end();
   context.render_graph.add_node(copy_image_to_buffer);
   context.descriptor_set_get().upload_descriptor_sets();
-  context.render_graph.submit_buffer_for_read(staging_buffer.vk_handle());
+  context.render_graph.submit_for_read();
 
   convert_device_to_host(
       r_data, staging_buffer.mapped_memory_get(), sample_len, format, format_, device_format_);
