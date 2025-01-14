@@ -79,6 +79,7 @@
 #include "ED_asset_menu_utils.hh"
 #include "ED_curve.hh"
 #include "ED_gpencil_legacy.hh"
+#include "ED_grease_pencil.hh"
 #include "ED_image.hh"
 #include "ED_keyframes_keylist.hh"
 #include "ED_lattice.hh"
@@ -897,6 +898,7 @@ bool editmode_enter_ex(Main *bmain, Scene *scene, Object *ob, int flag)
   }
   else if (ob->type == OB_GREASE_PENCIL) {
     ok = true;
+    blender::ed::greasepencil::ensure_selection_domain(scene->toolsettings, ob);
     WM_main_add_notifier(NC_SCENE | ND_MODE | NS_EDITMODE_GREASE_PENCIL, scene);
   }
   else if (ob->type == OB_POINTCLOUD) {
