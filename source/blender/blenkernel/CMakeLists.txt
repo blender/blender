@@ -460,8 +460,8 @@ set(SRC
   BKE_multires.hh
   BKE_nla.hh
   BKE_node.hh
-  BKE_node_legacy_types.hh
   BKE_node_enum.hh
+  BKE_node_legacy_types.hh
   BKE_node_runtime.hh
   BKE_node_socket_value.hh
   BKE_node_tree_dot_export.hh

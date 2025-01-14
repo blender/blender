@@ -70,13 +70,13 @@ set(SRC
   intern/proxy_job.cc
   intern/render.cc
   intern/render.hh
-  intern/strip_lookup.cc
   intern/sequencer.cc
   intern/sequencer.hh
   intern/sound.cc
   intern/strip_add.cc
   intern/strip_connect.cc
   intern/strip_edit.cc
+  intern/strip_lookup.cc
   intern/strip_relations.cc
   intern/strip_retiming.cc
   intern/strip_select.cc

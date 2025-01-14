@@ -62,10 +62,10 @@ set(SRC
   templates/interface_template_color_management.cc
   templates/interface_template_color_picker.cc
   templates/interface_template_color_ramp.cc
+  templates/interface_template_component_menu.cc
   templates/interface_template_constraint.cc
   templates/interface_template_curve_mapping.cc
   templates/interface_template_curve_profile.cc
-  templates/interface_template_component_menu.cc
   templates/interface_template_event.cc
   templates/interface_template_grease_pencil_layer_tree.cc
   templates/interface_template_icon.cc
