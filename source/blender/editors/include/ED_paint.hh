@@ -17,6 +17,7 @@ struct bContext;
 struct bToolRef;
 struct Depsgraph;
 struct Image;
+struct ImageUndoStep;
 struct ImageUser;
 struct ImBuf;
 struct Main;
@@ -72,7 +73,10 @@ void ED_image_undo_push_begin_with_image(const char *name,
                                          Image *image,
                                          ImBuf *ibuf,
                                          ImageUser *iuser);
-
+void ED_image_undo_push_begin_with_image_all_udims(const char *name,
+                                                   Image *image,
+                                                   ImageUser *iuser);
+void ED_image_undo_push(Image *image, ImBuf *ibuf, ImageUser *iuser, ImageUndoStep *us);
 void ED_image_undo_push_end();
 /**
  * Restore painting image to previous state. Used for anchored and drag-dot style brushes.

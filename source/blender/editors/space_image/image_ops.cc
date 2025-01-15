@@ -3225,38 +3225,80 @@ static int image_scale_exec(bContext *C, wmOperator *op)
 {
   Image *ima = image_from_context(C);
   ImageUser iuser = image_user_from_context_and_active_tile(C, ima);
-  ImBuf *ibuf = BKE_image_acquire_ibuf(ima, &iuser, nullptr);
   SpaceImage *sima = CTX_wm_space_image(C);
   const bool is_paint = ((sima != nullptr) && (sima->mode == SI_MODE_PAINT));
-
-  if (ibuf == nullptr) {
-    /* TODO: this should actually never happen, but does for render-results -> cleanup */
-    return OPERATOR_CANCELLED;
-  }
 
   if (is_paint) {
     ED_imapaint_clear_partial_redraw();
   }
 
-  PropertyRNA *prop = RNA_struct_find_property(op->ptr, "size");
-  int size[2];
-  if (RNA_property_is_set(op->ptr, prop)) {
-    RNA_property_int_get_array(op->ptr, prop, size);
+  const bool is_scaling_all = RNA_boolean_get(op->ptr, "all_udims");
+
+  if (!is_scaling_all) {
+    ImBuf *ibuf = BKE_image_acquire_ibuf(ima, &iuser, nullptr);
+
+    if (ibuf == nullptr) {
+      /* TODO: this should actually never happen, but does for render-results -> cleanup */
+      return OPERATOR_CANCELLED;
+    }
+
+    PropertyRNA *prop = RNA_struct_find_property(op->ptr, "size");
+    int size[2];
+    if (RNA_property_is_set(op->ptr, prop)) {
+      RNA_property_int_get_array(op->ptr, prop, size);
+    }
+    else {
+      size[0] = ibuf->x;
+      size[1] = ibuf->y;
+      RNA_property_int_set_array(op->ptr, prop, size);
+    }
+
+    ED_image_undo_push_begin_with_image(op->type->name, ima, ibuf, &iuser);
+    ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
+    IMB_scale(ibuf, size[0], size[1], IMBScaleFilter::Box, false);
+    BKE_image_mark_dirty(ima, ibuf);
+    BKE_image_release_ibuf(ima, ibuf, nullptr);
+    ED_image_undo_push_end();
   }
   else {
-    size[0] = ibuf->x;
-    size[1] = ibuf->y;
-    RNA_property_int_set_array(op->ptr, prop, size);
+    // Ensure that an image buffer can be aquired for all UDIM tiles
+    LISTBASE_FOREACH (ImageTile *, current_tile, &ima->tiles) {
+      iuser.tile = current_tile->tile_number;
+
+      ImBuf *ibuf = BKE_image_acquire_ibuf(ima, &iuser, nullptr);
+
+      if (ibuf == nullptr) {
+        /* TODO: this should actually never happen, but does for render-results -> cleanup */
+        return OPERATOR_CANCELLED;
+      }
+
+      BKE_image_release_ibuf(ima, ibuf, nullptr);
+    }
+
+    ED_image_undo_push_begin_with_image_all_udims(op->type->name, ima, &iuser);
+    LISTBASE_FOREACH (ImageTile *, current_tile, &ima->tiles) {
+      iuser.tile = current_tile->tile_number;
+
+      ImBuf *ibuf = BKE_image_acquire_ibuf(ima, &iuser, nullptr);
+
+      PropertyRNA *prop = RNA_struct_find_property(op->ptr, "size");
+      int size[2];
+      if (RNA_property_is_set(op->ptr, prop)) {
+        RNA_property_int_get_array(op->ptr, prop, size);
+      }
+      else {
+        size[0] = ibuf->x;
+        size[1] = ibuf->y;
+        RNA_property_int_set_array(op->ptr, prop, size);
+      }
+
+      ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
+      IMB_scale(ibuf, size[0], size[1], IMBScaleFilter::Box, false);
+      BKE_image_mark_dirty(ima, ibuf);
+      BKE_image_release_ibuf(ima, ibuf, nullptr);
+    }
+    ED_image_undo_push_end();
   }
-
-  ED_image_undo_push_begin_with_image(op->type->name, ima, ibuf, &iuser);
-
-  ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
-  IMB_scale(ibuf, size[0], size[1], IMBScaleFilter::Box, false);
-  BKE_image_mark_dirty(ima, ibuf);
-  BKE_image_release_ibuf(ima, ibuf, nullptr);
-
-  ED_image_undo_push_end();
 
   BKE_image_partial_update_mark_full_update(ima);
 
@@ -3280,6 +3322,8 @@ void IMAGE_OT_resize(wmOperatorType *ot)
 
   /* properties */
   RNA_def_int_vector(ot->srna, "size", 2, nullptr, 1, INT_MAX, "Size", "", 1, SHRT_MAX);
+  RNA_def_boolean(
+      ot->srna, "all_udims", false, "All UDIM Tiles", "Scale all the image's UDIM tiles");
 
   /* flags */
   ot->flag = OPTYPE_REGISTER;

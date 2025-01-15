@@ -1128,6 +1128,28 @@ void ED_image_undo_push_begin_with_image(const char *name,
 {
   ImageUndoStep *us = image_undo_push_begin(name, PaintMode::Texture2D);
 
+  ED_image_undo_push(image, ibuf, iuser, us);
+}
+
+void ED_image_undo_push_begin_with_image_all_udims(const char *name,
+                                                   Image *image,
+                                                   ImageUser *iuser)
+{
+  ImageUndoStep *us = image_undo_push_begin(name, PaintMode::Texture2D);
+
+  LISTBASE_FOREACH (ImageTile *, current_tile, &image->tiles) {
+    iuser->tile = current_tile->tile_number;
+    ImBuf *ibuf = BKE_image_acquire_ibuf(image, iuser, nullptr);
+
+    ED_image_undo_push(image, ibuf, iuser, us);
+
+    // Release the image buffer to avoid leaking memory
+    BKE_image_release_ibuf(image, ibuf, nullptr);
+  }
+}
+
+void ED_image_undo_push(Image *image, ImBuf *ibuf, ImageUser *iuser, ImageUndoStep *us)
+{
   BLI_assert(BKE_image_get_tile(image, iuser->tile));
   UndoImageHandle *uh = uhandle_ensure(&us->handles, image, iuser);
   UndoImageBuf *ubuf_pre = uhandle_ensure_ubuf(uh, image, ibuf);
