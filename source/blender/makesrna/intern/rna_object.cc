@@ -2689,7 +2689,6 @@ static void rna_def_object_display(BlenderRNA *brna)
 
   prop = RNA_def_property(srna, "show_shadows", PROP_BOOLEAN, PROP_NONE);
   RNA_def_property_boolean_negative_sdna(prop, nullptr, "dtx", OB_DRAW_NO_SHADOW_CAST);
-  RNA_def_property_boolean_default(prop, true);
   RNA_def_property_ui_text(prop, "Shadow", "Object cast shadows in the 3D viewport");
   RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, nullptr);
 
