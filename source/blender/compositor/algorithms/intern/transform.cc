@@ -81,7 +81,7 @@ void transform(Context &context,
                Result &input,
                Result &output,
                const float3x3 &transformation,
-               RealizationOptions realization_options)
+               Interpolation interpolation)
 {
   Domain transformed_domain = input.domain();
   transformed_domain.transform(transformation);
@@ -93,9 +93,9 @@ void transform(Context &context,
                     output,
                     target_domain,
                     transformation * input.domain().transformation,
-                    realization_options);
+                    {interpolation});
 
-  output.get_realization_options().interpolation = realization_options.interpolation;
+  output.get_realization_options().interpolation = interpolation;
 }
 
 }  // namespace blender::compositor

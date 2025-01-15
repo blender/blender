@@ -108,7 +108,11 @@ class ScaleOperation : public NodeOperation {
     const float3x3 transformation = math::from_loc_rot_scale<float3x3>(
         translation, rotation, scale);
 
-    transform(context(), input, output, transformation, input.get_realization_options());
+    transform(this->context(),
+              input,
+              output,
+              transformation,
+              input.get_realization_options().interpolation);
   }
 
   void execute_variable_size()

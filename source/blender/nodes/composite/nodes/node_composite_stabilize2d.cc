@@ -99,10 +99,7 @@ class Stabilize2DOperation : public NodeOperation {
       transformation = math::invert(transformation);
     }
 
-    RealizationOptions realization_options = input.get_realization_options();
-    realization_options.interpolation = get_interpolation();
-
-    transform(context(), input, output, transformation, realization_options);
+    transform(this->context(), input, output, transformation, this->get_interpolation());
   }
 
   Interpolation get_interpolation()
