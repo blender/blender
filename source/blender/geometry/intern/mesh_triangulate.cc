@@ -2,8 +2,6 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include <iostream>
-
 #include "atomic_ops.h"
 
 #include "BLI_array_utils.hh"

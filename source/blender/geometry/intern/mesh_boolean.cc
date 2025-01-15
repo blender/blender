@@ -27,8 +27,6 @@
 #include "GEO_mesh_boolean.hh"
 
 #include "bmesh.hh"
-#include "bmesh_tools.hh"
-#include "tools/bmesh_boolean.hh"
 #include "tools/bmesh_intersect.hh"
 
 namespace blender::geometry::boolean {
@@ -107,10 +105,10 @@ class MeshesToIMeshInfo {
   int input_mesh_for_imesh_vert(int imesh_v) const;
   int input_mesh_for_imesh_edge(int imesh_e) const;
   int input_mesh_for_imesh_face(int imesh_f) const;
-  const IndexRange input_face_for_orig_index(int orig_index,
-                                             const Mesh **r_orig_mesh,
-                                             int *r_orig_mesh_index,
-                                             int *r_index_in_orig_mesh) const;
+  IndexRange input_face_for_orig_index(int orig_index,
+                                       const Mesh **r_orig_mesh,
+                                       int *r_orig_mesh_index,
+                                       int *r_index_in_orig_mesh) const;
   void input_mvert_for_orig_index(int orig_index,
                                   const Mesh **r_orig_mesh,
                                   int *r_index_in_orig_mesh) const;
@@ -163,10 +161,10 @@ int MeshesToIMeshInfo::input_mesh_for_imesh_face(int imesh_f) const
  * and also return the index of that `Mesh` in  `*r_orig_mesh_index`.
  * Finally, return the index of the corresponding face in that `Mesh`
  * in `*r_index_in_orig_mesh`. */
-const IndexRange MeshesToIMeshInfo::input_face_for_orig_index(int orig_index,
-                                                              const Mesh **r_orig_mesh,
-                                                              int *r_orig_mesh_index,
-                                                              int *r_index_in_orig_mesh) const
+IndexRange MeshesToIMeshInfo::input_face_for_orig_index(int orig_index,
+                                                        const Mesh **r_orig_mesh,
+                                                        int *r_orig_mesh_index,
+                                                        int *r_index_in_orig_mesh) const
 {
   int orig_mesh_index = input_mesh_for_imesh_face(orig_index);
   BLI_assert(0 <= orig_mesh_index && orig_mesh_index < meshes.size());

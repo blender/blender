@@ -136,8 +136,8 @@ class PackIsland {
   void add_triangle(float2 uv0, float2 uv1, float2 uv2);
   void add_polygon(Span<float2> uvs, MemArena *arena, Heap *heap);
 
-  void build_transformation(float scale, double rotation, float r_matrix[2][2]) const;
-  void build_inverse_transformation(float scale, double rotation, float r_matrix[2][2]) const;
+  void build_transformation(float scale, double angle, float r_matrix[2][2]) const;
+  void build_inverse_transformation(float scale, double angle, float r_matrix[2][2]) const;
 
   float2 get_diagonal_support(float scale, float rotation, float margin) const;
   float2 get_diagonal_support_d4(float scale, float rotation, float margin) const;

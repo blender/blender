@@ -43,7 +43,7 @@ static std::optional<bke::CurvesGeometry> separate_curves_selection(
   if (domain == AttrDomain::Point) {
     return bke::curves_copy_point_selection(src_curves, selection, attribute_filter);
   }
-  else if (domain == AttrDomain::Curve) {
+  if (domain == AttrDomain::Curve) {
     return bke::curves_copy_curve_selection(src_curves, selection, attribute_filter);
   }
   BLI_assert_unreachable();

@@ -2,7 +2,9 @@
  *
  * SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "BLI_math_base.h"
+#include <cmath>
+
+#include "BLI_math_numbers.hh"
 
 #include "BKE_attribute.hh"
 #include "BKE_mesh.hh"
@@ -17,7 +19,7 @@ Bounds<float3> calculate_bounds_radial_primitive(const float radius_top,
                                                  const float height)
 {
   const float radius = std::max(radius_top, radius_bottom);
-  const float delta_phi = (2.0f * M_PI) / float(segments);
+  const float delta_phi = (2.0f * math::numbers::pi) / float(segments);
 
   const float x_max = radius;
   const float x_min = std::cos(std::round(0.5f * segments) * delta_phi) * radius;
