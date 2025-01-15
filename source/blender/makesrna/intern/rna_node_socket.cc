@@ -174,12 +174,12 @@ static StructRNA *rna_NodeSocket_register(Main * /*bmain*/,
     return nullptr;
   }
 
-  if (strlen(identifier) >= sizeof(dummy_st.idname)) {
+  if (strlen(identifier) >= sizeof(dummy_sock.idname)) {
     BKE_reportf(reports,
                 RPT_ERROR,
                 "Registering node socket class: '%s' is too long, maximum length is %d",
                 identifier,
-                int(sizeof(dummy_st.idname)));
+                int(sizeof(dummy_sock.idname)));
     return nullptr;
   }
 
