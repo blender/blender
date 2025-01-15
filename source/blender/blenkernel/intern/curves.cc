@@ -315,6 +315,7 @@ void curves_copy_parameters(const Curves &src, Curves &dst)
   if (src.surface_uv_map != nullptr) {
     dst.surface_uv_map = BLI_strdup(src.surface_uv_map);
   }
+  dst.surface_collision_distance = src.surface_collision_distance;
 }
 
 CurvesSurfaceTransforms::CurvesSurfaceTransforms(const Object &curves_ob, const Object *surface_ob)

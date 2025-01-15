@@ -162,13 +162,15 @@ void report_invalid_uv_map(ReportList *reports);
 struct CurvesConstraintSolver {
  private:
   bool use_surface_collision_;
+  float surface_collision_distance_;
   Array<float3> start_positions_;
   Array<float> segment_lengths_;
 
  public:
   void initialize(const bke::CurvesGeometry &curves,
                   const IndexMask &curve_selection,
-                  const bool use_surface_collision);
+                  const bool use_surface_collision,
+                  const float surface_collision_distance);
 
   void solve_step(bke::CurvesGeometry &curves,
                   const IndexMask &curve_selection,

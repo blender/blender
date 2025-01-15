@@ -204,6 +204,10 @@ typedef struct Curves {
    */
   char *surface_uv_map;
 
+  /* Distance to keep the curves away from the surface. */
+  float surface_collision_distance;
+  char _pad2[4];
+
   /* Draw cache to store data used for viewport drawing. */
   void *batch_cache;
 } Curves;
