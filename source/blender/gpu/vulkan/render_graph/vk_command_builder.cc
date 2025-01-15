@@ -459,7 +459,7 @@ void VKCommandBuilder::send_pipeline_barriers(VKCommandBufferInterface &command_
    * It is not allowed to set it to None. */
   VkPipelineStageFlags src_stage_mask = (barrier.src_stage_mask == VK_PIPELINE_STAGE_NONE) ?
                                             VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT :
-                                            barrier.src_stage_mask;
+                                            VkPipelineStageFlagBits(barrier.src_stage_mask);
 
   VkPipelineStageFlags dst_stage_mask = barrier.dst_stage_mask;
   // TODO: this should be done during barrier extraction making within_rendering obsolete.
