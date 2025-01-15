@@ -493,58 +493,6 @@ class NWAddAttrNode(Operator, NWBase):
         return {'FINISHED'}
 
 
-class NWFrameSelected(Operator, NWBase):
-    bl_idname = "node.nw_frame_selected"
-    bl_label = "Frame Selected"
-    bl_translation_context = i18n_contexts.id_nodetree
-    bl_description = "Add a frame node and parent the selected nodes to it"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    label_prop: StringProperty(
-        name='Label',
-        description='The visual name of the frame node',
-        default=' '
-    )
-    use_custom_color_prop: BoolProperty(
-        name="Custom Color",
-        description="Use custom color for the frame node",
-        default=False
-    )
-    color_prop: FloatVectorProperty(
-        name="Color",
-        description="The color of the frame node",
-        default=(0.604, 0.604, 0.604),
-        min=0, max=1, step=1, precision=3,
-        subtype='COLOR_GAMMA', size=3
-    )
-
-    def draw(self, context):
-        layout = self.layout
-        layout.prop(self, 'label_prop')
-        layout.prop(self, 'use_custom_color_prop')
-        col = layout.column()
-        col.active = self.use_custom_color_prop
-        col.prop(self, 'color_prop', text="")
-
-    def execute(self, context):
-        nodes, links = get_nodes_links(context)
-        selected = []
-        for node in nodes:
-            if node.select:
-                selected.append(node)
-
-        bpy.ops.node.add_node(type='NodeFrame')
-        frm = nodes.active
-        frm.label = self.label_prop
-        frm.use_custom_color = self.use_custom_color_prop
-        frm.color = self.color_prop
-
-        for node in selected:
-            node.parent = frm
-
-        return {'FINISHED'}
-
-
 class NWReloadImages(Operator):
     bl_idname = "node.nw_reload_images"
     bl_label = "Reload Images"
@@ -2450,7 +2398,6 @@ classes = (
     NWSwapLinks,
     NWResetBG,
     NWAddAttrNode,
-    NWFrameSelected,
     NWReloadImages,
     NWMergeNodes,
     NWBatchChangeNodes,
