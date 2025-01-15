@@ -199,9 +199,21 @@ static PyObject *bpy_user_map(PyObject * /*self*/, PyObject *args, PyObject *kwd
     data_cb.user_map = _PyDict_NewPresized(subset_len);
     data_cb.is_subset = true;
     for (; subset_len; subset_array++, subset_len--) {
-      PyObject *set = PySet_New(nullptr);
-      PyDict_SetItem(data_cb.user_map, *subset_array, set);
-      Py_DECREF(set);
+      ID *id;
+      if (!pyrna_id_FromPyObject(*subset_array, &id)) {
+        PyErr_Format(PyExc_TypeError,
+                     "Expected an ID type in `subset` iterable, not %.200s",
+                     Py_TYPE(*subset_array)->tp_name);
+        Py_DECREF(subset_fast);
+        Py_DECREF(data_cb.user_map);
+        goto error;
+      }
+
+      if (!PyDict_Contains(data_cb.user_map, *subset_array)) {
+        PyObject *set = PySet_New(nullptr);
+        PyDict_SetItem(data_cb.user_map, *subset_array, set);
+        Py_DECREF(set);
+      }
     }
     Py_DECREF(subset_fast);
   }
@@ -263,7 +275,6 @@ error:
   if (key_types_bitmap != nullptr) {
     MEM_freeN(key_types_bitmap);
   }
-
   if (val_types_bitmap != nullptr) {
     MEM_freeN(val_types_bitmap);
   }
