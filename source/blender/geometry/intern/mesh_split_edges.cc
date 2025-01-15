@@ -29,18 +29,20 @@ static void propagate_vert_attributes(Mesh &mesh, const Span<int> new_to_old_ver
 
   bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
   for (const StringRef id : attributes.all_ids()) {
-    if (attributes.lookup_meta_data(id)->domain != bke::AttrDomain::Point) {
+    const bke::AttributeMetaData meta_data = *attributes.lookup_meta_data(id);
+    if (meta_data.domain != bke::AttrDomain::Point) {
+      continue;
+    }
+    if (meta_data.data_type == CD_PROP_STRING) {
       continue;
     }
     bke::GSpanAttributeWriter attribute = attributes.lookup_for_write_span(id);
     if (!attribute) {
       continue;
     }
-
     bke::attribute_math::gather(attribute.span,
                                 new_to_old_verts_map,
                                 attribute.span.take_back(new_to_old_verts_map.size()));
-
     attribute.finish();
   }
   if (float3 *orco = static_cast<float3 *>(
@@ -68,7 +70,11 @@ static void propagate_edge_attributes(Mesh &mesh, const Span<int> new_to_old_edg
 
   bke::MutableAttributeAccessor attributes = mesh.attributes_for_write();
   for (const StringRef id : attributes.all_ids()) {
-    if (attributes.lookup_meta_data(id)->domain != bke::AttrDomain::Edge) {
+    const bke::AttributeMetaData meta_data = *attributes.lookup_meta_data(id);
+    if (meta_data.domain != bke::AttrDomain::Edge) {
+      continue;
+    }
+    if (meta_data.data_type == CD_PROP_STRING) {
       continue;
     }
     if (id == ".edge_verts") {
