@@ -45,9 +45,9 @@ class Grid : Overlay {
 
   float3 grid_axes_ = float3(0.0f);
   float3 zplane_axes_ = float3(0.0f);
-  int grid_flag_ = int(0);
-  int zneg_flag_ = int(0);
-  int zpos_flag_ = int(0);
+  int grid_flag_ = 0;
+  int zneg_flag_ = 0;
+  int zpos_flag_ = 0;
 
  public:
   void begin_sync(Resources &res, const State &state) final
