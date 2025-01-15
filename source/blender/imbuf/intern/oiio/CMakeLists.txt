@@ -44,13 +44,13 @@ if(WITH_IMAGE_OPENEXR)
   )
 endif()
 
-# Keep until APPLE/ARM libraries are updated.
-if(APPLE OR WIN32)
-  if(CMAKE_OSX_ARCHITECTURES MATCHES arm64 OR CMAKE_SYSTEM_PROCESSOR STREQUAL "ARM64")
-    list(APPEND INC_SYS
-      ${IMATH_INCLUDE_DIRS}
-    )
-  endif()
+# OpenImageIO headers include Imath headers when there is no SSE support for
+# matrix operations. This depends on the specific architecture and compiler
+# flags, most reliable is to always include the Imath headers if we have them.
+if(DEFINED IMATH_INCLUDE_DIRS)
+  list(APPEND INC_SYS
+    ${IMATH_INCLUDE_DIRS}
+  )
 endif()
 
 blender_add_lib(bf_imbuf_openimageio "${SRC}" "${INC}" "${INC_SYS}" "${LIB}")
