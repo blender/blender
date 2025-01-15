@@ -741,6 +741,7 @@ static int sequencer_slip_modal(bContext *C, wmOperator *op, const wmEvent *even
 
     case LEFTMOUSE:
     case EVT_RETKEY:
+    case EVT_PADENTER:
     case EVT_SPACEKEY: {
       MEM_freeN(data->strip_array);
       MEM_freeN(data);
